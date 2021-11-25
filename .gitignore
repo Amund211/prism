@@ -1,0 +1,6 @@
+api_key
+customize.py
+**/__pycache__/
+venv/
+dist/
+src/*.egg-info/
