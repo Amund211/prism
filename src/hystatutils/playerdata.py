@@ -3,7 +3,6 @@ import time
 from collections import defaultdict, deque
 from datetime import datetime
 from json import JSONDecodeError
-from pathlib import Path
 
 import requests
 
@@ -16,18 +15,13 @@ except ImportError:
 PLAYER_ENDPOINT = "https://api.hypixel.net/player"
 REQUEST_LIMIT = 100  # Max requests per minute
 
-script_dir = Path(sys.path[0])
-
-with open(script_dir / "api_key", "r") as f:
-    api_key = f.read().strip()
-
 
 # Initing with now is semantically wrong, because it implies we just made a request
 # but it is a bit safer
 made_requests = deque([datetime.now()], maxlen=REQUEST_LIMIT)
 
 
-def get_player_data(identifier, uuid=False):
+def get_player_data(api_key, identifier, uuid=False):
     """Get data about the given player from the /player API endpoint"""
     if not uuid and identifier.lower() in UUID_MAP:
         identifier = UUID_MAP[identifier.lower()]

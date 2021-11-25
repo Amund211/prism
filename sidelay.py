@@ -8,14 +8,16 @@ Example string printed to logfile when typing /who:
 """
 
 import os
+import sys
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Sequence, Union, overload
 
 from hystatutils.calc import bedwars_level_from_exp
 from hystatutils.colors import Color
 from hystatutils.playerdata import get_gamemode_stats, get_player_data
-from hystatutils.utils import div
+from hystatutils.utils import div, read_key
 
 try:
     # A sequence of (lowecase) usernames that are assumed to be teammates
@@ -23,6 +25,9 @@ try:
     from customize import KNOWN_TEAMMATES
 except ImportError:
     KNOWN_TEAMMATES: Sequence[str] = ()  # type: ignore[no-redef]
+
+
+api_key = read_key(Path(sys.path[0]) / "api_key")
 
 
 WHO_PREFIX = "Info [CHAT] ONLINE: "
@@ -175,7 +180,7 @@ def get_bedwars_stats(username: str):
     stats: Union[PlayerStats, NickedPlayer]
 
     try:
-        playerdata = get_player_data(username)
+        playerdata = get_player_data(api_key, username)
     except (ValueError, RuntimeError) as e:
         # Assume the players is a nick
         print(f"Failed for {username}", e)

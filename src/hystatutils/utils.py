@@ -1,5 +1,12 @@
 from enum import Enum, unique
+from pathlib import Path
 from typing import Union
+
+
+def read_key(key_file: Path) -> str:
+    """Read the api key from the given file"""
+    with key_file.open("r") as f:
+        return f.read().strip()
 
 
 def pluralize(word: str) -> str:
