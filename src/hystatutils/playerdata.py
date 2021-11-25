@@ -3,8 +3,12 @@ import time
 from collections import defaultdict, deque
 from datetime import datetime
 from json import JSONDecodeError
+from typing import Any, cast
 
 import requests
+
+GamemodeData = dict[str, Any]
+PlayerData = dict[str, GamemodeData]
 
 PLAYER_ENDPOINT = "https://api.hypixel.net/player"
 REQUEST_LIMIT = 100  # Max requests per minute
@@ -15,7 +19,9 @@ REQUEST_LIMIT = 100  # Max requests per minute
 made_requests = deque([datetime.now()], maxlen=REQUEST_LIMIT)
 
 
-def get_player_data(api_key, identifier, uuid=False, UUID_MAP: dict[str, str] = {}):
+def get_player_data(
+    api_key: str, identifier: str, uuid: bool = False, UUID_MAP: dict[str, str] = {}
+) -> PlayerData:
     """Get data about the given player from the /player API endpoint"""
     if not uuid and identifier.lower() in UUID_MAP:
         identifier = UUID_MAP[identifier.lower()]
@@ -56,10 +62,10 @@ def get_player_data(api_key, identifier, uuid=False, UUID_MAP: dict[str, str] = 
     if not playerdata:
         raise ValueError(f"Could not find a user with {identifier_type} {identifier}")
 
-    return playerdata
+    return cast(PlayerData, playerdata)  # TODO: properly type response
 
 
-def get_gamemode_stats(playerdata, gamemode):
+def get_gamemode_stats(playerdata: PlayerData, gamemode: str) -> GamemodeData:
     """Return the stats of the player in the given gamemode"""
     if gamemode not in playerdata["stats"]:
         raise ValueError(
