@@ -1,0 +1,29 @@
+name: Python testing
+
+on: [push, workflow_dispatch]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python_version: [3.9]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python_version }}
+
+    - name: Install dependencies
+      run: |
+        python -m ensurepip --upgrade
+        python -m venv venv
+        source venv/bin/activate
+        python -m pip install -r requirements.dev.txt
+
+    - name: Run typechecking
+      run: |
+        source venv/bin/activate
+        mypy .
