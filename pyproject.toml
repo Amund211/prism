@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+exclude = '''
+/(
+    \.git
+  | \.mypy_cache
+  | __pycache__
+  | build
+  | dist
+  | venv
+)/
+'''
+
+
+[tool.isort]
+profile = "black"
+known_first_party = "hystatutils"
+skip = ".git,.mypy_cache,__pycache__,build,dist,venv"

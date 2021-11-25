@@ -12,10 +12,10 @@ import time
 from dataclasses import dataclass
 from typing import Sequence, Union, overload
 
-from calc import bedwars_level_from_exp
-from colors import Color
-from playerdata import get_gamemode_stats, get_player_data
-from utils import div
+from hystatutils.calc import bedwars_level_from_exp
+from hystatutils.colors import Color
+from hystatutils.playerdata import get_gamemode_stats, get_player_data
+from hystatutils.utils import div
 
 try:
     # A sequence of (lowecase) usernames that are assumed to be teammates

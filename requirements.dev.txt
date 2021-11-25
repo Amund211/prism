@@ -1,0 +1,6 @@
+-r requirements.txt
+types-requests
+mypy
+flake8
+black
+isort

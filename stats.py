@@ -5,9 +5,9 @@ import sys
 import time
 from datetime import datetime
 
-from calc import bedwars_level_from_exp
-from playerdata import get_gamemode_stats, get_player_data
-from utils import div, format_seconds
+from hystatutils.calc import bedwars_level_from_exp
+from hystatutils.playerdata import get_gamemode_stats, get_player_data
+from hystatutils.utils import div, format_seconds
 
 SEP = " " * 4
 
