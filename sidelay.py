@@ -20,6 +20,13 @@ from hystatutils.playerdata import get_gamemode_stats, get_player_data
 from hystatutils.utils import div, read_key
 
 try:
+    # Define a map username -> uuid so that we can look up by uuid instead of username
+    from customize import UUID_MAP
+except ImportError:
+    UUID_MAP: dict[str, str] = {}  # type: ignore[no-redef]
+
+
+try:
     # A sequence of (lowecase) usernames that are assumed to be teammates
     # Teammates are sorted at the bottom of the stat list
     from customize import KNOWN_TEAMMATES
@@ -180,7 +187,7 @@ def get_bedwars_stats(username: str):
     stats: Union[PlayerStats, NickedPlayer]
 
     try:
-        playerdata = get_player_data(api_key, username)
+        playerdata = get_player_data(api_key, username, UUID_MAP=UUID_MAP)
     except (ValueError, RuntimeError) as e:
         # Assume the players is a nick
         print(f"Failed for {username}", e)

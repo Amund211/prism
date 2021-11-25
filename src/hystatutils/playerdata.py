@@ -6,12 +6,6 @@ from json import JSONDecodeError
 
 import requests
 
-try:
-    # Define a map username -> uuid so that we can look up by uuid instead of username
-    from customize import UUID_MAP
-except ImportError:
-    UUID_MAP: dict[str, str] = {}  # type: ignore[no-redef]
-
 PLAYER_ENDPOINT = "https://api.hypixel.net/player"
 REQUEST_LIMIT = 100  # Max requests per minute
 
@@ -21,7 +15,7 @@ REQUEST_LIMIT = 100  # Max requests per minute
 made_requests = deque([datetime.now()], maxlen=REQUEST_LIMIT)
 
 
-def get_player_data(api_key, identifier, uuid=False):
+def get_player_data(api_key, identifier, uuid=False, UUID_MAP: dict[str, str] = {}):
     """Get data about the given player from the /player API endpoint"""
     if not uuid and identifier.lower() in UUID_MAP:
         identifier = UUID_MAP[identifier.lower()]

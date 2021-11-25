@@ -10,6 +10,13 @@ from hystatutils.calc import bedwars_level_from_exp
 from hystatutils.playerdata import get_gamemode_stats, get_player_data
 from hystatutils.utils import div, format_seconds, read_key
 
+try:
+    # Define a map username -> uuid so that we can look up by uuid instead of username
+    from customize import UUID_MAP
+except ImportError:
+    UUID_MAP: dict[str, str] = {}  # type: ignore[no-redef]
+
+
 api_key = read_key(Path(sys.path[0]) / "api_key")
 
 
@@ -145,7 +152,7 @@ def print_bedwars_stats(playerdata):
 
 def get_and_display(username):
     try:
-        playerdata = get_player_data(api_key, username)
+        playerdata = get_player_data(api_key, username, UUID_MAP=UUID_MAP)
     except (ValueError, RuntimeError) as e:
         print(e)
     else:
