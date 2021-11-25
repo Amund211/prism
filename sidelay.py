@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Search for /who responsed in the logfile and print the found users' stats
 
