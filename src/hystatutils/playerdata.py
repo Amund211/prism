@@ -8,7 +8,7 @@ from typing import Any, cast
 import requests
 
 GamemodeData = dict[str, Any]
-PlayerData = dict[str, GamemodeData]
+PlayerData = dict[str, Any]
 
 PLAYER_ENDPOINT = "https://api.hypixel.net/player"
 REQUEST_LIMIT = 100  # Max requests per minute
