@@ -2,6 +2,6 @@
 
 from typing import Sequence
 
-UUID_MAP = dict[str, str]
+UUID_MAP: dict[str, str]
 
 KNOWN_TEAMMATES: Sequence[str]
