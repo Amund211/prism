@@ -5,9 +5,10 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import Union
 
 from hystatutils.calc import bedwars_level_from_exp
-from hystatutils.playerdata import get_gamemode_stats, get_player_data
+from hystatutils.playerdata import PlayerData, get_gamemode_stats, get_player_data
 from hystatutils.utils import div, format_seconds, read_key
 
 try:
@@ -54,12 +55,14 @@ assert set(mode_prefixes.keys()) == set(mode_names.keys()) == set(mode_order)
 assert set(stat_names.keys()) == set(stat_order)
 
 
-def get_sep(column):
+def get_sep(column: str) -> str:
     """Get the separator used in prints for this column"""
     return "\n" if column == COLUMN_ORDER[-1] else SEP
 
 
-def div_string(dividend, divisor, decimals=2):
+def div_string(
+    dividend: Union[int, float], divisor: Union[int, float], decimals: int = 2
+) -> str:
     """Return the rounded answer to dividend/divisor as a string"""
     quotient = div(dividend, divisor)
 
@@ -69,7 +72,7 @@ def div_string(dividend, divisor, decimals=2):
     return f"{quotient:.2f}"
 
 
-def print_bedwars_stats(playerdata):
+def print_bedwars_stats(playerdata: PlayerData) -> None:
     """Print a table of bedwars stats from the given player data"""
     try:
         bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
@@ -150,7 +153,7 @@ def print_bedwars_stats(playerdata):
             )
 
 
-def get_and_display(username):
+def get_and_display(username: str) -> None:
     try:
         playerdata = get_player_data(api_key, username, UUID_MAP=UUID_MAP)
     except (ValueError, RuntimeError) as e:
@@ -161,7 +164,7 @@ def get_and_display(username):
     time.sleep(0.5)
 
 
-def main():
+def main() -> None:
     for i, username in enumerate(sys.argv[1:]):
         get_and_display(username)
 
