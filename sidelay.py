@@ -12,12 +12,16 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence, Union, overload
+from typing import Iterator, Literal, Optional, Sequence, TextIO, Union, overload
 
 from hystatutils.calc import bedwars_level_from_exp
 from hystatutils.colors import Color
 from hystatutils.playerdata import get_gamemode_stats, get_player_data
 from hystatutils.utils import div, read_key
+
+StatName = Literal["stars", "fkdr", "wlr", "winstreak"]
+InfoName = Literal["username"]
+PropertyName = Literal[StatName, InfoName]
 
 try:
     # Define a map username -> uuid so that we can look up by uuid instead of username
@@ -46,7 +50,7 @@ assert all(username.islower() for username in KNOWN_TEAMMATES)
 SEP = " " * 4
 
 
-COLUMN_NAMES = {
+COLUMN_NAMES: dict[str, PropertyName] = {
     "IGN": "username",
     "Stars": "stars",
     "FKDR": "fkdr",
@@ -64,11 +68,12 @@ LEVEL_COLORMAP = (
 )
 
 
-STAT_LEVELS = {
+STAT_LEVELS: dict[PropertyName, Optional[Sequence[Union[int, float]]]] = {
     "stars": (100, 300, 500, 800),
     "fkdr": (0.5, 2, 4, 8),
     "wlr": (0.3, 1, 2, 4),
     "winstreak": (5, 15, 30, 50),
+    "username": None,
 }
 
 assert set(STAT_LEVELS.keys()).issubset(set(COLUMN_NAMES.values()))
@@ -90,15 +95,32 @@ class PlayerStats:
     username: str
 
     @property
-    def nicked(self):
+    def nicked(self) -> bool:
         """Return True if the player is assumed to be nicked"""
         return False
 
-    def get_value(self, name: str) -> Union[int, float]:
-        """Get the given stat from this player"""
-        return getattr(self, name)
+    @overload
+    def get_value(self, name: StatName) -> Union[int, float]:
+        ...
 
-    def get_string(self, name: str) -> str:
+    @overload
+    def get_value(self, name: InfoName) -> str:
+        ...
+
+    def get_value(self, name: PropertyName) -> Union[str, int, float]:
+        """Get the given stat from this player"""
+        if name == "fkdr":
+            return self.fkdr
+        elif name == "stars":
+            return self.stars
+        elif name == "wlr":
+            return self.wlr
+        elif name == "winstreak":
+            return self.fkdr
+        elif name == "username":
+            return self.username
+
+    def get_string(self, name: PropertyName) -> str:
         """Get a string representation of the given stat"""
         value = self.get_value(name)
         if isinstance(value, int):
@@ -118,29 +140,32 @@ class NickedPlayer:
     username: str
 
     @property
-    def nicked(self):
+    def nicked(self) -> bool:
         """Return True if the player is assumed to be nicked"""
         return True
 
-    def get_value(self, name: str) -> Union[int, float]:
+    def get_value(self, name: PropertyName) -> Union[int, float]:
         """Get the given stat from this player (unknown in this case)"""
         return float("inf")
 
-    def get_string(self, name: str) -> str:
+    def get_string(self, name: PropertyName) -> str:
         """Get a string representation of the given stat (unknown)"""
-        return getattr(self, name, "unknown")
+        if name == "username":
+            return self.username
+
+        return "unknown"
 
 
 # Cache per session
 KNOWN_STATS: dict[str, Union[PlayerStats, NickedPlayer]] = {}
 
 
-def clear_screen():
+def clear_screen() -> None:
     """Blank the screen"""
     os.system("cls" if os.name == "nt" else "clear")
 
 
-def title(text):
+def title(text: str) -> str:
     """Format the given text like a title (in bold)"""
     return Color.BOLD + text + Color.END
 
@@ -173,7 +198,7 @@ def color(
     return color + text + Color.END
 
 
-def get_bedwars_stats(username: str):
+def get_bedwars_stats(username: str) -> Union[PlayerStats, NickedPlayer]:
     """Print a table of bedwars stats from the given player data"""
     global KNOWN_STATS
 
@@ -214,16 +239,6 @@ def get_bedwars_stats(username: str):
     return stats
 
 
-@overload
-def rate_stats(stats: PlayerStats) -> tuple[bool, bool, PlayerStats]:
-    ...
-
-
-@overload
-def rate_stats(stats: NickedPlayer) -> tuple[bool, bool]:
-    ...
-
-
 def rate_stats(
     stats: Union[PlayerStats, NickedPlayer]
 ) -> Union[tuple[bool, bool], tuple[bool, bool, Union[PlayerStats, NickedPlayer]]]:
@@ -240,7 +255,7 @@ def strip_who_prefix(line: str) -> str:
     return line[line.find(WHO_PREFIX) + len(WHO_PREFIX) :].strip()
 
 
-def follow(thefile):
+def follow(thefile: TextIO) -> Iterator[str]:
     thefile.seek(0, 2)
     while True:
         line = thefile.readline()
@@ -289,7 +304,7 @@ def get_and_print(players: list[str]) -> None:
             stat_string = stat.get_string(stat_name)
             stat_value = stat.get_value(stat_name)
 
-            if levels is None:
+            if levels is None or isinstance(stat_value, str):
                 final_string = stat_string
             else:
                 final_string = color(stat_string, stat_value, levels)
