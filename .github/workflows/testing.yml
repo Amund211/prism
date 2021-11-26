@@ -26,4 +26,4 @@ jobs:
     - name: Run typechecking
       run: |
         source venv/bin/activate
-        mypy .
+        mypy --strict .
