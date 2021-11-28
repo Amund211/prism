@@ -2,7 +2,6 @@
 
 import math
 import sys
-import time
 from datetime import datetime
 from pathlib import Path
 from typing import Union
@@ -160,8 +159,6 @@ def get_and_display(username: str) -> None:
         print(e)
     else:
         print_bedwars_stats(playerdata)
-
-    time.sleep(0.5)
 
 
 def main() -> None:
