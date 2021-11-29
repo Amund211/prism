@@ -183,7 +183,8 @@ class OverlayState:
 
     party_members: set[str]  # NOTE: lower case
     lobby_players: set[str]
-    own_username: Optional[str]
+    out_of_sync: bool = False
+    own_username: Optional[str] = None
 
     def add_to_party(self, username: str) -> None:
         """Add the given username to the party"""
@@ -353,7 +354,9 @@ def get_sep(column: str) -> str:
     return "\n" if column == COLUMN_ORDER[-1] else SEP
 
 
-def get_and_print(lobby_players: set[str], party_members: set[str]) -> None:
+def get_and_print(
+    lobby_players: set[str], party_members: set[str], out_of_sync: bool
+) -> None:
     stats = list(
         sorted(
             (get_bedwars_stats(player) for player in lobby_players),
@@ -370,6 +373,15 @@ def get_and_print(lobby_players: set[str], party_members: set[str]) -> None:
     }
 
     clear_screen()
+
+    if out_of_sync:
+        print(
+            title(
+                Color.LIGHT_RED
+                + Color.BG_WHITE
+                + "The overlay is out of sync with the lobby. Please use /who."
+            )
+        )
 
     # Table header
     for column in COLUMN_ORDER:
@@ -419,6 +431,7 @@ def process_chat_message(message: str, state: OverlayState) -> bool:
         logger.info("Updating lobby players from who command")
         players = message.removeprefix(WHO_PREFIX).split(", ")
         state.set_lobby(players)
+        state.out_of_sync = False
 
         return True
 
@@ -444,8 +457,6 @@ def process_chat_message(message: str, state: OverlayState) -> bool:
             return False
 
         # Message is a join message
-        redraw = False
-
         prefix, suffix = lobby_fill_string.split("/")
         player_count = int(prefix.removeprefix("("))
         player_cap = int(suffix.removesuffix(")!"))
@@ -457,8 +468,15 @@ def process_chat_message(message: str, state: OverlayState) -> bool:
             logger.debug(
                 "Player count out of sync. Clearing the lobby. Please use /who"
             )
+
+            state.out_of_sync = True
             state.set_lobby(state.party_members)
+
             redraw = True  # in case the next check fails, we still want to redraw
+        else:
+            # If we were out of sync we want to redraw, because we are in sync now
+            redraw = state.out_of_sync
+            state.out_of_sync = False
 
         if player_cap < 8:
             logger.debug("Gamemode has too few players to be bedwars. Skipping.")
@@ -636,7 +654,7 @@ def process_chat_message(message: str, state: OverlayState) -> bool:
 
 def process_loglines(loglines: Iterable[str]) -> None:
     """Process the state changes for each logline and redraw the screen if neccessary"""
-    state = OverlayState(lobby_players=set(), party_members=set(), own_username=None)
+    state = OverlayState(lobby_players=set(), party_members=set())
 
     for line in loglines:
         redraw = False
@@ -662,7 +680,11 @@ def process_loglines(loglines: Iterable[str]) -> None:
         if redraw:
             logger.info(f"Party = {', '.join(state.party_members)}")
             logger.info(f"Lobby = {', '.join(state.lobby_players)}")
-            get_and_print(state.lobby_players, party_members=state.party_members)
+            get_and_print(
+                state.lobby_players,
+                party_members=state.party_members,
+                out_of_sync=state.out_of_sync,
+            )
 
 
 def watch_from_logfile(logpath: str) -> None:
