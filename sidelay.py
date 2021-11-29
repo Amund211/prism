@@ -1,27 +1,44 @@
 #!/usr/bin/env python3
 
 """
-Search for /who responsed in the logfile and print the found users' stats
+Search for /who responses in the logfile and print the found users' stats
 
 Example string printed to logfile when typing /who:
 '[Info: 2021-10-29 15:29:33.059151572: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ONLINE: The_TOXIC__, T_T0xic, maskaom, NomexxD, Killerluise, Fruce_, 3Bitek, OhCradle, DanceMonky, Sweeetnesss, jbzn, squashypeas, Skydeaf, serocore'  # noqa: E501
 """
 
+import logging
 import os
+import re
 import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator, Literal, Optional, Sequence, TextIO, Union, overload
+from typing import (
+    Callable,
+    Iterable,
+    Literal,
+    Optional,
+    Sequence,
+    TextIO,
+    Union,
+    overload,
+)
 
 from hystatutils.calc import bedwars_level_from_exp
 from hystatutils.colors import Color
 from hystatutils.playerdata import get_gamemode_stats, get_player_data
 from hystatutils.utils import div, read_key
 
+logging.basicConfig()
+logger = logging.getLogger()
+
+TESTING = False
+
 StatName = Literal["stars", "fkdr", "wlr", "winstreak"]
 InfoName = Literal["username"]
 PropertyName = Literal[StatName, InfoName]
+RANK_REGEX = re.compile(r"\[[a-zA-Z\+]+\] ")
 
 try:
     # Define a map username -> uuid so that we can look up by uuid instead of username
@@ -41,7 +58,11 @@ except ImportError:
 api_key = read_key(Path(sys.path[0]) / "api_key")
 
 
-WHO_PREFIX = "Info [CHAT] ONLINE: "
+SETTING_USER_PREFIX = (
+    "Game/net.minecraft.client.Minecraft (Client thread) Info Setting user: "
+)
+
+CHAT_PREFIX = "Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] "
 
 assert all(username.islower() for username in KNOWN_TEAMMATES)
 
@@ -156,12 +177,63 @@ class NickedPlayer:
         return "unknown"
 
 
+@dataclass
+class OverlayState:
+    """Dataclass holding the state of the overlay"""
+
+    party_members: set[str]  # NOTE: lower case
+    lobby_players: set[str]
+    own_username: Optional[str]
+
+    def add_to_party(self, username: str) -> None:
+        """Add the given username to the party"""
+        self.party_members.add(username.lower())
+
+    def remove_from_party(self, username: str) -> None:
+        """Remove the given username from the party"""
+        if username not in self.party_members:
+            logger.error(
+                f"Tried removing {username} from the party, but they were not in it!"
+            )
+            return
+
+        self.party_members.remove(username.lower())
+
+    def clear_party(self) -> None:
+        """Remove all players from the party, except for yourself"""
+        self.party_members.clear()
+
+        if self.own_username is None:
+            logger.warn("Own username is not set, party is now empty")
+        else:
+            self.party_members.add(self.own_username.lower())
+
+    def add_to_lobby(self, username: str) -> None:
+        """Add the given username to the lobby"""
+        self.lobby_players.add(username)
+
+    def remove_from_lobby(self, username: str) -> None:
+        """Remove the given username from the lobby"""
+        if username not in self.lobby_players:
+            logger.error(
+                f"Tried removing {username} from the lobby, but they were not in it!"
+            )
+            return
+
+        self.lobby_players.remove(username)
+
+    def set_lobby(self, new_lobby: Iterable[str]) -> None:
+        """Set the lobby to be the given lobby"""
+        self.lobby_players = set(new_lobby)
+
+
 # Cache per session
 KNOWN_STATS: dict[str, Union[PlayerStats, NickedPlayer]] = {}
 
 
 def clear_screen() -> None:
     """Blank the screen"""
+    return
     os.system("cls" if os.name == "nt" else "clear")
 
 
@@ -202,12 +274,15 @@ def get_bedwars_stats(username: str) -> Union[PlayerStats, NickedPlayer]:
     """Print a table of bedwars stats from the given player data"""
     global KNOWN_STATS
 
+    if TESTING:
+        return NickedPlayer(username=username)  # No api requests in testing
+
     cached_stats = KNOWN_STATS.get(username, None)
     if cached_stats is not None:
-        print(f"Cache hit {username}")
+        logger.info(f"Cache hit {username}")
         return cached_stats
 
-    print(f"Cache miss {username}")
+    logger.info(f"Cache miss {username}")
 
     stats: Union[PlayerStats, NickedPlayer]
 
@@ -215,7 +290,7 @@ def get_bedwars_stats(username: str) -> Union[PlayerStats, NickedPlayer]:
         playerdata = get_player_data(api_key, username, UUID_MAP=UUID_MAP)
     except (ValueError, RuntimeError) as e:
         # Assume the players is a nick
-        print(f"Failed for {username}", e)
+        logger.info(f"Failed for {username}", e)
         stats = NickedPlayer(username=username)
     else:
         bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
@@ -239,23 +314,31 @@ def get_bedwars_stats(username: str) -> Union[PlayerStats, NickedPlayer]:
     return stats
 
 
-def rate_stats(
-    stats: Union[PlayerStats, NickedPlayer]
-) -> Union[tuple[bool, bool], tuple[bool, bool, Union[PlayerStats, NickedPlayer]]]:
-    """Used as a key function for sorting"""
-    is_teammate = stats.username.lower() not in KNOWN_TEAMMATES
-    if stats.nicked:
-        return (is_teammate, stats.nicked)
-
-    return (is_teammate, stats.nicked, stats)
+RateStatsReturn = Union[
+    tuple[bool, bool], tuple[bool, bool, Union[PlayerStats, NickedPlayer]]
+]
 
 
-def strip_who_prefix(line: str) -> str:
-    """Remove the identifying prefix from a 'who' line"""
-    return line[line.find(WHO_PREFIX) + len(WHO_PREFIX) :].strip()
+def rate_stats_for_non_party_members(
+    party_members: set[str],
+) -> Callable[[Union[PlayerStats, NickedPlayer]], RateStatsReturn]:
+    def rate_stats(stats: Union[PlayerStats, NickedPlayer]) -> RateStatsReturn:
+        """Used as a key function for sorting"""
+        is_teammate = stats.username.lower() not in party_members
+        if stats.nicked:
+            return (is_teammate, stats.nicked)
+
+        return (is_teammate, stats.nicked, stats)
+
+    return rate_stats
 
 
-def follow(thefile: TextIO) -> Iterator[str]:
+def strip_until(line: str, *, until: str) -> str:
+    """Remove the first occurrence of `until` and all characters before"""
+    return line[line.find(until) + len(until) :].strip()
+
+
+def follow(thefile: TextIO) -> Iterable[str]:
     thefile.seek(0, 2)
     while True:
         line = thefile.readline()
@@ -270,11 +353,11 @@ def get_sep(column: str) -> str:
     return "\n" if column == COLUMN_ORDER[-1] else SEP
 
 
-def get_and_print(players: list[str]) -> None:
+def get_and_print(lobby_players: set[str], party_members: set[str]) -> None:
     stats = list(
         sorted(
-            (get_bedwars_stats(player) for player in players),
-            key=rate_stats,
+            (get_bedwars_stats(player) for player in lobby_players),
+            key=rate_stats_for_non_party_members(party_members),
             reverse=True,
         )
     )
@@ -318,20 +401,202 @@ def get_and_print(players: list[str]) -> None:
             )
 
 
+def remove_ranks(playerstring: str) -> str:
+    """Remove all ranks from a string"""
+    return RANK_REGEX.sub("", playerstring)
+
+
+def process_chat_message(message: str, state: OverlayState) -> bool:
+    """Look for potential state changes in a chat message and perform them"""
+    WHO_PREFIX = "ONLINE: "
+    if message.startswith(WHO_PREFIX):
+        # Info [CHAT] ONLINE: <username1>, <username2>, ..., <usernameN>
+        # Results from /who -> override lobby_players
+        logger.info("Updating lobby players from who command")
+        players = message.removeprefix(WHO_PREFIX).split(", ")
+        state.set_lobby(players)
+
+        return True
+
+    if message.startswith("You left the party."):
+        # Info [CHAT] You left the party.
+        # Leaving the party -> remove all but yourself from the party
+        logger.info("Leaving the party, clearing all members")
+
+        state.clear_party()
+
+        return True
+
+    PARTY_YOU_JOIN_PREFIX = "You have joined "
+    if message.startswith(PARTY_YOU_JOIN_PREFIX):
+        # Info [CHAT] You have joined [MVP++] <username>'s party!
+        # You joined a player's party -> add them to your party
+        suffix = message.removeprefix(PARTY_YOU_JOIN_PREFIX)
+
+        try:
+            apostrophe_index = suffix.index("'")
+        except ValueError:
+            logging.error("Could not find apostrophe in string '{message}'")
+            return False
+
+        ranked_player_string = suffix[:apostrophe_index]
+        username = remove_ranks(ranked_player_string)
+
+        state.clear_party()
+        state.add_to_party(username)
+
+        logger.info(f"Joined {username}'s party. Adding you and them to your party.")
+
+        return True
+
+    if " joined the party" in message:
+        # Info [CHAT] [VIP+] <username> joined the party.
+        # Someone joined your party -> add them to your party
+        suffix = remove_ranks(message)
+
+        words = suffix.split(" ")
+        if len(words) < 4:
+            # The message can not be <username> joined the party
+            return False
+
+        for word, target in zip(words[1:4], ("joined", "the", "party")):
+            if not word.startswith(target):
+                return False
+
+        username = words[0]
+
+        state.add_to_party(username)
+
+        logger.info(f"{username} joined your party")
+
+        return True
+
+    if " left the party" in message:
+        # Info [CHAT] [VIP+] <username> left the party.
+        # Someone left your party -> remove them from your party
+        suffix = remove_ranks(message)
+
+        words = suffix.split(" ")
+        if len(words) < 4:
+            # The message can not be <username> left the party
+            return False
+
+        for word, target in zip(words[1:4], ("left", "the", "party")):
+            if not word.startswith(target):
+                return False
+
+        username = words[0]
+
+        state.remove_from_party(username)
+
+        logger.info(f"{username} left your party")
+
+        return True
+
+    """
+    # noqa: W291
+    Info [CHAT] -----------------------------
+    Info [CHAT] Party Members (3)
+    Info [CHAT] 
+    Info [CHAT] Party Leader: [MVP++] <username> ●
+    Info [CHAT] 
+    Info [CHAT] Party Moderators: <username> ● 
+    Info [CHAT] Party Members: <username> ● [VIP+] <username> ● 
+    Info [CHAT] -----------------------------
+    """
+
+    if message.startswith("Party Members ("):
+        # Info [CHAT] Party Members (<n>)
+        # This is a response from /pl (/party list)
+        # In the following lines we will get all the party members -> clear the party
+        state.clear_party()
+
+        return False  # No need to redraw as we're waiting for further input
+
+    PARTY_LEADER_PREFIX = "Party Leader: "
+    PARTY_MODERATORS_PREFIX = "Party Moderators: "
+    PARTY_MEMBERS_PREFIX = "Party Members: "
+    for prefix in (PARTY_LEADER_PREFIX, PARTY_MODERATORS_PREFIX, PARTY_MEMBERS_PREFIX):
+        # Info [CHAT] Party <role>: [MVP++] <username> ●
+        if message.startswith(prefix):
+            logger.debug(f"Updating party members from {prefix}")
+
+            suffix = message.removeprefix(prefix)
+            dirty_string = remove_ranks(suffix)
+            clean_string = dirty_string.strip().replace(" ●", "")
+
+            players = clean_string.split(" ")
+            logger.info(f"Adding party members {', '.join(players)} from /pl")
+
+            for player in players:
+                state.add_to_party(player)
+
+            return True
+    # TODO:
+    #   getting kicked
+    #   other people getting kicked
+    #   other people getting afk'd
+    #   party disband
+
+    return False
+
+
+def process_loglines(loglines: Iterable[str]) -> None:
+    state = OverlayState(lobby_players=set(), party_members=set(), own_username=None)
+
+    for line in loglines:
+        redraw = False
+        if CHAT_PREFIX in line:
+            redraw = process_chat_message(
+                message=strip_until(line, until=CHAT_PREFIX), state=state
+            )
+        elif SETTING_USER_PREFIX in line:
+            new_username = strip_until(line, until=SETTING_USER_PREFIX)
+
+            if state.own_username is not None:
+                logging.warn(
+                    f"Initializing as {new_username}, but "
+                    f"already initialized as {state.own_username}"
+                )
+
+            state.own_username = new_username
+            state.party_members.add(state.own_username.lower())
+            state.lobby_players.add(state.own_username)
+            logger.info(f"Playing as {state.own_username}. Added to party and lobby.")
+            redraw = True
+
+        if redraw:
+            logger.info(f"Party = {', '.join(state.party_members)}")
+            logger.info(f"Lobby = {', '.join(state.lobby_players)}")
+            get_and_print(state.lobby_players, party_members=state.party_members)
+
+
 def watch_from_logfile(logpath: str) -> None:
     with open(logpath, "r") as logfile:
         loglines = follow(logfile)
-        for line in loglines:
-            if WHO_PREFIX in line:
-                players = strip_who_prefix(line).split(", ")
-                get_and_print(players)
+        process_loglines(loglines)
+
+
+def test() -> None:
+    global TESTING
+
+    TESTING = True
+
+    logger.setLevel(logging.DEBUG)
+
+    assert len(sys.argv) >= 3
+
+    with open(sys.argv[2], "r") as logfile:
+        loglines = logfile
+        process_loglines(loglines)
 
 
 if __name__ == "__main__":
-    import sys
-
     if len(sys.argv) < 2:
         print("Must provide a path to the logfile!", file=sys.stderr)
         sys.exit(1)
 
-    watch_from_logfile(sys.argv[1])
+    if sys.argv[1] == "test":
+        test()
+    else:
+        watch_from_logfile(sys.argv[1])
