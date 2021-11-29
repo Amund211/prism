@@ -443,22 +443,26 @@ def process_chat_message(message: str, state: OverlayState) -> bool:
             logger.debug("Fill string '{lobby_fill_string}' does not match '(x/N)!'")
             return False
 
+        # Message is a join message
+        redraw = False
+
         prefix, suffix = lobby_fill_string.split("/")
         player_count = int(prefix.removeprefix("("))
         player_cap = int(suffix.removesuffix(")!"))
 
-        if player_cap < 8:
-            logger.debug("Gamemode has too few players to be bedwars. Skipping.")
-            return False
-
         if player_count != len(state.lobby_players) + 1:
             # We are out of sync with the lobby.
             # This happens when you first join a lobby, as the previous lobby is
-            # never cleared. It could also be due to a bug
+            # never cleared. It could also be due to a bug.
             logger.debug(
                 "Player count out of sync. Clearing the lobby. Please use /who"
             )
             state.set_lobby(state.party_members)
+            redraw = True  # in case the next check fails, we still want to redraw
+
+        if player_cap < 8:
+            logger.debug("Gamemode has too few players to be bedwars. Skipping.")
+            return redraw
 
         username = words[0]
 
