@@ -205,7 +205,7 @@ class OverlayState:
         self.party_members.clear()
 
         if self.own_username is None:
-            logger.warn("Own username is not set, party is now empty")
+            logger.warning("Own username is not set, party is now empty")
         else:
             self.party_members.add(self.own_username.lower())
 
@@ -666,7 +666,7 @@ def process_loglines(loglines: Iterable[str]) -> None:
             new_username = strip_until(line, until=SETTING_USER_PREFIX)
 
             if state.own_username is not None:
-                logging.warn(
+                logging.warning(
                     f"Initializing as {new_username}, but "
                     f"already initialized as {state.own_username}"
                 )
