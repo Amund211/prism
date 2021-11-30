@@ -367,7 +367,11 @@ def get_and_print(
 
     column_widths = {
         column: len(
-            max((stat.get_string(COLUMN_NAMES[column]) for stat in stats), key=len)
+            max(
+                (stat.get_string(COLUMN_NAMES[column]) for stat in stats),
+                default="",
+                key=len,
+            )
         )
         for column in COLUMN_ORDER
     }
