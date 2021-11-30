@@ -34,6 +34,7 @@ logging.basicConfig()
 logger = logging.getLogger()
 
 TESTING = False
+CLEAR_BETWEEN_DRAWS = True
 
 StatName = Literal["stars", "fkdr", "wlr", "winstreak"]
 InfoName = Literal["username"]
@@ -234,8 +235,8 @@ KNOWN_STATS: dict[str, Union[PlayerStats, NickedPlayer]] = {}
 
 def clear_screen() -> None:
     """Blank the screen"""
-    return
-    os.system("cls" if os.name == "nt" else "clear")
+    if CLEAR_BETWEEN_DRAWS:
+        os.system("cls" if os.name == "nt" else "clear")
 
 
 def title(text: str) -> str:
@@ -702,9 +703,10 @@ def watch_from_logfile(logpath: str) -> None:
 
 def test() -> None:
     """Test the implementation on a static logfile"""
-    global TESTING
+    global TESTING, CLEAR_BETWEEN_DRAWS
 
     TESTING = True
+    CLEAR_BETWEEN_DRAWS = True
 
     logger.setLevel(logging.DEBUG)
 
