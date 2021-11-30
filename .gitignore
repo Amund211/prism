@@ -1,5 +1,5 @@
-api_key
-customize.py
+examples/api_key
+examples/customize.py
 **/__pycache__/
 venv/
 dist/
