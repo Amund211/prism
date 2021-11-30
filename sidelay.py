@@ -192,7 +192,7 @@ class OverlayState:
 
     def remove_from_party(self, username: str) -> None:
         """Remove the given username from the party"""
-        if username not in self.party_members:
+        if username.lower() not in self.party_members:
             logger.error(
                 f"Tried removing {username} from the party, but they were not in it!"
             )
@@ -671,10 +671,12 @@ def process_loglines(loglines: Iterable[str]) -> None:
                     f"already initialized as {state.own_username}"
                 )
 
+            # Initializing means the player restarted -> clear the state
             state.own_username = new_username
-            state.party_members.add(state.own_username.lower())
-            state.lobby_players.add(state.own_username)
-            logger.info(f"Playing as {state.own_username}. Added to party and lobby.")
+            state.clear_party()
+            state.set_lobby(set(state.own_username))
+
+            logger.info(f"Playing as {state.own_username}. Cleared party and lobby.")
             redraw = True
 
         if redraw:
