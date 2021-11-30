@@ -137,7 +137,7 @@ class PlayerStats:
         elif name == "wlr":
             return self.wlr
         elif name == "winstreak":
-            return self.fkdr
+            return self.winstreak
         elif name == "username":
             return self.username
 
