@@ -21,7 +21,7 @@ from sidelay.parsing import (
 )
 from sidelay.printing import print_stats_table
 from sidelay.state import OverlayState
-from sidelay.stats import get_bedwars_stats
+from sidelay.stats import NickedPlayer, Stats, get_bedwars_stats
 
 from hystatutils.utils import read_key
 
@@ -78,10 +78,17 @@ def process_loglines(loglines: Iterable[str]) -> None:
             logger.info(f"Party = {', '.join(state.party_members)}")
             logger.info(f"Lobby = {', '.join(state.lobby_players)}")
 
-            stats = [
-                get_bedwars_stats(player, api_key=api_key)
-                for player in state.lobby_players
-            ]
+            stats: list[Stats]
+            if TESTING:
+                # No api requests in testing
+                stats = [
+                    NickedPlayer(username=player) for player in state.lobby_players
+                ]
+            else:
+                stats = [
+                    get_bedwars_stats(player, api_key=api_key)
+                    for player in state.lobby_players
+                ]
 
             print_stats_table(
                 stats=stats,

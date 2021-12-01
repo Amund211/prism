@@ -12,8 +12,6 @@ PropertyName = Literal[StatName, InfoName]
 
 logger = logging.getLogger()
 
-# TODO: __main__ should handle these
-TESTING = True
 try:
     # Define a map username -> uuid so that we can look up by uuid instead of username
     from customize import UUID_MAP
@@ -103,9 +101,6 @@ KNOWN_STATS: dict[str, Stats] = {}
 def get_bedwars_stats(username: str, api_key: str) -> Stats:
     """Print a table of bedwars stats from the given player data"""
     global KNOWN_STATS
-
-    if TESTING:
-        return NickedPlayer(username=username)  # No api requests in testing
 
     cached_stats = KNOWN_STATS.get(username, None)
     if cached_stats is not None:
