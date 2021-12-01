@@ -27,3 +27,8 @@ jobs:
       run: |
         source venv/bin/activate
         mypy --strict .
+
+    - name: Run tests
+      run: |
+        source venv/bin/activate
+        pytest
