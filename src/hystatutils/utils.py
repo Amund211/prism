@@ -17,7 +17,7 @@ def pluralize(word: str) -> str:
 def div(dividend: Union[int, float], divisor: Union[int, float]) -> float:
     """Divide two numbers, returning INF if divisor is 0"""
     if dividend == 0:
-        return 0
+        return 0.0
     elif divisor == 0:
         return float("inf") * (1 if dividend >= 0 else -1)
     return dividend / divisor
