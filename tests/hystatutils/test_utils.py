@@ -50,6 +50,10 @@ def test_div(dividend: Number, divisor: Number, quotient: Number) -> None:
 @pytest.mark.parametrize(
     "seconds, text",
     (
+        (0, "0.00 seconds"),
+        (0.1234, "0.12 seconds"),
+        (0.991, "0.99 seconds"),
+        (0.999, "1.00 seconds"),  # Float formatting performs rounding
         (Time.SECOND, "1 second"),
         (40 * Time.SECOND, "40 seconds"),
         (Time.MINUTE, "1 minute"),

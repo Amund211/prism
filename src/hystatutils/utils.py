@@ -61,4 +61,4 @@ def format_seconds(seconds: Union[float, int]) -> str:
         count = int(seconds // denomination)
         if count:
             return f"{count} {denomination.text(count > 1)}"
-    return f"{seconds:.2f} {Time.SECOND.text(False)}"
+    return f"{seconds:.2f} {Time.SECOND.text(True)}"
