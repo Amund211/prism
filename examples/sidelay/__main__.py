@@ -13,14 +13,9 @@ import time
 from pathlib import Path
 from typing import Iterable, TextIO
 
-from sidelay.parsing import (
-    CHAT_PREFIX,
-    SETTING_USER_PREFIX,
-    process_chat_message,
-    strip_until,
-)
+from sidelay.parsing import parse_logline
 from sidelay.printing import print_stats_table
-from sidelay.state import OverlayState
+from sidelay.state import OverlayState, update_state
 from sidelay.stats import NickedPlayer, Stats, get_bedwars_stats
 
 from hystatutils.utils import read_key
@@ -52,27 +47,12 @@ def process_loglines(loglines: Iterable[str]) -> None:
     state = OverlayState(lobby_players=set(), party_members=set())
 
     for line in loglines:
-        redraw = False
-        if CHAT_PREFIX in line:
-            redraw = process_chat_message(
-                message=strip_until(line, until=CHAT_PREFIX), state=state
-            )
-        elif SETTING_USER_PREFIX in line:
-            new_username = strip_until(line, until=SETTING_USER_PREFIX)
+        event = parse_logline(line)
 
-            if state.own_username is not None:
-                logger.warning(
-                    f"Initializing as {new_username}, but "
-                    f"already initialized as {state.own_username}"
-                )
-
-            # Initializing means the player restarted -> clear the state
-            state.own_username = new_username
-            state.clear_party()
-            state.set_lobby(set(state.own_username))
-
-            logger.info(f"Playing as {state.own_username}. Cleared party and lobby.")
-            redraw = True
+        if event is not None:
+            redraw = update_state(state, event)
+        else:
+            redraw = False
 
         if redraw:
             logger.info(f"Party = {', '.join(state.party_members)}")
