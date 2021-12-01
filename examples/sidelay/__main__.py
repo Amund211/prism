@@ -14,7 +14,8 @@ import time
 from dataclasses import dataclass
 from typing import Iterable, Optional, TextIO
 
-from sidelay.printing import get_and_print
+from sidelay.printing import print_stats_table
+from sidelay.stats import get_bedwars_stats
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -367,8 +368,11 @@ def process_loglines(loglines: Iterable[str]) -> None:
         if redraw:
             logger.info(f"Party = {', '.join(state.party_members)}")
             logger.info(f"Lobby = {', '.join(state.lobby_players)}")
-            get_and_print(
-                state.lobby_players,
+
+            stats = [get_bedwars_stats(player) for player in state.lobby_players]
+
+            print_stats_table(
+                stats=stats,
                 party_members=state.party_members,
                 out_of_sync=state.out_of_sync,
                 clear_between_draws=CLEAR_BETWEEN_DRAWS,

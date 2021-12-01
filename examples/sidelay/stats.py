@@ -96,11 +96,14 @@ class NickedPlayer:
         return "unknown"
 
 
+Stats = Union[PlayerStats, NickedPlayer]
+
+
 # Cache per session
-KNOWN_STATS: dict[str, Union[PlayerStats, NickedPlayer]] = {}
+KNOWN_STATS: dict[str, Stats] = {}
 
 
-def get_bedwars_stats(username: str) -> Union[PlayerStats, NickedPlayer]:
+def get_bedwars_stats(username: str) -> Stats:
     """Print a table of bedwars stats from the given player data"""
     global KNOWN_STATS
 
@@ -114,7 +117,7 @@ def get_bedwars_stats(username: str) -> Union[PlayerStats, NickedPlayer]:
 
     logger.info(f"Cache miss {username}")
 
-    stats: Union[PlayerStats, NickedPlayer]
+    stats: Stats
 
     try:
         playerdata = get_player_data(api_key, username, UUID_MAP=UUID_MAP)
@@ -144,15 +147,13 @@ def get_bedwars_stats(username: str) -> Union[PlayerStats, NickedPlayer]:
     return stats
 
 
-RateStatsReturn = Union[
-    tuple[bool, bool], tuple[bool, bool, Union[PlayerStats, NickedPlayer]]
-]
+RateStatsReturn = Union[tuple[bool, bool], tuple[bool, bool, Stats]]
 
 
 def rate_stats_for_non_party_members(
     party_members: set[str],
-) -> Callable[[Union[PlayerStats, NickedPlayer]], RateStatsReturn]:
-    def rate_stats(stats: Union[PlayerStats, NickedPlayer]) -> RateStatsReturn:
+) -> Callable[[Stats], RateStatsReturn]:
+    def rate_stats(stats: Stats) -> RateStatsReturn:
         """Used as a key function for sorting"""
         is_teammate = stats.username.lower() not in party_members
         if stats.nicked:

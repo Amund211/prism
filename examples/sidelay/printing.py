@@ -1,11 +1,7 @@
 import os
 from typing import Optional, Sequence, Union
 
-from sidelay.stats import (
-    PropertyName,
-    get_bedwars_stats,
-    rate_stats_for_non_party_members,
-)
+from sidelay.stats import PropertyName, Stats, rate_stats_for_non_party_members
 
 from hystatutils.colors import Color
 
@@ -90,15 +86,17 @@ def get_sep(column: str) -> str:
     return "\n" if column == COLUMN_ORDER[-1] else SEP
 
 
-def get_and_print(
-    lobby_players: set[str],
+def print_stats_table(
+    stats: list[Stats],
     party_members: set[str],
     out_of_sync: bool,
     clear_between_draws: bool = True,
 ) -> None:
-    stats = list(
+
+    # Sort the the players by stats and order party members last
+    sorted_stats = list(
         sorted(
-            (get_bedwars_stats(player) for player in lobby_players),
+            stats,
             key=rate_stats_for_non_party_members(party_members),
             reverse=True,
         )
@@ -107,7 +105,7 @@ def get_and_print(
     column_widths = {
         column: len(
             max(
-                (stat.get_string(COLUMN_NAMES[column]) for stat in stats),
+                (stat.get_string(COLUMN_NAMES[column]) for stat in sorted_stats),
                 default="",
                 key=len,
             )
@@ -131,7 +129,7 @@ def get_and_print(
     for column in COLUMN_ORDER:
         print(title(column.ljust(column_widths[column])), end=get_sep(column))
 
-    for stat in stats:
+    for stat in sorted_stats:
         for column in COLUMN_ORDER:
             # Left justify the username, right justify the cells
             justify = str.ljust if column == "IGN" else str.rjust
