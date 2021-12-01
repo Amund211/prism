@@ -1,11 +1,26 @@
+from pathlib import Path
 from typing import Union
 
 import pytest
 
-from hystatutils.utils import Time, div, format_seconds, pluralize  # TODO: read_key
+from hystatutils.utils import Time, div, format_seconds, pluralize, read_key
 
 Number = Union[int, float]
 INF = float("inf")
+
+
+@pytest.mark.parametrize(
+    "file_content, key",
+    (
+        ("my_key", "my_key"),
+        ("my_key\n", "my_key"),
+        ("\nmy_key\n\n\t\n", "my_key"),
+    ),
+)
+def test_read_key(file_content: str, key: str, tmp_path: Path) -> None:
+    key_path = tmp_path / "api_key"
+    key_path.write_text(file_content)
+    assert read_key(key_path) == key
 
 
 @pytest.mark.parametrize(
