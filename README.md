@@ -6,4 +6,4 @@ Currently only bedwars stats are supported.
 Hystatutils comes with two example scripts:
 
 1. [`stats.py`](./examples/stats.py) - Check the stats of specific players
-1. [`sidelay.py`](./examples/sidelay.py) - Check the stats of all players in your lobby when you type `/who`
+1. [`sidelay`](./examples/sidelay) - Check the stats of all players in your lobby when you type `/who`
