@@ -1,12 +1,10 @@
 import logging
-import sys
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Callable, Literal, Union, overload
 
 from hystatutils.calc import bedwars_level_from_exp
 from hystatutils.playerdata import get_gamemode_stats, get_player_data
-from hystatutils.utils import div, read_key
+from hystatutils.utils import div
 
 StatName = Literal["stars", "fkdr", "wlr", "winstreak"]
 InfoName = Literal["username"]
@@ -15,7 +13,6 @@ PropertyName = Literal[StatName, InfoName]
 logger = logging.getLogger()
 
 # TODO: __main__ should handle these
-api_key = read_key(Path(sys.path[0]) / "api_key")
 TESTING = True
 try:
     # Define a map username -> uuid so that we can look up by uuid instead of username
@@ -103,7 +100,7 @@ Stats = Union[PlayerStats, NickedPlayer]
 KNOWN_STATS: dict[str, Stats] = {}
 
 
-def get_bedwars_stats(username: str) -> Stats:
+def get_bedwars_stats(username: str, api_key: str) -> Stats:
     """Print a table of bedwars stats from the given player data"""
     global KNOWN_STATS
 
