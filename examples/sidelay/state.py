@@ -11,24 +11,24 @@ logger = logging.getLogger()
 class OverlayState:
     """Dataclass holding the state of the overlay"""
 
-    party_members: set[str]  # NOTE: lower case
+    party_members: set[str]
     lobby_players: set[str]
     out_of_sync: bool = False
     own_username: Optional[str] = None
 
     def add_to_party(self, username: str) -> None:
         """Add the given username to the party"""
-        self.party_members.add(username.lower())
+        self.party_members.add(username)
 
     def remove_from_party(self, username: str) -> None:
         """Remove the given username from the party"""
-        if username.lower() not in self.party_members:
+        if username not in self.party_members:
             logger.error(
                 f"Tried removing {username} from the party, but they were not in it!"
             )
             return
 
-        self.party_members.remove(username.lower())
+        self.party_members.remove(username)
 
     def clear_party(self) -> None:
         """Remove all players from the party, except for yourself"""
@@ -37,7 +37,7 @@ class OverlayState:
         if self.own_username is None:
             logger.warning("Own username is not set, party is now empty")
         else:
-            self.party_members.add(self.own_username.lower())
+            self.add_to_party(self.own_username)
 
     def add_to_lobby(self, username: str) -> None:
         """Add the given username to the lobby"""

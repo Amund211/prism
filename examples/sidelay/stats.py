@@ -147,7 +147,7 @@ def rate_stats_for_non_party_members(
 ) -> Callable[[Stats], RateStatsReturn]:
     def rate_stats(stats: Stats) -> RateStatsReturn:
         """Used as a key function for sorting"""
-        is_teammate = stats.username.lower() not in party_members
+        is_teammate = stats.username not in party_members
         if stats.nicked:
             return (is_teammate, stats.nicked)
 
