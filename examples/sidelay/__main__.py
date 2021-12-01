@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
-
 """
 Search for /who responses in the logfile and print the found users' stats
+
+Run from the examples dir by `python -m sidelay <path-to-logfile>`
 
 Example string printed to logfile when typing /who:
 '[Info: 2021-10-29 15:29:33.059151572: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ONLINE: The_TOXIC__, T_T0xic, maskaom, NomexxD, Killerluise, Fruce_, 3Bitek, OhCradle, DanceMonky, Sweeetnesss, jbzn, squashypeas, Skydeaf, serocore'  # noqa: E501
