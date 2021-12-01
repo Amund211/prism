@@ -1,0 +1,36 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+    -   id: check-yaml
+    -   id: end-of-file-fixer
+    -   id: check-merge-conflict
+    -   id: check-added-large-files
+-   repo: https://github.com/psf/black
+    rev: 21.11b1
+    hooks:
+    -   id: black
+-   repo: https://github.com/PyCQA/isort
+    rev: 5.10.1
+    hooks:
+    -   id: isort
+-   repo: https://github.com/PyCQA/flake8
+    rev: 4.0.1
+    hooks:
+    -   id: flake8
+-   repo: local
+    hooks:
+    -   id: mypy
+        name: mypy
+        entry: venv/bin/mypy
+        language: script
+        'types_or': [python, pyi]
+        args: [--strict, .]
+        require_serial: true
+        pass_filenames: false
+    -   id: pytest
+        name: pytest
+        entry: venv/bin/pytest
+        language: script
+        pass_filenames: false
+        types: [python]

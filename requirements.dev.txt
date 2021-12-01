@@ -2,6 +2,7 @@
 pytest
 mypy
 types-requests
+pre-commit
 flake8
 black
 isort
