@@ -18,7 +18,7 @@ from hystatutils.calc import bedwars_level_from_exp
         (2344717, 481 + 4717 / 5000),
     ],
 )
-def test_meme_test(exp: int, true_star: Union[int, float]) -> None:
+def test_bedwars_star_calculation(exp: int, true_star: Union[int, float]) -> None:
     calculated_star = bedwars_level_from_exp(exp)
 
     # Compare int with int, and float with float
