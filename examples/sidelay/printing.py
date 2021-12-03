@@ -1,7 +1,7 @@
 import os
 from typing import Optional, Sequence, Union
 
-from sidelay.stats import PropertyName, Stats, rate_stats_for_non_party_members
+from examples.sidelay.stats import PropertyName, Stats, rate_stats_for_non_party_members
 
 
 class Color:

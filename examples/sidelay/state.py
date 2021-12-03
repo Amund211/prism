@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Iterable, Optional
 
-from sidelay.parsing import Event, EventType
+from examples.sidelay.parsing import Event, EventType
 
 logger = logging.getLogger()
 

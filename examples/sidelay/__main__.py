@@ -13,11 +13,10 @@ import time
 from pathlib import Path
 from typing import Iterable, TextIO
 
-from sidelay.parsing import parse_logline
-from sidelay.printing import print_stats_table
-from sidelay.state import OverlayState, update_state
-from sidelay.stats import NickedPlayer, Stats, get_bedwars_stats
-
+from examples.sidelay.parsing import parse_logline
+from examples.sidelay.printing import print_stats_table
+from examples.sidelay.state import OverlayState, update_state
+from examples.sidelay.stats import NickedPlayer, Stats, get_bedwars_stats
 from hystatutils.utils import read_key
 
 logging.basicConfig()

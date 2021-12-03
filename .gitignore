@@ -1,4 +1,4 @@
-examples/api_key
+api_key
 examples/customize.py
 **/__pycache__/
 venv/

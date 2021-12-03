@@ -14,7 +14,7 @@ logger = logging.getLogger()
 
 try:
     # Define a map username -> uuid so that we can look up by uuid instead of username
-    from customize import UUID_MAP
+    from examples.customize import UUID_MAP
 except ImportError:
     UUID_MAP: dict[str, str] = {}  # type: ignore[no-redef]
 
