@@ -298,7 +298,8 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
     for role in roles:
         # Info [CHAT] Party <Role>: [MVP++] <username> ●
-        if message.lower().startswith(f"party {role}: "):
+        prefix = f"party {role}: ".title()
+        if message.startswith(prefix):
             suffix = message.removeprefix(prefix)
             dirty_string = remove_ranks(suffix)
             clean_string = dirty_string.strip().replace(" ●", "")
