@@ -28,9 +28,17 @@ repos:
         args: [--strict, .]
         require_serial: true
         pass_filenames: false
-    -   id: pytest
-        name: pytest
-        entry: venv/bin/pytest
+    -   id: coverage_run
+        name: coverage_run
+        entry: venv/bin/coverage
         language: script
+        args: [run]
+        pass_filenames: false
+        types: [python]
+    -   id: coverage_report
+        name: coverage_report
+        entry: venv/bin/coverage
+        language: script
+        args: [report]
         pass_filenames: false
         types: [python]
