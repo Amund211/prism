@@ -131,6 +131,19 @@ UNEVENTFUL_LOGLINES = (
     "[Info: 2021-11-29 20:11:38.221423109: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] You will respawn in 5 seconds!",
     # Mystery box
     "[Info: 2021-11-29 20:15:17.705912418: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ✦ You found a ✰✰✰✰✰ Mystery Box!",
+    # Internals
+    "[Info: 2021-11-29 19:58:22.546643684: NetQueue.cpp(575)] NetQueue: worker thread started.",
+    "[Info: 2021-11-29 19:58:22.546656499: mainLinux.cpp(250)] Running launcher bootstrap (version 1035)",
+    "[Info: 2021-11-29 19:58:22.548908424: Common.cpp(32)] Native Launcher Version: 1035",
+    # Near misses - messages that almost parse
+    "[Info: 2021-11-29 20:01:23.997291428: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Player1 have joining (1/2)! has joined (",  # Malformed
+    "[Info: 2021-11-29 20:01:23.997291428: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Player1 has joined (x/y)!",  # Malformed player count
+    "[Info: 2021-11-29 20:09:47.192349993: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Player1 have quitting! has quit!",  # Malformed
+    "[Info: 2021-11-29 20:08:49.380880233: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] You have joined [MVP++] Player1 party!",  # No apostrophe
+    "[Info: 2021-11-29 20:08:53.706306034: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP+] Player2 joining theeee party? joined the party.",  # Malformed
+    "[Info: 2021-11-29 22:16:47.779503684: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [VIP] Player1 have leaving thee party? has left the party.",  # Malformed
+    "[Info: 2021-11-29 22:28:52.033936996: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] The party was transferred to someone",  # Too short
+    "[Info: 2021-11-29 22:28:52.033936996: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] The party was transferred to Player2 notbecause [MVP++] Player1 didntleave",  # Malformed
 )
 
 

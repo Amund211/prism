@@ -164,7 +164,7 @@ def parse_chat_message(message: str) -> Optional[Event]:
         logger.debug("Processing potential lobby join message")
 
         words = message.split(" ")
-        if len(words) < 4:
+        if len(words) < 4:  # pragma: no cover
             # The message can not be <username> has joined (<x>/<N>)!
             logger.debug("Message is too short!")
             return None
@@ -196,7 +196,7 @@ def parse_chat_message(message: str) -> Optional[Event]:
         logger.debug("Processing potential lobby leave message")
 
         words = message.split(" ")
-        if len(words) < 3:
+        if len(words) < 3:  # pragma: no cover
             # The message can not be <username> has quit!
             logger.debug("Message is too short!")
             return None
@@ -245,7 +245,7 @@ def parse_chat_message(message: str) -> Optional[Event]:
         suffix = remove_ranks(message)
 
         words = suffix.split(" ")
-        if len(words) < 4:
+        if len(words) < 4:  # pragma: no cover
             # The message can not be <username> joined the party
             logger.debug("Message is too short!")
             return None
@@ -266,7 +266,7 @@ def parse_chat_message(message: str) -> Optional[Event]:
         suffix = remove_ranks(message)
 
         words = suffix.split(" ")
-        if len(words) < 5:
+        if len(words) < 5:  # pragma: no cover
             # The message can not be <username> has left the party
             logger.debug("Message is too short!")
             return None
@@ -332,4 +332,5 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
             # I can't for the life of me get the literal types here
             return PartyMembershipListEvent(usernames=players, role=role)  # type:ignore
+
     return None
