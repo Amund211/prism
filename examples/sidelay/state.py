@@ -130,18 +130,18 @@ def update_state(state: OverlayState, event: Event) -> bool:
     if event.event_type is EventType.PARTY_ATTACH:
         # You joined a player's party -> add them to your party
         state.clear_party()  # Make sure the party is clean to start with
-        for username in event.usernames:
-            state.add_to_party(username)
+        state.add_to_party(event.username)
 
-        logger.info(f"Joined a party with {' ,'.join(event.usernames)}")
+        logger.info(f"Joined {event.username}'s party")
 
         return True
 
     if event.event_type is EventType.PARTY_JOIN:
         # Someone joined your party -> add them to your party
-        state.add_to_party(event.username)
+        for username in event.usernames:
+            state.add_to_party(username)
 
-        logger.info(f"{event.username} joined your party")
+        logger.info(f"{' ,'.join(event.usernames)} joined your party")
 
         return True
 

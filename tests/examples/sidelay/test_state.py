@@ -78,8 +78,8 @@ def create_state(
         ),
         (
             create_state(),
-            PartyAttachEvent(["Player1", "Player2"]),
-            create_state(party_members={"Player1", "Player2"}),
+            PartyAttachEvent("Player2"),
+            create_state(party_members={"Player2"}),
             True,
         ),
         (
@@ -90,8 +90,8 @@ def create_state(
         ),
         (
             create_state(party_members={"Player1", "Player2"}),
-            PartyJoinEvent("Player3"),
-            create_state(party_members={"Player1", "Player2", "Player3"}),
+            PartyJoinEvent(["Player3", "Player4"]),
+            create_state(party_members={"Player1", "Player2", "Player3", "Player4"}),
             True,
         ),
         (

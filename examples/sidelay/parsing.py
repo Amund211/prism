@@ -70,7 +70,7 @@ class LobbyListEvent:
 
 @dataclass
 class PartyAttachEvent:
-    usernames: list[str]
+    username: str  # Leader
     event_type: Literal[EventType.PARTY_ATTACH] = EventType.PARTY_ATTACH
 
 
@@ -81,7 +81,7 @@ class PartyDetachEvent:
 
 @dataclass
 class PartyJoinEvent:
-    username: str
+    usernames: list[str]
     event_type: Literal[EventType.PARTY_JOIN] = EventType.PARTY_JOIN
 
 
@@ -220,6 +220,23 @@ def parse_chat_message(message: str) -> Optional[Event]:
         # Info [CHAT] You are not currently in a party.
         return PartyDetachEvent()
 
+    if " has disbanded the party!" in message:
+        # Info [CHAT] [MVP++] Player1 has disbanded the party!
+        clean = remove_ranks(message)
+        words = clean.split(" ")
+
+        if len(words) < 5:  # pragma: no cover
+            # The message can not be <username> has disbanded the party!
+            logger.debug("Message is too short!")
+            return None
+
+        for word, target in zip(words[1:], ("has", "disbanded", "the", "party!")):
+            if word != target:
+                logger.debug("Message does not match target! {word=} != {target=}")
+                return None
+
+        return PartyDetachEvent()
+
     PARTY_YOU_JOIN_PREFIX = "You have joined "
     if message.startswith(PARTY_YOU_JOIN_PREFIX):
         # Info [CHAT] You have joined [MVP++] <username>'s party!
@@ -236,7 +253,16 @@ def parse_chat_message(message: str) -> Optional[Event]:
         ranked_player_string = suffix[:apostrophe_index]
         username = remove_ranks(ranked_player_string)
 
-        return PartyAttachEvent([username])
+        return PartyAttachEvent(username)
+
+    PARTYING_WITH_PREFIX = "You'll be partying with: "
+    if message.startswith(PARTYING_WITH_PREFIX):
+        # Info [CHAT] You'll be partying with: Player2, [MVP++] Player3, [MVP+] Player4
+        suffix = message.removeprefix(PARTYING_WITH_PREFIX)
+
+        names = remove_ranks(suffix)
+
+        return PartyJoinEvent(names.split(", "))
 
     if " joined the party" in message:
         # Info [CHAT] [VIP+] <username> joined the party.
@@ -257,7 +283,7 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
         username = words[0]
 
-        return PartyJoinEvent(username)
+        return PartyJoinEvent([username])
 
     if " has left the party" in message:
         # Info [CHAT] [VIP+] <username> has left the party.

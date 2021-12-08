@@ -144,6 +144,7 @@ UNEVENTFUL_LOGLINES = (
     "[Info: 2021-11-29 22:16:47.779503684: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [VIP] Player1 have leaving thee party? has left the party.",  # Malformed
     "[Info: 2021-11-29 22:28:52.033936996: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] The party was transferred to someone",  # Too short
     "[Info: 2021-11-29 22:28:52.033936996: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] The party was transferred to Player2 notbecause [MVP++] Player1 didntleave",  # Malformed
+    "[Info: 2021-12-06 22:23:29.795361404: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP++] Player2 having disbanding has disbanded the party!",  # Malformed
 )
 
 
@@ -189,12 +190,20 @@ parsing_test_cases = (
         PartyDetachEvent(),
     ),
     (
+        "[Info: 2021-12-06 22:23:29.795361404: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP++] Player2 has disbanded the party!",
+        PartyDetachEvent(),
+    ),
+    (
         "[Info: 2021-11-29 20:08:49.380880233: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] You have joined [MVP++] Player1's party!",
-        PartyAttachEvent(usernames=["Player1"]),
+        PartyAttachEvent(username="Player1"),
+    ),
+    (
+        "[Info: 2021-12-06 20:38:05.407568857: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] You'll be partying with: Player2, [MVP++] Player3, [MVP+] Player4, [MVP+] Player5",
+        PartyJoinEvent(usernames=["Player2", "Player3", "Player4", "Player5"]),
     ),
     (
         "[Info: 2021-11-29 20:08:53.706306034: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP+] Player2 joined the party.",
-        PartyJoinEvent(username="Player2"),
+        PartyJoinEvent(usernames=["Player2"]),
     ),
     (
         "[Info: 2021-11-29 22:16:47.779503684: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [VIP] Player1 has left the party.",
