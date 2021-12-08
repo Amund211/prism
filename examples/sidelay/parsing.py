@@ -255,19 +255,20 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
         return PartyJoinEvent(username)
 
-    if " left the party" in message:
-        # Info [CHAT] [VIP+] <username> left the party.
+
+    if " has left the party" in message:
+        # Info [CHAT] [VIP+] <username> has left the party.
         logger.debug("Processing potential party they leave message")
 
         suffix = remove_ranks(message)
 
         words = suffix.split(" ")
-        if len(words) < 4:
-            # The message can not be <username> left the party
+        if len(words) < 5:
+            # The message can not be <username> has left the party
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(words[1:4], ("left", "the", "party")):
+        for word, target in zip(words[1:5], ("has", "left", "the", "party")):
             if not word.startswith(target):
                 logger.debug("Message does not match target! {word=} != {target=}")
                 return None
