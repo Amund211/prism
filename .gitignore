@@ -1,4 +1,5 @@
 api_key
+.coverage
 examples/customize.py
 **/__pycache__/
 venv/
