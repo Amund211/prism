@@ -84,7 +84,13 @@ def update_state(state: OverlayState, event: Event) -> bool:
         return True
 
     if event.event_type is EventType.LOBBY_JOIN:
-        if event.player_count != len(state.lobby_players) + 1:
+        if event.player_cap < 8:
+            logger.debug("Gamemode has too few players to be bedwars. Skipping.")
+            return False
+
+        state.add_to_lobby(event.username)
+
+        if event.player_count != len(state.lobby_players):
             # We are out of sync with the lobby.
             # This happens when you first join a lobby, as the previous lobby is
             # never cleared. It could also be due to a bug.
@@ -93,19 +99,9 @@ def update_state(state: OverlayState, event: Event) -> bool:
             )
 
             state.out_of_sync = True
-            state.set_lobby(state.party_members)
-
-            redraw = True  # in case the next check fails, we still want to redraw
         else:
-            # If we were out of sync we want to redraw, because we are in sync now
-            redraw = state.out_of_sync
+            # We are in sync now
             state.out_of_sync = False
-
-        if event.player_cap < 8:
-            logger.debug("Gamemode has too few players to be bedwars. Skipping.")
-            return redraw
-
-        state.add_to_lobby(event.username)
 
         logger.info(f"{event.username} joined your lobby")
 
