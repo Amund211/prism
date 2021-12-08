@@ -211,9 +211,13 @@ def parse_chat_message(message: str) -> Optional[Event]:
         return LobbyLeaveEvent(username)
 
     # Party changes
+
     if message.startswith("You left the party."):
         # Info [CHAT] You left the party.
+        return PartyDetachEvent()
 
+    if message.startswith("You are not currently in a party."):
+        # Info [CHAT] You are not currently in a party.
         return PartyDetachEvent()
 
     PARTY_YOU_JOIN_PREFIX = "You have joined "
@@ -255,7 +259,6 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
         return PartyJoinEvent(username)
 
-
     if " has left the party" in message:
         # Info [CHAT] [VIP+] <username> has left the party.
         logger.debug("Processing potential party they leave message")
@@ -277,6 +280,26 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
         return PartyLeaveEvent(username)
 
+    TRANSFER_PREFIX = "The party was transferred to "
+    if message.startswith(TRANSFER_PREFIX):
+        # Info [CHAT] ... transferred to [VIP] <someone> because [MVP++] <username> left
+        suffix = message.removeprefix(TRANSFER_PREFIX)
+        without_ranks = remove_ranks(suffix)
+
+        # should be <someone> because <username> left
+        words = without_ranks.split(" ")
+        if len(words) < 4:
+            logger.debug("Message is too short!")
+            return None
+
+        for word, target in zip(words[1::2], ("because", "left")):
+            if not word.startswith(target):
+                logger.debug("Message does not match target! {word=} != {target=}")
+                return None
+
+        username = words[2]
+
+        return PartyLeaveEvent(username)
     """
     # noqa: W291
     Info [CHAT] -----------------------------
