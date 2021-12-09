@@ -211,7 +211,6 @@ def parse_chat_message(message: str) -> Optional[Event]:
         return LobbyLeaveEvent(username)
 
     # Party changes
-
     if message.startswith("You left the party."):
         # Info [CHAT] You left the party.
         return PartyDetachEvent()
@@ -235,6 +234,10 @@ def parse_chat_message(message: str) -> Optional[Event]:
                 logger.debug("Message does not match target! {word=} != {target=}")
                 return None
 
+        return PartyDetachEvent()
+
+    if message.startswith("You have been kicked from the party by "):
+        # Info [CHAT] You have been kicked from the party by [MVP+] <username>
         return PartyDetachEvent()
 
     PARTY_YOU_JOIN_PREFIX = "You have joined "
@@ -299,6 +302,81 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
         for word, target in zip(words[1:5], ("has", "left", "the", "party")):
             if not word.startswith(target):
+                logger.debug("Message does not match target! {word=} != {target=}")
+                return None
+
+        username = words[0]
+
+        return PartyLeaveEvent(username)
+
+    if " has been removed from the party." in message:
+        # Info [CHAT] [VIP+] <username> has been removed from the party.
+        logger.debug("Processing potential party they kicked message")
+
+        suffix = remove_ranks(message)
+
+        words = suffix.split(" ")
+        if len(words) < 7:  # pragma: no cover
+            # The message can not be <username> has left the party
+            logger.debug("Message is too short!")
+            return None
+
+        for word, target in zip(
+            words[1:], ("has", "been", "removed", "from", "the", "party.")
+        ):
+            if word != target:
+                logger.debug("Message does not match target! {word=} != {target=}")
+                return None
+
+        username = words[0]
+
+        return PartyLeaveEvent(username)
+
+    if " was removed from the party because they disconnected" in message:
+        # [MVP+] Player1 was removed from the party because they disconnected"
+        cleaned = remove_ranks(message)
+        words = cleaned.split(" ")
+        if len(words) < 9:  # pragma: no cover
+            logger.debug("Message is too short!")
+            return None
+
+        for word, target in zip(
+            words[1:],
+            (
+                "was",
+                "removed",
+                "from",
+                "the",
+                "party",
+                "because",
+                "they",
+                "disconnected",
+            ),
+        ):
+            if word != target:
+                logger.debug("Message does not match target! {word=} != {target=}")
+                return None
+
+        username = words[0]
+
+        return PartyLeaveEvent(username)
+
+    PARTY_KICK_OFFLINE_PREFIX = "Kicked "
+    if (
+        message.startswith(PARTY_KICK_OFFLINE_PREFIX)
+        and " because they were offline." in message
+    ):
+        # Info [CHAT] Kicked [VIP] <username> because they were offline.
+        # TODO: Handle many usernames kicked at once
+        suffix = message.removeprefix(PARTY_KICK_OFFLINE_PREFIX)
+        cleaned = remove_ranks(suffix)
+        words = cleaned.split(" ")
+        if len(words) < 5:  # pragma: no cover
+            logger.debug("Message is too short!")
+            return None
+
+        for word, target in zip(words[1:], ("because", "they", "were", "offline.")):
+            if word != target:
                 logger.debug("Message does not match target! {word=} != {target=}")
                 return None
 
