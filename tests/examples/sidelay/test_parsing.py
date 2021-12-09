@@ -44,12 +44,13 @@ from examples.sidelay.parsing import (
         # Weird accepted cases
         ("[+ANYTHINGREALLY+++] Player1", "Player1"),
         ("[mixedCASE+] Player1", "Player1"),
-        ("[+] Player1", "Player1"),  # Empty brackets
-        # Cases where content in brackets is not recognized as a rank
+        ("[+] Player1", "Player1"),
+        # Cases where rank is not removed
         ("[numbers1234] Player1", "[numbers1234] Player1"),
         ("[special+&?] Player1", "[special+&?] Player1"),
         ("[] Player1", "[] Player1"),  # Empty brackets
         ("[VIP]Player1", "[VIP]Player1"),  # Missing space
+        ("VIP Player1", "VIP Player1"),  # Missing brackets
     ),
 )
 def test_remove_ranks(rank_string: str, name_string: str) -> None:
