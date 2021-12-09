@@ -8,6 +8,7 @@ from examples.sidelay.parsing import (
     LobbyJoinEvent,
     LobbyLeaveEvent,
     LobbyListEvent,
+    LobbySwapEvent,
     PartyAttachEvent,
     PartyDetachEvent,
     PartyJoinEvent,
@@ -48,6 +49,17 @@ def create_state(
             create_state(),
             InitializeAsEvent("NewPlayer"),
             create_state(own_username="NewPlayer"),
+            True,
+        ),
+        (
+            create_state(
+                party_members={"Player1", "Player2"}, lobby_players={"RandomPlayer"}
+            ),
+            LobbySwapEvent(),
+            create_state(
+                party_members={"Player1", "Player2"},
+                lobby_players={"Player1", "Player2"},
+            ),
             True,
         ),
         (

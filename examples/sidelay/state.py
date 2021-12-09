@@ -57,6 +57,10 @@ class OverlayState:
         """Set the lobby to be the given lobby"""
         self.lobby_players = set(new_lobby)
 
+    def clear_lobby(self) -> None:
+        """Remove all players from the lobby, except for your party"""
+        self.set_lobby(self.party_members)
+
 
 def update_state(state: OverlayState, event: Event) -> bool:
     """Update the state based on the event, return True if a redraw is desired"""
@@ -70,9 +74,16 @@ def update_state(state: OverlayState, event: Event) -> bool:
         # Initializing means the player restarted -> clear the state
         state.own_username = event.username
         state.clear_party()
-        state.set_lobby(set([state.own_username]))
+        state.clear_lobby()
 
         logger.info(f"Playing as {state.own_username}. Cleared party and lobby.")
+        return True
+
+    if event.event_type is EventType.LOBBY_SWAP:
+        # Changed lobby -> clear the lobby
+        logger.info("Clearing the lobby")
+        state.clear_lobby()
+
         return True
 
     if event.event_type is EventType.LOBBY_LIST:

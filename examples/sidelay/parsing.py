@@ -25,6 +25,7 @@ class EventType(Enum):
     INITIALIZE_AS = auto()  # Initialize as the given username
 
     # Lobby join/leave
+    LOBBY_SWAP = auto()  # You join a new lobby
     LOBBY_JOIN = auto()  # Someone joins your lobby
     LOBBY_LEAVE = auto()  # Someone leaves your lobby
 
@@ -46,6 +47,11 @@ class EventType(Enum):
 class InitializeAsEvent:
     username: str
     event_type: Literal[EventType.INITIALIZE_AS] = EventType.INITIALIZE_AS
+
+
+@dataclass
+class LobbySwapEvent:
+    event_type: Literal[EventType.LOBBY_SWAP] = EventType.LOBBY_SWAP
 
 
 @dataclass
@@ -105,6 +111,7 @@ class PartyMembershipListEvent:
 
 Event = Union[
     InitializeAsEvent,
+    LobbySwapEvent,
     LobbyJoinEvent,
     LobbyLeaveEvent,
     LobbyListEvent,
@@ -157,6 +164,9 @@ def parse_chat_message(message: str) -> Optional[Event]:
         # Info [CHAT] ONLINE: <username1>, <username2>, ..., <usernameN>
         players = message.removeprefix(WHO_PREFIX).split(", ")
         return LobbyListEvent(players)
+
+    if message.startswith("Sending you to "):
+        return LobbySwapEvent()
 
     if " has joined (" in message:
         # Info [CHAT] <username> has joined (<x>/<N>)!

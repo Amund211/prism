@@ -9,6 +9,7 @@ from examples.sidelay.parsing import (
     LobbyJoinEvent,
     LobbyLeaveEvent,
     LobbyListEvent,
+    LobbySwapEvent,
     PartyAttachEvent,
     PartyDetachEvent,
     PartyJoinEvent,
@@ -117,8 +118,6 @@ UNEVENTFUL_LOGLINES = (
     "[Info: 2021-11-29 20:01:37.599407350: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [SPECTATOR] ✫ Sumo Rookie V sapporoV: gg",
     "[Info: 2021-11-29 20:01:37.599526846: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [GAME] Skydeaf: gg",
     "[Info: 2021-11-29 20:18:14.961703702: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [SHOUT] [RED] [VIP+] Player1: some chat message",
-    # Joining a minigame
-    "[Info: 2021-11-29 20:01:23.792072597: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Sending you to mini1145V!",
     # Game starting soon
     "[Info: 2021-11-29 20:01:28.418898025: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] The game starts in 5 seconds!",
     # Private game
@@ -171,6 +170,10 @@ parsing_test_cases = (
                 "Player9",
             ]
         ),
+    ),
+    (
+        "[Info: 2021-11-29 20:01:23.792072597: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Sending you to mini1145V!",
+        LobbySwapEvent(),
     ),
     (
         "[Info: 2021-11-29 20:01:23.997291428: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Player1 has joined (1/2)!",
