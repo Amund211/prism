@@ -41,10 +41,10 @@ def tail_file(f: TextIO) -> Iterable[str]:
         yield line
 
 
-def process_loglines(loglines: Iterable[str]) -> None:
+def process_loglines(
+    state: OverlayState, loglines: Iterable[str], fast_forward: bool = False
+) -> None:
     """Process the state changes for each logline and redraw the screen if neccessary"""
-    state = OverlayState(lobby_players=set(), party_members=set())
-
     for line in loglines:
         event = parse_logline(line)
 
@@ -53,7 +53,7 @@ def process_loglines(loglines: Iterable[str]) -> None:
         else:
             redraw = False
 
-        if redraw:
+        if redraw and not fast_forward:
             logger.info(f"Party = {', '.join(state.party_members)}")
             logger.info(f"Lobby = {', '.join(state.lobby_players)}")
 
@@ -79,9 +79,17 @@ def process_loglines(loglines: Iterable[str]) -> None:
 
 def watch_from_logfile(logpath: str) -> None:
     """Use the overlay on an active logfile"""
+    state = OverlayState(lobby_players=set(), party_members=set())
+
     with open(logpath, "r") as logfile:
+        # Process the entire logfile to get current player as well as potential
+        # current party
+        old_loglines = logfile.readlines()
+        process_loglines(state, old_loglines, fast_forward=True)
+
+        # Process the rest of the loglines as they come in
         loglines = tail_file(logfile)
-        process_loglines(loglines)
+        process_loglines(state, loglines)
 
 
 def test() -> None:
@@ -95,9 +103,11 @@ def test() -> None:
 
     assert len(sys.argv) >= 3
 
+    state = OverlayState(lobby_players=set(), party_members=set())
+
     with open(sys.argv[2], "r") as logfile:
         loglines = logfile
-        process_loglines(loglines)
+        process_loglines(state, loglines)
 
 
 if __name__ == "__main__":
