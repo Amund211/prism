@@ -1,4 +1,3 @@
-import sys
 import time
 from collections import defaultdict, deque
 from datetime import datetime
@@ -6,6 +5,19 @@ from json import JSONDecodeError
 from typing import Any, cast
 
 import requests
+
+
+class MissingStatsError(ValueError):
+    """Exception raised when the player has no stats for the gamemode"""
+
+    pass
+
+
+class HypixelAPIError(ValueError):
+    """Exception raised when the player is not found"""
+
+    pass
+
 
 GamemodeData = dict[str, Any]
 PlayerData = dict[str, Any]
@@ -42,7 +54,7 @@ def get_player_data(
     )
 
     if not response:
-        raise RuntimeError(
+        raise HypixelAPIError(
             f"Request to Hypixel API failed with status code {response.status_code} "
             f"when getting data for player {identifier}. Response: {response.text}"
         )
@@ -50,17 +62,22 @@ def get_player_data(
     try:
         response_json = response.json()
     except JSONDecodeError:
-        print("Failed parsing the response from the Hypixel API", file=sys.stderr)
-        print("Raw content:", response.text, file=sys.stderr)
+        raise HypixelAPIError(
+            "Failed parsing the response from the Hypixel API. "
+            f"Raw content: {response.text}"
+        )
 
     if not response_json.get("success", False):
-        print("Hypixel API returned an error", file=sys.stderr)
-        print("Response:", response_json, file=sys.stderr)
+        raise HypixelAPIError(
+            f"Hypixel API returned an error. Response: {response_json}"
+        )
 
     playerdata = response_json["player"]
 
     if not playerdata:
-        raise ValueError(f"Could not find a user with {identifier_type} {identifier}")
+        raise HypixelAPIError(
+            f"Could not find a user with {identifier_type} {identifier}"
+        )
 
     return cast(PlayerData, playerdata)  # TODO: properly type response
 
@@ -68,7 +85,7 @@ def get_player_data(
 def get_gamemode_stats(playerdata: PlayerData, gamemode: str) -> GamemodeData:
     """Return the stats of the player in the given gamemode"""
     if gamemode not in playerdata["stats"]:
-        raise ValueError(
+        raise MissingStatsError(
             f"{playerdata['displayname']} is missing stats in {gamemode.lower()}"
         )
 

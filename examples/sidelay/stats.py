@@ -3,7 +3,12 @@ from dataclasses import dataclass
 from typing import Callable, Literal, Union, overload
 
 from hystatutils.calc import bedwars_level_from_exp
-from hystatutils.playerdata import get_gamemode_stats, get_player_data
+from hystatutils.playerdata import (
+    HypixelAPIError,
+    MissingStatsError,
+    get_gamemode_stats,
+    get_player_data,
+)
 from hystatutils.utils import div
 
 StatName = Literal["stars", "fkdr", "wlr", "winstreak"]
@@ -113,26 +118,29 @@ def get_bedwars_stats(username: str, api_key: str) -> Stats:
 
     try:
         playerdata = get_player_data(api_key, username, UUID_MAP=UUID_MAP)
-    except (ValueError, RuntimeError) as e:
+    except HypixelAPIError as e:
         # Assume the players is a nick
         logger.info(f"Failed for {username}", e)
         stats = NickedPlayer(username=username)
     else:
-        bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
-
-        stats = PlayerStats(
-            username=username,
-            stars=bedwars_level_from_exp(bw_stats["Experience"]),
-            fkdr=div(
-                bw_stats["final_kills_bedwars"],
-                bw_stats["final_deaths_bedwars"],
-            ),
-            wlr=div(
-                bw_stats["wins_bedwars"],
-                bw_stats["games_played_bedwars"] - bw_stats["wins_bedwars"],
-            ),
-            winstreak=bw_stats["winstreak"],
-        )
+        try:
+            bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
+        except MissingStatsError:
+            stats = PlayerStats(username=username, stars=0, fkdr=0, wlr=0, winstreak=0)
+        else:
+            stats = PlayerStats(
+                username=username,
+                stars=bedwars_level_from_exp(bw_stats["Experience"]),
+                fkdr=div(
+                    bw_stats["final_kills_bedwars"],
+                    bw_stats["final_deaths_bedwars"],
+                ),
+                wlr=div(
+                    bw_stats["wins_bedwars"],
+                    bw_stats["games_played_bedwars"] - bw_stats["wins_bedwars"],
+                ),
+                winstreak=bw_stats["winstreak"],
+            )
 
     KNOWN_STATS[username] = stats
 
