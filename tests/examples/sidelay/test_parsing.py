@@ -146,7 +146,7 @@ UNEVENTFUL_LOGLINES = (
     "[Info: 2021-11-29 22:28:52.033936996: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] The party was transferred to Player2 notbecause [MVP++] Player1 didntleave",  # Malformed
     "[Info: 2021-12-06 22:23:29.795361404: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP++] Player2 having disbanding has disbanded the party!",  # Malformed
     "[Info: 2021-12-09 00:21:25.792896760: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [VIP+] Player1 having removing from partying has been removed from the party.",  # Malformed
-    "[Info: 2021-12-09 00:21:30.953440842: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Kicked [VIP] Player1 becausing offlining because they were offline.",  # Malformed
+    "[Info: 2021-12-09 00:21:30.953440842: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Kicked [VIP] Player1 because they were offline.becausing offlining ",  # Malformed
     "[Info: 2021-12-09 00:21:30.953440842: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP+] Player1 wasing removing was removed from the party because they disconnected",  # Malformed
 )
 
@@ -218,23 +218,27 @@ parsing_test_cases = (
     ),
     (
         "[Info: 2021-11-29 22:16:47.779503684: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [VIP] Player1 has left the party.",
-        PartyLeaveEvent(username="Player1"),
+        PartyLeaveEvent(usernames=["Player1"]),
     ),
     (
         "[Info: 2021-11-29 22:28:52.033936996: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] The party was transferred to Player2 because [MVP++] Player1 left",
-        PartyLeaveEvent(username="Player1"),
+        PartyLeaveEvent(usernames=["Player1"]),
     ),
     (
         "[Info: 2021-12-09 00:21:25.792896760: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [VIP+] Player1 has been removed from the party.",
-        PartyLeaveEvent(username="Player1"),
+        PartyLeaveEvent(usernames=["Player1"]),
     ),
     (
         "[Info: 2021-12-09 00:21:30.953440842: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Kicked [VIP] Player1 because they were offline.",
-        PartyLeaveEvent(username="Player1"),
+        PartyLeaveEvent(usernames=["Player1"]),
     ),
     (
         "[Info: 2021-12-09 00:21:30.953440842: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP+] Player1 was removed from the party because they disconnected",
-        PartyLeaveEvent(username="Player1"),
+        PartyLeaveEvent(usernames=["Player1"]),
+    ),
+    (
+        "[Info: 2021-12-10 00:57:30.104719428: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Kicked [MVP++] Player1, [MVP+] Player2 because they were offline.",
+        PartyLeaveEvent(usernames=["Player1", "Player2"]),
     ),
     (
         "[Info: 2021-11-29 22:17:40.417692543: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Party Members (3)",

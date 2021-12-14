@@ -93,7 +93,7 @@ class PartyJoinEvent:
 
 @dataclass
 class PartyLeaveEvent:
-    username: str
+    usernames: list[str]
     event_type: Literal[EventType.PARTY_LEAVE] = EventType.PARTY_LEAVE
 
 
@@ -317,7 +317,7 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
         username = words[0]
 
-        return PartyLeaveEvent(username)
+        return PartyLeaveEvent([username])
 
     if " has been removed from the party." in message:
         # Info [CHAT] [VIP+] <username> has been removed from the party.
@@ -340,7 +340,7 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
         username = words[0]
 
-        return PartyLeaveEvent(username)
+        return PartyLeaveEvent([username])
 
     if " was removed from the party because they disconnected" in message:
         # [MVP+] Player1 was removed from the party because they disconnected"
@@ -369,15 +369,14 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
         username = words[0]
 
-        return PartyLeaveEvent(username)
+        return PartyLeaveEvent([username])
 
     PARTY_KICK_OFFLINE_PREFIX = "Kicked "
     if (
         message.startswith(PARTY_KICK_OFFLINE_PREFIX)
         and " because they were offline." in message
     ):
-        # Info [CHAT] Kicked [VIP] <username> because they were offline.
-        # TODO: Handle many usernames kicked at once
+        # Info [CHAT] Kicked [VIP] <username1>, <username2> because they were offline.
         suffix = message.removeprefix(PARTY_KICK_OFFLINE_PREFIX)
         cleaned = remove_ranks(suffix)
         words = cleaned.split(" ")
@@ -385,14 +384,14 @@ def parse_chat_message(message: str) -> Optional[Event]:
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(words[1:], ("because", "they", "were", "offline.")):
+        for word, target in zip(words[-4:], ("because", "they", "were", "offline.")):
             if word != target:
                 logger.debug("Message does not match target! {word=} != {target=}")
                 return None
 
-        username = words[0]
+        usernames = " ".join(words[:-4]).split(", ")
 
-        return PartyLeaveEvent(username)
+        return PartyLeaveEvent(usernames)
 
     TRANSFER_PREFIX = "The party was transferred to "
     if message.startswith(TRANSFER_PREFIX):
@@ -413,7 +412,7 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
         username = words[2]
 
-        return PartyLeaveEvent(username)
+        return PartyLeaveEvent([username])
     """
     # noqa: W291
     Info [CHAT] -----------------------------

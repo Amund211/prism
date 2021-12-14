@@ -108,8 +108,14 @@ def create_state(
         ),
         (
             create_state(party_members={"Player1", "Player2", "Player3"}),
-            PartyLeaveEvent("Player3"),
+            PartyLeaveEvent(["Player3"]),
             create_state(party_members={"Player1", "Player2"}),
+            True,
+        ),
+        (
+            create_state(party_members={"Player1", "Player2", "Player3"}),
+            PartyLeaveEvent(["Player3", "Player2"]),
+            create_state(party_members={"Player1"}),
             True,
         ),
         (
@@ -137,7 +143,7 @@ def create_state(
         (
             # Player not in party leaves party
             create_state(party_members={"Player1", "Player2"}),
-            PartyLeaveEvent("RandomPlayer"),
+            PartyLeaveEvent(["RandomPlayer"]),
             create_state(party_members={"Player1", "Player2"}),
             # TODO: False,
             True,

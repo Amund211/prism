@@ -154,9 +154,10 @@ def update_state(state: OverlayState, event: Event) -> bool:
 
     if event.event_type is EventType.PARTY_LEAVE:
         # Someone left your party -> remove them from your party
-        state.remove_from_party(event.username)
+        for username in event.usernames:
+            state.remove_from_party(username)
 
-        logger.info(f"{event.username} left your party")
+        logger.info(f"{' ,'.join(event.usernames)} left your party")
 
         return True
 
