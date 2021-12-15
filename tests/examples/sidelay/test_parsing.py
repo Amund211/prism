@@ -135,6 +135,21 @@ UNEVENTFUL_LOGLINES = (
     "[Info: 2021-11-29 19:58:22.546643684: NetQueue.cpp(575)] NetQueue: worker thread started.",
     "[Info: 2021-11-29 19:58:22.546656499: mainLinux.cpp(250)] Running launcher bootstrap (version 1035)",
     "[Info: 2021-11-29 19:58:22.548908424: Common.cpp(32)] Native Launcher Version: 1035",
+    # Bedwarspractice server
+    "[Info: 2021-12-15 00:32:27.188867032: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Connecting to bwp-game-25...",
+    "[Info: 2021-12-15 00:32:27.239004940: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Moving you to game server!",
+    "[Info: 2021-12-15 00:32:27.239041920: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Successfully connected to bwp-game-25",
+    "[Info: 2021-12-15 00:32:27.310287008: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Still waiting for other players. Attempt 1/10",
+    "[Info: 2021-12-15 00:32:27.310298640: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] You have joined with a new game! UUID: 5183e38b-e87b-410f-940e-dd259b3fc43f",
+    "[Info: 2021-12-15 00:32:27.310308869: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Still waiting for other players. Attempt 1/10",
+    "[Info: 2021-12-15 00:32:27.310318067: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Loading map...",
+    "[Info: 2021-12-15 00:32:27.364797029: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] =================================",
+    "[Info: 2021-12-15 00:32:27.364861521: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]                  Void Fight",
+    "[Info: 2021-12-15 00:32:27.364880247: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]     Break the bed on the over side",
+    "[Info: 2021-12-15 00:32:27.364895165: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]               to win the game!",
+    "[Info: 2021-12-15 00:32:27.364918058: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] =================================",
+    "[Info: 2021-12-15 00:32:27.554651901: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Players in this game: Player1 Player2 Player3 Player4 ",
+    "[Info: 2021-12-15 00:32:27.554735369: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Game starting in 5 seconds!",
     # Near misses - messages that almost parse
     "[Info: 2021-11-29 20:01:23.997291428: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Player1 have joining (1/2)! has joined (",  # Malformed
     "[Info: 2021-11-29 20:01:23.997291428: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Player1 has joined (x/y)!",  # Malformed player count
