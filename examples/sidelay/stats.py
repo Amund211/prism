@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Callable, Literal, Union, overload
 
 from hystatutils.calc import bedwars_level_from_exp
+from hystatutils.minecraft import MojangAPIError, get_uuid
 from hystatutils.playerdata import (
     HypixelAPIError,
     MissingStatsError,
@@ -18,10 +19,10 @@ PropertyName = Literal[StatName, InfoName]
 logger = logging.getLogger()
 
 try:
-    # Define a map username -> uuid so that we can look up by uuid instead of username
-    from examples.customize import UUID_MAP
+    # A map nickname -> uuid
+    from examples.customize import NICK_DATABASE
 except ImportError:
-    UUID_MAP: dict[str, str] = {}  # type: ignore[no-redef]
+    NICK_DATABASE: dict[str, str] = {}  # type: ignore[no-redef]
 
 
 @dataclass(order=True)
@@ -117,30 +118,50 @@ def get_bedwars_stats(username: str, api_key: str) -> Stats:
     stats: Stats
 
     try:
-        playerdata = get_player_data(api_key, username, UUID_MAP=UUID_MAP)
-    except HypixelAPIError as e:
+        uuid = get_uuid(username)
+    except MojangAPIError as e:
+        logger.debug(f"Failed getting uuid for username {username}", e)
         # Assume the players is a nick
-        logger.info(f"Failed for {username}", e)
-        stats = NickedPlayer(username=username)
+        failed_getting_uuid = True
+        uuid = None
     else:
+        failed_getting_uuid = False
+
+    # The player may be nicked. Look up in nick database
+    if uuid is None or failed_getting_uuid:
+        if username in NICK_DATABASE:
+            uuid = NICK_DATABASE[username]
+
+    if uuid is not None:
         try:
-            bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
-        except MissingStatsError:
-            stats = PlayerStats(username=username, stars=0, fkdr=0, wlr=0, winstreak=0)
+            playerdata = get_player_data(api_key, uuid=uuid)
+        except HypixelAPIError as e:
+            # Assume the players is a nick
+            logger.debug(f"Failed getting stats for {uuid}", e)
+            stats = NickedPlayer(username=username)
         else:
-            stats = PlayerStats(
-                username=username,
-                stars=bedwars_level_from_exp(bw_stats["Experience"]),
-                fkdr=div(
-                    bw_stats["final_kills_bedwars"],
-                    bw_stats["final_deaths_bedwars"],
-                ),
-                wlr=div(
-                    bw_stats["wins_bedwars"],
-                    bw_stats["games_played_bedwars"] - bw_stats["wins_bedwars"],
-                ),
-                winstreak=bw_stats["winstreak"],
-            )
+            try:
+                bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
+            except MissingStatsError:
+                stats = PlayerStats(
+                    username=username, stars=0, fkdr=0, wlr=0, winstreak=0
+                )
+            else:
+                stats = PlayerStats(
+                    username=username,
+                    stars=bedwars_level_from_exp(bw_stats["Experience"]),
+                    fkdr=div(
+                        bw_stats["final_kills_bedwars"],
+                        bw_stats["final_deaths_bedwars"],
+                    ),
+                    wlr=div(
+                        bw_stats["wins_bedwars"],
+                        bw_stats["games_played_bedwars"] - bw_stats["wins_bedwars"],
+                    ),
+                    winstreak=bw_stats["winstreak"],
+                )
+    else:
+        stats = NickedPlayer(username=username)
 
     KNOWN_STATS[username] = stats
 

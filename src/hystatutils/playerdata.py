@@ -31,16 +31,8 @@ REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
 made_requests = deque([datetime.now()], maxlen=REQUEST_LIMIT)
 
 
-def get_player_data(
-    api_key: str, identifier: str, uuid: bool = False, UUID_MAP: dict[str, str] = {}
-) -> PlayerData:
+def get_player_data(api_key: str, uuid: str) -> PlayerData:
     """Get data about the given player from the /player API endpoint"""
-    if not uuid and identifier.lower() in UUID_MAP:
-        identifier = UUID_MAP[identifier.lower()]
-        uuid = True
-
-    identifier_type = "uuid" if uuid else "name"
-
     now = datetime.now()
     if len(made_requests) == REQUEST_LIMIT:
         timespan = now - made_requests[0]
@@ -49,14 +41,12 @@ def get_player_data(
 
     made_requests.append(now)
 
-    response = requests.get(
-        f"{PLAYER_ENDPOINT}?key={api_key}&{identifier_type}={identifier}"
-    )
+    response = requests.get(f"{PLAYER_ENDPOINT}?key={api_key}&uuid={uuid}")
 
     if not response:
         raise HypixelAPIError(
             f"Request to Hypixel API failed with status code {response.status_code} "
-            f"when getting data for player {identifier}. Response: {response.text}"
+            f"when getting data for player {uuid}. Response: {response.text}"
         )
 
     try:
@@ -75,9 +65,7 @@ def get_player_data(
     playerdata = response_json["player"]
 
     if not playerdata:
-        raise HypixelAPIError(
-            f"Could not find a user with {identifier_type} {identifier}"
-        )
+        raise HypixelAPIError(f"Could not find a user with uuid {uuid}")
 
     return cast(PlayerData, playerdata)  # TODO: properly type response
 

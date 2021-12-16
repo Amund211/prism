@@ -4,9 +4,10 @@ import math
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 from hystatutils.calc import bedwars_level_from_exp
+from hystatutils.minecraft import MojangAPIError, get_uuid
 from hystatutils.playerdata import (
     HypixelAPIError,
     MissingStatsError,
@@ -18,9 +19,9 @@ from hystatutils.utils import div, format_seconds, read_key
 
 try:
     # Define a map username -> uuid so that we can look up by uuid instead of username
-    from examples.customize import UUID_MAP
+    from examples.customize import NICK_DATABASE
 except ImportError:
-    UUID_MAP: dict[str, str] = {}  # type: ignore[no-redef]
+    NICK_DATABASE: dict[str, str] = {}  # type: ignore[no-redef]
 
 
 api_key = read_key(Path(sys.path[0]) / "api_key")
@@ -77,7 +78,7 @@ def div_string(
     return f"{quotient:.2f}"
 
 
-def print_bedwars_stats(playerdata: PlayerData) -> None:
+def print_bedwars_stats(playerdata: PlayerData, nick: Optional[str] = None) -> None:
     """Print a table of bedwars stats from the given player data"""
     try:
         bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
@@ -88,7 +89,8 @@ def print_bedwars_stats(playerdata: PlayerData) -> None:
 
     stars = bedwars_level_from_exp(bw_stats["Experience"])
 
-    print(f"{playerdata['displayname']} [{stars:.1f}]", end="")
+    nick_suffix = f" ({nick})" if nick is not None else ""
+    print(f"{playerdata['displayname']}{nick_suffix} [{stars:.1f}]", end="")
 
     try:
         last_login = playerdata["lastLogin"] / 1000
@@ -160,11 +162,34 @@ def print_bedwars_stats(playerdata: PlayerData) -> None:
 
 def get_and_display(username: str) -> None:
     try:
-        playerdata = get_player_data(api_key, username, UUID_MAP=UUID_MAP)
+        uuid = get_uuid(username)
+        nick = None
+    except MojangAPIError:
+        failed_getting_uuid = True
+        uuid = None
+    else:
+        failed_getting_uuid = False
+
+    # The player may be nicked. Look up in nick database
+    if uuid is None or failed_getting_uuid:
+        matching_nicks = list(
+            filter(lambda nick: nick.lower() == username.lower(), NICK_DATABASE.keys())
+        )
+
+        if matching_nicks:
+            uuid = NICK_DATABASE[matching_nicks[0]]
+            nick = username
+
+    if uuid is None:
+        print(f"Could not find user with username {username}")
+        return
+
+    try:
+        playerdata = get_player_data(api_key, uuid)
     except HypixelAPIError as e:
         print(e)
     else:
-        print_bedwars_stats(playerdata)
+        print_bedwars_stats(playerdata, nick=nick)
 
 
 def main() -> None:

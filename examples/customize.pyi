@@ -5,3 +5,5 @@ from typing import Sequence
 UUID_MAP: dict[str, str]
 
 KNOWN_TEAMMATES: Sequence[str]
+
+NICK_DATABASE: dict[str, str]
