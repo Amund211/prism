@@ -1,5 +1,5 @@
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable, Literal, Optional, Union, overload
 
 from hystatutils.calc import bedwars_level_from_exp
@@ -34,7 +34,7 @@ class PlayerStats:
     wlr: float
     winstreak: int
     username: str
-    nick: Optional[str] = None
+    nick: Optional[str] = field(default=None, compare=False)
 
     @property
     def nicked(self) -> bool:
