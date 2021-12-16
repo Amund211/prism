@@ -23,7 +23,7 @@ GamemodeData = dict[str, Any]
 PlayerData = dict[str, Any]
 
 PLAYER_ENDPOINT = "https://api.hypixel.net/player"
-REQUEST_LIMIT = 100  # Max requests per minute
+REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
 
 
 # Initing with now is semantically wrong, because it implies we just made a request
@@ -44,8 +44,8 @@ def get_player_data(
     now = datetime.now()
     if len(made_requests) == REQUEST_LIMIT:
         timespan = now - made_requests[0]
-        if timespan.total_seconds() < 60:
-            time.sleep(60 - timespan.total_seconds())
+        if timespan.total_seconds() < REQUEST_WINDOW:
+            time.sleep(REQUEST_WINDOW - timespan.total_seconds())
 
     made_requests.append(now)
 
