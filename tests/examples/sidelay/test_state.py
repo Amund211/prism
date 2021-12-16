@@ -30,7 +30,7 @@ def create_state(
     yourself = set() if own_username is None else set([own_username])
     return OverlayState(
         party_members=party_members | yourself,
-        lobby_players=lobby_players | party_members | yourself,
+        lobby_players=lobby_players | yourself,
         out_of_sync=out_of_sync,
         own_username=own_username,
     )
@@ -94,7 +94,7 @@ def create_state(
         (
             create_state(party_members={"Player1", "Player2"}),
             PartyDetachEvent(),
-            create_state(lobby_players={"Player1", "Player2"}),
+            create_state(),
             True,
         ),
         (
@@ -106,26 +106,19 @@ def create_state(
         (
             create_state(party_members={"Player1", "Player2", "Player3"}),
             PartyLeaveEvent(["Player3"]),
-            # They are still in the lobby
-            create_state(
-                party_members={"Player1", "Player2"}, lobby_players={"Player3"}
-            ),
+            create_state(party_members={"Player1", "Player2"}),
             True,
         ),
         (
             create_state(party_members={"Player1", "Player2", "Player3"}),
             PartyLeaveEvent(["Player3", "Player2"]),
-            # They are still in the lobby
-            create_state(
-                party_members={"Player1"}, lobby_players={"Player3", "Player2"}
-            ),
+            create_state(party_members={"Player1"}),
             True,
         ),
         (
             create_state(party_members={"Player1", "Player2", "Player3"}),
             PartyListIncomingEvent(),
-            # They are still in the lobby
-            create_state(lobby_players={"Player1", "Player2", "Player3"}),
+            create_state(),
             False,
         ),
         (
@@ -141,7 +134,14 @@ def create_state(
             # Party leave when own username is unknown
             create_state(party_members={"Player1", "Player2"}, own_username=None),
             PartyDetachEvent(),
+            create_state(own_username=None),
+            True,
+        ),
+        (
+            # Lobby join when own username is unknown
             create_state(lobby_players={"Player1", "Player2"}, own_username=None),
+            LobbySwapEvent(),
+            create_state(own_username=None),
             True,
         ),
         (

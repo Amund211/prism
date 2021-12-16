@@ -19,7 +19,6 @@ class OverlayState:
     def add_to_party(self, username: str) -> None:
         """Add the given username to the party"""
         self.party_members.add(username)
-        self.add_to_lobby(username)
 
     def remove_from_party(self, username: str) -> None:
         """Remove the given username from the party"""
@@ -59,8 +58,12 @@ class OverlayState:
         self.lobby_players = set(new_lobby)
 
     def clear_lobby(self) -> None:
-        """Remove all players from the lobby, except for your party"""
-        self.set_lobby(self.party_members)
+        """Remove all players from the lobby, except for you"""
+        if self.own_username is None:
+            logger.warning("Own username is not set, lobby is now empty")
+            self.set_lobby([])
+        else:
+            self.set_lobby([self.own_username])
 
 
 def update_state(state: OverlayState, event: Event) -> bool:
