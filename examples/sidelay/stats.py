@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import Callable, Literal, Union, overload
+from typing import Callable, Literal, Optional, Union, overload
 
 from hystatutils.calc import bedwars_level_from_exp
 from hystatutils.minecraft import MojangAPIError, get_uuid
@@ -34,6 +34,7 @@ class PlayerStats:
     wlr: float
     winstreak: int
     username: str
+    nick: Optional[str] = None
 
     @property
     def nicked(self) -> bool:
@@ -59,7 +60,7 @@ class PlayerStats:
         elif name == "winstreak":
             return self.winstreak
         elif name == "username":
-            return self.username
+            return self.username + (f" ({self.nick})" if self.nick is not None else "")
 
     def get_string(self, name: PropertyName) -> str:
         """Get a string representation of the given stat"""
@@ -127,10 +128,12 @@ def get_bedwars_stats(username: str, api_key: str) -> Stats:
     else:
         failed_getting_uuid = False
 
+    nick: Optional[str] = None
     # The player may be nicked. Look up in nick database
     if uuid is None or failed_getting_uuid:
         if username in NICK_DATABASE:
             uuid = NICK_DATABASE[username]
+            nick = username
 
     if uuid is not None:
         try:
@@ -140,6 +143,10 @@ def get_bedwars_stats(username: str, api_key: str) -> Stats:
             logger.debug(f"Failed getting stats for {uuid}", e)
             stats = NickedPlayer(username=username)
         else:
+            if nick is not None:
+                # Successfully de-nicked
+                username = playerdata["displayname"]
+
             try:
                 bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
             except MissingStatsError:
@@ -149,6 +156,7 @@ def get_bedwars_stats(username: str, api_key: str) -> Stats:
             else:
                 stats = PlayerStats(
                     username=username,
+                    nick=nick,
                     stars=bedwars_level_from_exp(bw_stats["Experience"]),
                     fkdr=div(
                         bw_stats["final_kills_bedwars"],
@@ -163,7 +171,7 @@ def get_bedwars_stats(username: str, api_key: str) -> Stats:
     else:
         stats = NickedPlayer(username=username)
 
-    KNOWN_STATS[username] = stats
+    KNOWN_STATS[nick if nick is not None else username] = stats
 
     return stats
 
@@ -176,10 +184,10 @@ def rate_stats_for_non_party_members(
 ) -> Callable[[Stats], RateStatsReturn]:
     def rate_stats(stats: Stats) -> RateStatsReturn:
         """Used as a key function for sorting"""
-        is_teammate = stats.username not in party_members
+        is_enemy = stats.username not in party_members
         if stats.nicked:
-            return (is_teammate, stats.nicked)
+            return (is_enemy, stats.nicked)
 
-        return (is_teammate, stats.nicked, stats)
+        return (is_enemy, stats.nicked, stats)
 
     return rate_stats
