@@ -7,7 +7,13 @@ from pathlib import Path
 from typing import Union
 
 from hystatutils.calc import bedwars_level_from_exp
-from hystatutils.playerdata import PlayerData, get_gamemode_stats, get_player_data
+from hystatutils.playerdata import (
+    HypixelAPIError,
+    MissingStatsError,
+    PlayerData,
+    get_gamemode_stats,
+    get_player_data,
+)
 from hystatutils.utils import div, format_seconds, read_key
 
 try:
@@ -75,7 +81,7 @@ def print_bedwars_stats(playerdata: PlayerData) -> None:
     """Print a table of bedwars stats from the given player data"""
     try:
         bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
-    except ValueError as e:
+    except MissingStatsError as e:
         # Player is missing stats in bedwars
         print(e)
         return
@@ -155,7 +161,7 @@ def print_bedwars_stats(playerdata: PlayerData) -> None:
 def get_and_display(username: str) -> None:
     try:
         playerdata = get_player_data(api_key, username, UUID_MAP=UUID_MAP)
-    except (ValueError, RuntimeError) as e:
+    except HypixelAPIError as e:
         print(e)
     else:
         print_bedwars_stats(playerdata)
