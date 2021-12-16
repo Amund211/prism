@@ -19,6 +19,7 @@ class OverlayState:
     def add_to_party(self, username: str) -> None:
         """Add the given username to the party"""
         self.party_members.add(username)
+        self.add_to_lobby(username)
 
     def remove_from_party(self, username: str) -> None:
         """Remove the given username from the party"""
@@ -105,9 +106,7 @@ def update_state(state: OverlayState, event: Event) -> bool:
             # We are out of sync with the lobby.
             # This happens when you first join a lobby, as the previous lobby is
             # never cleared. It could also be due to a bug.
-            logger.debug(
-                "Player count out of sync. Clearing the lobby. Please use /who"
-            )
+            logger.debug("Player count out of sync. Please use /who")
 
             state.out_of_sync = True
         else:

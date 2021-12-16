@@ -22,15 +22,15 @@ OWN_USERNAME = "OwnUsername"
 
 
 def create_state(
-    party_members: Optional[set[str]] = None,
-    lobby_players: Optional[set[str]] = None,
+    party_members: set[str] = set(),
+    lobby_players: set[str] = set(),
     out_of_sync: bool = False,
     own_username: Optional[str] = OWN_USERNAME,
 ) -> OverlayState:
-    players = [] if own_username is None else [own_username]
+    yourself = set() if own_username is None else set([own_username])
     return OverlayState(
-        party_members=(party_members or set()) | set(players),
-        lobby_players=(lobby_players or set()) | set(players),
+        party_members=party_members | yourself,
+        lobby_players=lobby_players | party_members | yourself,
         out_of_sync=out_of_sync,
         own_username=own_username,
     )
@@ -56,10 +56,7 @@ def create_state(
                 party_members={"Player1", "Player2"}, lobby_players={"RandomPlayer"}
             ),
             LobbySwapEvent(),
-            create_state(
-                party_members={"Player1", "Player2"},
-                lobby_players={"Player1", "Player2"},
-            ),
+            create_state(party_members={"Player1", "Player2"}),
             True,
         ),
         (
@@ -97,7 +94,7 @@ def create_state(
         (
             create_state(party_members={"Player1", "Player2"}),
             PartyDetachEvent(),
-            create_state(),
+            create_state(lobby_players={"Player1", "Player2"}),
             True,
         ),
         (
@@ -109,19 +106,26 @@ def create_state(
         (
             create_state(party_members={"Player1", "Player2", "Player3"}),
             PartyLeaveEvent(["Player3"]),
-            create_state(party_members={"Player1", "Player2"}),
+            # They are still in the lobby
+            create_state(
+                party_members={"Player1", "Player2"}, lobby_players={"Player3"}
+            ),
             True,
         ),
         (
             create_state(party_members={"Player1", "Player2", "Player3"}),
             PartyLeaveEvent(["Player3", "Player2"]),
-            create_state(party_members={"Player1"}),
+            # They are still in the lobby
+            create_state(
+                party_members={"Player1"}, lobby_players={"Player3", "Player2"}
+            ),
             True,
         ),
         (
             create_state(party_members={"Player1", "Player2", "Player3"}),
             PartyListIncomingEvent(),
-            create_state(),
+            # They are still in the lobby
+            create_state(lobby_players={"Player1", "Player2", "Player3"}),
             False,
         ),
         (
@@ -137,7 +141,7 @@ def create_state(
             # Party leave when own username is unknown
             create_state(party_members={"Player1", "Player2"}, own_username=None),
             PartyDetachEvent(),
-            create_state(own_username=None),
+            create_state(lobby_players={"Player1", "Player2"}, own_username=None),
             True,
         ),
         (
