@@ -1,7 +1,8 @@
 import os
-from typing import Optional, Sequence, Union
+from typing import Sequence, Union
 
-from examples.sidelay.stats import PropertyName, Stats, rate_stats_for_non_party_members
+from examples.sidelay.output.utils import COLUMN_NAMES, STAT_LEVELS
+from examples.sidelay.stats import Stats, rate_stats_for_non_party_members
 
 
 class Color:
@@ -45,15 +46,6 @@ class Color:
 SEP = " " * 4
 
 
-COLUMN_NAMES: dict[str, PropertyName] = {
-    "IGN": "username",
-    "Stars": "stars",
-    "FKDR": "fkdr",
-    "WLR": "wlr",
-    "WS": "winstreak",
-}
-
-
 LEVEL_COLORMAP = (
     Color.LIGHT_GRAY,
     Color.LIGHT_WHITE,
@@ -62,14 +54,6 @@ LEVEL_COLORMAP = (
     Color.LIGHT_RED + Color.BG_WHITE,
 )
 
-
-STAT_LEVELS: dict[PropertyName, Optional[Sequence[Union[int, float]]]] = {
-    "stars": (100, 300, 500, 800),
-    "fkdr": (0.5, 2, 4, 8),
-    "wlr": (0.3, 1, 2, 4),
-    "winstreak": (5, 15, 30, 50),
-    "username": None,
-}
 
 assert set(STAT_LEVELS.keys()).issubset(set(COLUMN_NAMES.values()))
 

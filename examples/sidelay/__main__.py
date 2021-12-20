@@ -11,10 +11,11 @@ import logging
 import sys
 import time
 from pathlib import Path
-from typing import Iterable, TextIO
+from typing import Iterable, Literal, TextIO
 
+from examples.sidelay.output.overlay import process_loglines_to_overlay
+from examples.sidelay.output.printing import print_stats_table
 from examples.sidelay.parsing import parse_logline
-from examples.sidelay.printing import print_stats_table
 from examples.sidelay.state import OverlayState, update_state
 from examples.sidelay.stats import NickedPlayer, Stats, get_bedwars_stats
 from hystatutils.utils import read_key
@@ -41,17 +42,17 @@ def tail_file(f: TextIO) -> Iterable[str]:
         yield line
 
 
-def process_loglines(
+def process_loglines_to_stdout(
     state: OverlayState, loglines: Iterable[str], fast_forward: bool = False
 ) -> None:
     """Process the state changes for each logline and redraw the screen if neccessary"""
     for line in loglines:
         event = parse_logline(line)
 
-        if event is not None:
-            redraw = update_state(state, event)
-        else:
-            redraw = False
+        if event is None:
+            continue
+
+        redraw = update_state(state, event)
 
         if redraw and not fast_forward:
             logger.info(f"Party = {', '.join(state.party_members)}")
@@ -77,7 +78,7 @@ def process_loglines(
             )
 
 
-def watch_from_logfile(logpath: str) -> None:
+def watch_from_logfile(logpath: str, output: Literal["stdout", "overlay"]) -> None:
     """Use the overlay on an active logfile"""
     state = OverlayState(lobby_players=set(), party_members=set())
 
@@ -85,11 +86,14 @@ def watch_from_logfile(logpath: str) -> None:
         # Process the entire logfile to get current player as well as potential
         # current party
         old_loglines = logfile.readlines()
-        process_loglines(state, old_loglines, fast_forward=True)
+        process_loglines_to_stdout(state, old_loglines, fast_forward=True)
 
         # Process the rest of the loglines as they come in
         loglines = tail_file(logfile)
-        process_loglines(state, loglines)
+        if output == "stdout":
+            process_loglines_to_stdout(state, loglines)
+        else:
+            process_loglines_to_overlay(state, loglines, api_key)
 
 
 def test() -> None:
@@ -102,12 +106,17 @@ def test() -> None:
     logger.setLevel(logging.DEBUG)
 
     assert len(sys.argv) >= 3
+    output = "overlay" if len(sys.argv) >= 4 and sys.argv[4] == "overlay" else "stdout"
+
 
     state = OverlayState(lobby_players=set(), party_members=set())
 
     with open(sys.argv[2], "r") as logfile:
         loglines = logfile
-        process_loglines(state, loglines)
+        if output == "overlay":
+            process_loglines_to_overlay(state, loglines, api_key)
+        else:
+            process_loglines_to_stdout(state, loglines)
 
 
 if __name__ == "__main__":
@@ -118,4 +127,4 @@ if __name__ == "__main__":
     if sys.argv[1] == "test":
         test()
     else:
-        watch_from_logfile(sys.argv[1])
+        watch_from_logfile(sys.argv[1], "overlay")
