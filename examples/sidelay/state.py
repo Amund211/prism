@@ -186,3 +186,10 @@ def update_state(state: OverlayState, event: Event) -> bool:
             state.add_to_party(username)
 
         return True
+
+    if event.event_type is EventType.START_BEDWARS_GAME:
+        # Bedwars game has started
+        logger.info("Bedwars game starting")
+        state.in_queue = False
+
+        return False

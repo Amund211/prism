@@ -15,6 +15,7 @@ from examples.sidelay.parsing import (
     PartyLeaveEvent,
     PartyListIncomingEvent,
     PartyMembershipListEvent,
+    StartBedwarsGameEvent,
 )
 from examples.sidelay.state import OverlayState, update_state
 
@@ -130,6 +131,12 @@ def create_state(
             ),
             create_state(party_members={"Player1", "Player2", "Player3"}),
             True,
+        ),
+        (
+            create_state(in_queue=True),
+            StartBedwarsGameEvent(),
+            create_state(in_queue=False),
+            False,  # No need to redraw the screen - only hide the overlay
         ),
         # Special cases
         (

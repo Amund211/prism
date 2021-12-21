@@ -42,6 +42,9 @@ class EventType(Enum):
     PARTY_LIST_INCOMING = auto()  # The header of the party table
     PARTY_ROLE_LIST = auto()  # List of members or moderators, or the leader
 
+    # Games
+    START_BEDWARS_GAME = auto()  # A bedwars game has started
+
 
 @dataclass
 class InitializeAsEvent:
@@ -109,6 +112,11 @@ class PartyMembershipListEvent:
     event_type: Literal[EventType.PARTY_ROLE_LIST] = EventType.PARTY_ROLE_LIST
 
 
+@dataclass
+class StartBedwarsGameEvent:
+    event_type: Literal[EventType.START_BEDWARS_GAME] = EventType.START_BEDWARS_GAME
+
+
 Event = Union[
     InitializeAsEvent,
     LobbySwapEvent,
@@ -121,6 +129,7 @@ Event = Union[
     PartyLeaveEvent,
     PartyListIncomingEvent,
     PartyMembershipListEvent,
+    StartBedwarsGameEvent,
 ]
 
 
@@ -167,6 +176,9 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
     if message.startswith("Sending you to "):
         return LobbySwapEvent()
+
+    if message.startswith("Bed Wars"):
+        return StartBedwarsGameEvent()
 
     if " has joined (" in message:
         # Info [CHAT] <username> has joined (<x>/<N>)!

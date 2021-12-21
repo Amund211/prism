@@ -16,6 +16,7 @@ from examples.sidelay.parsing import (
     PartyLeaveEvent,
     PartyListIncomingEvent,
     PartyMembershipListEvent,
+    StartBedwarsGameEvent,
     parse_chat_message,
     parse_logline,
     remove_ranks,
@@ -270,6 +271,10 @@ parsing_test_cases = (
     (
         "[Info: 2021-11-29 22:17:40.417869567: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Party Members: Player2 ● [MVP+] Player3 ● ",
         PartyMembershipListEvent(usernames=["Player2", "Player3"], role="members"),
+    ),
+    (
+        "[Info: 2021-12-21 19:10:39.757655172: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]                                   Bed Wars",
+        StartBedwarsGameEvent(),
     ),
 )
 
