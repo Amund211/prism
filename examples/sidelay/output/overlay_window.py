@@ -11,23 +11,28 @@ from typing import Any, Callable, Optional
 
 @dataclass
 class Cell:
+    """A cell in the window described by one label and one stringvar"""
+
     label: tk.Label
     variable: tk.StringVar
 
 
 @dataclass
 class CellValue:
+    """A value that can be set to a cell in the window"""
+
     text: str
     color: str
 
 
+# One row in the overlay is a dict mapping column name to a cell value
 OverlayRow = dict[str, CellValue]
 
 
 class OverlayWindow:
     """
     Creates an overlay window using tkinter
-    Uses the "-topmost" property to always stay on top of other Windows
+    Uses the "-topmost" property to always stay on top of other windows
     """
 
     def __init__(
@@ -41,6 +46,7 @@ class OverlayWindow:
             [], tuple[bool, Optional[CellValue], Optional[list[OverlayRow]]]
         ],
     ):
+        """Store params and set up controls and header"""
         # Create a root window
         self.root = tk.Tk()
 
@@ -72,6 +78,7 @@ class OverlayWindow:
         def minimize(_: Any) -> None:
             minimize_callback()
             self.hide_window()
+            self.root.update_idletasks()
 
         minimize_label = tk.Label(
             self.root, text=" - ", font=("Consolas", "14"), fg="green3", bg="black"
@@ -86,9 +93,8 @@ class OverlayWindow:
         close_label.bind("<Button-1>", lambda _: close_callback())
         close_label.grid(row=0, column=amt_columns - 1)
 
-        self.rows: list[dict[str, Cell]] = []
+        # Set up header labels
         for column_index, column_name in enumerate(self.column_names):
-            # Set up header labels
             header_label = tk.Label(
                 self.root,
                 text=(
@@ -106,6 +112,9 @@ class OverlayWindow:
                 sticky="w" if column_index in self.left_justified_columns else "e",
             )
 
+        # Start with zero rows
+        self.rows: list[dict[str, Cell]] = []
+
         # Window geometry
         self.root.overrideredirect(True)
         self.root.geometry("+5+5")
@@ -113,6 +122,7 @@ class OverlayWindow:
         self.root.wm_attributes("-topmost", True)
         self.root.wm_attributes("-alpha", 0.8)
         self.root.configure(background="black")
+
         self.root.update_idletasks()
 
     def show_window(self) -> None:
@@ -126,6 +136,7 @@ class OverlayWindow:
         self.shown = False
 
     def append_row(self) -> None:
+        """Add a row of labels and stringvars to the table"""
         row_index = len(self.rows) + 2
 
         new_row: dict[str, Cell] = {}
@@ -137,12 +148,6 @@ class OverlayWindow:
                 fg="green3",
                 bg="black",
                 textvariable=string_var,
-                # wrap=tk.NONE,
-                # width=COLUMN_WIDTH[column_name],
-                # borderwidth=0,
-                # justify="left" if column_index in
-                # self.left_justified_columns else "right",
-                # anchor="w" if column_index in self.left_justified_columns else "e",
             )
             label.grid(
                 row=row_index,
@@ -150,15 +155,17 @@ class OverlayWindow:
                 sticky="w" if column_index in self.left_justified_columns else "e",
             )
             new_row[column_name] = Cell(label, string_var)
+
         self.rows.append(new_row)
 
     def pop_row(self) -> None:
+        """Remove a row of labels and stringvars from the table"""
         row = self.rows.pop()
         for column_name in self.column_names:
             row[column_name].label.destroy()
 
     def set_length(self, length: int) -> None:
-        """"""
+        """Add or remove table rows to give the desired length"""
         current_length = len(self.rows)
         if length > current_length:
             for i in range(length - current_length):
@@ -168,20 +175,29 @@ class OverlayWindow:
                 self.pop_row()
 
     def update_overlay(self) -> None:
+        """Get new data to be displayed and display it"""
         show, title_value, new_rows = self.get_new_data()
 
+        # Show or hide the window if the desired state is different from the stored
         if show != self.shown:
             if show:
                 self.show_window()
             else:
                 self.hide_window()
 
+        if not self.shown:
+            # Don't update the window if it isn't shown
+            self.root.after_idle(self.update_overlay)
+            return
+
+        # Set the contents of the title label in the window
         if title_value is None:
             self.title_cell.variable.set("")
         else:
             self.title_cell.variable.set(title_value.text)
             self.title_cell.label.configure(fg=title_value.color)
 
+        # Set the contents of the table if new data was provided
         if new_rows is not None:
             self.set_length(len(new_rows))
 
@@ -191,9 +207,9 @@ class OverlayWindow:
                     row[column_name].variable.set(new_row[column_name].text)
                     row[column_name].label.configure(fg=new_row[column_name].color)
 
-        wait_time = 10
-        self.root.after(wait_time, self.update_overlay)
+        self.root.after_idle(self.update_overlay)
 
     def run(self) -> None:
-        self.root.after(0, self.update_overlay)
+        """Init for the overlay starting the update chain and entering mainloop"""
+        self.root.after_idle(self.update_overlay)
         self.root.mainloop()
