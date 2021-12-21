@@ -11,13 +11,19 @@ import logging
 import sys
 import time
 from pathlib import Path
-from typing import Iterable, Literal, TextIO
+from typing import Iterable, Literal, Optional, TextIO
 
-from examples.sidelay.output.overlay import process_loglines_to_overlay
+from examples.sidelay.output.overlay import stats_to_row
+from examples.sidelay.output.overlay_window import OverlayRow, OverlayWindow
 from examples.sidelay.output.printing import print_stats_table
 from examples.sidelay.parsing import parse_logline
 from examples.sidelay.state import OverlayState, update_state
-from examples.sidelay.stats import NickedPlayer, Stats, get_bedwars_stats
+from examples.sidelay.stats import (
+    NickedPlayer,
+    Stats,
+    get_bedwars_stats,
+    rate_stats_for_non_party_members,
+)
 from hystatutils.utils import read_key
 
 logging.basicConfig()
@@ -42,9 +48,37 @@ def tail_file(f: TextIO) -> Iterable[str]:
         yield line
 
 
-def process_loglines_to_stdout(
-    state: OverlayState, loglines: Iterable[str], fast_forward: bool = False
-) -> None:
+def get_sorted_stats(state: OverlayState) -> list[Stats]:
+    stats: list[Stats]
+    if TESTING:
+        # No api requests in testing
+        stats = [NickedPlayer(username=player) for player in state.lobby_players]
+    else:
+        stats = [
+            get_bedwars_stats(player, api_key=api_key) for player in state.lobby_players
+        ]
+
+    return list(
+        sorted(
+            stats,
+            key=rate_stats_for_non_party_members(state.party_members),
+            reverse=True,
+        )
+    )
+
+
+def fast_forward_state(state: OverlayState, loglines: Iterable[str]) -> None:
+    """Process the state changes for each logline without outputting anything"""
+    for line in loglines:
+        event = parse_logline(line)
+
+        if event is None:
+            continue
+
+        update_state(state, event)
+
+
+def process_loglines_to_stdout(state: OverlayState, loglines: Iterable[str]) -> None:
     """Process the state changes for each logline and redraw the screen if neccessary"""
     for line in loglines:
         event = parse_logline(line)
@@ -54,28 +88,58 @@ def process_loglines_to_stdout(
 
         redraw = update_state(state, event)
 
-        if redraw and not fast_forward:
+        if redraw:
             logger.info(f"Party = {', '.join(state.party_members)}")
             logger.info(f"Lobby = {', '.join(state.lobby_players)}")
 
-            stats: list[Stats]
-            if TESTING:
-                # No api requests in testing
-                stats = [
-                    NickedPlayer(username=player) for player in state.lobby_players
-                ]
-            else:
-                stats = [
-                    get_bedwars_stats(player, api_key=api_key)
-                    for player in state.lobby_players
-                ]
+            sorted_stats = get_sorted_stats(state)
 
             print_stats_table(
-                stats=stats,
+                sorted_stats=sorted_stats,
                 party_members=state.party_members,
                 out_of_sync=state.out_of_sync,
                 clear_between_draws=CLEAR_BETWEEN_DRAWS,
             )
+
+
+def process_loglines_to_overlay(state: OverlayState, loglines: Iterable[str]) -> None:
+    COLUMNS = ("username", "stars", "fkdr", "winstreak")
+    PRETTY_COLUMN_NAMES = {
+        "username": "IGN",
+        "stars": "Stars",
+        "fkdr": "FKDR",
+        "winstreak": "WS",
+    }
+
+    loglines_iterator = iter(loglines)
+
+    def get_new_rows() -> Optional[list[OverlayRow]]:
+        try:
+            logline = next(loglines_iterator)
+        except StopIteration:
+            sys.exit(0)
+
+        event = parse_logline(logline)
+
+        if event is None:
+            return None
+
+        redraw = update_state(state, event)
+        if not redraw:
+            return None
+
+        sorted_stats = get_sorted_stats(state)
+
+        return [stats_to_row(stats) for stats in sorted_stats]
+
+    overlay = OverlayWindow(
+        column_names=list(COLUMNS),
+        pretty_column_names=PRETTY_COLUMN_NAMES,
+        left_justified_columns={0},
+        close_callback=lambda _: sys.exit(0),
+        get_new_rows=get_new_rows,
+    )
+    overlay.run()
 
 
 def watch_from_logfile(logpath: str, output: Literal["stdout", "overlay"]) -> None:
@@ -86,14 +150,14 @@ def watch_from_logfile(logpath: str, output: Literal["stdout", "overlay"]) -> No
         # Process the entire logfile to get current player as well as potential
         # current party
         old_loglines = logfile.readlines()
-        process_loglines_to_stdout(state, old_loglines, fast_forward=True)
+        fast_forward_state(state, old_loglines)
 
         # Process the rest of the loglines as they come in
         loglines = tail_file(logfile)
         if output == "stdout":
             process_loglines_to_stdout(state, loglines)
         else:
-            process_loglines_to_overlay(state, loglines, api_key)
+            process_loglines_to_overlay(state, loglines)
 
 
 def test() -> None:
@@ -113,7 +177,7 @@ def test() -> None:
     with open(sys.argv[2], "r") as logfile:
         loglines = logfile
         if output == "overlay":
-            process_loglines_to_overlay(state, loglines, api_key)
+            process_loglines_to_overlay(state, loglines)
         else:
             process_loglines_to_stdout(state, loglines)
 

@@ -2,7 +2,7 @@ import os
 from typing import Sequence, Union
 
 from examples.sidelay.output.utils import COLUMN_NAMES, STAT_LEVELS
-from examples.sidelay.stats import Stats, rate_stats_for_non_party_members
+from examples.sidelay.stats import Stats
 
 
 class Color:
@@ -107,21 +107,12 @@ def get_sep(column: str) -> str:
 
 
 def print_stats_table(
-    stats: list[Stats],
+    sorted_stats: list[Stats],
     party_members: set[str],
     out_of_sync: bool,
     clear_between_draws: bool = True,
 ) -> None:
-
-    # Sort the the players by stats and order party members last
-    sorted_stats = list(
-        sorted(
-            stats,
-            key=rate_stats_for_non_party_members(party_members),
-            reverse=True,
-        )
-    )
-
+    """Print the stats in a table format to stdout"""
     column_widths = {
         column: len(
             max(
