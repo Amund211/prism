@@ -25,6 +25,7 @@ def create_state(
     party_members: set[str] = set(),
     lobby_players: set[str] = set(),
     out_of_sync: bool = False,
+    in_queue: bool = False,
     own_username: Optional[str] = OWN_USERNAME,
 ) -> OverlayState:
     yourself = set() if own_username is None else set([own_username])
@@ -32,6 +33,7 @@ def create_state(
         party_members=party_members | yourself,
         lobby_players=lobby_players | yourself,
         out_of_sync=out_of_sync,
+        in_queue=in_queue,
         own_username=own_username,
     )
 
@@ -62,13 +64,13 @@ def create_state(
         (
             create_state(),
             LobbyJoinEvent("Player1", player_count=2, player_cap=16),
-            create_state(lobby_players={"Player1"}),
+            create_state(lobby_players={"Player1"}, in_queue=True),
             True,
         ),
         (
             create_state(),
             LobbyJoinEvent("Player1", player_count=5, player_cap=16),
-            create_state(lobby_players={"Player1"}, out_of_sync=True),
+            create_state(lobby_players={"Player1"}, out_of_sync=True, in_queue=True),
             True,
         ),
         (
@@ -82,7 +84,7 @@ def create_state(
             # Your own username should always appear in the list
             create_state(lobby_players={"PersonFromLastLobby"}),  # Old members cleared
             LobbyListEvent([OWN_USERNAME, "Player1", "Player2"]),  # You always online
-            create_state(lobby_players={"Player1", "Player2"}),
+            create_state(lobby_players={"Player1", "Player2"}, in_queue=True),
             True,
         ),
         (

@@ -14,6 +14,7 @@ class OverlayState:
     party_members: set[str]
     lobby_players: set[str]
     out_of_sync: bool = False
+    in_queue: bool = False
     own_username: Optional[str] = None
 
     def add_to_party(self, username: str) -> None:
@@ -87,6 +88,7 @@ def update_state(state: OverlayState, event: Event) -> bool:
         # Changed lobby -> clear the lobby
         logger.info("Clearing the lobby")
         state.clear_lobby()
+        state.in_queue = False
 
         return True
 
@@ -95,6 +97,7 @@ def update_state(state: OverlayState, event: Event) -> bool:
         logger.info("Updating lobby players from who command")
         state.set_lobby(event.usernames)
         state.out_of_sync = False
+        state.in_queue = True
 
         return True
 
@@ -104,6 +107,7 @@ def update_state(state: OverlayState, event: Event) -> bool:
             return False
 
         state.add_to_lobby(event.username)
+        state.in_queue = True
 
         if event.player_count != len(state.lobby_players):
             # We are out of sync with the lobby.

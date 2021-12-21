@@ -35,8 +35,11 @@ class OverlayWindow:
         column_names: list[str],
         pretty_column_names: dict[str, str],
         left_justified_columns: set[int],
-        close_callback: Callable[[Any], None],
-        get_new_rows: Callable[[], Optional[list[OverlayRow]]],
+        close_callback: Callable[[], None],
+        minimize_callback: Callable[[], None],
+        get_new_data: Callable[
+            [], tuple[bool, Optional[CellValue], Optional[list[OverlayRow]]]
+        ],
     ):
         # Create a root window
         self.root = tk.Tk()
@@ -46,14 +49,42 @@ class OverlayWindow:
         self.pretty_column_names = pretty_column_names
         self.left_justified_columns = left_justified_columns
 
-        self.get_new_rows = get_new_rows
+        self.get_new_data = get_new_data
 
-        # Set up close Label
-        self.close_label = tk.Label(
+        self.shown = False
+
+        amt_columns = len(column_names)
+        assert amt_columns >= 3
+
+        # Title label
+        title_variable = tk.StringVar()
+        title_label = tk.Label(
+            self.root,
+            textvariable=title_variable,
+            font=("Consolas", "14"),
+            fg="green3",
+            bg="black",
+        )
+        title_label.grid(row=0, column=0, columnspan=amt_columns - 2)
+        self.title_cell = Cell(title_label, title_variable)
+
+        # Minimize label
+        def minimize(_: Any) -> None:
+            minimize_callback()
+            self.hide_window()
+
+        minimize_label = tk.Label(
+            self.root, text=" - ", font=("Consolas", "14"), fg="green3", bg="black"
+        )
+        minimize_label.bind("<Button-1>", minimize)
+        minimize_label.grid(row=0, column=amt_columns - 2)
+
+        # Close label
+        close_label = tk.Label(
             self.root, text=" X ", font=("Consolas", "14"), fg="green3", bg="black"
         )
-        self.close_label.bind("<Button-1>", close_callback)
-        self.close_label.grid(row=0, column=0)
+        close_label.bind("<Button-1>", lambda _: close_callback())
+        close_label.grid(row=0, column=amt_columns - 1)
 
         self.rows: list[dict[str, Cell]] = []
         for column_index, column_name in enumerate(self.column_names):
@@ -83,6 +114,16 @@ class OverlayWindow:
         self.root.wm_attributes("-alpha", 0.8)
         self.root.configure(background="black")
         self.root.update_idletasks()
+
+    def show_window(self) -> None:
+        """Show the window"""
+        self.root.deiconify()
+        self.shown = True
+
+    def hide_window(self) -> None:
+        """Hide the window"""
+        self.root.withdraw()
+        self.shown = False
 
     def append_row(self) -> None:
         row_index = len(self.rows) + 2
@@ -127,8 +168,19 @@ class OverlayWindow:
                 self.pop_row()
 
     def update_overlay(self) -> None:
-        new_rows = self.get_new_rows()
-        wait_time = 10
+        show, title_value, new_rows = self.get_new_data()
+
+        if show != self.shown:
+            if show:
+                self.show_window()
+            else:
+                self.hide_window()
+
+        if title_value is None:
+            self.title_cell.variable.set("")
+        else:
+            self.title_cell.variable.set(title_value.text)
+            self.title_cell.label.configure(fg=title_value.color)
 
         if new_rows is not None:
             self.set_length(len(new_rows))
@@ -139,6 +191,7 @@ class OverlayWindow:
                     row[column_name].variable.set(new_row[column_name].text)
                     row[column_name].label.configure(fg=new_row[column_name].color)
 
+        wait_time = 10
         self.root.after(wait_time, self.update_overlay)
 
     def run(self) -> None:

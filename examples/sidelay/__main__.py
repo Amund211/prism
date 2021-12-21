@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Iterable, Literal, Optional, TextIO
 
 from examples.sidelay.output.overlay import stats_to_row
-from examples.sidelay.output.overlay_window import OverlayRow, OverlayWindow
+from examples.sidelay.output.overlay_window import CellValue, OverlayRow, OverlayWindow
 from examples.sidelay.output.printing import print_stats_table
 from examples.sidelay.parsing import parse_logline
 from examples.sidelay.state import OverlayState, update_state
@@ -132,12 +132,26 @@ def process_loglines_to_overlay(state: OverlayState, loglines: Iterable[str]) ->
 
         return [stats_to_row(stats) for stats in sorted_stats]
 
+    def get_new_data() -> tuple[bool, Optional[CellValue], Optional[list[OverlayRow]]]:
+        new_rows = get_new_rows()
+        return (
+            state.in_queue,
+            CellValue("Overlay out of sync. Use /who", "red")
+            if state.out_of_sync
+            else None,
+            new_rows,
+        )
+
+    def set_not_in_queue() -> None:
+        state.in_queue = False
+
     overlay = OverlayWindow(
         column_names=list(COLUMNS),
         pretty_column_names=PRETTY_COLUMN_NAMES,
         left_justified_columns={0},
-        close_callback=lambda _: sys.exit(0),
-        get_new_rows=get_new_rows,
+        close_callback=lambda: sys.exit(0),
+        minimize_callback=set_not_in_queue,
+        get_new_data=get_new_data,
     )
     overlay.run()
 
@@ -170,14 +184,17 @@ def test() -> None:
     logger.setLevel(logging.DEBUG)
 
     assert len(sys.argv) >= 3
-    output = "overlay" if len(sys.argv) >= 4 and sys.argv[4] == "overlay" else "stdout"
+    output = "overlay" if len(sys.argv) >= 4 and sys.argv[3] == "overlay" else "stdout"
 
     state = OverlayState(lobby_players=set(), party_members=set())
 
     with open(sys.argv[2], "r") as logfile:
         loglines = logfile
         if output == "overlay":
-            process_loglines_to_overlay(state, loglines)
+            from itertools import chain, islice, repeat
+
+            loglines_with_pause = chain(islice(repeat(""), 500), loglines, repeat(""))
+            process_loglines_to_overlay(state, loglines_with_pause)
         else:
             process_loglines_to_stdout(state, loglines)
 
