@@ -42,7 +42,7 @@ def tail_file(f: TextIO) -> Iterable[str]:
         line = f.readline()
         if not line:
             # No new lines -> wait
-            time.sleep(0.01)
+            time.sleep(0.1)
             continue
 
         yield line
