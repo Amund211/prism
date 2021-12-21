@@ -82,6 +82,7 @@ class OverlayWindow:
         self.root.wm_attributes("-topmost", True)
         self.root.wm_attributes("-alpha", 0.8)
         self.root.configure(background="black")
+        self.root.update_idletasks()
 
     def append_row(self) -> None:
         row_index = len(self.rows) + 2
