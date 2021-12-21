@@ -108,7 +108,6 @@ def test() -> None:
     assert len(sys.argv) >= 3
     output = "overlay" if len(sys.argv) >= 4 and sys.argv[4] == "overlay" else "stdout"
 
-
     state = OverlayState(lobby_players=set(), party_members=set())
 
     with open(sys.argv[2], "r") as logfile:
