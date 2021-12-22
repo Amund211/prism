@@ -2,14 +2,13 @@ from typing import Optional, Sequence, Union
 
 from examples.sidelay.stats import PropertyName
 
-COLUMN_NAMES: dict[str, PropertyName] = {
-    "IGN": "username",
-    "Stars": "stars",
-    "FKDR": "fkdr",
-    "WLR": "wlr",
-    "WS": "winstreak",
+COLUMN_NAMES: dict[PropertyName, str] = {
+    "username": "IGN",
+    "stars": "Stars",
+    "fkdr": "FKDR",
+    "wlr": "WLR",
+    "winstreak": "WS",
 }
-
 
 STAT_LEVELS: dict[PropertyName, Optional[Sequence[Union[int, float]]]] = {
     "stars": (100, 300, 500, 800),

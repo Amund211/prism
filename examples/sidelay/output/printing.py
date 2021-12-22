@@ -1,8 +1,8 @@
 import os
-from typing import Sequence, Union
+from typing import Sequence, Union, cast
 
 from examples.sidelay.output.utils import COLUMN_NAMES, STAT_LEVELS
-from examples.sidelay.stats import Stats
+from examples.sidelay.stats import PropertyName, Stats
 
 
 class Color:
@@ -55,10 +55,11 @@ LEVEL_COLORMAP = (
 )
 
 
-assert set(STAT_LEVELS.keys()).issubset(set(COLUMN_NAMES.values()))
+assert set(STAT_LEVELS.keys()) == set(COLUMN_NAMES.keys())
 
-# COLUMN_ORDER = ("IGN", "Stars", "FKDR", "WLR", "WS")
-COLUMN_ORDER = ("IGN", "Stars", "FKDR", "WS")
+COLUMN_ORDER: Sequence[PropertyName] = cast(
+    Sequence[PropertyName], ("username", "stars", "fkdr", "winstreak")
+)
 
 assert set(COLUMN_ORDER).issubset(set(COLUMN_NAMES.keys()))
 
@@ -116,7 +117,7 @@ def print_stats_table(
     column_widths = {
         column: len(
             max(
-                (stat.get_string(COLUMN_NAMES[column]) for stat in sorted_stats),
+                (stat.get_string(column) for stat in sorted_stats),
                 default="",
                 key=len,
             )
@@ -138,19 +139,20 @@ def print_stats_table(
 
     # Table header
     for column in COLUMN_ORDER:
-        print(title(column.ljust(column_widths[column])), end=get_sep(column))
+        print(
+            title(COLUMN_NAMES[column].ljust(column_widths[column])),
+            end=get_sep(column),
+        )
 
     for stat in sorted_stats:
-        for column in COLUMN_ORDER:
-            # Left justify the username, right justify the cells
-            justify = str.ljust if column == "IGN" else str.rjust
+        for i, column in enumerate(COLUMN_ORDER):
+            # Left justify the first column
+            justify = str.ljust if i == 0 else str.rjust
 
-            stat_name = COLUMN_NAMES[column]
+            levels = STAT_LEVELS.get(column, None)
 
-            levels = STAT_LEVELS.get(stat_name, None)
-
-            stat_string = stat.get_string(stat_name)
-            stat_value = stat.get_value(stat_name)
+            stat_string = stat.get_string(column)
+            stat_value = stat.get_value(column)
 
             if levels is None or isinstance(stat_value, str):
                 final_string = stat_string

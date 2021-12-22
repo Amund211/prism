@@ -6,7 +6,7 @@ https://github.com/notatallshaw/fall_guys_ping_estimate/blob/main/fgpe/overlay.p
 """
 import tkinter as tk
 from dataclasses import dataclass
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Sequence
 
 
 @dataclass
@@ -37,8 +37,8 @@ class OverlayWindow:
 
     def __init__(
         self,
-        column_names: list[str],
-        pretty_column_names: dict[str, str],
+        column_order: Sequence[str],
+        column_names: dict[str, str],
         left_justified_columns: set[int],
         close_callback: Callable[[], None],
         minimize_callback: Callable[[], None],
@@ -51,15 +51,15 @@ class OverlayWindow:
         self.root = tk.Tk()
 
         # Column config
+        self.column_order = column_order
         self.column_names = column_names
-        self.pretty_column_names = pretty_column_names
         self.left_justified_columns = left_justified_columns
 
         self.get_new_data = get_new_data
 
         self.shown = False
 
-        amt_columns = len(column_names)
+        amt_columns = len(column_order)
         assert amt_columns >= 3
 
         # Title label
@@ -94,14 +94,14 @@ class OverlayWindow:
         close_label.grid(row=0, column=amt_columns - 1)
 
         # Set up header labels
-        for column_index, column_name in enumerate(self.column_names):
+        for column_index, column_name in enumerate(self.column_order):
             header_label = tk.Label(
                 self.root,
                 text=(
                     str.ljust
                     if column_index in self.left_justified_columns
                     else str.rjust
-                )(self.pretty_column_names[column_name], 7),
+                )(self.column_names[column_name], 7),
                 font=("Consolas", "14"),
                 fg="green3",
                 bg="black",
@@ -140,7 +140,7 @@ class OverlayWindow:
         row_index = len(self.rows) + 2
 
         new_row: dict[str, Cell] = {}
-        for column_index, column_name in enumerate(self.column_names):
+        for column_index, column_name in enumerate(self.column_order):
             string_var = tk.StringVar()
             label = tk.Label(
                 self.root,
@@ -161,7 +161,7 @@ class OverlayWindow:
     def pop_row(self) -> None:
         """Remove a row of labels and stringvars from the table"""
         row = self.rows.pop()
-        for column_name in self.column_names:
+        for column_name in self.column_order:
             row[column_name].label.destroy()
 
     def set_length(self, length: int) -> None:
@@ -200,7 +200,7 @@ class OverlayWindow:
 
                 for i, new_row in enumerate(new_rows):
                     row = self.rows[i]
-                    for column_name in self.column_names:
+                    for column_name in self.column_order:
                         row[column_name].variable.set(new_row[column_name].text)
                         row[column_name].label.configure(fg=new_row[column_name].color)
 

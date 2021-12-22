@@ -116,8 +116,8 @@ def process_loglines_to_stdout(state: OverlayState, loglines: Iterable[str]) -> 
 def process_loglines_to_overlay(
     state: OverlayState, loglines: Iterable[Optional[str]], output_to_console: bool
 ) -> None:
-    COLUMNS = ("username", "stars", "fkdr", "winstreak")
-    PRETTY_COLUMN_NAMES = {
+    COLUMN_ORDER = ("username", "stars", "fkdr", "winstreak")
+    COLUMN_NAMES = {
         "username": "IGN",
         "stars": "Stars",
         "fkdr": "FKDR",
@@ -171,8 +171,8 @@ def process_loglines_to_overlay(
         state.in_queue = False
 
     overlay = OverlayWindow(
-        column_names=list(COLUMNS),
-        pretty_column_names=PRETTY_COLUMN_NAMES,
+        column_order=COLUMN_ORDER,
+        column_names=COLUMN_NAMES,
         left_justified_columns={0},
         close_callback=lambda: sys.exit(0),
         minimize_callback=set_not_in_queue,
