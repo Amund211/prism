@@ -114,7 +114,7 @@ def process_loglines_to_stdout(state: OverlayState, loglines: Iterable[str]) -> 
 
 
 def process_loglines_to_overlay(
-    state: OverlayState, loglines: Iterable[Optional[str]]
+    state: OverlayState, loglines: Iterable[Optional[str]], output_to_console: bool
 ) -> None:
     COLUMNS = ("username", "stars", "fkdr", "winstreak")
     PRETTY_COLUMN_NAMES = {
@@ -146,6 +146,14 @@ def process_loglines_to_overlay(
             return None
 
         sorted_stats = get_sorted_stats(state)
+
+        if output_to_console:
+            print_stats_table(
+                sorted_stats=sorted_stats,
+                party_members=state.party_members,
+                out_of_sync=state.out_of_sync,
+                clear_between_draws=CLEAR_BETWEEN_DRAWS,
+            )
 
         return [stats_to_row(stats) for stats in sorted_stats]
 
@@ -189,7 +197,9 @@ def watch_from_logfile(logpath: str, output: Literal["stdout", "overlay"]) -> No
             process_loglines_to_stdout(state, loglines)
         else:
             loglines_non_blocking = tail_file_non_blocking(logfile)
-            process_loglines_to_overlay(state, loglines_non_blocking)
+            process_loglines_to_overlay(
+                state, loglines_non_blocking, output_to_console=True
+            )
 
 
 def test() -> None:
@@ -212,7 +222,9 @@ def test() -> None:
             from itertools import chain, islice, repeat
 
             loglines_with_pause = chain(islice(repeat(""), 500), loglines, repeat(""))
-            process_loglines_to_overlay(state, loglines_with_pause)
+            process_loglines_to_overlay(
+                state, loglines_with_pause, output_to_console=True
+            )
         else:
             process_loglines_to_stdout(state, loglines)
 
