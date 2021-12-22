@@ -48,6 +48,17 @@ def tail_file(f: TextIO) -> Iterable[str]:
         yield line
 
 
+def tail_file_non_blocking(f: TextIO) -> Iterable[Optional[str]]:
+    """Iterate over new lines in a file"""
+    f.seek(0, 2)
+    while True:
+        line = f.readline()
+        if not line:
+            yield None
+
+        yield line
+
+
 def get_sorted_stats(state: OverlayState) -> list[Stats]:
     stats: list[Stats]
     if TESTING:
@@ -102,7 +113,9 @@ def process_loglines_to_stdout(state: OverlayState, loglines: Iterable[str]) -> 
             )
 
 
-def process_loglines_to_overlay(state: OverlayState, loglines: Iterable[str]) -> None:
+def process_loglines_to_overlay(
+    state: OverlayState, loglines: Iterable[Optional[str]]
+) -> None:
     COLUMNS = ("username", "stars", "fkdr", "winstreak")
     PRETTY_COLUMN_NAMES = {
         "username": "IGN",
@@ -118,6 +131,10 @@ def process_loglines_to_overlay(state: OverlayState, loglines: Iterable[str]) ->
             logline = next(loglines_iterator)
         except StopIteration:
             sys.exit(0)
+
+        if logline is None:
+            # No new loglines avaliable
+            return None
 
         event = parse_logline(logline)
 
@@ -167,11 +184,12 @@ def watch_from_logfile(logpath: str, output: Literal["stdout", "overlay"]) -> No
         fast_forward_state(state, old_loglines)
 
         # Process the rest of the loglines as they come in
-        loglines = tail_file(logfile)
         if output == "stdout":
+            loglines = tail_file(logfile)
             process_loglines_to_stdout(state, loglines)
         else:
-            process_loglines_to_overlay(state, loglines)
+            loglines_non_blocking = tail_file_non_blocking(logfile)
+            process_loglines_to_overlay(state, loglines_non_blocking)
 
 
 def test() -> None:

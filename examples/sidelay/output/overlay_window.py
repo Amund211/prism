@@ -77,8 +77,8 @@ class OverlayWindow:
         # Minimize label
         def minimize(_: Any) -> None:
             minimize_callback()
-            self.hide_window()
             self.root.update_idletasks()
+            self.hide_window()
 
         minimize_label = tk.Label(
             self.root, text=" - ", font=("Consolas", "14"), fg="green3", bg="black"
@@ -185,28 +185,26 @@ class OverlayWindow:
             else:
                 self.hide_window()
 
-        if not self.shown:
-            # Don't update the window if it isn't shown
-            self.root.after_idle(self.update_overlay)
-            return
+        # Only update the window if it's shown
+        if self.shown:
+            # Set the contents of the title label in the window
+            if title_value is None:
+                self.title_cell.variable.set("")
+            else:
+                self.title_cell.variable.set(title_value.text)
+                self.title_cell.label.configure(fg=title_value.color)
 
-        # Set the contents of the title label in the window
-        if title_value is None:
-            self.title_cell.variable.set("")
-        else:
-            self.title_cell.variable.set(title_value.text)
-            self.title_cell.label.configure(fg=title_value.color)
+            # Set the contents of the table if new data was provided
+            if new_rows is not None:
+                self.set_length(len(new_rows))
 
-        # Set the contents of the table if new data was provided
-        if new_rows is not None:
-            self.set_length(len(new_rows))
+                for i, new_row in enumerate(new_rows):
+                    row = self.rows[i]
+                    for column_name in self.column_names:
+                        row[column_name].variable.set(new_row[column_name].text)
+                        row[column_name].label.configure(fg=new_row[column_name].color)
 
-            for i, new_row in enumerate(new_rows):
-                row = self.rows[i]
-                for column_name in self.column_names:
-                    row[column_name].variable.set(new_row[column_name].text)
-                    row[column_name].label.configure(fg=new_row[column_name].color)
-
+        self.root.update_idletasks()
         self.root.after_idle(self.update_overlay)
 
     def run(self) -> None:
