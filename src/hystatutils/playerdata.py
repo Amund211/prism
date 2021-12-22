@@ -72,6 +72,11 @@ def get_player_data(api_key: str, uuid: str) -> PlayerData:
 
 def get_gamemode_stats(playerdata: PlayerData, gamemode: str) -> GamemodeData:
     """Return the stats of the player in the given gamemode"""
+    if "stats" not in playerdata:
+        raise MissingStatsError(
+            f"{playerdata['displayname']} is missing stats in all gamemodes"
+        )
+
     if gamemode not in playerdata["stats"]:
         raise MissingStatsError(
             f"{playerdata['displayname']} is missing stats in {gamemode.lower()}"
