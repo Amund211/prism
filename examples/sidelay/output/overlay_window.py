@@ -6,7 +6,9 @@ https://github.com/notatallshaw/fall_guys_ping_estimate/blob/main/fgpe/overlay.p
 """
 import tkinter as tk
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Sequence
+from typing import Any, Callable, Generic, Optional, Sequence, TypeVar
+
+ColumnKey = TypeVar("ColumnKey")
 
 
 @dataclass
@@ -26,10 +28,10 @@ class CellValue:
 
 
 # One row in the overlay is a dict mapping column name to a cell value
-OverlayRow = dict[str, CellValue]
+OverlayRow = dict[ColumnKey, CellValue]
 
 
-class OverlayWindow:
+class OverlayWindow(Generic[ColumnKey]):
     """
     Creates an overlay window using tkinter
     Uses the "-topmost" property to always stay on top of other windows
@@ -37,13 +39,13 @@ class OverlayWindow:
 
     def __init__(
         self,
-        column_order: Sequence[str],
-        column_names: dict[str, str],
+        column_order: Sequence[ColumnKey],
+        column_names: dict[ColumnKey, str],
         left_justified_columns: set[int],
         close_callback: Callable[[], None],
         minimize_callback: Callable[[], None],
         get_new_data: Callable[
-            [], tuple[bool, Optional[CellValue], Optional[list[OverlayRow]]]
+            [], tuple[bool, Optional[CellValue], Optional[list[OverlayRow[ColumnKey]]]]
         ],
     ):
         """Store params and set up controls and header"""
@@ -113,7 +115,7 @@ class OverlayWindow:
             )
 
         # Start with zero rows
-        self.rows: list[dict[str, Cell]] = []
+        self.rows: list[dict[ColumnKey, Cell]] = []
 
         # Window geometry
         self.root.overrideredirect(True)
@@ -139,7 +141,7 @@ class OverlayWindow:
         """Add a row of labels and stringvars to the table"""
         row_index = len(self.rows) + 2
 
-        new_row: dict[str, Cell] = {}
+        new_row: dict[ColumnKey, Cell] = {}
         for column_index, column_name in enumerate(self.column_order):
             string_var = tk.StringVar()
             label = tk.Label(

@@ -11,15 +11,17 @@ import logging
 import sys
 import time
 from pathlib import Path
-from typing import Iterable, Literal, Optional, TextIO
+from typing import Iterable, Literal, Optional, Sequence, TextIO, cast
 
 from examples.sidelay.output.overlay import stats_to_row
 from examples.sidelay.output.overlay_window import CellValue, OverlayRow, OverlayWindow
 from examples.sidelay.output.printing import print_stats_table
+from examples.sidelay.output.utils import COLUMN_NAMES
 from examples.sidelay.parsing import parse_logline
 from examples.sidelay.state import OverlayState, update_state
 from examples.sidelay.stats import (
     NickedPlayer,
+    PropertyName,
     Stats,
     get_bedwars_stats,
     rate_stats_for_non_party_members,
@@ -116,17 +118,13 @@ def process_loglines_to_stdout(state: OverlayState, loglines: Iterable[str]) -> 
 def process_loglines_to_overlay(
     state: OverlayState, loglines: Iterable[Optional[str]], output_to_console: bool
 ) -> None:
-    COLUMN_ORDER = ("username", "stars", "fkdr", "winstreak")
-    COLUMN_NAMES = {
-        "username": "IGN",
-        "stars": "Stars",
-        "fkdr": "FKDR",
-        "winstreak": "WS",
-    }
+    COLUMN_ORDER: Sequence[PropertyName] = cast(
+        Sequence[PropertyName], ("username", "stars", "fkdr", "winstreak")
+    )
 
     loglines_iterator = iter(loglines)
 
-    def get_new_rows() -> Optional[list[OverlayRow]]:
+    def get_new_rows() -> Optional[list[OverlayRow[PropertyName]]]:
         try:
             logline = next(loglines_iterator)
         except StopIteration:
@@ -157,7 +155,9 @@ def process_loglines_to_overlay(
 
         return [stats_to_row(stats) for stats in sorted_stats]
 
-    def get_new_data() -> tuple[bool, Optional[CellValue], Optional[list[OverlayRow]]]:
+    def get_new_data() -> tuple[
+        bool, Optional[CellValue], Optional[list[OverlayRow[PropertyName]]]
+    ]:
         new_rows = get_new_rows()
         return (
             state.in_queue,
@@ -170,7 +170,7 @@ def process_loglines_to_overlay(
     def set_not_in_queue() -> None:
         state.in_queue = False
 
-    overlay = OverlayWindow(
+    overlay = OverlayWindow[PropertyName](
         column_order=COLUMN_ORDER,
         column_names=COLUMN_NAMES,
         left_justified_columns={0},
