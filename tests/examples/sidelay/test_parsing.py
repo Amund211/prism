@@ -163,6 +163,7 @@ UNEVENTFUL_LOGLINES = (
     "[Info: 2021-12-06 22:23:29.795361404: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP++] Player2 having disbanding has disbanded the party!",  # Malformed
     "[Info: 2021-12-09 00:21:25.792896760: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [VIP+] Player1 having removing from partying has been removed from the party.",  # Malformed
     "[Info: 2021-12-09 00:21:30.953440842: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Kicked [VIP] Player1 because they were offline.becausing offlining ",  # Malformed
+    "[Info: 2021-12-10 00:57:30.104719428: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]  because they were offline.",  # Malformed
     "[Info: 2021-12-09 00:21:30.953440842: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP+] Player1 wasing removing was removed from the party because they disconnected",  # Malformed
 )
 

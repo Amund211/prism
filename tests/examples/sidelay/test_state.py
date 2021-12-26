@@ -64,14 +64,14 @@ def create_state(
         ),
         (
             create_state(),
-            LobbyJoinEvent("Player1", player_count=2, player_cap=16),
+            LobbyJoinEvent("Player1", player_count=2, player_cap=8),
             create_state(lobby_players={"Player1"}, in_queue=True),
             True,
         ),
         (
             create_state(),
-            LobbyJoinEvent("Player1", player_count=5, player_cap=16),
-            create_state(lobby_players={"Player1"}, out_of_sync=True, in_queue=True),
+            LobbyJoinEvent("Player1", player_count=2, player_cap=16),
+            create_state(lobby_players={"Player1"}, in_queue=True),
             True,
         ),
         (
@@ -175,6 +175,13 @@ def create_state(
             LobbyJoinEvent("Player1", player_count=2, player_cap=2),
             create_state(),
             False,
+        ),
+        (
+            # Incorrect player count -> out of sync
+            create_state(),
+            LobbyJoinEvent("Player1", player_count=5, player_cap=16),
+            create_state(lobby_players={"Player1"}, out_of_sync=True, in_queue=True),
+            True,
         ),
     ),
 )

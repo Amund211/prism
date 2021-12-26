@@ -191,7 +191,7 @@ def parse_chat_message(message: str) -> Optional[Event]:
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(words[1:3], ("has", "joined")):
+        for word, target in zip(words[1:3], ("has", "joined"), strict=True):
             if word != target:
                 logger.debug("Message does not match target! {word=} != {target=}")
                 return None
@@ -223,7 +223,7 @@ def parse_chat_message(message: str) -> Optional[Event]:
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(words[1:3], ("has", "quit!")):
+        for word, target in zip(words[1:3], ("has", "quit!"), strict=True):
             if word != target:
                 logger.debug("Message does not match target! {word=} != {target=}")
                 return None
@@ -251,7 +251,9 @@ def parse_chat_message(message: str) -> Optional[Event]:
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(words[1:], ("has", "disbanded", "the", "party!")):
+        for word, target in zip(
+            words[1:], ("has", "disbanded", "the", "party!"), strict=True
+        ):
             if word != target:
                 logger.debug("Message does not match target! {word=} != {target=}")
                 return None
@@ -301,7 +303,7 @@ def parse_chat_message(message: str) -> Optional[Event]:
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(words[1:4], ("joined", "the", "party.")):
+        for word, target in zip(words[1:4], ("joined", "the", "party."), strict=True):
             if word != target:
                 logger.debug("Message does not match target! {word=} != {target=}")
                 return None
@@ -322,7 +324,9 @@ def parse_chat_message(message: str) -> Optional[Event]:
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(words[1:5], ("has", "left", "the", "party")):
+        for word, target in zip(
+            words[1:5], ("has", "left", "the", "party"), strict=True
+        ):
             if not word.startswith(target):
                 logger.debug("Message does not match target! {word=} != {target=}")
                 return None
@@ -344,7 +348,7 @@ def parse_chat_message(message: str) -> Optional[Event]:
             return None
 
         for word, target in zip(
-            words[1:], ("has", "been", "removed", "from", "the", "party.")
+            words[1:], ("has", "been", "removed", "from", "the", "party."), strict=True
         ):
             if word != target:
                 logger.debug("Message does not match target! {word=} != {target=}")
@@ -374,6 +378,7 @@ def parse_chat_message(message: str) -> Optional[Event]:
                 "they",
                 "disconnected",
             ),
+            strict=True,
         ):
             if word != target:
                 logger.debug("Message does not match target! {word=} != {target=}")
@@ -396,7 +401,9 @@ def parse_chat_message(message: str) -> Optional[Event]:
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(words[-4:], ("because", "they", "were", "offline.")):
+        for word, target in zip(
+            words[-4:], ("because", "they", "were", "offline."), strict=True
+        ):
             if word != target:
                 logger.debug("Message does not match target! {word=} != {target=}")
                 return None
@@ -417,7 +424,7 @@ def parse_chat_message(message: str) -> Optional[Event]:
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(words[1::2], ("because", "left")):
+        for word, target in zip(words[1::2], ("because", "left"), strict=True):
             if not word.startswith(target):
                 logger.debug("Message does not match target! {word=} != {target=}")
                 return None
