@@ -5,6 +5,7 @@ from json import JSONDecodeError
 from typing import Any, cast
 
 import requests
+from requests.exceptions import RequestException
 
 
 class MissingStatsError(ValueError):
@@ -41,7 +42,12 @@ def get_player_data(api_key: str, uuid: str) -> PlayerData:
 
     made_requests.append(now)
 
-    response = requests.get(f"{PLAYER_ENDPOINT}?key={api_key}&uuid={uuid}")
+    try:
+        response = requests.get(f"{PLAYER_ENDPOINT}?key={api_key}&uuid={uuid}")
+    except RequestException as e:
+        raise HypixelAPIError(
+            f"Request to Hypixel API failed due to a connection error {e}"
+        ) from e
 
     if not response:
         raise HypixelAPIError(

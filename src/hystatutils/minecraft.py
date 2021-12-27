@@ -5,6 +5,7 @@ from json import JSONDecodeError
 from typing import Optional, cast
 
 import requests
+from requests.exceptions import RequestException
 
 USERPROFILES_ENDPOINT = "https://api.mojang.com/users/profiles/minecraft"
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
@@ -36,7 +37,12 @@ def get_uuid(username: str) -> Optional[str]:
 
     made_requests.append(now)
 
-    response = requests.get(f"{USERPROFILES_ENDPOINT}/{username}")
+    try:
+        response = requests.get(f"{USERPROFILES_ENDPOINT}/{username}")
+    except RequestException as e:
+        raise MojangAPIError(
+            f"Request to Mojang API failed due to a connection error {e}"
+        ) from e
 
     if not response:
         raise MojangAPIError(
