@@ -63,5 +63,6 @@ def run_overlay(
         close_callback=lambda: sys.exit(0),
         minimize_callback=set_not_in_queue,
         get_new_data=get_new_data,
+        poll_interval=100,
     )
     overlay.run()

@@ -47,6 +47,7 @@ class OverlayWindow(Generic[ColumnKey]):
         get_new_data: Callable[
             [], tuple[bool, Optional[CellValue], Optional[list[OverlayRow[ColumnKey]]]]
         ],
+        poll_interval: int,
     ):
         """Store params and set up controls and header"""
         # Create a root window
@@ -58,6 +59,7 @@ class OverlayWindow(Generic[ColumnKey]):
         self.left_justified_columns = left_justified_columns
 
         self.get_new_data = get_new_data
+        self.poll_interval = poll_interval
 
         self.shown = False
 
@@ -79,7 +81,6 @@ class OverlayWindow(Generic[ColumnKey]):
         # Minimize label
         def minimize(_: Any) -> None:
             minimize_callback()
-            self.root.update_idletasks()
             self.hide_window()
 
         minimize_label = tk.Label(
@@ -206,10 +207,9 @@ class OverlayWindow(Generic[ColumnKey]):
                         row[column_name].variable.set(new_row[column_name].text)
                         row[column_name].label.configure(fg=new_row[column_name].color)
 
-        self.root.update_idletasks()
-        self.root.after_idle(self.update_overlay)
+        self.root.after(self.poll_interval, self.update_overlay)
 
     def run(self) -> None:
         """Init for the overlay starting the update chain and entering mainloop"""
-        self.root.after_idle(self.update_overlay)
+        self.root.after(self.poll_interval, self.update_overlay)
         self.root.mainloop()

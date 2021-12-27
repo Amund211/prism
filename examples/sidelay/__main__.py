@@ -118,21 +118,26 @@ def process_loglines_to_overlay(
     loglines_iterator = iter(loglines)
 
     def fetch_state_updates() -> Optional[list[Stats]]:
-        try:
-            logline = next(loglines_iterator)
-        except StopIteration:
-            sys.exit(0)
+        redraw = False
+        while True:
+            try:
+                logline = next(loglines_iterator)
+            except StopIteration:
+                sys.exit(0)
 
-        if logline is None:
-            # No new loglines avaliable
-            return None
+            if logline is None:
+                # No new loglines avaliable
+                break
 
-        event = parse_logline(logline)
+            event = parse_logline(logline)
 
-        if event is None:
-            return None
+            if event is None:
+                # No event in this line - check the next line
+                continue
 
-        redraw = update_state(state, event)
+            # Redraw if any of the lines indicate a state change
+            redraw |= update_state(state, event)
+
         if not redraw:
             return None
 
