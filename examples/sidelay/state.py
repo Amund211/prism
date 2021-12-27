@@ -17,6 +17,26 @@ class OverlayState:
     in_queue: bool = False
     own_username: Optional[str] = None
 
+    def join_queue(self) -> None:
+        """
+        Join a queue by setting in_queue = True
+
+        NOTE: Can modify the lobby, so call this before making any changes
+        """
+        if not self.in_queue:
+            # This is a new queue -> clear the last lobby
+            self.clear_lobby()
+
+        self.in_queue = True
+
+    def leave_queue(self) -> None:
+        """
+        Leave a queue by setting in_queue = False
+
+        NOTE: The game starting counts as leaving the queue.
+        """
+        self.in_queue = False
+
     def add_to_party(self, username: str) -> None:
         """Add the given username to the party"""
         self.party_members.add(username)
@@ -88,16 +108,16 @@ def update_state(state: OverlayState, event: Event) -> bool:
         # Changed lobby -> clear the lobby
         logger.info("Clearing the lobby")
         state.clear_lobby()
-        state.in_queue = False
+        state.leave_queue()
 
         return True
 
     if event.event_type is EventType.LOBBY_LIST:
         # Results from /who -> override lobby_players
         logger.info("Updating lobby players from who command")
-        state.set_lobby(event.usernames)
         state.out_of_sync = False
-        state.in_queue = True
+        state.join_queue()
+        state.set_lobby(event.usernames)
 
         return True
 
@@ -106,16 +126,26 @@ def update_state(state: OverlayState, event: Event) -> bool:
             logger.debug("Gamemode has too few players to be bedwars. Skipping.")
             return False
 
+        state.join_queue()
         state.add_to_lobby(event.username)
-        state.in_queue = True
 
         if event.player_count != len(state.lobby_players):
             # We are out of sync with the lobby.
             # This happens when you first join a lobby, as the previous lobby is
             # never cleared. It could also be due to a bug.
-            logger.debug("Player count out of sync. Please use /who")
+            logger.debug("Player count out of sync.")
+            out_of_sync = True
 
-            state.out_of_sync = True
+            if event.player_count < len(state.lobby_players):
+                # We know of too many players, some must actually not be in the lobby
+                logger.info("Too many players in lobby. Clearing.")
+                state.clear_lobby()
+                state.add_to_lobby(event.username)
+
+                # Clearing the lobby may have gotten us back in sync
+                out_of_sync = event.player_count != len(state.lobby_players)
+
+            state.out_of_sync = out_of_sync
         else:
             # We are in sync now
             state.out_of_sync = False
@@ -190,6 +220,6 @@ def update_state(state: OverlayState, event: Event) -> bool:
     if event.event_type is EventType.START_BEDWARS_GAME:
         # Bedwars game has started
         logger.info("Bedwars game starting")
-        state.in_queue = False
+        state.leave_queue()
 
         return False

@@ -193,10 +193,40 @@ update_state_test_cases_base = (
         False,
     ),
     (
-        # Incorrect player count -> out of sync
-        "out of sync playercount",
+        # Player count too low -> out of sync
+        "too few known players in lobby",
         create_state(),
         LobbyJoinEvent("Player1", player_count=5, player_cap=16),
+        create_state(lobby_players={"Player1"}, out_of_sync=True, in_queue=True),
+        True,
+    ),
+    (
+        # Player count too high -> clear lobby
+        "too many known players in lobby",
+        create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=True),
+        LobbyJoinEvent("Player1", player_count=2, player_cap=16),
+        create_state(lobby_players={"Player1"}, in_queue=True),
+        True,
+    ),
+    (
+        # Player count too high -> clear lobby, still out of sync
+        "too many known players in lobby, too few remaining",
+        create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=True),
+        LobbyJoinEvent("Player1", player_count=3, player_cap=16),
+        create_state(lobby_players={"Player1"}, out_of_sync=True, in_queue=True),
+        True,
+    ),
+    (
+        "new queue with old lobby",
+        create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=False),
+        LobbyJoinEvent("Player1", player_count=8, player_cap=16),
+        create_state(lobby_players={"Player1"}, out_of_sync=True, in_queue=True),
+        True,
+    ),
+    (
+        "new queue with old lobby and too many players",
+        create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=False),
+        LobbyJoinEvent("Player1", player_count=1, player_cap=16),
         create_state(lobby_players={"Player1"}, out_of_sync=True, in_queue=True),
         True,
     ),
