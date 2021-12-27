@@ -194,6 +194,10 @@ parsing_test_cases = (
         LobbySwapEvent(),
     ),
     (
+        "[Info: 2021-12-27 13:32:29.420302635: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] You were sent to a lobby because someone in your party left!",
+        LobbySwapEvent(),
+    ),
+    (
         "[Info: 2021-11-29 20:01:23.997291428: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Player1 has joined (1/2)!",
         LobbyJoinEvent(username="Player1", player_count=1, player_cap=2),
     ),

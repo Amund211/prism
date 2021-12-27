@@ -177,6 +177,9 @@ def parse_chat_message(message: str) -> Optional[Event]:
     if message.startswith("Sending you to "):
         return LobbySwapEvent()
 
+    if message == "You were sent to a lobby because someone in your party left!":
+        return LobbySwapEvent()
+
     if message.startswith("Bed Wars"):
         return StartBedwarsGameEvent()
 
