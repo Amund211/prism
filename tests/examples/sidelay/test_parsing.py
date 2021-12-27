@@ -284,7 +284,13 @@ parsing_test_cases = (
 )
 
 
-@pytest.mark.parametrize("logline, event", parsing_test_cases)
+parsing_test_ids = [
+    f"{strip_until(test_case[0], until=CHAT_PREFIX)}-{type(test_case[1]).__name__}"
+    for test_case in parsing_test_cases
+]
+
+
+@pytest.mark.parametrize("logline, event", parsing_test_cases, ids=parsing_test_ids)
 def test_parsing(logline: str, event: Event) -> None:
     """Assert that the correct events are returned from parse_logline"""
     assert parse_logline(logline) == event
