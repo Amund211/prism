@@ -116,36 +116,56 @@ def get_bedwars_stats(username: str, api_key: str) -> Stats:
 
     logger.info(f"Cache miss {username}")
 
-    stats: Stats
-
+    # Lookup uuid from Mojang
     try:
         uuid = get_uuid(username)
     except MojangAPIError as e:
+        # No match from Mojang -> assume the username is a nickname
         logger.debug(f"Failed getting uuid for username {username}", e)
-        # Assume the players is a nick
-        failed_getting_uuid = True
         uuid = None
-    else:
-        failed_getting_uuid = False
 
+    # Look up in nick database if we got no match from Mojang
     nick: Optional[str] = None
-    # The player may be nicked. Look up in nick database
-    if uuid is None or failed_getting_uuid:
-        if username in NICK_DATABASE:
-            uuid = NICK_DATABASE[username]
-            nick = username
+    denicked = False
+    if uuid is None and username in NICK_DATABASE:
+        uuid = NICK_DATABASE[username]
+        nick = username
+        denicked = True
+        logger.debug(f"De-nicked {username} as {uuid}")
 
-    if uuid is not None:
+    stats: Stats
+    if uuid is None:
+        stats = NickedPlayer(username=username)
+    else:
         try:
             playerdata = get_player_data(api_key, uuid=uuid)
         except HypixelAPIError as e:
-            # Assume the players is a nick
-            logger.debug(f"Failed getting stats for {uuid}", e)
+            logger.debug(
+                f"Failed initially getting stats for {username} ({uuid}) {denicked=}", e
+            )
+            playerdata = None
+
+        if not denicked and playerdata is None and username in NICK_DATABASE:
+            # The username may be an existing minecraft account that has not
+            # logged on to Hypixel. Then we would get a hit from Mojang, but
+            # no hit from Hypixel and the username is still a nickname.
+            uuid = NICK_DATABASE[username]
+            nick = username
+            logger.debug(f"De-nicked {username} as {uuid} after hit from Mojang")
+            try:
+                playerdata = get_player_data(api_key, uuid=uuid)
+            except HypixelAPIError as e:
+                logger.debug(f"Failed getting stats for nicked {nick} ({uuid})", e)
+                playerdata = None
+
+        if playerdata is None:
+            logger.debug("Got no playerdata - assuming player is nicked")
             stats = NickedPlayer(username=username)
         else:
             if nick is not None:
-                # Successfully de-nicked
+                # Successfully de-nicked - update actual username
                 username = playerdata["displayname"]
+                logger.debug(f"Updating de-nicked {username=}")
 
             try:
                 bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
@@ -168,10 +188,11 @@ def get_bedwars_stats(username: str, api_key: str) -> Stats:
                     ),
                     winstreak=bw_stats["winstreak"],
                 )
-    else:
-        stats = NickedPlayer(username=username)
 
-    KNOWN_STATS[nick if nick is not None else username] = stats
+    # Set the cache
+    KNOWN_STATS[username] = stats
+    if nick is not None:
+        KNOWN_STATS[nick] = stats
 
     return stats
 
