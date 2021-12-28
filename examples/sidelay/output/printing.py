@@ -54,8 +54,9 @@ LEVEL_COLORMAP = (
     Color.LIGHT_RED + Color.BG_WHITE,
 )
 
-for levels in STAT_LEVELS:
-    assert len(levels) + 1 <= len(LEVEL_COLORMAP)
+for levels in STAT_LEVELS.values():
+    if levels is not None:
+        assert len(levels) <= len(LEVEL_COLORMAP) - 1
 
 assert set(STAT_LEVELS.keys()) == set(COLUMN_NAMES.keys())
 

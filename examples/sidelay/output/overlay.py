@@ -2,9 +2,22 @@ import sys
 from typing import Callable, Optional, Sequence, cast
 
 from examples.sidelay.output.overlay_window import CellValue, OverlayRow, OverlayWindow
-from examples.sidelay.output.utils import COLUMN_NAMES
+from examples.sidelay.output.utils import COLUMN_NAMES, STAT_LEVELS, rate_value
 from examples.sidelay.state import OverlayState
 from examples.sidelay.stats import PropertyName, Stats
+
+DEFAULT_COLOR = "snow"
+LEVEL_COLORMAP = (
+    "gray60",
+    "snow",
+    "yellow",
+    "orange red",
+    "red",
+)
+
+for levels in STAT_LEVELS.values():
+    if levels is not None:
+        assert len(levels) <= len(LEVEL_COLORMAP) - 1
 
 COLUMN_ORDER: Sequence[PropertyName] = cast(
     Sequence[PropertyName], ("username", "stars", "fkdr", "winstreak")
@@ -13,16 +26,22 @@ COLUMN_ORDER: Sequence[PropertyName] = cast(
 
 def stats_to_row(stats: Stats) -> OverlayRow[PropertyName]:
     """
-    stat_string = stats.get_string(stat_name)
-    stat_value = stats.get_value(stat_name)
-    """
+    Create an OverlayRow from a Stats instance
 
+    Gets the text from stats.get_string
+    Gets the color by rating the stats
+    """
     return {
-        "username": CellValue(stats.get_string("username"), "white"),
-        "stars": CellValue(stats.get_string("stars"), "white"),
-        "fkdr": CellValue(stats.get_string("fkdr"), "white"),
-        "wlr": CellValue(stats.get_string("wlr"), "white"),
-        "winstreak": CellValue(stats.get_string("winstreak"), "white"),
+        name: CellValue(
+            text=stats.get_string(name),
+            color=(
+                LEVEL_COLORMAP[rate_value(value, levels)]
+                if levels is not None
+                and isinstance(value := stats.get_value(name), (int, float))
+                else DEFAULT_COLOR
+            ),
+        )
+        for name, levels in STAT_LEVELS.items()
     }
 
 
