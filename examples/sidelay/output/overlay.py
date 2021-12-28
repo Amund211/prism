@@ -83,5 +83,6 @@ def run_overlay(
         minimize_callback=set_not_in_queue,
         get_new_data=get_new_data,
         poll_interval=100,
+        start_hidden=True,
     )
     overlay.run()

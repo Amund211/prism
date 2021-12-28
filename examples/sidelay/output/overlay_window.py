@@ -48,10 +48,15 @@ class OverlayWindow(Generic[ColumnKey]):
             [], tuple[bool, Optional[CellValue], Optional[list[OverlayRow[ColumnKey]]]]
         ],
         poll_interval: int,
+        start_hidden: bool,
     ):
         """Store params and set up controls and header"""
         # Create a root window
         self.root = tk.Tk()
+        if start_hidden:
+            self.hide_window()
+        else:
+            self.show_window()
 
         # Column config
         self.column_order = column_order
@@ -60,8 +65,6 @@ class OverlayWindow(Generic[ColumnKey]):
 
         self.get_new_data = get_new_data
         self.poll_interval = poll_interval
-
-        self.shown = False
 
         amt_columns = len(column_order)
         assert amt_columns >= 3
