@@ -8,7 +8,9 @@ Example string printed to logfile when typing /who:
 """
 
 import logging
+import queue
 import sys
+import threading
 import time
 from pathlib import Path
 from typing import Iterable, Literal, Optional, TextIO
@@ -21,7 +23,9 @@ from examples.sidelay.stats import (
     NickedPlayer,
     Stats,
     get_bedwars_stats,
+    get_cached_stats,
     rate_stats_for_non_party_members,
+    set_player_pending,
 )
 from hystatutils.utils import read_key
 
@@ -58,6 +62,17 @@ def tail_file_non_blocking(f: TextIO) -> Iterable[Optional[str]]:
         yield line
 
 
+def sort_stats(stats: list[Stats], party_members: set[str]) -> list[Stats]:
+    """Sort the stats based on fkdr. Order party members last"""
+    return list(
+        sorted(
+            stats,
+            key=rate_stats_for_non_party_members(party_members),
+            reverse=True,
+        )
+    )
+
+
 def get_sorted_stats(state: OverlayState) -> list[Stats]:
     stats: list[Stats]
     if TESTING:
@@ -68,13 +83,7 @@ def get_sorted_stats(state: OverlayState) -> list[Stats]:
             get_bedwars_stats(player, api_key=api_key) for player in state.lobby_players
         ]
 
-    return list(
-        sorted(
-            stats,
-            key=rate_stats_for_non_party_members(state.party_members),
-            reverse=True,
-        )
-    )
+    return sort_stats(stats, state.party_members)
 
 
 def fast_forward_state(state: OverlayState, loglines: Iterable[str]) -> None:
@@ -116,9 +125,26 @@ def process_loglines_to_overlay(
     state: OverlayState, loglines: Iterable[Optional[str]], output_to_console: bool
 ) -> None:
     loglines_iterator = iter(loglines)
+    completed_stats_queue = queue.Queue[str]()
+
+    class GetStatsTask(threading.Thread):
+        """Thread that downloads and stores one player's stats to cache"""
+
+        def __init__(self, _queue: queue.Queue[str], username: str) -> None:
+            super().__init__()
+            self.queue = _queue
+            self.username = username
+
+        def run(self) -> None:
+            # get_bedwars_stats sets the stats cache which will be read from later
+            get_bedwars_stats(self.username, api_key=api_key)
+            self.queue.put(self.username)
 
     def fetch_state_updates() -> Optional[list[Stats]]:
         redraw = False
+
+        # Process all new loglines sync so that we can safely iterate over
+        # party_members and lobby_players later
         while True:
             try:
                 logline = next(loglines_iterator)
@@ -138,10 +164,35 @@ def process_loglines_to_overlay(
             # Redraw if any of the lines indicate a state change
             redraw |= update_state(state, event)
 
+        # Check if any of the stats downloaded since last render are still in the lobby
+        while True:
+            try:
+                username = completed_stats_queue.get_nowait()
+            except queue.Empty:
+                break
+            else:
+                completed_stats_queue.task_done()
+                if username in state.lobby_players:
+                    # We just received the stats of a player in the lobby
+                    # Redraw the screen in case the stats weren't there last time
+                    redraw = True
+
         if not redraw:
             return None
 
-        sorted_stats = get_sorted_stats(state)
+        # Get the cached stats for the players in the lobby
+        # Start threads to download those that are missing
+        stats: list[Stats] = []
+        for player in state.lobby_players:
+            cached_stats = get_cached_stats(player)
+            if cached_stats is None:
+                # No query made for this player yet
+                # Start a query and note that a query has been started
+                cached_stats = set_player_pending(player)
+                GetStatsTask(completed_stats_queue, player).start()
+            stats.append(cached_stats)
+
+        sorted_stats = sort_stats(stats, state.party_members)
 
         if output_to_console:
             print_stats_table(

@@ -98,19 +98,60 @@ class NickedPlayer:
         return "unknown"
 
 
-Stats = Union[PlayerStats, NickedPlayer]
+@dataclass(order=True)
+class PendingPlayer:
+    """Dataclass holding the stats of a single player whose stats are pending"""
+
+    username: str
+
+    @property
+    def nicked(self) -> bool:
+        """Return True if the player is assumed to be nicked"""
+        return False
+
+    def get_value(self, name: PropertyName) -> Union[int, float]:
+        """Get the given stat from this player (unknown in this case)"""
+        return float("-inf")
+
+    def get_string(self, name: PropertyName) -> str:
+        """Get a string representation of the given stat (unknown)"""
+        if name == "username":
+            return self.username
+
+        return "---"
+
+
+Stats = Union[PlayerStats, NickedPlayer, PendingPlayer]
 
 
 # Cache per session
 KNOWN_STATS: dict[str, Stats] = {}
 
 
-def get_bedwars_stats(username: str, api_key: str) -> Stats:
-    """Print a table of bedwars stats from the given player data"""
+def set_player_pending(username: str) -> PendingPlayer:
+    """Note that the stats for this user are pending"""
     global KNOWN_STATS
 
-    cached_stats = KNOWN_STATS.get(username, None)
-    if cached_stats is not None:
+    if username in KNOWN_STATS:
+        logger.error(f"Stats for {username} set to pending, but already exists")
+
+    pending_player = PendingPlayer(username)
+    KNOWN_STATS[username] = pending_player
+
+    return pending_player
+
+
+def get_cached_stats(username: str) -> Optional[Stats]:
+    global KNOWN_STATS
+
+    return KNOWN_STATS.get(username, None)
+
+
+def get_bedwars_stats(username: str, api_key: str) -> Stats:
+    """Get the bedwars stats for the given player"""
+    cached_stats = get_cached_stats(username)
+
+    if cached_stats is not None and not isinstance(cached_stats, PendingPlayer):
         logger.info(f"Cache hit {username}")
         return cached_stats
 
@@ -206,7 +247,7 @@ def rate_stats_for_non_party_members(
     def rate_stats(stats: Stats) -> RateStatsReturn:
         """Used as a key function for sorting"""
         is_enemy = stats.username not in party_members
-        if stats.nicked:
+        if stats.nicked or isinstance(stats, PendingPlayer):
             return (is_enemy, stats.nicked)
 
         return (is_enemy, stats.nicked, stats)
