@@ -1,11 +1,10 @@
-import time
-from collections import deque
-from datetime import datetime
 from json import JSONDecodeError
 from typing import Optional, cast
 
 import requests
 from requests.exceptions import RequestException
+
+from hystatutils.ratelimiting import RateLimiter
 
 USERPROFILES_ENDPOINT = "https://api.mojang.com/users/profiles/minecraft"
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
@@ -18,7 +17,7 @@ class MojangAPIError(ValueError):
 
 
 # Be nice to the Mojang api :)
-made_requests = deque([datetime.now()], maxlen=REQUEST_LIMIT)
+limiter = RateLimiter(limit=REQUEST_LIMIT, window=REQUEST_WINDOW)
 
 # TODO: implement a disk cache
 LOWERCASE_USERNAME_UUID: dict[str, str] = {}
@@ -29,13 +28,8 @@ def get_uuid(username: str) -> Optional[str]:
     if username.lower() in LOWERCASE_USERNAME_UUID:
         return LOWERCASE_USERNAME_UUID[username.lower()]
 
-    now = datetime.now()
-    if len(made_requests) == REQUEST_LIMIT:
-        timespan = now - made_requests[0]
-        if timespan.total_seconds() < REQUEST_WINDOW:
-            time.sleep(REQUEST_WINDOW - timespan.total_seconds())
-
-    made_requests.append(now)
+    # Uphold our prescribed rate-limits
+    limiter.wait()
 
     try:
         response = requests.get(f"{USERPROFILES_ENDPOINT}/{username}")

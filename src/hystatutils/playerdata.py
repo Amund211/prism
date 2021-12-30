@@ -1,11 +1,11 @@
-import time
-from collections import defaultdict, deque
-from datetime import datetime
+from collections import defaultdict
 from json import JSONDecodeError
 from typing import Any, cast
 
 import requests
 from requests.exceptions import RequestException
+
+from hystatutils.ratelimiting import RateLimiter
 
 
 class MissingStatsError(ValueError):
@@ -26,21 +26,14 @@ PlayerData = dict[str, Any]
 PLAYER_ENDPOINT = "https://api.hypixel.net/player"
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
 
-
-# Initing with now is semantically wrong, because it implies we just made a request
-# but it is a bit safer
-made_requests = deque([datetime.now()], maxlen=REQUEST_LIMIT)
+# Be nice to the Hypixel api :)
+limiter = RateLimiter(limit=REQUEST_LIMIT, window=REQUEST_WINDOW)
 
 
 def get_player_data(api_key: str, uuid: str) -> PlayerData:
     """Get data about the given player from the /player API endpoint"""
-    now = datetime.now()
-    if len(made_requests) == REQUEST_LIMIT:
-        timespan = now - made_requests[0]
-        if timespan.total_seconds() < REQUEST_WINDOW:
-            time.sleep(REQUEST_WINDOW - timespan.total_seconds())
-
-    made_requests.append(now)
+    # Uphold our prescribed rate-limits
+    limiter.wait()
 
     try:
         response = requests.get(f"{PLAYER_ENDPOINT}?key={api_key}&uuid={uuid}")
