@@ -122,23 +122,38 @@ def process_loglines_to_stdout(state: OverlayState, loglines: Iterable[str]) -> 
 
 
 def process_loglines_to_overlay(
-    state: OverlayState, loglines: Iterable[Optional[str]], output_to_console: bool
+    state: OverlayState,
+    loglines: Iterable[Optional[str]],
+    thread_count: int,
+    output_to_console: bool,
 ) -> None:
     loglines_iterator = iter(loglines)
     completed_stats_queue = queue.Queue[str]()
+    requested_stats_queue = queue.Queue[str]()
 
-    class GetStatsTask(threading.Thread):
-        """Thread that downloads and stores one player's stats to cache"""
+    class GetStatsThread(threading.Thread):
+        """Thread that downloads and stores players' stats to cache"""
 
-        def __init__(self, _queue: queue.Queue[str], username: str) -> None:
+        def __init__(
+            self, requests_queue: queue.Queue[str], completed_queue: queue.Queue[str]
+        ) -> None:
             super().__init__()
-            self.queue = _queue
-            self.username = username
+            self.requests_queue = requests_queue
+            self.completed_queue = completed_queue
 
         def run(self) -> None:
-            # get_bedwars_stats sets the stats cache which will be read from later
-            get_bedwars_stats(self.username, api_key=api_key)
-            self.queue.put(self.username)
+            while True:
+                username = self.requests_queue.get()
+                # get_bedwars_stats sets the stats cache which will be read from later
+                get_bedwars_stats(username, api_key=api_key)
+                self.requests_queue.task_done()
+                self.completed_queue.put(username)
+
+    # Spawn threads for downloading stats
+    for i in range(thread_count):
+        GetStatsThread(
+            requests_queue=requested_stats_queue, completed_queue=completed_stats_queue
+        ).start()
 
     def fetch_state_updates() -> Optional[list[Stats]]:
         redraw = False
@@ -181,7 +196,6 @@ def process_loglines_to_overlay(
             return None
 
         # Get the cached stats for the players in the lobby
-        # Start threads to download those that are missing
         stats: list[Stats] = []
         for player in state.lobby_players:
             cached_stats = get_cached_stats(player)
@@ -189,7 +203,7 @@ def process_loglines_to_overlay(
                 # No query made for this player yet
                 # Start a query and note that a query has been started
                 cached_stats = set_player_pending(player)
-                GetStatsTask(completed_stats_queue, player).start()
+                requested_stats_queue.put(player)
             stats.append(cached_stats)
 
         sorted_stats = sort_stats(stats, state.party_members)
@@ -224,7 +238,7 @@ def watch_from_logfile(logpath: str, output: Literal["stdout", "overlay"]) -> No
         else:
             loglines_non_blocking = tail_file_non_blocking(logfile)
             process_loglines_to_overlay(
-                state, loglines_non_blocking, output_to_console=True
+                state, loglines_non_blocking, thread_count=15, output_to_console=True
             )
 
 
@@ -249,7 +263,7 @@ def test() -> None:
 
             loglines_with_pause = chain(islice(repeat(""), 500), loglines, repeat(""))
             process_loglines_to_overlay(
-                state, loglines_with_pause, output_to_console=True
+                state, loglines_with_pause, thread_count=15, output_to_console=True
             )
         else:
             process_loglines_to_stdout(state, loglines)
