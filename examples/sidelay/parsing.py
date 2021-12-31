@@ -244,6 +244,14 @@ def parse_chat_message(message: str) -> Optional[Event]:
         # Info [CHAT] You are not currently in a party.
         return PartyDetachEvent()
 
+    if (
+        message
+        == "The party was disbanded because all invites expired and the party was empty"
+    ):
+        # Info [CHAT] The party was disbanded because all invites expired
+        # and the party was empty
+        return PartyDetachEvent()
+
     if " has disbanded the party!" in message:
         # Info [CHAT] [MVP++] Player1 has disbanded the party!
         clean = remove_ranks(message)

@@ -226,6 +226,10 @@ parsing_test_cases = (
         PartyDetachEvent(),
     ),
     (
+        "[Info: 2021-12-31 12:24:43.921980855: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] The party was disbanded because all invites expired and the party was empty",
+        PartyDetachEvent(),
+    ),
+    (
         "[Info: 2021-11-29 20:08:49.380880233: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] You have joined [MVP++] Player1's party!",
         PartyAttachEvent(username="Player1"),
     ),
