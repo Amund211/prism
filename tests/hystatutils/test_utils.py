@@ -1,9 +1,18 @@
+from collections import deque
 from pathlib import Path
 from typing import Union
 
 import pytest
 
-from hystatutils.utils import Time, div, format_seconds, pluralize, read_key
+from hystatutils.utils import (
+    Element,
+    Time,
+    div,
+    format_seconds,
+    insort_right,
+    pluralize,
+    read_key,
+)
 
 Number = Union[int, float]
 INF = float("inf")
@@ -62,6 +71,41 @@ def test_div(dividend: Number, divisor: Number, quotient: Number) -> None:
 
     assert result == quotient
     assert type(result) is type(quotient)
+
+
+@pytest.mark.parametrize(
+    "elements, new_element, result",
+    (
+        (deque([1, 2, 3]), 0.5, deque([0.5, 1, 2, 3])),
+        (deque([1, 2, 3]), 1.5, deque([1, 1.5, 2, 3])),
+        (deque([1, 2, 3]), 2.5, deque([1, 2, 2.5, 3])),
+        (deque([1, 2, 3]), 3.5, deque([1, 2, 3, 3.5])),
+    ),
+)
+def test_insort_right(
+    elements: deque[Element], new_element: Element, result: deque[Element]
+) -> None:
+    insort_right(elements, new_element)
+    assert elements == result
+
+
+def test_insort_right_property() -> None:
+    """Assert that the inserted element is to the right of an equal element"""
+
+    class Comparable:
+        def __init__(self, value: float) -> None:
+            self.value = value
+
+        def __lt__(self, other: "Comparable") -> bool:
+            return self.value < other.value
+
+    elements = deque([Comparable(1), Comparable(2), Comparable(3)])
+    new_element = Comparable(3)
+    insort_right(elements, new_element)
+
+    assert elements[2].value == elements[3].value
+    assert elements[2] is not new_element
+    assert elements[3] is new_element
 
 
 @pytest.mark.parametrize(

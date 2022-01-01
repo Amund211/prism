@@ -1,6 +1,12 @@
+from collections import deque
 from enum import Enum, unique
 from pathlib import Path
-from typing import Union
+from typing import Any, Protocol, TypeVar, Union
+
+
+class SupportsLT(Protocol):  # pragma: no cover
+    def __lt__(self, other: Any) -> bool:
+        ...
 
 
 def read_key(key_file: Path) -> str:
@@ -21,6 +27,29 @@ def div(dividend: Union[int, float], divisor: Union[int, float]) -> float:
     elif divisor == 0:
         return float("inf") * (1 if dividend >= 0 else -1)
     return dividend / divisor
+
+
+Element = TypeVar("Element", bound=SupportsLT)
+
+
+def insort_right(elements: deque[Element], new_element: Element) -> None:
+    """
+    Insert new_element into elements in sorted order
+
+    elements must be sorted ascending
+    If new_element is already in elements it will be inserted to the right
+    NOTE: Assumes new_element is relatively large in elements
+    """
+    # We assume new_element is large, so we do a linear search from the end
+    for i, old_element in enumerate(reversed(elements)):
+        # not < is equivalent to >=
+        if not new_element < old_element:
+            break
+    else:
+        # We fell off the left end of the array -> insert at the start
+        i += 1
+
+    elements.insert(len(elements) - i, new_element)
 
 
 @unique

@@ -6,6 +6,8 @@ from itertools import repeat
 from types import TracebackType
 from typing import Optional
 
+from hystatutils.utils import insort_right
+
 
 class RateLimiter:
     """
@@ -56,7 +58,9 @@ class RateLimiter:
     ) -> None:
         now = datetime.now()
         with self.mutex:
-            self.made_requests.append(now)
+            # Insert the newly completed request in sorted order so that we don't
+            # wait for it unnecessarily.
+            insort_right(self.made_requests, now)
 
         # Tell the other threads that we added an element to the history
         self.available_slots.release()
