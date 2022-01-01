@@ -32,11 +32,10 @@ limiter = RateLimiter(limit=REQUEST_LIMIT, window=REQUEST_WINDOW)
 
 def get_player_data(api_key: str, uuid: str) -> PlayerData:
     """Get data about the given player from the /player API endpoint"""
-    # Uphold our prescribed rate-limits
-    limiter.wait()
-
     try:
-        response = requests.get(f"{PLAYER_ENDPOINT}?key={api_key}&uuid={uuid}")
+        # Uphold our prescribed rate-limits
+        with limiter:
+            response = requests.get(f"{PLAYER_ENDPOINT}?key={api_key}&uuid={uuid}")
     except RequestException as e:
         raise HypixelAPIError(
             f"Request to Hypixel API failed due to a connection error {e}"

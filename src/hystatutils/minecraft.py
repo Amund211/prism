@@ -28,11 +28,10 @@ def get_uuid(username: str) -> Optional[str]:
     if username.lower() in LOWERCASE_USERNAME_UUID:
         return LOWERCASE_USERNAME_UUID[username.lower()]
 
-    # Uphold our prescribed rate-limits
-    limiter.wait()
-
     try:
-        response = requests.get(f"{USERPROFILES_ENDPOINT}/{username}")
+        # Uphold our prescribed rate-limits
+        with limiter:
+            response = requests.get(f"{USERPROFILES_ENDPOINT}/{username}")
     except RequestException as e:
         raise MojangAPIError(
             f"Request to Mojang API failed due to a connection error {e}"
