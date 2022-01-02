@@ -1,5 +1,6 @@
 import logging
-from dataclasses import dataclass
+import threading
+from dataclasses import dataclass, field
 from typing import Iterable, Optional
 
 from examples.sidelay.parsing import Event, EventType
@@ -16,6 +17,9 @@ class OverlayState:
     out_of_sync: bool = False
     in_queue: bool = False
     own_username: Optional[str] = None
+    mutex: threading.Lock = field(
+        default_factory=threading.Lock, init=False, compare=False, repr=False
+    )
 
     def join_queue(self) -> None:
         """

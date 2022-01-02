@@ -123,13 +123,39 @@ def process_loglines_to_stdout(state: OverlayState, loglines: Iterable[str]) -> 
 
 def process_loglines_to_overlay(
     state: OverlayState,
-    loglines: Iterable[Optional[str]],
+    loglines: Iterable[str],
     thread_count: int,
     output_to_console: bool,
 ) -> None:
-    loglines_iterator = iter(loglines)
     completed_stats_queue = queue.Queue[str]()
     requested_stats_queue = queue.Queue[str]()
+    redraw_queue = queue.Queue[bool]()
+
+    class UpdateStateThread(threading.Thread):
+        """Thread that reads from the logfile and updates the state"""
+
+        def __init__(
+            self,
+            state: OverlayState,
+            loglines: Iterable[str],
+            redraw_queue: queue.Queue[bool],
+        ) -> None:
+            super().__init__()
+            self.state = state
+            self.loglines = loglines
+            self.redraw_queue = redraw_queue
+
+        def run(self) -> None:
+            for line in self.loglines:
+                event = parse_logline(line)
+
+                if event is None:
+                    continue
+
+                with self.state.mutex:
+                    redraw = update_state(self.state, event)
+                    if redraw:
+                        self.redraw_queue.put(redraw)
 
     class GetStatsThread(threading.Thread):
         """Thread that downloads and stores players' stats to cache"""
@@ -149,6 +175,9 @@ def process_loglines_to_overlay(
                 self.requests_queue.task_done()
                 self.completed_queue.put(username)
 
+    # Spawn thread for updating state
+    UpdateStateThread(state=state, loglines=loglines, redraw_queue=redraw_queue).start()
+
     # Spawn threads for downloading stats
     for i in range(thread_count):
         GetStatsThread(
@@ -158,26 +187,16 @@ def process_loglines_to_overlay(
     def fetch_state_updates() -> Optional[list[Stats]]:
         redraw = False
 
-        # Process all new loglines sync so that we can safely iterate over
-        # party_members and lobby_players later
+        # Check if the state update thread has issued any redraws since last time
         while True:
             try:
-                logline = next(loglines_iterator)
-            except StopIteration:
-                sys.exit(0)
-
-            if logline is None:
-                # No new loglines avaliable
+                redraw_from_this_line = redraw_queue.get_nowait()
+            except queue.Empty:
                 break
-
-            event = parse_logline(logline)
-
-            if event is None:
-                # No event in this line - check the next line
-                continue
-
-            # Redraw if any of the lines indicate a state change
-            redraw |= update_state(state, event)
+            else:
+                # Redraw if any of the lines indicate a state change
+                redraw |= redraw_from_this_line
+                redraw_queue.task_done()
 
         # Check if any of the stats downloaded since last render are still in the lobby
         while True:
@@ -187,36 +206,39 @@ def process_loglines_to_overlay(
                 break
             else:
                 completed_stats_queue.task_done()
-                if username in state.lobby_players:
-                    # We just received the stats of a player in the lobby
-                    # Redraw the screen in case the stats weren't there last time
-                    redraw = True
+                with state.mutex:
+                    if username in state.lobby_players:
+                        # We just received the stats of a player in the lobby
+                        # Redraw the screen in case the stats weren't there last time
+                        redraw = True
 
         if not redraw:
             return None
 
         # Get the cached stats for the players in the lobby
         stats: list[Stats] = []
-        for player in state.lobby_players:
-            cached_stats = get_cached_stats(player)
-            if cached_stats is None:
-                # No query made for this player yet
-                # Start a query and note that a query has been started
-                cached_stats = set_player_pending(player)
-                requested_stats_queue.put(player)
-            stats.append(cached_stats)
 
-        sorted_stats = sort_stats(stats, state.party_members)
+        with state.mutex:
+            for player in state.lobby_players:
+                cached_stats = get_cached_stats(player)
+                if cached_stats is None:
+                    # No query made for this player yet
+                    # Start a query and note that a query has been started
+                    cached_stats = set_player_pending(player)
+                    requested_stats_queue.put(player)
+                stats.append(cached_stats)
 
-        if output_to_console:
-            print_stats_table(
-                sorted_stats=sorted_stats,
-                party_members=state.party_members,
-                out_of_sync=state.out_of_sync,
-                clear_between_draws=CLEAR_BETWEEN_DRAWS,
-            )
+            sorted_stats = sort_stats(stats, state.party_members)
 
-        return sorted_stats
+            if output_to_console:
+                print_stats_table(
+                    sorted_stats=sorted_stats,
+                    party_members=state.party_members,
+                    out_of_sync=state.out_of_sync,
+                    clear_between_draws=CLEAR_BETWEEN_DRAWS,
+                )
+
+            return sorted_stats
 
     run_overlay(state, fetch_state_updates)
 
@@ -231,14 +253,14 @@ def watch_from_logfile(logpath: str, output: Literal["stdout", "overlay"]) -> No
         old_loglines = logfile.readlines()
         fast_forward_state(state, old_loglines)
 
+        loglines = tail_file(logfile)
+
         # Process the rest of the loglines as they come in
         if output == "stdout":
-            loglines = tail_file(logfile)
             process_loglines_to_stdout(state, loglines)
         else:
-            loglines_non_blocking = tail_file_non_blocking(logfile)
             process_loglines_to_overlay(
-                state, loglines_non_blocking, thread_count=15, output_to_console=True
+                state, loglines, thread_count=15, output_to_console=True
             )
 
 
