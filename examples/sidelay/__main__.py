@@ -272,7 +272,7 @@ def watch_from_logfile(logpath: str, output: Literal["stdout", "overlay"]) -> No
     """Use the overlay on an active logfile"""
     state = OverlayState(lobby_players=set(), party_members=set())
 
-    with open(logpath, "r") as logfile:
+    with open(logpath, "r", encoding="utf8") as logfile:
         # Process the entire logfile to get current player as well as potential
         # current party/lobby
         old_loglines = logfile.readlines()
@@ -301,7 +301,7 @@ def test() -> None:
 
     state = OverlayState(lobby_players=set(), party_members=set())
 
-    with open(sys.argv[2], "r") as logfile:
+    with open(sys.argv[2], "r", encoding="utf8") as logfile:
         loglines = logfile
         if output == "overlay":
             from itertools import chain, islice, repeat
