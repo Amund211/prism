@@ -13,14 +13,13 @@ import sys
 import threading
 import time
 from pathlib import Path
-from typing import Iterable, Literal, Optional, TextIO
+from typing import Callable, Iterable, Literal, Optional, TextIO
 
 from examples.sidelay.output.overlay import run_overlay
 from examples.sidelay.output.printing import print_stats_table
 from examples.sidelay.parsing import parse_logline
 from examples.sidelay.state import OverlayState, update_state
 from examples.sidelay.stats import (
-    NickedPlayer,
     Stats,
     get_bedwars_stats,
     get_cached_stats,
@@ -36,6 +35,53 @@ api_key = read_key(Path(sys.path[0]) / "api_key")
 
 TESTING = False
 CLEAR_BETWEEN_DRAWS = True
+DOWNLOAD_THREAD_COUNT = 15
+
+
+class UpdateStateThread(threading.Thread):
+    """Thread that reads from the logfile and updates the state"""
+
+    def __init__(
+        self,
+        state: OverlayState,
+        loglines: Iterable[str],
+        redraw_event: threading.Event,
+    ) -> None:
+        super().__init__()
+        self.state = state
+        self.loglines = loglines
+        self.redraw_event = redraw_event
+
+    def run(self) -> None:
+        for line in self.loglines:
+            event = parse_logline(line)
+
+            if event is None:
+                continue
+
+            with self.state.mutex:
+                redraw = update_state(self.state, event)
+                if redraw:
+                    self.redraw_event.set()
+
+
+class GetStatsThread(threading.Thread):
+    """Thread that downloads and stores players' stats to cache"""
+
+    def __init__(
+        self, requests_queue: queue.Queue[str], completed_queue: queue.Queue[str]
+    ) -> None:
+        super().__init__()
+        self.requests_queue = requests_queue
+        self.completed_queue = completed_queue
+
+    def run(self) -> None:
+        while True:
+            username = self.requests_queue.get()
+            # get_bedwars_stats sets the stats cache which will be read from later
+            get_bedwars_stats(username, api_key=api_key)
+            self.requests_queue.task_done()
+            self.completed_queue.put(username)
 
 
 def tail_file(f: TextIO) -> Iterable[str]:
@@ -51,17 +97,6 @@ def tail_file(f: TextIO) -> Iterable[str]:
         yield line
 
 
-def tail_file_non_blocking(f: TextIO) -> Iterable[Optional[str]]:
-    """Iterate over new lines in a file"""
-    f.seek(0, 2)
-    while True:
-        line = f.readline()
-        if not line:
-            yield None
-
-        yield line
-
-
 def sort_stats(stats: list[Stats], party_members: set[str]) -> list[Stats]:
     """Sort the stats based on fkdr. Order party members last"""
     return list(
@@ -71,19 +106,6 @@ def sort_stats(stats: list[Stats], party_members: set[str]) -> list[Stats]:
             reverse=True,
         )
     )
-
-
-def get_sorted_stats(state: OverlayState) -> list[Stats]:
-    stats: list[Stats]
-    if TESTING:
-        # No api requests in testing
-        stats = [NickedPlayer(username=player) for player in state.lobby_players]
-    else:
-        stats = [
-            get_bedwars_stats(player, api_key=api_key) for player in state.lobby_players
-        ]
-
-    return sort_stats(stats, state.party_members)
 
 
 def fast_forward_state(state: OverlayState, loglines: Iterable[str]) -> None:
@@ -97,86 +119,59 @@ def fast_forward_state(state: OverlayState, loglines: Iterable[str]) -> None:
         update_state(state, event)
 
 
-def process_loglines_to_stdout(state: OverlayState, loglines: Iterable[str]) -> None:
-    """Process the state changes for each logline and redraw the screen if neccessary"""
-    for line in loglines:
-        event = parse_logline(line)
-
-        if event is None:
-            continue
-
-        redraw = update_state(state, event)
-
-        if redraw:
-            logger.info(f"Party = {', '.join(state.party_members)}")
-            logger.info(f"Lobby = {', '.join(state.lobby_players)}")
-
-            sorted_stats = get_sorted_stats(state)
-
-            print_stats_table(
-                sorted_stats=sorted_stats,
-                party_members=state.party_members,
-                out_of_sync=state.out_of_sync,
-                clear_between_draws=CLEAR_BETWEEN_DRAWS,
-            )
-
-
-def process_loglines_to_overlay(
+def should_redraw(
     state: OverlayState,
-    loglines: Iterable[str],
-    thread_count: int,
-    output_to_console: bool,
-) -> None:
-    completed_stats_queue = queue.Queue[str]()
+    redraw_event: threading.Event,
+    completed_stats_queue: queue.Queue[str],
+) -> bool:
+    """Check if any updates happened since last time that needs a redraw"""
+    # Check the work done by the state update and stats download threads
+    redraw = False
+
+    # Check if the state update thread has issued any redraws since last time
+    with state.mutex:
+        if redraw_event.is_set():
+            redraw = True
+            redraw_event.clear()
+
+    # Check if any of the stats downloaded since last render are still in the lobby
+    while True:
+        try:
+            username = completed_stats_queue.get_nowait()
+        except queue.Empty:
+            break
+        else:
+            completed_stats_queue.task_done()
+            with state.mutex:
+                if username in state.lobby_players:
+                    # We just received the stats of a player in the lobby
+                    # Redraw the screen in case the stats weren't there last time
+                    redraw = True
+
+    return redraw
+
+
+def prepare_overlay(
+    state: OverlayState, loglines: Iterable[str], thread_count: int
+) -> Callable[[], Optional[list[Stats]]]:
+    """
+    Set up and return get_stat_list
+
+    get_stat_list returns an updated list of stats of the players in the lobby,
+    or None if no updates happened since last call.
+
+    This function spawns threads that perform the state updates and stats downloading
+    """
+
+    # Usernames we want the stats of
     requested_stats_queue = queue.Queue[str]()
-    redraw_queue = queue.Queue[bool]()
-
-    class UpdateStateThread(threading.Thread):
-        """Thread that reads from the logfile and updates the state"""
-
-        def __init__(
-            self,
-            state: OverlayState,
-            loglines: Iterable[str],
-            redraw_queue: queue.Queue[bool],
-        ) -> None:
-            super().__init__()
-            self.state = state
-            self.loglines = loglines
-            self.redraw_queue = redraw_queue
-
-        def run(self) -> None:
-            for line in self.loglines:
-                event = parse_logline(line)
-
-                if event is None:
-                    continue
-
-                with self.state.mutex:
-                    redraw = update_state(self.state, event)
-                    if redraw:
-                        self.redraw_queue.put(redraw)
-
-    class GetStatsThread(threading.Thread):
-        """Thread that downloads and stores players' stats to cache"""
-
-        def __init__(
-            self, requests_queue: queue.Queue[str], completed_queue: queue.Queue[str]
-        ) -> None:
-            super().__init__()
-            self.requests_queue = requests_queue
-            self.completed_queue = completed_queue
-
-        def run(self) -> None:
-            while True:
-                username = self.requests_queue.get()
-                # get_bedwars_stats sets the stats cache which will be read from later
-                get_bedwars_stats(username, api_key=api_key)
-                self.requests_queue.task_done()
-                self.completed_queue.put(username)
+    # Usernames we have newly downloaded the stats of
+    completed_stats_queue = queue.Queue[str]()
+    # Redraw requests from state updates
+    redraw_event = threading.Event()
 
     # Spawn thread for updating state
-    UpdateStateThread(state=state, loglines=loglines, redraw_queue=redraw_queue).start()
+    UpdateStateThread(state=state, loglines=loglines, redraw_event=redraw_event).start()
 
     # Spawn threads for downloading stats
     for i in range(thread_count):
@@ -184,33 +179,16 @@ def process_loglines_to_overlay(
             requests_queue=requested_stats_queue, completed_queue=completed_stats_queue
         ).start()
 
-    def fetch_state_updates() -> Optional[list[Stats]]:
-        redraw = False
+    def get_stat_list() -> Optional[list[Stats]]:
+        """
+        Get an updated list of stats of the players in the lobby. None if no updates
+        """
 
-        # Check if the state update thread has issued any redraws since last time
-        while True:
-            try:
-                redraw_from_this_line = redraw_queue.get_nowait()
-            except queue.Empty:
-                break
-            else:
-                # Redraw if any of the lines indicate a state change
-                redraw |= redraw_from_this_line
-                redraw_queue.task_done()
-
-        # Check if any of the stats downloaded since last render are still in the lobby
-        while True:
-            try:
-                username = completed_stats_queue.get_nowait()
-            except queue.Empty:
-                break
-            else:
-                completed_stats_queue.task_done()
-                with state.mutex:
-                    if username in state.lobby_players:
-                        # We just received the stats of a player in the lobby
-                        # Redraw the screen in case the stats weren't there last time
-                        redraw = True
+        redraw = should_redraw(
+            state,
+            redraw_event=redraw_event,
+            completed_stats_queue=completed_stats_queue,
+        )
 
         if not redraw:
             return None
@@ -230,17 +208,64 @@ def process_loglines_to_overlay(
 
             sorted_stats = sort_stats(stats, state.party_members)
 
-            if output_to_console:
-                print_stats_table(
-                    sorted_stats=sorted_stats,
-                    party_members=state.party_members,
-                    out_of_sync=state.out_of_sync,
-                    clear_between_draws=CLEAR_BETWEEN_DRAWS,
-                )
+            return sorted_stats
+
+    return get_stat_list
+
+
+def process_loglines_to_stdout(
+    state: OverlayState,
+    loglines: Iterable[str],
+    thread_count: int = DOWNLOAD_THREAD_COUNT,
+) -> None:
+    """Process the state changes for each logline and redraw the screen if neccessary"""
+    get_stat_list = prepare_overlay(state, loglines, thread_count=thread_count)
+
+    while True:
+        time.sleep(0.1)
+
+        sorted_stats = get_stat_list()
+
+        if sorted_stats is None:
+            continue
+
+        with state.mutex:
+            print_stats_table(
+                sorted_stats=sorted_stats,
+                party_members=state.party_members,
+                out_of_sync=state.out_of_sync,
+                clear_between_draws=CLEAR_BETWEEN_DRAWS,
+            )
+
+
+def process_loglines_to_overlay(
+    state: OverlayState,
+    loglines: Iterable[str],
+    output_to_console: bool,
+    thread_count: int = DOWNLOAD_THREAD_COUNT,
+) -> None:
+    """Process the state changes for each logline and output to an overlay"""
+    get_stat_list = prepare_overlay(state, loglines, thread_count)
+
+    if output_to_console:
+        # Output to console every time we get a new stats list
+        original_get_stat_list = get_stat_list
+
+        def get_stat_list() -> Optional[list[Stats]]:
+            sorted_stats = original_get_stat_list()
+
+            if sorted_stats is not None:
+                with state.mutex:
+                    print_stats_table(
+                        sorted_stats=sorted_stats,
+                        party_members=state.party_members,
+                        out_of_sync=state.out_of_sync,
+                        clear_between_draws=CLEAR_BETWEEN_DRAWS,
+                    )
 
             return sorted_stats
 
-    run_overlay(state, fetch_state_updates)
+    run_overlay(state, get_stat_list)
 
 
 def watch_from_logfile(logpath: str, output: Literal["stdout", "overlay"]) -> None:
@@ -249,7 +274,7 @@ def watch_from_logfile(logpath: str, output: Literal["stdout", "overlay"]) -> No
 
     with open(logpath, "r") as logfile:
         # Process the entire logfile to get current player as well as potential
-        # current party
+        # current party/lobby
         old_loglines = logfile.readlines()
         fast_forward_state(state, old_loglines)
 
@@ -259,9 +284,7 @@ def watch_from_logfile(logpath: str, output: Literal["stdout", "overlay"]) -> No
         if output == "stdout":
             process_loglines_to_stdout(state, loglines)
         else:
-            process_loglines_to_overlay(
-                state, loglines, thread_count=15, output_to_console=True
-            )
+            process_loglines_to_overlay(state, loglines, output_to_console=True)
 
 
 def test() -> None:
@@ -285,7 +308,7 @@ def test() -> None:
 
             loglines_with_pause = chain(islice(repeat(""), 500), loglines, repeat(""))
             process_loglines_to_overlay(
-                state, loglines_with_pause, thread_count=15, output_to_console=True
+                state, loglines_with_pause, output_to_console=True
             )
         else:
             process_loglines_to_stdout(state, loglines)
