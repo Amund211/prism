@@ -118,7 +118,7 @@ class PendingPlayer:
         if name == "username":
             return self.username
 
-        return "---"
+        return "-"
 
 
 Stats = Union[PlayerStats, NickedPlayer, PendingPlayer]
