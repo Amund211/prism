@@ -1,5 +1,7 @@
 # Too many long lines in this file
 # flake8: noqa
+from typing import Sequence
+
 import pytest
 
 from examples.sidelay.parsing import (
@@ -21,6 +23,7 @@ from examples.sidelay.parsing import (
     parse_logline,
     remove_ranks,
     strip_until,
+    words_match,
 )
 
 
@@ -81,6 +84,27 @@ def test_strip_until(line: str, until: str, suffix: str) -> None:
     and including it. Also strips the result of whitespace on both ends.
     """
     assert strip_until(line, until=until) == suffix
+
+
+@pytest.mark.parametrize(
+    "words, target, full_match",
+    (
+        (("a", "list", "of", "words"), "a list of words", True),
+        (("a", "long", "list", "of", "words"), "short list of words", False),
+        (("a", "long", "list", "of", "words"), "a longish list of words", False),
+        (("short", "list", "of", "words"), "a long list of words", False),
+        (("short", "list", "of", "words"), "short list of words with suffix", False),
+        (("list", "of", "words", "with", "suffix"), "list of words", False),
+        (("word",), "word", True),
+        (("",), "", True),
+        ((" ",), " ", True),
+        (("word", ""), "word ", True),
+        (("word", " "), "word  ", True),
+    ),
+)
+def test_words_match(words: Sequence[str], target: str, full_match: bool) -> None:
+    """Assert that words_match functions properly"""
+    assert words_match(words, target) == full_match
 
 
 UNEVENTFUL_LOGLINES = (

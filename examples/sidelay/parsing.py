@@ -2,7 +2,7 @@ import logging
 import re
 from dataclasses import dataclass
 from enum import Enum, auto, unique
-from typing import Final, Literal, Optional, Union
+from typing import Final, Literal, Optional, Sequence, Union
 
 logger = logging.getLogger()
 
@@ -154,6 +154,17 @@ def parse_logline(logline: str) -> Optional[Event]:
     return None
 
 
+def words_match(words: Sequence[str], target: str) -> bool:
+    """Return true if `words` matches the space separated words in `target`"""
+    joined_words = " ".join(words)
+    full_match = joined_words == target
+
+    if not full_match:
+        logger.debug("Message does not match target! {joined_words=} != {target=}")
+
+    return full_match
+
+
 def parse_chat_message(message: str) -> Optional[Event]:
     """
     Parse a chat message to detect players leaving or joining the lobby/party
@@ -194,10 +205,8 @@ def parse_chat_message(message: str) -> Optional[Event]:
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(words[1:3], ("has", "joined"), strict=True):
-            if word != target:
-                logger.debug("Message does not match target! {word=} != {target=}")
-                return None
+        if not words_match(words[1:3], "has joined"):
+            return None
 
         username = words[0]
 
@@ -226,10 +235,8 @@ def parse_chat_message(message: str) -> Optional[Event]:
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(words[1:3], ("has", "quit!"), strict=True):
-            if word != target:
-                logger.debug("Message does not match target! {word=} != {target=}")
-                return None
+        if not words_match(words[1:3], "has quit!"):
+            return None
 
         username = words[0]
 
@@ -262,12 +269,8 @@ def parse_chat_message(message: str) -> Optional[Event]:
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(
-            words[1:], ("has", "disbanded", "the", "party!"), strict=True
-        ):
-            if word != target:
-                logger.debug("Message does not match target! {word=} != {target=}")
-                return None
+        if not words_match(words[1:], "has disbanded the party!"):
+            return None
 
         return PartyDetachEvent()
 
@@ -314,10 +317,8 @@ def parse_chat_message(message: str) -> Optional[Event]:
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(words[1:4], ("joined", "the", "party."), strict=True):
-            if word != target:
-                logger.debug("Message does not match target! {word=} != {target=}")
-                return None
+        if not words_match(words[1:4], "joined the party."):
+            return None
 
         username = words[0]
 
@@ -331,16 +332,12 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
         words = suffix.split(" ")
         if len(words) < 5:  # pragma: no cover
-            # The message can not be <username> has left the party
+            # The message can not be <username> has left the party.
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(
-            words[1:5], ("has", "left", "the", "party"), strict=True
-        ):
-            if not word.startswith(target):
-                logger.debug("Message does not match target! {word=} != {target=}")
-                return None
+        if not words_match(words[1:5], "has left the party."):
+            return None
 
         username = words[0]
 
@@ -354,16 +351,12 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
         words = suffix.split(" ")
         if len(words) < 7:  # pragma: no cover
-            # The message can not be <username> has left the party
+            # The message can not be <username> has been removed from the party.
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(
-            words[1:], ("has", "been", "removed", "from", "the", "party."), strict=True
-        ):
-            if word != target:
-                logger.debug("Message does not match target! {word=} != {target=}")
-                return None
+        if not words_match(words[1:], "has been removed from the party."):
+            return None
 
         username = words[0]
 
@@ -377,23 +370,10 @@ def parse_chat_message(message: str) -> Optional[Event]:
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(
-            words[1:],
-            (
-                "was",
-                "removed",
-                "from",
-                "the",
-                "party",
-                "because",
-                "they",
-                "disconnected",
-            ),
-            strict=True,
+        if not words_match(
+            words[1:], "was removed from the party because they disconnected"
         ):
-            if word != target:
-                logger.debug("Message does not match target! {word=} != {target=}")
-                return None
+            return None
 
         username = words[0]
 
@@ -412,12 +392,8 @@ def parse_chat_message(message: str) -> Optional[Event]:
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(
-            words[-4:], ("because", "they", "were", "offline."), strict=True
-        ):
-            if word != target:
-                logger.debug("Message does not match target! {word=} != {target=}")
-                return None
+        if not words_match(words[-4:], "because they were offline."):
+            return None
 
         usernames = " ".join(words[:-4]).split(", ")
 
@@ -435,10 +411,8 @@ def parse_chat_message(message: str) -> Optional[Event]:
             logger.debug("Message is too short!")
             return None
 
-        for word, target in zip(words[1::2], ("because", "left"), strict=True):
-            if not word.startswith(target):
-                logger.debug("Message does not match target! {word=} != {target=}")
-                return None
+        if not words_match(words[1::2], "because left"):
+            return None
 
         username = words[2]
 
