@@ -238,7 +238,7 @@ def get_bedwars_stats(username: str, api_key: str) -> Stats:
     return stats
 
 
-RateStatsReturn = Union[tuple[bool, bool], tuple[bool, bool, Stats]]
+RateStatsReturn = Union[tuple[bool, bool, str], tuple[bool, bool, Stats]]
 
 
 def rate_stats_for_non_party_members(
@@ -247,8 +247,8 @@ def rate_stats_for_non_party_members(
     def rate_stats(stats: Stats) -> RateStatsReturn:
         """Used as a key function for sorting"""
         is_enemy = stats.username not in party_members
-        if stats.nicked or isinstance(stats, PendingPlayer):
-            return (is_enemy, stats.nicked)
+        if not isinstance(stats, PlayerStats):
+            return (is_enemy, stats.nicked, stats.username)
 
         return (is_enemy, stats.nicked, stats)
 
