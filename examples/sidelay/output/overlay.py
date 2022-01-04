@@ -73,7 +73,8 @@ def run_overlay(
         )
 
     def set_not_in_queue() -> None:
-        state.in_queue = False
+        with state.mutex:
+            state.in_queue = False
 
     overlay = OverlayWindow[PropertyName](
         column_order=COLUMN_ORDER,
