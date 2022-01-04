@@ -47,22 +47,29 @@ class UpdateStateThread(threading.Thread):
         loglines: Iterable[str],
         redraw_event: threading.Event,
     ) -> None:
-        super().__init__()
+        super().__init__(daemon=True)  # Don't block the process from exiting
         self.state = state
         self.loglines = loglines
         self.redraw_event = redraw_event
 
     def run(self) -> None:
-        for line in self.loglines:
-            event = parse_logline(line)
+        """Read self.loglines and update self.state"""
+        try:
+            for line in self.loglines:
+                event = parse_logline(line)
 
-            if event is None:
-                continue
+                if event is None:
+                    continue
 
-            with self.state.mutex:
-                redraw = update_state(self.state, event)
-                if redraw:
-                    self.redraw_event.set()
+                with self.state.mutex:
+                    redraw = update_state(self.state, event)
+                    if redraw:
+                        # Tell the main thread we need a redraw
+                        self.redraw_event.set()
+        except (OSError, ValueError) as e:
+            # Catch 'read on closed file' if the main thread exited
+            logger.debug(f"Exception caught in state update tread: {e}. Exiting")
+            return
 
 
 class GetStatsThread(threading.Thread):
@@ -71,16 +78,20 @@ class GetStatsThread(threading.Thread):
     def __init__(
         self, requests_queue: queue.Queue[str], completed_queue: queue.Queue[str]
     ) -> None:
-        super().__init__()
+        super().__init__(daemon=True)  # Don't block the process from exiting
         self.requests_queue = requests_queue
         self.completed_queue = completed_queue
 
     def run(self) -> None:
+        """Get requested stats from the queue and download them"""
         while True:
             username = self.requests_queue.get()
+
             # get_bedwars_stats sets the stats cache which will be read from later
             get_bedwars_stats(username, api_key=api_key)
             self.requests_queue.task_done()
+
+            # Tell the main thread that we downloaded this user's stats
             self.completed_queue.put(username)
 
 
