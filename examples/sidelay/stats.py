@@ -249,10 +249,22 @@ def rate_stats_for_non_party_members(
         is_enemy = stats.username not in party_members
         if not isinstance(stats, PlayerStats):
             # Hack to compare other Stats instances by username only
-            stats = PlayerStats(
+            placeholder_stats = PlayerStats(
                 fkdr=0, stars=0, wlr=0, winstreak=0, username=stats.username
             )
+            return (is_enemy, stats.nicked, placeholder_stats)
 
         return (is_enemy, stats.nicked, stats)
 
     return rate_stats
+
+
+def sort_stats(stats: list[Stats], party_members: set[str]) -> list[Stats]:
+    """Sort the stats based on fkdr. Order party members last"""
+    return list(
+        sorted(
+            stats,
+            key=rate_stats_for_non_party_members(party_members),
+            reverse=True,
+        )
+    )

@@ -23,8 +23,8 @@ from examples.sidelay.stats import (
     Stats,
     get_bedwars_stats,
     get_cached_stats,
-    rate_stats_for_non_party_members,
     set_player_pending,
+    sort_stats,
 )
 from hystatutils.utils import read_key
 
@@ -106,17 +106,6 @@ def tail_file(f: TextIO) -> Iterable[str]:
             continue
 
         yield line
-
-
-def sort_stats(stats: list[Stats], party_members: set[str]) -> list[Stats]:
-    """Sort the stats based on fkdr. Order party members last"""
-    return list(
-        sorted(
-            stats,
-            key=rate_stats_for_non_party_members(party_members),
-            reverse=True,
-        )
-    )
 
 
 def fast_forward_state(state: OverlayState, loglines: Iterable[str]) -> None:
