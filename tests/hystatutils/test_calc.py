@@ -8,7 +8,7 @@ from hystatutils.calc import bedwars_level_from_exp
 @pytest.mark.parametrize(
     "exp, true_star",
     [
-        (500, 1),
+        (500, 1.0),
         (89025, 20 + 2025 / 5000),
         (122986, 27),
         (954638, 196),
