@@ -78,11 +78,15 @@ class GetStatsThread(threading.Thread):
     """Thread that downloads and stores players' stats to cache"""
 
     def __init__(
-        self, requests_queue: queue.Queue[str], completed_queue: queue.Queue[str]
+        self,
+        requests_queue: queue.Queue[str],
+        completed_queue: queue.Queue[str],
+        key_holder: HypixelAPIKeyHolder,
     ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.requests_queue = requests_queue
         self.completed_queue = completed_queue
+        self.key_holder = key_holder
 
     def run(self) -> None:
         """Get requested stats from the queue and download them"""
@@ -90,7 +94,7 @@ class GetStatsThread(threading.Thread):
             username = self.requests_queue.get()
 
             # get_bedwars_stats sets the stats cache which will be read from later
-            get_bedwars_stats(username, key_holder=key_holder)
+            get_bedwars_stats(username, key_holder=self.key_holder)
             self.requests_queue.task_done()
 
             # Tell the main thread that we downloaded this user's stats
@@ -178,7 +182,9 @@ def prepare_overlay(
     # Spawn threads for downloading stats
     for i in range(thread_count):
         GetStatsThread(
-            requests_queue=requested_stats_queue, completed_queue=completed_stats_queue
+            requests_queue=requested_stats_queue,
+            completed_queue=completed_stats_queue,
+            key_holder=key_holder,
         ).start()
 
     def get_stat_list() -> Optional[list[Stats]]:
