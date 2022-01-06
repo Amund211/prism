@@ -4,9 +4,15 @@ Overlay window using tkinter
 Inspired by:
 https://github.com/notatallshaw/fall_guys_ping_estimate/blob/main/fgpe/overlay.py
 """
+import logging
+import sys
 import tkinter as tk
 from dataclasses import dataclass
+from traceback import format_exception
+from types import TracebackType
 from typing import Any, Callable, Generic, Optional, Sequence, TypeVar
+
+logger = logging.getLogger()
 
 ColumnKey = TypeVar("ColumnKey")
 
@@ -31,6 +37,24 @@ class CellValue:
 OverlayRow = dict[ColumnKey, CellValue]
 
 
+class Root(tk.Tk):
+    """Root window that exits when an exception occurs in an event handler"""
+
+    def report_callback_exception(
+        self,
+        __exc: type[BaseException],
+        __val: BaseException,
+        __tb: Optional[TracebackType],
+    ) -> None:
+        """Exit on callback exception"""
+        if not issubclass(__exc, KeyboardInterrupt):
+            logger.error(
+                "Unhandled exception in event handler: "
+                f"'''{''.join(format_exception(__exc, __val, __tb))}'''"
+            )
+        sys.exit(0)
+
+
 class OverlayWindow(Generic[ColumnKey]):
     """
     Creates an overlay window using tkinter
@@ -52,7 +76,7 @@ class OverlayWindow(Generic[ColumnKey]):
     ):
         """Store params and set up controls and header"""
         # Create a root window
-        self.root = tk.Tk()
+        self.root = Root()
         if start_hidden:
             self.hide_window()
         else:
