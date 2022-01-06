@@ -26,12 +26,14 @@ from examples.sidelay.stats import (
     set_player_pending,
     sort_stats,
 )
+from hystatutils.playerdata import HypixelAPIKeyHolder
 from hystatutils.utils import read_key
 
 logging.basicConfig()
 logger = logging.getLogger()
 
 api_key = read_key(Path(sys.path[0]) / "api_key")
+key_holder = HypixelAPIKeyHolder(api_key)
 
 TESTING = False
 CLEAR_BETWEEN_DRAWS = True
@@ -88,7 +90,7 @@ class GetStatsThread(threading.Thread):
             username = self.requests_queue.get()
 
             # get_bedwars_stats sets the stats cache which will be read from later
-            get_bedwars_stats(username, api_key=api_key)
+            get_bedwars_stats(username, key_holder=key_holder)
             self.requests_queue.task_done()
 
             # Tell the main thread that we downloaded this user's stats

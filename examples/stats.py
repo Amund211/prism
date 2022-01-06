@@ -10,6 +10,7 @@ from hystatutils.calc import bedwars_level_from_exp
 from hystatutils.minecraft import MojangAPIError, get_uuid
 from hystatutils.playerdata import (
     HypixelAPIError,
+    HypixelAPIKeyHolder,
     MissingStatsError,
     PlayerData,
     get_gamemode_stats,
@@ -25,6 +26,7 @@ except ImportError:
 
 
 api_key = read_key(Path(sys.path[0]) / "api_key")
+key_holder = HypixelAPIKeyHolder(api_key)
 
 
 SEP = " " * 4
@@ -185,7 +187,7 @@ def get_and_display(username: str) -> None:
         return
 
     try:
-        playerdata = get_player_data(api_key, uuid)
+        playerdata = get_player_data(uuid, key_holder)
     except HypixelAPIError as e:
         print(e)
     else:

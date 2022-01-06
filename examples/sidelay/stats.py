@@ -6,6 +6,7 @@ from hystatutils.calc import bedwars_level_from_exp
 from hystatutils.minecraft import MojangAPIError, get_uuid
 from hystatutils.playerdata import (
     HypixelAPIError,
+    HypixelAPIKeyHolder,
     MissingStatsError,
     get_gamemode_stats,
     get_player_data,
@@ -147,7 +148,7 @@ def get_cached_stats(username: str) -> Optional[Stats]:
     return KNOWN_STATS.get(username, None)
 
 
-def get_bedwars_stats(username: str, api_key: str) -> Stats:
+def get_bedwars_stats(username: str, key_holder: HypixelAPIKeyHolder) -> Stats:
     """Get the bedwars stats for the given player"""
     cached_stats = get_cached_stats(username)
 
@@ -179,7 +180,7 @@ def get_bedwars_stats(username: str, api_key: str) -> Stats:
         stats = NickedPlayer(username=username)
     else:
         try:
-            playerdata = get_player_data(api_key, uuid=uuid)
+            playerdata = get_player_data(uuid, key_holder)
         except HypixelAPIError as e:
             logger.debug(
                 f"Failed initially getting stats for {username} ({uuid}) {denicked=}", e
@@ -194,7 +195,7 @@ def get_bedwars_stats(username: str, api_key: str) -> Stats:
             nick = username
             logger.debug(f"De-nicked {username} as {uuid} after hit from Mojang")
             try:
-                playerdata = get_player_data(api_key, uuid=uuid)
+                playerdata = get_player_data(uuid, key_holder)
             except HypixelAPIError as e:
                 logger.debug(f"Failed getting stats for nicked {nick} ({uuid})", e)
                 playerdata = None

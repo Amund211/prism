@@ -7,6 +7,23 @@ from requests.exceptions import RequestException
 
 from hystatutils.ratelimiting import RateLimiter
 
+GamemodeData = dict[str, Any]
+PlayerData = dict[str, Any]
+
+PLAYER_ENDPOINT = "https://api.hypixel.net/player"
+REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
+
+
+class HypixelAPIKeyHolder:
+    """Class associating an api key with a RateLimiter instance"""
+
+    def __init__(
+        self, key: str, limit: int = REQUEST_LIMIT, window: float = REQUEST_WINDOW
+    ):
+        self.key = key
+        # Be nice to the Hypixel api :)
+        self.limiter = RateLimiter(limit=limit, window=window)
+
 
 class MissingStatsError(ValueError):
     """Exception raised when the player has no stats for the gamemode"""
@@ -20,22 +37,14 @@ class HypixelAPIError(ValueError):
     pass
 
 
-GamemodeData = dict[str, Any]
-PlayerData = dict[str, Any]
-
-PLAYER_ENDPOINT = "https://api.hypixel.net/player"
-REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
-
-# Be nice to the Hypixel api :)
-limiter = RateLimiter(limit=REQUEST_LIMIT, window=REQUEST_WINDOW)
-
-
-def get_player_data(api_key: str, uuid: str) -> PlayerData:
+def get_player_data(uuid: str, key_holder: HypixelAPIKeyHolder) -> PlayerData:
     """Get data about the given player from the /player API endpoint"""
     try:
         # Uphold our prescribed rate-limits
-        with limiter:
-            response = requests.get(f"{PLAYER_ENDPOINT}?key={api_key}&uuid={uuid}")
+        with key_holder.limiter:
+            response = requests.get(
+                f"{PLAYER_ENDPOINT}?key={key_holder.key}&uuid={uuid}"
+            )
     except RequestException as e:
         raise HypixelAPIError(
             f"Request to Hypixel API failed due to a connection error {e}"
