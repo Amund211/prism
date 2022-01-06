@@ -9,6 +9,7 @@ from hystatutils.calc import bedwars_level_from_exp
     "exp, true_star",
     [
         (500, 1.0),
+        (3648, 3 + 148 / 3500),
         (89025, 20 + 2025 / 5000),
         (122986, 27),
         (954638, 196),
