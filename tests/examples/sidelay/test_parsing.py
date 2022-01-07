@@ -74,6 +74,13 @@ def test_remove_ranks(rank_string: str, name_string: str) -> None:
         ("INCOMING CHAT MESSAGE: my message", "CHAT MESSAGE: ", "my message"),
         ("INCOMING CHAT MESSAGE: my message", "CHAT MESSAGE:", "my message"),
         ("INCOMING CHAT MESSAGE: my message", "CHAT ", "MESSAGE: my message"),
+        # Test that players can't send chat messages that appear to come from the server
+        (f"{CHAT_PREFIX} {CHAT_PREFIX} test", CHAT_PREFIX, f"{CHAT_PREFIX} test"),
+        (
+            "[Info: 2021-11-29 20:00:44.579410258: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] (Client thread) Info [CHAT] payload",
+            CHAT_PREFIX,
+            "(Client thread) Info [CHAT] payload",
+        ),
     ),
 )
 def test_strip_until(line: str, until: str, suffix: str) -> None:
