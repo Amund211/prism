@@ -195,6 +195,11 @@ UNEVENTFUL_LOGLINES = (
 parsing_test_cases = (
     *[(line, None) for line in UNEVENTFUL_LOGLINES],
     (
+        # Initialize as on vanilla
+        "[Info: 2022-01-07 13:42:07.884914205: GameCallbacks.cpp(162)] Game/ave (Client thread) Info Setting user: Player1",
+        InitializeAsEvent("Player1"),
+    ),
+    (
         "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.minecraft.client.Minecraft (Client thread) Info Setting user: Player1",
         InitializeAsEvent("Player1"),
     ),
@@ -212,6 +217,11 @@ parsing_test_cases = (
                 "Player9",
             ]
         ),
+    ),
+    (
+        # Lobby swap on vanilla
+        "[Info: 2022-01-07 13:44:01.231411580: GameCallbacks.cpp(162)] Game/avt (Client thread) Info [CHAT] Sending you to mini733G!",
+        LobbySwapEvent(),
     ),
     (
         "[Info: 2021-11-29 20:01:23.792072597: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Sending you to mini1145V!",

@@ -10,11 +10,9 @@ logger = logging.getLogger()
 RANK_REGEX = re.compile(r"\[[a-zA-Z\+]+\] ")
 
 
-SETTING_USER_PREFIX = (
-    "Game/net.minecraft.client.Minecraft (Client thread) Info Setting user: "
-)
+SETTING_USER_PREFIX = "(Client thread) Info Setting user: "
 
-CHAT_PREFIX = "Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] "
+CHAT_PREFIX = "(Client thread) Info [CHAT] "
 
 PartyRole = Literal["leader", "moderators", "members"]
 
