@@ -1,7 +1,7 @@
 import logging
 import threading
 from dataclasses import dataclass, field
-from typing import Iterable, Optional
+from typing import Callable, Iterable, Optional
 
 from examples.sidelay.parsing import Event, EventType
 
@@ -14,6 +14,7 @@ class OverlayState:
 
     party_members: set[str]
     lobby_players: set[str]
+    set_api_key: Callable[[str], None] = field(compare=False, repr=False)
     out_of_sync: bool = False
     in_queue: bool = False
     own_username: Optional[str] = None
@@ -225,5 +226,12 @@ def update_state(state: OverlayState, event: Event) -> bool:
         # Bedwars game has started
         logger.info("Bedwars game starting")
         state.leave_queue()
+
+        return False
+
+    if event.event_type is EventType.NEW_API_KEY:
+        # User got a new API key
+        logger.info("Setting new API key")
+        state.set_api_key(event.key)
 
         return False

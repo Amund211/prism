@@ -32,8 +32,8 @@ from hystatutils.utils import read_key
 logging.basicConfig()
 logger = logging.getLogger()
 
-api_key = read_key(Path(sys.path[0]) / "api_key")
-key_holder = HypixelAPIKeyHolder(api_key)
+API_KEY_PATH = Path(sys.path[0]) / "api_key"
+api_key = read_key(API_KEY_PATH)
 
 TESTING = False
 CLEAR_BETWEEN_DRAWS = True
@@ -158,7 +158,10 @@ def should_redraw(
 
 
 def prepare_overlay(
-    state: OverlayState, loglines: Iterable[str], thread_count: int
+    state: OverlayState,
+    key_holder: HypixelAPIKeyHolder,
+    loglines: Iterable[str],
+    thread_count: int,
 ) -> Callable[[], Optional[list[Stats]]]:
     """
     Set up and return get_stat_list
@@ -223,11 +226,14 @@ def prepare_overlay(
 
 def process_loglines_to_stdout(
     state: OverlayState,
+    key_holder: HypixelAPIKeyHolder,
     loglines: Iterable[str],
     thread_count: int = DOWNLOAD_THREAD_COUNT,
 ) -> None:
     """Process the state changes for each logline and redraw the screen if neccessary"""
-    get_stat_list = prepare_overlay(state, loglines, thread_count=thread_count)
+    get_stat_list = prepare_overlay(
+        state, key_holder, loglines, thread_count=thread_count
+    )
 
     while True:
         time.sleep(0.1)
@@ -248,12 +254,13 @@ def process_loglines_to_stdout(
 
 def process_loglines_to_overlay(
     state: OverlayState,
+    key_holder: HypixelAPIKeyHolder,
     loglines: Iterable[str],
     output_to_console: bool,
     thread_count: int = DOWNLOAD_THREAD_COUNT,
 ) -> None:
     """Process the state changes for each logline and output to an overlay"""
-    get_stat_list = prepare_overlay(state, loglines, thread_count)
+    get_stat_list = prepare_overlay(state, key_holder, loglines, thread_count)
 
     if output_to_console:
         # Output to console every time we get a new stats list
@@ -278,21 +285,33 @@ def process_loglines_to_overlay(
 
 def watch_from_logfile(logpath: str, output: Literal["stdout", "overlay"]) -> None:
     """Use the overlay on an active logfile"""
-    state = OverlayState(lobby_players=set(), party_members=set())
+
+    key_holder = HypixelAPIKeyHolder(api_key)
+
+    def set_api_key(new_key: str) -> None:
+        """Update the API key that the download threads use"""
+        # TODO: Potentially invalidate the entire/some parts of the stats cache
+        key_holder.key = new_key
+        API_KEY_PATH.write_text(new_key)
+
+    state = OverlayState(
+        lobby_players=set(), party_members=set(), set_api_key=set_api_key
+    )
 
     with open(logpath, "r", encoding="utf8") as logfile:
         # Process the entire logfile to get current player as well as potential
         # current party/lobby
-        old_loglines = logfile.readlines()
-        fast_forward_state(state, old_loglines)
+        fast_forward_state(state, logfile.readlines())
 
         loglines = tail_file(logfile)
 
         # Process the rest of the loglines as they come in
         if output == "stdout":
-            process_loglines_to_stdout(state, loglines)
+            process_loglines_to_stdout(state, key_holder, loglines)
         else:
-            process_loglines_to_overlay(state, loglines, output_to_console=True)
+            process_loglines_to_overlay(
+                state, key_holder, loglines, output_to_console=True
+            )
 
 
 def test() -> None:
@@ -307,7 +326,10 @@ def test() -> None:
     assert len(sys.argv) >= 3
     output = "overlay" if len(sys.argv) >= 4 and sys.argv[3] == "overlay" else "stdout"
 
-    state = OverlayState(lobby_players=set(), party_members=set())
+    state = OverlayState(
+        lobby_players=set(), party_members=set(), set_api_key=lambda x: None
+    )
+    key_holder = HypixelAPIKeyHolder("")
 
     with open(sys.argv[2], "r", encoding="utf8") as logfile:
         loglines = logfile
@@ -316,10 +338,10 @@ def test() -> None:
 
             loglines_with_pause = chain(islice(repeat(""), 500), loglines, repeat(""))
             process_loglines_to_overlay(
-                state, loglines_with_pause, output_to_console=True
+                state, key_holder, loglines_with_pause, output_to_console=True
             )
         else:
-            process_loglines_to_stdout(state, loglines)
+            process_loglines_to_stdout(state, key_holder, loglines)
 
 
 if __name__ == "__main__":

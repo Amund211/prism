@@ -43,6 +43,9 @@ class EventType(Enum):
     # Games
     START_BEDWARS_GAME = auto()  # A bedwars game has started
 
+    # New API key
+    NEW_API_KEY = auto()  # New API key in chat (/api new)
+
 
 @dataclass
 class InitializeAsEvent:
@@ -115,6 +118,12 @@ class StartBedwarsGameEvent:
     event_type: Literal[EventType.START_BEDWARS_GAME] = EventType.START_BEDWARS_GAME
 
 
+@dataclass
+class NewAPIKeyEvent:
+    key: str
+    event_type: Literal[EventType.NEW_API_KEY] = EventType.NEW_API_KEY
+
+
 Event = Union[
     InitializeAsEvent,
     LobbySwapEvent,
@@ -128,6 +137,7 @@ Event = Union[
     PartyListIncomingEvent,
     PartyMembershipListEvent,
     StartBedwarsGameEvent,
+    NewAPIKeyEvent,
 ]
 
 
@@ -182,6 +192,16 @@ def parse_chat_message(message: str) -> Optional[Event]:
         # Info [CHAT] ONLINE: <username1>, <username2>, ..., <usernameN>
         players = message.removeprefix(WHO_PREFIX).split(", ")
         return LobbyListEvent(players)
+
+    if message.startswith("Your new API key is "):
+        # Info [CHAT] Your new API key is deadbeef-ae10-4d07-25f6-f23130b92652
+        logger.debug("Processing potential new API key")
+        words = message.split(" ")
+        if len(words) != 6:
+            logger.debug("Message too long")
+            return None
+
+        return NewAPIKeyEvent(words[5])
 
     if message.startswith("Sending you to "):
         return LobbySwapEvent()

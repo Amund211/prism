@@ -12,6 +12,7 @@ from examples.sidelay.parsing import (
     LobbyLeaveEvent,
     LobbyListEvent,
     LobbySwapEvent,
+    NewAPIKeyEvent,
     PartyAttachEvent,
     PartyDetachEvent,
     PartyJoinEvent,
@@ -196,6 +197,7 @@ UNEVENTFUL_LOGLINES = (
     "[Info: 2021-12-09 00:21:30.953440842: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Kicked [VIP] Player1 because they were offline.becausing offlining ",  # Malformed
     "[Info: 2021-12-10 00:57:30.104719428: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]  because they were offline.",  # Malformed
     "[Info: 2021-12-09 00:21:30.953440842: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP+] Player1 wasing removing was removed from the party because they disconnected",  # Malformed
+    "[Info: 2022-01-07 13:48:02.379053772: GameCallbacks.cpp(162)] Game/avt (Client thread) Info [CHAT] Your new API key is deadbeef-ae10-4d07-25f6-f23130b92652 justkidding",  # Malformed
 )
 
 
@@ -325,6 +327,10 @@ parsing_test_cases = (
     (
         "[Info: 2021-12-21 19:10:39.757655172: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]                                   Bed Wars",
         StartBedwarsGameEvent(),
+    ),
+    (
+        "[Info: 2022-01-07 13:48:02.379053772: GameCallbacks.cpp(162)] Game/avt (Client thread) Info [CHAT] Your new API key is deadbeef-ae10-4d07-25f6-f23130b92652",
+        NewAPIKeyEvent("deadbeef-ae10-4d07-25f6-f23130b92652"),
     ),
 )
 

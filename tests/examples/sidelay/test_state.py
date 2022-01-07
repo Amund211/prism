@@ -1,4 +1,5 @@
-from typing import Optional
+import unittest.mock
+from typing import Callable, Optional
 
 import pytest
 
@@ -9,6 +10,7 @@ from examples.sidelay.parsing import (
     LobbyLeaveEvent,
     LobbyListEvent,
     LobbySwapEvent,
+    NewAPIKeyEvent,
     PartyAttachEvent,
     PartyDetachEvent,
     PartyJoinEvent,
@@ -25,6 +27,7 @@ OWN_USERNAME = "OwnUsername"
 def create_state(
     party_members: set[str] = set(),
     lobby_players: set[str] = set(),
+    set_api_key: Optional[Callable[[str], None]] = None,
     out_of_sync: bool = False,
     in_queue: bool = False,
     own_username: Optional[str] = OWN_USERNAME,
@@ -33,6 +36,7 @@ def create_state(
     return OverlayState(
         party_members=party_members | yourself,
         lobby_players=lobby_players | yourself,
+        set_api_key=set_api_key or unittest.mock.MagicMock(),
         out_of_sync=out_of_sync,
         in_queue=in_queue,
         own_username=own_username,
@@ -254,3 +258,10 @@ def test_update_state(
     new_state = initial_state
     assert new_state == target_state
     assert will_redraw == redraw
+
+
+def test_update_state_set_api_key() -> None:
+    """Assert that set_api_key is called when NewAPIKeyEvent is received"""
+    state = create_state()
+    update_state(state, NewAPIKeyEvent("my-new-key"))
+    state.set_api_key.assert_called_with("my-new-key")  # type: ignore
