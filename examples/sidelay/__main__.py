@@ -380,7 +380,7 @@ if __name__ == "__main__":
         logger.error(f"Failed creating settings directory! '{e}'")
         sys.exit(1)
 
-    if len(sys.argv) == 2 and sys.argv[1] == "test":
+    if sys.argv[1] == "--test":
         test()
     else:
         options = get_options()
