@@ -1,3 +1,4 @@
+import os
 import sys
 from typing import Callable, Optional, Sequence, cast
 
@@ -5,6 +6,14 @@ from examples.sidelay.output.overlay_window import CellValue, OverlayRow, Overla
 from examples.sidelay.output.utils import COLUMN_NAMES, STAT_LEVELS, rate_value
 from examples.sidelay.state import OverlayState
 from examples.sidelay.stats import PropertyName, Stats
+
+if os.name == "nt":
+    from examples.sidelay.platform.windows import toggle_fullscreen
+
+    FULLSCREEN_CALLBACK: Optional[Callable[[], None]] = toggle_fullscreen
+else:
+    FULLSCREEN_CALLBACK = None
+
 
 DEFAULT_COLOR = "snow"
 LEVEL_COLORMAP = (
@@ -85,5 +94,6 @@ def run_overlay(
         get_new_data=get_new_data,
         poll_interval=100,
         start_hidden=True,
+        fullscreen_callback=FULLSCREEN_CALLBACK,
     )
     overlay.run()
