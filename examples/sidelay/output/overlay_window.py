@@ -90,8 +90,26 @@ class OverlayWindow(Generic[ColumnKey]):
         self.get_new_data = get_new_data
         self.poll_interval = poll_interval
 
-        amt_columns = len(column_order)
-        assert amt_columns >= 3
+        toolbar_frame = tk.Frame(self.root, background="black")
+        toolbar_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+
+        # Close label
+        close_label = tk.Label(
+            toolbar_frame, text=" X ", font=("Consolas", "14"), fg="green3", bg="black"
+        )
+        close_label.bind("<Button-1>", lambda _: close_callback())
+        close_label.pack(side=tk.RIGHT)
+
+        # Minimize label
+        def minimize(_: Any) -> None:
+            minimize_callback()
+            self.hide_window()
+
+        minimize_label = tk.Label(
+            toolbar_frame, text=" - ", font=("Consolas", "14"), fg="green3", bg="black"
+        )
+        minimize_label.bind("<Button-1>", minimize)
+        minimize_label.pack(side=tk.RIGHT)
 
         # Title label
         title_variable = tk.StringVar()
@@ -102,31 +120,17 @@ class OverlayWindow(Generic[ColumnKey]):
             fg="green3",
             bg="black",
         )
-        title_label.grid(row=0, column=0, columnspan=amt_columns - 2)
+        title_label.pack(side=tk.TOP)
         self.title_cell = Cell(title_label, title_variable)
 
-        # Minimize label
-        def minimize(_: Any) -> None:
-            minimize_callback()
-            self.hide_window()
-
-        minimize_label = tk.Label(
-            self.root, text=" - ", font=("Consolas", "14"), fg="green3", bg="black"
-        )
-        minimize_label.bind("<Button-1>", minimize)
-        minimize_label.grid(row=0, column=amt_columns - 2)
-
-        # Close label
-        close_label = tk.Label(
-            self.root, text=" X ", font=("Consolas", "14"), fg="green3", bg="black"
-        )
-        close_label.bind("<Button-1>", lambda _: close_callback())
-        close_label.grid(row=0, column=amt_columns - 1)
+        # A frame for the stats table
+        self.table_frame = tk.Frame(self.root, background="black")
+        self.table_frame.pack(side=tk.TOP)
 
         # Set up header labels
         for column_index, column_name in enumerate(self.column_order):
             header_label = tk.Label(
-                self.root,
+                self.table_frame,
                 text=(
                     str.ljust
                     if column_index in self.left_justified_columns
@@ -173,7 +177,7 @@ class OverlayWindow(Generic[ColumnKey]):
         for column_index, column_name in enumerate(self.column_order):
             string_var = tk.StringVar()
             label = tk.Label(
-                self.root,
+                self.table_frame,
                 font=("Consolas", "14"),
                 fg="green3",
                 bg="black",
