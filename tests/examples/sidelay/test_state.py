@@ -4,6 +4,7 @@ from typing import Callable, Optional
 import pytest
 
 from examples.sidelay.parsing import (
+    EndBedwarsGameEvent,
     Event,
     InitializeAsEvent,
     LobbyJoinEvent,
@@ -152,6 +153,13 @@ update_state_test_cases_base = (
         StartBedwarsGameEvent(),
         create_state(in_queue=False),
         False,  # No need to redraw the screen - only hide the overlay
+    ),
+    (
+        "end bedwars game",
+        create_state(lobby_players={"a", "bunch", "of", "players"}),
+        EndBedwarsGameEvent(),
+        create_state(),
+        True,
     ),
     # Special cases
     (

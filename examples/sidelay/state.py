@@ -229,6 +229,13 @@ def update_state(state: OverlayState, event: Event) -> bool:
 
         return False
 
+    if event.event_type is EventType.END_BEDWARS_GAME:
+        # Bedwars game has ended
+        logger.info("Bedwars game ended")
+        state.clear_lobby()
+
+        return True
+
     if event.event_type is EventType.NEW_API_KEY:
         # User got a new API key
         logger.info("Setting new API key")

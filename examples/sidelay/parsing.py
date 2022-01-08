@@ -42,6 +42,7 @@ class EventType(Enum):
 
     # Games
     START_BEDWARS_GAME = auto()  # A bedwars game has started
+    END_BEDWARS_GAME = auto()  # A bedwars game has ended
 
     # New API key
     NEW_API_KEY = auto()  # New API key in chat (/api new)
@@ -119,6 +120,11 @@ class StartBedwarsGameEvent:
 
 
 @dataclass
+class EndBedwarsGameEvent:
+    event_type: Literal[EventType.END_BEDWARS_GAME] = EventType.END_BEDWARS_GAME
+
+
+@dataclass
 class NewAPIKeyEvent:
     key: str
     event_type: Literal[EventType.NEW_API_KEY] = EventType.NEW_API_KEY
@@ -137,6 +143,7 @@ Event = Union[
     PartyListIncomingEvent,
     PartyMembershipListEvent,
     StartBedwarsGameEvent,
+    EndBedwarsGameEvent,
     NewAPIKeyEvent,
 ]
 
@@ -211,6 +218,10 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
     if message.startswith("Bed Wars"):
         return StartBedwarsGameEvent()
+
+    if message.startswith("1st Killer "):
+        # Info [CHAT]                     1st Killer - [MVP+] Player1 - 7
+        return EndBedwarsGameEvent()
 
     if " has joined (" in message:
         # Info [CHAT] <username> has joined (<x>/<N>)!
