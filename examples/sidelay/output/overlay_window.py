@@ -54,6 +54,10 @@ class Root(tk.Tk):
             )
         sys.exit(0)
 
+    def reset_position(self, event: "Optional[tk.Event[tk.Misc]]" = None) -> None:
+        """Reset the position of the overlay to the top left corner"""
+        self.geometry("+5+5")
+
     def start_move(self, event: "tk.Event[tk.Misc]") -> None:
         """Store the window and cursor location at the start"""
         self.cursor_x_start = event.x_root
@@ -121,6 +125,7 @@ class OverlayWindow(Generic[ColumnKey]):
 
         grip_label.bind("<ButtonPress-1>", self.root.start_move)
         grip_label.bind("<B1-Motion>", self.root.do_move)
+        grip_label.bind("<Double-Button-1>", self.root.reset_position)
 
         if fullscreen_callback is not None:
             # Fullscreen button
@@ -206,7 +211,7 @@ class OverlayWindow(Generic[ColumnKey]):
 
         # Window geometry
         self.root.overrideredirect(True)
-        self.root.geometry("+5+5")
+        self.root.reset_position()
         self.root.lift()
         self.root.wm_attributes("-topmost", True)
         self.root.wm_attributes("-alpha", 0.8)
