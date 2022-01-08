@@ -88,6 +88,7 @@ class OverlayWindow(Generic[ColumnKey]):
         ],
         poll_interval: int,
         start_hidden: bool,
+        fullscreen_callback: Optional[Callable[[], None]] = None,
     ):
         """Store params and set up controls and header"""
         # Create a root window
@@ -120,6 +121,20 @@ class OverlayWindow(Generic[ColumnKey]):
 
         grip_label.bind("<ButtonPress-1>", self.root.start_move)
         grip_label.bind("<B1-Motion>", self.root.do_move)
+
+        if fullscreen_callback is not None:
+            # Fullscreen button
+            fullscreen_button = tk.Button(
+                toolbar_frame,
+                text="Fullscreen",
+                font=("Consolas", "14"),
+                foreground="white",
+                background="black",
+                highlightthickness=0,
+                command=fullscreen_callback,
+                relief="flat",
+            )
+            fullscreen_button.pack(side=tk.LEFT)
 
         # Close button
         close_button = tk.Button(
