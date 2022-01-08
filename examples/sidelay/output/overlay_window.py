@@ -10,7 +10,7 @@ import tkinter as tk
 from dataclasses import dataclass
 from traceback import format_exception
 from types import TracebackType
-from typing import Any, Callable, Generic, Optional, Sequence, TypeVar
+from typing import Callable, Generic, Optional, Sequence, TypeVar
 
 logger = logging.getLogger()
 
@@ -93,23 +93,35 @@ class OverlayWindow(Generic[ColumnKey]):
         toolbar_frame = tk.Frame(self.root, background="black")
         toolbar_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
 
-        # Close label
-        close_label = tk.Label(
-            toolbar_frame, text=" X ", font=("Consolas", "14"), fg="green3", bg="black"
+        # Close button
+        close_button = tk.Button(
+            toolbar_frame,
+            text="X",
+            font=("Consolas", "14"),
+            foreground="white",
+            background="black",
+            highlightthickness=0,
+            command=close_callback,
+            relief="flat",
         )
-        close_label.bind("<Button-1>", lambda _: close_callback())
-        close_label.pack(side=tk.RIGHT)
+        close_button.pack(side=tk.RIGHT)
 
-        # Minimize label
-        def minimize(_: Any) -> None:
+        # Minimize button
+        def minimize() -> None:
             minimize_callback()
             self.hide_window()
 
-        minimize_label = tk.Label(
-            toolbar_frame, text=" - ", font=("Consolas", "14"), fg="green3", bg="black"
+        minimize_button = tk.Button(
+            toolbar_frame,
+            text="-",
+            font=("Consolas", "14"),
+            foreground="white",
+            background="black",
+            highlightthickness=0,
+            command=minimize,
+            relief="flat",
         )
-        minimize_label.bind("<Button-1>", minimize)
-        minimize_label.pack(side=tk.RIGHT)
+        minimize_button.pack(side=tk.RIGHT)
 
         # Title label
         title_variable = tk.StringVar()
