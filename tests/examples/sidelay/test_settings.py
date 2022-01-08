@@ -1,3 +1,4 @@
+from copy import copy
 from pathlib import Path
 from typing import Any, Optional
 
@@ -11,7 +12,6 @@ from examples.sidelay.settings import (
     get_settings,
     read_settings,
     value_or_default,
-    write_settings,
 )
 
 KEY_IF_MISSING = "KEY_IF_MISSING"
@@ -21,8 +21,13 @@ def get_api_key() -> str:
     return KEY_IF_MISSING
 
 
+PLACEHOLDER_PATH = Path("PLACEHOLDER_PATH")
+
 settings_to_dict_cases = (
-    (Settings(hypixel_api_key="key"), {"hypixel_api_key": "key"}),
+    (
+        Settings(hypixel_api_key="key", path=PLACEHOLDER_PATH),
+        {"hypixel_api_key": "key"},
+    ),
 )
 
 
@@ -35,7 +40,7 @@ def test_settings_to_dict(settings: Settings, result: SettingsDict) -> None:
     "settings_dict, result", tuple((t[1], t[0]) for t in settings_to_dict_cases)
 )
 def test_settings_from_dict(settings_dict: SettingsDict, result: Settings) -> None:
-    assert Settings.from_dict(settings_dict) == result
+    assert Settings.from_dict(settings_dict, path=PLACEHOLDER_PATH) == result
 
 
 @pytest.mark.parametrize(
@@ -61,14 +66,23 @@ def test_value_or_default(
 def test_read_and_write_settings(
     settings: Settings, settings_dict: SettingsDict, tmp_path: Path
 ) -> None:
-    settings_path = tmp_path / "api_key"
-    write_settings(settings, settings_path)
+    # Make a copy so we can mutate it
+    settings = copy(settings)
 
-    read_settings_dict = read_settings(settings_path)
+    settings.path = tmp_path / "settings.toml"
+    settings.flush_to_disk()
+
+    read_settings_dict = read_settings(settings.path)
 
     assert read_settings_dict == settings_dict
 
-    assert get_settings(settings_path, get_api_key) == settings
+    assert get_settings(settings.path, get_api_key) == settings
+
+    # Assert that get_settings doesn't fail when file doesn't exist
+    empty_path = tmp_path / "settings2.toml"
+    assert get_settings(empty_path, get_api_key) == Settings(
+        hypixel_api_key=KEY_IF_MISSING, path=empty_path
+    )
 
 
 @pytest.mark.parametrize(

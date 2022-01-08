@@ -1,8 +1,11 @@
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, MutableMapping, Optional, Type, TypedDict, TypeVar
 
 import toml
+
+logger = logging.getLogger()
 
 
 class SettingsDict(TypedDict):
@@ -20,13 +23,20 @@ class Settings:
     """Class holding user settings for the application"""
 
     hypixel_api_key: str
+    path: Path
 
     @classmethod
-    def from_dict(cls: Type[DerivedSettings], source: SettingsDict) -> DerivedSettings:
-        return cls(hypixel_api_key=source["hypixel_api_key"])
+    def from_dict(
+        cls: Type[DerivedSettings], source: SettingsDict, path: Path
+    ) -> DerivedSettings:
+        return cls(hypixel_api_key=source["hypixel_api_key"], path=path)
 
     def to_dict(self) -> SettingsDict:
         return {"hypixel_api_key": self.hypixel_api_key}
+
+    def flush_to_disk(self) -> None:
+        with self.path.open("w") as f:
+            toml.dump(self.to_dict(), f)
 
 
 # Generic type for value_or_default
@@ -51,20 +61,19 @@ def fill_missing_settings(
     return {"hypixel_api_key": api_key}
 
 
-def write_settings(settings: Settings, path: Path) -> None:
-    settings_object = settings.to_dict()
-
-    with path.open("w") as f:
-        toml.dump(settings_object, f)
-
-
 def get_settings(path: Path, get_api_key: Callable[[], str]) -> Settings:
     """
     Read the stored settings into a Settings object
 
     Calls get_api_key if it is missing
     """
-    incomplete_settings = read_settings(path)
+    try:
+        incomplete_settings = read_settings(path)
+    except Exception as e:
+        # Error either in reading or parsing file
+        incomplete_settings = {}
+        logger.warning(f"Error reading settings file, using all defaults. '{e}'")
+
     settings_dict = fill_missing_settings(incomplete_settings, get_api_key)
 
-    return Settings.from_dict(settings_dict)
+    return Settings.from_dict(settings_dict, path=path)

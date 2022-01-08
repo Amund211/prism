@@ -9,12 +9,16 @@ import queue
 import sys
 import threading
 import time
+from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Callable, Iterable, Literal, Optional, TextIO
+from typing import Callable, Iterable, Literal, NoReturn, Optional, TextIO
+
+from appdirs import AppDirs
 
 from examples.sidelay.output.overlay import run_overlay
 from examples.sidelay.output.printing import print_stats_table
 from examples.sidelay.parsing import parse_logline
+from examples.sidelay.settings import Settings, get_settings
 from examples.sidelay.state import OverlayState, update_state
 from examples.sidelay.stats import (
     Stats,
@@ -24,17 +28,41 @@ from examples.sidelay.stats import (
     sort_stats,
 )
 from hystatutils.playerdata import HypixelAPIKeyHolder
-from hystatutils.utils import read_key
+
+dirs = AppDirs(appname="hystatutils_overlay")
+CONFIG_DIR = Path(dirs.user_config_dir)
+DEFAULT_SETTINGS_PATH = CONFIG_DIR / "settings.toml"
 
 logging.basicConfig()
 logger = logging.getLogger()
 
-API_KEY_PATH = Path(sys.path[0]) / "api_key"
-api_key = read_key(API_KEY_PATH)
-
 TESTING = False
 CLEAR_BETWEEN_DRAWS = True
 DOWNLOAD_THREAD_COUNT = 15
+
+
+def resolve_path(p: str) -> Path:
+    return Path(p).resolve()
+
+
+def get_options() -> Namespace:
+    parser = ArgumentParser()
+
+    parser.add_argument(
+        "logfile",
+        help="Path to launcher_log.txt",
+        type=resolve_path,
+    )
+
+    parser.add_argument(
+        "-s",
+        "--settings",
+        help="Path to the .toml settings-file",
+        type=resolve_path,
+        default=DEFAULT_SETTINGS_PATH,
+    )
+
+    return parser.parse_args()
 
 
 class UpdateStateThread(threading.Thread):
@@ -280,16 +308,19 @@ def process_loglines_to_overlay(
     run_overlay(state, get_stat_list)
 
 
-def watch_from_logfile(logpath: str, output: Literal["stdout", "overlay"]) -> None:
+def watch_from_logfile(
+    logpath: str, output: Literal["stdout", "overlay"], settings: Settings
+) -> None:
     """Use the overlay on an active logfile"""
 
-    key_holder = HypixelAPIKeyHolder(api_key)
+    key_holder = HypixelAPIKeyHolder(settings.hypixel_api_key)
 
     def set_api_key(new_key: str) -> None:
         """Update the API key that the download threads use"""
         # TODO: Potentially invalidate the entire/some parts of the stats cache
         key_holder.key = new_key
-        API_KEY_PATH.write_text(new_key)
+        settings.hypixel_api_key = new_key
+        settings.flush_to_disk()
 
     state = OverlayState(
         lobby_players=set(), party_members=set(), set_api_key=set_api_key
@@ -342,11 +373,23 @@ def test() -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Must provide a path to the logfile!", file=sys.stderr)
+    try:
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        print(f"Failed creating settings directory! '{e}'", file=sys.stderr)
+        logger.error(f"Failed creating settings directory! '{e}'")
         sys.exit(1)
 
-    if sys.argv[1] == "test":
+    if len(sys.argv) == 2 and sys.argv[1] == "test":
         test()
     else:
-        watch_from_logfile(sys.argv[1], "overlay")
+        options = get_options()
+
+        def get_api_key() -> NoReturn:
+            print(
+                "Please provide a Hypixel API key in the settings file", file=sys.stderr
+            )
+            sys.exit(1)
+
+        settings = get_settings(options.settings, get_api_key)
+        watch_from_logfile(str(options.logfile.resolve()), "overlay", settings=settings)

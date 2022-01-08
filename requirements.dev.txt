@@ -2,6 +2,7 @@
 coverage
 pytest
 mypy
+types-appdirs
 types-requests
 types-toml
 pre-commit
