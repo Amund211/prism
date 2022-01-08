@@ -3,6 +3,7 @@ coverage
 pytest
 mypy
 types-requests
+types-toml
 pre-commit
 flake8
 black
