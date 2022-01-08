@@ -54,6 +54,21 @@ class Root(tk.Tk):
             )
         sys.exit(0)
 
+    def start_move(self, event: "tk.Event[tk.Misc]") -> None:
+        """Store the window and cursor location at the start"""
+        self.cursor_x_start = event.x_root
+        self.cursor_y_start = event.y_root
+
+        self.window_x_start = self.winfo_x()
+        self.window_y_start = self.winfo_y()
+
+    def do_move(self, event: "tk.Event[tk.Misc]") -> None:
+        """Move the window to the new location"""
+        # Move to where we started + how much the mouse was moved
+        x = self.window_x_start + (event.x_root - self.cursor_x_start)
+        y = self.window_y_start + (event.y_root - self.cursor_y_start)
+        self.geometry(f"+{x}+{y}")
+
 
 class OverlayWindow(Generic[ColumnKey]):
     """
@@ -93,6 +108,19 @@ class OverlayWindow(Generic[ColumnKey]):
         toolbar_frame = tk.Frame(self.root, background="black")
         toolbar_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
 
+        grip_label = tk.Label(
+            toolbar_frame,
+            text="::",
+            font=("Consolas", "14"),
+            foreground="white",
+            background="black",
+            highlightthickness=1,
+        )
+        grip_label.pack(side=tk.LEFT)
+
+        grip_label.bind("<ButtonPress-1>", self.root.start_move)
+        grip_label.bind("<B1-Motion>", self.root.do_move)
+
         # Close button
         close_button = tk.Button(
             toolbar_frame,
@@ -123,17 +151,17 @@ class OverlayWindow(Generic[ColumnKey]):
         )
         minimize_button.pack(side=tk.RIGHT)
 
-        # Title label
-        title_variable = tk.StringVar()
-        title_label = tk.Label(
+        # Info label
+        info_variable = tk.StringVar()
+        info_label = tk.Label(
             self.root,
-            textvariable=title_variable,
+            textvariable=info_variable,
             font=("Consolas", "14"),
             fg="green3",
             bg="black",
         )
-        title_label.pack(side=tk.TOP)
-        self.title_cell = Cell(title_label, title_variable)
+        info_label.pack(side=tk.TOP)
+        self.info_cell = Cell(info_label, info_variable)
 
         # A frame for the stats table
         self.table_frame = tk.Frame(self.root, background="black")
@@ -222,7 +250,7 @@ class OverlayWindow(Generic[ColumnKey]):
 
     def update_overlay(self) -> None:
         """Get new data to be displayed and display it"""
-        show, title_value, new_rows = self.get_new_data()
+        show, info_value, new_rows = self.get_new_data()
 
         # Show or hide the window if the desired state is different from the stored
         if show != self.shown:
@@ -234,11 +262,11 @@ class OverlayWindow(Generic[ColumnKey]):
         # Only update the window if it's shown
         if self.shown:
             # Set the contents of the title label in the window
-            if title_value is None:
-                self.title_cell.variable.set("")
+            if info_value is None:
+                self.info_cell.variable.set("")
             else:
-                self.title_cell.variable.set(title_value.text)
-                self.title_cell.label.configure(fg=title_value.color)
+                self.info_cell.variable.set(info_value.text)
+                self.info_cell.label.configure(fg=info_value.color)
 
             # Set the contents of the table if new data was provided
             if new_rows is not None:
