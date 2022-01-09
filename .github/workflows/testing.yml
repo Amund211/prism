@@ -22,25 +22,25 @@ jobs:
 
     - name: OS specific setup (windows)
       if: runner.os == 'Windows'
-      run: echo 'ACTIVATE_VENV=venv/Scripts/activate' >> $GITHUB_ENV
+      run: echo 'ACTIVATE_PATH=venv/Scripts/activate' >> $GITHUB_ENV
     - name: OS specific setup (linux/mac)
       if: runner.os != 'Windows'
-      run: echo 'ACTIVATE_VENV=source venv/bin/activate' >> $GITHUB_ENV
+      run: echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
 
     - name: Install dependencies
       run: |
         python -m ensurepip --upgrade
         python -m venv venv
-        ${{ env.ACTIVATE_VENV }}
+        source ${{ env.ACTIVATE_PATH }}
         python -m pip install -r requirements.dev.txt
 
     - name: Run typechecking
       run: |
-        ${{ env.ACTIVATE_VENV }}
+        source ${{ env.ACTIVATE_PATH }}
         mypy --strict .
 
     - name: Run tests
       run: |
-        ${{ env.ACTIVATE_VENV }}
+        source ${{ env.ACTIVATE_PATH }}
         coverage run
         coverage report
