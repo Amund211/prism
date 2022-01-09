@@ -1,7 +1,7 @@
 -r requirements.txt
 coverage
 pytest
-mypy
+mypy>=0.931
 types-appdirs
 types-requests
 types-toml

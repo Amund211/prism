@@ -19,3 +19,13 @@ exclude = '''
 profile = "black"
 known_first_party = "hystatutils"
 skip = ".git,.mypy_cache,__pycache__,build,dist,venv"
+
+[tool.mypy]
+exclude = [
+  '^\.git$',
+  '^\.mypy_cache$',
+  '^__pycache__$',
+  '^build$',
+  '^dist$',
+  '^venv$',
+]
