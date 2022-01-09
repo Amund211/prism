@@ -6,7 +6,7 @@ from typing import Optional, Sequence
 
 @dataclass
 class Options:
-    logfile_path: Path
+    logfile_path: Optional[Path]
     settings_path: Path
 
 
@@ -22,9 +22,11 @@ def get_options(
     parser = ArgumentParser(exit_on_error=args is None)
 
     parser.add_argument(
-        "logfile",
+        "-l",
+        "--logfile",
         help="Path to launcher_log.txt",
         type=resolve_path,
+        default=None,
     )
 
     parser.add_argument(
@@ -39,7 +41,7 @@ def get_options(
     # Parses from sys.argv if args is None
     parsed = parser.parse_args(args=args)
 
-    assert isinstance(parsed.logfile, Path)
+    assert parsed.logfile is None or isinstance(parsed.logfile, Path)
     assert isinstance(parsed.settings, Path)
 
     return Options(logfile_path=parsed.logfile, settings_path=parsed.settings)

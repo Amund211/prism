@@ -1,7 +1,7 @@
 """
 Parse the chat on Hypixel to detect players in your party and bedwars lobby
 
-Run from the root dir by `python -m examples.sidelay <path-to-logfile>`
+Run from the root dir by `python -m examples.sidelay [--logfile <path-to-logfile>]`
 """
 
 import logging
@@ -14,18 +14,19 @@ from typing import Iterable, Literal, Optional, TextIO
 from appdirs import AppDirs
 
 from examples.sidelay.commandline import get_options
-from examples.sidelay.get_api_key import wait_for_api_key
 from examples.sidelay.output.overlay import run_overlay
 from examples.sidelay.output.printing import print_stats_table
 from examples.sidelay.settings import Settings, get_settings
 from examples.sidelay.state import OverlayState, fast_forward_state
 from examples.sidelay.stats import Stats
 from examples.sidelay.threading import prepare_overlay
+from examples.sidelay.user_interaction import prompt_for_logfile_path, wait_for_api_key
 from hystatutils.playerdata import HypixelAPIKeyHolder
 
 dirs = AppDirs(appname="hystatutils_overlay")
 CONFIG_DIR = Path(dirs.user_config_dir)
 DEFAULT_SETTINGS_PATH = CONFIG_DIR / "settings.toml"
+DEFAULT_LOGFILE_CACHE_PATH = CONFIG_DIR / "known_logfiles.toml"
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -181,11 +182,16 @@ def main() -> None:
         sys.exit(1)
     options = get_options(default_settings_path=DEFAULT_SETTINGS_PATH)
 
+    if options.logfile_path is None:
+        logfile_path = prompt_for_logfile_path(DEFAULT_LOGFILE_CACHE_PATH)
+    else:
+        logfile_path = options.logfile_path
+
     settings = get_settings(
         options.settings_path,
-        partial(wait_for_api_key, options.logfile_path, options.settings_path),
+        partial(wait_for_api_key, logfile_path, options.settings_path),
     )
-    watch_from_logfile(str(options.logfile_path), "overlay", settings=settings)
+    watch_from_logfile(str(logfile_path), "overlay", settings=settings)
 
 
 if __name__ == "__main__":
