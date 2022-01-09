@@ -7,12 +7,14 @@ Run from the root dir by `python -m examples.sidelay <path-to-logfile>`
 import logging
 import sys
 import time
+from functools import partial
 from pathlib import Path
-from typing import Iterable, Literal, NoReturn, Optional, TextIO
+from typing import Iterable, Literal, Optional, TextIO
 
 from appdirs import AppDirs
 
 from examples.sidelay.commandline import get_options
+from examples.sidelay.get_api_key import wait_for_api_key
 from examples.sidelay.output.overlay import run_overlay
 from examples.sidelay.output.printing import print_stats_table
 from examples.sidelay.settings import Settings, get_settings
@@ -182,11 +184,8 @@ if __name__ == "__main__":
     else:
         options = get_options(default_settings_path=DEFAULT_SETTINGS_PATH)
 
-        def get_api_key() -> NoReturn:
-            print(
-                "Please provide a Hypixel API key in the settings file", file=sys.stderr
-            )
-            sys.exit(1)
-
-        settings = get_settings(options.settings_path, get_api_key)
+        settings = get_settings(
+            options.settings_path,
+            partial(wait_for_api_key, options.logfile_path, options.settings_path),
+        )
         watch_from_logfile(str(options.logfile_path), "overlay", settings=settings)
