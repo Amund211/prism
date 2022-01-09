@@ -44,3 +44,14 @@ jobs:
         source ${{ env.ACTIVATE_PATH }}
         coverage run
         coverage report
+
+    - name: Build single file binary with pyinstaller
+      run: |
+        source ${{ env.ACTIVATE_PATH }}
+        pyinstaller examples/sidelay/__main__.py --noconfirm --onefile -n overlay
+
+    - name: Upload built binary
+      uses: actions/upload-artifact@v2
+      with:
+        name: overlay-${{ matrix.os }}
+        path: dist/overlay

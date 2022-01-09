@@ -1,4 +1,5 @@
 -r requirements.txt
+pyinstaller
 coverage
 pytest
 mypy>=0.931
