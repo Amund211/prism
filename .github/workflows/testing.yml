@@ -58,5 +58,5 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: overlay-${{ matrix.os }}
-        path: dist/overlay${{ matrix.os }}${{ env.ACTIVATE_PATH }}
+        path: dist/overlay${{ matrix.os }}${{ env.BINARY_EXTENSION }}
         if-no-files-found: error
