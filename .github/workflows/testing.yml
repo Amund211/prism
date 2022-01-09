@@ -6,9 +6,13 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macOS-latest]
         python_version: ["3.10"]
+    defaults:
+      run:
+        shell: bash  # For `source`
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -16,20 +20,27 @@ jobs:
       with:
         python-version: ${{ matrix.python_version }}
 
+    - name: OS specific setup (windows)
+      if: runner.os == 'Windows'
+      run: echo 'ACTIVATE_VENV=venv/Scripts/activate' >> $GITHUB_ENV
+    - name: OS specific setup (linux/mac)
+      if: runner.os != 'Windows'
+      run: echo 'ACTIVATE_VENV=source venv/bin/activate' >> $GITHUB_ENV
+
     - name: Install dependencies
       run: |
         python -m ensurepip --upgrade
         python -m venv venv
-        source venv/bin/activate
+        ${{ env.ACTIVATE_VENV }}
         python -m pip install -r requirements.dev.txt
 
     - name: Run typechecking
       run: |
-        source venv/bin/activate
+        ${{ env.ACTIVATE_VENV }}
         mypy --strict .
 
     - name: Run tests
       run: |
-        source venv/bin/activate
+        ${{ env.ACTIVATE_VENV }}
         coverage run
         coverage report
