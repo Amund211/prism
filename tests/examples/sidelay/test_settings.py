@@ -5,6 +5,7 @@ from typing import Any, Optional
 import pytest
 
 from examples.sidelay.settings import (
+    PLACEHOLDER_API_KEY,
     Settings,
     SettingsDict,
     ValueType,
@@ -25,8 +26,8 @@ PLACEHOLDER_PATH = Path("PLACEHOLDER_PATH")
 
 settings_to_dict_cases = (
     (
-        Settings(hypixel_api_key="key", path=PLACEHOLDER_PATH),
-        {"hypixel_api_key": "key"},
+        Settings(hypixel_api_key="my-key", path=PLACEHOLDER_PATH),
+        {"hypixel_api_key": "my-key"},
     ),
 )
 
@@ -88,10 +89,14 @@ def test_read_and_write_settings(
 @pytest.mark.parametrize(
     "incomplete_settings, result",
     (
-        ({"hypixel_api_key": "key"}, {"hypixel_api_key": "key"}),
+        ({"hypixel_api_key": "my-key"}, {"hypixel_api_key": "my-key"}),
         ({"hypixel_api_key": 1}, {"hypixel_api_key": KEY_IF_MISSING}),
         ({"hypixel_api_key": None}, {"hypixel_api_key": KEY_IF_MISSING}),
         ({"hypixel_api_key": {}}, {"hypixel_api_key": KEY_IF_MISSING}),
+        # Placeholder key
+        ({"hypixel_api_key": PLACEHOLDER_API_KEY}, {"hypixel_api_key": KEY_IF_MISSING}),
+        # Key too short
+        ({"hypixel_api_key": "k"}, {"hypixel_api_key": KEY_IF_MISSING}),
         ({}, {"hypixel_api_key": KEY_IF_MISSING}),
     ),
 )

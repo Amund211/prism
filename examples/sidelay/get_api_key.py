@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Iterable, Optional, TextIO
 
 from examples.sidelay.parsing import NewAPIKeyEvent, parse_logline
-from examples.sidelay.settings import read_settings
+from examples.sidelay.settings import api_key_is_valid, read_settings
 
 logger = logging.getLogger()
 
@@ -100,7 +100,7 @@ class SearchSettingsfileForKeyThread(threading.Thread):
                 time.sleep(5)
             else:
                 key = settings_object.get("hypixel_api_key", None)
-                if isinstance(key, str):
+                if isinstance(key, str) and api_key_is_valid(key):
                     self.key_found_event.set()
                     self.key_queue.put(key)
                     return
