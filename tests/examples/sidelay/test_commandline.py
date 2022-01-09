@@ -8,19 +8,23 @@ DEFAULT_SETTINGS = "some_settings_file.toml"
 
 
 def make_options(
-    logfile: Optional[str] = None, settings: str = DEFAULT_SETTINGS
+    logfile: Optional[str] = None,
+    settings: str = DEFAULT_SETTINGS,
+    output_to_console: bool = False,
 ) -> Options:
     """Construct an Options instance from its components"""
     return Options(
         logfile_path=resolve_path(logfile) if logfile is not None else None,
         settings_path=resolve_path(settings),
+        output_to_console=output_to_console,
     )
 
 
 @pytest.mark.parametrize(
     "args, result",
     (
-        ([], make_options(None)),
+        ([], make_options()),
+        (["-p"], make_options(output_to_console=True)),
         (["-l", "someotherlogfile"], make_options("someotherlogfile")),
         (["--logfile", "someotherlogfile"], make_options("someotherlogfile")),
         (["-s", "s.toml"], make_options(None, "s.toml")),
@@ -31,6 +35,10 @@ def make_options(
         (
             ["--settings", "s.toml", "-l", "somelogfile"],
             make_options("somelogfile", "s.toml"),
+        ),
+        (
+            ["--settings", "s.toml", "-l", "somelogfile", "--print"],
+            make_options("somelogfile", "s.toml", True),
         ),
         # Weird input -> weird output
         (

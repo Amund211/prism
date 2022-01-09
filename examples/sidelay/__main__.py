@@ -9,7 +9,7 @@ import sys
 import time
 from functools import partial
 from pathlib import Path
-from typing import Iterable, Literal, Optional, TextIO
+from typing import Iterable, Optional, TextIO
 
 from appdirs import AppDirs
 
@@ -109,9 +109,11 @@ def process_loglines_to_overlay(
 
 
 def watch_from_logfile(
-    logpath: str, output: Literal["stdout", "overlay"], settings: Settings
+    logpath: str, overlay: bool, console: bool, settings: Settings
 ) -> None:
     """Use the overlay on an active logfile"""
+
+    assert overlay or console, "Need at least one output"
 
     key_holder = HypixelAPIKeyHolder(settings.hypixel_api_key)
 
@@ -134,11 +136,11 @@ def watch_from_logfile(
         loglines = tail_file(logfile)
 
         # Process the rest of the loglines as they come in
-        if output == "stdout":
+        if not overlay:
             process_loglines_to_stdout(state, key_holder, loglines)
         else:
             process_loglines_to_overlay(
-                state, key_holder, loglines, output_to_console=True
+                state, key_holder, loglines, output_to_console=console
             )
 
 
@@ -191,7 +193,12 @@ def main() -> None:
         options.settings_path,
         partial(wait_for_api_key, logfile_path, options.settings_path),
     )
-    watch_from_logfile(str(logfile_path), "overlay", settings=settings)
+    watch_from_logfile(
+        str(logfile_path),
+        overlay=True,
+        console=options.output_to_console,
+        settings=settings,
+    )
 
 
 if __name__ == "__main__":
