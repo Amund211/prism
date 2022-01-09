@@ -171,21 +171,25 @@ def test() -> None:
             process_loglines_to_stdout(state, key_holder, loglines)
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Run the overlay"""
     try:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     except Exception as e:
         print(f"Failed creating settings directory! '{e}'", file=sys.stderr)
         logger.error(f"Failed creating settings directory! '{e}'")
         sys.exit(1)
+    options = get_options(default_settings_path=DEFAULT_SETTINGS_PATH)
 
+    settings = get_settings(
+        options.settings_path,
+        partial(wait_for_api_key, options.logfile_path, options.settings_path),
+    )
+    watch_from_logfile(str(options.logfile_path), "overlay", settings=settings)
+
+
+if __name__ == "__main__":
     if sys.argv[1] == "--test":
         test()
     else:
-        options = get_options(default_settings_path=DEFAULT_SETTINGS_PATH)
-
-        settings = get_settings(
-            options.settings_path,
-            partial(wait_for_api_key, options.logfile_path, options.settings_path),
-        )
-        watch_from_logfile(str(options.logfile_path), "overlay", settings=settings)
+        main()
