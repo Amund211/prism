@@ -22,10 +22,14 @@ jobs:
 
     - name: OS specific setup (windows)
       if: runner.os == 'Windows'
-      run: echo 'ACTIVATE_PATH=venv/Scripts/activate' >> $GITHUB_ENV
+      run: |
+        echo 'ACTIVATE_PATH=venv/Scripts/activate' >> $GITHUB_ENV
+        echo 'BINARY_EXTENSION=.exe' >> $GITHUB_ENV
     - name: OS specific setup (linux/mac)
       if: runner.os != 'Windows'
-      run: echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
+      run: |
+        echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
+        echo 'BINARY_EXTENSION=' >> $GITHUB_ENV
 
     - name: Install dependencies
       run: |
@@ -48,10 +52,11 @@ jobs:
     - name: Build single file binary with pyinstaller
       run: |
         source ${{ env.ACTIVATE_PATH }}
-        pyinstaller examples/sidelay/__main__.py --noconfirm --onefile -n overlay
+        pyinstaller examples/sidelay/__main__.py --noconfirm --onefile -n overlay${{ matrix.os }}
 
     - name: Upload built binary
       uses: actions/upload-artifact@v2
       with:
         name: overlay-${{ matrix.os }}
-        path: dist/overlay
+        path: dist/overlay${{ matrix.os }}${{ env.ACTIVATE_PATH }}
+        if-no-files-found: error
