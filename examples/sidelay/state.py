@@ -3,7 +3,7 @@ import threading
 from dataclasses import dataclass, field
 from typing import Callable, Iterable, Optional
 
-from examples.sidelay.parsing import Event, EventType
+from examples.sidelay.parsing import Event, EventType, parse_logline
 
 logger = logging.getLogger()
 
@@ -141,8 +141,9 @@ def update_state(state: OverlayState, event: Event) -> bool:
             logger.debug("Player count out of sync.")
             out_of_sync = True
 
-            if event.player_count < len(state.lobby_players):
+            if event.player_count + 1 < len(state.lobby_players):
                 # We know of too many players, some must actually not be in the lobby
+                # +1 because the message of us joining may not have appeared yet
                 logger.info("Too many players in lobby. Clearing.")
                 state.clear_lobby()
                 state.add_to_lobby(event.username)
@@ -242,3 +243,14 @@ def update_state(state: OverlayState, event: Event) -> bool:
         state.set_api_key(event.key)
 
         return False
+
+
+def fast_forward_state(state: OverlayState, loglines: Iterable[str]) -> None:
+    """Process the state changes for each logline without outputting anything"""
+    for line in loglines:
+        event = parse_logline(line)
+
+        if event is None:
+            continue
+
+        update_state(state, event)

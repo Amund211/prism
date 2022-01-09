@@ -1,5 +1,5 @@
 import unittest.mock
-from typing import Callable, Optional
+from typing import Callable, Iterable, Optional
 
 import pytest
 
@@ -20,7 +20,7 @@ from examples.sidelay.parsing import (
     PartyMembershipListEvent,
     StartBedwarsGameEvent,
 )
-from examples.sidelay.state import OverlayState, update_state
+from examples.sidelay.state import OverlayState, fast_forward_state, update_state
 
 OWN_USERNAME = "OwnUsername"
 
@@ -221,9 +221,17 @@ update_state_test_cases_base = (
         True,
     ),
     (
+        # Player seemingly too high, but just because we are implicitly in the lobby
+        "seemingly too many known players in lobby",
+        create_state(),
+        LobbyJoinEvent("Player1", player_count=1, player_cap=16),
+        create_state(lobby_players={"Player1"}, in_queue=True, out_of_sync=True),
+        True,
+    ),
+    (
         # Player count too high -> clear lobby, still out of sync
         "too many known players in lobby, too few remaining",
-        create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=True),
+        create_state(lobby_players={"PlayerA", "PlayerB", "PlayerC"}, in_queue=True),
         LobbyJoinEvent("Player1", player_count=3, player_cap=16),
         create_state(lobby_players={"Player1"}, out_of_sync=True, in_queue=True),
         True,
@@ -273,3 +281,39 @@ def test_update_state_set_api_key() -> None:
     state = create_state()
     update_state(state, NewAPIKeyEvent("my-new-key"))
     state.set_api_key.assert_called_with("my-new-key")  # type: ignore
+
+
+CHAT = "[Info: 2021-11-29 22:17:40.417869567: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] "  # noqa: E501
+INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.minecraft.client.Minecraft (Client thread) Info "  # noqa: E501
+
+
+@pytest.mark.parametrize(
+    "initial_state, loglines, target_state",
+    (
+        (
+            create_state(own_username=None),
+            (
+                f"{INFO}Setting user: Me",
+                f"{CHAT}Party Moderators: Player1 ● [MVP+] Player2 ● ",
+                f"{CHAT}Player1 has joined (1/16)!",
+                f"{CHAT}Player2 has joined (2/16)!",
+                f"{CHAT}Me has joined (3/16)!",
+                f"{CHAT}Someone has joined (4/16)!",
+                f"{CHAT}[MVP+] Player1: hows ur day?",
+            ),
+            create_state(
+                own_username="Me",
+                party_members={"Player1", "Player2"},
+                lobby_players={"Player1", "Player2", "Someone"},
+                in_queue=True,
+            ),
+        ),
+    ),
+)
+def test_fast_forward_state(
+    initial_state: OverlayState, loglines: Iterable[str], target_state: OverlayState
+) -> None:
+    fast_forward_state(initial_state, loglines)
+
+    new_state = initial_state
+    assert new_state == target_state
