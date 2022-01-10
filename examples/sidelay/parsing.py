@@ -10,9 +10,13 @@ logger = logging.getLogger()
 RANK_REGEX = re.compile(r"\[[a-zA-Z\+]+\] ")
 
 
+# Vanilla and forge
 SETTING_USER_PREFIX = "(Client thread) Info Setting user: "
+SETTING_USER_PREFIX_LUNAR = "INFO]: [LC] Setting user: "
 
+# Vanilla and forge
 CHAT_PREFIX = "(Client thread) Info [CHAT] "
+CHAT_PREFIX_LUNAR = "[Client thread/INFO]: [CHAT] "
 
 PartyRole = Literal["leader", "moderators", "members"]
 
@@ -158,12 +162,37 @@ def remove_ranks(playerstring: str) -> str:
     return RANK_REGEX.sub("", playerstring)
 
 
+def get_lowest_index(source: str, *substrings: str) -> Optional[str]:
+    """
+    Return the substring that has the lowest index in source
+
+    In case of a tie, the longest substring is returned.
+    If none of the substrings are substrings of source, return None.
+    """
+
+    # Store result intermediately to circumvent mypy bug
+    # https://github.com/python/mypy/issues/5874
+    result = min(
+        filter(lambda s: s in source, substrings),
+        key=lambda s: (source.index(s), -len(s)),
+        default=None,
+    )
+
+    return result
+
+
 def parse_logline(logline: str) -> Optional[Event]:
     """Parse a log line to detect players leaving or joining the lobby/party"""
-    if CHAT_PREFIX in logline:
-        return parse_chat_message(strip_until(logline, until=CHAT_PREFIX))
-    elif SETTING_USER_PREFIX in logline:
-        username = strip_until(logline, until=SETTING_USER_PREFIX)
+
+    chat_prefix = get_lowest_index(logline, CHAT_PREFIX, CHAT_PREFIX_LUNAR)
+    if chat_prefix is not None:
+        return parse_chat_message(strip_until(logline, until=chat_prefix))
+
+    setting_user_prefix = get_lowest_index(
+        logline, SETTING_USER_PREFIX, SETTING_USER_PREFIX_LUNAR
+    )
+    if setting_user_prefix is not None:
+        username = strip_until(logline, until=setting_user_prefix)
         return InitializeAsEvent(username)
 
     return None

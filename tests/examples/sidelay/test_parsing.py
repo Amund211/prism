@@ -21,6 +21,7 @@ from examples.sidelay.parsing import (
     PartyListIncomingEvent,
     PartyMembershipListEvent,
     StartBedwarsGameEvent,
+    get_lowest_index,
     parse_chat_message,
     parse_logline,
     remove_ranks,
@@ -62,6 +63,24 @@ from examples.sidelay.parsing import (
 def test_remove_ranks(rank_string: str, name_string: str) -> None:
     """Assert that remove_ranks functions properly"""
     assert remove_ranks(rank_string) == name_string
+
+
+@pytest.mark.parametrize(
+    "source, substrings, result",
+    (
+        ("a b c d", ("b", "f"), "b"),
+        ("a b c d", ("b", "a"), "a"),
+        ("a b c d", ("e", "f"), None),
+        (
+            "[CHAT1] MaliciousPlayer: [CHAT2] payload",
+            ("[CHAT1] ", "[CHAT2] "),
+            "[CHAT1] ",
+        ),
+        ("a b c d", (), None),
+    ),
+)
+def test_get_lowest_index(source: str, substrings: tuple[str], result: str) -> None:
+    assert get_lowest_index(source, *substrings) == result
 
 
 @pytest.mark.parametrize(
@@ -199,6 +218,11 @@ UNEVENTFUL_LOGLINES = (
     "[Info: 2021-12-10 00:57:30.104719428: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]  because they were offline.",  # Malformed
     "[Info: 2021-12-09 00:21:30.953440842: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP+] Player1 wasing removing was removed from the party because they disconnected",  # Malformed
     "[Info: 2022-01-07 13:48:02.379053772: GameCallbacks.cpp(162)] Game/avt (Client thread) Info [CHAT] Your new API key is deadbeef-ae10-4d07-25f6-f23130b92652 justkidding",  # Malformed
+    # Attempts to inject log messages
+    "[15:03:53] [Client thread/INFO]: [CHAT] [MVP+] MaliciousPlayer: (Client thread) Info Setting user: Player1",
+    "[15:03:53] [Client thread/INFO]: [CHAT] [MVP+] MaliciousPlayer: (Client thread) Info [CHAT] ONLINE: Player1",
+    "[Info: 2021-11-29 22:30:40.455294561: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] MaliciousPlayer: [15:03:32] [ForkJoinPool.commonPool-worker-3/INFO]: [LC] Setting user: MaliciousPlayer",
+    "[Info: 2021-11-29 22:30:40.455294561: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] MaliciousPlayer: [15:03:53] [Client thread/INFO]: [CHAT] ONLINE: Player1",
 )
 
 
@@ -210,7 +234,13 @@ parsing_test_cases = (
         InitializeAsEvent("Player1"),
     ),
     (
+        # Initialize as on forge
         "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.minecraft.client.Minecraft (Client thread) Info Setting user: Player1",
+        InitializeAsEvent("Player1"),
+    ),
+    (
+        # Initialize as on lunar
+        "[15:03:32] [ForkJoinPool.commonPool-worker-3/INFO]: [LC] Setting user: Player1",
         InitializeAsEvent("Player1"),
     ),
     (
@@ -227,6 +257,11 @@ parsing_test_cases = (
                 "Player9",
             ]
         ),
+    ),
+    (
+        # Lobby list on lunar client
+        "[15:03:53] [Client thread/INFO]: [CHAT] ONLINE: Player1",
+        LobbyListEvent(usernames=["Player1"]),
     ),
     (
         # Lobby swap on vanilla
@@ -350,7 +385,3 @@ parsing_test_ids = [
 def test_parsing(logline: str, event: Event) -> None:
     """Assert that the correct events are returned from parse_logline"""
     assert parse_logline(logline) == event
-
-    if CHAT_PREFIX in logline:
-        chat_message = strip_until(logline, until=CHAT_PREFIX)
-        assert parse_chat_message(chat_message) == event
