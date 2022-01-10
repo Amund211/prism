@@ -1,4 +1,5 @@
 import logging
+import platform
 import queue
 import sys
 import threading
@@ -264,8 +265,8 @@ class LogfilePrompt:
             parent=self.root,
             title="Select launcher_log.txt",
             filetypes=(
-                ("Launcher log", "launcher_log.txt"),
-                ("Text", "*txt"),
+                ("Text/log", ".txt .log"),
+                ("Vanilla logfile", "launcher_log.txt"),
             ),
         )
 
@@ -319,6 +320,38 @@ class LogfilePrompt:
         self.root.mainloop()
 
 
+def suggest_logfile_candidates() -> list[Path]:
+    system = platform.system()
+    if system == "Linux":
+        return [Path.home() / ".minecraft" / "launcher_log.txt"]
+    elif system == "Darwin":
+        return [
+            Path.home()
+            / "Library"
+            / "Application Support"
+            / "minecraft"
+            / "launcher_log.txt"
+        ]
+    elif system == "Windows":
+        return [Path.home() / "AppData" / "Roaming" / ".minecraft" / "launcher_log.txt"]
+    else:
+        # system == "Java"
+        return []
+
+
+def suggest_logfiles() -> list[str]:
+    valid_logfiles: list[str] = []
+
+    for logpath in suggest_logfile_candidates():
+        try:
+            if logpath.is_file():
+                valid_logfiles.append(str(logpath.resolve()))
+        except OSError:
+            pass
+
+    return valid_logfiles
+
+
 def prompt_for_logfile_path(logfile_cache_path: Path) -> Path:
     """Wait for the user to type /api new, or add an api key to their settings file"""
 
@@ -332,6 +365,9 @@ def prompt_for_logfile_path(logfile_cache_path: Path) -> Path:
         isinstance(el, str) for el in known_logfiles
     ):
         known_logfiles = []
+
+    if not known_logfiles:
+        known_logfiles = suggest_logfiles()
 
     last_used = logfile_cache.get("last_used", None)
     if not isinstance(last_used, str) or last_used not in known_logfiles:
