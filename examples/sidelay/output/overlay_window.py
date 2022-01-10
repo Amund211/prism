@@ -226,7 +226,7 @@ class OverlayWindow(Generic[ColumnKey]):
 
     def hide_window(self) -> None:
         """Hide the window"""
-        self.root.iconify()
+        self.root.withdraw()
         self.shown = False
 
     def append_row(self) -> None:
