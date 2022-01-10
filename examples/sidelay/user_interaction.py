@@ -323,17 +323,29 @@ class LogfilePrompt:
 def suggest_logfile_candidates() -> list[Path]:
     system = platform.system()
     if system == "Linux":
-        return [Path.home() / ".minecraft" / "launcher_log.txt"]
+        vanilla_logfile = Path.home() / ".minecraft" / "launcher_log.txt"
+        return [vanilla_logfile]
     elif system == "Darwin":
-        return [
+        vanilla_logfile = (
             Path.home()
             / "Library"
             / "Application Support"
             / "minecraft"
             / "launcher_log.txt"
-        ]
+        )
+        return [vanilla_logfile]
     elif system == "Windows":
-        return [Path.home() / "AppData" / "Roaming" / ".minecraft" / "launcher_log.txt"]
+        try:
+            lunar_client_logfiles = tuple(
+                (Path.home() / ".lunarclient" / "offline").rglob("latest.log")
+            )
+        except OSError:
+            lunar_client_logfiles = ()
+
+        return [
+            *lunar_client_logfiles,
+            Path.home() / "AppData" / "Roaming" / ".minecraft" / "launcher_log.txt",
+        ]
     else:
         # system == "Java"
         return []
