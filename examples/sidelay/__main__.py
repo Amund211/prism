@@ -128,7 +128,7 @@ def watch_from_logfile(
         lobby_players=set(), party_members=set(), set_api_key=set_api_key
     )
 
-    with open(logpath, "r", encoding="utf8") as logfile:
+    with open(logpath, "r", encoding="utf8", errors="replace") as logfile:
         # Process the entire logfile to get current player as well as potential
         # current party/lobby
         fast_forward_state(state, logfile.readlines())
@@ -161,7 +161,7 @@ def test() -> None:
     )
     key_holder = HypixelAPIKeyHolder("")
 
-    with open(sys.argv[2], "r", encoding="utf8") as logfile:
+    with open(sys.argv[2], "r", encoding="utf8", errors="replace") as logfile:
         loglines = logfile
         if output == "overlay":
             from itertools import chain, islice, repeat

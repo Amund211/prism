@@ -49,7 +49,7 @@ class SearchLogfileForKeyThread(threading.Thread):
         has_reached_end = False
         found_key: Optional[str] = None
 
-        with self.logfile_path.open("r", encoding="utf8") as logfile:
+        with self.logfile_path.open("r", encoding="utf8", errors="replace") as logfile:
             for line in watch_file_non_blocking(logfile):
                 if self.key_found_event.is_set():
                     # The other thread found a new key
