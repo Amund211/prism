@@ -293,7 +293,7 @@ class LogfilePrompt:
 
         for logfile in self.known_logfiles:
             frame = tk.Frame(self.logfile_list_frame)
-            frame.pack()
+            frame.pack(expand=True, fill=tk.X)
             button = tk.Button(
                 frame,
                 text="X",
