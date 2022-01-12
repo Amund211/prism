@@ -1,5 +1,5 @@
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Callable, Literal, Optional, Union, overload
 
 from hystatutils.calc import bedwars_level_from_exp
@@ -26,7 +26,7 @@ except ImportError:
     NICK_DATABASE: dict[str, str] = {}  # type: ignore[no-redef]
 
 
-@dataclass(order=True)
+@dataclass(order=True, frozen=True)
 class PlayerStats:
     """Dataclass holding the stats of a single player"""
 
@@ -76,7 +76,7 @@ class PlayerStats:
             raise ValueError(f"{name=} {value=}")
 
 
-@dataclass(order=True)
+@dataclass(order=True, frozen=True)
 class NickedPlayer:
     """Dataclass holding the stats of a single player assumed to be nicked"""
 
@@ -99,7 +99,7 @@ class NickedPlayer:
         return "unknown"
 
 
-@dataclass(order=True)
+@dataclass(order=True, frozen=True)
 class PendingPlayer:
     """Dataclass holding the stats of a single player whose stats are pending"""
 
@@ -232,8 +232,11 @@ def get_bedwars_stats(username: str, key_holder: HypixelAPIKeyHolder) -> Stats:
                 )
 
     # Set the cache
-    KNOWN_STATS[username] = stats
-    if nick is not None:
+    if nick is None:
+        KNOWN_STATS[username] = stats
+    else:
+        # If we look up by original username, that means the user is not nicked
+        KNOWN_STATS[username] = replace(stats, nick=None)
         KNOWN_STATS[nick] = stats
 
     return stats
