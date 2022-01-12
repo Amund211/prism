@@ -162,19 +162,18 @@ def remove_ranks(playerstring: str) -> str:
     return RANK_REGEX.sub("", playerstring)
 
 
-def get_lowest_index(source: str, *substrings: str) -> Optional[str]:
+def get_lowest_index(source: str, *strings: str) -> Optional[str]:
     """
-    Return the substring that has the lowest index in source
+    Return the substring that ends at the lowest index in source
 
-    In case of a tie, the longest substring is returned.
-    If none of the substrings are substrings of source, return None.
+    If none of the strings are strings of source, return None.
     """
 
     # Store result intermediately to circumvent mypy bug
     # https://github.com/python/mypy/issues/5874
     result = min(
-        filter(lambda s: s in source, substrings),
-        key=lambda s: (source.index(s), -len(s)),
+        filter(lambda s: s in source, strings),
+        key=lambda s: source.index(s) + len(s),
         default=None,
     )
 
