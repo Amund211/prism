@@ -1,4 +1,4 @@
-from copy import copy
+import dataclasses
 from pathlib import Path
 from typing import Any, Optional
 
@@ -68,7 +68,7 @@ def test_read_and_write_settings(
     settings: Settings, settings_dict: SettingsDict, tmp_path: Path
 ) -> None:
     # Make a copy so we can mutate it
-    settings = copy(settings)
+    settings = dataclasses.replace(settings)
 
     settings.path = tmp_path / "settings.toml"
     settings.flush_to_disk()
