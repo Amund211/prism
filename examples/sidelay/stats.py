@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass, field, replace
 from typing import Callable, Literal, Optional, Union, overload
 
+from examples.sidelay.nick_database import EMPTY_DATABASE, NickDatabase
 from hystatutils.calc import bedwars_level_from_exp
 from hystatutils.minecraft import MojangAPIError, get_uuid
 from hystatutils.playerdata import (
@@ -18,12 +19,6 @@ InfoName = Literal["username"]
 PropertyName = Literal[StatName, InfoName]
 
 logger = logging.getLogger()
-
-try:
-    # A map nickname -> uuid
-    from examples.customize import NICK_DATABASE
-except ImportError:
-    NICK_DATABASE: dict[str, str] = {}  # type: ignore[no-redef]
 
 
 @dataclass(order=True, frozen=True)
@@ -148,7 +143,11 @@ def get_cached_stats(username: str) -> Optional[Stats]:
     return KNOWN_STATS.get(username, None)
 
 
-def get_bedwars_stats(username: str, key_holder: HypixelAPIKeyHolder) -> Stats:
+def get_bedwars_stats(
+    username: str,
+    key_holder: HypixelAPIKeyHolder,
+    nick_database: NickDatabase = EMPTY_DATABASE,
+) -> Stats:
     """Get the bedwars stats for the given player"""
     cached_stats = get_cached_stats(username)
 
@@ -169,11 +168,13 @@ def get_bedwars_stats(username: str, key_holder: HypixelAPIKeyHolder) -> Stats:
     # Look up in nick database if we got no match from Mojang
     nick: Optional[str] = None
     denicked = False
-    if uuid is None and username in NICK_DATABASE:
-        uuid = NICK_DATABASE[username]
-        nick = username
-        denicked = True
-        logger.debug(f"De-nicked {username} as {uuid}")
+    if uuid is None:
+        denick_result = nick_database.get(username)
+        if denick_result is not None:
+            uuid = denick_result
+            nick = username
+            denicked = True
+            logger.debug(f"De-nicked {username} as {uuid}")
 
     stats: Stats
     if uuid is None:
@@ -187,18 +188,20 @@ def get_bedwars_stats(username: str, key_holder: HypixelAPIKeyHolder) -> Stats:
             )
             playerdata = None
 
-        if not denicked and playerdata is None and username in NICK_DATABASE:
-            # The username may be an existing minecraft account that has not
-            # logged on to Hypixel. Then we would get a hit from Mojang, but
-            # no hit from Hypixel and the username is still a nickname.
-            uuid = NICK_DATABASE[username]
-            nick = username
-            logger.debug(f"De-nicked {username} as {uuid} after hit from Mojang")
-            try:
-                playerdata = get_player_data(uuid, key_holder)
-            except HypixelAPIError as e:
-                logger.debug(f"Failed getting stats for nicked {nick} ({uuid})", e)
-                playerdata = None
+        if not denicked and playerdata is None:
+            denick_result = nick_database.get(username)
+            if denick_result is not None:
+                # The username may be an existing minecraft account that has not
+                # logged on to Hypixel. Then we would get a hit from Mojang, but
+                # no hit from Hypixel and the username is still a nickname.
+                uuid = denick_result
+                nick = username
+                logger.debug(f"De-nicked {username} as {uuid} after hit from Mojang")
+                try:
+                    playerdata = get_player_data(uuid, key_holder)
+                except HypixelAPIError as e:
+                    logger.debug(f"Failed getting stats for nicked {nick} ({uuid})", e)
+                    playerdata = None
 
         if playerdata is None:
             logger.debug("Got no playerdata - assuming player is nicked")

@@ -11,10 +11,18 @@ PLACEHOLDER_API_KEY = "insert-your-key-here"
 logger = logging.getLogger()
 
 
+class NickValue(TypedDict):
+    """Value for a key in known_nicks"""
+
+    uuid: str
+    comment: str  # Usually the original ign
+
+
 class SettingsDict(TypedDict):
     """Complete dict of settings"""
 
     hypixel_api_key: str
+    known_nicks: dict[str, NickValue]
 
 
 # Generic type to allow subclassing Settings
@@ -26,16 +34,24 @@ class Settings:
     """Class holding user settings for the application"""
 
     hypixel_api_key: str
+    known_nicks: dict[str, NickValue]
     path: Path
 
     @classmethod
     def from_dict(
         cls: Type[DerivedSettings], source: SettingsDict, path: Path
     ) -> DerivedSettings:
-        return cls(hypixel_api_key=source["hypixel_api_key"], path=path)
+        return cls(
+            hypixel_api_key=source["hypixel_api_key"],
+            known_nicks=source["known_nicks"],
+            path=path,
+        )
 
     def to_dict(self) -> SettingsDict:
-        return {"hypixel_api_key": self.hypixel_api_key}
+        return {
+            "hypixel_api_key": self.hypixel_api_key,
+            "known_nicks": self.known_nicks,
+        }
 
     def flush_to_disk(self) -> None:
         with self.path.open("w") as f:
@@ -67,7 +83,27 @@ def fill_missing_settings(
     if not isinstance(api_key, str) or not api_key_is_valid(api_key):
         api_key = get_api_key()
 
-    return {"hypixel_api_key": api_key}
+    known_nicks_source = incomplete_settings.get("known_nicks", None)
+    if not isinstance(known_nicks_source, dict):
+        known_nicks_source = {}
+
+    known_nicks: dict[str, NickValue] = {}
+    for key, value in known_nicks_source.items():
+        if not isinstance(key, str):
+            continue
+
+        if not isinstance(value, dict):
+            continue
+
+        uuid = value.get("uuid", None)
+        comment = value.get("comment", None)
+
+        if not isinstance(uuid, str) or not isinstance(comment, str):
+            continue
+
+        known_nicks[key] = NickValue(uuid=uuid, comment=comment)
+
+    return {"hypixel_api_key": api_key, "known_nicks": known_nicks}
 
 
 def get_settings(path: Path, get_api_key: Callable[[], str]) -> Settings:

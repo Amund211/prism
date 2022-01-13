@@ -26,8 +26,15 @@ PLACEHOLDER_PATH = Path("PLACEHOLDER_PATH")
 
 settings_to_dict_cases = (
     (
-        Settings(hypixel_api_key="my-key", path=PLACEHOLDER_PATH),
-        {"hypixel_api_key": "my-key"},
+        Settings(
+            hypixel_api_key="my-key",
+            known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
+            path=PLACEHOLDER_PATH,
+        ),
+        {
+            "hypixel_api_key": "my-key",
+            "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
+        },
     ),
 )
 
@@ -82,22 +89,120 @@ def test_read_and_write_settings(
     # Assert that get_settings doesn't fail when file doesn't exist
     empty_path = tmp_path / "settings2.toml"
     assert get_settings(empty_path, get_api_key) == Settings(
-        hypixel_api_key=KEY_IF_MISSING, path=empty_path
+        hypixel_api_key=KEY_IF_MISSING, known_nicks={}, path=empty_path
     )
 
 
 @pytest.mark.parametrize(
     "incomplete_settings, result",
     (
-        ({"hypixel_api_key": "my-key"}, {"hypixel_api_key": "my-key"}),
-        ({"hypixel_api_key": 1}, {"hypixel_api_key": KEY_IF_MISSING}),
-        ({"hypixel_api_key": None}, {"hypixel_api_key": KEY_IF_MISSING}),
-        ({"hypixel_api_key": {}}, {"hypixel_api_key": KEY_IF_MISSING}),
+        (
+            {
+                "hypixel_api_key": "my-key",
+                "known_nicks": {
+                    "AmazingNick": {"uuid": "123987", "comment": "Player1"}
+                },
+            },
+            {
+                "hypixel_api_key": "my-key",
+                "known_nicks": {
+                    "AmazingNick": {"uuid": "123987", "comment": "Player1"}
+                },
+            },
+        ),
+        (
+            {"hypixel_api_key": "my-key"},
+            {"hypixel_api_key": "my-key", "known_nicks": {}},
+        ),
+        (
+            {"hypixel_api_key": 1},
+            {"hypixel_api_key": KEY_IF_MISSING, "known_nicks": {}},
+        ),
+        (
+            {"hypixel_api_key": None},
+            {"hypixel_api_key": KEY_IF_MISSING, "known_nicks": {}},
+        ),
+        (
+            {
+                "hypixel_api_key": {},
+                "known_nicks": {
+                    "AmazingNick": {"uuid": "123987", "comment": "Player1"}
+                },
+            },
+            {
+                "hypixel_api_key": KEY_IF_MISSING,
+                "known_nicks": {
+                    "AmazingNick": {"uuid": "123987", "comment": "Player1"}
+                },
+            },
+        ),
         # Placeholder key
-        ({"hypixel_api_key": PLACEHOLDER_API_KEY}, {"hypixel_api_key": KEY_IF_MISSING}),
+        (
+            {"hypixel_api_key": PLACEHOLDER_API_KEY},
+            {"hypixel_api_key": KEY_IF_MISSING, "known_nicks": {}},
+        ),
         # Key too short
-        ({"hypixel_api_key": "k"}, {"hypixel_api_key": KEY_IF_MISSING}),
-        ({}, {"hypixel_api_key": KEY_IF_MISSING}),
+        (
+            {"hypixel_api_key": "k"},
+            {"hypixel_api_key": KEY_IF_MISSING, "known_nicks": {}},
+        ),
+        ({}, {"hypixel_api_key": KEY_IF_MISSING, "known_nicks": {}}),
+        # Corrupt data in known_nicks
+        (
+            {
+                "hypixel_api_key": "my-key",
+                "known_nicks": {
+                    # Key is not a string
+                    1234: {"uuid": 123987, "comment": "Player1"}
+                },
+            },
+            {
+                "hypixel_api_key": "my-key",
+                "known_nicks": {},
+            },
+        ),
+        (
+            {
+                "hypixel_api_key": "my-key",
+                "known_nicks": {
+                    # Value is a string, not a dict
+                    "AmazingNick": "uuid"
+                    "123987"
+                    "comment"
+                    "Player1"
+                },
+            },
+            {
+                "hypixel_api_key": "my-key",
+                "known_nicks": {},
+            },
+        ),
+        (
+            {
+                "hypixel_api_key": "my-key",
+                "known_nicks": {
+                    # Incorrect type on uuid or comment
+                    "AmazingNick": {"uuid": 123987, "comment": "Player1"}
+                },
+            },
+            {
+                "hypixel_api_key": "my-key",
+                "known_nicks": {},
+            },
+        ),
+        (
+            {
+                "hypixel_api_key": "my-key",
+                "known_nicks": {
+                    # Incorrect type on uuid or comment
+                    "AmazingNick": {"uuid": "123987", "comment": 1234}
+                },
+            },
+            {
+                "hypixel_api_key": "my-key",
+                "known_nicks": {},
+            },
+        ),
     ),
 )
 def test_fill_missing_settings(

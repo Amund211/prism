@@ -3,6 +3,7 @@ import queue
 import threading
 from typing import Callable, Iterable, Optional
 
+from examples.sidelay.nick_database import NickDatabase
 from examples.sidelay.parsing import parse_logline
 from examples.sidelay.state import OverlayState, update_state
 from examples.sidelay.stats import (
@@ -59,11 +60,13 @@ class GetStatsThread(threading.Thread):
         requests_queue: queue.Queue[str],
         completed_queue: queue.Queue[str],
         key_holder: HypixelAPIKeyHolder,
+        nick_database: NickDatabase,
     ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.requests_queue = requests_queue
         self.completed_queue = completed_queue
         self.key_holder = key_holder
+        self.nick_database = nick_database
 
     def run(self) -> None:
         """Get requested stats from the queue and download them"""
@@ -71,7 +74,9 @@ class GetStatsThread(threading.Thread):
             username = self.requests_queue.get()
 
             # get_bedwars_stats sets the stats cache which will be read from later
-            get_bedwars_stats(username, key_holder=self.key_holder)
+            get_bedwars_stats(
+                username, key_holder=self.key_holder, nick_database=self.nick_database
+            )
             self.requests_queue.task_done()
 
             # Tell the main thread that we downloaded this user's stats
@@ -113,6 +118,7 @@ def should_redraw(
 def prepare_overlay(
     state: OverlayState,
     key_holder: HypixelAPIKeyHolder,
+    nick_database: NickDatabase,
     loglines: Iterable[str],
     thread_count: int,
 ) -> Callable[[], Optional[list[Stats]]]:
@@ -141,6 +147,7 @@ def prepare_overlay(
             requests_queue=requested_stats_queue,
             completed_queue=completed_stats_queue,
             key_holder=key_holder,
+            nick_database=nick_database,
         ).start()
 
     def get_stat_list() -> Optional[list[Stats]]:
