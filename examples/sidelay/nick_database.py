@@ -1,6 +1,57 @@
+import json
 import threading
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Optional, Type, TypeVar
+
+
+class DatabaseReadError(ValueError):
+    """Error raised when failing to read a database"""
+
+    ...
+
+
+class DatabaseDecodeError(ValueError):
+    """Error raised when failing to decode a read database"""
+
+    ...
+
+
+class InvalidDatabaseError(ValueError):
+    """Error raised when failing to decode a read database"""
+
+    ...
+
+
+def read_databases(database_paths: list[Path]) -> list[dict[str, str]]:
+    """Read and parse the list of paths into dicts"""
+    databases: list[dict[str, str]] = []
+    for path in database_paths:
+        if path.suffix != ".json":
+            raise DatabaseDecodeError(f"Can only decode json, not '{path.suffix}'")
+
+        try:
+            with path.open("r") as f:
+                try:
+                    database = json.load(f)
+                except json.JSONDecodeError as e:
+                    raise DatabaseDecodeError(str(e)) from e
+        except (FileNotFoundError, OSError) as e:
+            raise DatabaseReadError(str(e)) from e
+
+        if not isinstance(database, dict):
+            raise InvalidDatabaseError("Nick database must be a mapping")
+
+        if not all(isinstance(key, str) for key in database.keys()):  # pragma: no cover
+            raise InvalidDatabaseError("All database keys must be strings")
+
+        if not all(isinstance(value, str) for value in database.values()):
+            raise InvalidDatabaseError("All database values must be strings")
+
+        databases.append(database)
+
+    return databases
+
 
 # Generic type to allow subclassing Settings
 DerivedNickDatabase = TypeVar("DerivedNickDatabase", bound="NickDatabase")
@@ -17,10 +68,14 @@ class NickDatabase:
 
     @classmethod
     def from_disk(
-        cls: Type[DerivedNickDatabase], default_database: dict[str, str]
+        cls: Type[DerivedNickDatabase],
+        database_paths: list[Path],
+        *,
+        default_database: dict[str, str],
     ) -> DerivedNickDatabase:
-        # TODO: read and validate nickdatabases on disk
-        return cls([default_database])
+        """Read databases from the given paths and prepend a default database"""
+        secondary_databases = read_databases(database_paths)
+        return cls([default_database, *secondary_databases])
 
     def knows(self, nick: str) -> bool:
         """Return True if any of the databases contain the nick"""

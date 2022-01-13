@@ -1,6 +1,15 @@
+from pathlib import Path
+from typing import Optional, Type
+
 import pytest
 
-from examples.sidelay.nick_database import EMPTY_DATABASE, NickDatabase
+from examples.sidelay.nick_database import (
+    EMPTY_DATABASE,
+    DatabaseDecodeError,
+    DatabaseReadError,
+    InvalidDatabaseError,
+    NickDatabase,
+)
 
 
 def test_empty_database() -> None:
@@ -40,8 +49,51 @@ def test_nick_database() -> None:
     assert nick_database.get(nick) == "higherprionick"
 
 
-def test_nick_database_from_disk() -> None:
-    """Assert properties of NickDatabase.from_disk"""
+@pytest.mark.parametrize(
+    "json_data, obj, exception",
+    (
+        ("{}", {}, None),
+        ('{"AmazingNick": "uuid"}', {"AmazingNick": "uuid"}, None),
+        ("malformed json", None, DatabaseDecodeError),
+        ('{123: "uuid"}', None, DatabaseDecodeError),  # Keys must be strings
+        ('{"AmazingNick": 123}', None, InvalidDatabaseError),
+        ("[]", None, InvalidDatabaseError),
+        ('""', None, InvalidDatabaseError),
+    ),
+)
+def test_nick_database_from_disk(
+    json_data: str,
+    obj: Optional[dict[str, str]],
+    exception: Optional[Type[ValueError]],
+    tmp_path: Path,
+) -> None:
+    assert (obj is None) ^ (exception is None)
+
     default_database: dict[str, str] = {}
-    nick_database = NickDatabase.from_disk(default_database=default_database)
-    assert nick_database.databases[0] is default_database
+
+    db_path = tmp_path / "nick_db.json"
+
+    with db_path.open("w") as f:
+        f.write(json_data)
+
+    if obj is not None:
+        nick_database = NickDatabase.from_disk(
+            [db_path], default_database=default_database
+        )
+        assert nick_database.databases[0] is default_database
+        assert nick_database.databases[1] == obj
+    elif exception is not None:
+        with pytest.raises(exception):
+            NickDatabase.from_disk([db_path], default_database=default_database)
+    else:
+        raise ValueError("Bad params")
+
+
+def test_nick_database_from_disk_errors(tmp_path: Path) -> None:
+    """Assert that appropriate errors are raised in .from_disk"""
+
+    with pytest.raises(DatabaseDecodeError):
+        NickDatabase.from_disk([tmp_path / "incorrect.extension"], default_database={})
+
+    with pytest.raises(DatabaseReadError):
+        NickDatabase.from_disk([tmp_path / "doesntexist.json"], default_database={})
