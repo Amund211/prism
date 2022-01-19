@@ -345,7 +345,7 @@ def parse_chat_message(message: str) -> Optional[Event]:
         try:
             apostrophe_index = suffix.index("'")
         except ValueError:
-            logging.error(f"Could not find apostrophe in string '{message}'")
+            logging.debug(f"Could not find apostrophe in string '{message}'")
             return None
 
         ranked_player_string = suffix[:apostrophe_index]
