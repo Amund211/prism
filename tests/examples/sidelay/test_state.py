@@ -36,7 +36,7 @@ def create_state(
     yourself = set() if own_username is None else set([own_username])
     return OverlayState(
         party_members=party_members | yourself,
-        lobby_players=lobby_players | yourself,
+        lobby_players=lobby_players,
         set_api_key=set_api_key or unittest.mock.MagicMock(),
         out_of_sync=out_of_sync,
         in_queue=in_queue,
@@ -71,14 +71,14 @@ update_state_test_cases_base = (
     (
         "lobby join solo",
         create_state(),
-        LobbyJoinEvent("Player1", player_count=2, player_cap=8),
+        LobbyJoinEvent("Player1", player_count=1, player_cap=8),
         create_state(lobby_players={"Player1"}, in_queue=True),
         True,
     ),
     (
         "lobby join doubles/fours",
         create_state(),
-        LobbyJoinEvent("Player1", player_count=2, player_cap=16),
+        LobbyJoinEvent("Player1", player_count=1, player_cap=16),
         create_state(lobby_players={"Player1"}, in_queue=True),
         True,
     ),
@@ -94,8 +94,8 @@ update_state_test_cases_base = (
         # Your own username should always appear in the list
         "lobby list",
         create_state(lobby_players={"PersonFromLastLobby"}),  # Old members cleared
-        LobbyListEvent([OWN_USERNAME, "Player1", "Player2"]),  # You always online
-        create_state(lobby_players={"Player1", "Player2"}, in_queue=True),
+        LobbyListEvent([OWN_USERNAME, "Player1", "Player2"]),
+        create_state(lobby_players={OWN_USERNAME, "Player1", "Player2"}, in_queue=True),
         True,
     ),
     (
@@ -216,16 +216,8 @@ update_state_test_cases_base = (
         # Player count too high -> clear lobby
         "too many known players in lobby",
         create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=True),
-        LobbyJoinEvent("Player1", player_count=2, player_cap=16),
-        create_state(lobby_players={"Player1"}, in_queue=True),
-        True,
-    ),
-    (
-        # Player seemingly too high, but just because we are implicitly in the lobby
-        "seemingly too many known players in lobby",
-        create_state(),
         LobbyJoinEvent("Player1", player_count=1, player_cap=16),
-        create_state(lobby_players={"Player1"}, in_queue=True, out_of_sync=True),
+        create_state(lobby_players={"Player1"}, in_queue=True),
         True,
     ),
     (
@@ -247,7 +239,7 @@ update_state_test_cases_base = (
         "new queue with old lobby and too many players",
         create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=False),
         LobbyJoinEvent("Player1", player_count=1, player_cap=16),
-        create_state(lobby_players={"Player1"}, out_of_sync=True, in_queue=True),
+        create_state(lobby_players={"Player1"}, in_queue=True),
         True,
     ),
 )
@@ -303,8 +295,8 @@ INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.m
             ),
             create_state(
                 own_username="Me",
-                party_members={"Player1", "Player2"},
-                lobby_players={"Player1", "Player2", "Someone"},
+                party_members={"Me", "Player1", "Player2"},
+                lobby_players={"Me", "Player1", "Player2", "Someone"},
                 in_queue=True,
             ),
         ),

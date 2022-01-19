@@ -49,7 +49,7 @@ class OverlayState:
     def remove_from_party(self, username: str) -> None:
         """Remove the given username from the party"""
         if username not in self.party_members:
-            logger.error(
+            logger.warn(
                 f"Tried removing {username} from the party, but they were not in it!"
             )
             return
@@ -72,7 +72,7 @@ class OverlayState:
     def remove_from_lobby(self, username: str) -> None:
         """Remove the given username from the lobby"""
         if username not in self.lobby_players:
-            logger.error(
+            logger.warn(
                 f"Tried removing {username} from the lobby, but they were not in it!"
             )
             return
@@ -84,12 +84,10 @@ class OverlayState:
         self.lobby_players = set(new_lobby)
 
     def clear_lobby(self) -> None:
-        """Remove all players from the lobby, except for you"""
-        if self.own_username is None:
-            logger.warning("Own username is not set, lobby is now empty")
-            self.set_lobby([])
-        else:
-            self.set_lobby([self.own_username])
+        """Remove all players from the lobby"""
+        # Don't include yourself in the new lobby.
+        # Your name usually appears as a join message anyway, and you may be nicked
+        self.set_lobby([])
 
 
 def update_state(state: OverlayState, event: Event) -> bool:
@@ -141,9 +139,8 @@ def update_state(state: OverlayState, event: Event) -> bool:
             logger.debug("Player count out of sync.")
             out_of_sync = True
 
-            if event.player_count + 1 < len(state.lobby_players):
+            if event.player_count < len(state.lobby_players):
                 # We know of too many players, some must actually not be in the lobby
-                # +1 because the message of us joining may not have appeared yet
                 logger.info("Too many players in lobby. Clearing.")
                 state.clear_lobby()
                 state.add_to_lobby(event.username)
