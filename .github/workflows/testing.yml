@@ -25,11 +25,15 @@ jobs:
       run: |
         echo 'ACTIVATE_PATH=venv/Scripts/activate' >> $GITHUB_ENV
         echo 'BINARY_EXTENSION=.exe' >> $GITHUB_ENV
+        echo 'PATHSEP=;' >> $GITHUB_ENV
+        echo 'DIRSEP=\\' >> $GITHUB_ENV
     - name: OS specific setup (linux/mac)
       if: runner.os != 'Windows'
       run: |
         echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
         echo 'BINARY_EXTENSION=' >> $GITHUB_ENV
+        echo 'PATHSEP=:' >> $GITHUB_ENV
+        echo 'DIRSEP=/' >> $GITHUB_ENV
 
     - name: Install dependencies
       run: |
@@ -52,7 +56,7 @@ jobs:
     - name: Build single file binary with pyinstaller
       run: |
         source ${{ env.ACTIVATE_PATH }}
-        pyinstaller prism.py --noconfirm --onefile --add-data=data/nick_database.json:data --icon=pyinstaller/who.ico --noconsole --name overlay${{ matrix.os }}
+        pyinstaller prism.py --noconfirm --onefile --add-data="data${{ env.DIRSEP }}nick_database.json${{ env.PATHSEP }}data" --icon=pyinstaller/who.ico --noconsole --name prism-${{ matrix.os }}
 
     - name: Upload built binary
       uses: actions/upload-artifact@v2
