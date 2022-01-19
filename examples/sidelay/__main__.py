@@ -239,7 +239,7 @@ def test() -> None:
             process_loglines_to_stdout(state, key_holder, nick_database, loglines)
 
 
-def main() -> None:
+def main(*nick_databases: Path) -> None:
     """Run the overlay"""
     try:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
@@ -262,8 +262,9 @@ def main() -> None:
     default_database = {
         nick: value["uuid"] for nick, value in settings.known_nicks.items()
     }
-    # TODO: Pass paths to nick databases on disk (either from settings or from options)
-    nick_database = NickDatabase.from_disk([], default_database=default_database)
+    nick_database = NickDatabase.from_disk(
+        list(nick_databases), default_database=default_database
+    )
 
     watch_from_logfile(
         str(logfile_path),

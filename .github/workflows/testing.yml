@@ -52,7 +52,7 @@ jobs:
     - name: Build single file binary with pyinstaller
       run: |
         source ${{ env.ACTIVATE_PATH }}
-        pyinstaller overlay.py --noconfirm --onefile --icon=pyinstaller/who.ico --noconsole --name overlay${{ matrix.os }}
+        pyinstaller overlay.py --noconfirm --onefile --add-data=data/nick_database.json:data --icon=pyinstaller/who.ico --noconsole --name overlay${{ matrix.os }}
 
     - name: Upload built binary
       uses: actions/upload-artifact@v2
