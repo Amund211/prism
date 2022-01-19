@@ -26,6 +26,9 @@ class EventType(Enum):
     # Initialization
     INITIALIZE_AS = auto()  # Initialize as the given username
 
+    # New nickname (/nick reuse)
+    NEW_NICKNAME = auto()
+
     # Lobby join/leave
     LOBBY_SWAP = auto()  # You join a new lobby
     LOBBY_JOIN = auto()  # Someone joins your lobby
@@ -56,6 +59,12 @@ class EventType(Enum):
 class InitializeAsEvent:
     username: str
     event_type: Literal[EventType.INITIALIZE_AS] = EventType.INITIALIZE_AS
+
+
+@dataclass
+class NewNicknameEvent:
+    nick: str
+    event_type: Literal[EventType.NEW_NICKNAME] = EventType.NEW_NICKNAME
 
 
 @dataclass
@@ -136,6 +145,7 @@ class NewAPIKeyEvent:
 
 Event = Union[
     InitializeAsEvent,
+    NewNicknameEvent,
     LobbySwapEvent,
     LobbyJoinEvent,
     LobbyLeaveEvent,
@@ -237,6 +247,17 @@ def parse_chat_message(message: str) -> Optional[Event]:
             return None
 
         return NewAPIKeyEvent(words[5])
+
+    if message.startswith("You are now nicked as "):
+        # Info [CHAT] You are now nicked as AmazingNick!
+        words = message.split(" ")
+        if not words_match(words[:-1], "You are now nicked as"):
+            return None
+
+        if words[-1][-1] != "!":
+            return None
+
+        return NewNicknameEvent(words[-1][:-1])
 
     if message.startswith("Sending you to "):
         return LobbySwapEvent()

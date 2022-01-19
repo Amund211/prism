@@ -1,11 +1,16 @@
 import logging
 import threading
 from dataclasses import dataclass, field
-from typing import Callable, Iterable, Optional
+from typing import Callable, Iterable, Optional, Protocol
 
 from examples.sidelay.parsing import Event, EventType, parse_logline
 
 logger = logging.getLogger()
+
+
+class SetNickname(Protocol):  # pragma: no cover
+    def __call__(self, *, username: str, nick: str) -> None:
+        ...
 
 
 @dataclass
@@ -15,6 +20,7 @@ class OverlayState:
     party_members: set[str]
     lobby_players: set[str]
     set_api_key: Callable[[str], None] = field(compare=False, repr=False)
+    set_nickname: SetNickname = field(compare=False, repr=False)
     out_of_sync: bool = False
     in_queue: bool = False
     own_username: Optional[str] = None
@@ -105,6 +111,19 @@ def update_state(state: OverlayState, event: Event) -> bool:
         state.clear_lobby()
 
         logger.info(f"Playing as {state.own_username}. Cleared party and lobby.")
+        return True
+
+    if event.event_type is EventType.NEW_NICKNAME:
+        # User got a new nickname
+        logger.info("Setting new nickname")
+        if state.own_username is None:
+            logger.warning(
+                "Own username is not set, could not add denick entry for {event.nick}."
+            )
+        else:
+            state.set_nickname(username=state.own_username, nick=event.nick)
+
+        # We should redraw so that we can properly denick ourself
         return True
 
     if event.event_type is EventType.LOBBY_SWAP:

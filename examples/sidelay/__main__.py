@@ -138,7 +138,10 @@ def watch_from_logfile(
         settings.flush_to_disk()
 
     state = OverlayState(
-        lobby_players=set(), party_members=set(), set_api_key=set_api_key
+        lobby_players=set(),
+        party_members=set(),
+        set_api_key=set_api_key,
+        set_nickname=lambda username, nick: None,
     )
 
     with open(logpath, "r", encoding="utf8", errors="replace") as logfile:
@@ -170,7 +173,10 @@ def test() -> None:
     output = "overlay" if len(sys.argv) >= 4 and sys.argv[3] == "overlay" else "stdout"
 
     state = OverlayState(
-        lobby_players=set(), party_members=set(), set_api_key=lambda x: None
+        lobby_players=set(),
+        party_members=set(),
+        set_api_key=lambda x: None,
+        set_nickname=lambda username, nick: None,
     )
     key_holder = HypixelAPIKeyHolder("")
     nick_database = EMPTY_DATABASE

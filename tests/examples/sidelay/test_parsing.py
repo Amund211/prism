@@ -14,6 +14,7 @@ from examples.sidelay.parsing import (
     LobbyListEvent,
     LobbySwapEvent,
     NewAPIKeyEvent,
+    NewNicknameEvent,
     PartyAttachEvent,
     PartyDetachEvent,
     PartyJoinEvent,
@@ -218,6 +219,8 @@ UNEVENTFUL_LOGLINES = (
     "[Info: 2021-12-10 00:57:30.104719428: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]  because they were offline.",  # Malformed
     "[Info: 2021-12-09 00:21:30.953440842: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP+] Player1 wasing removing was removed from the party because they disconnected",  # Malformed
     "[Info: 2022-01-07 13:48:02.379053772: GameCallbacks.cpp(162)] Game/avt (Client thread) Info [CHAT] Your new API key is deadbeef-ae10-4d07-25f6-f23130b92652 justkidding",  # Malformed
+    "[15:03:53] [Client thread/INFO]: [CHAT] You are now nicked as AmazingNick! just kidding",  # Malformed
+    "[15:03:53] [Client thread/INFO]: [CHAT] You are now nicked as AmazingNick",  # Malformed (no !)
     # Attempts to inject log messages
     "[15:03:53] [Client thread/INFO]: [CHAT] [MVP+] MaliciousPlayer: (Client thread) Info Setting user: Player1",
     "[15:03:53] [Client thread/INFO]: [CHAT] [MVP+] MaliciousPlayer: (Client thread) Info [CHAT] ONLINE: Player1",
@@ -257,6 +260,11 @@ parsing_test_cases = (
                 "Player9",
             ]
         ),
+    ),
+    (
+        # Nick reuse on lunar client
+        "[15:03:53] [Client thread/INFO]: [CHAT] You are now nicked as AmazingNick!",
+        NewNicknameEvent(nick="AmazingNick"),
     ),
     (
         # Lobby list on lunar client

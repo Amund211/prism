@@ -12,6 +12,7 @@ from examples.sidelay.parsing import (
     LobbyListEvent,
     LobbySwapEvent,
     NewAPIKeyEvent,
+    NewNicknameEvent,
     PartyAttachEvent,
     PartyDetachEvent,
     PartyJoinEvent,
@@ -20,7 +21,12 @@ from examples.sidelay.parsing import (
     PartyMembershipListEvent,
     StartBedwarsGameEvent,
 )
-from examples.sidelay.state import OverlayState, fast_forward_state, update_state
+from examples.sidelay.state import (
+    OverlayState,
+    SetNickname,
+    fast_forward_state,
+    update_state,
+)
 
 OWN_USERNAME = "OwnUsername"
 
@@ -29,6 +35,7 @@ def create_state(
     party_members: set[str] = set(),
     lobby_players: set[str] = set(),
     set_api_key: Optional[Callable[[str], None]] = None,
+    set_nickname: Optional[SetNickname] = None,
     out_of_sync: bool = False,
     in_queue: bool = False,
     own_username: Optional[str] = OWN_USERNAME,
@@ -38,6 +45,7 @@ def create_state(
         party_members=party_members | yourself,
         lobby_players=lobby_players,
         set_api_key=set_api_key or unittest.mock.MagicMock(),
+        set_nickname=set_nickname or unittest.mock.MagicMock(),
         out_of_sync=out_of_sync,
         in_queue=in_queue,
         own_username=own_username,
@@ -57,6 +65,14 @@ update_state_test_cases_base = (
         create_state(),
         InitializeAsEvent("NewPlayer"),
         create_state(own_username="NewPlayer"),
+        True,
+    ),
+    (
+        # See more interesting test function for this below
+        "new nickname",
+        create_state(),
+        NewNicknameEvent("AmazingNick"),
+        create_state(),
         True,
     ),
     (
@@ -163,6 +179,14 @@ update_state_test_cases_base = (
     ),
     # Special cases
     (
+        # New nickname when own username is unknown
+        "new nickname unknown username",
+        create_state(own_username=None),
+        NewNicknameEvent("AmazingNick"),
+        create_state(own_username=None),
+        True,
+    ),
+    (
         # Party leave when own username is unknown
         "party leave unknown username",
         create_state(party_members={"Player1", "Player2"}, own_username=None),
@@ -266,6 +290,15 @@ def test_update_state(
     new_state = initial_state
     assert new_state == target_state
     assert will_redraw == redraw
+
+
+def test_update_state_set_nickname() -> None:
+    """Assert that set_nickname is called when NewNicknameEvent is received"""
+    state = create_state(own_username="Me")
+    update_state(state, NewNicknameEvent("AmazingNick"))
+    state.set_nickname.assert_called_with(  # type: ignore
+        username="Me", nick="AmazingNick"
+    )
 
 
 def test_update_state_set_api_key() -> None:
