@@ -61,10 +61,16 @@ DerivedNickDatabase = TypeVar("DerivedNickDatabase", bound="NickDatabase")
 class NickDatabase:
     """Class for storing multiple mappings of nick -> uuid"""
 
+    default_database: dict[str, str] = field(init=False)  # The first database
     databases: list[dict[str, str]]
     mutex: threading.Lock = field(
         default_factory=threading.Lock, init=False, compare=False, repr=False
     )
+
+    def __post_init__(self) -> None:
+        """Set the .default_database field"""
+        assert len(self.databases) > 0, "Must provide at least 1 database"
+        self.default_database = self.databases[0]
 
     @classmethod
     def from_disk(
@@ -107,4 +113,4 @@ class NickDatabase:
 
 
 # Empty nick database for use as default arg
-EMPTY_DATABASE = NickDatabase([])
+EMPTY_DATABASE = NickDatabase([{}])

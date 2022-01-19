@@ -143,6 +143,11 @@ def get_cached_stats(username: str) -> Optional[Stats]:
     return KNOWN_STATS.get(username, None)
 
 
+def uncache_stats(username: str) -> None:
+    """Clear the cache entry for `username`"""
+    KNOWN_STATS.pop(username, None)
+
+
 def get_bedwars_stats(
     username: str,
     key_holder: HypixelAPIKeyHolder,

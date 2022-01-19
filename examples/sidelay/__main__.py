@@ -19,9 +19,10 @@ from examples.sidelay.output.overlay import run_overlay
 from examples.sidelay.output.printing import print_stats_table
 from examples.sidelay.settings import Settings, get_settings
 from examples.sidelay.state import OverlayState, fast_forward_state
-from examples.sidelay.stats import Stats
+from examples.sidelay.stats import Stats, uncache_stats
 from examples.sidelay.threading import prepare_overlay
 from examples.sidelay.user_interaction import prompt_for_logfile_path, wait_for_api_key
+from hystatutils.minecraft import MojangAPIError, get_uuid
 from hystatutils.playerdata import HypixelAPIKeyHolder
 
 dirs = AppDirs(appname="hystatutils_overlay")
@@ -130,6 +131,46 @@ def watch_from_logfile(
 
     key_holder = HypixelAPIKeyHolder(settings.hypixel_api_key)
 
+    def set_nickname(username: str, nick: str) -> None:
+        """Update the user's nickname"""
+        try:
+            own_uuid = get_uuid(username)
+        except MojangAPIError as e:
+            logger.error(
+                f"Failed getting uuid for '{username}' when setting nickname. " f"'{e}'"
+            )
+            return
+
+        if own_uuid is None:
+            logger.error(
+                f"Failed getting uuid for '{username}' when setting nickname. "
+                "No match found."
+            )
+            return
+
+        with nick_database.mutex:
+            for known_nick, nick_value in settings.known_nicks.items():
+                if own_uuid == nick_value["uuid"]:
+                    new_nick_value = nick_value
+                    del settings.known_nicks[known_nick]
+                    del nick_database.default_database[known_nick]
+                    # Drop the stats cache for your old nick
+                    uncache_stats(known_nick)
+                    break
+            else:
+                # Found no matching entries - make a new one
+                new_nick_value = {"uuid": own_uuid, "comment": username}
+
+            # Update the nick database
+            nick_database.default_database[nick] = own_uuid
+
+        # Drop the stats cache for `nick` so that we can fetch the stats
+        uncache_stats(nick)
+
+        # Update the settings
+        settings.known_nicks[nick] = new_nick_value
+        settings.flush_to_disk()
+
     def set_api_key(new_key: str) -> None:
         """Update the API key that the download threads use"""
         # TODO: Potentially invalidate the entire/some parts of the stats cache
@@ -141,7 +182,7 @@ def watch_from_logfile(
         lobby_players=set(),
         party_members=set(),
         set_api_key=set_api_key,
-        set_nickname=lambda username, nick: None,
+        set_nickname=set_nickname,
     )
 
     with open(logpath, "r", encoding="utf8", errors="replace") as logfile:

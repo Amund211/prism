@@ -15,7 +15,8 @@ from examples.sidelay.nick_database import (
 def test_empty_database() -> None:
     """Assert properties of the default empty database"""
     assert isinstance(EMPTY_DATABASE, NickDatabase)
-    assert len(EMPTY_DATABASE.databases) == 0
+    assert len(EMPTY_DATABASE.databases) == 1
+    assert len(EMPTY_DATABASE.default_database) == 0
 
 
 def test_nick_database() -> None:
