@@ -49,7 +49,7 @@ class OverlayState:
     def remove_from_party(self, username: str) -> None:
         """Remove the given username from the party"""
         if username not in self.party_members:
-            logger.warn(
+            logger.warning(
                 f"Tried removing {username} from the party, but they were not in it!"
             )
             return
@@ -72,7 +72,7 @@ class OverlayState:
     def remove_from_lobby(self, username: str) -> None:
         """Remove the given username from the lobby"""
         if username not in self.lobby_players:
-            logger.warn(
+            logger.warning(
                 f"Tried removing {username} from the lobby, but they were not in it!"
             )
             return
