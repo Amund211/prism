@@ -3,7 +3,7 @@ import logging
 import win32con  # type: ignore
 import win32gui  # type: ignore
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 fullscreen_toggled = False
 

@@ -15,7 +15,7 @@ from examples.sidelay.stats import (
 )
 from hystatutils.playerdata import HypixelAPIKeyHolder
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class UpdateStateThread(threading.Thread):

@@ -12,7 +12,7 @@ from traceback import format_exception
 from types import TracebackType
 from typing import Callable, Generic, Optional, Sequence, TypeVar
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 ColumnKey = TypeVar("ColumnKey")
 

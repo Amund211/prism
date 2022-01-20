@@ -5,7 +5,7 @@ from typing import Callable, Iterable, Optional, Protocol
 
 from examples.sidelay.parsing import Event, EventType, parse_logline
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class SetNickname(Protocol):  # pragma: no cover

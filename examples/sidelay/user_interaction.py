@@ -14,7 +14,7 @@ import toml
 from examples.sidelay.parsing import NewAPIKeyEvent, parse_logline
 from examples.sidelay.settings import api_key_is_valid, read_settings
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def watch_file_non_blocking(f: TextIO, timeout: float = 0.1) -> Iterable[Optional[str]]:

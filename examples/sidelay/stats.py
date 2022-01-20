@@ -18,7 +18,7 @@ StatName = Literal["stars", "fkdr", "wlr", "winstreak"]
 InfoName = Literal["username"]
 PropertyName = Literal[StatName, InfoName]
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 @dataclass(order=True, frozen=True)

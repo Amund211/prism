@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import Enum, auto, unique
 from typing import Final, Literal, Optional, Sequence, Union
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 RANK_REGEX = re.compile(r"\[[a-zA-Z\+]+\] ")

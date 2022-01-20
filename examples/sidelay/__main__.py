@@ -7,7 +7,9 @@ Run from the root dir by `python -m examples.sidelay [--logfile <path-to-logfile
 import logging
 import sys
 import time
+from datetime import date
 from functools import partial
+from itertools import count
 from pathlib import Path
 from typing import Iterable, Optional, TextIO
 
@@ -30,8 +32,19 @@ CONFIG_DIR = Path(dirs.user_config_dir)
 DEFAULT_SETTINGS_PATH = CONFIG_DIR / "settings.toml"
 DEFAULT_LOGFILE_CACHE_PATH = CONFIG_DIR / "known_logfiles.toml"
 
-logging.basicConfig()
-logger = logging.getLogger()
+LOGDIR = Path(dirs.user_log_dir)
+LOGDIR.mkdir(parents=True, exist_ok=True)
+
+datestring = date.today().isoformat()
+
+for i in count():
+    logpath = LOGDIR / f"{datestring}.{i}.log"
+    if not logpath.exists():
+        break
+
+logging.basicConfig(filename=logpath, level=logging.WARNING)
+
+logger = logging.getLogger(__name__)
 
 TESTING = False
 CLEAR_BETWEEN_DRAWS = True

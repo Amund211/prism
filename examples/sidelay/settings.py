@@ -8,7 +8,7 @@ import toml
 PLACEHOLDER_API_KEY = "insert-your-key-here"
 
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class NickValue(TypedDict):
