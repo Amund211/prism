@@ -27,7 +27,26 @@ from examples.sidelay.user_interaction import prompt_for_logfile_path, wait_for_
 from hystatutils.minecraft import MojangAPIError, get_uuid
 from hystatutils.playerdata import HypixelAPIKeyHolder
 
-dirs = AppDirs(appname="hystatutils_overlay")
+dirs = AppDirs(appname="prism_overlay")
+
+# Rename old directories
+olddirs = AppDirs(appname="hystatutils_overlay")
+for dirname in [
+    "user_data_dir",
+    "user_config_dir",
+    "user_cache_dir",
+    "site_data_dir",
+    "site_config_dir",
+    "user_log_dir",
+]:
+    olddir = Path(getattr(olddirs, dirname))
+    newdir = Path(getattr(dirs, dirname))
+    if olddir.is_dir() and not newdir.is_dir():
+        olddir.rename(newdir)
+
+del olddir, newdir, olddirs
+########################
+
 CONFIG_DIR = Path(dirs.user_config_dir)
 DEFAULT_SETTINGS_PATH = CONFIG_DIR / "settings.toml"
 DEFAULT_LOGFILE_CACHE_PATH = CONFIG_DIR / "known_logfiles.toml"
