@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Iterable, Optional, TextIO
 
 from appdirs import AppDirs
+from tendo import singleton  # type: ignore
 
 from examples.sidelay.commandline import get_options
 from examples.sidelay.nick_database import EMPTY_DATABASE, NickDatabase
@@ -50,6 +51,18 @@ del olddir, newdir, olddirs
 CONFIG_DIR = Path(dirs.user_config_dir)
 DEFAULT_SETTINGS_PATH = CONFIG_DIR / "settings.toml"
 DEFAULT_LOGFILE_CACHE_PATH = CONFIG_DIR / "known_logfiles.toml"
+
+CACHE_DIR = Path(dirs.user_cache_dir)
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+# Only allow one instance of the overlay
+try:
+    lock = singleton.SingleInstance(lockfile=str(CACHE_DIR / "prism_overlay.lock"))
+except singleton.SingleInstanceException:
+    # TODO: Shown the running overlay window
+    print("You can only run one instance of the overlay at the time", file=sys.stderr)
+    sys.exit(1)
+
 
 LOGDIR = Path(dirs.user_log_dir)
 LOGDIR.mkdir(parents=True, exist_ok=True)
@@ -279,6 +292,7 @@ def main(*nick_databases: Path) -> None:
         print(f"Failed creating settings directory! '{e}'", file=sys.stderr)
         logger.error(f"Failed creating settings directory! '{e}'")
         sys.exit(1)
+
     options = get_options(default_settings_path=DEFAULT_SETTINGS_PATH)
 
     if options.logfile_path is None:
