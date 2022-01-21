@@ -177,7 +177,7 @@ class OverlayWindow(Generic[ColumnKey]):
             self.root,
             textvariable=info_variable,
             font=("Consolas", "14"),
-            fg="green3",
+            fg="red",  # Color set on each update
             bg="black",
         )
         info_label.pack(side=tk.TOP)
@@ -197,7 +197,7 @@ class OverlayWindow(Generic[ColumnKey]):
                     else str.rjust
                 )(self.column_names[column_name], 7),
                 font=("Consolas", "14"),
-                fg="green3",
+                fg="snow",
                 bg="black",
             )
             header_label.grid(
@@ -239,7 +239,7 @@ class OverlayWindow(Generic[ColumnKey]):
             label = tk.Label(
                 self.table_frame,
                 font=("Consolas", "14"),
-                fg="green3",
+                fg="gray60",  # Color set on each update
                 bg="black",
                 textvariable=string_var,
             )
