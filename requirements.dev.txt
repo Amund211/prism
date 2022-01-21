@@ -4,6 +4,7 @@ coverage
 pytest
 mypy>=0.931
 types-appdirs
+types-cachetools
 types-requests
 types-toml
 pre-commit

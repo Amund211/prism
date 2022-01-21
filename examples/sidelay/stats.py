@@ -3,6 +3,8 @@ import threading
 from dataclasses import dataclass, field, replace
 from typing import Callable, Literal, Optional, Union, overload
 
+from cachetools import TTLCache
+
 from examples.sidelay.nick_database import EMPTY_DATABASE, NickDatabase
 from hystatutils.calc import bedwars_level_from_exp
 from hystatutils.minecraft import MojangAPIError, get_uuid
@@ -121,8 +123,9 @@ class PendingPlayer:
 Stats = Union[PlayerStats, NickedPlayer, PendingPlayer]
 
 
-# Cache per session
-KNOWN_STATS: dict[str, Stats] = {}
+# Session stats cache
+# Entries cached for 2mins, so they hopefully expire before the next queue
+KNOWN_STATS: TTLCache[str, Stats] = TTLCache(maxsize=512, ttl=120)
 STATS_MUTEX = threading.Lock()
 
 
