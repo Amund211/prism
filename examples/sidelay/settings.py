@@ -1,5 +1,6 @@
 import logging
-from dataclasses import dataclass
+import threading
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, MutableMapping, Optional, Type, TypedDict, TypeVar
 
@@ -36,6 +37,9 @@ class Settings:
     hypixel_api_key: str
     known_nicks: dict[str, NickValue]
     path: Path
+    mutex: threading.Lock = field(
+        default_factory=threading.Lock, init=False, compare=False, repr=False
+    )
 
     @classmethod
     def from_dict(

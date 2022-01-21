@@ -193,35 +193,49 @@ def watch_from_logfile(
             )
             return
 
-        with nick_database.mutex:
-            for known_nick, nick_value in settings.known_nicks.items():
+        old_nick = None
+
+        with settings.mutex:
+            # Search the known nicks in settings for your own uuid
+            for old_nick, nick_value in settings.known_nicks.items():
                 if own_uuid == nick_value["uuid"]:
                     new_nick_value = nick_value
-                    del settings.known_nicks[known_nick]
-                    del nick_database.default_database[known_nick]
-                    # Drop the stats cache for your old nick
-                    uncache_stats(known_nick)
                     break
             else:
                 # Found no matching entries - make a new one
                 new_nick_value = {"uuid": own_uuid, "comment": username}
+                old_nick = None
 
-            # Update the nick database
+            # Remove your old nick if found
+            if old_nick is not None:
+                del settings.known_nicks[old_nick]
+
+            # Add your new nick
+            settings.known_nicks[nick] = new_nick_value
+            settings.flush_to_disk()
+
+        with nick_database.mutex:
+            # Add your new nick
             nick_database.default_database[nick] = own_uuid
 
-        # Drop the stats cache for `nick` so that we can fetch the stats
-        uncache_stats(nick)
+            # Delete your old nick if found
+            if old_nick is not None:
+                nick_database.default_database.pop(old_nick, None)
 
-        # Update the settings
-        settings.known_nicks[nick] = new_nick_value
-        settings.flush_to_disk()
+        if old_nick is not None:
+            # Drop the stats cache for your old nick
+            uncache_stats(old_nick)
+
+        # Drop the stats cache for your new nick so that we can fetch the stats
+        uncache_stats(nick)
 
     def set_api_key(new_key: str) -> None:
         """Update the API key that the download threads use"""
         # TODO: Potentially invalidate the entire/some parts of the stats cache
         key_holder.key = new_key
-        settings.hypixel_api_key = new_key
-        settings.flush_to_disk()
+        with settings.mutex:
+            settings.hypixel_api_key = new_key
+            settings.flush_to_disk()
 
     state = OverlayState(
         lobby_players=set(),
@@ -305,9 +319,11 @@ def main(*nick_databases: Path) -> None:
         partial(wait_for_api_key, logfile_path, options.settings_path),
     )
 
-    default_database = {
-        nick: value["uuid"] for nick, value in settings.known_nicks.items()
-    }
+    with settings.mutex:
+        default_database = {
+            nick: value["uuid"] for nick, value in settings.known_nicks.items()
+        }
+
     nick_database = NickDatabase.from_disk(
         list(nick_databases), default_database=default_database
     )
