@@ -1,4 +1,5 @@
 import logging
+import threading
 from dataclasses import dataclass, field, replace
 from typing import Callable, Literal, Optional, Union, overload
 
@@ -122,30 +123,31 @@ Stats = Union[PlayerStats, NickedPlayer, PendingPlayer]
 
 # Cache per session
 KNOWN_STATS: dict[str, Stats] = {}
+STATS_MUTEX = threading.Lock()
 
 
 def set_player_pending(username: str) -> PendingPlayer:
     """Note that the stats for this user are pending"""
-    global KNOWN_STATS
-
-    if username in KNOWN_STATS:
-        logger.error(f"Stats for {username} set to pending, but already exists")
-
     pending_player = PendingPlayer(username)
-    KNOWN_STATS[username] = pending_player
+
+    with STATS_MUTEX:
+        if username in KNOWN_STATS:
+            logger.error(f"Stats for {username} set to pending, but already exists")
+
+        KNOWN_STATS[username] = pending_player
 
     return pending_player
 
 
 def get_cached_stats(username: str) -> Optional[Stats]:
-    global KNOWN_STATS
-
-    return KNOWN_STATS.get(username, None)
+    with STATS_MUTEX:
+        return KNOWN_STATS.get(username, None)
 
 
 def uncache_stats(username: str) -> None:
     """Clear the cache entry for `username`"""
-    KNOWN_STATS.pop(username, None)
+    with STATS_MUTEX:
+        KNOWN_STATS.pop(username, None)
 
 
 def get_bedwars_stats(
@@ -240,12 +242,13 @@ def get_bedwars_stats(
                 )
 
     # Set the cache
-    if nick is None:
-        KNOWN_STATS[username] = stats
-    else:
-        # If we look up by original username, that means the user is not nicked
-        KNOWN_STATS[username] = replace(stats, nick=None)
-        KNOWN_STATS[nick] = stats
+    with STATS_MUTEX:
+        if nick is None:
+            KNOWN_STATS[username] = stats
+        else:
+            # If we look up by original username, that means the user is not nicked
+            KNOWN_STATS[username] = replace(stats, nick=None)
+            KNOWN_STATS[nick] = stats
 
     return stats
 
