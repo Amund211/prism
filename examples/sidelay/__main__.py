@@ -43,6 +43,7 @@ for dirname in [
     olddir = Path(getattr(olddirs, dirname))
     newdir = Path(getattr(dirs, dirname))
     if olddir.is_dir() and not newdir.is_dir():
+        newdir.parent.mkdir(parents=True, exist_ok=True)
         olddir.rename(newdir)
 
 del olddir, newdir, olddirs
