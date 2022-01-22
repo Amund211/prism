@@ -28,54 +28,20 @@ from examples.sidelay.user_interaction import prompt_for_logfile_path, wait_for_
 from hystatutils.minecraft import MojangAPIError, get_uuid
 from hystatutils.playerdata import HypixelAPIKeyHolder
 
+# Variable that stores our singleinstance lock so that it doesn't go out of scope
+# and get released
+SINGLEINSTANCE_LOCK = None
+
 dirs = AppDirs(appname="prism_overlay")
-
-# Rename old directories
-olddirs = AppDirs(appname="hystatutils_overlay")
-for dirname in [
-    "user_data_dir",
-    "user_config_dir",
-    "user_cache_dir",
-    "site_data_dir",
-    "site_config_dir",
-    "user_log_dir",
-]:
-    olddir = Path(getattr(olddirs, dirname))
-    newdir = Path(getattr(dirs, dirname))
-    if olddir.is_dir() and not newdir.is_dir():
-        newdir.parent.mkdir(parents=True, exist_ok=True)
-        olddir.rename(newdir)
-
-del olddir, newdir, olddirs
-########################
 
 CONFIG_DIR = Path(dirs.user_config_dir)
 DEFAULT_SETTINGS_PATH = CONFIG_DIR / "settings.toml"
 DEFAULT_LOGFILE_CACHE_PATH = CONFIG_DIR / "known_logfiles.toml"
 
 CACHE_DIR = Path(dirs.user_cache_dir)
-CACHE_DIR.mkdir(parents=True, exist_ok=True)
-
-# Only allow one instance of the overlay
-try:
-    lock = singleton.SingleInstance(lockfile=str(CACHE_DIR / "prism_overlay.lock"))
-except singleton.SingleInstanceException:
-    # TODO: Shown the running overlay window
-    print("You can only run one instance of the overlay at the time", file=sys.stderr)
-    sys.exit(1)
 
 
 LOGDIR = Path(dirs.user_log_dir)
-LOGDIR.mkdir(parents=True, exist_ok=True)
-
-datestring = date.today().isoformat()
-
-for i in count():
-    logpath = LOGDIR / f"{datestring}.{i}.log"
-    if not logpath.exists():
-        break
-
-logging.basicConfig(filename=logpath, level=logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
@@ -261,9 +227,57 @@ def watch_from_logfile(
             )
 
 
+def setup() -> None:
+    """Set up directory structure and logging"""
+    # Rename old directories
+    olddirs = AppDirs(appname="hystatutils_overlay")
+    for dirname in [
+        "user_data_dir",
+        "user_config_dir",
+        "user_cache_dir",
+        "site_data_dir",
+        "site_config_dir",
+        "user_log_dir",
+    ]:
+        olddir = Path(getattr(olddirs, dirname))
+        newdir = Path(getattr(dirs, dirname))
+        if olddir.is_dir() and not newdir.is_dir():
+            newdir.parent.mkdir(parents=True, exist_ok=True)
+            olddir.rename(newdir)
+    ########################
+
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Only allow one instance of the overlay
+    global SINGLEINSTANCE_LOCK
+    try:
+        SINGLEINSTANCE_LOCK = singleton.SingleInstance(
+            lockfile=str(CACHE_DIR / "prism_overlay.lock")
+        )
+    except singleton.SingleInstanceException:
+        # TODO: Shown the running overlay window
+        print(
+            "You can only run one instance of the overlay at the time", file=sys.stderr
+        )
+        sys.exit(1)
+
+    LOGDIR.mkdir(parents=True, exist_ok=True)
+
+    datestring = date.today().isoformat()
+
+    for i in count():
+        logpath = LOGDIR / f"{datestring}.{i}.log"
+        if not logpath.exists():
+            break
+
+    logging.basicConfig(filename=logpath, level=logging.WARNING)
+
+
 def test() -> None:
     """Test the implementation on a static logfile"""
     global TESTING, CLEAR_BETWEEN_DRAWS
+
+    setup()
 
     TESTING = True
     CLEAR_BETWEEN_DRAWS = False
@@ -301,6 +315,8 @@ def test() -> None:
 
 def main(*nick_databases: Path) -> None:
     """Run the overlay"""
+    setup()
+
     try:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     except Exception as e:
