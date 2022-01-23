@@ -17,6 +17,7 @@ from hystatutils.calc import bedwars_level_from_exp
         (975611, 202),
         (977587, 203),
         (2344717, 481 + 4717 / 5000),
+        (4870331, 1000 + 331 / 500),
     ],
 )
 def test_bedwars_star_calculation(exp: int, true_star: Union[int, float]) -> None:
