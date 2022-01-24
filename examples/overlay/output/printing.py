@@ -1,8 +1,8 @@
 import os
 from typing import Sequence, cast
 
-from examples.sidelay.output.utils import COLUMN_NAMES, STAT_LEVELS, rate_value
-from examples.sidelay.stats import PropertyName, Stats
+from examples.overlay.output.utils import COLUMN_NAMES, STAT_LEVELS, rate_value
+from examples.overlay.stats import PropertyName, Stats
 
 
 class Color:

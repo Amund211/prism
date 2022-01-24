@@ -5,17 +5,17 @@ from typing import Callable, Literal, Optional, Union, overload
 
 from cachetools import TTLCache
 
-from examples.sidelay.nick_database import EMPTY_DATABASE, NickDatabase
-from hystatutils.calc import bedwars_level_from_exp
-from hystatutils.minecraft import MojangAPIError, get_uuid
-from hystatutils.playerdata import (
+from examples.overlay.nick_database import EMPTY_DATABASE, NickDatabase
+from prism.calc import bedwars_level_from_exp
+from prism.minecraft import MojangAPIError, get_uuid
+from prism.playerdata import (
     HypixelAPIError,
     HypixelAPIKeyHolder,
     MissingStatsError,
     get_gamemode_stats,
     get_player_data,
 )
-from hystatutils.utils import div
+from prism.utils import div
 
 StatName = Literal["stars", "fkdr", "wlr", "winstreak"]
 InfoName = Literal["username"]

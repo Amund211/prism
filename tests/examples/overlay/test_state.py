@@ -3,7 +3,7 @@ from typing import Callable, Iterable, Optional
 
 import pytest
 
-from examples.sidelay.parsing import (
+from examples.overlay.parsing import (
     EndBedwarsGameEvent,
     Event,
     InitializeAsEvent,
@@ -21,7 +21,7 @@ from examples.sidelay.parsing import (
     PartyMembershipListEvent,
     StartBedwarsGameEvent,
 )
-from examples.sidelay.state import (
+from examples.overlay.state import (
     OverlayState,
     SetNickname,
     fast_forward_state,

@@ -5,7 +5,7 @@ from typing import Any, cast
 import requests
 from requests.exceptions import RequestException
 
-from hystatutils.ratelimiting import RateLimiter
+from prism.ratelimiting import RateLimiter
 
 GamemodeData = dict[str, Any]
 PlayerData = dict[str, Any]

@@ -3,7 +3,7 @@ from typing import Optional, Type
 
 import pytest
 
-from examples.sidelay.nick_database import (
+from examples.overlay.nick_database import (
     EMPTY_DATABASE,
     DatabaseDecodeError,
     DatabaseReadError,

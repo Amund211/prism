@@ -2,7 +2,7 @@ from typing import Optional, Sequence
 
 import pytest
 
-from examples.sidelay.commandline import Options, get_options, resolve_path
+from examples.overlay.commandline import Options, get_options, resolve_path
 
 DEFAULT_SETTINGS = "some_settings_file.toml"
 

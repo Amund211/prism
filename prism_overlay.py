@@ -9,7 +9,7 @@ if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
 import logging
 from pathlib import Path
 
-from examples.sidelay.__main__ import main
+from examples.overlay.__main__ import main
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 """
 Parse the chat on Hypixel to detect players in your party and bedwars lobby
 
-Run from the root dir by `python -m examples.sidelay [--logfile <path-to-logfile>]`
+Run from the root dir by `python -m examples.overlay [--logfile <path-to-logfile>]`
 """
 
 import logging
@@ -16,17 +16,17 @@ from typing import Iterable, Optional, TextIO
 from appdirs import AppDirs
 from tendo import singleton  # type: ignore
 
-from examples.sidelay.commandline import get_options
-from examples.sidelay.nick_database import EMPTY_DATABASE, NickDatabase
-from examples.sidelay.output.overlay import run_overlay
-from examples.sidelay.output.printing import print_stats_table
-from examples.sidelay.settings import Settings, get_settings
-from examples.sidelay.state import OverlayState, fast_forward_state
-from examples.sidelay.stats import Stats, uncache_stats
-from examples.sidelay.threading import prepare_overlay
-from examples.sidelay.user_interaction import prompt_for_logfile_path, wait_for_api_key
-from hystatutils.minecraft import MojangAPIError, get_uuid
-from hystatutils.playerdata import HypixelAPIKeyHolder
+from examples.overlay.commandline import get_options
+from examples.overlay.nick_database import EMPTY_DATABASE, NickDatabase
+from examples.overlay.output.overlay import run_overlay
+from examples.overlay.output.printing import print_stats_table
+from examples.overlay.settings import Settings, get_settings
+from examples.overlay.state import OverlayState, fast_forward_state
+from examples.overlay.stats import Stats, uncache_stats
+from examples.overlay.threading import prepare_overlay
+from examples.overlay.user_interaction import prompt_for_logfile_path, wait_for_api_key
+from prism.minecraft import MojangAPIError, get_uuid
+from prism.playerdata import HypixelAPIKeyHolder
 
 # Variable that stores our singleinstance lock so that it doesn't go out of scope
 # and get released

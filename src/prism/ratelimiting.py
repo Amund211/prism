@@ -6,7 +6,7 @@ from itertools import repeat
 from types import TracebackType
 from typing import Optional
 
-from hystatutils.utils import insort_right
+from prism.utils import insort_right
 
 
 class RateLimiter:

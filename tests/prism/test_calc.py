@@ -2,7 +2,7 @@ from typing import Union
 
 import pytest
 
-from hystatutils.calc import bedwars_level_from_exp
+from prism.calc import bedwars_level_from_exp
 
 
 @pytest.mark.parametrize(

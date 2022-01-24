@@ -3,7 +3,7 @@ import threading
 from dataclasses import dataclass, field
 from typing import Callable, Iterable, Optional, Protocol
 
-from examples.sidelay.parsing import Event, EventType, parse_logline
+from examples.overlay.parsing import Event, EventType, parse_logline
 
 logger = logging.getLogger(__name__)
 

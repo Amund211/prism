@@ -2,7 +2,7 @@ from typing import Sequence, Union
 
 import pytest
 
-from examples.sidelay.output.utils import rate_value
+from examples.overlay.output.utils import rate_value
 
 LEVELS = (0.1, 0.5, 1, 10, 100)
 

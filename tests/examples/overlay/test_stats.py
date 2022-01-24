@@ -2,7 +2,7 @@ from typing import Literal, Optional
 
 import pytest
 
-from examples.sidelay.stats import (
+from examples.overlay.stats import (
     NickedPlayer,
     PendingPlayer,
     PlayerStats,

@@ -2,13 +2,13 @@ import os
 import sys
 from typing import Callable, Optional, Sequence, cast
 
-from examples.sidelay.output.overlay_window import CellValue, OverlayRow, OverlayWindow
-from examples.sidelay.output.utils import COLUMN_NAMES, STAT_LEVELS, rate_value
-from examples.sidelay.state import OverlayState
-from examples.sidelay.stats import PropertyName, Stats
+from examples.overlay.output.overlay_window import CellValue, OverlayRow, OverlayWindow
+from examples.overlay.output.utils import COLUMN_NAMES, STAT_LEVELS, rate_value
+from examples.overlay.state import OverlayState
+from examples.overlay.stats import PropertyName, Stats
 
 if os.name == "nt":
-    from examples.sidelay.platform.windows import toggle_fullscreen
+    from examples.overlay.platform.windows import toggle_fullscreen
 
     FULLSCREEN_CALLBACK: Optional[Callable[[], None]] = toggle_fullscreen
 else:

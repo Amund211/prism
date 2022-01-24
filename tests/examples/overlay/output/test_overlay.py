@@ -1,8 +1,8 @@
 import pytest
 
-from examples.sidelay.output.overlay import DEFAULT_COLOR, LEVEL_COLORMAP, stats_to_row
-from examples.sidelay.output.overlay_window import CellValue, OverlayRow
-from examples.sidelay.stats import NickedPlayer, PlayerStats, PropertyName, Stats
+from examples.overlay.output.overlay import DEFAULT_COLOR, LEVEL_COLORMAP, stats_to_row
+from examples.overlay.output.overlay_window import CellValue, OverlayRow
+from examples.overlay.stats import NickedPlayer, PlayerStats, PropertyName, Stats
 
 rating0, rating1, rating2, rating3, rating4 = LEVEL_COLORMAP
 

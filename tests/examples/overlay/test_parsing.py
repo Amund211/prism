@@ -4,7 +4,7 @@ from typing import Sequence
 
 import pytest
 
-from examples.sidelay.parsing import (
+from examples.overlay.parsing import (
     CHAT_PREFIX,
     EndBedwarsGameEvent,
     Event,

@@ -4,7 +4,7 @@ from typing import Union
 
 import pytest
 
-from hystatutils.utils import (
+from prism.utils import (
     Element,
     Time,
     div,

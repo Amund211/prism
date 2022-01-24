@@ -3,17 +3,17 @@ import queue
 import threading
 from typing import Callable, Iterable, Optional
 
-from examples.sidelay.nick_database import NickDatabase
-from examples.sidelay.parsing import parse_logline
-from examples.sidelay.state import OverlayState, update_state
-from examples.sidelay.stats import (
+from examples.overlay.nick_database import NickDatabase
+from examples.overlay.parsing import parse_logline
+from examples.overlay.state import OverlayState, update_state
+from examples.overlay.stats import (
     Stats,
     get_bedwars_stats,
     get_cached_stats,
     set_player_pending,
     sort_stats,
 )
-from hystatutils.playerdata import HypixelAPIKeyHolder
+from prism.playerdata import HypixelAPIKeyHolder
 
 logger = logging.getLogger(__name__)
 

@@ -11,8 +11,8 @@ from typing import Any, Callable, Iterable, Optional, Sequence, TextIO
 
 import toml
 
-from examples.sidelay.parsing import NewAPIKeyEvent, parse_logline
-from examples.sidelay.settings import api_key_is_valid, read_settings
+from examples.overlay.parsing import NewAPIKeyEvent, parse_logline
+from examples.overlay.settings import api_key_is_valid, read_settings
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 import pytest
 
-from hystatutils.ratelimiting import RateLimiter
+from prism.ratelimiting import RateLimiter
 
 
 @pytest.mark.parametrize(

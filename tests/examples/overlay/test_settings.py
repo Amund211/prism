@@ -4,7 +4,7 @@ from typing import Any, Optional
 
 import pytest
 
-from examples.sidelay.settings import (
+from examples.overlay.settings import (
     PLACEHOLDER_API_KEY,
     Settings,
     SettingsDict,

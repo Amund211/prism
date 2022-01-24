@@ -4,7 +4,7 @@ from typing import Optional, cast
 import requests
 from requests.exceptions import RequestException
 
-from hystatutils.ratelimiting import RateLimiter
+from prism.ratelimiting import RateLimiter
 
 USERPROFILES_ENDPOINT = "https://api.mojang.com/users/profiles/minecraft"
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
