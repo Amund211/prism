@@ -22,7 +22,7 @@ from examples.overlay.output.overlay import run_overlay
 from examples.overlay.output.printing import print_stats_table
 from examples.overlay.settings import Settings, get_settings
 from examples.overlay.state import OverlayState, fast_forward_state
-from examples.overlay.stats import Stats, uncache_stats
+from examples.overlay.stats import Stats, clear_cache, uncache_stats
 from examples.overlay.threading import prepare_overlay
 from examples.overlay.user_interaction import prompt_for_logfile_path, wait_for_api_key
 from prism.minecraft import MojangAPIError, get_uuid
@@ -198,11 +198,13 @@ def watch_from_logfile(
 
     def set_api_key(new_key: str) -> None:
         """Update the API key that the download threads use"""
-        # TODO: Potentially invalidate the entire/some parts of the stats cache
         key_holder.key = new_key
         with settings.mutex:
             settings.hypixel_api_key = new_key
             settings.flush_to_disk()
+
+        # Clear the stats cache in case the old api key was invalid
+        clear_cache()
 
     state = OverlayState(
         lobby_players=set(),

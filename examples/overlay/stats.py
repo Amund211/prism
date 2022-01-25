@@ -153,6 +153,12 @@ def uncache_stats(username: str) -> None:
         KNOWN_STATS.pop(username, None)
 
 
+def clear_cache() -> None:
+    """Clear the entire stats cache"""
+    with STATS_MUTEX:
+        KNOWN_STATS.clear()
+
+
 def get_bedwars_stats(
     username: str,
     key_holder: HypixelAPIKeyHolder,
