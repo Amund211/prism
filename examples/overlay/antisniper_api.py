@@ -1,8 +1,10 @@
 import logging
+import threading
 from json import JSONDecodeError
 from typing import Optional
 
 import requests
+from cachetools import TTLCache
 from requests.exceptions import RequestException
 
 from prism.ratelimiting import RateLimiter
@@ -12,6 +14,19 @@ logger = logging.getLogger(__name__)
 DENICK_ENDPOINT = "http://api.antisniper.net/denick"
 ANTISNIPER_ENDPOINT = "http://api.antisniper.net/antisniper"
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
+
+
+# Cache both successful and failed denicks for 5 mins
+DENICK_CACHE: TTLCache[str, Optional[str]] = TTLCache(maxsize=512, ttl=5 * 60)
+DENICK_MUTEX = threading.Lock()
+
+
+def set_denick_cache(nick: str, uuid: Optional[str]) -> Optional[str]:
+    """Set the cache entry for nick, and return the uuid"""
+    with DENICK_MUTEX:
+        DENICK_CACHE[nick] = uuid
+
+    return uuid
 
 
 class AntiSniperAPIKeyHolder:
@@ -34,14 +49,14 @@ def denick(nick: str, key_holder: AntiSniperAPIKeyHolder) -> Optional[str]:
             )
     except RequestException as e:
         logger.error(f"Request to denick endpoint failed due to a connection error {e}")
-        return None
+        return set_denick_cache(nick, None)
 
     if not response:
         logger.error(
             f"Request to denick endpoint failed with status code {response.status_code}"
             f" when getting name for nick {nick}. Response: {response.text}"
         )
-        return None
+        return set_denick_cache(nick, None)
 
     try:
         response_json = response.json()
@@ -50,11 +65,11 @@ def denick(nick: str, key_holder: AntiSniperAPIKeyHolder) -> Optional[str]:
             "Failed parsing the response from the denick endpoint. "
             f"Raw content: {response.text}"
         )
-        return None
+        return set_denick_cache(nick, None)
 
     if not response_json.get("success", False):
         logger.error(f"Denick endpoint returned an error. Response: {response_json}")
-        return None
+        return set_denick_cache(nick, None)
 
     playerdata = response_json.get("player", None)
 
@@ -62,15 +77,15 @@ def denick(nick: str, key_holder: AntiSniperAPIKeyHolder) -> Optional[str]:
         logger.error(
             f"Got wrong return type for playerdata from denick endpoint {playerdata}"
         )
-        return None
+        return set_denick_cache(nick, None)
 
     uuid = playerdata.get("uuid", None)
 
     if not isinstance(uuid, str):
         logger.error(f"Got wrong return type for uuid from denick endpoint {uuid}")
-        return None
+        return set_denick_cache(nick, None)
 
-    return uuid
+    return set_denick_cache(nick, uuid)
 
 
 def queue_data(name: str, key_holder: AntiSniperAPIKeyHolder) -> Optional[int]:
