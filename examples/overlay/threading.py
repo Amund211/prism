@@ -49,7 +49,10 @@ class UpdateStateThread(threading.Thread):
                         self.redraw_event.set()
         except (OSError, ValueError) as e:
             # Catch 'read on closed file' if the main thread exited
-            logger.debug(f"Exception caught in state update tread: {e}. Exiting")
+            logger.debug(f"Exception caught in state update thread: {e}. Exiting")
+            return
+        except Exception:
+            logger.exception("Exception caught in state update thread. Exiting")
             return
 
 
@@ -71,17 +74,21 @@ class GetStatsThread(threading.Thread):
 
     def run(self) -> None:
         """Get requested stats from the queue and download them"""
-        while True:
-            username = self.requests_queue.get()
+        try:
+            while True:
+                username = self.requests_queue.get()
 
-            # get_bedwars_stats sets the stats cache which will be read from later
-            get_bedwars_stats(
-                username, key_holder=self.hypixel_key_holder, denick=self.denick
-            )
-            self.requests_queue.task_done()
+                # get_bedwars_stats sets the stats cache which will be read from later
+                get_bedwars_stats(
+                    username, key_holder=self.hypixel_key_holder, denick=self.denick
+                )
+                self.requests_queue.task_done()
 
-            # Tell the main thread that we downloaded this user's stats
-            self.completed_queue.put(username)
+                # Tell the main thread that we downloaded this user's stats
+                self.completed_queue.put(username)
+        except Exception:
+            logger.exception("Exception caught in stats thread. Exiting")
+            return
 
 
 def should_redraw(
