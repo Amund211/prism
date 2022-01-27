@@ -23,6 +23,8 @@ class SettingsDict(TypedDict):
     """Complete dict of settings"""
 
     hypixel_api_key: str
+    antisniper_api_key: Optional[str]
+    use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
 
 
@@ -35,6 +37,8 @@ class Settings:
     """Class holding user settings for the application"""
 
     hypixel_api_key: str
+    antisniper_api_key: Optional[str]
+    use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
     path: Path
     mutex: threading.Lock = field(
@@ -47,6 +51,8 @@ class Settings:
     ) -> DerivedSettings:
         return cls(
             hypixel_api_key=source["hypixel_api_key"],
+            antisniper_api_key=source["antisniper_api_key"],
+            use_antisniper_api=source["use_antisniper_api"],
             known_nicks=source["known_nicks"],
             path=path,
         )
@@ -54,6 +60,8 @@ class Settings:
     def to_dict(self) -> SettingsDict:
         return {
             "hypixel_api_key": self.hypixel_api_key,
+            "antisniper_api_key": self.antisniper_api_key,
+            "use_antisniper_api": self.use_antisniper_api,
             "known_nicks": self.known_nicks,
         }
 
@@ -83,9 +91,19 @@ def read_settings(path: Path) -> MutableMapping[str, object]:
 def fill_missing_settings(
     incomplete_settings: MutableMapping[str, object], get_api_key: Callable[[], str]
 ) -> SettingsDict:
-    api_key = incomplete_settings.get("hypixel_api_key", None)
-    if not isinstance(api_key, str) or not api_key_is_valid(api_key):
-        api_key = get_api_key()
+    hypixel_api_key = incomplete_settings.get("hypixel_api_key", None)
+    if not isinstance(hypixel_api_key, str) or not api_key_is_valid(hypixel_api_key):
+        hypixel_api_key = get_api_key()
+
+    antisniper_api_key = incomplete_settings.get("antisniper_api_key", None)
+    if not isinstance(antisniper_api_key, str) or not api_key_is_valid(
+        antisniper_api_key
+    ):
+        antisniper_api_key = None
+
+    use_antisniper_api = incomplete_settings.get("use_antisniper_api", None)
+    if not isinstance(use_antisniper_api, bool):
+        use_antisniper_api = False
 
     known_nicks_source = incomplete_settings.get("known_nicks", None)
     if not isinstance(known_nicks_source, dict):
@@ -107,7 +125,12 @@ def fill_missing_settings(
 
         known_nicks[key] = NickValue(uuid=uuid, comment=comment)
 
-    return {"hypixel_api_key": api_key, "known_nicks": known_nicks}
+    return {
+        "hypixel_api_key": hypixel_api_key,
+        "antisniper_api_key": antisniper_api_key,
+        "use_antisniper_api": use_antisniper_api,
+        "known_nicks": known_nicks,
+    }
 
 
 def get_settings(path: Path, get_api_key: Callable[[], str]) -> Settings:

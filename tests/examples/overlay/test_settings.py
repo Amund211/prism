@@ -6,6 +6,7 @@ import pytest
 
 from examples.overlay.settings import (
     PLACEHOLDER_API_KEY,
+    NickValue,
     Settings,
     SettingsDict,
     ValueType,
@@ -18,6 +19,21 @@ from examples.overlay.settings import (
 KEY_IF_MISSING = "KEY_IF_MISSING"
 
 
+def make_settings_dict(
+    hypixel_api_key: Optional[str] = None,
+    antisniper_api_key: Optional[str] = None,
+    use_antisniper_api: Optional[bool] = None,
+    known_nicks: Optional[dict[str, NickValue]] = None,
+) -> SettingsDict:
+    """Make a settings dict with default values if missing"""
+    return {
+        "hypixel_api_key": hypixel_api_key or KEY_IF_MISSING,
+        "antisniper_api_key": antisniper_api_key or None,
+        "use_antisniper_api": use_antisniper_api or False,
+        "known_nicks": known_nicks or {},
+    }
+
+
 def get_api_key() -> str:
     return KEY_IF_MISSING
 
@@ -28,11 +44,15 @@ settings_to_dict_cases = (
     (
         Settings(
             hypixel_api_key="my-key",
+            antisniper_api_key="my-key",
+            use_antisniper_api=True,
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             path=PLACEHOLDER_PATH,
         ),
         {
             "hypixel_api_key": "my-key",
+            "antisniper_api_key": "my-key",
+            "use_antisniper_api": True,
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
         },
     ),
@@ -89,7 +109,7 @@ def test_read_and_write_settings(
     # Assert that get_settings doesn't fail when file doesn't exist
     empty_path = tmp_path / "settings2.toml"
     assert get_settings(empty_path, get_api_key) == Settings(
-        hypixel_api_key=KEY_IF_MISSING, known_nicks={}, path=empty_path
+        path=empty_path, **make_settings_dict()
     )
 
 
@@ -103,24 +123,22 @@ def test_read_and_write_settings(
                     "AmazingNick": {"uuid": "123987", "comment": "Player1"}
                 },
             },
-            {
-                "hypixel_api_key": "my-key",
-                "known_nicks": {
-                    "AmazingNick": {"uuid": "123987", "comment": "Player1"}
-                },
-            },
+            make_settings_dict(
+                hypixel_api_key="my-key",
+                known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
+            ),
         ),
         (
             {"hypixel_api_key": "my-key"},
-            {"hypixel_api_key": "my-key", "known_nicks": {}},
+            make_settings_dict(hypixel_api_key="my-key"),
         ),
         (
             {"hypixel_api_key": 1},
-            {"hypixel_api_key": KEY_IF_MISSING, "known_nicks": {}},
+            make_settings_dict(),
         ),
         (
             {"hypixel_api_key": None},
-            {"hypixel_api_key": KEY_IF_MISSING, "known_nicks": {}},
+            make_settings_dict(),
         ),
         (
             {
@@ -129,24 +147,34 @@ def test_read_and_write_settings(
                     "AmazingNick": {"uuid": "123987", "comment": "Player1"}
                 },
             },
-            {
-                "hypixel_api_key": KEY_IF_MISSING,
-                "known_nicks": {
-                    "AmazingNick": {"uuid": "123987", "comment": "Player1"}
-                },
-            },
+            make_settings_dict(
+                known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}}
+            ),
+        ),
+        (
+            {"antisniper_api_key": None},
+            make_settings_dict(),
+        ),
+        (
+            {"hypixel_api_key": "my-key", "use_antisniper_api": True},
+            make_settings_dict(hypixel_api_key="my-key", use_antisniper_api=True),
         ),
         # Placeholder key
         (
             {"hypixel_api_key": PLACEHOLDER_API_KEY},
-            {"hypixel_api_key": KEY_IF_MISSING, "known_nicks": {}},
+            make_settings_dict(),
         ),
         # Key too short
         (
             {"hypixel_api_key": "k"},
-            {"hypixel_api_key": KEY_IF_MISSING, "known_nicks": {}},
+            make_settings_dict(),
         ),
-        ({}, {"hypixel_api_key": KEY_IF_MISSING, "known_nicks": {}}),
+        (
+            {"antisniper_api_key": "k"},
+            make_settings_dict(),
+        ),
+        # No settings
+        ({}, make_settings_dict()),
         # Corrupt data in known_nicks
         (
             {
@@ -156,10 +184,7 @@ def test_read_and_write_settings(
                     1234: {"uuid": 123987, "comment": "Player1"}
                 },
             },
-            {
-                "hypixel_api_key": "my-key",
-                "known_nicks": {},
-            },
+            make_settings_dict(hypixel_api_key="my-key"),
         ),
         (
             {
@@ -172,10 +197,7 @@ def test_read_and_write_settings(
                     "Player1"
                 },
             },
-            {
-                "hypixel_api_key": "my-key",
-                "known_nicks": {},
-            },
+            make_settings_dict(hypixel_api_key="my-key"),
         ),
         (
             {
@@ -185,10 +207,7 @@ def test_read_and_write_settings(
                     "AmazingNick": {"uuid": 123987, "comment": "Player1"}
                 },
             },
-            {
-                "hypixel_api_key": "my-key",
-                "known_nicks": {},
-            },
+            make_settings_dict(hypixel_api_key="my-key"),
         ),
         (
             {
@@ -198,10 +217,7 @@ def test_read_and_write_settings(
                     "AmazingNick": {"uuid": "123987", "comment": 1234}
                 },
             },
-            {
-                "hypixel_api_key": "my-key",
-                "known_nicks": {},
-            },
+            make_settings_dict(hypixel_api_key="my-key"),
         ),
     ),
 )

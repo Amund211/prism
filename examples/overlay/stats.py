@@ -5,7 +5,6 @@ from typing import Callable, Literal, Optional, Union, overload
 
 from cachetools import TTLCache
 
-from examples.overlay.nick_database import EMPTY_DATABASE, NickDatabase
 from prism.calc import bedwars_level_from_exp
 from prism.minecraft import MojangAPIError, get_uuid
 from prism.playerdata import (
@@ -162,7 +161,7 @@ def clear_cache() -> None:
 def get_bedwars_stats(
     username: str,
     key_holder: HypixelAPIKeyHolder,
-    nick_database: NickDatabase = EMPTY_DATABASE,
+    denick: Callable[[str], Optional[str]] = lambda nick: None,
 ) -> Stats:
     """Get the bedwars stats for the given player"""
     cached_stats = get_cached_stats(username)
@@ -185,7 +184,7 @@ def get_bedwars_stats(
     nick: Optional[str] = None
     denicked = False
     if uuid is None:
-        denick_result = nick_database.get(username)
+        denick_result = denick(username)
         if denick_result is not None:
             uuid = denick_result
             nick = username
@@ -205,7 +204,7 @@ def get_bedwars_stats(
             playerdata = None
 
         if not denicked and playerdata is None:
-            denick_result = nick_database.get(username)
+            denick_result = denick(username)
             if denick_result is not None:
                 # The username may be an existing minecraft account that has not
                 # logged on to Hypixel. Then we would get a hit from Mojang, but
@@ -252,12 +251,14 @@ def get_bedwars_stats(
 
     # Set the cache
     with STATS_MUTEX:
-        if nick is None:
+        if nick is None or isinstance(stats, NickedPlayer):
+            # Unnicked player or failed denicking
             KNOWN_STATS[username] = stats
         else:
+            # Successful denicking
+            KNOWN_STATS[nick] = stats
             # If we look up by original username, that means the user is not nicked
             KNOWN_STATS[username] = replace(stats, nick=None)
-            KNOWN_STATS[nick] = stats
 
     return stats
 

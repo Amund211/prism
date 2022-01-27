@@ -3,6 +3,7 @@ import queue
 import threading
 from typing import Callable, Iterable, Optional
 
+import examples.overlay.antisniper_api as antisniper_api
 from examples.overlay.nick_database import NickDatabase
 from examples.overlay.parsing import parse_logline
 from examples.overlay.state import OverlayState, update_state
@@ -59,14 +60,14 @@ class GetStatsThread(threading.Thread):
         self,
         requests_queue: queue.Queue[str],
         completed_queue: queue.Queue[str],
-        key_holder: HypixelAPIKeyHolder,
-        nick_database: NickDatabase,
+        hypixel_key_holder: HypixelAPIKeyHolder,
+        denick: Callable[[str], Optional[str]],
     ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.requests_queue = requests_queue
         self.completed_queue = completed_queue
-        self.key_holder = key_holder
-        self.nick_database = nick_database
+        self.hypixel_key_holder = hypixel_key_holder
+        self.denick = denick
 
     def run(self) -> None:
         """Get requested stats from the queue and download them"""
@@ -75,7 +76,7 @@ class GetStatsThread(threading.Thread):
 
             # get_bedwars_stats sets the stats cache which will be read from later
             get_bedwars_stats(
-                username, key_holder=self.key_holder, nick_database=self.nick_database
+                username, key_holder=self.hypixel_key_holder, denick=self.denick
             )
             self.requests_queue.task_done()
 
@@ -117,10 +118,11 @@ def should_redraw(
 
 def prepare_overlay(
     state: OverlayState,
-    key_holder: HypixelAPIKeyHolder,
+    hypixel_key_holder: HypixelAPIKeyHolder,
     nick_database: NickDatabase,
     loglines: Iterable[str],
     thread_count: int,
+    antisniper_key_holder: Optional[antisniper_api.AntiSniperAPIKeyHolder],
 ) -> Callable[[], Optional[list[Stats]]]:
     """
     Set up and return get_stat_list
@@ -138,6 +140,24 @@ def prepare_overlay(
     # Redraw requests from state updates
     redraw_event = threading.Event()
 
+    def denick(nick: str) -> Optional[str]:
+        """Try denicking via the antisniper API, fallback to dict"""
+        uuid = None
+
+        if antisniper_key_holder is not None:
+            uuid = antisniper_api.denick(nick, key_holder=antisniper_key_holder)
+
+            if uuid is not None:
+                logger.debug(f"Denicked with api {nick} -> {uuid}")
+
+        if uuid is None:
+            uuid = nick_database.get(nick)
+
+            if uuid is not None:
+                logger.debug(f"Denicked with database {nick} -> {uuid}")
+
+        return uuid
+
     # Spawn thread for updating state
     UpdateStateThread(state=state, loglines=loglines, redraw_event=redraw_event).start()
 
@@ -146,8 +166,8 @@ def prepare_overlay(
         GetStatsThread(
             requests_queue=requested_stats_queue,
             completed_queue=completed_stats_queue,
-            key_holder=key_holder,
-            nick_database=nick_database,
+            hypixel_key_holder=hypixel_key_holder,
+            denick=denick,
         ).start()
 
     def get_stat_list() -> Optional[list[Stats]]:

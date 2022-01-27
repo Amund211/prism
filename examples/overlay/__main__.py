@@ -16,6 +16,7 @@ from typing import Iterable, Optional, TextIO
 from appdirs import AppDirs
 from tendo import singleton  # type: ignore
 
+from examples.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from examples.overlay.commandline import get_options
 from examples.overlay.nick_database import EMPTY_DATABASE, NickDatabase
 from examples.overlay.output.overlay import run_overlay
@@ -65,7 +66,8 @@ def tail_file(f: TextIO) -> Iterable[str]:
 
 def process_loglines_to_stdout(
     state: OverlayState,
-    key_holder: HypixelAPIKeyHolder,
+    hypixel_key_holder: HypixelAPIKeyHolder,
+    antisniper_key_holder: Optional[AntiSniperAPIKeyHolder],
     nick_database: NickDatabase,
     loglines: Iterable[str],
     thread_count: int = DOWNLOAD_THREAD_COUNT,
@@ -73,7 +75,8 @@ def process_loglines_to_stdout(
     """Process the state changes for each logline and redraw the screen if neccessary"""
     get_stat_list = prepare_overlay(
         state,
-        key_holder=key_holder,
+        hypixel_key_holder=hypixel_key_holder,
+        antisniper_key_holder=antisniper_key_holder,
         nick_database=nick_database,
         loglines=loglines,
         thread_count=thread_count,
@@ -98,7 +101,8 @@ def process_loglines_to_stdout(
 
 def process_loglines_to_overlay(
     state: OverlayState,
-    key_holder: HypixelAPIKeyHolder,
+    hypixel_key_holder: HypixelAPIKeyHolder,
+    antisniper_key_holder: Optional[AntiSniperAPIKeyHolder],
     nick_database: NickDatabase,
     loglines: Iterable[str],
     output_to_console: bool,
@@ -106,7 +110,12 @@ def process_loglines_to_overlay(
 ) -> None:
     """Process the state changes for each logline and output to an overlay"""
     get_stat_list = prepare_overlay(
-        state, key_holder, nick_database, loglines, thread_count
+        state,
+        hypixel_key_holder=hypixel_key_holder,
+        nick_database=nick_database,
+        loglines=loglines,
+        thread_count=thread_count,
+        antisniper_key_holder=antisniper_key_holder,
     )
 
     if output_to_console:
@@ -141,7 +150,12 @@ def watch_from_logfile(
 
     assert overlay or console, "Need at least one output"
 
-    key_holder = HypixelAPIKeyHolder(settings.hypixel_api_key)
+    hypixel_key_holder = HypixelAPIKeyHolder(settings.hypixel_api_key)
+
+    if settings.use_antisniper_api and settings.antisniper_api_key is not None:
+        antisniper_key_holder = AntiSniperAPIKeyHolder(settings.antisniper_api_key)
+    else:
+        antisniper_key_holder = None
 
     def set_nickname(username: str, nick: str) -> None:
         """Update the user's nickname"""
@@ -198,7 +212,7 @@ def watch_from_logfile(
 
     def set_api_key(new_key: str) -> None:
         """Update the API key that the download threads use"""
-        key_holder.key = new_key
+        hypixel_key_holder.key = new_key
         with settings.mutex:
             settings.hypixel_api_key = new_key
             settings.flush_to_disk()
@@ -222,14 +236,25 @@ def watch_from_logfile(
 
         # Process the rest of the loglines as they come in
         if not overlay:
-            process_loglines_to_stdout(state, key_holder, nick_database, loglines)
+            process_loglines_to_stdout(
+                state,
+                hypixel_key_holder=hypixel_key_holder,
+                antisniper_key_holder=antisniper_key_holder,
+                nick_database=nick_database,
+                loglines=loglines,
+            )
         else:
             process_loglines_to_overlay(
-                state, key_holder, nick_database, loglines, output_to_console=console
+                state,
+                hypixel_key_holder=hypixel_key_holder,
+                antisniper_key_holder=antisniper_key_holder,
+                nick_database=nick_database,
+                loglines=loglines,
+                output_to_console=console,
             )
 
 
-def setup() -> None:
+def setup(loglevel: int = logging.WARNING) -> None:
     """Set up directory structure and logging"""
     # Rename old directories
     olddirs = AppDirs(appname="hystatutils_overlay")
@@ -272,19 +297,17 @@ def setup() -> None:
         if not logpath.exists():
             break
 
-    logging.basicConfig(filename=logpath, level=logging.WARNING)
+    logging.basicConfig(filename=logpath, level=loglevel)
 
 
 def test() -> None:
     """Test the implementation on a static logfile"""
     global TESTING, CLEAR_BETWEEN_DRAWS
 
-    setup()
+    setup(logging.DEBUG)
 
     TESTING = True
     CLEAR_BETWEEN_DRAWS = False
-
-    logger.setLevel(logging.DEBUG)
 
     assert len(sys.argv) >= 3
     output = "overlay" if len(sys.argv) >= 4 and sys.argv[3] == "overlay" else "stdout"
@@ -295,7 +318,8 @@ def test() -> None:
         set_api_key=lambda x: None,
         set_nickname=lambda username, nick: None,
     )
-    key_holder = HypixelAPIKeyHolder("")
+    hypixel_key_holder = HypixelAPIKeyHolder("")
+    antisniper_key_holder = None
     nick_database = EMPTY_DATABASE
 
     with open(sys.argv[2], "r", encoding="utf8", errors="replace") as logfile:
@@ -306,13 +330,20 @@ def test() -> None:
             loglines_with_pause = chain(islice(repeat(""), 500), loglines, repeat(""))
             process_loglines_to_overlay(
                 state,
-                key_holder,
-                nick_database,
-                loglines_with_pause,
+                hypixel_key_holder=hypixel_key_holder,
+                antisniper_key_holder=antisniper_key_holder,
+                nick_database=nick_database,
+                loglines=loglines_with_pause,
                 output_to_console=True,
             )
         else:
-            process_loglines_to_stdout(state, key_holder, nick_database, loglines)
+            process_loglines_to_stdout(
+                state,
+                hypixel_key_holder=hypixel_key_holder,
+                antisniper_key_holder=antisniper_key_holder,
+                nick_database=nick_database,
+                loglines=loglines,
+            )
 
 
 def main(*nick_databases: Path) -> None:
