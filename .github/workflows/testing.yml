@@ -15,10 +15,6 @@ jobs:
         shell: bash  # For `source`
     steps:
     - uses: actions/checkout@v2
-    - name: OS specific setup (mac)
-      if: runner.os == 'macOS'
-      run: |
-        brew install tkmacosx
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
