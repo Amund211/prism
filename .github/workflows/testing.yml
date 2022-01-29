@@ -20,6 +20,10 @@ jobs:
       with:
         python-version: ${{ matrix.python_version }}
 
+    - name: OS specific setup (mac)
+      if: runner.os == 'macOS'
+      run: |
+        brew install tcl-tk
     - name: OS specific setup (windows)
       if: runner.os == 'Windows'
       run: |
