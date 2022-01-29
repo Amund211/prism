@@ -82,6 +82,7 @@ class GetStatsThread(threading.Thread):
                 get_bedwars_stats(
                     username, key_holder=self.hypixel_key_holder, denick=self.denick
                 )
+                logger.debug(f"Finished gettings stats for {username}")
                 self.requests_queue.task_done()
 
                 # Tell the main thread that we downloaded this user's stats
@@ -195,17 +196,20 @@ def prepare_overlay(
         stats: list[Stats] = []
 
         with state.mutex:
-            for player in state.lobby_players:
-                cached_stats = get_cached_stats(player)
-                if cached_stats is None:
-                    # No query made for this player yet
-                    # Start a query and note that a query has been started
-                    cached_stats = set_player_pending(player)
-                    requested_stats_queue.put(player)
-                stats.append(cached_stats)
+            lobby_players = list(state.lobby_players)
 
-            sorted_stats = sort_stats(stats, state.party_members)
+        for player in lobby_players:
+            cached_stats = get_cached_stats(player)
+            if cached_stats is None:
+                # No query made for this player yet
+                # Start a query and note that a query has been started
+                cached_stats = set_player_pending(player)
+                logger.debug(f"Set player {player} to pending")
+                requested_stats_queue.put(player)
+            stats.append(cached_stats)
 
-            return sorted_stats
+        sorted_stats = sort_stats(stats, state.party_members)
+
+        return sorted_stats
 
     return get_stat_list
