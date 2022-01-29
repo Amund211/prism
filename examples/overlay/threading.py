@@ -110,11 +110,12 @@ def should_redraw(
             break
         else:
             completed_stats_queue.task_done()
-            with state.mutex:
-                if username in state.lobby_players:
-                    # We just received the stats of a player in the lobby
-                    # Redraw the screen in case the stats weren't there last time
-                    redraw = True
+            if not redraw:
+                with state.mutex:
+                    if username in state.lobby_players:
+                        # We just received the stats of a player in the lobby
+                        # Redraw the screen in case the stats weren't there last time
+                        redraw = True
 
     if redraw:
         # We are going to redraw - clear any redraw request
