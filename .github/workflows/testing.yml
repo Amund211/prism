@@ -18,7 +18,7 @@ jobs:
     - name: OS specific setup (mac)
       if: runner.os == 'macOS'
       run: |
-        brew install tcl-tk
+        brew install tkmacosx
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
