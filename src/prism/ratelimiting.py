@@ -43,12 +43,14 @@ class RateLimiter:
         self.available_slots.acquire()
 
         with self.mutex:
-            now = datetime.now()
-            time_since_request = now - self.made_requests.popleft()
-            remaining_time_in_window = self.window - time_since_request.total_seconds()
-            if remaining_time_in_window > 0:  # pragma: no cover
-                # Wait until the old request has left the window
-                time.sleep(remaining_time_in_window)
+            old_request = self.made_requests.popleft()
+
+        now = datetime.now()
+        time_since_request = now - old_request
+        remaining_time_in_window = self.window - time_since_request.total_seconds()
+        if remaining_time_in_window > 0:  # pragma: no cover
+            # Wait until the old request has left the window
+            time.sleep(remaining_time_in_window)
 
     def __exit__(
         self,
