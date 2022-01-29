@@ -91,12 +91,15 @@ def process_loglines_to_stdout(
             continue
 
         with state.mutex:
-            print_stats_table(
-                sorted_stats=sorted_stats,
-                party_members=state.party_members,
-                out_of_sync=state.out_of_sync,
-                clear_between_draws=CLEAR_BETWEEN_DRAWS,
-            )
+            party_members = state.party_members.copy()
+            out_of_sync = state.out_of_sync
+
+        print_stats_table(
+            sorted_stats=sorted_stats,
+            party_members=party_members,
+            out_of_sync=out_of_sync,
+            clear_between_draws=CLEAR_BETWEEN_DRAWS,
+        )
 
 
 def process_loglines_to_overlay(
@@ -127,12 +130,15 @@ def process_loglines_to_overlay(
 
             if sorted_stats is not None:
                 with state.mutex:
-                    print_stats_table(
-                        sorted_stats=sorted_stats,
-                        party_members=state.party_members,
-                        out_of_sync=state.out_of_sync,
-                        clear_between_draws=CLEAR_BETWEEN_DRAWS,
-                    )
+                    party_members = state.party_members.copy()
+                    out_of_sync = state.out_of_sync
+
+                print_stats_table(
+                    sorted_stats=sorted_stats,
+                    party_members=party_members,
+                    out_of_sync=out_of_sync,
+                    clear_between_draws=CLEAR_BETWEEN_DRAWS,
+                )
 
             return sorted_stats
 

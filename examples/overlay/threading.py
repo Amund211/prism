@@ -44,9 +44,10 @@ class UpdateStateThread(threading.Thread):
 
                 with self.state.mutex:
                     redraw = update_state(self.state, event)
-                    if redraw:
-                        # Tell the main thread we need a redraw
-                        self.redraw_event.set()
+
+                if redraw:
+                    # Tell the main thread we need a redraw
+                    self.redraw_event.set()
         except (OSError, ValueError) as e:
             # Catch 'read on closed file' if the main thread exited
             logger.debug(f"Exception caught in state update thread: {e}. Exiting")
@@ -98,14 +99,8 @@ def should_redraw(
     completed_stats_queue: queue.Queue[str],
 ) -> bool:
     """Check if any updates happened since last time that needs a redraw"""
-    # Check the work done by the state update and stats download threads
-    redraw = False
-
     # Check if the state update thread has issued any redraws since last time
-    with state.mutex:
-        if redraw_event.is_set():
-            redraw = True
-            redraw_event.clear()
+    redraw = redraw_event.is_set()
 
     # Check if any of the stats downloaded since last render are still in the lobby
     while True:
@@ -120,6 +115,10 @@ def should_redraw(
                     # We just received the stats of a player in the lobby
                     # Redraw the screen in case the stats weren't there last time
                     redraw = True
+
+    if redraw:
+        # We are going to redraw - clear any redraw request
+        redraw_event.clear()
 
     return redraw
 
@@ -196,7 +195,7 @@ def prepare_overlay(
         stats: list[Stats] = []
 
         with state.mutex:
-            lobby_players = list(state.lobby_players)
+            lobby_players = state.lobby_players.copy()
 
         for player in lobby_players:
             cached_stats = get_cached_stats(player)
