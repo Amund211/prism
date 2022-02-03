@@ -67,7 +67,7 @@ def tail_file_with_reopen(path: Path, timeout: float = 30) -> Iterable[str]:
                     # No new lines -> wait
                     if time.monotonic() - last_read > timeout:
                         # More than `timeout` seconds since last read -> reopen file
-                        logger.debug("Timed out reading file '{f.name}'; reopening")
+                        logger.debug("Timed out reading file '{path}'; reopening")
                         reading_fresh_file = True
                         break
 

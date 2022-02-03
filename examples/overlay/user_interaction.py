@@ -7,7 +7,7 @@ import time
 import tkinter as tk
 import tkinter.filedialog
 from pathlib import Path
-from typing import Any, Callable, Iterable, Optional, Sequence, TextIO
+from typing import Any, Callable, Iterable, Optional, Sequence
 
 import toml
 
@@ -17,16 +17,28 @@ from examples.overlay.settings import api_key_is_valid, read_settings
 logger = logging.getLogger(__name__)
 
 
-def watch_file_non_blocking(f: TextIO, timeout: float = 0.1) -> Iterable[Optional[str]]:
-    """Iterate over new lines in a file"""
+def watch_file_non_blocking_with_reopen(
+    path: Path, timeout: float = 10
+) -> Iterable[Optional[str]]:
+    """Iterate over all lines in a file. Reopen the file when stale."""
     while True:
-        line = f.readline()
-        if not line:
-            yield None
-            time.sleep(timeout)
-            continue
+        last_read = time.monotonic()
+        with path.open("r", encoding="utf8", errors="replace") as f:
+            while True:
+                line = f.readline()
+                if not line:
+                    # No new lines -> wait
+                    if time.monotonic() - last_read > timeout:
+                        # More than `timeout` seconds since last read -> reopen file
+                        logger.debug("Timed out reading file '{path}'; reopening")
+                        break
 
-        yield line
+                    yield None
+                    time.sleep(0.1)
+                    continue
+
+                last_read = time.monotonic()
+                yield line
 
 
 class SearchLogfileForKeyThread(threading.Thread):
@@ -49,33 +61,32 @@ class SearchLogfileForKeyThread(threading.Thread):
         has_reached_end = False
         found_key: Optional[str] = None
 
-        with self.logfile_path.open("r", encoding="utf8", errors="replace") as logfile:
-            for line in watch_file_non_blocking(logfile):
-                if self.key_found_event.is_set():
-                    # The other thread found a new key
+        for line in watch_file_non_blocking_with_reopen(self.logfile_path):
+            if self.key_found_event.is_set():
+                # The other thread found a new key
+                return
+
+            if line is None:
+                has_reached_end = True
+                if found_key is not None:
+                    # The found key is the last key
+                    self.key_found_event.set()
+                    self.key_queue.put(found_key)
                     return
+                continue
 
-                if line is None:
-                    has_reached_end = True
-                    if found_key is not None:
-                        # The found key is the last key
-                        self.key_found_event.set()
-                        self.key_queue.put(found_key)
-                        return
-                    continue
+            event = parse_logline(line)
 
-                event = parse_logline(line)
+            if isinstance(event, NewAPIKeyEvent):
+                # Store the found key
+                found_key = event.key
 
-                if isinstance(event, NewAPIKeyEvent):
-                    # Store the found key
-                    found_key = event.key
-
-                    if has_reached_end:
-                        # We have once reached the end of the logfile
-                        # Assume this is the last key
-                        self.key_found_event.set()
-                        self.key_queue.put(found_key)
-                        return
+                if has_reached_end:
+                    # We have once reached the end of the logfile
+                    # Assume this is the last key
+                    self.key_found_event.set()
+                    self.key_queue.put(found_key)
+                    return
 
 
 class SearchSettingsfileForKeyThread(threading.Thread):
