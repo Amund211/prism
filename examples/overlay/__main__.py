@@ -303,7 +303,12 @@ def setup(loglevel: int = logging.WARNING) -> None:
         if not logpath.exists():
             break
 
-    logging.basicConfig(filename=logpath, level=loglevel)
+    logging.basicConfig(
+        filename=logpath,
+        level=loglevel,
+        format="%(asctime)s;%(levelname)-8s;%(name)-30s;%(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
 
 def test() -> None:
