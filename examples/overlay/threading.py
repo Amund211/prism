@@ -48,12 +48,8 @@ class UpdateStateThread(threading.Thread):
                 if redraw:
                     # Tell the main thread we need a redraw
                     self.redraw_event.set()
-        except (OSError, ValueError) as e:
-            # Catch 'read on closed file' if the main thread exited
-            logger.debug(f"Exception caught in state update thread: {e}. Exiting")
-            return
-        except Exception:
-            logger.exception("Exception caught in state update thread. Exiting")
+        except Exception as e:
+            logger.exception(f"Exception caught in state update thread: {e}. Exiting")
             return
 
 

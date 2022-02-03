@@ -11,7 +11,7 @@ from datetime import date
 from functools import partial
 from itertools import count
 from pathlib import Path
-from typing import Iterable, Optional, TextIO
+from typing import Iterable, Optional
 
 from appdirs import AppDirs
 from tendo import singleton  # type: ignore
@@ -51,17 +51,31 @@ CLEAR_BETWEEN_DRAWS = True
 DOWNLOAD_THREAD_COUNT = 15
 
 
-def tail_file(f: TextIO) -> Iterable[str]:
-    """Iterate over new lines in a file"""
-    f.seek(0, 2)
+def tail_file_with_reopen(path: Path, timeout: float = 30) -> Iterable[str]:
+    """Iterate over new lines in a file, reopen the file when stale"""
+    reading_fresh_file = False
     while True:
-        line = f.readline()
-        if not line:
-            # No new lines -> wait
-            time.sleep(0.1)
-            continue
+        last_read = time.monotonic()
+        with path.open("r", encoding="utf8", errors="replace") as f:
+            # If we opened a new file, read it from the start
+            if not reading_fresh_file:
+                f.seek(0, 2)
 
-        yield line
+            while True:
+                line = f.readline()
+                if not line:
+                    # No new lines -> wait
+                    if time.monotonic() - last_read > timeout:
+                        # More than `timeout` seconds since last read -> reopen file
+                        logger.debug("Timed out reading file '{f.name}'; reopening")
+                        reading_fresh_file = True
+                        break
+
+                    time.sleep(0.1)
+                    continue
+
+                last_read = time.monotonic()
+                yield line
 
 
 def process_loglines_to_stdout(
@@ -146,7 +160,7 @@ def process_loglines_to_overlay(
 
 
 def watch_from_logfile(
-    logpath: str,
+    logpath_string: str,
     overlay: bool,
     console: bool,
     settings: Settings,
@@ -233,31 +247,33 @@ def watch_from_logfile(
         set_nickname=set_nickname,
     )
 
-    with open(logpath, "r", encoding="utf8", errors="replace") as logfile:
+    logpath = Path(logpath_string)
+
+    with logpath.open("r", encoding="utf8", errors="replace") as logfile:
         # Process the entire logfile to get current player as well as potential
         # current party/lobby
         fast_forward_state(state, logfile.readlines())
 
-        loglines = tail_file(logfile)
+    loglines = tail_file_with_reopen(logpath)
 
-        # Process the rest of the loglines as they come in
-        if not overlay:
-            process_loglines_to_stdout(
-                state,
-                hypixel_key_holder=hypixel_key_holder,
-                antisniper_key_holder=antisniper_key_holder,
-                nick_database=nick_database,
-                loglines=loglines,
-            )
-        else:
-            process_loglines_to_overlay(
-                state,
-                hypixel_key_holder=hypixel_key_holder,
-                antisniper_key_holder=antisniper_key_holder,
-                nick_database=nick_database,
-                loglines=loglines,
-                output_to_console=console,
-            )
+    # Process the rest of the loglines as they come in
+    if not overlay:
+        process_loglines_to_stdout(
+            state,
+            hypixel_key_holder=hypixel_key_holder,
+            antisniper_key_holder=antisniper_key_holder,
+            nick_database=nick_database,
+            loglines=loglines,
+        )
+    else:
+        process_loglines_to_overlay(
+            state,
+            hypixel_key_holder=hypixel_key_holder,
+            antisniper_key_holder=antisniper_key_holder,
+            nick_database=nick_database,
+            loglines=loglines,
+            output_to_console=console,
+        )
 
 
 def setup(loglevel: int = logging.WARNING) -> None:
