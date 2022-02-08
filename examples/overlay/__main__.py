@@ -53,22 +53,26 @@ DOWNLOAD_THREAD_COUNT = 15
 
 def tail_file_with_reopen(path: Path, timeout: float = 30) -> Iterable[str]:
     """Iterate over new lines in a file, reopen the file when stale"""
-    reading_fresh_file = False
+    # Seek to the end of the first file we open
+    last_position = 0
+
     while True:
         last_read = time.monotonic()
         with path.open("r", encoding="utf8", errors="replace") as f:
-            # If we opened a new file, read it from the start
-            if not reading_fresh_file:
+            new_filesize = path.stat().st_size
+
+            # If we opened the same file, seek to the end so we don't repeat lines
+            if new_filesize >= last_position:
                 f.seek(0, 2)
 
             while True:
                 line = f.readline()
+                last_position = f.tell()
                 if not line:
                     # No new lines -> wait
                     if time.monotonic() - last_read > timeout:
                         # More than `timeout` seconds since last read -> reopen file
-                        logger.debug("Timed out reading file '{path}'; reopening")
-                        reading_fresh_file = True
+                        logger.debug(f"Timed out reading file '{path}'; reopening")
                         break
 
                     time.sleep(0.1)
