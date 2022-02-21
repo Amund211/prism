@@ -59,11 +59,16 @@ def tail_file_with_reopen(path: Path, timeout: float = 30) -> Iterable[str]:
     while True:
         last_read = time.monotonic()
         with path.open("r", encoding="utf8", errors="replace") as f:
-            new_filesize = path.stat().st_size
+            f.seek(0, 2)
+            new_filesize = f.tell()
 
-            # If we opened the same file, seek to the end so we don't repeat lines
-            if new_filesize >= last_position:
-                f.seek(0, 2)
+            if last_position > new_filesize:
+                # File has been truncated - assume it is new and read from the start
+                f.seek(0)
+            else:
+                # File is no smaller than at the last read, assume it is the same file
+                # and seek to where we left off
+                f.seek(last_position)
 
             while True:
                 line = f.readline()
