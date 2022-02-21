@@ -5,6 +5,7 @@ Run from the root dir by `python -m examples.overlay [--logfile <path-to-logfile
 """
 
 import logging
+import os
 import sys
 import time
 from datetime import date
@@ -59,16 +60,16 @@ def tail_file_with_reopen(path: Path, timeout: float = 30) -> Iterable[str]:
     while True:
         last_read = time.monotonic()
         with path.open("r", encoding="utf8", errors="replace") as f:
-            f.seek(0, 2)
+            f.seek(0, os.SEEK_END)
             new_filesize = f.tell()
 
             if last_position > new_filesize:
                 # File has been truncated - assume it is new and read from the start
-                f.seek(0)
+                f.seek(0, os.SEEK_SET)
             else:
                 # File is no smaller than at the last read, assume it is the same file
                 # and seek to where we left off
-                f.seek(last_position)
+                f.seek(last_position, os.SEEK_SET)
 
             while True:
                 line = f.readline()
