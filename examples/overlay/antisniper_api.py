@@ -16,8 +16,8 @@ ANTISNIPER_ENDPOINT = "http://api.antisniper.net/antisniper"
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
 
 
-# Cache both successful and failed denicks for 5 mins
-DENICK_CACHE: TTLCache[str, Optional[str]] = TTLCache(maxsize=512, ttl=5 * 60)
+# Cache both successful and failed denicks for 60 mins
+DENICK_CACHE: TTLCache[str, Optional[str]] = TTLCache(maxsize=1024, ttl=60 * 60)
 DENICK_MUTEX = threading.Lock()
 
 
