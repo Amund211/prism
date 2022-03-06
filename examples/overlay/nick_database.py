@@ -111,6 +111,11 @@ class NickDatabase:
             else:
                 return None
 
+    def get_default(self, nick: str) -> Optional[str]:
+        """Aquire the lock and return the result if we have it in the first database"""
+        with self.mutex:
+            return self.default_database.get(nick, None)
+
 
 # Empty nick database for use as default arg
 EMPTY_DATABASE = NickDatabase([{}])

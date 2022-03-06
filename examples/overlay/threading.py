@@ -146,7 +146,11 @@ def prepare_overlay(
 
     def denick(nick: str) -> Optional[str]:
         """Try denicking via the antisniper API, fallback to dict"""
-        uuid = None
+        uuid = nick_database.get_default(nick)
+
+        # Return if the user has specified a denick
+        if uuid is not None:
+            return uuid
 
         if antisniper_key_holder is not None:
             uuid = antisniper_api.denick(nick, key_holder=antisniper_key_holder)

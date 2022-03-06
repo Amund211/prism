@@ -28,6 +28,7 @@ def test_nick_database() -> None:
     assert nick not in nick_database
     assert not nick_database.knows(nick)
     assert nick_database.get(nick) is None
+    assert nick_database.get_default(nick) is None
     with pytest.raises(ValueError):
         nick_database[nick]
 
@@ -39,6 +40,7 @@ def test_nick_database() -> None:
         assert nick_database[nick] == "someuuid"
         assert nick_database.denick(nick) == "someuuid"
     assert nick_database.get(nick) == "someuuid"
+    assert nick_database.get_default(nick) is None
 
     with nick_database.mutex:
         databases[0][nick] = "higherprionick"
@@ -48,6 +50,7 @@ def test_nick_database() -> None:
         assert nick_database[nick] == "higherprionick"
         assert nick_database.denick(nick) == "higherprionick"
     assert nick_database.get(nick) == "higherprionick"
+    assert nick_database.get_default(nick) == "higherprionick"
 
 
 @pytest.mark.parametrize(
