@@ -90,37 +90,49 @@ def read_settings(path: Path) -> MutableMapping[str, object]:
 
 def fill_missing_settings(
     incomplete_settings: MutableMapping[str, object], get_api_key: Callable[[], str]
-) -> SettingsDict:
+) -> tuple[SettingsDict, bool]:
+    """Get settings from `incomplete_settings` and fill with defaults if missing"""
+    settings_updated = False
+
     hypixel_api_key = incomplete_settings.get("hypixel_api_key", None)
     if not isinstance(hypixel_api_key, str) or not api_key_is_valid(hypixel_api_key):
+        settings_updated = True
         hypixel_api_key = get_api_key()
 
     antisniper_api_key = incomplete_settings.get("antisniper_api_key", None)
     if not isinstance(antisniper_api_key, str) or not api_key_is_valid(
         antisniper_api_key
     ):
-        antisniper_api_key = None
+        # Don't make any updates if the key is already set to the placeholder
+        if antisniper_api_key != PLACEHOLDER_API_KEY:
+            settings_updated = True
+        antisniper_api_key = PLACEHOLDER_API_KEY
 
     use_antisniper_api = incomplete_settings.get("use_antisniper_api", None)
     if not isinstance(use_antisniper_api, bool):
+        settings_updated = True
         use_antisniper_api = False
 
     known_nicks_source = incomplete_settings.get("known_nicks", None)
     if not isinstance(known_nicks_source, dict):
+        settings_updated = True
         known_nicks_source = {}
 
     known_nicks: dict[str, NickValue] = {}
     for key, value in known_nicks_source.items():
         if not isinstance(key, str):
+            settings_updated = True
             continue
 
         if not isinstance(value, dict):
+            settings_updated = True
             continue
 
         uuid = value.get("uuid", None)
         comment = value.get("comment", None)
 
         if not isinstance(uuid, str) or not isinstance(comment, str):
+            settings_updated = True
             continue
 
         known_nicks[key] = NickValue(uuid=uuid, comment=comment)
@@ -130,7 +142,7 @@ def fill_missing_settings(
         "antisniper_api_key": antisniper_api_key,
         "use_antisniper_api": use_antisniper_api,
         "known_nicks": known_nicks,
-    }
+    }, settings_updated
 
 
 def get_settings(path: Path, get_api_key: Callable[[], str]) -> Settings:
@@ -153,6 +165,13 @@ def get_settings(path: Path, get_api_key: Callable[[], str]) -> Settings:
         with path.open("w") as f:
             toml.dump(incomplete_settings, f)
 
-    settings_dict = fill_missing_settings(incomplete_settings, get_api_key)
+    settings_dict, settings_updated = fill_missing_settings(
+        incomplete_settings, get_api_key
+    )
 
-    return Settings.from_dict(settings_dict, path=path)
+    settings = Settings.from_dict(settings_dict, path=path)
+
+    if settings_updated:
+        settings.flush_to_disk()
+
+    return settings

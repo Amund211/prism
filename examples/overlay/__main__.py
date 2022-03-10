@@ -22,7 +22,7 @@ from examples.overlay.commandline import get_options
 from examples.overlay.nick_database import EMPTY_DATABASE, NickDatabase
 from examples.overlay.output.overlay import run_overlay
 from examples.overlay.output.printing import print_stats_table
-from examples.overlay.settings import Settings, get_settings
+from examples.overlay.settings import Settings, api_key_is_valid, get_settings
 from examples.overlay.state import OverlayState, fast_forward_state
 from examples.overlay.stats import Stats, clear_cache, uncache_stats
 from examples.overlay.threading import prepare_overlay
@@ -182,7 +182,11 @@ def watch_from_logfile(
 
     hypixel_key_holder = HypixelAPIKeyHolder(settings.hypixel_api_key)
 
-    if settings.use_antisniper_api and settings.antisniper_api_key is not None:
+    if (
+        settings.use_antisniper_api
+        and settings.antisniper_api_key is not None
+        and api_key_is_valid(settings.antisniper_api_key)
+    ):
         antisniper_key_holder = AntiSniperAPIKeyHolder(settings.antisniper_api_key)
     else:
         antisniper_key_holder = None

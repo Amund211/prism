@@ -28,7 +28,7 @@ def make_settings_dict(
     """Make a settings dict with default values if missing"""
     return {
         "hypixel_api_key": hypixel_api_key or KEY_IF_MISSING,
-        "antisniper_api_key": antisniper_api_key or None,
+        "antisniper_api_key": antisniper_api_key or PLACEHOLDER_API_KEY,
         "use_antisniper_api": use_antisniper_api or False,
         "known_nicks": known_nicks or {},
     }
@@ -114,31 +114,38 @@ def test_read_and_write_settings(
 
 
 @pytest.mark.parametrize(
-    "incomplete_settings, result",
+    "incomplete_settings, result_dict, result_updated",
     (
         (
             {
                 "hypixel_api_key": "my-key",
+                "antisniper_api_key": "my-key",
+                "use_antisniper_api": False,
                 "known_nicks": {
                     "AmazingNick": {"uuid": "123987", "comment": "Player1"}
                 },
             },
             make_settings_dict(
                 hypixel_api_key="my-key",
+                antisniper_api_key="my-key",
                 known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             ),
+            False,
         ),
         (
             {"hypixel_api_key": "my-key"},
             make_settings_dict(hypixel_api_key="my-key"),
+            True,
         ),
         (
             {"hypixel_api_key": 1},
             make_settings_dict(),
+            True,
         ),
         (
             {"hypixel_api_key": None},
             make_settings_dict(),
+            True,
         ),
         (
             {
@@ -150,31 +157,37 @@ def test_read_and_write_settings(
             make_settings_dict(
                 known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}}
             ),
+            True,
         ),
         (
             {"antisniper_api_key": None},
             make_settings_dict(),
+            True,
         ),
         (
             {"hypixel_api_key": "my-key", "use_antisniper_api": True},
             make_settings_dict(hypixel_api_key="my-key", use_antisniper_api=True),
+            True,
         ),
         # Placeholder key
         (
             {"hypixel_api_key": PLACEHOLDER_API_KEY},
             make_settings_dict(),
+            True,
         ),
         # Key too short
         (
             {"hypixel_api_key": "k"},
             make_settings_dict(),
+            True,
         ),
         (
             {"antisniper_api_key": "k"},
             make_settings_dict(),
+            True,
         ),
         # No settings
-        ({}, make_settings_dict()),
+        ({}, make_settings_dict(), True),
         # Corrupt data in known_nicks
         (
             {
@@ -185,6 +198,7 @@ def test_read_and_write_settings(
                 },
             },
             make_settings_dict(hypixel_api_key="my-key"),
+            True,
         ),
         (
             {
@@ -198,6 +212,7 @@ def test_read_and_write_settings(
                 },
             },
             make_settings_dict(hypixel_api_key="my-key"),
+            True,
         ),
         (
             {
@@ -208,6 +223,7 @@ def test_read_and_write_settings(
                 },
             },
             make_settings_dict(hypixel_api_key="my-key"),
+            True,
         ),
         (
             {
@@ -218,11 +234,15 @@ def test_read_and_write_settings(
                 },
             },
             make_settings_dict(hypixel_api_key="my-key"),
+            True,
         ),
     ),
 )
 def test_fill_missing_settings(
-    incomplete_settings: dict[str, Any], result: SettingsDict
+    incomplete_settings: dict[str, Any], result_dict: SettingsDict, result_updated: bool
 ) -> None:
-
-    assert fill_missing_settings(incomplete_settings, get_api_key) == result
+    settings_dict, settings_updated = fill_missing_settings(
+        incomplete_settings, get_api_key
+    )
+    assert settings_dict == result_dict
+    assert settings_updated == result_updated
