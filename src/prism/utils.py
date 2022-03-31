@@ -20,12 +20,12 @@ def pluralize(word: str) -> str:
     return word + "s"
 
 
-def div(dividend: Union[int, float], divisor: Union[int, float]) -> float:
-    """Divide two numbers, returning INF if divisor is 0"""
+def div(dividend: float, divisor: float) -> float:
+    """Divide two numbers, returning dividend if divisor is 0"""
     if dividend == 0:
         return 0.0
     elif divisor == 0:
-        return float("inf") * (1 if dividend >= 0 else -1)
+        return dividend
     return dividend / divisor
 
 
