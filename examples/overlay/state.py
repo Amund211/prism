@@ -211,6 +211,11 @@ def update_state(state: OverlayState, event: Event) -> bool:
         return True
 
     if event.event_type is EventType.PARTY_LEAVE:
+        if state.own_username in event.usernames:
+            # You left the party -> clear the party instead
+            state.clear_party()
+            return True
+
         # Someone left your party -> remove them from your party
         for username in event.usernames:
             state.remove_from_party(username)

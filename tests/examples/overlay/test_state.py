@@ -266,6 +266,27 @@ update_state_test_cases_base = (
         create_state(lobby_players={"Player1"}, in_queue=True),
         True,
     ),
+    (
+        "don't remove yourself from the party",
+        create_state(own_username="myusername"),
+        PartyLeaveEvent(["myusername"]),
+        create_state(own_username="myusername"),
+        True,
+    ),
+    (
+        "clear the party when you leave",
+        create_state(party_members={"abc", "def"}, own_username="myusername"),
+        PartyLeaveEvent(["myusername"]),
+        create_state(own_username="myusername"),
+        True,
+    ),
+    (
+        "party leave with no own_username",
+        create_state(own_username=None),
+        PartyLeaveEvent(["myusername"]),
+        create_state(own_username=None),
+        True,
+    ),
 )
 
 update_state_test_ids = [test_case[0] for test_case in update_state_test_cases_base]
