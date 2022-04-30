@@ -150,6 +150,7 @@ def prepare_overlay(
 
         # Return if the user has specified a denick
         if uuid is not None:
+            logger.debug(f"Denicked with default database {nick} -> {uuid}")
             return uuid
 
         if antisniper_key_holder is not None:
@@ -157,14 +158,17 @@ def prepare_overlay(
 
             if uuid is not None:
                 logger.debug(f"Denicked with api {nick} -> {uuid}")
+                return uuid
 
-        if uuid is None:
-            uuid = nick_database.get(nick)
+        uuid = nick_database.get(nick)
 
-            if uuid is not None:
-                logger.debug(f"Denicked with database {nick} -> {uuid}")
+        if uuid is not None:
+            logger.debug(f"Denicked with database {nick} -> {uuid}")
+            return uuid
 
-        return uuid
+        logger.debug(f"Failed denicking {nick}")
+
+        return None
 
     # Spawn thread for updating state
     UpdateStateThread(state=state, loglines=loglines, redraw_event=redraw_event).start()
