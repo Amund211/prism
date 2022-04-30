@@ -41,6 +41,8 @@ jobs:
         python -m venv venv
         source ${{ env.ACTIVATE_PATH }}
         python -m pip install -r requirements.dev.txt
+        # For converting .ico to .icns in pyinstaller
+        python -m pip install Pillow
 
     - name: Run typechecking
       run: |
