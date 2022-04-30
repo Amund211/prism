@@ -177,7 +177,7 @@ def get_bedwars_stats(
         uuid = get_uuid(username)
     except MojangAPIError as e:
         # No match from Mojang -> assume the username is a nickname
-        logger.debug(f"Failed getting uuid for username {username}", e)
+        logger.debug(f"Failed getting uuid for username {username} {e=}")
         uuid = None
 
     # Look up in nick database if we got no match from Mojang
@@ -199,7 +199,8 @@ def get_bedwars_stats(
             playerdata = get_player_data(uuid, key_holder)
         except HypixelAPIError as e:
             logger.debug(
-                f"Failed initially getting stats for {username} ({uuid}) {denicked=}", e
+                f"Failed initially getting stats for {username} ({uuid}) {denicked=} "
+                f"{e=}"
             )
             playerdata = None
 
@@ -215,7 +216,9 @@ def get_bedwars_stats(
                 try:
                     playerdata = get_player_data(uuid, key_holder)
                 except HypixelAPIError as e:
-                    logger.debug(f"Failed getting stats for nicked {nick} ({uuid})", e)
+                    logger.debug(
+                        f"Failed getting stats for nicked {nick} ({uuid}) {e=}"
+                    )
                     playerdata = None
 
         if playerdata is None:
