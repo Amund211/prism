@@ -230,12 +230,12 @@ def watch_from_logfile(
             settings.flush_to_disk()
 
         with nick_database.mutex:
-            # Add your new nick
-            nick_database.default_database[nick] = own_uuid
-
             # Delete your old nick if found
             if old_nick is not None:
                 nick_database.default_database.pop(old_nick, None)
+
+            # Add your new nick
+            nick_database.default_database[nick] = own_uuid
 
         if old_nick is not None:
             # Drop the stats cache for your old nick
