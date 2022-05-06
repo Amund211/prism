@@ -22,6 +22,7 @@ from examples.overlay.parsing import (
     PartyListIncomingEvent,
     PartyMembershipListEvent,
     StartBedwarsGameEvent,
+    WhisperCommandSetNickEvent,
     get_lowest_index,
     parse_chat_message,
     parse_logline,
@@ -221,6 +222,13 @@ UNEVENTFUL_LOGLINES = (
     "[Info: 2022-01-07 13:48:02.379053772: GameCallbacks.cpp(162)] Game/avt (Client thread) Info [CHAT] Your new API key is deadbeef-ae10-4d07-25f6-f23130b92652 justkidding",  # Malformed
     "[15:03:53] [Client thread/INFO]: [CHAT] You are now nicked as AmazingNick! just kidding",  # Malformed
     "[15:03:53] [Client thread/INFO]: [CHAT] You are now nicked as AmazingNick",  # Malformed (no !)
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of !someusername'",  # Missing '
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!someusername",  # Missing '
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of !someusername",  # Missing '
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of !someusername",  # Missing '
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!somewierdcommand'",  # Unknown command
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!",  # Empty/malformed
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!a=b=c'",  # Too many arguments to setnick
     # Attempts to inject log messages
     "[15:03:53] [Client thread/INFO]: [CHAT] [MVP+] MaliciousPlayer: (Client thread) Info Setting user: Player1",
     "[15:03:53] [Client thread/INFO]: [CHAT] [MVP+] MaliciousPlayer: (Client thread) Info [CHAT] ONLINE: Player1",
@@ -379,6 +387,14 @@ parsing_test_cases = (
     (
         "[Info: 2022-01-07 13:48:02.379053772: GameCallbacks.cpp(162)] Game/avt (Client thread) Info [CHAT] Your new API key is deadbeef-ae10-4d07-25f6-f23130b92652",
         NewAPIKeyEvent("deadbeef-ae10-4d07-25f6-f23130b92652"),
+    ),
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!nick=username'",
+        WhisperCommandSetNickEvent(nick="nick", username="username"),
+    ),
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!nick='",
+        WhisperCommandSetNickEvent(nick="nick", username=None),
     ),
 )
 

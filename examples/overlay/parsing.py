@@ -54,6 +54,9 @@ class EventType(Enum):
     # New API key
     NEW_API_KEY = auto()  # New API key in chat (/api new)
 
+    # Commands /w !<command>
+    WHISPER_COMMAND_SET_NICK = auto()
+
 
 @dataclass
 class InitializeAsEvent:
@@ -143,6 +146,20 @@ class NewAPIKeyEvent:
     event_type: Literal[EventType.NEW_API_KEY] = EventType.NEW_API_KEY
 
 
+@unique
+class WhisperCommandType(Enum):
+    SET_NICK = auto()
+
+
+@dataclass
+class WhisperCommandSetNickEvent:
+    nick: str
+    username: str | None
+    event_type: Literal[
+        EventType.WHISPER_COMMAND_SET_NICK
+    ] = EventType.WHISPER_COMMAND_SET_NICK
+
+
 Event = Union[
     InitializeAsEvent,
     NewNicknameEvent,
@@ -159,6 +176,7 @@ Event = Union[
     StartBedwarsGameEvent,
     EndBedwarsGameEvent,
     NewAPIKeyEvent,
+    WhisperCommandSetNickEvent,
 ]
 
 
@@ -527,5 +545,32 @@ def parse_chat_message(message: str) -> Optional[Event]:
 
             # I can't for the life of me get the literal types here
             return PartyMembershipListEvent(usernames=players, role=role)  # type:ignore
+
+    WHISPER_COMMAND_PREFIX = "Can't find a player by the name of '!"
+    if message.startswith(WHISPER_COMMAND_PREFIX):
+        command = message.removeprefix(WHISPER_COMMAND_PREFIX)
+        if not command:
+            logger.debug("Whisper command too short")
+            return None
+
+        if command[-1] != "'":
+            logger.debug("Whisper command missing closing '")
+            return None
+
+        command = command[:-1]
+
+        if "=" in command:
+            arguments = command.split("=")
+            if len(arguments) != 2:
+                logger.debug("Whisper setnick command got too many arguments")
+                return None
+
+            nick, username = arguments
+
+            return WhisperCommandSetNickEvent(
+                nick=nick, username=username if username else None
+            )
+
+        return None
 
     return None

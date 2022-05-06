@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class SetNickname(Protocol):  # pragma: no cover
-    def __call__(self, *, username: str, nick: str) -> None:
+    def __call__(self, *, username: str | None, nick: str) -> None:
         ...
 
 
@@ -264,6 +264,11 @@ def update_state(state: OverlayState, event: Event) -> bool:
         state.set_api_key(event.key)
 
         return False
+
+    if event.event_type is EventType.WHISPER_COMMAND_SET_NICK:
+        # User set a nick with /w !nick=username
+        state.set_nickname(username=event.username, nick=event.nick)
+        return True
 
 
 def fast_forward_state(state: OverlayState, loglines: Iterable[str]) -> None:

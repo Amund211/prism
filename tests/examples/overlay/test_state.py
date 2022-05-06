@@ -20,6 +20,7 @@ from examples.overlay.parsing import (
     PartyListIncomingEvent,
     PartyMembershipListEvent,
     StartBedwarsGameEvent,
+    WhisperCommandSetNickEvent,
 )
 from examples.overlay.state import (
     OverlayState,
@@ -174,6 +175,13 @@ update_state_test_cases_base = (
         "end bedwars game",
         create_state(lobby_players={"a", "bunch", "of", "players"}),
         EndBedwarsGameEvent(),
+        create_state(),
+        True,
+    ),
+    (
+        "whisper command set nick",
+        create_state(),
+        WhisperCommandSetNickEvent(nick="alkj", username="LKJLKJ"),
         create_state(),
         True,
     ),

@@ -191,22 +191,23 @@ def watch_from_logfile(
     else:
         antisniper_key_holder = None
 
-    def set_nickname(username: str, nick: str) -> None:
+    def set_nickname(username: str | None, nick: str) -> None:
         """Update the user's nickname"""
-        try:
-            own_uuid = get_uuid(username)
-        except MojangAPIError as e:
-            logger.error(
-                f"Failed getting uuid for '{username}' when setting nickname. " f"'{e}'"
-            )
-            return
+        if username is not None:
+            try:
+                own_uuid = get_uuid(username)
+            except MojangAPIError as e:
+                logger.error(
+                    f"Failed getting uuid for '{username}' when setting nickname. '{e}'"
+                )
+                return
 
-        if own_uuid is None:
-            logger.error(
-                f"Failed getting uuid for '{username}' when setting nickname. "
-                "No match found."
-            )
-            return
+            if own_uuid is None:
+                logger.error(
+                    f"Failed getting uuid for '{username}' when setting nickname. "
+                    "No match found."
+                )
+                return
 
         old_nick = None
 
@@ -218,15 +219,17 @@ def watch_from_logfile(
                     break
             else:
                 # Found no matching entries - make a new one
-                new_nick_value = {"uuid": own_uuid, "comment": username}
+                new_nick_value = {"uuid": own_uuid, "comment": username}  # type: ignore
                 old_nick = None
 
             # Remove your old nick if found
             if old_nick is not None:
                 del settings.known_nicks[old_nick]
 
-            # Add your new nick
-            settings.known_nicks[nick] = new_nick_value
+            if username is not None:
+                # Add your new nick
+                settings.known_nicks[nick] = new_nick_value
+
             settings.flush_to_disk()
 
         with nick_database.mutex:
@@ -234,8 +237,9 @@ def watch_from_logfile(
             if old_nick is not None:
                 nick_database.default_database.pop(old_nick, None)
 
-            # Add your new nick
-            nick_database.default_database[nick] = own_uuid
+            if username is not None:
+                # Add your new nick
+                nick_database.default_database[nick] = own_uuid  # type: ignore
 
         if old_nick is not None:
             # Drop the stats cache for your old nick
