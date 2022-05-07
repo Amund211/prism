@@ -193,40 +193,47 @@ def watch_from_logfile(
 
     def set_nickname(username: str | None, nick: str) -> None:
         """Update the user's nickname"""
-        if username is not None:
-            try:
-                own_uuid = get_uuid(username)
-            except MojangAPIError as e:
-                logger.error(
-                    f"Failed getting uuid for '{username}' when setting nickname. '{e}'"
-                )
-                return
-
-            if own_uuid is None:
-                logger.error(
-                    f"Failed getting uuid for '{username}' when setting nickname. "
-                    "No match found."
-                )
-                return
+        logger.debug(f"Setting denick {nick=} => {username=}")
 
         old_nick = None
 
+        if username is not None:
+            try:
+                uuid = get_uuid(username)
+            except MojangAPIError as e:
+                logger.error(f"API error when getting uuid for '{username}'. '{e}'")
+                uuid = None
+
+            if uuid is None:
+                logger.error(
+                    f"Failed getting uuid for '{username}' when setting nickname."
+                )
+                # Delete the entry for this nick
+                old_nick = nick
+        else:
+            uuid = None
+            # Delete the entry for this nick
+            old_nick = nick
+
         with settings.mutex:
-            # Search the known nicks in settings for your own uuid
-            for old_nick, nick_value in settings.known_nicks.items():
-                if own_uuid == nick_value["uuid"]:
-                    new_nick_value = nick_value
-                    break
+            if uuid is not None and username is not None:
+                # Search the known nicks in settings for the uuid
+                for old_nick, nick_value in settings.known_nicks.items():
+                    if uuid == nick_value["uuid"]:
+                        new_nick_value = nick_value
+                        break
+                else:
+                    # Found no matching entries - make a new one
+                    new_nick_value = {"uuid": uuid, "comment": username}
+                    old_nick = None
             else:
-                # Found no matching entries - make a new one
-                new_nick_value = {"uuid": own_uuid, "comment": username}  # type: ignore
-                old_nick = None
+                new_nick_value = None
 
-            # Remove your old nick if found
+            # Remove the old nick if found
             if old_nick is not None:
-                del settings.known_nicks[old_nick]
+                settings.known_nicks.pop(old_nick, None)
 
-            if username is not None:
+            if new_nick_value is not None:
                 # Add your new nick
                 settings.known_nicks[nick] = new_nick_value
 
@@ -237,9 +244,9 @@ def watch_from_logfile(
             if old_nick is not None:
                 nick_database.default_database.pop(old_nick, None)
 
-            if username is not None:
+            if uuid is not None:
                 # Add your new nick
-                nick_database.default_database[nick] = own_uuid  # type: ignore
+                nick_database.default_database[nick] = uuid
 
         if old_nick is not None:
             # Drop the stats cache for your old nick
