@@ -77,6 +77,9 @@ def div_string(
     if not math.isfinite(quotient):
         return str(quotient)
 
+    if isinstance(quotient, int):
+        return str(quotient)
+
     return f"{quotient:.2f}"
 
 
