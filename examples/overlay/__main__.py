@@ -12,14 +12,15 @@ import time
 from datetime import date
 from itertools import count
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Callable, Iterable, Optional
 
 from appdirs import AppDirs
 from tendo import singleton  # type: ignore
 
+import examples.overlay.antisniper_api as antisniper_api
 from examples.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from examples.overlay.commandline import get_options
-from examples.overlay.nick_database import EMPTY_DATABASE, NickDatabase
+from examples.overlay.nick_database import NickDatabase
 from examples.overlay.output.overlay import run_overlay
 from examples.overlay.output.printing import print_stats_table
 from examples.overlay.settings import Settings, api_key_is_valid, get_settings
@@ -50,6 +51,16 @@ logger = logging.getLogger(__name__)
 TESTING = False
 CLEAR_BETWEEN_DRAWS = True
 DOWNLOAD_THREAD_COUNT = 15
+
+
+def slow_iterable(iterable: Iterable[str], wait: float = 1) -> Iterable[str]:
+    """Wait `wait` seconds between each yield from iterable"""
+    # Used for testing
+    for item in iterable:
+        time.sleep(wait)
+        print(f"Yielding '{item}'")
+        yield item
+    print("Done yielding")
 
 
 def tail_file_with_reopen(path: Path, timeout: float = 30) -> Iterable[str]:
@@ -91,8 +102,7 @@ def tail_file_with_reopen(path: Path, timeout: float = 30) -> Iterable[str]:
 def process_loglines_to_stdout(
     state: OverlayState,
     hypixel_key_holder: HypixelAPIKeyHolder,
-    antisniper_key_holder: Optional[AntiSniperAPIKeyHolder],
-    nick_database: NickDatabase,
+    denick: Callable[[str], Optional[str]],
     loglines: Iterable[str],
     thread_count: int = DOWNLOAD_THREAD_COUNT,
 ) -> None:
@@ -100,8 +110,7 @@ def process_loglines_to_stdout(
     get_stat_list = prepare_overlay(
         state,
         hypixel_key_holder=hypixel_key_holder,
-        antisniper_key_holder=antisniper_key_holder,
-        nick_database=nick_database,
+        denick=denick,
         loglines=loglines,
         thread_count=thread_count,
     )
@@ -129,8 +138,7 @@ def process_loglines_to_stdout(
 def process_loglines_to_overlay(
     state: OverlayState,
     hypixel_key_holder: HypixelAPIKeyHolder,
-    antisniper_key_holder: Optional[AntiSniperAPIKeyHolder],
-    nick_database: NickDatabase,
+    denick: Callable[[str], Optional[str]],
     loglines: Iterable[str],
     output_to_console: bool,
     thread_count: int = DOWNLOAD_THREAD_COUNT,
@@ -139,10 +147,9 @@ def process_loglines_to_overlay(
     get_stat_list = prepare_overlay(
         state,
         hypixel_key_holder=hypixel_key_holder,
-        nick_database=nick_database,
+        denick=denick,
         loglines=loglines,
         thread_count=thread_count,
-        antisniper_key_holder=antisniper_key_holder,
     )
 
     if output_to_console:
@@ -167,6 +174,37 @@ def process_loglines_to_overlay(
             return sorted_stats
 
     run_overlay(state, get_stat_list)
+
+
+def denick_with_api(
+    nick: str,
+    nick_database: NickDatabase,
+    antisniper_key_holder: AntiSniperAPIKeyHolder,
+) -> Optional[str]:
+    """Try denicking via the antisniper API, fallback to dict"""
+    uuid = nick_database.get_default(nick)
+
+    # Return if the user has specified a denick
+    if uuid is not None:
+        logger.debug(f"Denicked with default database {nick} -> {uuid}")
+        return uuid
+
+    if antisniper_key_holder is not None:
+        uuid = antisniper_api.denick(nick, key_holder=antisniper_key_holder)
+
+        if uuid is not None:
+            logger.debug(f"Denicked with api {nick} -> {uuid}")
+            return uuid
+
+    uuid = nick_database.get(nick)
+
+    if uuid is not None:
+        logger.debug(f"Denicked with database {nick} -> {uuid}")
+        return uuid
+
+    logger.debug(f"Failed denicking {nick}")
+
+    return None
 
 
 def set_nickname(
@@ -289,22 +327,26 @@ def watch_from_logfile(
 
     loglines = tail_file_with_reopen(logpath)
 
+    denick = functools.partial(
+        denick_with_api,
+        nick_database=nick_database,
+        antisniper_key_holder=antisniper_key_holder,
+    )
+
     # Process the rest of the loglines as they come in
     if not overlay:
         process_loglines_to_stdout(
             state,
             hypixel_key_holder=hypixel_key_holder,
-            antisniper_key_holder=antisniper_key_holder,
-            nick_database=nick_database,
+            denick=denick,
             loglines=loglines,
         )
     else:
         process_loglines_to_overlay(
             state,
             hypixel_key_holder=hypixel_key_holder,
-            antisniper_key_holder=antisniper_key_holder,
-            nick_database=nick_database,
             loglines=loglines,
+            denick=denick,
             output_to_console=console,
         )
 
@@ -361,49 +403,92 @@ def setup(loglevel: int = logging.WARNING) -> None:
 
 
 def test() -> None:
-    """Test the implementation on a static logfile"""
-    global TESTING, CLEAR_BETWEEN_DRAWS
-
+    """Test the implementation on a static logfile or a list of loglines"""
     setup(logging.DEBUG)
 
-    TESTING = True
-    CLEAR_BETWEEN_DRAWS = False
+    options = get_options(
+        args=sys.argv[2:], default_settings_path=DEFAULT_SETTINGS_PATH
+    )
 
-    assert len(sys.argv) >= 3
-    output = "overlay" if len(sys.argv) >= 4 and sys.argv[3] == "overlay" else "stdout"
+    slow, wait = True, 1
+    get_stats = False
+    overlay = True
+    console = options.output_to_console
+
+    stats_thread_count = 1 if get_stats else 0
+
+    loglines: Iterable[str]
+    if options.logfile_path is not None:
+        # loglines = tail_file_with_reopen(Path(logpath_string))
+        loglines = options.logfile_path.open("r", encoding="utf8", errors="replace")
+    else:
+        loglines = [
+            "(Client thread) Info Setting user: YourIGN",
+            "(Client thread) Info [CHAT] You have joined [MVP++] Teammate's party!",
+            "(Client thread) Info [CHAT] Teammate has joined (2/16)!",
+            "(Client thread) Info [CHAT] YourIGN has joined (3/16)!",
+            "(Client thread) Info [CHAT] ONLINE: YourIGN, Teammate, SomeoneElse",
+            "(Client thread) Info [CHAT] NewPlayer has joined (4/16)!",
+        ]
+
+    if slow:
+        loglines = slow_iterable(loglines, wait=wait)
+
+    settings = get_settings(options.settings_path, lambda: "not-a-valid-api-key")
+
+    with settings.mutex:
+        default_database = {
+            nick: value["uuid"] for nick, value in settings.known_nicks.items()
+        }
+
+    nick_database = NickDatabase.from_disk([], default_database=default_database)
+
+    # watch_from_logfile
+    hypixel_key_holder = HypixelAPIKeyHolder(settings.hypixel_api_key)
+
+    if (
+        settings.use_antisniper_api
+        and settings.antisniper_api_key is not None
+        and api_key_is_valid(settings.antisniper_api_key)
+    ):
+        antisniper_key_holder = AntiSniperAPIKeyHolder(settings.antisniper_api_key)
+    else:
+        antisniper_key_holder = None
 
     state = OverlayState(
         lobby_players=set(),
         party_members=set(),
-        set_api_key=lambda x: None,
-        set_nickname=lambda username, nick: None,
+        set_api_key=functools.partial(
+            set_api_key, settings=settings, hypixel_key_holder=hypixel_key_holder
+        ),
+        set_nickname=functools.partial(
+            set_nickname, settings=settings, nick_database=nick_database
+        ),
     )
-    hypixel_key_holder = HypixelAPIKeyHolder("")
-    antisniper_key_holder = None
-    nick_database = EMPTY_DATABASE
 
-    with open(sys.argv[2], "r", encoding="utf8", errors="replace") as logfile:
-        loglines = logfile
-        if output == "overlay":
-            from itertools import chain, islice, repeat
+    denick = functools.partial(
+        denick_with_api,
+        nick_database=nick_database,
+        antisniper_key_holder=antisniper_key_holder,
+    )
 
-            loglines_with_pause = chain(islice(repeat(""), 500), loglines, repeat(""))
-            process_loglines_to_overlay(
-                state,
-                hypixel_key_holder=hypixel_key_holder,
-                antisniper_key_holder=antisniper_key_holder,
-                nick_database=nick_database,
-                loglines=loglines_with_pause,
-                output_to_console=True,
-            )
-        else:
-            process_loglines_to_stdout(
-                state,
-                hypixel_key_holder=hypixel_key_holder,
-                antisniper_key_holder=antisniper_key_holder,
-                nick_database=nick_database,
-                loglines=loglines,
-            )
+    if not overlay:
+        process_loglines_to_stdout(
+            state,
+            hypixel_key_holder=hypixel_key_holder,
+            denick=denick,
+            loglines=loglines,
+            thread_count=stats_thread_count,
+        )
+    else:
+        process_loglines_to_overlay(
+            state,
+            hypixel_key_holder=hypixel_key_holder,
+            loglines=loglines,
+            denick=denick,
+            output_to_console=console,
+            thread_count=stats_thread_count,
+        )
 
 
 def main(*nick_databases: Path) -> None:

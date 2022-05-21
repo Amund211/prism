@@ -3,8 +3,6 @@ import queue
 import threading
 from typing import Callable, Iterable, Optional
 
-import examples.overlay.antisniper_api as antisniper_api
-from examples.overlay.nick_database import NickDatabase
 from examples.overlay.parsing import parse_logline
 from examples.overlay.state import OverlayState, update_state
 from examples.overlay.stats import (
@@ -84,8 +82,8 @@ class GetStatsThread(threading.Thread):
 
                 # Tell the main thread that we downloaded this user's stats
                 self.completed_queue.put(username)
-        except Exception:
-            logger.exception("Exception caught in stats thread. Exiting")
+        except Exception as e:
+            logger.exception(f"Exception caught in stats thread: {e}. Exiting")
             return
 
 
@@ -123,10 +121,9 @@ def should_redraw(
 def prepare_overlay(
     state: OverlayState,
     hypixel_key_holder: HypixelAPIKeyHolder,
-    nick_database: NickDatabase,
+    denick: Callable[[str], Optional[str]],
     loglines: Iterable[str],
     thread_count: int,
-    antisniper_key_holder: Optional[antisniper_api.AntiSniperAPIKeyHolder],
 ) -> Callable[[], Optional[list[Stats]]]:
     """
     Set up and return get_stat_list
@@ -143,32 +140,6 @@ def prepare_overlay(
     completed_stats_queue = queue.Queue[str]()
     # Redraw requests from state updates
     redraw_event = threading.Event()
-
-    def denick(nick: str) -> Optional[str]:
-        """Try denicking via the antisniper API, fallback to dict"""
-        uuid = nick_database.get_default(nick)
-
-        # Return if the user has specified a denick
-        if uuid is not None:
-            logger.debug(f"Denicked with default database {nick} -> {uuid}")
-            return uuid
-
-        if antisniper_key_holder is not None:
-            uuid = antisniper_api.denick(nick, key_holder=antisniper_key_holder)
-
-            if uuid is not None:
-                logger.debug(f"Denicked with api {nick} -> {uuid}")
-                return uuid
-
-        uuid = nick_database.get(nick)
-
-        if uuid is not None:
-            logger.debug(f"Denicked with database {nick} -> {uuid}")
-            return uuid
-
-        logger.debug(f"Failed denicking {nick}")
-
-        return None
 
     # Spawn thread for updating state
     UpdateStateThread(state=state, loglines=loglines, redraw_event=redraw_event).start()
