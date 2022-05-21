@@ -4,12 +4,12 @@ Parse the chat on Hypixel to detect players in your party and bedwars lobby
 Run from the root dir by `python -m examples.overlay [--logfile <path-to-logfile>]`
 """
 
+import functools
 import logging
 import os
 import sys
 import time
 from datetime import date
-from functools import partial
 from itertools import count
 from pathlib import Path
 from typing import Iterable, Optional
@@ -169,6 +169,84 @@ def process_loglines_to_overlay(
     run_overlay(state, get_stat_list)
 
 
+def set_nickname(
+    username: str | None, nick: str, settings: Settings, nick_database: NickDatabase
+) -> None:
+    """Update the user's nickname"""
+    logger.debug(f"Setting denick {nick=} => {username=}")
+
+    old_nick = None
+
+    if username is not None:
+        try:
+            uuid = get_uuid(username)
+        except MojangAPIError as e:
+            logger.error(f"API error when getting uuid for '{username}'. '{e}'")
+            uuid = None
+
+        if uuid is None:
+            logger.error(f"Failed getting uuid for '{username}' when setting nickname.")
+            # Delete the entry for this nick
+            old_nick = nick
+    else:
+        uuid = None
+        # Delete the entry for this nick
+        old_nick = nick
+
+    with settings.mutex:
+        if uuid is not None and username is not None:
+            # Search the known nicks in settings for the uuid
+            for old_nick, nick_value in settings.known_nicks.items():
+                if uuid == nick_value["uuid"]:
+                    new_nick_value = nick_value
+                    break
+            else:
+                # Found no matching entries - make a new one
+                new_nick_value = {"uuid": uuid, "comment": username}
+                old_nick = None
+        else:
+            new_nick_value = None
+
+        # Remove the old nick if found
+        if old_nick is not None:
+            settings.known_nicks.pop(old_nick, None)
+
+        if new_nick_value is not None:
+            # Add your new nick
+            settings.known_nicks[nick] = new_nick_value
+
+        settings.flush_to_disk()
+
+    with nick_database.mutex:
+        # Delete your old nick if found
+        if old_nick is not None:
+            nick_database.default_database.pop(old_nick, None)
+
+        if uuid is not None:
+            # Add your new nick
+            nick_database.default_database[nick] = uuid
+
+    if old_nick is not None:
+        # Drop the stats cache for your old nick
+        uncache_stats(old_nick)
+
+    # Drop the stats cache for your new nick so that we can fetch the stats
+    uncache_stats(nick)
+
+
+def set_api_key(
+    new_key: str, settings: Settings, hypixel_key_holder: HypixelAPIKeyHolder
+) -> None:
+    """Update the API key that the download threads use"""
+    hypixel_key_holder.key = new_key
+    with settings.mutex:
+        settings.hypixel_api_key = new_key
+        settings.flush_to_disk()
+
+    # Clear the stats cache in case the old api key was invalid
+    clear_cache()
+
+
 def watch_from_logfile(
     logpath_string: str,
     overlay: bool,
@@ -191,85 +269,15 @@ def watch_from_logfile(
     else:
         antisniper_key_holder = None
 
-    def set_nickname(username: str | None, nick: str) -> None:
-        """Update the user's nickname"""
-        logger.debug(f"Setting denick {nick=} => {username=}")
-
-        old_nick = None
-
-        if username is not None:
-            try:
-                uuid = get_uuid(username)
-            except MojangAPIError as e:
-                logger.error(f"API error when getting uuid for '{username}'. '{e}'")
-                uuid = None
-
-            if uuid is None:
-                logger.error(
-                    f"Failed getting uuid for '{username}' when setting nickname."
-                )
-                # Delete the entry for this nick
-                old_nick = nick
-        else:
-            uuid = None
-            # Delete the entry for this nick
-            old_nick = nick
-
-        with settings.mutex:
-            if uuid is not None and username is not None:
-                # Search the known nicks in settings for the uuid
-                for old_nick, nick_value in settings.known_nicks.items():
-                    if uuid == nick_value["uuid"]:
-                        new_nick_value = nick_value
-                        break
-                else:
-                    # Found no matching entries - make a new one
-                    new_nick_value = {"uuid": uuid, "comment": username}
-                    old_nick = None
-            else:
-                new_nick_value = None
-
-            # Remove the old nick if found
-            if old_nick is not None:
-                settings.known_nicks.pop(old_nick, None)
-
-            if new_nick_value is not None:
-                # Add your new nick
-                settings.known_nicks[nick] = new_nick_value
-
-            settings.flush_to_disk()
-
-        with nick_database.mutex:
-            # Delete your old nick if found
-            if old_nick is not None:
-                nick_database.default_database.pop(old_nick, None)
-
-            if uuid is not None:
-                # Add your new nick
-                nick_database.default_database[nick] = uuid
-
-        if old_nick is not None:
-            # Drop the stats cache for your old nick
-            uncache_stats(old_nick)
-
-        # Drop the stats cache for your new nick so that we can fetch the stats
-        uncache_stats(nick)
-
-    def set_api_key(new_key: str) -> None:
-        """Update the API key that the download threads use"""
-        hypixel_key_holder.key = new_key
-        with settings.mutex:
-            settings.hypixel_api_key = new_key
-            settings.flush_to_disk()
-
-        # Clear the stats cache in case the old api key was invalid
-        clear_cache()
-
     state = OverlayState(
         lobby_players=set(),
         party_members=set(),
-        set_api_key=set_api_key,
-        set_nickname=set_nickname,
+        set_api_key=functools.partial(
+            set_api_key, settings=settings, hypixel_key_holder=hypixel_key_holder
+        ),
+        set_nickname=functools.partial(
+            set_nickname, settings=settings, nick_database=nick_database
+        ),
     )
 
     logpath = Path(logpath_string)
@@ -418,7 +426,7 @@ def main(*nick_databases: Path) -> None:
 
     settings = get_settings(
         options.settings_path,
-        partial(wait_for_api_key, logfile_path, options.settings_path),
+        functools.partial(wait_for_api_key, logfile_path, options.settings_path),
     )
 
     with settings.mutex:
