@@ -121,7 +121,7 @@ class OverlayWindow(Generic[ColumnKey]):
             background="black",
             highlightthickness=1,
         )
-        grip_label.pack(side=tk.LEFT)
+        grip_label.pack(side=tk.LEFT, padx=(3, 5))
 
         grip_label.bind("<ButtonPress-1>", self.root.start_move)
         grip_label.bind("<B1-Motion>", self.root.do_move)
