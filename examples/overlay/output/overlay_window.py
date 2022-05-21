@@ -171,6 +171,15 @@ class OverlayWindow(Generic[ColumnKey]):
         )
         minimize_button.pack(side=tk.RIGHT)
 
+        version_label = tk.Label(
+            toolbar_frame,
+            text="v1.1.1",
+            font=("Consolas", "10"),
+            foreground="white",
+            background="black",
+        )
+        version_label.pack(side=tk.RIGHT, padx=(0, 5))
+
         # Info label
         info_variable = tk.StringVar()
         info_label = tk.Label(
