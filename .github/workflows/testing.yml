@@ -58,7 +58,7 @@ jobs:
     - name: Build single file binary with pyinstaller
       run: |
         source ${{ env.ACTIVATE_PATH }}
-        pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who.ico --noconsole --name prism-${{ matrix.os }}
+        pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who.ico --name prism-${{ matrix.os }}
 
     - name: Upload built binary
       uses: actions/upload-artifact@v2
