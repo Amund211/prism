@@ -3,7 +3,7 @@ from typing import Optional, Sequence, Union
 from examples.overlay.stats import PropertyName
 
 COLUMN_NAMES: dict[PropertyName, str] = {
-    "username": "IGN",
+    "username": "IGN (Nick)",
     "stars": "Stars",
     "fkdr": "FKDR",
     "wlr": "WLR",
