@@ -39,9 +39,9 @@ def get_options(
     )
 
     parser.add_argument(
-        "-p",
-        "--print",
-        help="Additionally print the stats table to stdout",
+        "-q",
+        "--quiet",
+        help="Don't print the stats table to stdout",
         action="store_true",
     )
 
@@ -51,10 +51,10 @@ def get_options(
 
     assert parsed.logfile is None or isinstance(parsed.logfile, Path)
     assert isinstance(parsed.settings, Path)
-    assert isinstance(parsed.print, bool)
+    assert isinstance(parsed.quiet, bool)
 
     return Options(
         logfile_path=parsed.logfile,
         settings_path=parsed.settings,
-        output_to_console=parsed.print,
+        output_to_console=not parsed.quiet,
     )

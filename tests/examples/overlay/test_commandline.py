@@ -10,7 +10,7 @@ DEFAULT_SETTINGS = "some_settings_file.toml"
 def make_options(
     logfile: Optional[str] = None,
     settings: str = DEFAULT_SETTINGS,
-    output_to_console: bool = False,
+    output_to_console: bool = True,
 ) -> Options:
     """Construct an Options instance from its components"""
     return Options(
@@ -24,7 +24,7 @@ def make_options(
     "args, result",
     (
         ([], make_options()),
-        (["-p"], make_options(output_to_console=True)),
+        (["-q"], make_options(output_to_console=False)),
         (["-l", "someotherlogfile"], make_options("someotherlogfile")),
         (["--logfile", "someotherlogfile"], make_options("someotherlogfile")),
         (["-s", "s.toml"], make_options(None, "s.toml")),
@@ -37,8 +37,8 @@ def make_options(
             make_options("somelogfile", "s.toml"),
         ),
         (
-            ["--settings", "s.toml", "-l", "somelogfile", "--print"],
-            make_options("somelogfile", "s.toml", True),
+            ["--settings", "s.toml", "-l", "somelogfile", "--quiet"],
+            make_options("somelogfile", "s.toml", False),
         ),
         # Weird input -> weird output
         (
