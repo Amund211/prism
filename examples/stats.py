@@ -92,7 +92,7 @@ def print_bedwars_stats(playerdata: PlayerData, nick: Optional[str] = None) -> N
         print(e)
         return
 
-    stars = bedwars_level_from_exp(bw_stats["Experience"])
+    stars = bedwars_level_from_exp(bw_stats.get("Experience", 500))
 
     nick_suffix = f" ({nick})" if nick is not None else ""
     print(f"{playerdata['displayname']}{nick_suffix} [{stars:.1f}]", end="")
@@ -118,18 +118,18 @@ def print_bedwars_stats(playerdata: PlayerData, nick: Optional[str] = None) -> N
 
     table = {
         mode: {
-            "fks": str(bw_stats[f"{prefix}final_kills_bedwars"]),
+            "fks": str(bw_stats.get(f"{prefix}final_kills_bedwars", 0)),
             "fkdr": div_string(
-                bw_stats[f"{prefix}final_kills_bedwars"],
-                bw_stats[f"{prefix}final_deaths_bedwars"],
+                bw_stats.get(f"{prefix}final_kills_bedwars", 0),
+                bw_stats.get(f"{prefix}final_deaths_bedwars", 0),
             ),
-            "wins": str(bw_stats[f"{prefix}wins_bedwars"]),
+            "wins": str(bw_stats.get(f"{prefix}wins_bedwars", 0)),
             "wlr": div_string(
-                bw_stats[f"{prefix}wins_bedwars"],
-                bw_stats[f"{prefix}games_played_bedwars"]
-                - bw_stats[f"{prefix}wins_bedwars"],
+                bw_stats.get(f"{prefix}wins_bedwars", 0),
+                bw_stats.get(f"{prefix}games_played_bedwars", 0)
+                - bw_stats.get(f"{prefix}wins_bedwars", 0),
             ),
-            "winstreak": str(bw_stats[f"{prefix}winstreak"]),
+            "winstreak": str(bw_stats.get(f"{prefix}winstreak", 0)),
             "mode_name": mode_names[mode],
         }
         for mode, prefix in mode_prefixes.items()
