@@ -30,7 +30,8 @@ class PlayerStats:
     fkdr: float
     stars: float
     wlr: float
-    winstreak: int
+    winstreak: int | None = field(compare=False)
+    winstreak_accurate: bool = field(compare=False)
     username: str
     nick: Optional[str] = field(default=None, compare=False)
 
@@ -47,7 +48,7 @@ class PlayerStats:
     def get_value(self, name: InfoName) -> str:
         ...
 
-    def get_value(self, name: PropertyName) -> Union[str, int, float]:
+    def get_value(self, name: PropertyName) -> Union[str, int, float, None]:
         """Get the given stat from this player"""
         if name == "fkdr":
             return self.fkdr
@@ -63,7 +64,11 @@ class PlayerStats:
     def get_string(self, name: PropertyName) -> str:
         """Get a string representation of the given stat"""
         value = self.get_value(name)
-        if isinstance(value, int):
+        if value is None:
+            return "-"
+        elif name == "winstreak":
+            return f"{value}{'' if self.winstreak_accurate else '?'}"
+        elif isinstance(value, int):
             return str(value)
         elif isinstance(value, str):
             return value
@@ -234,10 +239,15 @@ def get_bedwars_stats(
                 bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
             except MissingStatsError:
                 stats = PlayerStats(
-                    username=username, stars=0, fkdr=0, wlr=0, winstreak=0
+                    username=username,
+                    stars=0,
+                    fkdr=0,
+                    wlr=0,
+                    winstreak=0,
+                    winstreak_accurate=True,
                 )
             else:
-                winstreak = bw_stats.get("winstreak", 0)
+                winstreak = bw_stats.get("winstreak", None)
                 stats = PlayerStats(
                     username=username,
                     nick=nick,
@@ -252,6 +262,7 @@ def get_bedwars_stats(
                         - bw_stats.get("wins_bedwars", 0),
                     ),
                     winstreak=winstreak,
+                    winstreak_accurate=winstreak is not None,
                 )
 
     # Set the cache
@@ -280,7 +291,12 @@ def rate_stats_for_non_party_members(
         if not isinstance(stats, PlayerStats):
             # Hack to compare other Stats instances by username only
             placeholder_stats = PlayerStats(
-                fkdr=0, stars=0, wlr=0, winstreak=0, username=stats.username
+                fkdr=0,
+                stars=0,
+                wlr=0,
+                winstreak=0,
+                winstreak_accurate=True,
+                username=stats.username,
             )
             return (is_enemy, stats.nicked, placeholder_stats)
 

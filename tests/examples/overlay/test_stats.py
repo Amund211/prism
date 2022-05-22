@@ -17,7 +17,8 @@ def make_stats(
     fkdr: float = 0.0,
     stars: float = 1.0,
     wlr: float = 0.0,
-    winstreak: int = 0,
+    winstreak: int | None = None,
+    winstreak_accurate: bool = False,
     nick: Optional[str] = None,
 ) -> Stats:
     if variant == "player":
@@ -26,6 +27,7 @@ def make_stats(
             stars=stars,
             wlr=wlr,
             winstreak=winstreak,
+            winstreak_accurate=winstreak_accurate,
             username=username,
             nick=nick,
         )
