@@ -237,19 +237,21 @@ def get_bedwars_stats(
                     username=username, stars=0, fkdr=0, wlr=0, winstreak=0
                 )
             else:
+                winstreak = bw_stats.get("winstreak", 0)
                 stats = PlayerStats(
                     username=username,
                     nick=nick,
-                    stars=bedwars_level_from_exp(bw_stats["Experience"]),
+                    stars=bedwars_level_from_exp(bw_stats.get("Experience", 500)),
                     fkdr=div(
-                        bw_stats["final_kills_bedwars"],
-                        bw_stats["final_deaths_bedwars"],
+                        bw_stats.get("final_kills_bedwars", 0),
+                        bw_stats.get("final_deaths_bedwars", 0),
                     ),
                     wlr=div(
-                        bw_stats["wins_bedwars"],
-                        bw_stats["games_played_bedwars"] - bw_stats["wins_bedwars"],
+                        bw_stats.get("wins_bedwars", 0),
+                        bw_stats.get("games_played_bedwars", 0)
+                        - bw_stats.get("wins_bedwars", 0),
                     ),
-                    winstreak=bw_stats["winstreak"],
+                    winstreak=winstreak,
                 )
 
     # Set the cache

@@ -1,4 +1,3 @@
-from collections import defaultdict
 from json import JSONDecodeError
 from typing import Any, cast
 
@@ -79,15 +78,17 @@ def get_player_data(uuid: str, key_holder: HypixelAPIKeyHolder) -> PlayerData:
 
 def get_gamemode_stats(playerdata: PlayerData, gamemode: str) -> GamemodeData:
     """Return the stats of the player in the given gamemode"""
-    if "stats" not in playerdata:
+    stats = playerdata.get("stats", None)
+    if not isinstance(stats, dict):
         raise MissingStatsError(
             f"{playerdata['displayname']} is missing stats in all gamemodes"
         )
 
-    if gamemode not in playerdata["stats"]:
+    gamemode_data = stats.get(gamemode, None)
+
+    if not isinstance(gamemode_data, dict):
         raise MissingStatsError(
             f"{playerdata['displayname']} is missing stats in {gamemode.lower()}"
         )
 
-    # Any stat defaults to 0 if not present
-    return defaultdict(int, playerdata["stats"][gamemode])
+    return gamemode_data
