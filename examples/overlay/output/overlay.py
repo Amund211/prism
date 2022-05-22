@@ -1,9 +1,14 @@
 import os
 import sys
-from typing import Callable, Optional, Sequence, cast
+from typing import Callable, Optional
 
 from examples.overlay.output.overlay_window import CellValue, OverlayRow, OverlayWindow
-from examples.overlay.output.utils import COLUMN_NAMES, STAT_LEVELS, rate_value
+from examples.overlay.output.utils import (
+    COLUMN_NAMES,
+    COLUMN_ORDER,
+    STAT_LEVELS,
+    rate_value,
+)
 from examples.overlay.state import OverlayState
 from examples.overlay.stats import PropertyName, Stats
 
@@ -27,10 +32,6 @@ LEVEL_COLORMAP = (
 for levels in STAT_LEVELS.values():
     if levels is not None:
         assert len(levels) <= len(LEVEL_COLORMAP) - 1
-
-COLUMN_ORDER: Sequence[PropertyName] = cast(
-    Sequence[PropertyName], ("username", "stars", "fkdr", "winstreak")
-)
 
 
 def stats_to_row(stats: Stats) -> OverlayRow[PropertyName]:

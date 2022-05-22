@@ -1,4 +1,4 @@
-from typing import Optional, Sequence, Union
+from typing import Optional, Sequence, Union, cast
 
 from examples.overlay.stats import PropertyName
 
@@ -17,6 +17,17 @@ STAT_LEVELS: dict[PropertyName, Optional[Sequence[Union[int, float]]]] = {
     "winstreak": (5, 15, 30, 50),
     "username": None,
 }
+
+
+# The included columns in order
+COLUMN_ORDER: Sequence[PropertyName] = cast(
+    Sequence[PropertyName], ("username", "stars", "fkdr", "winstreak")
+)
+
+
+assert set(STAT_LEVELS.keys()) == set(COLUMN_NAMES.keys())
+
+assert set(COLUMN_ORDER).issubset(set(COLUMN_NAMES.keys()))
 
 
 def rate_value(value: Union[int, float], levels: Sequence[Union[int, float]]) -> int:

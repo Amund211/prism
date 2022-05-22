@@ -1,8 +1,12 @@
 import os
-from typing import Sequence, cast
 
-from examples.overlay.output.utils import COLUMN_NAMES, STAT_LEVELS, rate_value
-from examples.overlay.stats import PropertyName, Stats
+from examples.overlay.output.utils import (
+    COLUMN_NAMES,
+    COLUMN_ORDER,
+    STAT_LEVELS,
+    rate_value,
+)
+from examples.overlay.stats import Stats
 
 
 class Color:
@@ -57,14 +61,6 @@ LEVEL_COLORMAP = (
 for levels in STAT_LEVELS.values():
     if levels is not None:
         assert len(levels) <= len(LEVEL_COLORMAP) - 1
-
-assert set(STAT_LEVELS.keys()) == set(COLUMN_NAMES.keys())
-
-COLUMN_ORDER: Sequence[PropertyName] = cast(
-    Sequence[PropertyName], ("username", "stars", "fkdr", "winstreak")
-)
-
-assert set(COLUMN_ORDER).issubset(set(COLUMN_NAMES.keys()))
 
 
 def clear_screen() -> None:
@@ -134,7 +130,7 @@ def print_stats_table(
             stat_string = stat.get_string(column)
             stat_value = stat.get_value(column)
 
-            if levels is None or isinstance(stat_value, str):
+            if stat_value is None or levels is None or isinstance(stat_value, str):
                 final_string = stat_string
             else:
                 rating = rate_value(stat_value, levels)
