@@ -351,7 +351,7 @@ def watch_from_logfile(
         )
 
 
-def setup(loglevel: int = logging.WARNING) -> None:
+def setup(loglevel: int = logging.WARNING, log_prefix: str = "") -> None:
     """Set up directory structure and logging"""
     # Rename old directories
     olddirs = AppDirs(appname="hystatutils_overlay")
@@ -390,7 +390,7 @@ def setup(loglevel: int = logging.WARNING) -> None:
     datestring = date.today().isoformat()
 
     for i in count():
-        logpath = LOGDIR / f"{datestring}.{i}.log"
+        logpath = LOGDIR / f"{log_prefix}{datestring}.{i}.log"
         if not logpath.exists():
             break
 
@@ -404,7 +404,7 @@ def setup(loglevel: int = logging.WARNING) -> None:
 
 def test() -> None:
     """Test the implementation on a static logfile or a list of loglines"""
-    setup(logging.DEBUG)
+    setup(logging.DEBUG, log_prefix="test_")
 
     options = get_options(
         args=sys.argv[2:], default_settings_path=DEFAULT_SETTINGS_PATH
