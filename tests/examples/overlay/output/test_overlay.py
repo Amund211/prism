@@ -10,6 +10,7 @@ test_cases = (
     (
         PlayerStats(
             username="Player1",
+            uuid="some-fake-uuid",
             stars=10.0,
             fkdr=1.0,
             wlr=2.0,
@@ -28,6 +29,7 @@ test_cases = (
         PlayerStats(
             username="Player2",
             nick="the_amazing_nick",
+            uuid="some-fake-uuid",
             stars=600.0,
             fkdr=10.0,
             wlr=2.0,
@@ -56,6 +58,7 @@ test_cases = (
     (
         PlayerStats(
             username="Player4",
+            uuid="some-fake-uuid",
             stars=10.0,
             fkdr=1.0,
             wlr=2.0,
@@ -73,6 +76,7 @@ test_cases = (
     (
         PlayerStats(
             username="Player5",
+            uuid="some-fake-uuid",
             stars=10.0,
             fkdr=1.0,
             wlr=2.0,
@@ -91,6 +95,7 @@ test_cases = (
     (
         PlayerStats(
             username="Player6",
+            uuid="some-fake-uuid",
             stars=10.0,
             fkdr=1.0,
             wlr=2.0,

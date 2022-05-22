@@ -102,6 +102,7 @@ def tail_file_with_reopen(path: Path, timeout: float = 30) -> Iterable[str]:
 def process_loglines_to_stdout(
     state: OverlayState,
     hypixel_key_holder: HypixelAPIKeyHolder,
+    antisniper_key_holder: AntiSniperAPIKeyHolder | None,
     denick: Callable[[str], Optional[str]],
     loglines: Iterable[str],
     thread_count: int = DOWNLOAD_THREAD_COUNT,
@@ -110,6 +111,7 @@ def process_loglines_to_stdout(
     get_stat_list = prepare_overlay(
         state,
         hypixel_key_holder=hypixel_key_holder,
+        antisniper_key_holder=antisniper_key_holder,
         denick=denick,
         loglines=loglines,
         thread_count=thread_count,
@@ -138,6 +140,7 @@ def process_loglines_to_stdout(
 def process_loglines_to_overlay(
     state: OverlayState,
     hypixel_key_holder: HypixelAPIKeyHolder,
+    antisniper_key_holder: AntiSniperAPIKeyHolder | None,
     denick: Callable[[str], Optional[str]],
     loglines: Iterable[str],
     output_to_console: bool,
@@ -147,6 +150,7 @@ def process_loglines_to_overlay(
     get_stat_list = prepare_overlay(
         state,
         hypixel_key_holder=hypixel_key_holder,
+        antisniper_key_holder=antisniper_key_holder,
         denick=denick,
         loglines=loglines,
         thread_count=thread_count,
@@ -338,6 +342,7 @@ def watch_from_logfile(
         process_loglines_to_stdout(
             state,
             hypixel_key_holder=hypixel_key_holder,
+            antisniper_key_holder=antisniper_key_holder,
             denick=denick,
             loglines=loglines,
         )
@@ -345,6 +350,7 @@ def watch_from_logfile(
         process_loglines_to_overlay(
             state,
             hypixel_key_holder=hypixel_key_holder,
+            antisniper_key_holder=antisniper_key_holder,
             loglines=loglines,
             denick=denick,
             output_to_console=console,
@@ -419,7 +425,6 @@ def test() -> None:
 
     loglines: Iterable[str]
     if options.logfile_path is not None:
-        # loglines = tail_file_with_reopen(Path(logpath_string))
         loglines = options.logfile_path.open("r", encoding="utf8", errors="replace")
     else:
         loglines = [
@@ -476,6 +481,7 @@ def test() -> None:
         process_loglines_to_stdout(
             state,
             hypixel_key_holder=hypixel_key_holder,
+            antisniper_key_holder=antisniper_key_holder,
             denick=denick,
             loglines=loglines,
             thread_count=stats_thread_count,
@@ -484,6 +490,7 @@ def test() -> None:
         process_loglines_to_overlay(
             state,
             hypixel_key_holder=hypixel_key_holder,
+            antisniper_key_holder=antisniper_key_holder,
             loglines=loglines,
             denick=denick,
             output_to_console=console,

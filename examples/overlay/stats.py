@@ -33,6 +33,7 @@ class PlayerStats:
     winstreak: int | None = field(compare=False)
     winstreak_accurate: bool = field(compare=False)
     username: str
+    uuid: Optional[str] = field(compare=False)
     nick: Optional[str] = field(default=None, compare=False)
 
     @property
@@ -151,6 +152,18 @@ def get_cached_stats(username: str) -> Optional[Stats]:
         return KNOWN_STATS.get(username, None)
 
 
+def update_cached_stats(
+    username: str, winstreak: int | None, winstreak_accurate: bool
+) -> None:
+    """Update the cached stats for a player"""
+    with STATS_MUTEX:
+        instance = KNOWN_STATS.get(username, None)
+        if isinstance(instance, PlayerStats):
+            KNOWN_STATS[username] = replace(
+                instance, winstreak=winstreak, winstreak_accurate=winstreak_accurate
+            )
+
+
 def uncache_stats(username: str) -> None:
     """Clear the cache entry for `username`"""
     with STATS_MUTEX:
@@ -167,13 +180,26 @@ def get_bedwars_stats(
     username: str,
     key_holder: HypixelAPIKeyHolder,
     denick: Callable[[str], Optional[str]] = lambda nick: None,
-) -> Stats:
-    """Get the bedwars stats for the given player"""
+) -> tuple[str | None, str | None, str | None, Stats]:
+    """
+    Get the bedwars stats for the given player
+
+    Returns username, nick, uuid, stats
+    """
     cached_stats = get_cached_stats(username)
 
     if cached_stats is not None and not isinstance(cached_stats, PendingPlayer):
         logger.info(f"Cache hit {username}")
-        return cached_stats
+        if isinstance(cached_stats, NickedPlayer):
+            return None, cached_stats.username, None, cached_stats
+        elif isinstance(cached_stats, PlayerStats):
+            return (
+                cached_stats.username,
+                cached_stats.nick,
+                cached_stats.uuid,
+                cached_stats,
+            )
+        return False  # Unreachable - for typechecking
 
     logger.info(f"Cache miss {username}")
 
@@ -240,6 +266,7 @@ def get_bedwars_stats(
             except MissingStatsError:
                 stats = PlayerStats(
                     username=username,
+                    uuid=uuid,
                     stars=0,
                     fkdr=0,
                     wlr=0,
@@ -251,6 +278,7 @@ def get_bedwars_stats(
                 stats = PlayerStats(
                     username=username,
                     nick=nick,
+                    uuid=uuid,
                     stars=bedwars_level_from_exp(bw_stats.get("Experience", 500)),
                     fkdr=div(
                         bw_stats.get("final_kills_bedwars", 0),
@@ -276,7 +304,7 @@ def get_bedwars_stats(
             # If we look up by original username, that means the user is not nicked
             KNOWN_STATS[username] = replace(stats, nick=None)
 
-    return stats
+    return username, nick, uuid, stats
 
 
 RateStatsReturn = tuple[bool, bool, Stats]
@@ -297,6 +325,7 @@ def rate_stats_for_non_party_members(
                 winstreak=0,
                 winstreak_accurate=True,
                 username=stats.username,
+                uuid=None,
             )
             return (is_enemy, stats.nicked, placeholder_stats)
 

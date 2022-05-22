@@ -20,6 +20,7 @@ def make_stats(
     winstreak: int | None = None,
     winstreak_accurate: bool = False,
     nick: Optional[str] = None,
+    uuid: Optional[str] = None,
 ) -> Stats:
     if variant == "player":
         return PlayerStats(
@@ -30,6 +31,7 @@ def make_stats(
             winstreak_accurate=winstreak_accurate,
             username=username,
             nick=nick,
+            uuid=uuid,
         )
     elif variant == "nick":
         return NickedPlayer(username=username)

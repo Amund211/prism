@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 DENICK_ENDPOINT = "http://api.antisniper.net/denick"
 ANTISNIPER_ENDPOINT = "http://api.antisniper.net/antisniper"
+WINSTREAK_ENDPOINT = "http://api.antisniper.net/winstreak"
+
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
 
 
@@ -86,6 +88,75 @@ def denick(nick: str, key_holder: AntiSniperAPIKeyHolder) -> Optional[str]:
         return set_denick_cache(nick, None)
 
     return set_denick_cache(nick, uuid)
+
+
+def get_estimated_winstreak(
+    uuid: str, key_holder: AntiSniperAPIKeyHolder
+) -> tuple[int | None, bool]:
+    """Get the estimated winstreak of the given uuid"""
+    try:
+        # Uphold our prescribed rate-limits
+        with key_holder.limiter:
+            response = requests.get(
+                f"{WINSTREAK_ENDPOINT}?key={key_holder.key}&uuid={uuid}"
+            )
+    except RequestException as e:
+        logger.error(
+            f"Request to denick winstreak failed due to a connection error {e}"
+        )
+        return None, False
+
+    if not response:
+        logger.error(
+            f"Request to winstreak endpoint failed with status code "
+            f"{response.status_code} for {uuid=}. Response: {response.text}"
+        )
+        return None, False
+
+    try:
+        response_json = response.json()
+    except JSONDecodeError:
+        logger.error(
+            "Failed parsing the response from the winstreak endpoint. "
+            f"Raw content: {response.text}"
+        )
+        return None, False
+
+    if not response_json.get("success", False):
+        logger.error(f"Winstreak endpoint returned an error. Response: {response_json}")
+        return None, False
+
+    playerdata = response_json.get("player", None)
+
+    if not isinstance(playerdata, dict):
+        logger.error(
+            f"Got wrong return type for playerdata from winstreak endpoint {playerdata}"
+        )
+        return None, False
+
+    winstreak_accurate = playerdata.get("accurate", None)
+
+    if not isinstance(winstreak_accurate, bool):
+        logger.error(
+            f"Got wrong return type for accurate from ws endpoint {winstreak_accurate}"
+        )
+        return None, False
+
+    winstreak_data = playerdata.get("data", None)
+
+    if not isinstance(winstreak_data, dict):
+        logger.error(
+            f"Got wrong return type for winstreak data from endpoint {winstreak_data}"
+        )
+        return None, False
+
+    overall_winstreak = winstreak_data.get("overall_winstreak", None)
+
+    if not isinstance(overall_winstreak, int):
+        logger.error(f"Got wrong return type for winstreak {overall_winstreak=}")
+        return None, False
+
+    return overall_winstreak, winstreak_accurate
 
 
 def queue_data(name: str, key_holder: AntiSniperAPIKeyHolder) -> Optional[int]:

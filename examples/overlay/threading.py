@@ -3,14 +3,17 @@ import queue
 import threading
 from typing import Callable, Iterable, Optional
 
+import examples.overlay.antisniper_api as antisniper_api
 from examples.overlay.parsing import parse_logline
 from examples.overlay.state import OverlayState, update_state
 from examples.overlay.stats import (
+    PlayerStats,
     Stats,
     get_bedwars_stats,
     get_cached_stats,
     set_player_pending,
     sort_stats,
+    update_cached_stats,
 )
 from prism.playerdata import HypixelAPIKeyHolder
 
@@ -59,12 +62,14 @@ class GetStatsThread(threading.Thread):
         requests_queue: queue.Queue[str],
         completed_queue: queue.Queue[str],
         hypixel_key_holder: HypixelAPIKeyHolder,
+        antisniper_key_holder: antisniper_api.AntiSniperAPIKeyHolder | None,
         denick: Callable[[str], Optional[str]],
     ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.requests_queue = requests_queue
         self.completed_queue = completed_queue
         self.hypixel_key_holder = hypixel_key_holder
+        self.antisniper_key_holder = antisniper_key_holder
         self.denick = denick
 
     def run(self) -> None:
@@ -74,7 +79,7 @@ class GetStatsThread(threading.Thread):
                 username = self.requests_queue.get()
 
                 # get_bedwars_stats sets the stats cache which will be read from later
-                get_bedwars_stats(
+                found_username, nick, uuid, stats = get_bedwars_stats(
                     username, key_holder=self.hypixel_key_holder, denick=self.denick
                 )
                 logger.debug(f"Finished gettings stats for {username}")
@@ -82,6 +87,34 @@ class GetStatsThread(threading.Thread):
 
                 # Tell the main thread that we downloaded this user's stats
                 self.completed_queue.put(username)
+
+                if (
+                    self.antisniper_key_holder is not None
+                    and uuid is not None
+                    and isinstance(stats, PlayerStats)
+                    and stats.winstreak is None
+                ):
+                    (
+                        estimated_winstreak,
+                        winstreak_accurate,
+                    ) = antisniper_api.get_estimated_winstreak(
+                        uuid=uuid, key_holder=self.antisniper_key_holder
+                    )
+
+                    if estimated_winstreak is not None:
+                        for key in (found_username, nick):
+                            if key is None:
+                                continue
+
+                            update_cached_stats(
+                                username,
+                                winstreak=estimated_winstreak,
+                                winstreak_accurate=winstreak_accurate,
+                            )
+
+                            # Tell the main thread that we got the estimated winstreak
+                            self.completed_queue.put(key)
+
         except Exception as e:
             logger.exception(f"Exception caught in stats thread: {e}. Exiting")
             return
@@ -121,6 +154,7 @@ def should_redraw(
 def prepare_overlay(
     state: OverlayState,
     hypixel_key_holder: HypixelAPIKeyHolder,
+    antisniper_key_holder: antisniper_api.AntiSniperAPIKeyHolder | None,
     denick: Callable[[str], Optional[str]],
     loglines: Iterable[str],
     thread_count: int,
@@ -150,6 +184,7 @@ def prepare_overlay(
             requests_queue=requested_stats_queue,
             completed_queue=completed_stats_queue,
             hypixel_key_holder=hypixel_key_holder,
+            antisniper_key_holder=antisniper_key_holder,
             denick=denick,
         ).start()
 
