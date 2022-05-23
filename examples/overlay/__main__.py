@@ -416,7 +416,7 @@ def test() -> None:
         args=sys.argv[2:], default_settings_path=DEFAULT_SETTINGS_PATH
     )
 
-    slow, wait = True, 1
+    slow, wait = False, 1
     get_stats = False
     overlay = True
     console = options.output_to_console
