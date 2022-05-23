@@ -173,7 +173,7 @@ class OverlayWindow(Generic[ColumnKey]):
 
         version_label = tk.Label(
             toolbar_frame,
-            text="v1.1.2",
+            text="v1.1.3",
             font=("Consolas", "10"),
             foreground="white",
             background="black",
