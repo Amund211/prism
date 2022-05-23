@@ -129,7 +129,7 @@ def print_bedwars_stats(playerdata: PlayerData, nick: Optional[str] = None) -> N
                 bw_stats.get(f"{prefix}games_played_bedwars", 0)
                 - bw_stats.get(f"{prefix}wins_bedwars", 0),
             ),
-            "winstreak": str(bw_stats.get(f"{prefix}winstreak", 0)),
+            "winstreak": str(bw_stats.get(f"{prefix}winstreak", "-")),
             "mode_name": mode_names[mode],
         }
         for mode, prefix in mode_prefixes.items()
