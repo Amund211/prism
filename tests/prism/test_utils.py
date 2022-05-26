@@ -12,6 +12,7 @@ from prism.utils import (
     insort_right,
     pluralize,
     read_key,
+    truncate_float,
 )
 
 Number = Union[int, float]
@@ -30,6 +31,35 @@ def test_read_key(file_content: str, key: str, tmp_path: Path) -> None:
     key_path = tmp_path / "api_key"
     key_path.write_text(file_content)
     assert read_key(key_path) == key
+
+
+@pytest.mark.parametrize(
+    "number, precision, result",
+    (
+        (1.15, 1, "1.1"),
+        (1.15, 2, "1.15"),
+        (-1.15, 1, "-1.1"),
+        (0, 1, "0.0"),
+        (0, 5, "0.00000"),
+        (499 + 4999 / 5000, 2, "499.99"),
+        (99999 + 49999 / 50000, 2, "99999.99"),
+    ),
+)
+def test_truncate_float(number: float, precision: int, result: str) -> None:
+    assert truncate_float(number, precision) == result
+
+
+@pytest.mark.parametrize(
+    "number, precision",
+    (
+        (1.15, -1),
+        (1.15, 0),
+        (499 + 4999 / 5000, -2),
+    ),
+)
+def test_truncate_float_raises(number: float, precision: int) -> None:
+    with pytest.raises(ValueError):
+        truncate_float(number, precision)
 
 
 @pytest.mark.parametrize(

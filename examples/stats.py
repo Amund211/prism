@@ -16,7 +16,7 @@ from prism.playerdata import (
     get_gamemode_stats,
     get_player_data,
 )
-from prism.utils import div, format_seconds, read_key
+from prism.utils import div, format_seconds, read_key, truncate_float
 
 try:
     # Define a map username -> uuid so that we can look up by uuid instead of username
@@ -80,7 +80,7 @@ def div_string(
     if isinstance(quotient, int):
         return str(quotient)
 
-    return f"{quotient:.2f}"
+    return truncate_float(quotient, 2)
 
 
 def print_bedwars_stats(playerdata: PlayerData, nick: Optional[str] = None) -> None:
@@ -95,7 +95,9 @@ def print_bedwars_stats(playerdata: PlayerData, nick: Optional[str] = None) -> N
     stars = bedwars_level_from_exp(bw_stats.get("Experience", 500))
 
     nick_suffix = f" ({nick})" if nick is not None else ""
-    print(f"{playerdata['displayname']}{nick_suffix} [{stars:.1f}]", end="")
+    print(
+        f"{playerdata['displayname']}{nick_suffix} [{truncate_float(stars, 1)}]", end=""
+    )
 
     try:
         last_login = playerdata["lastLogin"] / 1000

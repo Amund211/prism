@@ -15,6 +15,15 @@ def read_key(key_file: Path) -> str:
         return f.read().strip()
 
 
+def truncate_float(number: float, precision: int, *, extra_digits: int = 10) -> str:
+    """Return the string (f) representation of number rounded down"""
+    if precision <= 0:
+        raise ValueError("Negative precision not supported")
+
+    # The result of the f-string is "{:.10f}" if precision + extra_digits == 10
+    return f"{{:.{precision + extra_digits}f}}".format(number)[:-extra_digits]
+
+
 def pluralize(word: str) -> str:
     """Return the simple pluralization of the given word"""
     return word + "s"

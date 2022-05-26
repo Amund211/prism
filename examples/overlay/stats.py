@@ -14,7 +14,7 @@ from prism.playerdata import (
     get_gamemode_stats,
     get_player_data,
 )
-from prism.utils import div
+from prism.utils import div, truncate_float
 
 StatName = Literal["stars", "fkdr", "wlr", "winstreak"]
 InfoName = Literal["username"]
@@ -74,7 +74,7 @@ class PlayerStats:
         elif isinstance(value, str):
             return value
         elif isinstance(value, float):
-            return f"{value:.2f}"
+            return truncate_float(value, 2)
         else:
             raise ValueError(f"{name=} {value=}")
 
