@@ -42,7 +42,7 @@ class PlayerStats:
         return False
 
     @overload
-    def get_value(self, name: StatName) -> Union[int, float]:
+    def get_value(self, name: StatName) -> Union[int, float, None]:
         ...
 
     @overload
