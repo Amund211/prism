@@ -37,8 +37,8 @@ class PlayerStats:
     nick: Optional[str] = field(default=None, compare=False)
 
     @property
-    def nicked(self) -> bool:
-        """Return True if the player is assumed to be nicked"""
+    def stats_hidden(self) -> bool:
+        """Return True if the player has hidden stats (is assumed to be nicked)"""
         return False
 
     @overload
@@ -86,8 +86,8 @@ class NickedPlayer:
     username: str
 
     @property
-    def nicked(self) -> bool:
-        """Return True if the player is assumed to be nicked"""
+    def stats_hidden(self) -> bool:
+        """Return True if the player has hidden stats (is assumed to be nicked)"""
         return True
 
     def get_value(self, name: PropertyName) -> Union[int, float]:
@@ -109,8 +109,8 @@ class PendingPlayer:
     username: str
 
     @property
-    def nicked(self) -> bool:
-        """Return True if the player is assumed to be nicked"""
+    def stats_hidden(self) -> bool:
+        """Return True if the player has hidden stats (is assumed to be nicked)"""
         return False
 
     def get_value(self, name: PropertyName) -> Union[int, float]:
@@ -327,9 +327,9 @@ def rate_stats_for_non_party_members(
                 username=stats.username,
                 uuid=None,
             )
-            return (is_enemy, stats.nicked, placeholder_stats)
+            return (is_enemy, stats.stats_hidden, placeholder_stats)
 
-        return (is_enemy, stats.nicked, stats)
+        return (is_enemy, stats.stats_hidden, stats)
 
     return rate_stats
 
