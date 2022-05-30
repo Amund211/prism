@@ -410,11 +410,11 @@ def setup(loglevel: int = logging.WARNING, log_prefix: str = "") -> None:
 
 def test() -> None:
     """Test the implementation on a static logfile or a list of loglines"""
-    setup(logging.DEBUG, log_prefix="test_")
-
     options = get_options(
         args=sys.argv[2:], default_settings_path=DEFAULT_SETTINGS_PATH
     )
+
+    setup(logging.DEBUG, log_prefix="test_")
 
     slow, wait = False, 1
     get_stats = False
@@ -500,16 +500,15 @@ def test() -> None:
 
 def main(*nick_databases: Path) -> None:
     """Run the overlay"""
-    setup()
+    options = get_options(default_settings_path=DEFAULT_SETTINGS_PATH)
+
+    setup(options.loglevel)
 
     try:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     except Exception as e:
-        print(f"Failed creating settings directory! '{e}'", file=sys.stderr)
         logger.error(f"Failed creating settings directory! '{e}'")
         sys.exit(1)
-
-    options = get_options(default_settings_path=DEFAULT_SETTINGS_PATH)
 
     if options.logfile_path is None:
         logfile_path = prompt_for_logfile_path(DEFAULT_LOGFILE_CACHE_PATH)

@@ -1,3 +1,4 @@
+import logging
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from pathlib import Path
@@ -9,6 +10,7 @@ class Options:
     logfile_path: Optional[Path]
     settings_path: Path
     output_to_console: bool
+    loglevel: int
 
 
 def resolve_path(p: str) -> Path:  # pragma: no cover
@@ -45,6 +47,10 @@ def get_options(
         action="store_true",
     )
 
+    parser.add_argument(
+        "-v", "--verbose", help="Verbosity of the logs (0-4)", action="count", default=0
+    )
+
     # Parse the args
     # Parses from sys.argv if args is None
     parsed = parser.parse_args(args=args)
@@ -52,9 +58,22 @@ def get_options(
     assert parsed.logfile is None or isinstance(parsed.logfile, Path)
     assert isinstance(parsed.settings, Path)
     assert isinstance(parsed.quiet, bool)
+    assert isinstance(parsed.verbose, int)
+
+    if parsed.verbose <= 0:
+        loglevel = logging.CRITICAL
+    elif parsed.verbose == 1:
+        loglevel = logging.ERROR
+    elif parsed.verbose == 2:
+        loglevel = logging.WARNING
+    elif parsed.verbose == 3:
+        loglevel = logging.INFO
+    elif parsed.verbose >= 4:
+        loglevel = logging.DEBUG
 
     return Options(
         logfile_path=parsed.logfile,
         settings_path=parsed.settings,
         output_to_console=not parsed.quiet,
+        loglevel=loglevel,
     )
