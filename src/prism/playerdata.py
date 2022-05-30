@@ -36,6 +36,24 @@ class HypixelAPIError(ValueError):
     pass
 
 
+import threading
+from datetime import datetime
+from pathlib import Path
+
+WRITE_LOCK = threading.Lock()
+error_path = Path("requesterrors").resolve()
+
+
+def write_error(msg: str) -> None:
+    with WRITE_LOCK, error_path.open("a") as f:
+        f.write(msg + "\n")
+
+
+write_error(
+    f"Start of session {datetime.now()} --------------------------------------------------------------------------------------------------"
+)
+
+
 def get_player_data(uuid: str, key_holder: HypixelAPIKeyHolder) -> PlayerData:
     """Get data about the given player from the /player API endpoint"""
     try:
@@ -45,11 +63,15 @@ def get_player_data(uuid: str, key_holder: HypixelAPIKeyHolder) -> PlayerData:
                 f"{PLAYER_ENDPOINT}?key={key_holder.key}&uuid={uuid}"
             )
     except RequestException as e:
+        write_error(f"Failed for {uuid=} (request exp) {e}")
         raise HypixelAPIError(
             f"Request to Hypixel API failed due to a connection error {e}"
         ) from e
 
     if not response:
+        write_error(
+            f"Failed for {uuid=} (not response) {response.status_code=} {response.text=}"
+        )
         raise HypixelAPIError(
             f"Request to Hypixel API failed with status code {response.status_code} "
             f"when getting data for player {uuid}. Response: {response.text}"
@@ -58,12 +80,18 @@ def get_player_data(uuid: str, key_holder: HypixelAPIKeyHolder) -> PlayerData:
     try:
         response_json = response.json()
     except JSONDecodeError:
+        write_error(
+            f"Failed for {uuid=} (decode) {response.status_code=} {response.text=}"
+        )
         raise HypixelAPIError(
             "Failed parsing the response from the Hypixel API. "
             f"Raw content: {response.text}"
         )
 
     if not response_json.get("success", False):
+        write_error(
+            f"Failed for {uuid=} (no_success) {response.status_code=} {response.text=} {response_json=}"
+        )
         raise HypixelAPIError(
             f"Hypixel API returned an error. Response: {response_json}"
         )
@@ -71,6 +99,9 @@ def get_player_data(uuid: str, key_holder: HypixelAPIKeyHolder) -> PlayerData:
     playerdata = response_json["player"]
 
     if not playerdata:
+        write_error(
+            f"Failed for {uuid=} (no playerdata) {response.status_code=} {response.text=} {response_json=}"
+        )
         raise HypixelAPIError(f"Could not find a user with uuid {uuid}")
 
     return cast(PlayerData, playerdata)  # TODO: properly type response
