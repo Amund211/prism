@@ -417,7 +417,7 @@ def test() -> None:
     setup(logging.DEBUG, log_prefix="test_")
 
     slow, wait = False, 1
-    get_stats = False
+    get_stats = True
     overlay = True
     console = options.output_to_console
 
@@ -428,12 +428,14 @@ def test() -> None:
         loglines = options.logfile_path.open("r", encoding="utf8", errors="replace")
     else:
         loglines = [
-            "(Client thread) Info Setting user: YourIGN",
+            "(Client thread) Info Setting user: You",
             "(Client thread) Info [CHAT] You have joined [MVP++] Teammate's party!",
             "(Client thread) Info [CHAT] Teammate has joined (2/16)!",
-            "(Client thread) Info [CHAT] YourIGN has joined (3/16)!",
-            "(Client thread) Info [CHAT] ONLINE: YourIGN, Teammate, SomeoneElse",
-            "(Client thread) Info [CHAT] NewPlayer has joined (4/16)!",
+            "(Client thread) Info [CHAT] You has joined (3/16)!",
+            "(Client thread) Info [CHAT] ONLINE: You, Teammate, Hypixel",
+            "(Client thread) Info [CHAT] Technoblade has joined (4/16)!",
+            "(Client thread) Info [CHAT] Manhal_IQ_ has joined (5/16)!",
+            "(Client thread) Info [CHAT] edater has joined (6/16)!",
         ]
 
     if slow:
