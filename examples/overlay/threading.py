@@ -2,7 +2,7 @@ import functools
 import logging
 import queue
 import threading
-from typing import Callable, Iterable, Optional
+from typing import Callable, Iterable
 
 import examples.overlay.antisniper_api as antisniper_api
 from examples.overlay.get_stats import (
@@ -62,7 +62,7 @@ class GetStatsThread(threading.Thread):
         completed_queue: queue.Queue[str],
         hypixel_key_holder: HypixelAPIKeyHolder,
         antisniper_key_holder: antisniper_api.AntiSniperAPIKeyHolder | None,
-        denick: Callable[[str], Optional[str]],
+        denick: Callable[[str], str | None],
     ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.requests_queue = requests_queue
@@ -157,7 +157,7 @@ def prepare_overlay(
     state: OverlayState,
     hypixel_key_holder: HypixelAPIKeyHolder,
     antisniper_key_holder: antisniper_api.AntiSniperAPIKeyHolder | None,
-    denick: Callable[[str], Optional[str]],
+    denick: Callable[[str], str | None],
     loglines: Iterable[str],
     thread_count: int,
 ) -> Callable[[], list[Player] | None]:

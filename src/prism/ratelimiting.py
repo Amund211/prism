@@ -4,7 +4,6 @@ from collections import deque
 from datetime import datetime, timedelta
 from itertools import repeat
 from types import TracebackType
-from typing import Optional
 
 from prism.utils import insort_right
 
@@ -54,9 +53,9 @@ class RateLimiter:
 
     def __exit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         now = datetime.now()
         with self.mutex:

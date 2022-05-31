@@ -1,7 +1,7 @@
 import logging
 import threading
 from dataclasses import dataclass, field
-from typing import Callable, Iterable, Optional, Protocol
+from typing import Callable, Iterable, Protocol
 
 from examples.overlay.parsing import Event, EventType, parse_logline
 
@@ -23,7 +23,7 @@ class OverlayState:
     set_nickname: SetNickname = field(compare=False, repr=False)
     out_of_sync: bool = False
     in_queue: bool = False
-    own_username: Optional[str] = None
+    own_username: str | None = None
     mutex: threading.Lock = field(
         default_factory=threading.Lock, init=False, compare=False, repr=False
     )

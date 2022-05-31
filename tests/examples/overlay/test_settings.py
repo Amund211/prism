@@ -1,6 +1,6 @@
 import dataclasses
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import pytest
 
@@ -20,10 +20,10 @@ KEY_IF_MISSING = "KEY_IF_MISSING"
 
 
 def make_settings_dict(
-    hypixel_api_key: Optional[str] = None,
-    antisniper_api_key: Optional[str] = None,
-    use_antisniper_api: Optional[bool] = None,
-    known_nicks: Optional[dict[str, NickValue]] = None,
+    hypixel_api_key: str | None = None,
+    antisniper_api_key: str | None = None,
+    use_antisniper_api: bool | None = None,
+    known_nicks: dict[str, NickValue] | None = None,
 ) -> SettingsDict:
     """Make a settings dict with default values if missing"""
     return {
@@ -85,7 +85,7 @@ def test_settings_from_dict(settings_dict: SettingsDict, result: Settings) -> No
     ),
 )
 def test_value_or_default(
-    value: Optional[ValueType], default: ValueType, result: ValueType
+    value: ValueType | None, default: ValueType, result: ValueType
 ) -> None:
     assert value_or_default(value, default=default) == result
 

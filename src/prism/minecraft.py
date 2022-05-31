@@ -1,5 +1,5 @@
 from json import JSONDecodeError
-from typing import Optional, cast
+from typing import cast
 
 import requests
 from requests.exceptions import RequestException
@@ -23,7 +23,7 @@ limiter = RateLimiter(limit=REQUEST_LIMIT, window=REQUEST_WINDOW)
 LOWERCASE_USERNAME_UUID: dict[str, str] = {}
 
 
-def get_uuid(username: str) -> Optional[str]:
+def get_uuid(username: str) -> str | None:
     """Get the uuid of all the user. None if not found."""
     if username.lower() in LOWERCASE_USERNAME_UUID:
         return LOWERCASE_USERNAME_UUID[username.lower()]

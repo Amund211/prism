@@ -1,7 +1,6 @@
 import logging
 import threading
 from json import JSONDecodeError
-from typing import Optional
 
 import requests
 from cachetools import TTLCache
@@ -19,11 +18,11 @@ REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
 
 
 # Cache both successful and failed denicks for 60 mins
-DENICK_CACHE: TTLCache[str, Optional[str]] = TTLCache(maxsize=1024, ttl=60 * 60)
+DENICK_CACHE: TTLCache[str, str | None] = TTLCache(maxsize=1024, ttl=60 * 60)
 DENICK_MUTEX = threading.Lock()
 
 
-def set_denick_cache(nick: str, uuid: Optional[str]) -> Optional[str]:
+def set_denick_cache(nick: str, uuid: str | None) -> str | None:
     """Set the cache entry for nick, and return the uuid"""
     with DENICK_MUTEX:
         DENICK_CACHE[nick] = uuid
@@ -41,7 +40,7 @@ class AntiSniperAPIKeyHolder:
         self.limiter = RateLimiter(limit=limit, window=window)
 
 
-def denick(nick: str, key_holder: AntiSniperAPIKeyHolder) -> Optional[str]:
+def denick(nick: str, key_holder: AntiSniperAPIKeyHolder) -> str | None:
     """Get data about the given nick from the /denick API endpoint"""
     try:
         # Uphold our prescribed rate-limits
@@ -159,7 +158,7 @@ def get_estimated_winstreak(
     return overall_winstreak, winstreak_accurate
 
 
-def queue_data(name: str, key_holder: AntiSniperAPIKeyHolder) -> Optional[int]:
+def queue_data(name: str, key_holder: AntiSniperAPIKeyHolder) -> int | None:
     """Get queue data about the given username/nick from the /antisniper API endpoint"""
     try:
         # Uphold our prescribed rate-limits

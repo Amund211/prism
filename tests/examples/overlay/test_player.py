@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Literal
 
 import pytest
 
@@ -21,8 +21,8 @@ def make_player(
     wlr: float = 0.0,
     winstreak: int | None = None,
     winstreak_accurate: bool = False,
-    nick: Optional[str] = None,
-    uuid: Optional[str] = None,
+    nick: str | None = None,
+    uuid: str | None = None,
 ) -> Player:
     if variant == "player":
         return KnownPlayer(

@@ -2,12 +2,12 @@ import logging
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Sequence
 
 
 @dataclass
 class Options:
-    logfile_path: Optional[Path]
+    logfile_path: Path | None
     settings_path: Path
     output_to_console: bool
     loglevel: int
@@ -20,7 +20,7 @@ def resolve_path(p: str) -> Path:  # pragma: no cover
 
 
 def get_options(
-    default_settings_path: Path, args: Optional[Sequence[str]] = None
+    default_settings_path: Path, args: Sequence[str] | None = None
 ) -> Options:
     # We pass args manually in testing -> don't exit on error
     parser = ArgumentParser(exit_on_error=args is None)

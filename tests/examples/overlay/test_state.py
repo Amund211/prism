@@ -1,5 +1,5 @@
 import unittest.mock
-from typing import Callable, Iterable, Optional
+from typing import Callable, Iterable
 
 import pytest
 
@@ -35,11 +35,11 @@ OWN_USERNAME = "OwnUsername"
 def create_state(
     party_members: set[str] = set(),
     lobby_players: set[str] = set(),
-    set_api_key: Optional[Callable[[str], None]] = None,
-    set_nickname: Optional[SetNickname] = None,
+    set_api_key: Callable[[str], None] | None = None,
+    set_nickname: SetNickname | None = None,
     out_of_sync: bool = False,
     in_queue: bool = False,
-    own_username: Optional[str] = OWN_USERNAME,
+    own_username: str | None = OWN_USERNAME,
 ) -> OverlayState:
     yourself = set() if own_username is None else set([own_username])
     return OverlayState(

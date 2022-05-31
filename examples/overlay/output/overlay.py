@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import Callable, Optional
+from typing import Callable
 
 from examples.overlay.output.overlay_window import CellValue, OverlayRow, OverlayWindow
 from examples.overlay.output.utils import (
@@ -15,7 +15,7 @@ from examples.overlay.state import OverlayState
 if os.name == "nt":
     from examples.overlay.platform.windows import toggle_fullscreen
 
-    FULLSCREEN_CALLBACK: Optional[Callable[[], None]] = toggle_fullscreen
+    FULLSCREEN_CALLBACK: Callable[[], None] | None = toggle_fullscreen
 else:
     FULLSCREEN_CALLBACK = None
 
@@ -66,7 +66,7 @@ def run_overlay(
     """
 
     def get_new_data() -> tuple[
-        bool, Optional[CellValue], Optional[list[OverlayRow[PropertyName]]]
+        bool, CellValue | None, list[OverlayRow[PropertyName]] | None
     ]:
         new_players = fetch_state_updates()
         new_rows = (

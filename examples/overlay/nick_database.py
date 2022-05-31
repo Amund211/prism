@@ -2,7 +2,7 @@ import json
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Type, TypeVar
+from typing import Type, TypeVar
 
 
 class DatabaseReadError(ValueError):
@@ -103,7 +103,7 @@ class NickDatabase:
         """Implement `nick_database[nick]` with `nick_database.denick(nick)`"""
         return self.denick(nick)
 
-    def get(self, nick: str) -> Optional[str]:
+    def get(self, nick: str) -> str | None:
         """Aquire the lock and return the result if we have it. Otherwise None"""
         with self.mutex:
             if nick in self:
@@ -111,7 +111,7 @@ class NickDatabase:
             else:
                 return None
 
-    def get_default(self, nick: str) -> Optional[str]:
+    def get_default(self, nick: str) -> str | None:
         """Aquire the lock and return the result if we have it in the first database"""
         with self.mutex:
             return self.default_database.get(nick, None)

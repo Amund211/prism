@@ -1,4 +1,4 @@
-from typing import Optional, Sequence, Union, cast
+from typing import Sequence, Union, cast
 
 from examples.overlay.player import PropertyName
 
@@ -10,7 +10,7 @@ COLUMN_NAMES: dict[PropertyName, str] = {
     "winstreak": "WS",
 }
 
-STAT_LEVELS: dict[PropertyName, Optional[Sequence[Union[int, float]]]] = {
+STAT_LEVELS: dict[PropertyName, Sequence[Union[int, float]] | None] = {
     "stars": (100, 300, 500, 800),
     "fkdr": (1, 2, 4, 8),
     "wlr": (0.3, 1, 2, 4),

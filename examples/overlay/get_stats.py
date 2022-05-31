@@ -1,7 +1,7 @@
 import logging
 import threading
 from dataclasses import replace
-from typing import Callable, Optional
+from typing import Callable
 
 from cachetools import TTLCache
 
@@ -76,7 +76,7 @@ def clear_cache() -> None:
 def get_bedwars_stats(
     username: str,
     key_holder: HypixelAPIKeyHolder,
-    denick: Callable[[str], Optional[str]] = lambda nick: None,
+    denick: Callable[[str], str | None] = lambda nick: None,
 ) -> tuple[str | None, str | None, str | None, Player]:
     """
     Get the bedwars stats for the given player
@@ -109,7 +109,7 @@ def get_bedwars_stats(
         uuid = None
 
     # Look up in nick database if we got no match from Mojang
-    nick: Optional[str] = None
+    nick: str | None = None
     denicked = False
     if uuid is None:
         denick_result = denick(username)

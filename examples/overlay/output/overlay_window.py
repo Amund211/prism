@@ -10,7 +10,7 @@ import tkinter as tk
 from dataclasses import dataclass
 from traceback import format_exception
 from types import TracebackType
-from typing import Callable, Generic, Optional, Sequence, TypeVar
+from typing import Callable, Generic, Sequence, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class Root(tk.Tk):
         self,
         __exc: type[BaseException],
         __val: BaseException,
-        __tb: Optional[TracebackType],
+        __tb: TracebackType | None,
     ) -> None:
         """Exit on callback exception"""
         if not issubclass(__exc, KeyboardInterrupt):
@@ -54,7 +54,7 @@ class Root(tk.Tk):
             )
         sys.exit(0)
 
-    def reset_position(self, event: "Optional[tk.Event[tk.Misc]]" = None) -> None:
+    def reset_position(self, event: "tk.Event[tk.Misc] | None" = None) -> None:
         """Reset the position of the overlay to the top left corner"""
         self.geometry("+5+5")
 
@@ -88,11 +88,11 @@ class OverlayWindow(Generic[ColumnKey]):
         close_callback: Callable[[], None],
         minimize_callback: Callable[[], None],
         get_new_data: Callable[
-            [], tuple[bool, Optional[CellValue], Optional[list[OverlayRow[ColumnKey]]]]
+            [], tuple[bool, CellValue | None, list[OverlayRow[ColumnKey]] | None]
         ],
         poll_interval: int,
         start_hidden: bool,
-        fullscreen_callback: Optional[Callable[[], None]] = None,
+        fullscreen_callback: Callable[[], None] | None = None,
     ):
         """Store params and set up controls and header"""
         # Create a root window

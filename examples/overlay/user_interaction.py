@@ -7,7 +7,7 @@ import time
 import tkinter as tk
 import tkinter.filedialog
 from pathlib import Path
-from typing import Any, Callable, Iterable, Optional, Sequence
+from typing import Any, Callable, Iterable, Sequence
 
 import toml
 
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 def watch_file_non_blocking_with_reopen(
     path: Path, timeout: float = 10
-) -> Iterable[Optional[str]]:
+) -> Iterable[str | None]:
     """Iterate over all lines in a file. Reopen the file when stale."""
     while True:
         last_read = time.monotonic()
@@ -59,7 +59,7 @@ class SearchLogfileForKeyThread(threading.Thread):
         """Read self.loglines until we find a new API key"""
         # True if we have read through the entire (present) file
         has_reached_end = False
-        found_key: Optional[str] = None
+        found_key: str | None = None
 
         for line in watch_file_non_blocking_with_reopen(self.logfile_path):
             if self.key_found_event.is_set():
@@ -216,7 +216,7 @@ class LogfilePrompt:
     def __init__(
         self,
         known_logfiles: Sequence[str],
-        last_used: Optional[str],
+        last_used: str | None,
         remove_logfile: Callable[[str], None],
         choose_logfile: Callable[[str], None],
     ):
@@ -321,7 +321,7 @@ class LogfilePrompt:
             radiobutton.pack(side=tk.RIGHT)
             self.rows.append((frame, button, label, radiobutton))
 
-    def submit_selection(self, selection: Optional[str] = None) -> None:
+    def submit_selection(self, selection: str | None = None) -> None:
         """Select the currently chosen logfile and exit"""
         self.choose_logfile(selection or self.selected_logfile_var.get())
         self.root.destroy()

@@ -2,7 +2,7 @@ import logging
 import re
 from dataclasses import dataclass
 from enum import Enum, auto, unique
-from typing import Final, Literal, Optional, Sequence, Union
+from typing import Final, Literal, Sequence, Union
 
 logger = logging.getLogger(__name__)
 
@@ -190,7 +190,7 @@ def remove_ranks(playerstring: str) -> str:
     return RANK_REGEX.sub("", playerstring)
 
 
-def get_lowest_index(source: str, *strings: str) -> Optional[str]:
+def get_lowest_index(source: str, *strings: str) -> str | None:
     """
     Return the substring that ends at the lowest index in source
 
@@ -208,7 +208,7 @@ def get_lowest_index(source: str, *strings: str) -> Optional[str]:
     return result
 
 
-def parse_logline(logline: str) -> Optional[Event]:
+def parse_logline(logline: str) -> Event | None:
     """Parse a log line to detect players leaving or joining the lobby/party"""
 
     chat_prefix = get_lowest_index(logline, CHAT_PREFIX, CHAT_PREFIX_LUNAR)
@@ -236,7 +236,7 @@ def words_match(words: Sequence[str], target: str) -> bool:
     return full_match
 
 
-def parse_chat_message(message: str) -> Optional[Event]:
+def parse_chat_message(message: str) -> Event | None:
     """
     Parse a chat message to detect players leaving or joining the lobby/party
 

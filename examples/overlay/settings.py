@@ -2,7 +2,7 @@ import logging
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable, MutableMapping, Optional, Type, TypedDict, TypeVar
+from typing import Callable, MutableMapping, Type, TypedDict, TypeVar
 
 import toml
 
@@ -23,7 +23,7 @@ class SettingsDict(TypedDict):
     """Complete dict of settings"""
 
     hypixel_api_key: str
-    antisniper_api_key: Optional[str]
+    antisniper_api_key: str | None
     use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
 
@@ -37,7 +37,7 @@ class Settings:
     """Class holding user settings for the application"""
 
     hypixel_api_key: str
-    antisniper_api_key: Optional[str]
+    antisniper_api_key: str | None
     use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
     path: Path
@@ -74,7 +74,7 @@ class Settings:
 ValueType = TypeVar("ValueType")
 
 
-def value_or_default(value: Optional[ValueType], *, default: ValueType) -> ValueType:
+def value_or_default(value: ValueType | None, *, default: ValueType) -> ValueType:
     return value if value is not None else default
 
 

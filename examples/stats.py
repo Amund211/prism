@@ -4,7 +4,7 @@ import math
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Union
+from typing import Union
 
 from prism.calc import bedwars_level_from_exp
 from prism.minecraft import MojangAPIError, get_uuid
@@ -83,7 +83,7 @@ def div_string(
     return truncate_float(quotient, 2)
 
 
-def print_bedwars_stats(playerdata: PlayerData, nick: Optional[str] = None) -> None:
+def print_bedwars_stats(playerdata: PlayerData, nick: str | None = None) -> None:
     """Print a table of bedwars stats from the given player data"""
     try:
         bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")

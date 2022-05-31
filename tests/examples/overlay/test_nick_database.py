@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Type
+from typing import Type
 
 import pytest
 
@@ -67,8 +67,8 @@ def test_nick_database() -> None:
 )
 def test_nick_database_from_disk(
     json_data: str,
-    obj: Optional[dict[str, str]],
-    exception: Optional[Type[ValueError]],
+    obj: dict[str, str] | None,
+    exception: Type[ValueError] | None,
     tmp_path: Path,
 ) -> None:
     assert (obj is None) ^ (exception is None)

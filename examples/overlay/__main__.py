@@ -12,7 +12,7 @@ import time
 from datetime import date
 from itertools import count
 from pathlib import Path
-from typing import Callable, Iterable, Optional
+from typing import Callable, Iterable
 
 from appdirs import AppDirs
 from tendo import singleton  # type: ignore
@@ -103,7 +103,7 @@ def process_loglines_to_stdout(
     state: OverlayState,
     hypixel_key_holder: HypixelAPIKeyHolder,
     antisniper_key_holder: AntiSniperAPIKeyHolder | None,
-    denick: Callable[[str], Optional[str]],
+    denick: Callable[[str], str | None],
     loglines: Iterable[str],
     thread_count: int,
 ) -> None:
@@ -141,7 +141,7 @@ def process_loglines_to_overlay(
     state: OverlayState,
     hypixel_key_holder: HypixelAPIKeyHolder,
     antisniper_key_holder: AntiSniperAPIKeyHolder | None,
-    denick: Callable[[str], Optional[str]],
+    denick: Callable[[str], str | None],
     loglines: Iterable[str],
     output_to_console: bool,
     thread_count: int,
@@ -184,7 +184,7 @@ def denick_with_api(
     nick: str,
     nick_database: NickDatabase,
     antisniper_key_holder: AntiSniperAPIKeyHolder,
-) -> Optional[str]:
+) -> str | None:
     """Try denicking via the antisniper API, fallback to dict"""
     uuid = nick_database.get_default(nick)
 
