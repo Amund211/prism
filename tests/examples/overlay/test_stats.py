@@ -9,11 +9,12 @@ from examples.overlay.stats import (
     Player,
     Stats,
     sort_players,
+    update_winstreak,
 )
 
 
 def make_player(
-    username: str,
+    username: str = "player",
     variant: Literal["nick", "pending", "player"] = "player",
     fkdr: float = 0.0,
     stars: float = 1.0,
@@ -56,6 +57,39 @@ players: dict[str, Player] = {
     "maurice": make_player("maurice", variant="pending"),
     "alfred": make_player("alfred", variant="pending"),
 }
+
+
+@pytest.mark.parametrize(
+    "player, winstreak, winstreak_accurate, result",
+    (
+        (make_player(), 10, True, make_player(winstreak=10, winstreak_accurate=True)),
+        (
+            make_player(winstreak=None, winstreak_accurate=False),
+            10,
+            True,
+            make_player(winstreak=10, winstreak_accurate=True),
+        ),
+        (
+            make_player(winstreak=100, winstreak_accurate=True),
+            1,
+            False,
+            make_player(winstreak=1, winstreak_accurate=False),
+        ),
+    ),
+)
+def test_update_winstreak(
+    player: KnownPlayer,
+    winstreak: int | None,
+    winstreak_accurate: bool,
+    result: KnownPlayer,
+) -> None:
+    """Assert that update_winstreak functions properly"""
+    assert (
+        update_winstreak(
+            player, winstreak=winstreak, winstreak_accurate=winstreak_accurate
+        )
+        == result
+    )
 
 
 @pytest.mark.parametrize(

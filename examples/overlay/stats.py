@@ -147,6 +147,20 @@ KNOWN_PLAYERS: TTLCache[str, Player] = TTLCache(maxsize=512, ttl=120)
 STATS_MUTEX = threading.Lock()
 
 
+def update_winstreak(
+    player: KnownPlayer, winstreak: int | None, winstreak_accurate: bool
+) -> KnownPlayer:
+    """Update the winstreak for a player"""
+    return replace(
+        player,
+        stats=replace(
+            player.stats,
+            winstreak=winstreak,
+            winstreak_accurate=winstreak_accurate,
+        ),
+    )
+
+
 def set_player_pending(username: str) -> PendingPlayer:
     """Note that the stats for this user are pending"""
     pending_player = PendingPlayer(username)
@@ -166,20 +180,15 @@ def get_cached_stats(username: str) -> Player | None:
 
 
 def update_cached_stats(
-    username: str, winstreak: int | None, winstreak_accurate: bool
+    username: str, update: Callable[[KnownPlayer], KnownPlayer]
 ) -> None:
     """Update the cached stats for a player"""
     with STATS_MUTEX:
-        instance = KNOWN_PLAYERS.get(username, None)
-        if isinstance(instance, KnownPlayer):
-            KNOWN_PLAYERS[username] = replace(
-                instance,
-                stats=replace(
-                    instance.stats,
-                    winstreak=winstreak,
-                    winstreak_accurate=winstreak_accurate,
-                ),
-            )
+        player = KNOWN_PLAYERS.get(username, None)
+        if isinstance(player, KnownPlayer):
+            KNOWN_PLAYERS[username] = update(player)
+        else:
+            logger.warning(f"Stats for {username} not found during update")
 
 
 def uncache_stats(username: str) -> None:

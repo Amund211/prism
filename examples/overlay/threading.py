@@ -1,3 +1,4 @@
+import functools
 import logging
 import queue
 import threading
@@ -14,6 +15,7 @@ from examples.overlay.stats import (
     set_player_pending,
     sort_players,
     update_cached_stats,
+    update_winstreak,
 )
 from prism.playerdata import HypixelAPIKeyHolder
 
@@ -108,8 +110,11 @@ class GetStatsThread(threading.Thread):
 
                             update_cached_stats(
                                 username,
-                                winstreak=estimated_winstreak,
-                                winstreak_accurate=winstreak_accurate,
+                                functools.partial(
+                                    update_winstreak,
+                                    winstreak=estimated_winstreak,
+                                    winstreak_accurate=winstreak_accurate,
+                                ),
                             )
 
                             # Tell the main thread that we got the estimated winstreak
