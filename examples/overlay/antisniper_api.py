@@ -11,9 +11,9 @@ from prism.ratelimiting import RateLimiter
 
 logger = logging.getLogger(__name__)
 
-DENICK_ENDPOINT = "http://api.antisniper.net/denick"
-ANTISNIPER_ENDPOINT = "http://api.antisniper.net/antisniper"
-WINSTREAK_ENDPOINT = "http://api.antisniper.net/winstreak"
+DENICK_ENDPOINT = "https://api.antisniper.net/denick"
+ANTISNIPER_ENDPOINT = "https://api.antisniper.net/antisniper"
+WINSTREAK_ENDPOINT = "https://api.antisniper.net/winstreak"
 
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
 
