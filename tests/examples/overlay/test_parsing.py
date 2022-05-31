@@ -237,7 +237,7 @@ UNEVENTFUL_LOGLINES = (
 )
 
 
-parsing_test_cases = (
+parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     *[(line, None) for line in UNEVENTFUL_LOGLINES],
     (
         # Initialize as on vanilla

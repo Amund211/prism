@@ -13,7 +13,7 @@ from examples.overlay.player import (
 
 rating0, rating1, rating2, rating3, rating4 = LEVEL_COLORMAP
 
-test_cases = (
+test_cases: tuple[tuple[Player, OverlayRow[PropertyName]], ...] = (
     (
         KnownPlayer(
             username="Player",
@@ -139,7 +139,7 @@ test_cases = (
     ),
 )
 
-test_ids = [player.username for player, row in test_cases]  # type: ignore
+test_ids = [player.username for player, row in test_cases]
 
 assert len(test_ids) == len(set(test_ids)), "Test ids should be unique"
 

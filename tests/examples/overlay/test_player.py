@@ -92,118 +92,118 @@ def test_update_winstreak(
     )
 
 
-@pytest.mark.parametrize(
-    "players, party_members, result",
+sort_test_cases: tuple[tuple[list[Player], set[str], list[Player]], ...] = (
+    # Joe has better fkdr than Carl
+    ([players["carl"], players["joe"]], set(), [players["joe"], players["carl"]]),
+    ([players["joe"], players["carl"]], set(), [players["joe"], players["carl"]]),
+    # Carl jr. jr. > Carl jr. > Carl
     (
-        # Joe has better fkdr than Carl
-        ([players["carl"], players["joe"]], {}, [players["joe"], players["carl"]]),
-        ([players["joe"], players["carl"]], {}, [players["joe"], players["carl"]]),
-        # Carl jr. jr. > Carl jr. > Carl
-        (
-            [players["carl_jr"], players["carl"], players["carl_jr_jr"]],
-            {},
-            [players["carl_jr_jr"], players["carl_jr"], players["carl"]],
-        ),
-        # If the juniors are on our team though, they get sorted last
-        (
-            [players["carl_jr"], players["carl"], players["carl_jr_jr"]],
-            {"carl_jr_jr"},
-            [players["carl_jr"], players["carl"], players["carl_jr_jr"]],
-        ),
-        (
-            [players["carl_jr"], players["carl"], players["carl_jr_jr"]],
-            {"carl_jr_jr", "carl_jr"},
-            [players["carl"], players["carl_jr_jr"], players["carl_jr"]],
-        ),
-        # Joseph outperforms all the Carls on wlr
-        (
-            [
-                players["carl_jr"],
-                players["carl"],
-                players["joseph"],
-                players["carl_jr_jr"],
-            ],
-            {},
-            [
-                players["joseph"],
-                players["carl_jr_jr"],
-                players["carl_jr"],
-                players["carl"],
-            ],
-        ),
-        (
-            [
-                players["carl_jr"],
-                players["carl"],
-                players["joseph"],
-                players["carl_jr_jr"],
-            ],
-            {"joseph", "our_username"},
-            [
-                players["carl_jr_jr"],
-                players["carl_jr"],
-                players["carl"],
-                players["joseph"],
-            ],
-        ),
-        # Nicks get sorted at the top - sorted by username descending
-        (
-            [players["joe"], players["amazing_nick"], players["bad_nick"]],
-            {},
-            [players["bad_nick"], players["amazing_nick"], players["joe"]],
-        ),
-        # Pending players get sorted at the bottom (above teammates)
-        (
-            [players["joe"], players["maurice"], players["alfred"]],
-            {},
-            [players["joe"], players["maurice"], players["alfred"]],
-        ),
-        (
-            [players["joe"], players["maurice"], players["alfred"]],
-            {"joe"},
-            [players["maurice"], players["alfred"], players["joe"]],
-        ),
-        (
-            [players["joe"], players["maurice"], players["alfred"]],
-            {"joe", "maurice"},
-            [players["alfred"], players["joe"], players["maurice"]],
-        ),
-        # Both pending players and nicks and real players
-        (
-            [
-                players["carl"],
-                players["joe"],
-                players["maurice"],
-                players["alfred"],
-                players["amazing_nick"],
-                players["bad_nick"],
-            ],
-            {},
-            [
-                players["bad_nick"],
-                players["amazing_nick"],
-                players["joe"],
-                players["carl"],
-                players["maurice"],
-                players["alfred"],
-            ],
-        ),
-        # Denicked player
-        ([players["chad"], players["joe"]], {}, [players["chad"], players["joe"]]),
-        (
-            [players["chad"], players["joe"]],
-            {"chad"},
-            [players["joe"], players["chad"]],
-        ),
-        # Empty list is ok
-        ([], {}, []),
-        ([], {"unknown"}, []),
-        ([], {"unknown", "unknown2"}, []),
-        # Single person is ok
-        ([players["joe"]], {}, [players["joe"]]),
-        ([players["joe"]], {"unknown", "unknown2"}, [players["joe"]]),
+        [players["carl_jr"], players["carl"], players["carl_jr_jr"]],
+        set(),
+        [players["carl_jr_jr"], players["carl_jr"], players["carl"]],
     ),
+    # If the juniors are on our team though, they get sorted last
+    (
+        [players["carl_jr"], players["carl"], players["carl_jr_jr"]],
+        {"carl_jr_jr"},
+        [players["carl_jr"], players["carl"], players["carl_jr_jr"]],
+    ),
+    (
+        [players["carl_jr"], players["carl"], players["carl_jr_jr"]],
+        {"carl_jr_jr", "carl_jr"},
+        [players["carl"], players["carl_jr_jr"], players["carl_jr"]],
+    ),
+    # Joseph outperforms all the Carls on wlr
+    (
+        [
+            players["carl_jr"],
+            players["carl"],
+            players["joseph"],
+            players["carl_jr_jr"],
+        ],
+        set(),
+        [
+            players["joseph"],
+            players["carl_jr_jr"],
+            players["carl_jr"],
+            players["carl"],
+        ],
+    ),
+    (
+        [
+            players["carl_jr"],
+            players["carl"],
+            players["joseph"],
+            players["carl_jr_jr"],
+        ],
+        {"joseph", "our_username"},
+        [
+            players["carl_jr_jr"],
+            players["carl_jr"],
+            players["carl"],
+            players["joseph"],
+        ],
+    ),
+    # Nicks get sorted at the top - sorted by username descending
+    (
+        [players["joe"], players["amazing_nick"], players["bad_nick"]],
+        set(),
+        [players["bad_nick"], players["amazing_nick"], players["joe"]],
+    ),
+    # Pending players get sorted at the bottom (above teammates)
+    (
+        [players["joe"], players["maurice"], players["alfred"]],
+        set(),
+        [players["joe"], players["maurice"], players["alfred"]],
+    ),
+    (
+        [players["joe"], players["maurice"], players["alfred"]],
+        {"joe"},
+        [players["maurice"], players["alfred"], players["joe"]],
+    ),
+    (
+        [players["joe"], players["maurice"], players["alfred"]],
+        {"joe", "maurice"},
+        [players["alfred"], players["joe"], players["maurice"]],
+    ),
+    # Both pending players and nicks and real players
+    (
+        [
+            players["carl"],
+            players["joe"],
+            players["maurice"],
+            players["alfred"],
+            players["amazing_nick"],
+            players["bad_nick"],
+        ],
+        set(),
+        [
+            players["bad_nick"],
+            players["amazing_nick"],
+            players["joe"],
+            players["carl"],
+            players["maurice"],
+            players["alfred"],
+        ],
+    ),
+    # Denicked player
+    ([players["chad"], players["joe"]], set(), [players["chad"], players["joe"]]),
+    (
+        [players["chad"], players["joe"]],
+        {"chad"},
+        [players["joe"], players["chad"]],
+    ),
+    # Empty list is ok
+    ([], set(), []),
+    ([], {"unknown"}, []),
+    ([], {"unknown", "unknown2"}, []),
+    # Single person is ok
+    ([players["joe"]], set(), [players["joe"]]),
+    ([players["joe"]], {"unknown", "unknown2"}, [players["joe"]]),
 )
+
+
+@pytest.mark.parametrize("players, party_members, result", sort_test_cases)
 def test_sort_stats(
     players: list[Player], party_members: set[str], result: list[Player]
 ) -> None:

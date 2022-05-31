@@ -40,7 +40,7 @@ def get_api_key() -> str:
 
 PLACEHOLDER_PATH = Path("PLACEHOLDER_PATH")
 
-settings_to_dict_cases = (
+settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
     (
         Settings(
             hypixel_api_key="my-key",
@@ -113,130 +113,128 @@ def test_read_and_write_settings(
     )
 
 
-@pytest.mark.parametrize(
-    "incomplete_settings, result_dict, result_updated",
+fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] = (
     (
-        (
-            {
-                "hypixel_api_key": "my-key",
-                "antisniper_api_key": "my-key",
-                "use_antisniper_api": False,
-                "known_nicks": {
-                    "AmazingNick": {"uuid": "123987", "comment": "Player1"}
-                },
-            },
-            make_settings_dict(
-                hypixel_api_key="my-key",
-                antisniper_api_key="my-key",
-                known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
-            ),
-            False,
+        {
+            "hypixel_api_key": "my-key",
+            "antisniper_api_key": "my-key",
+            "use_antisniper_api": False,
+            "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
+        },
+        make_settings_dict(
+            hypixel_api_key="my-key",
+            antisniper_api_key="my-key",
+            known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
         ),
-        (
-            {"hypixel_api_key": "my-key"},
-            make_settings_dict(hypixel_api_key="my-key"),
-            True,
-        ),
-        (
-            {"hypixel_api_key": 1},
-            make_settings_dict(),
-            True,
-        ),
-        (
-            {"hypixel_api_key": None},
-            make_settings_dict(),
-            True,
-        ),
-        (
-            {
-                "hypixel_api_key": {},
-                "known_nicks": {
-                    "AmazingNick": {"uuid": "123987", "comment": "Player1"}
-                },
-            },
-            make_settings_dict(
-                known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}}
-            ),
-            True,
-        ),
-        (
-            {"antisniper_api_key": None},
-            make_settings_dict(),
-            True,
-        ),
-        (
-            {"hypixel_api_key": "my-key", "use_antisniper_api": True},
-            make_settings_dict(hypixel_api_key="my-key", use_antisniper_api=True),
-            True,
-        ),
-        # Placeholder key
-        (
-            {"hypixel_api_key": PLACEHOLDER_API_KEY},
-            make_settings_dict(),
-            True,
-        ),
-        # Key too short
-        (
-            {"hypixel_api_key": "k"},
-            make_settings_dict(),
-            True,
-        ),
-        (
-            {"antisniper_api_key": "k"},
-            make_settings_dict(),
-            True,
-        ),
-        # No settings
-        ({}, make_settings_dict(), True),
-        # Corrupt data in known_nicks
-        (
-            {
-                "hypixel_api_key": "my-key",
-                "known_nicks": {
-                    # Key is not a string
-                    1234: {"uuid": 123987, "comment": "Player1"}
-                },
-            },
-            make_settings_dict(hypixel_api_key="my-key"),
-            True,
-        ),
-        (
-            {
-                "hypixel_api_key": "my-key",
-                "known_nicks": {
-                    # Value is a string, not a dict
-                    "AmazingNick": "uuid"
-                    "123987"
-                    "comment"
-                    "Player1"
-                },
-            },
-            make_settings_dict(hypixel_api_key="my-key"),
-            True,
-        ),
-        (
-            {
-                "hypixel_api_key": "my-key",
-                "known_nicks": {
-                    # Incorrect type on uuid or comment
-                    "AmazingNick": {"uuid": 123987, "comment": "Player1"}
-                },
-            },
-            make_settings_dict(hypixel_api_key="my-key"),
-            True,
-        ),
-        (
-            {
-                "hypixel_api_key": "my-key",
-                "known_nicks": {
-                    # Incorrect type on uuid or comment
-                    "AmazingNick": {"uuid": "123987", "comment": 1234}
-                },
-            },
-            make_settings_dict(hypixel_api_key="my-key"),
-            True,
-        ),
+        False,
     ),
+    (
+        {"hypixel_api_key": "my-key"},
+        make_settings_dict(hypixel_api_key="my-key"),
+        True,
+    ),
+    (
+        {"hypixel_api_key": 1},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        {"hypixel_api_key": None},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        {
+            "hypixel_api_key": {},
+            "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
+        },
+        make_settings_dict(
+            known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}}
+        ),
+        True,
+    ),
+    (
+        {"antisniper_api_key": None},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        {"hypixel_api_key": "my-key", "use_antisniper_api": True},
+        make_settings_dict(hypixel_api_key="my-key", use_antisniper_api=True),
+        True,
+    ),
+    # Placeholder key
+    (
+        {"hypixel_api_key": PLACEHOLDER_API_KEY},
+        make_settings_dict(),
+        True,
+    ),
+    # Key too short
+    (
+        {"hypixel_api_key": "k"},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        {"antisniper_api_key": "k"},
+        make_settings_dict(),
+        True,
+    ),
+    # No settings
+    ({}, make_settings_dict(), True),
+    # Corrupt data in known_nicks
+    (
+        {
+            "hypixel_api_key": "my-key",
+            "known_nicks": {
+                # Key is not a string
+                1234: {"uuid": 123987, "comment": "Player1"}
+            },
+        },
+        make_settings_dict(hypixel_api_key="my-key"),
+        True,
+    ),
+    (
+        {
+            "hypixel_api_key": "my-key",
+            "known_nicks": {
+                # Value is a string, not a dict
+                "AmazingNick": "uuid"
+                "123987"
+                "comment"
+                "Player1"
+            },
+        },
+        make_settings_dict(hypixel_api_key="my-key"),
+        True,
+    ),
+    (
+        {
+            "hypixel_api_key": "my-key",
+            "known_nicks": {
+                # Incorrect type on uuid or comment
+                "AmazingNick": {"uuid": 123987, "comment": "Player1"}
+            },
+        },
+        make_settings_dict(hypixel_api_key="my-key"),
+        True,
+    ),
+    (
+        {
+            "hypixel_api_key": "my-key",
+            "known_nicks": {
+                # Incorrect type on uuid or comment
+                "AmazingNick": {"uuid": "123987", "comment": 1234}
+            },
+        },
+        make_settings_dict(hypixel_api_key="my-key"),
+        True,
+    ),
+)
+
+
+@pytest.mark.parametrize(
+    "incomplete_settings, result_dict, result_updated", fill_settings_test_cases
 )
 def test_fill_missing_settings(
     incomplete_settings: dict[str, Any], result_dict: SettingsDict, result_updated: bool

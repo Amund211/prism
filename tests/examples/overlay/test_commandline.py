@@ -24,53 +24,53 @@ def make_options(
     )
 
 
-@pytest.mark.parametrize(
-    "commandline, result",
+test_cases: tuple[tuple[str, Options], ...] = (
+    # No options
+    ("", make_options()),
+    # Output to console
+    ("-q", make_options(output_to_console=False)),
+    # Logging verbosity
+    ("--verbose", make_options(loglevel=logging.ERROR)),
+    ("-v", make_options(loglevel=logging.ERROR)),
+    ("-vv", make_options(loglevel=logging.WARNING)),
+    ("-vvv", make_options(loglevel=logging.INFO)),
+    ("-vvvv", make_options(loglevel=logging.DEBUG)),
+    # Logfile
+    ("-l someotherlogfile", make_options("someotherlogfile")),
+    ("--logfile someotherlogfile", make_options("someotherlogfile")),
+    # Settings
+    ("-s s.toml", make_options(settings="s.toml")),
+    # Threads
+    ("-t 8", make_options(threads=8)),
+    ("--threads=8", make_options(threads=8)),
+    ("--threads 8", make_options(threads=8)),
+    # Multiple arguments
     (
-        # No options
-        ("", make_options()),
-        # Output to console
-        ("-q", make_options(output_to_console=False)),
-        # Logging verbosity
-        ("--verbose", make_options(loglevel=logging.ERROR)),
-        ("-v", make_options(loglevel=logging.ERROR)),
-        ("-vv", make_options(loglevel=logging.WARNING)),
-        ("-vvv", make_options(loglevel=logging.INFO)),
-        ("-vvvv", make_options(loglevel=logging.DEBUG)),
-        # Logfile
-        ("-l someotherlogfile", make_options("someotherlogfile")),
-        ("--logfile someotherlogfile", make_options("someotherlogfile")),
-        # Settings
-        ("-s s.toml", make_options(settings="s.toml")),
-        # Threads
-        ("-t 8", make_options(threads=8)),
-        ("--threads=8", make_options(threads=8)),
-        ("--threads 8", make_options(threads=8)),
-        # Multiple arguments
-        (
-            "-l somelogfile --settings s.toml",
-            make_options("somelogfile", settings="s.toml"),
-        ),
-        (
-            "--settings s.toml -l somelogfile",
-            make_options("somelogfile", settings="s.toml"),
-        ),
-        (
-            "--settings s.toml -l somelogfile --quiet -vvvv",
-            make_options(
-                "somelogfile",
-                settings="s.toml",
-                output_to_console=False,
-                loglevel=logging.DEBUG,
-            ),
-        ),
-        # Weird input -> weird output
-        (
-            "--settings somelogfile.txt --logfile s.toml",
-            make_options("s.toml", settings="somelogfile.txt"),
+        "-l somelogfile --settings s.toml",
+        make_options("somelogfile", settings="s.toml"),
+    ),
+    (
+        "--settings s.toml -l somelogfile",
+        make_options("somelogfile", settings="s.toml"),
+    ),
+    (
+        "--settings s.toml -l somelogfile --quiet -vvvv",
+        make_options(
+            "somelogfile",
+            settings="s.toml",
+            output_to_console=False,
+            loglevel=logging.DEBUG,
         ),
     ),
+    # Weird input -> weird output
+    (
+        "--settings somelogfile.txt --logfile s.toml",
+        make_options("s.toml", settings="somelogfile.txt"),
+    ),
 )
+
+
+@pytest.mark.parametrize("commandline, result", test_cases)
 def test_get_options(commandline: str, result: Options) -> None:
     assert (
         get_options(

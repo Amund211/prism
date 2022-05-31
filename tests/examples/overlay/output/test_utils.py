@@ -7,7 +7,7 @@ from examples.overlay.output.utils import rate_value
 LEVELS = (0.1, 0.5, 1, 10, 100)
 
 # Tuples (value, rating) wrt LEVELS
-test_cases = (
+test_cases: tuple[tuple[float, int], ...] = (
     (0, 0),
     (0.0, 0),
     (0.05, 0),

@@ -53,7 +53,9 @@ def create_state(
     )
 
 
-update_state_test_cases_base = (
+update_state_test_cases_base: tuple[
+    tuple[str, OverlayState, Event, OverlayState, bool], ...
+] = (
     (
         "initialize",
         create_state(own_username=None),
