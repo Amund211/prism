@@ -1,21 +1,29 @@
 import pytest
 
-from examples.overlay.output.overlay import DEFAULT_COLOR, LEVEL_COLORMAP, stats_to_row
+from examples.overlay.output.overlay import DEFAULT_COLOR, LEVEL_COLORMAP, player_to_row
 from examples.overlay.output.overlay_window import CellValue, OverlayRow
-from examples.overlay.stats import NickedPlayer, PlayerStats, PropertyName, Stats
+from examples.overlay.stats import (
+    KnownPlayer,
+    NickedPlayer,
+    Player,
+    PropertyName,
+    Stats,
+)
 
 rating0, rating1, rating2, rating3, rating4 = LEVEL_COLORMAP
 
 test_cases = (
     (
-        PlayerStats(
+        KnownPlayer(
             username="Player1",
             uuid="some-fake-uuid",
             stars=10.0,
-            fkdr=1.0,
-            wlr=2.0,
-            winstreak=15,
-            winstreak_accurate=True,
+            stats=Stats(
+                fkdr=1.0,
+                wlr=2.0,
+                winstreak=15,
+                winstreak_accurate=True,
+            ),
         ),
         {
             "username": CellValue("Player1", DEFAULT_COLOR),
@@ -26,15 +34,17 @@ test_cases = (
         },
     ),
     (
-        PlayerStats(
+        KnownPlayer(
             username="Player2",
             nick="the_amazing_nick",
             uuid="some-fake-uuid",
             stars=600.0,
-            fkdr=10.0,
-            wlr=2.0,
-            winstreak=0,
-            winstreak_accurate=True,
+            stats=Stats(
+                fkdr=10.0,
+                wlr=2.0,
+                winstreak=0,
+                winstreak_accurate=True,
+            ),
         ),
         {
             "username": CellValue("Player2 (the_amazing_nick)", DEFAULT_COLOR),
@@ -45,7 +55,7 @@ test_cases = (
         },
     ),
     (
-        NickedPlayer(username="Player3"),
+        NickedPlayer(nick="Player3"),
         {
             "username": CellValue("Player3", DEFAULT_COLOR),
             "stars": CellValue("unknown", rating4),
@@ -56,14 +66,16 @@ test_cases = (
     ),
     # Missing winstreak
     (
-        PlayerStats(
+        KnownPlayer(
             username="Player4",
             uuid="some-fake-uuid",
             stars=10.0,
-            fkdr=1.0,
-            wlr=2.0,
-            winstreak=None,
-            winstreak_accurate=False,
+            stats=Stats(
+                fkdr=1.0,
+                wlr=2.0,
+                winstreak=None,
+                winstreak_accurate=False,
+            ),
         ),
         {
             "username": CellValue("Player4", DEFAULT_COLOR),
@@ -74,14 +86,16 @@ test_cases = (
         },
     ),
     (
-        PlayerStats(
+        KnownPlayer(
             username="Player5",
             uuid="some-fake-uuid",
             stars=10.0,
-            fkdr=1.0,
-            wlr=2.0,
-            winstreak=None,
-            winstreak_accurate=True,
+            stats=Stats(
+                fkdr=1.0,
+                wlr=2.0,
+                winstreak=None,
+                winstreak_accurate=True,
+            ),
         ),
         {
             "username": CellValue("Player5", DEFAULT_COLOR),
@@ -93,14 +107,16 @@ test_cases = (
     ),
     # Inaccurate winstreak
     (
-        PlayerStats(
+        KnownPlayer(
             username="Player6",
             uuid="some-fake-uuid",
             stars=10.0,
-            fkdr=1.0,
-            wlr=2.0,
-            winstreak=100,
-            winstreak_accurate=False,
+            stats=Stats(
+                fkdr=1.0,
+                wlr=2.0,
+                winstreak=100,
+                winstreak_accurate=False,
+            ),
         ),
         {
             "username": CellValue("Player6", DEFAULT_COLOR),
@@ -112,12 +128,12 @@ test_cases = (
     ),
 )
 
-test_ids = [stats.username for stats, row in test_cases]  # type: ignore
+test_ids = [player.username for player, row in test_cases]  # type: ignore
 
 assert len(test_ids) == len(set(test_ids)), "Test ids should be unique"
 
 
-@pytest.mark.parametrize("stats, row", test_cases, ids=test_ids)
-def test_stats_to_row(stats: Stats, row: OverlayRow[PropertyName]) -> None:
-    """Assert that stats_to_row functions properly"""
-    assert stats_to_row(stats) == row
+@pytest.mark.parametrize("player, row", test_cases, ids=test_ids)
+def test_stats_to_row(player: Player, row: OverlayRow[PropertyName]) -> None:
+    """Assert that player_to_row functions properly"""
+    assert player_to_row(player) == row

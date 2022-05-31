@@ -25,7 +25,7 @@ from examples.overlay.output.overlay import run_overlay
 from examples.overlay.output.printing import print_stats_table
 from examples.overlay.settings import Settings, api_key_is_valid, get_settings
 from examples.overlay.state import OverlayState, fast_forward_state
-from examples.overlay.stats import Stats, clear_cache, uncache_stats
+from examples.overlay.stats import Player, clear_cache, uncache_stats
 from examples.overlay.threading import prepare_overlay
 from examples.overlay.user_interaction import prompt_for_logfile_path, wait_for_api_key
 from prism.minecraft import MojangAPIError, get_uuid
@@ -160,7 +160,7 @@ def process_loglines_to_overlay(
         # Output to console every time we get a new stats list
         original_get_stat_list = get_stat_list
 
-        def get_stat_list() -> Optional[list[Stats]]:
+        def get_stat_list() -> list[Player] | None:
             sorted_stats = original_get_stat_list()
 
             if sorted_stats is not None:

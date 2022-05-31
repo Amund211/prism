@@ -7,12 +7,12 @@ import examples.overlay.antisniper_api as antisniper_api
 from examples.overlay.parsing import parse_logline
 from examples.overlay.state import OverlayState, update_state
 from examples.overlay.stats import (
-    PlayerStats,
-    Stats,
+    KnownPlayer,
+    Player,
     get_bedwars_stats,
     get_cached_stats,
     set_player_pending,
-    sort_stats,
+    sort_players,
     update_cached_stats,
 )
 from prism.playerdata import HypixelAPIKeyHolder
@@ -79,7 +79,7 @@ class GetStatsThread(threading.Thread):
                 username = self.requests_queue.get()
 
                 # get_bedwars_stats sets the stats cache which will be read from later
-                found_username, nick, uuid, stats = get_bedwars_stats(
+                found_username, nick, uuid, player = get_bedwars_stats(
                     username, key_holder=self.hypixel_key_holder, denick=self.denick
                 )
                 logger.debug(f"Finished gettings stats for {username}")
@@ -91,8 +91,8 @@ class GetStatsThread(threading.Thread):
                 if (
                     self.antisniper_key_holder is not None
                     and uuid is not None
-                    and isinstance(stats, PlayerStats)
-                    and stats.winstreak is None
+                    and isinstance(player, KnownPlayer)
+                    and player.stats.winstreak is None
                 ):
                     (
                         estimated_winstreak,
@@ -158,7 +158,7 @@ def prepare_overlay(
     denick: Callable[[str], Optional[str]],
     loglines: Iterable[str],
     thread_count: int,
-) -> Callable[[], Optional[list[Stats]]]:
+) -> Callable[[], list[Player] | None]:
     """
     Set up and return get_stat_list
 
@@ -188,7 +188,7 @@ def prepare_overlay(
             denick=denick,
         ).start()
 
-    def get_stat_list() -> Optional[list[Stats]]:
+    def get_stat_list() -> list[Player] | None:
         """
         Get an updated list of stats of the players in the lobby. None if no updates
         """
@@ -203,7 +203,7 @@ def prepare_overlay(
             return None
 
         # Get the cached stats for the players in the lobby
-        stats: list[Stats] = []
+        players: list[Player] = []
 
         with state.mutex:
             lobby_players = state.lobby_players.copy()
@@ -216,9 +216,9 @@ def prepare_overlay(
                 cached_stats = set_player_pending(player)
                 logger.debug(f"Set player {player} to pending")
                 requested_stats_queue.put(player)
-            stats.append(cached_stats)
+            players.append(cached_stats)
 
-        sorted_stats = sort_stats(stats, state.party_members)
+        sorted_stats = sort_players(players, state.party_members)
 
         return sorted_stats
 

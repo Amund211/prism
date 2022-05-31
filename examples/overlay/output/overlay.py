@@ -10,7 +10,7 @@ from examples.overlay.output.utils import (
     rate_value,
 )
 from examples.overlay.state import OverlayState
-from examples.overlay.stats import PropertyName, Stats
+from examples.overlay.stats import Player, PropertyName
 
 if os.name == "nt":
     from examples.overlay.platform.windows import toggle_fullscreen
@@ -34,20 +34,20 @@ for levels in STAT_LEVELS.values():
         assert len(levels) <= len(LEVEL_COLORMAP) - 1
 
 
-def stats_to_row(stats: Stats) -> OverlayRow[PropertyName]:
+def player_to_row(player: Player) -> OverlayRow[PropertyName]:
     """
-    Create an OverlayRow from a Stats instance
+    Create an OverlayRow from a Player instance
 
-    Gets the text from stats.get_string
+    Gets the text from player.get_string
     Gets the color by rating the stats
     """
     return {
         name: CellValue(
-            text=stats.get_string(name),
+            text=player.get_string(name),
             color=(
                 LEVEL_COLORMAP[rate_value(value, levels)]
                 if levels is not None
-                and isinstance(value := stats.get_value(name), (int, float))
+                and isinstance(value := player.get_value(name), (int, float))
                 else DEFAULT_COLOR
             ),
         )
@@ -56,7 +56,7 @@ def stats_to_row(stats: Stats) -> OverlayRow[PropertyName]:
 
 
 def run_overlay(
-    state: OverlayState, fetch_state_updates: Callable[[], Optional[list[Stats]]]
+    state: OverlayState, fetch_state_updates: Callable[[], list[Player] | None]
 ) -> None:
     """
     Run the overlay
@@ -68,10 +68,10 @@ def run_overlay(
     def get_new_data() -> tuple[
         bool, Optional[CellValue], Optional[list[OverlayRow[PropertyName]]]
     ]:
-        new_stats = fetch_state_updates()
+        new_players = fetch_state_updates()
         new_rows = (
-            [stats_to_row(stats) for stats in new_stats]
-            if new_stats is not None
+            [player_to_row(player) for player in new_players]
+            if new_players is not None
             else None
         )
         return (

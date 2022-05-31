@@ -6,7 +6,7 @@ from examples.overlay.output.utils import (
     STAT_LEVELS,
     rate_value,
 )
-from examples.overlay.stats import Stats
+from examples.overlay.stats import Player
 
 
 class Color:
@@ -84,7 +84,7 @@ def get_sep(column: str) -> str:
 
 
 def print_stats_table(
-    sorted_stats: list[Stats],
+    sorted_stats: list[Player],
     party_members: set[str],
     out_of_sync: bool,
     clear_between_draws: bool = True,

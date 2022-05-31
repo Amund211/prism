@@ -20,21 +20,29 @@ StatName = Literal["stars", "fkdr", "wlr", "winstreak"]
 InfoName = Literal["username"]
 PropertyName = Literal[StatName, InfoName]
 
+
 logger = logging.getLogger(__name__)
 
 
 @dataclass(order=True, frozen=True)
-class PlayerStats:
-    """Dataclass holding the stats of a single player"""
+class Stats:
+    """Dataclass holding a collection of stats"""
 
     fkdr: float
-    stars: float
     wlr: float
     winstreak: int | None = field(compare=False)
     winstreak_accurate: bool = field(compare=False)
+
+
+@dataclass(order=True, frozen=True)
+class KnownPlayer:
+    """Dataclass holding the stats of a single player"""
+
+    stats: Stats
+    stars: float
     username: str
-    uuid: Optional[str] = field(compare=False)
-    nick: Optional[str] = field(default=None, compare=False)
+    uuid: str | None = field(compare=False)
+    nick: str | None = field(default=None, compare=False)
 
     @property
     def stats_hidden(self) -> bool:
@@ -52,13 +60,13 @@ class PlayerStats:
     def get_value(self, name: PropertyName) -> Union[str, int, float, None]:
         """Get the given stat from this player"""
         if name == "fkdr":
-            return self.fkdr
+            return self.stats.fkdr
         elif name == "stars":
             return self.stars
         elif name == "wlr":
-            return self.wlr
+            return self.stats.wlr
         elif name == "winstreak":
-            return self.winstreak
+            return self.stats.winstreak
         elif name == "username":
             return self.username + (f" ({self.nick})" if self.nick is not None else "")
 
@@ -68,7 +76,7 @@ class PlayerStats:
         if value is None:
             return "-"
         elif name == "winstreak":
-            return f"{value}{'' if self.winstreak_accurate else '?'}"
+            return f"{value}{'' if self.stats.winstreak_accurate else '?'}"
         elif isinstance(value, int):
             return str(value)
         elif isinstance(value, str):
@@ -83,7 +91,7 @@ class PlayerStats:
 class NickedPlayer:
     """Dataclass holding the stats of a single player assumed to be nicked"""
 
-    username: str
+    nick: str
 
     @property
     def stats_hidden(self) -> bool:
@@ -100,6 +108,11 @@ class NickedPlayer:
             return self.username
 
         return "unknown"
+
+    @property
+    def username(self) -> str:
+        """Display the username as the nick"""
+        return self.nick
 
 
 @dataclass(order=True, frozen=True)
@@ -125,12 +138,12 @@ class PendingPlayer:
         return "-"
 
 
-Stats = Union[PlayerStats, NickedPlayer, PendingPlayer]
+Player = Union[KnownPlayer, NickedPlayer, PendingPlayer]
 
 
 # Session stats cache
 # Entries cached for 2mins, so they hopefully expire before the next queue
-KNOWN_STATS: TTLCache[str, Stats] = TTLCache(maxsize=512, ttl=120)
+KNOWN_PLAYERS: TTLCache[str, Player] = TTLCache(maxsize=512, ttl=120)
 STATS_MUTEX = threading.Lock()
 
 
@@ -139,17 +152,17 @@ def set_player_pending(username: str) -> PendingPlayer:
     pending_player = PendingPlayer(username)
 
     with STATS_MUTEX:
-        if username in KNOWN_STATS:
+        if username in KNOWN_PLAYERS:
             logger.error(f"Stats for {username} set to pending, but already exists")
 
-        KNOWN_STATS[username] = pending_player
+        KNOWN_PLAYERS[username] = pending_player
 
     return pending_player
 
 
-def get_cached_stats(username: str) -> Optional[Stats]:
+def get_cached_stats(username: str) -> Player | None:
     with STATS_MUTEX:
-        return KNOWN_STATS.get(username, None)
+        return KNOWN_PLAYERS.get(username, None)
 
 
 def update_cached_stats(
@@ -157,30 +170,35 @@ def update_cached_stats(
 ) -> None:
     """Update the cached stats for a player"""
     with STATS_MUTEX:
-        instance = KNOWN_STATS.get(username, None)
-        if isinstance(instance, PlayerStats):
-            KNOWN_STATS[username] = replace(
-                instance, winstreak=winstreak, winstreak_accurate=winstreak_accurate
+        instance = KNOWN_PLAYERS.get(username, None)
+        if isinstance(instance, KnownPlayer):
+            KNOWN_PLAYERS[username] = replace(
+                instance,
+                stats=replace(
+                    instance.stats,
+                    winstreak=winstreak,
+                    winstreak_accurate=winstreak_accurate,
+                ),
             )
 
 
 def uncache_stats(username: str) -> None:
     """Clear the cache entry for `username`"""
     with STATS_MUTEX:
-        KNOWN_STATS.pop(username, None)
+        KNOWN_PLAYERS.pop(username, None)
 
 
 def clear_cache() -> None:
     """Clear the entire stats cache"""
     with STATS_MUTEX:
-        KNOWN_STATS.clear()
+        KNOWN_PLAYERS.clear()
 
 
 def get_bedwars_stats(
     username: str,
     key_holder: HypixelAPIKeyHolder,
     denick: Callable[[str], Optional[str]] = lambda nick: None,
-) -> tuple[str | None, str | None, str | None, Stats]:
+) -> tuple[str | None, str | None, str | None, Player]:
     """
     Get the bedwars stats for the given player
 
@@ -192,7 +210,7 @@ def get_bedwars_stats(
         logger.info(f"Cache hit {username}")
         if isinstance(cached_stats, NickedPlayer):
             return None, cached_stats.username, None, cached_stats
-        elif isinstance(cached_stats, PlayerStats):
+        elif isinstance(cached_stats, KnownPlayer):
             return (
                 cached_stats.username,
                 cached_stats.nick,
@@ -222,9 +240,9 @@ def get_bedwars_stats(
             denicked = True
             logger.debug(f"De-nicked {username} as {uuid}")
 
-    stats: Stats
+    player: Player
     if uuid is None:
-        stats = NickedPlayer(username=username)
+        player = NickedPlayer(nick=username)
     else:
         try:
             playerdata = get_player_data(uuid, key_holder)
@@ -254,7 +272,7 @@ def get_bedwars_stats(
 
         if playerdata is None:
             logger.debug("Got no playerdata - assuming player is nicked")
-            stats = NickedPlayer(username=username)
+            player = NickedPlayer(nick=username)
         else:
             if nick is not None:
                 # Successfully de-nicked - update actual username
@@ -264,82 +282,88 @@ def get_bedwars_stats(
             try:
                 bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
             except MissingStatsError:
-                stats = PlayerStats(
+                player = KnownPlayer(
                     username=username,
                     uuid=uuid,
                     stars=0,
-                    fkdr=0,
-                    wlr=0,
-                    winstreak=0,
-                    winstreak_accurate=True,
+                    stats=Stats(
+                        fkdr=0,
+                        wlr=0,
+                        winstreak=0,
+                        winstreak_accurate=True,
+                    ),
                 )
             else:
                 winstreak = bw_stats.get("winstreak", None)
-                stats = PlayerStats(
+                player = KnownPlayer(
                     username=username,
                     nick=nick,
                     uuid=uuid,
                     stars=bedwars_level_from_exp(bw_stats.get("Experience", 500)),
-                    fkdr=div(
-                        bw_stats.get("final_kills_bedwars", 0),
-                        bw_stats.get("final_deaths_bedwars", 0),
+                    stats=Stats(
+                        fkdr=div(
+                            bw_stats.get("final_kills_bedwars", 0),
+                            bw_stats.get("final_deaths_bedwars", 0),
+                        ),
+                        wlr=div(
+                            bw_stats.get("wins_bedwars", 0),
+                            bw_stats.get("games_played_bedwars", 0)
+                            - bw_stats.get("wins_bedwars", 0),
+                        ),
+                        winstreak=winstreak,
+                        winstreak_accurate=winstreak is not None,
                     ),
-                    wlr=div(
-                        bw_stats.get("wins_bedwars", 0),
-                        bw_stats.get("games_played_bedwars", 0)
-                        - bw_stats.get("wins_bedwars", 0),
-                    ),
-                    winstreak=winstreak,
-                    winstreak_accurate=winstreak is not None,
                 )
 
     # Set the cache
     with STATS_MUTEX:
-        if nick is None or isinstance(stats, NickedPlayer):
+        if nick is None or isinstance(player, NickedPlayer):
             # Unnicked player or failed denicking
-            KNOWN_STATS[username] = stats
+            KNOWN_PLAYERS[username] = player
         else:
             # Successful denicking
-            KNOWN_STATS[nick] = stats
+            KNOWN_PLAYERS[nick] = player
             # If we look up by original username, that means the user is not nicked
-            KNOWN_STATS[username] = replace(stats, nick=None)
+            KNOWN_PLAYERS[username] = replace(player, nick=None)
 
-    return username, nick, uuid, stats
-
-
-RateStatsReturn = tuple[bool, bool, Stats]
+    return username, nick, uuid, player
 
 
-def rate_stats_for_non_party_members(
+RatePlayerReturn = tuple[bool, bool, Player]
+
+
+def rate_player(
     party_members: set[str],
-) -> Callable[[Stats], RateStatsReturn]:
-    def rate_stats(stats: Stats) -> RateStatsReturn:
+) -> Callable[[Player], RatePlayerReturn]:
+    def rate_stats(player: Player) -> RatePlayerReturn:
         """Used as a key function for sorting"""
-        is_enemy = stats.username not in party_members
-        if not isinstance(stats, PlayerStats):
-            # Hack to compare other Stats instances by username only
-            placeholder_stats = PlayerStats(
-                fkdr=0,
-                stars=0,
-                wlr=0,
-                winstreak=0,
-                winstreak_accurate=True,
-                username=stats.username,
+        is_enemy = player.username not in party_members
+        if not isinstance(player, KnownPlayer):
+            # Hack to compare other Player instances by username only
+            placeholder_stats = KnownPlayer(
+                username=player.username,
                 uuid=None,
+                stars=0,
+                stats=Stats(
+                    fkdr=0,
+                    wlr=0,
+                    winstreak=0,
+                    winstreak_accurate=True,
+                ),
             )
-            return (is_enemy, stats.stats_hidden, placeholder_stats)
+            return (is_enemy, player.stats_hidden, placeholder_stats)
 
-        return (is_enemy, stats.stats_hidden, stats)
+        return (is_enemy, player.stats_hidden, player)
 
     return rate_stats
 
 
-def sort_stats(stats: list[Stats], party_members: set[str]) -> list[Stats]:
+def sort_players(players: list[Player], party_members: set[str]) -> list[Player]:
     """Sort the stats based on fkdr. Order party members last"""
     return list(
         sorted(
-            stats,
-            key=rate_stats_for_non_party_members(party_members),
+            players,
+            key=rate_player(party_members),
             reverse=True,
         )
     )
