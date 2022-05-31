@@ -9,8 +9,8 @@ from examples.overlay.output.utils import (
     STAT_LEVELS,
     rate_value,
 )
+from examples.overlay.player import Player, PropertyName
 from examples.overlay.state import OverlayState
-from examples.overlay.stats import Player, PropertyName
 
 if os.name == "nt":
     from examples.overlay.platform.windows import toggle_fullscreen

@@ -5,18 +5,15 @@ import threading
 from typing import Callable, Iterable, Optional
 
 import examples.overlay.antisniper_api as antisniper_api
-from examples.overlay.parsing import parse_logline
-from examples.overlay.state import OverlayState, update_state
-from examples.overlay.stats import (
-    KnownPlayer,
-    Player,
+from examples.overlay.get_stats import (
     get_bedwars_stats,
     get_cached_stats,
     set_player_pending,
-    sort_players,
     update_cached_stats,
-    update_winstreak,
 )
+from examples.overlay.parsing import parse_logline
+from examples.overlay.player import KnownPlayer, Player, sort_players, update_winstreak
+from examples.overlay.state import OverlayState, update_state
 from prism.playerdata import HypixelAPIKeyHolder
 
 logger = logging.getLogger(__name__)

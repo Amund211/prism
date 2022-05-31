@@ -6,7 +6,7 @@ from examples.overlay.output.utils import (
     STAT_LEVELS,
     rate_value,
 )
-from examples.overlay.stats import Player
+from examples.overlay.player import Player
 
 
 class Color:

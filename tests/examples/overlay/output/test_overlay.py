@@ -2,9 +2,10 @@ import pytest
 
 from examples.overlay.output.overlay import DEFAULT_COLOR, LEVEL_COLORMAP, player_to_row
 from examples.overlay.output.overlay_window import CellValue, OverlayRow
-from examples.overlay.stats import (
+from examples.overlay.player import (
     KnownPlayer,
     NickedPlayer,
+    PendingPlayer,
     Player,
     PropertyName,
     Stats,
@@ -15,27 +16,27 @@ rating0, rating1, rating2, rating3, rating4 = LEVEL_COLORMAP
 test_cases = (
     (
         KnownPlayer(
-            username="Player1",
+            username="Player",
             uuid="some-fake-uuid",
             stars=10.0,
             stats=Stats(
-                fkdr=1.0,
+                fkdr=1,
                 wlr=2.0,
                 winstreak=15,
                 winstreak_accurate=True,
             ),
         ),
         {
-            "username": CellValue("Player1", DEFAULT_COLOR),
+            "username": CellValue("Player", DEFAULT_COLOR),
             "stars": CellValue("10.00", rating0),
-            "fkdr": CellValue("1.00", rating1),
+            "fkdr": CellValue("1", rating1),
             "wlr": CellValue("2.00", rating3),
             "winstreak": CellValue("15", rating2),
         },
     ),
     (
         KnownPlayer(
-            username="Player2",
+            username="Denicked",
             nick="the_amazing_nick",
             uuid="some-fake-uuid",
             stars=600.0,
@@ -47,7 +48,7 @@ test_cases = (
             ),
         ),
         {
-            "username": CellValue("Player2 (the_amazing_nick)", DEFAULT_COLOR),
+            "username": CellValue("Denicked (the_amazing_nick)", DEFAULT_COLOR),
             "stars": CellValue("600.00", rating3),
             "fkdr": CellValue("10.00", rating4),
             "wlr": CellValue("2.00", rating3),
@@ -55,19 +56,29 @@ test_cases = (
         },
     ),
     (
-        NickedPlayer(nick="Player3"),
+        NickedPlayer(nick="MrNick"),
         {
-            "username": CellValue("Player3", DEFAULT_COLOR),
+            "username": CellValue("MrNick", DEFAULT_COLOR),
             "stars": CellValue("unknown", rating4),
             "fkdr": CellValue("unknown", rating4),
             "wlr": CellValue("unknown", rating4),
             "winstreak": CellValue("unknown", rating4),
         },
     ),
+    (
+        PendingPlayer(username="MrPending"),
+        {
+            "username": CellValue("MrPending", DEFAULT_COLOR),
+            "stars": CellValue("-", rating0),
+            "fkdr": CellValue("-", rating0),
+            "wlr": CellValue("-", rating0),
+            "winstreak": CellValue("-", rating0),
+        },
+    ),
     # Missing winstreak
     (
         KnownPlayer(
-            username="Player4",
+            username="MissingWS",
             uuid="some-fake-uuid",
             stars=10.0,
             stats=Stats(
@@ -78,7 +89,7 @@ test_cases = (
             ),
         ),
         {
-            "username": CellValue("Player4", DEFAULT_COLOR),
+            "username": CellValue("MissingWS", DEFAULT_COLOR),
             "stars": CellValue("10.00", rating0),
             "fkdr": CellValue("1.00", rating1),
             "wlr": CellValue("2.00", rating3),
@@ -87,7 +98,7 @@ test_cases = (
     ),
     (
         KnownPlayer(
-            username="Player5",
+            username="AccurateMissingWS",
             uuid="some-fake-uuid",
             stars=10.0,
             stats=Stats(
@@ -98,7 +109,7 @@ test_cases = (
             ),
         ),
         {
-            "username": CellValue("Player5", DEFAULT_COLOR),
+            "username": CellValue("AccurateMissingWS", DEFAULT_COLOR),
             "stars": CellValue("10.00", rating0),
             "fkdr": CellValue("1.00", rating1),
             "wlr": CellValue("2.00", rating3),
@@ -108,7 +119,7 @@ test_cases = (
     # Inaccurate winstreak
     (
         KnownPlayer(
-            username="Player6",
+            username="InaccurateWS",
             uuid="some-fake-uuid",
             stars=10.0,
             stats=Stats(
@@ -119,7 +130,7 @@ test_cases = (
             ),
         ),
         {
-            "username": CellValue("Player6", DEFAULT_COLOR),
+            "username": CellValue("InaccurateWS", DEFAULT_COLOR),
             "stars": CellValue("10.00", rating0),
             "fkdr": CellValue("1.00", rating1),
             "wlr": CellValue("2.00", rating3),

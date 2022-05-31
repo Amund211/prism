@@ -1,6 +1,6 @@
 from typing import Optional, Sequence, Union, cast
 
-from examples.overlay.stats import PropertyName
+from examples.overlay.player import PropertyName
 
 COLUMN_NAMES: dict[PropertyName, str] = {
     "username": "IGN (Nick)",
