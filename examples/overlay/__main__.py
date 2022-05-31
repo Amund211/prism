@@ -50,7 +50,6 @@ logger = logging.getLogger(__name__)
 
 TESTING = False
 CLEAR_BETWEEN_DRAWS = True
-DOWNLOAD_THREAD_COUNT = 15
 
 
 def slow_iterable(iterable: Iterable[str], wait: float = 1) -> Iterable[str]:
@@ -105,7 +104,7 @@ def process_loglines_to_stdout(
     antisniper_key_holder: AntiSniperAPIKeyHolder | None,
     denick: Callable[[str], Optional[str]],
     loglines: Iterable[str],
-    thread_count: int = DOWNLOAD_THREAD_COUNT,
+    thread_count: int,
 ) -> None:
     """Process the state changes for each logline and redraw the screen if neccessary"""
     get_stat_list = prepare_overlay(
@@ -144,7 +143,7 @@ def process_loglines_to_overlay(
     denick: Callable[[str], Optional[str]],
     loglines: Iterable[str],
     output_to_console: bool,
-    thread_count: int = DOWNLOAD_THREAD_COUNT,
+    thread_count: int,
 ) -> None:
     """Process the state changes for each logline and output to an overlay"""
     get_stat_list = prepare_overlay(
@@ -295,6 +294,7 @@ def watch_from_logfile(
     console: bool,
     settings: Settings,
     nick_database: NickDatabase,
+    thread_count: int,
 ) -> None:
     """Use the overlay on an active logfile"""
 
@@ -345,6 +345,7 @@ def watch_from_logfile(
             antisniper_key_holder=antisniper_key_holder,
             denick=denick,
             loglines=loglines,
+            thread_count=thread_count,
         )
     else:
         process_loglines_to_overlay(
@@ -354,6 +355,7 @@ def watch_from_logfile(
             loglines=loglines,
             denick=denick,
             output_to_console=console,
+            thread_count=thread_count,
         )
 
 
@@ -417,11 +419,8 @@ def test() -> None:
     setup(logging.DEBUG, log_prefix="test_")
 
     slow, wait = False, 1
-    get_stats = True
     overlay = True
     console = options.output_to_console
-
-    stats_thread_count = 1 if get_stats else 0
 
     loglines: Iterable[str]
     if options.logfile_path is not None:
@@ -486,7 +485,7 @@ def test() -> None:
             antisniper_key_holder=antisniper_key_holder,
             denick=denick,
             loglines=loglines,
-            thread_count=stats_thread_count,
+            thread_count=options.threads,
         )
     else:
         process_loglines_to_overlay(
@@ -496,7 +495,7 @@ def test() -> None:
             loglines=loglines,
             denick=denick,
             output_to_console=console,
-            thread_count=stats_thread_count,
+            thread_count=options.threads,
         )
 
 
@@ -537,6 +536,7 @@ def main(*nick_databases: Path) -> None:
         console=options.output_to_console,
         settings=settings,
         nick_database=nick_database,
+        thread_count=options.threads,
     )
 
 

@@ -12,6 +12,7 @@ def make_options(
     settings: str = DEFAULT_SETTINGS,
     output_to_console: bool = True,
     loglevel: int = logging.CRITICAL,
+    threads: int = 16,
 ) -> Options:
     """Construct an Options instance from its components"""
     return Options(
@@ -19,6 +20,7 @@ def make_options(
         settings_path=resolve_path(settings),
         output_to_console=output_to_console,
         loglevel=loglevel,
+        threads=threads,
     )
 
 
@@ -39,7 +41,11 @@ def make_options(
         ("-l someotherlogfile", make_options("someotherlogfile")),
         ("--logfile someotherlogfile", make_options("someotherlogfile")),
         # Settings
-        ("-s s.toml", make_options(None, settings="s.toml")),
+        ("-s s.toml", make_options(settings="s.toml")),
+        # Threads
+        ("-t 8", make_options(threads=8)),
+        ("--threads=8", make_options(threads=8)),
+        ("--threads 8", make_options(threads=8)),
         # Multiple arguments
         (
             "-l somelogfile --settings s.toml",
