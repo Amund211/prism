@@ -12,7 +12,7 @@ from examples.overlay.get_stats import (
     update_cached_stats,
 )
 from examples.overlay.parsing import parse_logline
-from examples.overlay.player import KnownPlayer, Player, sort_players, update_winstreak
+from examples.overlay.player import KnownPlayer, Player, sort_players
 from examples.overlay.state import OverlayState, update_state
 from prism.playerdata import HypixelAPIKeyHolder
 
@@ -108,7 +108,7 @@ class GetStatsThread(threading.Thread):
                             update_cached_stats(
                                 username,
                                 functools.partial(
-                                    update_winstreak,
+                                    KnownPlayer.update_winstreaks,
                                     winstreak=estimated_winstreak,
                                     winstreak_accurate=winstreak_accurate,
                                 ),

@@ -21,6 +21,16 @@ class Stats:
     winstreak: int | None = field(compare=False)
     winstreak_accurate: bool = field(compare=False)
 
+    def update_winstreak(
+        self, winstreak: int | None, winstreak_accurate: bool
+    ) -> "Stats":
+        """Update the winstreak in this stat collection"""
+        return replace(
+            self,
+            winstreak=winstreak,
+            winstreak_accurate=winstreak_accurate,
+        )
+
 
 @dataclass(order=True, frozen=True)
 class KnownPlayer:
@@ -73,6 +83,17 @@ class KnownPlayer:
             return truncate_float(value, 2)
         else:  # pragma: nocover
             raise ValueError(f"{name=} {value=}")
+
+    def update_winstreaks(
+        self, winstreak: int | None, winstreak_accurate: bool
+    ) -> "KnownPlayer":
+        """Update the winstreaks for a player"""
+        return replace(
+            self,
+            stats=self.stats.update_winstreak(
+                winstreak=winstreak, winstreak_accurate=winstreak_accurate
+            ),
+        )
 
 
 @dataclass(order=True, frozen=True)
@@ -127,20 +148,6 @@ class PendingPlayer:
 
 
 Player = Union[KnownPlayer, NickedPlayer, PendingPlayer]
-
-
-def update_winstreak(
-    player: KnownPlayer, winstreak: int | None, winstreak_accurate: bool
-) -> KnownPlayer:
-    """Update the winstreak for a player"""
-    return replace(
-        player,
-        stats=replace(
-            player.stats,
-            winstreak=winstreak,
-            winstreak_accurate=winstreak_accurate,
-        ),
-    )
 
 
 RatePlayerReturn = tuple[bool, bool, Player]

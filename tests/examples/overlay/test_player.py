@@ -9,7 +9,6 @@ from examples.overlay.player import (
     Player,
     Stats,
     sort_players,
-    update_winstreak,
 )
 
 
@@ -77,15 +76,15 @@ players: dict[str, Player] = {
         ),
     ),
 )
-def test_update_winstreak(
+def test_update_winstreaks(
     player: KnownPlayer,
     winstreak: int | None,
     winstreak_accurate: bool,
     result: KnownPlayer,
 ) -> None:
-    """Assert that update_winstreak functions properly"""
+    """Assert that player.update_winstreaks functions properly"""
     assert (
-        update_winstreak(
+        KnownPlayer.update_winstreaks(
             player, winstreak=winstreak, winstreak_accurate=winstreak_accurate
         )
         == result
