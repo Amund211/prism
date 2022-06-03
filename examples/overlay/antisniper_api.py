@@ -1,11 +1,13 @@
 import logging
 import threading
 from json import JSONDecodeError
+from typing import Any, TypedDict
 
 import requests
 from cachetools import TTLCache
 from requests.exceptions import RequestException
 
+from examples.overlay.player import GamemodeName
 from prism.ratelimiting import RateLimiter
 
 logger = logging.getLogger(__name__)
@@ -28,6 +30,21 @@ def set_denick_cache(nick: str, uuid: str | None) -> str | None:
         DENICK_CACHE[nick] = uuid
 
     return uuid
+
+
+class Winstreaks(TypedDict):
+    """Dict holding winstreaks for each core gamemode"""
+
+    overall: int | None
+    solo: int | None
+    doubles: int | None
+    threes: int | None
+    fours: int | None
+
+
+MISSING_WINSTREAKS = Winstreaks(
+    overall=None, solo=None, doubles=None, threes=None, fours=None
+)
 
 
 class AntiSniperAPIKeyHolder:
@@ -89,10 +106,10 @@ def denick(nick: str, key_holder: AntiSniperAPIKeyHolder) -> str | None:
     return set_denick_cache(nick, uuid)
 
 
-def get_estimated_winstreak(
+def get_estimated_winstreaks(
     uuid: str, key_holder: AntiSniperAPIKeyHolder
-) -> tuple[int | None, bool]:
-    """Get the estimated winstreak of the given uuid"""
+) -> tuple[Winstreaks, bool]:
+    """Get the estimated winstreaks of the given uuid"""
     try:
         # Uphold our prescribed rate-limits
         with key_holder.limiter:
@@ -103,14 +120,18 @@ def get_estimated_winstreak(
         logger.error(
             f"Request to denick winstreak failed due to a connection error {e}"
         )
-        return None, False
+        return MISSING_WINSTREAKS, False
+
+    if response.status_code == 404:
+        logger.debug(f"Request to winstreak endpoint failed 404 for {uuid=}.")
+        return MISSING_WINSTREAKS, False
 
     if not response:
         logger.error(
             f"Request to winstreak endpoint failed with status code "
             f"{response.status_code} for {uuid=}. Response: {response.text}"
         )
-        return None, False
+        return MISSING_WINSTREAKS, False
 
     try:
         response_json = response.json()
@@ -119,11 +140,18 @@ def get_estimated_winstreak(
             "Failed parsing the response from the winstreak endpoint. "
             f"Raw content: {response.text}"
         )
-        return None, False
+        return MISSING_WINSTREAKS, False
 
+    return parse_estimated_winstreaks(response_json)
+
+
+def parse_estimated_winstreaks(
+    response_json: dict[str, Any]
+) -> tuple[Winstreaks, bool]:
+    """Parse the reponse from the winstreaks endpoint"""
     if not response_json.get("success", False):
         logger.error(f"Winstreak endpoint returned an error. Response: {response_json}")
-        return None, False
+        return MISSING_WINSTREAKS, False
 
     playerdata = response_json.get("player", None)
 
@@ -131,15 +159,15 @@ def get_estimated_winstreak(
         logger.error(
             f"Got wrong return type for playerdata from winstreak endpoint {playerdata}"
         )
-        return None, False
+        return MISSING_WINSTREAKS, False
 
-    winstreak_accurate = playerdata.get("accurate", None)
+    winstreaks_accurate = playerdata.get("accurate", None)
 
-    if not isinstance(winstreak_accurate, bool):
+    if not isinstance(winstreaks_accurate, bool):
         logger.error(
-            f"Got wrong return type for accurate from ws endpoint {winstreak_accurate}"
+            f"Got wrong return type for accurate from ws endpoint {winstreaks_accurate}"
         )
-        return None, False
+        return MISSING_WINSTREAKS, False
 
     winstreak_data = playerdata.get("data", None)
 
@@ -147,15 +175,37 @@ def get_estimated_winstreak(
         logger.error(
             f"Got wrong return type for winstreak data from endpoint {winstreak_data}"
         )
-        return None, False
+        return MISSING_WINSTREAKS, False
 
-    overall_winstreak = winstreak_data.get("overall_winstreak", None)
+    # Getting the winstreaks
+    winstreaks: dict[GamemodeName, int | None] = {}
 
-    if not isinstance(overall_winstreak, int):
-        logger.error(f"Got wrong return type for winstreak {overall_winstreak=}")
-        return None, False
+    DATA_NAMES: dict[GamemodeName, str] = {
+        "overall": "overall",
+        "solo": "eight_one",
+        "doubles": "eight_two",
+        "threes": "four_three",
+        "fours": "four_four",
+    }
 
-    return overall_winstreak, winstreak_accurate
+    for gamemode, data_name in DATA_NAMES.items():
+        winstreak = winstreak_data.get(f"{data_name}_winstreak", None)
+        if winstreak is not None and not isinstance(winstreak, int):
+            logger.error(f"Got wrong return type for {gamemode} winstreak {winstreak=}")
+            winstreak = None
+
+        winstreaks[gamemode] = winstreak
+
+    return (
+        Winstreaks(
+            overall=winstreaks["overall"],
+            solo=winstreaks["solo"],
+            doubles=winstreaks["doubles"],
+            threes=winstreaks["threes"],
+            fours=winstreaks["fours"],
+        ),
+        winstreaks_accurate,
+    )
 
 
 def queue_data(name: str, key_holder: AntiSniperAPIKeyHolder) -> int | None:

@@ -1,8 +1,13 @@
 import logging
 from dataclasses import dataclass, field, replace
-from typing import Callable, Literal, Union, overload
+from typing import TYPE_CHECKING, Callable, Literal, Union, overload
 
 from prism.utils import truncate_float
+
+if TYPE_CHECKING:  # pragma: nocover
+    from examples.overlay.antisniper_api import Winstreaks
+
+GamemodeName = Literal["overall", "solo", "doubles", "threes", "fours"]
 
 StatName = Literal["stars", "fkdr", "wlr", "winstreak"]
 InfoName = Literal["username"]
@@ -85,13 +90,13 @@ class KnownPlayer:
             raise ValueError(f"{name=} {value=}")
 
     def update_winstreaks(
-        self, winstreak: int | None, winstreak_accurate: bool
+        self, winstreaks: "Winstreaks", winstreaks_accurate: bool
     ) -> "KnownPlayer":
         """Update the winstreaks for a player"""
         return replace(
             self,
             stats=self.stats.update_winstreak(
-                winstreak=winstreak, winstreak_accurate=winstreak_accurate
+                winstreak=winstreaks["overall"], winstreak_accurate=winstreaks_accurate
             ),
         )
 

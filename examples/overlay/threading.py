@@ -94,28 +94,27 @@ class GetStatsThread(threading.Thread):
                     and player.stats.winstreak is None
                 ):
                     (
-                        estimated_winstreak,
-                        winstreak_accurate,
-                    ) = antisniper_api.get_estimated_winstreak(
+                        estimated_winstreaks,
+                        winstreaks_accurate,
+                    ) = antisniper_api.get_estimated_winstreaks(
                         uuid=uuid, key_holder=self.antisniper_key_holder
                     )
 
-                    if estimated_winstreak is not None:
-                        for key in (found_username, nick):
-                            if key is None:
-                                continue
+                    for key in (found_username, nick):
+                        if key is None:
+                            continue
 
-                            update_cached_stats(
-                                username,
-                                functools.partial(
-                                    KnownPlayer.update_winstreaks,
-                                    winstreak=estimated_winstreak,
-                                    winstreak_accurate=winstreak_accurate,
-                                ),
-                            )
+                        update_cached_stats(
+                            username,
+                            functools.partial(
+                                KnownPlayer.update_winstreaks,
+                                winstreaks=estimated_winstreaks,
+                                winstreaks_accurate=winstreaks_accurate,
+                            ),
+                        )
 
-                            # Tell the main thread that we got the estimated winstreak
-                            self.completed_queue.put(key)
+                        # Tell the main thread that we got the estimated winstreak
+                        self.completed_queue.put(key)
 
         except Exception as e:
             logger.exception(f"Exception caught in stats thread: {e}. Exiting")

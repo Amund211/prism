@@ -2,6 +2,7 @@ from typing import Literal
 
 import pytest
 
+from examples.overlay.antisniper_api import Winstreaks
 from examples.overlay.player import (
     KnownPlayer,
     NickedPlayer,
@@ -10,6 +11,18 @@ from examples.overlay.player import (
     Stats,
     sort_players,
 )
+
+
+def make_winstreaks(
+    overall: int | None = 0,
+    solo: int | None = 0,
+    doubles: int | None = 0,
+    threes: int | None = 0,
+    fours: int | None = 0,
+) -> Winstreaks:
+    return Winstreaks(
+        overall=overall, solo=solo, doubles=doubles, threes=threes, fours=fours
+    )
 
 
 def make_player(
@@ -59,18 +72,23 @@ players: dict[str, Player] = {
 
 
 @pytest.mark.parametrize(
-    "player, winstreak, winstreak_accurate, result",
+    "player, winstreaks, winstreaks_accurate, result",
     (
-        (make_player(), 10, True, make_player(winstreak=10, winstreak_accurate=True)),
+        (
+            make_player(),
+            make_winstreaks(overall=10),
+            True,
+            make_player(winstreak=10, winstreak_accurate=True),
+        ),
         (
             make_player(winstreak=None, winstreak_accurate=False),
-            10,
+            make_winstreaks(overall=10),
             True,
             make_player(winstreak=10, winstreak_accurate=True),
         ),
         (
             make_player(winstreak=100, winstreak_accurate=True),
-            1,
+            make_winstreaks(overall=1),
             False,
             make_player(winstreak=1, winstreak_accurate=False),
         ),
@@ -78,14 +96,14 @@ players: dict[str, Player] = {
 )
 def test_update_winstreaks(
     player: KnownPlayer,
-    winstreak: int | None,
-    winstreak_accurate: bool,
+    winstreaks: Winstreaks,
+    winstreaks_accurate: bool,
     result: KnownPlayer,
 ) -> None:
     """Assert that player.update_winstreaks functions properly"""
     assert (
         KnownPlayer.update_winstreaks(
-            player, winstreak=winstreak, winstreak_accurate=winstreak_accurate
+            player, winstreaks=winstreaks, winstreaks_accurate=winstreaks_accurate
         )
         == result
     )
