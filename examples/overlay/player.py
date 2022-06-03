@@ -19,7 +19,7 @@ KnownPlayerOrder = tuple[StatsOrder, float, str]
 logger = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Stats:
     """Dataclass holding a collection of stats"""
 
@@ -46,7 +46,7 @@ class Stats:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class KnownPlayer:
     """Dataclass holding the stats of a single player"""
 
@@ -114,7 +114,7 @@ class KnownPlayer:
         )
 
 
-@dataclass(order=True, frozen=True)
+@dataclass(frozen=True, slots=True)
 class NickedPlayer:
     """Dataclass holding the stats of a single player assumed to be nicked"""
 
@@ -142,7 +142,7 @@ class NickedPlayer:
         return self.nick
 
 
-@dataclass(order=True, frozen=True)
+@dataclass(frozen=True, slots=True)
 class PendingPlayer:
     """Dataclass holding the stats of a single player whose stats are pending"""
 
