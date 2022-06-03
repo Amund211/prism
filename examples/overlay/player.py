@@ -13,23 +13,32 @@ StatName = Literal["stars", "fkdr", "wlr", "winstreak"]
 InfoName = Literal["username"]
 PropertyName = Literal[StatName, InfoName]
 
+StatsOrder = tuple[float, int, float]
+KnownPlayerOrder = tuple[StatsOrder, float, str]
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass(order=True, frozen=True)
+@dataclass(frozen=True)
 class Stats:
     """Dataclass holding a collection of stats"""
 
     fkdr: float
     wlr: float
-    winstreak: int | None = field(compare=False)
-    winstreak_accurate: bool = field(compare=False)
+    winstreak: int | None
+    winstreak_accurate: bool
+
+    def order(self) -> StatsOrder:
+        """Return a tuple used to order instances of this class"""
+        return (self.fkdr, self.winstreak or 0, self.wlr)
 
     def update_winstreak(
         self, winstreak: int | None, winstreak_accurate: bool
     ) -> "Stats":
         """Update the winstreak in this stat collection"""
+        if self.winstreak_accurate or self.winstreak is not None:
+            return self
+
         return replace(
             self,
             winstreak=winstreak,
@@ -37,15 +46,19 @@ class Stats:
         )
 
 
-@dataclass(order=True, frozen=True)
+@dataclass(frozen=True)
 class KnownPlayer:
     """Dataclass holding the stats of a single player"""
 
     stats: Stats
     stars: float
     username: str
-    uuid: str | None = field(compare=False)
-    nick: str | None = field(default=None, compare=False)
+    uuid: str | None
+    nick: str | None = field(default=None)
+
+    def order(self) -> KnownPlayerOrder:
+        """Return a tuple used to order instances of this class"""
+        return (self.stats.order(), self.stars, self.username)
 
     @property
     def stats_hidden(self) -> bool:
@@ -155,7 +168,7 @@ class PendingPlayer:
 Player = Union[KnownPlayer, NickedPlayer, PendingPlayer]
 
 
-RatePlayerReturn = tuple[bool, bool, Player]
+RatePlayerReturn = tuple[bool, bool, KnownPlayerOrder]
 
 
 def rate_player(
@@ -166,7 +179,7 @@ def rate_player(
         is_enemy = player.username not in party_members
         if not isinstance(player, KnownPlayer):
             # Hack to compare other Player instances by username only
-            placeholder_stats = KnownPlayer(
+            order = KnownPlayer(
                 username=player.username,
                 uuid=None,
                 stars=0,
@@ -176,10 +189,10 @@ def rate_player(
                     winstreak=0,
                     winstreak_accurate=True,
                 ),
-            )
-            return (is_enemy, player.stats_hidden, placeholder_stats)
+            ).order()
+            return (is_enemy, player.stats_hidden, order)
 
-        return (is_enemy, player.stats_hidden, player)
+        return (is_enemy, player.stats_hidden, player.order())
 
     return rate_stats
 

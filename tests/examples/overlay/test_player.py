@@ -81,16 +81,10 @@ players: dict[str, Player] = {
             make_player(winstreak=10, winstreak_accurate=True),
         ),
         (
-            make_player(winstreak=None, winstreak_accurate=False),
-            make_winstreaks(overall=10),
-            True,
-            make_player(winstreak=10, winstreak_accurate=True),
-        ),
-        (
             make_player(winstreak=100, winstreak_accurate=True),
             make_winstreaks(overall=1),
             False,
-            make_player(winstreak=1, winstreak_accurate=False),
+            make_player(winstreak=100, winstreak_accurate=True),
         ),
     ),
 )
@@ -130,7 +124,7 @@ sort_test_cases: tuple[tuple[list[Player], set[str], list[Player]], ...] = (
         {"carl_jr_jr", "carl_jr"},
         [players["carl"], players["carl_jr_jr"], players["carl_jr"]],
     ),
-    # Joseph outperforms all the Carls on wlr
+    # Joseph outperforms all the Carls on wlr, but jr_jr has a winstreak
     (
         [
             players["carl_jr"],
@@ -140,8 +134,8 @@ sort_test_cases: tuple[tuple[list[Player], set[str], list[Player]], ...] = (
         ],
         set(),
         [
-            players["joseph"],
             players["carl_jr_jr"],
+            players["joseph"],
             players["carl_jr"],
             players["carl"],
         ],
