@@ -1,13 +1,10 @@
 from json import JSONDecodeError
-from typing import Any, cast
+from typing import Any
 
 import requests
 from requests.exceptions import RequestException
 
 from prism.ratelimiting import RateLimiter
-
-GamemodeData = dict[str, Any]
-PlayerData = dict[str, Any]
 
 PLAYER_ENDPOINT = "https://api.hypixel.net/player"
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
@@ -36,7 +33,9 @@ class HypixelAPIError(ValueError):
     pass
 
 
-def get_player_data(uuid: str, key_holder: HypixelAPIKeyHolder) -> PlayerData:
+def get_player_data(
+    uuid: str, key_holder: HypixelAPIKeyHolder
+) -> dict[str, Any]:  # pragma: nocover
     """Get data about the given player from the /player API endpoint"""
     try:
         # Uphold our prescribed rate-limits
@@ -68,27 +67,25 @@ def get_player_data(uuid: str, key_holder: HypixelAPIKeyHolder) -> PlayerData:
             f"Hypixel API returned an error. Response: {response_json}"
         )
 
-    playerdata = response_json["player"]
+    playerdata = response_json.get("player", None)
 
-    if not playerdata:
+    if not isinstance(playerdata, dict):
         raise HypixelAPIError(f"Could not find a user with uuid {uuid}")
 
-    return cast(PlayerData, playerdata)  # TODO: properly type response
+    return playerdata
 
 
-def get_gamemode_stats(playerdata: PlayerData, gamemode: str) -> GamemodeData:
+def get_gamemode_stats(playerdata: dict[str, Any], gamemode: str) -> dict[str, Any]:
     """Return the stats of the player in the given gamemode"""
     stats = playerdata.get("stats", None)
+    name = playerdata.get("displayname", "<missing name>")
+
     if not isinstance(stats, dict):
-        raise MissingStatsError(
-            f"{playerdata['displayname']} is missing stats in all gamemodes"
-        )
+        raise MissingStatsError(f"{name} is missing stats in all gamemodes")
 
     gamemode_data = stats.get(gamemode, None)
 
     if not isinstance(gamemode_data, dict):
-        raise MissingStatsError(
-            f"{playerdata['displayname']} is missing stats in {gamemode.lower()}"
-        )
+        raise MissingStatsError(f"{name} is missing stats in {gamemode.lower()}")
 
     return gamemode_data

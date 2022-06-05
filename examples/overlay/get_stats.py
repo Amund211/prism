@@ -44,6 +44,11 @@ def set_player_pending(username: str) -> PendingPlayer:
     return pending_player
 
 
+def set_cached_stats(username: str, player: KnownPlayer | NickedPlayer) -> None:
+    with STATS_MUTEX:
+        KNOWN_PLAYERS[username] = player
+
+
 def get_cached_stats(username: str) -> Player | None:
     with STATS_MUTEX:
         return KNOWN_PLAYERS.get(username, None)
@@ -77,7 +82,7 @@ def get_bedwars_stats(
     username: str,
     key_holder: HypixelAPIKeyHolder,
     denick: Callable[[str], str | None] = lambda nick: None,
-) -> tuple[str | None, str | None, str | None, Player]:
+) -> tuple[str | None, str | None, str | None, Player]:  # pragma: nocover
     """
     Get the bedwars stats for the given player
 
@@ -195,14 +200,13 @@ def get_bedwars_stats(
                 )
 
     # Set the cache
-    with STATS_MUTEX:
-        if nick is None or isinstance(player, NickedPlayer):
-            # Unnicked player or failed denicking
-            KNOWN_PLAYERS[username] = player
-        else:
-            # Successful denicking
-            KNOWN_PLAYERS[nick] = player
-            # If we look up by original username, that means the user is not nicked
-            KNOWN_PLAYERS[username] = replace(player, nick=None)
+    if nick is None or isinstance(player, NickedPlayer):
+        # Unnicked player or failed denicking
+        set_cached_stats(username, player)
+    else:
+        # Successful denicking
+        set_cached_stats(nick, player)
+        # If we look up by original username, that means the user is not nicked
+        set_cached_stats(username, replace(player, nick=None))
 
     return username, nick, uuid, player

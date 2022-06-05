@@ -1,6 +1,5 @@
 import threading
 from json import JSONDecodeError
-from typing import cast
 
 import requests
 from requests.exceptions import RequestException
@@ -27,7 +26,7 @@ LOWERCASE_UUID_CACHE: dict[str, str] = {}  # Mapping username.lower() -> uuid
 UUID_MUTEX = threading.Lock()
 
 
-def get_uuid(username: str) -> str | None:
+def get_uuid(username: str) -> str | None:  # pragma: nocover
     """Get the uuid of all the user. None if not found."""
     with UUID_MUTEX:
         cache_hit = LOWERCASE_UUID_CACHE.get(username.lower(), None)
@@ -64,8 +63,13 @@ def get_uuid(username: str) -> str | None:
     # reponse is {"id": "...", "name": "..."}
     uuid = response_json["id"]
 
+    if not isinstance(uuid, str):
+        raise MojangAPIError(
+            f"Request to Mojang API returned wrong type for uuid {uuid=}"
+        )
+
     # Set cache
     with UUID_MUTEX:
         LOWERCASE_UUID_CACHE[username.lower()] = uuid
 
-    return cast(str, uuid)
+    return uuid

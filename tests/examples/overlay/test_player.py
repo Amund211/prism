@@ -1,16 +1,8 @@
-from typing import Literal
-
 import pytest
 
 from examples.overlay.antisniper_api import Winstreaks
-from examples.overlay.player import (
-    KnownPlayer,
-    NickedPlayer,
-    PendingPlayer,
-    Player,
-    Stats,
-    sort_players,
-)
+from examples.overlay.player import KnownPlayer, Player, sort_players
+from tests.examples.overlay.player_utils import make_player
 
 
 def make_winstreaks(
@@ -25,49 +17,18 @@ def make_winstreaks(
     )
 
 
-def make_player(
-    username: str = "player",
-    variant: Literal["nick", "pending", "player"] = "player",
-    fkdr: float = 0.0,
-    stars: float = 1.0,
-    wlr: float = 0.0,
-    winstreak: int | None = None,
-    winstreak_accurate: bool = False,
-    nick: str | None = None,
-    uuid: str | None = None,
-) -> Player:
-    if variant == "player":
-        return KnownPlayer(
-            stars=stars,
-            stats=Stats(
-                fkdr=fkdr,
-                wlr=wlr,
-                winstreak=winstreak,
-                winstreak_accurate=winstreak_accurate,
-            ),
-            username=username,
-            nick=nick,
-            uuid=uuid,
-        )
-    elif variant == "nick":
-        assert nick is None, "Provide the nick as the username"
-        return NickedPlayer(nick=username)
-    elif variant == "pending":
-        return PendingPlayer(username=username)
-
-
 # A dict of players to choose from
 players: dict[str, Player] = {
-    "chad": make_player("chad", fkdr=100, nick="superb_nick"),
-    "joe": make_player("joe", fkdr=10),
-    "carl": make_player("carl", fkdr=1),
-    "carl_jr": make_player("carl_jr", fkdr=1, wlr=1),
-    "carl_jr_jr": make_player("carl_jr_jr", fkdr=1, wlr=1, winstreak=10),
-    "joseph": make_player("joseph", fkdr=1, wlr=2),
-    "amazing_nick": make_player("amazing_nick", variant="nick"),
-    "bad_nick": make_player("bad_nick", variant="nick"),
-    "maurice": make_player("maurice", variant="pending"),
-    "alfred": make_player("alfred", variant="pending"),
+    "chad": make_player(username="chad", fkdr=100, nick="superb_nick"),
+    "joe": make_player(username="joe", fkdr=10),
+    "carl": make_player(username="carl", fkdr=1),
+    "carl_jr": make_player(username="carl_jr", fkdr=1, wlr=1),
+    "carl_jr_jr": make_player(username="carl_jr_jr", fkdr=1, wlr=1, winstreak=10),
+    "joseph": make_player(username="joseph", fkdr=1, wlr=2),
+    "amazing_nick": make_player(username="amazing_nick", variant="nick"),
+    "bad_nick": make_player(username="bad_nick", variant="nick"),
+    "maurice": make_player(username="maurice", variant="pending"),
+    "alfred": make_player(username="alfred", variant="pending"),
 }
 
 

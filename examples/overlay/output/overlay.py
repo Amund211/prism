@@ -12,11 +12,11 @@ from examples.overlay.output.utils import (
 from examples.overlay.player import Player, PropertyName
 from examples.overlay.state import OverlayState
 
-if os.name == "nt":
+if os.name == "nt":  # pragma: nocover
     from examples.overlay.platform.windows import toggle_fullscreen
 
     FULLSCREEN_CALLBACK: Callable[[], None] | None = toggle_fullscreen
-else:
+else:  # pragma: nocover
     FULLSCREEN_CALLBACK = None
 
 
@@ -57,7 +57,7 @@ def player_to_row(player: Player) -> OverlayRow[PropertyName]:
 
 def run_overlay(
     state: OverlayState, fetch_state_updates: Callable[[], list[Player] | None]
-) -> None:
+) -> None:  # pragma: nocover
     """
     Run the overlay
 

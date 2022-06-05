@@ -4,9 +4,13 @@ import pytest
 
 from examples.overlay.antisniper_api import (
     MISSING_WINSTREAKS,
+    AntiSniperAPIKeyHolder,
+    Flag,
     Winstreaks,
+    get_denick_cache,
     parse_denick_response,
     parse_estimated_winstreaks_response,
+    set_denick_cache,
 )
 
 
@@ -160,3 +164,19 @@ def test_parse_estimated_winstreaks_response(
         winstreaks,
         winstreaks_accurate,
     )
+
+
+def test_set_get_cache() -> None:
+    assert get_denick_cache("nonexistantentryinthecache") is Flag.NOT_SET
+    assert get_denick_cache("mynewcacheentry12345") is Flag.NOT_SET
+    assert get_denick_cache("mynewcacheentry123456") is Flag.NOT_SET
+
+    assert set_denick_cache("mynewcacheentry12345", "value") == "value"
+    assert get_denick_cache("mynewcacheentry12345") == "value"
+
+    assert set_denick_cache("mynewcacheentry123456", None) is None
+    assert get_denick_cache("mynewcacheentry123456") is None
+
+
+def test_antisniper_key_holder() -> None:
+    AntiSniperAPIKeyHolder(key="sdlfksjdflk", limit=10, window=1.5)

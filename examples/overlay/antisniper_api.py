@@ -68,7 +68,9 @@ class AntiSniperAPIKeyHolder:
         self.limiter = RateLimiter(limit=limit, window=window)
 
 
-def denick(nick: str, key_holder: AntiSniperAPIKeyHolder) -> str | None:
+def denick(
+    nick: str, key_holder: AntiSniperAPIKeyHolder
+) -> str | None:  # pragma: nocover
     """Get data about the given nick from the /denick API endpoint"""
     cache_hit = get_denick_cache(nick)
 
@@ -134,7 +136,7 @@ def parse_denick_response(response_json: dict[str, Any]) -> str | None:
 
 def get_estimated_winstreaks(
     uuid: str, key_holder: AntiSniperAPIKeyHolder
-) -> tuple[Winstreaks, bool]:
+) -> tuple[Winstreaks, bool]:  # pragma: nocover
     """Get the estimated winstreaks of the given uuid"""
     try:
         # Uphold our prescribed rate-limits
@@ -234,7 +236,9 @@ def parse_estimated_winstreaks_response(
     )
 
 
-def queue_data(name: str, key_holder: AntiSniperAPIKeyHolder) -> int | None:
+def queue_data(
+    name: str, key_holder: AntiSniperAPIKeyHolder
+) -> int | None:  # pragma: nocover
     """Get queue data about the given username/nick from the /antisniper API endpoint"""
     try:
         # Uphold our prescribed rate-limits
