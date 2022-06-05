@@ -1,5 +1,6 @@
 import logging
 import threading
+from enum import Enum, auto
 from json import JSONDecodeError
 from typing import Any, TypedDict
 
@@ -19,17 +20,27 @@ WINSTREAK_ENDPOINT = "https://api.antisniper.net/winstreak"
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
 
 
+class Flag(Enum):
+    NOT_SET = auto()  # Singleton for cache misses
+
+
 # Cache both successful and failed denicks for 60 mins
-DENICK_CACHE: TTLCache[str, str | None] = TTLCache(maxsize=1024, ttl=60 * 60)
+LOWERCASE_DENICK_CACHE: TTLCache[str, str | None] = TTLCache(maxsize=1024, ttl=60 * 60)
 DENICK_MUTEX = threading.Lock()
 
 
 def set_denick_cache(nick: str, uuid: str | None) -> str | None:
     """Set the cache entry for nick, and return the uuid"""
     with DENICK_MUTEX:
-        DENICK_CACHE[nick] = uuid
+        LOWERCASE_DENICK_CACHE[nick.lower()] = uuid
 
     return uuid
+
+
+def get_denick_cache(nick: str) -> str | None | Flag:
+    """Get the cache entry for nick"""
+    with DENICK_MUTEX:
+        return LOWERCASE_DENICK_CACHE.get(nick.lower(), Flag.NOT_SET)
 
 
 class Winstreaks(TypedDict):
@@ -59,6 +70,12 @@ class AntiSniperAPIKeyHolder:
 
 def denick(nick: str, key_holder: AntiSniperAPIKeyHolder) -> str | None:
     """Get data about the given nick from the /denick API endpoint"""
+    cache_hit = get_denick_cache(nick)
+
+    # If cache hits and was not a failure, return it
+    if cache_hit is not Flag.NOT_SET and cache_hit is not None:
+        return cache_hit
+
     try:
         # Uphold our prescribed rate-limits
         with key_holder.limiter:
