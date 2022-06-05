@@ -11,7 +11,7 @@ def make_options(
     logfile: str | None = None,
     settings: str = DEFAULT_SETTINGS,
     output_to_console: bool = True,
-    loglevel: int = logging.CRITICAL,
+    loglevel: int = logging.ERROR,
     threads: int = 16,
 ) -> Options:
     """Construct an Options instance from its components"""
@@ -30,11 +30,11 @@ test_cases: tuple[tuple[str, Options], ...] = (
     # Output to console
     ("-q", make_options(output_to_console=False)),
     # Logging verbosity
-    ("--verbose", make_options(loglevel=logging.ERROR)),
-    ("-v", make_options(loglevel=logging.ERROR)),
-    ("-vv", make_options(loglevel=logging.WARNING)),
-    ("-vvv", make_options(loglevel=logging.INFO)),
-    ("-vvvv", make_options(loglevel=logging.DEBUG)),
+    ("--verbose", make_options(loglevel=logging.WARNING)),
+    ("-v", make_options(loglevel=logging.WARNING)),
+    ("-vv", make_options(loglevel=logging.INFO)),
+    ("-vvv", make_options(loglevel=logging.DEBUG)),
+    ("-vvvv", make_options(loglevel=logging.DEBUG)),  # Too many v's
     # Logfile
     ("-l someotherlogfile", make_options("someotherlogfile")),
     ("--logfile someotherlogfile", make_options("someotherlogfile")),

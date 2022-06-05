@@ -49,7 +49,7 @@ def get_options(
     )
 
     parser.add_argument(
-        "-v", "--verbose", help="Verbosity of the logs (0-4)", action="count", default=0
+        "-v", "--verbose", help="Verbosity of the logs (0-3)", action="count", default=0
     )
 
     parser.add_argument(
@@ -71,14 +71,12 @@ def get_options(
     assert isinstance(parsed.threads, int)
 
     if parsed.verbose <= 0:
-        loglevel = logging.CRITICAL
-    elif parsed.verbose == 1:
         loglevel = logging.ERROR
-    elif parsed.verbose == 2:
+    elif parsed.verbose == 1:
         loglevel = logging.WARNING
-    elif parsed.verbose == 3:
+    elif parsed.verbose == 2:
         loglevel = logging.INFO
-    elif parsed.verbose >= 4:
+    elif parsed.verbose >= 3:
         loglevel = logging.DEBUG
 
     return Options(
