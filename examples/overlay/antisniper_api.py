@@ -86,6 +86,10 @@ def denick(nick: str, key_holder: AntiSniperAPIKeyHolder) -> str | None:
         logger.error(f"Request to denick endpoint failed due to a connection error {e}")
         return set_denick_cache(nick, None)
 
+    if response.status_code == 404:
+        logger.debug(f"Request to denick endpoint failed 404 for {nick=}.")
+        return set_denick_cache(nick, None)
+
     if not response:
         logger.error(
             f"Request to denick endpoint failed with status code {response.status_code}"
