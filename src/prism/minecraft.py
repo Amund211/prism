@@ -1,3 +1,4 @@
+import threading
 from json import JSONDecodeError
 from typing import cast
 
@@ -20,13 +21,19 @@ class MojangAPIError(ValueError):
 limiter = RateLimiter(limit=REQUEST_LIMIT, window=REQUEST_WINDOW)
 
 # TODO: implement a disk cache
-LOWERCASE_USERNAME_UUID: dict[str, str] = {}
+# TTL on this cache can be large because for a username to get a new uuid the user
+# must first change their ign, then, after 37 days, someone else can get the name
+LOWERCASE_UUID_CACHE: dict[str, str] = {}  # Mapping username.lower() -> uuid
+UUID_MUTEX = threading.Lock()
 
 
 def get_uuid(username: str) -> str | None:
     """Get the uuid of all the user. None if not found."""
-    if username.lower() in LOWERCASE_USERNAME_UUID:
-        return LOWERCASE_USERNAME_UUID[username.lower()]
+    with UUID_MUTEX:
+        cache_hit = LOWERCASE_UUID_CACHE.get(username.lower(), None)
+
+    if cache_hit is not None:
+        return cache_hit
 
     try:
         # Uphold our prescribed rate-limits
@@ -58,6 +65,7 @@ def get_uuid(username: str) -> str | None:
     uuid = response_json["id"]
 
     # Set cache
-    LOWERCASE_USERNAME_UUID[username.lower()] = uuid
+    with UUID_MUTEX:
+        LOWERCASE_UUID_CACHE[username.lower()] = uuid
 
     return cast(str, uuid)
