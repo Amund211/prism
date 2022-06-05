@@ -106,9 +106,14 @@ def denick(nick: str, key_holder: AntiSniperAPIKeyHolder) -> str | None:
         )
         return set_denick_cache(nick, None)
 
+    return set_denick_cache(nick, parse_denick_response(response_json))
+
+
+def parse_denick_response(response_json: dict[str, Any]) -> str | None:
+    """Parse the response from the denick endpoint"""
     if not response_json.get("success", False):
         logger.error(f"Denick endpoint returned an error. Response: {response_json}")
-        return set_denick_cache(nick, None)
+        return None
 
     playerdata = response_json.get("player", None)
 
@@ -116,15 +121,15 @@ def denick(nick: str, key_holder: AntiSniperAPIKeyHolder) -> str | None:
         logger.error(
             f"Got wrong return type for playerdata from denick endpoint {playerdata}"
         )
-        return set_denick_cache(nick, None)
+        return None
 
     uuid = playerdata.get("uuid", None)
 
     if not isinstance(uuid, str):
         logger.error(f"Got wrong return type for uuid from denick endpoint {uuid}")
-        return set_denick_cache(nick, None)
+        return None
 
-    return set_denick_cache(nick, uuid)
+    return uuid
 
 
 def get_estimated_winstreaks(
@@ -163,10 +168,10 @@ def get_estimated_winstreaks(
         )
         return MISSING_WINSTREAKS, False
 
-    return parse_estimated_winstreaks(response_json)
+    return parse_estimated_winstreaks_response(response_json)
 
 
-def parse_estimated_winstreaks(
+def parse_estimated_winstreaks_response(
     response_json: dict[str, Any]
 ) -> tuple[Winstreaks, bool]:
     """Parse the reponse from the winstreaks endpoint"""

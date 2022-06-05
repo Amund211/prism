@@ -5,7 +5,8 @@ import pytest
 from examples.overlay.antisniper_api import (
     MISSING_WINSTREAKS,
     Winstreaks,
-    parse_estimated_winstreaks,
+    parse_denick_response,
+    parse_estimated_winstreaks_response,
 )
 
 
@@ -22,6 +23,40 @@ def make_winstreaks(
 
 
 assert MISSING_WINSTREAKS == make_winstreaks()
+
+REAL_DENICK_RESPONSE_SUCCESS = {
+    "success": True,
+    "player": {
+        "uuid": "b70af64378b94854af6de83a2efd7e17",
+        "dashed_uuid": "b70af643-78b9-4854-af6d-e83a2efd7e17",
+        "nick_uuid": "ff62a260-e391-11ec-b541-e580d9c373b1",
+        "dashed_nick_uuid": "ff62a260-e391-11ec-b541-e580d9c373b1",
+        "date": 1654297687,
+        "ign": "Voltey",
+        "nick": "edater",
+    },
+}
+
+REAL_DENICK_RESPONSE_FAIL = {"success": True, "data": None}
+
+parse_denick_cases: tuple[tuple[dict[str, Any], str | None], ...] = (
+    ({}, None),
+    ({"success": False}, None),
+    ({"success": True}, None),
+    ({"success": True, "player": {}}, None),
+    ({"player": {"uuid": "someuuid"}}, None),
+    ({"success": False, "player": {"uuid": "someuuid"}}, None),
+    (REAL_DENICK_RESPONSE_FAIL, None),
+    # Passing cases
+    ({"success": True, "player": {"uuid": "someuuid"}}, "someuuid"),
+    (REAL_DENICK_RESPONSE_SUCCESS, "b70af64378b94854af6de83a2efd7e17"),
+)
+
+
+@pytest.mark.parametrize("response_json, uuid", parse_denick_cases)
+def test_parse_denick_response(response_json: dict[str, Any], uuid: str | None) -> None:
+    assert parse_denick_response(response_json) == uuid
+
 
 REAL_WINSTREAK_RESPONSE = {
     "success": True,
@@ -116,12 +151,12 @@ parse_estimated_winstreaks_cases: tuple[
 @pytest.mark.parametrize(
     "response_json, winstreaks, winstreaks_accurate", parse_estimated_winstreaks_cases
 )
-def test_parse_estimated_winstreaks(
+def test_parse_estimated_winstreaks_response(
     response_json: dict[str, Any],
     winstreaks: Winstreaks,
     winstreaks_accurate: bool,
 ) -> None:
-    assert parse_estimated_winstreaks(response_json) == (
+    assert parse_estimated_winstreaks_response(response_json) == (
         winstreaks,
         winstreaks_accurate,
     )
