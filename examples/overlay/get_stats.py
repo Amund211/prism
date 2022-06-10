@@ -24,27 +24,12 @@ from prism.utils import div
 logger = logging.getLogger(__name__)
 
 
-def get_bedwars_stats(
+def fetch_bedwars_stats(
     username: str,
     key_holder: HypixelAPIKeyHolder,
     denick: Callable[[str], str | None] = lambda nick: None,
-) -> Player:  # pragma: nocover
-    """
-    Get and caches the bedwars stats for the given player
-
-    Returns list of aliases, player
-    """
-    cached_stats = get_cached_player(username)
-
-    if cached_stats is not None and not isinstance(cached_stats, PendingPlayer):
-        logger.info(f"Cache hit {username}")
-        if not isinstance(cached_stats, (NickedPlayer, KnownPlayer)):
-            return False  # Unreachable - for typechecking
-
-        return cached_stats
-
-    logger.info(f"Cache miss {username}")
-
+) -> KnownPlayer | NickedPlayer:  # pragma: nocover
+    """Fetches the bedwars stats for the given player"""
     # Lookup uuid from Mojang
     try:
         uuid = get_uuid(username)
@@ -139,14 +124,34 @@ def get_bedwars_stats(
                     ),
                 )
 
+    return player
+
+
+def get_bedwars_stats(
+    username: str,
+    key_holder: HypixelAPIKeyHolder,
+    denick: Callable[[str], str | None] = lambda nick: None,
+) -> KnownPlayer | NickedPlayer:  # pragma: nocover
+    """Get and caches the bedwars stats for the given player"""
+    cached_stats = get_cached_player(username)
+
+    if cached_stats is not None and not isinstance(cached_stats, PendingPlayer):
+        logger.debug(f"Cache hit {username}")
+
+        return cached_stats
+
+    logger.debug(f"Cache miss {username}")
+
+    player = fetch_bedwars_stats(
+        username=username, key_holder=key_holder, denick=denick
+    )
+
     # Set the cache
-    if nick is None or isinstance(player, NickedPlayer):
-        # Unnicked player or failed denicking
-        set_cached_player(username, player)
-    else:
-        # Successful denicking
-        set_cached_player(nick, player)
+    if isinstance(player, KnownPlayer) and player.nick is not None:
+        set_cached_player(player.nick, player)
         # If we look up by original username, that means the user is not nicked
         set_cached_player(username, replace(player, nick=None))
+    else:
+        set_cached_player(username, player)
 
     return player
