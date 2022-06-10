@@ -73,7 +73,7 @@ class GetStatsThread(threading.Thread):
                 username = self.requests_queue.get()
 
                 # get_bedwars_stats sets the stats cache which will be read from later
-                aliases, player = get_bedwars_stats(
+                player = get_bedwars_stats(
                     username, key_holder=self.hypixel_key_holder, denick=self.denick
                 )
 
@@ -89,7 +89,7 @@ class GetStatsThread(threading.Thread):
                 ):
                     if antisniper_api.update_cached_winstreak(
                         uuid=player.uuid,
-                        aliases=aliases,
+                        aliases=player.aliases,
                         key_holder=self.antisniper_key_holder,
                     ):
                         # Tell the main thread that we got the estimated winstreak

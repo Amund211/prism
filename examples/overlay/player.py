@@ -67,6 +67,14 @@ class KnownPlayer:
         """Return True if the player is missing winstreak stats in any gamemode"""
         return self.stats.winstreak is None
 
+    @property
+    def aliases(self) -> tuple[str, ...]:
+        """List of known aliases for the player"""
+        aliases = [self.username]
+        if self.nick is not None:
+            aliases.append(self.nick)
+        return tuple(aliases)
+
     @overload
     def get_value(self, name: StatName) -> Union[int, float, None]:
         ...  # pragma: nocover
@@ -133,6 +141,11 @@ class NickedPlayer:
         """Return True if the player has hidden stats (is assumed to be nicked)"""
         return True
 
+    @property
+    def aliases(self) -> tuple[str, ...]:
+        """List of known aliases for the player"""
+        return (self.nick,)
+
     def get_value(self, name: PropertyName) -> Union[int, float]:
         """Get the given stat from this player (unknown in this case)"""
         return float("inf")
@@ -160,6 +173,11 @@ class PendingPlayer:
     def stats_hidden(self) -> bool:
         """Return True if the player has hidden stats (is assumed to be nicked)"""
         return False
+
+    @property
+    def aliases(self) -> tuple[str, ...]:
+        """List of known aliases for the player"""
+        return (self.username,)
 
     def get_value(self, name: PropertyName) -> Union[int, float]:
         """Get the given stat from this player (unknown in this case)"""

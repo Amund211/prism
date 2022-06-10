@@ -194,5 +194,20 @@ def test_sort_stats(
 def test_is_missing_winstreaks(
     player: KnownPlayer, is_missing_winstreaks: bool
 ) -> None:
-    """Assert that player.update_winstreaks functions properly"""
     assert player.is_missing_winstreaks == is_missing_winstreaks
+
+
+@pytest.mark.parametrize(
+    "player, aliases",
+    (
+        (make_player(variant="player", username="player1"), ("player1",)),
+        (
+            make_player(variant="player", username="player2", nick="AmazingNick"),
+            ("player2", "AmazingNick"),
+        ),
+        (make_player(variant="nick", username="AmazingNick"), ("AmazingNick",)),
+        (make_player(variant="pending", username="player3"), ("player3",)),
+    ),
+)
+def test_aliases(player: Player, aliases: tuple[str, ...]) -> None:
+    assert player.aliases == aliases

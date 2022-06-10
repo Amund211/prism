@@ -28,9 +28,9 @@ def get_bedwars_stats(
     username: str,
     key_holder: HypixelAPIKeyHolder,
     denick: Callable[[str], str | None] = lambda nick: None,
-) -> tuple[tuple[str, ...], Player]:  # pragma: nocover
+) -> Player:  # pragma: nocover
     """
-    Get the bedwars stats for the given player
+    Get and caches the bedwars stats for the given player
 
     Returns list of aliases, player
     """
@@ -38,15 +38,10 @@ def get_bedwars_stats(
 
     if cached_stats is not None and not isinstance(cached_stats, PendingPlayer):
         logger.info(f"Cache hit {username}")
-        if isinstance(cached_stats, NickedPlayer):
-            return (cached_stats.username,), cached_stats
-        elif isinstance(cached_stats, KnownPlayer):
-            aliases = [cached_stats.username]
-            if cached_stats.nick is not None:
-                aliases.append(cached_stats.nick)
-            return tuple(aliases), cached_stats
+        if not isinstance(cached_stats, (NickedPlayer, KnownPlayer)):
+            return False  # Unreachable - for typechecking
 
-        return False  # Unreachable - for typechecking
+        return cached_stats
 
     logger.info(f"Cache miss {username}")
 
@@ -154,8 +149,4 @@ def get_bedwars_stats(
         # If we look up by original username, that means the user is not nicked
         set_cached_player(username, replace(player, nick=None))
 
-    aliases = [username]
-    if nick is not None:
-        aliases.append(nick)
-
-    return tuple(aliases), player
+    return player
