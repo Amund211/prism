@@ -58,7 +58,7 @@ def test_update_winstreaks(
     """Assert that player.update_winstreaks functions properly"""
     assert (
         KnownPlayer.update_winstreaks(
-            player, winstreaks=winstreaks, winstreaks_accurate=winstreaks_accurate
+            player, **winstreaks, winstreaks_accurate=winstreaks_accurate
         )
         == result
     )

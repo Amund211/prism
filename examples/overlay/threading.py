@@ -103,7 +103,7 @@ class GetStatsThread(threading.Thread):
                             username,
                             functools.partial(
                                 KnownPlayer.update_winstreaks,
-                                winstreaks=estimated_winstreaks,
+                                **estimated_winstreaks,
                                 winstreaks_accurate=winstreaks_accurate,
                             ),
                         )
