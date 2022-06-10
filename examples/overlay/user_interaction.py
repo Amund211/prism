@@ -1,3 +1,4 @@
+import functools
 import logging
 import platform
 import queue
@@ -310,7 +311,7 @@ class LogfilePrompt:
                 frame,
                 text="X",
                 fg="red",
-                command=lambda: self.remove_logfile_and_update(logfile),
+                command=functools.partial(self.remove_logfile_and_update, logfile),
             )
             button.pack(side=tk.LEFT)
             label = tk.Label(frame, text=logfile)
