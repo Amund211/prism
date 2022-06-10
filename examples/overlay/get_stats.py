@@ -19,23 +19,45 @@ from prism.utils import div
 logger = logging.getLogger(__name__)
 
 
-def get_uuid_from_mojang(username: str) -> str | None:  # pragma: nocover
-    """Lookup uuid from Mojang"""
+def create_known_player(
+    playerdata: dict[str, Any], username: str, uuid: str, nick: str | None = None
+) -> KnownPlayer:
     try:
-        return get_uuid(username)
-    except MojangAPIError as e:
-        logger.debug(f"Failed getting uuid for username {username} {e=}")
-        return None
+        bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
+    except MissingStatsError:
+        return KnownPlayer(
+            username=username,
+            nick=nick,
+            uuid=uuid,
+            stars=0,
+            stats=Stats(
+                fkdr=0,
+                wlr=0,
+                winstreak=0,
+                winstreak_accurate=True,
+            ),
+        )
 
-
-def get_player_data_from_hypixel(
-    uuid: str, key_holder: HypixelAPIKeyHolder
-) -> dict[str, Any] | None:  # pragma: nocover
-    try:
-        return get_player_data(uuid, key_holder)
-    except HypixelAPIError as e:
-        logger.debug(f"Failed getting stats for {uuid=} {e=}")
-        return None
+    winstreak = bw_stats.get("winstreak", None)
+    return KnownPlayer(
+        username=username,
+        nick=nick,
+        uuid=uuid,
+        stars=bedwars_level_from_exp(bw_stats.get("Experience", 500)),
+        stats=Stats(
+            fkdr=div(
+                bw_stats.get("final_kills_bedwars", 0),
+                bw_stats.get("final_deaths_bedwars", 0),
+            ),
+            wlr=div(
+                bw_stats.get("wins_bedwars", 0),
+                bw_stats.get("games_played_bedwars", 0)
+                - bw_stats.get("wins_bedwars", 0),
+            ),
+            winstreak=winstreak,
+            winstreak_accurate=winstreak is not None,
+        ),
+    )
 
 
 def fetch_bedwars_stats(
@@ -59,26 +81,26 @@ def fetch_bedwars_stats(
             logger.debug(f"De-nicked {username} as {uuid}")
 
     if uuid is None:
+        # Could not find uuid or denick - assume nicked
         return NickedPlayer(nick=username)
 
     playerdata = get_player_data(uuid)
-    if playerdata is None:
-        logger.debug(
-            f"Failed initially getting stats for {username} ({uuid}) {denicked=} "
-        )
+
+    logger.debug(
+        f"Initial stats for {username} ({uuid}) {denicked=} {playerdata is None=}"
+    )
 
     if not denicked and playerdata is None:
+        # The username may be an existing minecraft account that has not
+        # logged on to Hypixel. Then we would get a hit from Mojang, but
+        # no hit from Hypixel and the username is still a nickname.
         denick_result = denick(username)
         if denick_result is not None:
-            # The username may be an existing minecraft account that has not
-            # logged on to Hypixel. Then we would get a hit from Mojang, but
-            # no hit from Hypixel and the username is still a nickname.
             uuid = denick_result
             nick = username
             logger.debug(f"De-nicked {username} as {uuid} after hit from Mojang")
             playerdata = get_player_data(uuid)
-            if playerdata is None:
-                logger.debug(f"Failed getting stats for nicked {nick} ({uuid})")
+            logger.debug(f"Stats for nicked {nick} ({uuid}) {playerdata is None=}")
 
     if playerdata is None:
         logger.debug("Got no playerdata - assuming player is nicked")
@@ -89,41 +111,26 @@ def fetch_bedwars_stats(
         username = playerdata["displayname"]
         logger.debug(f"De-nicked {nick} as {username}")
 
+    return create_known_player(playerdata, username=username, uuid=uuid, nick=nick)
+
+
+def get_uuid_from_mojang(username: str) -> str | None:  # pragma: nocover
+    """Lookup uuid from Mojang"""
     try:
-        bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
-    except MissingStatsError:
-        return KnownPlayer(
-            username=username,
-            uuid=uuid,
-            stars=0,
-            stats=Stats(
-                fkdr=0,
-                wlr=0,
-                winstreak=0,
-                winstreak_accurate=True,
-            ),
-        )
-    else:
-        winstreak = bw_stats.get("winstreak", None)
-        return KnownPlayer(
-            username=username,
-            nick=nick,
-            uuid=uuid,
-            stars=bedwars_level_from_exp(bw_stats.get("Experience", 500)),
-            stats=Stats(
-                fkdr=div(
-                    bw_stats.get("final_kills_bedwars", 0),
-                    bw_stats.get("final_deaths_bedwars", 0),
-                ),
-                wlr=div(
-                    bw_stats.get("wins_bedwars", 0),
-                    bw_stats.get("games_played_bedwars", 0)
-                    - bw_stats.get("wins_bedwars", 0),
-                ),
-                winstreak=winstreak,
-                winstreak_accurate=winstreak is not None,
-            ),
-        )
+        return get_uuid(username)
+    except MojangAPIError as e:
+        logger.debug(f"Failed getting uuid for username {username} {e=}")
+        return None
+
+
+def get_player_data_from_hypixel(
+    uuid: str, key_holder: HypixelAPIKeyHolder
+) -> dict[str, Any] | None:  # pragma: nocover
+    try:
+        return get_player_data(uuid, key_holder)
+    except HypixelAPIError as e:
+        logger.debug(f"Failed getting stats for {uuid=} {e=}")
+        return None
 
 
 def get_bedwars_stats(
