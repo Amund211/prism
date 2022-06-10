@@ -12,6 +12,8 @@ from traceback import format_exception
 from types import TracebackType
 from typing import Callable, Generic, Sequence, TypeVar
 
+from examples.overlay import VERSION_STRING
+
 logger = logging.getLogger(__name__)
 
 ColumnKey = TypeVar("ColumnKey")
@@ -173,7 +175,7 @@ class OverlayWindow(Generic[ColumnKey]):
 
         version_label = tk.Label(
             toolbar_frame,
-            text="v1.1.3",
+            text=VERSION_STRING,
             font=("Consolas", "10"),
             foreground="white",
             background="black",
