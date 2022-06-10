@@ -20,11 +20,11 @@ from tendo import singleton  # type: ignore
 import examples.overlay.antisniper_api as antisniper_api
 from examples.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from examples.overlay.commandline import get_options
-from examples.overlay.get_stats import clear_cache, uncache_stats
 from examples.overlay.nick_database import NickDatabase
 from examples.overlay.output.overlay import run_overlay
 from examples.overlay.output.printing import print_stats_table
 from examples.overlay.player import Player
+from examples.overlay.player_cache import clear_cache, uncache_player
 from examples.overlay.settings import Settings, api_key_is_valid, get_settings
 from examples.overlay.state import OverlayState, fast_forward_state
 from examples.overlay.threading import prepare_overlay
@@ -270,10 +270,10 @@ def set_nickname(
 
     if old_nick is not None:
         # Drop the stats cache for your old nick
-        uncache_stats(old_nick)
+        uncache_player(old_nick)
 
     # Drop the stats cache for your new nick so that we can fetch the stats
-    uncache_stats(nick)
+    uncache_player(nick)
 
 
 def set_api_key(

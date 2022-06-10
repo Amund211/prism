@@ -1,9 +1,6 @@
 import logging
-import threading
 from dataclasses import replace
 from typing import Callable
-
-from cachetools import TTLCache
 
 from examples.overlay.player import (
     KnownPlayer,
@@ -12,6 +9,7 @@ from examples.overlay.player import (
     Player,
     Stats,
 )
+from examples.overlay.player_cache import get_cached_player, set_cached_player
 from prism.calc import bedwars_level_from_exp
 from prism.minecraft import MojangAPIError, get_uuid
 from prism.playerdata import (
@@ -25,58 +23,6 @@ from prism.utils import div
 
 logger = logging.getLogger(__name__)
 
-# Session stats cache
-# Entries cached for 2mins, so they hopefully expire before the next queue
-KNOWN_PLAYERS: TTLCache[str, Player] = TTLCache(maxsize=512, ttl=120)
-STATS_MUTEX = threading.Lock()
-
-
-def set_player_pending(username: str) -> PendingPlayer:
-    """Note that the stats for this user are pending"""
-    pending_player = PendingPlayer(username)
-
-    with STATS_MUTEX:
-        if username in KNOWN_PLAYERS:
-            logger.error(f"Stats for {username} set to pending, but already exists")
-
-        KNOWN_PLAYERS[username] = pending_player
-
-    return pending_player
-
-
-def set_cached_stats(username: str, player: KnownPlayer | NickedPlayer) -> None:
-    with STATS_MUTEX:
-        KNOWN_PLAYERS[username] = player
-
-
-def get_cached_stats(username: str) -> Player | None:
-    with STATS_MUTEX:
-        return KNOWN_PLAYERS.get(username, None)
-
-
-def update_cached_stats(
-    username: str, update: Callable[[KnownPlayer], KnownPlayer]
-) -> None:
-    """Update the cached stats for a player"""
-    with STATS_MUTEX:
-        player = KNOWN_PLAYERS.get(username, None)
-        if isinstance(player, KnownPlayer):
-            KNOWN_PLAYERS[username] = update(player)
-        else:
-            logger.warning(f"Stats for {username} not found during update")
-
-
-def uncache_stats(username: str) -> None:
-    """Clear the cache entry for `username`"""
-    with STATS_MUTEX:
-        KNOWN_PLAYERS.pop(username, None)
-
-
-def clear_cache() -> None:
-    """Clear the entire stats cache"""
-    with STATS_MUTEX:
-        KNOWN_PLAYERS.clear()
-
 
 def get_bedwars_stats(
     username: str,
@@ -86,9 +32,9 @@ def get_bedwars_stats(
     """
     Get the bedwars stats for the given player
 
-    Returns username, nick, stats
+    Returns list of aliases, player
     """
-    cached_stats = get_cached_stats(username)
+    cached_stats = get_cached_player(username)
 
     if cached_stats is not None and not isinstance(cached_stats, PendingPlayer):
         logger.info(f"Cache hit {username}")
@@ -201,12 +147,12 @@ def get_bedwars_stats(
     # Set the cache
     if nick is None or isinstance(player, NickedPlayer):
         # Unnicked player or failed denicking
-        set_cached_stats(username, player)
+        set_cached_player(username, player)
     else:
         # Successful denicking
-        set_cached_stats(nick, player)
+        set_cached_player(nick, player)
         # If we look up by original username, that means the user is not nicked
-        set_cached_stats(username, replace(player, nick=None))
+        set_cached_player(username, replace(player, nick=None))
 
     aliases = [username]
     if nick is not None:

@@ -5,14 +5,14 @@ import threading
 from typing import Callable, Iterable
 
 import examples.overlay.antisniper_api as antisniper_api
-from examples.overlay.get_stats import (
-    get_bedwars_stats,
-    get_cached_stats,
-    set_player_pending,
-    update_cached_stats,
-)
+from examples.overlay.get_stats import get_bedwars_stats
 from examples.overlay.parsing import parse_logline
 from examples.overlay.player import KnownPlayer, Player, sort_players
+from examples.overlay.player_cache import (
+    get_cached_player,
+    set_player_pending,
+    update_cached_player,
+)
 from examples.overlay.state import OverlayState, update_state
 from prism.playerdata import HypixelAPIKeyHolder
 
@@ -99,7 +99,7 @@ class GetStatsThread(threading.Thread):
                     )
 
                     for alias in aliases:
-                        update_cached_stats(
+                        update_cached_player(
                             username,
                             functools.partial(
                                 KnownPlayer.update_winstreaks,
@@ -208,7 +208,7 @@ def prepare_overlay(
             lobby_players = state.lobby_players.copy()
 
         for player in lobby_players:
-            cached_stats = get_cached_stats(player)
+            cached_stats = get_cached_player(player)
             if cached_stats is None:
                 # No query made for this player yet
                 # Start a query and note that a query has been started
