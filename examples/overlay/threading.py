@@ -78,18 +78,16 @@ class GetStatsThread(threading.Thread):
                 username = self.requests_queue.get()
 
                 # get_bedwars_stats sets the stats cache which will be read from later
-                found_username, nick, uuid, player = get_bedwars_stats(
+                aliases, player = get_bedwars_stats(
                     username, key_holder=self.hypixel_key_holder, denick=self.denick
                 )
                 logger.debug(f"Finished gettings stats for {username}")
-                self.requests_queue.task_done()
 
                 # Tell the main thread that we downloaded this user's stats
                 self.completed_queue.put(username)
 
                 if (
                     self.antisniper_key_holder is not None
-                    and uuid is not None
                     and isinstance(player, KnownPlayer)
                     and player.stats.winstreak is None
                 ):
@@ -97,13 +95,10 @@ class GetStatsThread(threading.Thread):
                         estimated_winstreaks,
                         winstreaks_accurate,
                     ) = antisniper_api.get_estimated_winstreaks(
-                        uuid=uuid, key_holder=self.antisniper_key_holder
+                        uuid=player.uuid, key_holder=self.antisniper_key_holder
                     )
 
-                    for key in (found_username, nick):
-                        if key is None:
-                            continue
-
+                    for alias in aliases:
                         update_cached_stats(
                             username,
                             functools.partial(
@@ -114,8 +109,11 @@ class GetStatsThread(threading.Thread):
                         )
 
                         # Tell the main thread that we got the estimated winstreak
-                        self.completed_queue.put(key)
+                        self.completed_queue.put(alias)
 
+                    logger.debug(f"Updated missing winstreak for {username}")
+
+                self.requests_queue.task_done()
         except Exception as e:
             logger.exception(f"Exception caught in stats thread: {e}. Exiting")
             return

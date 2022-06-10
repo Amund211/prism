@@ -53,7 +53,7 @@ class KnownPlayer:
     stats: Stats
     stars: float
     username: str
-    uuid: str | None
+    uuid: str
     nick: str | None = field(default=None)
 
     def order(self) -> KnownPlayerOrder:
@@ -181,7 +181,7 @@ def rate_player(
             # Hack to compare other Player instances by username only
             order = KnownPlayer(
                 username=player.username,
-                uuid=None,
+                uuid="placeholder",
                 stars=0,
                 stats=Stats(
                     fkdr=0,

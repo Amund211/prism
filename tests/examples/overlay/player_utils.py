@@ -29,7 +29,7 @@ def make_player(
     winstreak: int | None = ...,
     winstreak_accurate: bool = ...,
     nick: str | None = ...,
-    uuid: str | None = ...,
+    uuid: str = ...,
 ) -> KnownPlayer:
     ...
 
@@ -43,7 +43,7 @@ def make_player(
     winstreak: int | None = None,
     winstreak_accurate: bool = False,
     nick: str | None = None,
-    uuid: str | None = None,
+    uuid: str = "placeholder",
 ) -> Player:
     if variant == "player":
         return KnownPlayer(
