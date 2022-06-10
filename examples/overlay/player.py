@@ -62,6 +62,11 @@ class KnownPlayer:
         """Return True if the player has hidden stats (is assumed to be nicked)"""
         return False
 
+    @property
+    def is_missing_winstreaks(self) -> bool:
+        """Return True if the player is missing winstreak stats in any gamemode"""
+        return self.stats.winstreak is None
+
     @overload
     def get_value(self, name: StatName) -> Union[int, float, None]:
         ...  # pragma: nocover

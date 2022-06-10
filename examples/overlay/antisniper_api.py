@@ -1,3 +1,4 @@
+import functools
 import logging
 import threading
 from enum import Enum, auto
@@ -8,7 +9,8 @@ import requests
 from cachetools import TTLCache
 from requests.exceptions import RequestException
 
-from examples.overlay.player import GamemodeName
+from examples.overlay.player import GamemodeName, KnownPlayer
+from examples.overlay.player_cache import update_cached_player
 from prism.ratelimiting import RateLimiter
 
 logger = logging.getLogger(__name__)
@@ -132,6 +134,30 @@ def parse_denick_response(response_json: dict[str, Any]) -> str | None:
         return None
 
     return uuid
+
+
+def update_cached_winstreak(
+    uuid: str, aliases: tuple[str, ...], key_holder: AntiSniperAPIKeyHolder
+) -> bool:  # pragma: nocover
+    """Make a request and update the cached winstreak for the given aliases"""
+    estimated_winstreaks, winstreaks_accurate = get_estimated_winstreaks(
+        uuid=uuid, key_holder=key_holder
+    )
+
+    if estimated_winstreaks == MISSING_WINSTREAKS:
+        return False
+
+    for alias in aliases:
+        update_cached_player(
+            alias,
+            functools.partial(
+                KnownPlayer.update_winstreaks,
+                **estimated_winstreaks,
+                winstreaks_accurate=winstreaks_accurate,
+            ),
+        )
+
+    return True
 
 
 def get_estimated_winstreaks(

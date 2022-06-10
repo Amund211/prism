@@ -181,3 +181,18 @@ def test_sort_stats(
 ) -> None:
     """Assert that sort_players functions properly"""
     assert sort_players(players, party_members) == result
+
+
+@pytest.mark.parametrize(
+    "player, is_missing_winstreaks",
+    (
+        (make_player(), True),
+        (make_player(winstreak=100, winstreak_accurate=False), False),
+        (make_player(winstreak=100, winstreak_accurate=True), False),
+    ),
+)
+def test_is_missing_winstreaks(
+    player: KnownPlayer, is_missing_winstreaks: bool
+) -> None:
+    """Assert that player.update_winstreaks functions properly"""
+    assert player.is_missing_winstreaks == is_missing_winstreaks

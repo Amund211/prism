@@ -1,4 +1,3 @@
-import functools
 import logging
 import queue
 import threading
@@ -8,11 +7,7 @@ import examples.overlay.antisniper_api as antisniper_api
 from examples.overlay.get_stats import get_bedwars_stats
 from examples.overlay.parsing import parse_logline
 from examples.overlay.player import KnownPlayer, Player, sort_players
-from examples.overlay.player_cache import (
-    get_cached_player,
-    set_player_pending,
-    update_cached_player,
-)
+from examples.overlay.player_cache import get_cached_player, set_player_pending
 from examples.overlay.state import OverlayState, update_state
 from prism.playerdata import HypixelAPIKeyHolder
 
@@ -81,37 +76,29 @@ class GetStatsThread(threading.Thread):
                 aliases, player = get_bedwars_stats(
                     username, key_holder=self.hypixel_key_holder, denick=self.denick
                 )
-                logger.debug(f"Finished gettings stats for {username}")
 
                 # Tell the main thread that we downloaded this user's stats
                 self.completed_queue.put(username)
 
+                logger.debug(f"Finished gettings stats for {username}")
+
                 if (
                     self.antisniper_key_holder is not None
                     and isinstance(player, KnownPlayer)
-                    and player.stats.winstreak is None
+                    and player.is_missing_winstreaks
                 ):
-                    (
-                        estimated_winstreaks,
-                        winstreaks_accurate,
-                    ) = antisniper_api.get_estimated_winstreaks(
-                        uuid=player.uuid, key_holder=self.antisniper_key_holder
-                    )
-
-                    for alias in aliases:
-                        update_cached_player(
-                            username,
-                            functools.partial(
-                                KnownPlayer.update_winstreaks,
-                                **estimated_winstreaks,
-                                winstreaks_accurate=winstreaks_accurate,
-                            ),
-                        )
-
+                    if antisniper_api.update_cached_winstreak(
+                        uuid=player.uuid,
+                        aliases=aliases,
+                        key_holder=self.antisniper_key_holder,
+                    ):
                         # Tell the main thread that we got the estimated winstreak
-                        self.completed_queue.put(alias)
-
-                    logger.debug(f"Updated missing winstreak for {username}")
+                        self.completed_queue.put(username)
+                        logger.debug(f"Updated missing winstreak for {username}")
+                    else:
+                        logger.debug(
+                            f"Updating missing winstreak for {username} failed"
+                        )
 
                 self.requests_queue.task_done()
         except Exception as e:
