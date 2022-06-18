@@ -157,12 +157,10 @@ def get_bedwars_stats(
         denick=denick,
     )
 
-    # Set the cache
     if isinstance(player, KnownPlayer) and player.nick is not None:
-        set_cached_player(username, player)
         # If we look up by actual username, that means the user is not nicked
         set_cached_player(player.username, replace(player, nick=None))
-    else:
-        set_cached_player(username, player)
+
+    set_cached_player(username, player)
 
     return player
