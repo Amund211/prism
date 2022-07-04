@@ -376,6 +376,16 @@ def suggest_logfiles() -> list[str]:
     return valid_logfiles
 
 
+def get_timestamp(path_str: str) -> float:
+    """Get the modified timestamp of the file"""
+    try:
+        stat = Path(path_str).stat()
+    except OSError:
+        return 0
+    else:
+        return stat.st_mtime
+
+
 def prompt_for_logfile_path(logfile_cache_path: Path) -> Path:
     """Wait for the user to type /api new, or add an api key to their settings file"""
 
@@ -390,8 +400,11 @@ def prompt_for_logfile_path(logfile_cache_path: Path) -> Path:
     ):
         known_logfiles = []
 
-    if not known_logfiles:
-        known_logfiles = suggest_logfiles()
+    # Add newly discovered logfiles
+    known_logfiles.extend(set(suggest_logfiles()) - set(known_logfiles))
+
+    # Sort the logfiles by their modification time, most recent first
+    known_logfiles = sorted(known_logfiles, key=get_timestamp, reverse=True)
 
     last_used = logfile_cache.get("last_used", None)
     if not isinstance(last_used, str) or last_used not in known_logfiles:
