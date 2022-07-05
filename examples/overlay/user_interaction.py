@@ -234,6 +234,9 @@ class LogfilePrompt:
             self.root,
             text="Select the logfile corresponding to the version you will be playing",
         ).pack()
+        tk.Label(
+            self.root, text="If you are unsure, try one near the top", fg="red"
+        ).pack()
 
         tk.Button(
             self.root, text="Select a new file", command=self.make_selection
