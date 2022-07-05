@@ -397,29 +397,44 @@ def prompt_for_logfile_path(logfile_cache_path: Path) -> Path:
     except Exception:
         logfile_cache = {}
 
+    logfile_cache_changed = False
+
     known_logfiles = logfile_cache.get("known_logfiles", None)
     if not isinstance(known_logfiles, list) or not all(
         isinstance(el, str) for el in known_logfiles
     ):
         known_logfiles = []
+        logfile_cache_changed = True
 
     # Add newly discovered logfiles
-    known_logfiles.extend(set(suggest_logfiles()) - set(known_logfiles))
+    new_logfiles = set(suggest_logfiles()) - set(known_logfiles)
+    if new_logfiles:
+        known_logfiles.extend(new_logfiles)
+        logfile_cache_changed = True
+
+    amt_logfiles = len(known_logfiles)
 
     # Sort the logfiles by their modification time, most recent first
     known_logfiles = sorted(
         filter(file_exists, known_logfiles), key=get_timestamp, reverse=True
     )
 
+    if amt_logfiles != len(known_logfiles):
+        logfile_cache_changed = True
+
     last_used = logfile_cache.get("last_used", None)
     if not isinstance(last_used, str) or last_used not in known_logfiles:
         last_used = known_logfiles[0] if len(known_logfiles) > 0 else None
+        logfile_cache_changed = True
 
     logfile_cache = {"known_logfiles": known_logfiles, "last_used": last_used}
 
     def write_cache() -> None:
         with logfile_cache_path.open("w") as cache_file:
             toml.dump(logfile_cache, cache_file)
+
+    if logfile_cache_changed:
+        write_cache()
 
     def remove_logfile(logfile: str) -> None:
         logfile_cache["known_logfiles"] = list(
