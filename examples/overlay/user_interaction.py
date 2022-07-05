@@ -363,17 +363,20 @@ def suggest_logfile_candidates() -> list[Path]:
         return []
 
 
-def suggest_logfiles() -> list[str]:
-    valid_logfiles: list[str] = []
+def file_exists(path: Path | str) -> bool:
+    """Return True if the file exists"""
+    if isinstance(path, str):
+        path = Path(path)
 
-    for logpath in suggest_logfile_candidates():
-        try:
-            if logpath.is_file():
-                valid_logfiles.append(str(logpath.resolve()))
-        except OSError:
-            pass
+    try:
+        return path.is_file()
+    except OSError:
+        return False
 
-    return valid_logfiles
+
+def suggest_logfiles() -> tuple[str, ...]:
+    """Suggest logfile candidates that exist"""
+    return tuple(map(str, filter(file_exists, suggest_logfile_candidates())))
 
 
 def get_timestamp(path_str: str) -> float:
@@ -404,7 +407,9 @@ def prompt_for_logfile_path(logfile_cache_path: Path) -> Path:
     known_logfiles.extend(set(suggest_logfiles()) - set(known_logfiles))
 
     # Sort the logfiles by their modification time, most recent first
-    known_logfiles = sorted(known_logfiles, key=get_timestamp, reverse=True)
+    known_logfiles = sorted(
+        filter(file_exists, known_logfiles), key=get_timestamp, reverse=True
+    )
 
     last_used = logfile_cache.get("last_used", None)
     if not isinstance(last_used, str) or last_used not in known_logfiles:
