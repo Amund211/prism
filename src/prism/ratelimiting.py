@@ -1,7 +1,6 @@
 import threading
 import time
 from collections import deque
-from datetime import datetime, timedelta
 from itertools import repeat
 from types import TracebackType
 
@@ -29,7 +28,7 @@ class RateLimiter:
 
         # Fill the request history with placeholder data so we can assume that
         # the deque is non-empty when we have acquired self.avaliable_slots
-        old_timestamp = datetime.now() - timedelta(seconds=window)
+        old_timestamp = time.monotonic() - window
         self.made_requests = deque(repeat(old_timestamp, limit))
 
     def __enter__(self) -> None:
@@ -44,9 +43,9 @@ class RateLimiter:
         with self.mutex:
             old_request = self.made_requests.popleft()
 
-        now = datetime.now()
+        now = time.monotonic()
         time_since_request = now - old_request
-        remaining_time_in_window = self.window - time_since_request.total_seconds()
+        remaining_time_in_window = self.window - time_since_request
         if remaining_time_in_window > 0:  # pragma: no cover
             # Wait until the old request has left the window
             time.sleep(remaining_time_in_window)
@@ -57,7 +56,7 @@ class RateLimiter:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
-        now = datetime.now()
+        now = time.monotonic()
         with self.mutex:
             # Insert the newly completed request in sorted order so that we don't
             # wait for it unnecessarily.
