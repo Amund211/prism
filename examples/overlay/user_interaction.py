@@ -226,6 +226,10 @@ class LogfilePrompt:
         self.remove_logfile = remove_logfile
         self.choose_logfile = choose_logfile
 
+        self.update_logfile_timestamps()
+
+        self.task_id: str | None = None
+
         # Create a root window
         self.root = tk.Tk()
         self.root.title("Select a version")
@@ -235,7 +239,7 @@ class LogfilePrompt:
             text="Select the logfile corresponding to the version you will be playing",
         ).pack()
         tk.Label(
-            self.root, text="If you are unsure, try one near the top", fg="red"
+            self.root, text="Recently used versions are highlighted in green", fg="red"
         ).pack()
 
         tk.Button(
@@ -263,8 +267,12 @@ class LogfilePrompt:
         # Cancel button
         tk.Button(self.root, text="Cancel", command=sys.exit).pack()
 
+        def on_close() -> None:
+            self.cancel_polling()
+            sys.exit()
+
         # Window close
-        self.root.protocol("WM_DELETE_WINDOW", sys.exit)
+        self.root.protocol("WM_DELETE_WINDOW", on_close)
 
         self.root.update_idletasks()
 
@@ -294,6 +302,8 @@ class LogfilePrompt:
         self.known_logfiles = list(
             filter(lambda el: el != logfile, self.known_logfiles)
         )
+
+        self.update_logfile_timestamps()
         self.update_logfile_list()
         self.update_buttonstate()
 
@@ -307,7 +317,15 @@ class LogfilePrompt:
 
         self.rows = []
 
-        for logfile in self.known_logfiles:
+        # Keep most recent logfiles at the top
+        for timestamp, logfile in sorted(
+            zip(self.logfile_timestamps, self.known_logfiles),
+            key=lambda item: item[0],
+            reverse=True,
+        ):
+            # Logfile was updated last minute
+            recent = self.last_timestamp_update - timestamp < 60
+
             frame = tk.Frame(self.logfile_list_frame)
             frame.pack(expand=True, fill=tk.X)
             button = tk.Button(
@@ -320,7 +338,10 @@ class LogfilePrompt:
             label = tk.Label(frame, text=logfile)
             label.pack(side=tk.LEFT)
             radiobutton = tk.Radiobutton(
-                frame, variable=self.selected_logfile_var, value=logfile
+                frame,
+                variable=self.selected_logfile_var,
+                value=logfile,
+                bg="green" if recent else "grey",
             )
             radiobutton.pack(side=tk.RIGHT)
             self.rows.append((frame, button, label, radiobutton))
@@ -328,10 +349,29 @@ class LogfilePrompt:
     def submit_selection(self, selection: str | None = None) -> None:
         """Select the currently chosen logfile and exit"""
         self.choose_logfile(selection or self.selected_logfile_var.get())
+        self.cancel_polling()
         self.root.destroy()
+
+    def update_logfile_timestamps(self) -> None:
+        """Update the edited timestamps for all the known logfiles"""
+        self.last_timestamp_update = time.time()
+        self.logfile_timestamps = tuple(map(get_timestamp, self.known_logfiles))
+
+    def poll_logfile_timestamps(self) -> None:
+        last_timestamps = self.logfile_timestamps
+        self.update_logfile_timestamps()
+        if last_timestamps != self.logfile_timestamps:
+            self.update_logfile_list()
+        self.task_id = self.root.after(1000, self.poll_logfile_timestamps)
+
+    def cancel_polling(self) -> None:
+        if self.task_id is not None:
+            self.root.after_cancel(self.task_id)
+            self.task_id = None
 
     def run(self) -> None:
         """Enter mainloop"""
+        self.task_id = self.root.after(1000, self.poll_logfile_timestamps)
         self.root.mainloop()
 
 
