@@ -56,6 +56,7 @@ def time_ratelimiter(
         )
 
 
+@pytest.mark.time_sensitive
 def test_ratelimiting_sequential() -> None:
     """Assert that RateLimiter functions under sequential operation"""
     window = 0.04
@@ -72,6 +73,7 @@ def test_ratelimiting_sequential() -> None:
     time_ratelimiter(window, limit, make_requests)
 
 
+@pytest.mark.time_sensitive
 def test_ratelimiting_parallell() -> None:
     """Assert that RateLimiter functions under parallell operation"""
     window = 0.04

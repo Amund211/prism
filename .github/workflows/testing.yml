@@ -52,7 +52,9 @@ jobs:
     - name: Run tests
       run: |
         source ${{ env.ACTIVATE_PATH }}
-        coverage run
+        # Skip time sensitive tests on github
+        # Have had some issues with false positives on windows
+        coverage run -m pytest -r fEs -k 'not time_sensitive'
         coverage report
 
     - name: Build single file binary with pyinstaller

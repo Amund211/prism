@@ -29,3 +29,8 @@ exclude = [
   '^dist/$',
   '^venv/$',
 ]
+
+[tool.pytest.ini_options]
+markers = [
+    "time_sensitive: marks tests as time sensitive (deselect with '-m \"not time_sensitive\"')",
+]
