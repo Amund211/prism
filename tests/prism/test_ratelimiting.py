@@ -55,7 +55,7 @@ def time_ratelimiter(
 
 def test_ratelimiting_sequential() -> None:
     """Assert that RateLimiter functions under sequential operation"""
-    window = 0.01
+    window = 0.04
     limit = 10
     amt_requests = 21
 
@@ -71,7 +71,7 @@ def test_ratelimiting_sequential() -> None:
 
 def test_ratelimiting_parallell() -> None:
     """Assert that RateLimiter functions under parallell operation"""
-    window = 0.01
+    window = 0.04
     limit = 10
     amt_iterations = 11
 
