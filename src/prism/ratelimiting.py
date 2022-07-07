@@ -46,7 +46,7 @@ class RateLimiter:
         now = time.monotonic()
         time_since_request = now - old_request
         remaining_time_in_window = self.window - time_since_request
-        if remaining_time_in_window > 0:  # pragma: no cover
+        if remaining_time_in_window > 0:
             # Wait until the old request has left the window
             time.sleep(remaining_time_in_window)
 
