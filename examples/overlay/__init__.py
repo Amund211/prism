@@ -1,1 +1,1 @@
-VERSION_STRING = "v1.1.3-dev"
+VERSION_STRING = "v1.1.3"
