@@ -45,10 +45,6 @@ def time_ratelimiter(
             f"Ratelimiter exceeded max throughput!!! {time_elapsed=} < {min_time=}"
         )
 
-    # Assert that requests that are in different windows are at least `window` apart
-    for request, next_request in zip(requests, requests[limit:]):
-        assert next_request - request >= window
-
     if not all(
         next_request - request >= window
         for request, next_request in zip(requests, requests[limit:])
