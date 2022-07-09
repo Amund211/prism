@@ -8,7 +8,7 @@ import time
 import tkinter as tk
 import tkinter.filedialog
 from pathlib import Path
-from typing import Any, Callable, Iterable, Sequence
+from typing import Any, Callable, Iterable
 
 import toml
 
@@ -214,9 +214,12 @@ def wait_for_api_key(logfile_path: Path, settings_path: Path) -> str:
 class LogfilePrompt:
     """Window to prompt the user to select a logfile"""
 
+    # Number of seconds for a logfile to be considered recently used
+    RECENT_TIMEOUT = 60
+
     def __init__(
         self,
-        known_logfiles: Sequence[str],
+        known_logfiles: tuple[str, ...],
         last_used: str | None,
         remove_logfile: Callable[[str], None],
         choose_logfile: Callable[[str], None],
@@ -226,7 +229,8 @@ class LogfilePrompt:
         self.remove_logfile = remove_logfile
         self.choose_logfile = choose_logfile
 
-        self.update_logfile_timestamps()
+        self.logfile_recent = tuple(False for logfile in self.known_logfiles)
+        self.update_logfile_order()
 
         self.task_id: str | None = None
 
@@ -299,11 +303,13 @@ class LogfilePrompt:
     def remove_logfile_and_update(self, logfile: str) -> None:
         """Remove the logfile from memory and the GUI"""
         self.remove_logfile(logfile)
-        self.known_logfiles = list(
+        self.known_logfiles = tuple(
             filter(lambda el: el != logfile, self.known_logfiles)
         )
 
-        self.update_logfile_timestamps()
+        # Update the order so self.logfile_recent is updated
+        self.update_logfile_order()
+
         self.update_logfile_list()
         self.update_buttonstate()
 
@@ -317,15 +323,7 @@ class LogfilePrompt:
 
         self.rows = []
 
-        # Keep most recent logfiles at the top
-        for timestamp, logfile in sorted(
-            zip(self.logfile_timestamps, self.known_logfiles),
-            key=lambda item: item[0],
-            reverse=True,
-        ):
-            # Logfile was updated last minute
-            recent = self.last_timestamp_update - timestamp < 60
-
+        for recent, logfile in zip(self.logfile_recent, self.known_logfiles):
             frame = tk.Frame(self.logfile_list_frame)
             frame.pack(expand=True, fill=tk.X)
             button = tk.Button(
@@ -352,15 +350,45 @@ class LogfilePrompt:
         self.cancel_polling()
         self.root.destroy()
 
-    def update_logfile_timestamps(self) -> None:
-        """Update the edited timestamps for all the known logfiles"""
-        self.last_timestamp_update = time.time()
-        self.logfile_timestamps = tuple(map(get_timestamp, self.known_logfiles))
+    def update_logfile_order(self) -> bool:
+        """Update the order of the logfiles"""
+        now = time.time()
+        logfile_timestamps = tuple(map(get_timestamp, self.known_logfiles))
+
+        # Keep most recent logfiles at the top
+        timestamped_logfiles: list[tuple[float, str]] = sorted(
+            zip(logfile_timestamps, self.known_logfiles),
+            key=lambda item: item[0],
+            reverse=True,
+        )
+
+        sorted_logfile_timestamps = tuple(
+            timestamp for timestamp, logfile in timestamped_logfiles
+        )
+        new_known_logfiles = tuple(
+            logfile for timestamp, logfile in timestamped_logfiles
+        )
+
+        # True if logfile was updated recently
+        new_logfile_recent = tuple(
+            now - timestamp < self.RECENT_TIMEOUT
+            for timestamp in sorted_logfile_timestamps
+        )
+
+        if (
+            new_known_logfiles != self.known_logfiles
+            or new_logfile_recent != self.logfile_recent
+        ):
+            self.known_logfiles = new_known_logfiles
+            self.logfile_recent = new_logfile_recent
+
+            return True
+
+        return False
 
     def poll_logfile_timestamps(self) -> None:
-        last_timestamps = self.logfile_timestamps
-        self.update_logfile_timestamps()
-        if last_timestamps != self.logfile_timestamps:
+        order_updated = self.update_logfile_order()
+        if order_updated:
             self.update_logfile_list()
         self.task_id = self.root.after(1000, self.poll_logfile_timestamps)
 
@@ -371,7 +399,7 @@ class LogfilePrompt:
 
     def run(self) -> None:
         """Enter mainloop"""
-        self.task_id = self.root.after(1000, self.poll_logfile_timestamps)
+        self.poll_logfile_timestamps()
         self.root.mainloop()
 
 
@@ -442,27 +470,24 @@ def prompt_for_logfile_path(logfile_cache_path: Path) -> Path:
 
     logfile_cache_changed = False
 
-    known_logfiles = logfile_cache.get("known_logfiles", None)
-    if not isinstance(known_logfiles, list) or not all(
-        isinstance(el, str) for el in known_logfiles
+    read_known_logfiles = logfile_cache.get("known_logfiles", None)
+    if not isinstance(read_known_logfiles, (list, tuple)) or not all(
+        isinstance(el, str) for el in read_known_logfiles
     ):
-        known_logfiles = []
+        read_known_logfiles = ()
         logfile_cache_changed = True
+
+    known_logfiles = tuple(read_known_logfiles)
 
     # Add newly discovered logfiles
     new_logfiles = set(suggest_logfiles()) - set(known_logfiles)
     if new_logfiles:
-        known_logfiles.extend(new_logfiles)
+        known_logfiles += tuple(new_logfiles)
         logfile_cache_changed = True
 
-    amt_logfiles = len(known_logfiles)
-
-    # Sort the logfiles by their modification time, most recent first
-    known_logfiles = sorted(
-        filter(file_exists, known_logfiles), key=get_timestamp, reverse=True
-    )
-
-    if amt_logfiles != len(known_logfiles):
+    # TODO: allow the logfile to stay, but indicate that it is not selectable
+    if not all(map(file_exists, known_logfiles)):
+        known_logfiles = tuple(filter(file_exists, known_logfiles))
         logfile_cache_changed = True
 
     last_used = logfile_cache.get("last_used", None)
@@ -480,7 +505,7 @@ def prompt_for_logfile_path(logfile_cache_path: Path) -> Path:
         write_cache()
 
     def remove_logfile(logfile: str) -> None:
-        logfile_cache["known_logfiles"] = list(
+        logfile_cache["known_logfiles"] = tuple(
             filter(lambda el: el != logfile, logfile_cache["known_logfiles"])
         )
         write_cache()
