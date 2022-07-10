@@ -24,6 +24,7 @@ class OverlayState:
     out_of_sync: bool = False
     in_queue: bool = False
     own_username: str | None = None
+    api_key_invalid: bool = False
     mutex: threading.Lock = field(
         default_factory=threading.Lock, init=False, compare=False, repr=False
     )
@@ -262,6 +263,7 @@ def update_state(state: OverlayState, event: Event) -> bool:
         # User got a new API key
         logger.info("Setting new API key")
         state.set_api_key(event.key)
+        state.api_key_invalid = False
 
         return False
 

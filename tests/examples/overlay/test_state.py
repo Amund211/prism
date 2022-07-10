@@ -40,6 +40,7 @@ def create_state(
     out_of_sync: bool = False,
     in_queue: bool = False,
     own_username: str | None = OWN_USERNAME,
+    api_key_invalid: bool = False,
 ) -> OverlayState:
     yourself = set() if own_username is None else set([own_username])
     return OverlayState(
@@ -50,6 +51,7 @@ def create_state(
         out_of_sync=out_of_sync,
         in_queue=in_queue,
         own_username=own_username,
+        api_key_invalid=api_key_invalid,
     )
 
 
@@ -334,9 +336,10 @@ def test_update_state_set_nickname() -> None:
 
 def test_update_state_set_api_key() -> None:
     """Assert that set_api_key is called when NewAPIKeyEvent is received"""
-    state = create_state()
+    state = create_state(api_key_invalid=True)
     update_state(state, NewAPIKeyEvent("my-new-key"))
     state.set_api_key.assert_called_with("my-new-key")  # type: ignore
+    assert not state.api_key_invalid
 
 
 CHAT = "[Info: 2021-11-29 22:17:40.417869567: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] "  # noqa: E501

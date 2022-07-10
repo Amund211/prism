@@ -66,7 +66,7 @@ def run_overlay(
     """
 
     def get_new_data() -> tuple[
-        bool, CellValue | None, list[OverlayRow[PropertyName]] | None
+        bool, list[CellValue], list[OverlayRow[PropertyName]] | None
     ]:
         new_players = fetch_state_updates()
         new_rows = (
@@ -74,11 +74,17 @@ def run_overlay(
             if new_players is not None
             else None
         )
+
+        info_cells = []
+        if state.out_of_sync:
+            info_cells.append(CellValue("Overlay out of sync. Use /who", "orange"))
+
+        if state.api_key_invalid:
+            info_cells.append(CellValue("Invalid API key", "red"))
+
         return (
             state.in_queue,
-            CellValue("Overlay out of sync. Use /who", "red")
-            if state.out_of_sync
-            else None,
+            info_cells,
             new_rows,
         )
 

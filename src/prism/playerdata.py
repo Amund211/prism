@@ -33,6 +33,12 @@ class HypixelAPIError(ValueError):
     pass
 
 
+class HypixelAPIKeyError(ValueError):
+    """Exception raised when the API key is invalid"""
+
+    pass
+
+
 def get_player_data(
     uuid: str, key_holder: HypixelAPIKeyHolder
 ) -> dict[str, Any]:  # pragma: nocover
@@ -47,6 +53,12 @@ def get_player_data(
         raise HypixelAPIError(
             f"Request to Hypixel API failed due to a connection error {e}"
         ) from e
+
+    if response.status_code == 403:
+        raise HypixelAPIKeyError(
+            f"Request to Hypixel API failed with status code {response.status_code}. "
+            f"Assumed invalid API key. Response: {response.text}"
+        )
 
     if not response:
         raise HypixelAPIError(

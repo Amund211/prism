@@ -27,7 +27,7 @@ class Cell:
     variable: tk.StringVar
 
 
-@dataclass
+@dataclass(frozen=True)
 class CellValue:
     """A value that can be set to a cell in the window"""
 
@@ -90,7 +90,7 @@ class OverlayWindow(Generic[ColumnKey]):
         close_callback: Callable[[], None],
         minimize_callback: Callable[[], None],
         get_new_data: Callable[
-            [], tuple[bool, CellValue | None, list[OverlayRow[ColumnKey]] | None]
+            [], tuple[bool, list[CellValue], list[OverlayRow[ColumnKey]] | None]
         ],
         poll_interval: int,
         start_hidden: bool,
@@ -182,17 +182,15 @@ class OverlayWindow(Generic[ColumnKey]):
         )
         version_label.pack(side=tk.RIGHT, padx=(0, 5))
 
-        # Info label
-        info_variable = tk.StringVar()
-        info_label = tk.Label(
-            self.root,
-            textvariable=info_variable,
-            font=("Consolas", "14"),
-            fg="red",  # Color set on each update
-            bg="black",
-        )
-        info_label.pack(side=tk.TOP)
-        self.info_cell = Cell(info_label, info_variable)
+        def shrink_info_when_empty(event: "tk.Event[tk.Frame]") -> None:
+            """Manually shrink the info frame when it becomes empty"""
+            if not self.info_frame.children:
+                self.info_frame.configure(height=1)
+
+        self.info_frame = tk.Frame(self.root, background="black")
+        self.info_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        self.info_labels: dict[CellValue, tk.Label] = {}
+        self.info_frame.bind("<Expose>", shrink_info_when_empty)
 
         # A frame for the stats table
         self.table_frame = tk.Frame(self.root, background="black")
@@ -279,9 +277,31 @@ class OverlayWindow(Generic[ColumnKey]):
             for i in range(current_length - length):
                 self.pop_row()
 
+    def update_info(self, info_cells: list[CellValue]) -> None:
+        """Update the list of info cells at the top of the overlay"""
+        to_remove = set(self.info_labels.keys()) - set(info_cells)
+        to_add = set(info_cells) - set(self.info_labels.keys())
+
+        # Remove old labels
+        for cell in to_remove:
+            label = self.info_labels.pop(cell)
+            label.destroy()
+
+        # Add new labels
+        for cell in to_add:
+            label = tk.Label(
+                self.info_frame,
+                text=cell.text,
+                font=("Consolas", "14"),
+                fg=cell.color,  # Color set on each update
+                bg="black",
+            )
+            label.pack(side=tk.TOP)
+            self.info_labels[cell] = label
+
     def update_overlay(self) -> None:
         """Get new data to be displayed and display it"""
-        show, info_value, new_rows = self.get_new_data()
+        show, info_cells, new_rows = self.get_new_data()
 
         # Show or hide the window if the desired state is different from the stored
         if show != self.shown:
@@ -292,12 +312,8 @@ class OverlayWindow(Generic[ColumnKey]):
 
         # Only update the window if it's shown
         if self.shown:
-            # Set the contents of the title label in the window
-            if info_value is None:
-                self.info_cell.variable.set("")
-            else:
-                self.info_cell.variable.set(info_value.text)
-                self.info_cell.label.configure(fg=info_value.color)
+            # Update the info at the top of the overlay
+            self.update_info(info_cells)
 
             # Set the contents of the table if new data was provided
             if new_rows is not None:

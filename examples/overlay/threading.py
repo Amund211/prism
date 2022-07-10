@@ -58,6 +58,7 @@ class GetStatsThread(threading.Thread):
         hypixel_key_holder: HypixelAPIKeyHolder,
         antisniper_key_holder: antisniper_api.AntiSniperAPIKeyHolder | None,
         denick: Callable[[str], str | None],
+        on_request_completion: Callable[[bool], None],
     ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.requests_queue = requests_queue
@@ -65,6 +66,7 @@ class GetStatsThread(threading.Thread):
         self.hypixel_key_holder = hypixel_key_holder
         self.antisniper_key_holder = antisniper_key_holder
         self.denick = denick
+        self.on_request_completion = on_request_completion
 
     def run(self) -> None:
         """Get requested stats from the queue and download them"""
@@ -74,7 +76,10 @@ class GetStatsThread(threading.Thread):
 
                 # get_bedwars_stats sets the stats cache which will be read from later
                 player = get_bedwars_stats(
-                    username, key_holder=self.hypixel_key_holder, denick=self.denick
+                    username,
+                    key_holder=self.hypixel_key_holder,
+                    denick=self.denick,
+                    on_request_completion=self.on_request_completion,
                 )
 
                 # Tell the main thread that we downloaded this user's stats
@@ -161,6 +166,10 @@ def prepare_overlay(
     # Redraw requests from state updates
     redraw_event = threading.Event()
 
+    def on_request_completion(api_key_invalid: bool) -> None:
+        with state.mutex:
+            state.api_key_invalid = api_key_invalid
+
     # Spawn thread for updating state
     UpdateStateThread(state=state, loglines=loglines, redraw_event=redraw_event).start()
 
@@ -172,6 +181,7 @@ def prepare_overlay(
             hypixel_key_holder=hypixel_key_holder,
             antisniper_key_holder=antisniper_key_holder,
             denick=denick,
+            on_request_completion=on_request_completion,
         ).start()
 
     def get_stat_list() -> list[Player] | None:

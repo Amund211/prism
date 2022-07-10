@@ -10,6 +10,7 @@ from prism.calc import bedwars_level_from_exp
 from prism.minecraft import MojangAPIError, get_uuid
 from prism.playerdata import (
     HypixelAPIError,
+    HypixelAPIKeyError,
     HypixelAPIKeyHolder,
     MissingStatsError,
     get_gamemode_stats,
@@ -192,7 +193,7 @@ def get_and_display(username: str) -> None:
 
     try:
         playerdata = get_player_data(uuid, key_holder)
-    except HypixelAPIError as e:
+    except (HypixelAPIError, HypixelAPIKeyError) as e:
         print(e)
     else:
         print_bedwars_stats(playerdata, nick=nick)

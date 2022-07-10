@@ -9,6 +9,7 @@ from prism.calc import bedwars_level_from_exp
 from prism.minecraft import MojangAPIError, get_uuid
 from prism.playerdata import (
     HypixelAPIError,
+    HypixelAPIKeyError,
     HypixelAPIKeyHolder,
     MissingStatsError,
     get_gamemode_stats,
@@ -124,19 +125,30 @@ def get_uuid_from_mojang(username: str) -> str | None:  # pragma: nocover
 
 
 def get_player_data_from_hypixel(
-    uuid: str, key_holder: HypixelAPIKeyHolder
+    uuid: str,
+    key_holder: HypixelAPIKeyHolder,
+    on_request_completion: Callable[[bool], None],
 ) -> dict[str, Any] | None:  # pragma: nocover
     try:
-        return get_player_data(uuid, key_holder)
+        player_data = get_player_data(uuid, key_holder)
     except HypixelAPIError as e:
         logger.debug(f"Failed getting stats for {uuid=} {e=}")
+        on_request_completion(False)
         return None
+    except HypixelAPIKeyError as e:
+        logger.debug(f"Invalid API key {e=}")
+        on_request_completion(True)
+        return None
+    else:
+        on_request_completion(False)
+        return player_data
 
 
 def get_bedwars_stats(
     username: str,
     key_holder: HypixelAPIKeyHolder,
     denick: Callable[[str], str | None] = lambda nick: None,
+    on_request_completion: Callable[[bool], None] = lambda api_key_invalid: None,
 ) -> KnownPlayer | NickedPlayer:  # pragma: nocover
     """Get and caches the bedwars stats for the given player"""
     cached_stats = get_cached_player(username)
@@ -152,7 +164,9 @@ def get_bedwars_stats(
         username=username,
         get_uuid=get_uuid_from_mojang,
         get_player_data=functools.partial(
-            get_player_data_from_hypixel, key_holder=key_holder
+            get_player_data_from_hypixel,
+            key_holder=key_holder,
+            on_request_completion=on_request_completion,
         ),
         denick=denick,
     )
