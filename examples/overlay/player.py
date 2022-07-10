@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
-from typing import Literal, Union, overload
+from typing import Literal, overload
 
 from prism.utils import truncate_float
 
@@ -77,14 +77,14 @@ class KnownPlayer:
         return tuple(aliases)
 
     @overload
-    def get_value(self, name: StatName) -> Union[int, float, None]:
+    def get_value(self, name: StatName) -> int | float | None:
         ...  # pragma: nocover
 
     @overload
     def get_value(self, name: InfoName) -> str:
         ...  # pragma: nocover
 
-    def get_value(self, name: PropertyName) -> Union[str, int, float, None]:
+    def get_value(self, name: PropertyName) -> str | int | float | None:
         """Get the given stat from this player"""
         if name == "fkdr":
             return self.stats.fkdr
@@ -147,7 +147,7 @@ class NickedPlayer:
         """List of known aliases for the player"""
         return (self.nick,)
 
-    def get_value(self, name: PropertyName) -> Union[int, float]:
+    def get_value(self, name: PropertyName) -> int | float:
         """Get the given stat from this player (unknown in this case)"""
         return float("inf")
 
@@ -180,7 +180,7 @@ class PendingPlayer:
         """List of known aliases for the player"""
         return (self.username,)
 
-    def get_value(self, name: PropertyName) -> Union[int, float]:
+    def get_value(self, name: PropertyName) -> int | float:
         """Get the given stat from this player (unknown in this case)"""
         return float("-inf")
 
@@ -192,7 +192,7 @@ class PendingPlayer:
         return "-"
 
 
-Player = Union[KnownPlayer, NickedPlayer, PendingPlayer]
+Player = KnownPlayer | NickedPlayer | PendingPlayer
 
 
 RatePlayerReturn = tuple[bool, bool, KnownPlayerOrder]

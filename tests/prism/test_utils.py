@@ -1,6 +1,5 @@
 from collections import deque
 from pathlib import Path
-from typing import Union
 
 import pytest
 
@@ -15,7 +14,6 @@ from prism.utils import (
     truncate_float,
 )
 
-Number = Union[int, float]
 INF = float("inf")
 
 
@@ -96,7 +94,7 @@ def test_pluralize(word: str, plural: str) -> None:
         (0, 1, 0.0),
     ),
 )
-def test_div(dividend: Number, divisor: Number, quotient: Number) -> None:
+def test_div(dividend: float, divisor: float, quotient: int | float) -> None:
     result = div(dividend, divisor)
 
     assert result == quotient
@@ -164,5 +162,5 @@ def test_insort_right_property() -> None:
         (123 * Time.YEAR, "123 years"),
     ),
 )
-def test_format_seconds(seconds: Number, text: str) -> None:
+def test_format_seconds(seconds: float, text: str) -> None:
     assert format_seconds(seconds) == text

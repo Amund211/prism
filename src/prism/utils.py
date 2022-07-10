@@ -1,7 +1,7 @@
 from collections import deque
 from enum import Enum, unique
 from pathlib import Path
-from typing import Any, Protocol, TypeVar, Union
+from typing import Any, Protocol, TypeVar
 
 
 class SupportsLT(Protocol):  # pragma: no cover
@@ -91,7 +91,7 @@ NAME_MAP = {
 }
 
 
-def format_seconds(seconds: Union[float, int]) -> str:
+def format_seconds(seconds: float) -> str:
     """
     Format the elapsed time in seconds as an integer amount of the largest denomination
     """

@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from typing import Union
 
 import pytest
 
@@ -34,7 +33,7 @@ test_cases: tuple[tuple[float, int], ...] = (
 
 @pytest.mark.parametrize("value, rating", test_cases)
 def test_rate_value(
-    value: Union[int, float], rating: int, levels: Sequence[Union[int, float]] = LEVELS
+    value: float, rating: int, levels: Sequence[float] = LEVELS
 ) -> None:
     """Assert that rate_value functions properly"""
     assert rate_value(value, levels) == rating

@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Union, cast
+from typing import cast
 
 from examples.overlay.player import PropertyName
 
@@ -11,7 +11,7 @@ COLUMN_NAMES: dict[PropertyName, str] = {
     "winstreak": "WS",
 }
 
-STAT_LEVELS: dict[PropertyName, Sequence[Union[int, float]] | None] = {
+STAT_LEVELS: dict[PropertyName, Sequence[float] | None] = {
     "stars": (100, 300, 500, 800),
     "fkdr": (1, 2, 4, 8),
     "wlr": (0.3, 1, 2, 4),
@@ -31,7 +31,7 @@ assert set(STAT_LEVELS.keys()) == set(COLUMN_NAMES.keys())
 assert set(COLUMN_ORDER).issubset(set(COLUMN_NAMES.keys()))
 
 
-def rate_value(value: Union[int, float], levels: Sequence[Union[int, float]]) -> int:
+def rate_value(value: float, levels: Sequence[float]) -> int:
     """
     Rate the value according to the provided levels (sorted)
 

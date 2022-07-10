@@ -4,7 +4,7 @@ import math
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 from prism.calc import bedwars_level_from_exp
 from prism.minecraft import MojangAPIError, get_uuid
@@ -68,9 +68,7 @@ def get_sep(column: str) -> str:
     return "\n" if column == COLUMN_ORDER[-1] else SEP
 
 
-def div_string(
-    dividend: Union[int, float], divisor: Union[int, float], decimals: int = 2
-) -> str:
+def div_string(dividend: float, divisor: float, decimals: int = 2) -> str:
     """Return the rounded answer to dividend/divisor as a string"""
     quotient = div(dividend, divisor)
 

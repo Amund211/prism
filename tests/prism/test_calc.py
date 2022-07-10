@@ -1,5 +1,3 @@
-from typing import Union
-
 import pytest
 
 from prism.calc import bedwars_level_from_exp
@@ -21,7 +19,7 @@ from prism.calc import bedwars_level_from_exp
         (5316518, 1091 + 4518 / 5000),
     ],
 )
-def test_bedwars_star_calculation(exp: int, true_star: Union[int, float]) -> None:
+def test_bedwars_star_calculation(exp: int, true_star: int | float) -> None:
     calculated_star = bedwars_level_from_exp(exp)
 
     # Compare int with int, and float with float
