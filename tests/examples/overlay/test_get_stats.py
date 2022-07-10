@@ -1,6 +1,7 @@
 import itertools
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, TypedDict
+from typing import Any, TypedDict
 
 import pytest
 

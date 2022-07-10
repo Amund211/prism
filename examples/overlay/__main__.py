@@ -9,10 +9,10 @@ import logging
 import os
 import sys
 import time
+from collections.abc import Callable, Iterable
 from datetime import date
 from itertools import count
 from pathlib import Path
-from typing import Callable, Iterable
 
 from appdirs import AppDirs
 from tendo import singleton  # type: ignore

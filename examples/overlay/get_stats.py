@@ -1,7 +1,8 @@
 import functools
 import logging
+from collections.abc import Callable
 from dataclasses import replace
-from typing import Any, Callable
+from typing import Any
 
 from examples.overlay.player import KnownPlayer, NickedPlayer, PendingPlayer, Stats
 from examples.overlay.player_cache import get_cached_player, set_cached_player

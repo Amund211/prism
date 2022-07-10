@@ -1,8 +1,8 @@
 import logging
 from argparse import ArgumentParser
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
 
 
 @dataclass

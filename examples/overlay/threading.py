@@ -1,7 +1,7 @@
 import logging
 import queue
 import threading
-from typing import Callable, Iterable
+from collections.abc import Callable, Iterable
 
 import examples.overlay.antisniper_api as antisniper_api
 from examples.overlay.get_stats import get_bedwars_stats

@@ -1,8 +1,9 @@
 import logging
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum, auto, unique
-from typing import Final, Literal, Sequence, Union
+from typing import Final, Literal, Union
 
 logger = logging.getLogger(__name__)
 

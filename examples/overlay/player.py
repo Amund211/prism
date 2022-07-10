@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field, replace
-from typing import Callable, Literal, Union, overload
+from typing import Literal, Union, overload
 
 from prism.utils import truncate_float
 

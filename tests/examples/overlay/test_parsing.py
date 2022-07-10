@@ -1,6 +1,6 @@
 # Too many long lines in this file
 # flake8: noqa
-from typing import Sequence
+from collections.abc import Sequence
 
 import pytest
 

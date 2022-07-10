@@ -1,7 +1,8 @@
 import logging
 import threading
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-from typing import Callable, Iterable, Protocol
+from typing import Protocol
 
 from examples.overlay.parsing import Event, EventType, parse_logline
 

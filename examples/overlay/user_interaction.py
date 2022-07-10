@@ -7,8 +7,9 @@ import threading
 import time
 import tkinter as tk
 import tkinter.filedialog
+from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import Any, Callable, Iterable
+from typing import Any
 
 import toml
 

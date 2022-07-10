@@ -1,8 +1,9 @@
 import logging
 import threading
+from collections.abc import Callable, MutableMapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable, MutableMapping, Type, TypedDict, TypeVar
+from typing import Type, TypedDict, TypeVar
 
 import toml
 

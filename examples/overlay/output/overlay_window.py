@@ -7,10 +7,11 @@ https://github.com/notatallshaw/fall_guys_ping_estimate/blob/main/fgpe/overlay.p
 import logging
 import sys
 import tkinter as tk
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from traceback import format_exception
 from types import TracebackType
-from typing import Callable, Generic, Sequence, TypeVar
+from typing import Generic, TypeVar
 
 from examples.overlay import VERSION_STRING
 

@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import Callable
+from collections.abc import Callable
 
 from examples.overlay.output.overlay_window import CellValue, OverlayRow, OverlayWindow
 from examples.overlay.output.utils import (
