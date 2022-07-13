@@ -96,6 +96,7 @@ class OverlayWindow(Generic[ColumnKey]):
         poll_interval: int,
         start_hidden: bool,
         fullscreen_callback: Callable[[], None] | None = None,
+        hide_pause: int = 5000,
     ):
         """Store params and set up controls and header"""
         # Create a root window
@@ -112,6 +113,9 @@ class OverlayWindow(Generic[ColumnKey]):
 
         self.get_new_data = get_new_data
         self.poll_interval = poll_interval
+
+        self.hide_pause = hide_pause
+        self.hide_task_id: str | None = None
 
         toolbar_frame = tk.Frame(self.root, background="black")
         toolbar_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
@@ -160,6 +164,11 @@ class OverlayWindow(Generic[ColumnKey]):
         # Minimize button
         def minimize() -> None:
             minimize_callback()
+
+            if self.hide_task_id is not None:
+                self.root.after_cancel(self.hide_task_id)
+                self.hide_task_id = None
+
             self.hide_window()
 
         minimize_button = tk.Button(
@@ -308,8 +317,11 @@ class OverlayWindow(Generic[ColumnKey]):
         if show != self.shown:
             if show:
                 self.show_window()
+                if self.hide_task_id is not None:
+                    self.root.after_cancel(self.hide_task_id)
+                    self.hide_task_id = None
             else:
-                self.hide_window()
+                self.hide_task_id = self.root.after(self.hide_pause, self.hide_window)
 
         # Only update the window if it's shown
         if self.shown:
