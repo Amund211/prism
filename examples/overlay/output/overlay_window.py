@@ -57,71 +57,96 @@ class Root(tk.Tk):
             )
         sys.exit(0)
 
+
+class OverlayWindow:
+    """
+    Overlay window using the "-topmost" property to always stay on top
+
+    NOTE: May not appear above some fullscreen apps on Windows.
+    See `../platform/windows.py` for more info.
+    """
+
+    def __init__(self, start_hidden: bool) -> None:
+        """Set up window geometry to make the window an overlay"""
+        self.hide_task_id: str | None = None
+        self.shown: bool  # Set below
+
+        # Create a root window
+        self.root = Root()
+        if start_hidden:
+            self.hide()
+        else:
+            self.show()
+
+        # Window geometry
+        self.root.overrideredirect(True)
+        self.root.lift()
+        self.root.wm_attributes("-topmost", True)
+        self.root.wm_attributes("-alpha", 0.8)
+        self.root.configure(background="black")
+
+        self.reset_position()
+
+    def show(self) -> None:
+        """Show the window"""
+        self.cancel_scheduled_hide()
+        self.root.deiconify()
+        self.shown = True
+
+    def hide(self) -> None:
+        """Hide the window"""
+        self.cancel_scheduled_hide()
+        self.root.withdraw()
+        self.shown = False
+
+    def schedule_hide(self, timeout: int) -> None:
+        """Schedule a hide of the window in `timeout` ms"""
+        self.cancel_scheduled_hide()
+        self.hide_task_id = self.root.after(timeout, self.hide)
+
+    def cancel_scheduled_hide(self) -> None:
+        """Cancel any existing request to hide the window"""
+        if self.hide_task_id is not None:
+            self.root.after_cancel(self.hide_task_id)
+            self.hide_task_id = None
+
     def reset_position(self, event: "tk.Event[tk.Misc] | None" = None) -> None:
         """Reset the position of the overlay to the top left corner"""
-        self.geometry("+5+5")
+        self.root.geometry("+5+5")
 
     def start_move(self, event: "tk.Event[tk.Misc]") -> None:
         """Store the window and cursor location at the start"""
         self.cursor_x_start = event.x_root
         self.cursor_y_start = event.y_root
 
-        self.window_x_start = self.winfo_x()
-        self.window_y_start = self.winfo_y()
+        self.window_x_start = self.root.winfo_x()
+        self.window_y_start = self.root.winfo_y()
 
     def do_move(self, event: "tk.Event[tk.Misc]") -> None:
         """Move the window to the new location"""
         # Move to where we started + how much the mouse was moved
         x = self.window_x_start + (event.x_root - self.cursor_x_start)
         y = self.window_y_start + (event.y_root - self.cursor_y_start)
-        self.geometry(f"+{x}+{y}")
+        self.root.geometry(f"+{x}+{y}")
 
 
-class OverlayWindow(Generic[ColumnKey]):
-    """
-    Creates an overlay window using tkinter
-    Uses the "-topmost" property to always stay on top of other windows
-    """
+class Toolbar:
+    """Toolbar for the overlay"""
 
     def __init__(
         self,
-        column_order: Sequence[ColumnKey],
-        column_names: dict[ColumnKey, str],
-        left_justified_columns: set[int],
+        window: OverlayWindow,
         close_callback: Callable[[], None],
         minimize_callback: Callable[[], None],
-        get_new_data: Callable[
-            [], tuple[bool, list[CellValue], list[OverlayRow[ColumnKey]] | None]
-        ],
-        poll_interval: int,
-        start_hidden: bool,
-        fullscreen_callback: Callable[[], None] | None = None,
-        hide_pause: int = 5000,
-    ):
-        """Store params and set up controls and header"""
-        # Create a root window
-        self.root = Root()
-        if start_hidden:
-            self.hide_window()
-        else:
-            self.show_window()
+        fullscreen_callback: Callable[[], None] | None,
+    ) -> None:
+        """Set up a frame containing the toolbar for the overlay"""
+        self.window = window
 
-        # Column config
-        self.column_order = column_order
-        self.column_names = column_names
-        self.left_justified_columns = left_justified_columns
-
-        self.get_new_data = get_new_data
-        self.poll_interval = poll_interval
-
-        self.hide_pause = hide_pause
-        self.hide_task_id: str | None = None
-
-        toolbar_frame = tk.Frame(self.root, background="black")
-        toolbar_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        self.frame = tk.Frame(self.window.root, background="black")
 
         grip_label = tk.Label(
-            toolbar_frame,
+            self.frame,
             text="::",
             font=("Consolas", "14"),
             foreground="white",
@@ -130,14 +155,14 @@ class OverlayWindow(Generic[ColumnKey]):
         )
         grip_label.pack(side=tk.LEFT, padx=(3, 5))
 
-        grip_label.bind("<ButtonPress-1>", self.root.start_move)
-        grip_label.bind("<B1-Motion>", self.root.do_move)
-        grip_label.bind("<Double-Button-1>", self.root.reset_position)
+        grip_label.bind("<ButtonPress-1>", self.window.start_move)
+        grip_label.bind("<B1-Motion>", self.window.do_move)
+        grip_label.bind("<Double-Button-1>", self.window.reset_position)
 
         if fullscreen_callback is not None:
             # Fullscreen button
             fullscreen_button = tk.Button(
-                toolbar_frame,
+                self.frame,
                 text="Fullscreen",
                 font=("Consolas", "14"),
                 foreground="white",
@@ -150,7 +175,7 @@ class OverlayWindow(Generic[ColumnKey]):
 
         # Close button
         close_button = tk.Button(
-            toolbar_frame,
+            self.frame,
             text="X",
             font=("Consolas", "14"),
             foreground="white",
@@ -165,14 +190,10 @@ class OverlayWindow(Generic[ColumnKey]):
         def minimize() -> None:
             minimize_callback()
 
-            if self.hide_task_id is not None:
-                self.root.after_cancel(self.hide_task_id)
-                self.hide_task_id = None
-
-            self.hide_window()
+            self.window.hide()
 
         minimize_button = tk.Button(
-            toolbar_frame,
+            self.frame,
             text="-",
             font=("Consolas", "14"),
             foreground="white",
@@ -184,7 +205,7 @@ class OverlayWindow(Generic[ColumnKey]):
         minimize_button.pack(side=tk.RIGHT)
 
         version_label = tk.Label(
-            toolbar_frame,
+            self.frame,
             text=VERSION_STRING,
             font=("Consolas", "10"),
             foreground="white",
@@ -192,18 +213,44 @@ class OverlayWindow(Generic[ColumnKey]):
         )
         version_label.pack(side=tk.RIGHT, padx=(0, 5))
 
+
+class MainContent(Generic[ColumnKey]):
+    """Main content for the overlay"""
+
+    def __init__(
+        self,
+        window: OverlayWindow,
+        column_order: Sequence[ColumnKey],
+        column_names: dict[ColumnKey, str],
+        left_justified_columns: set[int],
+    ) -> None:
+        # Column config
+        """Set up a frame containing the main content for the overlay"""
+        self.window = window
+        self.column_order = column_order
+        self.column_names = column_names
+        self.left_justified_columns = left_justified_columns
+
+        self.frame = tk.Frame(self.window.root, background="black")
+
+        # Start with zero rows
+        self.rows: list[dict[ColumnKey, Cell]] = []
+
+        # Frame at the top to display info to the user
+        self.info_frame = tk.Frame(self.frame, background="black")
+        self.info_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+
+        self.info_labels: dict[CellValue, tk.Label] = {}
+
         def shrink_info_when_empty(event: "tk.Event[tk.Frame]") -> None:
             """Manually shrink the info frame when it becomes empty"""
             if not self.info_frame.children:
                 self.info_frame.configure(height=1)
 
-        self.info_frame = tk.Frame(self.root, background="black")
-        self.info_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
-        self.info_labels: dict[CellValue, tk.Label] = {}
         self.info_frame.bind("<Expose>", shrink_info_when_empty)
 
         # A frame for the stats table
-        self.table_frame = tk.Frame(self.root, background="black")
+        self.table_frame = tk.Frame(self.frame, background="black")
         self.table_frame.pack(side=tk.TOP)
 
         # Set up header labels
@@ -224,29 +271,6 @@ class OverlayWindow(Generic[ColumnKey]):
                 column=column_index,
                 sticky="w" if column_index in self.left_justified_columns else "e",
             )
-
-        # Start with zero rows
-        self.rows: list[dict[ColumnKey, Cell]] = []
-
-        # Window geometry
-        self.root.overrideredirect(True)
-        self.root.reset_position()
-        self.root.lift()
-        self.root.wm_attributes("-topmost", True)
-        self.root.wm_attributes("-alpha", 0.8)
-        self.root.configure(background="black")
-
-        self.root.update_idletasks()
-
-    def show_window(self) -> None:
-        """Show the window"""
-        self.root.deiconify()
-        self.shown = True
-
-    def hide_window(self) -> None:
-        """Hide the window"""
-        self.root.withdraw()
-        self.shown = False
 
     def append_row(self) -> None:
         """Add a row of labels and stringvars to the table"""
@@ -309,38 +333,97 @@ class OverlayWindow(Generic[ColumnKey]):
             label.pack(side=tk.TOP)
             self.info_labels[cell] = label
 
+    def update_content(
+        self, info_cells: list[CellValue], new_rows: list[OverlayRow[ColumnKey]] | None
+    ) -> None:
+        """Display the new data"""
+        # Update the info at the top of the overlay
+        self.update_info(info_cells)
+
+        # Set the contents of the table if new data was provided
+        if new_rows is not None:
+            self.set_length(len(new_rows))
+
+            for i, new_row in enumerate(new_rows):
+                row = self.rows[i]
+                for column_name in self.column_order:
+                    row[column_name].variable.set(new_row[column_name].text)
+                    row[column_name].label.configure(fg=new_row[column_name].color)
+
+
+class StatsOverlay(Generic[ColumnKey]):
+    """Show bedwars stats in an overlay"""
+
+    def __init__(
+        self,
+        start_hidden: bool,
+        column_order: Sequence[ColumnKey],
+        column_names: dict[ColumnKey, str],
+        left_justified_columns: set[int],
+        close_callback: Callable[[], None],
+        minimize_callback: Callable[[], None],
+        fullscreen_callback: Callable[[], None] | None,
+        get_new_data: Callable[
+            [], tuple[bool, list[CellValue], list[OverlayRow[ColumnKey]] | None]
+        ],
+        poll_interval: int,
+        hide_pause: int = 5000,
+    ):
+        """Set up content in an OverlayWindow"""
+        self.poll_interval = poll_interval
+        self.get_new_data = get_new_data
+        self.hide_pause = hide_pause
+
+        self.last_new_rows: list[OverlayRow[ColumnKey]] | None = None
+
+        self.window = OverlayWindow(start_hidden=start_hidden)
+
+        # Add the toolbar
+        self.toolbar = Toolbar(
+            self.window,
+            close_callback=close_callback,
+            minimize_callback=minimize_callback,
+            fullscreen_callback=fullscreen_callback,
+        )
+        self.toolbar.frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+
+        # Add the main content
+        self.main_content = MainContent(
+            self.window,
+            column_order=column_order,
+            column_names=column_names,
+            left_justified_columns=left_justified_columns,
+        )
+        self.main_content.frame.pack(side=tk.TOP, fill=tk.BOTH)
+
+        self.window.root.update_idletasks()
+
     def update_overlay(self) -> None:
         """Get new data to be displayed and display it"""
         show, info_cells, new_rows = self.get_new_data()
 
         # Show or hide the window if the desired state is different from the stored
-        if show != self.shown:
+        if show != self.window.shown:
             if show:
-                self.show_window()
-                if self.hide_task_id is not None:
-                    self.root.after_cancel(self.hide_task_id)
-                    self.hide_task_id = None
+                self.window.show()
             else:
-                self.hide_task_id = self.root.after(self.hide_pause, self.hide_window)
+                self.window.schedule_hide(self.hide_pause)
 
         # Only update the window if it's shown
-        if self.shown:
-            # Update the info at the top of the overlay
-            self.update_info(info_cells)
-
-            # Set the contents of the table if new data was provided
+        if self.window.shown:
+            # Update the table with the new rows
+            # Fall back to the last new rows from when the table was hidden
+            self.main_content.update_content(info_cells, new_rows or self.last_new_rows)
+            self.last_new_rows = None  # Discard any stored rows
+        else:
+            # Do not update the table when it is hidden, but keep track of the most
+            # recent update so we can use that when we show the table again
             if new_rows is not None:
-                self.set_length(len(new_rows))
+                self.last_new_rows = new_rows
 
-                for i, new_row in enumerate(new_rows):
-                    row = self.rows[i]
-                    for column_name in self.column_order:
-                        row[column_name].variable.set(new_row[column_name].text)
-                        row[column_name].label.configure(fg=new_row[column_name].color)
-
-        self.root.after(self.poll_interval, self.update_overlay)
+        self.window.root.after(self.poll_interval, self.update_overlay)
 
     def run(self) -> None:
         """Init for the overlay starting the update chain and entering mainloop"""
-        self.root.after(self.poll_interval, self.update_overlay)
-        self.root.mainloop()
+        self.window.root.after(self.poll_interval, self.update_overlay)
+        self.window.root.mainloop()

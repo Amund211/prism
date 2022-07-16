@@ -3,7 +3,7 @@ import sys
 import time
 from collections.abc import Callable
 
-from examples.overlay.output.overlay_window import CellValue, OverlayRow, OverlayWindow
+from examples.overlay.output.overlay_window import CellValue, OverlayRow, StatsOverlay
 from examples.overlay.output.utils import (
     COLUMN_NAMES,
     COLUMN_ORDER,
@@ -98,7 +98,7 @@ def run_overlay(
         with state.mutex:
             state.in_queue = False
 
-    overlay = OverlayWindow[PropertyName](
+    overlay = StatsOverlay[PropertyName](
         column_order=COLUMN_ORDER,
         column_names=COLUMN_NAMES,
         left_justified_columns={0},
