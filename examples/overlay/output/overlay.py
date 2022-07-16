@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 from collections.abc import Callable
 
 from examples.overlay.output.overlay_window import CellValue, OverlayRow, OverlayWindow
@@ -80,7 +81,12 @@ def run_overlay(
             info_cells.append(CellValue("Overlay out of sync. Use /who", "orange"))
 
         if state.api_key_invalid:
-            info_cells.append(CellValue("Invalid API key", "red"))
+            info_cells.append(
+                CellValue(
+                    "Invalid API key. Use /api new",
+                    "red" if time.time() % 2 > 1 else "white",
+                )
+            )
 
         return (
             state.in_queue,
