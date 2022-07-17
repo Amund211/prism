@@ -64,6 +64,7 @@ def run_overlay(
         column_order=COLUMN_ORDER,
         column_names=COLUMN_NAMES,
         left_justified_columns={0},
+        controller=controller,
         close_callback=lambda: sys.exit(0),
         minimize_callback=set_not_in_queue,
         get_new_data=get_new_data,

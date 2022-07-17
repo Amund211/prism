@@ -7,6 +7,8 @@ from examples.overlay.output.overlay.overlay_window import OverlayWindow
 from examples.overlay.output.overlay.settings_page import SettingsPage
 from examples.overlay.output.overlay.toolbar import Toolbar
 from examples.overlay.output.overlay.utils import CellValue, ColumnKey, OverlayRow
+from examples.overlay.settings import Settings
+from examples.overlay.controller import OverlayController
 
 Page = Literal["settings", "main"]
 
@@ -20,6 +22,7 @@ class StatsOverlay(Generic[ColumnKey]):
         column_order: Sequence[ColumnKey],
         column_names: dict[ColumnKey, str],
         left_justified_columns: set[int],
+        controller: OverlayController,
         close_callback: Callable[[], None],
         minimize_callback: Callable[[], None],
         fullscreen_callback: Callable[[], None] | None,
@@ -30,6 +33,7 @@ class StatsOverlay(Generic[ColumnKey]):
         hide_pause: int = 5000,
     ):
         """Set up content in an OverlayWindow"""
+        self.controller = controller
         self.poll_interval = poll_interval
         self.get_new_data = get_new_data
         self.hide_pause = hide_pause
@@ -63,6 +67,7 @@ class StatsOverlay(Generic[ColumnKey]):
             self.window.cancel_scheduled_hide()
 
             self.current_page = "settings"
+            self.settings_page.set_content(self.controller.settings)
             self.main_content.frame.pack_forget()
             self.settings_page.frame.pack(side=tk.TOP, fill=tk.BOTH)
 
