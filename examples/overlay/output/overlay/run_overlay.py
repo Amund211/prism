@@ -7,6 +7,7 @@ from examples.overlay.output.overlay.stats_overlay import StatsOverlay
 from examples.overlay.output.overlay.utils import CellValue, OverlayRow, player_to_row
 from examples.overlay.output.utils import COLUMN_NAMES, COLUMN_ORDER
 from examples.overlay.player import Player, PropertyName
+from examples.overlay.settings import Settings
 from examples.overlay.state import OverlayState
 
 if os.name == "nt":  # pragma: nocover
@@ -18,7 +19,9 @@ else:  # pragma: nocover
 
 
 def run_overlay(
-    state: OverlayState, fetch_state_updates: Callable[[], list[Player] | None]
+    state: OverlayState,
+    fetch_state_updates: Callable[[], list[Player] | None],
+    settings: Settings,
 ) -> None:  # pragma: nocover
     """
     Run the overlay
@@ -63,6 +66,7 @@ def run_overlay(
         column_order=COLUMN_ORDER,
         column_names=COLUMN_NAMES,
         left_justified_columns={0},
+        settings=settings,
         close_callback=lambda: sys.exit(0),
         minimize_callback=set_not_in_queue,
         get_new_data=get_new_data,

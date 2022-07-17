@@ -139,6 +139,7 @@ def process_loglines_to_stdout(
 
 def process_loglines_to_overlay(
     state: OverlayState,
+    settings: Settings,
     hypixel_key_holder: HypixelAPIKeyHolder,
     antisniper_key_holder: AntiSniperAPIKeyHolder | None,
     denick: Callable[[str], str | None],
@@ -177,7 +178,7 @@ def process_loglines_to_overlay(
 
             return sorted_stats
 
-    run_overlay(state, get_stat_list)
+    run_overlay(state, get_stat_list, settings)
 
 
 def denick_with_api(
@@ -351,6 +352,7 @@ def watch_from_logfile(
     else:
         process_loglines_to_overlay(
             state,
+            settings,
             hypixel_key_holder=hypixel_key_holder,
             antisniper_key_holder=antisniper_key_holder,
             loglines=loglines,
@@ -492,6 +494,7 @@ def test() -> None:
     else:
         process_loglines_to_overlay(
             state,
+            settings,
             hypixel_key_holder=hypixel_key_holder,
             antisniper_key_holder=antisniper_key_holder,
             loglines=loglines,
