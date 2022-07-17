@@ -3,13 +3,9 @@ import sys
 import time
 from collections.abc import Callable
 
-from examples.overlay.output.overlay_window import CellValue, OverlayRow, StatsOverlay
-from examples.overlay.output.utils import (
-    COLUMN_NAMES,
-    COLUMN_ORDER,
-    STAT_LEVELS,
-    rate_value,
-)
+from examples.overlay.output.overlay.stats_overlay import StatsOverlay
+from examples.overlay.output.overlay.utils import CellValue, OverlayRow, player_to_row
+from examples.overlay.output.utils import COLUMN_NAMES, COLUMN_ORDER
 from examples.overlay.player import Player, PropertyName
 from examples.overlay.state import OverlayState
 
@@ -19,41 +15,6 @@ if os.name == "nt":  # pragma: nocover
     FULLSCREEN_CALLBACK: Callable[[], None] | None = toggle_fullscreen
 else:  # pragma: nocover
     FULLSCREEN_CALLBACK = None
-
-
-DEFAULT_COLOR = "snow"
-LEVEL_COLORMAP = (
-    "gray60",
-    "snow",
-    "yellow",
-    "orange red",
-    "red",
-)
-
-for levels in STAT_LEVELS.values():
-    if levels is not None:
-        assert len(levels) <= len(LEVEL_COLORMAP) - 1
-
-
-def player_to_row(player: Player) -> OverlayRow[PropertyName]:
-    """
-    Create an OverlayRow from a Player instance
-
-    Gets the text from player.get_string
-    Gets the color by rating the stats
-    """
-    return {
-        name: CellValue(
-            text=player.get_string(name),
-            color=(
-                LEVEL_COLORMAP[rate_value(value, levels)]
-                if levels is not None
-                and isinstance(value := player.get_value(name), (int, float))
-                else DEFAULT_COLOR
-            ),
-        )
-        for name, levels in STAT_LEVELS.items()
-    }
 
 
 def run_overlay(

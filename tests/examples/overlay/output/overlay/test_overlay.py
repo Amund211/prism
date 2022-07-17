@@ -1,7 +1,12 @@
 import pytest
 
-from examples.overlay.output.overlay import DEFAULT_COLOR, LEVEL_COLORMAP, player_to_row
-from examples.overlay.output.overlay_window import CellValue, OverlayRow
+from examples.overlay.output.overlay.utils import (
+    DEFAULT_COLOR,
+    LEVEL_COLORMAP,
+    CellValue,
+    OverlayRow,
+    player_to_row,
+)
 from examples.overlay.player import (
     KnownPlayer,
     NickedPlayer,
