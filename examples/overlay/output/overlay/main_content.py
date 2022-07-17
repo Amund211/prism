@@ -2,7 +2,6 @@ import tkinter as tk
 from collections.abc import Sequence
 from typing import Generic
 
-from examples.overlay.output.overlay.overlay_window import OverlayWindow
 from examples.overlay.output.overlay.utils import Cell, CellValue, ColumnKey, OverlayRow
 
 
@@ -11,19 +10,18 @@ class MainContent(Generic[ColumnKey]):
 
     def __init__(
         self,
-        window: OverlayWindow,
+        parent: tk.Misc,
         column_order: Sequence[ColumnKey],
         column_names: dict[ColumnKey, str],
         left_justified_columns: set[int],
     ) -> None:
         # Column config
         """Set up a frame containing the main content for the overlay"""
-        self.window = window
         self.column_order = column_order
         self.column_names = column_names
         self.left_justified_columns = left_justified_columns
 
-        self.frame = tk.Frame(self.window.root, background="black")
+        self.frame = tk.Frame(parent, background="black")
 
         # Start with zero rows
         self.rows: list[dict[ColumnKey, Cell]] = []

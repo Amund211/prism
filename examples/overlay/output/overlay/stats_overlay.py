@@ -39,7 +39,8 @@ class StatsOverlay(Generic[ColumnKey]):
 
         # Add the toolbar
         self.toolbar = Toolbar(
-            self.window,
+            parent=self.window.root,
+            window=self.window,
             close_callback=close_callback,
             minimize_callback=minimize_callback,
             fullscreen_callback=fullscreen_callback,
@@ -48,7 +49,7 @@ class StatsOverlay(Generic[ColumnKey]):
 
         # Add the main content
         self.main_content = MainContent(
-            self.window,
+            parent=self.window.root,
             column_order=column_order,
             column_names=column_names,
             left_justified_columns=left_justified_columns,

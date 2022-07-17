@@ -10,6 +10,7 @@ class Toolbar:
 
     def __init__(
         self,
+        parent: tk.Misc,
         window: OverlayWindow,
         close_callback: Callable[[], None],
         minimize_callback: Callable[[], None],
@@ -18,7 +19,7 @@ class Toolbar:
         """Set up a frame containing the toolbar for the overlay"""
         self.window = window
 
-        self.frame = tk.Frame(self.window.root, background="black")
+        self.frame = tk.Frame(parent, background="black")
 
         grip_label = tk.Label(
             self.frame,
