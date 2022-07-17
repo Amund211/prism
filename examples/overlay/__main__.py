@@ -430,12 +430,13 @@ def test() -> None:
         loglines = [
             "(Client thread) Info Setting user: You",
             "(Client thread) Info [CHAT] You have joined [MVP++] Teammate's party!",
-            "(Client thread) Info [CHAT] Teammate has joined (2/16)!",
+            "(Client thread) Info [CHAT] Teammate has joined (2/16)!",  # out of sync
             "(Client thread) Info [CHAT] You has joined (3/16)!",
-            "(Client thread) Info [CHAT] ONLINE: You, Teammate, Hypixel",
+            "(Client thread) Info [CHAT] ONLINE: You, Teammate, Hypixel",  # in sync
             "(Client thread) Info [CHAT] Technoblade has joined (4/16)!",
             "(Client thread) Info [CHAT] Manhal_IQ_ has joined (5/16)!",
-            "(Client thread) Info [CHAT] edater has joined (6/16)!",
+            "(Client thread) Info [CHAT] edater has joined (6/16)!",  # denicked by api
+            # "(Client thread) Info [CHAT]             Bed Wars        ",  # game start
         ]
 
     if slow:
