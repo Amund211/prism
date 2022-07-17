@@ -15,6 +15,7 @@ class Toolbar:
         window: OverlayWindow,
         close_callback: Callable[[], None],
         minimize_callback: Callable[[], None],
+        settings_callback: Callable[[], None],
         fullscreen_callback: Callable[[], None] | None,
     ) -> None:
         """Set up a frame containing the toolbar for the overlay"""
@@ -35,6 +36,19 @@ class Toolbar:
         grip_label.bind("<ButtonPress-1>", self.window.start_move)
         grip_label.bind("<B1-Motion>", self.window.do_move)
         grip_label.bind("<Double-Button-1>", self.window.reset_position)
+
+        # Settings button
+        settings_button = tk.Button(
+            self.frame,
+            text="⚙",
+            font=("Consolas", "14"),
+            foreground="white",
+            background="black",
+            highlightthickness=0,
+            command=settings_callback,
+            relief="flat",
+        )
+        settings_button.pack(side=tk.LEFT)
 
         if fullscreen_callback is not None:
             # Fullscreen button
