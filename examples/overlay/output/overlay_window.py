@@ -374,6 +374,8 @@ class StatsOverlay(Generic[ColumnKey]):
         self.get_new_data = get_new_data
         self.hide_pause = hide_pause
 
+        self.should_show = not start_hidden
+
         self.last_new_rows: list[OverlayRow[ColumnKey]] | None = None
 
         self.window = OverlayWindow(start_hidden=start_hidden)
@@ -403,7 +405,9 @@ class StatsOverlay(Generic[ColumnKey]):
         show, info_cells, new_rows = self.get_new_data()
 
         # Show or hide the window if the desired state is different from the stored
-        if show != self.window.shown:
+        if show != self.should_show:
+            self.should_show = show
+
             if show:
                 self.window.show()
             else:
