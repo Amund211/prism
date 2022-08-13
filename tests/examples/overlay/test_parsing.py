@@ -377,7 +377,7 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         PartyMembershipListEvent(usernames=["Player2", "Player3"], role="members"),
     ),
     (
-        "[Info: 2021-12-21 19:10:39.757655172: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]                                   Bed Wars",
+        "[Info: 2021-12-21 19:10:39.757655172: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Protect your bed and destroy the enemy beds.",
         StartBedwarsGameEvent(),
     ),
     (

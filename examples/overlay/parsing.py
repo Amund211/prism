@@ -284,7 +284,7 @@ def parse_chat_message(message: str) -> Event | None:
     if message == "You were sent to a lobby because someone in your party left!":
         return LobbySwapEvent()
 
-    if message.startswith("Bed Wars"):
+    if message == "Protect your bed and destroy the enemy beds.":
         return StartBedwarsGameEvent()
 
     if message.startswith("1st Killer "):
