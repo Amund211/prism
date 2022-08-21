@@ -6,6 +6,7 @@ import pytest
 
 from examples.overlay.parsing import (
     CHAT_PREFIXES,
+    CLIENT_INFO_PREFIXES,
     EndBedwarsGameEvent,
     Event,
     InitializeAsEvent,
@@ -118,6 +119,12 @@ def test_strip_until(line: str, until: str, suffix: str) -> None:
     and including it. Also strips the result of whitespace on both ends.
     """
     assert strip_until(line, until=until) == suffix
+
+
+@pytest.mark.parametrize("line, until", (("prefix: output", "differentprefix:"),))
+def test_strip_until_raises(line: str, until: str) -> None:
+    with pytest.raises(ValueError):
+        strip_until(line, until=until)
 
 
 @pytest.mark.parametrize(
@@ -405,10 +412,23 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
 )
 
 
-parsing_test_ids = [
-    f"{strip_until(test_case[0], until=CHAT_PREFIXES[0])}-{type(test_case[1]).__name__}"
-    for test_case in parsing_test_cases
-]
+def make_test_id(test_case: tuple[str, Event | None]) -> str:
+    """Make a human-readable id for the test"""
+    logline, event = test_case
+    chat_prefix = get_lowest_index(logline, *CHAT_PREFIXES)
+    client_info_prefix = get_lowest_index(logline, *CLIENT_INFO_PREFIXES)
+
+    if chat_prefix is not None:
+        payload = f"CHAT: {strip_until(logline, until=chat_prefix)}"
+    elif client_info_prefix is not None:
+        payload = f"INFO: {strip_until(logline, until=client_info_prefix)}"
+    else:
+        payload = f"LOGLINE: {logline}"
+
+    return f"{payload}-{type(test_case[1]).__name__}"
+
+
+parsing_test_ids = [make_test_id(test_case) for test_case in parsing_test_cases]
 
 
 @pytest.mark.parametrize("logline, event", parsing_test_cases, ids=parsing_test_ids)

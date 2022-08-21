@@ -192,7 +192,7 @@ Event = Union[ClientEvent, ChatEvent]
 
 def strip_until(line: str, *, until: str) -> str:
     """Remove the first occurrence of `until` and all characters before"""
-    return line[line.find(until) + len(until) :].strip()
+    return line[line.index(until) + len(until) :].strip()
 
 
 def remove_ranks(playerstring: str) -> str:
