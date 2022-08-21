@@ -292,10 +292,7 @@ class LogfilePrompt:
         result = tk.filedialog.askopenfilename(
             parent=self.root,
             title="Select launcher_log.txt",
-            filetypes=(
-                ("Text/log", ".txt .log"),
-                ("Vanilla logfile", "launcher_log.txt"),
-            ),
+            filetypes=(("Text/log", ".txt .log"),),
         )
 
         if result is not None:
@@ -407,7 +404,7 @@ class LogfilePrompt:
 def suggest_logfile_candidates() -> list[Path]:
     system = platform.system()
     if system == "Linux":
-        vanilla_logfile = Path.home() / ".minecraft" / "launcher_log.txt"
+        vanilla_logfile = Path.home() / ".minecraft" / "logs" / "latest.log"
         return [vanilla_logfile]
     elif system == "Darwin":
         vanilla_logfile = (
@@ -415,7 +412,8 @@ def suggest_logfile_candidates() -> list[Path]:
             / "Library"
             / "Application Support"
             / "minecraft"
-            / "launcher_log.txt"
+            / "logs"
+            / "latest.log"
         )
         return [vanilla_logfile]
     elif system == "Windows":
@@ -428,7 +426,7 @@ def suggest_logfile_candidates() -> list[Path]:
 
         return [
             *lunar_client_logfiles,
-            Path.home() / "AppData" / "Roaming" / ".minecraft" / "launcher_log.txt",
+            Path.home() / "AppData" / "Roaming" / ".minecraft" / "logs" / "latest.log",
         ]
     else:
         # system == "Java"
