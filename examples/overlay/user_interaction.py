@@ -513,7 +513,7 @@ def prompt_for_logfile_path(logfile_cache_path: Path) -> Path:
 
     def choose_logfile(logfile: str) -> None:
         if logfile not in logfile_cache["known_logfiles"]:
-            logfile_cache["known_logfiles"].append(logfile)
+            logfile_cache["known_logfiles"] += (logfile,)
         logfile_cache["last_used"] = logfile
         write_cache()
 
