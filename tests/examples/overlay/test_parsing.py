@@ -5,7 +5,7 @@ from collections.abc import Sequence
 import pytest
 
 from examples.overlay.parsing import (
-    CHAT_PREFIX,
+    CHAT_PREFIXES,
     EndBedwarsGameEvent,
     Event,
     InitializeAsEvent,
@@ -98,10 +98,14 @@ def test_get_lowest_index(source: str, substrings: tuple[str], result: str) -> N
         ("INCOMING CHAT MESSAGE: my message", "CHAT MESSAGE:", "my message"),
         ("INCOMING CHAT MESSAGE: my message", "CHAT ", "MESSAGE: my message"),
         # Test that players can't send chat messages that appear to come from the server
-        (f"{CHAT_PREFIX} {CHAT_PREFIX} test", CHAT_PREFIX, f"{CHAT_PREFIX} test"),
+        (
+            f"{CHAT_PREFIXES[0]} {CHAT_PREFIXES[1]} test",
+            CHAT_PREFIXES[0],
+            f"{CHAT_PREFIXES[1]} test",
+        ),
         (
             "[Info: 2021-11-29 20:00:44.579410258: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] (Client thread) Info [CHAT] payload",
-            CHAT_PREFIX,
+            CHAT_PREFIXES[0],
             "(Client thread) Info [CHAT] payload",
         ),
     ),
@@ -400,7 +404,7 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
 
 
 parsing_test_ids = [
-    f"{strip_until(test_case[0], until=CHAT_PREFIX)}-{type(test_case[1]).__name__}"
+    f"{strip_until(test_case[0], until=CHAT_PREFIXES[0])}-{type(test_case[1]).__name__}"
     for test_case in parsing_test_cases
 ]
 

@@ -11,13 +11,17 @@ logger = logging.getLogger(__name__)
 RANK_REGEX = re.compile(r"\[[a-zA-Z\+]+\] ")
 
 
-# Vanilla and forge
-SETTING_USER_PREFIX = "(Client thread) Info Setting user: "
-SETTING_USER_PREFIX_LUNAR = "INFO]: [LC] Setting user: "
+SETTING_USER_PREFIXES = (
+    "(Client thread) Info Setting user: ",  # Vanilla and forge launcher_log.txt
+    "[Client thread/INFO]: Setting user: ",  # Vanilla and forge latest.log
+    "INFO]: [LC] Setting user: ",  # Lunar client
+)
 
 # Vanilla and forge
-CHAT_PREFIX = "(Client thread) Info [CHAT] "
-CHAT_PREFIX_LUNAR = "[Client thread/INFO]: [CHAT] "
+CHAT_PREFIXES = (
+    "(Client thread) Info [CHAT] ",  # Vanilla and forge launcher_log.txt
+    "[Client thread/INFO]: [CHAT] ",  # Vanilla and forge latest.log + Lunar client
+)
 
 PartyRole = Literal["leader", "moderators", "members"]
 
@@ -212,13 +216,11 @@ def get_lowest_index(source: str, *strings: str) -> str | None:
 def parse_logline(logline: str) -> Event | None:
     """Parse a log line to detect players leaving or joining the lobby/party"""
 
-    chat_prefix = get_lowest_index(logline, CHAT_PREFIX, CHAT_PREFIX_LUNAR)
+    chat_prefix = get_lowest_index(logline, *CHAT_PREFIXES)
     if chat_prefix is not None:
         return parse_chat_message(strip_until(logline, until=chat_prefix))
 
-    setting_user_prefix = get_lowest_index(
-        logline, SETTING_USER_PREFIX, SETTING_USER_PREFIX_LUNAR
-    )
+    setting_user_prefix = get_lowest_index(logline, *SETTING_USER_PREFIXES)
     if setting_user_prefix is not None:
         username = strip_until(logline, until=setting_user_prefix)
         return InitializeAsEvent(username)
