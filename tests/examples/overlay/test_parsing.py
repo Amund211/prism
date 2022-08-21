@@ -142,6 +142,8 @@ def test_words_match(words: Sequence[str], target: str, full_match: bool) -> Non
 
 
 UNEVENTFUL_LOGLINES = (
+    # Uninteresting client info
+    "[14:08:01] [Client thread/INFO]: Nothing to see here",
     # Blank lines
     "[Info: 2021-11-29 20:00:44.579410258: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]                                      ",
     "[Info: 2021-11-29 20:00:52.346477397: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] "

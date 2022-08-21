@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 RANK_REGEX = re.compile(r"\[[a-zA-Z\+]+\] ")
 
 
-SETTING_USER_PREFIXES = (
-    "(Client thread) Info Setting user: ",  # Vanilla and forge launcher_log.txt
-    "[Client thread/INFO]: Setting user: ",  # Vanilla and forge latest.log
-    "INFO]: [LC] Setting user: ",  # Lunar client
+CLIENT_INFO_PREFIXES = (
+    "(Client thread) Info ",  # Vanilla and forge launcher_log.txt
+    "[Client thread/INFO]: ",  # Vanilla and forge latest.log
+    "INFO]: [LC] ",  # Lunar client
 )
 
 # Vanilla and forge
@@ -165,8 +165,11 @@ class WhisperCommandSetNickEvent:
     ] = EventType.WHISPER_COMMAND_SET_NICK
 
 
-Event = Union[
+ClientEvent = Union[
     InitializeAsEvent,
+]
+
+ChatEvent = Union[
     NewNicknameEvent,
     LobbySwapEvent,
     LobbyJoinEvent,
@@ -183,6 +186,8 @@ Event = Union[
     NewAPIKeyEvent,
     WhisperCommandSetNickEvent,
 ]
+
+Event = Union[ClientEvent, ChatEvent]
 
 
 def strip_until(line: str, *, until: str) -> str:
@@ -220,9 +225,17 @@ def parse_logline(logline: str) -> Event | None:
     if chat_prefix is not None:
         return parse_chat_message(strip_until(logline, until=chat_prefix))
 
-    setting_user_prefix = get_lowest_index(logline, *SETTING_USER_PREFIXES)
-    if setting_user_prefix is not None:
-        username = strip_until(logline, until=setting_user_prefix)
+    client_info_prefix = get_lowest_index(logline, *CLIENT_INFO_PREFIXES)
+    if client_info_prefix is not None:
+        return parse_client_info(strip_until(logline, until=client_info_prefix))
+
+    return None
+
+
+def parse_client_info(info: str) -> ClientEvent | None:
+    SETTING_USER_PREFIX = "Setting user: "
+    if info.startswith(SETTING_USER_PREFIX):
+        username = strip_until(info, until=SETTING_USER_PREFIX)
         return InitializeAsEvent(username)
 
     return None
@@ -239,7 +252,7 @@ def words_match(words: Sequence[str], target: str) -> bool:
     return full_match
 
 
-def parse_chat_message(message: str) -> Event | None:
+def parse_chat_message(message: str) -> ChatEvent | None:
     """
     Parse a chat message to detect players leaving or joining the lobby/party
 
