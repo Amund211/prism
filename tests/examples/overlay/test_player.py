@@ -2,7 +2,7 @@ import pytest
 
 from examples.overlay.antisniper_api import Winstreaks
 from examples.overlay.player import KnownPlayer, Player, sort_players
-from tests.examples.overlay.player_utils import make_player
+from tests.examples.overlay.utils import make_player
 
 
 def make_winstreaks(

@@ -4,9 +4,7 @@ from collections.abc import Sequence
 
 import pytest
 
-from examples.overlay.parsing import (
-    CHAT_PREFIXES,
-    CLIENT_INFO_PREFIXES,
+from examples.overlay.events import (
     EndBedwarsGameEvent,
     Event,
     InitializeAsEvent,
@@ -24,6 +22,10 @@ from examples.overlay.parsing import (
     PartyMembershipListEvent,
     StartBedwarsGameEvent,
     WhisperCommandSetNickEvent,
+)
+from examples.overlay.parsing import (
+    CHAT_PREFIXES,
+    CLIENT_INFO_PREFIXES,
     get_lowest_index,
     parse_chat_message,
     parse_logline,

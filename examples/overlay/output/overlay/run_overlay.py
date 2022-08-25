@@ -3,11 +3,11 @@ import sys
 import time
 from collections.abc import Callable
 
+from examples.overlay.controller import OverlayController
 from examples.overlay.output.overlay.stats_overlay import StatsOverlay
 from examples.overlay.output.overlay.utils import CellValue, OverlayRow, player_to_row
 from examples.overlay.output.utils import COLUMN_NAMES, COLUMN_ORDER
 from examples.overlay.player import Player, PropertyName
-from examples.overlay.state import OverlayState
 
 if os.name == "nt":  # pragma: nocover
     from examples.overlay.platform.windows import toggle_fullscreen
@@ -18,7 +18,8 @@ else:  # pragma: nocover
 
 
 def run_overlay(
-    state: OverlayState, fetch_state_updates: Callable[[], list[Player] | None]
+    controller: OverlayController,
+    fetch_state_updates: Callable[[], list[Player] | None],
 ) -> None:  # pragma: nocover
     """
     Run the overlay
@@ -38,10 +39,10 @@ def run_overlay(
         )
 
         info_cells = []
-        if state.out_of_sync:
+        if controller.state.out_of_sync:
             info_cells.append(CellValue("Overlay out of sync. Use /who", "orange"))
 
-        if state.api_key_invalid:
+        if controller.api_key_invalid:
             info_cells.append(
                 CellValue(
                     "Invalid API key. Use /api new",
@@ -50,14 +51,14 @@ def run_overlay(
             )
 
         return (
-            state.in_queue,
+            controller.state.in_queue,
             info_cells,
             new_rows,
         )
 
     def set_not_in_queue() -> None:
-        with state.mutex:
-            state.in_queue = False
+        with controller.state.mutex:
+            controller.state.in_queue = False
 
     overlay = StatsOverlay[PropertyName](
         column_order=COLUMN_ORDER,

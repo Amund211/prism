@@ -13,7 +13,8 @@ from typing import Any
 
 import toml
 
-from examples.overlay.parsing import NewAPIKeyEvent, parse_logline
+from examples.overlay.events import NewAPIKeyEvent
+from examples.overlay.parsing import parse_logline
 from examples.overlay.settings import api_key_is_valid, read_settings
 
 logger = logging.getLogger(__name__)

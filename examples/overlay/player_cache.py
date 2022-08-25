@@ -8,54 +8,52 @@ from examples.overlay.player import KnownPlayer, NickedPlayer, PendingPlayer, Pl
 
 logger = logging.getLogger(__name__)
 
-# Session player cache
-# Entries cached for 2mins, so they hopefully expire before the next queue
-KNOWN_PLAYERS: TTLCache[str, Player] = TTLCache(maxsize=512, ttl=120)
-STATS_MUTEX = threading.Lock()
 
+class PlayerCache:
+    def __init__(self) -> None:
+        # Entries cached for 2mins, so they hopefully expire before the next queue
+        self._cache: TTLCache[str, Player] = TTLCache(maxsize=512, ttl=120)
+        self._mutex = threading.Lock()
 
-def set_player_pending(username: str) -> PendingPlayer:
-    """Note that this user is pending"""
-    pending_player = PendingPlayer(username)
+    def set_player_pending(self, username: str) -> PendingPlayer:
+        """Note that this user is pending"""
+        pending_player = PendingPlayer(username)
 
-    with STATS_MUTEX:
-        if username in KNOWN_PLAYERS:
-            logger.error(f"Player {username} set to pending, but already exists")
+        with self._mutex:
+            if username in self._cache:
+                logger.error(f"Player {username} set to pending, but already exists")
 
-        KNOWN_PLAYERS[username] = pending_player
+            self._cache[username] = pending_player
 
-    return pending_player
+        return pending_player
 
+    def set_cached_player(
+        self, username: str, player: KnownPlayer | NickedPlayer
+    ) -> None:
+        with self._mutex:
+            self._cache[username] = player
 
-def set_cached_player(username: str, player: KnownPlayer | NickedPlayer) -> None:
-    with STATS_MUTEX:
-        KNOWN_PLAYERS[username] = player
+    def get_cached_player(self, username: str) -> Player | None:
+        with self._mutex:
+            return self._cache.get(username, None)
 
+    def update_cached_player(
+        self, username: str, update: Callable[[KnownPlayer], KnownPlayer]
+    ) -> None:
+        """Update the cache for a player"""
+        with self._mutex:
+            player = self._cache.get(username, None)
+            if isinstance(player, KnownPlayer):
+                self._cache[username] = update(player)
+            else:
+                logger.warning(f"Player {username} not found during update")
 
-def get_cached_player(username: str) -> Player | None:
-    with STATS_MUTEX:
-        return KNOWN_PLAYERS.get(username, None)
+    def uncache_player(self, username: str) -> None:
+        """Clear the cache entry for `username`"""
+        with self._mutex:
+            self._cache.pop(username, None)
 
-
-def update_cached_player(
-    username: str, update: Callable[[KnownPlayer], KnownPlayer]
-) -> None:
-    """Update the cache for a player"""
-    with STATS_MUTEX:
-        player = KNOWN_PLAYERS.get(username, None)
-        if isinstance(player, KnownPlayer):
-            KNOWN_PLAYERS[username] = update(player)
-        else:
-            logger.warning(f"Player {username} not found during update")
-
-
-def uncache_player(username: str) -> None:
-    """Clear the cache entry for `username`"""
-    with STATS_MUTEX:
-        KNOWN_PLAYERS.pop(username, None)
-
-
-def clear_cache() -> None:
-    """Clear the entire player cache"""
-    with STATS_MUTEX:
-        KNOWN_PLAYERS.clear()
+    def clear_cache(self) -> None:
+        """Clear the entire player cache"""
+        with self._mutex:
+            self._cache.clear()

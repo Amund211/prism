@@ -9,7 +9,7 @@ import logging
 import os
 import sys
 import time
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from datetime import date
 from itertools import count
 from pathlib import Path
@@ -17,20 +17,17 @@ from pathlib import Path
 from appdirs import AppDirs
 from tendo import singleton  # type: ignore
 
-import examples.overlay.antisniper_api as antisniper_api
-from examples.overlay.antisniper_api import AntiSniperAPIKeyHolder
+from examples.overlay.behaviour import fast_forward_state
 from examples.overlay.commandline import get_options
+from examples.overlay.controller import OverlayController, RealOverlayController
 from examples.overlay.nick_database import NickDatabase
 from examples.overlay.output.overlay.run_overlay import run_overlay
 from examples.overlay.output.printing import print_stats_table
 from examples.overlay.player import Player
-from examples.overlay.player_cache import clear_cache, uncache_player
-from examples.overlay.settings import Settings, api_key_is_valid, get_settings
-from examples.overlay.state import OverlayState, fast_forward_state
+from examples.overlay.settings import Settings, get_settings
+from examples.overlay.state import OverlayState
 from examples.overlay.threading import prepare_overlay
 from examples.overlay.user_interaction import prompt_for_logfile_path, wait_for_api_key
-from prism.minecraft import MojangAPIError, get_uuid
-from prism.playerdata import HypixelAPIKeyHolder
 
 # Variable that stores our singleinstance lock so that it doesn't go out of scope
 # and get released
@@ -100,21 +97,13 @@ def tail_file_with_reopen(path: Path, timeout: float = 30) -> Iterable[str]:
 
 
 def process_loglines_to_stdout(
-    state: OverlayState,
-    hypixel_key_holder: HypixelAPIKeyHolder,
-    antisniper_key_holder: AntiSniperAPIKeyHolder | None,
-    denick: Callable[[str], str | None],
+    controller: OverlayController,
     loglines: Iterable[str],
     thread_count: int,
 ) -> None:
     """Process the state changes for each logline and redraw the screen if neccessary"""
     get_stat_list = prepare_overlay(
-        state,
-        hypixel_key_holder=hypixel_key_holder,
-        antisniper_key_holder=antisniper_key_holder,
-        denick=denick,
-        loglines=loglines,
-        thread_count=thread_count,
+        controller, loglines=loglines, thread_count=thread_count
     )
 
     while True:
@@ -125,9 +114,9 @@ def process_loglines_to_stdout(
         if sorted_stats is None:
             continue
 
-        with state.mutex:
-            party_members = state.party_members.copy()
-            out_of_sync = state.out_of_sync
+        with controller.state.mutex:
+            party_members = controller.state.party_members.copy()
+            out_of_sync = controller.state.out_of_sync
 
         print_stats_table(
             sorted_stats=sorted_stats,
@@ -138,22 +127,14 @@ def process_loglines_to_stdout(
 
 
 def process_loglines_to_overlay(
-    state: OverlayState,
-    hypixel_key_holder: HypixelAPIKeyHolder,
-    antisniper_key_holder: AntiSniperAPIKeyHolder | None,
-    denick: Callable[[str], str | None],
+    controller: OverlayController,
     loglines: Iterable[str],
     output_to_console: bool,
     thread_count: int,
 ) -> None:
     """Process the state changes for each logline and output to an overlay"""
     get_stat_list = prepare_overlay(
-        state,
-        hypixel_key_holder=hypixel_key_holder,
-        antisniper_key_holder=antisniper_key_holder,
-        denick=denick,
-        loglines=loglines,
-        thread_count=thread_count,
+        controller, loglines=loglines, thread_count=thread_count
     )
 
     if output_to_console:
@@ -164,9 +145,9 @@ def process_loglines_to_overlay(
             sorted_stats = original_get_stat_list()
 
             if sorted_stats is not None:
-                with state.mutex:
-                    party_members = state.party_members.copy()
-                    out_of_sync = state.out_of_sync
+                with controller.state.mutex:
+                    party_members = controller.state.party_members.copy()
+                    out_of_sync = controller.state.out_of_sync
 
                 print_stats_table(
                     sorted_stats=sorted_stats,
@@ -177,116 +158,7 @@ def process_loglines_to_overlay(
 
             return sorted_stats
 
-    run_overlay(state, get_stat_list)
-
-
-def denick_with_api(
-    nick: str,
-    nick_database: NickDatabase,
-    antisniper_key_holder: AntiSniperAPIKeyHolder,
-) -> str | None:
-    """Try denicking via the antisniper API, fallback to dict"""
-    uuid = nick_database.get_default(nick)
-
-    # Return if the user has specified a denick
-    if uuid is not None:
-        logger.debug(f"Denicked with default database {nick} -> {uuid}")
-        return uuid
-
-    if antisniper_key_holder is not None:
-        uuid = antisniper_api.denick(nick, key_holder=antisniper_key_holder)
-
-        if uuid is not None:
-            logger.debug(f"Denicked with api {nick} -> {uuid}")
-            return uuid
-
-    uuid = nick_database.get(nick)
-
-    if uuid is not None:
-        logger.debug(f"Denicked with database {nick} -> {uuid}")
-        return uuid
-
-    logger.debug(f"Failed denicking {nick}")
-
-    return None
-
-
-def set_nickname(
-    username: str | None, nick: str, settings: Settings, nick_database: NickDatabase
-) -> None:
-    """Update the user's nickname"""
-    logger.debug(f"Setting denick {nick=} => {username=}")
-
-    old_nick = None
-
-    if username is not None:
-        try:
-            uuid = get_uuid(username)
-        except MojangAPIError as e:
-            logger.error(f"API error when getting uuid for '{username}'. '{e}'")
-            uuid = None
-
-        if uuid is None:
-            logger.error(f"Failed getting uuid for '{username}' when setting nickname.")
-            # Delete the entry for this nick
-            old_nick = nick
-    else:
-        uuid = None
-        # Delete the entry for this nick
-        old_nick = nick
-
-    with settings.mutex:
-        if uuid is not None and username is not None:
-            # Search the known nicks in settings for the uuid
-            for old_nick, nick_value in settings.known_nicks.items():
-                if uuid == nick_value["uuid"]:
-                    new_nick_value = nick_value
-                    break
-            else:
-                # Found no matching entries - make a new one
-                new_nick_value = {"uuid": uuid, "comment": username}
-                old_nick = None
-        else:
-            new_nick_value = None
-
-        # Remove the old nick if found
-        if old_nick is not None:
-            settings.known_nicks.pop(old_nick, None)
-
-        if new_nick_value is not None:
-            # Add your new nick
-            settings.known_nicks[nick] = new_nick_value
-
-        settings.flush_to_disk()
-
-    with nick_database.mutex:
-        # Delete your old nick if found
-        if old_nick is not None:
-            nick_database.default_database.pop(old_nick, None)
-
-        if uuid is not None:
-            # Add your new nick
-            nick_database.default_database[nick] = uuid
-
-    if old_nick is not None:
-        # Drop the stats cache for your old nick
-        uncache_player(old_nick)
-
-    # Drop the stats cache for your new nick so that we can fetch the stats
-    uncache_player(nick)
-
-
-def set_api_key(
-    new_key: str, settings: Settings, hypixel_key_holder: HypixelAPIKeyHolder
-) -> None:
-    """Update the API key that the download threads use"""
-    hypixel_key_holder.key = new_key
-    with settings.mutex:
-        settings.hypixel_api_key = new_key
-        settings.flush_to_disk()
-
-    # Clear the stats cache in case the old api key was invalid
-    clear_cache()
+    run_overlay(controller, get_stat_list)
 
 
 def watch_from_logfile(
@@ -301,26 +173,12 @@ def watch_from_logfile(
 
     assert overlay or console, "Need at least one output"
 
-    hypixel_key_holder = HypixelAPIKeyHolder(settings.hypixel_api_key)
+    state = OverlayState(lobby_players=set(), party_members=set())
 
-    if (
-        settings.use_antisniper_api
-        and settings.antisniper_api_key is not None
-        and api_key_is_valid(settings.antisniper_api_key)
-    ):
-        antisniper_key_holder = AntiSniperAPIKeyHolder(settings.antisniper_api_key)
-    else:
-        antisniper_key_holder = None
-
-    state = OverlayState(
-        lobby_players=set(),
-        party_members=set(),
-        set_api_key=functools.partial(
-            set_api_key, settings=settings, hypixel_key_holder=hypixel_key_holder
-        ),
-        set_nickname=functools.partial(
-            set_nickname, settings=settings, nick_database=nick_database
-        ),
+    controller = RealOverlayController(
+        state=state,
+        settings=settings,
+        nick_database=nick_database,
     )
 
     logpath = Path(logpath_string)
@@ -328,33 +186,19 @@ def watch_from_logfile(
     with logpath.open("r", encoding="utf8", errors="replace") as logfile:
         # Process the entire logfile to get current player as well as potential
         # current party/lobby
-        fast_forward_state(state, logfile.readlines())
+        fast_forward_state(controller, logfile.readlines())
 
     loglines = tail_file_with_reopen(logpath)
-
-    denick = functools.partial(
-        denick_with_api,
-        nick_database=nick_database,
-        antisniper_key_holder=antisniper_key_holder,
-    )
 
     # Process the rest of the loglines as they come in
     if not overlay:
         process_loglines_to_stdout(
-            state,
-            hypixel_key_holder=hypixel_key_holder,
-            antisniper_key_holder=antisniper_key_holder,
-            denick=denick,
-            loglines=loglines,
-            thread_count=thread_count,
+            controller, loglines=loglines, thread_count=thread_count
         )
     else:
         process_loglines_to_overlay(
-            state,
-            hypixel_key_holder=hypixel_key_holder,
-            antisniper_key_holder=antisniper_key_holder,
+            controller,
             loglines=loglines,
-            denick=denick,
             output_to_console=console,
             thread_count=thread_count,
         )
@@ -452,50 +296,22 @@ def test() -> None:
     nick_database = NickDatabase.from_disk([], default_database=default_database)
 
     # watch_from_logfile
-    hypixel_key_holder = HypixelAPIKeyHolder(settings.hypixel_api_key)
+    state = OverlayState(lobby_players=set(), party_members=set())
 
-    if (
-        settings.use_antisniper_api
-        and settings.antisniper_api_key is not None
-        and api_key_is_valid(settings.antisniper_api_key)
-    ):
-        antisniper_key_holder = AntiSniperAPIKeyHolder(settings.antisniper_api_key)
-    else:
-        antisniper_key_holder = None
-
-    state = OverlayState(
-        lobby_players=set(),
-        party_members=set(),
-        set_api_key=functools.partial(
-            set_api_key, settings=settings, hypixel_key_holder=hypixel_key_holder
-        ),
-        set_nickname=functools.partial(
-            set_nickname, settings=settings, nick_database=nick_database
-        ),
-    )
-
-    denick = functools.partial(
-        denick_with_api,
+    controller = RealOverlayController(
+        state=state,
+        settings=settings,
         nick_database=nick_database,
-        antisniper_key_holder=antisniper_key_holder,
     )
 
     if not overlay:
         process_loglines_to_stdout(
-            state,
-            hypixel_key_holder=hypixel_key_holder,
-            antisniper_key_holder=antisniper_key_holder,
-            denick=denick,
-            loglines=loglines,
-            thread_count=options.threads,
+            controller, loglines=loglines, thread_count=options.threads
         )
     else:
         process_loglines_to_overlay(
-            state,
-            hypixel_key_holder=hypixel_key_holder,
-            antisniper_key_holder=antisniper_key_holder,
+            controller,
             loglines=loglines,
-            denick=denick,
             output_to_console=console,
             thread_count=options.threads,
         )

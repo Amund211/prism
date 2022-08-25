@@ -1,9 +1,11 @@
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
-from typing import Literal, overload
+from typing import Any, Literal, overload
 
-from prism.utils import truncate_float
+from prism.calc import bedwars_level_from_exp
+from prism.playerdata import MissingStatsError, get_gamemode_stats
+from prism.utils import div, truncate_float
 
 GamemodeName = Literal["overall", "solo", "doubles", "threes", "fours"]
 
@@ -232,4 +234,45 @@ def sort_players(players: list[Player], party_members: set[str]) -> list[Player]
             key=rate_player(party_members),
             reverse=True,
         )
+    )
+
+
+def create_known_player(
+    playerdata: dict[str, Any], username: str, uuid: str, nick: str | None = None
+) -> KnownPlayer:
+    try:
+        bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
+    except MissingStatsError:
+        return KnownPlayer(
+            username=username,
+            nick=nick,
+            uuid=uuid,
+            stars=0,
+            stats=Stats(
+                fkdr=0,
+                wlr=0,
+                winstreak=0,
+                winstreak_accurate=True,
+            ),
+        )
+
+    winstreak = bw_stats.get("winstreak", None)
+    return KnownPlayer(
+        username=username,
+        nick=nick,
+        uuid=uuid,
+        stars=bedwars_level_from_exp(bw_stats.get("Experience", 500)),
+        stats=Stats(
+            fkdr=div(
+                bw_stats.get("final_kills_bedwars", 0),
+                bw_stats.get("final_deaths_bedwars", 0),
+            ),
+            wlr=div(
+                bw_stats.get("wins_bedwars", 0),
+                bw_stats.get("games_played_bedwars", 0)
+                - bw_stats.get("wins_bedwars", 0),
+            ),
+            winstreak=winstreak,
+            winstreak_accurate=winstreak is not None,
+        ),
     )

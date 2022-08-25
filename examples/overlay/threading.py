@@ -1,15 +1,15 @@
+import functools
 import logging
 import queue
 import threading
 from collections.abc import Callable, Iterable
 
 import examples.overlay.antisniper_api as antisniper_api
-from examples.overlay.get_stats import get_bedwars_stats
+from examples.overlay.behaviour import get_bedwars_stats
+from examples.overlay.controller import OverlayController
+from examples.overlay.events import process_event
 from examples.overlay.parsing import parse_logline
 from examples.overlay.player import KnownPlayer, Player, sort_players
-from examples.overlay.player_cache import get_cached_player, set_player_pending
-from examples.overlay.state import OverlayState, update_state
-from prism.playerdata import HypixelAPIKeyHolder
 
 logger = logging.getLogger(__name__)
 
@@ -19,17 +19,17 @@ class UpdateStateThread(threading.Thread):
 
     def __init__(
         self,
-        state: OverlayState,
+        controller: OverlayController,
         loglines: Iterable[str],
         redraw_event: threading.Event,
     ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
-        self.state = state
+        self.controller = controller
         self.loglines = loglines
         self.redraw_event = redraw_event
 
     def run(self) -> None:
-        """Read self.loglines and update self.state"""
+        """Read self.loglines and update self.controller"""
         try:
             for line in self.loglines:
                 event = parse_logline(line)
@@ -37,8 +37,8 @@ class UpdateStateThread(threading.Thread):
                 if event is None:
                     continue
 
-                with self.state.mutex:
-                    redraw = update_state(self.state, event)
+                with self.controller.state.mutex:
+                    redraw = process_event(self.controller, event)
 
                 if redraw:
                     # Tell the main thread we need a redraw
@@ -55,18 +55,12 @@ class GetStatsThread(threading.Thread):
         self,
         requests_queue: queue.Queue[str],
         completed_queue: queue.Queue[str],
-        hypixel_key_holder: HypixelAPIKeyHolder,
-        antisniper_key_holder: antisniper_api.AntiSniperAPIKeyHolder | None,
-        denick: Callable[[str], str | None],
-        on_request_completion: Callable[[bool], None],
+        controller: OverlayController,
     ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.requests_queue = requests_queue
         self.completed_queue = completed_queue
-        self.hypixel_key_holder = hypixel_key_holder
-        self.antisniper_key_holder = antisniper_key_holder
-        self.denick = denick
-        self.on_request_completion = on_request_completion
+        self.controller = controller
 
     def run(self) -> None:
         """Get requested stats from the queue and download them"""
@@ -75,35 +69,37 @@ class GetStatsThread(threading.Thread):
                 username = self.requests_queue.get()
 
                 # get_bedwars_stats sets the stats cache which will be read from later
-                player = get_bedwars_stats(
-                    username,
-                    key_holder=self.hypixel_key_holder,
-                    denick=self.denick,
-                    on_request_completion=self.on_request_completion,
-                )
+                player = get_bedwars_stats(username, self.controller)
 
                 # Tell the main thread that we downloaded this user's stats
                 self.completed_queue.put(username)
 
                 logger.debug(f"Finished gettings stats for {username}")
 
-                if (
-                    self.antisniper_key_holder is not None
-                    and isinstance(player, KnownPlayer)
-                    and player.is_missing_winstreaks
-                ):
-                    if antisniper_api.update_cached_winstreak(
-                        uuid=player.uuid,
-                        aliases=player.aliases,
-                        key_holder=self.antisniper_key_holder,
-                    ):
-                        # Tell the main thread that we got the estimated winstreak
-                        self.completed_queue.put(username)
-                        logger.debug(f"Updated missing winstreak for {username}")
-                    else:
+                if isinstance(player, KnownPlayer) and player.is_missing_winstreaks:
+                    (
+                        estimated_winstreaks,
+                        winstreaks_accurate,
+                    ) = self.controller.get_estimated_winstreaks(player.uuid)
+
+                    if estimated_winstreaks is antisniper_api.MISSING_WINSTREAKS:
                         logger.debug(
                             f"Updating missing winstreak for {username} failed"
                         )
+                    else:
+                        for alias in player.aliases:
+                            self.controller.player_cache.update_cached_player(
+                                alias,
+                                functools.partial(
+                                    KnownPlayer.update_winstreaks,
+                                    **estimated_winstreaks,
+                                    winstreaks_accurate=winstreaks_accurate,
+                                ),
+                            )
+
+                        # Tell the main thread that we got the estimated winstreak
+                        self.completed_queue.put(username)
+                        logger.debug(f"Updated missing winstreak for {username}")
 
                 self.requests_queue.task_done()
         except Exception as e:
@@ -112,7 +108,7 @@ class GetStatsThread(threading.Thread):
 
 
 def should_redraw(
-    state: OverlayState,
+    controller: OverlayController,
     redraw_event: threading.Event,
     completed_stats_queue: queue.Queue[str],
 ) -> bool:
@@ -129,8 +125,8 @@ def should_redraw(
         else:
             completed_stats_queue.task_done()
             if not redraw:
-                with state.mutex:
-                    if username in state.lobby_players:
+                with controller.state.mutex:
+                    if username in controller.state.lobby_players:
                         # We just received the stats of a player in the lobby
                         # Redraw the screen in case the stats weren't there last time
                         redraw = True
@@ -143,12 +139,7 @@ def should_redraw(
 
 
 def prepare_overlay(
-    state: OverlayState,
-    hypixel_key_holder: HypixelAPIKeyHolder,
-    antisniper_key_holder: antisniper_api.AntiSniperAPIKeyHolder | None,
-    denick: Callable[[str], str | None],
-    loglines: Iterable[str],
-    thread_count: int,
+    controller: OverlayController, loglines: Iterable[str], thread_count: int
 ) -> Callable[[], list[Player] | None]:
     """
     Set up and return get_stat_list
@@ -166,22 +157,17 @@ def prepare_overlay(
     # Redraw requests from state updates
     redraw_event = threading.Event()
 
-    def on_request_completion(api_key_invalid: bool) -> None:
-        with state.mutex:
-            state.api_key_invalid = api_key_invalid
-
     # Spawn thread for updating state
-    UpdateStateThread(state=state, loglines=loglines, redraw_event=redraw_event).start()
+    UpdateStateThread(
+        controller=controller, loglines=loglines, redraw_event=redraw_event
+    ).start()
 
     # Spawn threads for downloading stats
     for i in range(thread_count):
         GetStatsThread(
             requests_queue=requested_stats_queue,
             completed_queue=completed_stats_queue,
-            hypixel_key_holder=hypixel_key_holder,
-            antisniper_key_holder=antisniper_key_holder,
-            denick=denick,
-            on_request_completion=on_request_completion,
+            controller=controller,
         ).start()
 
     def get_stat_list() -> list[Player] | None:
@@ -190,7 +176,7 @@ def prepare_overlay(
         """
 
         redraw = should_redraw(
-            state,
+            controller,
             redraw_event=redraw_event,
             completed_stats_queue=completed_stats_queue,
         )
@@ -201,20 +187,21 @@ def prepare_overlay(
         # Get the cached stats for the players in the lobby
         players: list[Player] = []
 
-        with state.mutex:
-            lobby_players = state.lobby_players.copy()
+        with controller.state.mutex:
+            lobby_players = controller.state.lobby_players.copy()
+            party_members = controller.state.party_members.copy()
 
         for player in lobby_players:
-            cached_stats = get_cached_player(player)
+            cached_stats = controller.player_cache.get_cached_player(player)
             if cached_stats is None:
                 # No query made for this player yet
                 # Start a query and note that a query has been started
-                cached_stats = set_player_pending(player)
+                cached_stats = controller.player_cache.set_player_pending(player)
                 logger.debug(f"Set player {player} to pending")
                 requested_stats_queue.put(player)
             players.append(cached_stats)
 
-        sorted_stats = sort_players(players, state.party_members)
+        sorted_stats = sort_players(players, party_members)
 
         return sorted_stats
 

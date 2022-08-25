@@ -5,9 +5,15 @@ from typing import Any, TypedDict
 
 import pytest
 
-from examples.overlay.get_stats import create_known_player, fetch_bedwars_stats
-from examples.overlay.player import KnownPlayer, NickedPlayer, Stats
+from examples.overlay.behaviour import get_bedwars_stats
+from examples.overlay.player import (
+    KnownPlayer,
+    NickedPlayer,
+    Stats,
+    create_known_player,
+)
 from prism.calc import bedwars_level_from_exp
+from tests.examples.overlay.utils import MockedController
 
 # Player data for a player who has been on Hypixel, but has not played bedwars
 NEW_PLAYER_DATA: dict[str, Any] = {"stats": {}}
@@ -36,7 +42,7 @@ class Scenario(TypedDict):
     denick: Callable[[str], str | None]
 
 
-def make_scenario(*users: User) -> Scenario:
+def make_scenario_controller(*users: User) -> MockedController:
     usernames = set(user.username for user in users)
     uuids = set(user.uuid for user in users)
     nicks = set(user.nick for user in users)
@@ -60,7 +66,11 @@ def make_scenario(*users: User) -> Scenario:
         user = nick_table.get(nick, None)
         return user.uuid if user is not None else None
 
-    return Scenario(get_uuid=get_uuid, get_player_data=get_player_data, denick=denick)
+    controller = MockedController(
+        get_uuid=get_uuid, get_player_data=get_player_data, denick=denick
+    )
+
+    return controller
 
 
 users = {
@@ -77,12 +87,12 @@ users = {
 }
 
 scenarios = {
-    "simple": make_scenario(users["UnnickedPlayer"]),
-    "nick": make_scenario(users["NickedPlayer"]),
-    "nick_with_existing_user": make_scenario(
+    "simple": make_scenario_controller(users["UnnickedPlayer"]),
+    "nick": make_scenario_controller(users["NickedPlayer"]),
+    "nick_with_existing_user": make_scenario_controller(
         users["NickedPlayer"], users["AmazingNick"]
     ),
-    "nick_with_existing_user_no_data": make_scenario(
+    "nick_with_existing_user_no_data": make_scenario_controller(
         users["WrongPlayer"], users["SuperbNick"]
     ),
 }
@@ -137,7 +147,10 @@ def test_fetch_bedwars_stats(
     else:
         player = result
 
-    assert fetch_bedwars_stats(username=username, **scenarios[scenario_name]) == player
+    assert (
+        get_bedwars_stats(username=username, controller=scenarios[scenario_name])
+        == player
+    )
 
 
 def test_create_known_player(example_playerdata: dict[str, Any]) -> None:
