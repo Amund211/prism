@@ -1,9 +1,7 @@
 import unittest.mock
-from collections.abc import Iterable
 
 import pytest
 
-from examples.overlay.behaviour import fast_forward_state
 from examples.overlay.controller import OverlayController
 from examples.overlay.events import (
     EndBedwarsGameEvent,
@@ -345,81 +343,23 @@ def test_process_event(
     ),
 )
 def test_process_event_set_nickname(event: Event) -> None:
-    """Assert that set_nickname is called properly is received"""
+    """Assert that set_nickname is called properly"""
     username = "MyIGN"
     nick = "AmazingNick"
-    uuid = "MyUUID"
 
-    controller = MockedController(
-        state=create_state(own_username=username), get_uuid=lambda username: uuid
-    )
+    controller = MockedController(state=create_state(own_username=username))
 
-    process_event(controller, event)
+    with unittest.mock.patch("examples.overlay.behaviour.set_nickname") as set_nickname:
+        process_event(controller, event)
 
-    # Known nicks updated
-    assert controller.settings.known_nicks.get(nick, None) == {
-        "uuid": uuid,
-        "comment": username,
-    }
-    assert controller.nick_database.get(nick) == uuid
-
-    # Settings stored
-    assert controller._stored_settings == controller.settings
+    assert set_nickname.called_with(nick=nick, username=username)
 
 
 def test_process_event_set_api_key() -> None:
     """Assert that set_api_key is called when NewAPIKeyEvent is received"""
-    controller = MockedController(hypixel_api_key="invalid-key", api_key_invalid=True)
-    controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
+    controller = MockedController()
 
-    process_event(controller, NewAPIKeyEvent("my-new-key"))
+    with unittest.mock.patch("examples.overlay.behaviour.set_api_key") as set_api_key:
+        process_event(controller, NewAPIKeyEvent("my-new-key"))
 
-    # Key and key invalid updated
-    assert controller.hypixel_api_key == "my-new-key"
-    assert not controller.api_key_invalid
-
-    # Settings stored
-    assert controller._stored_settings == controller.settings
-
-    # Player cache cleared
-    controller.player_cache.clear_cache.assert_called()
-
-
-CHAT = "[Info: 2021-11-29 22:17:40.417869567: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] "  # noqa: E501
-INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.minecraft.client.Minecraft (Client thread) Info "  # noqa: E501
-
-
-@pytest.mark.parametrize(
-    "initial_controller, loglines, target_controller",
-    (
-        (
-            MockedController(state=create_state(own_username=None)),
-            (
-                f"{INFO}Setting user: Me",
-                f"{CHAT}Party Moderators: Player1 ● [MVP+] Player2 ● ",
-                f"{CHAT}Player1 has joined (1/16)!",
-                f"{CHAT}Player2 has joined (2/16)!",
-                f"{CHAT}Me has joined (3/16)!",
-                f"{CHAT}Someone has joined (4/16)!",
-                f"{CHAT}[MVP+] Player1: hows ur day?",
-            ),
-            MockedController(
-                state=create_state(
-                    own_username="Me",
-                    party_members={"Me", "Player1", "Player2"},
-                    lobby_players={"Me", "Player1", "Player2", "Someone"},
-                    in_queue=True,
-                )
-            ),
-        ),
-    ),
-)
-def test_fast_forward_state(
-    initial_controller: OverlayController,
-    loglines: Iterable[str],
-    target_controller: OverlayController,
-) -> None:
-    fast_forward_state(initial_controller, loglines)
-
-    new_controller = initial_controller
-    assert new_controller == target_controller
+    assert set_api_key.called_with("my-new-key")

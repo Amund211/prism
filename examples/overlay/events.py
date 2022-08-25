@@ -354,7 +354,6 @@ def process_event(controller: OverlayController, event: Event) -> bool:
         # User got a new API key
         logger.info("Setting new API key")
         set_api_key(event.key, controller)
-        controller.api_key_invalid = False
 
         return False
 
