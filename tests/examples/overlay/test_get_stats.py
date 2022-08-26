@@ -1,11 +1,12 @@
 import itertools
+import unittest.mock
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, TypedDict
 
 import pytest
 
-from examples.overlay.behaviour import get_bedwars_stats
+from examples.overlay.behaviour import fetch_bedwars_stats, get_bedwars_stats
 from examples.overlay.player import (
     KnownPlayer,
     NickedPlayer,
@@ -148,9 +149,48 @@ def test_fetch_bedwars_stats(
         player = result
 
     assert (
-        get_bedwars_stats(username=username, controller=scenarios[scenario_name])
+        fetch_bedwars_stats(username=username, controller=scenarios[scenario_name])
         == player
     )
+
+
+def test_get_bedwars_stats() -> None:
+    controller = scenarios["nick"]
+    user = users["NickedPlayer"]
+
+    # For typing
+    assert user.playerdata is not None
+    assert user.nick is not None
+
+    nicked_player = create_known_player(
+        playerdata=user.playerdata,
+        username=user.username,
+        uuid=user.uuid,
+        nick=user.nick,
+    )
+    unnicked_player = create_known_player(
+        playerdata=user.playerdata, username=user.username, uuid=user.uuid, nick=None
+    )
+
+    # Get the stats of the nicked player
+    # Should get the stats and cache both the nicked and unnicked versions
+    assert get_bedwars_stats(username=user.nick, controller=controller) == nicked_player
+
+    # Getting both the nicked and unnicked stats now should just go to cache
+    with unittest.mock.patch(
+        "examples.overlay.behaviour.fetch_bedwars_stats"
+    ) as patched_fetch_stats:
+        assert (
+            get_bedwars_stats(username=user.nick, controller=controller)
+            == nicked_player
+        )
+        patched_fetch_stats.assert_not_called()
+
+        assert (
+            get_bedwars_stats(username=user.username, controller=controller)
+            == unnicked_player
+        )
+        patched_fetch_stats.assert_not_called()
 
 
 def test_create_known_player(example_playerdata: dict[str, Any]) -> None:
