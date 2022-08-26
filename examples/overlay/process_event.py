@@ -179,7 +179,7 @@ def process_event(controller: OverlayController, event: Event) -> bool:
         logger.info("Setting new API key")
         set_hypixel_api_key(event.key, controller)
 
-        return False
+        return True
 
     if event.event_type is EventType.WHISPER_COMMAND_SET_NICK:
         # User set a nick with /w !nick=username

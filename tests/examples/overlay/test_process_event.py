@@ -352,9 +352,10 @@ def test_process_event_set_nickname(event: Event) -> None:
     with unittest.mock.patch(
         "examples.overlay.behaviour.set_nickname"
     ) as patched_set_nickname:
-        process_event(controller, event)
+        will_redraw = process_event(controller, event)
 
     assert patched_set_nickname.called_with(nick=nick, username=username)
+    assert will_redraw
 
 
 def test_process_event_set_hypixel_api_key() -> None:
@@ -364,6 +365,7 @@ def test_process_event_set_hypixel_api_key() -> None:
     with unittest.mock.patch(
         "examples.overlay.behaviour.set_hypixel_api_key"
     ) as patched_set_hypixel_api_key:
-        process_event(controller, NewAPIKeyEvent("my-new-key"))
+        will_redraw = process_event(controller, NewAPIKeyEvent("my-new-key"))
 
     assert patched_set_hypixel_api_key.called_with("my-new-key")
+    assert will_redraw
