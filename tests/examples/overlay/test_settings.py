@@ -113,6 +113,32 @@ def test_read_and_write_settings(
     )
 
 
+def test_flush_settings_from_controller(tmp_path: Path) -> None:
+    from examples.overlay.controller import RealOverlayController
+    from examples.overlay.nick_database import NickDatabase
+    from tests.examples.overlay.utils import create_state
+
+    settings = Settings(
+        hypixel_api_key="my-key",
+        antisniper_api_key="my-key",
+        use_antisniper_api=True,
+        known_nicks={},
+        path=tmp_path / "settings.toml",
+    )
+
+    # File not found
+    assert get_settings(settings.path, get_api_key) != settings
+
+    controller = RealOverlayController(
+        state=create_state(), settings=settings, nick_database=NickDatabase([{}])
+    )
+
+    controller.store_settings()
+
+    # File properly stored
+    assert get_settings(settings.path, get_api_key) == settings
+
+
 fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] = (
     (
         {
