@@ -2,8 +2,8 @@ import logging
 from typing import Iterable
 
 from examples.overlay.controller import OverlayController
-from examples.overlay.events import process_event
 from examples.overlay.parsing import parse_logline
+from examples.overlay.process_event import process_event
 
 logger = logging.getLogger(__name__)
 

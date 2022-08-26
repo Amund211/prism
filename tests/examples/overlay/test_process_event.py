@@ -21,8 +21,8 @@ from examples.overlay.events import (
     PartyMembershipListEvent,
     StartBedwarsGameEvent,
     WhisperCommandSetNickEvent,
-    process_event,
 )
+from examples.overlay.process_event import process_event
 from tests.examples.overlay.utils import OWN_USERNAME, MockedController, create_state
 
 process_event_test_cases_base: tuple[

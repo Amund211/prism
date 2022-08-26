@@ -6,10 +6,10 @@ from collections.abc import Callable, Iterable
 
 import examples.overlay.antisniper_api as antisniper_api
 from examples.overlay.controller import OverlayController
-from examples.overlay.events import process_event
 from examples.overlay.get_stats import get_bedwars_stats
 from examples.overlay.parsing import parse_logline
 from examples.overlay.player import KnownPlayer, Player, sort_players
+from examples.overlay.process_event import process_event
 
 logger = logging.getLogger(__name__)
 
