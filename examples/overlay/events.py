@@ -184,7 +184,7 @@ Event = Union[ClientEvent, ChatEvent]
 
 def process_event(controller: OverlayController, event: Event) -> bool:
     """Update the state based on the event, return True if a redraw is desired"""
-    from examples.overlay.behaviour import set_api_key, set_nickname
+    from examples.overlay.behaviour import set_hypixel_api_key, set_nickname
 
     state = controller.state
 
@@ -353,7 +353,7 @@ def process_event(controller: OverlayController, event: Event) -> bool:
     if event.event_type is EventType.NEW_API_KEY:
         # User got a new API key
         logger.info("Setting new API key")
-        set_api_key(event.key, controller)
+        set_hypixel_api_key(event.key, controller)
 
         return False
 

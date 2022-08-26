@@ -76,7 +76,7 @@ def set_nickname(
     controller.player_cache.uncache_player(nick)
 
 
-def set_api_key(new_key: str, /, controller: OverlayController) -> None:
+def set_hypixel_api_key(new_key: str, /, controller: OverlayController) -> None:
     """Update the API key that the download threads use"""
     controller.set_hypixel_api_key(new_key)
     controller.api_key_invalid = False

@@ -355,11 +355,13 @@ def test_process_event_set_nickname(event: Event) -> None:
     assert set_nickname.called_with(nick=nick, username=username)
 
 
-def test_process_event_set_api_key() -> None:
-    """Assert that set_api_key is called when NewAPIKeyEvent is received"""
+def test_process_event_set_hypixel_api_key() -> None:
+    """Assert that set_hypixel_api_key is called when NewAPIKeyEvent is received"""
     controller = MockedController()
 
-    with unittest.mock.patch("examples.overlay.behaviour.set_api_key") as set_api_key:
+    with unittest.mock.patch(
+        "examples.overlay.behaviour.set_hypixel_api_key"
+    ) as set_hypixel_api_key:
         process_event(controller, NewAPIKeyEvent("my-new-key"))
 
-    assert set_api_key.called_with("my-new-key")
+    assert set_hypixel_api_key.called_with("my-new-key")

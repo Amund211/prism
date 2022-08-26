@@ -6,7 +6,7 @@ import pytest
 from examples.overlay.behaviour import (
     denick,
     fast_forward_state,
-    set_api_key,
+    set_hypixel_api_key,
     set_nickname,
 )
 from examples.overlay.controller import OverlayController
@@ -108,13 +108,13 @@ def test_unset_nickname(known_nicks: dict[str, str], explicit: bool) -> None:
 
 
 def test_process_event_set_api_key() -> None:
-    """Assert that set_api_key is called when NewAPIKeyEvent is received"""
+    """Assert that set_hypixel_api_key is called when NewAPIKeyEvent is received"""
     NEW_KEY = "my-new-key"
 
     controller = MockedController(hypixel_api_key="invalid-key", api_key_invalid=True)
     controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
 
-    set_api_key(NEW_KEY, controller)
+    set_hypixel_api_key(NEW_KEY, controller)
 
     # Key and key invalid updated
     assert controller.hypixel_api_key == NEW_KEY
