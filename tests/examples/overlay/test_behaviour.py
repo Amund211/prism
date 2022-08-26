@@ -4,7 +4,6 @@ from collections.abc import Iterable
 import pytest
 
 from examples.overlay.behaviour import (
-    denick,
     fast_forward_state,
     set_hypixel_api_key,
     set_nickname,
@@ -126,26 +125,6 @@ def test_process_event_set_api_key() -> None:
 
     # Player cache cleared
     controller.player_cache.clear_cache.assert_called()
-
-
-def test_denick() -> None:
-    """Test the precedence of different denicking sources"""
-    controller = MockedController(denick=lambda username: None)
-
-    # No hits
-    assert denick(NICK, controller) is None
-
-    # Hit in database
-    controller.nick_database.databases.append({NICK: "database-uuid"})
-    assert denick(NICK, controller) == "database-uuid"
-
-    # Hit from api
-    controller.denick = lambda username: "api-uuid"
-    assert denick(NICK, controller) == "api-uuid"
-
-    # Hit in default database
-    controller.nick_database.default_database[NICK] = "default-database-uuid"
-    assert denick(NICK, controller) == "default-database-uuid"
 
 
 CHAT = "[Info: 2021-11-29 22:17:40.417869567: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] "  # noqa: E501

@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from examples.overlay.behaviour import fetch_bedwars_stats, get_bedwars_stats
+from examples.overlay.get_stats import denick, fetch_bedwars_stats, get_bedwars_stats
 from examples.overlay.player import KnownPlayer, NickedPlayer, create_known_player
 from tests.examples.overlay.utils import MockedController
 
@@ -59,6 +59,28 @@ def make_scenario_controller(*users: User) -> MockedController:
     )
 
     return controller
+
+
+def test_denick() -> None:
+    """Test the precedence of different denicking sources"""
+    controller = MockedController(denick=lambda username: None)
+
+    NICK = "AmazingNick"
+
+    # No hits
+    assert denick(NICK, controller) is None
+
+    # Hit in database
+    controller.nick_database.databases.append({NICK: "database-uuid"})
+    assert denick(NICK, controller) == "database-uuid"
+
+    # Hit from api
+    controller.denick = lambda username: "api-uuid"
+    assert denick(NICK, controller) == "api-uuid"
+
+    # Hit in default database
+    controller.nick_database.default_database[NICK] = "default-database-uuid"
+    assert denick(NICK, controller) == "default-database-uuid"
 
 
 users = {
@@ -165,7 +187,7 @@ def test_get_bedwars_stats() -> None:
 
     # Getting both the nicked and unnicked stats now should just go to cache
     with unittest.mock.patch(
-        "examples.overlay.behaviour.fetch_bedwars_stats"
+        "examples.overlay.get_stats.fetch_bedwars_stats"
     ) as patched_fetch_stats:
         assert (
             get_bedwars_stats(username=user.nick, controller=controller)
