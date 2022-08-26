@@ -4,17 +4,15 @@ import queue
 import threading
 from collections.abc import Callable, Iterable
 
-from examples.overlay.behaviour import should_redraw
+from examples.overlay.behaviour import process_loglines, should_redraw
 from examples.overlay.controller import OverlayController
 from examples.overlay.get_stats import get_bedwars_stats
-from examples.overlay.parsing import parse_logline
 from examples.overlay.player import (
     MISSING_WINSTREAKS,
     KnownPlayer,
     Player,
     sort_players,
 )
-from examples.overlay.process_event import process_event
 
 logger = logging.getLogger(__name__)
 
@@ -36,18 +34,7 @@ class UpdateStateThread(threading.Thread):
     def run(self) -> None:
         """Read self.loglines and update self.controller"""
         try:
-            for line in self.loglines:
-                event = parse_logline(line)
-
-                if event is None:
-                    continue
-
-                with self.controller.state.mutex:
-                    redraw = process_event(self.controller, event)
-
-                if redraw:
-                    # Tell the main thread we need a redraw
-                    self.redraw_event.set()
+            process_loglines(self.loglines, self.redraw_event, self.controller)
         except Exception as e:
             logger.exception(f"Exception caught in state update thread: {e}. Exiting")
             return

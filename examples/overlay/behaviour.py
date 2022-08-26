@@ -95,6 +95,26 @@ def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -
         process_event(controller, event)
 
 
+def process_loglines(
+    loglines: Iterable[str],
+    redraw_event: threading.Event,
+    controller: OverlayController,
+) -> None:
+    """Update state and set the redraw event"""
+    for line in loglines:
+        event = parse_logline(line)
+
+        if event is None:
+            continue
+
+        with controller.state.mutex:
+            redraw = process_event(controller, event)
+
+        if redraw:
+            # Tell the main thread we need a redraw
+            redraw_event.set()
+
+
 def should_redraw(
     controller: OverlayController,
     redraw_event: threading.Event,

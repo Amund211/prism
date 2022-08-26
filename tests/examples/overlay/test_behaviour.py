@@ -7,6 +7,7 @@ import pytest
 
 from examples.overlay.behaviour import (
     fast_forward_state,
+    process_loglines,
     set_hypixel_api_key,
     set_nickname,
     should_redraw,
@@ -200,3 +201,34 @@ def test_should_redraw(
         completed_stats_queue.put_nowait(username)
 
     assert should_redraw(controller, redraw_event, completed_stats_queue) == result
+
+
+@pytest.mark.parametrize(
+    "loglines, resulting_controller, redraw_event_set",
+    (
+        (
+            (f"{CHAT}[MVP+] Player1: hows ur day?",),
+            MockedController(),
+            False,
+        ),
+        (
+            (f"{CHAT}Player1 has joined (1/16)!",),
+            MockedController(
+                state=create_state(lobby_players={"Player1"}, in_queue=True)
+            ),
+            True,
+        ),
+    ),
+)
+def test_process_loglines(
+    loglines: tuple[str],
+    resulting_controller: OverlayController,
+    redraw_event_set: bool,
+) -> None:
+    controller = MockedController()
+
+    redraw_event = threading.Event()
+
+    process_loglines(loglines, redraw_event, controller)
+    assert controller == resulting_controller
+    assert redraw_event.is_set() == redraw_event_set
