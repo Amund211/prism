@@ -2,11 +2,11 @@ from typing import Any
 
 import pytest
 
-from examples.overlay.antisniper_api import Winstreaks
 from examples.overlay.player import (
     KnownPlayer,
     Player,
     Stats,
+    Winstreaks,
     create_known_player,
     sort_players,
 )

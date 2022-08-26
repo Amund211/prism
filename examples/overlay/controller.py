@@ -14,8 +14,8 @@ from prism.playerdata import (
 )
 
 if TYPE_CHECKING:  # pragma: no cover
-    from examples.overlay.antisniper_api import Winstreaks
     from examples.overlay.nick_database import NickDatabase
+    from examples.overlay.player import Winstreaks
     from examples.overlay.player_cache import PlayerCache
     from examples.overlay.settings import Settings
     from examples.overlay.state import OverlayState
@@ -148,10 +148,8 @@ class RealOverlayController:
     def get_estimated_winstreaks(
         self, uuid: str
     ) -> tuple[Winstreaks, bool]:  # pragma: no cover
-        from examples.overlay.antisniper_api import (
-            MISSING_WINSTREAKS,
-            get_estimated_winstreaks,
-        )
+        from examples.overlay.antisniper_api import get_estimated_winstreaks
+        from examples.overlay.player import MISSING_WINSTREAKS
 
         if not self.settings.use_antisniper_api or self.antisniper_key_holder is None:
             return MISSING_WINSTREAKS, False

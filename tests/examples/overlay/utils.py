@@ -3,7 +3,6 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Literal, overload
 
-from examples.overlay.antisniper_api import Winstreaks
 from examples.overlay.nick_database import NickDatabase
 from examples.overlay.player import (
     KnownPlayer,
@@ -11,6 +10,7 @@ from examples.overlay.player import (
     PendingPlayer,
     Player,
     Stats,
+    Winstreaks,
 )
 from examples.overlay.player_cache import PlayerCache
 from examples.overlay.settings import Settings
@@ -90,6 +90,18 @@ def create_state(
         out_of_sync=out_of_sync,
         in_queue=in_queue,
         own_username=own_username,
+    )
+
+
+def make_winstreaks(
+    overall: int | None = None,
+    solo: int | None = None,
+    doubles: int | None = None,
+    threes: int | None = None,
+    fours: int | None = None,
+) -> Winstreaks:
+    return Winstreaks(
+        overall=overall, solo=solo, doubles=doubles, threes=threes, fours=fours
     )
 
 

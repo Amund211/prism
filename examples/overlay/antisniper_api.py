@@ -2,13 +2,13 @@ import logging
 import threading
 from enum import Enum, auto
 from json import JSONDecodeError
-from typing import Any, TypedDict
+from typing import Any
 
 import requests
 from cachetools import TTLCache
 from requests.exceptions import RequestException
 
-from examples.overlay.player import GamemodeName
+from examples.overlay.player import MISSING_WINSTREAKS, GamemodeName, Winstreaks
 from prism.ratelimiting import RateLimiter
 
 logger = logging.getLogger(__name__)
@@ -41,21 +41,6 @@ def get_denick_cache(nick: str) -> str | None | Flag:
     """Get the cache entry for nick"""
     with DENICK_MUTEX:
         return LOWERCASE_DENICK_CACHE.get(nick.lower(), Flag.NOT_SET)
-
-
-class Winstreaks(TypedDict):
-    """Dict holding winstreaks for each core gamemode"""
-
-    overall: int | None
-    solo: int | None
-    doubles: int | None
-    threes: int | None
-    fours: int | None
-
-
-MISSING_WINSTREAKS = Winstreaks(
-    overall=None, solo=None, doubles=None, threes=None, fours=None
-)
 
 
 class AntiSniperAPIKeyHolder:

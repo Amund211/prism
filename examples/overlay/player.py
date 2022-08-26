@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
-from typing import Any, Literal, overload
+from typing import Any, Literal, TypedDict, overload
 
 from prism.calc import bedwars_level_from_exp
 from prism.playerdata import MissingStatsError, get_gamemode_stats
@@ -17,6 +17,21 @@ StatsOrder = tuple[float, int, float]
 KnownPlayerOrder = tuple[StatsOrder, float, str]
 
 logger = logging.getLogger(__name__)
+
+
+class Winstreaks(TypedDict):
+    """Dict holding winstreaks for each core gamemode"""
+
+    overall: int | None
+    solo: int | None
+    doubles: int | None
+    threes: int | None
+    fours: int | None
+
+
+MISSING_WINSTREAKS = Winstreaks(
+    overall=None, solo=None, doubles=None, threes=None, fours=None
+)
 
 
 @dataclass(frozen=True, slots=True)

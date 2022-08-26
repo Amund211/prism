@@ -4,11 +4,15 @@ import queue
 import threading
 from collections.abc import Callable, Iterable
 
-import examples.overlay.antisniper_api as antisniper_api
 from examples.overlay.controller import OverlayController
 from examples.overlay.get_stats import get_bedwars_stats
 from examples.overlay.parsing import parse_logline
-from examples.overlay.player import KnownPlayer, Player, sort_players
+from examples.overlay.player import (
+    MISSING_WINSTREAKS,
+    KnownPlayer,
+    Player,
+    sort_players,
+)
 from examples.overlay.process_event import process_event
 
 logger = logging.getLogger(__name__)
@@ -82,7 +86,7 @@ class GetStatsThread(threading.Thread):
                         winstreaks_accurate,
                     ) = self.controller.get_estimated_winstreaks(player.uuid)
 
-                    if estimated_winstreaks is antisniper_api.MISSING_WINSTREAKS:
+                    if estimated_winstreaks is MISSING_WINSTREAKS:
                         logger.debug(
                             f"Updating missing winstreak for {username} failed"
                         )

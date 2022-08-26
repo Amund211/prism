@@ -3,28 +3,15 @@ from typing import Any
 import pytest
 
 from examples.overlay.antisniper_api import (
-    MISSING_WINSTREAKS,
     AntiSniperAPIKeyHolder,
     Flag,
-    Winstreaks,
     get_denick_cache,
     parse_denick_response,
     parse_estimated_winstreaks_response,
     set_denick_cache,
 )
-
-
-def make_winstreaks(
-    overall: int | None = None,
-    solo: int | None = None,
-    doubles: int | None = None,
-    threes: int | None = None,
-    fours: int | None = None,
-) -> Winstreaks:
-    return Winstreaks(
-        overall=overall, solo=solo, doubles=doubles, threes=threes, fours=fours
-    )
-
+from examples.overlay.player import MISSING_WINSTREAKS, Winstreaks
+from tests.examples.overlay.utils import make_winstreaks
 
 assert MISSING_WINSTREAKS == make_winstreaks()
 
