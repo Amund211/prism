@@ -1,4 +1,6 @@
 import logging
+import queue
+import threading
 from typing import Iterable
 
 from examples.overlay.controller import OverlayController
@@ -91,3 +93,34 @@ def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -
             continue
 
         process_event(controller, event)
+
+
+def should_redraw(
+    controller: OverlayController,
+    redraw_event: threading.Event,
+    completed_stats_queue: queue.Queue[str],
+) -> bool:
+    """Check if any updates happened since last time that needs a redraw"""
+    # Check if the state update thread has issued any redraws since last time
+    redraw = redraw_event.is_set()
+
+    # Check if any of the stats downloaded since last render are still in the lobby
+    while True:
+        try:
+            username = completed_stats_queue.get_nowait()
+        except queue.Empty:
+            break
+        else:
+            completed_stats_queue.task_done()
+            if not redraw:
+                with controller.state.mutex:
+                    if username in controller.state.lobby_players:
+                        # We just received the stats of a player in the lobby
+                        # Redraw the screen in case the stats weren't there last time
+                        redraw = True
+
+    if redraw:
+        # We are going to redraw - clear any redraw request
+        redraw_event.clear()
+
+    return redraw

@@ -1,3 +1,5 @@
+import queue
+import threading
 import unittest.mock
 from collections.abc import Iterable
 
@@ -7,6 +9,7 @@ from examples.overlay.behaviour import (
     fast_forward_state,
     set_hypixel_api_key,
     set_nickname,
+    should_redraw,
 )
 from examples.overlay.controller import OverlayController
 from tests.examples.overlay.utils import MockedController, create_state
@@ -165,3 +168,35 @@ def test_fast_forward_state(
 
     new_controller = initial_controller
     assert new_controller == target_controller
+
+
+@pytest.mark.parametrize(
+    "redraw_event_set, completed_stats, result",
+    (
+        (False, (), False),
+        (False, ("Random1", "Random2"), False),
+        (True, (), True),
+        (False, ("Random1", "Random2", "Me"), True),
+        (True, ("Player1", "Random2", "Me"), True),
+    ),
+)
+def test_should_redraw(
+    redraw_event_set: bool, completed_stats: tuple[str], result: bool
+) -> None:
+    controller = MockedController(
+        state=create_state(
+            own_username="Me",
+            lobby_players={"Me", "Player1", "Player2"},
+            in_queue=True,
+        )
+    )
+
+    redraw_event = threading.Event()
+    if redraw_event_set:
+        redraw_event.set()
+
+    completed_stats_queue = queue.Queue[str]()
+    for username in completed_stats:
+        completed_stats_queue.put_nowait(username)
+
+    assert should_redraw(controller, redraw_event, completed_stats_queue) == result
