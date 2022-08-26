@@ -23,19 +23,27 @@ if TYPE_CHECKING:  # pragma: no cover
 logger = logging.getLogger(__name__)
 
 
-class OverlayController(Protocol):
+class OverlayController(Protocol):  # pragma: no cover
     """Class holding components necessary to control the overlay"""
 
     in_queue: bool
     api_key_invalid: bool
     on_hypixel: bool
-    hypixel_api_key: str
-    antisniper_api_key: str | None
 
     state: OverlayState
     settings: Settings
     nick_database: NickDatabase
     player_cache: PlayerCache
+
+    @property
+    @abstractmethod
+    def set_hypixel_api_key(self) -> Callable[[str], None]:
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def set_antisniper_api_key(self) -> Callable[[str | None], None]:
+        raise NotImplementedError
 
     @property
     @abstractmethod
@@ -83,53 +91,38 @@ class RealOverlayController:
         self.settings = settings
         self.nick_database = nick_database
 
-        self.hypixel_key_holder = HypixelAPIKeyHolder("")
-        self.hypixel_api_key = settings.hypixel_api_key
+        self.hypixel_key_holder = HypixelAPIKeyHolder(settings.hypixel_api_key)
         self.antisniper_key_holder: AntiSniperAPIKeyHolder | None = None
-        self.antisniper_api_key = settings.antisniper_api_key
 
-    @property
-    def hypixel_api_key(self) -> str:
-        return self.hypixel_key_holder.key
+        self.set_antisniper_api_key(settings.antisniper_api_key)
 
-    @hypixel_api_key.setter
-    def hypixel_api_key(self, new_key: str) -> None:
+    def set_hypixel_api_key(self, new_key: str) -> None:
         self.hypixel_key_holder.key = new_key
 
-    @property
-    def antisniper_api_key(self) -> str | None:
-        current_holder = self.antisniper_key_holder
-
-        if current_holder is None:
-            return None
-
-        return current_holder.key
-
-    @antisniper_api_key.setter
-    def antisniper_api_key(self, new_key: str | None) -> None:
+    def set_antisniper_api_key(self, new_key: str | None) -> None:
         from examples.overlay.antisniper_api import AntiSniperAPIKeyHolder
 
         current_holder = self.antisniper_key_holder
 
         if current_holder is None:
-            if new_key is None or not self.settings.use_antisniper_api:
+            if new_key is None:
                 pass
             else:
                 self.antisniper_key_holder = AntiSniperAPIKeyHolder(new_key)
         else:
-            if new_key is None or not self.settings.use_antisniper_api:
+            if new_key is None:
                 self.antisniper_key_holder = None
             else:
                 current_holder.key = new_key
 
-    def get_uuid(self, username: str) -> str | None:
+    def get_uuid(self, username: str) -> str | None:  # pragma: no cover
         try:
             return get_uuid(username)
         except MojangAPIError as e:
             logger.debug(f"Failed getting uuid for username {username} {e=}")
             return None
 
-    def get_player_data(self, uuid: str) -> dict[str, Any] | None:
+    def get_player_data(self, uuid: str) -> dict[str, Any] | None:  # pragma: no cover
         try:
             player_data = get_player_data(uuid, self.hypixel_key_holder)
         except HypixelAPIError as e:
@@ -144,21 +137,23 @@ class RealOverlayController:
             self.api_key_invalid = False
             return player_data
 
-    def denick(self, nick: str) -> str | None:
-        if self.antisniper_key_holder is None:
+    def denick(self, nick: str) -> str | None:  # pragma: no cover
+        if not self.settings.use_antisniper_api or self.antisniper_key_holder is None:
             return None
 
         from examples.overlay.antisniper_api import denick
 
         return denick(nick, key_holder=self.antisniper_key_holder)
 
-    def get_estimated_winstreaks(self, uuid: str) -> tuple[Winstreaks, bool]:
+    def get_estimated_winstreaks(
+        self, uuid: str
+    ) -> tuple[Winstreaks, bool]:  # pragma: no cover
         from examples.overlay.antisniper_api import (
             MISSING_WINSTREAKS,
             get_estimated_winstreaks,
         )
 
-        if self.antisniper_key_holder is None:
+        if not self.settings.use_antisniper_api or self.antisniper_key_holder is None:
             return MISSING_WINSTREAKS, False
 
         return get_estimated_winstreaks(uuid, self.antisniper_key_holder)

@@ -141,5 +141,11 @@ class MockedController:
         self.settings.hypixel_api_key = self.hypixel_api_key
         self.settings.antisniper_api_key = self.antisniper_api_key
 
+    def set_hypixel_api_key(self, new_key: str) -> None:
+        self.hypixel_api_key = new_key
+
+    def set_antisniper_api_key(self, new_key: str | None) -> None:
+        self.antisniper_api_key = new_key
+
     def store_settings(self) -> None:
         self._stored_settings = replace(self.settings)
