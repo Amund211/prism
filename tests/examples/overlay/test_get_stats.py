@@ -1,8 +1,7 @@
 import itertools
 import unittest.mock
-from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, TypedDict
+from typing import Any
 
 import pytest
 
@@ -35,12 +34,6 @@ def make_user(username: str, playerdata: bool, nick: str | None = None) -> User:
         nick=nick,
         playerdata={"displayname": username, **NEW_PLAYER_DATA} if playerdata else None,
     )
-
-
-class Scenario(TypedDict):
-    get_uuid: Callable[[str], str | None]
-    get_player_data: Callable[[str], dict[str, Any] | None]
-    denick: Callable[[str], str | None]
 
 
 def make_scenario_controller(*users: User) -> MockedController:
