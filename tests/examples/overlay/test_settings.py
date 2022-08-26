@@ -15,6 +15,7 @@ from examples.overlay.settings import (
     read_settings,
     value_or_default,
 )
+from tests.examples.overlay.utils import make_settings
 
 KEY_IF_MISSING = "KEY_IF_MISSING"
 
@@ -118,13 +119,7 @@ def test_flush_settings_from_controller(tmp_path: Path) -> None:
     from examples.overlay.nick_database import NickDatabase
     from tests.examples.overlay.utils import create_state
 
-    settings = Settings(
-        hypixel_api_key="my-key",
-        antisniper_api_key="my-key",
-        use_antisniper_api=True,
-        known_nicks={},
-        path=tmp_path / "settings.toml",
-    )
+    settings = make_settings(hypixel_api_key="my-key", path=tmp_path / "settings.toml")
 
     # File not found
     assert get_settings(settings.path, get_api_key) != settings

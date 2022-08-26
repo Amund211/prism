@@ -1,20 +1,15 @@
-from pathlib import Path
-
 from examples.overlay.controller import RealOverlayController
 from examples.overlay.nick_database import NickDatabase
-from examples.overlay.settings import Settings
-from tests.examples.overlay.utils import create_state
+from tests.examples.overlay.utils import create_state, make_settings
 
 
 def test_real_overlay_controller() -> None:
     controller = RealOverlayController(
         state=create_state(),
-        settings=Settings(
+        settings=make_settings(
             hypixel_api_key="hypixel_key",
             antisniper_api_key="antisniper_key",
             use_antisniper_api=True,
-            known_nicks={},
-            path=Path("somesettings.json"),
         ),
         nick_database=NickDatabase([{}]),
     )

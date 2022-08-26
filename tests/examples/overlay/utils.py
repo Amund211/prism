@@ -13,7 +13,7 @@ from examples.overlay.player import (
     Winstreaks,
 )
 from examples.overlay.player_cache import PlayerCache
-from examples.overlay.settings import Settings
+from examples.overlay.settings import Settings, fill_missing_settings
 from examples.overlay.state import OverlayState
 
 # Username set by default in create_state
@@ -105,6 +105,30 @@ def make_winstreaks(
     )
 
 
+def make_settings(
+    hypixel_api_key: str = "placeholder-hypixel-key",
+    antisniper_api_key: str | None = None,
+    use_antisniper_api: bool = False,
+    known_nicks: dict[str, str] | None = None,
+    path: Path | None = None,
+) -> Settings:
+    def get_api_key() -> str:
+        raise RuntimeError("The api key should already exist")
+
+    return Settings.from_dict(
+        fill_missing_settings(
+            {
+                "hypixel_api_key": hypixel_api_key,
+                "antisniper_api_key": antisniper_api_key,
+                "use_antisniper_api": use_antisniper_api,
+                "known_nicks": known_nicks or {},
+            },
+            get_api_key,
+        )[0],
+        path=path or Path("make_settings_settingsfile.json"),
+    )
+
+
 def missing_method(*args: Any, **kwargs: Any) -> Any:
     raise NotImplementedError
 
@@ -120,15 +144,7 @@ class MockedController:
     antisniper_api_key: str | None = None
 
     state: OverlayState = field(default_factory=create_state)
-    settings: Settings = field(
-        default_factory=lambda: Settings(
-            hypixel_api_key="placeholder",
-            antisniper_api_key="placeholder",
-            use_antisniper_api=False,
-            known_nicks={},
-            path=Path("somesettingsfile.json"),
-        )
-    )
+    settings: Settings = field(default_factory=make_settings)
     nick_database: NickDatabase = field(default_factory=lambda: NickDatabase([{}]))
     player_cache: PlayerCache = field(
         default_factory=PlayerCache, repr=False, compare=False, hash=False
