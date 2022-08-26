@@ -6,13 +6,7 @@ from typing import Any
 import pytest
 
 from examples.overlay.behaviour import fetch_bedwars_stats, get_bedwars_stats
-from examples.overlay.player import (
-    KnownPlayer,
-    NickedPlayer,
-    Stats,
-    create_known_player,
-)
-from prism.calc import bedwars_level_from_exp
+from examples.overlay.player import KnownPlayer, NickedPlayer, create_known_player
 from tests.examples.overlay.utils import MockedController
 
 # Player data for a player who has been on Hypixel, but has not played bedwars
@@ -184,26 +178,3 @@ def test_get_bedwars_stats() -> None:
             == unnicked_player
         )
         patched_fetch_stats.assert_not_called()
-
-
-def test_create_known_player(example_playerdata: dict[str, Any]) -> None:
-    target = KnownPlayer(
-        username="Technoblade",
-        uuid="b876ec32e396476ba1158438d83c67d4",
-        stars=bedwars_level_from_exp(1076936),
-        stats=Stats(
-            fkdr=20124 / 260,
-            wlr=4924 / (5184 - 4924),
-            winstreak=None,
-            winstreak_accurate=False,
-        ),
-    )
-
-    result = create_known_player(
-        playerdata=example_playerdata,
-        username="Technoblade",
-        uuid="b876ec32e396476ba1158438d83c67d4",
-        nick=None,
-    )
-
-    assert result == target

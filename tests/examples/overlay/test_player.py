@@ -1,7 +1,16 @@
+from typing import Any
+
 import pytest
 
 from examples.overlay.antisniper_api import Winstreaks
-from examples.overlay.player import KnownPlayer, Player, sort_players
+from examples.overlay.player import (
+    KnownPlayer,
+    Player,
+    Stats,
+    create_known_player,
+    sort_players,
+)
+from prism.calc import bedwars_level_from_exp
 from tests.examples.overlay.utils import make_player
 
 
@@ -211,3 +220,26 @@ def test_is_missing_winstreaks(
 )
 def test_aliases(player: Player, aliases: tuple[str, ...]) -> None:
     assert player.aliases == aliases
+
+
+def test_create_known_player(example_playerdata: dict[str, Any]) -> None:
+    target = KnownPlayer(
+        username="Technoblade",
+        uuid="b876ec32e396476ba1158438d83c67d4",
+        stars=bedwars_level_from_exp(1076936),
+        stats=Stats(
+            fkdr=20124 / 260,
+            wlr=4924 / (5184 - 4924),
+            winstreak=None,
+            winstreak_accurate=False,
+        ),
+    )
+
+    result = create_known_player(
+        playerdata=example_playerdata,
+        username="Technoblade",
+        uuid="b876ec32e396476ba1158438d83c67d4",
+        nick=None,
+    )
+
+    assert result == target
