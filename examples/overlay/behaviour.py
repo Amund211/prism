@@ -1,10 +1,13 @@
+import functools
 import logging
 import queue
 import threading
 from typing import Iterable
 
 from examples.overlay.controller import OverlayController
+from examples.overlay.get_stats import get_bedwars_stats
 from examples.overlay.parsing import parse_logline
+from examples.overlay.player import MISSING_WINSTREAKS, KnownPlayer
 from examples.overlay.process_event import process_event
 
 logger = logging.getLogger(__name__)
@@ -144,3 +147,39 @@ def should_redraw(
         redraw_event.clear()
 
     return redraw
+
+
+def get_stats_and_winstreak(
+    username: str, completed_queue: queue.Queue[str], controller: OverlayController
+) -> None:
+    """Get a username from the requests queue and cache their stats"""
+    # get_bedwars_stats sets the stats cache which will be read from later
+    player = get_bedwars_stats(username, controller)
+
+    # Tell the main thread that we downloaded this user's stats
+    completed_queue.put(username)
+
+    logger.debug(f"Finished gettings stats for {username}")
+
+    if isinstance(player, KnownPlayer) and player.is_missing_winstreaks:
+        (
+            estimated_winstreaks,
+            winstreaks_accurate,
+        ) = controller.get_estimated_winstreaks(player.uuid)
+
+        if estimated_winstreaks is MISSING_WINSTREAKS:
+            logger.debug(f"Updating missing winstreak for {username} failed")
+        else:
+            for alias in player.aliases:
+                controller.player_cache.update_cached_player(
+                    alias,
+                    functools.partial(
+                        KnownPlayer.update_winstreaks,
+                        **estimated_winstreaks,
+                        winstreaks_accurate=winstreaks_accurate,
+                    ),
+                )
+
+            # Tell the main thread that we got the estimated winstreak
+            completed_queue.put(username)
+            logger.debug(f"Updated missing winstreak for {username}")

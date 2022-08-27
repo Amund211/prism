@@ -1,18 +1,15 @@
-import functools
 import logging
 import queue
 import threading
 from collections.abc import Callable, Iterable
 
-from examples.overlay.behaviour import process_loglines, should_redraw
-from examples.overlay.controller import OverlayController
-from examples.overlay.get_stats import get_bedwars_stats
-from examples.overlay.player import (
-    MISSING_WINSTREAKS,
-    KnownPlayer,
-    Player,
-    sort_players,
+from examples.overlay.behaviour import (
+    get_stats_and_winstreak,
+    process_loglines,
+    should_redraw,
 )
+from examples.overlay.controller import OverlayController
+from examples.overlay.player import Player, sort_players
 
 logger = logging.getLogger(__name__)
 
@@ -60,38 +57,11 @@ class GetStatsThread(threading.Thread):
             while True:
                 username = self.requests_queue.get()
 
-                # get_bedwars_stats sets the stats cache which will be read from later
-                player = get_bedwars_stats(username, self.controller)
-
-                # Tell the main thread that we downloaded this user's stats
-                self.completed_queue.put(username)
-
-                logger.debug(f"Finished gettings stats for {username}")
-
-                if isinstance(player, KnownPlayer) and player.is_missing_winstreaks:
-                    (
-                        estimated_winstreaks,
-                        winstreaks_accurate,
-                    ) = self.controller.get_estimated_winstreaks(player.uuid)
-
-                    if estimated_winstreaks is MISSING_WINSTREAKS:
-                        logger.debug(
-                            f"Updating missing winstreak for {username} failed"
-                        )
-                    else:
-                        for alias in player.aliases:
-                            self.controller.player_cache.update_cached_player(
-                                alias,
-                                functools.partial(
-                                    KnownPlayer.update_winstreaks,
-                                    **estimated_winstreaks,
-                                    winstreaks_accurate=winstreaks_accurate,
-                                ),
-                            )
-
-                        # Tell the main thread that we got the estimated winstreak
-                        self.completed_queue.put(username)
-                        logger.debug(f"Updated missing winstreak for {username}")
+                get_stats_and_winstreak(
+                    username=username,
+                    completed_queue=self.completed_queue,
+                    controller=self.controller,
+                )
 
                 self.requests_queue.task_done()
         except Exception as e:

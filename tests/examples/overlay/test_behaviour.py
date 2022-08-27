@@ -2,18 +2,23 @@ import queue
 import threading
 import unittest.mock
 from collections.abc import Iterable
+from dataclasses import replace
+from typing import Any
 
 import pytest
 
 from examples.overlay.behaviour import (
     fast_forward_state,
+    get_stats_and_winstreak,
     process_loglines,
     set_hypixel_api_key,
     set_nickname,
     should_redraw,
 )
 from examples.overlay.controller import OverlayController
-from tests.examples.overlay.utils import MockedController, create_state
+from examples.overlay.player import MISSING_WINSTREAKS
+from tests.examples.overlay import test_get_stats
+from tests.examples.overlay.utils import MockedController, create_state, make_winstreaks
 
 USERNAME = "MyIGN"
 NICK = "AmazingNick"
@@ -232,3 +237,64 @@ def test_process_loglines(
     process_loglines(loglines, redraw_event, controller)
     assert controller == resulting_controller
     assert redraw_event.is_set() == redraw_event_set
+
+
+@pytest.mark.parametrize("winstreak_api_enabled", (True, False))
+@pytest.mark.parametrize("estimated_winstreaks", (True, False))
+def test_get_and_cache_stats(
+    winstreak_api_enabled: bool, estimated_winstreaks: bool
+) -> None:
+    base_user = test_get_stats.users["NickedPlayer"]
+
+    # For typing
+    assert base_user.playerdata is not None
+
+    playerdata_without_winstreaks: dict[str, Any] = {
+        **base_user.playerdata,
+        "stats": {"Bedwars": {}},
+    }
+    playerdata_with_winstreaks = {
+        **base_user.playerdata,
+        "stats": {
+            "Bedwars": {
+                "winstreak": 10,
+                "eight_one_winstreak": 10,
+                "eight_two_winstreak": 10,
+                "four_three_winstreak": 10,
+                "four_four_winstreak": 10,
+            }
+        },
+    }
+
+    user = (
+        replace(base_user, playerdata=playerdata_with_winstreaks)
+        if winstreak_api_enabled
+        else replace(base_user, playerdata=playerdata_without_winstreaks)
+    )
+    controller = test_get_stats.make_scenario_controller(user)
+
+    controller.get_estimated_winstreaks = (
+        lambda uuid: (
+            make_winstreaks(overall=100, solo=100, doubles=100, threes=100, fours=100),
+            True,
+        )
+        if estimated_winstreaks
+        else (MISSING_WINSTREAKS, False)
+    )
+
+    completed_queue = queue.Queue[str]()
+
+    # For typing
+    assert user.nick is not None
+
+    get_stats_and_winstreak(user.nick, completed_queue, controller)
+
+    # One update for getting the stats
+    assert completed_queue.get_nowait() == user.nick
+
+    # One update for getting estimated winstreaks
+    if not winstreak_api_enabled and estimated_winstreaks:
+        assert completed_queue.get_nowait() == user.nick
+    else:
+        with pytest.raises(queue.Empty):
+            completed_queue.get_nowait()
