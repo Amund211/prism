@@ -1,3 +1,4 @@
+import math
 import tkinter as tk
 from collections.abc import Callable
 
@@ -88,3 +89,22 @@ class Toolbar:
             background="black",
         )
         version_label.pack(side=tk.RIGHT, padx=(0, 5))
+
+        self.hide_countdown_label = tk.Label(
+            self.frame,
+            text="",
+            font=("Consolas", "10"),
+            foreground="white",
+            background="black",
+        )
+        self.hide_countdown_label.pack(side=tk.RIGHT, padx=(0, 5))
+
+        self.update_hide_countdown()
+
+    def update_hide_countdown(self) -> None:
+        time_until = self.window.time_until_hide
+        if time_until is None:
+            self.hide_countdown_label.configure(text="")
+        else:
+            self.hide_countdown_label.configure(text=f"Hiding: {math.ceil(time_until)}")
+        self.window.root.after(100, self.update_hide_countdown)

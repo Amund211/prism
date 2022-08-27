@@ -6,6 +6,7 @@ https://github.com/notatallshaw/fall_guys_ping_estimate/blob/main/fgpe/overlay.p
 """
 import logging
 import sys
+import time
 import tkinter as tk
 from traceback import format_exception
 from types import TracebackType
@@ -42,6 +43,7 @@ class OverlayWindow:
     def __init__(self, start_hidden: bool) -> None:
         """Set up window geometry to make the window an overlay"""
         self.hide_task_id: str | None = None
+        self.hide_due_at: float | None = None
         self.shown: bool  # Set below
 
         # Create a root window
@@ -75,6 +77,7 @@ class OverlayWindow:
     def schedule_hide(self, timeout: int) -> None:
         """Schedule a hide of the window in `timeout` ms"""
         self.cancel_scheduled_hide()
+        self.hide_due_at = time.monotonic() + timeout / 1000
         self.hide_task_id = self.root.after(timeout, self.hide)
 
     def cancel_scheduled_hide(self) -> None:
@@ -82,6 +85,17 @@ class OverlayWindow:
         if self.hide_task_id is not None:
             self.root.after_cancel(self.hide_task_id)
             self.hide_task_id = None
+
+        self.hide_due_at = None
+
+    @property
+    def time_until_hide(self) -> float | None:
+        """Return the seconds left until we hide, or None if none scheduled"""
+        due = self.hide_due_at
+        if due is None:
+            return None
+
+        return max(due - time.monotonic(), 0)
 
     def reset_position(self, event: "tk.Event[tk.Misc] | None" = None) -> None:
         """Reset the position of the overlay to the top left corner"""
