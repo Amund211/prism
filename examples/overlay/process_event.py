@@ -13,13 +13,7 @@ def process_event(controller: OverlayController, event: Event) -> bool:
     state = controller.state
 
     if event.event_type is EventType.INITIALIZE_AS:
-        if state.own_username is not None:
-            logger.warning(
-                f"Initializing as {event.username}, but "
-                f"already initialized as {state.own_username}"
-            )
-
-        # Initializing means the player restarted -> clear the state
+        # Initializing means the player restarted/switched accounts -> clear the state
         state.own_username = event.username
         state.clear_party()
         state.clear_lobby()
