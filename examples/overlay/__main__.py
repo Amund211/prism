@@ -10,13 +10,14 @@ import os
 import sys
 import time
 from collections.abc import Iterable
-from datetime import date
+from datetime import date, datetime
 from itertools import count
 from pathlib import Path
 
 from appdirs import AppDirs
 from tendo import singleton  # type: ignore
 
+from examples.overlay import VERSION_STRING
 from examples.overlay.behaviour import fast_forward_state
 from examples.overlay.commandline import get_options
 from examples.overlay.controller import OverlayController, RealOverlayController
@@ -253,6 +254,13 @@ def setup(loglevel: int = logging.WARNING, log_prefix: str = "") -> None:
         format="%(asctime)s;%(levelname)-8s;%(name)-30s;%(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
+
+    # Log system+version info
+    current_datestring = datetime.now().isoformat(timespec="seconds")
+    logger.setLevel(logging.DEBUG)
+    logger.debug(f"Starting prism overlay {VERSION_STRING} at {current_datestring}")
+    logger.debug(f"Running on {os.uname()}. Python {sys.version_info}")
+    logger.setLevel(loglevel)
 
 
 def test() -> None:
