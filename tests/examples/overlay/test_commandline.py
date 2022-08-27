@@ -11,7 +11,7 @@ def make_options(
     logfile: str | None = None,
     settings: str = DEFAULT_SETTINGS,
     output_to_console: bool = True,
-    loglevel: int = logging.ERROR,
+    loglevel: int = logging.INFO,
     threads: int = 16,
 ) -> Options:
     """Construct an Options instance from its components"""
@@ -30,11 +30,13 @@ test_cases: tuple[tuple[str, Options], ...] = (
     # Output to console
     ("-q", make_options(output_to_console=False)),
     # Logging verbosity
-    ("--verbose", make_options(loglevel=logging.WARNING)),
-    ("-v", make_options(loglevel=logging.WARNING)),
-    ("-vv", make_options(loglevel=logging.INFO)),
-    ("-vvv", make_options(loglevel=logging.DEBUG)),
-    ("-vvvv", make_options(loglevel=logging.DEBUG)),  # Too many v's
+    ("--verbose", make_options(loglevel=logging.CRITICAL)),
+    ("-v", make_options(loglevel=logging.CRITICAL)),
+    ("-vv", make_options(loglevel=logging.ERROR)),
+    ("-vvv", make_options(loglevel=logging.WARNING)),
+    ("-vvvv", make_options(loglevel=logging.INFO)),
+    ("-vvvvv", make_options(loglevel=logging.DEBUG)),
+    ("-vvvvvv", make_options(loglevel=logging.DEBUG)),  # Too many v's
     # Logfile
     ("-l someotherlogfile", make_options("someotherlogfile")),
     ("--logfile someotherlogfile", make_options("someotherlogfile")),
@@ -54,7 +56,7 @@ test_cases: tuple[tuple[str, Options], ...] = (
         make_options("somelogfile", settings="s.toml"),
     ),
     (
-        "--settings s.toml -l somelogfile --quiet -vvvv",
+        "--settings s.toml -l somelogfile --quiet -vvvvv",
         make_options(
             "somelogfile",
             settings="s.toml",
