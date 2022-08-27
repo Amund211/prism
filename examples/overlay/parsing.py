@@ -134,10 +134,12 @@ def parse_chat_message(message: str) -> ChatEvent | None:
             logger.debug("Message too long")
             return None
 
+        logger.debug(f"Parsing passed. New key: {words[5]}")
         return NewAPIKeyEvent(words[5])
 
     if message.startswith("You are now nicked as "):
         # Info [CHAT] You are now nicked as AmazingNick!
+        logger.debug("Processing potential new nickname")
         words = message.split(" ")
         if not words_match(words[:-1], "You are now nicked as"):
             return None
@@ -145,19 +147,24 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         if words[-1][-1] != "!":
             return None
 
+        logger.debug(f"Parsing passed. New nickname: {words[-1][:-1]}")
         return NewNicknameEvent(words[-1][:-1])
 
     if message.startswith("Sending you to "):
+        logger.debug("Parsing passed. Swapping lobby")
         return LobbySwapEvent()
 
     if message == "You were sent to a lobby because someone in your party left!":
+        logger.debug("Parsing passed. Swapping lobby")
         return LobbySwapEvent()
 
     if message == "Protect your bed and destroy the enemy beds.":
+        logger.debug("Parsing passed. Starting game")
         return StartBedwarsGameEvent()
 
     if message.startswith("1st Killer "):
         # Info [CHAT]                     1st Killer - [MVP+] Player1 - 7
+        logger.debug("Parsing passed. Ending game")
         return EndBedwarsGameEvent()
 
     if " has joined (" in message:
@@ -178,7 +185,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
         lobby_fill_string = words[3]
         if not re.fullmatch(r"\(\d+\/\d+\)\!", lobby_fill_string):
-            logger.debug("Fill string '{lobby_fill_string}' does not match '(x/N)!'")
+            logger.debug(f"Fill string '{lobby_fill_string}' does not match '(x/N)!'")
             return None
 
         # Message is a join message
@@ -186,6 +193,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         player_count = int(prefix.removeprefix("("))
         player_cap = int(suffix.removesuffix(")!"))
 
+        logger.debug(f"Parsing passed. {username} joined ({player_count}/{player_cap}")
         return LobbyJoinEvent(
             username=username, player_count=player_count, player_cap=player_cap
         )
@@ -206,15 +214,18 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
         username = words[0]
 
+        logger.debug(f"Parsing passed. {username} quit")
         return LobbyLeaveEvent(username)
 
     # Party changes
     if message.startswith("You left the party."):
         # Info [CHAT] You left the party.
+        logger.debug("Parsing passed. You left the party")
         return PartyDetachEvent()
 
     if message.startswith("You are not currently in a party."):
         # Info [CHAT] You are not currently in a party.
+        logger.debug("Parsing passed. You are not in a party")
         return PartyDetachEvent()
 
     if (
@@ -223,10 +234,12 @@ def parse_chat_message(message: str) -> ChatEvent | None:
     ):
         # Info [CHAT] The party was disbanded because all invites expired
         # and the party was empty
+        logger.debug("Parsing passed. Party disbanded")
         return PartyDetachEvent()
 
     if " has disbanded the party!" in message:
         # Info [CHAT] [MVP++] Player1 has disbanded the party!
+        logger.debug("Processing potential party disband message")
         clean = remove_ranks(message)
         words = clean.split(" ")
 
@@ -238,10 +251,12 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         if not words_match(words[1:], "has disbanded the party!"):
             return None
 
+        logger.debug(f"Parsing passed. {words[0]} disbanded the party")
         return PartyDetachEvent()
 
     if message.startswith("You have been kicked from the party by "):
         # Info [CHAT] You have been kicked from the party by [MVP+] <username>
+        logger.debug("Parsing passed. You were kicked")
         return PartyDetachEvent()
 
     PARTY_YOU_JOIN_PREFIX = "You have joined "
@@ -260,15 +275,18 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         ranked_player_string = suffix[:apostrophe_index]
         username = remove_ranks(ranked_player_string)
 
+        logger.debug(f"Parsing passed. You joined {username}'s party")
         return PartyAttachEvent(username)
 
     PARTYING_WITH_PREFIX = "You'll be partying with: "
     if message.startswith(PARTYING_WITH_PREFIX):
         # Info [CHAT] You'll be partying with: Player2, [MVP++] Player3, [MVP+] Player4
+        logger.debug("Processing potential partying with message")
         suffix = message.removeprefix(PARTYING_WITH_PREFIX)
 
         names = remove_ranks(suffix)
 
+        logger.debug(f"Parsing passed. Partying with {names}")
         return PartyJoinEvent(names.split(", "))
 
     if " joined the party" in message:
@@ -288,6 +306,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
         username = words[0]
 
+        logger.debug(f"Parsing passed. {username} joined the party")
         return PartyJoinEvent([username])
 
     if " has left the party" in message:
@@ -307,6 +326,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
         username = words[0]
 
+        logger.debug(f"Parsing passed. {username} left the party")
         return PartyLeaveEvent([username])
 
     if " has been removed from the party." in message:
@@ -326,10 +346,12 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
         username = words[0]
 
+        logger.debug(f"Parsing passed. {username} was kicked")
         return PartyLeaveEvent([username])
 
     if " was removed from the party because they disconnected" in message:
         # [MVP+] Player1 was removed from the party because they disconnected"
+        logger.debug("Processing potential party they disconnected message")
         cleaned = remove_ranks(message)
         words = cleaned.split(" ")
         if len(words) < 9:  # pragma: no cover
@@ -343,6 +365,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
         username = words[0]
 
+        logger.debug(f"Parsing passed. {username} was kicked for disconnecting")
         return PartyLeaveEvent([username])
 
     PARTY_KICK_OFFLINE_PREFIX = "Kicked "
@@ -350,6 +373,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         message.startswith(PARTY_KICK_OFFLINE_PREFIX)
         and " because they were offline." in message
     ):
+        logger.debug("Processing potential party kickoffline message")
         # Info [CHAT] Kicked [VIP] <username1>, <username2> because they were offline.
         suffix = message.removeprefix(PARTY_KICK_OFFLINE_PREFIX)
         cleaned = remove_ranks(suffix)
@@ -363,11 +387,13 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
         usernames = " ".join(words[:-4]).split(", ")
 
+        logger.debug(f"Parsing passed. {', '.join(usernames)} were kickoffline'd")
         return PartyLeaveEvent(usernames)
 
     TRANSFER_PREFIX = "The party was transferred to "
     if message.startswith(TRANSFER_PREFIX):
         # Info [CHAT] ... transferred to [VIP] <someone> because [MVP++] <username> left
+        logger.debug("Processing potential party transfer leave message")
         suffix = message.removeprefix(TRANSFER_PREFIX)
         without_ranks = remove_ranks(suffix)
 
@@ -382,6 +408,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
         username = words[2]
 
+        logger.debug(f"Parsing passed. {username} left")
         return PartyLeaveEvent([username])
     """
     # noqa: W291
@@ -399,6 +426,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         # Info [CHAT] Party Members (<n>)
         # This is a response from /pl (/party list)
 
+        logger.debug("Parsing passed. Party list response incoming")
         return PartyListIncomingEvent()
 
     roles: Final = ("leader", "moderators", "members")
@@ -413,11 +441,13 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
             players = clean_string.split(" ")
 
+            logger.debug(f"Parsing passed. Party {role=} are {players}")
             # I can't for the life of me get the literal types here
             return PartyMembershipListEvent(usernames=players, role=role)  # type:ignore
 
     WHISPER_COMMAND_PREFIX = "Can't find a player by the name of '!"
     if message.startswith(WHISPER_COMMAND_PREFIX):
+        logger.debug("Processing potential whisper command")
         command = message.removeprefix(WHISPER_COMMAND_PREFIX)
         if not command:
             logger.debug("Whisper command too short")
@@ -437,6 +467,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
             nick, username = arguments
 
+            logger.debug(f"Parsing passed. Setting nick {nick=}->{username=}")
             return WhisperCommandSetNickEvent(
                 nick=nick, username=username if username else None
             )

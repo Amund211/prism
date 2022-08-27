@@ -29,7 +29,7 @@ def process_event(controller: OverlayController, event: Event) -> bool:
 
     if event.event_type is EventType.NEW_NICKNAME:
         # User got a new nickname
-        logger.info("Setting new nickname")
+        logger.info(f"Setting new nickname {event.nick}={state.own_username}")
         if state.own_username is None:
             logger.warning(
                 "Own username is not set, could not add denick entry for {event.nick}."
@@ -44,7 +44,7 @@ def process_event(controller: OverlayController, event: Event) -> bool:
 
     if event.event_type is EventType.LOBBY_SWAP:
         # Changed lobby -> clear the lobby
-        logger.info("Clearing the lobby")
+        logger.info("Received lobby swap. Clearing the lobby")
         state.clear_lobby()
         state.leave_queue()
 
@@ -76,7 +76,7 @@ def process_event(controller: OverlayController, event: Event) -> bool:
 
             if event.player_count < len(state.lobby_players):
                 # We know of too many players, some must actually not be in the lobby
-                logger.info("Too many players in lobby. Clearing.")
+                logger.debug("Too many players in lobby. Clearing.")
                 state.clear_lobby()
                 state.add_to_lobby(event.username)
 
@@ -183,5 +183,6 @@ def process_event(controller: OverlayController, event: Event) -> bool:
 
     if event.event_type is EventType.WHISPER_COMMAND_SET_NICK:
         # User set a nick with /w !nick=username
+        logger.info(f"Setting nick from whisper command {event.nick}={event.username}")
         set_nickname(username=event.username, nick=event.nick, controller=controller)
         return True
