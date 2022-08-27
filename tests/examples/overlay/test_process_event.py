@@ -173,7 +173,7 @@ process_event_test_cases_base: tuple[
         MockedController(state=create_state(own_username=None)),
         NewNicknameEvent("AmazingNick"),
         MockedController(state=create_state(own_username=None)),
-        True,
+        False,
     ),
     (
         # Party leave when own username is unknown

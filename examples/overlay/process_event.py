@@ -28,10 +28,11 @@ def process_event(controller: OverlayController, event: Event) -> bool:
             logger.warning(
                 "Own username is not set, could not add denick entry for {event.nick}."
             )
-        else:
-            set_nickname(
-                username=state.own_username, nick=event.nick, controller=controller
-            )
+            return False
+
+        set_nickname(
+            username=state.own_username, nick=event.nick, controller=controller
+        )
 
         # We should redraw so that we can properly denick ourself
         return True
