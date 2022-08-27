@@ -47,7 +47,9 @@ def process_event(controller: OverlayController, event: Event) -> bool:
 
     if event.event_type is EventType.LOBBY_LIST:
         # Results from /who -> override lobby_players
-        logger.info("Updating lobby players from who command")
+        logger.info(
+            f"Updating lobby players from who command: '{', '.join(event.usernames)}'"
+        )
         state.out_of_sync = False
         state.join_queue()
         state.set_lobby(event.usernames)
