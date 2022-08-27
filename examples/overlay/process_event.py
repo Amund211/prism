@@ -85,7 +85,10 @@ def process_event(controller: OverlayController, event: Event) -> bool:
             # We are in sync now
             state.out_of_sync = False
 
-        logger.info(f"{event.username} joined your lobby")
+        logger.info(
+            f"{event.username} joined your lobby "
+            f"({event.player_count}/{event.player_cap})"
+        )
 
         return True
 
