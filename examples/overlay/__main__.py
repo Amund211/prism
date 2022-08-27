@@ -7,6 +7,7 @@ Run from the root dir by `python -m examples.overlay [--logfile <path-to-logfile
 import functools
 import logging
 import os
+import platform
 import sys
 import time
 from collections.abc import Iterable
@@ -259,7 +260,7 @@ def setup(loglevel: int = logging.WARNING, log_prefix: str = "") -> None:
     current_datestring = datetime.now().isoformat(timespec="seconds")
     logger.setLevel(logging.DEBUG)
     logger.debug(f"Starting prism overlay {VERSION_STRING} at {current_datestring}")
-    logger.debug(f"Running on {os.uname()}. Python {sys.version_info}")
+    logger.debug(f"Running on {platform.uname()}. Python {platform.python_version()}")
     logger.setLevel(loglevel)
 
 
