@@ -1,5 +1,3 @@
-import os
-import sys
 import time
 from collections.abc import Callable
 
@@ -8,13 +6,6 @@ from examples.overlay.output.overlay.stats_overlay import StatsOverlay
 from examples.overlay.output.overlay.utils import CellValue, OverlayRow, player_to_row
 from examples.overlay.output.utils import COLUMN_NAMES, COLUMN_ORDER
 from examples.overlay.player import Player, PropertyName
-
-if os.name == "nt":  # pragma: nocover
-    from examples.overlay.platform.windows import toggle_fullscreen
-
-    FULLSCREEN_CALLBACK: Callable[[], None] | None = toggle_fullscreen
-else:  # pragma: nocover
-    FULLSCREEN_CALLBACK = None
 
 
 def run_overlay(
@@ -56,20 +47,13 @@ def run_overlay(
             new_rows,
         )
 
-    def set_not_in_queue() -> None:
-        with controller.state.mutex:
-            controller.state.in_queue = False
-
     overlay = StatsOverlay[PropertyName](
         column_order=COLUMN_ORDER,
         column_names=COLUMN_NAMES,
         left_justified_columns={0},
         controller=controller,
-        close_callback=lambda: sys.exit(0),
-        minimize_callback=set_not_in_queue,
         get_new_data=get_new_data,
         poll_interval=100,
         start_hidden=False,
-        fullscreen_callback=FULLSCREEN_CALLBACK,
     )
     overlay.run()

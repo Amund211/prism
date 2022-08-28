@@ -1,9 +1,23 @@
 import math
+import os
+import sys
 import tkinter as tk
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from examples.overlay import VERSION_STRING
-from examples.overlay.output.overlay.overlay_window import OverlayWindow
+from examples.overlay.controller import OverlayController
+
+if TYPE_CHECKING:
+    from examples.overlay.output.overlay.stats_overlay import StatsOverlay
+    from examples.overlay.output.overlay.utils import ColumnKey
+
+if os.name == "nt":  # pragma: nocover
+    from examples.overlay.platform.windows import toggle_fullscreen
+
+    FULLSCREEN_CALLBACK: Callable[[], None] | None = toggle_fullscreen
+else:  # pragma: nocover
+    FULLSCREEN_CALLBACK = None
 
 
 class Toolbar:
@@ -12,14 +26,11 @@ class Toolbar:
     def __init__(
         self,
         parent: tk.Misc,
-        window: OverlayWindow,
-        close_callback: Callable[[], None],
-        minimize_callback: Callable[[], None],
-        settings_callback: Callable[[], None],
-        fullscreen_callback: Callable[[], None] | None,
+        overlay: "StatsOverlay[ColumnKey]",
+        controller: OverlayController,
     ) -> None:
         """Set up a frame containing the toolbar for the overlay"""
-        self.window = window
+        self.overlay = overlay
 
         self.frame = tk.Frame(parent, background="black")
 
@@ -33,9 +44,15 @@ class Toolbar:
         )
         grip_label.pack(side=tk.LEFT, padx=(3, 5))
 
-        grip_label.bind("<ButtonPress-1>", self.window.start_move)
-        grip_label.bind("<B1-Motion>", self.window.do_move)
-        grip_label.bind("<Double-Button-1>", self.window.reset_position)
+        grip_label.bind("<ButtonPress-1>", self.overlay.window.start_move)
+        grip_label.bind("<B1-Motion>", self.overlay.window.do_move)
+        grip_label.bind("<Double-Button-1>", self.overlay.window.reset_position)
+
+        def toggle_settings_page() -> None:
+            if self.overlay.current_page == "settings":
+                self.overlay.switch_page("main")
+            else:
+                self.overlay.switch_page("settings")
 
         # Settings button
         settings_button = tk.Button(
@@ -45,12 +62,12 @@ class Toolbar:
             foreground="white",
             background="black",
             highlightthickness=0,
-            command=settings_callback,
+            command=toggle_settings_page,
             relief="flat",
         )
         settings_button.pack(side=tk.LEFT)
 
-        if fullscreen_callback is not None:
+        if FULLSCREEN_CALLBACK is not None:
             # Fullscreen button
             fullscreen_button = tk.Button(
                 self.frame,
@@ -59,7 +76,7 @@ class Toolbar:
                 foreground="white",
                 background="black",
                 highlightthickness=0,
-                command=fullscreen_callback,
+                command=FULLSCREEN_CALLBACK,
                 relief="flat",
             )
             fullscreen_button.pack(side=tk.LEFT)
@@ -72,16 +89,17 @@ class Toolbar:
             foreground="white",
             background="black",
             highlightthickness=0,
-            command=close_callback,
+            command=sys.exit,
             relief="flat",
         )
         close_button.pack(side=tk.RIGHT)
 
         # Minimize button
         def minimize() -> None:
-            minimize_callback()
+            with controller.state.mutex:
+                controller.state.in_queue = False
 
-            self.window.hide()
+            self.overlay.window.hide()
 
         minimize_button = tk.Button(
             self.frame,
@@ -116,9 +134,9 @@ class Toolbar:
         self.update_hide_countdown()
 
     def update_hide_countdown(self) -> None:
-        time_until = self.window.time_until_hide
+        time_until = self.overlay.window.time_until_hide
         if time_until is None:
             self.hide_countdown_label.configure(text="")
         else:
             self.hide_countdown_label.configure(text=f"Hiding: {math.ceil(time_until)}")
-        self.window.root.after(100, self.update_hide_countdown)
+        self.overlay.window.root.after(100, self.update_hide_countdown)

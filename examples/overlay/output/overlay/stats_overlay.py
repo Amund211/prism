@@ -25,9 +25,6 @@ class StatsOverlay(Generic[ColumnKey]):
         column_names: dict[ColumnKey, str],
         left_justified_columns: set[int],
         controller: OverlayController,
-        close_callback: Callable[[], None],
-        minimize_callback: Callable[[], None],
-        fullscreen_callback: Callable[[], None] | None,
         get_new_data: Callable[
             [], tuple[bool, list[CellValue], list[OverlayRow[ColumnKey]] | None]
         ],
@@ -47,6 +44,7 @@ class StatsOverlay(Generic[ColumnKey]):
         self.current_page: Page = "main"
 
         self.window = OverlayWindow(start_hidden=start_hidden)
+        self.controller = controller
 
         # Frame for the current page
         self.page_frame = tk.Frame(self.window.root, background="black")
@@ -61,11 +59,28 @@ class StatsOverlay(Generic[ColumnKey]):
         )
         self.main_content.frame.pack(side=tk.TOP, fill=tk.BOTH)
 
-        def open_settings_page() -> None:
-            """Hide main content and open settings"""
-            if self.current_page != "main":
-                logger.warning(f"Closing main content from {self.current_page}")
-                return
+        # Add the settings page
+        self.settings_page = SettingsPage(self.page_frame, self, controller)
+
+        # Add the toolbar
+        self.toolbar = Toolbar(
+            parent=self.window.root, overlay=self, controller=self.controller
+        )
+        self.toolbar.frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+
+        self.window.root.update_idletasks()
+
+    def switch_page(self, new_page: Page) -> None:
+        """Switch to the given page"""
+        if self.current_page == new_page:
+            logger.warning(f"Switching from {new_page} to itself")
+            return
+
+        if new_page == "main":
+            self.current_page = "main"
+            self.settings_page.frame.pack_forget()
+            self.main_content.frame.pack(side=tk.TOP, fill=tk.BOTH)
+        else:
             # Don't hide while the user is editing their settings
             self.window.cancel_scheduled_hide()
 
@@ -73,35 +88,6 @@ class StatsOverlay(Generic[ColumnKey]):
             self.settings_page.set_content(self.controller.settings)
             self.main_content.frame.pack_forget()
             self.settings_page.frame.pack(side=tk.TOP, fill=tk.BOTH)
-
-        def close_settings_page() -> None:
-            """Hide settings and open main content"""
-            if self.current_page != "settings":
-                logger.warning(f"Closing settings from {self.current_page}")
-                return
-            self.current_page = "main"
-            self.settings_page.frame.pack_forget()
-            self.main_content.frame.pack(side=tk.TOP, fill=tk.BOTH)
-
-        # Add the settings page
-        self.settings_page = SettingsPage(
-            self.page_frame,
-            close_settings_page=close_settings_page,
-            update_settings=print,
-        )
-
-        # Add the toolbar
-        self.toolbar = Toolbar(
-            parent=self.window.root,
-            window=self.window,
-            close_callback=close_callback,
-            minimize_callback=minimize_callback,
-            settings_callback=open_settings_page,
-            fullscreen_callback=fullscreen_callback,
-        )
-        self.toolbar.frame.pack(side=tk.TOP, expand=True, fill=tk.X)
-
-        self.window.root.update_idletasks()
 
     def update_overlay(self) -> None:
         """Get new data to be displayed and display it"""

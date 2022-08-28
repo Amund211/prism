@@ -1,7 +1,12 @@
 import tkinter as tk
-from typing import Callable
+from typing import TYPE_CHECKING
 
+from examples.overlay.controller import OverlayController
 from examples.overlay.settings import NickValue, Settings, SettingsDict
+
+if TYPE_CHECKING:
+    from examples.overlay.output.overlay.stats_overlay import StatsOverlay
+    from examples.overlay.output.overlay.utils import ColumnKey
 
 
 class HypixelSection:
@@ -111,14 +116,14 @@ class SettingsPage:
     def __init__(
         self,
         parent: tk.Misc,
-        close_settings_page: Callable[[], None],
-        update_settings: Callable[[SettingsDict], None],
+        overlay: "StatsOverlay[ColumnKey]",
+        controller: OverlayController,
     ) -> None:
         """Set up a frame containing the settings page for the overlay"""
         self.frame = tk.Frame(parent, background="black")
 
-        self.update_settings = update_settings
-        self.close_settings_page = close_settings_page
+        self.overlay = overlay
+        self.controller = controller
 
         # Frame for the save and cancel buttons
         self.controls_frame = tk.Frame(self.frame, background="black")
@@ -145,7 +150,7 @@ class SettingsPage:
             font=("Consolas", "14"),
             foreground="white",
             background="black",
-            command=self.close_settings_page,
+            command=lambda: self.overlay.switch_page("main"),
             relief="flat",
         )
         cancel_button.pack(side=tk.RIGHT, padx=(0, 5))
@@ -199,7 +204,7 @@ class SettingsPage:
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
         known_nicks: dict[str, NickValue] = {}
 
-        self.update_settings(
+        print(
             SettingsDict(
                 hypixel_api_key=hypixel_api_key,
                 antisniper_api_key=antisniper_api_key,
@@ -209,4 +214,4 @@ class SettingsPage:
         )
 
         # Go back to the main content
-        self.close_settings_page()
+        self.overlay.switch_page("main")
