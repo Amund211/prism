@@ -35,6 +35,7 @@ CLIENT_INFO_PREFIXES = (
     "(Client thread) Info ",  # Vanilla and forge launcher_log.txt
     "[Client thread/INFO]: ",  # Vanilla and forge latest.log
     "INFO]: [LC] ",  # Lunar client
+    "[Client thread/INFO]: [LC]",  # New lunar
 )
 
 # Vanilla and forge
@@ -72,6 +73,24 @@ def get_lowest_index(source: str, *strings: str) -> str | None:
     return result
 
 
+def get_highest_index(source: str, *strings: str) -> str | None:
+    """
+    Return the substring that ends at the highest index in source
+
+    If none of the strings are strings of source, return None.
+    """
+
+    # Store result intermediately to circumvent mypy bug
+    # https://github.com/python/mypy/issues/5874
+    result = max(
+        filter(lambda s: s in source, strings),
+        key=lambda s: source.index(s) + len(s),
+        default=None,
+    )
+
+    return result
+
+
 def parse_logline(logline: str) -> Event | None:
     """Parse a log line to detect players leaving or joining the lobby/party"""
 
@@ -79,7 +98,7 @@ def parse_logline(logline: str) -> Event | None:
     if chat_prefix is not None:
         return parse_chat_message(strip_until(logline, until=chat_prefix))
 
-    client_info_prefix = get_lowest_index(logline, *CLIENT_INFO_PREFIXES)
+    client_info_prefix = get_highest_index(logline, *CLIENT_INFO_PREFIXES)
     if client_info_prefix is not None:
         return parse_client_info(strip_until(logline, until=client_info_prefix))
 

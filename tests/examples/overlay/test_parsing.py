@@ -26,6 +26,7 @@ from examples.overlay.events import (
 from examples.overlay.parsing import (
     CHAT_PREFIXES,
     CLIENT_INFO_PREFIXES,
+    get_highest_index,
     get_lowest_index,
     parse_chat_message,
     parse_logline,
@@ -86,6 +87,24 @@ def test_remove_ranks(rank_string: str, name_string: str) -> None:
 )
 def test_get_lowest_index(source: str, substrings: tuple[str], result: str) -> None:
     assert get_lowest_index(source, *substrings) == result
+
+
+@pytest.mark.parametrize(
+    "source, substrings, result",
+    (
+        ("a b c d", ("b", "f"), "b"),
+        ("a b c d", ("b", "a"), "b"),
+        ("a b c d", ("e", "f"), None),
+        (
+            "[CLIENT/INFO] [LC] payload",
+            ("[CLIENT/INFO] ", "[CLIENT/INFO] [LC] "),
+            "[CLIENT/INFO] [LC] ",
+        ),
+        ("a b c d", (), None),
+    ),
+)
+def test_get_highest_index(source: str, substrings: tuple[str], result: str) -> None:
+    assert get_highest_index(source, *substrings) == result
 
 
 @pytest.mark.parametrize(
@@ -267,6 +286,11 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     (
         # Initialize as on lunar
         "[15:03:32] [ForkJoinPool.commonPool-worker-3/INFO]: [LC] Setting user: Player1",
+        InitializeAsEvent("Player1"),
+    ),
+    (
+        # Initialize as on new lunar
+        "[16:54:15] [Client thread/INFO]: [LC] Setting user: Player1",
         InitializeAsEvent("Player1"),
     ),
     (
