@@ -76,18 +76,29 @@ class StatsOverlay(Generic[ColumnKey]):
             logger.warning(f"Switching from {new_page} to itself")
             return
 
-        if new_page == "main":
-            self.current_page = "main"
+        # Unmount current content
+        if self.current_page == "main":
+            self.main_content.frame.pack_forget()
+        elif self.current_page == "settings":
             self.settings_page.frame.pack_forget()
-            self.main_content.frame.pack(side=tk.TOP, fill=tk.BOTH)
         else:
+            # For typing assert unreached
+            return False
+
+        # Mount new content
+        if new_page == "main":
+            self.main_content.frame.pack(side=tk.TOP, fill=tk.BOTH)
+        elif new_page == "settings":
             # Don't hide while the user is editing their settings
             self.window.cancel_scheduled_hide()
 
-            self.current_page = "settings"
             self.settings_page.set_content(self.controller.settings)
-            self.main_content.frame.pack_forget()
             self.settings_page.frame.pack(side=tk.TOP, fill=tk.BOTH)
+        else:
+            # For typing assert unreached
+            return False
+
+        self.current_page = new_page
 
     def update_overlay(self) -> None:
         """Get new data to be displayed and display it"""
