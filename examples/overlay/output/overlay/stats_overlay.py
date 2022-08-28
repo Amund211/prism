@@ -76,6 +76,9 @@ class StatsOverlay(Generic[ColumnKey]):
             logger.warning(f"Switching from {new_page} to itself")
             return
 
+        # Don't hide while the user is interacting with the GUI
+        self.window.cancel_scheduled_hide()
+
         # Unmount current content
         if self.current_page == "main":
             self.main_content.frame.pack_forget()
@@ -89,9 +92,6 @@ class StatsOverlay(Generic[ColumnKey]):
         if new_page == "main":
             self.main_content.frame.pack(side=tk.TOP, fill=tk.BOTH)
         elif new_page == "settings":
-            # Don't hide while the user is editing their settings
-            self.window.cancel_scheduled_hide()
-
             self.settings_page.set_content(self.controller.settings)
             self.settings_page.frame.pack(side=tk.TOP, fill=tk.BOTH)
         else:
