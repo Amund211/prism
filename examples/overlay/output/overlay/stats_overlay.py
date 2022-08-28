@@ -1,14 +1,16 @@
+import logging
 import tkinter as tk
 from collections.abc import Callable, Sequence
 from typing import Generic, Literal
 
+from examples.overlay.controller import OverlayController
 from examples.overlay.output.overlay.main_content import MainContent
 from examples.overlay.output.overlay.overlay_window import OverlayWindow
 from examples.overlay.output.overlay.settings_page import SettingsPage
 from examples.overlay.output.overlay.toolbar import Toolbar
 from examples.overlay.output.overlay.utils import CellValue, ColumnKey, OverlayRow
-from examples.overlay.settings import Settings
-from examples.overlay.controller import OverlayController
+
+logger = logging.getLogger(__name__)
 
 Page = Literal["settings", "main"]
 
@@ -62,6 +64,7 @@ class StatsOverlay(Generic[ColumnKey]):
         def open_settings_page() -> None:
             """Hide main content and open settings"""
             if self.current_page != "main":
+                logger.warning(f"Closing main content from {self.current_page}")
                 return
             # Don't hide while the user is editing their settings
             self.window.cancel_scheduled_hide()
@@ -74,6 +77,7 @@ class StatsOverlay(Generic[ColumnKey]):
         def close_settings_page() -> None:
             """Hide settings and open main content"""
             if self.current_page != "settings":
+                logger.warning(f"Closing settings from {self.current_page}")
                 return
             self.current_page = "main"
             self.settings_page.frame.pack_forget()
