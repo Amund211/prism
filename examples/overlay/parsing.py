@@ -94,10 +94,16 @@ def get_highest_index(source: str, *strings: str) -> str | None:
 def parse_logline(logline: str) -> Event | None:
     """Parse a log line to detect players leaving or joining the lobby/party"""
 
+    # Get the lowest index of any of the chat prefixes to find the message
+    # This prevents users being able to inject a payload by typing a message
+    # starting with the log prefix
     chat_prefix = get_lowest_index(logline, *CHAT_PREFIXES)
     if chat_prefix is not None:
         return parse_chat_message(strip_until(logline, until=chat_prefix))
 
+    # Since we have assumed that we have filtered all chatlines, these lines are not
+    # user controlled, and we are safe to not use the lowest index.
+    # Instead we use the highest index as some prefixes share a prefix.
     client_info_prefix = get_highest_index(logline, *CLIENT_INFO_PREFIXES)
     if client_info_prefix is not None:
         return parse_client_info(strip_until(logline, until=client_info_prefix))
