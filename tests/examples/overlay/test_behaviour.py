@@ -163,6 +163,26 @@ INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.m
                 )
             ),
         ),
+        (
+            # Excerpt from new multiver lunar logfile
+            MockedController(state=create_state(own_username=None)),
+            (
+                "[16:54:00] [Client thread/INFO]: Setting user: Player595",  # Strange
+                "[16:54:00] [Client thread/INFO]: (Session ID is token:0:Player595)",
+                "[16:54:12] [Client thread/INFO]: [LC Accounts] Loaded content for [YourIGN] Token IAT",  # noqa: E501
+                "[16:54:12] [Client thread/INFO]: [LC Accounts] Starting Refreshing YourIGN with -4241459972ms till expired (Valid: false).",  # noqa: E501
+                "[16:54:15] [Client thread/INFO]: [LC Accounts] Finishing Refreshing YourIGN (Valid: true).",  # noqa: E501
+                "[16:54:15] [Client thread/INFO]: [LC Accounts] Logging into account YourIGN ",  # noqa: E501
+                "[16:54:15] [Client thread/INFO]: [LC] Setting user: YourIGN",
+                "[16:54:15] [Client thread/INFO]: [LC Accounts] Able to login YourIGN",
+                "[16:54:17] [WebSocketConnectReadThread-73/INFO]: [LC Assets] Connection established as YourIGN",  # noqa: E501
+                "[16:54:59] [Client thread/INFO]: Connecting to mc.hypixel.net, 25565",
+                "[16:55:01] [Client thread/INFO]: [CHAT]                                      ",  # noqa: E501
+                "[16:55:01] [Client thread/INFO]: [CHAT]                          ",
+                "[16:55:01] [Client thread/INFO]: [CHAT] --------------  Guild: Message Of The Day  --------------",  # noqa: E501
+            ),
+            MockedController(state=create_state(own_username="YourIGN")),
+        ),
     ),
 )
 def test_fast_forward_state(
