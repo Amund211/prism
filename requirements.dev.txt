@@ -1,4 +1,6 @@
 -r requirements.txt
+Pillow
+types-Pillow
 pyinstaller
 coverage
 pytest

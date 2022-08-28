@@ -41,8 +41,6 @@ jobs:
         python -m venv venv
         source ${{ env.ACTIVATE_PATH }}
         python -m pip install -r requirements.dev.txt
-        # For converting .ico to .icns in pyinstaller
-        python -m pip install Pillow
 
     - name: Run typechecking
       run: |
@@ -58,7 +56,8 @@ jobs:
     - name: Build single file binary with pyinstaller
       run: |
         source ${{ env.ACTIVATE_PATH }}
-        pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who.ico --name prism-${{ matrix.os }}
+        python add_version_to_icon.py
+        pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who_with_version.ico --name prism-${{ matrix.os }}
 
     - name: Upload built binary
       uses: actions/upload-artifact@v2

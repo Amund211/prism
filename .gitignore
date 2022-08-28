@@ -7,3 +7,4 @@ venv/
 dist/
 build/
 src/*.egg-info/
+pyinstaller/who_with_version.ico
