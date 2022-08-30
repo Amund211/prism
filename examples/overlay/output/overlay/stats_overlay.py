@@ -75,7 +75,9 @@ class StatsOverlay(Generic[ColumnKey]):
         if self.window.shown:
             # Update the table with the new rows
             # Fall back to the last new rows from when the table was hidden
-            self.main_content.update_content(info_cells, new_rows or self.last_new_rows)
+            self.main_content.update_content(
+                info_cells, new_rows if new_rows is not None else self.last_new_rows
+            )
             self.last_new_rows = None  # Discard any stored rows
         else:
             # Do not update the table when it is hidden, but keep track of the most
