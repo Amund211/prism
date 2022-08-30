@@ -89,6 +89,7 @@ def set_hypixel_api_key(new_key: str, /, controller: OverlayController) -> None:
 
 def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -> None:
     """Process the state changes for each logline without outputting anything"""
+    logger.info("Fast forwarding state")
     for line in loglines:
         event = parse_logline(line)
 
@@ -96,6 +97,7 @@ def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -
             continue
 
         process_event(controller, event)
+    logger.info("Done fast forwarding state")
 
 
 def process_loglines(
