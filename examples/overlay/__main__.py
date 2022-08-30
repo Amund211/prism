@@ -62,10 +62,11 @@ def slow_iterable(iterable: Iterable[str], wait: float = 1) -> Iterable[str]:
     print("Done yielding")
 
 
-def tail_file_with_reopen(path: Path, timeout: float = 30) -> Iterable[str]:
+def tail_file_with_reopen(
+    path: Path, start_at: int, timeout: float = 30
+) -> Iterable[str]:
     """Iterate over new lines in a file, reopen the file when stale"""
-    # Seek to the end of the first file we open
-    last_position = 0
+    last_position = start_at
 
     while True:
         last_read = time.monotonic()
@@ -189,8 +190,9 @@ def watch_from_logfile(
         # Process the entire logfile to get current player as well as potential
         # current party/lobby
         fast_forward_state(controller, logfile.readlines())
+        final_position = logfile.tell()
 
-    loglines = tail_file_with_reopen(logpath)
+    loglines = tail_file_with_reopen(logpath, start_at=final_position)
 
     # Process the rest of the loglines as they come in
     if not overlay:
