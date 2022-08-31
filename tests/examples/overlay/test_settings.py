@@ -73,6 +73,15 @@ def test_settings_from_dict(settings_dict: SettingsDict, result: Settings) -> No
 
 
 @pytest.mark.parametrize(
+    "settings_dict, result", tuple((t[1], t[0]) for t in settings_to_dict_cases)
+)
+def test_settings_update_from(settings_dict: SettingsDict, result: Settings) -> None:
+    settings = Settings.from_dict(make_settings_dict(), path=PLACEHOLDER_PATH)
+    settings.update_from(settings_dict)
+    assert settings == result
+
+
+@pytest.mark.parametrize(
     "value, default, result",
     (
         (None, 1, 1),

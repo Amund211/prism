@@ -66,6 +66,13 @@ class Settings:
             "known_nicks": self.known_nicks,
         }
 
+    def update_from(self, new_settings: SettingsDict) -> None:
+        """Update the settings from the settings dict"""
+        self.hypixel_api_key = new_settings["hypixel_api_key"]
+        self.antisniper_api_key = new_settings["antisniper_api_key"]
+        self.use_antisniper_api = new_settings["use_antisniper_api"]
+        self.known_nicks = new_settings["known_nicks"]
+
     def flush_to_disk(self) -> None:
         with self.path.open("w") as f:
             toml.dump(self.to_dict(), f)
