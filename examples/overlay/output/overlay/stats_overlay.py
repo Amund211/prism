@@ -37,9 +37,14 @@ class StatsOverlay(Generic[ColumnKey]):
         self.get_new_data = get_new_data
         self.hide_pause = hide_pause
 
-        self.should_show = not start_hidden
+        self.should_show = False
 
         self.last_new_rows: list[OverlayRow[ColumnKey]] | None = None
+
+        # Set should_show so the window remains in the desired state based on
+        # start_hidden until a falling/rising edge in show from get_new_data
+        # Also set last_new_rows so we don't miss the first update
+        self.should_show, _, self.last_new_rows = self.get_new_data()
 
         self.current_page: Page = "main"
 
