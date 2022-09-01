@@ -189,6 +189,67 @@ INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.m
             ),
             MockedController(state=create_state(own_username="YourIGN")),
         ),
+        (
+            # Ensure game starts in lucky blocks
+            MockedController(
+                state=create_state(
+                    in_queue=True,
+                    own_username="1",
+                    lobby_players={
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                        "5",
+                        "6",
+                        "7",
+                        "8",
+                        "9",
+                        "10",
+                        "11",
+                        "12",
+                        "13",
+                        "14",
+                        "15",
+                    },
+                )
+            ),
+            (
+                "[16:12:39] [Client thread/INFO]: [CHAT] Player16 has joined (16/16)!",  # noqa: E501
+                "[16:12:40] [Client thread/INFO]: [CHAT] ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+                "[16:12:40] [Client thread/INFO]: [CHAT]                        Bed Wars Lucky Blocks",  # noqa: E501
+                "[16:12:40] [Client thread/INFO]: [CHAT] ",
+                "[16:12:40] [Client thread/INFO]: [CHAT]     Collect Lucky Blocks from resource generators",  # noqa: E501
+                "[16:12:40] [Client thread/INFO]: [CHAT]        to receive random loot! Break them to reveal",  # noqa: E501
+                "[16:12:40] [Client thread/INFO]: [CHAT]                              their contents!",  # noqa: E501
+                "[16:12:40] [Client thread/INFO]: [CHAT] ",
+                "[16:12:40] [Client thread/INFO]: [CHAT] ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+            ),
+            MockedController(
+                state=create_state(
+                    in_queue=False,
+                    own_username="1",
+                    lobby_players={
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                        "5",
+                        "6",
+                        "7",
+                        "8",
+                        "9",
+                        "10",
+                        "11",
+                        "12",
+                        "13",
+                        "14",
+                        "15",
+                        "Player16",
+                    },
+                )
+            ),
+        ),
     ),
 )
 def test_fast_forward_state(

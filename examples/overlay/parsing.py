@@ -183,7 +183,8 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         logger.debug("Parsing passed. Swapping lobby")
         return LobbySwapEvent()
 
-    if message == "Protect your bed and destroy the enemy beds.":
+    # NOTE: This also appears at the end of a game, but before endgameevent is sent
+    if message.startswith("Bed Wars"):
         logger.debug("Parsing passed. Starting game")
         return StartBedwarsGameEvent()
 
