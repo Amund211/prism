@@ -14,11 +14,18 @@ from examples.overlay.behaviour import (
     set_hypixel_api_key,
     set_nickname,
     should_redraw,
+    update_settings,
 )
 from examples.overlay.controller import OverlayController
 from examples.overlay.player import MISSING_WINSTREAKS
+from examples.overlay.settings import NickValue, Settings, SettingsDict
 from tests.examples.overlay import test_get_stats
-from tests.examples.overlay.utils import MockedController, create_state, make_winstreaks
+from tests.examples.overlay.utils import (
+    MockedController,
+    create_state,
+    make_settings,
+    make_winstreaks,
+)
 
 USERNAME = "MyIGN"
 NICK = "AmazingNick"
@@ -318,3 +325,99 @@ def test_get_and_cache_stats(
     else:
         with pytest.raises(queue.Empty):
             completed_queue.get_nowait()
+
+
+def test_update_settings_nothing() -> None:
+    controller = MockedController()
+    settings_before = replace(controller.settings)
+
+    # Make sure player cache and nick database aren't updated
+    controller.player_cache = None  # type: ignore
+    controller.nick_database.databases.clear()
+
+    update_settings(settings_before.to_dict(), controller)
+
+    # We store the settings every time, even if no changes occurred.
+    assert controller.settings == controller._stored_settings == settings_before
+
+
+def test_update_settings_known_nicks() -> None:
+    controller = MockedController(
+        hypixel_api_key="my-key",
+        settings=make_settings(
+            known_nicks={
+                "SuperbNick": {"uuid": "2", "comment": "2"},
+                "OldNick": {"uuid": "5", "comment": "5"},
+            }
+        ),
+    )
+
+    known_nicks: dict[str, NickValue] = {
+        "AmazingNick": {"uuid": "1", "comment": "1"},
+        "SuperbNick": {"uuid": "42", "comment": "42"},
+    }
+
+    new_settings = make_settings(
+        hypixel_api_key="my-key", known_nicks=known_nicks
+    ).to_dict()
+
+    controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
+    controller.player_cache.uncache_player = unittest.mock.MagicMock()  # type: ignore
+
+    update_settings(new_settings, controller)
+
+    assert controller.settings == controller._stored_settings
+    assert controller.settings.known_nicks == known_nicks
+
+    assert controller.nick_database.default_database == {
+        "AmazingNick": "1",
+        "SuperbNick": "42",
+    }
+
+    controller.player_cache.clear_cache.assert_not_called()
+    controller.player_cache.uncache_player.assert_has_calls(
+        tuple(map(unittest.mock.call, ("AmazingNick", "SuperbNick", "OldNick"))),
+        any_order=True,
+    )
+    assert controller.player_cache.uncache_player.call_count == 3
+
+
+def test_update_settings_everything_changed() -> None:
+    settings = make_settings(
+        known_nicks={
+            "AmazingNick": {"uuid": "1", "comment": "1"},
+            "SuperbNick": {"uuid": "2", "comment": "2"},
+            "AstoundingNick": {"uuid": "3", "comment": "3"},
+        }
+    )
+
+    controller = MockedController(settings=settings)
+
+    new_settings = SettingsDict(
+        hypixel_api_key="my-new-hypixel-api-key",
+        antisniper_api_key="my-new-antisniper-api-key",
+        use_antisniper_api=True,
+        known_nicks={
+            "AmazingNick": {"uuid": "1", "comment": "my friend :)"},
+            "SuperbNick": {"uuid": "42", "comment": "42"},
+        },
+    )
+
+    controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
+    controller.player_cache.uncache_player = unittest.mock.MagicMock()  # type: ignore
+
+    update_settings(new_settings, controller)
+
+    # We store the settings every time, even if no changes occurred.
+    assert (
+        controller.settings
+        == controller._stored_settings
+        == Settings.from_dict(new_settings, path=controller.settings.path)
+    )
+
+    assert controller.nick_database.default_database == {
+        "AmazingNick": "1",
+        "SuperbNick": "42",
+    }
+
+    assert controller.player_cache.clear_cache.call_count == 1

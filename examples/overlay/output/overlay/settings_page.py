@@ -1,6 +1,7 @@
 import tkinter as tk
 from typing import TYPE_CHECKING
 
+from examples.overlay.behaviour import update_settings
 from examples.overlay.controller import OverlayController
 from examples.overlay.settings import NickValue, Settings, SettingsDict
 
@@ -204,14 +205,15 @@ class SettingsPage:
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
         known_nicks: dict[str, NickValue] = {}
 
-        print(
-            SettingsDict(
-                hypixel_api_key=hypixel_api_key,
-                antisniper_api_key=antisniper_api_key,
-                use_antisniper_api=use_antisniper_api,
-                known_nicks=known_nicks,
-            )
+        new_settings = SettingsDict(
+            hypixel_api_key=hypixel_api_key,
+            antisniper_api_key=antisniper_api_key,
+            use_antisniper_api=use_antisniper_api,
+            known_nicks=known_nicks,
         )
+
+        with self.controller.settings.mutex:
+            update_settings(new_settings, self.controller)
 
         # Go back to the main content
         self.overlay.switch_page("main")

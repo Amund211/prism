@@ -13,7 +13,7 @@ from examples.overlay.player import (
     Winstreaks,
 )
 from examples.overlay.player_cache import PlayerCache
-from examples.overlay.settings import Settings, fill_missing_settings
+from examples.overlay.settings import NickValue, Settings, fill_missing_settings
 from examples.overlay.state import OverlayState
 
 # Username set by default in create_state
@@ -109,7 +109,7 @@ def make_settings(
     hypixel_api_key: str = "placeholder-hypixel-key",
     antisniper_api_key: str | None = None,
     use_antisniper_api: bool = False,
-    known_nicks: dict[str, str] | None = None,
+    known_nicks: dict[str, NickValue] | None = None,
     path: Path | None = None,
 ) -> Settings:
     def get_api_key() -> str:

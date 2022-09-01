@@ -9,6 +9,7 @@ from examples.overlay.get_stats import get_bedwars_stats
 from examples.overlay.parsing import parse_logline
 from examples.overlay.player import MISSING_WINSTREAKS, KnownPlayer
 from examples.overlay.process_event import process_event
+from examples.overlay.settings import SettingsDict
 
 logger = logging.getLogger(__name__)
 
@@ -185,3 +186,76 @@ def get_stats_and_winstreak(
             # Tell the main thread that we got the estimated winstreak
             completed_queue.put(username)
             logger.debug(f"Updated missing winstreak for {username}")
+
+
+def update_settings(new_settings: SettingsDict, controller: OverlayController) -> None:
+    """
+    Update the settings from the settings dict, with required side-effects
+
+    Caller must acquire lock on settings
+    """
+    logger.debug(f"Updating settings with {new_settings}")
+
+    hypixel_api_key_changed = (
+        new_settings["hypixel_api_key"] != controller.settings.hypixel_api_key
+    )
+
+    antisniper_api_key_changed = (
+        new_settings["antisniper_api_key"] != controller.settings.antisniper_api_key
+    )
+
+    use_antisniper_api_changed = (
+        new_settings["use_antisniper_api"] != controller.settings.use_antisniper_api
+    )
+
+    # True if the user changed their antisniper settings, and they will now use the api
+    potential_antisniper_updates = (
+        (antisniper_api_key_changed or use_antisniper_api_changed)
+        and new_settings["use_antisniper_api"]
+        and new_settings["antisniper_api_key"] is not None
+    )
+
+    # Known_nicks
+    def uuid_changed(nickname: str) -> bool:
+        """True if the uuid of the given nickname changed in new_settings"""
+        return (
+            new_settings["known_nicks"][nickname]
+            != controller.settings.known_nicks[nickname]
+        )
+
+    new_nicknames = set(new_settings["known_nicks"].keys())
+    old_nicknames = set(controller.settings.known_nicks.keys())
+
+    added_nicknames = new_nicknames - old_nicknames
+    removed_nicknames = old_nicknames - new_nicknames
+    updated_nicknames = set(
+        filter(uuid_changed, set.intersection(new_nicknames, old_nicknames))
+    )
+
+    # Update the player cache
+    if hypixel_api_key_changed or potential_antisniper_updates:
+        logger.debug("Clearing whole player cache due to api key changes")
+        controller.player_cache.clear_cache()
+    else:
+        # Refetch stats for nicknames that had a player assigned or unassigned
+        # for nickname in added_nicknames + removed_nicknames:
+        for nickname in set.union(added_nicknames, removed_nicknames):
+            controller.player_cache.uncache_player(nickname)
+
+        # Refetch stats for nicknames that were assigned to a different player
+        for nickname in updated_nicknames:
+            controller.player_cache.uncache_player(nickname)
+
+    # Update default nick database
+    with controller.nick_database.mutex:
+        for nickname in removed_nicknames:
+            controller.nick_database.default_database.pop(nickname, None)
+
+        for nickname in set.union(added_nicknames, updated_nicknames):
+            controller.nick_database.default_database[nickname] = new_settings[
+                "known_nicks"
+            ][nickname]["uuid"]
+
+    controller.settings.update_from(new_settings)
+
+    controller.store_settings()
