@@ -69,7 +69,7 @@ class OverlayState:
     def remove_from_lobby(self, username: str) -> None:
         """Remove the given username from the lobby"""
         if username not in self.lobby_players:
-            logger.warning(
+            logger.info(
                 f"Tried removing {username} from the lobby, but they were not in it!"
             )
             return
