@@ -219,7 +219,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         player_count = int(prefix.removeprefix("("))
         player_cap = int(suffix.removesuffix(")!"))
 
-        logger.debug(f"Parsing passed. {username} joined ({player_count}/{player_cap}")
+        logger.debug(f"Parsing passed. {username} joined ({player_count}/{player_cap})")
         return LobbyJoinEvent(
             username=username, player_count=player_count, player_cap=player_cap
         )
