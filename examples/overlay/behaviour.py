@@ -201,10 +201,14 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
         new_settings["use_antisniper_api"] != controller.settings.use_antisniper_api
     )
 
-    # True if the user changed their antisniper settings, and they will now use the api
+    # True if the stats could be affected by the settings update
     potential_antisniper_updates = (
-        (antisniper_api_key_changed or use_antisniper_api_changed)
+        # Changing their key and intending to use the api
+        antisniper_api_key_changed
         and new_settings["use_antisniper_api"]
+    ) or (
+        # Turning the api on/off with an active key
+        use_antisniper_api_changed
         and new_settings["antisniper_api_key"] is not None
     )
 
@@ -251,6 +255,9 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
             controller.nick_database.default_database[nickname] = new_settings[
                 "known_nicks"
             ][nickname]["uuid"]
+
+    # Redraw the overlay to reflect changes in the stats cache/nicknames
+    controller.redraw_event.set()
 
     controller.settings.update_from(new_settings)
 

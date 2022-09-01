@@ -377,6 +377,9 @@ def test_update_settings_known_nicks() -> None:
     )
     assert controller.player_cache.uncache_player.call_count == 3
 
+    # Nicknames changed, so we want to redraw
+    assert controller.redraw_event.is_set()
+
 
 def test_update_settings_everything_changed() -> None:
     settings = make_settings(
@@ -417,3 +420,6 @@ def test_update_settings_everything_changed() -> None:
     }
 
     assert controller.player_cache.clear_cache.call_count == 1
+
+    # Lots of stuff changed, so we want to redraw
+    assert controller.redraw_event.is_set()
