@@ -247,6 +247,9 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
             controller.player_cache.uncache_player(nickname)
 
     # Update default nick database
+    # NOTE: Since the caller must acquire the settings lock, we have two locks here
+    # Make sure that we always acquire the settings lock before the nick database lock
+    # to avoid deadlocks
     with controller.nick_database.mutex:
         for nickname in removed_nicknames:
             controller.nick_database.default_database.pop(nickname, None)
