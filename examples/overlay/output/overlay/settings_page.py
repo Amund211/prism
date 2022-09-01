@@ -204,6 +204,9 @@ class SettingsPage:
         hypixel_api_key = self.hypixel_section.get()
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
         known_nicks: dict[str, NickValue] = {}
+        # TODO: Add section to edit known nicks
+        with self.controller.settings.mutex:
+            known_nicks = self.controller.settings.known_nicks.copy()
 
         new_settings = SettingsDict(
             hypixel_api_key=hypixel_api_key,
