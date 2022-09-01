@@ -17,21 +17,15 @@ logger = logging.getLogger(__name__)
 class UpdateStateThread(threading.Thread):
     """Thread that reads from the logfile and updates the state"""
 
-    def __init__(
-        self,
-        controller: OverlayController,
-        loglines: Iterable[str],
-        redraw_event: threading.Event,
-    ) -> None:
+    def __init__(self, controller: OverlayController, loglines: Iterable[str]) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.controller = controller
         self.loglines = loglines
-        self.redraw_event = redraw_event
 
     def run(self) -> None:
         """Read self.loglines and update self.controller"""
         try:
-            process_loglines(self.loglines, self.redraw_event, self.controller)
+            process_loglines(self.loglines, self.controller)
         except Exception as e:
             logger.exception(f"Exception caught in state update thread: {e}. Exiting")
             return
@@ -85,13 +79,9 @@ def prepare_overlay(
     requested_stats_queue = queue.Queue[str]()
     # Usernames we have newly downloaded the stats of
     completed_stats_queue = queue.Queue[str]()
-    # Redraw requests from state updates
-    redraw_event = threading.Event()
 
     # Spawn thread for updating state
-    UpdateStateThread(
-        controller=controller, loglines=loglines, redraw_event=redraw_event
-    ).start()
+    UpdateStateThread(controller=controller, loglines=loglines).start()
 
     # Spawn threads for downloading stats
     for i in range(thread_count):
@@ -106,11 +96,7 @@ def prepare_overlay(
         Get an updated list of stats of the players in the lobby. None if no updates
         """
 
-        redraw = should_redraw(
-            controller,
-            redraw_event=redraw_event,
-            completed_stats_queue=completed_stats_queue,
-        )
+        redraw = should_redraw(controller, completed_stats_queue=completed_stats_queue)
 
         if not redraw:
             return None

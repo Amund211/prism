@@ -1,3 +1,4 @@
+import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -148,6 +149,9 @@ class MockedController:
     nick_database: NickDatabase = field(default_factory=lambda: NickDatabase([{}]))
     player_cache: PlayerCache = field(
         default_factory=PlayerCache, repr=False, compare=False, hash=False
+    )
+    redraw_event: threading.Event = field(
+        default_factory=threading.Event, repr=False, compare=False, hash=False
     )
 
     get_uuid: Callable[[str], str | None] = field(

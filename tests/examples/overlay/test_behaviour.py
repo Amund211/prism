@@ -1,5 +1,4 @@
 import queue
-import threading
 import unittest.mock
 from collections.abc import Iterable
 from dataclasses import replace
@@ -224,15 +223,14 @@ def test_should_redraw(
         )
     )
 
-    redraw_event = threading.Event()
     if redraw_event_set:
-        redraw_event.set()
+        controller.redraw_event.set()
 
     completed_stats_queue = queue.Queue[str]()
     for username in completed_stats:
         completed_stats_queue.put_nowait(username)
 
-    assert should_redraw(controller, redraw_event, completed_stats_queue) == result
+    assert should_redraw(controller, completed_stats_queue) == result
 
 
 @pytest.mark.parametrize(
@@ -259,11 +257,9 @@ def test_process_loglines(
 ) -> None:
     controller = MockedController()
 
-    redraw_event = threading.Event()
-
-    process_loglines(loglines, redraw_event, controller)
+    process_loglines(loglines, controller)
     assert controller == resulting_controller
-    assert redraw_event.is_set() == redraw_event_set
+    assert controller.redraw_event.is_set() == redraw_event_set
 
 
 @pytest.mark.parametrize("winstreak_api_enabled", (True, False))

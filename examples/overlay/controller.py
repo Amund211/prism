@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 from abc import abstractmethod
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Protocol
@@ -34,6 +35,7 @@ class OverlayController(Protocol):  # pragma: no cover
     settings: Settings
     nick_database: NickDatabase
     player_cache: PlayerCache
+    redraw_event: threading.Event
 
     @property
     @abstractmethod
@@ -90,6 +92,7 @@ class RealOverlayController:
         self.state = state
         self.settings = settings
         self.nick_database = nick_database
+        self.redraw_event = threading.Event()
 
         self.hypixel_key_holder = HypixelAPIKeyHolder(settings.hypixel_api_key)
         self.antisniper_key_holder: AntiSniperAPIKeyHolder | None = None
