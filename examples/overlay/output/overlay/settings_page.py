@@ -43,13 +43,27 @@ class AntisniperSection:
         )
         self.frame.columnconfigure(0, weight=0)
 
+        info_label = tk.Label(
+            self.frame,
+            text=(
+                "Visit antisniper.net, join the discord server and follow the "
+                "instructions on how to verify to get an API key. This service "
+                "is not affiliated, and use is at your own risk."
+            ),
+            font=("Consolas", "10"),
+            foreground="white",
+            background="black",
+        )
+        info_label.bind("<Configure>", lambda e: info_label.config(wraplength=400))
+        info_label.grid(row=0, columnspan=2)
+
         tk.Label(
             self.frame,
             text="Antisniper API: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=0, column=0, sticky=tk.E)
+        ).grid(row=1, column=0, sticky=tk.E)
 
         self.use_antisniper_api_button = tk.Button(
             self.frame,
@@ -60,7 +74,7 @@ class AntisniperSection:
             command=self.toggle_use_antisniper_api,
             relief="flat",
         )
-        self.use_antisniper_api_button.grid(row=0, column=1)
+        self.use_antisniper_api_button.grid(row=1, column=1)
 
         self.antisniper_api_key_variable = tk.StringVar()
         tk.Label(
@@ -69,11 +83,11 @@ class AntisniperSection:
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=1, column=0, sticky=tk.E)
+        ).grid(row=2, column=0, sticky=tk.E)
         self.antisniper_api_key_entry = tk.Entry(
             self.frame, textvariable=self.antisniper_api_key_variable
         )
-        self.antisniper_api_key_entry.grid(row=1, column=1)
+        self.antisniper_api_key_entry.grid(row=2, column=1)
 
         # Initially toggle to get into a consistent state
         self.toggle_use_antisniper_api()
