@@ -27,6 +27,7 @@ class OverlayState:
         """
         if not self.in_queue:
             # This is a new queue -> clear the last lobby
+            logger.info("Joining a new queue and clearing lobby")
             self.clear_lobby()
 
         self.in_queue = True
@@ -37,6 +38,7 @@ class OverlayState:
 
         NOTE: The game starting counts as leaving the queue.
         """
+        logger.info("Leaving the queue")
         self.in_queue = False
 
     def add_to_party(self, username: str) -> None:
@@ -55,6 +57,7 @@ class OverlayState:
 
     def clear_party(self) -> None:
         """Remove all players from the party, except for yourself"""
+        logger.info("Clearing the party")
         self.party_members.clear()
 
         if self.own_username is None:
