@@ -6,13 +6,14 @@ from typing import Generic, Literal
 from examples.overlay.controller import OverlayController
 from examples.overlay.output.overlay.main_content import MainContent
 from examples.overlay.output.overlay.overlay_window import OverlayWindow
+from examples.overlay.output.overlay.set_nickname_page import SetNicknamePage
 from examples.overlay.output.overlay.settings_page import SettingsPage
 from examples.overlay.output.overlay.toolbar import Toolbar
 from examples.overlay.output.overlay.utils import CellValue, ColumnKey, OverlayRow
 
 logger = logging.getLogger(__name__)
 
-Page = Literal["settings", "main"]
+Page = Literal["settings", "main", "set_nickname"]
 
 
 class StatsOverlay(Generic[ColumnKey]):
@@ -67,6 +68,9 @@ class StatsOverlay(Generic[ColumnKey]):
         # Add the settings page
         self.settings_page = SettingsPage(self.page_frame, self, controller)
 
+        # Add the set nickname page
+        self.set_nickname_page = SetNicknamePage(self.page_frame, self, controller)
+
         # Add the toolbar
         self.toolbar = Toolbar(
             parent=self.window.root, overlay=self, controller=self.controller
@@ -89,6 +93,8 @@ class StatsOverlay(Generic[ColumnKey]):
             self.main_content.frame.pack_forget()
         elif self.current_page == "settings":
             self.settings_page.frame.pack_forget()
+        elif self.current_page == "set_nickname":
+            self.set_nickname_page.frame.pack_forget()
         else:
             # For typing assert unreached
             return False
@@ -99,6 +105,9 @@ class StatsOverlay(Generic[ColumnKey]):
         elif new_page == "settings":
             self.settings_page.set_content(self.controller.settings)
             self.settings_page.frame.pack(side=tk.TOP, fill=tk.BOTH)
+        elif new_page == "set_nickname":
+            # NOTE: caller must update the content
+            self.set_nickname_page.frame.pack(side=tk.TOP, fill=tk.BOTH)
         else:
             # For typing assert unreached
             return False
