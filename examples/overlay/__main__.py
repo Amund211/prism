@@ -286,13 +286,16 @@ def test() -> None:
         loglines = [
             "(Client thread) Info Setting user: You",
             f"{CHAT}You have joined [MVP++] Teammate's party!",
+            f"{CHAT}You'll be partying with: Notch",
             f"{CHAT}Teammate has joined (2/16)!",  # out of sync
             f"{CHAT}You has joined (3/16)!",
             f"{CHAT}ONLINE: You, Teammate, Hypixel",  # in sync
             f"{CHAT}Technoblade has joined (4/16)!",
             f"{CHAT}Manhal_IQ_ has joined (5/16)!",
             f"{CHAT}edater has joined (6/16)!",  # denicked by api
+            f"{CHAT}AmazingNickThatDoesntExist has joined (7/16)!",  # Nicked teammate
             # f"{CHAT}Protect your bed and destroy the enemy beds.",  # game start
+            # f"{CHAT}               Bed Wars ",  # game end
             # f"{CHAT}1st Killer - [MVP+] Player1",  # game end
         ]
 
