@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import TypeVar
 
 from examples.overlay.output.utils import STAT_LEVELS, rate_value
-from examples.overlay.player import Player, PropertyName
+from examples.overlay.player import KnownPlayer, NickedPlayer, Player, PropertyName
 
 ColumnKey = TypeVar("ColumnKey")
 
@@ -24,8 +24,10 @@ class CellValue:
     color: str
 
 
-# One row in the overlay is a dict mapping column name to a cell value
-OverlayRow = dict[ColumnKey, CellValue]
+# A dict mapping column name to a cell (rated stat) value
+RatedStats = dict[ColumnKey, CellValue]
+
+OverlayRowData = tuple[str | None, RatedStats[ColumnKey]]
 
 
 DEFAULT_COLOR = "snow"
@@ -42,14 +44,21 @@ for levels in STAT_LEVELS.values():
         assert len(levels) <= len(LEVEL_COLORMAP) - 1
 
 
-def player_to_row(player: Player) -> OverlayRow[PropertyName]:
+def player_to_row(player: Player) -> OverlayRowData[PropertyName]:
     """
-    Create an OverlayRow from a Player instance
+    Create an OverlayRowData from a Player instance
 
     Gets the text from player.get_string
     Gets the color by rating the stats
     """
-    return {
+    if isinstance(player, NickedPlayer) or (
+        isinstance(player, KnownPlayer) and player.nick is not None
+    ):
+        nickname = player.nick
+    else:
+        nickname = None
+
+    return nickname, {
         name: CellValue(
             text=player.get_string(name),
             color=(

@@ -4,7 +4,7 @@ from examples.overlay.output.overlay.utils import (
     DEFAULT_COLOR,
     LEVEL_COLORMAP,
     CellValue,
-    OverlayRow,
+    OverlayRowData,
     player_to_row,
 )
 from examples.overlay.player import (
@@ -18,7 +18,7 @@ from examples.overlay.player import (
 
 rating0, rating1, rating2, rating3, rating4 = LEVEL_COLORMAP
 
-test_cases: tuple[tuple[Player, OverlayRow[PropertyName]], ...] = (
+test_cases: tuple[tuple[Player, OverlayRowData[PropertyName]], ...] = (
     (
         KnownPlayer(
             username="Player",
@@ -31,13 +31,16 @@ test_cases: tuple[tuple[Player, OverlayRow[PropertyName]], ...] = (
                 winstreak_accurate=True,
             ),
         ),
-        {
-            "username": CellValue("Player", DEFAULT_COLOR),
-            "stars": CellValue("10.00", rating0),
-            "fkdr": CellValue("1", rating1),
-            "wlr": CellValue("2.00", rating3),
-            "winstreak": CellValue("15", rating2),
-        },
+        (
+            None,
+            {
+                "username": CellValue("Player", DEFAULT_COLOR),
+                "stars": CellValue("10.00", rating0),
+                "fkdr": CellValue("1", rating1),
+                "wlr": CellValue("2.00", rating3),
+                "winstreak": CellValue("15", rating2),
+            },
+        ),
     ),
     (
         KnownPlayer(
@@ -52,33 +55,42 @@ test_cases: tuple[tuple[Player, OverlayRow[PropertyName]], ...] = (
                 winstreak_accurate=True,
             ),
         ),
-        {
-            "username": CellValue("Denicked (the_amazing_nick)", DEFAULT_COLOR),
-            "stars": CellValue("600.00", rating3),
-            "fkdr": CellValue("10.00", rating4),
-            "wlr": CellValue("2.00", rating3),
-            "winstreak": CellValue("0", rating0),
-        },
+        (
+            "the_amazing_nick",
+            {
+                "username": CellValue("Denicked (the_amazing_nick)", DEFAULT_COLOR),
+                "stars": CellValue("600.00", rating3),
+                "fkdr": CellValue("10.00", rating4),
+                "wlr": CellValue("2.00", rating3),
+                "winstreak": CellValue("0", rating0),
+            },
+        ),
     ),
     (
         NickedPlayer(nick="MrNick"),
-        {
-            "username": CellValue("MrNick", DEFAULT_COLOR),
-            "stars": CellValue("unknown", rating4),
-            "fkdr": CellValue("unknown", rating4),
-            "wlr": CellValue("unknown", rating4),
-            "winstreak": CellValue("unknown", rating4),
-        },
+        (
+            "MrNick",
+            {
+                "username": CellValue("MrNick", DEFAULT_COLOR),
+                "stars": CellValue("unknown", rating4),
+                "fkdr": CellValue("unknown", rating4),
+                "wlr": CellValue("unknown", rating4),
+                "winstreak": CellValue("unknown", rating4),
+            },
+        ),
     ),
     (
         PendingPlayer(username="MrPending"),
-        {
-            "username": CellValue("MrPending", DEFAULT_COLOR),
-            "stars": CellValue("-", rating0),
-            "fkdr": CellValue("-", rating0),
-            "wlr": CellValue("-", rating0),
-            "winstreak": CellValue("-", rating0),
-        },
+        (
+            None,
+            {
+                "username": CellValue("MrPending", DEFAULT_COLOR),
+                "stars": CellValue("-", rating0),
+                "fkdr": CellValue("-", rating0),
+                "wlr": CellValue("-", rating0),
+                "winstreak": CellValue("-", rating0),
+            },
+        ),
     ),
     # Missing winstreak
     (
@@ -93,13 +105,16 @@ test_cases: tuple[tuple[Player, OverlayRow[PropertyName]], ...] = (
                 winstreak_accurate=False,
             ),
         ),
-        {
-            "username": CellValue("MissingWS", DEFAULT_COLOR),
-            "stars": CellValue("10.00", rating0),
-            "fkdr": CellValue("1.00", rating1),
-            "wlr": CellValue("2.00", rating3),
-            "winstreak": CellValue("-", DEFAULT_COLOR),
-        },
+        (
+            None,
+            {
+                "username": CellValue("MissingWS", DEFAULT_COLOR),
+                "stars": CellValue("10.00", rating0),
+                "fkdr": CellValue("1.00", rating1),
+                "wlr": CellValue("2.00", rating3),
+                "winstreak": CellValue("-", DEFAULT_COLOR),
+            },
+        ),
     ),
     (
         KnownPlayer(
@@ -113,13 +128,16 @@ test_cases: tuple[tuple[Player, OverlayRow[PropertyName]], ...] = (
                 winstreak_accurate=True,
             ),
         ),
-        {
-            "username": CellValue("AccurateMissingWS", DEFAULT_COLOR),
-            "stars": CellValue("10.00", rating0),
-            "fkdr": CellValue("1.00", rating1),
-            "wlr": CellValue("2.00", rating3),
-            "winstreak": CellValue("-", DEFAULT_COLOR),
-        },
+        (
+            None,
+            {
+                "username": CellValue("AccurateMissingWS", DEFAULT_COLOR),
+                "stars": CellValue("10.00", rating0),
+                "fkdr": CellValue("1.00", rating1),
+                "wlr": CellValue("2.00", rating3),
+                "winstreak": CellValue("-", DEFAULT_COLOR),
+            },
+        ),
     ),
     # Inaccurate winstreak
     (
@@ -134,13 +152,16 @@ test_cases: tuple[tuple[Player, OverlayRow[PropertyName]], ...] = (
                 winstreak_accurate=False,
             ),
         ),
-        {
-            "username": CellValue("InaccurateWS", DEFAULT_COLOR),
-            "stars": CellValue("10.00", rating0),
-            "fkdr": CellValue("1.00", rating1),
-            "wlr": CellValue("2.00", rating3),
-            "winstreak": CellValue("100?", rating4),
-        },
+        (
+            None,
+            {
+                "username": CellValue("InaccurateWS", DEFAULT_COLOR),
+                "stars": CellValue("10.00", rating0),
+                "fkdr": CellValue("1.00", rating1),
+                "wlr": CellValue("2.00", rating3),
+                "winstreak": CellValue("100?", rating4),
+            },
+        ),
     ),
 )
 
@@ -150,6 +171,6 @@ assert len(test_ids) == len(set(test_ids)), "Test ids should be unique"
 
 
 @pytest.mark.parametrize("player, row", test_cases, ids=test_ids)
-def test_stats_to_row(player: Player, row: OverlayRow[PropertyName]) -> None:
+def test_stats_to_row(player: Player, row: OverlayRowData[PropertyName]) -> None:
     """Assert that player_to_row functions properly"""
     assert player_to_row(player) == row

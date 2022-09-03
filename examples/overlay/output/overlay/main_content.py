@@ -1,8 +1,20 @@
 import tkinter as tk
-from collections.abc import Sequence
-from typing import Generic
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Generic
 
-from examples.overlay.output.overlay.utils import Cell, CellValue, ColumnKey, OverlayRow
+from examples.overlay.output.overlay.utils import (
+    Cell,
+    CellValue,
+    ColumnKey,
+    OverlayRowData,
+)
+
+if TYPE_CHECKING:
+    from examples.overlay.output.overlay.stats_overlay import StatsOverlay
+
+StatsCells = dict[ColumnKey, Cell]
+
+OverlayRow = tuple[tk.Button, StatsCells[ColumnKey]]
 
 
 class MainContent(Generic[ColumnKey]):
@@ -11,12 +23,14 @@ class MainContent(Generic[ColumnKey]):
     def __init__(
         self,
         parent: tk.Misc,
+        overlay: "StatsOverlay[ColumnKey]",
         column_order: Sequence[ColumnKey],
         column_names: dict[ColumnKey, str],
         left_justified_columns: set[int],
     ) -> None:
         # Column config
         """Set up a frame containing the main content for the overlay"""
+        self.overlay = overlay
         self.column_order = column_order
         self.column_names = column_names
         self.left_justified_columns = left_justified_columns
@@ -24,7 +38,7 @@ class MainContent(Generic[ColumnKey]):
         self.frame = tk.Frame(parent, background="black")
 
         # Start with zero rows
-        self.rows: list[dict[ColumnKey, Cell]] = []
+        self.rows: list[OverlayRow[ColumnKey]] = []
 
         # Frame at the top to display info to the user
         self.info_frame = tk.Frame(self.frame, background="black")
@@ -58,7 +72,7 @@ class MainContent(Generic[ColumnKey]):
             )
             header_label.grid(
                 row=1,
-                column=column_index,
+                column=column_index + 1,
                 sticky="w" if column_index in self.left_justified_columns else "e",
             )
 
@@ -66,7 +80,7 @@ class MainContent(Generic[ColumnKey]):
         """Add a row of labels and stringvars to the table"""
         row_index = len(self.rows) + 2
 
-        new_row: dict[ColumnKey, Cell] = {}
+        stats_cells: StatsCells[ColumnKey] = {}
         for column_index, column_name in enumerate(self.column_order):
             string_var = tk.StringVar()
             label = tk.Label(
@@ -78,18 +92,34 @@ class MainContent(Generic[ColumnKey]):
             )
             label.grid(
                 row=row_index,
-                column=column_index,
+                column=column_index + 1,
                 sticky="w" if column_index in self.left_justified_columns else "e",
             )
-            new_row[column_name] = Cell(label, string_var)
+            stats_cells[column_name] = Cell(label, string_var)
 
-        self.rows.append(new_row)
+        edit_button = tk.Button(
+            self.table_frame,
+            text="✎",
+            font=("Consolas", "14"),
+            foreground="white",
+            disabledforeground="black",
+            background="black",
+            highlightthickness=0,
+            state="disabled",
+            command=lambda: None,
+            relief="flat",
+        )
+        edit_button.grid(row=row_index, column=0)
+
+        self.rows.append((edit_button, stats_cells))
 
     def pop_row(self) -> None:
         """Remove a row of labels and stringvars from the table"""
-        row = self.rows.pop()
+        edit_button, stats_cells = self.rows.pop()
         for column_name in self.column_order:
-            row[column_name].label.destroy()
+            stats_cells[column_name].label.destroy()
+
+        edit_button.destroy()
 
     def set_length(self, length: int) -> None:
         """Add or remove table rows to give the desired length"""
@@ -124,7 +154,9 @@ class MainContent(Generic[ColumnKey]):
             self.info_labels[cell] = label
 
     def update_content(
-        self, info_cells: list[CellValue], new_rows: list[OverlayRow[ColumnKey]] | None
+        self,
+        info_cells: list[CellValue],
+        new_rows: list[OverlayRowData[ColumnKey]] | None,
     ) -> None:
         """Display the new data"""
         # Update the info at the top of the overlay
@@ -134,8 +166,26 @@ class MainContent(Generic[ColumnKey]):
         if new_rows is not None:
             self.set_length(len(new_rows))
 
-            for i, new_row in enumerate(new_rows):
-                row = self.rows[i]
+            for i, (nickname, rated_stats) in enumerate(new_rows):
+                edit_button, stats_cells = self.rows[i]
                 for column_name in self.column_order:
-                    row[column_name].variable.set(new_row[column_name].text)
-                    row[column_name].label.configure(fg=new_row[column_name].color)
+                    stats_cells[column_name].variable.set(rated_stats[column_name].text)
+                    stats_cells[column_name].label.configure(
+                        fg=rated_stats[column_name].color
+                    )
+
+                if nickname is None:
+                    edit_button.configure(state="disabled", command=lambda: None)
+                else:
+                    edit_button.configure(
+                        state="normal", command=self.make_set_nick_callback(nickname)
+                    )
+
+    def make_set_nick_callback(self, nickname: str) -> Callable[[], None]:
+        """Create a callback to pass as a command to open the set nick page"""
+
+        def command(self: "MainContent[ColumnKey]" = self) -> None:
+            self.overlay.set_nickname_page.set_content(nickname)
+            self.overlay.switch_page("set_nickname")
+
+        return command

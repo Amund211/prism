@@ -3,7 +3,11 @@ from collections.abc import Callable
 
 from examples.overlay.controller import OverlayController
 from examples.overlay.output.overlay.stats_overlay import StatsOverlay
-from examples.overlay.output.overlay.utils import CellValue, OverlayRow, player_to_row
+from examples.overlay.output.overlay.utils import (
+    CellValue,
+    OverlayRowData,
+    player_to_row,
+)
 from examples.overlay.output.utils import COLUMN_NAMES, COLUMN_ORDER
 from examples.overlay.player import Player, PropertyName
 
@@ -20,7 +24,7 @@ def run_overlay(
     """
 
     def get_new_data() -> tuple[
-        bool, list[CellValue], list[OverlayRow[PropertyName]] | None
+        bool, list[CellValue], list[OverlayRowData[PropertyName]] | None
     ]:
         new_players = fetch_state_updates()
         new_rows = (

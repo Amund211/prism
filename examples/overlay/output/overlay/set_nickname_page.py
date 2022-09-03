@@ -89,7 +89,6 @@ class SetNicknamePage:
         with self.controller.state.mutex:
             party_members = self.controller.state.party_members.copy()
             lobby_players = self.controller.state.lobby_players.copy()
-            own_username = self.controller.state.own_username
 
         # Store what nick we are denicking
         self.current_nickname = nickname
@@ -101,9 +100,7 @@ class SetNicknamePage:
         self.username_var.set(SELECT_AN_OPTION_CHOICE)
 
         # Usernames in your party but not in the lobby
-        potential_usernames = party_members.difference(
-            lobby_players, {own_username} if own_username is not None else {}
-        )
+        potential_usernames = party_members.difference(lobby_players)
 
         # Set choices of dropdown
         self.username_menu["menu"].delete(0, "end")

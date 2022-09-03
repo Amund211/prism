@@ -9,7 +9,7 @@ from examples.overlay.output.overlay.overlay_window import OverlayWindow
 from examples.overlay.output.overlay.set_nickname_page import SetNicknamePage
 from examples.overlay.output.overlay.settings_page import SettingsPage
 from examples.overlay.output.overlay.toolbar import Toolbar
-from examples.overlay.output.overlay.utils import CellValue, ColumnKey, OverlayRow
+from examples.overlay.output.overlay.utils import CellValue, ColumnKey, OverlayRowData
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class StatsOverlay(Generic[ColumnKey]):
         left_justified_columns: set[int],
         controller: OverlayController,
         get_new_data: Callable[
-            [], tuple[bool, list[CellValue], list[OverlayRow[ColumnKey]] | None]
+            [], tuple[bool, list[CellValue], list[OverlayRowData[ColumnKey]] | None]
         ],
         poll_interval: int,
         hide_pause: int = 5000,
@@ -40,7 +40,7 @@ class StatsOverlay(Generic[ColumnKey]):
 
         self.should_show = False
 
-        self.last_new_rows: list[OverlayRow[ColumnKey]] | None = None
+        self.last_new_rows: list[OverlayRowData[ColumnKey]] | None = None
 
         # Set should_show so the window remains in the desired state based on
         # start_hidden until a falling/rising edge in show from get_new_data
@@ -59,6 +59,7 @@ class StatsOverlay(Generic[ColumnKey]):
         # Add the main content
         self.main_content = MainContent(
             parent=self.page_frame,
+            overlay=self,
             column_order=column_order,
             column_names=column_names,
             left_justified_columns=left_justified_columns,
