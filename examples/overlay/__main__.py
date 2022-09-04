@@ -69,8 +69,10 @@ def tail_file_with_reopen(
     last_position = start_at
 
     while True:
-        last_read = time.monotonic()
         with path.open("r", encoding="utf8", errors="replace") as f:
+            date_openend = date.today()
+            last_read = time.monotonic()
+
             f.seek(0, os.SEEK_END)
             new_filesize = f.tell()
 
@@ -87,9 +89,20 @@ def tail_file_with_reopen(
                 last_position = f.tell()
                 if not line:
                     # No new lines -> wait
-                    if time.monotonic() - last_read > timeout:
+                    time_since_last_read = time.monotonic() - last_read
+                    new_day = date.today() != date_openend
+
+                    if time_since_last_read > timeout:
                         # More than `timeout` seconds since last read -> reopen file
                         logger.debug(f"Timed out reading file '{path}'; reopening")
+                        break
+                    elif (
+                        new_day
+                        and time_since_last_read > timeout / 5  # More sensitive timeout
+                        and datetime.now().second > 5  # Wait for the new logfile
+                    ):
+                        # New day, new logfile. Reopen
+                        logger.info("Reopening logfile due to rotation at midnight")
                         break
 
                     time.sleep(0.1)
