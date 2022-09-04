@@ -1,6 +1,6 @@
 import logging
 import tkinter as tk
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from examples.overlay.behaviour import set_nickname
 from examples.overlay.controller import OverlayController
@@ -40,7 +40,7 @@ class SetNicknamePage:
         )
 
         # Save button
-        save_button = tk.Button(
+        self.save_button = tk.Button(
             self.controls_frame,
             text="Save",
             font=("Consolas", "14"),
@@ -49,7 +49,7 @@ class SetNicknamePage:
             command=self.on_save,
             relief="flat",
         )
-        save_button.pack(side=tk.RIGHT)
+        self.save_button.pack(side=tk.RIGHT)
 
         # Minimize button
         cancel_button = tk.Button(
@@ -79,6 +79,15 @@ class SetNicknamePage:
 
         self.username_var = tk.StringVar()
 
+        def enable_button(*args: Any, **kwargs: Any) -> None:
+            self.save_button.config(
+                state="normal"
+                if self.username_var.get() != SELECT_AN_OPTION_CHOICE
+                else "disabled"
+            )
+
+        self.username_var.trace("w", enable_button)  # type: ignore
+
         self.username_menu = tk.OptionMenu(
             self.input_frame, self.username_var, SELECT_AN_OPTION_CHOICE
         )
@@ -98,6 +107,7 @@ class SetNicknamePage:
 
         # Clear previous choice
         self.username_var.set(SELECT_AN_OPTION_CHOICE)
+        self.save_button.config(state="disabled")
 
         # Usernames in your party but not in the lobby
         potential_usernames = party_members.difference(lobby_players)
