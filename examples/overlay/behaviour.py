@@ -73,6 +73,8 @@ def set_nickname(
     # Drop the stats cache for your new nick so that we can fetch the stats
     controller.player_cache.uncache_player(nick)
 
+    controller.redraw_event.set()
+
 
 def set_hypixel_api_key(new_key: str, /, controller: OverlayController) -> None:
     """Update the API key that the download threads use"""

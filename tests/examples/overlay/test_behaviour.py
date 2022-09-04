@@ -88,6 +88,9 @@ def test_set_nickname(known_nicks: dict[str, str]) -> None:
     if UUID in known_nicks:
         assert controller.player_cache.uncache_player.called_with(known_nicks[UUID])
 
+    # Redraw event set
+    assert controller.redraw_event.is_set()
+
 
 @pytest.mark.parametrize("explicit", (False, True))
 @pytest.mark.parametrize("known_nicks", KNOWN_NICKS)
@@ -119,6 +122,9 @@ def test_unset_nickname(known_nicks: dict[str, str], explicit: bool) -> None:
     # Cache dropped for old nick
     if UUID in known_nicks:
         assert controller.player_cache.uncache_player.called_with(known_nicks[UUID])
+
+    # Redraw event set
+    assert controller.redraw_event.is_set()
 
 
 def test_process_event_set_api_key() -> None:
