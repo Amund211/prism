@@ -46,9 +46,9 @@ class AntisniperSection:
         info_label = tk.Label(
             self.frame,
             text=(
-                "Visit antisniper.net, join the discord server and follow the "
-                "instructions on how to verify to get an API key. This service "
-                "is not affiliated, and use is at your own risk."
+                "Visit antisniper.net, join (and STAY in) the discord server and "
+                "follow the instructions on how to verify to get an API key. "
+                "This service is not affiliated, and use is at your own risk."
             ),
             font=("Consolas", "10"),
             foreground="white",
