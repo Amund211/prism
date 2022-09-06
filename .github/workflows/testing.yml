@@ -42,6 +42,9 @@ jobs:
         source ${{ env.ACTIVATE_PATH }}
         python -m pip install -r requirements.dev.txt
 
+        VERSION_STRING="$(python -c 'from examples.overlay import VERSION_STRING; print(VERSION_STRING)')"
+        echo "BINARY_NAME=prism-$VERSION_STRING-${{ matrix.os }}${{ env.BINARY_EXTENSION }}" >> $GITHUB_ENV
+
     - name: Run typechecking
       run: |
         source ${{ env.ACTIVATE_PATH }}
@@ -58,10 +61,11 @@ jobs:
         source ${{ env.ACTIVATE_PATH }}
         python add_version_to_icon.py
         pyinstaller pyinstaller/prism_overlay.spec --noconfirm
+        mv dist/prism_overlay${{ env.BINARY_EXTENSION }} "dist/${{ env.BINARY_NAME }}"
 
     - name: Upload built binary
       uses: actions/upload-artifact@v2
       with:
         name: prism-${{ matrix.os }}
-        path: dist/prism_overlay${{ env.BINARY_EXTENSION }}
+        path: "dist/${{ env.BINARY_NAME }}"
         if-no-files-found: error
