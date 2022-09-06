@@ -1,12 +1,14 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from PyInstaller.utils.hooks import copy_metadata
+
 block_cipher = None
 
 
 a = Analysis(['../prism_overlay.py'],
              pathex=[],
              binaries=[],
-             datas=[],
+             datas=copy_metadata("tendo"),
              hiddenimports=[],
              hookspath=[],
              hooksconfig={},
