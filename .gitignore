@@ -1,6 +1,5 @@
 api_key
 .coverage
-*.spec
 examples/customize.py
 **/__pycache__/
 venv/
