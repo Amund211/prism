@@ -19,7 +19,7 @@ The overlay can be extended with the [Antisniper API](https://antisniper.net) (n
 - Follow the instructions in the settings page to add an Antisniper API key to get denicking and winstreak estimates
 - Click on the pencil next to a nicked teammate to set their username
 
-# Safety
+## Safety
 Being open source, anyone can look at the source code for Prism to see that nothing nefarious is happening.
 The released binaries are created using `pyinstaller` in GitHub Actions and uses a clean clone of the repository.
 If you do not trust the released binary you can clone the project and run it locally using `python prism_overlay.py` from the project root.
