@@ -439,6 +439,10 @@ def file_exists(path: Path | str) -> bool:
     if isinstance(path, str):
         path = Path(path)
 
+    # TEMP HACK: Remove previously suggested .minecraft/launcher_log.txt
+    if path.parts[-2:] == (".minecraft", "launcher_log.txt"):
+        return False
+
     try:
         return path.is_file()
     except OSError:
