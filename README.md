@@ -2,6 +2,11 @@
 
 ![Using Prism](./images/in_queue.png)
 
+## Download
+[CLICK HERE](../../releases/latest) to go to the latest release.
+Your browser might tell you that the file is potentially dangerous, but you can safely ignore this warning.
+See the section on [safety](#safety) for more info.
+
 ## Description
 Prism is an open source stats overlay for Hypixel Bedwars (not associated).
 Prism will detect the players in your lobby as they join and when you type `/who`, and automatically show you their stats.
