@@ -43,9 +43,7 @@ def rate_value(value: float, levels: Sequence[float]) -> int:
     """
     for rating, level in enumerate(levels):
         if value < level:
-            break
-    else:
-        # Passed all levels
-        rating += 1
+            return rating
 
-    return rating
+    # Passed all levels
+    return rating + 1
