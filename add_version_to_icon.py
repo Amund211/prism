@@ -36,7 +36,7 @@ if __name__ == "__main__":
         for y in range(original_height):
             if canvas.getpixel((x, y)) != text_bg_color:
                 break
-        else:
+        else:  # No break -> all pixels are background
             continue
         break
 
