@@ -4,14 +4,53 @@ import time
 from collections.abc import Iterable
 from datetime import date, datetime
 from pathlib import Path
+from typing import Literal, overload
 
 logger = logging.getLogger(__name__)
 
 
+@overload
 def watch_file_with_reopen(
-    path: Path, *, start_at: int, reopen_timeout: float, poll_timeout: float
+    path: Path,
+    *,
+    start_at: int,
+    reopen_timeout: float,
+    poll_timeout: float,
+    blocking: Literal[False],
+) -> Iterable[str | None]:
+    ...
+
+
+@overload
+def watch_file_with_reopen(
+    path: Path,
+    *,
+    start_at: int,
+    reopen_timeout: float,
+    poll_timeout: float,
+    blocking: Literal[True],
 ) -> Iterable[str]:
-    """Iterate over new lines in a file, reopen the file when stale"""
+    ...
+
+
+def watch_file_with_reopen(
+    path: Path,
+    *,
+    start_at: int,
+    reopen_timeout: float,
+    poll_timeout: float,
+    blocking: bool,
+) -> Iterable[str | None]:
+    """
+    Iterate over new lines in a file, reopen the file when stale
+
+    Seek to `start_at` on first open
+    Reopen file if more than `reopen_timeout` seconds have passed since last read
+    Read again if more than `poll_timeout` seconds have passed since last read
+    If `blocking` is True the function will poll until a new line is read
+    If `blocking is False the function will `yield None` for every failed read
+    """
+
     last_position = start_at
 
     while True:
@@ -52,6 +91,8 @@ def watch_file_with_reopen(
                         logger.info("Reopening logfile due to rotation at midnight")
                         break
 
+                    if not blocking:
+                        yield None
                     time.sleep(poll_timeout)
                     continue
 
