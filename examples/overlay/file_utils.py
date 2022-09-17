@@ -17,7 +17,7 @@ def watch_file_with_reopen(
     blocking: Literal[False],
     reopen_timeout: float = ...,
     poll_timeout: float = ...,
-) -> Iterable[str | None]:
+) -> Iterable[str | None]:  # pragma: nocover
     ...
 
 
@@ -29,7 +29,7 @@ def watch_file_with_reopen(
     blocking: Literal[True],
     reopen_timeout: float = ...,
     poll_timeout: float = ...,
-) -> Iterable[str]:
+) -> Iterable[str]:  # pragma: nocover
     ...
 
 
