@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def watch_file_with_reopen(
-    path: Path, start_at: int, reopen_timeout: float, poll_timeout: float
+    path: Path, *, start_at: int, reopen_timeout: float, poll_timeout: float
 ) -> Iterable[str]:
     """Iterate over new lines in a file, reopen the file when stale"""
     last_position = start_at
