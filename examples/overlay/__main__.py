@@ -6,7 +6,6 @@ Run from the root dir by `python -m examples.overlay [--logfile <path-to-logfile
 
 import functools
 import logging
-import os
 import platform
 import sys
 import time
@@ -22,6 +21,7 @@ from examples.overlay import VERSION_STRING
 from examples.overlay.behaviour import fast_forward_state
 from examples.overlay.commandline import get_options
 from examples.overlay.controller import OverlayController, RealOverlayController
+from examples.overlay.file_utils import watch_file_with_reopen
 from examples.overlay.nick_database import NickDatabase
 from examples.overlay.output.overlay.run_overlay import run_overlay
 from examples.overlay.output.printing import print_stats_table
@@ -60,56 +60,6 @@ def slow_iterable(iterable: Iterable[str], wait: float = 1) -> Iterable[str]:
         print(f"Yielding '{item}'")
         yield item
     print("Done yielding")
-
-
-def tail_file_with_reopen(
-    path: Path, start_at: int, timeout: float = 30
-) -> Iterable[str]:
-    """Iterate over new lines in a file, reopen the file when stale"""
-    last_position = start_at
-
-    while True:
-        with path.open("r", encoding="utf8", errors="replace") as f:
-            date_openend = date.today()
-            last_read = time.monotonic()
-
-            f.seek(0, os.SEEK_END)
-            new_filesize = f.tell()
-
-            if last_position > new_filesize:
-                # File has been truncated - assume it is new and read from the start
-                f.seek(0, os.SEEK_SET)
-            else:
-                # File is no smaller than at the last read, assume it is the same file
-                # and seek to where we left off
-                f.seek(last_position, os.SEEK_SET)
-
-            while True:
-                line = f.readline()
-                last_position = f.tell()
-                if not line:
-                    # No new lines -> wait
-                    time_since_last_read = time.monotonic() - last_read
-                    new_day = date.today() != date_openend
-
-                    if time_since_last_read > timeout:
-                        # More than `timeout` seconds since last read -> reopen file
-                        logger.debug(f"Timed out reading file '{path}'; reopening")
-                        break
-                    elif (
-                        new_day
-                        and time_since_last_read > timeout / 5  # More sensitive timeout
-                        and datetime.now().second > 5  # Wait for the new logfile
-                    ):
-                        # New day, new logfile. Reopen
-                        logger.info("Reopening logfile due to rotation at midnight")
-                        break
-
-                    time.sleep(0.1)
-                    continue
-
-                last_read = time.monotonic()
-                yield line
 
 
 def process_loglines_to_stdout(
@@ -205,7 +155,9 @@ def watch_from_logfile(
         fast_forward_state(controller, logfile.readlines())
         final_position = logfile.tell()
 
-    loglines = tail_file_with_reopen(logpath, start_at=final_position)
+    loglines = watch_file_with_reopen(
+        logpath, start_at=final_position, reopen_timeout=30, poll_timeout=0.1
+    )
 
     # Process the rest of the loglines as they come in
     if not overlay:
