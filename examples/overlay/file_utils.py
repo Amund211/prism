@@ -14,9 +14,9 @@ def watch_file_with_reopen(
     path: Path,
     *,
     start_at: int,
-    reopen_timeout: float,
-    poll_timeout: float,
     blocking: Literal[False],
+    reopen_timeout: float = ...,
+    poll_timeout: float = ...,
 ) -> Iterable[str | None]:
     ...
 
@@ -26,9 +26,9 @@ def watch_file_with_reopen(
     path: Path,
     *,
     start_at: int,
-    reopen_timeout: float,
-    poll_timeout: float,
     blocking: Literal[True],
+    reopen_timeout: float = ...,
+    poll_timeout: float = ...,
 ) -> Iterable[str]:
     ...
 
@@ -37,9 +37,9 @@ def watch_file_with_reopen(
     path: Path,
     *,
     start_at: int,
-    reopen_timeout: float,
-    poll_timeout: float,
     blocking: bool,
+    reopen_timeout: float = 30,
+    poll_timeout: float = 0.1,
 ) -> Iterable[str | None]:
     """
     Iterate over new lines in a file, reopen the file when stale

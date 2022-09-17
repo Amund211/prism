@@ -42,11 +42,7 @@ class SearchLogfileForKeyThread(threading.Thread):
         found_key: str | None = None
 
         for line in watch_file_with_reopen(
-            self.logfile_path,
-            start_at=0,
-            reopen_timeout=30,
-            poll_timeout=0.1,
-            blocking=False,
+            self.logfile_path, start_at=0, blocking=False
         ):
             if self.key_found_event.is_set():
                 # The other thread found a new key

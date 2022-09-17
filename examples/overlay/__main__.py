@@ -155,13 +155,7 @@ def watch_from_logfile(
         fast_forward_state(controller, logfile.readlines())
         final_position = logfile.tell()
 
-    loglines = watch_file_with_reopen(
-        logpath,
-        start_at=final_position,
-        reopen_timeout=30,
-        poll_timeout=0.1,
-        blocking=True,
-    )
+    loglines = watch_file_with_reopen(logpath, start_at=final_position, blocking=True)
 
     # Process the rest of the loglines as they come in
     if not overlay:
