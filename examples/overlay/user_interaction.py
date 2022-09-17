@@ -7,41 +7,18 @@ import threading
 import time
 import tkinter as tk
 import tkinter.filedialog
-from collections.abc import Callable, Iterable
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 import toml
 
 from examples.overlay.events import NewAPIKeyEvent
+from examples.overlay.file_utils import watch_file_with_reopen
 from examples.overlay.parsing import parse_logline
 from examples.overlay.settings import api_key_is_valid, read_settings
 
 logger = logging.getLogger(__name__)
-
-
-def watch_file_non_blocking_with_reopen(
-    path: Path, timeout: float = 10
-) -> Iterable[str | None]:
-    """Iterate over all lines in a file. Reopen the file when stale."""
-    while True:
-        last_read = time.monotonic()
-        with path.open("r", encoding="utf8", errors="replace") as f:
-            while True:
-                line = f.readline()
-                if not line:
-                    # No new lines -> wait
-                    if time.monotonic() - last_read > timeout:
-                        # More than `timeout` seconds since last read -> reopen file
-                        logger.debug("Timed out reading file '{path}'; reopening")
-                        break
-
-                    yield None
-                    time.sleep(0.1)
-                    continue
-
-                last_read = time.monotonic()
-                yield line
 
 
 class SearchLogfileForKeyThread(threading.Thread):
@@ -64,7 +41,13 @@ class SearchLogfileForKeyThread(threading.Thread):
         has_reached_end = False
         found_key: str | None = None
 
-        for line in watch_file_non_blocking_with_reopen(self.logfile_path):
+        for line in watch_file_with_reopen(
+            self.logfile_path,
+            start_at=0,
+            reopen_timeout=30,
+            poll_timeout=0.1,
+            blocking=False,
+        ):
             if self.key_found_event.is_set():
                 # The other thread found a new key
                 return
