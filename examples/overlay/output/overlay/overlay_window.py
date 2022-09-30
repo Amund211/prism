@@ -22,7 +22,7 @@ class Root(tk.Tk):
         __exc: type[BaseException],
         __val: BaseException,
         __tb: TracebackType | None,
-    ) -> None:
+    ) -> object:
         """Exit on callback exception"""
         if not issubclass(__exc, KeyboardInterrupt):
             logger.error(

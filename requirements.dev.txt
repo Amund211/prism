@@ -4,7 +4,7 @@ types-Pillow
 pyinstaller
 coverage
 pytest
-mypy>=0.931
+mypy>=0.981
 types-appdirs
 types-cachetools
 types-requests
