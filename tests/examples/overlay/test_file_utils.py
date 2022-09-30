@@ -16,10 +16,10 @@ from tests.examples.overlay.mock_utils import (
     create_mocked_file,
 )
 
-REOPEN_TIMEOUT = 30
-POLL_TIMEOUT = 0.1
-# Due to floating point math, the read delay can be slightly longer that the poll-time
-MAX_DELAY = POLL_TIMEOUT * 1.1
+# NOTE: These are different that the defaults
+# They are also kept as integers to avoid any floating point inaccuracies
+REOPEN_TIMEOUT = 10
+POLL_TIMEOUT = 1
 
 
 def get_seen_lines(
@@ -53,14 +53,6 @@ def get_seen_lines(
                 timestamps.append(mocked_time.time.monotonic())
 
     return seen, timestamps, mocked_path, mocked_file, mocked_time
-
-
-def assert_reads_in_time(timestamps: Sequence[float], targets: Sequence[float]) -> None:
-    """Assert that all the reads were done at the expected time"""
-    assert all(
-        target - MAX_DELAY < timestamp < target + MAX_DELAY
-        for timestamp, target in zip(timestamps, targets, strict=True)
-    ), f"{timestamps=} {targets=}"
 
 
 def test_mocked_file() -> None:
@@ -100,15 +92,16 @@ def test_simple_reads() -> None:
         [Line(t, "text") for t in range(5)], amt_opens=1, start_at=0, blocking=True
     )
     assert seen == ["text\n"] * 5
-    assert_reads_in_time(timestamps, range(5))
+    assert timestamps == list(range(5))
 
 
 def test_simple_reads_with_reopen() -> None:
     seen, timestamps, mocked_path, mocked_file, mocked_time = get_seen_lines(
-        [Line(0, "first"), Line(31, "after")], amt_opens=2, start_at=0, blocking=True
+        [Line(0, "first"), Line(11, "after")], amt_opens=2, start_at=0, blocking=True
     )
     assert seen == ["first\n", "after\n"]
-    assert_reads_in_time(timestamps, [0, 31])
+    assert timestamps == [0, 11]
+    assert [call[0] for call in mocked_path.calls] == [0, 10]
 
 
 def test_read_after_clear() -> None:
@@ -121,7 +114,8 @@ def test_read_after_clear() -> None:
         blocking=True,
     )
     assert seen == ["text\n"] * 5 + [f"new text{t}\n" for t in range(4)]
-    assert_reads_in_time(timestamps, [0, 1, 2, 3, 4, 34, 34, 34, 34])
+    assert timestamps == [0, 1, 2, 3, 4, 14, 14, 14, 14]
+    assert [call[0] for call in mocked_path.calls] == [0, 14]
 
 
 def test_read_after_clear_after_midnight() -> None:
@@ -143,17 +137,14 @@ def test_read_after_clear_after_midnight() -> None:
         "More new text\n",
         "Later text\n",
     ]
-    assert_reads_in_time(timestamps, [0] * 10 + [7, 7, 10])
+    assert timestamps == [0] * 10 + [6, 6, 10]
+    assert [call[0] for call in mocked_path.calls] == [0, 6]
 
 
 def test_simple_reads_non_blocking() -> None:
     seen, timestamps, mocked_path, mocked_file, mocked_time = get_seen_lines(
         [Line(t, "text") for t in range(5)], amt_opens=1, start_at=0, blocking=False
     )
-    assert list(filter(lambda line: line is not None, seen)) == ["text\n"] * 5
 
-    read_cycle = [0.0] + [i * 0.1 for i in range(10)]
-    targets: list[float] = sum(
-        ([c + second for c in read_cycle] for second in range(5)), start=[]
-    ) + [i * 0.1 for i in range(50, 340)]
-    assert_reads_in_time(timestamps, targets)
+    assert seen == ["text\n", None] * 5 + [None] * 9
+    assert timestamps == [0, 0, 1, 1, 2, 2, 3, 3, 4, 4] + list(range(5, 14))

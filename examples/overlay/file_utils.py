@@ -77,15 +77,15 @@ def watch_file_with_reopen(
                     time_since_last_read = time.monotonic() - last_read
                     new_day = date.today() != date_openend
 
-                    if time_since_last_read > reopen_timeout:
+                    if time_since_last_read >= reopen_timeout:
                         # > `reopen_timeout` seconds since last read -> reopen file
                         logger.debug(f"Timed out reading file '{path}'; reopening")
                         break
                     elif (
                         new_day
                         and time_since_last_read
-                        > reopen_timeout / 5  # More sensitive reopen_timeout
-                        and datetime.now().second > 5  # Wait for the new logfile
+                        >= reopen_timeout / 5  # More sensitive reopen_timeout
+                        and datetime.now().second >= 5  # Wait for the new logfile
                     ):
                         # New day, new logfile. Reopen
                         logger.info("Reopening logfile due to rotation at midnight")
