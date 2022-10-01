@@ -7,7 +7,7 @@ from typing import Literal, cast
 import pytest
 
 from examples.overlay.file_utils import watch_file_with_reopen
-from tests.examples.overlay.mock_utils import (
+from tests.mock_utils import (
     EndFileTest,
     Line,
     MockedFile,

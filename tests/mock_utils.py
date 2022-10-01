@@ -13,11 +13,25 @@ class EndFileTest(Exception):
     pass
 
 
+class MockedTime:
+    """Class mocking time-related functionality"""
+
+    def __init__(
+        self, start: datetime.datetime = datetime.datetime(2022, 1, 1, 12)
+    ) -> None:
+        self.current_time = 0.0
+        self.current_datetime = start
+
+        self.time = _MockedTimeModule(self)
+        self.datetime = _MockedDateTime(self)
+        self.date = _MockedDate(self)
+
+
 @dataclass
 class _MockedTimeModule:
     """Class mocking the time module"""
 
-    parent: "MockedTime"
+    parent: MockedTime
 
     def sleep(self, seconds: float) -> None:
         """Mock time.sleep"""
@@ -33,7 +47,7 @@ class _MockedTimeModule:
 class _MockedDateTime:
     """Class mocking datetime.datetime"""
 
-    parent: "MockedTime"
+    parent: MockedTime
 
     def now(self) -> datetime.datetime:
         """Mock datetime.datetime.now"""
@@ -44,23 +58,11 @@ class _MockedDateTime:
 class _MockedDate:
     """Class mocking datetime.date"""
 
-    parent: "MockedTime"
+    parent: MockedTime
 
     def today(self) -> datetime.date:
         """Mock datetime.date.today"""
         return self.parent.current_datetime.date()
-
-
-class MockedTime:
-    """Class mocking time-related functionality"""
-
-    def __init__(self, start: datetime.datetime) -> None:
-        self.current_time = 0.0
-        self.current_datetime = start
-
-        self.time = _MockedTimeModule(self)
-        self.datetime = _MockedDateTime(self)
-        self.date = _MockedDate(self)
 
 
 @dataclass
