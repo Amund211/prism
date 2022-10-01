@@ -49,6 +49,7 @@ def insort_right(elements: deque[Element], new_element: Element) -> None:
     If new_element is already in elements it will be inserted to the right
     NOTE: Assumes new_element is relatively large in elements
     """
+    i = -1  # Init in case deque is empty
     # We assume new_element is large, so we do a linear search from the end
     for i, old_element in enumerate(reversed(elements)):
         # not < is equivalent to >=

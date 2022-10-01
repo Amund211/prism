@@ -108,6 +108,7 @@ def test_div(dividend: float, divisor: float, quotient: int | float) -> None:
         (deque([1, 2, 3]), 1.5, deque([1, 1.5, 2, 3])),
         (deque([1, 2, 3]), 2.5, deque([1, 2, 2.5, 3])),
         (deque([1, 2, 3]), 3.5, deque([1, 2, 3, 3.5])),
+        (deque([]), 3.5, deque([3.5])),
     ),
 )
 def test_insort_right(
