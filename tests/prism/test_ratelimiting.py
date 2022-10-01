@@ -5,7 +5,7 @@ from collections.abc import Callable
 import pytest
 
 from prism.ratelimiting import RateLimiter
-from tests.mock_utils import MockedTime
+from tests.mock_utils import MockedTime, _MockedTimeModule
 
 
 @pytest.mark.parametrize(
@@ -25,14 +25,18 @@ def test_ratelimiting_parameters(limit: int, window: float) -> None:
 
 
 def time_ratelimiter(
-    window: float, limit: int, make_requests: Callable[[RateLimiter], list[float]]
+    window: float,
+    limit: int,
+    make_requests: Callable[[RateLimiter, _MockedTimeModule], list[float]],
 ) -> None:
     """Assert that RateLimiter appropriately limits requests"""
     # Init the ratelimiter at time t=0
-    with unittest.mock.patch("prism.ratelimiting.time", MockedTime().time):
+    with unittest.mock.patch(
+        "prism.ratelimiting.time", MockedTime().time
+    ) as mocked_time_module:
         limiter = RateLimiter(limit=limit, window=window)
+        requests = sorted(make_requests(limiter, mocked_time_module))
 
-    requests = sorted(make_requests(limiter))
     time_elapsed = requests[-1] - requests[0]
 
     # Guaranteed minimal amount of windows for the given amount of requests
@@ -54,12 +58,12 @@ def test_ratelimiting_sequential() -> None:
     limit = 10
     amt_requests = 21
 
-    def make_requests(limiter: RateLimiter) -> list[float]:
+    def make_requests(
+        limiter: RateLimiter, mocked_time_module: _MockedTimeModule
+    ) -> list[float]:
         requests: list[float] = []
         for i in range(amt_requests):
-            with unittest.mock.patch(
-                "prism.ratelimiting.time", MockedTime().time
-            ) as mocked_time_module, limiter:
+            with limiter:
                 requests.append(mocked_time_module.monotonic())
         return requests
 
@@ -77,21 +81,82 @@ def test_ratelimiting_parallell() -> None:
         amt_threads > limit
     ), "Tests the behaviour when a request completes in the next window"
 
-    mocked_time_modules = [MockedTime().time for i in range(amt_threads)]
-
     # Simulate parallell operation by acquiring multiple limit slots at the same time
-    def make_requests(limiter: RateLimiter) -> list[float]:
+    def make_requests(
+        limiter: RateLimiter, mocked_time_module: _MockedTimeModule
+    ) -> list[float]:
         requests: list[float] = []
         for i in range(amt_iterations):
-            with unittest.mock.patch(
-                "prism.ratelimiting.time", mocked_time_modules[0]
-            ), limiter:
-                requests.append(mocked_time_modules[0].monotonic())
-                for inner_mocked_time_module in mocked_time_modules[1:]:
-                    with unittest.mock.patch(
-                        "prism.ratelimiting.time", inner_mocked_time_module
-                    ), limiter:
-                        requests.append(inner_mocked_time_module.monotonic())
+            with limiter:
+                requests.append(mocked_time_module.monotonic())
+                for i in range(amt_threads - 1):
+                    with limiter:
+                        requests.append(mocked_time_module.monotonic())
+        return requests
+
+    time_ratelimiter(window, limit, make_requests)
+
+
+def test_ratelimiting_multithreaded() -> None:
+    """Assert that RateLimiter functions under multithreaded operation"""
+    import queue
+    import threading
+    import time
+
+    window = 1
+    limit = 10
+    amt_iterations = 10
+    amt_threads = 32
+
+    class PerformOperationThread(threading.Thread):
+        def __init__(
+            self,
+            limiter: RateLimiter,
+            mocked_time_module: _MockedTimeModule,
+            requests_queue: queue.Queue[float],
+            iterations: int,
+        ) -> None:
+            super().__init__()
+            self.limiter = limiter
+            self.mocked_time_module = mocked_time_module
+            self.requests_queue = requests_queue
+            self.iterations = iterations
+
+        def run(self) -> None:
+            for i in range(self.iterations):
+                with self.limiter:
+                    self.requests_queue.put_nowait(self.mocked_time_module.monotonic())
+                    # Use real time.sleep to suspend execution in this thread
+                    time.sleep(0.1 / (self.iterations * amt_threads))
+
+    def make_requests(
+        limiter: RateLimiter, mocked_time_module: _MockedTimeModule
+    ) -> list[float]:
+        requests_queue = queue.Queue[float]()
+        requests: list[float] = []
+        threads = [
+            PerformOperationThread(
+                limiter, mocked_time_module, requests_queue, amt_iterations
+            )
+            for i in range(amt_threads)
+        ]
+        for thread in threads:
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+        while True:
+            try:
+                request = requests_queue.get_nowait()
+            except queue.Empty:
+                break
+            else:
+                requests_queue.task_done()
+                requests.append(request)
+
+        requests_queue.join()
+
         return requests
 
     time_ratelimiter(window, limit, make_requests)

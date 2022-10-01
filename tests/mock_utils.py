@@ -1,5 +1,6 @@
 import datetime
 import os
+import threading
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -19,12 +20,30 @@ class MockedTime:
     def __init__(
         self, start: datetime.datetime = datetime.datetime(2022, 1, 1, 12)
     ) -> None:
-        self.current_time = 0.0
-        self.current_datetime = start
+        self.start = start
+
+        self._current_time: dict[int, float] = {}
+        self._current_datetime: dict[int, datetime.datetime] = {}
 
         self.time = _MockedTimeModule(self)
         self.datetime = _MockedDateTime(self)
         self.date = _MockedDate(self)
+
+    @property
+    def current_time(self) -> float:
+        return self._current_time.get(threading.get_ident(), 0.0)
+
+    @current_time.setter
+    def current_time(self, new_time: float) -> None:
+        self._current_time[threading.get_ident()] = new_time
+
+    @property
+    def current_datetime(self) -> datetime.datetime:
+        return self._current_datetime.get(threading.get_ident(), self.start)
+
+    @current_datetime.setter
+    def current_datetime(self, new_datetime: datetime.datetime) -> None:
+        self._current_datetime[threading.get_ident()] = new_datetime
 
 
 @dataclass
@@ -35,6 +54,8 @@ class _MockedTimeModule:
 
     def sleep(self, seconds: float) -> None:
         """Mock time.sleep"""
+        assert seconds >= 0
+
         self.parent.current_time += seconds
         self.parent.current_datetime += datetime.timedelta(seconds=seconds)
 
