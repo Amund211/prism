@@ -27,4 +27,4 @@ The overlay can be extended with the [Antisniper API](https://antisniper.net) (n
 ## Safety
 Being open source, anyone can look at the source code for Prism to see that nothing nefarious is happening.
 The released binaries are created using `pyinstaller` in GitHub Actions from a clean clone of the repository.
-If you do not trust the released binary you can clone the project and run it locally using `python prism_overlay.py` from the project root.
+If you do not trust the released binary you can clone the project and run it from source by installing the dependencies and running `python prism_overlay.py` from the project root.
