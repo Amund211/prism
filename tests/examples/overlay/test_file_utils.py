@@ -28,6 +28,8 @@ def get_seen_lines(
     start_at: int,
     blocking: Literal[True, False],
     start: datetime.datetime = datetime.datetime(2022, 1, 1, 12),
+    reopen_timeout: int = REOPEN_TIMEOUT,
+    poll_timeout: int = POLL_TIMEOUT,
 ) -> tuple[list[str | None], list[float], MockedPath, MockedFile, MockedTime]:
     mocked_path, mocked_file, mocked_time = create_mocked_file(lines, amt_opens, start)
 
@@ -46,8 +48,8 @@ def get_seen_lines(
                 cast(Path, mocked_path),
                 start_at=start_at,
                 blocking=blocking,
-                reopen_timeout=REOPEN_TIMEOUT,
-                poll_timeout=POLL_TIMEOUT,
+                reopen_timeout=reopen_timeout,
+                poll_timeout=poll_timeout,
             ):
                 seen.append(line)
                 timestamps.append(mocked_time.time.monotonic())
@@ -139,6 +141,31 @@ def test_read_after_clear_after_midnight() -> None:
     ]
     assert timestamps == [0] * 10 + [6, 6, 10]
     assert [call[0] for call in mocked_path.calls] == [0, 6]
+
+
+def test_long_delay_before_midnight() -> None:
+    """We don't want to reopen the file right after midnight"""
+    seen, timestamps, mocked_path, mocked_file, mocked_time = get_seen_lines(
+        [Line(0, "Old text")] * 10
+        + [
+            Line(59, None),  # Clear at midnight
+            Line(59, "New text"),
+            Line(60, "More new text"),
+            Line(61, "Later text"),
+        ],
+        amt_opens=2,
+        start_at=0,
+        blocking=True,
+        start=datetime.datetime(2022, 2, 1, 23, 59, 1),
+        reopen_timeout=60,  # NOTE: longer timeout
+    )
+    assert seen == ["Old text\n"] * 10 + [
+        "New text\n",
+        "More new text\n",
+        "Later text\n",
+    ]
+    assert timestamps == [0] * 10 + [64, 64, 64]
+    assert [call[0] for call in mocked_path.calls] == [0, 64]
 
 
 def test_simple_reads_non_blocking() -> None:
