@@ -175,3 +175,14 @@ def test_simple_reads_non_blocking() -> None:
 
     assert seen == ["text\n", None] * 5 + [None] * 9
     assert timestamps == [0, 0, 1, 1, 2, 2, 3, 3, 4, 4] + list(range(5, 14))
+
+
+def test_start_at() -> None:
+    seen, timestamps, mocked_path, mocked_file, mocked_time = get_seen_lines(
+        [Line(0, "Old text")] * 10 + [Line(1, "New text")] * 10,
+        amt_opens=1,
+        start_at=10,
+        blocking=True,
+    )
+    assert seen == ["New text\n"] * 10
+    assert timestamps == [1] * 10
