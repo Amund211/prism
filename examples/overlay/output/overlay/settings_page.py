@@ -5,12 +5,12 @@ from examples.overlay.behaviour import update_settings
 from examples.overlay.controller import OverlayController
 from examples.overlay.settings import NickValue, Settings, SettingsDict
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: nocover
     from examples.overlay.output.overlay.stats_overlay import StatsOverlay
     from examples.overlay.output.overlay.utils import ColumnKey
 
 
-class HypixelSection:
+class HypixelSection:  # pragma: nocover
     def __init__(self, parent: "SettingsPage") -> None:
         self.frame = parent.make_section("Hypixel")
         self.frame.columnconfigure(0, weight=0)
@@ -36,7 +36,7 @@ class HypixelSection:
         return self.hypixel_api_key_variable.get().strip()
 
 
-class AntisniperSection:
+class AntisniperSection:  # pragma: nocover
     def __init__(self, parent: "SettingsPage") -> None:
         self.frame = parent.make_section(
             "Antisniper", subtitle="Denicking + winstreaks"
@@ -125,7 +125,7 @@ class AntisniperSection:
         return self.use_antisniper_api, raw_antisniper_api_key or None
 
 
-class SettingsPage:
+class SettingsPage:  # pragma: nocover
     """Settings page for the overlay"""
 
     def __init__(

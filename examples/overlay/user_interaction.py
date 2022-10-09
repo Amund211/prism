@@ -21,7 +21,40 @@ from examples.overlay.settings import api_key_is_valid, read_settings
 logger = logging.getLogger(__name__)
 
 
-class SearchLogfileForKeyThread(threading.Thread):
+def search_logfile_for_key(
+    logfile_path: Path, key_found_event: threading.Event
+) -> str | None:
+    """Read self.loglines until we find a new API key"""
+    # True if we have read through the entire (present) file
+    has_reached_end = False
+    found_key: str | None = None
+
+    for line in watch_file_with_reopen(logfile_path, start_at=0, blocking=False):
+        if key_found_event.is_set():
+            # The other thread found a new key
+            return None
+
+        if line is None:
+            has_reached_end = True
+            if found_key is not None:
+                # The found key is the last key
+                return found_key
+            continue
+
+        event = parse_logline(line)
+
+        if isinstance(event, NewAPIKeyEvent):
+            # Store the found key
+            found_key = event.key
+
+            if has_reached_end:
+                # We have once reached the end of the logfile
+                # Assume this is the last key
+                return found_key
+    return None  # pragma: nocover (unreachable)
+
+
+class SearchLogfileForKeyThread(threading.Thread):  # pragma: nocover
     """Thread that reads from the logfile to look for an API key"""
 
     def __init__(
@@ -36,42 +69,33 @@ class SearchLogfileForKeyThread(threading.Thread):
         self.key_queue = key_queue
 
     def run(self) -> None:
-        """Read self.loglines until we find a new API key"""
-        # True if we have read through the entire (present) file
-        has_reached_end = False
-        found_key: str | None = None
-
-        for line in watch_file_with_reopen(
-            self.logfile_path, start_at=0, blocking=False
-        ):
-            if self.key_found_event.is_set():
-                # The other thread found a new key
-                return
-
-            if line is None:
-                has_reached_end = True
-                if found_key is not None:
-                    # The found key is the last key
-                    self.key_found_event.set()
-                    self.key_queue.put(found_key)
-                    return
-                continue
-
-            event = parse_logline(line)
-
-            if isinstance(event, NewAPIKeyEvent):
-                # Store the found key
-                found_key = event.key
-
-                if has_reached_end:
-                    # We have once reached the end of the logfile
-                    # Assume this is the last key
-                    self.key_found_event.set()
-                    self.key_queue.put(found_key)
-                    return
+        found_key = search_logfile_for_key(self.logfile_path, self.key_found_event)
+        if found_key is not None:
+            # Our thread found the key -> notify
+            self.key_found_event.set()
+            self.key_queue.put(found_key)
 
 
-class SearchSettingsfileForKeyThread(threading.Thread):
+def search_settings_file_for_key(
+    settings_path: Path, key_found_event: threading.Event
+) -> str | None:
+    """Periodically read settings file until we find a new API key"""
+    while not key_found_event.is_set():
+        try:
+            settings_object = read_settings(settings_path)
+        except (OSError, ValueError) as e:
+            logger.debug(f"Exception caught in search settings thread: {e}. Ignoring")
+            time.sleep(4)
+        else:
+            found_key = settings_object.get("hypixel_api_key", None)
+            if isinstance(found_key, str) and api_key_is_valid(found_key):
+                return found_key
+
+        time.sleep(1)
+    return None
+
+
+class SearchSettingsfileForKeyThread(threading.Thread):  # pragma: nocover
     """Thread that reads from the settings file to look for an API key"""
 
     def __init__(
@@ -86,26 +110,16 @@ class SearchSettingsfileForKeyThread(threading.Thread):
         self.key_queue = key_queue
 
     def run(self) -> None:
-        """Periodically read settings file until we find a new API key"""
-        while not self.key_found_event.is_set():
-            try:
-                settings_object = read_settings(self.settings_path)
-            except (OSError, ValueError) as e:
-                logger.debug(
-                    f"Exception caught in search settings thread: {e}. Ignoring"
-                )
-                time.sleep(5)
-            else:
-                key = settings_object.get("hypixel_api_key", None)
-                if isinstance(key, str) and api_key_is_valid(key):
-                    self.key_found_event.set()
-                    self.key_queue.put(key)
-                    return
-
-            time.sleep(1)
+        found_key = search_settings_file_for_key(
+            self.settings_path, self.key_found_event
+        )
+        if found_key is not None:
+            # Our thread found the key -> notify
+            self.key_found_event.set()
+            self.key_queue.put(found_key)
 
 
-class APIKeyPrompt:
+class APIKeyPrompt:  # pragma: nocover
     """Window to prompt the user to type /api new or edit their settings"""
 
     def __init__(self, settings_path_str: str, key_found_event: threading.Event):
@@ -156,7 +170,7 @@ class APIKeyPrompt:
         self.root.mainloop()
 
 
-def wait_for_api_key(logfile_path: Path, settings_path: Path) -> str:
+def wait_for_api_key(logfile_path: Path, settings_path: Path) -> str:  # pragma: nocover
     """Wait for the user to type /api new, or add an api key to their settings file"""
 
     # Queue to communicate found keys
@@ -192,7 +206,7 @@ def wait_for_api_key(logfile_path: Path, settings_path: Path) -> str:
     return new_key
 
 
-class LogfilePrompt:
+class LogfilePrompt:  # pragma: nocover
     """Window to prompt the user to select a logfile"""
 
     # Number of seconds for a logfile to be considered recently used
@@ -381,7 +395,7 @@ class LogfilePrompt:
         self.root.mainloop()
 
 
-def suggest_logfile_candidates() -> list[Path]:
+def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
     system = platform.system()
     if system == "Linux":
         vanilla_logfile = Path.home() / ".minecraft" / "logs" / "latest.log"
@@ -419,12 +433,12 @@ def file_exists(path: Path | str) -> bool:
         path = Path(path)
 
     # TEMP HACK: Remove previously suggested .minecraft/launcher_log.txt
-    if path.parts[-2:] == (".minecraft", "launcher_log.txt"):
+    if path.parts[-2:] == (".minecraft", "launcher_log.txt"):  # pragma: nocover
         return False
 
     try:
         return path.is_file()
-    except OSError:
+    except OSError:  # pragma: nocover
         return False
 
 
@@ -443,7 +457,7 @@ def get_timestamp(path_str: str) -> float:
         return stat.st_mtime
 
 
-def prompt_for_logfile_path(logfile_cache_path: Path) -> Path:
+def prompt_for_logfile_path(logfile_cache_path: Path) -> Path:  # pragma: nocover
     """Wait for the user to type /api new, or add an api key to their settings file"""
 
     try:

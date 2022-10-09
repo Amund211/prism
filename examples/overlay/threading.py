@@ -14,7 +14,7 @@ from examples.overlay.player import Player, sort_players
 logger = logging.getLogger(__name__)
 
 
-class UpdateStateThread(threading.Thread):
+class UpdateStateThread(threading.Thread):  # pragma: nocover
     """Thread that reads from the logfile and updates the state"""
 
     def __init__(self, controller: OverlayController, loglines: Iterable[str]) -> None:
@@ -31,7 +31,7 @@ class UpdateStateThread(threading.Thread):
             return
 
 
-class GetStatsThread(threading.Thread):
+class GetStatsThread(threading.Thread):  # pragma: nocover
     """Thread that downloads and stores players' stats to cache"""
 
     def __init__(
@@ -65,7 +65,7 @@ class GetStatsThread(threading.Thread):
 
 def prepare_overlay(
     controller: OverlayController, loglines: Iterable[str], thread_count: int
-) -> Callable[[], list[Player] | None]:
+) -> Callable[[], list[Player] | None]:  # pragma: nocover
     """
     Set up and return get_stat_list
 

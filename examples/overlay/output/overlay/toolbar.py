@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from examples.overlay import VERSION_STRING
 from examples.overlay.controller import OverlayController
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: nocover
     from examples.overlay.output.overlay.stats_overlay import StatsOverlay
     from examples.overlay.output.overlay.utils import ColumnKey
 
@@ -20,7 +20,7 @@ else:  # pragma: nocover
     FULLSCREEN_CALLBACK = None
 
 
-class Toolbar:
+class Toolbar:  # pragma: nocover
     """Toolbar for the overlay"""
 
     def __init__(

@@ -3,9 +3,11 @@ import os
 import threading
 from collections.abc import Sequence
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePath
 from types import TracebackType
 from typing import Any
+
+real_fspath = os.fspath
 
 
 class EndFileTest(Exception):
@@ -139,6 +141,21 @@ class MockedFile:
             else:
                 self.contents.append(f"{line.content}\n")
 
+    def read(self, arg: int | None = None) -> str:
+        """Mocked read"""
+        assert arg is None or arg < 0, "Read with size not supported"
+
+        self._set_contents()
+
+        if self.content_index >= len(self.contents):
+            return ""
+
+        output = ""
+        while (new_line := self.readline()) != "":
+            output += new_line
+
+        return output
+
     def readline(self) -> str:
         """Mocked readline"""
         self._set_contents()
@@ -172,6 +189,9 @@ class MockedFile:
 class MockedPath:
     """Class mocking a path, returning a MockedFile"""
 
+    # Pass isinstance checks
+    __class__ = PurePath  # type: ignore
+
     def __init__(
         self, file: MockedFile, amt_opens: int, mocked_time: MockedTime
     ) -> None:
@@ -189,6 +209,22 @@ class MockedPath:
 
         self.calls.append((self.mocked_time.time.monotonic(), args, kwargs))
         return self.file
+
+
+class MockedIOModule:
+    @staticmethod
+    def open(path: Any, *args: Any, **kwargs: Any) -> MockedFile:
+        assert isinstance(path, MockedPath)
+        return path.open()
+
+
+class MockedOsModule:
+    @staticmethod
+    def fspath(path: Any, *args: Any, **kwargs: Any) -> MockedPath | Any:
+        if isinstance(path, MockedPath):
+            return path
+        else:
+            return real_fspath(path)
 
 
 def create_mocked_time(

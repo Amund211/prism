@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 Page = Literal["settings", "main", "set_nickname"]
 
 
-class StatsOverlay(Generic[ColumnKey]):
+class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
     """Show bedwars stats in an overlay"""
 
     def __init__(

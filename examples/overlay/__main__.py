@@ -52,7 +52,9 @@ TESTING = False
 CLEAR_BETWEEN_DRAWS = True
 
 
-def slow_iterable(iterable: Iterable[str], wait: float = 1) -> Iterable[str]:
+def slow_iterable(
+    iterable: Iterable[str], wait: float = 1
+) -> Iterable[str]:  # pragma: nocover
     """Wait `wait` seconds between each yield from iterable"""
     # Used for testing
     for item in iterable:
@@ -66,7 +68,7 @@ def process_loglines_to_stdout(
     controller: OverlayController,
     loglines: Iterable[str],
     thread_count: int,
-) -> None:
+) -> None:  # pragma: nocover
     """Process the state changes for each logline and redraw the screen if neccessary"""
     get_stat_list = prepare_overlay(
         controller, loglines=loglines, thread_count=thread_count
@@ -97,7 +99,7 @@ def process_loglines_to_overlay(
     loglines: Iterable[str],
     output_to_console: bool,
     thread_count: int,
-) -> None:
+) -> None:  # pragma: nocover
     """Process the state changes for each logline and output to an overlay"""
     get_stat_list = prepare_overlay(
         controller, loglines=loglines, thread_count=thread_count
@@ -134,7 +136,7 @@ def watch_from_logfile(
     settings: Settings,
     nick_database: NickDatabase,
     thread_count: int,
-) -> None:
+) -> None:  # pragma: nocover
     """Use the overlay on an active logfile"""
 
     assert overlay or console, "Need at least one output"
@@ -171,7 +173,9 @@ def watch_from_logfile(
         )
 
 
-def setup(loglevel: int = logging.WARNING, log_prefix: str = "") -> None:
+def setup(
+    loglevel: int = logging.WARNING, log_prefix: str = ""
+) -> None:  # pragma: nocover
     """Set up directory structure and logging"""
     # Rename old directories
     olddirs = AppDirs(appname="hystatutils_overlay")
@@ -229,7 +233,7 @@ def setup(loglevel: int = logging.WARNING, log_prefix: str = "") -> None:
     logger.setLevel(loglevel)
 
 
-def test() -> None:
+def test() -> None:  # pragma: nocover
     """Test the implementation on a static logfile or a list of loglines"""
     options = get_options(
         args=sys.argv[2:], default_settings_path=DEFAULT_SETTINGS_PATH
@@ -296,7 +300,7 @@ def test() -> None:
         )
 
 
-def main(*nick_databases: Path) -> None:
+def main(*nick_databases: Path) -> None:  # pragma: nocover
     """Run the overlay"""
     options = get_options(default_settings_path=DEFAULT_SETTINGS_PATH)
 
@@ -337,7 +341,7 @@ def main(*nick_databases: Path) -> None:
     )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: nocover
     if len(sys.argv) >= 2 and sys.argv[1] == "--test":
         test()
     else:

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 from examples.overlay.behaviour import set_nickname
 from examples.overlay.controller import OverlayController
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: nocover
     from examples.overlay.output.overlay.stats_overlay import StatsOverlay
     from examples.overlay.output.overlay.utils import ColumnKey
 
@@ -16,7 +16,7 @@ SELECT_AN_OPTION_CHOICE = "Select an option"
 logger = logging.getLogger(__name__)
 
 
-class SetNicknamePage:
+class SetNicknamePage:  # pragma: nocover
     """Page for manually setting nickname for players"""
 
     def __init__(

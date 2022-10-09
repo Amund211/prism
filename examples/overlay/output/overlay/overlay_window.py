@@ -14,7 +14,7 @@ from types import TracebackType
 logger = logging.getLogger(__name__)
 
 
-class Root(tk.Tk):
+class Root(tk.Tk):  # pragma: nocover
     """Root window that exits when an exception occurs in an event handler"""
 
     def report_callback_exception(
@@ -32,7 +32,7 @@ class Root(tk.Tk):
         sys.exit(0)
 
 
-class OverlayWindow:
+class OverlayWindow:  # pragma: nocover
     """
     Overlay window using the "-topmost" property to always stay on top
 

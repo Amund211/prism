@@ -9,7 +9,7 @@ from examples.overlay.output.overlay.utils import (
     OverlayRowData,
 )
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: nocover
     from examples.overlay.output.overlay.stats_overlay import StatsOverlay
 
 StatsCells = dict[ColumnKey, Cell]
@@ -17,7 +17,7 @@ StatsCells = dict[ColumnKey, Cell]
 OverlayRow = tuple[tk.Button, StatsCells[ColumnKey]]
 
 
-class MainContent(Generic[ColumnKey]):
+class MainContent(Generic[ColumnKey]):  # pragma: nocover
     """Main content for the overlay"""
 
     def __init__(

@@ -63,7 +63,7 @@ for levels in STAT_LEVELS.values():
         assert len(levels) <= len(LEVEL_COLORMAP) - 1
 
 
-def clear_screen() -> None:
+def clear_screen() -> None:  # pragma: nocover
     """Blank the screen"""
     os.system("cls" if os.name == "nt" else "clear")
 
@@ -88,7 +88,7 @@ def print_stats_table(
     party_members: set[str],
     out_of_sync: bool,
     clear_between_draws: bool = True,
-) -> None:
+) -> None:  # pragma: nocover
     """Print the stats in a table format to stdout"""
     column_widths = {
         column: len(
