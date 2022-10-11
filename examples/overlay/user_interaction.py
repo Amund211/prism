@@ -285,8 +285,12 @@ class LogfilePrompt:  # pragma: nocover
     def make_selection(self) -> None:
         result = tk.filedialog.askopenfilename(
             parent=self.root,
-            title="Select launcher_log.txt",
-            filetypes=(("Text/log", ".txt .log"),),
+            title="Select launcher logfile",
+            filetypes=(
+                ("latest.log", "latest.log"),
+                ("Text/log", ".txt .log"),
+                ("All files", "*.*"),
+            ),
         )
 
         if result is not None:
