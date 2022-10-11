@@ -15,7 +15,7 @@ from itertools import count
 from pathlib import Path
 
 from appdirs import AppDirs
-from tendo import singleton  # type: ignore
+from tendo import singleton
 
 from examples.overlay import VERSION_STRING
 from examples.overlay.behaviour import fast_forward_state
@@ -199,7 +199,7 @@ def setup(
     # Only allow one instance of the overlay
     global SINGLEINSTANCE_LOCK
     try:
-        SINGLEINSTANCE_LOCK = singleton.SingleInstance(
+        SINGLEINSTANCE_LOCK = singleton.SingleInstance(  # type: ignore
             lockfile=str(CACHE_DIR / "prism_overlay.lock")
         )
     except singleton.SingleInstanceException:
