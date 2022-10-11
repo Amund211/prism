@@ -59,8 +59,8 @@ jobs:
     - name: Build single file binary with pyinstaller
       run: |
         source ${{ env.ACTIVATE_PATH }}
-        python add_version_to_icon.py
-        pyinstaller pyinstaller/prism_overlay.spec --noconfirm
+        python add_version_to_icon.py  # Create the icon file
+        pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who_with_version.ico --name prism_overlay
         mv dist/prism_overlay${{ env.BINARY_EXTENSION }} "dist/${{ env.BINARY_NAME }}"
 
     - name: Upload built binary
