@@ -14,9 +14,9 @@ jobs:
       run:
         shell: bash  # For `source`
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python_version }}
 
@@ -64,7 +64,7 @@ jobs:
         mv dist/prism_overlay${{ env.BINARY_EXTENSION }} "dist/${{ env.BINARY_NAME }}"
 
     - name: Upload built binary
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: prism-${{ matrix.os }}
         path: "dist/${{ env.BINARY_NAME }}"
