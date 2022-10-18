@@ -119,11 +119,6 @@ parse_estimated_winstreaks_cases: tuple[
         True,
     ),
     (
-        {"success": True, "player": {"accurate": True, "data": {}}},
-        make_winstreaks(),
-        True,
-    ),
-    (
         {
             "success": True,
             "player": {"accurate": True, "data": {"overall_winstreak": 19}},
