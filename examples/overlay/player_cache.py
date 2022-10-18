@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class PlayerCache:
     def __init__(self) -> None:
         # Entries cached for 2mins, so they hopefully expire before the next queue
-        self._cache: TTLCache[str, Player] = TTLCache(maxsize=512, ttl=120)
+        self._cache = TTLCache[str, Player](maxsize=512, ttl=120)
         self._mutex = threading.Lock()
 
     def set_player_pending(self, username: str) -> PendingPlayer:

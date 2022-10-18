@@ -25,7 +25,7 @@ class Flag(Enum):
 
 
 # Cache both successful and failed denicks for 60 mins
-LOWERCASE_DENICK_CACHE: TTLCache[str, str | None] = TTLCache(maxsize=1024, ttl=60 * 60)
+LOWERCASE_DENICK_CACHE = TTLCache[str, str | None](maxsize=1024, ttl=60 * 60)
 DENICK_MUTEX = threading.Lock()
 
 
