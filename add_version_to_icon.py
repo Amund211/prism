@@ -6,7 +6,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from examples.overlay import VERSION_STRING
+from prism.overlay import VERSION_STRING
 
 
 class Color:

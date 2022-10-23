@@ -1,6 +1,6 @@
 import logging
 
-from examples.overlay.__main__ import main
+from prism.overlay.__main__ import main
 
 logger = logging.getLogger(__name__)
 
