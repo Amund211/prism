@@ -18,13 +18,6 @@ from prism.playerdata import (
 )
 from prism.utils import div, format_seconds, read_key, truncate_float
 
-try:
-    # Define a map username -> uuid so that we can look up by uuid instead of username
-    from examples.customize import NICK_DATABASE
-except ImportError:
-    NICK_DATABASE: dict[str, str] = {}  # type: ignore[no-redef]
-
-
 api_key = read_key(Path(sys.path[0]) / "api_key")
 key_holder = HypixelAPIKeyHolder(api_key)
 
@@ -170,20 +163,7 @@ def get_and_display(username: str) -> None:
         uuid = get_uuid(username)
         nick = None
     except MojangAPIError:
-        failed_getting_uuid = True
         uuid = None
-    else:
-        failed_getting_uuid = False
-
-    # The player may be nicked. Look up in nick database
-    if uuid is None or failed_getting_uuid:
-        matching_nicks = list(
-            filter(lambda nick: nick.lower() == username.lower(), NICK_DATABASE.keys())
-        )
-
-        if matching_nicks:
-            uuid = NICK_DATABASE[matching_nicks[0]]
-            nick = username
 
     if uuid is None:
         print(f"Could not find user with username {username}")
