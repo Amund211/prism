@@ -467,6 +467,7 @@ def test_update_settings_everything_changed() -> None:
             "AmazingNick": {"uuid": "1", "comment": "my friend :)"},
             "SuperbNick": {"uuid": "42", "comment": "42"},
         },
+        show_on_tab=True
     )
 
     controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore

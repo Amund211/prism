@@ -23,6 +23,7 @@ class NickValue(TypedDict):
 class SettingsDict(TypedDict):
     """Complete dict of settings"""
 
+    show_on_tab: bool
     hypixel_api_key: str
     antisniper_api_key: str | None
     use_antisniper_api: bool
@@ -37,6 +38,7 @@ DerivedSettings = TypeVar("DerivedSettings", bound="Settings")
 class Settings:
     """Class holding user settings for the application"""
 
+    show_on_tab: bool
     hypixel_api_key: str
     antisniper_api_key: str | None
     use_antisniper_api: bool
@@ -51,6 +53,7 @@ class Settings:
         cls: Type[DerivedSettings], source: SettingsDict, path: Path
     ) -> DerivedSettings:
         return cls(
+            show_on_tab=source["show_on_tab"],
             hypixel_api_key=source["hypixel_api_key"],
             antisniper_api_key=source["antisniper_api_key"],
             use_antisniper_api=source["use_antisniper_api"],
@@ -60,6 +63,7 @@ class Settings:
 
     def to_dict(self) -> SettingsDict:
         return {
+            "show_on_tab": self.show_on_tab,
             "hypixel_api_key": self.hypixel_api_key,
             "antisniper_api_key": self.antisniper_api_key,
             "use_antisniper_api": self.use_antisniper_api,
@@ -68,6 +72,7 @@ class Settings:
 
     def update_from(self, new_settings: SettingsDict) -> None:
         """Update the settings from the settings dict"""
+        self.show_on_tab = new_settings["show_on_tab"]
         self.hypixel_api_key = new_settings["hypixel_api_key"]
         self.antisniper_api_key = new_settings["antisniper_api_key"]
         self.use_antisniper_api = new_settings["use_antisniper_api"]
@@ -101,6 +106,11 @@ def fill_missing_settings(
 ) -> tuple[SettingsDict, bool]:
     """Get settings from `incomplete_settings` and fill with defaults if missing"""
     settings_updated = False
+
+    show_on_tab = incomplete_settings.get("show_on_tab", None)
+    if not isinstance(show_on_tab, bool):
+        settings_updated = True
+        show_on_tab = True
 
     hypixel_api_key = incomplete_settings.get("hypixel_api_key", None)
     if not isinstance(hypixel_api_key, str) or not api_key_is_valid(hypixel_api_key):
@@ -146,14 +156,22 @@ def fill_missing_settings(
         known_nicks[key] = NickValue(uuid=uuid, comment=comment)
 
     return {
+        "show_on_tab": show_on_tab,
         "hypixel_api_key": hypixel_api_key,
         "antisniper_api_key": antisniper_api_key,
         "use_antisniper_api": use_antisniper_api,
         "known_nicks": known_nicks,
     }, settings_updated
 
+settings_obj: Settings | None = None
 
 def get_settings(path: Path, get_api_key: Callable[[], str]) -> Settings:
+    global settings_obj
+    if(settings_obj == None):
+        settings_obj = _get_settings(path, get_api_key=get_api_key)
+    return settings_obj
+
+def _get_settings(path: Path, get_api_key: Callable[[], str]) -> Settings:
     """
     Read the stored settings into a Settings object
 

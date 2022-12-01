@@ -12,6 +12,7 @@ from examples.overlay.output.overlay.set_nickname_page import SetNicknamePage
 from examples.overlay.output.overlay.settings_page import SettingsPage
 from examples.overlay.output.overlay.toolbar import Toolbar
 from examples.overlay.output.overlay.utils import CellValue, ColumnKey, OverlayRowData
+from examples.overlay import settings
 
 logger = logging.getLogger(__name__)
 
@@ -36,15 +37,10 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
     ):
         """Set up content in an OverlayWindow"""
 
-        self.tab_pressed = False
+        # Will already be populated
+        self.setting: settings.Settings = settings.get_settings(None, None)
 
-        def set_tab_pressed(key):
-            # print("Key pressed: " + key)
-            if key == pynput.keyboard.Key.tab:
-                self.tab_pressed = True
-
-        listener = pynput.keyboard.Listener(on_press=set_tab_pressed)
-        listener.start()
+        self.start_tab_listener()
 
         self.controller = controller
         self.poll_interval = poll_interval
@@ -92,6 +88,20 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
         self.toolbar.frame.pack(side=tk.TOP, expand=True, fill=tk.X)
 
         self.window.root.update_idletasks()
+
+    def start_tab_listener(self):
+        self.tab_pressed = False
+
+        def set_tab_pressed(key):
+            with (self.setting.mutex):
+                if(not self.setting.show_on_tab):
+                    return
+            if key == pynput.keyboard.Key.tab:  
+                self.tab_pressed = True
+
+        listener = pynput.keyboard.Listener(on_press=set_tab_pressed)
+        listener.start()
+
 
     def switch_page(self, new_page: Page) -> None:
         """Switch to the given page"""

@@ -25,6 +25,7 @@ def make_settings_dict(
     antisniper_api_key: str | None = None,
     use_antisniper_api: bool | None = None,
     known_nicks: dict[str, NickValue] | None = None,
+    show_on_tab: bool | None = None
 ) -> SettingsDict:
     """Make a settings dict with default values if missing"""
     return {
@@ -32,6 +33,7 @@ def make_settings_dict(
         "antisniper_api_key": antisniper_api_key or PLACEHOLDER_API_KEY,
         "use_antisniper_api": use_antisniper_api or False,
         "known_nicks": known_nicks or {},
+        "show_on_tab": show_on_tab or True
     }
 
 
@@ -49,12 +51,14 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             use_antisniper_api=True,
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             path=PLACEHOLDER_PATH,
+            show_on_tab=True
         ),
         {
             "hypixel_api_key": "my-key",
             "antisniper_api_key": "my-key",
             "use_antisniper_api": True,
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
+            "show_on_tab": True
         },
     ),
 )
@@ -150,11 +154,13 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
             "antisniper_api_key": "my-key",
             "use_antisniper_api": False,
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
+            "show_on_tab": True
         },
         make_settings_dict(
             hypixel_api_key="my-key",
             antisniper_api_key="my-key",
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
+            show_on_tab=True,
         ),
         False,
     ),
