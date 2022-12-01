@@ -293,7 +293,7 @@ class LogfilePrompt:  # pragma: nocover
             ),
         )
 
-        if result is not None:
+        if len(result) != 0:
             self.submit_selection(result)
 
     def remove_logfile_and_update(self, logfile: str) -> None:

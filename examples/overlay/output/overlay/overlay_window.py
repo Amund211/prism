@@ -54,7 +54,9 @@ class OverlayWindow:  # pragma: nocover
             self.show()
 
         # Window geometry
-        self.root.overrideredirect(True)
+        # overrideredirect breaks the window on Linux
+        if(sys.platform != "linux"):
+            self.root.overrideredirect(True)
         self.root.lift()
         self.root.wm_attributes("-topmost", True)
         self.root.wm_attributes("-alpha", 0.8)

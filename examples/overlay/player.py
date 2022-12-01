@@ -1,4 +1,5 @@
 import logging
+import re
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from typing import Any, Literal, TypedDict, overload
@@ -70,10 +71,12 @@ class KnownPlayer:
     username: str
     uuid: str
     nick: str | None = field(default=None)
+    rank: str = field(default="")
 
     def order(self) -> KnownPlayerOrder:
         """Return a tuple used to order instances of this class"""
-        return (self.stats.order(), self.stars, self.username)
+        # return (self.stats.order(), self.stars, self.username)
+        return self.stats.fkdr * self.stats.fkdr * self.stars
 
     @property
     def stats_hidden(self) -> bool:
@@ -113,6 +116,8 @@ class KnownPlayer:
             return self.stats.winstreak
         elif name == "username":
             return self.username + (f" ({self.nick})" if self.nick is not None else "")
+        elif name == "rank":
+            return self.rank
 
     def get_string(self, name: PropertyName) -> str:
         """Get a string representation of the given stat"""
@@ -272,10 +277,16 @@ def create_known_player(
         )
 
     winstreak = bw_stats.get("winstreak", None)
+    rank = playerdata.get("prefix") or playerdata.get("packageRank") or playerdata.get("newPackageRank", "")
+    if(rank.find("§") != -1):
+        rank = re.sub("§.", "")
+    else:
+        rank = rank.replace("_PLUS", "+")
     return KnownPlayer(
         username=username,
         nick=nick,
         uuid=uuid,
+        rank=rank,
         stars=bedwars_level_from_exp(bw_stats.get("Experience", 500)),
         stats=Stats(
             fkdr=div(
