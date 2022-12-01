@@ -59,7 +59,7 @@ class OverlayWindow:  # pragma: nocover
             self.root.overrideredirect(True)
         self.root.lift()
         self.root.wm_attributes("-topmost", True)
-        self.root.wm_attributes("-alpha", 0.8)
+        self.root.wm_attributes("-alpha", 0.7)
         self.root.configure(background="black")
 
         self.reset_position()
@@ -67,13 +67,13 @@ class OverlayWindow:  # pragma: nocover
     def show(self) -> None:
         """Show the window"""
         self.cancel_scheduled_hide()
-        self.root.deiconify()
+        self.root.wm_attributes("-alpha", 0.7)
         self.shown = True
 
     def hide(self) -> None:
         """Hide the window"""
         self.cancel_scheduled_hide()
-        self.root.withdraw()
+        self.root.wm_attributes("-alpha", 0)
         self.shown = False
 
     def schedule_hide(self, timeout: int) -> None:
