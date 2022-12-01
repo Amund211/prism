@@ -3,7 +3,7 @@ import os
 import threading
 from collections.abc import Sequence
 from dataclasses import dataclass
-from pathlib import Path, PurePath
+from pathlib import PurePath
 from types import TracebackType
 from typing import Any
 
@@ -225,12 +225,6 @@ class MockedOsModule:
             return path
         else:
             return real_fspath(path)
-
-
-def create_mocked_time(
-    start: datetime.datetime = datetime.datetime(2022, 1, 1, 12)
-) -> tuple[Path, MockedPath]:
-    pass
 
 
 def create_mocked_file(
