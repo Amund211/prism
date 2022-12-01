@@ -24,6 +24,7 @@ test_cases: tuple[tuple[Player, OverlayRowData[PropertyName]], ...] = (
             username="Player",
             uuid="some-fake-uuid",
             stars=10.0,
+            rank="VIP",
             stats=Stats(
                 fkdr=1,
                 wlr=2.0,
@@ -34,6 +35,7 @@ test_cases: tuple[tuple[Player, OverlayRowData[PropertyName]], ...] = (
         (
             None,
             {
+                "rank": CellValue("VIP", DEFAULT_COLOR),
                 "username": CellValue("Player", DEFAULT_COLOR),
                 "stars": CellValue("10.00", rating0),
                 "fkdr": CellValue("1", rating1),
@@ -47,6 +49,7 @@ test_cases: tuple[tuple[Player, OverlayRowData[PropertyName]], ...] = (
             username="Denicked",
             nick="the_amazing_nick",
             uuid="some-fake-uuid",
+            rank="VIP+",
             stars=600.0,
             stats=Stats(
                 fkdr=10.0,
@@ -58,6 +61,7 @@ test_cases: tuple[tuple[Player, OverlayRowData[PropertyName]], ...] = (
         (
             "the_amazing_nick",
             {
+                "rank": CellValue("VIP+", DEFAULT_COLOR),
                 "username": CellValue("Denicked (the_amazing_nick)", DEFAULT_COLOR),
                 "stars": CellValue("600.00", rating3),
                 "fkdr": CellValue("10.00", rating4),
@@ -71,6 +75,7 @@ test_cases: tuple[tuple[Player, OverlayRowData[PropertyName]], ...] = (
         (
             "MrNick",
             {
+                "rank": CellValue("unknown", DEFAULT_COLOR),
                 "username": CellValue("MrNick", DEFAULT_COLOR),
                 "stars": CellValue("unknown", rating4),
                 "fkdr": CellValue("unknown", rating4),
@@ -84,6 +89,7 @@ test_cases: tuple[tuple[Player, OverlayRowData[PropertyName]], ...] = (
         (
             None,
             {
+                "rank": CellValue("-", DEFAULT_COLOR),
                 "username": CellValue("MrPending", DEFAULT_COLOR),
                 "stars": CellValue("-", rating0),
                 "fkdr": CellValue("-", rating0),
@@ -98,6 +104,7 @@ test_cases: tuple[tuple[Player, OverlayRowData[PropertyName]], ...] = (
             username="MissingWS",
             uuid="some-fake-uuid",
             stars=10.0,
+            rank="MVP",
             stats=Stats(
                 fkdr=1.0,
                 wlr=2.0,
@@ -108,6 +115,7 @@ test_cases: tuple[tuple[Player, OverlayRowData[PropertyName]], ...] = (
         (
             None,
             {
+                "rank": CellValue("MVP", DEFAULT_COLOR),
                 "username": CellValue("MissingWS", DEFAULT_COLOR),
                 "stars": CellValue("10.00", rating0),
                 "fkdr": CellValue("1.00", rating1),
@@ -120,6 +128,7 @@ test_cases: tuple[tuple[Player, OverlayRowData[PropertyName]], ...] = (
         KnownPlayer(
             username="AccurateMissingWS",
             uuid="some-fake-uuid",
+            rank="MVP+",
             stars=10.0,
             stats=Stats(
                 fkdr=1.0,
@@ -131,6 +140,7 @@ test_cases: tuple[tuple[Player, OverlayRowData[PropertyName]], ...] = (
         (
             None,
             {
+                "rank": CellValue("MVP+", DEFAULT_COLOR),
                 "username": CellValue("AccurateMissingWS", DEFAULT_COLOR),
                 "stars": CellValue("10.00", rating0),
                 "fkdr": CellValue("1.00", rating1),
@@ -145,6 +155,7 @@ test_cases: tuple[tuple[Player, OverlayRowData[PropertyName]], ...] = (
             username="InaccurateWS",
             uuid="some-fake-uuid",
             stars=10.0,
+            # rank="VIP",
             stats=Stats(
                 fkdr=1.0,
                 wlr=2.0,
@@ -155,6 +166,7 @@ test_cases: tuple[tuple[Player, OverlayRowData[PropertyName]], ...] = (
         (
             None,
             {
+                "rank": CellValue("", DEFAULT_COLOR),
                 "username": CellValue("InaccurateWS", DEFAULT_COLOR),
                 "stars": CellValue("10.00", rating0),
                 "fkdr": CellValue("1.00", rating1),

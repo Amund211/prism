@@ -227,6 +227,7 @@ def test_create_known_player(example_playerdata: dict[str, Any]) -> None:
         username="Technoblade",
         uuid="b876ec32e396476ba1158438d83c67d4",
         stars=bedwars_level_from_exp(1076936),
+        rank="[PIG+++]",
         stats=Stats(
             fkdr=20124 / 260,
             wlr=4924 / (5184 - 4924),

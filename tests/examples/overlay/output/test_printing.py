@@ -17,4 +17,5 @@ def test_get_sep() -> None:
     assert get_sep("stars") == SEP
     assert get_sep("fkdr") == SEP
     assert get_sep("someweirdstring") == SEP
-    assert get_sep("winstreak") == "\n"
+    assert get_sep("winstreak") == SEP
+    assert get_sep("wlr") == "\n"

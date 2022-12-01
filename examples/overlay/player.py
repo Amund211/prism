@@ -75,8 +75,7 @@ class KnownPlayer:
 
     def order(self) -> KnownPlayerOrder:
         """Return a tuple used to order instances of this class"""
-        # return (self.stats.order(), self.stars, self.username)
-        return self.stats.fkdr * self.stats.fkdr * self.stars
+        return (self.stats.fkdr * self.stats.fkdr * self.stars, self.stats.order(), self.stars, self.username)
 
     @property
     def stats_hidden(self) -> bool:
@@ -283,7 +282,7 @@ def create_known_player(
         or playerdata.get("newPackageRank", "")
     )
     if rank.find("§") != -1:
-        rank = re.sub("§.", "")
+        rank = re.sub("§.", "", rank)
     else:
         rank = rank.replace("_PLUS", "+")
     return KnownPlayer(
