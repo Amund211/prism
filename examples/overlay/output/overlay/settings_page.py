@@ -125,6 +125,58 @@ class AntisniperSection:  # pragma: nocover
         return self.use_antisniper_api, raw_antisniper_api_key or None
 
 
+class LocalSettingsSection:  # pragma: nocover
+    def __init__(self, parent: "SettingsPage") -> None:
+        self.frame = parent.make_section("Local Settings")
+        self.frame.columnconfigure(0, weight=0)
+
+        tk.Label(
+            self.frame,
+            text="Show overlay when tab is pressed: ",
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        ).grid(row=1, column=0, sticky=tk.E)
+        self.use_tab_to_show_button = tk.Button(
+            self.frame,
+            text="",
+            font=("Consolas", "12"),
+            foreground="black",
+            background="black",
+            command=self.toggle_use_show_on_tab,
+            relief="flat",
+        )
+        self.use_tab_to_show_button.grid(row=1, column=1)
+        self.toggle_use_show_on_tab()
+
+    @property
+    def use_tab_to_show(self) -> bool:
+        """Return the state of the toggle button"""
+        return (  # type:ignore
+            self.use_tab_to_show_button.config("bg")[-1] == "lime green"
+        )
+
+    def toggle_use_show_on_tab(self) -> None:
+        """Toggle the state of the button"""
+        if self.use_tab_to_show:
+            self.use_tab_to_show_button.config(
+                bg="red", activebackground="orange red", text="Disabled"
+            )
+        else:
+            self.use_tab_to_show_button.config(
+                bg="lime green", activebackground="lawn green", text="Enabled "
+            )
+
+    def set(self, use_tab_to_show: bool) -> None:
+        """Set the state of this section"""
+        if self.use_tab_to_show != use_tab_to_show:
+            self.toggle_use_show_on_tab()
+
+    def get(self) -> bool:
+        """Get the state of this section"""
+        return self.use_tab_to_show
+
+
 class SettingsPage:  # pragma: nocover
     """Settings page for the overlay"""
 
@@ -176,6 +228,7 @@ class SettingsPage:  # pragma: nocover
 
         self.hypixel_section = HypixelSection(self)
         self.antisniper_section = AntisniperSection(self)
+        self.local_settings_section = LocalSettingsSection(self)
 
     def make_section(
         self, section_header: str, subtitle: str | None = None
@@ -212,6 +265,7 @@ class SettingsPage:  # pragma: nocover
             self.antisniper_section.set(
                 settings.use_antisniper_api, settings.antisniper_api_key
             )
+            self.local_settings_section.set(settings.show_on_tab)
 
     def on_save(self) -> None:
         """Handle the user saving their settings"""
@@ -221,8 +275,7 @@ class SettingsPage:  # pragma: nocover
         # TODO: Add section to edit known nicks
         with self.controller.settings.mutex:
             known_nicks = self.controller.settings.known_nicks.copy()
-        # TODO: Add section to edit show_on_tab
-        show_on_tab = self.controller.settings.show_on_tab
+        show_on_tab = self.local_settings_section.get()
 
         new_settings = SettingsDict(
             hypixel_api_key=hypixel_api_key,
