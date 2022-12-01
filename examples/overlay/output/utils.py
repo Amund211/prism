@@ -9,7 +9,7 @@ COLUMN_NAMES: dict[PropertyName, str] = {
     "stars": "Stars",
     "fkdr": "FKDR",
     "wlr": "WLR",
-    "winstreak": "WS"
+    "winstreak": "WS",
 }
 
 STAT_LEVELS: dict[PropertyName, Sequence[float] | None] = {
@@ -18,7 +18,7 @@ STAT_LEVELS: dict[PropertyName, Sequence[float] | None] = {
     "wlr": (0.3, 1, 2, 4),
     "winstreak": (5, 15, 30, 50),
     "username": None,
-    "rank": None
+    "rank": None,
 }
 
 

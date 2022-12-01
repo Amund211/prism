@@ -277,8 +277,12 @@ def create_known_player(
         )
 
     winstreak = bw_stats.get("winstreak", None)
-    rank = playerdata.get("prefix") or playerdata.get("packageRank") or playerdata.get("newPackageRank", "")
-    if(rank.find("§") != -1):
+    rank = (
+        playerdata.get("prefix")
+        or playerdata.get("packageRank")
+        or playerdata.get("newPackageRank", "")
+    )
+    if rank.find("§") != -1:
         rank = re.sub("§.", "")
     else:
         rank = rank.replace("_PLUS", "+")

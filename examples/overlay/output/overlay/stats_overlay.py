@@ -1,8 +1,9 @@
 import logging
 import tkinter as tk
-import pynput
 from collections.abc import Callable, Sequence
 from typing import Generic, Literal
+
+import pynput
 
 from examples.overlay.controller import OverlayController
 from examples.overlay.output.overlay.main_content import MainContent
@@ -15,6 +16,7 @@ from examples.overlay.output.overlay.utils import CellValue, ColumnKey, OverlayR
 logger = logging.getLogger(__name__)
 
 Page = Literal["settings", "main", "set_nickname"]
+
 
 class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
     """Show bedwars stats in an overlay"""
@@ -35,10 +37,12 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
         """Set up content in an OverlayWindow"""
 
         self.tab_pressed = False
+
         def set_tab_pressed(key):
             # print("Key pressed: " + key)
-            if(key == pynput.keyboard.Key.tab):
+            if key == pynput.keyboard.Key.tab:
                 self.tab_pressed = True
+
         listener = pynput.keyboard.Listener(on_press=set_tab_pressed)
         listener.start()
 
@@ -129,7 +133,7 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
         show, info_cells, new_rows = self.get_new_data()
 
         # Show or hide the window if the desired state is different from the stored
-        if(self.tab_pressed):
+        if self.tab_pressed:
             self.tab_pressed = False
             show = True
 
