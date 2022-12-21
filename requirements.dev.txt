@@ -8,6 +8,7 @@ mypy>=0.991
 types-appdirs
 types-cachetools
 types-pyinstaller
+types-pynput
 types-requests
 types-toml
 pre-commit
