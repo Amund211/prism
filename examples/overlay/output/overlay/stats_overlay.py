@@ -1,7 +1,7 @@
 import logging
 import tkinter as tk
 from collections.abc import Callable, Sequence
-from typing import Generic, Literal
+from typing import TYPE_CHECKING, Generic, Literal
 
 from examples.overlay.controller import OverlayController
 from examples.overlay.output.overlay.main_content import MainContent
@@ -10,6 +10,9 @@ from examples.overlay.output.overlay.set_nickname_page import SetNicknamePage
 from examples.overlay.output.overlay.settings_page import SettingsPage
 from examples.overlay.output.overlay.toolbar import Toolbar
 from examples.overlay.output.overlay.utils import CellValue, ColumnKey, OverlayRowData
+
+if TYPE_CHECKING:  # pragma: nocover
+    import pynput
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +81,47 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
         )
         self.toolbar.frame.pack(side=tk.TOP, expand=True, fill=tk.X)
 
+        # Set up the tab listener
+        self.tab_pressed = False
+        self.listener: "pynput.keyboard.Listener | None" = None
+        self.setup_tab_listener()
+
         self.window.root.update_idletasks()
+
+    def setup_tab_listener(self) -> None:
+        if self.listener is not None:
+            return
+
+        try:
+            import pynput
+        except Exception:
+            logger.exception("Failed to import pynput")
+            return
+
+        KeyType = pynput.keyboard.Key | pynput.keyboard.KeyCode | None
+
+        def on_press(key: KeyType) -> None:
+            if key == pynput.keyboard.Key.tab:
+                self.tab_pressed = True
+                self.window.show()
+
+        def on_release(key: KeyType) -> None:
+            if key == pynput.keyboard.Key.tab:
+                self.tab_pressed = False
+                if not self.should_show:
+                    self.window.hide()
+
+        self.listener = pynput.keyboard.Listener(
+            on_press=on_press, on_release=on_release
+        )
+        self.listener.start()
+
+    def stop_tab_listener(self) -> None:
+        if self.listener is None:
+            return
+
+        self.listener.stop()
+        self.listener = None
 
     def switch_page(self, new_page: Page) -> None:
         """Switch to the given page"""
@@ -127,7 +170,9 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
                 self.window.show()
             elif self.current_page == "main":  # Only hide when we are on the main page
                 self.should_show = show
-                self.window.schedule_hide(self.hide_pause)
+                if not self.tab_pressed:
+                    # Only schedule hide if the user is not holding tab
+                    self.window.schedule_hide(self.hide_pause)
 
         # Only update the window if it's shown
         if self.window.shown and self.current_page == "main":
