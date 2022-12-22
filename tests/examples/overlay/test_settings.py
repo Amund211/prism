@@ -28,10 +28,12 @@ def make_settings_dict(
 ) -> SettingsDict:
     """Make a settings dict with default values if missing"""
     return {
-        "hypixel_api_key": hypixel_api_key or KEY_IF_MISSING,
-        "antisniper_api_key": antisniper_api_key or PLACEHOLDER_API_KEY,
-        "use_antisniper_api": use_antisniper_api or False,
-        "known_nicks": known_nicks or {},
+        "hypixel_api_key": value_or_default(hypixel_api_key, default=KEY_IF_MISSING),
+        "antisniper_api_key": value_or_default(
+            antisniper_api_key, default=PLACEHOLDER_API_KEY
+        ),
+        "use_antisniper_api": value_or_default(use_antisniper_api, default=False),
+        "known_nicks": value_or_default(known_nicks, default={}),
     }
 
 
