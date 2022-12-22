@@ -1,4 +1,4 @@
-from prism.overlay import VERSION_STRING
+from prism import VERSION_STRING
 
 
 def test_version_string() -> None:

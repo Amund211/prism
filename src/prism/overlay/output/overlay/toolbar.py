@@ -5,7 +5,7 @@ import tkinter as tk
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from prism.overlay import VERSION_STRING
+from prism import VERSION_STRING
 from prism.overlay.controller import OverlayController
 
 if TYPE_CHECKING:  # pragma: nocover

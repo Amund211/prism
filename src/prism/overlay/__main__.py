@@ -17,7 +17,7 @@ from pathlib import Path
 from appdirs import AppDirs
 from tendo import singleton
 
-from prism.overlay import VERSION_STRING
+from prism import VERSION_STRING
 from prism.overlay.behaviour import fast_forward_state
 from prism.overlay.commandline import get_options
 from prism.overlay.controller import OverlayController, RealOverlayController
