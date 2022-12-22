@@ -77,7 +77,8 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
         # Set up the tab listener
         self.tab_pressed = False
         self.listener: "pynput.keyboard.Listener | None" = None
-        self.setup_tab_listener()
+        if self.controller.settings.show_on_tab:
+            self.setup_tab_listener()
 
         # Update geometry and stuff, if necessary
         self.window.root.update_idletasks()

@@ -221,12 +221,15 @@ class SettingsPage:  # pragma: nocover
         # TODO: Add section to edit known nicks
         with self.controller.settings.mutex:
             known_nicks = self.controller.settings.known_nicks.copy()
+        # TODO: Add section to edit show_on_tab
+        show_on_tab = self.controller.settings.show_on_tab
 
         new_settings = SettingsDict(
             hypixel_api_key=hypixel_api_key,
             antisniper_api_key=antisniper_api_key,
             use_antisniper_api=use_antisniper_api,
             known_nicks=known_nicks,
+            show_on_tab=show_on_tab,
         )
 
         with self.controller.settings.mutex:

@@ -27,6 +27,7 @@ class SettingsDict(TypedDict):
     antisniper_api_key: str | None
     use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
+    show_on_tab: bool
 
 
 # Generic type to allow subclassing Settings
@@ -41,6 +42,7 @@ class Settings:
     antisniper_api_key: str | None
     use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
+    show_on_tab: bool
     path: Path
     mutex: threading.Lock = field(
         default_factory=threading.Lock, init=False, compare=False, repr=False
@@ -55,6 +57,7 @@ class Settings:
             antisniper_api_key=source["antisniper_api_key"],
             use_antisniper_api=source["use_antisniper_api"],
             known_nicks=source["known_nicks"],
+            show_on_tab=source["show_on_tab"],
             path=path,
         )
 
@@ -64,6 +67,7 @@ class Settings:
             "antisniper_api_key": self.antisniper_api_key,
             "use_antisniper_api": self.use_antisniper_api,
             "known_nicks": self.known_nicks,
+            "show_on_tab": self.show_on_tab,
         }
 
     def update_from(self, new_settings: SettingsDict) -> None:
@@ -72,6 +76,7 @@ class Settings:
         self.antisniper_api_key = new_settings["antisniper_api_key"]
         self.use_antisniper_api = new_settings["use_antisniper_api"]
         self.known_nicks = new_settings["known_nicks"]
+        self.show_on_tab = new_settings["show_on_tab"]
 
     def flush_to_disk(self) -> None:
         with self.path.open("w") as f:
@@ -145,11 +150,17 @@ def fill_missing_settings(
 
         known_nicks[key] = NickValue(uuid=uuid, comment=comment)
 
+    show_on_tab = incomplete_settings.get("show_on_tab", None)
+    if not isinstance(show_on_tab, bool):
+        settings_updated = True
+        show_on_tab = True
+
     return {
         "hypixel_api_key": hypixel_api_key,
         "antisniper_api_key": antisniper_api_key,
         "use_antisniper_api": use_antisniper_api,
         "known_nicks": known_nicks,
+        "show_on_tab": show_on_tab,
     }, settings_updated
 
 
