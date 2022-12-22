@@ -290,5 +290,13 @@ class SettingsPage:  # pragma: nocover
         with self.controller.settings.mutex:
             update_settings(new_settings, self.controller)
 
+        # Setup/stop tab listener
+        # NOTE: This happens outside of update_settings, so care must be taken if
+        #       update_settings is called somewhere else to also setup/stop the listener
+        if self.controller.settings.show_on_tab:
+            self.overlay.setup_tab_listener()
+        else:
+            self.overlay.stop_tab_listener()
+
         # Go back to the main content
         self.overlay.switch_page("main")
