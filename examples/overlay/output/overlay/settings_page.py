@@ -143,22 +143,24 @@ class LocalSettingsSection:  # pragma: nocover
             font=("Consolas", "12"),
             foreground="black",
             background="black",
-            command=self.toggle_use_show_on_tab,
+            command=self.toggle_tab_to_show,
             relief="flat",
         )
         self.use_tab_to_show_button.grid(row=1, column=1)
-        self.toggle_use_show_on_tab()
+
+        # Initially toggle to get into a consistent state
+        self.toggle_tab_to_show()
 
     @property
-    def use_tab_to_show(self) -> bool:
+    def tab_to_show(self) -> bool:
         """Return the state of the toggle button"""
         return (  # type:ignore
             self.use_tab_to_show_button.config("bg")[-1] == "lime green"
         )
 
-    def toggle_use_show_on_tab(self) -> None:
+    def toggle_tab_to_show(self) -> None:
         """Toggle the state of the button"""
-        if self.use_tab_to_show:
+        if self.tab_to_show:
             self.use_tab_to_show_button.config(
                 bg="red", activebackground="orange red", text="Disabled"
             )
@@ -167,14 +169,14 @@ class LocalSettingsSection:  # pragma: nocover
                 bg="lime green", activebackground="lawn green", text="Enabled "
             )
 
-    def set(self, use_tab_to_show: bool) -> None:
+    def set(self, tab_to_show: bool) -> None:
         """Set the state of this section"""
-        if self.use_tab_to_show != use_tab_to_show:
-            self.toggle_use_show_on_tab()
+        if self.tab_to_show != tab_to_show:
+            self.toggle_tab_to_show()
 
     def get(self) -> bool:
         """Get the state of this section"""
-        return self.use_tab_to_show
+        return self.tab_to_show
 
 
 class SettingsPage:  # pragma: nocover
