@@ -293,7 +293,9 @@ class LogfilePrompt:  # pragma: nocover
             ),
         )
 
-        if result is not None:
+        # NOTE: mypy says result is a str, but if you cancel the selection it returns
+        # an empty tuple for some reason. We check for this here.
+        if isinstance(result, str) and len(result) > 0:
             self.submit_selection(result)
 
     def remove_logfile_and_update(self, logfile: str) -> None:
