@@ -44,14 +44,14 @@ class OverlayWindow:  # pragma: nocover
         """Set up window geometry to make the window an overlay"""
         self.hide_task_id: str | None = None
         self.hide_due_at: float | None = None
-        self.shown: bool  # Set below
+        self.shown: bool = False  # Set below
 
         # Create a root window
         self.root = Root()
         if start_hidden:
-            self.hide()
+            self.hide(force=True)
         else:
-            self.show()
+            self.show(force=True)
 
         # Window geometry
         self.root.overrideredirect(True)
@@ -62,15 +62,29 @@ class OverlayWindow:  # pragma: nocover
 
         self.reset_position()
 
-    def show(self) -> None:
+    def show(self, *, force: bool = False) -> None:
         """Show the window"""
+        # Always cancel the scheduled hide, as any call to show indicates that the
+        # user wants the window shown
         self.cancel_scheduled_hide()
+
+        if self.shown and not force:
+            # Skip actully showing the window if already shown
+            return
+
         self.root.deiconify()
         self.shown = True
 
-    def hide(self) -> None:
+    def hide(self, *, force: bool = False) -> None:
         """Hide the window"""
+        # Always cancel the scheduled hide, as any call to hide means that the window
+        # will already be hidden
         self.cancel_scheduled_hide()
+
+        if not self.shown and not force:
+            # Skip actully hiding the window if already hidden
+            return
+
         self.root.withdraw()
         self.shown = False
 
