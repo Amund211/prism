@@ -1,4 +1,4 @@
-from prism import VERSION_STRING
+from prism import USER_AGENT, VERSION_STRING
 
 
 def test_version_string() -> None:
@@ -25,3 +25,15 @@ def test_version_string() -> None:
     # Properly formatted numbers
     for number in (major, minor, patch):
         assert str(int(number)) == number
+
+
+def test_user_agent() -> None:
+    """Assert proper formatting of the user agent: prism/<version> (+<url>)"""
+
+    assert len(USER_AGENT.split(" ")) == 2
+    version, url = USER_AGENT.split(" ")
+
+    assert version.startswith("prism/")
+    assert version.split("/")[1] == VERSION_STRING[1:]
+
+    assert url == "(+https://github.com/Amund211/prism)"
