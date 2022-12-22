@@ -41,24 +41,20 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
         self.get_new_data = get_new_data
         self.hide_pause = hide_pause
 
-        self.should_show = False
-
-        self.last_new_rows: list[OverlayRowData[ColumnKey]] | None = None
-
         # Set should_show so the window remains in the desired state based on
         # start_hidden until a falling/rising edge in show from get_new_data
         # Also set last_new_rows so we don't miss the first update
+        self.should_show: bool
+        self.last_new_rows: list[OverlayRowData[ColumnKey]] | None
         self.should_show, _, self.last_new_rows = self.get_new_data()
 
         self.current_page: Page = "main"
 
+        # Layout
         self.window = OverlayWindow(start_hidden=start_hidden)
-        self.controller = controller
-
         # Frame for the current page
         self.page_frame = tk.Frame(self.window.root, background="black")
         self.page_frame.pack(side=tk.BOTTOM, fill=tk.BOTH)
-
         # Add the main content
         self.main_content = MainContent(
             parent=self.page_frame,
@@ -68,13 +64,10 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
             left_justified_columns=left_justified_columns,
         )
         self.main_content.frame.pack(side=tk.TOP, fill=tk.BOTH)
-
         # Add the settings page
         self.settings_page = SettingsPage(self.page_frame, self, controller)
-
         # Add the set nickname page
         self.set_nickname_page = SetNicknamePage(self.page_frame, self, controller)
-
         # Add the toolbar
         self.toolbar = Toolbar(
             parent=self.window.root, overlay=self, controller=self.controller
@@ -86,6 +79,7 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
         self.listener: "pynput.keyboard.Listener | None" = None
         self.setup_tab_listener()
 
+        # Update geometry and stuff, if necessary
         self.window.root.update_idletasks()
 
     def setup_tab_listener(self) -> None:
