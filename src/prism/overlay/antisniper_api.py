@@ -4,12 +4,12 @@ from enum import Enum, auto
 from json import JSONDecodeError
 from typing import Any
 
-import requests
 from cachetools import TTLCache
 from requests.exceptions import RequestException
 
 from prism.overlay.player import MISSING_WINSTREAKS, GamemodeName, Winstreaks
 from prism.ratelimiting import RateLimiter
+from prism.requests import make_prism_requests_session
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,9 @@ class Flag(Enum):
 # Cache both successful and failed denicks for 60 mins
 LOWERCASE_DENICK_CACHE = TTLCache[str, str | None](maxsize=1024, ttl=60 * 60)
 DENICK_MUTEX = threading.Lock()
+
+# Use a connection pool for the requests
+SESSION = make_prism_requests_session()
 
 
 def set_denick_cache(nick: str, uuid: str | None) -> str | None:
@@ -66,7 +69,7 @@ def denick(
     try:
         # Uphold our prescribed rate-limits
         with key_holder.limiter:
-            response = requests.get(
+            response = SESSION.get(
                 f"{DENICK_ENDPOINT}?key={key_holder.key}&nick={nick}"
             )
     except RequestException as e:
@@ -126,7 +129,7 @@ def get_estimated_winstreaks(
     try:
         # Uphold our prescribed rate-limits
         with key_holder.limiter:
-            response = requests.get(
+            response = SESSION.get(
                 f"{WINSTREAK_ENDPOINT}?key={key_holder.key}&uuid={uuid}"
             )
     except RequestException as e:
@@ -228,7 +231,7 @@ def queue_data(
     try:
         # Uphold our prescribed rate-limits
         with key_holder.limiter:
-            response = requests.get(
+            response = SESSION.get(
                 f"{ANTISNIPER_ENDPOINT}?key={key_holder.key}&name={name}"
             )
     except RequestException as e:

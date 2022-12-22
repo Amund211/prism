@@ -1,13 +1,16 @@
 import threading
 from json import JSONDecodeError
 
-import requests
 from requests.exceptions import RequestException
 
 from prism.ratelimiting import RateLimiter
+from prism.requests import make_prism_requests_session
 
 USERPROFILES_ENDPOINT = "https://api.mojang.com/users/profiles/minecraft"
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
+
+# Use a connection pool for the requests
+SESSION = make_prism_requests_session()
 
 
 class MojangAPIError(ValueError):
@@ -37,7 +40,7 @@ def get_uuid(username: str) -> str | None:  # pragma: nocover
     try:
         # Uphold our prescribed rate-limits
         with limiter:
-            response = requests.get(f"{USERPROFILES_ENDPOINT}/{username}")
+            response = SESSION.get(f"{USERPROFILES_ENDPOINT}/{username}")
     except RequestException as e:
         raise MojangAPIError(
             f"Request to Mojang API failed due to a connection error {e}"

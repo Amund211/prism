@@ -1,13 +1,16 @@
 from json import JSONDecodeError
 from typing import Any
 
-import requests
 from requests.exceptions import RequestException
 
 from prism.ratelimiting import RateLimiter
+from prism.requests import make_prism_requests_session
 
 PLAYER_ENDPOINT = "https://api.hypixel.net/player"
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
+
+# Use a connection pool for the requests
+SESSION = make_prism_requests_session()
 
 
 class HypixelAPIKeyHolder:
@@ -46,7 +49,7 @@ def get_player_data(
     try:
         # Uphold our prescribed rate-limits
         with key_holder.limiter:
-            response = requests.get(
+            response = SESSION.get(
                 f"{PLAYER_ENDPOINT}?key={key_holder.key}&uuid={uuid}"
             )
     except RequestException as e:
