@@ -106,6 +106,8 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
                 if not self.should_show:
                     self.window.hide()
 
+        self.tab_pressed = False
+
         self.listener = pynput.keyboard.Listener(
             on_press=on_press, on_release=on_release
         )
@@ -117,6 +119,8 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
 
         self.listener.stop()
         self.listener = None
+
+        self.tab_pressed = False
 
     def switch_page(self, new_page: Page) -> None:
         """Switch to the given page"""
