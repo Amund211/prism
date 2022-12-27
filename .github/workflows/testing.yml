@@ -35,12 +35,52 @@ jobs:
         echo 'PATHSEP=:' >> $GITHUB_ENV
         echo 'DIRSEP=/' >> $GITHUB_ENV
 
-    - name: Install dependencies
+    - name: Select dependency files (linux)
+      if: matrix.os == 'ubuntu'
+      run: |
+        echo 'REQUIREMENTS=requirements/linux.txt' >> $GITHUB_ENV
+        echo 'DEV_REQUIREMENTS=requirements/linux-dev.txt' >> $GITHUB_ENV
+    - name: Select dependency files (windows)
+      if: matrix.os == 'windows'
+      run: |
+        echo 'REQUIREMENTS=requirements/windows.txt' >> $GITHUB_ENV
+        echo 'DEV_REQUIREMENTS=requirements/windows-dev.txt' >> $GITHUB_ENV
+    - name: Select dependency files (mac)
+      if: matrix.os == 'macOS'
+      run: |
+        echo 'REQUIREMENTS=requirements/mac.txt' >> $GITHUB_ENV
+        echo 'DEV_REQUIREMENTS=requirements/mac-dev.txt' >> $GITHUB_ENV
+
+    - name: Run pip-compile
       run: |
         python -m ensurepip --upgrade
         python -m venv venv
         source ${{ env.ACTIVATE_PATH }}
-        python -m pip install -r requirements.dev.txt
+
+        # Install correct pip-tools version
+        python -m pip install pip-tools `grep pip-tools== ${{ env.DEV_REQUIREMENTS }} | awk '{ print $1 }'`
+
+        echo ========================================
+        pip-compile --resolver=backtracking setup.cfg --output-file ${{ env.REQUIREMENTS }}
+        echo ========================================
+
+        echo ========================================
+        pip-compile --resolver=backtracking requirements/dev.in --output-file ${{ env.DEV_REQUIREMENTS }}
+        echo ========================================
+
+        if [ $(git status --porcelain | wc -l) -gt 0 ]; then
+          echo Pinned requirements invalid!
+          git status
+          git diff
+          exit 1
+        else
+          echo Pinned requirements valid
+        fi
+
+    - name: Install dependencies
+      run: |
+        source ${{ env.ACTIVATE_PATH }}
+        python -m pip install -r ${{ env.REQUIREMENTS }} -r ${{ env.DEV_REQUIREMENTS }} -e .
 
         VERSION_STRING="$(python -c 'from prism import VERSION_STRING; print(VERSION_STRING)')"
         echo "BINARY_NAME=prism-$VERSION_STRING-${{ matrix.os }}${{ env.BINARY_EXTENSION }}" >> $GITHUB_ENV

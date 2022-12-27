@@ -14,7 +14,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m ensurepip --upgrade
-        pip install black flake8 isort>=5.0
+        pip install -r requirements/linux-dev.txt
     - name: Check for formatting/linting errors
       run: |
         isort --check-only .
