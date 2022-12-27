@@ -51,34 +51,10 @@ jobs:
         echo 'REQUIREMENTS=requirements/mac.txt' >> $GITHUB_ENV
         echo 'DEV_REQUIREMENTS=requirements/mac-dev.txt' >> $GITHUB_ENV
 
-    - name: Run pip-compile
+    - name: Install dependencies
       run: |
         python -m ensurepip --upgrade
         python -m venv venv
-        source ${{ env.ACTIVATE_PATH }}
-
-        # Install correct pip-tools version
-        python -m pip install pip-tools `grep pip-tools== ${{ env.DEV_REQUIREMENTS }} | awk '{ print $1 }'`
-
-        echo ========================================
-        pip-compile --resolver=backtracking setup.cfg --output-file ${{ env.REQUIREMENTS }}
-        echo ========================================
-
-        echo ========================================
-        pip-compile --resolver=backtracking requirements/dev.in --output-file ${{ env.DEV_REQUIREMENTS }}
-        echo ========================================
-
-        if [ $(git status --porcelain | wc -l) -gt 0 ]; then
-          echo Pinned requirements invalid!
-          git status
-          git diff
-          exit 1
-        else
-          echo Pinned requirements valid
-        fi
-
-    - name: Install dependencies
-      run: |
         source ${{ env.ACTIVATE_PATH }}
         python -m pip install -r ${{ env.REQUIREMENTS }} -r ${{ env.DEV_REQUIREMENTS }} -e .
 
@@ -109,25 +85,3 @@ jobs:
         name: prism-${{ matrix.os }}
         path: "dist/${{ env.BINARY_NAME }}"
         if-no-files-found: error
-
-    - name: Run pip-compile --upgrade
-      continue-on-error: true
-      run: |
-        source ${{ env.ACTIVATE_PATH }}
-
-        echo ========================================
-        pip-compile --resolver=backtracking setup.cfg --output-file ${{ env.REQUIREMENTS }} --upgrade
-        echo ========================================
-
-        echo ========================================
-        pip-compile --resolver=backtracking requirements/dev.in --output-file ${{ env.DEV_REQUIREMENTS }} --upgrade
-        echo ========================================
-
-        if [ $(git status --porcelain | wc -l) -gt 0 ]; then
-          echo Updated pinned requirements!
-          git status
-          git diff
-          exit 1
-        else
-          echo Pinned requirements not updated.
-        fi

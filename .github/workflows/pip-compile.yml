@@ -1,0 +1,87 @@
+name: Python dependencies
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, windows, macOS]
+        python_version: ["3.10"]
+    defaults:
+      run:
+        shell: bash  # For `source`
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python_version }}
+
+    - name: Select dependency files (linux)
+      if: matrix.os == 'ubuntu'
+      run: |
+        echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
+        echo 'REQUIREMENTS=requirements/linux.txt' >> $GITHUB_ENV
+        echo 'DEV_REQUIREMENTS=requirements/linux-dev.txt' >> $GITHUB_ENV
+    - name: Select dependency files (windows)
+      if: matrix.os == 'windows'
+      run: |
+        echo 'ACTIVATE_PATH=venv/Scripts/activate' >> $GITHUB_ENV
+        echo 'REQUIREMENTS=requirements/windows.txt' >> $GITHUB_ENV
+        echo 'DEV_REQUIREMENTS=requirements/windows-dev.txt' >> $GITHUB_ENV
+    - name: Select dependency files (mac)
+      if: matrix.os == 'macOS'
+      run: |
+        echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
+        echo 'REQUIREMENTS=requirements/mac.txt' >> $GITHUB_ENV
+        echo 'DEV_REQUIREMENTS=requirements/mac-dev.txt' >> $GITHUB_ENV
+
+    - name: Ensure requirements are satisfied
+      run: |
+        python -m ensurepip --upgrade
+        python -m venv venv
+        source ${{ env.ACTIVATE_PATH }}
+
+        # Install correct pip-tools version
+        python -m pip install pip-tools `grep pip-tools== ${{ env.DEV_REQUIREMENTS }} | awk '{ print $1 }'`
+
+        echo ========================================
+        pip-compile --resolver=backtracking setup.cfg --output-file ${{ env.REQUIREMENTS }}
+        echo ========================================
+
+        echo ========================================
+        pip-compile --resolver=backtracking requirements/dev.in --output-file ${{ env.DEV_REQUIREMENTS }}
+        echo ========================================
+
+        if [ $(git status --porcelain | wc -l) -gt 0 ]; then
+          echo Pinned requirements invalid!
+          git status
+          git diff
+          exit 1
+        else
+          echo Pinned requirements valid
+        fi
+
+    - name: Run pip-compile --upgrade
+      continue-on-error: true
+      run: |
+        source ${{ env.ACTIVATE_PATH }}
+
+        echo ========================================
+        pip-compile --resolver=backtracking setup.cfg --output-file ${{ env.REQUIREMENTS }} --upgrade
+        echo ========================================
+
+        echo ========================================
+        pip-compile --resolver=backtracking requirements/dev.in --output-file ${{ env.DEV_REQUIREMENTS }} --upgrade
+        echo ========================================
+
+        if [ $(git status --porcelain | wc -l) -gt 0 ]; then
+          echo Updated pinned requirements!
+          git status
+          git diff
+        else
+          echo Pinned requirements not updated.
+        fi
