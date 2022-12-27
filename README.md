@@ -27,4 +27,46 @@ The overlay can be extended with the [Antisniper API](https://antisniper.net) (n
 ## Safety
 Being open source, anyone can look at the source code for Prism to see that nothing nefarious is happening.
 The released binaries are created using `pyinstaller` in GitHub Actions from a clean clone of the repository.
-If you do not trust the released binary you can clone the project and run it from source by installing the dependencies and running `python prism_overlay.py` from the project root.
+If you do not trust the released binary you can clone the project and run it from source by installing the dependencies and running `python3 prism_overlay.py` from the project root.
+See [running the overlay from source](#running-the-overlay-from-source) for more info.
+
+## Running the overlay from source
+Note: make sure you have a recent version of Python installed.
+The overlay currently depends on version `>=3.10`.
+
+To run the project from source, perform the following steps:
+
+### Clone the repository
+```bash
+git clone https://github.com/Amund211/prism
+```
+
+### Create and activate a virtual environment (optional)
+Use a virtual environment to isolate this project from your system python install.
+You have to activate the virtual environment each time you want to run the overlay.
+Check [the docs](https://docs.python.org/3/library/venv.html#how-venvs-work) if you are having trouble activating the virtual environment.
+
+```bash
+python3 -m venv venv  # Create the virtual environment
+
+# How to activate the venv depends on your OS and shell.
+# Run one of the following
+source venv/bin/activate      # linux/mac + posix sh
+
+source venv\Scripts\activate  # windows + posix sh
+venv\Scripts\activate.bat     # windows + cmd
+venv\Scripts\activate.ps1     # windows + powershell
+```
+
+### Install the dependencies
+```bash
+# Run one of the following
+pip3 install -r requirements.txt  # For just running the overlay
+pip3 install -r requirements.dev.txt  # For running the overlay and doing development
+```
+
+### Run the overlay
+```bash
+python3 prism_overlay.py
+```
+Run `python3 prism_overlay.py --help` to get info about the accepted command line arguments.
