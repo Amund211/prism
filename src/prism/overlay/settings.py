@@ -81,6 +81,7 @@ class Settings:
     def flush_to_disk(self) -> None:
         with self.path.open("w") as f:
             toml.dump(self.to_dict(), f)
+        logger.info(f"Wrote settings to disk: {self}")
 
 
 # Generic type for value_or_default
@@ -193,4 +194,5 @@ def get_settings(path: Path, get_api_key: Callable[[], str]) -> Settings:
     if settings_updated:
         settings.flush_to_disk()
 
+    logger.info(f"Read settings from disk: {settings}")
     return settings
