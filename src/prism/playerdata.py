@@ -1,10 +1,13 @@
+import functools
 from json import JSONDecodeError
 from typing import Any
 
+import requests
 from requests.exceptions import RequestException
 
 from prism.ratelimiting import RateLimiter
 from prism.requests import make_prism_requests_session
+from prism.retry import ExecutionError, execute_with_retry
 
 PLAYER_ENDPOINT = "https://api.hypixel.net/player"
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
@@ -42,10 +45,9 @@ class HypixelAPIKeyError(ValueError):
     pass
 
 
-def get_player_data(
+def _make_request(
     uuid: str, key_holder: HypixelAPIKeyHolder
-) -> dict[str, Any]:  # pragma: nocover
-    """Get data about the given player from the /player API endpoint"""
+) -> requests.Response:  # pragma: nocover
     try:
         # Uphold our prescribed rate-limits
         with key_holder.limiter:
@@ -53,9 +55,29 @@ def get_player_data(
                 f"{PLAYER_ENDPOINT}?key={key_holder.key}&uuid={uuid}"
             )
     except RequestException as e:
-        raise HypixelAPIError(
-            f"Request to Hypixel API failed due to a connection error {e}"
+        raise ExecutionError(
+            f"Request to Hypixel API failed due to an unknown error {e}"
         ) from e
+
+    return response
+
+
+def get_player_data(
+    uuid: str,
+    key_holder: HypixelAPIKeyHolder,
+    retry_limit: int = 5,
+    timeout: float = 2,
+) -> dict[str, Any]:  # pragma: nocover
+    """Get data about the given player from the /player API endpoint"""
+
+    try:
+        response = execute_with_retry(
+            functools.partial(_make_request, uuid=uuid, key_holder=key_holder),
+            retry_limit=retry_limit,
+            timeout=timeout,
+        )
+    except ExecutionError as e:
+        raise HypixelAPIError(f"Request to Hypixel API failed for {uuid=}. {e}")
 
     if response.status_code == 403:
         raise HypixelAPIKeyError(

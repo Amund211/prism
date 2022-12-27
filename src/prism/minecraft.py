@@ -1,10 +1,13 @@
+import functools
 import threading
 from json import JSONDecodeError
 
+import requests
 from requests.exceptions import RequestException
 
 from prism.ratelimiting import RateLimiter
 from prism.requests import make_prism_requests_session
+from prism.retry import ExecutionError, execute_with_retry
 
 USERPROFILES_ENDPOINT = "https://api.mojang.com/users/profiles/minecraft"
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
@@ -29,7 +32,22 @@ LOWERCASE_UUID_CACHE: dict[str, str] = {}  # Mapping username.lower() -> uuid
 UUID_MUTEX = threading.Lock()
 
 
-def get_uuid(username: str) -> str | None:  # pragma: nocover
+def _make_request(username: str) -> requests.Response:  # pragma: nocover
+    try:
+        # Uphold our prescribed rate-limits
+        with limiter:
+            response = SESSION.get(f"{USERPROFILES_ENDPOINT}/{username}")
+    except RequestException as e:
+        raise ExecutionError(
+            f"Request to Mojang API failed due to an unknown error {e}"
+        ) from e
+
+    return response
+
+
+def get_uuid(
+    username: str, retry_limit: int = 5, timeout: float = 2
+) -> str | None:  # pragma: nocover
     """Get the uuid of all the user. None if not found."""
     with UUID_MUTEX:
         cache_hit = LOWERCASE_UUID_CACHE.get(username.lower(), None)
@@ -38,13 +56,13 @@ def get_uuid(username: str) -> str | None:  # pragma: nocover
         return cache_hit
 
     try:
-        # Uphold our prescribed rate-limits
-        with limiter:
-            response = SESSION.get(f"{USERPROFILES_ENDPOINT}/{username}")
-    except RequestException as e:
-        raise MojangAPIError(
-            f"Request to Mojang API failed due to a connection error {e}"
-        ) from e
+        response = execute_with_retry(
+            functools.partial(_make_request, username=username),
+            retry_limit=retry_limit,
+            timeout=timeout,
+        )
+    except ExecutionError as e:
+        raise MojangAPIError(f"Request to Mojang API failed for {username=}. {e}")
 
     if not response:
         raise MojangAPIError(
