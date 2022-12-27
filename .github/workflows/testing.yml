@@ -109,3 +109,25 @@ jobs:
         name: prism-${{ matrix.os }}
         path: "dist/${{ env.BINARY_NAME }}"
         if-no-files-found: error
+
+    - name: Run pip-compile --upgrade
+      continue-on-error: true
+      run: |
+        source ${{ env.ACTIVATE_PATH }}
+
+        echo ========================================
+        pip-compile --resolver=backtracking setup.cfg --output-file ${{ env.REQUIREMENTS }} --upgrade
+        echo ========================================
+
+        echo ========================================
+        pip-compile --resolver=backtracking requirements/dev.in --output-file ${{ env.DEV_REQUIREMENTS }} --upgrade
+        echo ========================================
+
+        if [ $(git status --porcelain | wc -l) -gt 0 ]; then
+          echo Updated pinned requirements!
+          git status
+          git diff
+          exit 1
+        else
+          echo Pinned requirements not updated.
+        fi
