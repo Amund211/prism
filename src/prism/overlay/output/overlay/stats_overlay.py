@@ -91,6 +91,13 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
             import pynput
         except Exception:
             logger.exception("Failed to import pynput")
+
+            # Disable show on tab since it won't work
+            with self.controller.settings.mutex:
+                self.controller.settings.show_on_tab = False
+                self.controller.settings.flush_to_disk()
+            logger.warning("Disabled show on tab due to error loading pynput")
+
             return
 
         KeyType = pynput.keyboard.Key | pynput.keyboard.KeyCode | None
