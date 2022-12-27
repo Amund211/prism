@@ -1,17 +1,17 @@
 -r requirements.txt
 Pillow
-types-Pillow
-pyinstaller
+black
 coverage
-pytest
+flake8
+isort
 mypy>=0.991
+pre-commit
+pyinstaller
+pytest
+types-Pillow
 types-appdirs
 types-cachetools
 types-pyinstaller
 types-pynput
 types-requests
 types-toml
-pre-commit
-flake8
-black
-isort
