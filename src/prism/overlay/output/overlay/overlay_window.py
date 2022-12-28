@@ -60,7 +60,9 @@ class OverlayWindow:  # pragma: nocover
             self.root.overrideredirect(True)
         self.root.lift()
         self.root.wm_attributes("-topmost", True)
-        self.root.wm_attributes("-alpha", 0.8)
+        self.root.wm_attributes(
+            "-alpha", self.controller.settings.alpha_hundredths / 100
+        )
         self.root.configure(background="black")
 
         if start_hidden:
@@ -81,7 +83,9 @@ class OverlayWindow:  # pragma: nocover
             return
 
         if self.controller.settings.hide_with_alpha:
-            self.root.wm_attributes("-alpha", 0.8)
+            self.root.wm_attributes(
+                "-alpha", self.controller.settings.alpha_hundredths / 100
+            )
         else:
             self.root.deiconify()
 

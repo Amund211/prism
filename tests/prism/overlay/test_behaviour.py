@@ -471,6 +471,7 @@ def test_update_settings_everything_changed() -> None:
         show_on_tab=False,
         disable_overrideredirect=True,
         hide_with_alpha=True,
+        alpha_hundredths=20,
     )
 
     controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore

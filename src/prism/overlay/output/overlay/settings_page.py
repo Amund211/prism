@@ -283,6 +283,9 @@ class SettingsPage:  # pragma: nocover
         disable_overrideredirect = self.controller.settings.disable_overrideredirect
         hide_with_alpha = self.controller.settings.hide_with_alpha
 
+        # TODO: Add slider to edit alpha
+        alpha_hundredths = self.controller.settings.alpha_hundredths
+
         new_settings = SettingsDict(
             hypixel_api_key=hypixel_api_key,
             antisniper_api_key=antisniper_api_key,
@@ -291,6 +294,7 @@ class SettingsPage:  # pragma: nocover
             show_on_tab=show_on_tab,
             disable_overrideredirect=disable_overrideredirect,
             hide_with_alpha=hide_with_alpha,
+            alpha_hundredths=alpha_hundredths,
         )
 
         with self.controller.settings.mutex:

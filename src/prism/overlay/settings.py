@@ -30,6 +30,7 @@ class SettingsDict(TypedDict):
     show_on_tab: bool
     disable_overrideredirect: bool
     hide_with_alpha: bool
+    alpha_hundredths: int
 
 
 # Generic type to allow subclassing Settings
@@ -47,6 +48,7 @@ class Settings:
     show_on_tab: bool
     disable_overrideredirect: bool
     hide_with_alpha: bool
+    alpha_hundredths: int
     path: Path
     mutex: threading.Lock = field(
         default_factory=threading.Lock, init=False, compare=False, repr=False
@@ -64,6 +66,7 @@ class Settings:
             show_on_tab=source["show_on_tab"],
             disable_overrideredirect=source["disable_overrideredirect"],
             hide_with_alpha=source["hide_with_alpha"],
+            alpha_hundredths=source["alpha_hundredths"],
             path=path,
         )
 
@@ -76,6 +79,7 @@ class Settings:
             "show_on_tab": self.show_on_tab,
             "disable_overrideredirect": self.disable_overrideredirect,
             "hide_with_alpha": self.hide_with_alpha,
+            "alpha_hundredths": self.alpha_hundredths,
         }
 
     def update_from(self, new_settings: SettingsDict) -> None:
@@ -87,6 +91,7 @@ class Settings:
         self.show_on_tab = new_settings["show_on_tab"]
         self.disable_overrideredirect = new_settings["disable_overrideredirect"]
         self.hide_with_alpha = new_settings["hide_with_alpha"]
+        self.alpha_hundredths = new_settings["alpha_hundredths"]
 
     def flush_to_disk(self) -> None:
         with self.path.open("w") as f:
@@ -176,6 +181,11 @@ def fill_missing_settings(
         settings_updated = True
         hide_with_alpha = False
 
+    alpha_hundredths = incomplete_settings.get("alpha_hundredths", None)
+    if not isinstance(alpha_hundredths, int) or not 10 <= alpha_hundredths <= 100:
+        settings_updated = True
+        alpha_hundredths = 80
+
     return {
         "hypixel_api_key": hypixel_api_key,
         "antisniper_api_key": antisniper_api_key,
@@ -184,6 +194,7 @@ def fill_missing_settings(
         "show_on_tab": show_on_tab,
         "disable_overrideredirect": disable_overrideredirect,
         "hide_with_alpha": hide_with_alpha,
+        "alpha_hundredths": alpha_hundredths,
     }, settings_updated
 
 

@@ -28,6 +28,7 @@ def make_settings_dict(
     show_on_tab: bool | None = None,
     disable_overrideredirect: bool | None = None,
     hide_with_alpha: bool | None = None,
+    alpha_hundredths: int | None = None,
 ) -> SettingsDict:
     """Make a settings dict with default values if missing"""
     return {
@@ -42,6 +43,7 @@ def make_settings_dict(
             disable_overrideredirect, default=False
         ),
         "hide_with_alpha": value_or_default(hide_with_alpha, default=False),
+        "alpha_hundredths": value_or_default(alpha_hundredths, default=80),
     }
 
 
@@ -61,6 +63,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             show_on_tab=True,
             disable_overrideredirect=True,
             hide_with_alpha=True,
+            alpha_hundredths=80,
             path=PLACEHOLDER_PATH,
         ),
         {
@@ -71,6 +74,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "show_on_tab": True,
             "disable_overrideredirect": True,
             "hide_with_alpha": True,
+            "alpha_hundredths": 80,
         },
     ),
     (
@@ -82,6 +86,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             show_on_tab=False,
             disable_overrideredirect=False,
             hide_with_alpha=False,
+            alpha_hundredths=30,
             path=PLACEHOLDER_PATH,
         ),
         {
@@ -92,6 +97,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "show_on_tab": False,
             "disable_overrideredirect": False,
             "hide_with_alpha": False,
+            "alpha_hundredths": 30,
         },
     ),
 )
@@ -190,6 +196,7 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
             "show_on_tab": False,
             "disable_overrideredirect": True,
             "hide_with_alpha": True,
+            "alpha_hundredths": 40,
         },
         make_settings_dict(
             hypixel_api_key="my-key",
@@ -198,6 +205,7 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
             show_on_tab=False,
             disable_overrideredirect=True,
             hide_with_alpha=True,
+            alpha_hundredths=40,
         ),
         False,
     ),
@@ -299,6 +307,24 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
                 # Incorrect type on uuid or comment
                 "AmazingNick": {"uuid": "123987", "comment": 1234}
             },
+        },
+        make_settings_dict(hypixel_api_key="my-key"),
+        True,
+    ),
+    (
+        {
+            "hypixel_api_key": "my-key",
+            # Alpha tenths out of range
+            "alpha_hundredths": 1000,
+        },
+        make_settings_dict(hypixel_api_key="my-key"),
+        True,
+    ),
+    (
+        {
+            "hypixel_api_key": "my-key",
+            # Alpha tenths out of range
+            "alpha_hundredths": 5,
         },
         make_settings_dict(hypixel_api_key="my-key"),
         True,
