@@ -60,7 +60,8 @@ class OverlayWindow:  # pragma: nocover
             self.show(force=True)
 
         # Window geometry
-        self.root.overrideredirect(True)
+        if not self.controller.settings.disable_overrideredirect:
+            self.root.overrideredirect(True)
         self.root.lift()
         self.root.wm_attributes("-topmost", True)
         self.root.wm_attributes("-alpha", 0.8)

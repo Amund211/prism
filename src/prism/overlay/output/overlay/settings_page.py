@@ -279,12 +279,16 @@ class SettingsPage:  # pragma: nocover
             known_nicks = self.controller.settings.known_nicks.copy()
         show_on_tab = self.local_settings_section.get()
 
+        # "Secret" settings, not editable in the GUI
+        disable_overrideredirect = self.controller.settings.disable_overrideredirect
+
         new_settings = SettingsDict(
             hypixel_api_key=hypixel_api_key,
             antisniper_api_key=antisniper_api_key,
             use_antisniper_api=use_antisniper_api,
             known_nicks=known_nicks,
             show_on_tab=show_on_tab,
+            disable_overrideredirect=disable_overrideredirect,
         )
 
         with self.controller.settings.mutex:

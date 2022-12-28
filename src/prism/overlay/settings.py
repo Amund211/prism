@@ -28,6 +28,7 @@ class SettingsDict(TypedDict):
     use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
     show_on_tab: bool
+    disable_overrideredirect: bool
 
 
 # Generic type to allow subclassing Settings
@@ -43,6 +44,7 @@ class Settings:
     use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
     show_on_tab: bool
+    disable_overrideredirect: bool
     path: Path
     mutex: threading.Lock = field(
         default_factory=threading.Lock, init=False, compare=False, repr=False
@@ -58,6 +60,7 @@ class Settings:
             use_antisniper_api=source["use_antisniper_api"],
             known_nicks=source["known_nicks"],
             show_on_tab=source["show_on_tab"],
+            disable_overrideredirect=source["disable_overrideredirect"],
             path=path,
         )
 
@@ -68,6 +71,7 @@ class Settings:
             "use_antisniper_api": self.use_antisniper_api,
             "known_nicks": self.known_nicks,
             "show_on_tab": self.show_on_tab,
+            "disable_overrideredirect": self.disable_overrideredirect,
         }
 
     def update_from(self, new_settings: SettingsDict) -> None:
@@ -77,6 +81,7 @@ class Settings:
         self.use_antisniper_api = new_settings["use_antisniper_api"]
         self.known_nicks = new_settings["known_nicks"]
         self.show_on_tab = new_settings["show_on_tab"]
+        self.disable_overrideredirect = new_settings["disable_overrideredirect"]
 
     def flush_to_disk(self) -> None:
         with self.path.open("w") as f:
@@ -156,12 +161,18 @@ def fill_missing_settings(
         settings_updated = True
         show_on_tab = True
 
+    disable_overrideredirect = incomplete_settings.get("disable_overrideredirect", None)
+    if not isinstance(disable_overrideredirect, bool):
+        settings_updated = True
+        disable_overrideredirect = False
+
     return {
         "hypixel_api_key": hypixel_api_key,
         "antisniper_api_key": antisniper_api_key,
         "use_antisniper_api": use_antisniper_api,
         "known_nicks": known_nicks,
         "show_on_tab": show_on_tab,
+        "disable_overrideredirect": disable_overrideredirect,
     }, settings_updated
 
 

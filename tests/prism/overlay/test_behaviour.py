@@ -469,6 +469,7 @@ def test_update_settings_everything_changed() -> None:
             "SuperbNick": {"uuid": "42", "comment": "42"},
         },
         show_on_tab=False,
+        disable_overrideredirect=True,
     )
 
     controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
