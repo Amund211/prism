@@ -108,11 +108,11 @@ class OverlayWindow:  # pragma: nocover
 
         self.shown = False
 
-    def schedule_hide(self, timeout: int) -> None:
-        """Schedule a hide of the window in `timeout` ms"""
+    def schedule_hide(self, *, timeout_ms: int) -> None:
+        """Schedule a hide of the window in `timeout_ms` ms"""
         self.cancel_scheduled_hide()
-        self.hide_due_at = time.monotonic() + timeout / 1000
-        self.hide_task_id = self.root.after(timeout, self.hide)
+        self.hide_due_at = time.monotonic() + timeout_ms / 1000
+        self.hide_task_id = self.root.after(timeout_ms, self.hide)
 
     def cancel_scheduled_hide(self) -> None:
         """Cancel any existing request to hide the window"""
