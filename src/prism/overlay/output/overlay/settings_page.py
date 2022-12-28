@@ -1,5 +1,5 @@
 import tkinter as tk
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from prism.overlay.behaviour import update_settings
 from prism.overlay.controller import OverlayController
@@ -179,6 +179,50 @@ class LocalSettingsSection:  # pragma: nocover
         return self.tab_to_show
 
 
+class GraphicsSection:  # pragma: nocover
+    def __init__(self, parent: "SettingsPage") -> None:
+        self.parent = parent
+        self.frame = parent.make_section("Graphics")
+        self.frame.columnconfigure(0, weight=0)
+
+        self.alpha_hundredths_variable = tk.IntVar(value=80)
+        self.alpha_hundredths_variable.trace_add("write", self.set_window_alpha)
+        tk.Label(
+            self.frame,
+            text="Alpha: ",
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        ).grid(row=0, column=0, sticky=tk.E)
+        tk.Scale(
+            self.frame,
+            from_=10,
+            to=100,
+            orient=tk.HORIZONTAL,
+            length=200,
+            foreground="white",
+            background="black",
+            variable=self.alpha_hundredths_variable,
+        ).grid(row=0, column=1)
+
+    def set_window_alpha(self, *args: Any, **kwargs: Any) -> None:
+        self.parent.overlay.window.root.wm_attributes(
+            "-alpha", self.clamp_alpha(self.alpha_hundredths_variable.get()) / 100
+        )
+
+    def clamp_alpha(self, alpha_hundredths: int) -> int:
+        """Clamp the alpha_hundredths to a valid range"""
+        return min(100, max(10, alpha_hundredths))
+
+    def set(self, alpha_hundredths: int) -> None:
+        """Set the state of this section"""
+        self.alpha_hundredths_variable.set(self.clamp_alpha(alpha_hundredths))
+
+    def get(self) -> int:
+        """Get the state of this section"""
+        return self.clamp_alpha(self.alpha_hundredths_variable.get())
+
+
 class SettingsPage:  # pragma: nocover
     """Settings page for the overlay"""
 
@@ -231,6 +275,7 @@ class SettingsPage:  # pragma: nocover
         self.hypixel_section = HypixelSection(self)
         self.antisniper_section = AntisniperSection(self)
         self.local_settings_section = LocalSettingsSection(self)
+        self.graphics_section = GraphicsSection(self)
 
     def make_section(
         self, section_header: str, subtitle: str | None = None
@@ -268,6 +313,7 @@ class SettingsPage:  # pragma: nocover
                 settings.use_antisniper_api, settings.antisniper_api_key
             )
             self.local_settings_section.set(settings.show_on_tab)
+            self.graphics_section.set(settings.alpha_hundredths)
 
     def on_save(self) -> None:
         """Handle the user saving their settings"""
@@ -283,8 +329,7 @@ class SettingsPage:  # pragma: nocover
         disable_overrideredirect = self.controller.settings.disable_overrideredirect
         hide_with_alpha = self.controller.settings.hide_with_alpha
 
-        # TODO: Add slider to edit alpha
-        alpha_hundredths = self.controller.settings.alpha_hundredths
+        alpha_hundredths = self.graphics_section.get()
 
         new_settings = SettingsDict(
             hypixel_api_key=hypixel_api_key,
