@@ -263,7 +263,7 @@ class SettingsPage:  # pragma: nocover
             font=("Consolas", "14"),
             foreground="white",
             background="black",
-            command=lambda: self.overlay.switch_page("main"),
+            command=self.on_cancel,
             relief="flat",
         )
         cancel_button.pack(side=tk.RIGHT, padx=(0, 5))
@@ -315,6 +315,15 @@ class SettingsPage:  # pragma: nocover
             self.local_settings_section.set(settings.show_on_tab)
             self.graphics_section.set(settings.alpha_hundredths)
 
+    def on_cancel(self) -> None:
+        """Handle the user clicking cancel"""
+        # Reset alpha in case the user changed the slider
+        self.overlay.window.root.wm_attributes(
+            "-alpha", self.controller.settings.alpha_hundredths / 100
+        )
+
+        self.overlay.switch_page("main")
+
     def on_save(self) -> None:
         """Handle the user saving their settings"""
         hypixel_api_key = self.hypixel_section.get()
@@ -352,6 +361,9 @@ class SettingsPage:  # pragma: nocover
             self.overlay.setup_tab_listener()
         else:
             self.overlay.stop_tab_listener()
+
+        # Update alpha
+        self.overlay.window.root.wm_attributes("-alpha", alpha_hundredths / 100)
 
         # Go back to the main content
         self.overlay.switch_page("main")
