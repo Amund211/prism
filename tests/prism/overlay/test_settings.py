@@ -63,6 +63,23 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "show_on_tab": True,
         },
     ),
+    (
+        Settings(
+            hypixel_api_key="my-other-key",
+            antisniper_api_key="my-other-key",
+            use_antisniper_api=False,
+            known_nicks={},
+            show_on_tab=False,
+            path=PLACEHOLDER_PATH,
+        ),
+        {
+            "hypixel_api_key": "my-other-key",
+            "antisniper_api_key": "my-other-key",
+            "use_antisniper_api": False,
+            "known_nicks": {},
+            "show_on_tab": False,
+        },
+    ),
 )
 
 
