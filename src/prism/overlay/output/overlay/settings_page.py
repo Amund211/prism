@@ -1,4 +1,5 @@
 import tkinter as tk
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from prism.overlay.behaviour import update_settings
@@ -8,6 +9,56 @@ from prism.overlay.settings import NickValue, Settings, SettingsDict
 if TYPE_CHECKING:  # pragma: nocover
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay
     from prism.overlay.output.overlay.utils import ColumnKey
+
+
+class ToggleButton:  # pragma: nocover
+    DISABLED_CONFIG = {
+        "text": "Disabled",
+        "bg": "red",
+        "activebackground": "orange red",
+    }
+    ENABLED_CONFIG = {
+        "text": "Enabled ",
+        "bg": "lime green",
+        "activebackground": "lawn green",
+    }
+
+    def __init__(
+        self,
+        frame: tk.Frame,
+        toggle_callback: Callable[[bool], Any] = lambda enabled: None,
+    ) -> None:
+        self.toggle_callback = toggle_callback
+
+        self.button = tk.Button(
+            frame,
+            text="",
+            font=("Consolas", "12"),
+            foreground="black",
+            background="black",
+            command=self.toggle,
+            relief="flat",
+        )
+
+        # Initially toggle to get into a consistent state
+        self.toggle()
+
+    @property
+    def enabled(self) -> bool:
+        """Return the state of the toggle button"""
+        return self.button.config("bg")[-1] == "lime green"  # type:ignore
+
+    def toggle(self) -> None:
+        """Toggle the state of the button"""
+        self.button.config(
+            **(self.DISABLED_CONFIG if self.enabled else self.ENABLED_CONFIG)
+        )
+        self.toggle_callback(self.enabled)
+
+    def set(self, enabled: bool) -> None:
+        """Set the enabled state of the toggle button"""
+        if self.enabled != enabled:
+            self.toggle()
 
 
 class HypixelSection:  # pragma: nocover
@@ -65,18 +116,20 @@ class AntisniperSection:  # pragma: nocover
             background="black",
         ).grid(row=1, column=0, sticky=tk.E)
 
-        self.use_antisniper_api_button = tk.Button(
-            self.frame,
-            text="",
-            font=("Consolas", "12"),
-            foreground="black",
-            background="black",
-            command=self.toggle_use_antisniper_api,
-            relief="flat",
-        )
-        self.use_antisniper_api_button.grid(row=1, column=1)
-
+        # NOTE: We make this early so it exists in the callback for the toggle
         self.antisniper_api_key_variable = tk.StringVar()
+        self.antisniper_api_key_entry = tk.Entry(
+            self.frame, textvariable=self.antisniper_api_key_variable
+        )
+
+        self.use_antisniper_api_toggle = ToggleButton(
+            self.frame,
+            lambda enabled: self.antisniper_api_key_entry.configure(
+                state=tk.NORMAL if enabled else tk.DISABLED
+            ),
+        )
+        self.use_antisniper_api_toggle.button.grid(row=1, column=1)
+
         tk.Label(
             self.frame,
             text="API key: ",
@@ -84,45 +137,19 @@ class AntisniperSection:  # pragma: nocover
             foreground="white",
             background="black",
         ).grid(row=2, column=0, sticky=tk.E)
-        self.antisniper_api_key_entry = tk.Entry(
-            self.frame, textvariable=self.antisniper_api_key_variable
-        )
+
         self.antisniper_api_key_entry.grid(row=2, column=1)
-
-        # Initially toggle to get into a consistent state
-        self.toggle_use_antisniper_api()
-
-    @property
-    def use_antisniper_api(self) -> bool:
-        """Return the state of the toggle button"""
-        return (  # type:ignore
-            self.use_antisniper_api_button.config("bg")[-1] == "lime green"
-        )
-
-    def toggle_use_antisniper_api(self) -> None:
-        """Toggle the state of the button"""
-        if self.use_antisniper_api:
-            self.use_antisniper_api_button.config(
-                bg="red", activebackground="orange red", text="Disabled"
-            )
-            self.antisniper_api_key_entry.configure(state=tk.DISABLED)
-        else:
-            self.use_antisniper_api_button.config(
-                bg="lime green", activebackground="lawn green", text="Enabled "
-            )
-            self.antisniper_api_key_entry.configure(state=tk.NORMAL)
 
     def set(self, use_antisniper_api: bool, antisniper_api_key: str | None) -> None:
         """Set the state of this section"""
-        if self.use_antisniper_api != use_antisniper_api:
-            self.toggle_use_antisniper_api()
+        self.use_antisniper_api_toggle.set(use_antisniper_api)
 
         self.antisniper_api_key_variable.set(antisniper_api_key or "")
 
     def get(self) -> tuple[bool, str | None]:
         """Get the state of this section"""
         raw_antisniper_api_key = self.antisniper_api_key_variable.get().strip()
-        return self.use_antisniper_api, raw_antisniper_api_key or None
+        return self.use_antisniper_api_toggle.enabled, raw_antisniper_api_key or None
 
 
 class LocalSettingsSection:  # pragma: nocover
@@ -137,46 +164,16 @@ class LocalSettingsSection:  # pragma: nocover
             foreground="white",
             background="black",
         ).grid(row=1, column=0, sticky=tk.E)
-        self.use_tab_to_show_button = tk.Button(
-            self.frame,
-            text="",
-            font=("Consolas", "12"),
-            foreground="black",
-            background="black",
-            command=self.toggle_tab_to_show,
-            relief="flat",
-        )
-        self.use_tab_to_show_button.grid(row=1, column=1)
-
-        # Initially toggle to get into a consistent state
-        self.toggle_tab_to_show()
-
-    @property
-    def tab_to_show(self) -> bool:
-        """Return the state of the toggle button"""
-        return (  # type:ignore
-            self.use_tab_to_show_button.config("bg")[-1] == "lime green"
-        )
-
-    def toggle_tab_to_show(self) -> None:
-        """Toggle the state of the button"""
-        if self.tab_to_show:
-            self.use_tab_to_show_button.config(
-                bg="red", activebackground="orange red", text="Disabled"
-            )
-        else:
-            self.use_tab_to_show_button.config(
-                bg="lime green", activebackground="lawn green", text="Enabled "
-            )
+        self.tab_to_show_toggle = ToggleButton(self.frame)
+        self.tab_to_show_toggle.button.grid(row=1, column=1)
 
     def set(self, tab_to_show: bool) -> None:
         """Set the state of this section"""
-        if self.tab_to_show != tab_to_show:
-            self.toggle_tab_to_show()
+        self.tab_to_show_toggle.set(tab_to_show)
 
     def get(self) -> bool:
         """Get the state of this section"""
-        return self.tab_to_show
+        return self.tab_to_show_toggle.enabled
 
 
 class GraphicsSection:  # pragma: nocover
