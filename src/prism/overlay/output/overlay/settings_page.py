@@ -132,7 +132,7 @@ class LocalSettingsSection:  # pragma: nocover
 
         tk.Label(
             self.frame,
-            text="Show overlay when tab is pressed: ",
+            text="Show overlay on tab: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
