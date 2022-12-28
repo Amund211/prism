@@ -206,8 +206,8 @@ class GraphicsSection:  # pragma: nocover
         ).grid(row=0, column=1)
 
     def set_window_alpha(self, *args: Any, **kwargs: Any) -> None:
-        self.parent.overlay.window.root.wm_attributes(
-            "-alpha", self.clamp_alpha(self.alpha_hundredths_variable.get()) / 100
+        self.parent.overlay.window.set_alpha_hundredths(
+            self.clamp_alpha(self.alpha_hundredths_variable.get())
         )
 
     def clamp_alpha(self, alpha_hundredths: int) -> int:
@@ -318,8 +318,8 @@ class SettingsPage:  # pragma: nocover
     def on_cancel(self) -> None:
         """Handle the user clicking cancel"""
         # Reset alpha in case the user changed the slider
-        self.overlay.window.root.wm_attributes(
-            "-alpha", self.controller.settings.alpha_hundredths / 100
+        self.overlay.window.set_alpha_hundredths(
+            self.controller.settings.alpha_hundredths
         )
 
         self.overlay.switch_page("main")
@@ -363,7 +363,7 @@ class SettingsPage:  # pragma: nocover
             self.overlay.stop_tab_listener()
 
         # Update alpha
-        self.overlay.window.root.wm_attributes("-alpha", alpha_hundredths / 100)
+        self.overlay.window.set_alpha_hundredths(alpha_hundredths)
 
         # Go back to the main content
         self.overlay.switch_page("main")

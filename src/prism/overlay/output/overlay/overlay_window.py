@@ -60,9 +60,7 @@ class OverlayWindow:  # pragma: nocover
             self.root.overrideredirect(True)
         self.root.lift()
         self.root.wm_attributes("-topmost", True)
-        self.root.wm_attributes(
-            "-alpha", self.controller.settings.alpha_hundredths / 100
-        )
+        self.set_alpha_hundredths(self.controller.settings.alpha_hundredths)
         self.root.configure(background="black")
 
         if start_hidden:
@@ -71,6 +69,10 @@ class OverlayWindow:  # pragma: nocover
             self.show(force=True)
 
         self.reset_position()
+
+    def set_alpha_hundredths(self, alpha_hundredths: int) -> None:
+        """Set the alpha of the window to alpha_hundredths / 100"""
+        self.root.wm_attributes("-alpha", alpha_hundredths / 100)
 
     def show(self, *, force: bool = False) -> None:
         """Show the window"""
@@ -83,9 +85,7 @@ class OverlayWindow:  # pragma: nocover
             return
 
         if self.controller.settings.hide_with_alpha:
-            self.root.wm_attributes(
-                "-alpha", self.controller.settings.alpha_hundredths / 100
-            )
+            self.set_alpha_hundredths(self.controller.settings.alpha_hundredths)
         else:
             self.root.deiconify()
 
@@ -102,7 +102,7 @@ class OverlayWindow:  # pragma: nocover
             return
 
         if self.controller.settings.hide_with_alpha:
-            self.root.wm_attributes("-alpha", 0)
+            self.set_alpha_hundredths(0)
         else:
             self.root.withdraw()
 
