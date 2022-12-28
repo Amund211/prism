@@ -29,6 +29,7 @@ class SettingsDict(TypedDict):
     known_nicks: dict[str, NickValue]
     show_on_tab: bool
     disable_overrideredirect: bool
+    hide_with_alpha: bool
 
 
 # Generic type to allow subclassing Settings
@@ -45,6 +46,7 @@ class Settings:
     known_nicks: dict[str, NickValue]
     show_on_tab: bool
     disable_overrideredirect: bool
+    hide_with_alpha: bool
     path: Path
     mutex: threading.Lock = field(
         default_factory=threading.Lock, init=False, compare=False, repr=False
@@ -61,6 +63,7 @@ class Settings:
             known_nicks=source["known_nicks"],
             show_on_tab=source["show_on_tab"],
             disable_overrideredirect=source["disable_overrideredirect"],
+            hide_with_alpha=source["hide_with_alpha"],
             path=path,
         )
 
@@ -72,6 +75,7 @@ class Settings:
             "known_nicks": self.known_nicks,
             "show_on_tab": self.show_on_tab,
             "disable_overrideredirect": self.disable_overrideredirect,
+            "hide_with_alpha": self.hide_with_alpha,
         }
 
     def update_from(self, new_settings: SettingsDict) -> None:
@@ -82,6 +86,7 @@ class Settings:
         self.known_nicks = new_settings["known_nicks"]
         self.show_on_tab = new_settings["show_on_tab"]
         self.disable_overrideredirect = new_settings["disable_overrideredirect"]
+        self.hide_with_alpha = new_settings["hide_with_alpha"]
 
     def flush_to_disk(self) -> None:
         with self.path.open("w") as f:
@@ -166,6 +171,11 @@ def fill_missing_settings(
         settings_updated = True
         disable_overrideredirect = False
 
+    hide_with_alpha = incomplete_settings.get("hide_with_alpha", None)
+    if not isinstance(hide_with_alpha, bool):
+        settings_updated = True
+        hide_with_alpha = False
+
     return {
         "hypixel_api_key": hypixel_api_key,
         "antisniper_api_key": antisniper_api_key,
@@ -173,6 +183,7 @@ def fill_missing_settings(
         "known_nicks": known_nicks,
         "show_on_tab": show_on_tab,
         "disable_overrideredirect": disable_overrideredirect,
+        "hide_with_alpha": hide_with_alpha,
     }, settings_updated
 
 

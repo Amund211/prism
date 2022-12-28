@@ -281,6 +281,7 @@ class SettingsPage:  # pragma: nocover
 
         # "Secret" settings, not editable in the GUI
         disable_overrideredirect = self.controller.settings.disable_overrideredirect
+        hide_with_alpha = self.controller.settings.hide_with_alpha
 
         new_settings = SettingsDict(
             hypixel_api_key=hypixel_api_key,
@@ -289,6 +290,7 @@ class SettingsPage:  # pragma: nocover
             known_nicks=known_nicks,
             show_on_tab=show_on_tab,
             disable_overrideredirect=disable_overrideredirect,
+            hide_with_alpha=hide_with_alpha,
         )
 
         with self.controller.settings.mutex:

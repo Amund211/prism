@@ -54,10 +54,6 @@ class OverlayWindow:  # pragma: nocover
 
         # Create a root window
         self.root = Root()
-        if start_hidden:
-            self.hide(force=True)
-        else:
-            self.show(force=True)
 
         # Window geometry
         if not self.controller.settings.disable_overrideredirect:
@@ -66,6 +62,11 @@ class OverlayWindow:  # pragma: nocover
         self.root.wm_attributes("-topmost", True)
         self.root.wm_attributes("-alpha", 0.8)
         self.root.configure(background="black")
+
+        if start_hidden:
+            self.hide(force=True)
+        else:
+            self.show(force=True)
 
         self.reset_position()
 
@@ -79,7 +80,11 @@ class OverlayWindow:  # pragma: nocover
             # Skip actully showing the window if already shown
             return
 
-        self.root.deiconify()
+        if self.controller.settings.hide_with_alpha:
+            self.root.wm_attributes("-alpha", 0.8)
+        else:
+            self.root.deiconify()
+
         self.shown = True
 
     def hide(self, *, force: bool = False) -> None:
@@ -92,7 +97,11 @@ class OverlayWindow:  # pragma: nocover
             # Skip actully hiding the window if already hidden
             return
 
-        self.root.withdraw()
+        if self.controller.settings.hide_with_alpha:
+            self.root.wm_attributes("-alpha", 0)
+        else:
+            self.root.withdraw()
+
         self.shown = False
 
     def schedule_hide(self, timeout: int) -> None:

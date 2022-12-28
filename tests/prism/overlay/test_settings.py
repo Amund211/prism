@@ -27,6 +27,7 @@ def make_settings_dict(
     known_nicks: dict[str, NickValue] | None = None,
     show_on_tab: bool | None = None,
     disable_overrideredirect: bool | None = None,
+    hide_with_alpha: bool | None = None,
 ) -> SettingsDict:
     """Make a settings dict with default values if missing"""
     return {
@@ -40,6 +41,7 @@ def make_settings_dict(
         "disable_overrideredirect": value_or_default(
             disable_overrideredirect, default=False
         ),
+        "hide_with_alpha": value_or_default(hide_with_alpha, default=False),
     }
 
 
@@ -58,6 +60,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             show_on_tab=True,
             disable_overrideredirect=True,
+            hide_with_alpha=True,
             path=PLACEHOLDER_PATH,
         ),
         {
@@ -67,6 +70,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             "show_on_tab": True,
             "disable_overrideredirect": True,
+            "hide_with_alpha": True,
         },
     ),
     (
@@ -77,6 +81,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             known_nicks={},
             show_on_tab=False,
             disable_overrideredirect=False,
+            hide_with_alpha=False,
             path=PLACEHOLDER_PATH,
         ),
         {
@@ -86,6 +91,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "known_nicks": {},
             "show_on_tab": False,
             "disable_overrideredirect": False,
+            "hide_with_alpha": False,
         },
     ),
 )
@@ -183,6 +189,7 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             "show_on_tab": False,
             "disable_overrideredirect": True,
+            "hide_with_alpha": True,
         },
         make_settings_dict(
             hypixel_api_key="my-key",
@@ -190,6 +197,7 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             show_on_tab=False,
             disable_overrideredirect=True,
+            hide_with_alpha=True,
         ),
         False,
     ),
