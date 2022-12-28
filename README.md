@@ -24,6 +24,19 @@ The overlay can be extended with the [Antisniper API](https://antisniper.net) (n
 - Follow the instructions in the settings page to add an Antisniper API key to get denicking and winstreak estimates
 - Click on the pencil next to a nicked teammate to set their username
 
+## Known issues
+
+### Overlay window is invisible on Linux
+This issue happens to me when I start the overlay and then fullscreen Minecraft.
+I am able to fix it by simply switching workspaces away from and then back to Minecraft.
+If this does not work there is a secret setting `disable_overrideredirect` that might help (see [this PR](https://github.com/Amund211/prism/pull/1)).
+You can change this to `true` by editing the config file at `~/.config/prism_overlay/settings.toml`.
+
+### Overlay takes focus when playing on Linux
+This might be mitigated by the secret setting `hide_with_alpha`.
+You can change this to `true` by editing the config file at `~/.config/prism_overlay/settings.toml`.
+See [this PR](https://github.com/Amund211/prism/pull/1).
+
 ## Safety
 Being open source, anyone can look at the source code for Prism to see that nothing nefarious is happening.
 The released binaries are created using `pyinstaller` in GitHub Actions from a clean clone of the repository.
