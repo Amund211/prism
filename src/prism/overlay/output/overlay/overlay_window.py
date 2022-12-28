@@ -10,6 +10,10 @@ import time
 import tkinter as tk
 from traceback import format_exception
 from types import TracebackType
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # pragma: nocover
+    from prism.overlay.controller import OverlayController
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +44,10 @@ class OverlayWindow:  # pragma: nocover
     See `prism/overlay/platform/windows.py` for more info.
     """
 
-    def __init__(self, start_hidden: bool) -> None:
+    def __init__(self, controller: "OverlayController", start_hidden: bool) -> None:
         """Set up window geometry to make the window an overlay"""
+        self.controller = controller
+
         self.hide_task_id: str | None = None
         self.hide_due_at: float | None = None
         self.shown: bool = False  # Set below

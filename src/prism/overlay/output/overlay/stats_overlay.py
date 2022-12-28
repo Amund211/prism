@@ -51,7 +51,7 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
         self.current_page: Page = "main"
 
         # Layout
-        self.window = OverlayWindow(start_hidden=start_hidden)
+        self.window = OverlayWindow(controller=controller, start_hidden=start_hidden)
         # Frame for the current page
         self.page_frame = tk.Frame(self.window.root, background="black")
         self.page_frame.pack(side=tk.BOTTOM, fill=tk.BOTH)
