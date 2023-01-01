@@ -26,7 +26,7 @@ class ToggleButton:  # pragma: nocover
     def __init__(
         self,
         frame: tk.Frame,
-        toggle_callback: Callable[[bool], Any] = lambda enabled: None,
+        toggle_callback: Callable[[bool], None] = lambda enabled: None,
     ) -> None:
         self.toggle_callback = toggle_callback
 
@@ -41,19 +41,22 @@ class ToggleButton:  # pragma: nocover
         )
 
         # Initially toggle to get into a consistent state
-        self.toggle()
+        # Don't run the toggle callback since the user didn't click the button
+        self.toggle(disable_toggle_callback=True)
 
     @property
     def enabled(self) -> bool:
         """Return the state of the toggle button"""
         return self.button.config("bg")[-1] == self.ENABLED_CONFIG["bg"]  # type:ignore
 
-    def toggle(self) -> None:
+    def toggle(self, *, disable_toggle_callback: bool = False) -> None:
         """Toggle the state of the button"""
         self.button.config(
             **(self.DISABLED_CONFIG if self.enabled else self.ENABLED_CONFIG)
         )
-        self.toggle_callback(self.enabled)
+
+        if not disable_toggle_callback:
+            self.toggle_callback(self.enabled)
 
     def set(self, enabled: bool) -> None:
         """Set the enabled state of the toggle button"""
@@ -116,17 +119,9 @@ class AntisniperSection:  # pragma: nocover
             background="black",
         ).grid(row=1, column=0, sticky=tk.E)
 
-        # NOTE: We make this early so it exists in the callback for the toggle
-        self.antisniper_api_key_variable = tk.StringVar()
-        self.antisniper_api_key_entry = tk.Entry(
-            self.frame, textvariable=self.antisniper_api_key_variable
-        )
-
         self.use_antisniper_api_toggle = ToggleButton(
             self.frame,
-            lambda enabled: self.antisniper_api_key_entry.configure(
-                state=tk.NORMAL if enabled else tk.DISABLED
-            ),
+            toggle_callback=self.set_key_entry_state,
         )
         self.use_antisniper_api_toggle.button.grid(row=1, column=1)
 
@@ -137,6 +132,12 @@ class AntisniperSection:  # pragma: nocover
             foreground="white",
             background="black",
         ).grid(row=2, column=0, sticky=tk.E)
+
+        self.antisniper_api_key_variable = tk.StringVar()
+        self.antisniper_api_key_entry = tk.Entry(
+            self.frame, textvariable=self.antisniper_api_key_variable
+        )
+        self.set_key_entry_state(self.use_antisniper_api_toggle.enabled)
 
         self.antisniper_api_key_entry.grid(row=2, column=1)
 
@@ -150,6 +151,12 @@ class AntisniperSection:  # pragma: nocover
         """Get the state of this section"""
         raw_antisniper_api_key = self.antisniper_api_key_variable.get().strip()
         return self.use_antisniper_api_toggle.enabled, raw_antisniper_api_key or None
+
+    def set_key_entry_state(self, enabled: bool) -> None:
+        """Enable the key entry if the api is enabled, disable if disabled"""
+        self.antisniper_api_key_entry.configure(
+            state=tk.NORMAL if enabled else tk.DISABLED
+        )
 
 
 class LocalSettingsSection:  # pragma: nocover
