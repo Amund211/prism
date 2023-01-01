@@ -18,6 +18,7 @@ class ToggleButton:  # pragma: nocover
         "activebackground": "orange red",
     }
     ENABLED_CONFIG = {
+        # NOTE: The trailing space is intentional to reduce resizing when toggling
         "text": "Enabled ",
         "bg": "lime green",
         "activebackground": "lawn green",
