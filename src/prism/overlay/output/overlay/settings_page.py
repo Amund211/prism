@@ -260,7 +260,7 @@ class SettingsPage:  # pragma: nocover
             font=("Consolas", "14"),
             foreground="white",
             background="black",
-            command=self.on_cancel,
+            command=lambda: self.overlay.switch_page("main"),
             relief="flat",
         )
         cancel_button.pack(side=tk.RIGHT, padx=(0, 5))
@@ -312,14 +312,11 @@ class SettingsPage:  # pragma: nocover
             self.local_settings_section.set(settings.show_on_tab)
             self.graphics_section.set(settings.alpha_hundredths)
 
-    def on_cancel(self) -> None:
-        """Handle the user clicking cancel"""
-        # Reset alpha in case the user changed the slider
+    def on_close(self) -> None:
+        """Reset window alpha when leaving settings page"""
         self.overlay.window.set_alpha_hundredths(
             self.controller.settings.alpha_hundredths
         )
-
-        self.overlay.switch_page("main")
 
     def on_save(self) -> None:
         """Handle the user saving their settings"""
@@ -358,9 +355,6 @@ class SettingsPage:  # pragma: nocover
             self.overlay.setup_tab_listener()
         else:
             self.overlay.stop_tab_listener()
-
-        # Update alpha
-        self.overlay.window.set_alpha_hundredths(alpha_hundredths)
 
         # Go back to the main content
         self.overlay.switch_page("main")

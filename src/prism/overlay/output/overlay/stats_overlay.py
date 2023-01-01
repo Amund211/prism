@@ -142,6 +142,7 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
         if self.current_page == "main":
             self.main_content.frame.pack_forget()
         elif self.current_page == "settings":
+            self.settings_page.on_close()
             self.settings_page.frame.pack_forget()
         elif self.current_page == "set_nickname":
             self.set_nickname_page.frame.pack_forget()
