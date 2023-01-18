@@ -33,7 +33,7 @@ filelock==3.8.2
     # via virtualenv
 flake8==6.0.0
     # via -r requirements/dev.in
-future==0.18.2
+future==0.18.3
     # via pefile
 identify==2.5.11
     # via pre-commit
