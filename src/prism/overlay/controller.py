@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import logging
 import threading
 from abc import abstractmethod
@@ -31,10 +29,10 @@ class OverlayController(Protocol):  # pragma: no cover
     api_key_invalid: bool
     on_hypixel: bool
 
-    state: OverlayState
-    settings: Settings
-    nick_database: NickDatabase
-    player_cache: PlayerCache
+    state: "OverlayState"
+    settings: "Settings"
+    nick_database: "NickDatabase"
+    player_cache: "PlayerCache"
     redraw_event: threading.Event
 
     @property
@@ -64,7 +62,7 @@ class OverlayController(Protocol):  # pragma: no cover
 
     @property
     @abstractmethod
-    def get_estimated_winstreaks(self) -> Callable[[str], tuple[Winstreaks, bool]]:
+    def get_estimated_winstreaks(self) -> Callable[[str], tuple["Winstreaks", bool]]:
         raise NotImplementedError
 
     @property
@@ -76,9 +74,9 @@ class OverlayController(Protocol):  # pragma: no cover
 class RealOverlayController:
     def __init__(
         self,
-        state: OverlayState,
-        settings: Settings,
-        nick_database: NickDatabase,
+        state: "OverlayState",
+        settings: "Settings",
+        nick_database: "NickDatabase",
     ) -> None:
         from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
         from prism.overlay.player_cache import PlayerCache
@@ -150,7 +148,7 @@ class RealOverlayController:
 
     def get_estimated_winstreaks(
         self, uuid: str
-    ) -> tuple[Winstreaks, bool]:  # pragma: no cover
+    ) -> tuple["Winstreaks", bool]:  # pragma: no cover
         from prism.overlay.antisniper_api import get_estimated_winstreaks
         from prism.overlay.player import MISSING_WINSTREAKS
 
