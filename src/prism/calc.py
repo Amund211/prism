@@ -44,10 +44,7 @@ def bedwars_level_from_exp(exp: int) -> float:
 
     next_level = (levels + 1) % LEVELS_PER_PRESTIGE
 
-    # The cost of the next level
-    if next_level in EASY_LEVEL_COSTS:
-        next_level_cost = EASY_LEVEL_COSTS[next_level]
-    else:
-        next_level_cost = LEVEL_COST
+    # The cost of the next level, fallback to LEVEL_COST if it is not an easy level
+    next_level_cost = EASY_LEVEL_COSTS.get(next_level, LEVEL_COST)
 
     return levels + exp / next_level_cost
