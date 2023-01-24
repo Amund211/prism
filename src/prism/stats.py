@@ -96,7 +96,6 @@ def print_bedwars_stats(playerdata: dict[str, Any], nick: str | None = None) -> 
     except KeyError:
         # Privacy setting disabling access
         print()
-        pass
     else:
         online = last_login > last_logout
 

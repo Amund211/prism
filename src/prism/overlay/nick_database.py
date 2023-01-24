@@ -8,19 +8,13 @@ from typing import Type, TypeVar
 class DatabaseReadError(ValueError):
     """Error raised when failing to read a database"""
 
-    ...
-
 
 class DatabaseDecodeError(ValueError):
     """Error raised when failing to decode a read database"""
 
-    ...
-
 
 class InvalidDatabaseError(ValueError):
     """Error raised when failing to decode a read database"""
-
-    ...
 
 
 def read_databases(database_paths: list[Path]) -> list[dict[str, str]]:

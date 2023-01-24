@@ -19,8 +19,6 @@ SESSION = make_prism_requests_session()
 class MojangAPIError(ValueError):
     """Exception raised when we receive an error from the Mojang api"""
 
-    pass
-
 
 # Be nice to the Mojang api :)
 limiter = RateLimiter(limit=REQUEST_LIMIT, window=REQUEST_WINDOW)

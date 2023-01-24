@@ -30,19 +30,13 @@ class HypixelAPIKeyHolder:
 class MissingStatsError(ValueError):
     """Exception raised when the player has no stats for the gamemode"""
 
-    pass
-
 
 class HypixelAPIError(ValueError):
     """Exception raised when the player is not found"""
 
-    pass
-
 
 class HypixelAPIKeyError(ValueError):
     """Exception raised when the API key is invalid"""
-
-    pass
 
 
 def _make_request(
