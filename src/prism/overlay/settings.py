@@ -94,7 +94,8 @@ class Settings:
         self.alpha_hundredths = new_settings["alpha_hundredths"]
 
     def flush_to_disk(self) -> None:
-        with self.path.open("w") as f:
+        # toml.load(path) uses encoding='utf-8'
+        with self.path.open("w", encoding="utf-8") as f:
             toml.dump(self.to_dict(), f)
         logger.info(f"Wrote settings to disk: {self}")
 
