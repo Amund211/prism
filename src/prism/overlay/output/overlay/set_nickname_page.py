@@ -51,7 +51,7 @@ class SetNicknamePage:  # pragma: nocover
         )
         self.save_button.pack(side=tk.RIGHT)
 
-        # Minimize button
+        # Cancel button
         cancel_button = tk.Button(
             self.controls_frame,
             text="Cancel",

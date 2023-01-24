@@ -261,7 +261,7 @@ class SettingsPage:  # pragma: nocover
         )
         save_button.pack(side=tk.RIGHT)
 
-        # Minimize button
+        # Cancel button
         cancel_button = tk.Button(
             self.controls_frame,
             text="Cancel",
