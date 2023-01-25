@@ -21,35 +21,34 @@ jobs:
         python-version: ${{ matrix.python_version }}
 
     - name: OS specific setup (windows)
-      if: runner.os == 'Windows'
+      if: matrix.os == 'windows'
       run: |
+        echo 'OS_NAME=windows' >> $GITHUB_ENV
         echo 'ACTIVATE_PATH=venv/Scripts/activate' >> $GITHUB_ENV
         echo 'BINARY_EXTENSION=.exe' >> $GITHUB_ENV
         echo 'PATHSEP=;' >> $GITHUB_ENV
         echo 'DIRSEP=\\' >> $GITHUB_ENV
-    - name: OS specific setup (linux/mac)
-      if: runner.os != 'Windows'
+    - name: OS specific setup (linux)
+      if: matrix.os == 'ubuntu'
       run: |
+        echo 'OS_NAME=linux' >> $GITHUB_ENV
+        echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
+        echo 'BINARY_EXTENSION=' >> $GITHUB_ENV
+        echo 'PATHSEP=:' >> $GITHUB_ENV
+        echo 'DIRSEP=/' >> $GITHUB_ENV
+    - name: OS specific setup (mac)
+      if: matrix.os == 'macOS'
+      run: |
+        echo 'OS_NAME=mac' >> $GITHUB_ENV
         echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
         echo 'BINARY_EXTENSION=' >> $GITHUB_ENV
         echo 'PATHSEP=:' >> $GITHUB_ENV
         echo 'DIRSEP=/' >> $GITHUB_ENV
 
     - name: Select dependency files (linux)
-      if: matrix.os == 'ubuntu'
       run: |
-        echo 'REQUIREMENTS=requirements/linux.txt' >> $GITHUB_ENV
-        echo 'DEV_REQUIREMENTS=requirements/linux-dev.txt' >> $GITHUB_ENV
-    - name: Select dependency files (windows)
-      if: matrix.os == 'windows'
-      run: |
-        echo 'REQUIREMENTS=requirements/windows.txt' >> $GITHUB_ENV
-        echo 'DEV_REQUIREMENTS=requirements/windows-dev.txt' >> $GITHUB_ENV
-    - name: Select dependency files (mac)
-      if: matrix.os == 'macOS'
-      run: |
-        echo 'REQUIREMENTS=requirements/mac.txt' >> $GITHUB_ENV
-        echo 'DEV_REQUIREMENTS=requirements/mac-dev.txt' >> $GITHUB_ENV
+        echo "REQUIREMENTS=requirements/${{ env.OS_NAME }}.txt" >> $GITHUB_ENV
+        echo "DEV_REQUIREMENTS=requirements/${{ env.OS_NAME }}-dev.txt" >> $GITHUB_ENV
 
     - name: Install dependencies
       run: |
@@ -59,7 +58,7 @@ jobs:
         python -m pip install -r ${{ env.REQUIREMENTS }} -r ${{ env.DEV_REQUIREMENTS }} -e .
 
         VERSION_STRING="$(python -c 'from prism import VERSION_STRING; print(VERSION_STRING)')"
-        echo "BINARY_NAME=prism-$VERSION_STRING-${{ matrix.os }}${{ env.BINARY_EXTENSION }}" >> $GITHUB_ENV
+        echo "BINARY_NAME=prism-$VERSION_STRING-${{ env.OS_NAME }}${{ env.BINARY_EXTENSION }}" >> $GITHUB_ENV
 
     - name: Run typechecking
       run: |
@@ -82,6 +81,6 @@ jobs:
     - name: Upload built binary
       uses: actions/upload-artifact@v3
       with:
-        name: prism-${{ matrix.os }}
+        name: prism-${{ env.OS_NAME }}
         path: "dist/${{ env.BINARY_NAME }}"
         if-no-files-found: error
