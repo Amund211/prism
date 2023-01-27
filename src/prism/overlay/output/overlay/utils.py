@@ -24,6 +24,15 @@ class CellValue:
     color: str
 
 
+@dataclass(frozen=True)
+class InfoCellValue:
+    """A value that can be set to an info-cell"""
+
+    text: str
+    color: str
+    url: str | None
+
+
 # A dict mapping column name to a cell (rated stat) value
 RatedStats = dict[ColumnKey, CellValue]
 

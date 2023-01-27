@@ -9,7 +9,7 @@ from prism.overlay.output.overlay.overlay_window import OverlayWindow
 from prism.overlay.output.overlay.set_nickname_page import SetNicknamePage
 from prism.overlay.output.overlay.settings_page import SettingsPage
 from prism.overlay.output.overlay.toolbar import Toolbar
-from prism.overlay.output.overlay.utils import CellValue, ColumnKey, OverlayRowData
+from prism.overlay.output.overlay.utils import ColumnKey, InfoCellValue, OverlayRowData
 
 if TYPE_CHECKING:  # pragma: nocover
     import pynput
@@ -30,7 +30,7 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
         left_justified_columns: set[int],
         controller: OverlayController,
         get_new_data: Callable[
-            [], tuple[bool, list[CellValue], list[OverlayRowData[ColumnKey]] | None]
+            [], tuple[bool, list[InfoCellValue], list[OverlayRowData[ColumnKey]] | None]
         ],
         poll_interval: int,
         hide_pause_ms: int = 5000,

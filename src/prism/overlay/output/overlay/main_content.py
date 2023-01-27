@@ -1,16 +1,20 @@
+import logging
 import tkinter as tk
+import webbrowser
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Generic
 
 from prism.overlay.output.overlay.utils import (
     Cell,
-    CellValue,
     ColumnKey,
+    InfoCellValue,
     OverlayRowData,
 )
 
 if TYPE_CHECKING:  # pragma: nocover
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay
+
+logger = logging.getLogger(__name__)
 
 StatsCells = dict[ColumnKey, Cell]
 
@@ -44,7 +48,7 @@ class MainContent(Generic[ColumnKey]):  # pragma: nocover
         self.info_frame = tk.Frame(self.frame, background="black")
         self.info_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
 
-        self.info_labels: dict[CellValue, tk.Label] = {}
+        self.info_labels: dict[InfoCellValue, tk.Label] = {}
 
         def shrink_info_when_empty(event: "tk.Event[tk.Frame]") -> None:
             """Manually shrink the info frame when it becomes empty"""
@@ -131,7 +135,7 @@ class MainContent(Generic[ColumnKey]):  # pragma: nocover
             for i in range(current_length - length):
                 self.pop_row()
 
-    def update_info(self, info_cells: list[CellValue]) -> None:
+    def update_info(self, info_cells: list[InfoCellValue]) -> None:
         """Update the list of info cells at the top of the overlay"""
         to_remove = set(self.info_labels.keys()) - set(info_cells)
         to_add = set(info_cells) - set(self.info_labels.keys())
@@ -150,12 +154,28 @@ class MainContent(Generic[ColumnKey]):  # pragma: nocover
                 fg=cell.color,  # Color set on each update
                 bg="black",
             )
+
+            if cell.url is not None:
+                label.config(cursor="hand2")
+                label.bind("<Button-1>", self._make_link_click_handler(cell.url))
+
             label.pack(side=tk.TOP)
             self.info_labels[cell] = label
 
+    def _make_link_click_handler(
+        self, url: str
+    ) -> Callable[["tk.Event[tk.Label]"], None]:
+        def handler(event: "tk.Event[tk.Label]") -> None:
+            try:
+                webbrowser.open(url)
+            except webbrowser.Error:
+                logger.exception(f"Error opening {url=}!")
+
+        return handler
+
     def update_content(
         self,
-        info_cells: list[CellValue],
+        info_cells: list[InfoCellValue],
         new_rows: list[OverlayRowData[ColumnKey]] | None,
     ) -> None:
         """Display the new data"""

@@ -1,11 +1,17 @@
+import threading
 import time
 from collections.abc import Callable
 
 from prism.overlay.controller import OverlayController
 from prism.overlay.output.overlay.stats_overlay import StatsOverlay
-from prism.overlay.output.overlay.utils import CellValue, OverlayRowData, player_to_row
+from prism.overlay.output.overlay.utils import (
+    InfoCellValue,
+    OverlayRowData,
+    player_to_row,
+)
 from prism.overlay.output.utils import COLUMN_NAMES, COLUMN_ORDER
 from prism.overlay.player import Player, PropertyName
+from prism.overlay.threading import UpdateCheckerThread
 
 
 def run_overlay(
@@ -19,8 +25,12 @@ def run_overlay(
     return a list of stats if the state changed.
     """
 
+    # Spawn thread to check for updates on GitHub
+    update_available_event = threading.Event()
+    UpdateCheckerThread(update_available_event=update_available_event).start()
+
     def get_new_data() -> tuple[
-        bool, list[CellValue], list[OverlayRowData[PropertyName]] | None
+        bool, list[InfoCellValue], list[OverlayRowData[PropertyName]] | None
     ]:
         new_players = fetch_state_updates()
         new_rows = (
@@ -31,13 +41,27 @@ def run_overlay(
 
         info_cells = []
         if controller.state.out_of_sync:
-            info_cells.append(CellValue("Overlay out of sync. Use /who", "orange"))
+            info_cells.append(
+                InfoCellValue(
+                    text="Overlay out of sync. Use /who", color="orange", url=None
+                )
+            )
 
         if controller.api_key_invalid:
             info_cells.append(
-                CellValue(
-                    "Invalid API key. Use /api new",
-                    "red" if time.time() % 2 > 1 else "white",
+                InfoCellValue(
+                    text="Invalid API key. Use /api new",
+                    color="red" if time.monotonic() % 2 > 1 else "white",
+                    url=None,
+                )
+            )
+
+        if update_available_event.is_set():
+            info_cells.append(
+                InfoCellValue(
+                    text="New update available! Click here to download.",
+                    color="light green",
+                    url="https://github.com/Amund211/prism/releases/latest/",
                 )
             )
 

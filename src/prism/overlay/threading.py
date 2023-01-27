@@ -1,6 +1,7 @@
 import logging
 import queue
 import threading
+import time
 from collections.abc import Callable, Iterable
 
 from prism.overlay.behaviour import (
@@ -10,6 +11,7 @@ from prism.overlay.behaviour import (
 )
 from prism.overlay.controller import OverlayController
 from prism.overlay.player import Player, sort_players
+from prism.update_checker import update_available
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +63,31 @@ class GetStatsThread(threading.Thread):  # pragma: nocover
         except Exception as e:
             logger.exception(f"Exception caught in stats thread: {e}. Exiting")
             return
+
+
+class UpdateCheckerThread(threading.Thread):  # pragma: nocover
+    """Thread that checks for updates on GitHub once a day"""
+
+    PERIOD_SECONDS = 24 * 60 * 60
+
+    def __init__(self, update_available_event: threading.Event) -> None:
+        super().__init__(daemon=True)  # Don't block the process from exiting
+        self.update_available_event = update_available_event
+
+    def run(self) -> None:
+        """Run update_available and set the event accordingly"""
+        try:
+            while True:
+                if update_available():
+                    logger.info("UpdateChecker: update available!")
+                    self.update_available_event.set()
+                    # An update is available -> no need to check any more
+                    return
+
+                logger.info("UpdateChecker: no update available.")
+                time.sleep(self.PERIOD_SECONDS)
+        except Exception:
+            logger.exception("Exception caught in update checker thread. Exiting")
 
 
 def prepare_overlay(
