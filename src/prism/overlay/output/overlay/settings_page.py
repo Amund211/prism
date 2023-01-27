@@ -39,6 +39,7 @@ class ToggleButton:  # pragma: nocover
             background="black",
             command=self.toggle,
             relief="flat",
+            cursor="hand2",
         )
 
         # Initially toggle to get into a consistent state
@@ -258,6 +259,7 @@ class SettingsPage:  # pragma: nocover
             background="black",
             command=self.on_save,
             relief="flat",
+            cursor="hand2",
         )
         save_button.pack(side=tk.RIGHT)
 
@@ -270,6 +272,7 @@ class SettingsPage:  # pragma: nocover
             background="black",
             command=lambda: self.overlay.switch_page("main"),
             relief="flat",
+            cursor="hand2",
         )
         cancel_button.pack(side=tk.RIGHT, padx=(0, 5))
 

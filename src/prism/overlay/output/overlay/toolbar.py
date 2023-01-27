@@ -41,6 +41,7 @@ class Toolbar:  # pragma: nocover
             foreground="white",
             background="black",
             highlightthickness=1,
+            cursor="fleur",
         )
         grip_label.pack(side=tk.LEFT, padx=(3, 5))
 
@@ -64,6 +65,7 @@ class Toolbar:  # pragma: nocover
             highlightthickness=0,
             command=toggle_settings_page,
             relief="flat",
+            cursor="hand2",
         )
         settings_button.pack(side=tk.LEFT)
 
@@ -78,6 +80,7 @@ class Toolbar:  # pragma: nocover
                 highlightthickness=0,
                 command=FULLSCREEN_CALLBACK,
                 relief="flat",
+                cursor="hand2",
             )
             fullscreen_button.pack(side=tk.LEFT)
 
@@ -91,6 +94,7 @@ class Toolbar:  # pragma: nocover
             highlightthickness=0,
             command=sys.exit,
             relief="flat",
+            cursor="hand2",
         )
         close_button.pack(side=tk.RIGHT)
 
@@ -110,6 +114,7 @@ class Toolbar:  # pragma: nocover
             highlightthickness=0,
             command=minimize,
             relief="flat",
+            cursor="hand2",
         )
         minimize_button.pack(side=tk.RIGHT)
 
