@@ -50,7 +50,7 @@ def _make_request(
             )
     except RequestException as e:
         raise ExecutionError(
-            f"Request to Hypixel API failed due to an unknown error {e}"
+            "Request to Hypixel API failed due to an unknown error"
         ) from e
 
     return response
@@ -71,7 +71,7 @@ def get_player_data(
             timeout=timeout,
         )
     except ExecutionError as e:
-        raise HypixelAPIError(f"Request to Hypixel API failed for {uuid=}. {e}")
+        raise HypixelAPIError(f"Request to Hypixel API failed for {uuid=}.") from e
 
     if response.status_code == 403:
         raise HypixelAPIKeyError(

@@ -29,9 +29,11 @@ def read_databases(database_paths: list[Path]) -> list[dict[str, str]]:
                 try:
                     database = json.load(f)
                 except json.JSONDecodeError as e:
-                    raise DatabaseDecodeError(str(e)) from e
+                    raise DatabaseDecodeError(
+                        f"Failed to parse database at {path=}"
+                    ) from e
         except (FileNotFoundError, OSError) as e:
-            raise DatabaseReadError(str(e)) from e
+            raise DatabaseReadError(f"Failed to read database at {path=}") from e
 
         if not isinstance(database, dict):
             raise InvalidDatabaseError("Nick database must be a mapping")

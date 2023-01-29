@@ -37,7 +37,7 @@ def _make_request(username: str) -> requests.Response:  # pragma: nocover
             response = SESSION.get(f"{USERPROFILES_ENDPOINT}/{username}")
     except RequestException as e:
         raise ExecutionError(
-            f"Request to Mojang API failed due to an unknown error {e}"
+            "Request to Mojang API failed due to an unknown error"
         ) from e
 
     return response
@@ -60,7 +60,7 @@ def get_uuid(
             timeout=timeout,
         )
     except ExecutionError as e:
-        raise MojangAPIError(f"Request to Mojang API failed for {username=}. {e}")
+        raise MojangAPIError(f"Request to Mojang API failed for {username=}.") from e
 
     if not response:
         raise MojangAPIError(
