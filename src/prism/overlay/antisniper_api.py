@@ -253,7 +253,7 @@ def queue_data(
     except JSONDecodeError:
         logger.error(
             "Failed parsing the response from the antisniper endpoint. "
-            f"Raw content: {response.text}"
+            f"{name=}. Raw content: {response.text}."
         )
         return None
 
