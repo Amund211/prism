@@ -173,16 +173,16 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         ).grid(row=1, column=0, sticky=tk.E)
-        self.tab_to_show_toggle = ToggleButton(self.frame)
-        self.tab_to_show_toggle.button.grid(row=1, column=1)
+        self.show_on_tab_toggle = ToggleButton(self.frame)
+        self.show_on_tab_toggle.button.grid(row=1, column=1)
 
-    def set(self, tab_to_show: bool) -> None:
+    def set(self, show_on_tab: bool) -> None:
         """Set the state of this section"""
-        self.tab_to_show_toggle.set(tab_to_show)
+        self.show_on_tab_toggle.set(show_on_tab)
 
     def get(self) -> bool:
         """Get the state of this section"""
-        return self.tab_to_show_toggle.enabled
+        return self.show_on_tab_toggle.enabled
 
 
 class GraphicsSection:  # pragma: nocover
