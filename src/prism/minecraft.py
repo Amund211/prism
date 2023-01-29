@@ -73,11 +73,11 @@ def get_uuid(
 
     try:
         response_json = response.json()
-    except JSONDecodeError:
+    except JSONDecodeError as e:
         raise MojangAPIError(
             "Failed parsing the response from the Mojang API. "
             f"Raw content: {response.text}"
-        )
+        ) from e
 
     # reponse is {"id": "...", "name": "..."}
     uuid = response_json["id"]

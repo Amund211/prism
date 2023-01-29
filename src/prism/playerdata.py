@@ -87,11 +87,11 @@ def get_player_data(
 
     try:
         response_json = response.json()
-    except JSONDecodeError:
+    except JSONDecodeError as e:
         raise HypixelAPIError(
             "Failed parsing the response from the Hypixel API. "
             f"Raw content: {response.text}"
-        )
+        ) from e
 
     if not response_json.get("success", False):
         raise HypixelAPIError(
