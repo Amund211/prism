@@ -72,8 +72,8 @@ def denick(
             response = SESSION.get(
                 f"{DENICK_ENDPOINT}?key={key_holder.key}&nick={nick}"
             )
-    except RequestException as e:
-        logger.error(f"Request to denick endpoint failed due to a connection error {e}")
+    except RequestException:
+        logger.exception("Request to denick endpoint failed due to a connection error.")
         return set_denick_cache(nick, None)
 
     if response.status_code == 404:
@@ -132,9 +132,9 @@ def get_estimated_winstreaks(
             response = SESSION.get(
                 f"{WINSTREAK_ENDPOINT}?key={key_holder.key}&uuid={uuid}"
             )
-    except RequestException as e:
-        logger.error(
-            f"Request to denick winstreak failed due to a connection error {e}"
+    except RequestException:
+        logger.exception(
+            "Request to winstreak endpoint failed due to a connection error."
         )
         return MISSING_WINSTREAKS, False
 
@@ -234,9 +234,9 @@ def queue_data(
             response = SESSION.get(
                 f"{ANTISNIPER_ENDPOINT}?key={key_holder.key}&name={name}"
             )
-    except RequestException as e:
-        logger.error(
-            f"Request to antisniper endpoint failed due to a connection error {e}"
+    except RequestException:
+        logger.exception(
+            "Request to antisniper endpoint failed due to a connection error."
         )
         return None
 

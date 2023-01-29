@@ -22,7 +22,7 @@ def execute_with_retry(f: Callable[[], T], retry_limit: int, timeout: float) -> 
             value = f()
         except ExecutionError as e:
             logger.warning(
-                f"Function execution failed with {e=}. ({i+1}/{retry_limit})"
+                f"Function execution failed ({i+1}/{retry_limit})", exc_info=e
             )
             errors.append(e)
         else:

@@ -222,7 +222,7 @@ def get_settings(path: Path, get_api_key: Callable[[], str]) -> Settings:
     except Exception as e:
         # Error either in reading or parsing file
         incomplete_settings = {}
-        logger.warning(f"Error reading settings file, using all defaults. '{e}'")
+        logger.warning("Error reading settings file, using all defaults.", exc_info=e)
 
     if "hypixel_api_key" not in incomplete_settings:
         # To help users in setting a valid key, add a placeholder and flush to disk

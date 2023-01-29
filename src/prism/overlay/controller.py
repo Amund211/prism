@@ -120,18 +120,18 @@ class RealOverlayController:
         try:
             return get_uuid(username)
         except MojangAPIError as e:
-            logger.debug(f"Failed getting uuid for username {username} {e=}")
+            logger.debug(f"Failed getting uuid for username {username}.", exc_info=e)
             return None
 
     def get_player_data(self, uuid: str) -> dict[str, Any] | None:  # pragma: no cover
         try:
             player_data = get_player_data(uuid, self.hypixel_key_holder)
         except HypixelAPIError as e:
-            logger.debug(f"Failed getting stats for {uuid=} {e=}")
+            logger.debug(f"Failed getting stats for {uuid=}.", exc_info=e)
             self.api_key_invalid = False
             return None
         except HypixelAPIKeyError as e:
-            logger.debug(f"Invalid API key {e=}")
+            logger.debug("Invalid API key.", exc_info=e)
             self.api_key_invalid = True
             return None
         else:

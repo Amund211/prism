@@ -28,8 +28,8 @@ class UpdateStateThread(threading.Thread):  # pragma: nocover
         """Read self.loglines and update self.controller"""
         try:
             process_loglines(self.loglines, self.controller)
-        except Exception as e:
-            logger.exception(f"Exception caught in state update thread: {e}. Exiting")
+        except Exception:
+            logger.exception("Exception caught in state update thread. Exiting.")
             return
 
 
@@ -60,8 +60,8 @@ class GetStatsThread(threading.Thread):  # pragma: nocover
                 )
 
                 self.requests_queue.task_done()
-        except Exception as e:
-            logger.exception(f"Exception caught in stats thread: {e}. Exiting")
+        except Exception:
+            logger.exception("Exception caught in stats thread. Exiting.")
             return
 
 
@@ -93,7 +93,7 @@ class UpdateCheckerThread(threading.Thread):  # pragma: nocover
 
                 time.sleep(self.PERIOD_SECONDS)
         except Exception:
-            logger.exception("Exception caught in update checker thread. Exiting")
+            logger.exception("Exception caught in update checker thread. Exiting.")
 
 
 class UpdateCheckerOneShotThread(threading.Thread):  # pragma: nocover
@@ -113,7 +113,7 @@ class UpdateCheckerOneShotThread(threading.Thread):  # pragma: nocover
                 logger.info("UpdateCheckerOneShot: no update available.")
         except Exception:
             logger.exception(
-                "Exception caught in update checker one shot thread. Exiting"
+                "Exception caught in update checker one shot thread. Exiting."
             )
 
 

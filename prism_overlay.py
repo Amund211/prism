@@ -7,5 +7,5 @@ logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
-        logger.exception(f"Exception caught in main '{e}'")
+    except Exception:
+        logger.exception("Exception caught in main!")

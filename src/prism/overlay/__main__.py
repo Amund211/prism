@@ -308,8 +308,8 @@ def main(*nick_databases: Path) -> None:  # pragma: nocover
 
     try:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    except Exception as e:
-        logger.error(f"Failed creating settings directory! '{e}'")
+    except Exception:
+        logger.exception("Failed creating settings directory!")
         sys.exit(1)
 
     if options.logfile_path is None:

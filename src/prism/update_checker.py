@@ -51,8 +51,8 @@ def get_release_tags() -> tuple[str, ...] | None:  # pragma: no cover
             "https://api.github.com/repos/Amund211/prism/releases?per_page=100",
             headers={"accept": "application/vnd.github+json"},
         )
-    except requests.RequestException:
-        logger.exception("Request failure while getting list of releases.")
+    except requests.RequestException as e:
+        logger.exception("Request failure while getting list of releases.", exc_info=e)
         return None
 
     if not response:
@@ -77,11 +77,13 @@ def parse_releases_to_tags(releases: Any) -> tuple[str, ...] | None:
     """Parse the response json from the releases api to a tuple of tags"""
     try:
         return tuple(str(release["tag_name"]) for release in releases)
-    except Exception:
+    except Exception as e:
         # Potential failures:
         #   releases not iterable
         #   release elements not dictionaries
         #   tag_name key missing
         #   tag_name not convertible to str
-        logger.exception("Invalid response from releases endpoint. {releases=}.")
+        logger.exception(
+            "Invalid response from releases endpoint. {releases=}.", exc_info=e
+        )
         return None
