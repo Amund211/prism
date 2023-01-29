@@ -28,6 +28,7 @@ class SettingsDict(TypedDict):
     use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
     show_on_tab: bool
+    check_for_updates: bool
     disable_overrideredirect: bool
     hide_with_alpha: bool
     alpha_hundredths: int
@@ -46,6 +47,7 @@ class Settings:
     use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
     show_on_tab: bool
+    check_for_updates: bool
     disable_overrideredirect: bool
     hide_with_alpha: bool
     alpha_hundredths: int
@@ -64,6 +66,7 @@ class Settings:
             use_antisniper_api=source["use_antisniper_api"],
             known_nicks=source["known_nicks"],
             show_on_tab=source["show_on_tab"],
+            check_for_updates=source["check_for_updates"],
             disable_overrideredirect=source["disable_overrideredirect"],
             hide_with_alpha=source["hide_with_alpha"],
             alpha_hundredths=source["alpha_hundredths"],
@@ -77,6 +80,7 @@ class Settings:
             "use_antisniper_api": self.use_antisniper_api,
             "known_nicks": self.known_nicks,
             "show_on_tab": self.show_on_tab,
+            "check_for_updates": self.check_for_updates,
             "disable_overrideredirect": self.disable_overrideredirect,
             "hide_with_alpha": self.hide_with_alpha,
             "alpha_hundredths": self.alpha_hundredths,
@@ -89,6 +93,7 @@ class Settings:
         self.use_antisniper_api = new_settings["use_antisniper_api"]
         self.known_nicks = new_settings["known_nicks"]
         self.show_on_tab = new_settings["show_on_tab"]
+        self.check_for_updates = new_settings["check_for_updates"]
         self.disable_overrideredirect = new_settings["disable_overrideredirect"]
         self.hide_with_alpha = new_settings["hide_with_alpha"]
         self.alpha_hundredths = new_settings["alpha_hundredths"]
@@ -172,6 +177,11 @@ def fill_missing_settings(
         settings_updated = True
         show_on_tab = True
 
+    check_for_updates = incomplete_settings.get("check_for_updates", None)
+    if not isinstance(check_for_updates, bool):
+        settings_updated = True
+        check_for_updates = True
+
     disable_overrideredirect = incomplete_settings.get("disable_overrideredirect", None)
     if not isinstance(disable_overrideredirect, bool):
         settings_updated = True
@@ -193,6 +203,7 @@ def fill_missing_settings(
         "use_antisniper_api": use_antisniper_api,
         "known_nicks": known_nicks,
         "show_on_tab": show_on_tab,
+        "check_for_updates": check_for_updates,
         "disable_overrideredirect": disable_overrideredirect,
         "hide_with_alpha": hide_with_alpha,
         "alpha_hundredths": alpha_hundredths,

@@ -176,13 +176,24 @@ class GeneralSettingSection:  # pragma: nocover
         self.show_on_tab_toggle = ToggleButton(self.frame)
         self.show_on_tab_toggle.button.grid(row=1, column=1)
 
-    def set(self, show_on_tab: bool) -> None:
+        tk.Label(
+            self.frame,
+            text="Check for overlay version updates: ",
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        ).grid(row=2, column=0, sticky=tk.E)
+        self.check_for_updates_toggle = ToggleButton(self.frame)
+        self.check_for_updates_toggle.button.grid(row=2, column=1)
+
+    def set(self, show_on_tab: bool, check_for_updates: bool) -> None:
         """Set the state of this section"""
         self.show_on_tab_toggle.set(show_on_tab)
+        self.check_for_updates_toggle.set(check_for_updates)
 
-    def get(self) -> bool:
+    def get(self) -> tuple[bool, bool]:
         """Get the state of this section"""
-        return self.show_on_tab_toggle.enabled
+        return self.show_on_tab_toggle.enabled, self.check_for_updates_toggle.enabled
 
 
 class GraphicsSection:  # pragma: nocover
@@ -315,7 +326,10 @@ class SettingsPage:  # pragma: nocover
     def set_content(self, settings: Settings) -> None:
         """Set the content of the page to the values from `settings`"""
         with settings.mutex:
-            self.general_settings_section.set(settings.show_on_tab)
+            self.general_settings_section.set(
+                show_on_tab=settings.show_on_tab,
+                check_for_updates=settings.check_for_updates,
+            )
             self.hypixel_section.set(settings.hypixel_api_key)
 
             self.antisniper_section.set(
@@ -331,7 +345,7 @@ class SettingsPage:  # pragma: nocover
 
     def on_save(self) -> None:
         """Handle the user saving their settings"""
-        show_on_tab = self.general_settings_section.get()
+        show_on_tab, check_for_updates = self.general_settings_section.get()
         hypixel_api_key = self.hypixel_section.get()
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
         known_nicks: dict[str, NickValue] = {}
@@ -351,6 +365,7 @@ class SettingsPage:  # pragma: nocover
             use_antisniper_api=use_antisniper_api,
             known_nicks=known_nicks,
             show_on_tab=show_on_tab,
+            check_for_updates=check_for_updates,
             disable_overrideredirect=disable_overrideredirect,
             hide_with_alpha=hide_with_alpha,
             alpha_hundredths=alpha_hundredths,

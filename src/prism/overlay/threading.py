@@ -70,21 +70,27 @@ class UpdateCheckerThread(threading.Thread):  # pragma: nocover
 
     PERIOD_SECONDS = 24 * 60 * 60
 
-    def __init__(self, update_available_event: threading.Event) -> None:
+    def __init__(
+        self, update_available_event: threading.Event, controller: OverlayController
+    ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.update_available_event = update_available_event
+        self.controller = controller
 
     def run(self) -> None:
         """Run update_available and set the event accordingly"""
         try:
             while True:
-                if update_available():
+                if not self.controller.settings.check_for_updates:
+                    logger.info("UpdateChecker: disabled by settings.")
+                elif update_available():
                     logger.info("UpdateChecker: update available!")
                     self.update_available_event.set()
                     # An update is available -> no need to check any more
                     return
+                else:
+                    logger.info("UpdateChecker: no update available.")
 
-                logger.info("UpdateChecker: no update available.")
                 time.sleep(self.PERIOD_SECONDS)
         except Exception:
             logger.exception("Exception caught in update checker thread. Exiting")

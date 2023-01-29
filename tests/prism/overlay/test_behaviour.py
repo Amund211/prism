@@ -469,6 +469,7 @@ def test_update_settings_everything_changed() -> None:
             "SuperbNick": {"uuid": "42", "comment": "42"},
         },
         show_on_tab=False,
+        check_for_updates=False,
         disable_overrideredirect=True,
         hide_with_alpha=True,
         alpha_hundredths=20,

@@ -27,7 +27,9 @@ def run_overlay(
 
     # Spawn thread to check for updates on GitHub
     update_available_event = threading.Event()
-    UpdateCheckerThread(update_available_event=update_available_event).start()
+    UpdateCheckerThread(
+        update_available_event=update_available_event, controller=controller
+    ).start()
 
     def get_new_data() -> tuple[
         bool, list[InfoCellValue], list[OverlayRowData[PropertyName]] | None
@@ -56,7 +58,7 @@ def run_overlay(
                 )
             )
 
-        if update_available_event.is_set():
+        if controller.settings.check_for_updates and update_available_event.is_set():
             info_cells.append(
                 InfoCellValue(
                     text="New update available! Click here to download.",
