@@ -1,4 +1,5 @@
 import logging
+import threading
 import tkinter as tk
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Generic, Literal
@@ -32,6 +33,7 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
         get_new_data: Callable[
             [], tuple[bool, list[InfoCellValue], list[OverlayRowData[ColumnKey]] | None]
         ],
+        update_available_event: threading.Event,
         poll_interval: int,
         hide_pause_ms: int = 5000,
     ):
@@ -39,6 +41,7 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
         self.controller = controller
         self.poll_interval = poll_interval
         self.get_new_data = get_new_data
+        self.update_available_event = update_available_event
         self.hide_pause_ms = hide_pause_ms
 
         # Set should_show so the window remains in the desired state based on

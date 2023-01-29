@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 from prism.overlay.behaviour import update_settings
 from prism.overlay.controller import OverlayController
 from prism.overlay.settings import NickValue, Settings, SettingsDict
+from prism.overlay.threading import UpdateCheckerOneShotThread
 
 if TYPE_CHECKING:  # pragma: nocover
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay
@@ -345,6 +346,9 @@ class SettingsPage:  # pragma: nocover
 
     def on_save(self) -> None:
         """Handle the user saving their settings"""
+        # Store old value to check for rising edge
+        old_check_for_updates = self.controller.settings.check_for_updates
+
         show_on_tab, check_for_updates = self.general_settings_section.get()
         hypixel_api_key = self.hypixel_section.get()
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
@@ -381,6 +385,10 @@ class SettingsPage:  # pragma: nocover
             self.overlay.setup_tab_listener()
         else:
             self.overlay.stop_tab_listener()
+
+        # Check for updates
+        if self.controller.settings.check_for_updates and not old_check_for_updates:
+            UpdateCheckerOneShotThread(self.overlay.update_available_event).start()
 
         # Go back to the main content
         self.overlay.switch_page("main")

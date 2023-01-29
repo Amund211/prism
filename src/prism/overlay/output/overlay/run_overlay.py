@@ -75,6 +75,7 @@ def run_overlay(
         left_justified_columns={0},
         controller=controller,
         get_new_data=get_new_data,
+        update_available_event=update_available_event,
         poll_interval=100,
         start_hidden=False,
     )

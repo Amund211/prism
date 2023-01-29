@@ -96,6 +96,27 @@ class UpdateCheckerThread(threading.Thread):  # pragma: nocover
             logger.exception("Exception caught in update checker thread. Exiting")
 
 
+class UpdateCheckerOneShotThread(threading.Thread):  # pragma: nocover
+    """Thread that does a one-time check for updates on GitHub"""
+
+    def __init__(self, update_available_event: threading.Event) -> None:
+        super().__init__(daemon=True)  # Don't block the process from exiting
+        self.update_available_event = update_available_event
+
+    def run(self) -> None:
+        """Run update_available and set the event accordingly"""
+        try:
+            if update_available():
+                logger.info("UpdateCheckerOneShot: update available!")
+                self.update_available_event.set()
+            else:
+                logger.info("UpdateCheckerOneShot: no update available.")
+        except Exception:
+            logger.exception(
+                "Exception caught in update checker one shot thread. Exiting"
+            )
+
+
 def prepare_overlay(
     controller: OverlayController, loglines: Iterable[str], thread_count: int
 ) -> Callable[[], list[Player] | None]:  # pragma: nocover
