@@ -41,11 +41,7 @@ def run_overlay(
                 )
             )
 
-        return (
-            controller.state.in_queue,
-            info_cells,
-            new_rows,
-        )
+        return controller.state.in_queue, info_cells, new_rows
 
     overlay = StatsOverlay[PropertyName](
         column_order=COLUMN_ORDER,
