@@ -386,8 +386,13 @@ class SettingsPage:  # pragma: nocover
         else:
             self.overlay.stop_tab_listener()
 
-        # Check for updates
-        if self.controller.settings.check_for_updates and not old_check_for_updates:
+        # Check for updates on the rising edge of settings.check_for_updates, but
+        # only if we don't already know that there is an update available
+        if (
+            self.controller.settings.check_for_updates
+            and not old_check_for_updates
+            and not self.overlay.update_available_event.is_set()
+        ):
             UpdateCheckerOneShotThread(self.overlay.update_available_event).start()
 
         # Go back to the main content
