@@ -1,4 +1,3 @@
-import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from typing import Any, Literal, TypedDict, overload
@@ -15,8 +14,6 @@ PropertyName = Literal[StatName, InfoName]
 
 StatsOrder = tuple[float, int, float]
 KnownPlayerOrder = tuple[StatsOrder, float, str]
-
-logger = logging.getLogger(__name__)
 
 
 class Winstreaks(TypedDict):

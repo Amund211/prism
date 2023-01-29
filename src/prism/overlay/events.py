@@ -1,10 +1,6 @@
-import logging
 from dataclasses import dataclass
 from enum import Enum, auto, unique
 from typing import Literal, Union
-
-logger = logging.getLogger(__name__)
-
 
 PartyRole = Literal["leader", "moderators", "members"]
 
