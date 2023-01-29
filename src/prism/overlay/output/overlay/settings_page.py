@@ -67,6 +67,41 @@ class ToggleButton:  # pragma: nocover
             self.toggle()
 
 
+class GeneralSettingSection:  # pragma: nocover
+    def __init__(self, parent: "SettingsPage") -> None:
+        self.frame = parent.make_section("General Settings")
+        self.frame.columnconfigure(0, weight=0)
+
+        tk.Label(
+            self.frame,
+            text="Show overlay on tab: ",
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        ).grid(row=1, column=0, sticky=tk.E)
+        self.show_on_tab_toggle = ToggleButton(self.frame)
+        self.show_on_tab_toggle.button.grid(row=1, column=1)
+
+        tk.Label(
+            self.frame,
+            text="Check for overlay version updates: ",
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        ).grid(row=2, column=0, sticky=tk.E)
+        self.check_for_updates_toggle = ToggleButton(self.frame)
+        self.check_for_updates_toggle.button.grid(row=2, column=1)
+
+    def set(self, show_on_tab: bool, check_for_updates: bool) -> None:
+        """Set the state of this section"""
+        self.show_on_tab_toggle.set(show_on_tab)
+        self.check_for_updates_toggle.set(check_for_updates)
+
+    def get(self) -> tuple[bool, bool]:
+        """Get the state of this section"""
+        return self.show_on_tab_toggle.enabled, self.check_for_updates_toggle.enabled
+
+
 class HypixelSection:  # pragma: nocover
     def __init__(self, parent: "SettingsPage") -> None:
         self.frame = parent.make_section("Hypixel")
@@ -160,41 +195,6 @@ class AntisniperSection:  # pragma: nocover
         self.antisniper_api_key_entry.configure(
             state=tk.NORMAL if enabled else tk.DISABLED
         )
-
-
-class GeneralSettingSection:  # pragma: nocover
-    def __init__(self, parent: "SettingsPage") -> None:
-        self.frame = parent.make_section("General Settings")
-        self.frame.columnconfigure(0, weight=0)
-
-        tk.Label(
-            self.frame,
-            text="Show overlay on tab: ",
-            font=("Consolas", "12"),
-            foreground="white",
-            background="black",
-        ).grid(row=1, column=0, sticky=tk.E)
-        self.show_on_tab_toggle = ToggleButton(self.frame)
-        self.show_on_tab_toggle.button.grid(row=1, column=1)
-
-        tk.Label(
-            self.frame,
-            text="Check for overlay version updates: ",
-            font=("Consolas", "12"),
-            foreground="white",
-            background="black",
-        ).grid(row=2, column=0, sticky=tk.E)
-        self.check_for_updates_toggle = ToggleButton(self.frame)
-        self.check_for_updates_toggle.button.grid(row=2, column=1)
-
-    def set(self, show_on_tab: bool, check_for_updates: bool) -> None:
-        """Set the state of this section"""
-        self.show_on_tab_toggle.set(show_on_tab)
-        self.check_for_updates_toggle.set(check_for_updates)
-
-    def get(self) -> tuple[bool, bool]:
-        """Get the state of this section"""
-        return self.show_on_tab_toggle.enabled, self.check_for_updates_toggle.enabled
 
 
 class GraphicsSection:  # pragma: nocover
