@@ -161,9 +161,9 @@ class AntisniperSection:  # pragma: nocover
         )
 
 
-class LocalSettingsSection:  # pragma: nocover
+class GeneralSettingSection:  # pragma: nocover
     def __init__(self, parent: "SettingsPage") -> None:
-        self.frame = parent.make_section("Local Settings")
+        self.frame = parent.make_section("General Settings")
         self.frame.columnconfigure(0, weight=0)
 
         tk.Label(
@@ -280,9 +280,9 @@ class SettingsPage:  # pragma: nocover
         self.settings_frame = tk.Frame(self.frame, background="black")
         self.settings_frame.pack(side=tk.TOP, fill=tk.BOTH)
 
+        self.general_settings_section = GeneralSettingSection(self)
         self.hypixel_section = HypixelSection(self)
         self.antisniper_section = AntisniperSection(self)
-        self.local_settings_section = LocalSettingsSection(self)
         self.graphics_section = GraphicsSection(self)
 
     def make_section(
@@ -315,12 +315,12 @@ class SettingsPage:  # pragma: nocover
     def set_content(self, settings: Settings) -> None:
         """Set the content of the page to the values from `settings`"""
         with settings.mutex:
+            self.general_settings_section.set(settings.show_on_tab)
             self.hypixel_section.set(settings.hypixel_api_key)
 
             self.antisniper_section.set(
                 settings.use_antisniper_api, settings.antisniper_api_key
             )
-            self.local_settings_section.set(settings.show_on_tab)
             self.graphics_section.set(settings.alpha_hundredths)
 
     def on_close(self) -> None:
@@ -331,13 +331,13 @@ class SettingsPage:  # pragma: nocover
 
     def on_save(self) -> None:
         """Handle the user saving their settings"""
+        show_on_tab = self.general_settings_section.get()
         hypixel_api_key = self.hypixel_section.get()
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
         known_nicks: dict[str, NickValue] = {}
         # TODO: Add section to edit known nicks
         with self.controller.settings.mutex:
             known_nicks = self.controller.settings.known_nicks.copy()
-        show_on_tab = self.local_settings_section.get()
 
         # "Secret" settings, not editable in the GUI
         disable_overrideredirect = self.controller.settings.disable_overrideredirect
