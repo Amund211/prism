@@ -144,7 +144,8 @@ def parse_chat_message(message: str) -> ChatEvent | None:
     # Lobby changes
     WHO_PREFIX = "ONLINE: "
 
-    logger.debug(f"Chat message: '{message}'")
+    # Use lazy printf-style formatting because this message is very common
+    logger.debug("Chat message: '%s'", message)
 
     if message.startswith(WHO_PREFIX):
         # Info [CHAT] ONLINE: <username1>, <username2>, ..., <usernameN>
