@@ -4,13 +4,13 @@ from abc import abstractmethod
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Protocol
 
-from prism.minecraft import MojangAPIError, get_uuid
-from prism.playerdata import (
+from prism.hypixel import (
     HypixelAPIError,
     HypixelAPIKeyError,
     HypixelAPIKeyHolder,
     get_player_data,
 )
+from prism.mojang import MojangAPIError, get_uuid
 
 if TYPE_CHECKING:  # pragma: no cover
     from prism.overlay.nick_database import NickDatabase

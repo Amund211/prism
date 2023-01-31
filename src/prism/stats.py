@@ -7,8 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from prism.calc import bedwars_level_from_exp
-from prism.minecraft import MojangAPIError, get_uuid
-from prism.playerdata import (
+from prism.hypixel import (
     HypixelAPIError,
     HypixelAPIKeyError,
     HypixelAPIKeyHolder,
@@ -16,6 +15,7 @@ from prism.playerdata import (
     get_gamemode_stats,
     get_player_data,
 )
+from prism.mojang import MojangAPIError, get_uuid
 from prism.utils import div, format_seconds, read_key, truncate_float
 
 api_key = read_key(Path(sys.path[0]) / "api_key")

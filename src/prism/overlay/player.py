@@ -3,7 +3,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any, Literal, TypedDict, overload
 
 from prism.calc import bedwars_level_from_exp
-from prism.playerdata import MissingStatsError, get_gamemode_stats
+from prism.hypixel import MissingStatsError, get_gamemode_stats
 from prism.utils import div, truncate_float
 
 GamemodeName = Literal["overall", "solo", "doubles", "threes", "fours"]

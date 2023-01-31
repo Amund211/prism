@@ -2,7 +2,7 @@ from typing import Any
 
 import pytest
 
-from prism.playerdata import HypixelAPIKeyHolder, MissingStatsError, get_gamemode_stats
+from prism.hypixel import HypixelAPIKeyHolder, MissingStatsError, get_gamemode_stats
 
 
 def test_hypixel_key_holder() -> None:
