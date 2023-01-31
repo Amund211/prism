@@ -85,10 +85,9 @@ def print_bedwars_stats(playerdata: dict[str, Any], nick: str | None = None) -> 
 
     stars = bedwars_level_from_exp(bw_stats.get("Experience", 500))
 
+    displayname = playerdata.get("displayname", "<missing name>")
     nick_suffix = f" ({nick})" if nick is not None else ""
-    print(
-        f"{playerdata['displayname']}{nick_suffix} [{truncate_float(stars, 1)}]", end=""
-    )
+    print(f"{displayname}{nick_suffix} [{truncate_float(stars, 1)}]", end="")
 
     try:
         last_login = playerdata["lastLogin"] / 1000
