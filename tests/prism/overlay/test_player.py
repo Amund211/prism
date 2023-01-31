@@ -222,7 +222,7 @@ def test_aliases(player: Player, aliases: tuple[str, ...]) -> None:
     assert player.aliases == aliases
 
 
-def test_create_known_player(example_playerdata: dict[str, Any]) -> None:
+def test_create_known_player(technoblade_playerdata: dict[str, Any]) -> None:
     target = KnownPlayer(
         username="Technoblade",
         uuid="b876ec32e396476ba1158438d83c67d4",
@@ -236,7 +236,7 @@ def test_create_known_player(example_playerdata: dict[str, Any]) -> None:
     )
 
     result = create_known_player(
-        playerdata=example_playerdata,
+        playerdata=technoblade_playerdata,
         username="Technoblade",
         uuid="b876ec32e396476ba1158438d83c67d4",
         nick=None,

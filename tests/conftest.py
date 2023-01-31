@@ -17,8 +17,8 @@ def data_directory() -> Path:
 
 
 @pytest.fixture(scope="session")
-def example_playerdata(data_directory: Path) -> dict[str, Any]:
-    """Return an example playerdata"""
+def technoblade_playerdata(data_directory: Path) -> dict[str, Any]:
+    """Return example playerdata for technoblade"""
     with (data_directory / "technoblade_2022_06_10.json").open("r") as f:
         response = json.load(f)
 
