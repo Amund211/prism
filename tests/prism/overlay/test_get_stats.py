@@ -163,6 +163,41 @@ def test_fetch_bedwars_stats(
     )
 
 
+def test_fetch_bedwars_stats_weird(ares_playerdata: dict[str, Any]) -> None:
+    ares = User(
+        uuid="fffaceca46b24658b21f12c3cd2b413f",
+        username="Ares",
+        nick=None,
+        playerdata=ares_playerdata,
+    )
+    controller = make_scenario_controller(ares)
+
+    target = create_known_player(
+        playerdata=ares_playerdata, username=ares.username, uuid=ares.uuid, nick=None
+    )
+
+    assert fetch_bedwars_stats("Ares", controller) == target
+
+
+def test_fetch_bedwars_stats_weird_nicked(ares_playerdata: dict[str, Any]) -> None:
+    ares = User(
+        uuid="fffaceca46b24658b21f12c3cd2b413f",
+        username="Ares",
+        nick="CrazyNick",
+        playerdata=ares_playerdata,
+    )
+    controller = make_scenario_controller(ares)
+
+    target = create_known_player(
+        playerdata=ares_playerdata,
+        username="<missing name>",  # We rely on Hypixel to provide us the username
+        uuid=ares.uuid,
+        nick="CrazyNick",
+    )
+
+    assert fetch_bedwars_stats("CrazyNick", controller) == target
+
+
 def test_get_bedwars_stats() -> None:
     controller = scenarios["nick"]
     user = users["NickedPlayer"]

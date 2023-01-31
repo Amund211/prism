@@ -24,3 +24,13 @@ def technoblade_playerdata(data_directory: Path) -> dict[str, Any]:
 
     assert response["success"]
     return cast(dict[str, Any], response["player"])
+
+
+@pytest.fixture(scope="session")
+def ares_playerdata(data_directory: Path) -> dict[str, Any]:
+    """Return weird playerdata"""
+    with (data_directory / "ares_2023_01_30.json").open("r") as f:
+        response = json.load(f)
+
+    assert response["success"]
+    return cast(dict[str, Any], response["player"])
