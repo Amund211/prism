@@ -83,7 +83,7 @@ def fetch_bedwars_stats(
 
     if nick is not None:
         # Successfully de-nicked - update actual username
-        username = playerdata["displayname"]
+        username = playerdata.get("displayname", "<missing name>")
         logger.debug(f"De-nicked {nick} as {username}")
 
     return create_known_player(playerdata, username=username, uuid=uuid, nick=nick)
