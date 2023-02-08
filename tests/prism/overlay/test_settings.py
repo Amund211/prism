@@ -186,6 +186,8 @@ def test_read_and_write_settings(
 
     assert get_settings(settings.path, get_api_key) == settings
 
+
+def test_read_missing_settings_file(tmp_path: Path) -> None:
     # Assert that get_settings doesn't fail when file doesn't exist
     empty_path = tmp_path / "settings2.toml"
     assert get_settings(empty_path, get_api_key) == Settings.from_dict(
