@@ -1,14 +1,19 @@
+import logging
 import tkinter as tk
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from prism.overlay.behaviour import update_settings
 from prism.overlay.controller import OverlayController
-from prism.overlay.keybinds import construct_key
+from prism.overlay.keybinds import Key, SpecialKey, create_pynput_normalizer
 from prism.overlay.settings import NickValue, Settings, SettingsDict
 from prism.overlay.threading import UpdateCheckerOneShotThread
 
+logger = logging.getLogger(__name__)
+
 if TYPE_CHECKING:  # pragma: nocover
+    from pynput import keyboard
+
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay
     from prism.overlay.output.overlay.utils import ColumnKey
 
@@ -68,6 +73,82 @@ class ToggleButton:  # pragma: nocover
             self.toggle()
 
 
+class KeybindSelector(ToggleButton):  # pragma: no coverage
+    DISABLED_CONFIG = {
+        "bg": "gray",
+        "activebackground": "light gray",
+    }
+    ENABLED_CONFIG = {
+        "text": "<Select>",
+        "bg": "lawn green",
+    }
+
+    def __init__(self, frame: tk.Frame, overlay: "StatsOverlay[ColumnKey]") -> None:
+        super().__init__(frame=frame, toggle_callback=self._on_toggle)
+
+        self.overlay = overlay
+
+        self.key: Key = SpecialKey(name="tab", vk=None)
+
+        self.listener: "keyboard.Listener | None" = None
+
+        self.normalize = create_pynput_normalizer()
+
+        # Default to not selecting
+        self.set(False)
+
+    @property
+    def selecting(self) -> bool:
+        """Return True if the user is currently selecting a new keybind"""
+        # In this context, self.enabled is True when the user is selecting a new hotkey
+        return self.enabled
+
+    def _on_toggle(self, selecting: bool) -> None:
+        # Start/stop the listener
+        if selecting:
+            self._start_listener()
+        else:
+            self._stop_listener()
+            # Display the current selection when not selecting
+            self.button.config(text=self.key.name)
+
+    def _on_press(self, pynput_key: "keyboard.Key | keyboard.KeyCode | None") -> None:
+        """Handle keypresses"""
+        # Fast path out in case the listener is active when we don't need it
+        if self.overlay.current_page != "settings" or not self.selecting:
+            return
+
+        key = self.normalize(pynput_key)
+
+        if key is not None:
+            self.key = key
+            # Got a key -> no longer selecting
+            self.toggle()
+
+    def _start_listener(self) -> None:
+        try:
+            from pynput import keyboard
+        except Exception:
+            logger.exception("Failed to import pynput")
+
+            # Failed to import -> set not selecting and disable the button
+            self.set(False)
+            self.button.config(state=tk.DISABLED)
+        else:
+            if self.listener is None:
+                self.listener = keyboard.Listener(on_press=self._on_press)
+                self.listener.start()
+
+    def _stop_listener(self) -> None:
+        if self.listener is not None:
+            self.listener.stop()
+            self.listener = None
+
+    def set_key(self, key: Key) -> None:
+        self.key = key
+        self._on_toggle(self.selecting)
+
+
 class GeneralSettingSection:  # pragma: nocover
     def __init__(self, parent: "SettingsPage") -> None:
         self.frame = parent.make_section("General Settings")
@@ -85,22 +166,41 @@ class GeneralSettingSection:  # pragma: nocover
 
         tk.Label(
             self.frame,
-            text="Check for overlay version updates: ",
+            text="Show on tab hotkey: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
         ).grid(row=2, column=0, sticky=tk.E)
-        self.check_for_updates_toggle = ToggleButton(self.frame)
-        self.check_for_updates_toggle.button.grid(row=2, column=1)
+        self.show_on_tab_keybind_selector = KeybindSelector(
+            self.frame, overlay=parent.overlay
+        )
+        self.show_on_tab_keybind_selector.button.grid(row=2, column=1)
 
-    def set(self, show_on_tab: bool, check_for_updates: bool) -> None:
+        tk.Label(
+            self.frame,
+            text="Check for overlay version updates: ",
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        ).grid(row=3, column=0, sticky=tk.E)
+        self.check_for_updates_toggle = ToggleButton(self.frame)
+        self.check_for_updates_toggle.button.grid(row=3, column=1)
+
+    def set(
+        self, show_on_tab: bool, show_on_tab_keybind: Key, check_for_updates: bool
+    ) -> None:
         """Set the state of this section"""
         self.show_on_tab_toggle.set(show_on_tab)
+        self.show_on_tab_keybind_selector.set_key(show_on_tab_keybind)
         self.check_for_updates_toggle.set(check_for_updates)
 
-    def get(self) -> tuple[bool, bool]:
+    def get(self) -> tuple[bool, Key, bool]:
         """Get the state of this section"""
-        return self.show_on_tab_toggle.enabled, self.check_for_updates_toggle.enabled
+        return (
+            self.show_on_tab_toggle.enabled,
+            self.show_on_tab_keybind_selector.key,
+            self.check_for_updates_toggle.enabled,
+        )
 
 
 class HypixelSection:  # pragma: nocover
@@ -330,6 +430,7 @@ class SettingsPage:  # pragma: nocover
         with settings.mutex:
             self.general_settings_section.set(
                 show_on_tab=settings.show_on_tab,
+                show_on_tab_keybind=settings.show_on_tab_keybind,
                 check_for_updates=settings.check_for_updates,
             )
             self.hypixel_section.set(settings.hypixel_api_key)
@@ -344,6 +445,7 @@ class SettingsPage:  # pragma: nocover
         self.overlay.window.set_alpha_hundredths(
             self.controller.settings.alpha_hundredths
         )
+        self.general_settings_section.show_on_tab_keybind_selector.set(False)
 
     def on_save(self) -> None:
         """Handle the user saving their settings"""
@@ -351,9 +453,11 @@ class SettingsPage:  # pragma: nocover
         old_check_for_updates = self.controller.settings.check_for_updates
         old_show_on_tab_keybind = self.controller.settings.show_on_tab_keybind
 
-        show_on_tab, check_for_updates = self.general_settings_section.get()
-        # TODO: Add section to edit keybind
-        show_on_tab_keybind = self.controller.settings.show_on_tab_keybind.to_dict()
+        (
+            show_on_tab,
+            show_on_tab_keybind,
+            check_for_updates,
+        ) = self.general_settings_section.get()
 
         hypixel_api_key = self.hypixel_section.get()
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
@@ -374,7 +478,7 @@ class SettingsPage:  # pragma: nocover
             use_antisniper_api=use_antisniper_api,
             known_nicks=known_nicks,
             show_on_tab=show_on_tab,
-            show_on_tab_keybind=show_on_tab_keybind,
+            show_on_tab_keybind=show_on_tab_keybind.to_dict(),
             check_for_updates=check_for_updates,
             disable_overrideredirect=disable_overrideredirect,
             hide_with_alpha=hide_with_alpha,
@@ -389,7 +493,7 @@ class SettingsPage:  # pragma: nocover
         #       update_settings is called somewhere else to also setup/stop the listener
         if self.controller.settings.show_on_tab:
             self.overlay.setup_tab_listener(
-                restart=construct_key(show_on_tab_keybind) != old_show_on_tab_keybind
+                restart=show_on_tab_keybind != old_show_on_tab_keybind
             )
         else:
             self.overlay.stop_tab_listener()
