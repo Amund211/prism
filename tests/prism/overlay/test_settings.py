@@ -31,6 +31,7 @@ def make_settings_dict(
     antisniper_api_key: str | None = None,
     use_antisniper_api: bool | None = None,
     known_nicks: dict[str, NickValue] | None = None,
+    autoselect_logfile: bool | None = None,
     show_on_tab: bool | None = None,
     show_on_tab_keybind: KeyDict | None = None,
     check_for_updates: bool | None = None,
@@ -46,6 +47,7 @@ def make_settings_dict(
         ),
         "use_antisniper_api": value_or_default(use_antisniper_api, default=False),
         "known_nicks": value_or_default(known_nicks, default={}),
+        "autoselect_logfile": value_or_default(autoselect_logfile, default=True),
         "show_on_tab": value_or_default(show_on_tab, default=True),
         # mypy thinks this is {"name": str}, when it really is just KeyDict
         "show_on_tab_keybind": value_or_default(  # type: ignore [typeddict-item]
@@ -74,6 +76,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             antisniper_api_key="my-key",
             use_antisniper_api=True,
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
+            autoselect_logfile=True,
             show_on_tab=True,
             show_on_tab_keybind=AlphanumericKey(name="a", char="a"),
             check_for_updates=True,
@@ -87,6 +90,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "antisniper_api_key": "my-key",
             "use_antisniper_api": True,
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
+            "autoselect_logfile": True,
             "show_on_tab": True,
             "show_on_tab_keybind": AlphanumericKeyDict(
                 name="a", char="a", key_type="alphanumeric"
@@ -103,6 +107,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             antisniper_api_key="my-other-key",
             use_antisniper_api=False,
             known_nicks={},
+            autoselect_logfile=False,
             show_on_tab=False,
             show_on_tab_keybind=SpecialKey(name="tab", vk=None),
             check_for_updates=False,
@@ -116,6 +121,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "antisniper_api_key": "my-other-key",
             "use_antisniper_api": False,
             "known_nicks": {},
+            "autoselect_logfile": False,
             "show_on_tab": False,
             "show_on_tab_keybind": SpecialKeyDict(
                 name="tab", vk=None, key_type="special"
@@ -222,6 +228,7 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
             "antisniper_api_key": "my-key",
             "use_antisniper_api": False,
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
+            "autoselect_logfile": False,
             "show_on_tab": False,
             "show_on_tab_keybind": SpecialKeyDict(
                 name="somekey", vk=123456, key_type="special"
@@ -235,6 +242,7 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
             hypixel_api_key="my-key",
             antisniper_api_key="my-key",
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
+            autoselect_logfile=False,
             show_on_tab=False,
             show_on_tab_keybind=SpecialKeyDict(
                 name="somekey", vk=123456, key_type="special"
@@ -400,6 +408,12 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
                 "name": "name",
             }
         },
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # Invalid data for autoselect_logfile
+        {"autoselect_logfile": "yes"},
         make_settings_dict(),
         True,
     ),

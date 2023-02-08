@@ -35,6 +35,7 @@ class SettingsDict(TypedDict):
     antisniper_api_key: str | None
     use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
+    autoselect_logfile: bool
     show_on_tab: bool
     show_on_tab_keybind: KeyDict
     check_for_updates: bool
@@ -55,6 +56,7 @@ class Settings:
     antisniper_api_key: str | None
     use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
+    autoselect_logfile: bool
     show_on_tab: bool
     show_on_tab_keybind: Key
     check_for_updates: bool
@@ -75,6 +77,7 @@ class Settings:
             antisniper_api_key=source["antisniper_api_key"],
             use_antisniper_api=source["use_antisniper_api"],
             known_nicks=source["known_nicks"],
+            autoselect_logfile=source["autoselect_logfile"],
             show_on_tab=source["show_on_tab"],
             show_on_tab_keybind=construct_key(source["show_on_tab_keybind"]),
             check_for_updates=source["check_for_updates"],
@@ -90,6 +93,7 @@ class Settings:
             "antisniper_api_key": self.antisniper_api_key,
             "use_antisniper_api": self.use_antisniper_api,
             "known_nicks": self.known_nicks,
+            "autoselect_logfile": self.autoselect_logfile,
             "show_on_tab": self.show_on_tab,
             "show_on_tab_keybind": self.show_on_tab_keybind.to_dict(),
             "check_for_updates": self.check_for_updates,
@@ -104,6 +108,7 @@ class Settings:
         self.antisniper_api_key = new_settings["antisniper_api_key"]
         self.use_antisniper_api = new_settings["use_antisniper_api"]
         self.known_nicks = new_settings["known_nicks"]
+        self.autoselect_logfile = new_settings["autoselect_logfile"]
         self.show_on_tab = new_settings["show_on_tab"]
         self.show_on_tab_keybind = construct_key(new_settings["show_on_tab_keybind"])
         self.check_for_updates = new_settings["check_for_updates"]
@@ -185,6 +190,11 @@ def fill_missing_settings(
 
         known_nicks[key] = NickValue(uuid=uuid, comment=comment)
 
+    autoselect_logfile = incomplete_settings.get("autoselect_logfile", None)
+    if not isinstance(autoselect_logfile, bool):
+        settings_updated = True
+        autoselect_logfile = True
+
     show_on_tab = incomplete_settings.get("show_on_tab", None)
     if not isinstance(show_on_tab, bool):
         settings_updated = True
@@ -230,6 +240,7 @@ def fill_missing_settings(
         "antisniper_api_key": antisniper_api_key,
         "use_antisniper_api": use_antisniper_api,
         "known_nicks": known_nicks,
+        "autoselect_logfile": autoselect_logfile,
         "show_on_tab": show_on_tab,
         "show_on_tab_keybind": show_on_tab_keybind,
         "check_for_updates": check_for_updates,

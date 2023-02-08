@@ -216,16 +216,17 @@ class LogfilePrompt:  # pragma: nocover
         self,
         known_logfiles: tuple[str, ...],
         last_used: str | None,
+        autoselect_logfile: bool,
         remove_logfile: Callable[[str], None],
         choose_logfile: Callable[[str], None],
     ):
         self.known_logfiles = known_logfiles
         self.last_used = last_used
+        self.autoselect_logfile = autoselect_logfile
         self.remove_logfile = remove_logfile
         self.choose_logfile = choose_logfile
 
         self.logfile_recent = tuple(False for logfile in self.known_logfiles)
-        self.update_logfile_order()
 
         self.task_id: str | None = None
 
@@ -241,6 +242,16 @@ class LogfilePrompt:  # pragma: nocover
             self.root, text="Recently used versions are highlighted in green", fg="red"
         ).pack()
 
+        if self.autoselect_logfile and self.last_used is not None:
+            tk.Label(
+                self.root,
+                text=(
+                    "Your last used version will be "
+                    "automatically selected when available"
+                ),
+                fg="green",
+            ).pack()
+
         tk.Button(
             self.root, text="Select a new file", command=self.make_selection
         ).pack()
@@ -252,8 +263,6 @@ class LogfilePrompt:  # pragma: nocover
             "w", self.update_buttonstate
         )  # type: ignore [no-untyped-call]
         self.rows: list[tuple[tk.Frame, tk.Button, tk.Label, tk.Radiobutton]] = []
-
-        self.update_logfile_list()
 
         self.submit_button = tk.Button(
             self.root,
@@ -276,6 +285,10 @@ class LogfilePrompt:  # pragma: nocover
         self.root.protocol("WM_DELETE_WINDOW", on_close)
 
         self.root.update_idletasks()
+
+        self.update_logfile_order()
+
+        self.update_logfile_list()
 
     def update_buttonstate(self, *args: Any, **kwargs: Any) -> None:
         self.submit_button.configure(
@@ -351,30 +364,32 @@ class LogfilePrompt:  # pragma: nocover
         self.cancel_polling()
         self.root.destroy()
 
-    def update_logfile_order(self) -> bool:
+    def update_logfile_order(self) -> tuple[bool, bool]:
         """Update the order of the logfiles"""
-        now = time.time()
-        logfile_timestamps = tuple(map(get_timestamp, self.known_logfiles))
+        logfile_ages = tuple(
+            time.time() - get_timestamp(file) for file in self.known_logfiles
+        )
 
         # Keep most recent logfiles at the top
-        timestamped_logfiles: list[tuple[float, str]] = sorted(
-            zip(logfile_timestamps, self.known_logfiles),
-            key=lambda item: item[0],
-            reverse=True,
+        aged_logfiles: list[tuple[float, str]] = sorted(
+            zip(logfile_ages, self.known_logfiles), key=lambda item: item[0]
         )
 
-        sorted_logfile_timestamps = tuple(
-            timestamp for timestamp, logfile in timestamped_logfiles
-        )
-        new_known_logfiles = tuple(
-            logfile for timestamp, logfile in timestamped_logfiles
-        )
+        new_known_logfiles = tuple(logfile for timestamp, logfile in aged_logfiles)
 
         # True if logfile was updated recently
         new_logfile_recent = tuple(
-            now - timestamp < self.RECENT_TIMEOUT
-            for timestamp in sorted_logfile_timestamps
+            age < self.RECENT_TIMEOUT for age, logfile in aged_logfiles
         )
+
+        if (
+            self.autoselect_logfile
+            and sum(new_logfile_recent) == 1  # One recent logfile
+            and aged_logfiles[0][0] < 5  # It's really recent
+            and new_known_logfiles[0] == self.last_used  # It's our last used logfile
+            and self.last_used == self.selected_logfile_var.get()  # It's selected
+        ):
+            return False, True
 
         if (
             new_known_logfiles != self.known_logfiles
@@ -383,15 +398,19 @@ class LogfilePrompt:  # pragma: nocover
             self.known_logfiles = new_known_logfiles
             self.logfile_recent = new_logfile_recent
 
-            return True
+            return True, False
 
-        return False
+        return False, False
 
     def poll_logfile_timestamps(self) -> None:
-        order_updated = self.update_logfile_order()
-        if order_updated:
-            self.update_logfile_list()
-        self.task_id = self.root.after(1000, self.poll_logfile_timestamps)
+        order_updated, autoselect = self.update_logfile_order()
+        if autoselect:
+            logger.info(f"Autoselected logfile {self.last_used}")
+            self.submit_selection(self.last_used)
+        else:
+            if order_updated:
+                self.update_logfile_list()
+            self.task_id = self.root.after(1000, self.poll_logfile_timestamps)
 
     def cancel_polling(self) -> None:
         if self.task_id is not None:
@@ -469,7 +488,9 @@ def get_timestamp(path_str: str) -> float:
         return stat.st_mtime
 
 
-def prompt_for_logfile_path(logfile_cache_path: Path) -> Path:  # pragma: nocover
+def prompt_for_logfile_path(
+    logfile_cache_path: Path, autoselect_logfile: bool
+) -> Path:  # pragma: nocover
     """Wait for the user to type /api new, or add an api key to their settings file"""
 
     try:
@@ -529,6 +550,7 @@ def prompt_for_logfile_path(logfile_cache_path: Path) -> Path:  # pragma: nocove
     logfile_prompt = LogfilePrompt(
         known_logfiles=known_logfiles,
         last_used=last_used,
+        autoselect_logfile=autoselect_logfile,
         remove_logfile=remove_logfile,
         choose_logfile=choose_logfile,
     )

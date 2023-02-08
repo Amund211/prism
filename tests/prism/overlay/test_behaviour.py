@@ -469,6 +469,7 @@ def test_update_settings_everything_changed() -> None:
             "AmazingNick": {"uuid": "1", "comment": "my friend :)"},
             "SuperbNick": {"uuid": "42", "comment": "42"},
         },
+        autoselect_logfile=False,
         show_on_tab=False,
         show_on_tab_keybind=AlphanumericKeyDict(
             name="a", char="a", key_type="alphanumeric"
