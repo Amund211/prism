@@ -149,7 +149,7 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
             key = normalize(pynput_key)
             if key == tab_hotkey:
                 self.tab_pressed = False
-                if not self.should_show:
+                if not self.should_show and self.current_page == "main":
                     self.window.hide()
 
         self.tab_pressed = False
