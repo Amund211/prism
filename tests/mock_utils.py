@@ -189,8 +189,8 @@ class MockedFile:
 class MockedPath:
     """Class mocking a path, returning a MockedFile"""
 
-    # Pass isinstance checks
-    __class__ = PurePath  # type: ignore
+    # Hack to pass isinstance checks
+    __class__ = PurePath  # type: ignore [assignment]
 
     def __init__(
         self, file: MockedFile, amt_opens: int, mocked_time: MockedTime

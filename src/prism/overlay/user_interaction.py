@@ -248,7 +248,9 @@ class LogfilePrompt:  # pragma: nocover
         self.logfile_list_frame = tk.Frame()
         self.logfile_list_frame.pack()
         self.selected_logfile_var = tk.StringVar(value=self.last_used)
-        self.selected_logfile_var.trace("w", self.update_buttonstate)  # type: ignore
+        self.selected_logfile_var.trace(
+            "w", self.update_buttonstate
+        )  # type: ignore [no-untyped-call]
         self.rows: list[tuple[tk.Frame, tk.Button, tk.Label, tk.Radiobutton]] = []
 
         self.update_logfile_list()

@@ -199,8 +199,10 @@ def setup(
     # Only allow one instance of the overlay
     global SINGLEINSTANCE_LOCK
     try:
-        SINGLEINSTANCE_LOCK = singleton.SingleInstance(  # type: ignore
-            lockfile=str(CACHE_DIR / "prism_overlay.lock")
+        SINGLEINSTANCE_LOCK = (
+            singleton.SingleInstance(  # type: ignore [no-untyped-call]
+                lockfile=str(CACHE_DIR / "prism_overlay.lock")
+            )
         )
     except singleton.SingleInstanceException:
         # TODO: Shown the running overlay window
