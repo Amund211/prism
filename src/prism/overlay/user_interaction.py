@@ -340,6 +340,7 @@ class LogfilePrompt:  # pragma: nocover
                 variable=self.selected_logfile_var,
                 value=logfile,
                 bg="green" if recent else "grey",
+                tristatevalue="<invalid_path>",
             )
             radiobutton.pack(side=tk.RIGHT)
             self.rows.append((frame, button, label, radiobutton))
