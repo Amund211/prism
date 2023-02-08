@@ -5,6 +5,7 @@ from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Generic, Literal
 
 from prism.overlay.controller import OverlayController
+from prism.overlay.keybinds import SpecialKey, create_pynput_normalizer
 from prism.overlay.output.overlay.main_content import MainContent
 from prism.overlay.output.overlay.overlay_window import OverlayWindow
 from prism.overlay.output.overlay.set_nickname_page import SetNicknamePage
@@ -86,9 +87,13 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
         # Update geometry and stuff, if necessary
         self.window.root.update_idletasks()
 
-    def setup_tab_listener(self) -> None:
+    def setup_tab_listener(self, *, restart: bool = False) -> None:
         if self.listener is not None:
-            return
+            if restart:
+                # Stop the current listener and start a new one
+                self.stop_tab_listener()
+            else:
+                return
 
         try:
             import pynput
@@ -103,15 +108,46 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
 
             return
 
-        KeyType = pynput.keyboard.Key | pynput.keyboard.KeyCode | None
+        normalize = create_pynput_normalizer()
 
-        def on_press(key: KeyType) -> None:
-            if key == pynput.keyboard.Key.tab:
+        # The user-defined hotkey for show on tab
+        tab_hotkey = self.controller.settings.show_on_tab_keybind
+
+        if (
+            isinstance(tab_hotkey, SpecialKey)
+            and tab_hotkey.name == "tab"
+            and tab_hotkey.vk is None
+        ):
+            # This is a special sentinel value used to specify <tab>
+            tab_hotkey_with_vk = normalize(pynput.keyboard.Key.tab)
+            if tab_hotkey_with_vk is None:
+                logger.warning("Failed to get vk for <tab>")
+                return
+
+            tab_hotkey = tab_hotkey_with_vk
+
+            with self.controller.settings.mutex:
+                self.controller.settings.show_on_tab_keybind = tab_hotkey
+                self.controller.settings.flush_to_disk()
+                logger.info(f"Updated settings with vk for <tab> {tab_hotkey}")
+
+        PynputKeyType = pynput.keyboard.Key | pynput.keyboard.KeyCode | None
+
+        def on_press(pynput_key: PynputKeyType) -> None:
+            if self.tab_pressed:
+                return
+
+            key = normalize(pynput_key)
+            if key == tab_hotkey:
                 self.tab_pressed = True
                 self.window.show()
 
-        def on_release(key: KeyType) -> None:
-            if key == pynput.keyboard.Key.tab:
+        def on_release(pynput_key: PynputKeyType) -> None:
+            if not self.tab_pressed:
+                return
+
+            key = normalize(pynput_key)
+            if key == tab_hotkey:
                 self.tab_pressed = False
                 if not self.should_show:
                     self.window.hide()

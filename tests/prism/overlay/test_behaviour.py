@@ -16,6 +16,7 @@ from prism.overlay.behaviour import (
     update_settings,
 )
 from prism.overlay.controller import OverlayController
+from prism.overlay.keybinds import AlphanumericKeyDict
 from prism.overlay.player import MISSING_WINSTREAKS
 from prism.overlay.settings import NickValue, Settings, SettingsDict
 from tests.prism.overlay import test_get_stats
@@ -469,6 +470,9 @@ def test_update_settings_everything_changed() -> None:
             "SuperbNick": {"uuid": "42", "comment": "42"},
         },
         show_on_tab=False,
+        show_on_tab_keybind=AlphanumericKeyDict(
+            name="a", char="a", key_type="alphanumeric"
+        ),
         check_for_updates=False,
         disable_overrideredirect=True,
         hide_with_alpha=True,

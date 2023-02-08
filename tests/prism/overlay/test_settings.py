@@ -4,6 +4,13 @@ from typing import Any
 
 import pytest
 
+from prism.overlay.keybinds import (
+    AlphanumericKey,
+    AlphanumericKeyDict,
+    KeyDict,
+    SpecialKey,
+    SpecialKeyDict,
+)
 from prism.overlay.settings import (
     PLACEHOLDER_API_KEY,
     NickValue,
@@ -12,7 +19,6 @@ from prism.overlay.settings import (
     ValueType,
     fill_missing_settings,
     get_settings,
-    read_settings,
     value_or_default,
 )
 from tests.prism.overlay.utils import make_settings
@@ -26,6 +32,7 @@ def make_settings_dict(
     use_antisniper_api: bool | None = None,
     known_nicks: dict[str, NickValue] | None = None,
     show_on_tab: bool | None = None,
+    show_on_tab_keybind: KeyDict | None = None,
     check_for_updates: bool | None = None,
     disable_overrideredirect: bool | None = None,
     hide_with_alpha: bool | None = None,
@@ -40,6 +47,11 @@ def make_settings_dict(
         "use_antisniper_api": value_or_default(use_antisniper_api, default=False),
         "known_nicks": value_or_default(known_nicks, default={}),
         "show_on_tab": value_or_default(show_on_tab, default=True),
+        # mypy thinks this is {"name": str}, when it really is just KeyDict
+        "show_on_tab_keybind": value_or_default(  # type: ignore [typeddict-item]
+            show_on_tab_keybind,
+            default=SpecialKeyDict(name="tab", vk=None, key_type="special"),
+        ),
         "check_for_updates": value_or_default(check_for_updates, default=True),
         "disable_overrideredirect": value_or_default(
             disable_overrideredirect, default=False
@@ -63,6 +75,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             use_antisniper_api=True,
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             show_on_tab=True,
+            show_on_tab_keybind=AlphanumericKey(name="a", char="a"),
             check_for_updates=True,
             disable_overrideredirect=True,
             hide_with_alpha=True,
@@ -75,6 +88,9 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "use_antisniper_api": True,
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             "show_on_tab": True,
+            "show_on_tab_keybind": AlphanumericKeyDict(
+                name="a", char="a", key_type="alphanumeric"
+            ),
             "check_for_updates": True,
             "disable_overrideredirect": True,
             "hide_with_alpha": True,
@@ -88,6 +104,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             use_antisniper_api=False,
             known_nicks={},
             show_on_tab=False,
+            show_on_tab_keybind=SpecialKey(name="tab", vk=None),
             check_for_updates=False,
             disable_overrideredirect=False,
             hide_with_alpha=False,
@@ -100,6 +117,9 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "use_antisniper_api": False,
             "known_nicks": {},
             "show_on_tab": False,
+            "show_on_tab_keybind": SpecialKeyDict(
+                name="tab", vk=None, key_type="special"
+            ),
             "check_for_updates": False,
             "disable_overrideredirect": False,
             "hide_with_alpha": False,
@@ -159,16 +179,17 @@ def test_read_and_write_settings(
     settings.path = tmp_path / "settings.toml"
     settings.flush_to_disk()
 
-    read_settings_dict = read_settings(settings.path)
-
-    assert read_settings_dict == settings_dict
+    # NOTE: We can no longer do this since we store some null values in the dictionary
+    #       which just get stored as missing keys in the toml
+    # read_settings_dict = read_settings(settings.path)
+    # assert read_settings_dict == settings_dict
 
     assert get_settings(settings.path, get_api_key) == settings
 
     # Assert that get_settings doesn't fail when file doesn't exist
     empty_path = tmp_path / "settings2.toml"
-    assert get_settings(empty_path, get_api_key) == Settings(
-        path=empty_path, **make_settings_dict()
+    assert get_settings(empty_path, get_api_key) == Settings.from_dict(
+        source=make_settings_dict(), path=empty_path
     )
 
 
@@ -200,6 +221,9 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
             "use_antisniper_api": False,
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             "show_on_tab": False,
+            "show_on_tab_keybind": SpecialKeyDict(
+                name="somekey", vk=123456, key_type="special"
+            ),
             "check_for_updates": False,
             "disable_overrideredirect": True,
             "hide_with_alpha": True,
@@ -210,6 +234,9 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
             antisniper_api_key="my-key",
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             show_on_tab=False,
+            show_on_tab_keybind=SpecialKeyDict(
+                name="somekey", vk=123456, key_type="special"
+            ),
             check_for_updates=False,
             disable_overrideredirect=True,
             hide_with_alpha=True,
@@ -335,6 +362,43 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
             "alpha_hundredths": 5,
         },
         make_settings_dict(hypixel_api_key="my-key"),
+        True,
+    ),
+    (
+        # Invalid type for keybind
+        {"show_on_tab_keybind": 5},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # Invalid key type for keybind
+        {
+            "show_on_tab_keybind": {
+                "key_type": "invalid",
+                "char": "a",
+                "vk": 1,
+                "name": "name",
+            }
+        },
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # Invalid data for special key
+        {"show_on_tab_keybind": {"key_type": "special", "vk": "badvk", "name": "name"}},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # Invalid data for alphanumeric key
+        {
+            "show_on_tab_keybind": {
+                "key_type": "alphanumeric",
+                "char": 1234,
+                "name": "name",
+            }
+        },
+        make_settings_dict(),
         True,
     ),
 )

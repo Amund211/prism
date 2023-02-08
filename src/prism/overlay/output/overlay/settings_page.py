@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 from prism.overlay.behaviour import update_settings
 from prism.overlay.controller import OverlayController
+from prism.overlay.keybinds import construct_key
 from prism.overlay.settings import NickValue, Settings, SettingsDict
 from prism.overlay.threading import UpdateCheckerOneShotThread
 
@@ -348,8 +349,12 @@ class SettingsPage:  # pragma: nocover
         """Handle the user saving their settings"""
         # Store old value to check for rising edge
         old_check_for_updates = self.controller.settings.check_for_updates
+        old_show_on_tab_keybind = self.controller.settings.show_on_tab_keybind
 
         show_on_tab, check_for_updates = self.general_settings_section.get()
+        # TODO: Add section to edit keybind
+        show_on_tab_keybind = self.controller.settings.show_on_tab_keybind.to_dict()
+
         hypixel_api_key = self.hypixel_section.get()
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
         known_nicks: dict[str, NickValue] = {}
@@ -369,6 +374,7 @@ class SettingsPage:  # pragma: nocover
             use_antisniper_api=use_antisniper_api,
             known_nicks=known_nicks,
             show_on_tab=show_on_tab,
+            show_on_tab_keybind=show_on_tab_keybind,
             check_for_updates=check_for_updates,
             disable_overrideredirect=disable_overrideredirect,
             hide_with_alpha=hide_with_alpha,
@@ -382,7 +388,9 @@ class SettingsPage:  # pragma: nocover
         # NOTE: This happens outside of update_settings, so care must be taken if
         #       update_settings is called somewhere else to also setup/stop the listener
         if self.controller.settings.show_on_tab:
-            self.overlay.setup_tab_listener()
+            self.overlay.setup_tab_listener(
+                restart=construct_key(show_on_tab_keybind) != old_show_on_tab_keybind
+            )
         else:
             self.overlay.stop_tab_listener()
 

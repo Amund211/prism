@@ -7,6 +7,14 @@ from typing import Type, TypedDict, TypeVar
 
 import toml
 
+from prism.overlay.keybinds import (
+    Key,
+    KeyDict,
+    SpecialKeyDict,
+    construct_key,
+    construct_key_dict,
+)
+
 PLACEHOLDER_API_KEY = "insert-your-key-here"
 
 
@@ -28,6 +36,7 @@ class SettingsDict(TypedDict):
     use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
     show_on_tab: bool
+    show_on_tab_keybind: KeyDict
     check_for_updates: bool
     disable_overrideredirect: bool
     hide_with_alpha: bool
@@ -47,6 +56,7 @@ class Settings:
     use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
     show_on_tab: bool
+    show_on_tab_keybind: Key
     check_for_updates: bool
     disable_overrideredirect: bool
     hide_with_alpha: bool
@@ -66,6 +76,7 @@ class Settings:
             use_antisniper_api=source["use_antisniper_api"],
             known_nicks=source["known_nicks"],
             show_on_tab=source["show_on_tab"],
+            show_on_tab_keybind=construct_key(source["show_on_tab_keybind"]),
             check_for_updates=source["check_for_updates"],
             disable_overrideredirect=source["disable_overrideredirect"],
             hide_with_alpha=source["hide_with_alpha"],
@@ -80,6 +91,7 @@ class Settings:
             "use_antisniper_api": self.use_antisniper_api,
             "known_nicks": self.known_nicks,
             "show_on_tab": self.show_on_tab,
+            "show_on_tab_keybind": self.show_on_tab_keybind.to_dict(),
             "check_for_updates": self.check_for_updates,
             "disable_overrideredirect": self.disable_overrideredirect,
             "hide_with_alpha": self.hide_with_alpha,
@@ -93,6 +105,7 @@ class Settings:
         self.use_antisniper_api = new_settings["use_antisniper_api"]
         self.known_nicks = new_settings["known_nicks"]
         self.show_on_tab = new_settings["show_on_tab"]
+        self.show_on_tab_keybind = construct_key(new_settings["show_on_tab_keybind"])
         self.check_for_updates = new_settings["check_for_updates"]
         self.disable_overrideredirect = new_settings["disable_overrideredirect"]
         self.hide_with_alpha = new_settings["hide_with_alpha"]
@@ -177,6 +190,21 @@ def fill_missing_settings(
         settings_updated = True
         show_on_tab = True
 
+    show_on_tab_keybind: KeyDict
+    sot_keybind_source = incomplete_settings.get("show_on_tab_keybind", None)
+    if (
+        # Invalid type
+        not isinstance(sot_keybind_source, dict)
+        # Failed parsing to key dict
+        or (sot_keybind_key_dict := construct_key_dict(sot_keybind_source)) is None
+    ):
+        settings_updated = True
+        # Special key with name tab and vk None is replaced with the real representation
+        # for tab in the listener
+        show_on_tab_keybind = SpecialKeyDict(name="tab", vk=None, key_type="special")
+    else:
+        show_on_tab_keybind = sot_keybind_key_dict
+
     check_for_updates = incomplete_settings.get("check_for_updates", None)
     if not isinstance(check_for_updates, bool):
         settings_updated = True
@@ -203,6 +231,7 @@ def fill_missing_settings(
         "use_antisniper_api": use_antisniper_api,
         "known_nicks": known_nicks,
         "show_on_tab": show_on_tab,
+        "show_on_tab_keybind": show_on_tab_keybind,
         "check_for_updates": check_for_updates,
         "disable_overrideredirect": disable_overrideredirect,
         "hide_with_alpha": hide_with_alpha,
