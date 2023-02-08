@@ -502,7 +502,7 @@ def prompt_for_logfile_path(logfile_cache_path: Path) -> Path:  # pragma: nocove
 
     last_used = logfile_cache.get("last_used", None)
     if not isinstance(last_used, str) or last_used not in known_logfiles:
-        last_used = known_logfiles[0] if len(known_logfiles) > 0 else None
+        last_used = None
         logfile_cache_changed = True
 
     logfile_cache = {"known_logfiles": known_logfiles, "last_used": last_used}
