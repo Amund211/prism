@@ -85,9 +85,9 @@ class LazyString:
         return self.func()
 
 
-def create_pynput_normalizer() -> Callable[
-    ["keyboard.Key | keyboard.KeyCode | None"], Key | None
-]:  # pragma: no coverage
+def create_pynput_normalizer() -> (
+    Callable[["keyboard.Key | keyboard.KeyCode | None"], Key | None]
+):  # pragma: no coverage
     """Create a function normalizing pynput Keys/KeyCodes to our internal Key"""
     try:
         from pynput import keyboard

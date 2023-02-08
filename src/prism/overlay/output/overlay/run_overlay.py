@@ -31,9 +31,9 @@ def run_overlay(
         update_available_event=update_available_event, controller=controller
     ).start()
 
-    def get_new_data() -> tuple[
-        bool, list[InfoCellValue], list[OverlayRowData[PropertyName]] | None
-    ]:
+    def get_new_data() -> (
+        tuple[bool, list[InfoCellValue], list[OverlayRowData[PropertyName]] | None]
+    ):
         new_players = fetch_state_updates()
         new_rows = (
             [player_to_row(player) for player in new_players]

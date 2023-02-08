@@ -210,7 +210,6 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
 
         # Show or hide the window if the desired state is different from the stored
         if show != self.should_show:
-
             if show:
                 self.should_show = show
                 self.window.show()
