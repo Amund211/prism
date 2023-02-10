@@ -40,12 +40,15 @@ def toggle_fullscreen() -> None:
     """Toggle minecraft maximized/borderless fullscreen"""
     hwnd = win32gui.FindWindow("LWJGL", None)
 
-    if hwnd is None:
-        logger.error("Could not find Minecraft window.")
+    if hwnd is None or hwnd <= 0:
+        logger.error("Could not find Minecraft window. {hwnd=}")
         return
 
     style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE)
     is_maximized = bool(style & win32con.WS_BORDER)
 
-    # If we are mazimized we want borderless next
-    set_windowstate(hwnd, is_maximized)
+    try:
+        # If we are mazimized we want borderless next
+        set_windowstate(hwnd, is_maximized)
+    except Exception:
+        logger.exception("Failed setting minecraft windowstate {hwnd=} {is_maximized=}")
