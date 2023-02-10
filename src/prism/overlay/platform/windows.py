@@ -40,7 +40,7 @@ def toggle_fullscreen() -> None:
     """Toggle minecraft maximized/borderless fullscreen"""
     hwnd = win32gui.FindWindow("LWJGL", None)
 
-    if hwnd is None or hwnd <= 0:
+    if hwnd is None or hwnd == 0:
         logger.error(f"Could not find Minecraft window. {hwnd=}")
         return
 
