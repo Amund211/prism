@@ -71,7 +71,7 @@ def div_string(dividend: float, divisor: float, decimals: int = 2) -> str:
     if isinstance(quotient, int):
         return str(quotient)
 
-    return truncate_float(quotient, 2)
+    return truncate_float(quotient, decimals)
 
 
 def print_bedwars_stats(playerdata: dict[str, Any], nick: str | None = None) -> None:
