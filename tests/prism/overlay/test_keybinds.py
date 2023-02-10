@@ -1,4 +1,5 @@
-from typing import Any
+import os
+from typing import Any, cast
 
 import pytest
 
@@ -12,7 +13,12 @@ from prism.overlay.keybinds import (
     SpecialKeyDict,
     construct_key,
     construct_key_dict,
+    create_pynput_normalizer,
 )
+
+os.environ["PYNPUT_BACKEND"] = "dummy"
+
+from pynput import keyboard  # noqa: E402
 
 key_to_key_dict_cases: tuple[tuple[Key, KeyDict], ...] = (
     (
@@ -88,3 +94,37 @@ dict_to_key_dict_cases = (
 @pytest.mark.parametrize("source_dict, key_dict", dict_to_key_dict_cases)
 def test_construct_key_dict(source_dict: dict[Any, Any], key_dict: KeyDict) -> None:
     assert construct_key_dict(source_dict) == key_dict
+
+
+pynput_normalizer = create_pynput_normalizer()
+
+
+def create_pynput_key(name: str, vk: int) -> keyboard.Key:
+    """Create a an object masquerading as a keyboard.Key instance"""
+
+    class MockedKey:
+        """Hack to pass isinstance checks"""
+
+        __class__ = keyboard.Key  # type: ignore [assignment]
+
+        def __init__(self, name: str, vk: int) -> None:
+            self.name = name
+            self.value = keyboard.KeyCode.from_vk(vk)
+
+    return cast(keyboard.Key, MockedKey(name, vk))
+
+
+@pytest.mark.parametrize(
+    "pynput_key, key",
+    (
+        (keyboard.KeyCode.from_char("a"), AlphanumericKey(name="a", char="a")),
+        (keyboard.KeyCode.from_char("A"), AlphanumericKey(name="a", char="a")),
+        (create_pynput_key("tab", 123), SpecialKey(name="tab", vk=123)),
+        (keyboard.KeyCode.from_vk(1234), SpecialKey(name="<1234>", vk=1234)),
+        (None, None),
+    ),
+)
+def test_pynput_normalizer(
+    pynput_key: keyboard.Key | keyboard.KeyCode | None, key: Key | None
+) -> None:
+    assert pynput_normalizer(pynput_key) == key

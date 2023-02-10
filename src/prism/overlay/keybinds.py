@@ -87,11 +87,11 @@ class LazyString:
 
 def create_pynput_normalizer() -> (
     Callable[["keyboard.Key | keyboard.KeyCode | None"], Key | None]
-):  # pragma: no coverage
+):
     """Create a function normalizing pynput Keys/KeyCodes to our internal Key"""
     try:
         from pynput import keyboard
-    except Exception:
+    except Exception:  # pragma: no coverage
         logger.exception("Failed to import pynput")
 
         def normalize_to_unknown(key: Any) -> Key | None:
@@ -116,7 +116,8 @@ def create_pynput_normalizer() -> (
         if keycode.vk is not None:
             return SpecialKey(name=f"<{keycode.vk}>", vk=keycode.vk)
 
-        logger.warning(
+        # vk == None should be unreachable
+        logger.warning(  # pragma: no coverage
             "Could not normalize KeyCode %s, %s",
             keycode,
             LazyString(
@@ -127,6 +128,6 @@ def create_pynput_normalizer() -> (
             ),
         )
 
-        return None
+        return None  # pragma: no coverage
 
     return normalize
