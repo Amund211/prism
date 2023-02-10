@@ -26,6 +26,11 @@ The overlay can be extended with the [Antisniper API](https://antisniper.net) (n
 
 ## Known issues
 
+### Show on tab doesn't work when holding shift
+Some keys change when holding down shift (e.g. Shift+1 -> !).
+Using these keys as the show on tab keybind may cause the overlay to not show when holding shift.
+Letter keys (a, b, c, ...) and most special keys (Tab, Shift, Caps Lock, ...) should work regardless.
+
 ### Overlay window is invisible on Linux
 This issue happens to me when I start the overlay and then fullscreen Minecraft.
 I am able to fix it by simply switching workspaces away from and then back to Minecraft.
