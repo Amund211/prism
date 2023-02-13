@@ -1,9 +1,17 @@
-# Prism
+<h1 align="center">Prism</h1>
+
+<div align="center">
+
+[![Latest version](https://img.shields.io/github/v/release/Amund211/prism)][latest-release-link]
+[![Date of last release](https://img.shields.io/github/release-date/Amund211/prism)][latest-release-link]
+[![Total downloads](https://img.shields.io/github/downloads/Amund211/prism/total?label=downloads%20%28all%20versions%29)][latest-release-link]
+
+</div>
 
 ![Using Prism](./images/in_queue.png)
 
 ## Download
-[CLICK HERE](../../releases/latest) to go to the latest release.
+[CLICK HERE][latest-release-link] to go to the latest release.
 Your browser might tell you that the file is potentially dangerous, but you can safely ignore this warning.
 See the section on [safety](#safety) for more info.
 
@@ -88,3 +96,5 @@ pip3 install -r requirements/<os>.txt -r requirements/<os>-dev.txt -e .  # For r
 python3 prism_overlay.py
 ```
 Run `python3 prism_overlay.py --help` to get info about the accepted command line arguments.
+
+[latest-release-link]: https://github.com/Amund211/prism/releases/latest
