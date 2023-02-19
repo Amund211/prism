@@ -8,9 +8,7 @@
 
 </div>
 
-<picture>
-  <img alt="Using Prism in a Hypixel BedWars queue" src="./images/in_queue.png">
-</picture>
+![Using Prism](./images/in_queue.png)
 
 ## Download
 [CLICK HERE][latest-release-link] to go to the latest release.
