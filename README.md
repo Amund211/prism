@@ -8,7 +8,7 @@
 
 </div>
 
-![Using Prism](./images/in_queue.png)
+[![Using Prism](./images/in_queue.png)][latest-release-link]
 
 ## Download
 [CLICK HERE][latest-release-link] to go to the latest release.
