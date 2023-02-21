@@ -8,10 +8,26 @@
 
 </div>
 
+<div align="center">
+
+[![Download for Windows](./images/download_windows.png)][latest-windows-download-link]
+[![Download for Linux](./images/download_linux.png)][latest-linux-download-link]
+
+[^1] [^2]
+
+</div>
+
+
+[^1]: Windows and the Windows logo are registered trademarks of the Microsoft Corporation.
+[^2]: Linux is the registered trademark of Linus Torvalds in the U.S. and other countries. Tux is the copyright of Larry Ewing \<<lewing@isc.tamu.edu>\>.
+
+[latest-windows-download-link]: https://github.com/Amund211/prism/releases/download/v1.2.3/prism-v1.2.3-windows.exe
+[latest-linux-download-link]: https://github.com/Amund211/prism/releases/download/v1.2.3/prism-v1.2.3-linux
+
 [![Using Prism](./images/in_queue.png)][latest-release-link]
 
 ## Download
-[CLICK HERE][latest-release-link] to go to the latest release.
+Click one of the direct download buttons above, or [click here][latest-release-link] to go to the latest release.
 Your browser might tell you that the file is potentially dangerous, but you can safely ignore this warning.
 See the section on [safety](#safety) for more info.
 
