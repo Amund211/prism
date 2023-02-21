@@ -50,6 +50,8 @@ def process_event(controller: OverlayController, event: Event) -> bool:
         logger.info(
             f"Updating lobby players from who command: '{', '.join(event.usernames)}'"
         )
+        # TODO: This is the correct logic for when we do /who in queue, but not in game.
+        #       /who in game returns only the list of alive players.
         state.out_of_sync = False
         state.join_queue()
         state.set_lobby(event.usernames)
