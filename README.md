@@ -103,8 +103,8 @@ venv\Scripts\activate.ps1     # windows + powershell
 ### Install the dependencies
 ```bash
 # Run one of the following, replacing <os> with linux, mac or windows
-pip3 install -r requirements/<os>.txt .  # For just running the overlay
-pip3 install -r requirements/<os>.txt -r requirements/<os>-dev.txt -e .  # For running the overlay and doing development
+pip3 install . -r requirements/<os>.txt  # For just running the overlay
+pip3 install -e . -r requirements/<os>.txt -r requirements/<os>-dev.txt  # For running the overlay and doing development
 ```
 
 ### Run the overlay
