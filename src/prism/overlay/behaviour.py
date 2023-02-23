@@ -1,13 +1,10 @@
 import functools
 import logging
 import queue
-from typing import Iterable
 
 from prism.overlay.controller import OverlayController
 from prism.overlay.get_stats import get_bedwars_stats
-from prism.overlay.parsing import parse_logline
 from prism.overlay.player import MISSING_WINSTREAKS, KnownPlayer
-from prism.overlay.process_event import process_event
 from prism.overlay.settings import SettingsDict
 
 logger = logging.getLogger(__name__)
@@ -87,35 +84,6 @@ def set_hypixel_api_key(new_key: str, /, controller: OverlayController) -> None:
 
     # Clear the stats cache in case the old api key was invalid
     controller.player_cache.clear_cache()
-
-
-def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -> None:
-    """Process the state changes for each logline without outputting anything"""
-    logger.info("Fast forwarding state")
-    for line in loglines:
-        event = parse_logline(line)
-
-        if event is None:
-            continue
-
-        process_event(controller, event)
-    logger.info("Done fast forwarding state")
-
-
-def process_loglines(loglines: Iterable[str], controller: OverlayController) -> None:
-    """Update state and set the redraw event"""
-    for line in loglines:
-        event = parse_logline(line)
-
-        if event is None:
-            continue
-
-        with controller.state.mutex:
-            redraw = process_event(controller, event)
-
-        if redraw:
-            # Tell the main thread we need a redraw
-            controller.redraw_event.set()
 
 
 def should_redraw(

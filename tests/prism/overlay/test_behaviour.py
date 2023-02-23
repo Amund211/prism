@@ -1,15 +1,12 @@
 import queue
 import unittest.mock
-from collections.abc import Iterable
 from dataclasses import replace
 from typing import Any
 
 import pytest
 
 from prism.overlay.behaviour import (
-    fast_forward_state,
     get_stats_and_winstreak,
-    process_loglines,
     set_hypixel_api_key,
     set_nickname,
     should_redraw,
@@ -149,127 +146,6 @@ def test_process_event_set_api_key() -> None:
     controller.player_cache.clear_cache.assert_called()
 
 
-CHAT = "[Info: 2021-11-29 22:17:40.417869567: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] "  # noqa: E501
-INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.minecraft.client.Minecraft (Client thread) Info "  # noqa: E501
-
-
-@pytest.mark.parametrize(
-    "initial_controller, loglines, target_controller",
-    (
-        (
-            MockedController(state=create_state(own_username=None)),
-            (
-                f"{INFO}Setting user: Me",
-                f"{CHAT}Party Moderators: Player1 ● [MVP+] Player2 ● ",
-                f"{CHAT}Player1 has joined (1/16)!",
-                f"{CHAT}Player2 has joined (2/16)!",
-                f"{CHAT}Me has joined (3/16)!",
-                f"{CHAT}Someone has joined (4/16)!",
-                f"{CHAT}[MVP+] Player1: hows ur day?",
-            ),
-            MockedController(
-                state=create_state(
-                    own_username="Me",
-                    party_members={"Me", "Player1", "Player2"},
-                    lobby_players={"Me", "Player1", "Player2", "Someone"},
-                    in_queue=True,
-                )
-            ),
-        ),
-        (
-            # Excerpt from new multiver lunar logfile
-            MockedController(state=create_state(own_username=None)),
-            (
-                "[16:54:00] [Client thread/INFO]: Setting user: Player595",  # Strange
-                "[16:54:00] [Client thread/INFO]: (Session ID is token:0:Player595)",
-                "[16:54:12] [Client thread/INFO]: [LC Accounts] Loaded content for [YourIGN] Token IAT",  # noqa: E501
-                "[16:54:12] [Client thread/INFO]: [LC Accounts] Starting Refreshing YourIGN with -4241459972ms till expired (Valid: false).",  # noqa: E501
-                "[16:54:15] [Client thread/INFO]: [LC Accounts] Finishing Refreshing YourIGN (Valid: true).",  # noqa: E501
-                "[16:54:15] [Client thread/INFO]: [LC Accounts] Logging into account YourIGN ",  # noqa: E501
-                "[16:54:15] [Client thread/INFO]: [LC] Setting user: YourIGN",
-                "[16:54:15] [Client thread/INFO]: [LC Accounts] Able to login YourIGN",
-                "[16:54:17] [WebSocketConnectReadThread-73/INFO]: [LC Assets] Connection established as YourIGN",  # noqa: E501
-                "[16:54:59] [Client thread/INFO]: Connecting to mc.hypixel.net, 25565",
-                "[16:55:01] [Client thread/INFO]: [CHAT]                                      ",  # noqa: E501
-                "[16:55:01] [Client thread/INFO]: [CHAT]                          ",
-                "[16:55:01] [Client thread/INFO]: [CHAT] --------------  Guild: Message Of The Day  --------------",  # noqa: E501
-            ),
-            MockedController(state=create_state(own_username="YourIGN")),
-        ),
-        (
-            # Ensure game starts in lucky blocks
-            MockedController(
-                state=create_state(
-                    in_queue=True,
-                    own_username="1",
-                    lobby_players={
-                        "1",
-                        "2",
-                        "3",
-                        "4",
-                        "5",
-                        "6",
-                        "7",
-                        "8",
-                        "9",
-                        "10",
-                        "11",
-                        "12",
-                        "13",
-                        "14",
-                        "15",
-                    },
-                )
-            ),
-            (
-                "[16:12:39] [Client thread/INFO]: [CHAT] Player16 has joined (16/16)!",  # noqa: E501
-                "[16:12:40] [Client thread/INFO]: [CHAT] ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
-                "[16:12:40] [Client thread/INFO]: [CHAT]                        Bed Wars Lucky Blocks",  # noqa: E501
-                "[16:12:40] [Client thread/INFO]: [CHAT] ",
-                "[16:12:40] [Client thread/INFO]: [CHAT]     Collect Lucky Blocks from resource generators",  # noqa: E501
-                "[16:12:40] [Client thread/INFO]: [CHAT]        to receive random loot! Break them to reveal",  # noqa: E501
-                "[16:12:40] [Client thread/INFO]: [CHAT]                              their contents!",  # noqa: E501
-                "[16:12:40] [Client thread/INFO]: [CHAT] ",
-                "[16:12:40] [Client thread/INFO]: [CHAT] ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
-            ),
-            MockedController(
-                state=create_state(
-                    in_queue=False,
-                    own_username="1",
-                    lobby_players={
-                        "1",
-                        "2",
-                        "3",
-                        "4",
-                        "5",
-                        "6",
-                        "7",
-                        "8",
-                        "9",
-                        "10",
-                        "11",
-                        "12",
-                        "13",
-                        "14",
-                        "15",
-                        "Player16",
-                    },
-                )
-            ),
-        ),
-    ),
-)
-def test_fast_forward_state(
-    initial_controller: OverlayController,
-    loglines: Iterable[str],
-    target_controller: OverlayController,
-) -> None:
-    fast_forward_state(initial_controller, loglines)
-
-    new_controller = initial_controller
-    assert new_controller == target_controller
-
-
 @pytest.mark.parametrize(
     "redraw_event_set, completed_stats, result",
     (
@@ -299,35 +175,6 @@ def test_should_redraw(
         completed_stats_queue.put_nowait(username)
 
     assert should_redraw(controller, completed_stats_queue) == result
-
-
-@pytest.mark.parametrize(
-    "loglines, resulting_controller, redraw_event_set",
-    (
-        (
-            (f"{CHAT}[MVP+] Player1: hows ur day?",),
-            MockedController(),
-            False,
-        ),
-        (
-            (f"{CHAT}Player1 has joined (1/16)!",),
-            MockedController(
-                state=create_state(lobby_players={"Player1"}, in_queue=True)
-            ),
-            True,
-        ),
-    ),
-)
-def test_process_loglines(
-    loglines: tuple[str],
-    resulting_controller: OverlayController,
-    redraw_event_set: bool,
-) -> None:
-    controller = MockedController()
-
-    process_loglines(loglines, controller)
-    assert controller == resulting_controller
-    assert controller.redraw_event.is_set() == redraw_event_set
 
 
 @pytest.mark.parametrize("winstreak_api_enabled", (True, False))

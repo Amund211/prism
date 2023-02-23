@@ -4,13 +4,10 @@ import threading
 import time
 from collections.abc import Callable, Iterable
 
-from prism.overlay.behaviour import (
-    get_stats_and_winstreak,
-    process_loglines,
-    should_redraw,
-)
+from prism.overlay.behaviour import get_stats_and_winstreak, should_redraw
 from prism.overlay.controller import OverlayController
 from prism.overlay.player import Player, sort_players
+from prism.overlay.process_event import process_loglines
 from prism.update_checker import update_available
 
 logger = logging.getLogger(__name__)

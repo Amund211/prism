@@ -18,7 +18,6 @@ from appdirs import AppDirs
 from tendo import singleton
 
 from prism import VERSION_STRING
-from prism.overlay.behaviour import fast_forward_state
 from prism.overlay.commandline import get_options
 from prism.overlay.controller import OverlayController, RealOverlayController
 from prism.overlay.file_utils import watch_file_with_reopen
@@ -26,6 +25,7 @@ from prism.overlay.nick_database import NickDatabase
 from prism.overlay.output.overlay.run_overlay import run_overlay
 from prism.overlay.output.printing import print_stats_table
 from prism.overlay.player import Player
+from prism.overlay.process_event import fast_forward_state
 from prism.overlay.settings import PLACEHOLDER_API_KEY, Settings, get_settings
 from prism.overlay.state import OverlayState
 from prism.overlay.threading import prepare_overlay

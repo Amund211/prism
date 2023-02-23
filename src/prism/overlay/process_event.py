@@ -1,15 +1,16 @@
 import logging
+from typing import Iterable
 
+from prism.overlay.behaviour import set_hypixel_api_key, set_nickname
 from prism.overlay.controller import OverlayController
 from prism.overlay.events import Event, EventType
+from prism.overlay.parsing import parse_logline
 
 logger = logging.getLogger(__name__)
 
 
 def process_event(controller: OverlayController, event: Event) -> bool:
     """Update the state based on the event, return True if a redraw is desired"""
-    from prism.overlay.behaviour import set_hypixel_api_key, set_nickname
-
     state = controller.state
 
     if event.event_type is EventType.INITIALIZE_AS:
@@ -195,3 +196,32 @@ def process_event(controller: OverlayController, event: Event) -> bool:
         logger.info(f"Setting nick from whisper command {event.nick}={event.username}")
         set_nickname(username=event.username, nick=event.nick, controller=controller)
         return True
+
+
+def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -> None:
+    """Process the state changes for each logline without outputting anything"""
+    logger.info("Fast forwarding state")
+    for line in loglines:
+        event = parse_logline(line)
+
+        if event is None:
+            continue
+
+        process_event(controller, event)
+    logger.info("Done fast forwarding state")
+
+
+def process_loglines(loglines: Iterable[str], controller: OverlayController) -> None:
+    """Update state and set the redraw event"""
+    for line in loglines:
+        event = parse_logline(line)
+
+        if event is None:
+            continue
+
+        with controller.state.mutex:
+            redraw = process_event(controller, event)
+
+        if redraw:
+            # Tell the main thread we need a redraw
+            controller.redraw_event.set()
