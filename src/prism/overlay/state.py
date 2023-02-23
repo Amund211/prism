@@ -12,6 +12,7 @@ class OverlayState:
 
     party_members: set[str]
     lobby_players: set[str]
+    alive_players: set[str]
     out_of_sync: bool = False
     in_queue: bool = False
     own_username: str | None = None
@@ -68,6 +69,7 @@ class OverlayState:
     def add_to_lobby(self, username: str) -> None:
         """Add the given username to the lobby"""
         self.lobby_players.add(username)
+        self.alive_players.add(username)
 
     def remove_from_lobby(self, username: str) -> None:
         """Remove the given username from the lobby"""
@@ -75,16 +77,31 @@ class OverlayState:
             logger.info(
                 f"Tried removing {username} from the lobby, but they were not in it!"
             )
-            return
+        else:
+            self.lobby_players.remove(username)
 
-        self.lobby_players.remove(username)
+        if username not in self.alive_players:
+            logger.info(
+                f"Tried removing {username} from the lobby, but they were not alive!"
+            )
+        else:
+            self.alive_players.remove(username)
 
     def set_lobby(self, new_lobby: Iterable[str]) -> None:
         """Set the lobby to be the given lobby"""
         self.lobby_players = set(new_lobby)
+        self.alive_players = self.lobby_players.copy()
 
     def clear_lobby(self) -> None:
         """Remove all players from the lobby"""
         # Don't include yourself in the new lobby.
         # Your name usually appears as a join message anyway, and you may be nicked
         self.set_lobby([])
+
+    def mark_dead(self, username: str) -> None:
+        """Mark the given username as dead"""
+        if username not in self.alive_players:
+            logger.info(f"Tried marking {username} as dead, but they were not alive!")
+            return
+
+        self.alive_players.remove(username)

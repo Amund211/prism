@@ -4,6 +4,7 @@ import pytest
 
 from prism.overlay.controller import OverlayController
 from prism.overlay.events import (
+    BedwarsFinalKillEvent,
     EndBedwarsGameEvent,
     Event,
     InitializeAsEvent,
@@ -158,6 +159,43 @@ process_event_test_cases_base: tuple[
         False,  # No need to redraw the screen - only hide the overlay
     ),
     (
+        "final kill",
+        MockedController(
+            state=create_state(
+                lobby_players={"Player1", "Player2"},
+                alive_players={"Player1", "Player2"},
+            )
+        ),
+        BedwarsFinalKillEvent(
+            dead_player="Player1",
+            raw_message="Player1 was killed by Player2. FINAL KILL!",
+        ),
+        MockedController(
+            state=create_state(
+                lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
+            )
+        ),
+        True,
+    ),
+    (
+        "final kill on already dead player",
+        MockedController(
+            state=create_state(
+                lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
+            )
+        ),
+        BedwarsFinalKillEvent(
+            dead_player="Player1",
+            raw_message="Player1 was killed by Player2. FINAL KILL!",
+        ),
+        MockedController(
+            state=create_state(
+                lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
+            )
+        ),
+        True,  # TODO: Could be False
+    ),
+    (
         "end bedwars game",
         MockedController(
             state=create_state(lobby_players={"a", "bunch", "of", "players"})
@@ -211,6 +249,32 @@ process_event_test_cases_base: tuple[
         LobbyLeaveEvent("RandomPlayer"),
         MockedController(state=create_state(lobby_players={"Player1", "Player2"})),
         # TODO: False,
+        True,
+    ),
+    (
+        "final kill on player not in lobby",
+        MockedController(state=create_state(lobby_players={"Player2"})),
+        BedwarsFinalKillEvent(
+            dead_player="Player1",
+            raw_message="Player1 was killed by Player2. FINAL KILL!",
+        ),
+        MockedController(state=create_state(lobby_players={"Player2"})),
+        True,  # TODO: Could be False
+    ),
+    (
+        "final kill on player not in lobby, but alive somehow",
+        MockedController(
+            state=create_state(
+                lobby_players={"Player2"}, alive_players={"Player1", "Player2"}
+            )
+        ),
+        BedwarsFinalKillEvent(
+            dead_player="Player1",
+            raw_message="Player1 was killed by Player2. FINAL KILL!",
+        ),
+        MockedController(
+            state=create_state(lobby_players={"Player2"}, alive_players={"Player2"})
+        ),
         True,
     ),
     (

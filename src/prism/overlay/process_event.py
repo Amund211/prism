@@ -169,6 +169,13 @@ def process_event(controller: OverlayController, event: Event) -> bool:
 
         return False
 
+    if event.event_type is EventType.BEDWARS_FINAL_KILL:
+        # Bedwars final kill
+        logger.info(f"Final kill: {event.dead_player} - {event.raw_message}")
+        state.mark_dead(event.dead_player)
+
+        return True
+
     if event.event_type is EventType.END_BEDWARS_GAME:
         # Bedwars game has ended
         logger.info("Bedwars game ended")

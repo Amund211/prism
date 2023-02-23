@@ -4,6 +4,7 @@ from collections.abc import Sequence
 from typing import Final
 
 from prism.overlay.events import (
+    BedwarsFinalKillEvent,
     ChatEvent,
     ClientEvent,
     EndBedwarsGameEvent,
@@ -188,6 +189,27 @@ def parse_chat_message(message: str) -> ChatEvent | None:
     if message.startswith("Bed Wars"):
         logger.debug("Parsing passed. Starting game")
         return StartBedwarsGameEvent()
+
+    if message.endswith("FINAL KILL!") and message.count(" ") > 1:
+        logger.debug("Processing potential final kill")
+
+        dead_player = message.split(" ")[0]
+
+        # https://help.minecraft.net/hc/en-us/articles/4408950195341-Minecraft-Java-Edition-Username-VS-Gamertag-FAQ#h_01GE5JWW0210X02JZN2FP9CREC  # noqa: E501
+        # Must have 3-16 characters
+        # NOTE: We allow [1, 20] because of some illegal accounts existing
+        if len(dead_player) < 1 or len(dead_player) > 20:
+            logger.debug(f"Playername {dead_player} has invalid length")
+            return None
+
+        # Legal characters are _ and 0-9a-zA-Z
+        no_underscores = dead_player.replace("_", "")
+        if len(no_underscores) > 0 and not no_underscores.isalnum():
+            logger.debug(f"Illegal characters in name {dead_player}")
+            return None
+
+        logger.debug("Parsing passed. Final kill")
+        return BedwarsFinalKillEvent(dead_player=dead_player, raw_message=message)
 
     if message.startswith("1st Killer "):
         # Info [CHAT]                     1st Killer - [MVP+] Player1 - 7

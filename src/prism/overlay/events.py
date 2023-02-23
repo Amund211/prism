@@ -33,6 +33,7 @@ class EventType(Enum):
 
     # Games
     START_BEDWARS_GAME = auto()  # A bedwars game has started
+    BEDWARS_FINAL_KILL = auto()  # A final kill in bedwars
     END_BEDWARS_GAME = auto()  # A bedwars game has ended
 
     # New API key
@@ -120,6 +121,13 @@ class StartBedwarsGameEvent:
 
 
 @dataclass
+class BedwarsFinalKillEvent:
+    dead_player: str
+    raw_message: str
+    event_type: Literal[EventType.BEDWARS_FINAL_KILL] = EventType.BEDWARS_FINAL_KILL
+
+
+@dataclass
 class EndBedwarsGameEvent:
     event_type: Literal[EventType.END_BEDWARS_GAME] = EventType.END_BEDWARS_GAME
 
@@ -159,6 +167,7 @@ ChatEvent = Union[
     PartyListIncomingEvent,
     PartyMembershipListEvent,
     StartBedwarsGameEvent,
+    BedwarsFinalKillEvent,
     EndBedwarsGameEvent,
     NewAPIKeyEvent,
     WhisperCommandSetNickEvent,

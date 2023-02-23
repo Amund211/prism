@@ -80,6 +80,7 @@ def make_player(
 def create_state(
     party_members: set[str] = set(),
     lobby_players: set[str] = set(),
+    alive_players: set[str] | None = None,
     out_of_sync: bool = False,
     in_queue: bool = False,
     own_username: str | None = OWN_USERNAME,
@@ -88,6 +89,9 @@ def create_state(
     return OverlayState(
         party_members=party_members | yourself,
         lobby_players=lobby_players,
+        alive_players=alive_players
+        if alive_players is not None
+        else lobby_players.copy(),
         out_of_sync=out_of_sync,
         in_queue=in_queue,
         own_username=own_username,

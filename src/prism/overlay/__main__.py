@@ -141,7 +141,7 @@ def watch_from_logfile(
 
     assert overlay or console, "Need at least one output"
 
-    state = OverlayState(lobby_players=set(), party_members=set())
+    state = OverlayState(lobby_players=set(), alive_players=set(), party_members=set())
 
     controller = RealOverlayController(
         state=state,
@@ -281,7 +281,7 @@ def test() -> None:  # pragma: nocover
     nick_database = NickDatabase.from_disk([], default_database=default_database)
 
     # watch_from_logfile
-    state = OverlayState(lobby_players=set(), party_members=set())
+    state = OverlayState(lobby_players=set(), alive_players=set(), party_members=set())
 
     controller = RealOverlayController(
         state=state,

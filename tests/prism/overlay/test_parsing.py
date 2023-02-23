@@ -5,6 +5,7 @@ from collections.abc import Sequence
 import pytest
 
 from prism.overlay.events import (
+    BedwarsFinalKillEvent,
     EndBedwarsGameEvent,
     Event,
     InitializeAsEvent,
@@ -268,6 +269,12 @@ UNEVENTFUL_LOGLINES = (
     "[15:03:53] [Client thread/INFO]: [CHAT] [MVP+] MaliciousPlayer: (Client thread) Info [CHAT] ONLINE: Player1",
     "[Info: 2021-11-29 22:30:40.455294561: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] MaliciousPlayer: [15:03:32] [ForkJoinPool.commonPool-worker-3/INFO]: [LC] Setting user: MaliciousPlayer",
     "[Info: 2021-11-29 22:30:40.455294561: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] MaliciousPlayer: [15:03:53] [Client thread/INFO]: [CHAT] ONLINE: Player1",
+    # Attempts to inject final kill messages
+    "[00:03:18] [Client thread/INFO]: [CHAT] §9Party §8> §b[MVP§3+§b] Player1§f: Player2 was spooked off the map by Player3. FINAL KILL!",
+    "[20:44:24] [Client thread/INFO]: [CHAT] §4[651✫] §b[MVP§3+§b] Player1§f: Player2 was spooked off the map by Player3. FINAL KILL!",
+    # Invalid IGN in final kill message
+    "[00:01:04] [Client thread/INFO]: [CHAT] Invalid-name!!! was killed by Player2. FINAL KILL!",
+    "[00:01:04] [Client thread/INFO]: [CHAT] ThisNameIsWayTooLongForMinecraft was killed by Player2. FINAL KILL!",
 )
 
 
@@ -418,6 +425,55 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     (
         "[16:12:21] [Client thread/INFO]: [CHAT]                                   Bed Wars ",
         StartBedwarsGameEvent(),
+    ),
+    (
+        "[00:01:04] [Client thread/INFO]: [CHAT] Player1 was spooked off the map by Player2. FINAL KILL!",
+        BedwarsFinalKillEvent(
+            dead_player="Player1",
+            raw_message="Player1 was spooked off the map by Player2. FINAL KILL!",
+        ),
+    ),
+    (
+        "[00:01:04] [Client thread/INFO]: [CHAT] Player1 was spooked by Player2. FINAL KILL!",
+        BedwarsFinalKillEvent(
+            dead_player="Player1",
+            raw_message="Player1 was spooked by Player2. FINAL KILL!",
+        ),
+    ),
+    (
+        "[00:01:04] [Client thread/INFO]: [CHAT] Player1 was Player2's final #43,642. FINAL KILL!",
+        BedwarsFinalKillEvent(
+            dead_player="Player1",
+            raw_message="Player1 was Player2's final #43,642. FINAL KILL!",
+        ),
+    ),
+    (
+        "[00:01:04] [Client thread/INFO]: [CHAT] Player1 was turned to dust by Player2. FINAL KILL!",
+        BedwarsFinalKillEvent(
+            dead_player="Player1",
+            raw_message="Player1 was turned to dust by Player2. FINAL KILL!",
+        ),
+    ),
+    (
+        "[00:01:04] [Client thread/INFO]: [CHAT] Player1 was killed by Player2. FINAL KILL!",
+        BedwarsFinalKillEvent(
+            dead_player="Player1",
+            raw_message="Player1 was killed by Player2. FINAL KILL!",
+        ),
+    ),
+    (
+        "[00:01:04] [Client thread/INFO]: [CHAT] _Under_scores_ was locked outside during a snow storm by Player2. FINAL KILL!",
+        BedwarsFinalKillEvent(
+            dead_player="_Under_scores_",
+            raw_message="_Under_scores_ was locked outside during a snow storm by Player2. FINAL KILL!",
+        ),
+    ),
+    (
+        "[00:01:04] [Client thread/INFO]: [CHAT] _____ was pushed into a snowbank by Player2. FINAL KILL!",
+        BedwarsFinalKillEvent(
+            dead_player="_____",
+            raw_message="_____ was pushed into a snowbank by Player2. FINAL KILL!",
+        ),
     ),
     (
         "[Info: 2022-01-08 17:27:38.908122114: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]                     1st Killer - [MVP+] Player1 - 8",
