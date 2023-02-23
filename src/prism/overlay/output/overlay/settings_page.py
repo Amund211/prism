@@ -219,6 +219,32 @@ class GeneralSettingSection:  # pragma: nocover
         )
 
 
+class DisplaySection:  # pragma: nocover
+    def __init__(self, parent: "SettingsPage") -> None:
+        self.frame = parent.make_section(
+            "Display Settings", "Customize the stats table display"
+        )
+        self.frame.columnconfigure(0, weight=0)
+
+        tk.Label(
+            self.frame,
+            text="Hide dead players: ",
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        ).grid(row=0, column=0, sticky=tk.E)
+        self.hide_dead_players_toggle = ToggleButton(self.frame)
+        self.hide_dead_players_toggle.button.grid(row=0, column=1)
+
+    def set(self, hide_dead_players: bool) -> None:
+        """Set the state of this section"""
+        self.hide_dead_players_toggle.set(hide_dead_players)
+
+    def get(self) -> bool:
+        """Get the state of this section"""
+        return self.hide_dead_players_toggle.enabled
+
+
 class HypixelSection:  # pragma: nocover
     def __init__(self, parent: "SettingsPage") -> None:
         self.frame = parent.make_section("Hypixel")
@@ -410,6 +436,7 @@ class SettingsPage:  # pragma: nocover
         self.settings_frame.pack(side=tk.TOP, fill=tk.BOTH)
 
         self.general_settings_section = GeneralSettingSection(self)
+        self.display_section = DisplaySection(self)
         self.hypixel_section = HypixelSection(self)
         self.antisniper_section = AntisniperSection(self)
         self.graphics_section = GraphicsSection(self)
@@ -450,6 +477,7 @@ class SettingsPage:  # pragma: nocover
                 show_on_tab_keybind=settings.show_on_tab_keybind,
                 check_for_updates=settings.check_for_updates,
             )
+            self.display_section.set(settings.hide_dead_players)
             self.hypixel_section.set(settings.hypixel_api_key)
 
             self.antisniper_section.set(
@@ -477,6 +505,7 @@ class SettingsPage:  # pragma: nocover
             check_for_updates,
         ) = self.general_settings_section.get()
 
+        hide_dead_players = self.display_section.get()
         hypixel_api_key = self.hypixel_section.get()
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
         known_nicks: dict[str, NickValue] = {}
@@ -499,6 +528,7 @@ class SettingsPage:  # pragma: nocover
             show_on_tab=show_on_tab,
             show_on_tab_keybind=show_on_tab_keybind.to_dict(),
             check_for_updates=check_for_updates,
+            hide_dead_players=hide_dead_players,
             disable_overrideredirect=disable_overrideredirect,
             hide_with_alpha=hide_with_alpha,
             alpha_hundredths=alpha_hundredths,

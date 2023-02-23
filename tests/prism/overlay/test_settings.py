@@ -35,6 +35,7 @@ def make_settings_dict(
     show_on_tab: bool | None = None,
     show_on_tab_keybind: KeyDict | None = None,
     check_for_updates: bool | None = None,
+    hide_dead_players: bool | None = None,
     disable_overrideredirect: bool | None = None,
     hide_with_alpha: bool | None = None,
     alpha_hundredths: int | None = None,
@@ -55,6 +56,7 @@ def make_settings_dict(
             default=SpecialKeyDict(name="tab", vk=None, key_type="special"),
         ),
         "check_for_updates": value_or_default(check_for_updates, default=True),
+        "hide_dead_players": value_or_default(hide_dead_players, default=True),
         "disable_overrideredirect": value_or_default(
             disable_overrideredirect, default=False
         ),
@@ -80,6 +82,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             show_on_tab=True,
             show_on_tab_keybind=AlphanumericKey(name="a", char="a"),
             check_for_updates=True,
+            hide_dead_players=True,
             disable_overrideredirect=True,
             hide_with_alpha=True,
             alpha_hundredths=80,
@@ -96,6 +99,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
                 name="a", char="a", key_type="alphanumeric"
             ),
             "check_for_updates": True,
+            "hide_dead_players": True,
             "disable_overrideredirect": True,
             "hide_with_alpha": True,
             "alpha_hundredths": 80,
@@ -111,6 +115,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             show_on_tab=False,
             show_on_tab_keybind=SpecialKey(name="tab", vk=None),
             check_for_updates=False,
+            hide_dead_players=False,
             disable_overrideredirect=False,
             hide_with_alpha=False,
             alpha_hundredths=30,
@@ -127,6 +132,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
                 name="tab", vk=None, key_type="special"
             ),
             "check_for_updates": False,
+            "hide_dead_players": False,
             "disable_overrideredirect": False,
             "hide_with_alpha": False,
             "alpha_hundredths": 30,
@@ -234,6 +240,7 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
                 name="somekey", vk=123456, key_type="special"
             ),
             "check_for_updates": False,
+            "hide_dead_players": False,
             "disable_overrideredirect": True,
             "hide_with_alpha": True,
             "alpha_hundredths": 40,
@@ -248,6 +255,7 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
                 name="somekey", vk=123456, key_type="special"
             ),
             check_for_updates=False,
+            hide_dead_players=False,
             disable_overrideredirect=True,
             hide_with_alpha=True,
             alpha_hundredths=40,

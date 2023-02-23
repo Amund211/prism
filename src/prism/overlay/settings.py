@@ -39,6 +39,7 @@ class SettingsDict(TypedDict):
     show_on_tab: bool
     show_on_tab_keybind: KeyDict
     check_for_updates: bool
+    hide_dead_players: bool
     disable_overrideredirect: bool
     hide_with_alpha: bool
     alpha_hundredths: int
@@ -60,6 +61,7 @@ class Settings:
     show_on_tab: bool
     show_on_tab_keybind: Key
     check_for_updates: bool
+    hide_dead_players: bool
     disable_overrideredirect: bool
     hide_with_alpha: bool
     alpha_hundredths: int
@@ -81,6 +83,7 @@ class Settings:
             show_on_tab=source["show_on_tab"],
             show_on_tab_keybind=construct_key(source["show_on_tab_keybind"]),
             check_for_updates=source["check_for_updates"],
+            hide_dead_players=source["hide_dead_players"],
             disable_overrideredirect=source["disable_overrideredirect"],
             hide_with_alpha=source["hide_with_alpha"],
             alpha_hundredths=source["alpha_hundredths"],
@@ -97,6 +100,7 @@ class Settings:
             "show_on_tab": self.show_on_tab,
             "show_on_tab_keybind": self.show_on_tab_keybind.to_dict(),
             "check_for_updates": self.check_for_updates,
+            "hide_dead_players": self.hide_dead_players,
             "disable_overrideredirect": self.disable_overrideredirect,
             "hide_with_alpha": self.hide_with_alpha,
             "alpha_hundredths": self.alpha_hundredths,
@@ -112,6 +116,7 @@ class Settings:
         self.show_on_tab = new_settings["show_on_tab"]
         self.show_on_tab_keybind = construct_key(new_settings["show_on_tab_keybind"])
         self.check_for_updates = new_settings["check_for_updates"]
+        self.hide_dead_players = new_settings["hide_dead_players"]
         self.disable_overrideredirect = new_settings["disable_overrideredirect"]
         self.hide_with_alpha = new_settings["hide_with_alpha"]
         self.alpha_hundredths = new_settings["alpha_hundredths"]
@@ -220,6 +225,11 @@ def fill_missing_settings(
         settings_updated = True
         check_for_updates = True
 
+    hide_dead_players = incomplete_settings.get("hide_dead_players", None)
+    if not isinstance(hide_dead_players, bool):
+        settings_updated = True
+        hide_dead_players = True
+
     disable_overrideredirect = incomplete_settings.get("disable_overrideredirect", None)
     if not isinstance(disable_overrideredirect, bool):
         settings_updated = True
@@ -244,6 +254,7 @@ def fill_missing_settings(
         "show_on_tab": show_on_tab,
         "show_on_tab_keybind": show_on_tab_keybind,
         "check_for_updates": check_for_updates,
+        "hide_dead_players": hide_dead_players,
         "disable_overrideredirect": disable_overrideredirect,
         "hide_with_alpha": hide_with_alpha,
         "alpha_hundredths": alpha_hundredths,

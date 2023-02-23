@@ -264,6 +264,7 @@ def test() -> None:  # pragma: nocover
             f"{CHAT}edater has joined (6/16)!",  # denicked by api
             f"{CHAT}AmazingNickThatDoesntExist has joined (7/16)!",  # Nicked teammate
             # f"{CHAT}Protect your bed and destroy the enemy beds.",  # game start
+            f"{CHAT}Hypixel was killed by You. FINAL KILL!",
             # f"{CHAT}               Bed Wars ",  # game end
             # f"{CHAT}1st Killer - [MVP+] Player1",  # game end
         ]

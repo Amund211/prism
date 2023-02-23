@@ -159,10 +159,14 @@ def prepare_overlay(
         players: list[Player] = []
 
         with controller.state.mutex:
-            lobby_players = controller.state.lobby_players.copy()
+            displayed_players = (
+                controller.state.alive_players.copy()
+                if controller.settings.hide_dead_players
+                else controller.state.lobby_players.copy()
+            )
             party_members = controller.state.party_members.copy()
 
-        for player in lobby_players:
+        for player in displayed_players:
             cached_stats = controller.player_cache.get_cached_player(player)
             if cached_stats is None:
                 # No query made for this player yet
