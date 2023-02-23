@@ -13,6 +13,11 @@ class PlayerCache:
     def __init__(self) -> None:
         # Entries cached for 2mins, so they hopefully expire before the next queue
         self._cache = TTLCache[str, Player](maxsize=512, ttl=120)
+
+        # Optional long term cache accessed with kwarg long_term=True
+        # Can be used to prevent refetching during a game (while stats don't change)
+        self._long_term_cache = TTLCache[str, Player](maxsize=512, ttl=60 * 60)
+
         self._mutex = threading.Lock()
 
     def set_player_pending(self, username: str) -> PendingPlayer:
@@ -23,7 +28,7 @@ class PlayerCache:
             if username in self._cache:
                 logger.error(f"Player {username} set to pending, but already exists")
 
-            self._cache[username] = pending_player
+            self._cache[username] = self._long_term_cache[username] = pending_player
 
         return pending_player
 
@@ -31,11 +36,17 @@ class PlayerCache:
         self, username: str, player: KnownPlayer | NickedPlayer
     ) -> None:
         with self._mutex:
-            self._cache[username] = player
+            self._cache[username] = self._long_term_cache[username] = player
 
-    def get_cached_player(self, username: str) -> Player | None:
+    def get_cached_player(
+        self, username: str, *, long_term: bool = False
+    ) -> Player | None:
         with self._mutex:
-            return self._cache.get(username, None)
+            return (
+                self._cache.get(username, None)
+                if not long_term
+                else self._long_term_cache.get(username, None)
+            )
 
     def update_cached_player(
         self, username: str, update: Callable[[KnownPlayer], KnownPlayer]
@@ -44,7 +55,7 @@ class PlayerCache:
         with self._mutex:
             player = self._cache.get(username, None)
             if isinstance(player, KnownPlayer):
-                self._cache[username] = update(player)
+                self._cache[username] = self._long_term_cache[username] = update(player)
             else:
                 logger.warning(f"Player {username} not found during update")
 
@@ -52,8 +63,10 @@ class PlayerCache:
         """Clear the cache entry for `username`"""
         with self._mutex:
             self._cache.pop(username, None)
+            self._long_term_cache.pop(username, None)
 
     def clear_cache(self) -> None:
         """Clear the entire player cache"""
         with self._mutex:
             self._cache.clear()
+            self._long_term_cache.clear()

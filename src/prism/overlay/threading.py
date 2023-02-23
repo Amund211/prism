@@ -167,7 +167,12 @@ def prepare_overlay(
             party_members = controller.state.party_members.copy()
 
         for player in displayed_players:
-            cached_stats = controller.player_cache.get_cached_player(player)
+            # Use the short term cache in queue to refresh stats between games
+            # When we are not in queue (in game) use the long term cache, as we don't
+            # want to refetch all the stats when someone gets final killed
+            cached_stats = controller.player_cache.get_cached_player(
+                player, long_term=not controller.state.in_queue
+            )
             if cached_stats is None:
                 # No query made for this player yet
                 # Start a query and note that a query has been started
