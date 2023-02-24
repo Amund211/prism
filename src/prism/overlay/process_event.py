@@ -1,7 +1,11 @@
 import logging
 from typing import Iterable
 
-from prism.overlay.behaviour import set_hypixel_api_key, set_nickname
+from prism.overlay.behaviour import (
+    autodenick_teammate,
+    set_hypixel_api_key,
+    set_nickname,
+)
 from prism.overlay.controller import OverlayController
 from prism.overlay.events import Event, EventType
 from prism.overlay.parsing import parse_logline
@@ -171,6 +175,8 @@ def process_event(controller: OverlayController, event: Event) -> bool:
         # Bedwars game has started
         logger.info("Bedwars game starting")
         state.leave_queue()
+        # Try to denick a teammate
+        autodenick_teammate(controller)
 
         return False
 

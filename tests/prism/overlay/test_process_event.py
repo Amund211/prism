@@ -440,6 +440,21 @@ def test_process_event_set_hypixel_api_key() -> None:
     assert will_redraw
 
 
+def test_process_event_autodenick_teammate() -> None:
+    """
+    Assert that autodenick_teammate is called when StartBedwarsGameEvent is received
+    """
+    controller = MockedController()
+
+    with unittest.mock.patch(
+        "prism.overlay.process_event.autodenick_teammate"
+    ) as patched_autodenick_teammate:
+        will_redraw = process_event(controller, StartBedwarsGameEvent())
+
+    patched_autodenick_teammate.assert_called_once()
+    assert not will_redraw
+
+
 CHAT = "[Info: 2021-11-29 22:17:40.417869567: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] "  # noqa: E501
 INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.minecraft.client.Minecraft (Client thread) Info "  # noqa: E501
 

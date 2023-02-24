@@ -1,11 +1,12 @@
 import queue
 import unittest.mock
-from dataclasses import replace
-from typing import Any
+from dataclasses import dataclass, replace
+from typing import Any, cast
 
 import pytest
 
 from prism.overlay.behaviour import (
+    autodenick_teammate,
     get_stats_and_winstreak,
     set_hypixel_api_key,
     set_nickname,
@@ -20,6 +21,7 @@ from tests.prism.overlay import test_get_stats
 from tests.prism.overlay.utils import (
     MockedController,
     create_state,
+    make_player,
     make_settings,
     make_winstreaks,
 )
@@ -349,3 +351,430 @@ def test_update_settings_everything_changed() -> None:
 
     # Lots of stuff changed, so we want to redraw
     assert controller.redraw_event.is_set()
+
+
+@dataclass(frozen=True, slots=True)
+class LobbyPlayer:
+    username: str | None = None
+    nick: str | None = None
+    pending: bool = False
+    missing: bool = False
+
+
+@pytest.mark.parametrize(
+    "lobby, party_members, denick",
+    (
+        ((), set(), None),
+        ((LobbyPlayer(username="Player1"),), {"Player1"}, None),
+        ((LobbyPlayer(nick="SomeNick"),), {"Player1"}, None),  # Too few players
+        (
+            # No nicks
+            (
+                LobbyPlayer(username="Player1"),
+                LobbyPlayer(username="Player2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+                LobbyPlayer(username="Player8"),
+            ),
+            {"Player1"},
+            None,
+        ),
+        (
+            # One nick, but we are not nicked
+            (
+                LobbyPlayer(username="Player1"),
+                LobbyPlayer(username="Player2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+                LobbyPlayer(nick="Nick8"),
+            ),
+            {"Player1"},
+            None,
+        ),
+        (
+            # One nick - us
+            (
+                LobbyPlayer(nick="Nick1"),
+                LobbyPlayer(username="Player2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+                LobbyPlayer(username="Player8"),
+            ),
+            {"Player1"},
+            LobbyPlayer(username="Player1", nick="Nick1"),
+        ),
+        (
+            # Two nicks
+            (
+                LobbyPlayer(nick="Nick1"),
+                LobbyPlayer(nick="Nick2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+                LobbyPlayer(username="Player8"),
+            ),
+            {"Player1"},
+            None,
+        ),
+        (
+            # Two missing teammates
+            (
+                LobbyPlayer(nick="Nick1"),
+                LobbyPlayer(nick="Nick2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+                LobbyPlayer(username="Player8"),
+            ),
+            {"Player1", "Teammate"},
+            None,
+        ),
+        (
+            # Two missing teammates - one nick
+            (
+                LobbyPlayer(nick="Nick1"),
+                LobbyPlayer(username="Player2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+                LobbyPlayer(username="Player8"),
+            ),
+            {"Player1", "Teammate"},
+            None,
+        ),
+        (
+            # Lobby not full
+            (
+                LobbyPlayer(nick="Nick1"),
+                LobbyPlayer(username="Player2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+            ),
+            {"Player1"},
+            None,
+        ),
+        (
+            # Pending stats
+            (
+                LobbyPlayer(username="Someone", pending=True),
+                LobbyPlayer(username="Player2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+                LobbyPlayer(username="Player8"),
+            ),
+            {"Player1"},
+            None,
+        ),
+        (
+            # Missing stats
+            (
+                LobbyPlayer(username="Someone", missing=True),
+                LobbyPlayer(username="Player2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+                LobbyPlayer(username="Player8"),
+            ),
+            {"Player1"},
+            None,
+        ),
+        (
+            # One nick, but already denicked
+            (
+                LobbyPlayer(username="Someone", nick="SomeNick"),
+                LobbyPlayer(username="Player2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+                LobbyPlayer(username="Player8"),
+            ),
+            {"Player1"},
+            None,
+        ),
+        (
+            # Multiple nicks denicked, one unknown
+            (
+                LobbyPlayer(nick="Nick1"),
+                LobbyPlayer(username="Player2", nick="P2Nick"),
+                LobbyPlayer(username="Player3", nick="P3Nick"),
+                LobbyPlayer(username="Player4", nick="P4Nick"),
+                LobbyPlayer(username="Player5", nick="P5Nick"),
+                LobbyPlayer(username="Player6", nick="P6Nick"),
+                LobbyPlayer(username="Player7", nick="P7Nick"),
+                LobbyPlayer(username="Player8"),
+            ),
+            {"Player1"},
+            LobbyPlayer(username="Player1", nick="Nick1"),
+        ),
+        (
+            # Player1 not joined yet somehow
+            (
+                LobbyPlayer(username="Someone"),
+                LobbyPlayer(username="Player2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+                LobbyPlayer(username="Player8"),
+            ),
+            {"Player1"},
+            None,
+        ),
+        (
+            # One nick - our teammate
+            (
+                LobbyPlayer(username="Player1"),
+                LobbyPlayer(username="Player2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+                LobbyPlayer(username="Player8"),
+                LobbyPlayer(username="Player9"),
+                LobbyPlayer(username="Player10"),
+                LobbyPlayer(username="Player11"),
+                LobbyPlayer(username="Player12"),
+                LobbyPlayer(username="Player13"),
+                LobbyPlayer(username="Player14"),
+                LobbyPlayer(nick="Nick15"),
+                LobbyPlayer(username="Player16"),
+            ),
+            {"Player1", "Player3", "Player9", "Player15"},
+            LobbyPlayer(username="Player15", nick="Nick15"),
+        ),
+        (
+            # Lobby not full
+            (
+                LobbyPlayer(username="Player1"),
+                LobbyPlayer(username="Player2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+                LobbyPlayer(username="Player8"),
+                LobbyPlayer(username="Player9"),
+                LobbyPlayer(username="Player10"),
+                LobbyPlayer(username="Player11"),
+                LobbyPlayer(username="Player12"),
+                LobbyPlayer(username="Player13"),
+                LobbyPlayer(username="Player14"),
+                LobbyPlayer(nick="Nick15"),
+            ),
+            {"Player1", "Player3", "Player9", "Player15"},
+            None,
+        ),
+        (
+            # Multiple unknown nicks
+            (
+                LobbyPlayer(username="Player1"),
+                LobbyPlayer(username="Player2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+                LobbyPlayer(username="Player8"),
+                LobbyPlayer(username="Player9"),
+                LobbyPlayer(nick="Nick10"),
+                LobbyPlayer(username="Player11"),
+                LobbyPlayer(username="Player12"),
+                LobbyPlayer(username="Player13"),
+                LobbyPlayer(username="Player14"),
+                LobbyPlayer(nick="Nick15"),
+            ),
+            {"Player1", "Player3", "Player9", "Player15"},
+            None,
+        ),
+        (
+            # Multiple unknown nicks + missing teammates
+            (
+                LobbyPlayer(username="Player1"),
+                LobbyPlayer(username="Player2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+                LobbyPlayer(username="Player8"),
+                LobbyPlayer(nick="Nick9"),
+                LobbyPlayer(username="Player10"),
+                LobbyPlayer(username="Player11"),
+                LobbyPlayer(username="Player12"),
+                LobbyPlayer(username="Player13"),
+                LobbyPlayer(username="Player14"),
+                LobbyPlayer(nick="Nick15"),
+            ),
+            {"Player1", "Player3", "Player9", "Player15"},
+            None,
+        ),
+        (
+            # Api failure causes teammate to be marked as unknown nick
+            (
+                LobbyPlayer(username="Player1"),
+                LobbyPlayer(username="Player2"),
+                LobbyPlayer(username="Player3"),
+                LobbyPlayer(username="Player4"),
+                LobbyPlayer(username="Player5"),
+                LobbyPlayer(username="Player6"),
+                LobbyPlayer(username="Player7"),
+                LobbyPlayer(username="Player8"),
+                LobbyPlayer(nick="Player9"),
+                LobbyPlayer(username="Player10"),
+                LobbyPlayer(username="Player11"),
+                LobbyPlayer(username="Player12"),
+                LobbyPlayer(username="Player13"),
+                LobbyPlayer(username="Player14"),
+                LobbyPlayer(username="Player15"),
+            ),
+            {"Player1", "Player3", "Player9", "Player15"},
+            None,
+        ),
+    ),
+)
+def test_autodenick_teammate(
+    lobby: tuple[LobbyPlayer, ...],
+    party_members: set[str],
+    denick: LobbyPlayer | None,
+) -> None:
+    assert all(
+        (player.username is not None or player.nick is not None)
+        and not (player.pending and player.missing)
+        for player in lobby
+    )
+
+    if denick is not None:
+        assert denick.username is not None
+        assert denick.nick is not None
+        assert not denick.pending
+        assert not denick.missing
+
+    lobby_players = cast(set[str], {player.username or player.nick for player in lobby})
+    assert all(isinstance(player, str) for player in lobby_players)
+
+    controller = MockedController(
+        state=create_state(
+            lobby_players=lobby_players,
+            party_members=party_members,
+            in_queue=False,
+            out_of_sync=False,
+            own_username="Player1",
+        )
+    )
+
+    for player in lobby:
+        if player.pending:
+            controller.player_cache.set_player_pending(
+                cast(str, player.nick or player.username)
+            )
+        elif player.missing:
+            # Stats missing completely
+            pass
+        elif player.username is None:
+            assert player.nick is not None
+            controller.player_cache.set_cached_player(
+                player.nick, make_player(variant="nick", username=player.nick)
+            )
+        else:
+            controller.player_cache.set_cached_player(
+                player.username,
+                make_player(
+                    variant="player", username=player.username, nick=player.nick
+                ),
+            )
+
+    with unittest.mock.patch(
+        "prism.overlay.behaviour.set_nickname"
+    ) as patched_set_nickname:
+        autodenick_teammate(controller)
+
+    if denick is None:
+        patched_set_nickname.assert_not_called()
+    else:
+        patched_set_nickname.assert_called_once_with(
+            nick=denick.nick, username=denick.username, controller=controller
+        )
+
+
+@pytest.mark.parametrize(
+    "controller",
+    (
+        MockedController(state=create_state(in_queue=True)),
+        MockedController(state=create_state(out_of_sync=True)),
+        MockedController(api_key_invalid=True),
+        MockedController(
+            state=create_state(in_queue=True, out_of_sync=True), api_key_invalid=True
+        ),
+    ),
+)
+def test_autodenick_teammate_early_exit(controller: MockedController) -> None:
+    with unittest.mock.patch(
+        "prism.overlay.behaviour.set_nickname"
+    ) as patched_set_nickname:
+        autodenick_teammate(controller)
+
+    patched_set_nickname.assert_not_called()
+
+
+def test_autodenick_alive_players_mismatch() -> None:
+    controller = MockedController(
+        state=create_state(
+            lobby_players={
+                "SomeNick",
+                "Player2",
+                "Player3",
+                "Player4",
+                "Player5",
+                "Player6",
+                "Player7",
+                "Player8",
+            },
+            alive_players={
+                "SomeNick",
+                "Player2",
+                "Player3",
+                "Player4",
+                "Player5",
+                "Player6",
+                "Player7",
+            },
+            party_members={"Player1"},
+            in_queue=False,
+            out_of_sync=False,
+            own_username="Player1",
+        )
+    )
+
+    with unittest.mock.patch(
+        "prism.overlay.behaviour.set_nickname"
+    ) as patched_set_nickname:
+        autodenick_teammate(controller)
+
+    patched_set_nickname.assert_not_called()
