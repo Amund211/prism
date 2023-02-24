@@ -28,13 +28,14 @@ REAL_DENICK_RESPONSE_SUCCESS = {
     },
 }
 
-REAL_DENICK_RESPONSE_FAIL = {"success": True, "data": None}
+REAL_DENICK_RESPONSE_FAIL = {"success": True, "player": None}
 
 parse_denick_cases: tuple[tuple[dict[str, Any], str | None], ...] = (
     ({}, None),
     ({"success": False}, None),
     ({"success": True}, None),
     ({"success": True, "player": {}}, None),
+    ({"success": True, "player": "invalidplayerdata"}, None),
     ({"player": {"uuid": "someuuid"}}, None),
     ({"success": False, "player": {"uuid": "someuuid"}}, None),
     (REAL_DENICK_RESPONSE_FAIL, None),

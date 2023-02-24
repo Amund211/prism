@@ -105,7 +105,11 @@ def parse_denick_response(response_json: dict[str, Any]) -> str | None:
         logger.error(f"Denick endpoint returned an error. Response: {response_json}")
         return None
 
-    playerdata = response_json.get("player", None)
+    playerdata = response_json.get("player", "INVALIDTYPE")
+
+    if playerdata is None:
+        logger.debug("Denick failed")
+        return None
 
     if not isinstance(playerdata, dict):
         logger.error(
