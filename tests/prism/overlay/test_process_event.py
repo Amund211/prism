@@ -563,6 +563,116 @@ INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.m
                 )
             ),
         ),
+        (
+            MockedController(state=create_state(own_username=None)),
+            (
+                f"{INFO}Setting user: Me",
+                f"{CHAT}Party Moderators: Player1 ● [MVP+] Player2 ● ",
+                f"{CHAT}Player1 has joined (1/12)!",
+                f"{CHAT}Player2 has joined (2/12)!",
+                f"{CHAT}Me has joined (3/12)!",
+                f"{CHAT}Someone0 has joined (4/12)!",
+                f"{CHAT}Someone1 has joined (5/12)!",
+                f"{CHAT}Someone2 has joined (6/12)!",
+                f"{CHAT}Someone3 has joined (7/12)!",
+                f"{CHAT}Someone4 has joined (8/12)!",
+                f"{CHAT}§7Someone1§7: any1 wanna party?",
+                f"{CHAT}Someone5 has joined (9/12)!",
+                f"{CHAT}Someone6 has joined (10/12)!",
+                f"{CHAT}Someone7 has joined (11/12)!",
+                f"{CHAT}Someone8 has joined (12/12)!",
+                f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+                f"{CHAT}                                  Bed Wars",
+                f"{CHAT}",
+                f"{CHAT}     Protect your bed and destroy the enemy beds.",
+                f"{CHAT}      Upgrade yourself and your team by collecting",
+                f"{CHAT}    Iron, Gold, Emerald and Diamond from generators",
+                f"{CHAT}                  to access powerful upgrades.",
+                f"{CHAT}",
+                f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+                f"{CHAT}Someone1 was killed by Player1. FINAL KILL!",
+                f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+                f"{CHAT}                                  Bed Wars",
+                f"{CHAT}",
+                f"{CHAT}                          Pink - [MVP+] Me",
+                f"{CHAT}",
+                f"{CHAT}                   1st Killer - [MVP+] Me - 7",
+                f"{CHAT}               2nd Killer - [MVP+] Player2 - 3",
+                f"{CHAT}                 3rd Killer - [MVP+] Someone3 - 3",
+                f"{CHAT}",
+                f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+                f"{CHAT}+37 coins! (Win)",
+                f"{CHAT}+50 Bed Wars Experience (Position Bonus)",
+                f"{CHAT}ONLINE: Player1, Player2, Me, Player4, Player5, Player6, Player7, Player8, Player9, Player10, Player11, Player12",  # noqa: E501
+                f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+                f"{CHAT}                                  Bed Wars",
+                f"{CHAT}",
+                f"{CHAT}     Protect your bed and destroy the enemy beds.",
+                f"{CHAT}      Upgrade yourself and your team by collecting",
+                f"{CHAT}    Iron, Gold, Emerald and Diamond from generators",
+                f"{CHAT}                  to access powerful upgrades.",
+                f"{CHAT}",
+                f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+            ),
+            MockedController(
+                state=create_state(
+                    own_username="Me",
+                    party_members={"Me", "Player1", "Player2"},
+                    lobby_players={
+                        "Me",
+                        "Player1",
+                        "Player2",
+                        "Player4",
+                        "Player5",
+                        "Player6",
+                        "Player7",
+                        "Player8",
+                        "Player9",
+                        "Player10",
+                        "Player11",
+                        "Player12",
+                    },
+                    in_queue=False,
+                )
+            ),
+        ),
+        (
+            MockedController(state=create_state(own_username=None)),
+            (
+                f"{INFO}Setting user: MYIGN",
+                f"{CHAT}ONLINE: Player1, Player2, MYIGN, Player4",
+                f"{CHAT}Player4 has joined (4/12)!",
+            ),
+            MockedController(
+                state=create_state(
+                    own_username="MYIGN",
+                    lobby_players={
+                        "MYIGN",
+                        "Player1",
+                        "Player2",
+                        "Player4",
+                    },
+                    out_of_sync=False,
+                    in_queue=True,
+                )
+            ),
+        ),
+        (
+            MockedController(state=create_state(own_username=None)),
+            (
+                f"{INFO}Setting user: Me",
+                f"{CHAT}ONLINE: Player1, Player2, Me, Player4",
+                f"{CHAT}UnknownPlayer has joined (4/12)!",
+            ),
+            MockedController(
+                state=create_state(
+                    own_username="Me",
+                    lobby_players={"UnknownPlayer"},
+                    out_of_sync=True,
+                    in_queue=True,
+                )
+            ),
+        ),
     ),
 )
 def test_fast_forward_state(
