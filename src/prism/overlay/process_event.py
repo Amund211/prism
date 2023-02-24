@@ -10,7 +10,11 @@ logger = logging.getLogger(__name__)
 
 
 def process_event(controller: OverlayController, event: Event) -> bool:
-    """Update the state based on the event, return True if a redraw is desired"""
+    """
+    Update the state based on the event, return True if a redraw is desired
+
+    NOTE: Caller must acquire controller.state.mutex
+    """
     state = controller.state
 
     if event.event_type is EventType.INITIALIZE_AS:
