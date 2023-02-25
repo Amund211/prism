@@ -6,8 +6,8 @@ import win32gui  # type: ignore [import]
 logger = logging.getLogger(__name__)
 
 
-def set_windowstate(hwnd: int, fullscreen: bool = True) -> None:
-    """Set a window to be borderless windowed/regular maximized"""
+def set_windowstate(hwnd: int, fullscreen: bool) -> None:
+    """Set a window to be borderless fullscreen/regular maximized"""
     style_BL = (
         win32con.WS_DLGFRAME
         | win32con.WS_CLIPSIBLINGS
@@ -50,8 +50,8 @@ def toggle_fullscreen() -> None:
     is_maximized = bool(style & win32con.WS_BORDER)
 
     try:
-        # If we are mazimized we want borderless next
-        set_windowstate(hwnd, is_maximized)
+        # If we are mazimized we want borderless fullscreen next
+        set_windowstate(hwnd, fullscreen=is_maximized)
     except Exception:
         logger.exception(
             f"Failed setting minecraft windowstate {hwnd=} {is_maximized=}"
