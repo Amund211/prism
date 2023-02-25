@@ -93,7 +93,7 @@ def get_bedwars_stats(
     username: str,
     controller: OverlayController,
 ) -> KnownPlayer | NickedPlayer:
-    """Get and caches the bedwars stats for the given player"""
+    """Get and cache the bedwars stats for the given player"""
     cached_stats = controller.player_cache.get_cached_player(username)
 
     if cached_stats is not None and not isinstance(cached_stats, PendingPlayer):
