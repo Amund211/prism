@@ -11,6 +11,9 @@ logger = logging.getLogger(__name__)
 
 class PlayerCache:
     def __init__(self) -> None:
+        # Cache genus. Cached entries from old genera are discarded.
+        self.current_genus = 0
+
         # Entries cached for 2mins, so they hopefully expire before the next queue
         self._cache = TTLCache[str, Player](maxsize=512, ttl=120)
 
@@ -33,9 +36,16 @@ class PlayerCache:
         return pending_player
 
     def set_cached_player(
-        self, username: str, player: KnownPlayer | NickedPlayer
+        self, username: str, player: KnownPlayer | NickedPlayer, genus: int
     ) -> None:
         with self._mutex:
+            if genus != self.current_genus:
+                logger.warning(
+                    f"Tried to store stats for {username} with old genus. Ignoring. "
+                    f"{genus=}!={self.current_genus=}, {player=}"
+                )
+                return
+
             self._cache[username] = self._long_term_cache[username] = player
 
     def get_cached_player(
@@ -68,5 +78,6 @@ class PlayerCache:
     def clear_cache(self) -> None:
         """Clear the entire player cache"""
         with self._mutex:
+            self.current_genus += 1
             self._cache.clear()
             self._long_term_cache.clear()

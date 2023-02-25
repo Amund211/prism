@@ -235,3 +235,35 @@ def test_get_bedwars_stats() -> None:
             == unnicked_player
         )
         patched_fetch_stats.assert_not_called()
+
+
+@pytest.mark.parametrize("clear", (True, False))
+def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
+    my_username = "Player"
+    my_uuid = "dead-beef"
+    my_player_data = {"displayname": my_username, **NEW_PLAYER_DATA}
+
+    def get_uuid(username: str) -> str | None:
+        assert username == my_username
+        return my_uuid
+
+    def get_player_data(uuid: str) -> dict[str, Any] | None:
+        assert uuid == my_uuid
+        if clear:
+            # While we were getting the playerdata, someone else cleared the cache
+            controller.player_cache.clear_cache()
+        return my_player_data
+
+    controller = MockedController(get_uuid=get_uuid, get_player_data=get_player_data)
+
+    player = create_known_player(
+        playerdata=my_player_data, username=my_username, uuid=my_uuid
+    )
+
+    # We always return the stats even if the cache did not accept it
+    assert get_bedwars_stats(username=my_username, controller=controller) == player
+
+    # If the cache was cleared (and the genus incremented) it should not be stored
+    assert controller.player_cache.get_cached_player(my_username) == (
+        None if clear else player
+    )

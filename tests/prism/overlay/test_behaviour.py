@@ -700,7 +700,7 @@ def test_autodenick_teammate(
         elif player.username is None:
             assert player.nick is not None
             controller.player_cache.set_cached_player(
-                player.nick, make_player(variant="nick", username=player.nick)
+                player.nick, make_player(variant="nick", username=player.nick), genus=0
             )
         else:
             controller.player_cache.set_cached_player(
@@ -708,6 +708,7 @@ def test_autodenick_teammate(
                 make_player(
                     variant="player", username=player.username, nick=player.nick
                 ),
+                genus=0,
             )
 
     with unittest.mock.patch(

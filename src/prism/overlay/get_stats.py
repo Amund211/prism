@@ -103,14 +103,20 @@ def get_bedwars_stats(
 
     logger.debug(f"Cache miss {username}")
 
+    # NOTE: We store the genus before we make the request
+    #       If the cache gets cleared between now and when the request finished,
+    #       the genus will be incremented and this stats instance will not be cached.
+    #       The stats instance will still be returned.
+    cache_genus = controller.player_cache.current_genus
+
     player = fetch_bedwars_stats(username, controller)
 
     if isinstance(player, KnownPlayer) and player.nick is not None:
         # If we look up by actual username, that means the user is not nicked
         controller.player_cache.set_cached_player(
-            player.username, replace(player, nick=None)
+            player.username, replace(player, nick=None), cache_genus
         )
 
-    controller.player_cache.set_cached_player(username, player)
+    controller.player_cache.set_cached_player(username, player, cache_genus)
 
     return player

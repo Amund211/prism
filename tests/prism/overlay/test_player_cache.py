@@ -24,7 +24,7 @@ def test_cache_manipulation() -> None:
 
     # Setting the cache
     nicked_player = NickedPlayer("AmazingNick")
-    player_cache.set_cached_player("somenickedplayer", nicked_player)
+    player_cache.set_cached_player("somenickedplayer", nicked_player, genus=0)
     assert player_cache.get_cached_player("somenickedplayer") is nicked_player
     assert (
         player_cache.get_cached_player("somenickedplayer", long_term=True)
@@ -45,7 +45,7 @@ def test_cache_manipulation() -> None:
     updated_player = make_player(username="joe", stars=200.1)
 
     assert original_player is not updated_player
-    player_cache.set_cached_player("somerealplayer", original_player)
+    player_cache.set_cached_player("somerealplayer", original_player, genus=0)
     assert player_cache.get_cached_player("somerealplayer") is original_player
     assert (
         player_cache.get_cached_player("somerealplayer", long_term=True)
@@ -69,3 +69,35 @@ def test_cache_manipulation() -> None:
     for ign in ("somependingplayer", "somenickedplayer", "somerealplayer"):
         assert player_cache.get_cached_player(ign) is None
         assert player_cache.get_cached_player(ign, long_term=True) is None
+
+
+def test_cache_genus() -> None:
+    """
+    Test the behaviour of the cache genus
+
+    When we make a request to Hypixel we note the cache genus at that time.
+    After the request has finished we store the result with the old genus.
+    If the genus has been updated in the mean time due to a cache clear, the result
+    should not be stored.
+    """
+    player_cache = PlayerCache()
+
+    # Starting one request
+    genus_1 = player_cache.current_genus
+
+    # Clearing the entire cache
+    player_cache.clear_cache()
+
+    # Starting another request
+    genus_2 = player_cache.current_genus
+
+    # Request 1 finishes
+    amazing_nick = NickedPlayer("AmazingNick")
+    player_cache.set_cached_player("AmazingNick", amazing_nick, genus=genus_1)
+
+    # Request 2 finishes
+    other_nick = NickedPlayer("OtherNick")
+    player_cache.set_cached_player("OtherNick", other_nick, genus=genus_2)
+
+    assert player_cache.get_cached_player("AmazingNick") is None
+    assert player_cache.get_cached_player("OtherNick") is other_nick
