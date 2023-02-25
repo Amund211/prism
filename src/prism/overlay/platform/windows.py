@@ -41,7 +41,9 @@ def toggle_fullscreen() -> None:
     hwnd = win32gui.FindWindow("LWJGL", None)
 
     if hwnd is None or hwnd == 0:
-        logger.error(f"Could not find Minecraft window. {hwnd=}")
+        logger.info(
+            f"Could not find Minecraft window: {hwnd=}. Aborting toggle fullscreen."
+        )
         return
 
     style = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE)
