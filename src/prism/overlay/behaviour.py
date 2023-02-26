@@ -82,6 +82,7 @@ def set_hypixel_api_key(new_key: str, /, controller: OverlayController) -> None:
     """Update the API key that the download threads use"""
     controller.set_hypixel_api_key(new_key)
     controller.api_key_invalid = False
+    controller.api_key_throttled = False
 
     with controller.settings.mutex:
         controller.settings.hypixel_api_key = new_key
@@ -255,6 +256,7 @@ def autodenick_teammate(controller: OverlayController) -> None:
 
     if (
         controller.api_key_invalid
+        or controller.api_key_throttled
         or controller.state.in_queue
         or controller.state.out_of_sync
     ):

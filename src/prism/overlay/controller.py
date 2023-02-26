@@ -8,6 +8,7 @@ from prism.hypixel import (
     HypixelAPIError,
     HypixelAPIKeyError,
     HypixelAPIKeyHolder,
+    HypixelAPIThrottleError,
     get_player_data,
 )
 from prism.mojang import MojangAPIError, get_uuid
@@ -27,6 +28,7 @@ class OverlayController(Protocol):  # pragma: no cover
 
     in_queue: bool
     api_key_invalid: bool
+    api_key_throttled: bool
     on_hypixel: bool
 
     state: "OverlayState"
@@ -84,6 +86,7 @@ class RealOverlayController:
         self.in_queue = False
         self.own_username: str | None = None
         self.api_key_invalid = False
+        self.api_key_throttled = False
         self.on_hypixel = False
 
         self.player_cache = PlayerCache()
@@ -131,13 +134,21 @@ class RealOverlayController:
             # TODO: We don't know what kind of error this is, so resetting these flags
             #       might be wrong.
             self.api_key_invalid = False
+            self.api_key_throttled = False
             return None
         except HypixelAPIKeyError as e:
             logger.warning("Invalid API key.", exc_info=e)
             self.api_key_invalid = True
+            self.api_key_throttled = False
+            return None
+        except HypixelAPIThrottleError as e:
+            logger.warning("API key throttled", exc_info=e)
+            self.api_key_throttled = True
+            self.api_key_invalid = False
             return None
         else:
             self.api_key_invalid = False
+            self.api_key_throttled = False
             return player_data
 
     def denick(self, nick: str) -> str | None:  # pragma: no cover

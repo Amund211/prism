@@ -58,6 +58,15 @@ def run_overlay(
                 )
             )
 
+        if controller.api_key_throttled:
+            info_cells.append(
+                InfoCellValue(
+                    text="Hypixel ratelimit reached! Wait time ~1 min.",
+                    color="orange" if time.monotonic() % 2 > 1 else "white",
+                    url=None,
+                )
+            )
+
         if controller.settings.check_for_updates and update_available_event.is_set():
             info_cells.append(
                 InfoCellValue(

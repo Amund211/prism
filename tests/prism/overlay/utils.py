@@ -144,6 +144,7 @@ class MockedController:
 
     in_queue: bool = False
     api_key_invalid: bool = False
+    api_key_throttled: bool = False
     on_hypixel: bool = True
     hypixel_api_key: str = "api-key"
     antisniper_api_key: str | None = None

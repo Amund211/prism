@@ -131,7 +131,9 @@ def test_process_event_set_api_key() -> None:
     """Assert that set_hypixel_api_key is called when NewAPIKeyEvent is received"""
     NEW_KEY = "my-new-key"
 
-    controller = MockedController(hypixel_api_key="invalid-key", api_key_invalid=True)
+    controller = MockedController(
+        hypixel_api_key="invalid-key", api_key_invalid=True, api_key_throttled=True
+    )
     controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
 
     set_hypixel_api_key(NEW_KEY, controller)
@@ -139,6 +141,7 @@ def test_process_event_set_api_key() -> None:
     # Key and key invalid updated
     assert controller.hypixel_api_key == NEW_KEY
     assert not controller.api_key_invalid
+    assert not controller.api_key_throttled
 
     # Settings updated and stored
     assert controller.settings.hypixel_api_key == NEW_KEY
@@ -730,8 +733,11 @@ def test_autodenick_teammate(
         MockedController(state=create_state(in_queue=True)),
         MockedController(state=create_state(out_of_sync=True)),
         MockedController(api_key_invalid=True),
+        MockedController(api_key_throttled=True),
         MockedController(
-            state=create_state(in_queue=True, out_of_sync=True), api_key_invalid=True
+            state=create_state(in_queue=True, out_of_sync=True),
+            api_key_invalid=True,
+            api_key_throttled=True,
         ),
     ),
 )

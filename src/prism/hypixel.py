@@ -39,6 +39,10 @@ class HypixelAPIKeyError(ValueError):
     """Exception raised when the API key is invalid"""
 
 
+class HypixelAPIThrottleError(ValueError):
+    """Exception raised when the API key is being throttled"""
+
+
 def _make_request(
     uuid: str, key_holder: HypixelAPIKeyHolder
 ) -> requests.Response:  # pragma: nocover
@@ -77,6 +81,12 @@ def get_player_data(
         raise HypixelAPIKeyError(
             f"Request to Hypixel API failed with status code {response.status_code}. "
             f"Assumed invalid API key. Response: {response.text}"
+        )
+
+    if response.status_code == 429:
+        raise HypixelAPIThrottleError(
+            f"Request to Hypixel API failed with status code {response.status_code}. "
+            f"Assumed due to API key throttle. Response: {response.text}"
         )
 
     if not response:
