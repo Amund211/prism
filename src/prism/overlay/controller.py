@@ -128,10 +128,12 @@ class RealOverlayController:
             player_data = get_player_data(uuid, self.hypixel_key_holder)
         except HypixelAPIError as e:
             logger.debug(f"Failed getting stats for {uuid=}.", exc_info=e)
+            # TODO: We don't know what kind of error this is, so resetting these flags
+            #       might be wrong.
             self.api_key_invalid = False
             return None
         except HypixelAPIKeyError as e:
-            logger.debug("Invalid API key.", exc_info=e)
+            logger.warning("Invalid API key.", exc_info=e)
             self.api_key_invalid = True
             return None
         else:
