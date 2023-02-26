@@ -34,8 +34,6 @@ class RateLimiter:
     def __enter__(self) -> None:
         """
         Get the oldest request within the limit and wait for it to leave the window
-
-        Blocks other threads from waiting simultaneously by acquiring the lock.
         """
         # Make sure there is data in the request history
         self.available_slots.acquire()
