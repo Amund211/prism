@@ -3,7 +3,6 @@ from collections.abc import Iterable
 
 import pytest
 
-from prism.overlay.controller import OverlayController
 from prism.overlay.events import (
     BedwarsFinalKillEvent,
     EndBedwarsGameEvent,
@@ -32,7 +31,7 @@ from prism.overlay.process_event import (
 from tests.prism.overlay.utils import OWN_USERNAME, MockedController, create_state
 
 process_event_test_cases_base: tuple[
-    tuple[str, OverlayController, Event, OverlayController, bool], ...
+    tuple[str, MockedController, Event, MockedController, bool], ...
 ] = (
     (
         "initialize",
@@ -391,9 +390,9 @@ process_event_test_cases = [
     ids=process_event_test_ids,
 )
 def test_process_event(
-    initial_controller: OverlayController,
+    initial_controller: MockedController,
     event: Event,
-    target_controller: OverlayController,
+    target_controller: MockedController,
     redraw: bool,
 ) -> None:
     """Assert that process_event functions properly"""
@@ -401,6 +400,7 @@ def test_process_event(
 
     new_controller = initial_controller
     assert new_controller == target_controller
+    assert new_controller.extra == target_controller.extra
     assert will_redraw == redraw
 
 
@@ -676,40 +676,38 @@ INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.m
     ),
 )
 def test_fast_forward_state(
-    initial_controller: OverlayController,
+    initial_controller: MockedController,
     loglines: Iterable[str],
-    target_controller: OverlayController,
+    target_controller: MockedController,
 ) -> None:
     fast_forward_state(initial_controller, loglines)
 
     new_controller = initial_controller
     assert new_controller == target_controller
+    assert new_controller.extra == target_controller.extra
 
 
 @pytest.mark.parametrize(
-    "loglines, resulting_controller, redraw_event_set",
+    "loglines, resulting_controller",
     (
         (
             (f"{CHAT}[MVP+] Player1: hows ur day?",),
-            MockedController(),
-            False,
+            MockedController(redraw_event_set=False),
         ),
         (
             (f"{CHAT}Player1 has joined (1/16)!",),
             MockedController(
-                state=create_state(lobby_players={"Player1"}, in_queue=True)
+                state=create_state(lobby_players={"Player1"}, in_queue=True),
+                redraw_event_set=True,
             ),
-            True,
         ),
     ),
 )
 def test_process_loglines(
-    loglines: tuple[str],
-    resulting_controller: OverlayController,
-    redraw_event_set: bool,
+    loglines: tuple[str], resulting_controller: MockedController
 ) -> None:
     controller = MockedController()
 
     process_loglines(loglines, controller)
     assert controller == resulting_controller
-    assert controller.redraw_event.is_set() == redraw_event_set
+    assert controller.extra == resulting_controller.extra

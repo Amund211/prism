@@ -2,7 +2,9 @@ import threading
 from collections.abc import Callable
 from dataclasses import InitVar, dataclass, field, replace
 from pathlib import Path
-from typing import Any, Literal, overload
+from typing import Any, Literal, TypedDict, overload
+
+from cachetools import TTLCache
 
 from prism.hypixel import HypixelAPIKeyHolder
 from prism.overlay.nick_database import NickDatabase
@@ -139,6 +141,12 @@ def missing_method(*args: Any, **kwargs: Any) -> Any:
     raise NotImplementedError
 
 
+class ExtraAttributes(TypedDict):
+    hypixel_api_key: str
+    redraw_event_set: bool
+    player_cache_data: TTLCache[str, KnownPlayer | NickedPlayer | PendingPlayer]
+
+
 @dataclass
 class MockedController:
     """Class implementing the OverlayController protocol for testing"""
@@ -159,8 +167,10 @@ class MockedController:
     player_cache: PlayerCache = field(
         default_factory=PlayerCache, repr=False, compare=False, hash=False
     )
+
+    redraw_event_set: InitVar[bool] = False
     redraw_event: threading.Event = field(
-        default_factory=threading.Event, repr=False, compare=False, hash=False
+        init=False, repr=False, compare=False, hash=False
     )
 
     get_uuid: Callable[[str], str | None] = field(
@@ -178,8 +188,11 @@ class MockedController:
 
     _stored_settings: Settings | None = field(default=None, init=False)
 
-    def __post_init__(self, hypixel_api_key: str) -> None:
+    def __post_init__(self, hypixel_api_key: str, redraw_event_set: bool) -> None:
         self.hypixel_key_holder = HypixelAPIKeyHolder(hypixel_api_key)
+        self.redraw_event = threading.Event()
+        if redraw_event_set:
+            self.redraw_event.set()
 
         self.settings.hypixel_api_key = hypixel_api_key
         self.settings.antisniper_api_key = self.antisniper_api_key
@@ -189,3 +202,11 @@ class MockedController:
 
     def store_settings(self) -> None:
         self._stored_settings = replace(self.settings)
+
+    @property
+    def extra(self) -> ExtraAttributes:
+        return {
+            "hypixel_api_key": self.hypixel_key_holder.key,
+            "redraw_event_set": self.redraw_event.is_set(),
+            "player_cache_data": self.player_cache._cache,
+        }
