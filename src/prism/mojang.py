@@ -11,6 +11,7 @@ from prism.retry import ExecutionError, execute_with_retry
 
 USERPROFILES_ENDPOINT = "https://api.mojang.com/users/profiles/minecraft"
 REQUEST_LIMIT, REQUEST_WINDOW = 600, 10 * 60  # Max requests per time window
+BURST_REQUEST_LIMIT, BURST_REQUEST_WINDOW = 50, 8  # Found by trial and error
 
 # Use a connection pool for the requests
 SESSION = make_prism_requests_session()
@@ -22,6 +23,7 @@ class MojangAPIError(ValueError):
 
 # Be nice to the Mojang api :)
 limiter = RateLimiter(limit=REQUEST_LIMIT, window=REQUEST_WINDOW)
+burst_limiter = RateLimiter(limit=BURST_REQUEST_LIMIT, window=BURST_REQUEST_WINDOW)
 
 # TODO: implement a disk cache
 # TTL on this cache can be large because for a username to get a new uuid the user
@@ -33,7 +35,7 @@ UUID_MUTEX = threading.Lock()
 def _make_request(username: str) -> requests.Response:  # pragma: nocover
     try:
         # Uphold our prescribed rate-limits
-        with limiter:
+        with limiter, burst_limiter:
             response = SESSION.get(f"{USERPROFILES_ENDPOINT}/{username}")
     except RequestException as e:
         raise ExecutionError(
