@@ -58,6 +58,15 @@ def run_overlay(
                 )
             )
 
+        if controller.hypixel_key_holder.limiter.is_blocked:
+            info_cells.append(
+                InfoCellValue(
+                    text="Too many requests. Slowing down.",
+                    color="yellow",
+                    url=None,
+                )
+            )
+
         if controller.api_key_throttled:
             info_cells.append(
                 InfoCellValue(
