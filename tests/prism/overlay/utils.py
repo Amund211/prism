@@ -1,9 +1,10 @@
 import threading
 from collections.abc import Callable
-from dataclasses import dataclass, field, replace
+from dataclasses import InitVar, dataclass, field, replace
 from pathlib import Path
 from typing import Any, Literal, overload
 
+from prism.hypixel import HypixelAPIKeyHolder
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.player import (
     KnownPlayer,
@@ -146,7 +147,10 @@ class MockedController:
     api_key_invalid: bool = False
     api_key_throttled: bool = False
     on_hypixel: bool = True
-    hypixel_api_key: str = "api-key"
+    hypixel_api_key: InitVar[str] = "api-key"
+    hypixel_key_holder: HypixelAPIKeyHolder = field(
+        init=False, repr=False, compare=False, hash=False
+    )
     antisniper_api_key: str | None = None
 
     state: OverlayState = field(default_factory=create_state)
@@ -174,12 +178,11 @@ class MockedController:
 
     _stored_settings: Settings | None = field(default=None, init=False)
 
-    def __post_init__(self) -> None:
-        self.settings.hypixel_api_key = self.hypixel_api_key
-        self.settings.antisniper_api_key = self.antisniper_api_key
+    def __post_init__(self, hypixel_api_key: str) -> None:
+        self.hypixel_key_holder = HypixelAPIKeyHolder(hypixel_api_key)
 
-    def set_hypixel_api_key(self, new_key: str) -> None:
-        self.hypixel_api_key = new_key
+        self.settings.hypixel_api_key = hypixel_api_key
+        self.settings.antisniper_api_key = self.antisniper_api_key
 
     def set_antisniper_api_key(self, new_key: str | None) -> None:
         self.antisniper_api_key = new_key

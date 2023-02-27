@@ -30,17 +30,13 @@ class OverlayController(Protocol):  # pragma: no cover
     api_key_invalid: bool
     api_key_throttled: bool
     on_hypixel: bool
+    hypixel_key_holder: HypixelAPIKeyHolder
 
     state: "OverlayState"
     settings: "Settings"
     nick_database: "NickDatabase"
     player_cache: "PlayerCache"
     redraw_event: threading.Event
-
-    @property
-    @abstractmethod
-    def set_hypixel_api_key(self) -> Callable[[str], None]:
-        raise NotImplementedError
 
     @property
     @abstractmethod
@@ -99,9 +95,6 @@ class RealOverlayController:
         self.antisniper_key_holder: AntiSniperAPIKeyHolder | None = None
 
         self.set_antisniper_api_key(settings.antisniper_api_key)
-
-    def set_hypixel_api_key(self, new_key: str) -> None:
-        self.hypixel_key_holder.key = new_key
 
     def set_antisniper_api_key(self, new_key: str | None) -> None:
         from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder

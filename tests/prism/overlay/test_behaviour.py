@@ -139,7 +139,7 @@ def test_process_event_set_api_key() -> None:
     set_hypixel_api_key(NEW_KEY, controller)
 
     # Key and key invalid updated
-    assert controller.hypixel_api_key == NEW_KEY
+    assert controller.hypixel_key_holder.key == NEW_KEY
     assert not controller.api_key_invalid
     assert not controller.api_key_throttled
 
