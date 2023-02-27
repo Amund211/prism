@@ -41,12 +41,10 @@ class RateLimiter:
         with self.mutex:
             old_request = self.made_requests.popleft()
 
-        now = time.monotonic()
-        time_since_request = now - old_request
-        remaining_time_in_window = self.window - time_since_request
-        if remaining_time_in_window > 0:
+        wait = self._compute_wait(old_request)
+        if wait > 0:
             # Wait until the old request has left the window
-            time.sleep(remaining_time_in_window)
+            time.sleep(wait)
 
     def __exit__(
         self,
@@ -62,3 +60,22 @@ class RateLimiter:
 
         # Tell the other threads that we added an element to the history
         self.available_slots.release()
+
+    def _compute_wait(self, old_request: float) -> float:
+        now = time.monotonic()
+        time_since_request = now - old_request
+        remaining_time_in_window = self.window - time_since_request
+
+        return remaining_time_in_window
+
+    @property
+    def is_blocked(self) -> bool:
+        """Return True if a request made at this time would have to wait"""
+        with self.mutex:
+            if len(self.made_requests) == 0:
+                # We have to wait for a request to finish
+                return True
+
+            old_request = self.made_requests[0]
+
+        return self._compute_wait(old_request) > 0
