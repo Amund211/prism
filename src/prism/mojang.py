@@ -40,6 +40,9 @@ def _make_request(username: str) -> requests.Response:  # pragma: nocover
             "Request to Mojang API failed due to an unknown error"
         ) from e
 
+    if response.status_code == 429:
+        raise ExecutionError("Request to Mojang API failed due to rate limit")
+
     return response
 
 
