@@ -1,3 +1,4 @@
+import math
 import threading
 import time
 from collections.abc import Callable
@@ -58,10 +59,15 @@ def run_overlay(
                 )
             )
 
-        if controller.hypixel_key_holder.limiter.is_blocked:
+        block_duration_seconds = (
+            controller.hypixel_key_holder.limiter.block_duration_seconds
+        )
+
+        if block_duration_seconds > 0:
+            pause = math.ceil(block_duration_seconds)
             info_cells.append(
                 InfoCellValue(
-                    text="Too many requests. Slowing down.",
+                    text=f"Too many requests. Slowing down. ({pause}s)",
                     color="yellow",
                     url=None,
                 )

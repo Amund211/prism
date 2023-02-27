@@ -79,3 +79,20 @@ class RateLimiter:
             old_request = self.made_requests[0]
 
         return self._compute_wait(old_request) > 0
+
+    @property
+    def block_duration_seconds(self) -> float:
+        """
+        Return the time we have to wait in seconds before our next request
+
+        0 if not blocked
+        float("inf") if there are no requests slots free
+        """
+        with self.mutex:
+            if len(self.made_requests) == 0:
+                # We have to wait for a request to finish
+                return float("inf")
+
+            old_request = self.made_requests[0]
+
+        return max(self._compute_wait(old_request), 0)

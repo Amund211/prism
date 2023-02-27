@@ -166,30 +166,39 @@ def test_ratelimiting_is_blocked() -> None:
     with unittest.mock.patch(
         "prism.ratelimiting.time", MockedTime().time
     ) as mocked_time_module:
-        limiter = RateLimiter(limit=2, window=10)
+        limit = 2
+        window = 10
+        limiter = RateLimiter(limit=limit, window=window)
         assert not limiter.is_blocked, "Not blocked to start with"
+        assert limiter.block_duration_seconds == 0
 
         limiter.__enter__()
         assert not limiter.is_blocked
+        assert limiter.block_duration_seconds == 0
         mocked_time_module.sleep(5)
         assert mocked_time_module.monotonic() == 5
 
         limiter.__enter__()
         assert limiter.is_blocked
+        assert limiter.block_duration_seconds == float("inf")
         mocked_time_module.sleep(5)
         assert mocked_time_module.monotonic() == 10
 
         limiter.__exit__(None, None, None)
         assert limiter.is_blocked
+        assert limiter.block_duration_seconds == window == 10
         mocked_time_module.sleep(5)
         assert mocked_time_module.monotonic() == 15
 
         assert limiter.is_blocked
+        assert limiter.block_duration_seconds == 5
         mocked_time_module.sleep(5)
         assert mocked_time_module.monotonic() == 20
 
         assert not limiter.is_blocked
+        assert limiter.block_duration_seconds == 0
         mocked_time_module.sleep(5)
         assert mocked_time_module.monotonic() == 25
         limiter.__exit__(None, None, None)
         assert not limiter.is_blocked
+        assert limiter.block_duration_seconds == 0
