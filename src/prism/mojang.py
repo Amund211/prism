@@ -10,7 +10,7 @@ from prism.requests import make_prism_requests_session
 from prism.retry import ExecutionError, execute_with_retry
 
 USERPROFILES_ENDPOINT = "https://api.mojang.com/users/profiles/minecraft"
-REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
+REQUEST_LIMIT, REQUEST_WINDOW = 600, 10 * 60  # Max requests per time window
 
 # Use a connection pool for the requests
 SESSION = make_prism_requests_session()
