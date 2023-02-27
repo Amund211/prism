@@ -44,7 +44,7 @@ def _make_request(username: str) -> requests.Response:  # pragma: nocover
 
 
 def get_uuid(
-    username: str, retry_limit: int = 5, timeout: float = 2
+    username: str, retry_limit: int = 3, timeout: float = 5
 ) -> str | None:  # pragma: nocover
     """Get the uuid of the user. None if not found."""
     with UUID_MUTEX:

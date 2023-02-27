@@ -63,8 +63,8 @@ def _make_request(
 def get_player_data(
     uuid: str,
     key_holder: HypixelAPIKeyHolder,
-    retry_limit: int = 5,
-    timeout: float = 2,
+    retry_limit: int = 3,
+    timeout: float = 5,
 ) -> dict[str, Any]:  # pragma: nocover
     """Get data about the given player from the /player API endpoint"""
 
