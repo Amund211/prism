@@ -20,5 +20,4 @@ from tests.prism.overlay.utils import create_state
     ),
 )
 def test_clear_party(before: OverlayState, after: OverlayState) -> None:
-    before.clear_party()
-    assert before == after
+    assert before.clear_party() == after

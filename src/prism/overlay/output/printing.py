@@ -1,4 +1,5 @@
 import os
+from collections.abc import Set
 
 from prism.overlay.output.utils import (
     COLUMN_NAMES,
@@ -85,7 +86,7 @@ def get_sep(column: str) -> str:
 
 def print_stats_table(
     sorted_stats: list[Player],
-    party_members: set[str],
+    party_members: Set[str],
     out_of_sync: bool,
     clear_between_draws: bool = True,
 ) -> None:  # pragma: nocover

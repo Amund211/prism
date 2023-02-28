@@ -1,107 +1,119 @@
 import logging
-import threading
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, replace
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class OverlayState:
-    """Dataclass holding the state of the overlay"""
+    """
+    Dataclass holding the state of the overlay
 
-    party_members: set[str]
-    lobby_players: set[str]
-    alive_players: set[str]
+    NOTE: Don't store any mutable data, as shallow copies are performed on this class.
+    """
+
+    party_members: frozenset[str] = frozenset()
+    lobby_players: frozenset[str] = frozenset()
+    alive_players: frozenset[str] = frozenset()
     out_of_sync: bool = False
     in_queue: bool = False
     own_username: str | None = None
-    mutex: threading.Lock = field(
-        default_factory=threading.Lock, init=False, compare=False, repr=False
-    )
 
-    def join_queue(self) -> None:
+    def join_queue(self) -> "OverlayState":
         """
         Join a queue by setting in_queue = True
 
         NOTE: Can modify the lobby, so call this before making any changes
         """
+        state = self
+
         if not self.in_queue:
             # This is a new queue -> clear the last lobby
             logger.info("Joining a new queue and clearing lobby")
-            self.clear_lobby()
+            state = self.clear_lobby()
 
-        self.in_queue = True
+        return replace(state, in_queue=True)
 
-    def leave_queue(self) -> None:
+    def leave_queue(self) -> "OverlayState":
         """
         Leave a queue by setting in_queue = False
 
         NOTE: The game starting counts as leaving the queue.
         """
         logger.info("Leaving the queue")
-        self.in_queue = False
+        return replace(self, in_queue=False)
 
-    def add_to_party(self, username: str) -> None:
+    def add_to_party(self, username: str) -> "OverlayState":
         """Add the given username to the party"""
-        self.party_members.add(username)
+        return replace(self, party_members=self.party_members | {username})
 
-    def remove_from_party(self, username: str) -> None:
+    def remove_from_party(self, username: str) -> "OverlayState":
         """Remove the given username from the party"""
         if username not in self.party_members:
             logger.warning(
                 f"Tried removing {username} from the party, but they were not in it!"
             )
-            return
+            return self
 
-        self.party_members.remove(username)
+        return replace(self, party_members=self.party_members - {username})
 
-    def clear_party(self) -> None:
+    def clear_party(self) -> "OverlayState":
         """Remove all players from the party, except for yourself"""
         logger.info("Clearing the party")
-        self.party_members.clear()
 
+        new_party: frozenset[str]
         if self.own_username is None:
             logger.warning("Own username is not set, party is now empty")
+            new_party = frozenset()
         else:
-            self.add_to_party(self.own_username)
+            new_party = frozenset({self.own_username})
 
-    def add_to_lobby(self, username: str) -> None:
+        return replace(self, party_members=new_party)
+
+    def add_to_lobby(self, username: str) -> "OverlayState":
         """Add the given username to the lobby"""
-        self.lobby_players.add(username)
-        self.alive_players.add(username)
+        return replace(
+            self,
+            lobby_players=self.lobby_players | {username},
+            alive_players=self.alive_players | {username},
+        )
 
-    def remove_from_lobby(self, username: str) -> None:
+    def remove_from_lobby(self, username: str) -> "OverlayState":
         """Remove the given username from the lobby"""
         if username not in self.lobby_players:
+            new_lobby = self.lobby_players
             logger.info(
                 f"Tried removing {username} from the lobby, but they were not in it!"
             )
         else:
-            self.lobby_players.remove(username)
+            new_lobby = self.lobby_players - {username}
 
         if username not in self.alive_players:
+            new_alive = self.alive_players
             logger.info(
                 f"Tried removing {username} from the lobby, but they were not alive!"
             )
         else:
-            self.alive_players.remove(username)
+            new_alive = self.alive_players - {username}
 
-    def set_lobby(self, new_lobby: Iterable[str]) -> None:
+        return replace(self, lobby_players=new_lobby, alive_players=new_alive)
+
+    def set_lobby(self, new_lobby: Iterable[str]) -> "OverlayState":
         """Set the lobby to be the given lobby"""
-        self.lobby_players = set(new_lobby)
-        self.alive_players = self.lobby_players.copy()
+        new_lobby_set = frozenset(new_lobby)
+        return replace(self, lobby_players=new_lobby_set, alive_players=new_lobby_set)
 
-    def clear_lobby(self) -> None:
+    def clear_lobby(self) -> "OverlayState":
         """Remove all players from the lobby"""
         # Don't include yourself in the new lobby.
         # Your name usually appears as a join message anyway, and you may be nicked
-        self.set_lobby([])
+        return self.set_lobby([])
 
-    def mark_dead(self, username: str) -> None:
+    def mark_dead(self, username: str) -> "OverlayState":
         """Mark the given username as dead"""
         if username not in self.alive_players:
             logger.info(f"Tried marking {username} as dead, but they were not alive!")
-            return
+            return self
 
-        self.alive_players.remove(username)
+        return replace(self, alive_players=self.alive_players - {username})

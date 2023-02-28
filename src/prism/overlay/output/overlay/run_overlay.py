@@ -35,6 +35,9 @@ def run_overlay(
     def get_new_data() -> (
         tuple[bool, list[InfoCellValue], list[OverlayRowData[PropertyName]] | None]
     ):
+        # Store a persistent view to the current state
+        state = controller.state
+
         new_players = fetch_state_updates()
         new_rows = (
             [player_to_row(player) for player in new_players]
@@ -43,7 +46,7 @@ def run_overlay(
         )
 
         info_cells = []
-        if controller.state.out_of_sync:
+        if state.out_of_sync:
             info_cells.append(
                 InfoCellValue(
                     text="Overlay out of sync. Use /who", color="orange", url=None
@@ -91,7 +94,7 @@ def run_overlay(
                 )
             )
 
-        return controller.state.in_queue, info_cells, new_rows
+        return state.in_queue, info_cells, new_rows
 
     overlay = StatsOverlay[PropertyName](
         column_order=COLUMN_ORDER,

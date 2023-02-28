@@ -1,4 +1,5 @@
 import logging
+from dataclasses import replace
 from typing import Iterable
 
 from prism.overlay.behaviour import (
@@ -9,26 +10,24 @@ from prism.overlay.behaviour import (
 from prism.overlay.controller import OverlayController
 from prism.overlay.events import Event, EventType
 from prism.overlay.parsing import parse_logline
+from prism.overlay.state import OverlayState
 
 logger = logging.getLogger(__name__)
 
 
-def process_event(controller: OverlayController, event: Event) -> bool:
-    """
-    Update the state based on the event, return True if a redraw is desired
-
-    NOTE: Caller must acquire controller.state.mutex
-    """
+def process_event(
+    controller: OverlayController, event: Event
+) -> tuple[OverlayState, bool]:
+    """Return an updated OverlayState, and a boolean flag redraw"""
+    # Store a persistent view to the current state
     state = controller.state
 
     if event.event_type is EventType.INITIALIZE_AS:
         # Initializing means the player restarted/switched accounts -> clear the state
-        state.own_username = event.username
-        state.clear_party()
-        state.clear_lobby()
-
         logger.info(f"Playing as {state.own_username}. Cleared party and lobby.")
-        return True
+
+        new_state = replace(state, own_username=event.username)
+        return new_state.clear_party().clear_lobby(), True
 
     if event.event_type is EventType.NEW_NICKNAME:
         # User got a new nickname
@@ -37,119 +36,107 @@ def process_event(controller: OverlayController, event: Event) -> bool:
             logger.warning(
                 "Own username is not set, could not add denick entry for {event.nick}."
             )
-            return False
+            return state, False
 
         set_nickname(
             username=state.own_username, nick=event.nick, controller=controller
         )
 
         # We should redraw so that we can properly denick ourself
-        return True
+        return state, True
 
     if event.event_type is EventType.LOBBY_SWAP:
         # Changed lobby -> clear the lobby
         logger.info("Received lobby swap. Clearing the lobby")
-        state.clear_lobby()
-        state.leave_queue()
-
-        return True
+        return state.clear_lobby().leave_queue(), True
 
     if event.event_type is EventType.LOBBY_LIST:
         # Results from /who -> override lobby_players
         logger.info(
             f"Updating lobby players from who command: '{', '.join(event.usernames)}'"
         )
+
         # TODO: This is the correct logic for when we do /who in queue, but not in game.
         #       /who in game returns only the list of alive players.
-        state.out_of_sync = False
-        state.join_queue()
-        state.set_lobby(event.usernames)
-
-        return True
+        new_state = replace(state, out_of_sync=False)
+        return new_state.join_queue().set_lobby(event.usernames), True
 
     if event.event_type is EventType.LOBBY_JOIN:
         if event.player_cap < 8:
             logger.debug("Gamemode has too few players to be bedwars. Skipping.")
-            return False
+            return state, False
 
-        state.join_queue()
-        state.add_to_lobby(event.username)
+        new_state = state.join_queue().add_to_lobby(event.username)
 
-        if event.player_count != len(state.lobby_players):
+        if event.player_count != len(new_state.lobby_players):
             # We are out of sync with the lobby.
             # This happens when you first join a lobby, as the previous lobby is
             # never cleared. It could also be due to a bug.
             logger.debug("Player count out of sync.")
             out_of_sync = True
 
-            if event.player_count < len(state.lobby_players):
+            if event.player_count < len(new_state.lobby_players):
                 # We know of too many players, some must actually not be in the lobby
                 logger.debug("Too many players in lobby. Clearing.")
-                state.clear_lobby()
-                state.add_to_lobby(event.username)
+                new_state = new_state.clear_lobby().add_to_lobby(event.username)
 
                 # Clearing the lobby may have gotten us back in sync
-                out_of_sync = event.player_count != len(state.lobby_players)
-
-            state.out_of_sync = out_of_sync
+                out_of_sync = event.player_count != len(new_state.lobby_players)
         else:
             # We are in sync now
-            state.out_of_sync = False
+            out_of_sync = False
 
         logger.info(
             f"{event.username} joined your lobby "
             f"({event.player_count}/{event.player_cap})"
         )
 
-        return True
+        return replace(new_state, out_of_sync=out_of_sync), True
 
     if event.event_type is EventType.LOBBY_LEAVE:
         # Someone left the lobby -> Remove them from the lobby
-        state.remove_from_lobby(event.username)
-
         logger.info(f"{event.username} left your lobby")
 
-        return True
+        return state.remove_from_lobby(event.username), True
 
     if event.event_type is EventType.PARTY_DETACH:
         # Leaving the party -> remove all but yourself from the party
         logger.info("Leaving the party, clearing all members")
 
-        state.clear_party()
-
-        return True
+        return state.clear_party(), True
 
     if event.event_type is EventType.PARTY_ATTACH:
         # You joined a player's party -> add them to your party
-        state.clear_party()  # Make sure the party is clean to start with
-        state.add_to_party(event.username)
 
         logger.info(f"Joined {event.username}'s party")
 
-        return True
+        # Make sure the party is clean to start with
+        return state.clear_party().add_to_party(event.username), True
 
     if event.event_type is EventType.PARTY_JOIN:
         # Someone joined your party -> add them to your party
+        new_state = state
         for username in event.usernames:
-            state.add_to_party(username)
+            new_state = new_state.add_to_party(username)
 
         logger.info(f"{' ,'.join(event.usernames)} joined your party")
 
-        return True
+        return new_state, True
 
     if event.event_type is EventType.PARTY_LEAVE:
         if state.own_username in event.usernames:
             # You left the party -> clear the party instead
-            state.clear_party()
-            return True
+            return state.clear_party(), True
+
+        new_state = state
 
         # Someone left your party -> remove them from your party
         for username in event.usernames:
-            state.remove_from_party(username)
+            new_state = new_state.remove_from_party(username)
 
         logger.info(f"{' ,'.join(event.usernames)} left your party")
 
-        return True
+        return new_state, True
 
     if event.event_type is EventType.PARTY_LIST_INCOMING:
         # This is a response from /pl (/party list)
@@ -159,53 +146,52 @@ def process_event(controller: OverlayController, event: Event) -> bool:
             "Receiving response from /pl -> clearing party and awaiting further data"
         )
 
-        state.clear_party()
-
-        return False  # No need to redraw as we're waiting for further input
+        # No need to redraw as we're waiting for further input
+        return state.clear_party(), False
 
     if event.event_type is EventType.PARTY_ROLE_LIST:
         logger.info(f"Adding party {event.role} {', '.join(event.usernames)} from /pl")
 
+        new_state = state
         for username in event.usernames:
-            state.add_to_party(username)
+            new_state = new_state.add_to_party(username)
 
-        return True
+        return new_state, True
 
     if event.event_type is EventType.START_BEDWARS_GAME:
         # Bedwars game has started
         logger.info("Bedwars game starting")
-        state.leave_queue()
+
+        # TODO: Fix autodenicking
         # Try to denick a teammate
         autodenick_teammate(controller)
 
-        return False
+        return state.leave_queue(), False
 
     if event.event_type is EventType.BEDWARS_FINAL_KILL:
         # Bedwars final kill
         logger.info(f"Final kill: {event.dead_player} - {event.raw_message}")
-        state.mark_dead(event.dead_player)
 
-        return True
+        return state.mark_dead(event.dead_player), True
 
     if event.event_type is EventType.END_BEDWARS_GAME:
         # Bedwars game has ended
         logger.info("Bedwars game ended")
-        state.clear_lobby()
 
-        return True
+        return state.clear_lobby(), True
 
     if event.event_type is EventType.NEW_API_KEY:
         # User got a new API key
         logger.info("Setting new API key")
         set_hypixel_api_key(event.key, controller)
 
-        return True
+        return state, True
 
     if event.event_type is EventType.WHISPER_COMMAND_SET_NICK:
         # User set a nick with /w !nick=username
         logger.info(f"Setting nick from whisper command {event.nick}={event.username}")
         set_nickname(username=event.username, nick=event.nick, controller=controller)
-        return True
+        return state, True
 
 
 def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -> None:
@@ -217,7 +203,7 @@ def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -
         if event is None:
             continue
 
-        process_event(controller, event)
+        controller.state, redraw = process_event(controller, event)
     logger.info("Done fast forwarding state")
 
 
@@ -229,8 +215,7 @@ def process_loglines(loglines: Iterable[str], controller: OverlayController) -> 
         if event is None:
             continue
 
-        with controller.state.mutex:
-            redraw = process_event(controller, event)
+        controller.state, redraw = process_event(controller, event)
 
         if redraw:
             # Tell the main thread we need a redraw

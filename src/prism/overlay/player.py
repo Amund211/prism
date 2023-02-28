@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Set
 from dataclasses import dataclass, field, replace
 from typing import Any, Literal, TypedDict, overload
 
@@ -213,7 +213,7 @@ RatePlayerReturn = tuple[bool, bool, KnownPlayerOrder]
 
 
 def rate_player(
-    party_members: set[str],
+    party_members: Set[str],
 ) -> Callable[[Player], RatePlayerReturn]:
     def rate_stats(player: Player) -> RatePlayerReturn:
         """Used as a key function for sorting"""
@@ -238,7 +238,7 @@ def rate_player(
     return rate_stats
 
 
-def sort_players(players: list[Player], party_members: set[str]) -> list[Player]:
+def sort_players(players: list[Player], party_members: Set[str]) -> list[Player]:
     """Sort the stats based on fkdr. Order party members last"""
     return list(
         sorted(

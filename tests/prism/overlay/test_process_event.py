@@ -396,7 +396,7 @@ def test_process_event(
     redraw: bool,
 ) -> None:
     """Assert that process_event functions properly"""
-    will_redraw = process_event(initial_controller, event)
+    initial_controller.state, will_redraw = process_event(initial_controller, event)
 
     new_controller = initial_controller
     assert new_controller == target_controller
@@ -421,7 +421,7 @@ def test_process_event_set_nickname(event: Event) -> None:
     with unittest.mock.patch(
         "prism.overlay.process_event.set_nickname"
     ) as patched_set_nickname:
-        will_redraw = process_event(controller, event)
+        new_state, will_redraw = process_event(controller, event)
 
     assert patched_set_nickname.called_with(nick=nick, username=username)
     assert will_redraw
@@ -434,7 +434,7 @@ def test_process_event_set_hypixel_api_key() -> None:
     with unittest.mock.patch(
         "prism.overlay.process_event.set_hypixel_api_key"
     ) as patched_set_hypixel_api_key:
-        will_redraw = process_event(controller, NewAPIKeyEvent("my-new-key"))
+        new_state, will_redraw = process_event(controller, NewAPIKeyEvent("my-new-key"))
 
     assert patched_set_hypixel_api_key.called_with("my-new-key")
     assert will_redraw
@@ -449,7 +449,7 @@ def test_process_event_autodenick_teammate() -> None:
     with unittest.mock.patch(
         "prism.overlay.process_event.autodenick_teammate"
     ) as patched_autodenick_teammate:
-        will_redraw = process_event(controller, StartBedwarsGameEvent())
+        new_state, will_redraw = process_event(controller, StartBedwarsGameEvent())
 
     patched_autodenick_teammate.assert_called_once()
     assert not will_redraw

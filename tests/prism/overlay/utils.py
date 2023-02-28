@@ -1,5 +1,5 @@
 import threading
-from collections.abc import Callable
+from collections.abc import Callable, Set
 from dataclasses import InitVar, dataclass, field, replace
 from pathlib import Path
 from typing import Any, Literal, TypedDict, overload
@@ -81,20 +81,20 @@ def make_player(
 
 
 def create_state(
-    party_members: set[str] = set(),
-    lobby_players: set[str] = set(),
-    alive_players: set[str] | None = None,
+    party_members: Set[str] = frozenset(),
+    lobby_players: Set[str] = frozenset(),
+    alive_players: Set[str] | None = None,
     out_of_sync: bool = False,
     in_queue: bool = False,
     own_username: str | None = OWN_USERNAME,
 ) -> OverlayState:
-    yourself = set() if own_username is None else set([own_username])
+    yourself = frozenset() if own_username is None else frozenset([own_username])
     return OverlayState(
-        party_members=party_members | yourself,
-        lobby_players=lobby_players,
-        alive_players=alive_players
+        party_members=frozenset(party_members | yourself),
+        lobby_players=frozenset(lobby_players),
+        alive_players=frozenset(alive_players)
         if alive_players is not None
-        else lobby_players.copy(),
+        else frozenset(lobby_players),
         out_of_sync=out_of_sync,
         in_queue=in_queue,
         own_username=own_username,

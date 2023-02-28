@@ -3,6 +3,7 @@ import os
 import sys
 import tkinter as tk
 from collections.abc import Callable
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from prism import VERSION_STRING
@@ -100,8 +101,7 @@ class Toolbar:  # pragma: nocover
 
         # Minimize button
         def minimize() -> None:
-            with controller.state.mutex:
-                controller.state.in_queue = False
+            controller.state = replace(controller.state, in_queue=False)
 
             self.overlay.window.hide()
 

@@ -82,14 +82,13 @@ def process_loglines_to_stdout(
         if sorted_stats is None:
             continue
 
-        with controller.state.mutex:
-            party_members = controller.state.party_members.copy()
-            out_of_sync = controller.state.out_of_sync
+        # Store a persistent view to the current state
+        state = controller.state
 
         print_stats_table(
             sorted_stats=sorted_stats,
-            party_members=party_members,
-            out_of_sync=out_of_sync,
+            party_members=state.party_members,
+            out_of_sync=state.out_of_sync,
             clear_between_draws=CLEAR_BETWEEN_DRAWS,
         )
 
@@ -113,14 +112,13 @@ def process_loglines_to_overlay(
             sorted_stats = original_get_stat_list()
 
             if sorted_stats is not None:
-                with controller.state.mutex:
-                    party_members = controller.state.party_members.copy()
-                    out_of_sync = controller.state.out_of_sync
+                # Store a persistent view to the current state
+                state = controller.state
 
                 print_stats_table(
                     sorted_stats=sorted_stats,
-                    party_members=party_members,
-                    out_of_sync=out_of_sync,
+                    party_members=state.party_members,
+                    out_of_sync=state.out_of_sync,
                     clear_between_draws=CLEAR_BETWEEN_DRAWS,
                 )
 
@@ -141,7 +139,7 @@ def watch_from_logfile(
 
     assert overlay or console, "Need at least one output"
 
-    state = OverlayState(lobby_players=set(), alive_players=set(), party_members=set())
+    state = OverlayState()
 
     controller = RealOverlayController(
         state=state,
@@ -281,7 +279,7 @@ def test() -> None:  # pragma: nocover
     nick_database = NickDatabase.from_disk([], default_database=default_database)
 
     # watch_from_logfile
-    state = OverlayState(lobby_players=set(), alive_players=set(), party_members=set())
+    state = OverlayState()
 
     controller = RealOverlayController(
         state=state,

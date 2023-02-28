@@ -95,9 +95,8 @@ class SetNicknamePage:  # pragma: nocover
 
     def set_content(self, nickname: str) -> None:
         """Set the content of the page to match the given nick and the party members"""
-        with self.controller.state.mutex:
-            party_members = self.controller.state.party_members.copy()
-            lobby_players = self.controller.state.lobby_players.copy()
+        # Store a persistent view to the current state
+        state = self.controller.state
 
         # Store what nick we are denicking
         self.current_nickname = nickname
@@ -110,7 +109,7 @@ class SetNicknamePage:  # pragma: nocover
         self.save_button.config(state="disabled")
 
         # Usernames in your party but not in the lobby
-        potential_usernames = party_members.difference(lobby_players)
+        potential_usernames = state.party_members.difference(state.lobby_players)
 
         # Set choices of dropdown
         self.username_menu["menu"].delete(0, "end")

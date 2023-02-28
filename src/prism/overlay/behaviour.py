@@ -108,11 +108,10 @@ def should_redraw(
         else:
             completed_stats_queue.task_done()
             if not redraw:
-                with controller.state.mutex:
-                    if username in controller.state.lobby_players:
-                        # We just received the stats of a player in the lobby
-                        # Redraw the screen in case the stats weren't there last time
-                        redraw = True
+                if username in controller.state.lobby_players:
+                    # We just received the stats of a player in the lobby
+                    # Redraw the screen in case the stats weren't there last time
+                    redraw = True
 
     if redraw:
         # We are going to redraw - clear any redraw request
@@ -250,48 +249,47 @@ def autodenick_teammate(controller: OverlayController) -> None:
         *One* of our teammates is not in the lobby
         There is *one* nick in the lobby
     We denick that nick to be our teammate
-
-    NOTE: Caller must acquire controller.state.mutex
     """
+    # Store a persistent view to the current state
+    state = controller.state
 
     if (
         controller.api_key_invalid
         or controller.api_key_throttled
-        or controller.state.in_queue
-        or controller.state.out_of_sync
+        or state.in_queue
+        or state.out_of_sync
     ):
         return
 
-    missing_teammates = controller.state.party_members - controller.state.lobby_players
+    missing_teammates = state.party_members - state.lobby_players
 
     if len(missing_teammates) != 1:
         return
 
-    teammate = missing_teammates.pop()
+    # Unpack to get the one element
+    (teammate,) = missing_teammates
 
     logger.info(f"Attempting to autodenick teammate {teammate}")
 
-    lobby_size = len(controller.state.lobby_players)
+    lobby_size = len(state.lobby_players)
 
-    # Sometimes players can join slightly after the game has started
-    # If one of our teammates joins late, this could confuse the algorithm
+    # Make sure the lobby is full, so that we know that all our teammates have joined
     # TODO: Make a better check that the lobby is full (e.g. 16/16)
     if lobby_size != 8 and lobby_size != 12 and lobby_size != 16:
         logger.info(f"Aborting autodenick due to non-full lobby {lobby_size=}")
         return
 
-    if controller.state.lobby_players != controller.state.alive_players:
+    if state.lobby_players != state.alive_players:
         logger.error(
             "Aborting autodenick due to mismatch in lobby/alive, "
-            f"lobby={controller.state.lobby_players}, "
-            f"alive={controller.state.alive_players}"
+            f"lobby={state.lobby_players}, alive={state.alive_players}"
         )
         return
 
     nicked_player: NickedPlayer | None = None
 
     # Check that there is exactly one unknown nick in the lobby
-    for player in controller.state.lobby_players:
+    for player in state.lobby_players:
         # Use the long term cache, as the recency doesn't matter
         # We just want to know if they're an unknown nick or not
         stats = controller.player_cache.get_cached_player(player, long_term=True)
@@ -321,6 +319,4 @@ def autodenick_teammate(controller: OverlayController) -> None:
 
     logger.info(f"Denicked teammate {nicked_player.nick} -> {teammate}")
 
-    # NOTE: set_nickname acquires some locks, and we have controller.state.mutex
-    #       Make sure we don't deadlock here
     set_nickname(username=teammate, nick=nicked_player.nick, controller=controller)
