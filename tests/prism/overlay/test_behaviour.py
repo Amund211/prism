@@ -157,8 +157,8 @@ def test_process_event_set_api_key() -> None:
         (False, (), False),
         (False, ("Random1", "Random2"), False),
         (True, (), True),
-        (False, ("Random1", "Random2", "Me"), True),
-        (True, ("Player1", "Random2", "Me"), True),
+        (False, ("Random1", "Random2", "OwnUsername"), True),
+        (True, ("Player1", "Random2", "OwnUsername"), True),
     ),
 )
 def test_should_redraw(
@@ -166,9 +166,7 @@ def test_should_redraw(
 ) -> None:
     controller = MockedController(
         state=create_state(
-            own_username="Me",
-            lobby_players={"Me", "Player1", "Player2"},
-            in_queue=True,
+            lobby_players={"OwnUsername", "Player1", "Player2"}, in_queue=True
         )
     )
 
@@ -367,13 +365,13 @@ class LobbyPlayer:
 @pytest.mark.parametrize(
     "lobby, party_members, denick",
     (
-        ((), set(), None),
-        ((LobbyPlayer(username="Player1"),), {"Player1"}, None),
-        ((LobbyPlayer(nick="SomeNick"),), {"Player1"}, None),  # Too few players
+        ((), {"OwnUsername"}, None),
+        ((LobbyPlayer(username="OwnUsername"),), {"OwnUsername"}, None),
+        ((LobbyPlayer(nick="SomeNick"),), {"OwnUsername"}, None),  # Too few players
         (
             # No nicks
             (
-                LobbyPlayer(username="Player1"),
+                LobbyPlayer(username="OwnUsername"),
                 LobbyPlayer(username="Player2"),
                 LobbyPlayer(username="Player3"),
                 LobbyPlayer(username="Player4"),
@@ -382,13 +380,13 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player7"),
                 LobbyPlayer(username="Player8"),
             ),
-            {"Player1"},
+            {"OwnUsername"},
             None,
         ),
         (
             # One nick, but we are not nicked
             (
-                LobbyPlayer(username="Player1"),
+                LobbyPlayer(username="OwnUsername"),
                 LobbyPlayer(username="Player2"),
                 LobbyPlayer(username="Player3"),
                 LobbyPlayer(username="Player4"),
@@ -397,7 +395,7 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player7"),
                 LobbyPlayer(nick="Nick8"),
             ),
-            {"Player1"},
+            {"OwnUsername"},
             None,
         ),
         (
@@ -412,8 +410,8 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player7"),
                 LobbyPlayer(username="Player8"),
             ),
-            {"Player1"},
-            LobbyPlayer(username="Player1", nick="Nick1"),
+            {"OwnUsername"},
+            LobbyPlayer(username="OwnUsername", nick="Nick1"),
         ),
         (
             # Two nicks
@@ -427,7 +425,7 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player7"),
                 LobbyPlayer(username="Player8"),
             ),
-            {"Player1"},
+            {"OwnUsername"},
             None,
         ),
         (
@@ -442,7 +440,7 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player7"),
                 LobbyPlayer(username="Player8"),
             ),
-            {"Player1", "Teammate"},
+            {"OwnUsername", "Teammate"},
             None,
         ),
         (
@@ -457,7 +455,7 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player7"),
                 LobbyPlayer(username="Player8"),
             ),
-            {"Player1", "Teammate"},
+            {"OwnUsername", "Teammate"},
             None,
         ),
         (
@@ -471,7 +469,7 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player6"),
                 LobbyPlayer(username="Player7"),
             ),
-            {"Player1"},
+            {"OwnUsername"},
             None,
         ),
         (
@@ -486,7 +484,7 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player7"),
                 LobbyPlayer(username="Player8"),
             ),
-            {"Player1"},
+            {"OwnUsername"},
             None,
         ),
         (
@@ -501,7 +499,7 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player7"),
                 LobbyPlayer(username="Player8"),
             ),
-            {"Player1"},
+            {"OwnUsername"},
             None,
         ),
         (
@@ -516,7 +514,7 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player7"),
                 LobbyPlayer(username="Player8"),
             ),
-            {"Player1"},
+            {"OwnUsername"},
             None,
         ),
         (
@@ -531,11 +529,11 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player7", nick="P7Nick"),
                 LobbyPlayer(username="Player8"),
             ),
-            {"Player1"},
-            LobbyPlayer(username="Player1", nick="Nick1"),
+            {"OwnUsername"},
+            LobbyPlayer(username="OwnUsername", nick="Nick1"),
         ),
         (
-            # Player1 not joined yet somehow
+            # OwnUsername not joined yet somehow
             (
                 LobbyPlayer(username="Someone"),
                 LobbyPlayer(username="Player2"),
@@ -546,13 +544,13 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player7"),
                 LobbyPlayer(username="Player8"),
             ),
-            {"Player1"},
+            {"OwnUsername"},
             None,
         ),
         (
             # One nick - our teammate
             (
-                LobbyPlayer(username="Player1"),
+                LobbyPlayer(username="OwnUsername"),
                 LobbyPlayer(username="Player2"),
                 LobbyPlayer(username="Player3"),
                 LobbyPlayer(username="Player4"),
@@ -569,13 +567,13 @@ class LobbyPlayer:
                 LobbyPlayer(nick="Nick15"),
                 LobbyPlayer(username="Player16"),
             ),
-            {"Player1", "Player3", "Player9", "Player15"},
+            {"OwnUsername", "Player3", "Player9", "Player15"},
             LobbyPlayer(username="Player15", nick="Nick15"),
         ),
         (
             # Lobby not full
             (
-                LobbyPlayer(username="Player1"),
+                LobbyPlayer(username="OwnUsername"),
                 LobbyPlayer(username="Player2"),
                 LobbyPlayer(username="Player3"),
                 LobbyPlayer(username="Player4"),
@@ -591,13 +589,13 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player14"),
                 LobbyPlayer(nick="Nick15"),
             ),
-            {"Player1", "Player3", "Player9", "Player15"},
+            {"OwnUsername", "Player3", "Player9", "Player15"},
             None,
         ),
         (
             # Multiple unknown nicks
             (
-                LobbyPlayer(username="Player1"),
+                LobbyPlayer(username="OwnUsername"),
                 LobbyPlayer(username="Player2"),
                 LobbyPlayer(username="Player3"),
                 LobbyPlayer(username="Player4"),
@@ -613,13 +611,13 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player14"),
                 LobbyPlayer(nick="Nick15"),
             ),
-            {"Player1", "Player3", "Player9", "Player15"},
+            {"OwnUsername", "Player3", "Player9", "Player15"},
             None,
         ),
         (
             # Multiple unknown nicks + missing teammates
             (
-                LobbyPlayer(username="Player1"),
+                LobbyPlayer(username="OwnUsername"),
                 LobbyPlayer(username="Player2"),
                 LobbyPlayer(username="Player3"),
                 LobbyPlayer(username="Player4"),
@@ -635,13 +633,13 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player14"),
                 LobbyPlayer(nick="Nick15"),
             ),
-            {"Player1", "Player3", "Player9", "Player15"},
+            {"OwnUsername", "Player3", "Player9", "Player15"},
             None,
         ),
         (
             # Api failure causes teammate to be marked as unknown nick
             (
-                LobbyPlayer(username="Player1"),
+                LobbyPlayer(username="OwnUsername"),
                 LobbyPlayer(username="Player2"),
                 LobbyPlayer(username="Player3"),
                 LobbyPlayer(username="Player4"),
@@ -657,7 +655,7 @@ class LobbyPlayer:
                 LobbyPlayer(username="Player14"),
                 LobbyPlayer(username="Player15"),
             ),
-            {"Player1", "Player3", "Player9", "Player15"},
+            {"OwnUsername", "Player3", "Player9", "Player15"},
             None,
         ),
     ),
@@ -688,7 +686,6 @@ def test_autodenick_teammate(
             party_members=party_members,
             in_queue=True,
             out_of_sync=False,
-            own_username="Player1",
         )
     )
 
@@ -772,10 +769,8 @@ def test_autodenick_alive_players_mismatch() -> None:
                 "Player6",
                 "Player7",
             },
-            party_members={"Player1"},
             in_queue=True,
             out_of_sync=False,
-            own_username="Player1",
         )
     )
 

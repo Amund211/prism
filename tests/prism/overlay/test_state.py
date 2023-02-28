@@ -8,10 +8,10 @@ from tests.prism.overlay.utils import create_state
     "before, after",
     (
         (create_state(), create_state()),
-        (create_state(party_members={"Player1", "Player2"}), create_state()),
+        (create_state(party_members={"OwnUsername", "Player2"}), create_state()),
         (
-            create_state(own_username="Me", party_members=set()),
-            create_state(own_username="Me", party_members={"Me"}),
+            OverlayState(party_members=frozenset(), own_username="OwnUsername"),
+            create_state(),
         ),
         (
             create_state(own_username=None, party_members=set()),

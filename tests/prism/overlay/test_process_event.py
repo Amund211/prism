@@ -51,11 +51,11 @@ process_event_test_cases_base: tuple[
         "swap lobby",
         MockedController(
             state=create_state(
-                party_members={"Player1", "Player2"}, lobby_players={"RandomPlayer"}
+                party_members={"OwnUsername", "Player2"}, lobby_players={"RandomPlayer"}
             )
         ),
         LobbySwapEvent(),
-        MockedController(state=create_state(party_members={"Player1", "Player2"})),
+        MockedController(state=create_state(party_members={"OwnUsername", "Player2"})),
         True,
     ),
     (
@@ -98,23 +98,23 @@ process_event_test_cases_base: tuple[
         "party attach",
         MockedController(),
         PartyAttachEvent("Player2"),
-        MockedController(state=create_state(party_members={"Player2"})),
+        MockedController(state=create_state(party_members={"OwnUsername", "Player2"})),
         True,
     ),
     (
         "party detach",
-        MockedController(state=create_state(party_members={"Player1", "Player2"})),
+        MockedController(state=create_state(party_members={"OwnUsername", "Player2"})),
         PartyDetachEvent(),
         MockedController(),
         True,
     ),
     (
         "party join multiple",
-        MockedController(state=create_state(party_members={"Player1", "Player2"})),
+        MockedController(state=create_state(party_members={"OwnUsername", "Player2"})),
         PartyJoinEvent(["Player3", "Player4"]),
         MockedController(
             state=create_state(
-                party_members={"Player1", "Player2", "Player3", "Player4"}
+                party_members={"OwnUsername", "Player2", "Player3", "Player4"}
             )
         ),
         True,
@@ -122,25 +122,25 @@ process_event_test_cases_base: tuple[
     (
         "party leave",
         MockedController(
-            state=create_state(party_members={"Player1", "Player2", "Player3"})
+            state=create_state(party_members={"OwnUsername", "Player2", "Player3"})
         ),
         PartyLeaveEvent(["Player3"]),
-        MockedController(state=create_state(party_members={"Player1", "Player2"})),
+        MockedController(state=create_state(party_members={"OwnUsername", "Player2"})),
         True,
     ),
     (
         "party leave multiple",
         MockedController(
-            state=create_state(party_members={"Player1", "Player2", "Player3"})
+            state=create_state(party_members={"OwnUsername", "Player2", "Player3"})
         ),
         PartyLeaveEvent(["Player3", "Player2"]),
-        MockedController(state=create_state(party_members={"Player1"})),
+        MockedController(state=create_state(party_members={"OwnUsername"})),
         True,
     ),
     (
         "party list incoming",
         MockedController(
-            state=create_state(party_members={"Player1", "Player2", "Player3"})
+            state=create_state(party_members={"OwnUsername", "Player2", "Player3"})
         ),
         PartyListIncomingEvent(),
         MockedController(),
@@ -148,10 +148,10 @@ process_event_test_cases_base: tuple[
     ),
     (
         "party list moderators",
-        MockedController(state=create_state(party_members={"Player3"})),
+        MockedController(state=create_state(party_members={"OwnUsername"})),
         PartyMembershipListEvent(usernames=["Player1", "Player2"], role="moderators"),
         MockedController(
-            state=create_state(party_members={"Player1", "Player2", "Player3"})
+            state=create_state(party_members={"Player1", "Player2", "OwnUsername"})
         ),
         True,
     ),
@@ -240,9 +240,9 @@ process_event_test_cases_base: tuple[
     (
         # Player not in party leaves party
         "player not in party leaves party",
-        MockedController(state=create_state(party_members={"Player1", "Player2"})),
+        MockedController(state=create_state(party_members={"OwnUsername", "Player2"})),
         PartyLeaveEvent(["RandomPlayer"]),
-        MockedController(state=create_state(party_members={"Player1", "Player2"})),
+        MockedController(state=create_state(party_members={"OwnUsername", "Player2"})),
         # TODO: False,
         True,
     ),
@@ -351,24 +351,24 @@ process_event_test_cases_base: tuple[
     ),
     (
         "don't remove yourself from the party",
-        MockedController(state=create_state(own_username="myusername")),
-        PartyLeaveEvent(["myusername"]),
-        MockedController(state=create_state(own_username="myusername")),
+        MockedController(state=create_state()),
+        PartyLeaveEvent(["OwnUsername"]),
+        MockedController(state=create_state()),
         True,
     ),
     (
         "clear the party when you leave",
         MockedController(
-            state=create_state(party_members={"abc", "def"}, own_username="myusername")
+            state=create_state(party_members={"OwnUsername", "abc", "def"})
         ),
-        PartyLeaveEvent(["myusername"]),
-        MockedController(state=create_state(own_username="myusername")),
+        PartyLeaveEvent(["OwnUsername"]),
+        MockedController(state=create_state()),
         True,
     ),
     (
         "party leave with no own_username",
         MockedController(state=create_state(own_username=None)),
-        PartyLeaveEvent(["myusername"]),
+        PartyLeaveEvent(["OwnUsername"]),
         MockedController(state=create_state(own_username=None)),
         True,
     ),
@@ -507,9 +507,8 @@ INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.m
             MockedController(
                 state=create_state(
                     in_queue=True,
-                    own_username="1",
                     lobby_players={
-                        "1",
+                        "OwnUsername",
                         "2",
                         "3",
                         "4",
@@ -541,9 +540,8 @@ INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.m
             MockedController(
                 state=create_state(
                     in_queue=False,
-                    own_username="1",
                     lobby_players={
-                        "1",
+                        "OwnUsername",
                         "2",
                         "3",
                         "4",

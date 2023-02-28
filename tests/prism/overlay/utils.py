@@ -81,16 +81,23 @@ def make_player(
 
 
 def create_state(
-    party_members: Set[str] = frozenset(),
+    party_members: Set[str] | None = None,
     lobby_players: Set[str] = frozenset(),
     alive_players: Set[str] | None = None,
     out_of_sync: bool = False,
     in_queue: bool = False,
     own_username: str | None = OWN_USERNAME,
 ) -> OverlayState:
-    yourself = frozenset() if own_username is None else frozenset([own_username])
+    if party_members is None:
+        party_members = (
+            frozenset() if own_username is None else frozenset([own_username])
+        )
+
+    if own_username is not None:
+        assert own_username in party_members, f"{own_username} must be in the party"
+
     return OverlayState(
-        party_members=frozenset(party_members | yourself),
+        party_members=frozenset(party_members),
         lobby_players=frozenset(lobby_players),
         alive_players=frozenset(alive_players)
         if alive_players is not None
