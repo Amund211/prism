@@ -162,8 +162,7 @@ def process_event(
         # Bedwars game has started
         logger.info("Bedwars game starting")
 
-        # TODO: Fix autodenicking
-        # Try to denick a teammate
+        # Try to denick a teammate right before we leave the queue (start the game)
         autodenick_teammate(controller)
 
         return state.leave_queue(), False

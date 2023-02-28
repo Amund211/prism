@@ -686,7 +686,7 @@ def test_autodenick_teammate(
         state=create_state(
             lobby_players=lobby_players,
             party_members=party_members,
-            in_queue=False,
+            in_queue=True,
             out_of_sync=False,
             own_username="Player1",
         )
@@ -730,12 +730,12 @@ def test_autodenick_teammate(
 @pytest.mark.parametrize(
     "controller",
     (
-        MockedController(state=create_state(in_queue=True)),
+        MockedController(state=create_state(in_queue=False)),
         MockedController(state=create_state(out_of_sync=True)),
         MockedController(api_key_invalid=True),
         MockedController(api_key_throttled=True),
         MockedController(
-            state=create_state(in_queue=True, out_of_sync=True),
+            state=create_state(in_queue=False, out_of_sync=True),
             api_key_invalid=True,
             api_key_throttled=True,
         ),
@@ -773,7 +773,7 @@ def test_autodenick_alive_players_mismatch() -> None:
                 "Player7",
             },
             party_members={"Player1"},
-            in_queue=False,
+            in_queue=True,
             out_of_sync=False,
             own_username="Player1",
         )

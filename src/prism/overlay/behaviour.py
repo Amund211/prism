@@ -244,7 +244,7 @@ def autodenick_teammate(controller: OverlayController) -> None:
     Automatically denick one teammate if possible
 
     If
-        We are in game
+        We are in queue
         The lobby is full and in sync
         *One* of our teammates is not in the lobby
         There is *one* nick in the lobby
@@ -256,7 +256,7 @@ def autodenick_teammate(controller: OverlayController) -> None:
     if (
         controller.api_key_invalid
         or controller.api_key_throttled
-        or state.in_queue
+        or not state.in_queue
         or state.out_of_sync
     ):
         return
