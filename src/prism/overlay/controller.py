@@ -26,10 +26,8 @@ logger = logging.getLogger(__name__)
 class OverlayController(Protocol):  # pragma: no cover
     """Class holding components necessary to control the overlay"""
 
-    in_queue: bool
     api_key_invalid: bool
     api_key_throttled: bool
-    on_hypixel: bool
     hypixel_key_holder: HypixelAPIKeyHolder
 
     state: "OverlayState"
@@ -79,11 +77,9 @@ class RealOverlayController:
         from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
         from prism.overlay.player_cache import PlayerCache
 
-        self.in_queue = False
         self.own_username: str | None = None
         self.api_key_invalid = False
         self.api_key_throttled = False
-        self.on_hypixel = False
 
         self.player_cache = PlayerCache()
         self.state = state

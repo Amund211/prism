@@ -151,10 +151,8 @@ class ExtraAttributes(TypedDict):
 class MockedController:
     """Class implementing the OverlayController protocol for testing"""
 
-    in_queue: bool = False
     api_key_invalid: bool = False
     api_key_throttled: bool = False
-    on_hypixel: bool = True
     hypixel_api_key: InitVar[str] = "api-key"
     hypixel_key_holder: HypixelAPIKeyHolder = field(
         init=False, repr=False, compare=False, hash=False
