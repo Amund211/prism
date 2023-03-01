@@ -182,6 +182,8 @@ def process_event(
     if event.event_type is EventType.NEW_API_KEY:
         # User got a new API key
         logger.info("Setting new API key")
+
+        # NOTE: Make sure not to deadlock
         set_hypixel_api_key(event.key, controller)
 
         return state, True
@@ -189,12 +191,19 @@ def process_event(
     if event.event_type is EventType.WHISPER_COMMAND_SET_NICK:
         # User set a nick with /w !nick=username
         logger.info(f"Setting nick from whisper command {event.nick}={event.username}")
+
+        # NOTE: Make sure not to deadlock
         set_nickname(username=event.username, nick=event.nick, controller=controller)
+
         return state, True
 
 
 def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -> None:
-    """Process the state changes for each logline without outputting anything"""
+    """
+    Process the state changes for each logline without outputting anything
+
+    Caller must ensure exclusive access to controller.state
+    """
     logger.info("Fast forwarding state")
     for line in loglines:
         event = parse_logline(line)
@@ -214,7 +223,8 @@ def process_loglines(loglines: Iterable[str], controller: OverlayController) -> 
         if event is None:
             continue
 
-        controller.state, redraw = process_event(controller, event)
+        with controller.state_mutex:
+            controller.state, redraw = process_event(controller, event)
 
         if redraw:
             # Tell the main thread we need a redraw

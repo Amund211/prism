@@ -178,6 +178,10 @@ class MockedController:
         init=False, repr=False, compare=False, hash=False
     )
 
+    state_mutex: threading.Lock = field(
+        default_factory=threading.Lock, repr=False, compare=False, hash=False
+    )
+
     get_uuid: Callable[[str], str | None] = field(
         default=missing_method, repr=False, compare=False, hash=False
     )

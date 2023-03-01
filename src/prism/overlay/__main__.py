@@ -152,7 +152,8 @@ def watch_from_logfile(
     with logpath.open("r", encoding="utf8", errors="replace") as logfile:
         # Process the entire logfile to get current player as well as potential
         # current party/lobby
-        fast_forward_state(controller, logfile.readlines())
+        with controller.state_mutex:
+            fast_forward_state(controller, logfile.readlines())
         final_position = logfile.tell()
 
     loglines = watch_file_with_reopen(logpath, start_at=final_position, blocking=True)

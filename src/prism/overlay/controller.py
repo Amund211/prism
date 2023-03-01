@@ -36,6 +36,8 @@ class OverlayController(Protocol):  # pragma: no cover
     player_cache: "PlayerCache"
     redraw_event: threading.Event
 
+    state_mutex: threading.Lock
+
     @property
     @abstractmethod
     def set_antisniper_api_key(self) -> Callable[[str | None], None]:
@@ -86,6 +88,8 @@ class RealOverlayController:
         self.settings = settings
         self.nick_database = nick_database
         self.redraw_event = threading.Event()
+
+        self.state_mutex = threading.Lock()
 
         self.hypixel_key_holder = HypixelAPIKeyHolder(settings.hypixel_api_key)
         self.antisniper_key_holder: AntiSniperAPIKeyHolder | None = None

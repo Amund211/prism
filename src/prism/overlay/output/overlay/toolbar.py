@@ -101,7 +101,8 @@ class Toolbar:  # pragma: nocover
 
         # Minimize button
         def minimize() -> None:
-            controller.state = replace(controller.state, in_queue=False)
+            with controller.state_mutex:
+                controller.state = replace(controller.state, in_queue=False)
 
             self.overlay.window.hide()
 
