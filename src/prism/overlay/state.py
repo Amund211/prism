@@ -26,14 +26,12 @@ class OverlayState:
 
         NOTE: Can modify the lobby, so call this before making any changes
         """
-        state = self
-
         if not self.in_queue:
             # This is a new queue -> clear the last lobby
             logger.info("Joining a new queue and clearing lobby")
-            state = self.clear_lobby()
+            return replace(self.clear_lobby(), in_queue=True)
 
-        return replace(state, in_queue=True)
+        return self
 
     def leave_queue(self) -> "OverlayState":
         """
@@ -117,3 +115,10 @@ class OverlayState:
             return self
 
         return replace(self, alive_players=self.alive_players - {username})
+
+    def set_out_of_sync(self, out_of_sync: bool) -> "OverlayState":
+        """Set out_of_sync"""
+        if self.out_of_sync != out_of_sync:
+            return replace(self, out_of_sync=out_of_sync)
+
+        return self

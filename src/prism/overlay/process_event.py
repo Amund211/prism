@@ -60,7 +60,7 @@ def process_event(
 
         # TODO: This is the correct logic for when we do /who in queue, but not in game.
         #       /who in game returns only the list of alive players.
-        new_state = replace(state, out_of_sync=False)
+        new_state = state.set_out_of_sync(False)
         return new_state.join_queue().set_lobby(event.usernames), True
 
     if event.event_type is EventType.LOBBY_JOIN:
@@ -93,7 +93,7 @@ def process_event(
             f"({event.player_count}/{event.player_cap})"
         )
 
-        return replace(new_state, out_of_sync=out_of_sync), True
+        return new_state.set_out_of_sync(out_of_sync), True
 
     if event.event_type is EventType.LOBBY_LEAVE:
         # Someone left the lobby -> Remove them from the lobby
