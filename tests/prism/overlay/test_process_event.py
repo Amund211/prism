@@ -432,7 +432,7 @@ def test_process_event_set_nickname(event: Event) -> None:
         new_state, will_redraw = process_event(controller, event)
 
     assert patched_set_nickname.called_with(nick=nick, username=username)
-    assert will_redraw
+    assert not will_redraw  # set_nickname sets redraw_flag
 
 
 def test_process_event_set_hypixel_api_key() -> None:
@@ -445,7 +445,7 @@ def test_process_event_set_hypixel_api_key() -> None:
         new_state, will_redraw = process_event(controller, NewAPIKeyEvent("my-new-key"))
 
     assert patched_set_hypixel_api_key.called_with("my-new-key")
-    assert will_redraw
+    assert not will_redraw  # set_hypixel_api_key sets redraw_flag
 
 
 def test_process_event_autodenick_teammate() -> None:

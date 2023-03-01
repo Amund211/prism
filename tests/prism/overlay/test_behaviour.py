@@ -150,6 +150,9 @@ def test_process_event_set_api_key() -> None:
     # Player cache cleared
     controller.player_cache.clear_cache.assert_called()
 
+    # Redraw event set
+    assert controller.redraw_event.is_set()
+
 
 @pytest.mark.parametrize(
     "redraw_event_set, completed_stats, result",

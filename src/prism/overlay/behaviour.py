@@ -91,6 +91,8 @@ def set_hypixel_api_key(new_key: str, /, controller: OverlayController) -> None:
     # Clear the stats cache in case the old api key was invalid
     controller.player_cache.clear_cache()
 
+    controller.redraw_event.set()
+
 
 def should_redraw(
     controller: OverlayController, completed_stats_queue: queue.Queue[str]

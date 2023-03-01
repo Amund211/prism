@@ -44,8 +44,8 @@ def process_event(
             username=state.own_username, nick=event.nick, controller=controller
         )
 
-        # We should redraw so that we can properly denick ourself
-        return state, True
+        # set_nickname sets redraw_flag
+        return state, False
 
     if event.event_type is EventType.LOBBY_SWAP:
         # Changed lobby -> clear the lobby
@@ -188,7 +188,8 @@ def process_event(
         # NOTE: Make sure not to deadlock
         set_hypixel_api_key(event.key, controller)
 
-        return state, True
+        # set_hypixel_api_key sets redraw_flag
+        return state, False
 
     if event.event_type is EventType.WHISPER_COMMAND_SET_NICK:
         # User set a nick with /w !nick=username
@@ -197,7 +198,8 @@ def process_event(
         # NOTE: Make sure not to deadlock
         set_nickname(username=event.username, nick=event.nick, controller=controller)
 
-        return state, True
+        # set_nickname sets redraw_flag
+        return state, False
 
 
 def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -> None:
