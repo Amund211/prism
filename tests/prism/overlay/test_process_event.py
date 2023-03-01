@@ -42,7 +42,15 @@ process_event_test_cases_base: tuple[
     ),
     (
         "re-initialize",
-        MockedController(),
+        MockedController(
+            state=create_state(
+                party_members={"OwnUsername", "Player1"},
+                lobby_players={"OwnUsername", "Player1"},
+                alive_players={"Player1"},
+                out_of_sync=True,
+                in_queue=True,
+            )
+        ),
         InitializeAsEvent("NewPlayer"),
         MockedController(state=create_state(own_username="NewPlayer")),
         True,

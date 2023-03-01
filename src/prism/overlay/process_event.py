@@ -26,7 +26,9 @@ def process_event(
         # Initializing means the player restarted/switched accounts -> clear the state
         logger.info(f"Playing as {state.own_username}. Cleared party and lobby.")
 
-        new_state = replace(state, own_username=event.username)
+        new_state = replace(
+            state, own_username=event.username, in_queue=False, out_of_sync=False
+        )
         return new_state.clear_party().clear_lobby(), True
 
     if event.event_type is EventType.NEW_NICKNAME:
