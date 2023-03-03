@@ -130,12 +130,12 @@ class RealOverlayController:
             self.api_key_throttled = False
             return None
         except HypixelAPIKeyError as e:
-            logger.warning("Invalid API key.", exc_info=e)
+            logger.warning(f"Invalid API key getting stats for {uuid=}", exc_info=e)
             self.api_key_invalid = True
             self.api_key_throttled = False
             return None
         except HypixelAPIThrottleError as e:
-            logger.warning("API key throttled", exc_info=e)
+            logger.warning(f"API key throttled getting stats for {uuid=}", exc_info=e)
             self.api_key_invalid = False
             self.api_key_throttled = True
             return None
