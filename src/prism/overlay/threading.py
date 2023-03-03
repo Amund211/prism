@@ -50,11 +50,19 @@ class GetStatsThread(threading.Thread):  # pragma: nocover
             while True:
                 username = self.requests_queue.get()
 
-                get_stats_and_winstreak(
-                    username=username,
-                    completed_queue=self.completed_queue,
-                    controller=self.controller,
-                )
+                # Small optimization in case the player left or we switched lobbies
+                # between first seeing them and now getting to the request
+                if username in self.controller.state.lobby_players:
+                    get_stats_and_winstreak(
+                        username=username,
+                        completed_queue=self.completed_queue,
+                        controller=self.controller,
+                    )
+                else:
+                    logger.info(f"Skipping get_stats for {username} because they left")
+                    # Uncache the pending stats so that if we see them again we will
+                    # issue another request, instead of waiting for this one.
+                    self.controller.player_cache.uncache_player(username)
 
                 self.requests_queue.task_done()
         except Exception:
