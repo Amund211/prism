@@ -85,7 +85,7 @@ def get_uuid(
         ) from e
 
     # reponse is {"id": "...", "name": "..."}
-    uuid = response_json["id"]
+    uuid = response_json.get("id", None)
 
     if not isinstance(uuid, str):
         raise MojangAPIError(
