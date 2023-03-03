@@ -136,8 +136,8 @@ class RealOverlayController:
             return None
         except HypixelAPIThrottleError as e:
             logger.warning("API key throttled", exc_info=e)
-            self.api_key_throttled = True
             self.api_key_invalid = False
+            self.api_key_throttled = True
             return None
         else:
             self.api_key_invalid = False
