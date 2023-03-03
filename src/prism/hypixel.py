@@ -31,8 +31,12 @@ class MissingStatsError(ValueError):
     """Exception raised when the player has no stats for the gamemode"""
 
 
-class HypixelAPIError(ValueError):
+class HypixelPlayerNotFoundError(ValueError):
     """Exception raised when the player is not found"""
+
+
+class HypixelAPIError(ValueError):
+    """Exception raised when the API returned an error"""
 
 
 class HypixelAPIKeyError(ValueError):
@@ -77,6 +81,9 @@ def get_player_data(
     except ExecutionError as e:
         raise HypixelAPIError(f"Request to Hypixel API failed for {uuid=}.") from e
 
+    if response.status_code == 404:
+        raise HypixelPlayerNotFoundError(f"Could not find a user with {uuid=} (404)")
+
     if response.status_code == 403:
         raise HypixelAPIKeyError(
             f"Request to Hypixel API failed with status code {response.status_code}. "
@@ -110,8 +117,11 @@ def get_player_data(
 
     playerdata = response_json.get("player", None)
 
+    if playerdata is None:
+        raise HypixelPlayerNotFoundError(f"Could not find a user with {uuid=}")
+
     if not isinstance(playerdata, dict):
-        raise HypixelAPIError(f"Could not find a user with uuid {uuid}")
+        raise HypixelAPIError(f"Invalid playerdata {playerdata=} {type(playerdata)=}")
 
     return playerdata
 

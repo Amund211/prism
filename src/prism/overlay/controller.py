@@ -9,6 +9,7 @@ from prism.hypixel import (
     HypixelAPIKeyError,
     HypixelAPIKeyHolder,
     HypixelAPIThrottleError,
+    HypixelPlayerNotFoundError,
     get_player_data,
 )
 from prism.mojang import MojangAPIError, get_uuid
@@ -122,12 +123,13 @@ class RealOverlayController:
     def get_player_data(self, uuid: str) -> dict[str, Any] | None:  # pragma: no cover
         try:
             player_data = get_player_data(uuid, self.hypixel_key_holder)
-        except HypixelAPIError as e:
-            logger.debug(f"Failed getting stats for {uuid=}.", exc_info=e)
-            # TODO: We don't know what kind of error this is, so resetting these flags
-            #       might be wrong.
+        except HypixelPlayerNotFoundError as e:
+            logger.debug(f"Player not found on Hypixel: {uuid=}", exc_info=e)
             self.api_key_invalid = False
             self.api_key_throttled = False
+            return None
+        except HypixelAPIError as e:
+            logger.error(f"Hypixel API error getting stats for {uuid=}", exc_info=e)
             return None
         except HypixelAPIKeyError as e:
             logger.warning(f"Invalid API key getting stats for {uuid=}", exc_info=e)

@@ -12,6 +12,7 @@ from prism.hypixel import (
     HypixelAPIKeyError,
     HypixelAPIKeyHolder,
     HypixelAPIThrottleError,
+    HypixelPlayerNotFoundError,
     MissingStatsError,
     get_gamemode_stats,
     get_player_data,
@@ -170,7 +171,12 @@ def get_and_display(username: str) -> None:
 
     try:
         playerdata = get_player_data(uuid, key_holder)
-    except (HypixelAPIError, HypixelAPIKeyError, HypixelAPIThrottleError) as e:
+    except (
+        HypixelPlayerNotFoundError,
+        HypixelAPIError,
+        HypixelAPIKeyError,
+        HypixelAPIThrottleError,
+    ) as e:
         print(e)
     else:
         print_bedwars_stats(playerdata, nick=nick)
