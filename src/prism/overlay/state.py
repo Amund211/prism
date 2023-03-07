@@ -81,7 +81,7 @@ class OverlayState:
         """Remove the given username from the lobby"""
         if username not in self.lobby_players:
             new_lobby = self.lobby_players
-            logger.info(
+            logger.warning(
                 f"Tried removing {username} from the lobby, but they were not in it!"
             )
         else:
@@ -89,7 +89,7 @@ class OverlayState:
 
         if username not in self.alive_players:
             new_alive = self.alive_players
-            logger.info(
+            logger.warning(
                 f"Tried removing {username} from the lobby, but they were not alive!"
             )
         else:
@@ -111,7 +111,9 @@ class OverlayState:
     def mark_dead(self, username: str) -> "OverlayState":
         """Mark the given username as dead"""
         if username not in self.alive_players:
-            logger.info(f"Tried marking {username} as dead, but they were not alive!")
+            logger.warning(
+                f"Tried marking {username} as dead, but they were not alive!"
+            )
             return self
 
         return replace(self, alive_players=self.alive_players - {username})
