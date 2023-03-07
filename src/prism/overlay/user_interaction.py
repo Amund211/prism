@@ -426,9 +426,53 @@ class LogfilePrompt:  # pragma: nocover
 def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
     system = platform.system()
     if system == "Linux":
+        lunar_client_base_dir = Path.home() / ".lunarclient" / "offline"
+
+        try:
+            lunar_client_logfiles = tuple(lunar_client_base_dir.rglob("latest.log"))
+        except OSError:
+            logger.exception(f"Could not rglob {lunar_client_base_dir}")
+            lunar_client_logfiles = ()
+
+        badlion_logfile = (
+            Path.home()
+            / ".minecraft"
+            / "logs"
+            / "blclient"
+            / "minecraft"
+            / "latest.log"
+        )
+        fml_logfile = Path.home() / ".minecraft" / "logs" / "fml-client-latest.log"
         vanilla_logfile = Path.home() / ".minecraft" / "logs" / "latest.log"
-        return [vanilla_logfile]
+
+        return [*lunar_client_logfiles, badlion_logfile, fml_logfile, vanilla_logfile]
     elif system == "Darwin":
+        lunar_client_base_dir = Path.home() / ".lunarclient" / "offline"
+
+        try:
+            lunar_client_logfiles = tuple(lunar_client_base_dir.rglob("latest.log"))
+        except OSError:
+            logger.exception(f"Could not rglob {lunar_client_base_dir}")
+            lunar_client_logfiles = ()
+
+        badlion_logfile = (
+            Path.home()
+            / "Library"
+            / "Application Support"
+            / "minecraft"
+            / "logs"
+            / "blclient"
+            / "minecraft"
+            / "latest.log"
+        )
+        fml_logfile = (
+            Path.home()
+            / "Library"
+            / "Application Support"
+            / "minecraft"
+            / "logs"
+            / "fml-client-latest.log"
+        )
         vanilla_logfile = (
             Path.home()
             / "Library"
@@ -437,7 +481,8 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
             / "logs"
             / "latest.log"
         )
-        return [vanilla_logfile]
+
+        return [*lunar_client_logfiles, badlion_logfile, fml_logfile, vanilla_logfile]
     elif system == "Windows":
         lunar_client_base_dir = Path.home() / ".lunarclient" / "offline"
 
@@ -447,10 +492,28 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
             logger.exception(f"Could not rglob {lunar_client_base_dir}")
             lunar_client_logfiles = ()
 
+        badlion_logfile = (
+            Path.home()
+            / "AppData"
+            / "Roaming"
+            / ".minecraft"
+            / "logs"
+            / "blclient"
+            / "minecraft"
+            / "latest.log"
+        )
+        fml_logfile = (
+            Path.home()
+            / "AppData"
+            / "Roaming"
+            / ".minecraft"
+            / "logs"
+            / "fml-client-latest.log"
+        )
         vanilla_logfile = (
             Path.home() / "AppData" / "Roaming" / ".minecraft" / "logs" / "latest.log"
         )
-        return [*lunar_client_logfiles, vanilla_logfile]
+        return [*lunar_client_logfiles, badlion_logfile, fml_logfile, vanilla_logfile]
     else:
         # system == "Java"
         return []
