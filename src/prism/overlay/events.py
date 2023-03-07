@@ -32,6 +32,7 @@ class EventType(Enum):
     PARTY_ROLE_LIST = auto()  # List of members or moderators, or the leader
 
     # Games
+    BEDWARS_GAME_STARTING_SOON = auto()  # A bedwars game is starting soon
     START_BEDWARS_GAME = auto()  # A bedwars game has started
     BEDWARS_FINAL_KILL = auto()  # A final kill in bedwars
     BEDWARS_DISCONNECT = auto()  # A player disconnected in bedwars
@@ -118,6 +119,14 @@ class PartyMembershipListEvent:
 
 
 @dataclass
+class BedwarsGameStartingSoonEvent:
+    seconds: int
+    event_type: Literal[
+        EventType.BEDWARS_GAME_STARTING_SOON
+    ] = EventType.BEDWARS_GAME_STARTING_SOON
+
+
+@dataclass
 class StartBedwarsGameEvent:
     event_type: Literal[EventType.START_BEDWARS_GAME] = EventType.START_BEDWARS_GAME
 
@@ -180,6 +189,7 @@ ChatEvent = Union[
     PartyLeaveEvent,
     PartyListIncomingEvent,
     PartyMembershipListEvent,
+    BedwarsGameStartingSoonEvent,
     StartBedwarsGameEvent,
     BedwarsFinalKillEvent,
     BedwarsDisconnectEvent,

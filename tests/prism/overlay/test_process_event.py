@@ -6,6 +6,7 @@ import pytest
 from prism.overlay.events import (
     BedwarsDisconnectEvent,
     BedwarsFinalKillEvent,
+    BedwarsGameStartingSoonEvent,
     BedwarsReconnectEvent,
     EndBedwarsGameEvent,
     Event,
@@ -186,6 +187,20 @@ process_event_test_cases_base: tuple[
             state=create_state(party_members={"Player1", "Player2", "OwnUsername"})
         ),
         True,
+    ),
+    (
+        "bedwars game starting soon",
+        MockedController(),
+        BedwarsGameStartingSoonEvent(seconds=5),
+        MockedController(state=create_state(in_queue=True)),
+        False,  # No need to redraw the screen - only show the overlay
+    ),
+    (
+        "bedwars game starting soon, already in queue",
+        MockedController(state=create_state(in_queue=True)),
+        BedwarsGameStartingSoonEvent(seconds=4),
+        MockedController(state=create_state(in_queue=True)),
+        False,  # No need to redraw the screen - only show the overlay
     ),
     (
         "start bedwars game",
@@ -773,7 +788,7 @@ INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.m
                 f"{CHAT}+37 coins! (Win)",
                 f"{CHAT}+50 Bed Wars Experience (Position Bonus)",
                 f"{CHAT}ONLINE: Player1, Player2, Me, Player4, Player5, Player6, Player7, Player8, Player9, Player10, Player11, Player12",  # noqa: E501
-                f"{CHAT}Player1 has joined (12/12)!",
+                f"{CHAT}The game starts in 1 seconds!",
                 f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
                 f"{CHAT}                                  Bed Wars",
                 f"{CHAT}",

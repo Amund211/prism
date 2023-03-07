@@ -7,6 +7,7 @@ import pytest
 from prism.overlay.events import (
     BedwarsDisconnectEvent,
     BedwarsFinalKillEvent,
+    BedwarsGameStartingSoonEvent,
     BedwarsReconnectEvent,
     EndBedwarsGameEvent,
     Event,
@@ -232,8 +233,6 @@ UNEVENTFUL_LOGLINES = (
     "[Info: 2021-11-29 20:01:37.599407350: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [SPECTATOR] ✫ Sumo Rookie V sapporoV: gg",
     "[Info: 2021-11-29 20:01:37.599526846: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [GAME] Skydeaf: gg",
     "[Info: 2021-11-29 20:18:14.961703702: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [SHOUT] [RED] [VIP+] Player1: some chat message",
-    # Game starting soon
-    "[Info: 2021-11-29 20:01:28.418898025: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] The game starts in 5 seconds!",
     # Private game
     "[Info: 2021-11-29 20:09:06.079904026: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP++] Player1 enabled Private Game",
     "[Info: 2021-11-29 20:09:09.809805686: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP++] Player1 disabled Private Game",
@@ -309,6 +308,10 @@ UNEVENTFUL_LOGLINES = (
     # More than two words in the disconnect/reconnect message
     "[20:44:24] [Client thread/INFO]: [CHAT] Player2 Player2 reconnected.",
     "[00:03:18] [Client thread/INFO]: [CHAT] Player2 Player2 disconnected.",
+    # Invalid game starting soon
+    "[18:47:34] [Client thread/INFO]: [CHAT] The game starts in a5 seconds!",
+    "[18:47:34] [Client thread/INFO]: [CHAT] The game starts in seconds!",
+    "[18:47:34] [Client thread/INFO]: [CHAT] The game starts in 10 secondssss!",
 )
 
 
@@ -455,6 +458,18 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     (
         "[Info: 2021-11-29 22:17:40.417869567: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Party Members: Player2 ● [MVP+] Player3 ● ",
         PartyMembershipListEvent(usernames=["Player2", "Player3"], role="members"),
+    ),
+    (
+        "[18:47:15] [Client thread/INFO]: [CHAT] The game starts in 20 seconds!",
+        BedwarsGameStartingSoonEvent(seconds=20),
+    ),
+    (
+        "[18:47:15] [Client thread/INFO]: [CHAT] The game starts in 5 seconds!",
+        BedwarsGameStartingSoonEvent(seconds=5),
+    ),
+    (
+        "[18:47:34] [Client thread/INFO]: [CHAT] The game starts in 1 second!",
+        BedwarsGameStartingSoonEvent(seconds=1),
     ),
     (
         "[16:12:21] [Client thread/INFO]: [CHAT]                                   Bed Wars ",

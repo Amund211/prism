@@ -6,6 +6,7 @@ from typing import Final
 from prism.overlay.events import (
     BedwarsDisconnectEvent,
     BedwarsFinalKillEvent,
+    BedwarsGameStartingSoonEvent,
     BedwarsReconnectEvent,
     ChatEvent,
     ClientEvent,
@@ -204,6 +205,22 @@ def parse_chat_message(message: str) -> ChatEvent | None:
     if message == "You were sent to a lobby because someone in your party left!":
         logger.debug("Parsing passed. Swapping lobby")
         return LobbySwapEvent()
+
+    if message.startswith("The game starts in "):
+        logger.debug("Processing potential game starting soon")
+        words = message.split(" ")
+        if (
+            len(words) != 6
+            or words[-1] not in {"second!", "seconds!"}
+            or not words[-2].isnumeric()
+        ):
+            logger.debug("Last two words invalid")
+            return None
+
+        seconds = int(words[-2])
+
+        logger.debug(f"Parsing passed. Game starting in {seconds} second(s)")
+        return BedwarsGameStartingSoonEvent(seconds=seconds)
 
     # NOTE: This also appears at the end of a game, but before endgameevent is sent
     if message.startswith("Bed Wars"):
