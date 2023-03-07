@@ -863,6 +863,47 @@ INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.m
                 )
             ),
         ),
+        (
+            # Disconnect right before game starts, then rejoin
+            MockedController(),
+            (
+                f"{CHAT}ONLINE: Player1, Player2, Player3, Player4, Player5, Player6, Player7, OwnUsername",  # noqa: E501
+                f"{CHAT}The game starts in 5 seconds!",
+                f"{CHAT}The game starts in 4 seconds!",
+                f"{CHAT}The game starts in 3 seconds!",
+                f"{CHAT}The game starts in 2 seconds!",
+                f"{CHAT}The game starts in 1 second!",
+                f"{CHAT}                                     ",
+                f"{CHAT}                         ",
+                f"{CHAT}Sending you to mini10AR!",
+            ),
+            MockedController(),  # TODO: Keep the lobby?
+        ),
+        (
+            # Disconnect during the game, then rejoin
+            MockedController(),
+            (
+                f"{CHAT}ONLINE: Player1, Player2, Player3, Player4, Player5, Player6, Player7, OwnUsername",  # noqa: E501
+                f"{CHAT}The game starts in 5 seconds!",
+                f"{CHAT}The game starts in 4 seconds!",
+                f"{CHAT}The game starts in 3 seconds!",
+                f"{CHAT}The game starts in 2 seconds!",
+                f"{CHAT}The game starts in 1 second!",
+                f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+                f"{CHAT}                                  Bed Wars",
+                f"{CHAT}",
+                f"{CHAT}     Protect your bed and destroy the enemy beds.",
+                f"{CHAT}      Upgrade yourself and your team by collecting",
+                f"{CHAT}    Iron, Gold, Emerald and Diamond from generators",
+                f"{CHAT}                  to access powerful upgrades.",
+                f"{CHAT}",
+                f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+                f"{CHAT}                                     ",
+                f"{CHAT}                         ",
+                f"{CHAT}Sending you to mini10AR!",
+            ),
+            MockedController(),  # TODO: Keep the lobby?
+        ),
     ),
 )
 def test_fast_forward_state(
