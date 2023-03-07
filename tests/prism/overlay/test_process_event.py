@@ -844,7 +844,7 @@ INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.m
             ),
         ),
         (
-            MockedController(),
+            MockedController(wants_shown=True),
             (
                 f"{INFO}Setting user: Me",
                 f"{CHAT}Party Moderators: Player1 ● [MVP+] Player2 ● ",
@@ -949,6 +949,35 @@ INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.m
                 f"{CHAT}Sending you to mini10AR!",
             ),
             MockedController(),  # TODO: Keep the lobby?
+        ),
+        (
+            MockedController(
+                state=create_state(
+                    lobby_players={"OwnUsername", "Player1", "Player2"},
+                    alive_players={"OwnUsername", "Player2"},
+                    in_queue=False,
+                ),
+                wants_shown=True,
+            ),
+            (
+                f"{CHAT}ONLINE: OwnUsername, Player2",
+                f"{CHAT}Player2 was killed by OwnUsername. FINAL KILL!",
+                f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+                f"{CHAT}                                  Bed Wars",
+                f"{CHAT}",
+                f"{CHAT}                          Pink - [MVP+] Me",
+                f"{CHAT}",
+                f"{CHAT}                   1st Killer - [MVP+] Me - 7",
+                f"{CHAT}               2nd Killer - [MVP+] Player2 - 3",
+                f"{CHAT}                 3rd Killer - [MVP+] Someone3 - 3",
+                f"{CHAT}",
+                f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+                f"{CHAT}OwnUsername has joined (1/12)!",
+            ),
+            MockedController(
+                state=create_state(lobby_players={"OwnUsername"}, in_queue=True),
+                wants_shown=None,
+            ),
         ),
     ),
 )
