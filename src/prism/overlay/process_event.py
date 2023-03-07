@@ -99,7 +99,7 @@ def process_event(
         # Someone left the lobby -> Remove them from the lobby
         logger.info(f"{event.username} left your lobby")
 
-        return state.remove_from_lobby(event.username), True
+        return state.join_queue().remove_from_lobby(event.username), True
 
     if event.event_type is EventType.PARTY_DETACH:
         # Leaving the party -> remove all but yourself from the party

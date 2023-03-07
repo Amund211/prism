@@ -84,9 +84,16 @@ process_event_test_cases_base: tuple[
     ),
     (
         "lobby leave",
+        MockedController(state=create_state(lobby_players={"Leaving"}, in_queue=True)),
+        LobbyLeaveEvent("Leaving"),
+        MockedController(state=create_state(in_queue=True)),
+        True,
+    ),
+    (
+        "lobby leave out of queue",
         MockedController(state=create_state(lobby_players={"Leaving"})),
         LobbyLeaveEvent("Leaving"),
-        MockedController(),
+        MockedController(state=create_state(in_queue=True)),
         True,
     ),
     (
@@ -375,9 +382,13 @@ process_event_test_cases_base: tuple[
     (
         # Player not in lobby leaves lobby
         "player not in lobby leaves lobby",
-        MockedController(state=create_state(lobby_players={"Player1", "Player2"})),
+        MockedController(
+            state=create_state(in_queue=True, lobby_players={"Player1", "Player2"})
+        ),
         LobbyLeaveEvent("RandomPlayer"),
-        MockedController(state=create_state(lobby_players={"Player1", "Player2"})),
+        MockedController(
+            state=create_state(in_queue=True, lobby_players={"Player1", "Player2"})
+        ),
         # TODO: False,
         True,
     ),
