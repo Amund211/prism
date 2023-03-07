@@ -33,6 +33,7 @@ from prism.overlay.parsing import (
     parse_logline,
     remove_ranks,
     strip_until,
+    valid_username,
     words_match,
 )
 
@@ -147,6 +148,26 @@ def test_strip_until(line: str, until: str, suffix: str) -> None:
 def test_strip_until_raises(line: str, until: str) -> None:
     with pytest.raises(ValueError):
         strip_until(line, until=until)
+
+
+@pytest.mark.parametrize(
+    "username, valid",
+    (
+        ("Player1", True),
+        ("____", True),
+        ("__sdlfkj__", True),
+        ("_a_b_c_", True),
+        ("a_b_c", True),
+        ("MyVeryVeryLongIGN", True),
+        ("A", True),
+        ("-", False),
+        ("my-ign", False),
+        ("Player!", False),
+        ("§bPlayer1", False),
+    ),
+)
+def test_valid_username(username: str, valid: bool) -> None:
+    assert valid_username(username) is valid
 
 
 @pytest.mark.parametrize(

@@ -132,6 +132,24 @@ def words_match(words: Sequence[str], target: str) -> bool:
     return full_match
 
 
+def valid_username(username: str) -> bool:
+    """Return True if username is a valid Minecraft username"""
+    # https://help.minecraft.net/hc/en-us/articles/4408950195341-Minecraft-Java-Edition-Username-VS-Gamertag-FAQ#h_01GE5JWW0210X02JZN2FP9CREC  # noqa: E501
+    # Must have 3-16 characters
+    # NOTE: We allow [1, 20] because of some illegal accounts existing
+    if len(username) < 1 or len(username) > 20:
+        logger.debug(f"Playername {username!r} has invalid length")
+        return False
+
+    # Legal characters are _ and 0-9a-zA-Z
+    no_underscores = username.replace("_", "")
+    if len(no_underscores) > 0 and not no_underscores.isalnum():
+        logger.debug(f"Illegal characters in name {username!r}")
+        return False
+
+    return True
+
+
 def parse_chat_message(message: str) -> ChatEvent | None:
     """
     Parse a chat message to detect players leaving or joining the lobby/party
@@ -195,17 +213,8 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
         dead_player = message.split(" ")[0]
 
-        # https://help.minecraft.net/hc/en-us/articles/4408950195341-Minecraft-Java-Edition-Username-VS-Gamertag-FAQ#h_01GE5JWW0210X02JZN2FP9CREC  # noqa: E501
-        # Must have 3-16 characters
-        # NOTE: We allow [1, 20] because of some illegal accounts existing
-        if len(dead_player) < 1 or len(dead_player) > 20:
-            logger.debug(f"Playername {dead_player} has invalid length")
-            return None
-
-        # Legal characters are _ and 0-9a-zA-Z
-        no_underscores = dead_player.replace("_", "")
-        if len(no_underscores) > 0 and not no_underscores.isalnum():
-            logger.debug(f"Illegal characters in name {dead_player}")
+        if not valid_username(dead_player):
+            logger.debug(f"{dead_player=} invalid.")
             return None
 
         logger.debug("Parsing passed. Final kill")
