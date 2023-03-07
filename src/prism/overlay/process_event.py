@@ -175,6 +175,18 @@ def process_event(
 
         return state.mark_dead(event.dead_player), True
 
+    if event.event_type is EventType.BEDWARS_DISCONNECT:
+        # Bedwars disconnect
+        logger.info(f"Player disconnected: {event.username}")
+
+        return state.mark_dead(event.username), True
+
+    if event.event_type is EventType.BEDWARS_RECONNECT:
+        # Bedwars reconnect
+        logger.info(f"Player reconnected: {event.username}")
+
+        return state.mark_alive(event.username), True
+
     if event.event_type is EventType.END_BEDWARS_GAME:
         # Bedwars game has ended
         logger.info("Bedwars game ended")

@@ -4,7 +4,9 @@ from collections.abc import Iterable
 import pytest
 
 from prism.overlay.events import (
+    BedwarsDisconnectEvent,
     BedwarsFinalKillEvent,
+    BedwarsReconnectEvent,
     EndBedwarsGameEvent,
     Event,
     InitializeAsEvent,
@@ -206,6 +208,122 @@ process_event_test_cases_base: tuple[
             )
         ),
         True,  # TODO: Could be False
+    ),
+    (
+        "disconnect",
+        MockedController(
+            state=create_state(
+                lobby_players={"Player1", "Player2"},
+                alive_players={"Player1", "Player2"},
+            )
+        ),
+        BedwarsDisconnectEvent(username="Player1"),
+        MockedController(
+            state=create_state(
+                lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
+            )
+        ),
+        True,
+    ),
+    (
+        "disconnect while not alive",
+        MockedController(
+            state=create_state(
+                lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
+            )
+        ),
+        BedwarsDisconnectEvent(username="Player1"),
+        MockedController(
+            state=create_state(
+                lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
+            )
+        ),
+        True,  # TODO: Could be False
+    ),
+    (
+        "disconnect while not in lobby",
+        MockedController(
+            state=create_state(lobby_players={"Player2"}, alive_players={"Player2"})
+        ),
+        BedwarsDisconnectEvent(username="Player1"),
+        MockedController(
+            state=create_state(lobby_players={"Player2"}, alive_players={"Player2"})
+        ),
+        True,  # TODO: Could be False
+    ),
+    (
+        "disconnect while not in lobby, but alive somehow",
+        MockedController(
+            state=create_state(
+                lobby_players={"Player2"}, alive_players={"Player1", "Player2"}
+            )
+        ),
+        BedwarsDisconnectEvent(username="Player1"),
+        MockedController(
+            state=create_state(lobby_players={"Player2"}, alive_players={"Player2"})
+        ),
+        True,
+    ),
+    (
+        "reconnect",
+        MockedController(
+            state=create_state(
+                lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
+            )
+        ),
+        BedwarsReconnectEvent(username="Player1"),
+        MockedController(
+            state=create_state(
+                lobby_players={"Player1", "Player2"},
+                alive_players={"Player1", "Player2"},
+            )
+        ),
+        True,
+    ),
+    (
+        "disconnect while alive",
+        MockedController(
+            state=create_state(
+                lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
+            )
+        ),
+        BedwarsReconnectEvent(username="Player2"),
+        MockedController(
+            state=create_state(
+                lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
+            )
+        ),
+        True,  # TODO: Could be False
+    ),
+    (
+        "reconnect while not in lobby",
+        MockedController(
+            state=create_state(lobby_players={"Player2"}, alive_players={"Player2"})
+        ),
+        BedwarsReconnectEvent(username="Player1"),
+        MockedController(
+            state=create_state(
+                lobby_players={"Player1", "Player2"},
+                alive_players={"Player1", "Player2"},
+            )
+        ),
+        True,
+    ),
+    (
+        "reconnect while not in lobby, but alive somehow",
+        MockedController(
+            state=create_state(
+                lobby_players={"Player2"}, alive_players={"Player1", "Player2"}
+            )
+        ),
+        BedwarsReconnectEvent(username="Player1"),
+        MockedController(
+            state=create_state(
+                lobby_players={"Player1", "Player2"},
+                alive_players={"Player1", "Player2"},
+            )
+        ),
+        True,
     ),
     (
         "end bedwars game",

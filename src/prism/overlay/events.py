@@ -34,6 +34,8 @@ class EventType(Enum):
     # Games
     START_BEDWARS_GAME = auto()  # A bedwars game has started
     BEDWARS_FINAL_KILL = auto()  # A final kill in bedwars
+    BEDWARS_DISCONNECT = auto()  # A player disconnected in bedwars
+    BEDWARS_RECONNECT = auto()  # A player reconnected in bedwars
     END_BEDWARS_GAME = auto()  # A bedwars game has ended
 
     # New API key
@@ -128,6 +130,18 @@ class BedwarsFinalKillEvent:
 
 
 @dataclass
+class BedwarsDisconnectEvent:
+    username: str
+    event_type: Literal[EventType.BEDWARS_DISCONNECT] = EventType.BEDWARS_DISCONNECT
+
+
+@dataclass
+class BedwarsReconnectEvent:
+    username: str
+    event_type: Literal[EventType.BEDWARS_RECONNECT] = EventType.BEDWARS_RECONNECT
+
+
+@dataclass
 class EndBedwarsGameEvent:
     event_type: Literal[EventType.END_BEDWARS_GAME] = EventType.END_BEDWARS_GAME
 
@@ -168,6 +182,8 @@ ChatEvent = Union[
     PartyMembershipListEvent,
     StartBedwarsGameEvent,
     BedwarsFinalKillEvent,
+    BedwarsDisconnectEvent,
+    BedwarsReconnectEvent,
     EndBedwarsGameEvent,
     NewAPIKeyEvent,
     WhisperCommandSetNickEvent,

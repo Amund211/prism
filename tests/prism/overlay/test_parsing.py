@@ -5,7 +5,9 @@ from collections.abc import Sequence
 import pytest
 
 from prism.overlay.events import (
+    BedwarsDisconnectEvent,
     BedwarsFinalKillEvent,
+    BedwarsReconnectEvent,
     EndBedwarsGameEvent,
     Event,
     InitializeAsEvent,
@@ -296,6 +298,17 @@ UNEVENTFUL_LOGLINES = (
     # Invalid IGN in final kill message
     "[00:01:04] [Client thread/INFO]: [CHAT] Invalid-name!!! was killed by Player2. FINAL KILL!",
     "[00:01:04] [Client thread/INFO]: [CHAT] ThisNameIsWayTooLongForMinecraft was killed by Player2. FINAL KILL!",
+    # Invalid IGN in reconnect/disconnect
+    "[22:08:31] [Client thread/INFO]: [CHAT] Invalid-name reconnected.",
+    "[00:26:36] [Client thread/INFO]: [CHAT] Invalid-name disconnected.",
+    # Attempts to inject reconnect/disconnect messages
+    "[00:03:18] [Client thread/INFO]: [CHAT] §9Party §8> §b[MVP§3+§b] Player1§f: Player2 reconnected.",
+    "[20:44:24] [Client thread/INFO]: [CHAT] §4[651✫] §b[MVP§3+§b] Player1§f: Player2 reconnected.",
+    "[00:03:18] [Client thread/INFO]: [CHAT] §9Party §8> §b[MVP§3+§b] Player1§f: Player2 disconnected.",
+    "[20:44:24] [Client thread/INFO]: [CHAT] §4[651✫] §b[MVP§3+§b] Player1§f: Player2 disconnected.",
+    # More than two words in the disconnect/reconnect message
+    "[20:44:24] [Client thread/INFO]: [CHAT] Player2 Player2 reconnected.",
+    "[00:03:18] [Client thread/INFO]: [CHAT] Player2 Player2 disconnected.",
 )
 
 
@@ -495,6 +508,14 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
             dead_player="_____",
             raw_message="_____ was pushed into a snowbank by Player2. FINAL KILL!",
         ),
+    ),
+    (
+        "[00:26:36] [Client thread/INFO]: [CHAT] Player1 disconnected.",
+        BedwarsDisconnectEvent(username="Player1"),
+    ),
+    (
+        "[22:08:31] [Client thread/INFO]: [CHAT] Player1 reconnected.",
+        BedwarsReconnectEvent(username="Player1"),
     ),
     (
         "[Info: 2022-01-08 17:27:38.908122114: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]                     1st Killer - [MVP+] Player1 - 8",

@@ -4,7 +4,9 @@ from collections.abc import Sequence
 from typing import Final
 
 from prism.overlay.events import (
+    BedwarsDisconnectEvent,
     BedwarsFinalKillEvent,
+    BedwarsReconnectEvent,
     ChatEvent,
     ClientEvent,
     EndBedwarsGameEvent,
@@ -219,6 +221,32 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
         logger.debug("Parsing passed. Final kill")
         return BedwarsFinalKillEvent(dead_player=dead_player, raw_message=message)
+
+    if message.endswith("disconnected.") and message.count(" ") == 1:
+        # [CHAT] Player1 disconnected.
+        logger.debug("Processing potential disconnect")
+
+        username = message.split(" ")[0]
+
+        if not valid_username(username):
+            logger.debug(f"{username=} invalid.")
+            return None
+
+        logger.debug(f"Parsing passed. {username} disconnected")
+        return BedwarsDisconnectEvent(username=username)
+
+    if message.endswith("reconnected.") and message.count(" ") == 1:
+        # [CHAT] Player1 reconnected.
+        logger.debug("Processing potential disconnect")
+
+        username = message.split(" ")[0]
+
+        if not valid_username(username):
+            logger.debug(f"{username=} invalid.")
+            return None
+
+        logger.debug(f"Parsing passed. {username} reconnected")
+        return BedwarsReconnectEvent(username=username)
 
     if message.startswith("1st Killer "):
         # Info [CHAT]                     1st Killer - [MVP+] Player1 - 7

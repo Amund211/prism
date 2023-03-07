@@ -118,6 +118,28 @@ class OverlayState:
 
         return replace(self, alive_players=self.alive_players - {username})
 
+    def mark_alive(self, username: str) -> "OverlayState":
+        """Mark the given username as alive"""
+
+        if username in self.alive_players:
+            logger.warning(
+                f"Tried marking {username} as alive, but they were already alive!"
+            )
+            new_state = self
+        else:
+            new_state = replace(self, alive_players=self.alive_players | {username})
+
+        if username not in self.lobby_players:
+            logger.warning(
+                f"Marked {username} as alive, but they were not in the lobby! "
+                "Adding them to the lobby."
+            )
+            new_state = replace(
+                new_state, lobby_players=self.lobby_players | {username}
+            )
+
+        return new_state
+
     def set_out_of_sync(self, out_of_sync: bool) -> "OverlayState":
         """Set out_of_sync"""
         if self.out_of_sync != out_of_sync:

@@ -226,6 +226,9 @@ def setup(
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
+    # Capture Python warnings to the logfile with logger py.warnings
+    logging.captureWarnings(True)
+
     # Log system+version info
     current_datestring = datetime.now().isoformat(timespec="seconds")
     logger.setLevel(logging.DEBUG)
