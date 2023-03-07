@@ -31,6 +31,7 @@ class OverlayController(Protocol):  # pragma: no cover
     api_key_throttled: bool
     hypixel_key_holder: HypixelAPIKeyHolder
 
+    wants_shown: bool | None
     state: "OverlayState"
     settings: "Settings"
     nick_database: "NickDatabase"
@@ -84,6 +85,7 @@ class RealOverlayController:
         self.api_key_invalid = False
         self.api_key_throttled = False
 
+        self.wants_shown: bool | None = None
         self.player_cache = PlayerCache()
         self.state = state
         self.settings = settings

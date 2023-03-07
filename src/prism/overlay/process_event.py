@@ -58,10 +58,18 @@ def process_event(
             f"Updating lobby players from who command: '{', '.join(event.usernames)}'"
         )
 
-        # TODO: This is the correct logic for when we do /who in queue, but not in game.
-        #       /who in game returns only the list of alive players.
-        new_state = state.set_out_of_sync(False)
-        return new_state.join_queue().set_lobby(event.usernames), True
+        # Show the overlay when you type /who
+        # Set the preference if we are not in queue, otherwise just reset it, as
+        # showing the overlay in queue is the default
+        controller.wants_shown = True if not state.in_queue else None
+
+        # Doing /who while in game, we only get the alive players, so the lobby may
+        # still be out of sync. We ignore that here to avoid getting stuck with an
+        # out of sync warning for an entire game
+        # Also: We set the entire lobby, and not just the alive players here to avoid
+        # issues where you type /who at the start of a new queue, when the overlay
+        # hasn't realized you're not still in a game
+        return state.set_out_of_sync(False).set_lobby(event.usernames), True
 
     if event.event_type is EventType.LOBBY_JOIN:
         if event.player_cap < 8:
@@ -93,11 +101,19 @@ def process_event(
             f"({event.player_count}/{event.player_cap})"
         )
 
+        if not state.in_queue:
+            # This is a new queue - reset the users preference for showing the overlay
+            controller.wants_shown = None
+
         return new_state.set_out_of_sync(out_of_sync), True
 
     if event.event_type is EventType.LOBBY_LEAVE:
         # Someone left the lobby -> Remove them from the lobby
         logger.info(f"{event.username} left your lobby")
+
+        if not state.in_queue:
+            # This is a new queue - reset the users preference for showing the overlay
+            controller.wants_shown = None
 
         return state.join_queue().remove_from_lobby(event.username), True
 

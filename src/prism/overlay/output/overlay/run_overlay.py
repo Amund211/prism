@@ -94,7 +94,16 @@ def run_overlay(
                 )
             )
 
-        return state.in_queue, info_cells, new_rows
+        # Store a copy to avoid TOCTOU
+        controller_wants_shown = controller.wants_shown
+        if controller_wants_shown is not None:
+            # The user has a preference -> honor it
+            should_show = controller_wants_shown
+        else:
+            # Fall back to showing the overlay in queue and hiding it in game
+            should_show = state.in_queue
+
+        return should_show, info_cells, new_rows
 
     overlay = StatsOverlay[PropertyName](
         column_order=COLUMN_ORDER,

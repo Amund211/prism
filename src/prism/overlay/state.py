@@ -26,12 +26,24 @@ class OverlayState:
 
         NOTE: Can modify the lobby, so call this before making any changes
         """
-        if not self.in_queue:
-            # This is a new queue -> clear the last lobby
-            logger.info("Joining a new queue and clearing lobby")
-            return replace(self.clear_lobby(), in_queue=True)
+        if self.in_queue:
+            return self
 
-        return self
+        if self.lobby_players != self.alive_players:
+            # This is a new queue and we have dirty state from a previous game
+            # Clear the lobby
+            logger.info("Joining a new queue and clearing the lobby due to dirty state")
+            new_state = self.clear_lobby()
+        else:
+            # This is a new queue, but lobby_players and alive_players are in sync
+            # This is likely due to the user typing /who before anyone could join
+            logger.info(
+                f"Joining a new queue with lobby_players and alive_players in sync. "
+                f"Setting in_queue, but keeping the current lobby {self.lobby_players=}"
+            )
+            new_state = self
+
+        return replace(new_state, in_queue=True)
 
     def leave_queue(self) -> "OverlayState":
         """

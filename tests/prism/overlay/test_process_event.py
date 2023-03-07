@@ -70,14 +70,14 @@ process_event_test_cases_base: tuple[
     ),
     (
         "lobby join solo",
-        MockedController(),
+        MockedController(wants_shown=True),
         LobbyJoinEvent("Player1", player_count=1, player_cap=8),
         MockedController(state=create_state(lobby_players={"Player1"}, in_queue=True)),
         True,
     ),
     (
         "lobby join doubles/fours",
-        MockedController(),
+        MockedController(wants_shown=False),
         LobbyJoinEvent("Player1", player_count=1, player_cap=16),
         MockedController(state=create_state(lobby_players={"Player1"}, in_queue=True)),
         True,
@@ -91,17 +91,32 @@ process_event_test_cases_base: tuple[
     ),
     (
         "lobby leave out of queue",
-        MockedController(state=create_state(lobby_players={"Leaving"})),
+        MockedController(
+            wants_shown=True, state=create_state(lobby_players={"Leaving"})
+        ),
         LobbyLeaveEvent("Leaving"),
         MockedController(state=create_state(in_queue=True)),
         True,
     ),
     (
-        # The lobby is cleared and set to the received usernames
-        # Your own username should always appear in the list
-        "lobby list",
+        "lobby list out of queue",
         MockedController(
-            state=create_state(lobby_players={"PersonFromLastLobby"})
+            state=create_state(lobby_players={"PersonFromLastLobby"}, in_queue=False)
+        ),
+        LobbyListEvent([OWN_USERNAME, "Player1", "Player2"]),
+        MockedController(
+            state=create_state(
+                lobby_players={OWN_USERNAME, "Player1", "Player2"}, in_queue=False
+            ),
+            wants_shown=True,
+        ),
+        True,
+    ),
+    (
+        "lobby list in queue",
+        MockedController(
+            state=create_state(lobby_players={"PersonFromLastLobby"}, in_queue=True),
+            wants_shown=False,
         ),  # Old members cleared
         LobbyListEvent([OWN_USERNAME, "Player1", "Player2"]),
         MockedController(
@@ -465,9 +480,28 @@ process_event_test_cases_base: tuple[
         True,
     ),
     (
-        "new queue with old lobby",
+        "new queue with in-sync old lobby (weird)",
         MockedController(
             state=create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=False)
+        ),
+        LobbyJoinEvent("Player1", player_count=8, player_cap=16),
+        MockedController(
+            state=create_state(
+                lobby_players={"PlayerA", "PlayerB", "Player1"},
+                out_of_sync=True,
+                in_queue=True,
+            )
+        ),
+        True,
+    ),
+    (
+        "new queue with lobby from previous game",
+        MockedController(
+            state=create_state(
+                lobby_players={"PlayerA", "PlayerB"},
+                alive_players={"PlayerB"},
+                in_queue=False,
+            )
         ),
         LobbyJoinEvent("Player1", player_count=8, player_cap=16),
         MockedController(
@@ -739,6 +773,7 @@ INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.m
                 f"{CHAT}+37 coins! (Win)",
                 f"{CHAT}+50 Bed Wars Experience (Position Bonus)",
                 f"{CHAT}ONLINE: Player1, Player2, Me, Player4, Player5, Player6, Player7, Player8, Player9, Player10, Player11, Player12",  # noqa: E501
+                f"{CHAT}Player1 has joined (12/12)!",
                 f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
                 f"{CHAT}                                  Bed Wars",
                 f"{CHAT}",
@@ -876,7 +911,7 @@ INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.m
         ),
         (
             # Disconnect right before game starts, then rejoin
-            MockedController(),
+            MockedController(state=create_state(in_queue=True)),
             (
                 f"{CHAT}ONLINE: Player1, Player2, Player3, Player4, Player5, Player6, Player7, OwnUsername",  # noqa: E501
                 f"{CHAT}The game starts in 5 seconds!",
@@ -892,7 +927,7 @@ INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.m
         ),
         (
             # Disconnect during the game, then rejoin
-            MockedController(),
+            MockedController(state=create_state(in_queue=True)),
             (
                 f"{CHAT}ONLINE: Player1, Player2, Player3, Player4, Player5, Player6, Player7, OwnUsername",  # noqa: E501
                 f"{CHAT}The game starts in 5 seconds!",

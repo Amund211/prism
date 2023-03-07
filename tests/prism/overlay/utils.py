@@ -166,6 +166,7 @@ class MockedController:
     )
     antisniper_api_key: str | None = None
 
+    wants_shown: bool | None = None
     state: OverlayState = field(default_factory=create_state)
     settings: Settings = field(default_factory=make_settings)
     nick_database: NickDatabase = field(default_factory=lambda: NickDatabase([{}]))
