@@ -234,7 +234,7 @@ def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -
     """
     Process the state changes for each logline without outputting anything
 
-    Caller must ensure exclusive write-access to controller.state
+    NOTE: Caller must ensure exclusive write-access to controller.state
     """
     logger.info("Fast forwarding state")
     for line in loglines:
@@ -248,15 +248,18 @@ def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -
 
 
 def process_loglines(loglines: Iterable[str], controller: OverlayController) -> None:
-    """Update state and set the redraw event"""
+    """
+    Update state and set the redraw event
+
+    NOTE: Caller must ensure exclusive write-access to controller.state
+    """
     for line in loglines:
         event = parse_logline(line)
 
         if event is None:
             continue
 
-        with controller.state_mutex:  # Exclusive write-access
-            controller.state, redraw = process_event(controller, event)
+        controller.state, redraw = process_event(controller, event)
 
         if redraw:
             # Tell the main thread we need a redraw
