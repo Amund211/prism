@@ -14,7 +14,6 @@ from prism.requests import make_prism_requests_session
 logger = logging.getLogger(__name__)
 
 DENICK_ENDPOINT = "https://api.antisniper.net/denick"
-ANTISNIPER_ENDPOINT = "https://api.antisniper.net/antisniper"
 WINSTREAK_ENDPOINT = "https://api.antisniper.net/winstreak"
 
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
@@ -226,77 +225,3 @@ def parse_estimated_winstreaks_response(
         ),
         winstreaks_accurate,
     )
-
-
-def queue_data(
-    name: str, key_holder: AntiSniperAPIKeyHolder
-) -> int | None:  # pragma: nocover
-    """Get queue data about the given username/nick from the /antisniper API endpoint"""
-    try:
-        # Uphold our prescribed rate-limits
-        with key_holder.limiter:
-            response = SESSION.get(
-                f"{ANTISNIPER_ENDPOINT}?key={key_holder.key}&name={name}"
-            )
-    except RequestException:
-        logger.exception(
-            "Request to antisniper endpoint failed due to a connection error."
-        )
-        return None
-
-    if not response:
-        logger.error(
-            f"Request to antisniper endpoint failed with status code "
-            f"{response.status_code} when getting queue data for name {name}. "
-            f"Response: {response.text}"
-        )
-        return None
-
-    try:
-        response_json = response.json()
-    except JSONDecodeError:
-        logger.error(
-            "Failed parsing the response from the antisniper endpoint. "
-            f"{name=}. Raw content: {response.text}."
-        )
-        return None
-
-    if not response_json.get("success", False):
-        logger.error(
-            f"Antisniper endpoint returned an error. Response: {response_json}"
-        )
-        return None
-
-    data = response_json.get("data", None)
-
-    if not isinstance(data, dict):
-        logger.error(f"Got wrong return type for data from antisniper endpoint {data}")
-        return None
-
-    queue_data = response_json.get(name, None)
-
-    if not isinstance(queue_data, dict):
-        logger.error(
-            "Got wrong return type for queue data from antisniper endpoint: "
-            f"'{queue_data}'"
-        )
-        return None
-
-    queues = queue_data.get("queues", None)
-
-    if not isinstance(queues, dict):
-        logger.error(
-            f"Got wrong return type for queues from antisniper endpoint {queues}"
-        )
-        return None
-
-    last_3_min = queues.get("last_3_min", None)
-
-    if not isinstance(last_3_min, int):
-        logger.error(
-            "Got wrong return type for last_3_min from antisniper endpoint "
-            f"{last_3_min}"
-        )
-        return None
-
-    return last_3_min
