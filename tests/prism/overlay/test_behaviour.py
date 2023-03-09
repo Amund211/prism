@@ -361,6 +361,7 @@ def test_update_settings_everything_changed() -> None:
 class LobbyPlayer:
     username: str | None = None
     nick: str | None = None
+    manually_denicked: bool = True  # Denicked from settings
     pending: bool = False
     missing: bool = False
 
@@ -506,7 +507,7 @@ autodenick_test_cases: tuple[
         None,
     ),
     (
-        # One nick, but already denicked
+        # One nick, but already denicked by settings
         (
             LobbyPlayer(username="Someone", nick="SomeNick"),
             LobbyPlayer(username="Player2"),
@@ -519,6 +520,21 @@ autodenick_test_cases: tuple[
         ),
         {"OwnUsername"},
         None,
+    ),
+    (
+        # One nick, but already denicked by api
+        (
+            LobbyPlayer(username="Someone", nick="SomeNick", manually_denicked=False),
+            LobbyPlayer(username="Player2"),
+            LobbyPlayer(username="Player3"),
+            LobbyPlayer(username="Player4"),
+            LobbyPlayer(username="Player5"),
+            LobbyPlayer(username="Player6"),
+            LobbyPlayer(username="Player7"),
+            LobbyPlayer(username="Player8"),
+        ),
+        {"OwnUsername"},
+        LobbyPlayer(username="OwnUsername", nick="SomeNick"),
     ),
     (
         # Multiple nicks denicked, one unknown
@@ -534,6 +550,23 @@ autodenick_test_cases: tuple[
         ),
         {"OwnUsername"},
         LobbyPlayer(username="OwnUsername", nick="Nick1"),
+    ),
+    (
+        # Multiple nicks denicked, one by api. one unknown
+        (
+            LobbyPlayer(nick="Nick1"),
+            LobbyPlayer(
+                username="Player2", nick="SomeNickname", manually_denicked=False
+            ),
+            LobbyPlayer(username="Player3", nick="P3Nick"),
+            LobbyPlayer(username="Player4", nick="P4Nick"),
+            LobbyPlayer(username="Player5", nick="P5Nick"),
+            LobbyPlayer(username="Player6", nick="P6Nick"),
+            LobbyPlayer(username="Player7", nick="P7Nick"),
+            LobbyPlayer(username="Player8"),
+        ),
+        {"OwnUsername"},
+        None,
     ),
     (
         # OwnUsername not joined yet somehow
@@ -664,6 +697,83 @@ autodenick_test_cases: tuple[
         {"OwnUsername", "Player3", "Player9", "Player15"},
         None,
     ),
+    (
+        # One nicked player and our teammate denicked by settings
+        (
+            LobbyPlayer(username="OwnUsername"),
+            LobbyPlayer(username="Player2"),
+            LobbyPlayer(username="Player3"),
+            LobbyPlayer(username="Player4"),
+            LobbyPlayer(username="Player5"),
+            LobbyPlayer(username="Player6"),
+            LobbyPlayer(username="Player7"),
+            LobbyPlayer(username="Player8"),
+            LobbyPlayer(username="Player9", nick="AmazingNick"),
+            LobbyPlayer(username="Player10"),
+            LobbyPlayer(username="Player11"),
+            LobbyPlayer(username="Player12"),
+            LobbyPlayer(username="Player13"),
+            LobbyPlayer(nick="SuperbNick"),
+            LobbyPlayer(username="Player15"),
+            LobbyPlayer(username="Player16"),
+        ),
+        {"OwnUsername", "Player3", "Player9", "Player15"},
+        None,  # We have all our teammates in the lobby
+    ),
+    (
+        # Our teammate incorrectly denicked by API
+        (
+            LobbyPlayer(username="OwnUsername"),
+            LobbyPlayer(username="Player2"),
+            LobbyPlayer(username="Player3"),
+            LobbyPlayer(username="Player4"),
+            LobbyPlayer(username="Player5"),
+            LobbyPlayer(username="Player6"),
+            LobbyPlayer(username="Player7"),
+            LobbyPlayer(username="Player8"),
+            LobbyPlayer(
+                username="SomeoneRandom",
+                nick="AmazingNick",
+                manually_denicked=False,
+            ),
+            LobbyPlayer(username="Player10"),
+            LobbyPlayer(username="Player11"),
+            LobbyPlayer(username="Player12"),
+            LobbyPlayer(username="Player13"),
+            LobbyPlayer(username="Player14"),
+            LobbyPlayer(username="Player15"),
+            LobbyPlayer(username="Player16"),
+        ),
+        {"OwnUsername", "Player3", "Player9", "Player15"},
+        LobbyPlayer(username="Player9", nick="AmazingNick"),
+    ),
+    (
+        # Our teammate correctly denicked by API
+        (
+            LobbyPlayer(username="OwnUsername"),
+            LobbyPlayer(username="Player2"),
+            LobbyPlayer(username="Player3"),
+            LobbyPlayer(username="Player4"),
+            LobbyPlayer(username="Player5"),
+            LobbyPlayer(username="Player6"),
+            LobbyPlayer(username="Player7"),
+            LobbyPlayer(username="Player8"),
+            LobbyPlayer(
+                username="Player9", nick="AmazingNick", manually_denicked=False
+            ),
+            LobbyPlayer(username="Player10"),
+            LobbyPlayer(username="Player11"),
+            LobbyPlayer(username="Player12"),
+            LobbyPlayer(username="Player13"),
+            LobbyPlayer(username="Player14"),
+            LobbyPlayer(username="Player15"),
+            LobbyPlayer(username="Player16"),
+        ),
+        {"OwnUsername", "Player3", "Player9", "Player15"},
+        # NOTE: We have all our teammates denicked, but we would like to store the
+        #       nick of Player9 in settings.
+        LobbyPlayer(username="Player9", nick="AmazingNick"),
+    ),
 )
 
 
@@ -688,9 +798,13 @@ def test_autodenick_teammate(
         assert denick.nick is not None
         assert not denick.pending
         assert not denick.missing
+        assert denick.manually_denicked
 
     lobby_players = cast(set[str], {player.nick or player.username for player in lobby})
     assert all(isinstance(player, str) for player in lobby_players)
+
+    def get_uuid(username: str) -> str:
+        return f"uuid-for-{username}"
 
     controller = MockedController(
         state=create_state(
@@ -698,9 +812,11 @@ def test_autodenick_teammate(
             party_members=party_members,
             in_queue=True,
             out_of_sync=False,
-        )
+        ),
+        get_uuid=get_uuid,
     )
 
+    # Update the controller state by setting cache and denicks
     for player in lobby:
         if player.pending:
             assert player.username is not None
@@ -714,10 +830,19 @@ def test_autodenick_teammate(
                 player.nick, make_player(variant="nick", username=player.nick), genus=0
             )
         else:
+            if player.nick is not None and player.manually_denicked:
+                # Add an entry to the settings/denick database
+                set_nickname(
+                    username=player.username, nick=player.nick, controller=controller
+                )
+
             controller.player_cache.set_cached_player(
                 player.nick or player.username,
                 make_player(
-                    variant="player", username=player.username, nick=player.nick
+                    variant="player",
+                    username=player.username,
+                    nick=player.nick,
+                    uuid=get_uuid(player.username),
                 ),
                 genus=0,
             )

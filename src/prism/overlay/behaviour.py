@@ -2,14 +2,10 @@ import functools
 import logging
 import queue
 
+from prism.mojang import compare_uuids
 from prism.overlay.controller import OverlayController
 from prism.overlay.get_stats import get_bedwars_stats
-from prism.overlay.player import (
-    MISSING_WINSTREAKS,
-    KnownPlayer,
-    NickedPlayer,
-    PendingPlayer,
-)
+from prism.overlay.player import MISSING_WINSTREAKS, KnownPlayer, PendingPlayer
 from prism.overlay.settings import SettingsDict
 
 logger = logging.getLogger(__name__)
@@ -249,7 +245,7 @@ def autodenick_teammate(controller: OverlayController) -> None:
         We are in queue
         The lobby is full and in sync
         *One* of our teammates is not in the lobby
-        There is *one* nick in the lobby
+        There is *one* unknown nick in the lobby (either not denicked or API denicked)
     We denick that nick to be our teammate
     """
     # Store a persistent view to the current state
@@ -261,17 +257,18 @@ def autodenick_teammate(controller: OverlayController) -> None:
         or not state.in_queue
         or state.out_of_sync
     ):
+        # We're not quite sure of the state of the lobby or the stats cache
         return
 
-    missing_teammates = state.party_members - state.lobby_players
+    # Teammates whose IGN is not present in the lobby
+    # They could still be known to be in the lobby if we have already denicked them
+    missing_teammates = set(state.party_members - state.lobby_players)
 
-    if len(missing_teammates) != 1:
+    if not missing_teammates:
+        # Nothing to do
         return
 
-    # Unpack to get the one element
-    (teammate,) = missing_teammates
-
-    logger.info(f"Attempting to autodenick teammate {teammate}")
+    logger.info(f"Attempting to autodenick {missing_teammates=}")
 
     lobby_size = len(state.lobby_players)
 
@@ -282,19 +279,19 @@ def autodenick_teammate(controller: OverlayController) -> None:
         return
 
     if state.lobby_players != state.alive_players:
-        logger.error(
+        logger.warning(
             "Aborting autodenick due to mismatch in lobby/alive, "
             f"lobby={state.lobby_players}, alive={state.alive_players}"
         )
         return
 
-    nicked_player: NickedPlayer | None = None
-
-    # Check that there is exactly one unknown nick in the lobby
+    # Use the cached stats to narrow missing_teammates and to find the unknown nick
+    unknown_nick: str | None = None
     for player in state.lobby_players:
         # Use the long term cache, as the recency doesn't matter
         # We just want to know if they're an unknown nick or not
         stats = controller.player_cache.get_cached_player(player, long_term=True)
+
         if stats is None:
             logger.info(f"Aborting autodenick due to {player}'s stats missing")
             return
@@ -302,23 +299,45 @@ def autodenick_teammate(controller: OverlayController) -> None:
             logger.info(f"Aborting autodenick due to {player}'s stats being pending")
             return
         elif isinstance(stats, KnownPlayer):
-            continue
-        elif isinstance(stats, NickedPlayer):
-            if nicked_player is not None:
-                logger.info(
-                    "Aborting autodenick due to multiple unknown nicks: "
-                    f"{player}, {stats.nick} and possibly more."
-                )
-                return
-            nicked_player = stats
+            if stats.nick is None:
+                # Known player is not denicked
+                continue
 
-        else:  # pragma: no coverage
-            return False  # Assert unreachable for typechecking
+            manual_denick_uuid = controller.nick_database.get_default(stats.nick)
+            if manual_denick_uuid is not None and compare_uuids(
+                manual_denick_uuid, stats.uuid
+            ):
+                # Manually denicked - trust the denick and mark the user as present
+                missing_teammates -= {stats.username}
 
-    if nicked_player is None:
+                if not missing_teammates:
+                    logger.info("All teammates already denicked")
+                    return
+
+                continue
+
+        # Player is either an unknown nick, or has been denicked by the API
+        # Treat them as an unknown nick
+        if unknown_nick is not None:
+            logger.info(
+                "Aborting autodenick due to multiple unknown nicks: "
+                f"{unknown_nick}, {player} and possibly more."
+            )
+            return
+
+        unknown_nick = player
+
+    if unknown_nick is None:
         logger.info("Aborting autodenick due to no unknown nick in the lobby")
         return
 
-    logger.info(f"Denicked teammate {nicked_player.nick} -> {teammate}")
+    if len(missing_teammates) != 1:
+        logger.info(f"Aborting autodenick due to multiple {missing_teammates=}")
+        return
 
-    set_nickname(username=teammate, nick=nicked_player.nick, controller=controller)
+    # Unpack to get the one element
+    (teammate,) = missing_teammates
+
+    logger.info(f"Autodenicked teammate {unknown_nick} -> {teammate}")
+
+    set_nickname(username=teammate, nick=unknown_nick, controller=controller)
