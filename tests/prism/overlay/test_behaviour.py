@@ -673,6 +673,10 @@ def test_autodenick_teammate(
     assert all(
         (player.username is not None or player.nick is not None)
         and not (player.pending and player.missing)
+        and (
+            (not player.pending and not player.missing)
+            or (player.username is not None and player.nick is None)
+        )
         for player in lobby
     )
 
@@ -682,7 +686,7 @@ def test_autodenick_teammate(
         assert not denick.pending
         assert not denick.missing
 
-    lobby_players = cast(set[str], {player.username or player.nick for player in lobby})
+    lobby_players = cast(set[str], {player.nick or player.username for player in lobby})
     assert all(isinstance(player, str) for player in lobby_players)
 
     controller = MockedController(
@@ -696,9 +700,8 @@ def test_autodenick_teammate(
 
     for player in lobby:
         if player.pending:
-            controller.player_cache.set_player_pending(
-                cast(str, player.nick or player.username)
-            )
+            assert player.username is not None
+            controller.player_cache.set_player_pending(player.username)
         elif player.missing:
             # Stats missing completely
             pass
@@ -709,7 +712,7 @@ def test_autodenick_teammate(
             )
         else:
             controller.player_cache.set_cached_player(
-                player.username,
+                player.nick or player.username,
                 make_player(
                     variant="player", username=player.username, nick=player.nick
                 ),
