@@ -58,7 +58,12 @@ class AntiSniperAPIKeyHolder:
 def denick(
     nick: str, key_holder: AntiSniperAPIKeyHolder
 ) -> str | None:  # pragma: nocover
-    """Get data about the given nick from the /denick API endpoint"""
+    """
+    Get data about the given nick from the v2 denick API endpoint
+
+    https://api.antisniper.net/#tag/Other/paths/~1v2~1other~1denick/get
+    """
+
     cache_hit = get_denick_cache(nick)
 
     # If cache hits and was not a failure, return it
@@ -132,7 +137,11 @@ def parse_denick_response(response_json: dict[str, Any]) -> str | None:
 def get_estimated_winstreaks(
     uuid: str, key_holder: AntiSniperAPIKeyHolder
 ) -> tuple[Winstreaks, bool]:  # pragma: nocover
-    """Get the estimated winstreaks of the given uuid"""
+    """
+    Get the estimated winstreaks of the given uuid
+
+    https://api.antisniper.net/#tag/Player/paths/~1v2~1player~1winstreak/get
+    """
     try:
         # Uphold our prescribed rate-limits
         with key_holder.limiter:
