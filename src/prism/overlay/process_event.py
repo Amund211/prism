@@ -178,7 +178,7 @@ def process_event(
 
     if event.event_type is EventType.BEDWARS_GAME_STARTING_SOON:
         # Bedwars game is starting soon
-        logger.info("Bedwars game starting soon {event.seconds} second(s)")
+        logger.info(f"Bedwars game starting soon {event.seconds} second(s)")
 
         if not state.in_queue:
             # This is a new queue - reset the users preference for showing the overlay
