@@ -258,12 +258,27 @@ class HypixelSection:  # pragma: nocover
             foreground="white",
             background="black",
         ).grid(row=0, column=0, sticky=tk.E)
-        tk.Entry(self.frame, textvariable=self.hypixel_api_key_variable).grid(
-            row=0, column=1
+        self.hypixel_api_key_entry = tk.Entry(
+            self.frame, show="*", textvariable=self.hypixel_api_key_variable
         )
+        self.hypixel_api_key_entry.grid(row=0, column=1, sticky=tk.W + tk.E)
+        self.frame.columnconfigure(1, weight=1)
+
+        tk.Button(
+            self.frame,
+            text="SHOW",
+            font=("Consolas", "10"),
+            foreground="black",
+            background="gray",
+            activebackground="red",
+            command=lambda: self.hypixel_api_key_entry.config(show=""),
+            relief="flat",
+            cursor="hand2",
+        ).grid(row=0, column=2, padx=(5, 0))
 
     def set(self, hypixel_api_key: str) -> None:
         """Set the state of this section"""
+        self.hypixel_api_key_entry.config(show="*")
         self.hypixel_api_key_variable.set(hypixel_api_key)
 
     def get(self) -> str:
@@ -316,16 +331,30 @@ class AntisniperSection:  # pragma: nocover
 
         self.antisniper_api_key_variable = tk.StringVar()
         self.antisniper_api_key_entry = tk.Entry(
-            self.frame, textvariable=self.antisniper_api_key_variable
+            self.frame, show="*", textvariable=self.antisniper_api_key_variable
         )
         self.set_key_entry_state(self.use_antisniper_api_toggle.enabled)
 
-        self.antisniper_api_key_entry.grid(row=2, column=1)
+        self.antisniper_api_key_entry.grid(row=2, column=1, sticky=tk.W + tk.E)
+        self.frame.columnconfigure(1, weight=1)
+
+        tk.Button(
+            self.frame,
+            text="SHOW",
+            font=("Consolas", "10"),
+            foreground="black",
+            background="gray",
+            activebackground="red",
+            command=lambda: self.antisniper_api_key_entry.config(show=""),
+            relief="flat",
+            cursor="hand2",
+        ).grid(row=2, column=2, padx=(5, 0))
 
     def set(self, use_antisniper_api: bool, antisniper_api_key: str | None) -> None:
         """Set the state of this section"""
         self.use_antisniper_api_toggle.set(use_antisniper_api)
 
+        self.antisniper_api_key_entry.config(show="*")
         self.antisniper_api_key_variable.set(antisniper_api_key or "")
 
     def get(self) -> tuple[bool, str | None]:
