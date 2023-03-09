@@ -13,7 +13,7 @@ from prism.requests import make_prism_requests_session
 
 logger = logging.getLogger(__name__)
 
-DENICK_ENDPOINT = "https://api.antisniper.net/denick"
+DENICK_ENDPOINT = "https://api.antisniper.net/v2/other/denick"
 WINSTREAK_ENDPOINT = "https://api.antisniper.net/v2/player/winstreak"
 
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
@@ -75,10 +75,6 @@ def denick(
         logger.exception("Request to denick endpoint failed due to a connection error.")
         return set_denick_cache(nick, None)
 
-    if response.status_code == 404:
-        logger.debug(f"Request to denick endpoint failed 404 for {nick=}.")
-        return set_denick_cache(nick, None)
-
     if not response:
         logger.error(
             f"Request to denick endpoint failed with status code {response.status_code}"
@@ -104,19 +100,27 @@ def parse_denick_response(response_json: dict[str, Any]) -> str | None:
         logger.error(f"Denick endpoint returned an error. Response: {response_json}")
         return None
 
-    playerdata = response_json.get("player", "INVALIDTYPE")
+    results = response_json.get("results", None)
 
-    if playerdata is None:
-        logger.debug("Denick failed")
-        return None
-
-    if not isinstance(playerdata, dict):
+    if not isinstance(results, list):
         logger.error(
-            f"Got wrong return type for playerdata from denick endpoint {playerdata}"
+            f"Got wrong return type for results from denick endpoint {results}"
         )
         return None
 
-    uuid = playerdata.get("uuid", None)
+    if not results:
+        logger.debug("Denick results list empty")
+        return None
+
+    chosen_result = results[0]
+
+    if not isinstance(chosen_result, dict):
+        logger.error(
+            f"Got wrong type for chosen result from denick results {chosen_result}"
+        )
+        return None
+
+    uuid = chosen_result.get("uuid", None)
 
     if not isinstance(uuid, str):
         logger.error(f"Got wrong return type for uuid from denick endpoint {uuid}")

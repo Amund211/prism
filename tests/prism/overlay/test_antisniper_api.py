@@ -2,6 +2,7 @@ from typing import Any
 
 import pytest
 
+from prism.mojang import compare_uuids
 from prism.overlay.antisniper_api import (
     AntiSniperAPIKeyHolder,
     Flag,
@@ -17,37 +18,46 @@ assert MISSING_WINSTREAKS == make_winstreaks()
 
 REAL_DENICK_RESPONSE_SUCCESS = {
     "success": True,
-    "player": {
-        "uuid": "b70af64378b94854af6de83a2efd7e17",
-        "dashed_uuid": "b70af643-78b9-4854-af6d-e83a2efd7e17",
-        "nick_uuid": "ff62a260-e391-11ec-b541-e580d9c373b1",
-        "dashed_nick_uuid": "ff62a260-e391-11ec-b541-e580d9c373b1",
-        "date": 1654297687,
-        "ign": "Voltey",
-        "nick": "edater",
-    },
+    "results": [
+        {
+            "uuid": "b70af643-78b9-4854-af6d-e83a2efd7e17",
+            "ign": "Voltey",
+            "queried_nick": "edater",
+            "method": "skyblock",
+            "percent": "99%",
+            "first_detected": 1664805455,
+            "last_seen": 1662501013,
+            "latest_nick": "edater",
+        }
+    ],
+    "real_nick": True,
 }
 
-REAL_DENICK_RESPONSE_FAIL = {"success": True, "player": None}
+REAL_DENICK_RESPONSE_FAIL = {"success": True, "results": [], "real_nick": False}
 
 parse_denick_cases: tuple[tuple[dict[str, Any], str | None], ...] = (
     ({}, None),
     ({"success": False}, None),
     ({"success": True}, None),
-    ({"success": True, "player": {}}, None),
-    ({"success": True, "player": "invalidplayerdata"}, None),
-    ({"player": {"uuid": "someuuid"}}, None),
-    ({"success": False, "player": {"uuid": "someuuid"}}, None),
+    ({"success": True, "results": []}, None),
+    ({"success": True, "results": ["invalidplayerdata"]}, None),
+    ({"results": [{"uuid": "someuuid"}]}, None),
+    ({"success": False, "results": [{"uuid": "someuuid"}]}, None),
+    ({"success": True, "results": [{"uuid": 123}]}, None),
     (REAL_DENICK_RESPONSE_FAIL, None),
     # Passing cases
-    ({"success": True, "player": {"uuid": "someuuid"}}, "someuuid"),
+    ({"success": True, "results": [{"uuid": "someuuid"}]}, "someuuid"),
     (REAL_DENICK_RESPONSE_SUCCESS, "b70af64378b94854af6de83a2efd7e17"),
 )
 
 
 @pytest.mark.parametrize("response_json, uuid", parse_denick_cases)
 def test_parse_denick_response(response_json: dict[str, Any], uuid: str | None) -> None:
-    assert parse_denick_response(response_json) == uuid
+    parsed_uuid = parse_denick_response(response_json)
+    if parsed_uuid is None or uuid is None:
+        assert parsed_uuid == uuid
+    else:
+        assert compare_uuids(parsed_uuid, uuid)
 
 
 REAL_WINSTREAK_RESPONSE = {
