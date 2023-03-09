@@ -35,6 +35,7 @@ class SettingsDict(TypedDict):
     antisniper_api_key: str | None
     use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
+    autodenick_teammates: bool
     autoselect_logfile: bool
     show_on_tab: bool
     show_on_tab_keybind: KeyDict
@@ -57,6 +58,7 @@ class Settings:
     antisniper_api_key: str | None
     use_antisniper_api: bool
     known_nicks: dict[str, NickValue]
+    autodenick_teammates: bool
     autoselect_logfile: bool
     show_on_tab: bool
     show_on_tab_keybind: Key
@@ -79,6 +81,7 @@ class Settings:
             antisniper_api_key=source["antisniper_api_key"],
             use_antisniper_api=source["use_antisniper_api"],
             known_nicks=source["known_nicks"],
+            autodenick_teammates=source["autodenick_teammates"],
             autoselect_logfile=source["autoselect_logfile"],
             show_on_tab=source["show_on_tab"],
             show_on_tab_keybind=construct_key(source["show_on_tab_keybind"]),
@@ -96,6 +99,7 @@ class Settings:
             "antisniper_api_key": self.antisniper_api_key,
             "use_antisniper_api": self.use_antisniper_api,
             "known_nicks": self.known_nicks,
+            "autodenick_teammates": self.autodenick_teammates,
             "autoselect_logfile": self.autoselect_logfile,
             "show_on_tab": self.show_on_tab,
             "show_on_tab_keybind": self.show_on_tab_keybind.to_dict(),
@@ -112,6 +116,7 @@ class Settings:
         self.antisniper_api_key = new_settings["antisniper_api_key"]
         self.use_antisniper_api = new_settings["use_antisniper_api"]
         self.known_nicks = new_settings["known_nicks"]
+        self.autodenick_teammates = new_settings["autodenick_teammates"]
         self.autoselect_logfile = new_settings["autoselect_logfile"]
         self.show_on_tab = new_settings["show_on_tab"]
         self.show_on_tab_keybind = construct_key(new_settings["show_on_tab_keybind"])
@@ -195,6 +200,11 @@ def fill_missing_settings(
 
         known_nicks[key] = NickValue(uuid=uuid, comment=comment)
 
+    autodenick_teammates = incomplete_settings.get("autodenick_teammates", None)
+    if not isinstance(autodenick_teammates, bool):
+        settings_updated = True
+        autodenick_teammates = True
+
     autoselect_logfile = incomplete_settings.get("autoselect_logfile", None)
     if not isinstance(autoselect_logfile, bool):
         settings_updated = True
@@ -250,6 +260,7 @@ def fill_missing_settings(
         "antisniper_api_key": antisniper_api_key,
         "use_antisniper_api": use_antisniper_api,
         "known_nicks": known_nicks,
+        "autodenick_teammates": autodenick_teammates,
         "autoselect_logfile": autoselect_logfile,
         "show_on_tab": show_on_tab,
         "show_on_tab_keybind": show_on_tab_keybind,

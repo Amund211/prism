@@ -191,7 +191,8 @@ def process_event(
         logger.info("Bedwars game starting")
 
         # Try to denick a teammate right before we leave the queue (start the game)
-        autodenick_teammate(controller)
+        if controller.settings.autodenick_teammates:
+            autodenick_teammate(controller)
 
         return state.leave_queue(), False
 

@@ -156,13 +156,23 @@ class GeneralSettingSection:  # pragma: nocover
 
         tk.Label(
             self.frame,
-            text="Autoselect logfile: ",
+            text="Autodenick teammates: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
         ).grid(row=0, column=0, sticky=tk.E)
+        self.autodenick_teammates_toggle = ToggleButton(self.frame)
+        self.autodenick_teammates_toggle.button.grid(row=0, column=1)
+
+        tk.Label(
+            self.frame,
+            text="Autoselect logfile: ",
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        ).grid(row=1, column=0, sticky=tk.E)
         self.autoselect_logfile_toggle = ToggleButton(self.frame)
-        self.autoselect_logfile_toggle.button.grid(row=0, column=1)
+        self.autoselect_logfile_toggle.button.grid(row=1, column=1)
 
         tk.Label(
             self.frame,
@@ -170,9 +180,9 @@ class GeneralSettingSection:  # pragma: nocover
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=1, column=0, sticky=tk.E)
+        ).grid(row=2, column=0, sticky=tk.E)
         self.show_on_tab_toggle = ToggleButton(self.frame)
-        self.show_on_tab_toggle.button.grid(row=1, column=1)
+        self.show_on_tab_toggle.button.grid(row=2, column=1)
 
         tk.Label(
             self.frame,
@@ -180,11 +190,11 @@ class GeneralSettingSection:  # pragma: nocover
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=2, column=0, sticky=tk.E)
+        ).grid(row=3, column=0, sticky=tk.E)
         self.show_on_tab_keybind_selector = KeybindSelector(
             self.frame, overlay=parent.overlay
         )
-        self.show_on_tab_keybind_selector.button.grid(row=2, column=1)
+        self.show_on_tab_keybind_selector.button.grid(row=3, column=1)
 
         tk.Label(
             self.frame,
@@ -192,26 +202,29 @@ class GeneralSettingSection:  # pragma: nocover
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=3, column=0, sticky=tk.E)
+        ).grid(row=4, column=0, sticky=tk.E)
         self.check_for_updates_toggle = ToggleButton(self.frame)
-        self.check_for_updates_toggle.button.grid(row=3, column=1)
+        self.check_for_updates_toggle.button.grid(row=4, column=1)
 
     def set(
         self,
+        autodenick_teammates: bool,
         autoselect_logfile: bool,
         show_on_tab: bool,
         show_on_tab_keybind: Key,
         check_for_updates: bool,
     ) -> None:
         """Set the state of this section"""
+        self.autodenick_teammates_toggle.set(autodenick_teammates)
         self.autoselect_logfile_toggle.set(autoselect_logfile)
         self.show_on_tab_toggle.set(show_on_tab)
         self.show_on_tab_keybind_selector.set_key(show_on_tab_keybind)
         self.check_for_updates_toggle.set(check_for_updates)
 
-    def get(self) -> tuple[bool, bool, Key, bool]:
+    def get(self) -> tuple[bool, bool, bool, Key, bool]:
         """Get the state of this section"""
         return (
+            self.autodenick_teammates_toggle.enabled,
             self.autoselect_logfile_toggle.enabled,
             self.show_on_tab_toggle.enabled,
             self.show_on_tab_keybind_selector.key,
@@ -501,6 +514,7 @@ class SettingsPage:  # pragma: nocover
         """Set the content of the page to the values from `settings`"""
         with settings.mutex:
             self.general_settings_section.set(
+                autodenick_teammates=settings.autodenick_teammates,
                 autoselect_logfile=settings.autoselect_logfile,
                 show_on_tab=settings.show_on_tab,
                 show_on_tab_keybind=settings.show_on_tab_keybind,
@@ -528,6 +542,7 @@ class SettingsPage:  # pragma: nocover
         old_show_on_tab_keybind = self.controller.settings.show_on_tab_keybind
 
         (
+            autodenick_teammates,
             autoselect_logfile,
             show_on_tab,
             show_on_tab_keybind,
@@ -553,6 +568,7 @@ class SettingsPage:  # pragma: nocover
             antisniper_api_key=antisniper_api_key,
             use_antisniper_api=use_antisniper_api,
             known_nicks=known_nicks,
+            autodenick_teammates=autodenick_teammates,
             autoselect_logfile=autoselect_logfile,
             show_on_tab=show_on_tab,
             show_on_tab_keybind=show_on_tab_keybind.to_dict(),
