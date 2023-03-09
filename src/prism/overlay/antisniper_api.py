@@ -1,15 +1,18 @@
+import functools
 import logging
 import threading
 from enum import Enum, auto
 from json import JSONDecodeError
 from typing import Any
 
+import requests
 from cachetools import TTLCache
 from requests.exceptions import RequestException
 
 from prism.overlay.player import MISSING_WINSTREAKS, GamemodeName, Winstreaks
 from prism.ratelimiting import RateLimiter
 from prism.requests import make_prism_requests_session
+from prism.retry import ExecutionError, execute_with_retry
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +58,21 @@ class AntiSniperAPIKeyHolder:
         self.limiter = RateLimiter(limit=limit, window=window)
 
 
+def _make_request(
+    url: str, key_holder: AntiSniperAPIKeyHolder
+) -> requests.Response:  # pragma: nocover
+    try:
+        # Uphold our prescribed rate-limits
+        with key_holder.limiter:
+            response = SESSION.get(url)
+    except RequestException as e:
+        raise ExecutionError(
+            "Request to AntiSniper API failed due to an unknown error"
+        ) from e
+
+    return response
+
+
 def denick(
     nick: str, key_holder: AntiSniperAPIKeyHolder
 ) -> str | None:  # pragma: nocover
@@ -71,13 +89,17 @@ def denick(
         return cache_hit
 
     try:
-        # Uphold our prescribed rate-limits
-        with key_holder.limiter:
-            response = SESSION.get(
-                f"{DENICK_ENDPOINT}?key={key_holder.key}&nick={nick}"
-            )
-    except RequestException:
-        logger.exception("Request to denick endpoint failed due to a connection error.")
+        response = execute_with_retry(
+            functools.partial(
+                _make_request,
+                url=f"{DENICK_ENDPOINT}?key={key_holder.key}&nick={nick}",
+                key_holder=key_holder,
+            ),
+            retry_limit=3,
+            timeout=5,
+        )
+    except ExecutionError:
+        logger.exception("Request to denick endpoint reached max retries")
         return set_denick_cache(nick, None)
 
     if not response:
@@ -143,15 +165,17 @@ def get_estimated_winstreaks(
     https://api.antisniper.net/#tag/Player/paths/~1v2~1player~1winstreak/get
     """
     try:
-        # Uphold our prescribed rate-limits
-        with key_holder.limiter:
-            response = SESSION.get(
-                f"{WINSTREAK_ENDPOINT}?key={key_holder.key}&player={uuid}"
-            )
-    except RequestException:
-        logger.exception(
-            "Request to winstreak endpoint failed due to a connection error."
+        response = execute_with_retry(
+            functools.partial(
+                _make_request,
+                url=f"{WINSTREAK_ENDPOINT}?key={key_holder.key}&player={uuid}",
+                key_holder=key_holder,
+            ),
+            retry_limit=3,
+            timeout=5,
         )
+    except ExecutionError:
+        logger.exception("Request to winstreaks endpoint reached max retries")
         return MISSING_WINSTREAKS, False
 
     if not response:
