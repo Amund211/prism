@@ -14,7 +14,7 @@ from prism.requests import make_prism_requests_session
 logger = logging.getLogger(__name__)
 
 DENICK_ENDPOINT = "https://api.antisniper.net/denick"
-WINSTREAK_ENDPOINT = "https://api.antisniper.net/winstreak"
+WINSTREAK_ENDPOINT = "https://api.antisniper.net/v2/player/winstreak"
 
 REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
 
@@ -133,16 +133,12 @@ def get_estimated_winstreaks(
         # Uphold our prescribed rate-limits
         with key_holder.limiter:
             response = SESSION.get(
-                f"{WINSTREAK_ENDPOINT}?key={key_holder.key}&uuid={uuid}"
+                f"{WINSTREAK_ENDPOINT}?key={key_holder.key}&player={uuid}"
             )
     except RequestException:
         logger.exception(
             "Request to winstreak endpoint failed due to a connection error."
         )
-        return MISSING_WINSTREAKS, False
-
-    if response.status_code == 404:
-        logger.debug(f"Request to winstreak endpoint failed 404 for {uuid=}.")
         return MISSING_WINSTREAKS, False
 
     if not response:
@@ -172,27 +168,11 @@ def parse_estimated_winstreaks_response(
         logger.error(f"Winstreak endpoint returned an error. Response: {response_json}")
         return MISSING_WINSTREAKS, False
 
-    playerdata = response_json.get("player", None)
-
-    if not isinstance(playerdata, dict):
-        logger.error(
-            f"Got wrong return type for playerdata from winstreak endpoint {playerdata}"
-        )
-        return MISSING_WINSTREAKS, False
-
-    winstreaks_accurate = playerdata.get("accurate", None)
+    winstreaks_accurate = response_json.get("overall_accurate", None)
 
     if not isinstance(winstreaks_accurate, bool):
         logger.error(
             f"Got wrong return type for accurate from ws endpoint {winstreaks_accurate}"
-        )
-        return MISSING_WINSTREAKS, False
-
-    winstreak_data = playerdata.get("data", None)
-
-    if not isinstance(winstreak_data, dict):
-        logger.error(
-            f"Got wrong return type for winstreak data from endpoint {winstreak_data}"
         )
         return MISSING_WINSTREAKS, False
 
@@ -208,7 +188,7 @@ def parse_estimated_winstreaks_response(
     }
 
     for gamemode, data_name in DATA_NAMES.items():
-        winstreak = winstreak_data.get(f"{data_name}_winstreak", None)
+        winstreak = response_json.get(f"{data_name}_winstreak", None)
         if winstreak is not None and not isinstance(winstreak, int):
             logger.error(f"Got wrong return type for {gamemode} winstreak {winstreak=}")
             winstreak = None
