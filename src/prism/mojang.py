@@ -32,6 +32,11 @@ LOWERCASE_UUID_CACHE: dict[str, str] = {}  # Mapping username.lower() -> uuid
 UUID_MUTEX = threading.Lock()
 
 
+def compare_uuids(uuid_1: str, uuid_2: str, /) -> bool:
+    """Return True if the two uuids (dashed or not) are equal"""
+    return uuid_1.replace("-", "") == uuid_2.replace("-", "")
+
+
 def _make_request(username: str) -> requests.Response:  # pragma: nocover
     try:
         # Uphold our prescribed rate-limits
