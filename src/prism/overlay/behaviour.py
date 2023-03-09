@@ -35,7 +35,7 @@ def set_nickname(
         if uuid is not None and username is not None:
             # Search the known nicks in settings for the uuid
             for old_nick, nick_value in controller.settings.known_nicks.items():
-                if uuid == nick_value["uuid"]:
+                if compare_uuids(uuid, nick_value["uuid"]):
                     new_nick_value = nick_value
                     break
             else:
