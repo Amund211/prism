@@ -37,7 +37,9 @@ def compare_uuids(uuid_1: str, uuid_2: str, /) -> bool:
     return uuid_1.replace("-", "") == uuid_2.replace("-", "")
 
 
-def _make_request(username: str) -> requests.Response:  # pragma: nocover
+def _make_request(
+    *, username: str, last_try: bool
+) -> requests.Response:  # pragma: nocover
     try:
         # Uphold our prescribed rate-limits
         with limiter, burst_limiter:
@@ -47,8 +49,8 @@ def _make_request(username: str) -> requests.Response:  # pragma: nocover
             "Request to Mojang API failed due to an unknown error"
         ) from e
 
-    if response.status_code == 429:
-        raise ExecutionError("Request to Mojang API failed due to rate limit")
+    if response.status_code == 429 and not last_try:
+        raise ExecutionError("Request to Mojang API failed due to rate limit, retrying")
 
     return response
 

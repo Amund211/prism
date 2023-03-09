@@ -59,7 +59,7 @@ class AntiSniperAPIKeyHolder:
 
 
 def _make_request(
-    url: str, key_holder: AntiSniperAPIKeyHolder
+    *, url: str, key_holder: AntiSniperAPIKeyHolder, last_try: bool
 ) -> requests.Response:  # pragma: nocover
     try:
         # Uphold our prescribed rate-limits
@@ -69,6 +69,11 @@ def _make_request(
         raise ExecutionError(
             "Request to AntiSniper API failed due to an unknown error"
         ) from e
+
+    if response.status_code == 429 and not last_try:
+        raise ExecutionError(
+            "Request to AntiSniper API failed due to ratelimit, retrying"
+        )
 
     return response
 

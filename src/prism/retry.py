@@ -1,7 +1,6 @@
 import logging
 import time
-from collections.abc import Callable
-from typing import TypeVar
+from typing import Protocol, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -10,16 +9,23 @@ class ExecutionError(Exception):
     pass
 
 
-T = TypeVar("T")
+T = TypeVar("T", covariant=True)
 
 
-def execute_with_retry(f: Callable[[], T], retry_limit: int, timeout: float) -> T:
+class Executor(Protocol[T]):  # pragma: no coverage
+    """Protocol for functions passed to execute_with_retry"""
+
+    def __call__(self, *, last_try: bool) -> T:
+        raise NotImplementedError
+
+
+def execute_with_retry(f: Executor[T], retry_limit: int, timeout: float) -> T:
     """Retry the function until it doesn't raise an ExecutionError"""
     errors = []  # Store the errors
 
     for i in range(retry_limit):
         try:
-            value = f()
+            value = f(last_try=i + 1 == retry_limit)
         except ExecutionError as e:
             logger.warning(
                 f"Function execution failed ({i+1}/{retry_limit})", exc_info=e
