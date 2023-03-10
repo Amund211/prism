@@ -443,9 +443,16 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
             / "latest.log"
         )
         fml_logfile = Path.home() / ".minecraft" / "logs" / "fml-client-latest.log"
+        pvplounge_logfile = Path.home() / ".pvplounge" / "logs" / "latest.log"
         vanilla_logfile = Path.home() / ".minecraft" / "logs" / "latest.log"
 
-        return [*lunar_client_logfiles, badlion_logfile, fml_logfile, vanilla_logfile]
+        return [
+            *lunar_client_logfiles,
+            badlion_logfile,
+            fml_logfile,
+            pvplounge_logfile,
+            vanilla_logfile,
+        ]
     elif system == "Darwin":
         lunar_client_base_dir = Path.home() / ".lunarclient" / "offline"
 
@@ -473,6 +480,14 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
             / "logs"
             / "fml-client-latest.log"
         )
+        pvplounge_logfile = (
+            Path.home()
+            / "Library"
+            / "Application Support"
+            / ".pvplounge"
+            / "logs"
+            / "latest.log"
+        )
         vanilla_logfile = (
             Path.home()
             / "Library"
@@ -482,7 +497,13 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
             / "latest.log"
         )
 
-        return [*lunar_client_logfiles, badlion_logfile, fml_logfile, vanilla_logfile]
+        return [
+            *lunar_client_logfiles,
+            badlion_logfile,
+            fml_logfile,
+            pvplounge_logfile,
+            vanilla_logfile,
+        ]
     elif system == "Windows":
         lunar_client_base_dir = Path.home() / ".lunarclient" / "offline"
 
@@ -510,10 +531,19 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
             / "logs"
             / "fml-client-latest.log"
         )
+        pvplounge_logfile = (
+            Path.home() / "AppData" / "Roaming" / ".pvplounge" / "logs" / "latest.log"
+        )
         vanilla_logfile = (
             Path.home() / "AppData" / "Roaming" / ".minecraft" / "logs" / "latest.log"
         )
-        return [*lunar_client_logfiles, badlion_logfile, fml_logfile, vanilla_logfile]
+        return [
+            *lunar_client_logfiles,
+            badlion_logfile,
+            fml_logfile,
+            pvplounge_logfile,
+            vanilla_logfile,
+        ]
     else:
         # system == "Java"
         return []
