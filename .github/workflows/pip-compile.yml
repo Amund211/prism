@@ -49,8 +49,7 @@ jobs:
         python -m venv venv
         source ${{ env.ACTIVATE_PATH }}
 
-        # Install correct pip-tools version
-        python -m pip install pip-tools `grep pip-tools== ${{ env.DEV_REQUIREMENTS }} | awk '{ print $1 }'`
+        python -m pip install -r ${{ env.REQUIREMENTS }} -r ${{ env.DEV_REQUIREMENTS }} -e .
 
         echo ========================================
         pip-compile --resolver=backtracking setup.cfg --output-file ${{ env.REQUIREMENTS }}
