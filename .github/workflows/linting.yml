@@ -25,4 +25,4 @@ jobs:
       run: |
         isort --check-only .
         black --check .
-        flake8 --count --statistics --statistics .
+        flake8 --count --statistics .

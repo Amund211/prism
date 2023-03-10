@@ -43,13 +43,17 @@ jobs:
         echo 'REQUIREMENTS=requirements/mac.txt' >> $GITHUB_ENV
         echo 'DEV_REQUIREMENTS=requirements/mac-dev.txt' >> $GITHUB_ENV
 
-    - name: Ensure requirements are satisfied
+    - name: Install dependencies
       run: |
         python -m ensurepip --upgrade
         python -m venv venv
         source ${{ env.ACTIVATE_PATH }}
 
         python -m pip install -r ${{ env.REQUIREMENTS }} -r ${{ env.DEV_REQUIREMENTS }} -e .
+
+    - name: Ensure requirements are satisfied
+      run: |
+        source ${{ env.ACTIVATE_PATH }}
 
         echo ========================================
         pip-compile --resolver=backtracking setup.cfg --output-file ${{ env.REQUIREMENTS }}

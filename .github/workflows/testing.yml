@@ -43,7 +43,7 @@ jobs:
         echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
         echo 'BINARY_EXTENSION=' >> $GITHUB_ENV
 
-    - name: Select dependency files (linux)
+    - name: Select dependency files
       run: |
         echo "REQUIREMENTS=requirements/${{ env.OS_NAME }}.txt" >> $GITHUB_ENV
         echo "DEV_REQUIREMENTS=requirements/${{ env.OS_NAME }}-dev.txt" >> $GITHUB_ENV
