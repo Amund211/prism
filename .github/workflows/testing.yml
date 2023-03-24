@@ -32,23 +32,25 @@ jobs:
       run: |
         echo 'OS_NAME=windows' >> $GITHUB_ENV
         echo 'ACTIVATE_PATH=venv/Scripts/activate' >> $GITHUB_ENV
-        echo 'BINARY_EXTENSION=.exe' >> $GITHUB_ENV
+        echo 'RESULT_EXTENSION=.exe' >> $GITHUB_ENV
         echo 'PYINSTALLER_ARGS=' >> $GITHUB_ENV
     - name: OS specific setup (linux)
       if: startswith(matrix.os, 'ubuntu')
       run: |
         echo 'OS_NAME=linux' >> $GITHUB_ENV
         echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
-        echo 'BINARY_EXTENSION=' >> $GITHUB_ENV
+        echo 'RESULT_EXTENSION=' >> $GITHUB_ENV
         echo 'PYINSTALLER_ARGS=' >> $GITHUB_ENV
     - name: OS specific setup (mac)
       if: startswith(matrix.os, 'macOS')
       run: |
         echo 'OS_NAME=mac' >> $GITHUB_ENV
         echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
-        echo 'BINARY_EXTENSION=' >> $GITHUB_ENV
+        # Upload the built .dmg app-installer
+        echo 'RESULT_EXTENSION=.dmg' >> $GITHUB_ENV
         # Target universal2 so that the built binary can run on both intel and apple silicon
-        echo 'PYINSTALLER_ARGS=--target-architecture universal2' >> $GITHUB_ENV
+        # Pass --windowed to build a .app bundle
+        echo 'PYINSTALLER_ARGS=--target-architecture universal2 --windowed' >> $GITHUB_ENV
 
     - name: Select dependency files
       run: |
@@ -66,7 +68,9 @@ jobs:
         python -m pip install --no-deps -e .
 
         VERSION_STRING="$(python -c 'from prism import VERSION_STRING; print(VERSION_STRING)')"
-        echo "BINARY_NAME=prism-$VERSION_STRING-${{ env.OS_NAME }}${{ env.BINARY_EXTENSION }}" >> $GITHUB_ENV
+        echo "VERSION_STRING=$VERSION_STRING" >> $GITHUB_ENV
+        echo "SIMPLE_NAME=prism-$VERSION_STRING" >> $GITHUB_ENV
+        echo "BUILD_RESULT_NAME=prism-$VERSION_STRING-${{ env.OS_NAME }}${{ env.RESULT_EXTENSION }}" >> $GITHUB_ENV
 
     - name: Run typechecking
       run: |
@@ -83,12 +87,40 @@ jobs:
       run: |
         source ${{ env.ACTIVATE_PATH }}
         python add_version_to_icon.py  # Create the icon file
-        pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who_with_version.ico --name prism_overlay --additional-hooks-dir=pyinstaller ${{ env.PYINSTALLER_ARGS }}
-        mv dist/prism_overlay${{ env.BINARY_EXTENSION }} "dist/${{ env.BINARY_NAME }}"
+        pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who_with_version.ico --name "${{ env.SIMPLE_NAME }}" --additional-hooks-dir=pyinstaller ${{ env.PYINSTALLER_ARGS }}
 
-    - name: Upload built binary
+    - name: Package app bundle to disk image (mac)
+      if: env.OS_NAME == 'mac'
+      run: |
+        brew install create-dmg
+
+        convert pyinstaller/who_with_version.ico pyinstaller/who_with_version.icns
+
+        mkdir -p 'dist/app'
+        mv "dist/${{ env.SIMPLE_NAME }}.app" "dist/app"
+
+        # Inspired by:
+        # https://www.pythonguis.com/tutorials/packaging-pyqt5-applications-pyinstaller-macos-dmg/
+        create-dmg \
+          --volname "Prism ${{ env.VERSION_STRING }} installer" \
+          --volicon 'pyinstaller/who_with_version.icns' \
+          --window-pos 200 120 \
+          --window-size 600 300 \
+          --icon-size 100 \
+          --icon "${{ env.SIMPLE_NAME }}.app" 175 120 \
+          --hide-extension "${{ env.SIMPLE_NAME }}.app" \
+          --app-drop-link 425 120 \
+          "${{ env.BUILD_RESULT_NAME }}" \
+          "dist/app/"
+
+    - name: Store built binary (non-mac)
+      if: env.OS_NAME != 'mac'
+      run: |
+        mv "dist/${{ env.SIMPLE_NAME }}${{ env.RESULT_EXTENSION }}" "${{ env.BUILD_RESULT_NAME }}"
+
+    - name: Upload built binary/app .dmg
       uses: actions/upload-artifact@v3
       with:
         name: prism-builds
-        path: "dist/${{ env.BINARY_NAME }}"
+        path: "${{ env.BUILD_RESULT_NAME }}"
         if-no-files-found: error
