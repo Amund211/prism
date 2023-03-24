@@ -61,7 +61,10 @@ jobs:
         pip-compile --resolver=backtracking requirements/dev.in --output-file ${{ env.DEV_REQUIREMENTS }}
         echo ========================================
 
-        if [ $(git status --porcelain | wc -l) -gt 0 ]; then
+        cp "${{ env.REQUIREMENTS }}" "${{ env.REQUIREMENTS }}"_fixed
+        cp "${{ env.DEV_REQUIREMENTS }}" "${{ env.DEV_REQUIREMENTS }}"_fixed
+
+        if [ $(git diff requirements/ | wc -l) -gt 0 ]; then
           echo Pinned requirements invalid!
           git status
           git diff
@@ -71,6 +74,7 @@ jobs:
         fi
 
     - name: Run pip-compile --upgrade
+      if: always()
       continue-on-error: true
       run: |
         source ${{ env.ACTIVATE_PATH }}
@@ -83,10 +87,28 @@ jobs:
         pip-compile --resolver=backtracking requirements/dev.in --output-file ${{ env.DEV_REQUIREMENTS }} --upgrade
         echo ========================================
 
-        if [ $(git status --porcelain | wc -l) -gt 0 ]; then
+        if [ $(git diff requirements/ | wc -l) -gt 0 ]; then
           echo Updated pinned requirements!
           git status
           git diff
         else
           echo Pinned requirements not updated.
         fi
+
+        cp "${{ env.REQUIREMENTS }}" "${{ env.REQUIREMENTS }}"_updated
+        cp "${{ env.DEV_REQUIREMENTS }}" "${{ env.DEV_REQUIREMENTS }}"_updated
+
+        cp "${{ env.REQUIREMENTS }}"_fixed "${{ env.REQUIREMENTS }}"
+        cp "${{ env.DEV_REQUIREMENTS }}"_fixed "${{ env.DEV_REQUIREMENTS }}"
+
+    - name: Upload updated dependency files
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: requirements
+        if-no-files-found: warn
+        path: |
+          ${{ env.REQUIREMENTS }}
+          ${{ env.DEV_REQUIREMENTS }}
+          ${{ env.REQUIREMENTS }}_updated
+          ${{ env.DEV_REQUIREMENTS }}_updated
