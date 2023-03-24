@@ -24,6 +24,10 @@ jobs:
           setup.cfg
           requirements/*.txt
 
+    - name: Python/tkinter version debug
+      run: |
+        python --version
+        python -c "import sys, tkinter;tcl = tkinter.Tcl();print(f\"{tkinter.TkVersion=}\n{tkinter.TclVersion=}\n{tcl.call('info', 'patchlevel')=}\n{sys.executable=}\n{tkinter.__file__=}\")"
     - name: OS specific setup (windows)
       if: startswith(matrix.os, 'windows')
       run: |
