@@ -4,11 +4,11 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, windows, macOS]
+        os: [ubuntu-latest, windows-latest, macOS-11]
         python_version: ["3.10"]
     defaults:
       run:
@@ -25,19 +25,19 @@ jobs:
           requirements/*.txt
 
     - name: OS specific setup (windows)
-      if: matrix.os == 'windows'
+      if: startswith(matrix.os, 'windows')
       run: |
         echo 'OS_NAME=windows' >> $GITHUB_ENV
         echo 'ACTIVATE_PATH=venv/Scripts/activate' >> $GITHUB_ENV
         echo 'BINARY_EXTENSION=.exe' >> $GITHUB_ENV
     - name: OS specific setup (linux)
-      if: matrix.os == 'ubuntu'
+      if: startswith(matrix.os, 'ubuntu')
       run: |
         echo 'OS_NAME=linux' >> $GITHUB_ENV
         echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
         echo 'BINARY_EXTENSION=' >> $GITHUB_ENV
     - name: OS specific setup (mac)
-      if: matrix.os == 'macOS'
+      if: startswith(matrix.os, 'macOS')
       run: |
         echo 'OS_NAME=mac' >> $GITHUB_ENV
         echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
