@@ -59,7 +59,8 @@ jobs:
         source ${{ env.ACTIVATE_PATH }}
 
         python -m pip install --upgrade pip
-        python -m pip install -r ${{ env.REQUIREMENTS }} -r ${{ env.DEV_REQUIREMENTS }} -e .
+        python -m pip install -r ${{ env.REQUIREMENTS }} -r ${{ env.DEV_REQUIREMENTS }}
+        python -m pip install --no-deps -e .
 
         VERSION_STRING="$(python -c 'from prism import VERSION_STRING; print(VERSION_STRING)')"
         echo "BINARY_NAME=prism-$VERSION_STRING-${{ env.OS_NAME }}${{ env.BINARY_EXTENSION }}" >> $GITHUB_ENV

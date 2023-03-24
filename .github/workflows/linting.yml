@@ -20,7 +20,8 @@ jobs:
       run: |
         python -m ensurepip
         python -m pip install --upgrade pip
-        pip install -r requirements/linux.txt -r requirements/linux-dev.txt -e .
+        pip install -r requirements/linux.txt -r requirements/linux-dev.txt
+        pip install --no-deps -e .
 
     - name: Check for formatting/linting errors
       run: |
