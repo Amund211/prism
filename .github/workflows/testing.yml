@@ -80,6 +80,6 @@ jobs:
     - name: Upload built binary
       uses: actions/upload-artifact@v3
       with:
-        name: prism-${{ env.OS_NAME }}
+        name: prism-builds
         path: "dist/${{ env.BINARY_NAME }}"
         if-no-files-found: error
