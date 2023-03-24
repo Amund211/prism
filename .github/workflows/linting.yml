@@ -18,7 +18,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m ensurepip --upgrade
+        python -m ensurepip
+        python -m pip install --upgrade pip
         pip install -r requirements/linux.txt -r requirements/linux-dev.txt -e .
 
     - name: Check for formatting/linting errors

@@ -45,10 +45,11 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m ensurepip --upgrade
+        python -m ensurepip
         python -m venv venv
         source ${{ env.ACTIVATE_PATH }}
 
+        python -m pip install --upgrade pip
         python -m pip install -r ${{ env.REQUIREMENTS }} -r ${{ env.DEV_REQUIREMENTS }} -e .
 
     - name: Ensure requirements are satisfied
