@@ -2,7 +2,7 @@ import json
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Type, TypeVar
+from typing import Self
 
 
 class DatabaseReadError(ValueError):
@@ -49,10 +49,6 @@ def read_databases(database_paths: list[Path]) -> list[dict[str, str]]:
     return databases
 
 
-# Generic type to allow subclassing Settings
-DerivedNickDatabase = TypeVar("DerivedNickDatabase", bound="NickDatabase")
-
-
 @dataclass
 class NickDatabase:
     """Class for storing multiple mappings of nick -> uuid"""
@@ -70,11 +66,11 @@ class NickDatabase:
 
     @classmethod
     def from_disk(
-        cls: Type[DerivedNickDatabase],
+        cls,
         database_paths: list[Path],
         *,
         default_database: dict[str, str],
-    ) -> DerivedNickDatabase:
+    ) -> Self:
         """Read databases from the given paths and prepend a default database"""
         secondary_databases = read_databases(database_paths)
         return cls([default_database, *secondary_databases])

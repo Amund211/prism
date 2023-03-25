@@ -1,6 +1,6 @@
 from collections.abc import Callable, Set
 from dataclasses import dataclass, field, replace
-from typing import Any, Literal, TypedDict, overload
+from typing import Any, Literal, Self, TypedDict, overload
 
 from prism.calc import bedwars_level_from_exp
 from prism.hypixel import MissingStatsError, get_gamemode_stats
@@ -44,9 +44,7 @@ class Stats:
         """Return a tuple used to order instances of this class"""
         return (self.fkdr, self.winstreak or 0, self.wlr)
 
-    def update_winstreak(
-        self, winstreak: int | None, winstreak_accurate: bool
-    ) -> "Stats":
+    def update_winstreak(self, winstreak: int | None, winstreak_accurate: bool) -> Self:
         """Update the winstreak in this stat collection"""
         if self.winstreak_accurate or self.winstreak is not None:
             return self
@@ -135,7 +133,7 @@ class KnownPlayer:
         threes: int | None,
         fours: int | None,
         winstreaks_accurate: bool,
-    ) -> "KnownPlayer":
+    ) -> Self:
         """Update the winstreaks for a player"""
         return replace(
             self,

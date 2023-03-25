@@ -1,6 +1,7 @@
 import logging
 from collections.abc import Iterable
 from dataclasses import dataclass, replace
+from typing import Self
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ class OverlayState:
     in_queue: bool = False
     own_username: str | None = None
 
-    def join_queue(self) -> "OverlayState":
+    def join_queue(self) -> Self:
         """
         Join a queue by setting in_queue = True
 
@@ -45,7 +46,7 @@ class OverlayState:
 
         return replace(new_state, in_queue=True)
 
-    def leave_queue(self) -> "OverlayState":
+    def leave_queue(self) -> Self:
         """
         Leave a queue by setting in_queue = False
 
@@ -54,11 +55,11 @@ class OverlayState:
         logger.info("Leaving the queue")
         return replace(self, in_queue=False)
 
-    def add_to_party(self, username: str) -> "OverlayState":
+    def add_to_party(self, username: str) -> Self:
         """Add the given username to the party"""
         return replace(self, party_members=self.party_members | {username})
 
-    def remove_from_party(self, username: str) -> "OverlayState":
+    def remove_from_party(self, username: str) -> Self:
         """Remove the given username from the party"""
         if username not in self.party_members:
             logger.warning(
@@ -68,7 +69,7 @@ class OverlayState:
 
         return replace(self, party_members=self.party_members - {username})
 
-    def clear_party(self) -> "OverlayState":
+    def clear_party(self) -> Self:
         """Remove all players from the party, except for yourself"""
         logger.info("Clearing the party")
 
@@ -81,7 +82,7 @@ class OverlayState:
 
         return replace(self, party_members=new_party)
 
-    def add_to_lobby(self, username: str) -> "OverlayState":
+    def add_to_lobby(self, username: str) -> Self:
         """Add the given username to the lobby"""
         return replace(
             self,
@@ -89,7 +90,7 @@ class OverlayState:
             alive_players=self.alive_players | {username},
         )
 
-    def remove_from_lobby(self, username: str) -> "OverlayState":
+    def remove_from_lobby(self, username: str) -> Self:
         """Remove the given username from the lobby"""
         if username not in self.lobby_players:
             new_lobby = self.lobby_players
@@ -109,18 +110,18 @@ class OverlayState:
 
         return replace(self, lobby_players=new_lobby, alive_players=new_alive)
 
-    def set_lobby(self, new_lobby: Iterable[str]) -> "OverlayState":
+    def set_lobby(self, new_lobby: Iterable[str]) -> Self:
         """Set the lobby to be the given lobby"""
         new_lobby_set = frozenset(new_lobby)
         return replace(self, lobby_players=new_lobby_set, alive_players=new_lobby_set)
 
-    def clear_lobby(self) -> "OverlayState":
+    def clear_lobby(self) -> Self:
         """Remove all players from the lobby"""
         # Don't include yourself in the new lobby.
         # Your name usually appears as a join message anyway, and you may be nicked
         return self.set_lobby([])
 
-    def mark_dead(self, username: str) -> "OverlayState":
+    def mark_dead(self, username: str) -> Self:
         """Mark the given username as dead"""
         if username not in self.alive_players:
             logger.warning(
@@ -130,7 +131,7 @@ class OverlayState:
 
         return replace(self, alive_players=self.alive_players - {username})
 
-    def mark_alive(self, username: str) -> "OverlayState":
+    def mark_alive(self, username: str) -> Self:
         """Mark the given username as alive"""
 
         if username in self.alive_players:
@@ -152,7 +153,7 @@ class OverlayState:
 
         return new_state
 
-    def set_out_of_sync(self, out_of_sync: bool) -> "OverlayState":
+    def set_out_of_sync(self, out_of_sync: bool) -> Self:
         """Set out_of_sync"""
         if self.out_of_sync != out_of_sync:
             return replace(self, out_of_sync=out_of_sync)

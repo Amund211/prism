@@ -3,7 +3,7 @@ import threading
 from collections.abc import Callable, MutableMapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Type, TypedDict, TypeVar
+from typing import Self, TypedDict, TypeVar
 
 import toml
 
@@ -46,10 +46,6 @@ class SettingsDict(TypedDict):
     alpha_hundredths: int
 
 
-# Generic type to allow subclassing Settings
-DerivedSettings = TypeVar("DerivedSettings", bound="Settings")
-
-
 @dataclass
 class Settings:
     """Class holding user settings for the application"""
@@ -73,9 +69,7 @@ class Settings:
     )
 
     @classmethod
-    def from_dict(
-        cls: Type[DerivedSettings], source: SettingsDict, path: Path
-    ) -> DerivedSettings:
+    def from_dict(cls, source: SettingsDict, path: Path) -> Self:
         return cls(
             hypixel_api_key=source["hypixel_api_key"],
             antisniper_api_key=source["antisniper_api_key"],

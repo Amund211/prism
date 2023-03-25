@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import PurePath
 from types import TracebackType
-from typing import Any
+from typing import Any, Self
 
 real_fspath = os.fspath
 
@@ -108,7 +108,7 @@ class MockedFile:
         self.contents: list[str] = []
         self.content_index = 0
 
-    def __enter__(self) -> "MockedFile":
+    def __enter__(self) -> Self:
         """Enable context manager functionality"""
         # Seek to start of file when opening
         self.seek(0, os.SEEK_SET)
