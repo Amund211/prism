@@ -19,9 +19,7 @@ jobs:
       with:
         python-version: "3.11"
         cache: 'pip'
-        cache-dependency-path: |
-          setup.cfg
-          requirements/*.txt
+        cache-dependency-path: requirements/*.txt
 
     - name: Python/tkinter version debug
       run: |
