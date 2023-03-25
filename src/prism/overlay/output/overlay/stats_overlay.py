@@ -2,7 +2,7 @@ import logging
 import threading
 import tkinter as tk
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Generic, Literal
+from typing import TYPE_CHECKING, Generic, Literal, assert_never
 
 from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import SpecialKey, create_pynput_normalizer
@@ -186,8 +186,7 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
         elif self.current_page == "set_nickname":
             self.set_nickname_page.frame.pack_forget()
         else:
-            # For typing assert unreached
-            return False
+            assert_never(self.current_page)
 
         # Mount new content
         if new_page == "main":
@@ -199,8 +198,7 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
             # NOTE: caller must update the content
             self.set_nickname_page.frame.pack(side=tk.TOP, fill=tk.BOTH)
         else:
-            # For typing assert unreached
-            return False
+            assert_never(self.current_page)
 
         self.current_page = new_page
 
