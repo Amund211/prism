@@ -650,6 +650,7 @@ def prompt_for_logfile_path(
     logfile_prompt.run()
 
     selected = logfile_cache["last_used"]
+    logger.info(f"Selected logfile {selected}")
 
     if isinstance(selected, str):
         return Path(selected).resolve()
