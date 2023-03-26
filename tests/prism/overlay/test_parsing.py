@@ -202,7 +202,17 @@ UNEVENTFUL_LOGLINES = (
     "[Info: 2021-11-29 20:00:52.346477397: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] "
     # Delimiter message
     "[Info: 2021-11-29 20:00:45.048717919: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] -----------------------------------------------------",
+    "[Info: 2021-11-29 20:00:45.048717919: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ----------------------------------------------------- [x2]",  # Delimiter deduplicated
     "[Info: 2021-11-29 20:01:33.403385171: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
+    # Check that the deduplication detection code doesn't crash
+    "[Info: 2021-11-29 20:00:45.048717919: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ----------------------------------------------------- [",
+    "[Info: 2021-11-29 20:00:45.048717919: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ----------------------------------------------------- ]",
+    "[Info: 2021-11-29 20:00:45.048717919: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ----------------------------------------------------- [2]",
+    "[Info: 2021-11-29 20:00:45.048717919: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ----------------------------------------------------- [x]",
+    "[Info: 2021-11-29 20:00:45.048717919: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]",
+    "[Info: 2021-11-29 20:00:45.048717919: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ",
+    "[Info: 2021-11-29 20:00:45.048717919: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ]",
+    "[Info: 2021-11-29 20:00:45.048717919: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [x10]",
     # Leveling stuff
     "[Info: 2021-11-29 20:00:44.975806832: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] You have 1 unclaimed leveling reward!",
     "[Info: 2021-11-29 20:00:44.975982283: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Click here to view it!",
@@ -361,6 +371,14 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         # Lobby list on lunar client
         "[15:03:53] [Client thread/INFO]: [CHAT] ONLINE: Player1",
         LobbyListEvent(usernames=["Player1"]),
+    ),
+    *(
+        (
+            # Lobby list on lunar client (deduplicated chat message ([x2])
+            f"[23:09:10] [Client thread/INFO]: [CHAT] ONLINE: Player1, Player2 [x{count}]",
+            LobbyListEvent(usernames=["Player1", "Player2"]),
+        )
+        for count in range(2, 15)
     ),
     (
         # Lobby swap on vanilla
