@@ -153,6 +153,25 @@ def valid_username(username: str) -> bool:
     return True
 
 
+def remove_deduplication_suffix(message: str) -> str:
+    """
+    Try removing deduplication marker
+
+    Repeated chat messages are usually deduplicated by appending [x<count>]
+    """
+    if not message.endswith("]"):
+        return message
+
+    words = message.split(" ")
+    lastword = words[-1]
+
+    if lastword[:2] == "[x" and lastword[2:-1].isnumeric():
+        logger.debug(f"Removed deduplication suffix {lastword}")
+        return " ".join(words[:-1])
+
+    return message
+
+
 def parse_chat_message(message: str) -> ChatEvent | None:
     """
     Parse a chat message to detect players leaving or joining the lobby/party
@@ -169,14 +188,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
     # Use lazy printf-style formatting because this message is very common
     logger.debug("Chat message: '%s'", message)
 
-    if message.endswith("]"):
-        # Try removing deduplication marker
-        # Repeated chat messages are usually deduplicated by appending [x<count>]
-        words = message.split(" ")
-        if words[-1][:2] == "[x" and words[-1][2:-1].isnumeric():
-            logger.debug(f"Removed deduplication suffix {words[-1]}")
-            message = " ".join(words[:-1])
-        del words  # Make sure we don't accidentally use this variable in another block
+    message = remove_deduplication_suffix(message)
 
     if message.startswith(WHO_PREFIX):
         # Info [CHAT] ONLINE: <username1>, <username2>, ..., <usernameN>

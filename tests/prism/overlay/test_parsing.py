@@ -34,6 +34,7 @@ from prism.overlay.parsing import (
     get_lowest_index,
     parse_chat_message,
     parse_logline,
+    remove_deduplication_suffix,
     remove_ranks,
     strip_until,
     valid_username,
@@ -192,6 +193,30 @@ def test_valid_username(username: str, valid: bool) -> None:
 def test_words_match(words: Sequence[str], target: str, full_match: bool) -> None:
     """Assert that words_match functions properly"""
     assert words_match(words, target) == full_match
+
+
+@pytest.mark.parametrize(
+    "message, result",
+    (
+        ("", ""),
+        ("hello", "hello"),
+        ("hello [x2]", "hello"),
+        ("hello [x3]", "hello"),
+        ("hello [x1001238]", "hello"),
+        ("hello ]", "hello ]"),
+        ("hello 2]", "hello 2]"),
+        ("hello x2]", "hello x2]"),
+        ("hello [[x2]", "hello [[x2]"),
+        ("hello [x2]]", "hello [x2]]"),
+        ("hello [x-3]", "hello [x-3]"),
+        ("hello [x-3]", "hello [x-3]"),
+        # Weird cases
+        ("hello [x1]", "hello"),
+        ("hello [x0]", "hello"),
+    ),
+)
+def test_remove_deduplication_suffix(message: str, result: str) -> None:
+    assert remove_deduplication_suffix(message) == result
 
 
 UNEVENTFUL_LOGLINES = (
