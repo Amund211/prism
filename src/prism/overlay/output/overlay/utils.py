@@ -10,10 +10,9 @@ ColumnKey = TypeVar("ColumnKey")
 
 @dataclass
 class Cell:
-    """A cell in the window described by one label and one stringvar"""
+    """A cell in the window described by one text widget"""
 
-    label: tk.Label
-    variable: tk.StringVar
+    text_widget: tk.Text
 
 
 @dataclass(frozen=True)

@@ -81,25 +81,32 @@ class MainContent(Generic[ColumnKey]):  # pragma: nocover
             )
 
     def append_row(self) -> None:
-        """Add a row of labels and stringvars to the table"""
+        """Add a row of cells to the table"""
         row_index = len(self.rows) + 2
 
         stats_cells: StatsCells[ColumnKey] = {}
         for column_index, column_name in enumerate(self.column_order):
-            string_var = tk.StringVar()
-            label = tk.Label(
+            text_widget = tk.Text(
                 self.table_frame,
-                font=("Consolas", "14"),
+                font=("Consolas", 14),
                 fg="gray60",  # Color set on each update
                 bg="black",
-                textvariable=string_var,
+                width=1,  # Width set on each update
+                undo=False,
+                cursor="arrow",
+                height=1,
+                wrap="none",
+                background="black",
+                relief=tk.FLAT,
+                borderwidth=0,
+                highlightthickness=0,
             )
-            label.grid(
+            text_widget.grid(
                 row=row_index,
                 column=column_index + 1,
                 sticky="w" if column_index in self.left_justified_columns else "e",
             )
-            stats_cells[column_name] = Cell(label, string_var)
+            stats_cells[column_name] = Cell(text_widget)
 
         edit_button = tk.Button(
             self.table_frame,
@@ -118,10 +125,10 @@ class MainContent(Generic[ColumnKey]):  # pragma: nocover
         self.rows.append((edit_button, stats_cells))
 
     def pop_row(self) -> None:
-        """Remove a row of labels and stringvars from the table"""
+        """Remove a row of cells from the table"""
         edit_button, stats_cells = self.rows.pop()
         for column_name in self.column_order:
-            stats_cells[column_name].label.destroy()
+            stats_cells[column_name].text_widget.destroy()
 
         edit_button.destroy()
 
@@ -189,9 +196,16 @@ class MainContent(Generic[ColumnKey]):  # pragma: nocover
             for i, (nickname, rated_stats) in enumerate(new_rows):
                 edit_button, stats_cells = self.rows[i]
                 for column_name in self.column_order:
-                    stats_cells[column_name].variable.set(rated_stats[column_name].text)
-                    stats_cells[column_name].label.configure(
-                        fg=rated_stats[column_name].color
+                    cell = stats_cells[column_name]
+                    new_text = rated_stats[column_name].text
+
+                    cell.text_widget.configure(state=tk.NORMAL)
+                    cell.text_widget.delete("1.0", tk.END)
+                    cell.text_widget.insert(tk.END, new_text)
+                    cell.text_widget.configure(
+                        fg=rated_stats[column_name].color,
+                        state=tk.DISABLED,
+                        width=len(new_text),
                     )
 
                 if nickname is None:
