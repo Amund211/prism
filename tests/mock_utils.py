@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import PurePath
 from types import TracebackType
-from typing import Any, Self
+from typing import Any, Iterable, Self, TextIO
 
 real_fspath = os.fspath
 
@@ -94,7 +94,7 @@ class Line:
     content: str | None  # The line of text (no \n) or None to clear the file
 
 
-class MockedFile:
+class MockedFile(TextIO):
     """Class mocking an opened file"""
 
     def __init__(self, lines: Sequence[Line], mocked_time: MockedTime) -> None:
@@ -141,9 +141,9 @@ class MockedFile:
             else:
                 self.contents.append(f"{line.content}\n")
 
-    def read(self, arg: int | None = None) -> str:
+    def read(self, size: int = -1) -> str:
         """Mocked read"""
-        assert arg is None or arg < 0, "Read with size not supported"
+        assert size < 0, "Read with size not supported"
 
         self._set_contents()
 
@@ -156,8 +156,9 @@ class MockedFile:
 
         return output
 
-    def readline(self) -> str:
+    def readline(self, size: int = -1) -> str:
         """Mocked readline"""
+        assert size < 0, "Readline with size not supported"
         self._set_contents()
 
         if self.content_index >= len(self.contents):
@@ -172,7 +173,7 @@ class MockedFile:
         """Mocked tell"""
         return self.content_index
 
-    def seek(self, offset: int, whence: int) -> None:
+    def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
         """Mocked seek"""
         self._set_contents()
 
@@ -184,6 +185,47 @@ class MockedFile:
             self.content_index = len(self.contents) + offset
         else:
             raise ValueError(f"{whence=} is invalid")
+
+        return self.tell()
+
+    def readable(self) -> bool:
+        return True
+
+    def seekable(self) -> bool:
+        return True
+
+    def writable(self) -> bool:
+        return False
+
+    def isatty(self) -> bool:
+        return False
+
+    def __iter__(self) -> Self:
+        return self
+
+    def __next__(self) -> str:
+        return self.readline()
+
+    def writelines(self, lines: Iterable[str]) -> None:
+        raise NotImplementedError
+
+    def readlines(self, hint: int = -1) -> list[str]:
+        raise NotImplementedError
+
+    def close(self) -> None:
+        raise NotImplementedError
+
+    def truncate(self, size: int | None = None) -> int:
+        raise NotImplementedError
+
+    def fileno(self) -> int:
+        raise NotImplementedError
+
+    def write(self, s: str) -> int:
+        raise NotImplementedError
+
+    def flush(self) -> None:
+        raise NotImplementedError
 
 
 class MockedPath:
