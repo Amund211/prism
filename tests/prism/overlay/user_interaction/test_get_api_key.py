@@ -3,12 +3,9 @@ import unittest.mock
 from pathlib import Path
 from typing import Sequence, cast
 
-from prism.overlay.user_interaction import (
-    file_exists,
-    get_timestamp,
+from prism.overlay.user_interaction.get_api_key import (
     search_logfile_for_key,
     search_settings_file_for_key,
-    suggest_logfiles,
 )
 from tests.mock_utils import Line, MockedIOModule, MockedOsModule, create_mocked_file
 
@@ -18,40 +15,6 @@ SET_EVENT.set()
 
 INFO = "[Client thread/INFO]: "
 CHAT = "[Client thread/INFO]: [CHAT] "
-
-
-def test_file_exists_no() -> None:
-    assert not file_exists("ThisPathDoesNotExists")
-    assert not file_exists(Path("ThisPathDoesNotExists"))
-
-
-def test_file_exists_yes(tmp_path: Path) -> None:
-    # A directory is not a file
-    assert not file_exists(str(tmp_path))
-    assert not file_exists(tmp_path)
-    file_path = tmp_path / "newfile"
-
-    with file_path.open("w") as f:
-        f.write("hi")
-
-    assert file_exists(str(file_path))
-    assert file_exists(file_path)
-
-
-def test_suggest_logfiles() -> None:
-    suggestions = suggest_logfiles()
-    assert all(map(file_exists, suggestions))
-
-
-def test_get_timestamp(tmp_path: Path) -> None:
-    file_path = tmp_path / "newfile"
-
-    with file_path.open("w") as f:
-        f.write("hi")
-
-    assert get_timestamp(str(file_path)) == file_path.stat().st_mtime
-
-    assert get_timestamp(str(tmp_path / "doesnotexist")) == 0
 
 
 @unittest.mock.patch("toml.decoder.io", MockedIOModule)
@@ -68,7 +31,9 @@ def test_search_settings_file_for_key() -> None:
         amt_opens=1000,
     )
 
-    with unittest.mock.patch("prism.overlay.user_interaction.time", mocked_time.time):
+    with unittest.mock.patch(
+        "prism.overlay.user_interaction.get_api_key.time", mocked_time.time
+    ):
         found_key = search_settings_file_for_key(cast(Path, mocked_path), UNSET_EVENT)
 
     assert found_key == "new-api-key"
@@ -78,7 +43,9 @@ def test_search_settings_file_for_key() -> None:
 
 def test_search_settings_file_for_key_event_set() -> None:
     mocked_path, mocked_file, mocked_time = create_mocked_file((), amt_opens=0)
-    with unittest.mock.patch("prism.overlay.user_interaction.time", mocked_time.time):
+    with unittest.mock.patch(
+        "prism.overlay.user_interaction.get_api_key.time", mocked_time.time
+    ):
         found_key = search_settings_file_for_key(cast(Path, mocked_path), SET_EVENT)
 
     assert found_key is None

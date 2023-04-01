@@ -29,7 +29,8 @@ from prism.overlay.process_event import fast_forward_state
 from prism.overlay.settings import PLACEHOLDER_API_KEY, Settings, get_settings
 from prism.overlay.state import OverlayState
 from prism.overlay.threading import prepare_overlay
-from prism.overlay.user_interaction import prompt_for_logfile_path, wait_for_api_key
+from prism.overlay.user_interaction.get_api_key import wait_for_api_key
+from prism.overlay.user_interaction.get_logfile import prompt_for_logfile_path
 
 # Variable that stores our singleinstance lock so that it doesn't go out of scope
 # and get released
