@@ -176,23 +176,6 @@ def setup(
     loglevel: int = logging.WARNING, log_prefix: str = ""
 ) -> None:  # pragma: nocover
     """Set up directory structure and logging"""
-    # Rename old directories
-    olddirs = AppDirs(appname="hystatutils_overlay")
-    for dirname in [
-        "user_data_dir",
-        "user_config_dir",
-        "user_cache_dir",
-        "site_data_dir",
-        "site_config_dir",
-        "user_log_dir",
-    ]:
-        olddir = Path(getattr(olddirs, dirname))
-        newdir = Path(getattr(dirs, dirname))
-        if olddir.is_dir() and not newdir.is_dir():
-            newdir.parent.mkdir(parents=True, exist_ok=True)
-            olddir.rename(newdir)
-    ########################
-
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
     # Only allow one instance of the overlay
