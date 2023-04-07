@@ -241,6 +241,10 @@ class LogfilePrompt:  # pragma: nocover
 
         if order_updated:
             self.update_logfile_list()
+
+        self.schedule_polling()
+
+    def schedule_polling(self) -> None:
         self.task_id = self.root.after(1000, self.poll_logfile_timestamps)
 
     def cancel_polling(self) -> None:
@@ -250,7 +254,7 @@ class LogfilePrompt:  # pragma: nocover
 
     def run(self) -> None:
         """Enter mainloop"""
-        self.poll_logfile_timestamps()
+        self.schedule_polling()
         self.root.mainloop()
 
 
