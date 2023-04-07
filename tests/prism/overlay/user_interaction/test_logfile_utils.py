@@ -8,6 +8,7 @@ from prism.overlay.user_interaction.logfile_utils import (
     ActiveLogfile,
     LogfileCache,
     autoselect_logfile,
+    compare_active_logfiles,
     create_active_logfiles,
     file_exists,
     get_timestamp,
@@ -125,6 +126,85 @@ def test_autoselect_logfile(
         assert result is None
     else:
         assert result is active_logfiles[result_index]
+
+
+@pytest.mark.parametrize(
+    "a, b, equal",
+    (
+        ((), (), True),
+        (
+            (ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=1),),
+            (ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=1),),
+            True,
+        ),
+        (
+            (ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=1),),
+            (ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=4),),
+            True,
+        ),
+        (
+            (ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=9),),
+            (ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=11),),
+            True,
+        ),
+        (
+            (
+                ActiveLogfile(id_=0, path=Path("a"), age_seconds=1),
+                ActiveLogfile(id_=1, path=Path("b"), age_seconds=11),
+            ),
+            (
+                ActiveLogfile(id_=0, path=Path("a"), age_seconds=2),
+                ActiveLogfile(id_=1, path=Path("b"), age_seconds=12),
+            ),
+            True,
+        ),
+        (
+            (ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=1),),
+            (ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=6),),
+            False,  # No longer really recent
+        ),
+        (
+            (ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=50),),
+            (ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=70),),
+            False,  # No longer recent
+        ),
+        (
+            (ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=1),),
+            (),
+            False,  # Missing element
+        ),
+        (
+            (ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=1),),
+            (ActiveLogfile(id_=1, path=SOME_PATH, age_seconds=1),),
+            False,  # New id
+        ),
+        (
+            (ActiveLogfile(id_=0, path=Path("a"), age_seconds=1),),
+            (ActiveLogfile(id_=0, path=Path("b"), age_seconds=1),),
+            False,  # New path
+        ),
+        (
+            (ActiveLogfile(id_=0, path=Path("a"), age_seconds=1),),
+            (ActiveLogfile(id_=1, path=Path("b"), age_seconds=1),),
+            False,  # New ActiveLogfile
+        ),
+        (
+            (
+                ActiveLogfile(id_=0, path=Path("a"), age_seconds=1),
+                ActiveLogfile(id_=1, path=Path("b"), age_seconds=1),
+            ),
+            (
+                ActiveLogfile(id_=1, path=Path("b"), age_seconds=1),
+                ActiveLogfile(id_=0, path=Path("a"), age_seconds=1),
+            ),
+            False,  # New sort order
+        ),
+    ),
+)
+def test_compare_active_logfiles(
+    a: tuple[ActiveLogfile, ...], b: tuple[ActiveLogfile, ...], equal: bool
+) -> None:
+    assert compare_active_logfiles(a, b) is equal
 
 
 @pytest.mark.parametrize(

@@ -10,6 +10,7 @@ from prism.overlay.user_interaction.logfile_utils import (
     ActiveLogfile,
     LogfileCache,
     autoselect_logfile,
+    compare_active_logfiles,
     create_active_logfiles,
     read_logfile_cache,
     refresh_active_logfiles,
@@ -225,7 +226,8 @@ class LogfilePrompt:  # pragma: nocover
             if autoselected is not None:
                 return False, autoselected
 
-        if old_active_logfiles != self.active_logfiles:
+        if not compare_active_logfiles(old_active_logfiles, self.active_logfiles):
+            # The order, or some properties, changed
             return True, None
 
         return False, None

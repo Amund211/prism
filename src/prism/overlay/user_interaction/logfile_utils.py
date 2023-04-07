@@ -211,6 +211,23 @@ class ActiveLogfile:
         return cls(id_=id_, path=path, age_seconds=time.time() - get_timestamp(path))
 
 
+def compare_active_logfiles(
+    a: tuple[ActiveLogfile, ...], b: tuple[ActiveLogfile, ...], /
+) -> bool:
+    """Return True if the tuples should produce the same list in the selection GUI"""
+
+    def map_logfiles(
+        logfiles: tuple[ActiveLogfile, ...]
+    ) -> tuple[tuple[int, Path, bool, bool], ...]:
+        """Grab the id, path, recent, and really_recent properties from the logfiles"""
+        return tuple(
+            (logfile.id_, logfile.path, logfile.recent, logfile.really_recent)
+            for logfile in logfiles
+        )
+
+    return map_logfiles(a) == map_logfiles(b)
+
+
 def create_active_logfiles(
     logfile_paths: tuple[Path, ...]
 ) -> tuple[ActiveLogfile, ...]:
