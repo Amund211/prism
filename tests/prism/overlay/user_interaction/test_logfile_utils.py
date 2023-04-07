@@ -1,5 +1,6 @@
+import unittest.mock
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 import toml
@@ -11,6 +12,7 @@ from prism.overlay.user_interaction.logfile_utils import (
     compare_active_logfiles,
     create_active_logfiles,
     file_exists,
+    get_logfile,
     get_timestamp,
     read_logfile_cache,
     refresh_active_logfiles,
@@ -336,3 +338,143 @@ def test_write_logfile_cache(
     write_logfile_cache(logfile_cache_path, cache)
     with logfile_cache_path.open("r") as f:
         assert toml.load(f) == cache_content
+
+
+NOT_USED = cast(LogfileCache, None)
+
+
+@pytest.mark.parametrize(
+    "old_cache, logfile_ages_seconds, suggested_logfiles, updated_cache, autoselect, new_cache, result",  # noqa: E501
+    (
+        (
+            LogfileCache(known_logfiles=(), last_used_index=None),
+            (),
+            (),
+            LogfileCache(known_logfiles=(), last_used_index=None),
+            True,
+            LogfileCache(known_logfiles=(), last_used_index=None),
+            None,
+        ),
+        (
+            LogfileCache(known_logfiles=(Path("B"), Path("C")), last_used_index=None),
+            (1, 100),
+            (),
+            LogfileCache(known_logfiles=(Path("A"),), last_used_index=None),
+            False,
+            LogfileCache(known_logfiles=(Path("B"), Path("C")), last_used_index=None),
+            None,
+        ),
+        (
+            LogfileCache(known_logfiles=(), last_used_index=None),
+            (),
+            (),
+            LogfileCache(known_logfiles=(Path("A"),), last_used_index=0),
+            True,
+            LogfileCache(known_logfiles=(Path("A"),), last_used_index=0),
+            Path("A"),
+        ),
+        (
+            LogfileCache(known_logfiles=(Path("A"),), last_used_index=0),
+            (1,),
+            (),
+            NOT_USED,
+            True,
+            LogfileCache(known_logfiles=(Path("A"),), last_used_index=0),
+            Path("A"),
+        ),
+        (
+            LogfileCache(known_logfiles=(Path("A"),), last_used_index=0),
+            (1,),
+            (),
+            LogfileCache(known_logfiles=(Path("B"),), last_used_index=0),
+            False,
+            LogfileCache(known_logfiles=(Path("B"),), last_used_index=0),
+            Path("B"),
+        ),
+        (
+            LogfileCache(known_logfiles=(Path("A"),), last_used_index=0),
+            (1, 100),
+            (Path("KnownMCLogfile"),),
+            NOT_USED,
+            True,
+            LogfileCache(
+                known_logfiles=(Path("A"), Path("KnownMCLogfile")), last_used_index=0
+            ),
+            Path("A"),
+        ),
+        (
+            LogfileCache(known_logfiles=(Path("A"),), last_used_index=0),
+            (1, 10),
+            (Path("KnownMCLogfile"),),
+            LogfileCache(
+                known_logfiles=(Path("A"), Path("KnownMCLogfile")), last_used_index=0
+            ),
+            False,
+            LogfileCache(
+                known_logfiles=(Path("A"), Path("KnownMCLogfile")), last_used_index=0
+            ),
+            Path("A"),
+        ),
+    ),
+)
+def test_get_logfile(
+    old_cache: LogfileCache,
+    logfile_ages_seconds: tuple[float, ...],
+    suggested_logfiles: tuple[Path, ...],
+    updated_cache: LogfileCache,
+    autoselect: bool,
+    new_cache: LogfileCache,
+    result: Path | None,
+) -> None:
+    def update_cache(
+        active_logfiles: tuple[ActiveLogfile, ...], last_used_id: int | None
+    ) -> LogfileCache:
+        return updated_cache
+
+    def read_logfile_cache(logfile_cache_path: Path) -> tuple[LogfileCache, bool]:
+        return old_cache, False
+
+    def create_active_logfiles(
+        known_logfiles: tuple[Path, ...]
+    ) -> tuple[ActiveLogfile, ...]:
+        return tuple(
+            ActiveLogfile(id_=id_, path=path, age_seconds=age)
+            for id_, (path, age) in enumerate(
+                zip(known_logfiles, logfile_ages_seconds, strict=True)
+            )
+        )
+
+    # Pass None to make sure we don't accidentally write to disk somewhere
+    cache_path = cast(Path, None)
+    with unittest.mock.patch(
+        "prism.overlay.user_interaction.logfile_utils.create_active_logfiles",
+        create_active_logfiles,
+    ), unittest.mock.patch(
+        "prism.overlay.user_interaction.logfile_utils.write_logfile_cache"
+    ) as patched_write_logfile_cache, unittest.mock.patch(
+        "prism.overlay.user_interaction.logfile_utils.read_logfile_cache",
+        read_logfile_cache,
+    ), unittest.mock.patch(
+        "prism.overlay.user_interaction.logfile_utils.suggest_logfiles",
+        lambda: suggested_logfiles,
+    ):
+        logfile_path = get_logfile(
+            update_cache=update_cache,
+            logfile_cache_path=cache_path,
+            autoselect=autoselect,
+        )
+
+    if logfile_path is None:
+        # We don't write to disk if the user doesn't select anything
+        assert old_cache == new_cache
+
+    if old_cache == new_cache or logfile_path is None:
+        patched_write_logfile_cache.assert_not_called()
+    else:
+        patched_write_logfile_cache.assert_called_once_with(cache_path, new_cache)
+
+    if logfile_path is None:
+        assert new_cache.last_used_index is None
+    else:
+        assert new_cache.last_used_index is not None
+        assert logfile_path == new_cache.known_logfiles[new_cache.last_used_index]

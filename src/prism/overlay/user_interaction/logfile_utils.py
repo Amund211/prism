@@ -3,7 +3,7 @@ import platform
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Self
+from typing import Callable, Self
 
 import toml
 
@@ -363,3 +363,54 @@ def write_logfile_cache(logfile_cache_path: Path, cache: LogfileCache) -> None:
         toml.dump(
             {"known_logfiles": known_logfiles, "last_used": last_used}, cache_file
         )
+
+
+def get_logfile(
+    update_cache: Callable[[tuple[ActiveLogfile, ...], int | None], LogfileCache],
+    logfile_cache_path: Path,
+    autoselect: bool,
+) -> Path | None:
+    """Select a logfile, fallback to the provided function"""
+    old_cache, logfile_cache_updated = read_logfile_cache(logfile_cache_path)
+
+    # Add newly discovered logfiles
+    new_logfiles = set(suggest_logfiles()) - set(old_cache.known_logfiles)
+    if new_logfiles:
+        old_cache.known_logfiles += tuple(new_logfiles)
+
+    last_used_id = old_cache.last_used_index
+    active_logfiles = create_active_logfiles(old_cache.known_logfiles)
+
+    autoselected = None
+    if autoselect and last_used_id is not None:
+        autoselected = autoselect_logfile(
+            active_logfiles,
+            selected_id=last_used_id,
+            last_used_id=last_used_id,
+        )
+
+    if autoselected is not None:
+        # Autoselection will always choose the first item because it assumes
+        # the tuple of sorted logfiles to be sorted
+        cache = LogfileCache(known_logfiles=old_cache.known_logfiles, last_used_index=0)
+    else:
+        cache = update_cache(active_logfiles, last_used_id)
+
+    if cache.last_used_index is not None and (
+        cache.known_logfiles != old_cache.known_logfiles
+        or cache.last_used_index != old_cache.last_used_index
+        or logfile_cache_updated
+    ):
+        write_logfile_cache(logfile_cache_path, cache)
+
+    selected_index = cache.last_used_index
+
+    if selected_index is None:
+        return None
+
+    if 0 <= selected_index < len(cache.known_logfiles):
+        selected = cache.known_logfiles[selected_index]
+        logger.info(f"Selected logfile {selected}")
+        return selected
+    else:  # pragma: no coverage
+        raise ValueError(f"Selected index out of range! {cache}")

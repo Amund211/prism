@@ -11,12 +11,9 @@ from prism.overlay.user_interaction.logfile_utils import (
     LogfileCache,
     autoselect_logfile,
     compare_active_logfiles,
-    create_active_logfiles,
-    read_logfile_cache,
+    get_logfile,
     refresh_active_logfiles,
     safe_resolve_existing_path,
-    suggest_logfiles,
-    write_logfile_cache,
 )
 
 logger = logging.getLogger(__name__)
@@ -25,15 +22,18 @@ logger = logging.getLogger(__name__)
 class LogfilePrompt:  # pragma: nocover
     """Window to prompt the user to select a logfile"""
 
-    def __init__(self, cache: LogfileCache, autoselect_logfile: bool):
-        self.cache = cache
-        self.autoselect_logfile = autoselect_logfile
+    def __init__(
+        self,
+        active_logfiles: tuple[ActiveLogfile, ...],
+        last_used_id: int | None,
+        autoselect: bool,
+    ):
+        self.last_used_id = last_used_id
+        self.active_logfiles = active_logfiles
+        self.autoselect = autoselect
 
-        self.last_used_id = cache.last_used_index
-        self.active_logfiles = create_active_logfiles(cache.known_logfiles)
-
-        # Reset the last used index as we use this to return the new selection
-        self.cache.last_used_index = None
+        # Variable set by self.submit
+        self.selected: Path | None = None
 
         self.logfile_id_map = {
             active_logfile.id_: active_logfile
@@ -54,7 +54,7 @@ class LogfilePrompt:  # pragma: nocover
             self.root, text="Recently used versions are highlighted in green", fg="red"
         ).pack()
 
-        if self.autoselect_logfile and self.last_used_id is not None:
+        if self.autoselect and self.last_used_id is not None:
             tk.Label(
                 self.root,
                 text=(
@@ -180,44 +180,12 @@ class LogfilePrompt:  # pragma: nocover
             radiobutton.pack(side=tk.RIGHT)
             self.rows.append((frame, button, label, radiobutton))
 
-    def submit(self, selected: Path | None = None) -> None:
-        """Select the currently chosen logfile and exit"""
-        self.cache.known_logfiles = tuple(
-            active_logfile.path for active_logfile in self.active_logfiles
-        )
-
-        if selected is None:
-            # If the user submitted with the button use the checked logfile
-            selected_logfile = self.get_active_logfile_by_id(
-                self.selected_logfile_id_var.get()
-            )
-            if selected_logfile is not None:
-                selected = selected_logfile.path
-            else:
-                logger.error(
-                    f"Call to submit_selection failed: {selected=} "
-                    f"{self.selected_logfile_id_var.get()=}"
-                    f"{self.logfile_id_map=}"
-                )
-                return
-
-        try:
-            self.cache.last_used_index = self.cache.known_logfiles.index(selected)
-        except ValueError:
-            logger.exception(
-                f"Could not find {selected} in {self.cache.known_logfiles}"
-            )
-            return
-
-        self.cancel_polling()
-        self.root.destroy()
-
     def refresh_logfile_ages(self) -> tuple[bool, ActiveLogfile | None]:
         """Update the order of the logfiles"""
         old_active_logfiles = self.active_logfiles
         self.active_logfiles = refresh_active_logfiles(self.active_logfiles)
 
-        if self.autoselect_logfile:
+        if self.autoselect:
             autoselected = autoselect_logfile(
                 self.active_logfiles,
                 selected_id=self.selected_logfile_id_var.get(),
@@ -252,46 +220,77 @@ class LogfilePrompt:  # pragma: nocover
             self.root.after_cancel(self.task_id)
             self.task_id = None
 
-    def run(self) -> None:
-        """Enter mainloop"""
+    def submit(self, selected: Path | None = None) -> None:
+        """Exit the GUI to return the selected logfile"""
+        self.selected = selected
+        self.cancel_polling()
+        self.root.destroy()
+
+    def run(self) -> LogfileCache:
+        """Run the GUI until the user has selected and return"""
         self.schedule_polling()
         self.root.mainloop()
 
+        known_logfiles = tuple(
+            active_logfile.path for active_logfile in self.active_logfiles
+        )
+        cache = LogfileCache(known_logfiles, None)
+
+        selected = self.selected
+
+        if selected is None:
+            # If the user submitted with the button use the checked logfile
+            selected_logfile = self.get_active_logfile_by_id(
+                self.selected_logfile_id_var.get()
+            )
+            if selected_logfile is not None:
+                selected = selected_logfile.path
+            else:
+                logger.error(
+                    f"Call to submit_selection failed: {selected=} "
+                    f"{self.selected_logfile_id_var.get()=}"
+                    f"{self.logfile_id_map=}"
+                )
+                return cache
+
+        try:
+            last_used_index = known_logfiles.index(selected)
+        except ValueError:
+            logger.exception(f"Could not find {selected} in {known_logfiles}")
+            return cache
+
+        cache.last_used_index = last_used_index
+
+        return cache
+
 
 def prompt_for_logfile_path(
-    logfile_cache_path: Path, autoselect_logfile: bool
+    logfile_cache_path: Path, autoselect: bool
 ) -> Path:  # pragma: nocover
     """Prompt the user to select a logfile"""
-    cache, logfile_cache_updated = read_logfile_cache(logfile_cache_path)
-    old_known_logfiles = cache.known_logfiles
-    old_last_used_index = cache.last_used_index
 
-    # Add newly discovered logfiles
-    new_logfiles = set(suggest_logfiles()) - set(cache.known_logfiles)
-    if new_logfiles:
-        cache.known_logfiles += tuple(new_logfiles)
+    def update_cache(
+        active_logfiles: tuple[ActiveLogfile, ...], last_used_id: int | None
+    ) -> LogfileCache:
+        logfile_prompt = LogfilePrompt(
+            active_logfiles=active_logfiles,
+            last_used_id=last_used_id,
+            autoselect=autoselect,
+        )
+        return logfile_prompt.run()
 
-    # The cache is updated with the user's selection in LogfilePrompt
-    logfile_prompt = LogfilePrompt(cache=cache, autoselect_logfile=autoselect_logfile)
-    logfile_prompt.run()
+    try:
+        logfile_path = get_logfile(
+            update_cache=update_cache,
+            logfile_cache_path=logfile_cache_path,
+            autoselect=autoselect,
+        )
+    except ValueError:
+        logger.exception("Failed getting logfile")
+        sys.exit(1)
 
-    if (
-        cache.known_logfiles != old_known_logfiles
-        or cache.last_used_index != old_last_used_index
-        or logfile_cache_updated
-    ):
-        write_logfile_cache(logfile_cache_path, cache)
-
-    selected_index = cache.last_used_index
-
-    if selected_index is None:
+    if logfile_path is None:
         logger.info("User selected no logfile -> exiting")
         sys.exit()
 
-    if 0 <= selected_index < len(cache.known_logfiles):
-        selected = cache.known_logfiles[selected_index]
-        logger.info(f"Selected logfile {selected}")
-        return selected
-    else:
-        logger.error(f"Selected index out of range! {cache}")
-        sys.exit(1)
+    return logfile_path
