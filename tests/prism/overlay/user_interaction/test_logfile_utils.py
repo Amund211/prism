@@ -208,19 +208,21 @@ def test_compare_active_logfiles(
 
 
 @pytest.mark.parametrize(
-    "cache_content, cache",
+    "cache_content, cache, logfile_cache_updated",
     (
         # Ill formed
-        ({}, LogfileCache(known_logfiles=(), last_used_index=None)),
+        ({}, LogfileCache(known_logfiles=(), last_used_index=None), True),
         (
             # Invalid data
             {"known_logfiles": "nope", "last_used": 1234},
             LogfileCache(known_logfiles=(), last_used_index=None),
+            True,
         ),
         (
             # Last used logfile not present in known_logfiles
             {"known_logfiles": ("1", "2"), "last_used": "3"},
             LogfileCache(known_logfiles=(Path("1"), Path("2")), last_used_index=None),
+            True,
         ),
         (
             # Duplicate known logfiles
@@ -228,16 +230,19 @@ def test_compare_active_logfiles(
             LogfileCache(
                 known_logfiles=(Path("1"), Path("2"), Path("3")), last_used_index=0
             ),
+            True,
         ),
         (
             # Missing known logfile
             {"known_logfiles": ("1", "2", "missing_file"), "last_used": "1"},
             LogfileCache(known_logfiles=(Path("1"), Path("2")), last_used_index=0),
+            True,
         ),
         (
             # Missing known logfile and last used
             {"known_logfiles": ("1", "2", "missing_file"), "last_used": "missing_file"},
             LogfileCache(known_logfiles=(Path("1"), Path("2")), last_used_index=None),
+            True,
         ),
         # Well formed
         (
@@ -245,18 +250,21 @@ def test_compare_active_logfiles(
             LogfileCache(
                 known_logfiles=(Path("1"), Path("2"), Path("3")), last_used_index=0
             ),
+            False,
         ),
         (
             {"known_logfiles": ("1", "2", "3"), "last_used": "2"},
             LogfileCache(
                 known_logfiles=(Path("1"), Path("2"), Path("3")), last_used_index=1
             ),
+            False,
         ),
     ),
 )
 def test_read_logfile_cache(
     cache_content: dict[str, Any],
     cache: LogfileCache,
+    logfile_cache_updated: bool,
     tmp_path: Path,
     monkeypatch: "pytest.MonkeyPatch",
 ) -> None:
@@ -272,7 +280,7 @@ def test_read_logfile_cache(
 
     cache.known_logfiles = tuple(tmp_path / path for path in cache.known_logfiles)
 
-    assert cache == read_logfile_cache(logfile_cache_path)
+    assert (cache, logfile_cache_updated) == read_logfile_cache(logfile_cache_path)
 
 
 def test_read_logfile_cache_invalid_toml(tmp_path: Path) -> None:
@@ -281,8 +289,9 @@ def test_read_logfile_cache_invalid_toml(tmp_path: Path) -> None:
     with logfile_cache_path.open("w") as f:
         f.write(r"[unclosed tag\n")
 
-    assert read_logfile_cache(logfile_cache_path) == LogfileCache(
-        known_logfiles=(), last_used_index=None
+    assert read_logfile_cache(logfile_cache_path) == (
+        LogfileCache(known_logfiles=(), last_used_index=None),
+        True,
     )
 
 

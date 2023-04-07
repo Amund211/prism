@@ -258,7 +258,7 @@ def prompt_for_logfile_path(
     logfile_cache_path: Path, autoselect_logfile: bool
 ) -> Path:  # pragma: nocover
     """Prompt the user to select a logfile"""
-    cache = read_logfile_cache(logfile_cache_path)
+    cache, logfile_cache_updated = read_logfile_cache(logfile_cache_path)
     old_known_logfiles = cache.known_logfiles
     old_last_used_index = cache.last_used_index
 
@@ -274,6 +274,7 @@ def prompt_for_logfile_path(
     if (
         cache.known_logfiles != old_known_logfiles
         or cache.last_used_index != old_last_used_index
+        or logfile_cache_updated
     ):
         write_logfile_cache(logfile_cache_path, cache)
 

@@ -283,21 +283,26 @@ class LogfileCache:
     last_used_index: int | None
 
 
-def read_logfile_cache(logfile_cache_path: Path) -> LogfileCache:
+def read_logfile_cache(logfile_cache_path: Path) -> tuple[LogfileCache, bool]:
     """Read the logfile cache and resolve the strings into paths"""
+    logfile_cache_updated = False
+
     try:
         logfile_cache = toml.load(logfile_cache_path)
     except Exception:
         logger.exception("failed loading logfile cache")
         logfile_cache = {}
+        logfile_cache_updated = True
 
     read_known_logfiles = logfile_cache.get("known_logfiles", None)
     if not isinstance(read_known_logfiles, (list, tuple)):
         read_known_logfiles = ()
+        logfile_cache_updated = True
 
     last_used = logfile_cache.get("last_used", None)
-    if not isinstance(last_used, str):
+    if last_used is not None and not isinstance(last_used, str):
         last_used = None
+        logfile_cache_updated = True
 
     known_logfile_strings = list(
         filter(
@@ -330,8 +335,19 @@ def read_logfile_cache(logfile_cache_path: Path) -> LogfileCache:
 
         index += 1
 
-    return LogfileCache(
-        known_logfiles=tuple(known_logfiles), last_used_index=last_used_index
+    if len(known_logfiles) != len(read_known_logfiles):
+        # Some logfiles were deduplicated or removed as missing
+        logfile_cache_updated = True
+
+    if last_used is not None and last_used_index is None:
+        # last_used not present in known_logfiles
+        logfile_cache_updated = True
+
+    return (
+        LogfileCache(
+            known_logfiles=tuple(known_logfiles), last_used_index=last_used_index
+        ),
+        logfile_cache_updated,
     )
 
 
