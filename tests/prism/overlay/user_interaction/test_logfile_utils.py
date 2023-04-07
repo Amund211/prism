@@ -244,6 +244,12 @@ def test_compare_active_logfiles(
             LogfileCache(known_logfiles=(Path("1"), Path("2")), last_used_index=None),
             True,
         ),
+        (
+            # Missing known logfile early
+            {"known_logfiles": ("missing_file", "1", "2"), "last_used": "1"},
+            LogfileCache(known_logfiles=(Path("1"), Path("2")), last_used_index=0),
+            True,
+        ),
         # Well formed
         (
             {"known_logfiles": ("1", "2", "3"), "last_used": "1"},
