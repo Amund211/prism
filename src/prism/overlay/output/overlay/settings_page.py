@@ -34,7 +34,9 @@ class ToggleButton:  # pragma: nocover
     def __init__(
         self,
         frame: tk.Frame,
+        *,
         toggle_callback: Callable[[bool], None] = lambda enabled: None,
+        start_enabled: bool = True,
     ) -> None:
         self.toggle_callback = toggle_callback
 
@@ -49,28 +51,25 @@ class ToggleButton:  # pragma: nocover
             cursor="hand2",
         )
 
-        # Initially toggle to get into a consistent state
+        # Set the initial state of the button
         # Don't run the toggle callback since the user didn't click the button
-        self.toggle(disable_toggle_callback=True)
+        self.set(start_enabled, disable_toggle_callback=True)
 
     @property
     def enabled(self) -> bool:
         """Return the state of the toggle button"""
         return self.button.config("bg")[-1] == self.ENABLED_CONFIG["bg"]  # type:ignore
 
-    def toggle(self, *, disable_toggle_callback: bool = False) -> None:
+    def toggle(self) -> None:
         """Toggle the state of the button"""
-        self.button.config(
-            **(self.DISABLED_CONFIG if self.enabled else self.ENABLED_CONFIG)
-        )
+        self.set(not self.enabled)
+
+    def set(self, enabled: bool, *, disable_toggle_callback: bool = False) -> None:
+        """Set the enabled state of the toggle button"""
+        self.button.config(**(self.ENABLED_CONFIG if enabled else self.DISABLED_CONFIG))
 
         if not disable_toggle_callback:
             self.toggle_callback(self.enabled)
-
-    def set(self, enabled: bool) -> None:
-        """Set the enabled state of the toggle button"""
-        if self.enabled != enabled:
-            self.toggle()
 
 
 class KeybindSelector(ToggleButton):  # pragma: no coverage
