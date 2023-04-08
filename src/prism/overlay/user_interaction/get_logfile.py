@@ -51,7 +51,7 @@ class LogfilePrompt:  # pragma: nocover
             text="Select the logfile corresponding to the version you will be playing",
         ).pack()
         tk.Label(
-            self.root, text="Recently used versions are highlighted in green", fg="red"
+            self.root, text="Versions not used for a long time are disabled", fg="red"
         ).pack()
 
         if self.autoselect and self.last_used_id is not None:
@@ -85,7 +85,6 @@ class LogfilePrompt:  # pragma: nocover
             command=self.submit,
         )
         self.submit_button.pack()
-        self.update_buttonstate()
 
         # Cancel button
         tk.Button(self.root, text="Cancel", command=self.exit).pack()
@@ -95,7 +94,7 @@ class LogfilePrompt:  # pragma: nocover
 
         self.root.update_idletasks()
 
-        self.update_logfile_list()
+        self.update_gui()
 
     def exit(self) -> None:
         self.cancel_polling()
@@ -111,7 +110,9 @@ class LogfilePrompt:  # pragma: nocover
             self.selected_logfile_id_var.get()
         )
         self.submit_button.configure(
-            state=tk.DISABLED if selected_logfile is None else tk.NORMAL
+            state=tk.DISABLED
+            if selected_logfile is None or not selected_logfile.recent
+            else tk.NORMAL
         )
 
     def select_from_filesystem(self) -> None:
@@ -145,8 +146,7 @@ class LogfilePrompt:  # pragma: nocover
         )
         self.logfile_id_map.pop(logfile_id, None)
 
-        self.update_logfile_list()
-        self.update_buttonstate()
+        self.update_gui()
 
     def update_logfile_list(self) -> None:
         """Update the gui with the new list"""
@@ -159,8 +159,16 @@ class LogfilePrompt:  # pragma: nocover
         self.rows = []
 
         for active_logfile in self.active_logfiles:
+            can_select = active_logfile.recent
+
+            def on_label_click(
+                e: "tk.Event[tk.Label]", id_: int = active_logfile.id_
+            ) -> None:
+                self.selected_logfile_id_var.set(id_)
+
             frame = tk.Frame(self.logfile_list_frame)
             frame.pack(expand=True, fill=tk.X)
+
             button = tk.Button(
                 frame,
                 text="X",
@@ -168,17 +176,32 @@ class LogfilePrompt:  # pragma: nocover
                 command=functools.partial(self.remove_logfile, active_logfile.id_),
             )
             button.pack(side=tk.LEFT)
-            label = tk.Label(frame, text=str(active_logfile.path))
+
+            label = tk.Label(
+                frame,
+                text=str(active_logfile.path),
+                cursor="hand2" if can_select else "X_cursor",
+                fg="black" if active_logfile.recent else "gray",
+            )
+            if can_select:
+                label.bind("<Button-1>", on_label_click)
             label.pack(side=tk.LEFT)
+
             radiobutton = tk.Radiobutton(
                 frame,
                 variable=self.selected_logfile_id_var,
                 value=active_logfile.id_,
                 bg="green" if active_logfile.recent else "grey",
                 tristatevalue="<invalid_path>",
+                state=tk.NORMAL if can_select else tk.DISABLED,
             )
             radiobutton.pack(side=tk.RIGHT)
+
             self.rows.append((frame, button, label, radiobutton))
+
+    def update_gui(self) -> None:
+        self.update_buttonstate()
+        self.update_logfile_list()
 
     def refresh_logfile_ages(self) -> tuple[bool, ActiveLogfile | None]:
         """Update the order of the logfiles"""
@@ -208,7 +231,7 @@ class LogfilePrompt:  # pragma: nocover
             return
 
         if order_updated:
-            self.update_logfile_list()
+            self.update_gui()
 
         self.schedule_polling()
 
