@@ -6,6 +6,7 @@ import tkinter.filedialog
 from pathlib import Path
 from typing import Any
 
+from prism.overlay.output.overlay.settings_page import ToggleButton
 from prism.overlay.user_interaction.logfile_utils import (
     ActiveLogfile,
     LogfileCache,
@@ -53,6 +54,15 @@ class LogfilePrompt:  # pragma: nocover
         tk.Label(
             self.root, text="Versions not used for a long time are disabled", fg="red"
         ).pack()
+
+        toggle_frame = tk.Frame(self.root)
+        toggle_frame.pack()
+        tk.Label(toggle_frame, text="Select inactive versions: ").pack(side=tk.LEFT)
+        self.enable_inactive_versions_toggle = ToggleButton(
+            toggle_frame, toggle_callback=lambda toggled: self.update_gui()
+        )
+        self.enable_inactive_versions_toggle.button.pack(side=tk.RIGHT)
+        self.enable_inactive_versions_toggle.set(False, disable_toggle_callback=True)
 
         if self.autoselect and self.last_used_id is not None:
             tk.Label(
@@ -111,7 +121,11 @@ class LogfilePrompt:  # pragma: nocover
         )
         self.submit_button.configure(
             state=tk.DISABLED
-            if selected_logfile is None or not selected_logfile.recent
+            if selected_logfile is None
+            or (
+                not selected_logfile.recent
+                and not self.enable_inactive_versions_toggle.enabled
+            )
             else tk.NORMAL
         )
 
@@ -159,7 +173,9 @@ class LogfilePrompt:  # pragma: nocover
         self.rows = []
 
         for active_logfile in self.active_logfiles:
-            can_select = active_logfile.recent
+            can_select = (
+                active_logfile.recent or self.enable_inactive_versions_toggle.enabled
+            )
 
             def on_label_click(
                 e: "tk.Event[tk.Label]", id_: int = active_logfile.id_
