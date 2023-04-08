@@ -193,10 +193,12 @@ class LogfilePrompt:  # pragma: nocover
             )
             button.pack(side=tk.LEFT)
 
+            cursor = "hand2" if can_select else "X_cursor"
+
             label = tk.Label(
                 frame,
                 text=str(active_logfile.path),
-                cursor="hand2" if can_select else "X_cursor",
+                cursor=cursor,
                 fg="black" if active_logfile.recent else "gray",
             )
             if can_select:
@@ -210,6 +212,7 @@ class LogfilePrompt:  # pragma: nocover
                 bg="green" if active_logfile.recent else "grey",
                 tristatevalue="<invalid_path>",
                 state=tk.NORMAL if can_select else tk.DISABLED,
+                cursor=cursor,
             )
             radiobutton.pack(side=tk.RIGHT)
 
