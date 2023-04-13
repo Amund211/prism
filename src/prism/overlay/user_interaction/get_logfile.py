@@ -7,13 +7,14 @@ from pathlib import Path
 from typing import Any
 
 from prism.overlay.output.overlay.settings_page import ToggleButton
+from prism.overlay.user_interaction.logfile_controller import (
+    GUILogfile,
+    LogfileController,
+)
 from prism.overlay.user_interaction.logfile_utils import (
     ActiveLogfile,
     LogfileCache,
-    autoselect_logfile,
-    compare_active_logfiles,
     get_logfile,
-    refresh_active_logfiles,
     safe_resolve_existing_path,
 )
 
@@ -29,17 +30,13 @@ class LogfilePrompt:  # pragma: nocover
         last_used_id: int | None,
         autoselect: bool,
     ):
-        self.last_used_id = last_used_id
-        self.active_logfiles = active_logfiles
-        self.autoselect = autoselect
-
-        # Variable set by self.submit
-        self.selected: Path | None = None
-
-        self.logfile_id_map = {
-            active_logfile.id_: active_logfile
-            for active_logfile in self.active_logfiles
-        }
+        self.logfile_controller = LogfileController.create(
+            active_logfiles=active_logfiles,
+            last_used_id=last_used_id,
+            autoselect=autoselect,
+            draw_logfile_list=self.draw_logfile_list,
+            set_can_submit=self.set_can_submit,
+        )
 
         self.task_id: str | None = None
 
@@ -58,13 +55,14 @@ class LogfilePrompt:  # pragma: nocover
         toggle_frame = tk.Frame(self.root)
         toggle_frame.pack()
         tk.Label(toggle_frame, text="Select inactive versions: ").pack(side=tk.LEFT)
-        self.enable_inactive_versions_toggle = ToggleButton(
-            toggle_frame, toggle_callback=lambda toggled: self.update_gui()
+        enable_inactive_versions_toggle = ToggleButton(
+            toggle_frame,
+            toggle_callback=self.logfile_controller.set_can_select_inactive,
+            start_enabled=self.logfile_controller.can_select_inactive,
         )
-        self.enable_inactive_versions_toggle.button.pack(side=tk.RIGHT)
-        self.enable_inactive_versions_toggle.set(False, disable_toggle_callback=True)
+        enable_inactive_versions_toggle.button.pack(side=tk.RIGHT)
 
-        if self.autoselect and self.last_used_id is not None:
+        if autoselect and last_used_id is not None:
             tk.Label(
                 self.root,
                 text=(
@@ -81,10 +79,10 @@ class LogfilePrompt:  # pragma: nocover
         self.logfile_list_frame = tk.Frame()
         self.logfile_list_frame.pack()
         self.selected_logfile_id_var = tk.IntVar(
-            value=self.last_used_id if self.last_used_id is not None else -1
+            value=last_used_id if last_used_id is not None else -1
         )
         self.selected_logfile_id_var.trace(
-            "w", self.update_buttonstate
+            "w", self.on_logfile_id_var_change
         )  # type: ignore [no-untyped-call]
         self.rows: list[tuple[tk.Frame, tk.Button, tk.Label, tk.Radiobutton]] = []
 
@@ -92,7 +90,7 @@ class LogfilePrompt:  # pragma: nocover
             self.root,
             text="Submit",
             state=tk.DISABLED,
-            command=self.submit,
+            command=self.submit_current_selection,
         )
         self.submit_button.pack()
 
@@ -104,30 +102,20 @@ class LogfilePrompt:  # pragma: nocover
 
         self.root.update_idletasks()
 
-        self.update_gui()
+        self.logfile_controller.update_gui()
 
     def exit(self) -> None:
+        """Exit the overlay"""
         self.cancel_polling()
         sys.exit()
 
-    def get_active_logfile_by_id(self, id_: int) -> ActiveLogfile | None:
-        """Get the ActiveLogfile instance with the given id if it exists"""
-        return self.logfile_id_map.get(id_, None)
+    def on_logfile_id_var_change(self, *args: Any, **kwargs: Any) -> None:
+        """Forward changes to the logfile_id var to the controller"""
+        self.logfile_controller.select_logfile(self.selected_logfile_id_var.get())
 
-    def update_buttonstate(self, *args: Any, **kwargs: Any) -> None:
-        """Disabled the button if the user has not selected a valid, recent logfile"""
-        selected_logfile = self.get_active_logfile_by_id(
-            self.selected_logfile_id_var.get()
-        )
-        self.submit_button.configure(
-            state=tk.DISABLED
-            if selected_logfile is None
-            or (
-                not selected_logfile.recent
-                and not self.enable_inactive_versions_toggle.enabled
-            )
-            else tk.NORMAL
-        )
+    def set_can_submit(self, can_submit: bool) -> None:
+        """Update the buttonstate to match can_submit"""
+        self.submit_button.configure(state=tk.NORMAL if can_submit else tk.DISABLED)
 
     def select_from_filesystem(self) -> None:
         result = tk.filedialog.askopenfilename(
@@ -148,21 +136,13 @@ class LogfilePrompt:  # pragma: nocover
                 logger.error(f"Could not resolve user's selection {result}")
                 return
 
-            self.submit(selected_path)
+            self.submit_path(selected_path)
 
     def remove_logfile(self, logfile_id: int) -> None:
         """Remove the logfile from memory and the GUI"""
-        self.active_logfiles = tuple(
-            filter(
-                lambda active_logfile: active_logfile.id_ != logfile_id,
-                self.active_logfiles,
-            )
-        )
-        self.logfile_id_map.pop(logfile_id, None)
+        self.logfile_controller.remove_logfile(logfile_id)
 
-        self.update_gui()
-
-    def update_logfile_list(self) -> None:
+    def draw_logfile_list(self, gui_logfiles: tuple[GUILogfile, ...]) -> None:
         """Update the gui with the new list"""
         for frame, button, label, radiobutton in self.rows:
             label.destroy()
@@ -172,13 +152,10 @@ class LogfilePrompt:  # pragma: nocover
 
         self.rows = []
 
-        for active_logfile in self.active_logfiles:
-            can_select = (
-                active_logfile.recent or self.enable_inactive_versions_toggle.enabled
-            )
+        for gui_logfile in gui_logfiles:
 
             def on_label_click(
-                e: "tk.Event[tk.Label]", id_: int = active_logfile.id_
+                e: "tk.Event[tk.Label]", id_: int = gui_logfile.id_
             ) -> None:
                 self.selected_logfile_id_var.set(id_)
 
@@ -189,82 +166,70 @@ class LogfilePrompt:  # pragma: nocover
                 frame,
                 text="X",
                 fg="red",
-                command=functools.partial(self.remove_logfile, active_logfile.id_),
+                command=functools.partial(self.remove_logfile, gui_logfile.id_),
             )
             button.pack(side=tk.LEFT)
 
-            cursor = "hand2" if can_select else "X_cursor"
+            cursor = "hand2" if gui_logfile.selectable else "X_cursor"
 
             label = tk.Label(
                 frame,
-                text=str(active_logfile.path),
+                text=gui_logfile.path_str,
                 cursor=cursor,
-                fg="black" if active_logfile.recent else "gray",
+                fg="black" if gui_logfile.recent else "gray",
             )
-            if can_select:
+            if gui_logfile.selectable:
                 label.bind("<Button-1>", on_label_click)
             label.pack(side=tk.LEFT)
 
             radiobutton = tk.Radiobutton(
                 frame,
                 variable=self.selected_logfile_id_var,
-                value=active_logfile.id_,
-                bg="green" if active_logfile.recent else "grey",
+                value=gui_logfile.id_,
+                bg="green" if gui_logfile.recent else "grey",
                 tristatevalue="<invalid_path>",
-                state=tk.NORMAL if can_select else tk.DISABLED,
+                state=tk.NORMAL if gui_logfile.selectable else tk.DISABLED,
                 cursor=cursor,
             )
             radiobutton.pack(side=tk.RIGHT)
 
             self.rows.append((frame, button, label, radiobutton))
 
-    def update_gui(self) -> None:
-        self.update_buttonstate()
-        self.update_logfile_list()
-
-    def refresh_logfile_ages(self) -> tuple[bool, ActiveLogfile | None]:
-        """Update the order of the logfiles"""
-        old_active_logfiles = self.active_logfiles
-        self.active_logfiles = refresh_active_logfiles(self.active_logfiles)
-
-        if self.autoselect:
-            autoselected = autoselect_logfile(
-                self.active_logfiles,
-                selected_id=self.selected_logfile_id_var.get(),
-                last_used_id=self.last_used_id,
-            )
-            if autoselected is not None:
-                return False, autoselected
-
-        if not compare_active_logfiles(old_active_logfiles, self.active_logfiles):
-            # The order, or some properties, changed
-            return True, None
-
-        return False, None
-
     def poll_logfile_timestamps(self) -> None:
-        order_updated, autoselected = self.refresh_logfile_ages()
-        if autoselected is not None:
-            logger.info(f"Autoselected logfile {autoselected.path}")
-            self.submit(autoselected.path)
+        """Refresh the state of the controller and schedule the next refresh"""
+        autoselected = self.logfile_controller.refresh_state()
+        if autoselected:
+            logger.info("Selected logfile with autoselect")
+            self.exit_with_submission()
             return
-
-        if order_updated:
-            self.update_gui()
 
         self.schedule_polling()
 
     def schedule_polling(self) -> None:
+        """Schedule the next refresh"""
         self.task_id = self.root.after(1000, self.poll_logfile_timestamps)
 
     def cancel_polling(self) -> None:
+        """Cancel the next refresh"""
         if self.task_id is not None:
             self.root.after_cancel(self.task_id)
             self.task_id = None
 
-    def submit(self, selected: Path | None = None) -> None:
+    def submit_current_selection(self) -> None:
+        """Submit the current selection if any"""
+        submitted = self.logfile_controller.submit_current_selection()
+        if submitted:
+            logger.info("Selected logfile with submit button")
+            self.exit_with_submission()
+
+    def submit_path(self, path: Path) -> None:
+        """Submit the given path"""
+        logger.info("Selected logfile from file selection")
+        self.logfile_controller.submit_path(path)
+        self.exit_with_submission()
+
+    def exit_with_submission(self, selected: Path | None = None) -> None:
         """Exit the GUI to return the selected logfile"""
-        self.selected = selected
         self.cancel_polling()
         self.root.destroy()
 
@@ -273,37 +238,7 @@ class LogfilePrompt:  # pragma: nocover
         self.schedule_polling()
         self.root.mainloop()
 
-        known_logfiles = tuple(
-            active_logfile.path for active_logfile in self.active_logfiles
-        )
-        cache = LogfileCache(known_logfiles, None)
-
-        selected = self.selected
-
-        if selected is None:
-            # If the user submitted with the button use the checked logfile
-            selected_logfile = self.get_active_logfile_by_id(
-                self.selected_logfile_id_var.get()
-            )
-            if selected_logfile is not None:
-                selected = selected_logfile.path
-            else:
-                logger.error(
-                    f"Call to submit_selection failed: {selected=} "
-                    f"{self.selected_logfile_id_var.get()=}"
-                    f"{self.logfile_id_map=}"
-                )
-                return cache
-
-        try:
-            last_used_index = known_logfiles.index(selected)
-        except ValueError:
-            logger.exception(f"Could not find {selected} in {known_logfiles}")
-            return cache
-
-        cache.last_used_index = last_used_index
-
-        return cache
+        return self.logfile_controller.generate_result()
 
 
 def prompt_for_logfile_path(
