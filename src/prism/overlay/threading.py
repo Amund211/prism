@@ -1,5 +1,6 @@
 import logging
 import queue
+import sys
 import threading
 import time
 from collections.abc import Callable, Iterable
@@ -26,8 +27,11 @@ class UpdateStateThread(threading.Thread):  # pragma: nocover
         try:
             process_loglines(self.loglines, self.controller)
         except Exception:
-            logger.exception("Exception caught in state update thread. Exiting.")
-            return
+            logger.exception(
+                "Exception caught in state update thread. Exiting the overlay."
+            )
+            # Without state updates the overlay will stop working -> force quit
+            sys.exit(1)
 
 
 class GetStatsThread(threading.Thread):  # pragma: nocover
@@ -67,7 +71,8 @@ class GetStatsThread(threading.Thread):  # pragma: nocover
                 self.requests_queue.task_done()
         except Exception:
             logger.exception("Exception caught in stats thread. Exiting.")
-            return
+            # Since we spawn 16 stats threads at the start, we can afford some
+            # casualties without the overlay completely breaking
 
 
 class UpdateCheckerThread(threading.Thread):  # pragma: nocover
