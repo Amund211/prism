@@ -45,6 +45,7 @@ The overlay can be extended with the [Antisniper API](https://antisniper.net) (n
 
 ## Tips
 - Enable autowho so you don't have to type `/who` when you join a filled queue
+- Click the "Fullscreen" button on Windows to use the overlay above fullscreen Minecraft
 - Follow the instructions in the settings page to add an Antisniper API key to get denicking and winstreak estimates
 - Click on the pencil next to a nicked teammate to set their username
 
