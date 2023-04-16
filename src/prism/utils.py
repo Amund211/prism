@@ -1,11 +1,11 @@
 from collections import deque
 from enum import Enum, unique
 from pathlib import Path
-from typing import Any, Protocol, TypeVar
+from typing import Protocol, Self, TypeVar
 
 
 class SupportsLT(Protocol):  # pragma: no cover
-    def __lt__(self, other: Any) -> bool:
+    def __lt__(self, other: Self) -> bool:
         ...
 
 
