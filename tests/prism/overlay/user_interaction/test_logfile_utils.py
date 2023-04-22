@@ -1,4 +1,5 @@
 import unittest.mock
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
 
@@ -206,7 +207,9 @@ def test_read_logfile_cache(
         with (tmp_path / filename).open("w") as f:
             f.write("hi")
 
-    cache.known_logfiles = tuple(tmp_path / path for path in cache.known_logfiles)
+    cache = replace(
+        cache, known_logfiles=tuple(tmp_path / path for path in cache.known_logfiles)
+    )
 
     assert (cache, logfile_cache_updated) == read_logfile_cache(logfile_cache_path)
 

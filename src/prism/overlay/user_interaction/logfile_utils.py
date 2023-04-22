@@ -260,7 +260,7 @@ def autoselect_logfile(
     return None
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class LogfileCache:
     known_logfiles: tuple[Path, ...]
     last_used_index: int | None
@@ -358,11 +358,11 @@ def get_logfile(
 
     # Add newly discovered logfiles
     new_logfiles = set(suggest_logfiles()) - set(old_cache.known_logfiles)
-    if new_logfiles:
-        old_cache.known_logfiles += tuple(new_logfiles)
 
+    known_logfiles = old_cache.known_logfiles + tuple(new_logfiles)
     last_used_id = old_cache.last_used_index
-    active_logfiles = create_active_logfiles(old_cache.known_logfiles)
+
+    active_logfiles = create_active_logfiles(known_logfiles)
 
     autoselected = None
     if autoselect and last_used_id is not None:
@@ -375,7 +375,7 @@ def get_logfile(
     if autoselected is not None:
         # Autoselection will always choose the first item because it assumes
         # the tuple of sorted logfiles to be sorted
-        cache = LogfileCache(known_logfiles=old_cache.known_logfiles, last_used_index=0)
+        cache = LogfileCache(known_logfiles=known_logfiles, last_used_index=0)
     else:
         cache = update_cache(active_logfiles, last_used_id)
 
