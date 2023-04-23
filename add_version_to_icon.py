@@ -36,9 +36,11 @@ if __name__ == "__main__":
         for y in range(original_height):
             if canvas.getpixel((x, y)) != text_bg_color:
                 break
-        else:  # No break -> all pixels are background
+        else:  # No break -> all pixels in column are background
             continue
         break
+    else:  # No break -> all pixels in all columns are background
+        assert False, "Found no text in the image"
 
     # Include all the text, plus one column of padding
     cropped_length = x + 2
