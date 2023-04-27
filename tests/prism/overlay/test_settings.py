@@ -18,6 +18,7 @@ from prism.overlay.settings import (
     SettingsDict,
     ValueType,
     fill_missing_settings,
+    get_boolean_setting,
     get_settings,
     value_or_default,
 )
@@ -231,6 +232,22 @@ def test_flush_settings_from_controller(tmp_path: Path) -> None:
 
     # File properly stored
     assert get_settings(settings.path, get_api_key) == settings
+
+
+def test_get_boolean_setting() -> None:
+    # The key is present
+    assert (False, False) == get_boolean_setting(
+        {"key": False}, "key", False, default=True
+    )
+    assert (False, True) == get_boolean_setting(
+        {"key": False}, "key", True, default=True
+    )
+
+    # The key is missing
+    assert (True, True) == get_boolean_setting({}, "key", False, default=True)
+    assert (True, True) == get_boolean_setting({}, "key", True, default=True)
+
+    assert (False, True) == get_boolean_setting({}, "key", False, default=False)
 
 
 fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] = (

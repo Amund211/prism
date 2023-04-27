@@ -145,6 +145,22 @@ def read_settings(path: Path) -> MutableMapping[str, object]:
     return toml.load(path)
 
 
+def get_boolean_setting(
+    incomplete_settings: MutableMapping[str, object],
+    key: str,
+    settings_updated: bool,
+    *,
+    default: bool,
+) -> tuple[bool, bool]:
+    """Return value, settings_updated"""
+    value = incomplete_settings.get(key, None)
+
+    if not isinstance(value, bool):
+        return default, True
+
+    return value, settings_updated
+
+
 def fill_missing_settings(
     incomplete_settings: MutableMapping[str, object], get_api_key: Callable[[], str]
 ) -> tuple[SettingsDict, bool]:
@@ -165,10 +181,9 @@ def fill_missing_settings(
             settings_updated = True
         antisniper_api_key = PLACEHOLDER_API_KEY
 
-    use_antisniper_api = incomplete_settings.get("use_antisniper_api", None)
-    if not isinstance(use_antisniper_api, bool):
-        settings_updated = True
-        use_antisniper_api = False
+    use_antisniper_api, settings_updated = get_boolean_setting(
+        incomplete_settings, "use_antisniper_api", settings_updated, default=False
+    )
 
     known_nicks_source = incomplete_settings.get("known_nicks", None)
     if not isinstance(known_nicks_source, dict):
@@ -194,20 +209,17 @@ def fill_missing_settings(
 
         known_nicks[key] = NickValue(uuid=uuid, comment=comment)
 
-    autodenick_teammates = incomplete_settings.get("autodenick_teammates", None)
-    if not isinstance(autodenick_teammates, bool):
-        settings_updated = True
-        autodenick_teammates = True
+    autodenick_teammates, settings_updated = get_boolean_setting(
+        incomplete_settings, "autodenick_teammates", settings_updated, default=True
+    )
 
-    autoselect_logfile = incomplete_settings.get("autoselect_logfile", None)
-    if not isinstance(autoselect_logfile, bool):
-        settings_updated = True
-        autoselect_logfile = True
+    autoselect_logfile, settings_updated = get_boolean_setting(
+        incomplete_settings, "autoselect_logfile", settings_updated, default=True
+    )
 
-    show_on_tab = incomplete_settings.get("show_on_tab", None)
-    if not isinstance(show_on_tab, bool):
-        settings_updated = True
-        show_on_tab = True
+    show_on_tab, settings_updated = get_boolean_setting(
+        incomplete_settings, "show_on_tab", settings_updated, default=True
+    )
 
     show_on_tab_keybind: KeyDict
     sot_keybind_source = incomplete_settings.get("show_on_tab_keybind", None)
@@ -224,25 +236,21 @@ def fill_missing_settings(
     else:
         show_on_tab_keybind = sot_keybind_key_dict
 
-    check_for_updates = incomplete_settings.get("check_for_updates", None)
-    if not isinstance(check_for_updates, bool):
-        settings_updated = True
-        check_for_updates = True
+    check_for_updates, settings_updated = get_boolean_setting(
+        incomplete_settings, "check_for_updates", settings_updated, default=True
+    )
 
-    hide_dead_players = incomplete_settings.get("hide_dead_players", None)
-    if not isinstance(hide_dead_players, bool):
-        settings_updated = True
-        hide_dead_players = True
+    hide_dead_players, settings_updated = get_boolean_setting(
+        incomplete_settings, "hide_dead_players", settings_updated, default=True
+    )
 
-    disable_overrideredirect = incomplete_settings.get("disable_overrideredirect", None)
-    if not isinstance(disable_overrideredirect, bool):
-        settings_updated = True
-        disable_overrideredirect = False
+    disable_overrideredirect, settings_updated = get_boolean_setting(
+        incomplete_settings, "disable_overrideredirect", settings_updated, default=False
+    )
 
-    hide_with_alpha = incomplete_settings.get("hide_with_alpha", None)
-    if not isinstance(hide_with_alpha, bool):
-        settings_updated = True
-        hide_with_alpha = False
+    hide_with_alpha, settings_updated = get_boolean_setting(
+        incomplete_settings, "hide_with_alpha", settings_updated, default=False
+    )
 
     alpha_hundredths = incomplete_settings.get("alpha_hundredths", None)
     if not isinstance(alpha_hundredths, int) or not 10 <= alpha_hundredths <= 100:
