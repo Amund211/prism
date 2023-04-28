@@ -147,6 +147,8 @@ def test_parse_estimated_winstreaks_response(
     winstreaks: Winstreaks,
     winstreaks_accurate: bool,
 ) -> None:
+    # We now treat winstreak estimates from antisniper as inaccurate
+    winstreaks_accurate = False
     assert parse_estimated_winstreaks_response(response_json) == (
         winstreaks,
         winstreaks_accurate,

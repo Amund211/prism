@@ -210,14 +210,6 @@ def parse_estimated_winstreaks_response(
         logger.error(f"Winstreak endpoint returned an error. Response: {response_json}")
         return MISSING_WINSTREAKS, False
 
-    winstreaks_accurate = response_json.get("overall_accurate", None)
-
-    if not isinstance(winstreaks_accurate, bool):
-        logger.error(
-            f"Got wrong return type for accurate from ws endpoint {winstreaks_accurate}"
-        )
-        return MISSING_WINSTREAKS, False
-
     # Getting the winstreaks
     winstreaks: dict[GamemodeName, int | None] = {}
 
@@ -245,5 +237,5 @@ def parse_estimated_winstreaks_response(
             threes=winstreaks["threes"],
             fours=winstreaks["fours"],
         ),
-        winstreaks_accurate,
+        False,  # Don't trust winstreak estimates from antisniper
     )
