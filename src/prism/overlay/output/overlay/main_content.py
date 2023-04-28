@@ -1,48 +1,48 @@
 import logging
 import tkinter as tk
 import webbrowser
-from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Generic
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Literal
 
-from prism.overlay.output.overlay.utils import (
-    Cell,
-    ColumnKey,
-    InfoCellValue,
-    OverlayRowData,
-)
+from prism.overlay.output.cell_renderer import pick_columns
+from prism.overlay.output.cells import COLUMN_NAMES, ColumnName, InfoCellValue
+from prism.overlay.output.overlay.utils import OverlayRowData
 
 if TYPE_CHECKING:  # pragma: nocover
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay
 
 logger = logging.getLogger(__name__)
 
-StatsCells = dict[ColumnKey, Cell]
 
-OverlayRow = tuple[tk.Button, StatsCells[ColumnKey]]
+@dataclass(frozen=True, slots=True)
+class Cell:
+    """A cell in the window described by one text widget"""
+
+    text_widget: tk.Text
 
 
-class MainContent(Generic[ColumnKey]):  # pragma: nocover
+OverlayRow = tuple[tk.Button, tuple[Cell, ...]]
+
+
+class MainContent:  # pragma: nocover
     """Main content for the overlay"""
 
     def __init__(
         self,
         parent: tk.Misc,
-        overlay: "StatsOverlay[ColumnKey]",
-        column_order: Sequence[ColumnKey],
-        column_names: dict[ColumnKey, str],
-        left_justified_columns: set[int],
+        overlay: "StatsOverlay",
+        column_order: tuple[ColumnName, ...],
     ) -> None:
         # Column config
         """Set up a frame containing the main content for the overlay"""
         self.overlay = overlay
         self.column_order = column_order
-        self.column_names = column_names
-        self.left_justified_columns = left_justified_columns
 
         self.frame = tk.Frame(parent, background="black")
 
         # Start with zero rows
-        self.rows: list[OverlayRow[ColumnKey]] = []
+        self.rows: list[OverlayRow] = []
 
         # Frame at the top to display info to the user
         self.info_frame = tk.Frame(self.frame, background="black")
@@ -63,13 +63,12 @@ class MainContent(Generic[ColumnKey]):  # pragma: nocover
 
         # Set up header labels
         for column_index, column_name in enumerate(self.column_order):
+            left_justified = column_name == "username"
             header_label = tk.Label(
                 self.table_frame,
-                text=(
-                    str.ljust
-                    if column_index in self.left_justified_columns
-                    else str.rjust
-                )(self.column_names[column_name], 7),
+                text=(str.ljust if left_justified else str.rjust)(
+                    COLUMN_NAMES[column_name], 7
+                ),
                 font=("Consolas", "14"),
                 fg="snow",
                 bg="black",
@@ -77,36 +76,42 @@ class MainContent(Generic[ColumnKey]):  # pragma: nocover
             header_label.grid(
                 row=1,
                 column=column_index + 1,
-                sticky="w" if column_index in self.left_justified_columns else "e",
+                sticky="w" if left_justified else "e",
             )
+
+    def create_cell(self, row: int, column: int, sticky: Literal["w", "e"]) -> Cell:
+        """Create a cell in the table"""
+        text_widget = tk.Text(
+            self.table_frame,
+            font=("Consolas", 14),
+            fg="gray60",  # Color set on each update
+            bg="black",
+            width=1,  # Width set on each update
+            undo=False,
+            cursor="arrow",
+            height=1,
+            wrap="none",
+            background="black",
+            relief=tk.FLAT,
+            borderwidth=0,
+            highlightthickness=0,
+        )
+        text_widget.grid(row=row, column=column, sticky=sticky)
+
+        return Cell(text_widget)
 
     def append_row(self) -> None:
         """Add a row of cells to the table"""
         row_index = len(self.rows) + 2
 
-        stats_cells: StatsCells[ColumnKey] = {}
-        for column_index, column_name in enumerate(self.column_order):
-            text_widget = tk.Text(
-                self.table_frame,
-                font=("Consolas", 14),
-                fg="gray60",  # Color set on each update
-                bg="black",
-                width=1,  # Width set on each update
-                undo=False,
-                cursor="arrow",
-                height=1,
-                wrap="none",
-                background="black",
-                relief=tk.FLAT,
-                borderwidth=0,
-                highlightthickness=0,
-            )
-            text_widget.grid(
+        cells = tuple(
+            self.create_cell(
                 row=row_index,
                 column=column_index + 1,
-                sticky="w" if column_index in self.left_justified_columns else "e",
+                sticky="w" if column_name == "username" else "e",
             )
-            stats_cells[column_name] = Cell(text_widget)
+            for column_index, column_name in enumerate(self.column_order)
+        )
 
         edit_button = tk.Button(
             self.table_frame,
@@ -122,13 +127,13 @@ class MainContent(Generic[ColumnKey]):  # pragma: nocover
         )
         edit_button.grid(row=row_index, column=0)
 
-        self.rows.append((edit_button, stats_cells))
+        self.rows.append((edit_button, cells))
 
     def pop_row(self) -> None:
         """Remove a row of cells from the table"""
-        edit_button, stats_cells = self.rows.pop()
-        for column_name in self.column_order:
-            stats_cells[column_name].text_widget.destroy()
+        edit_button, cells = self.rows.pop()
+        for cell in cells:
+            cell.text_widget.destroy()
 
         edit_button.destroy()
 
@@ -183,7 +188,7 @@ class MainContent(Generic[ColumnKey]):  # pragma: nocover
     def update_content(
         self,
         info_cells: list[InfoCellValue],
-        new_rows: list[OverlayRowData[ColumnKey]] | None,
+        new_rows: list[OverlayRowData] | None,
     ) -> None:
         """Display the new data"""
         # Update the info at the top of the overlay
@@ -194,16 +199,37 @@ class MainContent(Generic[ColumnKey]):  # pragma: nocover
             self.set_length(len(new_rows))
 
             for i, (nickname, rated_stats) in enumerate(new_rows):
-                edit_button, stats_cells = self.rows[i]
-                for column_name in self.column_order:
-                    cell = stats_cells[column_name]
-                    new_text = rated_stats[column_name].text
+                edit_button, cells = self.rows[i]
+
+                for cell, cell_value in zip(
+                    cells, pick_columns(rated_stats, self.column_order)
+                ):
+                    new_text = cell_value.text
 
                     cell.text_widget.configure(state=tk.NORMAL)
                     cell.text_widget.delete("1.0", tk.END)
                     cell.text_widget.insert(tk.END, new_text)
+
+                    # Delete old tags
+                    for tag in cell.text_widget.tag_names():
+                        cell.text_widget.tag_delete(tag)
+
+                    tag_start = 0
+                    for i, color_section in enumerate(cell_value.color_sections):
+                        tag_name = f"tag{i}"
+                        tag_end = tag_start + color_section.length
+
+                        cell.text_widget.tag_add(
+                            tag_name, f"1.{tag_start}", f"1.{tag_end}"
+                        )
+                        cell.text_widget.tag_config(
+                            tag_name, foreground=color_section.color
+                        )
+
+                        tag_start = tag_end
+
                     cell.text_widget.configure(
-                        fg=rated_stats[column_name].color,
+                        fg=cell_value.color_sections[-1].color,
                         state=tk.DISABLED,
                         width=len(new_text),
                     )
@@ -218,7 +244,7 @@ class MainContent(Generic[ColumnKey]):  # pragma: nocover
     def make_set_nick_callback(self, nickname: str) -> Callable[[], None]:
         """Create a callback to pass as a command to open the set nick page"""
 
-        def command(self: "MainContent[ColumnKey]" = self) -> None:
+        def command(self: "MainContent" = self) -> None:
             self.overlay.set_nickname_page.set_content(nickname)
             self.overlay.switch_page("set_nickname")
 

@@ -8,6 +8,11 @@ from cachetools import TTLCache
 
 from prism.hypixel import HypixelAPIKeyHolder
 from prism.overlay.nick_database import NickDatabase
+from prism.overlay.output.config import (
+    RatingConfigCollection,
+    RatingConfigCollectionDict,
+    safe_read_rating_config_collection_dict,
+)
 from prism.overlay.player import (
     KnownPlayer,
     NickedPlayer,
@@ -22,6 +27,33 @@ from prism.overlay.state import OverlayState
 
 # Username set by default in create_state
 OWN_USERNAME = "OwnUsername"
+
+DEFAULT_RATING_CONFIG_COLLECTION_DICT, _ = safe_read_rating_config_collection_dict({})
+DEFAULT_RATING_CONFIG_COLLECTION = RatingConfigCollection.from_dict(
+    DEFAULT_RATING_CONFIG_COLLECTION_DICT
+)
+
+CUSTOM_RATING_CONFIG_COLLECTION_DICT: RatingConfigCollectionDict = {
+    "stars": {
+        "type": "level_based",
+        "decimals": 0,
+        "levels": (300.0, 600.0, 900.0, 1200.0),
+    },
+    "fkdr": {
+        "type": "level_based",
+        "decimals": 4,
+        "levels": (1.0, 4.0, 16.0, 64.0),
+    },
+    "wlr": {"type": "level_based", "decimals": 1, "levels": (0.25, 0.5, 1.0, 2.0)},
+    "winstreak": {
+        "type": "level_based",
+        "decimals": 0,
+        "levels": (2.0, 5.0, 10.0, 100.0),
+    },
+}
+CUSTOM_RATING_CONFIG_COLLECTION = RatingConfigCollection.from_dict(
+    CUSTOM_RATING_CONFIG_COLLECTION_DICT
+)
 
 
 @overload

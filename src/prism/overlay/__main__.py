@@ -89,6 +89,8 @@ def process_loglines_to_stdout(
         print_stats_table(
             sorted_stats=sorted_stats,
             party_members=state.party_members,
+            column_order=controller.settings.column_order,
+            rating_configs=controller.settings.rating_configs,
             out_of_sync=state.out_of_sync,
             clear_between_draws=CLEAR_BETWEEN_DRAWS,
         )
@@ -119,6 +121,8 @@ def process_loglines_to_overlay(
                 print_stats_table(
                     sorted_stats=sorted_stats,
                     party_members=state.party_members,
+                    column_order=controller.settings.column_order,
+                    rating_configs=controller.settings.rating_configs,
                     out_of_sync=state.out_of_sync,
                     clear_between_draws=CLEAR_BETWEEN_DRAWS,
                 )

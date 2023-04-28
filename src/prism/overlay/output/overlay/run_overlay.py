@@ -4,14 +4,10 @@ import time
 from collections.abc import Callable
 
 from prism.overlay.controller import OverlayController
+from prism.overlay.output.cells import InfoCellValue
 from prism.overlay.output.overlay.stats_overlay import StatsOverlay
-from prism.overlay.output.overlay.utils import (
-    InfoCellValue,
-    OverlayRowData,
-    player_to_row,
-)
-from prism.overlay.output.utils import COLUMN_NAMES, COLUMN_ORDER
-from prism.overlay.player import Player, PropertyName
+from prism.overlay.output.overlay.utils import OverlayRowData, player_to_row
+from prism.overlay.player import Player
 from prism.overlay.threading import UpdateCheckerThread
 
 
@@ -32,15 +28,16 @@ def run_overlay(
         update_available_event=update_available_event, controller=controller
     ).start()
 
-    def get_new_data() -> (
-        tuple[bool, list[InfoCellValue], list[OverlayRowData[PropertyName]] | None]
-    ):
+    def get_new_data() -> tuple[bool, list[InfoCellValue], list[OverlayRowData] | None]:
         # Store a persistent view to the current state
         state = controller.state
 
         new_players = fetch_state_updates()
         new_rows = (
-            [player_to_row(player) for player in new_players]
+            [
+                player_to_row(player, controller.settings.rating_configs)
+                for player in new_players
+            ]
             if new_players is not None
             else None
         )
@@ -105,10 +102,8 @@ def run_overlay(
 
         return should_show, info_cells, new_rows
 
-    overlay = StatsOverlay[PropertyName](
-        column_order=COLUMN_ORDER,
-        column_names=COLUMN_NAMES,
-        left_justified_columns={0},
+    overlay = StatsOverlay(
+        column_order=controller.settings.column_order,
         controller=controller,
         get_new_data=get_new_data,
         update_available_event=update_available_event,

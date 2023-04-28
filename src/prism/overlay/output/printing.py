@@ -1,67 +1,14 @@
 import os
 from collections.abc import Set
 
-from prism.overlay.output.utils import (
-    COLUMN_NAMES,
-    COLUMN_ORDER,
-    STAT_LEVELS,
-    rate_value,
-)
+from prism.overlay.output.cell_renderer import pick_columns, render_stats
+from prism.overlay.output.cells import COLUMN_NAMES, ColumnName
+from prism.overlay.output.color import TerminalColor
+from prism.overlay.output.config import RatingConfigCollection
 from prism.overlay.player import Player
-
-
-class Color:
-    """
-    SGR color constants
-    rene-d 2018
-
-    https://gist.github.com/rene-d/9e584a7dd2935d0f461904b9f2950007
-    """
-
-    BLACK = "\033[0;30m"
-    RED = "\033[0;31m"
-    GREEN = "\033[0;32m"
-    BROWN = "\033[0;33m"
-    BLUE = "\033[0;34m"
-    PURPLE = "\033[0;35m"
-    CYAN = "\033[0;36m"
-    LIGHT_GRAY = "\033[0;37m"
-    DARK_GRAY = "\033[1;30m"
-    LIGHT_RED = "\033[1;31m"
-    LIGHT_GREEN = "\033[1;32m"
-    YELLOW = "\033[1;33m"
-    LIGHT_BLUE = "\033[1;34m"
-    LIGHT_PURPLE = "\033[1;35m"
-    LIGHT_CYAN = "\033[1;36m"
-    LIGHT_WHITE = "\033[1;37m"
-
-    BG_WHITE = "\033[47;1m"
-
-    BOLD = "\033[1m"
-    FAINT = "\033[2m"
-    ITALIC = "\033[3m"
-    UNDERLINE = "\033[4m"
-    BLINK = "\033[5m"
-    NEGATIVE = "\033[7m"
-    CROSSED = "\033[9m"
-    END = "\033[0m"
-
 
 # Column separator
 SEP = " " * 4
-
-
-LEVEL_COLORMAP = (
-    Color.LIGHT_GRAY,
-    Color.LIGHT_WHITE,
-    Color.YELLOW,
-    Color.LIGHT_RED,
-    Color.LIGHT_RED + Color.BG_WHITE,
-)
-
-for levels in STAT_LEVELS.values():
-    if levels is not None:
-        assert len(levels) <= len(LEVEL_COLORMAP) - 1
 
 
 def clear_screen() -> None:  # pragma: nocover
@@ -71,36 +18,43 @@ def clear_screen() -> None:  # pragma: nocover
 
 def title(text: str) -> str:
     """Format the given text like a title (in bold)"""
-    return Color.BOLD + text + Color.END
+    return TerminalColor.BOLD + text + TerminalColor.END
 
 
 def color(text: str, color: str) -> str:
     """Color the given text the given color"""
-    return color + text + Color.END
+    return color + text + TerminalColor.END
 
 
-def get_sep(column: str) -> str:
+def get_sep(column: str, column_order: tuple[ColumnName, ...]) -> str:
     """Get the separator used in prints for this column"""
-    return "\n" if column == COLUMN_ORDER[-1] else SEP
+    return "\n" if column == column_order[-1] else SEP
 
 
 def print_stats_table(
     sorted_stats: list[Player],
     party_members: Set[str],
+    column_order: tuple[ColumnName, ...],
+    rating_configs: RatingConfigCollection,
     out_of_sync: bool,
     clear_between_draws: bool = True,
 ) -> None:  # pragma: nocover
     """Print the stats in a table format to stdout"""
-    column_widths = {
-        column: len(
+    rows = tuple(
+        pick_columns(render_stats(player, rating_configs), column_order)
+        for player in sorted_stats
+    )
+
+    column_widths = tuple(
+        len(
             max(
-                (stat.get_string(column) for stat in sorted_stats),
+                (row[column_index].text for row in rows),
                 default="",
                 key=len,
             )
         )
-        for column in COLUMN_ORDER
-    }
+        for column_index in range(len(column_order))
+    )
 
     if clear_between_draws:
         clear_screen()
@@ -108,39 +62,31 @@ def print_stats_table(
     if out_of_sync:
         print(
             title(
-                Color.LIGHT_RED
-                + Color.BG_WHITE
+                TerminalColor.LIGHT_RED
+                + TerminalColor.BG_WHITE
                 + "The overlay is out of sync with the lobby. Please use /who."
             )
         )
 
     # Table header
-    for column in COLUMN_ORDER:
+    for i, column in enumerate(column_order):
         print(
-            title(COLUMN_NAMES[column].ljust(column_widths[column])),
-            end=get_sep(column),
+            title(COLUMN_NAMES[column].ljust(column_widths[i])),
+            end=get_sep(column, column_order),
         )
 
-    for stat in sorted_stats:
-        for i, column in enumerate(COLUMN_ORDER):
+    for row in rows:
+        for i, column in enumerate(column_order):
             # Left justify the first column
             justify = str.ljust if i == 0 else str.rjust
 
-            levels = STAT_LEVELS.get(column, None)
+            cell_value = row[i]
 
-            stat_string = stat.get_string(column)
-            stat_value = stat.get_value(column)
+            formatted_string = color(cell_value.text, cell_value.terminal_formatting)
 
-            if stat_value is None or levels is None or isinstance(stat_value, str):
-                final_string = stat_string
-            else:
-                rating = rate_value(stat_value, levels)
-                final_string = color(stat_string, LEVEL_COLORMAP[rating])
+            formatting_length = len(formatted_string) - len(cell_value.text)
 
             print(
-                justify(
-                    final_string,
-                    column_widths[column] + (len(final_string) - len(stat_string)),
-                ),
-                end=get_sep(column),
+                justify(formatted_string, column_widths[i] + formatting_length),
+                end=get_sep(column, column_order),
             )

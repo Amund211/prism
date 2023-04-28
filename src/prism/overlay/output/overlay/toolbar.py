@@ -10,7 +10,6 @@ from prism.overlay.controller import OverlayController
 
 if TYPE_CHECKING:  # pragma: nocover
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay
-    from prism.overlay.output.overlay.utils import ColumnKey
 
 if os.name == "nt":  # pragma: nocover
     from prism.overlay.platform.windows import toggle_fullscreen
@@ -26,7 +25,7 @@ class Toolbar:  # pragma: nocover
     def __init__(
         self,
         parent: tk.Misc,
-        overlay: "StatsOverlay[ColumnKey]",
+        overlay: "StatsOverlay",
         controller: OverlayController,
     ) -> None:
         """Set up a frame containing the toolbar for the overlay"""

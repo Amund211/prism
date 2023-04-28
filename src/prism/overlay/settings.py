@@ -14,6 +14,16 @@ from prism.overlay.keybinds import (
     construct_key,
     construct_key_dict,
 )
+from prism.overlay.output.cells import (
+    ALL_COLUMN_NAMES,
+    DEFAULT_COLUMN_ORDER,
+    ColumnName,
+)
+from prism.overlay.output.config import (
+    RatingConfigCollection,
+    RatingConfigCollectionDict,
+    safe_read_rating_config_collection_dict,
+)
 
 PLACEHOLDER_API_KEY = "insert-your-key-here"
 
@@ -34,6 +44,8 @@ class SettingsDict(TypedDict):
     hypixel_api_key: str
     antisniper_api_key: str | None
     use_antisniper_api: bool
+    column_order: tuple[ColumnName, ...]
+    rating_configs: RatingConfigCollectionDict
     known_nicks: dict[str, NickValue]
     autodenick_teammates: bool
     autoselect_logfile: bool
@@ -53,6 +65,8 @@ class Settings:
     hypixel_api_key: str
     antisniper_api_key: str | None
     use_antisniper_api: bool
+    column_order: tuple[ColumnName, ...]
+    rating_configs: RatingConfigCollection
     known_nicks: dict[str, NickValue]
     autodenick_teammates: bool
     autoselect_logfile: bool
@@ -74,6 +88,8 @@ class Settings:
             hypixel_api_key=source["hypixel_api_key"],
             antisniper_api_key=source["antisniper_api_key"],
             use_antisniper_api=source["use_antisniper_api"],
+            column_order=source["column_order"],
+            rating_configs=RatingConfigCollection.from_dict(source["rating_configs"]),
             known_nicks=source["known_nicks"],
             autodenick_teammates=source["autodenick_teammates"],
             autoselect_logfile=source["autoselect_logfile"],
@@ -92,6 +108,8 @@ class Settings:
             "hypixel_api_key": self.hypixel_api_key,
             "antisniper_api_key": self.antisniper_api_key,
             "use_antisniper_api": self.use_antisniper_api,
+            "column_order": self.column_order,
+            "rating_configs": self.rating_configs.to_dict(),
             "known_nicks": self.known_nicks,
             "autodenick_teammates": self.autodenick_teammates,
             "autoselect_logfile": self.autoselect_logfile,
@@ -109,6 +127,10 @@ class Settings:
         self.hypixel_api_key = new_settings["hypixel_api_key"]
         self.antisniper_api_key = new_settings["antisniper_api_key"]
         self.use_antisniper_api = new_settings["use_antisniper_api"]
+        self.column_order = new_settings["column_order"]
+        self.rating_configs = RatingConfigCollection.from_dict(
+            new_settings["rating_configs"]
+        )
         self.known_nicks = new_settings["known_nicks"]
         self.autodenick_teammates = new_settings["autodenick_teammates"]
         self.autoselect_logfile = new_settings["autoselect_logfile"]
@@ -184,6 +206,33 @@ def fill_missing_settings(
     use_antisniper_api, settings_updated = get_boolean_setting(
         incomplete_settings, "use_antisniper_api", settings_updated, default=False
     )
+
+    raw_column_order = incomplete_settings.get("column_order", None)
+    if isinstance(raw_column_order, (list, tuple)):
+        column_order = tuple(
+            filter(
+                lambda column_name: isinstance(column_name, str)
+                and column_name in ALL_COLUMN_NAMES,
+                raw_column_order,
+            )
+        )
+        settings_updated |= len(raw_column_order) != len(column_order)
+    else:
+        # Found no columns
+        column_order = ()
+
+    # No valid column_names provided
+    if not column_order:
+        column_order = DEFAULT_COLUMN_ORDER
+        settings_updated = True
+
+    (
+        rating_configs_dict,
+        rating_configs_updated,
+    ) = safe_read_rating_config_collection_dict(
+        incomplete_settings.get("rating_configs", None)
+    )
+    settings_updated |= rating_configs_updated
 
     known_nicks_source = incomplete_settings.get("known_nicks", None)
     if not isinstance(known_nicks_source, dict):
@@ -261,6 +310,8 @@ def fill_missing_settings(
         "hypixel_api_key": hypixel_api_key,
         "antisniper_api_key": antisniper_api_key,
         "use_antisniper_api": use_antisniper_api,
+        "column_order": column_order,
+        "rating_configs": rating_configs_dict,
         "known_nicks": known_nicks,
         "autodenick_teammates": autodenick_teammates,
         "autoselect_logfile": autoselect_logfile,

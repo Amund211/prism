@@ -11,6 +11,8 @@ from prism.overlay.keybinds import (
     SpecialKey,
     SpecialKeyDict,
 )
+from prism.overlay.output.cells import ColumnName
+from prism.overlay.output.config import RatingConfigCollectionDict
 from prism.overlay.settings import (
     PLACEHOLDER_API_KEY,
     NickValue,
@@ -22,7 +24,13 @@ from prism.overlay.settings import (
     get_settings,
     value_or_default,
 )
-from tests.prism.overlay.utils import make_settings
+from tests.prism.overlay.utils import (
+    CUSTOM_RATING_CONFIG_COLLECTION,
+    CUSTOM_RATING_CONFIG_COLLECTION_DICT,
+    DEFAULT_RATING_CONFIG_COLLECTION,
+    DEFAULT_RATING_CONFIG_COLLECTION_DICT,
+    make_settings,
+)
 
 KEY_IF_MISSING = "KEY_IF_MISSING"
 
@@ -31,6 +39,8 @@ def make_settings_dict(
     hypixel_api_key: str | None = None,
     antisniper_api_key: str | None = None,
     use_antisniper_api: bool | None = None,
+    column_order: tuple[ColumnName, ...] | None = None,
+    rating_configs: RatingConfigCollectionDict | None = None,
     known_nicks: dict[str, NickValue] | None = None,
     autodenick_teammates: bool | None = None,
     autoselect_logfile: bool | None = None,
@@ -49,6 +59,12 @@ def make_settings_dict(
             antisniper_api_key, default=PLACEHOLDER_API_KEY
         ),
         "use_antisniper_api": value_or_default(use_antisniper_api, default=False),
+        "column_order": value_or_default(
+            column_order, default=("username", "stars", "fkdr", "winstreak")
+        ),
+        "rating_configs": value_or_default(
+            rating_configs, default=DEFAULT_RATING_CONFIG_COLLECTION_DICT
+        ),
         "known_nicks": value_or_default(known_nicks, default={}),
         "autodenick_teammates": value_or_default(autodenick_teammates, default=True),
         "autoselect_logfile": value_or_default(autoselect_logfile, default=True),
@@ -80,6 +96,8 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             hypixel_api_key="my-key",
             antisniper_api_key="my-key",
             use_antisniper_api=True,
+            column_order=("username", "winstreak", "stars"),
+            rating_configs=DEFAULT_RATING_CONFIG_COLLECTION,
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             autodenick_teammates=True,
             autoselect_logfile=True,
@@ -96,6 +114,8 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "hypixel_api_key": "my-key",
             "antisniper_api_key": "my-key",
             "use_antisniper_api": True,
+            "column_order": ("username", "winstreak", "stars"),
+            "rating_configs": DEFAULT_RATING_CONFIG_COLLECTION_DICT,
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             "autodenick_teammates": True,
             "autoselect_logfile": True,
@@ -115,6 +135,8 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             hypixel_api_key="my-other-key",
             antisniper_api_key="my-other-key",
             use_antisniper_api=False,
+            column_order=("username", "stars", "fkdr", "wlr", "winstreak"),
+            rating_configs=CUSTOM_RATING_CONFIG_COLLECTION,
             known_nicks={},
             autodenick_teammates=False,
             autoselect_logfile=False,
@@ -131,6 +153,8 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "hypixel_api_key": "my-other-key",
             "antisniper_api_key": "my-other-key",
             "use_antisniper_api": False,
+            "column_order": ("username", "stars", "fkdr", "wlr", "winstreak"),
+            "rating_configs": CUSTOM_RATING_CONFIG_COLLECTION_DICT,
             "known_nicks": {},
             "autodenick_teammates": False,
             "autoselect_logfile": False,
@@ -256,6 +280,8 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
             "hypixel_api_key": "my-key",
             "antisniper_api_key": "my-key",
             "use_antisniper_api": False,
+            "column_order": ("username", "stars", "fkdr", "wlr"),
+            "rating_configs": CUSTOM_RATING_CONFIG_COLLECTION_DICT,
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             "autodenick_teammates": False,
             "autoselect_logfile": False,
@@ -272,6 +298,9 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
         make_settings_dict(
             hypixel_api_key="my-key",
             antisniper_api_key="my-key",
+            use_antisniper_api=False,
+            column_order=("username", "stars", "fkdr", "wlr"),
+            rating_configs=CUSTOM_RATING_CONFIG_COLLECTION_DICT,
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             autodenick_teammates=False,
             autoselect_logfile=False,
@@ -454,6 +483,30 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
         # Invalid data for autodenick_teammates
         {"autodenick_teammates": "yes"},
         make_settings_dict(),
+        True,
+    ),
+    (
+        # Invalid data for column_order
+        {"column_order": "yes"},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # No column names
+        {"column_order": ()},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # No valid column names
+        {"column_order": ("lkjdlfkj", "lksdjlskdjlskd", "a", "", 1, {}, [])},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # Some invalid column names
+        {"column_order": ("username", "stars", "lkjdlfkj", "", 1, {}, [])},
+        make_settings_dict(column_order=("username", "stars")),
         True,
     ),
 )

@@ -19,6 +19,7 @@ from prism.overlay.player import MISSING_WINSTREAKS
 from prism.overlay.settings import NickValue, Settings, SettingsDict
 from tests.prism.overlay import test_get_stats
 from tests.prism.overlay.utils import (
+    CUSTOM_RATING_CONFIG_COLLECTION_DICT,
     MockedController,
     create_state,
     make_player,
@@ -318,6 +319,8 @@ def test_update_settings_everything_changed() -> None:
         hypixel_api_key="my-new-hypixel-api-key",
         antisniper_api_key="my-new-antisniper-api-key",
         use_antisniper_api=True,
+        column_order=("username", "winstreak"),
+        rating_configs=CUSTOM_RATING_CONFIG_COLLECTION_DICT,
         known_nicks={
             "AmazingNick": {"uuid": "1", "comment": "my friend :)"},
             "SuperbNick": {"uuid": "42", "comment": "42"},

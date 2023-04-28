@@ -1,16 +1,12 @@
 from collections.abc import Callable, Set
 from dataclasses import dataclass, field, replace
-from typing import Any, Literal, Self, TypedDict, overload
+from typing import Any, Literal, Self, TypedDict
 
 from prism.calc import bedwars_level_from_exp
 from prism.hypixel import MissingStatsError, get_gamemode_stats
-from prism.utils import div, truncate_float
+from prism.utils import div
 
 GamemodeName = Literal["overall", "solo", "doubles", "threes", "fours"]
-
-StatName = Literal["stars", "fkdr", "wlr", "winstreak"]
-InfoName = Literal["username"]
-PropertyName = Literal[StatName, InfoName]
 
 StatsOrder = tuple[float, int, float]
 KnownPlayerOrder = tuple[StatsOrder, float, str]
@@ -88,43 +84,6 @@ class KnownPlayer:
             aliases.append(self.nick)
         return tuple(aliases)
 
-    @overload
-    def get_value(self, name: StatName) -> int | float | None:
-        ...  # pragma: nocover
-
-    @overload
-    def get_value(self, name: InfoName) -> str:
-        ...  # pragma: nocover
-
-    def get_value(self, name: PropertyName) -> str | int | float | None:
-        """Get the given stat from this player"""
-        if name == "fkdr":
-            return self.stats.fkdr
-        elif name == "stars":
-            return self.stars
-        elif name == "wlr":
-            return self.stats.wlr
-        elif name == "winstreak":
-            return self.stats.winstreak
-        elif name == "username":
-            return self.username + (f" ({self.nick})" if self.nick is not None else "")
-
-    def get_string(self, name: PropertyName) -> str:
-        """Get a string representation of the given stat"""
-        value = self.get_value(name)
-        if value is None:
-            return "-"
-        elif name == "winstreak":
-            return f"{value}{'' if self.stats.winstreak_accurate else '?'}"
-        elif isinstance(value, int):
-            return str(value)
-        elif isinstance(value, str):
-            return value
-        elif isinstance(value, float):
-            return truncate_float(value, 2)
-        else:  # pragma: nocover
-            raise ValueError(f"{name=} {value=}")
-
     def update_winstreaks(
         self,
         overall: int | None,
@@ -159,17 +118,6 @@ class NickedPlayer:
         """List of known aliases for the player"""
         return (self.nick,)
 
-    def get_value(self, name: PropertyName) -> int | float:
-        """Get the given stat from this player (unknown in this case)"""
-        return float("inf")
-
-    def get_string(self, name: PropertyName) -> str:
-        """Get a string representation of the given stat (unknown)"""
-        if name == "username":
-            return self.username
-
-        return "unknown"
-
     @property
     def username(self) -> str:
         """Display the username as the nick"""
@@ -191,17 +139,6 @@ class PendingPlayer:
     def aliases(self) -> tuple[str, ...]:
         """List of known aliases for the player"""
         return (self.username,)
-
-    def get_value(self, name: PropertyName) -> int | float:
-        """Get the given stat from this player (unknown in this case)"""
-        return float("-inf")
-
-    def get_string(self, name: PropertyName) -> str:
-        """Get a string representation of the given stat (unknown)"""
-        if name == "username":
-            return self.username
-
-        return "-"
 
 
 Player = KnownPlayer | NickedPlayer | PendingPlayer

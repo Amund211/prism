@@ -1,17 +1,18 @@
 import logging
 import threading
 import tkinter as tk
-from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Generic, Literal, assert_never
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Literal, assert_never
 
 from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import SpecialKey, create_pynput_normalizer
+from prism.overlay.output.cells import ColumnName, InfoCellValue
 from prism.overlay.output.overlay.main_content import MainContent
 from prism.overlay.output.overlay.overlay_window import OverlayWindow
 from prism.overlay.output.overlay.set_nickname_page import SetNicknamePage
 from prism.overlay.output.overlay.settings_page import SettingsPage
 from prism.overlay.output.overlay.toolbar import Toolbar
-from prism.overlay.output.overlay.utils import ColumnKey, InfoCellValue, OverlayRowData
+from prism.overlay.output.overlay.utils import OverlayRowData
 
 if TYPE_CHECKING:  # pragma: nocover
     import pynput
@@ -21,18 +22,16 @@ logger = logging.getLogger(__name__)
 Page = Literal["settings", "main", "set_nickname"]
 
 
-class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
+class StatsOverlay:  # pragma: nocover
     """Show bedwars stats in an overlay"""
 
     def __init__(
         self,
         start_hidden: bool,
-        column_order: Sequence[ColumnKey],
-        column_names: dict[ColumnKey, str],
-        left_justified_columns: set[int],
+        column_order: tuple[ColumnName, ...],
         controller: OverlayController,
         get_new_data: Callable[
-            [], tuple[bool, list[InfoCellValue], list[OverlayRowData[ColumnKey]] | None]
+            [], tuple[bool, list[InfoCellValue], list[OverlayRowData] | None]
         ],
         update_available_event: threading.Event,
         poll_interval: int,
@@ -49,7 +48,7 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
         # start_hidden until a falling/rising edge in show from get_new_data
         # Also set last_new_rows so we don't miss the first update
         self.should_show: bool
-        self.last_new_rows: list[OverlayRowData[ColumnKey]] | None
+        self.last_new_rows: list[OverlayRowData] | None
         self.should_show, _, self.last_new_rows = self.get_new_data()
 
         self.current_page: Page = "main"
@@ -64,8 +63,6 @@ class StatsOverlay(Generic[ColumnKey]):  # pragma: nocover
             parent=self.page_frame,
             overlay=self,
             column_order=column_order,
-            column_names=column_names,
-            left_justified_columns=left_justified_columns,
         )
         self.main_content.frame.pack(side=tk.TOP, fill=tk.BOTH)
         # Add the settings page

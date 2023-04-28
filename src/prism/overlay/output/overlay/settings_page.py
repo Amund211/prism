@@ -15,7 +15,6 @@ if TYPE_CHECKING:  # pragma: nocover
     from pynput import keyboard
 
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay
-    from prism.overlay.output.overlay.utils import ColumnKey
 
 
 class ToggleButton:  # pragma: nocover
@@ -82,7 +81,7 @@ class KeybindSelector(ToggleButton):  # pragma: no coverage
         "bg": "lawn green",
     }
 
-    def __init__(self, frame: tk.Frame, overlay: "StatsOverlay[ColumnKey]") -> None:
+    def __init__(self, frame: tk.Frame, overlay: "StatsOverlay") -> None:
         super().__init__(frame=frame, toggle_callback=self._on_toggle)
 
         self.overlay = overlay
@@ -431,7 +430,7 @@ class SettingsPage:  # pragma: nocover
     def __init__(
         self,
         parent: tk.Misc,
-        overlay: "StatsOverlay[ColumnKey]",
+        overlay: "StatsOverlay",
         controller: OverlayController,
     ) -> None:
         """Set up a frame containing the settings page for the overlay"""
@@ -551,6 +550,12 @@ class SettingsPage:  # pragma: nocover
         hide_dead_players = self.display_section.get()
         hypixel_api_key = self.hypixel_section.get()
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
+
+        # TODO: Add section to edit rating configs and column order
+        with self.controller.settings.mutex:
+            column_order = self.controller.settings.column_order
+            rating_configs_dict = self.controller.settings.rating_configs.to_dict()
+
         known_nicks: dict[str, NickValue] = {}
         # TODO: Add section to edit known nicks
         with self.controller.settings.mutex:
@@ -566,6 +571,8 @@ class SettingsPage:  # pragma: nocover
             hypixel_api_key=hypixel_api_key,
             antisniper_api_key=antisniper_api_key,
             use_antisniper_api=use_antisniper_api,
+            column_order=column_order,
+            rating_configs=rating_configs_dict,
             known_nicks=known_nicks,
             autodenick_teammates=autodenick_teammates,
             autoselect_logfile=autoselect_logfile,
