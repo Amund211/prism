@@ -41,6 +41,9 @@ def test_read_key(file_content: str, key: str, tmp_path: Path) -> None:
         (0, 5, "0.00000"),
         (499 + 4999 / 5000, 2, "499.99"),
         (99999 + 49999 / 50000, 2, "99999.99"),
+        (1.15, 0, "1"),
+        (0, 0, "0"),
+        (-1.15, 0, "-1"),
     ),
 )
 def test_truncate_float(number: float, precision: int, result: str) -> None:
@@ -51,7 +54,7 @@ def test_truncate_float(number: float, precision: int, result: str) -> None:
     "number, precision",
     (
         (1.15, -1),
-        (1.15, 0),
+        (1.15, -3),
         (499 + 4999 / 5000, -2),
     ),
 )
