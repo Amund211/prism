@@ -229,9 +229,9 @@ def render_stats(
             rating_configs.wlr.levels,
         )
         if player.stats.winstreak is not None:
-            winstreak_str = f"{player.stats.winstreak}" + (
-                "" if player.stats.winstreak_accurate else "?"
-            )
+            winstreak_str = (
+                "" if player.stats.winstreak_accurate else "~"
+            ) + f"{player.stats.winstreak}"
         else:
             winstreak_str = "-"
         winstreak_cell = render_based_on_level(

@@ -185,7 +185,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 stars=CellValue("210.00", rating1[0], gold_prestige),
                 fkdr=CellValue.monochrome("1.00", *rating1),
                 wlr=CellValue.monochrome("2.00", *rating3),
-                winstreak=CellValue.monochrome("100?", *rating4),
+                winstreak=CellValue.monochrome("~100", *rating4),
             ),
         ),
     ),
