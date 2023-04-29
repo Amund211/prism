@@ -62,12 +62,16 @@ process_event_test_cases_base: tuple[
     (
         "swap lobby",
         MockedController(
+            wants_shown=True,
             state=create_state(
                 party_members={"OwnUsername", "Player2"}, lobby_players={"RandomPlayer"}
-            )
+            ),
         ),
         LobbySwapEvent(),
-        MockedController(state=create_state(party_members={"OwnUsername", "Player2"})),
+        MockedController(
+            wants_shown=None,
+            state=create_state(party_members={"OwnUsername", "Player2"}),
+        ),
         True,
     ),
     (
@@ -205,9 +209,9 @@ process_event_test_cases_base: tuple[
     ),
     (
         "start bedwars game",
-        MockedController(state=create_state(in_queue=True)),
+        MockedController(wants_shown=False, state=create_state(in_queue=True)),
         StartBedwarsGameEvent(),
-        MockedController(state=create_state(in_queue=False)),
+        MockedController(wants_shown=None, state=create_state(in_queue=False)),
         False,  # No need to redraw the screen - only hide the overlay
     ),
     (
@@ -395,10 +399,11 @@ process_event_test_cases_base: tuple[
         # Lobby swap when own username is unknown
         "lobby swap unknown username",
         MockedController(
-            state=create_state(lobby_players={"Player1", "Player2"}, own_username=None)
+            wants_shown=False,
+            state=create_state(lobby_players={"Player1", "Player2"}, own_username=None),
         ),
         LobbySwapEvent(),
-        MockedController(state=create_state(own_username=None)),
+        MockedController(wants_shown=None, state=create_state(own_username=None)),
         True,
     ),
     (
@@ -785,6 +790,9 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
             f"{CHAT}+37 coins! (Win)",
             f"{CHAT}+50 Bed Wars Experience (Position Bonus)",
+            # We join late and the overlay does not think we are in a queue when
+            # we do /who. wants_shown is set to True here, so it is important that we
+            # reset it to None when the game starts.
             f"{CHAT}ONLINE: Player1, Player2, Me, Player4, Player5, Player6, Player7, Player8, Player9, Player10, Player11, Player12",  # noqa: E501
             f"{CHAT}The game starts in 1 seconds!",
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501

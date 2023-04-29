@@ -50,6 +50,11 @@ def process_event(
     if event.event_type is EventType.LOBBY_SWAP:
         # Changed lobby -> clear the lobby
         logger.info("Received lobby swap. Clearing the lobby")
+
+        # Leaving the queue to a new lobby
+        # Reset the users preference for showing the overlay
+        controller.wants_shown = None
+
         return state.clear_lobby().leave_queue(), True
 
     if event.event_type is EventType.LOBBY_LIST:
@@ -193,6 +198,10 @@ def process_event(
         # Try to denick a teammate right before we leave the queue (start the game)
         if controller.settings.autodenick_teammates:
             autodenick_teammate(controller)
+
+        # Leaving the queue and starting a game
+        # Reset the users preference for showing the overlay
+        controller.wants_shown = None
 
         return state.leave_queue(), False
 
