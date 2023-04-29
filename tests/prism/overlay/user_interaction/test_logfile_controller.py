@@ -5,12 +5,13 @@ from pathlib import Path
 
 from prism.overlay.user_interaction.logfile_controller import LogfileController
 from prism.overlay.user_interaction.logfile_utils import ActiveLogfile, LogfileCache
+from tests.prism.overlay.utils import make_dead_path
 
 DEFAULT_ACTIVE_LOGFILES = (
-    ActiveLogfile(id_=0, path=Path("somepath"), age_seconds=10),
-    ActiveLogfile(id_=1, path=Path("old_logfile"), age_seconds=12345),
-    ActiveLogfile(id_=2, path=Path("older_logfile"), age_seconds=123456),
-    ActiveLogfile(id_=3, path=Path("oldest_logfile"), age_seconds=1234567),
+    ActiveLogfile(id_=0, path=make_dead_path("somepath"), age_seconds=10),
+    ActiveLogfile(id_=1, path=make_dead_path("old_logfile"), age_seconds=12345),
+    ActiveLogfile(id_=2, path=make_dead_path("older_logfile"), age_seconds=123456),
+    ActiveLogfile(id_=3, path=make_dead_path("oldest_logfile"), age_seconds=1234567),
 )
 
 
@@ -188,9 +189,9 @@ def test_can_select_inactive_short_list() -> None:
 
 def test_select_logfile() -> None:
     active_logfiles = (
-        ActiveLogfile(id_=0, path=Path("path1"), age_seconds=10),
-        ActiveLogfile(id_=1, path=Path("path2"), age_seconds=11),
-        ActiveLogfile(id_=2, path=Path("path3"), age_seconds=11111),
+        ActiveLogfile(id_=0, path=make_dead_path("path1"), age_seconds=10),
+        ActiveLogfile(id_=1, path=make_dead_path("path2"), age_seconds=11),
+        ActiveLogfile(id_=2, path=make_dead_path("path3"), age_seconds=11111),
     )
     paths = paths_from_active_logfiles(active_logfiles)
 
@@ -244,7 +245,7 @@ def test_submit_path() -> None:
 
 def test_submit_path_new() -> None:
     logfile_controller = create_logfile_controller()
-    submitted_path = Path("new_path")
+    submitted_path = make_dead_path("new_path")
     logfile_controller.submit_path(submitted_path)
 
     # The new submission is appended to the known logfiles

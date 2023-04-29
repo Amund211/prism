@@ -1,8 +1,8 @@
 import threading
 from collections.abc import Callable, Set
 from dataclasses import InitVar, dataclass, field, replace
-from pathlib import Path
-from typing import Any, Literal, TypedDict, overload
+from pathlib import Path, PurePath
+from typing import Any, Literal, TypedDict, cast, overload
 
 from cachetools import TTLCache
 
@@ -54,6 +54,15 @@ CUSTOM_RATING_CONFIG_COLLECTION_DICT: RatingConfigCollectionDict = {
 CUSTOM_RATING_CONFIG_COLLECTION = RatingConfigCollection.from_dict(
     CUSTOM_RATING_CONFIG_COLLECTION_DICT
 )
+
+
+def make_dead_path(path_str: str) -> Path:
+    """
+    Return a PurePath instance disguised as a Path
+
+    This asserts that the Path instance is not used for disk access
+    """
+    return cast(Path, PurePath(path_str))
 
 
 @overload
@@ -157,7 +166,7 @@ def make_settings(
     antisniper_api_key: str | None = None,
     use_antisniper_api: bool = False,
     known_nicks: dict[str, NickValue] | None = None,
-    path: Path | None = None,
+    path: Path | PurePath | None = None,
 ) -> Settings:
     def get_api_key() -> str:
         raise RuntimeError("The api key should already exist")
@@ -172,7 +181,7 @@ def make_settings(
             },
             get_api_key,
         )[0],
-        path=path or Path("make_settings_settingsfile.json"),
+        path=cast(Path, path or PurePath("make_settings_settingsfile.json")),
     )
 
 

@@ -20,6 +20,7 @@ from prism.overlay.user_interaction.logfile_utils import (
     suggest_logfiles,
     write_logfile_cache,
 )
+from tests.prism.overlay.utils import make_dead_path
 
 
 def test_file_exists_no() -> None:
@@ -87,7 +88,7 @@ def test_active_logfile(tmp_path: Path) -> None:
     assert refreshed_active_logfiles[0].id_ == 0
 
 
-SOME_PATH = Path()
+SOME_PATH = make_dead_path("some_path")
 
 
 @pytest.mark.parametrize(
@@ -144,47 +145,74 @@ def test_autoselect_logfile(
         (
             # Last used logfile not present in known_logfiles
             {"known_logfiles": ("1", "2"), "last_used": "3"},
-            LogfileCache(known_logfiles=(Path("1"), Path("2")), last_used_index=None),
+            LogfileCache(
+                known_logfiles=(make_dead_path("1"), make_dead_path("2")),
+                last_used_index=None,
+            ),
             True,
         ),
         (
             # Duplicate known logfiles
             {"known_logfiles": ("1", "1", "1", "1", "1", "2", "3"), "last_used": "1"},
             LogfileCache(
-                known_logfiles=(Path("1"), Path("2"), Path("3")), last_used_index=0
+                known_logfiles=(
+                    make_dead_path("1"),
+                    make_dead_path("2"),
+                    make_dead_path("3"),
+                ),
+                last_used_index=0,
             ),
             True,
         ),
         (
             # Missing known logfile
             {"known_logfiles": ("1", "2", "missing_file"), "last_used": "1"},
-            LogfileCache(known_logfiles=(Path("1"), Path("2")), last_used_index=0),
+            LogfileCache(
+                known_logfiles=(make_dead_path("1"), make_dead_path("2")),
+                last_used_index=0,
+            ),
             True,
         ),
         (
             # Missing known logfile and last used
             {"known_logfiles": ("1", "2", "missing_file"), "last_used": "missing_file"},
-            LogfileCache(known_logfiles=(Path("1"), Path("2")), last_used_index=None),
+            LogfileCache(
+                known_logfiles=(make_dead_path("1"), make_dead_path("2")),
+                last_used_index=None,
+            ),
             True,
         ),
         (
             # Missing known logfile early
             {"known_logfiles": ("missing_file", "1", "2"), "last_used": "1"},
-            LogfileCache(known_logfiles=(Path("1"), Path("2")), last_used_index=0),
+            LogfileCache(
+                known_logfiles=(make_dead_path("1"), make_dead_path("2")),
+                last_used_index=0,
+            ),
             True,
         ),
         # Well formed
         (
             {"known_logfiles": ("1", "2", "3"), "last_used": "1"},
             LogfileCache(
-                known_logfiles=(Path("1"), Path("2"), Path("3")), last_used_index=0
+                known_logfiles=(
+                    make_dead_path("1"),
+                    make_dead_path("2"),
+                    make_dead_path("3"),
+                ),
+                last_used_index=0,
             ),
             False,
         ),
         (
             {"known_logfiles": ("1", "2", "3"), "last_used": "2"},
             LogfileCache(
-                known_logfiles=(Path("1"), Path("2"), Path("3")), last_used_index=1
+                known_logfiles=(
+                    make_dead_path("1"),
+                    make_dead_path("2"),
+                    make_dead_path("3"),
+                ),
+                last_used_index=1,
             ),
             False,
         ),
@@ -235,18 +263,31 @@ def test_read_logfile_cache_invalid_toml(tmp_path: Path) -> None:
         ),
         (
             {"known_logfiles": ["1", "2"]},
-            LogfileCache(known_logfiles=(Path("1"), Path("2")), last_used_index=None),
+            LogfileCache(
+                known_logfiles=(make_dead_path("1"), make_dead_path("2")),
+                last_used_index=None,
+            ),
         ),
         (
             {"known_logfiles": ["1", "2", "3"], "last_used": "1"},
             LogfileCache(
-                known_logfiles=(Path("1"), Path("2"), Path("3")), last_used_index=0
+                known_logfiles=(
+                    make_dead_path("1"),
+                    make_dead_path("2"),
+                    make_dead_path("3"),
+                ),
+                last_used_index=0,
             ),
         ),
         (
             {"known_logfiles": ["1", "2", "3"], "last_used": "2"},
             LogfileCache(
-                known_logfiles=(Path("1"), Path("2"), Path("3")), last_used_index=1
+                known_logfiles=(
+                    make_dead_path("1"),
+                    make_dead_path("2"),
+                    make_dead_path("3"),
+                ),
+                last_used_index=1,
             ),
         ),
     ),
@@ -279,64 +320,73 @@ NOT_USED = cast(LogfileCache, None)
             None,
         ),
         (
-            LogfileCache(known_logfiles=(Path("B"), Path("C")), last_used_index=None),
+            LogfileCache(
+                known_logfiles=(make_dead_path("B"), make_dead_path("C")),
+                last_used_index=None,
+            ),
             (1, 100),
             (),
-            LogfileCache(known_logfiles=(Path("A"),), last_used_index=None),
+            LogfileCache(known_logfiles=(make_dead_path("A"),), last_used_index=None),
             False,
-            LogfileCache(known_logfiles=(Path("B"), Path("C")), last_used_index=None),
+            LogfileCache(
+                known_logfiles=(make_dead_path("B"), make_dead_path("C")),
+                last_used_index=None,
+            ),
             None,
         ),
         (
             LogfileCache(known_logfiles=(), last_used_index=None),
             (),
             (),
-            LogfileCache(known_logfiles=(Path("A"),), last_used_index=0),
+            LogfileCache(known_logfiles=(make_dead_path("A"),), last_used_index=0),
             True,
-            LogfileCache(known_logfiles=(Path("A"),), last_used_index=0),
-            Path("A"),
+            LogfileCache(known_logfiles=(make_dead_path("A"),), last_used_index=0),
+            make_dead_path("A"),
         ),
         (
-            LogfileCache(known_logfiles=(Path("A"),), last_used_index=0),
+            LogfileCache(known_logfiles=(make_dead_path("A"),), last_used_index=0),
             (1,),
             (),
             NOT_USED,
             True,
-            LogfileCache(known_logfiles=(Path("A"),), last_used_index=0),
-            Path("A"),
+            LogfileCache(known_logfiles=(make_dead_path("A"),), last_used_index=0),
+            make_dead_path("A"),
         ),
         (
-            LogfileCache(known_logfiles=(Path("A"),), last_used_index=0),
+            LogfileCache(known_logfiles=(make_dead_path("A"),), last_used_index=0),
             (1,),
             (),
-            LogfileCache(known_logfiles=(Path("B"),), last_used_index=0),
+            LogfileCache(known_logfiles=(make_dead_path("B"),), last_used_index=0),
             False,
-            LogfileCache(known_logfiles=(Path("B"),), last_used_index=0),
-            Path("B"),
+            LogfileCache(known_logfiles=(make_dead_path("B"),), last_used_index=0),
+            make_dead_path("B"),
         ),
         (
-            LogfileCache(known_logfiles=(Path("A"),), last_used_index=0),
+            LogfileCache(known_logfiles=(make_dead_path("A"),), last_used_index=0),
             (1, 100),
-            (Path("KnownMCLogfile"),),
+            (make_dead_path("KnownMCLogfile"),),
             NOT_USED,
             True,
             LogfileCache(
-                known_logfiles=(Path("A"), Path("KnownMCLogfile")), last_used_index=0
+                known_logfiles=(make_dead_path("A"), make_dead_path("KnownMCLogfile")),
+                last_used_index=0,
             ),
-            Path("A"),
+            make_dead_path("A"),
         ),
         (
-            LogfileCache(known_logfiles=(Path("A"),), last_used_index=0),
+            LogfileCache(known_logfiles=(make_dead_path("A"),), last_used_index=0),
             (1, 10),
-            (Path("KnownMCLogfile"),),
+            (make_dead_path("KnownMCLogfile"),),
             LogfileCache(
-                known_logfiles=(Path("A"), Path("KnownMCLogfile")), last_used_index=0
+                known_logfiles=(make_dead_path("A"), make_dead_path("KnownMCLogfile")),
+                last_used_index=0,
             ),
             False,
             LogfileCache(
-                known_logfiles=(Path("A"), Path("KnownMCLogfile")), last_used_index=0
+                known_logfiles=(make_dead_path("A"), make_dead_path("KnownMCLogfile")),
+                last_used_index=0,
             ),
-            Path("A"),
+            make_dead_path("A"),
         ),
     ),
 )
@@ -367,8 +417,9 @@ def test_get_logfile(
             )
         )
 
-    # Pass None to make sure we don't accidentally write to disk somewhere
-    cache_path = cast(Path, None)
+    # Use a dead path so we don't accidentally write to disk somewhere
+    cache_path = make_dead_path("logfile_cache.toml")
+
     with unittest.mock.patch(
         "prism.overlay.user_interaction.logfile_utils.create_active_logfiles",
         create_active_logfiles,

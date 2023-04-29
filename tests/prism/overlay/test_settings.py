@@ -29,6 +29,7 @@ from tests.prism.overlay.utils import (
     CUSTOM_RATING_CONFIG_COLLECTION_DICT,
     DEFAULT_RATING_CONFIG_COLLECTION,
     DEFAULT_RATING_CONFIG_COLLECTION_DICT,
+    make_dead_path,
     make_settings,
 )
 
@@ -88,7 +89,7 @@ def get_api_key() -> str:
     return KEY_IF_MISSING
 
 
-PLACEHOLDER_PATH = Path("PLACEHOLDER_PATH")
+PLACEHOLDER_PATH = make_dead_path("PLACEHOLDER_PATH")
 
 settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
     (
