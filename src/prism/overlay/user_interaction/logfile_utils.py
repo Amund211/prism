@@ -149,6 +149,7 @@ def file_exists(path: Path | str) -> bool:
     try:
         return path.is_file()
     except OSError:  # pragma: nocover
+        # is_file returns False on most errors. An unknown error occurred.
         logger.exception(f"Could not call ({path=}).is_file()")
         return False
 
@@ -167,7 +168,8 @@ def get_timestamp(path: Path) -> float:
     """Get the modified timestamp of the file"""
     try:
         stat = path.stat()
-    except (OSError, FileNotFoundError):
+    except OSError:
+        # File not found or other error
         logger.exception(f"Could not stat {path=}")
         return 0
     else:
@@ -181,7 +183,8 @@ def safe_resolve_existing_path(path: Path | str) -> Path | None:
 
     try:
         return path.resolve(strict=True)
-    except (OSError, FileNotFoundError, RuntimeError):
+    except (OSError, RuntimeError):
+        # File not found, loop in resolution or other error
         return None
 
 
