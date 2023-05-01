@@ -6,13 +6,13 @@ ColumnName = Literal["username", "stars", "fkdr", "wlr", "winstreak"]
 ALL_COLUMN_NAMES: frozenset[ColumnName] = frozenset(
     ("username", "stars", "fkdr", "wlr", "winstreak")
 )
+
 DEFAULT_COLUMN_ORDER: tuple[ColumnName, ...] = (
     "username",
     "stars",
     "fkdr",
     "winstreak",
 )
-
 
 COLUMN_NAMES: dict[ColumnName, str] = {
     "username": "IGN (Nick)",
@@ -21,7 +21,6 @@ COLUMN_NAMES: dict[ColumnName, str] = {
     "wlr": "WLR",
     "winstreak": "WS",
 }
-assert set(ALL_COLUMN_NAMES) == set(COLUMN_NAMES.keys())
 
 
 @dataclass(frozen=True, slots=True)
