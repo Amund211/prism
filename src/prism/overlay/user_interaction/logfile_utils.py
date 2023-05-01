@@ -169,10 +169,13 @@ def get_timestamp(path: Path) -> float:
         return stat.st_mtime
 
 
-def safe_resolve_existing_path(path_str: str) -> Path | None:
+def safe_resolve_existing_path(path: Path | str) -> Path | None:
     """Resolve a path string into a Path that exists, or None"""
+    if isinstance(path, str):
+        path = Path(path)
+
     try:
-        return Path(path_str).resolve(strict=True)
+        return path.resolve(strict=True)
     except (OSError, FileNotFoundError, RuntimeError):
         return None
 

@@ -41,6 +41,7 @@ def test_file_exists_yes(tmp_path: Path) -> None:
     assert file_exists(str(file_path))
     assert file_exists(file_path)
     assert safe_resolve_existing_path(str(file_path)) == file_path
+    assert safe_resolve_existing_path(file_path) == file_path
 
 
 def test_suggest_logfiles() -> None:
