@@ -44,10 +44,16 @@ def test_file_exists_yes(tmp_path: Path) -> None:
     assert safe_resolve_existing_path(file_path) == file_path
 
 
-def test_suggest_logfiles(tmp_path: Path) -> None:
+def test_suggest_logfiles(tmp_path: Path, monkeypatch: "pytest.MonkeyPatch") -> None:
+    monkeypatch.chdir(tmp_path)
+    assert tmp_path.is_absolute()
+
     logpath1 = tmp_path / "log1"
     logpath2 = tmp_path / "log2"
+    logpath2_relative = Path("log2")  # This should be resolved
     missing = tmp_path / "missing_file"
+
+    assert not logpath2_relative.is_absolute()
 
     for path_to_write in (logpath1, logpath2):
         with path_to_write.open("w") as f:
@@ -55,11 +61,14 @@ def test_suggest_logfiles(tmp_path: Path) -> None:
 
     with unittest.mock.patch(
         "prism.overlay.user_interaction.logfile_utils.suggest_logfile_candidates",
-        lambda: (tmp_path, logpath1, logpath2, missing),
+        lambda: (tmp_path, logpath1, logpath2_relative, missing),
     ):
         suggestions = suggest_logfiles()
 
     assert all(map(file_exists, suggestions))  # Suggestions should exist
+
+    # Suggestions should be absolute
+    assert all(suggestion.is_absolute() for suggestion in suggestions)
 
     assert suggestions == (logpath1, logpath2)
 

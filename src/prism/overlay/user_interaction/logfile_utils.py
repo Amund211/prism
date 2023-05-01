@@ -155,7 +155,12 @@ def file_exists(path: Path | str) -> bool:
 
 def suggest_logfiles() -> tuple[Path, ...]:
     """Suggest logfile candidates that exist"""
-    return tuple(filter(file_exists, suggest_logfile_candidates()))
+    return tuple(
+        resolved
+        for path in suggest_logfile_candidates()
+        if (resolved := safe_resolve_existing_path(path)) is not None
+        and file_exists(resolved)
+    )
 
 
 def get_timestamp(path: Path) -> float:
