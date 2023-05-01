@@ -173,7 +173,7 @@ def safe_resolve_existing_path(path_str: str) -> Path | None:
     """Resolve a path string into a Path that exists, or None"""
     try:
         return Path(path_str).resolve(strict=True)
-    except (FileNotFoundError, RuntimeError):
+    except (OSError, FileNotFoundError, RuntimeError):
         return None
 
 
