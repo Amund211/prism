@@ -44,9 +44,24 @@ def test_file_exists_yes(tmp_path: Path) -> None:
     assert safe_resolve_existing_path(file_path) == file_path
 
 
-def test_suggest_logfiles() -> None:
-    suggestions = suggest_logfiles()
-    assert all(map(file_exists, suggestions))
+def test_suggest_logfiles(tmp_path: Path) -> None:
+    logpath1 = tmp_path / "log1"
+    logpath2 = tmp_path / "log2"
+    missing = tmp_path / "missing_file"
+
+    for path_to_write in (logpath1, logpath2):
+        with path_to_write.open("w") as f:
+            f.write("hi")
+
+    with unittest.mock.patch(
+        "prism.overlay.user_interaction.logfile_utils.suggest_logfile_candidates",
+        lambda: (tmp_path, logpath1, logpath2, missing),
+    ):
+        suggestions = suggest_logfiles()
+
+    assert all(map(file_exists, suggestions))  # Suggestions should exist
+
+    assert suggestions == (logpath1, logpath2)
 
 
 def test_get_timestamp(tmp_path: Path) -> None:
