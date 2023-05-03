@@ -79,6 +79,11 @@ def render_based_on_level(
 
 
 def render_stars(stars: float, decimals: int, levels: tuple[float, ...]) -> CellValue:
+    """
+    Render the user's star using the Hypixel BedWars star colors
+
+    Source (0-3000): https://hypixel.net/threads/tool-bedwars-prestige-colors-in-minecraft-color-code-and-hex-code-high-effort-post.3841719/  # noqa: E501
+    """
     text = truncate_float(stars, decimals)
 
     color_sections: tuple[ColorSection, ...]
