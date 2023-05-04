@@ -370,6 +370,48 @@ RENDER_STARS_CASES: tuple[tuple[float, int, CellValue], ...] = (
             range(51), tuple(PRESTIGE_COLORS)[1:], strict=True
         )
     ),
+    (
+        5500.18324,
+        2,
+        CellValue(
+            "5500.18",
+            TF4,
+            (
+                ColorSection(MinecraftColor.DARK_RED, 1),
+                ColorSection(MinecraftColor.DARK_PURPLE, 1),
+                ColorSection(MinecraftColor.BLUE, 2),
+                ColorSection(MinecraftColor.GRAY, -1),
+            ),
+        ),
+    ),
+    (
+        10_000.18324,
+        2,
+        CellValue(
+            "10000.18",
+            TF4,
+            (
+                ColorSection(MinecraftColor.DARK_RED, 1),
+                ColorSection(MinecraftColor.DARK_PURPLE, 1),
+                ColorSection(MinecraftColor.BLUE, 3),
+                ColorSection(MinecraftColor.GRAY, -1),
+            ),
+        ),
+    ),
+    (
+        100_000.18324,
+        2,
+        CellValue(
+            "100000.18",
+            TF4,
+            (
+                ColorSection(MinecraftColor.DARK_RED, 1),
+                ColorSection(MinecraftColor.DARK_PURPLE, 1),
+                ColorSection(MinecraftColor.BLUE, 4),
+                ColorSection(MinecraftColor.GRAY, -1),
+            ),
+        ),
+    ),
 )
 
 
