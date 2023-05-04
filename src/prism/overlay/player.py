@@ -144,10 +144,15 @@ def rate_player(
     """Used as a key function for sorting"""
     is_enemy = player.username not in party_members
 
-    stat: str | int | float
+    # The value of the stat to sort by
+    # NOTE: When column="username" we set stat=0 so that we instead rely on
+    #       the fallback sorting by username to order the list.
+    #       If we added the username here we would get reverse alphabetical
+    stat: int | float
+
     if isinstance(player, KnownPlayer):
         if column == "username":
-            stat = player.username
+            stat = 0
         elif column == "stars":
             stat = player.stars
         elif column == "fkdr":
@@ -163,7 +168,7 @@ def rate_player(
         else:  # pragma: no coverage
             assert_never(column)
     else:
-        stat = player.username if column == "username" else float("-inf")
+        stat = 0 if column == "username" else float("-inf")
 
     return (is_enemy, player.stats_hidden, stat)
 
@@ -174,12 +179,12 @@ def sort_players(
     """
     Sort the players by the given column in reverse order (largest at the top)
 
-    Falls back to reverse alpabetical by username.
+    Falls back to alpabetical by username.
     Orders party members last.
     """
     return list(
         sorted(
-            sorted(players, key=operator.attrgetter("username"), reverse=True),
+            sorted(players, key=operator.attrgetter("username")),
             key=functools.partial(
                 rate_player, party_members=party_members, column=column
             ),
