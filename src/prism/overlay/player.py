@@ -1,16 +1,17 @@
 import functools
+import operator
 from collections.abc import Set
 from dataclasses import dataclass, field, replace
-from typing import Any, Literal, Self, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, Self, TypedDict, assert_never
 
 from prism.calc import bedwars_level_from_exp
 from prism.hypixel import MissingStatsError, get_gamemode_stats
 from prism.utils import div
 
-GamemodeName = Literal["overall", "solo", "doubles", "threes", "fours"]
+if TYPE_CHECKING:  # pragma: no coverage
+    from prism.overlay.output.cells import ColumnName
 
-StatsOrder = tuple[float, int, float]
-KnownPlayerOrder = tuple[StatsOrder, float, str]
+GamemodeName = Literal["overall", "solo", "doubles", "threes", "fours"]
 
 
 class Winstreaks(TypedDict):
@@ -37,10 +38,6 @@ class Stats:
     winstreak: int | None
     winstreak_accurate: bool
 
-    def order(self) -> StatsOrder:
-        """Return a tuple used to order instances of this class"""
-        return (self.fkdr, self.winstreak or 0, self.wlr)
-
     def update_winstreak(self, winstreak: int | None, winstreak_accurate: bool) -> Self:
         """Update the winstreak in this stat collection"""
         if self.winstreak_accurate or self.winstreak is not None:
@@ -62,10 +59,6 @@ class KnownPlayer:
     username: str
     uuid: str
     nick: str | None = field(default=None)
-
-    def order(self) -> KnownPlayerOrder:
-        """Return a tuple used to order instances of this class"""
-        return (self.stats.order(), self.stars, self.username)
 
     @property
     def stats_hidden(self) -> bool:
@@ -146,34 +139,50 @@ Player = KnownPlayer | NickedPlayer | PendingPlayer
 
 
 def rate_player(
-    player: Player, party_members: Set[str]
-) -> tuple[bool, bool, KnownPlayerOrder]:
+    player: Player, party_members: Set[str], column: "ColumnName"
+) -> tuple[bool, bool, str | int | float]:
     """Used as a key function for sorting"""
     is_enemy = player.username not in party_members
-    if not isinstance(player, KnownPlayer):
-        # Hack to compare other Player instances by username only
-        order = KnownPlayer(
-            username=player.username,
-            uuid="placeholder",
-            stars=0,
-            stats=Stats(
-                fkdr=0,
-                wlr=0,
-                winstreak=0,
-                winstreak_accurate=True,
-            ),
-        ).order()
-        return (is_enemy, player.stats_hidden, order)
 
-    return (is_enemy, player.stats_hidden, player.order())
+    stat: str | int | float
+    if isinstance(player, KnownPlayer):
+        if column == "username":
+            stat = player.username
+        elif column == "stars":
+            stat = player.stars
+        elif column == "fkdr":
+            stat = player.stats.fkdr
+        elif column == "wlr":
+            stat = player.stats.wlr
+        elif column == "winstreak":
+            stat = (
+                player.stats.winstreak
+                if player.stats.winstreak is not None
+                else float("inf")
+            )
+        else:  # pragma: no coverage
+            assert_never(column)
+    else:
+        stat = player.username if column == "username" else float("-inf")
+
+    return (is_enemy, player.stats_hidden, stat)
 
 
-def sort_players(players: list[Player], party_members: Set[str]) -> list[Player]:
-    """Sort the stats based on fkdr. Order party members last"""
+def sort_players(
+    players: list[Player], party_members: Set[str], column: "ColumnName"
+) -> list[Player]:
+    """
+    Sort the players by the given column in reverse order (largest at the top)
+
+    Falls back to reverse alpabetical by username.
+    Orders party members last.
+    """
     return list(
         sorted(
-            players,
-            key=functools.partial(rate_player, party_members=party_members),
+            sorted(players, key=operator.attrgetter("username"), reverse=True),
+            key=functools.partial(
+                rate_player, party_members=party_members, column=column
+            ),
             reverse=True,
         )
     )

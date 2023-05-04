@@ -192,7 +192,7 @@ def prepare_overlay(
                 requested_stats_queue.put(player)
             players.append(cached_stats)
 
-        sorted_stats = sort_players(players, state.party_members)
+        sorted_stats = sort_players(players, state.party_members, "fkdr")
 
         return sorted_stats
 

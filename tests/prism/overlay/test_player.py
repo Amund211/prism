@@ -3,6 +3,7 @@ from typing import Any
 import pytest
 
 from prism.calc import bedwars_level_from_exp
+from prism.overlay.output.cells import ColumnName
 from prism.overlay.player import (
     KnownPlayer,
     Player,
@@ -28,9 +29,11 @@ def make_winstreaks(
 
 # A dict of players to choose from
 players: dict[str, Player] = {
-    "chad": make_player(username="chad", fkdr=100, nick="superb_nick"),
-    "joe": make_player(username="joe", fkdr=10),
-    "carl": make_player(username="carl", fkdr=1),
+    "chad": make_player(
+        username="chad", stars=100, fkdr=100, wlr=10, winstreak=100, nick="superb_nick"
+    ),
+    "joe": make_player(username="joe", stars=10, fkdr=10),
+    "carl": make_player(username="carl", stars=5, fkdr=1),
     "carl_jr": make_player(username="carl_jr", fkdr=1, wlr=1),
     "carl_jr_jr": make_player(username="carl_jr_jr", fkdr=1, wlr=1, winstreak=10),
     "joseph": make_player(username="joseph", fkdr=1, wlr=2),
@@ -73,28 +76,41 @@ def test_update_winstreaks(
     )
 
 
-sort_test_cases: tuple[tuple[list[Player], set[str], list[Player]], ...] = (
+sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], ...] = (
     # Joe has better fkdr than Carl
-    ([players["carl"], players["joe"]], set(), [players["joe"], players["carl"]]),
-    ([players["joe"], players["carl"]], set(), [players["joe"], players["carl"]]),
-    # Carl jr. jr. > Carl jr. > Carl
+    (
+        [players["carl"], players["joe"]],
+        set(),
+        "fkdr",
+        [players["joe"], players["carl"]],
+    ),
+    (
+        [players["joe"], players["carl"]],
+        set(),
+        "fkdr",
+        [players["joe"], players["carl"]],
+    ),
+    # Same fkdr -> sorted by name
     (
         [players["carl_jr"], players["carl"], players["carl_jr_jr"]],
         set(),
+        "fkdr",
         [players["carl_jr_jr"], players["carl_jr"], players["carl"]],
     ),
     # If the juniors are on our team though, they get sorted last
     (
         [players["carl_jr"], players["carl"], players["carl_jr_jr"]],
         {"carl_jr_jr"},
+        "fkdr",
         [players["carl_jr"], players["carl"], players["carl_jr_jr"]],
     ),
     (
         [players["carl_jr"], players["carl"], players["carl_jr_jr"]],
         {"carl_jr_jr", "carl_jr"},
+        "fkdr",
         [players["carl"], players["carl_jr_jr"], players["carl_jr"]],
     ),
-    # Joseph outperforms all the Carls on wlr, but jr_jr has a winstreak
+    # Everyone has 1 fkdr, so the lobby is sorted by username
     (
         [
             players["carl_jr"],
@@ -103,9 +119,10 @@ sort_test_cases: tuple[tuple[list[Player], set[str], list[Player]], ...] = (
             players["carl_jr_jr"],
         ],
         set(),
+        "fkdr",
         [
-            players["carl_jr_jr"],
             players["joseph"],
+            players["carl_jr_jr"],
             players["carl_jr"],
             players["carl"],
         ],
@@ -118,6 +135,7 @@ sort_test_cases: tuple[tuple[list[Player], set[str], list[Player]], ...] = (
             players["carl_jr_jr"],
         ],
         {"joseph", "our_username"},
+        "fkdr",
         [
             players["carl_jr_jr"],
             players["carl_jr"],
@@ -129,22 +147,26 @@ sort_test_cases: tuple[tuple[list[Player], set[str], list[Player]], ...] = (
     (
         [players["joe"], players["amazing_nick"], players["bad_nick"]],
         set(),
+        "fkdr",
         [players["bad_nick"], players["amazing_nick"], players["joe"]],
     ),
     # Pending players get sorted at the bottom (above teammates)
     (
         [players["joe"], players["maurice"], players["alfred"]],
         set(),
+        "fkdr",
         [players["joe"], players["maurice"], players["alfred"]],
     ),
     (
         [players["joe"], players["maurice"], players["alfred"]],
         {"joe"},
+        "fkdr",
         [players["maurice"], players["alfred"], players["joe"]],
     ),
     (
         [players["joe"], players["maurice"], players["alfred"]],
         {"joe", "maurice"},
+        "fkdr",
         [players["alfred"], players["joe"], players["maurice"]],
     ),
     # Both pending players and nicks and real players
@@ -158,6 +180,7 @@ sort_test_cases: tuple[tuple[list[Player], set[str], list[Player]], ...] = (
             players["bad_nick"],
         ],
         set(),
+        "fkdr",
         [
             players["bad_nick"],
             players["amazing_nick"],
@@ -168,28 +191,62 @@ sort_test_cases: tuple[tuple[list[Player], set[str], list[Player]], ...] = (
         ],
     ),
     # Denicked player
-    ([players["chad"], players["joe"]], set(), [players["chad"], players["joe"]]),
+    (
+        [players["chad"], players["joe"]],
+        set(),
+        "fkdr",
+        [players["chad"], players["joe"]],
+    ),
     (
         [players["chad"], players["joe"]],
         {"chad"},
+        "fkdr",
         [players["joe"], players["chad"]],
     ),
     # Empty list is ok
-    ([], set(), []),
-    ([], {"unknown"}, []),
-    ([], {"unknown", "unknown2"}, []),
+    ([], set(), "fkdr", []),
+    ([], {"unknown"}, "fkdr", []),
+    ([], {"unknown", "unknown2"}, "fkdr", []),
     # Single person is ok
-    ([players["joe"]], set(), [players["joe"]]),
-    ([players["joe"]], {"unknown", "unknown2"}, [players["joe"]]),
+    ([players["joe"]], set(), "fkdr", [players["joe"]]),
+    ([players["joe"]], {"unknown", "unknown2"}, "fkdr", [players["joe"]]),
+    # Different stats
+    (
+        [players["joe"], players["chad"], players["carl"], players["carl_jr_jr"]],
+        set(),
+        "username",
+        [players["joe"], players["chad"], players["carl_jr_jr"], players["carl"]],
+    ),
+    (
+        [players["joe"], players["chad"], players["carl"], players["carl_jr_jr"]],
+        set(),
+        "stars",
+        [players["chad"], players["joe"], players["carl"], players["carl_jr_jr"]],
+    ),
+    (
+        [players["joe"], players["chad"], players["carl"], players["carl_jr_jr"]],
+        set(),
+        "wlr",
+        [players["chad"], players["carl_jr_jr"], players["joe"], players["carl"]],
+    ),
+    (
+        [players["joe"], players["chad"], players["carl"], players["carl_jr_jr"]],
+        set(),
+        "winstreak",
+        [players["joe"], players["carl"], players["chad"], players["carl_jr_jr"]],
+    ),
 )
 
 
-@pytest.mark.parametrize("players, party_members, result", sort_test_cases)
+@pytest.mark.parametrize("players, party_members, column, result", sort_test_cases)
 def test_sort_stats(
-    players: list[Player], party_members: set[str], result: list[Player]
+    players: list[Player],
+    party_members: set[str],
+    column: ColumnName,
+    result: list[Player],
 ) -> None:
     """Assert that sort_players functions properly"""
-    assert sort_players(players, party_members) == result
+    assert sort_players(players, party_members, column) == result
 
 
 @pytest.mark.parametrize(
