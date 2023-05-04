@@ -1,4 +1,5 @@
-from collections.abc import Callable, Set
+import functools
+from collections.abc import Set
 from dataclasses import dataclass, field, replace
 from typing import Any, Literal, Self, TypedDict
 
@@ -144,33 +145,27 @@ class PendingPlayer:
 Player = KnownPlayer | NickedPlayer | PendingPlayer
 
 
-RatePlayerReturn = tuple[bool, bool, KnownPlayerOrder]
-
-
 def rate_player(
-    party_members: Set[str],
-) -> Callable[[Player], RatePlayerReturn]:
-    def rate_stats(player: Player) -> RatePlayerReturn:
-        """Used as a key function for sorting"""
-        is_enemy = player.username not in party_members
-        if not isinstance(player, KnownPlayer):
-            # Hack to compare other Player instances by username only
-            order = KnownPlayer(
-                username=player.username,
-                uuid="placeholder",
-                stars=0,
-                stats=Stats(
-                    fkdr=0,
-                    wlr=0,
-                    winstreak=0,
-                    winstreak_accurate=True,
-                ),
-            ).order()
-            return (is_enemy, player.stats_hidden, order)
+    player: Player, party_members: Set[str]
+) -> tuple[bool, bool, KnownPlayerOrder]:
+    """Used as a key function for sorting"""
+    is_enemy = player.username not in party_members
+    if not isinstance(player, KnownPlayer):
+        # Hack to compare other Player instances by username only
+        order = KnownPlayer(
+            username=player.username,
+            uuid="placeholder",
+            stars=0,
+            stats=Stats(
+                fkdr=0,
+                wlr=0,
+                winstreak=0,
+                winstreak_accurate=True,
+            ),
+        ).order()
+        return (is_enemy, player.stats_hidden, order)
 
-        return (is_enemy, player.stats_hidden, player.order())
-
-    return rate_stats
+    return (is_enemy, player.stats_hidden, player.order())
 
 
 def sort_players(players: list[Player], party_members: Set[str]) -> list[Player]:
@@ -178,7 +173,7 @@ def sort_players(players: list[Player], party_members: Set[str]) -> list[Player]
     return list(
         sorted(
             players,
-            key=rate_player(party_members),
+            key=functools.partial(rate_player, party_members=party_members),
             reverse=True,
         )
     )
