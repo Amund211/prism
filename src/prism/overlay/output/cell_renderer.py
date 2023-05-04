@@ -83,6 +83,7 @@ def render_stars(stars: float, decimals: int, levels: tuple[float, ...]) -> Cell
     Render the user's star using the Hypixel BedWars star colors
 
     Source (0-3000): https://hypixel.net/threads/tool-bedwars-prestige-colors-in-minecraft-color-code-and-hex-code-high-effort-post.3841719/  # noqa: E501
+    Source (3100-5000): https://hypixel.net/threads/bed-wars-update-new-practice-modes-qol-changes-more.5339873/  # noqa: E501
     """
     text = truncate_float(stars, decimals)
 
@@ -193,11 +194,138 @@ def render_stars(stars: float, decimals: int, levels: tuple[float, ...]) -> Cell
             ColorSection(MinecraftColor.DARK_AQUA, 2),
             ColorSection(MinecraftColor.BLUE, 1),
         )
-    else:  # >=3000 stars
+    elif prestige == 30:
         color_sections = (
             ColorSection(MinecraftColor.YELLOW, 1),
             ColorSection(MinecraftColor.GOLD, 2),
             ColorSection(MinecraftColor.RED, 1),
+        )
+    elif prestige == 31:
+        color_sections = (
+            ColorSection(MinecraftColor.BLUE, 1),
+            ColorSection(MinecraftColor.DARK_AQUA, 2),
+            ColorSection(MinecraftColor.GOLD, 1),
+        )
+    elif prestige == 32:
+        color_sections = (
+            ColorSection(MinecraftColor.DARK_RED, 1),
+            ColorSection(MinecraftColor.GRAY, 2),
+            ColorSection(MinecraftColor.DARK_RED, 1),
+        )
+    elif prestige == 33:
+        color_sections = (
+            ColorSection(MinecraftColor.BLUE, 2),
+            ColorSection(MinecraftColor.LIGHT_PURPLE, 1),
+            ColorSection(MinecraftColor.RED, 1),
+        )
+    elif prestige == 34:
+        color_sections = (
+            ColorSection(MinecraftColor.GREEN, 1),
+            ColorSection(MinecraftColor.LIGHT_PURPLE, 2),
+            ColorSection(MinecraftColor.DARK_PURPLE, 1),
+        )
+    elif prestige == 35:
+        color_sections = (
+            ColorSection(MinecraftColor.RED, 1),
+            ColorSection(MinecraftColor.DARK_RED, 2),
+            ColorSection(MinecraftColor.DARK_GREEN, 1),
+        )
+    elif prestige == 36:
+        color_sections = (
+            ColorSection(MinecraftColor.GREEN, 2),
+            ColorSection(MinecraftColor.AQUA, 1),
+            ColorSection(MinecraftColor.BLUE, 1),
+        )
+    elif prestige == 37:
+        color_sections = (
+            ColorSection(MinecraftColor.DARK_RED, 1),
+            ColorSection(MinecraftColor.RED, 2),
+            ColorSection(MinecraftColor.AQUA, 1),
+        )
+    elif prestige == 38:
+        color_sections = (
+            ColorSection(MinecraftColor.DARK_BLUE, 1),
+            ColorSection(MinecraftColor.BLUE, 1),
+            ColorSection(MinecraftColor.DARK_PURPLE, 2),
+        )
+    elif prestige == 39:
+        color_sections = (
+            ColorSection(MinecraftColor.RED, 1),
+            ColorSection(MinecraftColor.GREEN, 2),
+            ColorSection(MinecraftColor.DARK_AQUA, 1),
+        )
+    elif prestige == 40:
+        color_sections = (
+            ColorSection(MinecraftColor.DARK_PURPLE, 1),
+            ColorSection(MinecraftColor.RED, 2),
+            ColorSection(MinecraftColor.GOLD, 1),
+        )
+    elif prestige == 41:
+        color_sections = (
+            ColorSection(MinecraftColor.YELLOW, 1),
+            ColorSection(MinecraftColor.GOLD, 1),
+            ColorSection(MinecraftColor.RED, 1),
+            ColorSection(MinecraftColor.LIGHT_PURPLE, 1),
+        )
+    elif prestige == 42:
+        color_sections = (
+            ColorSection(MinecraftColor.BLUE, 1),
+            ColorSection(MinecraftColor.DARK_AQUA, 1),
+            ColorSection(MinecraftColor.AQUA, 1),
+            ColorSection(MinecraftColor.WHITE, 1),
+        )
+    elif prestige == 43:
+        color_sections = (
+            ColorSection(MinecraftColor.DARK_PURPLE, 1),
+            ColorSection(MinecraftColor.DARK_GRAY, 2),
+            ColorSection(MinecraftColor.DARK_PURPLE, 1),
+        )
+    elif prestige == 44:
+        color_sections = (
+            ColorSection(MinecraftColor.DARK_GREEN, 1),
+            ColorSection(MinecraftColor.GREEN, 1),
+            ColorSection(MinecraftColor.YELLOW, 1),
+            ColorSection(MinecraftColor.GOLD, 1),
+        )
+    elif prestige == 45:
+        color_sections = (
+            ColorSection(MinecraftColor.WHITE, 1),
+            ColorSection(MinecraftColor.AQUA, 2),
+            ColorSection(MinecraftColor.DARK_AQUA, 1),
+        )
+    elif prestige == 46:
+        color_sections = (
+            ColorSection(MinecraftColor.AQUA, 1),
+            ColorSection(MinecraftColor.YELLOW, 2),
+            ColorSection(MinecraftColor.GOLD, 1),
+        )
+    elif prestige == 47:
+        color_sections = (
+            ColorSection(MinecraftColor.DARK_RED, 1),
+            ColorSection(MinecraftColor.RED, 2),
+            ColorSection(MinecraftColor.BLUE, 1),
+        )
+    elif prestige == 48:
+        color_sections = (
+            ColorSection(MinecraftColor.DARK_PURPLE, 1),
+            ColorSection(MinecraftColor.RED, 1),
+            ColorSection(MinecraftColor.GOLD, 1),
+            ColorSection(MinecraftColor.YELLOW, 1),
+        )
+    elif prestige == 49:
+        color_sections = (
+            ColorSection(MinecraftColor.GREEN, 1),
+            ColorSection(MinecraftColor.WHITE, 2),
+            ColorSection(MinecraftColor.GREEN, 1),
+        )
+    else:  # >=5000 stars
+        star_digit_count = len(str(prestige)) + 2
+        color_sections = (
+            ColorSection(MinecraftColor.DARK_RED, 1),
+            ColorSection(MinecraftColor.DARK_PURPLE, 1),
+            # For prestige == 50, star_digit_count - 2 == 2
+            # For stars >=10_000 we just make the rest of the numbers blue
+            ColorSection(MinecraftColor.BLUE, star_digit_count - 2),
         )
 
     decimal_color_section = ColorSection(MinecraftColor.GRAY, -1)

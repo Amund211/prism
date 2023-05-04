@@ -173,6 +173,172 @@ PRESTIGE_COLORS = OrderedDict[str, tuple[str, tuple[ColorSection, ...]]](
             ColorSection(MinecraftColor.RED, 1),
         ),
     ),
+    # Names for 3100-500 based on:
+    # https://twitter.com/xopmine/status/1653790502024560641
+    sunrise=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.BLUE, 1),
+            ColorSection(MinecraftColor.DARK_AQUA, 2),
+            ColorSection(MinecraftColor.GOLD, 1),
+        ),
+    ),
+    eclipse=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.DARK_RED, 1),
+            ColorSection(MinecraftColor.GRAY, 2),
+            ColorSection(MinecraftColor.DARK_RED, 1),
+        ),
+    ),
+    gamma=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.BLUE, 2),
+            ColorSection(MinecraftColor.LIGHT_PURPLE, 1),
+            ColorSection(MinecraftColor.RED, 1),
+        ),
+    ),
+    majestic=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.GREEN, 1),
+            ColorSection(MinecraftColor.LIGHT_PURPLE, 2),
+            ColorSection(MinecraftColor.DARK_PURPLE, 1),
+        ),
+    ),
+    andesine=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.RED, 1),
+            ColorSection(MinecraftColor.DARK_RED, 2),
+            ColorSection(MinecraftColor.DARK_GREEN, 1),
+        ),
+    ),
+    marine=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.GREEN, 2),
+            ColorSection(MinecraftColor.AQUA, 1),
+            ColorSection(MinecraftColor.BLUE, 1),
+        ),
+    ),
+    element=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.DARK_RED, 1),
+            ColorSection(MinecraftColor.RED, 2),
+            ColorSection(MinecraftColor.AQUA, 1),
+        ),
+    ),
+    galaxy=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.DARK_BLUE, 1),
+            ColorSection(MinecraftColor.BLUE, 1),
+            ColorSection(MinecraftColor.DARK_PURPLE, 2),
+        ),
+    ),
+    atomic=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.RED, 1),
+            ColorSection(MinecraftColor.GREEN, 2),
+            ColorSection(MinecraftColor.DARK_AQUA, 1),
+        ),
+    ),
+    sunset=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.DARK_PURPLE, 1),
+            ColorSection(MinecraftColor.RED, 2),
+            ColorSection(MinecraftColor.GOLD, 1),
+        ),
+    ),
+    time=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.YELLOW, 1),
+            ColorSection(MinecraftColor.GOLD, 1),
+            ColorSection(MinecraftColor.RED, 1),
+            ColorSection(MinecraftColor.LIGHT_PURPLE, 1),
+        ),
+    ),
+    winter=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.BLUE, 1),
+            ColorSection(MinecraftColor.DARK_AQUA, 1),
+            ColorSection(MinecraftColor.AQUA, 1),
+            ColorSection(MinecraftColor.WHITE, 1),
+        ),
+    ),
+    obsidian=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.DARK_PURPLE, 1),
+            ColorSection(MinecraftColor.DARK_GRAY, 2),
+            ColorSection(MinecraftColor.DARK_PURPLE, 1),
+        ),
+    ),
+    spring=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.DARK_GREEN, 1),
+            ColorSection(MinecraftColor.GREEN, 1),
+            ColorSection(MinecraftColor.YELLOW, 1),
+            ColorSection(MinecraftColor.GOLD, 1),
+        ),
+    ),
+    ice=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.WHITE, 1),
+            ColorSection(MinecraftColor.AQUA, 2),
+            ColorSection(MinecraftColor.DARK_AQUA, 1),
+        ),
+    ),
+    summer=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.AQUA, 1),
+            ColorSection(MinecraftColor.YELLOW, 2),
+            ColorSection(MinecraftColor.GOLD, 1),
+        ),
+    ),
+    spinel=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.DARK_RED, 1),
+            ColorSection(MinecraftColor.RED, 2),
+            ColorSection(MinecraftColor.BLUE, 1),
+        ),
+    ),
+    autumn=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.DARK_PURPLE, 1),
+            ColorSection(MinecraftColor.RED, 1),
+            ColorSection(MinecraftColor.GOLD, 1),
+            ColorSection(MinecraftColor.YELLOW, 1),
+        ),
+    ),
+    mystic=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.GREEN, 1),
+            ColorSection(MinecraftColor.WHITE, 2),
+            ColorSection(MinecraftColor.GREEN, 1),
+        ),
+    ),
+    eternal=(
+        TF4,
+        (
+            ColorSection(MinecraftColor.DARK_RED, 1),
+            ColorSection(MinecraftColor.DARK_PURPLE, 1),
+            ColorSection(MinecraftColor.BLUE, 2),
+        ),
+    ),
 )
 
 
@@ -200,7 +366,9 @@ RENDER_STARS_CASES: tuple[tuple[float, int, CellValue], ...] = (
             ),
         )
         # Iterate over all prestiges in order (skip low_stone)
-        for prestige, prestige_name in enumerate(tuple(PRESTIGE_COLORS)[1:])
+        for prestige, prestige_name in zip(
+            range(51), tuple(PRESTIGE_COLORS)[1:], strict=True
+        )
     ),
 )
 
