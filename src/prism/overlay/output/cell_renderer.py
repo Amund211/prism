@@ -365,10 +365,12 @@ def render_stats(
             winstreak_str = (
                 "" if player.stats.winstreak_accurate else "~"
             ) + f"{player.stats.winstreak}"
+            winstreak_value: float = player.stats.winstreak
         else:
             winstreak_str = "-"
+            winstreak_value = float("inf")
         winstreak_cell = render_based_on_level(
-            winstreak_str, player.stats.winstreak or 0, rating_configs.winstreak.levels
+            winstreak_str, winstreak_value, rating_configs.winstreak.levels
         )
     else:
         if isinstance(player, NickedPlayer):
