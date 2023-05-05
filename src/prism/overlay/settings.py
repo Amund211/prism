@@ -44,6 +44,7 @@ class SettingsDict(TypedDict):
     hypixel_api_key: str
     antisniper_api_key: str | None
     use_antisniper_api: bool
+    sort_order: ColumnName
     column_order: tuple[ColumnName, ...]
     rating_configs: RatingConfigCollectionDict
     known_nicks: dict[str, NickValue]
@@ -65,6 +66,7 @@ class Settings:
     hypixel_api_key: str
     antisniper_api_key: str | None
     use_antisniper_api: bool
+    sort_order: ColumnName
     column_order: tuple[ColumnName, ...]
     rating_configs: RatingConfigCollection
     known_nicks: dict[str, NickValue]
@@ -88,6 +90,7 @@ class Settings:
             hypixel_api_key=source["hypixel_api_key"],
             antisniper_api_key=source["antisniper_api_key"],
             use_antisniper_api=source["use_antisniper_api"],
+            sort_order=source["sort_order"],
             column_order=source["column_order"],
             rating_configs=RatingConfigCollection.from_dict(source["rating_configs"]),
             known_nicks=source["known_nicks"],
@@ -108,6 +111,7 @@ class Settings:
             "hypixel_api_key": self.hypixel_api_key,
             "antisniper_api_key": self.antisniper_api_key,
             "use_antisniper_api": self.use_antisniper_api,
+            "sort_order": self.sort_order,
             "column_order": self.column_order,
             "rating_configs": self.rating_configs.to_dict(),
             "known_nicks": self.known_nicks,
@@ -127,6 +131,7 @@ class Settings:
         self.hypixel_api_key = new_settings["hypixel_api_key"]
         self.antisniper_api_key = new_settings["antisniper_api_key"]
         self.use_antisniper_api = new_settings["use_antisniper_api"]
+        self.sort_order = new_settings["sort_order"]
         self.column_order = new_settings["column_order"]
         self.rating_configs = RatingConfigCollection.from_dict(
             new_settings["rating_configs"]
@@ -206,6 +211,11 @@ def fill_missing_settings(
     use_antisniper_api, settings_updated = get_boolean_setting(
         incomplete_settings, "use_antisniper_api", settings_updated, default=False
     )
+
+    sort_order: ColumnName | object = incomplete_settings.get("sort_order", None)
+    if not object_is_column_name(sort_order):
+        sort_order = "fkdr"
+        settings_updated = True
 
     raw_column_order = incomplete_settings.get("column_order", None)
     if isinstance(raw_column_order, (list, tuple)):
@@ -304,6 +314,7 @@ def fill_missing_settings(
         "hypixel_api_key": hypixel_api_key,
         "antisniper_api_key": antisniper_api_key,
         "use_antisniper_api": use_antisniper_api,
+        "sort_order": sort_order,
         "column_order": column_order,
         "rating_configs": rating_configs_dict,
         "known_nicks": known_nicks,

@@ -40,6 +40,7 @@ def make_settings_dict(
     hypixel_api_key: str | None = None,
     antisniper_api_key: str | None = None,
     use_antisniper_api: bool | None = None,
+    sort_order: ColumnName | None = None,
     column_order: tuple[ColumnName, ...] | None = None,
     rating_configs: RatingConfigCollectionDict | None = None,
     known_nicks: dict[str, NickValue] | None = None,
@@ -60,6 +61,7 @@ def make_settings_dict(
             antisniper_api_key, default=PLACEHOLDER_API_KEY
         ),
         "use_antisniper_api": value_or_default(use_antisniper_api, default=False),
+        "sort_order": value_or_default(sort_order, default="fkdr"),
         "column_order": value_or_default(
             column_order, default=("username", "stars", "fkdr", "winstreak")
         ),
@@ -97,6 +99,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             hypixel_api_key="my-key",
             antisniper_api_key="my-key",
             use_antisniper_api=True,
+            sort_order="stars",
             column_order=("username", "winstreak", "stars"),
             rating_configs=DEFAULT_RATING_CONFIG_COLLECTION,
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
@@ -115,6 +118,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "hypixel_api_key": "my-key",
             "antisniper_api_key": "my-key",
             "use_antisniper_api": True,
+            "sort_order": "stars",
             "column_order": ("username", "winstreak", "stars"),
             "rating_configs": DEFAULT_RATING_CONFIG_COLLECTION_DICT,
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
@@ -136,6 +140,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             hypixel_api_key="my-other-key",
             antisniper_api_key="my-other-key",
             use_antisniper_api=False,
+            sort_order="fkdr",
             column_order=("username", "stars", "fkdr", "wlr", "winstreak"),
             rating_configs=CUSTOM_RATING_CONFIG_COLLECTION,
             known_nicks={},
@@ -154,6 +159,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "hypixel_api_key": "my-other-key",
             "antisniper_api_key": "my-other-key",
             "use_antisniper_api": False,
+            "sort_order": "fkdr",
             "column_order": ("username", "stars", "fkdr", "wlr", "winstreak"),
             "rating_configs": CUSTOM_RATING_CONFIG_COLLECTION_DICT,
             "known_nicks": {},
@@ -281,6 +287,7 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
             "hypixel_api_key": "my-key",
             "antisniper_api_key": "my-key",
             "use_antisniper_api": False,
+            "sort_order": "winstreak",
             "column_order": ("username", "stars", "fkdr", "wlr"),
             "rating_configs": CUSTOM_RATING_CONFIG_COLLECTION_DICT,
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
@@ -300,6 +307,7 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
             hypixel_api_key="my-key",
             antisniper_api_key="my-key",
             use_antisniper_api=False,
+            sort_order="winstreak",
             column_order=("username", "stars", "fkdr", "wlr"),
             rating_configs=CUSTOM_RATING_CONFIG_COLLECTION_DICT,
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
@@ -508,6 +516,27 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
         # Some invalid column names
         {"column_order": ("username", "stars", "lkjdlfkj", "", 1, {}, [])},
         make_settings_dict(column_order=("username", "stars")),
+        True,
+    ),
+    # Invalid sort orders
+    (
+        {"sort_order": ""},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        {"sort_order": "sort_by_winstreak_please"},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        {"sort_order": None},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        {"sort_order": []},
+        make_settings_dict(),
         True,
     ),
 )

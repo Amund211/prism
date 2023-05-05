@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 from prism.overlay.behaviour import update_settings
 from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import Key, SpecialKey, create_pynput_normalizer
+from prism.overlay.output.cells import ALL_COLUMN_NAMES, ColumnName, str_is_column_name
 from prism.overlay.settings import NickValue, Settings, SettingsDict
 from prism.overlay.threading import UpdateCheckerOneShotThread
 
@@ -239,21 +240,45 @@ class DisplaySection:  # pragma: nocover
 
         tk.Label(
             self.frame,
-            text="Hide dead players: ",
+            text="Sort order: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
         ).grid(row=0, column=0, sticky=tk.E)
-        self.hide_dead_players_toggle = ToggleButton(self.frame)
-        self.hide_dead_players_toggle.button.grid(row=0, column=1)
 
-    def set(self, hide_dead_players: bool) -> None:
+        self.sort_order_variable = tk.StringVar(value="")
+        self.sort_order_menu = tk.OptionMenu(
+            self.frame, self.sort_order_variable, *ALL_COLUMN_NAMES
+        )
+        self.sort_order_menu.grid(row=0, column=1)
+
+        tk.Label(
+            self.frame,
+            text="Hide dead players: ",
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        ).grid(row=1, column=0, sticky=tk.E)
+        self.hide_dead_players_toggle = ToggleButton(self.frame)
+        self.hide_dead_players_toggle.button.grid(row=1, column=1)
+
+    def set(self, sort_order: ColumnName, hide_dead_players: bool) -> None:
         """Set the state of this section"""
+        self.sort_order_variable.set(sort_order)
         self.hide_dead_players_toggle.set(hide_dead_players)
 
-    def get(self) -> bool:
+    def get(self, fallback_sort_order: ColumnName) -> tuple[ColumnName, bool]:
         """Get the state of this section"""
-        return self.hide_dead_players_toggle.enabled
+        sort_order: str | ColumnName = self.sort_order_variable.get()
+
+        if not str_is_column_name(sort_order):
+            logger.error(
+                f"Tried saving invalid sort order {sort_order} "
+                f"Falling back to {fallback_sort_order}."
+            )
+            sort_order = fallback_sort_order
+
+        return sort_order, self.hide_dead_players_toggle.enabled
 
 
 class HypixelSection:  # pragma: nocover
@@ -518,7 +543,7 @@ class SettingsPage:  # pragma: nocover
                 show_on_tab_keybind=settings.show_on_tab_keybind,
                 check_for_updates=settings.check_for_updates,
             )
-            self.display_section.set(settings.hide_dead_players)
+            self.display_section.set(settings.sort_order, settings.hide_dead_players)
             self.hypixel_section.set(settings.hypixel_api_key)
 
             self.antisniper_section.set(
@@ -547,7 +572,9 @@ class SettingsPage:  # pragma: nocover
             check_for_updates,
         ) = self.general_settings_section.get()
 
-        hide_dead_players = self.display_section.get()
+        sort_order, hide_dead_players = self.display_section.get(
+            fallback_sort_order=self.controller.settings.sort_order
+        )
         hypixel_api_key = self.hypixel_section.get()
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
 
@@ -571,6 +598,7 @@ class SettingsPage:  # pragma: nocover
             hypixel_api_key=hypixel_api_key,
             antisniper_api_key=antisniper_api_key,
             use_antisniper_api=use_antisniper_api,
+            sort_order=sort_order,
             column_order=column_order,
             rating_configs=rating_configs_dict,
             known_nicks=known_nicks,
