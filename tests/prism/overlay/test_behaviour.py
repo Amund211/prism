@@ -196,12 +196,13 @@ def test_get_and_cache_stats(
 
     playerdata_without_winstreaks: dict[str, Any] = {
         **base_user.playerdata,
-        "stats": {"Bedwars": {}},
+        "stats": {"Bedwars": {"wins_bedwars": 40}},
     }
     playerdata_with_winstreaks = {
         **base_user.playerdata,
         "stats": {
             "Bedwars": {
+                "wins_bedwars": 40,
                 "winstreak": 10,
                 "eight_one_winstreak": 10,
                 "eight_two_winstreak": 10,

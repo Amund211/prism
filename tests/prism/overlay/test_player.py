@@ -529,3 +529,34 @@ def test_create_known_player(technoblade_playerdata: dict[str, Any]) -> None:
     )
 
     assert result == target
+
+
+def test_create_known_player_new() -> None:
+    """Assert that a player with 0 wins has 0 winstreak"""
+    target = KnownPlayer(
+        username="NewPlayer",
+        uuid="my-uuid",
+        stars=1.0,
+        stats=Stats(
+            index=0.0,
+            fkdr=0,
+            kdr=2.0,
+            bblr=0,
+            wlr=0,
+            winstreak=0,
+            winstreak_accurate=True,
+            kills=10,
+            finals=0,
+            beds=0,
+            wins=0,
+        ),
+    )
+
+    result = create_known_player(
+        playerdata={"stats": {"Bedwars": {"kills_bedwars": 10, "deaths_bedwars": 5}}},
+        username="NewPlayer",
+        uuid="my-uuid",
+        nick=None,
+    )
+
+    assert result == target

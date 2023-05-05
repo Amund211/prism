@@ -247,6 +247,11 @@ def create_known_player(
     beds = bw_stats.get("beds_broken_bedwars", 0)
     wins = bw_stats.get("wins_bedwars", 0)
 
+    if winstreak is None and wins == 0:
+        # The winstreak field is not populated until your first win
+        # If you have no wins we know you don't have a winstreak
+        winstreak = 0
+
     fkdr = div(finals, bw_stats.get("final_deaths_bedwars", 0))
     return KnownPlayer(
         username=username,
