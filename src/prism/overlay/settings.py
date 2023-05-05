@@ -15,9 +15,9 @@ from prism.overlay.keybinds import (
     construct_key_dict,
 )
 from prism.overlay.output.cells import (
-    ALL_COLUMN_NAMES,
     DEFAULT_COLUMN_ORDER,
     ColumnName,
+    object_is_column_name,
 )
 from prism.overlay.output.config import (
     RatingConfigCollection,
@@ -209,13 +209,7 @@ def fill_missing_settings(
 
     raw_column_order = incomplete_settings.get("column_order", None)
     if isinstance(raw_column_order, (list, tuple)):
-        column_order = tuple(
-            filter(
-                lambda column_name: isinstance(column_name, str)
-                and column_name in ALL_COLUMN_NAMES,
-                raw_column_order,
-            )
-        )
+        column_order = tuple(filter(object_is_column_name, raw_column_order))
         settings_updated |= len(raw_column_order) != len(column_order)
     else:
         # Found no columns

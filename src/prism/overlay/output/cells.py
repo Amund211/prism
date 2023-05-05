@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal, Self
+from typing import Literal, Self, TypeGuard
 
 ColumnName = Literal["username", "stars", "fkdr", "wlr", "winstreak"]
 
@@ -21,6 +21,16 @@ COLUMN_NAMES: dict[ColumnName, str] = {
     "wlr": "WLR",
     "winstreak": "WS",
 }
+
+
+def str_is_column_name(column_name: str, /) -> TypeGuard[ColumnName]:
+    """Typeguard for str -> ColumnName checks"""
+    return column_name in ALL_COLUMN_NAMES
+
+
+def object_is_column_name(column_name: object, /) -> TypeGuard[ColumnName]:
+    """Typeguard for object -> ColumnName checks"""
+    return isinstance(column_name, str) and str_is_column_name(column_name)
 
 
 @dataclass(frozen=True, slots=True)
