@@ -6,7 +6,7 @@ import tkinter.filedialog
 from pathlib import Path
 from typing import Any
 
-from prism.overlay.output.overlay.settings_page import ToggleButton
+from prism.overlay.output.overlay.gui_components import ToggleButton
 from prism.overlay.user_interaction.logfile_controller import (
     GUILogfile,
     LogfileController,
