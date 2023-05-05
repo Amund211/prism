@@ -10,7 +10,11 @@ from prism.overlay.output.cells import (
     ColumnName,
     str_is_column_name,
 )
-from prism.overlay.output.overlay.gui_components import KeybindSelector, ToggleButton
+from prism.overlay.output.overlay.gui_components import (
+    KeybindSelector,
+    ScrollableFrame,
+    ToggleButton,
+)
 from prism.overlay.settings import NickValue, Settings, SettingsDict
 from prism.overlay.threading import UpdateCheckerOneShotThread
 
@@ -25,57 +29,82 @@ class GeneralSettingSection:  # pragma: nocover
         self.frame = parent.make_section("General Settings")
         self.frame.columnconfigure(0, weight=0)
 
-        tk.Label(
+        autodenick_label = tk.Label(
             self.frame,
             text="Autodenick teammates: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=0, column=0, sticky=tk.E)
+        )
+        autodenick_label.grid(row=0, column=0, sticky=tk.E)
         self.autodenick_teammates_toggle = ToggleButton(self.frame)
         self.autodenick_teammates_toggle.button.grid(row=0, column=1)
+        parent.make_widgets_scrollable(
+            autodenick_label,
+            self.autodenick_teammates_toggle.button,
+        )
 
-        tk.Label(
+        autoselect_label = tk.Label(
             self.frame,
             text="Autoselect logfile: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=1, column=0, sticky=tk.E)
+        )
+        autoselect_label.grid(row=1, column=0, sticky=tk.E)
         self.autoselect_logfile_toggle = ToggleButton(self.frame)
         self.autoselect_logfile_toggle.button.grid(row=1, column=1)
+        parent.make_widgets_scrollable(
+            autoselect_label,
+            self.autoselect_logfile_toggle.button,
+        )
 
-        tk.Label(
+        show_on_tab_label = tk.Label(
             self.frame,
             text="Show overlay on tab: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=2, column=0, sticky=tk.E)
+        )
+        show_on_tab_label.grid(row=2, column=0, sticky=tk.E)
         self.show_on_tab_toggle = ToggleButton(self.frame)
         self.show_on_tab_toggle.button.grid(row=2, column=1)
+        parent.make_widgets_scrollable(
+            show_on_tab_label,
+            self.show_on_tab_toggle.button,
+        )
 
-        tk.Label(
+        show_on_tab_hotkey_label = tk.Label(
             self.frame,
             text="Show on tab hotkey: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=3, column=0, sticky=tk.E)
+        )
+        show_on_tab_hotkey_label.grid(row=3, column=0, sticky=tk.E)
         self.show_on_tab_keybind_selector = KeybindSelector(
             self.frame, overlay=parent.overlay
         )
         self.show_on_tab_keybind_selector.button.grid(row=3, column=1)
+        parent.make_widgets_scrollable(
+            show_on_tab_hotkey_label,
+            self.show_on_tab_keybind_selector.button,
+        )
 
-        tk.Label(
+        check_for_updates_label = tk.Label(
             self.frame,
             text="Check for overlay version updates: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=4, column=0, sticky=tk.E)
+        )
+        check_for_updates_label.grid(row=4, column=0, sticky=tk.E)
         self.check_for_updates_toggle = ToggleButton(self.frame)
         self.check_for_updates_toggle.button.grid(row=4, column=1)
+        parent.make_widgets_scrollable(
+            check_for_updates_label,
+            self.check_for_updates_toggle.button,
+        )
 
     def set(
         self,
@@ -110,29 +139,35 @@ class DisplaySection:  # pragma: nocover
         )
         self.frame.columnconfigure(0, weight=0)
 
-        tk.Label(
+        sort_order_label = tk.Label(
             self.frame,
             text="Sort order: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=0, column=0, sticky=tk.E)
+        )
+        sort_order_label.grid(row=0, column=0, sticky=tk.E)
 
         self.sort_order_variable = tk.StringVar(value="")
         self.sort_order_menu = tk.OptionMenu(
             self.frame, self.sort_order_variable, *ALL_COLUMN_NAMES_ORDERED
         )
         self.sort_order_menu.grid(row=0, column=1)
+        parent.make_widgets_scrollable(sort_order_label, self.sort_order_menu)
 
-        tk.Label(
+        hide_dead_players_label = tk.Label(
             self.frame,
             text="Hide dead players: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=1, column=0, sticky=tk.E)
+        )
+        hide_dead_players_label.grid(row=1, column=0, sticky=tk.E)
         self.hide_dead_players_toggle = ToggleButton(self.frame)
         self.hide_dead_players_toggle.button.grid(row=1, column=1)
+        parent.make_widgets_scrollable(
+            hide_dead_players_label, self.hide_dead_players_toggle.button
+        )
 
     def set(self, sort_order: ColumnName, hide_dead_players: bool) -> None:
         """Set the state of this section"""
@@ -159,20 +194,21 @@ class HypixelSection:  # pragma: nocover
         self.frame.columnconfigure(0, weight=0)
 
         self.hypixel_api_key_variable = tk.StringVar()
-        tk.Label(
+        api_key_label = tk.Label(
             self.frame,
             text="API key: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=0, column=0, sticky=tk.E)
+        )
+        api_key_label.grid(row=0, column=0, sticky=tk.E)
         self.hypixel_api_key_entry = tk.Entry(
             self.frame, show="*", textvariable=self.hypixel_api_key_variable
         )
         self.hypixel_api_key_entry.grid(row=0, column=1, sticky=tk.W + tk.E)
         self.frame.columnconfigure(1, weight=1)
 
-        tk.Button(
+        show_button = tk.Button(
             self.frame,
             text="SHOW",
             font=("Consolas", "10"),
@@ -182,7 +218,12 @@ class HypixelSection:  # pragma: nocover
             command=lambda: self.hypixel_api_key_entry.config(show=""),
             relief="flat",
             cursor="hand2",
-        ).grid(row=0, column=2, padx=(5, 0))
+        )
+        show_button.grid(row=0, column=2, padx=(5, 0))
+
+        parent.make_widgets_scrollable(
+            api_key_label, self.hypixel_api_key_entry, show_button
+        )
 
     def set(self, hypixel_api_key: str) -> None:
         """Set the state of this section"""
@@ -214,28 +255,34 @@ class AntisniperSection:  # pragma: nocover
         )
         info_label.bind("<Configure>", lambda e: info_label.config(wraplength=400))
         info_label.grid(row=0, columnspan=2)
+        parent.make_widgets_scrollable(info_label)
 
-        tk.Label(
+        use_antisniper_label = tk.Label(
             self.frame,
             text="Antisniper API: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=1, column=0, sticky=tk.E)
+        )
+        use_antisniper_label.grid(row=1, column=0, sticky=tk.E)
 
         self.use_antisniper_api_toggle = ToggleButton(
             self.frame,
             toggle_callback=self.set_key_entry_state,
         )
         self.use_antisniper_api_toggle.button.grid(row=1, column=1)
+        parent.make_widgets_scrollable(
+            use_antisniper_label, self.use_antisniper_api_toggle.button
+        )
 
-        tk.Label(
+        api_key_label = tk.Label(
             self.frame,
             text="API key: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=2, column=0, sticky=tk.E)
+        )
+        api_key_label.grid(row=2, column=0, sticky=tk.E)
 
         self.antisniper_api_key_variable = tk.StringVar()
         self.antisniper_api_key_entry = tk.Entry(
@@ -246,7 +293,7 @@ class AntisniperSection:  # pragma: nocover
         self.antisniper_api_key_entry.grid(row=2, column=1, sticky=tk.W + tk.E)
         self.frame.columnconfigure(1, weight=1)
 
-        tk.Button(
+        show_button = tk.Button(
             self.frame,
             text="SHOW",
             font=("Consolas", "10"),
@@ -256,7 +303,12 @@ class AntisniperSection:  # pragma: nocover
             command=lambda: self.antisniper_api_key_entry.config(show=""),
             relief="flat",
             cursor="hand2",
-        ).grid(row=2, column=2, padx=(5, 0))
+        )
+        show_button.grid(row=2, column=2, padx=(5, 0))
+
+        parent.make_widgets_scrollable(
+            api_key_label, self.antisniper_api_key_entry, show_button
+        )
 
     def set(self, use_antisniper_api: bool, antisniper_api_key: str | None) -> None:
         """Set the state of this section"""
@@ -285,14 +337,16 @@ class GraphicsSection:  # pragma: nocover
 
         self.alpha_hundredths_variable = tk.IntVar(value=80)
         self.alpha_hundredths_variable.trace_add("write", self.set_window_alpha)
-        tk.Label(
+        alpha_label = tk.Label(
             self.frame,
             text="Alpha: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
-        ).grid(row=0, column=0, sticky=tk.E)
-        tk.Scale(
+        )
+        alpha_label.grid(row=0, column=0, sticky=tk.E)
+
+        alpha_scale = tk.Scale(
             self.frame,
             from_=10,
             to=100,
@@ -301,7 +355,10 @@ class GraphicsSection:  # pragma: nocover
             foreground="white",
             background="black",
             variable=self.alpha_hundredths_variable,
-        ).grid(row=0, column=1)
+        )
+        alpha_scale.grid(row=0, column=1)
+
+        parent.make_widgets_scrollable(alpha_label, alpha_scale)
 
     def set_window_alpha(self, *args: Any, **kwargs: Any) -> None:
         self.parent.overlay.window.set_alpha_hundredths(
@@ -369,8 +426,12 @@ class SettingsPage:  # pragma: nocover
         cancel_button.pack(side=tk.RIGHT, padx=(0, 5))
 
         # A frame for the settings
-        self.settings_frame = tk.Frame(self.frame, background="black")
-        self.settings_frame.pack(side=tk.TOP, fill=tk.BOTH)
+        settings_frame_wrapper = tk.Frame(self.frame, background="black")
+        settings_frame_wrapper.pack(side=tk.TOP, fill=tk.BOTH)
+        self.scrollable_settings_frame = ScrollableFrame(
+            settings_frame_wrapper, max_height=700
+        )
+        self.scrollable_settings_frame.container_frame.pack(side=tk.TOP, fill=tk.BOTH)
 
         self.general_settings_section = GeneralSettingSection(self)
         self.display_section = DisplaySection(self)
@@ -378,35 +439,48 @@ class SettingsPage:  # pragma: nocover
         self.antisniper_section = AntisniperSection(self)
         self.graphics_section = GraphicsSection(self)
 
+    def make_widgets_scrollable(self, *widgets: tk.Widget) -> None:
+        """Make the given widgets scroll the settings page"""
+        for widget in widgets:
+            self.scrollable_settings_frame.register_scrollarea(widget)
+
     def make_section(
         self, section_header: str, subtitle: str | None = None
     ) -> tk.Frame:
         """Make a settings section with a header and a frame for the settings"""
         label = tk.Label(
-            self.settings_frame,
+            self.scrollable_settings_frame.content_frame,
             text=section_header,
             font=("Consolas", "14"),
             foreground="white",
             background="black",
         )
         label.pack(side=tk.TOP, pady=(5, 0))
+        self.make_widgets_scrollable(label)
 
         if subtitle is not None:
-            tk.Label(
-                self.settings_frame,
+            subtitle_label = tk.Label(
+                self.scrollable_settings_frame.content_frame,
                 text=subtitle,
                 font=("Consolas", "10"),
                 foreground="white",
                 background="black",
-            ).pack(side=tk.TOP)
+            )
+            subtitle_label.pack(side=tk.TOP)
+            self.make_widgets_scrollable(subtitle_label)
 
-        section_frame = tk.Frame(self.settings_frame, background="black")
+        section_frame = tk.Frame(
+            self.scrollable_settings_frame.content_frame, background="black"
+        )
         section_frame.pack(side=tk.TOP, fill=tk.X, padx=5, pady=(0, 10))
+        self.make_widgets_scrollable(section_frame)
 
         return section_frame
 
     def set_content(self, settings: Settings) -> None:
         """Set the content of the page to the values from `settings`"""
+        self.scrollable_settings_frame.scroll_to_top()
+
         with settings.mutex:
             self.general_settings_section.set(
                 autodenick_teammates=settings.autodenick_teammates,
