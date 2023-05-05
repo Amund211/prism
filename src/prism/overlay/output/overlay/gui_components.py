@@ -1,9 +1,12 @@
 import logging
+import platform
 import tkinter as tk
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from prism.overlay.keybinds import Key, SpecialKey, create_pynput_normalizer
+
+SYSTEM = platform.system()
 
 logger = logging.getLogger(__name__)
 
@@ -141,3 +144,66 @@ class KeybindSelector(ToggleButton):  # pragma: no coverage
     def set_key(self, key: Key) -> None:
         self.key = key
         self._on_toggle(self.selecting)
+
+
+class ScrollableFrame:  # pragma: no coverage
+    """
+    Scrollable tkinter frame
+
+    Based on: https://blog.teclado.com/tkinter-scrollable-frames/
+    and: https://stackoverflow.com/questions/73165441/make-the-scrollbar-automatically-scroll-back-up-in-tkinter  # noqa: E501
+    """
+
+    def __init__(self, parent: tk.Frame, max_height: int):
+        self.container_frame = tk.Frame(parent)
+        self.max_height = max_height
+
+        # Create canvas and scrollbar
+        self.canvas = tk.Canvas(self.container_frame, bg="black", highlightthickness=0)
+        scrollbar = tk.Scrollbar(
+            self.container_frame,
+            orient=tk.VERTICAL,
+            command=self.canvas.yview,
+            bg="black",
+            activebackground="dark gray",
+            troughcolor="#333333",
+        )
+        self.canvas.configure(yscrollcommand=scrollbar.set)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Create content frame and insert it into the canvas
+        self.content_frame = tk.Frame(self.canvas, background="black")
+        self.content_frame.bind("<Configure>", self._update_content_size)
+        self.canvas.create_window((0, 0), window=self.content_frame, anchor=tk.NW)
+        self.register_scrollarea(self.content_frame)
+
+    def _update_content_size(self, e: "tk.Event[tk.Misc]") -> None:
+        """Update the scrollregion and width+height for the canvas"""
+        self.canvas.configure(
+            scrollregion=self.canvas.bbox("all"),
+            width=self.content_frame.winfo_width(),
+            height=min(self.content_frame.winfo_height(), self.max_height),
+        )
+
+    def _on_mousewheel(self, event: "tk.Event[tk.Misc]") -> None:
+        """Mousewheel callback to scroll the canvas"""
+        if SYSTEM == "Windows":
+            self.canvas.yview_scroll(int(-1 * (event.delta / 60)), "units")
+        else:
+            if event.num == 4:
+                self.canvas.yview_scroll(-2, "units")
+            elif event.num == 5:
+                self.canvas.yview_scroll(2, "units")
+
+    def register_scrollarea(self, widget: tk.Widget) -> None:
+        """Register a widget to scroll the canvas"""
+        if SYSTEM == "Linux":
+            widget.bind("<Button-4>", self._on_mousewheel)
+            widget.bind("<Button-5>", self._on_mousewheel)
+        else:
+            widget.bind("<MouseWheel>", self._on_mousewheel)
+
+    def scroll_to_top(self) -> None:
+        """Scroll the content to the top"""
+        self.canvas.yview_moveto(0)
