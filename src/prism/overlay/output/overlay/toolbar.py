@@ -32,6 +32,7 @@ class Toolbar:  # pragma: nocover
         self.overlay = overlay
 
         self.frame = tk.Frame(parent, background="black")
+        self.register_grab_handler(self.frame)
 
         grip_label = tk.Label(
             self.frame,
@@ -40,13 +41,12 @@ class Toolbar:  # pragma: nocover
             foreground="white",
             background="black",
             highlightthickness=1,
-            cursor="fleur",
         )
         grip_label.pack(side=tk.LEFT, padx=(3, 5))
 
-        grip_label.bind("<ButtonPress-1>", self.overlay.window.start_move)
-        grip_label.bind("<B1-Motion>", self.overlay.window.do_move)
+        self.register_grab_handler(grip_label)
         grip_label.bind("<Double-Button-1>", self.overlay.window.reset_position)
+        grip_label.configure(cursor="hand2")
 
         def toggle_settings_page() -> None:
             if self.overlay.current_page == "settings":
@@ -124,6 +124,7 @@ class Toolbar:  # pragma: nocover
             background="black",
         )
         version_label.pack(side=tk.RIGHT, padx=(0, 5))
+        self.register_grab_handler(version_label)
 
         self.hide_countdown_label = tk.Label(
             self.frame,
@@ -133,8 +134,15 @@ class Toolbar:  # pragma: nocover
             background="black",
         )
         self.hide_countdown_label.pack(side=tk.RIGHT, padx=(0, 5))
+        self.register_grab_handler(self.hide_countdown_label)
 
         self.update_hide_countdown()
+
+    def register_grab_handler(self, widget: tk.Frame | tk.Label) -> None:
+        """Register the widget to enable dragging the window"""
+        widget.bind("<ButtonPress-1>", self.overlay.window.start_move)
+        widget.bind("<B1-Motion>", self.overlay.window.do_move)
+        widget.configure(cursor="fleur")
 
     def update_hide_countdown(self) -> None:
         time_until = self.overlay.window.time_until_hide
