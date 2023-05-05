@@ -157,10 +157,11 @@ class ScrollableFrame:  # pragma: no coverage
     def __init__(self, parent: tk.Frame, max_height: int):
         self.container_frame = tk.Frame(parent)
         self.max_height = max_height
+        self.scrollbar_shown = False
 
         # Create canvas and scrollbar
         self.canvas = tk.Canvas(self.container_frame, bg="black", highlightthickness=0)
-        scrollbar = tk.Scrollbar(
+        self.scrollbar = tk.Scrollbar(
             self.container_frame,
             orient=tk.VERTICAL,
             command=self.canvas.yview,
@@ -168,23 +169,45 @@ class ScrollableFrame:  # pragma: no coverage
             activebackground="dark gray",
             troughcolor="#333333",
         )
-        self.canvas.configure(yscrollcommand=scrollbar.set)
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         # Create content frame and insert it into the canvas
         self.content_frame = tk.Frame(self.canvas, background="black")
-        self.content_frame.bind("<Configure>", self._update_content_size)
+        self.content_frame.bind("<Configure>", lambda e: self._update_content_size())
         self.canvas.create_window((0, 0), window=self.content_frame, anchor=tk.NW)
         self.register_scrollarea(self.content_frame)
 
-    def _update_content_size(self, e: "tk.Event[tk.Misc]") -> None:
+        self._update_content_size()
+
+    def _update_content_size(self) -> None:
         """Update the scrollregion and width+height for the canvas"""
+        content_height = self.content_frame.winfo_height()
+
+        if content_height > self.max_height:
+            height = self.max_height
+            self._show_scrollbar()
+        else:
+            height = content_height
+            self._hide_scrollbar()
+
         self.canvas.configure(
             scrollregion=self.canvas.bbox("all"),
             width=self.content_frame.winfo_width(),
-            height=min(self.content_frame.winfo_height(), self.max_height),
+            height=height,
         )
+
+    def _show_scrollbar(self) -> None:
+        """Show the scrollbar"""
+        if not self.scrollbar_shown:
+            self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            self.scrollbar_shown = True
+
+    def _hide_scrollbar(self) -> None:
+        """Hide the scrollbar"""
+        if self.scrollbar_shown:
+            self.scrollbar.pack_forget()
+            self.scrollbar_shown = False
 
     def _on_mousewheel(self, event: "tk.Event[tk.Misc]") -> None:
         """Mousewheel callback to scroll the canvas"""
