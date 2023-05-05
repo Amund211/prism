@@ -11,7 +11,7 @@ from prism.overlay.output.cell_renderer import (
     render_stars,
 )
 from prism.overlay.output.cells import (
-    ALL_COLUMN_NAMES,
+    ALL_COLUMN_NAMES_ORDERED,
     CellValue,
     ColorSection,
     ColumnName,
@@ -435,8 +435,19 @@ STARS_VALUE = CellValue.monochrome(
     terminal_formatting=TerminalColor.BLUE,
     gui_color=MinecraftColor.DARK_PURPLE,
 )
+INDEX_VALUE = CellValue.monochrome(
+    "index",
+    terminal_formatting=TerminalColor.BLACK,
+    gui_color=MinecraftColor.LIGHT_PURPLE,
+)
 FKDR_VALUE = CellValue.monochrome(
     "fkdr", terminal_formatting=TerminalColor.LIGHT_WHITE, gui_color=MinecraftColor.GRAY
+)
+KDR_VALUE = CellValue.monochrome(
+    "kdr", terminal_formatting=TerminalColor.YELLOW, gui_color=MinecraftColor.GREEN
+)
+BBLR_VALUE = CellValue.monochrome(
+    "bblr", terminal_formatting=TerminalColor.BROWN, gui_color=MinecraftColor.DARK_GREEN
 )
 WLR_VALUE = CellValue.monochrome(
     "wlr", terminal_formatting=TerminalColor.GREEN, gui_color=MinecraftColor.AQUA
@@ -446,12 +457,33 @@ WINSTREAK_VALUE = CellValue.monochrome(
     terminal_formatting=TerminalColor.YELLOW,
     gui_color=MinecraftColor.GREEN,
 )
+KILLS_VALUE = CellValue.monochrome(
+    "kills", terminal_formatting=TerminalColor.CYAN, gui_color=MinecraftColor.GOLD
+)
+FINALS_VALUE = CellValue.monochrome(
+    "finals",
+    terminal_formatting=TerminalColor.RED,
+    gui_color=MinecraftColor.LIGHT_PURPLE,
+)
+BEDS_VALUE = CellValue.monochrome(
+    "beds", terminal_formatting=TerminalColor.PURPLE, gui_color=MinecraftColor.RED
+)
+WINS_VALUE = CellValue.monochrome(
+    "wins", terminal_formatting=TerminalColor.DARK_GRAY, gui_color=MinecraftColor.AQUA
+)
 RENDERED_STATS = RenderedStats(
     username=USERNAME_VALUE,
     stars=STARS_VALUE,
+    index=INDEX_VALUE,
     fkdr=FKDR_VALUE,
+    kdr=KDR_VALUE,
+    bblr=BBLR_VALUE,
     wlr=WLR_VALUE,
     winstreak=WINSTREAK_VALUE,
+    kills=KILLS_VALUE,
+    finals=FINALS_VALUE,
+    beds=BEDS_VALUE,
+    wins=WINS_VALUE,
 )
 
 
@@ -463,8 +495,25 @@ PICK_COLUMNS_CASES: tuple[tuple[tuple[ColumnName, ...], tuple[CellValue, ...]], 
     ),
     (("username", "stars", "stars"), (USERNAME_VALUE, STARS_VALUE, STARS_VALUE)),
     (
-        tuple(sorted(ALL_COLUMN_NAMES)),
-        (FKDR_VALUE, STARS_VALUE, USERNAME_VALUE, WINSTREAK_VALUE, WLR_VALUE),
+        ("username", "index", "kdr", "finals"),
+        (USERNAME_VALUE, INDEX_VALUE, KDR_VALUE, FINALS_VALUE),
+    ),
+    (
+        ALL_COLUMN_NAMES_ORDERED,
+        (
+            USERNAME_VALUE,
+            STARS_VALUE,
+            INDEX_VALUE,
+            FKDR_VALUE,
+            KDR_VALUE,
+            BBLR_VALUE,
+            WLR_VALUE,
+            WINSTREAK_VALUE,
+            KILLS_VALUE,
+            FINALS_VALUE,
+            BEDS_VALUE,
+            WINS_VALUE,
+        ),
     ),
 )
 

@@ -4,8 +4,15 @@ from typing import Any, Literal, Self, TypedDict
 
 STARS_LEVELS = (100.0, 300.0, 500.0, 800.0)
 FKDR_LEVELS = (1.0, 2.0, 4.0, 8.0)
+INDEX_LEVELS = (100.0, 1_200.0, 8_000.0, 51_200.0)
+KDR_LEVELS = (0.5, 1.0, 1.5, 2.0)
+BBLR_LEVELS = (0.3, 1.0, 2.0, 4.0)
 WLR_LEVELS = (0.3, 1.0, 2.0, 4.0)
 WINSTREAK_LEVELS = (5.0, 15.0, 30.0, 50.0)
+KILLS_LEVELS = (5_000.0, 10_000.0, 20_000.0, 40_000.0)
+FINALS_LEVELS = (5_000.0, 10_000.0, 20_000.0, 40_000.0)
+BEDS_LEVELS = (2_000.0, 5_000.0, 10_000.0, 20_000.0)
+WINS_LEVELS = (1_000.0, 3_000.0, 6_000.0, 10_000.0)
 
 
 class RatingConfigDict(TypedDict):
@@ -76,9 +83,16 @@ class RatingConfigCollectionDict(TypedDict):
     """Dict representing a RatingConfigCollection"""
 
     stars: RatingConfigDict
+    index: RatingConfigDict
     fkdr: RatingConfigDict
+    kdr: RatingConfigDict
+    bblr: RatingConfigDict
     wlr: RatingConfigDict
     winstreak: RatingConfigDict
+    kills: RatingConfigDict
+    finals: RatingConfigDict
+    beds: RatingConfigDict
+    wins: RatingConfigDict
 
 
 def read_rating_config_collection_dict(
@@ -92,8 +106,23 @@ def read_rating_config_collection_dict(
     )
     any_source_updated |= source_updated
 
+    index, source_updated = safe_read_rating_config_dict(
+        source.get("index", None), default_levels=INDEX_LEVELS, default_decimals=0
+    )
+    any_source_updated |= source_updated
+
     fkdr, source_updated = safe_read_rating_config_dict(
         source.get("fkdr", None), default_levels=FKDR_LEVELS, default_decimals=2
+    )
+    any_source_updated |= source_updated
+
+    kdr, source_updated = safe_read_rating_config_dict(
+        source.get("kdr", None), default_levels=KDR_LEVELS, default_decimals=2
+    )
+    any_source_updated |= source_updated
+
+    bblr, source_updated = safe_read_rating_config_dict(
+        source.get("bblr", None), default_levels=BBLR_LEVELS, default_decimals=2
     )
     any_source_updated |= source_updated
 
@@ -109,11 +138,38 @@ def read_rating_config_collection_dict(
     )
     any_source_updated |= source_updated
 
+    kills, source_updated = safe_read_rating_config_dict(
+        source.get("kills", None), default_levels=KILLS_LEVELS, default_decimals=0
+    )
+    any_source_updated |= source_updated
+
+    finals, source_updated = safe_read_rating_config_dict(
+        source.get("finals", None), default_levels=FINALS_LEVELS, default_decimals=0
+    )
+    any_source_updated |= source_updated
+
+    beds, source_updated = safe_read_rating_config_dict(
+        source.get("beds", None), default_levels=BEDS_LEVELS, default_decimals=0
+    )
+    any_source_updated |= source_updated
+
+    wins, source_updated = safe_read_rating_config_dict(
+        source.get("wins", None), default_levels=WINS_LEVELS, default_decimals=0
+    )
+    any_source_updated |= source_updated
+
     return {
         "stars": stars,
+        "index": index,
         "fkdr": fkdr,
+        "kdr": kdr,
+        "bblr": bblr,
         "wlr": wlr,
         "winstreak": winstreak,
+        "kills": kills,
+        "finals": finals,
+        "beds": beds,
+        "wins": wins,
     }, source_updated
 
 
@@ -130,23 +186,44 @@ class RatingConfigCollection:
     """RatingConfig instances for all stats"""
 
     stars: RatingConfig
+    index: RatingConfig
     fkdr: RatingConfig
+    kdr: RatingConfig
+    bblr: RatingConfig
     wlr: RatingConfig
     winstreak: RatingConfig
+    kills: RatingConfig
+    finals: RatingConfig
+    beds: RatingConfig
+    wins: RatingConfig
 
     @classmethod
     def from_dict(cls, source: RatingConfigCollectionDict) -> Self:
         return cls(
             stars=RatingConfig.from_dict(source["stars"]),
+            index=RatingConfig.from_dict(source["index"]),
             fkdr=RatingConfig.from_dict(source["fkdr"]),
+            kdr=RatingConfig.from_dict(source["kdr"]),
+            bblr=RatingConfig.from_dict(source["bblr"]),
             wlr=RatingConfig.from_dict(source["wlr"]),
             winstreak=RatingConfig.from_dict(source["winstreak"]),
+            kills=RatingConfig.from_dict(source["kills"]),
+            finals=RatingConfig.from_dict(source["finals"]),
+            beds=RatingConfig.from_dict(source["beds"]),
+            wins=RatingConfig.from_dict(source["wins"]),
         )
 
     def to_dict(self) -> RatingConfigCollectionDict:
         return {
             "stars": self.stars.to_dict(),
+            "index": self.index.to_dict(),
             "fkdr": self.fkdr.to_dict(),
+            "kdr": self.kdr.to_dict(),
+            "bblr": self.bblr.to_dict(),
             "wlr": self.wlr.to_dict(),
             "winstreak": self.winstreak.to_dict(),
+            "kills": self.kills.to_dict(),
+            "finals": self.finals.to_dict(),
+            "beds": self.beds.to_dict(),
+            "wins": self.wins.to_dict(),
         }

@@ -1,11 +1,37 @@
 from dataclasses import dataclass
 from typing import Literal, Self, TypeGuard
 
-ColumnName = Literal["username", "stars", "fkdr", "wlr", "winstreak"]
+ColumnName = Literal[
+    "username",
+    "stars",
+    "index",
+    "fkdr",
+    "kdr",
+    "bblr",
+    "wlr",
+    "winstreak",
+    "kills",
+    "finals",
+    "beds",
+    "wins",
+]
 
-ALL_COLUMN_NAMES: frozenset[ColumnName] = frozenset(
-    ("username", "stars", "fkdr", "wlr", "winstreak")
+ALL_COLUMN_NAMES_ORDERED: tuple[ColumnName, ...] = (
+    "username",
+    "stars",
+    "index",
+    "fkdr",
+    "kdr",
+    "bblr",
+    "wlr",
+    "winstreak",
+    "kills",
+    "finals",
+    "beds",
+    "wins",
 )
+
+ALL_COLUMN_NAMES: frozenset[ColumnName] = frozenset(ALL_COLUMN_NAMES_ORDERED)
 
 DEFAULT_COLUMN_ORDER: tuple[ColumnName, ...] = (
     "username",
@@ -17,9 +43,16 @@ DEFAULT_COLUMN_ORDER: tuple[ColumnName, ...] = (
 COLUMN_NAMES: dict[ColumnName, str] = {
     "username": "IGN (Nick)",
     "stars": "Stars",
+    "index": "Index",
     "fkdr": "FKDR",
+    "kdr": "KDR",
+    "bblr": "BBLR",
     "wlr": "WLR",
     "winstreak": "WS",
+    "kills": "Kills",
+    "finals": "Finals",
+    "beds": "Beds",
+    "wins": "Wins",
 }
 
 

@@ -36,9 +36,16 @@ class RenderedStats:
 
     username: CellValue
     stars: CellValue
+    index: CellValue
     fkdr: CellValue
+    kdr: CellValue
+    bblr: CellValue
     wlr: CellValue
     winstreak: CellValue
+    kills: CellValue
+    finals: CellValue
+    beds: CellValue
+    wins: CellValue
 
 
 def truncate_float_or_int(value: float | int, decimals: int) -> str:
@@ -351,10 +358,25 @@ def render_stats(
         stars_cell = render_stars(
             player.stars, rating_configs.stars.decimals, rating_configs.stars.levels
         )
+        index_cell = render_based_on_level(
+            truncate_float_or_int(player.stats.index, rating_configs.index.decimals),
+            player.stats.index,
+            rating_configs.index.levels,
+        )
         fkdr_cell = render_based_on_level(
             truncate_float_or_int(player.stats.fkdr, rating_configs.fkdr.decimals),
             player.stats.fkdr,
             rating_configs.fkdr.levels,
+        )
+        kdr_cell = render_based_on_level(
+            truncate_float_or_int(player.stats.kdr, rating_configs.kdr.decimals),
+            player.stats.kdr,
+            rating_configs.kdr.levels,
+        )
+        bblr_cell = render_based_on_level(
+            truncate_float_or_int(player.stats.bblr, rating_configs.bblr.decimals),
+            player.stats.bblr,
+            rating_configs.bblr.levels,
         )
         wlr_cell = render_based_on_level(
             truncate_float_or_int(player.stats.wlr, rating_configs.wlr.decimals),
@@ -372,6 +394,26 @@ def render_stats(
         winstreak_cell = render_based_on_level(
             winstreak_str, winstreak_value, rating_configs.winstreak.levels
         )
+        kills_cell = render_based_on_level(
+            truncate_float_or_int(player.stats.kills, rating_configs.kills.decimals),
+            player.stats.kills,
+            rating_configs.kills.levels,
+        )
+        finals_cell = render_based_on_level(
+            truncate_float_or_int(player.stats.finals, rating_configs.finals.decimals),
+            player.stats.finals,
+            rating_configs.finals.levels,
+        )
+        beds_cell = render_based_on_level(
+            truncate_float_or_int(player.stats.beds, rating_configs.beds.decimals),
+            player.stats.beds,
+            rating_configs.beds.levels,
+        )
+        wins_cell = render_based_on_level(
+            truncate_float_or_int(player.stats.wins, rating_configs.wins.decimals),
+            player.stats.wins,
+            rating_configs.wins.levels,
+        )
     else:
         if isinstance(player, NickedPlayer):
             text = "unknown"
@@ -384,9 +426,11 @@ def render_stats(
         else:  # pragma: no coverage
             assert_never(player)
 
-        stars_cell = fkdr_cell = wlr_cell = winstreak_cell = CellValue.monochrome(
+        cell = CellValue.monochrome(
             text, terminal_formatting=terminal_formatting, gui_color=gui_color
         )
+        stars_cell = index_cell = fkdr_cell = kdr_cell = bblr_cell = wlr_cell = cell
+        winstreak_cell = kills_cell = finals_cell = beds_cell = wins_cell = cell
 
     username_cell = CellValue.monochrome(
         username_str,
@@ -398,8 +442,15 @@ def render_stats(
         username=username_cell,
         stars=stars_cell,
         fkdr=fkdr_cell,
+        index=index_cell,
+        kdr=kdr_cell,
+        bblr=bblr_cell,
         wlr=wlr_cell,
         winstreak=winstreak_cell,
+        kills=kills_cell,
+        finals=finals_cell,
+        beds=beds_cell,
+        wins=wins_cell,
     )
 
 

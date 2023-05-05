@@ -6,7 +6,11 @@ from typing import TYPE_CHECKING, Any
 from prism.overlay.behaviour import update_settings
 from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import Key, SpecialKey, create_pynput_normalizer
-from prism.overlay.output.cells import ALL_COLUMN_NAMES, ColumnName, str_is_column_name
+from prism.overlay.output.cells import (
+    ALL_COLUMN_NAMES_ORDERED,
+    ColumnName,
+    str_is_column_name,
+)
 from prism.overlay.settings import NickValue, Settings, SettingsDict
 from prism.overlay.threading import UpdateCheckerOneShotThread
 
@@ -248,7 +252,7 @@ class DisplaySection:  # pragma: nocover
 
         self.sort_order_variable = tk.StringVar(value="")
         self.sort_order_menu = tk.OptionMenu(
-            self.frame, self.sort_order_variable, *ALL_COLUMN_NAMES
+            self.frame, self.sort_order_variable, *ALL_COLUMN_NAMES_ORDERED
         )
         self.sort_order_menu.grid(row=0, column=1)
 

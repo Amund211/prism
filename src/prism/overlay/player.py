@@ -33,10 +33,17 @@ MISSING_WINSTREAKS = Winstreaks(
 class Stats:
     """Dataclass holding a collection of stats"""
 
+    index: float
     fkdr: float
+    kdr: float
+    bblr: float
     wlr: float
     winstreak: int | None
     winstreak_accurate: bool
+    kills: int
+    finals: int
+    beds: int
+    wins: int
 
     def update_winstreak(self, winstreak: int | None, winstreak_accurate: bool) -> Self:
         """Update the winstreak in this stat collection"""
@@ -155,10 +162,24 @@ def rate_player(
             stat = 0
         elif column == "stars":
             stat = player.stars
+        elif column == "index":
+            stat = player.stats.index
         elif column == "fkdr":
             stat = player.stats.fkdr
+        elif column == "kdr":
+            stat = player.stats.kdr
+        elif column == "bblr":
+            stat = player.stats.bblr
         elif column == "wlr":
             stat = player.stats.wlr
+        elif column == "kills":
+            stat = player.stats.kills
+        elif column == "finals":
+            stat = player.stats.finals
+        elif column == "beds":
+            stat = player.stats.beds
+        elif column == "wins":
+            stat = player.stats.wins
         elif column == "winstreak":
             stat = (
                 player.stats.winstreak
@@ -205,30 +226,44 @@ def create_known_player(
             uuid=uuid,
             stars=0,
             stats=Stats(
+                index=0,
                 fkdr=0,
+                kdr=0,
+                bblr=0,
                 wlr=0,
                 winstreak=0,
                 winstreak_accurate=True,
+                kills=0,
+                finals=0,
+                beds=0,
+                wins=0,
             ),
         )
 
     winstreak = bw_stats.get("winstreak", None)
+    stars = bedwars_level_from_exp(bw_stats.get("Experience", 500))
+    kills = bw_stats.get("kills_bedwars", 0)
+    finals = bw_stats.get("final_kills_bedwars", 0)
+    beds = bw_stats.get("beds_broken_bedwars", 0)
+    wins = bw_stats.get("wins_bedwars", 0)
+
+    fkdr = div(finals, bw_stats.get("final_deaths_bedwars", 0))
     return KnownPlayer(
         username=username,
         nick=nick,
         uuid=uuid,
-        stars=bedwars_level_from_exp(bw_stats.get("Experience", 500)),
+        stars=stars,
         stats=Stats(
-            fkdr=div(
-                bw_stats.get("final_kills_bedwars", 0),
-                bw_stats.get("final_deaths_bedwars", 0),
-            ),
-            wlr=div(
-                bw_stats.get("wins_bedwars", 0),
-                bw_stats.get("games_played_bedwars", 0)
-                - bw_stats.get("wins_bedwars", 0),
-            ),
+            index=stars * fkdr**2,
+            fkdr=fkdr,
+            kdr=div(kills, bw_stats.get("deaths_bedwars", 0)),
+            bblr=div(beds, bw_stats.get("beds_lost_bedwars", 0)),
+            wlr=div(wins, bw_stats.get("games_played_bedwars", 0) - wins),
             winstreak=winstreak,
             winstreak_accurate=winstreak is not None,
+            kills=kills,
+            finals=finals,
+            beds=beds,
+            wins=wins,
         ),
     )
