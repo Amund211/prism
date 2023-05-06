@@ -217,12 +217,12 @@ class ScrollableFrame:  # pragma: no coverage
     def _on_mousewheel(self, event: "tk.Event[tk.Misc]") -> None:
         """Mousewheel callback to scroll the canvas"""
         if SYSTEM == "Windows":
-            self.canvas.yview_scroll(int(-1 * (event.delta / 60)), "units")
+            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
         else:
             if event.num == 4:
-                self.canvas.yview_scroll(-2, "units")
+                self.canvas.yview_scroll(-1, "units")
             elif event.num == 5:
-                self.canvas.yview_scroll(2, "units")
+                self.canvas.yview_scroll(1, "units")
 
     def register_scrollarea(self, widget: tk.Widget) -> None:
         """Register a widget to scroll the canvas"""
