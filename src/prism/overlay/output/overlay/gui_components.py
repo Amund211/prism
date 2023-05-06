@@ -34,9 +34,14 @@ class ToggleButton:  # pragma: nocover
         frame: tk.Frame,
         *,
         toggle_callback: Callable[[bool], None] = lambda enabled: None,
+        enabled_config: dict[str, str] = {},
+        disabled_config: dict[str, str] = {},
         start_enabled: bool = True,
     ) -> None:
         self.toggle_callback = toggle_callback
+
+        self.enabled_config = {**self.__class__.ENABLED_CONFIG, **enabled_config}
+        self.disabled_config = {**self.__class__.DISABLED_CONFIG, **disabled_config}
 
         self.button = tk.Button(
             frame,
@@ -56,7 +61,7 @@ class ToggleButton:  # pragma: nocover
     @property
     def enabled(self) -> bool:
         """Return the state of the toggle button"""
-        return self.button.config("bg")[-1] == self.ENABLED_CONFIG["bg"]  # type:ignore
+        return self.button.config("bg")[-1] == self.enabled_config["bg"]  # type:ignore
 
     def toggle(self) -> None:
         """Toggle the state of the button"""
@@ -64,7 +69,7 @@ class ToggleButton:  # pragma: nocover
 
     def set(self, enabled: bool, *, disable_toggle_callback: bool = False) -> None:
         """Set the enabled state of the toggle button"""
-        self.button.config(**(self.ENABLED_CONFIG if enabled else self.DISABLED_CONFIG))
+        self.button.config(**(self.enabled_config if enabled else self.disabled_config))
 
         if not disable_toggle_callback:
             self.toggle_callback(self.enabled)
