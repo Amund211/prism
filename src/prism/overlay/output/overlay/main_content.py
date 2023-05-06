@@ -61,7 +61,15 @@ class MainContent:  # pragma: nocover
         self.table_frame = tk.Frame(self.frame, background="black")
         self.table_frame.pack(side=tk.TOP)
 
-        # Set up header labels
+        self.header_labels: tuple[tk.Label, ...] = ()
+        self.update_header_labels()
+
+    def update_header_labels(self) -> None:
+        """Set up header labels"""
+        for label in self.header_labels:
+            label.destroy()
+
+        labels: list[tk.Label] = []
         for column_index, column_name in enumerate(self.column_order):
             left_justified = column_name == "username"
             header_label = tk.Label(
@@ -78,6 +86,9 @@ class MainContent:  # pragma: nocover
                 column=column_index + 1,
                 sticky="w" if left_justified else "e",
             )
+            labels.append(header_label)
+
+        self.header_labels = tuple(labels)
 
     def create_cell(self, row: int, column: int, sticky: Literal["w", "e"]) -> Cell:
         """Create a cell in the table"""
@@ -147,6 +158,22 @@ class MainContent:  # pragma: nocover
             for i in range(current_length - length):
                 self.pop_row()
 
+    def update_column_order_from_settings(self) -> None:
+        """Check for a new column order in settings and make new cells if necessary"""
+        new_column_order = self.overlay.controller.settings.column_order
+        if new_column_order == self.column_order:
+            return
+
+        self.column_order = new_column_order
+
+        # Update the header
+        self.update_header_labels()
+
+        # Force recreate all the rows with the new column order
+        current_length = len(self.rows)
+        self.set_length(0)
+        self.set_length(current_length)
+
     def update_info(self, info_cells: list[InfoCellValue]) -> None:
         """Update the list of info cells at the top of the overlay"""
         to_remove = set(self.info_labels.keys()) - set(info_cells)
@@ -196,6 +223,12 @@ class MainContent:  # pragma: nocover
 
         # Set the contents of the table if new data was provided
         if new_rows is not None:
+            # Update the column order if there is a new one
+            # NOTE: We rely on a draw dispatch to honor the request to alter the
+            #       column order, so we need to make sure redraw_flag is set after
+            #       column_order is updated in settings.
+            self.update_column_order_from_settings()
+
             self.set_length(len(new_rows))
 
             for i, (nickname, rated_stats) in enumerate(new_rows):
