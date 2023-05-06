@@ -470,7 +470,7 @@ class SettingsPage:  # pragma: nocover
         settings_frame_wrapper = tk.Frame(self.frame, background="black")
         settings_frame_wrapper.pack(side=tk.TOP, fill=tk.BOTH)
         self.scrollable_settings_frame = ScrollableFrame(
-            settings_frame_wrapper, max_height=700
+            settings_frame_wrapper, max_height=600
         )
         self.scrollable_settings_frame.container_frame.pack(side=tk.TOP, fill=tk.BOTH)
 
