@@ -61,7 +61,7 @@ def make_settings_dict(
             antisniper_api_key, default=PLACEHOLDER_API_KEY
         ),
         "use_antisniper_api": value_or_default(use_antisniper_api, default=False),
-        "sort_order": value_or_default(sort_order, default="fkdr"),
+        "sort_order": value_or_default(sort_order, default="index"),
         "column_order": value_or_default(
             column_order, default=("username", "stars", "fkdr", "winstreak")
         ),

@@ -214,7 +214,7 @@ def fill_missing_settings(
 
     sort_order: ColumnName | object = incomplete_settings.get("sort_order", None)
     if not object_is_column_name(sort_order):
-        sort_order = "fkdr"
+        sort_order = "index"
         settings_updated = True
 
     raw_column_order = incomplete_settings.get("column_order", None)
