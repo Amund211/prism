@@ -5,7 +5,7 @@ from typing import Any, Literal, Self, TypedDict
 STARS_LEVELS = (100.0, 300.0, 500.0, 800.0)
 FKDR_LEVELS = (1.0, 2.0, 4.0, 8.0)
 INDEX_LEVELS = (100.0, 1_200.0, 8_000.0, 51_200.0)
-KDR_LEVELS = (0.5, 1.0, 1.5, 2.0)
+KDR_LEVELS = (1.0, 1.5, 2.0, 3.0)
 BBLR_LEVELS = (0.3, 1.0, 2.0, 4.0)
 WLR_LEVELS = (0.3, 1.0, 2.0, 4.0)
 WINSTREAK_LEVELS = (5.0, 15.0, 30.0, 50.0)
