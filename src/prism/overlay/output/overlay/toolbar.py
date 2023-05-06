@@ -142,6 +142,7 @@ class Toolbar:  # pragma: nocover
         """Register the widget to enable dragging the window"""
         widget.bind("<ButtonPress-1>", self.overlay.window.start_move)
         widget.bind("<B1-Motion>", self.overlay.window.do_move)
+        widget.bind("<ButtonRelease-1>", self.overlay.window.stop_move)
         widget.configure(cursor="fleur")
 
     def update_hide_countdown(self) -> None:

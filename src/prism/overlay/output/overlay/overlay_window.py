@@ -52,6 +52,12 @@ class OverlayWindow:  # pragma: nocover
         self.hide_due_at: float | None = None
         self.shown: bool = False  # Set below
 
+        # Variables for keeping track of the user moving the window
+        self.cursor_x_start: int | None = None
+        self.cursor_y_start: int | None = None
+        self.window_x_start: int | None = None
+        self.window_y_start: int | None = None
+
         # Create a root window
         self.root = Root()
 
@@ -145,7 +151,22 @@ class OverlayWindow:  # pragma: nocover
 
     def do_move(self, event: "tk.Event[tk.Misc]") -> None:
         """Move the window to the new location"""
+        if (
+            self.window_x_start is None
+            or self.window_y_start is None
+            or self.cursor_x_start is None
+            or self.cursor_y_start is None
+        ):
+            return
         # Move to where we started + how much the mouse was moved
         x = self.window_x_start + (event.x_root - self.cursor_x_start)
         y = self.window_y_start + (event.y_root - self.cursor_y_start)
         self.root.geometry(f"+{x}+{y}")
+
+    def stop_move(self, event: "tk.Event[tk.Misc]") -> None:
+        """Stop moving the window"""
+        self.cursor_x_start = None
+        self.cursor_y_start = None
+
+        self.window_x_start = None
+        self.window_y_start = None
