@@ -7,11 +7,13 @@ from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import Key
 from prism.overlay.output.cells import (
     ALL_COLUMN_NAMES_ORDERED,
+    DEFAULT_COLUMN_ORDER,
     ColumnName,
     str_is_column_name,
 )
 from prism.overlay.output.overlay.gui_components import (
     KeybindSelector,
+    OrderedMultiSelect,
     ScrollableFrame,
     ToggleButton,
 )
@@ -186,6 +188,45 @@ class DisplaySection:  # pragma: nocover
             sort_order = fallback_sort_order
 
         return sort_order, self.hide_dead_players_toggle.enabled
+
+
+class ColumnSection:  # pragma: nocover
+    def __init__(self, parent: "SettingsPage") -> None:
+        self.frame = parent.make_section(
+            "Column Settings", "Select which columns to show and their order"
+        )
+
+        self.column_order_selection = OrderedMultiSelect(
+            self.frame, ALL_COLUMN_NAMES_ORDERED, reset_items=DEFAULT_COLUMN_ORDER
+        )
+        self.column_order_selection.frame.pack(side=tk.TOP, fill=tk.BOTH)
+
+        parent.make_widgets_scrollable(
+            self.column_order_selection.frame,
+            self.column_order_selection.listbox,
+            self.column_order_selection.toggle_frame,
+            *(toggle.button for toggle in self.column_order_selection.toggles.values()),
+            self.column_order_selection.reset_button,
+        )
+
+    def set(self, column_order: tuple[ColumnName, ...]) -> None:
+        """Set the state of this section"""
+        self.column_order_selection.set_selection(column_order)
+        pass
+
+    def get(self) -> tuple[ColumnName, ...]:
+        """Get the state of this section"""
+        selection = self.column_order_selection.get_selection()
+
+        if not all(str_is_column_name(column) for column in selection):
+            logger.error(f"Got non-column names from selection {selection}!")
+
+        column_order = tuple(filter(str_is_column_name, selection))
+
+        if not column_order:
+            column_order = DEFAULT_COLUMN_ORDER
+
+        return column_order
 
 
 class HypixelSection:  # pragma: nocover
@@ -435,6 +476,7 @@ class SettingsPage:  # pragma: nocover
 
         self.general_settings_section = GeneralSettingSection(self)
         self.display_section = DisplaySection(self)
+        self.column_section = ColumnSection(self)
         self.hypixel_section = HypixelSection(self)
         self.antisniper_section = AntisniperSection(self)
         self.graphics_section = GraphicsSection(self)
@@ -490,6 +532,7 @@ class SettingsPage:  # pragma: nocover
                 check_for_updates=settings.check_for_updates,
             )
             self.display_section.set(settings.sort_order, settings.hide_dead_players)
+            self.column_section.set(settings.column_order)
             self.hypixel_section.set(settings.hypixel_api_key)
 
             self.antisniper_section.set(
@@ -521,12 +564,12 @@ class SettingsPage:  # pragma: nocover
         sort_order, hide_dead_players = self.display_section.get(
             fallback_sort_order=self.controller.settings.sort_order
         )
+        column_order = self.column_section.get()
         hypixel_api_key = self.hypixel_section.get()
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
 
-        # TODO: Add section to edit rating configs and column order
+        # TODO: Add section to edit rating configs
         with self.controller.settings.mutex:
-            column_order = self.controller.settings.column_order
             rating_configs_dict = self.controller.settings.rating_configs.to_dict()
 
         known_nicks: dict[str, NickValue] = {}
