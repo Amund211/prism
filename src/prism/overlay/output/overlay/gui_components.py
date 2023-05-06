@@ -1,3 +1,4 @@
+import functools
 import logging
 import platform
 import tkinter as tk
@@ -235,3 +236,125 @@ class ScrollableFrame:  # pragma: no coverage
     def scroll_to_top(self) -> None:
         """Scroll the content to the top"""
         self.canvas.yview_moveto(0)
+
+
+class OrderedMultiSelect:  # pragma: no coverage
+    """Make an ordered selection of multiple items"""
+
+    def __init__(
+        self, parent: tk.Frame, items: tuple[str, ...], *, reset_items: tuple[str, ...]
+    ) -> None:
+        self.frame = tk.Frame(parent, bg="black")
+
+        self.picked_up_index: int | None = None
+        self.items = items
+
+        self.listbox = tk.Listbox(
+            self.frame, activestyle=tk.NONE, height=len(items), bg="black", fg="white"
+        )
+        self.listbox.pack(side=tk.LEFT)
+
+        self.listbox.bind("<ButtonPress-1>", self._pick_up_item)
+        self.listbox.bind("<B1-Motion>", self._move_item)
+        self.listbox.bind("<ButtonRelease-1>", self._drop_item)
+
+        self.toggle_frame = tk.Frame(self.frame, bg="black")
+        self.toggle_frame.pack(side=tk.RIGHT)
+
+        assert items, "Items tuple cannot be empty!"
+
+        self.toggles: dict[str, ToggleButton] = {}
+        row_length = 3
+        row = 0
+        while items:
+            chunk, items = items[:row_length], items[row_length:]
+
+            for column, item in enumerate(chunk):
+                toggle = ToggleButton(
+                    self.toggle_frame,
+                    toggle_callback=functools.partial(self._toggle_item, item=item),
+                    enabled_config={"text": item},
+                    disabled_config={"text": item},
+                )
+                toggle.button.grid(row=row, column=column)
+                self.toggles[item] = toggle
+
+            row += 1
+
+        self.reset_button = tk.Button(
+            self.toggle_frame,
+            text="Reset",
+            font=("Consolas", "14"),
+            foreground="white",
+            background="black",
+            command=functools.partial(self.set_selection, reset_items),
+            relief="flat",
+            cursor="hand2",
+        )
+        self.reset_button.grid(row=row, column=1)
+
+    def _nearest(self, y: int) -> int:
+        """Wrapper for self.listbox.nearest"""
+        # Typeshed currently leaves this method untyped
+        return self.listbox.nearest(y)  # type: ignore [no-any-return, no-untyped-call]
+
+    def _toggle_item(self, enabled: bool, item: str) -> None:
+        """Toggles the item's presence in the selection (listbox)"""
+        i: int | None
+
+        for i, current_item in enumerate(self.listbox.get(0, tk.END)):
+            if current_item == item:
+                break
+        else:  # Found no matching item in the list
+            i = None
+
+        if enabled:  # Add the item
+            if i is not None:
+                # The item is already present
+                logger.error(f"Tried adding already present {item} to listbox!")
+                return
+            self.listbox.insert(tk.END, item)
+        else:  # Remove the item
+            if i is None:
+                # The item is not present
+                logger.error(f"Tried removing missing {item} from listbox!")
+                return
+            self.listbox.delete(i)
+
+    def _pick_up_item(self, event: "tk.Event[tk.Listbox]") -> None:
+        """Pick up the list item under the cursor"""
+        self.picked_up_index = self._nearest(event.y)
+
+    def _drop_item(self, event: "tk.Event[tk.Listbox]") -> None:
+        """Drop the currently picked up item"""
+        self.picked_up_index = None
+
+    def _move_item(self, event: "tk.Event[tk.Listbox]") -> None:
+        """Move the picked up item to the current cursor position"""
+        if self.picked_up_index is None:
+            return
+
+        new_index = self._nearest(event.y)
+
+        if self.picked_up_index == new_index:
+            return
+
+        picked_up_item = self.listbox.get(self.picked_up_index)
+        self.listbox.delete(self.picked_up_index)
+        self.listbox.insert(new_index, picked_up_item)
+        self.picked_up_index = new_index
+
+    def set_selection(self, selection: tuple[str, ...]) -> None:
+        """Set the current selection in the listbox"""
+        # Update the listbox
+        self.listbox.delete(0, tk.END)
+        for item in selection:
+            self.listbox.insert(tk.END, item)
+
+        # Update the toggles
+        for item, toggle in self.toggles.items():
+            toggle.set(item in selection, disable_toggle_callback=True)
+
+    def get_selection(self) -> tuple[str, ...]:
+        """Get the current selection in the listbox"""
+        return tuple(self.listbox.get(0, tk.END))
