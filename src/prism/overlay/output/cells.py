@@ -37,6 +37,7 @@ DEFAULT_COLUMN_ORDER: tuple[ColumnName, ...] = (
     "username",
     "stars",
     "fkdr",
+    "kdr",
     "winstreak",
 )
 
