@@ -62,6 +62,18 @@ READ_RATING_CONFIG_COLLECTION_CASES: tuple[
         {"stars": {"type": "level_based", "decimals": -1}},
         DEFAULT_RATING_CONFIG_COLLECTION_DICT,
     ),
+    (
+        dict(DEFAULT_RATING_CONFIG_COLLECTION_DICT, stars=1234),
+        DEFAULT_RATING_CONFIG_COLLECTION_DICT,
+    ),
+    (
+        dict(DEFAULT_RATING_CONFIG_COLLECTION_DICT, wlr=1234),
+        DEFAULT_RATING_CONFIG_COLLECTION_DICT,
+    ),
+    (
+        dict(DEFAULT_RATING_CONFIG_COLLECTION_DICT, wins=1234),
+        DEFAULT_RATING_CONFIG_COLLECTION_DICT,
+    ),
 )
 
 

@@ -170,7 +170,7 @@ def read_rating_config_collection_dict(
         "finals": finals,
         "beds": beds,
         "wins": wins,
-    }, source_updated
+    }, any_source_updated
 
 
 def safe_read_rating_config_collection_dict(
