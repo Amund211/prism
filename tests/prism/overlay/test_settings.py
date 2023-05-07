@@ -430,7 +430,7 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
     (
         {
             "hypixel_api_key": "my-key",
-            # Alpha tenths out of range
+            # Alpha hundredths out of range
             "alpha_hundredths": 1000,
         },
         make_settings_dict(hypixel_api_key="my-key"),
@@ -439,7 +439,7 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
     (
         {
             "hypixel_api_key": "my-key",
-            # Alpha tenths out of range
+            # Alpha hundredths out of range
             "alpha_hundredths": 5,
         },
         make_settings_dict(hypixel_api_key="my-key"),
