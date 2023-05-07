@@ -2,17 +2,40 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Literal, Self, TypedDict
 
+USE_STAR_COLORS = True
+
 STARS_LEVELS = (100.0, 300.0, 500.0, 800.0)
+STARS_DECIMALS = 2
+
 FKDR_LEVELS = (1.0, 2.0, 4.0, 8.0)
+FKDR_DECIMALS = 2
+
 INDEX_LEVELS = (100.0, 1_200.0, 8_000.0, 51_200.0)
+INDEX_DECIMALS = 0
+
 KDR_LEVELS = (1.0, 1.5, 2.0, 3.0)
+KDR_DECIMALS = 2
+
 BBLR_LEVELS = (0.3, 1.0, 2.0, 4.0)
+BBLR_DECIMALS = 2
+
 WLR_LEVELS = (0.3, 1.0, 2.0, 4.0)
+WLR_DECIMALS = 2
+
 WINSTREAK_LEVELS = (5.0, 15.0, 30.0, 50.0)
+WINSTREAK_DECIMALS = 0
+
 KILLS_LEVELS = (5_000.0, 10_000.0, 20_000.0, 40_000.0)
+KILLS_DECIMALS = 0
+
 FINALS_LEVELS = (5_000.0, 10_000.0, 20_000.0, 40_000.0)
+FINALS_DECIMALS = 0
+
 BEDS_LEVELS = (2_000.0, 5_000.0, 10_000.0, 20_000.0)
+BEDS_DECIMALS = 0
+
 WINS_LEVELS = (1_000.0, 3_000.0, 6_000.0, 10_000.0)
+WINS_DECIMALS = 0
 
 
 class RatingConfigDict(TypedDict):
@@ -104,63 +127,83 @@ def read_rating_config_collection_dict(
 
     use_star_colors = source.get("use_star_colors", None)
     if not isinstance(use_star_colors, bool):
-        use_star_colors = True
+        use_star_colors = USE_STAR_COLORS
         any_source_updated = True
 
     stars, source_updated = safe_read_rating_config_dict(
-        source.get("stars", None), default_levels=STARS_LEVELS, default_decimals=2
+        source.get("stars", None),
+        default_levels=STARS_LEVELS,
+        default_decimals=STARS_DECIMALS,
     )
     any_source_updated |= source_updated
 
     index, source_updated = safe_read_rating_config_dict(
-        source.get("index", None), default_levels=INDEX_LEVELS, default_decimals=0
+        source.get("index", None),
+        default_levels=INDEX_LEVELS,
+        default_decimals=INDEX_DECIMALS,
     )
     any_source_updated |= source_updated
 
     fkdr, source_updated = safe_read_rating_config_dict(
-        source.get("fkdr", None), default_levels=FKDR_LEVELS, default_decimals=2
+        source.get("fkdr", None),
+        default_levels=FKDR_LEVELS,
+        default_decimals=FKDR_DECIMALS,
     )
     any_source_updated |= source_updated
 
     kdr, source_updated = safe_read_rating_config_dict(
-        source.get("kdr", None), default_levels=KDR_LEVELS, default_decimals=2
+        source.get("kdr", None),
+        default_levels=KDR_LEVELS,
+        default_decimals=KDR_DECIMALS,
     )
     any_source_updated |= source_updated
 
     bblr, source_updated = safe_read_rating_config_dict(
-        source.get("bblr", None), default_levels=BBLR_LEVELS, default_decimals=2
+        source.get("bblr", None),
+        default_levels=BBLR_LEVELS,
+        default_decimals=BBLR_DECIMALS,
     )
     any_source_updated |= source_updated
 
     wlr, source_updated = safe_read_rating_config_dict(
-        source.get("wlr", None), default_levels=WLR_LEVELS, default_decimals=2
+        source.get("wlr", None),
+        default_levels=WLR_LEVELS,
+        default_decimals=WLR_DECIMALS,
     )
     any_source_updated |= source_updated
 
     winstreak, source_updated = safe_read_rating_config_dict(
         source.get("winstreak", None),
         default_levels=WINSTREAK_LEVELS,
-        default_decimals=2,
+        default_decimals=WINSTREAK_DECIMALS,
     )
     any_source_updated |= source_updated
 
     kills, source_updated = safe_read_rating_config_dict(
-        source.get("kills", None), default_levels=KILLS_LEVELS, default_decimals=0
+        source.get("kills", None),
+        default_levels=KILLS_LEVELS,
+        default_decimals=KILLS_DECIMALS,
     )
     any_source_updated |= source_updated
 
     finals, source_updated = safe_read_rating_config_dict(
-        source.get("finals", None), default_levels=FINALS_LEVELS, default_decimals=0
+        source.get("finals", None),
+        default_levels=FINALS_LEVELS,
+        default_decimals=FINALS_DECIMALS,
     )
     any_source_updated |= source_updated
 
     beds, source_updated = safe_read_rating_config_dict(
-        source.get("beds", None), default_levels=BEDS_LEVELS, default_decimals=0
+        source.get("beds", None),
+        default_levels=BEDS_LEVELS,
+        default_decimals=BEDS_DECIMALS,
     )
     any_source_updated |= source_updated
 
     wins, source_updated = safe_read_rating_config_dict(
-        source.get("wins", None), default_levels=WINS_LEVELS, default_decimals=0
+        source.get("wins", None),
+        default_levels=WINS_LEVELS,
+        default_decimals=WINS_DECIMALS,
     )
     any_source_updated |= source_updated
 
