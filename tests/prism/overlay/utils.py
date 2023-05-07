@@ -34,6 +34,7 @@ DEFAULT_RATING_CONFIG_COLLECTION = RatingConfigCollection.from_dict(
 )
 
 CUSTOM_RATING_CONFIG_COLLECTION_DICT: RatingConfigCollectionDict = {
+    "use_star_colors": False,
     "stars": {
         "type": "level_based",
         "decimals": 0,

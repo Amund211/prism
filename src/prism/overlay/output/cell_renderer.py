@@ -85,7 +85,9 @@ def render_based_on_level(
     )
 
 
-def render_stars(stars: float, decimals: int, levels: tuple[float, ...]) -> CellValue:
+def render_stars(
+    stars: float, decimals: int, levels: tuple[float, ...], use_star_colors: bool
+) -> CellValue:
     """
     Render the user's star using the Hypixel BedWars star colors
 
@@ -93,6 +95,10 @@ def render_stars(stars: float, decimals: int, levels: tuple[float, ...]) -> Cell
     Source (3100-5000): https://hypixel.net/threads/bed-wars-update-new-practice-modes-qol-changes-more.5339873/  # noqa: E501
     """
     text = truncate_float(stars, decimals)
+
+    levels_rating = render_based_on_level(text, stars, levels)
+    if not use_star_colors:
+        return levels_rating
 
     color_sections: tuple[ColorSection, ...]
     prestige = int(stars // 100)
@@ -339,9 +345,7 @@ def render_stars(stars: float, decimals: int, levels: tuple[float, ...]) -> Cell
     color_sections = color_sections + (decimal_color_section,)
 
     # Use regular level based rating for console, and actual star colors in the GUI
-    return replace(
-        render_based_on_level(text, stars, levels), color_sections=color_sections
-    )
+    return replace(levels_rating, color_sections=color_sections)
 
 
 @lru_cache(maxsize=100)
@@ -356,7 +360,10 @@ def render_stats(
         )
 
         stars_cell = render_stars(
-            player.stars, rating_configs.stars.decimals, rating_configs.stars.levels
+            player.stars,
+            rating_configs.stars.decimals,
+            rating_configs.stars.levels,
+            rating_configs.use_star_colors,
         )
         index_cell = render_based_on_level(
             truncate_float_or_int(player.stats.index, rating_configs.index.decimals),

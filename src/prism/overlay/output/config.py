@@ -82,6 +82,7 @@ class RatingConfig:
 class RatingConfigCollectionDict(TypedDict):
     """Dict representing a RatingConfigCollection"""
 
+    use_star_colors: bool
     stars: RatingConfigDict
     index: RatingConfigDict
     fkdr: RatingConfigDict
@@ -100,6 +101,11 @@ def read_rating_config_collection_dict(
 ) -> tuple[RatingConfigCollectionDict, bool]:
     """Read a RatingConfigCollectionDict from the source mapping"""
     any_source_updated = False
+
+    use_star_colors = source.get("use_star_colors", None)
+    if not isinstance(use_star_colors, bool):
+        use_star_colors = True
+        any_source_updated = True
 
     stars, source_updated = safe_read_rating_config_dict(
         source.get("stars", None), default_levels=STARS_LEVELS, default_decimals=2
@@ -159,6 +165,7 @@ def read_rating_config_collection_dict(
     any_source_updated |= source_updated
 
     return {
+        "use_star_colors": use_star_colors,
         "stars": stars,
         "index": index,
         "fkdr": fkdr,
@@ -185,6 +192,7 @@ def safe_read_rating_config_collection_dict(
 class RatingConfigCollection:
     """RatingConfig instances for all stats"""
 
+    use_star_colors: bool
     stars: RatingConfig
     index: RatingConfig
     fkdr: RatingConfig
@@ -200,6 +208,7 @@ class RatingConfigCollection:
     @classmethod
     def from_dict(cls, source: RatingConfigCollectionDict) -> Self:
         return cls(
+            use_star_colors=source["use_star_colors"],
             stars=RatingConfig.from_dict(source["stars"]),
             index=RatingConfig.from_dict(source["index"]),
             fkdr=RatingConfig.from_dict(source["fkdr"]),
@@ -215,6 +224,7 @@ class RatingConfigCollection:
 
     def to_dict(self) -> RatingConfigCollectionDict:
         return {
+            "use_star_colors": self.use_star_colors,
             "stars": self.stars.to_dict(),
             "index": self.index.to_dict(),
             "fkdr": self.fkdr.to_dict(),

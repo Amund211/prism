@@ -1,9 +1,11 @@
 from collections import OrderedDict
 from collections.abc import Sequence
+from dataclasses import replace
 
 import pytest
 
 from prism.overlay.output.cell_renderer import (
+    GUI_COLORS,
     TERMINAL_FORMATTINGS,
     RenderedStats,
     pick_columns,
@@ -422,7 +424,21 @@ def test_render_stars(
     cell_value: CellValue,
     levels: tuple[float, ...] = STAR_LEVELS,
 ) -> None:
-    assert render_stars(stars, decimals, levels) == cell_value
+    assert render_stars(stars, decimals, levels, use_star_colors=True) == cell_value
+
+    cell_value_no_star_color = replace(
+        cell_value,
+        color_sections=(
+            ColorSection(
+                GUI_COLORS[TERMINAL_FORMATTINGS.index(cell_value.terminal_formatting)],
+                -1,
+            ),
+        ),
+    )
+    assert (
+        render_stars(stars, decimals, levels, use_star_colors=False)
+        == cell_value_no_star_color
+    )
 
 
 USERNAME_VALUE = CellValue.monochrome(
