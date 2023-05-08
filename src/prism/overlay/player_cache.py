@@ -21,6 +21,7 @@ class PlayerCache:
         # Can be used to prevent refetching during a game (while stats don't change)
         self._long_term_cache = TTLCache[str, Player](maxsize=512, ttl=60 * 60)
 
+        # TTLCache is not thread-safe so we use a mutex to synchronize threads
         self._mutex = threading.Lock()
 
     def set_player_pending(self, username: str) -> PendingPlayer:
