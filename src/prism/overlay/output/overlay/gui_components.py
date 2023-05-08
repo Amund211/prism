@@ -250,7 +250,12 @@ class OrderedMultiSelect:  # pragma: no coverage
         self.items = items
 
         self.listbox = tk.Listbox(
-            self.frame, activestyle=tk.NONE, height=len(items), bg="black", fg="white"
+            self.frame,
+            activestyle=tk.NONE,
+            height=len(items),
+            bg="black",
+            fg="white",
+            cursor="hand2",
         )
         self.listbox.pack(side=tk.LEFT)
 
