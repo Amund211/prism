@@ -1,3 +1,4 @@
+import math
 from collections import deque
 from enum import Enum, unique
 from pathlib import Path
@@ -17,6 +18,10 @@ def read_key(key_file: Path) -> str:
 
 def truncate_float(number: float, precision: int, *, extra_digits: int = 10) -> str:
     """Return the string (f) representation of number rounded down"""
+    if not math.isfinite(number):
+        # NaN and +-inf
+        return str(number)
+
     if precision < 0:
         raise ValueError("Negative precision not supported")
     elif precision == 0:

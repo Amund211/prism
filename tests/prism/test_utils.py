@@ -44,6 +44,14 @@ def test_read_key(file_content: str, key: str, tmp_path: Path) -> None:
         (1.15, 0, "1"),
         (0, 0, "0"),
         (-1.15, 0, "-1"),
+        (INF, 0, "inf"),
+        (INF, 1, "inf"),
+        (-INF, 0, "-inf"),
+        (-INF, 1, "-inf"),
+        (float("nan"), 0, "nan"),
+        (float("nan"), 1, "nan"),
+        (float("-nan"), 0, "nan"),
+        (float("-nan"), 1, "nan"),
     ),
 )
 def test_truncate_float(number: float, precision: int, result: str) -> None:
