@@ -65,6 +65,7 @@ class KnownPlayer:
     stars: float
     username: str
     uuid: str
+    channel: str
     nick: str | None = field(default=None)
 
     @property
@@ -186,6 +187,8 @@ def rate_player(
                 if player.stats.winstreak is not None
                 else float("inf")
             )
+        elif column == "channel":
+            stat = player.channel
         else:  # pragma: no coverage
             assert_never(column)
     else:
@@ -225,6 +228,7 @@ def create_known_player(
             nick=nick,
             uuid=uuid,
             stars=0,
+            channel="-",
             stats=Stats(
                 index=0,
                 fkdr=0,
@@ -258,6 +262,7 @@ def create_known_player(
         nick=nick,
         uuid=uuid,
         stars=stars,
+        channel=playerdata.get("channel", "-"),
         stats=Stats(
             index=stars * fkdr**2,
             fkdr=fkdr,

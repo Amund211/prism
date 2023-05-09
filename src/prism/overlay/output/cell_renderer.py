@@ -46,6 +46,7 @@ class RenderedStats:
     finals: CellValue
     beds: CellValue
     wins: CellValue
+    channel: CellValue
 
 
 def truncate_float_or_int(value: float | int, decimals: int) -> str:
@@ -421,6 +422,11 @@ def render_stats(
             player.stats.wins,
             rating_configs.wins.levels,
         )
+        channel_cell = render_based_on_level(
+            player.channel,
+            1,
+            (1, 2, 3, 4),
+        )
     else:
         if isinstance(player, NickedPlayer):
             text = "unknown"
@@ -438,6 +444,7 @@ def render_stats(
         )
         stars_cell = index_cell = fkdr_cell = kdr_cell = bblr_cell = wlr_cell = cell
         winstreak_cell = kills_cell = finals_cell = beds_cell = wins_cell = cell
+        channel_cell = cell
 
     username_cell = CellValue.monochrome(
         username_str,
@@ -458,6 +465,7 @@ def render_stats(
         finals=finals_cell,
         beds=beds_cell,
         wins=wins_cell,
+        channel=channel_cell,
     )
 
 

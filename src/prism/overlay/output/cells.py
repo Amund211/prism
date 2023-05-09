@@ -14,6 +14,7 @@ ColumnName = Literal[
     "finals",
     "beds",
     "wins",
+    "channel",
 ]
 
 ALL_COLUMN_NAMES_ORDERED: tuple[ColumnName, ...] = (
@@ -29,6 +30,7 @@ ALL_COLUMN_NAMES_ORDERED: tuple[ColumnName, ...] = (
     "finals",
     "beds",
     "wins",
+    "channel",
 )
 
 ALL_COLUMN_NAMES: frozenset[ColumnName] = frozenset(ALL_COLUMN_NAMES_ORDERED)
@@ -54,6 +56,7 @@ COLUMN_NAMES: dict[ColumnName, str] = {
     "finals": "Finals",
     "beds": "Beds",
     "wins": "Wins",
+    "channel": "Channel",
 }
 
 
