@@ -7,6 +7,7 @@ from prism.overlay.player import (
     NickedPlayer,
     PendingPlayer,
     create_known_player,
+    get_playerdata_field,
 )
 
 logger = logging.getLogger(__name__)
@@ -67,7 +68,10 @@ def fetch_bedwars_stats(
 
     if not denicked and playerdata is not None:
         # We think the player is not nicked, and have found their stats
-        displayname = playerdata.get("displayname", "<missing name>")
+        displayname = get_playerdata_field(
+            playerdata, "displayname", str, "<missing name>"
+        )
+
         if displayname.lower() != username.lower():
             # ... but their displayname is incorrect - assume that the playerdata is
             # outdated and that the player is actually nicked. Try denicking.
@@ -95,7 +99,9 @@ def fetch_bedwars_stats(
 
     if nick is not None:
         # Successfully de-nicked - update actual username
-        username = playerdata.get("displayname", "<missing name>")
+        username = get_playerdata_field(
+            playerdata, "displayname", str, "<missing name>"
+        )
         logger.debug(f"De-nicked {nick} as {username}")
 
     return create_known_player(playerdata, username=username, uuid=uuid, nick=nick)

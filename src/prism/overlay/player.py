@@ -2,7 +2,7 @@ import functools
 import operator
 from collections.abc import Set
 from dataclasses import dataclass, field, replace
-from typing import TYPE_CHECKING, Any, Literal, Self, TypedDict, assert_never
+from typing import TYPE_CHECKING, Any, Literal, Self, TypedDict, TypeVar, assert_never
 
 from prism.calc import bedwars_level_from_exp
 from prism.hypixel import MissingStatsError, get_gamemode_stats
@@ -214,6 +214,18 @@ def sort_players(
     )
 
 
+T = TypeVar("T")
+
+
+def get_playerdata_field(
+    playerdata: dict[str, object], field: str, data_type: type[T], default: T
+) -> T:
+    value = playerdata.get(field, None)
+    if not isinstance(value, data_type):
+        value = default
+    return value
+
+
 def create_known_player(
     playerdata: dict[str, Any], username: str, uuid: str, nick: str | None = None
 ) -> KnownPlayer:
@@ -240,19 +252,22 @@ def create_known_player(
             ),
         )
 
-    winstreak = bw_stats.get("winstreak", None)
-    stars = bedwars_level_from_exp(bw_stats.get("Experience", 500))
-    kills = bw_stats.get("kills_bedwars", 0)
-    finals = bw_stats.get("final_kills_bedwars", 0)
-    beds = bw_stats.get("beds_broken_bedwars", 0)
-    wins = bw_stats.get("wins_bedwars", 0)
+    # This line shouldn't pass type-checking, but it does the right thing
+    winstreak = get_playerdata_field(bw_stats, "winstreak", int, None)
+    stars = bedwars_level_from_exp(
+        get_playerdata_field(bw_stats, "Experience", int, 500)
+    )
+    kills = get_playerdata_field(bw_stats, "kills_bedwars", int, 0)
+    finals = get_playerdata_field(bw_stats, "final_kills_bedwars", int, 0)
+    beds = get_playerdata_field(bw_stats, "beds_broken_bedwars", int, 0)
+    wins = get_playerdata_field(bw_stats, "wins_bedwars", int, 0)
 
     if winstreak is None and wins == 0:
         # The winstreak field is not populated until your first win
         # If you have no wins we know you don't have a winstreak
         winstreak = 0
 
-    fkdr = div(finals, bw_stats.get("final_deaths_bedwars", 0))
+    fkdr = div(finals, get_playerdata_field(bw_stats, "final_deaths_bedwars", int, 0))
     return KnownPlayer(
         username=username,
         nick=nick,
@@ -261,9 +276,12 @@ def create_known_player(
         stats=Stats(
             index=stars * fkdr**2,
             fkdr=fkdr,
-            kdr=div(kills, bw_stats.get("deaths_bedwars", 0)),
-            bblr=div(beds, bw_stats.get("beds_lost_bedwars", 0)),
-            wlr=div(wins, bw_stats.get("games_played_bedwars", 0) - wins),
+            kdr=div(kills, get_playerdata_field(bw_stats, "deaths_bedwars", int, 0)),
+            bblr=div(beds, get_playerdata_field(bw_stats, "beds_lost_bedwars", int, 0)),
+            wlr=div(
+                wins,
+                get_playerdata_field(bw_stats, "games_played_bedwars", int, 0) - wins,
+            ),
             winstreak=winstreak,
             winstreak_accurate=winstreak is not None,
             kills=kills,
