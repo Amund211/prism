@@ -163,6 +163,35 @@ def test_fetch_bedwars_stats(
     )
 
 
+def test_fetch_bedwars_stats_wrong_displayname(
+    technoblade_playerdata: dict[str, Any]
+) -> None:
+    wrong_user = User(
+        uuid="fe3d80923dcf4147a35921f6b9fc460f",
+        username="Summer173",
+        nick=None,
+        playerdata={
+            "_id": "61bc6102941308034eb5121f",
+            "uuid": "fe3d80923dcf4147a35921f6b9fc460f",
+            # The displayname on Hypixel is not correct, which should mean that this
+            # player hasn't been on Hypixel for a while -> the person in the queue with
+            # the name Summer173 must be a nick
+            "displayname": "Sween_Sween",
+            "firstLogin": 1639735554687,
+            "lastLogin": 1641092163374,
+            "playername": "sween_sween",
+            # Patch in some actual stats so we know we're testing the right thing
+            "stats": technoblade_playerdata["stats"],
+            "lastLogout": 1641092607085,
+            "networkExp": 99720,
+        },
+    )
+
+    controller = make_scenario_controller(wrong_user)
+
+    assert fetch_bedwars_stats("Summer173", controller) == NickedPlayer("Summer173")
+
+
 def test_fetch_bedwars_stats_weird(ares_playerdata: dict[str, Any]) -> None:
     ares = User(
         uuid="fffaceca46b24658b21f12c3cd2b413f",
@@ -172,9 +201,9 @@ def test_fetch_bedwars_stats_weird(ares_playerdata: dict[str, Any]) -> None:
     )
     controller = make_scenario_controller(ares)
 
-    target = create_known_player(
-        playerdata=ares_playerdata, username=ares.username, uuid=ares.uuid, nick=None
-    )
+    # Since the displayname field is missing from their stats, it will not match Ares,
+    # and we assume it is a nick.
+    target = NickedPlayer("Ares")
 
     assert fetch_bedwars_stats("Ares", controller) == target
 
@@ -188,6 +217,8 @@ def test_fetch_bedwars_stats_weird_nicked(ares_playerdata: dict[str, Any]) -> No
     )
     controller = make_scenario_controller(ares)
 
+    # Since we get the uuid from a denick we do not know a username, and cannot verify
+    # that they are a real player. We therefore trust the playerdata to be real.
     target = create_known_player(
         playerdata=ares_playerdata,
         username="<missing name>",  # We rely on Hypixel to provide us the username

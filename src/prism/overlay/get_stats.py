@@ -65,6 +65,18 @@ def fetch_bedwars_stats(
         f"Initial stats for {username} ({uuid}) {denicked=} {playerdata is None=}"
     )
 
+    if not denicked and playerdata is not None:
+        # We think the player is not nicked, and have found their stats
+        displayname = playerdata.get("displayname", "<missing name>")
+        if displayname.lower() != username.lower():
+            # ... but their displayname is incorrect - assume that the playerdata is
+            # outdated and that the player is actually nicked. Try denicking.
+            logger.error(
+                f"Mismatching displayname for {username=} {uuid=} {displayname=}. "
+                "Assuming the player is nicked and attempting denick."
+            )
+            playerdata = None
+
     if not denicked and playerdata is None:
         # The username may be an existing minecraft account that has not
         # logged on to Hypixel. Then we would get a hit from Mojang, but
