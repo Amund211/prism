@@ -61,11 +61,13 @@ def construct_key_dict(source_dict: MutableMapping[Any, Any]) -> KeyDict | None:
     if key_type == "special":
         vk = source_dict.get("vk", None)
         if vk is None or isinstance(vk, int):
-            return SpecialKeyDict(name=name, vk=vk, key_type=key_type)
+            return SpecialKeyDict(name=name, vk=vk, key_type="special")
     elif key_type == "alphanumeric":
         char = source_dict.get("char", None)
         if isinstance(char, str):
-            return AlphanumericKeyDict(name=name, char=char.lower(), key_type=key_type)
+            return AlphanumericKeyDict(
+                name=name, char=char.lower(), key_type="alphanumeric"
+            )
 
     return None
 
