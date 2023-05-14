@@ -278,10 +278,7 @@ def create_known_player(
             fkdr=fkdr,
             kdr=div(kills, get_playerdata_field(bw_stats, "deaths_bedwars", int, 0)),
             bblr=div(beds, get_playerdata_field(bw_stats, "beds_lost_bedwars", int, 0)),
-            wlr=div(
-                wins,
-                get_playerdata_field(bw_stats, "games_played_bedwars", int, 0) - wins,
-            ),
+            wlr=div(wins, get_playerdata_field(bw_stats, "losses_bedwars", int, 0)),
             winstreak=winstreak,
             winstreak_accurate=winstreak is not None,
             kills=kills,

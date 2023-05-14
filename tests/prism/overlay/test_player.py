@@ -511,7 +511,7 @@ def test_create_known_player(technoblade_playerdata: Mapping[str, object]) -> No
             fkdr=20124 / 260,
             kdr=7707 / 7578,
             bblr=6591 / 592,
-            wlr=4924 / (5184 - 4924),
+            wlr=4924 / 259,
             winstreak=None,
             winstreak_accurate=False,
             kills=7707,
@@ -525,6 +525,40 @@ def test_create_known_player(technoblade_playerdata: Mapping[str, object]) -> No
         playerdata=technoblade_playerdata,
         username="Technoblade",
         uuid="b876ec32e396476ba1158438d83c67d4",
+        nick=None,
+    )
+
+    assert result == target
+
+
+def test_create_known_player_seeecret(
+    seeecret_playerdata: Mapping[str, object]
+) -> None:
+    fkdr = 12378
+    stars = 76 + 805 / 5000
+    target = KnownPlayer(
+        username="Seeecret",
+        uuid="437e8dfc93e6490ca90bde65f1b29d62",
+        stars=stars,
+        stats=Stats(
+            index=stars * fkdr**2,
+            fkdr=fkdr,
+            kdr=3860 / 3304,
+            bblr=3272,
+            wlr=3238,
+            winstreak=3238,
+            winstreak_accurate=True,
+            kills=3860,
+            finals=fkdr,
+            beds=3272,
+            wins=3238,
+        ),
+    )
+
+    result = create_known_player(
+        playerdata=seeecret_playerdata,
+        username="Seeecret",
+        uuid="437e8dfc93e6490ca90bde65f1b29d62",
         nick=None,
     )
 

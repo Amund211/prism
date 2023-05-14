@@ -35,3 +35,13 @@ def ares_playerdata(data_directory: Path) -> Mapping[str, object]:
 
     assert response["success"]
     return cast(Mapping[str, object], response["player"])
+
+
+@pytest.fixture(scope="session")
+def seeecret_playerdata(data_directory: Path) -> Mapping[str, object]:
+    """Return playerdata for Seeecret"""
+    with (data_directory / "seeecret_2023_05_14.json").open("r") as f:
+        response = json.load(f)
+
+    assert response["success"]
+    return cast(Mapping[str, object], response["player"])
