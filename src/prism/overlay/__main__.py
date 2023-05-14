@@ -28,7 +28,7 @@ from prism.overlay.player import Player
 from prism.overlay.process_event import fast_forward_state
 from prism.overlay.settings import PLACEHOLDER_API_KEY, Settings, get_settings
 from prism.overlay.state import OverlayState
-from prism.overlay.threading import prepare_overlay
+from prism.overlay.threading import prepare_overlay, recommend_stats_thread_count
 from prism.overlay.user_interaction.get_api_key import wait_for_api_key
 from prism.overlay.user_interaction.get_logfile import prompt_for_logfile_path
 
@@ -66,14 +66,10 @@ def slow_iterable(
 
 
 def process_loglines_to_stdout(
-    controller: OverlayController,
-    loglines: Iterable[str],
-    thread_count: int,
+    controller: OverlayController, loglines: Iterable[str]
 ) -> None:  # pragma: nocover
     """Process the state changes for each logline and redraw the screen if neccessary"""
-    get_stat_list = prepare_overlay(
-        controller, loglines=loglines, thread_count=thread_count
-    )
+    get_stat_list = prepare_overlay(controller, loglines=loglines)
 
     while True:
         time.sleep(0.1)
@@ -97,15 +93,10 @@ def process_loglines_to_stdout(
 
 
 def process_loglines_to_overlay(
-    controller: OverlayController,
-    loglines: Iterable[str],
-    output_to_console: bool,
-    thread_count: int,
+    controller: OverlayController, loglines: Iterable[str], output_to_console: bool
 ) -> None:  # pragma: nocover
     """Process the state changes for each logline and output to an overlay"""
-    get_stat_list = prepare_overlay(
-        controller, loglines=loglines, thread_count=thread_count
-    )
+    get_stat_list = prepare_overlay(controller, loglines=loglines)
 
     if output_to_console:
         # Output to console every time we get a new stats list
@@ -138,7 +129,6 @@ def watch_from_logfile(
     console: bool,
     settings: Settings,
     nick_database: NickDatabase,
-    thread_count: int,
 ) -> None:  # pragma: nocover
     """Use the overlay on an active logfile"""
 
@@ -164,15 +154,12 @@ def watch_from_logfile(
 
     # Process the rest of the loglines as they come in
     if not overlay:
-        process_loglines_to_stdout(
-            controller, loglines=loglines, thread_count=thread_count
-        )
+        process_loglines_to_stdout(controller, loglines=loglines)
     else:
         process_loglines_to_overlay(
             controller,
             loglines=loglines,
             output_to_console=console,
-            thread_count=thread_count,
         )
 
 
@@ -260,7 +247,11 @@ def test() -> None:  # pragma: nocover
     if slow:
         loglines = slow_iterable(loglines, wait=wait)
 
-    settings = get_settings(options.settings_path, lambda: "not-a-valid-api-key")
+    settings = get_settings(
+        options.settings_path,
+        lambda: "not-a-valid-api-key",
+        recommend_stats_thread_count(),
+    )
 
     with settings.mutex:
         default_database = {
@@ -279,15 +270,12 @@ def test() -> None:  # pragma: nocover
     )
 
     if not overlay:
-        process_loglines_to_stdout(
-            controller, loglines=loglines, thread_count=options.threads
-        )
+        process_loglines_to_stdout(controller, loglines=loglines)
     else:
         process_loglines_to_overlay(
             controller,
             loglines=loglines,
             output_to_console=console,
-            thread_count=options.threads,
         )
 
 
@@ -304,7 +292,11 @@ def main(*nick_databases: Path) -> None:  # pragma: nocover
         sys.exit(1)
 
     # Do an initial read of the settings without populating a missing hypixel api key
-    settings = get_settings(options.settings_path, lambda: PLACEHOLDER_API_KEY)
+    settings = get_settings(
+        options.settings_path,
+        lambda: PLACEHOLDER_API_KEY,
+        recommend_stats_thread_count(),
+    )
 
     if options.logfile_path is None:
         logfile_path = prompt_for_logfile_path(
@@ -318,6 +310,7 @@ def main(*nick_databases: Path) -> None:  # pragma: nocover
         settings = get_settings(
             options.settings_path,
             functools.partial(wait_for_api_key, logfile_path, options.settings_path),
+            2,  # stats_thread_count is set by the previous read
         )
 
     with settings.mutex:
@@ -335,7 +328,6 @@ def main(*nick_databases: Path) -> None:  # pragma: nocover
         console=options.output_to_console,
         settings=settings,
         nick_database=nick_database,
-        thread_count=options.threads,
     )
 
 

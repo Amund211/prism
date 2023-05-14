@@ -11,7 +11,6 @@ class Options:
     settings_path: Path
     output_to_console: bool
     loglevel: int
-    threads: int
 
 
 def resolve_path(p: str) -> Path:  # pragma: no cover
@@ -56,14 +55,6 @@ def get_options(
         default=0,
     )
 
-    parser.add_argument(
-        "-t",
-        "--threads",
-        help="Number of threads for getting stats",
-        type=int,
-        default=16,
-    )
-
     # Parse the args
     # Parses from sys.argv if args is None
     parsed = parser.parse_args(args=args)
@@ -72,7 +63,6 @@ def get_options(
     assert isinstance(parsed.settings, Path)
     assert isinstance(parsed.quiet, bool)
     assert isinstance(parsed.verbose, int)
-    assert isinstance(parsed.threads, int)
 
     if parsed.verbose <= 0:
         # Default loglevel to INFO
@@ -93,5 +83,4 @@ def get_options(
         settings_path=parsed.settings,
         output_to_console=not parsed.quiet,
         loglevel=loglevel,
-        threads=parsed.threads,
     )

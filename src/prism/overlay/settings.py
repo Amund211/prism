@@ -53,6 +53,7 @@ class SettingsDict(TypedDict):
     show_on_tab: bool
     show_on_tab_keybind: KeyDict
     check_for_updates: bool
+    stats_thread_count: int
     hide_dead_players: bool
     disable_overrideredirect: bool
     hide_with_alpha: bool
@@ -75,6 +76,7 @@ class Settings:
     show_on_tab: bool
     show_on_tab_keybind: Key
     check_for_updates: bool
+    stats_thread_count: int
     hide_dead_players: bool
     disable_overrideredirect: bool
     hide_with_alpha: bool
@@ -99,6 +101,7 @@ class Settings:
             show_on_tab=source["show_on_tab"],
             show_on_tab_keybind=construct_key(source["show_on_tab_keybind"]),
             check_for_updates=source["check_for_updates"],
+            stats_thread_count=source["stats_thread_count"],
             hide_dead_players=source["hide_dead_players"],
             disable_overrideredirect=source["disable_overrideredirect"],
             hide_with_alpha=source["hide_with_alpha"],
@@ -120,6 +123,7 @@ class Settings:
             "show_on_tab": self.show_on_tab,
             "show_on_tab_keybind": self.show_on_tab_keybind.to_dict(),
             "check_for_updates": self.check_for_updates,
+            "stats_thread_count": self.stats_thread_count,
             "hide_dead_players": self.hide_dead_players,
             "disable_overrideredirect": self.disable_overrideredirect,
             "hide_with_alpha": self.hide_with_alpha,
@@ -142,6 +146,7 @@ class Settings:
         self.show_on_tab = new_settings["show_on_tab"]
         self.show_on_tab_keybind = construct_key(new_settings["show_on_tab_keybind"])
         self.check_for_updates = new_settings["check_for_updates"]
+        self.stats_thread_count = new_settings["stats_thread_count"]
         self.hide_dead_players = new_settings["hide_dead_players"]
         self.disable_overrideredirect = new_settings["disable_overrideredirect"]
         self.hide_with_alpha = new_settings["hide_with_alpha"]
@@ -189,7 +194,9 @@ def get_boolean_setting(
 
 
 def fill_missing_settings(
-    incomplete_settings: Mapping[str, object], get_api_key: Callable[[], str]
+    incomplete_settings: Mapping[str, object],
+    get_api_key: Callable[[], str],
+    default_stats_thread_count: int,
 ) -> tuple[SettingsDict, bool]:
     """Get settings from `incomplete_settings` and fill with defaults if missing"""
     settings_updated = False
@@ -293,6 +300,11 @@ def fill_missing_settings(
         incomplete_settings, "check_for_updates", settings_updated, default=True
     )
 
+    stats_thread_count = incomplete_settings.get("stats_thread_count", None)
+    if not isinstance(stats_thread_count, int) or not 1 <= stats_thread_count <= 16:
+        settings_updated = True
+        stats_thread_count = default_stats_thread_count
+
     hide_dead_players, settings_updated = get_boolean_setting(
         incomplete_settings, "hide_dead_players", settings_updated, default=True
     )
@@ -323,6 +335,7 @@ def fill_missing_settings(
         "show_on_tab": show_on_tab,
         "show_on_tab_keybind": show_on_tab_keybind,
         "check_for_updates": check_for_updates,
+        "stats_thread_count": stats_thread_count,
         "hide_dead_players": hide_dead_players,
         "disable_overrideredirect": disable_overrideredirect,
         "hide_with_alpha": hide_with_alpha,
@@ -330,7 +343,9 @@ def fill_missing_settings(
     }, settings_updated
 
 
-def get_settings(path: Path, get_api_key: Callable[[], str]) -> Settings:
+def get_settings(
+    path: Path, get_api_key: Callable[[], str], default_stats_thread_count: int
+) -> Settings:
     """
     Read the stored settings into a Settings object
 
@@ -351,7 +366,7 @@ def get_settings(path: Path, get_api_key: Callable[[], str]) -> Settings:
             toml.dump(incomplete_settings, f)
 
     settings_dict, settings_updated = fill_missing_settings(
-        incomplete_settings, get_api_key
+        incomplete_settings, get_api_key, default_stats_thread_count
     )
 
     settings = Settings.from_dict(settings_dict, path=path)

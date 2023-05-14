@@ -568,6 +568,10 @@ class SettingsPage:  # pragma: nocover
         hypixel_api_key = self.hypixel_section.get()
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
 
+        # TODO: Add section to edit stats_thread_count
+        with self.controller.settings.mutex:
+            stats_thread_count = self.controller.settings.stats_thread_count
+
         # TODO: Add section to edit rating configs
         with self.controller.settings.mutex:
             rating_configs_dict = self.controller.settings.rating_configs.to_dict()
@@ -596,6 +600,7 @@ class SettingsPage:  # pragma: nocover
             show_on_tab=show_on_tab,
             show_on_tab_keybind=show_on_tab_keybind.to_dict(),
             check_for_updates=check_for_updates,
+            stats_thread_count=stats_thread_count,
             hide_dead_players=hide_dead_players,
             disable_overrideredirect=disable_overrideredirect,
             hide_with_alpha=hide_with_alpha,

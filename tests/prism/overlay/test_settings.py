@@ -35,6 +35,8 @@ from tests.prism.overlay.utils import (
 
 KEY_IF_MISSING = "KEY_IF_MISSING"
 
+DEFAULT_STATS_THREAD_COUNT = 7
+
 
 def make_settings_dict(
     hypixel_api_key: str | None = None,
@@ -49,6 +51,7 @@ def make_settings_dict(
     show_on_tab: bool | None = None,
     show_on_tab_keybind: KeyDict | None = None,
     check_for_updates: bool | None = None,
+    stats_thread_count: int | None = None,
     hide_dead_players: bool | None = None,
     disable_overrideredirect: bool | None = None,
     hide_with_alpha: bool | None = None,
@@ -78,6 +81,9 @@ def make_settings_dict(
             default=SpecialKeyDict(name="tab", vk=None, key_type="special"),
         ),
         "check_for_updates": value_or_default(check_for_updates, default=True),
+        "stats_thread_count": value_or_default(
+            stats_thread_count, default=DEFAULT_STATS_THREAD_COUNT
+        ),
         "hide_dead_players": value_or_default(hide_dead_players, default=True),
         "disable_overrideredirect": value_or_default(
             disable_overrideredirect, default=False
@@ -108,6 +114,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             show_on_tab=True,
             show_on_tab_keybind=AlphanumericKey(name="a", char="a"),
             check_for_updates=True,
+            stats_thread_count=4,
             hide_dead_players=True,
             disable_overrideredirect=True,
             hide_with_alpha=True,
@@ -129,6 +136,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
                 name="a", char="a", key_type="alphanumeric"
             ),
             "check_for_updates": True,
+            "stats_thread_count": 4,
             "hide_dead_players": True,
             "disable_overrideredirect": True,
             "hide_with_alpha": True,
@@ -149,6 +157,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             show_on_tab=False,
             show_on_tab_keybind=SpecialKey(name="tab", vk=None),
             check_for_updates=False,
+            stats_thread_count=16,
             hide_dead_players=False,
             disable_overrideredirect=False,
             hide_with_alpha=False,
@@ -170,6 +179,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
                 name="tab", vk=None, key_type="special"
             ),
             "check_for_updates": False,
+            "stats_thread_count": 16,
             "hide_dead_players": False,
             "disable_overrideredirect": False,
             "hide_with_alpha": False,
@@ -234,15 +244,17 @@ def test_read_and_write_settings(
     # read_settings_dict = read_settings(settings.path)
     # assert read_settings_dict == settings_dict
 
-    assert get_settings(settings.path, get_api_key) == settings
+    assert (
+        get_settings(settings.path, get_api_key, DEFAULT_STATS_THREAD_COUNT) == settings
+    )
 
 
 def test_read_missing_settings_file(tmp_path: Path) -> None:
     # Assert that get_settings doesn't fail when file doesn't exist
     empty_path = tmp_path / "settings2.toml"
-    assert get_settings(empty_path, get_api_key) == Settings.from_dict(
-        source=make_settings_dict(), path=empty_path
-    )
+    assert get_settings(
+        empty_path, get_api_key, DEFAULT_STATS_THREAD_COUNT
+    ) == Settings.from_dict(source=make_settings_dict(), path=empty_path)
 
 
 def test_flush_settings_from_controller(tmp_path: Path) -> None:
@@ -253,7 +265,9 @@ def test_flush_settings_from_controller(tmp_path: Path) -> None:
     settings = make_settings(hypixel_api_key="my-key", path=tmp_path / "settings.toml")
 
     # File not found
-    assert get_settings(settings.path, get_api_key) != settings
+    assert (
+        get_settings(settings.path, get_api_key, DEFAULT_STATS_THREAD_COUNT) != settings
+    )
 
     controller = RealOverlayController(
         state=create_state(), settings=settings, nick_database=NickDatabase([{}])
@@ -262,7 +276,9 @@ def test_flush_settings_from_controller(tmp_path: Path) -> None:
     controller.store_settings()
 
     # File properly stored
-    assert get_settings(settings.path, get_api_key) == settings
+    assert (
+        get_settings(settings.path, get_api_key, DEFAULT_STATS_THREAD_COUNT) == settings
+    )
 
 
 def test_get_boolean_setting() -> None:
@@ -300,6 +316,7 @@ fill_settings_test_cases: tuple[
                 name="somekey", vk=123456, key_type="special"
             ),
             "check_for_updates": False,
+            "stats_thread_count": 9,
             "hide_dead_players": False,
             "disable_overrideredirect": True,
             "hide_with_alpha": True,
@@ -320,6 +337,7 @@ fill_settings_test_cases: tuple[
                 name="somekey", vk=123456, key_type="special"
             ),
             check_for_updates=False,
+            stats_thread_count=9,
             hide_dead_players=False,
             disable_overrideredirect=True,
             hide_with_alpha=True,
@@ -541,6 +559,38 @@ fill_settings_test_cases: tuple[
         make_settings_dict(),
         True,
     ),
+    # Invalid stats_thread_count
+    (
+        {"stats_thread_count": []},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        {"stats_thread_count": "lkJ"},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        {"stats_thread_count": 0},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        {"stats_thread_count": 17},
+        make_settings_dict(),
+        True,
+    ),
+    # Valid stats_thread_count
+    (
+        {"stats_thread_count": 1},
+        make_settings_dict(stats_thread_count=1),
+        True,
+    ),
+    (
+        {"stats_thread_count": 16},
+        make_settings_dict(stats_thread_count=16),
+        True,
+    ),
 )
 
 
@@ -553,7 +603,7 @@ def test_fill_missing_settings(
     result_updated: bool,
 ) -> None:
     settings_dict, settings_updated = fill_missing_settings(
-        incomplete_settings, get_api_key
+        incomplete_settings, get_api_key, DEFAULT_STATS_THREAD_COUNT
     )
     assert settings_dict == result_dict
     assert settings_updated == result_updated

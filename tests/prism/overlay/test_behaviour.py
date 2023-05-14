@@ -335,6 +335,7 @@ def test_update_settings_everything_changed() -> None:
             name="a", char="a", key_type="alphanumeric"
         ),
         check_for_updates=False,
+        stats_thread_count=12,
         hide_dead_players=False,
         disable_overrideredirect=True,
         hide_with_alpha=True,

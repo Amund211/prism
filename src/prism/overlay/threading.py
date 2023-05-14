@@ -1,9 +1,11 @@
 import logging
+import os
 import queue
 import sys
 import threading
 import time
 from collections.abc import Callable, Iterable
+from functools import cache
 
 from prism.overlay.behaviour import get_stats_and_winstreak, should_redraw
 from prism.overlay.controller import OverlayController
@@ -12,6 +14,32 @@ from prism.overlay.process_event import process_loglines
 from prism.update_checker import update_available
 
 logger = logging.getLogger(__name__)
+
+
+def get_cpu_count() -> int | None:
+    """Return the amount of logical cores on the computer, None if failure"""
+    try:
+        return os.cpu_count()
+    except OSError:  # pragma: no coverage
+        logger.exception("Failed getting cpu count")
+        return None
+
+
+def recommend_stats_thread_count_from_cpu_count(cpu_count: int | None) -> int:
+    """Recommend cpu_count - 2 restricted to [2, 16], 2 if failure"""
+    if cpu_count is not None:
+        # Leave 2 cores for the main thread and the state updater
+        # Restrict number of threads to [2, 16]
+        return max(2, min(16, cpu_count - 2))
+
+    logger.warning("Failed getting cpu count, defaulting to 2 stats threads")
+    return 2
+
+
+@cache
+def recommend_stats_thread_count() -> int:
+    """Recommend an amount of concurrent stats thread for the current cpu"""
+    return recommend_stats_thread_count_from_cpu_count(get_cpu_count())
 
 
 class UpdateStateThread(threading.Thread):  # pragma: nocover
@@ -71,7 +99,7 @@ class GetStatsThread(threading.Thread):  # pragma: nocover
                 self.requests_queue.task_done()
         except Exception:
             logger.exception("Exception caught in stats thread. Exiting.")
-            # Since we spawn 16 stats threads at the start, we can afford some
+            # Since we spawn multiple stats threads at the start, we can afford some
             # casualties without the overlay completely breaking
 
 
@@ -128,7 +156,7 @@ class UpdateCheckerOneShotThread(threading.Thread):  # pragma: nocover
 
 
 def prepare_overlay(
-    controller: OverlayController, loglines: Iterable[str], thread_count: int
+    controller: OverlayController, loglines: Iterable[str]
 ) -> Callable[[], list[Player] | None]:  # pragma: nocover
     """
     Set up and return get_stat_list
@@ -148,7 +176,7 @@ def prepare_overlay(
     UpdateStateThread(controller=controller, loglines=loglines).start()
 
     # Spawn threads for downloading stats
-    for i in range(thread_count):
+    for i in range(controller.settings.stats_thread_count):
         GetStatsThread(
             requests_queue=requested_stats_queue,
             completed_queue=completed_stats_queue,

@@ -235,6 +235,7 @@ def make_settings(
                 "known_nicks": known_nicks or {},
             },
             get_api_key,
+            2,
         )[0],
         path=cast(Path, path or PurePath("make_settings_settingsfile.json")),
     )
