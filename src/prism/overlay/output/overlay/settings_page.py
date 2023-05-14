@@ -1,3 +1,4 @@
+import functools
 import logging
 import tkinter as tk
 from typing import TYPE_CHECKING, Any
@@ -18,7 +19,10 @@ from prism.overlay.output.overlay.gui_components import (
     ToggleButton,
 )
 from prism.overlay.settings import NickValue, Settings, SettingsDict
-from prism.overlay.threading import UpdateCheckerOneShotThread
+from prism.overlay.threading import (
+    UpdateCheckerOneShotThread,
+    recommend_stats_thread_count,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -132,6 +136,85 @@ class GeneralSettingSection:  # pragma: nocover
             self.show_on_tab_keybind_selector.key,
             self.check_for_updates_toggle.enabled,
         )
+
+
+class PerformanceSection:  # pragma: nocover
+    def __init__(self, parent: "SettingsPage") -> None:
+        self.frame = parent.make_section("Performance Settings")
+        self.frame.columnconfigure(0, weight=0)
+
+        stats_thread_explanation_label = tk.Label(
+            self.frame,
+            text=(
+                "How many players the overlay tries to download stats for at the same "
+                "time. Try decreasing this if the overlay is lagging. REQUIRES RESTART!"
+            ),
+            font=("Consolas", "10"),
+            foreground="white",
+            background="black",
+        )
+        stats_thread_explanation_label.bind(
+            "<Configure>",
+            lambda e: stats_thread_explanation_label.config(wraplength=400),
+        )
+        stats_thread_explanation_label.grid(row=5, column=0, columnspan=3)
+
+        stats_thread_count_label = tk.Label(
+            self.frame,
+            text="Stats threads: ",
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        )
+        stats_thread_count_label.grid(row=6, column=0, sticky=tk.E)
+
+        self.stats_thread_count_variable = tk.IntVar(value=2)
+        stats_thread_count_scale = tk.Scale(
+            self.frame,
+            from_=1,
+            to=16,
+            orient=tk.HORIZONTAL,
+            length=200,
+            foreground="white",
+            background="black",
+            variable=self.stats_thread_count_variable,
+        )
+        stats_thread_count_scale.grid(row=6, column=1)
+
+        reset_button = tk.Button(
+            self.frame,
+            text="Reset",
+            font=("Consolas", "14"),
+            foreground="white",
+            background="black",
+            command=functools.partial(
+                self.stats_thread_count_variable.set, recommend_stats_thread_count()
+            ),
+            relief="flat",
+            cursor="hand2",
+        )
+        reset_button.grid(row=6, column=2)
+
+        parent.make_widgets_scrollable(
+            stats_thread_explanation_label,
+            stats_thread_count_label,
+            stats_thread_count_scale,
+            reset_button,
+        )
+
+    def clamp_stats_thread_count(self, stats_thread_count: int) -> int:
+        """Clamp the stats_thread_count to a valid range"""
+        return min(16, max(1, stats_thread_count))
+
+    def set(self, stats_thread_count: int) -> None:
+        """Set the state of this section"""
+        self.stats_thread_count_variable.set(
+            self.clamp_stats_thread_count(stats_thread_count)
+        )
+
+    def get(self) -> int:
+        """Get the state of this section"""
+        return self.clamp_stats_thread_count(self.stats_thread_count_variable.get())
 
 
 class DisplaySection:  # pragma: nocover
@@ -475,6 +558,7 @@ class SettingsPage:  # pragma: nocover
         self.scrollable_settings_frame.container_frame.pack(side=tk.TOP, fill=tk.BOTH)
 
         self.general_settings_section = GeneralSettingSection(self)
+        self.performance_section = PerformanceSection(self)
         self.display_section = DisplaySection(self)
         self.column_section = ColumnSection(self)
         self.hypixel_section = HypixelSection(self)
@@ -531,6 +615,7 @@ class SettingsPage:  # pragma: nocover
                 show_on_tab_keybind=settings.show_on_tab_keybind,
                 check_for_updates=settings.check_for_updates,
             )
+            self.performance_section.set(stats_thread_count=settings.stats_thread_count)
             self.display_section.set(settings.sort_order, settings.hide_dead_players)
             self.column_section.set(settings.column_order)
             self.hypixel_section.set(settings.hypixel_api_key)
@@ -561,16 +646,14 @@ class SettingsPage:  # pragma: nocover
             check_for_updates,
         ) = self.general_settings_section.get()
 
+        stats_thread_count = self.performance_section.get()
+
         sort_order, hide_dead_players = self.display_section.get(
             fallback_sort_order=self.controller.settings.sort_order
         )
         column_order = self.column_section.get()
         hypixel_api_key = self.hypixel_section.get()
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
-
-        # TODO: Add section to edit stats_thread_count
-        with self.controller.settings.mutex:
-            stats_thread_count = self.controller.settings.stats_thread_count
 
         # TODO: Add section to edit rating configs
         with self.controller.settings.mutex:
