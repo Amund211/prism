@@ -2,9 +2,10 @@
 
 import math
 import sys
+from collections.abc import Mapping
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from prism.calc import bedwars_level_from_exp
 from prism.hypixel import (
@@ -76,10 +77,14 @@ def div_string(dividend: float, divisor: float, decimals: int = 2) -> str:
     return truncate_float(quotient, decimals)
 
 
-def print_bedwars_stats(playerdata: dict[str, Any], nick: str | None = None) -> None:
+def print_bedwars_stats(
+    playerdata: Mapping[str, object], nick: str | None = None
+) -> None:
     """Print a table of bedwars stats from the given player data"""
     try:
-        bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
+        bw_stats = cast(
+            Mapping[str, Any], get_gamemode_stats(playerdata, gamemode="Bedwars")
+        )
     except MissingStatsError as e:
         # Player is missing stats in bedwars
         print(e)
@@ -92,8 +97,8 @@ def print_bedwars_stats(playerdata: dict[str, Any], nick: str | None = None) -> 
     print(f"{displayname}{nick_suffix} [{truncate_float(stars, 1)}]", end="")
 
     try:
-        last_login = playerdata["lastLogin"] / 1000
-        last_logout = playerdata["lastLogout"] / 1000
+        last_login = cast(int, playerdata["lastLogin"]) / 1000
+        last_logout = cast(int, playerdata["lastLogout"]) / 1000
     except KeyError:
         # Privacy setting disabling access
         print()

@@ -1,5 +1,5 @@
 import threading
-from collections.abc import Callable, Set
+from collections.abc import Callable, Mapping, Set
 from dataclasses import InitVar, dataclass, field, replace
 from pathlib import Path, PurePath
 from typing import Any, Literal, TypedDict, cast, overload
@@ -282,7 +282,7 @@ class MockedController:
     get_uuid: Callable[[str], str | None] = field(
         default=missing_method, repr=False, compare=False, hash=False
     )
-    get_player_data: Callable[[str], dict[str, Any] | None] = field(
+    get_player_data: Callable[[str], Mapping[str, object] | None] = field(
         default=missing_method, repr=False, compare=False, hash=False
     )
     denick: Callable[[str], str | None] = field(

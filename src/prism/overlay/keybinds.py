@@ -1,7 +1,7 @@
 import logging
-from collections.abc import Callable, MutableMapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Literal, TypeAlias, TypedDict, cast
+from typing import TYPE_CHECKING, Literal, TypeAlias, TypedDict, cast
 
 if TYPE_CHECKING:  # pragma: no coverage
     from pynput import keyboard
@@ -51,7 +51,7 @@ def construct_key(key_dict: KeyDict) -> Key:
     return AlphanumericKey(name=key_dict["name"], char=key_dict["char"])
 
 
-def construct_key_dict(source_dict: MutableMapping[Any, Any]) -> KeyDict | None:
+def construct_key_dict(source_dict: Mapping[str, object]) -> KeyDict | None:
     key_type = source_dict.get("key_type", None)
     name = source_dict.get("name", None)
 
@@ -96,7 +96,7 @@ def create_pynput_normalizer() -> (
     except Exception:  # pragma: no coverage
         logger.exception("Failed to import pynput")
 
-        def normalize_to_unknown(key: Any) -> Key | None:
+        def normalize_to_unknown(key: object) -> Key | None:
             return SpecialKey(name="<unknown>", vk=None)
 
         return normalize_to_unknown

@@ -1,7 +1,7 @@
 import itertools
 import unittest.mock
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any
 
 import pytest
 
@@ -10,7 +10,7 @@ from prism.overlay.player import KnownPlayer, NickedPlayer, create_known_player
 from tests.prism.overlay.utils import MockedController
 
 # Player data for a player who has been on Hypixel, but has not played bedwars
-NEW_PLAYER_DATA: dict[str, Any] = {"stats": {}}
+NEW_PLAYER_DATA: Mapping[str, object] = {"stats": {}}
 
 
 @dataclass(frozen=True)
@@ -18,7 +18,7 @@ class User:
     uuid: str
     username: str
     nick: str | None
-    playerdata: dict[str, Any] | None
+    playerdata: Mapping[str, object] | None
 
 
 def make_user(username: str, playerdata: bool, nick: str | None = None) -> User:
@@ -46,7 +46,7 @@ def make_scenario_controller(*users: User) -> MockedController:
         user = username_table.get(username, None)
         return user.uuid if user is not None else None
 
-    def get_player_data(uuid: str) -> dict[str, Any] | None:
+    def get_player_data(uuid: str) -> Mapping[str, object] | None:
         user = uuid_table.get(uuid, None)
         return user.playerdata if user is not None else None
 
@@ -164,7 +164,7 @@ def test_fetch_bedwars_stats(
 
 
 def test_fetch_bedwars_stats_wrong_displayname(
-    technoblade_playerdata: dict[str, Any]
+    technoblade_playerdata: Mapping[str, object]
 ) -> None:
     wrong_user = User(
         uuid="fe3d80923dcf4147a35921f6b9fc460f",
@@ -192,7 +192,7 @@ def test_fetch_bedwars_stats_wrong_displayname(
     assert fetch_bedwars_stats("Summer173", controller) == NickedPlayer("Summer173")
 
 
-def test_fetch_bedwars_stats_weird(ares_playerdata: dict[str, Any]) -> None:
+def test_fetch_bedwars_stats_weird(ares_playerdata: Mapping[str, object]) -> None:
     ares = User(
         uuid="fffaceca46b24658b21f12c3cd2b413f",
         username="Ares",
@@ -208,7 +208,9 @@ def test_fetch_bedwars_stats_weird(ares_playerdata: dict[str, Any]) -> None:
     assert fetch_bedwars_stats("Ares", controller) == target
 
 
-def test_fetch_bedwars_stats_weird_nicked(ares_playerdata: dict[str, Any]) -> None:
+def test_fetch_bedwars_stats_weird_nicked(
+    ares_playerdata: Mapping[str, object]
+) -> None:
     ares = User(
         uuid="fffaceca46b24658b21f12c3cd2b413f",
         username="Ares",
@@ -272,13 +274,16 @@ def test_get_bedwars_stats() -> None:
 def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
     my_username = "Player"
     my_uuid = "dead-beef"
-    my_player_data = {"displayname": my_username, **NEW_PLAYER_DATA}
+    my_player_data: Mapping[str, object] = {
+        "displayname": my_username,
+        **NEW_PLAYER_DATA,
+    }
 
     def get_uuid(username: str) -> str | None:
         assert username == my_username
         return my_uuid
 
-    def get_player_data(uuid: str) -> dict[str, Any] | None:
+    def get_player_data(uuid: str) -> Mapping[str, object] | None:
         assert uuid == my_uuid
         if clear:
             # While we were getting the playerdata, someone else cleared the cache

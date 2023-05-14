@@ -1,8 +1,8 @@
 import functools
 import operator
-from collections.abc import Set
+from collections.abc import Mapping, Set
 from dataclasses import dataclass, field, replace
-from typing import TYPE_CHECKING, Any, Literal, Self, TypedDict, TypeVar, assert_never
+from typing import TYPE_CHECKING, Literal, Self, TypedDict, TypeVar, assert_never
 
 from prism.calc import bedwars_level_from_exp
 from prism.hypixel import MissingStatsError, get_gamemode_stats
@@ -218,7 +218,7 @@ T = TypeVar("T")
 
 
 def get_playerdata_field(
-    playerdata: dict[str, object], field: str, data_type: type[T], default: T
+    playerdata: Mapping[str, object], field: str, data_type: type[T], default: T
 ) -> T:
     value = playerdata.get(field, None)
     if not isinstance(value, data_type):
@@ -227,7 +227,7 @@ def get_playerdata_field(
 
 
 def create_known_player(
-    playerdata: dict[str, Any], username: str, uuid: str, nick: str | None = None
+    playerdata: Mapping[str, object], username: str, uuid: str, nick: str | None = None
 ) -> KnownPlayer:
     try:
         bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")

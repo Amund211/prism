@@ -1,6 +1,6 @@
 import functools
+from collections.abc import Mapping
 from json import JSONDecodeError
-from typing import Any
 
 import requests
 from requests.exceptions import RequestException
@@ -72,7 +72,7 @@ def get_player_data(
     key_holder: HypixelAPIKeyHolder,
     retry_limit: int = 3,
     timeout: float = 5,
-) -> dict[str, Any]:  # pragma: nocover
+) -> Mapping[str, object]:  # pragma: nocover
     """Get data about the given player from the /player API endpoint"""
 
     try:
@@ -129,7 +129,9 @@ def get_player_data(
     return playerdata
 
 
-def get_gamemode_stats(playerdata: dict[str, Any], gamemode: str) -> dict[str, Any]:
+def get_gamemode_stats(
+    playerdata: Mapping[str, object], gamemode: str
+) -> Mapping[str, object]:
     """Return the stats of the player in the given gamemode"""
     stats = playerdata.get("stats", None)
     name = playerdata.get("displayname", "<missing name>")

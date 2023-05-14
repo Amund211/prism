@@ -1,4 +1,4 @@
-from typing import Any
+from collections.abc import Mapping
 
 import pytest
 
@@ -499,7 +499,7 @@ def test_aliases(player: Player, aliases: tuple[str, ...]) -> None:
     assert player.aliases == aliases
 
 
-def test_create_known_player(technoblade_playerdata: dict[str, Any]) -> None:
+def test_create_known_player(technoblade_playerdata: Mapping[str, object]) -> None:
     fkdr = 20124 / 260
     stars = bedwars_level_from_exp(1076936)
     target = KnownPlayer(

@@ -1,6 +1,6 @@
 import logging
 import threading
-from collections.abc import Callable, MutableMapping
+from collections.abc import Callable, Mapping, MutableMapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Self, TypedDict, TypeVar
@@ -173,7 +173,7 @@ def read_settings(path: Path) -> MutableMapping[str, object]:
 
 
 def get_boolean_setting(
-    incomplete_settings: MutableMapping[str, object],
+    incomplete_settings: Mapping[str, object],
     key: str,
     settings_updated: bool,
     *,
@@ -189,7 +189,7 @@ def get_boolean_setting(
 
 
 def fill_missing_settings(
-    incomplete_settings: MutableMapping[str, object], get_api_key: Callable[[], str]
+    incomplete_settings: Mapping[str, object], get_api_key: Callable[[], str]
 ) -> tuple[SettingsDict, bool]:
     """Get settings from `incomplete_settings` and fill with defaults if missing"""
     settings_updated = False

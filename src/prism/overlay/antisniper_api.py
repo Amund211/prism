@@ -1,9 +1,9 @@
 import functools
 import logging
 import threading
+from collections.abc import Mapping
 from enum import Enum, auto
 from json import JSONDecodeError
-from typing import Any
 
 import requests
 from cachetools import TTLCache
@@ -126,7 +126,7 @@ def denick(
     return set_denick_cache(nick, parse_denick_response(response_json))
 
 
-def parse_denick_response(response_json: dict[str, Any]) -> str | None:
+def parse_denick_response(response_json: Mapping[str, object]) -> str | None:
     """Parse the response from the denick endpoint"""
     if not response_json.get("success", False):
         logger.error(f"Denick endpoint returned an error. Response: {response_json}")
@@ -203,7 +203,7 @@ def get_estimated_winstreaks(
 
 
 def parse_estimated_winstreaks_response(
-    response_json: dict[str, Any]
+    response_json: Mapping[str, object]
 ) -> tuple[Winstreaks, bool]:
     """Parse the reponse from the winstreaks endpoint"""
     if not response_json.get("success", False):

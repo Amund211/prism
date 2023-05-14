@@ -1,4 +1,4 @@
-from typing import Any
+from collections.abc import Mapping
 
 import pytest
 
@@ -35,7 +35,7 @@ REAL_DENICK_RESPONSE_SUCCESS = {
 
 REAL_DENICK_RESPONSE_FAIL = {"success": True, "results": [], "real_nick": False}
 
-parse_denick_cases: tuple[tuple[dict[str, Any], str | None], ...] = (
+parse_denick_cases: tuple[tuple[Mapping[str, object], str | None], ...] = (
     ({}, None),
     ({"success": False}, None),
     ({"success": True}, None),
@@ -52,7 +52,9 @@ parse_denick_cases: tuple[tuple[dict[str, Any], str | None], ...] = (
 
 
 @pytest.mark.parametrize("response_json, uuid", parse_denick_cases)
-def test_parse_denick_response(response_json: dict[str, Any], uuid: str | None) -> None:
+def test_parse_denick_response(
+    response_json: Mapping[str, object], uuid: str | None
+) -> None:
     parsed_uuid = parse_denick_response(response_json)
     if parsed_uuid is None or uuid is None:
         assert parsed_uuid == uuid
@@ -98,7 +100,7 @@ REAL_WINSTREAK_RESPONSE = {
 
 
 parse_estimated_winstreaks_cases: tuple[
-    tuple[dict[str, Any], Winstreaks, bool], ...
+    tuple[Mapping[str, object], Winstreaks, bool], ...
 ] = (
     ({}, MISSING_WINSTREAKS, False),
     ({"success": False}, MISSING_WINSTREAKS, False),
@@ -143,7 +145,7 @@ parse_estimated_winstreaks_cases: tuple[
     "response_json, winstreaks, winstreaks_accurate", parse_estimated_winstreaks_cases
 )
 def test_parse_estimated_winstreaks_response(
-    response_json: dict[str, Any],
+    response_json: Mapping[str, object],
     winstreaks: Winstreaks,
     winstreaks_accurate: bool,
 ) -> None:

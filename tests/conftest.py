@@ -1,6 +1,7 @@
 import json
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
 import pytest
 
@@ -17,20 +18,20 @@ def data_directory() -> Path:
 
 
 @pytest.fixture(scope="session")
-def technoblade_playerdata(data_directory: Path) -> dict[str, Any]:
+def technoblade_playerdata(data_directory: Path) -> Mapping[str, object]:
     """Return example playerdata for technoblade"""
     with (data_directory / "technoblade_2022_06_10.json").open("r") as f:
         response = json.load(f)
 
     assert response["success"]
-    return cast(dict[str, Any], response["player"])
+    return cast(Mapping[str, object], response["player"])
 
 
 @pytest.fixture(scope="session")
-def ares_playerdata(data_directory: Path) -> dict[str, Any]:
+def ares_playerdata(data_directory: Path) -> Mapping[str, object]:
     """Return weird playerdata"""
     with (data_directory / "ares_2023_01_30.json").open("r") as f:
         response = json.load(f)
 
     assert response["success"]
-    return cast(dict[str, Any], response["player"])
+    return cast(Mapping[str, object], response["player"])

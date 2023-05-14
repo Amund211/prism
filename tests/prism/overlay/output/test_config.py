@@ -1,5 +1,4 @@
-from collections.abc import Callable
-from typing import Any
+from collections.abc import Callable, Mapping
 
 import pytest
 
@@ -45,7 +44,10 @@ def test_rating_config_collection_serialization(
 
 
 READ_RATING_CONFIG_COLLECTION_CASES: tuple[
-    tuple[dict[str, Any] | RatingConfigCollectionDict, RatingConfigCollectionDict], ...
+    tuple[
+        Mapping[str, object] | RatingConfigCollectionDict, RatingConfigCollectionDict
+    ],
+    ...,
 ] = (
     ({}, DEFAULT_RATING_CONFIG_COLLECTION_DICT),
     (DEFAULT_RATING_CONFIG_COLLECTION_DICT, DEFAULT_RATING_CONFIG_COLLECTION_DICT),
@@ -87,9 +89,9 @@ READ_RATING_CONFIG_COLLECTION_CASES: tuple[
     (read_rating_config_collection_dict, safe_read_rating_config_collection_dict),
 )
 def test_read_rating_config_collection_dict(
-    source: dict[str, Any],
+    source: Mapping[str, object],
     target: RatingConfigCollectionDict,
-    reader: Callable[[dict[str, Any]], tuple[RatingConfigCollectionDict, bool]],
+    reader: Callable[[Mapping[str, object]], tuple[RatingConfigCollectionDict, bool]],
 ) -> None:
     result, source_updated = reader(source)
     assert result == target
@@ -100,7 +102,7 @@ DEFAULT_LEVELS = (1.0, 2.0, 3.0, 4.0)
 DEFAULT_DECIMALS = 2
 
 
-READ_RATING_CONFIG_CASES: tuple[tuple[dict[str, Any], RatingConfigDict], ...] = (
+READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], ...] = (
     (
         {"type": "level_based", "levels": (1.0, 5.0), "decimals": 4},
         {"type": "level_based", "levels": (1.0, 5.0), "decimals": 4},
@@ -171,10 +173,10 @@ READ_RATING_CONFIG_CASES: tuple[tuple[dict[str, Any], RatingConfigDict], ...] = 
     (read_rating_config_dict, safe_read_rating_config_dict),
 )
 def test_read_rating_config_dict(
-    source: dict[str, Any],
+    source: Mapping[str, object],
     target: RatingConfigDict,
     reader: Callable[
-        [dict[str, Any], tuple[float, ...], int], tuple[RatingConfigDict, bool]
+        [Mapping[str, object], tuple[float, ...], int], tuple[RatingConfigDict, bool]
     ],
 ) -> None:
     result, source_updated = reader(source, DEFAULT_LEVELS, DEFAULT_DECIMALS)

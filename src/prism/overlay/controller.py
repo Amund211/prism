@@ -1,8 +1,8 @@
 import logging
 import threading
 from abc import abstractmethod
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Protocol
+from collections.abc import Callable, Mapping
+from typing import TYPE_CHECKING, Protocol
 
 from prism.hypixel import (
     HypixelAPIError,
@@ -50,7 +50,7 @@ class OverlayController(Protocol):  # pragma: no cover
 
     @property
     @abstractmethod
-    def get_player_data(self) -> Callable[[str], dict[str, Any] | None]:
+    def get_player_data(self) -> Callable[[str], Mapping[str, object] | None]:
         raise NotImplementedError
 
     @property
@@ -118,7 +118,9 @@ class RealOverlayController:
             logger.debug(f"Failed getting uuid for username {username}.", exc_info=e)
             return None
 
-    def get_player_data(self, uuid: str) -> dict[str, Any] | None:  # pragma: no cover
+    def get_player_data(
+        self, uuid: str
+    ) -> Mapping[str, object] | None:  # pragma: no cover
         try:
             player_data = get_player_data(uuid, self.hypixel_key_holder)
         except HypixelPlayerNotFoundError as e:

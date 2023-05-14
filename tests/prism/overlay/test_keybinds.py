@@ -1,5 +1,6 @@
 import os
-from typing import Any, cast
+from collections.abc import Mapping
+from typing import cast
 
 import pytest
 
@@ -92,7 +93,9 @@ dict_to_key_dict_cases = (
 
 
 @pytest.mark.parametrize("source_dict, key_dict", dict_to_key_dict_cases)
-def test_construct_key_dict(source_dict: dict[Any, Any], key_dict: KeyDict) -> None:
+def test_construct_key_dict(
+    source_dict: Mapping[str, object], key_dict: KeyDict
+) -> None:
     assert construct_key_dict(source_dict) == key_dict
 
 

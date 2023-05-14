@@ -1,4 +1,4 @@
-from typing import Any
+from collections.abc import Mapping
 
 import pytest
 
@@ -21,7 +21,7 @@ def test_hypixel_key_holder() -> None:
     ),
 )
 def test_get_gamemode_stats(
-    playerdata: dict[str, Any], gamemode: str, stats: dict[str, Any] | None
+    playerdata: Mapping[str, object], gamemode: str, stats: Mapping[str, object] | None
 ) -> None:
     if stats is None:
         with pytest.raises(MissingStatsError):

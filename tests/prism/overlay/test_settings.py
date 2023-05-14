@@ -1,6 +1,6 @@
 import dataclasses
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any
 
 import pytest
 
@@ -281,7 +281,9 @@ def test_get_boolean_setting() -> None:
     assert (False, True) == get_boolean_setting({}, "key", False, default=False)
 
 
-fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] = (
+fill_settings_test_cases: tuple[
+    tuple[Mapping[str, object], SettingsDict, bool], ...
+] = (
     (
         {
             "hypixel_api_key": "my-key",
@@ -546,7 +548,9 @@ fill_settings_test_cases: tuple[tuple[dict[str, Any], SettingsDict, bool], ...] 
     "incomplete_settings, result_dict, result_updated", fill_settings_test_cases
 )
 def test_fill_missing_settings(
-    incomplete_settings: dict[str, Any], result_dict: SettingsDict, result_updated: bool
+    incomplete_settings: Mapping[str, object],
+    result_dict: SettingsDict,
+    result_updated: bool,
 ) -> None:
     settings_dict, settings_updated = fill_missing_settings(
         incomplete_settings, get_api_key

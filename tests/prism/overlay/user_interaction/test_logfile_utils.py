@@ -1,7 +1,8 @@
 import unittest.mock
+from collections.abc import Mapping
 from dataclasses import replace
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
 import pytest
 import toml
@@ -244,7 +245,7 @@ def test_autoselect_logfile(
     ),
 )
 def test_read_logfile_cache(
-    cache_content: dict[str, Any],
+    cache_content: Mapping[str, object],
     cache: LogfileCache,
     logfile_cache_updated: bool,
     tmp_path: Path,
@@ -318,7 +319,7 @@ def test_read_logfile_cache_invalid_toml(tmp_path: Path) -> None:
     ),
 )
 def test_write_logfile_cache(
-    cache_content: dict[str, Any],
+    cache_content: Mapping[str, object],
     cache: LogfileCache,
     tmp_path: Path,
 ) -> None:

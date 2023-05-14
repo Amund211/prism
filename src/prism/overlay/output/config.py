@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Literal, Self, TypedDict
+from typing import Literal, Self, TypedDict
 
 USE_STAR_COLORS = True
 
@@ -47,7 +47,9 @@ class RatingConfigDict(TypedDict):
 
 
 def read_rating_config_dict(
-    source: Mapping[str, Any], default_levels: tuple[float, ...], default_decimals: int
+    source: Mapping[str, object],
+    default_levels: tuple[float, ...],
+    default_decimals: int,
 ) -> tuple[RatingConfigDict, bool]:
     """Read a RatingConfigDict from the source mapping"""
     source_updated = False
@@ -75,7 +77,7 @@ def read_rating_config_dict(
 
 
 def safe_read_rating_config_dict(
-    source: Any, default_levels: tuple[float, ...], default_decimals: int
+    source: object, default_levels: tuple[float, ...], default_decimals: int
 ) -> tuple[RatingConfigDict, bool]:
     if not isinstance(source, dict):
         source = {}
@@ -120,7 +122,7 @@ class RatingConfigCollectionDict(TypedDict):
 
 
 def read_rating_config_collection_dict(
-    source: Mapping[str, Any]
+    source: Mapping[str, object]
 ) -> tuple[RatingConfigCollectionDict, bool]:
     """Read a RatingConfigCollectionDict from the source mapping"""
     any_source_updated = False
@@ -224,7 +226,7 @@ def read_rating_config_collection_dict(
 
 
 def safe_read_rating_config_collection_dict(
-    source: Any,
+    source: object,
 ) -> tuple[RatingConfigCollectionDict, bool]:
     if not isinstance(source, dict):
         source = {}

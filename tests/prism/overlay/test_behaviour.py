@@ -1,7 +1,8 @@
 import queue
 import unittest.mock
+from collections.abc import Mapping
 from dataclasses import dataclass, replace
-from typing import Any, cast
+from typing import cast
 
 import pytest
 
@@ -194,11 +195,11 @@ def test_get_and_cache_stats(
     # For typing
     assert base_user.playerdata is not None
 
-    playerdata_without_winstreaks: dict[str, Any] = {
+    playerdata_without_winstreaks: Mapping[str, object] = {
         **base_user.playerdata,
         "stats": {"Bedwars": {"wins_bedwars": 40}},
     }
-    playerdata_with_winstreaks = {
+    playerdata_with_winstreaks: Mapping[str, object] = {
         **base_user.playerdata,
         "stats": {
             "Bedwars": {
