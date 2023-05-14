@@ -562,6 +562,43 @@ def test_create_known_player_new() -> None:
     assert result == target
 
 
+def test_create_known_player_known_winstreak() -> None:
+    target = KnownPlayer(
+        username="KnownWinstreak",
+        uuid="my-uuid",
+        stars=1.0,
+        stats=Stats(
+            index=0.0,
+            fkdr=0.0,
+            kdr=0.0,
+            bblr=0.0,
+            wlr=0.0,
+            winstreak=13,
+            winstreak_accurate=True,
+            kills=0,
+            finals=0,
+            beds=0,
+            wins=0,
+        ),
+    )
+
+    result = create_known_player(
+        playerdata={
+            "displayname": "KnownWinstreak",
+            "stats": {
+                "Bedwars": {
+                    "winstreak": 13,
+                }
+            },
+        },
+        username="KnownWinstreak",
+        uuid="my-uuid",
+        nick=None,
+    )
+
+    assert result == target
+
+
 def test_create_known_player_broken_data() -> None:
     target = KnownPlayer(
         username="BrokenPlayer",
