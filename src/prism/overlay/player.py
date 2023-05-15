@@ -214,16 +214,21 @@ def sort_players(
     )
 
 
-T = TypeVar("T")
+PlayerDataField = TypeVar("PlayerDataField")
+DefaultType = TypeVar("DefaultType")
 
 
 def get_playerdata_field(
-    playerdata: Mapping[str, object], field: str, data_type: type[T], default: T
-) -> T:
+    playerdata: Mapping[str, object],
+    field: str,
+    data_type: type[PlayerDataField],
+    default: DefaultType,
+) -> PlayerDataField | DefaultType:
+    """Get a field from the playerdata, fallback if missing or wrong type"""
     value = playerdata.get(field, None)
-    if not isinstance(value, data_type):
-        value = default
-    return value
+    if isinstance(value, data_type):
+        return value
+    return default
 
 
 def create_known_player(
@@ -252,7 +257,6 @@ def create_known_player(
             ),
         )
 
-    # This line shouldn't pass type-checking, but it does the right thing
     winstreak = get_playerdata_field(bw_stats, "winstreak", int, None)
     stars = bedwars_level_from_exp(
         get_playerdata_field(bw_stats, "Experience", int, 500)
