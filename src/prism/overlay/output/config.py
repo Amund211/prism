@@ -2,50 +2,6 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal, Self, TypedDict
 
-STARS_RATE_BY_LEVEL = False
-STARS_LEVELS = (100.0, 300.0, 500.0, 800.0)
-STARS_DECIMALS = 2
-
-FKDR_RATE_BY_LEVEL = True
-FKDR_LEVELS = (1.0, 2.0, 4.0, 8.0)
-FKDR_DECIMALS = 2
-
-INDEX_RATE_BY_LEVEL = True
-INDEX_LEVELS = (100.0, 1_200.0, 8_000.0, 51_200.0)
-INDEX_DECIMALS = 0
-
-KDR_RATE_BY_LEVEL = True
-KDR_LEVELS = (1.0, 1.5, 2.0, 3.0)
-KDR_DECIMALS = 2
-
-BBLR_RATE_BY_LEVEL = True
-BBLR_LEVELS = (0.3, 1.0, 2.0, 4.0)
-BBLR_DECIMALS = 2
-
-WLR_RATE_BY_LEVEL = True
-WLR_LEVELS = (0.3, 1.0, 2.0, 4.0)
-WLR_DECIMALS = 2
-
-WINSTREAK_RATE_BY_LEVEL = True
-WINSTREAK_LEVELS = (5.0, 15.0, 30.0, 50.0)
-WINSTREAK_DECIMALS = 0
-
-KILLS_RATE_BY_LEVEL = True
-KILLS_LEVELS = (5_000.0, 10_000.0, 20_000.0, 40_000.0)
-KILLS_DECIMALS = 0
-
-FINALS_RATE_BY_LEVEL = True
-FINALS_LEVELS = (5_000.0, 10_000.0, 20_000.0, 40_000.0)
-FINALS_DECIMALS = 0
-
-BEDS_RATE_BY_LEVEL = True
-BEDS_LEVELS = (2_000.0, 5_000.0, 10_000.0, 20_000.0)
-BEDS_DECIMALS = 0
-
-WINS_RATE_BY_LEVEL = True
-WINS_LEVELS = (1_000.0, 3_000.0, 6_000.0, 10_000.0)
-WINS_DECIMALS = 0
-
 
 class RatingConfigDict(TypedDict):
     """Dict representing a RatingConfig"""
@@ -57,10 +13,7 @@ class RatingConfigDict(TypedDict):
 
 
 def read_rating_config_dict(
-    source: Mapping[str, object],
-    default_rate_by_level: bool,
-    default_levels: tuple[float, ...],
-    default_decimals: int,
+    source: Mapping[str, object], default: "RatingConfig"
 ) -> tuple[RatingConfigDict, bool]:
     """Read a RatingConfigDict from the source mapping"""
     source_updated = False
@@ -70,19 +23,19 @@ def read_rating_config_dict(
 
     rate_by_level = source.get("rate_by_level", None)
     if not isinstance(rate_by_level, bool):
-        rate_by_level = default_rate_by_level
+        rate_by_level = default.rate_by_level
         source_updated = True
 
     levels = source.get("levels", None)
     if not isinstance(levels, (list, tuple)) or not all(
         isinstance(el, float) for el in levels
     ):
-        levels = default_levels
+        levels = default.levels
         source_updated = True
 
     decimals = source.get("decimals", None)
     if not isinstance(decimals, int) or decimals < 0:
-        decimals = default_decimals
+        decimals = default.decimals
         source_updated = True
 
     return {
@@ -94,16 +47,11 @@ def read_rating_config_dict(
 
 
 def safe_read_rating_config_dict(
-    source: object,
-    default_rate_by_level: bool,
-    default_levels: tuple[float, ...],
-    default_decimals: int,
+    source: object, default: "RatingConfig"
 ) -> tuple[RatingConfigDict, bool]:
     if not isinstance(source, dict):
         source = {}
-    return read_rating_config_dict(
-        source, default_rate_by_level, default_levels, default_decimals
-    )
+    return read_rating_config_dict(source, default)
 
 
 @dataclass(frozen=True, slots=True)
@@ -136,6 +84,41 @@ class RatingConfig:
         }
 
 
+DEFAULT_STARS_CONFIG = RatingConfig(
+    rate_by_level=False, levels=(100.0, 300.0, 500.0, 800.0), decimals=2
+)
+DEFAULT_FKDR_CONFIG = RatingConfig(
+    rate_by_level=True, levels=(1.0, 2.0, 4.0, 8.0), decimals=2
+)
+DEFAULT_INDEX_CONFIG = RatingConfig(
+    rate_by_level=True, levels=(100.0, 1_200.0, 8_000.0, 51_200.0), decimals=0
+)
+DEFAULT_KDR_CONFIG = RatingConfig(
+    rate_by_level=True, levels=(1.0, 1.5, 2.0, 3.0), decimals=2
+)
+DEFAULT_BBLR_CONFIG = RatingConfig(
+    rate_by_level=True, levels=(0.3, 1.0, 2.0, 4.0), decimals=2
+)
+DEFAULT_WLR_CONFIG = RatingConfig(
+    rate_by_level=True, levels=(0.3, 1.0, 2.0, 4.0), decimals=2
+)
+DEFAULT_WINSTREAK_CONFIG = RatingConfig(
+    rate_by_level=True, levels=(5.0, 15.0, 30.0, 50.0), decimals=0
+)
+DEFAULT_KILLS_CONFIG = RatingConfig(
+    rate_by_level=True, levels=(5_000.0, 10_000.0, 20_000.0, 40_000.0), decimals=0
+)
+DEFAULT_FINALS_CONFIG = RatingConfig(
+    rate_by_level=True, levels=(5_000.0, 10_000.0, 20_000.0, 40_000.0), decimals=0
+)
+DEFAULT_BEDS_CONFIG = RatingConfig(
+    rate_by_level=True, levels=(2_000.0, 5_000.0, 10_000.0, 20_000.0), decimals=0
+)
+DEFAULT_WINS_CONFIG = RatingConfig(
+    rate_by_level=True, levels=(1_000.0, 3_000.0, 6_000.0, 10_000.0), decimals=0
+)
+
+
 class RatingConfigCollectionDict(TypedDict):
     """Dict representing a RatingConfigCollection"""
 
@@ -159,90 +142,57 @@ def read_rating_config_collection_dict(
     any_source_updated = False
 
     stars, source_updated = safe_read_rating_config_dict(
-        source.get("stars", None),
-        default_rate_by_level=STARS_RATE_BY_LEVEL,
-        default_levels=STARS_LEVELS,
-        default_decimals=STARS_DECIMALS,
+        source.get("stars", None), default=DEFAULT_STARS_CONFIG
     )
     any_source_updated |= source_updated
 
     index, source_updated = safe_read_rating_config_dict(
-        source.get("index", None),
-        default_rate_by_level=INDEX_RATE_BY_LEVEL,
-        default_levels=INDEX_LEVELS,
-        default_decimals=INDEX_DECIMALS,
+        source.get("index", None), default=DEFAULT_INDEX_CONFIG
     )
     any_source_updated |= source_updated
 
     fkdr, source_updated = safe_read_rating_config_dict(
-        source.get("fkdr", None),
-        default_rate_by_level=FKDR_RATE_BY_LEVEL,
-        default_levels=FKDR_LEVELS,
-        default_decimals=FKDR_DECIMALS,
+        source.get("fkdr", None), default=DEFAULT_FKDR_CONFIG
     )
     any_source_updated |= source_updated
 
     kdr, source_updated = safe_read_rating_config_dict(
-        source.get("kdr", None),
-        default_rate_by_level=KDR_RATE_BY_LEVEL,
-        default_levels=KDR_LEVELS,
-        default_decimals=KDR_DECIMALS,
+        source.get("kdr", None), default=DEFAULT_KDR_CONFIG
     )
     any_source_updated |= source_updated
 
     bblr, source_updated = safe_read_rating_config_dict(
-        source.get("bblr", None),
-        default_rate_by_level=BBLR_RATE_BY_LEVEL,
-        default_levels=BBLR_LEVELS,
-        default_decimals=BBLR_DECIMALS,
+        source.get("bblr", None), default=DEFAULT_BBLR_CONFIG
     )
     any_source_updated |= source_updated
 
     wlr, source_updated = safe_read_rating_config_dict(
-        source.get("wlr", None),
-        default_rate_by_level=WLR_RATE_BY_LEVEL,
-        default_levels=WLR_LEVELS,
-        default_decimals=WLR_DECIMALS,
+        source.get("wlr", None), default=DEFAULT_WLR_CONFIG
     )
     any_source_updated |= source_updated
 
     winstreak, source_updated = safe_read_rating_config_dict(
-        source.get("winstreak", None),
-        default_rate_by_level=WINSTREAK_RATE_BY_LEVEL,
-        default_levels=WINSTREAK_LEVELS,
-        default_decimals=WINSTREAK_DECIMALS,
+        source.get("winstreak", None), default=DEFAULT_WINSTREAK_CONFIG
     )
     any_source_updated |= source_updated
 
     kills, source_updated = safe_read_rating_config_dict(
-        source.get("kills", None),
-        default_rate_by_level=KILLS_RATE_BY_LEVEL,
-        default_levels=KILLS_LEVELS,
-        default_decimals=KILLS_DECIMALS,
+        source.get("kills", None), default=DEFAULT_KILLS_CONFIG
     )
     any_source_updated |= source_updated
 
     finals, source_updated = safe_read_rating_config_dict(
-        source.get("finals", None),
-        default_rate_by_level=FINALS_RATE_BY_LEVEL,
-        default_levels=FINALS_LEVELS,
-        default_decimals=FINALS_DECIMALS,
+        source.get("finals", None), default=DEFAULT_FINALS_CONFIG
     )
     any_source_updated |= source_updated
 
     beds, source_updated = safe_read_rating_config_dict(
-        source.get("beds", None),
-        default_rate_by_level=BEDS_RATE_BY_LEVEL,
-        default_levels=BEDS_LEVELS,
-        default_decimals=BEDS_DECIMALS,
+        source.get("beds", None), default=DEFAULT_BEDS_CONFIG
     )
     any_source_updated |= source_updated
 
     wins, source_updated = safe_read_rating_config_dict(
-        source.get("wins", None),
-        default_rate_by_level=WINS_RATE_BY_LEVEL,
-        default_levels=WINS_LEVELS,
-        default_decimals=WINS_DECIMALS,
+        source.get("wins", None), default=DEFAULT_WINS_CONFIG
     )
     any_source_updated |= source_updated
 

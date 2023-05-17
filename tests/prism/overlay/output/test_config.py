@@ -97,6 +97,11 @@ def test_read_rating_config_collection_dict(
 DEFAULT_LEVELS = (1.0, 2.0, 3.0, 4.0)
 DEFAULT_DECIMALS = 2
 DEFAULT_RATE_BY_LEVEL = True
+DEFAULT_CONFIG = RatingConfig(
+    rate_by_level=DEFAULT_RATE_BY_LEVEL,
+    levels=DEFAULT_LEVELS,
+    decimals=DEFAULT_DECIMALS,
+)
 
 
 READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], ...] = (
@@ -212,12 +217,10 @@ def test_read_rating_config_dict(
     source: Mapping[str, object],
     target: RatingConfigDict,
     reader: Callable[
-        [Mapping[str, object], bool, tuple[float, ...], int],
+        [Mapping[str, object], RatingConfig],
         tuple[RatingConfigDict, bool],
     ],
 ) -> None:
-    result, source_updated = reader(
-        source, DEFAULT_RATE_BY_LEVEL, DEFAULT_LEVELS, DEFAULT_DECIMALS
-    )
+    result, source_updated = reader(source, DEFAULT_CONFIG)
     assert result == target
     assert source_updated == (source != target)
