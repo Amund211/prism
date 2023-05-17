@@ -23,10 +23,10 @@ from tests.prism.overlay.utils import (
 def test_rating_config_input_validation() -> None:
     with pytest.raises(ValueError):
         for decimals in range(1, 10):
-            RatingConfig((1.0, 2.0), -decimals)
+            RatingConfig(True, (1.0, 2.0), -decimals)
 
     for decimals in range(10):
-        RatingConfig((1.0, 2.0), decimals)
+        RatingConfig(True, (1.0, 2.0), decimals)
 
 
 @pytest.mark.parametrize(
@@ -65,10 +65,6 @@ READ_RATING_CONFIG_COLLECTION_CASES: tuple[
         DEFAULT_RATING_CONFIG_COLLECTION_DICT,
     ),
     (
-        dict(DEFAULT_RATING_CONFIG_COLLECTION_DICT, use_star_colors="lkjlk"),
-        DEFAULT_RATING_CONFIG_COLLECTION_DICT,
-    ),
-    (
         dict(DEFAULT_RATING_CONFIG_COLLECTION_DICT, stars=1234),
         DEFAULT_RATING_CONFIG_COLLECTION_DICT,
     ),
@@ -100,30 +96,66 @@ def test_read_rating_config_collection_dict(
 
 DEFAULT_LEVELS = (1.0, 2.0, 3.0, 4.0)
 DEFAULT_DECIMALS = 2
+DEFAULT_RATE_BY_LEVEL = True
 
 
 READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], ...] = (
     (
-        {"type": "level_based", "levels": (1.0, 5.0), "decimals": 4},
-        {"type": "level_based", "levels": (1.0, 5.0), "decimals": 4},
+        {
+            "type": "level_based",
+            "rate_by_level": False,
+            "levels": (1.0, 5.0),
+            "decimals": 4,
+        },
+        {
+            "type": "level_based",
+            "rate_by_level": False,
+            "levels": (1.0, 5.0),
+            "decimals": 4,
+        },
     ),
     # type is optional for the time being
     (
-        {"levels": (1.0, 5.0), "decimals": 4},
-        {"type": "level_based", "levels": (1.0, 5.0), "decimals": 4},
+        {"levels": (1.0, 5.0), "rate_by_level": True, "decimals": 4},
+        {
+            "type": "level_based",
+            "rate_by_level": True,
+            "levels": (1.0, 5.0),
+            "decimals": 4,
+        },
     ),
     (
         {"levels": (1.0, 5.0)},
-        {"type": "level_based", "levels": (1.0, 5.0), "decimals": DEFAULT_DECIMALS},
+        {
+            "type": "level_based",
+            "rate_by_level": DEFAULT_RATE_BY_LEVEL,
+            "levels": (1.0, 5.0),
+            "decimals": DEFAULT_DECIMALS,
+        },
     ),
     (
         {"decimals": 10},
-        {"type": "level_based", "levels": DEFAULT_LEVELS, "decimals": 10},
+        {
+            "type": "level_based",
+            "rate_by_level": DEFAULT_RATE_BY_LEVEL,
+            "levels": DEFAULT_LEVELS,
+            "decimals": 10,
+        },
+    ),
+    (
+        {"rate_by_level": False},
+        {
+            "type": "level_based",
+            "rate_by_level": False,
+            "levels": DEFAULT_LEVELS,
+            "decimals": DEFAULT_DECIMALS,
+        },
     ),
     (
         {},
         {
             "type": "level_based",
+            "rate_by_level": DEFAULT_RATE_BY_LEVEL,
             "levels": DEFAULT_LEVELS,
             "decimals": DEFAULT_DECIMALS,
         },
@@ -133,6 +165,7 @@ READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], .
         {"levels": (1, 5)},
         {
             "type": "level_based",
+            "rate_by_level": DEFAULT_RATE_BY_LEVEL,
             "levels": DEFAULT_LEVELS,
             "decimals": DEFAULT_DECIMALS,
         },
@@ -142,6 +175,7 @@ READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], .
         {"levels": 1},
         {
             "type": "level_based",
+            "rate_by_level": DEFAULT_RATE_BY_LEVEL,
             "levels": DEFAULT_LEVELS,
             "decimals": DEFAULT_DECIMALS,
         },
@@ -151,6 +185,7 @@ READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], .
         {"decimals": ""},
         {
             "type": "level_based",
+            "rate_by_level": DEFAULT_RATE_BY_LEVEL,
             "levels": DEFAULT_LEVELS,
             "decimals": DEFAULT_DECIMALS,
         },
@@ -160,6 +195,7 @@ READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], .
         {"decimals": -10},
         {
             "type": "level_based",
+            "rate_by_level": DEFAULT_RATE_BY_LEVEL,
             "levels": DEFAULT_LEVELS,
             "decimals": DEFAULT_DECIMALS,
         },
@@ -176,9 +212,12 @@ def test_read_rating_config_dict(
     source: Mapping[str, object],
     target: RatingConfigDict,
     reader: Callable[
-        [Mapping[str, object], tuple[float, ...], int], tuple[RatingConfigDict, bool]
+        [Mapping[str, object], bool, tuple[float, ...], int],
+        tuple[RatingConfigDict, bool],
     ],
 ) -> None:
-    result, source_updated = reader(source, DEFAULT_LEVELS, DEFAULT_DECIMALS)
+    result, source_updated = reader(
+        source, DEFAULT_RATE_BY_LEVEL, DEFAULT_LEVELS, DEFAULT_DECIMALS
+    )
     assert result == target
     assert source_updated == (source != target)

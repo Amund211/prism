@@ -74,14 +74,20 @@ def rate_value(value: float, levels: Sequence[float]) -> int:
 
 
 def render_based_on_level(
-    text: str, value: int | float, levels: tuple[float, ...]
+    text: str, value: int | float, levels: tuple[float, ...], rate_by_level: bool
 ) -> CellValue:
-    rating = rate_value(value, levels)
+    if rate_by_level:
+        rating = rate_value(value, levels)
+        terminal_formatting = TERMINAL_FORMATTINGS[rating]
+        gui_color = GUI_COLORS[rating]
+    else:
+        terminal_formatting = TERMINAL_FORMATTINGS[1]
+        gui_color = GUI_COLORS[1]
 
     return CellValue.monochrome(
         text=text,
-        terminal_formatting=TERMINAL_FORMATTINGS[rating],
-        gui_color=GUI_COLORS[rating],
+        terminal_formatting=terminal_formatting,
+        gui_color=gui_color,
     )
 
 
@@ -96,7 +102,7 @@ def render_stars(
     """
     text = truncate_float(stars, decimals)
 
-    levels_rating = render_based_on_level(text, stars, levels)
+    levels_rating = render_based_on_level(text, stars, levels, True)
     if not use_star_colors:
         return levels_rating
 
@@ -363,32 +369,37 @@ def render_stats(
             player.stars,
             rating_configs.stars.decimals,
             rating_configs.stars.levels,
-            rating_configs.use_star_colors,
+            use_star_colors=not rating_configs.stars.rate_by_level,
         )
         index_cell = render_based_on_level(
             truncate_float_or_int(player.stats.index, rating_configs.index.decimals),
             player.stats.index,
             rating_configs.index.levels,
+            rating_configs.index.rate_by_level,
         )
         fkdr_cell = render_based_on_level(
             truncate_float_or_int(player.stats.fkdr, rating_configs.fkdr.decimals),
             player.stats.fkdr,
             rating_configs.fkdr.levels,
+            rating_configs.fkdr.rate_by_level,
         )
         kdr_cell = render_based_on_level(
             truncate_float_or_int(player.stats.kdr, rating_configs.kdr.decimals),
             player.stats.kdr,
             rating_configs.kdr.levels,
+            rating_configs.kdr.rate_by_level,
         )
         bblr_cell = render_based_on_level(
             truncate_float_or_int(player.stats.bblr, rating_configs.bblr.decimals),
             player.stats.bblr,
             rating_configs.bblr.levels,
+            rating_configs.bblr.rate_by_level,
         )
         wlr_cell = render_based_on_level(
             truncate_float_or_int(player.stats.wlr, rating_configs.wlr.decimals),
             player.stats.wlr,
             rating_configs.wlr.levels,
+            rating_configs.wlr.rate_by_level,
         )
         if player.stats.winstreak is not None:
             winstreak_str = (
@@ -399,27 +410,34 @@ def render_stats(
             winstreak_str = "-"
             winstreak_value = float("inf")
         winstreak_cell = render_based_on_level(
-            winstreak_str, winstreak_value, rating_configs.winstreak.levels
+            winstreak_str,
+            winstreak_value,
+            rating_configs.winstreak.levels,
+            rating_configs.winstreak.rate_by_level,
         )
         kills_cell = render_based_on_level(
             truncate_float_or_int(player.stats.kills, rating_configs.kills.decimals),
             player.stats.kills,
             rating_configs.kills.levels,
+            rating_configs.kills.rate_by_level,
         )
         finals_cell = render_based_on_level(
             truncate_float_or_int(player.stats.finals, rating_configs.finals.decimals),
             player.stats.finals,
             rating_configs.finals.levels,
+            rating_configs.finals.rate_by_level,
         )
         beds_cell = render_based_on_level(
             truncate_float_or_int(player.stats.beds, rating_configs.beds.decimals),
             player.stats.beds,
             rating_configs.beds.levels,
+            rating_configs.beds.rate_by_level,
         )
         wins_cell = render_based_on_level(
             truncate_float_or_int(player.stats.wins, rating_configs.wins.decimals),
             player.stats.wins,
             rating_configs.wins.levels,
+            rating_configs.wins.rate_by_level,
         )
     else:
         if isinstance(player, NickedPlayer):

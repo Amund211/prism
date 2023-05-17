@@ -34,55 +34,69 @@ DEFAULT_RATING_CONFIG_COLLECTION = RatingConfigCollection.from_dict(
 )
 
 CUSTOM_RATING_CONFIG_COLLECTION_DICT: RatingConfigCollectionDict = {
-    "use_star_colors": False,
     "stars": {
         "type": "level_based",
+        "rate_by_level": True,
         "decimals": 0,
         "levels": (300.0, 600.0, 900.0, 1200.0),
     },
     "index": {
         "type": "level_based",
+        "rate_by_level": False,
         "decimals": 1,
         "levels": (1000.0, 10_000.0, 16_000.0, 64_000.0),
     },
     "fkdr": {
         "type": "level_based",
+        "rate_by_level": False,
         "decimals": 4,
         "levels": (1.0, 4.0, 16.0, 64.0),
     },
     "kdr": {
         "type": "level_based",
+        "rate_by_level": False,
         "decimals": 3,
         "levels": (2.0, 4.0, 16.0, 64.0),
     },
     "bblr": {
         "type": "level_based",
+        "rate_by_level": False,
         "decimals": 0,
         "levels": (1.0, 4.0, 16.0, 64.0),
     },
-    "wlr": {"type": "level_based", "decimals": 1, "levels": (0.25, 0.5, 1.0, 2.0)},
+    "wlr": {
+        "type": "level_based",
+        "rate_by_level": False,
+        "decimals": 1,
+        "levels": (0.25, 0.5, 1.0, 2.0),
+    },
     "winstreak": {
         "type": "level_based",
+        "rate_by_level": False,
         "decimals": 0,
         "levels": (2.0, 5.0, 10.0, 100.0),
     },
     "kills": {
         "type": "level_based",
+        "rate_by_level": False,
         "decimals": 3,
         "levels": (2.1, 5.3, 12.0, 150.0),
     },
     "finals": {
         "type": "level_based",
+        "rate_by_level": False,
         "decimals": 2,
         "levels": (6.0, 9.0, 10.0, 1000.0),
     },
     "beds": {
         "type": "level_based",
+        "rate_by_level": False,
         "decimals": 1,
         "levels": (1.0, 5.0, 15.0, 200.0),
     },
     "wins": {
         "type": "level_based",
+        "rate_by_level": False,
         "decimals": 3,
         "levels": (1.0, 10.0, 11.0, 120.0),
     },

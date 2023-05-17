@@ -10,6 +10,7 @@ from prism.overlay.output.cell_renderer import (
     RenderedStats,
     pick_columns,
     rate_value,
+    render_based_on_level,
     render_stars,
 )
 from prism.overlay.output.cells import (
@@ -539,3 +540,62 @@ def test_pick_columns(
     column_names: tuple[ColumnName, ...], result: tuple[CellValue, ...]
 ) -> None:
     assert pick_columns(RENDERED_STATS, column_names) == result
+
+
+@pytest.mark.parametrize(
+    "text, value, rate_by_level, target",
+    (
+        (
+            "a",
+            0,
+            True,
+            CellValue.monochrome("a", TERMINAL_FORMATTINGS[0], GUI_COLORS[0]),
+        ),
+        (
+            "a",
+            0,
+            False,
+            CellValue.monochrome("a", TERMINAL_FORMATTINGS[1], GUI_COLORS[1]),
+        ),
+        (
+            "a",
+            0.1,
+            True,
+            CellValue.monochrome("a", TERMINAL_FORMATTINGS[1], GUI_COLORS[1]),
+        ),
+        (
+            "a",
+            0.1,
+            False,
+            CellValue.monochrome("a", TERMINAL_FORMATTINGS[1], GUI_COLORS[1]),
+        ),
+        (
+            "a",
+            0.5,
+            True,
+            CellValue.monochrome("a", TERMINAL_FORMATTINGS[2], GUI_COLORS[2]),
+        ),
+        (
+            "a",
+            0.5,
+            False,
+            CellValue.monochrome("a", TERMINAL_FORMATTINGS[1], GUI_COLORS[1]),
+        ),
+        (
+            "a",
+            1,
+            True,
+            CellValue.monochrome("a", TERMINAL_FORMATTINGS[3], GUI_COLORS[3]),
+        ),
+        (
+            "a",
+            1,
+            False,
+            CellValue.monochrome("a", TERMINAL_FORMATTINGS[1], GUI_COLORS[1]),
+        ),
+    ),
+)
+def test_render_based_on_level(
+    text: str, value: float, rate_by_level: bool, target: CellValue
+) -> None:
+    assert render_based_on_level(text, value, LEVELS, rate_by_level) == target
