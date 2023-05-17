@@ -1,5 +1,6 @@
 import functools
 import logging
+import string
 import tkinter as tk
 from typing import TYPE_CHECKING, Any
 
@@ -11,6 +12,21 @@ from prism.overlay.output.cells import (
     DEFAULT_COLUMN_ORDER,
     ColumnName,
     str_is_column_name,
+)
+from prism.overlay.output.config import (
+    DEFAULT_BBLR_CONFIG,
+    DEFAULT_BEDS_CONFIG,
+    DEFAULT_FINALS_CONFIG,
+    DEFAULT_FKDR_CONFIG,
+    DEFAULT_INDEX_CONFIG,
+    DEFAULT_KDR_CONFIG,
+    DEFAULT_KILLS_CONFIG,
+    DEFAULT_STARS_CONFIG,
+    DEFAULT_WINS_CONFIG,
+    DEFAULT_WINSTREAK_CONFIG,
+    DEFAULT_WLR_CONFIG,
+    RatingConfig,
+    RatingConfigCollection,
 )
 from prism.overlay.output.overlay.gui_components import (
     KeybindSelector,
@@ -502,6 +518,237 @@ class GraphicsSection:  # pragma: nocover
         return self.clamp_alpha(self.alpha_hundredths_variable.get())
 
 
+class RatingConfigEditor:  # pragma: nocover
+    """Component to edit one rating config"""
+
+    def __init__(
+        self, parent: "StatsSetting", name: str, default: RatingConfig
+    ) -> None:
+        self.frame = parent.make_rating_config_section()
+        self.default = default
+
+        name_label = tk.Label(
+            self.frame,
+            text=name,
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        )
+        name_label.pack(side=tk.TOP, pady=(5, 0))
+
+        first_frame = tk.Frame(self.frame, background="black")
+        first_frame.pack(side=tk.TOP, fill=tk.X, pady=(5, 0))
+        for i in range(4):
+            first_frame.columnconfigure(i, weight=1)
+
+        levels_frame = tk.Frame(self.frame, background="black")
+        levels_frame.pack(side=tk.TOP, fill=tk.X, pady=(5, 5))
+        for i in range(5):
+            levels_frame.columnconfigure(i, weight=1)
+
+        reset_button = tk.Button(
+            self.frame,
+            text="Reset",
+            font=("Consolas", "14"),
+            foreground="white",
+            background="black",
+            command=functools.partial(self.set, default),
+            relief="flat",
+            cursor="hand2",
+        )
+        reset_button.pack(side=tk.TOP, pady=(0, 5))
+
+        parent.parent.make_widgets_scrollable(
+            name_label, first_frame, levels_frame, reset_button
+        )
+
+        color_by_level_label = tk.Label(
+            first_frame,
+            text="Color by level: ",
+            font=("Consolas", "10"),
+            foreground="white",
+            background="black",
+        )
+        color_by_level_label.grid(row=0, column=0, sticky=tk.E)
+
+        self.rate_by_level_toggle = ToggleButton(
+            first_frame, toggle_callback=self._set_component_state
+        )
+        self.rate_by_level_toggle.button.grid(row=0, column=1, sticky=tk.W)
+        parent.parent.make_widgets_scrollable(
+            color_by_level_label, self.rate_by_level_toggle.button
+        )
+
+        decimals_label = tk.Label(
+            first_frame,
+            text="Decimals: ",
+            font=("Consolas", "10"),
+            foreground="white",
+            background="black",
+        )
+        decimals_label.grid(row=0, column=2, sticky=tk.E)
+
+        self.decimals_spinbox = tk.Spinbox(first_frame, from_=0, to=6, width=2)
+        self.decimals_spinbox.grid(row=0, column=3, sticky=tk.W)
+        parent.parent.make_widgets_scrollable(decimals_label, self.decimals_spinbox)
+
+        levels_label = tk.Label(
+            levels_frame,
+            text="Levels:",
+            font=("Consolas", "10"),
+            foreground="white",
+            background="black",
+        )
+        levels_label.grid(row=2, column=0, columnspan=1)
+        parent.parent.make_widgets_scrollable(levels_label)
+
+        self.level_entry_variables = [tk.StringVar() for i in range(4)]
+        self.level_entries = [
+            tk.Entry(levels_frame, textvariable=level_entry_variable, width=10)
+            for i, level_entry_variable in enumerate(self.level_entry_variables)
+        ]
+        for i, (classification, level_entry) in enumerate(
+            zip(("Meh", "Decent", "Good", "Scary"), self.level_entries, strict=True)
+        ):
+            classification_label = tk.Label(
+                levels_frame,
+                text=classification,
+                font=("Consolas", "10"),
+                foreground="white",
+                background="black",
+            )
+            classification_label.grid(row=1, column=i + 1)
+            parent.parent.make_widgets_scrollable(classification_label)
+
+            level_entry.grid(row=2, column=i + 1)
+
+        parent.parent.make_widgets_scrollable(levels_label, *self.level_entries)
+
+    def _set_component_state(self, enabled: bool) -> None:
+        """Disable level entries when not rating by level"""
+        for level_entry in self.level_entries:
+            level_entry.config(state=tk.NORMAL if enabled else tk.DISABLED)
+
+    def set(self, rating_config: RatingConfig) -> None:
+        """Set the state of this section"""
+        self.rate_by_level_toggle.set(rating_config.rate_by_level)
+        self.decimals_spinbox.delete(0)
+        self.decimals_spinbox.insert(0, str(rating_config.decimals))
+        for level_value, level_entry_variable in zip(
+            rating_config.levels, self.level_entry_variables
+        ):
+            level_entry_variable.set(f"{level_value:.1f}")
+
+        if len(rating_config.levels) != 4:
+            logger.warning(
+                f"Levels with non-standard length set, {rating_config.levels}"
+            )
+
+    def _get_levels(self) -> tuple[float, ...]:
+        """Get the levels from the entries. Fallback to the default."""
+        valid_characters = frozenset(string.digits + ".")
+
+        levels: list[float] = []
+        for level_entry_variable, default_level in zip(
+            self.level_entry_variables, self.default.levels, strict=True
+        ):
+            value = level_entry_variable.get()
+            clean_value = "".join(
+                filter(
+                    lambda char: char in valid_characters,
+                    value.strip().replace(",", "."),
+                )
+            )
+            try:
+                float_value = float(clean_value)
+            except ValueError:
+                logger.info(
+                    f"Failed parsing float from {value}. "
+                    f"Falling back to {default_level}."
+                )
+                float_value = default_level
+
+            levels.append(float_value)
+
+        return tuple(levels)
+
+    def get(self) -> RatingConfig:
+        """Get the state of this section"""
+        raw_decimals = self.decimals_spinbox.get()
+        try:
+            decimals = int(raw_decimals)
+        except ValueError:
+            logger.exception(
+                f"Failed parsing int from {raw_decimals}. "
+                f"Falling back to {self.default.decimals}."
+            )
+            decimals = self.default.decimals
+
+        return RatingConfig(
+            self.rate_by_level_toggle.enabled, self._get_levels(), decimals
+        )
+
+
+class StatsSetting:  # pragma: nocover
+    def __init__(self, parent: "SettingsPage") -> None:
+        self.parent = parent
+        self.frame = parent.make_section("Stats Settings")
+        self.frame.columnconfigure(0, weight=0)
+
+        self.stars_editor = RatingConfigEditor(self, "stars", DEFAULT_STARS_CONFIG)
+        self.index_editor = RatingConfigEditor(self, "index", DEFAULT_INDEX_CONFIG)
+        self.fkdr_editor = RatingConfigEditor(self, "fkdr", DEFAULT_FKDR_CONFIG)
+        self.kdr_editor = RatingConfigEditor(self, "kdr", DEFAULT_KDR_CONFIG)
+        self.bblr_editor = RatingConfigEditor(self, "bblr", DEFAULT_BBLR_CONFIG)
+        self.wlr_editor = RatingConfigEditor(self, "wlr", DEFAULT_WLR_CONFIG)
+        self.winstreak_editor = RatingConfigEditor(
+            self, "winstreak", DEFAULT_WINSTREAK_CONFIG
+        )
+        self.kills_editor = RatingConfigEditor(self, "kills", DEFAULT_KILLS_CONFIG)
+        self.finals_editor = RatingConfigEditor(self, "finals", DEFAULT_FINALS_CONFIG)
+        self.beds_editor = RatingConfigEditor(self, "beds", DEFAULT_BEDS_CONFIG)
+        self.wins_editor = RatingConfigEditor(self, "wins", DEFAULT_WINS_CONFIG)
+
+    def make_rating_config_section(self) -> tk.Frame:
+        config_section_frame = tk.Frame(
+            self.frame, background="black", highlightthickness=1
+        )
+        config_section_frame.pack(side=tk.TOP, fill=tk.X, pady=(5, 0))
+        self.parent.make_widgets_scrollable(config_section_frame)
+
+        return config_section_frame
+
+    def set(self, rating_configs: RatingConfigCollection) -> None:
+        """Set the state of this section"""
+        self.stars_editor.set(rating_configs.stars)
+        self.index_editor.set(rating_configs.index)
+        self.fkdr_editor.set(rating_configs.fkdr)
+        self.kdr_editor.set(rating_configs.kdr)
+        self.bblr_editor.set(rating_configs.bblr)
+        self.wlr_editor.set(rating_configs.wlr)
+        self.winstreak_editor.set(rating_configs.winstreak)
+        self.kills_editor.set(rating_configs.kills)
+        self.finals_editor.set(rating_configs.finals)
+        self.beds_editor.set(rating_configs.beds)
+        self.wins_editor.set(rating_configs.wins)
+
+    def get(self) -> RatingConfigCollection:
+        """Get the state of this section"""
+        return RatingConfigCollection(
+            stars=self.stars_editor.get(),
+            index=self.index_editor.get(),
+            fkdr=self.fkdr_editor.get(),
+            kdr=self.kdr_editor.get(),
+            bblr=self.bblr_editor.get(),
+            wlr=self.wlr_editor.get(),
+            winstreak=self.winstreak_editor.get(),
+            kills=self.kills_editor.get(),
+            finals=self.finals_editor.get(),
+            beds=self.beds_editor.get(),
+            wins=self.wins_editor.get(),
+        )
+
+
 class SettingsPage:  # pragma: nocover
     """Settings page for the overlay"""
 
@@ -564,6 +811,7 @@ class SettingsPage:  # pragma: nocover
         self.hypixel_section = HypixelSection(self)
         self.antisniper_section = AntisniperSection(self)
         self.graphics_section = GraphicsSection(self)
+        self.stats_section = StatsSetting(self)
 
     def make_widgets_scrollable(self, *widgets: tk.Widget) -> None:
         """Make the given widgets scroll the settings page"""
@@ -624,6 +872,7 @@ class SettingsPage:  # pragma: nocover
                 settings.use_antisniper_api, settings.antisniper_api_key
             )
             self.graphics_section.set(settings.alpha_hundredths)
+            self.stats_section.set(settings.rating_configs)
 
     def on_close(self) -> None:
         """Reset window alpha when leaving settings page"""
@@ -655,10 +904,6 @@ class SettingsPage:  # pragma: nocover
         hypixel_api_key = self.hypixel_section.get()
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
 
-        # TODO: Add section to edit rating configs
-        with self.controller.settings.mutex:
-            rating_configs_dict = self.controller.settings.rating_configs.to_dict()
-
         known_nicks: dict[str, NickValue] = {}
         # TODO: Add section to edit known nicks
         with self.controller.settings.mutex:
@@ -670,13 +915,15 @@ class SettingsPage:  # pragma: nocover
 
         alpha_hundredths = self.graphics_section.get()
 
+        rating_configs = self.stats_section.get()
+
         new_settings = SettingsDict(
             hypixel_api_key=hypixel_api_key,
             antisniper_api_key=antisniper_api_key,
             use_antisniper_api=use_antisniper_api,
             sort_order=sort_order,
             column_order=column_order,
-            rating_configs=rating_configs_dict,
+            rating_configs=rating_configs.to_dict(),
             known_nicks=known_nicks,
             autodenick_teammates=autodenick_teammates,
             autoselect_logfile=autoselect_logfile,
