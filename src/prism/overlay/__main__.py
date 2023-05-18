@@ -49,7 +49,6 @@ LOGDIR = Path(dirs.user_log_dir)
 
 logger = logging.getLogger(__name__)
 
-TESTING = False
 CLEAR_BETWEEN_DRAWS = True
 
 
