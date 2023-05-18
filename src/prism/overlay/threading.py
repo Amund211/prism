@@ -11,6 +11,7 @@ from prism.overlay.behaviour import get_stats_and_winstreak, should_redraw
 from prism.overlay.controller import OverlayController
 from prism.overlay.player import Player, sort_players
 from prism.overlay.process_event import process_loglines
+from prism.overlay.rich_presence import RPCThread
 from prism.update_checker import update_available
 
 logger = logging.getLogger(__name__)
@@ -185,6 +186,10 @@ def prepare_overlay(
             completed_queue=completed_stats_queue,
             controller=controller,
         ).start()
+
+    RPCThread(
+        controller=controller, requested_stats_queue=requested_stats_queue
+    ).start()
 
     def get_stat_list() -> list[Player] | None:
         """
