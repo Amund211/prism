@@ -14,8 +14,8 @@ class PlayerCache:
         # Cache genus. Cached entries from old genera are discarded.
         self.current_genus = 0
 
-        # Entries cached for 2mins, so they hopefully expire before the next queue
-        self._cache = TTLCache[str, Player](maxsize=512, ttl=120)
+        # Entries cached for 10mins, so they expire if they are not cleared by game end
+        self._cache = TTLCache[str, Player](maxsize=512, ttl=10 * 60)
 
         # Optional long term cache accessed with kwarg long_term=True
         # Can be used to prevent refetching during a game (while stats don't change)

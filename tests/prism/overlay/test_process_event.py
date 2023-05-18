@@ -647,6 +647,24 @@ def test_process_event_autodenick_teammate() -> None:
     assert not will_redraw
 
 
+def test_process_event_bedwars_game_ended() -> None:
+    """
+    Assert that bedwars_game_ended is called when EndBedwarsGameEvent is received
+    """
+    controller = MockedController()
+
+    with unittest.mock.patch(
+        "prism.overlay.process_event.bedwars_game_ended"
+    ) as patched_bedwars_game_ended:
+        new_state, will_redraw = process_event(controller, EndBedwarsGameEvent())
+
+    patched_bedwars_game_ended.assert_called_once()
+
+    # The overlay will redraw after the lobby has been cleared, not causing any
+    # additional stats requests due to the cache clear.
+    assert will_redraw
+
+
 CHAT = "[Info: 2021-11-29 22:17:40.417869567: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] "  # noqa: E501
 INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.minecraft.client.Minecraft (Client thread) Info "  # noqa: E501
 

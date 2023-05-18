@@ -4,6 +4,7 @@ from typing import Iterable
 
 from prism.overlay.behaviour import (
     autodenick_teammate,
+    bedwars_game_ended,
     set_hypixel_api_key,
     set_nickname,
 )
@@ -221,6 +222,7 @@ def process_event(
     if event.event_type is EventType.END_BEDWARS_GAME:
         # Bedwars game has ended
         logger.info("Bedwars game ended")
+        bedwars_game_ended(controller)
 
         return state.clear_lobby(), True
 

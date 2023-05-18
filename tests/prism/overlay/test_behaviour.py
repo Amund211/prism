@@ -8,6 +8,7 @@ import pytest
 
 from prism.overlay.behaviour import (
     autodenick_teammate,
+    bedwars_game_ended,
     get_stats_and_winstreak,
     set_hypixel_api_key,
     set_nickname,
@@ -923,3 +924,16 @@ def test_autodenick_alive_players_mismatch() -> None:
         autodenick_teammate(controller)
 
     patched_set_nickname.assert_not_called()
+
+
+def test_bedwars_game_ended() -> None:
+    controller = MockedController()
+    controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
+
+    bedwars_game_ended(controller)
+
+    # Player cache cleared
+    controller.player_cache.clear_cache.assert_called_once_with(short_term_only=True)
+
+    # Redraw event NOT set
+    assert not controller.redraw_event.is_set()

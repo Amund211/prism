@@ -341,3 +341,8 @@ def autodenick_teammate(controller: OverlayController) -> None:
     logger.info(f"Autodenicked teammate {unknown_nick} -> {teammate}")
 
     set_nickname(username=teammate, nick=unknown_nick, controller=controller)
+
+
+def bedwars_game_ended(controller: OverlayController) -> None:
+    """Clear the stats cache"""
+    controller.player_cache.clear_cache(short_term_only=True)
