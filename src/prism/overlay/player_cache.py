@@ -76,9 +76,10 @@ class PlayerCache:
             self._cache.pop(username, None)
             self._long_term_cache.pop(username, None)
 
-    def clear_cache(self) -> None:
+    def clear_cache(self, *, short_term_only: bool = False) -> None:
         """Clear the entire player cache"""
         with self._mutex:
             self.current_genus += 1
             self._cache.clear()
-            self._long_term_cache.clear()
+            if not short_term_only:
+                self._long_term_cache.clear()

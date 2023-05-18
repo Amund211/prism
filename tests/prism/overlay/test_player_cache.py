@@ -70,6 +70,16 @@ def test_cache_manipulation() -> None:
         assert player_cache.get_cached_player(ign) is None
         assert player_cache.get_cached_player(ign, long_term=True) is None
 
+    pending_player = player_cache.set_player_pending("somependingplayer")
+
+    # Clearing only the short term cache
+    player_cache.clear_cache(short_term_only=True)
+    assert player_cache.get_cached_player("somependingplayer") is None
+    assert (
+        player_cache.get_cached_player("somependingplayer", long_term=True)
+        is pending_player
+    )
+
 
 def test_cache_genus() -> None:
     """
