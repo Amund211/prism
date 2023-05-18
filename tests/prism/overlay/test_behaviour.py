@@ -129,8 +129,7 @@ def test_unset_nickname(known_nicks: dict[str, str], explicit: bool) -> None:
     assert controller.redraw_event.is_set()
 
 
-def test_process_event_set_api_key() -> None:
-    """Assert that set_hypixel_api_key is called when NewAPIKeyEvent is received"""
+def test_set_api_key() -> None:
     NEW_KEY = "my-new-key"
 
     controller = MockedController(
