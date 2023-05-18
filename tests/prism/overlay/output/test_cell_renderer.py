@@ -599,3 +599,9 @@ def test_render_based_on_level(
     text: str, value: float, rate_by_level: bool, target: CellValue
 ) -> None:
     assert render_based_on_level(text, value, LEVELS, rate_by_level) == target
+
+
+def test_render_based_on_level_too_many_levels() -> None:
+    assert render_based_on_level(
+        "a", 100, (1, 2, 3, 4, 5, 6, 7, 8), True
+    ) == CellValue.monochrome("a", TERMINAL_FORMATTINGS[4], GUI_COLORS[4])

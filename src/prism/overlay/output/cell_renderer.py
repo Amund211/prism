@@ -77,7 +77,7 @@ def render_based_on_level(
     text: str, value: int | float, levels: tuple[float, ...], rate_by_level: bool
 ) -> CellValue:
     if rate_by_level:
-        rating = rate_value(value, levels)
+        rating = min(rate_value(value, levels), AMT_COLORS - 1)
         terminal_formatting = TERMINAL_FORMATTINGS[rating]
         gui_color = GUI_COLORS[rating]
     else:
