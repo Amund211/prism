@@ -1,13 +1,12 @@
 import logging
 import tkinter as tk
-import webbrowser
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
 from prism.overlay.output.cell_renderer import pick_columns
 from prism.overlay.output.cells import COLUMN_NAMES, ColumnName, InfoCellValue
-from prism.overlay.output.overlay.utils import OverlayRowData
+from prism.overlay.output.overlay.utils import OverlayRowData, open_url
 
 if TYPE_CHECKING:  # pragma: nocover
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay
@@ -205,10 +204,7 @@ class MainContent:  # pragma: nocover
         self, url: str
     ) -> Callable[["tk.Event[tk.Label]"], None]:
         def handler(event: "tk.Event[tk.Label]") -> None:
-            try:
-                webbrowser.open(url)
-            except webbrowser.Error:
-                logger.exception(f"Error opening {url=}!")
+            open_url(url)
 
         return handler
 
