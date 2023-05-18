@@ -34,6 +34,7 @@ from prism.overlay.output.overlay.gui_components import (
     ScrollableFrame,
     ToggleButton,
 )
+from prism.overlay.output.overlay.utils import open_url
 from prism.overlay.settings import NickValue, Settings, SettingsDict
 from prism.overlay.threading import (
     UpdateCheckerOneShotThread,
@@ -44,6 +45,24 @@ logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:  # pragma: nocover
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay
+
+
+class SupportSection:  # pragma: nocover
+    def __init__(self, parent: "SettingsPage") -> None:
+        self.frame = parent.make_section("Support and Feedback")
+
+        discord_button = tk.Button(
+            self.frame,
+            text="Join the Discord!",
+            font=("Consolas", "14"),
+            foreground="white",
+            background="#5865F2",
+            command=functools.partial(open_url, "https://discord.gg/k4FGUnEHYg"),
+            relief="flat",
+            cursor="hand2",
+        )
+        discord_button.pack(side=tk.TOP)
+        parent.make_widgets_scrollable(discord_button)
 
 
 class GeneralSettingSection:  # pragma: nocover
@@ -804,6 +823,7 @@ class SettingsPage:  # pragma: nocover
         )
         self.scrollable_settings_frame.container_frame.pack(side=tk.TOP, fill=tk.BOTH)
 
+        SupportSection(self)
         self.general_settings_section = GeneralSettingSection(self)
         self.performance_section = PerformanceSection(self)
         self.display_section = DisplaySection(self)
