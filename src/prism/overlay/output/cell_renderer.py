@@ -25,9 +25,9 @@ GUI_COLORS = (
     "red",
 )
 
-AMT_LEVELS = len(GUI_COLORS)
+AMT_COLORS = len(GUI_COLORS)
 
-assert len(TERMINAL_FORMATTINGS) == AMT_LEVELS
+assert len(TERMINAL_FORMATTINGS) == AMT_COLORS
 
 
 @dataclass(frozen=True, slots=True)
