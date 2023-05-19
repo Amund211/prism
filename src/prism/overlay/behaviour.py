@@ -344,5 +344,6 @@ def autodenick_teammate(controller: OverlayController) -> None:
 
 
 def bedwars_game_ended(controller: OverlayController) -> None:
-    """Clear the stats cache"""
+    """Clear the stats cache and set the game ended event"""
     controller.player_cache.clear_cache(short_term_only=True)
+    controller.game_ended_event.set()

@@ -935,5 +935,8 @@ def test_bedwars_game_ended() -> None:
     # Player cache cleared
     controller.player_cache.clear_cache.assert_called_once_with(short_term_only=True)
 
+    # Game ended event set
+    assert controller.game_ended_event.is_set()
+
     # Redraw event NOT set
     assert not controller.redraw_event.is_set()

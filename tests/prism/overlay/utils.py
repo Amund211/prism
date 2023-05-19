@@ -290,6 +290,11 @@ class MockedController:
         init=False, repr=False, compare=False, hash=False
     )
 
+    game_ended_event_set: InitVar[bool] = False
+    game_ended_event: threading.Event = field(
+        init=False, repr=False, compare=False, hash=False
+    )
+
     state_mutex: threading.Lock = field(
         default_factory=threading.Lock, repr=False, compare=False, hash=False
     )
@@ -309,11 +314,17 @@ class MockedController:
 
     _stored_settings: Settings | None = field(default=None, init=False)
 
-    def __post_init__(self, hypixel_api_key: str, redraw_event_set: bool) -> None:
+    def __post_init__(
+        self, hypixel_api_key: str, redraw_event_set: bool, game_ended_event_set: bool
+    ) -> None:
         self.hypixel_key_holder = HypixelAPIKeyHolder(hypixel_api_key)
         self.redraw_event = threading.Event()
         if redraw_event_set:
             self.redraw_event.set()
+
+        self.game_ended_event = threading.Event()
+        if game_ended_event_set:
+            self.game_ended_event.set()
 
         self.settings.hypixel_api_key = hypixel_api_key
         self.settings.antisniper_api_key = self.antisniper_api_key
