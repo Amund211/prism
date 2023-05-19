@@ -84,7 +84,10 @@ class GetStatsThread(threading.Thread):  # pragma: nocover
 
                 # Small optimization in case the player left or we switched lobbies
                 # between first seeing them and now getting to the request
-                if username in self.controller.state.lobby_players:
+                # NOTE: We always allow own_username to enable the discord RPC thread
+                #       to make requests to compute session stats
+                state = self.controller.state
+                if username in state.lobby_players or username == state.own_username:
                     get_stats_and_winstreak(
                         username=username,
                         completed_queue=self.completed_queue,
