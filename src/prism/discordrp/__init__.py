@@ -143,9 +143,9 @@ class Presence:
         for env in ("XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP"):
             path = os.environ.get(env)
             if path is not None:
-                return path + SOCKET_NAME
+                return os.path.join(path, SOCKET_NAME)
 
-        return "/tmp/" + SOCKET_NAME
+        return os.path.join("/tmp/", SOCKET_NAME)
 
     def _try_socket(self, pipe: str, i: int) -> None:
         if sys.platform == "win32":
