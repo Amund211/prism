@@ -118,7 +118,7 @@ class Toolbar:  # pragma: nocover
 
         version_label = tk.Label(
             self.frame,
-            text=VERSION_STRING,
+            text=f"Prism {VERSION_STRING}",
             font=("Consolas", "10"),
             foreground="white",
             background="black",
