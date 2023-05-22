@@ -347,3 +347,25 @@ def bedwars_game_ended(controller: OverlayController) -> None:
     """Clear the stats cache and set the game ended event"""
     controller.player_cache.clear_cache(short_term_only=True)
     controller.game_ended_event.set()
+
+
+def player_final_killed(username: str, controller: OverlayController) -> None:
+    """Call bedwars_game_ended if you final died"""
+    own_username = controller.state.own_username
+    if own_username is None:
+        return
+
+    if own_username == username:
+        bedwars_game_ended(controller)
+        return
+
+    manual_denick_uuid = controller.nick_database.get_default(username)
+    if manual_denick_uuid is None:
+        return
+
+    own_uuid = controller.get_uuid(own_username)
+    if own_uuid is None:
+        return
+
+    if compare_uuids(manual_denick_uuid, own_uuid):
+        bedwars_game_ended(controller)
