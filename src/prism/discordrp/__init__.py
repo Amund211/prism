@@ -206,8 +206,8 @@ class Presence:
 
     def __exit__(
         self,
-        exc_type: type[BaseException],
-        exc_value: BaseException,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
         exc_traceback: TracebackType | None,
     ) -> None:
         self.close()
