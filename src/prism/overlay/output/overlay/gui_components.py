@@ -157,8 +157,8 @@ class ScrollableFrame:  # pragma: no coverage
     Scrollable tkinter frame
 
     Based on: https://blog.teclado.com/tkinter-scrollable-frames/
-    and: https://stackoverflow.com/questions/73165441/make-the-scrollbar-automatically-scroll-back-up-in-tkinter  # noqa: E501
-    """
+    and: https://stackoverflow.com/questions/73165441/make-the-scrollbar-automatically-scroll-back-up-in-tkinter
+    """  # noqa: E501
 
     def __init__(self, parent: tk.Frame, max_height: int):
         self.container_frame = tk.Frame(parent)

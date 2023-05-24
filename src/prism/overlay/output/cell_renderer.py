@@ -97,9 +97,9 @@ def render_stars(
     """
     Render the user's star using the Hypixel BedWars star colors
 
-    Source (0-3000): https://hypixel.net/threads/tool-bedwars-prestige-colors-in-minecraft-color-code-and-hex-code-high-effort-post.3841719/  # noqa: E501
-    Source (3100-5000): https://hypixel.net/threads/bed-wars-update-new-practice-modes-qol-changes-more.5339873/  # noqa: E501
-    """
+    Source (0-3000): https://hypixel.net/threads/tool-bedwars-prestige-colors-in-minecraft-color-code-and-hex-code-high-effort-post.3841719/
+    Source (3100-5000): https://hypixel.net/threads/bed-wars-update-new-practice-modes-qol-changes-more.5339873/
+    """  # noqa: E501
     text = truncate_float(stars, decimals)
 
     levels_rating = render_based_on_level(text, stars, levels, True)
