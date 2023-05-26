@@ -94,9 +94,6 @@ class LogfilePrompt:  # pragma: nocover
         )
         self.submit_button.pack()
 
-        # Cancel button
-        tk.Button(self.root, text="Cancel", command=self.exit).pack()
-
         # Window close
         self.root.protocol("WM_DELETE_WINDOW", self.exit)
 
