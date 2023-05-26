@@ -3,7 +3,7 @@ import logging
 import platform
 import tkinter as tk
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from prism.overlay.keybinds import Key, SpecialKey, create_pynput_normalizer
 
@@ -35,8 +35,8 @@ class ToggleButton:  # pragma: nocover
         frame: tk.Frame,
         *,
         toggle_callback: Callable[[bool], None] = lambda enabled: None,
-        enabled_config: dict[str, str] = {},
-        disabled_config: dict[str, str] = {},
+        enabled_config: dict[str, Any] = {},
+        disabled_config: dict[str, Any] = {},
         start_enabled: bool = True,
     ) -> None:
         self.toggle_callback = toggle_callback
