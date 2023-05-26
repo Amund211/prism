@@ -48,9 +48,6 @@ class LogfilePrompt:  # pragma: nocover
             self.root,
             text="Select the logfile corresponding to the version you will be playing",
         ).pack()
-        tk.Label(
-            self.root, text="Versions not used for a long time are disabled", fg="red"
-        ).pack()
 
         if autoselect and last_used_id is not None:
             tk.Label(
@@ -75,6 +72,10 @@ class LogfilePrompt:  # pragma: nocover
             "w", self.on_logfile_id_var_change
         )  # type: ignore [no-untyped-call]
         self.rows: list[tuple[tk.Frame, tk.Button, tk.Label, tk.Radiobutton]] = []
+
+        tk.Label(
+            self.root, text="Versions not used for a long time are disabled", fg="red"
+        ).pack()
 
         toggle_frame = tk.Frame(self.root)
         toggle_frame.pack()
