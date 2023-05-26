@@ -59,10 +59,6 @@ class LogfilePrompt:  # pragma: nocover
                 fg="green",
             ).pack()
 
-        tk.Button(
-            self.root, text="Select a new file", command=self.select_from_filesystem
-        ).pack()
-
         self.logfile_list_frame = tk.Frame()
         self.logfile_list_frame.pack()
         self.selected_logfile_id_var = tk.IntVar(
@@ -72,6 +68,10 @@ class LogfilePrompt:  # pragma: nocover
             "w", self.on_logfile_id_var_change
         )  # type: ignore [no-untyped-call]
         self.rows: list[tuple[tk.Frame, tk.Button, tk.Label, tk.Radiobutton]] = []
+
+        tk.Button(
+            self.root, text="Select a new file", command=self.select_from_filesystem
+        ).pack(pady=(0, 10))
 
         tk.Label(
             self.root, text="Versions not used for a long time are disabled", fg="red"
