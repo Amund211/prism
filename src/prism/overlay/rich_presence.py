@@ -115,6 +115,9 @@ class RPCThread(threading.Thread):  # pragma: no coverage
             self.controller.game_ended_event.clear()
             self.time_since_game_end = 15
 
+            # Wait a bit to let Hypixel update the stats in the API
+            time.sleep(1)
+
             self.update_session_presence()
             time.sleep(15)
 
