@@ -44,6 +44,8 @@ class ToggleButton:  # pragma: nocover
         self.enabled_config = {**self.__class__.ENABLED_CONFIG, **enabled_config}
         self.disabled_config = {**self.__class__.DISABLED_CONFIG, **disabled_config}
 
+        assert self.enabled_config["bg"] != self.disabled_config["bg"]
+
         self.button = tk.Button(
             frame,
             text="",
