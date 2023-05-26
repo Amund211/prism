@@ -49,16 +49,6 @@ class LogfilePrompt:  # pragma: nocover
             text="Select the logfile corresponding to the version you will be playing",
         ).pack()
 
-        if autoselect and last_used_id is not None:
-            tk.Label(
-                self.root,
-                text=(
-                    "Your last used version will be "
-                    "automatically selected when available"
-                ),
-                fg="green",
-            ).pack()
-
         self.logfile_list_frame = tk.Frame()
         self.logfile_list_frame.pack()
         self.selected_logfile_id_var = tk.IntVar(
@@ -96,6 +86,16 @@ class LogfilePrompt:  # pragma: nocover
             },
         )
         enable_inactive_versions_toggle.button.pack(side=tk.RIGHT)
+
+        if autoselect and last_used_id is not None:
+            tk.Label(
+                self.root,
+                text=(
+                    "Your last used version will be "
+                    "automatically selected when launched"
+                ),
+                fg="green",
+            ).pack(pady=(10, 0))
 
         self.submit_button = tk.Button(
             self.root,
