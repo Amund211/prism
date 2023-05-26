@@ -52,16 +52,6 @@ class LogfilePrompt:  # pragma: nocover
             self.root, text="Versions not used for a long time are disabled", fg="red"
         ).pack()
 
-        toggle_frame = tk.Frame(self.root)
-        toggle_frame.pack()
-        tk.Label(toggle_frame, text="Select inactive versions: ").pack(side=tk.LEFT)
-        enable_inactive_versions_toggle = ToggleButton(
-            toggle_frame,
-            toggle_callback=self.logfile_controller.set_can_select_inactive,
-            start_enabled=self.logfile_controller.can_select_inactive,
-        )
-        enable_inactive_versions_toggle.button.pack(side=tk.RIGHT)
-
         if autoselect and last_used_id is not None:
             tk.Label(
                 self.root,
@@ -85,6 +75,26 @@ class LogfilePrompt:  # pragma: nocover
             "w", self.on_logfile_id_var_change
         )  # type: ignore [no-untyped-call]
         self.rows: list[tuple[tk.Frame, tk.Button, tk.Label, tk.Radiobutton]] = []
+
+        toggle_frame = tk.Frame(self.root)
+        toggle_frame.pack()
+        tk.Label(toggle_frame, text="Select inactive versions: ").pack(side=tk.LEFT)
+        enable_inactive_versions_toggle = ToggleButton(
+            toggle_frame,
+            toggle_callback=self.logfile_controller.set_can_select_inactive,
+            start_enabled=self.logfile_controller.can_select_inactive,
+            disabled_config={
+                "bg": "grey",
+                "activebackground": "orange red",
+                "font": ("Consolas", "10"),
+            },
+            enabled_config={
+                "bg": "red",
+                "activebackground": "orange red",
+                "font": ("Consolas", "10"),
+            },
+        )
+        enable_inactive_versions_toggle.button.pack(side=tk.RIGHT)
 
         self.submit_button = tk.Button(
             self.root,
