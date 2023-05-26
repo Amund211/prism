@@ -665,25 +665,6 @@ def test_process_event_bedwars_game_ended() -> None:
     assert will_redraw
 
 
-def test_process_event_player_final_killed() -> None:
-    """
-    Assert that player_final_killed is called when BedwarsFinalKillEvent is received
-    """
-    controller = MockedController()
-
-    with unittest.mock.patch(
-        "prism.overlay.process_event.player_final_killed"
-    ) as patched_player_final_killed:
-        new_state, will_redraw = process_event(
-            controller,
-            BedwarsFinalKillEvent(
-                "Player1", "Player1 was killed by Player2. FINAL KILL!"
-            ),
-        )
-
-    patched_player_final_killed.assert_called_once()
-
-
 CHAT = "[Info: 2021-11-29 22:17:40.417869567: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] "  # noqa: E501
 INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.minecraft.client.Minecraft (Client thread) Info "  # noqa: E501
 

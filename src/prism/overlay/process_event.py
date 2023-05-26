@@ -5,7 +5,6 @@ from typing import Iterable
 from prism.overlay.behaviour import (
     autodenick_teammate,
     bedwars_game_ended,
-    player_final_killed,
     set_hypixel_api_key,
     set_nickname,
 )
@@ -205,8 +204,6 @@ def process_event(
     if event.event_type is EventType.BEDWARS_FINAL_KILL:
         # Bedwars final kill
         logger.info(f"Final kill: {event.dead_player} - {event.raw_message}")
-
-        player_final_killed(event.dead_player, controller)
 
         return state.mark_dead(event.dead_player), True
 

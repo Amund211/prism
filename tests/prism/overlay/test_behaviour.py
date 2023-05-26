@@ -10,7 +10,6 @@ from prism.overlay.behaviour import (
     autodenick_teammate,
     bedwars_game_ended,
     get_stats_and_winstreak,
-    player_final_killed,
     set_hypixel_api_key,
     set_nickname,
     should_redraw,
@@ -18,7 +17,6 @@ from prism.overlay.behaviour import (
 )
 from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKeyDict
-from prism.overlay.nick_database import NickDatabase
 from prism.overlay.player import MISSING_WINSTREAKS
 from prism.overlay.settings import NickValue, Settings, SettingsDict
 from tests.prism.overlay import test_get_stats
@@ -942,68 +940,3 @@ def test_bedwars_game_ended() -> None:
 
     # Redraw event NOT set
     assert not controller.redraw_event.is_set()
-
-
-@pytest.mark.parametrize(
-    "username",
-    ("MyUsername", "MyNick", "OtherPlayer", "OtherPlayerNick", "UnknownNick"),
-)
-def test_player_final_killed(username: str) -> None:
-    def get_uuid(username: str) -> str | None:
-        return (
-            f"uuid-for-{username}"
-            if username in {"MyUsername", "OtherPlayer"}
-            else None
-        )
-
-    controller = MockedController(
-        state=create_state(own_username="MyUsername"),
-        get_uuid=get_uuid,
-        nick_database=NickDatabase(
-            [
-                {
-                    "MyNick": "uuid-for-MyUsername",
-                    "OtherPlayerNick": "uuid-for-OtherPlayer",
-                }
-            ]
-        ),
-    )
-
-    with unittest.mock.patch(
-        "prism.overlay.behaviour.bedwars_game_ended"
-    ) as patched_bedwars_game_ended:
-        player_final_killed(username, controller)
-
-    if username in {"MyUsername", "MyNick"}:
-        patched_bedwars_game_ended.assert_called_once()
-    else:
-        patched_bedwars_game_ended.assert_not_called()
-
-
-def test_player_final_killed_bad_own_username() -> None:
-    def get_uuid(username: str) -> str | None:
-        return None
-
-    controller = MockedController(
-        state=create_state(own_username=None),
-        get_uuid=get_uuid,
-        nick_database=NickDatabase([{"SomeNick": "uuid-for-our-teammate"}]),
-    )
-
-    with unittest.mock.patch(
-        "prism.overlay.behaviour.bedwars_game_ended"
-    ) as patched_bedwars_game_ended:
-        player_final_killed("Someone", controller)
-
-    # No own_username -> can't check if we died
-    patched_bedwars_game_ended.assert_not_called()
-
-    controller.state = replace(controller.state, own_username="OwnUsername")
-
-    with unittest.mock.patch(
-        "prism.overlay.behaviour.bedwars_game_ended"
-    ) as patched_bedwars_game_ended:
-        player_final_killed("SomeNick", controller)
-
-    # No uuid for own_username -> can't check if we died as a nick
-    patched_bedwars_game_ended.assert_not_called()
