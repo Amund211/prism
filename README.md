@@ -25,7 +25,52 @@
 [latest-windows-download-link]: https://github.com/Amund211/prism/releases/download/v1.3.0/prism-v1.3.0-windows.exe
 [latest-linux-download-link]: https://github.com/Amund211/prism/releases/download/v1.3.0/prism-v1.3.0-linux
 
-[![Using Prism](./images/in_queue.png)][latest-release-link]
+[![Using Prism](./images/in_queue/stars_0dec_fkdr_ws_sort_fkdr.jpg)][latest-release-link]
+
+<details>
+<summary>Click here for more examples!</summary>
+
+The overlay has a highly customizable stats table. In the settings you can configure
+
+<ul>
+<li>Which columns to show and their order</li>
+<li>How to sort the table (by fkdr, by index, by stars, ...)</li>
+<li>How many decimals you want (9 fkdr vs 9.95 fkdr)</li>
+<li>If you want the stats colored by their rating (white for meh, yellow for decent, orange for good, red for scary)</li>
+<li>The levels for the ratings (1 fkdr is meh, 3 fkdr is decent, 6 fkdr is good, ...)</li>
+</ul>
+
+<div align="center">
+Stars colored by star color with 0 decimals and fkdr, sorted by fkdr
+</div>
+
+[![Stars colored by star color with 0 decimals and fkdr, sorted by fkdr](./images/in_queue/stars_0dec_fkdr_sort_fkdr.jpg)][latest-release-link]
+
+<div align="center">
+Stars colored by star color, fkdr, kdr and winstreak, sorted by index (fkdr^2*stars)
+</div>
+
+[![Stars colored by star color, fkdr, kdr and winstreak, sorted by index (fkdr^2\*stars)](./images/in_queue/stars_fkdr_kdr_ws_sort_index.jpg)][latest-release-link]
+
+<div align="center">
+Stars colored by star color, fkdr and winstreak, sorted by fkdr
+</div>
+
+[![Stars colored by star color, fkdr and winstreak, sorted by fkdr](./images/in_queue/stars_fkdr_ws_sort_fkdr.jpg)][latest-release-link]
+
+<div align="center">
+Stars colored by rating with 0 decimals and fkdr with 1 decimal sorted by fkdr
+</div>
+
+[![Stars colored by rating with 0 decimals and fkdr with 1 decimal sorted by fkdr](./images/in_queue/stars_rated0dec_fkdr_1dec_sort_fkdr.jpg)][latest-release-link]
+
+<div align="center">
+Every available column, sorted by stars
+</div>
+
+[![Every available column, sorted by stars](./images/in_queue/everything_sort_stars.jpg)][latest-release-link]
+
+</details>
 
 ## Download
 Click one of the direct download buttons above, or [click here][latest-release-link] to go to the latest release.
