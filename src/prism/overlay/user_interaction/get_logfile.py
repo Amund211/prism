@@ -99,6 +99,12 @@ class LogfilePrompt:  # pragma: nocover
         self.submit_button = tk.Button(
             self.root,
             text="Submit",
+            font=("Consolas", "14"),
+            foreground="black",
+            disabledforeground="black",
+            background="black",
+            activebackground="black",
+            cursor="hand2",
             state=tk.DISABLED,
             command=self.submit_current_selection,
         )
@@ -122,7 +128,20 @@ class LogfilePrompt:  # pragma: nocover
 
     def set_can_submit(self, can_submit: bool) -> None:
         """Update the buttonstate to match can_submit"""
-        self.submit_button.configure(state=tk.NORMAL if can_submit else tk.DISABLED)
+        if can_submit:
+            self.submit_button.configure(
+                state=tk.NORMAL,
+                background="lime green",
+                activebackground="lawn green",
+                cursor="hand2",
+            )
+        else:
+            self.submit_button.configure(
+                state=tk.DISABLED,
+                background="grey",
+                activebackground="grey",
+                cursor="X_cursor",
+            )
 
     def select_from_filesystem(self) -> None:
         result = tk.filedialog.askopenfilename(
