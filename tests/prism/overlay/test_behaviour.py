@@ -366,7 +366,7 @@ def test_update_settings_everything_changed() -> None:
     assert controller.player_cache.clear_cache.call_count == 1
 
     # Discord rpc settings changed so we want to update it
-    assert controller.game_ended_event.is_set()
+    assert controller.update_presence_event.is_set()
 
     # Lots of stuff changed, so we want to redraw
     assert controller.redraw_event.is_set()
@@ -942,8 +942,8 @@ def test_bedwars_game_ended() -> None:
     # Player cache cleared
     controller.player_cache.clear_cache.assert_called_once_with(short_term_only=True)
 
-    # Game ended event set
-    assert controller.game_ended_event.is_set()
+    # Update presence event set
+    assert controller.update_presence_event.is_set()
 
     # Redraw event NOT set
     assert not controller.redraw_event.is_set()

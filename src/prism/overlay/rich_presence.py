@@ -98,14 +98,14 @@ class RPCThread(threading.Thread):  # pragma: no coverage
                 continue
 
             # Wait for a game to end
-            game_ended = self.controller.game_ended_event.wait(timeout=15)
+            update_presence = self.controller.update_presence_event.wait(timeout=15)
             self.time_since_game_end += 15
 
             # Update presence when a game ends or every 5 minutes.
-            if not game_ended and self.time_since_game_end < 300:
+            if not update_presence and self.time_since_game_end < 300:
                 continue
 
-            self.controller.game_ended_event.clear()
+            self.controller.update_presence_event.clear()
             self.time_since_game_end = 15
 
             # Wait a bit to let Hypixel update the stats in the API
@@ -148,7 +148,7 @@ class RPCThread(threading.Thread):  # pragma: no coverage
         self.start_time = int(time.time())
         self.username = username
         self.initial_stats = self.get_stats(self.username)
-        self.controller.game_ended_event.clear()
+        self.controller.update_presence_event.clear()
         self.time_since_game_end = 0
 
         self.update_session_presence()

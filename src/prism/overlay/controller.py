@@ -37,7 +37,7 @@ class OverlayController(Protocol):  # pragma: no cover
     nick_database: "NickDatabase"
     player_cache: "PlayerCache"
     redraw_event: threading.Event
-    game_ended_event: threading.Event
+    update_presence_event: threading.Event
 
     @property
     @abstractmethod
@@ -90,7 +90,7 @@ class RealOverlayController:
         self.settings = settings
         self.nick_database = nick_database
         self.redraw_event = threading.Event()
-        self.game_ended_event = threading.Event()
+        self.update_presence_event = threading.Event()
 
         self.hypixel_key_holder = HypixelAPIKeyHolder(settings.hypixel_api_key)
         self.antisniper_key_holder: AntiSniperAPIKeyHolder | None = None
