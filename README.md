@@ -88,8 +88,10 @@ The overlay can be extended with the [Antisniper API](https://antisniper.net) (n
 
 ## Qualities
 - Automatic party and lobby detection
+- Customizable stats table
 - Good players sorted to the top and highlighted in red
 - Fast
+- Discord status integration with session stats
 - Denicking (with Antisniper API)
 - Winstreak estimates (with Antisniper API)
 
