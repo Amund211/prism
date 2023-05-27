@@ -373,7 +373,7 @@ process_event_test_cases_base: tuple[
             state=create_state(lobby_players={"a", "bunch", "of", "players"})
         ),
         EndBedwarsGameEvent(),
-        MockedController(),
+        MockedController(update_presence_event_set=True),
         True,
     ),
     # Special cases
@@ -824,6 +824,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
         ),
         MockedController(
+            update_presence_event_set=True,
             state=create_state(
                 own_username="Me",
                 party_members={"Me", "Player1", "Player2"},
@@ -842,7 +843,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                     "Player12",
                 },
                 in_queue=False,
-            )
+            ),
         ),
     ),
     (
@@ -1015,6 +1016,7 @@ FAST_FORWARD_STATE_CASES: Final = (
         ),
         MockedController(
             state=create_state(lobby_players={"OwnUsername"}, in_queue=True),
+            update_presence_event_set=True,
             wants_shown=None,
         ),
     ),

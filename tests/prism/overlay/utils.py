@@ -262,6 +262,7 @@ def missing_method(*args: Any, **kwargs: Any) -> Any:
 class ExtraAttributes(TypedDict):
     hypixel_api_key: str
     redraw_event_set: bool
+    update_presence_event_set: bool
     player_cache_data: TTLCache[str, KnownPlayer | NickedPlayer | PendingPlayer]
 
 
@@ -343,5 +344,6 @@ class MockedController:
         return {
             "hypixel_api_key": self.hypixel_key_holder.key,
             "redraw_event_set": self.redraw_event.is_set(),
+            "update_presence_event_set": self.update_presence_event.is_set(),
             "player_cache_data": self.player_cache._cache,
         }
