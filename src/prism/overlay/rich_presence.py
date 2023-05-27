@@ -201,7 +201,11 @@ class RPCThread(threading.Thread):  # pragma: no coverage
                 {
                     "label": "Download",
                     "url": "https://github.com/Amund211/prism",
-                }
+                },
+                {
+                    "label": "Join the Discord!",
+                    "url": "https://discord.gg/k4FGUnEHYg",
+                },
             ],
         }
         if not self.controller.settings.discord_show_party:
