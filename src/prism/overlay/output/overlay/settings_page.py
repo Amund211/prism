@@ -825,11 +825,11 @@ class SettingsPage:  # pragma: nocover
 
         SupportSection(self)
         self.general_settings_section = GeneralSettingSection(self)
-        self.performance_section = PerformanceSection(self)
         self.display_section = DisplaySection(self)
         self.column_section = ColumnSection(self)
         self.hypixel_section = HypixelSection(self)
         self.antisniper_section = AntisniperSection(self)
+        self.performance_section = PerformanceSection(self)
         self.graphics_section = GraphicsSection(self)
         self.stats_section = StatsSetting(self)
 
