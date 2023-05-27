@@ -22,8 +22,8 @@
 [^1]: Windows and the Windows logo are registered trademarks of the Microsoft Corporation.
 [^2]: Linux is the registered trademark of Linus Torvalds in the U.S. and other countries. Tux is the copyright of Larry Ewing \<<lewing@isc.tamu.edu>\>.
 
-[latest-windows-download-link]: https://github.com/Amund211/prism/releases/download/v1.3.0/prism-v1.3.0-windows.exe
-[latest-linux-download-link]: https://github.com/Amund211/prism/releases/download/v1.3.0/prism-v1.3.0-linux
+[latest-windows-download-link]: https://github.com/Amund211/prism/releases/download/v1.4.0/prism-v1.4.0-windows.exe
+[latest-linux-download-link]: https://github.com/Amund211/prism/releases/download/v1.4.0/prism-v1.4.0-linux
 
 [![Using Prism](./images/in_queue/stars_0dec_fkdr_ws_sort_fkdr.jpg)][latest-release-link]
 
