@@ -27,11 +27,10 @@ def get_cpu_count() -> int | None:
 
 
 def recommend_stats_thread_count_from_cpu_count(cpu_count: int | None) -> int:
-    """Recommend cpu_count - 2 restricted to [2, 16], 2 if failure"""
+    """Recommend cpu_count restricted to [2, 16], 2 if failure"""
     if cpu_count is not None:
-        # Leave 2 cores for the main thread and the state updater
         # Restrict number of threads to [2, 16]
-        return max(2, min(16, cpu_count - 2))
+        return max(2, min(16, cpu_count))
 
     logger.warning("Failed getting cpu count, defaulting to 2 stats threads")
     return 2

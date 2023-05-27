@@ -15,7 +15,7 @@ def test_get_cpu_count() -> None:
 def test_recommend_stats_thread_count() -> None:
     stats_thread_count = recommend_stats_thread_count()
     assert isinstance(stats_thread_count, int)
-    assert 1 <= stats_thread_count <= 16
+    assert 2 <= stats_thread_count <= 16
 
 
 @pytest.mark.parametrize(
@@ -24,10 +24,10 @@ def test_recommend_stats_thread_count() -> None:
         (None, 2),
         (1, 2),
         (2, 2),
-        (3, 2),
-        (4, 2),
-        (12, 10),
-        (16, 14),
+        (3, 3),
+        (4, 4),
+        (12, 12),
+        (16, 16),
         (18, 16),
         (20, 16),
         (128, 16),
