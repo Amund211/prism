@@ -103,7 +103,7 @@ DEFAULT_WLR_CONFIG = RatingConfig(
     rate_by_level=True, levels=(0.3, 1.0, 2.0, 4.0), decimals=2
 )
 DEFAULT_WINSTREAK_CONFIG = RatingConfig(
-    rate_by_level=True, levels=(5.0, 15.0, 30.0, 50.0), decimals=0
+    rate_by_level=True, levels=(3.0, 5.0, 10.0, 20.0), decimals=0
 )
 DEFAULT_KILLS_CONFIG = RatingConfig(
     rate_by_level=True, levels=(5_000.0, 10_000.0, 20_000.0, 40_000.0), decimals=0
