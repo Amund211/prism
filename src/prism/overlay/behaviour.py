@@ -229,6 +229,19 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
                 "known_nicks"
             ][nickname]["uuid"]
 
+    discord_presence_settings_changed = (
+        new_settings["discord_rich_presence"]
+        != controller.settings.discord_rich_presence
+        or new_settings["discord_show_username"]
+        != controller.settings.discord_show_username
+        or new_settings["discord_show_session_stats"]
+        != controller.settings.discord_show_session_stats
+        or new_settings["discord_show_party"] != controller.settings.discord_show_party
+    )
+
+    if discord_presence_settings_changed:
+        controller.game_ended_event.set()
+
     # Redraw the overlay to reflect changes in the stats cache/nicknames
     controller.redraw_event.set()
 

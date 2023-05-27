@@ -11,13 +11,6 @@ from prism.overlay.player import KnownPlayer, NickedPlayer, Player
 
 CLIENT_ID = "1102365189845823569"
 
-
-DISCORD_RICH_PRESENCE = True
-DISCORD_DISPLAY_USERNAME = True
-DISCORD_DISPLAY_SESSION = True
-DISCORD_DISPLAY_PARTY = True
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -43,7 +36,7 @@ class RPCThread(threading.Thread):  # pragma: no coverage
         Sends an initial status after connecting
         """
         while True:
-            if not DISCORD_RICH_PRESENCE:
+            if not self.controller.settings.discord_rich_presence:
                 time.sleep(15)
                 continue
 
@@ -88,7 +81,7 @@ class RPCThread(threading.Thread):  # pragma: no coverage
         self.connect()
 
         while True:
-            if not DISCORD_RICH_PRESENCE:
+            if not self.controller.settings.discord_rich_presence:
                 self.set_presence(None, reconnect_on_failure=False)  # Clear activity
                 time.sleep(15)
                 continue
@@ -189,7 +182,7 @@ class RPCThread(threading.Thread):  # pragma: no coverage
         else:
             star_icon = "✥"
 
-        if DISCORD_DISPLAY_USERNAME:
+        if self.controller.settings.discord_show_username:
             status = f"[{int(new_stats.stars)}{star_icon}] {self.username}"
         else:
             status = "Playing Bedwars"
@@ -211,9 +204,9 @@ class RPCThread(threading.Thread):  # pragma: no coverage
                 }
             ],
         }
-        if not DISCORD_DISPLAY_PARTY:
+        if not self.controller.settings.discord_show_party:
             del data["assets"]["small_text"]  # type: ignore [attr-defined]
-        if not DISCORD_DISPLAY_SESSION:
+        if not self.controller.settings.discord_show_session_stats:
             del data["state"]
 
         self.set_presence(data)

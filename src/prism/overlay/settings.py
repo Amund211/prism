@@ -54,6 +54,10 @@ class SettingsDict(TypedDict):
     show_on_tab_keybind: KeyDict
     check_for_updates: bool
     stats_thread_count: int
+    discord_rich_presence: bool
+    discord_show_username: bool
+    discord_show_session_stats: bool
+    discord_show_party: bool
     hide_dead_players: bool
     disable_overrideredirect: bool
     hide_with_alpha: bool
@@ -77,6 +81,10 @@ class Settings:
     show_on_tab_keybind: Key
     check_for_updates: bool
     stats_thread_count: int
+    discord_rich_presence: bool
+    discord_show_username: bool
+    discord_show_session_stats: bool
+    discord_show_party: bool
     hide_dead_players: bool
     disable_overrideredirect: bool
     hide_with_alpha: bool
@@ -102,6 +110,10 @@ class Settings:
             show_on_tab_keybind=construct_key(source["show_on_tab_keybind"]),
             check_for_updates=source["check_for_updates"],
             stats_thread_count=source["stats_thread_count"],
+            discord_rich_presence=source["discord_rich_presence"],
+            discord_show_username=source["discord_show_username"],
+            discord_show_session_stats=source["discord_show_session_stats"],
+            discord_show_party=source["discord_show_party"],
             hide_dead_players=source["hide_dead_players"],
             disable_overrideredirect=source["disable_overrideredirect"],
             hide_with_alpha=source["hide_with_alpha"],
@@ -124,6 +136,10 @@ class Settings:
             "show_on_tab_keybind": self.show_on_tab_keybind.to_dict(),
             "check_for_updates": self.check_for_updates,
             "stats_thread_count": self.stats_thread_count,
+            "discord_rich_presence": self.discord_rich_presence,
+            "discord_show_username": self.discord_show_username,
+            "discord_show_session_stats": self.discord_show_session_stats,
+            "discord_show_party": self.discord_show_party,
             "hide_dead_players": self.hide_dead_players,
             "disable_overrideredirect": self.disable_overrideredirect,
             "hide_with_alpha": self.hide_with_alpha,
@@ -147,6 +163,10 @@ class Settings:
         self.show_on_tab_keybind = construct_key(new_settings["show_on_tab_keybind"])
         self.check_for_updates = new_settings["check_for_updates"]
         self.stats_thread_count = new_settings["stats_thread_count"]
+        self.discord_rich_presence = new_settings["discord_rich_presence"]
+        self.discord_show_username = new_settings["discord_show_username"]
+        self.discord_show_session_stats = new_settings["discord_show_session_stats"]
+        self.discord_show_party = new_settings["discord_show_party"]
         self.hide_dead_players = new_settings["hide_dead_players"]
         self.disable_overrideredirect = new_settings["disable_overrideredirect"]
         self.hide_with_alpha = new_settings["hide_with_alpha"]
@@ -305,6 +325,25 @@ def fill_missing_settings(
         settings_updated = True
         stats_thread_count = default_stats_thread_count
 
+    discord_rich_presence, settings_updated = get_boolean_setting(
+        incomplete_settings, "discord_rich_presence", settings_updated, default=True
+    )
+
+    discord_show_username, settings_updated = get_boolean_setting(
+        incomplete_settings, "discord_show_username", settings_updated, default=True
+    )
+
+    discord_show_session_stats, settings_updated = get_boolean_setting(
+        incomplete_settings,
+        "discord_show_session_stats",
+        settings_updated,
+        default=True,
+    )
+
+    discord_show_party, settings_updated = get_boolean_setting(
+        incomplete_settings, "discord_show_party", settings_updated, default=False
+    )
+
     hide_dead_players, settings_updated = get_boolean_setting(
         incomplete_settings, "hide_dead_players", settings_updated, default=True
     )
@@ -336,6 +375,10 @@ def fill_missing_settings(
         "show_on_tab_keybind": show_on_tab_keybind,
         "check_for_updates": check_for_updates,
         "stats_thread_count": stats_thread_count,
+        "discord_rich_presence": discord_rich_presence,
+        "discord_show_username": discord_show_username,
+        "discord_show_session_stats": discord_show_session_stats,
+        "discord_show_party": discord_show_party,
         "hide_dead_players": hide_dead_players,
         "disable_overrideredirect": disable_overrideredirect,
         "hide_with_alpha": hide_with_alpha,

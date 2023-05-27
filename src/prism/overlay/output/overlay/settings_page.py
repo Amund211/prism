@@ -2,7 +2,7 @@ import functools
 import logging
 import string
 import tkinter as tk
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal, TypedDict
 
 from prism.overlay.behaviour import update_settings
 from prism.overlay.controller import OverlayController
@@ -171,6 +171,126 @@ class GeneralSettingSection:  # pragma: nocover
             self.show_on_tab_keybind_selector.key,
             self.check_for_updates_toggle.enabled,
         )
+
+
+class _DiscordSettings(TypedDict):
+    discord_rich_presence: bool
+    discord_show_username: bool
+    discord_show_session_stats: bool
+    discord_show_party: bool
+
+
+class DiscordSection:  # pragma: nocover
+    def __init__(self, parent: "SettingsPage") -> None:
+        self.frame = parent.make_section("Discord Settings")
+        self.frame.columnconfigure(0, weight=0)
+
+        info_label = tk.Label(
+            self.frame,
+            text=(
+                "Go to Discord settings -> Activity Privacy and enable "
+                "Display current activity as a status message. Make sure to start the "
+                "overlay before any other application that sets your status "
+                "(like Lunar client)."
+            ),
+            font=("Consolas", "10"),
+            foreground="white",
+            background="black",
+        )
+        info_label.bind("<Configure>", lambda e: info_label.config(wraplength=400))
+        info_label.grid(row=0, columnspan=2)
+        parent.make_widgets_scrollable(info_label)
+
+        discord_rich_presence_label = tk.Label(
+            self.frame,
+            text="Set discord activity: ",
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        )
+        discord_rich_presence_label.grid(row=1, column=0, sticky=tk.E)
+        self.discord_rich_presence_toggle = ToggleButton(
+            self.frame, toggle_callback=self._enable_buttons
+        )
+        self.discord_rich_presence_toggle.button.grid(row=1, column=1)
+        parent.make_widgets_scrollable(
+            discord_rich_presence_label,
+            self.discord_rich_presence_toggle.button,
+        )
+
+        discord_show_username_label = tk.Label(
+            self.frame,
+            text="Show username: ",
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        )
+        discord_show_username_label.grid(row=2, column=0, sticky=tk.E)
+        self.discord_show_username_toggle = ToggleButton(self.frame)
+        self.discord_show_username_toggle.button.grid(row=2, column=1)
+        parent.make_widgets_scrollable(
+            discord_show_username_label,
+            self.discord_show_username_toggle.button,
+        )
+
+        discord_show_session_stats_label = tk.Label(
+            self.frame,
+            text="Show session stats: ",
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        )
+        discord_show_session_stats_label.grid(row=3, column=0, sticky=tk.E)
+        self.discord_show_session_stats_toggle = ToggleButton(self.frame)
+        self.discord_show_session_stats_toggle.button.grid(row=3, column=1)
+        parent.make_widgets_scrollable(
+            discord_show_session_stats_label,
+            self.discord_show_session_stats_toggle.button,
+        )
+
+        discord_show_party_label = tk.Label(
+            self.frame,
+            text="Show party: ",
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        )
+        discord_show_party_label.grid(row=4, column=0, sticky=tk.E)
+        self.discord_show_party_toggle = ToggleButton(self.frame)
+        self.discord_show_party_toggle.button.grid(row=4, column=1)
+        parent.make_widgets_scrollable(
+            discord_show_party_label,
+            self.discord_show_party_toggle.button,
+        )
+
+    def _enable_buttons(self, enabled: bool) -> None:
+        """Set the state of the settings buttons to `enabled`"""
+        state: Literal["normal", "disabled"] = tk.NORMAL if enabled else tk.DISABLED
+        self.discord_show_username_toggle.button.config(state=state)
+        self.discord_show_session_stats_toggle.button.config(state=state)
+        self.discord_show_party_toggle.button.config(state=state)
+
+    def set(
+        self,
+        discord_rich_presence: bool,
+        discord_show_username: bool,
+        discord_show_session_stats: bool,
+        discord_show_party: bool,
+    ) -> None:
+        """Set the state of this section"""
+        self.discord_rich_presence_toggle.set(discord_rich_presence)
+        self.discord_show_username_toggle.set(discord_show_username)
+        self.discord_show_session_stats_toggle.set(discord_show_session_stats)
+        self.discord_show_party_toggle.set(discord_show_party)
+
+    def get(self) -> _DiscordSettings:
+        """Get the state of this section"""
+        return {
+            "discord_rich_presence": self.discord_rich_presence_toggle.enabled,
+            "discord_show_username": self.discord_show_username_toggle.enabled,
+            "discord_show_session_stats": self.discord_show_session_stats_toggle.enabled,  # noqa: E501
+            "discord_show_party": self.discord_show_party_toggle.enabled,
+        }
 
 
 class PerformanceSection:  # pragma: nocover
@@ -829,6 +949,7 @@ class SettingsPage:  # pragma: nocover
         self.column_section = ColumnSection(self)
         self.hypixel_section = HypixelSection(self)
         self.antisniper_section = AntisniperSection(self)
+        self.discord_section = DiscordSection(self)
         self.performance_section = PerformanceSection(self)
         self.graphics_section = GraphicsSection(self)
         self.stats_section = StatsSetting(self)
@@ -891,6 +1012,12 @@ class SettingsPage:  # pragma: nocover
             self.antisniper_section.set(
                 settings.use_antisniper_api, settings.antisniper_api_key
             )
+            self.discord_section.set(
+                discord_rich_presence=settings.discord_rich_presence,
+                discord_show_username=settings.discord_show_username,
+                discord_show_session_stats=settings.discord_show_session_stats,
+                discord_show_party=settings.discord_show_party,
+            )
             self.graphics_section.set(settings.alpha_hundredths)
             self.stats_section.set(settings.rating_configs)
 
@@ -924,6 +1051,8 @@ class SettingsPage:  # pragma: nocover
         hypixel_api_key = self.hypixel_section.get()
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
 
+        discord_settings = self.discord_section.get()
+
         known_nicks: dict[str, NickValue] = {}
         # TODO: Add section to edit known nicks
         with self.controller.settings.mutex:
@@ -936,6 +1065,7 @@ class SettingsPage:  # pragma: nocover
         alpha_hundredths = self.graphics_section.get()
 
         rating_configs = self.stats_section.get()
+        print(discord_settings)
 
         new_settings = SettingsDict(
             hypixel_api_key=hypixel_api_key,
@@ -951,6 +1081,10 @@ class SettingsPage:  # pragma: nocover
             show_on_tab_keybind=show_on_tab_keybind.to_dict(),
             check_for_updates=check_for_updates,
             stats_thread_count=stats_thread_count,
+            discord_rich_presence=discord_settings["discord_rich_presence"],
+            discord_show_username=discord_settings["discord_show_username"],
+            discord_show_session_stats=discord_settings["discord_show_session_stats"],
+            discord_show_party=discord_settings["discord_show_party"],
             hide_dead_players=hide_dead_players,
             disable_overrideredirect=disable_overrideredirect,
             hide_with_alpha=hide_with_alpha,

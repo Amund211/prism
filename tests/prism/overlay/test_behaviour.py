@@ -336,6 +336,10 @@ def test_update_settings_everything_changed() -> None:
         ),
         check_for_updates=False,
         stats_thread_count=12,
+        discord_rich_presence=False,
+        discord_show_username=False,
+        discord_show_session_stats=False,
+        discord_show_party=True,
         hide_dead_players=False,
         disable_overrideredirect=True,
         hide_with_alpha=True,
@@ -360,6 +364,9 @@ def test_update_settings_everything_changed() -> None:
     }
 
     assert controller.player_cache.clear_cache.call_count == 1
+
+    # Discord rpc settings changed so we want to update it
+    assert controller.game_ended_event.is_set()
 
     # Lots of stuff changed, so we want to redraw
     assert controller.redraw_event.is_set()
