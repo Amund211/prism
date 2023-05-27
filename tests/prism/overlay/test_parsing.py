@@ -503,6 +503,12 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         PartyMembershipListEvent(usernames=["Player2", "Player3"], role="members"),
     ),
     (
+        # Decoding error on windows due to readin win-encoded file as utf8 makes the
+        # orb turn into a question mark
+        "[22:47:04] [Client thread/INFO]: [CHAT] Party Leader: [MVP+] Player1 ?",
+        PartyMembershipListEvent(usernames=["Player1"], role="leader"),
+    ),
+    (
         "[18:47:15] [Client thread/INFO]: [CHAT] The game starts in 20 seconds!",
         BedwarsGameStartingSoonEvent(seconds=20),
     ),

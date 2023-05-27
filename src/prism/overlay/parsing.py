@@ -561,7 +561,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         if message.startswith(prefix):
             suffix = message.removeprefix(prefix)
             dirty_string = remove_ranks(suffix)
-            clean_string = dirty_string.strip().replace(" ●", "")
+            clean_string = dirty_string.strip().replace(" ●", "").replace(" ?", "")
 
             players = clean_string.split(" ")
 
