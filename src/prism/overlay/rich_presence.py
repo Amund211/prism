@@ -13,6 +13,17 @@ CLIENT_ID = "1102365189845823569"
 
 logger = logging.getLogger(__name__)
 
+BUTTONS = [
+    {
+        "label": "Download",
+        "url": "https://github.com/Amund211/prism",
+    },
+    {
+        "label": "Join the Discord!",
+        "url": "https://discord.gg/k4FGUnEHYg",
+    },
+]
+
 
 class RPCThread(threading.Thread):  # pragma: no coverage
     """Thread that updates discord rich presence after every game"""
@@ -63,12 +74,7 @@ class RPCThread(threading.Thread):  # pragma: no coverage
                 "large_text": "Prism Overlay",
                 "small_image": "bedwars_icon",
             },
-            "buttons": [
-                {
-                    "label": "Download",
-                    "url": "https://github.com/Amund211/prism",
-                }
-            ],
+            "buttons": BUTTONS,
         }
         # Presence priority is first come, first served, so we send a status
         # as early as possible to claim the spot.
@@ -197,16 +203,7 @@ class RPCThread(threading.Thread):  # pragma: no coverage
                 "small_image": "bedwars_icon",
                 "small_text": party_members_string[:128],
             },
-            "buttons": [
-                {
-                    "label": "Download",
-                    "url": "https://github.com/Amund211/prism",
-                },
-                {
-                    "label": "Join the Discord!",
-                    "url": "https://discord.gg/k4FGUnEHYg",
-                },
-            ],
+            "buttons": BUTTONS,
         }
         if not self.controller.settings.discord_show_party:
             del data["assets"]["small_text"]  # type: ignore [attr-defined]
