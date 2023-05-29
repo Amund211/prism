@@ -1,4 +1,5 @@
 import logging
+import sys
 import threading
 import tkinter as tk
 from collections.abc import Callable
@@ -85,6 +86,11 @@ class StatsOverlay:  # pragma: nocover
         self.window.root.update_idletasks()
 
     def setup_tab_listener(self, *, restart: bool = False) -> None:
+        if sys.platform == "darwin":
+            # pynput crashes when starting keyboard event listeners on mac
+            # I think it's due to an issue in pyobjc that leads to a segfault in libffi
+            return
+
         if self.listener is not None:
             if restart:
                 # Stop the current listener and start a new one

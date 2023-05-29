@@ -1,6 +1,7 @@
 import functools
 import logging
 import platform
+import sys
 import tkinter as tk
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
@@ -131,6 +132,11 @@ class KeybindSelector(ToggleButton):  # pragma: no coverage
             self.toggle()
 
     def _start_listener(self) -> None:
+        if sys.platform == "darwin":
+            # pynput crashes when starting keyboard event listeners on mac
+            # I think it's due to an issue in pyobjc that leads to a segfault in libffi
+            return
+
         try:
             from pynput import keyboard
         except Exception:

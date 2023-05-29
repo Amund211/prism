@@ -1,6 +1,7 @@
 import functools
 import logging
 import string
+import sys
 import tkinter as tk
 from typing import TYPE_CHECKING, Any, Literal, TypedDict
 
@@ -146,6 +147,20 @@ class GeneralSettingSection:  # pragma: nocover
             check_for_updates_label,
             self.check_for_updates_toggle.button,
         )
+
+        if sys.platform == "darwin":
+            self.show_on_tab_toggle.button.config(state=tk.DISABLED)
+            self.show_on_tab_keybind_selector.button.config(state=tk.DISABLED)
+
+            show_on_tab_disabled_label = tk.Label(
+                self.frame,
+                text="SHOW ON TAB IS NOT AVAILABLE ON MAC",
+                font=("Consolas", "12"),
+                foreground="white",
+                background="black",
+            )
+            show_on_tab_disabled_label.grid(row=5, column=0, columnspan=2)
+            parent.make_widgets_scrollable(show_on_tab_disabled_label)
 
     def set(
         self,
