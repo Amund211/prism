@@ -1065,7 +1065,6 @@ class SettingsPage:  # pragma: nocover
         alpha_hundredths = self.graphics_section.get()
 
         rating_configs = self.stats_section.get()
-        print(discord_settings)
 
         new_settings = SettingsDict(
             hypixel_api_key=hypixel_api_key,
