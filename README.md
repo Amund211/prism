@@ -12,17 +12,20 @@
 <div align="center">
 
 [![Download for Windows](./images/download_windows.png)][latest-windows-download-link]
+[![Download for Mac](./images/download_mac.png)][latest-mac-download-link]
 [![Download for Linux](./images/download_linux.png)][latest-linux-download-link]
 
-[^1] [^2]
+[^1] [^2] [^3]
 
 </div>
 
 
 [^1]: Windows and the Windows logo are registered trademarks of the Microsoft Corporation.
-[^2]: Linux is the registered trademark of Linus Torvalds in the U.S. and other countries. Tux is the copyright of Larry Ewing \<<lewing@isc.tamu.edu>\>.
+[^2]: macOs and the Apple logo are trademarks of Apple Inc., registered in the U.S. and other countries and regions.
+[^3]: Linux is the registered trademark of Linus Torvalds in the U.S. and other countries. Tux is the copyright of Larry Ewing \<<lewing@isc.tamu.edu>\>.
 
 [latest-windows-download-link]: https://github.com/Amund211/prism/releases/download/v1.4.0/prism-v1.4.0-windows.exe
+[latest-mac-download-link]: https://github.com/Amund211/prism/releases/download/v1.4.0/prism-v1.4.0-mac.dmg
 [latest-linux-download-link]: https://github.com/Amund211/prism/releases/download/v1.4.0/prism-v1.4.0-linux
 
 [![Using Prism](./images/in_queue/stars_0dec_fkdr_ws_sort_fkdr.jpg)][latest-release-link]
