@@ -111,6 +111,12 @@ Some keys change when holding down shift (e.g. Shift+1 -> !).
 Using these keys as the show on tab keybind may cause the overlay to not show when holding shift.
 Letter keys (a, b, c, ...) and most special keys (Tab, Shift, Caps Lock, ...) should work regardless.
 
+### Show on tab doesn't work on Mac
+There is an issue with the library used by prism to check when you are pressing tab on Mac.
+This is unlikely to be fixed in the near future.
+The overlay will still automatically appear when you join a queue and automatically close when the game starts.
+If you want to open the overlay mid game you can type `/who`.
+
 ### Overlay window is invisible on Linux
 This issue happens to me when I start the overlay and then fullscreen Minecraft.
 I am able to fix it by simply switching workspaces away from and then back to Minecraft.
