@@ -24,6 +24,12 @@ BUTTONS = [
     },
 ]
 
+BASE_ASSETS = {
+    "large_image": "prism_logo",
+    "large_text": "Prism Overlay",
+    "small_image": "bedwars_icon",
+}
+
 
 class RPCThread(threading.Thread):  # pragma: no coverage
     """Thread that updates discord rich presence after every game"""
@@ -69,11 +75,7 @@ class RPCThread(threading.Thread):  # pragma: no coverage
         data = {
             "state": "Launching Minecraft",
             "timestamps": {"start": self.start_time},
-            "assets": {
-                "large_image": "prism_logo",
-                "large_text": "Prism Overlay",
-                "small_image": "bedwars_icon",
-            },
+            "assets": BASE_ASSETS,
             "buttons": BUTTONS,
         }
         # Presence priority is first come, first served, so we send a status
@@ -198,9 +200,7 @@ class RPCThread(threading.Thread):  # pragma: no coverage
             "details": status[:128],
             "timestamps": {"start": self.start_time},
             "assets": {
-                "large_image": "prism_logo",
-                "large_text": "Prism Overlay",
-                "small_image": "bedwars_icon",
+                **BASE_ASSETS,
                 "small_text": party_members_string[:128],
             },
             "buttons": BUTTONS,
