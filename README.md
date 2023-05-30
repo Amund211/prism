@@ -80,6 +80,8 @@ Click one of the direct download buttons above, or [click here][latest-release-l
 Your browser might tell you that the file is potentially dangerous, but you can safely ignore this warning.
 See the section on [safety](#safety) for more info.
 
+**NOTE (Mac users):** The first time you run the overlay on Mac you may need to shift+right click the application and click run.
+
 ## Support and feedback
 If you need help setting up the overlay or have feedback you can join the [discord server][discord-invite-link].
 Additionally, feel free to submit issues or pull requests on GitHub.
