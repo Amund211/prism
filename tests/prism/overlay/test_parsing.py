@@ -503,9 +503,16 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         PartyMembershipListEvent(usernames=["Player2", "Player3"], role="members"),
     ),
     (
-        # Decoding error on windows due to readin win-encoded file as utf8 makes the
+        # Decoding error on windows due to reading win-encoded file as utf8 makes the
         # orb turn into a question mark
+        # Note: This is just on encode - so it is probably not what we read
         "[22:47:04] [Client thread/INFO]: [CHAT] Party Leader: [MVP+] Player1 ?",
+        PartyMembershipListEvent(usernames=["Player1"], role="leader"),
+    ),
+    (
+        # Decoding error on windows due to reading win-encoded file as utf8 makes the
+        # orb turn into a the unicode replacement character
+        "[22:47:04] [Client thread/INFO]: [CHAT] Party Leader: [MVP+] Player1 \uFFFD",
         PartyMembershipListEvent(usernames=["Player1"], role="leader"),
     ),
     (
