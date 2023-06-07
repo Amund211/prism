@@ -122,11 +122,24 @@ class RPCThread(threading.Thread):  # pragma: no coverage
             self.update_session_presence()
             time.sleep(15)
 
-    def get_stats(self, username: str) -> KnownPlayer:
+    def get_stats(self, username: str) -> KnownPlayer | None:
+        """
+        Request and wait for the stats of the player
+
+        Return None if self.username != username
+        """
         stats: Player | None = None
 
         # Wait for the stats to become available
         while True:
+            # Exit the loop if we are going to change usernames
+            new_username = self.controller.state.own_username
+            if new_username != username:
+                logger.warning(
+                    f"Username changed, not getting stats {new_username=} {username=}"
+                )
+                return None
+
             stats = self.controller.player_cache.get_cached_player(username)
 
             if stats is None:
@@ -155,7 +168,12 @@ class RPCThread(threading.Thread):  # pragma: no coverage
         logger.info(f"Started tracking {username} in rpc thread")
         self.start_time = int(time.time())
         self.username = username
+
         self.initial_stats = self.get_stats(self.username)
+        if self.initial_stats is None:
+            logger.warning("Username changed. Cancelling tracking.")
+            return
+
         self.controller.update_presence_event.clear()
         self.time_since_game_end = 0
 
@@ -169,6 +187,9 @@ class RPCThread(threading.Thread):  # pragma: no coverage
             return
 
         new_stats = self.get_stats(self.username)
+        if new_stats is None:
+            logger.warning("Username changed. Cancelling session presence update.")
+            return
 
         finals = new_stats.stats.finals - self.initial_stats.stats.finals
         beds = new_stats.stats.beds - self.initial_stats.stats.beds
