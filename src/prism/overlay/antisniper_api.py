@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 DENICK_ENDPOINT = "https://api.antisniper.net/v2/other/denick"
 WINSTREAK_ENDPOINT = "https://api.antisniper.net/v2/player/winstreak"
 
-REQUEST_LIMIT, REQUEST_WINDOW = 100, 60  # Max requests per time window
+REQUEST_LIMIT, REQUEST_WINDOW = 360, 60  # Max requests per time window
 
 
 class Flag(Enum):
