@@ -1,4 +1,5 @@
 from prism import USER_AGENT, VERSION_STRING
+from prism.update_checker import VersionInfo
 
 
 def test_version_string() -> None:
@@ -25,6 +26,20 @@ def test_version_string() -> None:
     # Properly formatted numbers
     for number in (major, minor, patch):
         assert str(int(number)) == number
+
+    # Assert that it is parsed correctly by VersionInfo.parse
+    version_info = VersionInfo.parse(VERSION_STRING)
+
+    assert version_info is not None
+
+    for parsed, raw in (
+        (version_info.major, major),
+        (version_info.minor, minor),
+        (version_info.patch, patch),
+    ):
+        assert parsed == int(raw)
+
+    assert version_info.dev == bool(rest)
 
 
 def test_user_agent() -> None:

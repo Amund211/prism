@@ -124,7 +124,7 @@ class UpdateCheckerThread(threading.Thread):  # pragma: nocover
             while True:
                 if not self.controller.settings.check_for_updates:
                     logger.info("UpdateChecker: disabled by settings.")
-                elif update_available():
+                elif update_available(ignore_patch_bumps=True):
                     logger.info("UpdateChecker: update available!")
                     self.update_available_event.set()
                     # An update is available -> no need to check any more
@@ -147,7 +147,7 @@ class UpdateCheckerOneShotThread(threading.Thread):  # pragma: nocover
     def run(self) -> None:
         """Run update_available and set the event accordingly"""
         try:
-            if update_available():
+            if update_available(ignore_patch_bumps=True):
                 logger.info("UpdateCheckerOneShot: update available!")
                 self.update_available_event.set()
             else:

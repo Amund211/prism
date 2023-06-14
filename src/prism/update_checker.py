@@ -1,8 +1,9 @@
 """Check for updates on GitHub"""
 
 import logging
+from dataclasses import astuple, dataclass
 from json import JSONDecodeError
-from typing import Any
+from typing import Any, Self
 
 import requests
 
@@ -11,44 +12,109 @@ from prism import VERSION_STRING
 logger = logging.getLogger(__name__)
 
 
-def update_available() -> bool:  # pragma: no cover
+@dataclass
+class VersionInfo:
+    """
+    Class storing the version info from a version string like v1.3.2-dev
+
+    The property dev is True if there is any suffix -<whatever>
+    """
+
+    major: int
+    minor: int
+    patch: int
+    dev: bool
+
+    @classmethod
+    def parse(cls, version: str) -> Self | None:
+        """Parse a version string (or tag name) into (major, minor, patch, dev)"""
+        # Remove v
+        if version[0] == "v":
+            version = version[1:]
+
+        parts = version.split(".")
+
+        if len(parts) != 3:
+            logger.error(f"Did not get 3 {parts=}")
+            return None
+
+        dev = False
+        if "-" in parts[2]:
+            index = parts[2].index("-")
+            parts[2] = parts[2][:index]
+            dev = True
+
+        try:
+            numeric_parts = [int(part) for part in parts]
+        except ValueError:
+            logger.exception(f"Could not convert {parts=} to ints")
+            return None
+
+        major, minor, patch = numeric_parts
+
+        return cls(major, minor, patch, dev)
+
+    def update_available(self, latest_version: Self, ignore_patch_bumps: bool) -> bool:
+        """Return True if latest_version is later than self"""
+        current_version = self
+        current_tuple = astuple(self)
+        latest_tuple = astuple(latest_version)
+
+        if ignore_patch_bumps:
+            return latest_tuple[:2] > current_tuple[:2]
+
+        if latest_tuple[:3] > current_tuple[:3]:
+            return True
+
+        if (
+            # Versions match
+            latest_tuple[:3] == current_tuple[:3]
+            # but our version is a development version
+            and current_version.dev
+            # and the latest one is not
+            and not latest_version.dev
+        ):
+            return True
+
+        return False
+
+
+def update_available(ignore_patch_bumps: bool) -> bool:  # pragma: no cover
     """Return True if there is an update available on GitHub"""
-    return _update_available(VERSION_STRING, get_release_tags())
+    return _update_available(
+        VERSION_STRING, get_latest_release_tag(), ignore_patch_bumps
+    )
 
 
-def _update_available(current_version: str, tags: tuple[str, ...] | None) -> bool:
+def _update_available(
+    current_string: str, latest_string: str | None, ignore_patch_bumps: bool
+) -> bool:
     """
-    Return True if a version newer than current_version exists in tags
+    Return True if the latest version is compares greater than current_version
 
-    Note: we determine the order of releases by the order in the tags list, relying
-          on GitHub to send them newest -> oldest. We also check for this by seeing
-          if the oldest release is "v1.0.0".
+    Patch bumps (e.g. 1.3.1 -> 1.3.2) are ignored if ignore_patch_bumps
     """
-    if tags is None:
-        logger.error("Could not get release tags. Skipping update check.")
+    if latest_string is None:
+        logger.error("Could not get latest release tag. Skipping update check.")
         return False
 
-    if tags[-1] != "v1.0.0":
+    current_version = VersionInfo.parse(current_string)
+    latest_version = VersionInfo.parse(latest_string)
+    if current_version is None or latest_version is None:
         logger.error(
-            f"Tag order is not newest -> oldest. {tags=}. Skipping update check."
-        )
-        return False
-
-    if current_version not in tags:
-        logger.debug(
-            f"Current version ({current_version}) not found in releases ({tags}). "
+            "Could not parse tags {current_string=} {latest_string=}. "
             "Skipping update check."
         )
         return False
 
-    return current_version != tags[0]
+    return current_version.update_available(latest_version, ignore_patch_bumps)
 
 
-def get_release_tags() -> tuple[str, ...] | None:  # pragma: no cover
-    """Get the tag of all (max 100) current releases on GitHub"""
+def get_latest_release_tag() -> str | None:  # pragma: no cover
+    """Get the tag of the latest release on GitHub"""
     try:
         response = requests.get(
-            "https://api.github.com/repos/Amund211/prism/releases?per_page=100",
+            "https://api.github.com/repos/Amund211/prism/releases?per_page=1",
             headers={"accept": "application/vnd.github+json"},
         )
     except requests.RequestException as e:
@@ -70,20 +136,25 @@ def get_release_tags() -> tuple[str, ...] | None:  # pragma: no cover
         )
         return None
 
-    return parse_releases_to_tags(releases)
+    return parse_releases_to_latest_tag(releases)
 
 
-def parse_releases_to_tags(releases: Any) -> tuple[str, ...] | None:
+def parse_releases_to_latest_tag(releases: Any) -> str | None:
     """Parse the response json from the releases api to a tuple of tags"""
-    try:
-        return tuple(str(release["tag_name"]) for release in releases)
-    except Exception as e:
-        # Potential failures:
-        #   releases not iterable
-        #   release elements not dictionaries
-        #   tag_name key missing
-        #   tag_name not convertible to str
-        logger.exception(
-            "Invalid response from releases endpoint. {releases=}.", exc_info=e
-        )
+    if not isinstance(releases, (list, tuple)) or not releases:
+        logger.error(f"{releases=} not iterable or empty")
         return None
+
+    latest = releases[0]
+
+    if not isinstance(latest, dict):
+        logger.error(f"{latest=} not a dict")
+        return None
+
+    latest_tag = latest.get("tag_name", None)
+
+    if not isinstance(latest_tag, str):
+        logger.error(f"{latest_tag=} not a string")
+        return None
+
+    return latest_tag
