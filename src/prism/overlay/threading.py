@@ -126,6 +126,7 @@ class UpdateCheckerThread(threading.Thread):  # pragma: nocover
         """Run update_available and set the event accordingly"""
         try:
             while True:
+                logger.info("UpdateChecker: checking for updates.")
                 if not self.controller.settings.check_for_updates:
                     logger.info("UpdateChecker: disabled by settings.")
                 elif update_available(
@@ -141,6 +142,7 @@ class UpdateCheckerThread(threading.Thread):  # pragma: nocover
                     logger.info("UpdateChecker: no update available.")
 
                 if self.one_shot:
+                    logger.info("UpdateChecker: exiting oneshot thread.")
                     return
 
                 time.sleep(self.PERIOD_SECONDS)
