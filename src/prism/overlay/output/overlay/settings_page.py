@@ -37,10 +37,7 @@ from prism.overlay.output.overlay.gui_components import (
 )
 from prism.overlay.output.overlay.utils import open_url
 from prism.overlay.settings import NickValue, Settings, SettingsDict
-from prism.overlay.threading import (
-    UpdateCheckerOneShotThread,
-    recommend_stats_thread_count,
-)
+from prism.overlay.threading import UpdateCheckerThread, recommend_stats_thread_count
 
 logger = logging.getLogger(__name__)
 
@@ -1125,7 +1122,11 @@ class SettingsPage:  # pragma: nocover
             and not old_check_for_updates
             and not self.overlay.update_available_event.is_set()
         ):
-            UpdateCheckerOneShotThread(self.overlay.update_available_event).start()
+            UpdateCheckerThread(
+                one_shot=True,
+                update_available_event=self.overlay.update_available_event,
+                controller=self.controller,
+            ).start()
 
         # Go back to the main content
         self.overlay.switch_page("main")

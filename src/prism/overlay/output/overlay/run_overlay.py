@@ -25,7 +25,9 @@ def run_overlay(
     # Spawn thread to check for updates on GitHub
     update_available_event = threading.Event()
     UpdateCheckerThread(
-        update_available_event=update_available_event, controller=controller
+        one_shot=False,
+        update_available_event=update_available_event,
+        controller=controller,
     ).start()
 
     def get_new_data() -> tuple[bool, list[InfoCellValue], list[OverlayRowData] | None]:

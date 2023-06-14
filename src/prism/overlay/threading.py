@@ -112,9 +112,13 @@ class UpdateCheckerThread(threading.Thread):  # pragma: nocover
     PERIOD_SECONDS = 24 * 60 * 60
 
     def __init__(
-        self, update_available_event: threading.Event, controller: OverlayController
+        self,
+        one_shot: bool,
+        update_available_event: threading.Event,
+        controller: OverlayController,
     ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
+        self.one_shot = one_shot
         self.update_available_event = update_available_event
         self.controller = controller
 
@@ -132,30 +136,12 @@ class UpdateCheckerThread(threading.Thread):  # pragma: nocover
                 else:
                     logger.info("UpdateChecker: no update available.")
 
+                if self.one_shot:
+                    return
+
                 time.sleep(self.PERIOD_SECONDS)
         except Exception:
             logger.exception("Exception caught in update checker thread. Exiting.")
-
-
-class UpdateCheckerOneShotThread(threading.Thread):  # pragma: nocover
-    """Thread that does a one-time check for updates on GitHub"""
-
-    def __init__(self, update_available_event: threading.Event) -> None:
-        super().__init__(daemon=True)  # Don't block the process from exiting
-        self.update_available_event = update_available_event
-
-    def run(self) -> None:
-        """Run update_available and set the event accordingly"""
-        try:
-            if update_available(ignore_patch_bumps=True):
-                logger.info("UpdateCheckerOneShot: update available!")
-                self.update_available_event.set()
-            else:
-                logger.info("UpdateCheckerOneShot: no update available.")
-        except Exception:
-            logger.exception(
-                "Exception caught in update checker one shot thread. Exiting."
-            )
 
 
 def prepare_overlay(
