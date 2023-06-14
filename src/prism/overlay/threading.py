@@ -128,7 +128,11 @@ class UpdateCheckerThread(threading.Thread):  # pragma: nocover
             while True:
                 if not self.controller.settings.check_for_updates:
                     logger.info("UpdateChecker: disabled by settings.")
-                elif update_available(ignore_patch_bumps=True):
+                elif update_available(
+                    ignore_patch_bumps=(
+                        not self.controller.settings.include_patch_updates
+                    )
+                ):
                     logger.info("UpdateChecker: update available!")
                     self.update_available_event.set()
                     # An update is available -> no need to check any more

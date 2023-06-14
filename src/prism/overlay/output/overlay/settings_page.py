@@ -130,19 +130,41 @@ class GeneralSettingSection:  # pragma: nocover
             self.show_on_tab_keybind_selector.button,
         )
 
+        def disable_include_patch_updates_toggle(enabled: bool) -> None:
+            self.include_patch_updates_toggle.button.config(
+                state=tk.NORMAL if enabled else tk.DISABLED
+            )
+
         check_for_updates_label = tk.Label(
             self.frame,
-            text="Check for overlay version updates: ",
+            text="Check for major version updates: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",
         )
         check_for_updates_label.grid(row=4, column=0, sticky=tk.E)
-        self.check_for_updates_toggle = ToggleButton(self.frame)
+        self.check_for_updates_toggle = ToggleButton(
+            self.frame, toggle_callback=disable_include_patch_updates_toggle
+        )
         self.check_for_updates_toggle.button.grid(row=4, column=1)
         parent.make_widgets_scrollable(
             check_for_updates_label,
             self.check_for_updates_toggle.button,
+        )
+
+        include_patch_updates_label = tk.Label(
+            self.frame,
+            text="Check for minor version updates: ",
+            font=("Consolas", "12"),
+            foreground="white",
+            background="black",
+        )
+        include_patch_updates_label.grid(row=5, column=0, sticky=tk.E)
+        self.include_patch_updates_toggle = ToggleButton(self.frame)
+        self.include_patch_updates_toggle.button.grid(row=5, column=1)
+        parent.make_widgets_scrollable(
+            include_patch_updates_label,
+            self.include_patch_updates_toggle.button,
         )
 
         if sys.platform == "darwin":
@@ -166,6 +188,7 @@ class GeneralSettingSection:  # pragma: nocover
         show_on_tab: bool,
         show_on_tab_keybind: Key,
         check_for_updates: bool,
+        include_patch_updates: bool,
     ) -> None:
         """Set the state of this section"""
         self.autodenick_teammates_toggle.set(autodenick_teammates)
@@ -173,8 +196,9 @@ class GeneralSettingSection:  # pragma: nocover
         self.show_on_tab_toggle.set(show_on_tab)
         self.show_on_tab_keybind_selector.set_key(show_on_tab_keybind)
         self.check_for_updates_toggle.set(check_for_updates)
+        self.include_patch_updates_toggle.set(include_patch_updates)
 
-    def get(self) -> tuple[bool, bool, bool, Key, bool]:
+    def get(self) -> tuple[bool, bool, bool, Key, bool, bool]:
         """Get the state of this section"""
         return (
             self.autodenick_teammates_toggle.enabled,
@@ -182,6 +206,7 @@ class GeneralSettingSection:  # pragma: nocover
             self.show_on_tab_toggle.enabled,
             self.show_on_tab_keybind_selector.key,
             self.check_for_updates_toggle.enabled,
+            self.include_patch_updates_toggle.enabled,
         )
 
 
@@ -1015,6 +1040,7 @@ class SettingsPage:  # pragma: nocover
                 show_on_tab=settings.show_on_tab,
                 show_on_tab_keybind=settings.show_on_tab_keybind,
                 check_for_updates=settings.check_for_updates,
+                include_patch_updates=settings.include_patch_updates,
             )
             self.performance_section.set(stats_thread_count=settings.stats_thread_count)
             self.display_section.set(settings.sort_order, settings.hide_dead_players)
@@ -1044,6 +1070,7 @@ class SettingsPage:  # pragma: nocover
         """Handle the user saving their settings"""
         # Store old value to check for rising edge
         old_check_for_updates = self.controller.settings.check_for_updates
+        old_include_patch_updates = self.controller.settings.include_patch_updates
         old_show_on_tab_keybind = self.controller.settings.show_on_tab_keybind
 
         (
@@ -1052,6 +1079,7 @@ class SettingsPage:  # pragma: nocover
             show_on_tab,
             show_on_tab_keybind,
             check_for_updates,
+            include_patch_updates,
         ) = self.general_settings_section.get()
 
         stats_thread_count = self.performance_section.get()
@@ -1091,6 +1119,7 @@ class SettingsPage:  # pragma: nocover
             show_on_tab=show_on_tab,
             show_on_tab_keybind=show_on_tab_keybind.to_dict(),
             check_for_updates=check_for_updates,
+            include_patch_updates=include_patch_updates,
             stats_thread_count=stats_thread_count,
             discord_rich_presence=discord_settings["discord_rich_presence"],
             discord_show_username=discord_settings["discord_show_username"],
@@ -1115,11 +1144,12 @@ class SettingsPage:  # pragma: nocover
         else:
             self.overlay.stop_tab_listener()
 
-        # Check for updates on the rising edge of settings.check_for_updates, but
-        # only if we don't already know that there is an update available
+        # Check for updates if our related settings changed, but only if we have checks
+        # enabled and if we don't already know that there is an update available
         if (
-            self.controller.settings.check_for_updates
-            and not old_check_for_updates
+            (check_for_updates, include_patch_updates)
+            != (old_check_for_updates, old_include_patch_updates)
+            and check_for_updates
             and not self.overlay.update_available_event.is_set()
         ):
             UpdateCheckerThread(

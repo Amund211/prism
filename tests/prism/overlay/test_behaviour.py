@@ -335,6 +335,7 @@ def test_update_settings_everything_changed() -> None:
             name="a", char="a", key_type="alphanumeric"
         ),
         check_for_updates=False,
+        include_patch_updates=True,
         stats_thread_count=12,
         discord_rich_presence=False,
         discord_show_username=False,

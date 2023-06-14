@@ -53,6 +53,7 @@ class SettingsDict(TypedDict):
     show_on_tab: bool
     show_on_tab_keybind: KeyDict
     check_for_updates: bool
+    include_patch_updates: bool
     stats_thread_count: int
     discord_rich_presence: bool
     discord_show_username: bool
@@ -80,6 +81,7 @@ class Settings:
     show_on_tab: bool
     show_on_tab_keybind: Key
     check_for_updates: bool
+    include_patch_updates: bool
     stats_thread_count: int
     discord_rich_presence: bool
     discord_show_username: bool
@@ -109,6 +111,7 @@ class Settings:
             show_on_tab=source["show_on_tab"],
             show_on_tab_keybind=construct_key(source["show_on_tab_keybind"]),
             check_for_updates=source["check_for_updates"],
+            include_patch_updates=source["include_patch_updates"],
             stats_thread_count=source["stats_thread_count"],
             discord_rich_presence=source["discord_rich_presence"],
             discord_show_username=source["discord_show_username"],
@@ -135,6 +138,7 @@ class Settings:
             "show_on_tab": self.show_on_tab,
             "show_on_tab_keybind": self.show_on_tab_keybind.to_dict(),
             "check_for_updates": self.check_for_updates,
+            "include_patch_updates": self.include_patch_updates,
             "stats_thread_count": self.stats_thread_count,
             "discord_rich_presence": self.discord_rich_presence,
             "discord_show_username": self.discord_show_username,
@@ -162,6 +166,7 @@ class Settings:
         self.show_on_tab = new_settings["show_on_tab"]
         self.show_on_tab_keybind = construct_key(new_settings["show_on_tab_keybind"])
         self.check_for_updates = new_settings["check_for_updates"]
+        self.include_patch_updates = new_settings["include_patch_updates"]
         self.stats_thread_count = new_settings["stats_thread_count"]
         self.discord_rich_presence = new_settings["discord_rich_presence"]
         self.discord_show_username = new_settings["discord_show_username"]
@@ -320,6 +325,10 @@ def fill_missing_settings(
         incomplete_settings, "check_for_updates", settings_updated, default=True
     )
 
+    include_patch_updates, settings_updated = get_boolean_setting(
+        incomplete_settings, "include_patch_updates", settings_updated, default=False
+    )
+
     stats_thread_count = incomplete_settings.get("stats_thread_count", None)
     if not isinstance(stats_thread_count, int) or not 1 <= stats_thread_count <= 16:
         settings_updated = True
@@ -374,6 +383,7 @@ def fill_missing_settings(
         "show_on_tab": show_on_tab,
         "show_on_tab_keybind": show_on_tab_keybind,
         "check_for_updates": check_for_updates,
+        "include_patch_updates": include_patch_updates,
         "stats_thread_count": stats_thread_count,
         "discord_rich_presence": discord_rich_presence,
         "discord_show_username": discord_show_username,

@@ -51,6 +51,7 @@ def make_settings_dict(
     show_on_tab: bool | None = None,
     show_on_tab_keybind: KeyDict | None = None,
     check_for_updates: bool | None = None,
+    include_patch_updates: bool | None = None,
     stats_thread_count: int | None = None,
     discord_rich_presence: bool | None = None,
     discord_show_username: bool | None = None,
@@ -85,6 +86,7 @@ def make_settings_dict(
             default=SpecialKeyDict(name="tab", vk=None, key_type="special"),
         ),
         "check_for_updates": value_or_default(check_for_updates, default=True),
+        "include_patch_updates": value_or_default(include_patch_updates, default=False),
         "stats_thread_count": value_or_default(
             stats_thread_count, default=DEFAULT_STATS_THREAD_COUNT
         ),
@@ -124,6 +126,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             show_on_tab=True,
             show_on_tab_keybind=AlphanumericKey(name="a", char="a"),
             check_for_updates=True,
+            include_patch_updates=False,
             stats_thread_count=4,
             discord_rich_presence=True,
             discord_show_username=True,
@@ -150,6 +153,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
                 name="a", char="a", key_type="alphanumeric"
             ),
             "check_for_updates": True,
+            "include_patch_updates": False,
             "stats_thread_count": 4,
             "discord_rich_presence": True,
             "discord_show_username": True,
@@ -175,6 +179,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             show_on_tab=False,
             show_on_tab_keybind=SpecialKey(name="tab", vk=None),
             check_for_updates=False,
+            include_patch_updates=True,
             stats_thread_count=16,
             discord_rich_presence=False,
             discord_show_username=False,
@@ -201,6 +206,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
                 name="tab", vk=None, key_type="special"
             ),
             "check_for_updates": False,
+            "include_patch_updates": True,
             "stats_thread_count": 16,
             "discord_rich_presence": False,
             "discord_show_username": False,
@@ -342,6 +348,7 @@ fill_settings_test_cases: tuple[
                 name="somekey", vk=123456, key_type="special"
             ),
             "check_for_updates": False,
+            "include_patch_updates": True,
             "stats_thread_count": 9,
             "discord_rich_presence": False,
             "discord_show_username": False,
@@ -367,6 +374,7 @@ fill_settings_test_cases: tuple[
                 name="somekey", vk=123456, key_type="special"
             ),
             check_for_updates=False,
+            include_patch_updates=True,
             stats_thread_count=9,
             discord_rich_presence=False,
             discord_show_username=False,
