@@ -177,5 +177,9 @@ python3 prism_overlay.py
 ```
 Run `python3 prism_overlay.py --help` to get info about the accepted command line arguments.
 
+## Creator info
+IGN: `Skydeath` \
+UUID: `a937646b-f115-44c3-8dbf-9ae4a65669a0`
+
 [latest-release-link]: https://github.com/Amund211/prism/releases/latest
 [discord-invite-link]: https://discord.gg/k4FGUnEHYg
