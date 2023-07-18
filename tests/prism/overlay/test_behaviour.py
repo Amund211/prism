@@ -264,6 +264,7 @@ def test_update_settings_nothing() -> None:
 def test_update_settings_known_nicks() -> None:
     controller = MockedController(
         hypixel_api_key="my-key",
+        antisniper_api_key="my-key",
         settings=make_settings(
             known_nicks={
                 "SuperbNick": {"uuid": "2", "comment": "2"},
@@ -278,7 +279,7 @@ def test_update_settings_known_nicks() -> None:
     }
 
     new_settings = make_settings(
-        hypixel_api_key="my-key", known_nicks=known_nicks
+        antisniper_api_key="my-key", hypixel_api_key="my-key", known_nicks=known_nicks
     ).to_dict()
 
     controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore

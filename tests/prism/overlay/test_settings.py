@@ -66,7 +66,7 @@ def make_settings_dict(
     return {
         "hypixel_api_key": value_or_default(hypixel_api_key, default=KEY_IF_MISSING),
         "antisniper_api_key": value_or_default(
-            antisniper_api_key, default=PLACEHOLDER_API_KEY
+            antisniper_api_key, default=KEY_IF_MISSING
         ),
         "use_antisniper_api": value_or_default(use_antisniper_api, default=False),
         "sort_order": value_or_default(sort_order, default="index"),

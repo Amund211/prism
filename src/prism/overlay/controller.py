@@ -41,7 +41,7 @@ class OverlayController(Protocol):  # pragma: no cover
 
     @property
     @abstractmethod
-    def set_antisniper_api_key(self) -> Callable[[str | None], None]:
+    def set_antisniper_api_key(self) -> Callable[[str], None]:
         raise NotImplementedError
 
     @property
@@ -93,25 +93,12 @@ class RealOverlayController:
         self.update_presence_event = threading.Event()
 
         self.hypixel_key_holder = HypixelAPIKeyHolder(settings.hypixel_api_key)
-        self.antisniper_key_holder: AntiSniperAPIKeyHolder | None = None
+        self.antisniper_key_holder = AntiSniperAPIKeyHolder(settings.antisniper_api_key)
 
         self.set_antisniper_api_key(settings.antisniper_api_key)
 
-    def set_antisniper_api_key(self, new_key: str | None) -> None:
-        from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
-
-        current_holder = self.antisniper_key_holder
-
-        if current_holder is None:
-            if new_key is None:
-                pass
-            else:
-                self.antisniper_key_holder = AntiSniperAPIKeyHolder(new_key)
-        else:
-            if new_key is None:
-                self.antisniper_key_holder = None
-            else:
-                current_holder.key = new_key
+    def set_antisniper_api_key(self, new_key: str) -> None:
+        self.antisniper_key_holder.key = new_key
 
     def get_uuid(self, username: str) -> str | None:  # pragma: no cover
         try:

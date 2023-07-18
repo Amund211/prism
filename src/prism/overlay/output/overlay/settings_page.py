@@ -626,17 +626,17 @@ class AntisniperSection:  # pragma: nocover
             api_key_label, self.antisniper_api_key_entry, show_button
         )
 
-    def set(self, use_antisniper_api: bool, antisniper_api_key: str | None) -> None:
+    def set(self, use_antisniper_api: bool, antisniper_api_key: str) -> None:
         """Set the state of this section"""
         self.use_antisniper_api_toggle.set(use_antisniper_api)
 
         self.antisniper_api_key_entry.config(show="*")
-        self.antisniper_api_key_variable.set(antisniper_api_key or "")
+        self.antisniper_api_key_variable.set(antisniper_api_key)
 
-    def get(self) -> tuple[bool, str | None]:
+    def get(self) -> tuple[bool, str]:
         """Get the state of this section"""
-        raw_antisniper_api_key = self.antisniper_api_key_variable.get().strip()
-        return self.use_antisniper_api_toggle.enabled, raw_antisniper_api_key or None
+        antisniper_api_key = self.antisniper_api_key_variable.get().strip()
+        return self.use_antisniper_api_toggle.enabled, antisniper_api_key
 
     def set_key_entry_state(self, enabled: bool) -> None:
         """Enable the key entry if the api is enabled, disable if disabled"""

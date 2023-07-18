@@ -176,13 +176,7 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
 
     # True if the stats could be affected by the settings update
     potential_antisniper_updates = (
-        # Changing their key and intending to use the api
-        antisniper_api_key_changed
-        and new_settings["use_antisniper_api"]
-    ) or (
-        # Turning the api on/off with an active key
-        use_antisniper_api_changed
-        and new_settings["antisniper_api_key"] is not None
+        antisniper_api_key_changed or use_antisniper_api_changed
     )
 
     # Known_nicks

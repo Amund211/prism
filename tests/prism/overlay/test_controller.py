@@ -22,19 +22,7 @@ def test_real_overlay_controller() -> None:
     controller.hypixel_key_holder.key = "new_key"
     assert controller.hypixel_key_holder.key == "new_key"
 
-    # set -> set
-    controller.set_antisniper_api_key("new_key")
-    assert controller.antisniper_key_holder.key == "new_key"
-
-    # set -> unset
-    controller.set_antisniper_api_key(None)
-    assert controller.antisniper_key_holder is None
-
-    # unset -> unset
-    controller.set_antisniper_api_key(None)
-    assert controller.antisniper_key_holder is None
-
-    # unset -> set
+    # Updating the key
     controller.set_antisniper_api_key("new_key")
     assert controller.antisniper_key_holder.key == "new_key"
 

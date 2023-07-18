@@ -232,7 +232,7 @@ def make_winstreaks(
 
 def make_settings(
     hypixel_api_key: str = "placeholder-hypixel-key",
-    antisniper_api_key: str | None = None,
+    antisniper_api_key: str = "placeholder-antisniper-key",
     use_antisniper_api: bool = False,
     known_nicks: dict[str, NickValue] | None = None,
     path: Path | PurePath | None = None,
@@ -276,7 +276,7 @@ class MockedController:
     hypixel_key_holder: HypixelAPIKeyHolder = field(
         init=False, repr=False, compare=False, hash=False
     )
-    antisniper_api_key: str | None = None
+    antisniper_api_key: str = "api-key"
 
     wants_shown: bool | None = None
     state: OverlayState = field(default_factory=create_state)
@@ -333,7 +333,7 @@ class MockedController:
         self.settings.hypixel_api_key = hypixel_api_key
         self.settings.antisniper_api_key = self.antisniper_api_key
 
-    def set_antisniper_api_key(self, new_key: str | None) -> None:
+    def set_antisniper_api_key(self, new_key: str) -> None:
         self.antisniper_api_key = new_key
 
     def store_settings(self) -> None:

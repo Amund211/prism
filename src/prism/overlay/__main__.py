@@ -4,7 +4,6 @@ Parse the chat on Hypixel to detect players in your party and bedwars lobby
 Run from the root dir by `python -m prism.overlay [--logfile <path-to-logfile>]`
 """
 
-import functools
 import logging
 import platform
 import sys
@@ -26,7 +25,7 @@ from prism.overlay.output.overlay.run_overlay import run_overlay
 from prism.overlay.output.printing import print_stats_table
 from prism.overlay.player import Player
 from prism.overlay.process_event import fast_forward_state
-from prism.overlay.settings import PLACEHOLDER_API_KEY, Settings, get_settings
+from prism.overlay.settings import Settings, get_settings
 from prism.overlay.state import OverlayState
 from prism.overlay.threading import prepare_overlay, recommend_stats_thread_count
 from prism.overlay.user_interaction.get_api_key import wait_for_api_key
@@ -290,10 +289,10 @@ def main(*nick_databases: Path) -> None:  # pragma: nocover
         logger.exception("Failed creating settings directory!")
         sys.exit(1)
 
-    # Do an initial read of the settings without populating a missing hypixel api key
+    # Read settings and populate missing values
     settings = get_settings(
         options.settings_path,
-        lambda: PLACEHOLDER_API_KEY,
+        wait_for_api_key,
         recommend_stats_thread_count(),
     )
 
@@ -303,14 +302,6 @@ def main(*nick_databases: Path) -> None:  # pragma: nocover
         )
     else:
         logfile_path = options.logfile_path
-
-    # Re-read the settings with proper hypixel api key if it is missing from last read
-    if settings.hypixel_api_key == PLACEHOLDER_API_KEY:
-        settings = get_settings(
-            options.settings_path,
-            functools.partial(wait_for_api_key, logfile_path, options.settings_path),
-            2,  # stats_thread_count is set by the previous read
-        )
 
     with settings.mutex:
         default_database = {

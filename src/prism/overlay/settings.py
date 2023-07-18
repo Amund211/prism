@@ -42,7 +42,7 @@ class SettingsDict(TypedDict):
     """Complete dict of settings"""
 
     hypixel_api_key: str
-    antisniper_api_key: str | None
+    antisniper_api_key: str
     use_antisniper_api: bool
     sort_order: ColumnName
     column_order: tuple[ColumnName, ...]
@@ -70,7 +70,7 @@ class Settings:
     """Class holding user settings for the application"""
 
     hypixel_api_key: str
-    antisniper_api_key: str | None
+    antisniper_api_key: str
     use_antisniper_api: bool
     sort_order: ColumnName
     column_order: tuple[ColumnName, ...]
@@ -235,10 +235,8 @@ def fill_missing_settings(
     if not isinstance(antisniper_api_key, str) or not api_key_is_valid(
         antisniper_api_key
     ):
-        # Don't make any updates if the key is already set to the placeholder
-        if antisniper_api_key != PLACEHOLDER_API_KEY:
-            settings_updated = True
-        antisniper_api_key = PLACEHOLDER_API_KEY
+        settings_updated = True
+        antisniper_api_key = get_api_key()
 
     use_antisniper_api, settings_updated = get_boolean_setting(
         incomplete_settings, "use_antisniper_api", settings_updated, default=False
@@ -411,12 +409,6 @@ def get_settings(
         # Error either in reading or parsing file
         incomplete_settings = {}
         logger.warning("Error reading settings file, using all defaults.", exc_info=e)
-
-    if "hypixel_api_key" not in incomplete_settings:
-        # To help users in setting a valid key, add a placeholder and flush to disk
-        incomplete_settings["hypixel_api_key"] = PLACEHOLDER_API_KEY
-        with path.open("w") as f:
-            toml.dump(incomplete_settings, f)
 
     settings_dict, settings_updated = fill_missing_settings(
         incomplete_settings, get_api_key, default_stats_thread_count
