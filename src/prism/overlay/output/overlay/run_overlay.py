@@ -62,7 +62,7 @@ def run_overlay(
             )
 
         block_duration_seconds = (
-            controller.hypixel_key_holder.limiter.block_duration_seconds
+            controller.antisniper_key_holder.limiter.block_duration_seconds
         )
 
         if block_duration_seconds > 0:

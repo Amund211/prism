@@ -6,7 +6,7 @@ from typing import Any, Literal, TypedDict, cast, overload
 
 from cachetools import TTLCache
 
-from prism.hypixel import HypixelAPIKeyHolder
+from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.output.config import (
     RatingConfigCollection,
@@ -231,7 +231,6 @@ def make_winstreaks(
 
 
 def make_settings(
-    hypixel_api_key: str = "placeholder-hypixel-key",
     antisniper_api_key: str = "placeholder-antisniper-key",
     use_antisniper_api: bool = False,
     known_nicks: dict[str, NickValue] | None = None,
@@ -243,7 +242,6 @@ def make_settings(
     return Settings.from_dict(
         fill_missing_settings(
             {
-                "hypixel_api_key": hypixel_api_key,
                 "antisniper_api_key": antisniper_api_key,
                 "use_antisniper_api": use_antisniper_api,
                 "known_nicks": known_nicks or {},
@@ -260,7 +258,7 @@ def missing_method(*args: Any, **kwargs: Any) -> Any:
 
 
 class ExtraAttributes(TypedDict):
-    hypixel_api_key: str
+    antisniper_api_key: str
     redraw_event_set: bool
     update_presence_event_set: bool
     player_cache_data: TTLCache[str, KnownPlayer | NickedPlayer | PendingPlayer]
@@ -272,11 +270,9 @@ class MockedController:
 
     api_key_invalid: bool = False
     api_key_throttled: bool = False
-    hypixel_api_key: InitVar[str] = "api-key"
-    hypixel_key_holder: HypixelAPIKeyHolder = field(
+    antisniper_key_holder: AntiSniperAPIKeyHolder = field(
         init=False, repr=False, compare=False, hash=False
     )
-    antisniper_api_key: str = "api-key"
 
     wants_shown: bool | None = None
     state: OverlayState = field(default_factory=create_state)
@@ -303,7 +299,7 @@ class MockedController:
     get_uuid: Callable[[str], str | None] = field(
         default=missing_method, repr=False, compare=False, hash=False
     )
-    get_player_data: Callable[[str], Mapping[str, object] | None] = field(
+    get_antisniper_playerdata: Callable[[str], Mapping[str, object] | None] = field(
         default=missing_method, repr=False, compare=False, hash=False
     )
     denick: Callable[[str], str | None] = field(
@@ -317,11 +313,9 @@ class MockedController:
 
     def __post_init__(
         self,
-        hypixel_api_key: str,
         redraw_event_set: bool,
         update_presence_event_set: bool,
     ) -> None:
-        self.hypixel_key_holder = HypixelAPIKeyHolder(hypixel_api_key)
         self.redraw_event = threading.Event()
         if redraw_event_set:
             self.redraw_event.set()
@@ -330,11 +324,9 @@ class MockedController:
         if update_presence_event_set:
             self.update_presence_event.set()
 
-        self.settings.hypixel_api_key = hypixel_api_key
-        self.settings.antisniper_api_key = self.antisniper_api_key
-
-    def set_antisniper_api_key(self, new_key: str) -> None:
-        self.antisniper_api_key = new_key
+        self.antisniper_key_holder = AntiSniperAPIKeyHolder(
+            self.settings.antisniper_api_key
+        )
 
     def store_settings(self) -> None:
         self._stored_settings = replace(self.settings)
@@ -342,7 +334,7 @@ class MockedController:
     @property
     def extra(self) -> ExtraAttributes:
         return {
-            "hypixel_api_key": self.hypixel_key_holder.key,
+            "antisniper_api_key": self.antisniper_key_holder.key,
             "redraw_event_set": self.redraw_event.is_set(),
             "update_presence_event_set": self.update_presence_event.is_set(),
             "player_cache_data": self.player_cache._cache,

@@ -10,7 +10,6 @@ from prism.overlay.behaviour import (
     autodenick_teammate,
     bedwars_game_ended,
     get_stats_and_winstreak,
-    set_hypixel_api_key,
     set_nickname,
     should_redraw,
     update_settings,
@@ -130,32 +129,6 @@ def test_unset_nickname(known_nicks: dict[str, str], explicit: bool) -> None:
     assert controller.redraw_event.is_set()
 
 
-def test_set_api_key() -> None:
-    NEW_KEY = "my-new-key"
-
-    controller = MockedController(
-        hypixel_api_key="invalid-key", api_key_invalid=True, api_key_throttled=True
-    )
-    controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
-
-    set_hypixel_api_key(NEW_KEY, controller)
-
-    # Key and key invalid updated
-    assert controller.hypixel_key_holder.key == NEW_KEY
-    assert not controller.api_key_invalid
-    assert not controller.api_key_throttled
-
-    # Settings updated and stored
-    assert controller.settings.hypixel_api_key == NEW_KEY
-    assert controller._stored_settings == controller.settings
-
-    # Player cache cleared
-    controller.player_cache.clear_cache.assert_called()
-
-    # Redraw event set
-    assert controller.redraw_event.is_set()
-
-
 @pytest.mark.parametrize(
     "redraw_event_set, completed_stats, result",
     (
@@ -263,8 +236,6 @@ def test_update_settings_nothing() -> None:
 
 def test_update_settings_known_nicks() -> None:
     controller = MockedController(
-        hypixel_api_key="my-key",
-        antisniper_api_key="my-key",
         settings=make_settings(
             known_nicks={
                 "SuperbNick": {"uuid": "2", "comment": "2"},
@@ -278,9 +249,7 @@ def test_update_settings_known_nicks() -> None:
         "SuperbNick": {"uuid": "42", "comment": "42"},
     }
 
-    new_settings = make_settings(
-        antisniper_api_key="my-key", hypixel_api_key="my-key", known_nicks=known_nicks
-    ).to_dict()
+    new_settings = make_settings(known_nicks=known_nicks).to_dict()
 
     controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
     controller.player_cache.uncache_player = unittest.mock.MagicMock()  # type: ignore
@@ -315,11 +284,12 @@ def test_update_settings_everything_changed() -> None:
         }
     )
 
-    controller = MockedController(settings=settings)
+    controller = MockedController(
+        settings=settings, api_key_invalid=True, api_key_throttled=True
+    )
 
     # NOTE: Make sure everything specified here is different from its default value
     new_settings = SettingsDict(
-        hypixel_api_key="my-new-hypixel-api-key",
         antisniper_api_key="my-new-antisniper-api-key",
         use_antisniper_api=True,
         sort_order="wlr",
@@ -372,6 +342,9 @@ def test_update_settings_everything_changed() -> None:
 
     # Lots of stuff changed, so we want to redraw
     assert controller.redraw_event.is_set()
+
+    assert not controller.api_key_invalid
+    assert not controller.api_key_throttled
 
 
 @dataclass(frozen=True, slots=True)

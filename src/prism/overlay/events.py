@@ -39,9 +39,6 @@ class EventType(Enum):
     BEDWARS_RECONNECT = auto()  # A player reconnected in bedwars
     END_BEDWARS_GAME = auto()  # A bedwars game has ended
 
-    # New API key
-    NEW_API_KEY = auto()  # New API key in chat (/api new)
-
     # Commands /w !<command>
     WHISPER_COMMAND_SET_NICK = auto()
 
@@ -155,12 +152,6 @@ class EndBedwarsGameEvent:
     event_type: Literal[EventType.END_BEDWARS_GAME] = EventType.END_BEDWARS_GAME
 
 
-@dataclass
-class NewAPIKeyEvent:
-    key: str
-    event_type: Literal[EventType.NEW_API_KEY] = EventType.NEW_API_KEY
-
-
 @unique
 class WhisperCommandType(Enum):
     SET_NICK = auto()
@@ -195,7 +186,6 @@ ChatEvent = Union[
     BedwarsDisconnectEvent,
     BedwarsReconnectEvent,
     EndBedwarsGameEvent,
-    NewAPIKeyEvent,
     WhisperCommandSetNickEvent,
 ]
 

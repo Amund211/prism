@@ -74,22 +74,6 @@ def set_nickname(
     controller.redraw_event.set()
 
 
-def set_hypixel_api_key(new_key: str, /, controller: OverlayController) -> None:
-    """Update the API key that the download threads use"""
-    controller.hypixel_key_holder.key = new_key
-    controller.api_key_invalid = False
-    controller.api_key_throttled = False
-
-    with controller.settings.mutex:
-        controller.settings.hypixel_api_key = new_key
-        controller.store_settings()
-
-    # Clear the stats cache in case the old api key was invalid
-    controller.player_cache.clear_cache()
-
-    controller.redraw_event.set()
-
-
 def should_redraw(
     controller: OverlayController, completed_stats_queue: queue.Queue[str]
 ) -> bool:
@@ -162,10 +146,6 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
     """
     logger.debug(f"Updating settings with {new_settings}")
 
-    hypixel_api_key_changed = (
-        new_settings["hypixel_api_key"] != controller.settings.hypixel_api_key
-    )
-
     antisniper_api_key_changed = (
         new_settings["antisniper_api_key"] != controller.settings.antisniper_api_key
     )
@@ -197,8 +177,12 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
     )
 
     # Update the player cache
-    if hypixel_api_key_changed or potential_antisniper_updates:
+    if potential_antisniper_updates:
         logger.debug("Clearing whole player cache due to api key changes")
+        controller.api_key_throttled = False
+        controller.api_key_invalid = False
+        controller.antisniper_key_holder.key = new_settings["antisniper_api_key"]
+
         controller.player_cache.clear_cache()
     else:
         # Refetch stats for nicknames that had a player assigned or unassigned

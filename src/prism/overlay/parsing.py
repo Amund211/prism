@@ -17,7 +17,6 @@ from prism.overlay.events import (
     LobbyLeaveEvent,
     LobbyListEvent,
     LobbySwapEvent,
-    NewAPIKeyEvent,
     NewNicknameEvent,
     PartyAttachEvent,
     PartyDetachEvent,
@@ -198,17 +197,6 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         # Info [CHAT] ONLINE: <username1>, <username2>, ..., <usernameN>
         players = message.removeprefix(WHO_PREFIX).split(", ")
         return LobbyListEvent(players)
-
-    if message.startswith("Your new API key is "):
-        # Info [CHAT] Your new API key is deadbeef-ae10-4d07-25f6-f23130b92652
-        logger.debug("Processing potential new API key")
-        words = message.split(" ")
-        if len(words) != 6:
-            logger.debug("Message too long")
-            return None
-
-        logger.debug(f"Parsing passed. New key: {words[5]}")
-        return NewAPIKeyEvent(words[5])
 
     if message.startswith("You are now nicked as "):
         # Info [CHAT] You are now nicked as AmazingNick!

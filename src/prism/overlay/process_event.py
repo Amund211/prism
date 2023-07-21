@@ -5,7 +5,6 @@ from typing import Iterable
 from prism.overlay.behaviour import (
     autodenick_teammate,
     bedwars_game_ended,
-    set_hypixel_api_key,
     set_nickname,
 )
 from prism.overlay.controller import OverlayController
@@ -225,16 +224,6 @@ def process_event(
         bedwars_game_ended(controller)
 
         return state.clear_lobby(), True
-
-    if event.event_type is EventType.NEW_API_KEY:
-        # User got a new API key
-        logger.info("Setting new API key")
-
-        # NOTE: Make sure not to deadlock
-        set_hypixel_api_key(event.key, controller)
-
-        # set_hypixel_api_key sets redraw_flag
-        return state, False
 
     if event.event_type is EventType.WHISPER_COMMAND_SET_NICK:
         # User set a nick with /w !nick=username

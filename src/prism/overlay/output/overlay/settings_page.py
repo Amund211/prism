@@ -504,53 +504,6 @@ class ColumnSection:  # pragma: nocover
         return column_order
 
 
-class HypixelSection:  # pragma: nocover
-    def __init__(self, parent: "SettingsPage") -> None:
-        self.frame = parent.make_section("Hypixel")
-        self.frame.columnconfigure(0, weight=0)
-
-        self.hypixel_api_key_variable = tk.StringVar()
-        api_key_label = tk.Label(
-            self.frame,
-            text="API key: ",
-            font=("Consolas", "12"),
-            foreground="white",
-            background="black",
-        )
-        api_key_label.grid(row=0, column=0, sticky=tk.E)
-        self.hypixel_api_key_entry = tk.Entry(
-            self.frame, show="*", textvariable=self.hypixel_api_key_variable
-        )
-        self.hypixel_api_key_entry.grid(row=0, column=1, sticky=tk.W + tk.E)
-        self.frame.columnconfigure(1, weight=1)
-
-        show_button = tk.Button(
-            self.frame,
-            text="SHOW",
-            font=("Consolas", "10"),
-            foreground="black",
-            background="gray",
-            activebackground="red",
-            command=lambda: self.hypixel_api_key_entry.config(show=""),
-            relief="flat",
-            cursor="hand2",
-        )
-        show_button.grid(row=0, column=2, padx=(5, 0))
-
-        parent.make_widgets_scrollable(
-            api_key_label, self.hypixel_api_key_entry, show_button
-        )
-
-    def set(self, hypixel_api_key: str) -> None:
-        """Set the state of this section"""
-        self.hypixel_api_key_entry.config(show="*")
-        self.hypixel_api_key_variable.set(hypixel_api_key)
-
-    def get(self) -> str:
-        """Get the state of this section"""
-        return self.hypixel_api_key_variable.get().strip()
-
-
 class AntisniperSection:  # pragma: nocover
     def __init__(self, parent: "SettingsPage") -> None:
         self.frame = parent.make_section(
@@ -984,7 +937,6 @@ class SettingsPage:  # pragma: nocover
         self.general_settings_section = GeneralSettingSection(self)
         self.display_section = DisplaySection(self)
         self.column_section = ColumnSection(self)
-        self.hypixel_section = HypixelSection(self)
         self.antisniper_section = AntisniperSection(self)
         self.discord_section = DiscordSection(self)
         self.performance_section = PerformanceSection(self)
@@ -1045,7 +997,6 @@ class SettingsPage:  # pragma: nocover
             self.performance_section.set(stats_thread_count=settings.stats_thread_count)
             self.display_section.set(settings.sort_order, settings.hide_dead_players)
             self.column_section.set(settings.column_order)
-            self.hypixel_section.set(settings.hypixel_api_key)
 
             self.antisniper_section.set(
                 settings.use_antisniper_api, settings.antisniper_api_key
@@ -1088,7 +1039,6 @@ class SettingsPage:  # pragma: nocover
             fallback_sort_order=self.controller.settings.sort_order
         )
         column_order = self.column_section.get()
-        hypixel_api_key = self.hypixel_section.get()
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
 
         discord_settings = self.discord_section.get()
@@ -1107,7 +1057,6 @@ class SettingsPage:  # pragma: nocover
         rating_configs = self.stats_section.get()
 
         new_settings = SettingsDict(
-            hypixel_api_key=hypixel_api_key,
             antisniper_api_key=antisniper_api_key,
             use_antisniper_api=use_antisniper_api,
             sort_order=sort_order,

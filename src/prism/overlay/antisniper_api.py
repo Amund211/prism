@@ -78,6 +78,12 @@ def _make_request(
     return response
 
 
+def get_antisniper_playerdata(
+    uuid: str, key_holder: AntiSniperAPIKeyHolder
+) -> Mapping[str, object] | None:  # pragma: no coverage
+    pass
+
+
 def denick(
     nick: str, key_holder: AntiSniperAPIKeyHolder
 ) -> str | None:  # pragma: nocover

@@ -46,7 +46,7 @@ def make_scenario_controller(*users: User) -> MockedController:
         user = username_table.get(username, None)
         return user.uuid if user is not None else None
 
-    def get_player_data(uuid: str) -> Mapping[str, object] | None:
+    def get_antisniper_playerdata(uuid: str) -> Mapping[str, object] | None:
         user = uuid_table.get(uuid, None)
         return user.playerdata if user is not None else None
 
@@ -55,7 +55,9 @@ def make_scenario_controller(*users: User) -> MockedController:
         return user.uuid if user is not None else None
 
     controller = MockedController(
-        get_uuid=get_uuid, get_player_data=get_player_data, denick=denick
+        get_uuid=get_uuid,
+        get_antisniper_playerdata=get_antisniper_playerdata,
+        denick=denick,
     )
 
     return controller
@@ -283,14 +285,16 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
         assert username == my_username
         return my_uuid
 
-    def get_player_data(uuid: str) -> Mapping[str, object] | None:
+    def get_antisniper_playerdata(uuid: str) -> Mapping[str, object] | None:
         assert uuid == my_uuid
         if clear:
             # While we were getting the playerdata, someone else cleared the cache
             controller.player_cache.clear_cache()
         return my_player_data
 
-    controller = MockedController(get_uuid=get_uuid, get_player_data=get_player_data)
+    controller = MockedController(
+        get_uuid=get_uuid, get_antisniper_playerdata=get_antisniper_playerdata
+    )
 
     player = create_known_player(
         playerdata=my_player_data, username=my_username, uuid=my_uuid

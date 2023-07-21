@@ -7,27 +7,10 @@ def test_real_overlay_controller() -> None:
     controller = RealOverlayController(
         state=create_state(),
         settings=make_settings(
-            hypixel_api_key="hypixel_key",
             antisniper_api_key="antisniper_key",
             use_antisniper_api=True,
         ),
         nick_database=NickDatabase([{}]),
     )
 
-    assert controller.hypixel_key_holder.key == "hypixel_key"
-
-    assert controller.antisniper_key_holder is not None
     assert controller.antisniper_key_holder.key == "antisniper_key"
-
-    controller.hypixel_key_holder.key = "new_key"
-    assert controller.hypixel_key_holder.key == "new_key"
-
-    # Updating the key
-    controller.set_antisniper_api_key("new_key")
-    assert controller.antisniper_key_holder.key == "new_key"
-
-    # Disable antisniper
-    controller.settings.use_antisniper_api = False
-    # The key holder will remain, but the controller should not use it
-    # when denicking or getting winstreaks
-    assert controller.antisniper_key_holder.key == "new_key"

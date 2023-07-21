@@ -39,7 +39,6 @@ DEFAULT_STATS_THREAD_COUNT = 7
 
 
 def make_settings_dict(
-    hypixel_api_key: str | None = None,
     antisniper_api_key: str | None = None,
     use_antisniper_api: bool | None = None,
     sort_order: ColumnName | None = None,
@@ -64,7 +63,6 @@ def make_settings_dict(
 ) -> SettingsDict:
     """Make a settings dict with default values if missing"""
     return {
-        "hypixel_api_key": value_or_default(hypixel_api_key, default=KEY_IF_MISSING),
         "antisniper_api_key": value_or_default(
             antisniper_api_key, default=KEY_IF_MISSING
         ),
@@ -114,7 +112,6 @@ PLACEHOLDER_PATH = make_dead_path("PLACEHOLDER_PATH")
 settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
     (
         Settings(
-            hypixel_api_key="my-key",
             antisniper_api_key="my-key",
             use_antisniper_api=True,
             sort_order="stars",
@@ -139,7 +136,6 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             path=PLACEHOLDER_PATH,
         ),
         {
-            "hypixel_api_key": "my-key",
             "antisniper_api_key": "my-key",
             "use_antisniper_api": True,
             "sort_order": "stars",
@@ -167,7 +163,6 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
     ),
     (
         Settings(
-            hypixel_api_key="my-other-key",
             antisniper_api_key="my-other-key",
             use_antisniper_api=False,
             sort_order="fkdr",
@@ -192,7 +187,6 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             path=PLACEHOLDER_PATH,
         ),
         {
-            "hypixel_api_key": "my-other-key",
             "antisniper_api_key": "my-other-key",
             "use_antisniper_api": False,
             "sort_order": "fkdr",
@@ -294,7 +288,7 @@ def test_flush_settings_from_controller(tmp_path: Path) -> None:
     from prism.overlay.nick_database import NickDatabase
     from tests.prism.overlay.utils import create_state
 
-    settings = make_settings(hypixel_api_key="my-key", path=tmp_path / "settings.toml")
+    settings = make_settings(path=tmp_path / "settings.toml")
 
     # File not found
     assert (
@@ -334,7 +328,6 @@ fill_settings_test_cases: tuple[
 ] = (
     (
         {
-            "hypixel_api_key": "my-key",
             "antisniper_api_key": "my-key",
             "use_antisniper_api": False,
             "sort_order": "winstreak",
@@ -360,7 +353,6 @@ fill_settings_test_cases: tuple[
             "alpha_hundredths": 40,
         },
         make_settings_dict(
-            hypixel_api_key="my-key",
             antisniper_api_key="my-key",
             use_antisniper_api=False,
             sort_order="winstreak",
@@ -388,23 +380,23 @@ fill_settings_test_cases: tuple[
         False,
     ),
     (
-        {"hypixel_api_key": "my-key"},
-        make_settings_dict(hypixel_api_key="my-key"),
+        {"antisniper_api_key": "my-key"},
+        make_settings_dict(antisniper_api_key="my-key"),
         True,
     ),
     (
-        {"hypixel_api_key": 1},
+        {"antisniper_api_key": 1},
         make_settings_dict(),
         True,
     ),
     (
-        {"hypixel_api_key": None},
+        {"antisniper_api_key": None},
         make_settings_dict(),
         True,
     ),
     (
         {
-            "hypixel_api_key": {},
+            "antisniper_api_key": {},
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
         },
         make_settings_dict(
@@ -418,19 +410,19 @@ fill_settings_test_cases: tuple[
         True,
     ),
     (
-        {"hypixel_api_key": "my-key", "use_antisniper_api": True},
-        make_settings_dict(hypixel_api_key="my-key", use_antisniper_api=True),
+        {"antisniper_api_key": "my-key", "use_antisniper_api": True},
+        make_settings_dict(antisniper_api_key="my-key", use_antisniper_api=True),
         True,
     ),
     # Placeholder key
     (
-        {"hypixel_api_key": PLACEHOLDER_API_KEY},
+        {"antisniper_api_key": PLACEHOLDER_API_KEY},
         make_settings_dict(),
         True,
     ),
     # Key too short
     (
-        {"hypixel_api_key": "k"},
+        {"antisniper_api_key": "k"},
         make_settings_dict(),
         True,
     ),
@@ -444,18 +436,18 @@ fill_settings_test_cases: tuple[
     # Corrupt data in known_nicks
     (
         {
-            "hypixel_api_key": "my-key",
+            "antisniper_api_key": "my-key",
             "known_nicks": {
                 # Key is not a string
                 1234: {"uuid": 123987, "comment": "Player1"}
             },
         },
-        make_settings_dict(hypixel_api_key="my-key"),
+        make_settings_dict(antisniper_api_key="my-key"),
         True,
     ),
     (
         {
-            "hypixel_api_key": "my-key",
+            "antisniper_api_key": "my-key",
             "known_nicks": {
                 # Value is a string, not a dict
                 "AmazingNick": "uuid"
@@ -464,47 +456,47 @@ fill_settings_test_cases: tuple[
                 "Player1"
             },
         },
-        make_settings_dict(hypixel_api_key="my-key"),
+        make_settings_dict(antisniper_api_key="my-key"),
         True,
     ),
     (
         {
-            "hypixel_api_key": "my-key",
+            "antisniper_api_key": "my-key",
             "known_nicks": {
                 # Incorrect type on uuid or comment
                 "AmazingNick": {"uuid": 123987, "comment": "Player1"}
             },
         },
-        make_settings_dict(hypixel_api_key="my-key"),
+        make_settings_dict(antisniper_api_key="my-key"),
         True,
     ),
     (
         {
-            "hypixel_api_key": "my-key",
+            "antisniper_api_key": "my-key",
             "known_nicks": {
                 # Incorrect type on uuid or comment
                 "AmazingNick": {"uuid": "123987", "comment": 1234}
             },
         },
-        make_settings_dict(hypixel_api_key="my-key"),
+        make_settings_dict(antisniper_api_key="my-key"),
         True,
     ),
     (
         {
-            "hypixel_api_key": "my-key",
+            "antisniper_api_key": "my-key",
             # Alpha hundredths out of range
             "alpha_hundredths": 1000,
         },
-        make_settings_dict(hypixel_api_key="my-key"),
+        make_settings_dict(antisniper_api_key="my-key"),
         True,
     ),
     (
         {
-            "hypixel_api_key": "my-key",
+            "antisniper_api_key": "my-key",
             # Alpha hundredths out of range
             "alpha_hundredths": 5,
         },
-        make_settings_dict(hypixel_api_key="my-key"),
+        make_settings_dict(antisniper_api_key="my-key"),
         True,
     ),
     (

@@ -16,7 +16,6 @@ from prism.overlay.events import (
     LobbyLeaveEvent,
     LobbyListEvent,
     LobbySwapEvent,
-    NewAPIKeyEvent,
     NewNicknameEvent,
     PartyAttachEvent,
     PartyDetachEvent,
@@ -617,19 +616,6 @@ def test_process_event_set_nickname(event: Event) -> None:
 
     assert patched_set_nickname.called_with(nick=nick, username=username)
     assert not will_redraw  # set_nickname sets redraw_flag
-
-
-def test_process_event_set_hypixel_api_key() -> None:
-    """Assert that set_hypixel_api_key is called when NewAPIKeyEvent is received"""
-    controller = MockedController()
-
-    with unittest.mock.patch(
-        "prism.overlay.process_event.set_hypixel_api_key"
-    ) as patched_set_hypixel_api_key:
-        new_state, will_redraw = process_event(controller, NewAPIKeyEvent("my-new-key"))
-
-    assert patched_set_hypixel_api_key.called_with("my-new-key")
-    assert not will_redraw  # set_hypixel_api_key sets redraw_flag
 
 
 def test_process_event_autodenick_teammate() -> None:

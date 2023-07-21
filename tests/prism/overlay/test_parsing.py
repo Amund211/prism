@@ -16,7 +16,6 @@ from prism.overlay.events import (
     LobbyLeaveEvent,
     LobbyListEvent,
     LobbySwapEvent,
-    NewAPIKeyEvent,
     NewNicknameEvent,
     PartyAttachEvent,
     PartyDetachEvent,
@@ -614,10 +613,6 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     (
         "[Info: 2022-01-08 17:27:38.908122114: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]                     1st Killer - [MVP+] Player1 - 8",
         EndBedwarsGameEvent(),
-    ),
-    (
-        "[Info: 2022-01-07 13:48:02.379053772: GameCallbacks.cpp(162)] Game/avt (Client thread) Info [CHAT] Your new API key is deadbeef-ae10-4d07-25f6-f23130b92652",
-        NewAPIKeyEvent("deadbeef-ae10-4d07-25f6-f23130b92652"),
     ),
     (
         "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!nick=username'",
