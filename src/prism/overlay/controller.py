@@ -4,6 +4,12 @@ from abc import abstractmethod
 from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, Protocol
 
+from prism.hypixel import (
+    HypixelAPIError,
+    HypixelAPIKeyError,
+    HypixelAPIThrottleError,
+    HypixelPlayerNotFoundError,
+)
 from prism.mojang import MojangAPIError, get_uuid
 from prism.overlay.antisniper_api import (
     AntiSniperAPIKeyHolder,
@@ -100,7 +106,30 @@ class RealOverlayController:
         self, uuid: str
     ) -> Mapping[str, object] | None:  # pragma: no cover
         # TODO: set api key flags
-        return get_antisniper_playerdata(uuid, self.antisniper_key_holder)
+        try:
+            playerdata = get_antisniper_playerdata(uuid, self.antisniper_key_holder)
+        except HypixelPlayerNotFoundError as e:
+            logger.debug(f"Player not found on Hypixel: {uuid=}", exc_info=e)
+            self.api_key_invalid = False
+            self.api_key_throttled = False
+            return None
+        except HypixelAPIError as e:
+            logger.error(f"Hypixel API error getting stats for {uuid=}", exc_info=e)
+            return None
+        except HypixelAPIKeyError as e:
+            logger.warning(f"Invalid API key getting stats for {uuid=}", exc_info=e)
+            self.api_key_invalid = True
+            self.api_key_throttled = False
+            return None
+        except HypixelAPIThrottleError as e:
+            logger.warning(f"API key throttled getting stats for {uuid=}", exc_info=e)
+            self.api_key_invalid = False
+            self.api_key_throttled = True
+            return None
+        else:
+            self.api_key_invalid = False
+            self.api_key_throttled = False
+            return playerdata
 
     def denick(self, nick: str) -> str | None:  # pragma: no cover
         if not self.settings.use_antisniper_api or self.antisniper_key_holder is None:
