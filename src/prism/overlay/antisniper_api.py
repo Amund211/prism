@@ -43,6 +43,27 @@ SESSION = make_prism_requests_session()
 SESSION.headers.update({"Reason": f"Prism overlay {VERSION_STRING}"})
 
 
+def is_invalid_api_key_response(response: requests.Response) -> bool:  # pragma: nocover
+    """Return True if the response is a 403: invalid api key"""
+    if response.status_code != 403:
+        return False
+
+    try:
+        response_json = response.json()
+    except JSONDecodeError:
+        return False
+
+    if response_json.get("success", None) is not False:
+        return False
+
+    cause = response_json.get("cause", None)
+
+    if not isinstance(cause, str) or "invalid api key" not in cause.lower():
+        return False
+
+    return True
+
+
 def set_denick_cache(nick: str, uuid: str | None) -> str | None:
     """Set the cache entry for nick, and return the uuid"""
     with DENICK_MUTEX:
@@ -109,7 +130,7 @@ def get_antisniper_playerdata(
     if response.status_code == 404:
         raise HypixelPlayerNotFoundError(f"Could not find a user with {uuid=} (404)")
 
-    if response.status_code == 403:
+    if is_invalid_api_key_response(response):
         raise HypixelAPIKeyError(
             f"Request to Hypixel API failed with status code {response.status_code}. "
             f"Assumed invalid API key. Response: {response.text}"

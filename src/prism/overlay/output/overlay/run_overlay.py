@@ -55,7 +55,7 @@ def run_overlay(
         if controller.api_key_invalid:
             info_cells.append(
                 InfoCellValue(
-                    text="Invalid API key. Use /api new",
+                    text="Invalid API key. Update it in the AntiSniper discord",
                     color="red" if time.monotonic() % 2 > 1 else "white",
                     url=None,
                 )
