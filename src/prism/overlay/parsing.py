@@ -46,6 +46,10 @@ CLIENT_INFO_PREFIXES = (
 CHAT_PREFIXES = (
     "(Client thread) Info [CHAT] ",  # Vanilla and forge launcher_log.txt
     "[Client thread/INFO]: [CHAT] ",  # Vanilla and forge latest.log + Lunar client
+    # Astolfo chat bridge
+    # NOTE: This is non-standard, and we make no guarantees of it working
+    #       We don not condone the use of hacked clients on public servers
+    "[Astolfo HTTP Bridge]: [CHAT] ",
 )
 
 

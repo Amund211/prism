@@ -411,6 +411,11 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         LobbySwapEvent(),
     ),
     (
+        # Lobby swap on astolfo chat bridge
+        "[04:04:46] [Astolfo HTTP Bridge]: [CHAT] Sending you to mini68CU!",
+        LobbySwapEvent(),
+    ),
+    (
         "[Info: 2021-11-29 20:01:23.792072597: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Sending you to mini1145V!",
         LobbySwapEvent(),
     ),
@@ -425,6 +430,11 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     (
         "[Info: 2021-11-29 20:01:24.386456858: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Player2 has joined (2/16)!",
         LobbyJoinEvent(username="Player2", player_count=2, player_cap=16),
+    ),
+    (
+        # Lobby join on astolfo chat bridge
+        "[04:04:47] [Astolfo HTTP Bridge]: [CHAT] Player1 has joined (3/8)!",
+        LobbyJoinEvent(username="Player1", player_count=3, player_cap=8),
     ),
     (
         "[Info: 2021-11-29 20:09:47.192349993: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Player1 has quit!",
@@ -532,6 +542,11 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         StartBedwarsGameEvent(),
     ),
     (
+        # Start game on astolfo chat bridge
+        "[04:05:13] [Astolfo HTTP Bridge]: [CHAT]                                   Bed Wars",
+        StartBedwarsGameEvent(),
+    ),
+    (
         "[00:01:04] [Client thread/INFO]: [CHAT] Player1 was spooked off the map by Player2. FINAL KILL!",
         BedwarsFinalKillEvent(
             dead_player="Player1",
@@ -578,6 +593,14 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         BedwarsFinalKillEvent(
             dead_player="_____",
             raw_message="_____ was pushed into a snowbank by Player2. FINAL KILL!",
+        ),
+    ),
+    (
+        # Final kill on astolfo chat bridge
+        "[04:06:04] [Astolfo HTTP Bridge]: [CHAT] Player1 was glazed in BBQ sauce by Player2. FINAL KILL!",
+        BedwarsFinalKillEvent(
+            dead_player="Player1",
+            raw_message="Player1 was glazed in BBQ sauce by Player2. FINAL KILL!",
         ),
     ),
     (
