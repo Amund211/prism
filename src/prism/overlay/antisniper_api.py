@@ -64,6 +64,29 @@ def is_invalid_api_key_response(response: requests.Response) -> bool:  # pragma:
     return True
 
 
+def is_checked_too_many_offline_players_response(
+    response: requests.Response,
+) -> bool:  # pragma: nocover
+    """Return True if the response is a 403: checked too many offline players"""
+    if response.status_code != 403:
+        return False
+
+    try:
+        response_json = response.json()
+    except JSONDecodeError:
+        return False
+
+    if response_json.get("success", None) is not False:
+        return False
+
+    cause = response_json.get("cause", None)
+
+    if not isinstance(cause, str) or "too many offline" not in cause.lower():
+        return False
+
+    return True
+
+
 def set_denick_cache(nick: str, uuid: str | None) -> str | None:
     """Set the cache entry for nick, and return the uuid"""
     with DENICK_MUTEX:
@@ -100,6 +123,9 @@ def _make_request(
             "Request to AntiSniper API failed due to an unknown error"
         ) from e
 
+    if is_checked_too_many_offline_players_response(response):
+        raise ExecutionError(f"Checked too many offline players for {url}, retrying")
+
     if response.status_code == 429 and not last_try:
         raise ExecutionError(
             "Request to AntiSniper API failed due to ratelimit, retrying"
@@ -135,6 +161,9 @@ def get_antisniper_playerdata(
             f"Request to Hypixel API failed with status code {response.status_code}. "
             f"Assumed invalid API key. Response: {response.text}"
         )
+
+    if is_checked_too_many_offline_players_response(response):
+        raise HypixelAPIError("Checked too many offline players for {uuid}")
 
     if response.status_code == 429:
         raise HypixelAPIThrottleError(
