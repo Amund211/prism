@@ -229,7 +229,7 @@ def fill_missing_settings(
         antisniper_api_key = get_api_key()
 
     use_antisniper_api, settings_updated = get_boolean_setting(
-        incomplete_settings, "use_antisniper_api", settings_updated, default=False
+        incomplete_settings, "use_antisniper_api", settings_updated, default=True
     )
 
     sort_order: ColumnName | object = incomplete_settings.get("sort_order", None)
