@@ -43,6 +43,30 @@ SESSION = make_prism_requests_session()
 SESSION.headers.update({"Reason": f"Prism overlay {VERSION_STRING}"})
 
 
+def is_global_throttle_response(response: requests.Response) -> bool:  # pragma: nocover
+    """
+    Return True if the response is a 500: throttle
+
+    This means that the Hypixel API key is being ratelimited
+    """
+    # We ignore the http status code
+
+    try:
+        response_json = response.json()
+    except JSONDecodeError:
+        return False
+
+    if response_json.get("success", None) is not False:
+        return False
+
+    cause = response_json.get("cause", None)
+
+    if not isinstance(cause, str) or "throttle" not in cause.lower():
+        return False
+
+    return True
+
+
 def is_invalid_api_key_response(response: requests.Response) -> bool:  # pragma: nocover
     """Return True if the response is a 403: invalid api key"""
     if response.status_code != 403:
@@ -153,8 +177,11 @@ def get_antisniper_playerdata(
     except ExecutionError as e:
         raise HypixelAPIError(f"Request to Hypixel API failed for {uuid=}.") from e
 
-    if response.status_code == 404:
-        raise HypixelPlayerNotFoundError(f"Could not find a user with {uuid=} (404)")
+    if is_global_throttle_response(response) or response.status_code == 429:
+        raise HypixelAPIThrottleError(
+            f"Request to Hypixel API failed with status code {response.status_code}. "
+            f"Assumed due to API key throttle. Response: {response.text}"
+        )
 
     if is_invalid_api_key_response(response):
         raise HypixelAPIKeyError(
@@ -165,11 +192,8 @@ def get_antisniper_playerdata(
     if is_checked_too_many_offline_players_response(response):
         raise HypixelAPIError("Checked too many offline players for {uuid}")
 
-    if response.status_code == 429:
-        raise HypixelAPIThrottleError(
-            f"Request to Hypixel API failed with status code {response.status_code}. "
-            f"Assumed due to API key throttle. Response: {response.text}"
-        )
+    if response.status_code == 404:
+        raise HypixelPlayerNotFoundError(f"Could not find a user with {uuid=} (404)")
 
     if not response:
         raise HypixelAPIError(
