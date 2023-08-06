@@ -176,13 +176,15 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
         filter(uuid_changed, set.intersection(new_nicknames, old_nicknames))
     )
 
-    # Update the player cache
-    if potential_antisniper_updates:
-        logger.debug("Clearing whole player cache due to api key changes")
+    # Update the API key
+    if antisniper_api_key_changed:
         controller.api_key_throttled = False
         controller.api_key_invalid = False
         controller.antisniper_key_holder.key = new_settings["antisniper_api_key"]
 
+    # Update the player cache
+    if potential_antisniper_updates:
+        logger.debug("Clearing whole player cache due to api key changes")
         controller.player_cache.clear_cache()
     else:
         # Refetch stats for nicknames that had a player assigned or unassigned
