@@ -253,7 +253,7 @@ class GeneralSettingSection:  # pragma: nocover
                 self.frame,
                 text="SHOW ON TAB IS NOT AVAILABLE ON MAC",
                 font=("Consolas", "12"),
-                foreground="white",
+                foreground="red",
                 background="black",
             )
             show_on_tab_disabled_label.grid(row=6, column=0, columnspan=2)
