@@ -256,7 +256,7 @@ class GeneralSettingSection:  # pragma: nocover
                 foreground="red",
                 background="black",
             )
-            show_on_tab_disabled_label.grid(row=6, column=0, columnspan=2)
+            show_on_tab_disabled_label.grid(row=7, column=0, columnspan=2)
             parent.make_widgets_scrollable(show_on_tab_disabled_label)
 
     def set(
