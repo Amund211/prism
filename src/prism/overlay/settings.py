@@ -41,6 +41,7 @@ class NickValue(TypedDict):
 class SettingsDict(TypedDict):
     """Complete dict of settings"""
 
+    hypixel_api_key: str | None
     antisniper_api_key: str
     use_antisniper_api: bool
     sort_order: ColumnName
@@ -68,6 +69,7 @@ class SettingsDict(TypedDict):
 class Settings:
     """Class holding user settings for the application"""
 
+    hypixel_api_key: str | None
     antisniper_api_key: str
     use_antisniper_api: bool
     sort_order: ColumnName
@@ -97,6 +99,7 @@ class Settings:
     @classmethod
     def from_dict(cls, source: SettingsDict, path: Path) -> Self:
         return cls(
+            hypixel_api_key=source["hypixel_api_key"],
             antisniper_api_key=source["antisniper_api_key"],
             use_antisniper_api=source["use_antisniper_api"],
             sort_order=source["sort_order"],
@@ -123,6 +126,7 @@ class Settings:
 
     def to_dict(self) -> SettingsDict:
         return {
+            "hypixel_api_key": self.hypixel_api_key,
             "antisniper_api_key": self.antisniper_api_key,
             "use_antisniper_api": self.use_antisniper_api,
             "sort_order": self.sort_order,
@@ -148,6 +152,7 @@ class Settings:
 
     def update_from(self, new_settings: SettingsDict) -> None:
         """Update the settings from the settings dict"""
+        self.hypixel_api_key = new_settings["hypixel_api_key"]
         self.antisniper_api_key = new_settings["antisniper_api_key"]
         self.use_antisniper_api = new_settings["use_antisniper_api"]
         self.sort_order = new_settings["sort_order"]
@@ -220,6 +225,13 @@ def fill_missing_settings(
 ) -> tuple[SettingsDict, bool]:
     """Get settings from `incomplete_settings` and fill with defaults if missing"""
     settings_updated = False
+
+    hypixel_api_key = incomplete_settings.get("hypixel_api_key", None)
+    if hypixel_api_key is not None and (
+        not isinstance(hypixel_api_key, str) or not api_key_is_valid(hypixel_api_key)
+    ):
+        settings_updated = True
+        hypixel_api_key = None
 
     antisniper_api_key = incomplete_settings.get("antisniper_api_key", None)
     if not isinstance(antisniper_api_key, str) or not api_key_is_valid(
@@ -359,6 +371,7 @@ def fill_missing_settings(
         alpha_hundredths = 80
 
     return {
+        "hypixel_api_key": hypixel_api_key,
         "antisniper_api_key": antisniper_api_key,
         "use_antisniper_api": use_antisniper_api,
         "sort_order": sort_order,

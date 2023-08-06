@@ -39,6 +39,7 @@ DEFAULT_STATS_THREAD_COUNT = 7
 
 
 def make_settings_dict(
+    hypixel_api_key: str | None = None,
     antisniper_api_key: str | None = None,
     use_antisniper_api: bool | None = None,
     sort_order: ColumnName | None = None,
@@ -63,6 +64,7 @@ def make_settings_dict(
 ) -> SettingsDict:
     """Make a settings dict with default values if missing"""
     return {
+        "hypixel_api_key": value_or_default(hypixel_api_key, default=None),
         "antisniper_api_key": value_or_default(
             antisniper_api_key, default=KEY_IF_MISSING
         ),
@@ -112,6 +114,7 @@ PLACEHOLDER_PATH = make_dead_path("PLACEHOLDER_PATH")
 settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
     (
         Settings(
+            hypixel_api_key="my-key",
             antisniper_api_key="my-key",
             use_antisniper_api=True,
             sort_order="stars",
@@ -136,6 +139,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             path=PLACEHOLDER_PATH,
         ),
         {
+            "hypixel_api_key": "my-key",
             "antisniper_api_key": "my-key",
             "use_antisniper_api": True,
             "sort_order": "stars",
@@ -163,6 +167,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
     ),
     (
         Settings(
+            hypixel_api_key=None,
             antisniper_api_key="my-other-key",
             use_antisniper_api=False,
             sort_order="fkdr",
@@ -187,6 +192,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             path=PLACEHOLDER_PATH,
         ),
         {
+            "hypixel_api_key": None,
             "antisniper_api_key": "my-other-key",
             "use_antisniper_api": False,
             "sort_order": "fkdr",
@@ -326,6 +332,16 @@ def test_get_boolean_setting() -> None:
 fill_settings_test_cases: tuple[
     tuple[Mapping[str, object], SettingsDict, bool], ...
 ] = (
+    (
+        {"hypixel_api_key": "my-key"},
+        make_settings_dict(hypixel_api_key="my-key"),
+        True,
+    ),
+    (
+        {"hypixel_api_key": 1},
+        make_settings_dict(),
+        True,
+    ),
     (
         {
             "antisniper_api_key": "my-key",

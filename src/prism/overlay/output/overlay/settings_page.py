@@ -1010,6 +1010,8 @@ class SettingsPage:  # pragma: nocover
         old_include_patch_updates = self.controller.settings.include_patch_updates
         old_show_on_tab_keybind = self.controller.settings.show_on_tab_keybind
 
+        hypixel_api_key = self.controller.settings.hypixel_api_key
+
         antisniper_api_key = self.api_key_section.get()
         (
             autodenick_teammates,
@@ -1044,6 +1046,7 @@ class SettingsPage:  # pragma: nocover
         rating_configs = self.stats_section.get()
 
         new_settings = SettingsDict(
+            hypixel_api_key=hypixel_api_key,
             antisniper_api_key=antisniper_api_key,
             use_antisniper_api=use_antisniper_api,
             sort_order=sort_order,
