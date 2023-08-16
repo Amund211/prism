@@ -22,12 +22,6 @@ def denick(nick: str, controller: OverlayController) -> str | None:
         logger.debug(f"Denicked with default database {nick} -> {uuid}")
         return uuid
 
-    uuid = controller.denick(nick)
-
-    if uuid is not None:
-        logger.debug(f"Denicked with api {nick} -> {uuid}")
-        return uuid
-
     uuid = controller.nick_database.get(nick)
 
     if uuid is not None:

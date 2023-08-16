@@ -2,65 +2,14 @@ from collections.abc import Mapping
 
 import pytest
 
-from prism.mojang import compare_uuids
 from prism.overlay.antisniper_api import (
     AntiSniperAPIKeyHolder,
-    Flag,
-    get_denick_cache,
-    parse_denick_response,
     parse_estimated_winstreaks_response,
-    set_denick_cache,
 )
 from prism.overlay.player import MISSING_WINSTREAKS, Winstreaks
 from tests.prism.overlay.utils import make_winstreaks
 
 assert MISSING_WINSTREAKS == make_winstreaks()
-
-REAL_DENICK_RESPONSE_SUCCESS = {
-    "success": True,
-    "results": [
-        {
-            "uuid": "b70af643-78b9-4854-af6d-e83a2efd7e17",
-            "ign": "Voltey",
-            "queried_nick": "edater",
-            "method": "skyblock",
-            "percent": "99%",
-            "first_detected": 1664805455,
-            "last_seen": 1662501013,
-            "latest_nick": "edater",
-        }
-    ],
-    "real_nick": True,
-}
-
-REAL_DENICK_RESPONSE_FAIL = {"success": True, "results": [], "real_nick": False}
-
-parse_denick_cases: tuple[tuple[Mapping[str, object], str | None], ...] = (
-    ({}, None),
-    ({"success": False}, None),
-    ({"success": True}, None),
-    ({"success": True, "results": []}, None),
-    ({"success": True, "results": ["invalidplayerdata"]}, None),
-    ({"results": [{"uuid": "someuuid"}]}, None),
-    ({"success": False, "results": [{"uuid": "someuuid"}]}, None),
-    ({"success": True, "results": [{"uuid": 123}]}, None),
-    (REAL_DENICK_RESPONSE_FAIL, None),
-    # Passing cases
-    ({"success": True, "results": [{"uuid": "someuuid"}]}, "someuuid"),
-    (REAL_DENICK_RESPONSE_SUCCESS, "b70af64378b94854af6de83a2efd7e17"),
-)
-
-
-@pytest.mark.parametrize("response_json, uuid", parse_denick_cases)
-def test_parse_denick_response(
-    response_json: Mapping[str, object], uuid: str | None
-) -> None:
-    parsed_uuid = parse_denick_response(response_json)
-    if parsed_uuid is None or uuid is None:
-        assert parsed_uuid == uuid
-    else:
-        assert compare_uuids(parsed_uuid, uuid)
-
 
 REAL_WINSTREAK_RESPONSE = {
     "success": True,
@@ -155,18 +104,6 @@ def test_parse_estimated_winstreaks_response(
         winstreaks,
         winstreaks_accurate,
     )
-
-
-def test_set_get_cache() -> None:
-    assert get_denick_cache("nonexistantentryinthecache") is Flag.NOT_SET
-    assert get_denick_cache("mynewcacheentry12345") is Flag.NOT_SET
-    assert get_denick_cache("mynewcacheentry123456") is Flag.NOT_SET
-
-    assert set_denick_cache("mynewcacheentry12345", "value") == "value"
-    assert get_denick_cache("mynewcacheentry12345") == "value"
-
-    assert set_denick_cache("mynewcacheentry123456", None) is None
-    assert get_denick_cache("mynewcacheentry123456") is None
 
 
 def test_antisniper_key_holder() -> None:

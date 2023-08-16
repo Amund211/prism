@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import pytest
 
 from prism.overlay.get_stats import denick, fetch_bedwars_stats, get_bedwars_stats
+from prism.overlay.nick_database import NickDatabase
 from prism.overlay.player import KnownPlayer, NickedPlayer, create_known_player
 from tests.prism.overlay.utils import MockedController
 
@@ -40,7 +41,7 @@ def make_scenario_controller(*users: User) -> MockedController:
 
     username_table = {user.username: user for user in users}
     uuid_table = {user.uuid: user for user in users}
-    nick_table = {user.nick: user for user in users}
+    nick_table = {user.nick: user.uuid for user in users if user.nick is not None}
 
     def get_uuid(username: str) -> str | None:
         user = username_table.get(username, None)
@@ -50,14 +51,10 @@ def make_scenario_controller(*users: User) -> MockedController:
         user = uuid_table.get(uuid, None)
         return user.playerdata if user is not None else None
 
-    def denick(nick: str) -> str | None:
-        user = nick_table.get(nick, None)
-        return user.uuid if user is not None else None
-
     controller = MockedController(
         get_uuid=get_uuid,
         get_antisniper_playerdata=get_antisniper_playerdata,
-        denick=denick,
+        nick_database=NickDatabase([nick_table]),
     )
 
     return controller
@@ -65,7 +62,7 @@ def make_scenario_controller(*users: User) -> MockedController:
 
 def test_denick() -> None:
     """Test the precedence of different denicking sources"""
-    controller = MockedController(denick=lambda username: None)
+    controller = MockedController()
 
     NICK = "AmazingNick"
 
@@ -75,10 +72,6 @@ def test_denick() -> None:
     # Hit in database
     controller.nick_database.databases.append({NICK: "database-uuid"})
     assert denick(NICK, controller) == "database-uuid"
-
-    # Hit from api
-    controller.denick = lambda username: "api-uuid"
-    assert denick(NICK, controller) == "api-uuid"
 
     # Hit in default database
     controller.nick_database.default_database[NICK] = "default-database-uuid"

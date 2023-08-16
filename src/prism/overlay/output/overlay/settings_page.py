@@ -163,7 +163,7 @@ class GeneralSettingSection:  # pragma: nocover
 
         use_antisniper_label = tk.Label(
             self.frame,
-            text="AntiSniper WS estimates + denick: ",
+            text="AntiSniper WS estimates: ",
             font=("Consolas", "12"),
             foreground="white",
             background="black",

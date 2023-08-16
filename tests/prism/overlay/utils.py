@@ -302,9 +302,6 @@ class MockedController:
     get_antisniper_playerdata: Callable[[str], Mapping[str, object] | None] = field(
         default=missing_method, repr=False, compare=False, hash=False
     )
-    denick: Callable[[str], str | None] = field(
-        default=missing_method, repr=False, compare=False, hash=False
-    )
     get_estimated_winstreaks: Callable[[str], tuple[Winstreaks, bool]] = field(
         default=missing_method, repr=False, compare=False, hash=False
     )

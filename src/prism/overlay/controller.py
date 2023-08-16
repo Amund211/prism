@@ -13,7 +13,6 @@ from prism.hypixel import (
 from prism.mojang import MojangAPIError, get_uuid
 from prism.overlay.antisniper_api import (
     AntiSniperAPIKeyHolder,
-    denick,
     get_antisniper_playerdata,
     get_estimated_winstreaks,
 )
@@ -54,11 +53,6 @@ class OverlayController(Protocol):  # pragma: no cover
     def get_antisniper_playerdata(
         self,
     ) -> Callable[[str], Mapping[str, object] | None]:
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def denick(self) -> Callable[[str], str | None]:
         raise NotImplementedError
 
     @property
@@ -130,12 +124,6 @@ class RealOverlayController:
             self.api_key_invalid = False
             self.api_key_throttled = False
             return playerdata
-
-    def denick(self, nick: str) -> str | None:  # pragma: no cover
-        if not self.settings.use_antisniper_api or self.antisniper_key_holder is None:
-            return None
-
-        return denick(nick, key_holder=self.antisniper_key_holder)
 
     def get_estimated_winstreaks(
         self, uuid: str
