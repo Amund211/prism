@@ -33,8 +33,7 @@ import struct
 import sys
 from collections.abc import Mapping
 from enum import IntEnum
-from types import TracebackType
-from typing import Any, Self
+from typing import Any
 from uuid import uuid4
 
 
@@ -111,15 +110,6 @@ class Presence:
             "nonce": str(uuid4()),
         }
         self._send(payload, OpCode.FRAME)
-
-    def close(self) -> None:
-        """
-        Closes the current connection.
-
-        Automatically called when the program exits using the 'with' statement.
-        """
-        self._send({}, OpCode.CLOSE)
-        self._socket.close()
 
     def _connect(self) -> None:
         pipe = self._get_pipe()
@@ -200,14 +190,3 @@ class Presence:
             self._socket.flush()
         else:
             self._socket.sendall(data)
-
-    def __enter__(self) -> Self:
-        return self
-
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_value: BaseException | None,
-        exc_traceback: TracebackType | None,
-    ) -> None:
-        self.close()
