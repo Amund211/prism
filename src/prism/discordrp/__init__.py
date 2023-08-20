@@ -168,15 +168,20 @@ class Presence:
         return struct.unpack("<ii", self._read_bytes(8))  # type: ignore [return-value]
 
     def _read_bytes(self, size: int) -> bytes:
-        encoded = b""
+        data = b""
         while size > 0:
             if sys.platform == "win32":
-                encoded += self._socket.read(size)
+                chunk = self._socket.read(size)
             else:
-                encoded += self._socket.recv(size)
+                chunk = self._socket.recv(size)
 
-            size -= len(encoded)
-        return encoded
+            if not chunk:
+                raise PresenceError("Connection closed before all bytes were read")
+
+            data += chunk
+            size -= len(chunk)
+
+        return data
 
     def _send(self, payload: Mapping[str, object], op: OpCode) -> None:
         data_json = json.dumps(payload)
