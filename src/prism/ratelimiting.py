@@ -29,7 +29,8 @@ class RateLimiter:
         # Fill the request history with placeholder data so we can assume that
         # the deque is non-empty when we have acquired self.avaliable_slots
         old_timestamp = time.monotonic() - window
-        self.made_requests = deque(repeat(old_timestamp, limit))
+        self.made_requests = deque(repeat(old_timestamp, limit), maxlen=limit)
+        self.grabbed_slots = deque(repeat(old_timestamp, limit), maxlen=limit + 1)
 
     def __enter__(self) -> None:
         """
@@ -40,6 +41,8 @@ class RateLimiter:
 
         with self.mutex:
             old_request = self.made_requests.popleft()
+            insort_right(self.grabbed_slots, old_request)
+            self.grabbed_slots.popleft()
 
         wait = self._compute_wait(old_request)
         if wait > 0:
@@ -70,29 +73,35 @@ class RateLimiter:
 
     @property
     def is_blocked(self) -> bool:
-        """Return True if a request made at this time would have to wait"""
+        """
+        Return True if a request is currently waiting
+
+        NOTE: Only considers grabbed slots (i.e. slots for which a thread is sleeping)
+              Does not return True when a thread is waiting to acquire a slot
+        """
         with self.mutex:
-            if len(self.made_requests) == 0:
-                # We have to wait for a request to finish
-                return True
+            latest_inflight_request = self.grabbed_slots[-1]
 
-            old_request = self.made_requests[0]
-
-        return self._compute_wait(old_request) > 0
+        return self._compute_wait(latest_inflight_request) > 0
 
     @property
     def block_duration_seconds(self) -> float:
         """
-        Return the time we have to wait in seconds before our next request
+        Return the shortest wait time left among all threads currently waiting
 
-        0 if not blocked
-        float("inf") if there are no requests slots free
+        Returns 0 if no threads are waiting
+
+        NOTE: Returns 0 when there are no slots available
         """
+        smallest_wait: float = 0
+
         with self.mutex:
-            if len(self.made_requests) == 0:
-                # We have to wait for a request to finish
-                return float("inf")
+            now = time.monotonic()
+            for request in reversed(self.grabbed_slots):
+                wait = request + self.window - now
+                if wait <= 0:
+                    return smallest_wait
+                smallest_wait = wait
 
-            old_request = self.made_requests[0]
-
-        return max(self._compute_wait(old_request), 0)
+        # Unreachable. For a slot to be grabbed, one must be free, and thus have 0 wait
+        return smallest_wait  # pragma: no coverage

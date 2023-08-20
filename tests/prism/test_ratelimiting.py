@@ -1,6 +1,7 @@
 import math
 import unittest.mock
 from collections.abc import Callable
+from functools import partial
 
 import pytest
 
@@ -162,7 +163,11 @@ def test_ratelimiting_multithreaded() -> None:
     time_ratelimiter(window, limit, make_requests)
 
 
-def test_ratelimiting_is_blocked() -> None:
+def test_ratelimiting_is_unblocked() -> None:
+    # This test is old, and now only checks that the ratelimiter is unblocked
+    # To test that it is blocked and its block duration we have to interleave
+    # the assertion with the call to __enter__ as the new implementation will
+    # calculate how long a call to __enter__ has left to wait.
     with unittest.mock.patch(
         "prism.ratelimiting.time", MockedTime().time
     ) as mocked_time_module:
@@ -179,19 +184,19 @@ def test_ratelimiting_is_blocked() -> None:
         assert mocked_time_module.monotonic() == 5
 
         limiter.__enter__()
-        assert limiter.is_blocked
-        assert limiter.block_duration_seconds == float("inf")
+        assert not limiter.is_blocked
+        assert limiter.block_duration_seconds == 0
         mocked_time_module.sleep(5)
         assert mocked_time_module.monotonic() == 10
 
         limiter.__exit__(None, None, None)
-        assert limiter.is_blocked
-        assert limiter.block_duration_seconds == window == 10
+        assert not limiter.is_blocked
+        assert limiter.block_duration_seconds == 0
         mocked_time_module.sleep(5)
         assert mocked_time_module.monotonic() == 15
 
-        assert limiter.is_blocked
-        assert limiter.block_duration_seconds == 5
+        assert not limiter.is_blocked
+        assert limiter.block_duration_seconds == 0
         mocked_time_module.sleep(5)
         assert mocked_time_module.monotonic() == 20
 
@@ -201,4 +206,60 @@ def test_ratelimiting_is_blocked() -> None:
         assert mocked_time_module.monotonic() == 25
         limiter.__exit__(None, None, None)
         assert not limiter.is_blocked
+        assert limiter.block_duration_seconds == 0
+
+
+def test_ratelimiting_is_blocked() -> None:
+    def _make_assertions_sleep(
+        limiter: RateLimiter,
+        mocked_time_module: _MockedTimeModule,
+        block_duration_seconds: float,
+    ) -> Callable[[float], None]:
+        true_sleep = mocked_time_module.sleep
+
+        def do_assertions_sleep(duration: float) -> None:
+            assert limiter.block_duration_seconds == block_duration_seconds
+            assert limiter.is_blocked is (block_duration_seconds > 0)
+            true_sleep(duration)
+
+        return do_assertions_sleep
+
+    with unittest.mock.patch(
+        "prism.ratelimiting.time", MockedTime().time
+    ) as mocked_time_module:
+        limit = 2
+        window = 10
+        limiter = RateLimiter(limit=limit, window=window)
+        make_assertions_sleep: Callable[[float], Callable[[float], None]] = partial(
+            _make_assertions_sleep, limiter, mocked_time_module
+        )
+
+        limiter.__enter__()
+        limiter.__enter__()
+        assert not limiter.is_blocked
+        assert mocked_time_module.monotonic() == 0
+
+        limiter.__exit__(None, None, None)
+        mocked_time_module.sleep(2)
+        limiter.__exit__(None, None, None)
+
+        with unittest.mock.patch.object(
+            mocked_time_module,
+            "sleep",
+            make_assertions_sleep(block_duration_seconds=8),  # type: ignore
+        ):
+            limiter.__enter__()
+
+        assert mocked_time_module.monotonic() == 10
+
+        with unittest.mock.patch.object(
+            mocked_time_module,
+            "sleep",
+            make_assertions_sleep(block_duration_seconds=2),  # type: ignore
+        ):
+            limiter.__enter__()
+
+        assert mocked_time_module.monotonic() == 12
+
+        mocked_time_module.sleep(11)
         assert limiter.block_duration_seconds == 0
