@@ -132,9 +132,37 @@ def _make_request(
     return response
 
 
+def _make_playerdata_request(
+    *,
+    url: str,
+    key_holder: AntiSniperAPIKeyHolder,
+    api_limiter: RateLimiter,
+    last_try: bool,
+) -> requests.Response:  # pragma: nocover
+    try:
+        # Uphold our prescribed rate-limits
+        with key_holder.limiter, api_limiter:
+            response = SESSION.get(url)
+    except RequestException as e:
+        raise ExecutionError(
+            "Request to AntiSniper API failed due to an unknown error"
+        ) from e
+
+    if is_checked_too_many_offline_players_response(response):
+        raise ExecutionError(f"Checked too many offline players for {url}, retrying")
+
+    if response.status_code == 429 and not last_try:
+        raise ExecutionError(
+            "Request to AntiSniper API failed due to ratelimit, retrying"
+        )
+
+    return response
+
+
 def get_antisniper_playerdata(
     uuid: str,
     key_holder: AntiSniperAPIKeyHolder,
+    api_limiter: RateLimiter,
     retry_limit: int = 3,
     timeout: float = 5,
 ) -> Mapping[str, object]:  # pragma: nocover
@@ -144,7 +172,12 @@ def get_antisniper_playerdata(
 
     try:
         response = execute_with_retry(
-            functools.partial(_make_request, url=url, key_holder=key_holder),
+            functools.partial(
+                _make_playerdata_request,
+                url=url,
+                key_holder=key_holder,
+                api_limiter=api_limiter,
+            ),
             retry_limit=retry_limit,
             timeout=timeout,
         )

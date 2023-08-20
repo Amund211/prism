@@ -17,6 +17,7 @@ from prism.overlay.antisniper_api import (
     get_estimated_winstreaks,
 )
 from prism.overlay.player import MISSING_WINSTREAKS
+from prism.ratelimiting import RateLimiter
 
 if TYPE_CHECKING:  # pragma: no cover
     from prism.overlay.nick_database import NickDatabase
@@ -27,6 +28,9 @@ if TYPE_CHECKING:  # pragma: no cover
 
 logger = logging.getLogger(__name__)
 
+API_REQUEST_LIMIT = 120
+API_REQUEST_WINDOW = 60
+
 
 class OverlayController(Protocol):  # pragma: no cover
     """Class holding components necessary to control the overlay"""
@@ -34,6 +38,7 @@ class OverlayController(Protocol):  # pragma: no cover
     api_key_invalid: bool
     api_key_throttled: bool
     antisniper_key_holder: AntiSniperAPIKeyHolder
+    api_limiter: RateLimiter
 
     wants_shown: bool | None
     state: "OverlayState"
@@ -78,6 +83,9 @@ class RealOverlayController:
         self.own_username: str | None = None
         self.api_key_invalid = False
         self.api_key_throttled = False
+        self.api_limiter = RateLimiter(
+            limit=API_REQUEST_LIMIT, window=API_REQUEST_WINDOW
+        )
 
         self.wants_shown: bool | None = None
         self.player_cache = PlayerCache()
@@ -101,7 +109,9 @@ class RealOverlayController:
     ) -> Mapping[str, object] | None:  # pragma: no cover
         # TODO: set api key flags
         try:
-            playerdata = get_antisniper_playerdata(uuid, self.antisniper_key_holder)
+            playerdata = get_antisniper_playerdata(
+                uuid, self.antisniper_key_holder, self.api_limiter
+            )
         except HypixelPlayerNotFoundError as e:
             logger.debug(f"Player not found on Hypixel: {uuid=}", exc_info=e)
             self.api_key_invalid = False

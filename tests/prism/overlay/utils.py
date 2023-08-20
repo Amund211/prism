@@ -24,6 +24,7 @@ from prism.overlay.player import (
 from prism.overlay.player_cache import PlayerCache
 from prism.overlay.settings import NickValue, Settings, fill_missing_settings
 from prism.overlay.state import OverlayState
+from prism.ratelimiting import RateLimiter
 
 # Username set by default in create_state
 OWN_USERNAME = "OwnUsername"
@@ -272,6 +273,12 @@ class MockedController:
     api_key_throttled: bool = False
     antisniper_key_holder: AntiSniperAPIKeyHolder = field(
         init=False, repr=False, compare=False, hash=False
+    )
+    api_limiter: RateLimiter = field(
+        default_factory=lambda: RateLimiter(limit=1, window=60),
+        repr=False,
+        compare=False,
+        hash=False,
     )
 
     wants_shown: bool | None = None
