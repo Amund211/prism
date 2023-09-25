@@ -74,14 +74,15 @@ def get_uuid(
     except ExecutionError as e:
         raise MojangAPIError(f"Request to Mojang API failed for {username=}.") from e
 
+    if response.status_code == 404:
+        # Not found
+        return None
+
     if not response:
         raise MojangAPIError(
             f"Request to Mojang API failed with status code {response.status_code}. "
             f"Response: {response.text}"
         )
-
-    if response.status_code != 200:
-        return None
 
     try:
         response_json = response.json()
