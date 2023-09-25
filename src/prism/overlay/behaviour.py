@@ -3,7 +3,7 @@ import logging
 import queue
 
 from prism.mojang import compare_uuids
-from prism.overlay.controller import OverlayController
+from prism.overlay.controller import ERROR_DURING_PROCESSING, OverlayController
 from prism.overlay.get_stats import get_bedwars_stats
 from prism.overlay.player import MISSING_WINSTREAKS, KnownPlayer, PendingPlayer
 from prism.overlay.settings import SettingsDict
@@ -32,7 +32,11 @@ def set_nickname(
         old_nick = nick
 
     with controller.settings.mutex:
-        if uuid is not None and username is not None:
+        if (
+            uuid is not None
+            and uuid is not ERROR_DURING_PROCESSING
+            and username is not None
+        ):
             # Search the known nicks in settings for the uuid
             for old_nick, nick_value in controller.settings.known_nicks.items():
                 if compare_uuids(uuid, nick_value["uuid"]):
@@ -60,7 +64,7 @@ def set_nickname(
         if old_nick is not None:
             controller.nick_database.default_database.pop(old_nick, None)
 
-        if uuid is not None:
+        if uuid is not None and uuid is not ERROR_DURING_PROCESSING:
             # Add your new nick
             controller.nick_database.default_database[nick] = uuid
 

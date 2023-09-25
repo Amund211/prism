@@ -7,6 +7,7 @@ from typing import Any, Literal, TypedDict, cast, overload
 from cachetools import TTLCache
 
 from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
+from prism.overlay.controller import ProcessingError
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.output.config import (
     RatingConfigCollection,
@@ -19,6 +20,7 @@ from prism.overlay.player import (
     PendingPlayer,
     Player,
     Stats,
+    UnknownPlayer,
     Winstreaks,
 )
 from prism.overlay.player_cache import PlayerCache
@@ -117,6 +119,11 @@ def make_dead_path(path_str: str) -> Path:
 
 
 @overload
+def make_player(variant: Literal["unknown"], username: str = ...) -> UnknownPlayer:
+    ...
+
+
+@overload
 def make_player(variant: Literal["nick"], username: str = ...) -> NickedPlayer:
     ...
 
@@ -148,7 +155,7 @@ def make_player(
 
 
 def make_player(
-    variant: Literal["nick", "pending", "player"] = "player",
+    variant: Literal["unknown", "nick", "pending", "player"] = "player",
     username: str = "player",
     fkdr: float = 0.0,
     stars: float = 1.0,
@@ -184,6 +191,8 @@ def make_player(
             nick=nick,
             uuid=uuid,
         )
+    elif variant == "unknown":
+        return UnknownPlayer(username)
     elif variant == "nick":
         assert nick is None, "Provide the nick as the username"
         return NickedPlayer(nick=username)
@@ -262,7 +271,7 @@ class ExtraAttributes(TypedDict):
     antisniper_api_key: str
     redraw_event_set: bool
     update_presence_event_set: bool
-    player_cache_data: TTLCache[str, KnownPlayer | NickedPlayer | PendingPlayer]
+    player_cache_data: TTLCache[str, Player]
 
 
 @dataclass
@@ -303,12 +312,12 @@ class MockedController:
         default_factory=threading.Lock, repr=False, compare=False, hash=False
     )
 
-    get_uuid: Callable[[str], str | None] = field(
+    get_uuid: Callable[[str], str | None | ProcessingError] = field(
         default=missing_method, repr=False, compare=False, hash=False
     )
-    get_antisniper_playerdata: Callable[[str], Mapping[str, object] | None] = field(
-        default=missing_method, repr=False, compare=False, hash=False
-    )
+    get_antisniper_playerdata: Callable[
+        [str], Mapping[str, object] | None | ProcessingError
+    ] = field(default=missing_method, repr=False, compare=False, hash=False)
     get_estimated_winstreaks: Callable[[str], tuple[Winstreaks, bool]] = field(
         default=missing_method, repr=False, compare=False, hash=False
     )

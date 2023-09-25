@@ -1,11 +1,12 @@
 import logging
 from dataclasses import replace
 
-from prism.overlay.controller import OverlayController
+from prism.overlay.controller import ERROR_DURING_PROCESSING, OverlayController
 from prism.overlay.player import (
     KnownPlayer,
     NickedPlayer,
     PendingPlayer,
+    UnknownPlayer,
     create_known_player,
     get_playerdata_field,
 )
@@ -35,7 +36,7 @@ def denick(nick: str, controller: OverlayController) -> str | None:
 
 def fetch_bedwars_stats(
     username: str, controller: OverlayController
-) -> KnownPlayer | NickedPlayer:
+) -> KnownPlayer | NickedPlayer | UnknownPlayer:
     """Fetches the bedwars stats for the given player"""
     uuid = controller.get_uuid(username)
 
@@ -50,6 +51,10 @@ def fetch_bedwars_stats(
             denicked = True
             logger.debug(f"De-nicked {username} as {uuid}")
 
+    if uuid is ERROR_DURING_PROCESSING:
+        # Error while getting uuid -> unknown player
+        return UnknownPlayer(username)
+
     if uuid is None:
         # Could not find uuid or denick - assume nicked
         return NickedPlayer(nick=username)
@@ -60,7 +65,11 @@ def fetch_bedwars_stats(
         f"Initial stats for {username} ({uuid}) {denicked=} {playerdata is None=}"
     )
 
-    if not denicked and playerdata is not None:
+    if (
+        not denicked
+        and playerdata is not None
+        and playerdata is not ERROR_DURING_PROCESSING
+    ):
         # We think the player is not nicked, and have found their stats
         displayname = get_playerdata_field(
             playerdata, "displayname", str, "<missing name>"
@@ -75,7 +84,11 @@ def fetch_bedwars_stats(
             )
             playerdata = None
 
-    if not denicked and playerdata is None:
+    if (
+        not denicked
+        and playerdata is None
+        and playerdata is not ERROR_DURING_PROCESSING
+    ):
         # The username may be an existing minecraft account that has not
         # logged on to Hypixel. Then we would get a hit from Mojang, but
         # no hit from Hypixel and the username is still a nickname.
@@ -86,6 +99,10 @@ def fetch_bedwars_stats(
             logger.debug(f"De-nicked {username} as {uuid} after hit from Mojang")
             playerdata = controller.get_antisniper_playerdata(uuid)
             logger.debug(f"Stats for nicked {nick} ({uuid}) {playerdata is None=}")
+
+    if playerdata is ERROR_DURING_PROCESSING:
+        logger.debug("Error while getting playerdata - returning UnknownPlayer")
+        return UnknownPlayer(username)
 
     if playerdata is None:
         logger.debug("Got no playerdata - assuming player is nicked")
@@ -104,7 +121,7 @@ def fetch_bedwars_stats(
 def get_bedwars_stats(
     username: str,
     controller: OverlayController,
-) -> KnownPlayer | NickedPlayer:
+) -> KnownPlayer | NickedPlayer | UnknownPlayer:
     """Get and cache the bedwars stats for the given player"""
     cached_stats = controller.player_cache.get_cached_player(username)
 

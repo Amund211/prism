@@ -5,9 +5,15 @@ from dataclasses import dataclass
 
 import pytest
 
+from prism.overlay.controller import ERROR_DURING_PROCESSING, ProcessingError
 from prism.overlay.get_stats import denick, fetch_bedwars_stats, get_bedwars_stats
 from prism.overlay.nick_database import NickDatabase
-from prism.overlay.player import KnownPlayer, NickedPlayer, create_known_player
+from prism.overlay.player import (
+    KnownPlayer,
+    NickedPlayer,
+    UnknownPlayer,
+    create_known_player,
+)
 from tests.prism.overlay.utils import MockedController
 
 # Player data for a player who has been on Hypixel, but has not played bedwars
@@ -300,3 +306,28 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
     assert controller.player_cache.get_cached_player(my_username) == (
         None if clear else player
     )
+
+
+def test_fetch_bedwars_stats_error_during_uuid() -> None:
+    def get_uuid(username: str) -> str | None | ProcessingError:
+        return ERROR_DURING_PROCESSING
+
+    controller = MockedController(get_uuid=get_uuid)
+
+    assert fetch_bedwars_stats("someone", controller) == UnknownPlayer("someone")
+
+
+def test_fetch_bedwars_stats_error_during_playerdata() -> None:
+    def get_uuid(username: str) -> str | None:
+        return "uuid"
+
+    def get_antisniper_playerdata(
+        uuid: str,
+    ) -> Mapping[str, object] | None | ProcessingError:
+        return ERROR_DURING_PROCESSING
+
+    controller = MockedController(
+        get_uuid=get_uuid, get_antisniper_playerdata=get_antisniper_playerdata
+    )
+
+    assert fetch_bedwars_stats("someone", controller) == UnknownPlayer("someone")

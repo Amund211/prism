@@ -12,7 +12,14 @@ from prism.overlay.output.config import (
     read_rating_config_collection_dict,
 )
 from prism.overlay.output.overlay.utils import OverlayRowData, player_to_row
-from prism.overlay.player import KnownPlayer, NickedPlayer, PendingPlayer, Player, Stats
+from prism.overlay.player import (
+    KnownPlayer,
+    NickedPlayer,
+    PendingPlayer,
+    Player,
+    Stats,
+    UnknownPlayer,
+)
 
 # Tuples (terminal_formatting, gui_color)
 rating0, rating1, rating2, rating3, rating4 = zip(TERMINAL_FORMATTINGS, GUI_COLORS)
@@ -122,17 +129,37 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
             "MrNick",
             RenderedStats(
                 username=CellValue.monochrome("MrNick", *white),
-                stars=CellValue.monochrome("unknown", *rating4),
-                index=CellValue.monochrome("unknown", *rating4),
-                fkdr=CellValue.monochrome("unknown", *rating4),
-                kdr=CellValue.monochrome("unknown", *rating4),
-                bblr=CellValue.monochrome("unknown", *rating4),
-                wlr=CellValue.monochrome("unknown", *rating4),
-                winstreak=CellValue.monochrome("unknown", *rating4),
-                kills=CellValue.monochrome("unknown", *rating4),
-                finals=CellValue.monochrome("unknown", *rating4),
-                beds=CellValue.monochrome("unknown", *rating4),
-                wins=CellValue.monochrome("unknown", *rating4),
+                stars=CellValue.monochrome("nick", *rating4),
+                index=CellValue.monochrome("nick", *rating4),
+                fkdr=CellValue.monochrome("nick", *rating4),
+                kdr=CellValue.monochrome("nick", *rating4),
+                bblr=CellValue.monochrome("nick", *rating4),
+                wlr=CellValue.monochrome("nick", *rating4),
+                winstreak=CellValue.monochrome("nick", *rating4),
+                kills=CellValue.monochrome("nick", *rating4),
+                finals=CellValue.monochrome("nick", *rating4),
+                beds=CellValue.monochrome("nick", *rating4),
+                wins=CellValue.monochrome("nick", *rating4),
+            ),
+        ),
+    ),
+    (
+        UnknownPlayer("SomeErrorOccurred"),
+        (
+            None,
+            RenderedStats(
+                username=CellValue.monochrome("SomeErrorOccurred", *white),
+                stars=CellValue.monochrome("error", *rating4),
+                index=CellValue.monochrome("error", *rating4),
+                fkdr=CellValue.monochrome("error", *rating4),
+                kdr=CellValue.monochrome("error", *rating4),
+                bblr=CellValue.monochrome("error", *rating4),
+                wlr=CellValue.monochrome("error", *rating4),
+                winstreak=CellValue.monochrome("error", *rating4),
+                kills=CellValue.monochrome("error", *rating4),
+                finals=CellValue.monochrome("error", *rating4),
+                beds=CellValue.monochrome("error", *rating4),
+                wins=CellValue.monochrome("error", *rating4),
             ),
         ),
     ),

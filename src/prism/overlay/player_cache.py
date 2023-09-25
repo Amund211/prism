@@ -4,7 +4,13 @@ from collections.abc import Callable
 
 from cachetools import TTLCache
 
-from prism.overlay.player import KnownPlayer, NickedPlayer, PendingPlayer, Player
+from prism.overlay.player import (
+    KnownPlayer,
+    NickedPlayer,
+    PendingPlayer,
+    Player,
+    UnknownPlayer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +43,10 @@ class PlayerCache:
         return pending_player
 
     def set_cached_player(
-        self, username: str, player: KnownPlayer | NickedPlayer, genus: int
+        self,
+        username: str,
+        player: KnownPlayer | NickedPlayer | UnknownPlayer,
+        genus: int,
     ) -> None:
         with self._mutex:
             if genus != self.current_genus:

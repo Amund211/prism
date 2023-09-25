@@ -2,6 +2,7 @@ import logging
 import threading
 from abc import abstractmethod
 from collections.abc import Callable, Mapping
+from enum import Enum
 from typing import TYPE_CHECKING, Protocol
 
 from prism.hypixel import (
@@ -32,6 +33,13 @@ API_REQUEST_LIMIT = 120
 API_REQUEST_WINDOW = 60
 
 
+class ProcessingError(Enum):
+    token = 0
+
+
+ERROR_DURING_PROCESSING = ProcessingError.token
+
+
 class OverlayController(Protocol):  # pragma: no cover
     """Class holding components necessary to control the overlay"""
 
@@ -50,14 +58,14 @@ class OverlayController(Protocol):  # pragma: no cover
 
     @property
     @abstractmethod
-    def get_uuid(self) -> Callable[[str], str | None]:
+    def get_uuid(self) -> Callable[[str], str | None | ProcessingError]:
         raise NotImplementedError
 
     @property
     @abstractmethod
     def get_antisniper_playerdata(
         self,
-    ) -> Callable[[str], Mapping[str, object] | None]:
+    ) -> Callable[[str], Mapping[str, object] | None | ProcessingError]:
         raise NotImplementedError
 
     @property
@@ -97,16 +105,19 @@ class RealOverlayController:
 
         self.antisniper_key_holder = AntiSniperAPIKeyHolder(settings.antisniper_api_key)
 
-    def get_uuid(self, username: str) -> str | None:  # pragma: no cover
+    def get_uuid(
+        self, username: str
+    ) -> str | None | ProcessingError:  # pragma: no cover
         try:
             return get_uuid(username)
         except MojangAPIError as e:
             logger.debug(f"Failed getting uuid for username {username}.", exc_info=e)
-            return None
+            # TODO: RETURN SOMETHING ELSE
+            return ERROR_DURING_PROCESSING
 
     def get_antisniper_playerdata(
         self, uuid: str
-    ) -> Mapping[str, object] | None:  # pragma: no cover
+    ) -> Mapping[str, object] | None | ProcessingError:  # pragma: no cover
         # TODO: set api key flags
         try:
             playerdata = get_antisniper_playerdata(
@@ -119,17 +130,17 @@ class RealOverlayController:
             return None
         except HypixelAPIError as e:
             logger.error(f"Hypixel API error getting stats for {uuid=}", exc_info=e)
-            return None
+            return ERROR_DURING_PROCESSING
         except HypixelAPIKeyError as e:
             logger.warning(f"Invalid API key getting stats for {uuid=}", exc_info=e)
             self.api_key_invalid = True
             self.api_key_throttled = False
-            return None
+            return ERROR_DURING_PROCESSING
         except HypixelAPIThrottleError as e:
             logger.warning(f"API key throttled getting stats for {uuid=}", exc_info=e)
             self.api_key_invalid = False
             self.api_key_throttled = True
-            return None
+            return ERROR_DURING_PROCESSING
         else:
             self.api_key_invalid = False
             self.api_key_throttled = False

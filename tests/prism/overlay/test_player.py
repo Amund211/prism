@@ -41,6 +41,7 @@ players: dict[str, Player] = {
     "bad_nick": make_player(username="bad_nick", variant="nick"),
     "maurice": make_player(username="maurice", variant="pending"),
     "alfred": make_player(username="alfred", variant="pending"),
+    "error_guy": make_player(username="error_guy", variant="unknown"),
     "jonathan": make_player(
         username="jonathan",
         stars=1,
@@ -129,6 +130,13 @@ def test_update_winstreaks(
 
 
 sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], ...] = (
+    # Unknown player sorted to the top
+    (
+        [players["joshua"], players["error_guy"]],
+        set(),
+        "fkdr",
+        [players["error_guy"], players["joshua"]],
+    ),
     # Joe has better fkdr than Carl
     (
         [players["carl"], players["joe"]],
@@ -493,6 +501,7 @@ def test_is_missing_winstreaks(
         ),
         (make_player(variant="nick", username="AmazingNick"), ("AmazingNick",)),
         (make_player(variant="pending", username="player3"), ("player3",)),
+        (make_player(variant="unknown", username="player4"), ("player4",)),
     ),
 )
 def test_aliases(player: Player, aliases: tuple[str, ...]) -> None:

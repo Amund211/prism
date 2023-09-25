@@ -6,7 +6,13 @@ from typing import assert_never
 from prism.overlay.output.cells import CellValue, ColorSection, ColumnName
 from prism.overlay.output.color import GUIColor, MinecraftColor, TerminalColor
 from prism.overlay.output.config import RatingConfigCollection
-from prism.overlay.player import KnownPlayer, NickedPlayer, PendingPlayer, Player
+from prism.overlay.player import (
+    KnownPlayer,
+    NickedPlayer,
+    PendingPlayer,
+    Player,
+    UnknownPlayer,
+)
 from prism.utils import truncate_float
 
 TERMINAL_FORMATTINGS = (
@@ -441,13 +447,17 @@ def render_stats(
         )
     else:
         if isinstance(player, NickedPlayer):
-            text = "unknown"
+            text = "nick"
             terminal_formatting = TERMINAL_FORMATTINGS[-1]
             gui_color = GUI_COLORS[-1]
         elif isinstance(player, PendingPlayer):
             text = "-"
             terminal_formatting = TERMINAL_FORMATTINGS[0]
             gui_color = GUI_COLORS[0]
+        elif isinstance(player, UnknownPlayer):
+            text = "error"
+            terminal_formatting = TERMINAL_FORMATTINGS[-1]
+            gui_color = GUI_COLORS[-1]
         else:  # pragma: no coverage
             assert_never(player)
 

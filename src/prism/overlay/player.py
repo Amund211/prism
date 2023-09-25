@@ -68,8 +68,7 @@ class KnownPlayer:
     nick: str | None = field(default=None)
 
     @property
-    def stats_hidden(self) -> bool:
-        """Return True if the player has hidden stats (is assumed to be nicked)"""
+    def stats_unknown(self) -> bool:
         return False
 
     @property
@@ -105,13 +104,12 @@ class KnownPlayer:
 
 @dataclass(frozen=True, slots=True)
 class NickedPlayer:
-    """Dataclass holding the stats of a single player assumed to be nicked"""
+    """Dataclass holding the stats of a single nicked player"""
 
     nick: str
 
     @property
-    def stats_hidden(self) -> bool:
-        """Return True if the player has hidden stats (is assumed to be nicked)"""
+    def stats_unknown(self) -> bool:
         return True
 
     @property
@@ -132,8 +130,7 @@ class PendingPlayer:
     username: str
 
     @property
-    def stats_hidden(self) -> bool:
-        """Return True if the player has hidden stats (is assumed to be nicked)"""
+    def stats_unknown(self) -> bool:
         return False
 
     @property
@@ -142,7 +139,23 @@ class PendingPlayer:
         return (self.username,)
 
 
-Player = KnownPlayer | NickedPlayer | PendingPlayer
+@dataclass(frozen=True, slots=True)
+class UnknownPlayer:
+    """A player whose stats are missing due to an unknown error"""
+
+    username: str
+
+    @property
+    def stats_unknown(self) -> bool:
+        return True
+
+    @property
+    def aliases(self) -> tuple[str, ...]:
+        """List of known aliases for the player"""
+        return (self.username,)
+
+
+Player = KnownPlayer | NickedPlayer | PendingPlayer | UnknownPlayer
 
 
 def rate_player(
@@ -191,7 +204,7 @@ def rate_player(
     else:
         stat = 0 if column == "username" else float("-inf")
 
-    return (is_enemy, player.stats_hidden, stat)
+    return (is_enemy, player.stats_unknown, stat)
 
 
 def sort_players(
