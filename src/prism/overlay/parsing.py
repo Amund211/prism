@@ -143,8 +143,9 @@ def valid_username(username: str) -> bool:
     """Return True if username is a valid Minecraft username"""
     # https://help.minecraft.net/hc/en-us/articles/4408950195341-Minecraft-Java-Edition-Username-VS-Gamertag-FAQ#h_01GE5JWW0210X02JZN2FP9CREC  # noqa: E501
     # Must have 3-16 characters
-    # NOTE: We allow [1, 20] because of some illegal accounts existing
-    if len(username) < 1 or len(username) > 20:
+    # NOTE: We allow [1, 25] because of some illegal accounts existing
+    #       This is what the uuid api does (2023-09-25)
+    if len(username) < 1 or len(username) > 25:
         logger.debug(f"Playername {username!r} has invalid length")
         return False
 

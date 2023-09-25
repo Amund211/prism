@@ -162,6 +162,8 @@ def test_strip_until_raises(line: str, until: str) -> None:
         ("_a_b_c_", True),
         ("a_b_c", True),
         ("MyVeryVeryLongIGN", True),
+        ("MyVeryVeryVeryVeryLongIGN", True),
+        ("MyVeryVeryVeryVeryLongIGN2", False),
         ("A", True),
         ("-", False),
         ("my-ign", False),
