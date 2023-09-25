@@ -49,6 +49,7 @@ CHAT_PREFIXES = (
     # NOTE: This is non-standard, and we make no guarantees of it working
     #       We don not condone the use of hacked clients on public servers
     "[Astolfo HTTP Bridge]: [CHAT] ",
+    "[Netty Client IO #7/INFO]: [CHAT] ",  # New new lunar?
 )
 
 

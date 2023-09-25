@@ -387,6 +387,11 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         ),
     ),
     (
+        # Lobby swap on lunar (netty client?)
+        "[09:14:43] [Netty Client IO #7/INFO]: [CHAT] Sending you to mini68CU!",
+        LobbySwapEvent(),
+    ),
+    (
         # Nick reuse on lunar client
         "[15:03:53] [Client thread/INFO]: [CHAT] You are now nicked as AmazingNick!",
         NewNicknameEvent(nick="AmazingNick"),
