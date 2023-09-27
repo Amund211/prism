@@ -3,7 +3,7 @@ import webbrowser
 
 from prism.overlay.output.cell_renderer import RenderedStats, render_stats
 from prism.overlay.output.config import RatingConfigCollection
-from prism.overlay.player import KnownPlayer, NickedPlayer, Player
+from prism.overlay.player import KnownPlayer, NickedPlayer, Player, UnknownPlayer
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,11 @@ def player_to_row(
         isinstance(player, KnownPlayer) and player.nick is not None
     ):
         nickname = player.nick
+    elif isinstance(player, UnknownPlayer):
+        # Allow users to manually denick unknown players
+        # If an error occurs while getting a player's stats, the user should not have to
+        # wait for the stats to get refetched before being allowed to set a denick
+        nickname = player.username
     else:
         nickname = None
 

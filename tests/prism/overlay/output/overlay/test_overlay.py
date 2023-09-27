@@ -146,7 +146,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
     (
         UnknownPlayer("SomeErrorOccurred"),
         (
-            None,
+            "SomeErrorOccurred",  # We allow users to manually denick unknown players
             RenderedStats(
                 username=CellValue.monochrome("SomeErrorOccurred", *white),
                 stars=CellValue.monochrome("error", *rating4),
