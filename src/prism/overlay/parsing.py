@@ -49,7 +49,6 @@ CHAT_PREFIXES = (
     # NOTE: This is non-standard, and we make no guarantees of it working
     #       We don not condone the use of hacked clients on public servers
     "[Astolfo HTTP Bridge]: [CHAT] ",
-    "[Netty Client IO #7/INFO]: [CHAT] ",  # New new lunar?
 )
 
 
@@ -108,6 +107,20 @@ def parse_logline(logline: str) -> Event | None:
     chat_prefix = get_lowest_index(logline, *CHAT_PREFIXES)
     if chat_prefix is not None:
         return parse_chat_message(strip_until(logline, until=chat_prefix))
+
+    # Horrible special case
+    NETTY_CLIENT_FRAGMENT = "[Netty Client IO #"
+    NETTY_CHAT_FRAGMENT = "/INFO]: [CHAT] "
+    if (
+        (chat_index := logline.find(NETTY_CHAT_FRAGMENT)) != -1
+        and (client_index := logline.find(NETTY_CLIENT_FRAGMENT)) != -1
+        and client_index < chat_index
+        and chat_index - client_index - len(NETTY_CLIENT_FRAGMENT) <= 3  # Max 3 digits
+    ):
+        # "[Netty Client IO #7/INFO]: [CHAT] "
+        return parse_chat_message(
+            strip_until(logline, until=logline[: chat_index + len(NETTY_CHAT_FRAGMENT)])
+        )
 
     # Since we have assumed that we have filtered all chatlines, these lines are not
     # user controlled, and we are safe to not use the lowest index.

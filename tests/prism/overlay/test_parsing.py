@@ -348,6 +348,8 @@ UNEVENTFUL_LOGLINES = (
     "[18:47:34] [Client thread/INFO]: [CHAT] The game starts in a5 seconds!",
     "[18:47:34] [Client thread/INFO]: [CHAT] The game starts in seconds!",
     "[18:47:34] [Client thread/INFO]: [CHAT] The game starts in 10 secondssss!",
+    # Invalid netty client number
+    "[09:14:43] [Netty Client IO #1234/INFO]: [CHAT] Sending you to mini68CU!",
 )
 
 
@@ -401,6 +403,11 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     (
         # Lobby swap on lunar (netty client?)
         "[09:14:43] [Netty Client IO #7/INFO]: [CHAT] Sending you to mini68CU!",
+        LobbySwapEvent(),
+    ),
+    (
+        # Not a real logline
+        "[09:14:43] [Netty Client IO #123/INFO]: [CHAT] Sending you to mini68CU!",
         LobbySwapEvent(),
     ),
     (
