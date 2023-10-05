@@ -374,6 +374,16 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         InitializeAsEvent("Player1"),
     ),
     (
+        # Initialize as on new new? lunar - initial bogus player
+        "[09:13:42] [Client thread/INFO]: Setting user: Player772",
+        InitializeAsEvent("Player772"),
+    ),
+    (
+        # Initialize as on new new? lunar - real player
+        "[09:14:01] [ForkJoinPool.commonPool-worker-1/INFO]: [LC] Setting user: Player1",
+        InitializeAsEvent("Player1"),
+    ),
+    (
         "[Info: 2021-11-29 22:30:40.455294561: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ONLINE: Player1, Player2, Player3, Player5, Player6, Player7, Player8, Player9",
         LobbyListEvent(
             usernames=[
