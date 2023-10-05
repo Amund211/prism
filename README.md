@@ -24,9 +24,9 @@
 [^2]: macOs and the Apple logo are trademarks of Apple Inc., registered in the U.S. and other countries and regions.
 [^3]: Linux is the registered trademark of Linus Torvalds in the U.S. and other countries. Tux is the copyright of Larry Ewing \<<lewing@isc.tamu.edu>\>.
 
-[latest-windows-download-link]: https://github.com/Amund211/prism/releases/download/v1.5.0/prism-v1.5.0-windows.exe
-[latest-mac-download-link]: https://github.com/Amund211/prism/releases/download/v1.5.0/prism-v1.5.0-mac.dmg
-[latest-linux-download-link]: https://github.com/Amund211/prism/releases/download/v1.5.0/prism-v1.5.0-linux
+[latest-windows-download-link]: https://github.com/Amund211/prism/releases/download/v1.5.1/prism-v1.5.1-windows.exe
+[latest-mac-download-link]: https://github.com/Amund211/prism/releases/download/v1.5.1/prism-v1.5.1-mac.dmg
+[latest-linux-download-link]: https://github.com/Amund211/prism/releases/download/v1.5.1/prism-v1.5.1-linux
 
 [![Using Prism](./images/in_queue/stars_0dec_fkdr_ws_sort_fkdr.jpg)][latest-release-link]
 
