@@ -31,7 +31,7 @@ jobs:
         echo 'OS_NAME=windows' >> $GITHUB_ENV
         echo 'ACTIVATE_PATH=venv/Scripts/activate' >> $GITHUB_ENV
         echo 'RESULT_EXTENSION=.exe' >> $GITHUB_ENV
-        echo 'PYINSTALLER_ARGS=' >> $GITHUB_ENV
+        echo 'PYINSTALLER_ARGS=--hide-console=minimize-early' >> $GITHUB_ENV
     - name: OS specific setup (linux)
       if: startswith(matrix.os, 'ubuntu')
       run: |
