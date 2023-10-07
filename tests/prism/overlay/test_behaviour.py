@@ -90,7 +90,7 @@ def test_set_nickname(known_nicks: dict[str, str]) -> None:
     expected_calls = [unittest.mock.call(NICK)]
 
     # Cache dropped for old nick
-    if UUID in known_nicks:
+    if UUID in known_nicks and NICK != known_nicks[UUID]:
         expected_calls.append(unittest.mock.call(known_nicks[UUID]))
 
     assert sorted(controller.player_cache.uncache_player.mock_calls) == sorted(
@@ -129,7 +129,7 @@ def test_unset_nickname(known_nicks: dict[str, str], explicit: bool) -> None:
     assert controller.nick_database.get(NICK) is None
 
     # Cache dropped for reset nick
-    controller.player_cache.uncache_player.assert_called_with(NICK)
+    controller.player_cache.uncache_player.assert_called_once_with(NICK)
 
     # Redraw event set
     assert controller.redraw_event.is_set()

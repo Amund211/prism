@@ -614,7 +614,7 @@ def test_process_event_set_nickname(event: Event) -> None:
     ) as patched_set_nickname:
         new_state, will_redraw = process_event(controller, event)
 
-    patched_set_nickname.assert_called_with(
+    patched_set_nickname.assert_called_once_with(
         nick=nick, username=username, controller=controller
     )
     assert not will_redraw  # set_nickname sets redraw_flag

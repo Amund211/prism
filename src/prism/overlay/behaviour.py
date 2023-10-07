@@ -68,7 +68,7 @@ def set_nickname(
             # Add your new nick
             controller.nick_database.default_database[nick] = uuid
 
-    if old_nick is not None:
+    if old_nick is not None and old_nick != nick:
         # Drop the stats cache for your old nick
         controller.player_cache.uncache_player(old_nick)
 
