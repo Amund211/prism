@@ -351,17 +351,17 @@ types-pillow==10.0.0.3 \
     --hash=sha256:54a49f3c6a3f5e95ebeee396d7773dde22ce2515d594f9c0596c0a983558f0d4 \
     --hash=sha256:ae0c877d363da349bbb82c5463c9e78037290cc07d3714cb0ceaf5d2f7f5c825
     # via -r requirements/dev.in
-types-pyinstaller==6.0.0.0 \
-    --hash=sha256:060ccd97382c924e2c8690b37a072aa1ba2273088d85b7858dfec3eb55da51cd \
-    --hash=sha256:299b522db4e9f35c196977f6aa4290e9e704bcc802ad6f97f9e53a96054120bd
+types-pyinstaller==6.0.0.1 \
+    --hash=sha256:36136aee8b59d767c9d3adbad5107d79ef014469df9ed0f0bd107697010a24a5 \
+    --hash=sha256:b5d4bc138257c3cdd14f31f528358b8e575d2e744167ad94a16348c3a2b375c9
     # via -r requirements/dev.in
 types-pynput==1.7.5.7 \
     --hash=sha256:e88757b217625bb951df8bb62d4f89d4c7705245da4a8a3b979650fd3d499307 \
     --hash=sha256:f831459c9a2332e93a30b2aca68e87566ac53e5cbb6da3d7e3c344bb1602c513
     # via -r requirements/dev.in
-types-requests==2.31.0.6 \
-    --hash=sha256:a2db9cb228a81da8348b49ad6db3f5519452dd20a9c1e1a868c83c5fe88fd1a9 \
-    --hash=sha256:cd74ce3b53c461f1228a9b783929ac73a666658f223e28ed29753771477b3bd0
+types-requests==2.31.0.8 \
+    --hash=sha256:39894cbca3fb3d032ed8bdd02275b4273471aa5668564617cc1734b0a65ffdf8 \
+    --hash=sha256:e1b325c687b3494a2f528ab06e411d7092cc546cc9245c000bacc2fca5ae96d4
     # via -r requirements/dev.in
 types-setuptools==68.2.0.0 \
     --hash=sha256:77edcc843e53f8fc83bb1a840684841f3dc804ec94562623bfa2ea70d5a2ba1b \
@@ -371,14 +371,18 @@ types-toml==0.10.8.7 \
     --hash=sha256:58b0781c681e671ff0b5c0319309910689f4ab40e8a2431e205d70c94bb6efb1 \
     --hash=sha256:61951da6ad410794c97bec035d59376ce1cbf4453dc9b6f90477e81e4442d631
     # via -r requirements/dev.in
-types-urllib3==1.26.25.14 \
-    --hash=sha256:229b7f577c951b8c1b92c1bc2b2fdb0b49847bd2af6d1cc2a2e3dd340f3bda8f \
-    --hash=sha256:9683bbb7fb72e32bfe9d2be6e04875fbe1b3eeec3cbb4ea231435aa7fd6b4f0e
-    # via types-requests
 typing-extensions==4.8.0 \
     --hash=sha256:8f92fc8806f9a6b641eaa5318da32b44d401efaac0f6678c9bc448ba3605faa0 \
     --hash=sha256:df8e4339e9cb77357558cbdbceca33c303714cf861d1eef15e1070055ae8b7ef
     # via mypy
+urllib3==2.0.6 \
+    --hash=sha256:7a7c7003b000adf9e7ca2a377c9688bbc54ed41b985789ed576570342a375cd2 \
+    --hash=sha256:b19e1a85d206b56d7df1d5e683df4a7725252a964e3993648dd0fb5a1c157564
+    # via
+    #   -c requirements/linux.txt
+    #   -c requirements/mac.txt
+    #   -c requirements/windows.txt
+    #   types-requests
 virtualenv==20.24.5 \
     --hash=sha256:b80039f280f4919c77b30f1c23294ae357c4c8701042086e3fc005963e4e537b \
     --hash=sha256:e8361967f6da6fbdf1426483bfe9fca8287c242ac0bc30429905721cefbff752
