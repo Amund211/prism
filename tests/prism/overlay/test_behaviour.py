@@ -67,8 +67,11 @@ def test_set_nickname(known_nicks: dict[str, str]) -> None:
             assert controller.nick_database.get(nick) is None
         else:
             # Other players should not be affected
-            controller.settings.known_nicks[nick] = {"uuid": uuid, "comment": ""}
-            controller.nick_database.default_database[nick] = uuid
+            assert controller.settings.known_nicks[nick] == {
+                "uuid": uuid,
+                "comment": "",
+            }
+            assert controller.nick_database.default_database[nick] == uuid
 
     # Nick updated in settings
     assert controller.settings.known_nicks.get(NICK, None) == {
@@ -84,11 +87,15 @@ def test_set_nickname(known_nicks: dict[str, str]) -> None:
     assert controller.nick_database.get(NICK) == UUID
 
     # Cache dropped for new nick
-    assert controller.player_cache.uncache_player.called_with(NICK)
+    expected_calls = [unittest.mock.call(NICK)]
 
     # Cache dropped for old nick
     if UUID in known_nicks:
-        assert controller.player_cache.uncache_player.called_with(known_nicks[UUID])
+        expected_calls.append(unittest.mock.call(known_nicks[UUID]))
+
+    assert sorted(controller.player_cache.uncache_player.mock_calls) == sorted(
+        expected_calls
+    )
 
     # Redraw event set
     assert controller.redraw_event.is_set()
@@ -121,9 +128,8 @@ def test_unset_nickname(known_nicks: dict[str, str], explicit: bool) -> None:
     # Nick updated in database
     assert controller.nick_database.get(NICK) is None
 
-    # Cache dropped for old nick
-    if UUID in known_nicks:
-        assert controller.player_cache.uncache_player.called_with(known_nicks[UUID])
+    # Cache dropped for reset nick
+    controller.player_cache.uncache_player.assert_called_with(NICK)
 
     # Redraw event set
     assert controller.redraw_event.is_set()
