@@ -53,11 +53,11 @@ jobs:
         source ${{ env.ACTIVATE_PATH }}
 
         echo ========================================
-        pip-compile --resolver=backtracking --generate-hashes setup.cfg --output-file ${{ env.REQUIREMENTS }}
+        pip-compile --allow-unsafe --generate-hashes --output-file ${{ env.REQUIREMENTS }} setup.cfg
         echo ========================================
 
         echo ========================================
-        pip-compile --resolver=backtracking --generate-hashes requirements/dev.in --output-file ${{ env.DEV_REQUIREMENTS }}
+        pip-compile --allow-unsafe --generate-hashes --output-file ${{ env.DEV_REQUIREMENTS }} requirements/dev.in
         echo ========================================
 
         cp "${{ env.REQUIREMENTS }}" "${{ env.REQUIREMENTS }}"_fixed
@@ -79,11 +79,11 @@ jobs:
         source ${{ env.ACTIVATE_PATH }}
 
         echo ========================================
-        pip-compile --resolver=backtracking --generate-hashes setup.cfg --output-file ${{ env.REQUIREMENTS }} --upgrade
+        pip-compile --allow-unsafe --generate-hashes --output-file ${{ env.REQUIREMENTS }} --upgrade setup.cfg
         echo ========================================
 
         echo ========================================
-        pip-compile --resolver=backtracking --generate-hashes requirements/dev.in --output-file ${{ env.DEV_REQUIREMENTS }} --upgrade
+        pip-compile --allow-unsafe --generate-hashes --output-file ${{ env.DEV_REQUIREMENTS }} --upgrade requirements/dev.in
         echo ========================================
 
         if [ $(git diff requirements/ | wc -l) -gt 0 ]; then
