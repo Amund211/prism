@@ -53,6 +53,9 @@ def fetch_bedwars_stats(
 
     if uuid is ERROR_DURING_PROCESSING:
         # Error while getting uuid -> unknown player
+        logger.warning(
+            f"Error while getting uuid for '{username}' - returning UnknownPlayer"
+        )
         return UnknownPlayer(username)
 
     if uuid is None:
@@ -101,7 +104,9 @@ def fetch_bedwars_stats(
             logger.debug(f"Stats for nicked {nick} ({uuid}) {playerdata is None=}")
 
     if playerdata is ERROR_DURING_PROCESSING:
-        logger.debug("Error while getting playerdata - returning UnknownPlayer")
+        logger.warning(
+            f"Error while getting uuid for '{username}' - returning UnknownPlayer"
+        )
         return UnknownPlayer(username)
 
     if playerdata is None:
