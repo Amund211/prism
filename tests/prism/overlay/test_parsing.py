@@ -520,6 +520,10 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         PartyLeaveEvent(usernames=["Player1", "Player2"]),
     ),
     (
+        "[22:23:15] [Client thread/INFO]: [CHAT] [MVP++] Player1 was removed from your party because they disconnected.",
+        PartyLeaveEvent(usernames=["Player1"]),
+    ),
+    (
         "[Info: 2021-11-29 22:17:40.417692543: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Party Members (3)",
         PartyListIncomingEvent(),
     ),

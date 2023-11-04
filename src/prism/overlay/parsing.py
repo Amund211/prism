@@ -480,7 +480,10 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         logger.debug(f"Parsing passed. {username} was kicked")
         return PartyLeaveEvent([username])
 
-    if " was removed from the party because they disconnected" in message:
+    if (
+        " was removed from the party because they disconnected" in message
+        or " was removed from your party because they disconnected" in message
+    ):
         # [MVP+] Player1 was removed from the party because they disconnected"
         logger.debug("Processing potential party they disconnected message")
         cleaned = remove_ranks(message)
@@ -491,6 +494,8 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
         if not words_match(
             words[1:], "was removed from the party because they disconnected"
+        ) and not words_match(
+            words[1:], "was removed from your party because they disconnected."
         ):
             return None
 
