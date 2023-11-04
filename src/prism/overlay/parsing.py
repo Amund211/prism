@@ -33,6 +33,8 @@ logger = logging.getLogger(__name__)
 
 RANK_REGEX = re.compile(r"\[[a-zA-Z\+]+\] ")
 
+PUNCTUATION_AND_WHITESPACE = ".!:, \t"
+
 
 CLIENT_INFO_PREFIXES = (
     "(Client thread) Info ",  # Vanilla and forge launcher_log.txt
@@ -144,7 +146,9 @@ def parse_client_info(info: str) -> ClientEvent | None:
 def words_match(words: Sequence[str], target: str) -> bool:
     """Return true if `words` matches the space separated words in `target`"""
     joined_words = " ".join(words)
-    full_match = joined_words == target
+    full_match = joined_words.strip(PUNCTUATION_AND_WHITESPACE) == target.strip(
+        PUNCTUATION_AND_WHITESPACE
+    )
 
     if not full_match:
         logger.debug("Message does not match target! {joined_words=} != {target=}")
@@ -220,17 +224,19 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         if not words_match(words[:-1], "You are now nicked as"):
             return None
 
-        if words[-1][-1] != "!":
-            return None
+        new_nickname = words[-1].strip(PUNCTUATION_AND_WHITESPACE)
 
-        logger.debug(f"Parsing passed. New nickname: {words[-1][:-1]}")
-        return NewNicknameEvent(words[-1][:-1])
+        logger.debug(f"Parsing passed. New nickname: {new_nickname}")
+        return NewNicknameEvent(new_nickname)
 
     if message.startswith("Sending you to "):
         logger.debug("Parsing passed. Swapping lobby")
         return LobbySwapEvent()
 
-    if message == "You were sent to a lobby because someone in your party left!":
+    if (
+        message.strip(PUNCTUATION_AND_WHITESPACE)
+        == "You were sent to a lobby because someone in your party left"
+    ):
         logger.debug("Parsing passed. Swapping lobby")
         return LobbySwapEvent()
 
@@ -239,7 +245,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         words = message.split(" ")
         if (
             len(words) != 6
-            or words[-1] not in {"second!", "seconds!"}
+            or words[-1].strip(PUNCTUATION_AND_WHITESPACE) not in {"second", "seconds"}
             or not words[-2].isnumeric()
         ):
             logger.debug("Last two words invalid")
@@ -255,7 +261,10 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         logger.debug("Parsing passed. Starting game")
         return StartBedwarsGameEvent()
 
-    if message.endswith("FINAL KILL!") and message.count(" ") > 1:
+    if (
+        message.strip(PUNCTUATION_AND_WHITESPACE).endswith("FINAL KILL")
+        and message.count(" ") > 1
+    ):
         logger.debug("Processing potential final kill")
 
         dead_player = message.split(" ")[0]
@@ -267,7 +276,10 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         logger.debug("Parsing passed. Final kill")
         return BedwarsFinalKillEvent(dead_player=dead_player, raw_message=message)
 
-    if message.endswith("disconnected.") and message.count(" ") == 1:
+    if (
+        message.strip(PUNCTUATION_AND_WHITESPACE).endswith("disconnected")
+        and message.count(" ") == 1
+    ):
         # [CHAT] Player1 disconnected.
         logger.debug("Processing potential disconnect")
 
@@ -280,7 +292,10 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         logger.debug(f"Parsing passed. {username} disconnected")
         return BedwarsDisconnectEvent(username=username)
 
-    if message.endswith("reconnected.") and message.count(" ") == 1:
+    if (
+        message.strip(PUNCTUATION_AND_WHITESPACE).endswith("reconnected")
+        and message.count(" ") == 1
+    ):
         # [CHAT] Player1 reconnected.
         logger.debug("Processing potential disconnect")
 
@@ -293,7 +308,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         logger.debug(f"Parsing passed. {username} reconnected")
         return BedwarsReconnectEvent(username=username)
 
-    if message.startswith("1st Killer "):
+    if message.startswith("1st Killer"):
         # Info [CHAT]                     1st Killer - [MVP+] Player1 - 7
         logger.debug("Parsing passed. Ending game")
         return EndBedwarsGameEvent()
@@ -321,15 +336,21 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
         # Message is a join message
         prefix, suffix = lobby_fill_string.split("/")
-        player_count = int(prefix.removeprefix("("))
-        player_cap = int(suffix.removesuffix(")!"))
+        try:
+            player_count = int(prefix.strip("(" + PUNCTUATION_AND_WHITESPACE))
+            player_cap = int(suffix.strip(")" + PUNCTUATION_AND_WHITESPACE))
+        except ValueError:  # pragma: no coverage
+            logger.exception(
+                f"Failed parsing player count/-cap from {lobby_fill_string}"
+            )
+            return None
 
         logger.debug(f"Parsing passed. {username} joined ({player_count}/{player_cap})")
         return LobbyJoinEvent(
             username=username, player_count=player_count, player_cap=player_cap
         )
 
-    if " has quit!" in message:
+    if " has quit" in message:
         # Info [CHAT] <username> has quit!
         # Someone left the lobby -> Remove them from the lobby
         logger.debug("Processing potential lobby leave message")
@@ -349,18 +370,18 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         return LobbyLeaveEvent(username)
 
     # Party changes
-    if message.startswith("You left the party."):
+    if message.startswith("You left the party"):
         # Info [CHAT] You left the party.
         logger.debug("Parsing passed. You left the party")
         return PartyDetachEvent()
 
-    if message.startswith("You are not currently in a party."):
+    if message.startswith("You are not currently in a party"):
         # Info [CHAT] You are not currently in a party.
         logger.debug("Parsing passed. You are not in a party")
         return PartyDetachEvent()
 
     if (
-        message
+        message.strip(PUNCTUATION_AND_WHITESPACE)
         == "The party was disbanded because all invites expired and the party was empty"
     ):
         # Info [CHAT] The party was disbanded because all invites expired
@@ -368,7 +389,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         logger.debug("Parsing passed. Party disbanded")
         return PartyDetachEvent()
 
-    if " has disbanded the party!" in message:
+    if " has disbanded the party" in message:
         # Info [CHAT] [MVP++] Player1 has disbanded the party!
         logger.debug("Processing potential party disband message")
         clean = remove_ranks(message)
@@ -460,7 +481,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         logger.debug(f"Parsing passed. {username} left the party")
         return PartyLeaveEvent([username])
 
-    if " has been removed from the party." in message:
+    if " has been removed from the party" in message:
         # Info [CHAT] [VIP+] <username> has been removed from the party.
         logger.debug("Processing potential party they kicked message")
 
@@ -507,7 +528,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
     PARTY_KICK_OFFLINE_PREFIX = "Kicked "
     if (
         message.startswith(PARTY_KICK_OFFLINE_PREFIX)
-        and " because they were offline." in message
+        and " because they were offline" in message
     ):
         logger.debug("Processing potential party kickoffline message")
         # Info [CHAT] Kicked [VIP] <username1>, <username2> because they were offline.
