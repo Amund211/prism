@@ -1,7 +1,7 @@
 import logging
 
-import win32con  # type: ignore [import]
-import win32gui  # type: ignore [import]
+import win32con  # type: ignore [import-untyped]
+import win32gui  # type: ignore [import-untyped]
 
 logger = logging.getLogger(__name__)
 
