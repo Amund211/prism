@@ -5,6 +5,7 @@ import threading
 import time
 from collections.abc import Mapping
 
+from prism import VERSION_STRING
 from prism.discordrp import Presence
 from prism.overlay.controller import OverlayController
 from prism.overlay.player import KnownPlayer, NickedPlayer, Player
@@ -26,7 +27,7 @@ BUTTONS = [
 
 BASE_ASSETS = {
     "large_image": "prism_logo",
-    "large_text": "Prism Overlay",
+    "large_text": f"Prism Overlay {VERSION_STRING}",
     "small_image": "bedwars_icon",
 }
 
