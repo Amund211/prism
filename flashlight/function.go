@@ -17,32 +17,33 @@ type HypixelAPIErrorResponse struct {
 	Cause   string `json:"cause"`
 }
 
-type HypixelAPISuccessResponse struct {
-	Success bool             `json:"success"`
-	Player  HypixelAPIPlayer `json:"player"`
+type HypixelAPIResponse struct {
+	Success *bool             `json:"success,omitempty"`
+	Player  *HypixelAPIPlayer `json:"player,omitempty"`
+	Cause   *string `json:"cause,omitempty"`
 }
 
 type BedwarsStats struct {
-	Experience  int `json:"Experience"`
-	Winstreak   int `json:"winstreak"`
-	Wins        int `json:"wins_bedwars"`
-	Losses      int `json:"losses_bedwars"`
-	BedsBroken  int `json:"beds_broken_bedwars"`
-	BedsLost    int `json:"beds_lost_bedwars"`
-	FinalKills  int `json:"final_kills_bedwars"`
-	FinalDeaths int `json:"final_deaths_bedwars"`
-	Kills       int `json:"kills_bedwars"`
-	Deaths      int `json:"deaths_bedwars"`
+	Experience  *int `json:"Experience,omitempty"`
+	Winstreak   *int `json:"winstreak,omitempty"`
+	Wins        *int `json:"wins_bedwars,omitempty"`
+	Losses      *int `json:"losses_bedwars,omitempty"`
+	BedsBroken  *int `json:"beds_broken_bedwars,omitempty"`
+	BedsLost    *int `json:"beds_lost_bedwars,omitempty"`
+	FinalKills  *int `json:"final_kills_bedwars,omitempty"`
+	FinalDeaths *int `json:"final_deaths_bedwars,omitempty"`
+	Kills       *int `json:"kills_bedwars,omitempty"`
+	Deaths      *int `json:"deaths_bedwars,omitempty"`
 }
 
 type Stats struct {
-	Bedwars BedwarsStats `json:"Bedwars"`
+	Bedwars *BedwarsStats `json:"Bedwars,omitempty"`
 }
 
 type HypixelAPIPlayer struct {
-	UUID        string `json:"uuid"`
-	Displayname string `json:"displayname"`
-	Stats       Stats  `json:"stats"`
+	UUID        *string `json:"uuid,omitempty"`
+	Displayname *string `json:"displayname,omitempty"`
+	Stats       *Stats  `json:"stats,omitempty"`
 }
 
 const USER_AGENT = "flashlight/0.1.0 (+https://github.com/Amund211/flashlight)"
@@ -65,6 +66,11 @@ type HypixelAPIImpl struct {
 }
 
 func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, error) {
+	uuidLength := len(uuid)
+	if uuidLength < 10 || uuidLength > 100 {
+		return []byte{}, fmt.Errorf("%w: Invalid uuid (length=%d)", APIClientError, uuidLength)
+	}
+
 	url := fmt.Sprintf("https://api.hypixel.net/player?uuid=%s", uuid)
 	return []byte("lol"), nil
 
@@ -94,15 +100,24 @@ func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, error) {
 }
 
 func minifyPlayerData(data []byte) ([]byte, error) {
+	var response HypixelAPIResponse
+
+	err := json.Unmarshal(data, &response)
+	if err != nil {
+		log.Println(err)
+		return []byte{}, err
+	}
+
+	data, err = json.Marshal(response)
+	if err != nil {
+		log.Println(err)
+		return []byte{}, err
+	}
+
 	return data, nil
 }
 
 func getMinifiedPlayerData(hypixelAPI HypixelAPI, uuid string) ([]byte, error) {
-	uuidLength := len(uuid)
-	if uuidLength < 10 || uuidLength > 100 {
-		return []byte{}, fmt.Errorf("%w: Invalid uuid (length=%d)", APIClientError, uuidLength)
-	}
-
 	playerData, err := hypixelAPI.getPlayerData(uuid)
 	if err != nil {
 		return []byte{}, fmt.Errorf("%w: %w", APIServerError, err)
@@ -159,6 +174,33 @@ func makeServeGetPlayerData(hypixelAPI HypixelAPI) func(w http.ResponseWriter, r
 	}
 }
 
+type HypixelAPIMock struct {
+	path string
+	error error
+}
+
+func (hypixelAPI HypixelAPIMock) getPlayerData(uuid string) ([]byte, error) {
+	ares := "ares_2023_01_30.json"
+	technoblade := "technoblade_2022_06_10.json"
+	seeecret := "seeecret_2023_05_14.json"
+
+	chosen := ares
+	if uuid == "technoblade" {
+		chosen = technoblade
+	} else if uuid == "seeecret" {
+		chosen = seeecret
+	}
+
+	data, err := ioutil.ReadFile(hypixelAPI.path + chosen)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if hypixelAPI.error != nil {
+		return []byte{}, hypixelAPI.error
+	}
+	return data, nil
+}
+
 func init() {
 	apiKey := os.Getenv("HYPIXEL_API_KEY")
 	if apiKey == "" {
@@ -167,9 +209,14 @@ func init() {
 
 	httpClient := &http.Client{}
 
-	hypixelAPI := HypixelAPIImpl{httpClient: httpClient, apiKey: apiKey}
+	hypixelAPI2 := HypixelAPIImpl{httpClient: httpClient, apiKey: apiKey}
+
+	hypixelAPI := HypixelAPIMock{path: "/home/amund/git/prism/tests/data/", error: nil}
+
 
 	functions.HTTP("flashlight", makeServeGetPlayerData(hypixelAPI))
 
 	log.Println("Init complete")
+
+	_ = hypixelAPI2
 }
