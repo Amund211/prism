@@ -1,11 +1,10 @@
-package main
+package function
 
 import (
 	"log"
 	"net/http"
 	"io/ioutil"
 	"os"
-	"errors"
 	"fmt"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
@@ -40,25 +39,8 @@ func getPlayerData(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func initsh() {
-	log.Println("Starting server in init")
+func init() {
+	functions.HTTP("flashlight", getPlayerData)
 
-	functions.HTTP("laser", getPlayerData)
-}
-
-func main() {
-	log.Println("Starting server")
-
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/", getPlayerData)
-
-	err := http.ListenAndServe(":3000", mux)
-
-	if errors.Is(err, http.ErrServerClosed) {
-		log.Println("server closed")
-	} else if err != nil {
-		log.Printf("error starting server: %s\n", err)
-		os.Exit(1)
-	}
+	log.Println("Init complete")
 }
