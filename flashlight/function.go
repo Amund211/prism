@@ -64,6 +64,34 @@ type HypixelAPI interface {
 	getPlayerData(uuid string) ([]byte, int, error)
 }
 
+type PlayerCache interface {
+	GetOrSet(uuid string, value CachedResponse) (CachedResponse, bool)
+	Set(uuid string, value CachedResponse)
+	Delete(uuid string)
+	Wait()
+}
+
+type PlayerCacheImpl struct {
+	cache *ttlcache.Cache[string, CachedResponse]
+}
+
+func (playerCache PlayerCacheImpl) GetOrSet(uuid string, value CachedResponse) (CachedResponse, bool) {
+	item, existed := playerCache.cache.GetOrSet(uuid, value)
+	return item.Value(), existed
+}
+
+func (playerCache PlayerCacheImpl) Set(uuid string, value CachedResponse) {
+	playerCache.cache.Set(uuid, value, ttlcache.DefaultTTL)
+}
+
+func (playerCache PlayerCacheImpl) Delete(uuid string) {
+	playerCache.cache.Delete(uuid)
+}
+
+func (playerCache PlayerCacheImpl) Wait() {
+	time.Sleep(50 * time.Millisecond)
+}
+
 type CachedResponse struct {
 	data       []byte
 	statusCode int
@@ -72,57 +100,38 @@ type CachedResponse struct {
 
 type HypixelAPIImpl struct {
 	httpClient *http.Client
-	cache      *ttlcache.Cache[string, CachedResponse]
 	apiKey     string
 }
 
+func getCachedResponse(playerCache PlayerCache, uuid string) CachedResponse {
+	var cachedResponse CachedResponse
+	var existed bool
+	var invalid = CachedResponse{valid: false}
+
+	for true {
+		cachedResponse, existed = playerCache.GetOrSet(uuid, invalid)
+		if !existed {
+			// No entry existed, so we communicate to other requests that we are fetching data
+			// Caller must defer playerCache.Delete(uuid) if they fail
+			log.Println("Got cache miss")
+			return cachedResponse
+		}
+		if cachedResponse.valid {
+			// Cache hit
+			log.Println("Got cache hit")
+			return cachedResponse
+		}
+		log.Println("Waiting for cache")
+		playerCache.Wait()
+	}
+	panic("unreachable")
+}
+
 func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, int, error) {
-	log.Println("Incoming request")
 	uuidLength := len(uuid)
 	if uuidLength < 10 || uuidLength > 100 {
 		return []byte{}, -1, fmt.Errorf("%w: Invalid uuid (length=%d)", APIClientError, uuidLength)
 	}
-
-	var item *ttlcache.Item[string, CachedResponse]
-	var existed bool
-	var invalid = CachedResponse{valid: false}
-
-	var storedInvalidCacheEntry = false
-
-	// Delete the cache entry if we somehow fail so another request can try again
-	defer func() {
-		if storedInvalidCacheEntry {
-			hypixelAPI.cache.Delete(uuid)
-		}
-	}()
-
-	for true {
-		item, existed = hypixelAPI.cache.GetOrSet(uuid, invalid)
-		if !existed {
-			// No entry existed, so we communicate to other requests that we are fetching data
-			// Make sure to delete the invalid cache entry if we fail
-			storedInvalidCacheEntry = true
-			break
-		}
-		if item.Value().valid {
-			// Cache hit
-			log.Println("Got cache hit")
-			return item.Value().data, item.Value().statusCode, nil
-		}
-		log.Println("Waiting for cache")
-		time.Sleep(500 * time.Millisecond)
-	}
-
-	log.Println("Got cache miss -> fetching data")
-	time.Sleep(10 * time.Second)
-	hypixelAPI.cache.Set(uuid, CachedResponse{
-		data:       []byte("{}"),
-		statusCode: 200,
-		valid:      true},
-		ttlcache.DefaultTTL,
-	)
-	storedInvalidCacheEntry = false
-	return []byte("{}"), 200, nil
 
 	url := fmt.Sprintf("https://api.hypixel.net/player?uuid=%s", uuid)
 	// return []byte("lol"), 200, nil
@@ -150,6 +159,7 @@ func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, int, error)
 	}
 
 	if len(data) > 0 && data[0] == '<' {
+		log.Println("Hypixel returned HTML")
 		return []byte{}, -1, fmt.Errorf("%w: Hypixel returned HTML", APIServerError, uuidLength)
 	}
 
@@ -174,7 +184,21 @@ func minifyPlayerData(data []byte) ([]byte, error) {
 	return data, nil
 }
 
-func getMinifiedPlayerData(hypixelAPI HypixelAPI, uuid string) ([]byte, int, error) {
+func getMinifiedPlayerData(playerCache PlayerCache, hypixelAPI HypixelAPI, uuid string) ([]byte, int, error) {
+	cachedResponse := getCachedResponse(playerCache, uuid)
+	if cachedResponse.valid {
+		return cachedResponse.data, cachedResponse.statusCode, nil
+	}
+
+	// getCachedResponse inserts an invalid cache entry if it doesn't exist
+	// If we fail to store a valid cache entry, we must delete the invalid one so another request can try again
+	var storedInvalidCacheEntry = true
+	defer func() {
+		if storedInvalidCacheEntry {
+			playerCache.Delete(uuid)
+		}
+	}()
+
 	playerData, statusCode, err := hypixelAPI.getPlayerData(uuid)
 	if err != nil {
 		return []byte{}, -1, err
@@ -184,6 +208,9 @@ func getMinifiedPlayerData(hypixelAPI HypixelAPI, uuid string) ([]byte, int, err
 	if err != nil {
 		return []byte{}, -1, fmt.Errorf("%w: %w", APIServerError, err)
 	}
+
+	playerCache.Set(uuid, CachedResponse{data: minifiedPlayerData, statusCode: statusCode, valid: true})
+	storedInvalidCacheEntry = false
 
 	return minifiedPlayerData, statusCode, nil
 }
@@ -214,11 +241,12 @@ func writeErrorResponse(w http.ResponseWriter, err error) {
 	w.Write(errorBytes)
 }
 
-func makeServeGetPlayerData(hypixelAPI HypixelAPI) func(w http.ResponseWriter, r *http.Request) {
+func makeServeGetPlayerData(playerCache PlayerCache, hypixelAPI HypixelAPI) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Incoming request")
 		uuid := r.URL.Query().Get("uuid")
 
-		minifiedPlayerData, statusCode, err := getMinifiedPlayerData(hypixelAPI, uuid)
+		minifiedPlayerData, statusCode, err := getMinifiedPlayerData(playerCache, hypixelAPI, uuid)
 
 		if err != nil {
 			log.Println("Error getting player data:", err)
@@ -278,12 +306,14 @@ func init() {
 	)
 	go cache.Start()
 
-	hypixelAPI := HypixelAPIImpl{httpClient: httpClient, cache: cache, apiKey: apiKey}
+	playerCache := PlayerCacheImpl{cache: cache}
+
+	hypixelAPI := HypixelAPIImpl{httpClient: httpClient, apiKey: apiKey}
 
 	hypixelAPI2 := HypixelAPIMock{path: "/home/amund/git/prism/tests/data/", error: nil}
 	hypixelAPI2 = HypixelAPIMock{path: "", statusCode: 200, error: nil}
 
-	functions.HTTP("flashlight", makeServeGetPlayerData(hypixelAPI))
+	functions.HTTP("flashlight", makeServeGetPlayerData(playerCache, hypixelAPI))
 
 	log.Println("Init complete")
 
@@ -295,7 +325,7 @@ func init() {
 			return nil
 		}
 
-		minifiedPlayerData, _, err := getMinifiedPlayerData(hypixelAPI, path)
+		minifiedPlayerData, _, err := getMinifiedPlayerData(playerCache, hypixelAPI, path)
 
 		// log.Println(string(minifiedPlayerData))
 		_ = minifiedPlayerData
