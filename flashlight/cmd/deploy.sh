@@ -10,7 +10,7 @@ gcloud functions deploy flashlight-test \
 	--min-instances=0 \
 	--timeout=30s \
 	--cpu=1 \
-	--memory=512M \
+	--memory=128M \
 	--allow-unauthenticated \
 	--concurrency 100 \
 	--set-secrets HYPIXEL_API_KEY=prism-hypixel-api-key:latest
