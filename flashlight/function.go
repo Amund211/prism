@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
-	"io/fs"
+	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
+	"github.com/jellydator/ttlcache/v3"
 )
 
 type HypixelAPIErrorResponse struct {
@@ -20,9 +22,9 @@ type HypixelAPIErrorResponse struct {
 }
 
 type HypixelAPIResponse struct {
-	Success bool             `json:"success"`
+	Success bool              `json:"success"`
 	Player  *HypixelAPIPlayer `json:"player"`
-	Cause   *string `json:"cause,omitempty"`
+	Cause   *string           `json:"cause,omitempty"`
 }
 
 type HypixelAPIPlayer struct {
@@ -62,16 +64,65 @@ type HypixelAPI interface {
 	getPlayerData(uuid string) ([]byte, int, error)
 }
 
+type CachedResponse struct {
+	data       []byte
+	statusCode int
+	valid      bool
+}
+
 type HypixelAPIImpl struct {
 	httpClient *http.Client
+	cache      *ttlcache.Cache[string, CachedResponse]
 	apiKey     string
 }
 
 func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, int, error) {
+	log.Println("Incoming request")
 	uuidLength := len(uuid)
 	if uuidLength < 10 || uuidLength > 100 {
 		return []byte{}, -1, fmt.Errorf("%w: Invalid uuid (length=%d)", APIClientError, uuidLength)
 	}
+
+	var item *ttlcache.Item[string, CachedResponse]
+	var existed bool
+	var invalid = CachedResponse{valid: false}
+
+	var storedInvalidCacheEntry = false
+
+	// Delete the cache entry if we somehow fail so another request can try again
+	defer func() {
+		if storedInvalidCacheEntry {
+			hypixelAPI.cache.Delete(uuid)
+		}
+	}()
+
+	for true {
+		item, existed = hypixelAPI.cache.GetOrSet(uuid, invalid)
+		if !existed {
+			// No entry existed, so we communicate to other requests that we are fetching data
+			// Make sure to delete the invalid cache entry if we fail
+			storedInvalidCacheEntry = true
+			break
+		}
+		if item.Value().valid {
+			// Cache hit
+			log.Println("Got cache hit")
+			return item.Value().data, item.Value().statusCode, nil
+		}
+		log.Println("Waiting for cache")
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	log.Println("Got cache miss -> fetching data")
+	time.Sleep(10 * time.Second)
+	hypixelAPI.cache.Set(uuid, CachedResponse{
+		data:       []byte("{}"),
+		statusCode: 200,
+		valid:      true},
+		ttlcache.DefaultTTL,
+	)
+	storedInvalidCacheEntry = false
+	return []byte("{}"), 200, nil
 
 	url := fmt.Sprintf("https://api.hypixel.net/player?uuid=%s", uuid)
 	// return []byte("lol"), 200, nil
@@ -182,9 +233,9 @@ func makeServeGetPlayerData(hypixelAPI HypixelAPI) func(w http.ResponseWriter, r
 }
 
 type HypixelAPIMock struct {
-	path string
+	path       string
 	statusCode int
-	error error
+	error      error
 }
 
 func (hypixelAPI HypixelAPIMock) getPlayerData(uuid string) ([]byte, int, error) {
@@ -221,12 +272,16 @@ func init() {
 	}
 
 	httpClient := &http.Client{}
+	cache := ttlcache.New[string, CachedResponse](
+		ttlcache.WithTTL[string, CachedResponse](1*time.Minute),
+		ttlcache.WithDisableTouchOnHit[string, CachedResponse](),
+	)
+	go cache.Start()
 
-	hypixelAPI := HypixelAPIImpl{httpClient: httpClient, apiKey: apiKey}
+	hypixelAPI := HypixelAPIImpl{httpClient: httpClient, cache: cache, apiKey: apiKey}
 
 	hypixelAPI2 := HypixelAPIMock{path: "/home/amund/git/prism/tests/data/", error: nil}
 	hypixelAPI2 = HypixelAPIMock{path: "", statusCode: 200, error: nil}
-
 
 	functions.HTTP("flashlight", makeServeGetPlayerData(hypixelAPI))
 
