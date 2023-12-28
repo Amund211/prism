@@ -98,7 +98,7 @@ func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, int, error)
 		return []byte{}, -1, fmt.Errorf("%w: %w", APIServerError, err)
 	}
 
-	if data[0] == '<' {
+	if len(data) > 0 && data[0] == '<' {
 		return []byte{}, -1, fmt.Errorf("%w: Hypixel returned HTML", APIServerError, uuidLength)
 	}
 
@@ -107,7 +107,6 @@ func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, int, error)
 
 func minifyPlayerData(data []byte) ([]byte, error) {
 	var response HypixelAPIResponse
-	log.Println(string(data))
 
 	err := json.Unmarshal(data, &response)
 	if err != nil {
