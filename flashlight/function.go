@@ -112,7 +112,7 @@ func getCachedResponse(playerCache PlayerCache, uuid string) CachedResponse {
 		cachedResponse, existed = playerCache.GetOrSet(uuid, invalid)
 		if !existed {
 			// No entry existed, so we communicate to other requests that we are fetching data
-			// Caller must defer playerCache.Delete(uuid) if they fail
+			// Caller must defer playerCache.Delete(uuid) in case they fail
 			log.Println("Got cache miss")
 			return cachedResponse
 		}
@@ -134,7 +134,6 @@ func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, int, error)
 	}
 
 	url := fmt.Sprintf("https://api.hypixel.net/player?uuid=%s", uuid)
-	// return []byte("lol"), 200, nil
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -260,39 +259,6 @@ func makeServeGetPlayerData(playerCache PlayerCache, hypixelAPI HypixelAPI) func
 	}
 }
 
-type HypixelAPIMock struct {
-	path       string
-	statusCode int
-	error      error
-}
-
-func (hypixelAPI HypixelAPIMock) getPlayerData(uuid string) ([]byte, int, error) {
-	ares := "ares_2023_01_30.json"
-	technoblade := "technoblade_2022_06_10.json"
-	seeecret := "seeecret_2023_05_14.json"
-
-	chosen := ares
-	if uuid == "technoblade" {
-		chosen = technoblade
-	} else if uuid == "seeecret" {
-		chosen = seeecret
-	}
-
-	_ = chosen
-	// data, err := ioutil.ReadFile(hypixelAPI.path + chosen)
-	data, err := ioutil.ReadFile(hypixelAPI.path + uuid)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if hypixelAPI.error != nil {
-		return []byte{}, -1, hypixelAPI.error
-	}
-	if data[0] == '<' {
-		return []byte("{}"), -1, nil
-	}
-	return data, hypixelAPI.statusCode, nil
-}
-
 func init() {
 	apiKey := os.Getenv("HYPIXEL_API_KEY")
 	if apiKey == "" {
@@ -310,31 +276,7 @@ func init() {
 
 	hypixelAPI := HypixelAPIImpl{httpClient: httpClient, apiKey: apiKey}
 
-	hypixelAPI2 := HypixelAPIMock{path: "/home/amund/git/prism/tests/data/", error: nil}
-	hypixelAPI2 = HypixelAPIMock{path: "", statusCode: 200, error: nil}
-
 	functions.HTTP("flashlight", makeServeGetPlayerData(playerCache, hypixelAPI))
 
 	log.Println("Init complete")
-
-	_ = hypixelAPI2
-
-	return
-	filepath.WalkDir("/home/amund/git/statplot/examples/downloaded_data/", func(path string, dir fs.DirEntry, err error) error {
-		if dir.IsDir() || !dir.Type().IsRegular() {
-			return nil
-		}
-
-		minifiedPlayerData, _, err := getMinifiedPlayerData(playerCache, hypixelAPI, path)
-
-		// log.Println(string(minifiedPlayerData))
-		_ = minifiedPlayerData
-
-		if err != nil {
-			log.Println("Error getting player data:", path, err)
-		}
-
-		return nil
-	})
-	log.Println("Done")
 }
