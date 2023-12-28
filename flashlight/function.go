@@ -4,12 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/fs"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
@@ -159,7 +157,7 @@ func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, int, error)
 
 	if len(data) > 0 && data[0] == '<' {
 		log.Println("Hypixel returned HTML")
-		return []byte{}, -1, fmt.Errorf("%w: Hypixel returned HTML", APIServerError, uuidLength)
+		return []byte{}, -1, fmt.Errorf("%w: Hypixel returned HTML", APIServerError)
 	}
 
 	return data, resp.StatusCode, nil
