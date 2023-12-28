@@ -8,6 +8,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"io/fs"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 )
@@ -18,9 +20,19 @@ type HypixelAPIErrorResponse struct {
 }
 
 type HypixelAPIResponse struct {
-	Success *bool             `json:"success,omitempty"`
-	Player  *HypixelAPIPlayer `json:"player,omitempty"`
+	Success bool             `json:"success"`
+	Player  *HypixelAPIPlayer `json:"player"`
 	Cause   *string `json:"cause,omitempty"`
+}
+
+type HypixelAPIPlayer struct {
+	UUID        *string `json:"uuid,omitempty"`
+	Displayname *string `json:"displayname,omitempty"`
+	Stats       *Stats  `json:"stats,omitempty"`
+}
+
+type Stats struct {
+	Bedwars *BedwarsStats `json:"Bedwars,omitempty"`
 }
 
 type BedwarsStats struct {
@@ -36,16 +48,6 @@ type BedwarsStats struct {
 	Deaths      *int `json:"deaths_bedwars,omitempty"`
 }
 
-type Stats struct {
-	Bedwars *BedwarsStats `json:"Bedwars,omitempty"`
-}
-
-type HypixelAPIPlayer struct {
-	UUID        *string `json:"uuid,omitempty"`
-	Displayname *string `json:"displayname,omitempty"`
-	Stats       *Stats  `json:"stats,omitempty"`
-}
-
 const USER_AGENT = "flashlight/0.1.0 (+https://github.com/Amund211/flashlight)"
 
 var (
@@ -57,7 +59,7 @@ var (
 )
 
 type HypixelAPI interface {
-	getPlayerData(uuid string) ([]byte, error)
+	getPlayerData(uuid string) ([]byte, int, error)
 }
 
 type HypixelAPIImpl struct {
@@ -65,19 +67,19 @@ type HypixelAPIImpl struct {
 	apiKey     string
 }
 
-func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, error) {
+func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, int, error) {
 	uuidLength := len(uuid)
 	if uuidLength < 10 || uuidLength > 100 {
-		return []byte{}, fmt.Errorf("%w: Invalid uuid (length=%d)", APIClientError, uuidLength)
+		return []byte{}, -1, fmt.Errorf("%w: Invalid uuid (length=%d)", APIClientError, uuidLength)
 	}
 
 	url := fmt.Sprintf("https://api.hypixel.net/player?uuid=%s", uuid)
-	return []byte("lol"), nil
+	// return []byte("lol"), 200, nil
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Println(err)
-		return []byte{}, err
+		return []byte{}, -1, fmt.Errorf("%w: %w", APIServerError, err)
 	}
 
 	req.Header.Set("User-Agent", USER_AGENT)
@@ -86,21 +88,26 @@ func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, error) {
 	resp, err := hypixelAPI.httpClient.Do(req)
 	if err != nil {
 		log.Println(err)
-		return []byte{}, err
+		return []byte{}, -1, fmt.Errorf("%w: %w", APIServerError, err)
 	}
 
 	defer resp.Body.Close()
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
-		return []byte{}, err
+		return []byte{}, -1, fmt.Errorf("%w: %w", APIServerError, err)
 	}
 
-	return data, nil
+	if data[0] == '<' {
+		return []byte{}, -1, fmt.Errorf("%w: Hypixel returned HTML", APIServerError, uuidLength)
+	}
+
+	return data, resp.StatusCode, nil
 }
 
 func minifyPlayerData(data []byte) ([]byte, error) {
 	var response HypixelAPIResponse
+	log.Println(string(data))
 
 	err := json.Unmarshal(data, &response)
 	if err != nil {
@@ -117,18 +124,18 @@ func minifyPlayerData(data []byte) ([]byte, error) {
 	return data, nil
 }
 
-func getMinifiedPlayerData(hypixelAPI HypixelAPI, uuid string) ([]byte, error) {
-	playerData, err := hypixelAPI.getPlayerData(uuid)
+func getMinifiedPlayerData(hypixelAPI HypixelAPI, uuid string) ([]byte, int, error) {
+	playerData, statusCode, err := hypixelAPI.getPlayerData(uuid)
 	if err != nil {
-		return []byte{}, fmt.Errorf("%w: %w", APIServerError, err)
+		return []byte{}, -1, err
 	}
 
 	minifiedPlayerData, err := minifyPlayerData(playerData)
 	if err != nil {
-		return []byte{}, fmt.Errorf("%w: %w", APIServerError, err)
+		return []byte{}, -1, fmt.Errorf("%w: %w", APIServerError, err)
 	}
 
-	return minifiedPlayerData, nil
+	return minifiedPlayerData, statusCode, nil
 }
 
 func writeErrorResponse(w http.ResponseWriter, err error) {
@@ -161,7 +168,7 @@ func makeServeGetPlayerData(hypixelAPI HypixelAPI) func(w http.ResponseWriter, r
 	return func(w http.ResponseWriter, r *http.Request) {
 		uuid := r.URL.Query().Get("uuid")
 
-		minifiedPlayerData, err := getMinifiedPlayerData(hypixelAPI, uuid)
+		minifiedPlayerData, statusCode, err := getMinifiedPlayerData(hypixelAPI, uuid)
 
 		if err != nil {
 			log.Println("Error getting player data:", err)
@@ -169,6 +176,7 @@ func makeServeGetPlayerData(hypixelAPI HypixelAPI) func(w http.ResponseWriter, r
 			return
 		}
 
+		w.WriteHeader(statusCode)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(minifiedPlayerData)
 	}
@@ -176,10 +184,11 @@ func makeServeGetPlayerData(hypixelAPI HypixelAPI) func(w http.ResponseWriter, r
 
 type HypixelAPIMock struct {
 	path string
+	statusCode int
 	error error
 }
 
-func (hypixelAPI HypixelAPIMock) getPlayerData(uuid string) ([]byte, error) {
+func (hypixelAPI HypixelAPIMock) getPlayerData(uuid string) ([]byte, int, error) {
 	ares := "ares_2023_01_30.json"
 	technoblade := "technoblade_2022_06_10.json"
 	seeecret := "seeecret_2023_05_14.json"
@@ -191,14 +200,19 @@ func (hypixelAPI HypixelAPIMock) getPlayerData(uuid string) ([]byte, error) {
 		chosen = seeecret
 	}
 
-	data, err := ioutil.ReadFile(hypixelAPI.path + chosen)
+	_ = chosen
+	// data, err := ioutil.ReadFile(hypixelAPI.path + chosen)
+	data, err := ioutil.ReadFile(hypixelAPI.path + uuid)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	if hypixelAPI.error != nil {
-		return []byte{}, hypixelAPI.error
+		return []byte{}, -1, hypixelAPI.error
 	}
-	return data, nil
+	if data[0] == '<' {
+		return []byte("{}"), -1, nil
+	}
+	return data, hypixelAPI.statusCode, nil
 }
 
 func init() {
@@ -209,9 +223,10 @@ func init() {
 
 	httpClient := &http.Client{}
 
-	hypixelAPI2 := HypixelAPIImpl{httpClient: httpClient, apiKey: apiKey}
+	hypixelAPI := HypixelAPIImpl{httpClient: httpClient, apiKey: apiKey}
 
-	hypixelAPI := HypixelAPIMock{path: "/home/amund/git/prism/tests/data/", error: nil}
+	hypixelAPI2 := HypixelAPIMock{path: "/home/amund/git/prism/tests/data/", error: nil}
+	hypixelAPI2 = HypixelAPIMock{path: "", statusCode: 200, error: nil}
 
 
 	functions.HTTP("flashlight", makeServeGetPlayerData(hypixelAPI))
@@ -219,4 +234,23 @@ func init() {
 	log.Println("Init complete")
 
 	_ = hypixelAPI2
+
+	return
+	filepath.WalkDir("/home/amund/git/statplot/examples/downloaded_data/", func(path string, dir fs.DirEntry, err error) error {
+		if dir.IsDir() || !dir.Type().IsRegular() {
+			return nil
+		}
+
+		minifiedPlayerData, _, err := getMinifiedPlayerData(hypixelAPI, path)
+
+		// log.Println(string(minifiedPlayerData))
+		_ = minifiedPlayerData
+
+		if err != nil {
+			log.Println("Error getting player data:", path, err)
+		}
+
+		return nil
+	})
+	log.Println("Done")
 }
