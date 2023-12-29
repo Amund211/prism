@@ -267,9 +267,9 @@ type RateLimiter interface {
 }
 
 type RateLimiterImpl struct {
-	limiterByIP *ttlcache.Cache[string, *rate.Limiter]
+	limiterByIP     *ttlcache.Cache[string, *rate.Limiter]
 	refillPerSecond int
-	burstSize int
+	burstSize       int
 }
 
 func (rateLimiter RateLimiterImpl) Allow(key string) bool {
@@ -306,7 +306,7 @@ func init() {
 	hypixelAPI := HypixelAPIImpl{httpClient: httpClient, apiKey: apiKey}
 
 	limiterTTLCache := ttlcache.New[string, *rate.Limiter](
-		ttlcache.WithTTL[string, *rate.Limiter](30*time.Minute),
+		ttlcache.WithTTL[string, *rate.Limiter](30 * time.Minute),
 	)
 	go limiterTTLCache.Start()
 	rateLimiter := RateLimiterImpl{limiterByIP: limiterTTLCache, refillPerSecond: 2, burstSize: 120}
