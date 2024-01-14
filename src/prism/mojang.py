@@ -56,7 +56,7 @@ def _make_request(
 
 
 def get_uuid(
-    username: str, retry_limit: int = 3, timeout: float = 5
+    username: str, retry_limit: int = 5, initial_timeout: float = 2
 ) -> str | None:  # pragma: nocover
     """Get the uuid of the user. None if not found."""
     with UUID_MUTEX:
@@ -69,7 +69,7 @@ def get_uuid(
         response = execute_with_retry(
             functools.partial(_make_request, username=username),
             retry_limit=retry_limit,
-            timeout=timeout,
+            initial_timeout=initial_timeout,
         )
     except ExecutionError as e:
         raise MojangAPIError(f"Request to Mojang API failed for {username=}.") from e

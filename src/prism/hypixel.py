@@ -70,8 +70,8 @@ def _make_request(
 def get_player_data(
     uuid: str,
     key_holder: HypixelAPIKeyHolder,
-    retry_limit: int = 3,
-    timeout: float = 5,
+    retry_limit: int = 5,
+    initial_timeout: float = 2,
 ) -> Mapping[str, object]:  # pragma: nocover
     """Get data about the given player from the /player API endpoint"""
 
@@ -79,7 +79,7 @@ def get_player_data(
         response = execute_with_retry(
             functools.partial(_make_request, uuid=uuid, key_holder=key_holder),
             retry_limit=retry_limit,
-            timeout=timeout,
+            initial_timeout=initial_timeout,
         )
     except ExecutionError as e:
         raise HypixelAPIError(f"Request to Hypixel API failed for {uuid=}.") from e

@@ -163,8 +163,8 @@ def get_antisniper_playerdata(
     uuid: str,
     key_holder: AntiSniperAPIKeyHolder,
     api_limiter: RateLimiter,
-    retry_limit: int = 3,
-    timeout: float = 5,
+    retry_limit: int = 5,
+    initial_timeout: float = 2,
 ) -> Mapping[str, object]:  # pragma: nocover
     """Get data about the given player from the /player API endpoint"""
 
@@ -179,7 +179,7 @@ def get_antisniper_playerdata(
                 api_limiter=api_limiter,
             ),
             retry_limit=retry_limit,
-            timeout=timeout,
+            initial_timeout=initial_timeout,
         )
     except ExecutionError as e:
         raise HypixelAPIError(f"Request to Hypixel API failed for {uuid=}.") from e
@@ -247,8 +247,8 @@ def get_estimated_winstreaks(
                 url=f"{WINSTREAK_ENDPOINT}?key={key_holder.key}&player={uuid}",
                 key_holder=key_holder,
             ),
-            retry_limit=3,
-            timeout=5,
+            retry_limit=5,
+            initial_timeout=2,
         )
     except ExecutionError:
         logger.exception("Request to winstreaks endpoint reached max retries")
