@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/cache"
 	"github.com/Amund211/flashlight/internal/parsing"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
@@ -38,67 +39,9 @@ type HypixelAPI interface {
 	getPlayerData(uuid string) ([]byte, int, error)
 }
 
-type PlayerCache interface {
-	GetOrSet(uuid string, value CachedResponse) (CachedResponse, bool)
-	Set(uuid string, value CachedResponse)
-	Delete(uuid string)
-	Wait()
-}
-
-type PlayerCacheImpl struct {
-	cache *ttlcache.Cache[string, CachedResponse]
-}
-
-func (playerCache PlayerCacheImpl) GetOrSet(uuid string, value CachedResponse) (CachedResponse, bool) {
-	item, existed := playerCache.cache.GetOrSet(uuid, value)
-	return item.Value(), existed
-}
-
-func (playerCache PlayerCacheImpl) Set(uuid string, value CachedResponse) {
-	playerCache.cache.Set(uuid, value, ttlcache.DefaultTTL)
-}
-
-func (playerCache PlayerCacheImpl) Delete(uuid string) {
-	playerCache.cache.Delete(uuid)
-}
-
-func (playerCache PlayerCacheImpl) Wait() {
-	time.Sleep(50 * time.Millisecond)
-}
-
-type CachedResponse struct {
-	data       []byte
-	statusCode int
-	valid      bool
-}
-
 type HypixelAPIImpl struct {
 	httpClient *http.Client
 	apiKey     string
-}
-
-func getOrCreateCachedResponse(playerCache PlayerCache, uuid string) CachedResponse {
-	var cachedResponse CachedResponse
-	var existed bool
-	var invalid = CachedResponse{valid: false}
-
-	for true {
-		cachedResponse, existed = playerCache.GetOrSet(uuid, invalid)
-		if !existed {
-			// No entry existed, so we communicate to other requests that we are fetching data
-			// Caller must defer playerCache.Delete(uuid) in case they fail
-			log.Println("Got cache miss")
-			return cachedResponse
-		}
-		if cachedResponse.valid {
-			// Cache hit
-			log.Println("Got cache hit")
-			return cachedResponse
-		}
-		log.Println("Waiting for cache")
-		playerCache.Wait()
-	}
-	panic("unreachable")
 }
 
 func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, int, error) {
@@ -129,15 +72,15 @@ func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, int, error)
 	return data, resp.StatusCode, nil
 }
 
-func getMinifiedPlayerData(playerCache PlayerCache, hypixelAPI HypixelAPI, uuid string) ([]byte, int, error) {
+func getMinifiedPlayerData(playerCache cache.PlayerCache, hypixelAPI HypixelAPI, uuid string) ([]byte, int, error) {
 	uuidLength := len(uuid)
 	if uuidLength < 10 || uuidLength > 100 {
 		return []byte{}, -1, fmt.Errorf("%w: Invalid uuid (length=%d)", APIClientError, uuidLength)
 	}
 
-	cachedResponse := getOrCreateCachedResponse(playerCache, uuid)
-	if cachedResponse.valid {
-		return cachedResponse.data, cachedResponse.statusCode, nil
+	cachedResponse := cache.GetOrCreateCachedResponse(playerCache, uuid)
+	if cachedResponse.Valid {
+		return cachedResponse.Data, cachedResponse.StatusCode, nil
 	}
 
 	// getOrCreateCachedResponse inserts an invalid cache entry if it doesn't exist
@@ -164,7 +107,7 @@ func getMinifiedPlayerData(playerCache PlayerCache, hypixelAPI HypixelAPI, uuid 
 		return []byte{}, -1, fmt.Errorf("%w: %w", APIServerError, err)
 	}
 
-	playerCache.Set(uuid, CachedResponse{data: minifiedPlayerData, statusCode: statusCode, valid: true})
+	playerCache.Set(uuid, minifiedPlayerData, statusCode, true)
 	storedInvalidCacheEntry = false
 
 	return minifiedPlayerData, statusCode, nil
@@ -198,7 +141,7 @@ func writeErrorResponse(w http.ResponseWriter, err error) {
 	w.Write(errorBytes)
 }
 
-func makeServeGetPlayerData(playerCache PlayerCache, hypixelAPI HypixelAPI) Handler {
+func makeServeGetPlayerData(playerCache cache.PlayerCache, hypixelAPI HypixelAPI) Handler {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Incoming request")
 		uuid := r.URL.Query().Get("uuid")
@@ -250,13 +193,8 @@ func init() {
 	}
 
 	httpClient := &http.Client{}
-	playerTTLCache := ttlcache.New[string, CachedResponse](
-		ttlcache.WithTTL[string, CachedResponse](1*time.Minute),
-		ttlcache.WithDisableTouchOnHit[string, CachedResponse](),
-	)
-	go playerTTLCache.Start()
 
-	playerCache := PlayerCacheImpl{cache: playerTTLCache}
+	playerCache := cache.NewPlayerCache(1 * time.Minute)
 
 	hypixelAPI := HypixelAPIImpl{httpClient: httpClient, apiKey: apiKey}
 
