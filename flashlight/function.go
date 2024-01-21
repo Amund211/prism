@@ -10,6 +10,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/parsing"
+
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/jellydator/ttlcache/v3"
 	"golang.org/x/time/rate"
@@ -20,35 +22,6 @@ type Handler func(w http.ResponseWriter, r *http.Request)
 type HypixelAPIErrorResponse struct {
 	Success bool   `json:"success"`
 	Cause   string `json:"cause"`
-}
-
-type HypixelAPIResponse struct {
-	Success bool              `json:"success"`
-	Player  *HypixelAPIPlayer `json:"player"`
-	Cause   *string           `json:"cause,omitempty"`
-}
-
-type HypixelAPIPlayer struct {
-	UUID        *string `json:"uuid,omitempty"`
-	Displayname *string `json:"displayname,omitempty"`
-	Stats       *Stats  `json:"stats,omitempty"`
-}
-
-type Stats struct {
-	Bedwars *BedwarsStats `json:"Bedwars,omitempty"`
-}
-
-type BedwarsStats struct {
-	Experience  *int `json:"Experience,omitempty"`
-	Winstreak   *int `json:"winstreak,omitempty"`
-	Wins        *int `json:"wins_bedwars,omitempty"`
-	Losses      *int `json:"losses_bedwars,omitempty"`
-	BedsBroken  *int `json:"beds_broken_bedwars,omitempty"`
-	BedsLost    *int `json:"beds_lost_bedwars,omitempty"`
-	FinalKills  *int `json:"final_kills_bedwars,omitempty"`
-	FinalDeaths *int `json:"final_deaths_bedwars,omitempty"`
-	Kills       *int `json:"kills_bedwars,omitempty"`
-	Deaths      *int `json:"deaths_bedwars,omitempty"`
 }
 
 const USER_AGENT = "flashlight/0.1.0 (+https://github.com/Amund211/flashlight)"
@@ -156,24 +129,6 @@ func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, int, error)
 	return data, resp.StatusCode, nil
 }
 
-func minifyPlayerData(data []byte) ([]byte, error) {
-	var response HypixelAPIResponse
-
-	err := json.Unmarshal(data, &response)
-	if err != nil {
-		log.Println(err)
-		return []byte{}, err
-	}
-
-	data, err = json.Marshal(response)
-	if err != nil {
-		log.Println(err)
-		return []byte{}, err
-	}
-
-	return data, nil
-}
-
 func getMinifiedPlayerData(playerCache PlayerCache, hypixelAPI HypixelAPI, uuid string) ([]byte, int, error) {
 	uuidLength := len(uuid)
 	if uuidLength < 10 || uuidLength > 100 {
@@ -204,7 +159,7 @@ func getMinifiedPlayerData(playerCache PlayerCache, hypixelAPI HypixelAPI, uuid 
 		return []byte{}, -1, fmt.Errorf("%w: Hypixel returned HTML", APIServerError)
 	}
 
-	minifiedPlayerData, err := minifyPlayerData(playerData)
+	minifiedPlayerData, err := parsing.MinifyPlayerData(playerData)
 	if err != nil {
 		return []byte{}, -1, fmt.Errorf("%w: %w", APIServerError, err)
 	}
