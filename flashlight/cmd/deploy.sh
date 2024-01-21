@@ -1,6 +1,6 @@
 #!/bin/sh
 
-gcloud functions deploy flashlight-test \
+gcloud functions deploy flashlight \
 	--gen2 \
 	--region=northamerica-northeast2 \
 	--runtime=go121 \
@@ -10,7 +10,7 @@ gcloud functions deploy flashlight-test \
 	--min-instances=0 \
 	--timeout=30s \
 	--cpu=1 \
-	--memory=128M \
+	--memory=128Mi \
 	--allow-unauthenticated \
 	--concurrency 100 \
 	--set-secrets HYPIXEL_API_KEY=prism-hypixel-api-key:latest
