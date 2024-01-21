@@ -12,10 +12,9 @@ import (
 
 	"github.com/Amund211/flashlight/internal/cache"
 	"github.com/Amund211/flashlight/internal/parsing"
+	"github.com/Amund211/flashlight/internal/ratelimiting"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
-	"github.com/jellydator/ttlcache/v3"
-	"golang.org/x/time/rate"
 )
 
 type Handler func(w http.ResponseWriter, r *http.Request)
@@ -160,22 +159,7 @@ func makeServeGetPlayerData(playerCache cache.PlayerCache, hypixelAPI HypixelAPI
 	}
 }
 
-type RateLimiter interface {
-	Allow(key string) bool
-}
-
-type RateLimiterImpl struct {
-	limiterByIP     *ttlcache.Cache[string, *rate.Limiter]
-	refillPerSecond int
-	burstSize       int
-}
-
-func (rateLimiter RateLimiterImpl) Allow(key string) bool {
-	limiter, _ := rateLimiter.limiterByIP.GetOrSet(key, rate.NewLimiter(rate.Limit(rateLimiter.refillPerSecond), rateLimiter.burstSize))
-	return limiter.Value().Allow()
-}
-
-func rateLimitMiddleware(rateLimiter RateLimiter, next Handler) Handler {
+func rateLimitMiddleware(rateLimiter ratelimiting.RateLimiter, next Handler) Handler {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !rateLimiter.Allow(r.RemoteAddr) {
 			writeErrorResponse(w, RatelimitExceededError)
@@ -198,11 +182,7 @@ func init() {
 
 	hypixelAPI := HypixelAPIImpl{httpClient: httpClient, apiKey: apiKey}
 
-	limiterTTLCache := ttlcache.New[string, *rate.Limiter](
-		ttlcache.WithTTL[string, *rate.Limiter](30 * time.Minute),
-	)
-	go limiterTTLCache.Start()
-	rateLimiter := RateLimiterImpl{limiterByIP: limiterTTLCache, refillPerSecond: 2, burstSize: 120}
+	rateLimiter := ratelimiting.NewIPBasedRateLimiter(2, 120)
 
 	functions.HTTP(
 		"flashlight",
