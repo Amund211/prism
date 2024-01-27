@@ -32,6 +32,9 @@ logger = logging.getLogger(__name__)
 
 
 RANK_REGEX = re.compile(r"\[[a-zA-Z\+]+\] ")
+# Minecraft formatting codes (paragraph sign + hex digit(color)/klmnor(formatting))
+COLOR_REGEX = re.compile(r"§[0-9a-fklmnor]")
+
 
 PUNCTUATION_AND_WHITESPACE = ".!:, \t"
 
@@ -57,6 +60,11 @@ CHAT_PREFIXES = (
 def strip_until(line: str, *, until: str) -> str:
     """Remove the first occurrence of `until` and all characters before"""
     return line[line.index(until) + len(until) :].strip()
+
+
+def remove_colors(string: str) -> str:
+    """Remove all color codes from a string"""
+    return COLOR_REGEX.sub("", string)
 
 
 def remove_ranks(playerstring: str) -> str:
@@ -210,7 +218,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
     # Use lazy printf-style formatting because this message is very common
     logger.debug("Chat message: '%s'", message)
 
-    message = remove_deduplication_suffix(message)
+    message = remove_colors(remove_deduplication_suffix(message))
 
     if message.startswith(WHO_PREFIX):
         # Info [CHAT] ONLINE: <username1>, <username2>, ..., <usernameN>

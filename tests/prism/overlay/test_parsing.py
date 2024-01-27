@@ -32,6 +32,7 @@ from prism.overlay.parsing import (
     get_highest_index,
     get_lowest_index,
     parse_logline,
+    remove_colors,
     remove_deduplication_suffix,
     remove_ranks,
     strip_until,
@@ -73,6 +74,33 @@ from prism.overlay.parsing import (
 def test_remove_ranks(rank_string: str, name_string: str) -> None:
     """Assert that remove_ranks functions properly"""
     assert remove_ranks(rank_string) == name_string
+
+
+@pytest.mark.parametrize(
+    "string, expected",
+    (
+        ("Player1", "Player1"),
+        *((f"§{char}Player1", "Player1") for char in "0123456789abcdefklmnor"),
+        *((f"\u00A7{char}Player1", "Player1") for char in "0123456789abcdefklmnor"),
+        (
+            "§kPlayer1, §aPlayer2, §bPlayer3, §dPlayer4, §7Player5, §fPlayer6",
+            "Player1, Player2, Player3, Player4, Player5, Player6",
+        ),
+        # Rejected
+        *((f"&{char}Player1", f"&{char}Player1") for char in "0123456789abcdefklmnor"),
+        *(
+            (f"§{char}Player1", f"§{char}Player1")
+            for char in "ghijpqstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        ),
+        *(
+            (f"\u00A7{char}Player1", f"\u00A7{char}Player1")
+            for char in "ghijpqstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        ),
+    ),
+)
+def test_remove_colors(string: str, expected: str) -> None:
+    """Assert that remove_colors functions properly"""
+    assert remove_colors(string) == expected
 
 
 @pytest.mark.parametrize(
@@ -426,6 +454,11 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
             LobbyListEvent(usernames=["Player1", "Player2"]),
         )
         for count in range(2, 15)
+    ),
+    (
+        # Lobby list with colors added from mod (constructed logline)
+        "[15:03:53] [Client thread/INFO]: [CHAT] ONLINE: §7Player1, §7Player2, §cPlayer3, §7Player4, §7Player5, §7Player6",
+        LobbyListEvent(usernames=[f"Player{i}" for i in range(1, 7)]),
     ),
     (
         # Lobby swap on vanilla
