@@ -31,7 +31,6 @@ from prism.overlay.parsing import (
     CLIENT_INFO_PREFIXES,
     get_highest_index,
     get_lowest_index,
-    parse_chat_message,
     parse_logline,
     remove_deduplication_suffix,
     remove_ranks,
