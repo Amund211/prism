@@ -328,6 +328,7 @@ UNEVENTFUL_LOGLINES = (
     # Attempts to inject final kill messages
     "[00:03:18] [Client thread/INFO]: [CHAT] §9Party §8> §b[MVP§3+§b] Player1§f: Player2 was spooked off the map by Player3. FINAL KILL!",
     "[20:44:24] [Client thread/INFO]: [CHAT] §4[651✫] §b[MVP§3+§b] Player1§f: Player2 was spooked off the map by Player3. FINAL KILL!",
+    "[00:03:18] [Client thread/INFO]: [CHAT] Party > [MVP+] Player1: Player2 was spooked off the map by Player3. FINAL KILL!",
     # Invalid IGN in final kill message
     "[00:01:04] [Client thread/INFO]: [CHAT] Invalid-name!!! was killed by Player2. FINAL KILL!",
     "[00:01:04] [Client thread/INFO]: [CHAT] ThisNameIsWayTooLongForMinecraft was killed by Player2. FINAL KILL!",

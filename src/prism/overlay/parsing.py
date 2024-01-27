@@ -263,11 +263,18 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
     if (
         message.strip(PUNCTUATION_AND_WHITESPACE).endswith("FINAL KILL")
-        and message.count(" ") > 1
+        and message.count(" ") > 2
     ):
+        # NOTE: This message starts with the dead player's name, so it's hard to
+        #       validate. We make a best effort to filter out false positives.
         logger.debug("Processing potential final kill")
 
-        dead_player = message.split(" ")[0]
+        words = message.split(" ")
+        if len(words) >= 4 and words[1] == ">":
+            # [CHAT] Party > Player 1: inc please void FINAL KILL!
+            return None
+
+        dead_player = words[0]
 
         if not valid_username(dead_player):
             logger.debug(f"{dead_player=} invalid.")
