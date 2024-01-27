@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 RANK_REGEX = re.compile(r"\[[a-zA-Z\+]+\] ")
 # Minecraft formatting codes (paragraph sign + hex digit(color)/klmnor(formatting))
-COLOR_REGEX = re.compile(r"§[0-9a-fklmnor]")
+COLOR_REGEX = re.compile(r"[§�][0-9a-fklmnor]")
 
 
 PUNCTUATION_AND_WHITESPACE = ".!:, \t"

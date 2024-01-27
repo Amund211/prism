@@ -96,6 +96,12 @@ def test_remove_ranks(rank_string: str, name_string: str) -> None:
             (f"\u00A7{char}Player1", f"\u00A7{char}Player1")
             for char in "ghijpqstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         ),
+        (
+            "�b[MVP�f+�b] Player1�f �6joined the lobby!",
+            "[MVP+] Player1 joined the lobby!",
+        ),
+        ("§", "§"),
+        ("§ ", "§ "),
     ),
 )
 def test_remove_colors(string: str, expected: str) -> None:
@@ -490,6 +496,16 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         # Lobby join on astolfo chat bridge
         "[04:04:47] [Astolfo HTTP Bridge]: [CHAT] Player1 has joined (3/8)!",
         LobbyJoinEvent(username="Player1", player_count=3, player_cap=8),
+    ),
+    (
+        # Lobby join with inserted formatting characters
+        "[2024-01-27 18:59:35.360] [info]  [18:59:35] [Client thread/INFO]: [CHAT] §aPlayer1 has joined (3/16)!",
+        LobbyJoinEvent(username="Player1", player_count=3, player_cap=16),
+    ),
+    (
+        # Lobby join with inserted corrupted formatting characters
+        "[2024-01-27 18:59:35.360] [info]  [18:59:35] [Client thread/INFO]: [CHAT] �aPlayer1 has joined (3/16)!",
+        LobbyJoinEvent(username="Player1", player_count=3, player_cap=16),
     ),
     (
         "[Info: 2021-11-29 20:09:47.192349993: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Player1 has quit!",
