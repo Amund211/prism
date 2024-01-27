@@ -118,19 +118,15 @@ SOME_PATH = make_dead_path("some_path")
 
 
 @pytest.mark.parametrize(
-    "active_logfiles, selected_id, last_used_id, result_index",
+    "active_logfiles, result_index",
     (
-        ((), 0, None, None),
-        ((ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=1),), 0, None, None),
-        ((ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=1),), 0, 5, None),
-        ((ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=1),), 0, 0, 0),
+        ((), None),
+        ((ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=1),), 0),
         (
             (
                 ActiveLogfile(id_=0, path=SOME_PATH, age_seconds=1),
                 ActiveLogfile(id_=2, path=SOME_PATH, age_seconds=10),
             ),
-            0,
-            0,
             None,
         ),
         (
@@ -139,18 +135,13 @@ SOME_PATH = make_dead_path("some_path")
                 ActiveLogfile(id_=2, path=SOME_PATH, age_seconds=100),
             ),
             0,
-            0,
-            0,
         ),
     ),
 )
 def test_autoselect_logfile(
-    active_logfiles: tuple[ActiveLogfile, ...],
-    selected_id: int,
-    last_used_id: int | None,
-    result_index: int | None,
+    active_logfiles: tuple[ActiveLogfile, ...], result_index: int | None
 ) -> None:
-    result = autoselect_logfile(active_logfiles, selected_id, last_used_id)
+    result = autoselect_logfile(active_logfiles)
     if result_index is None:
         assert result is None
     else:

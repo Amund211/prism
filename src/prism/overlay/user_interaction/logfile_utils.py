@@ -251,9 +251,7 @@ def refresh_active_logfiles(
 
 
 def autoselect_logfile(
-    active_logfiles: tuple[ActiveLogfile, ...],
-    selected_id: int,
-    last_used_id: int | None,
+    active_logfiles: tuple[ActiveLogfile, ...]
 ) -> ActiveLogfile | None:
     """The active logfiles tuple must be sorted"""
     if not active_logfiles:
@@ -264,8 +262,6 @@ def autoselect_logfile(
     if (
         candidate.really_recent  # It's really recent, and the only recent one
         and not any(active_logfile.recent for active_logfile in active_logfiles[1:])
-        and candidate.id_ == last_used_id  # It's our last used logfile
-        and selected_id == last_used_id  # It's selected
     ):
         return candidate
     return None
@@ -377,11 +373,7 @@ def get_logfile(
 
     autoselected = None
     if autoselect and last_used_id is not None:
-        autoselected = autoselect_logfile(
-            active_logfiles,
-            selected_id=last_used_id,
-            last_used_id=last_used_id,
-        )
+        autoselected = autoselect_logfile(active_logfiles)
 
     if autoselected is not None:
         # Autoselection will always choose the first item because it assumes

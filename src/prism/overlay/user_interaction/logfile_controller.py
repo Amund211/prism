@@ -138,16 +138,8 @@ class LogfileController:
         """
         self.active_logfiles = refresh_active_logfiles(self.active_logfiles)
 
-        if (
-            self.autoselect
-            and self.selected_id is not None
-            and self.last_used_id is not None
-        ):
-            autoselected = autoselect_logfile(
-                self.active_logfiles,
-                selected_id=self.selected_id,
-                last_used_id=self.last_used_id,
-            )
+        if self.autoselect:
+            autoselected = autoselect_logfile(self.active_logfiles)
             if autoselected is not None:
                 logger.info(f"Autoselected logfile {autoselected.path}")
                 self.submit_path(autoselected.path)

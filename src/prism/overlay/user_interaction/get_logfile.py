@@ -44,6 +44,14 @@ class LogfilePrompt:  # pragma: nocover
         self.root = tk.Tk()
         self.root.title("Select a version")
 
+        if autoselect:
+            tk.Label(
+                self.root,
+                text="The overlay will automatically connect when you launch Minecraft",
+                font=("Consolas", "14"),
+                fg="green",
+            ).pack(pady=(10, 0))
+
         tk.Label(
             self.root,
             text="Select the logfile corresponding to the version you will be playing",
@@ -86,16 +94,6 @@ class LogfilePrompt:  # pragma: nocover
             },
         )
         enable_inactive_versions_toggle.button.pack(side=tk.RIGHT)
-
-        if autoselect and last_used_id is not None:
-            tk.Label(
-                self.root,
-                text=(
-                    "Your last used version will be "
-                    "automatically selected when launched"
-                ),
-                fg="green",
-            ).pack(pady=(10, 0))
 
         self.submit_button = tk.Button(
             self.root,

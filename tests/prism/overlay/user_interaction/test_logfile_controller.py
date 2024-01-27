@@ -92,52 +92,125 @@ def call_refresh_state(
 
 
 def compare_result(
-    cache: LogfileCache, paths: tuple[Path, ...], last_used_index: int | None
+    cache: LogfileCache,
+    paths: tuple[Path, ...],
+    last_used_index: int | None,
+    selected_path: Path | None = None,
 ) -> None:
     """Assert that the cache contents matches the paths and last_used_index unordered"""
+    assert (last_used_index is None) == (selected_path is None)
+
     assert set(cache.known_logfiles) == set(paths)
     assert cache.last_used_index == last_used_index
+    if last_used_index is not None:
+        assert cache.known_logfiles[last_used_index] == selected_path
 
 
-def test_logfile_controller_autoselection() -> None:
-    logfile_controller = create_logfile_controller(last_used_id=0)
-
+def test_logfile_controller_autoselection_no_last_used() -> None:
+    logfile_controller = create_logfile_controller(last_used_id=None)
     compare_result(
         logfile_controller.generate_result(), DEFAULT_PATHS, last_used_index=None
     )
 
-    # Refresh where nothing happened
-    assert not call_refresh_state(logfile_controller)
+    assert call_refresh_state(
+        logfile_controller, updated_logfiles={1}, time_since_last_refresh=60
+    )
+    compare_result(
+        logfile_controller.generate_result(),
+        DEFAULT_PATHS,
+        last_used_index=0,
+        selected_path=DEFAULT_PATHS[1],
+    )
+
+
+def test_logfile_controller_autoselection_different_last_used() -> None:
+    logfile_controller = create_logfile_controller(last_used_id=1)
     compare_result(
         logfile_controller.generate_result(), DEFAULT_PATHS, last_used_index=None
     )
-    assert_didnt_call_update_logfile_list(logfile_controller)
 
-    # A logfile became active, but it is not our last used one
-    assert not call_refresh_state(logfile_controller, updated_logfiles={1})
+    assert call_refresh_state(logfile_controller, updated_logfiles={0})
+    compare_result(
+        logfile_controller.generate_result(),
+        DEFAULT_PATHS,
+        last_used_index=0,
+        selected_path=DEFAULT_PATHS[0],
+    )
+
+
+def test_logfile_controller_autoselection_hot_start() -> None:
+    for last_used_id in (None, 0, 1):
+        active_logfiles = (
+            replace(DEFAULT_ACTIVE_LOGFILES[0], age_seconds=2),
+            *DEFAULT_ACTIVE_LOGFILES[1:],
+        )
+        logfile_controller = create_logfile_controller(
+            last_used_id=last_used_id, active_logfiles=active_logfiles
+        )
+
+        assert call_refresh_state(logfile_controller)
+
+        compare_result(
+            logfile_controller.generate_result(),
+            DEFAULT_PATHS,
+            last_used_index=0,
+            selected_path=DEFAULT_PATHS[0],
+        )
+
+
+def test_logfile_controller_autoselection_double_hot_start() -> None:
+    active_logfiles = (
+        replace(DEFAULT_ACTIVE_LOGFILES[0], age_seconds=2.5),
+        replace(DEFAULT_ACTIVE_LOGFILES[1], age_seconds=3.5),
+        *DEFAULT_ACTIVE_LOGFILES[2:],
+    )
+    logfile_controller = create_logfile_controller(
+        last_used_id=1, active_logfiles=active_logfiles
+    )
+
+    for _ in range(60 - 3 - 1):
+        assert not call_refresh_state(logfile_controller)
+        compare_result(
+            logfile_controller.generate_result(), DEFAULT_PATHS, last_used_index=None
+        )
+        assert_didnt_call_update_logfile_list(logfile_controller)
+
+    for _ in range(2):
+        assert not call_refresh_state(logfile_controller)
+        compare_result(
+            logfile_controller.generate_result(), DEFAULT_PATHS, last_used_index=None
+        )
+        assert_called_update_logfile_list(logfile_controller)
+
+
+def test_logfile_controller_autoselection_new_active_blocked() -> None:
+    active_logfiles = (
+        replace(DEFAULT_ACTIVE_LOGFILES[0], age_seconds=10.5),
+        *DEFAULT_ACTIVE_LOGFILES[1:],
+    )
+    logfile_controller = create_logfile_controller(
+        last_used_id=0, active_logfiles=active_logfiles
+    )
+
+    # A logfile became active, but it is not the only recent one
+    assert not call_refresh_state(logfile_controller, updated_logfiles={3})
     compare_result(
         logfile_controller.generate_result(), DEFAULT_PATHS, last_used_index=None
     )
     assert_called_update_logfile_list(logfile_controller)
 
-    # Our last used logfile became active, but it is not the only recent one
-    assert not call_refresh_state(
-        logfile_controller, updated_logfiles={0}, time_since_last_refresh=60
-    )
-    compare_result(
-        logfile_controller.generate_result(), DEFAULT_PATHS, last_used_index=None
-    )
-    assert_called_update_logfile_list(logfile_controller)
+    # The new logfile stays active, and the other one dies out
+    for _ in range(60 - 11 - 1):
+        assert not call_refresh_state(logfile_controller, updated_logfiles={3})
+        assert_didnt_call_update_logfile_list(logfile_controller)
 
-    # Our last used logfile is active and is the only recent one
     assert call_refresh_state(logfile_controller)
     compare_result(
-        logfile_controller.generate_result(), DEFAULT_PATHS, last_used_index=0
+        logfile_controller.generate_result(),
+        DEFAULT_PATHS,
+        last_used_index=0,
+        selected_path=DEFAULT_PATHS[3],
     )
-    assert_didnt_call_update_logfile_list(logfile_controller)
-
-    # We were always able to submit
-    assert_didnt_call_set_can_submit(logfile_controller)
 
 
 def test_can_select_inactive() -> None:
@@ -168,6 +241,7 @@ def test_can_select_inactive() -> None:
         logfile_controller.generate_result(),
         paths_from_active_logfiles(DEFAULT_ACTIVE_LOGFILES),
         last_used_index=1,
+        selected_path=DEFAULT_PATHS[1],
     )
 
 
@@ -228,7 +302,12 @@ def test_select_logfile() -> None:
     logfile_controller.select_logfile(1)
     assert logfile_controller.can_submit
     assert logfile_controller.submit_current_selection()
-    compare_result(logfile_controller.generate_result(), paths, last_used_index=1)
+    compare_result(
+        logfile_controller.generate_result(),
+        paths,
+        last_used_index=1,
+        selected_path=active_logfiles[1].path,
+    )
     assert_called_set_can_submit(logfile_controller)
 
     assert_didnt_call_update_logfile_list(logfile_controller)
@@ -239,7 +318,10 @@ def test_submit_path() -> None:
     logfile_controller.submit_path(DEFAULT_ACTIVE_LOGFILES[0].path)
 
     compare_result(
-        logfile_controller.generate_result(), DEFAULT_PATHS, last_used_index=0
+        logfile_controller.generate_result(),
+        DEFAULT_PATHS,
+        last_used_index=0,
+        selected_path=DEFAULT_PATHS[0],
     )
 
 
@@ -253,6 +335,7 @@ def test_submit_path_new() -> None:
         logfile_controller.generate_result(),
         DEFAULT_PATHS + (submitted_path,),
         last_used_index=len(DEFAULT_PATHS),
+        selected_path=submitted_path,
     )
 
 
@@ -289,19 +372,26 @@ def test_remove_logfile() -> None:
 
 
 def test_first_startup() -> None:
+    # NOTE: Since disregarding last_used this test essentially turned into a hot start.
+    #       Changing it now to be a double active logfile situation, where the user
+    #       selects one.
+
     # The program suggests some logfiles, but none is selected to start with
     logfile_controller = create_logfile_controller(last_used_id=None)
 
     # The user waits a bit, while their game is running in the background
     for i in range(5):
-        assert not call_refresh_state(logfile_controller, updated_logfiles={0})
+        assert not call_refresh_state(logfile_controller, updated_logfiles={1})
 
     # The user clicks to select their logfile
-    logfile_controller.select_logfile(0)
+    logfile_controller.select_logfile(1)
 
     assert logfile_controller.submit_current_selection()
     compare_result(
-        logfile_controller.generate_result(), DEFAULT_PATHS, last_used_index=0
+        logfile_controller.generate_result(),
+        DEFAULT_PATHS,
+        last_used_index=0,
+        selected_path=DEFAULT_PATHS[1],
     )
 
 
@@ -319,5 +409,8 @@ def test_startup_with_autoselect() -> None:
     assert call_refresh_state(logfile_controller, updated_logfiles={0})
 
     compare_result(
-        logfile_controller.generate_result(), DEFAULT_PATHS, last_used_index=0
+        logfile_controller.generate_result(),
+        DEFAULT_PATHS,
+        last_used_index=0,
+        selected_path=DEFAULT_PATHS[0],
     )
