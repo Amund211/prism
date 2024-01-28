@@ -3,6 +3,7 @@ from collections.abc import Mapping
 import pytest
 
 from prism.overlay.antisniper_api import (
+    STATS_ENDPOINT,
     AntiSniperAPIKeyHolder,
     parse_estimated_winstreaks_response,
 )
@@ -108,3 +109,8 @@ def test_parse_estimated_winstreaks_response(
 
 def test_antisniper_key_holder() -> None:
     AntiSniperAPIKeyHolder(key="sdlfksjdflk", limit=10, window=1.5)
+
+
+def test_stats_endpoint() -> None:
+    # Make sure we don't release a version using the test endpoint
+    assert STATS_ENDPOINT == "https://flashlight.recdep.no"

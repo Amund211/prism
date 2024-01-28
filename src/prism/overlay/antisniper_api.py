@@ -20,7 +20,7 @@ from prism.retry import ExecutionError, execute_with_retry
 
 logger = logging.getLogger(__name__)
 
-STATS_ENDPOINT = "https://api.antisniper.net/v2/prism/hypixel/player"
+STATS_ENDPOINT = "https://flashlight.recdep.no"
 WINSTREAK_ENDPOINT = "https://api.antisniper.net/v2/player/winstreak"
 
 REQUEST_LIMIT, REQUEST_WINDOW = 360, 60  # Max requests per time window
@@ -168,7 +168,7 @@ def get_antisniper_playerdata(
 ) -> Mapping[str, object]:  # pragma: nocover
     """Get data about the given player from the /player API endpoint"""
 
-    url = f"{STATS_ENDPOINT}?key={key_holder.key}&player={uuid}&raw=true"
+    url = f"{STATS_ENDPOINT}?uuid={uuid}&key={key_holder.key}&player={uuid}&raw=true"
 
     try:
         response = execute_with_retry(
