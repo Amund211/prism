@@ -419,6 +419,21 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         InitializeAsEvent("Player1"),
     ),
     (
+        # Initialize as on new new new lunar - initial bogus player
+        "[2024-01-27 18:54:46.175] [info]  [18:54:46] [Client thread/INFO]: Setting user: Player321",
+        InitializeAsEvent("Player321"),
+    ),
+    (
+        # Initialize as on new new new lunar - v1
+        "[2024-01-27 18:55:03.803] [info]  [18:55:03] [Client thread/INFO]: [LC] Setting user: Player1",
+        InitializeAsEvent("Player1"),
+    ),
+    (
+        # Initialize as on new new new lunar - v2
+        "[2024-01-27 18:55:05.814] [info]  [18:55:05] [ForkJoinPool.commonPool-worker-3/INFO]: [LC] Setting user: Player1",
+        InitializeAsEvent("Player1"),
+    ),
+    (
         "[Info: 2021-11-29 22:30:40.455294561: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ONLINE: Player1, Player2, Player3, Player5, Player6, Player7, Player8, Player9",
         LobbyListEvent(
             usernames=[
@@ -491,6 +506,11 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     (
         "[Info: 2021-11-29 20:01:24.386456858: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Player2 has joined (2/16)!",
         LobbyJoinEvent(username="Player2", player_count=2, player_cap=16),
+    ),
+    (
+        # Lobby join on new new new lunar
+        "[2024-01-27 18:58:32.247] [info]  [18:58:32] [Client thread/INFO]: [CHAT] Player1 has joined (3/16)!",
+        LobbyJoinEvent(username="Player1", player_count=3, player_cap=16),
     ),
     (
         # Lobby join on astolfo chat bridge
