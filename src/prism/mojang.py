@@ -49,7 +49,7 @@ def _make_request(
             "Request to Mojang API failed due to an unknown error"
         ) from e
 
-    if response.status_code == 429 and not last_try:
+    if response.status_code == 429 or response.status_code == 504 and not last_try:
         raise ExecutionError("Request to Mojang API failed due to rate limit, retrying")
 
     return response
