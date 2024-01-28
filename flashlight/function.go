@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -13,6 +12,8 @@ import (
 	"github.com/Amund211/flashlight/internal/cache"
 	"github.com/Amund211/flashlight/internal/parsing"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
+	"github.com/Amund211/flashlight/internal/hypixel"
+	e "github.com/Amund211/flashlight/internal/errors"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 )
@@ -24,57 +25,10 @@ type HypixelAPIErrorResponse struct {
 	Cause   string `json:"cause"`
 }
 
-const USER_AGENT = "flashlight/0.1.0 (+https://github.com/Amund211/flashlight)"
-
-var (
-	APIServerError         = errors.New("Server error")
-	APIClientError         = errors.New("Client error")
-	APIKeyError            = errors.New("Invalid API key")
-	PlayerNotFoundError    = errors.New("Player not found")
-	RatelimitExceededError = errors.New("Ratelimit exceeded")
-)
-
-type HypixelAPI interface {
-	getPlayerData(uuid string) ([]byte, int, error)
-}
-
-type HypixelAPIImpl struct {
-	httpClient *http.Client
-	apiKey     string
-}
-
-func (hypixelAPI HypixelAPIImpl) getPlayerData(uuid string) ([]byte, int, error) {
-	url := fmt.Sprintf("https://api.hypixel.net/player?uuid=%s", uuid)
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		log.Println(err)
-		return []byte{}, -1, fmt.Errorf("%w: %w", APIServerError, err)
-	}
-
-	req.Header.Set("User-Agent", USER_AGENT)
-	req.Header.Set("API-Key", hypixelAPI.apiKey)
-
-	resp, err := hypixelAPI.httpClient.Do(req)
-	if err != nil {
-		log.Println(err)
-		return []byte{}, -1, fmt.Errorf("%w: %w", APIServerError, err)
-	}
-
-	defer resp.Body.Close()
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Println(err)
-		return []byte{}, -1, fmt.Errorf("%w: %w", APIServerError, err)
-	}
-
-	return data, resp.StatusCode, nil
-}
-
-func getMinifiedPlayerData(playerCache cache.PlayerCache, hypixelAPI HypixelAPI, uuid string) ([]byte, int, error) {
+func getMinifiedPlayerData(playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
 	uuidLength := len(uuid)
 	if uuidLength < 10 || uuidLength > 100 {
-		return []byte{}, -1, fmt.Errorf("%w: Invalid uuid (length=%d)", APIClientError, uuidLength)
+		return []byte{}, -1, fmt.Errorf("%w: Invalid uuid (length=%d)", e.APIClientError, uuidLength)
 	}
 
 	cachedResponse := cache.GetOrCreateCachedResponse(playerCache, uuid)
@@ -91,19 +45,19 @@ func getMinifiedPlayerData(playerCache cache.PlayerCache, hypixelAPI HypixelAPI,
 		}
 	}()
 
-	playerData, statusCode, err := hypixelAPI.getPlayerData(uuid)
+	playerData, statusCode, err := hypixelAPI.GetPlayerData(uuid)
 	if err != nil {
 		return []byte{}, -1, err
 	}
 
 	if len(playerData) > 0 && playerData[0] == '<' {
 		log.Println("Hypixel returned HTML")
-		return []byte{}, -1, fmt.Errorf("%w: Hypixel returned HTML", APIServerError)
+		return []byte{}, -1, fmt.Errorf("%w: Hypixel returned HTML", e.APIServerError)
 	}
 
 	minifiedPlayerData, err := parsing.MinifyPlayerData(playerData)
 	if err != nil {
-		return []byte{}, -1, fmt.Errorf("%w: %w", APIServerError, err)
+		return []byte{}, -1, fmt.Errorf("%w: %w", e.APIServerError, err)
 	}
 
 	playerCache.Set(uuid, minifiedPlayerData, statusCode, true)
@@ -113,11 +67,11 @@ func getMinifiedPlayerData(playerCache cache.PlayerCache, hypixelAPI HypixelAPI,
 }
 
 func writeErrorResponse(w http.ResponseWriter, err error) {
-	if errors.Is(err, APIServerError) {
+	if errors.Is(err, e.APIServerError) {
 		w.WriteHeader(http.StatusInternalServerError)
-	} else if errors.Is(err, APIClientError) {
+	} else if errors.Is(err, e.APIClientError) {
 		w.WriteHeader(http.StatusBadRequest)
-	} else if errors.Is(err, RatelimitExceededError) {
+	} else if errors.Is(err, e.RatelimitExceededError) {
 		w.WriteHeader(http.StatusTooManyRequests)
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -140,7 +94,7 @@ func writeErrorResponse(w http.ResponseWriter, err error) {
 	w.Write(errorBytes)
 }
 
-func makeServeGetPlayerData(playerCache cache.PlayerCache, hypixelAPI HypixelAPI) Handler {
+func makeServeGetPlayerData(playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI) Handler {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Incoming request")
 		uuid := r.URL.Query().Get("uuid")
@@ -162,7 +116,7 @@ func makeServeGetPlayerData(playerCache cache.PlayerCache, hypixelAPI HypixelAPI
 func rateLimitMiddleware(rateLimiter ratelimiting.RateLimiter, next Handler) Handler {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !rateLimiter.Allow(r.RemoteAddr) {
-			writeErrorResponse(w, RatelimitExceededError)
+			writeErrorResponse(w, e.RatelimitExceededError)
 			return
 		}
 
@@ -180,7 +134,7 @@ func init() {
 
 	playerCache := cache.NewPlayerCache(1 * time.Minute)
 
-	hypixelAPI := HypixelAPIImpl{httpClient: httpClient, apiKey: apiKey}
+	hypixelAPI := hypixel.NewHypixelAPI(httpClient, apiKey)
 
 	rateLimiter := ratelimiting.NewIPBasedRateLimiter(2, 120)
 
