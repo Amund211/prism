@@ -36,7 +36,7 @@ func getMinifiedPlayerData(playerCache cache.PlayerCache, hypixelAPI hypixel.Hyp
 		return cachedResponse.Data, cachedResponse.StatusCode, nil
 	}
 
-	// getOrCreateCachedResponse inserts an invalid cache entry if it doesn't exist
+	// GetOrCreateCachedResponse inserts an invalid cache entry if it doesn't exist
 	// If we fail to store a valid cache entry, we must delete the invalid one so another request can try again
 	var storedInvalidCacheEntry = true
 	defer func() {
