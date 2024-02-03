@@ -89,7 +89,7 @@ func main() {
 	}
 
 	if statusCode != 200 {
-		log.Fatalf("Hypixel API returned non-200 status code: %d - %s", statusCode, string(data))
+		log.Printf("Hypixel API returned non-200 status code: %d - %s\n", statusCode, string(data))
 	}
 
 	fmt.Println(string(data))
