@@ -66,7 +66,7 @@ func main() {
 		data, statusCode, err := makeRequest(httpClient, mojangUrl, "")
 
 		if err != nil {
-			log.Fatalf("Failed making request to Mojang API: %w", err)
+			log.Fatalf("Failed making request to Mojang API: %v", err)
 		}
 
 		if statusCode != 200 {
@@ -76,7 +76,7 @@ func main() {
 		var mojangResponse MojangResponse
 		err = json.Unmarshal(data, &mojangResponse)
 		if err != nil {
-			log.Fatalf("Failed parsing Mojang response: %w", err)
+			log.Fatalf("Failed parsing Mojang response: %v", err)
 		}
 
 		player = mojangResponse.Id
@@ -85,7 +85,7 @@ func main() {
 	hypixelUrl := fmt.Sprintf("https://api.hypixel.net/player?uuid=%s", player)
 	data, statusCode, err := makeRequest(httpClient, hypixelUrl, hypixelApiKey)
 	if err != nil {
-		log.Fatalf("Failed making request to Hypixel API: %w", err)
+		log.Fatalf("Failed making request to Hypixel API: %v", err)
 	}
 
 	if statusCode != 200 {
