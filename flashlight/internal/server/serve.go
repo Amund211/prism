@@ -14,7 +14,7 @@ func MakeServeGetPlayerData(playerCache cache.PlayerCache, hypixelAPI hypixel.Hy
 		log.Println("Incoming request")
 		uuid := r.URL.Query().Get("uuid")
 
-		minifiedPlayerData, statusCode, err := getstats.GetMinifiedPlayerData(playerCache, hypixelAPI, uuid)
+		minifiedPlayerData, statusCode, err := getstats.GetOrCreateMinifiedPlayerData(playerCache, hypixelAPI, uuid)
 
 		if err != nil {
 			log.Println("Error getting player data:", err)

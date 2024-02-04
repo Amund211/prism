@@ -10,26 +10,7 @@ import (
     e "github.com/Amund211/flashlight/internal/errors"
 )
 
-func GetMinifiedPlayerData(playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
-	uuidLength := len(uuid)
-	if uuidLength < 10 || uuidLength > 100 {
-		return []byte{}, -1, fmt.Errorf("%w: Invalid uuid (length=%d)", e.APIClientError, uuidLength)
-	}
-
-	cachedResponse := cache.GetOrCreateCachedResponse(playerCache, uuid)
-	if cachedResponse.Valid {
-		return cachedResponse.Data, cachedResponse.StatusCode, nil
-	}
-
-	// GetOrCreateCachedResponse inserts an invalid cache entry if it doesn't exist
-	// If we fail to store a valid cache entry, we must delete the invalid one so another request can try again
-	var storedInvalidCacheEntry = true
-	defer func() {
-		if storedInvalidCacheEntry {
-			playerCache.Delete(uuid)
-		}
-	}()
-
+func getMinifiedPlayerData(hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
 	playerData, statusCode, err := hypixelAPI.GetPlayerData(uuid)
 	if err != nil {
 		return []byte{}, -1, err
@@ -45,8 +26,23 @@ func GetMinifiedPlayerData(playerCache cache.PlayerCache, hypixelAPI hypixel.Hyp
 		return []byte{}, -1, fmt.Errorf("%w: %w", e.APIServerError, err)
 	}
 
-	playerCache.Set(uuid, minifiedPlayerData, statusCode, true)
-	storedInvalidCacheEntry = false
+	return minifiedPlayerData, statusCode, nil
+}
+
+
+func GetOrCreateMinifiedPlayerData(playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
+	uuidLength := len(uuid)
+	if uuidLength < 10 || uuidLength > 100 {
+		return []byte{}, -1, fmt.Errorf("%w: Invalid uuid (length=%d)", e.APIClientError, uuidLength)
+	}
+
+	minifiedPlayerData, statusCode, err := cache.GetOrCreateCachedResponse(playerCache, uuid, func() ([]byte, int, error) {
+		return getMinifiedPlayerData(hypixelAPI, uuid)
+	})
+
+	if err != nil {
+		return []byte{}, -1, err
+	}
 
 	return minifiedPlayerData, statusCode, nil
 }
