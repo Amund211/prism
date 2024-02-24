@@ -36,4 +36,3 @@ func writeErrorResponse(w http.ResponseWriter, err error) {
 
 	w.Write(errorBytes)
 }
-

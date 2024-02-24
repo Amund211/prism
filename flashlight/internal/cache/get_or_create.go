@@ -4,7 +4,7 @@ import (
 	"log"
 )
 
-func GetOrCreateCachedResponse(playerCache PlayerCache, uuid string, create func () ([]byte, int, error)) ([]byte, int, error) {
+func GetOrCreateCachedResponse(playerCache PlayerCache, uuid string, create func() ([]byte, int, error)) ([]byte, int, error) {
 	var invalid = cachedResponse{valid: false}
 
 	// Clean up the cache if we store an invalid entry
@@ -44,4 +44,3 @@ func GetOrCreateCachedResponse(playerCache PlayerCache, uuid string, create func
 		playerCache.wait()
 	}
 }
-

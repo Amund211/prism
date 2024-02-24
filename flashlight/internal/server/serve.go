@@ -1,12 +1,12 @@
 package server
 
 import (
-    "log"
-    "net/http"
+	"log"
+	"net/http"
 
-    "github.com/Amund211/flashlight/internal/cache"
-    "github.com/Amund211/flashlight/internal/getstats"
-    "github.com/Amund211/flashlight/internal/hypixel"
+	"github.com/Amund211/flashlight/internal/cache"
+	"github.com/Amund211/flashlight/internal/getstats"
+	"github.com/Amund211/flashlight/internal/hypixel"
 )
 
 func MakeServeGetPlayerData(playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI) Handler {

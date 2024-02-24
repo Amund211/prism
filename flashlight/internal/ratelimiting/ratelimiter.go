@@ -1,10 +1,10 @@
 package ratelimiting
 
 import (
-    "time"
+	"time"
 
-    "github.com/jellydator/ttlcache/v3"
-    "golang.org/x/time/rate"
+	"github.com/jellydator/ttlcache/v3"
+	"golang.org/x/time/rate"
 )
 
 type RateLimiter interface {

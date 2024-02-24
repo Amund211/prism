@@ -1,7 +1,7 @@
 package constants
 
 import (
-    "fmt"
+	"fmt"
 )
 
 const VERSION = "0.1.0"

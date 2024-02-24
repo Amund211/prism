@@ -3,8 +3,8 @@ package server
 import (
 	"net/http"
 
-	"github.com/Amund211/flashlight/internal/ratelimiting"
 	e "github.com/Amund211/flashlight/internal/errors"
+	"github.com/Amund211/flashlight/internal/ratelimiting"
 )
 
 func RateLimitMiddleware(rateLimiter ratelimiting.RateLimiter, next Handler) Handler {

@@ -1,8 +1,8 @@
 package cache
 
 import (
-    "github.com/jellydator/ttlcache/v3"
-    "time"
+	"github.com/jellydator/ttlcache/v3"
+	"time"
 )
 
 type cachedResponse struct {
@@ -47,4 +47,3 @@ func NewPlayerCache(ttl time.Duration) PlayerCache {
 	go playerTTLCache.Start()
 	return &playerCacheImpl{cache: playerTTLCache}
 }
-

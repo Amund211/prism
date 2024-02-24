@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/Amund211/flashlight/internal/cache"
-	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/hypixel"
+	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/server"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"

@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/constants"
+	e "github.com/Amund211/flashlight/internal/errors"
 )
 
 type HypixelAPI interface {

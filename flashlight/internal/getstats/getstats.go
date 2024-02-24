@@ -1,13 +1,13 @@
 package getstats
 
 import (
-    "fmt"
-    "log"
+	"fmt"
+	"log"
 
-    "github.com/Amund211/flashlight/internal/cache"
-    "github.com/Amund211/flashlight/internal/hypixel"
-    "github.com/Amund211/flashlight/internal/parsing"
-    e "github.com/Amund211/flashlight/internal/errors"
+	"github.com/Amund211/flashlight/internal/cache"
+	e "github.com/Amund211/flashlight/internal/errors"
+	"github.com/Amund211/flashlight/internal/hypixel"
+	"github.com/Amund211/flashlight/internal/parsing"
 )
 
 func getMinifiedPlayerData(hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
@@ -29,7 +29,6 @@ func getMinifiedPlayerData(hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, 
 	return minifiedPlayerData, statusCode, nil
 }
 
-
 func GetOrCreateMinifiedPlayerData(playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
 	uuidLength := len(uuid)
 	if uuidLength < 10 || uuidLength > 100 {
@@ -46,4 +45,3 @@ func GetOrCreateMinifiedPlayerData(playerCache cache.PlayerCache, hypixelAPI hyp
 
 	return minifiedPlayerData, statusCode, nil
 }
-
