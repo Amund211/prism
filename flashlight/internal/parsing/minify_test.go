@@ -2,6 +2,7 @@ package parsing
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
@@ -17,6 +18,7 @@ type minifyPlayerDataTest struct {
 
 const minifyFixtureDir = "fixtures/"
 
+// NOTE: for readability, after is compacted before being compared
 var literalTests = []minifyPlayerDataTest{
 	{name: "empty object", before: []byte(`{}`), after: []byte(`{"success":false,"player":null}`)},
 	{name: "empty list", before: []byte(`[]`), after: []byte{}, error: true},
@@ -55,6 +57,16 @@ func runMinifyPlayerDataTest(t *testing.T, test minifyPlayerDataTest) {
 
 func TestMinifyPlayerDataLiterals(t *testing.T) {
 	for _, test := range literalTests {
+		if !test.error {
+			var compacted bytes.Buffer
+			err := json.Compact(&compacted, test.after)
+			if err != nil {
+				t.Errorf("minifyPlayerData(%s): Error compacting JSON: %s", test.name, err.Error())
+				continue
+			}
+			test.after = compacted.Bytes()
+		}
+
 		// Real test
 		runMinifyPlayerDataTest(t, test)
 
