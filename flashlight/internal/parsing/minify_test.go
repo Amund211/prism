@@ -49,9 +49,11 @@ func runMinifyPlayerDataTest(t *testing.T, test minifyPlayerDataTest) {
 
 	if err != nil {
 		t.Errorf("minifyPlayerData(%s) - %s", test.name, err.Error())
+		return
 	}
 	if string(minified) != string(test.after) {
 		t.Errorf("minifyPlayerData(%s) = '%s' != '%s'", test.name, minified, test.after)
+		return
 	}
 }
 
