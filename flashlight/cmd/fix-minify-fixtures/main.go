@@ -38,11 +38,13 @@ func main() {
 		filePath := path.Join(minifyFixtureDir, file.Name())
 		playerData, oldMinified, err := parseMinifyFixtureFile(filePath)
 		if err != nil {
-			log.Fatalf("Error parsing file %s: %s", filePath, err.Error())
+			log.Printf("Error parsing file %s: %s", filePath, err.Error())
+			continue
 		}
 		newMinified, err := parsing.MinifyPlayerData(playerData)
 		if err != nil {
-			log.Fatalf("Error minifying player data: %s", err.Error())
+			log.Printf("Error minifying player data: %s", err.Error())
+			continue
 		}
 
 		newFixture := bytes.Join([][]byte{playerData, newMinified}, []byte("\n"))
