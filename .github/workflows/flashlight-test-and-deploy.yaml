@@ -25,10 +25,14 @@ jobs:
           go-version-file: 'go.mod'
 
       - name: Go mod tidy
-        run: go mod tidy
+        run: |
+          go mod tidy
+          git diff --quiet
 
       - name: Verify formatting
-        run: go fmt ./...
+        run: |
+          go fmt ./...
+          git diff --quiet
 
       - name: Vet code
         run: go vet ./...
