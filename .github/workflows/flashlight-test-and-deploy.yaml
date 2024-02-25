@@ -1,0 +1,74 @@
+name: Test and Deploy CloudFunction
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  actions: read
+  checks: read
+  contents: read
+  packages: read
+  pull-requests: read
+  statuses: read
+  id-token: write
+
+jobs:
+  test:
+    name: Format, vet, test
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Go mod tidy
+        run: go mod tidy
+
+      - name: Verify formatting
+        run: go fmt ./...
+
+      - name: Vet code
+        run: go vet ./...
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Run tests
+        run: go test -v ./internal/...
+
+      - name: Go build
+        run: |
+          go build ./function.go
+          go build ./cmd/get-stats/main.go
+          go build ./cmd/fix-minify-fixtures/main.go
+
+      - name: GCP login
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: 'prism-overlay'
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+
+      - name: Deploy test instance
+        run: ./cmd/deploy.sh flashlight-test
+
+  build-and-deploy:
+    if: github.event.pull_request.merged == true
+    name: Deploy cloud function
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: GCP login
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: 'prism-overlay'
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+
+      - name: Deploy production instance
+        run: ./cmd/deploy.sh flashlight
