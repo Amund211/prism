@@ -22,16 +22,16 @@ type stats struct {
 }
 
 type bedwarsStats struct {
-	Experience  *int `json:"Experience,omitempty"`
-	Winstreak   *int `json:"winstreak,omitempty"`
-	Wins        *int `json:"wins_bedwars,omitempty"`
-	Losses      *int `json:"losses_bedwars,omitempty"`
-	BedsBroken  *int `json:"beds_broken_bedwars,omitempty"`
-	BedsLost    *int `json:"beds_lost_bedwars,omitempty"`
-	FinalKills  *int `json:"final_kills_bedwars,omitempty"`
-	FinalDeaths *int `json:"final_deaths_bedwars,omitempty"`
-	Kills       *int `json:"kills_bedwars,omitempty"`
-	Deaths      *int `json:"deaths_bedwars,omitempty"`
+	Experience  *float64 `json:"Experience,omitempty"`
+	Winstreak   *int     `json:"winstreak,omitempty"`
+	Wins        *int     `json:"wins_bedwars,omitempty"`
+	Losses      *int     `json:"losses_bedwars,omitempty"`
+	BedsBroken  *int     `json:"beds_broken_bedwars,omitempty"`
+	BedsLost    *int     `json:"beds_lost_bedwars,omitempty"`
+	FinalKills  *int     `json:"final_kills_bedwars,omitempty"`
+	FinalDeaths *int     `json:"final_deaths_bedwars,omitempty"`
+	Kills       *int     `json:"kills_bedwars,omitempty"`
+	Deaths      *int     `json:"deaths_bedwars,omitempty"`
 }
 
 func MinifyPlayerData(data []byte) ([]byte, error) {

@@ -23,6 +23,52 @@ var literalTests = []minifyPlayerDataTest{
 	{name: "empty object", before: []byte(`{}`), after: []byte(`{"success":false,"player":null}`)},
 	{name: "empty list", before: []byte(`[]`), after: []byte{}, error: true},
 	{name: "empty string", before: []byte(``), after: []byte{}, error: true},
+	{
+		name: "float experience",
+		before: []byte(`{
+			"success": true,
+			"player": {
+				"stats": {
+					"Bedwars": {
+						"Experience": 1087.0
+					}
+				}
+			}
+		}`),
+		after: []byte(`{
+			"success": true,
+			"player": {
+				"stats": {
+					"Bedwars": {
+						"Experience": 1087
+					}
+				}
+			}
+		}`),
+	},
+	{
+		name: "float experience - scientific notation",
+		before: []byte(`{
+			"success": true,
+			"player": {
+				"stats": {
+					"Bedwars": {
+						"Experience": 1.2227806E7
+					}
+				}
+			}
+		}`),
+		after: []byte(`{
+			"success": true,
+			"player": {
+				"stats": {
+					"Bedwars": {
+						"Experience": 12227806
+					}
+				}
+			}
+		}`),
+	},
 }
 
 func parsePlayerDataFile(filePath string) (minifyPlayerDataTest, error) {
