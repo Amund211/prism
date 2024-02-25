@@ -2,7 +2,13 @@ name: Test and Deploy CloudFunction
 
 on:
   pull_request:
-    branches: [ "main" ]
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+    branches:
+      - main
 
 permissions:
   actions: read
