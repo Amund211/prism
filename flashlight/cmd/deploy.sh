@@ -1,6 +1,21 @@
 #!/bin/sh
 
-gcloud functions deploy flashlight \
+set -eu
+
+function_name="${1:-}"
+
+case $function_name in
+	flashlight)
+		;;
+	flashlight-test)
+		;;
+	*)
+		echo "Invalid/missing function name '$function_name'. Must be 'flashlight' or 'flashlight-test'" >&2
+		exit 1
+		;;
+esac
+
+gcloud functions deploy "$function_name" \
 	--gen2 \
 	--region=northamerica-northeast2 \
 	--runtime=go121 \
