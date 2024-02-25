@@ -55,7 +55,15 @@ func runMinifyPlayerDataTest(t *testing.T, test minifyPlayerDataTest) {
 
 func TestMinifyPlayerDataLiterals(t *testing.T) {
 	for _, test := range literalTests {
+		// Real test
 		runMinifyPlayerDataTest(t, test)
+
+		if !test.error {
+			// Test that minification is idempotent
+			test.before = test.after
+			test.name = test.name + " (minified)"
+			runMinifyPlayerDataTest(t, test)
+		}
 	}
 }
 
@@ -75,6 +83,12 @@ func TestMinifyPlayerDataFiles(t *testing.T) {
 			t.Errorf("Error parsing file %s: %s", filePath, err.Error())
 			continue
 		}
+		// Real test
+		runMinifyPlayerDataTest(t, test)
+
+		// Test that minification is idempotent
+		test.before = test.after
+		test.name = test.name + " (minified)"
 		runMinifyPlayerDataTest(t, test)
 	}
 }
