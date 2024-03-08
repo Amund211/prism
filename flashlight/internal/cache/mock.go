@@ -81,7 +81,7 @@ func (cacheServer *mockPlayerCacheServer) processTicks() {
 	}
 }
 
-func NewMockPlayerCache(numGoroutines int, maxTicks int) (*mockPlayerCacheServer, []*mockPlayerCacheClient) {
+func NewMockPlayerCacheServer(numGoroutines int, maxTicks int) (*mockPlayerCacheServer, []*mockPlayerCacheClient) {
 	server := &mockPlayerCacheServer{
 		cache:             make(map[string]mockCacheValue),
 		lock:              sync.Mutex{},

@@ -45,7 +45,7 @@ func createUnreachable(t *testing.T) Callback {
 
 func TestMockedPlayerCacheFinishes(t *testing.T) {
 	for clientCount := 0; clientCount < 10; clientCount++ {
-		server, clients := NewMockPlayerCache(clientCount, 100)
+		server, clients := NewMockPlayerCacheServer(clientCount, 100)
 		completedWg := sync.WaitGroup{}
 		completedWg.Add(clientCount)
 		for i := 0; i < clientCount; i++ {
@@ -62,7 +62,7 @@ func TestMockedPlayerCacheFinishes(t *testing.T) {
 }
 
 func TestGetOrCreateSingle(t *testing.T) {
-	server, clients := NewMockPlayerCache(1, 10)
+	server, clients := NewMockPlayerCacheServer(1, 10)
 
 	go func() {
 		client := clients[0]
@@ -85,7 +85,7 @@ func TestGetOrCreateSingle(t *testing.T) {
 }
 
 func TestGetOrCreateMultiple(t *testing.T) {
-	server, clients := NewMockPlayerCache(2, 10)
+	server, clients := NewMockPlayerCacheServer(2, 10)
 
 	go func() {
 		client := clients[0]
@@ -129,7 +129,7 @@ func TestGetOrCreateMultiple(t *testing.T) {
 }
 
 func TestGetOrCreateErrorRetries(t *testing.T) {
-	server, clients := NewMockPlayerCache(2, 10)
+	server, clients := NewMockPlayerCacheServer(2, 10)
 
 	go func() {
 		client := clients[0]
