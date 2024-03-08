@@ -105,25 +105,29 @@ func runMinifyPlayerDataTest(t *testing.T, test minifyPlayerDataTest) {
 
 func TestMinifyPlayerDataLiterals(t *testing.T) {
 	for _, test := range literalTests {
-		if !test.error {
-			var compacted bytes.Buffer
-			err := json.Compact(&compacted, test.after)
-			if err != nil {
-				t.Errorf("minifyPlayerData(%s): Error compacting JSON: %s", test.name, err.Error())
-				continue
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			if !test.error {
+				var compacted bytes.Buffer
+				err := json.Compact(&compacted, test.after)
+				if err != nil {
+					t.Errorf("minifyPlayerData(%s): Error compacting JSON: %s", test.name, err.Error())
+					return
+				}
+				test.after = compacted.Bytes()
 			}
-			test.after = compacted.Bytes()
-		}
 
-		// Real test
-		runMinifyPlayerDataTest(t, test)
-
-		if !test.error {
-			// Test that minification is idempotent
-			test.before = test.after
-			test.name = test.name + " (minified)"
+			// Real test
 			runMinifyPlayerDataTest(t, test)
-		}
+
+			if !test.error {
+				// Test that minification is idempotent
+				test.before = test.after
+				test.name = test.name + " (minified)"
+				runMinifyPlayerDataTest(t, test)
+			}
+		})
 	}
 }
 
@@ -134,21 +138,24 @@ func TestMinifyPlayerDataFiles(t *testing.T) {
 		return
 	}
 	for _, file := range files {
+		file := file
 		if file.IsDir() {
 			continue
 		}
-		filePath := path.Join(minifyFixtureDir, file.Name())
-		test, err := parsePlayerDataFile(filePath)
-		if err != nil {
-			t.Errorf("Error parsing file %s: %s", filePath, err.Error())
-			continue
-		}
-		// Real test
-		runMinifyPlayerDataTest(t, test)
+		t.Run(file.Name(), func(t *testing.T) {
+			t.Parallel()
+			filePath := path.Join(minifyFixtureDir, file.Name())
+			test, err := parsePlayerDataFile(filePath)
+			if err != nil {
+				t.Errorf("Error parsing file %s: %s", filePath, err.Error())
+			}
+			// Real test
+			runMinifyPlayerDataTest(t, test)
 
-		// Test that minification is idempotent
-		test.before = test.after
-		test.name = test.name + " (minified)"
-		runMinifyPlayerDataTest(t, test)
+			// Test that minification is idempotent
+			test.before = test.after
+			test.name = test.name + " (minified)"
+			runMinifyPlayerDataTest(t, test)
+		})
 	}
 }
