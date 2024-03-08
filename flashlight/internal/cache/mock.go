@@ -5,6 +5,36 @@ import (
 	"sync"
 )
 
+type mockedPlayerCache struct {
+	cache map[string]cachedResponse
+}
+
+func (playerCache *mockedPlayerCache) getOrSet(uuid string, value cachedResponse) (cachedResponse, bool) {
+	oldValue, ok := playerCache.cache[uuid]
+	if ok {
+		return oldValue, true
+	}
+	playerCache.cache[uuid] = value
+	return value, false
+}
+
+func (playerCache *mockedPlayerCache) set(uuid string, data []byte, statusCode int) {
+	playerCache.cache[uuid] = cachedResponse{data: data, statusCode: statusCode, valid: true}
+}
+
+func (playerCache *mockedPlayerCache) delete(uuid string) {
+	delete(playerCache.cache, uuid)
+}
+
+func (playerCache *mockedPlayerCache) wait() {
+}
+
+func NewMockedPlayerCache() *mockedPlayerCache {
+	return &mockedPlayerCache{
+		cache: make(map[string]cachedResponse),
+	}
+}
+
 type mockCacheValue struct {
 	cachedResponse cachedResponse
 	insertedAt     int
