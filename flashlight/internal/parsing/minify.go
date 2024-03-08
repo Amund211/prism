@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-type hypixelAPIResponse struct {
+type HypixelAPIResponse struct {
 	Success bool              `json:"success"`
 	Player  *hypixelAPIPlayer `json:"player"`
 	Cause   *string           `json:"cause,omitempty"`
@@ -35,7 +35,7 @@ type bedwarsStats struct {
 }
 
 func MinifyPlayerData(data []byte) ([]byte, error) {
-	var response hypixelAPIResponse
+	var response HypixelAPIResponse
 
 	err := json.Unmarshal(data, &response)
 	if err != nil {
