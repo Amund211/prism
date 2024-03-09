@@ -7,6 +7,8 @@ import (
 	"os"
 	"path"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type minifyPlayerDataTest struct {
@@ -87,20 +89,12 @@ func runMinifyPlayerDataTest(t *testing.T, test minifyPlayerDataTest) {
 	minified, err := MinifyPlayerData(test.before)
 
 	if test.error {
-		if err == nil {
-			t.Errorf("minifyPlayerData(%s) - expected error", test.name)
-		}
+		assert.NotNil(t, err, "minifyPlayerData(%s) - expected error", test.name)
 		return
 	}
 
-	if err != nil {
-		t.Errorf("minifyPlayerData(%s) - %s", test.name, err.Error())
-		return
-	}
-	if string(minified) != string(test.after) {
-		t.Errorf("minifyPlayerData(%s) = '%s' != '%s'", test.name, minified, test.after)
-		return
-	}
+	assert.Nil(t, err, "minifyPlayerData(%s) - unexpected error: %v", test.name, err)
+	assert.Equal(t, string(test.after), string(minified), "minifyPlayerData(%s) - expected '%s', got '%s'", test.name, test.after, minified)
 }
 
 func TestMinifyPlayerDataLiterals(t *testing.T) {
@@ -111,10 +105,7 @@ func TestMinifyPlayerDataLiterals(t *testing.T) {
 			if !test.error {
 				var compacted bytes.Buffer
 				err := json.Compact(&compacted, test.after)
-				if err != nil {
-					t.Errorf("minifyPlayerData(%s): Error compacting JSON: %s", test.name, err.Error())
-					return
-				}
+				assert.Nil(t, err, "minifyPlayerData(%s): Error compacting JSON: %v", test.name, err)
 				test.after = compacted.Bytes()
 			}
 
@@ -133,10 +124,7 @@ func TestMinifyPlayerDataLiterals(t *testing.T) {
 
 func TestMinifyPlayerDataFiles(t *testing.T) {
 	files, err := os.ReadDir(minifyFixtureDir)
-	if err != nil {
-		t.Errorf("Error reading fixtures directory: %s", err.Error())
-		return
-	}
+	assert.Nil(t, err, "Error reading fixtures directory: %v", err)
 	for _, file := range files {
 		file := file
 		if file.IsDir() {
@@ -146,9 +134,7 @@ func TestMinifyPlayerDataFiles(t *testing.T) {
 			t.Parallel()
 			filePath := path.Join(minifyFixtureDir, file.Name())
 			test, err := parsePlayerDataFile(filePath)
-			if err != nil {
-				t.Errorf("Error parsing file %s: %s", filePath, err.Error())
-			}
+			assert.Nil(t, err, "Error parsing file %s: %v", filePath, err)
 			// Real test
 			runMinifyPlayerDataTest(t, test)
 

@@ -3,6 +3,8 @@ package cache
 import (
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPlayerCacheImpl(t *testing.T) {
@@ -13,15 +15,9 @@ func TestPlayerCacheImpl(t *testing.T) {
 		playerCache.set("test", []byte("test"), 200)
 
 		value, existed := playerCache.getOrSet("test", cachedResponse{})
-		if !existed {
-			t.Error("Expected entry to exist")
-		}
-		if string(value.data) != "test" {
-			t.Errorf("Expected 'test', got %s", string(value.data))
-		}
-		if value.statusCode != 200 {
-			t.Errorf("Expected 200, got %d", value.statusCode)
-		}
+		assert.True(t, existed, "Expected entry to exist")
+		assert.Equal(t, "test", string(value.data), "Expected 'test', got %s", string(value.data))
+		assert.Equal(t, 200, value.statusCode, "Expected 200, got %d", value.statusCode)
 	})
 
 	t.Run("getOrSet sets when missing", func(t *testing.T) {
@@ -29,15 +25,9 @@ func TestPlayerCacheImpl(t *testing.T) {
 		playerCache := NewPlayerCache(1000 * time.Second)
 
 		value, existed := playerCache.getOrSet("test", cachedResponse{data: []byte("test"), statusCode: 200})
-		if existed {
-			t.Error("Expected entry to not exist")
-		}
-		if string(value.data) != "test" {
-			t.Errorf("Expected 'test', got %s", string(value.data))
-		}
-		if value.statusCode != 200 {
-			t.Errorf("Expected 200, got %d", value.statusCode)
-		}
+		assert.False(t, existed, "Expected entry to not exist")
+		assert.Equal(t, "test", string(value.data), "Expected 'test', got %s", string(value.data))
+		assert.Equal(t, 200, value.statusCode, "Expected 200, got %d", value.statusCode)
 	})
 
 	t.Run("delete", func(t *testing.T) {
@@ -48,9 +38,7 @@ func TestPlayerCacheImpl(t *testing.T) {
 		playerCache.delete("test")
 
 		_, existed := playerCache.getOrSet("test", cachedResponse{})
-		if existed {
-			t.Error("Expected to not find a value")
-		}
+		assert.False(t, existed, "Expected to not find a value")
 	})
 
 	t.Run("delete missing entry", func(t *testing.T) {
@@ -60,9 +48,7 @@ func TestPlayerCacheImpl(t *testing.T) {
 		playerCache.delete("test")
 
 		_, existed := playerCache.getOrSet("test", cachedResponse{})
-		if existed {
-			t.Error("Expected to not find a value")
-		}
+		assert.False(t, existed, "Expected to not find a value")
 	})
 
 	t.Run("wait", func(t *testing.T) {

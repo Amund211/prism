@@ -8,6 +8,7 @@ import (
 	"github.com/Amund211/flashlight/internal/cache"
 	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/parsing"
+	"github.com/stretchr/testify/assert"
 )
 
 const uuid = "uuid-has-to-be-a-certain-length"
@@ -39,39 +40,20 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		cache := cache.NewMockedPlayerCache()
 
 		data, statusCode, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
-		if err != nil {
-			t.Errorf("Error: %v", err)
-		}
+		assert.Nil(t, err, "Expected nil, got %v", err)
 
 		var playerData parsing.HypixelAPIResponse
 
 		err = json.Unmarshal(data, &playerData)
 
-		if err != nil {
-			t.Errorf("Can't unmarshal minified playerdata: %v", err)
-		}
-
-		if statusCode != 200 {
-			t.Errorf("Expected 200, got %v", statusCode)
-		}
-
-		if playerData.Cause != nil {
-			t.Errorf("Expected nil, got %v", playerData.Cause)
-		}
-
-		if playerData.Success != true {
-			t.Errorf("Expected true, got %v", playerData.Success)
-		}
-
+		assert.Nil(t, err, "Can't unmarshal minified playerdata: %v", err)
+		assert.Equal(t, 200, statusCode, "Expected 200, got %v", statusCode)
+		assert.Nil(t, playerData.Cause, "Expected nil, got %v", playerData.Cause)
+		assert.True(t, playerData.Success, "Expected true, got %v", playerData.Success)
 		experience := *playerData.Player.Stats.Bedwars.Experience
-		if experience != 0 {
-			t.Errorf("Expected 0, got %v", experience)
-		}
-
+		assert.Equal(t, 0.0, experience, "Expected 0, got %v", experience)
 		finals := playerData.Player.Stats.Bedwars.FinalKills
-		if finals != nil {
-			t.Errorf("Expected nil, got %v", finals)
-		}
+		assert.Nil(t, finals, "Expected nil, got %v", finals)
 	})
 
 	t.Run("stats are not created if they already exist", func(t *testing.T) {
@@ -101,9 +83,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 
 		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
 
-		if !errors.Is(err, error) {
-			t.Errorf("Expected error, got %v", err)
-		}
+		assert.ErrorIs(t, err, error, "Expected 'error', got %v", err)
 	})
 
 	t.Run("html from hypixel", func(t *testing.T) {
@@ -117,9 +97,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 
 		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
 
-		if !errors.Is(err, e.APIServerError) {
-			t.Errorf("Expected server error, got %v", err)
-		}
+		assert.ErrorIs(t, err, e.APIServerError, "Expected server error, got %v", err)
 	})
 
 	t.Run("invalid JSON from hypixel", func(t *testing.T) {
@@ -133,9 +111,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 
 		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
 
-		if !errors.Is(err, e.APIServerError) {
-			t.Errorf("Expected server error, got %v", err)
-		}
+		assert.ErrorIs(t, err, e.APIServerError, "Expected server error, got %v", err)
 	})
 
 	t.Run("weird data format from hypixel", func(t *testing.T) {
@@ -149,9 +125,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 
 		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
 
-		if !errors.Is(err, e.APIServerError) {
-			t.Errorf("Expected server error, got %v", err)
-		}
+		assert.ErrorIs(t, err, e.APIServerError, "Expected server error, got %v", err)
 	})
 
 	t.Run("invalid uuid", func(t *testing.T) {
@@ -161,8 +135,6 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 
 		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, "invalid")
 
-		if !errors.Is(err, e.APIClientError) {
-			t.Errorf("Expected server error, got %v", err)
-		}
+		assert.ErrorIs(t, err, e.APIClientError, "Expected client error, got %v", err)
 	})
 }
