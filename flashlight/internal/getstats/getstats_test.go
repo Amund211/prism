@@ -2,9 +2,11 @@ package getstats
 
 import (
 	"encoding/json"
+	"errors"
 	"testing"
 
 	"github.com/Amund211/flashlight/internal/cache"
+	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/parsing"
 )
 
@@ -85,5 +87,82 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
 
 		GetOrCreateMinifiedPlayerData(cache, panicHypixelAPI, uuid)
+	})
+
+	t.Run("error from hypixel", func(t *testing.T) {
+		t.Parallel()
+		error := errors.New("error")
+		hypixelAPI := &mockedHypixelAPI{
+			data:       []byte(``),
+			statusCode: -1,
+			err:        error,
+		}
+		cache := cache.NewMockedPlayerCache()
+
+		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
+
+		if !errors.Is(err, error) {
+			t.Errorf("Expected error, got %v", err)
+		}
+	})
+
+	t.Run("html from hypixel", func(t *testing.T) {
+		t.Parallel()
+		hypixelAPI := &mockedHypixelAPI{
+			data:       []byte(`<!DOCTYPE html>`),
+			statusCode: 504,
+			err:        nil,
+		}
+		cache := cache.NewMockedPlayerCache()
+
+		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
+
+		if !errors.Is(err, e.APIServerError) {
+			t.Errorf("Expected server error, got %v", err)
+		}
+	})
+
+	t.Run("invalid JSON from hypixel", func(t *testing.T) {
+		t.Parallel()
+		hypixelAPI := &mockedHypixelAPI{
+			data:       []byte(`something went wrong`),
+			statusCode: 504,
+			err:        nil,
+		}
+		cache := cache.NewMockedPlayerCache()
+
+		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
+
+		if !errors.Is(err, e.APIServerError) {
+			t.Errorf("Expected server error, got %v", err)
+		}
+	})
+
+	t.Run("weird data format from hypixel", func(t *testing.T) {
+		t.Parallel()
+		hypixelAPI := &mockedHypixelAPI{
+			data:       []byte(`{"success":true,"player":{"stats":{"Bedwars":{"final_kills_bedwars":"string"}}}}`),
+			statusCode: 200,
+			err:        nil,
+		}
+		cache := cache.NewMockedPlayerCache()
+
+		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
+
+		if !errors.Is(err, e.APIServerError) {
+			t.Errorf("Expected server error, got %v", err)
+		}
+	})
+
+	t.Run("invalid uuid", func(t *testing.T) {
+		t.Parallel()
+		hypixelAPI := &panicHypixelAPI{}
+		cache := cache.NewMockedPlayerCache()
+
+		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, "invalid")
+
+		if !errors.Is(err, e.APIClientError) {
+			t.Errorf("Expected server error, got %v", err)
+		}
 	})
 }
