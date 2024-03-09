@@ -27,5 +27,10 @@ func NewIPBasedRateLimiter(refillPerSecond int, burstSize int) RateLimiter {
 		ttlcache.WithTTL[string, *rate.Limiter](30 * time.Minute),
 	)
 	go limiterTTLCache.Start()
-	return ipBasedRateLimiter{limiterByIP: limiterTTLCache, refillPerSecond: 2, burstSize: 120}
+
+	return ipBasedRateLimiter{
+		limiterByIP:     limiterTTLCache,
+		refillPerSecond: refillPerSecond,
+		burstSize:       burstSize,
+	}
 }
