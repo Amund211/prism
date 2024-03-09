@@ -102,7 +102,6 @@ func TestMinifyPlayerDataLiterals(t *testing.T) {
 	for _, test := range literalTests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
 			if !test.error {
 				var compacted bytes.Buffer
 				err := json.Compact(&compacted, test.after)

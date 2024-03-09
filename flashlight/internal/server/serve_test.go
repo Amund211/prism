@@ -12,7 +12,6 @@ import (
 
 func TestMakeServeGetPlayerData(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		t.Parallel()
 		serveGetPlayerData := MakeServeGetPlayerData(func(uuid string) ([]byte, int, error) {
 			return []byte(`data`), 200, nil
 		})
@@ -29,7 +28,6 @@ func TestMakeServeGetPlayerData(t *testing.T) {
 	})
 
 	t.Run("client error", func(t *testing.T) {
-		t.Parallel()
 		serveGetPlayerData := MakeServeGetPlayerData(func(uuid string) ([]byte, int, error) {
 			return []byte(``), -1, fmt.Errorf("%w: error :^)", e.APIClientError)
 		})
@@ -46,7 +44,6 @@ func TestMakeServeGetPlayerData(t *testing.T) {
 	})
 
 	t.Run("server error", func(t *testing.T) {
-		t.Parallel()
 		serveGetPlayerData := MakeServeGetPlayerData(func(uuid string) ([]byte, int, error) {
 			return []byte(``), -1, fmt.Errorf("%w: error :^(", e.APIServerError)
 		})

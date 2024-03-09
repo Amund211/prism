@@ -49,12 +49,10 @@ func runTest(t *testing.T, allow bool) {
 
 func TestRateLimitMiddleware(t *testing.T) {
 	t.Run("allowed", func(t *testing.T) {
-		t.Parallel()
 		runTest(t, true)
 	})
 
 	t.Run("not allowed", func(t *testing.T) {
-		t.Parallel()
 		runTest(t, false)
 	})
 }

@@ -9,7 +9,6 @@ import (
 
 func TestPlayerCacheImpl(t *testing.T) {
 	t.Run("Set and get", func(t *testing.T) {
-		t.Parallel()
 		playerCache := NewPlayerCache(1000 * time.Second)
 
 		playerCache.set("test", []byte("test"), 200)
@@ -21,7 +20,6 @@ func TestPlayerCacheImpl(t *testing.T) {
 	})
 
 	t.Run("getOrSet sets when missing", func(t *testing.T) {
-		t.Parallel()
 		playerCache := NewPlayerCache(1000 * time.Second)
 
 		value, existed := playerCache.getOrSet("test", cachedResponse{data: []byte("test"), statusCode: 200})
@@ -31,7 +29,6 @@ func TestPlayerCacheImpl(t *testing.T) {
 	})
 
 	t.Run("delete", func(t *testing.T) {
-		t.Parallel()
 		playerCache := NewPlayerCache(1000 * time.Second)
 		playerCache.set("test", []byte("test"), 200)
 
@@ -42,7 +39,6 @@ func TestPlayerCacheImpl(t *testing.T) {
 	})
 
 	t.Run("delete missing entry", func(t *testing.T) {
-		t.Parallel()
 		playerCache := NewPlayerCache(1000 * time.Second)
 
 		playerCache.delete("test")
@@ -52,7 +48,6 @@ func TestPlayerCacheImpl(t *testing.T) {
 	})
 
 	t.Run("wait", func(t *testing.T) {
-		t.Parallel()
 		playerCache := NewPlayerCache(1000 * time.Second)
 		playerCache.wait()
 	})

@@ -30,7 +30,6 @@ func (m *mockedHypixelAPI) GetPlayerData(uuid string) ([]byte, int, error) {
 
 func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 	t.Run("Test GetStats", func(t *testing.T) {
-		t.Parallel()
 		hypixelAPI := &mockedHypixelAPI{
 			data:       []byte(`{"success":true,"player":{"stats":{"Bedwars":{"Experience":0}}}}`),
 			statusCode: 200,
@@ -54,7 +53,6 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 	})
 
 	t.Run("stats are not created if they already exist", func(t *testing.T) {
-		t.Parallel()
 		hypixelAPI := &mockedHypixelAPI{
 			data:       []byte(`{}`),
 			statusCode: 200,
@@ -69,7 +67,6 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 	})
 
 	t.Run("error from hypixel", func(t *testing.T) {
-		t.Parallel()
 		hypixelAPI := &mockedHypixelAPI{
 			data:       []byte(``),
 			statusCode: -1,
@@ -83,7 +80,6 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 	})
 
 	t.Run("html from hypixel", func(t *testing.T) {
-		t.Parallel()
 		hypixelAPI := &mockedHypixelAPI{
 			data:       []byte(`<!DOCTYPE html>`),
 			statusCode: 504,
@@ -97,7 +93,6 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 	})
 
 	t.Run("invalid JSON from hypixel", func(t *testing.T) {
-		t.Parallel()
 		hypixelAPI := &mockedHypixelAPI{
 			data:       []byte(`something went wrong`),
 			statusCode: 504,
@@ -111,7 +106,6 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 	})
 
 	t.Run("weird data format from hypixel", func(t *testing.T) {
-		t.Parallel()
 		hypixelAPI := &mockedHypixelAPI{
 			data:       []byte(`{"success":true,"player":{"stats":{"Bedwars":{"final_kills_bedwars":"string"}}}}`),
 			statusCode: 200,
@@ -125,7 +119,6 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 	})
 
 	t.Run("invalid uuid", func(t *testing.T) {
-		t.Parallel()
 		hypixelAPI := &panicHypixelAPI{}
 		cache := cache.NewMockedPlayerCache()
 

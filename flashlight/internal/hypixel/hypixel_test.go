@@ -57,7 +57,6 @@ func newMockedHttpClient(t *testing.T, expectedURL string, statusCode int, body 
 
 func TestGetPlayerData(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		t.Parallel()
 		httpClient := newMockedHttpClient(
 			t,
 			"https://api.hypixel.net/player?uuid=uuid1234",
@@ -75,7 +74,6 @@ func TestGetPlayerData(t *testing.T) {
 	})
 
 	t.Run("request error", func(t *testing.T) {
-		t.Parallel()
 		httpClient := newMockedHttpClient(
 			t,
 			"https://api.hypixel.net/player?uuid=uuid123456",
@@ -92,7 +90,6 @@ func TestGetPlayerData(t *testing.T) {
 	})
 
 	t.Run("body read error", func(t *testing.T) {
-		t.Parallel()
 		httpClient := &mockedHttpClient{
 			t:           t,
 			expectedURL: "https://api.hypixel.net/player?uuid=uuid",
