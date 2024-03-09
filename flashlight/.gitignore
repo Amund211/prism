@@ -1,3 +1,5 @@
 cmd/.env
+# Go coverage file
+c.out
 # Ignore generated credentials from google-github-actions/auth
 gha-creds-*.json
