@@ -27,7 +27,7 @@ type mockedHttpClient struct {
 }
 
 func (m *mockedHttpClient) Do(req *http.Request) (*http.Response, error) {
-	assert.Equal(m.t, m.expectedURL, req.URL.String(), "Expected %s, got %s", m.expectedURL, req.URL.String())
+	assert.Equal(m.t, m.expectedURL, req.URL.String())
 	assert.True(m.t, reflect.DeepEqual(expectedHeaders, req.Header), "Expected %v, got %v", expectedHeaders, req.Header)
 
 	return m.response, m.requestErr
@@ -69,9 +69,9 @@ func TestGetPlayerData(t *testing.T) {
 
 		data, statusCode, err := hypixelAPI.GetPlayerData("uuid1234")
 
-		assert.Nil(t, err, "Expected nil, got %v", err)
-		assert.Equal(t, 200, statusCode, "Expected 200, got %v", statusCode)
-		assert.Equal(t, `{"success":true,"player":null}`, string(data), "Expected %s, got %s", `{"success":true,"player":null}`, string(data))
+		assert.Nil(t, err)
+		assert.Equal(t, 200, statusCode)
+		assert.Equal(t, `{"success":true,"player":null}`, string(data))
 	})
 
 	t.Run("request error", func(t *testing.T) {
@@ -87,8 +87,8 @@ func TestGetPlayerData(t *testing.T) {
 
 		_, _, err := hypixelAPI.GetPlayerData("uuid123456")
 
-		assert.ErrorIs(t, err, e.APIServerError, "Expected ServerError, got %v", err)
-		assert.ErrorIs(t, err, assert.AnError, "Expected 'AnError', got %v", err)
+		assert.ErrorIs(t, err, e.APIServerError)
+		assert.ErrorIs(t, err, assert.AnError)
 	})
 
 	t.Run("body read error", func(t *testing.T) {
@@ -106,7 +106,7 @@ func TestGetPlayerData(t *testing.T) {
 
 		_, _, err := hypixelAPI.GetPlayerData("uuid")
 
-		assert.ErrorIs(t, err, e.APIServerError, "Expected ServerError, got %v", err)
-		assert.ErrorIs(t, err, assert.AnError, "Expected 'AnError', got %v", err)
+		assert.ErrorIs(t, err, e.APIServerError)
+		assert.ErrorIs(t, err, assert.AnError)
 	})
 }

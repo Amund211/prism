@@ -15,7 +15,7 @@ type mockedRateLimiter struct {
 }
 
 func (m *mockedRateLimiter) Allow(key string) bool {
-	assert.Equal(m.t, m.expectedKey, key, "Expected %s, got %s", m.expectedKey, key)
+	assert.Equal(m.t, m.expectedKey, key)
 	return m.allow
 }
 
@@ -40,10 +40,10 @@ func runTest(t *testing.T, allow bool) {
 
 	if allow {
 		assert.True(t, called, "Expected handler to be called")
-		assert.Equal(t, http.StatusOK, w.Code, "Expected 200, got %d", w.Code)
+		assert.Equal(t, http.StatusOK, w.Code)
 	} else {
 		assert.False(t, called, "Expected handler to not be called")
-		assert.Equal(t, http.StatusTooManyRequests, w.Code, "Expected 429, got %d", w.Code)
+		assert.Equal(t, http.StatusTooManyRequests, w.Code)
 	}
 }
 

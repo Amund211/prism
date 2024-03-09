@@ -22,10 +22,10 @@ func TestMakeServeGetPlayerData(t *testing.T) {
 
 		resp := w.Result()
 
-		assert.Equal(t, 200, resp.StatusCode, "Expected 200, got %d", resp.StatusCode)
-		assert.Equal(t, `data`, w.Body.String(), "Expected 'data', got %s", w.Body.String())
+		assert.Equal(t, 200, resp.StatusCode)
+		assert.Equal(t, `data`, w.Body.String())
 		contentType := resp.Header.Get("Content-Type")
-		assert.Equal(t, "application/json", contentType, "Expected 'application/json', got %s", contentType)
+		assert.Equal(t, "application/json", contentType)
 	})
 
 	t.Run("client error", func(t *testing.T) {
@@ -39,10 +39,10 @@ func TestMakeServeGetPlayerData(t *testing.T) {
 		serveGetPlayerData(w, req)
 
 		resp := w.Result()
-		assert.Equal(t, 400, resp.StatusCode, "Expected 400, got %d", resp.StatusCode)
+		assert.Equal(t, 400, resp.StatusCode)
 		assert.Equal(t, `{"success":false,"cause":"Client error: error :^)"}`, w.Body.String())
 		contentType := resp.Header.Get("Content-Type")
-		assert.Equal(t, "application/json", contentType, "Expected 'application/json', got %s", contentType)
+		assert.Equal(t, "application/json", contentType)
 	})
 
 	t.Run("server error", func(t *testing.T) {
@@ -56,9 +56,9 @@ func TestMakeServeGetPlayerData(t *testing.T) {
 		serveGetPlayerData(w, req)
 
 		resp := w.Result()
-		assert.Equal(t, 500, resp.StatusCode, "Expected 500, got %d", resp.StatusCode)
+		assert.Equal(t, 500, resp.StatusCode)
 		assert.Equal(t, `{"success":false,"cause":"Server error: error :^("}`, w.Body.String())
 		contentType := resp.Header.Get("Content-Type")
-		assert.Equal(t, "application/json", contentType, "Expected 'application/json', got %s", contentType)
+		assert.Equal(t, "application/json", contentType)
 	})
 }

@@ -39,20 +39,18 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		cache := cache.NewMockedPlayerCache()
 
 		data, statusCode, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
-		assert.Nil(t, err, "Expected nil, got %v", err)
+		assert.Nil(t, err)
 
 		var playerData parsing.HypixelAPIResponse
 
 		err = json.Unmarshal(data, &playerData)
 
-		assert.Nil(t, err, "Can't unmarshal minified playerdata: %v", err)
-		assert.Equal(t, 200, statusCode, "Expected 200, got %v", statusCode)
-		assert.Nil(t, playerData.Cause, "Expected nil, got %v", playerData.Cause)
-		assert.True(t, playerData.Success, "Expected true, got %v", playerData.Success)
-		experience := *playerData.Player.Stats.Bedwars.Experience
-		assert.Equal(t, 0.0, experience, "Expected 0, got %v", experience)
-		finals := playerData.Player.Stats.Bedwars.FinalKills
-		assert.Nil(t, finals, "Expected nil, got %v", finals)
+		assert.Nil(t, err, "Can't unmarshal minified playerdata '%s'", data)
+		assert.Equal(t, 200, statusCode)
+		assert.Nil(t, playerData.Cause)
+		assert.True(t, playerData.Success)
+		assert.Equal(t, 0.0, *playerData.Player.Stats.Bedwars.Experience)
+		assert.Nil(t, playerData.Player.Stats.Bedwars.FinalKills)
 	})
 
 	t.Run("stats are not created if they already exist", func(t *testing.T) {
@@ -81,7 +79,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 
 		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
 
-		assert.ErrorIs(t, err, assert.AnError, "Expected 'AnError', got %v", err)
+		assert.ErrorIs(t, err, assert.AnError)
 	})
 
 	t.Run("html from hypixel", func(t *testing.T) {
@@ -95,7 +93,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 
 		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
 
-		assert.ErrorIs(t, err, e.APIServerError, "Expected server error, got %v", err)
+		assert.ErrorIs(t, err, e.APIServerError)
 	})
 
 	t.Run("invalid JSON from hypixel", func(t *testing.T) {
@@ -109,7 +107,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 
 		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
 
-		assert.ErrorIs(t, err, e.APIServerError, "Expected server error, got %v", err)
+		assert.ErrorIs(t, err, e.APIServerError)
 	})
 
 	t.Run("weird data format from hypixel", func(t *testing.T) {
@@ -123,7 +121,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 
 		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
 
-		assert.ErrorIs(t, err, e.APIServerError, "Expected server error, got %v", err)
+		assert.ErrorIs(t, err, e.APIServerError)
 	})
 
 	t.Run("invalid uuid", func(t *testing.T) {
@@ -133,6 +131,6 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 
 		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, "invalid")
 
-		assert.ErrorIs(t, err, e.APIClientError, "Expected client error, got %v", err)
+		assert.ErrorIs(t, err, e.APIClientError)
 	})
 }

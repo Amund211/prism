@@ -16,8 +16,8 @@ func TestPlayerCacheImpl(t *testing.T) {
 
 		value, existed := playerCache.getOrSet("test", cachedResponse{})
 		assert.True(t, existed, "Expected entry to exist")
-		assert.Equal(t, "test", string(value.data), "Expected 'test', got %s", string(value.data))
-		assert.Equal(t, 200, value.statusCode, "Expected 200, got %d", value.statusCode)
+		assert.Equal(t, "test", string(value.data))
+		assert.Equal(t, 200, value.statusCode)
 	})
 
 	t.Run("getOrSet sets when missing", func(t *testing.T) {
@@ -26,8 +26,8 @@ func TestPlayerCacheImpl(t *testing.T) {
 
 		value, existed := playerCache.getOrSet("test", cachedResponse{data: []byte("test"), statusCode: 200})
 		assert.False(t, existed, "Expected entry to not exist")
-		assert.Equal(t, "test", string(value.data), "Expected 'test', got %s", string(value.data))
-		assert.Equal(t, 200, value.statusCode, "Expected 200, got %d", value.statusCode)
+		assert.Equal(t, "test", string(value.data))
+		assert.Equal(t, 200, value.statusCode)
 	})
 
 	t.Run("delete", func(t *testing.T) {

@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -43,11 +42,11 @@ func TestWriteErrorResponse(t *testing.T) {
 		writeErrorResponse(w, testCase.err)
 		result := w.Result()
 
-		assert.True(t, reflect.DeepEqual(expectedHeaders, result.Header), fmt.Sprintf("Expected %v, got %v", expectedHeaders, result.Header))
+		assert.True(t, reflect.DeepEqual(expectedHeaders, result.Header), "Expected %v, got %v", expectedHeaders, result.Header)
 
-		assert.Equal(t, testCase.expectedStatus, result.StatusCode, fmt.Sprintf("Expected %d, got %d", testCase.expectedStatus, result.StatusCode))
+		assert.Equal(t, testCase.expectedStatus, result.StatusCode)
 
 		body := w.Body.String()
-		assert.Equal(t, testCase.expectedBody, body, fmt.Sprintf("Expected %s, got %s", testCase.expectedBody, body))
+		assert.Equal(t, testCase.expectedBody, body)
 	}
 }
