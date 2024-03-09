@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -124,14 +125,18 @@ func TestMinifyPlayerDataLiterals(t *testing.T) {
 
 func TestMinifyPlayerDataFiles(t *testing.T) {
 	files, err := os.ReadDir(minifyFixtureDir)
+
 	assert.Nil(t, err, "Error reading fixtures directory: %v", err)
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(files))
+
 	for _, file := range files {
 		file := file
 		if file.IsDir() {
 			continue
 		}
-		t.Run(file.Name(), func(t *testing.T) {
-			t.Parallel()
+		go func() {
 			filePath := path.Join(minifyFixtureDir, file.Name())
 			test, err := parsePlayerDataFile(filePath)
 			assert.Nil(t, err, "Error parsing file %s: %v", filePath, err)
@@ -142,6 +147,9 @@ func TestMinifyPlayerDataFiles(t *testing.T) {
 			test.before = test.after
 			test.name = test.name + " (minified)"
 			runMinifyPlayerDataTest(t, test)
-		})
+			wg.Done()
+		}()
 	}
+
+	wg.Wait()
 }
