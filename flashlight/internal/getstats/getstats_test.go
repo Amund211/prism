@@ -2,7 +2,6 @@ package getstats
 
 import (
 	"encoding/json"
-	"errors"
 	"testing"
 
 	"github.com/Amund211/flashlight/internal/cache"
@@ -73,17 +72,16 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 
 	t.Run("error from hypixel", func(t *testing.T) {
 		t.Parallel()
-		error := errors.New("error")
 		hypixelAPI := &mockedHypixelAPI{
 			data:       []byte(``),
 			statusCode: -1,
-			err:        error,
+			err:        assert.AnError,
 		}
 		cache := cache.NewMockedPlayerCache()
 
 		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, uuid)
 
-		assert.ErrorIs(t, err, error, "Expected 'error', got %v", err)
+		assert.ErrorIs(t, err, assert.AnError, "Expected 'AnError', got %v", err)
 	})
 
 	t.Run("html from hypixel", func(t *testing.T) {
