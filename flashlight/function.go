@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Amund211/flashlight/internal/cache"
+	"github.com/Amund211/flashlight/internal/getstats"
 	"github.com/Amund211/flashlight/internal/hypixel"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/server"
@@ -32,7 +33,11 @@ func init() {
 		"flashlight",
 		server.RateLimitMiddleware(
 			rateLimiter,
-			server.MakeServeGetPlayerData(playerCache, hypixelAPI),
+			server.MakeServeGetPlayerData(
+				func(uuid string) ([]byte, int, error) {
+					return getstats.GetOrCreateMinifiedPlayerData(playerCache, hypixelAPI, uuid)
+				},
+			),
 		),
 	)
 
