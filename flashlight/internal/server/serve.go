@@ -22,8 +22,8 @@ func MakeServeGetPlayerData(playerCache cache.PlayerCache, hypixelAPI hypixel.Hy
 			return
 		}
 
-		w.WriteHeader(statusCode)
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(statusCode)
 		w.Write(minifiedPlayerData)
 	}
 }
