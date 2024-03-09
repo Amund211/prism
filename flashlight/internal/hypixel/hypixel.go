@@ -10,12 +10,16 @@ import (
 	e "github.com/Amund211/flashlight/internal/errors"
 )
 
+type HttpClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type HypixelAPI interface {
 	GetPlayerData(uuid string) ([]byte, int, error)
 }
 
 type hypixelAPIImpl struct {
-	httpClient *http.Client
+	httpClient HttpClient
 	apiKey     string
 }
 
@@ -47,7 +51,7 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(uuid string) ([]byte, int, error)
 	return data, resp.StatusCode, nil
 }
 
-func NewHypixelAPI(httpClient *http.Client, apiKey string) HypixelAPI {
+func NewHypixelAPI(httpClient HttpClient, apiKey string) HypixelAPI {
 	return hypixelAPIImpl{
 		httpClient: httpClient,
 		apiKey:     apiKey,
