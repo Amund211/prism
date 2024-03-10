@@ -7,7 +7,7 @@ import (
 
 type GetMinifiedPlayerData func(uuid string) ([]byte, int, error)
 
-func MakeServeGetPlayerData(getMinifiedPlayerData GetMinifiedPlayerData) Handler {
+func MakeServeGetPlayerData(getMinifiedPlayerData GetMinifiedPlayerData) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Incoming request")
 		uuid := r.URL.Query().Get("uuid")
