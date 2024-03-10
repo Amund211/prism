@@ -33,3 +33,5 @@ gcloud functions deploy "$function_name" \
 	--set-secrets HYPIXEL_API_KEY=prism-hypixel-api-key:latest \
 	--set-secrets "SENTRY_DSN=${sentry_dsn_key}:latest"
 
+# Verify that newly deployed function works
+curl --fail "https://northamerica-northeast2-prism-overlay.cloudfunctions.net/${function_name}?uuid=a937646b-f115-44c3-8dbf-9ae4a65669a0"
