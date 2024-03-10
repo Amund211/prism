@@ -6,8 +6,10 @@ function_name="${1:-}"
 
 case $function_name in
 	flashlight)
+		sentry_dsn_key='flashlight-sentry-dsn'
 		;;
 	flashlight-test)
+		sentry_dsn_key='flashlight-test-sentry-dsn'
 		;;
 	*)
 		echo "Invalid/missing function name '$function_name'. Must be 'flashlight' or 'flashlight-test'" >&2
@@ -28,5 +30,6 @@ gcloud functions deploy "$function_name" \
 	--memory=128Mi \
 	--allow-unauthenticated \
 	--concurrency 100 \
-	--set-secrets HYPIXEL_API_KEY=prism-hypixel-api-key:latest
+	--set-secrets HYPIXEL_API_KEY=prism-hypixel-api-key:latest \
+	--set-secrets "SENTRY_DSN=${sentry_dsn_key}:latest"
 

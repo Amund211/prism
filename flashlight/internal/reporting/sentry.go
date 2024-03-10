@@ -1,0 +1,80 @@
+package reporting
+
+import (
+	"context"
+	"log"
+	"net/http"
+
+	"github.com/getsentry/sentry-go"
+	sentryhttp "github.com/getsentry/sentry-go/http"
+)
+
+func Report(ctx context.Context, err error, message *string, extra map[string]string) {
+	hub := sentry.GetHubFromContext(ctx)
+	if hub == nil {
+		log.Println("Failed to get Sentry hub from context")
+		return
+	}
+
+	hub.WithScope(func(scope *sentry.Scope) {
+		if message != nil {
+			scope.SetExtra("message", *message)
+		}
+		if extra != nil {
+			for key, value := range extra {
+				scope.SetExtra(key, value)
+			}
+		}
+
+		hub.CaptureException(err)
+	})
+}
+
+func addTagsMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		hub := sentry.GetHubFromContext(r.Context())
+		if hub == nil {
+			log.Println("Failed to get Sentry hub from context")
+			next(w, r)
+			return
+		}
+
+		hub.ConfigureScope(func(scope *sentry.Scope) {
+			scope.SetTag("uuid", r.URL.Query().Get("uuid"))
+			scope.SetTag("user-agent", r.Header.Get("User-Agent"))
+
+			userId := r.Header.Get("X-User-Id")
+			if userId != "" {
+				scope.SetUser(sentry.User{ID: userId})
+			}
+		})
+
+		next(w, r)
+	}
+}
+
+func InitSentryMiddleware(sentryDSN string) (func(http.HandlerFunc) http.HandlerFunc, error) {
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn:           sentryDSN,
+		EnableTracing: true,
+		// Set TracesSampleRate to 1.0 to capture 100%
+		// of transactions for performance monitoring.
+		// We recommend adjusting this value in production,
+		TracesSampleRate: 1.0,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	sentryHandler := sentryhttp.New(sentryhttp.Options{})
+
+	// Wrap sentry middleware in a http.HandlerFunc
+	middleware := func(next http.HandlerFunc) http.HandlerFunc {
+		withAddTags := addTagsMiddleware(next)
+		return func(w http.ResponseWriter, r *http.Request) {
+			sentryHandler.HandleFunc(withAddTags).ServeHTTP(w, r)
+		}
+	}
+
+	return middleware, nil
+}
