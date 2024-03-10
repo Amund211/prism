@@ -296,6 +296,7 @@ def test_update_settings_everything_changed() -> None:
 
     # NOTE: Make sure everything specified here is different from its default value
     new_settings = SettingsDict(
+        user_id="my-user-id",
         hypixel_api_key="my-new-hypixel-api-key",
         antisniper_api_key="my-new-antisniper-api-key",
         use_antisniper_api=True,

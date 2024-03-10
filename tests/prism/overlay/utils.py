@@ -243,6 +243,7 @@ def make_winstreaks(
 def make_settings(
     antisniper_api_key: str = "placeholder-antisniper-key",
     use_antisniper_api: bool = False,
+    user_id: str = "make-settings-default-user-id",
     known_nicks: dict[str, NickValue] | None = None,
     path: Path | PurePath | None = None,
 ) -> Settings:
@@ -252,6 +253,7 @@ def make_settings(
     return Settings.from_dict(
         fill_missing_settings(
             {
+                "user_id": user_id,
                 "antisniper_api_key": antisniper_api_key,
                 "use_antisniper_api": use_antisniper_api,
                 "known_nicks": known_nicks or {},

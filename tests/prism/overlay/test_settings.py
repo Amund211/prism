@@ -1,6 +1,7 @@
 import dataclasses
 from collections.abc import Mapping
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
@@ -33,12 +34,14 @@ from tests.prism.overlay.utils import (
     make_settings,
 )
 
+DEFAULT_USER_ID = "default-user-id-test"
 KEY_IF_MISSING = "KEY_IF_MISSING"
 
 DEFAULT_STATS_THREAD_COUNT = 7
 
 
 def make_settings_dict(
+    user_id: str | None = None,
     hypixel_api_key: str | None = None,
     antisniper_api_key: str | None = None,
     use_antisniper_api: bool | None = None,
@@ -64,6 +67,7 @@ def make_settings_dict(
 ) -> SettingsDict:
     """Make a settings dict with default values if missing"""
     return {
+        "user_id": value_or_default(user_id, default=DEFAULT_USER_ID),
         "hypixel_api_key": value_or_default(hypixel_api_key, default=None),
         "antisniper_api_key": value_or_default(
             antisniper_api_key, default=KEY_IF_MISSING
@@ -114,6 +118,7 @@ PLACEHOLDER_PATH = make_dead_path("PLACEHOLDER_PATH")
 settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
     (
         Settings(
+            user_id="my-user-id",
             hypixel_api_key="my-key",
             antisniper_api_key="my-key",
             use_antisniper_api=True,
@@ -139,6 +144,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             path=PLACEHOLDER_PATH,
         ),
         {
+            "user_id": "my-user-id",
             "hypixel_api_key": "my-key",
             "antisniper_api_key": "my-key",
             "use_antisniper_api": True,
@@ -167,6 +173,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
     ),
     (
         Settings(
+            user_id="my-user-id-2",
             hypixel_api_key=None,
             antisniper_api_key="my-other-key",
             use_antisniper_api=False,
@@ -192,6 +199,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             path=PLACEHOLDER_PATH,
         ),
         {
+            "user_id": "my-user-id-2",
             "hypixel_api_key": None,
             "antisniper_api_key": "my-other-key",
             "use_antisniper_api": False,
@@ -284,9 +292,18 @@ def test_read_and_write_settings(
 def test_read_missing_settings_file(tmp_path: Path) -> None:
     # Assert that get_settings doesn't fail when file doesn't exist
     empty_path = tmp_path / "settings2.toml"
-    assert get_settings(
-        empty_path, get_api_key, DEFAULT_STATS_THREAD_COUNT
-    ) == Settings.from_dict(source=make_settings_dict(), path=empty_path)
+
+    @dataclasses.dataclass(frozen=True)
+    class FakeUUID:
+        hex: str
+
+    with mock.patch(
+        "prism.overlay.settings.uuid.uuid4",
+        return_value=FakeUUID(hex=DEFAULT_USER_ID),
+    ):
+        assert get_settings(
+            empty_path, get_api_key, DEFAULT_STATS_THREAD_COUNT
+        ) == Settings.from_dict(source=make_settings_dict(), path=empty_path)
 
 
 def test_flush_settings_from_controller(tmp_path: Path) -> None:
@@ -333,6 +350,11 @@ fill_settings_test_cases: tuple[
     tuple[Mapping[str, object], SettingsDict, bool], ...
 ] = (
     (
+        {"user_id": "my-user-id-3"},
+        make_settings_dict(user_id="my-user-id-3"),
+        True,
+    ),
+    (
         {"hypixel_api_key": "my-key"},
         make_settings_dict(hypixel_api_key="my-key"),
         True,
@@ -344,6 +366,7 @@ fill_settings_test_cases: tuple[
     ),
     (
         {
+            "user_id": "my-user-id-4",
             "antisniper_api_key": "my-key",
             "use_antisniper_api": False,
             "sort_order": "winstreak",
@@ -369,6 +392,7 @@ fill_settings_test_cases: tuple[
             "alpha_hundredths": 40,
         },
         make_settings_dict(
+            user_id="my-user-id-4",
             antisniper_api_key="my-key",
             use_antisniper_api=False,
             sort_order="winstreak",
@@ -663,8 +687,16 @@ def test_fill_missing_settings(
     result_dict: SettingsDict,
     result_updated: bool,
 ) -> None:
-    settings_dict, settings_updated = fill_missing_settings(
-        incomplete_settings, get_api_key, DEFAULT_STATS_THREAD_COUNT
-    )
+    @dataclasses.dataclass(frozen=True)
+    class FakeUUID:
+        hex: str
+
+    with mock.patch(
+        "prism.overlay.settings.uuid.uuid4",
+        return_value=FakeUUID(hex=DEFAULT_USER_ID),
+    ):
+        settings_dict, settings_updated = fill_missing_settings(
+            incomplete_settings, get_api_key, DEFAULT_STATS_THREAD_COUNT
+        )
     assert settings_dict == result_dict
     assert settings_updated == result_updated

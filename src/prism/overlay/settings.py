@@ -1,5 +1,6 @@
 import logging
 import threading
+import uuid
 from collections.abc import Callable, Mapping, MutableMapping
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -41,6 +42,7 @@ class NickValue(TypedDict):
 class SettingsDict(TypedDict):
     """Complete dict of settings"""
 
+    user_id: str
     hypixel_api_key: str | None
     antisniper_api_key: str
     use_antisniper_api: bool
@@ -69,6 +71,7 @@ class SettingsDict(TypedDict):
 class Settings:
     """Class holding user settings for the application"""
 
+    user_id: str
     hypixel_api_key: str | None
     antisniper_api_key: str
     use_antisniper_api: bool
@@ -99,6 +102,7 @@ class Settings:
     @classmethod
     def from_dict(cls, source: SettingsDict, path: Path) -> Self:
         return cls(
+            user_id=source["user_id"],
             hypixel_api_key=source["hypixel_api_key"],
             antisniper_api_key=source["antisniper_api_key"],
             use_antisniper_api=source["use_antisniper_api"],
@@ -126,6 +130,7 @@ class Settings:
 
     def to_dict(self) -> SettingsDict:
         return {
+            "user_id": self.user_id,
             "hypixel_api_key": self.hypixel_api_key,
             "antisniper_api_key": self.antisniper_api_key,
             "use_antisniper_api": self.use_antisniper_api,
@@ -152,6 +157,7 @@ class Settings:
 
     def update_from(self, new_settings: SettingsDict) -> None:
         """Update the settings from the settings dict"""
+        self.user_id = new_settings["user_id"]
         self.hypixel_api_key = new_settings["hypixel_api_key"]
         self.antisniper_api_key = new_settings["antisniper_api_key"]
         self.use_antisniper_api = new_settings["use_antisniper_api"]
@@ -226,6 +232,11 @@ def fill_missing_settings(
     """Get settings from `incomplete_settings` and fill with defaults if missing"""
     settings_updated = False
 
+    user_id = incomplete_settings.get("user_id", None)
+    if user_id is None or not isinstance(user_id, str):
+        settings_updated = True
+        user_id = uuid.uuid4().hex
+
     hypixel_api_key = incomplete_settings.get("hypixel_api_key", None)
     if hypixel_api_key is not None and (
         not isinstance(hypixel_api_key, str) or not api_key_is_valid(hypixel_api_key)
@@ -285,14 +296,14 @@ def fill_missing_settings(
             settings_updated = True
             continue
 
-        uuid = value.get("uuid", None)
+        nick_uuid = value.get("uuid", None)
         comment = value.get("comment", None)
 
-        if not isinstance(uuid, str) or not isinstance(comment, str):
+        if not isinstance(nick_uuid, str) or not isinstance(comment, str):
             settings_updated = True
             continue
 
-        known_nicks[key] = NickValue(uuid=uuid, comment=comment)
+        known_nicks[key] = NickValue(uuid=nick_uuid, comment=comment)
 
     autodenick_teammates, settings_updated = get_boolean_setting(
         incomplete_settings, "autodenick_teammates", settings_updated, default=True
@@ -371,6 +382,7 @@ def fill_missing_settings(
         alpha_hundredths = 80
 
     return {
+        "user_id": user_id,
         "hypixel_api_key": hypixel_api_key,
         "antisniper_api_key": antisniper_api_key,
         "use_antisniper_api": use_antisniper_api,
