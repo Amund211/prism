@@ -27,7 +27,9 @@ func init() {
 		log.Fatalln("Missing Sentry DSN")
 	}
 
-	httpClient := &http.Client{}
+	httpClient := &http.Client{
+		Timeout: 10 * time.Second,
+	}
 
 	playerCache := cache.NewPlayerCache(1 * time.Minute)
 
