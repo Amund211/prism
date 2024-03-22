@@ -30,6 +30,9 @@ func getMinifiedPlayerData(hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, 
 }
 
 func GetOrCreateMinifiedPlayerData(playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
+	if uuid == "" {
+		return []byte{}, -1, fmt.Errorf("%w: Missing uuid", e.APIClientError)
+	}
 	uuidLength := len(uuid)
 	if uuidLength < 10 || uuidLength > 100 {
 		return []byte{}, -1, fmt.Errorf("%w: Invalid uuid (length=%d)", e.APIClientError, uuidLength)

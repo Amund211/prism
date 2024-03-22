@@ -126,4 +126,13 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 
 		assert.ErrorIs(t, err, e.APIClientError)
 	})
+
+	t.Run("missing uuid", func(t *testing.T) {
+		hypixelAPI := &panicHypixelAPI{}
+		cache := cache.NewMockedPlayerCache()
+
+		_, _, err := GetOrCreateMinifiedPlayerData(cache, hypixelAPI, "")
+
+		assert.ErrorIs(t, err, e.APIClientError)
+	})
 }
