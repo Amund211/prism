@@ -40,8 +40,13 @@ func addTagsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		hub.ConfigureScope(func(scope *sentry.Scope) {
-			scope.SetTag("uuid", r.URL.Query().Get("uuid"))
 			scope.SetTag("user-agent", r.Header.Get("User-Agent"))
+
+			uuid := r.URL.Query().Get("uuid")
+			if uuid == "" {
+				uuid = "<missing>"
+			}
+			scope.SetTag("uuid", uuid)
 
 			userId := r.Header.Get("X-User-Id")
 			if userId != "" {
