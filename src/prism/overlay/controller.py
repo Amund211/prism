@@ -121,7 +121,10 @@ class RealOverlayController:
         # TODO: set api key flags
         try:
             playerdata = get_antisniper_playerdata(
-                uuid, self.antisniper_key_holder, self.api_limiter
+                uuid,
+                self.settings.user_id,
+                self.antisniper_key_holder,
+                self.api_limiter,
             )
         except HypixelPlayerNotFoundError as e:
             logger.debug(f"Player not found on Hypixel: {uuid=}", exc_info=e)

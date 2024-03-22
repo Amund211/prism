@@ -135,6 +135,7 @@ def _make_request(
 def _make_playerdata_request(
     *,
     url: str,
+    user_id: str,
     key_holder: AntiSniperAPIKeyHolder,
     api_limiter: RateLimiter,
     last_try: bool,
@@ -142,7 +143,7 @@ def _make_playerdata_request(
     try:
         # Uphold our prescribed rate-limits
         with key_holder.limiter, api_limiter:
-            response = SESSION.get(url)
+            response = SESSION.get(url, headers={"X-User-Id": user_id})
     except RequestException as e:
         raise ExecutionError(
             "Request to AntiSniper API failed due to an unknown error"
@@ -161,6 +162,7 @@ def _make_playerdata_request(
 
 def get_antisniper_playerdata(
     uuid: str,
+    user_id: str,
     key_holder: AntiSniperAPIKeyHolder,
     api_limiter: RateLimiter,
     retry_limit: int = 5,
@@ -175,6 +177,7 @@ def get_antisniper_playerdata(
             functools.partial(
                 _make_playerdata_request,
                 url=url,
+                user_id=user_id,
                 key_holder=key_holder,
                 api_limiter=api_limiter,
             ),
