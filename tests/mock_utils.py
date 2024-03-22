@@ -8,6 +8,9 @@ from types import TracebackType
 from typing import Any, Iterable, Self, TextIO
 
 real_fspath = os.fspath
+real_stat = os.stat
+
+MOCKED_FILE_FILENO = -123
 
 
 class EndFileTest(Exception):
@@ -219,7 +222,8 @@ class MockedFile(TextIO):
         raise NotImplementedError
 
     def fileno(self) -> int:
-        raise NotImplementedError
+        # NOTE: Just a placeholder value
+        return MOCKED_FILE_FILENO
 
     def write(self, s: str) -> int:
         raise NotImplementedError
@@ -261,12 +265,36 @@ class MockedIOModule:
 
 
 class MockedOsModule:
+    SEEK_END = os.SEEK_END
+    SEEK_SET = os.SEEK_SET
+
     @staticmethod
     def fspath(path: Any, *args: Any, **kwargs: Any) -> MockedPath | Any:
         if isinstance(path, MockedPath):
             return path
         else:
             return real_fspath(path)
+
+    @staticmethod
+    def stat(path: Any, *args: Any, **kwargs: Any) -> os.stat_result:
+        if path == MOCKED_FILE_FILENO:
+            # NOTE: Just a placeholder value
+            return os.stat_result(
+                (
+                    0,  # st_mode
+                    0,  # st_ino
+                    0,  # st_dev
+                    0,  # st_nlink
+                    0,  # st_uid
+                    0,  # st_gid
+                    0,  # st_size
+                    0,  # st_atime
+                    0,  # st_mtime
+                    0,  # st_ctime
+                )
+            )
+        else:
+            return real_stat(path, *args, **kwargs)
 
 
 def create_mocked_file(

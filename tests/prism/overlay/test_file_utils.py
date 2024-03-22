@@ -11,6 +11,7 @@ from tests.mock_utils import (
     EndFileTest,
     Line,
     MockedFile,
+    MockedOsModule,
     MockedPath,
     MockedTime,
     create_mocked_file,
@@ -40,6 +41,7 @@ def get_seen_lines(
         unittest.mock.patch("prism.overlay.file_utils.time", mocked_time.time),
         unittest.mock.patch("prism.overlay.file_utils.datetime", mocked_time.datetime),
         unittest.mock.patch("prism.overlay.file_utils.date", mocked_time.date),
+        unittest.mock.patch("prism.overlay.file_utils.os", MockedOsModule),
     ):
         with pytest.raises(EndFileTest):
             for line in watch_file_with_reopen(

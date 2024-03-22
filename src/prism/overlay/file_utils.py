@@ -52,22 +52,29 @@ def watch_file_with_reopen(
     """
 
     last_position = start_at
+    last_ino = -1
 
     while True:
         with path.open("r", encoding="utf8", errors="replace") as f:
             date_openend = date.today()
             last_read = time.monotonic()
 
+            new_ino = os.stat(f.fileno()).st_ino
+
             f.seek(0, os.SEEK_END)
             new_filesize = f.tell()
 
-            if last_position > new_filesize:
-                # File has been truncated - assume it is new and read from the start
+            if last_position > new_filesize or (-1 != last_ino != new_ino):
+                # File has been truncated - assume it is new
+                # OR: File has been replaced
+                # Read it from the start
                 f.seek(0, os.SEEK_SET)
             else:
                 # File is no smaller than at the last read, assume it is the same file
                 # and seek to where we left off
                 f.seek(last_position, os.SEEK_SET)
+
+            last_ino = new_ino
 
             while True:
                 line = f.readline()
