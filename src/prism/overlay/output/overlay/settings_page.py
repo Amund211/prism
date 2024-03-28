@@ -52,7 +52,7 @@ class SupportSection:  # pragma: nocover
         discord_button = tk.Button(
             self.frame,
             text="Join the Discord!",
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="white",
             background="#5865F2",
             command=functools.partial(open_url, "https://discord.gg/k4FGUnEHYg"),
@@ -74,7 +74,7 @@ class APIKeySection:  # pragma: nocover
                 "Visit antisniper.net, join (and STAY in) the discord server and "
                 "follow the instructions on how to verify to get an API key."
             ),
-            font=("Consolas", "10"),
+            font=("Consolas", 10),
             foreground="white",
             background="black",
         )
@@ -85,7 +85,7 @@ class APIKeySection:  # pragma: nocover
         api_key_label = tk.Label(
             self.frame,
             text="API key: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -102,7 +102,7 @@ class APIKeySection:  # pragma: nocover
         show_button = tk.Button(
             self.frame,
             text="SHOW",
-            font=("Consolas", "10"),
+            font=("Consolas", 10),
             foreground="black",
             background="gray",
             activebackground="red",
@@ -134,7 +134,7 @@ class GeneralSettingSection:  # pragma: nocover
         autodenick_label = tk.Label(
             self.frame,
             text="Autodenick teammates: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -149,7 +149,7 @@ class GeneralSettingSection:  # pragma: nocover
         autoselect_label = tk.Label(
             self.frame,
             text="Autoselect logfile: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -164,7 +164,7 @@ class GeneralSettingSection:  # pragma: nocover
         use_antisniper_label = tk.Label(
             self.frame,
             text="AntiSniper WS estimates: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -179,7 +179,7 @@ class GeneralSettingSection:  # pragma: nocover
         show_on_tab_label = tk.Label(
             self.frame,
             text="Show overlay on tab: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -194,7 +194,7 @@ class GeneralSettingSection:  # pragma: nocover
         show_on_tab_hotkey_label = tk.Label(
             self.frame,
             text="Show on tab hotkey: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -216,7 +216,7 @@ class GeneralSettingSection:  # pragma: nocover
         check_for_updates_label = tk.Label(
             self.frame,
             text="Check for major version updates: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -233,7 +233,7 @@ class GeneralSettingSection:  # pragma: nocover
         include_patch_updates_label = tk.Label(
             self.frame,
             text="Check for minor version updates: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -252,7 +252,7 @@ class GeneralSettingSection:  # pragma: nocover
             show_on_tab_disabled_label = tk.Label(
                 self.frame,
                 text="SHOW ON TAB IS NOT AVAILABLE ON MAC",
-                font=("Consolas", "12"),
+                font=("Consolas", 12),
                 foreground="red",
                 background="black",
             )
@@ -311,7 +311,7 @@ class DiscordSection:  # pragma: nocover
                 "overlay before any other application that sets your status "
                 "(like Lunar client)."
             ),
-            font=("Consolas", "10"),
+            font=("Consolas", 10),
             foreground="white",
             background="black",
         )
@@ -322,7 +322,7 @@ class DiscordSection:  # pragma: nocover
         discord_rich_presence_label = tk.Label(
             self.frame,
             text="Set discord activity: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -339,7 +339,7 @@ class DiscordSection:  # pragma: nocover
         discord_show_username_label = tk.Label(
             self.frame,
             text="Show username: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -354,7 +354,7 @@ class DiscordSection:  # pragma: nocover
         discord_show_session_stats_label = tk.Label(
             self.frame,
             text="Show session stats: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -369,7 +369,7 @@ class DiscordSection:  # pragma: nocover
         discord_show_party_label = tk.Label(
             self.frame,
             text="Show party: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -422,7 +422,7 @@ class PerformanceSection:  # pragma: nocover
                 "How many players the overlay tries to download stats for at the same "
                 "time. Try decreasing this if the overlay is lagging. REQUIRES RESTART!"
             ),
-            font=("Consolas", "10"),
+            font=("Consolas", 10),
             foreground="white",
             background="black",
         )
@@ -435,7 +435,7 @@ class PerformanceSection:  # pragma: nocover
         stats_thread_count_label = tk.Label(
             self.frame,
             text="Stats threads: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -457,7 +457,7 @@ class PerformanceSection:  # pragma: nocover
         reset_button = tk.Button(
             self.frame,
             text="Reset",
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="white",
             background="black",
             command=functools.partial(
@@ -500,7 +500,7 @@ class DisplaySection:  # pragma: nocover
         sort_order_label = tk.Label(
             self.frame,
             text="Sort order: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -516,7 +516,7 @@ class DisplaySection:  # pragma: nocover
         hide_dead_players_label = tk.Label(
             self.frame,
             text="Hide dead players: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -596,7 +596,7 @@ class GraphicsSection:  # pragma: nocover
         alpha_label = tk.Label(
             self.frame,
             text="Alpha: ",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -646,7 +646,7 @@ class RatingConfigEditor:  # pragma: nocover
         name_label = tk.Label(
             self.frame,
             text=name,
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="white",
             background="black",
         )
@@ -665,7 +665,7 @@ class RatingConfigEditor:  # pragma: nocover
         reset_button = tk.Button(
             self.frame,
             text="Reset",
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="white",
             background="black",
             command=functools.partial(self.set, default),
@@ -681,7 +681,7 @@ class RatingConfigEditor:  # pragma: nocover
         color_by_level_label = tk.Label(
             first_frame,
             text="Color by level: ",
-            font=("Consolas", "10"),
+            font=("Consolas", 10),
             foreground="white",
             background="black",
         )
@@ -698,7 +698,7 @@ class RatingConfigEditor:  # pragma: nocover
         decimals_label = tk.Label(
             first_frame,
             text="Decimals: ",
-            font=("Consolas", "10"),
+            font=("Consolas", 10),
             foreground="white",
             background="black",
         )
@@ -711,7 +711,7 @@ class RatingConfigEditor:  # pragma: nocover
         levels_label = tk.Label(
             levels_frame,
             text="Levels:",
-            font=("Consolas", "10"),
+            font=("Consolas", 10),
             foreground="white",
             background="black",
         )
@@ -729,7 +729,7 @@ class RatingConfigEditor:  # pragma: nocover
             classification_label = tk.Label(
                 levels_frame,
                 text=classification,
-                font=("Consolas", "10"),
+                font=("Consolas", 10),
                 foreground="white",
                 background="black",
             )
@@ -890,7 +890,7 @@ class SettingsPage:  # pragma: nocover
         save_button = tk.Button(
             self.controls_frame,
             text="Save",
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="white",
             background="black",
             command=self.on_save,
@@ -903,7 +903,7 @@ class SettingsPage:  # pragma: nocover
         cancel_button = tk.Button(
             self.controls_frame,
             text="Cancel",
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="white",
             background="black",
             command=lambda: self.overlay.switch_page("main"),
@@ -942,7 +942,7 @@ class SettingsPage:  # pragma: nocover
         label = tk.Label(
             self.scrollable_settings_frame.content_frame,
             text=section_header,
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="white",
             background="black",
         )
@@ -953,7 +953,7 @@ class SettingsPage:  # pragma: nocover
             subtitle_label = tk.Label(
                 self.scrollable_settings_frame.content_frame,
                 text=subtitle,
-                font=("Consolas", "10"),
+                font=("Consolas", 10),
                 foreground="white",
                 background="black",
             )

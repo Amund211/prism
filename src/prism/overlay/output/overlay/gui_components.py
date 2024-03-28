@@ -50,7 +50,7 @@ class ToggleButton:  # pragma: nocover
         self.button = tk.Button(
             frame,
             text="",
-            font=("Consolas", "12"),
+            font=("Consolas", 12),
             foreground="black",
             background="black",
             command=self.toggle,
@@ -297,7 +297,7 @@ class OrderedMultiSelect:  # pragma: no coverage
         self.reset_button = tk.Button(
             self.toggle_frame,
             text="Reset",
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="white",
             background="black",
             command=functools.partial(self.set_selection, reset_items),

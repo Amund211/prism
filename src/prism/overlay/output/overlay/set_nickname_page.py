@@ -42,7 +42,7 @@ class SetNicknamePage:  # pragma: nocover
         self.save_button = tk.Button(
             self.controls_frame,
             text="Save",
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="white",
             background="black",
             command=self.on_save,
@@ -54,7 +54,7 @@ class SetNicknamePage:  # pragma: nocover
         cancel_button = tk.Button(
             self.controls_frame,
             text="Cancel",
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="white",
             background="black",
             command=lambda: self.overlay.switch_page("main"),
@@ -66,7 +66,7 @@ class SetNicknamePage:  # pragma: nocover
         self.title_label = tk.Label(
             self.frame,
             text="",
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="white",
             background="black",
         )

@@ -48,7 +48,7 @@ class LogfilePrompt:  # pragma: nocover
             tk.Label(
                 self.root,
                 text="The overlay will automatically connect when you launch Minecraft",
-                font=("Consolas", "14"),
+                font=("Consolas", 14),
                 fg="green",
             ).pack(pady=(10, 0))
 
@@ -85,12 +85,12 @@ class LogfilePrompt:  # pragma: nocover
             disabled_config={
                 "bg": "grey",
                 "activebackground": "orange red",
-                "font": ("Consolas", "10"),
+                "font": ("Consolas", 10),
             },
             enabled_config={
                 "bg": "red",
                 "activebackground": "orange red",
-                "font": ("Consolas", "10"),
+                "font": ("Consolas", 10),
             },
         )
         enable_inactive_versions_toggle.button.pack(side=tk.RIGHT)
@@ -98,7 +98,7 @@ class LogfilePrompt:  # pragma: nocover
         self.submit_button = tk.Button(
             self.root,
             text="Submit",
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="black",
             disabledforeground="black",
             background="black",

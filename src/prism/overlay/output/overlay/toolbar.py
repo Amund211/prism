@@ -37,7 +37,7 @@ class Toolbar:  # pragma: nocover
         grip_label = tk.Label(
             self.frame,
             text="::",
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="white",
             background="black",
             highlightthickness=1,
@@ -58,7 +58,7 @@ class Toolbar:  # pragma: nocover
         settings_button = tk.Button(
             self.frame,
             text="⚙",
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="white",
             background="black",
             highlightthickness=0,
@@ -73,7 +73,7 @@ class Toolbar:  # pragma: nocover
             fullscreen_button = tk.Button(
                 self.frame,
                 text="Fullscreen",
-                font=("Consolas", "14"),
+                font=("Consolas", 14),
                 foreground="white",
                 background="black",
                 highlightthickness=0,
@@ -87,7 +87,7 @@ class Toolbar:  # pragma: nocover
         close_button = tk.Button(
             self.frame,
             text="X",
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="white",
             background="black",
             highlightthickness=0,
@@ -106,7 +106,7 @@ class Toolbar:  # pragma: nocover
         minimize_button = tk.Button(
             self.frame,
             text="-",
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="white",
             background="black",
             highlightthickness=0,
@@ -119,7 +119,7 @@ class Toolbar:  # pragma: nocover
         version_label = tk.Label(
             self.frame,
             text=f"Prism {VERSION_STRING}",
-            font=("Consolas", "10"),
+            font=("Consolas", 10),
             foreground="white",
             background="black",
         )
@@ -129,7 +129,7 @@ class Toolbar:  # pragma: nocover
         self.hide_countdown_label = tk.Label(
             self.frame,
             text="",
-            font=("Consolas", "10"),
+            font=("Consolas", 10),
             foreground="white",
             background="black",
         )

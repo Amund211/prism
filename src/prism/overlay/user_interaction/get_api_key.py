@@ -25,7 +25,7 @@ class APIKeyPrompt:  # pragma: nocover
                 "Please follow the instructions below."
             ),
             fg="red",
-            font=("Consolas", "20"),
+            font=("Consolas", 20),
         ).pack()
 
         tk.Label(
@@ -34,14 +34,14 @@ class APIKeyPrompt:  # pragma: nocover
                 "Visit antisniper.net, join (and STAY in) the discord server and \n"
                 "follow the instructions on how to verify to get an API key. \n"
             ),
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
         ).pack()
 
         tk.Button(
             self.root,
             text="Get API key",
             command=lambda: open_url("https://antisniper.net/"),
-            font=("Consolas", "18"),
+            font=("Consolas", 18),
             fg="green",
         ).pack()
 
@@ -54,7 +54,7 @@ class APIKeyPrompt:  # pragma: nocover
                 "and denicking from the AntiSniper API.\n"
                 "These can be disabled in settings."
             ),
-            font=("Consolas", "8"),
+            font=("Consolas", 8),
         ).pack()
 
         self.api_key_variable = tk.StringVar()
@@ -64,14 +64,14 @@ class APIKeyPrompt:  # pragma: nocover
         tk.Entry(
             self.root,
             textvariable=self.api_key_variable,
-            font=("Consolas", "18"),
+            font=("Consolas", 18),
         ).pack()
 
         self.submit_button = tk.Button(
             self.root,
             text="Submit",
             command=self.submit,
-            font=("Consolas", "18"),
+            font=("Consolas", 18),
             state=tk.DISABLED,
         )
         self.submit_button.pack()

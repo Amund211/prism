@@ -76,7 +76,7 @@ class MainContent:  # pragma: nocover
                 text=(str.ljust if left_justified else str.rjust)(
                     COLUMN_NAMES[column_name], 7
                 ),
-                font=("Consolas", "14"),
+                font=("Consolas", 14),
                 fg="snow",
                 bg="black",
             )
@@ -126,7 +126,7 @@ class MainContent:  # pragma: nocover
         edit_button = tk.Button(
             self.table_frame,
             text="✎",
-            font=("Consolas", "14"),
+            font=("Consolas", 14),
             foreground="white",
             disabledforeground="black",
             background="black",
@@ -188,7 +188,7 @@ class MainContent:  # pragma: nocover
             label = tk.Label(
                 self.info_frame,
                 text=cell.text,
-                font=("Consolas", "14"),
+                font=("Consolas", 14),
                 fg=cell.color,  # Color set on each update
                 bg="black",
             )
