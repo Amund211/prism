@@ -33,7 +33,7 @@ import struct
 import sys
 from collections.abc import Mapping
 from enum import IntEnum
-from typing import Any
+from typing import Any, cast
 from uuid import uuid4
 
 
@@ -165,7 +165,7 @@ class Presence:
         return op, data
 
     def _read_header(self) -> tuple[int, int]:
-        return struct.unpack("<ii", self._read_bytes(8))  # type: ignore [return-value]
+        return cast(tuple[int, int], struct.unpack("<ii", self._read_bytes(8)))
 
     def _read_bytes(self, size: int) -> bytes:
         data = b""
