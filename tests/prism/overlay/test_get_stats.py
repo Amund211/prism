@@ -53,13 +53,13 @@ def make_scenario_controller(*users: User) -> MockedController:
         user = username_table.get(username, None)
         return user.uuid if user is not None else None
 
-    def get_antisniper_playerdata(uuid: str) -> Mapping[str, object] | None:
+    def get_playerdata(uuid: str) -> Mapping[str, object] | None:
         user = uuid_table.get(uuid, None)
         return user.playerdata if user is not None else None
 
     controller = MockedController(
         get_uuid=get_uuid,
-        get_antisniper_playerdata=get_antisniper_playerdata,
+        get_playerdata=get_playerdata,
         nick_database=NickDatabase([nick_table]),
     )
 
@@ -284,16 +284,14 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
         assert username == my_username
         return my_uuid
 
-    def get_antisniper_playerdata(uuid: str) -> Mapping[str, object] | None:
+    def get_playerdata(uuid: str) -> Mapping[str, object] | None:
         assert uuid == my_uuid
         if clear:
             # While we were getting the playerdata, someone else cleared the cache
             controller.player_cache.clear_cache()
         return my_player_data
 
-    controller = MockedController(
-        get_uuid=get_uuid, get_antisniper_playerdata=get_antisniper_playerdata
-    )
+    controller = MockedController(get_uuid=get_uuid, get_playerdata=get_playerdata)
 
     player = create_known_player(
         playerdata=my_player_data, username=my_username, uuid=my_uuid
@@ -321,13 +319,11 @@ def test_fetch_bedwars_stats_error_during_playerdata() -> None:
     def get_uuid(username: str) -> str | None:
         return "uuid"
 
-    def get_antisniper_playerdata(
+    def get_playerdata(
         uuid: str,
     ) -> Mapping[str, object] | None | ProcessingError:
         return ERROR_DURING_PROCESSING
 
-    controller = MockedController(
-        get_uuid=get_uuid, get_antisniper_playerdata=get_antisniper_playerdata
-    )
+    controller = MockedController(get_uuid=get_uuid, get_playerdata=get_playerdata)
 
     assert fetch_bedwars_stats("someone", controller) == UnknownPlayer("someone")

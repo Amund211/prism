@@ -62,7 +62,7 @@ def fetch_bedwars_stats(
         # Could not find uuid or denick - assume nicked
         return NickedPlayer(nick=username)
 
-    playerdata = controller.get_antisniper_playerdata(uuid)
+    playerdata = controller.get_playerdata(uuid)
 
     logger.debug(
         f"Initial stats for {username} ({uuid}) {denicked=} {playerdata is None=}"
@@ -100,7 +100,7 @@ def fetch_bedwars_stats(
             uuid = denick_result
             nick = username
             logger.debug(f"De-nicked {username} as {uuid} after hit from Mojang")
-            playerdata = controller.get_antisniper_playerdata(uuid)
+            playerdata = controller.get_playerdata(uuid)
             logger.debug(f"Stats for nicked {nick} ({uuid}) {playerdata is None=}")
 
     if playerdata is ERROR_DURING_PROCESSING:

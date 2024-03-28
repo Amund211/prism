@@ -14,8 +14,8 @@ from prism.hypixel import (
 from prism.mojang import MojangAPIError, get_uuid
 from prism.overlay.antisniper_api import (
     AntiSniperAPIKeyHolder,
-    get_antisniper_playerdata,
     get_estimated_winstreaks,
+    get_playerdata,
 )
 from prism.overlay.player import MISSING_WINSTREAKS
 from prism.ratelimiting import RateLimiter
@@ -63,7 +63,7 @@ class OverlayController(Protocol):  # pragma: no cover
 
     @property
     @abstractmethod
-    def get_antisniper_playerdata(
+    def get_playerdata(
         self,
     ) -> Callable[[str], Mapping[str, object] | None | ProcessingError]:
         raise NotImplementedError
@@ -115,12 +115,12 @@ class RealOverlayController:
             # TODO: RETURN SOMETHING ELSE
             return ERROR_DURING_PROCESSING
 
-    def get_antisniper_playerdata(
+    def get_playerdata(
         self, uuid: str
     ) -> Mapping[str, object] | None | ProcessingError:  # pragma: no cover
         # TODO: set api key flags
         try:
-            playerdata = get_antisniper_playerdata(
+            playerdata = get_playerdata(
                 uuid,
                 self.settings.user_id,
                 self.antisniper_key_holder,

@@ -160,7 +160,7 @@ def _make_playerdata_request(
     return response
 
 
-def get_antisniper_playerdata(
+def get_playerdata(
     uuid: str,
     user_id: str,
     key_holder: AntiSniperAPIKeyHolder,
