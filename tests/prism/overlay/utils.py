@@ -119,18 +119,15 @@ def make_dead_path(path_str: str) -> Path:
 
 
 @overload
-def make_player(variant: Literal["unknown"], username: str = ...) -> UnknownPlayer:
-    ...
+def make_player(variant: Literal["unknown"], username: str = ...) -> UnknownPlayer: ...
 
 
 @overload
-def make_player(variant: Literal["nick"], username: str = ...) -> NickedPlayer:
-    ...
+def make_player(variant: Literal["nick"], username: str = ...) -> NickedPlayer: ...
 
 
 @overload
-def make_player(variant: Literal["pending"], username: str = ...) -> PendingPlayer:
-    ...
+def make_player(variant: Literal["pending"], username: str = ...) -> PendingPlayer: ...
 
 
 @overload
@@ -150,8 +147,7 @@ def make_player(
     wins: int = ...,
     nick: str | None = ...,
     uuid: str = ...,
-) -> KnownPlayer:
-    ...
+) -> KnownPlayer: ...
 
 
 def make_player(
@@ -219,9 +215,11 @@ def create_state(
     return OverlayState(
         party_members=frozenset(party_members),
         lobby_players=frozenset(lobby_players),
-        alive_players=frozenset(alive_players)
-        if alive_players is not None
-        else frozenset(lobby_players),
+        alive_players=(
+            frozenset(alive_players)
+            if alive_players is not None
+            else frozenset(lobby_players)
+        ),
         out_of_sync=out_of_sync,
         in_queue=in_queue,
         own_username=own_username,

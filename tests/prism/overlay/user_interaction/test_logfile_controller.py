@@ -82,9 +82,11 @@ def call_refresh_state(
     def refresh_age(self: ActiveLogfile) -> ActiveLogfile:
         return replace(
             self,
-            age_seconds=0
-            if self.id_ in updated_logfiles
-            else self.age_seconds + time_since_last_refresh,
+            age_seconds=(
+                0
+                if self.id_ in updated_logfiles
+                else self.age_seconds + time_since_last_refresh
+            ),
         )
 
     with unittest.mock.patch.object(ActiveLogfile, "refresh_age", refresh_age):

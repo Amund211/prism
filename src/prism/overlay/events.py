@@ -118,9 +118,9 @@ class PartyMembershipListEvent:
 @dataclass
 class BedwarsGameStartingSoonEvent:
     seconds: int
-    event_type: Literal[
+    event_type: Literal[EventType.BEDWARS_GAME_STARTING_SOON] = (
         EventType.BEDWARS_GAME_STARTING_SOON
-    ] = EventType.BEDWARS_GAME_STARTING_SOON
+    )
 
 
 @dataclass
@@ -161,9 +161,9 @@ class WhisperCommandType(Enum):
 class WhisperCommandSetNickEvent:
     nick: str
     username: str | None
-    event_type: Literal[
+    event_type: Literal[EventType.WHISPER_COMMAND_SET_NICK] = (
         EventType.WHISPER_COMMAND_SET_NICK
-    ] = EventType.WHISPER_COMMAND_SET_NICK
+    )
 
 
 ClientEvent = Union[InitializeAsEvent,]

@@ -6,8 +6,7 @@ from typing import Protocol, Self, TypeVar
 
 
 class SupportsLT(Protocol):  # pragma: no cover
-    def __lt__(self, other: Self) -> bool:
-        ...
+    def __lt__(self, other: Self) -> bool: ...
 
 
 def read_key(key_file: Path) -> str:

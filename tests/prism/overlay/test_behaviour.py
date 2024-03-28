@@ -199,8 +199,8 @@ def test_get_and_cache_stats(
     )
     controller = test_get_stats.make_scenario_controller(user)
 
-    controller.get_estimated_winstreaks = (
-        lambda uuid: (
+    controller.get_estimated_winstreaks = lambda uuid: (
+        (
             make_winstreaks(overall=100, solo=100, doubles=100, threes=100, fours=100),
             True,
         )

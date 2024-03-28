@@ -4,6 +4,7 @@ Overlay window using tkinter
 Inspired by:
 https://github.com/notatallshaw/fall_guys_ping_estimate/blob/main/fgpe/overlay.py
 """
+
 import logging
 import sys
 import time

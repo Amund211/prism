@@ -1,4 +1,5 @@
 """Thread that sends rich presence updates to discord"""
+
 import logging
 import queue
 import threading

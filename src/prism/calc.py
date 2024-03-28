@@ -1,6 +1,7 @@
 """
 Module from calculating bedwars star from exp
 """
+
 # Amount of levels to prestige
 LEVELS_PER_PRESTIGE = 100
 

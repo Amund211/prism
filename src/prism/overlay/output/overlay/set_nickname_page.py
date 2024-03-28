@@ -80,9 +80,11 @@ class SetNicknamePage:  # pragma: nocover
 
         def enable_button(*args: Any, **kwargs: Any) -> None:
             self.save_button.config(
-                state="normal"
-                if self.username_var.get() != SELECT_AN_OPTION_CHOICE
-                else "disabled"
+                state=(
+                    "normal"
+                    if self.username_var.get() != SELECT_AN_OPTION_CHOICE
+                    else "disabled"
+                )
             )
 
         self.username_var.trace("w", enable_button)  # type: ignore [no-untyped-call]
