@@ -13,9 +13,9 @@ jobs:
       run:
         shell: bash  # For `source`
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.12"
         cache: 'pip'
@@ -117,8 +117,8 @@ jobs:
         mv "dist/${{ env.SIMPLE_NAME }}${{ env.RESULT_EXTENSION }}" "${{ env.BUILD_RESULT_NAME }}"
 
     - name: Upload built binary/app .dmg
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: prism-builds
+        name: ${{ env.SIMPLE_NAME }}-${{ matrix.os }}
         path: "${{ env.BUILD_RESULT_NAME }}"
         if-no-files-found: error
