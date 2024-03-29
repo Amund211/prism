@@ -44,7 +44,7 @@ class SettingsDict(TypedDict):
 
     user_id: str
     hypixel_api_key: str | None
-    antisniper_api_key: str
+    antisniper_api_key: str | None
     use_antisniper_api: bool
     sort_order: ColumnName
     column_order: tuple[ColumnName, ...]
@@ -73,7 +73,7 @@ class Settings:
 
     user_id: str
     hypixel_api_key: str | None
-    antisniper_api_key: str
+    antisniper_api_key: str | None
     use_antisniper_api: bool
     sort_order: ColumnName
     column_order: tuple[ColumnName, ...]
@@ -249,7 +249,7 @@ def fill_missing_settings(
         antisniper_api_key
     ):
         settings_updated = True
-        antisniper_api_key = get_api_key()
+        antisniper_api_key = None
 
     use_antisniper_api, settings_updated = get_boolean_setting(
         incomplete_settings, "use_antisniper_api", settings_updated, default=True

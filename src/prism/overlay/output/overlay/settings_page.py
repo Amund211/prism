@@ -116,14 +116,15 @@ class APIKeySection:  # pragma: nocover
             api_key_label, self.antisniper_api_key_entry, show_button
         )
 
-    def set(self, antisniper_api_key: str) -> None:
+    def set(self, antisniper_api_key: str | None) -> None:
         """Set the state of this section"""
         self.antisniper_api_key_entry.config(show="*")
-        self.antisniper_api_key_variable.set(antisniper_api_key)
+        self.antisniper_api_key_variable.set(antisniper_api_key or "")
 
-    def get(self) -> str:
+    def get(self) -> str | None:
         """Get the state of this section"""
-        return self.antisniper_api_key_variable.get().strip()
+        value = self.antisniper_api_key_variable.get().strip()
+        return value if value else None
 
 
 class GeneralSettingSection:  # pragma: nocover

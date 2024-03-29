@@ -105,6 +105,8 @@ class RealOverlayController:
 
         self.antisniper_key_holder: AntiSniperAPIKeyHolder | None = (
             AntiSniperAPIKeyHolder(settings.antisniper_api_key)
+            if settings.antisniper_api_key is not None
+            else None
         )
 
     def get_uuid(

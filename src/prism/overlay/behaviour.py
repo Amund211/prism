@@ -191,7 +191,7 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
             controller.antisniper_key_holder = None
         elif controller.antisniper_key_holder is not None:
             controller.antisniper_key_holder.key = new_antisniper_key
-        else:  # pragma: no coverage - currently unreachable
+        else:
             controller.antisniper_key_holder = AntiSniperAPIKeyHolder(
                 new_antisniper_key
             )

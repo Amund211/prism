@@ -15,3 +15,16 @@ def test_real_overlay_controller() -> None:
 
     assert controller.antisniper_key_holder is not None
     assert controller.antisniper_key_holder.key == "antisniper_key"
+
+
+def test_real_overlay_controller_no_antisniper_key() -> None:
+    controller = RealOverlayController(
+        state=create_state(),
+        settings=make_settings(
+            antisniper_api_key=None,
+            use_antisniper_api=True,
+        ),
+        nick_database=NickDatabase([{}]),
+    )
+
+    assert controller.antisniper_key_holder is None
