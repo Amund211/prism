@@ -35,7 +35,6 @@ from tests.prism.overlay.utils import (
 )
 
 DEFAULT_USER_ID = "default-user-id-test"
-KEY_IF_MISSING = "KEY_IF_MISSING"
 
 DEFAULT_STATS_THREAD_COUNT = 7
 
@@ -105,10 +104,6 @@ def make_settings_dict(
         "hide_with_alpha": value_or_default(hide_with_alpha, default=False),
         "alpha_hundredths": value_or_default(alpha_hundredths, default=80),
     }
-
-
-def get_api_key() -> str:
-    return KEY_IF_MISSING
 
 
 PLACEHOLDER_PATH = make_dead_path("PLACEHOLDER_PATH")
@@ -282,9 +277,7 @@ def test_read_and_write_settings(
     # read_settings_dict = read_settings(settings.path)
     # assert read_settings_dict == settings_dict
 
-    assert (
-        get_settings(settings.path, get_api_key, DEFAULT_STATS_THREAD_COUNT) == settings
-    )
+    assert get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT) == settings
 
 
 def test_read_missing_settings_file(tmp_path: Path) -> None:
@@ -300,7 +293,7 @@ def test_read_missing_settings_file(tmp_path: Path) -> None:
         return_value=FakeUUID(hex=DEFAULT_USER_ID),
     ):
         assert get_settings(
-            empty_path, get_api_key, DEFAULT_STATS_THREAD_COUNT
+            empty_path, DEFAULT_STATS_THREAD_COUNT
         ) == Settings.from_dict(source=make_settings_dict(), path=empty_path)
 
 
@@ -312,9 +305,7 @@ def test_flush_settings_from_controller(tmp_path: Path) -> None:
     settings = make_settings(path=tmp_path / "settings.toml")
 
     # File not found
-    assert (
-        get_settings(settings.path, get_api_key, DEFAULT_STATS_THREAD_COUNT) != settings
-    )
+    assert get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT) != settings
 
     controller = RealOverlayController(
         state=create_state(), settings=settings, nick_database=NickDatabase([{}])
@@ -323,9 +314,7 @@ def test_flush_settings_from_controller(tmp_path: Path) -> None:
     controller.store_settings()
 
     # File properly stored
-    assert (
-        get_settings(settings.path, get_api_key, DEFAULT_STATS_THREAD_COUNT) == settings
-    )
+    assert get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT) == settings
 
 
 def test_get_boolean_setting() -> None:
@@ -694,7 +683,7 @@ def test_fill_missing_settings(
         return_value=FakeUUID(hex=DEFAULT_USER_ID),
     ):
         settings_dict, settings_updated = fill_missing_settings(
-            incomplete_settings, get_api_key, DEFAULT_STATS_THREAD_COUNT
+            incomplete_settings, DEFAULT_STATS_THREAD_COUNT
         )
     assert settings_dict == result_dict
     assert settings_updated == result_updated

@@ -245,9 +245,6 @@ def make_settings(
     known_nicks: dict[str, NickValue] | None = None,
     path: Path | PurePath | None = None,
 ) -> Settings:
-    def get_api_key() -> str:
-        raise RuntimeError("The api key should already exist")
-
     return Settings.from_dict(
         fill_missing_settings(
             {
@@ -256,7 +253,6 @@ def make_settings(
                 "use_antisniper_api": use_antisniper_api,
                 "known_nicks": known_nicks or {},
             },
-            get_api_key,
             2,
         )[0],
         path=cast(Path, path or PurePath("make_settings_settingsfile.json")),

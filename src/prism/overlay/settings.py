@@ -1,7 +1,7 @@
 import logging
 import threading
 import uuid
-from collections.abc import Callable, Mapping, MutableMapping
+from collections.abc import Mapping, MutableMapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Self, TypedDict, TypeVar
@@ -226,7 +226,6 @@ def get_boolean_setting(
 
 def fill_missing_settings(
     incomplete_settings: Mapping[str, object],
-    get_api_key: Callable[[], str],
     default_stats_thread_count: int,
 ) -> tuple[SettingsDict, bool]:
     """Get settings from `incomplete_settings` and fill with defaults if missing"""
@@ -408,9 +407,7 @@ def fill_missing_settings(
     }, settings_updated
 
 
-def get_settings(
-    path: Path, get_api_key: Callable[[], str], default_stats_thread_count: int
-) -> Settings:
+def get_settings(path: Path, default_stats_thread_count: int) -> Settings:
     """
     Read the stored settings into a Settings object
 
@@ -425,7 +422,7 @@ def get_settings(
         logger.warning("Error reading settings file, using all defaults.", exc_info=e)
 
     settings_dict, settings_updated = fill_missing_settings(
-        incomplete_settings, get_api_key, default_stats_thread_count
+        incomplete_settings, default_stats_thread_count
     )
 
     settings = Settings.from_dict(settings_dict, path=path)

@@ -28,7 +28,6 @@ from prism.overlay.process_event import fast_forward_state
 from prism.overlay.settings import Settings, get_settings
 from prism.overlay.state import OverlayState
 from prism.overlay.threading import prepare_overlay, recommend_stats_thread_count
-from prism.overlay.user_interaction.get_api_key import wait_for_api_key
 from prism.overlay.user_interaction.get_logfile import prompt_for_logfile_path
 
 # Variable that stores our singleinstance lock so that it doesn't go out of scope
@@ -247,7 +246,6 @@ def test() -> None:  # pragma: nocover
 
     settings = get_settings(
         options.settings_path,
-        lambda: "not-a-valid-api-key",
         recommend_stats_thread_count(),
     )
 
@@ -292,7 +290,6 @@ def main(*nick_databases: Path) -> None:  # pragma: nocover
     # Read settings and populate missing values
     settings = get_settings(
         options.settings_path,
-        wait_for_api_key,
         recommend_stats_thread_count(),
     )
 
