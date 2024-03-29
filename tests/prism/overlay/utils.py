@@ -268,7 +268,7 @@ def missing_method(*args: Any, **kwargs: Any) -> Any:
 
 
 class ExtraAttributes(TypedDict):
-    antisniper_api_key: str
+    antisniper_api_key: str | None
     redraw_event_set: bool
     update_presence_event_set: bool
     player_cache_data: TTLCache[str, Player]
@@ -280,7 +280,7 @@ class MockedController:
 
     api_key_invalid: bool = False
     api_key_throttled: bool = False
-    antisniper_key_holder: AntiSniperAPIKeyHolder = field(
+    antisniper_key_holder: AntiSniperAPIKeyHolder | None = field(
         init=False, repr=False, compare=False, hash=False
     )
     api_limiter: RateLimiter = field(
@@ -337,8 +337,10 @@ class MockedController:
         if update_presence_event_set:
             self.update_presence_event.set()
 
-        self.antisniper_key_holder = AntiSniperAPIKeyHolder(
-            self.settings.antisniper_api_key
+        self.antisniper_key_holder = (
+            AntiSniperAPIKeyHolder(self.settings.antisniper_api_key)
+            if self.settings.antisniper_api_key is not None
+            else None
         )
 
     def store_settings(self) -> None:
@@ -347,7 +349,11 @@ class MockedController:
     @property
     def extra(self) -> ExtraAttributes:
         return {
-            "antisniper_api_key": self.antisniper_key_holder.key,
+            "antisniper_api_key": (
+                self.antisniper_key_holder.key
+                if self.antisniper_key_holder is not None
+                else None
+            ),
             "redraw_event_set": self.redraw_event.is_set(),
             "update_presence_event_set": self.update_presence_event.is_set(),
             "player_cache_data": self.player_cache._cache,

@@ -355,6 +355,23 @@ def test_update_settings_everything_changed() -> None:
     assert not controller.api_key_throttled
 
 
+def test_update_settings_clear_antisniper_key() -> None:
+    controller = MockedController()
+    controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
+
+    new_settings = replace(controller.settings, antisniper_api_key="")
+
+    update_settings(new_settings.to_dict(), controller)
+
+    # Updated antisniper key -> should clear cache
+    assert controller.player_cache.clear_cache.call_count == 1
+
+    # Updated antisniper key -> should redraw
+    assert controller.redraw_event.is_set()
+
+    assert controller.extra["antisniper_api_key"] is None
+
+
 @dataclass(frozen=True, slots=True)
 class LobbyPlayer:
     username: str | None = None

@@ -45,7 +45,7 @@ class OverlayController(Protocol):  # pragma: no cover
 
     api_key_invalid: bool
     api_key_throttled: bool
-    antisniper_key_holder: AntiSniperAPIKeyHolder
+    antisniper_key_holder: AntiSniperAPIKeyHolder | None
     api_limiter: RateLimiter
 
     wants_shown: bool | None
@@ -103,7 +103,9 @@ class RealOverlayController:
         self.redraw_event = threading.Event()
         self.update_presence_event = threading.Event()
 
-        self.antisniper_key_holder = AntiSniperAPIKeyHolder(settings.antisniper_api_key)
+        self.antisniper_key_holder: AntiSniperAPIKeyHolder | None = (
+            AntiSniperAPIKeyHolder(settings.antisniper_api_key)
+        )
 
     def get_uuid(
         self, username: str

@@ -61,8 +61,13 @@ def run_overlay(
                 )
             )
 
+        antisniper_block_duration_seconds = (
+            controller.antisniper_key_holder.limiter.block_duration_seconds
+            if controller.antisniper_key_holder is not None
+            else 0
+        )
         block_duration_seconds = max(
-            controller.antisniper_key_holder.limiter.block_duration_seconds,
+            antisniper_block_duration_seconds,
             controller.api_limiter.block_duration_seconds,
         )
 

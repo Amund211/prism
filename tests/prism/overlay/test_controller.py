@@ -13,4 +13,5 @@ def test_real_overlay_controller() -> None:
         nick_database=NickDatabase([{}]),
     )
 
+    assert controller.antisniper_key_holder is not None
     assert controller.antisniper_key_holder.key == "antisniper_key"

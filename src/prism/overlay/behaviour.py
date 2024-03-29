@@ -3,6 +3,7 @@ import logging
 import queue
 
 from prism.mojang import compare_uuids
+from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from prism.overlay.controller import ERROR_DURING_PROCESSING, OverlayController
 from prism.overlay.get_stats import get_bedwars_stats
 from prism.overlay.player import MISSING_WINSTREAKS, KnownPlayer, PendingPlayer
@@ -184,7 +185,16 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
     if antisniper_api_key_changed:
         controller.api_key_throttled = False
         controller.api_key_invalid = False
-        controller.antisniper_key_holder.key = new_settings["antisniper_api_key"]
+
+        new_antisniper_key = new_settings["antisniper_api_key"]
+        if new_antisniper_key is None or len(new_antisniper_key.strip()) == 0:
+            controller.antisniper_key_holder = None
+        elif controller.antisniper_key_holder is not None:
+            controller.antisniper_key_holder.key = new_antisniper_key
+        else:  # pragma: no coverage - currently unreachable
+            controller.antisniper_key_holder = AntiSniperAPIKeyHolder(
+                new_antisniper_key
+            )
 
     # Update the player cache
     if potential_antisniper_updates:
