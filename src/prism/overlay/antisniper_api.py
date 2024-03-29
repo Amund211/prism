@@ -1,3 +1,4 @@
+import contextlib
 import functools
 import logging
 from collections.abc import Mapping
@@ -136,13 +137,19 @@ def _make_playerdata_request(
     *,
     url: str,
     user_id: str,
-    key_holder: AntiSniperAPIKeyHolder,
+    key_holder: AntiSniperAPIKeyHolder | None,
     api_limiter: RateLimiter,
     last_try: bool,
 ) -> requests.Response:  # pragma: nocover
+    key_holder_limiter: contextlib.nullcontext[None] | RateLimiter = (
+        contextlib.nullcontext()
+    )
+    if key_holder is not None:
+        key_holder_limiter = key_holder.limiter
+
     try:
         # Uphold our prescribed rate-limits
-        with key_holder.limiter, api_limiter:
+        with key_holder_limiter, api_limiter:
             response = SESSION.get(url, headers={"X-User-Id": user_id})
     except RequestException as e:
         raise ExecutionError(
@@ -163,14 +170,18 @@ def _make_playerdata_request(
 def get_playerdata(
     uuid: str,
     user_id: str,
-    key_holder: AntiSniperAPIKeyHolder,
+    key_holder: AntiSniperAPIKeyHolder | None,
     api_limiter: RateLimiter,
     retry_limit: int = 5,
     initial_timeout: float = 2,
 ) -> Mapping[str, object]:  # pragma: nocover
     """Get data about the given player from the /player API endpoint"""
 
-    url = f"{STATS_ENDPOINT}?uuid={uuid}&key={key_holder.key}&player={uuid}&raw=true"
+    url = f"{STATS_ENDPOINT}?uuid={uuid}"
+
+    if key_holder is not None:
+        # Add antisniper params in case we have to switch back to antisniper
+        url += f"&player={uuid}&raw=true&key={key_holder.key}"
 
     try:
         response = execute_with_retry(
