@@ -359,7 +359,7 @@ def test_update_settings_clear_antisniper_key() -> None:
     controller = MockedController()
     controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
 
-    new_settings = replace(controller.settings, antisniper_api_key="")
+    new_settings = replace(controller.settings, antisniper_api_key=None)
 
     update_settings(new_settings.to_dict(), controller)
 

@@ -187,7 +187,7 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
         controller.api_key_invalid = False
 
         new_antisniper_key = new_settings["antisniper_api_key"]
-        if new_antisniper_key is None or len(new_antisniper_key.strip()) == 0:
+        if new_antisniper_key is None:
             controller.antisniper_key_holder = None
         elif controller.antisniper_key_holder is not None:
             controller.antisniper_key_holder.key = new_antisniper_key

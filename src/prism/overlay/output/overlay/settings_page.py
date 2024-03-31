@@ -123,8 +123,14 @@ class APIKeySection:  # pragma: nocover
 
     def get(self) -> str | None:
         """Get the state of this section"""
-        value = self.antisniper_api_key_variable.get().strip()
-        return value if value else None
+        value = self.antisniper_api_key_variable.get()
+        if ":" in value:
+            # Handle `Apikey: 12345678-1234-1234-1234-abcdefabcdef`
+            value = value[value.index(":") + 1 :]
+
+        value = value.strip()
+
+        return value if len(value) > 3 else None
 
 
 class GeneralSettingSection:  # pragma: nocover
