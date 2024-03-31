@@ -1,6 +1,7 @@
 package getstats
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -8,9 +9,10 @@ import (
 	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/hypixel"
 	"github.com/Amund211/flashlight/internal/parsing"
+	"github.com/Amund211/flashlight/internal/reporting"
 )
 
-func getMinifiedPlayerData(hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
+func getMinifiedPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
 	playerData, statusCode, err := hypixelAPI.GetPlayerData(uuid)
 	if err != nil {
 		return []byte{}, -1, err
@@ -21,6 +23,20 @@ func getMinifiedPlayerData(hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, 
 		return []byte{}, -1, fmt.Errorf("%w: Hypixel returned HTML", e.APIServerError)
 	}
 
+	if statusCode >= 400 && statusCode != 404 {
+		errorMessage := "Hypixel API returned status code >= 400, != 404"
+		reporting.Report(
+			ctx,
+			nil,
+			&errorMessage,
+			map[string]string{
+				"statusCode": fmt.Sprint(statusCode),
+				"data":       string(playerData),
+			},
+		)
+		return []byte{}, -1, fmt.Errorf("%w: Hypixel API failed", e.APIServerError)
+	}
+
 	minifiedPlayerData, err := parsing.MinifyPlayerData(playerData)
 	if err != nil {
 		return []byte{}, -1, fmt.Errorf("%w: %w", e.APIServerError, err)
@@ -29,7 +45,7 @@ func getMinifiedPlayerData(hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, 
 	return minifiedPlayerData, statusCode, nil
 }
 
-func GetOrCreateMinifiedPlayerData(playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
+func GetOrCreateMinifiedPlayerData(ctx context.Context, playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
 	if uuid == "" {
 		return []byte{}, -1, fmt.Errorf("%w: Missing uuid", e.APIClientError)
 	}
@@ -39,7 +55,7 @@ func GetOrCreateMinifiedPlayerData(playerCache cache.PlayerCache, hypixelAPI hyp
 	}
 
 	minifiedPlayerData, statusCode, err := cache.GetOrCreateCachedResponse(playerCache, uuid, func() ([]byte, int, error) {
-		return getMinifiedPlayerData(hypixelAPI, uuid)
+		return getMinifiedPlayerData(ctx, hypixelAPI, uuid)
 	})
 
 	if err != nil {

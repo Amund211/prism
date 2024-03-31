@@ -1,6 +1,7 @@
 package function
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
@@ -58,8 +59,8 @@ func init() {
 			server.RateLimitMiddleware(
 				rateLimiter,
 				server.MakeServeGetPlayerData(
-					func(uuid string) ([]byte, int, error) {
-						return getstats.GetOrCreateMinifiedPlayerData(playerCache, hypixelAPI, uuid)
+					func(ctx context.Context, uuid string) ([]byte, int, error) {
+						return getstats.GetOrCreateMinifiedPlayerData(ctx, playerCache, hypixelAPI, uuid)
 					},
 				),
 			),

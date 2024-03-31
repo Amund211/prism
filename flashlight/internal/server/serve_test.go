@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +13,7 @@ import (
 
 func TestMakeServeGetPlayerData(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		serveGetPlayerData := MakeServeGetPlayerData(func(uuid string) ([]byte, int, error) {
+		serveGetPlayerData := MakeServeGetPlayerData(func(ctx context.Context, uuid string) ([]byte, int, error) {
 			return []byte(`data`), 200, nil
 		})
 		w := httptest.NewRecorder()
@@ -28,7 +29,7 @@ func TestMakeServeGetPlayerData(t *testing.T) {
 	})
 
 	t.Run("client error", func(t *testing.T) {
-		serveGetPlayerData := MakeServeGetPlayerData(func(uuid string) ([]byte, int, error) {
+		serveGetPlayerData := MakeServeGetPlayerData(func(ctx context.Context, uuid string) ([]byte, int, error) {
 			return []byte(``), -1, fmt.Errorf("%w: error :^)", e.APIClientError)
 		})
 		w := httptest.NewRecorder()
@@ -44,7 +45,7 @@ func TestMakeServeGetPlayerData(t *testing.T) {
 	})
 
 	t.Run("server error", func(t *testing.T) {
-		serveGetPlayerData := MakeServeGetPlayerData(func(uuid string) ([]byte, int, error) {
+		serveGetPlayerData := MakeServeGetPlayerData(func(ctx context.Context, uuid string) ([]byte, int, error) {
 			return []byte(``), -1, fmt.Errorf("%w: error :^(", e.APIServerError)
 		})
 		w := httptest.NewRecorder()
