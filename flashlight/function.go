@@ -17,13 +17,15 @@ import (
 )
 
 func init() {
+	localOnly := os.Getenv("LOCAL_ONLY") == "true"
+
 	apiKey := os.Getenv("HYPIXEL_API_KEY")
 	if apiKey == "" {
 		log.Fatalln("Missing Hypixel API key")
 	}
 
 	sentryDSN := os.Getenv("SENTRY_DSN")
-	if sentryDSN == "" {
+	if sentryDSN == "" && !localOnly {
 		log.Fatalln("Missing Sentry DSN")
 	}
 
@@ -37,9 +39,17 @@ func init() {
 
 	rateLimiter := ratelimiting.NewIPBasedRateLimiter(2, 120)
 
-	sentryMiddleware, err := reporting.InitSentryMiddleware(sentryDSN)
-	if err != nil {
-		log.Fatalf("Failed to initialize sentry: %v", err)
+	var sentryMiddleware func(http.HandlerFunc) http.HandlerFunc
+	if localOnly && sentryDSN == "" {
+		sentryMiddleware = func(next http.HandlerFunc) http.HandlerFunc {
+			return next
+		}
+	} else {
+		realSentryMiddleware, err := reporting.InitSentryMiddleware(sentryDSN)
+		if err != nil {
+			log.Fatalf("Failed to initialize sentry: %v", err)
+		}
+		sentryMiddleware = realSentryMiddleware
 	}
 
 	functions.HTTP(
