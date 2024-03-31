@@ -17,15 +17,24 @@ func Report(ctx context.Context, err error, message *string, extra map[string]st
 	}
 
 	hub.WithScope(func(scope *sentry.Scope) {
-		if message != nil {
-			scope.SetExtra("message", *message)
-		}
 		if extra != nil {
 			for key, value := range extra {
 				scope.SetExtra(key, value)
 			}
 		}
 
+		if err == nil {
+			capturedMessage := "No message/error provided"
+			if message != nil {
+				capturedMessage = *message
+			}
+			hub.CaptureMessage(capturedMessage)
+			return
+		}
+
+		if message != nil {
+			scope.SetExtra("message", *message)
+		}
 		hub.CaptureException(err)
 	})
 }
