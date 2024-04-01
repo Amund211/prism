@@ -31,6 +31,21 @@ func TestWriteErrorResponse(t *testing.T) {
 			expectedStatus: 429,
 			expectedBody:   `{"success":false,"cause":"Ratelimit exceeded"}`,
 		},
+		{
+			err:            e.BadGateway,
+			expectedStatus: 502,
+			expectedBody:   `{"success":false,"cause":"Bad Gateway"}`,
+		},
+		{
+			err:            e.ServiceUnavailable,
+			expectedStatus: 503,
+			expectedBody:   `{"success":false,"cause":"Service Unavailable"}`,
+		},
+		{
+			err:            e.GatewayTimeout,
+			expectedStatus: 504,
+			expectedBody:   `{"success":false,"cause":"Gateway Timeout"}`,
+		},
 	}
 
 	expectedHeaders := make(http.Header)

@@ -12,29 +12,63 @@ import (
 	"github.com/Amund211/flashlight/internal/reporting"
 )
 
+func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte) error {
+	// Non-error status codes - check for HTML
+	if statusCode <= 400 || statusCode == 404 {
+		if len(playerData) > 0 && playerData[0] == '<' {
+			errorMessage := "Hypixel API returned HTML"
+			log.Println(errorMessage)
+			reporting.Report(
+				ctx,
+				nil,
+				&errorMessage,
+				map[string]string{
+					"statusCode": fmt.Sprint(statusCode),
+					"data":       string(playerData),
+				},
+			)
+			return fmt.Errorf("%w: %s", e.APIServerError, errorMessage)
+		}
+
+		return nil
+	}
+
+	err := fmt.Errorf("%w: Hypixel API failed (status code: %d)", e.APIServerError, statusCode)
+
+	// Pass through certain status codes
+	switch statusCode {
+	case 429:
+		err = fmt.Errorf("%w: Hypixel ratelimit exceeded", e.RatelimitExceededError)
+	case 502:
+		err = fmt.Errorf("%w: Hypixel returned 502 Bad Gateway", e.BadGateway)
+	case 503:
+		err = fmt.Errorf("%w: Hypixel returned 503 Service Unavailable", e.ServiceUnavailable)
+	case 504:
+		err = fmt.Errorf("%w: Hypixel returned 504 Gateway Timeout", e.GatewayTimeout)
+	}
+
+	reporting.Report(
+		ctx,
+		err,
+		nil,
+		map[string]string{
+			"statusCode": fmt.Sprint(statusCode),
+			"data":       string(playerData),
+		},
+	)
+
+	return err
+}
+
 func getMinifiedPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
 	playerData, statusCode, err := hypixelAPI.GetPlayerData(uuid)
 	if err != nil {
 		return []byte{}, -1, err
 	}
 
-	if len(playerData) > 0 && playerData[0] == '<' {
-		log.Println("Hypixel returned HTML")
-		return []byte{}, -1, fmt.Errorf("%w: Hypixel returned HTML", e.APIServerError)
-	}
-
-	if statusCode >= 400 && statusCode != 404 {
-		errorMessage := "Hypixel API returned status code >= 400, != 404"
-		reporting.Report(
-			ctx,
-			nil,
-			&errorMessage,
-			map[string]string{
-				"statusCode": fmt.Sprint(statusCode),
-				"data":       string(playerData),
-			},
-		)
-		return []byte{}, -1, fmt.Errorf("%w: Hypixel API failed", e.APIServerError)
+	err = checkForHypixelError(ctx, statusCode, playerData)
+	if err != nil {
+		return []byte{}, -1, err
 	}
 
 	minifiedPlayerData, err := parsing.MinifyPlayerData(playerData)

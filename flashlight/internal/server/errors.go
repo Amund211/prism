@@ -33,6 +33,12 @@ func writeErrorResponse(w http.ResponseWriter, responseError error) {
 		statusCode = http.StatusBadRequest
 	} else if errors.Is(responseError, e.RatelimitExceededError) {
 		statusCode = http.StatusTooManyRequests
+	} else if errors.Is(responseError, e.BadGateway) {
+		statusCode = http.StatusBadGateway
+	} else if errors.Is(responseError, e.ServiceUnavailable) {
+		statusCode = http.StatusServiceUnavailable
+	} else if errors.Is(responseError, e.GatewayTimeout) {
+		statusCode = http.StatusGatewayTimeout
 	}
 
 	w.WriteHeader(statusCode)

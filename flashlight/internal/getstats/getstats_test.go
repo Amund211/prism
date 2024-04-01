@@ -81,9 +81,11 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 	})
 
 	t.Run("html from hypixel", func(t *testing.T) {
+		// This can happen with gateway errors, giving us cloudflare html
+		// We now pass through gateway errors, so I've altered this test to return 200
 		hypixelAPI := &mockedHypixelAPI{
 			data:       []byte(`<!DOCTYPE html>`),
-			statusCode: 504,
+			statusCode: 200,
 			err:        nil,
 		}
 		cache := cache.NewMockedPlayerCache()
@@ -96,7 +98,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 	t.Run("invalid JSON from hypixel", func(t *testing.T) {
 		hypixelAPI := &mockedHypixelAPI{
 			data:       []byte(`something went wrong`),
-			statusCode: 504,
+			statusCode: 200,
 			err:        nil,
 		}
 		cache := cache.NewMockedPlayerCache()
@@ -148,5 +150,44 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		_, _, err := GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
 		assert.ErrorIs(t, err, e.APIServerError)
+	})
+
+	t.Run("bad gateway from hypixel", func(t *testing.T) {
+		hypixelAPI := &mockedHypixelAPI{
+			data:       []byte(`<!DOCTYPE html>`),
+			statusCode: 502,
+			err:        nil,
+		}
+		cache := cache.NewMockedPlayerCache()
+
+		_, _, err := GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, uuid)
+
+		assert.ErrorIs(t, err, e.BadGateway)
+	})
+
+	t.Run("service unavailable from hypixel", func(t *testing.T) {
+		hypixelAPI := &mockedHypixelAPI{
+			data:       []byte(`<!DOCTYPE html>`),
+			statusCode: 503,
+			err:        nil,
+		}
+		cache := cache.NewMockedPlayerCache()
+
+		_, _, err := GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, uuid)
+
+		assert.ErrorIs(t, err, e.ServiceUnavailable)
+	})
+
+	t.Run("gateway timeout from hypixel", func(t *testing.T) {
+		hypixelAPI := &mockedHypixelAPI{
+			data:       []byte(`<!DOCTYPE html>`),
+			statusCode: 504,
+			err:        nil,
+		}
+		cache := cache.NewMockedPlayerCache()
+
+		_, _, err := GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, uuid)
+
+		assert.ErrorIs(t, err, e.GatewayTimeout)
 	})
 }
