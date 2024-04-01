@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
@@ -67,7 +68,7 @@ func addTagsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func InitSentryMiddleware(sentryDSN string) (func(http.HandlerFunc) http.HandlerFunc, error) {
+func InitSentryMiddleware(sentryDSN string) (func(http.HandlerFunc) http.HandlerFunc, func(), error) {
 	err := sentry.Init(sentry.ClientOptions{
 		Dsn:           sentryDSN,
 		EnableTracing: true,
@@ -77,7 +78,7 @@ func InitSentryMiddleware(sentryDSN string) (func(http.HandlerFunc) http.Handler
 		TracesSampleRate: 1.0,
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	sentryHandler := sentryhttp.New(sentryhttp.Options{})
@@ -90,5 +91,9 @@ func InitSentryMiddleware(sentryDSN string) (func(http.HandlerFunc) http.Handler
 		}
 	}
 
-	return middleware, nil
+	flush := func() {
+		sentry.Flush(5 * time.Second)
+	}
+
+	return middleware, flush, nil
 }

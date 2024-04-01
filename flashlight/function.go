@@ -46,11 +46,13 @@ func init() {
 			return next
 		}
 	} else {
-		realSentryMiddleware, err := reporting.InitSentryMiddleware(sentryDSN)
+		realSentryMiddleware, flush, err := reporting.InitSentryMiddleware(sentryDSN)
 		if err != nil {
 			log.Fatalf("Failed to initialize sentry: %v", err)
 		}
 		sentryMiddleware = realSentryMiddleware
+
+		defer flush()
 	}
 
 	functions.HTTP(
