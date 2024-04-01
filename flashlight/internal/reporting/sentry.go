@@ -70,12 +70,9 @@ func addTagsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 func InitSentryMiddleware(sentryDSN string) (func(http.HandlerFunc) http.HandlerFunc, func(), error) {
 	err := sentry.Init(sentry.ClientOptions{
-		Dsn:           sentryDSN,
-		EnableTracing: true,
-		// Set TracesSampleRate to 1.0 to capture 100%
-		// of transactions for performance monitoring.
-		// We recommend adjusting this value in production,
-		TracesSampleRate: 1.0,
+		Dsn:              sentryDSN,
+		EnableTracing:    true,
+		TracesSampleRate: 1.0 / 100.0,
 	})
 	if err != nil {
 		return nil, nil, err
