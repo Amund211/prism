@@ -14,6 +14,8 @@ type HypixelAPIResponse struct {
 type hypixelAPIPlayer struct {
 	UUID        *string `json:"uuid,omitempty"`
 	Displayname *string `json:"displayname,omitempty"`
+	LastLogin   *int    `json:"lastLogin,omitempty"`
+	LastLogout  *int    `json:"lastLogout,omitempty"`
 	Stats       *stats  `json:"stats,omitempty"`
 }
 
