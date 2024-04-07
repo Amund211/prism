@@ -687,3 +687,20 @@ def test_fill_missing_settings(
         )
     assert settings_dict == result_dict
     assert settings_updated == result_updated
+
+
+def test_sort_ascending() -> None:
+    settings = Settings.from_dict(
+        make_settings_dict(
+            sort_order="stars", rating_configs=CUSTOM_RATING_CONFIG_COLLECTION_DICT
+        ),
+        path=PLACEHOLDER_PATH,
+    )
+
+    assert settings.sort_ascending
+
+    settings.sort_order = "index"
+    assert not settings.sort_ascending
+
+    settings.sort_order = "username"
+    assert not settings.sort_ascending

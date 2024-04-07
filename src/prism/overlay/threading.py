@@ -223,7 +223,7 @@ def prepare_overlay(
             players,
             state.party_members,
             controller.settings.sort_order,
-            sort_ascending=False,
+            controller.settings.sort_ascending,
         )
 
         return sorted_stats
