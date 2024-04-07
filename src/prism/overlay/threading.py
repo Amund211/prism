@@ -220,7 +220,10 @@ def prepare_overlay(
             players.append(cached_stats)
 
         sorted_stats = sort_players(
-            players, state.party_members, controller.settings.sort_order
+            players,
+            state.party_members,
+            controller.settings.sort_order,
+            sort_ascending=False,
         )
 
         return sorted_stats
