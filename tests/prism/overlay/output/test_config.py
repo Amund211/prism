@@ -23,10 +23,10 @@ from tests.prism.overlay.utils import (
 def test_rating_config_input_validation() -> None:
     with pytest.raises(ValueError):
         for decimals in range(1, 10):
-            RatingConfig(True, (1.0, 2.0), -decimals)
+            RatingConfig(True, (1.0, 2.0), -decimals, True)
 
     for decimals in range(10):
-        RatingConfig(True, (1.0, 2.0), decimals)
+        RatingConfig(True, (1.0, 2.0), decimals, True)
 
 
 @pytest.mark.parametrize(
@@ -97,10 +97,12 @@ def test_read_rating_config_collection_dict(
 DEFAULT_LEVELS = (1.0, 2.0, 3.0, 4.0)
 DEFAULT_DECIMALS = 2
 DEFAULT_RATE_BY_LEVEL = True
+DEFAULT_SORT_ASCENDING = True
 DEFAULT_CONFIG = RatingConfig(
     rate_by_level=DEFAULT_RATE_BY_LEVEL,
     levels=DEFAULT_LEVELS,
     decimals=DEFAULT_DECIMALS,
+    sort_ascending=DEFAULT_SORT_ASCENDING,
 )
 
 
@@ -111,22 +113,30 @@ READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], .
             "rate_by_level": False,
             "levels": (1.0, 5.0),
             "decimals": 4,
+            "sort_ascending": False,
         },
         {
             "type": "level_based",
             "rate_by_level": False,
             "levels": (1.0, 5.0),
             "decimals": 4,
+            "sort_ascending": False,
         },
     ),
     # type is optional for the time being
     (
-        {"levels": (1.0, 5.0), "rate_by_level": True, "decimals": 4},
+        {
+            "levels": (1.0, 5.0),
+            "rate_by_level": True,
+            "decimals": 4,
+            "sort_ascending": True,
+        },
         {
             "type": "level_based",
             "rate_by_level": True,
             "levels": (1.0, 5.0),
             "decimals": 4,
+            "sort_ascending": True,
         },
     ),
     (
@@ -136,6 +146,7 @@ READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], .
             "rate_by_level": DEFAULT_RATE_BY_LEVEL,
             "levels": (1.0, 5.0),
             "decimals": DEFAULT_DECIMALS,
+            "sort_ascending": DEFAULT_SORT_ASCENDING,
         },
     ),
     (
@@ -145,6 +156,7 @@ READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], .
             "rate_by_level": DEFAULT_RATE_BY_LEVEL,
             "levels": DEFAULT_LEVELS,
             "decimals": 10,
+            "sort_ascending": DEFAULT_SORT_ASCENDING,
         },
     ),
     (
@@ -154,6 +166,17 @@ READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], .
             "rate_by_level": False,
             "levels": DEFAULT_LEVELS,
             "decimals": DEFAULT_DECIMALS,
+            "sort_ascending": DEFAULT_SORT_ASCENDING,
+        },
+    ),
+    (
+        {"sort_ascending": False},
+        {
+            "type": "level_based",
+            "rate_by_level": DEFAULT_RATE_BY_LEVEL,
+            "levels": DEFAULT_LEVELS,
+            "decimals": DEFAULT_DECIMALS,
+            "sort_ascending": False,
         },
     ),
     (
@@ -163,6 +186,7 @@ READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], .
             "rate_by_level": DEFAULT_RATE_BY_LEVEL,
             "levels": DEFAULT_LEVELS,
             "decimals": DEFAULT_DECIMALS,
+            "sort_ascending": DEFAULT_SORT_ASCENDING,
         },
     ),
     # ints not accepted
@@ -173,6 +197,7 @@ READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], .
             "rate_by_level": DEFAULT_RATE_BY_LEVEL,
             "levels": DEFAULT_LEVELS,
             "decimals": DEFAULT_DECIMALS,
+            "sort_ascending": DEFAULT_SORT_ASCENDING,
         },
     ),
     # Invalid type
@@ -183,6 +208,18 @@ READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], .
             "rate_by_level": DEFAULT_RATE_BY_LEVEL,
             "levels": DEFAULT_LEVELS,
             "decimals": DEFAULT_DECIMALS,
+            "sort_ascending": DEFAULT_SORT_ASCENDING,
+        },
+    ),
+    # Invalid type
+    (
+        {"sort_ascending": ""},
+        {
+            "type": "level_based",
+            "rate_by_level": DEFAULT_RATE_BY_LEVEL,
+            "levels": DEFAULT_LEVELS,
+            "decimals": DEFAULT_DECIMALS,
+            "sort_ascending": DEFAULT_SORT_ASCENDING,
         },
     ),
     # Invalid type
@@ -193,6 +230,7 @@ READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], .
             "rate_by_level": DEFAULT_RATE_BY_LEVEL,
             "levels": DEFAULT_LEVELS,
             "decimals": DEFAULT_DECIMALS,
+            "sort_ascending": DEFAULT_SORT_ASCENDING,
         },
     ),
     # Invalid value
@@ -203,6 +241,7 @@ READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], .
             "rate_by_level": DEFAULT_RATE_BY_LEVEL,
             "levels": DEFAULT_LEVELS,
             "decimals": DEFAULT_DECIMALS,
+            "sort_ascending": DEFAULT_SORT_ASCENDING,
         },
     ),
 )

@@ -10,6 +10,7 @@ class RatingConfigDict(TypedDict):
     rate_by_level: bool
     levels: tuple[float, ...]
     decimals: int
+    sort_ascending: bool
 
 
 def read_rating_config_dict(
@@ -38,11 +39,17 @@ def read_rating_config_dict(
         decimals = default.decimals
         source_updated = True
 
+    sort_ascending = source.get("sort_ascending", None)
+    if not isinstance(sort_ascending, bool):
+        sort_ascending = default.sort_ascending
+        source_updated = True
+
     return {
         "type": "level_based",
         "rate_by_level": rate_by_level,
         "levels": tuple(levels),
         "decimals": decimals,
+        "sort_ascending": sort_ascending,
     }, source_updated
 
 
@@ -61,6 +68,7 @@ class RatingConfig:
     rate_by_level: bool
     levels: tuple[float, ...]
     decimals: int
+    sort_ascending: bool
 
     def __post_init__(self) -> None:
         """Validate parameters"""
@@ -73,6 +81,7 @@ class RatingConfig:
             rate_by_level=source["rate_by_level"],
             levels=source["levels"],
             decimals=source["decimals"],
+            sort_ascending=source["sort_ascending"],
         )
 
     def to_dict(self) -> RatingConfigDict:
@@ -81,41 +90,75 @@ class RatingConfig:
             "rate_by_level": self.rate_by_level,
             "levels": self.levels,
             "decimals": self.decimals,
+            "sort_ascending": self.sort_ascending,
         }
 
 
 DEFAULT_STARS_CONFIG = RatingConfig(
-    rate_by_level=False, levels=(100.0, 300.0, 500.0, 800.0), decimals=2
+    rate_by_level=False,
+    levels=(100.0, 300.0, 500.0, 800.0),
+    decimals=2,
+    sort_ascending=False,
 )
 DEFAULT_FKDR_CONFIG = RatingConfig(
-    rate_by_level=True, levels=(1.0, 2.0, 4.0, 8.0), decimals=2
+    rate_by_level=True,
+    levels=(1.0, 2.0, 4.0, 8.0),
+    decimals=2,
+    sort_ascending=False,
 )
 DEFAULT_INDEX_CONFIG = RatingConfig(
-    rate_by_level=True, levels=(100.0, 1_200.0, 8_000.0, 51_200.0), decimals=0
+    rate_by_level=True,
+    levels=(100.0, 1_200.0, 8_000.0, 51_200.0),
+    decimals=0,
+    sort_ascending=False,
 )
 DEFAULT_KDR_CONFIG = RatingConfig(
-    rate_by_level=True, levels=(1.0, 1.5, 2.0, 3.0), decimals=2
+    rate_by_level=True,
+    levels=(1.0, 1.5, 2.0, 3.0),
+    decimals=2,
+    sort_ascending=False,
 )
 DEFAULT_BBLR_CONFIG = RatingConfig(
-    rate_by_level=True, levels=(0.3, 1.0, 2.0, 4.0), decimals=2
+    rate_by_level=True,
+    levels=(0.3, 1.0, 2.0, 4.0),
+    decimals=2,
+    sort_ascending=False,
 )
 DEFAULT_WLR_CONFIG = RatingConfig(
-    rate_by_level=True, levels=(0.3, 1.0, 2.0, 4.0), decimals=2
+    rate_by_level=True,
+    levels=(0.3, 1.0, 2.0, 4.0),
+    decimals=2,
+    sort_ascending=False,
 )
 DEFAULT_WINSTREAK_CONFIG = RatingConfig(
-    rate_by_level=True, levels=(3.0, 5.0, 10.0, 20.0), decimals=0
+    rate_by_level=True,
+    levels=(3.0, 5.0, 10.0, 20.0),
+    decimals=0,
+    sort_ascending=False,
 )
 DEFAULT_KILLS_CONFIG = RatingConfig(
-    rate_by_level=True, levels=(5_000.0, 10_000.0, 20_000.0, 40_000.0), decimals=0
+    rate_by_level=True,
+    levels=(5_000.0, 10_000.0, 20_000.0, 40_000.0),
+    decimals=0,
+    sort_ascending=False,
 )
 DEFAULT_FINALS_CONFIG = RatingConfig(
-    rate_by_level=True, levels=(5_000.0, 10_000.0, 20_000.0, 40_000.0), decimals=0
+    rate_by_level=True,
+    levels=(5_000.0, 10_000.0, 20_000.0, 40_000.0),
+    decimals=0,
+    sort_ascending=False,
 )
 DEFAULT_BEDS_CONFIG = RatingConfig(
-    rate_by_level=True, levels=(2_000.0, 5_000.0, 10_000.0, 20_000.0), decimals=0
+    rate_by_level=True,
+    levels=(2_000.0, 5_000.0, 10_000.0, 20_000.0),
+    decimals=0,
+    sort_ascending=False,
 )
 DEFAULT_WINS_CONFIG = RatingConfig(
-    rate_by_level=True, levels=(1_000.0, 3_000.0, 6_000.0, 10_000.0), decimals=0
+    rate_by_level=True,
+    levels=(1_000.0, 3_000.0, 6_000.0, 10_000.0),
+    decimals=0,
+    sort_ascending=False,
 )
 
 
