@@ -695,7 +695,7 @@ class RatingConfigEditor:  # pragma: nocover
         color_by_level_label.grid(row=0, column=0, sticky=tk.E)
 
         self.rate_by_level_toggle = ToggleButton(
-            first_frame, toggle_callback=self._set_component_state
+            first_frame, toggle_callback=lambda enabled: self._set_component_state()
         )
         self.rate_by_level_toggle.button.grid(row=0, column=1, sticky=tk.W)
         parent.parent.make_widgets_scrollable(
@@ -714,6 +714,30 @@ class RatingConfigEditor:  # pragma: nocover
         self.decimals_spinbox = tk.Spinbox(first_frame, from_=0, to=6, width=2)
         self.decimals_spinbox.grid(row=0, column=3, sticky=tk.W)
         parent.parent.make_widgets_scrollable(decimals_label, self.decimals_spinbox)
+
+        sort_ascending_label = tk.Label(
+            first_frame,
+            text="Sort order:",
+            font=("Consolas", 10),
+            foreground="white",
+            background="black",
+        )
+        sort_ascending_label.grid(row=1, column=0, sticky=tk.E)
+
+        self.sort_descending_toggle = ToggleButton(
+            first_frame,
+            toggle_callback=lambda enabled: self._set_component_state(flip_levels=True),
+            enabled_config={"text": "Descending"},
+            disabled_config={
+                "text": "Ascending ",
+                "background": "dodger blue",
+                "activebackground": "deep sky blue",
+            },
+        )
+        self.sort_descending_toggle.button.grid(row=1, column=1, sticky=tk.W)
+        parent.parent.make_widgets_scrollable(
+            sort_ascending_label, self.sort_descending_toggle.button
+        )
 
         levels_label = tk.Label(
             levels_frame,
@@ -762,16 +786,33 @@ class RatingConfigEditor:  # pragma: nocover
 
         parent.parent.make_widgets_scrollable(levels_label, *self.level_entries)
 
-    def _set_component_state(self, enabled: bool) -> None:
+    def _set_component_state(self, flip_levels: bool = False) -> None:
         """Disable level entries when not rating by level"""
+        state = self.get()
+        # Disable level entries when not rating by level
         for level_entry in self.level_entries:
-            level_entry.config(state=tk.NORMAL if enabled else tk.DISABLED)
+            level_entry.config(state=tk.NORMAL if state.rate_by_level else tk.DISABLED)
+
+        # Display the order the levels should be in depending on sort order
+        for less_than_or_greater_than_label in self.less_than_or_greater_than_labels:
+            less_than_or_greater_than_label.config(
+                text="≥" if state.sort_ascending else "≤"
+            )
+
+        if flip_levels:
+            # Flip the levels when changing sort order
+            old_levels = [level_entry.get() for level_entry in self.level_entries]
+            for new_level, level_entry_variable in zip(
+                reversed(old_levels), self.level_entry_variables
+            ):
+                level_entry_variable.set(new_level)
 
     def set(self, rating_config: RatingConfig) -> None:
         """Set the state of this section"""
         self.rate_by_level_toggle.set(rating_config.rate_by_level)
         self.decimals_spinbox.delete(0)
         self.decimals_spinbox.insert(0, str(rating_config.decimals))
+        self.sort_descending_toggle.set(not rating_config.sort_ascending)
         for level_value, level_entry_variable in zip(
             rating_config.levels, self.level_entry_variables
         ):
@@ -826,7 +867,7 @@ class RatingConfigEditor:  # pragma: nocover
             self.rate_by_level_toggle.enabled,
             self._get_levels(),
             decimals,
-            False,
+            not self.sort_descending_toggle.enabled,
         )
 
 
