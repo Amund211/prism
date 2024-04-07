@@ -65,6 +65,8 @@ class KnownPlayer:
     stars: float
     username: str
     uuid: str
+    lastLoginMs: int | None = field(default=None)
+    lastLogoutMs: int | None = field(default=None)
     nick: str | None = field(default=None)
 
     @property
@@ -258,6 +260,9 @@ def get_playerdata_field(
 def create_known_player(
     playerdata: Mapping[str, object], username: str, uuid: str, nick: str | None = None
 ) -> KnownPlayer:
+    lastLoginMs = get_playerdata_field(playerdata, "lastLogin", int, None)
+    lastLogoutMs = get_playerdata_field(playerdata, "lastLogout", int, None)
+
     try:
         bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
     except MissingStatsError:
@@ -265,6 +270,8 @@ def create_known_player(
             username=username,
             nick=nick,
             uuid=uuid,
+            lastLoginMs=lastLoginMs,
+            lastLogoutMs=lastLogoutMs,
             stars=0,
             stats=Stats(
                 index=0,
@@ -301,6 +308,8 @@ def create_known_player(
         nick=nick,
         uuid=uuid,
         stars=stars,
+        lastLoginMs=lastLoginMs,
+        lastLogoutMs=lastLogoutMs,
         stats=Stats(
             index=stars * fkdr**2,
             fkdr=fkdr,
