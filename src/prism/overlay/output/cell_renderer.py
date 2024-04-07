@@ -61,7 +61,7 @@ def truncate_float_or_int(value: float | int, decimals: int) -> str:
     return truncate_float(value, decimals)
 
 
-def rate_value(value: float, levels: Sequence[float]) -> int:
+def rate_value_descending(value: float, levels: Sequence[float]) -> int:
     """
     Rate the value according to the provided levels (sorted)
 
@@ -79,9 +79,24 @@ def rate_value(value: float, levels: Sequence[float]) -> int:
     return rating + 1
 
 
+def rate_value_ascending(value: float, levels: Sequence[float]) -> int:
+    """Like rate_value_descending but with low values rated highly"""
+    for rating, level in enumerate(levels):
+        if value > level:
+            return rating
+
+    # Passed all levels
+    return rating + 1
+
+
 def render_based_on_level(
-    text: str, value: int | float, levels: tuple[float, ...], rate_by_level: bool
+    text: str,
+    value: int | float,
+    levels: tuple[float, ...],
+    rate_by_level: bool,
+    sort_ascending: bool,
 ) -> CellValue:
+    rate_value = rate_value_ascending if sort_ascending else rate_value_descending
     if rate_by_level:
         rating = min(rate_value(value, levels), AMT_COLORS - 1)
         terminal_formatting = TERMINAL_FORMATTINGS[rating]
@@ -98,7 +113,11 @@ def render_based_on_level(
 
 
 def render_stars(
-    stars: float, decimals: int, levels: tuple[float, ...], use_star_colors: bool
+    stars: float,
+    decimals: int,
+    levels: tuple[float, ...],
+    use_star_colors: bool,
+    sort_ascending: bool,
 ) -> CellValue:
     """
     Render the user's star using the Hypixel BedWars star colors
@@ -108,7 +127,7 @@ def render_stars(
     """  # noqa: E501
     text = truncate_float(stars, decimals)
 
-    levels_rating = render_based_on_level(text, stars, levels, True)
+    levels_rating = render_based_on_level(text, stars, levels, True, sort_ascending)
     if not use_star_colors:
         return levels_rating
 
@@ -376,36 +395,42 @@ def render_stats(
             rating_configs.stars.decimals,
             rating_configs.stars.levels,
             use_star_colors=not rating_configs.stars.rate_by_level,
+            sort_ascending=rating_configs.index.sort_ascending,
         )
         index_cell = render_based_on_level(
             truncate_float_or_int(player.stats.index, rating_configs.index.decimals),
             player.stats.index,
             rating_configs.index.levels,
             rating_configs.index.rate_by_level,
+            rating_configs.index.sort_ascending,
         )
         fkdr_cell = render_based_on_level(
             truncate_float_or_int(player.stats.fkdr, rating_configs.fkdr.decimals),
             player.stats.fkdr,
             rating_configs.fkdr.levels,
             rating_configs.fkdr.rate_by_level,
+            rating_configs.fkdr.sort_ascending,
         )
         kdr_cell = render_based_on_level(
             truncate_float_or_int(player.stats.kdr, rating_configs.kdr.decimals),
             player.stats.kdr,
             rating_configs.kdr.levels,
             rating_configs.kdr.rate_by_level,
+            rating_configs.kdr.sort_ascending,
         )
         bblr_cell = render_based_on_level(
             truncate_float_or_int(player.stats.bblr, rating_configs.bblr.decimals),
             player.stats.bblr,
             rating_configs.bblr.levels,
             rating_configs.bblr.rate_by_level,
+            rating_configs.bblr.sort_ascending,
         )
         wlr_cell = render_based_on_level(
             truncate_float_or_int(player.stats.wlr, rating_configs.wlr.decimals),
             player.stats.wlr,
             rating_configs.wlr.levels,
             rating_configs.wlr.rate_by_level,
+            rating_configs.wlr.sort_ascending,
         )
         if player.stats.winstreak is not None:
             winstreak_str = (
@@ -420,30 +445,35 @@ def render_stats(
             winstreak_value,
             rating_configs.winstreak.levels,
             rating_configs.winstreak.rate_by_level,
+            rating_configs.winstreak.sort_ascending,
         )
         kills_cell = render_based_on_level(
             truncate_float_or_int(player.stats.kills, rating_configs.kills.decimals),
             player.stats.kills,
             rating_configs.kills.levels,
             rating_configs.kills.rate_by_level,
+            rating_configs.kills.sort_ascending,
         )
         finals_cell = render_based_on_level(
             truncate_float_or_int(player.stats.finals, rating_configs.finals.decimals),
             player.stats.finals,
             rating_configs.finals.levels,
             rating_configs.finals.rate_by_level,
+            rating_configs.finals.sort_ascending,
         )
         beds_cell = render_based_on_level(
             truncate_float_or_int(player.stats.beds, rating_configs.beds.decimals),
             player.stats.beds,
             rating_configs.beds.levels,
             rating_configs.beds.rate_by_level,
+            rating_configs.beds.sort_ascending,
         )
         wins_cell = render_based_on_level(
             truncate_float_or_int(player.stats.wins, rating_configs.wins.decimals),
             player.stats.wins,
             rating_configs.wins.levels,
             rating_configs.wins.rate_by_level,
+            rating_configs.wins.sort_ascending,
         )
     else:
         if isinstance(player, NickedPlayer):

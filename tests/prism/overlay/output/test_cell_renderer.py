@@ -9,7 +9,8 @@ from prism.overlay.output.cell_renderer import (
     TERMINAL_FORMATTINGS,
     RenderedStats,
     pick_columns,
-    rate_value,
+    rate_value_ascending,
+    rate_value_descending,
     render_based_on_level,
     render_stars,
 )
@@ -24,7 +25,7 @@ from prism.overlay.output.color import MinecraftColor, TerminalColor
 LEVELS = (0.1, 0.5, 1, 10, 100)
 
 # Tuples (value, rating) wrt LEVELS
-RATE_VALUE_CASES: tuple[tuple[float, int], ...] = (
+RATE_VALUE_DESCENDING_CASES: tuple[tuple[float, int], ...] = (
     (0, 0),
     (0.0, 0),
     (0.05, 0),
@@ -47,13 +48,44 @@ RATE_VALUE_CASES: tuple[tuple[float, int], ...] = (
     (-float("inf"), 0),
 )
 
+RATE_VALUE_ASCENDING_CASES: tuple[tuple[float, int], ...] = (
+    (0, 5),
+    (0.0, 5),
+    (0.05, 5),
+    (0.1, 5),
+    (0.2, 4),
+    (0.49, 4),
+    (0.50, 4),
+    (0.70, 3),
+    (1, 3),
+    (1.0, 3),
+    (1.5, 2),
+    (5, 2),
+    (10, 2),
+    (50, 1),
+    (50.1, 1),
+    (100, 1),
+    (1000, 0),
+    (float("inf"), 0),
+    (-1, 5),
+    (-float("inf"), 5),
+)
 
-@pytest.mark.parametrize("value, rating", RATE_VALUE_CASES)
-def test_rate_value(
+
+@pytest.mark.parametrize("value, rating", RATE_VALUE_DESCENDING_CASES)
+def test_rate_value_descending(
     value: float, rating: int, levels: Sequence[float] = LEVELS
 ) -> None:
-    """Assert that rate_value functions properly"""
-    assert rate_value(value, levels) == rating
+    """Assert that rate_value_descending functions properly"""
+    assert rate_value_descending(value, levels) == rating
+
+
+@pytest.mark.parametrize("value, rating", RATE_VALUE_ASCENDING_CASES)
+def test_rate_value_ascending(
+    value: float, rating: int, levels: Sequence[float] = tuple(reversed(LEVELS))
+) -> None:
+    """Assert that rate_value_ascending functions properly"""
+    assert rate_value_ascending(value, levels) == rating
 
 
 STAR_LEVELS = (400.0, 800.0, 1600.0, 2900.0)
@@ -425,7 +457,12 @@ def test_render_stars(
     cell_value: CellValue,
     levels: tuple[float, ...] = STAR_LEVELS,
 ) -> None:
-    assert render_stars(stars, decimals, levels, use_star_colors=True) == cell_value
+    assert (
+        render_stars(
+            stars, decimals, levels, use_star_colors=True, sort_ascending=False
+        )
+        == cell_value
+    )
 
     cell_value_no_star_color = replace(
         cell_value,
@@ -437,7 +474,9 @@ def test_render_stars(
         ),
     )
     assert (
-        render_stars(stars, decimals, levels, use_star_colors=False)
+        render_stars(
+            stars, decimals, levels, use_star_colors=False, sort_ascending=False
+        )
         == cell_value_no_star_color
     )
 
@@ -543,29 +582,33 @@ def test_pick_columns(
 
 
 @pytest.mark.parametrize(
-    "text, value, rate_by_level, target",
+    "text, value, rate_by_level, sort_ascending, target",
     (
         (
             "a",
             0,
             True,
+            False,
             CellValue.monochrome("a", TERMINAL_FORMATTINGS[0], GUI_COLORS[0]),
         ),
         (
             "a",
             0,
             False,
+            False,
             CellValue.monochrome("a", TERMINAL_FORMATTINGS[1], GUI_COLORS[1]),
         ),
         (
             "a",
             0.1,
             True,
+            False,
             CellValue.monochrome("a", TERMINAL_FORMATTINGS[1], GUI_COLORS[1]),
         ),
         (
             "a",
             0.1,
+            False,
             False,
             CellValue.monochrome("a", TERMINAL_FORMATTINGS[1], GUI_COLORS[1]),
         ),
@@ -573,35 +616,91 @@ def test_pick_columns(
             "a",
             0.5,
             True,
+            False,
             CellValue.monochrome("a", TERMINAL_FORMATTINGS[2], GUI_COLORS[2]),
         ),
         (
             "a",
             0.5,
             False,
+            False,
             CellValue.monochrome("a", TERMINAL_FORMATTINGS[1], GUI_COLORS[1]),
         ),
         (
             "a",
             1,
             True,
+            False,
             CellValue.monochrome("a", TERMINAL_FORMATTINGS[3], GUI_COLORS[3]),
         ),
         (
             "a",
             1,
             False,
+            False,
             CellValue.monochrome("a", TERMINAL_FORMATTINGS[1], GUI_COLORS[1]),
+        ),
+        # Ascending
+        (
+            "a",
+            0,
+            True,
+            True,
+            CellValue.monochrome("a", TERMINAL_FORMATTINGS[4], GUI_COLORS[4]),
+        ),
+        (
+            "a",
+            0.01,
+            True,
+            True,
+            CellValue.monochrome("a", TERMINAL_FORMATTINGS[4], GUI_COLORS[4]),
+        ),
+        (
+            "a",
+            0.1,
+            True,
+            True,
+            CellValue.monochrome("a", TERMINAL_FORMATTINGS[4], GUI_COLORS[4]),
+        ),
+        (
+            "a",
+            0.5,
+            True,
+            True,
+            CellValue.monochrome("a", TERMINAL_FORMATTINGS[3], GUI_COLORS[3]),
+        ),
+        (
+            "a",
+            0.8,
+            True,
+            True,
+            CellValue.monochrome("a", TERMINAL_FORMATTINGS[2], GUI_COLORS[2]),
+        ),
+        (
+            "a",
+            1.0,
+            True,
+            True,
+            CellValue.monochrome("a", TERMINAL_FORMATTINGS[2], GUI_COLORS[2]),
         ),
     ),
 )
 def test_render_based_on_level(
-    text: str, value: float, rate_by_level: bool, target: CellValue
+    text: str,
+    value: float,
+    rate_by_level: bool,
+    sort_ascending: bool,
+    target: CellValue,
 ) -> None:
-    assert render_based_on_level(text, value, LEVELS, rate_by_level) == target
+    levels: tuple[float, ...] = (0.1, 0.5, 1, 10)
+    levels = tuple(reversed(levels)) if sort_ascending else levels
+    assert (
+        render_based_on_level(text, value, levels, rate_by_level, sort_ascending)
+        == target
+    )
 
 
 def test_render_based_on_level_too_many_levels() -> None:
     assert render_based_on_level(
-        "a", 100, (1, 2, 3, 4, 5, 6, 7, 8), True
+        "a", 100, (1, 2, 3, 4, 5, 6, 7, 8), True, sort_ascending=False
     ) == CellValue.monochrome("a", TERMINAL_FORMATTINGS[4], GUI_COLORS[4])
