@@ -99,6 +99,17 @@ class Settings:
         default_factory=threading.Lock, init=False, compare=False, repr=False
     )
 
+    @property
+    def sort_ascending(self) -> bool:
+        """Return True if the sort order is ascending for the current sort column"""
+        sort_order = self.sort_order  # The column we sort on
+        if sort_order == "username":
+            return False
+
+        config = self.rating_configs.to_dict()[sort_order]
+
+        return config["sort_ascending"]
+
     @classmethod
     def from_dict(cls, source: SettingsDict, path: Path) -> Self:
         return cls(
