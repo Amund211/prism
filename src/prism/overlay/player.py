@@ -159,7 +159,7 @@ Player = KnownPlayer | NickedPlayer | PendingPlayer | UnknownPlayer
 
 
 def rate_player(
-    player: Player, party_members: Set[str], column: "ColumnName"
+    player: Player, party_members: Set[str], column: "ColumnName", sort_ascending: bool
 ) -> tuple[bool, bool, str | int | float]:
     """Used as a key function for sorting"""
     is_enemy = player.username not in party_members
@@ -201,14 +201,22 @@ def rate_player(
             )
         else:  # pragma: no coverage
             assert_never(column)
+
+        # Invert the value to sort ascending with a descending sort
+        if sort_ascending:
+            stat *= -1
     else:
+        # Unknown players are always sorted last
         stat = 0 if column == "username" else float("-inf")
 
     return (is_enemy, player.stats_unknown, stat)
 
 
 def sort_players(
-    players: list[Player], party_members: Set[str], column: "ColumnName"
+    players: list[Player],
+    party_members: Set[str],
+    column: "ColumnName",
+    sort_ascending: bool,
 ) -> list[Player]:
     """
     Sort the players by the given column in reverse order (largest at the top)
@@ -220,7 +228,10 @@ def sort_players(
         sorted(
             sorted(players, key=operator.attrgetter("username")),
             key=functools.partial(
-                rate_player, party_members=party_members, column=column
+                rate_player,
+                party_members=party_members,
+                column=column,
+                sort_ascending=sort_ascending,
             ),
             reverse=True,
         )

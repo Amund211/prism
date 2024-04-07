@@ -129,12 +129,15 @@ def test_update_winstreaks(
     )
 
 
-sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], ...] = (
+sort_test_cases: tuple[
+    tuple[list[Player], set[str], ColumnName, list[Player], list[Player] | None], ...
+] = (
     # Unknown player sorted to the top
     (
         [players["joshua"], players["error_guy"]],
         set(),
         "fkdr",
+        [players["error_guy"], players["joshua"]],
         [players["error_guy"], players["joshua"]],
     ),
     # Joe has better fkdr than Carl
@@ -143,18 +146,22 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
         set(),
         "fkdr",
         [players["joe"], players["carl"]],
+        None,
     ),
     (
         [players["joe"], players["carl"]],
         set(),
         "fkdr",
         [players["joe"], players["carl"]],
+        None,
     ),
     # Same fkdr -> sorted by name
     (
         [players["carl_jr"], players["carl"], players["carl_jr_jr"]],
         set(),
         "fkdr",
+        [players["carl"], players["carl_jr"], players["carl_jr_jr"]],
+        # Ascending sort by fkdr also gives fallback sort by name
         [players["carl"], players["carl_jr"], players["carl_jr_jr"]],
     ),
     # If the juniors are on our team though, they get sorted last
@@ -163,11 +170,13 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
         {"carl_jr_jr"},
         "fkdr",
         [players["carl"], players["carl_jr"], players["carl_jr_jr"]],
+        [players["carl"], players["carl_jr"], players["carl_jr_jr"]],
     ),
     (
         [players["carl_jr"], players["carl"], players["carl_jr_jr"]],
         {"carl_jr_jr", "carl_jr"},
         "fkdr",
+        [players["carl"], players["carl_jr"], players["carl_jr_jr"]],
         [players["carl"], players["carl_jr"], players["carl_jr_jr"]],
     ),
     # Everyone has 1 fkdr, so the lobby is sorted by username
@@ -180,6 +189,12 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
         ],
         set(),
         "fkdr",
+        [
+            players["carl"],
+            players["carl_jr"],
+            players["carl_jr_jr"],
+            players["joseph"],
+        ],
         [
             players["carl"],
             players["carl_jr"],
@@ -202,12 +217,19 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
             players["carl_jr_jr"],
             players["joseph"],
         ],
+        [
+            players["carl"],
+            players["carl_jr"],
+            players["carl_jr_jr"],
+            players["joseph"],
+        ],
     ),
     # Nicks get sorted at the top - sorted by username
     (
         [players["joe"], players["amazing_nick"], players["bad_nick"]],
         set(),
         "fkdr",
+        [players["amazing_nick"], players["bad_nick"], players["joe"]],
         [players["amazing_nick"], players["bad_nick"], players["joe"]],
     ),
     # Pending players get sorted at the bottom (above teammates)
@@ -216,17 +238,20 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
         set(),
         "fkdr",
         [players["joe"], players["alfred"], players["maurice"]],
+        [players["joe"], players["alfred"], players["maurice"]],
     ),
     (
         [players["joe"], players["maurice"], players["alfred"]],
         {"joe"},
         "fkdr",
         [players["alfred"], players["maurice"], players["joe"]],
+        [players["alfred"], players["maurice"], players["joe"]],
     ),
     (
         [players["joe"], players["maurice"], players["alfred"]],
         {"joe", "maurice"},
         "fkdr",
+        [players["alfred"], players["joe"], players["maurice"]],
         [players["alfred"], players["joe"], players["maurice"]],
     ),
     # Both pending players and nicks and real players
@@ -249,6 +274,14 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
             players["alfred"],
             players["maurice"],
         ],
+        [
+            players["amazing_nick"],
+            players["bad_nick"],
+            players["carl"],
+            players["joe"],
+            players["alfred"],
+            players["maurice"],
+        ],
     ),
     # Denicked player
     (
@@ -256,20 +289,22 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
         set(),
         "fkdr",
         [players["chad"], players["joe"]],
+        None,
     ),
     (
         [players["chad"], players["joe"]],
         {"chad"},
         "fkdr",
         [players["joe"], players["chad"]],
+        [players["joe"], players["chad"]],
     ),
     # Empty list is ok
-    ([], set(), "fkdr", []),
-    ([], {"unknown"}, "fkdr", []),
-    ([], {"unknown", "unknown2"}, "fkdr", []),
+    ([], set(), "fkdr", [], None),
+    ([], {"unknown"}, "fkdr", [], None),
+    ([], {"unknown", "unknown2"}, "fkdr", [], None),
     # Single person is ok
-    ([players["joe"]], set(), "fkdr", [players["joe"]]),
-    ([players["joe"]], {"unknown", "unknown2"}, "fkdr", [players["joe"]]),
+    ([players["joe"]], set(), "fkdr", [players["joe"]], None),
+    ([players["joe"]], {"unknown", "unknown2"}, "fkdr", [players["joe"]], None),
     # Different stats
     (
         [
@@ -280,6 +315,13 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
         ],
         set(),
         "username",
+        [
+            players["jonathan"],
+            players["joshua"],
+            players["nathaniel"],
+            players["nigel"],
+        ],
+        # Sort on username is not affected by sort_ascending
         [
             players["jonathan"],
             players["joshua"],
@@ -302,6 +344,7 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
             players["nathaniel"],
             players["jonathan"],
         ],
+        None,
     ),
     (
         [
@@ -318,6 +361,7 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
             players["nathaniel"],
             players["jonathan"],
         ],
+        None,
     ),
     (
         [
@@ -334,6 +378,7 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
             players["joshua"],
             players["jonathan"],
         ],
+        None,
     ),
     (
         [
@@ -350,6 +395,7 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
             players["nigel"],
             players["jonathan"],
         ],
+        None,
     ),
     (
         [
@@ -366,6 +412,7 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
             players["joshua"],
             players["jonathan"],
         ],
+        None,
     ),
     (
         [
@@ -382,6 +429,7 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
             players["nigel"],
             players["jonathan"],
         ],
+        None,
     ),
     (
         [
@@ -398,6 +446,7 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
             players["jonathan"],
             players["nathaniel"],
         ],
+        None,
     ),
     (
         [
@@ -414,6 +463,7 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
             players["jonathan"],
             players["nathaniel"],
         ],
+        None,
     ),
     (
         [
@@ -430,6 +480,7 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
             players["jonathan"],
             players["joshua"],
         ],
+        None,
     ),
     (
         [
@@ -446,6 +497,7 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
             players["jonathan"],
             players["nigel"],
         ],
+        None,
     ),
     (
         [
@@ -462,19 +514,30 @@ sort_test_cases: tuple[tuple[list[Player], set[str], ColumnName, list[Player]], 
             players["jonathan"],
             players["joshua"],
         ],
+        None,
     ),
 )
 
 
-@pytest.mark.parametrize("players, party_members, column, result", sort_test_cases)
+@pytest.mark.parametrize(
+    "players, party_members, column, result, ascending_result", sort_test_cases
+)
 def test_sort_stats(
     players: list[Player],
     party_members: set[str],
     column: ColumnName,
     result: list[Player],
+    ascending_result: list[Player] | None,
 ) -> None:
     """Assert that sort_players functions properly"""
-    assert sort_players(players, party_members, column) == result
+    assert sort_players(players, party_members, column, sort_ascending=False) == result
+
+    ascending_result = (
+        ascending_result if ascending_result is not None else list(reversed(result))
+    )
+    assert sort_players(players, party_members, column, sort_ascending=True) == list(
+        ascending_result
+    )
 
 
 @pytest.mark.parametrize(
