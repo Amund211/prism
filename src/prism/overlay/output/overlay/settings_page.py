@@ -823,7 +823,10 @@ class RatingConfigEditor:  # pragma: nocover
             decimals = self.default.decimals
 
         return RatingConfig(
-            self.rate_by_level_toggle.enabled, self._get_levels(), decimals
+            self.rate_by_level_toggle.enabled,
+            self._get_levels(),
+            decimals,
+            False,
         )
 
 
