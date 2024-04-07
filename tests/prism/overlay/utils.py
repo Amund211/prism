@@ -158,6 +158,8 @@ def make_player(
     wins: int = ...,
     nick: str | None = ...,
     uuid: str = ...,
+    lastLoginMs: int | None = ...,
+    lastLogoutMs: int | None = ...,
 ) -> KnownPlayer: ...
 
 
@@ -177,6 +179,8 @@ def make_player(
     wins: int = 0,
     nick: str | None = None,
     uuid: str = "placeholder",
+    lastLoginMs: int | None = None,
+    lastLogoutMs: int | None = None,
 ) -> Player:
     if variant == "player":
         return KnownPlayer(
@@ -197,6 +201,8 @@ def make_player(
             username=username,
             nick=nick,
             uuid=uuid,
+            lastLoginMs=lastLoginMs,
+            lastLogoutMs=lastLogoutMs,
         )
     elif variant == "unknown":
         return UnknownPlayer(username)

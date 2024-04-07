@@ -673,6 +673,8 @@ def test_create_known_player_known_winstreak() -> None:
         username="KnownWinstreak",
         uuid="my-uuid",
         stars=1.0,
+        lastLoginMs=1234,
+        lastLogoutMs=5678,
         stats=Stats(
             index=0.0,
             fkdr=0.0,
@@ -691,6 +693,8 @@ def test_create_known_player_known_winstreak() -> None:
     result = create_known_player(
         playerdata={
             "displayname": "KnownWinstreak",
+            "lastLogin": 1234,
+            "lastLogout": 5678,
             "stats": {
                 "Bedwars": {
                     "winstreak": 13,
@@ -710,6 +714,8 @@ def test_create_known_player_broken_data() -> None:
         username="BrokenPlayer",
         uuid="my-uuid",
         stars=1.0,
+        lastLoginMs=None,
+        lastLogoutMs=None,
         stats=Stats(
             index=0.0,
             fkdr=0.0,
@@ -729,6 +735,8 @@ def test_create_known_player_broken_data() -> None:
     result = create_known_player(
         playerdata={
             "displayname": "BrokenPlayer",
+            "lastLogin": "abcd",
+            "lastLogout": [],
             "stats": {
                 "Bedwars": {
                     "winstreak": (),
