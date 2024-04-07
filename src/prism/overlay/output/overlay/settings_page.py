@@ -730,6 +730,7 @@ class RatingConfigEditor:  # pragma: nocover
             tk.Entry(levels_frame, textvariable=level_entry_variable, width=10)
             for i, level_entry_variable in enumerate(self.level_entry_variables)
         ]
+        self.less_than_or_greater_than_labels: list[tk.Label] = []
         for i, (classification, level_entry) in enumerate(
             zip(("Meh", "Decent", "Good", "Scary"), self.level_entries, strict=True)
         ):
@@ -740,10 +741,24 @@ class RatingConfigEditor:  # pragma: nocover
                 foreground="white",
                 background="black",
             )
-            classification_label.grid(row=1, column=i + 1)
+            classification_label.grid(row=1, column=2 * i + 1)
             parent.parent.make_widgets_scrollable(classification_label)
 
-            level_entry.grid(row=2, column=i + 1)
+            level_entry.grid(row=2, column=2 * i + 1)
+
+            if i <= 2:
+                less_than_or_greater_than_label = tk.Label(
+                    levels_frame,
+                    text="≤",
+                    font=("Consolas", 10),
+                    foreground="white",
+                    background="black",
+                )
+                less_than_or_greater_than_label.grid(row=2, column=2 * (i + 1))
+                self.less_than_or_greater_than_labels.append(
+                    less_than_or_greater_than_label
+                )
+                parent.parent.make_widgets_scrollable(less_than_or_greater_than_label)
 
         parent.parent.make_widgets_scrollable(levels_label, *self.level_entries)
 
