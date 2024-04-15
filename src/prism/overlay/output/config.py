@@ -160,6 +160,12 @@ DEFAULT_WINS_CONFIG = RatingConfig(
     decimals=0,
     sort_ascending=False,
 )
+DEFAULT_SESSIONTIME_CONFIG = RatingConfig(
+    rate_by_level=True,
+    levels=(60.0, 30.0, 10.0, 5.0),
+    decimals=0,
+    sort_ascending=True,
+)
 
 
 class RatingConfigCollectionDict(TypedDict):
@@ -176,6 +182,7 @@ class RatingConfigCollectionDict(TypedDict):
     finals: RatingConfigDict
     beds: RatingConfigDict
     wins: RatingConfigDict
+    sessiontime: RatingConfigDict
 
 
 def read_rating_config_collection_dict(
@@ -239,6 +246,11 @@ def read_rating_config_collection_dict(
     )
     any_source_updated |= source_updated
 
+    sessiontime, source_updated = safe_read_rating_config_dict(
+        source.get("sessiontime", None), default=DEFAULT_SESSIONTIME_CONFIG
+    )
+    any_source_updated |= source_updated
+
     return {
         "stars": stars,
         "index": index,
@@ -251,6 +263,7 @@ def read_rating_config_collection_dict(
         "finals": finals,
         "beds": beds,
         "wins": wins,
+        "sessiontime": sessiontime,
     }, any_source_updated
 
 
@@ -277,6 +290,7 @@ class RatingConfigCollection:
     finals: RatingConfig
     beds: RatingConfig
     wins: RatingConfig
+    sessiontime: RatingConfig
 
     @classmethod
     def from_dict(cls, source: RatingConfigCollectionDict) -> Self:
@@ -292,6 +306,7 @@ class RatingConfigCollection:
             finals=RatingConfig.from_dict(source["finals"]),
             beds=RatingConfig.from_dict(source["beds"]),
             wins=RatingConfig.from_dict(source["wins"]),
+            sessiontime=RatingConfig.from_dict(source["sessiontime"]),
         )
 
     def to_dict(self) -> RatingConfigCollectionDict:
@@ -307,4 +322,5 @@ class RatingConfigCollection:
             "finals": self.finals.to_dict(),
             "beds": self.beds.to_dict(),
             "wins": self.wins.to_dict(),
+            "sessiontime": self.sessiontime.to_dict(),
         }

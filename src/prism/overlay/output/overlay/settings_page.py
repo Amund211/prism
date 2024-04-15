@@ -22,6 +22,7 @@ from prism.overlay.output.config import (
     DEFAULT_INDEX_CONFIG,
     DEFAULT_KDR_CONFIG,
     DEFAULT_KILLS_CONFIG,
+    DEFAULT_SESSIONTIME_CONFIG,
     DEFAULT_STARS_CONFIG,
     DEFAULT_WINS_CONFIG,
     DEFAULT_WINSTREAK_CONFIG,
@@ -877,6 +878,9 @@ class StatsSetting:  # pragma: nocover
         self.frame = parent.make_section("Stats Settings")
         self.frame.columnconfigure(0, weight=0)
 
+        self.sessiontime_editor = RatingConfigEditor(
+            self, "sessiontime", DEFAULT_SESSIONTIME_CONFIG
+        )
         self.stars_editor = RatingConfigEditor(self, "stars", DEFAULT_STARS_CONFIG)
         self.index_editor = RatingConfigEditor(self, "index", DEFAULT_INDEX_CONFIG)
         self.fkdr_editor = RatingConfigEditor(self, "fkdr", DEFAULT_FKDR_CONFIG)
@@ -902,6 +906,7 @@ class StatsSetting:  # pragma: nocover
 
     def set(self, rating_configs: RatingConfigCollection) -> None:
         """Set the state of this section"""
+        self.sessiontime_editor.set(rating_configs.sessiontime)
         self.stars_editor.set(rating_configs.stars)
         self.index_editor.set(rating_configs.index)
         self.fkdr_editor.set(rating_configs.fkdr)
@@ -928,6 +933,7 @@ class StatsSetting:  # pragma: nocover
             finals=self.finals_editor.get(),
             beds=self.beds_editor.get(),
             wins=self.wins_editor.get(),
+            sessiontime=self.sessiontime_editor.get(),
         )
 
 
