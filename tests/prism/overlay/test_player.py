@@ -54,6 +54,8 @@ players: dict[str, Player] = {
         finals=2,
         beds=2,
         wins=2,
+        lastLogoutMs=1000,
+        lastLoginMs=2000,
     ),
     "nathaniel": make_player(
         username="nathaniel",
@@ -67,6 +69,8 @@ players: dict[str, Player] = {
         finals=3,
         beds=3,
         wins=4,
+        lastLogoutMs=2000,
+        lastLoginMs=1000,
     ),
     "joshua": make_player(
         username="joshua",
@@ -80,6 +84,8 @@ players: dict[str, Player] = {
         finals=1,
         beds=4,
         wins=1,
+        lastLogoutMs=3000,
+        lastLoginMs=4000,
     ),
     "nigel": make_player(
         username="nigel",
@@ -93,6 +99,8 @@ players: dict[str, Player] = {
         finals=4,
         beds=1,
         wins=3,
+        lastLogoutMs=4000,
+        lastLoginMs=3000,
     ),
 }
 
@@ -513,6 +521,23 @@ sort_test_cases: tuple[
             players["nigel"],
             players["jonathan"],
             players["joshua"],
+        ],
+        None,
+    ),
+    (
+        [
+            players["jonathan"],
+            players["nathaniel"],
+            players["joshua"],
+            players["nigel"],
+        ],
+        set(),
+        "sessiontime",
+        [
+            players["joshua"],
+            players["nigel"],
+            players["jonathan"],
+            players["nathaniel"],
         ],
         None,
     ),

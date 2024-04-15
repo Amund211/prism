@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from functools import lru_cache
 from typing import assert_never
@@ -13,7 +13,7 @@ from prism.overlay.player import (
     Player,
     UnknownPlayer,
 )
-from prism.utils import truncate_float
+from prism.utils import format_seconds_short, truncate_float
 
 TERMINAL_FORMATTINGS = (
     TerminalColor.LIGHT_GRAY,
@@ -52,6 +52,7 @@ class RenderedStats:
     finals: CellValue
     beds: CellValue
     wins: CellValue
+    sessiontime: CellValue
 
 
 def truncate_float_or_int(value: float | int, decimals: int) -> str:
@@ -381,7 +382,9 @@ def render_stars(
 
 @lru_cache(maxsize=100)
 def render_stats(
-    player: "Player", rating_configs: RatingConfigCollection
+    player: "Player",
+    rating_configs: RatingConfigCollection,
+    now_seconds: Callable[[], float],
 ) -> RenderedStats:
     username_str = player.username
 
@@ -475,6 +478,25 @@ def render_stats(
             rating_configs.wins.rate_by_level,
             rating_configs.wins.sort_ascending,
         )
+        if player.lastLoginMs is not None:
+            sessiontime_seconds = now_seconds() - player.lastLoginMs / 1000
+            if player.lastLogoutMs is None or player.lastLogoutMs > player.lastLoginMs:
+                # Player seems to be offline -> say that their session just started
+                sessiontime_seconds = 0
+            sessiontime_str = format_seconds_short(
+                sessiontime_seconds, rating_configs.sessiontime.decimals
+            )
+            sessiontime_value = sessiontime_seconds / 60
+        else:
+            sessiontime_str = "-"
+            sessiontime_value = float("-inf")
+        sessiontime_cell = render_based_on_level(
+            sessiontime_str,
+            sessiontime_value,
+            rating_configs.sessiontime.levels,
+            rating_configs.sessiontime.rate_by_level,
+            rating_configs.sessiontime.sort_ascending,
+        )
     else:
         if isinstance(player, NickedPlayer):
             text = "nick"
@@ -496,6 +518,7 @@ def render_stats(
         )
         stars_cell = index_cell = fkdr_cell = kdr_cell = bblr_cell = wlr_cell = cell
         winstreak_cell = kills_cell = finals_cell = beds_cell = wins_cell = cell
+        sessiontime_cell = cell
 
     username_cell = CellValue.monochrome(
         username_str,
@@ -516,6 +539,7 @@ def render_stats(
         finals=finals_cell,
         beds=beds_cell,
         wins=wins_cell,
+        sessiontime=sessiontime_cell,
     )
 
 
