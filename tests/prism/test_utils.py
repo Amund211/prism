@@ -8,6 +8,7 @@ from prism.utils import (
     Time,
     div,
     format_seconds,
+    format_seconds_short,
     insort_right,
     pluralize,
     read_key,
@@ -176,3 +177,27 @@ def test_insort_right_property() -> None:
 )
 def test_format_seconds(seconds: float, text: str) -> None:
     assert format_seconds(seconds) == text
+
+
+@pytest.mark.parametrize(
+    "seconds, decimals, text",
+    (
+        (0, 0, "<1m"),
+        (0.1234, 1, "<1m"),
+        (0.991, 2, "<1m"),
+        (0.999, 3, "<1m"),  # Float formatting performs rounding
+        (Time.SECOND, 0, "<1m"),
+        (40 * Time.SECOND, 0, "<1m"),
+        (Time.MINUTE, 0, "1m"),
+        (Time.MINUTE, 1, "1.0m"),
+        (13 * Time.MINUTE, 0, "13m"),
+        (Time.HOUR, 0, "1h"),
+        (16 * Time.HOUR, 0, "16h"),
+        (75 * Time.HOUR, 0, "75h"),
+        (Time.DAY, 0, "24h"),
+        (20 * Time.DAY, 0, "480h"),
+        (30 * Time.DAY, 0, "720h"),
+    ),
+)
+def test_format_seconds_short(seconds: float, decimals: int, text: str) -> None:
+    assert format_seconds_short(seconds, decimals) == text
