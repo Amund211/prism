@@ -72,7 +72,8 @@ def make_settings_dict(
         "use_antisniper_api": value_or_default(use_antisniper_api, default=True),
         "sort_order": value_or_default(sort_order, default="index"),
         "column_order": value_or_default(
-            column_order, default=("username", "stars", "fkdr", "kdr", "winstreak")
+            column_order,
+            default=("username", "stars", "fkdr", "kdr", "winstreak", "sessiontime"),
         ),
         "rating_configs": value_or_default(
             rating_configs, default=DEFAULT_RATING_CONFIG_COLLECTION_DICT
