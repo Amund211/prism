@@ -201,6 +201,11 @@ def rate_player(
                 if player.stats.winstreak is not None
                 else float("inf")
             )
+        elif column == "sessiontime":
+            # Sorting by last login ascending we get the shortest session times first
+            stat = (
+                player.lastLoginMs if player.lastLoginMs is not None else float("inf")
+            )
         else:  # pragma: no coverage
             assert_never(column)
 

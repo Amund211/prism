@@ -21,6 +21,14 @@ from prism.overlay.player import (
     UnknownPlayer,
 )
 
+CURRENT_TIME_MS = 1234567890123
+CURRENT_TIME_SECONDS = CURRENT_TIME_MS / 1000
+
+# One minute measured in milliseconds
+MINUTE_MS = 60 * 1000
+HOUR_MS = 60 * MINUTE_MS
+DAY_MS = 24 * HOUR_MS
+
 # Tuples (terminal_formatting, gui_color)
 rating0, rating1, rating2, rating3, rating4 = zip(TERMINAL_FORMATTINGS, GUI_COLORS)
 
@@ -52,6 +60,8 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
         KnownPlayer(
             username="Player",
             uuid="some-fake-uuid",
+            lastLoginMs=CURRENT_TIME_MS - MINUTE_MS // 2,
+            lastLogoutMs=CURRENT_TIME_MS - 2 * DAY_MS,
             stars=10.0,
             stats=Stats(
                 index=10.0,
@@ -82,6 +92,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 finals=CellValue.monochrome("5", *rating0),
                 beds=CellValue.monochrome("2", *rating0),
                 wins=CellValue.monochrome("1", *rating0),
+                sessiontime=CellValue.monochrome("<1m", *rating4),
             ),
         ),
     ),
@@ -90,6 +101,8 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
             username="Denicked",
             nick="the_amazing_nick",
             uuid="some-fake-uuid",
+            lastLoginMs=CURRENT_TIME_MS - 2 * HOUR_MS,
+            lastLogoutMs=CURRENT_TIME_MS - 2 * DAY_MS,
             stars=600.0,
             stats=Stats(
                 index=600.0 * 10.0**2,
@@ -120,6 +133,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 finals=CellValue.monochrome("23000", *rating3),
                 beds=CellValue.monochrome("8000", *rating2),
                 wins=CellValue.monochrome("6000", *rating3),
+                sessiontime=CellValue.monochrome("2h", *rating0),
             ),
         ),
     ),
@@ -140,6 +154,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 finals=CellValue.monochrome("nick", *rating4),
                 beds=CellValue.monochrome("nick", *rating4),
                 wins=CellValue.monochrome("nick", *rating4),
+                sessiontime=CellValue.monochrome("nick", *rating4),
             ),
         ),
     ),
@@ -160,6 +175,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 finals=CellValue.monochrome("error", *rating4),
                 beds=CellValue.monochrome("error", *rating4),
                 wins=CellValue.monochrome("error", *rating4),
+                sessiontime=CellValue.monochrome("error", *rating4),
             ),
         ),
     ),
@@ -180,14 +196,17 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 finals=CellValue.monochrome("-", *rating0),
                 beds=CellValue.monochrome("-", *rating0),
                 wins=CellValue.monochrome("-", *rating0),
+                sessiontime=CellValue.monochrome("-", *rating0),
             ),
         ),
     ),
-    # Missing winstreak
+    # Missing winstreak and sessiontime
     (
         KnownPlayer(
             username="MissingWS",
             uuid="some-fake-uuid",
+            lastLoginMs=None,
+            lastLogoutMs=None,
             stars=9.0,
             stats=Stats(
                 index=9.0,
@@ -218,6 +237,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 finals=CellValue.monochrome("10100", *rating2),
                 beds=CellValue.monochrome("12000", *rating3),
                 wins=CellValue.monochrome("15000", *rating4),
+                sessiontime=CellValue.monochrome("-", *rating4),
             ),
         ),
     ),
@@ -226,6 +246,9 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
             username="AccurateMissingWS",
             uuid="some-fake-uuid",
             stars=110.0,
+            # Data says player is offline
+            lastLoginMs=CURRENT_TIME_MS - 2 * DAY_MS,
+            lastLogoutMs=CURRENT_TIME_MS - 2 * DAY_MS + 2 * HOUR_MS,
             stats=Stats(
                 index=110.0,
                 fkdr=1.0,
@@ -255,6 +278,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 finals=CellValue.monochrome("41000", *rating4),
                 beds=CellValue.monochrome("1900", *rating0),
                 wins=CellValue.monochrome("2000", *rating1),
+                sessiontime=CellValue.monochrome("<1m", *rating4),
             ),
         ),
     ),
@@ -264,6 +288,8 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
             username="InaccurateWS",
             uuid="some-fake-uuid",
             stars=210.0,
+            lastLoginMs=None,
+            lastLogoutMs=None,
             stats=Stats(
                 index=210.0,
                 fkdr=1.0,
@@ -293,6 +319,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 finals=CellValue.monochrome("7000", *rating1),
                 beds=CellValue.monochrome("3000", *rating1),
                 wins=CellValue.monochrome("4000", *rating2),
+                sessiontime=CellValue.monochrome("-", *rating4),
             ),
         ),
     ),
@@ -312,6 +339,8 @@ rating_configs = RatingConfigCollection.from_dict(
 @pytest.mark.parametrize("player, row", test_cases, ids=test_ids)
 def test_stats_to_row(player: Player, row: OverlayRowData) -> None:
     """Assert that player_to_row functions properly"""
-    username, stats = player_to_row(player, rating_configs)
+    username, stats = player_to_row(
+        player, rating_configs, now_seconds=lambda: CURRENT_TIME_SECONDS
+    )
     assert username == row[0]
     assert stats == row[1]

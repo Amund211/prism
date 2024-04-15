@@ -527,6 +527,11 @@ BEDS_VALUE = CellValue.monochrome(
 WINS_VALUE = CellValue.monochrome(
     "wins", terminal_formatting=TerminalColor.DARK_GRAY, gui_color=MinecraftColor.AQUA
 )
+SESSIONTIME_VALUE = CellValue.monochrome(
+    "sessiontime",
+    terminal_formatting=TerminalColor.DARK_GRAY,
+    gui_color=MinecraftColor.RED,
+)
 RENDERED_STATS = RenderedStats(
     username=USERNAME_VALUE,
     stars=STARS_VALUE,
@@ -540,6 +545,7 @@ RENDERED_STATS = RenderedStats(
     finals=FINALS_VALUE,
     beds=BEDS_VALUE,
     wins=WINS_VALUE,
+    sessiontime=SESSIONTIME_VALUE,
 )
 
 
@@ -569,6 +575,7 @@ PICK_COLUMNS_CASES: tuple[tuple[tuple[ColumnName, ...], tuple[CellValue, ...]], 
             FINALS_VALUE,
             BEDS_VALUE,
             WINS_VALUE,
+            SESSIONTIME_VALUE,
         ),
     ),
 )
