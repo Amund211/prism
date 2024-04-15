@@ -87,6 +87,10 @@ class Time(int, Enum):
         base = NAME_MAP[self]
         return pluralize(base) if plural else base
 
+    @property
+    def abbreviation(self) -> str:
+        return self.text(False)[0]
+
 
 NAME_MAP = {
     Time.SECOND: "second",
@@ -107,3 +111,20 @@ def format_seconds(seconds: float) -> str:
         if count:
             return f"{count} {denomination.text(count > 1)}"
     return f"{seconds:.2f} {Time.SECOND.text(True)}"
+
+
+def format_seconds_short(seconds: float, decimals: int) -> str:
+    """Format the elapsed time in a short format"""
+    if seconds < 60:
+        return "<1m"
+
+    for denomination in (Time.HOUR,):
+        count = seconds / denomination
+        if count >= 1:
+            break
+    else:
+        denomination = Time.MINUTE
+
+    return (
+        f"{truncate_float(seconds / denomination, decimals)}{denomination.abbreviation}"
+    )
