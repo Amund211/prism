@@ -114,6 +114,13 @@ CUSTOM_RATING_CONFIG_COLLECTION_DICT: RatingConfigCollectionDict = {
         "levels": (1.0, 10.0, 11.0, 120.0),
         "sort_ascending": True,
     },
+    "sessiontime": {
+        "type": "level_based",
+        "rate_by_level": True,
+        "decimals": 0,
+        "levels": (300.0, 120.0, 60.0, 30.0),
+        "sort_ascending": True,
+    },
 }
 CUSTOM_RATING_CONFIG_COLLECTION = RatingConfigCollection.from_dict(
     CUSTOM_RATING_CONFIG_COLLECTION_DICT
