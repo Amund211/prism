@@ -11,7 +11,7 @@ def test_version_string() -> None:
     """
 
     # No special characters
-    assert set(VERSION_STRING).issubset("v0123456789.-dev")
+    assert set(VERSION_STRING).issubset("v0123456789.-devbetassl")
 
     # Version starts with v
     assert VERSION_STRING[0] == "v"
@@ -19,7 +19,7 @@ def test_version_string() -> None:
     main_version, *rest = VERSION_STRING[1:].split("-")
 
     # Only allowed suffix is -dev
-    assert rest == [] or rest == ["dev"]
+    assert rest == [] or rest == ["dev"] or rest == ["beta"] or rest == ["ssl"]
 
     major, minor, patch = main_version.split(".")
 
