@@ -1,3 +1,4 @@
+import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from functools import lru_cache
@@ -384,7 +385,7 @@ def render_stars(
 def render_stats(
     player: "Player",
     rating_configs: RatingConfigCollection,
-    now_seconds: Callable[[], float],
+    now_seconds: Callable[[], float] = time.time,
 ) -> RenderedStats:
     username_str = player.username
 
