@@ -1,5 +1,7 @@
 import logging
 
+import pip_system_certs.wrapt_requests  # type: ignore  # noqa: F401
+
 from prism.overlay.__main__ import main
 
 logger = logging.getLogger(__name__)

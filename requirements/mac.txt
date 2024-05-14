@@ -23,6 +23,10 @@ idna==3.7 \
     --hash=sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc \
     --hash=sha256:82fee1fc78add43492d3a1898bfa6d8a904cc97d8427f683ed8e798d07761aa0
     # via requests
+pip-system-certs==4.0 \
+    --hash=sha256:47202b9403a6f40783a9674bbc8873f5fc86544ec01a49348fa913e99e2ff68b \
+    --hash=sha256:db8e6a31388d9795ec9139957df1a89fa5274fb66164456fd091a5d3e94c350c
+    # via prism-amund211 (setup.cfg)
 pynput==1.7.6 \
     --hash=sha256:19861b2a0c430d646489852f89500e0c9332e295f2c020e7c2775e7046aa2e2f \
     --hash=sha256:3a5726546da54116b687785d38b1db56997ce1d28e53e8d22fc656d8b92e533c
@@ -104,3 +108,6 @@ urllib3==2.2.1 \
     --hash=sha256:450b20ec296a467077128bff42b73080516e71b56ff59a60a02bef2232c4fa9d \
     --hash=sha256:d0570876c61ab9e520d776c38acbbb5b05a776d3f9ff98a5c8fd5162a444cf19
     # via requests
+wrapt==1.16.0 \
+    --hash=sha256:5f370f952971e7d17c7d1ead40e49f32345a7f7a5373571ef44d800d06b1899d
+    # via pip-system-certs
