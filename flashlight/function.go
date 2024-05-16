@@ -55,15 +55,18 @@ func init() {
 		defer flush()
 	}
 
+	middleware := server.ComposeMiddlewares(
+		sentryMiddleware,
+		server.NewRateLimitMiddleware(rateLimiter),
+	)
+
 	functions.HTTP(
 		"flashlight",
-		sentryMiddleware(
-			server.NewRateLimitMiddleware(rateLimiter)(
-				server.MakeServeGetPlayerData(
-					func(ctx context.Context, uuid string) ([]byte, int, error) {
-						return getstats.GetOrCreateMinifiedPlayerData(ctx, playerCache, hypixelAPI, uuid)
-					},
-				),
+		middleware(
+			server.MakeServeGetPlayerData(
+				func(ctx context.Context, uuid string) ([]byte, int, error) {
+					return getstats.GetOrCreateMinifiedPlayerData(ctx, playerCache, hypixelAPI, uuid)
+				},
 			),
 		),
 	)
