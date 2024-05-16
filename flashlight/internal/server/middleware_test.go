@@ -28,8 +28,8 @@ func runTest(t *testing.T, allow bool) {
 	}
 
 	w := httptest.NewRecorder()
-	handler := RateLimitMiddleware(
-		rateLimiter,
+	middleware := NewRateLimitMiddleware(rateLimiter)
+	handler := middleware(
 		func(w http.ResponseWriter, r *http.Request) {
 			called = true
 			w.WriteHeader(http.StatusOK)

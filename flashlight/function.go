@@ -58,8 +58,7 @@ func init() {
 	functions.HTTP(
 		"flashlight",
 		sentryMiddleware(
-			server.RateLimitMiddleware(
-				rateLimiter,
+			server.NewRateLimitMiddleware(rateLimiter)(
 				server.MakeServeGetPlayerData(
 					func(ctx context.Context, uuid string) ([]byte, int, error) {
 						return getstats.GetOrCreateMinifiedPlayerData(ctx, playerCache, hypixelAPI, uuid)
