@@ -77,8 +77,6 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 			}, true)
 
 			assert.ElementsMatch(t, []StringAttr{
-				{Key: "path", Value: "/my-path"},
-				{Key: "method", Value: "GET"},
 				{Key: "uuid", Value: "requested-uuid"},
 				{Key: "userId", Value: "user-id"},
 			}, attrs)
@@ -94,8 +92,6 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 			}, true)
 
 			assert.ElementsMatch(t, []StringAttr{
-				{Key: "path", Value: "/my-path"},
-				{Key: "method", Value: "GET"},
 				{Key: "uuid", Value: "<missing>"},
 				{Key: "userId", Value: "<missing>"},
 			}, attrs)

@@ -34,8 +34,6 @@ func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc)
 			}
 
 			requestLogger := logger.With(
-				slog.String("path", r.URL.Path),
-				slog.String("method", r.Method),
 				slog.String("uuid", uuid),
 				slog.String("userId", userId),
 			)
