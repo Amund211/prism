@@ -3,6 +3,7 @@ package function
 import (
 	"context"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/Amund211/flashlight/internal/cache"
 	"github.com/Amund211/flashlight/internal/getstats"
 	"github.com/Amund211/flashlight/internal/hypixel"
+	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/server"
@@ -55,7 +57,10 @@ func init() {
 		defer flush()
 	}
 
+	rootLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
 	middleware := server.ComposeMiddlewares(
+		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,
 		server.NewRateLimitMiddleware(rateLimiter),
 	)
