@@ -19,35 +19,36 @@ func (m *mockedRateLimiter) Allow(key string) bool {
 	return m.allow
 }
 
-func runTest(t *testing.T, allow bool) {
-	called := false
-	rateLimiter := &mockedRateLimiter{
-		t:           t,
-		allow:       allow,
-		expectedKey: "user1",
-	}
-
-	w := httptest.NewRecorder()
-	middleware := NewRateLimitMiddleware(rateLimiter)
-	handler := middleware(
-		func(w http.ResponseWriter, r *http.Request) {
-			called = true
-			w.WriteHeader(http.StatusOK)
-		},
-	)
-
-	handler(w, &http.Request{RemoteAddr: "user1"})
-
-	if allow {
-		assert.True(t, called, "Expected handler to be called")
-		assert.Equal(t, http.StatusOK, w.Code)
-	} else {
-		assert.False(t, called, "Expected handler to not be called")
-		assert.Equal(t, http.StatusTooManyRequests, w.Code)
-	}
-}
-
 func TestRateLimitMiddleware(t *testing.T) {
+	runTest := func(t *testing.T, allow bool) {
+		t.Helper()
+		called := false
+		rateLimiter := &mockedRateLimiter{
+			t:           t,
+			allow:       allow,
+			expectedKey: "user1",
+		}
+
+		w := httptest.NewRecorder()
+		middleware := NewRateLimitMiddleware(rateLimiter)
+		handler := middleware(
+			func(w http.ResponseWriter, r *http.Request) {
+				called = true
+				w.WriteHeader(http.StatusOK)
+			},
+		)
+
+		handler(w, &http.Request{RemoteAddr: "user1"})
+
+		if allow {
+			assert.True(t, called, "Expected handler to be called")
+			assert.Equal(t, http.StatusOK, w.Code)
+		} else {
+			assert.False(t, called, "Expected handler to not be called")
+			assert.Equal(t, http.StatusTooManyRequests, w.Code)
+		}
+	}
+
 	t.Run("allowed", func(t *testing.T) {
 		runTest(t, true)
 	})
