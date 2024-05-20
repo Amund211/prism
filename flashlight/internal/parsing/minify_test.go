@@ -2,6 +2,7 @@ package parsing
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -87,7 +88,7 @@ func parsePlayerDataFile(filePath string) (minifyPlayerDataTest, error) {
 }
 
 func runMinifyPlayerDataTest(t *testing.T, test minifyPlayerDataTest) {
-	minified, err := MinifyPlayerData(test.before)
+	minified, err := MinifyPlayerData(context.Background(), test.before)
 
 	if test.error {
 		assert.NotNil(t, err, "minifyPlayerData(%s) - expected error", test.name)

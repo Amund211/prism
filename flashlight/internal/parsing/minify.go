@@ -1,8 +1,10 @@
 package parsing
 
 import (
+	"context"
 	"encoding/json"
-	"log"
+
+	"github.com/Amund211/flashlight/internal/logging"
 )
 
 type HypixelAPIResponse struct {
@@ -36,18 +38,19 @@ type bedwarsStats struct {
 	Deaths      *int     `json:"deaths_bedwars,omitempty"`
 }
 
-func MinifyPlayerData(data []byte) ([]byte, error) {
+func MinifyPlayerData(ctx context.Context, data []byte) ([]byte, error) {
+	logger := logging.FromContext(ctx)
 	var response HypixelAPIResponse
 
 	err := json.Unmarshal(data, &response)
 	if err != nil {
-		log.Println(err)
+		logger.Error("Failed to unmarshal player data", "error", err)
 		return []byte{}, err
 	}
 
 	data, err = json.Marshal(response)
 	if err != nil {
-		log.Println(err)
+		logger.Error("Failed to marshal player data", "error", err)
 		return []byte{}, err
 	}
 

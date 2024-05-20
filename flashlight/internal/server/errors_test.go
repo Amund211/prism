@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -54,7 +55,7 @@ func TestWriteErrorResponse(t *testing.T) {
 	for _, testCase := range testCases {
 		w := httptest.NewRecorder()
 
-		writeErrorResponse(w, testCase.err)
+		writeErrorResponse(context.Background(), w, testCase.err)
 		result := w.Result()
 
 		assert.True(t, reflect.DeepEqual(expectedHeaders, result.Header), "Expected %v, got %v", expectedHeaders, result.Header)

@@ -1,13 +1,14 @@
 package hypixel
 
 import (
+	"context"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/Amund211/flashlight/internal/constants"
 	e "github.com/Amund211/flashlight/internal/errors"
+	"github.com/Amund211/flashlight/internal/logging"
 )
 
 type HttpClient interface {
@@ -15,7 +16,7 @@ type HttpClient interface {
 }
 
 type HypixelAPI interface {
-	GetPlayerData(uuid string) ([]byte, int, error)
+	GetPlayerData(ctx context.Context, uuid string) ([]byte, int, error)
 }
 
 type hypixelAPIImpl struct {
@@ -23,12 +24,13 @@ type hypixelAPIImpl struct {
 	apiKey     string
 }
 
-func (hypixelAPI hypixelAPIImpl) GetPlayerData(uuid string) ([]byte, int, error) {
+func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, error) {
+	logger := logging.FromContext(ctx)
 	url := fmt.Sprintf("https://api.hypixel.net/player?uuid=%s", uuid)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Println(err)
+		logger.Error("Failed to create request", "error", err)
 		return []byte{}, -1, fmt.Errorf("%w: %w", e.APIServerError, err)
 	}
 
@@ -37,14 +39,14 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(uuid string) ([]byte, int, error)
 
 	resp, err := hypixelAPI.httpClient.Do(req)
 	if err != nil {
-		log.Println(err)
+		logger.Error("Failed to send request", "error", err)
 		return []byte{}, -1, fmt.Errorf("%w: %w", e.APIServerError, err)
 	}
 
 	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Println(err)
+		logger.Error("Failed to read response body", "error", err)
 		return []byte{}, -1, fmt.Errorf("%w: %w", e.APIServerError, err)
 	}
 

@@ -2,9 +2,9 @@ package server
 
 import (
 	"context"
-	"log"
 	"net/http"
 
+	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/reporting"
 )
 
@@ -12,15 +12,16 @@ type GetMinifiedPlayerData func(ctx context.Context, uuid string) ([]byte, int, 
 
 func MakeServeGetPlayerData(getMinifiedPlayerData GetMinifiedPlayerData) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Incoming request")
+		logger := logging.FromContext(r.Context())
+		logger.Info("Incoming request")
 		uuid := r.URL.Query().Get("uuid")
 
 		minifiedPlayerData, statusCode, err := getMinifiedPlayerData(r.Context(), uuid)
 
 		if err != nil {
-			log.Println("Error getting player data:", err)
+			logger.Error("Error getting player data", "error", err)
 			reporting.Report(r.Context(), err, nil, nil)
-			writeErrorResponse(w, err)
+			writeErrorResponse(r.Context(), w, err)
 			return
 		}
 

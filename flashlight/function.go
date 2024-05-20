@@ -76,5 +76,5 @@ func init() {
 		),
 	)
 
-	log.Println("Init complete")
+	rootLogger.Info("Init complete")
 }

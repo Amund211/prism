@@ -11,7 +11,7 @@ func NewRateLimitMiddleware(rateLimiter ratelimiting.RateLimiter) func(http.Hand
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			if !rateLimiter.Allow(r.RemoteAddr) {
-				writeErrorResponse(w, e.RatelimitExceededError)
+				writeErrorResponse(r.Context(), w, e.RatelimitExceededError)
 				return
 			}
 

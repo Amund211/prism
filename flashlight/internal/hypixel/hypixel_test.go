@@ -2,6 +2,7 @@ package hypixel
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"reflect"
@@ -66,7 +67,7 @@ func TestGetPlayerData(t *testing.T) {
 		)
 		hypixelAPI := NewHypixelAPI(httpClient, apiKey)
 
-		data, statusCode, err := hypixelAPI.GetPlayerData("uuid1234")
+		data, statusCode, err := hypixelAPI.GetPlayerData(context.Background(), "uuid1234")
 
 		assert.Nil(t, err)
 		assert.Equal(t, 200, statusCode)
@@ -83,7 +84,7 @@ func TestGetPlayerData(t *testing.T) {
 		)
 		hypixelAPI := NewHypixelAPI(httpClient, apiKey)
 
-		_, _, err := hypixelAPI.GetPlayerData("uuid123456")
+		_, _, err := hypixelAPI.GetPlayerData(context.Background(), "uuid123456")
 
 		assert.ErrorIs(t, err, e.APIServerError)
 		assert.ErrorIs(t, err, assert.AnError)
@@ -101,7 +102,7 @@ func TestGetPlayerData(t *testing.T) {
 		}
 		hypixelAPI := NewHypixelAPI(httpClient, apiKey)
 
-		_, _, err := hypixelAPI.GetPlayerData("uuid")
+		_, _, err := hypixelAPI.GetPlayerData(context.Background(), "uuid")
 
 		assert.ErrorIs(t, err, e.APIServerError)
 		assert.ErrorIs(t, err, assert.AnError)

@@ -15,7 +15,7 @@ const uuid = "uuid-has-to-be-a-certain-length"
 
 type panicHypixelAPI struct{}
 
-func (p *panicHypixelAPI) GetPlayerData(uuid string) ([]byte, int, error) {
+func (p *panicHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, error) {
 	panic("Should not be called")
 }
 
@@ -25,7 +25,7 @@ type mockedHypixelAPI struct {
 	err        error
 }
 
-func (m *mockedHypixelAPI) GetPlayerData(uuid string) ([]byte, int, error) {
+func (m *mockedHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, error) {
 	return m.data, m.statusCode, m.err
 }
 

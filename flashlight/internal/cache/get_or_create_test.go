@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"testing"
@@ -68,7 +69,7 @@ func TestGetOrCreateSingle(t *testing.T) {
 		client := clients[0]
 		assert.Equal(t, 0, client.server.currentTick)
 
-		data, statusCode, err := GetOrCreateCachedResponse(client, "uuid1", createCallback(1, 200))
+		data, statusCode, err := GetOrCreateCachedResponse(context.Background(), client, "uuid1", createCallback(1, 200))
 		assert.Nil(t, err)
 		assert.Equal(t, "data1", string(data))
 		assert.Equal(t, 200, statusCode)
@@ -89,13 +90,13 @@ func TestGetOrCreateMultiple(t *testing.T) {
 
 	go func() {
 		client := clients[0]
-		data, statusCode, err := GetOrCreateCachedResponse(client, "uuid1", createCallback(1, 200))
+		data, statusCode, err := GetOrCreateCachedResponse(context.Background(), client, "uuid1", createCallback(1, 200))
 		assert.Nil(t, err)
 		assert.Equal(t, "data1", string(data))
 		assert.Equal(t, 200, statusCode)
 		assert.Equal(t, 0, client.server.currentTick)
 
-		data, statusCode, err = GetOrCreateCachedResponse(client, "uuid2", withWait(client, 2, createCallback(2, 201)))
+		data, statusCode, err = GetOrCreateCachedResponse(context.Background(), client, "uuid2", withWait(client, 2, createCallback(2, 201)))
 		assert.Nil(t, err)
 		assert.Equal(t, "data2", string(data))
 		assert.Equal(t, 201, statusCode)
@@ -107,13 +108,13 @@ func TestGetOrCreateMultiple(t *testing.T) {
 	go func() {
 		client := clients[1]
 		client.wait() // Wait for the first client to populate the cache
-		data, statusCode, err := GetOrCreateCachedResponse(client, "uuid1", createUnreachable(t))
+		data, statusCode, err := GetOrCreateCachedResponse(context.Background(), client, "uuid1", createUnreachable(t))
 		assert.Nil(t, err)
 		assert.Equal(t, "data1", string(data))
 		assert.Equal(t, 200, statusCode)
 		assert.Equal(t, 1, client.server.currentTick)
 
-		data, statusCode, err = GetOrCreateCachedResponse(client, "uuid2", createUnreachable(t))
+		data, statusCode, err = GetOrCreateCachedResponse(context.Background(), client, "uuid2", createUnreachable(t))
 		assert.Nil(t, err)
 		assert.Equal(t, "data2", string(data))
 		assert.Equal(t, 201, statusCode)
@@ -133,7 +134,7 @@ func TestGetOrCreateErrorRetries(t *testing.T) {
 
 	go func() {
 		client := clients[0]
-		_, _, err := GetOrCreateCachedResponse(client, "uuid1", withWait(client, 2, createErrorCallback(1)))
+		_, _, err := GetOrCreateCachedResponse(context.Background(), client, "uuid1", withWait(client, 2, createErrorCallback(1)))
 		assert.NotNil(t, err)
 		assert.Equal(t, 2, client.server.currentTick)
 
@@ -146,7 +147,7 @@ func TestGetOrCreateErrorRetries(t *testing.T) {
 
 		// This should wait for the first client to finish (not storing a result due to an error)
 		// then it should retry and get the result
-		data, statusCode, err := GetOrCreateCachedResponse(client, "uuid1", withWait(client, 2, createCallback(1, 200)))
+		data, statusCode, err := GetOrCreateCachedResponse(context.Background(), client, "uuid1", withWait(client, 2, createCallback(1, 200)))
 		assert.Nil(t, err)
 		assert.Equal(t, "data1", string(data))
 		assert.Equal(t, 200, statusCode)

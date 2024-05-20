@@ -1,15 +1,16 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 
 	e "github.com/Amund211/flashlight/internal/errors"
+	"github.com/Amund211/flashlight/internal/logging"
 )
 
-func writeErrorResponse(w http.ResponseWriter, responseError error) {
+func writeErrorResponse(ctx context.Context, w http.ResponseWriter, responseError error) {
 	w.Header().Set("Content-Type", "application/json")
 
 	errorResponse := HypixelAPIErrorResponse{
@@ -18,7 +19,7 @@ func writeErrorResponse(w http.ResponseWriter, responseError error) {
 	}
 	errorBytes, err := json.Marshal(errorResponse)
 	if err != nil {
-		log.Println("Error marshalling error response: %w", err)
+		logging.FromContext(ctx).Error("Failed to marshal error response", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(`{"success":false,"cause":"Internal server error (flashlight)"}`))
 		return

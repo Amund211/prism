@@ -3,11 +3,11 @@ package getstats
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/Amund211/flashlight/internal/cache"
 	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/hypixel"
+	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/parsing"
 	"github.com/Amund211/flashlight/internal/reporting"
 )
@@ -17,7 +17,7 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 	if statusCode <= 400 || statusCode == 404 {
 		if len(playerData) > 0 && playerData[0] == '<' {
 			errorMessage := "Hypixel API returned HTML"
-			log.Println(errorMessage)
+			logging.FromContext(ctx).Error(errorMessage, "statusCode", statusCode, "data", string(playerData))
 			reporting.Report(
 				ctx,
 				nil,
@@ -61,7 +61,7 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 }
 
 func getMinifiedPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
-	playerData, statusCode, err := hypixelAPI.GetPlayerData(uuid)
+	playerData, statusCode, err := hypixelAPI.GetPlayerData(ctx, uuid)
 	if err != nil {
 		return []byte{}, -1, err
 	}
@@ -71,7 +71,7 @@ func getMinifiedPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, u
 		return []byte{}, -1, err
 	}
 
-	minifiedPlayerData, err := parsing.MinifyPlayerData(playerData)
+	minifiedPlayerData, err := parsing.MinifyPlayerData(ctx, playerData)
 	if err != nil {
 		return []byte{}, -1, fmt.Errorf("%w: %w", e.APIServerError, err)
 	}
@@ -88,7 +88,7 @@ func GetOrCreateMinifiedPlayerData(ctx context.Context, playerCache cache.Player
 		return []byte{}, -1, fmt.Errorf("%w: Invalid uuid (length=%d)", e.APIClientError, uuidLength)
 	}
 
-	minifiedPlayerData, statusCode, err := cache.GetOrCreateCachedResponse(playerCache, uuid, func() ([]byte, int, error) {
+	minifiedPlayerData, statusCode, err := cache.GetOrCreateCachedResponse(ctx, playerCache, uuid, func() ([]byte, int, error) {
 		return getMinifiedPlayerData(ctx, hypixelAPI, uuid)
 	})
 
