@@ -96,5 +96,7 @@ func GetOrCreateMinifiedPlayerData(ctx context.Context, playerCache cache.Player
 		return []byte{}, -1, err
 	}
 
+	logging.FromContext(ctx).Info("Got minified player data", "contentLength", len(minifiedPlayerData), "statusCode", statusCode)
+
 	return minifiedPlayerData, statusCode, nil
 }
