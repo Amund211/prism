@@ -11,7 +11,7 @@ import (
 	sentryhttp "github.com/getsentry/sentry-go/http"
 )
 
-func Report(ctx context.Context, err error, extra map[string]string) {
+func Report(ctx context.Context, err error, extras ...map[string]string) {
 	hub := sentry.GetHubFromContext(ctx)
 	if hub == nil {
 		log.Println("Failed to get Sentry hub from context")
@@ -19,7 +19,10 @@ func Report(ctx context.Context, err error, extra map[string]string) {
 	}
 
 	hub.WithScope(func(scope *sentry.Scope) {
-		if extra != nil {
+		for _, extra := range extras {
+			if extra == nil {
+				continue
+			}
 			for key, value := range extra {
 				scope.SetExtra(key, value)
 			}

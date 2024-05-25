@@ -64,7 +64,7 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 func getMinifiedPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
 	playerData, statusCode, err := hypixelAPI.GetPlayerData(ctx, uuid)
 	if err != nil {
-		reporting.Report(ctx, err, nil)
+		reporting.Report(ctx, err)
 		return []byte{}, -1, err
 	}
 
