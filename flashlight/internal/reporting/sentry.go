@@ -29,6 +29,7 @@ func Report(ctx context.Context, err error, message *string, extra map[string]st
 			if message != nil {
 				capturedMessage = *message
 			}
+			scope.SetFingerprint([]string{"{{ default }}", capturedMessage})
 			hub.CaptureMessage(capturedMessage)
 			return
 		}
@@ -36,6 +37,7 @@ func Report(ctx context.Context, err error, message *string, extra map[string]st
 		if message != nil {
 			scope.SetExtra("message", *message)
 		}
+		scope.SetFingerprint([]string{"{{ default }}", err.Error()})
 		hub.CaptureException(err)
 	})
 }
