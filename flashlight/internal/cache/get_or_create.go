@@ -10,22 +10,23 @@ import (
 func GetOrCreateCachedResponse(ctx context.Context, playerCache PlayerCache, uuid string, create func() ([]byte, int, error)) ([]byte, int, error) {
 	logger := logging.FromContext(ctx)
 
-	// Clean up the cache if we store an invalid entry
+	// Clean up the cache if we claim an entry, but don't set it
 	// This allows other requests to try again
-	var storedInvalidCacheEntry = false
+	var value cachedResponse
+	claimed := false
+	set := false
 	defer func() {
-		if storedInvalidCacheEntry {
+		if claimed && !set {
 			playerCache.delete(uuid)
 		}
 	}()
 
 	for {
-		value, claimed := playerCache.getOrClaim(uuid)
+		value, claimed = playerCache.getOrClaim(uuid)
 
 		if claimed {
 			log.Println("Got cache miss")
 			logger.Info("Getting player stats", "cache", "miss")
-			storedInvalidCacheEntry = true
 
 			data, statusCode, err := create()
 			if err != nil {
@@ -33,7 +34,7 @@ func GetOrCreateCachedResponse(ctx context.Context, playerCache PlayerCache, uui
 			}
 
 			playerCache.set(uuid, data, statusCode)
-			storedInvalidCacheEntry = false
+			set = true
 
 			return data, statusCode, nil
 		}
