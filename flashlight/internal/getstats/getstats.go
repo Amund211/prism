@@ -47,6 +47,7 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 		err = fmt.Errorf("%w: Hypixel returned 504 Gateway Timeout", e.GatewayTimeout)
 	}
 
+	logging.FromContext(ctx).Error(err.Error(), "statusCode", statusCode, "data", string(playerData))
 	reporting.Report(
 		ctx,
 		err,
