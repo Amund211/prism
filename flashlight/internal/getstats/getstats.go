@@ -23,7 +23,6 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 			reporting.Report(
 				ctx,
 				err,
-				nil,
 				map[string]string{
 					"statusCode": fmt.Sprint(statusCode),
 					"data":       string(playerData),
@@ -53,7 +52,6 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 	reporting.Report(
 		ctx,
 		err,
-		nil,
 		map[string]string{
 			"statusCode": fmt.Sprint(statusCode),
 			"data":       string(playerData),
@@ -66,7 +64,7 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 func getMinifiedPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
 	playerData, statusCode, err := hypixelAPI.GetPlayerData(ctx, uuid)
 	if err != nil {
-		reporting.Report(ctx, err, nil, nil)
+		reporting.Report(ctx, err, nil)
 		return []byte{}, -1, err
 	}
 
@@ -78,7 +76,7 @@ func getMinifiedPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, u
 	minifiedPlayerData, err := parsing.MinifyPlayerData(ctx, playerData)
 	if err != nil {
 		err = fmt.Errorf("%w: %w", e.APIServerError, err)
-		reporting.Report(ctx, err, nil, map[string]string{"data": string(playerData)})
+		reporting.Report(ctx, err, map[string]string{"data": string(playerData)})
 		return []byte{}, -1, err
 	}
 

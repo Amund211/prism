@@ -2,6 +2,7 @@ package reporting
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -10,7 +11,7 @@ import (
 	sentryhttp "github.com/getsentry/sentry-go/http"
 )
 
-func Report(ctx context.Context, err error, message *string, extra map[string]string) {
+func Report(ctx context.Context, err error, extra map[string]string) {
 	hub := sentry.GetHubFromContext(ctx)
 	if hub == nil {
 		log.Println("Failed to get Sentry hub from context")
@@ -25,18 +26,9 @@ func Report(ctx context.Context, err error, message *string, extra map[string]st
 		}
 
 		if err == nil {
-			capturedMessage := "No message/error provided"
-			if message != nil {
-				capturedMessage = *message
-			}
-			scope.SetFingerprint([]string{"{{ default }}", capturedMessage})
-			hub.CaptureMessage(capturedMessage)
-			return
+			err = errors.New("No error provided")
 		}
 
-		if message != nil {
-			scope.SetExtra("message", *message)
-		}
 		scope.SetFingerprint([]string{"{{ default }}", err.Error()})
 		hub.CaptureException(err)
 	})
