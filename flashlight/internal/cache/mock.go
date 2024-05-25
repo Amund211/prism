@@ -9,13 +9,13 @@ type mockedPlayerCache struct {
 	cache map[string]cachedResponse
 }
 
-func (playerCache *mockedPlayerCache) getOrSet(uuid string, value cachedResponse) (cachedResponse, bool) {
+func (playerCache *mockedPlayerCache) getOrClaim(uuid string) (cachedResponse, bool) {
 	oldValue, ok := playerCache.cache[uuid]
 	if ok {
-		return oldValue, true
+		return oldValue, false
 	}
-	playerCache.cache[uuid] = value
-	return value, false
+	playerCache.cache[uuid] = invalid
+	return invalid, true
 }
 
 func (playerCache *mockedPlayerCache) set(uuid string, data []byte, statusCode int) {
@@ -54,13 +54,13 @@ type mockPlayerCacheClient struct {
 	desiredTick int
 }
 
-func (cacheClient *mockPlayerCacheClient) getOrSet(uuid string, value cachedResponse) (cachedResponse, bool) {
+func (cacheClient *mockPlayerCacheClient) getOrClaim(uuid string) (cachedResponse, bool) {
 	oldValue, ok := cacheClient.server.cache[uuid]
 	if ok {
-		return oldValue.cachedResponse, true
+		return oldValue.cachedResponse, false
 	}
-	cacheClient.server.cache[uuid] = mockCacheValue{cachedResponse: value, insertedAt: cacheClient.server.currentTick}
-	return value, false
+	cacheClient.server.cache[uuid] = mockCacheValue{cachedResponse: invalid, insertedAt: cacheClient.server.currentTick}
+	return invalid, true
 }
 
 func (cacheClient *mockPlayerCacheClient) set(uuid string, data []byte, statusCode int) {

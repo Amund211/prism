@@ -9,7 +9,6 @@ import (
 
 func GetOrCreateCachedResponse(ctx context.Context, playerCache PlayerCache, uuid string, create func() ([]byte, int, error)) ([]byte, int, error) {
 	logger := logging.FromContext(ctx)
-	var invalid = cachedResponse{valid: false}
 
 	// Clean up the cache if we store an invalid entry
 	// This allows other requests to try again
@@ -21,9 +20,9 @@ func GetOrCreateCachedResponse(ctx context.Context, playerCache PlayerCache, uui
 	}()
 
 	for {
-		value, existed := playerCache.getOrSet(uuid, invalid)
+		value, claimed := playerCache.getOrClaim(uuid)
 
-		if !existed {
+		if claimed {
 			log.Println("Got cache miss")
 			logger.Info("Getting player stats", "cache", "miss")
 			storedInvalidCacheEntry = true

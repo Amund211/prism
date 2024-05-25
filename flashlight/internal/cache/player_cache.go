@@ -11,8 +11,10 @@ type cachedResponse struct {
 	valid      bool
 }
 
+var invalid = cachedResponse{valid: false}
+
 type PlayerCache interface {
-	getOrSet(uuid string, value cachedResponse) (cachedResponse, bool)
+	getOrClaim(uuid string) (cachedResponse, bool)
 	set(uuid string, data []byte, statusCode int)
 	delete(uuid string)
 	wait()
@@ -22,9 +24,9 @@ type playerCacheImpl struct {
 	cache *ttlcache.Cache[string, cachedResponse]
 }
 
-func (playerCache *playerCacheImpl) getOrSet(uuid string, value cachedResponse) (cachedResponse, bool) {
-	item, existed := playerCache.cache.GetOrSet(uuid, value)
-	return item.Value(), existed
+func (playerCache *playerCacheImpl) getOrClaim(uuid string) (cachedResponse, bool) {
+	item, existed := playerCache.cache.GetOrSet(uuid, invalid)
+	return item.Value(), !existed
 }
 
 func (playerCache *playerCacheImpl) set(uuid string, data []byte, statusCode int) {
