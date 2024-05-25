@@ -17,17 +17,19 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 	if statusCode <= 400 || statusCode == 404 {
 		if len(playerData) > 0 && playerData[0] == '<' {
 			errorMessage := "Hypixel API returned HTML"
+			err := fmt.Errorf("%w: %s", e.APIServerError, errorMessage)
+
 			logging.FromContext(ctx).Error(errorMessage, "statusCode", statusCode, "data", string(playerData))
 			reporting.Report(
 				ctx,
+				err,
 				nil,
-				&errorMessage,
 				map[string]string{
 					"statusCode": fmt.Sprint(statusCode),
 					"data":       string(playerData),
 				},
 			)
-			return fmt.Errorf("%w: %s", e.APIServerError, errorMessage)
+			return err
 		}
 
 		return nil
