@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/reporting"
 )
 
 type GetMinifiedPlayerData func(ctx context.Context, uuid string) ([]byte, int, error)
@@ -20,7 +19,6 @@ func MakeServeGetPlayerData(getMinifiedPlayerData GetMinifiedPlayerData) http.Ha
 
 		if err != nil {
 			logger.Error("Error getting player data", "error", err)
-			reporting.Report(r.Context(), err, nil, nil)
 			writeErrorResponse(r.Context(), w, err)
 			return
 		}

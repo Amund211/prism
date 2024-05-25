@@ -63,6 +63,7 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 func getMinifiedPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
 	playerData, statusCode, err := hypixelAPI.GetPlayerData(ctx, uuid)
 	if err != nil {
+		reporting.Report(ctx, err, nil, nil)
 		return []byte{}, -1, err
 	}
 
@@ -73,19 +74,25 @@ func getMinifiedPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, u
 
 	minifiedPlayerData, err := parsing.MinifyPlayerData(ctx, playerData)
 	if err != nil {
-		return []byte{}, -1, fmt.Errorf("%w: %w", e.APIServerError, err)
+		err = fmt.Errorf("%w: %w", e.APIServerError, err)
+		reporting.Report(ctx, err, nil, map[string]string{"data": string(playerData)})
+		return []byte{}, -1, err
 	}
 
 	return minifiedPlayerData, statusCode, nil
 }
 
 func GetOrCreateMinifiedPlayerData(ctx context.Context, playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
+	logger := logging.FromContext(ctx)
+
 	if uuid == "" {
+		logger.Error("Missing uuid")
 		return []byte{}, -1, fmt.Errorf("%w: Missing uuid", e.APIClientError)
 	}
 	uuidLength := len(uuid)
 	if uuidLength < 10 || uuidLength > 100 {
-		return []byte{}, -1, fmt.Errorf("%w: Invalid uuid (length=%d)", e.APIClientError, uuidLength)
+		logger.Error("Invalid uuid", "length", uuidLength, "uuid", uuid)
+		return []byte{}, -1, fmt.Errorf("%w: Invalid uuid", e.APIClientError)
 	}
 
 	minifiedPlayerData, statusCode, err := cache.GetOrCreateCachedResponse(ctx, playerCache, uuid, func() ([]byte, int, error) {
@@ -96,7 +103,7 @@ func GetOrCreateMinifiedPlayerData(ctx context.Context, playerCache cache.Player
 		return []byte{}, -1, err
 	}
 
-	logging.FromContext(ctx).Info("Got minified player data", "contentLength", len(minifiedPlayerData), "statusCode", statusCode)
+	logger.Info("Got minified player data", "contentLength", len(minifiedPlayerData), "statusCode", statusCode)
 
 	return minifiedPlayerData, statusCode, nil
 }
