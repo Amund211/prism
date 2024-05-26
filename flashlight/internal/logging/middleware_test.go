@@ -72,13 +72,15 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 				URL:    requestUrl,
 				Method: "GET",
 				Header: http.Header{
-					"X-User-Id": []string{"user-id"},
+					"X-User-Id":  []string{"user-id"},
+					"User-Agent": []string{"user-agent/1.0"},
 				},
 			}, true)
 
 			assert.ElementsMatch(t, []StringAttr{
 				{Key: "uuid", Value: "requested-uuid"},
 				{Key: "userId", Value: "user-id"},
+				{Key: "userAgent", Value: "user-agent/1.0"},
 			}, attrs)
 		})
 
@@ -94,6 +96,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 			assert.ElementsMatch(t, []StringAttr{
 				{Key: "uuid", Value: "<missing>"},
 				{Key: "userId", Value: "<missing>"},
+				{Key: "userAgent", Value: "<missing>"},
 			}, attrs)
 		})
 	})

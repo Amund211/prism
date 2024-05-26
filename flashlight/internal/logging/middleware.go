@@ -33,9 +33,15 @@ func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc)
 				userId = "<missing>"
 			}
 
+			userAgent := r.UserAgent()
+			if userAgent == "" {
+				userAgent = "<missing>"
+			}
+
 			requestLogger := logger.With(
 				slog.String("uuid", uuid),
 				slog.String("userId", userId),
+				slog.String("userAgent", userAgent),
 			)
 
 			next(w, r.WithContext(context.WithValue(r.Context(), requestLoggerContextKey, requestLogger)))
