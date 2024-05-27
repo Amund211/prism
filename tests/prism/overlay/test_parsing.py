@@ -434,6 +434,11 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         InitializeAsEvent("Player1"),
     ),
     (
+        # Initialize as on fabric 1.20
+        "[13:03:20] [Render thread/INFO]: Setting user: Player1",
+        InitializeAsEvent("Player1"),
+    ),
+    (
         "[Info: 2021-11-29 22:30:40.455294561: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ONLINE: Player1, Player2, Player3, Player5, Player6, Player7, Player8, Player9",
         LobbyListEvent(
             usernames=[
@@ -445,6 +450,21 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
                 "Player7",
                 "Player8",
                 "Player9",
+            ]
+        ),
+    ),
+    (
+        "[13:08:46] [Render thread/INFO]: [CHAT] ONLINE: Player1, Player2, Player3, Player4, Player5, Player6, Player7, Player8",
+        LobbyListEvent(
+            usernames=[
+                "Player1",
+                "Player2",
+                "Player3",
+                "Player4",
+                "Player5",
+                "Player6",
+                "Player7",
+                "Player8",
             ]
         ),
     ),
