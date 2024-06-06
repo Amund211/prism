@@ -809,10 +809,14 @@ class RatingConfigEditor:  # pragma: nocover
 
     def set(self, rating_config: RatingConfig) -> None:
         """Set the state of this section"""
-        self.rate_by_level_toggle.set(rating_config.rate_by_level)
+        self.rate_by_level_toggle.set(
+            rating_config.rate_by_level, disable_toggle_callback=True
+        )
         self.decimals_spinbox.delete(0)
         self.decimals_spinbox.insert(0, str(rating_config.decimals))
-        self.sort_descending_toggle.set(not rating_config.sort_ascending)
+        self.sort_descending_toggle.set(
+            not rating_config.sort_ascending, disable_toggle_callback=True
+        )
         for level_value, level_entry_variable in zip(
             rating_config.levels, self.level_entry_variables
         ):
@@ -822,6 +826,8 @@ class RatingConfigEditor:  # pragma: nocover
             logger.warning(
                 f"Levels with non-standard length set, {rating_config.levels}"
             )
+
+        self._set_component_state()
 
     def _get_levels(self) -> tuple[float, ...]:
         """Get the levels from the entries. Fallback to the default."""
