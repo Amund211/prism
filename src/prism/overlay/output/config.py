@@ -162,7 +162,7 @@ DEFAULT_WINS_CONFIG = RatingConfig(
 )
 DEFAULT_SESSIONTIME_CONFIG = RatingConfig(
     rate_by_level=True,
-    levels=(60.0, 30.0, 10.0, 5.0),
+    levels=(10.0, 10.0, 10.0, 5.0),
     decimals=0,
     sort_ascending=True,
 )
