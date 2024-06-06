@@ -92,7 +92,9 @@ class KeybindSelector(ToggleButton):  # pragma: no coverage
     }
 
     def __init__(self, frame: tk.Frame, overlay: "StatsOverlay") -> None:
-        super().__init__(frame=frame, toggle_callback=self._on_toggle)
+        super().__init__(
+            frame=frame, toggle_callback=self._on_toggle, start_enabled=False
+        )
 
         self.overlay = overlay
 
@@ -101,9 +103,6 @@ class KeybindSelector(ToggleButton):  # pragma: no coverage
         self.listener: "keyboard.Listener | None" = None
 
         self.normalize = create_pynput_normalizer()
-
-        # Default to not selecting
-        self.set(False)
 
     @property
     def selecting(self) -> bool:
