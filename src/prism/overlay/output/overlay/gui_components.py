@@ -59,7 +59,9 @@ class ToggleButton:  # pragma: nocover
         )
 
         # Set the initial state of the button
-        # Don't run the toggle callback since the user didn't click the button
+        # Don't run the toggle callback when setting up the GUI because it might
+        # reference uninitialized objects.
+        # Callers should call self.set() when the GUI is ready
         self.set(start_enabled, disable_toggle_callback=True)
 
     @property
