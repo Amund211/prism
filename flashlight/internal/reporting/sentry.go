@@ -5,11 +5,21 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
 )
+
+var uuidRx = regexp.MustCompile(`[0-9a-f]{8}-?([0-9a-f]{4}-?){3}[0-9a-f]{12}`)
+var hostRx = regexp.MustCompile(`\[:{0,2}([0-9a-f]{0,4}:?){1,8}\]:\d+`)
+
+func sanitizeError(err string) string {
+	err = uuidRx.ReplaceAllString(err, "<uuid>")
+	err = hostRx.ReplaceAllString(err, "<host>")
+	return err
+}
 
 func Report(ctx context.Context, err error, extras ...map[string]string) {
 	hub := sentry.GetHubFromContext(ctx)
@@ -32,7 +42,7 @@ func Report(ctx context.Context, err error, extras ...map[string]string) {
 			err = errors.New("No error provided")
 		}
 
-		scope.SetFingerprint([]string{"{{ default }}", err.Error()})
+		scope.SetFingerprint([]string{"{{ default }}", sanitizeError(err.Error())})
 		hub.CaptureException(err)
 	})
 }
