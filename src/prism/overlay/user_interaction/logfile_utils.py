@@ -26,6 +26,16 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
             logger.exception(f"Could not rglob {lunar_client_base_dir}")
             lunar_client_logfiles = ()
 
+        prism_launcher_base_dir = (
+            Path.home() / ".local" / "share" / "PrismLauncher" / "instances"
+        )
+
+        try:
+            prism_launcher_logfiles = tuple(prism_launcher_base_dir.rglob("latest.log"))
+        except OSError:
+            logger.exception(f"Could not rglob {prism_launcher_base_dir}")
+            prism_launcher_logfiles = ()
+
         badlion_logfile = (
             Path.home()
             / ".minecraft"
@@ -40,6 +50,7 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
 
         return [
             *lunar_client_logfiles,
+            *prism_launcher_logfiles,
             badlion_logfile,
             fml_logfile,
             pvplounge_logfile,
@@ -53,6 +64,20 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
         except OSError:
             logger.exception(f"Could not rglob {lunar_client_base_dir}")
             lunar_client_logfiles = ()
+
+        prism_launcher_base_dir = (
+            Path.home()
+            / "Library"
+            / "Application Support"
+            / "PrismLauncher"
+            / "instances"
+        )
+
+        try:
+            prism_launcher_logfiles = tuple(prism_launcher_base_dir.rglob("latest.log"))
+        except OSError:
+            logger.exception(f"Could not rglob {prism_launcher_base_dir}")
+            prism_launcher_logfiles = ()
 
         badlion_logfile = (
             Path.home()
@@ -91,6 +116,7 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
 
         return [
             *lunar_client_logfiles,
+            *prism_launcher_logfiles,
             badlion_logfile,
             fml_logfile,
             pvplounge_logfile,
@@ -104,6 +130,16 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
         except OSError:
             logger.exception(f"Could not rglob {lunar_client_base_dir}")
             lunar_client_logfiles = ()
+
+        prism_launcher_base_dir = (
+            Path.home() / "AppData" / "Roaming" / "PrismLauncher" / "instances"
+        )
+
+        try:
+            prism_launcher_logfiles = tuple(prism_launcher_base_dir.rglob("latest.log"))
+        except OSError:
+            logger.exception(f"Could not rglob {prism_launcher_base_dir}")
+            prism_launcher_logfiles = ()
 
         badlion_logfile = (
             Path.home()
@@ -131,6 +167,7 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
         )
         return [
             *lunar_client_logfiles,
+            *prism_launcher_logfiles,
             badlion_logfile,
             fml_logfile,
             pvplounge_logfile,
