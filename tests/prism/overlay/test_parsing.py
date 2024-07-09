@@ -439,6 +439,11 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         InitializeAsEvent("Player1"),
     ),
     (
+        # Initialize as on prism launcher (vanilla 1.8.9)
+        "[18:52:20] [Client thread/INFO]: Setting user: Player1",
+        InitializeAsEvent("Player1"),
+    ),
+    (
         "[Info: 2021-11-29 22:30:40.455294561: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ONLINE: Player1, Player2, Player3, Player5, Player6, Player7, Player8, Player9",
         LobbyListEvent(
             usernames=[
@@ -716,6 +721,14 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         BedwarsFinalKillEvent(
             dead_player="Player1",
             raw_message="Player1 was glazed in BBQ sauce by Player2. FINAL KILL!",
+        ),
+    ),
+    (
+        # Final kill on prism launcher (vanilla 1.8.9)
+        "[18:53:02] [Client thread/INFO]: [CHAT] Player1 was Player2's final #1,234. FINAL KILL!",
+        BedwarsFinalKillEvent(
+            dead_player="Player1",
+            raw_message="Player1 was Player2's final #1,234. FINAL KILL!",
         ),
     ),
     (
