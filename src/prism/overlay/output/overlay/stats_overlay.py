@@ -58,14 +58,14 @@ class StatsOverlay:  # pragma: nocover
         self.window = OverlayWindow(controller=controller, start_hidden=start_hidden)
         # Frame for the current page
         self.page_frame = tk.Frame(self.window.root, background="black")
-        self.page_frame.pack(side=tk.BOTTOM, fill=tk.BOTH)
+        self.page_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, pady=3)
         # Add the main content
         self.main_content = MainContent(
             parent=self.page_frame,
             overlay=self,
             column_order=column_order,
         )
-        self.main_content.frame.pack(side=tk.TOP, fill=tk.BOTH)
+        self.main_content.frame.pack(side=tk.TOP, fill=tk.BOTH, padx=3)
         # Add the settings page
         self.settings_page = SettingsPage(self.page_frame, self, controller)
         # Add the set nickname page
@@ -74,7 +74,7 @@ class StatsOverlay:  # pragma: nocover
         self.toolbar = Toolbar(
             parent=self.window.root, overlay=self, controller=self.controller
         )
-        self.toolbar.frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        self.toolbar.frame.pack(side=tk.TOP, expand=True, fill=tk.X, padx=3, pady=3)
 
         # Set up the tab listener
         self.tab_pressed = False
@@ -193,7 +193,7 @@ class StatsOverlay:  # pragma: nocover
 
         # Mount new content
         if new_page == "main":
-            self.main_content.frame.pack(side=tk.TOP, fill=tk.BOTH)
+            self.main_content.frame.pack(side=tk.TOP, fill=tk.BOTH, padx=3)
         elif new_page == "settings":
             self.settings_page.set_content(self.controller.settings)
             self.settings_page.frame.pack(side=tk.TOP, fill=tk.BOTH)

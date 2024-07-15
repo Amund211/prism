@@ -890,7 +890,7 @@ class SettingsPage:  # pragma: nocover
         # Frame for the save and cancel buttons
         self.controls_frame = tk.Frame(self.frame, background="black")
         self.controls_frame.pack(
-            side=tk.BOTTOM, expand=True, fill=tk.X, padx=5, pady=(0, 3)
+            side=tk.BOTTOM, expand=True, fill=tk.X, padx=5, pady=(3, 0)
         )
 
         # Save button

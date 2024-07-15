@@ -42,7 +42,7 @@ class Toolbar:  # pragma: nocover
             background="black",
             highlightthickness=1,
         )
-        grip_label.pack(side=tk.LEFT, padx=(3, 5))
+        grip_label.pack(side=tk.LEFT, padx=(2.5, 2.5))
 
         self.register_grab_handler(grip_label)
         grip_label.bind("<Double-Button-1>", self.overlay.window.reset_position)
@@ -66,7 +66,7 @@ class Toolbar:  # pragma: nocover
             relief="flat",
             cursor="hand2",
         )
-        settings_button.pack(side=tk.LEFT)
+        settings_button.pack(side=tk.LEFT, padx=1)
 
         if FULLSCREEN_CALLBACK is not None:
             # Fullscreen button
@@ -81,7 +81,7 @@ class Toolbar:  # pragma: nocover
                 relief="flat",
                 cursor="hand2",
             )
-            fullscreen_button.pack(side=tk.LEFT)
+            fullscreen_button.pack(side=tk.LEFT, padx=4)
 
         # Close button
         close_button = tk.Button(
@@ -114,7 +114,7 @@ class Toolbar:  # pragma: nocover
             relief="flat",
             cursor="hand2",
         )
-        minimize_button.pack(side=tk.RIGHT)
+        minimize_button.pack(side=tk.RIGHT, padx=5)
 
         version_label = tk.Label(
             self.frame,
