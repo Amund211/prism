@@ -1,4 +1,5 @@
 import logging
+import platform
 import tkinter as tk
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -59,6 +60,7 @@ class MainContent:  # pragma: nocover
         # A frame for the stats table
         self.table_frame = tk.Frame(self.frame, background="black")
         self.table_frame.pack(side=tk.TOP)
+        self.table_frame.grid_columnconfigure(0, pad=4)
 
         self.header_labels: tuple[tk.Label, ...] = ()
         self.update_header_labels()
@@ -114,6 +116,8 @@ class MainContent:  # pragma: nocover
         """Add a row of cells to the table"""
         row_index = len(self.rows) + 2
 
+        self.table_frame.grid_rowconfigure(row_index, pad=4)
+
         cells = tuple(
             self.create_cell(
                 row=row_index,
@@ -126,11 +130,15 @@ class MainContent:  # pragma: nocover
         edit_button = tk.Button(
             self.table_frame,
             text="✎",
-            font=("Consolas", 14),
+            font=("Consolas", 14 if platform.system() == "Linux" else 12),
             foreground="white",
             disabledforeground="black",
             background="black",
             highlightthickness=0,
+            borderwidth=0,
+            cursor="hand2",
+            padx=2,
+            pady=0,
             state="disabled",
             command=lambda: None,
             relief="flat",
