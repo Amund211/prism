@@ -118,7 +118,11 @@ def format_seconds_short(seconds: float, decimals: int) -> str:
     if seconds < 60:
         return "<1m"
 
-    for denomination in (Time.HOUR,):
+    for denomination in (
+        Time.YEAR,
+        Time.DAY,
+        Time.HOUR,
+    ):
         count = seconds / denomination
         if count >= 1:
             break

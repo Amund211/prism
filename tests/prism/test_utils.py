@@ -193,10 +193,13 @@ def test_format_seconds(seconds: float, text: str) -> None:
         (13 * Time.MINUTE, 0, "13m"),
         (Time.HOUR, 0, "1h"),
         (16 * Time.HOUR, 0, "16h"),
-        (75 * Time.HOUR, 0, "75h"),
-        (Time.DAY, 0, "24h"),
-        (20 * Time.DAY, 0, "480h"),
-        (30 * Time.DAY, 0, "720h"),
+        (75 * Time.HOUR, 0, "3d"),
+        (Time.DAY, 0, "1d"),
+        (20.123 * Time.DAY, 2, "20.12d"),
+        (30 * Time.DAY, 0, "30d"),
+        (300 * Time.DAY, 0, "300d"),
+        (Time.YEAR, 0, "1y"),
+        (1.57 * Time.YEAR, 1, "1.5y"),
     ),
 )
 def test_format_seconds_short(seconds: float, decimals: int, text: str) -> None:
