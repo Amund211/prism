@@ -5,7 +5,7 @@ from typing import assert_never
 
 from prism.overlay.output.cells import CellValue, ColorSection, ColumnName
 from prism.overlay.output.color import GUIColor, MinecraftColor, TerminalColor
-from prism.overlay.output.config import RatingConfigCollection
+from prism.overlay.output.config import RatingConfig, RatingConfigCollection
 from prism.overlay.player import (
     KnownPlayer,
     NickedPlayer,
@@ -88,6 +88,15 @@ def rate_value_ascending(value: float, levels: Sequence[float]) -> int:
 
     # Passed all levels
     return rating + 1
+
+
+def missing_stat_value(rating_config: RatingConfig) -> float:
+    """
+    Return the value that should be used for a missing stat
+
+    Ensures that missing stats are sorted to the top
+    """
+    return float("-inf") if rating_config.sort_ascending else float("inf")
 
 
 def render_based_on_level(
@@ -441,7 +450,7 @@ def render_stats(
             winstreak_value: float = player.stats.winstreak
         else:
             winstreak_str = "-"
-            winstreak_value = float("inf")
+            winstreak_value = missing_stat_value(rating_configs.winstreak)
         winstreak_cell = render_based_on_level(
             winstreak_str,
             winstreak_value,
@@ -479,7 +488,7 @@ def render_stats(
         )
         if player.sessiontime_seconds is None:
             sessiontime_str = "-"
-            sessiontime_value = float("-inf")
+            sessiontime_value = missing_stat_value(rating_configs.sessiontime)
         else:
             sessiontime_str = format_seconds_short(
                 player.sessiontime_seconds, rating_configs.sessiontime.decimals
