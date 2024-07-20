@@ -376,8 +376,6 @@ rating_configs = RatingConfigCollection.from_dict(
 @pytest.mark.parametrize("player, row", test_cases, ids=test_ids)
 def test_stats_to_row(player: Player, row: OverlayRowData) -> None:
     """Assert that player_to_row functions properly"""
-    username, stats = player_to_row(
-        player, rating_configs, now_seconds=lambda: CURRENT_TIME_SECONDS
-    )
+    username, stats = player_to_row(player, rating_configs)
     assert username == row[0]
     assert stats == row[1]
