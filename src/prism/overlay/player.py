@@ -235,10 +235,11 @@ def sort_players(
     sort_ascending: bool,
 ) -> list[Player]:
     """
-    Sort the players by the given column in reverse order (largest at the top)
+    Sort the players by the given column according to `sort_ascending`.
 
-    Falls back to alpabetical by username.
     Orders party members last.
+    Orders players with missing stats first (nick/error, *not* pending).
+    Falls back to alpabetical by username.
     """
     return list(
         sorted(
