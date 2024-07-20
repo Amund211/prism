@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Literal, TypeAlias, TypedDict, cast
+from typing import TYPE_CHECKING, Literal, TypeAlias, TypedDict
 
 if TYPE_CHECKING:  # pragma: no coverage
     from pynput import keyboard
@@ -106,8 +106,7 @@ def create_pynput_normalizer() -> (
             return None
 
         if isinstance(key, keyboard.Key):
-            keycode = cast(keyboard.KeyCode, key.value)
-            return SpecialKey(name=key.name, vk=keycode.vk)
+            return SpecialKey(name=key.name, vk=key.value.vk)
 
         keycode = key
 
