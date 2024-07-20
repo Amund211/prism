@@ -534,14 +534,19 @@ sort_test_cases: tuple[
             players["nigel"],
         ],
         set(),
-        "sessiontime",
+        "sessiontime",  # NOTE: Ascending (long sessions at the top)
         [
-            players["joshua"],
-            players["nigel"],
             players["jonathan"],
+            players["joshua"],
             players["nathaniel"],
+            players["nigel"],
         ],
-        None,
+        [
+            players["nathaniel"],
+            players["nigel"],
+            players["joshua"],
+            players["jonathan"],
+        ],
     ),
 )
 

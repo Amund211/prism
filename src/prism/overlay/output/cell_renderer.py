@@ -479,20 +479,14 @@ def render_stats(
             rating_configs.wins.rate_by_level,
             rating_configs.wins.sort_ascending,
         )
-        if (
-            player.lastLoginMs is None
-            or player.lastLogoutMs is None
-            or player.lastLogoutMs > player.lastLoginMs
-        ):
-            # Some stats missing or player seems to be offline
+        if player.sessiontime_seconds is None:
             sessiontime_str = "-"
             sessiontime_value = float("-inf")
         else:
-            sessiontime_seconds = now_seconds() - player.lastLoginMs / 1000
             sessiontime_str = format_seconds_short(
-                sessiontime_seconds, rating_configs.sessiontime.decimals
+                player.sessiontime_seconds, rating_configs.sessiontime.decimals
             )
-            sessiontime_value = sessiontime_seconds / 60
+            sessiontime_value = player.sessiontime_seconds / 60
         sessiontime_cell = render_based_on_level(
             sessiontime_str,
             sessiontime_value,

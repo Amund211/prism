@@ -87,6 +87,18 @@ class KnownPlayer:
             aliases.append(self.nick)
         return tuple(aliases)
 
+    @property
+    def sessiontime_seconds(self) -> float | None:
+        if (
+            self.lastLoginMs is None
+            or self.lastLogoutMs is None
+            or self.lastLogoutMs > self.lastLoginMs
+        ):
+            # Some stats missing or player seems to be offline
+            return None
+
+        return (self.dataReceivedAtMs - self.lastLoginMs) / 1000
+
     def update_winstreaks(
         self,
         overall: int | None,
@@ -203,9 +215,10 @@ def rate_player(
                 else float("inf")
             )
         elif column == "sessiontime":
-            # Sorting by last login ascending we get the shortest session times first
             stat = (
-                player.lastLoginMs if player.lastLoginMs is not None else float("inf")
+                player.sessiontime_seconds
+                if player.sessiontime_seconds is not None
+                else float("-inf")
             )
         else:  # pragma: no coverage
             assert_never(column)
