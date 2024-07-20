@@ -19,6 +19,8 @@ from tests.prism.overlay.utils import MockedController
 # Player data for a player who has been on Hypixel, but has not played bedwars
 NEW_PLAYER_DATA: Mapping[str, object] = {"stats": {}}
 
+CURRENT_TIME_MS = 1234567890123
+
 
 @dataclass(frozen=True)
 class User:
@@ -53,9 +55,9 @@ def make_scenario_controller(*users: User) -> MockedController:
         user = username_table.get(username, None)
         return user.uuid if user is not None else None
 
-    def get_playerdata(uuid: str) -> Mapping[str, object] | None:
+    def get_playerdata(uuid: str) -> tuple[int, Mapping[str, object] | None]:
         user = uuid_table.get(uuid, None)
-        return user.playerdata if user is not None else None
+        return CURRENT_TIME_MS, user.playerdata if user is not None else None
 
     controller = MockedController(
         get_uuid=get_uuid,
@@ -150,6 +152,7 @@ def test_fetch_bedwars_stats(
         user, nicked = result
         assert user.playerdata is not None
         player = create_known_player(
+            dataReceivedAtMs=CURRENT_TIME_MS,
             playerdata=user.playerdata,
             username=user.username,
             uuid=user.uuid,
@@ -223,6 +226,7 @@ def test_fetch_bedwars_stats_weird_nicked(
     # Since we get the uuid from a denick we do not know a username, and cannot verify
     # that they are a real player. We therefore trust the playerdata to be real.
     target = create_known_player(
+        dataReceivedAtMs=CURRENT_TIME_MS,
         playerdata=ares_playerdata,
         username="<missing name>",  # We rely on Hypixel to provide us the username
         uuid=ares.uuid,
@@ -241,13 +245,18 @@ def test_get_bedwars_stats() -> None:
     assert user.nick is not None
 
     nicked_player = create_known_player(
+        dataReceivedAtMs=CURRENT_TIME_MS,
         playerdata=user.playerdata,
         username=user.username,
         uuid=user.uuid,
         nick=user.nick,
     )
     unnicked_player = create_known_player(
-        playerdata=user.playerdata, username=user.username, uuid=user.uuid, nick=None
+        dataReceivedAtMs=CURRENT_TIME_MS,
+        playerdata=user.playerdata,
+        username=user.username,
+        uuid=user.uuid,
+        nick=None,
     )
 
     # Get the stats of the nicked player
@@ -284,17 +293,20 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
         assert username == my_username
         return my_uuid
 
-    def get_playerdata(uuid: str) -> Mapping[str, object] | None:
+    def get_playerdata(uuid: str) -> tuple[int, Mapping[str, object] | None]:
         assert uuid == my_uuid
         if clear:
             # While we were getting the playerdata, someone else cleared the cache
             controller.player_cache.clear_cache()
-        return my_player_data
+        return 1234567, my_player_data
 
     controller = MockedController(get_uuid=get_uuid, get_playerdata=get_playerdata)
 
     player = create_known_player(
-        playerdata=my_player_data, username=my_username, uuid=my_uuid
+        dataReceivedAtMs=1234567,
+        playerdata=my_player_data,
+        username=my_username,
+        uuid=my_uuid,
     )
 
     # We always return the stats even if the cache did not accept it
@@ -321,8 +333,8 @@ def test_fetch_bedwars_stats_error_during_playerdata() -> None:
 
     def get_playerdata(
         uuid: str,
-    ) -> Mapping[str, object] | None | ProcessingError:
-        return ERROR_DURING_PROCESSING
+    ) -> tuple[int, Mapping[str, object] | None | ProcessingError]:
+        return CURRENT_TIME_MS, ERROR_DURING_PROCESSING
 
     controller = MockedController(get_uuid=get_uuid, get_playerdata=get_playerdata)
 

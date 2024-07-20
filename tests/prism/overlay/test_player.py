@@ -14,6 +14,8 @@ from prism.overlay.player import (
 )
 from tests.prism.overlay.utils import make_player
 
+CURRENT_TIME_MS = 1234567890123
+
 
 def make_winstreaks(
     overall: int | None = 0,
@@ -600,6 +602,7 @@ def test_create_known_player(technoblade_playerdata: Mapping[str, object]) -> No
     fkdr = 20124 / 260
     stars = bedwars_level_from_exp(1076936)
     target = KnownPlayer(
+        dataReceivedAtMs=CURRENT_TIME_MS,
         username="Technoblade",
         uuid="b876ec32e396476ba1158438d83c67d4",
         stars=stars,
@@ -619,6 +622,7 @@ def test_create_known_player(technoblade_playerdata: Mapping[str, object]) -> No
     )
 
     result = create_known_player(
+        dataReceivedAtMs=CURRENT_TIME_MS,
         playerdata=technoblade_playerdata,
         username="Technoblade",
         uuid="b876ec32e396476ba1158438d83c67d4",
@@ -634,6 +638,7 @@ def test_create_known_player_seeecret(
     fkdr = 12378
     stars = 76 + 805 / 5000
     target = KnownPlayer(
+        dataReceivedAtMs=CURRENT_TIME_MS,
         username="Seeecret",
         uuid="437e8dfc93e6490ca90bde65f1b29d62",
         stars=stars,
@@ -653,6 +658,7 @@ def test_create_known_player_seeecret(
     )
 
     result = create_known_player(
+        dataReceivedAtMs=CURRENT_TIME_MS,
         playerdata=seeecret_playerdata,
         username="Seeecret",
         uuid="437e8dfc93e6490ca90bde65f1b29d62",
@@ -665,6 +671,7 @@ def test_create_known_player_seeecret(
 def test_create_known_player_new() -> None:
     """Assert that a player with 0 wins has 0 winstreak"""
     target = KnownPlayer(
+        dataReceivedAtMs=CURRENT_TIME_MS,
         username="NewPlayer",
         uuid="my-uuid",
         stars=1.0,
@@ -684,6 +691,7 @@ def test_create_known_player_new() -> None:
     )
 
     result = create_known_player(
+        dataReceivedAtMs=CURRENT_TIME_MS,
         playerdata={"stats": {"Bedwars": {"kills_bedwars": 10, "deaths_bedwars": 5}}},
         username="NewPlayer",
         uuid="my-uuid",
@@ -695,6 +703,7 @@ def test_create_known_player_new() -> None:
 
 def test_create_known_player_known_winstreak() -> None:
     target = KnownPlayer(
+        dataReceivedAtMs=CURRENT_TIME_MS,
         username="KnownWinstreak",
         uuid="my-uuid",
         stars=1.0,
@@ -716,6 +725,7 @@ def test_create_known_player_known_winstreak() -> None:
     )
 
     result = create_known_player(
+        dataReceivedAtMs=CURRENT_TIME_MS,
         playerdata={
             "displayname": "KnownWinstreak",
             "lastLogin": 1234,
@@ -736,6 +746,7 @@ def test_create_known_player_known_winstreak() -> None:
 
 def test_create_known_player_broken_data() -> None:
     target = KnownPlayer(
+        dataReceivedAtMs=CURRENT_TIME_MS,
         username="BrokenPlayer",
         uuid="my-uuid",
         stars=1.0,
@@ -758,6 +769,7 @@ def test_create_known_player_broken_data() -> None:
     )
 
     result = create_known_player(
+        dataReceivedAtMs=CURRENT_TIME_MS,
         playerdata={
             "displayname": "BrokenPlayer",
             "lastLogin": "abcd",

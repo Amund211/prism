@@ -59,6 +59,7 @@ ruby_prestige = (
 test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
     (
         KnownPlayer(
+            dataReceivedAtMs=CURRENT_TIME_MS,
             username="Player",
             uuid="some-fake-uuid",
             lastLoginMs=CURRENT_TIME_MS - MINUTE_MS // 2,
@@ -99,6 +100,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
     ),
     (
         KnownPlayer(
+            dataReceivedAtMs=CURRENT_TIME_MS,
             username="Denicked",
             nick="the_amazing_nick",
             uuid="some-fake-uuid",
@@ -204,6 +206,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
     # Missing winstreak and sessiontime
     (
         KnownPlayer(
+            dataReceivedAtMs=CURRENT_TIME_MS,
             username="MissingWS",
             uuid="some-fake-uuid",
             lastLoginMs=None,
@@ -244,6 +247,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
     ),
     (
         KnownPlayer(
+            dataReceivedAtMs=CURRENT_TIME_MS,
             username="AccurateMissingWS",
             uuid="some-fake-uuid",
             stars=110.0,
@@ -286,6 +290,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
     # Inaccurate winstreak
     (
         KnownPlayer(
+            dataReceivedAtMs=CURRENT_TIME_MS,
             username="InaccurateWS",
             uuid="some-fake-uuid",
             stars=210.0,
@@ -327,6 +332,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
     (
         # Short session time, fresh account
         create_known_player(
+            CURRENT_TIME_MS,
             {
                 "lastLogin": CURRENT_TIME_MS - 7 * MINUTE_MS,
                 "lastLogout": CURRENT_TIME_MS - 2 * DAY_MS,

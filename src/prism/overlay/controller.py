@@ -1,5 +1,6 @@
 import logging
 import threading
+import time
 from abc import abstractmethod
 from collections.abc import Callable, Mapping
 from enum import Enum
@@ -65,7 +66,7 @@ class OverlayController(Protocol):  # pragma: no cover
     @abstractmethod
     def get_playerdata(
         self,
-    ) -> Callable[[str], Mapping[str, object] | None | ProcessingError]:
+    ) -> Callable[[str], tuple[int, Mapping[str, object] | None | ProcessingError]]:
         raise NotImplementedError
 
     @property
@@ -121,7 +122,7 @@ class RealOverlayController:
 
     def get_playerdata(
         self, uuid: str
-    ) -> Mapping[str, object] | None | ProcessingError:  # pragma: no cover
+    ) -> tuple[int, Mapping[str, object] | None | ProcessingError]:  # pragma: no cover
         # TODO: set api key flags
         try:
             playerdata = get_playerdata(
@@ -134,24 +135,25 @@ class RealOverlayController:
             logger.debug(f"Player not found on Hypixel: {uuid=}", exc_info=e)
             self.api_key_invalid = False
             self.api_key_throttled = False
-            return None
+            return 0, None
         except HypixelAPIError as e:
             logger.error(f"Hypixel API error getting stats for {uuid=}", exc_info=e)
-            return ERROR_DURING_PROCESSING
+            return 0, ERROR_DURING_PROCESSING
         except HypixelAPIKeyError as e:
             logger.warning(f"Invalid API key getting stats for {uuid=}", exc_info=e)
             self.api_key_invalid = True
             self.api_key_throttled = False
-            return ERROR_DURING_PROCESSING
+            return 0, ERROR_DURING_PROCESSING
         except HypixelAPIThrottleError as e:
             logger.warning(f"API key throttled getting stats for {uuid=}", exc_info=e)
             self.api_key_invalid = False
             self.api_key_throttled = True
-            return ERROR_DURING_PROCESSING
+            return 0, ERROR_DURING_PROCESSING
         else:
+            dataReceivedAtMs = time.time_ns() // 1_000_000
             self.api_key_invalid = False
             self.api_key_throttled = False
-            return playerdata
+            return dataReceivedAtMs, playerdata
 
     def get_estimated_winstreaks(
         self, uuid: str

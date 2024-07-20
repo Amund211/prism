@@ -61,6 +61,7 @@ class Stats:
 class KnownPlayer:
     """Dataclass holding the stats of a single player"""
 
+    dataReceivedAtMs: int
     stats: Stats
     stars: float
     username: str
@@ -263,7 +264,11 @@ def get_playerdata_field(
 
 
 def create_known_player(
-    playerdata: Mapping[str, object], username: str, uuid: str, nick: str | None = None
+    dataReceivedAtMs: int,
+    playerdata: Mapping[str, object],
+    username: str,
+    uuid: str,
+    nick: str | None = None,
 ) -> KnownPlayer:
     lastLoginMs = get_playerdata_field(playerdata, "lastLogin", int, None)
     lastLogoutMs = get_playerdata_field(playerdata, "lastLogout", int, None)
@@ -272,6 +277,7 @@ def create_known_player(
         bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
     except MissingStatsError:
         return KnownPlayer(
+            dataReceivedAtMs=dataReceivedAtMs,
             username=username,
             nick=nick,
             uuid=uuid,
@@ -309,6 +315,7 @@ def create_known_player(
 
     fkdr = div(finals, get_playerdata_field(bw_stats, "final_deaths_bedwars", int, 0))
     return KnownPlayer(
+        dataReceivedAtMs=dataReceivedAtMs,
         username=username,
         nick=nick,
         uuid=uuid,

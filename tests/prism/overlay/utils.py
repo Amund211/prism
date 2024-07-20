@@ -188,9 +188,11 @@ def make_player(
     uuid: str = "placeholder",
     lastLoginMs: int | None = None,
     lastLogoutMs: int | None = None,
+    dataReceivedAtMs: int = 1234567890,
 ) -> Player:
     if variant == "player":
         return KnownPlayer(
+            dataReceivedAtMs=dataReceivedAtMs,
             stars=stars,
             stats=Stats(
                 index=stars * fkdr**2,
@@ -335,9 +337,9 @@ class MockedController:
     get_uuid: Callable[[str], str | None | ProcessingError] = field(
         default=missing_method, repr=False, compare=False, hash=False
     )
-    get_playerdata: Callable[[str], Mapping[str, object] | None | ProcessingError] = (
-        field(default=missing_method, repr=False, compare=False, hash=False)
-    )
+    get_playerdata: Callable[
+        [str], tuple[int, Mapping[str, object] | None | ProcessingError]
+    ] = field(default=missing_method, repr=False, compare=False, hash=False)
     get_estimated_winstreaks: Callable[[str], tuple[Winstreaks, bool]] = field(
         default=missing_method, repr=False, compare=False, hash=False
     )
