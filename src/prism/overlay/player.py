@@ -183,7 +183,7 @@ def rate_player(
     # NOTE: When column="username" we set stat=0 so that we instead rely on
     #       the fallback sorting by username to order the list.
     #       If we added the username here we would get reverse alphabetical
-    stat: int | float
+    stat: int | float | None
 
     if isinstance(player, KnownPlayer):
         if column == "username":
@@ -209,20 +209,15 @@ def rate_player(
         elif column == "wins":
             stat = player.stats.wins
         elif column == "winstreak":
-            stat = (
-                player.stats.winstreak
-                if player.stats.winstreak is not None
-                else float("inf")
-            )
+            stat = player.stats.winstreak
         elif column == "sessiontime":
-            stat = (
-                player.sessiontime_seconds
-                if player.sessiontime_seconds is not None
-                else float("-inf")
-            )
+            stat = player.sessiontime_seconds
         else:  # pragma: no coverage
             assert_never(column)
 
+        if stat is None:
+            # Missing stats sorted to the top
+            stat = float("-inf") if sort_ascending else float("inf")
         # Invert the value to sort ascending with a descending sort
         if sort_ascending:
             stat *= -1

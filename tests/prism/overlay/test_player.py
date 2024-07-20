@@ -56,7 +56,7 @@ players: dict[str, Player] = {
         finals=2,
         beds=2,
         wins=2,
-        lastLogoutMs=1000,
+        lastLogoutMs=0,
         lastLoginMs=2000,
     ),
     "nathaniel": make_player(
@@ -71,8 +71,8 @@ players: dict[str, Player] = {
         finals=3,
         beds=3,
         wins=4,
-        lastLogoutMs=2000,
-        lastLoginMs=1000,
+        lastLogoutMs=None,
+        lastLoginMs=None,
     ),
     "joshua": make_player(
         username="joshua",
@@ -86,7 +86,7 @@ players: dict[str, Player] = {
         finals=1,
         beds=4,
         wins=1,
-        lastLogoutMs=3000,
+        lastLogoutMs=0,
         lastLoginMs=4000,
     ),
     "nigel": make_player(
@@ -101,7 +101,7 @@ players: dict[str, Player] = {
         finals=4,
         beds=1,
         wins=3,
-        lastLogoutMs=4000,
+        lastLogoutMs=0,
         lastLoginMs=3000,
     ),
 }
@@ -456,7 +456,13 @@ sort_test_cases: tuple[
             players["jonathan"],
             players["nathaniel"],
         ],
-        None,
+        [
+            # Nigel always on top because of missing winstreak
+            players["nigel"],
+            players["nathaniel"],
+            players["jonathan"],
+            players["joshua"],
+        ],
     ),
     (
         [
@@ -536,15 +542,16 @@ sort_test_cases: tuple[
         set(),
         "sessiontime",  # NOTE: Ascending (long sessions at the top)
         [
-            players["jonathan"],
-            players["joshua"],
+            # Nathaniel always on top because of missing session time
             players["nathaniel"],
+            players["jonathan"],
             players["nigel"],
+            players["joshua"],
         ],
         [
             players["nathaniel"],
-            players["nigel"],
             players["joshua"],
+            players["nigel"],
             players["jonathan"],
         ],
     ),
