@@ -93,6 +93,7 @@ class KnownPlayer:
             self.lastLoginMs is None
             or self.lastLogoutMs is None
             or self.lastLogoutMs > self.lastLoginMs
+            or self.lastLoginMs > self.dataReceivedAtMs
         ):
             # Some stats missing or player seems to be offline
             return None

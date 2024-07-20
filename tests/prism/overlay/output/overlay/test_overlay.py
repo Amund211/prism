@@ -360,6 +360,37 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
             ),
         ),
     ),
+    (
+        # Local time is wrong
+        create_known_player(
+            CURRENT_TIME_MS - 2 * HOUR_MS,
+            {
+                "lastLogin": CURRENT_TIME_MS - 7 * MINUTE_MS,
+                "lastLogout": CURRENT_TIME_MS - 2 * DAY_MS,
+            },
+            "LocalTimeWrong",
+            "some-fake-uuid",
+            None,
+        ),
+        (
+            None,
+            RenderedStats(
+                username=CellValue.monochrome("LocalTimeWrong", *white),
+                stars=CellValue("0.00", rating0[0], low_stone_prestige),
+                index=CellValue.monochrome("0", *rating0),
+                fkdr=CellValue.monochrome("0", *rating0),
+                kdr=CellValue.monochrome("0", *rating0),
+                bblr=CellValue.monochrome("0", *rating0),
+                wlr=CellValue.monochrome("0", *rating0),
+                winstreak=CellValue.monochrome("0", *rating0),
+                kills=CellValue.monochrome("0", *rating0),
+                finals=CellValue.monochrome("0", *rating0),
+                beds=CellValue.monochrome("0", *rating0),
+                wins=CellValue.monochrome("0", *rating0),
+                sessiontime=CellValue.monochrome("-", *rating4),
+            ),
+        ),
+    ),
 )
 
 test_ids = [player.username for player, row in test_cases]
