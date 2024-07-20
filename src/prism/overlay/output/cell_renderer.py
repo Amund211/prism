@@ -493,6 +493,7 @@ def render_stats(
             sessiontime_str = format_seconds_short(
                 player.sessiontime_seconds, rating_configs.sessiontime.decimals
             )
+            # Convert to minutes, as that is the unit used in the rating config
             sessiontime_value = player.sessiontime_seconds / 60
         sessiontime_cell = render_based_on_level(
             sessiontime_str,
