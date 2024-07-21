@@ -13,6 +13,8 @@ from prism.utils import format_seconds_short
 
 logger = logging.getLogger(__name__)
 
+YEAR_SECONDS = 60 * 60 * 24 * 365
+
 
 @dataclass(frozen=True, slots=True)
 class GUILogfile:
@@ -236,4 +238,5 @@ class LogfileController:
                 age_str=format_seconds_short(active_logfile.age_seconds, 0),
             )
             for active_logfile in self.active_logfiles
+            if active_logfile.age_seconds <= YEAR_SECONDS
         )

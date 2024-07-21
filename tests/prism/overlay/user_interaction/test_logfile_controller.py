@@ -3,9 +3,14 @@ from collections.abc import Set
 from dataclasses import replace
 from pathlib import Path
 
-from prism.overlay.user_interaction.logfile_controller import LogfileController
+from prism.overlay.user_interaction.logfile_controller import (
+    GUILogfile,
+    LogfileController,
+)
 from prism.overlay.user_interaction.logfile_utils import ActiveLogfile, LogfileCache
 from tests.prism.overlay.utils import make_dead_path
+
+YEAR_SECONDS = 60 * 60 * 24 * 365
 
 DEFAULT_ACTIVE_LOGFILES = (
     ActiveLogfile(id_=0, path=make_dead_path("somepath"), age_seconds=10),
@@ -415,4 +420,58 @@ def test_startup_with_autoselect() -> None:
         DEFAULT_PATHS,
         last_used_index=0,
         selected_path=DEFAULT_PATHS[0],
+    )
+
+
+def test_filter_out_ancient_logfiles() -> None:
+    active_logfiles = (
+        ActiveLogfile(
+            id_=0,
+            path=make_dead_path("old_logfile"),
+            age_seconds=int(0.9 * YEAR_SECONDS),
+        ),
+        ActiveLogfile(
+            id_=1,
+            path=make_dead_path("ancient_logfile1"),
+            age_seconds=int(1.1 * YEAR_SECONDS),
+        ),
+        ActiveLogfile(
+            id_=2,
+            path=make_dead_path("ancient_logfile2"),
+            age_seconds=int(1.5 * YEAR_SECONDS),
+        ),
+        ActiveLogfile(
+            id_=3,
+            path=make_dead_path("ancient_logfile3"),
+            age_seconds=int(2 * YEAR_SECONDS),
+        ),
+        ActiveLogfile(
+            id_=4,
+            path=make_dead_path("ancient_logfile4"),
+            age_seconds=int(10 * YEAR_SECONDS),
+        ),
+    )
+
+    draw_logfile_list = unittest.mock.MagicMock()
+
+    logfile_controller = LogfileController.create(
+        active_logfiles=active_logfiles,
+        last_used_id=None,
+        autoselect=False,
+        draw_logfile_list=draw_logfile_list,
+        set_can_submit=unittest.mock.MagicMock(),
+    )
+
+    logfile_controller.update_gui()
+
+    draw_logfile_list.assert_called_once_with(
+        (
+            GUILogfile(
+                id_=0,
+                path_str="old_logfile",
+                recent=False,
+                selectable=False,
+                age_str="328d",
+            ),
+        )
     )
