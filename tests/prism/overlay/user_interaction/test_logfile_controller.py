@@ -2,6 +2,7 @@ import unittest.mock
 from collections.abc import Set
 from dataclasses import replace
 from pathlib import Path
+from typing import cast
 
 from prism.overlay.user_interaction.logfile_controller import (
     GUILogfile,
@@ -420,6 +421,54 @@ def test_startup_with_autoselect() -> None:
         DEFAULT_PATHS,
         last_used_index=0,
         selected_path=DEFAULT_PATHS[0],
+    )
+
+
+def test_draw_logfile_list() -> None:
+    """Assert that the logfiles passed to the GUI are correctly formatted"""
+    logfile_controller = create_logfile_controller(autoselect=False)
+    draw_logfile_list = cast(
+        unittest.mock.MagicMock, logfile_controller.draw_logfile_list
+    )
+
+    # Make the newest logfile 1 minute old to force a redraw
+    assert not call_refresh_state(logfile_controller, time_since_last_refresh=60)
+    draw_logfile_list.reset_mock()
+
+    # Update the newest logfile and redraw
+    assert not call_refresh_state(logfile_controller, updated_logfiles={0})
+
+    draw_logfile_list.assert_called_once_with(
+        (
+            GUILogfile(
+                id_=0,
+                path_str="somepath",
+                recent=True,
+                selectable=True,
+                age_str="<1m",
+            ),
+            GUILogfile(
+                id_=1,
+                path_str="old_logfile",
+                recent=False,
+                selectable=False,
+                age_str="3h",
+            ),
+            GUILogfile(
+                id_=2,
+                path_str="older_logfile",
+                recent=False,
+                selectable=False,
+                age_str="1d",
+            ),
+            GUILogfile(
+                id_=3,
+                path_str="oldest_logfile",
+                recent=False,
+                selectable=False,
+                age_str="14d",
+            ),
+        )
     )
 
 
