@@ -65,7 +65,9 @@ class LogfilePrompt:  # pragma: nocover
         self.selected_logfile_id_var.trace(
             "w", self.on_logfile_id_var_change
         )  # type: ignore [no-untyped-call]
-        self.rows: list[tuple[tk.Frame, tk.Button, tk.Label, tk.Radiobutton]] = []
+        self.rows: list[
+            tuple[tk.Frame, tk.Button, tk.Label, tk.Label, tk.Radiobutton]
+        ] = []
 
         tk.Button(
             self.root, text="Select a new file", command=self.select_from_filesystem
@@ -169,8 +171,9 @@ class LogfilePrompt:  # pragma: nocover
 
     def draw_logfile_list(self, gui_logfiles: tuple[GUILogfile, ...]) -> None:
         """Update the gui with the new list"""
-        for frame, button, label, radiobutton in self.rows:
-            label.destroy()
+        for frame, button, path_label, age_label, radiobutton in self.rows:
+            path_label.destroy()
+            age_label.destroy()
             radiobutton.destroy()
             button.destroy()
             frame.destroy()
@@ -196,16 +199,17 @@ class LogfilePrompt:  # pragma: nocover
             button.pack(side=tk.LEFT)
 
             cursor = "hand2" if gui_logfile.selectable else "X_cursor"
+            label_color = "black" if gui_logfile.recent else "gray"
 
-            label = tk.Label(
+            path_label = tk.Label(
                 frame,
                 text=gui_logfile.path_str,
                 cursor=cursor,
-                fg="black" if gui_logfile.recent else "gray",
+                fg=label_color,
             )
             if gui_logfile.selectable:
-                label.bind("<Button-1>", on_label_click)
-            label.pack(side=tk.LEFT)
+                path_label.bind("<Button-1>", on_label_click)
+            path_label.pack(side=tk.LEFT)
 
             radiobutton = tk.Radiobutton(
                 frame,
@@ -218,7 +222,14 @@ class LogfilePrompt:  # pragma: nocover
             )
             radiobutton.pack(side=tk.RIGHT)
 
-            self.rows.append((frame, button, label, radiobutton))
+            age_label = tk.Label(
+                frame,
+                text=f"({gui_logfile.age_str} ago)",
+                fg=label_color,
+            )
+            age_label.pack(side=tk.RIGHT)
+
+            self.rows.append((frame, button, path_label, age_label, radiobutton))
 
     def poll_logfile_timestamps(self) -> None:
         """Refresh the state of the controller and schedule the next refresh"""

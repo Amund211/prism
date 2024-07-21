@@ -9,6 +9,7 @@ from prism.overlay.user_interaction.logfile_utils import (
     autoselect_logfile,
     refresh_active_logfiles,
 )
+from prism.utils import format_seconds_short
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ class GUILogfile:
     path_str: str
     recent: bool
     selectable: bool
+    age_str: str
 
 
 @dataclass
@@ -230,6 +232,8 @@ class LogfileController:
                 path_str=str(active_logfile.path),
                 selectable=self._can_select_logfile(active_logfile),
                 recent=active_logfile.recent,
+                # Make sure this is relatively static to prevent unnecessary redraws
+                age_str=format_seconds_short(active_logfile.age_seconds, 0),
             )
             for active_logfile in self.active_logfiles
         )
