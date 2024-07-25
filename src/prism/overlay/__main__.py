@@ -121,7 +121,7 @@ def process_loglines_to_overlay(
 
 
 def watch_from_logfile(
-    logpath_string: str,
+    logpath: Path,
     overlay: bool,
     console: bool,
     settings: Settings,
@@ -138,8 +138,6 @@ def watch_from_logfile(
         settings=settings,
         nick_database=nick_database,
     )
-
-    logpath = Path(logpath_string)
 
     with logpath.open("r", encoding="utf8", errors="replace") as logfile:
         # Process the entire logfile to get current player as well as potential
@@ -310,7 +308,7 @@ def main(*nick_databases: Path) -> None:  # pragma: nocover
     )
 
     watch_from_logfile(
-        str(logfile_path),
+        logfile_path,
         overlay=True,
         console=options.output_to_console,
         settings=settings,
