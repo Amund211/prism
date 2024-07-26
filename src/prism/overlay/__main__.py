@@ -242,10 +242,7 @@ def test() -> None:  # pragma: nocover
     if slow:
         loglines = slow_iterable(loglines, wait=wait)
 
-    settings = get_settings(
-        options.settings_path,
-        recommend_stats_thread_count(),
-    )
+    settings = get_settings(options.settings_path, default_stats_thread_count=8)
 
     with settings.mutex:
         default_database = {
