@@ -2,6 +2,7 @@ import logging
 import platform
 from datetime import date, datetime
 from itertools import count
+from pathlib import Path
 
 from prism import VERSION_STRING
 from prism.overlay.directories import LOGDIR, must_ensure_directory
@@ -10,14 +11,14 @@ logger = logging.getLogger(__name__)
 
 
 def setup_logging(
-    loglevel: int = logging.WARNING, log_prefix: str = ""
-) -> None:  # pragma: nocover
-    must_ensure_directory(LOGDIR)
+    loglevel: int = logging.WARNING, log_prefix: str = "", log_dir: Path = LOGDIR
+) -> None:
+    must_ensure_directory(log_dir)
 
     datestring = date.today().isoformat()
 
     for i in count():
-        logpath = LOGDIR / f"{log_prefix}{datestring}.{i}.log"
+        logpath = log_dir / f"{log_prefix}{datestring}.{i}.log"
         if not logpath.exists():
             break
 
