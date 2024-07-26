@@ -13,12 +13,19 @@ from datetime import date, datetime
 from itertools import count
 from pathlib import Path
 
-from appdirs import AppDirs
 from tendo import singleton
 
 from prism import VERSION_STRING
 from prism.overlay.commandline import get_options
 from prism.overlay.controller import OverlayController, RealOverlayController
+from prism.overlay.directories import (
+    CACHE_DIR,
+    CONFIG_DIR,
+    DEFAULT_LOGFILE_CACHE_PATH,
+    DEFAULT_SETTINGS_PATH,
+    LOGDIR,
+    must_ensure_directory,
+)
 from prism.overlay.file_utils import watch_file_with_reopen
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.output.overlay.run_overlay import run_overlay
@@ -33,17 +40,6 @@ from prism.overlay.user_interaction.get_logfile import prompt_for_logfile_path
 # Variable that stores our singleinstance lock so that it doesn't go out of scope
 # and get released
 SINGLEINSTANCE_LOCK = None
-
-dirs = AppDirs(appname="prism_overlay")
-
-CONFIG_DIR = Path(dirs.user_config_dir)
-DEFAULT_SETTINGS_PATH = CONFIG_DIR / "settings.toml"
-DEFAULT_LOGFILE_CACHE_PATH = CONFIG_DIR / "known_logfiles.toml"
-
-CACHE_DIR = Path(dirs.user_cache_dir)
-
-
-LOGDIR = Path(dirs.user_log_dir)
 
 logger = logging.getLogger(__name__)
 
@@ -162,7 +158,7 @@ def setup(
     loglevel: int = logging.WARNING, log_prefix: str = ""
 ) -> None:  # pragma: nocover
     """Set up directory structure and logging"""
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    must_ensure_directory(CACHE_DIR)
 
     # Only allow one instance of the overlay
     global SINGLEINSTANCE_LOCK
@@ -179,7 +175,7 @@ def setup(
         )
         sys.exit(1)
 
-    LOGDIR.mkdir(parents=True, exist_ok=True)
+    must_ensure_directory(LOGDIR)
 
     datestring = date.today().isoformat()
 
@@ -276,11 +272,7 @@ def main(*nick_databases: Path) -> None:  # pragma: nocover
 
     setup(options.loglevel)
 
-    try:
-        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    except Exception:
-        logger.exception("Failed creating settings directory!")
-        sys.exit(1)
+    must_ensure_directory(CONFIG_DIR)
 
     # Read settings and populate missing values
     settings = get_settings(
