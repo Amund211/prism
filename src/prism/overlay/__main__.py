@@ -154,13 +154,9 @@ def watch_from_logfile(
         )
 
 
-def setup(
-    loglevel: int = logging.WARNING, log_prefix: str = ""
-) -> None:  # pragma: nocover
-    """Set up directory structure and logging"""
+def ensure_not_parallel() -> None:  # pragma: nocover
+    """Ensure that only one instance of the overlay is running"""
     must_ensure_directory(CACHE_DIR)
-
-    # Only allow one instance of the overlay
     global SINGLEINSTANCE_LOCK
     try:
         SINGLEINSTANCE_LOCK = (
@@ -175,6 +171,10 @@ def setup(
         )
         sys.exit(1)
 
+
+def setup_logging(
+    loglevel: int = logging.WARNING, log_prefix: str = ""
+) -> None:  # pragma: nocover
     must_ensure_directory(LOGDIR)
 
     datestring = date.today().isoformat()
@@ -208,7 +208,9 @@ def test() -> None:  # pragma: nocover
         args=sys.argv[2:], default_settings_path=DEFAULT_SETTINGS_PATH
     )
 
-    setup(logging.DEBUG, log_prefix="test_")
+    ensure_not_parallel()
+
+    setup_logging(logging.DEBUG, log_prefix="test_")
 
     slow, wait = False, 1
     overlay = True
@@ -270,7 +272,9 @@ def main(*nick_databases: Path) -> None:  # pragma: nocover
     """Run the overlay"""
     options = get_options(default_settings_path=DEFAULT_SETTINGS_PATH)
 
-    setup(options.loglevel)
+    ensure_not_parallel()
+
+    setup_logging(options.loglevel)
 
     must_ensure_directory(CONFIG_DIR)
 
