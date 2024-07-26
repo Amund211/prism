@@ -5,17 +5,13 @@ Run from the root dir by `python -m prism.overlay [--logfile <path-to-logfile>]`
 """
 
 import logging
-import platform
 import sys
 import time
 from collections.abc import Iterable
-from datetime import date, datetime
-from itertools import count
 from pathlib import Path
 
 from tendo import singleton
 
-from prism import VERSION_STRING
 from prism.overlay.commandline import get_options
 from prism.overlay.controller import OverlayController, RealOverlayController
 from prism.overlay.directories import (
@@ -23,10 +19,10 @@ from prism.overlay.directories import (
     CONFIG_DIR,
     DEFAULT_LOGFILE_CACHE_PATH,
     DEFAULT_SETTINGS_PATH,
-    LOGDIR,
     must_ensure_directory,
 )
 from prism.overlay.file_utils import watch_file_with_reopen
+from prism.overlay.logging import setup_logging
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.output.overlay.run_overlay import run_overlay
 from prism.overlay.output.printing import print_stats_table
@@ -170,36 +166,6 @@ def ensure_not_parallel() -> None:  # pragma: nocover
             "You can only run one instance of the overlay at the time", file=sys.stderr
         )
         sys.exit(1)
-
-
-def setup_logging(
-    loglevel: int = logging.WARNING, log_prefix: str = ""
-) -> None:  # pragma: nocover
-    must_ensure_directory(LOGDIR)
-
-    datestring = date.today().isoformat()
-
-    for i in count():
-        logpath = LOGDIR / f"{log_prefix}{datestring}.{i}.log"
-        if not logpath.exists():
-            break
-
-    logging.basicConfig(
-        filename=logpath,
-        level=loglevel,
-        format="%(asctime)s;%(levelname)-8s;%(name)-30s;%(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-
-    # Capture Python warnings to the logfile with logger py.warnings
-    logging.captureWarnings(True)
-
-    # Log system+version info
-    current_datestring = datetime.now().isoformat(timespec="seconds")
-    logger.setLevel(logging.DEBUG)
-    logger.debug(f"Starting prism overlay {VERSION_STRING} at {current_datestring}")
-    logger.debug(f"Running on {platform.uname()}. Python {platform.python_version()}")
-    logger.setLevel(loglevel)
 
 
 def test() -> None:  # pragma: nocover
