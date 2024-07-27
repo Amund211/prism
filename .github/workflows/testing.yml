@@ -32,6 +32,7 @@ jobs:
         echo 'ACTIVATE_PATH=venv/Scripts/activate' >> $GITHUB_ENV
         echo 'RESULT_EXTENSION=.exe' >> $GITHUB_ENV
         echo 'PYINSTALLER_ARGS=--hide-console=minimize-early' >> $GITHUB_ENV
+        echo 'INSTALL_CA_CERT=certutil.exe -addstore root local-ca.pem' >> $GITHUB_ENV
     - name: OS specific setup (linux)
       if: startswith(matrix.os, 'ubuntu')
       run: |
@@ -39,6 +40,7 @@ jobs:
         echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
         echo 'RESULT_EXTENSION=' >> $GITHUB_ENV
         echo 'PYINSTALLER_ARGS=' >> $GITHUB_ENV
+        echo 'INSTALL_CA_CERT=sudo cp local-ca.pem /usr/local/share/ca-certificates/local-ca.crt; sudo update-ca-certificates' >> $GITHUB_ENV
     - name: OS specific setup (mac)
       if: startswith(matrix.os, 'macOS')
       run: |
@@ -49,6 +51,7 @@ jobs:
         # Target universal2 so that the built binary can run on both intel and apple silicon
         # Pass --windowed to build a .app bundle
         echo 'PYINSTALLER_ARGS=--target-architecture universal2 --windowed' >> $GITHUB_ENV
+        echo 'INSTALL_CA_CERT=sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain local-ca.pem' >> $GITHUB_ENV
 
     - name: Select dependency files
       run: |
@@ -80,6 +83,47 @@ jobs:
         source ${{ env.ACTIVATE_PATH }}
         coverage run
         coverage report
+
+    - name: tee | stderr
+      if: env.OS_NAME != 'windows'
+      run:
+        echo 'TEE_STDERR=| tee /dev/stderr' >> $GITHUB_ENV
+
+    - name: Test ssl system certs
+      run: |
+        source ${{ env.ACTIVATE_PATH }}
+        certifi_ca_certs="$(python -m certifi)"
+
+        (
+          cd tests/system_certs
+
+          echo 'Print certs' >&2
+          sh print.sh
+
+          echo "Run local https server and ensure it's running" >&2
+          python server.py >/dev/null 2>&1 &
+          sleep 1
+
+          echo 'Ensure request succeeds with local ca' >&2
+          curl --ssl-no-revoke --fail --silent https://localhost:12345 --cacert local-ca.pem ${{ env.TEE_STDERR }} | grep '^Hello world' >/dev/null 2>&1
+
+          echo 'Ensure request fails with certifi ca' >&2
+          ! curl --ssl-no-revoke --fail https://localhost:12345 --cacert "$certifi_ca_certs" 2>&1 ${{ env.TEE_STDERR }} | grep 'SSL certificate problem' >/dev/null 2>&1
+
+          echo 'Install certs' >&2
+          ${{ env.INSTALL_CA_CERT }}
+        )
+
+        # Create placeholder logfile
+        touch latest.log
+
+        echo 'Ensure ssl error is caught when using included certs' >&2
+        echo 'use_included_certs = true' > included_certs_settings.toml
+        python prism_overlay.py --test-ssl --settings=included_certs_settings.toml --logfile=latest.log ${{ env.TEE_STDERR }} | grep '^Caught SSLError: ' >/dev/null 2>&1
+
+        echo 'Ensure request succeeds when using system certs' >&2
+        echo 'use_included_certs = false' > system_certs_settings.toml
+        python prism_overlay.py --test-ssl --settings=system_certs_settings.toml --logfile=latest.log ${{ env.TEE_STDERR }} | grep '^Got response: Hello world' >/dev/null 2>&1
 
     - name: Build single file binary with pyinstaller
       run: |

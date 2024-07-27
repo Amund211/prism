@@ -1,3 +1,4 @@
+import argparse
 import logging
 from argparse import ArgumentParser
 from collections.abc import Sequence
@@ -11,6 +12,7 @@ class Options:
     settings_path: Path
     output_to_console: bool
     loglevel: int
+    test_ssl: bool
 
 
 def resolve_path(p: str) -> Path:  # pragma: no cover
@@ -55,6 +57,13 @@ def get_options(
         default=0,
     )
 
+    # Used for testing ssl certificate patching
+    parser.add_argument(
+        "--test-ssl",
+        help=argparse.SUPPRESS,
+        action="store_true",
+    )
+
     # Parse the args
     # Parses from sys.argv if args is None
     parsed = parser.parse_args(args=args)
@@ -63,6 +72,7 @@ def get_options(
     assert isinstance(parsed.settings, Path)
     assert isinstance(parsed.quiet, bool)
     assert isinstance(parsed.verbose, int)
+    assert isinstance(parsed.test_ssl, bool)
 
     if parsed.verbose <= 0:
         # Default loglevel to INFO
@@ -83,4 +93,5 @@ def get_options(
         settings_path=parsed.settings,
         output_to_console=not parsed.quiet,
         loglevel=loglevel,
+        test_ssl=parsed.test_ssl,
     )

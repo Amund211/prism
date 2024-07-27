@@ -57,6 +57,10 @@ def main() -> None:  # pragma: nocover
 
     nick_database = NickDatabase.from_disk([], default_database=default_database)
 
+    if options.test_ssl:
+        test_ssl()
+        return
+
     # Import late so we can patch ssl certs in requests
     from prism.overlay.process_loglines import watch_from_logfile
 
@@ -67,6 +71,19 @@ def main() -> None:  # pragma: nocover
         settings=settings,
         nick_database=nick_database,
     )
+
+
+def test_ssl() -> None:  # pragma: nocover
+    """Test SSL certificate patching"""
+    import requests
+
+    try:
+        resp = requests.get("https://localhost:12345")
+        print("Got response:", resp.text)
+    except requests.exceptions.SSLError as e:
+        print("Caught SSLError:", e)
+    except Exception as e:
+        print("Caught unknown exception:", e)
 
 
 if __name__ == "__main__":  # pragma: nocover
