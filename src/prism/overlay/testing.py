@@ -71,6 +71,10 @@ def test() -> None:  # pragma: nocover
 
     settings = get_settings(options.settings_path, default_stats_thread_count=8)
 
+    if not settings.use_included_certs:
+        # Patch requests to use system certs
+        import pip_system_certs.wrapt_requests  # type: ignore  # noqa: F401
+
     with settings.mutex:
         default_database = {
             nick: value["uuid"] for nick, value in settings.known_nicks.items()

@@ -37,6 +37,10 @@ def main() -> None:  # pragma: nocover
         recommend_stats_thread_count(),
     )
 
+    if not settings.use_included_certs:
+        # Patch requests to use system certs
+        import prism.use_system_certs  # noqa: F401
+
     if options.logfile_path is None:
         logfile_path = prompt_for_logfile_path(
             DEFAULT_LOGFILE_CACHE_PATH, settings.autoselect_logfile
