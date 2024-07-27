@@ -54,6 +54,7 @@ def make_settings_dict(
     show_on_tab_keybind: KeyDict | None = None,
     check_for_updates: bool | None = None,
     include_patch_updates: bool | None = None,
+    use_included_certs: bool | None = None,
     stats_thread_count: int | None = None,
     discord_rich_presence: bool | None = None,
     discord_show_username: bool | None = None,
@@ -89,6 +90,7 @@ def make_settings_dict(
         ),
         "check_for_updates": value_or_default(check_for_updates, default=True),
         "include_patch_updates": value_or_default(include_patch_updates, default=False),
+        "use_included_certs": value_or_default(use_included_certs, default=True),
         "stats_thread_count": value_or_default(
             stats_thread_count, default=DEFAULT_STATS_THREAD_COUNT
         ),
@@ -126,6 +128,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             show_on_tab_keybind=AlphanumericKey(name="a", char="a"),
             check_for_updates=True,
             include_patch_updates=False,
+            use_included_certs=False,
             stats_thread_count=4,
             discord_rich_presence=True,
             discord_show_username=True,
@@ -154,6 +157,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             ),
             "check_for_updates": True,
             "include_patch_updates": False,
+            "use_included_certs": False,
             "stats_thread_count": 4,
             "discord_rich_presence": True,
             "discord_show_username": True,
@@ -181,6 +185,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             show_on_tab_keybind=SpecialKey(name="tab", vk=None),
             check_for_updates=False,
             include_patch_updates=True,
+            use_included_certs=True,
             stats_thread_count=16,
             discord_rich_presence=False,
             discord_show_username=False,
@@ -209,6 +214,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             ),
             "check_for_updates": False,
             "include_patch_updates": True,
+            "use_included_certs": True,
             "stats_thread_count": 16,
             "discord_rich_presence": False,
             "discord_show_username": False,
@@ -369,6 +375,7 @@ fill_settings_test_cases: tuple[
             ),
             "check_for_updates": False,
             "include_patch_updates": True,
+            "use_included_certs": True,
             "stats_thread_count": 9,
             "discord_rich_presence": False,
             "discord_show_username": False,
@@ -395,6 +402,7 @@ fill_settings_test_cases: tuple[
             ),
             check_for_updates=False,
             include_patch_updates=True,
+            use_included_certs=True,
             stats_thread_count=9,
             discord_rich_presence=False,
             discord_show_username=False,
@@ -660,6 +668,28 @@ fill_settings_test_cases: tuple[
             "discord_show_username": (),
             "discord_show_session_stats": 0,
             "discord_show_party": 1e3,
+        },
+        make_settings_dict(),
+        True,
+    ),
+    # Invalid use_included_certs
+    (
+        {
+            "use_included_certs": ("", ""),
+        },
+        make_settings_dict(),
+        True,
+    ),
+    (
+        {
+            "use_included_certs": [1],
+        },
+        make_settings_dict(),
+        True,
+    ),
+    (
+        {
+            "use_included_certs": 1,
         },
         make_settings_dict(),
         True,

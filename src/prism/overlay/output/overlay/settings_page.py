@@ -254,6 +254,21 @@ class GeneralSettingSection:  # pragma: nocover
             self.include_patch_updates_toggle.button,
         )
 
+        use_included_certs_label = tk.Label(
+            self.frame,
+            text="Use included ssl certificates: ",
+            font=("Consolas", 12),
+            foreground="white",
+            background="black",
+        )
+        use_included_certs_label.grid(row=7, column=0, sticky=tk.E)
+        self.use_included_certs_toggle = ToggleButton(self.frame)
+        self.use_included_certs_toggle.button.grid(row=7, column=1)
+        parent.make_widgets_scrollable(
+            use_included_certs_label,
+            self.use_included_certs_toggle.button,
+        )
+
         if sys.platform == "darwin":
             self.show_on_tab_toggle.button.config(state=tk.DISABLED)
             self.show_on_tab_keybind_selector.button.config(state=tk.DISABLED)
@@ -265,7 +280,7 @@ class GeneralSettingSection:  # pragma: nocover
                 foreground="red",
                 background="black",
             )
-            show_on_tab_disabled_label.grid(row=7, column=0, columnspan=2)
+            show_on_tab_disabled_label.grid(row=8, column=0, columnspan=2)
             parent.make_widgets_scrollable(show_on_tab_disabled_label)
 
     def set(
@@ -277,6 +292,7 @@ class GeneralSettingSection:  # pragma: nocover
         show_on_tab_keybind: Key,
         check_for_updates: bool,
         include_patch_updates: bool,
+        use_included_certs: bool,
     ) -> None:
         """Set the state of this section"""
         self.autodenick_teammates_toggle.set(autodenick_teammates)
@@ -286,8 +302,9 @@ class GeneralSettingSection:  # pragma: nocover
         self.show_on_tab_keybind_selector.set_key(show_on_tab_keybind)
         self.check_for_updates_toggle.set(check_for_updates)
         self.include_patch_updates_toggle.set(include_patch_updates)
+        self.use_included_certs_toggle.set(use_included_certs)
 
-    def get(self) -> tuple[bool, bool, bool, bool, Key, bool, bool]:
+    def get(self) -> tuple[bool, bool, bool, bool, Key, bool, bool, bool]:
         """Get the state of this section"""
         return (
             self.autodenick_teammates_toggle.enabled,
@@ -297,6 +314,7 @@ class GeneralSettingSection:  # pragma: nocover
             self.show_on_tab_keybind_selector.key,
             self.check_for_updates_toggle.enabled,
             self.include_patch_updates_toggle.enabled,
+            self.use_included_certs_toggle.enabled,
         )
 
 
@@ -1061,6 +1079,7 @@ class SettingsPage:  # pragma: nocover
                 show_on_tab_keybind=settings.show_on_tab_keybind,
                 check_for_updates=settings.check_for_updates,
                 include_patch_updates=settings.include_patch_updates,
+                use_included_certs=settings.use_included_certs,
             )
             self.performance_section.set(stats_thread_count=settings.stats_thread_count)
             self.display_section.set(settings.sort_order, settings.hide_dead_players)
@@ -1101,6 +1120,7 @@ class SettingsPage:  # pragma: nocover
             show_on_tab_keybind,
             check_for_updates,
             include_patch_updates,
+            use_included_certs,
         ) = self.general_settings_section.get()
 
         stats_thread_count = self.performance_section.get()
@@ -1140,6 +1160,7 @@ class SettingsPage:  # pragma: nocover
             show_on_tab_keybind=show_on_tab_keybind.to_dict(),
             check_for_updates=check_for_updates,
             include_patch_updates=include_patch_updates,
+            use_included_certs=use_included_certs,
             stats_thread_count=stats_thread_count,
             discord_rich_presence=discord_settings["discord_rich_presence"],
             discord_show_username=discord_settings["discord_show_username"],
