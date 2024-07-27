@@ -1,6 +1,6 @@
 import pytest
 
-from prism.overlay.threading import (
+from prism.overlay.thread_count import (
     get_cpu_count,
     recommend_stats_thread_count,
     recommend_stats_thread_count_from_cpu_count,

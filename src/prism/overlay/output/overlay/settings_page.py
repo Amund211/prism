@@ -38,7 +38,8 @@ from prism.overlay.output.overlay.gui_components import (
 )
 from prism.overlay.output.overlay.utils import open_url
 from prism.overlay.settings import NickValue, Settings, SettingsDict
-from prism.overlay.threading import UpdateCheckerThread, recommend_stats_thread_count
+from prism.overlay.thread_count import recommend_stats_thread_count
+from prism.overlay.threading import UpdateCheckerThread
 
 logger = logging.getLogger(__name__)
 
