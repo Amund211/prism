@@ -10,12 +10,9 @@ import time
 from collections.abc import Iterable
 from pathlib import Path
 
-from tendo import singleton
-
 from prism.overlay.commandline import get_options
 from prism.overlay.controller import OverlayController, RealOverlayController
 from prism.overlay.directories import (
-    CACHE_DIR,
     CONFIG_DIR,
     DEFAULT_LOGFILE_CACHE_PATH,
     DEFAULT_SETTINGS_PATH,
@@ -24,6 +21,7 @@ from prism.overlay.directories import (
 from prism.overlay.file_utils import watch_file_with_reopen
 from prism.overlay.logging import setup_logging
 from prism.overlay.nick_database import NickDatabase
+from prism.overlay.not_parallel import ensure_not_parallel
 from prism.overlay.output.overlay.run_overlay import run_overlay
 from prism.overlay.output.printing import print_stats_table
 from prism.overlay.player import Player
@@ -32,10 +30,6 @@ from prism.overlay.settings import Settings, get_settings
 from prism.overlay.state import OverlayState
 from prism.overlay.threading import prepare_overlay, recommend_stats_thread_count
 from prism.overlay.user_interaction.get_logfile import prompt_for_logfile_path
-
-# Variable that stores our singleinstance lock so that it doesn't go out of scope
-# and get released
-SINGLEINSTANCE_LOCK = None
 
 logger = logging.getLogger(__name__)
 
@@ -148,24 +142,6 @@ def watch_from_logfile(
             loglines=loglines,
             output_to_console=console,
         )
-
-
-def ensure_not_parallel() -> None:  # pragma: nocover
-    """Ensure that only one instance of the overlay is running"""
-    must_ensure_directory(CACHE_DIR)
-    global SINGLEINSTANCE_LOCK
-    try:
-        SINGLEINSTANCE_LOCK = (
-            singleton.SingleInstance(  # type: ignore [no-untyped-call]
-                lockfile=str(CACHE_DIR / "prism_overlay.lock")
-            )
-        )
-    except singleton.SingleInstanceException:
-        # TODO: Shown the running overlay window
-        print(
-            "You can only run one instance of the overlay at the time", file=sys.stderr
-        )
-        sys.exit(1)
 
 
 def test() -> None:  # pragma: nocover
