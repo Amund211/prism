@@ -16,7 +16,6 @@ from prism.overlay.directories import (
 from prism.overlay.logging import setup_logging
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.not_parallel import ensure_not_parallel
-from prism.overlay.process_loglines import watch_from_logfile
 from prism.overlay.settings import get_settings
 from prism.overlay.thread_count import recommend_stats_thread_count
 from prism.overlay.user_interaction.get_logfile import prompt_for_logfile_path
@@ -51,6 +50,9 @@ def main() -> None:  # pragma: nocover
         }
 
     nick_database = NickDatabase.from_disk([], default_database=default_database)
+
+    # Import late so we can patch ssl certs in requests
+    from prism.overlay.process_loglines import watch_from_logfile
 
     watch_from_logfile(
         logfile_path,
