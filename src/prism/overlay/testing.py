@@ -5,6 +5,8 @@ import sys
 import time
 from collections.abc import Iterable
 
+import truststore
+
 from prism.overlay.commandline import get_options
 from prism.overlay.controller import RealOverlayController
 from prism.overlay.directories import DEFAULT_SETTINGS_PATH
@@ -70,6 +72,10 @@ def test() -> None:  # pragma: nocover
         loglines = slow_iterable(loglines, wait=wait)
 
     settings = get_settings(options.settings_path, default_stats_thread_count=8)
+
+    if not settings.use_included_certs:
+        # Patch requests to use system certs
+        truststore.inject_into_ssl()
 
     with settings.mutex:
         default_database = {

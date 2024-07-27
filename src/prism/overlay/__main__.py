@@ -6,6 +6,8 @@ Run from the root dir by `python -m prism.overlay [--logfile <path-to-logfile>]`
 
 import sys
 
+import truststore
+
 from prism.overlay.commandline import get_options
 from prism.overlay.directories import (
     CONFIG_DIR,
@@ -36,6 +38,10 @@ def main() -> None:  # pragma: nocover
         options.settings_path,
         recommend_stats_thread_count(),
     )
+
+    if not settings.use_included_certs:
+        # Patch requests to use system certs
+        truststore.inject_into_ssl()
 
     if options.logfile_path is None:
         logfile_path = prompt_for_logfile_path(
