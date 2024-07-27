@@ -4,7 +4,6 @@ Parse the chat on Hypixel to detect players in your party and bedwars lobby
 Run from the root dir by `python -m prism.overlay [--logfile <path-to-logfile>]`
 """
 
-import logging
 import sys
 from pathlib import Path
 
@@ -22,8 +21,6 @@ from prism.overlay.process_loglines import watch_from_logfile
 from prism.overlay.settings import get_settings
 from prism.overlay.threading import recommend_stats_thread_count
 from prism.overlay.user_interaction.get_logfile import prompt_for_logfile_path
-
-logger = logging.getLogger(__name__)
 
 
 def main(*nick_databases: Path) -> None:  # pragma: nocover
