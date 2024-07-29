@@ -5,7 +5,6 @@ Run from the root dir by `python -m prism.overlay [--logfile <path-to-logfile>]`
 """
 
 import sys
-from pathlib import Path
 
 from prism.overlay.commandline import get_options
 from prism.overlay.directories import (
@@ -23,7 +22,7 @@ from prism.overlay.threading import recommend_stats_thread_count
 from prism.overlay.user_interaction.get_logfile import prompt_for_logfile_path
 
 
-def main(*nick_databases: Path) -> None:  # pragma: nocover
+def main() -> None:  # pragma: nocover
     """Run the overlay"""
     options = get_options(default_settings_path=DEFAULT_SETTINGS_PATH)
 
@@ -51,9 +50,7 @@ def main(*nick_databases: Path) -> None:  # pragma: nocover
             nick: value["uuid"] for nick, value in settings.known_nicks.items()
         }
 
-    nick_database = NickDatabase.from_disk(
-        list(nick_databases), default_database=default_database
-    )
+    nick_database = NickDatabase.from_disk([], default_database=default_database)
 
     watch_from_logfile(
         logfile_path,
