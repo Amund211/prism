@@ -119,7 +119,7 @@ jobs:
 
         echo 'Ensure ssl error is caught when using included certs' >&2
         echo 'use_included_certs = true' > included_certs_settings.toml
-        python prism_overlay.py --test-ssl --settings=included_certs_settings.toml --logfile=latest.log ${{ env.TEE_STDERR }} | grep '^Caught SSLError: ' >/dev/null 2>&1
+        python prism_overlay.py --test-ssl --settings=included_certs_settings.toml --logfile=latest.log ${{ env.TEE_STDERR }} | grep '^Caught missing local issuer SSLError: ' >/dev/null 2>&1
 
         echo 'Ensure request succeeds when using system certs' >&2
         echo 'use_included_certs = false' > system_certs_settings.toml
