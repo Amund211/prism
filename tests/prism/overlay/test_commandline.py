@@ -13,6 +13,7 @@ def make_options(
     output_to_console: bool = True,
     loglevel: int = logging.INFO,
     test_ssl: bool = False,
+    test: bool = False,
 ) -> Options:
     """Construct an Options instance from its components"""
     return Options(
@@ -21,6 +22,7 @@ def make_options(
         output_to_console=output_to_console,
         loglevel=loglevel,
         test_ssl=test_ssl,
+        test=test,
     )
 
 
@@ -44,6 +46,8 @@ test_cases: tuple[tuple[str, Options], ...] = (
     ("-s s.toml", make_options(settings="s.toml")),
     # Test ssl
     ("--test-ssl", make_options(test_ssl=True)),
+    # Test
+    ("--test", make_options(test=True)),
     # Multiple arguments
     (
         "-l somelogfile --settings s.toml",
@@ -54,13 +58,14 @@ test_cases: tuple[tuple[str, Options], ...] = (
         make_options("somelogfile", settings="s.toml"),
     ),
     (
-        "--settings s.toml -l somelogfile --quiet -vvvvv --test-ssl",
+        "--settings s.toml -l somelogfile --quiet -vvvvv --test-ssl --test",
         make_options(
             "somelogfile",
             settings="s.toml",
             output_to_console=False,
             loglevel=logging.DEBUG,
             test_ssl=True,
+            test=True,
         ),
     ),
     # Weird input -> weird output

@@ -13,6 +13,7 @@ class Options:
     output_to_console: bool
     loglevel: int
     test_ssl: bool
+    test: bool
 
 
 def resolve_path(p: str) -> Path:  # pragma: no cover
@@ -64,6 +65,12 @@ def get_options(
         action="store_true",
     )
 
+    parser.add_argument(
+        "--test",
+        help=argparse.SUPPRESS,
+        action="store_true",
+    )
+
     # Parse the args
     # Parses from sys.argv if args is None
     parsed = parser.parse_args(args=args)
@@ -73,6 +80,7 @@ def get_options(
     assert isinstance(parsed.quiet, bool)
     assert isinstance(parsed.verbose, int)
     assert isinstance(parsed.test_ssl, bool)
+    assert isinstance(parsed.test, bool)
 
     if parsed.verbose <= 0:
         # Default loglevel to INFO
@@ -94,4 +102,5 @@ def get_options(
         output_to_console=not parsed.quiet,
         loglevel=loglevel,
         test_ssl=parsed.test_ssl,
+        test=parsed.test,
     )
