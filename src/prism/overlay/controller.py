@@ -122,7 +122,7 @@ class RealOverlayController:
 
     def get_playerdata(
         self, uuid: str
-    ) -> tuple[int, Mapping[str, object] | None | ProcessingError]:  # pragma: no cover
+    ) -> tuple[int, Mapping[str, object] | None | ProcessingError]:
         # TODO: set api key flags
         try:
             playerdata = get_playerdata(
