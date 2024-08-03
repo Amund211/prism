@@ -9,3 +9,7 @@ def test_main() -> None:
 
 def test_testing() -> None:
     import prism.overlay.testing  # noqa: F401
+
+
+def test_process_loglines() -> None:
+    import prism.overlay.process_loglines  # noqa: F401

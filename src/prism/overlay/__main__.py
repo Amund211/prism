@@ -4,7 +4,7 @@ Parse the chat on Hypixel to detect players in your party and bedwars lobby
 Run from the root dir by `python -m prism.overlay [--logfile <path-to-logfile>]`
 """
 
-import sys
+import logging
 
 import truststore
 
@@ -29,7 +29,10 @@ def main() -> None:  # pragma: nocover
 
     ensure_not_parallel()
 
-    setup_logging(options.loglevel)
+    if options.test:
+        setup_logging(logging.DEBUG, log_prefix="test_")
+    else:
+        setup_logging(options.loglevel)
 
     must_ensure_directory(CONFIG_DIR)
 
@@ -64,7 +67,12 @@ def main() -> None:  # pragma: nocover
         test_ssl()
         return
 
-    loglines = prompt_and_read_logfile(controller, options, settings)
+    if options.test:
+        from prism.overlay.testing import get_test_loglines
+
+        loglines = get_test_loglines(options)
+    else:
+        loglines = prompt_and_read_logfile(controller, options, settings)
 
     process_loglines(
         controller=controller,
@@ -91,9 +99,4 @@ def test_ssl() -> None:  # pragma: nocover
 
 
 if __name__ == "__main__":  # pragma: nocover
-    if len(sys.argv) >= 2 and sys.argv[1] == "--test":
-        from prism.overlay.testing import test
-
-        test()
-    else:
-        main()
+    main()
