@@ -185,6 +185,12 @@ class GeneralSettingSection:  # pragma: nocover
             use_antisniper_label, self.use_antisniper_api_toggle.button
         )
 
+        def disable_keybind_selector(enabled: bool) -> None:
+            self.show_on_tab_keybind_selector.button.config(  # type: ignore [has-type]
+                state=tk.NORMAL if enabled else tk.DISABLED,
+                cursor="hand2" if enabled else "arrow",
+            )
+
         show_on_tab_label = tk.Label(
             self.frame,
             text="Show overlay on tab: ",
@@ -193,7 +199,9 @@ class GeneralSettingSection:  # pragma: nocover
             background="black",
         )
         show_on_tab_label.grid(row=3, column=0, sticky=tk.E)
-        self.show_on_tab_toggle = ToggleButton(self.frame)
+        self.show_on_tab_toggle = ToggleButton(
+            self.frame, toggle_callback=disable_keybind_selector
+        )
         self.show_on_tab_toggle.button.grid(row=3, column=1)
         parent.make_widgets_scrollable(
             show_on_tab_label,
@@ -219,7 +227,8 @@ class GeneralSettingSection:  # pragma: nocover
 
         def disable_include_patch_updates_toggle(enabled: bool) -> None:
             self.include_patch_updates_toggle.button.config(
-                state=tk.NORMAL if enabled else tk.DISABLED
+                state=tk.NORMAL if enabled else tk.DISABLED,
+                cursor="hand2" if enabled else "arrow",
             )
 
         check_for_updates_label = tk.Label(
@@ -270,8 +279,10 @@ class GeneralSettingSection:  # pragma: nocover
         )
 
         if sys.platform == "darwin":
-            self.show_on_tab_toggle.button.config(state=tk.DISABLED)
-            self.show_on_tab_keybind_selector.button.config(state=tk.DISABLED)
+            self.show_on_tab_toggle.button.config(state=tk.DISABLED, cursor="arrow")
+            self.show_on_tab_keybind_selector.button.config(
+                state=tk.DISABLED, cursor="arrow"
+            )
 
             show_on_tab_disabled_label = tk.Label(
                 self.frame,
@@ -411,9 +422,10 @@ class DiscordSection:  # pragma: nocover
     def _enable_buttons(self, enabled: bool) -> None:
         """Set the state of the settings buttons to `enabled`"""
         state: Literal["normal", "disabled"] = tk.NORMAL if enabled else tk.DISABLED
-        self.discord_show_username_toggle.button.config(state=state)
-        self.discord_show_session_stats_toggle.button.config(state=state)
-        self.discord_show_party_toggle.button.config(state=state)
+        cursor: Literal["hand2", "arrow"] = "hand2" if enabled else "arrow"
+        self.discord_show_username_toggle.button.config(state=state, cursor=cursor)
+        self.discord_show_session_stats_toggle.button.config(state=state, cursor=cursor)
+        self.discord_show_party_toggle.button.config(state=state, cursor=cursor)
 
     def set(
         self,
