@@ -8,6 +8,7 @@ from prism.hypixel import (
     HypixelAPIThrottleError,
     HypixelPlayerNotFoundError,
 )
+from prism.mojang import MojangAPIError
 from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from prism.overlay.controller import ERROR_DURING_PROCESSING, RealOverlayController
 from prism.overlay.nick_database import NickDatabase
@@ -41,6 +42,49 @@ def test_real_overlay_controller_no_antisniper_key() -> None:
     )
 
     assert controller.antisniper_key_holder is None
+
+
+def test_real_overlay_controller_get_uuid() -> None:
+    controller = RealOverlayController(
+        state=create_state(),
+        settings=make_settings(
+            antisniper_api_key="antisniper_key",
+            use_antisniper_api=True,
+            user_id="1234",
+        ),
+        nick_database=NickDatabase([{}]),
+    )
+
+    error: Exception | None = None
+    returned_uuid: str | None = None
+
+    def get_uuid(username: str) -> str | None:
+        assert username == "username"
+        if error:
+            raise error
+
+        return returned_uuid
+
+    with unittest.mock.patch(
+        "prism.overlay.controller.get_uuid",
+        get_uuid,
+    ):
+        error = MojangAPIError()
+        uuid = controller.get_uuid("username")
+        assert uuid is ERROR_DURING_PROCESSING
+
+        error = MissingLocalIssuerSSLError()
+        assert not controller.missing_local_issuer_certificate
+        uuid = controller.get_uuid("username")
+        assert uuid is ERROR_DURING_PROCESSING
+        assert controller.missing_local_issuer_certificate
+
+        error = None
+        returned_uuid = "uuid"
+        uuid = controller.get_uuid("username")
+        assert uuid is returned_uuid
+
+        assert not controller.missing_local_issuer_certificate
 
 
 def test_real_overlay_controller_get_playerdata() -> None:

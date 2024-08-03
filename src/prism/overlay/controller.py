@@ -113,9 +113,7 @@ class RealOverlayController:
             else None
         )
 
-    def get_uuid(
-        self, username: str
-    ) -> str | None | ProcessingError:  # pragma: no cover
+    def get_uuid(self, username: str) -> str | None | ProcessingError:
         try:
             uuid = get_uuid(username)
         except MissingLocalIssuerSSLError:
