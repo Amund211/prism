@@ -121,17 +121,25 @@ def test_real_overlay_controller_get_playerdata() -> None:
         "prism.overlay.controller.get_playerdata",
         get_playerdata,
     ):
-        for error in [
-            HypixelAPIError(),
-            HypixelAPIKeyError(),
-            HypixelAPIThrottleError(),
-        ]:
-            _, playerdata = controller.get_playerdata("uuid")
-            assert playerdata is ERROR_DURING_PROCESSING
+        error = HypixelAPIError()
+        _, playerdata = controller.get_playerdata("uuid")
+        assert playerdata is ERROR_DURING_PROCESSING
 
         error = HypixelPlayerNotFoundError()
         _, playerdata = controller.get_playerdata("uuid")
         assert playerdata is None
+
+        error = HypixelAPIKeyError()
+        assert not controller.api_key_invalid
+        _, playerdata = controller.get_playerdata("uuid")
+        assert playerdata is ERROR_DURING_PROCESSING
+        assert controller.api_key_invalid
+
+        error = HypixelAPIThrottleError()
+        assert not controller.api_key_throttled
+        _, playerdata = controller.get_playerdata("uuid")
+        assert playerdata is ERROR_DURING_PROCESSING
+        assert controller.api_key_throttled
 
         error = MissingLocalIssuerSSLError()
         assert not controller.missing_local_issuer_certificate
@@ -148,4 +156,6 @@ def test_real_overlay_controller_get_playerdata() -> None:
         time_diff = current_time_seconds - dataReceivedAtMs / 1000
         assert abs(time_diff) < 0.1, "Time diff should be less than 0.1 seconds"
 
+        assert not controller.api_key_invalid
+        assert not controller.api_key_throttled
         assert not controller.missing_local_issuer_certificate
