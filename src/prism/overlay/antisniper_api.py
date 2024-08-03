@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from json import JSONDecodeError
 
 import requests
-from requests.exceptions import RequestException
+from requests.exceptions import RequestException, SSLError
 
 from prism import VERSION_STRING
 from prism.hypixel import (
@@ -18,6 +18,7 @@ from prism.overlay.player import MISSING_WINSTREAKS, GamemodeName, Winstreaks
 from prism.ratelimiting import RateLimiter
 from prism.requests import make_prism_requests_session
 from prism.retry import ExecutionError, execute_with_retry
+from prism.ssl_errors import MissingLocalIssuerSSLError, is_missing_local_issuer_error
 
 logger = logging.getLogger(__name__)
 
@@ -151,6 +152,16 @@ def _make_playerdata_request(
         # Uphold our prescribed rate-limits
         with key_holder_limiter, api_limiter:
             response = SESSION.get(url, headers={"X-User-Id": user_id})
+    except SSLError as e:
+        if is_missing_local_issuer_error(e):
+            # Short circuit out of get_playerdata
+            # NOTE: Remember to catch this exception in the caller
+            raise MissingLocalIssuerSSLError(
+                "Request to Hypixel API failed due to missing local issuer cert"
+            ) from e
+        raise ExecutionError(
+            "Request to Hypixel API failed due to an unknown SSL error"
+        ) from e
     except RequestException as e:
         raise ExecutionError(
             "Request to AntiSniper API failed due to an unknown error"

@@ -20,6 +20,7 @@ from prism.overlay.antisniper_api import (
 )
 from prism.overlay.player import MISSING_WINSTREAKS
 from prism.ratelimiting import RateLimiter
+from prism.ssl_errors import MissingLocalIssuerSSLError
 
 if TYPE_CHECKING:  # pragma: no cover
     from prism.overlay.nick_database import NickDatabase
@@ -116,11 +117,18 @@ class RealOverlayController:
         self, username: str
     ) -> str | None | ProcessingError:  # pragma: no cover
         try:
-            return get_uuid(username)
+            uuid = get_uuid(username)
+        except MissingLocalIssuerSSLError:
+            logger.exception("get_uuid: missing local issuer cert")
+            self.missing_local_issuer_certificate = True
+            return ERROR_DURING_PROCESSING
         except MojangAPIError as e:
             logger.debug(f"Failed getting uuid for username {username}.", exc_info=e)
             # TODO: RETURN SOMETHING ELSE
             return ERROR_DURING_PROCESSING
+        else:
+            self.missing_local_issuer_certificate = False
+            return uuid
 
     def get_playerdata(
         self, uuid: str
@@ -133,10 +141,15 @@ class RealOverlayController:
                 self.antisniper_key_holder,
                 self.api_limiter,
             )
+        except MissingLocalIssuerSSLError:
+            logger.exception("get_playerdata: missing local issuer cert")
+            self.missing_local_issuer_certificate = True
+            return 0, ERROR_DURING_PROCESSING
         except HypixelPlayerNotFoundError as e:
             logger.debug(f"Player not found on Hypixel: {uuid=}", exc_info=e)
             self.api_key_invalid = False
             self.api_key_throttled = False
+            self.missing_local_issuer_certificate = False
             return 0, None
         except HypixelAPIError as e:
             logger.error(f"Hypixel API error getting stats for {uuid=}", exc_info=e)
@@ -145,16 +158,19 @@ class RealOverlayController:
             logger.warning(f"Invalid API key getting stats for {uuid=}", exc_info=e)
             self.api_key_invalid = True
             self.api_key_throttled = False
+            self.missing_local_issuer_certificate = False
             return 0, ERROR_DURING_PROCESSING
         except HypixelAPIThrottleError as e:
             logger.warning(f"API key throttled getting stats for {uuid=}", exc_info=e)
             self.api_key_invalid = False
             self.api_key_throttled = True
+            self.missing_local_issuer_certificate = False
             return 0, ERROR_DURING_PROCESSING
         else:
             dataReceivedAtMs = time.time_ns() // 1_000_000
             self.api_key_invalid = False
             self.api_key_throttled = False
+            self.missing_local_issuer_certificate = False
             return dataReceivedAtMs, playerdata
 
     def get_estimated_winstreaks(

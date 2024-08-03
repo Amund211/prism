@@ -12,6 +12,7 @@ from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from prism.overlay.controller import ERROR_DURING_PROCESSING, RealOverlayController
 from prism.overlay.nick_database import NickDatabase
 from prism.ratelimiting import RateLimiter
+from prism.ssl_errors import MissingLocalIssuerSSLError
 from tests.prism.overlay.utils import create_state, make_settings
 
 
@@ -88,6 +89,12 @@ def test_real_overlay_controller_get_playerdata() -> None:
         _, playerdata = controller.get_playerdata("uuid")
         assert playerdata is None
 
+        error = MissingLocalIssuerSSLError()
+        assert not controller.missing_local_issuer_certificate
+        _, playerdata = controller.get_playerdata("uuid")
+        assert playerdata is ERROR_DURING_PROCESSING
+        assert controller.missing_local_issuer_certificate
+
         error = None
         dataReceivedAtMs, playerdata = controller.get_playerdata("uuid")
 
@@ -96,3 +103,5 @@ def test_real_overlay_controller_get_playerdata() -> None:
         current_time_seconds = time.time()
         time_diff = current_time_seconds - dataReceivedAtMs / 1000
         assert abs(time_diff) < 0.1, "Time diff should be less than 0.1 seconds"
+
+        assert not controller.missing_local_issuer_certificate

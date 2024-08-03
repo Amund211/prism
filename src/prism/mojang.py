@@ -3,11 +3,12 @@ import threading
 from json import JSONDecodeError
 
 import requests
-from requests.exceptions import RequestException
+from requests.exceptions import RequestException, SSLError
 
 from prism.ratelimiting import RateLimiter
 from prism.requests import make_prism_requests_session
 from prism.retry import ExecutionError, execute_with_retry
+from prism.ssl_errors import MissingLocalIssuerSSLError, is_missing_local_issuer_error
 
 USERPROFILES_ENDPOINT = "https://api.mojang.com/users/profiles/minecraft"
 REQUEST_LIMIT, REQUEST_WINDOW = 600, 10 * 60  # Max requests per time window
@@ -44,6 +45,16 @@ def _make_request(
         # Uphold our prescribed rate-limits
         with limiter, burst_limiter:
             response = SESSION.get(f"{USERPROFILES_ENDPOINT}/{username}")
+    except SSLError as e:
+        if is_missing_local_issuer_error(e):
+            # Short circuit out of get_uuid
+            # NOTE: Remember to catch this exception in the caller
+            raise MissingLocalIssuerSSLError(
+                "Request to Mojang API failed due to missing local issuer cert"
+            ) from e
+        raise ExecutionError(
+            "Request to Mojang API failed due to an unknown SSL error"
+        ) from e
     except RequestException as e:
         raise ExecutionError(
             "Request to Mojang API failed due to an unknown error"
