@@ -5,6 +5,7 @@ Run from the root dir by `python -m prism.overlay [--logfile <path-to-logfile>]`
 """
 
 import logging
+import sys
 
 import truststore
 
@@ -21,6 +22,8 @@ from prism.overlay.settings import get_settings
 from prism.overlay.state import OverlayState
 from prism.overlay.thread_count import recommend_stats_thread_count
 
+logger = logging.getLogger(__name__)
+
 
 def main() -> None:  # pragma: nocover
     """Run the overlay"""
@@ -32,6 +35,8 @@ def main() -> None:  # pragma: nocover
         setup_logging(logging.DEBUG, log_prefix="test_")
     else:
         setup_logging(options.loglevel)
+
+    logger.info(f"Started with {sys.argv=} {options=}")
 
     must_ensure_directory(CONFIG_DIR)
 
