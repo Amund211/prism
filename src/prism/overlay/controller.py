@@ -46,6 +46,7 @@ class OverlayController(Protocol):  # pragma: no cover
 
     api_key_invalid: bool
     api_key_throttled: bool
+    missing_local_issuer_certificate: bool
     antisniper_key_holder: AntiSniperAPIKeyHolder | None
     api_limiter: RateLimiter
 
@@ -92,6 +93,7 @@ class RealOverlayController:
         self.own_username: str | None = None
         self.api_key_invalid = False
         self.api_key_throttled = False
+        self.missing_local_issuer_certificate = False
         self.api_limiter = RateLimiter(
             limit=API_REQUEST_LIMIT, window=API_REQUEST_WINDOW
         )

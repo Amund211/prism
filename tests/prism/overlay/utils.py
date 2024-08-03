@@ -302,6 +302,7 @@ class MockedController:
 
     api_key_invalid: bool = False
     api_key_throttled: bool = False
+    missing_local_issuer_certificate: bool = False
     antisniper_key_holder: AntiSniperAPIKeyHolder | None = field(
         init=False, repr=False, compare=False, hash=False
     )
