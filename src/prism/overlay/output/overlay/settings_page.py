@@ -256,8 +256,8 @@ class GeneralSettingSection:  # pragma: nocover
 
         use_included_certs_label = tk.Label(
             self.frame,
-            text="Use included ssl certificates: ",
-            font=("Consolas", 12),
+            text="Use included ssl certificates:\n*Requires restart*",
+            font=("Consolas", 10),
             foreground="white",
             background="black",
         )
