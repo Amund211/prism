@@ -81,6 +81,19 @@ def run_overlay(
                 )
             )
 
+        if controller.missing_local_issuer_certificate:
+            info_cells.append(
+                InfoCellValue(
+                    text=(
+                        "SSL certificate error.\n"
+                        "Change the 'Use included ssl certificates' setting\n"
+                        "in the settings menu and *RESTART* the overlay."
+                    ),
+                    color="red",
+                    url=None,
+                )
+            )
+
         if controller.api_key_throttled:
             info_cells.append(
                 InfoCellValue(
