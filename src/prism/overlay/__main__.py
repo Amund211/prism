@@ -11,7 +11,6 @@ import truststore
 from prism.overlay.commandline import get_options
 from prism.overlay.directories import (
     CONFIG_DIR,
-    DEFAULT_LOGFILE_CACHE_PATH,
     DEFAULT_SETTINGS_PATH,
     must_ensure_directory,
 )
@@ -19,8 +18,8 @@ from prism.overlay.logging import setup_logging
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.not_parallel import ensure_not_parallel
 from prism.overlay.settings import get_settings
+from prism.overlay.state import OverlayState
 from prism.overlay.thread_count import recommend_stats_thread_count
-from prism.overlay.user_interaction.get_logfile import prompt_for_logfile_path
 from prism.ssl_errors import is_missing_local_issuer_error
 
 
@@ -44,13 +43,6 @@ def main() -> None:  # pragma: nocover
         # Patch requests to use system certs
         truststore.inject_into_ssl()
 
-    if options.logfile_path is None:
-        logfile_path = prompt_for_logfile_path(
-            DEFAULT_LOGFILE_CACHE_PATH, settings.autoselect_logfile
-        )
-    else:
-        logfile_path = options.logfile_path
-
     with settings.mutex:
         default_database = {
             nick: value["uuid"] for nick, value in settings.known_nicks.items()
@@ -58,19 +50,27 @@ def main() -> None:  # pragma: nocover
 
     nick_database = NickDatabase.from_disk([], default_database=default_database)
 
+    # Import late so we can patch ssl certs in requests
+    from prism.overlay.controller import RealOverlayController
+    from prism.overlay.process_loglines import process_loglines, prompt_and_read_logfile
+
+    controller = RealOverlayController(
+        state=OverlayState(),
+        settings=settings,
+        nick_database=nick_database,
+    )
+
     if options.test_ssl:
         test_ssl()
         return
 
-    # Import late so we can patch ssl certs in requests
-    from prism.overlay.process_loglines import watch_from_logfile
+    loglines = prompt_and_read_logfile(controller, options, settings)
 
-    watch_from_logfile(
-        logfile_path,
+    process_loglines(
+        controller=controller,
+        loglines=loglines,
         overlay=True,
         console=options.output_to_console,
-        settings=settings,
-        nick_database=nick_database,
     )
 
 
