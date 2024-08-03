@@ -4,6 +4,7 @@ import time
 from collections.abc import Iterable
 
 from prism.overlay.commandline import Options
+from prism.ssl_errors import is_missing_local_issuer_error
 
 
 def slow_iterable(
@@ -47,3 +48,19 @@ def get_test_loglines(options: Options) -> Iterable[str]:  # pragma: nocover
         loglines = slow_iterable(loglines, wait=wait)
 
     return loglines
+
+
+def test_ssl() -> None:  # pragma: nocover
+    """Test SSL certificate patching"""
+    import requests
+
+    try:
+        resp = requests.get("https://localhost:12345")
+        print("Got response:", resp.text)
+    except requests.exceptions.SSLError as e:
+        if is_missing_local_issuer_error(e):
+            print("Caught missing local issuer SSLError:", e)
+        else:
+            print("Caught unknown SSLError:", e)
+    except Exception as e:
+        print("Caught unknown exception:", e)

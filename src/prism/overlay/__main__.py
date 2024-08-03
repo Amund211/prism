@@ -20,7 +20,6 @@ from prism.overlay.not_parallel import ensure_not_parallel
 from prism.overlay.settings import get_settings
 from prism.overlay.state import OverlayState
 from prism.overlay.thread_count import recommend_stats_thread_count
-from prism.ssl_errors import is_missing_local_issuer_error
 
 
 def main() -> None:  # pragma: nocover
@@ -64,6 +63,8 @@ def main() -> None:  # pragma: nocover
     )
 
     if options.test_ssl:
+        from prism.overlay.testing import test_ssl
+
         test_ssl()
         return
 
@@ -80,22 +81,6 @@ def main() -> None:  # pragma: nocover
         overlay=True,
         console=options.output_to_console,
     )
-
-
-def test_ssl() -> None:  # pragma: nocover
-    """Test SSL certificate patching"""
-    import requests
-
-    try:
-        resp = requests.get("https://localhost:12345")
-        print("Got response:", resp.text)
-    except requests.exceptions.SSLError as e:
-        if is_missing_local_issuer_error(e):
-            print("Caught missing local issuer SSLError:", e)
-        else:
-            print("Caught unknown SSLError:", e)
-    except Exception as e:
-        print("Caught unknown exception:", e)
 
 
 if __name__ == "__main__":  # pragma: nocover
