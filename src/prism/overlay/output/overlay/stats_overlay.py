@@ -201,7 +201,7 @@ class StatsOverlay:  # pragma: nocover
             # NOTE: caller must update the content
             self.set_nickname_page.frame.pack(side=tk.TOP, fill=tk.BOTH)
         else:
-            assert_never(self.current_page)
+            assert_never(new_page)
 
         self.current_page = new_page
 
