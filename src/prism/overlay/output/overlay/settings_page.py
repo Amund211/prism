@@ -185,6 +185,21 @@ class GeneralSettingSection:  # pragma: nocover
             use_antisniper_label, self.use_antisniper_api_toggle.button
         )
 
+        auto_hide_label = tk.Label(
+            self.frame,
+            text="Hide overlay when game starts: ",
+            font=("Consolas", 12),
+            foreground="white",
+            background="black",
+        )
+        auto_hide_label.grid(row=3, column=0, sticky=tk.E)
+        self.auto_hide_toggle = ToggleButton(self.frame)
+        self.auto_hide_toggle.button.grid(row=3, column=1)
+        parent.make_widgets_scrollable(
+            auto_hide_label,
+            self.auto_hide_toggle.button,
+        )
+
         def disable_keybind_selector(enabled: bool) -> None:
             self.show_on_tab_keybind_selector.button.config(  # type: ignore [has-type]
                 state=tk.NORMAL if enabled else tk.DISABLED,
@@ -198,11 +213,11 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        show_on_tab_label.grid(row=3, column=0, sticky=tk.E)
+        show_on_tab_label.grid(row=4, column=0, sticky=tk.E)
         self.show_on_tab_toggle = ToggleButton(
             self.frame, toggle_callback=disable_keybind_selector
         )
-        self.show_on_tab_toggle.button.grid(row=3, column=1)
+        self.show_on_tab_toggle.button.grid(row=4, column=1)
         parent.make_widgets_scrollable(
             show_on_tab_label,
             self.show_on_tab_toggle.button,
@@ -215,11 +230,11 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        show_on_tab_hotkey_label.grid(row=4, column=0, sticky=tk.E)
+        show_on_tab_hotkey_label.grid(row=5, column=0, sticky=tk.E)
         self.show_on_tab_keybind_selector = KeybindSelector(
             self.frame, overlay=parent.overlay
         )
-        self.show_on_tab_keybind_selector.button.grid(row=4, column=1)
+        self.show_on_tab_keybind_selector.button.grid(row=5, column=1)
         parent.make_widgets_scrollable(
             show_on_tab_hotkey_label,
             self.show_on_tab_keybind_selector.button,
@@ -238,11 +253,11 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        check_for_updates_label.grid(row=5, column=0, sticky=tk.E)
+        check_for_updates_label.grid(row=6, column=0, sticky=tk.E)
         self.check_for_updates_toggle = ToggleButton(
             self.frame, toggle_callback=disable_include_patch_updates_toggle
         )
-        self.check_for_updates_toggle.button.grid(row=5, column=1)
+        self.check_for_updates_toggle.button.grid(row=6, column=1)
         parent.make_widgets_scrollable(
             check_for_updates_label,
             self.check_for_updates_toggle.button,
@@ -255,9 +270,9 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        include_patch_updates_label.grid(row=6, column=0, sticky=tk.E)
+        include_patch_updates_label.grid(row=7, column=0, sticky=tk.E)
         self.include_patch_updates_toggle = ToggleButton(self.frame)
-        self.include_patch_updates_toggle.button.grid(row=6, column=1)
+        self.include_patch_updates_toggle.button.grid(row=7, column=1)
         parent.make_widgets_scrollable(
             include_patch_updates_label,
             self.include_patch_updates_toggle.button,
@@ -270,9 +285,9 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        use_included_certs_label.grid(row=7, column=0, sticky=tk.E)
+        use_included_certs_label.grid(row=8, column=0, sticky=tk.E)
         self.use_included_certs_toggle = ToggleButton(self.frame)
-        self.use_included_certs_toggle.button.grid(row=7, column=1)
+        self.use_included_certs_toggle.button.grid(row=8, column=1)
         parent.make_widgets_scrollable(
             use_included_certs_label,
             self.use_included_certs_toggle.button,
@@ -291,7 +306,7 @@ class GeneralSettingSection:  # pragma: nocover
                 foreground="red",
                 background="black",
             )
-            show_on_tab_disabled_label.grid(row=8, column=0, columnspan=2)
+            show_on_tab_disabled_label.grid(row=9, column=0, columnspan=2)
             parent.make_widgets_scrollable(show_on_tab_disabled_label)
 
     def set(
@@ -299,6 +314,7 @@ class GeneralSettingSection:  # pragma: nocover
         autodenick_teammates: bool,
         autoselect_logfile: bool,
         use_antisniper_api: bool,
+        auto_hide: bool,
         show_on_tab: bool,
         show_on_tab_keybind: Key,
         check_for_updates: bool,
@@ -309,18 +325,20 @@ class GeneralSettingSection:  # pragma: nocover
         self.autodenick_teammates_toggle.set(autodenick_teammates)
         self.autoselect_logfile_toggle.set(autoselect_logfile)
         self.use_antisniper_api_toggle.set(use_antisniper_api)
+        self.auto_hide_toggle.set(auto_hide)
         self.show_on_tab_toggle.set(show_on_tab)
         self.show_on_tab_keybind_selector.set_key(show_on_tab_keybind)
         self.check_for_updates_toggle.set(check_for_updates)
         self.include_patch_updates_toggle.set(include_patch_updates)
         self.use_included_certs_toggle.set(use_included_certs)
 
-    def get(self) -> tuple[bool, bool, bool, bool, Key, bool, bool, bool]:
+    def get(self) -> tuple[bool, bool, bool, bool, bool, Key, bool, bool, bool]:
         """Get the state of this section"""
         return (
             self.autodenick_teammates_toggle.enabled,
             self.autoselect_logfile_toggle.enabled,
             self.use_antisniper_api_toggle.enabled,
+            self.auto_hide_toggle.enabled,
             self.show_on_tab_toggle.enabled,
             self.show_on_tab_keybind_selector.key,
             self.check_for_updates_toggle.enabled,
@@ -1087,6 +1105,7 @@ class SettingsPage:  # pragma: nocover
                 autodenick_teammates=settings.autodenick_teammates,
                 autoselect_logfile=settings.autoselect_logfile,
                 use_antisniper_api=settings.use_antisniper_api,
+                auto_hide=settings.auto_hide,
                 show_on_tab=settings.show_on_tab,
                 show_on_tab_keybind=settings.show_on_tab_keybind,
                 check_for_updates=settings.check_for_updates,
@@ -1128,6 +1147,7 @@ class SettingsPage:  # pragma: nocover
             autodenick_teammates,
             autoselect_logfile,
             use_antisniper_api,
+            auto_hide,
             show_on_tab,
             show_on_tab_keybind,
             check_for_updates,
@@ -1168,6 +1188,7 @@ class SettingsPage:  # pragma: nocover
             known_nicks=known_nicks,
             autodenick_teammates=autodenick_teammates,
             autoselect_logfile=autoselect_logfile,
+            auto_hide=auto_hide,
             show_on_tab=show_on_tab,
             show_on_tab_keybind=show_on_tab_keybind.to_dict(),
             check_for_updates=check_for_updates,

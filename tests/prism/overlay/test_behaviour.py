@@ -309,6 +309,7 @@ def test_update_settings_everything_changed() -> None:
         },
         autodenick_teammates=False,
         autoselect_logfile=False,
+        auto_hide=False,
         show_on_tab=False,
         show_on_tab_keybind=AlphanumericKeyDict(
             name="a", char="a", key_type="alphanumeric"

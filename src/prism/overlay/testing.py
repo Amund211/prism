@@ -21,7 +21,7 @@ def slow_iterable(
 
 def get_test_loglines(options: Options) -> Iterable[str]:  # pragma: nocover
     """Test the implementation on a static logfile or a list of loglines"""
-    slow, wait = False, 1
+    slow, wait = True, 0.1
 
     loglines: Iterable[str]
     if options.logfile_path is not None:
@@ -39,7 +39,7 @@ def get_test_loglines(options: Options) -> Iterable[str]:  # pragma: nocover
             f"{CHAT}Manhal_IQ_ has joined (5/16)!",
             f"{CHAT}edater has joined (6/16)!",  # denicked by api
             f"{CHAT}SomeUnknownNick has joined (7/16)!",  # Nicked teammate
-            # f"{CHAT}               Bed Wars ",  # game start
+            f"{CHAT}               Bed Wars ",  # game start
             f"{CHAT}Hypixel was killed by Testing. FINAL KILL!",
             # f"{CHAT}1st Killer - [MVP+] Player1",  # game end
         ]

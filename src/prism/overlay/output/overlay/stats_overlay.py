@@ -209,6 +209,9 @@ class StatsOverlay:  # pragma: nocover
         """Get new data to be displayed and display it"""
         show, info_cells, new_rows = self.get_new_data()
 
+        if not self.controller.settings.auto_hide:
+            show = True
+
         # Show or hide the window if the desired state is different from the stored
         if show != self.should_show:
             if show:
