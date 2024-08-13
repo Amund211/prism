@@ -18,10 +18,12 @@ func MakeServeGetPlayerData(getMinifiedPlayerData GetMinifiedPlayerData) http.Ha
 
 		if err != nil {
 			logger.Error("Error getting player data", "error", err)
-			writeErrorResponse(r.Context(), w, err)
+			statusCode := writeErrorResponse(r.Context(), w, err)
+			logger.Info("Returning response", "statusCode", statusCode, "reason", "error")
 			return
 		}
 
+		logger.Info("Returning response", "statusCode", statusCode, "reason", "success")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
 		w.Write(minifiedPlayerData)

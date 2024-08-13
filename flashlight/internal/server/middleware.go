@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	e "github.com/Amund211/flashlight/internal/errors"
+	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 )
 
@@ -11,7 +12,9 @@ func NewRateLimitMiddleware(rateLimiter ratelimiting.RateLimiter) func(http.Hand
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			if !rateLimiter.Allow(r.RemoteAddr) {
-				writeErrorResponse(r.Context(), w, e.RatelimitExceededError)
+				logger := logging.FromContext(r.Context())
+				statusCode := writeErrorResponse(r.Context(), w, e.RatelimitExceededError)
+				logger.Info("Returning response", "statusCode", statusCode, "reason", "ratelimit exceeded")
 				return
 			}
 
