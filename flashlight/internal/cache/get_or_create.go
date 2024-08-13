@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"log"
 
 	"github.com/Amund211/flashlight/internal/logging"
 )
@@ -25,7 +24,6 @@ func GetOrCreateCachedResponse(ctx context.Context, playerCache PlayerCache, uui
 		value, claimed = playerCache.getOrClaim(uuid)
 
 		if claimed {
-			log.Println("Got cache miss")
 			logger.Info("Getting player stats", "cache", "miss")
 
 			data, statusCode, err := create()
@@ -41,7 +39,6 @@ func GetOrCreateCachedResponse(ctx context.Context, playerCache PlayerCache, uui
 
 		if value.valid {
 			// Cache hit
-			log.Println("Got cache hit")
 			logger.Info("Getting player stats", "cache", "hit")
 			return value.data, value.statusCode, nil
 		}

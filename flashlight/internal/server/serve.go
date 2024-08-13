@@ -12,7 +12,6 @@ type GetMinifiedPlayerData func(ctx context.Context, uuid string) ([]byte, int, 
 func MakeServeGetPlayerData(getMinifiedPlayerData GetMinifiedPlayerData) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := logging.FromContext(r.Context())
-		logger.Info("Incoming request")
 		uuid := r.URL.Query().Get("uuid")
 
 		minifiedPlayerData, statusCode, err := getMinifiedPlayerData(r.Context(), uuid)
