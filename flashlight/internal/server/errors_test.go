@@ -55,12 +55,13 @@ func TestWriteErrorResponse(t *testing.T) {
 	for _, testCase := range testCases {
 		w := httptest.NewRecorder()
 
-		writeErrorResponse(context.Background(), w, testCase.err)
+		returnedStatusCode := writeErrorResponse(context.Background(), w, testCase.err)
 		result := w.Result()
 
 		assert.True(t, reflect.DeepEqual(expectedHeaders, result.Header), "Expected %v, got %v", expectedHeaders, result.Header)
 
 		assert.Equal(t, testCase.expectedStatus, result.StatusCode)
+		assert.Equal(t, testCase.expectedStatus, returnedStatusCode)
 
 		body := w.Body.String()
 		assert.Equal(t, testCase.expectedBody, body)

@@ -10,7 +10,7 @@ import (
 	"github.com/Amund211/flashlight/internal/logging"
 )
 
-func writeErrorResponse(ctx context.Context, w http.ResponseWriter, responseError error) {
+func writeErrorResponse(ctx context.Context, w http.ResponseWriter, responseError error) int {
 	w.Header().Set("Content-Type", "application/json")
 
 	errorResponse := HypixelAPIErrorResponse{
@@ -22,7 +22,7 @@ func writeErrorResponse(ctx context.Context, w http.ResponseWriter, responseErro
 		logging.FromContext(ctx).Error("Failed to marshal error response", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(`{"success":false,"cause":"Internal server error (flashlight)"}`))
-		return
+		return http.StatusInternalServerError
 	}
 
 	// Unknown error: default to 500
@@ -44,4 +44,6 @@ func writeErrorResponse(ctx context.Context, w http.ResponseWriter, responseErro
 
 	w.WriteHeader(statusCode)
 	w.Write(errorBytes)
+
+	return statusCode
 }
