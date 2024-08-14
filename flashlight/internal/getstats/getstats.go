@@ -16,16 +16,7 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 	// Non-error status codes - check for HTML
 	if statusCode <= 400 || statusCode == 404 {
 		if len(playerData) > 0 && playerData[0] == '<' {
-			err := fmt.Errorf("%w: Hypixel API returned HTML", e.APIServerError)
-			reporting.Report(
-				ctx,
-				err,
-				map[string]string{
-					"statusCode": fmt.Sprint(statusCode),
-					"data":       string(playerData),
-				},
-			)
-			return err
+			return fmt.Errorf("%w: Hypixel API returned HTML", e.APIServerError)
 		}
 
 		return nil
@@ -45,15 +36,6 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 		err = fmt.Errorf("%w: Hypixel returned 504 Gateway Timeout", e.GatewayTimeout)
 	}
 
-	reporting.Report(
-		ctx,
-		err,
-		map[string]string{
-			"statusCode": fmt.Sprint(statusCode),
-			"data":       string(playerData),
-		},
-	)
-
 	return err
 }
 
@@ -66,6 +48,14 @@ func getMinifiedPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, u
 
 	err = checkForHypixelError(ctx, statusCode, playerData)
 	if err != nil {
+		reporting.Report(
+			ctx,
+			err,
+			map[string]string{
+				"statusCode": fmt.Sprint(statusCode),
+				"data":       string(playerData),
+			},
+		)
 		logging.FromContext(ctx).Error(
 			"Got response from hypixel",
 			"status", "error",
