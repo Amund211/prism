@@ -77,7 +77,14 @@ func getMinifiedPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, u
 	minifiedPlayerData, err := parsing.MinifyPlayerData(ctx, playerData)
 	if err != nil {
 		err = fmt.Errorf("%w: %w", e.APIServerError, err)
-		reporting.Report(ctx, err, map[string]string{"data": string(playerData)})
+		reporting.Report(
+			ctx,
+			err,
+			map[string]string{
+				"statusCode": fmt.Sprint(statusCode),
+				"data":       string(playerData),
+			},
+		)
 		return []byte{}, -1, err
 	}
 
