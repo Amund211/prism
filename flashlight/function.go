@@ -22,18 +22,19 @@ import (
 func init() {
 	localOnly := os.Getenv("LOCAL_ONLY") == "true"
 
-	apiKey := os.Getenv("HYPIXEL_API_KEY")
-	if apiKey == "" {
-		log.Fatalln("Missing Hypixel API key")
-	}
-
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
 	}
 
 	playerCache := cache.NewPlayerCache(1 * time.Minute)
 
-	hypixelAPI := hypixel.NewHypixelAPI(httpClient, apiKey)
+	hypixelApiKey := os.Getenv("HYPIXEL_API_KEY")
+	var hypixelAPI hypixel.HypixelAPI
+	if hypixelApiKey != "" {
+		hypixelAPI = hypixel.NewHypixelAPI(httpClient, hypixelApiKey)
+	} else {
+		log.Fatalln("Missing Hypixel API key")
+	}
 
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		ratelimiting.NewTokenBucketRateLimiter(
