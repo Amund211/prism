@@ -11,24 +11,24 @@ type RateLimiter interface {
 	Allow(key string) bool
 }
 
-type ipBasedRateLimiter struct {
+type keyBasedRateLimiter struct {
 	limiterByIP     *ttlcache.Cache[string, *rate.Limiter]
 	refillPerSecond int
 	burstSize       int
 }
 
-func (rateLimiter ipBasedRateLimiter) Allow(key string) bool {
+func (rateLimiter keyBasedRateLimiter) Allow(key string) bool {
 	limiter, _ := rateLimiter.limiterByIP.GetOrSet(key, rate.NewLimiter(rate.Limit(rateLimiter.refillPerSecond), rateLimiter.burstSize))
 	return limiter.Value().Allow()
 }
 
-func NewIPBasedRateLimiter(refillPerSecond int, burstSize int) RateLimiter {
+func NewKeyBasedRateLimiter(refillPerSecond int, burstSize int) RateLimiter {
 	limiterTTLCache := ttlcache.New[string, *rate.Limiter](
 		ttlcache.WithTTL[string, *rate.Limiter](30 * time.Minute),
 	)
 	go limiterTTLCache.Start()
 
-	return ipBasedRateLimiter{
+	return keyBasedRateLimiter{
 		limiterByIP:     limiterTTLCache,
 		refillPerSecond: refillPerSecond,
 		burstSize:       burstSize,

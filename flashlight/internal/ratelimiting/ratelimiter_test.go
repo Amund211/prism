@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIPBasedRateLimiter(t *testing.T) {
+func TestKeyBasedRateLimiter(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping test in short mode")
 	}
-	rateLimiter := NewIPBasedRateLimiter(1, 2)
+	rateLimiter := NewKeyBasedRateLimiter(1, 2)
 
 	assert.True(t, rateLimiter.Allow("user2"))
 

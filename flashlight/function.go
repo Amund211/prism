@@ -40,7 +40,7 @@ func init() {
 
 	hypixelAPI := hypixel.NewHypixelAPI(httpClient, apiKey)
 
-	rateLimiter := ratelimiting.NewIPBasedRateLimiter(2, 120)
+	rateLimiter := ratelimiting.NewKeyBasedRateLimiter(2, 120)
 
 	var sentryMiddleware func(http.HandlerFunc) http.HandlerFunc
 	if localOnly && sentryDSN == "" {
