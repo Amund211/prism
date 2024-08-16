@@ -41,11 +41,19 @@ func init() {
 	hypixelAPI := hypixel.NewHypixelAPI(httpClient, apiKey)
 
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		ratelimiting.NewTokenBucketRateLimiter(8, 480), ratelimiting.IPKeyFunc,
+		ratelimiting.NewTokenBucketRateLimiter(
+			ratelimiting.RefillPerSecond(8),
+			ratelimiting.BurstSize(480),
+		),
+		ratelimiting.IPKeyFunc,
 	)
 	userIdRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		// NOTE: Rate limiting based on user controlled value
-		ratelimiting.NewTokenBucketRateLimiter(2, 120), ratelimiting.UserIdKeyFunc,
+		ratelimiting.NewTokenBucketRateLimiter(
+			ratelimiting.RefillPerSecond(2),
+			ratelimiting.BurstSize(120),
+		),
+		ratelimiting.UserIdKeyFunc,
 	)
 
 	var sentryMiddleware func(http.HandlerFunc) http.HandlerFunc

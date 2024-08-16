@@ -22,7 +22,7 @@ func TestTokenBucketRateLimiter(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping test in short mode")
 	}
-	rateLimiter := NewTokenBucketRateLimiter(1, 2)
+	rateLimiter := NewTokenBucketRateLimiter(RefillPerSecond(1), BurstSize(2))
 
 	assert.True(t, rateLimiter.Consume("user2"))
 

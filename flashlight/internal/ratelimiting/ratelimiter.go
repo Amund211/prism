@@ -24,7 +24,10 @@ func (rateLimiter tokenBucketRateLimiter) Consume(key string) bool {
 	return limiter.Value().Allow()
 }
 
-func NewTokenBucketRateLimiter(refillPerSecond int, burstSize int) RateLimiter {
+type RefillPerSecond int
+type BurstSize int
+
+func NewTokenBucketRateLimiter(refillPerSecond RefillPerSecond, burstSize BurstSize) RateLimiter {
 	limiterTTLCache := ttlcache.New[string, *rate.Limiter](
 		ttlcache.WithTTL[string, *rate.Limiter](30 * time.Minute),
 	)
@@ -32,8 +35,8 @@ func NewTokenBucketRateLimiter(refillPerSecond int, burstSize int) RateLimiter {
 
 	return tokenBucketRateLimiter{
 		limiterByIP:     limiterTTLCache,
-		refillPerSecond: refillPerSecond,
-		burstSize:       burstSize,
+		refillPerSecond: int(refillPerSecond),
+		burstSize:       int(burstSize),
 	}
 }
 
