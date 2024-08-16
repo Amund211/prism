@@ -27,11 +27,6 @@ func init() {
 		log.Fatalln("Missing Hypixel API key")
 	}
 
-	sentryDSN := os.Getenv("SENTRY_DSN")
-	if sentryDSN == "" && !localOnly {
-		log.Fatalln("Missing Sentry DSN")
-	}
-
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
 	}
@@ -56,12 +51,9 @@ func init() {
 		ratelimiting.UserIdKeyFunc,
 	)
 
+	sentryDSN := os.Getenv("SENTRY_DSN")
 	var sentryMiddleware func(http.HandlerFunc) http.HandlerFunc
-	if localOnly && sentryDSN == "" {
-		sentryMiddleware = func(next http.HandlerFunc) http.HandlerFunc {
-			return next
-		}
-	} else {
+	if sentryDSN != "" {
 		realSentryMiddleware, flush, err := reporting.InitSentryMiddleware(sentryDSN)
 		if err != nil {
 			log.Fatalf("Failed to initialize sentry: %v", err)
@@ -69,6 +61,13 @@ func init() {
 		sentryMiddleware = realSentryMiddleware
 
 		defer flush()
+	} else {
+		if !localOnly {
+			log.Fatalln("Missing Sentry DSN")
+		}
+		sentryMiddleware = func(next http.HandlerFunc) http.HandlerFunc {
+			return next
+		}
 	}
 
 	rootLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
