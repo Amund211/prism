@@ -65,3 +65,11 @@ func NewRequestBasedRateLimiter(limiter RateLimiter, keyFunc func(r *http.Reques
 func IPKeyFunc(r *http.Request) string {
 	return fmt.Sprintf("ip: %s", r.RemoteAddr)
 }
+
+func UserIdKeyFunc(r *http.Request) string {
+	userId := r.Header.Get("X-User-Id")
+	if userId == "" {
+		userId = "<missing>"
+	}
+	return fmt.Sprintf("user-id: %.50s", userId)
+}

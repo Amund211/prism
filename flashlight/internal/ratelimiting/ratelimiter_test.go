@@ -3,6 +3,7 @@ package ratelimiting
 import (
 	"net/http"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -50,6 +51,35 @@ func TestKeyBasedRateLimiter(t *testing.T) {
 func TestIPKeyFunc(t *testing.T) {
 	request := &http.Request{RemoteAddr: "123.123.123.123"}
 	assert.Equal(t, "ip: 123.123.123.123", IPKeyFunc(request))
+}
+
+func TestUserIdKeyFunc(t *testing.T) {
+	cases := []struct {
+		userId string
+		key    string
+	}{
+		// Standard user ids (uuid)
+		{"743e61ad84344c4a995145763950b4bd", "user-id: 743e61ad84344c4a995145763950b4bd"},
+		{"1025ff88-5234-4481-900b-f64ea190cf4e", "user-id: 1025ff88-5234-4481-900b-f64ea190cf4e"},
+		// Custom user id
+		{"my-id", "user-id: my-id"},
+		// Weird case
+		{"", "user-id: <missing>"},
+		// User controlled input -> Long strings get truncated
+		{strings.Repeat("1", 1000), "user-id: " + strings.Repeat("1", 50)},
+	}
+	for _, c := range cases {
+		t.Run(c.userId, func(t *testing.T) {
+			request := &http.Request{
+				Header: http.Header{"X-User-Id": []string{c.userId}},
+			}
+			assert.Equal(t, c.key, UserIdKeyFunc(request))
+		})
+	}
+	t.Run("missing", func(t *testing.T) {
+		request := &http.Request{}
+		assert.Equal(t, "user-id: <missing>", UserIdKeyFunc(request))
+	})
 }
 
 func TestRequestBasedRateLimiter(t *testing.T) {
