@@ -26,7 +26,7 @@ func TestRateLimitMiddleware(t *testing.T) {
 		rateLimiter := &mockedRateLimiter{
 			t:           t,
 			allow:       allow,
-			expectedKey: "user1",
+			expectedKey: "127.0.0.1",
 		}
 
 		w := httptest.NewRecorder()
@@ -38,7 +38,7 @@ func TestRateLimitMiddleware(t *testing.T) {
 			},
 		)
 
-		handler(w, &http.Request{RemoteAddr: "user1"})
+		handler(w, &http.Request{RemoteAddr: "127.0.0.1"})
 
 		if allow {
 			assert.True(t, called, "Expected handler to be called")
