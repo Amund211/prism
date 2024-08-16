@@ -1,7 +1,6 @@
 #!/bin/sh
 
 set -eu
-set -o pipefail
 
 function_name="${1:-}"
 
@@ -35,7 +34,18 @@ gcloud functions deploy "$function_name" \
 	--set-secrets "SENTRY_DSN=${sentry_dsn_key}:latest"
 
 # Verify that newly deployed function works
-curl --fail \
-	-H "X-User-Id: github-actions-$function_name" \
-	"https://northamerica-northeast2-prism-overlay.cloudfunctions.net/${function_name}?uuid=a937646b-f115-44c3-8dbf-9ae4a65669a0" \
-	| grep 'Skydeath'
+echo 'Making request to new deployment' >&2
+response="$( \
+	curl \
+		--fail \
+		-sS \
+		-H "X-User-Id: github-actions-$function_name" \
+		"https://northamerica-northeast2-prism-overlay.cloudfunctions.net/${function_name}?uuid=a937646b-f115-44c3-8dbf-9ae4a65669a0" \
+)"
+
+echo 'Verifying response from new deployment' >&2
+if ! echo "$response" | grep 'Skydeath' >/dev/null; then
+	echo 'Could not find username in response!' >&2
+	echo "Response: $response" >&2
+	exit 1
+fi
