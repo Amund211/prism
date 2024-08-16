@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,11 +27,14 @@ func TestRateLimitMiddleware(t *testing.T) {
 		rateLimiter := &mockedRateLimiter{
 			t:           t,
 			allow:       allow,
-			expectedKey: "127.0.0.1",
+			expectedKey: "ip: 127.0.0.1",
 		}
+		ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
+			rateLimiter, ratelimiting.IPKeyFunc,
+		)
 
 		w := httptest.NewRecorder()
-		middleware := NewRateLimitMiddleware(rateLimiter)
+		middleware := NewRateLimitMiddleware(ipRateLimiter)
 		handler := middleware(
 			func(w http.ResponseWriter, r *http.Request) {
 				called = true

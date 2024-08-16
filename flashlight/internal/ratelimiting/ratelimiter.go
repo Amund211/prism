@@ -1,6 +1,8 @@
 package ratelimiting
 
 import (
+	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/jellydator/ttlcache/v3"
@@ -33,4 +35,33 @@ func NewKeyBasedRateLimiter(refillPerSecond int, burstSize int) RateLimiter {
 		refillPerSecond: refillPerSecond,
 		burstSize:       burstSize,
 	}
+}
+
+type RequestRateLimiter interface {
+	Consume(r *http.Request) bool
+	KeyFor(r *http.Request) string
+}
+
+type requestBasedRateLimiter struct {
+	limiter RateLimiter
+	keyFunc func(r *http.Request) string
+}
+
+func (rateLimiter requestBasedRateLimiter) Consume(r *http.Request) bool {
+	return rateLimiter.limiter.Consume(rateLimiter.keyFunc(r))
+}
+
+func (rateLimiter requestBasedRateLimiter) KeyFor(r *http.Request) string {
+	return rateLimiter.keyFunc(r)
+}
+
+func NewRequestBasedRateLimiter(limiter RateLimiter, keyFunc func(r *http.Request) string) RequestRateLimiter {
+	return requestBasedRateLimiter{
+		limiter: limiter,
+		keyFunc: keyFunc,
+	}
+}
+
+func IPKeyFunc(r *http.Request) string {
+	return fmt.Sprintf("ip: %s", r.RemoteAddr)
 }

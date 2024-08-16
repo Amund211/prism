@@ -1,12 +1,21 @@
 package ratelimiting
 
 import (
+	"net/http"
 	"runtime"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+type mockedRateLimiter struct {
+	consumeFunc func(key string) bool
+}
+
+func (m *mockedRateLimiter) Consume(key string) bool {
+	return m.consumeFunc(key)
+}
 
 func TestKeyBasedRateLimiter(t *testing.T) {
 	if testing.Short() {
@@ -36,4 +45,37 @@ func TestKeyBasedRateLimiter(t *testing.T) {
 	assert.True(t, rateLimiter.Consume("user2"))
 	assert.True(t, rateLimiter.Consume("user2"))
 	assert.False(t, rateLimiter.Consume("user2"))
+}
+
+func TestIPKeyFunc(t *testing.T) {
+	request := &http.Request{RemoteAddr: "123.123.123.123"}
+	assert.Equal(t, "ip: 123.123.123.123", IPKeyFunc(request))
+}
+
+func TestRequestBasedRateLimiter(t *testing.T) {
+	var expectedKey string
+	var allowed bool
+	rateLimiter := &mockedRateLimiter{
+		consumeFunc: func(key string) bool {
+			t.Helper()
+			assert.Equal(t, expectedKey, key)
+			return allowed
+		},
+	}
+	requestRateLimiter := NewRequestBasedRateLimiter(rateLimiter, IPKeyFunc)
+
+	expectedKey = "ip: 1.1.1.1"
+	allowed = true
+	assert.True(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
+	assert.True(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
+	allowed = false
+	assert.False(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
+
+	expectedKey = "ip: 2.1.1.1"
+	allowed = true
+	assert.True(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "2.1.1.1"}))
+
+	expectedKey = "ip: 1.1.1.1"
+	allowed = false
+	assert.False(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
 }
