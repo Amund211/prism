@@ -8,7 +8,7 @@ import (
 )
 
 type RateLimiter interface {
-	Allow(key string) bool
+	Consume(key string) bool
 }
 
 type keyBasedRateLimiter struct {
@@ -17,7 +17,7 @@ type keyBasedRateLimiter struct {
 	burstSize       int
 }
 
-func (rateLimiter keyBasedRateLimiter) Allow(key string) bool {
+func (rateLimiter keyBasedRateLimiter) Consume(key string) bool {
 	limiter, _ := rateLimiter.limiterByIP.GetOrSet(key, rate.NewLimiter(rate.Limit(rateLimiter.refillPerSecond), rateLimiter.burstSize))
 	return limiter.Value().Allow()
 }

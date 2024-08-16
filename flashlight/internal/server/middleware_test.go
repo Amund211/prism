@@ -14,7 +14,7 @@ type mockedRateLimiter struct {
 	expectedKey string
 }
 
-func (m *mockedRateLimiter) Allow(key string) bool {
+func (m *mockedRateLimiter) Consume(key string) bool {
 	assert.Equal(m.t, m.expectedKey, key)
 	return m.allow
 }
