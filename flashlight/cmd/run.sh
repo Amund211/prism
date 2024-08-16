@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -eu
+
 env_file="$(dirname "$0")/.env"
 
 if [ ! -f "$env_file" ]; then
@@ -12,5 +14,5 @@ fi
 
 FUNCTION_TARGET=flashlight \
 LOCAL_ONLY=true \
-PORT=8123 \
+PORT="${1:-8123}" \
 	go run cmd/main.go
