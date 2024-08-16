@@ -49,8 +49,20 @@ func TestTokenBucketRateLimiter(t *testing.T) {
 }
 
 func TestIPKeyFunc(t *testing.T) {
-	request := &http.Request{RemoteAddr: "123.123.123.123"}
-	assert.Equal(t, "ip: 123.123.123.123", IPKeyFunc(request))
+	cases := []struct {
+		remoteAddr string
+		key        string
+	}{
+		{"123.123.123.123", "ip: 123.123.123.123"},
+		// Port is stripped
+		{"127.0.0.1:52123", "ip: 127.0.0.1"},
+	}
+	for _, c := range cases {
+		t.Run(c.remoteAddr, func(t *testing.T) {
+			request := &http.Request{RemoteAddr: c.remoteAddr}
+			assert.Equal(t, c.key, IPKeyFunc(request))
+		})
+	}
 }
 
 func TestUserIdKeyFunc(t *testing.T) {

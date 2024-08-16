@@ -3,6 +3,7 @@ package ratelimiting
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/jellydator/ttlcache/v3"
@@ -66,7 +67,14 @@ func NewRequestBasedRateLimiter(limiter RateLimiter, keyFunc func(r *http.Reques
 }
 
 func IPKeyFunc(r *http.Request) string {
-	return fmt.Sprintf("ip: %s", r.RemoteAddr)
+	withoutPort := r.RemoteAddr
+
+	portIndex := strings.IndexByte(r.RemoteAddr, ':')
+	if portIndex != -1 {
+		withoutPort = r.RemoteAddr[:portIndex]
+	}
+
+	return fmt.Sprintf("ip: %s", withoutPort)
 }
 
 func UserIdKeyFunc(r *http.Request) string {
