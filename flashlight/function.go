@@ -2,6 +2,7 @@ package function
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -19,6 +20,12 @@ import (
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 )
 
+type mockedHypixelAPI struct{}
+
+func (hypixelAPI *mockedHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, error) {
+	return []byte(fmt.Sprintf(`{"success":true,"player":{"uuid":"%s"}}`, uuid)), 200, nil
+}
+
 func init() {
 	localOnly := os.Getenv("LOCAL_ONLY") == "true"
 
@@ -33,7 +40,10 @@ func init() {
 	if hypixelApiKey != "" {
 		hypixelAPI = hypixel.NewHypixelAPI(httpClient, hypixelApiKey)
 	} else {
-		log.Fatalln("Missing Hypixel API key")
+		if !localOnly {
+			log.Fatalln("Missing Hypixel API key")
+		}
+		hypixelAPI = &mockedHypixelAPI{}
 	}
 
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
