@@ -43,6 +43,10 @@ func init() {
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		ratelimiting.NewKeyBasedRateLimiter(2, 120), ratelimiting.IPKeyFunc,
 	)
+	userIdRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
+		// NOTE: Rate limiting based on user controlled value
+		ratelimiting.NewKeyBasedRateLimiter(2, 120), ratelimiting.UserIdKeyFunc,
+	)
 
 	var sentryMiddleware func(http.HandlerFunc) http.HandlerFunc
 	if localOnly && sentryDSN == "" {
@@ -65,6 +69,7 @@ func init() {
 		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,
 		server.NewRateLimitMiddleware(ipRateLimiter),
+		server.NewRateLimitMiddleware(userIdRateLimiter),
 	)
 
 	functions.HTTP(
