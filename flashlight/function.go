@@ -40,9 +40,8 @@ func init() {
 
 	hypixelAPI := hypixel.NewHypixelAPI(httpClient, apiKey)
 
-	rateLimiter := ratelimiting.NewKeyBasedRateLimiter(2, 120)
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		rateLimiter, ratelimiting.IPKeyFunc,
+		ratelimiting.NewKeyBasedRateLimiter(2, 120), ratelimiting.IPKeyFunc,
 	)
 
 	var sentryMiddleware func(http.HandlerFunc) http.HandlerFunc
