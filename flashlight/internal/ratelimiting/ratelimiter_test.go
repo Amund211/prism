@@ -18,11 +18,11 @@ func (m *mockedRateLimiter) Consume(key string) bool {
 	return m.consumeFunc(key)
 }
 
-func TestKeyBasedRateLimiter(t *testing.T) {
+func TestTokenBucketRateLimiter(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping test in short mode")
 	}
-	rateLimiter := NewKeyBasedRateLimiter(1, 2)
+	rateLimiter := NewTokenBucketRateLimiter(1, 2)
 
 	assert.True(t, rateLimiter.Consume("user2"))
 
