@@ -41,7 +41,7 @@ func init() {
 	hypixelAPI := hypixel.NewHypixelAPI(httpClient, apiKey)
 
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		ratelimiting.NewKeyBasedRateLimiter(2, 120), ratelimiting.IPKeyFunc,
+		ratelimiting.NewKeyBasedRateLimiter(8, 480), ratelimiting.IPKeyFunc,
 	)
 	userIdRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		// NOTE: Rate limiting based on user controlled value
