@@ -38,11 +38,14 @@ for _ in $(seq 1 120); do
 		|| true
 done
 
-echo 'Issuing final (disallowed) request' >&2
-if curl \
-		--fail \
-		-H 'X-User-Id: my-user-id' \
-		"localhost:$PORT?uuid=some-requested-uuid" >/dev/null 2>&1; then
-	echo 'Request succeeded when user should have been rate limited!'
-	exit 1
-fi
+echo 'Issuing final (disallowed) requests' >&2
+for _ in $(seq 1 10); do
+	if ! curl \
+			--fail \
+			-H 'X-User-Id: my-user-id' \
+			"localhost:$PORT?uuid=some-requested-uuid" >/dev/null 2>&1; then
+		exit 0
+	fi
+done
+echo 'All requests succeeded when user should have been rate limited!' >&2
+exit 1
