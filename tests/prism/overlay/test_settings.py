@@ -486,10 +486,7 @@ fill_settings_test_cases: tuple[
             "antisniper_api_key": "my-key",
             "known_nicks": {
                 # Value is a string, not a dict
-                "AmazingNick": "uuid"
-                "123987"
-                "comment"
-                "Player1"
+                "AmazingNick": "uuid",
             },
         },
         make_settings_dict(antisniper_api_key="my-key"),
