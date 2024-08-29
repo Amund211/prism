@@ -405,6 +405,27 @@ NOT_USED = cast(LogfileCache, None)
             ),
             make_dead_path("A"),
         ),
+        (
+            LogfileCache(
+                known_logfiles=(
+                    make_dead_path("old"),
+                    make_dead_path("active"),
+                ),
+                last_used_index=0,
+            ),
+            (1000, 1),
+            (),
+            LogfileCache(
+                known_logfiles=(),
+                last_used_index=-1,
+            ),
+            True,
+            LogfileCache(
+                known_logfiles=(make_dead_path("active"), make_dead_path("old")),
+                last_used_index=0,
+            ),
+            make_dead_path("active"),
+        ),
     ),
 )
 def test_get_logfile(

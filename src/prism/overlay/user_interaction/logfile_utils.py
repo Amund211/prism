@@ -415,6 +415,7 @@ def get_logfile(
     if autoselected is not None:
         # Autoselection will always choose the first item because it assumes
         # the tuple of sorted logfiles to be sorted
+        known_logfiles = tuple(logfile.path for logfile in active_logfiles)
         cache = LogfileCache(known_logfiles=known_logfiles, last_used_index=0)
     else:
         cache = update_cache(active_logfiles, last_used_id)
