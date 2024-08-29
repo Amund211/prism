@@ -427,11 +427,12 @@ def test_get_logfile(
     def create_active_logfiles(
         known_logfiles: tuple[Path, ...]
     ) -> tuple[ActiveLogfile, ...]:
+        # TODO: Too much business logic in this mock
+        aged_logfiles = zip(known_logfiles, logfile_ages_seconds, strict=True)
+        sorted_logfiles = sorted(aged_logfiles, key=lambda x: x[1])
         return tuple(
             ActiveLogfile(id_=id_, path=path, age_seconds=age)
-            for id_, (path, age) in enumerate(
-                zip(known_logfiles, logfile_ages_seconds, strict=True)
-            )
+            for id_, (path, age) in enumerate(sorted_logfiles)
         )
 
     # Use a dead path so we don't accidentally write to disk somewhere
