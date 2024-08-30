@@ -7,7 +7,7 @@ import (
 
 	"github.com/Amund211/flashlight/internal/cache"
 	e "github.com/Amund211/flashlight/internal/errors"
-	"github.com/Amund211/flashlight/internal/parsing"
+	"github.com/Amund211/flashlight/internal/processing"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -41,7 +41,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		data, statusCode, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 		assert.Nil(t, err)
 
-		var playerData parsing.HypixelAPIResponse
+		var playerData processing.HypixelAPIResponse
 
 		err = json.Unmarshal(data, &playerData)
 

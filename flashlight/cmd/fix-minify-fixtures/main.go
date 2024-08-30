@@ -8,10 +8,10 @@ import (
 	"os"
 	"path"
 
-	"github.com/Amund211/flashlight/internal/parsing"
+	"github.com/Amund211/flashlight/internal/processing"
 )
 
-const minifyFixtureDir = "./internal/parsing/fixtures/"
+const minifyFixtureDir = "./internal/processing/fixtures/"
 
 func parseMinifyFixtureFile(filePath string) ([]byte, []byte, error) {
 	data, err := os.ReadFile(filePath)
@@ -43,7 +43,7 @@ func main() {
 			log.Printf("Error parsing file %s: %s", filePath, err.Error())
 			continue
 		}
-		newMinified, err := parsing.MinifyPlayerData(context.Background(), playerData)
+		newMinified, err := processing.MinifyPlayerData(context.Background(), playerData)
 		if err != nil {
 			log.Printf("Error minifying player data: %s", err.Error())
 			continue

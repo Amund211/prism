@@ -8,7 +8,7 @@ import (
 	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/hypixel"
 	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/parsing"
+	"github.com/Amund211/flashlight/internal/processing"
 	"github.com/Amund211/flashlight/internal/reporting"
 )
 
@@ -19,7 +19,7 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI,
 		return []byte{}, -1, err
 	}
 
-	return parsing.ProcessPlayerData(ctx, playerData, statusCode)
+	return processing.ProcessPlayerData(ctx, playerData, statusCode)
 }
 
 func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
