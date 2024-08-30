@@ -9,7 +9,7 @@ import (
 
 type GetMinifiedPlayerData func(ctx context.Context, uuid string) ([]byte, int, error)
 
-func MakeServeGetPlayerData(getMinifiedPlayerData GetMinifiedPlayerData) http.HandlerFunc {
+func MakeGetPlayerDataHandler(getMinifiedPlayerData GetMinifiedPlayerData) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := logging.FromContext(r.Context())
 		uuid := r.URL.Query().Get("uuid")

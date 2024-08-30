@@ -93,7 +93,7 @@ func init() {
 	functions.HTTP(
 		"flashlight",
 		middleware(
-			server.MakeServeGetPlayerData(
+			server.MakeGetPlayerDataHandler(
 				func(ctx context.Context, uuid string) ([]byte, int, error) {
 					return getstats.GetOrCreateMinifiedPlayerData(ctx, playerCache, hypixelAPI, uuid)
 				},
