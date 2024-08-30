@@ -39,7 +39,7 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 	return err
 }
 
-func getMinifiedPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
+func getProcessedPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
 	playerData, statusCode, err := hypixelAPI.GetPlayerData(ctx, uuid)
 	if err != nil {
 		reporting.Report(ctx, err)
@@ -91,7 +91,7 @@ func getMinifiedPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, u
 	return minifiedPlayerData, statusCode, nil
 }
 
-func GetOrCreateMinifiedPlayerData(ctx context.Context, playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
+func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
 	logger := logging.FromContext(ctx)
 
 	if uuid == "" {
@@ -104,15 +104,15 @@ func GetOrCreateMinifiedPlayerData(ctx context.Context, playerCache cache.Player
 		return []byte{}, -1, fmt.Errorf("%w: Invalid uuid", e.APIClientError)
 	}
 
-	minifiedPlayerData, statusCode, err := cache.GetOrCreateCachedResponse(ctx, playerCache, uuid, func() ([]byte, int, error) {
-		return getMinifiedPlayerData(ctx, hypixelAPI, uuid)
+	processedPlayerData, statusCode, err := cache.GetOrCreateCachedResponse(ctx, playerCache, uuid, func() ([]byte, int, error) {
+		return getProcessedPlayerData(ctx, hypixelAPI, uuid)
 	})
 
 	if err != nil {
 		return []byte{}, -1, err
 	}
 
-	logger.Info("Got minified player data", "contentLength", len(minifiedPlayerData), "statusCode", statusCode)
+	logger.Info("Got minified player data", "contentLength", len(processedPlayerData), "statusCode", statusCode)
 
-	return minifiedPlayerData, statusCode, nil
+	return processedPlayerData, statusCode, nil
 }

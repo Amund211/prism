@@ -29,7 +29,7 @@ func (m *mockedHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]by
 	return m.data, m.statusCode, m.err
 }
 
-func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
+func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 	t.Run("Test GetStats", func(t *testing.T) {
 		hypixelAPI := &mockedHypixelAPI{
 			data:       []byte(`{"success":true,"player":{"stats":{"Bedwars":{"Experience":0}}}}`),
@@ -38,14 +38,14 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		data, statusCode, err := GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, uuid)
+		data, statusCode, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 		assert.Nil(t, err)
 
 		var playerData parsing.HypixelAPIResponse
 
 		err = json.Unmarshal(data, &playerData)
 
-		assert.Nil(t, err, "Can't unmarshal minified playerdata '%s'", data)
+		assert.Nil(t, err, "Can't unmarshal processed playerdata '%s'", data)
 		assert.Equal(t, 200, statusCode)
 		assert.Nil(t, playerData.Cause)
 		assert.True(t, playerData.Success)
@@ -62,9 +62,9 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		panicHypixelAPI := &panicHypixelAPI{}
 		cache := cache.NewMockedPlayerCache()
 
-		GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, uuid)
+		GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
-		GetOrCreateMinifiedPlayerData(context.Background(), cache, panicHypixelAPI, uuid)
+		GetOrCreateProcessedPlayerData(context.Background(), cache, panicHypixelAPI, uuid)
 	})
 
 	t.Run("error from hypixel", func(t *testing.T) {
@@ -75,7 +75,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
 		assert.ErrorIs(t, err, assert.AnError)
 	})
@@ -90,7 +90,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
 		assert.ErrorIs(t, err, e.APIServerError)
 	})
@@ -103,7 +103,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
 		assert.ErrorIs(t, err, e.APIServerError)
 	})
@@ -116,7 +116,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
 		assert.ErrorIs(t, err, e.APIServerError)
 	})
@@ -125,7 +125,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		hypixelAPI := &panicHypixelAPI{}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, "invalid")
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, "invalid")
 
 		assert.ErrorIs(t, err, e.APIClientError)
 	})
@@ -134,7 +134,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		hypixelAPI := &panicHypixelAPI{}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, "")
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, "")
 
 		assert.ErrorIs(t, err, e.APIClientError)
 	})
@@ -147,7 +147,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
 		assert.ErrorIs(t, err, e.APIServerError)
 	})
@@ -160,7 +160,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
 		assert.ErrorIs(t, err, e.BadGateway)
 	})
@@ -173,7 +173,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
 		assert.ErrorIs(t, err, e.ServiceUnavailable)
 	})
@@ -186,7 +186,7 @@ func TestGetOrCreateMinifiedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateMinifiedPlayerData(context.Background(), cache, hypixelAPI, uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
 		assert.ErrorIs(t, err, e.GatewayTimeout)
 	})
