@@ -14,10 +14,12 @@ import (
 )
 
 type processPlayerDataTest struct {
-	name   string
-	before []byte
-	after  []byte
-	error  bool
+	name               string
+	before             []byte
+	hypixelStatusCode  int
+	after              []byte
+	expectedStatusCode int
+	error              bool
 }
 
 const processFixtureDir = "fixtures/"
@@ -73,6 +75,12 @@ var literalTests = []processPlayerDataTest{
 			}
 		}`),
 	},
+	{
+		name:               "not found",
+		before:             []byte(`{"success": true, "player": null}`),
+		after:              []byte(`{"success": true, "player": null}`),
+		expectedStatusCode: 404,
+	},
 }
 
 func parsePlayerDataFile(filePath string) (processPlayerDataTest, error) {
@@ -88,7 +96,15 @@ func parsePlayerDataFile(filePath string) (processPlayerDataTest, error) {
 }
 
 func runProcessPlayerDataTest(t *testing.T, test processPlayerDataTest) {
-	minified, _, err := ProcessPlayerData(context.Background(), test.before, 200)
+	hypixelStatusCode := 200
+	if test.hypixelStatusCode != 0 {
+		hypixelStatusCode = test.hypixelStatusCode
+	}
+	expectedStatusCode := 200
+	if test.expectedStatusCode != 0 {
+		expectedStatusCode = test.expectedStatusCode
+	}
+	minified, statusCode, err := ProcessPlayerData(context.Background(), test.before, hypixelStatusCode)
 
 	if test.error {
 		assert.NotNil(t, err, "processPlayerData(%s) - expected error", test.name)
@@ -96,6 +112,7 @@ func runProcessPlayerDataTest(t *testing.T, test processPlayerDataTest) {
 	}
 
 	assert.Nil(t, err, "processPlayerData(%s) - unexpected error: %v", test.name, err)
+	assert.Equal(t, expectedStatusCode, statusCode, test.name)
 	assert.Equal(t, string(test.after), string(minified), "processPlayerData(%s) - expected '%s', got '%s'", test.name, test.after, minified)
 }
 

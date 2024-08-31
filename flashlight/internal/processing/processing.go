@@ -79,6 +79,11 @@ func ProcessPlayerData(ctx context.Context, playerData []byte, statusCode int) (
 		return []byte{}, -1, err
 	}
 
+	processedStatusCode := 200
+	if parsedPlayerData.Success && parsedPlayerData.Player == nil {
+		processedStatusCode = 404
+	}
+
 	minifiedPlayerData, err := MarshalPlayerData(ctx, parsedPlayerData)
 	if err != nil {
 		err = fmt.Errorf("%w: failed to marshal player data: %w", e.APIServerError, err)
@@ -86,12 +91,13 @@ func ProcessPlayerData(ctx context.Context, playerData []byte, statusCode int) (
 			ctx,
 			err,
 			map[string]string{
-				"statusCode": fmt.Sprint(statusCode),
-				"data":       string(playerData),
+				"processedStatusCode": fmt.Sprint(processedStatusCode),
+				"statusCode":          fmt.Sprint(statusCode),
+				"data":                string(playerData),
 			},
 		)
 		return []byte{}, -1, err
 	}
 
-	return minifiedPlayerData, statusCode, nil
+	return minifiedPlayerData, processedStatusCode, nil
 }
