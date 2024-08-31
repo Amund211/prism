@@ -83,6 +83,12 @@ var literalTests = []processPlayerDataTest{
 		after:              []byte(`{"success": true, "player": null}`),
 		expectedStatusCode: 404,
 	},
+	{
+		name:              "hypixel 500",
+		before:            []byte(`{"success":false,"cause":"Internal error"}`),
+		hypixelStatusCode: 500,
+		error:             e.RetriableError,
+	},
 }
 
 func parsePlayerDataFile(filePath string) (processPlayerDataTest, error) {
