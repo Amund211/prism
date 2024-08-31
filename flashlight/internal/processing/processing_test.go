@@ -126,7 +126,17 @@ func runProcessPlayerDataTest(t *testing.T, test processPlayerDataTest) {
 }
 
 func TestProcessPlayerDataLiterals(t *testing.T) {
-	for _, test := range literalTests {
+	cloudfareTests := []processPlayerDataTest{}
+	for _, statusCode := range []int{502, 503, 504} {
+		cloudfareTests = append(cloudfareTests, processPlayerDataTest{
+			name:              fmt.Sprintf("cloudflare %d", statusCode),
+			before:            []byte(fmt.Sprintf("error code: %d", statusCode)),
+			hypixelStatusCode: statusCode,
+			error:             e.RetriableError,
+		})
+	}
+
+	for _, test := range append(literalTests, cloudfareTests...) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			if test.error == nil {
