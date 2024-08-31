@@ -2,7 +2,6 @@ package getstats
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/Amund211/flashlight/internal/cache"
@@ -41,11 +40,9 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		data, statusCode, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 		assert.Nil(t, err)
 
-		var playerData processing.HypixelAPIResponse
+		playerData, err := processing.ParsePlayerData(context.Background(), data)
 
-		err = json.Unmarshal(data, &playerData)
-
-		assert.Nil(t, err, "Can't unmarshal processed playerdata '%s'", data)
+		assert.Nil(t, err, "Can't parse processed playerdata '%s'", data)
 		assert.Equal(t, 200, statusCode)
 		assert.Nil(t, playerData.Cause)
 		assert.True(t, playerData.Success)
