@@ -166,7 +166,7 @@ class WhisperCommandSetNickEvent:
     )
 
 
-ClientEvent = Union[InitializeAsEvent,]
+ClientEvent = InitializeAsEvent
 
 ChatEvent = Union[
     NewNicknameEvent,
