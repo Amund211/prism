@@ -7,7 +7,7 @@ import (
 	"github.com/Amund211/flashlight/internal/logging"
 )
 
-type HypixelAPIResponse struct {
+type hypixelAPIResponse struct {
 	Success bool              `json:"success"`
 	Player  *hypixelAPIPlayer `json:"player"`
 	Cause   *string           `json:"cause,omitempty"`
@@ -38,9 +38,9 @@ type bedwarsStats struct {
 	Deaths      *int     `json:"deaths_bedwars,omitempty"`
 }
 
-func ParsePlayerData(ctx context.Context, data []byte) (*HypixelAPIResponse, error) {
+func ParsePlayerData(ctx context.Context, data []byte) (*hypixelAPIResponse, error) {
 	logger := logging.FromContext(ctx)
-	var response HypixelAPIResponse
+	var response hypixelAPIResponse
 
 	err := json.Unmarshal(data, &response)
 	if err != nil {
@@ -50,7 +50,7 @@ func ParsePlayerData(ctx context.Context, data []byte) (*HypixelAPIResponse, err
 	return &response, nil
 }
 
-func MarshalPlayerData(ctx context.Context, response *HypixelAPIResponse) ([]byte, error) {
+func MarshalPlayerData(ctx context.Context, response *hypixelAPIResponse) ([]byte, error) {
 	logger := logging.FromContext(ctx)
 	data, err := json.Marshal(response)
 	if err != nil {
