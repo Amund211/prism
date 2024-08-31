@@ -38,17 +38,21 @@ type bedwarsStats struct {
 	Deaths      *int     `json:"deaths_bedwars,omitempty"`
 }
 
-func MinifyPlayerData(ctx context.Context, data []byte) ([]byte, error) {
+func parsePlayerData(ctx context.Context, data []byte) (*HypixelAPIResponse, error) {
 	logger := logging.FromContext(ctx)
 	var response HypixelAPIResponse
 
 	err := json.Unmarshal(data, &response)
 	if err != nil {
 		logger.Error("Failed to unmarshal player data", "error", err)
-		return []byte{}, err
+		return nil, err
 	}
+	return &response, nil
+}
 
-	data, err = json.Marshal(response)
+func marshalPlayerData(ctx context.Context, response *HypixelAPIResponse) ([]byte, error) {
+	logger := logging.FromContext(ctx)
+	data, err := json.Marshal(response)
 	if err != nil {
 		logger.Error("Failed to marshal player data", "error", err)
 		return []byte{}, err

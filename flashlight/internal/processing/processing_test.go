@@ -13,17 +13,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type minifyPlayerDataTest struct {
+type processPlayerDataTest struct {
 	name   string
 	before []byte
 	after  []byte
 	error  bool
 }
 
-const minifyFixtureDir = "fixtures/"
+const processFixtureDir = "fixtures/"
 
 // NOTE: for readability, after is compacted before being compared
-var literalTests = []minifyPlayerDataTest{
+var literalTests = []processPlayerDataTest{
 	{name: "empty object", before: []byte(`{}`), after: []byte(`{"success":false,"player":null}`)},
 	{name: "empty list", before: []byte(`[]`), after: []byte{}, error: true},
 	{name: "empty string", before: []byte(``), after: []byte{}, error: true},
@@ -75,56 +75,56 @@ var literalTests = []minifyPlayerDataTest{
 	},
 }
 
-func parsePlayerDataFile(filePath string) (minifyPlayerDataTest, error) {
+func parsePlayerDataFile(filePath string) (processPlayerDataTest, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		return minifyPlayerDataTest{}, err
+		return processPlayerDataTest{}, err
 	}
 	lines := bytes.Split(data, []byte("\n"))
 	if len(lines) != 2 {
-		return minifyPlayerDataTest{}, fmt.Errorf("File %s does not contain 2 lines", filePath)
+		return processPlayerDataTest{}, fmt.Errorf("File %s does not contain 2 lines", filePath)
 	}
-	return minifyPlayerDataTest{name: fmt.Sprintf("<%s>", filePath), before: lines[0], after: lines[1]}, nil
+	return processPlayerDataTest{name: fmt.Sprintf("<%s>", filePath), before: lines[0], after: lines[1]}, nil
 }
 
-func runMinifyPlayerDataTest(t *testing.T, test minifyPlayerDataTest) {
-	minified, err := MinifyPlayerData(context.Background(), test.before)
+func runProcessPlayerDataTest(t *testing.T, test processPlayerDataTest) {
+	minified, _, err := ProcessPlayerData(context.Background(), test.before, 200)
 
 	if test.error {
-		assert.NotNil(t, err, "minifyPlayerData(%s) - expected error", test.name)
+		assert.NotNil(t, err, "processPlayerData(%s) - expected error", test.name)
 		return
 	}
 
-	assert.Nil(t, err, "minifyPlayerData(%s) - unexpected error: %v", test.name, err)
-	assert.Equal(t, string(test.after), string(minified), "minifyPlayerData(%s) - expected '%s', got '%s'", test.name, test.after, minified)
+	assert.Nil(t, err, "processPlayerData(%s) - unexpected error: %v", test.name, err)
+	assert.Equal(t, string(test.after), string(minified), "processPlayerData(%s) - expected '%s', got '%s'", test.name, test.after, minified)
 }
 
-func TestMinifyPlayerDataLiterals(t *testing.T) {
+func TestProcessPlayerDataLiterals(t *testing.T) {
 	for _, test := range literalTests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			if !test.error {
 				var compacted bytes.Buffer
 				err := json.Compact(&compacted, test.after)
-				assert.Nil(t, err, "minifyPlayerData(%s): Error compacting JSON: %v", test.name, err)
+				assert.Nil(t, err, "processPlayerData(%s): Error compacting JSON: %v", test.name, err)
 				test.after = compacted.Bytes()
 			}
 
 			// Real test
-			runMinifyPlayerDataTest(t, test)
+			runProcessPlayerDataTest(t, test)
 
 			if !test.error {
 				// Test that minification is idempotent
 				test.before = test.after
 				test.name = test.name + " (minified)"
-				runMinifyPlayerDataTest(t, test)
+				runProcessPlayerDataTest(t, test)
 			}
 		})
 	}
 }
 
-func TestMinifyPlayerDataFiles(t *testing.T) {
-	files, err := os.ReadDir(minifyFixtureDir)
+func TestProcessPlayerDataFiles(t *testing.T) {
+	files, err := os.ReadDir(processFixtureDir)
 
 	assert.Nil(t, err, "Error reading fixtures directory: %v", err)
 
@@ -137,16 +137,16 @@ func TestMinifyPlayerDataFiles(t *testing.T) {
 			continue
 		}
 		go func() {
-			filePath := path.Join(minifyFixtureDir, file.Name())
+			filePath := path.Join(processFixtureDir, file.Name())
 			test, err := parsePlayerDataFile(filePath)
 			assert.Nil(t, err, "Error parsing file %s: %v", filePath, err)
 			// Real test
-			runMinifyPlayerDataTest(t, test)
+			runProcessPlayerDataTest(t, test)
 
 			// Test that minification is idempotent
 			test.before = test.after
 			test.name = test.name + " (minified)"
-			runMinifyPlayerDataTest(t, test)
+			runProcessPlayerDataTest(t, test)
 			wg.Done()
 		}()
 	}

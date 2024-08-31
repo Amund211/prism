@@ -43,7 +43,7 @@ func main() {
 			log.Printf("Error parsing file %s: %s", filePath, err.Error())
 			continue
 		}
-		newMinified, err := processing.MinifyPlayerData(context.Background(), playerData)
+		newMinified, _, err := processing.ProcessPlayerData(context.Background(), playerData, 200)
 		if err != nil {
 			log.Printf("Error minifying player data: %s", err.Error())
 			continue
