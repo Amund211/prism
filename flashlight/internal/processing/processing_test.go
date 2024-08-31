@@ -109,6 +109,7 @@ func runProcessPlayerDataTest(t *testing.T, test processPlayerDataTest) {
 	minified, statusCode, err := ProcessPlayerData(context.Background(), test.before, hypixelStatusCode)
 
 	if test.error != nil {
+		assert.Equal(t, 0, test.expectedStatusCode, "status code not returned on error")
 		assert.ErrorIs(t, err, test.error, "processPlayerData(%s) - expected error", test.name)
 		return
 	}
