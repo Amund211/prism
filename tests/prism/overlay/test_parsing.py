@@ -838,4 +838,9 @@ parsing_test_ids = [make_test_id(test_case) for test_case in parsing_test_cases]
 @pytest.mark.parametrize("logline, event", parsing_test_cases, ids=parsing_test_ids)
 def test_parsing(logline: str, event: Event) -> None:
     """Assert that the correct events are returned from parse_logline"""
-    assert parse_logline(logline) == event
+    # NOTE: Loglines in this file are all without line endings, as copied from the log file.
+    #       When the file is read, however, the line endings will be present.
+    #       Manually add two different versions of line endings here
+    #       TODO: Add test cases that read from real log files on disk
+    for suffix in ("", "\n", "\r\n"):
+        assert parse_logline(logline + suffix) == event
