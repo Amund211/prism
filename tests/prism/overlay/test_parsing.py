@@ -493,7 +493,7 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     ),
     *(
         (
-            # Lobby list on lunar client (deduplicated chat message ([x2])
+            # Lobby list on lunar client deduplicated chat message ([x2])
             f"[23:09:10] [Client thread/INFO]: [CHAT] ONLINE: Player1, Player2 [x{count}]",
             LobbyListEvent(usernames=["Player1", "Player2"]),
         )
