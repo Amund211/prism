@@ -13,24 +13,21 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 	// Non-error status codes - check for HTML
 	if statusCode <= 400 || statusCode == 404 {
 		if len(playerData) > 0 && playerData[0] == '<' {
-			return fmt.Errorf("%w: Hypixel API returned HTML", e.APIServerError)
+			return fmt.Errorf("%w: Hypixel API returned HTML %w", e.APIServerError, e.RetriableError)
 		}
 
 		return nil
 	}
 
-	err := fmt.Errorf("%w: Hypixel API failed (status code: %d)", e.APIServerError, statusCode)
+	// Error for unknown status code
+	err := fmt.Errorf("%w: Hypixel API returned unsupported status code: %d", e.APIServerError, statusCode)
 
-	// Pass through certain status codes
+	// Errors for known status codes
 	switch statusCode {
 	case 429:
-		err = fmt.Errorf("%w: Hypixel ratelimit exceeded", e.RatelimitExceededError)
-	case 502:
-		err = fmt.Errorf("%w: Hypixel returned 502 Bad Gateway", e.BadGateway)
-	case 503:
-		err = fmt.Errorf("%w: Hypixel returned 503 Service Unavailable", e.ServiceUnavailable)
-	case 504:
-		err = fmt.Errorf("%w: Hypixel returned 504 Gateway Timeout", e.GatewayTimeout)
+		err = fmt.Errorf("%w: Hypixel ratelimit exceeded %w", e.RatelimitExceededError, e.RetriableError)
+	case 500, 502, 503, 504:
+		err = fmt.Errorf("%w: Hypixel returned status code %d %w", e.APIServerError, statusCode, e.RetriableError)
 	}
 
 	return err

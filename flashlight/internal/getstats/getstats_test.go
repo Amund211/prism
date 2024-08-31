@@ -75,6 +75,10 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
 		assert.ErrorIs(t, err, assert.AnError)
+
+		// Errors from the Hypixel API are passed through
+		assert.NotErrorIs(t, err, e.APIServerError)
+		assert.NotErrorIs(t, err, e.RetriableError)
 	})
 
 	t.Run("html from hypixel", func(t *testing.T) {
@@ -90,6 +94,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
 		assert.ErrorIs(t, err, e.APIServerError)
+		assert.ErrorIs(t, err, e.RetriableError)
 	})
 
 	t.Run("invalid JSON from hypixel", func(t *testing.T) {
@@ -103,6 +108,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
 		assert.ErrorIs(t, err, e.APIServerError)
+		assert.NotErrorIs(t, err, e.RetriableError)
 	})
 
 	t.Run("weird data format from hypixel", func(t *testing.T) {
@@ -116,6 +122,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
 		assert.ErrorIs(t, err, e.APIServerError)
+		assert.NotErrorIs(t, err, e.RetriableError)
 	})
 
 	t.Run("invalid uuid", func(t *testing.T) {
@@ -125,6 +132,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, "invalid")
 
 		assert.ErrorIs(t, err, e.APIClientError)
+		assert.NotErrorIs(t, err, e.RetriableError)
 	})
 
 	t.Run("missing uuid", func(t *testing.T) {
@@ -134,6 +142,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, "")
 
 		assert.ErrorIs(t, err, e.APIClientError)
+		assert.NotErrorIs(t, err, e.RetriableError)
 	})
 
 	t.Run("403 from hypixel", func(t *testing.T) {
@@ -147,6 +156,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
 		assert.ErrorIs(t, err, e.APIServerError)
+		assert.NotErrorIs(t, err, e.RetriableError)
 	})
 
 	t.Run("bad gateway from hypixel", func(t *testing.T) {
@@ -159,7 +169,8 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
-		assert.ErrorIs(t, err, e.BadGateway)
+		assert.ErrorIs(t, err, e.APIServerError)
+		assert.ErrorIs(t, err, e.RetriableError)
 	})
 
 	t.Run("service unavailable from hypixel", func(t *testing.T) {
@@ -172,7 +183,8 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
-		assert.ErrorIs(t, err, e.ServiceUnavailable)
+		assert.ErrorIs(t, err, e.APIServerError)
+		assert.ErrorIs(t, err, e.RetriableError)
 	})
 
 	t.Run("gateway timeout from hypixel", func(t *testing.T) {
@@ -185,6 +197,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, uuid)
 
-		assert.ErrorIs(t, err, e.GatewayTimeout)
+		assert.ErrorIs(t, err, e.APIServerError)
+		assert.ErrorIs(t, err, e.RetriableError)
 	})
 }
