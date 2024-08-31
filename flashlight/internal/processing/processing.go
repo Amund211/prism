@@ -65,7 +65,7 @@ func ProcessPlayerData(ctx context.Context, playerData []byte, statusCode int) (
 		"contentLength", len(playerData),
 	)
 
-	parsedPlayerData, err := parsePlayerData(ctx, playerData)
+	parsedPlayerData, err := ParsePlayerData(ctx, playerData)
 	if err != nil {
 		err = fmt.Errorf("%w: failed to parse player data: %w", e.APIServerError, err)
 		reporting.Report(
@@ -79,7 +79,7 @@ func ProcessPlayerData(ctx context.Context, playerData []byte, statusCode int) (
 		return []byte{}, -1, err
 	}
 
-	minifiedPlayerData, err := marshalPlayerData(ctx, parsedPlayerData)
+	minifiedPlayerData, err := MarshalPlayerData(ctx, parsedPlayerData)
 	if err != nil {
 		err = fmt.Errorf("%w: failed to marshal player data: %w", e.APIServerError, err)
 		reporting.Report(

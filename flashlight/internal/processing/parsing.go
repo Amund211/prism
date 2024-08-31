@@ -38,7 +38,7 @@ type bedwarsStats struct {
 	Deaths      *int     `json:"deaths_bedwars,omitempty"`
 }
 
-func parsePlayerData(ctx context.Context, data []byte) (*HypixelAPIResponse, error) {
+func ParsePlayerData(ctx context.Context, data []byte) (*HypixelAPIResponse, error) {
 	logger := logging.FromContext(ctx)
 	var response HypixelAPIResponse
 
@@ -50,7 +50,7 @@ func parsePlayerData(ctx context.Context, data []byte) (*HypixelAPIResponse, err
 	return &response, nil
 }
 
-func marshalPlayerData(ctx context.Context, response *HypixelAPIResponse) ([]byte, error) {
+func MarshalPlayerData(ctx context.Context, response *HypixelAPIResponse) ([]byte, error) {
 	logger := logging.FromContext(ctx)
 	data, err := json.Marshal(response)
 	if err != nil {
