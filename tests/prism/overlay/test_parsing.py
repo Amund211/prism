@@ -69,6 +69,8 @@ from prism.overlay.parsing import (
         ("[] Player1", "[] Player1"),  # Empty brackets
         ("[VIP]Player1", "[VIP]Player1"),  # Missing space
         ("VIP Player1", "VIP Player1"),  # Missing brackets
+        # NOTE: Is very permissive to allow for new ranks, so may also remove other features
+        ("[SHOUT] [GREEN] Player1: hi", "Player1: hi"),
     ),
 )
 def test_remove_ranks(rank_string: str, name_string: str) -> None:

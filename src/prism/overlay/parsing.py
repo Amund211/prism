@@ -74,7 +74,12 @@ def remove_colors(string: str) -> str:
 
 
 def remove_ranks(playerstring: str) -> str:
-    """Remove all ranks from a string"""
+    """
+    Remove all ranks from a string
+
+    NOTE: Is very permissive to allow for new ranks, so may also remove other features
+    ex: [SHOUT] [GREEN] Player1: hi -> Player1: hi
+    """
     return RANK_REGEX.sub("", playerstring)
 
 
