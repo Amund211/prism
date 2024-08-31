@@ -72,7 +72,6 @@ from prism.overlay.parsing import (
     ),
 )
 def test_remove_ranks(rank_string: str, name_string: str) -> None:
-    """Assert that remove_ranks functions properly"""
     assert remove_ranks(rank_string) == name_string
 
 
@@ -105,7 +104,6 @@ def test_remove_ranks(rank_string: str, name_string: str) -> None:
     ),
 )
 def test_remove_colors(string: str, expected: str) -> None:
-    """Assert that remove_colors functions properly"""
     assert remove_colors(string) == expected
 
 
@@ -171,12 +169,6 @@ def test_get_highest_index(source: str, substrings: tuple[str], result: str) -> 
     ),
 )
 def test_strip_until(line: str, until: str, suffix: str) -> None:
-    """
-    Assert that remove_ranks functions properly
-
-    The function finds the first index of until and removes everything up to
-    and including it. Also strips the result of whitespace on both ends.
-    """
     assert strip_until(line, until=until) == suffix
 
 
@@ -225,7 +217,6 @@ def test_valid_username(username: str, valid: bool) -> None:
     ),
 )
 def test_words_match(words: Sequence[str], target: str, full_match: bool) -> None:
-    """Assert that words_match functions properly"""
     assert words_match(words, target) == full_match
 
 
