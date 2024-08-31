@@ -9,6 +9,7 @@ from prism.overlay.events import (
     BedwarsFinalKillEvent,
     BedwarsGameStartingSoonEvent,
     BedwarsReconnectEvent,
+    ChatMessageEvent,
     EndBedwarsGameEvent,
     Event,
     InitializeAsEvent,
@@ -102,6 +103,20 @@ process_event_test_cases_base: tuple[
         LobbyLeaveEvent("Leaving"),
         MockedController(state=create_state(in_queue=True)),
         True,
+    ),
+    (
+        "chat message in queue",
+        MockedController(state=create_state(in_queue=True)),
+        ChatMessageEvent(username="Player1", message="Hello!"),
+        MockedController(state=create_state(in_queue=True, lobby_players={"Player1"})),
+        True,
+    ),
+    (
+        "chat message out of queue",
+        MockedController(state=create_state(in_queue=False)),
+        ChatMessageEvent(username="Player1", message="Hello!"),
+        MockedController(state=create_state(in_queue=False)),
+        False,
     ),
     (
         "lobby list out of queue",

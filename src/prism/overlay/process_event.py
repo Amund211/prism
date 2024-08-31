@@ -235,6 +235,13 @@ def process_event(
         # set_nickname sets redraw_flag
         return state, False
 
+    if event.event_type is EventType.CHAT_MESSAGE:
+        if state.in_queue:
+            # The player has revealed themselves in the pre-game lobby/queue
+            # Add them to the lobby
+            return state.add_to_lobby(event.username), True
+        return state, False
+
 
 def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -> None:
     """

@@ -18,6 +18,8 @@ class EventType(Enum):
     LOBBY_JOIN = auto()  # Someone joins your lobby
     LOBBY_LEAVE = auto()  # Someone leaves your lobby
 
+    CHAT_MESSAGE = auto()  # Someone sends a message in chat
+
     # /who
     LOBBY_LIST = auto()  # You get a list of all players in your lobby
 
@@ -72,6 +74,13 @@ class LobbyJoinEvent:
 class LobbyLeaveEvent:
     username: str
     event_type: Literal[EventType.LOBBY_LEAVE] = EventType.LOBBY_LEAVE
+
+
+@dataclass
+class ChatMessageEvent:
+    username: str
+    message: str
+    event_type: Literal[EventType.CHAT_MESSAGE] = EventType.CHAT_MESSAGE
 
 
 @dataclass
@@ -173,6 +182,7 @@ ChatEvent = Union[
     LobbySwapEvent,
     LobbyJoinEvent,
     LobbyLeaveEvent,
+    ChatMessageEvent,
     LobbyListEvent,
     PartyAttachEvent,
     PartyDetachEvent,
