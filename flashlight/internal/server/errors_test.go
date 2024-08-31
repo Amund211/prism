@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -46,6 +47,16 @@ func TestWriteErrorResponse(t *testing.T) {
 			err:            e.GatewayTimeout,
 			expectedStatus: 504,
 			expectedBody:   `{"success":false,"cause":"Gateway Timeout"}`,
+		},
+		{
+			err:            fmt.Errorf("something happened %w", e.RetriableError),
+			expectedStatus: 504,
+			expectedBody:   `{"success":false,"cause":"something happened (retriable)"}`,
+		},
+		{
+			err:            fmt.Errorf("%w %w", e.RatelimitExceededError, e.RetriableError),
+			expectedStatus: 429,
+			expectedBody:   `{"success":false,"cause":"Ratelimit exceeded (retriable)"}`,
 		},
 	}
 
