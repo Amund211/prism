@@ -33,16 +33,8 @@ func writeErrorResponse(ctx context.Context, w http.ResponseWriter, responseErro
 	} else if errors.Is(responseError, e.RetriableError) {
 		// TODO: Use a more descriptive status code when most prism clients support it
 		statusCode = http.StatusGatewayTimeout
-	} else if errors.Is(responseError, e.APIServerError) {
-		statusCode = http.StatusInternalServerError
 	} else if errors.Is(responseError, e.APIClientError) {
 		statusCode = http.StatusBadRequest
-	} else if errors.Is(responseError, e.BadGateway) {
-		statusCode = http.StatusBadGateway
-	} else if errors.Is(responseError, e.ServiceUnavailable) {
-		statusCode = http.StatusServiceUnavailable
-	} else if errors.Is(responseError, e.GatewayTimeout) {
-		statusCode = http.StatusGatewayTimeout
 	}
 
 	w.WriteHeader(statusCode)

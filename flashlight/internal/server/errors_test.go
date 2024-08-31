@@ -34,21 +34,6 @@ func TestWriteErrorResponse(t *testing.T) {
 			expectedBody:   `{"success":false,"cause":"Ratelimit exceeded"}`,
 		},
 		{
-			err:            e.BadGateway,
-			expectedStatus: 502,
-			expectedBody:   `{"success":false,"cause":"Bad Gateway"}`,
-		},
-		{
-			err:            e.ServiceUnavailable,
-			expectedStatus: 503,
-			expectedBody:   `{"success":false,"cause":"Service Unavailable"}`,
-		},
-		{
-			err:            e.GatewayTimeout,
-			expectedStatus: 504,
-			expectedBody:   `{"success":false,"cause":"Gateway Timeout"}`,
-		},
-		{
 			err:            fmt.Errorf("something happened %w", e.RetriableError),
 			expectedStatus: 504,
 			expectedBody:   `{"success":false,"cause":"something happened (retriable)"}`,
