@@ -10,6 +10,8 @@ import (
 	"sync"
 	"testing"
 
+	e "github.com/Amund211/flashlight/internal/errors"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +21,7 @@ type processPlayerDataTest struct {
 	hypixelStatusCode  int
 	after              []byte
 	expectedStatusCode int
-	error              bool
+	error              error
 }
 
 const processFixtureDir = "fixtures/"
@@ -27,8 +29,8 @@ const processFixtureDir = "fixtures/"
 // NOTE: for readability, after is compacted before being compared
 var literalTests = []processPlayerDataTest{
 	{name: "empty object", before: []byte(`{}`), after: []byte(`{"success":false,"player":null}`)},
-	{name: "empty list", before: []byte(`[]`), after: []byte{}, error: true},
-	{name: "empty string", before: []byte(``), after: []byte{}, error: true},
+	{name: "empty list", before: []byte(`[]`), after: []byte{}, error: e.APIServerError},
+	{name: "empty string", before: []byte(``), after: []byte{}, error: e.APIServerError},
 	{
 		name: "float experience",
 		before: []byte(`{
@@ -106,8 +108,8 @@ func runProcessPlayerDataTest(t *testing.T, test processPlayerDataTest) {
 	}
 	minified, statusCode, err := ProcessPlayerData(context.Background(), test.before, hypixelStatusCode)
 
-	if test.error {
-		assert.NotNil(t, err, "processPlayerData(%s) - expected error", test.name)
+	if test.error != nil {
+		assert.ErrorIs(t, err, test.error, "processPlayerData(%s) - expected error", test.name)
 		return
 	}
 
@@ -120,7 +122,7 @@ func TestProcessPlayerDataLiterals(t *testing.T) {
 	for _, test := range literalTests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
-			if !test.error {
+			if test.error == nil {
 				var compacted bytes.Buffer
 				err := json.Compact(&compacted, test.after)
 				assert.Nil(t, err, "processPlayerData(%s): Error compacting JSON: %v", test.name, err)
@@ -130,7 +132,7 @@ func TestProcessPlayerDataLiterals(t *testing.T) {
 			// Real test
 			runProcessPlayerDataTest(t, test)
 
-			if !test.error {
+			if test.error == nil {
 				// Test that minification is idempotent
 				test.before = test.after
 				test.name = test.name + " (minified)"
