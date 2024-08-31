@@ -9,6 +9,7 @@ from prism.overlay.events import (
     BedwarsGameStartingSoonEvent,
     BedwarsReconnectEvent,
     ChatEvent,
+    ChatMessageEvent,
     ClientEvent,
     EndBedwarsGameEvent,
     Event,
@@ -661,5 +662,28 @@ def parse_chat_message(message: str) -> ChatEvent | None:
             )
 
         return None
+
+    if ":" in message:
+        # Info [CHAT] §7Player1§7: gl to all
+        # NOTE: Colors have already been stripped at this point
+        logger.debug("Processing potential chat message")
+        colon_index = message.index(":")
+        username = remove_ranks(message[:colon_index])
+
+        if not valid_username(username):
+            logger.debug(f"Invalid username {username}")
+            return None
+
+        if len(message) <= colon_index + 1 or message[colon_index + 1] != " ":
+            logger.debug("No space after colon")
+            return None
+
+        player_message = message[colon_index + 2 :]  # Skip the colon and space
+
+        logger.debug(f"Parsing passed. '{username}' said '{player_message}'")
+        return ChatMessageEvent(
+            username=username,
+            message=player_message,
+        )
 
     return None

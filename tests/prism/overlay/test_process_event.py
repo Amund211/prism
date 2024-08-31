@@ -1105,7 +1105,7 @@ def test_fast_forward_state(
     "loglines, resulting_controller",
     (
         (
-            (f"{CHAT}[MVP+] Player1: hows ur day?",),
+            (f"{CHAT}You have 1 unclaimed leveling reward!",),
             MockedController(redraw_event_set=False),
         ),
         (

@@ -9,6 +9,7 @@ from prism.overlay.events import (
     BedwarsFinalKillEvent,
     BedwarsGameStartingSoonEvent,
     BedwarsReconnectEvent,
+    ChatMessageEvent,
     EndBedwarsGameEvent,
     Event,
     InitializeAsEvent,
@@ -294,8 +295,6 @@ UNEVENTFUL_LOGLINES = (
     "[Info: 2021-11-29 20:01:02.198028928: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Guild > Player1 [MEM]: hello",
     "[Info: 2021-11-29 20:01:02.198028928: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Party > Player1 [MEM]: hello",
     "[Info: 2021-11-29 20:01:37.599407350: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [SPECTATOR] ✫ Sumo Rookie V sapporoV: gg",
-    "[Info: 2021-11-29 20:01:37.599526846: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [GAME] Skydeaf: gg",
-    "[Info: 2021-11-29 20:18:14.961703702: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [SHOUT] [RED] [VIP+] Player1: some chat message",
     # Private game
     "[Info: 2021-11-29 20:09:06.079904026: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP++] Player1 enabled Private Game",
     "[Info: 2021-11-29 20:09:09.809805686: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [MVP++] Player1 disabled Private Game",
@@ -348,11 +347,6 @@ UNEVENTFUL_LOGLINES = (
     "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!somewierdcommand'",  # Unknown command
     "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!",  # Empty/malformed
     "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!a=b=c'",  # Too many arguments to setnick
-    # Attempts to inject log messages
-    "[15:03:53] [Client thread/INFO]: [CHAT] [MVP+] MaliciousPlayer: (Client thread) Info Setting user: Player1",
-    "[15:03:53] [Client thread/INFO]: [CHAT] [MVP+] MaliciousPlayer: (Client thread) Info [CHAT] ONLINE: Player1",
-    "[Info: 2021-11-29 22:30:40.455294561: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] MaliciousPlayer: [15:03:32] [ForkJoinPool.commonPool-worker-3/INFO]: [LC] Setting user: MaliciousPlayer",
-    "[Info: 2021-11-29 22:30:40.455294561: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] MaliciousPlayer: [15:03:53] [Client thread/INFO]: [CHAT] ONLINE: Player1",
     # Attempts to inject final kill messages
     "[00:03:18] [Client thread/INFO]: [CHAT] §9Party §8> §b[MVP§3+§b] Player1§f: Player2 was spooked off the map by Player3. FINAL KILL!",
     "[20:44:24] [Client thread/INFO]: [CHAT] §4[651✫] §b[MVP§3+§b] Player1§f: Player2 was spooked off the map by Player3. FINAL KILL!",
@@ -377,6 +371,16 @@ UNEVENTFUL_LOGLINES = (
     "[18:47:34] [Client thread/INFO]: [CHAT] The game starts in 10 secondssss!",
     # Invalid netty client number
     "[09:14:43] [Netty Client IO #1234/INFO]: [CHAT] Sending you to mini68CU!",
+    # Too short chat messages
+    "[21:16:52] [Client thread/INFO]: [CHAT] §7Player1§7",
+    "[21:16:52] [Client thread/INFO]: [CHAT] §7Player1§7:",
+    # TODO: Currently unsupported chat messages
+    # In bedwars lobby
+    "[21:18:04] [Client thread/INFO]: [CHAT] §b[321✫] §6[MVP§2++§6] Player1§f: do u play siege",
+    "[21:18:06] [Client thread/INFO]: [CHAT] §9[816✫] §6[MVP§0++§6] Player2§f: no",
+    # Team chat
+    "[21:18:20] [Client thread/INFO]: [CHAT] §c§7[5✫] §c[RED] §7Player1§7: def",
+    # #########################################
 )
 
 
@@ -549,6 +553,41 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     (
         "[Info: 2021-11-29 20:09:47.192349993: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Player1 has quit!",
         LobbyLeaveEvent(username="Player1"),
+    ),
+    (
+        "[21:16:38] [Client thread/INFO]: [CHAT] §b[MVP§6+§b] Player1§f: this update only good for rush parties bru",
+        ChatMessageEvent(
+            username="Player1", message="this update only good for rush parties bru"
+        ),
+    ),
+    (
+        "[21:16:52] [Client thread/INFO]: [CHAT] §a[VIP] Player1§f: I need help, teach me how to play!",
+        ChatMessageEvent(
+            username="Player1", message="I need help, teach me how to play!"
+        ),
+    ),
+    (
+        "[21:16:52] [Client thread/INFO]: [CHAT] §7Player1§7: gl",
+        ChatMessageEvent(username="Player1", message="gl"),
+    ),
+    (
+        "[Info: 2021-11-29 20:01:37.599526846: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [GAME] Skydeaf: gg",
+        ChatMessageEvent(username="Skydeaf", message="gg"),
+    ),
+    (
+        "[Info: 2021-11-29 20:18:14.961703702: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [SHOUT] [RED] [VIP+] Player1: some chat message",
+        ChatMessageEvent(username="Player1", message="some chat message"),
+    ),
+    # Shout
+    (
+        "[21:18:36] [Client thread/INFO]: [CHAT] [SHOUT] [RED] [MVP+] Player1: french people be like oui oui skibidi toilette",
+        ChatMessageEvent(
+            username="Player1", message="french people be like oui oui skibidi toilette"
+        ),
+    ),
+    (
+        "[21:18:43] [Client thread/INFO]: [CHAT] [SHOUT] [GREEN] Player2: no",
+        ChatMessageEvent(username="Player2", message="no"),
     ),
     (
         "[Info: 2021-11-29 23:13:35.658182633: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] You left the party.",
@@ -744,6 +783,35 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     (
         "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!nick='",
         WhisperCommandSetNickEvent(nick="nick", username=None),
+    ),
+    # Attempts to inject log messages
+    (
+        "[15:03:53] [Client thread/INFO]: [CHAT] [MVP+] MaliciousPlayer: (Client thread) Info Setting user: Player1",
+        ChatMessageEvent(
+            username="MaliciousPlayer",
+            message="(Client thread) Info Setting user: Player1",
+        ),
+    ),
+    (
+        "[15:03:53] [Client thread/INFO]: [CHAT] [MVP+] MaliciousPlayer: (Client thread) Info [CHAT] ONLINE: Player1",
+        ChatMessageEvent(
+            username="MaliciousPlayer",
+            message="(Client thread) Info [CHAT] ONLINE: Player1",
+        ),
+    ),
+    (
+        "[Info: 2021-11-29 22:30:40.455294561: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] MaliciousPlayer: [15:03:32] [ForkJoinPool.commonPool-worker-3/INFO]: [LC] Setting user: MaliciousPlayer",
+        ChatMessageEvent(
+            username="MaliciousPlayer",
+            message="[15:03:32] [ForkJoinPool.commonPool-worker-3/INFO]: [LC] Setting user: MaliciousPlayer",
+        ),
+    ),
+    (
+        "[Info: 2021-11-29 22:30:40.455294561: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] MaliciousPlayer: [15:03:53] [Client thread/INFO]: [CHAT] ONLINE: Player1",
+        ChatMessageEvent(
+            username="MaliciousPlayer",
+            message="[15:03:53] [Client thread/INFO]: [CHAT] ONLINE: Player1",
+        ),
     ),
 )
 
