@@ -89,6 +89,37 @@ var literalTests = []processPlayerDataTest{
 		hypixelStatusCode: 500,
 		error:             e.RetriableError,
 	},
+	// The "hypixel weird" cases are just made up to test status code handling
+	{
+		name:              "hypixel weird 100",
+		before:            []byte(`{"success": true, "player": null}`),
+		hypixelStatusCode: 100,
+		error:             e.APIServerError,
+	},
+	{
+		name:              "hypixel weird 204",
+		before:            []byte(`{"success": true, "player": null}`),
+		hypixelStatusCode: 204,
+		error:             e.APIServerError,
+	},
+	{
+		name:              "hypixel weird 301",
+		before:            []byte(`{"success": true, "player": null}`),
+		hypixelStatusCode: 301,
+		error:             e.APIServerError,
+	},
+	{
+		name:              "hypixel weird 418",
+		before:            []byte(`{"success": true, "player": null}`),
+		hypixelStatusCode: 418,
+		error:             e.APIServerError,
+	},
+	{
+		name:              "hypixel weird 508",
+		before:            []byte(`{"success": true, "player": null}`),
+		hypixelStatusCode: 508,
+		error:             e.APIServerError,
+	},
 }
 
 func parsePlayerDataFile(filePath string) (processPlayerDataTest, error) {

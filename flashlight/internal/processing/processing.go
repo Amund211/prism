@@ -11,8 +11,9 @@ import (
 )
 
 func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte) error {
-	// Non-error status codes - check for HTML
-	if statusCode <= 400 || statusCode == 404 {
+	// Only support 200 OK
+	if statusCode == 200 {
+		// Check for HTML response
 		if len(playerData) > 0 && playerData[0] == '<' {
 			return fmt.Errorf("%w: Hypixel API returned HTML %w", e.APIServerError, e.RetriableError)
 		}
