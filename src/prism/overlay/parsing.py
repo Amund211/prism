@@ -60,8 +60,12 @@ CHAT_PREFIXES = (
 
 
 def strip_until(line: str, *, until: str) -> str:
-    """Remove the first occurrence of `until` and all characters before"""
-    return line[line.index(until) + len(until) :].strip()
+    """
+    Remove the first occurrence of `until` and all characters before
+
+    NOTE: Also removes trailing whitespace
+    """
+    return line[line.index(until) + len(until) :].rstrip()
 
 
 def remove_colors(string: str) -> str:
@@ -267,7 +271,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         return BedwarsGameStartingSoonEvent(seconds=seconds)
 
     # NOTE: This also appears at the end of a game, but before endgameevent is sent
-    if message.startswith("Bed Wars"):
+    if message.strip().startswith("Bed Wars"):
         logger.debug("Parsing passed. Starting game")
         return StartBedwarsGameEvent()
 
@@ -325,7 +329,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         logger.debug(f"Parsing passed. {username} reconnected")
         return BedwarsReconnectEvent(username=username)
 
-    if message.startswith("1st Killer"):
+    if message.strip().startswith("1st Killer"):
         # Info [CHAT]                     1st Killer - [MVP+] Player1 - 7
         logger.debug("Parsing passed. Ending game")
         return EndBedwarsGameEvent()

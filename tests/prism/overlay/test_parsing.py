@@ -146,19 +146,20 @@ def test_get_highest_index(source: str, substrings: tuple[str], result: str) -> 
 @pytest.mark.parametrize(
     "line, until, suffix",
     (
-        ("prefix: output", "prefix:", "output"),
-        ("somejunk - prefix: output", "prefix:", "output"),
-        ("somejunk - prefix:", "prefix:", ""),
-        ("somejunk - prefix:   output      ", "prefix:", "output"),
+        ("prefix: output", "prefix: ", "output"),
+        ("somejunk - prefix: output", "prefix: ", "output"),
+        ("somejunk - prefix: ", "prefix: ", ""),
+        # Whitespace after stripped prefix is not removed, but trailing whitespace is
+        ("somejunk - prefix:   output      ", "prefix:", "   output"),
         ("somejunk - prefix:   output      ", "prefix", ":   output"),
         ("CHAT MESSAGE: my message", "CHAT MESSAGE: ", "my message"),
         ("INCOMING CHAT MESSAGE: my message", "CHAT MESSAGE: ", "my message"),
-        ("INCOMING CHAT MESSAGE: my message", "CHAT MESSAGE:", "my message"),
+        ("INCOMING CHAT MESSAGE: my message", "CHAT MESSAGE:", " my message"),
         ("INCOMING CHAT MESSAGE: my message", "CHAT ", "MESSAGE: my message"),
         # Test that players can't send chat messages that appear to come from the server
         (
             f"{CHAT_PREFIXES[0]} {CHAT_PREFIXES[1]} test",
-            CHAT_PREFIXES[0],
+            f"{CHAT_PREFIXES[0]} ",
             f"{CHAT_PREFIXES[1]} test",
         ),
         (
