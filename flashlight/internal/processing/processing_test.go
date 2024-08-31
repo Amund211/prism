@@ -127,7 +127,7 @@ func runProcessPlayerDataTest(t *testing.T, test processPlayerDataTest) {
 
 func TestProcessPlayerDataLiterals(t *testing.T) {
 	cloudfareTests := []processPlayerDataTest{}
-	for _, statusCode := range []int{502, 503, 504} {
+	for _, statusCode := range []int{502, 503, 504, 520, 521, 522, 523, 524, 525, 526, 527, 530} {
 		cloudfareTests = append(cloudfareTests, processPlayerDataTest{
 			name:              fmt.Sprintf("cloudflare %d", statusCode),
 			before:            []byte(fmt.Sprintf("error code: %d", statusCode)),

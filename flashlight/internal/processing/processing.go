@@ -26,7 +26,7 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 	switch statusCode {
 	case 429:
 		err = fmt.Errorf("%w: Hypixel ratelimit exceeded %w", e.RatelimitExceededError, e.RetriableError)
-	case 500, 502, 503, 504:
+	case 500, 502, 503, 504, 520, 521, 522, 523, 524, 525, 526, 527, 530:
 		err = fmt.Errorf("%w: Hypixel returned status code %d %w", e.APIServerError, statusCode, e.RetriableError)
 	}
 
