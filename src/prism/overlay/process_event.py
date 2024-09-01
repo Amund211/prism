@@ -29,7 +29,7 @@ def process_event(
         new_state = replace(
             state, own_username=event.username, in_queue=False, out_of_sync=False
         )
-        return new_state.clear_party().clear_lobby(), True
+        return new_state.clear_party().clear_lobby().set_out_of_sync(False), True
 
     if event.event_type is EventType.NEW_NICKNAME:
         # User got a new nickname
@@ -55,7 +55,7 @@ def process_event(
         # Reset the users preference for showing the overlay
         controller.wants_shown = None
 
-        return state.clear_lobby().leave_queue(), True
+        return state.clear_lobby().set_out_of_sync(False).leave_queue(), True
 
     if event.event_type is EventType.LOBBY_LIST:
         # Results from /who -> override lobby_players
@@ -223,7 +223,7 @@ def process_event(
         logger.info("Bedwars game ended")
         bedwars_game_ended(controller)
 
-        return state.clear_lobby(), True
+        return state.clear_lobby().set_out_of_sync(False), True
 
     if event.event_type is EventType.WHISPER_COMMAND_SET_NICK:
         # User set a nick with /w !nick=username
