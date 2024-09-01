@@ -223,10 +223,13 @@ process_event_test_cases_base: tuple[
     ),
     (
         "start bedwars game",
-        MockedController(wants_shown=False, state=create_state(in_queue=True)),
+        MockedController(
+            wants_shown=False, state=create_state(in_queue=True, now_func=lambda: 1234)
+        ),
         StartBedwarsGameEvent(),
         MockedController(
-            wants_shown=None, state=create_state(in_queue=False, out_of_sync=True)
+            wants_shown=None,
+            state=create_state(in_queue=False, out_of_sync=True, last_game_start=1234),
         ),
         False,  # No need to redraw the screen - only hide the overlay
     ),
@@ -718,6 +721,7 @@ FAST_FORWARD_STATE_CASES: Final = (
         # Ensure game starts in lucky blocks
         MockedController(
             state=create_state(
+                now_func=lambda: 1.5,
                 in_queue=True,
                 lobby_players={
                     "OwnUsername",
@@ -751,6 +755,7 @@ FAST_FORWARD_STATE_CASES: Final = (
         ),
         MockedController(
             state=create_state(
+                last_game_start=1.5,
                 in_queue=False,
                 out_of_sync=True,
                 lobby_players={
@@ -848,6 +853,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                     "Player11",
                     "Player12",
                 },
+                last_game_start=0,
                 in_queue=False,
                 out_of_sync=True,
             ),
@@ -951,6 +957,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                     "Player2",
                 },
                 alive_players={"Someone1", "Someone2", "Someone3", "Me"},
+                last_game_start=0,
                 out_of_sync=True,
                 in_queue=False,
             )

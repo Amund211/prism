@@ -55,7 +55,10 @@ def process_event(
         # Reset the users preference for showing the overlay
         controller.wants_shown = None
 
-        return state.clear_lobby().set_out_of_sync(False).leave_queue(), True
+        return (
+            state.clear_lobby().set_out_of_sync(False).leave_queue().leave_game(),
+            True,
+        )
 
     if event.event_type is EventType.LOBBY_LIST:
         # Results from /who -> override lobby_players
@@ -198,7 +201,7 @@ def process_event(
         # Reset the users preference for showing the overlay
         controller.wants_shown = None
 
-        return state.leave_queue().set_out_of_sync(True), False
+        return state.leave_queue().join_game().set_out_of_sync(True), False
 
     if event.event_type is EventType.BEDWARS_FINAL_KILL:
         # Bedwars final kill
@@ -223,7 +226,7 @@ def process_event(
         logger.info("Bedwars game ended")
         bedwars_game_ended(controller)
 
-        return state.clear_lobby().set_out_of_sync(False), True
+        return state.clear_lobby().set_out_of_sync(False).leave_game(), True
 
     if event.event_type is EventType.WHISPER_COMMAND_SET_NICK:
         # User set a nick with /w !nick=username

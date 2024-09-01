@@ -1,6 +1,7 @@
 import logging
-from collections.abc import Iterable
-from dataclasses import dataclass, replace
+import time
+from collections.abc import Callable, Iterable
+from dataclasses import dataclass, field, replace
 from typing import Self
 
 logger = logging.getLogger(__name__)
@@ -17,9 +18,11 @@ class OverlayState:
     party_members: frozenset[str] = frozenset()
     lobby_players: frozenset[str] = frozenset()
     alive_players: frozenset[str] = frozenset()
+    last_game_start: float | None = None
     out_of_sync: bool = False
     in_queue: bool = False
     own_username: str | None = None
+    now_func: Callable[[], float] = field(default=time.monotonic, compare=False)
 
     def join_queue(self) -> Self:
         """
@@ -54,6 +57,23 @@ class OverlayState:
         """
         logger.info("Leaving the queue")
         return replace(self, in_queue=False)
+
+    def join_game(self) -> Self:
+        """Join a bedwars game"""
+        logger.info("Joining game")
+        return replace(self, last_game_start=self.now_func())
+
+    def leave_game(self) -> Self:
+        """Leave a bedwars game"""
+        logger.info("Leaving game")
+        return replace(self, last_game_start=None)
+
+    @property
+    def time_in_game(self) -> float | None:
+        """Time in seconds since the last game started"""
+        if self.last_game_start is None:
+            return None
+        return self.now_func() - self.last_game_start
 
     def add_to_party(self, username: str) -> Self:
         """Add the given username to the party"""

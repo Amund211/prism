@@ -226,9 +226,11 @@ def create_state(
     party_members: Set[str] | None = None,
     lobby_players: Set[str] = frozenset(),
     alive_players: Set[str] | None = None,
+    last_game_start: float | None = None,
     out_of_sync: bool = False,
     in_queue: bool = False,
     own_username: str | None = OWN_USERNAME,
+    now_func: Callable[[], float] = lambda: 0,
 ) -> OverlayState:
     if party_members is None:
         party_members = (
@@ -246,9 +248,11 @@ def create_state(
             if alive_players is not None
             else frozenset(lobby_players)
         ),
+        last_game_start=last_game_start,
         out_of_sync=out_of_sync,
         in_queue=in_queue,
         own_username=own_username,
+        now_func=now_func,
     )
 
 
