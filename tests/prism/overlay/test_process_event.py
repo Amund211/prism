@@ -225,7 +225,9 @@ process_event_test_cases_base: tuple[
         "start bedwars game",
         MockedController(wants_shown=False, state=create_state(in_queue=True)),
         StartBedwarsGameEvent(),
-        MockedController(wants_shown=None, state=create_state(in_queue=False)),
+        MockedController(
+            wants_shown=None, state=create_state(in_queue=False, out_of_sync=True)
+        ),
         False,  # No need to redraw the screen - only hide the overlay
     ),
     (
@@ -750,6 +752,7 @@ FAST_FORWARD_STATE_CASES: Final = (
         MockedController(
             state=create_state(
                 in_queue=False,
+                out_of_sync=True,
                 lobby_players={
                     "OwnUsername",
                     "2",
@@ -846,6 +849,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                     "Player12",
                 },
                 in_queue=False,
+                out_of_sync=True,
             ),
         ),
     ),
@@ -947,7 +951,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                     "Player2",
                 },
                 alive_players={"Someone1", "Someone2", "Someone3", "Me"},
-                out_of_sync=False,
+                out_of_sync=True,
                 in_queue=False,
             )
         ),

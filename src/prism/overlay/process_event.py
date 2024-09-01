@@ -198,7 +198,7 @@ def process_event(
         # Reset the users preference for showing the overlay
         controller.wants_shown = None
 
-        return state.leave_queue(), False
+        return state.leave_queue().set_out_of_sync(True), False
 
     if event.event_type is EventType.BEDWARS_FINAL_KILL:
         # Bedwars final kill
