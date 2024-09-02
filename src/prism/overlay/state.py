@@ -144,10 +144,9 @@ class OverlayState:
     def mark_dead(self, username: str) -> Self:
         """Mark the given username as dead"""
         if username not in self.alive_players:
-            logger.warning(
-                f"Tried marking {username} as dead, but they were not alive!"
-            )
-            return self
+            # If the player was missing from lobby_players (due to missing /who)
+            # we now know that they are, in fact, in the lobby, so simply add them
+            return replace(self, lobby_players=self.lobby_players | {username})
 
         return replace(self, alive_players=self.alive_players - {username})
 

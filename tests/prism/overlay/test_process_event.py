@@ -349,9 +349,11 @@ process_event_test_cases_base: tuple[
         ),
         BedwarsDisconnectEvent(username="Player1"),
         MockedController(
-            state=create_state(lobby_players={"Player2"}, alive_players={"Player2"})
+            state=create_state(
+                lobby_players={"Player2", "Player1"}, alive_players={"Player2"}
+            )
         ),
-        True,  # TODO: Could be False
+        True,
     ),
     (
         "disconnect while not in lobby, but alive somehow",
@@ -495,8 +497,12 @@ process_event_test_cases_base: tuple[
             dead_player="Player1",
             raw_message="Player1 was killed by Player2. FINAL KILL!",
         ),
-        MockedController(state=create_state(lobby_players={"Player2"})),
-        True,  # TODO: Could be False
+        MockedController(
+            state=create_state(
+                lobby_players={"Player2", "Player1"}, alive_players={"Player2"}
+            )
+        ),
+        True,
     ),
     (
         "final kill on player not in lobby, but alive somehow",
