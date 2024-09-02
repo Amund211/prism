@@ -67,9 +67,18 @@ def process_event(
         )
 
         # Show the overlay when you type /who
-        # Set the preference if we are not in queue, otherwise just reset it, as
-        # showing the overlay in queue is the default
-        controller.wants_shown = True if not state.in_queue else None
+        # If the game has just started (the overlay is still shown, but automatically
+        # hiding soon), we let the overlay automatically hide itself
+        # If the game has not just started, we assume the user wants the overlay
+        # permanently shown, so we set the preference
+        # TODO: Setting for hide_timeout
+        time_in_game = state.time_in_game
+        if time_in_game is None:
+            # The game has not started
+            controller.wants_shown = True
+        elif 5 - time_in_game < 1:
+            # The overlay will be hidden in less than a second
+            controller.wants_shown = True
 
         # Doing /who while in game, we only get the alive players, so the lobby may
         # still be out of sync. We ignore that here to avoid getting stuck with an

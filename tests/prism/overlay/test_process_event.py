@@ -133,6 +133,7 @@ process_event_test_cases_base: tuple[
         True,
     ),
     (
+        # NOTE: Not a valid test case any more since /who no longer works in queue
         "lobby list in queue",
         MockedController(
             state=create_state(lobby_players={"PersonFromLastLobby"}, in_queue=True),
@@ -142,7 +143,47 @@ process_event_test_cases_base: tuple[
         MockedController(
             state=create_state(
                 lobby_players={OWN_USERNAME, "Player1", "Player2"}, in_queue=True
-            )
+            ),
+            wants_shown=True,
+        ),
+        True,
+    ),
+    (
+        "lobby list early in game",
+        MockedController(
+            state=create_state(
+                lobby_players={"PersonFromLastLobby"}, last_game_start=10
+            ),
+            wants_shown=None,
+        ),  # Old members cleared
+        LobbyListEvent([OWN_USERNAME, "Player1", "Player2"]),
+        MockedController(
+            state=create_state(
+                lobby_players={OWN_USERNAME, "Player1", "Player2"},
+                last_game_start=10,
+                now_func=lambda: 11,
+            ),
+            wants_shown=None,
+        ),
+        True,
+    ),
+    (
+        "lobby list late in game",
+        MockedController(
+            state=create_state(
+                lobby_players={"PersonFromLastLobby"},
+                last_game_start=10,
+                now_func=lambda: 30,
+            ),
+            wants_shown=None,
+        ),  # Old members cleared
+        LobbyListEvent([OWN_USERNAME, "Player1", "Player2"]),
+        MockedController(
+            state=create_state(
+                lobby_players={OWN_USERNAME, "Player1", "Player2"},
+                last_game_start=10,
+            ),
+            wants_shown=True,
         ),
         True,
     ),
