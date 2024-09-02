@@ -89,40 +89,16 @@ def process_event(
         return state.set_out_of_sync(False).set_lobby(event.usernames), True
 
     if event.event_type is EventType.LOBBY_JOIN:
+        # NOTE: Usernames from these events are anonymized by Hypixel
         if event.player_cap < 8:
             logger.debug("Gamemode has too few players to be bedwars. Skipping.")
             return state, False
-
-        new_state = state.join_queue().add_to_lobby(event.username)
-
-        if event.player_count != len(new_state.lobby_players):
-            # We are out of sync with the lobby.
-            # This happens when you first join a lobby, as the previous lobby is
-            # never cleared. It could also be due to a bug.
-            logger.debug("Player count out of sync.")
-            out_of_sync = True
-
-            if event.player_count < len(new_state.lobby_players):
-                # We know of too many players, some must actually not be in the lobby
-                logger.debug("Too many players in lobby. Clearing.")
-                new_state = new_state.clear_lobby().add_to_lobby(event.username)
-
-                # Clearing the lobby may have gotten us back in sync
-                out_of_sync = event.player_count != len(new_state.lobby_players)
-        else:
-            # We are in sync now
-            out_of_sync = False
-
-        logger.info(
-            f"{event.username} joined your lobby "
-            f"({event.player_count}/{event.player_cap})"
-        )
 
         if not state.in_queue:
             # This is a new queue - reset the users preference for showing the overlay
             controller.wants_shown = None
 
-        return new_state.set_out_of_sync(out_of_sync), True
+        return state.join_queue(), False
 
     if event.event_type is EventType.LOBBY_LEAVE:
         # Someone left the lobby -> Remove them from the lobby

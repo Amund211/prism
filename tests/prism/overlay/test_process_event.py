@@ -77,16 +77,16 @@ process_event_test_cases_base: tuple[
     (
         "lobby join solo",
         MockedController(wants_shown=True),
-        LobbyJoinEvent("Player1", player_count=1, player_cap=8),
-        MockedController(state=create_state(lobby_players={"Player1"}, in_queue=True)),
-        True,
+        LobbyJoinEvent("JooSGwsk", player_count=1, player_cap=8),
+        MockedController(state=create_state(in_queue=True)),
+        False,
     ),
     (
         "lobby join doubles/fours",
         MockedController(wants_shown=False),
-        LobbyJoinEvent("Player1", player_count=1, player_cap=16),
-        MockedController(state=create_state(lobby_players={"Player1"}, in_queue=True)),
-        True,
+        LobbyJoinEvent("VNkQSmXugzD", player_count=1, player_cap=16),
+        MockedController(state=create_state(in_queue=True)),
+        False,
     ),
     (
         "lobby leave",
@@ -524,62 +524,53 @@ process_event_test_cases_base: tuple[
         # Small player cap -> not bedwars
         "player join non bedwars",
         MockedController(),
-        LobbyJoinEvent("Player1", player_count=2, player_cap=2),
+        LobbyJoinEvent("lll7a9UqaBV4h", player_count=2, player_cap=2),
         MockedController(),
         False,
     ),
     (
-        # Player count too low -> out of sync
         "too few known players in lobby",
         MockedController(),
-        LobbyJoinEvent("Player1", player_count=5, player_cap=16),
-        MockedController(
-            state=create_state(
-                lobby_players={"Player1"}, out_of_sync=True, in_queue=True
-            )
-        ),
-        True,
+        LobbyJoinEvent("rkxyCRIUchq", player_count=5, player_cap=16),
+        MockedController(state=create_state(in_queue=True)),
+        False,
     ),
     (
-        # Player count too high -> clear lobby
         "too many known players in lobby",
         MockedController(
             state=create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=True)
         ),
-        LobbyJoinEvent("Player1", player_count=1, player_cap=16),
-        MockedController(state=create_state(lobby_players={"Player1"}, in_queue=True)),
-        True,
+        LobbyJoinEvent("RoUmY6hqDeAZo", player_count=1, player_cap=16),
+        MockedController(
+            state=create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=True)
+        ),
+        False,
     ),
     (
-        # Player count too high -> clear lobby, still out of sync
         "too many known players in lobby, too few remaining",
         MockedController(
             state=create_state(
                 lobby_players={"PlayerA", "PlayerB", "PlayerC"}, in_queue=True
             )
         ),
-        LobbyJoinEvent("Player1", player_count=3, player_cap=16),
+        LobbyJoinEvent("UgpXFdApWotX9", player_count=3, player_cap=16),
         MockedController(
             state=create_state(
-                lobby_players={"Player1"}, out_of_sync=True, in_queue=True
+                lobby_players={"PlayerA", "PlayerB", "PlayerC"}, in_queue=True
             )
         ),
-        True,
+        False,
     ),
     (
         "new queue with in-sync old lobby (weird)",
         MockedController(
             state=create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=False)
         ),
-        LobbyJoinEvent("Player1", player_count=8, player_cap=16),
+        LobbyJoinEvent("mY7r7eVmAP", player_count=8, player_cap=16),
         MockedController(
-            state=create_state(
-                lobby_players={"PlayerA", "PlayerB", "Player1"},
-                out_of_sync=True,
-                in_queue=True,
-            )
+            state=create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=True)
         ),
-        True,
+        False,
     ),
     (
         "new queue with lobby from previous game",
@@ -590,22 +581,20 @@ process_event_test_cases_base: tuple[
                 in_queue=False,
             )
         ),
-        LobbyJoinEvent("Player1", player_count=8, player_cap=16),
-        MockedController(
-            state=create_state(
-                lobby_players={"Player1"}, out_of_sync=True, in_queue=True
-            )
-        ),
-        True,
+        LobbyJoinEvent("oU9ivfVPB", player_count=8, player_cap=16),
+        MockedController(state=create_state(in_queue=True)),
+        False,
     ),
     (
         "new queue with old lobby and too many players",
         MockedController(
             state=create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=False)
         ),
-        LobbyJoinEvent("Player1", player_count=1, player_cap=16),
-        MockedController(state=create_state(lobby_players={"Player1"}, in_queue=True)),
-        True,
+        LobbyJoinEvent("uTreXGQE", player_count=1, player_cap=16),
+        MockedController(
+            state=create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=True)
+        ),
+        False,
     ),
     (
         "don't remove yourself from the party",
@@ -729,17 +718,17 @@ FAST_FORWARD_STATE_CASES: Final = (
         (
             f"{INFO}Setting user: Me",
             f"{CHAT}Party Moderators: Player1 ● [MVP+] Player2 ● ",
-            f"{CHAT}Player1 has joined (1/16)!",
-            f"{CHAT}Player2 has joined (2/16)!",
-            f"{CHAT}Me has joined (3/16)!",
-            f"{CHAT}Someone has joined (4/16)!",
+            f"{CHAT}XAjvE94RD7vM has joined (1/16)!",
+            f"{CHAT}MCvlmdrj has joined (2/16)!",
+            f"{CHAT}hhSWoTBsCEubb4 has joined (3/16)!",
+            f"{CHAT}DH0Jtkt0d has joined (4/16)!",
             f"{CHAT}[MVP+] Player1: hows ur day?",
         ),
         MockedController(
             state=create_state(
                 own_username="Me",
                 party_members={"Me", "Player1", "Player2"},
-                lobby_players={"Me", "Player1", "Player2", "Someone"},
+                lobby_players={"Player1"},
                 in_queue=True,
             )
         ),
@@ -790,7 +779,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             )
         ),
         (
-            "[16:12:39] [Client thread/INFO]: [CHAT] Player16 has joined (16/16)!",  # noqa: E501
+            "[16:12:39] [Client thread/INFO]: [CHAT] ObqbE8fS has joined (16/16)!",  # noqa: E501
             "[16:12:40] [Client thread/INFO]: [CHAT] ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
             "[16:12:40] [Client thread/INFO]: [CHAT]                        Bed Wars Lucky Blocks",  # noqa: E501
             "[16:12:40] [Client thread/INFO]: [CHAT] ",
@@ -821,7 +810,6 @@ FAST_FORWARD_STATE_CASES: Final = (
                     "13",
                     "14",
                     "15",
-                    "Player16",
                 },
             )
         ),
@@ -831,19 +819,19 @@ FAST_FORWARD_STATE_CASES: Final = (
         (
             f"{INFO}Setting user: Me",
             f"{CHAT}Party Moderators: Player1 ● [MVP+] Player2 ● ",
-            f"{CHAT}Player1 has joined (1/12)!",
-            f"{CHAT}Player2 has joined (2/12)!",
-            f"{CHAT}Me has joined (3/12)!",
-            f"{CHAT}Someone0 has joined (4/12)!",
-            f"{CHAT}Someone1 has joined (5/12)!",
-            f"{CHAT}Someone2 has joined (6/12)!",
-            f"{CHAT}Someone3 has joined (7/12)!",
-            f"{CHAT}Someone4 has joined (8/12)!",
+            f"{CHAT}IL7pCI has joined (1/12)!",
+            f"{CHAT}AjR1XhdMEqf06k has joined (2/12)!",
+            f"{CHAT}0KFTnl has joined (3/12)!",
+            f"{CHAT}WSmZb1XNM has joined (4/12)!",
+            f"{CHAT}NMSP1Ml0 has joined (5/12)!",
+            f"{CHAT}hGYMEkWjDb42I has joined (6/12)!",
+            f"{CHAT}F3S2iUH2mbuBxH has joined (7/12)!",
+            f"{CHAT}pOUkBao1Cl has joined (8/12)!",
             f"{CHAT}§7Someone1§7: any1 wanna party?",
-            f"{CHAT}Someone5 has joined (9/12)!",
-            f"{CHAT}Someone6 has joined (10/12)!",
-            f"{CHAT}Someone7 has joined (11/12)!",
-            f"{CHAT}Someone8 has joined (12/12)!",
+            f"{CHAT}GZlkCqQPa3UKH8 has joined (9/12)!",
+            f"{CHAT}GUidHWzaN91VGk has joined (10/12)!",
+            f"{CHAT}t2jcO9qz has joined (11/12)!",
+            f"{CHAT}ygIvIo has joined (12/12)!",
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
             f"{CHAT}                                  Bed Wars",
             f"{CHAT}",
@@ -911,7 +899,7 @@ FAST_FORWARD_STATE_CASES: Final = (
         (
             f"{INFO}Setting user: MYIGN",
             f"{CHAT}ONLINE: Player1, Player2, MYIGN, Player4",
-            f"{CHAT}Player4 has joined (4/12)!",
+            f"{CHAT}Of6neF has joined (4/12)!",
         ),
         MockedController(
             state=create_state(
@@ -932,13 +920,12 @@ FAST_FORWARD_STATE_CASES: Final = (
         (
             f"{INFO}Setting user: Me",
             f"{CHAT}ONLINE: Player1, Player2, Me, Player4",
-            f"{CHAT}UnknownPlayer has joined (4/12)!",
+            f"{CHAT}EIfDv has joined (4/12)!",
         ),
         MockedController(
             state=create_state(
                 own_username="Me",
-                lobby_players={"UnknownPlayer"},
-                out_of_sync=True,
+                lobby_players={"Player1", "Player2", "Me", "Player4"},
                 in_queue=True,
             )
         ),
@@ -948,19 +935,19 @@ FAST_FORWARD_STATE_CASES: Final = (
         (
             f"{INFO}Setting user: Me",
             f"{CHAT}Party Moderators: Player1 ● [MVP+] Player2 ● ",
-            f"{CHAT}Player1 has joined (1/12)!",
-            f"{CHAT}Player2 has joined (2/12)!",
-            f"{CHAT}Me has joined (3/12)!",
-            f"{CHAT}Someone0 has joined (4/12)!",
-            f"{CHAT}Someone1 has joined (5/12)!",
-            f"{CHAT}Someone2 has joined (6/12)!",
-            f"{CHAT}Someone3 has joined (7/12)!",
-            f"{CHAT}Someone4 has joined (8/12)!",
+            f"{CHAT}gWpaeB2pjU4pu5 has joined (1/12)!",
+            f"{CHAT}jzYOXLjWBDmds4 has joined (2/12)!",
+            f"{CHAT}1xNyc has joined (3/12)!",
+            f"{CHAT}TJYv has joined (4/12)!",
+            f"{CHAT}dDlSuj has joined (5/12)!",
+            f"{CHAT}GHsw8HrKf has joined (6/12)!",
+            f"{CHAT}6Ty0CVMl4llLl7 has joined (7/12)!",
+            f"{CHAT}4c9buS0oDKCo has joined (8/12)!",
             f"{CHAT}§7Someone1§7: any1 wanna party?",
-            f"{CHAT}Someone5 has joined (9/12)!",
-            f"{CHAT}Someone6 has joined (10/12)!",
-            f"{CHAT}Someone7 has joined (11/12)!",
-            f"{CHAT}Someone8 has joined (12/12)!",
+            f"{CHAT}Eq1NdJ6 has joined (9/12)!",
+            f"{CHAT}ULCU0ovR has joined (10/12)!",
+            f"{CHAT}t4R67KT has joined (11/12)!",
+            f"{CHAT}6m0uKCGuo0i has joined (12/12)!",
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
             f"{CHAT}                                  Bed Wars",
             f"{CHAT}",
@@ -999,11 +986,10 @@ FAST_FORWARD_STATE_CASES: Final = (
                     "Someone6",
                     "Someone7",
                     "Someone8",
-                    "Me",
                     "Player1",
                     "Player2",
                 },
-                alive_players={"Someone1", "Someone2", "Someone3", "Me"},
+                alive_players={"Someone1", "Someone2", "Someone3"},
                 last_game_start=0,
                 out_of_sync=True,
                 in_queue=False,
@@ -1073,10 +1059,10 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}                 3rd Killer - [MVP+] Someone3 - 3",
             f"{CHAT}",
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
-            f"{CHAT}OwnUsername has joined (1/12)!",
+            f"{CHAT}lV4Za9p has joined (1/12)!",
         ),
         MockedController(
-            state=create_state(lobby_players={"OwnUsername"}, in_queue=True),
+            state=create_state(in_queue=True),
             update_presence_event_set=True,
             wants_shown=None,
         ),
@@ -1167,10 +1153,18 @@ def test_fast_forward_state(
             MockedController(redraw_event_set=False),
         ),
         (
-            (f"{CHAT}Player1 has joined (1/16)!",),
+            (f"{CHAT}hhSWoTBsCEubb4 has joined (1/16)!",),
             MockedController(
-                state=create_state(lobby_players={"Player1"}, in_queue=True),
+                state=create_state(in_queue=True),
+                redraw_event_set=False,
+            ),
+        ),
+        (
+            (f"{CHAT}ONLINE: Player1, Player2",),
+            MockedController(
+                state=create_state(lobby_players={"Player1", "Player2"}),
                 redraw_event_set=True,
+                wants_shown=True,
             ),
         ),
     ),
