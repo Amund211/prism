@@ -1203,6 +1203,25 @@ FAST_FORWARD_STATE_CASES: Final = (
             ),
         ),
     ),
+    (
+        # Setting user clears state
+        MockedController(),
+        (
+            f"{CHAT}hhSWoTBsCEubb4 has joined (16/16)!",
+            f"{CHAT}[MVP+] Player2: hows ur day?",
+            f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+            f"{CHAT}                                  Bed Wars",
+            f"{CHAT}",
+            f"{CHAT}     Protect your bed and destroy the enemy beds.",
+            f"{CHAT}      Upgrade yourself and your team by collecting",
+            f"{CHAT}    Iron, Gold, Emerald and Diamond from generators",
+            f"{CHAT}                  to access powerful upgrades.",
+            f"{CHAT}",
+            f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+            f"{INFO}Setting user: MyUsername",
+        ),
+        MockedController(state=create_state(own_username="MyUsername")),
+    ),
 )
 
 
