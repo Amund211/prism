@@ -842,22 +842,19 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}",
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
             f"{CHAT}Someone1 was killed by Player1. FINAL KILL!",
+            f"{CHAT}ONLINE: Player100, Player200, Me, Player400, Player500, Player600, Player700, Player800, Player900, Player1000, Player1100, Player1200",  # noqa: E501
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
             f"{CHAT}                                  Bed Wars",
             f"{CHAT}",
             f"{CHAT}                          Pink - [MVP+] Me",
             f"{CHAT}",
             f"{CHAT}                   1st Killer - [MVP+] Me - 7",
-            f"{CHAT}               2nd Killer - [MVP+] Player2 - 3",
-            f"{CHAT}                 3rd Killer - [MVP+] Someone3 - 3",
+            f"{CHAT}               2nd Killer - [MVP+] Player200 - 3",
+            f"{CHAT}                 3rd Killer - [MVP+] Someone1 - 3",
             f"{CHAT}",
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
             f"{CHAT}+37 coins! (Win)",
             f"{CHAT}+50 Bed Wars Experience (Position Bonus)",
-            # We join late and the overlay does not think we are in a queue when
-            # we do /who. wants_shown is set to True here, so it is important that we
-            # reset it to None when the game starts.
-            f"{CHAT}ONLINE: Player1, Player2, Me, Player4, Player5, Player6, Player7, Player8, Player9, Player10, Player11, Player12",  # noqa: E501
             f"{CHAT}The game starts in 1 seconds!",
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
             f"{CHAT}                                  Bed Wars",
@@ -868,6 +865,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}                  to access powerful upgrades.",
             f"{CHAT}",
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+            f"{CHAT}ONLINE: Player1, Player2, Me, Player4, Player5, Player6, Player7, Player8, Player9, Player10, Player11, Player12",  # noqa: E501
         ),
         MockedController(
             update_presence_event_set=True,
@@ -890,7 +888,6 @@ FAST_FORWARD_STATE_CASES: Final = (
                 },
                 last_game_start=0,
                 in_queue=False,
-                out_of_sync=True,
             ),
         ),
     ),
