@@ -36,14 +36,12 @@ class StatsOverlay:  # pragma: nocover
         ],
         update_available_event: threading.Event,
         poll_interval: int,
-        hide_pause_ms: int = 5000,
     ):
         """Set up content in an OverlayWindow"""
         self.controller = controller
         self.poll_interval = poll_interval
         self.get_new_data = get_new_data
         self.update_available_event = update_available_event
-        self.hide_pause_ms = hide_pause_ms
 
         # Set should_show so the window remains in the desired state based on
         # start_hidden until a falling/rising edge in show from get_new_data
@@ -218,7 +216,9 @@ class StatsOverlay:  # pragma: nocover
                 self.should_show = show
                 if not self.tab_pressed:
                     # Only schedule hide if the user is not holding tab
-                    self.window.schedule_hide(timeout_ms=self.hide_pause_ms)
+                    self.window.schedule_hide(
+                        timeout_ms=self.controller.settings.autohide_timeout * 1000
+                    )
 
         # Only update the window if it's shown
         if self.window.shown and self.current_page == "main":

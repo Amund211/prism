@@ -81,7 +81,7 @@ def process_event(
         if time_in_game is None:
             # The game has not started
             controller.wants_shown = True
-        elif 5 - time_in_game < 1:
+        elif controller.settings.autohide_timeout - time_in_game < 1:
             # The overlay will be hidden in less than a second
             controller.wants_shown = True
 
