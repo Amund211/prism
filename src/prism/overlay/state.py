@@ -69,6 +69,11 @@ class OverlayState:
         return replace(self, last_game_start=None)
 
     @property
+    def in_game(self) -> float | None:
+        """Return True if the player is currently in a game"""
+        return self.last_game_start is not None
+
+    @property
     def time_in_game(self) -> float | None:
         """Time in seconds since the last game started"""
         if self.last_game_start is None:

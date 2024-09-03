@@ -224,7 +224,7 @@ def process_event(
         return state, False
 
     if event.event_type is EventType.CHAT_MESSAGE:
-        if state.in_queue:
+        if state.in_queue or state.in_game:
             # The player has revealed themselves in the pre-game lobby/queue
             # Add them to the lobby
             return state.add_to_lobby(event.username), True
