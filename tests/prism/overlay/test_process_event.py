@@ -1127,6 +1127,82 @@ FAST_FORWARD_STATE_CASES: Final = (
         ),
         MockedController(state=create_state(in_queue=False)),
     ),
+    (
+        # Regular queue, start
+        MockedController(state=create_state(now_func=lambda: 3.5)),
+        (
+            f"{CHAT}hhSWoTBsCEubb4 has joined (16/16)!",
+            f"{CHAT}[MVP+] Player1: hows ur day?",
+            f"{CHAT}[MVP+] Leaving: I'm going to leave",
+            f"{CHAT}MCvlmdrj has quit!",
+            f"{CHAT}The game starts in 1 second!",
+            f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+            f"{CHAT}                                  Bed Wars",
+            f"{CHAT}",
+            f"{CHAT}     Protect your bed and destroy the enemy beds.",
+            f"{CHAT}      Upgrade yourself and your team by collecting",
+            f"{CHAT}    Iron, Gold, Emerald and Diamond from generators",
+            f"{CHAT}                  to access powerful upgrades.",
+            f"{CHAT}",
+            f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+            f"{CHAT}[SHOUT] [RED] [VIP+] Player2: some chat message",
+        ),
+        MockedController(
+            state=create_state(
+                lobby_players={
+                    "Player1",
+                    "Player2",
+                    "Leaving",  # Still left in the lobby until user does /who
+                },
+                out_of_sync=True,
+                last_game_start=3.5,
+            ),
+        ),
+    ),
+    (
+        # Regular queue, start and /who
+        MockedController(state=create_state(now_func=lambda: 1.5)),
+        (
+            f"{CHAT}hhSWoTBsCEubb4 has joined (16/16)!",
+            f"{CHAT}[MVP+] Player2: hows ur day?",
+            f"{CHAT}[MVP+] Leaving: I'm going to leave",
+            f"{CHAT}MCvlmdrj has quit!",
+            f"{CHAT}The game starts in 1 second!",
+            f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+            f"{CHAT}                                  Bed Wars",
+            f"{CHAT}",
+            f"{CHAT}     Protect your bed and destroy the enemy beds.",
+            f"{CHAT}      Upgrade yourself and your team by collecting",
+            f"{CHAT}    Iron, Gold, Emerald and Diamond from generators",
+            f"{CHAT}                  to access powerful upgrades.",
+            f"{CHAT}",
+            f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+            f"{CHAT}ONLINE: Player1, Player2, Player3, Player4, Player5, Player6, Player7, Player8, Player9, Player10, Player11, Player12, Player13, Player14, Player15",  # noqa: E501
+            f"{CHAT}[SHOUT] [RED] [VIP+] Player2: some chat message",
+        ),
+        MockedController(
+            state=create_state(
+                lobby_players={
+                    "Player1",
+                    "Player2",
+                    "Player3",
+                    "Player4",
+                    "Player5",
+                    "Player6",
+                    "Player7",
+                    "Player8",
+                    "Player9",
+                    "Player10",
+                    "Player11",
+                    "Player12",
+                    "Player13",
+                    "Player14",
+                    "Player15",
+                },
+                last_game_start=1.5,
+            ),
+        ),
+    ),
 )
 
 
