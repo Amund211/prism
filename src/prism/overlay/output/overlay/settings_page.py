@@ -566,12 +566,59 @@ class DisplaySection:  # pragma: nocover
             hide_dead_players_label, self.hide_dead_players_toggle.button
         )
 
-    def set(self, sort_order: ColumnName, hide_dead_players: bool) -> None:
+        autohide_timeout_label = tk.Label(
+            self.frame,
+            text="Autohide timeout (s): ",
+            font=("Consolas", 12),
+            foreground="white",
+            background="black",
+        )
+        autohide_timeout_label.grid(row=6, column=0, sticky=tk.E)
+
+        self.autohide_timeout_variable = tk.IntVar(value=8)
+        autohide_timeout_scale = tk.Scale(
+            self.frame,
+            from_=1,
+            to=20,
+            orient=tk.HORIZONTAL,
+            length=200,
+            foreground="white",
+            background="black",
+            variable=self.autohide_timeout_variable,
+        )
+        autohide_timeout_scale.grid(row=6, column=1)
+
+        reset_autohide_timeout_button = tk.Button(
+            self.frame,
+            text="Reset",
+            font=("Consolas", 14),
+            foreground="white",
+            background="black",
+            command=functools.partial(self.autohide_timeout_variable.set, 8),
+            relief="flat",
+            cursor="hand2",
+        )
+        reset_autohide_timeout_button.grid(row=6, column=2)
+
+        parent.make_widgets_scrollable(
+            autohide_timeout_label,
+            autohide_timeout_scale,
+            reset_autohide_timeout_button,
+        )
+
+    def clamp_autohide_timeout(self, autohide_timeout: int) -> int:
+        """Clamp the autohide_timeout to a valid range"""
+        return min(20, max(1, autohide_timeout))
+
+    def set(
+        self, sort_order: ColumnName, hide_dead_players: bool, autohide_timeout: int
+    ) -> None:
         """Set the state of this section"""
         self.sort_order_variable.set(sort_order)
         self.hide_dead_players_toggle.set(hide_dead_players)
+        self.autohide_timeout_variable.set(autohide_timeout)
 
-    def get(self, fallback_sort_order: ColumnName) -> tuple[ColumnName, bool]:
+    def get(self, fallback_sort_order: ColumnName) -> tuple[ColumnName, bool, int]:
         """Get the state of this section"""
         sort_order: str | ColumnName = self.sort_order_variable.get()
 
@@ -582,7 +629,11 @@ class DisplaySection:  # pragma: nocover
             )
             sort_order = fallback_sort_order
 
-        return sort_order, self.hide_dead_players_toggle.enabled
+        return (
+            sort_order,
+            self.hide_dead_players_toggle.enabled,
+            self.clamp_autohide_timeout(self.autohide_timeout_variable.get()),
+        )
 
 
 class ColumnSection:  # pragma: nocover
@@ -1094,7 +1145,11 @@ class SettingsPage:  # pragma: nocover
                 use_included_certs=settings.use_included_certs,
             )
             self.performance_section.set(stats_thread_count=settings.stats_thread_count)
-            self.display_section.set(settings.sort_order, settings.hide_dead_players)
+            self.display_section.set(
+                settings.sort_order,
+                settings.hide_dead_players,
+                settings.autohide_timeout,
+            )
             self.column_section.set(settings.column_order)
 
             self.discord_section.set(
@@ -1137,7 +1192,7 @@ class SettingsPage:  # pragma: nocover
 
         stats_thread_count = self.performance_section.get()
 
-        sort_order, hide_dead_players = self.display_section.get(
+        sort_order, hide_dead_players, autohide_timeout = self.display_section.get(
             fallback_sort_order=self.controller.settings.sort_order
         )
         column_order = self.column_section.get()
@@ -1168,6 +1223,7 @@ class SettingsPage:  # pragma: nocover
             known_nicks=known_nicks,
             autodenick_teammates=autodenick_teammates,
             autoselect_logfile=autoselect_logfile,
+            autohide_timeout=autohide_timeout,
             show_on_tab=show_on_tab,
             show_on_tab_keybind=show_on_tab_keybind.to_dict(),
             check_for_updates=check_for_updates,

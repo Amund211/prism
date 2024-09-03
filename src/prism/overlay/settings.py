@@ -52,6 +52,7 @@ class SettingsDict(TypedDict):
     known_nicks: dict[str, NickValue]
     autodenick_teammates: bool
     autoselect_logfile: bool
+    autohide_timeout: int
     show_on_tab: bool
     show_on_tab_keybind: KeyDict
     check_for_updates: bool
@@ -82,6 +83,7 @@ class Settings:
     known_nicks: dict[str, NickValue]
     autodenick_teammates: bool
     autoselect_logfile: bool
+    autohide_timeout: int
     show_on_tab: bool
     show_on_tab_keybind: Key
     check_for_updates: bool
@@ -125,6 +127,7 @@ class Settings:
             known_nicks=source["known_nicks"],
             autodenick_teammates=source["autodenick_teammates"],
             autoselect_logfile=source["autoselect_logfile"],
+            autohide_timeout=source["autohide_timeout"],
             show_on_tab=source["show_on_tab"],
             show_on_tab_keybind=construct_key(source["show_on_tab_keybind"]),
             check_for_updates=source["check_for_updates"],
@@ -154,6 +157,7 @@ class Settings:
             "known_nicks": self.known_nicks,
             "autodenick_teammates": self.autodenick_teammates,
             "autoselect_logfile": self.autoselect_logfile,
+            "autohide_timeout": self.autohide_timeout,
             "show_on_tab": self.show_on_tab,
             "show_on_tab_keybind": self.show_on_tab_keybind.to_dict(),
             "check_for_updates": self.check_for_updates,
@@ -184,6 +188,7 @@ class Settings:
         self.known_nicks = new_settings["known_nicks"]
         self.autodenick_teammates = new_settings["autodenick_teammates"]
         self.autoselect_logfile = new_settings["autoselect_logfile"]
+        self.autohide_timeout = new_settings["autohide_timeout"]
         self.show_on_tab = new_settings["show_on_tab"]
         self.show_on_tab_keybind = construct_key(new_settings["show_on_tab_keybind"])
         self.check_for_updates = new_settings["check_for_updates"]
@@ -328,6 +333,11 @@ def fill_missing_settings(
         incomplete_settings, "autoselect_logfile", settings_updated, default=True
     )
 
+    autohide_timeout = incomplete_settings.get("autohide_timeout", None)
+    if not isinstance(autohide_timeout, int) or not 1 <= autohide_timeout <= 20:
+        settings_updated = True
+        autohide_timeout = 8
+
     show_on_tab, settings_updated = get_boolean_setting(
         incomplete_settings, "show_on_tab", settings_updated, default=True
     )
@@ -411,6 +421,7 @@ def fill_missing_settings(
         "known_nicks": known_nicks,
         "autodenick_teammates": autodenick_teammates,
         "autoselect_logfile": autoselect_logfile,
+        "autohide_timeout": autohide_timeout,
         "show_on_tab": show_on_tab,
         "show_on_tab_keybind": show_on_tab_keybind,
         "check_for_updates": check_for_updates,

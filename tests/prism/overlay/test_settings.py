@@ -50,6 +50,7 @@ def make_settings_dict(
     known_nicks: dict[str, NickValue] | None = None,
     autodenick_teammates: bool | None = None,
     autoselect_logfile: bool | None = None,
+    autohide_timeout: int | None = None,
     show_on_tab: bool | None = None,
     show_on_tab_keybind: KeyDict | None = None,
     check_for_updates: bool | None = None,
@@ -82,6 +83,7 @@ def make_settings_dict(
         "known_nicks": value_or_default(known_nicks, default={}),
         "autodenick_teammates": value_or_default(autodenick_teammates, default=True),
         "autoselect_logfile": value_or_default(autoselect_logfile, default=True),
+        "autohide_timeout": value_or_default(autohide_timeout, default=8),
         "show_on_tab": value_or_default(show_on_tab, default=True),
         # mypy thinks this is {"name": str}, when it really is just KeyDict
         "show_on_tab_keybind": value_or_default(  # type: ignore [typeddict-item]
@@ -124,6 +126,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             autodenick_teammates=True,
             autoselect_logfile=True,
+            autohide_timeout=8,
             show_on_tab=True,
             show_on_tab_keybind=AlphanumericKey(name="a", char="a"),
             check_for_updates=True,
@@ -151,6 +154,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             "autodenick_teammates": True,
             "autoselect_logfile": True,
+            "autohide_timeout": 8,
             "show_on_tab": True,
             "show_on_tab_keybind": AlphanumericKeyDict(
                 name="a", char="a", key_type="alphanumeric"
@@ -181,6 +185,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             known_nicks={},
             autodenick_teammates=False,
             autoselect_logfile=False,
+            autohide_timeout=19,
             show_on_tab=False,
             show_on_tab_keybind=SpecialKey(name="tab", vk=None),
             check_for_updates=False,
@@ -208,6 +213,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "known_nicks": {},
             "autodenick_teammates": False,
             "autoselect_logfile": False,
+            "autohide_timeout": 19,
             "show_on_tab": False,
             "show_on_tab_keybind": SpecialKeyDict(
                 name="tab", vk=None, key_type="special"
@@ -369,6 +375,7 @@ fill_settings_test_cases: tuple[
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             "autodenick_teammates": False,
             "autoselect_logfile": False,
+            "autohide_timeout": 3,
             "show_on_tab": False,
             "show_on_tab_keybind": SpecialKeyDict(
                 name="somekey", vk=123456, key_type="special"
@@ -396,6 +403,7 @@ fill_settings_test_cases: tuple[
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             autodenick_teammates=False,
             autoselect_logfile=False,
+            autohide_timeout=3,
             show_on_tab=False,
             show_on_tab_keybind=SpecialKeyDict(
                 name="somekey", vk=123456, key_type="special"
@@ -688,6 +696,23 @@ fill_settings_test_cases: tuple[
         {
             "use_included_certs": 1,
         },
+        make_settings_dict(),
+        True,
+    ),
+    (
+        {"autohide_timeout": 13},
+        make_settings_dict(autohide_timeout=13),
+        True,
+    ),
+    (
+        # Invalid data for autohide_timeout
+        {"autohide_timeout": "yes"},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # Invalid data for autohide_timeout
+        {"autohide_timeout": 123456789},
         make_settings_dict(),
         True,
     ),
