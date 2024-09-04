@@ -273,6 +273,7 @@ def make_settings(
     use_antisniper_api: bool = False,
     user_id: str = "make-settings-default-user-id",
     known_nicks: dict[str, NickValue] | None = None,
+    hide_dead_players: bool | None = None,
     path: Path | PurePath | None = None,
 ) -> Settings:
     return Settings.from_dict(
@@ -282,6 +283,7 @@ def make_settings(
                 "antisniper_api_key": antisniper_api_key,
                 "use_antisniper_api": use_antisniper_api,
                 "known_nicks": known_nicks or {},
+                "hide_dead_players": hide_dead_players,
             },
             2,
         )[0],
