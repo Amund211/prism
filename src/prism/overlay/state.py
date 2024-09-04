@@ -115,26 +115,6 @@ class OverlayState:
             alive_players=self.alive_players | {username},
         )
 
-    def remove_from_lobby(self, username: str) -> Self:
-        """Remove the given username from the lobby"""
-        if username not in self.lobby_players:
-            new_lobby = self.lobby_players
-            logger.warning(
-                f"Tried removing {username} from the lobby, but they were not in it!"
-            )
-        else:
-            new_lobby = self.lobby_players - {username}
-
-        if username not in self.alive_players:
-            new_alive = self.alive_players
-            logger.warning(
-                f"Tried removing {username} from the lobby, but they were not alive!"
-            )
-        else:
-            new_alive = self.alive_players - {username}
-
-        return replace(self, lobby_players=new_lobby, alive_players=new_alive)
-
     def set_lobby(self, new_lobby: Iterable[str]) -> Self:
         """Set the lobby to be the given lobby"""
         new_lobby_set = frozenset(new_lobby)

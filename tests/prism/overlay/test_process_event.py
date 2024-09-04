@@ -90,18 +90,18 @@ process_event_test_cases_base: tuple[
     ),
     (
         "lobby leave",
-        MockedController(state=create_state(lobby_players={"Leaving"}, in_queue=True)),
-        LobbyLeaveEvent("Leaving"),
-        MockedController(state=create_state(in_queue=True)),
+        MockedController(state=create_state(lobby_players={"Player1"}, in_queue=True)),
+        LobbyLeaveEvent("finTmD6Lq"),
+        MockedController(state=create_state(lobby_players={"Player1"}, in_queue=True)),
         True,
     ),
     (
         "lobby leave out of queue",
         MockedController(
-            wants_shown=True, state=create_state(lobby_players={"Leaving"})
+            wants_shown=True, state=create_state(lobby_players={"Player1"})
         ),
-        LobbyLeaveEvent("Leaving"),
-        MockedController(state=create_state(in_queue=True)),
+        LobbyLeaveEvent("idJfqPlA5T"),
+        MockedController(state=create_state(lobby_players={"Player1"}, in_queue=True)),
         True,
     ),
     (

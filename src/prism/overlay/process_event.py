@@ -113,7 +113,7 @@ def process_event(
             # This is a new queue - reset the users preference for showing the overlay
             controller.wants_shown = None
 
-        return state.join_queue().remove_from_lobby(event.username), True
+        return state.join_queue(), True
 
     if event.event_type is EventType.PARTY_DETACH:
         # Leaving the party -> remove all but yourself from the party
