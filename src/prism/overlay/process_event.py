@@ -99,20 +99,24 @@ def process_event(
             logger.debug("Gamemode has too few players to be bedwars. Skipping.")
             return state, False
 
-        if not state.in_queue:
-            # This is a new queue - reset the users preference for showing the overlay
-            controller.wants_shown = None
+        if state.in_queue:
+            return state, False
 
+        # This is a new queue - reset the users preference for showing the overlay
+        controller.wants_shown = None
+        # join_queue may change the lobby -> redraw
         return state.join_queue(), False
 
     if event.event_type is EventType.LOBBY_LEAVE:
         # Someone left the lobby -> Remove them from the lobby
         logger.info(f"{event.username} left your lobby")
 
-        if not state.in_queue:
-            # This is a new queue - reset the users preference for showing the overlay
-            controller.wants_shown = None
+        if state.in_queue:
+            return state, True
 
+        # This is a new queue - reset the users preference for showing the overlay
+        controller.wants_shown = None
+        # join_queue may change the lobby -> redraw
         return state.join_queue(), True
 
     if event.event_type is EventType.PARTY_DETACH:

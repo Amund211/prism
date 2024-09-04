@@ -33,3 +33,9 @@ def test_clear_party(before: OverlayState, after: OverlayState) -> None:
 )
 def test_time_in_game(state: OverlayState, time_in_game: float | None) -> None:
     assert state.time_in_game == time_in_game
+
+
+def test_join_queue_in_queue() -> None:
+    # We avoid this case by checking in_queue before calling join_queue
+    state = create_state(in_queue=True)
+    assert state.join_queue() is state
