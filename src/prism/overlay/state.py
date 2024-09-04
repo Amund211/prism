@@ -51,6 +51,11 @@ class OverlayState:
                 )
             new_state = self
 
+        # Assume all your current party members are in the lobby
+        logger.info(f"Adding {self.party_members=} to the lobby")
+        for party_member in self.party_members:
+            new_state = new_state.add_to_lobby(party_member)
+
         return replace(new_state, in_queue=True)
 
     def leave_queue(self) -> Self:

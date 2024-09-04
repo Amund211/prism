@@ -78,15 +78,19 @@ process_event_test_cases_base: tuple[
         "lobby join solo",
         MockedController(wants_shown=True),
         LobbyJoinEvent("JooSGwsk", player_count=1, player_cap=8),
-        MockedController(state=create_state(in_queue=True)),
-        True,  # TODO: Could be False because lobby didn't change
+        MockedController(
+            state=create_state(in_queue=True, lobby_players={OWN_USERNAME})
+        ),
+        True,
     ),
     (
         "lobby join doubles/fours",
         MockedController(wants_shown=False),
         LobbyJoinEvent("VNkQSmXugzD", player_count=1, player_cap=16),
-        MockedController(state=create_state(in_queue=True)),
-        True,  # TODO: Could be False because lobby didn't change
+        MockedController(
+            state=create_state(in_queue=True, lobby_players={OWN_USERNAME})
+        ),
+        True,
     ),
     (
         "lobby leave",
@@ -101,8 +105,11 @@ process_event_test_cases_base: tuple[
             wants_shown=True, state=create_state(lobby_players={"Player1"})
         ),
         LobbyLeaveEvent("idJfqPlA5T"),
-        MockedController(state=create_state(lobby_players={"Player1"}, in_queue=True)),
-        True,  # TODO: Could be False because lobby didn't change
+        # TODO: Should the existing player get removed?
+        MockedController(
+            state=create_state(lobby_players={"Player1", OWN_USERNAME}, in_queue=True)
+        ),
+        True,
     ),
     (
         "chat message in queue",
@@ -531,8 +538,10 @@ process_event_test_cases_base: tuple[
         "too few known players in lobby",
         MockedController(),
         LobbyJoinEvent("rkxyCRIUchq", player_count=5, player_cap=16),
-        MockedController(state=create_state(in_queue=True)),
-        True,  # TODO: Could be False because lobby didn't change
+        MockedController(
+            state=create_state(in_queue=True, lobby_players={OWN_USERNAME})
+        ),
+        True,
     ),
     (
         "too many known players in lobby",
@@ -567,9 +576,11 @@ process_event_test_cases_base: tuple[
         ),
         LobbyJoinEvent("mY7r7eVmAP", player_count=8, player_cap=16),
         MockedController(
-            state=create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=True)
+            state=create_state(
+                lobby_players={"PlayerA", "PlayerB", OWN_USERNAME}, in_queue=True
+            )
         ),
-        True,  # TODO: Could be False because lobby didn't change
+        True,
     ),
     (
         "new queue with lobby from previous game",
@@ -581,7 +592,9 @@ process_event_test_cases_base: tuple[
             )
         ),
         LobbyJoinEvent("oU9ivfVPB", player_count=8, player_cap=16),
-        MockedController(state=create_state(in_queue=True)),
+        MockedController(
+            state=create_state(in_queue=True, lobby_players={OWN_USERNAME})
+        ),
         True,
     ),
     (
@@ -591,9 +604,11 @@ process_event_test_cases_base: tuple[
         ),
         LobbyJoinEvent("uTreXGQE", player_count=1, player_cap=16),
         MockedController(
-            state=create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=True)
+            state=create_state(
+                lobby_players={"PlayerA", "PlayerB", OWN_USERNAME}, in_queue=True
+            )
         ),
-        True,  # TODO: Could be False because lobby didn't change
+        True,
     ),
     (
         "don't remove yourself from the party",
@@ -727,7 +742,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             state=create_state(
                 own_username="Me",
                 party_members={"Me", "Player1", "Player2"},
-                lobby_players={"Player1"},
+                lobby_players={"Me", "Player1", "Player2", "Player1"},
                 in_queue=True,
             )
         ),
@@ -930,7 +945,7 @@ FAST_FORWARD_STATE_CASES: Final = (
         MockedController(wants_shown=True),
         (
             f"{INFO}Setting user: Me",
-            f"{CHAT}Party Moderators: Player1 ● [MVP+] Player2 ● ",
+            f"{CHAT}Party Moderators: Teammate1 ● [MVP+] Teammate2 ● ",
             f"{CHAT}gWpaeB2pjU4pu5 has joined (1/12)!",
             f"{CHAT}jzYOXLjWBDmds4 has joined (2/12)!",
             f"{CHAT}1xNyc has joined (3/12)!",
@@ -966,13 +981,16 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}Someone3 reconnected.",
             f"{CHAT}Someone8 disconnected.",
             f"{CHAT}Player1 disconnected.",
-            f"{CHAT}Player2 disconnected.",
+            f"{CHAT}Teammate2 disconnected.",
         ),
         MockedController(
             state=create_state(
                 own_username="Me",
-                party_members={"Player1", "Player2", "Me"},
+                party_members={"Teammate1", "Teammate2", "Me"},
                 lobby_players={
+                    "Me",
+                    "Teammate1",
+                    "Teammate2",
                     "Someone0",
                     "Someone1",
                     "Someone2",
@@ -983,9 +1001,8 @@ FAST_FORWARD_STATE_CASES: Final = (
                     "Someone7",
                     "Someone8",
                     "Player1",
-                    "Player2",
                 },
-                alive_players={"Someone1", "Someone2", "Someone3"},
+                alive_players={"Me", "Teammate1", "Someone1", "Someone2", "Someone3"},
                 last_game_start=0,
                 out_of_sync=True,
                 in_queue=False,
@@ -1058,7 +1075,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}lV4Za9p has joined (1/12)!",
         ),
         MockedController(
-            state=create_state(in_queue=True),
+            state=create_state(in_queue=True, lobby_players={OWN_USERNAME}),
             update_presence_event_set=True,
             wants_shown=None,
         ),
@@ -1146,6 +1163,7 @@ FAST_FORWARD_STATE_CASES: Final = (
         MockedController(
             state=create_state(
                 lobby_players={
+                    OWN_USERNAME,
                     "Player1",
                     "Player2",
                     "Leaving",  # Still left in the lobby until user does /who
@@ -1281,7 +1299,7 @@ def test_fast_forward_state(
         (
             (f"{CHAT}hhSWoTBsCEubb4 has joined (1/16)!",),
             MockedController(
-                state=create_state(in_queue=True),
+                state=create_state(in_queue=True, lobby_players={OWN_USERNAME}),
                 redraw_event_set=True,
             ),
         ),
