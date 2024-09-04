@@ -113,7 +113,8 @@ def process_event(
         logger.info(f"{event.username} left your lobby")
 
         if state.in_queue:
-            return state, True
+            # Performance optimization to not have to redraw
+            return state, False
 
         # This is a new queue - reset the users preference for showing the overlay
         controller.wants_shown = None

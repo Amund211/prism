@@ -93,7 +93,7 @@ process_event_test_cases_base: tuple[
         MockedController(state=create_state(lobby_players={"Player1"}, in_queue=True)),
         LobbyLeaveEvent("finTmD6Lq"),
         MockedController(state=create_state(lobby_players={"Player1"}, in_queue=True)),
-        True,
+        False,
     ),
     (
         "lobby leave out of queue",
@@ -102,7 +102,7 @@ process_event_test_cases_base: tuple[
         ),
         LobbyLeaveEvent("idJfqPlA5T"),
         MockedController(state=create_state(lobby_players={"Player1"}, in_queue=True)),
-        True,
+        True,  # TODO: Could be False because lobby didn't change
     ),
     (
         "chat message in queue",
@@ -487,8 +487,7 @@ process_event_test_cases_base: tuple[
         MockedController(
             state=create_state(in_queue=True, lobby_players={"Player1", "Player2"})
         ),
-        # TODO: False,
-        True,
+        False,
     ),
     (
         "final kill on player not in lobby",
