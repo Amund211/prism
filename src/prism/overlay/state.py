@@ -28,7 +28,8 @@ class OverlayState:
         """
         Join a queue by setting in_queue = True
 
-        NOTE: Can modify the lobby, so call this before making any changes
+        NOTE: Can modify the lobby, so call this before making any changes.
+              Callers must also return redraw=True for this reason.
         """
         if self.in_queue:
             return self

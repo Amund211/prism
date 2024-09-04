@@ -100,12 +100,13 @@ def process_event(
             return state, False
 
         if state.in_queue:
+            # Performance optimization to not have to redraw
             return state, False
 
         # This is a new queue - reset the users preference for showing the overlay
         controller.wants_shown = None
         # join_queue may change the lobby -> redraw
-        return state.join_queue(), False
+        return state.join_queue(), True
 
     if event.event_type is EventType.LOBBY_LEAVE:
         # Someone left the lobby -> Remove them from the lobby

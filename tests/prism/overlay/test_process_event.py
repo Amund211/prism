@@ -79,14 +79,14 @@ process_event_test_cases_base: tuple[
         MockedController(wants_shown=True),
         LobbyJoinEvent("JooSGwsk", player_count=1, player_cap=8),
         MockedController(state=create_state(in_queue=True)),
-        False,
+        True,  # TODO: Could be False because lobby didn't change
     ),
     (
         "lobby join doubles/fours",
         MockedController(wants_shown=False),
         LobbyJoinEvent("VNkQSmXugzD", player_count=1, player_cap=16),
         MockedController(state=create_state(in_queue=True)),
-        False,
+        True,  # TODO: Could be False because lobby didn't change
     ),
     (
         "lobby leave",
@@ -533,7 +533,7 @@ process_event_test_cases_base: tuple[
         MockedController(),
         LobbyJoinEvent("rkxyCRIUchq", player_count=5, player_cap=16),
         MockedController(state=create_state(in_queue=True)),
-        False,
+        True,  # TODO: Could be False because lobby didn't change
     ),
     (
         "too many known players in lobby",
@@ -570,7 +570,7 @@ process_event_test_cases_base: tuple[
         MockedController(
             state=create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=True)
         ),
-        False,
+        True,  # TODO: Could be False because lobby didn't change
     ),
     (
         "new queue with lobby from previous game",
@@ -583,7 +583,7 @@ process_event_test_cases_base: tuple[
         ),
         LobbyJoinEvent("oU9ivfVPB", player_count=8, player_cap=16),
         MockedController(state=create_state(in_queue=True)),
-        False,
+        True,
     ),
     (
         "new queue with old lobby and too many players",
@@ -594,7 +594,7 @@ process_event_test_cases_base: tuple[
         MockedController(
             state=create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=True)
         ),
-        False,
+        True,  # TODO: Could be False because lobby didn't change
     ),
     (
         "don't remove yourself from the party",
@@ -1283,7 +1283,7 @@ def test_fast_forward_state(
             (f"{CHAT}hhSWoTBsCEubb4 has joined (1/16)!",),
             MockedController(
                 state=create_state(in_queue=True),
-                redraw_event_set=False,
+                redraw_event_set=True,
             ),
         ),
         (
