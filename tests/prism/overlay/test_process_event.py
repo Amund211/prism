@@ -690,21 +690,6 @@ def test_process_event_set_nickname(event: Event) -> None:
     assert not will_redraw  # set_nickname sets redraw_flag
 
 
-def test_process_event_autodenick_teammate() -> None:
-    """
-    Assert that autodenick_teammate is called when StartBedwarsGameEvent is received
-    """
-    controller = MockedController()
-
-    with unittest.mock.patch(
-        "prism.overlay.process_event.autodenick_teammate"
-    ) as patched_autodenick_teammate:
-        new_state, will_redraw = process_event(controller, StartBedwarsGameEvent())
-
-    patched_autodenick_teammate.assert_called_once()
-    assert not will_redraw
-
-
 def test_process_event_bedwars_game_ended() -> None:
     """
     Assert that bedwars_game_ended is called when EndBedwarsGameEvent is received

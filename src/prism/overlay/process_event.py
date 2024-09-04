@@ -2,11 +2,7 @@ import logging
 from dataclasses import replace
 from typing import Iterable
 
-from prism.overlay.behaviour import (
-    autodenick_teammate,
-    bedwars_game_ended,
-    set_nickname,
-)
+from prism.overlay.behaviour import bedwars_game_ended, set_nickname
 from prism.overlay.controller import OverlayController
 from prism.overlay.events import Event, EventType
 from prism.overlay.parsing import parse_logline
@@ -188,10 +184,6 @@ def process_event(
     if event.event_type is EventType.START_BEDWARS_GAME:
         # Bedwars game has started
         logger.info("Bedwars game starting")
-
-        # Try to denick a teammate right before we leave the queue (start the game)
-        if controller.settings.autodenick_teammates:
-            autodenick_teammate(controller)
 
         # Leaving the queue and starting a game
         # Reset the users preference for showing the overlay
