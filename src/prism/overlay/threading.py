@@ -7,7 +7,7 @@ from collections.abc import Callable, Iterable
 
 from prism.overlay.behaviour import get_stats_and_winstreak, should_redraw
 from prism.overlay.controller import OverlayController
-from prism.overlay.player import Player, sort_players
+from prism.overlay.player import KnownPlayer, Player, sort_players
 from prism.overlay.process_event import process_loglines
 from prism.overlay.rich_presence import RPCThread
 from prism.update_checker import update_available
@@ -159,6 +159,7 @@ def prepare_overlay(
         """
         Get an updated list of stats of the players in the lobby. None if no updates
         """
+        # TODO: Factor out and make testable
 
         redraw = should_redraw(controller, completed_stats_queue=completed_stats_queue)
 
@@ -177,6 +178,9 @@ def prepare_overlay(
             else state.lobby_players
         )
 
+        # Players who are present in the lobby twice - once nicked and once unnicked
+        duplicate_nicked_usernames = []
+
         for player in displayed_players:
             # Use the short term cache in queue to refresh stats between games
             # When we are not in queue (in game) use the long term cache, as we don't
@@ -190,7 +194,31 @@ def prepare_overlay(
                 cached_stats = controller.player_cache.set_player_pending(player)
                 logger.debug(f"Set player {player} to pending")
                 requested_stats_queue.put(player)
+            elif isinstance(cached_stats, KnownPlayer):
+                if (
+                    cached_stats.nick is not None
+                    and cached_stats.username in displayed_players
+                ):
+                    duplicate_nicked_usernames.append(cached_stats.username)
+
             players.append(cached_stats)
+
+        def should_remove(player: Player) -> bool:
+            """
+            Return True if the player is a duplicate, and is the unnicked version.
+
+            This version will have come from the party_members set.
+            """
+            if player.username not in duplicate_nicked_usernames:
+                return False
+
+            if isinstance(player, KnownPlayer):
+                return player.nick is None
+
+            return True
+
+        # Filter out duplicate nicks
+        players = [player for player in players if not should_remove(player)]
 
         sorted_stats = sort_players(
             players,
