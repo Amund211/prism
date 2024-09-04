@@ -41,11 +41,14 @@ class OverlayState:
             new_state = self.clear_lobby()
         else:
             # This is a new queue, but lobby_players and alive_players are in sync
-            # This is likely due to the user typing /who before anyone could join
-            logger.info(
-                f"Joining a new queue with lobby_players and alive_players in sync. "
-                f"Setting in_queue, but keeping the current lobby {self.lobby_players=}"
-            )
+            # This should not happen.
+            if self.lobby_players:
+                # Only log when keeping the lobby has an effect
+                logger.warning(
+                    "Joining a new queue with lobby_players and alive_players in "
+                    "sync. Setting in_queue, but keeping the current lobby "
+                    f"{self.lobby_players=}"
+                )
             new_state = self
 
         return replace(new_state, in_queue=True)
