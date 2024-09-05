@@ -1,2 +1,2 @@
-VERSION_STRING = "v1.8.0"
+VERSION_STRING = "v1.8.1-dev"
 USER_AGENT = f"prism/{VERSION_STRING[1:]} (+https://github.com/Amund211/prism)"
