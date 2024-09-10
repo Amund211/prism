@@ -58,8 +58,8 @@ def main() -> None:  # pragma: nocover
     nick_database = NickDatabase.from_disk([], default_database=default_database)
 
     # Import late so we can patch ssl certs in requests
-    from prism.overlay.controller import RealOverlayController
     from prism.overlay.process_loglines import process_loglines, prompt_and_read_logfile
+    from prism.overlay.real_controller import RealOverlayController
 
     controller = RealOverlayController(
         state=OverlayState(),

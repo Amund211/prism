@@ -10,8 +10,9 @@ from prism.hypixel import (
 )
 from prism.mojang import MojangAPIError
 from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
-from prism.overlay.controller import ERROR_DURING_PROCESSING, RealOverlayController
+from prism.overlay.controller import ERROR_DURING_PROCESSING
 from prism.overlay.nick_database import NickDatabase
+from prism.overlay.real_controller import RealOverlayController
 from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
 from tests.prism.overlay.utils import create_state, make_settings
@@ -66,7 +67,7 @@ def test_real_overlay_controller_get_uuid() -> None:
         return returned_uuid
 
     with unittest.mock.patch(
-        "prism.overlay.controller.get_uuid",
+        "prism.overlay.real_controller.get_uuid",
         get_uuid,
     ):
         error = MojangAPIError()
@@ -118,7 +119,7 @@ def test_real_overlay_controller_get_playerdata() -> None:
         return returned_playerdata
 
     with unittest.mock.patch(
-        "prism.overlay.controller.get_playerdata",
+        "prism.overlay.real_controller.get_playerdata",
         get_playerdata,
     ):
         error = HypixelAPIError()

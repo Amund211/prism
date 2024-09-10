@@ -2,7 +2,7 @@ import time
 from collections.abc import Iterable
 
 from prism.overlay.commandline import Options
-from prism.overlay.controller import OverlayController, RealOverlayController
+from prism.overlay.controller import OverlayController
 from prism.overlay.directories import DEFAULT_LOGFILE_CACHE_PATH
 from prism.overlay.file_utils import watch_file_with_reopen
 from prism.overlay.output.overlay.run_overlay import run_overlay
@@ -17,7 +17,7 @@ CLEAR_BETWEEN_DRAWS = True
 
 
 def prompt_and_read_logfile(
-    controller: RealOverlayController, options: Options, settings: Settings
+    controller: OverlayController, options: Options, settings: Settings
 ) -> Iterable[str]:  # pragma: nocover
     if options.logfile_path is None:
         logfile_path = prompt_for_logfile_path(
@@ -94,7 +94,7 @@ def process_loglines_to_overlay(
 
 
 def process_loglines(
-    controller: RealOverlayController,
+    controller: OverlayController,
     loglines: Iterable[str],
     overlay: bool,
     console: bool,
