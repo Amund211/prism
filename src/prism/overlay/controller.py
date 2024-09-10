@@ -91,7 +91,6 @@ class RealOverlayController:
     ) -> None:
         from prism.overlay.player_cache import PlayerCache
 
-        self.own_username: str | None = None
         self.api_key_invalid = False
         self.api_key_throttled = False
         self.missing_local_issuer_certificate = False
