@@ -75,6 +75,13 @@ process_event_test_cases_base: tuple[
         True,
     ),
     (
+        "swap lobby clears autowho",
+        MockedController(autowho_event_set=True),
+        LobbySwapEvent(),
+        MockedController(autowho_event_set=False),
+        True,  # TODO: Could be False
+    ),
+    (
         "lobby join solo",
         MockedController(wants_shown=True),
         LobbyJoinEvent("JooSGwsk", player_count=1, player_cap=8),
@@ -277,9 +284,26 @@ process_event_test_cases_base: tuple[
         StartBedwarsGameEvent(),
         MockedController(
             wants_shown=None,
+            autowho_event_set=True,
             state=create_state(in_queue=False, out_of_sync=True, last_game_start=1234),
         ),
         False,  # No need to redraw the screen - only hide the overlay
+    ),
+    (
+        "start bedwars game when not ready",
+        # Got a start bedwars game event while fast forwarding -> don't autowho
+        MockedController(
+            ready=False,
+            wants_shown=False,
+            state=create_state(in_queue=True, now_func=lambda: 1234),
+        ),
+        StartBedwarsGameEvent(),
+        MockedController(
+            ready=False,
+            wants_shown=None,
+            state=create_state(in_queue=False, out_of_sync=True, last_game_start=1234),
+        ),
+        False,
     ),
     (
         "final kill",
@@ -444,6 +468,13 @@ process_event_test_cases_base: tuple[
         EndBedwarsGameEvent(),
         MockedController(update_presence_event_set=True),
         True,
+    ),
+    (
+        "bedwars game end clears autowho",
+        MockedController(autowho_event_set=True),
+        EndBedwarsGameEvent(),
+        MockedController(autowho_event_set=False, update_presence_event_set=True),
+        True,  # TODO: Could be False
     ),
     # Special cases
     (
@@ -789,6 +820,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             "[16:12:40] [Client thread/INFO]: [CHAT] ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
         ),
         MockedController(
+            autowho_event_set=True,
             state=create_state(
                 last_game_start=1.5,
                 in_queue=False,
@@ -810,7 +842,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                     "14",
                     "15",
                 },
-            )
+            ),
         ),
     ),
     (
@@ -868,6 +900,7 @@ FAST_FORWARD_STATE_CASES: Final = (
         ),
         MockedController(
             update_presence_event_set=True,
+            autowho_event_set=True,
             state=create_state(
                 own_username="Me",
                 party_members={"Me", "Player1", "Player2"},
@@ -969,6 +1002,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}Teammate2 disconnected.",
         ),
         MockedController(
+            autowho_event_set=True,
             state=create_state(
                 own_username="Me",
                 party_members={"Teammate1", "Teammate2", "Me"},
@@ -991,7 +1025,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                 last_game_start=0,
                 out_of_sync=True,
                 in_queue=False,
-            )
+            ),
         ),
     ),
     (
@@ -1146,6 +1180,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}[SHOUT] [RED] [VIP+] Player2: some chat message",
         ),
         MockedController(
+            autowho_event_set=True,
             state=create_state(
                 lobby_players={
                     OWN_USERNAME,
@@ -1215,6 +1250,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}[SHOUT] [RED] [VIP+] Player2: some chat message",
         ),
         MockedController(
+            autowho_event_set=True,
             state=create_state(
                 lobby_players={
                     "Player1",
@@ -1254,7 +1290,9 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
             f"{INFO}Setting user: MyUsername",
         ),
-        MockedController(state=create_state(own_username="MyUsername")),
+        MockedController(
+            autowho_event_set=True, state=create_state(own_username="MyUsername")
+        ),
     ),
 )
 

@@ -52,6 +52,9 @@ def process_event(
         # Changed lobby -> clear the lobby
         logger.info("Received lobby swap. Clearing the lobby")
 
+        if controller.ready:
+            controller.autowho_event.clear()
+
         # Leaving the queue to a new lobby
         # Reset the users preference for showing the overlay
         controller.wants_shown = None
@@ -179,11 +182,15 @@ def process_event(
     if event.event_type is EventType.BEDWARS_GAME_STARTING_SOON:
         # Bedwars game is starting soon
         logger.info(f"Bedwars game starting soon {event.seconds} second(s)")
+
         return state, False
 
     if event.event_type is EventType.START_BEDWARS_GAME:
         # Bedwars game has started
         logger.info("Bedwars game starting")
+
+        if controller.ready:
+            controller.autowho_event.set()
 
         # Leaving the queue and starting a game
         # Reset the users preference for showing the overlay
@@ -213,6 +220,9 @@ def process_event(
         # Bedwars game has ended
         logger.info("Bedwars game ended")
         bedwars_game_ended(controller)
+
+        if controller.ready:
+            controller.autowho_event.clear()
 
         return state.clear_lobby().set_out_of_sync(False).leave_game(), True
 
