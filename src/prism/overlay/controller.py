@@ -36,6 +36,7 @@ class OverlayController(Protocol):  # pragma: no cover
     settings: "Settings"
     nick_database: "NickDatabase"
     player_cache: "PlayerCache"
+    autowho_event: threading.Event
     redraw_event: threading.Event
     update_presence_event: threading.Event
 

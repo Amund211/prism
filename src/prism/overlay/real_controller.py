@@ -57,6 +57,7 @@ class RealOverlayController:
         self.nick_database = nick_database
         self.redraw_event = threading.Event()
         self.update_presence_event = threading.Event()
+        self.autowho_event = threading.Event()
 
         self.antisniper_key_holder: AntiSniperAPIKeyHolder | None = (
             AntiSniperAPIKeyHolder(settings.antisniper_api_key)

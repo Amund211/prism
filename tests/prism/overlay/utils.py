@@ -297,6 +297,7 @@ def missing_method(*args: Any, **kwargs: Any) -> Any:
 
 class ExtraAttributes(TypedDict):
     antisniper_api_key: str | None
+    autowho_event_set: bool
     redraw_event_set: bool
     update_presence_event_set: bool
     player_cache_data: TTLCache[str, Player]
@@ -328,6 +329,11 @@ class MockedController:
         default_factory=PlayerCache, repr=False, compare=False, hash=False
     )
 
+    autowho_event_set: InitVar[bool] = False
+    autowho_event: threading.Event = field(
+        init=False, repr=False, compare=False, hash=False
+    )
+
     redraw_event_set: InitVar[bool] = False
     redraw_event: threading.Event = field(
         init=False, repr=False, compare=False, hash=False
@@ -356,9 +362,14 @@ class MockedController:
 
     def __post_init__(
         self,
+        autowho_event_set: bool,
         redraw_event_set: bool,
         update_presence_event_set: bool,
     ) -> None:
+        self.autowho_event = threading.Event()
+        if autowho_event_set:
+            self.autowho_event.set()
+
         self.redraw_event = threading.Event()
         if redraw_event_set:
             self.redraw_event.set()
@@ -384,6 +395,7 @@ class MockedController:
                 if self.antisniper_key_holder is not None
                 else None
             ),
+            "autowho_event_set": self.autowho_event.is_set(),
             "redraw_event_set": self.redraw_event.is_set(),
             "update_presence_event_set": self.update_presence_event.is_set(),
             "player_cache_data": self.player_cache._cache,
