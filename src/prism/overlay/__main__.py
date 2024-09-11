@@ -80,6 +80,8 @@ def main() -> None:  # pragma: nocover
     else:
         loglines = prompt_and_read_logfile(controller, options, settings)
 
+    controller.ready = True
+
     process_loglines(
         controller=controller,
         loglines=loglines,

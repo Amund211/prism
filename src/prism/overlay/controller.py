@@ -31,6 +31,7 @@ class OverlayController(Protocol):  # pragma: no cover
     api_limiter: "RateLimiter"
 
     wants_shown: bool | None
+    ready: bool
     state: "OverlayState"
     settings: "Settings"
     nick_database: "NickDatabase"

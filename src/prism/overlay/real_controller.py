@@ -49,6 +49,7 @@ class RealOverlayController:
             limit=API_REQUEST_LIMIT, window=API_REQUEST_WINDOW
         )
 
+        self.ready = False
         self.wants_shown: bool | None = None
         self.player_cache = PlayerCache()
         self.state = state
