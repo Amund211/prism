@@ -31,7 +31,12 @@ class OverlayState:
 
         Used to get candidates for manually denicking a nicked player
         """
-        return self.party_members - self.lobby_players
+        # TODO: Remove usernams known to be in the lobby.
+        #       Currently we add the username of all party members to the lobby at the
+        #       start of a queue, so we don't know if they are in the lobby or not.
+        #       In the future we could keep track of this, and still remove username we
+        #       *know* are in the lobby.
+        return self.party_members
 
     def join_queue(self) -> Self:
         """

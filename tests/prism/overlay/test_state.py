@@ -52,7 +52,8 @@ def test_join_queue_in_queue() -> None:
             create_state(
                 party_members={OWN_USERNAME, "A", "B", "C"}, lobby_players={"A"}
             ),
-            {OWN_USERNAME, "B", "C"},
+            # TODO: Remove A
+            {OWN_USERNAME, "A", "B", "C"},
         ),
         (
             create_state(
@@ -60,7 +61,8 @@ def test_join_queue_in_queue() -> None:
                 lobby_players={"A"},
                 alive_players=set(),
             ),
-            {OWN_USERNAME, "B", "C"},
+            # TODO: Remove A
+            {OWN_USERNAME, "A", "B", "C"},
         ),
     ),
 )
