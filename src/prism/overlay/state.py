@@ -24,6 +24,15 @@ class OverlayState:
     own_username: str | None = None
     now_func: Callable[[], float] = field(default=time.monotonic, compare=False)
 
+    @property
+    def missing_party_members(self) -> frozenset[str]:
+        """
+        Return the party members that are not in the lobby
+
+        Used to get candidates for manually denicking a nicked player
+        """
+        return self.party_members - self.lobby_players
+
     def join_queue(self) -> Self:
         """
         Join a queue by setting in_queue = True

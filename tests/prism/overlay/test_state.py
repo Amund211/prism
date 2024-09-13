@@ -1,7 +1,7 @@
 import pytest
 
 from prism.overlay.state import OverlayState
-from tests.prism.overlay.utils import create_state
+from tests.prism.overlay.utils import OWN_USERNAME, create_state
 
 
 @pytest.mark.parametrize(
@@ -39,3 +39,30 @@ def test_join_queue_in_queue() -> None:
     # We avoid this case by checking in_queue before calling join_queue
     state = create_state(in_queue=True)
     assert state.join_queue() is state
+
+
+@pytest.mark.parametrize(
+    "state, expected",
+    (
+        (
+            create_state(party_members={OWN_USERNAME, "A", "B", "C"}),
+            {OWN_USERNAME, "A", "B", "C"},
+        ),
+        (
+            create_state(
+                party_members={OWN_USERNAME, "A", "B", "C"}, lobby_players={"A"}
+            ),
+            {OWN_USERNAME, "B", "C"},
+        ),
+        (
+            create_state(
+                party_members={OWN_USERNAME, "A", "B", "C"},
+                lobby_players={"A"},
+                alive_players=set(),
+            ),
+            {OWN_USERNAME, "B", "C"},
+        ),
+    ),
+)
+def test_missing_party_members(state: OverlayState, expected: set[str]) -> None:
+    assert state.missing_party_members == expected

@@ -110,7 +110,7 @@ class SetNicknamePage:  # pragma: nocover
         self.save_button.config(state="disabled")
 
         # Usernames in your party but not in the lobby
-        potential_usernames = state.party_members.difference(state.lobby_players)
+        potential_usernames = state.missing_party_members
 
         # Set choices of dropdown
         self.username_menu["menu"].delete(0, "end")
