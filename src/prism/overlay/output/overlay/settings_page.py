@@ -1117,7 +1117,7 @@ class SettingsPage:  # pragma: nocover
                 foreground="white",
                 background="black",
             )
-            subtitle_label.pack(side=tk.TOP)
+            subtitle_label.pack(side=tk.TOP, pady=(0, 5))
             self.make_widgets_scrollable(subtitle_label)
 
         section_frame = tk.Frame(
