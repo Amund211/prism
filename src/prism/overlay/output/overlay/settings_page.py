@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Literal, TypedDict
 
 from prism.overlay.behaviour import update_settings
 from prism.overlay.controller import OverlayController
-from prism.overlay.keybinds import Key
+from prism.overlay.keybinds import AlphanumericKey, Key
 from prism.overlay.output.cells import (
     ALL_COLUMN_NAMES_ORDERED,
     DEFAULT_COLUMN_ORDER,
@@ -333,6 +333,140 @@ class GeneralSettingSection:  # pragma: nocover
             self.check_for_updates_toggle.enabled,
             self.include_patch_updates_toggle.enabled,
             self.use_included_certs_toggle.enabled,
+        )
+
+
+class AutoWhoSection:  # pragma: nocover
+    def __init__(self, parent: "SettingsPage") -> None:
+        if sys.platform == "darwin":
+            # Autowho is not supported on macOS
+            # I don't have a mac machine to test this on, and even if it did work, the
+            # chat_hotkey keybind selector would still crash due to the keyboard
+            # listener issues.
+            return
+
+        self.frame = parent.make_section(
+            "AutoWho", "Automatically type /who at the start of the game"
+        )
+        self.frame.columnconfigure(0, weight=0)
+
+        def set_interactivity(enabled: bool) -> None:
+            state = tk.NORMAL if enabled else tk.DISABLED
+            cursor = "hand2" if enabled else "arrow"
+            self.chat_keybind_selector.button.config(  # type: ignore [has-type, unused-ignore]  # noqa: E501
+                state=state,
+                cursor=cursor,
+            )
+            self.autowho_delay_scale.config(  # type: ignore [has-type, unused-ignore]
+                state=state,
+                cursor=cursor,
+                foreground="white" if enabled else "gray",
+            )
+            self.reset_autowho_delay_button.config(  # type: ignore [has-type, unused-ignore]  # noqa: E501
+                state=state,
+                cursor=cursor,
+            )
+
+        autowho_label = tk.Label(
+            self.frame,
+            text="Enable AutoWho: ",
+            font=("Consolas", 12),
+            foreground="white",
+            background="black",
+        )
+        autowho_label.grid(row=0, column=0, sticky=tk.E)
+        self.autowho_toggle = ToggleButton(
+            self.frame, toggle_callback=set_interactivity
+        )
+        self.autowho_toggle.button.grid(row=0, column=1)
+        parent.make_widgets_scrollable(
+            autowho_label,
+            self.autowho_toggle.button,
+        )
+
+        chat_hotkey_label = tk.Label(
+            self.frame,
+            text="Chat hotkey: ",
+            font=("Consolas", 12),
+            foreground="white",
+            background="black",
+        )
+        chat_hotkey_label.grid(row=1, column=0, sticky=tk.E)
+        self.chat_keybind_selector = KeybindSelector(self.frame, overlay=parent.overlay)
+        self.chat_keybind_selector.button.grid(row=1, column=1)
+        parent.make_widgets_scrollable(
+            chat_hotkey_label,
+            self.chat_keybind_selector.button,
+        )
+
+        autowho_delay_label = tk.Label(
+            self.frame,
+            text="Autowho delay (s): ",
+            font=("Consolas", 12),
+            foreground="white",
+            background="black",
+        )
+        autowho_delay_label.grid(row=2, column=0, sticky=tk.E)
+
+        self.autowho_delay_variable = tk.DoubleVar(value=2)
+        self.autowho_delay_scale = tk.Scale(
+            self.frame,
+            from_=0.1,
+            to=5,
+            resolution=0.1,
+            orient=tk.HORIZONTAL,
+            length=200,
+            foreground="white",
+            background="black",
+            variable=self.autowho_delay_variable,
+        )
+        self.autowho_delay_scale.grid(row=2, column=1)
+
+        self.reset_autowho_delay_button = tk.Button(
+            self.frame,
+            text="Reset",
+            font=("Consolas", 14),
+            foreground="white",
+            background="black",
+            command=functools.partial(self.autowho_delay_variable.set, 2),
+            relief="flat",
+            cursor="hand2",
+        )
+        self.reset_autowho_delay_button.grid(row=2, column=2)
+
+        parent.make_widgets_scrollable(
+            autowho_delay_label,
+            self.autowho_delay_scale,
+            self.reset_autowho_delay_button,
+        )
+
+    def clamp_autowho_delay(self, autowho_delay: float) -> float:
+        """Clamp the autowho_delay to a valid range"""
+        return min(5, max(0.1, autowho_delay))
+
+    def set(
+        self,
+        autowho: bool,
+        chat_hotkey: Key,
+        autowho_delay: float,
+    ) -> None:
+        """Set the state of this section"""
+        if sys.platform == "darwin":  # Not supported on macOS
+            return
+
+        self.autowho_toggle.set(autowho)
+        self.chat_keybind_selector.set_key(chat_hotkey)
+        self.autowho_delay_variable.set(autowho_delay)
+
+    def get(self) -> tuple[bool, Key, float]:
+        """Get the state of this section"""
+        if sys.platform == "darwin":  # Not supported on macOS
+            return False, AlphanumericKey("t", "t"), 2.0
+
+        return (
+            self.autowho_toggle.enabled,
+            self.chat_keybind_selector.key,
+            self.clamp_autowho_delay(self.autowho_delay_variable.get()),
         )
 
 
@@ -1089,6 +1223,7 @@ class SettingsPage:  # pragma: nocover
 
         SupportSection(self)
         self.general_settings_section = GeneralSettingSection(self)
+        self.autowho_section = AutoWhoSection(self)
         self.display_section = DisplaySection(self)
         self.column_section = ColumnSection(self)
         self.antisniper_section = AntisniperSection(self)
@@ -1153,6 +1288,11 @@ class SettingsPage:  # pragma: nocover
                 include_patch_updates=settings.include_patch_updates,
                 use_included_certs=settings.use_included_certs,
             )
+            self.autowho_section.set(
+                autowho=settings.autowho,
+                chat_hotkey=settings.chat_hotkey,
+                autowho_delay=settings.autowho_delay,
+            )
             self.performance_section.set(stats_thread_count=settings.stats_thread_count)
             self.display_section.set(
                 settings.sort_order,
@@ -1198,6 +1338,8 @@ class SettingsPage:  # pragma: nocover
             use_included_certs,
         ) = self.general_settings_section.get()
 
+        autowho, chat_hotkey, autowho_delay = self.autowho_section.get()
+
         stats_thread_count = self.performance_section.get()
 
         sort_order, hide_dead_players, autohide_timeout = self.display_section.get(
@@ -1211,10 +1353,6 @@ class SettingsPage:  # pragma: nocover
         # TODO: Add section to edit known nicks
         with self.controller.settings.mutex:
             known_nicks = self.controller.settings.known_nicks.copy()
-            # TODO: Add autowho settings section
-            autowho = self.controller.settings.autowho
-            autowho_delay = self.controller.settings.autowho_delay
-            chat_hotkey = self.controller.settings.chat_hotkey
 
         # "Secret" settings, not editable in the GUI
         disable_overrideredirect = self.controller.settings.disable_overrideredirect
