@@ -315,6 +315,7 @@ def test_update_settings_everything_changed() -> None:
             name="a", char="a", key_type="alphanumeric"
         ),
         autowho=False,
+        autowho_delay=4.5,
         chat_hotkey=AlphanumericKeyDict(name="u", char="u", key_type="alphanumeric"),
         check_for_updates=False,
         include_patch_updates=True,

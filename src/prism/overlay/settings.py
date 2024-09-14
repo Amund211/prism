@@ -57,6 +57,7 @@ class SettingsDict(TypedDict):
     show_on_tab: bool
     show_on_tab_keybind: KeyDict
     autowho: bool
+    autowho_delay: float
     chat_hotkey: KeyDict
     check_for_updates: bool
     include_patch_updates: bool
@@ -90,6 +91,7 @@ class Settings:
     show_on_tab: bool
     show_on_tab_keybind: Key
     autowho: bool
+    autowho_delay: float
     chat_hotkey: Key
     check_for_updates: bool
     include_patch_updates: bool
@@ -136,6 +138,7 @@ class Settings:
             show_on_tab=source["show_on_tab"],
             show_on_tab_keybind=construct_key(source["show_on_tab_keybind"]),
             autowho=source["autowho"],
+            autowho_delay=source["autowho_delay"],
             chat_hotkey=construct_key(source["chat_hotkey"]),
             check_for_updates=source["check_for_updates"],
             include_patch_updates=source["include_patch_updates"],
@@ -168,6 +171,7 @@ class Settings:
             "show_on_tab": self.show_on_tab,
             "show_on_tab_keybind": self.show_on_tab_keybind.to_dict(),
             "autowho": self.autowho,
+            "autowho_delay": self.autowho_delay,
             "chat_hotkey": self.chat_hotkey.to_dict(),
             "check_for_updates": self.check_for_updates,
             "include_patch_updates": self.include_patch_updates,
@@ -201,6 +205,7 @@ class Settings:
         self.show_on_tab = new_settings["show_on_tab"]
         self.show_on_tab_keybind = construct_key(new_settings["show_on_tab_keybind"])
         self.autowho = new_settings["autowho"]
+        self.autowho_delay = new_settings["autowho_delay"]
         self.chat_hotkey = construct_key(new_settings["chat_hotkey"])
         self.check_for_updates = new_settings["check_for_updates"]
         self.include_patch_updates = new_settings["include_patch_updates"]
@@ -372,6 +377,11 @@ def fill_missing_settings(
         incomplete_settings, "autowho", settings_updated, default=True
     )
 
+    autowho_delay = incomplete_settings.get("autowho_delay", None)
+    if not isinstance(autowho_delay, (int, float)) or not 0.09 <= autowho_delay <= 5.0:
+        settings_updated = True
+        autowho_delay = 2.0
+
     chat_hotkey: KeyDict
     chat_hotkey_source = incomplete_settings.get("chat_hotkey", None)
     if (
@@ -453,6 +463,7 @@ def fill_missing_settings(
         "show_on_tab": show_on_tab,
         "show_on_tab_keybind": show_on_tab_keybind,
         "autowho": autowho,
+        "autowho_delay": autowho_delay,
         "chat_hotkey": chat_hotkey,
         "check_for_updates": check_for_updates,
         "include_patch_updates": include_patch_updates,
