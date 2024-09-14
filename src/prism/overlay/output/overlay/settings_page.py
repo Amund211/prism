@@ -1213,6 +1213,7 @@ class SettingsPage:  # pragma: nocover
             known_nicks = self.controller.settings.known_nicks.copy()
             # TODO: Add autowho settings section
             autowho = self.controller.settings.autowho
+            chat_hotkey = self.controller.settings.chat_hotkey
 
         # "Secret" settings, not editable in the GUI
         disable_overrideredirect = self.controller.settings.disable_overrideredirect
@@ -1237,6 +1238,7 @@ class SettingsPage:  # pragma: nocover
             show_on_tab=show_on_tab,
             show_on_tab_keybind=show_on_tab_keybind.to_dict(),
             autowho=autowho,
+            chat_hotkey=chat_hotkey.to_dict(),
             check_for_updates=check_for_updates,
             include_patch_updates=include_patch_updates,
             use_included_certs=use_included_certs,

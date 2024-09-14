@@ -9,6 +9,7 @@ from typing import Self, TypedDict, TypeVar
 import toml
 
 from prism.overlay.keybinds import (
+    AlphanumericKeyDict,
     Key,
     KeyDict,
     SpecialKeyDict,
@@ -56,6 +57,7 @@ class SettingsDict(TypedDict):
     show_on_tab: bool
     show_on_tab_keybind: KeyDict
     autowho: bool
+    chat_hotkey: KeyDict
     check_for_updates: bool
     include_patch_updates: bool
     use_included_certs: bool
@@ -88,6 +90,7 @@ class Settings:
     show_on_tab: bool
     show_on_tab_keybind: Key
     autowho: bool
+    chat_hotkey: Key
     check_for_updates: bool
     include_patch_updates: bool
     use_included_certs: bool
@@ -133,6 +136,7 @@ class Settings:
             show_on_tab=source["show_on_tab"],
             show_on_tab_keybind=construct_key(source["show_on_tab_keybind"]),
             autowho=source["autowho"],
+            chat_hotkey=construct_key(source["chat_hotkey"]),
             check_for_updates=source["check_for_updates"],
             include_patch_updates=source["include_patch_updates"],
             use_included_certs=source["use_included_certs"],
@@ -164,6 +168,7 @@ class Settings:
             "show_on_tab": self.show_on_tab,
             "show_on_tab_keybind": self.show_on_tab_keybind.to_dict(),
             "autowho": self.autowho,
+            "chat_hotkey": self.chat_hotkey.to_dict(),
             "check_for_updates": self.check_for_updates,
             "include_patch_updates": self.include_patch_updates,
             "use_included_certs": self.use_included_certs,
@@ -196,6 +201,7 @@ class Settings:
         self.show_on_tab = new_settings["show_on_tab"]
         self.show_on_tab_keybind = construct_key(new_settings["show_on_tab_keybind"])
         self.autowho = new_settings["autowho"]
+        self.chat_hotkey = construct_key(new_settings["chat_hotkey"])
         self.check_for_updates = new_settings["check_for_updates"]
         self.include_patch_updates = new_settings["include_patch_updates"]
         self.use_included_certs = new_settings["use_included_certs"]
@@ -366,6 +372,19 @@ def fill_missing_settings(
         incomplete_settings, "autowho", settings_updated, default=True
     )
 
+    chat_hotkey: KeyDict
+    chat_hotkey_source = incomplete_settings.get("chat_hotkey", None)
+    if (
+        # Invalid type
+        not isinstance(chat_hotkey_source, dict)
+        # Failed parsing to key dict
+        or (chat_hotkey_dict := construct_key_dict(chat_hotkey_source)) is None
+    ):
+        settings_updated = True
+        chat_hotkey = AlphanumericKeyDict(name="t", char="t", key_type="alphanumeric")
+    else:
+        chat_hotkey = chat_hotkey_dict
+
     check_for_updates, settings_updated = get_boolean_setting(
         incomplete_settings, "check_for_updates", settings_updated, default=True
     )
@@ -434,6 +453,7 @@ def fill_missing_settings(
         "show_on_tab": show_on_tab,
         "show_on_tab_keybind": show_on_tab_keybind,
         "autowho": autowho,
+        "chat_hotkey": chat_hotkey,
         "check_for_updates": check_for_updates,
         "include_patch_updates": include_patch_updates,
         "use_included_certs": use_included_certs,

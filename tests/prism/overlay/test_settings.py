@@ -54,6 +54,7 @@ def make_settings_dict(
     show_on_tab: bool | None = None,
     show_on_tab_keybind: KeyDict | None = None,
     autowho: bool | None = None,
+    chat_hotkey: KeyDict | None = None,
     check_for_updates: bool | None = None,
     include_patch_updates: bool | None = None,
     use_included_certs: bool | None = None,
@@ -92,6 +93,11 @@ def make_settings_dict(
             default=SpecialKeyDict(name="tab", vk=None, key_type="special"),
         ),
         "autowho": value_or_default(autowho, default=True),
+        # mypy thinks this is {"name": str}, when it really is just KeyDict
+        "chat_hotkey": value_or_default(  # type: ignore [typeddict-item]
+            chat_hotkey,
+            default=AlphanumericKeyDict(name="t", char="t", key_type="alphanumeric"),
+        ),
         "check_for_updates": value_or_default(check_for_updates, default=True),
         "include_patch_updates": value_or_default(include_patch_updates, default=False),
         "use_included_certs": value_or_default(use_included_certs, default=True),
@@ -132,6 +138,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             show_on_tab=True,
             show_on_tab_keybind=AlphanumericKey(name="a", char="a"),
             autowho=True,
+            chat_hotkey=AlphanumericKey(name="u", char="u"),
             check_for_updates=True,
             include_patch_updates=False,
             use_included_certs=False,
@@ -163,6 +170,9 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
                 name="a", char="a", key_type="alphanumeric"
             ),
             "autowho": True,
+            "chat_hotkey": AlphanumericKeyDict(
+                name="u", char="u", key_type="alphanumeric"
+            ),
             "check_for_updates": True,
             "include_patch_updates": False,
             "use_included_certs": False,
@@ -193,6 +203,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             show_on_tab=False,
             show_on_tab_keybind=SpecialKey(name="tab", vk=None),
             autowho=False,
+            chat_hotkey=AlphanumericKey(name="x", char="x"),
             check_for_updates=False,
             include_patch_updates=True,
             use_included_certs=True,
@@ -224,6 +235,9 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
                 name="tab", vk=None, key_type="special"
             ),
             "autowho": False,
+            "chat_hotkey": AlphanumericKeyDict(
+                name="x", char="x", key_type="alphanumeric"
+            ),
             "check_for_updates": False,
             "include_patch_updates": True,
             "use_included_certs": True,
@@ -387,6 +401,9 @@ fill_settings_test_cases: tuple[
                 name="somekey", vk=123456, key_type="special"
             ),
             "autowho": True,
+            "chat_hotkey": SpecialKeyDict(
+                name="somekey", vk=1234567, key_type="special"
+            ),
             "check_for_updates": False,
             "include_patch_updates": True,
             "use_included_certs": True,
@@ -416,6 +433,7 @@ fill_settings_test_cases: tuple[
                 name="somekey", vk=123456, key_type="special"
             ),
             autowho=True,
+            chat_hotkey=SpecialKeyDict(name="somekey", vk=1234567, key_type="special"),
             check_for_updates=False,
             include_patch_updates=True,
             use_included_certs=True,
@@ -727,6 +745,43 @@ fill_settings_test_cases: tuple[
     (
         # Invalid data for autowho
         {"autowho": 123456789},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # Invalid type for chat_hotkey
+        {"chat_hotkey": 5},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # Invalid key type for chat_hotkey
+        {
+            "chat_hotkey": {
+                "key_type": "invalid",
+                "char": "a",
+                "vk": 1,
+                "name": "name",
+            }
+        },
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # Invalid data for special key
+        {"chat_hotkey": {"key_type": "special", "vk": "badvk", "name": "name"}},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # Invalid data for alphanumeric key
+        {
+            "chat_hotkey": {
+                "key_type": "alphanumeric",
+                "char": 1234,
+                "name": "name",
+            }
+        },
         make_settings_dict(),
         True,
     ),
