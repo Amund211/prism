@@ -82,6 +82,8 @@ class ToggleButton:  # pragma: nocover
 
 
 class KeybindSelector(ToggleButton):  # pragma: no coverage
+    ACTIVE_KEYBIND_SELECTOR: "KeybindSelector | None" = None
+
     DISABLED_CONFIG = {
         "bg": "gray",
         "activebackground": "light gray",
@@ -138,6 +140,16 @@ class KeybindSelector(ToggleButton):  # pragma: no coverage
             # I think it's due to an issue in pyobjc that leads to a segfault in libffi
             return
 
+        active = KeybindSelector.ACTIVE_KEYBIND_SELECTOR
+        if active is not None and active is not self:
+            # Disable the currently active keybind selector
+            active.toggle()
+
+        # Let other selectors know that this one is active
+        # NOTE: Not entirely thread-safe, but input events might come in a queue, and
+        #       even if not I don't think it's that big of a deal.
+        KeybindSelector.ACTIVE_KEYBIND_SELECTOR = self
+
         try:
             from pynput import keyboard
         except Exception:
@@ -155,6 +167,9 @@ class KeybindSelector(ToggleButton):  # pragma: no coverage
         if self.listener is not None:
             self.listener.stop()
             self.listener = None
+
+        # Let other selectors know that we are no longer active
+        KeybindSelector.ACTIVE_KEYBIND_SELECTOR = None
 
     def set_key(self, key: Key) -> None:
         self.key = key
