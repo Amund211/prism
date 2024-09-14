@@ -158,7 +158,8 @@ class KeybindSelector(ToggleButton):  # pragma: no coverage
 
     def set_key(self, key: Key) -> None:
         self.key = key
-        self._on_toggle(self.selecting)
+        # This runs the toggle callback, which stops the listener and updates the text
+        self.set(False)
 
 
 class ScrollableFrame:  # pragma: no coverage
