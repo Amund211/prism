@@ -65,9 +65,9 @@ class SupportSection:  # pragma: nocover
         parent.make_widgets_scrollable(discord_button)
 
 
-class APIKeySection:  # pragma: nocover
+class AntisniperSection:  # pragma: nocover
     def __init__(self, parent: "SettingsPage") -> None:
-        self.frame = parent.make_section("API Key")
+        self.frame = parent.make_section("AntiSniper API")
         self.frame.columnconfigure(0, weight=0)
 
         info_label = tk.Label(
@@ -84,6 +84,28 @@ class APIKeySection:  # pragma: nocover
         info_label.grid(row=0, columnspan=2)
         parent.make_widgets_scrollable(info_label)
 
+        def set_interactivity(enabled: bool) -> None:
+            self.antisniper_api_key_entry.config(
+                state=tk.NORMAL if enabled else tk.DISABLED
+            )
+
+        use_antisniper_label = tk.Label(
+            self.frame,
+            text="AntiSniper WS estimates: ",
+            font=("Consolas", 12),
+            foreground="white",
+            background="black",
+        )
+        use_antisniper_label.grid(row=1, column=0, sticky=tk.E)
+
+        self.use_antisniper_api_toggle = ToggleButton(
+            self.frame, toggle_callback=set_interactivity
+        )
+        self.use_antisniper_api_toggle.button.grid(row=1, column=1)
+        parent.make_widgets_scrollable(
+            use_antisniper_label, self.use_antisniper_api_toggle.button
+        )
+
         api_key_label = tk.Label(
             self.frame,
             text="API key: ",
@@ -91,14 +113,14 @@ class APIKeySection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        api_key_label.grid(row=1, column=0, sticky=tk.E)
+        api_key_label.grid(row=2, column=0, sticky=tk.E)
 
         self.antisniper_api_key_variable = tk.StringVar()
         self.antisniper_api_key_entry = tk.Entry(
             self.frame, show="*", textvariable=self.antisniper_api_key_variable
         )
 
-        self.antisniper_api_key_entry.grid(row=1, column=1, sticky=tk.W + tk.E)
+        self.antisniper_api_key_entry.grid(row=2, column=1, sticky=tk.W + tk.E)
         self.frame.columnconfigure(1, weight=1)
 
         show_button = tk.Button(
@@ -112,18 +134,19 @@ class APIKeySection:  # pragma: nocover
             relief="flat",
             cursor="hand2",
         )
-        show_button.grid(row=1, column=2, padx=(5, 0))
+        show_button.grid(row=2, column=2, padx=(5, 0))
 
         parent.make_widgets_scrollable(
             api_key_label, self.antisniper_api_key_entry, show_button
         )
 
-    def set(self, antisniper_api_key: str | None) -> None:
+    def set(self, use_antisniper_api: bool, antisniper_api_key: str | None) -> None:
         """Set the state of this section"""
+        self.use_antisniper_api_toggle.set(use_antisniper_api)
         self.antisniper_api_key_entry.config(show="*")
         self.antisniper_api_key_variable.set(antisniper_api_key or "")
 
-    def get(self) -> str | None:
+    def get(self) -> tuple[bool, str | None]:
         """Get the state of this section"""
         value = self.antisniper_api_key_variable.get()
         if ":" in value:
@@ -132,7 +155,9 @@ class APIKeySection:  # pragma: nocover
 
         value = value.strip()
 
-        return value if len(value) > 3 else None
+        key = value if len(value) > 3 else None
+
+        return self.use_antisniper_api_toggle.enabled, key
 
 
 class GeneralSettingSection:  # pragma: nocover
@@ -170,21 +195,6 @@ class GeneralSettingSection:  # pragma: nocover
             self.autoselect_logfile_toggle.button,
         )
 
-        use_antisniper_label = tk.Label(
-            self.frame,
-            text="AntiSniper WS estimates: ",
-            font=("Consolas", 12),
-            foreground="white",
-            background="black",
-        )
-        use_antisniper_label.grid(row=2, column=0, sticky=tk.E)
-
-        self.use_antisniper_api_toggle = ToggleButton(self.frame)
-        self.use_antisniper_api_toggle.button.grid(row=2, column=1)
-        parent.make_widgets_scrollable(
-            use_antisniper_label, self.use_antisniper_api_toggle.button
-        )
-
         def disable_keybind_selector(enabled: bool) -> None:
             self.show_on_tab_keybind_selector.button.config(  # type: ignore [has-type]
                 state=tk.NORMAL if enabled else tk.DISABLED,
@@ -198,11 +208,11 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        show_on_tab_label.grid(row=3, column=0, sticky=tk.E)
+        show_on_tab_label.grid(row=2, column=0, sticky=tk.E)
         self.show_on_tab_toggle = ToggleButton(
             self.frame, toggle_callback=disable_keybind_selector
         )
-        self.show_on_tab_toggle.button.grid(row=3, column=1)
+        self.show_on_tab_toggle.button.grid(row=2, column=1)
         parent.make_widgets_scrollable(
             show_on_tab_label,
             self.show_on_tab_toggle.button,
@@ -215,11 +225,11 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        show_on_tab_hotkey_label.grid(row=4, column=0, sticky=tk.E)
+        show_on_tab_hotkey_label.grid(row=3, column=0, sticky=tk.E)
         self.show_on_tab_keybind_selector = KeybindSelector(
             self.frame, overlay=parent.overlay
         )
-        self.show_on_tab_keybind_selector.button.grid(row=4, column=1)
+        self.show_on_tab_keybind_selector.button.grid(row=3, column=1)
         parent.make_widgets_scrollable(
             show_on_tab_hotkey_label,
             self.show_on_tab_keybind_selector.button,
@@ -238,11 +248,11 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        check_for_updates_label.grid(row=5, column=0, sticky=tk.E)
+        check_for_updates_label.grid(row=4, column=0, sticky=tk.E)
         self.check_for_updates_toggle = ToggleButton(
             self.frame, toggle_callback=disable_include_patch_updates_toggle
         )
-        self.check_for_updates_toggle.button.grid(row=5, column=1)
+        self.check_for_updates_toggle.button.grid(row=4, column=1)
         parent.make_widgets_scrollable(
             check_for_updates_label,
             self.check_for_updates_toggle.button,
@@ -255,9 +265,9 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        include_patch_updates_label.grid(row=6, column=0, sticky=tk.E)
+        include_patch_updates_label.grid(row=5, column=0, sticky=tk.E)
         self.include_patch_updates_toggle = ToggleButton(self.frame)
-        self.include_patch_updates_toggle.button.grid(row=6, column=1)
+        self.include_patch_updates_toggle.button.grid(row=5, column=1)
         parent.make_widgets_scrollable(
             include_patch_updates_label,
             self.include_patch_updates_toggle.button,
@@ -270,9 +280,9 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        use_included_certs_label.grid(row=7, column=0, sticky=tk.E)
+        use_included_certs_label.grid(row=6, column=0, sticky=tk.E)
         self.use_included_certs_toggle = ToggleButton(self.frame)
-        self.use_included_certs_toggle.button.grid(row=7, column=1)
+        self.use_included_certs_toggle.button.grid(row=6, column=1)
         parent.make_widgets_scrollable(
             use_included_certs_label,
             self.use_included_certs_toggle.button,
@@ -291,14 +301,13 @@ class GeneralSettingSection:  # pragma: nocover
                 foreground="red",
                 background="black",
             )
-            show_on_tab_disabled_label.grid(row=8, column=0, columnspan=2)
+            show_on_tab_disabled_label.grid(row=7, column=0, columnspan=2)
             parent.make_widgets_scrollable(show_on_tab_disabled_label)
 
     def set(
         self,
         autodenick_teammates: bool,
         autoselect_logfile: bool,
-        use_antisniper_api: bool,
         show_on_tab: bool,
         show_on_tab_keybind: Key,
         check_for_updates: bool,
@@ -308,19 +317,17 @@ class GeneralSettingSection:  # pragma: nocover
         """Set the state of this section"""
         self.autodenick_teammates_toggle.set(autodenick_teammates)
         self.autoselect_logfile_toggle.set(autoselect_logfile)
-        self.use_antisniper_api_toggle.set(use_antisniper_api)
         self.show_on_tab_toggle.set(show_on_tab)
         self.show_on_tab_keybind_selector.set_key(show_on_tab_keybind)
         self.check_for_updates_toggle.set(check_for_updates)
         self.include_patch_updates_toggle.set(include_patch_updates)
         self.use_included_certs_toggle.set(use_included_certs)
 
-    def get(self) -> tuple[bool, bool, bool, bool, Key, bool, bool, bool]:
+    def get(self) -> tuple[bool, bool, bool, Key, bool, bool, bool]:
         """Get the state of this section"""
         return (
             self.autodenick_teammates_toggle.enabled,
             self.autoselect_logfile_toggle.enabled,
-            self.use_antisniper_api_toggle.enabled,
             self.show_on_tab_toggle.enabled,
             self.show_on_tab_keybind_selector.key,
             self.check_for_updates_toggle.enabled,
@@ -1081,10 +1088,10 @@ class SettingsPage:  # pragma: nocover
         self.scrollable_settings_frame.container_frame.pack(side=tk.TOP, fill=tk.BOTH)
 
         SupportSection(self)
-        self.api_key_section = APIKeySection(self)
         self.general_settings_section = GeneralSettingSection(self)
         self.display_section = DisplaySection(self)
         self.column_section = ColumnSection(self)
+        self.antisniper_section = AntisniperSection(self)
         self.discord_section = DiscordSection(self)
         self.performance_section = PerformanceSection(self)
         self.graphics_section = GraphicsSection(self)
@@ -1133,11 +1140,13 @@ class SettingsPage:  # pragma: nocover
         self.scrollable_settings_frame.scroll_to_top()
 
         with settings.mutex:
-            self.api_key_section.set(settings.antisniper_api_key)
+            self.antisniper_section.set(
+                use_antisniper_api=settings.use_antisniper_api,
+                antisniper_api_key=settings.antisniper_api_key,
+            )
             self.general_settings_section.set(
                 autodenick_teammates=settings.autodenick_teammates,
                 autoselect_logfile=settings.autoselect_logfile,
-                use_antisniper_api=settings.use_antisniper_api,
                 show_on_tab=settings.show_on_tab,
                 show_on_tab_keybind=settings.show_on_tab_keybind,
                 check_for_updates=settings.check_for_updates,
@@ -1178,11 +1187,10 @@ class SettingsPage:  # pragma: nocover
         user_id = self.controller.settings.user_id
         hypixel_api_key = self.controller.settings.hypixel_api_key
 
-        antisniper_api_key = self.api_key_section.get()
+        use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
         (
             autodenick_teammates,
             autoselect_logfile,
-            use_antisniper_api,
             show_on_tab,
             show_on_tab_keybind,
             check_for_updates,
