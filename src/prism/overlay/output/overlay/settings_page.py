@@ -1211,6 +1211,8 @@ class SettingsPage:  # pragma: nocover
         # TODO: Add section to edit known nicks
         with self.controller.settings.mutex:
             known_nicks = self.controller.settings.known_nicks.copy()
+            # TODO: Add autowho settings section
+            autowho = self.controller.settings.autowho
 
         # "Secret" settings, not editable in the GUI
         disable_overrideredirect = self.controller.settings.disable_overrideredirect
@@ -1234,6 +1236,7 @@ class SettingsPage:  # pragma: nocover
             autohide_timeout=autohide_timeout,
             show_on_tab=show_on_tab,
             show_on_tab_keybind=show_on_tab_keybind.to_dict(),
+            autowho=autowho,
             check_for_updates=check_for_updates,
             include_patch_updates=include_patch_updates,
             use_included_certs=use_included_certs,

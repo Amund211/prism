@@ -314,6 +314,7 @@ def test_update_settings_everything_changed() -> None:
         show_on_tab_keybind=AlphanumericKeyDict(
             name="a", char="a", key_type="alphanumeric"
         ),
+        autowho=False,
         check_for_updates=False,
         include_patch_updates=True,
         use_included_certs=False,

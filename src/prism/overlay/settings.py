@@ -55,6 +55,7 @@ class SettingsDict(TypedDict):
     autohide_timeout: int
     show_on_tab: bool
     show_on_tab_keybind: KeyDict
+    autowho: bool
     check_for_updates: bool
     include_patch_updates: bool
     use_included_certs: bool
@@ -86,6 +87,7 @@ class Settings:
     autohide_timeout: int
     show_on_tab: bool
     show_on_tab_keybind: Key
+    autowho: bool
     check_for_updates: bool
     include_patch_updates: bool
     use_included_certs: bool
@@ -130,6 +132,7 @@ class Settings:
             autohide_timeout=source["autohide_timeout"],
             show_on_tab=source["show_on_tab"],
             show_on_tab_keybind=construct_key(source["show_on_tab_keybind"]),
+            autowho=source["autowho"],
             check_for_updates=source["check_for_updates"],
             include_patch_updates=source["include_patch_updates"],
             use_included_certs=source["use_included_certs"],
@@ -160,6 +163,7 @@ class Settings:
             "autohide_timeout": self.autohide_timeout,
             "show_on_tab": self.show_on_tab,
             "show_on_tab_keybind": self.show_on_tab_keybind.to_dict(),
+            "autowho": self.autowho,
             "check_for_updates": self.check_for_updates,
             "include_patch_updates": self.include_patch_updates,
             "use_included_certs": self.use_included_certs,
@@ -191,6 +195,7 @@ class Settings:
         self.autohide_timeout = new_settings["autohide_timeout"]
         self.show_on_tab = new_settings["show_on_tab"]
         self.show_on_tab_keybind = construct_key(new_settings["show_on_tab_keybind"])
+        self.autowho = new_settings["autowho"]
         self.check_for_updates = new_settings["check_for_updates"]
         self.include_patch_updates = new_settings["include_patch_updates"]
         self.use_included_certs = new_settings["use_included_certs"]
@@ -357,6 +362,10 @@ def fill_missing_settings(
     else:
         show_on_tab_keybind = sot_keybind_key_dict
 
+    autowho, settings_updated = get_boolean_setting(
+        incomplete_settings, "autowho", settings_updated, default=True
+    )
+
     check_for_updates, settings_updated = get_boolean_setting(
         incomplete_settings, "check_for_updates", settings_updated, default=True
     )
@@ -424,6 +433,7 @@ def fill_missing_settings(
         "autohide_timeout": autohide_timeout,
         "show_on_tab": show_on_tab,
         "show_on_tab_keybind": show_on_tab_keybind,
+        "autowho": autowho,
         "check_for_updates": check_for_updates,
         "include_patch_updates": include_patch_updates,
         "use_included_certs": use_included_certs,

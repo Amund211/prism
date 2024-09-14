@@ -53,6 +53,7 @@ def make_settings_dict(
     autohide_timeout: int | None = None,
     show_on_tab: bool | None = None,
     show_on_tab_keybind: KeyDict | None = None,
+    autowho: bool | None = None,
     check_for_updates: bool | None = None,
     include_patch_updates: bool | None = None,
     use_included_certs: bool | None = None,
@@ -90,6 +91,7 @@ def make_settings_dict(
             show_on_tab_keybind,
             default=SpecialKeyDict(name="tab", vk=None, key_type="special"),
         ),
+        "autowho": value_or_default(autowho, default=True),
         "check_for_updates": value_or_default(check_for_updates, default=True),
         "include_patch_updates": value_or_default(include_patch_updates, default=False),
         "use_included_certs": value_or_default(use_included_certs, default=True),
@@ -129,6 +131,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             autohide_timeout=8,
             show_on_tab=True,
             show_on_tab_keybind=AlphanumericKey(name="a", char="a"),
+            autowho=True,
             check_for_updates=True,
             include_patch_updates=False,
             use_included_certs=False,
@@ -159,6 +162,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "show_on_tab_keybind": AlphanumericKeyDict(
                 name="a", char="a", key_type="alphanumeric"
             ),
+            "autowho": True,
             "check_for_updates": True,
             "include_patch_updates": False,
             "use_included_certs": False,
@@ -188,6 +192,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             autohide_timeout=19,
             show_on_tab=False,
             show_on_tab_keybind=SpecialKey(name="tab", vk=None),
+            autowho=False,
             check_for_updates=False,
             include_patch_updates=True,
             use_included_certs=True,
@@ -218,6 +223,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "show_on_tab_keybind": SpecialKeyDict(
                 name="tab", vk=None, key_type="special"
             ),
+            "autowho": False,
             "check_for_updates": False,
             "include_patch_updates": True,
             "use_included_certs": True,
@@ -380,6 +386,7 @@ fill_settings_test_cases: tuple[
             "show_on_tab_keybind": SpecialKeyDict(
                 name="somekey", vk=123456, key_type="special"
             ),
+            "autowho": True,
             "check_for_updates": False,
             "include_patch_updates": True,
             "use_included_certs": True,
@@ -408,6 +415,7 @@ fill_settings_test_cases: tuple[
             show_on_tab_keybind=SpecialKeyDict(
                 name="somekey", vk=123456, key_type="special"
             ),
+            autowho=True,
             check_for_updates=False,
             include_patch_updates=True,
             use_included_certs=True,
@@ -713,6 +721,12 @@ fill_settings_test_cases: tuple[
     (
         # Invalid data for autohide_timeout
         {"autohide_timeout": 123456789},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # Invalid data for autowho
+        {"autowho": 123456789},
         make_settings_dict(),
         True,
     ),
