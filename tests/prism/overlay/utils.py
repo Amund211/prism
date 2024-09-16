@@ -8,6 +8,7 @@ from cachetools import TTLCache
 
 from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from prism.overlay.controller import ProcessingError
+from prism.overlay.keybinds import Key
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.output.config import (
     RatingConfigCollection,
@@ -274,6 +275,8 @@ def make_settings(
     user_id: str = "make-settings-default-user-id",
     known_nicks: dict[str, NickValue] | None = None,
     hide_dead_players: bool | None = None,
+    autowho: bool | None = None,
+    chat_hotkey: Key | None = None,
     path: Path | PurePath | None = None,
 ) -> Settings:
     return Settings.from_dict(
@@ -284,6 +287,10 @@ def make_settings(
                 "use_antisniper_api": use_antisniper_api,
                 "known_nicks": known_nicks or {},
                 "hide_dead_players": hide_dead_players,
+                "autowho": autowho,
+                "chat_hotkey": (
+                    chat_hotkey.to_dict() if chat_hotkey is not None else None
+                ),
             },
             2,
         )[0],
