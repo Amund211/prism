@@ -1,7 +1,7 @@
 import logging
 import threading
 import uuid
-from collections.abc import Mapping, MutableMapping
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Self, TypedDict, TypeVar
@@ -241,7 +241,7 @@ def api_key_is_valid(key: str) -> bool:
     return key != PLACEHOLDER_API_KEY and len(key) > 5
 
 
-def read_settings(path: Path) -> MutableMapping[str, object]:
+def read_settings(path: Path) -> Mapping[str, object]:
     return toml.load(path)
 
 
