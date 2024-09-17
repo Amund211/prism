@@ -15,8 +15,6 @@ logger = logging.getLogger(__name__)
 if TYPE_CHECKING:  # pragma: nocover
     from pynput import keyboard
 
-    from prism.overlay.output.overlay.stats_overlay import StatsOverlay
-
 
 class ToggleButton:  # pragma: nocover
     DISABLED_CONFIG = {
@@ -93,12 +91,10 @@ class KeybindSelector(ToggleButton):  # pragma: no coverage
         "bg": "lawn green",
     }
 
-    def __init__(self, frame: tk.Frame, overlay: "StatsOverlay") -> None:
+    def __init__(self, frame: tk.Frame) -> None:
         super().__init__(
             frame=frame, toggle_callback=self._on_toggle, start_enabled=False
         )
-
-        self.overlay = overlay
 
         self.key: Key = SpecialKey(name="tab", vk=None)
 
@@ -123,16 +119,12 @@ class KeybindSelector(ToggleButton):  # pragma: no coverage
 
     def _on_press(self, pynput_key: "keyboard.Key | keyboard.KeyCode | None") -> None:
         """Handle keypresses"""
-        # Fast path out in case the listener is active when we don't need it
-        if self.overlay.current_page != "settings" or not self.selecting:
-            return
-
         key = self.normalize(pynput_key)
 
         if key is not None:
             self.key = key
             # Got a key -> no longer selecting
-            self.toggle()
+            self.set(False)
 
     def _start_listener(self) -> None:
         if sys.platform == "darwin":

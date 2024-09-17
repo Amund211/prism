@@ -196,7 +196,7 @@ class GeneralSettingSection:  # pragma: nocover
         )
 
         def disable_keybind_selector(enabled: bool) -> None:
-            self.show_on_tab_keybind_selector.button.config(  # type: ignore [has-type]
+            self.show_on_tab_keybind_selector.button.config(
                 state=tk.NORMAL if enabled else tk.DISABLED,
                 cursor="hand2" if enabled else "arrow",
             )
@@ -226,9 +226,7 @@ class GeneralSettingSection:  # pragma: nocover
             background="black",
         )
         show_on_tab_hotkey_label.grid(row=3, column=0, sticky=tk.E)
-        self.show_on_tab_keybind_selector = KeybindSelector(
-            self.frame, overlay=parent.overlay
-        )
+        self.show_on_tab_keybind_selector = KeybindSelector(self.frame)
         self.show_on_tab_keybind_selector.button.grid(row=3, column=1)
         parent.make_widgets_scrollable(
             show_on_tab_hotkey_label,
@@ -351,18 +349,18 @@ class AutoWhoSection:  # pragma: nocover
         self.frame.columnconfigure(0, weight=0)
 
         def set_interactivity(enabled: bool) -> None:
-            state = tk.NORMAL if enabled else tk.DISABLED
+            state: Literal["normal", "disabled"] = tk.NORMAL if enabled else tk.DISABLED
             cursor = "hand2" if enabled else "arrow"
-            self.chat_keybind_selector.button.config(  # type: ignore [has-type, unused-ignore]  # noqa: E501
+            self.chat_keybind_selector.button.config(
                 state=state,
                 cursor=cursor,
             )
-            self.autowho_delay_scale.config(  # type: ignore [has-type, unused-ignore]
+            self.autowho_delay_scale.config(
                 state=state,
                 cursor=cursor,
                 foreground="white" if enabled else "gray",
             )
-            self.reset_autowho_delay_button.config(  # type: ignore [has-type, unused-ignore]  # noqa: E501
+            self.reset_autowho_delay_button.config(
                 state=state,
                 cursor=cursor,
             )
@@ -392,7 +390,7 @@ class AutoWhoSection:  # pragma: nocover
             background="black",
         )
         chat_hotkey_label.grid(row=1, column=0, sticky=tk.E)
-        self.chat_keybind_selector = KeybindSelector(self.frame, overlay=parent.overlay)
+        self.chat_keybind_selector = KeybindSelector(self.frame)
         self.chat_keybind_selector.button.grid(row=1, column=1)
         parent.make_widgets_scrollable(
             chat_hotkey_label,
