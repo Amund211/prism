@@ -89,6 +89,7 @@ class KeybindSelector(ToggleButton):  # pragma: no coverage
     ENABLED_CONFIG = {
         "text": "<Select>",
         "bg": "lawn green",
+        "activebackground": "green yellow",
     }
 
     def __init__(self, frame: tk.Frame) -> None:
