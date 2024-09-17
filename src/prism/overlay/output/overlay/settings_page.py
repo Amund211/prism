@@ -1315,7 +1315,10 @@ class SettingsPage:  # pragma: nocover
         self.overlay.window.set_alpha_hundredths(
             self.controller.settings.alpha_hundredths
         )
+        # Set to False to stop the listeners
         self.general_settings_section.show_on_tab_keybind_selector.set(False)
+        if sys.platform != "darwin":  # Not present on mac
+            self.autowho_section.chat_keybind_selector.set(False)
 
     def on_save(self) -> None:
         """Handle the user saving their settings"""
