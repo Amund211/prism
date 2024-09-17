@@ -1,7 +1,7 @@
 import logging
 import threading
 import uuid
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Self, TypedDict, TypeVar
@@ -480,7 +480,11 @@ def fill_missing_settings(
     }, settings_updated
 
 
-def get_settings(path: Path, default_stats_thread_count: int) -> Settings:
+def get_settings(
+    path: Path,
+    default_stats_thread_count: int,
+    update_settings: Callable[[Settings, Mapping[str, object]], tuple[Settings, bool]],
+) -> Settings:
     """
     Read the stored settings into a Settings object
 
@@ -500,7 +504,9 @@ def get_settings(path: Path, default_stats_thread_count: int) -> Settings:
 
     settings = Settings.from_dict(settings_dict, path=path)
 
-    if settings_updated:
+    settings, post_update = update_settings(settings, incomplete_settings)
+
+    if settings_updated or post_update:
         settings.flush_to_disk()
 
     logger.info(f"Read settings from disk: {settings}")

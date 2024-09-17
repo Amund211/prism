@@ -119,10 +119,16 @@ jobs:
 
         echo 'Ensure ssl error is caught when using included certs' >&2
         echo 'use_included_certs = true' > included_certs_settings.toml
+        # Don't open the settings prompt
+        echo 'autowho = true' >> included_certs_settings.toml
+
         python prism_overlay.py --test-ssl --settings=included_certs_settings.toml --logfile=latest.log ${{ env.TEE_STDERR }} | grep '^Caught missing local issuer SSLError: ' >/dev/null 2>&1
 
         echo 'Ensure request succeeds when using system certs' >&2
         echo 'use_included_certs = false' > system_certs_settings.toml
+        # Don't open the settings prompt
+        echo 'autowho = true' >> system_certs_settings.toml
+
         python prism_overlay.py --test-ssl --settings=system_certs_settings.toml --logfile=latest.log ${{ env.TEE_STDERR }} | grep '^Got response: Hello world' >/dev/null 2>&1
 
     - name: Build single file binary with pyinstaller

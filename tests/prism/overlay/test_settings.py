@@ -39,6 +39,12 @@ DEFAULT_USER_ID = "default-user-id-test"
 DEFAULT_STATS_THREAD_COUNT = 7
 
 
+def noop_update_settings(
+    settings: Settings, incomplete_settings: Mapping[str, object]
+) -> tuple[Settings, bool]:
+    return settings, False
+
+
 def make_settings_dict(
     user_id: str | None = None,
     hypixel_api_key: str | None = None,
@@ -316,7 +322,10 @@ def test_read_and_write_settings(
     # read_settings_dict = read_settings(settings.path)
     # assert read_settings_dict == settings_dict
 
-    assert get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT) == settings
+    assert (
+        get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
+        == settings
+    )
 
 
 def test_read_missing_settings_file(tmp_path: Path) -> None:
@@ -332,7 +341,7 @@ def test_read_missing_settings_file(tmp_path: Path) -> None:
         return_value=FakeUUID(hex=DEFAULT_USER_ID),
     ):
         assert get_settings(
-            empty_path, DEFAULT_STATS_THREAD_COUNT
+            empty_path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings
         ) == Settings.from_dict(source=make_settings_dict(), path=empty_path)
 
 
@@ -344,7 +353,10 @@ def test_flush_settings_from_controller(tmp_path: Path) -> None:
     settings = make_settings(path=tmp_path / "settings.toml")
 
     # File not found
-    assert get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT) != settings
+    assert (
+        get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
+        != settings
+    )
 
     controller = RealOverlayController(
         state=create_state(), settings=settings, nick_database=NickDatabase([{}])
@@ -353,7 +365,10 @@ def test_flush_settings_from_controller(tmp_path: Path) -> None:
     controller.store_settings()
 
     # File properly stored
-    assert get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT) == settings
+    assert (
+        get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
+        == settings
+    )
 
 
 def test_get_boolean_setting() -> None:
@@ -859,3 +874,37 @@ def test_sort_ascending() -> None:
 
     settings.sort_order = "username"
     assert not settings.sort_ascending
+
+
+def test_update_settings(tmp_path: Path) -> None:
+    settings = Settings.from_dict(make_settings_dict(), path=tmp_path / "settings.toml")
+
+    def update_settings(
+        settings: Settings, incomplete_settings: Mapping[str, object]
+    ) -> tuple[Settings, bool]:
+        assert incomplete_settings == {}
+        settings.autowho = False
+        settings.hide_dead_players = False
+        settings.user_id = "new-user-id"
+        settings.antisniper_api_key = "updated-antisniper-key"
+        return settings, True
+
+    target_settings = Settings.from_dict(
+        source=make_settings_dict(
+            autowho=False,
+            hide_dead_players=False,
+            user_id="new-user-id",
+            antisniper_api_key="updated-antisniper-key",
+        ),
+        path=settings.path,
+    )
+
+    assert (
+        get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT, update_settings)
+        == target_settings
+    ), "Get with updates should return updated settings"
+
+    assert (
+        get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
+        == target_settings
+    ), "Updated settings should have been persisted in last call"

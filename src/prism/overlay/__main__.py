@@ -21,6 +21,7 @@ from prism.overlay.not_parallel import ensure_not_parallel
 from prism.overlay.settings import get_settings
 from prism.overlay.state import OverlayState
 from prism.overlay.thread_count import recommend_stats_thread_count
+from prism.overlay.user_interaction.settings_prompt import prompt_if_no_autowho
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,7 @@ def main() -> None:  # pragma: nocover
     settings = get_settings(
         options.settings_path,
         recommend_stats_thread_count(),
+        prompt_if_no_autowho,
     )
 
     if not settings.use_included_certs:
