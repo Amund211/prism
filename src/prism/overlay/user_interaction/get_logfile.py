@@ -1,4 +1,5 @@
 import functools
+import gc
 import logging
 import sys
 import tkinter as tk
@@ -290,7 +291,13 @@ def prompt_for_logfile_path(
             last_used_id=last_used_id,
             autoselect=autoselect,
         )
-        return logfile_prompt.run()
+        cache = logfile_prompt.run()
+        # Run garbage collection to clean up all the tkinter objects
+        # https://github.com/python/cpython/issues/83274
+        # https://github.com/robotframework/robotframework/issues/4993#issuecomment-1908874616  # noqa: E501
+        # Have not experienced this issue here, but adding just in case
+        gc.collect()
+        return cache
 
     try:
         logfile_path = get_logfile(
