@@ -136,10 +136,7 @@ def prompt_if_no_autowho(
     logger.info("No autowho setting found in settings, prompting user to confirm")
     autowho, chat_hotkey = prompt(settings)
 
-    new_autowho = settings.autowho != autowho
-    new_hotkey = settings.chat_hotkey != chat_hotkey
-
     settings.autowho = autowho
     settings.chat_hotkey = chat_hotkey
 
-    return settings, new_autowho or new_hotkey
+    return settings, True
