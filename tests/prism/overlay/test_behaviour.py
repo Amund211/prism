@@ -287,7 +287,8 @@ def test_update_settings_everything_changed() -> None:
             "AmazingNick": {"uuid": "1", "comment": "1"},
             "SuperbNick": {"uuid": "2", "comment": "2"},
             "AstoundingNick": {"uuid": "3", "comment": "3"},
-        }
+        },
+        antisniper_api_key="my-api-key",
     )
 
     controller = MockedController(
@@ -361,7 +362,9 @@ def test_update_settings_everything_changed() -> None:
 
 
 def test_update_settings_clear_antisniper_key() -> None:
-    controller = MockedController()
+    controller = MockedController(
+        settings=make_settings(antisniper_api_key="my-api-key")
+    )
     controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
 
     new_settings = replace(controller.settings, antisniper_api_key=None)

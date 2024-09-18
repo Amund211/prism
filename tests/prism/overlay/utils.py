@@ -270,8 +270,8 @@ def make_winstreaks(
 
 
 def make_settings(
-    antisniper_api_key: str | None = "placeholder-antisniper-key",
-    use_antisniper_api: bool = False,
+    antisniper_api_key: str | None = None,
+    use_antisniper_api: bool | None = None,
     user_id: str = "make-settings-default-user-id",
     known_nicks: dict[str, NickValue] | None = None,
     hide_dead_players: bool | None = None,
