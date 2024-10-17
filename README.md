@@ -11,9 +11,9 @@
 
 <div align="center">
 
-[![Download for Windows](./images/download_windows.png)][latest-windows-download-link]
-[![Download for Mac](./images/download_mac.png)][latest-mac-download-link]
-[![Download for Linux](./images/download_linux.png)][latest-linux-download-link]
+[![Download for Windows](./media/download_windows.png)][latest-windows-download-link]
+[![Download for Mac](./media/download_mac.png)][latest-mac-download-link]
+[![Download for Linux](./media/download_linux.png)][latest-linux-download-link]
 
 [^1] [^2] [^3]
 
@@ -28,7 +28,7 @@
 [latest-mac-download-link]: https://github.com/Amund211/prism/releases/download/v1.9.0/prism-v1.9.0-mac.dmg
 [latest-linux-download-link]: https://github.com/Amund211/prism/releases/download/v1.9.0/prism-v1.9.0-linux
 
-[![Using Prism](./images/in_queue/stars_0dec_fkdr_ws_sort_fkdr.jpg)][latest-release-link]
+[![Using Prism](./media/in_queue/stars_0dec_fkdr_ws_sort_fkdr.jpg)][latest-release-link]
 
 <details>
 <summary>Click here for more examples!</summary>
@@ -47,31 +47,31 @@ The overlay has a highly customizable stats table. In the settings you can confi
 Stars colored by star color with 0 decimals and fkdr, sorted by fkdr
 </div>
 
-[![Stars colored by star color with 0 decimals and fkdr, sorted by fkdr](./images/in_queue/stars_0dec_fkdr_sort_fkdr.jpg)][latest-release-link]
+[![Stars colored by star color with 0 decimals and fkdr, sorted by fkdr](./media/in_queue/stars_0dec_fkdr_sort_fkdr.jpg)][latest-release-link]
 
 <div align="center">
 Stars colored by star color, fkdr, kdr and winstreak, sorted by index (fkdr^2*stars)
 </div>
 
-[![Stars colored by star color, fkdr, kdr and winstreak, sorted by index (fkdr^2\*stars)](./images/in_queue/stars_fkdr_kdr_ws_sort_index.jpg)][latest-release-link]
+[![Stars colored by star color, fkdr, kdr and winstreak, sorted by index (fkdr^2\*stars)](./media/in_queue/stars_fkdr_kdr_ws_sort_index.jpg)][latest-release-link]
 
 <div align="center">
 Stars colored by star color, fkdr and winstreak, sorted by fkdr
 </div>
 
-[![Stars colored by star color, fkdr and winstreak, sorted by fkdr](./images/in_queue/stars_fkdr_ws_sort_fkdr.jpg)][latest-release-link]
+[![Stars colored by star color, fkdr and winstreak, sorted by fkdr](./media/in_queue/stars_fkdr_ws_sort_fkdr.jpg)][latest-release-link]
 
 <div align="center">
 Stars colored by rating with 0 decimals and fkdr with 1 decimal sorted by fkdr
 </div>
 
-[![Stars colored by rating with 0 decimals and fkdr with 1 decimal sorted by fkdr](./images/in_queue/stars_rated0dec_fkdr_1dec_sort_fkdr.jpg)][latest-release-link]
+[![Stars colored by rating with 0 decimals and fkdr with 1 decimal sorted by fkdr](./media/in_queue/stars_rated0dec_fkdr_1dec_sort_fkdr.jpg)][latest-release-link]
 
 <div align="center">
 Every available column, sorted by stars
 </div>
 
-[![Every available column, sorted by stars](./images/in_queue/everything_sort_stars.jpg)][latest-release-link]
+[![Every available column, sorted by stars](./media/in_queue/everything_sort_stars.jpg)][latest-release-link]
 
 </details>
 
