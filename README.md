@@ -28,7 +28,14 @@
 [latest-mac-download-link]: https://github.com/Amund211/prism/releases/download/v1.9.0/prism-v1.9.0-mac.dmg
 [latest-linux-download-link]: https://github.com/Amund211/prism/releases/download/v1.9.0/prism-v1.9.0-linux
 
-[![Using Prism](./media/in_queue/stars_0dec_fkdr_ws_sort_fkdr.jpg)][latest-release-link]
+## Examples
+
+<div align="center">
+
+**Queueing with Prism using AutoWho**
+[![Using Prism with the autowho integration](./media/autowho.webp)][latest-release-link]
+
+</div>
 
 <details>
 <summary>Click here for more examples!</summary>
