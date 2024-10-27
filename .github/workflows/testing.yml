@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-12]
+        os: [ubuntu-latest, windows-latest, macOS-13]
     defaults:
       run:
         shell: bash  # For `source`
@@ -140,9 +140,10 @@ jobs:
     - name: Package app bundle to disk image (mac)
       if: env.OS_NAME == 'mac'
       run: |
-        brew install create-dmg
+        brew install imagemagick
+        magick pyinstaller/who_with_version.ico pyinstaller/who_with_version.icns
 
-        convert pyinstaller/who_with_version.ico pyinstaller/who_with_version.icns
+        brew install create-dmg
 
         mkdir -p 'dist/app'
         mv "dist/${{ env.SIMPLE_NAME }}.app" "dist/app"
