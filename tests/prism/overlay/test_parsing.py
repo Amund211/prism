@@ -437,6 +437,11 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         InitializeAsEvent("Player1"),
     ),
     (
+        # Initialize as on vanilla 1.21
+        "[21:46:09] [Render thread/INFO]: Setting user: Player1",
+        InitializeAsEvent("Player1"),
+    ),
+    (
         # Initialize as on prism launcher (vanilla 1.8.9)
         "[18:52:20] [Client thread/INFO]: Setting user: Player1",
         InitializeAsEvent("Player1"),
@@ -503,6 +508,11 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         # Lobby list with colors added from mod (constructed logline)
         "[15:03:53] [Client thread/INFO]: [CHAT] ONLINE: §7Player1, §7Player2, §cPlayer3, §7Player4, §7Player5, §7Player6",
         LobbyListEvent(usernames=[f"Player{i}" for i in range(1, 7)]),
+    ),
+    (
+        # Lobby list on 1.21
+        "[21:48:45] [Render thread/INFO]: [System] [CHAT] ONLINE: Player1, Player2",
+        LobbyListEvent(usernames=["Player1", "Player2"]),
     ),
     (
         # Lobby swap on vanilla
