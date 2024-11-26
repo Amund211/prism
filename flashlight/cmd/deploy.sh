@@ -5,16 +5,16 @@ set -eu
 function_name="${1:-}"
 
 case $function_name in
-	flashlight)
-		sentry_dsn_key='flashlight-sentry-dsn'
-		;;
-	flashlight-test)
-		sentry_dsn_key='flashlight-test-sentry-dsn'
-		;;
-	*)
-		echo "Invalid/missing function name '$function_name'. Must be 'flashlight' or 'flashlight-test'" >&2
-		exit 1
-		;;
+flashlight)
+	sentry_dsn_key='flashlight-sentry-dsn'
+	;;
+flashlight-test)
+	sentry_dsn_key='flashlight-test-sentry-dsn'
+	;;
+*)
+	echo "Invalid/missing function name '$function_name'. Must be 'flashlight' or 'flashlight-test'" >&2
+	exit 1
+	;;
 esac
 
 gcloud functions deploy "$function_name" \
@@ -35,12 +35,12 @@ gcloud functions deploy "$function_name" \
 
 # Verify that newly deployed function works
 echo 'Making request to new deployment' >&2
-response="$( \
+response="$(
 	curl \
 		--fail \
 		-sS \
 		-H "X-User-Id: github-actions-$function_name" \
-		"https://northamerica-northeast2-prism-overlay.cloudfunctions.net/${function_name}?uuid=a937646b-f115-44c3-8dbf-9ae4a65669a0" \
+		"https://northamerica-northeast2-prism-overlay.cloudfunctions.net/${function_name}?uuid=a937646b-f115-44c3-8dbf-9ae4a65669a0"
 )"
 
 echo 'Verifying response from new deployment' >&2
