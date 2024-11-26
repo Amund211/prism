@@ -20,7 +20,7 @@ esac
 gcloud functions deploy "$function_name" \
 	--gen2 \
 	--region=northamerica-northeast2 \
-	--runtime=go121 \
+	--runtime=go122 \
 	--entry-point=flashlight \
 	--trigger-http \
 	--max-instances=1 \
