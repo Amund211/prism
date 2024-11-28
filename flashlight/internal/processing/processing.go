@@ -57,7 +57,7 @@ func ProcessPlayerData(ctx context.Context, playerData []byte, statusCode int) (
 		return []byte{}, -1, err
 	}
 
-	logging.FromContext(ctx).Error(
+	logging.FromContext(ctx).Info(
 		"Got response from hypixel",
 		"status", "success",
 		"statusCode", statusCode,
