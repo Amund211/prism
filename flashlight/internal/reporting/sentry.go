@@ -25,6 +25,7 @@ func Report(ctx context.Context, err error, extras ...map[string]string) {
 	hub := sentry.GetHubFromContext(ctx)
 	if hub == nil {
 		log.Println("Failed to get Sentry hub from context")
+		log.Println("Error:", err, "Extras:", extras)
 		return
 	}
 
