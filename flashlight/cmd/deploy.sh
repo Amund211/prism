@@ -33,8 +33,11 @@ gcloud functions deploy "$function_name" \
 	--allow-unauthenticated \
 	--concurrency 100 \
 	--set-secrets HYPIXEL_API_KEY=prism-hypixel-api-key:latest \
+	--set-secrets DB_PASSWORD=flashlight-db-password:latest \
 	--set-secrets "SENTRY_DSN=${sentry_dsn_key}:latest" \
-	--set-env-vars "FLASHLIGHT_ENVIRONMENT=${environment}"
+	--set-env-vars "FLASHLIGHT_ENVIRONMENT=${environment}" \
+	--set-env-vars 'DB_USERNAME=postgres' \
+	--set-env-vars 'CLOUDSQL_UNIX_SOCKET=/cloudsql/prism-overlay:northamerica-northeast2:flashlight-postgres'
 
 # Verify that newly deployed function works
 echo 'Making request to new deployment' >&2

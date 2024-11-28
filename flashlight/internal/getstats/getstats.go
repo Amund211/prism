@@ -3,6 +3,7 @@ package getstats
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Amund211/flashlight/internal/cache"
 	e "github.com/Amund211/flashlight/internal/errors"
@@ -10,18 +11,36 @@ import (
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/processing"
 	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/flashlight/internal/storage"
 )
 
-func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
+func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, persistor storage.StatsPersistor, uuid string) ([]byte, int, error) {
 	playerData, statusCode, err := hypixelAPI.GetPlayerData(ctx, uuid)
 	if err != nil {
 		reporting.Report(ctx, err)
 		return []byte{}, -1, err
 	}
+	queriedAt := time.Now()
 
 	parsedAPIResponse, processedStatusCode, err := processing.ParseHypixelAPIResponse(ctx, playerData, statusCode)
 	if err != nil {
 		return []byte{}, -1, err
+	}
+
+	if parsedAPIResponse.Player != nil {
+		err = persistor.StoreStats(ctx, uuid, playerData, queriedAt)
+		if err != nil {
+			err = fmt.Errorf("failed to persist player data: %w", err)
+			reporting.Report(
+				ctx,
+				err,
+				map[string]string{
+					"processedStatusCode": fmt.Sprint(processedStatusCode),
+					"statusCode":          fmt.Sprint(statusCode),
+					"data":                string(playerData),
+				},
+			)
+		}
 	}
 
 	minifiedPlayerData, err := processing.MarshalPlayerData(ctx, parsedAPIResponse)
@@ -42,7 +61,7 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI,
 	return minifiedPlayerData, processedStatusCode, nil
 }
 
-func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
+func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI, persistor storage.StatsPersistor, uuid string) ([]byte, int, error) {
 	logger := logging.FromContext(ctx)
 
 	if uuid == "" {
@@ -56,7 +75,7 @@ func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.Playe
 	}
 
 	processedPlayerData, statusCode, err := cache.GetOrCreateCachedResponse(ctx, playerCache, uuid, func() ([]byte, int, error) {
-		return getAndProcessPlayerData(ctx, hypixelAPI, uuid)
+		return getAndProcessPlayerData(ctx, hypixelAPI, persistor, uuid)
 	})
 
 	if err != nil {
