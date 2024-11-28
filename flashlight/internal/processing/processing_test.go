@@ -143,15 +143,18 @@ func runProcessPlayerDataTest(t *testing.T, test processPlayerDataTest) {
 	if test.expectedStatusCode != 0 {
 		expectedStatusCode = test.expectedStatusCode
 	}
-	minified, statusCode, err := ProcessPlayerData(context.Background(), test.before, hypixelStatusCode)
+	parsedResponse, statusCode, err := ParseHypixelAPIResponse(context.Background(), test.before, hypixelStatusCode)
 
 	if test.error != nil {
 		assert.Equal(t, 0, test.expectedStatusCode, "status code not returned on error")
 		assert.ErrorIs(t, err, test.error, "processPlayerData(%s) - expected error", test.name)
 		return
 	}
+	assert.Nil(t, err, "processPlayerData(%s) - unexpected parse error: %v", test.name, err)
 
-	assert.Nil(t, err, "processPlayerData(%s) - unexpected error: %v", test.name, err)
+	minified, err := MarshalPlayerData(context.Background(), parsedResponse)
+
+	assert.Nil(t, err, "processPlayerData(%s) - unexpected marshall error: %v", test.name, err)
 	assert.Equal(t, expectedStatusCode, statusCode, test.name)
 	assert.Equal(t, string(test.after), string(minified), "processPlayerData(%s) - expected '%s', got '%s'", test.name, test.after, minified)
 }

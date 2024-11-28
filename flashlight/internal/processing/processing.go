@@ -35,7 +35,7 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 	return err
 }
 
-func ProcessPlayerData(ctx context.Context, playerData []byte, statusCode int) ([]byte, int, error) {
+func ParseHypixelAPIResponse(ctx context.Context, playerData []byte, statusCode int) (*hypixelAPIResponse, int, error) {
 	err := checkForHypixelError(ctx, statusCode, playerData)
 	if err != nil {
 		reporting.Report(
@@ -54,7 +54,7 @@ func ProcessPlayerData(ctx context.Context, playerData []byte, statusCode int) (
 			"statusCode", statusCode,
 			"contentLength", len(playerData),
 		)
-		return []byte{}, -1, err
+		return nil, -1, err
 	}
 
 	logging.FromContext(ctx).Info(
@@ -75,7 +75,7 @@ func ProcessPlayerData(ctx context.Context, playerData []byte, statusCode int) (
 				"data":       string(playerData),
 			},
 		)
-		return []byte{}, -1, err
+		return nil, -1, err
 	}
 
 	processedStatusCode := 200
@@ -83,20 +83,5 @@ func ProcessPlayerData(ctx context.Context, playerData []byte, statusCode int) (
 		processedStatusCode = 404
 	}
 
-	minifiedPlayerData, err := MarshalPlayerData(ctx, parsedPlayerData)
-	if err != nil {
-		err = fmt.Errorf("%w: failed to marshal player data: %w", e.APIServerError, err)
-		reporting.Report(
-			ctx,
-			err,
-			map[string]string{
-				"processedStatusCode": fmt.Sprint(processedStatusCode),
-				"statusCode":          fmt.Sprint(statusCode),
-				"data":                string(playerData),
-			},
-		)
-		return []byte{}, -1, err
-	}
-
-	return minifiedPlayerData, processedStatusCode, nil
+	return parsedPlayerData, processedStatusCode, nil
 }

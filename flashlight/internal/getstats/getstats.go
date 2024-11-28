@@ -19,7 +19,27 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI,
 		return []byte{}, -1, err
 	}
 
-	return processing.ProcessPlayerData(ctx, playerData, statusCode)
+	parsedAPIResponse, processedStatusCode, err := processing.ParseHypixelAPIResponse(ctx, playerData, statusCode)
+	if err != nil {
+		return []byte{}, -1, err
+	}
+
+	minifiedPlayerData, err := processing.MarshalPlayerData(ctx, parsedAPIResponse)
+	if err != nil {
+		err = fmt.Errorf("%w: failed to marshal player data: %w", e.APIServerError, err)
+		reporting.Report(
+			ctx,
+			err,
+			map[string]string{
+				"processedStatusCode": fmt.Sprint(processedStatusCode),
+				"statusCode":          fmt.Sprint(statusCode),
+				"data":                string(playerData),
+			},
+		)
+		return []byte{}, -1, err
+	}
+
+	return minifiedPlayerData, processedStatusCode, nil
 }
 
 func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI, uuid string) ([]byte, int, error) {
