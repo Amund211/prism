@@ -13,6 +13,6 @@ fi
 . "$env_file"
 
 FUNCTION_TARGET=flashlight \
-LOCAL_ONLY=true \
-PORT="${1:-8123}" \
+	LOCAL_ONLY=true \
+	PORT="${1:-8123}" \
 	go run cmd/main.go
