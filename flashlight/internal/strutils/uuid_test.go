@@ -8,7 +8,7 @@ import (
 )
 
 const INVALID_CHARACTER = "invalid character in UUID"
-const BAD_LENGTH = "normalized UUID is not 32 characters long"
+const BAD_LENGTH = "normalized UUID has incorrect length"
 
 func TestNormalizeUUID(t *testing.T) {
 	cases := []struct {

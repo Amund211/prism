@@ -32,7 +32,7 @@ func NormalizeUUID(uuid string) (string, error) {
 		}
 	}
 	if normalized.Len() != STRIPPED_UUID_LENGTH {
-		return "", fmt.Errorf("normalized UUID is not 32 characters long. input: '%s'", uuid)
+		return "", fmt.Errorf("normalized UUID has incorrect length. input: '%s'", uuid)
 	}
 	return normalized.String(), nil
 }
