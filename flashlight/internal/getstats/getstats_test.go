@@ -11,7 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const UUID = "uuid-has-to-be-a-certain-length"
+const UUID = "01234567-89AB---CDEF-0123-456789abcdef"
+const NORMALIZED_UUID = "0123456789abcdef0123456789abcdef"
 
 type panicHypixelAPI struct {
 	t *testing.T
@@ -33,7 +34,7 @@ type mockedHypixelAPI struct {
 func (m *mockedHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, error) {
 	m.t.Helper()
 
-	assert.Equal(m.t, UUID, uuid)
+	assert.Equal(m.t, NORMALIZED_UUID, uuid)
 
 	return m.data, m.statusCode, m.err
 }
@@ -74,6 +75,22 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), UUID)
 
 		GetOrCreateProcessedPlayerData(context.Background(), cache, panicHypixelAPI, storage.NewStubPersistor(), UUID)
+	})
+
+	t.Run("cache keys are normalized", func(t *testing.T) {
+		// Requesting abcdef12-... and then ABCDEF12-... should only go to Hypixel once
+		hypixelAPI := &mockedHypixelAPI{
+			t:          t,
+			data:       []byte(`{}`),
+			statusCode: 200,
+			err:        nil,
+		}
+		panicHypixelAPI := &panicHypixelAPI{t: t}
+		cache := cache.NewMockedPlayerCache()
+
+		GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), "01234567-89ab-cdef-0123-456789abcdef")
+
+		GetOrCreateProcessedPlayerData(context.Background(), cache, panicHypixelAPI, storage.NewStubPersistor(), "01---23456789aBCDef0123456789aBcdef")
 	})
 
 	t.Run("error from hypixel", func(t *testing.T) {
@@ -146,6 +163,11 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		cache := cache.NewMockedPlayerCache()
 
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), "invalid")
+
+		assert.ErrorIs(t, err, e.APIClientError)
+		assert.NotErrorIs(t, err, e.RetriableError)
+
+		_, _, err = GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), "01234567-89ab-xxxx-0123-456789abcdef")
 
 		assert.ErrorIs(t, err, e.APIClientError)
 		assert.NotErrorIs(t, err, e.RetriableError)

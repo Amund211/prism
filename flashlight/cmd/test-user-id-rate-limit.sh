@@ -4,15 +4,18 @@ set -eu
 
 PORT="${1:-8900}"
 
+UUID="a937646b-f115-44c3-8dbf-9ae4a65669a0"
+UUID_SNIPPET="a937646b"
+
 # NOTE: Not doing any cleanup here. Couldn't figure out how to get the
 #		proper pid to kill.
 echo 'Starting server' >&2
 ./cmd/run.sh "$PORT" >/dev/null 2>&1 &
 
 while ! curl \
-		--fail \
-		--silent \
-		"localhost:$PORT?uuid=some-requested-uuid" >/dev/null 2>&1; do
+	--fail \
+	--silent \
+	"localhost:$PORT?uuid=$UUID" >/dev/null 2>&1; do
 	echo 'Waiting for server to start' >&2
 	sleep 0.5
 done
@@ -24,8 +27,8 @@ for _ in $(seq 1 120); do
 		--fail \
 		--silent \
 		-H 'X-User-Id: my-user-id' \
-		"localhost:$PORT?uuid=some-requested-uuid" \
-		| grep 'some-requested-uuid' >/dev/null 2>&1
+		"localhost:$PORT?uuid=$UUID" |
+		grep "$UUID_SNIPPET" >/dev/null 2>&1
 done
 
 # Might get denied, depending on how long we took
@@ -34,16 +37,16 @@ for _ in $(seq 1 120); do
 	curl \
 		--silent \
 		-H 'X-User-Id: my-user-id' \
-		"localhost:$PORT?uuid=some-requested-uuid" >/dev/null 2>&1 \
-		|| true
+		"localhost:$PORT?uuid=$UUID" >/dev/null 2>&1 ||
+		true
 done
 
 echo 'Issuing final (disallowed) requests' >&2
 for _ in $(seq 1 10); do
 	if ! curl \
-			--fail \
-			-H 'X-User-Id: my-user-id' \
-			"localhost:$PORT?uuid=some-requested-uuid" >/dev/null 2>&1; then
+		--fail \
+		-H 'X-User-Id: my-user-id' \
+		"localhost:$PORT?uuid=$UUID" >/dev/null 2>&1; then
 		exit 0
 	fi
 done

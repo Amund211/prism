@@ -12,6 +12,7 @@ import (
 	"github.com/Amund211/flashlight/internal/processing"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/storage"
+	"github.com/Amund211/flashlight/internal/strutils"
 )
 
 func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, persistor storage.StatsPersistor, uuid string) ([]byte, int, error) {
@@ -74,8 +75,14 @@ func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.Playe
 		return []byte{}, -1, fmt.Errorf("%w: Invalid uuid", e.APIClientError)
 	}
 
-	processedPlayerData, statusCode, err := cache.GetOrCreateCachedResponse(ctx, playerCache, uuid, func() ([]byte, int, error) {
-		return getAndProcessPlayerData(ctx, hypixelAPI, persistor, uuid)
+	normalizedUUID, err := strutils.NormalizeUUID(uuid)
+	if err != nil {
+		logger.Error("Failed to normalize uuid", "uuid", uuid, "error", err)
+		return []byte{}, -1, fmt.Errorf("%w: Failed to normalize uuid", e.APIClientError)
+	}
+
+	processedPlayerData, statusCode, err := cache.GetOrCreateCachedResponse(ctx, playerCache, normalizedUUID, func() ([]byte, int, error) {
+		return getAndProcessPlayerData(ctx, hypixelAPI, persistor, normalizedUUID)
 	})
 
 	if err != nil {
