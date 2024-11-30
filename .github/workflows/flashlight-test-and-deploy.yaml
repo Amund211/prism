@@ -24,6 +24,19 @@ jobs:
     name: Format, vet, test
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == false
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -45,6 +58,11 @@ jobs:
 
       - name: Verify dependencies
         run: go mod verify
+
+      - name: Create test database
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -c 'CREATE DATABASE flashlight;'
 
       - name: Run tests
         run: go test -v ./internal/...
