@@ -13,25 +13,35 @@ import (
 
 const UUID = "uuid-has-to-be-a-certain-length"
 
-type panicHypixelAPI struct{}
+type panicHypixelAPI struct {
+	t *testing.T
+}
 
 func (p *panicHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, error) {
-	panic("Should not be called")
+	p.t.Helper()
+	p.t.Fatal("should not be called")
+	panic("unreachable")
 }
 
 type mockedHypixelAPI struct {
+	t          *testing.T
 	data       []byte
 	statusCode int
 	err        error
 }
 
 func (m *mockedHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, error) {
+	m.t.Helper()
+
+	assert.Equal(m.t, UUID, uuid)
+
 	return m.data, m.statusCode, m.err
 }
 
 func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 	t.Run("Test GetStats", func(t *testing.T) {
 		hypixelAPI := &mockedHypixelAPI{
+			t:          t,
 			data:       []byte(`{"success":true,"player":{"stats":{"Bedwars":{"Experience":0}}}}`),
 			statusCode: 200,
 			err:        nil,
@@ -53,11 +63,12 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 
 	t.Run("stats are not created if they already exist", func(t *testing.T) {
 		hypixelAPI := &mockedHypixelAPI{
+			t:          t,
 			data:       []byte(`{}`),
 			statusCode: 200,
 			err:        nil,
 		}
-		panicHypixelAPI := &panicHypixelAPI{}
+		panicHypixelAPI := &panicHypixelAPI{t: t}
 		cache := cache.NewMockedPlayerCache()
 
 		GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), UUID)
@@ -67,6 +78,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 
 	t.Run("error from hypixel", func(t *testing.T) {
 		hypixelAPI := &mockedHypixelAPI{
+			t:          t,
 			data:       []byte(``),
 			statusCode: -1,
 			err:        assert.AnError,
@@ -86,6 +98,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		// This can happen with gateway errors, giving us cloudflare html
 		// We now pass through gateway errors, so I've altered this test to return 200
 		hypixelAPI := &mockedHypixelAPI{
+			t:          t,
 			data:       []byte(`<!DOCTYPE html>`),
 			statusCode: 200,
 			err:        nil,
@@ -100,6 +113,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 
 	t.Run("invalid JSON from hypixel", func(t *testing.T) {
 		hypixelAPI := &mockedHypixelAPI{
+			t:          t,
 			data:       []byte(`something went wrong`),
 			statusCode: 200,
 			err:        nil,
@@ -114,6 +128,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 
 	t.Run("weird data format from hypixel", func(t *testing.T) {
 		hypixelAPI := &mockedHypixelAPI{
+			t:          t,
 			data:       []byte(`{"success":true,"player":{"stats":{"Bedwars":{"final_kills_bedwars":"string"}}}}`),
 			statusCode: 200,
 			err:        nil,
@@ -127,7 +142,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 	})
 
 	t.Run("invalid uuid", func(t *testing.T) {
-		hypixelAPI := &panicHypixelAPI{}
+		hypixelAPI := &panicHypixelAPI{t: t}
 		cache := cache.NewMockedPlayerCache()
 
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), "invalid")
@@ -137,7 +152,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 	})
 
 	t.Run("missing uuid", func(t *testing.T) {
-		hypixelAPI := &panicHypixelAPI{}
+		hypixelAPI := &panicHypixelAPI{t: t}
 		cache := cache.NewMockedPlayerCache()
 
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), "")
@@ -148,6 +163,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 
 	t.Run("403 from hypixel", func(t *testing.T) {
 		hypixelAPI := &mockedHypixelAPI{
+			t:          t,
 			data:       []byte(`{"success":false,"cause":"Invalid API key"}`),
 			statusCode: 403,
 			err:        nil,
@@ -162,6 +178,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 
 	t.Run("bad gateway from hypixel", func(t *testing.T) {
 		hypixelAPI := &mockedHypixelAPI{
+			t:          t,
 			data:       []byte(`<!DOCTYPE html>`),
 			statusCode: 502,
 			err:        nil,
@@ -176,6 +193,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 
 	t.Run("service unavailable from hypixel", func(t *testing.T) {
 		hypixelAPI := &mockedHypixelAPI{
+			t:          t,
 			data:       []byte(`<!DOCTYPE html>`),
 			statusCode: 503,
 			err:        nil,
@@ -190,6 +208,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 
 	t.Run("gateway timeout from hypixel", func(t *testing.T) {
 		hypixelAPI := &mockedHypixelAPI{
+			t:          t,
 			data:       []byte(`<!DOCTYPE html>`),
 			statusCode: 504,
 			err:        nil,
