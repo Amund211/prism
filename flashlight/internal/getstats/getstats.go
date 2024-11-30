@@ -28,22 +28,6 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI,
 		return []byte{}, -1, err
 	}
 
-	if parsedAPIResponse.Player != nil {
-		err = persistor.StoreStats(ctx, uuid, playerData, queriedAt)
-		if err != nil {
-			err = fmt.Errorf("failed to persist player data: %w", err)
-			reporting.Report(
-				ctx,
-				err,
-				map[string]string{
-					"processedStatusCode": fmt.Sprint(processedStatusCode),
-					"statusCode":          fmt.Sprint(statusCode),
-					"data":                string(playerData),
-				},
-			)
-		}
-	}
-
 	minifiedPlayerData, err := processing.MarshalPlayerData(ctx, parsedAPIResponse)
 	if err != nil {
 		err = fmt.Errorf("%w: failed to marshal player data: %w", e.APIServerError, err)
@@ -57,6 +41,22 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI,
 			},
 		)
 		return []byte{}, -1, err
+	}
+
+	if parsedAPIResponse.Player != nil {
+		err = persistor.StoreStats(ctx, uuid, minifiedPlayerData, queriedAt)
+		if err != nil {
+			err = fmt.Errorf("failed to persist player data: %w", err)
+			reporting.Report(
+				ctx,
+				err,
+				map[string]string{
+					"processedStatusCode": fmt.Sprint(processedStatusCode),
+					"statusCode":          fmt.Sprint(statusCode),
+					"data":                string(playerData),
+				},
+			)
+		}
 	}
 
 	return minifiedPlayerData, processedStatusCode, nil
