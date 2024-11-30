@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const uuid = "uuid-has-to-be-a-certain-length"
+const UUID = "uuid-has-to-be-a-certain-length"
 
 type panicHypixelAPI struct{}
 
@@ -38,7 +38,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		data, statusCode, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), uuid)
+		data, statusCode, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), UUID)
 		assert.Nil(t, err)
 
 		playerData, err := processing.ParsePlayerData(context.Background(), data)
@@ -60,9 +60,9 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		panicHypixelAPI := &panicHypixelAPI{}
 		cache := cache.NewMockedPlayerCache()
 
-		GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), uuid)
+		GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), UUID)
 
-		GetOrCreateProcessedPlayerData(context.Background(), cache, panicHypixelAPI, storage.NewStubPersistor(), uuid)
+		GetOrCreateProcessedPlayerData(context.Background(), cache, panicHypixelAPI, storage.NewStubPersistor(), UUID)
 	})
 
 	t.Run("error from hypixel", func(t *testing.T) {
@@ -73,7 +73,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), UUID)
 
 		assert.ErrorIs(t, err, assert.AnError)
 
@@ -92,7 +92,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), UUID)
 
 		assert.ErrorIs(t, err, e.APIServerError)
 		assert.ErrorIs(t, err, e.RetriableError)
@@ -106,7 +106,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), UUID)
 
 		assert.ErrorIs(t, err, e.APIServerError)
 		assert.NotErrorIs(t, err, e.RetriableError)
@@ -120,7 +120,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), UUID)
 
 		assert.ErrorIs(t, err, e.APIServerError)
 		assert.NotErrorIs(t, err, e.RetriableError)
@@ -154,7 +154,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), UUID)
 
 		assert.ErrorIs(t, err, e.APIServerError)
 		assert.NotErrorIs(t, err, e.RetriableError)
@@ -168,7 +168,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), UUID)
 
 		assert.ErrorIs(t, err, e.APIServerError)
 		assert.ErrorIs(t, err, e.RetriableError)
@@ -182,7 +182,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), UUID)
 
 		assert.ErrorIs(t, err, e.APIServerError)
 		assert.ErrorIs(t, err, e.RetriableError)
@@ -196,7 +196,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), uuid)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), UUID)
 
 		assert.ErrorIs(t, err, e.APIServerError)
 		assert.ErrorIs(t, err, e.RetriableError)
