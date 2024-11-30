@@ -14,7 +14,6 @@ func FromContext(ctx context.Context) *slog.Logger {
 	if !ok || logger == nil {
 		fallback := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 		fallback = fallback.With(slog.String("logger", "fallback"))
-		fallback.Warn("No logger found in context - falling back to default logger.")
 		return fallback
 	}
 	return logger
