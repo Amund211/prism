@@ -8,12 +8,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 
 	"github.com/Amund211/flashlight/internal/storage"
+	"github.com/Amund211/flashlight/internal/strutils"
 )
+
+func newUUID(t *testing.T) string {
+	id, err := uuid.NewRandom()
+	require.NoError(t, err)
+	return id.String()
+}
 
 func newPostgresPersistor(t *testing.T, db *sqlx.DB, schema string) *storage.PostgresStatsPersistor {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -45,17 +53,30 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		requireStored := func(t *testing.T, playerUUID string, playerData []byte, queriedAt time.Time, targetCount int) {
 			t.Helper()
+
+			normalizedUUID, err := strutils.NormalizeUUID(playerUUID)
+			require.NoError(t, err)
+
 			txx, err := db.Beginx()
 			require.NoError(t, err)
 
 			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier("store_stats")))
 
-			row := txx.QueryRowx("SELECT COUNT(*) FROM stats WHERE player_uuid = $1 AND player_data = $2 AND queried_at = $3", playerUUID, playerData, queriedAt)
+			row := txx.QueryRowx("SELECT COUNT(*) FROM stats WHERE player_uuid = $1 AND player_data = $2 AND queried_at = $3", normalizedUUID, playerData, queriedAt)
 			require.NoError(t, row.Err())
 
 			var count int
 			require.NoError(t, row.Scan(&count))
 			require.Equal(t, targetCount, count)
+
+			if normalizedUUID != playerUUID {
+				row := txx.QueryRowx("SELECT COUNT(*) FROM stats WHERE player_uuid = $1 AND player_data = $2 AND queried_at = $3", playerUUID, playerData, queriedAt)
+				require.NoError(t, row.Err())
+
+				var count int
+				require.NoError(t, row.Scan(&count))
+				require.Equal(t, 0, count, "un-normalized UUID should not be stored")
+			}
 		}
 
 		requireNotStored := func(t *testing.T, playerUUID string, playerData []byte, queriedAt time.Time) {
@@ -70,15 +91,16 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("store empty object", func(t *testing.T) {
 			t.Parallel()
-			requireNotStored(t, "empty_object", []byte("{}"), now)
-			err := p.StoreStats(ctx, "empty_object", []byte("{}"), now)
+			uuid := newUUID(t)
+			requireNotStored(t, uuid, []byte("{}"), now)
+			err := p.StoreStats(ctx, uuid, []byte("{}"), now)
 			require.NoError(t, err)
-			requireStoredOnce(t, "empty_object", []byte("{}"), now)
+			requireStoredOnce(t, uuid, []byte("{}"), now)
 		})
 
 		t.Run("store multiple for same user", func(t *testing.T) {
 			t.Parallel()
-			player_uuid := "same_user"
+			player_uuid := newUUID(t)
 
 			data1 := []byte(`{"seq":1}`)
 			t1 := now
@@ -102,8 +124,8 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("same data for multiple users", func(t *testing.T) {
 			t.Parallel()
-			player1 := "user1"
-			player2 := "user2"
+			player1 := newUUID(t)
+			player2 := newUUID(t)
 			data := []byte(`{"seq":1}`)
 
 			requireNotStored(t, player1, data, now)
@@ -121,7 +143,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("duplicate entry for single user", func(t *testing.T) {
 			t.Parallel()
-			player_uuid := "duplicate_entry"
+			player_uuid := newUUID(t)
 			data := []byte(`{"seq":1}`)
 
 			requireNotStored(t, player_uuid, data, now)
@@ -136,8 +158,9 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("store invalid json fails", func(t *testing.T) {
 			t.Parallel()
-			err := p.StoreStats(ctx, "invalid_json", []byte("invalid json"), now)
+			err := p.StoreStats(ctx, newUUID(t), []byte("invalid json"), now)
 			require.Error(t, err)
+			require.Contains(t, err.Error(), "failed to insert stats")
 		})
 	})
 }

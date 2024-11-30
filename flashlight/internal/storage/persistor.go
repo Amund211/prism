@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/strutils"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -34,6 +35,11 @@ func NewPostgresStatsPersistor(db *sqlx.DB, schema string) *PostgresStatsPersist
 }
 
 func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, playerUUID string, playerData []byte, queriedAt time.Time) error {
+	normalizedUUID, err := strutils.NormalizeUUID(playerUUID)
+	if err != nil {
+		return fmt.Errorf("StoreStats: failed to normalize uuid: %w", err)
+	}
+
 	dbID, err := uuid.NewV7()
 	if err != nil {
 		return fmt.Errorf("StoreStats: failed to generate uuid: %w", err)
@@ -50,7 +56,7 @@ func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, playerUUID stri
 		return fmt.Errorf("StoreStats: failed to set search path: %w", err)
 	}
 
-	_, err = txx.Exec("INSERT INTO stats (id, player_uuid, player_data, queried_at) VALUES ($1, $2, $3, $4)", dbID.String(), playerUUID, playerData, queriedAt)
+	_, err = txx.Exec("INSERT INTO stats (id, player_uuid, player_data, queried_at) VALUES ($1, $2, $3, $4)", dbID.String(), normalizedUUID, playerData, queriedAt)
 	if err != nil {
 		return fmt.Errorf("StoreStats: failed to insert stats: %w", err)
 	}
