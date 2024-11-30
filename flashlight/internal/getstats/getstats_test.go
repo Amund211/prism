@@ -12,7 +12,7 @@ import (
 )
 
 const UUID = "01234567-89AB---CDEF-0123-456789abcdef"
-const NORMALIZED_UUID = "0123456789abcdef0123456789abcdef"
+const NORMALIZED_UUID = "01234567-89ab-cdef-0123-456789abcdef"
 
 type panicHypixelAPI struct {
 	t *testing.T

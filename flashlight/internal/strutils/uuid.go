@@ -8,7 +8,7 @@ import (
 
 const VALID_HEX_DIGITS = "0123456789abcdefABCDEF"
 
-const STRIPPED_UUID_LENGTH = 32
+const STRIPPED_UUID_LENGTH = 36
 
 // Removes dashes and converts all characters to lowercase
 func NormalizeUUID(uuid string) (string, error) {
@@ -20,6 +20,14 @@ func NormalizeUUID(uuid string) (string, error) {
 	}
 
 	for _, char := range uuid {
+		normLen := normalized.Len()
+		if normLen == 8 || normLen == 13 || normLen == 18 || normLen == 23 {
+			// Insert dashes at the appropriate indicies
+			_, err := normalized.WriteRune('-')
+			if err != nil {
+				return "", fmt.Errorf("failed writing - to stringbuilder: %w", err)
+			}
+		}
 		if char == '-' {
 			continue
 		} else if strings.ContainsRune(VALID_HEX_DIGITS, char) {
