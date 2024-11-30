@@ -45,7 +45,7 @@ response="$(
 	curl \
 		--fail \
 		-sS \
-		-H "X-User-Id: github-actions-$function_name" \
+		-H 'X-User-Id: gha-deployment-verifier' \
 		-H 'User-Agent: gha-deployment-verifier' \
 		"https://northamerica-northeast2-prism-overlay.cloudfunctions.net/${function_name}?uuid=a937646b-f115-44c3-8dbf-9ae4a65669a0"
 )"
