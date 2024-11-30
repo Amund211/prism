@@ -74,6 +74,7 @@ jobs:
           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
 
       - name: Deploy test instance
+        if: "!contains(github.event.pull_request.labels.*.name, 'skip-deployment')"
         run: ./cmd/deploy.sh flashlight-test
 
   build-and-deploy:
