@@ -1,4 +1,4 @@
-package storage_test
+package storage
 
 import (
 	"context"
@@ -13,9 +13,24 @@ import (
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/storage"
+	"github.com/Amund211/flashlight/internal/processing"
 	"github.com/Amund211/flashlight/internal/strutils"
 )
+
+func newHypixelAPIPlayer(id int) *processing.HypixelAPIPlayer {
+	value := &id
+	return &processing.HypixelAPIPlayer{
+		Stats: &processing.HypixelAPIStats{
+			Bedwars: &processing.HypixelAPIBedwarsStats{
+				Kills:        value,
+				SoloKills:    value,
+				DoublesKills: value,
+				ThreesKills:  value,
+				FoursKills:   value,
+			},
+		},
+	}
+}
 
 func newUUID(t *testing.T) string {
 	id, err := uuid.NewRandom()
@@ -23,17 +38,17 @@ func newUUID(t *testing.T) string {
 	return id.String()
 }
 
-func newPostgresPersistor(t *testing.T, db *sqlx.DB, schema string) *storage.PostgresStatsPersistor {
+func newPostgresPersistor(t *testing.T, db *sqlx.DB, schema string) *PostgresStatsPersistor {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	db.MustExec(fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", pq.QuoteIdentifier(schema)))
 
-	migrator := storage.NewDatabaseMigrator(db, logger)
+	migrator := NewDatabaseMigrator(db, logger)
 
 	err := migrator.Migrate(schema)
 	require.NoError(t, err)
 
-	return storage.NewPostgresStatsPersistor(db, schema)
+	return NewPostgresStatsPersistor(db, schema)
 }
 
 func TestPostgresStatsPersistor(t *testing.T) {
@@ -42,7 +57,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	db, err := storage.NewPostgresDatabase(storage.LOCAL_CONNECTION_STRING)
+	db, err := NewPostgresDatabase(LOCAL_CONNECTION_STRING)
 	require.NoError(t, err)
 
 	now := time.Now()
@@ -51,10 +66,13 @@ func TestPostgresStatsPersistor(t *testing.T) {
 		t.Parallel()
 		p := newPostgresPersistor(t, db, "store_stats")
 
-		requireStored := func(t *testing.T, playerUUID string, playerData []byte, queriedAt time.Time, targetCount int) {
+		requireStored := func(t *testing.T, playerUUID string, player *processing.HypixelAPIPlayer, queriedAt time.Time, targetCount int) {
 			t.Helper()
 
 			normalizedUUID, err := strutils.NormalizeUUID(playerUUID)
+			require.NoError(t, err)
+
+			playerData, err := playerToDataStorage(player)
 			require.NoError(t, err)
 
 			txx, err := db.Beginx()
@@ -79,88 +97,91 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			}
 		}
 
-		requireNotStored := func(t *testing.T, playerUUID string, playerData []byte, queriedAt time.Time) {
+		requireNotStored := func(t *testing.T, playerUUID string, player *processing.HypixelAPIPlayer, queriedAt time.Time) {
 			t.Helper()
-			requireStored(t, playerUUID, playerData, queriedAt, 0)
+			requireStored(t, playerUUID, player, queriedAt, 0)
 		}
 
-		requireStoredOnce := func(t *testing.T, playerUUID string, playerData []byte, queriedAt time.Time) {
+		requireStoredOnce := func(t *testing.T, playerUUID string, player *processing.HypixelAPIPlayer, queriedAt time.Time) {
 			t.Helper()
-			requireStored(t, playerUUID, playerData, queriedAt, 1)
+			requireStored(t, playerUUID, player, queriedAt, 1)
 		}
 
 		t.Run("store empty object", func(t *testing.T) {
 			t.Parallel()
+
 			uuid := newUUID(t)
-			requireNotStored(t, uuid, []byte("{}"), now)
-			err := p.StoreStats(ctx, uuid, []byte("{}"), now)
+			player := newHypixelAPIPlayer(0)
+
+			requireNotStored(t, uuid, player, now)
+			err := p.StoreStats(ctx, uuid, player, now)
 			require.NoError(t, err)
-			requireStoredOnce(t, uuid, []byte("{}"), now)
+			requireStoredOnce(t, uuid, player, now)
 		})
 
 		t.Run("store multiple for same user", func(t *testing.T) {
 			t.Parallel()
 			player_uuid := newUUID(t)
 
-			data1 := []byte(`{"seq":1}`)
+			player1 := newHypixelAPIPlayer(1)
 			t1 := now
-			data2 := []byte(`{"seq":2}`)
+			player2 := newHypixelAPIPlayer(2)
 			t2 := t1.Add(time.Second)
 
-			requireNotStored(t, player_uuid, data1, t1)
-			err := p.StoreStats(ctx, player_uuid, data1, t1)
+			requireNotStored(t, player_uuid, player1, t1)
+			err := p.StoreStats(ctx, player_uuid, player1, t1)
 			require.NoError(t, err)
-			requireStoredOnce(t, player_uuid, data1, t1)
+			requireStoredOnce(t, player_uuid, player1, t1)
 
-			requireNotStored(t, player_uuid, data2, t2)
-			err = p.StoreStats(ctx, player_uuid, data2, t2)
+			requireNotStored(t, player_uuid, player2, t2)
+			err = p.StoreStats(ctx, player_uuid, player2, t2)
 			require.NoError(t, err)
-			requireStoredOnce(t, player_uuid, data2, t2)
+			requireStoredOnce(t, player_uuid, player2, t2)
 
 			// We never stored these combinations
-			requireNotStored(t, player_uuid, data1, t2)
-			requireNotStored(t, player_uuid, data2, t1)
+			requireNotStored(t, player_uuid, player1, t2)
+			requireNotStored(t, player_uuid, player2, t1)
 		})
 
 		t.Run("same data for multiple users", func(t *testing.T) {
 			t.Parallel()
 			uuid1 := newUUID(t)
 			uuid2 := newUUID(t)
-			data := []byte(`{"seq":1}`)
+			player := newHypixelAPIPlayer(3)
 
-			requireNotStored(t, uuid1, data, now)
-			err := p.StoreStats(ctx, uuid1, data, now)
+			requireNotStored(t, uuid1, player, now)
+			err := p.StoreStats(ctx, uuid1, player, now)
 			require.NoError(t, err)
-			requireStoredOnce(t, uuid1, data, now)
+			requireStoredOnce(t, uuid1, player, now)
 
-			requireNotStored(t, uuid2, data, now)
-			err = p.StoreStats(ctx, uuid2, data, now)
+			requireNotStored(t, uuid2, player, now)
+			err = p.StoreStats(ctx, uuid2, player, now)
 			require.NoError(t, err)
-			requireStoredOnce(t, uuid2, data, now)
+			requireStoredOnce(t, uuid2, player, now)
 
-			requireStoredOnce(t, uuid1, data, now)
+			requireStoredOnce(t, uuid1, player, now)
 		})
 
 		t.Run("duplicate entry for single user", func(t *testing.T) {
 			t.Parallel()
 			player_uuid := newUUID(t)
-			data := []byte(`{"seq":1}`)
+			player := newHypixelAPIPlayer(3)
 
-			requireNotStored(t, player_uuid, data, now)
-			err := p.StoreStats(ctx, player_uuid, data, now)
+			requireNotStored(t, player_uuid, player, now)
+			err := p.StoreStats(ctx, player_uuid, player, now)
 			require.NoError(t, err)
-			requireStored(t, player_uuid, data, now, 1)
+			requireStored(t, player_uuid, player, now, 1)
 
-			err = p.StoreStats(ctx, player_uuid, data, now)
+			err = p.StoreStats(ctx, player_uuid, player, now)
 			require.NoError(t, err)
-			requireStored(t, player_uuid, data, now, 2)
+			requireStored(t, player_uuid, player, now, 2)
 		})
 
-		t.Run("store invalid json fails", func(t *testing.T) {
+		t.Run("store nil player fails", func(t *testing.T) {
 			t.Parallel()
-			err := p.StoreStats(ctx, newUUID(t), []byte("invalid json"), now)
+			err := p.StoreStats(ctx, newUUID(t), nil, now)
 			require.Error(t, err)
-			require.Contains(t, err.Error(), "failed to insert stats")
+			require.Contains(t, err.Error(), "player is nil")
 		})
 	})
 }
