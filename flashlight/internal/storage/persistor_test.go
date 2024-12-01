@@ -124,21 +124,21 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("same data for multiple users", func(t *testing.T) {
 			t.Parallel()
-			player1 := newUUID(t)
-			player2 := newUUID(t)
+			uuid1 := newUUID(t)
+			uuid2 := newUUID(t)
 			data := []byte(`{"seq":1}`)
 
-			requireNotStored(t, player1, data, now)
-			err := p.StoreStats(ctx, player1, data, now)
+			requireNotStored(t, uuid1, data, now)
+			err := p.StoreStats(ctx, uuid1, data, now)
 			require.NoError(t, err)
-			requireStoredOnce(t, player1, data, now)
+			requireStoredOnce(t, uuid1, data, now)
 
-			requireNotStored(t, player2, data, now)
-			err = p.StoreStats(ctx, player2, data, now)
+			requireNotStored(t, uuid2, data, now)
+			err = p.StoreStats(ctx, uuid2, data, now)
 			require.NoError(t, err)
-			requireStoredOnce(t, player2, data, now)
+			requireStoredOnce(t, uuid2, data, now)
 
-			requireStoredOnce(t, player1, data, now)
+			requireStoredOnce(t, uuid1, data, now)
 		})
 
 		t.Run("duplicate entry for single user", func(t *testing.T) {
