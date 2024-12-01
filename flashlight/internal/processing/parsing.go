@@ -9,23 +9,23 @@ import (
 
 type hypixelAPIResponse struct {
 	Success bool              `json:"success"`
-	Player  *hypixelAPIPlayer `json:"player"`
+	Player  *HypixelAPIPlayer `json:"player"`
 	Cause   *string           `json:"cause,omitempty"`
 }
 
-type hypixelAPIPlayer struct {
-	UUID        *string `json:"uuid,omitempty"`
-	Displayname *string `json:"displayname,omitempty"`
-	LastLogin   *int    `json:"lastLogin,omitempty"`
-	LastLogout  *int    `json:"lastLogout,omitempty"`
-	Stats       *stats  `json:"stats,omitempty"`
+type HypixelAPIPlayer struct {
+	UUID        *string          `json:"uuid,omitempty"`
+	Displayname *string          `json:"displayname,omitempty"`
+	LastLogin   *int             `json:"lastLogin,omitempty"`
+	LastLogout  *int             `json:"lastLogout,omitempty"`
+	Stats       *HypixelAPIStats `json:"stats,omitempty"`
 }
 
-type stats struct {
-	Bedwars *bedwarsStats `json:"Bedwars,omitempty"`
+type HypixelAPIStats struct {
+	Bedwars *HypixelAPIBedwarsStats `json:"Bedwars,omitempty"`
 }
 
-type bedwarsStats struct {
+type HypixelAPIBedwarsStats struct {
 	Experience *float64 `json:"Experience,omitempty"`
 
 	Winstreak   *int `json:"winstreak,omitempty"`
