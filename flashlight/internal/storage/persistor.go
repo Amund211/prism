@@ -47,6 +47,7 @@ type playerDataStorage struct {
 
 type statsDataStorage struct {
 	Winstreak   *int `json:"ws,omitempty"`
+	GamesPlayed *int `json:"gp,omitempty"`
 	Wins        *int `json:"w,omitempty"`
 	Losses      *int `json:"l,omitempty"`
 	BedsBroken  *int `json:"bb,omitempty"`
@@ -66,6 +67,7 @@ func playerToDataStorage(player *processing.HypixelAPIPlayer) ([]byte, error) {
 
 	solo := statsDataStorage{
 		Winstreak:   bw.SoloWinstreak,
+		GamesPlayed: bw.SoloGamesPlayed,
 		Wins:        bw.SoloWins,
 		Losses:      bw.SoloLosses,
 		BedsBroken:  bw.SoloBedsBroken,
@@ -78,6 +80,7 @@ func playerToDataStorage(player *processing.HypixelAPIPlayer) ([]byte, error) {
 
 	doubles := statsDataStorage{
 		Winstreak:   bw.DoublesWinstreak,
+		GamesPlayed: bw.DoublesGamesPlayed,
 		Wins:        bw.DoublesWins,
 		Losses:      bw.DoublesLosses,
 		BedsBroken:  bw.DoublesBedsBroken,
@@ -90,6 +93,7 @@ func playerToDataStorage(player *processing.HypixelAPIPlayer) ([]byte, error) {
 
 	threes := statsDataStorage{
 		Winstreak:   bw.ThreesWinstreak,
+		GamesPlayed: bw.ThreesGamesPlayed,
 		Wins:        bw.ThreesWins,
 		Losses:      bw.ThreesLosses,
 		BedsBroken:  bw.ThreesBedsBroken,
@@ -102,6 +106,7 @@ func playerToDataStorage(player *processing.HypixelAPIPlayer) ([]byte, error) {
 
 	fours := statsDataStorage{
 		Winstreak:   bw.FoursWinstreak,
+		GamesPlayed: bw.FoursGamesPlayed,
 		Wins:        bw.FoursWins,
 		Losses:      bw.FoursLosses,
 		BedsBroken:  bw.FoursBedsBroken,
@@ -114,6 +119,7 @@ func playerToDataStorage(player *processing.HypixelAPIPlayer) ([]byte, error) {
 
 	overall := statsDataStorage{
 		Winstreak:   bw.Winstreak,
+		GamesPlayed: bw.GamesPlayed,
 		Wins:        bw.Wins,
 		Losses:      bw.Losses,
 		BedsBroken:  bw.BedsBroken,

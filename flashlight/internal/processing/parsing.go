@@ -29,6 +29,7 @@ type HypixelAPIBedwarsStats struct {
 	Experience *float64 `json:"Experience,omitempty"`
 
 	Winstreak   *int `json:"winstreak,omitempty"`
+	GamesPlayed *int `json:"games_played_bedwars,omitempty"`
 	Wins        *int `json:"wins_bedwars,omitempty"`
 	Losses      *int `json:"losses_bedwars,omitempty"`
 	BedsBroken  *int `json:"beds_broken_bedwars,omitempty"`
@@ -39,6 +40,7 @@ type HypixelAPIBedwarsStats struct {
 	Deaths      *int `json:"deaths_bedwars,omitempty"`
 
 	SoloWinstreak   *int `json:"eight_one_winstreak,omitempty"`
+	SoloGamesPlayed *int `json:"eight_one_games_played_bedwars,omitempty"`
 	SoloWins        *int `json:"eight_one_wins_bedwars,omitempty"`
 	SoloLosses      *int `json:"eight_one_losses_bedwars,omitempty"`
 	SoloBedsBroken  *int `json:"eight_one_beds_broken_bedwars,omitempty"`
@@ -49,6 +51,7 @@ type HypixelAPIBedwarsStats struct {
 	SoloDeaths      *int `json:"eight_one_deaths_bedwars,omitempty"`
 
 	DoublesWinstreak   *int `json:"eight_two_winstreak,omitempty"`
+	DoublesGamesPlayed *int `json:"eight_two_games_played_bedwars,omitempty"`
 	DoublesWins        *int `json:"eight_two_wins_bedwars,omitempty"`
 	DoublesLosses      *int `json:"eight_two_losses_bedwars,omitempty"`
 	DoublesBedsBroken  *int `json:"eight_two_beds_broken_bedwars,omitempty"`
@@ -59,6 +62,7 @@ type HypixelAPIBedwarsStats struct {
 	DoublesDeaths      *int `json:"eight_two_deaths_bedwars,omitempty"`
 
 	ThreesWinstreak   *int `json:"four_three_winstreak,omitempty"`
+	ThreesGamesPlayed *int `json:"four_three_games_played_bedwars,omitempty"`
 	ThreesWins        *int `json:"four_three_wins_bedwars,omitempty"`
 	ThreesLosses      *int `json:"four_three_losses_bedwars,omitempty"`
 	ThreesBedsBroken  *int `json:"four_three_beds_broken_bedwars,omitempty"`
@@ -69,6 +73,7 @@ type HypixelAPIBedwarsStats struct {
 	ThreesDeaths      *int `json:"four_three_deaths_bedwars,omitempty"`
 
 	FoursWinstreak   *int `json:"four_four_winstreak,omitempty"`
+	FoursGamesPlayed *int `json:"four_four_games_played_bedwars,omitempty"`
 	FoursWins        *int `json:"four_four_wins_bedwars,omitempty"`
 	FoursLosses      *int `json:"four_four_losses_bedwars,omitempty"`
 	FoursBedsBroken  *int `json:"four_four_beds_broken_bedwars,omitempty"`
