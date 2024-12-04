@@ -1,0 +1,1 @@
+ALTER TABLE stats ADD COLUMN IF NOT EXISTS data_format_version INTEGER;
