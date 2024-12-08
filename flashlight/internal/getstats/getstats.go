@@ -44,7 +44,9 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI,
 	}
 
 	if parsedAPIResponse.Player != nil {
-		err = persistor.StoreStats(ctx, uuid, parsedAPIResponse.Player, queriedAt)
+		storeCtx, cancel := context.WithTimeout(ctx, 1*time.Second)
+		defer cancel()
+		err = persistor.StoreStats(storeCtx, uuid, parsedAPIResponse.Player, queriedAt)
 		if err != nil {
 			err = fmt.Errorf("failed to persist player data: %w", err)
 			reporting.Report(
