@@ -12,6 +12,8 @@ import (
 	sentryhttp "github.com/getsentry/sentry-go/http"
 )
 
+var startedAtContextKey = struct{}{}
+
 var uuidRx = regexp.MustCompile(`[0-9a-f]{8}-?([0-9a-f]{4}-?){3}[0-9a-f]{12}`)
 var hostRx = regexp.MustCompile(`\[:{0,2}([0-9a-f]{0,4}:?){1,8}\]:\d+`)
 
@@ -37,6 +39,11 @@ func Report(ctx context.Context, err error, extras ...map[string]string) {
 			for key, value := range extra {
 				scope.SetExtra(key, value)
 			}
+		}
+
+		startedAt, ok := ctx.Value(startedAtContextKey).(time.Time)
+		if ok {
+			scope.SetExtra("secondsSinceStart", time.Since(startedAt).Seconds())
 		}
 
 		if err == nil {
@@ -72,7 +79,8 @@ func addTagsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			}
 		})
 
-		next(w, r)
+		ctxWithStartedAt := context.WithValue(r.Context(), startedAtContextKey, time.Now())
+		next(w, r.WithContext(ctxWithStartedAt))
 	}
 }
 
