@@ -175,6 +175,21 @@ func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, playerUUID stri
 		return fmt.Errorf("StoreStats: failed to set search path: %w", err)
 	}
 
+	var count int
+	err = txx.QueryRowxContext(
+		ctx,
+		"SELECT COUNT(*) FROM stats WHERE player_uuid = $1 AND queried_at > $2",
+		normalizedUUID,
+		queriedAt.Add(-time.Minute),
+	).Scan(&count)
+	if err != nil {
+		return fmt.Errorf("StoreStats: failed to query existing stats: %w", err)
+	}
+	if count > 0 {
+		// Recent stats already exist, no need to store them again
+		return nil
+	}
+
 	_, err = txx.Exec(
 		`INSERT INTO stats
 		(id, player_uuid, player_data, queried_at, data_format_version)

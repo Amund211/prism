@@ -130,7 +130,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			player1 := newHypixelAPIPlayer(1)
 			t1 := now
 			player2 := newHypixelAPIPlayer(2)
-			t2 := t1.Add(time.Second)
+			t2 := t1.Add(3 * time.Minute)
 
 			requireNotStored(t, player_uuid, player1, t1)
 			err := p.StoreStats(ctx, player_uuid, player1, t1)
@@ -145,6 +145,29 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			// We never stored these combinations
 			requireNotStored(t, player_uuid, player1, t2)
 			requireNotStored(t, player_uuid, player2, t1)
+		})
+
+		t.Run("stats are not stored within one minute", func(t *testing.T) {
+			t.Parallel()
+			player_uuid := newUUID(t)
+
+			player1 := newHypixelAPIPlayer(1)
+			t1 := now
+
+			requireNotStored(t, player_uuid, player1, t1)
+			err := p.StoreStats(ctx, player_uuid, player1, t1)
+			require.NoError(t, err)
+			requireStoredOnce(t, player_uuid, player1, t1)
+
+			player2 := newHypixelAPIPlayer(2)
+			for i := 0; i < 60; i++ {
+				t2 := t1.Add(time.Duration(i) * time.Second)
+
+				requireNotStored(t, player_uuid, player2, t2)
+				err = p.StoreStats(ctx, player_uuid, player2, t2)
+				require.NoError(t, err)
+				requireNotStored(t, player_uuid, player2, t2)
+			}
 		})
 
 		t.Run("same data for multiple users", func(t *testing.T) {
@@ -164,21 +187,6 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			requireStoredOnce(t, uuid2, player, now)
 
 			requireStoredOnce(t, uuid1, player, now)
-		})
-
-		t.Run("duplicate entry for single user", func(t *testing.T) {
-			t.Parallel()
-			player_uuid := newUUID(t)
-			player := newHypixelAPIPlayer(3)
-
-			requireNotStored(t, player_uuid, player, now)
-			err := p.StoreStats(ctx, player_uuid, player, now)
-			require.NoError(t, err)
-			requireStored(t, player_uuid, player, now, 1)
-
-			err = p.StoreStats(ctx, player_uuid, player, now)
-			require.NoError(t, err)
-			requireStored(t, player_uuid, player, now, 2)
 		})
 
 		t.Run("store nil player fails", func(t *testing.T) {
