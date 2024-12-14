@@ -195,5 +195,40 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			require.Error(t, err)
 			require.Contains(t, err.Error(), "player is nil")
 		})
+
+		t.Run("ensure no db connection leaks", func(t *testing.T) {
+			t.Parallel()
+			var maxConnections int
+			err := db.QueryRowxContext(ctx, "show max_connections").Scan(&maxConnections)
+			require.NoError(t, err)
+			require.LessOrEqual(t, maxConnections, 1000, "max_connections should be less than 1000 to prevent tests from taking a long time")
+
+			limit := maxConnections + 10
+
+			t.Run("when storing for many different players", func(t *testing.T) {
+				t.Parallel()
+				for i := 0; i < limit; i++ {
+					t1 := now.Add(time.Duration(i) * time.Minute)
+					uuid := newUUID(t)
+					player := newHypixelAPIPlayer(i)
+
+					err := p.StoreStats(ctx, uuid, player, t1)
+					require.NoError(t, err)
+					requireStoredOnce(t, uuid, player, t1)
+				}
+			})
+			t.Run("when storing for the same player at the same time", func(t *testing.T) {
+				t.Parallel()
+				uuid := newUUID(t)
+				player := newHypixelAPIPlayer(1)
+
+				for i := 0; i < limit; i++ {
+					err := p.StoreStats(ctx, uuid, player, now)
+					require.NoError(t, err)
+					// Will only ever be stored once since the time is within one minute
+					requireStoredOnce(t, uuid, player, now)
+				}
+			})
+		})
 	})
 }
