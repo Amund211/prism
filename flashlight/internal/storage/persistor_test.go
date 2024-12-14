@@ -77,6 +77,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			txx, err := db.Beginx()
 			require.NoError(t, err)
+			defer txx.Rollback()
 
 			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier("store_stats")))
 
@@ -95,6 +96,9 @@ func TestPostgresStatsPersistor(t *testing.T) {
 				require.NoError(t, row.Scan(&count))
 				require.Equal(t, 0, count, "un-normalized UUID should not be stored")
 			}
+
+			err = txx.Commit()
+			require.NoError(t, err)
 		}
 
 		requireNotStored := func(t *testing.T, playerUUID string, player *processing.HypixelAPIPlayer, queriedAt time.Time) {
