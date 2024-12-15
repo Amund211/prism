@@ -91,7 +91,7 @@ func ConfigFromEnv() (Config, error) {
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbUsername := os.Getenv("DB_USERNAME")
 	sentryDSN := os.Getenv("SENTRY_DSN")
-	hypixelApiKey := os.Getenv("HYPIXEL_API_KEY")
+	hypixelAPIKey := os.Getenv("HYPIXEL_API_KEY")
 
 	if env == production || env == staging {
 		if cloudSQLUnixSocketPath == "" {
@@ -106,7 +106,7 @@ func ConfigFromEnv() (Config, error) {
 		if sentryDSN == "" {
 			return missingKey("SENTRY_DSN")
 		}
-		if hypixelApiKey == "" {
+		if hypixelAPIKey == "" {
 			return missingKey("HYPIXEL_API_KEY")
 		}
 	}
@@ -116,7 +116,7 @@ func ConfigFromEnv() (Config, error) {
 		dBPassword:             dbPassword,
 		dBUsername:             dbUsername,
 		sentryDSN:              sentryDSN,
-		hypixelAPIKey:          hypixelApiKey,
+		hypixelAPIKey:          hypixelAPIKey,
 		env:                    env,
 	}, nil
 }

@@ -42,9 +42,9 @@ func makeRequest(httpClient *http.Client, url string, apiKey string) ([]byte, in
 }
 
 func main() {
-	hypixelApiKey := os.Getenv("HYPIXEL_API_KEY")
+	hypixelAPIKey := os.Getenv("HYPIXEL_API_KEY")
 
-	if hypixelApiKey == "" {
+	if hypixelAPIKey == "" {
 		log.Fatal("No Hypixel API key provided")
 	}
 
@@ -83,7 +83,7 @@ func main() {
 	}
 
 	hypixelUrl := fmt.Sprintf("https://api.hypixel.net/player?uuid=%s", player)
-	data, statusCode, err := makeRequest(httpClient, hypixelUrl, hypixelApiKey)
+	data, statusCode, err := makeRequest(httpClient, hypixelUrl, hypixelAPIKey)
 	if err != nil {
 		log.Fatalf("Failed making request to Hypixel API: %v", err)
 	}
