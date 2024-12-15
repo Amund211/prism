@@ -33,7 +33,7 @@ func init() {
 	if err != nil {
 		log.Fatalf("Failed to load config: %s", err.Error())
 	}
-	log.Printf("Starting with %s", config.String())
+	log.Printf("Starting with %s", config.NonSensitiveString())
 
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,

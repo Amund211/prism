@@ -58,7 +58,8 @@ func (c *Config) IsDevelopment() bool {
 	return c.env == development
 }
 
-func (c *Config) String() string {
+// Return a string representation suitable for logging etc
+func (c *Config) NonSensitiveString() string {
 	return fmt.Sprintf("Config{env: %s, ...}", string(c.env))
 }
 
