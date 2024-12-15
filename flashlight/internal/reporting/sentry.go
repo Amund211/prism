@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"regexp"
 	"time"
 
 	"github.com/Amund211/flashlight/internal/config"
+	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
 )
@@ -27,9 +27,9 @@ func sanitizeError(err string) string {
 
 func Report(ctx context.Context, err error, extras ...map[string]string) {
 	hub := sentry.GetHubFromContext(ctx)
+	logger := logging.FromContext(ctx)
 	if hub == nil {
-		log.Println("Failed to get Sentry hub from context")
-		log.Println("Error:", err, "Extras:", extras)
+		logger.Warn("Failed to get Sentry hub from context", "Error:", err, "Extras:", extras)
 		return
 	}
 
@@ -61,7 +61,7 @@ func addTagsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		hub := sentry.GetHubFromContext(r.Context())
 		if hub == nil {
-			log.Println("Failed to get Sentry hub from context")
+			logging.FromContext(r.Context()).Warn("Failed to get Sentry hub from context")
 			next(w, r)
 			return
 		}
