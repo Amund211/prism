@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Amund211/flashlight/internal/cache"
+	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/getstats"
 	"github.com/Amund211/flashlight/internal/hypixel"
 	"github.com/Amund211/flashlight/internal/logging"
@@ -28,8 +29,11 @@ func (hypixelAPI *mockedHypixelAPI) GetPlayerData(ctx context.Context, uuid stri
 }
 
 func init() {
-	localOnly := os.Getenv("LOCAL_ONLY") == "true"
-	isProduction := os.Getenv("FLASHLIGHT_ENVIRONMENT") == "production"
+	config, err := config.ConfigFromEnv()
+	if err != nil {
+		log.Fatalf("Failed to load config: %s", err.Error())
+	}
+	log.Printf("Starting with %s", config.String())
 
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
@@ -37,12 +41,11 @@ func init() {
 
 	playerCache := cache.NewPlayerCache(1 * time.Minute)
 
-	hypixelApiKey := os.Getenv("HYPIXEL_API_KEY")
 	var hypixelAPI hypixel.HypixelAPI
-	if hypixelApiKey != "" {
-		hypixelAPI = hypixel.NewHypixelAPI(httpClient, hypixelApiKey)
+	if config.HypixelAPIKey() != "" {
+		hypixelAPI = hypixel.NewHypixelAPI(httpClient, config.HypixelAPIKey())
 	} else {
-		if !localOnly {
+		if !config.IsDevelopment() {
 			log.Fatalln("Missing Hypixel API key")
 		}
 		hypixelAPI = &mockedHypixelAPI{}
@@ -64,10 +67,9 @@ func init() {
 		ratelimiting.UserIdKeyFunc,
 	)
 
-	sentryDSN := os.Getenv("SENTRY_DSN")
 	var sentryMiddleware func(http.HandlerFunc) http.HandlerFunc
-	if sentryDSN != "" {
-		realSentryMiddleware, flush, err := reporting.InitSentryMiddleware(sentryDSN)
+	if config.SentryDSN() != "" {
+		realSentryMiddleware, flush, err := reporting.InitSentryMiddleware(config.SentryDSN())
 		if err != nil {
 			log.Fatalf("Failed to initialize sentry: %v", err)
 		}
@@ -75,7 +77,7 @@ func init() {
 
 		defer flush()
 	} else {
-		if !localOnly {
+		if !config.IsDevelopment() {
 			log.Fatalln("Missing Sentry DSN")
 		}
 		sentryMiddleware = func(next http.HandlerFunc) http.HandlerFunc {
@@ -85,31 +87,21 @@ func init() {
 
 	rootLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
-	dbUsername := os.Getenv("DB_USERNAME")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	unixSocketPath := os.Getenv("CLOUDSQL_UNIX_SOCKET")
-
-	if dbUsername == "" || dbPassword == "" || unixSocketPath == "" {
-		if !localOnly {
-			log.Fatalln("Missing database credentials")
-		}
-	}
-
 	var persistor storage.StatsPersistor
 
 	var connectionString string
-	if localOnly {
+	if config.IsDevelopment() {
 		connectionString = storage.LOCAL_CONNECTION_STRING
 	} else {
-		connectionString = storage.GetCloudSQLConnectionString(dbUsername, dbPassword, unixSocketPath)
+		connectionString = storage.GetCloudSQLConnectionString(config.DBUsername(), config.DBPassword(), config.CloudSQLUnixSocketPath())
 	}
 
-	persistorSchemaName := storage.GetSchemaName(!isProduction)
+	persistorSchemaName := storage.GetSchemaName(!config.IsProduction())
 
 	rootLogger.Info("Initializing database connection", "connection_string", connectionString)
 	db, err := storage.NewPostgresDatabase(connectionString)
 	if err != nil {
-		if localOnly {
+		if config.IsDevelopment() {
 			log.Printf("Failed to connect to database: %s. Falling back to stub persistor.", err.Error())
 			persistor = storage.NewStubPersistor()
 		} else {
