@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/processing"
 	"github.com/Amund211/flashlight/internal/strutils"
 	"github.com/google/uuid"
@@ -219,4 +221,30 @@ func (p *StubPersistor) StoreStats(ctx context.Context, playerUUID string, playe
 
 func NewStubPersistor() *StubPersistor {
 	return &StubPersistor{}
+}
+
+func NewPostgresStatsPersistorOrMock(conf config.Config, logger *slog.Logger) (StatsPersistor, error) {
+	var connectionString string
+	if conf.IsDevelopment() {
+		connectionString = LOCAL_CONNECTION_STRING
+	} else {
+		connectionString = GetCloudSQLConnectionString(conf.DBUsername(), conf.DBPassword(), conf.CloudSQLUnixSocketPath())
+	}
+
+	persistorSchemaName := GetSchemaName(!conf.IsProduction())
+
+	logger.Info("Initializing database connection")
+	db, err := NewPostgresDatabase(connectionString)
+
+	if err == nil {
+		NewDatabaseMigrator(db, logger.With("component", "migrator")).Migrate(persistorSchemaName)
+		return NewPostgresStatsPersistor(db, persistorSchemaName), nil
+	}
+
+	if conf.IsDevelopment() {
+		logger.Warn("Failed to connect to database. Falling back to stub persistor.", "errror", err.Error())
+		return NewStubPersistor(), nil
+	}
+
+	return nil, fmt.Errorf("Failed to connect to database: %w", err)
 }

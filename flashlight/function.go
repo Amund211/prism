@@ -62,29 +62,9 @@ func init() {
 
 	rootLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
-	var persistor storage.StatsPersistor
-
-	var connectionString string
-	if config.IsDevelopment() {
-		connectionString = storage.LOCAL_CONNECTION_STRING
-	} else {
-		connectionString = storage.GetCloudSQLConnectionString(config.DBUsername(), config.DBPassword(), config.CloudSQLUnixSocketPath())
-	}
-
-	persistorSchemaName := storage.GetSchemaName(!config.IsProduction())
-
-	rootLogger.Info("Initializing database connection")
-	db, err := storage.NewPostgresDatabase(connectionString)
+	persistor, err := storage.NewPostgresStatsPersistorOrMock(config, rootLogger)
 	if err != nil {
-		if config.IsDevelopment() {
-			log.Printf("Failed to connect to database: %s. Falling back to stub persistor.", err.Error())
-			persistor = storage.NewStubPersistor()
-		} else {
-			log.Fatalf("Failed to connect to database: %v", err)
-		}
-	} else {
-		storage.NewDatabaseMigrator(db, rootLogger.With("component", "migrator")).Migrate(persistorSchemaName)
-		persistor = storage.NewPostgresStatsPersistor(db, persistorSchemaName)
+		log.Fatalf("Failed to initialize PostgresStatsPersistor: %s", err.Error())
 	}
 
 	middleware := server.ComposeMiddlewares(
