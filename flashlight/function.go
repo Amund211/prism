@@ -98,7 +98,7 @@ func init() {
 
 	persistorSchemaName := storage.GetSchemaName(!config.IsProduction())
 
-	rootLogger.Info("Initializing database connection", "connection_string", connectionString)
+	rootLogger.Info("Initializing database connection")
 	db, err := storage.NewPostgresDatabase(connectionString)
 	if err != nil {
 		if config.IsDevelopment() {
