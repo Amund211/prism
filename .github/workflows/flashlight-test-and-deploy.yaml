@@ -85,6 +85,15 @@ jobs:
         run: |
           ./cmd/test-ip-rate-limit.sh
 
+  deploy-test-instance:
+    if: "github.event.pull_request.merged == false && !contains(github.event.pull_request.labels.*.name, 'skip-deployment')"
+    name: Deploy test instance
+    runs-on: ubuntu-latest
+    # Only deploy the test instance if the tests pass
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
       - name: GCP login
         uses: google-github-actions/auth@v2
         with:
@@ -92,7 +101,6 @@ jobs:
           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
 
       - name: Deploy test instance
-        if: "!contains(github.event.pull_request.labels.*.name, 'skip-deployment')"
         run: ./cmd/deploy.sh flashlight-test
 
   build-and-deploy:
