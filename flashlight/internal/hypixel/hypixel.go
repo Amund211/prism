@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/constants"
 	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/logging"
@@ -17,6 +18,12 @@ type HttpClient interface {
 
 type HypixelAPI interface {
 	GetPlayerData(ctx context.Context, uuid string) ([]byte, int, error)
+}
+
+type mockedHypixelAPI struct{}
+
+func (hypixelAPI *mockedHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, error) {
+	return []byte(fmt.Sprintf(`{"success":true,"player":{"uuid":"%s"}}`, uuid)), 200, nil
 }
 
 type hypixelAPIImpl struct {
@@ -58,4 +65,14 @@ func NewHypixelAPI(httpClient HttpClient, apiKey string) HypixelAPI {
 		httpClient: httpClient,
 		apiKey:     apiKey,
 	}
+}
+
+func NewHypixelAPIOrMock(config config.Config, httpClient HttpClient) (HypixelAPI, error) {
+	if config.HypixelAPIKey() != "" {
+		return NewHypixelAPI(httpClient, config.HypixelAPIKey()), nil
+	}
+	if config.IsDevelopment() {
+		return &mockedHypixelAPI{}, nil
+	}
+	return nil, fmt.Errorf("Missing Hypixel API key in non-development environment")
 }

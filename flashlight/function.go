@@ -2,7 +2,6 @@ package function
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -22,12 +21,6 @@ import (
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 )
 
-type mockedHypixelAPI struct{}
-
-func (hypixelAPI *mockedHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, error) {
-	return []byte(fmt.Sprintf(`{"success":true,"player":{"uuid":"%s"}}`, uuid)), 200, nil
-}
-
 func init() {
 	config, err := config.ConfigFromEnv()
 	if err != nil {
@@ -35,20 +28,14 @@ func init() {
 	}
 	log.Printf("Starting with %s", config.NonSensitiveString())
 
+	playerCache := cache.NewPlayerCache(1 * time.Minute)
+
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
 	}
-
-	playerCache := cache.NewPlayerCache(1 * time.Minute)
-
-	var hypixelAPI hypixel.HypixelAPI
-	if config.HypixelAPIKey() != "" {
-		hypixelAPI = hypixel.NewHypixelAPI(httpClient, config.HypixelAPIKey())
-	} else {
-		if !config.IsDevelopment() {
-			log.Fatalln("Missing Hypixel API key")
-		}
-		hypixelAPI = &mockedHypixelAPI{}
+	hypixelAPI, err := hypixel.NewHypixelAPIOrMock(config, httpClient)
+	if err != nil {
+		log.Fatalf("Failed to initialize Hypixel API: %s", err.Error())
 	}
 
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
