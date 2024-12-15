@@ -61,6 +61,16 @@ func TestGetConfig(t *testing.T) {
 			})
 		}
 
+		t.Run("no sensitive data in NonSensitiveString", func(t *testing.T) {
+			t.Setenv("FLASHLIGHT_ENVIRONMENT", string(production))
+			conf, err := config.ConfigFromEnv()
+			require.NoError(t, err)
+
+			for _, sensitive := range []string{"DB_PASSWORD", "HYPIXEL_API_KEY", "SENTRY_DSN"} {
+				require.NotContains(t, conf.NonSensitiveString(), sensitive)
+			}
+		})
+
 	})
 
 	t.Run("production and staging fail when missing variables", func(t *testing.T) {
