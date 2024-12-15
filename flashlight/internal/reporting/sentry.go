@@ -3,11 +3,13 @@ package reporting
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"regexp"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/config"
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
 )
@@ -109,4 +111,20 @@ func InitSentryMiddleware(sentryDSN string) (func(http.HandlerFunc) http.Handler
 	}
 
 	return middleware, flush, nil
+}
+
+func NewSentryMiddlewareOrMock(config config.Config) (func(http.HandlerFunc) http.HandlerFunc, func(), error) {
+	if config.SentryDSN() != "" {
+		return InitSentryMiddleware(config.SentryDSN())
+	}
+
+	if config.IsDevelopment() {
+		middleware := func(next http.HandlerFunc) http.HandlerFunc {
+			return next
+		}
+		flush := func() {}
+		return middleware, flush, nil
+	}
+
+	return nil, nil, fmt.Errorf("Missing Sentry DSN in non-development environment")
 }

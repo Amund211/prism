@@ -54,23 +54,11 @@ func init() {
 		ratelimiting.UserIdKeyFunc,
 	)
 
-	var sentryMiddleware func(http.HandlerFunc) http.HandlerFunc
-	if config.SentryDSN() != "" {
-		realSentryMiddleware, flush, err := reporting.InitSentryMiddleware(config.SentryDSN())
-		if err != nil {
-			log.Fatalf("Failed to initialize sentry: %v", err)
-		}
-		sentryMiddleware = realSentryMiddleware
-
-		defer flush()
-	} else {
-		if !config.IsDevelopment() {
-			log.Fatalln("Missing Sentry DSN")
-		}
-		sentryMiddleware = func(next http.HandlerFunc) http.HandlerFunc {
-			return next
-		}
+	sentryMiddleware, flush, err := reporting.NewSentryMiddlewareOrMock(config)
+	if err != nil {
+		log.Fatalf("Failed to initialize Sentry: %s", err.Error())
 	}
+	defer flush()
 
 	rootLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
