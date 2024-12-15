@@ -2,7 +2,6 @@ package function
 
 import (
 	"context"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -22,11 +21,18 @@ import (
 )
 
 func init() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
+	fail := func(msg string, args ...any) {
+		logger.Error(msg, args...)
+		os.Exit(1)
+	}
+
 	config, err := config.ConfigFromEnv()
 	if err != nil {
-		log.Fatalf("Failed to load config: %s", err.Error())
+		fail("Failed to load config", "error", err.Error())
 	}
-	log.Printf("Starting with %s", config.NonSensitiveString())
+	logger.Info("Loaded config", "config", config.NonSensitiveString())
 
 	playerCache := cache.NewPlayerCache(1 * time.Minute)
 
@@ -35,8 +41,9 @@ func init() {
 	}
 	hypixelAPI, err := hypixel.NewHypixelAPIOrMock(config, httpClient)
 	if err != nil {
-		log.Fatalf("Failed to initialize Hypixel API: %s", err.Error())
+		fail("Failed to initialize Hypixel API", "error", err.Error())
 	}
+	logger.Info("Initialized Hypixel API")
 
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		ratelimiting.NewTokenBucketRateLimiter(
@@ -56,19 +63,19 @@ func init() {
 
 	sentryMiddleware, flush, err := reporting.NewSentryMiddlewareOrMock(config)
 	if err != nil {
-		log.Fatalf("Failed to initialize Sentry: %s", err.Error())
+		fail("Failed to initialize Sentry", "error", err.Error())
 	}
 	defer flush()
+	logger.Info("Initialized Sentry middleware")
 
-	rootLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-
-	persistor, err := storage.NewPostgresStatsPersistorOrMock(config, rootLogger)
+	persistor, err := storage.NewPostgresStatsPersistorOrMock(config, logger)
 	if err != nil {
-		log.Fatalf("Failed to initialize PostgresStatsPersistor: %s", err.Error())
+		fail("Failed to initialize PostgresStatsPersistor", "error", err.Error())
 	}
+	logger.Info("Initialized StatsPersistor")
 
 	middleware := server.ComposeMiddlewares(
-		logging.NewRequestLoggerMiddleware(rootLogger),
+		logging.NewRequestLoggerMiddleware(logger),
 		sentryMiddleware,
 		server.NewRateLimitMiddleware(ipRateLimiter),
 		server.NewRateLimitMiddleware(userIdRateLimiter),
@@ -85,5 +92,5 @@ func init() {
 		),
 	)
 
-	rootLogger.Info("Init complete")
+	logger.Info("Init complete")
 }
