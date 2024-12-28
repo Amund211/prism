@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -89,6 +91,113 @@ func main() {
 					return getstats.GetOrCreateProcessedPlayerData(ctx, playerCache, hypixelAPI, persistor, uuid)
 				},
 			),
+		),
+	)
+
+	historyIPRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
+		ratelimiting.NewTokenBucketRateLimiter(
+			ratelimiting.RefillPerSecond(1),
+			ratelimiting.BurstSize(20),
+		),
+		ratelimiting.IPKeyFunc,
+	)
+	http.HandleFunc(
+		"POST /v1/history",
+		// TODO: Implement sentry + logging middleware
+		server.NewRateLimitMiddleware(historyIPRateLimiter)(
+			func(w http.ResponseWriter, r *http.Request) {
+				defer r.Body.Close()
+				body, err := io.ReadAll(r.Body)
+				if err != nil {
+					http.Error(w, "Failed to read request body", http.StatusBadRequest)
+					return
+				}
+				request := struct {
+					UUID  string    `json:"uuid"`
+					Start time.Time `json:"start"`
+					End   time.Time `json:"end"`
+					Limit int       `json:"limit"`
+				}{}
+				err = json.Unmarshal(body, &request)
+				if err != nil {
+					http.Error(w, "Failed to parse request body", http.StatusBadRequest)
+					return
+				}
+
+				history, err := persistor.GetHistory(r.Context(), request.UUID, request.Start, request.End, request.Limit)
+				if err != nil {
+					http.Error(w, "Failed to get history", http.StatusInternalServerError)
+					return
+				}
+
+				type statsResponse struct {
+					Winstreak   *int `json:"winstreak"`
+					GamesPlayed *int `json:"gamesPlayed"`
+					Wins        *int `json:"wins"`
+					Losses      *int `json:"losses"`
+					BedsBroken  *int `json:"bedsBroken"`
+					BedsLost    *int `json:"bedsLost"`
+					FinalKills  *int `json:"finalKills"`
+					FinalDeaths *int `json:"finalDeaths"`
+					Kills       *int `json:"kills"`
+					Deaths      *int `json:"deaths"`
+				}
+
+				type playerDataResponse struct {
+					ID                string        `json:"id"`
+					DataFormatVersion int           `json:"dataFormatVersion"`
+					UUID              string        `json:"uuid"`
+					QueriedAt         time.Time     `json:"queriedAt"`
+					Experience        *float64      `json:"experience"`
+					Solo              statsResponse `json:"solo"`
+					Doubles           statsResponse `json:"doubles"`
+					Threes            statsResponse `json:"threes"`
+					Fours             statsResponse `json:"fours"`
+					Overall           statsResponse `json:"overall"`
+				}
+
+				pitStatsToResponse := func(stats storage.StatsPIT) statsResponse {
+					return statsResponse{
+						Winstreak:   stats.Winstreak,
+						GamesPlayed: stats.GamesPlayed,
+						Wins:        stats.Wins,
+						Losses:      stats.Losses,
+						BedsBroken:  stats.BedsBroken,
+						BedsLost:    stats.BedsLost,
+						FinalKills:  stats.FinalKills,
+						FinalDeaths: stats.FinalDeaths,
+						Kills:       stats.Kills,
+						Deaths:      stats.Deaths,
+					}
+				}
+
+				responseData := make([]playerDataResponse, 0, len(history))
+
+				for _, data := range history {
+					responseData = append(responseData, playerDataResponse{
+						ID:                data.ID,
+						DataFormatVersion: data.DataFormatVersion,
+						UUID:              data.UUID,
+						QueriedAt:         data.QueriedAt,
+						Experience:        data.Experience,
+						Solo:              pitStatsToResponse(data.Solo),
+						Doubles:           pitStatsToResponse(data.Doubles),
+						Threes:            pitStatsToResponse(data.Threes),
+						Fours:             pitStatsToResponse(data.Fours),
+						Overall:           pitStatsToResponse(data.Overall),
+					})
+				}
+
+				marshalled, err := json.Marshal(responseData)
+				if err != nil {
+					http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
+					return
+				}
+
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				w.Write(marshalled)
+			},
 		),
 	)
 
