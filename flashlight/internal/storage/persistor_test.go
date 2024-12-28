@@ -63,8 +63,9 @@ func TestPostgresStatsPersistor(t *testing.T) {
 	now := time.Now()
 
 	t.Run("StoreStats", func(t *testing.T) {
+		SCHEMA_NAME := "store_stats"
 		t.Parallel()
-		p := newPostgresPersistor(t, db, "store_stats")
+		p := newPostgresPersistor(t, db, SCHEMA_NAME)
 
 		requireStored := func(t *testing.T, playerUUID string, player *processing.HypixelAPIPlayer, queriedAt time.Time, targetCount int) {
 			t.Helper()
@@ -79,7 +80,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			require.NoError(t, err)
 			defer txx.Rollback()
 
-			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier("store_stats")))
+			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(SCHEMA_NAME)))
 
 			row := txx.QueryRowx("SELECT COUNT(*) FROM stats WHERE player_uuid = $1 AND player_data = $2 AND queried_at = $3", normalizedUUID, playerData, queriedAt)
 			require.NoError(t, row.Err())
@@ -168,6 +169,86 @@ func TestPostgresStatsPersistor(t *testing.T) {
 				require.NoError(t, err)
 				requireNotStored(t, player_uuid, player2, t2)
 			}
+		})
+
+		t.Run("consecutive duplicate stats are not stored", func(t *testing.T) {
+			t.Parallel()
+			player_uuid := newUUID(t)
+
+			playerdata := newHypixelAPIPlayer(1)
+			t1 := now
+
+			requireNotStored(t, player_uuid, playerdata, t1)
+			err := p.StoreStats(ctx, player_uuid, playerdata, t1)
+			require.NoError(t, err)
+			requireStoredOnce(t, player_uuid, playerdata, t1)
+
+			// Duplicate data is consecutive -> don't store it
+			t2 := t1.Add(2 * time.Minute)
+			err = p.StoreStats(ctx, player_uuid, playerdata, t2)
+			require.NoError(t, err)
+			requireNotStored(t, player_uuid, playerdata, t2)
+		})
+
+		t.Run("non-consecutive duplicate stats are stored", func(t *testing.T) {
+			t.Parallel()
+			player_uuid := newUUID(t)
+
+			playerdata := newHypixelAPIPlayer(1)
+			t1 := now
+
+			requireNotStored(t, player_uuid, playerdata, t1)
+			err := p.StoreStats(ctx, player_uuid, playerdata, t1)
+			require.NoError(t, err)
+			requireStoredOnce(t, player_uuid, playerdata, t1)
+
+			t2 := t1.Add(2 * time.Minute)
+			newplayerdata := newHypixelAPIPlayer(1)
+			requireNotStored(t, player_uuid, newplayerdata, t2)
+			err = p.StoreStats(ctx, player_uuid, newplayerdata, t2)
+			require.NoError(t, err)
+			requireNotStored(t, player_uuid, newplayerdata, t2)
+
+			// Old duplicate data is not consecutive any more -> store it
+			t3 := t2.Add(2 * time.Minute)
+			requireNotStored(t, player_uuid, playerdata, t3)
+			err = p.StoreStats(ctx, player_uuid, playerdata, t3)
+			require.NoError(t, err)
+			requireNotStored(t, player_uuid, playerdata, t3)
+		})
+
+		t.Run("nothing fails when last stats are an old version", func(t *testing.T) {
+			t.Parallel()
+			player_uuid := newUUID(t)
+
+			t1 := now
+			oldPlayerData := []byte(`{"old_version": {"weird": {"format": 1}}, "xp": "12q3", "1": 1, "all": "lkj"}`)
+			normalizedUUID, err := strutils.NormalizeUUID(player_uuid)
+			require.NoError(t, err)
+			txx, err := db.Beginx()
+			require.NoError(t, err)
+			defer txx.Rollback()
+			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(SCHEMA_NAME)))
+			_, err = txx.ExecContext(
+				ctx,
+				`INSERT INTO stats
+		(id, player_uuid, player_data, queried_at, data_format_version)
+		VALUES ($1, $2, $3, $4, $5)`,
+				newUUID(t),
+				normalizedUUID,
+				oldPlayerData,
+				t1,
+				-10,
+			)
+			require.NoError(t, err)
+			err = txx.Commit()
+			require.NoError(t, err)
+
+			t2 := t1.Add(2 * time.Minute)
+			playerdata := newHypixelAPIPlayer(1)
+			err = p.StoreStats(ctx, player_uuid, playerdata, t2)
+			require.NoError(t, err)
+			requireStoredOnce(t, player_uuid, playerdata, t2)
 		})
 
 		t.Run("same data for multiple users", func(t *testing.T) {

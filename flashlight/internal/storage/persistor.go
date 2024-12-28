@@ -2,7 +2,9 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -190,6 +192,23 @@ func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, playerUUID stri
 	if count > 0 {
 		// Recent stats already exist, no need to store them again
 		return nil
+	}
+
+	// Don't store consecutive duplicate stats
+	var lastPlayerData []byte
+	var lastDataFormatVersion int
+	err = txx.QueryRowxContext(ctx, "SELECT data_format_version, player_data FROM stats WHERE player_uuid = $1 ORDER BY queried_at DESC LIMIT 1", normalizedUUID).Scan(&lastDataFormatVersion, &lastPlayerData)
+	if err == nil && lastDataFormatVersion == DATA_FORMAT_VERSION {
+		equal, err := strutils.JSONStringsEqual(playerData, lastPlayerData)
+		if err != nil {
+			return fmt.Errorf("StoreStats: failed to compare player data: %w", err)
+		}
+		if equal {
+			return nil
+		}
+	}
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("StoreStats: failed to query last player data: %w", err)
 	}
 
 	_, err = txx.ExecContext(
