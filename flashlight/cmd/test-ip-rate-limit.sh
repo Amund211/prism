@@ -15,7 +15,7 @@ echo 'Starting server' >&2
 while ! curl \
 	--fail \
 	--silent \
-	"localhost:$PORT/playerdata?uuid=$UUID" >/dev/null 2>&1; do
+	"localhost:$PORT/v1/playerdata?uuid=$UUID" >/dev/null 2>&1; do
 	echo 'Waiting for server to start' >&2
 	sleep 0.5
 done
@@ -27,7 +27,7 @@ for i in $(seq 1 480); do
 		--fail \
 		--silent \
 		-H "X-User-Id: my-user-id-$i" \
-		"localhost:$PORT/playerdata?uuid=$UUID" |
+		"localhost:$PORT/v1/playerdata?uuid=$UUID" |
 		grep "$UUID_SNIPPET" >/dev/null 2>&1
 done
 
@@ -37,7 +37,7 @@ for i in $(seq 1 480); do
 	curl \
 		--silent \
 		-H "X-User-Id: my-user-id-$i" \
-		"localhost:$PORT/playerdata?uuid=$UUID" >/dev/null 2>&1 ||
+		"localhost:$PORT/v1/playerdata?uuid=$UUID" >/dev/null 2>&1 ||
 		true
 done
 
@@ -46,7 +46,7 @@ for i in $(seq 1 10); do
 	if ! curl \
 		--fail \
 		-H "X-User-Id: my-user-id-$i" \
-		"localhost:$PORT/playerdata?uuid=$UUID" >/dev/null 2>&1; then
+		"localhost:$PORT/v1/playerdata?uuid=$UUID" >/dev/null 2>&1; then
 		exit 0
 	fi
 done

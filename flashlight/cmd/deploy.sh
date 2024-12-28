@@ -47,7 +47,7 @@ response="$(
 		-sS \
 		-H 'X-User-Id: gha-deployment-verifier' \
 		-H 'User-Agent: gha-deployment-verifier' \
-		"https://${service_name}-184945651621.northamerica-northeast2.run.app/playerdata?uuid=a937646b-f115-44c3-8dbf-9ae4a65669a0"
+		"https://${service_name}-184945651621.northamerica-northeast2.run.app/v1/playerdata?uuid=a937646b-f115-44c3-8dbf-9ae4a65669a0"
 )"
 
 echo 'Verifying response from new deployment' >&2
