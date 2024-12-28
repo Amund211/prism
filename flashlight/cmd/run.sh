@@ -12,8 +12,7 @@ fi
 
 . "$env_file"
 
-FUNCTION_TARGET=flashlight \
-	LOCAL_ONLY=true \
-	FLASHLIGHT_ENVIRONMENT="${FLASHLIGHT_ENVIRONMENT:-development}" \
+LOCAL_ONLY=true
+FLASHLIGHT_ENVIRONMENT="${FLASHLIGHT_ENVIRONMENT:-development}" \
 	PORT="${1:-8123}" \
-	go run cmd/main.go
+	go run main.go

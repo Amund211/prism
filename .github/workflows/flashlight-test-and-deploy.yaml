@@ -69,7 +69,7 @@ jobs:
 
       - name: Go build
         run: |
-          go build ./function.go
+          go build
           go build ./cmd/get-stats/main.go
           go build ./cmd/fix-minify-fixtures/main.go
 

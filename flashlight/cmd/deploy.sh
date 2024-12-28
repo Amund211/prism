@@ -6,10 +6,12 @@ function_name="${1:-}"
 
 case $function_name in
 flashlight)
+	service_name='flashlight-cr'
 	sentry_dsn_key='flashlight-sentry-dsn'
 	environment='production'
 	;;
 flashlight-test)
+	service_name='flashlight-test-cr'
 	sentry_dsn_key='flashlight-test-sentry-dsn'
 	environment='staging'
 	;;
@@ -19,12 +21,9 @@ flashlight-test)
 	;;
 esac
 
-gcloud functions deploy "$function_name" \
-	--gen2 \
+gcloud run deploy "$service_name" \
+	--source . \
 	--region=northamerica-northeast2 \
-	--runtime=go122 \
-	--entry-point=flashlight \
-	--trigger-http \
 	--max-instances=1 \
 	--min-instances=0 \
 	--timeout=30s \
@@ -32,6 +31,7 @@ gcloud functions deploy "$function_name" \
 	--memory=128Mi \
 	--allow-unauthenticated \
 	--concurrency 100 \
+	--set-cloudsql-instances prism-overlay:northamerica-northeast2:flashlight-postgres \
 	--set-secrets HYPIXEL_API_KEY=prism-hypixel-api-key:latest \
 	--set-secrets DB_PASSWORD=flashlight-db-password:latest \
 	--set-secrets "SENTRY_DSN=${sentry_dsn_key}:latest" \
@@ -47,7 +47,7 @@ response="$(
 		-sS \
 		-H 'X-User-Id: gha-deployment-verifier' \
 		-H 'User-Agent: gha-deployment-verifier' \
-		"https://northamerica-northeast2-prism-overlay.cloudfunctions.net/${function_name}?uuid=a937646b-f115-44c3-8dbf-9ae4a65669a0"
+		"https://${service_name}-184945651621.northamerica-northeast2.run.app/playerdata?uuid=a937646b-f115-44c3-8dbf-9ae4a65669a0"
 )"
 
 echo 'Verifying response from new deployment' >&2

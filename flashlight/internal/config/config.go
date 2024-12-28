@@ -23,6 +23,7 @@ type Config struct {
 	dBUsername             string
 	sentryDSN              string
 	hypixelAPIKey          string
+	port                   string
 	env                    environment
 }
 
@@ -44,6 +45,10 @@ func (c *Config) SentryDSN() string {
 
 func (c *Config) HypixelAPIKey() string {
 	return c.hypixelAPIKey
+}
+
+func (c *Config) Port() string {
+	return c.port
 }
 
 func (c *Config) IsProduction() bool {
@@ -93,6 +98,12 @@ func ConfigFromEnv() (Config, error) {
 	sentryDSN := os.Getenv("SENTRY_DSN")
 	hypixelAPIKey := os.Getenv("HYPIXEL_API_KEY")
 
+	port := "8080"
+	rawPort, ok := os.LookupEnv("PORT")
+	if ok {
+		port = rawPort
+	}
+
 	if env == production || env == staging {
 		if cloudSQLUnixSocketPath == "" {
 			return missingKey("CLOUDSQL_UNIX_SOCKET")
@@ -117,6 +128,7 @@ func ConfigFromEnv() (Config, error) {
 		dBUsername:             dbUsername,
 		sentryDSN:              sentryDSN,
 		hypixelAPIKey:          hypixelAPIKey,
+		port:                   port,
 		env:                    env,
 	}, nil
 }

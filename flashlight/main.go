@@ -1,7 +1,9 @@
-package function
+package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -16,11 +18,9 @@ import (
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/server"
 	"github.com/Amund211/flashlight/internal/storage"
-
-	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 )
 
-func init() {
+func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	fail := func(msg string, args ...any) {
@@ -81,8 +81,8 @@ func init() {
 		server.NewRateLimitMiddleware(userIdRateLimiter),
 	)
 
-	functions.HTTP(
-		"flashlight",
+	http.HandleFunc(
+		"GET /playerdata",
 		middleware(
 			server.MakeGetPlayerDataHandler(
 				func(ctx context.Context, uuid string) ([]byte, int, error) {
@@ -93,4 +93,10 @@ func init() {
 	)
 
 	logger.Info("Init complete")
+	err = http.ListenAndServe(fmt.Sprintf(":%s", config.Port()), nil)
+	if errors.Is(err, http.ErrServerClosed) {
+		logger.Info("Server shutdown")
+	} else {
+		fail("Server error", "error", err.Error())
+	}
 }
