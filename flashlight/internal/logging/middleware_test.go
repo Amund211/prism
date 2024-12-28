@@ -81,22 +81,24 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 				{Key: "uuid", Value: "requested-uuid"},
 				{Key: "userId", Value: "user-id"},
 				{Key: "userAgent", Value: "user-agent/1.0"},
+				{Key: "methodPath", Value: "GET /my-path"},
 			}, attrs)
 		})
 
 		t.Run("bad request", func(t *testing.T) {
-			requestUrl, err := url.Parse("http://example.com/my-path")
+			requestUrl, err := url.Parse("http://example.com/my-other-path")
 			assert.NoError(t, err)
 
 			attrs := run(&http.Request{
 				URL:    requestUrl,
-				Method: "GET",
+				Method: "POST",
 			}, true)
 
 			assert.ElementsMatch(t, []StringAttr{
 				{Key: "uuid", Value: "<missing>"},
 				{Key: "userId", Value: "<missing>"},
 				{Key: "userAgent", Value: "<missing>"},
+				{Key: "methodPath", Value: "POST /my-other-path"},
 			}, attrs)
 		})
 	})

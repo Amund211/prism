@@ -2,6 +2,7 @@ package logging
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -41,6 +42,7 @@ func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc)
 				slog.String("uuid", uuid),
 				slog.String("userId", userId),
 				slog.String("userAgent", userAgent),
+				slog.String("methodPath", fmt.Sprintf("%s %s", r.Method, r.URL.Path)),
 			)
 
 			next(w, r.WithContext(context.WithValue(r.Context(), requestLoggerContextKey{}, requestLogger)))
