@@ -312,4 +312,132 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			})
 		})
 	})
+
+	t.Run("GetHistory", func(t *testing.T) {
+		t.Parallel()
+		type storageInstruction struct {
+			uuid      string
+			queriedAt time.Time
+			player    *processing.HypixelAPIPlayer
+		}
+
+		storeStats := func(t *testing.T, p *PostgresStatsPersistor, instructions ...storageInstruction) {
+			t.Helper()
+			for _, instruction := range instructions {
+				err := p.StoreStats(ctx, instruction.uuid, instruction.player, instruction.queriedAt)
+				require.NoError(t, err)
+			}
+		}
+
+		setStoredStats := func(t *testing.T, p *PostgresStatsPersistor, instructions ...storageInstruction) {
+			t.Helper()
+			txx, err := db.Beginx()
+			require.NoError(t, err)
+			defer txx.Rollback()
+
+			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
+			require.NoError(t, err)
+
+			_, err = txx.ExecContext(ctx, "DELETE FROM stats")
+			require.NoError(t, err)
+			err = txx.Commit()
+
+			storeStats(t, p, instructions...)
+
+			var count int
+			err = db.QueryRowxContext(ctx, "SELECT COUNT(*) FROM stats").Scan(&count)
+			require.NoError(t, err)
+			require.Equal(t, len(instructions), count)
+		}
+
+		t.Run("evenly spread across a day", func(t *testing.T) {
+			p := newPostgresPersistor(t, db, "get_history_evenly_spread_across_a_day")
+			janFirst21 := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", 3600*10))
+
+			player_uuid := newUUID(t)
+
+			instructions := []storageInstruction{}
+			density := 4
+			count := 24 * density
+			interval := 24 * time.Hour / time.Duration(count)
+			// Evenly distributed stats for 24 hours + 1 extra
+			for i := 0; i < count+1; i++ {
+				instructions = append(
+					instructions,
+					storageInstruction{
+						uuid:      player_uuid,
+						player:    newHypixelAPIPlayer(i),
+						queriedAt: janFirst21.Add(time.Duration(i) * interval),
+					},
+				)
+			}
+
+			setStoredStats(t, p, instructions...)
+
+			history, err := p.GetHistory(ctx, player_uuid, janFirst21, janFirst21.Add(24*time.Hour), 25)
+			require.NoError(t, err)
+			require.Len(t, history, 25)
+
+			for i, playerData := range history {
+				offset := i * density
+				require.Equal(t, player_uuid, playerData.UUID)
+				require.WithinDuration(t, janFirst21.Add(time.Duration(offset)*interval), playerData.QueriedAt, 0)
+				// Mock data matches
+				require.Equal(t, offset, *playerData.Overall.Kills)
+			}
+		})
+
+		t.Run("random clusters", func(t *testing.T) {
+			p := newPostgresPersistor(t, db, "get_history_random_clusters")
+			player_uuid := newUUID(t)
+			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
+
+			instructions := []storageInstruction{
+				{player_uuid, start.Add(0 * time.Hour).Add(-1 * time.Minute), newHypixelAPIPlayer(0)},
+				{player_uuid, start.Add(0 * time.Hour).Add(7 * time.Minute), newHypixelAPIPlayer(1)},
+				{player_uuid, start.Add(0 * time.Hour).Add(17 * time.Minute), newHypixelAPIPlayer(2)},
+				{player_uuid, start.Add(0 * time.Hour).Add(37 * time.Minute), newHypixelAPIPlayer(3)},
+				{player_uuid, start.Add(2 * time.Hour).Add(40 * time.Minute), newHypixelAPIPlayer(4)},
+
+				{player_uuid, start.Add(2 * time.Hour).Add(45 * time.Minute), newHypixelAPIPlayer(5)},
+				{player_uuid, start.Add(2 * time.Hour).Add(50 * time.Minute), newHypixelAPIPlayer(6)},
+				{player_uuid, start.Add(2 * time.Hour).Add(55 * time.Minute), newHypixelAPIPlayer(7)},
+
+				{player_uuid, start.Add(3 * time.Hour).Add(1 * time.Minute), newHypixelAPIPlayer(8)},
+				{player_uuid, start.Add(3 * time.Hour).Add(47 * time.Minute), newHypixelAPIPlayer(9)},
+				{player_uuid, start.Add(3 * time.Hour).Add(59 * time.Minute), newHypixelAPIPlayer(10)},
+				{player_uuid, start.Add(4 * time.Hour).Add(1 * time.Minute), newHypixelAPIPlayer(11)},
+			}
+
+			setStoredStats(t, p, instructions...)
+
+			history, err := p.GetHistory(ctx, player_uuid, start, start.Add(4*time.Hour), 16+1)
+			require.NoError(t, err)
+
+			expectedHistory := []storageInstruction{
+				instructions[1],
+				instructions[2],
+				instructions[3],
+				instructions[4],
+				instructions[5],
+				instructions[8],
+				instructions[9],
+				instructions[10],
+			}
+
+			require.Len(t, history, len(expectedHistory))
+
+			for i, expectedPIT := range expectedHistory {
+				playerPIT := history[i]
+
+				require.Equal(t, player_uuid, expectedPIT.uuid)
+				require.Equal(t, player_uuid, playerPIT.UUID)
+
+				// Mock data matches
+				require.Equal(t, *expectedPIT.player.Stats.Bedwars.Kills, *playerPIT.Overall.Kills)
+
+				require.WithinDuration(t, expectedPIT.queriedAt, playerPIT.QueriedAt, 0)
+			}
+		})
+	})
 }

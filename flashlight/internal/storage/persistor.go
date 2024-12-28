@@ -145,6 +145,21 @@ func playerToDataStorage(player *processing.HypixelAPIPlayer) ([]byte, error) {
 	return json.Marshal(data)
 }
 
+func statsPITFromDataStorage(data *statsDataStorage) *StatsPIT {
+	return &StatsPIT{
+		Winstreak:   data.Winstreak,
+		GamesPlayed: data.GamesPlayed,
+		Wins:        data.Wins,
+		Losses:      data.Losses,
+		BedsBroken:  data.BedsBroken,
+		BedsLost:    data.BedsLost,
+		FinalKills:  data.FinalKills,
+		FinalDeaths: data.FinalDeaths,
+		Kills:       data.Kills,
+		Deaths:      data.Deaths,
+	}
+}
+
 func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, playerUUID string, player *processing.HypixelAPIPlayer, queriedAt time.Time) error {
 	if player == nil {
 		return fmt.Errorf("StoreStats: player is nil")
@@ -233,10 +248,130 @@ func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, playerUUID stri
 	return nil
 }
 
+func (p *PostgresStatsPersistor) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]PlayerDataPIT, error) {
+	if limit < 2 || limit > 1000 {
+		// TODO: Use known error
+		return nil, fmt.Errorf("GetHistory: invalid limit: %d", limit)
+	}
+
+	timespan := end.Sub(start)
+	if timespan <= 0 {
+		return nil, fmt.Errorf("GetHistory: end time must be after start time")
+	}
+
+	type dbStat struct {
+		ID                string    `db:"id"`
+		DataFormatVersion int       `db:"data_format_version"`
+		UUID              string    `db:"player_uuid"`
+		QueriedAt         time.Time `db:"queried_at"`
+		PlayerData        []byte    `db:"player_data"`
+	}
+
+	dbStats := make([]dbStat, 0, limit)
+
+	txx, err := p.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("GetHistory: failed to start transaction: %w", err)
+	}
+	defer txx.Rollback()
+
+	_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
+	if err != nil {
+		return nil, fmt.Errorf("StoreStats: failed to set search path: %w", err)
+	}
+
+	intervalLength := timespan / time.Duration(limit-1)
+	for offset := 0; offset < limit-1; offset++ {
+		intervalStart := start.Add(intervalLength * time.Duration(offset))
+		intervalEnd := start.Add(intervalLength * time.Duration(offset+1))
+
+		var stats []dbStat
+		err = txx.SelectContext(
+			ctx,
+			&stats,
+			`select
+				id, data_format_version, player_uuid, queried_at, player_data
+			from stats
+			where
+				player_uuid = $1 and
+				queried_at >= $2 and
+				queried_at < $3
+			order by queried_at asc
+			limit 1`,
+			playerUUID, intervalStart, intervalEnd)
+		if err != nil {
+			return nil, fmt.Errorf("GetHistory: failed to select: %w", err)
+		}
+		if len(stats) > 1 {
+			return nil, fmt.Errorf("GetHistory: expected at most one result, got %d", len(stats))
+		}
+
+		if len(stats) == 1 {
+			dbStats = append(dbStats, stats[0])
+		}
+	}
+
+	var stats []dbStat
+	err = txx.SelectContext(
+		ctx,
+		&stats,
+		`select
+			id, data_format_version, player_uuid, queried_at, player_data
+		from stats
+		where
+			player_uuid = $1 and
+			queried_at >= $2 and
+			queried_at <= $3
+		order by queried_at desc
+		limit 1`,
+		playerUUID, end.Add(-1*intervalLength), end)
+	if err != nil {
+		return nil, fmt.Errorf("GetHistory: failed to select: %w", err)
+	}
+	if len(stats) > 1 {
+		return nil, fmt.Errorf("GetHistory: expected at most one result, got %d", len(stats))
+	}
+	if len(stats) == 1 {
+		dbStats = append(dbStats, stats[0])
+	}
+
+	err = txx.Commit()
+	if err != nil {
+		return nil, fmt.Errorf("StoreStats: failed to commit transaction: %w", err)
+	}
+
+	result := make([]PlayerDataPIT, 0, len(dbStats))
+	for _, dbStat := range dbStats {
+		var playerData playerDataStorage
+		err := json.Unmarshal(dbStat.PlayerData, &playerData)
+		if err != nil {
+			return nil, fmt.Errorf("GetHistory: failed to unmarshal player data: %w", err)
+		}
+		result = append(result, PlayerDataPIT{
+			ID:                dbStat.ID,
+			DataFormatVersion: dbStat.DataFormatVersion,
+			UUID:              dbStat.UUID,
+			QueriedAt:         dbStat.QueriedAt,
+			Experience:        playerData.Experience,
+			Solo:              *statsPITFromDataStorage(&playerData.Solo),
+			Doubles:           *statsPITFromDataStorage(&playerData.Doubles),
+			Threes:            *statsPITFromDataStorage(&playerData.Threes),
+			Fours:             *statsPITFromDataStorage(&playerData.Fours),
+			Overall:           *statsPITFromDataStorage(&playerData.Overall),
+		})
+	}
+
+	return result, nil
+}
+
 type StubPersistor struct{}
 
 func (p *StubPersistor) StoreStats(ctx context.Context, playerUUID string, player *processing.HypixelAPIPlayer, queriedAt time.Time) error {
 	return nil
+}
+
+func (p *StubPersistor) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]PlayerDataPIT, error) {
+	return []PlayerDataPIT{}, nil
 }
 
 func NewStubPersistor() *StubPersistor {
