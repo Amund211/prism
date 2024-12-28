@@ -82,6 +82,18 @@ func main() {
 	)
 
 	http.HandleFunc(
+		"GET /v1/playerdata",
+		middleware(
+			server.MakeGetPlayerDataHandler(
+				func(ctx context.Context, uuid string) ([]byte, int, error) {
+					return getstats.GetOrCreateProcessedPlayerData(ctx, playerCache, hypixelAPI, persistor, uuid)
+				},
+			),
+		),
+	)
+
+	// TODO: Remove
+	http.HandleFunc(
 		"GET /playerdata",
 		middleware(
 			server.MakeGetPlayerDataHandler(
