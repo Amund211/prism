@@ -192,7 +192,8 @@ func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, playerUUID stri
 		return nil
 	}
 
-	_, err = txx.Exec(
+	_, err = txx.ExecContext(
+		ctx,
 		`INSERT INTO stats
 		(id, player_uuid, player_data, queried_at, data_format_version)
 		VALUES ($1, $2, $3, $4, $5)`,
