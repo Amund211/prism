@@ -20,10 +20,6 @@ import (
 
 const DATA_FORMAT_VERSION = 1
 
-type StatsPersistor interface {
-	StoreStats(ctx context.Context, playerUUID string, player *processing.HypixelAPIPlayer, queriedAt time.Time) error
-}
-
 type PostgresStatsPersistor struct {
 	db     *sqlx.DB
 	schema string
