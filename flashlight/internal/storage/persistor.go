@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Amund211/flashlight/internal/config"
+	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/processing"
 	"github.com/Amund211/flashlight/internal/strutils"
 	"github.com/google/uuid"
@@ -230,7 +231,10 @@ func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, playerUUID stri
 	if err != nil {
 		return fmt.Errorf("StoreStats: failed to commit transaction: %w", err)
 	}
-	return err
+
+	logging.FromContext(ctx).Info("Stored stats", "dataFormatVersion", DATA_FORMAT_VERSION)
+
+	return nil
 }
 
 type StubPersistor struct{}
