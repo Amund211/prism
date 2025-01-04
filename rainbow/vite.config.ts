@@ -35,8 +35,8 @@ export default defineConfig(({ mode }) => {
                     "/flashlight": {
                         target:
                             mode === "proxy-production"
-                                ? "https://flashlight.recdep.com"
-                                : "https://flashlight-test.recdep.com",
+                                ? "https://flashlight-cr-184945651621.northamerica-northeast2.run.app"
+                                : "https://flashlight-test-cr-184945651621.northamerica-northeast2.run.app",
                         changeOrigin: true,
                         cookieDomainRewrite: {
                             "*": "localhost",
