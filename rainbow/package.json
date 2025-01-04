@@ -15,7 +15,8 @@
   "dependencies": {
     "@tanstack/react-query": "^5.62.15",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
