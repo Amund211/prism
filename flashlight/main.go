@@ -20,10 +20,12 @@ import (
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/server"
 	"github.com/Amund211/flashlight/internal/storage"
+	"github.com/google/uuid"
 )
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	instanceID := uuid.New().String()
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil)).With("instanceID", instanceID)
 
 	fail := func(msg string, args ...any) {
 		logger.Error(msg, args...)
