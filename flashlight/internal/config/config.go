@@ -65,7 +65,7 @@ func (c *Config) IsDevelopment() bool {
 
 // Return a string representation suitable for logging etc
 func (c *Config) NonSensitiveString() string {
-	return fmt.Sprintf("Config{env: %s, ...}", string(c.env))
+	return fmt.Sprintf("Config{env: %s, port: %s ...}", string(c.env), c.port)
 }
 
 func ConfigFromEnv() (Config, error) {
