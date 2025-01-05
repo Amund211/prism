@@ -42,7 +42,7 @@ interface StatsPIT {
     deaths: number | null;
 }
 
-interface PlayerDataPIT {
+export interface PlayerDataPIT {
     id: string;
     dataFormatVersion: number;
     uuid: string;
@@ -55,12 +55,12 @@ interface PlayerDataPIT {
     overall: StatsPIT;
 }
 
-type History = PlayerDataPIT[];
+export type History = PlayerDataPIT[];
 
 // const uuid = "a937646b-f115-44c3-8dbf-9ae4a65669a0";
 const uuid = "ac04f297-f74c-44de-a24e-0083936ac59a";
 const start = "2024-11-01T00:00:00Z";
-const end = "2025-01-01T00:00:00Z";
+const end = "2025-06-01T00:00:00Z";
 const limit = 100;
 
 export const historyQueryOptions = queryOptions({
@@ -76,17 +76,19 @@ export const historyQueryOptions = queryOptions({
         });
         const apiHistory = (await response.json()) as APIHistory;
 
-        return apiHistory.map((apiPlayerData) => ({
-            id: apiPlayerData.id,
-            dataFormatVersion: apiPlayerData.dataFormatVersion,
-            uuid: apiPlayerData.uuid,
-            queriedAt: new Date(apiPlayerData.queriedAt),
-            experience: apiPlayerData.experience,
-            solo: apiPlayerData.solo,
-            doubles: apiPlayerData.doubles,
-            threes: apiPlayerData.threes,
-            fours: apiPlayerData.fours,
-            overall: apiPlayerData.overall,
-        }));
+        return apiHistory
+            .filter(({ dataFormatVersion }) => dataFormatVersion === 1)
+            .map((apiPlayerData) => ({
+                id: apiPlayerData.id,
+                dataFormatVersion: apiPlayerData.dataFormatVersion,
+                uuid: apiPlayerData.uuid,
+                queriedAt: new Date(apiPlayerData.queriedAt),
+                experience: apiPlayerData.experience,
+                solo: apiPlayerData.solo,
+                doubles: apiPlayerData.doubles,
+                threes: apiPlayerData.threes,
+                fours: apiPlayerData.fours,
+                overall: apiPlayerData.overall,
+            }));
     },
 });
