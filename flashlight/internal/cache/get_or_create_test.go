@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type Callback func() ([]byte, int, error)
@@ -157,4 +159,33 @@ func TestGetOrCreateErrorRetries(t *testing.T) {
 	}()
 
 	server.processTicks()
+}
+
+func TestGetOrCreateRealCache(t *testing.T) {
+	t.Run("requests are de-duplicated in highly concurrent environment", func(t *testing.T) {
+		ctx := context.Background()
+		playerCache := NewPlayerCache(1 * time.Minute)
+
+		for testIndex := 0; testIndex < 100; testIndex++ {
+			t.Run(fmt.Sprintf("attempt #%d", testIndex), func(t *testing.T) {
+				t.Parallel()
+
+				called := false
+				monoStableCallback := func() ([]byte, int, error) {
+					require.False(t, called, "Callback should only be called once")
+					called = true
+					return createResponse(1, 200)
+				}
+
+				for callIndex := 0; callIndex < 10; callIndex++ {
+					go func() {
+						data, statusCode, err := GetOrCreateCachedResponse(ctx, playerCache, fmt.Sprintf("uuid%d", testIndex), monoStableCallback)
+						require.Nil(t, err)
+						require.Equal(t, "data1", string(data))
+						require.Equal(t, 200, statusCode)
+					}()
+				}
+			})
+		}
+	})
 }
