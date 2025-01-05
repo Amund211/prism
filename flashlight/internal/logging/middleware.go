@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+
+	"github.com/google/uuid"
 )
 
 type requestLoggerContextKey struct{}
@@ -23,6 +25,8 @@ func FromContext(ctx context.Context) *slog.Logger {
 func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
+			correlationID := uuid.New().String()
+
 			uuid := r.URL.Query().Get("uuid")
 			if uuid == "" {
 				uuid = "<missing>"
@@ -39,6 +43,7 @@ func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc)
 			}
 
 			requestLogger := logger.With(
+				slog.String("correlationID", correlationID),
 				slog.String("uuid", uuid),
 				slog.String("userId", userId),
 				slog.String("userAgent", userAgent),

@@ -53,12 +53,14 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 				foundBase++
 			} else if key == "time" {
 				foundBase++
+			} else if key == "correlationID" {
+				foundBase++
 			} else {
 				attrs = append(attrs, StringAttr{Key: key, Value: value.(string)})
 			}
 		}
 
-		assert.Equal(t, 3, foundBase)
+		assert.Equal(t, 4, foundBase)
 
 		return attrs
 	}
