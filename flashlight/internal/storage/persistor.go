@@ -209,7 +209,18 @@ func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, playerUUID stri
 	// Don't store consecutive duplicate stats
 	var lastPlayerData []byte
 	var lastDataFormatVersion int
-	err = txx.QueryRowxContext(ctx, "SELECT data_format_version, player_data FROM stats WHERE player_uuid = $1 ORDER BY queried_at DESC LIMIT 1", normalizedUUID).Scan(&lastDataFormatVersion, &lastPlayerData)
+	err = txx.QueryRowxContext(
+		ctx,
+		`SELECT
+			data_format_version, player_data
+		FROM stats
+		WHERE
+			player_uuid = $1 AND
+			queried_at > $2
+		ORDER BY queried_at DESC LIMIT 1`,
+		normalizedUUID,
+		queriedAt.Add(-1*time.Hour),
+	).Scan(&lastDataFormatVersion, &lastPlayerData)
 	if err == nil && lastDataFormatVersion == DATA_FORMAT_VERSION {
 		equal, err := strutils.JSONStringsEqual(playerData, lastPlayerData)
 		if err != nil {

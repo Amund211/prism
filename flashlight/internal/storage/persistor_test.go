@@ -183,11 +183,32 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			require.NoError(t, err)
 			requireStoredOnce(t, player_uuid, playerdata, t1)
 
-			// Duplicate data is consecutive -> don't store it
-			t2 := t1.Add(2 * time.Minute)
+			for i := 1; i < 60; i++ {
+				t2 := t1.Add(time.Duration(i) * time.Minute)
+				requireNotStored(t, player_uuid, playerdata, t2)
+				err = p.StoreStats(ctx, player_uuid, playerdata, t2)
+				require.NoError(t, err)
+				requireNotStored(t, player_uuid, playerdata, t2)
+			}
+		})
+
+		t.Run("consecutive duplicate stats are stored if an hour or more apart", func(t *testing.T) {
+			t.Parallel()
+			player_uuid := newUUID(t)
+
+			playerdata := newHypixelAPIPlayer(1)
+			t1 := now
+
+			requireNotStored(t, player_uuid, playerdata, t1)
+			err := p.StoreStats(ctx, player_uuid, playerdata, t1)
+			require.NoError(t, err)
+			requireStoredOnce(t, player_uuid, playerdata, t1)
+
+			// Consecutive duplicate data is more than an hour old -> store this one
+			t2 := t1.Add(1 * time.Hour)
 			err = p.StoreStats(ctx, player_uuid, playerdata, t2)
 			require.NoError(t, err)
-			requireNotStored(t, player_uuid, playerdata, t2)
+			requireStoredOnce(t, player_uuid, playerdata, t2)
 		})
 
 		t.Run("non-consecutive duplicate stats are stored", func(t *testing.T) {
