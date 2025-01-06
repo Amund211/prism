@@ -347,6 +347,9 @@ UNEVENTFUL_LOGLINES = (
     "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!somewierdcommand'",  # Unknown command
     "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!",  # Empty/malformed
     "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!a=b=c'",  # Too many arguments to setnick
+    # Malformed alpine set user
+    "[17:19:24] [Client thread/INFO] [Alpine Client/]: Setting account (name=Player1)",
+    "[17:19:24] [Client thread/INFO] [Alpine Client/]: Setting account (name=?, uuid=337482fe-8a15-47f6-bea5-a84918a86393)",
     # Attempts to inject final kill messages
     "[00:03:18] [Client thread/INFO]: [CHAT] §9Party §8> §b[MVP§3+§b] Player1§f: Player2 was spooked off the map by Player3. FINAL KILL!",
     "[20:44:24] [Client thread/INFO]: [CHAT] §4[651✫] §b[MVP§3+§b] Player1§f: Player2 was spooked off the map by Player3. FINAL KILL!",
@@ -444,6 +447,11 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     (
         # Initialize as on prism launcher (vanilla 1.8.9)
         "[18:52:20] [Client thread/INFO]: Setting user: Player1",
+        InitializeAsEvent("Player1"),
+    ),
+    (
+        # Initialize as on alpine client
+        "[17:19:24] [Client thread/INFO] [Alpine Client/]: Setting account (name=Player1, uuid=337482fe-8a15-47f6-bea5-a84918a86393)",
         InitializeAsEvent("Player1"),
     ),
     (
@@ -772,6 +780,14 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         BedwarsFinalKillEvent(
             dead_player="Player1",
             raw_message="Player1 was Player2's final #1,234. FINAL KILL!",
+        ),
+    ),
+    (
+        # Final kill on alpine client
+        "[17:26:11] [Client thread/INFO] [alpineclient.lIlllIllIIllIIIIIIIIIlllIIIIIIlIllIlIIIl/]: [CHAT] Player1 was buzzed to death by Player2. FINAL KILL!",
+        BedwarsFinalKillEvent(
+            dead_player="Player1",
+            raw_message="Player1 was buzzed to death by Player2. FINAL KILL!",
         ),
     ),
     (

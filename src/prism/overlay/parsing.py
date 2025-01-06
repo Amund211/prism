@@ -46,6 +46,7 @@ CLIENT_INFO_PREFIXES = (
     "INFO]: [LC] ",  # Lunar client
     "[Render thread/INFO]: ",  # Fabric 1.20
     "[Client thread/INFO]: [LC] ",  # New lunar
+    "[Client thread/INFO] [Alpine Client/]: ",  # Alpine
 )
 
 # Vanilla and forge
@@ -58,6 +59,12 @@ CHAT_PREFIXES = (
     # NOTE: This is non-standard, and we make no guarantees of it working
     #       We don not condone the use of hacked clients on public servers
     "[Astolfo HTTP Bridge]: [CHAT] ",
+)
+
+# This client likes to include a bunch of random characters in it's prefix
+ALPINE_CHAT_PREFIX_REGEX = re.compile(
+    r"\[Client thread\/INFO\] \[alpine ?client.*\]: \[CHAT\] ",
+    flags=re.IGNORECASE,
 )
 
 
@@ -131,6 +138,13 @@ def parse_logline(logline: str) -> Event | None:
     if chat_prefix is not None:
         return parse_chat_message(strip_until(logline, until=chat_prefix))
 
+    # Special case for alpine
+    if "alpine" in logline.lower() and (
+        alpine_match := ALPINE_CHAT_PREFIX_REGEX.search(logline)
+    ):
+        # "[Client thread/INFO] [alpineclient.xxxxx/]: [CHAT] Player1 ...
+        return parse_chat_message(strip_until(logline, until=alpine_match.group()))
+
     # Horrible special case
     NETTY_CLIENT_FRAGMENT = "[Netty Client IO #"
     NETTY_CHAT_FRAGMENT = "/INFO]: [CHAT] "
@@ -159,6 +173,23 @@ def parse_client_info(info: str) -> ClientEvent | None:
     SETTING_USER_PREFIX = "Setting user: "
     if info.startswith(SETTING_USER_PREFIX):
         username = strip_until(info, until=SETTING_USER_PREFIX)
+        return InitializeAsEvent(username)
+
+    ALPINE_SETTING_USER_PREFIX = "Setting account (name="
+    if info.startswith(ALPINE_SETTING_USER_PREFIX):
+        logger.debug("Processing alpine setting user message")
+        username_and_suffix = strip_until(info, until=ALPINE_SETTING_USER_PREFIX)
+
+        comma_index = username_and_suffix.find(",")
+        if comma_index == -1:
+            logger.debug("No comma found in alpine setting user message")
+            return None
+
+        username = username_and_suffix[:comma_index]
+        if not valid_username(username):
+            logger.debug(f"Invalid username in alpine setting user message {username}")
+            return None
+
         return InitializeAsEvent(username)
 
     return None
