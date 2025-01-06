@@ -45,7 +45,7 @@ CLIENT_INFO_PREFIXES = (
     "[Client thread/INFO]: ",  # Vanilla and forge latest.log
     "INFO]: [LC] ",  # Lunar client
     "[Render thread/INFO]: ",  # Fabric 1.20
-    "[Client thread/INFO]: [LC]",  # New lunar
+    "[Client thread/INFO]: [LC] ",  # New lunar
 )
 
 # Vanilla and forge
