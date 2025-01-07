@@ -57,38 +57,52 @@ export interface PlayerDataPIT {
 
 export type History = PlayerDataPIT[];
 
-// const uuid = "a937646b-f115-44c3-8dbf-9ae4a65669a0";
-const uuid = "ac04f297-f74c-44de-a24e-0083936ac59a";
-const start = "2024-11-01T00:00:00Z";
-const end = "2025-06-01T00:00:00Z";
-const limit = 100;
+interface HistoryQueryOptions {
+    uuid: string;
+    start: Date;
+    end: Date;
+    limit: number;
+}
+export const getHistoryQueryOptions = ({
+    uuid,
+    start,
+    end,
+    limit,
+}: HistoryQueryOptions) =>
+    queryOptions({
+        staleTime: 1000 * 60 * 60,
+        queryKey: ["history", uuid, start, end, limit],
+        queryFn: async (): Promise<History> => {
+            const response = await fetch(
+                `${env.VITE_FLASHLIGHT_URL}/v1/history`,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    method: "POST",
+                    body: JSON.stringify({
+                        uuid,
+                        start: start.toISOString(),
+                        end: end.toISOString(),
+                        limit,
+                    }),
+                },
+            );
+            const apiHistory = (await response.json()) as APIHistory;
 
-export const historyQueryOptions = queryOptions({
-    staleTime: 1000 * 60 * 60,
-    queryKey: ["history", uuid, start, end, limit],
-    queryFn: async (): Promise<History> => {
-        const response = await fetch(`${env.VITE_FLASHLIGHT_URL}/v1/history`, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-            method: "POST",
-            body: JSON.stringify({ uuid, start, end, limit }),
-        });
-        const apiHistory = (await response.json()) as APIHistory;
-
-        return apiHistory
-            .filter(({ dataFormatVersion }) => dataFormatVersion === 1)
-            .map((apiPlayerData) => ({
-                id: apiPlayerData.id,
-                dataFormatVersion: apiPlayerData.dataFormatVersion,
-                uuid: apiPlayerData.uuid,
-                queriedAt: new Date(apiPlayerData.queriedAt),
-                experience: apiPlayerData.experience,
-                solo: apiPlayerData.solo,
-                doubles: apiPlayerData.doubles,
-                threes: apiPlayerData.threes,
-                fours: apiPlayerData.fours,
-                overall: apiPlayerData.overall,
-            }));
-    },
-});
+            return apiHistory
+                .filter(({ dataFormatVersion }) => dataFormatVersion === 1)
+                .map((apiPlayerData) => ({
+                    id: apiPlayerData.id,
+                    dataFormatVersion: apiPlayerData.dataFormatVersion,
+                    uuid: apiPlayerData.uuid,
+                    queriedAt: new Date(apiPlayerData.queriedAt),
+                    experience: apiPlayerData.experience,
+                    solo: apiPlayerData.solo,
+                    doubles: apiPlayerData.doubles,
+                    threes: apiPlayerData.threes,
+                    fours: apiPlayerData.fours,
+                    overall: apiPlayerData.overall,
+                }));
+        },
+    });

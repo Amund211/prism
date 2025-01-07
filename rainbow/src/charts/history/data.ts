@@ -12,7 +12,8 @@ import { DataKey, makeDataKey } from "./dataKeys";
 type ChartDataEntry = Record<DataKey, number | undefined | null> & {
     queriedAt: number;
 };
-type ChartData = ChartDataEntry[];
+
+export type ChartData = ChartDataEntry[];
 
 // Stats that may be hidden from the API
 const CONCEALABLE_STATS = ["winstreak"];
