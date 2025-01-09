@@ -1,21 +1,18 @@
 import { HistoryChart } from "@/charts/history/chart";
 import { getHistoryQueryOptions } from "@/queries/history";
 import { useQueries } from "@tanstack/react-query";
-import { createLazyFileRoute } from "@tanstack/react-router";
+import { createLazyFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useMemo } from "react";
 
-export const Route = createLazyFileRoute("/")({
+export const Route = createLazyFileRoute("/history/compare")({
     component: Index,
 });
 
+const route = getRouteApi("/history/compare");
+
 function Index() {
-    const start = new Date("2024-11-01T00:00:00Z");
-    const end = new Date("2025-06-01T00:00:00Z");
-    const limit = 100;
-    const uuids = [
-        "a937646b-f115-44c3-8dbf-9ae4a65669a0",
-        "ac04f297-f74c-44de-a24e-0083936ac59a",
-    ];
+    const { uuids, stats, gamemodes, variant, start, end, limit } =
+        route.useSearch();
     const historyQueries = useQueries({
         queries: uuids.map((uuid) =>
             getHistoryQueryOptions({ uuid, start, end, limit }),
@@ -44,9 +41,9 @@ function Index() {
             <h3>Welcome Home!</h3>
             <HistoryChart
                 histories={finishedHistories}
-                gamemodes={["overall"]}
-                stats={["stars", "finalKills"]}
-                variant="session"
+                gamemodes={gamemodes}
+                stats={stats}
+                variant={variant}
             />
         </div>
     );

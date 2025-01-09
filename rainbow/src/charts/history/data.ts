@@ -187,6 +187,11 @@ export const generateChartData = (histories: History[]): ChartData => {
         return [];
     }
 
+    // TODO: Cluster close queriedAt values
+    // Find all queriedAt values
+    // Cluster them based on a threshold
+    // Average the values in each cluster
+
     // Merge duplicate queriedAt values
     const mergedChartData: ChartData = [chartData[0]];
     for (const entry of chartData) {

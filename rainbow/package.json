@@ -16,6 +16,7 @@
     "dependencies": {
         "@tanstack/react-query": "^5.62.15",
         "@tanstack/react-router": "^1.95.0",
+        "@tanstack/zod-adapter": "^1.95.3",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "recharts": "^2.15.0",

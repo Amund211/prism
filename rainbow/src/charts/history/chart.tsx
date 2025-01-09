@@ -109,47 +109,81 @@ const getVariantDisplayName = (variant: VariantKey): string => {
     }
 };
 
+// string overrides all of these string unions, but we keep them here to be explicit about our intentions
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+interface KeyConfig<T extends StatKey | GamemodeKey | VariantKey | string> {
+    value: T;
+    shown: boolean;
+}
+
 const contextAwareStatDisplayName = (
-    uuid: string,
-    stat: StatKey,
-    gamemode: GamemodeKey,
-    variant: VariantKey,
-    showStat: boolean,
-    showUUID: boolean,
-    showGamemodes: boolean,
-    showVariant: boolean,
+    uuid: KeyConfig<string>,
+    stat: KeyConfig<StatKey>,
+    gamemode: KeyConfig<GamemodeKey>,
+    variant: KeyConfig<VariantKey>,
 ): string => {
-    if (!showStat && !showUUID && !showGamemodes && !showVariant) {
-        return getStatDisplayName(stat);
+    if (!uuid.shown && !stat.shown && !gamemode.shown && !variant.shown) {
+        return getStatDisplayName(stat.value);
     }
 
     let displayName = "";
-    if (showUUID) {
+    if (uuid.shown) {
+        /*
         // TODO: Get player name
-        if (!showStat && !showGamemodes && !showVariant) {
-            return uuid;
+        if (!stat.shown && !gamemode.shown && !variant.shown) {
+            return uuid.value;
         }
-        displayName += `${uuid}'s `;
+        */
+        displayName += `${uuid.value}'s `;
     }
 
     if (
-        showGamemodes &&
-        gamemode !== "overall" &&
-        stat !== "stars" &&
-        stat !== "experience"
+        gamemode.shown &&
+        gamemode.value !== "overall" &&
+        stat.value !== "stars" &&
+        stat.value !== "experience"
     ) {
-        displayName += `${getGamemodeDisplayName(gamemode)} `;
+        displayName += `${getGamemodeDisplayName(gamemode.value)} `;
     }
 
-    if (showVariant) {
-        displayName += `${getVariantDisplayName(variant)} `;
+    if (variant.shown) {
+        displayName += `${getVariantDisplayName(variant.value)} `;
     }
 
-    if (showStat) {
-        displayName += `${getStatDisplayName(stat)} `;
+    if (stat.shown) {
+        displayName += `${getStatDisplayName(stat.value)} `;
     }
 
     return displayName.slice(0, -1);
+};
+
+const renderTime = (
+    time: number,
+    smallestTimeDenomination: TimeDenomination,
+): string => {
+    const date = new Date(time);
+    switch (smallestTimeDenomination) {
+        case "year":
+            return date.toLocaleString(undefined, {
+                dateStyle: "medium",
+            });
+        case "month":
+            return date.toLocaleString(undefined, {
+                month: "short",
+                day: "numeric",
+            });
+        case "day":
+            return date.toLocaleString(undefined, {
+                hour: "numeric",
+                minute: "numeric",
+            });
+        case "hour":
+            return date.toLocaleString(undefined, {
+                hour: "numeric",
+                minute: "numeric",
+                second: "numeric",
+            });
+    }
 };
 
 export const HistoryChart: React.FC<HistoryChartProps> = ({
@@ -187,14 +221,22 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
         <>
             <h3>
                 {contextAwareStatDisplayName(
-                    uuids[0],
-                    stats[0],
-                    gamemodes[0],
-                    variant,
-                    uuids.length === 1,
-                    stats.length === 1,
-                    gamemodes.length === 1,
-                    true,
+                    {
+                        value: uuids[0],
+                        shown: uuids.length === 1,
+                    },
+                    {
+                        value: stats[0],
+                        shown: stats.length === 1,
+                    },
+                    {
+                        value: gamemodes[0],
+                        shown: gamemodes.length === 1,
+                    },
+                    {
+                        value: variant,
+                        shown: true,
+                    },
                 )}
                 {stats.length > 1 ? " Stats" : ""}
             </h3>
@@ -208,29 +250,7 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                         scale="linear"
                         dataKey="queriedAt"
                         tickFormatter={(time: number) => {
-                            const date = new Date(time);
-                            switch (smallestTimeDenomination) {
-                                case "year":
-                                    return date.toLocaleString(undefined, {
-                                        dateStyle: "medium",
-                                    });
-                                case "month":
-                                    return date.toLocaleString(undefined, {
-                                        month: "short",
-                                        day: "numeric",
-                                    });
-                                case "day":
-                                    return date.toLocaleString(undefined, {
-                                        hour: "numeric",
-                                        minute: "numeric",
-                                    });
-                                case "hour":
-                                    return date.toLocaleString(undefined, {
-                                        hour: "numeric",
-                                        minute: "numeric",
-                                        second: "numeric",
-                                    });
-                            }
+                            return renderTime(time, smallestTimeDenomination);
                         }}
                     />
                     <YAxis />
@@ -241,7 +261,11 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                         stats,
                         variant,
                     })}
-                    <Tooltip /*content={() => "Label"}*/ />
+                    <Tooltip
+                        labelFormatter={(time: number) => {
+                            return renderTime(time, smallestTimeDenomination);
+                        }}
+                    />
                 </LineChart>
             </ResponsiveContainer>
         </>
@@ -271,23 +295,31 @@ const renderLines = ({
                     stat,
                     variant,
                 });
-                // TODO: Pass data directly to line instead of merging it and passing it to the chart
                 return (
                     <Line
                         key={dataKey}
                         name={contextAwareStatDisplayName(
-                            uuid,
-                            stat,
-                            "overall",
-                            variant,
-                            stats.length > 1,
-                            uuids.length > 1,
-                            gamemodes.length > 1,
-                            false,
+                            {
+                                value: uuid,
+                                shown: uuids.length > 1,
+                            },
+                            {
+                                value: stat,
+                                shown: stats.length > 1,
+                            },
+                            {
+                                value: "overall",
+                                shown: gamemodes.length > 1,
+                            },
+                            {
+                                value: variant,
+                                shown: false,
+                            },
                         )}
                         type="monotone"
                         dataKey={dataKey}
                         stroke="#82ca9d"
+                        connectNulls
                     />
                 );
             }
@@ -298,18 +330,27 @@ const renderLines = ({
                     <Line
                         key={dataKey}
                         name={contextAwareStatDisplayName(
-                            uuid,
-                            stat,
-                            gamemode,
-                            variant,
-                            stats.length > 1,
-                            uuids.length > 1,
-                            gamemodes.length > 1,
-                            false,
+                            {
+                                value: uuid,
+                                shown: uuids.length > 1,
+                            },
+                            {
+                                value: stat,
+                                shown: stats.length > 1,
+                            },
+                            {
+                                value: gamemode,
+                                shown: gamemodes.length > 1,
+                            },
+                            {
+                                value: variant,
+                                shown: false,
+                            },
                         )}
                         type="monotone"
                         dataKey={dataKey}
                         stroke="#82ca9d"
+                        connectNulls
                     />
                 );
             });
