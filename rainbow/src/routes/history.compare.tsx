@@ -39,5 +39,6 @@ export const Route = createFileRoute("/history/compare")({
             console.error(e);
         });
     },
+    // https://tanstack.com/router/v1/docs/framework/react/guide/search-params
     validateSearch: zodValidator(historyCompareSearchSchema),
 });
