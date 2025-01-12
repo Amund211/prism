@@ -208,6 +208,8 @@ function Index() {
             </label>
 
             <HistoryChart
+                start={start}
+                end={end}
                 histories={finishedHistories}
                 gamemodes={gamemodes}
                 stats={stats}

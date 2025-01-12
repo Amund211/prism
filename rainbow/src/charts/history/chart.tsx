@@ -14,6 +14,8 @@ import { History } from "@/queries/history";
 import { makeDataKey } from "./dataKeys";
 
 interface HistoryChartProps {
+    start: Date;
+    end: Date;
     histories: History[];
     gamemodes: GamemodeKey[];
     stats: StatKey[];
@@ -187,6 +189,8 @@ const renderTime = (
 };
 
 export const HistoryChart: React.FC<HistoryChartProps> = ({
+    start,
+    end,
     histories,
     gamemodes,
     stats,
@@ -247,11 +251,18 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
             >
                 <LineChart width={500} height={300} data={chartData}>
                     <XAxis
+                        type="number"
+                        domain={[start.getTime(), end.getTime()]}
                         scale="linear"
                         dataKey="queriedAt"
                         tickFormatter={(time: number) => {
                             return renderTime(time, smallestTimeDenomination);
                         }}
+                        ticks={new Array(10).fill(0).map((_, i) => {
+                            const startTime = start.getTime();
+                            const endTime = end.getTime();
+                            return startTime + ((endTime - startTime) / 9) * i;
+                        })}
                     />
                     <YAxis />
                     <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
