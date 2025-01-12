@@ -3,7 +3,7 @@ import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "@/charts/history/types";
 import { getHistoryQueryOptions } from "@/queries/history";
 import { useQueries } from "@tanstack/react-query";
 import { createLazyFileRoute, getRouteApi } from "@tanstack/react-router";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 
 export const Route = createLazyFileRoute("/history/compare")({
     component: Index,
