@@ -43,6 +43,14 @@ export default defineConfig(({ mode }) => {
                         },
                         rewrite: (path) => path.replace(/^\/flashlight\//, "/"),
                     },
+                    "/mojang": {
+                        target: "https://sessionserver.mojang.com",
+                        changeOrigin: true,
+                        cookieDomainRewrite: {
+                            "*": "localhost",
+                        },
+                        rewrite: (path) => path.replace(/^\/mojang\//, "/"),
+                    },
                 },
             },
         }),

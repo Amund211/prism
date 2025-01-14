@@ -8,6 +8,7 @@ import {
     ALL_STAT_KEYS,
     ALL_VARIANT_KEYS,
 } from "@/charts/history/types";
+import { getUsernameQueryOptions } from "@/queries/username";
 
 const historyCompareSearchSchema = z.object({
     uuids: z.array(z.string()).min(1),
@@ -28,13 +29,17 @@ export const Route = createFileRoute("/history/compare")({
     }),
 
     loader: ({ deps: { uuids, start, end, limit } }) => {
-        Promise.all(
-            uuids.map((uuid) =>
+        // TODO: Rate limiting
+        Promise.all([
+            ...uuids.map((uuid) =>
                 queryClient.fetchQuery(
                     getHistoryQueryOptions({ uuid, start, end, limit }),
                 ),
             ),
-        ).catch((e: unknown) => {
+            ...uuids.map((uuid) =>
+                queryClient.fetchQuery(getUsernameQueryOptions(uuid)),
+            ),
+        ]).catch((e: unknown) => {
             // TODO: Report error
             console.error(e);
         });

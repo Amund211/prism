@@ -12,6 +12,7 @@ import React from "react";
 import { ChartData, generateChartData } from "./data";
 import { History } from "@/queries/history";
 import { makeDataKey } from "./dataKeys";
+import { useUUIDToUsername } from "@/queries/username";
 
 interface HistoryChartProps {
     start: Date;
@@ -211,6 +212,8 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
         return generateChartData(histories);
     }, [histories]);
 
+    const uuidToUsername = useUUIDToUsername(uuids);
+
     if (uuids.length === 0 || stats.length === 0 || gamemodes.length === 0) {
         return <div>No data</div>;
     }
@@ -226,7 +229,8 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
             <h3>
                 {contextAwareStatDisplayName(
                     {
-                        value: uuids[0],
+                        // TODO: Display error state if missing uuid
+                        value: uuidToUsername[uuids[0]] ?? "",
                         shown: uuids.length === 1,
                     },
                     {
@@ -271,6 +275,7 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                         gamemodes,
                         stats,
                         variant,
+                        uuidToUsername,
                     })}
                     <Tooltip
                         labelFormatter={(time: number) => {
@@ -288,6 +293,7 @@ interface LinesProps {
     gamemodes: GamemodeKey[];
     stats: StatKey[];
     variant: VariantKey;
+    uuidToUsername: Record<string, string | undefined>;
 }
 
 const renderLines = ({
@@ -295,6 +301,7 @@ const renderLines = ({
     gamemodes,
     stats,
     variant,
+    uuidToUsername,
 }: LinesProps): React.ReactNode[] => {
     return uuids.flatMap((uuid) => {
         return stats.flatMap((stat) => {
@@ -311,7 +318,8 @@ const renderLines = ({
                         key={dataKey}
                         name={contextAwareStatDisplayName(
                             {
-                                value: uuid,
+                                // TODO: Display error state if missing uuid
+                                value: uuidToUsername[uuid] ?? "",
                                 shown: uuids.length > 1,
                             },
                             {
@@ -342,7 +350,8 @@ const renderLines = ({
                         key={dataKey}
                         name={contextAwareStatDisplayName(
                             {
-                                value: uuid,
+                                // TODO: Display error state if missing uuid
+                                value: uuidToUsername[uuid] ?? "",
                                 shown: uuids.length > 1,
                             },
                             {
