@@ -109,7 +109,7 @@ const getVariantDisplayName = (variant: VariantKey): string => {
             // TODO: Show daily/weekly/etc?
             return "Session";
         case "overall":
-            return "Daily";
+            return "Overall";
     }
 };
 
@@ -150,7 +150,7 @@ const contextAwareStatDisplayName = (
         displayName += `${getGamemodeDisplayName(gamemode.value)} `;
     }
 
-    if (variant.shown) {
+    if (variant.shown && variant.value !== "overall") {
         displayName += `${getVariantDisplayName(variant.value)} `;
     }
 
