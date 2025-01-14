@@ -79,7 +79,7 @@ func main() {
 	logger.Info("Initialized StatsPersistor")
 
 	middleware := server.ComposeMiddlewares(
-		logging.NewRequestLoggerMiddleware(logger),
+		logging.NewRequestLoggerMiddleware(logger.With("component", "getPlayerData")),
 		sentryMiddleware,
 		server.NewRateLimitMiddleware(ipRateLimiter),
 		server.NewRateLimitMiddleware(userIdRateLimiter),
@@ -103,10 +103,14 @@ func main() {
 		),
 		ratelimiting.IPKeyFunc,
 	)
+	historyMiddleware := server.ComposeMiddlewares(
+		logging.NewRequestLoggerMiddleware(logger.With("component", "history")),
+		server.NewRateLimitMiddleware(historyIPRateLimiter),
+	)
 	http.HandleFunc(
 		"POST /v1/history",
 		// TODO: Implement sentry + logging middleware
-		server.NewRateLimitMiddleware(historyIPRateLimiter)(
+		historyMiddleware(
 			func(w http.ResponseWriter, r *http.Request) {
 				defer r.Body.Close()
 				body, err := io.ReadAll(r.Body)
