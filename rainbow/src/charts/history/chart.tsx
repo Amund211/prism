@@ -138,8 +138,7 @@ const contextAwareStatDisplayName = (
     if (
         gamemode.shown &&
         gamemode.value !== "overall" &&
-        stat.value !== "stars" &&
-        stat.value !== "experience"
+        (!stat.shown || (stat.value !== "stars" && stat.value !== "experience"))
     ) {
         displayName += `${getGamemodeDisplayName(gamemode.value)} `;
     }
