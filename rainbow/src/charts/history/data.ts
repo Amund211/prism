@@ -178,6 +178,41 @@ const generateChartDataFromSingleHistory = (history: History): ChartData => {
     return data;
 };
 
+export const clusterChartData = (chartData: ChartData): ChartData => {
+    if (chartData.length === 0) {
+        return [];
+    }
+
+    const timeSpan =
+        chartData[chartData.length - 1].queriedAt - chartData[0].queriedAt;
+    // Cluster entries that are closer than 1% of the time span or 1 minute
+    const threshold = Math.max(timeSpan / 100, 1000 * 60);
+
+    const clusteredChartData: ChartData = [];
+    for (let i = chartData.length - 1; i >= 0; i--) {
+        const entry = chartData[i];
+        let entriesToCluster = 1; // Number of entries to cluster, including this one
+        while (
+            i - entriesToCluster >= 0 &&
+            entry.queriedAt - chartData[i - entriesToCluster].queriedAt <=
+                threshold
+        ) {
+            entriesToCluster++;
+        }
+        for (let offset = 0; offset < entriesToCluster; offset++) {
+            const newEntry = {
+                ...chartData[i - offset],
+                queriedAt: entry.queriedAt,
+            };
+            clusteredChartData.push(newEntry);
+        }
+        // Skip the entries that were clustered, the current entry is already skipped by the for loop
+        i -= entriesToCluster - 1;
+    }
+
+    return clusteredChartData.reverse();
+};
+
 export const generateChartData = (histories: History[]): ChartData => {
     const chartData = histories
         .flatMap(generateChartDataFromSingleHistory)
@@ -187,14 +222,11 @@ export const generateChartData = (histories: History[]): ChartData => {
         return [];
     }
 
-    // TODO: Cluster close queriedAt values
-    // Find all queriedAt values
-    // Cluster them based on a threshold
-    // Average the values in each cluster
+    const clusteredChartData = clusterChartData(chartData);
 
     // Merge duplicate queriedAt values
-    const mergedChartData: ChartData = [chartData[0]];
-    for (const entry of chartData) {
+    const mergedChartData: ChartData = [clusteredChartData[0]];
+    for (const entry of clusteredChartData) {
         const lastEntry = mergedChartData[mergedChartData.length - 1];
         if (lastEntry.queriedAt === entry.queriedAt) {
             mergedChartData[mergedChartData.length - 1] = {
