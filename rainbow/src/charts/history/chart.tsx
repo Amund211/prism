@@ -2,6 +2,7 @@ import {
     CartesianGrid,
     Line,
     LineChart,
+    type LineProps,
     ResponsiveContainer,
     Tooltip,
     XAxis,
@@ -296,6 +297,30 @@ interface LinesProps {
     uuidToUsername: Record<string, string | undefined>;
 }
 
+const STROKES = [
+    "#82ca9d",
+    "#8884d8",
+    "#ff7300",
+    "#413ea0",
+    "#ff0000",
+    "#00ff00",
+    "#0000ff",
+    "#ff00ff",
+    "#00ffff",
+];
+
+const DASHES = ["0", "5 5", "10 5", "5 10", "5 2", "10 10"];
+
+const getLineStyle = (index: number) => {
+    // TODO: Get line style based on hash of dataKey
+    // TODO: Make linestyles more deterministic (hash of datakey/one color per player/...)
+    return {
+        stroke: STROKES[index % STROKES.length],
+        strokeDasharray:
+            DASHES[Math.floor(index / STROKES.length) % DASHES.length],
+    } as const;
+};
+
 const renderLines = ({
     uuids,
     gamemodes,
@@ -303,6 +328,7 @@ const renderLines = ({
     variant,
     uuidToUsername,
 }: LinesProps): React.ReactNode[] => {
+    let index = 0;
     return uuids.flatMap((uuid) => {
         return stats.flatMap((stat) => {
             if (stat === "stars" || stat === "experience") {
@@ -337,8 +363,8 @@ const renderLines = ({
                         )}
                         type="monotone"
                         dataKey={dataKey}
-                        stroke="#82ca9d"
                         connectNulls
+                        {...getLineStyle(index++)}
                     />
                 );
             }
@@ -369,7 +395,7 @@ const renderLines = ({
                         )}
                         type="monotone"
                         dataKey={dataKey}
-                        stroke="#82ca9d"
+                        {...getLineStyle(index++)}
                         connectNulls
                     />
                 );
