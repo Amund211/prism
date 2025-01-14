@@ -132,12 +132,6 @@ const contextAwareStatDisplayName = (
 
     let displayName = "";
     if (uuid.shown) {
-        /*
-        // TODO: Get player name
-        if (!stat.shown && !gamemode.shown && !variant.shown) {
-            return uuid.value;
-        }
-        */
         displayName += `${uuid.value}'s `;
     }
 
