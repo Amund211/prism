@@ -93,6 +93,30 @@ function Index() {
         <div>
             <h3>Welcome Home!</h3>
             <KeySelector
+                keys={[
+                    "a937646b-f115-44c3-8dbf-9ae4a65669a0", // Skydeath
+                    "ac04f297-f74c-44de-a24e-0083936ac59a", // USBB
+                    "062c373b-28de-4ec0-ab2c-0114e59e36ce", // Skydeaf
+                ]}
+                selectedKeys={uuids}
+                defaultKey="a937646b-f115-44c3-8dbf-9ae4a65669a0"
+                onChange={(keys) => {
+                    navigate({
+                        search: (oldSearch) => ({
+                            ...oldSearch,
+                            uuids: keys,
+                        }),
+                    }).catch((error: unknown) => {
+                        // TODO: Handle error
+                        console.error(
+                            "Failed to update search params: uuids",
+                            error,
+                        );
+                    });
+                }}
+            />
+            <br />
+            <KeySelector
                 keys={ALL_STAT_KEYS}
                 selectedKeys={stats}
                 defaultKey="fkdr"
