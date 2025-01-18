@@ -23,3 +23,8 @@ repos:
             entry: npm run "lint:fix"
             language: system
             pass_filenames: false
+          - id: build
+            name: Build
+            entry: npm run build
+            language: system
+            pass_filenames: false
