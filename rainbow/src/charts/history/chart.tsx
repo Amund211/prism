@@ -1,8 +1,8 @@
 import {
     CartesianGrid,
+    Legend,
     Line,
     LineChart,
-    type LineProps,
     ResponsiveContainer,
     Tooltip,
     XAxis,
@@ -279,6 +279,7 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                         variant,
                         uuidToUsername,
                     })}
+                    <Legend />
                     <Tooltip
                         labelFormatter={(time: number) => {
                             return renderTime(time, smallestTimeDenomination);
