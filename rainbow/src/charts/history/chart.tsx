@@ -208,8 +208,16 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
 
     const uuidToUsername = useUUIDToUsername(uuids);
 
-    if (uuids.length === 0 || stats.length === 0 || gamemodes.length === 0) {
-        return <div>No data</div>;
+    if (uuids.length === 0) {
+        return <div>Select at least one user</div>;
+    }
+
+    if (stats.length === 0) {
+        return <div>Select at least one statistic</div>;
+    }
+
+    if (gamemodes.length === 0) {
+        return <div>Select at least one gamemode or overall</div>;
     }
 
     if (chartData.length === 0) {
