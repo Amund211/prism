@@ -11,14 +11,12 @@ const route = getRouteApi("/history/compare");
 interface KeySelectorProps<T extends string> {
     keys: readonly T[];
     selectedKeys: T[];
-    defaultKey: T;
     onChange: (keys: T[]) => void;
 }
 
 function KeySelector<T extends string>({
     keys,
     selectedKeys,
-    defaultKey,
     onChange,
 }: KeySelectorProps<T>) {
     return (
@@ -33,11 +31,7 @@ function KeySelector<T extends string>({
                                 const filtered = selectedKeys.filter(
                                     (k) => k !== key,
                                 );
-                                if (filtered.length === 0) {
-                                    onChange([defaultKey]);
-                                } else {
-                                    onChange(filtered);
-                                }
+                                onChange(filtered);
                             } else {
                                 onChange([...selectedKeys, key]);
                             }
@@ -86,7 +80,6 @@ function Index() {
                     "6bc1dd0f-f351-4c3d-b6cc-262e55b6e7aa", // HardcoreLizard
                 ]}
                 selectedKeys={uuids}
-                defaultKey="a937646b-f115-44c3-8dbf-9ae4a65669a0"
                 onChange={(keys) => {
                     navigate({
                         search: (oldSearch) => ({
@@ -106,7 +99,6 @@ function Index() {
             <KeySelector
                 keys={ALL_STAT_KEYS}
                 selectedKeys={stats}
-                defaultKey="fkdr"
                 onChange={(keys) => {
                     navigate({
                         search: (oldSearch) => ({
@@ -126,7 +118,6 @@ function Index() {
             <KeySelector
                 keys={ALL_GAMEMODE_KEYS}
                 selectedKeys={gamemodes}
-                defaultKey="overall"
                 onChange={(keys) => {
                     navigate({
                         search: (oldSearch) => ({
