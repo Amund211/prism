@@ -4,7 +4,7 @@ import {
     OverallStatKey,
     StatKey,
     VariantKey,
-} from "./types";
+} from "@/stats/keys";
 
 type UUID = string;
 

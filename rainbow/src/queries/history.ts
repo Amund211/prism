@@ -68,11 +68,21 @@ export const getHistoryQueryOptions = ({
     start,
     end,
     limit,
-}: HistoryQueryOptions) =>
-    queryOptions({
-        staleTime: 1000 * 60 * 60,
-        queryKey: ["history", uuid, start, end, limit],
+}: HistoryQueryOptions) => {
+    const currentTime = new Date().getTime();
+    const currentTimeIsInWindow =
+        currentTime >= start.getTime() && currentTime <= end.getTime();
+
+    const startISOString = start.toISOString();
+    const endISOString = end.toISOString();
+
+    return queryOptions({
+        staleTime: currentTimeIsInWindow ? 1000 * 60 : Infinity,
+        queryKey: ["history", uuid, startISOString, endISOString, limit],
         queryFn: async (): Promise<History> => {
+            if (start.getTime() > end.getTime()) {
+                return [];
+            }
             const response = await fetch(
                 `${env.VITE_FLASHLIGHT_URL}/v1/history`,
                 {
@@ -82,8 +92,8 @@ export const getHistoryQueryOptions = ({
                     method: "POST",
                     body: JSON.stringify({
                         uuid,
-                        start: start.toISOString(),
-                        end: end.toISOString(),
+                        start: startISOString,
+                        end: endISOString,
                         limit,
                     }),
                 },
@@ -106,3 +116,4 @@ export const getHistoryQueryOptions = ({
                 }));
         },
     });
+};

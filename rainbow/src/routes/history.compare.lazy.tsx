@@ -1,5 +1,5 @@
 import { HistoryChart } from "@/charts/history/chart";
-import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "@/charts/history/types";
+import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "@/stats/keys";
 import { createLazyFileRoute, getRouteApi } from "@tanstack/react-router";
 
 export const Route = createLazyFileRoute("/history/compare")({

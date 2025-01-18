@@ -8,7 +8,7 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
-import { GamemodeKey, StatKey, VariantKey } from "./types";
+import { GamemodeKey, StatKey, VariantKey } from "@/stats/keys";
 import React from "react";
 import { ChartData, generateChartData } from "./data";
 import { makeDataKey } from "./dataKeys";

@@ -7,7 +7,7 @@ import {
     ALL_GAMEMODE_KEYS,
     ALL_STAT_KEYS,
     ALL_VARIANT_KEYS,
-} from "@/charts/history/types";
+} from "@/stats/keys";
 import { getUsernameQueryOptions } from "@/queries/username";
 
 const defaultStart = new Date();
