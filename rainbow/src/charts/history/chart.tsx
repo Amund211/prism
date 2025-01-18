@@ -11,17 +11,19 @@ import {
 import { GamemodeKey, StatKey, VariantKey } from "./types";
 import React from "react";
 import { ChartData, generateChartData } from "./data";
-import { History } from "@/queries/history";
 import { makeDataKey } from "./dataKeys";
 import { useUUIDToUsername } from "@/queries/username";
+import { useQueries } from "@tanstack/react-query";
+import { getHistoryQueryOptions } from "@/queries/history";
 
 interface HistoryChartProps {
     start: Date;
     end: Date;
-    histories: History[];
+    uuids: string[];
     gamemodes: GamemodeKey[];
     stats: StatKey[];
     variant: VariantKey;
+    limit: number;
 }
 
 type TimeDenomination = "year" | "month" | "day" | "hour";
@@ -186,21 +188,23 @@ const renderTime = (
 export const HistoryChart: React.FC<HistoryChartProps> = ({
     start,
     end,
-    histories,
+    uuids,
     gamemodes,
     stats,
     variant,
+    limit,
 }) => {
-    const uuids = React.useMemo(() => {
-        return histories
-            .map((history) => {
-                if (history.length === 0) {
-                    return undefined;
-                }
-                return history[0].uuid;
-            })
-            .filter((uuid) => uuid !== undefined);
-    }, [histories]);
+    const historyQueries = useQueries({
+        queries: uuids.map((uuid) =>
+            getHistoryQueryOptions({ uuid, start, end, limit }),
+        ),
+    });
+
+    const histories = React.useMemo(() => {
+        return historyQueries
+            .filter((query) => query.status === "success")
+            .map((query) => query.data);
+    }, [historyQueries]);
 
     const chartData = React.useMemo(() => {
         return generateChartData(histories);

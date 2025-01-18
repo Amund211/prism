@@ -1,9 +1,6 @@
 import { HistoryChart } from "@/charts/history/chart";
 import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "@/charts/history/types";
-import { getHistoryQueryOptions } from "@/queries/history";
-import { useQueries } from "@tanstack/react-query";
 import { createLazyFileRoute, getRouteApi } from "@tanstack/react-router";
-import { useMemo } from "react";
 
 export const Route = createLazyFileRoute("/history/compare")({
     component: Index,
@@ -66,12 +63,6 @@ function Index() {
         route.useSearch();
     const navigate = route.useNavigate();
 
-    const historyQueries = useQueries({
-        queries: uuids.map((uuid) =>
-            getHistoryQueryOptions({ uuid, start, end, limit }),
-        ),
-    });
-
     /*
     const { data, status, error } = useQueries({
     if (status === "pending") {
@@ -82,12 +73,6 @@ function Index() {
         return <div>Error: {error.message}</div>;
     }
     */
-
-    const finishedHistories = useMemo(() => {
-        return historyQueries
-            .filter((query) => query.status === "success")
-            .map((query) => query.data);
-    }, [historyQueries]);
 
     return (
         <div>
@@ -234,10 +219,11 @@ function Index() {
             <HistoryChart
                 start={start}
                 end={end}
-                histories={finishedHistories}
+                uuids={uuids}
                 gamemodes={gamemodes}
                 stats={stats}
                 variant={variant}
+                limit={limit}
             />
         </div>
     );
