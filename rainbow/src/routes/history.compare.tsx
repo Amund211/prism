@@ -10,14 +10,20 @@ import {
 } from "@/charts/history/types";
 import { getUsernameQueryOptions } from "@/queries/username";
 
+const defaultStart = new Date();
+defaultStart.setHours(0, 0, 0, 0);
+const defaultEnd = new Date();
+defaultEnd.setHours(23, 59, 59, 999);
+
 const historyCompareSearchSchema = z.object({
-    uuids: z.array(z.string()).min(1),
-    start: z.coerce.date(),
-    end: z.coerce.date(),
-    limit: z.number().int().min(1).max(100),
-    stats: z.enum(ALL_STAT_KEYS).array().min(1),
-    gamemodes: z.enum(ALL_GAMEMODE_KEYS).array().min(1),
-    variant: z.enum(ALL_VARIANT_KEYS),
+    // TODO: Read "preferred user" from local storage or similar
+    uuids: z.array(z.string()).catch([]),
+    start: z.coerce.date().catch(defaultStart),
+    end: z.coerce.date().catch(defaultEnd),
+    limit: z.number().int().min(1).max(50).catch(50),
+    stats: z.enum(ALL_STAT_KEYS).array().catch(["fkdr"]),
+    gamemodes: z.enum(ALL_GAMEMODE_KEYS).array().catch(["overall"]),
+    variant: z.enum(ALL_VARIANT_KEYS).catch("session"),
 });
 
 export const Route = createFileRoute("/history/compare")({
