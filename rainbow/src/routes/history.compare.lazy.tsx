@@ -82,6 +82,8 @@ function Index() {
                     "a937646b-f115-44c3-8dbf-9ae4a65669a0", // Skydeath
                     "ac04f297-f74c-44de-a24e-0083936ac59a", // USBB
                     "062c373b-28de-4ec0-ab2c-0114e59e36ce", // Skydeaf
+                    "3d58a2de-3831-4a17-a305-67258295f81e", // iCiara
+                    "6bc1dd0f-f351-4c3d-b6cc-262e55b6e7aa", // HardcoreLizard
                 ]}
                 selectedKeys={uuids}
                 defaultKey="a937646b-f115-44c3-8dbf-9ae4a65669a0"
