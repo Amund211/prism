@@ -8,13 +8,17 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
-import { GamemodeKey, StatKey, VariantKey } from "@/stats/keys";
+import {
+    type GamemodeKey,
+    type StatKey,
+    type VariantKey,
+} from "#stats/keys.ts";
 import React from "react";
-import { ChartData, generateChartData } from "./data";
-import { makeDataKey } from "./dataKeys";
-import { useUUIDToUsername } from "@/queries/username";
+import { type ChartData, generateChartData } from "./data.ts";
+import { makeDataKey } from "./dataKeys.ts";
+import { useUUIDToUsername } from "#queries/username.ts";
 import { useQueries } from "@tanstack/react-query";
-import { getHistoryQueryOptions } from "@/queries/history";
+import { getHistoryQueryOptions } from "#queries/history.ts";
 
 interface HistoryChartProps {
     start: Date;

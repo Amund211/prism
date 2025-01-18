@@ -1,6 +1,6 @@
-import { History, PlayerDataPIT } from "@/queries/history";
-import { GamemodeKey, StatKey, VariantKey } from "./keys";
-import { bedwarsLevelFromExp } from "./stars";
+import { type History, type PlayerDataPIT } from "#queries/history.ts";
+import { type GamemodeKey, type StatKey, type VariantKey } from "./keys.ts";
+import { bedwarsLevelFromExp } from "./stars.ts";
 
 // Stats that may be hidden from the API
 const CONCEALABLE_STATS = ["winstreak"];

@@ -19,13 +19,13 @@ export default defineConfig(({ mode }) => {
         ],
         /**
          * Import alias, enables imports such as
-         * import { AppLayout } from "@/components/Layouts";
+         * import { AppLayout } from "#components/Layouts";
          * rather than relative imports.
          *
          * Should be used in conjunction with the `"paths"` field in `tsconfig.json`
          */
         resolve: {
-            alias: { "@": path.resolve(import.meta.dirname, "src") },
+            alias: { "#": path.resolve(import.meta.dirname, "src") },
         },
         ...((mode === "proxy-staging" || mode === "proxy-production") && {
             server: {

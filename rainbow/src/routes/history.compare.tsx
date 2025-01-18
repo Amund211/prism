@@ -1,14 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { queryClient } from "@/queryClient";
-import { getHistoryQueryOptions } from "@/queries/history";
+import { queryClient } from "#queryClient.ts";
+import { getHistoryQueryOptions } from "#queries/history.ts";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import {
     ALL_GAMEMODE_KEYS,
     ALL_STAT_KEYS,
     ALL_VARIANT_KEYS,
-} from "@/stats/keys";
-import { getUsernameQueryOptions } from "@/queries/username";
+} from "#stats/keys.ts";
+import { getUsernameQueryOptions } from "#queries/username.ts";
 
 const defaultStart = new Date();
 defaultStart.setHours(0, 0, 0, 0);

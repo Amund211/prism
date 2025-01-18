@@ -14,4 +14,6 @@ const parse = (source: unknown) => {
     return env.data;
 };
 
-export const env = parse(import.meta.env);
+// import.meta.env is not defined when running tests in node. Hacking it this way was the easiest fix I could think of without finding a whole new test runner
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+export const env = parse(import.meta.env ?? process.env);

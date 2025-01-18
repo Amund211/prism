@@ -1,5 +1,5 @@
 import { queryOptions, useQueries } from "@tanstack/react-query";
-import { env } from "@/env";
+import { env } from "#env.ts";
 import React from "react";
 
 export const getUsernameQueryOptions = (uuid: string) =>

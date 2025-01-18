@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { env } from "@/env";
+import { env } from "#env.ts";
 
 interface APIStatsPIT {
     winstreak: number | null;

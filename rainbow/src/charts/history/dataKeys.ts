@@ -1,10 +1,10 @@
 import {
-    GamemodeKey,
-    GamemodeStatKey,
-    OverallStatKey,
-    StatKey,
-    VariantKey,
-} from "@/stats/keys";
+    type GamemodeKey,
+    type GamemodeStatKey,
+    type OverallStatKey,
+    type StatKey,
+    type VariantKey,
+} from "#stats/keys.ts";
 
 type UUID = string;
 

@@ -1,5 +1,5 @@
 import test from "node:test";
-import { clusterChartData } from "./data";
+import { clusterChartData } from "./data.ts";
 import assert from "node:assert";
 
 await test("clusterChartData", async (t) => {

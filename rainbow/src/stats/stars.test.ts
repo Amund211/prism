@@ -1,5 +1,5 @@
 import test from "node:test";
-import { bedwarsLevelFromExp } from "./stars";
+import { bedwarsLevelFromExp } from "./stars.ts";
 import assert from "node:assert";
 
 await test("bedwarsLevelFromExp", async (t) => {

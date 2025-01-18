@@ -11,8 +11,11 @@
         "lint": "prettier -c . && eslint --cache .",
         "lint:fix": "prettier -w . && eslint --cache --fix .",
         "tsc:watch": "tsc -w -p tsconfig.app.json",
-        "test": "glob -c \"tsx --test --test-reporter spec \" \"./src/**/*.test.ts\"",
+        "test": "node --test --experimental-strip-types --env-file=.env.development",
         "preview": "vite preview"
+    },
+    "imports": {
+        "#*": "./src/*"
     },
     "dependencies": {
         "@tanstack/react-query": "^5.62.15",
