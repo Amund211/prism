@@ -362,16 +362,28 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			_, err = txx.ExecContext(ctx, "DELETE FROM stats")
 			require.NoError(t, err)
 			err = txx.Commit()
+			require.NoError(t, err)
 
 			storeStats(t, p, instructions...)
 
+			txx, err = db.Beginx()
+			require.NoError(t, err)
+			defer txx.Rollback()
+
+			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
+			require.NoError(t, err)
+
 			var count int
-			err = db.QueryRowxContext(ctx, "SELECT COUNT(*) FROM stats").Scan(&count)
+			err = txx.QueryRowxContext(ctx, "SELECT COUNT(*) FROM stats").Scan(&count)
 			require.NoError(t, err)
 			require.Equal(t, len(instructions), count)
+
+			err = txx.Commit()
+			require.NoError(t, err)
 		}
 
 		t.Run("evenly spread across a day", func(t *testing.T) {
+			t.Parallel()
 			p := newPostgresPersistor(t, db, "get_history_evenly_spread_across_a_day")
 			janFirst21 := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", 3600*10))
 
@@ -409,6 +421,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 		})
 
 		t.Run("random clusters", func(t *testing.T) {
+			t.Parallel()
 			p := newPostgresPersistor(t, db, "get_history_random_clusters")
 			player_uuid := newUUID(t)
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
