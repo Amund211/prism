@@ -77,7 +77,7 @@ export const getHistoryQueryOptions = ({
     const endISOString = end.toISOString();
 
     return queryOptions({
-        staleTime: currentTimeIsInWindow ? 1000 * 60 : Infinity,
+        staleTime: currentTimeIsInWindow ? 1000 * 60 * 5 : Infinity,
         queryKey: ["history", uuid, startISOString, endISOString, limit],
         queryFn: async (): Promise<History> => {
             if (start.getTime() > end.getTime()) {
