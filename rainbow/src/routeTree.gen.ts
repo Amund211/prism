@@ -13,6 +13,7 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as SessionImport } from './routes/session'
 import { Route as HistoryCompareImport } from './routes/history.compare'
 
 // Create Virtual Routes
@@ -27,6 +28,12 @@ const AboutLazyRoute = AboutLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/about.lazy').then((d) => d.Route))
 
+const SessionRoute = SessionImport.update({
+  id: '/session',
+  path: '/session',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/session.lazy').then((d) => d.Route))
+
 const HistoryCompareRoute = HistoryCompareImport.update({
   id: '/history/compare',
   path: '/history/compare',
@@ -39,6 +46,13 @@ const HistoryCompareRoute = HistoryCompareImport.update({
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/session': {
+      id: '/session'
+      path: '/session'
+      fullPath: '/session'
+      preLoaderRoute: typeof SessionImport
+      parentRoute: typeof rootRoute
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -59,36 +73,41 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 export interface FileRoutesByFullPath {
+  '/session': typeof SessionRoute
   '/about': typeof AboutLazyRoute
   '/history/compare': typeof HistoryCompareRoute
 }
 
 export interface FileRoutesByTo {
+  '/session': typeof SessionRoute
   '/about': typeof AboutLazyRoute
   '/history/compare': typeof HistoryCompareRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
+  '/session': typeof SessionRoute
   '/about': typeof AboutLazyRoute
   '/history/compare': typeof HistoryCompareRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/about' | '/history/compare'
+  fullPaths: '/session' | '/about' | '/history/compare'
   fileRoutesByTo: FileRoutesByTo
-  to: '/about' | '/history/compare'
-  id: '__root__' | '/about' | '/history/compare'
+  to: '/session' | '/about' | '/history/compare'
+  id: '__root__' | '/session' | '/about' | '/history/compare'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
+  SessionRoute: typeof SessionRoute
   AboutLazyRoute: typeof AboutLazyRoute
   HistoryCompareRoute: typeof HistoryCompareRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  SessionRoute: SessionRoute,
   AboutLazyRoute: AboutLazyRoute,
   HistoryCompareRoute: HistoryCompareRoute,
 }
@@ -103,9 +122,13 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
+        "/session",
         "/about",
         "/history/compare"
       ]
+    },
+    "/session": {
+      "filePath": "session.tsx"
     },
     "/about": {
       "filePath": "about.lazy.tsx"

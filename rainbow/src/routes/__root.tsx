@@ -33,9 +33,19 @@ export const Route = createRootRoute({
                         variant: "session",
                     }}
                 >
-                    Home
+                    Compare
                 </Link>{" "}
-                <Link to="/about">About</Link>
+                <Link
+                    to="/session"
+                    search={{
+                        uuid: "a937646b-f115-44c3-8dbf-9ae4a65669a0",
+                        timeInterval: {
+                            type: "current",
+                        },
+                    }}
+                >
+                    Session
+                </Link>
             </div>
             <hr />
             <Outlet />
