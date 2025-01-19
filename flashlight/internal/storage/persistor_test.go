@@ -473,5 +473,82 @@ func TestPostgresStatsPersistor(t *testing.T) {
 				require.WithinDuration(t, expectedPIT.queriedAt, playerPIT.QueriedAt, 0)
 			}
 		})
+
+		t.Run("no duplicates returned", func(t *testing.T) {
+			// The current implementation gets both the first and last stats in the last interval
+			// Make sure these are not the same instance. The test should also cover the first interval
+
+			t.Parallel()
+			p := newPostgresPersistor(t, db, "no_duplicates_returned")
+
+			t.Run("single stat stored", func(t *testing.T) {
+				start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
+				end := start.Add(24 * time.Hour)
+				for _, queriedAt := range []time.Time{start, end} {
+					for limit := 2; limit < 10; limit++ {
+						t.Run(fmt.Sprintf("limit %d, queriedAt %s", limit, queriedAt), func(t *testing.T) {
+							t.Parallel()
+							player_uuid := newUUID(t)
+							instructions := []storageInstruction{
+								{player_uuid, queriedAt, newHypixelAPIPlayer(1)},
+							}
+
+							storeStats(t, p, instructions...)
+
+							history, err := p.GetHistory(ctx, player_uuid, start, end, limit)
+							require.NoError(t, err)
+
+							require.Len(t, history, 1)
+
+							expectedPIT := instructions[0]
+							playerPIT := history[0]
+
+							require.Equal(t, player_uuid, expectedPIT.uuid)
+							require.Equal(t, player_uuid, playerPIT.UUID)
+
+							// Mock data matches
+							require.Equal(t, *expectedPIT.player.Stats.Bedwars.Kills, *playerPIT.Overall.Kills)
+
+							require.WithinDuration(t, expectedPIT.queriedAt, playerPIT.QueriedAt, 0)
+						})
+					}
+				}
+			})
+
+			t.Run("multiple stats stored", func(t *testing.T) {
+				t.Parallel()
+				start := time.Date(2021, time.March, 24, 15, 59, 31, 987_000_000, time.FixedZone("UTC", -3600*3))
+				end := start.Add(24 * time.Hour)
+
+				for limit := 2; limit < 10; limit++ {
+					t.Run(fmt.Sprintf("limit %d", limit), func(t *testing.T) {
+						player_uuid := newUUID(t)
+						instructions := []storageInstruction{
+							{player_uuid, start.Add(time.Minute), newHypixelAPIPlayer(1)},
+							{player_uuid, end.Add(-1 * time.Minute), newHypixelAPIPlayer(10)},
+						}
+
+						storeStats(t, p, instructions...)
+
+						history, err := p.GetHistory(ctx, player_uuid, start, end, limit)
+						require.NoError(t, err)
+
+						require.Len(t, history, 2)
+
+						for i, expectedPIT := range instructions {
+							playerPIT := history[i]
+
+							require.Equal(t, player_uuid, expectedPIT.uuid)
+							require.Equal(t, player_uuid, playerPIT.UUID)
+
+							// Mock data matches
+							require.Equal(t, *expectedPIT.player.Stats.Bedwars.Kills, *playerPIT.Overall.Kills)
+
+							require.WithinDuration(t, expectedPIT.queriedAt, playerPIT.QueriedAt, 0)
+						}
+					})
+				}
+			})
+		})
 	})
 }

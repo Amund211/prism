@@ -342,7 +342,8 @@ func (p *PostgresStatsPersistor) GetHistory(ctx context.Context, playerUUID stri
 	if len(stats) > 1 {
 		return nil, fmt.Errorf("GetHistory: expected at most one result, got %d", len(stats))
 	}
-	if len(stats) == 1 {
+	if len(stats) == 1 && (len(dbStats) == 0 || dbStats[len(dbStats)-1].ID != stats[0].ID) {
+		// We got stats, and they were not the same as the first one in this last interval
 		dbStats = append(dbStats, stats[0])
 	}
 
