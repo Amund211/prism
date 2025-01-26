@@ -50,7 +50,7 @@ const daysInCurrentMonth = (date: Date) => {
     return d.getDate();
 };
 
-interface TimeInterval {
+export interface TimeInterval {
     start: Date;
     end: Date;
 }

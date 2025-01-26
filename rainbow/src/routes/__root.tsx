@@ -40,7 +40,8 @@ export const Route = createRootRoute({
                     search={{
                         uuid: "a937646b-f115-44c3-8dbf-9ae4a65669a0",
                         timeInterval: {
-                            type: "current",
+                            type: "lastXDays",
+                            end: new Date("2025-01-15T22:30:00+01:00"),
                         },
                     }}
                 >
