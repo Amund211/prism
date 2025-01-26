@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-// import { reactClickToComponent } from "vite-plugin-react-click-to-component";
+import { reactClickToComponent } from "vite-plugin-react-click-to-component";
 import path from "node:path";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 
@@ -10,12 +10,10 @@ export default defineConfig(({ mode }) => {
         plugins: [
             TanStackRouterVite(),
             react(),
-            /*
-      (mode === "development" ||
-        mode === "proxy-staging" ||
-        mode === "proxy-production") &&
-        reactClickToComponent(),
-        */
+            (mode === "development" ||
+                mode === "proxy-staging" ||
+                mode === "proxy-production") &&
+                reactClickToComponent(),
         ],
         /**
          * Import alias, enables imports such as
