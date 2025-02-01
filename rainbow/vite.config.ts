@@ -9,7 +9,11 @@ export default defineConfig(({ mode }) => {
     return {
         plugins: [
             TanStackRouterVite(),
-            react(),
+            react({
+                babel: {
+                    plugins: ["babel-plugin-react-compiler"],
+                },
+            }),
             (mode === "development" ||
                 mode === "proxy-staging" ||
                 mode === "proxy-production") &&
