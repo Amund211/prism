@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { queryClient } from "#queryClient.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
-import { zodValidator } from "@tanstack/zod-adapter";
+import { fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import {
     ALL_GAMEMODE_KEYS,
@@ -17,13 +17,13 @@ defaultEnd.setHours(23, 59, 59, 999);
 
 const historyCompareSearchSchema = z.object({
     // TODO: Read "preferred user" from local storage or similar
-    uuids: z.array(z.string()).catch([]),
-    start: z.coerce.date().catch(defaultStart),
-    end: z.coerce.date().catch(defaultEnd),
-    limit: z.number().int().min(1).max(50).catch(50),
-    stats: z.enum(ALL_STAT_KEYS).array().catch(["fkdr"]),
-    gamemodes: z.enum(ALL_GAMEMODE_KEYS).array().catch(["overall"]),
-    variant: z.enum(ALL_VARIANT_KEYS).catch("session"),
+    uuids: fallback(z.array(z.string()), []),
+    start: fallback(z.coerce.date(), defaultStart),
+    end: fallback(z.coerce.date(), defaultEnd),
+    limit: fallback(z.number().int().min(1).max(50), 50),
+    stats: fallback(z.enum(ALL_STAT_KEYS).array(), ["fkdr"]),
+    gamemodes: fallback(z.enum(ALL_GAMEMODE_KEYS).array(), ["overall"]),
+    variant: fallback(z.enum(ALL_VARIANT_KEYS), "session"),
 });
 
 export const Route = createFileRoute("/history/compare")({
@@ -50,6 +50,5 @@ export const Route = createFileRoute("/history/compare")({
             console.error(e);
         });
     },
-    // https://tanstack.com/router/v1/docs/framework/react/guide/search-params
-    validateSearch: zodValidator(historyCompareSearchSchema),
+    validateSearch: historyCompareSearchSchema,
 });
