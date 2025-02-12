@@ -89,6 +89,19 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
     const trendDirection = diff == 0 ? "flat" : diff > 0 ? "up" : "down";
 
     const badStats: StatKey[] = ["deaths", "finalDeaths", "bedsLost", "losses"];
+    const floatStats: StatKey[] = ["fkdr", "kdr"];
+
+    const shortPrecision = floatStats.includes(stat) ? 2 : 0;
+    const shortFormat: Intl.NumberFormatOptions = {
+        minimumFractionDigits: shortPrecision,
+        maximumFractionDigits: shortPrecision,
+    };
+
+    const longPrecision = floatStats.includes(stat) ? 3 : 0;
+    const longFormat: Intl.NumberFormatOptions = {
+        minimumFractionDigits: longPrecision,
+        maximumFractionDigits: longPrecision,
+    };
 
     const trendColor: TypographyProps["color"] =
         trendDirection === "flat"
@@ -114,26 +127,22 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                     justifyContent="space-between"
                 >
                     <Typography variant="body1">
-                        {/* TODO: Don't add decimals to integer stats */}
                         {sessionValue.toLocaleString(undefined, {
-                            minimumSignificantDigits: 4,
-                            maximumSignificantDigits: 4,
+                            ...longFormat,
                         })}
                     </Typography>
                     <Tooltip
                         title={`${startValue.toLocaleString(undefined, {
-                            minimumSignificantDigits: 4,
-                            maximumSignificantDigits: 4,
+                            ...longFormat,
                         })} → ${endValue.toLocaleString(undefined, {
-                            minimumSignificantDigits: 4,
-                            maximumSignificantDigits: 4,
+                            ...longFormat,
                         })}`}
                     >
                         <Stack direction="row" gap={0.5} alignItems="center">
                             <Typography variant="caption" color={trendColor}>
                                 {diff.toLocaleString(undefined, {
                                     signDisplay: "always",
-                                    maximumFractionDigits: 2,
+                                    ...shortFormat,
                                 })}
                             </Typography>
                             {diff < 0 ? (
