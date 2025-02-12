@@ -258,11 +258,7 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                 )}
                 {stats.length > 1 ? " Stats" : ""}
             </h3>
-            <ResponsiveContainer
-                minHeight={300}
-                maxHeight={1000}
-                minWidth={100}
-            >
+            <ResponsiveContainer minHeight={300} maxHeight={300} minWidth={100}>
                 <LineChart width={500} height={300} data={chartData}>
                     <XAxis
                         type="number"
