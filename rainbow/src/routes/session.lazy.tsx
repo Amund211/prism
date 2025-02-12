@@ -1,3 +1,4 @@
+import { HistoryChart } from "#charts/history/chart.tsx";
 import { getTimeIntervals, TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import { computeStat } from "#stats/index.ts";
@@ -179,6 +180,10 @@ function RouteComponent() {
         xs: 6,
         sm: 4,
     };
+    const chartSize = {
+        xs: 12,
+        lg: 6,
+    };
     return (
         <Stack spacing={1}>
             <Select
@@ -218,6 +223,41 @@ function RouteComponent() {
                         timeInterval={{ ...month, type: "month" }}
                         gamemode={gamemode}
                         stat={stat}
+                    />
+                </Grid>
+            </Grid>
+            <Grid container spacing={1}>
+                <Grid size={chartSize}>
+                    <HistoryChart
+                        start={day.start}
+                        end={day.end}
+                        uuids={[uuid]}
+                        gamemodes={[gamemode]}
+                        stats={[stat]}
+                        variant="overall"
+                        limit={100}
+                    />
+                </Grid>
+                <Grid size={chartSize}>
+                    <HistoryChart
+                        start={week.start}
+                        end={week.end}
+                        uuids={[uuid]}
+                        gamemodes={[gamemode]}
+                        stats={[stat]}
+                        variant="overall"
+                        limit={100}
+                    />
+                </Grid>
+                <Grid size={chartSize}>
+                    <HistoryChart
+                        start={month.start}
+                        end={month.end}
+                        uuids={[uuid]}
+                        gamemodes={[gamemode]}
+                        stats={[stat]}
+                        variant="overall"
+                        limit={100}
                     />
                 </Grid>
             </Grid>
