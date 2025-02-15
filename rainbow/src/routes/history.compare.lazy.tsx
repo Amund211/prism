@@ -1,5 +1,9 @@
 import { HistoryChart } from "#charts/history/chart.tsx";
-import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
+import {
+    ALL_GAMEMODE_KEYS,
+    ALL_STAT_KEYS,
+    ALL_VARIANT_KEYS,
+} from "#stats/keys.ts";
 import { createLazyFileRoute, getRouteApi } from "@tanstack/react-router";
 
 export const Route = createLazyFileRoute("/history/compare")({
@@ -53,7 +57,7 @@ const toDatetimeLocal = (date: Date) => {
 };
 
 function Index() {
-    const { uuids, stats, gamemodes, variant, start, end, limit } =
+    const { uuids, stats, gamemodes, variants, start, end, limit } =
         route.useSearch();
     const navigate = route.useNavigate();
 
@@ -136,29 +140,24 @@ function Index() {
 
             <br />
 
-            <label>
-                <input
-                    type="checkbox"
-                    checked={variant === "session"}
-                    onClick={() => {
-                        const newVariant =
-                            variant === "session" ? "overall" : "session";
-                        navigate({
-                            search: (oldSearch) => ({
-                                ...oldSearch,
-                                variant: newVariant,
-                            }),
-                        }).catch((error: unknown) => {
-                            // TODO: Handle error
-                            console.error(
-                                "Failed to update search params: variant",
-                                error,
-                            );
-                        });
-                    }}
-                />
-                Session?
-            </label>
+            <KeySelector
+                keys={ALL_VARIANT_KEYS}
+                selectedKeys={variants}
+                onChange={(keys) => {
+                    navigate({
+                        search: (oldSearch) => ({
+                            ...oldSearch,
+                            variants: keys,
+                        }),
+                    }).catch((error: unknown) => {
+                        // TODO: Handle error
+                        console.error(
+                            "Failed to update search params: variants",
+                            error,
+                        );
+                    });
+                }}
+            />
             <br />
 
             <br />
@@ -215,7 +214,7 @@ function Index() {
                 uuids={uuids}
                 gamemodes={gamemodes}
                 stats={stats}
-                variant={variant}
+                variants={variants}
                 limit={limit}
             />
         </div>

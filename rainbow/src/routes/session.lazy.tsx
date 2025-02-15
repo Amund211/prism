@@ -234,7 +234,7 @@ function RouteComponent() {
                         uuids={[uuid]}
                         gamemodes={[gamemode]}
                         stats={[stat]}
-                        variant="overall"
+                        variants={["session", "overall"]}
                         limit={100}
                     />
                 </Grid>
@@ -245,7 +245,7 @@ function RouteComponent() {
                         uuids={[uuid]}
                         gamemodes={[gamemode]}
                         stats={[stat]}
-                        variant="overall"
+                        variants={["session", "overall"]}
                         limit={100}
                     />
                 </Grid>
@@ -256,7 +256,7 @@ function RouteComponent() {
                         uuids={[uuid]}
                         gamemodes={[gamemode]}
                         stats={[stat]}
-                        variant="overall"
+                        variants={["session", "overall"]}
                         limit={100}
                     />
                 </Grid>

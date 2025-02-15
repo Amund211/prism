@@ -30,7 +30,7 @@ export const Route = createRootRoute({
                         limit: 100,
                         stats: ["stars", "finalKills"],
                         gamemodes: ["overall"],
-                        variant: "session",
+                        variants: ["session"],
                     }}
                 >
                     Compare

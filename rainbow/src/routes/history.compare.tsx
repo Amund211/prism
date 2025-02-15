@@ -23,7 +23,7 @@ const historyCompareSearchSchema = z.object({
     limit: fallback(z.number().int().min(1).max(50), 50),
     stats: fallback(z.enum(ALL_STAT_KEYS).array(), ["fkdr"]),
     gamemodes: fallback(z.enum(ALL_GAMEMODE_KEYS).array(), ["overall"]),
-    variant: fallback(z.enum(ALL_VARIANT_KEYS), "session"),
+    variants: fallback(z.enum(ALL_VARIANT_KEYS).array(), ["session"]),
 });
 
 export const Route = createFileRoute("/history/compare")({

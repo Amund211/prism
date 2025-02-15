@@ -26,7 +26,7 @@ interface HistoryChartProps {
     uuids: string[];
     gamemodes: GamemodeKey[];
     stats: StatKey[];
-    variant: VariantKey;
+    variants: VariantKey[];
     limit: number;
 }
 
@@ -144,7 +144,7 @@ const contextAwareStatDisplayName = (
         displayName += `${getGamemodeDisplayName(gamemode.value)} `;
     }
 
-    if (variant.shown && variant.value !== "overall") {
+    if (variant.shown) {
         displayName += `${getVariantDisplayName(variant.value)} `;
     }
 
@@ -202,7 +202,7 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
     uuids,
     gamemodes,
     stats,
-    variant,
+    variants,
     limit,
 }) => {
     const historyQueries = useQueries({
@@ -235,6 +235,10 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
         return <div>Select at least one gamemode or overall</div>;
     }
 
+    if (variants.length === 0) {
+        return <div>Select at least one session or overall</div>;
+    }
+
     if (chartData.length === 0) {
         return <div>No data</div>;
     }
@@ -259,8 +263,8 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                         shown: gamemodes.length === 1,
                     },
                     {
-                        value: variant,
-                        shown: true,
+                        value: variants[0],
+                        shown: variants.length === 1,
                     },
                 )}
                 {stats.length > 1 ? " Stats" : ""}
@@ -290,7 +294,7 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                         uuids,
                         gamemodes,
                         stats,
-                        variant,
+                        variants,
                         uuidToUsername,
                     })}
                     <Legend />
@@ -309,7 +313,7 @@ interface LinesProps {
     uuids: string[];
     gamemodes: GamemodeKey[];
     stats: StatKey[];
-    variant: VariantKey;
+    variants: VariantKey[];
     uuidToUsername: Record<string, string | undefined>;
 }
 
@@ -341,80 +345,87 @@ const renderLines = ({
     uuids,
     gamemodes,
     stats,
-    variant,
+    variants,
     uuidToUsername,
 }: LinesProps): React.ReactNode[] => {
     let index = 0;
     return uuids.flatMap((uuid) => {
         return stats.flatMap((stat) => {
-            if (stat === "stars" || stat === "experience") {
-                // Only create one line for stars, not one for each gamemode
-                const dataKey = makeDataKey({
-                    uuid,
-                    gamemode: "overall",
-                    stat,
-                    variant,
-                });
-                return (
-                    <Line
-                        key={dataKey}
-                        name={contextAwareStatDisplayName(
-                            {
-                                // TODO: Display error state if missing uuid
-                                value: uuidToUsername[uuid] ?? "",
-                                shown: uuids.length > 1,
-                            },
-                            {
-                                value: stat,
-                                shown: stats.length > 1,
-                            },
-                            {
-                                value: "overall",
-                                shown: gamemodes.length > 1,
-                            },
-                            {
-                                value: variant,
-                                shown: false,
-                            },
-                        )}
-                        type="monotone"
-                        dataKey={dataKey}
-                        connectNulls
-                        {...getLineStyle(index++)}
-                    />
-                );
-            }
+            return variants.flatMap((variant) => {
+                if (stat === "stars" || stat === "experience") {
+                    // Only create one line for stars, not one for each gamemode
+                    const dataKey = makeDataKey({
+                        uuid,
+                        gamemode: "overall",
+                        stat,
+                        variant,
+                    });
+                    return (
+                        <Line
+                            key={dataKey}
+                            name={contextAwareStatDisplayName(
+                                {
+                                    // TODO: Display error state if missing uuid
+                                    value: uuidToUsername[uuid] ?? "",
+                                    shown: uuids.length > 1,
+                                },
+                                {
+                                    value: stat,
+                                    shown: stats.length > 1,
+                                },
+                                {
+                                    value: "overall",
+                                    shown: gamemodes.length > 1,
+                                },
+                                {
+                                    value: variant,
+                                    shown: variants.length > 1,
+                                },
+                            )}
+                            type="monotone"
+                            dataKey={dataKey}
+                            connectNulls
+                            {...getLineStyle(index++)}
+                        />
+                    );
+                }
 
-            return gamemodes.map((gamemode) => {
-                const dataKey = makeDataKey({ uuid, gamemode, stat, variant });
-                return (
-                    <Line
-                        key={dataKey}
-                        name={contextAwareStatDisplayName(
-                            {
-                                // TODO: Display error state if missing uuid
-                                value: uuidToUsername[uuid] ?? "",
-                                shown: uuids.length > 1,
-                            },
-                            {
-                                value: stat,
-                                shown: stats.length > 1,
-                            },
-                            {
-                                value: gamemode,
-                                shown: gamemodes.length > 1,
-                            },
-                            {
-                                value: variant,
-                                shown: false,
-                            },
-                        )}
-                        type="monotone"
-                        dataKey={dataKey}
-                        {...getLineStyle(index++)}
-                        connectNulls
-                    />
-                );
+                return gamemodes.map((gamemode) => {
+                    const dataKey = makeDataKey({
+                        uuid,
+                        gamemode,
+                        stat,
+                        variant,
+                    });
+                    return (
+                        <Line
+                            key={dataKey}
+                            name={contextAwareStatDisplayName(
+                                {
+                                    // TODO: Display error state if missing uuid
+                                    value: uuidToUsername[uuid] ?? "",
+                                    shown: uuids.length > 1,
+                                },
+                                {
+                                    value: stat,
+                                    shown: stats.length > 1,
+                                },
+                                {
+                                    value: gamemode,
+                                    shown: gamemodes.length > 1,
+                                },
+                                {
+                                    value: variant,
+                                    shown: variants.length > 1,
+                                },
+                            )}
+                            type="monotone"
+                            dataKey={dataKey}
+                            {...getLineStyle(index++)}
+                            connectNulls
+                        />
+                    );
+                });
             });
         });
     });
