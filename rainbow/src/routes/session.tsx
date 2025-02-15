@@ -5,6 +5,7 @@ import { fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { getUsernameQueryOptions } from "#queries/username.ts";
 import { getTimeIntervals } from "#intervals.ts";
+import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
 
 const sessionSearchSchema = z.object({
     // TODO: Read "preferred user" from local storage or similar
@@ -24,15 +25,18 @@ const sessionSearchSchema = z.object({
         }
         return value;
     }),
+    gamemode: fallback(z.enum(ALL_GAMEMODE_KEYS), "overall"),
+    stat: fallback(z.enum(ALL_STAT_KEYS), "fkdr"),
+    variantSelection: fallback(z.enum(["session", "overall", "both"]), "both"),
 });
 
 export const Route = createFileRoute("/session")({
-    loaderDeps: ({ search: { uuid, timeInterval } }) => ({
-        uuid,
-        timeInterval,
-    }),
-    loader: ({ deps: { uuid, timeInterval } }) => {
-        const { day, week, month } = getTimeIntervals(timeInterval);
+    loaderDeps: ({ search: { uuid, timeInterval } }) => {
+        const timeIntervals = getTimeIntervals(timeInterval);
+        return { uuid, timeInterval, timeIntervals };
+    },
+    loader: ({ deps: { uuid, timeIntervals } }) => {
+        const { day, week, month } = timeIntervals;
         // TODO: Rate limiting
         Promise.all([
             [day, week, month].map(({ start, end }) =>

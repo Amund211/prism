@@ -1,5 +1,5 @@
 import { HistoryChart } from "#charts/history/chart.tsx";
-import { getTimeIntervals, TimeInterval } from "#intervals.ts";
+import { TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import { computeStat } from "#stats/index.ts";
 import {
@@ -7,7 +7,6 @@ import {
     ALL_STAT_KEYS,
     GamemodeKey,
     StatKey,
-    VariantKey,
 } from "#stats/keys.ts";
 import { TrendingDown, TrendingUp } from "@mui/icons-material";
 import {
@@ -177,16 +176,15 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
 };
 
 function RouteComponent() {
-    const { uuid, timeInterval } = route.useSearch();
-    const { day, week, month } = getTimeIntervals(timeInterval);
-    // TODO: URL params
-    const [gamemode, setGamemode] = React.useState<GamemodeKey>("overall");
-    const [stat, setStat] = React.useState<StatKey>("fkdr");
-    const [variants, setVariants] = React.useState<VariantKey[]>([
-        "session",
-        "overall",
-    ]);
-    const variantSelection = variants.length === 1 ? variants[0] : "both";
+    const { uuid, gamemode, stat, variantSelection } = route.useSearch();
+    const { timeIntervals } = route.useLoaderDeps();
+    const navigate = route.useNavigate();
+    const { day, week, month } = timeIntervals;
+
+    const variants =
+        variantSelection === "both"
+            ? (["session", "overall"] as const)
+            : ([variantSelection] as const);
 
     const cardSize = {
         xs: 6,
@@ -205,7 +203,18 @@ function RouteComponent() {
                     fullWidth
                     onChange={(event) => {
                         const newGamemode = event.target.value as GamemodeKey;
-                        setGamemode(newGamemode);
+                        navigate({
+                            search: (oldSearch) => ({
+                                ...oldSearch,
+                                gamemode: newGamemode,
+                            }),
+                        }).catch((error: unknown) => {
+                            // TODO: Handle error
+                            console.error(
+                                "Failed to update search params: gamemode",
+                                error,
+                            );
+                        });
                     }}
                 >
                     {ALL_GAMEMODE_KEYS.map((gamemode) => (
@@ -220,7 +229,18 @@ function RouteComponent() {
                     fullWidth
                     onChange={(event) => {
                         const newStat = event.target.value as StatKey;
-                        setStat(newStat);
+                        navigate({
+                            search: (oldSearch) => ({
+                                ...oldSearch,
+                                stat: newStat,
+                            }),
+                        }).catch((error: unknown) => {
+                            // TODO: Handle error
+                            console.error(
+                                "Failed to update search params: stat",
+                                error,
+                            );
+                        });
                     }}
                 >
                     {ALL_STAT_KEYS.map((stat) => (
@@ -265,17 +285,19 @@ function RouteComponent() {
                         | "session"
                         | "overall"
                         | "both";
-                    switch (newSelection) {
-                        case "session":
-                            setVariants(["session"]);
-                            break;
-                        case "overall":
-                            setVariants(["overall"]);
-                            break;
-                        case "both":
-                            setVariants(["session", "overall"]);
-                            break;
-                    }
+
+                    navigate({
+                        search: (oldSearch) => ({
+                            ...oldSearch,
+                            variantSelection: newSelection,
+                        }),
+                    }).catch((error: unknown) => {
+                        // TODO: Handle error
+                        console.error(
+                            "Failed to update search params: variantSelection",
+                            error,
+                        );
+                    });
                 }}
             >
                 <MenuItem value="overall">Overall</MenuItem>

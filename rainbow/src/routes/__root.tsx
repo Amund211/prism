@@ -43,6 +43,9 @@ export const Route = createRootRoute({
                             type: "lastXDays",
                             end: new Date("2025-01-15T22:30:00+01:00"),
                         },
+                        gamemode: "overall",
+                        stat: "fkdr",
+                        variantSelection: "both",
                     }}
                 >
                     Session
