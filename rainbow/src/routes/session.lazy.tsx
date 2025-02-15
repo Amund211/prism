@@ -96,7 +96,8 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
     const trendDirection = diff == 0 ? "flat" : diff > 0 ? "up" : "down";
 
     const badStats: StatKey[] = ["deaths", "finalDeaths", "bedsLost", "losses"];
-    const floatStats: StatKey[] = ["fkdr", "kdr"];
+    // Intentionally not including "index" as the number is usually so large that we don't want decmials. TODO: Could be fixed by better conditional decimal rendering for large numbers.
+    const floatStats: StatKey[] = ["fkdr", "kdr", "stars"];
 
     const shortPrecision = floatStats.includes(stat) ? 2 : 0;
     const shortFormat: Intl.NumberFormatOptions = {
