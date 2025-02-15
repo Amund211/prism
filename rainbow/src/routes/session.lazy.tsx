@@ -2,7 +2,13 @@ import { HistoryChart } from "#charts/history/chart.tsx";
 import { getTimeIntervals, TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import { computeStat } from "#stats/index.ts";
-import { GamemodeKey, StatKey } from "#stats/keys.ts";
+import {
+    ALL_GAMEMODE_KEYS,
+    ALL_STAT_KEYS,
+    GamemodeKey,
+    StatKey,
+    VariantKey,
+} from "#stats/keys.ts";
 import { TrendingDown, TrendingUp } from "@mui/icons-material";
 import {
     Card,
@@ -174,7 +180,12 @@ function RouteComponent() {
     const { day, week, month } = getTimeIntervals(timeInterval);
     // TODO: URL params
     const [gamemode, setGamemode] = React.useState<GamemodeKey>("overall");
-    const stat = "fkdr";
+    const [stat, setStat] = React.useState<StatKey>("fkdr");
+    const [variants, setVariants] = React.useState<VariantKey[]>([
+        "session",
+        "overall",
+    ]);
+    const variantSelection = variants.length === 1 ? variants[0] : "both";
 
     const cardSize = {
         xs: 6,
@@ -186,20 +197,64 @@ function RouteComponent() {
     };
     return (
         <Stack spacing={1}>
-            <Select
-                value={gamemode}
-                label="Gamemode"
-                onChange={(event) => {
-                    const newGamemode = event.target.value as GamemodeKey;
-                    setGamemode(newGamemode);
-                }}
-            >
-                <MenuItem value="overall">Overall</MenuItem>
-                <MenuItem value="solo">Solo</MenuItem>
-                <MenuItem value="doubles">Doubles</MenuItem>
-                <MenuItem value="threes">Threes</MenuItem>
-                <MenuItem value="fours">Fours</MenuItem>
-            </Select>
+            <Stack direction="row" gap={1}>
+                <Select
+                    value={gamemode}
+                    label="Gamemode"
+                    fullWidth
+                    onChange={(event) => {
+                        const newGamemode = event.target.value as GamemodeKey;
+                        setGamemode(newGamemode);
+                    }}
+                >
+                    {ALL_GAMEMODE_KEYS.map((gamemode) => (
+                        <MenuItem key={gamemode} value={gamemode}>
+                            {gamemode}
+                        </MenuItem>
+                    ))}
+                </Select>
+                <Select
+                    value={stat}
+                    label="Stat"
+                    fullWidth
+                    onChange={(event) => {
+                        const newStat = event.target.value as StatKey;
+                        setStat(newStat);
+                    }}
+                >
+                    {ALL_STAT_KEYS.map((stat) => (
+                        <MenuItem key={stat} value={stat}>
+                            {stat}
+                        </MenuItem>
+                    ))}
+                </Select>
+                <Select
+                    value={variantSelection}
+                    label="Variants"
+                    fullWidth
+                    onChange={(event) => {
+                        const newSelection = event.target.value as
+                            | "session"
+                            | "overall"
+                            | "both";
+                        switch (newSelection) {
+                            case "session":
+                                setVariants(["session"]);
+                                break;
+                            case "overall":
+                                setVariants(["overall"]);
+                                break;
+                            case "both":
+                                setVariants(["session", "overall"]);
+                                break;
+                        }
+                    }}
+                >
+                    <MenuItem value="overall">Overall</MenuItem>
+                    <MenuItem value="session">Session</MenuItem>
+                    <MenuItem value="both">Both</MenuItem>
+                </Select>
+            </Stack>
             <Grid container spacing={1}>
                 <Grid size={cardSize}>
                     <SessionStatCard
@@ -234,7 +289,7 @@ function RouteComponent() {
                         uuids={[uuid]}
                         gamemodes={[gamemode]}
                         stats={[stat]}
-                        variants={["session", "overall"]}
+                        variants={variants}
                         limit={100}
                     />
                 </Grid>
@@ -245,7 +300,7 @@ function RouteComponent() {
                         uuids={[uuid]}
                         gamemodes={[gamemode]}
                         stats={[stat]}
-                        variants={["session", "overall"]}
+                        variants={variants}
                         limit={100}
                     />
                 </Grid>
@@ -256,7 +311,7 @@ function RouteComponent() {
                         uuids={[uuid]}
                         gamemodes={[gamemode]}
                         stats={[stat]}
-                        variants={["session", "overall"]}
+                        variants={variants}
                         limit={100}
                     />
                 </Grid>
