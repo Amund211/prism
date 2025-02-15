@@ -74,7 +74,7 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
     const endValue = computeStat(end, gamemode, stat, "overall", data);
     const sessionValue = computeStat(end, gamemode, stat, "session", data);
 
-    // Only different thatn sessionValue for complex stats (e.g. fkdr)
+    // Only different than sessionValue for complex stats (e.g. fkdr)
     const diff =
         endValue !== null && startValue !== null ? endValue - startValue : null;
 
