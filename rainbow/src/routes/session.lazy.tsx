@@ -8,7 +8,7 @@ import {
     GamemodeKey,
     StatKey,
 } from "#stats/keys.ts";
-import { TrendingDown, TrendingUp } from "@mui/icons-material";
+import { TrendingDown, TrendingFlat, TrendingUp } from "@mui/icons-material";
 import {
     Card,
     CardContent,
@@ -16,9 +16,9 @@ import {
     MenuItem,
     Select,
     Stack,
+    SvgIconOwnProps,
     Tooltip,
     Typography,
-    TypographyProps,
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { createLazyFileRoute, getRouteApi } from "@tanstack/react-router";
@@ -110,12 +110,12 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
         maximumFractionDigits: longPrecision,
     };
 
-    const trendColor: TypographyProps["color"] =
+    const trendColor: SvgIconOwnProps["color"] =
         trendDirection === "flat"
-            ? "text.primary"
+            ? "primary"
             : (trendDirection === "up") === badStats.includes(stat)
-              ? "error.main"
-              : "success.main";
+              ? "error"
+              : "success";
 
     return (
         <Card variant="outlined" sx={{ height: "100%" }}>
@@ -152,20 +152,21 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                                     ...shortFormat,
                                 })}
                             </Typography>
-                            {diff < 0 ? (
-                                <Typography
-                                    variant="caption"
+                            {diff > 0 ? (
+                                <TrendingUp
                                     color={trendColor}
-                                >
-                                    <TrendingDown fontSize="small" />
-                                </Typography>
+                                    fontSize="small"
+                                />
+                            ) : diff < 0 ? (
+                                <TrendingDown
+                                    color={trendColor}
+                                    fontSize="small"
+                                />
                             ) : (
-                                <Typography
-                                    variant="caption"
+                                <TrendingFlat
                                     color={trendColor}
-                                >
-                                    <TrendingUp fontSize="small" />
-                                </Typography>
+                                    fontSize="small"
+                                />
                             )}
                         </Stack>
                     </Tooltip>
