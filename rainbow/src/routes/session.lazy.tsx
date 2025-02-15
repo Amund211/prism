@@ -229,32 +229,6 @@ function RouteComponent() {
                         </MenuItem>
                     ))}
                 </Select>
-                <Select
-                    value={variantSelection}
-                    label="Variants"
-                    fullWidth
-                    onChange={(event) => {
-                        const newSelection = event.target.value as
-                            | "session"
-                            | "overall"
-                            | "both";
-                        switch (newSelection) {
-                            case "session":
-                                setVariants(["session"]);
-                                break;
-                            case "overall":
-                                setVariants(["overall"]);
-                                break;
-                            case "both":
-                                setVariants(["session", "overall"]);
-                                break;
-                        }
-                    }}
-                >
-                    <MenuItem value="overall">Overall</MenuItem>
-                    <MenuItem value="session">Session</MenuItem>
-                    <MenuItem value="both">Both</MenuItem>
-                </Select>
             </Stack>
             <Grid container spacing={1}>
                 <Grid size={cardSize}>
@@ -282,6 +256,32 @@ function RouteComponent() {
                     />
                 </Grid>
             </Grid>
+            <Select
+                value={variantSelection}
+                label="Variants"
+                fullWidth
+                onChange={(event) => {
+                    const newSelection = event.target.value as
+                        | "session"
+                        | "overall"
+                        | "both";
+                    switch (newSelection) {
+                        case "session":
+                            setVariants(["session"]);
+                            break;
+                        case "overall":
+                            setVariants(["overall"]);
+                            break;
+                        case "both":
+                            setVariants(["session", "overall"]);
+                            break;
+                    }
+                }}
+            >
+                <MenuItem value="overall">Overall</MenuItem>
+                <MenuItem value="session">Session</MenuItem>
+                <MenuItem value="both">Both</MenuItem>
+            </Select>
             <Grid container spacing={1}>
                 <Grid size={chartSize}>
                     <HistoryChart
