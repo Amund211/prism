@@ -15,7 +15,7 @@ const sessionSearchSchema = z.object({
             z.object({ type: z.literal("current") }),
             z.object({
                 type: z.literal("lastXDays"),
-                end: z.coerce.date().optional().catch(undefined),
+                end: fallback(z.coerce.date().optional(), undefined),
             }),
         ]),
         { type: "current" },
