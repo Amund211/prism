@@ -40,9 +40,19 @@ export const Route = createFileRoute("/session")({
         // TODO: Rate limiting
         Promise.all([
             [day, week, month].map(({ start, end }) =>
-                queryClient.fetchQuery(
-                    getHistoryQueryOptions({ uuid, start, end, limit: 2 }),
-                ),
+                Promise.all([
+                    queryClient.fetchQuery(
+                        getHistoryQueryOptions({ uuid, start, end, limit: 2 }),
+                    ),
+                    queryClient.fetchQuery(
+                        getHistoryQueryOptions({
+                            uuid,
+                            start,
+                            end,
+                            limit: 100,
+                        }),
+                    ),
+                ]),
             ),
             queryClient.fetchQuery(getUsernameQueryOptions(uuid)),
         ]).catch((e: unknown) => {
