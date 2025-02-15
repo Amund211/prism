@@ -14,7 +14,7 @@ import {
     type VariantKey,
 } from "#stats/keys.ts";
 import React from "react";
-import { type ChartData, generateChartData } from "./data.ts";
+import { generateChartData } from "./data.ts";
 import { makeDataKey } from "./dataKeys.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
 import { useQueries } from "@tanstack/react-query";
@@ -33,14 +33,9 @@ interface HistoryChartProps {
 type TimeDenomination = "year" | "month" | "day" | "hour";
 
 const getSmallestTimeDenomination = (
-    chartData: ChartData,
+    startDate: Date,
+    endDate: Date,
 ): TimeDenomination => {
-    if (chartData.length < 2) {
-        return "hour";
-    }
-    const startDate = new Date(chartData[0].queriedAt);
-    const endDate = new Date(chartData[chartData.length - 1].queriedAt);
-
     const differentYear = startDate.getFullYear() !== endDate.getFullYear();
     const differentMonth =
         startDate.getMonth() !== endDate.getMonth() || differentYear;
@@ -160,7 +155,7 @@ const contextAwareStatDisplayName = (
     return displayName.slice(0, -1);
 };
 
-const renderTime = (
+const renderTimeShort = (
     time: number,
     smallestTimeDenomination: TimeDenomination,
 ): string => {
@@ -177,8 +172,8 @@ const renderTime = (
             });
         case "day":
             return date.toLocaleString(undefined, {
-                hour: "numeric",
-                minute: "numeric",
+                month: "short",
+                day: "numeric",
             });
         case "hour":
             return date.toLocaleString(undefined, {
@@ -187,6 +182,18 @@ const renderTime = (
                 second: "numeric",
             });
     }
+};
+
+const renderTimeFull = (time: number): string => {
+    const date = new Date(time);
+    return date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+    });
 };
 
 export const HistoryChart: React.FC<HistoryChartProps> = ({
@@ -232,7 +239,7 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
         return <div>No data</div>;
     }
 
-    const smallestTimeDenomination = getSmallestTimeDenomination(chartData);
+    const smallestTimeDenomination = getSmallestTimeDenomination(start, end);
 
     return (
         <>
@@ -266,7 +273,10 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                         scale="linear"
                         dataKey="queriedAt"
                         tickFormatter={(time: number) => {
-                            return renderTime(time, smallestTimeDenomination);
+                            return renderTimeShort(
+                                time,
+                                smallestTimeDenomination,
+                            );
                         }}
                         ticks={new Array(10).fill(0).map((_, i) => {
                             const startTime = start.getTime();
@@ -286,7 +296,7 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                     <Legend />
                     <Tooltip
                         labelFormatter={(time: number) => {
-                            return renderTime(time, smallestTimeDenomination);
+                            return renderTimeFull(time);
                         }}
                     />
                 </LineChart>
