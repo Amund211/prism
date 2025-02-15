@@ -14,8 +14,8 @@ const route = getRouteApi("/history/compare");
 
 interface KeySelectorProps<T extends string> {
     keys: readonly T[];
-    selectedKeys: T[];
-    onChange: (keys: T[]) => void;
+    selectedKeys: readonly T[];
+    onChange: (keys: readonly T[]) => void;
 }
 
 function KeySelector<T extends string>({

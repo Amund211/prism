@@ -23,10 +23,10 @@ import { getHistoryQueryOptions } from "#queries/history.ts";
 interface HistoryChartProps {
     start: Date;
     end: Date;
-    uuids: string[];
-    gamemodes: GamemodeKey[];
-    stats: StatKey[];
-    variants: VariantKey[];
+    uuids: readonly string[];
+    gamemodes: readonly GamemodeKey[];
+    stats: readonly StatKey[];
+    variants: readonly VariantKey[];
     limit: number;
 }
 
@@ -245,6 +245,9 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
 
     const smallestTimeDenomination = getSmallestTimeDenomination(start, end);
 
+    // Linechart requires a mutable array for some reason. Make a copy here so we can mutate it.
+    const mutableChartData = [...chartData];
+
     return (
         <>
             <h3>
@@ -270,7 +273,7 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                 {stats.length > 1 ? " Stats" : ""}
             </h3>
             <ResponsiveContainer minHeight={300} maxHeight={300} minWidth={100}>
-                <LineChart width={500} height={300} data={chartData}>
+                <LineChart width={500} height={300} data={mutableChartData}>
                     <XAxis
                         type="number"
                         domain={[start.getTime(), end.getTime()]}
@@ -310,10 +313,10 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
 };
 
 interface LinesProps {
-    uuids: string[];
-    gamemodes: GamemodeKey[];
-    stats: StatKey[];
-    variants: VariantKey[];
+    uuids: readonly string[];
+    gamemodes: readonly GamemodeKey[];
+    stats: readonly StatKey[];
+    variants: readonly VariantKey[];
     uuidToUsername: Record<string, string | undefined>;
 }
 

@@ -17,13 +17,17 @@ defaultEnd.setHours(23, 59, 59, 999);
 
 const historyCompareSearchSchema = z.object({
     // TODO: Read "preferred user" from local storage or similar
-    uuids: fallback(z.array(z.string()), []),
+    uuids: fallback(z.array(z.string()).readonly(), []),
     start: fallback(z.coerce.date(), defaultStart),
     end: fallback(z.coerce.date(), defaultEnd),
     limit: fallback(z.number().int().min(1).max(50), 50),
-    stats: fallback(z.enum(ALL_STAT_KEYS).array(), ["fkdr"]),
-    gamemodes: fallback(z.enum(ALL_GAMEMODE_KEYS).array(), ["overall"]),
-    variants: fallback(z.enum(ALL_VARIANT_KEYS).array(), ["session"]),
+    stats: fallback(z.enum(ALL_STAT_KEYS).array().readonly(), ["fkdr"]),
+    gamemodes: fallback(z.enum(ALL_GAMEMODE_KEYS).array().readonly(), [
+        "overall",
+    ]),
+    variants: fallback(z.enum(ALL_VARIANT_KEYS).array().readonly(), [
+        "session",
+    ]),
 });
 
 export const Route = createFileRoute("/history/compare")({

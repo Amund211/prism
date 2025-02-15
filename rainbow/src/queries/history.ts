@@ -27,7 +27,7 @@ interface APIPlayerDataPIT {
     overall: APIStatsPIT;
 }
 
-type APIHistory = APIPlayerDataPIT[];
+type APIHistory = readonly APIPlayerDataPIT[];
 
 interface StatsPIT {
     winstreak: number | null;
@@ -55,7 +55,7 @@ export interface PlayerDataPIT {
     overall: StatsPIT;
 }
 
-export type History = PlayerDataPIT[];
+export type History = readonly PlayerDataPIT[];
 
 interface HistoryQueryOptions {
     uuid: string;

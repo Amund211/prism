@@ -28,7 +28,7 @@ export const getUsernameQueryOptions = (uuid: string) =>
         },
     });
 
-export const useUUIDToUsername = (uuids: string[]) => {
+export const useUUIDToUsername = (uuids: readonly string[]) => {
     const usernameQueries = useQueries({
         queries: uuids.map((uuid) => getUsernameQueryOptions(uuid)),
     });

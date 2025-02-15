@@ -11,10 +11,11 @@ type ChartDataEntry = Record<DataKey, number | undefined | null> & {
     queriedAt: number;
 };
 
-export type ChartData = ChartDataEntry[];
+type MutableChartData = ChartDataEntry[];
+export type ChartData = readonly ChartDataEntry[];
 
 const generateChartDataFromSingleHistory = (history: History): ChartData => {
-    const data: ChartData = [];
+    const data: MutableChartData = [];
     for (const playerData of history) {
         const entry: ChartDataEntry = {
             queriedAt: playerData.queriedAt.getTime(),
@@ -54,7 +55,7 @@ export const clusterChartData = (chartData: ChartData): ChartData => {
     // Cluster entries that are closer than 1% of the time span or 1 minute
     const threshold = Math.max(timeSpan / 100, 1000 * 60);
 
-    const clusteredChartData: ChartData = [];
+    const clusteredChartData: MutableChartData = [];
     for (let i = chartData.length - 1; i >= 0; i--) {
         const entry = chartData[i];
         let entriesToCluster = 1; // Number of entries to cluster, including this one
@@ -79,7 +80,7 @@ export const clusterChartData = (chartData: ChartData): ChartData => {
     return clusteredChartData.reverse();
 };
 
-export const generateChartData = (histories: History[]): ChartData => {
+export const generateChartData = (histories: readonly History[]): ChartData => {
     const chartData = histories
         .flatMap(generateChartDataFromSingleHistory)
         .sort((a, b) => a.queriedAt - b.queriedAt);
@@ -91,7 +92,7 @@ export const generateChartData = (histories: History[]): ChartData => {
     const clusteredChartData = clusterChartData(chartData);
 
     // Merge duplicate queriedAt values
-    const mergedChartData: ChartData = [clusteredChartData[0]];
+    const mergedChartData: MutableChartData = [clusteredChartData[0]];
     for (const entry of clusteredChartData) {
         const lastEntry = mergedChartData[mergedChartData.length - 1];
         if (lastEntry.queriedAt === entry.queriedAt) {
