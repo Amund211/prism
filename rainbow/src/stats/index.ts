@@ -2,14 +2,21 @@ import { type History, type PlayerDataPIT } from "#queries/history.ts";
 import { type GamemodeKey, type StatKey, type VariantKey } from "./keys.ts";
 import { bedwarsLevelFromExp } from "./stars.ts";
 
-// Stats that may be hidden from the API
-const CONCEALABLE_STATS = ["winstreak"];
-
-const getStat = (
+export function getStat(
+    playerData: PlayerDataPIT,
+    gamemode: GamemodeKey,
+    stat: Exclude<StatKey, "winstreak">,
+): number;
+export function getStat(
     playerData: PlayerDataPIT,
     gamemode: GamemodeKey,
     stat: StatKey,
-): number | null => {
+): number | null;
+export function getStat(
+    playerData: PlayerDataPIT,
+    gamemode: GamemodeKey,
+    stat: StatKey,
+): number | null {
     const selectedGamemode = playerData[gamemode];
 
     switch (stat) {
@@ -36,18 +43,19 @@ const getStat = (
             }
         }
         case "index": {
-            const fkdr = getStat(playerData, gamemode, "fkdr") ?? 0;
-            const stars = getStat(playerData, gamemode, "stars") ?? 0;
+            const fkdr = getStat(playerData, gamemode, "fkdr");
+            const stars = getStat(playerData, gamemode, "stars");
             return fkdr ** 2 * stars;
         }
         default:
-            if (CONCEALABLE_STATS.includes(stat)) {
+            // Stats that may be hidden from the API
+            if (stat === "winstreak") {
                 return playerData[gamemode][stat];
             }
             // I believe all stats default to 0 if they are not present
             return playerData[gamemode][stat] ?? 0;
     }
-};
+}
 
 const findBaseline = (
     history: History,
