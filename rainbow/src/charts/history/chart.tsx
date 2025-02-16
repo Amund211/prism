@@ -19,6 +19,11 @@ import { makeDataKey } from "./dataKeys.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
 import { useQueries } from "@tanstack/react-query";
 import { getHistoryQueryOptions } from "#queries/history.ts";
+import {
+    getFullStatLabel,
+    getGamemodeLabel,
+    getVariantLabel,
+} from "#stats/labels.ts";
 
 interface HistoryChartProps {
     start: Date;
@@ -54,66 +59,6 @@ const getSmallestTimeDenomination = (
     return "hour";
 };
 
-const getStatDisplayName = (stat: StatKey): string => {
-    switch (stat) {
-        case "experience":
-            return "Experience";
-        case "stars":
-            return "Stars";
-        case "kills":
-            return "Kills";
-        case "deaths":
-            return "Deaths";
-        case "finalKills":
-            return "Final Kills";
-        case "finalDeaths":
-            return "Final Deaths";
-        case "bedsBroken":
-            return "Beds Broken";
-        case "bedsLost":
-            return "Beds Lost";
-        case "winstreak":
-            return "Winstreak";
-        case "wins":
-            return "Wins";
-        case "losses":
-            return "Losses";
-        case "gamesPlayed":
-            return "Games Played";
-        case "kdr":
-            return "Kill/Death Ratio";
-        case "fkdr":
-            return "Final Kill/Death Ratio";
-        case "index":
-            return "Index (FKDR^2 * Stars)";
-    }
-};
-
-const getGamemodeDisplayName = (gamemode: GamemodeKey): string => {
-    switch (gamemode) {
-        case "overall":
-            return "Overall";
-        case "solo":
-            return "Solo";
-        case "doubles":
-            return "Doubles";
-        case "threes":
-            return "Threes";
-        case "fours":
-            return "Fours";
-    }
-};
-
-const getVariantDisplayName = (variant: VariantKey): string => {
-    switch (variant) {
-        case "session":
-            // TODO: Show daily/weekly/etc?
-            return "Session";
-        case "overall":
-            return "Overall";
-    }
-};
-
 // string overrides all of these string unions, but we keep them here to be explicit about our intentions
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 interface KeyConfig<T extends StatKey | GamemodeKey | VariantKey | string> {
@@ -128,7 +73,7 @@ const contextAwareStatDisplayName = (
     variant: KeyConfig<VariantKey>,
 ): string => {
     if (!uuid.shown && !stat.shown && !gamemode.shown && !variant.shown) {
-        return getStatDisplayName(stat.value);
+        return getFullStatLabel(stat.value, true);
     }
 
     let displayName = "";
@@ -141,15 +86,15 @@ const contextAwareStatDisplayName = (
         gamemode.value !== "overall" &&
         (!stat.shown || (stat.value !== "stars" && stat.value !== "experience"))
     ) {
-        displayName += `${getGamemodeDisplayName(gamemode.value)} `;
+        displayName += `${getGamemodeLabel(gamemode.value, displayName === "")} `;
     }
 
     if (variant.shown) {
-        displayName += `${getVariantDisplayName(variant.value)} `;
+        displayName += `${getVariantLabel(variant.value, displayName === "")} `;
     }
 
     if (stat.shown) {
-        displayName += `${getStatDisplayName(stat.value)} `;
+        displayName += `${getFullStatLabel(stat.value, displayName === "")} `;
     }
 
     return displayName.slice(0, -1);

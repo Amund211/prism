@@ -8,6 +8,11 @@ import {
     GamemodeKey,
     StatKey,
 } from "#stats/keys.ts";
+import {
+    getFullStatLabel,
+    getGamemodeLabel,
+    getVariantLabel,
+} from "#stats/labels.ts";
 import { computeStatProgression, StatProgression } from "#stats/progression.ts";
 import { TrendingDown, TrendingFlat, TrendingUp } from "@mui/icons-material";
 import {
@@ -125,7 +130,7 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                     title={`${startDate.toLocaleString()} → ${endDate.toLocaleString()}`}
                 >
                     <Typography variant="subtitle2">
-                        {intervalTypeName} {gamemode} {stat}
+                        {`${intervalTypeName} ${getGamemodeLabel(gamemode)} ${getFullStatLabel(stat)}`}
                     </Typography>
                 </Tooltip>
                 <Stack
@@ -395,7 +400,7 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
         <Card variant="outlined" sx={{ height: "100%" }}>
             <CardContent>
                 <Typography variant="subtitle2">
-                    {gamemode} {stat} milestone progress
+                    {`${getGamemodeLabel(gamemode, true)} ${getFullStatLabel(stat)} milestone progress`}
                 </Typography>
 
                 <ProgressionValueAndMilestone progression={progression} />
@@ -470,7 +475,7 @@ function RouteComponent() {
                 >
                     {ALL_GAMEMODE_KEYS.map((gamemode) => (
                         <MenuItem key={gamemode} value={gamemode}>
-                            {gamemode}
+                            {getGamemodeLabel(gamemode, true)}
                         </MenuItem>
                     ))}
                 </Select>
@@ -496,7 +501,7 @@ function RouteComponent() {
                 >
                     {ALL_STAT_KEYS.map((stat) => (
                         <MenuItem key={stat} value={stat}>
-                            {stat}
+                            {getFullStatLabel(stat, true)}
                         </MenuItem>
                     ))}
                 </Select>
@@ -557,8 +562,12 @@ function RouteComponent() {
                     });
                 }}
             >
-                <MenuItem value="overall">Overall</MenuItem>
-                <MenuItem value="session">Session</MenuItem>
+                <MenuItem value="overall">
+                    {getVariantLabel("overall", true)}
+                </MenuItem>
+                <MenuItem value="session">
+                    {getVariantLabel("session", true)}
+                </MenuItem>
                 <MenuItem value="both">Both</MenuItem>
             </Select>
             <Grid container spacing={1}>
