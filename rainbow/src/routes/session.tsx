@@ -25,17 +25,34 @@ const sessionSearchSchema = z.object({
         }
         return value;
     }),
+    trackingStart: fallback(z.coerce.date().optional(), undefined).transform(
+        (value) => {
+            if (value === undefined) {
+                return new Date(1970, 0, 1);
+            }
+            return value;
+        },
+    ),
     gamemode: fallback(z.enum(ALL_GAMEMODE_KEYS), "overall"),
     stat: fallback(z.enum(ALL_STAT_KEYS), "fkdr"),
     variantSelection: fallback(z.enum(["session", "overall", "both"]), "both"),
 });
 
 export const Route = createFileRoute("/session")({
-    loaderDeps: ({ search: { uuid, timeInterval } }) => {
+    loaderDeps: ({ search: { uuid, timeInterval, trackingStart } }) => {
         const timeIntervals = getTimeIntervals(timeInterval);
-        return { uuid, timeInterval, timeIntervals };
+        return {
+            uuid,
+            timeInterval,
+            // Try to end the interval in the past so we don't need to re-fetch
+            trackingInterval: {
+                start: trackingStart,
+                end: timeIntervals.day.start,
+            },
+            timeIntervals,
+        };
     },
-    loader: ({ deps: { uuid, timeIntervals } }) => {
+    loader: ({ deps: { uuid, timeIntervals, trackingInterval } }) => {
         const { day, week, month } = timeIntervals;
         // TODO: Rate limiting
         Promise.all([
@@ -53,6 +70,13 @@ export const Route = createFileRoute("/session")({
                         }),
                     ),
                 ]),
+            ),
+            queryClient.fetchQuery(
+                getHistoryQueryOptions({
+                    uuid,
+                    ...trackingInterval,
+                    limit: 2,
+                }),
             ),
             queryClient.fetchQuery(getUsernameQueryOptions(uuid)),
         ]).catch((e: unknown) => {

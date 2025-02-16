@@ -8,6 +8,7 @@ import {
     GamemodeKey,
     StatKey,
 } from "#stats/keys.ts";
+import { computeStatProgression, StatProgression } from "#stats/progression.ts";
 import { TrendingDown, TrendingFlat, TrendingUp } from "@mui/icons-material";
 import {
     Card,
@@ -176,9 +177,262 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
     );
 };
 
+interface ProgressionValueAndMilestoneProps {
+    progression: StatProgression;
+}
+
+const ProgressionValueAndMilestone: React.FC<
+    ProgressionValueAndMilestoneProps
+> = ({ progression }) => {
+    const renderValues = (
+        currentValue: number,
+        nextMilestoneValue: number,
+        renderValue: (value: number) => React.ReactNode,
+        badStat: boolean,
+    ) => {
+        const direction =
+            nextMilestoneValue > currentValue
+                ? "up"
+                : nextMilestoneValue < currentValue
+                  ? "down"
+                  : "flat";
+
+        const color: SvgIconOwnProps["color"] =
+            direction === "flat"
+                ? "primary"
+                : (direction === "up") === badStat
+                  ? "error"
+                  : "success";
+
+        return (
+            <Stack direction="row" gap={0.5} alignItems="center">
+                {renderValue(currentValue)}
+                {direction === "up" ? (
+                    <TrendingUp color={color} fontSize="medium" />
+                ) : direction === "down" ? (
+                    <TrendingDown color={color} fontSize="medium" />
+                ) : (
+                    <TrendingFlat color={color} fontSize="medium" />
+                )}
+                {renderValue(nextMilestoneValue)}
+            </Stack>
+        );
+    };
+    switch (progression.stat) {
+        case "stars":
+            // TODO: Format based on prestige colors
+            return renderValues(
+                progression.currentValue,
+                progression.nextMilestoneValue,
+                (value) => (
+                    <Typography variant="body1">
+                        {value.toLocaleString(undefined, {
+                            maximumFractionDigits: 2,
+                        })}
+                    </Typography>
+                ),
+                false,
+            );
+        case "fkdr":
+        case "kdr":
+            return renderValues(
+                progression.currentValue,
+                progression.nextMilestoneValue,
+                (value) => (
+                    <Typography variant="body1">
+                        {value.toLocaleString(undefined, {
+                            maximumFractionDigits: 2,
+                        })}
+                    </Typography>
+                ),
+                false,
+            );
+        case "index":
+        case "experience":
+        case "winstreak":
+        case "gamesPlayed":
+        case "wins":
+        case "bedsBroken":
+        case "finalKills":
+        case "kills":
+            return renderValues(
+                progression.currentValue,
+                progression.nextMilestoneValue,
+                (value) => (
+                    <Typography variant="body1">
+                        {value.toLocaleString()}
+                    </Typography>
+                ),
+                false,
+            );
+        case "losses":
+        case "bedsLost":
+        case "finalDeaths":
+        case "deaths":
+            return renderValues(
+                progression.currentValue,
+                progression.nextMilestoneValue,
+                (value) => (
+                    <Typography variant="body1">
+                        {value.toLocaleString()}
+                    </Typography>
+                ),
+                true,
+            );
+        default:
+            progression satisfies never;
+    }
+};
+
+interface ProgressionCaptionProps {
+    progression: StatProgression;
+}
+
+const ProgressionCaption: React.FC<ProgressionCaptionProps> = ({
+    progression,
+}) => {
+    switch (progression.stat) {
+        case "stars":
+            return (
+                <Typography variant="caption">
+                    {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day`}
+                </Typography>
+            );
+        case "fkdr":
+            return (
+                <Typography variant="caption">
+                    {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day (${progression.sessionFKDR.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} session FKDR, ${progression.finalKillsPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} final kills/day, ${progression.finalDeathsPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} final deaths/day)`}
+                </Typography>
+            );
+        case "kdr":
+        case "index":
+            // TODO
+            return <Typography variant="caption">TODO</Typography>;
+        case "experience":
+        case "winstreak":
+        case "gamesPlayed":
+        case "wins":
+        case "losses":
+        case "bedsBroken":
+        case "bedsLost":
+        case "finalKills":
+        case "finalDeaths":
+        case "kills":
+        case "deaths":
+            return (
+                <Typography variant="caption">
+                    {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day`}
+                </Typography>
+            );
+        default:
+            progression satisfies never;
+    }
+};
+
+interface StatProgressionCardProps {
+    uuid: string;
+    trackingInterval: TimeInterval;
+    stat: StatKey;
+    gamemode: GamemodeKey;
+}
+
+const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
+    uuid,
+    trackingInterval,
+    stat,
+    gamemode,
+}) => {
+    // History data to calculate stat progression speed
+    const { data: trackingHistory } = useQuery(
+        getHistoryQueryOptions({
+            uuid,
+            ...trackingInterval,
+            limit: 2,
+        }),
+    );
+
+    // TODO: Get "current" stats in a better way
+    const currentDate = new Date(trackingInterval.end);
+    currentDate.setHours(23, 59, 59, 999);
+    const { data: currentHistory } = useQuery(
+        getHistoryQueryOptions({
+            uuid,
+            start: trackingInterval.start,
+            end: currentDate,
+            limit: 2,
+        }),
+    );
+    if (currentHistory === undefined || currentHistory.length === 0) {
+        return "No data";
+    }
+    const currentStats = currentHistory[currentHistory.length - 1];
+
+    const now = new Date();
+    const currentDateIsToday =
+        now.getFullYear() === currentDate.getFullYear() &&
+        now.getMonth() === currentDate.getMonth() &&
+        now.getDate() === currentDate.getDate();
+    const referenceDate = currentDateIsToday ? now : currentDate;
+
+    const progression = computeStatProgression(
+        trackingHistory,
+        currentStats,
+        referenceDate,
+        stat,
+        gamemode,
+    );
+
+    if (progression.error) {
+        return progression.reason;
+    }
+
+    const daysUntilMilestone =
+        (progression.projectedMilestoneDate.getTime() -
+            progression.referenceDate.getTime()) /
+        (24 * 60 * 60 * 1000);
+
+    return (
+        <Card variant="outlined" sx={{ height: "100%" }}>
+            <CardContent>
+                <Tooltip
+                    title={`Based on stats from ${progression.trackingDataTimeInterval.start.toLocaleString(undefined, { dateStyle: "medium" })} to ${progression.trackingDataTimeInterval.end.toLocaleString(undefined, { dateStyle: "medium" })}`}
+                >
+                    <Typography variant="subtitle2">
+                        {gamemode} {stat} milestone progress
+                    </Typography>
+                </Tooltip>
+
+                <ProgressionValueAndMilestone progression={progression} />
+                <Stack
+                    direction="row"
+                    gap={1}
+                    alignItems="center"
+                    justifyContent="space-between"
+                >
+                    <Typography variant="body1">
+                        {`Expected to reach: ${progression.projectedMilestoneDate.toLocaleDateString(
+                            undefined,
+                            {
+                                dateStyle: "medium",
+                            },
+                        )} (in ${daysUntilMilestone.toFixed(1)} days)`}
+                    </Typography>
+                    <Tooltip
+                        title={`Based on stats from ${progression.trackingDataTimeInterval.start.toLocaleString(undefined, { dateStyle: "medium" })} to ${progression.trackingDataTimeInterval.end.toLocaleString(undefined, { dateStyle: "medium" })}`}
+                    >
+                        {/* Need a div here for some reason for the tooltip to work :^( */}
+                        <div>
+                            <ProgressionCaption progression={progression} />
+                        </div>
+                    </Tooltip>
+                </Stack>
+            </CardContent>
+        </Card>
+    );
+};
 function RouteComponent() {
     const { uuid, gamemode, stat, variantSelection } = route.useSearch();
-    const { timeIntervals } = route.useLoaderDeps();
+    const { timeIntervals, trackingInterval } = route.useLoaderDeps();
     const navigate = route.useNavigate();
     const { day, week, month } = timeIntervals;
 
@@ -277,6 +531,12 @@ function RouteComponent() {
                     />
                 </Grid>
             </Grid>
+            <StatProgressionCard
+                uuid={uuid}
+                trackingInterval={trackingInterval}
+                gamemode={gamemode}
+                stat={stat}
+            />
             <Select
                 value={variantSelection}
                 label="Variants"

@@ -17,7 +17,7 @@ const EASY_EXP = Object.values(EASY_LEVEL_COSTS).reduce(
 const EASY_LEVELS = Object.keys(EASY_LEVEL_COSTS).length;
 
 // The exp required to prestige
-const PRESTIGE_EXP = EASY_EXP + (100 - EASY_LEVELS) * LEVEL_COST;
+export const PRESTIGE_EXP = EASY_EXP + (100 - EASY_LEVELS) * LEVEL_COST;
 
 /*
  * Return the bedwars level corresponding to the given experience
