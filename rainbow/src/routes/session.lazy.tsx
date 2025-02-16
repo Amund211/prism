@@ -113,7 +113,7 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
 
     const trendColor: SvgIconOwnProps["color"] =
         trendDirection === "flat"
-            ? "primary"
+            ? undefined
             : (trendDirection === "up") === badStats.includes(stat)
               ? "error"
               : "success";
@@ -199,7 +199,7 @@ const ProgressionValueAndMilestone: React.FC<
 
         const color: SvgIconOwnProps["color"] =
             direction === "flat"
-                ? "primary"
+                ? undefined
                 : (direction === "up") === badStat
                   ? "error"
                   : "success";
