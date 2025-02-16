@@ -394,13 +394,9 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
     return (
         <Card variant="outlined" sx={{ height: "100%" }}>
             <CardContent>
-                <Tooltip
-                    title={`Based on stats from ${progression.trackingDataTimeInterval.start.toLocaleString(undefined, { dateStyle: "medium" })} to ${progression.trackingDataTimeInterval.end.toLocaleString(undefined, { dateStyle: "medium" })}`}
-                >
-                    <Typography variant="subtitle2">
-                        {gamemode} {stat} milestone progress
-                    </Typography>
-                </Tooltip>
+                <Typography variant="subtitle2">
+                    {gamemode} {stat} milestone progress
+                </Typography>
 
                 <ProgressionValueAndMilestone progression={progression} />
                 <Stack
