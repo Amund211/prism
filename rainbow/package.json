@@ -7,9 +7,10 @@
         "dev": "vite",
         "dev:staging": "vite --mode proxy-staging",
         "dev:production": "vite --mode proxy-production",
-        "build": "tsc -b && vite build",
+        "build": "npm run tsc && vite build",
         "lint": "prettier -c . && eslint --cache .",
         "lint:fix": "prettier -w . && eslint --cache --fix .",
+        "tsc": "tsc -p tsconfig.app.json",
         "tsc:watch": "tsc -w -p tsconfig.app.json",
         "test": "node --test --experimental-strip-types --env-file=.env.development",
         "preview": "vite preview"
