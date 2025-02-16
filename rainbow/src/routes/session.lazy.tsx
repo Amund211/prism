@@ -11,6 +11,7 @@ import {
 import {
     getFullStatLabel,
     getGamemodeLabel,
+    getShortStatLabel,
     getVariantLabel,
 } from "#stats/labels.ts";
 import { computeStatProgression, StatProgression } from "#stats/progression.ts";
@@ -300,7 +301,7 @@ const ProgressionCaption: React.FC<ProgressionCaptionProps> = ({
         case "stars":
             return (
                 <Typography variant="caption">
-                    {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day`}
+                    {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel(progression.stat)}/day`}
                 </Typography>
             );
         case "fkdr":
@@ -326,7 +327,7 @@ const ProgressionCaption: React.FC<ProgressionCaptionProps> = ({
         case "deaths":
             return (
                 <Typography variant="caption">
-                    {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day`}
+                    {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel(progression.stat)}/day`}
                 </Typography>
             );
         default:
