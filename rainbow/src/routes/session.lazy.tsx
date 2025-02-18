@@ -311,6 +311,11 @@ const ProgressionCaption: React.FC<ProgressionCaptionProps> = ({
                 </Typography>
             );
         case "kdr":
+            return (
+                <Typography variant="caption">
+                    {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day (${progression.sessionQuotient.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} session ${getShortStatLabel("kdr")}, ${progression.dividendPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("kills")}/day, ${progression.divisorPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("deaths")}/day)`}
+                </Typography>
+            );
         case "index":
             // TODO
             return <Typography variant="caption">TODO</Typography>;

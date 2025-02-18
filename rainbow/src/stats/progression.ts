@@ -16,14 +16,14 @@ interface BaseStatProgression {
 }
 
 type QuotientProgression = BaseStatProgression & {
-    stat: "fkdr";
+    stat: "fkdr" | "kdr";
     sessionQuotient: number;
     dividendPerDay: number;
     divisorPerDay: number;
 };
 
 export type StatProgression =
-    | (BaseStatProgression & { stat: Exclude<StatKey, "fkdr"> })
+    | (BaseStatProgression & { stat: Exclude<StatKey, "fkdr" | "kdr"> })
     | QuotientProgression;
 
 const computeQuotientProgression = (
@@ -241,6 +241,15 @@ export const computeStatProgression = (
                 gamemode,
             );
         case "kdr":
+            return computeQuotientProgression(
+                trackingHistory,
+                currentStats,
+                referenceDate,
+                stat,
+                "kills",
+                "deaths",
+                gamemode,
+            );
         case "index":
             return { error: true, reason: "Not implemented" };
         case "experience":
