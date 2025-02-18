@@ -11,6 +11,7 @@ interface BaseStatProgression {
     nextMilestoneValue: number;
     daysUntilMilestone: number;
     progressPerDay: number;
+    trendingUpward: boolean;
     error?: undefined;
 }
 
@@ -79,34 +80,30 @@ const computeQuotientProgression = (
             dividendPerDay,
             divisorPerDay, // 0
             sessionQuotient,
+            trendingUpward: true,
         };
     }
 
-    if (sessionQuotient === currentQuotient) {
-        // Will make no progress
-        // TODO: Display upward milestone and infinite time
-        return {
-            error: true,
-            reason: "No progress",
-        };
-    }
-
-    const trendingUpward = sessionQuotient > currentQuotient;
+    const trendingUpward = sessionQuotient >= currentQuotient;
     // TODO: Smaller steps for smaller quotients
     const nextMilestoneValue = trendingUpward
         ? Math.floor(currentQuotient) + 1
         : Math.ceil(currentQuotient) - 1;
 
-    if (
-        trendingUpward
-            ? nextMilestoneValue > sessionQuotient
-            : nextMilestoneValue < sessionQuotient
-    ) {
-        // Will make no progress
-        // TODO: Display reachable milestone (session quotient?) and infinite time
+    if (sessionQuotient === currentQuotient) {
+        // Will make no progress -> Display upward milestone and infinite time
         return {
-            error: true,
-            reason: "Won't reach milestone",
+            stat,
+            trackingDataTimeInterval: { start: startDate, end: endDate },
+            currentValue: currentQuotient,
+            nextMilestoneValue,
+            daysUntilMilestone: Infinity,
+            // NOTE: Progres per day changes over time
+            progressPerDay: 0,
+            sessionQuotient,
+            dividendPerDay,
+            divisorPerDay,
+            trendingUpward,
         };
     }
 
@@ -124,31 +121,41 @@ const computeQuotientProgression = (
     // (k - Md) t = Md0 - k0
     // t = (Md0 - k0) / (k - Md)
 
-    if (nextMilestoneValue === sessionQuotient) {
+    if (
+        trendingUpward
+            ? nextMilestoneValue >= sessionQuotient
+            : nextMilestoneValue <= sessionQuotient
+    ) {
+        // If the milestone is out of reach given the current session quotient:
+        // Won't make it all the way to the milestone, only approach the session quotient
+        // -> Display "reachable" milestone (session quotient) and infinite time
+        //
+        // If the next milestone is equal to the session quotient:
         // (k - Md) = 0
         // k = Md
         // M = k / d (= sessionQuotient)
         // Will approach but never reach milestone
-        // TODO: Display upward milestone and infinite time
+        // -> Display milestone and infinite time
         return {
-            error: true,
-            reason: "No progress",
+            stat,
+            trackingDataTimeInterval: { start: startDate, end: endDate },
+            currentValue: currentQuotient,
+            nextMilestoneValue,
+            daysUntilMilestone: Infinity,
+            // NOTE: Progres per day changes over time
+            progressPerDay: 0,
+            sessionQuotient,
+            dividendPerDay,
+            divisorPerDay,
+            trendingUpward,
         };
     }
 
     // t = (Md0 - k0) / (k - Md)
+    // NOTE: May be infinite
     const daysUntilMilestone =
         (nextMilestoneValue * currentDivisor - currentDividend) /
         (dividendPerDay - nextMilestoneValue * divisorPerDay);
-
-    if (!Number.isFinite(daysUntilMilestone)) {
-        // Infinite time to reach milestone
-        // TODO: Display milestone and infinite time
-        return {
-            error: true,
-            reason: "Infinite time",
-        };
-    }
 
     return {
         stat,
@@ -156,12 +163,13 @@ const computeQuotientProgression = (
         currentValue: currentQuotient,
         nextMilestoneValue,
         daysUntilMilestone,
-        // TODO: Fix progress per day (changes over time)
+        // NOTE: Progres per day changes over time
         progressPerDay:
             (nextMilestoneValue - currentQuotient) / daysUntilMilestone,
         sessionQuotient,
         dividendPerDay,
         divisorPerDay,
+        trendingUpward,
     };
 };
 export const computeStatProgression = (
@@ -215,6 +223,7 @@ export const computeStatProgression = (
                 nextMilestoneValue: nextPrestige * 100,
                 daysUntilMilestone: daysToNextPrestige,
                 progressPerDay: starsPerDay,
+                trendingUpward: true,
             };
         }
         case "fkdr":
@@ -281,6 +290,7 @@ export const computeStatProgression = (
                 nextMilestoneValue,
                 daysUntilMilestone,
                 progressPerDay: increasePerDay,
+                trendingUpward: true,
             };
         }
 

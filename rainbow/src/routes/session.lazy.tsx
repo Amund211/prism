@@ -416,12 +416,14 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
                     justifyContent="space-between"
                 >
                     <Typography variant="body1">
-                        {`Expected to reach: ${projectedMilestoneDate.toLocaleDateString(
-                            undefined,
-                            {
-                                dateStyle: "medium",
-                            },
-                        )} (in ${progression.daysUntilMilestone.toFixed(1)} days)`}
+                        {Number.isFinite(progression.daysUntilMilestone)
+                            ? `Expected to reach: ${projectedMilestoneDate.toLocaleDateString(
+                                  undefined,
+                                  {
+                                      dateStyle: "medium",
+                                  },
+                              )} (in ${progression.daysUntilMilestone.toFixed(1)} days)`
+                            : `Expected to reach: Never (session ${getShortStatLabel(stat)} too ${progression.trendingUpward ? "low" : "high"})`}
                     </Typography>
                     <Tooltip
                         title={`Based on stats from ${progression.trackingDataTimeInterval.start.toLocaleString(undefined, { dateStyle: "medium" })} to ${progression.trackingDataTimeInterval.end.toLocaleString(undefined, { dateStyle: "medium" })}`}
