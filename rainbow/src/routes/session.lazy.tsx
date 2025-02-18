@@ -307,13 +307,13 @@ const ProgressionCaption: React.FC<ProgressionCaptionProps> = ({
         case "fkdr":
             return (
                 <Typography variant="caption">
-                    {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day (${progression.sessionQuotient.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} session ${getShortStatLabel("fkdr")}, ${progression.dividendPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("finalKills")}/day, ${progression.divisorPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("finalDeaths")}/day)`}
+                    {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day (${progression.sessionQuotient.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} long-time ${getShortStatLabel("fkdr")}, ${progression.dividendPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("finalKills")}/day, ${progression.divisorPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("finalDeaths")}/day)`}
                 </Typography>
             );
         case "kdr":
             return (
                 <Typography variant="caption">
-                    {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day (${progression.sessionQuotient.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} session ${getShortStatLabel("kdr")}, ${progression.dividendPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("kills")}/day, ${progression.divisorPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("deaths")}/day)`}
+                    {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day (${progression.sessionQuotient.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} long-time ${getShortStatLabel("kdr")}, ${progression.dividendPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("kills")}/day, ${progression.divisorPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("deaths")}/day)`}
                 </Typography>
             );
         case "index":
@@ -423,7 +423,7 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
                                       dateStyle: "medium",
                                   },
                               )} (in ${progression.daysUntilMilestone.toFixed(1)} days)`
-                            : `Expected to reach: Never (session ${getShortStatLabel(stat)} too ${progression.trendingUpward ? "low" : "high"})`}
+                            : `Expected to reach: Never (long-time ${getShortStatLabel(stat)} too ${progression.trendingUpward ? "low" : "high"})`}
                     </Typography>
                     <Tooltip
                         title={`Based on stats from ${progression.trackingDataTimeInterval.start.toLocaleString(undefined, { dateStyle: "medium" })} to ${progression.trackingDataTimeInterval.end.toLocaleString(undefined, { dateStyle: "medium" })}`}
