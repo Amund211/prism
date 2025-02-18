@@ -15,17 +15,162 @@ interface BaseStatProgression {
     error?: undefined;
 }
 
-type FKDRProgression = BaseStatProgression & {
+type QuotientProgression = BaseStatProgression & {
     stat: "fkdr";
-    sessionFKDR: number;
-    finalKillsPerDay: number;
-    finalDeathsPerDay: number;
+    sessionQuotient: number;
+    dividendPerDay: number;
+    divisorPerDay: number;
 };
 
 export type StatProgression =
     | (BaseStatProgression & { stat: Exclude<StatKey, "fkdr"> })
-    | FKDRProgression;
+    | QuotientProgression;
 
+const computeQuotientProgression = (
+    trackingHistory: History,
+    currentStats: PlayerDataPIT,
+    referenceDate: Date,
+    stat: QuotientProgression["stat"],
+    dividendStat: Exclude<StatKey, "winstreak">,
+    divisorStat: Exclude<StatKey, "winstreak">,
+    gamemode: GamemodeKey,
+): QuotientProgression | { error: true; reason: string } => {
+    const [start, end] = trackingHistory;
+    const startDate = start.queriedAt;
+    const endDate = end.queriedAt;
+    const daysElapsed =
+        (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000);
+
+    const startDividend = getStat(start, gamemode, dividendStat);
+    const startDivisor = getStat(start, gamemode, divisorStat);
+    const endDividend = getStat(end, gamemode, dividendStat);
+    const endDivisor = getStat(end, gamemode, divisorStat);
+    const currentDividend = getStat(currentStats, gamemode, dividendStat);
+    const currentDivisor = getStat(currentStats, gamemode, divisorStat);
+
+    const sessionDividend = endDividend - startDividend;
+    const sessionDivisor = endDivisor - startDivisor;
+
+    const sessionQuotient =
+        sessionDivisor === 0
+            ? sessionDividend
+            : sessionDividend / sessionDivisor;
+
+    const currentQuotient =
+        currentDivisor === 0
+            ? currentDividend
+            : currentDividend / currentDivisor;
+
+    const dividendPerDay = sessionDividend / daysElapsed;
+    const divisorPerDay = sessionDivisor / daysElapsed;
+
+    if (currentDivisor === 0 && sessionDivisor === 0) {
+        // Currently have "infinite" ratio -> ratio is computed as just dividend
+        const dividendProgression = computeStatProgression(
+            trackingHistory,
+            currentStats,
+            referenceDate,
+            dividendStat,
+            gamemode,
+        );
+        if (dividendProgression.error) {
+            return dividendProgression;
+        }
+        return {
+            ...dividendProgression,
+            stat,
+            dividendPerDay,
+            divisorPerDay, // 0
+            sessionQuotient,
+        };
+    }
+
+    if (sessionQuotient === currentQuotient) {
+        // Will make no progress
+        // TODO: Display upward milestone and infinite time
+        return {
+            error: true,
+            reason: "No progress",
+        };
+    }
+
+    const trendingUpward = sessionQuotient > currentQuotient;
+    // TODO: Smaller steps for smaller quotients
+    const nextMilestoneValue = trendingUpward
+        ? Math.floor(currentQuotient) + 1
+        : Math.ceil(currentQuotient) - 1;
+
+    if (
+        trendingUpward
+            ? nextMilestoneValue > sessionQuotient
+            : nextMilestoneValue < sessionQuotient
+    ) {
+        // Will make no progress
+        // TODO: Display reachable milestone (session quotient?) and infinite time
+        return {
+            error: true,
+            reason: "Won't reach milestone",
+        };
+    }
+
+    // Variables:
+    // k0 = currentDividend
+    // k  = dividendPerDay
+    // d0 = currentDivisor
+    // d  = divisorPerDay
+    // t  = daysToNextMilestone
+    // M  = nextMilestoneValue
+    //
+    // Solve for t:
+    // (k0 + kt) / (d0 + dt) = M
+    // k0 + kt = Md0 + Mdt         ((d0 + dt > 0) d0 + d > 0 validated above, t chosen to be non-negative by choosing M appropriately)
+    // (k - Md) t = Md0 - k0
+    // t = (Md0 - k0) / (k - Md)
+
+    if (nextMilestoneValue === sessionQuotient) {
+        // (k - Md) = 0
+        // k = Md
+        // M = k / d (= sessionQuotient)
+        // Will approach but never reach milestone
+        // TODO: Display upward milestone and infinite time
+        return {
+            error: true,
+            reason: "No progress",
+        };
+    }
+
+    // t = (Md0 - k0) / (k - Md)
+    const daysUntilMilestone =
+        (nextMilestoneValue * currentDivisor - currentDividend) /
+        (dividendPerDay - nextMilestoneValue * divisorPerDay);
+
+    if (!Number.isFinite(daysUntilMilestone)) {
+        // Infinite time to reach milestone
+        // TODO: Display milestone and infinite time
+        return {
+            error: true,
+            reason: "Infinite time",
+        };
+    }
+
+    const projectedMilestoneDate = new Date(
+        referenceDate.getTime() + daysUntilMilestone * 24 * 60 * 60 * 1000,
+    );
+    return {
+        stat,
+        trackingDataTimeInterval: { start: startDate, end: endDate },
+        currentValue: currentQuotient,
+        nextMilestoneValue,
+        projectedMilestoneDate,
+        referenceDate,
+        // TODO: Fix progress per day (changes over time)
+        progressPerDay:
+            (nextMilestoneValue - currentQuotient) / daysUntilMilestone,
+        sessionQuotient,
+        dividendPerDay,
+        divisorPerDay,
+    };
+};
 export const computeStatProgression = (
     trackingHistory: History | undefined,
     currentStats: PlayerDataPIT | undefined,
@@ -85,131 +230,16 @@ export const computeStatProgression = (
                 progressPerDay: starsPerDay,
             };
         }
-        case "fkdr": {
-            const startFinalKills = getStat(start, gamemode, "finalKills");
-            const startFinalDeaths = getStat(start, gamemode, "finalDeaths");
-            const endFinalKills = getStat(end, gamemode, "finalKills");
-            const endFinalDeaths = getStat(end, gamemode, "finalDeaths");
-
-            const sessionFinalKills = endFinalKills - startFinalKills;
-            const sessionFinalDeaths = endFinalDeaths - startFinalDeaths;
-
-            const currentFinalKills = getStat(
+        case "fkdr":
+            return computeQuotientProgression(
+                trackingHistory,
                 currentStats,
-                gamemode,
-                "finalKills",
-            );
-            const currentFinalDeaths = getStat(
-                currentStats,
-                gamemode,
-                "finalDeaths",
-            );
-
-            // FIXME: Factor out fkdr computation
-            const sessionFKDR =
-                sessionFinalDeaths === 0
-                    ? sessionFinalKills
-                    : sessionFinalKills / sessionFinalDeaths;
-
-            const currentFKDR =
-                currentFinalDeaths === 0
-                    ? currentFinalKills
-                    : currentFinalKills / currentFinalDeaths;
-
-            const finalKillsPerDay = sessionFinalKills / daysElapsed;
-            const finalDeathsPerDay = sessionFinalDeaths / daysElapsed;
-
-            if (currentFinalDeaths === 0 && sessionFinalDeaths === 0) {
-                // Currently have "infinite" FKDR -> FKDR is computed as just finalKills
-                const finalKillsProgression = computeStatProgression(
-                    trackingHistory,
-                    currentStats,
-                    referenceDate,
-                    "finalKills",
-                    gamemode,
-                );
-                return {
-                    ...finalKillsProgression,
-                    stat,
-                    finalKillsPerDay: finalKillsPerDay,
-                    finalDeathsPerDay: finalDeathsPerDay, // 0
-                    sessionFKDR,
-                };
-            }
-
-            if (sessionFKDR === currentFKDR) {
-                // Will make no progress
-                // TODO: Display upward milestone and infinite time
-                return {
-                    error: true,
-                    reason: "No progress",
-                };
-            }
-
-            const nextMilestoneValue =
-                sessionFKDR >= currentFKDR
-                    ? Math.floor(currentFKDR) + 1
-                    : Math.ceil(currentFKDR) - 1;
-
-            // Variables:
-            // k0 = currentFinalKills
-            // k  = finalKillsPerDay
-            // d0 = currentFinalDeaths
-            // d  = finalDeathsPerDay
-            // t  = daysToNextMilestone
-            // M  = nextMilestoneValue
-            //
-            // Solve for t:
-            // (k0 + kt) / (d0 + dt) = M
-            // k0 + kt = Md0 + Mdt         ((d0 + dt > 0) d0 + d > 0 validated above, t chosen to be non-negative by choosing M appropriately)
-            // (k - Md) t = Md0 - k0
-            // t = (Md0 - k0) / (k - Md)
-
-            if (nextMilestoneValue === currentFKDR) {
-                // (k - Md) = 0
-                // k = Md
-                // M = k / d (= sessionFKDR)
-                // Will approach but never reach milestone
-                // TODO: Display upward milestone and infinite time
-                return {
-                    error: true,
-                    reason: "No progress",
-                };
-            }
-
-            // t = (Md0 - k0) / (k - Md)
-            const daysUntilMilestone =
-                (nextMilestoneValue * currentFinalDeaths - currentFinalKills) /
-                (finalKillsPerDay - nextMilestoneValue * finalDeathsPerDay);
-
-            if (!Number.isFinite(daysUntilMilestone)) {
-                // Infinite time to reach milestone
-                // TODO: Display milestone and infinite time
-                return {
-                    error: true,
-                    reason: "Infinite time",
-                };
-            }
-
-            const projectedMilestoneDate = new Date(
-                referenceDate.getTime() +
-                    daysUntilMilestone * 24 * 60 * 60 * 1000,
-            );
-            return {
-                stat,
-                trackingDataTimeInterval: { start: startDate, end: endDate },
-                currentValue: currentFKDR,
-                nextMilestoneValue,
-                projectedMilestoneDate,
                 referenceDate,
-                // TODO: Fix progress per day (changes over time)
-                progressPerDay:
-                    (nextMilestoneValue - currentFKDR) / daysUntilMilestone,
-                sessionFKDR,
-                finalKillsPerDay,
-                finalDeathsPerDay,
-            };
-        }
+                stat,
+                "finalKills",
+                "finalDeaths",
+                gamemode,
+            );
         case "kdr":
         case "index":
             return { error: true, reason: "Not implemented" };
