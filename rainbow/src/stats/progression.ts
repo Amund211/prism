@@ -9,8 +9,7 @@ interface BaseStatProgression {
     stat: StatKey;
     currentValue: number;
     nextMilestoneValue: number;
-    projectedMilestoneDate: Date;
-    referenceDate: Date;
+    daysUntilMilestone: number;
     progressPerDay: number;
     error?: undefined;
 }
@@ -29,7 +28,6 @@ export type StatProgression =
 const computeQuotientProgression = (
     trackingHistory: History,
     currentStats: PlayerDataPIT,
-    referenceDate: Date,
     stat: QuotientProgression["stat"],
     dividendStat: Exclude<StatKey, "winstreak">,
     divisorStat: Exclude<StatKey, "winstreak">,
@@ -69,7 +67,6 @@ const computeQuotientProgression = (
         const dividendProgression = computeStatProgression(
             trackingHistory,
             currentStats,
-            referenceDate,
             dividendStat,
             gamemode,
         );
@@ -153,16 +150,12 @@ const computeQuotientProgression = (
         };
     }
 
-    const projectedMilestoneDate = new Date(
-        referenceDate.getTime() + daysUntilMilestone * 24 * 60 * 60 * 1000,
-    );
     return {
         stat,
         trackingDataTimeInterval: { start: startDate, end: endDate },
         currentValue: currentQuotient,
         nextMilestoneValue,
-        projectedMilestoneDate,
-        referenceDate,
+        daysUntilMilestone,
         // TODO: Fix progress per day (changes over time)
         progressPerDay:
             (nextMilestoneValue - currentQuotient) / daysUntilMilestone,
@@ -174,7 +167,6 @@ const computeQuotientProgression = (
 export const computeStatProgression = (
     trackingHistory: History | undefined,
     currentStats: PlayerDataPIT | undefined,
-    referenceDate: Date,
     stat: StatKey,
     gamemode: GamemodeKey,
 ): StatProgression | { error: true; reason: string } => {
@@ -216,17 +208,12 @@ export const computeStatProgression = (
             const nextPrestigeExp = nextPrestige * PRESTIGE_EXP;
             const expToNextPrestige = nextPrestigeExp - currentExp;
             const daysToNextPrestige = expToNextPrestige / expPerDay;
-            const projectedMilestoneDate = new Date(
-                referenceDate.getTime() +
-                    daysToNextPrestige * 24 * 60 * 60 * 1000,
-            );
             return {
                 stat,
                 trackingDataTimeInterval: { start: startDate, end: endDate },
                 currentValue: currentStars,
                 nextMilestoneValue: nextPrestige * 100,
-                projectedMilestoneDate,
-                referenceDate,
+                daysUntilMilestone: daysToNextPrestige,
                 progressPerDay: starsPerDay,
             };
         }
@@ -234,7 +221,6 @@ export const computeStatProgression = (
             return computeQuotientProgression(
                 trackingHistory,
                 currentStats,
-                referenceDate,
                 stat,
                 "finalKills",
                 "finalDeaths",
@@ -244,7 +230,6 @@ export const computeStatProgression = (
             return computeQuotientProgression(
                 trackingHistory,
                 currentStats,
-                referenceDate,
                 stat,
                 "kills",
                 "deaths",
@@ -286,20 +271,15 @@ export const computeStatProgression = (
                 (Math.floor(currentValue / currentMagniture) + 1) *
                 currentMagniture;
 
-            const daysToNextMilestone =
+            const daysUntilMilestone =
                 (nextMilestoneValue - currentValue) / increasePerDay;
-            const projectedMilestoneDate = new Date(
-                referenceDate.getTime() +
-                    daysToNextMilestone * 24 * 60 * 60 * 1000,
-            );
 
             return {
                 stat,
                 trackingDataTimeInterval: { start: startDate, end: endDate },
                 currentValue,
                 nextMilestoneValue,
-                projectedMilestoneDate,
-                referenceDate,
+                daysUntilMilestone,
                 progressPerDay: increasePerDay,
             };
         }

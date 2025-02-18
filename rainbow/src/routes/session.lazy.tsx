@@ -388,7 +388,6 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
     const progression = computeStatProgression(
         trackingHistory,
         currentStats,
-        referenceDate,
         stat,
         gamemode,
     );
@@ -397,10 +396,10 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
         return progression.reason;
     }
 
-    const daysUntilMilestone =
-        (progression.projectedMilestoneDate.getTime() -
-            progression.referenceDate.getTime()) /
-        (24 * 60 * 60 * 1000);
+    const projectedMilestoneDate = new Date(
+        referenceDate.getTime() +
+            progression.daysUntilMilestone * 24 * 60 * 60 * 1000,
+    );
 
     return (
         <Card variant="outlined" sx={{ height: "100%" }}>
@@ -417,12 +416,12 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
                     justifyContent="space-between"
                 >
                     <Typography variant="body1">
-                        {`Expected to reach: ${progression.projectedMilestoneDate.toLocaleDateString(
+                        {`Expected to reach: ${projectedMilestoneDate.toLocaleDateString(
                             undefined,
                             {
                                 dateStyle: "medium",
                             },
-                        )} (in ${daysUntilMilestone.toFixed(1)} days)`}
+                        )} (in ${progression.daysUntilMilestone.toFixed(1)} days)`}
                     </Typography>
                     <Tooltip
                         title={`Based on stats from ${progression.trackingDataTimeInterval.start.toLocaleString(undefined, { dateStyle: "medium" })} to ${progression.trackingDataTimeInterval.end.toLocaleString(undefined, { dateStyle: "medium" })}`}
