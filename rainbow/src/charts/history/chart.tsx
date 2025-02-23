@@ -17,7 +17,7 @@ import React from "react";
 import { generateChartData } from "./data.ts";
 import { makeDataKey } from "./dataKeys.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import {
     getFullStatLabel,
@@ -254,6 +254,101 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                 </LineChart>
             </ResponsiveContainer>
         </>
+    );
+};
+
+interface SimpleHistoryChartProps {
+    start: Date;
+    end: Date;
+    uuid: string;
+    gamemode: GamemodeKey;
+    stat: StatKey;
+    variant: VariantKey;
+    limit: number;
+}
+
+export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
+    start,
+    end,
+    uuid,
+    gamemode,
+    stat,
+    variant,
+    limit,
+}) => {
+    const { data: history } = useQuery(
+        getHistoryQueryOptions({ uuid, start, end, limit }),
+    );
+
+    const chartData = React.useMemo(() => {
+        if (!history) {
+            return [];
+        }
+        return generateChartData([history]);
+    }, [history]);
+
+    const uuidToUsername = useUUIDToUsername([uuid]);
+
+    if (chartData.length === 0) {
+        return <div>No data</div>;
+    }
+
+    // Linechart requires a mutable array for some reason. Make a copy here so we can mutate it.
+    const mutableChartData = [...chartData];
+
+    const dataKey = makeDataKey({
+        uuid,
+        gamemode,
+        stat,
+        variant,
+    });
+
+    return (
+        <ResponsiveContainer minHeight={50} maxHeight={50} minWidth={100}>
+            <LineChart data={mutableChartData}>
+                <XAxis
+                    type="number"
+                    domain={[start.getTime(), end.getTime()]}
+                    hide
+                    scale="linear"
+                    dataKey="queriedAt"
+                />
+
+                <Line
+                    key={dataKey}
+                    name={contextAwareStatDisplayName(
+                        {
+                            // TODO: Display error state if missing uuid
+                            value: uuidToUsername[uuid] ?? "",
+                            shown: false,
+                        },
+                        {
+                            value: stat,
+                            shown: true,
+                        },
+                        {
+                            value: gamemode,
+                            shown: true,
+                        },
+                        {
+                            value: variant,
+                            shown: true,
+                        },
+                    )}
+                    type="monotone"
+                    dataKey={dataKey}
+                    {...getLineStyle(0)}
+                    dot={false}
+                    connectNulls
+                />
+                <Tooltip
+                    labelFormatter={(time: number) => {
+                        return renderTimeFull(time);
+                    }}
+                />
+                <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
+            </LineChart>
+        </ResponsiveContainer>
     );
 };
 

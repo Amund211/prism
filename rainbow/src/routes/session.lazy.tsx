@@ -1,4 +1,4 @@
-import { HistoryChart } from "#charts/history/chart.tsx";
+import { HistoryChart, SimpleHistoryChart } from "#charts/history/chart.tsx";
 import { TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import { computeStat } from "#stats/index.ts";
@@ -178,6 +178,15 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                         </Stack>
                     </Tooltip>
                 </Stack>
+                <SimpleHistoryChart
+                    start={timeInterval.start}
+                    end={timeInterval.end}
+                    uuid={uuid}
+                    gamemode={gamemode}
+                    stat={stat}
+                    variant="session"
+                    limit={100}
+                />
             </CardContent>
         </Card>
     );
