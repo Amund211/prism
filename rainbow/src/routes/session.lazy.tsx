@@ -466,6 +466,11 @@ function RouteComponent() {
         xs: 12,
         lg: 6,
     };
+
+    // Stats where we want to show the session value AND the all-time value
+    // These are stats where the session and all-time values are usually close
+    const statsWhereSessionIsCloseToAllTime: StatKey[] = ["fkdr", "kdr"];
+
     return (
         <Stack spacing={1}>
             <Stack direction="row" gap={1}>
@@ -505,6 +510,12 @@ function RouteComponent() {
                             search: (oldSearch) => ({
                                 ...oldSearch,
                                 stat: newStat,
+                                variantSelection:
+                                    statsWhereSessionIsCloseToAllTime.includes(
+                                        newStat,
+                                    )
+                                        ? "both"
+                                        : "session",
                             }),
                         }).catch((error: unknown) => {
                             // TODO: Handle error
