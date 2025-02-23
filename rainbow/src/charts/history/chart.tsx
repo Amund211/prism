@@ -81,16 +81,16 @@ const contextAwareStatDisplayName = (
         displayName += `${uuid.value}'s `;
     }
 
+    if (variant.shown) {
+        displayName += `${getVariantLabel(variant.value, displayName === "")} `;
+    }
+
     if (
         gamemode.shown &&
         gamemode.value !== "overall" &&
         (!stat.shown || (stat.value !== "stars" && stat.value !== "experience"))
     ) {
         displayName += `${getGamemodeLabel(gamemode.value, displayName === "")} `;
-    }
-
-    if (variant.shown) {
-        displayName += `${getVariantLabel(variant.value, displayName === "")} `;
     }
 
     if (stat.shown) {
