@@ -84,14 +84,24 @@ const computeQuotientProgression = (
         };
     }
 
-    const trendingUpward = sessionQuotient >= currentQuotient;
+    const noSessionProgress = sessionDividend === 0 && sessionDivisor === 0;
+    // Trend upwards if the session quotient is greater than the current quotient
+    // OR: if no progress was made during the tracking session -> just need somewhere to trend
+    const trendingUpward =
+        sessionQuotient >= currentQuotient || noSessionProgress;
+
     // TODO: Smaller steps for smaller quotients
     const nextMilestoneValue = trendingUpward
         ? Math.floor(currentQuotient) + 1
         : Math.ceil(currentQuotient) - 1;
 
-    if (sessionQuotient === currentQuotient) {
-        // Will make no progress -> Display upward milestone and infinite time
+    if (
+        // Will make no progress since the quotients are equal
+        sessionQuotient === currentQuotient ||
+        // No progress is being made on the divisor or the dividend -> No progress on the quotient
+        noSessionProgress
+    ) {
+        // Will make no progress -> Display milestone and infinite time
         return {
             stat,
             trackingDataTimeInterval: { start: startDate, end: endDate },
