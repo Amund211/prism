@@ -313,6 +313,7 @@ const ProgressionCaption: React.FC<ProgressionCaptionProps> = ({
                     {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel(progression.stat)}/day`}
                 </Typography>
             );
+        // TODO: Join all quotient cases by returning the dividend and divisor stat names
         case "fkdr":
             return (
                 <Typography variant="caption">

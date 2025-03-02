@@ -255,6 +255,13 @@ export const computeStatProgression = (
                 gamemode,
             );
         case "index":
+            // TODO
+            // Potential strategy:
+            // Compute progression on experience, finals, final deaths
+            // If there is any star progression, any upward milestone can be reached
+            // Make a function index(t), and search for the intersection of index(t) and goal
+            // Potentially erroring if something goes wrong
+            // NOTE: index(t) is not necessarily monotonic, so there can be multiple intersections
             return { error: true, reason: "Not implemented" };
         case "experience":
         case "gamesPlayed":
