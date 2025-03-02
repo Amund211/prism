@@ -289,10 +289,6 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
 
     const uuidToUsername = useUUIDToUsername([uuid]);
 
-    if (chartData.length === 0) {
-        return <div>No data</div>;
-    }
-
     // Linechart requires a mutable array for some reason. Make a copy here so we can mutate it.
     const mutableChartData = [...chartData];
 

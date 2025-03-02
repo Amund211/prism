@@ -58,7 +58,7 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
     stat,
     gamemode,
 }) => {
-    const { data } = useQuery(
+    const { data: queryData } = useQuery(
         getHistoryQueryOptions({
             uuid,
             start: timeInterval.start,
@@ -67,12 +67,85 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
         }),
     );
 
-    if (data === undefined || data.length === 0) {
+    const intervalTypeName = {
+        day: "Daily",
+        week: "Weekly",
+        month: "Monthly",
+    }[timeInterval.type];
+
+    if (queryData === undefined) {
+        return (
+            <Card variant="outlined" sx={{ height: "100%", flexGrow: 1 }}>
+                <CardContent
+                    sx={{
+                        height: "100%",
+                        padding: 2,
+                        "&:last-child": { pb: 2 },
+                    }}
+                >
+                    <Stack gap={1} justifyContent="space-between" height="100%">
+                        <Tooltip title="Data loading ...">
+                            <Typography variant="subtitle2">
+                                {`${intervalTypeName} ${getGamemodeLabel(gamemode)} ${getFullStatLabel(stat)}`}
+                            </Typography>
+                        </Tooltip>
+                        <Stack>
+                            <Stack
+                                direction="row"
+                                gap={1}
+                                alignItems="center"
+                                justifyContent="space-between"
+                            >
+                                <Typography variant="body1">
+                                    <Skeleton variant="text" width={50} />
+                                </Typography>
+                                <Tooltip title={<Skeleton variant="text" />}>
+                                    <Stack
+                                        direction="row"
+                                        gap={0.5}
+                                        alignItems="center"
+                                    >
+                                        <Typography
+                                            variant="caption"
+                                            color={undefined}
+                                        >
+                                            <Skeleton
+                                                variant="text"
+                                                width={30}
+                                            />
+                                        </Typography>
+                                        <TrendingFlat
+                                            color={undefined}
+                                            fontSize="small"
+                                        />
+                                    </Stack>
+                                </Tooltip>
+                            </Stack>
+                            <SimpleHistoryChart
+                                start={timeInterval.start}
+                                end={timeInterval.end}
+                                uuid={uuid}
+                                gamemode={gamemode}
+                                stat={stat}
+                                variant="session"
+                                limit={100}
+                            />
+                        </Stack>
+                    </Stack>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (queryData.length === 0) {
+        // TODO: Create a better empty state
         return "No data";
     }
 
+    let data = queryData;
     if (data.length === 1) {
-        return "Not enough data";
+        // Hack to show data
+        data = [data[0], data[0]];
     }
 
     if (data.length > 2) {
@@ -98,14 +171,8 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
         diff === null ||
         sessionValue === null
     ) {
-        return "Some nulls";
+        return "Missing data";
     }
-
-    const intervalTypeName = {
-        day: "Daily",
-        week: "Weekly",
-        month: "Monthly",
-    }[timeInterval.type];
 
     const trendDirection = diff == 0 ? "flat" : diff > 0 ? "up" : "down";
 
