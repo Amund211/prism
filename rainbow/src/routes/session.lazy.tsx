@@ -17,7 +17,12 @@ import {
     getVariantLabel,
 } from "#stats/labels.ts";
 import { computeStatProgression, StatProgression } from "#stats/progression.ts";
-import { TrendingDown, TrendingFlat, TrendingUp } from "@mui/icons-material";
+import {
+    CalendarMonth,
+    TrendingDown,
+    TrendingFlat,
+    TrendingUp,
+} from "@mui/icons-material";
 import {
     Card,
     CardContent,
@@ -510,15 +515,26 @@ function RouteComponent() {
                     });
                 }}
             />
-            {/*TODO: Profile picture*/}
-            {username === undefined ? (
-                <Stack direction="row" alignItems="center">
-                    <Skeleton variant="rounded" width={100} />
-                    <Typography variant="h6">{"'s session stats"}</Typography>
-                </Stack>
-            ) : (
-                <Typography variant="h6">{`${username}'s session stats`}</Typography>
-            )}
+            <Stack
+                direction="row"
+                gap={1}
+                alignItems="center"
+                justifyContent="space-between"
+            >
+                {/*TODO: Profile picture*/}
+                {username === undefined ? (
+                    <Stack direction="row" alignItems="center">
+                        <Skeleton variant="rounded" width={100} />
+                        <Typography variant="h6">
+                            {"'s session stats"}
+                        </Typography>
+                    </Stack>
+                ) : (
+                    <Typography variant="h6">{`${username}'s session stats`}</Typography>
+                )}
+                {/*TODO: Date selection (current/past/static)*/}
+                <CalendarMonth />
+            </Stack>
             <Stack direction="row" gap={1}>
                 <Select
                     value={gamemode}
