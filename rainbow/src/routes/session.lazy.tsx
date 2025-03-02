@@ -125,68 +125,81 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
               : "success";
 
     return (
-        <Card variant="outlined" sx={{ height: "100%" }}>
-            <CardContent>
-                <Tooltip
-                    title={`${startDate.toLocaleString()} → ${endDate.toLocaleString()}`}
-                >
-                    <Typography variant="subtitle2">
-                        {`${intervalTypeName} ${getGamemodeLabel(gamemode)} ${getFullStatLabel(stat)}`}
-                    </Typography>
-                </Tooltip>
-                <Stack
-                    direction="row"
-                    gap={1}
-                    alignItems="center"
-                    justifyContent="space-between"
-                >
-                    <Typography variant="body1">
-                        {sessionValue.toLocaleString(undefined, {
-                            ...longFormat,
-                        })}
-                    </Typography>
+        <Card variant="outlined" sx={{ height: "100%", flexGrow: 1 }}>
+            <CardContent
+                sx={{ height: "100%", padding: 2, "&:last-child": { pb: 2 } }}
+            >
+                <Stack gap={1} justifyContent="space-between" height="100%">
                     <Tooltip
-                        title={`${startValue.toLocaleString(undefined, {
-                            ...longFormat,
-                        })} → ${endValue.toLocaleString(undefined, {
-                            ...longFormat,
-                        })}`}
+                        title={`${startDate.toLocaleString()} → ${endDate.toLocaleString()}`}
                     >
-                        <Stack direction="row" gap={0.5} alignItems="center">
-                            <Typography variant="caption" color={trendColor}>
-                                {diff.toLocaleString(undefined, {
-                                    signDisplay: "always",
-                                    ...shortFormat,
+                        <Typography variant="subtitle2">
+                            {`${intervalTypeName} ${getGamemodeLabel(gamemode)} ${getFullStatLabel(stat)}`}
+                        </Typography>
+                    </Tooltip>
+                    <Stack>
+                        <Stack
+                            direction="row"
+                            gap={1}
+                            alignItems="center"
+                            justifyContent="space-between"
+                        >
+                            <Typography variant="body1">
+                                {sessionValue.toLocaleString(undefined, {
+                                    ...longFormat,
                                 })}
                             </Typography>
-                            {diff > 0 ? (
-                                <TrendingUp
-                                    color={trendColor}
-                                    fontSize="small"
-                                />
-                            ) : diff < 0 ? (
-                                <TrendingDown
-                                    color={trendColor}
-                                    fontSize="small"
-                                />
-                            ) : (
-                                <TrendingFlat
-                                    color={trendColor}
-                                    fontSize="small"
-                                />
-                            )}
+                            <Tooltip
+                                title={`${startValue.toLocaleString(undefined, {
+                                    ...longFormat,
+                                })} → ${endValue.toLocaleString(undefined, {
+                                    ...longFormat,
+                                })}`}
+                            >
+                                <Stack
+                                    direction="row"
+                                    gap={0.5}
+                                    alignItems="center"
+                                >
+                                    <Typography
+                                        variant="caption"
+                                        color={trendColor}
+                                    >
+                                        {diff.toLocaleString(undefined, {
+                                            signDisplay: "always",
+                                            ...shortFormat,
+                                        })}
+                                    </Typography>
+                                    {diff > 0 ? (
+                                        <TrendingUp
+                                            color={trendColor}
+                                            fontSize="small"
+                                        />
+                                    ) : diff < 0 ? (
+                                        <TrendingDown
+                                            color={trendColor}
+                                            fontSize="small"
+                                        />
+                                    ) : (
+                                        <TrendingFlat
+                                            color={trendColor}
+                                            fontSize="small"
+                                        />
+                                    )}
+                                </Stack>
+                            </Tooltip>
                         </Stack>
-                    </Tooltip>
+                        <SimpleHistoryChart
+                            start={timeInterval.start}
+                            end={timeInterval.end}
+                            uuid={uuid}
+                            gamemode={gamemode}
+                            stat={stat}
+                            variant="session"
+                            limit={100}
+                        />
+                    </Stack>
                 </Stack>
-                <SimpleHistoryChart
-                    start={timeInterval.start}
-                    end={timeInterval.end}
-                    uuid={uuid}
-                    gamemode={gamemode}
-                    stat={stat}
-                    variant="session"
-                    limit={100}
-                />
             </CardContent>
         </Card>
     );
