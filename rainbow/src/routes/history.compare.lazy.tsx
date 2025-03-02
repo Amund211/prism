@@ -30,7 +30,7 @@ function KeySelector<T extends string>({
                     <input
                         type="checkbox"
                         checked={selectedKeys.includes(key)}
-                        onClick={() => {
+                        onChange={() => {
                             if (selectedKeys.includes(key)) {
                                 const filtered = selectedKeys.filter(
                                     (k) => k !== key,
