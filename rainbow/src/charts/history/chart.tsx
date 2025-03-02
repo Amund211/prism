@@ -342,8 +342,13 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
                     connectNulls
                 />
                 <Tooltip
-                    labelFormatter={(time: number) => {
-                        return renderTimeFull(time);
+                    // TODO: Nicer tooltip
+                    content={({ active, payload }) => {
+                        if (!active || !payload?.length || !payload[0].value) {
+                            return null;
+                        }
+                        // TODO: Better number formatting
+                        return payload[0].value.toLocaleString();
                     }}
                 />
                 <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
