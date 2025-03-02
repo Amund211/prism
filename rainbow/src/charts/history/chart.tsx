@@ -344,11 +344,17 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
                 <Tooltip
                     // TODO: Nicer tooltip
                     content={({ active, payload }) => {
-                        if (!active || !payload?.length || !payload[0].value) {
+                        if (!active || !payload?.length) {
                             return null;
                         }
+
+                        const value = payload[0].value;
+                        if (typeof value !== "number") {
+                            return null;
+                        }
+
                         // TODO: Better number formatting
-                        return payload[0].value.toLocaleString();
+                        return value.toLocaleString();
                     }}
                 />
                 <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
