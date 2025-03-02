@@ -19,6 +19,7 @@ import {
 import { computeStatProgression, StatProgression } from "#stats/progression.ts";
 import {
     CalendarMonth,
+    Info,
     TrendingDown,
     TrendingFlat,
     TrendingUp,
@@ -138,13 +139,53 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
     }
 
     if (queryData.length === 0) {
-        // TODO: Create a better empty state
-        return "No data";
+        return (
+            <Card variant="outlined" sx={{ height: "100%", flexGrow: 1 }}>
+                <CardContent
+                    sx={{
+                        height: "100%",
+                        padding: 2,
+                        "&:last-child": { pb: 2 },
+                    }}
+                >
+                    <Stack gap={1} justifyContent="space-between" height="100%">
+                        <Tooltip title="No data found in the given interval">
+                            <Typography variant="subtitle2">
+                                {`${intervalTypeName} ${getGamemodeLabel(gamemode)} ${getFullStatLabel(stat)}`}
+                            </Typography>
+                        </Tooltip>
+                        <Stack>
+                            <Tooltip title="The player has not recorded any stats with the Prism Overlay. They have either not played, or played without using the Prism Overlay.">
+                                <Stack
+                                    direction="row"
+                                    gap={0.5}
+                                    alignItems="center"
+                                >
+                                    <Info color="error" fontSize="small" />
+                                    <Typography variant="body1">
+                                        No data found
+                                    </Typography>
+                                </Stack>
+                            </Tooltip>
+                            <SimpleHistoryChart
+                                start={timeInterval.start}
+                                end={timeInterval.end}
+                                uuid={uuid}
+                                gamemode={gamemode}
+                                stat={stat}
+                                variant="session"
+                                limit={100}
+                            />
+                        </Stack>
+                    </Stack>
+                </CardContent>
+            </Card>
+        );
     }
 
     let data = queryData;
     if (data.length === 1) {
-        // Hack to show data
+        // Hack to show data in the same way as when there are two data points
         data = [data[0], data[0]];
     }
 
