@@ -46,7 +46,11 @@ const TanStackRouterDevtools =
 const RouterLinkItemButton = createLink(ListItemButton);
 const RouterMenuItem = createLink(MenuItem);
 
-const UserSearch: React.FC = () => {
+interface UserSearchProps {
+    onSubmit: (uuid: string) => void;
+}
+
+const UserSearch: React.FC<UserSearchProps> = ({ onSubmit }) => {
     return (
         <OutlinedInput
             placeholder="Search user..."
@@ -57,6 +61,13 @@ const UserSearch: React.FC = () => {
             }
             fullWidth
             size="small"
+            onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                    // TODO: Convert from username to UUID
+                    const uuid = event.currentTarget.value;
+                    onSubmit(uuid);
+                }
+            }}
         />
     );
 };
@@ -73,6 +84,8 @@ const RouteComponent: React.FC = () => {
     const handleCloseMenu = () => {
         setAnchorEl(null);
     };
+
+    const navigate = Route.useNavigate();
 
     return (
         // Layout inspired by https://github.com/mui/material-ui/tree/v6.4.1/docs/data/material/getting-started/templates/dashboard
@@ -96,7 +109,28 @@ const RouteComponent: React.FC = () => {
                         justifyContent="space-between"
                         width="100%"
                     >
-                        <UserSearch />
+                        <UserSearch
+                            onSubmit={(uuid) => {
+                                navigate({
+                                    to: "/session",
+                                    search: {
+                                        uuid,
+                                        timeInterval: {
+                                            type: "current",
+                                        },
+                                        gamemode: "overall",
+                                        stat: "fkdr",
+                                        variantSelection: "both",
+                                    },
+                                }).catch((error: unknown) => {
+                                    // TODO: Handle error
+                                    console.error(
+                                        "Failed to navigate to session page",
+                                        error,
+                                    );
+                                });
+                            }}
+                        />
                         <IconButton onClick={handleClickMenu}>
                             {menuOpen ? <MenuOpen /> : <MenuIcon />}
                         </IconButton>
