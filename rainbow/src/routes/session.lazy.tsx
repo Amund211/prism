@@ -1,6 +1,7 @@
 import { HistoryChart, SimpleHistoryChart } from "#charts/history/chart.tsx";
 import { TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
+import { useUUIDToUsername } from "#queries/username.ts";
 import { computeStat } from "#stats/index.ts";
 import {
     ALL_GAMEMODE_KEYS,
@@ -22,6 +23,7 @@ import {
     Grid2 as Grid,
     MenuItem,
     Select,
+    Skeleton,
     Stack,
     SvgIconOwnProps,
     Tooltip,
@@ -469,6 +471,7 @@ function RouteComponent() {
         trackingInterval,
     } = route.useLoaderDeps();
     const navigate = route.useNavigate();
+    const username = useUUIDToUsername([uuid])[uuid];
 
     const variants =
         variantSelection === "both"
@@ -490,6 +493,15 @@ function RouteComponent() {
 
     return (
         <Stack spacing={1}>
+            {/*TODO: Profile picture*/}
+            {username === undefined ? (
+                <Stack direction="row" alignItems="center">
+                    <Skeleton variant="rounded" width={100} />
+                    <Typography variant="h6">{"'s session stats"}</Typography>
+                </Stack>
+            ) : (
+                <Typography variant="h6">{`${username}'s session stats`}</Typography>
+            )}
             <Stack direction="row" gap={1}>
                 <Select
                     value={gamemode}
