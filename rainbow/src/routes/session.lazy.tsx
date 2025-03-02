@@ -461,11 +461,14 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
         </Card>
     );
 };
+
 function RouteComponent() {
     const { uuid, gamemode, stat, variantSelection } = route.useSearch();
-    const { timeIntervals, trackingInterval } = route.useLoaderDeps();
+    const {
+        timeIntervals: { day, week, month },
+        trackingInterval,
+    } = route.useLoaderDeps();
     const navigate = route.useNavigate();
-    const { day, week, month } = timeIntervals;
 
     const variants =
         variantSelection === "both"
