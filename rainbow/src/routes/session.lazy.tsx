@@ -1,4 +1,5 @@
 import { HistoryChart, SimpleHistoryChart } from "#charts/history/chart.tsx";
+import { UserSearch } from "#components/UserSearch.tsx";
 import { TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
@@ -493,6 +494,22 @@ function RouteComponent() {
 
     return (
         <Stack spacing={1}>
+            <UserSearch
+                onSubmit={(uuid) => {
+                    navigate({
+                        search: (oldSearch) => ({
+                            ...oldSearch,
+                            uuid,
+                        }),
+                    }).catch((error: unknown) => {
+                        // TODO: Handle error
+                        console.error(
+                            "Failed to update search params: uuid",
+                            error,
+                        );
+                    });
+                }}
+            />
             {/*TODO: Profile picture*/}
             {username === undefined ? (
                 <Stack direction="row" alignItems="center">

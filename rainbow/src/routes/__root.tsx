@@ -2,7 +2,6 @@ import {
     CalendarMonth,
     Menu as MenuIcon,
     MenuOpen,
-    Search,
     TrendingUp,
 } from "@mui/icons-material";
 import {
@@ -12,7 +11,6 @@ import {
     Drawer,
     drawerClasses,
     IconButton,
-    InputAdornment,
     List,
     ListItem,
     ListItemButton,
@@ -20,7 +18,6 @@ import {
     ListItemText,
     Menu,
     MenuItem,
-    OutlinedInput,
     Stack,
     Toolbar,
     Typography,
@@ -46,32 +43,6 @@ const TanStackRouterDevtools =
 const RouterLinkItemButton = createLink(ListItemButton);
 const RouterMenuItem = createLink(MenuItem);
 
-interface UserSearchProps {
-    onSubmit: (uuid: string) => void;
-}
-
-const UserSearch: React.FC<UserSearchProps> = ({ onSubmit }) => {
-    return (
-        <OutlinedInput
-            placeholder="Search user..."
-            startAdornment={
-                <InputAdornment position="start">
-                    <Search fontSize="small" />
-                </InputAdornment>
-            }
-            fullWidth
-            size="small"
-            onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                    // TODO: Convert from username to UUID
-                    const uuid = event.currentTarget.value;
-                    onSubmit(uuid);
-                }
-            }}
-        />
-    );
-};
-
 const APP_BAR_HEIGHT_PX = "64px";
 
 const RouteComponent: React.FC = () => {
@@ -84,8 +55,6 @@ const RouteComponent: React.FC = () => {
     const handleCloseMenu = () => {
         setAnchorEl(null);
     };
-
-    const navigate = Route.useNavigate();
 
     return (
         // Layout inspired by https://github.com/mui/material-ui/tree/v6.4.1/docs/data/material/getting-started/templates/dashboard
@@ -106,31 +75,9 @@ const RouteComponent: React.FC = () => {
                         direction="row"
                         spacing={2}
                         alignItems="center"
-                        justifyContent="space-between"
+                        justifyContent="flex-end"
                         width="100%"
                     >
-                        <UserSearch
-                            onSubmit={(uuid) => {
-                                navigate({
-                                    to: "/session",
-                                    search: {
-                                        uuid,
-                                        timeInterval: {
-                                            type: "current",
-                                        },
-                                        gamemode: "overall",
-                                        stat: "fkdr",
-                                        variantSelection: "both",
-                                    },
-                                }).catch((error: unknown) => {
-                                    // TODO: Handle error
-                                    console.error(
-                                        "Failed to navigate to session page",
-                                        error,
-                                    );
-                                });
-                            }}
-                        />
                         <IconButton onClick={handleClickMenu}>
                             {menuOpen ? <MenuOpen /> : <MenuIcon />}
                         </IconButton>
