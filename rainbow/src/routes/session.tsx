@@ -19,12 +19,7 @@ const sessionSearchSchema = z.object({
             }),
         ]),
         { type: "current" },
-    ).transform((value) => {
-        if (value.type === "current") {
-            return { ...value, currentDate: new Date() };
-        }
-        return value;
-    }),
+    ),
     trackingStart: fallback(z.coerce.date().optional(), undefined).transform(
         (value) => {
             if (value === undefined) {
@@ -40,7 +35,12 @@ const sessionSearchSchema = z.object({
 
 export const Route = createFileRoute("/session")({
     loaderDeps: ({ search: { uuid, timeInterval, trackingStart } }) => {
-        const timeIntervals = getTimeIntervals(timeInterval);
+        const intervalWithCurrentDate =
+            timeInterval.type === "current"
+                ? { ...timeInterval, currentDate: new Date() }
+                : timeInterval;
+
+        const timeIntervals = getTimeIntervals(intervalWithCurrentDate);
         return {
             uuid,
             timeInterval,
