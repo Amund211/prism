@@ -166,18 +166,18 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                     <Stack gap={1} justifyContent="space-between" height="100%">
                         {cardTitle}
                         <Stack>
-                            <Tooltip title="The player has not recorded any stats with the Prism Overlay in the given time interval. They have either not played, or played without using the Prism Overlay.">
-                                <Stack
-                                    direction="row"
-                                    gap={0.5}
-                                    alignItems="center"
-                                >
+                            <Stack
+                                direction="row"
+                                gap={0.5}
+                                alignItems="center"
+                            >
+                                <Tooltip title="The player has not recorded any stats with the Prism Overlay in the given time interval. They have either not played, or played without using the Prism Overlay.">
                                     <Info color="error" fontSize="small" />
-                                    <Typography variant="body1">
-                                        No data found
-                                    </Typography>
-                                </Stack>
-                            </Tooltip>
+                                </Tooltip>
+                                <Typography variant="body1">
+                                    No data found
+                                </Typography>
+                            </Stack>
                             <SimpleHistoryChart
                                 start={timeInterval.start}
                                 end={timeInterval.end}
