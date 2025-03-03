@@ -6,6 +6,7 @@ import React from "react";
 
 interface UserSearchProps {
     onSubmit: (uuid: string) => void;
+    size?: "small" | "medium";
 }
 
 const isUUID = (value: string) => {
@@ -17,7 +18,10 @@ const isUUID = (value: string) => {
     return true;
 };
 
-export const UserSearch: React.FC<UserSearchProps> = ({ onSubmit }) => {
+export const UserSearch: React.FC<UserSearchProps> = ({
+    onSubmit,
+    size = "small",
+}) => {
     const queryClient = useQueryClient();
 
     const [search, setSearch] = React.useState("");
@@ -40,7 +44,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({ onSubmit }) => {
                 </InputAdornment>
             }
             fullWidth
-            size="small"
+            size={size}
             onKeyDown={(event) => {
                 if (event.key === "Enter") {
                     const value = event.currentTarget.value;
