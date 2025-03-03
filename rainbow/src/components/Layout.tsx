@@ -45,7 +45,15 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
 
     return (
         // Layout inspired by https://github.com/mui/material-ui/tree/v6.4.1/docs/data/material/getting-started/templates/dashboard
-        <Box sx={{ display: "flex" }}>
+        <Box
+            sx={{
+                display: "flex",
+                height: {
+                    xs: `calc(100% - ${APP_BAR_HEIGHT_PX})`,
+                    md: "100%",
+                },
+            }}
+        >
             <AppBar
                 position="fixed"
                 sx={{
@@ -200,7 +208,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
             </Drawer>
             <Stack
                 component="main"
-                sx={{ marginTop: { xs: APP_BAR_HEIGHT_PX, md: 0 } }}
+                sx={{
+                    marginTop: { xs: APP_BAR_HEIGHT_PX, md: 0 },
+                    width: "100%",
+                    height: "100%",
+                }}
                 padding={1}
             >
                 {children}
