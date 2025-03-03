@@ -23,6 +23,7 @@ import {
     TrendingDown,
     TrendingFlat,
     TrendingUp,
+    InfoOutlined,
 } from "@mui/icons-material";
 import {
     Card,
@@ -74,6 +75,24 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
         month: "Monthly",
     }[timeInterval.type];
 
+    const cardTitle = (
+        <Stack
+            direction="row"
+            gap={0.5}
+            alignItems="center"
+            justifyContent="space-between"
+        >
+            <Typography variant="subtitle2">
+                {`${intervalTypeName} ${getGamemodeLabel(gamemode)} ${getFullStatLabel(stat)}`}
+            </Typography>
+            <Tooltip
+                title={`Time interval: ${timeInterval.start.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })} → ${timeInterval.end.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`}
+            >
+                <InfoOutlined fontSize="small" />
+            </Tooltip>
+        </Stack>
+    );
+
     if (queryData === undefined) {
         return (
             <Card variant="outlined" sx={{ height: "100%", flexGrow: 1 }}>
@@ -85,11 +104,7 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                     }}
                 >
                     <Stack gap={1} justifyContent="space-between" height="100%">
-                        <Tooltip title="Data loading ...">
-                            <Typography variant="subtitle2">
-                                {`${intervalTypeName} ${getGamemodeLabel(gamemode)} ${getFullStatLabel(stat)}`}
-                            </Typography>
-                        </Tooltip>
+                        {cardTitle}
                         <Stack>
                             <Stack
                                 direction="row"
@@ -149,13 +164,9 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                     }}
                 >
                     <Stack gap={1} justifyContent="space-between" height="100%">
-                        <Tooltip title="No data found in the given interval">
-                            <Typography variant="subtitle2">
-                                {`${intervalTypeName} ${getGamemodeLabel(gamemode)} ${getFullStatLabel(stat)}`}
-                            </Typography>
-                        </Tooltip>
+                        {cardTitle}
                         <Stack>
-                            <Tooltip title="The player has not recorded any stats with the Prism Overlay. They have either not played, or played without using the Prism Overlay.">
+                            <Tooltip title="The player has not recorded any stats with the Prism Overlay in the given time interval. They have either not played, or played without using the Prism Overlay.">
                                 <Stack
                                     direction="row"
                                     gap={0.5}
@@ -194,9 +205,6 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
     }
 
     const [start, end] = data;
-
-    const startDate = start.queriedAt;
-    const endDate = end.queriedAt;
 
     const startValue = computeStat(start, gamemode, stat, "overall", data);
     const endValue = computeStat(end, gamemode, stat, "overall", data);
@@ -246,13 +254,7 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                 sx={{ height: "100%", padding: 2, "&:last-child": { pb: 2 } }}
             >
                 <Stack gap={1} justifyContent="space-between" height="100%">
-                    <Tooltip
-                        title={`${startDate.toLocaleString()} → ${endDate.toLocaleString()}`}
-                    >
-                        <Typography variant="subtitle2">
-                            {`${intervalTypeName} ${getGamemodeLabel(gamemode)} ${getFullStatLabel(stat)}`}
-                        </Typography>
-                    </Tooltip>
+                    {cardTitle}
                     <Stack>
                         <Stack
                             direction="row"
