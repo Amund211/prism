@@ -1,8 +1,11 @@
 import {
+    Area,
+    AreaChart,
     CartesianGrid,
     Legend,
     Line,
     LineChart,
+    ReferenceArea,
     ResponsiveContainer,
     Tooltip,
     XAxis,
@@ -24,6 +27,7 @@ import {
     getGamemodeLabel,
     getVariantLabel,
 } from "#stats/labels.ts";
+import { useTheme } from "@mui/material";
 
 interface HistoryChartProps {
     start: Date;
@@ -280,6 +284,8 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
         getHistoryQueryOptions({ uuid, start, end, limit }),
     );
 
+    const theme = useTheme();
+
     const chartData = React.useMemo(() => {
         if (!history) {
             return [];
@@ -288,6 +294,8 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
     }, [history]);
 
     const uuidToUsername = useUUIDToUsername([uuid]);
+
+    const currentDate = new Date();
 
     // Linechart requires a mutable array for some reason. Make a copy here so we can mutate it.
     const mutableChartData = [...chartData];
@@ -301,7 +309,7 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
 
     return (
         <ResponsiveContainer minHeight={50} maxHeight={50} minWidth={100}>
-            <LineChart data={mutableChartData}>
+            <AreaChart data={mutableChartData}>
                 <XAxis
                     type="number"
                     domain={[start.getTime(), end.getTime()]}
@@ -310,7 +318,15 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
                     dataKey="queriedAt"
                 />
 
-                <Line
+                {/* Chart outline */}
+                <ReferenceArea
+                    x1={start.getTime()}
+                    x2={end.getTime()}
+                    stroke="#efefef"
+                    fillOpacity={0}
+                />
+                {/* Chart data */}
+                <Area
                     key={dataKey}
                     name={contextAwareStatDisplayName(
                         {
@@ -333,10 +349,19 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
                     )}
                     type="monotone"
                     dataKey={dataKey}
-                    {...getLineStyle(0)}
+                    stroke={theme.palette.primary.main}
+                    fill={theme.palette.primary.main}
                     dot={false}
                     connectNulls
                 />
+                {/* Future marker */}
+                <ReferenceArea
+                    x1={currentDate.getTime()}
+                    x2={end.getTime()}
+                    stroke="#efefef"
+                    fill="#e0e0e0"
+                />
+
                 <Tooltip
                     // TODO: Nicer tooltip
                     content={({ active, payload }) => {
@@ -353,8 +378,7 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
                         return value.toLocaleString();
                     }}
                 />
-                <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-            </LineChart>
+            </AreaChart>
         </ResponsiveContainer>
     );
 };
