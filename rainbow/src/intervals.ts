@@ -32,6 +32,22 @@ const endOfMonth = (date: Date) => {
     return endOfDay(d);
 };
 
+export const endOfLastDay = (date: Date) => {
+    const d = new Date(date);
+    d.setDate(d.getDate() - 1);
+    return endOfDay(d);
+};
+export const endOfLastWeek = (date: Date) => {
+    const d = endOfWeek(date);
+    d.setDate(d.getDate() - 7);
+    return d;
+};
+export const endOfLastMonth = (date: Date) => {
+    const d = new Date(date);
+    d.setMonth(d.getMonth() - 1);
+    return endOfMonth(d);
+};
+
 /**
  * Returns the date that is `days` before the given date
  *
