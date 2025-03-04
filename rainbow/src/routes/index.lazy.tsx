@@ -26,7 +26,7 @@ function RouteComponent() {
                             uuid,
                             gamemode: "overall",
                             stat: "fkdr",
-                            timeInterval: { type: "current" },
+                            timeIntervalDefinition: { type: "contained" },
                             variantSelection: "both",
                         },
                     }).catch((error: unknown) => {

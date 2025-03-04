@@ -85,9 +85,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                 to="/session"
                                 search={{
                                     uuid: "a937646b-f115-44c3-8dbf-9ae4a65669a0",
-                                    timeInterval: {
-                                        type: "lastXDays",
-                                        end: new Date(
+                                    timeIntervalDefinition: {
+                                        type: "until",
+                                        date: new Date(
                                             "2025-01-15T22:30:00+01:00",
                                         ),
                                     },
@@ -163,9 +163,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                             to="/session"
                             search={{
                                 uuid: "a937646b-f115-44c3-8dbf-9ae4a65669a0",
-                                timeInterval: {
-                                    type: "lastXDays",
-                                    end: new Date("2025-01-15T22:30:00+01:00"),
+                                timeIntervalDefinition: {
+                                    type: "until",
+                                    date: new Date("2025-01-15T22:30:00+01:00"),
                                 },
                                 gamemode: "overall",
                                 stat: "fkdr",

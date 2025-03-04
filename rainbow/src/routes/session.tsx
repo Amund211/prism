@@ -4,21 +4,24 @@ import { getHistoryQueryOptions } from "#queries/history.ts";
 import { fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { getUsernameQueryOptions } from "#queries/username.ts";
-import { getTimeIntervals } from "#intervals.ts";
+import { timeIntervalsFromDefinition } from "#intervals.ts";
 import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
 
 const sessionSearchSchema = z.object({
     // TODO: Read "preferred user" from local storage or similar
     uuid: fallback(z.string(), ""),
-    timeInterval: fallback(
+    timeIntervalDefinition: fallback(
         z.union([
-            z.object({ type: z.literal("current") }),
             z.object({
-                type: z.literal("lastXDays"),
-                end: fallback(z.coerce.date().optional(), undefined),
+                type: z.literal("contained"),
+                date: fallback(z.coerce.date().optional(), undefined),
+            }),
+            z.object({
+                type: z.literal("until"),
+                date: fallback(z.coerce.date().optional(), undefined),
             }),
         ]),
-        { type: "current" },
+        { type: "contained" },
     ),
     trackingStart: fallback(z.coerce.date().optional(), undefined).transform(
         (value) => {
@@ -34,16 +37,17 @@ const sessionSearchSchema = z.object({
 });
 
 export const Route = createFileRoute("/session")({
-    loaderDeps: ({ search: { uuid, timeInterval, trackingStart } }) => {
-        const intervalWithCurrentDate =
-            timeInterval.type === "current"
-                ? { ...timeInterval, currentDate: new Date() }
-                : timeInterval;
-
-        const timeIntervals = getTimeIntervals(intervalWithCurrentDate);
+    loaderDeps: ({
+        search: { uuid, timeIntervalDefinition, trackingStart },
+    }) => {
+        const timeIntervals = timeIntervalsFromDefinition({
+            // If missing -> today's date
+            date: new Date(),
+            ...timeIntervalDefinition,
+        });
         return {
             uuid,
-            timeInterval,
+            timeIntervalDefinition,
             // Try to end the interval in the past so we don't need to re-fetch
             trackingInterval: {
                 start: trackingStart,

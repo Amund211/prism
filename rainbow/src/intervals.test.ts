@@ -1,13 +1,13 @@
 import test from "node:test";
 import assert from "node:assert";
 
-import { getTimeIntervals } from "#intervals.ts";
+import { timeIntervalsFromDefinition } from "#intervals.ts";
 
 await test("getTimeIntervals", async (t) => {
-    await t.test("current", () => {
-        const { day, week, month } = getTimeIntervals({
-            type: "current",
-            currentDate: new Date(2024, 1, 14, 17, 15, 0),
+    await t.test("contained", () => {
+        const { day, week, month } = timeIntervalsFromDefinition({
+            type: "contained",
+            date: new Date(2024, 1, 14, 17, 15, 0),
         });
 
         assert.strictEqual(
@@ -38,10 +38,10 @@ await test("getTimeIntervals", async (t) => {
         );
     });
 
-    await t.test("lastXDays", () => {
-        const { day, week, month } = getTimeIntervals({
-            type: "lastXDays",
-            end: new Date(2024, 1, 14, 17, 15, 0),
+    await t.test("until", () => {
+        const { day, week, month } = timeIntervalsFromDefinition({
+            type: "until",
+            date: new Date(2024, 1, 14, 17, 15, 0),
         });
 
         // With last x days, all intervals stop at the end of the current date

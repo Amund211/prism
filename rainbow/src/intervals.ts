@@ -50,6 +50,12 @@ const daysInCurrentMonth = (date: Date) => {
     return d.getDate();
 };
 
+export interface TimeIntervalDefinition {
+    type: "contained" | "until";
+    // If missing -> today's date
+    date?: Date;
+}
+
 export interface TimeInterval {
     start: Date;
     end: Date;
@@ -61,13 +67,11 @@ interface TimeIntervals {
     month: TimeInterval;
 }
 
-export const getTimeIntervals = (
-    timeInterval:
-        | { type: "current"; currentDate: Date }
-        | { type: "lastXDays"; end?: Date },
+export const timeIntervalsFromDefinition = (
+    definition: TimeIntervalDefinition & { date: Date },
 ): TimeIntervals => {
-    if (timeInterval.type === "current") {
-        const now = timeInterval.currentDate;
+    if (definition.type === "contained") {
+        const now = definition.date;
         return {
             day: {
                 start: startOfDay(now),
@@ -83,9 +87,9 @@ export const getTimeIntervals = (
             },
         };
     } else {
-        const referenceDate = timeInterval.end ?? new Date();
-        const end = endOfDay(referenceDate);
+        const end = endOfDay(definition.date);
 
+        // TODO: Consider static 30 vs days in month
         const daysInMonth = daysInCurrentMonth(end);
         return {
             day: { start: daysBefore(end, 1), end },
