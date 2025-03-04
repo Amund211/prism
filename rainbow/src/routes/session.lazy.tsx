@@ -1,4 +1,5 @@
 import { HistoryChart, SimpleHistoryChart } from "#charts/history/chart.tsx";
+import { TimeIntervalPicker } from "#components/TimeIntervalPicker.tsx";
 import { UserSearch } from "#components/UserSearch.tsx";
 import { TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
@@ -18,7 +19,6 @@ import {
 } from "#stats/labels.ts";
 import { computeStatProgression, StatProgression } from "#stats/progression.ts";
 import {
-    CalendarMonth,
     Info,
     TrendingDown,
     TrendingFlat,
@@ -583,6 +583,7 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
 function RouteComponent() {
     const { uuid, gamemode, stat, variantSelection } = route.useSearch();
     const {
+        timeIntervalDefinition,
         timeIntervals: { day, week, month },
         trackingInterval,
     } = route.useLoaderDeps();
@@ -642,8 +643,23 @@ function RouteComponent() {
                 ) : (
                     <Typography variant="h6">{`${username}'s session stats`}</Typography>
                 )}
-                {/*TODO: Date selection (current/past/static)*/}
-                <CalendarMonth />
+                <TimeIntervalPicker
+                    intervalDefinition={timeIntervalDefinition}
+                    onIntervalChange={(newInterval) => {
+                        navigate({
+                            search: (oldSearch) => ({
+                                ...oldSearch,
+                                timeIntervalDefinition: newInterval,
+                            }),
+                        }).catch((error: unknown) => {
+                            // TODO: Handle error
+                            console.error(
+                                "Failed to update search params: timeIntervalDefinition",
+                                error,
+                            );
+                        });
+                    }}
+                />
             </Stack>
             <Stack direction="row" gap={1}>
                 <Select
