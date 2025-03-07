@@ -312,7 +312,11 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
 
     return (
         <ResponsiveContainer minHeight={50} maxHeight={50} minWidth={100}>
-            <AreaChart data={mutableChartData}>
+            <AreaChart
+                data={mutableChartData}
+                syncId="simple-history-chart"
+                syncMethod="value"
+            >
                 <XAxis
                     type="number"
                     domain={[start.getTime(), end.getTime()]}
