@@ -1,6 +1,7 @@
 import { HistoryChart, SimpleHistoryChart } from "#charts/history/chart.tsx";
 import { TimeIntervalPicker } from "#components/TimeIntervalPicker.tsx";
 import { UserSearch } from "#components/UserSearch.tsx";
+import { ChartSynchronizerProvider } from "#contexts/ChartSynchronizer/provider.tsx";
 import { TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
@@ -727,32 +728,36 @@ function RouteComponent() {
                     ))}
                 </Select>
             </Stack>
-            <Grid container spacing={1}>
-                <Grid size={cardSize}>
-                    <SessionStatCard
-                        uuid={uuid}
-                        timeInterval={{ ...day, type: "day" }}
-                        gamemode={gamemode}
-                        stat={stat}
-                    />
+            <ChartSynchronizerProvider
+                queryKey={`${uuid}-${JSON.stringify({ day, week, month })}-${gamemode}-${stat}`}
+            >
+                <Grid container spacing={1}>
+                    <Grid size={cardSize}>
+                        <SessionStatCard
+                            uuid={uuid}
+                            timeInterval={{ ...day, type: "day" }}
+                            gamemode={gamemode}
+                            stat={stat}
+                        />
+                    </Grid>
+                    <Grid size={cardSize}>
+                        <SessionStatCard
+                            uuid={uuid}
+                            timeInterval={{ ...week, type: "week" }}
+                            gamemode={gamemode}
+                            stat={stat}
+                        />
+                    </Grid>
+                    <Grid size={cardSize}>
+                        <SessionStatCard
+                            uuid={uuid}
+                            timeInterval={{ ...month, type: "month" }}
+                            gamemode={gamemode}
+                            stat={stat}
+                        />
+                    </Grid>
                 </Grid>
-                <Grid size={cardSize}>
-                    <SessionStatCard
-                        uuid={uuid}
-                        timeInterval={{ ...week, type: "week" }}
-                        gamemode={gamemode}
-                        stat={stat}
-                    />
-                </Grid>
-                <Grid size={cardSize}>
-                    <SessionStatCard
-                        uuid={uuid}
-                        timeInterval={{ ...month, type: "month" }}
-                        gamemode={gamemode}
-                        stat={stat}
-                    />
-                </Grid>
-            </Grid>
+            </ChartSynchronizerProvider>
             <StatProgressionCard
                 uuid={uuid}
                 trackingInterval={trackingInterval}

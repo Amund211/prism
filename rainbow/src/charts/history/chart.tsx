@@ -28,6 +28,7 @@ import {
     getVariantLabel,
 } from "#stats/labels.ts";
 import { useTheme } from "@mui/material";
+import { useSynchronizeCharts } from "#contexts/ChartSynchronizer/hooks.ts";
 
 interface HistoryChartProps {
     start: Date;
@@ -307,6 +308,8 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
         variant,
     });
 
+    const { yMax } = useSynchronizeCharts(chartData, dataKey);
+
     return (
         <ResponsiveContainer minHeight={50} maxHeight={50} minWidth={100}>
             <AreaChart data={mutableChartData}>
@@ -316,6 +319,12 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
                     hide
                     scale="linear"
                     dataKey="queriedAt"
+                />
+                <YAxis
+                    type="number"
+                    domain={[0, yMax ?? "auto"]}
+                    hide
+                    scale="linear"
                 />
 
                 {/* Chart outline */}
