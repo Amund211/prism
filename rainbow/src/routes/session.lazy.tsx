@@ -566,14 +566,20 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
                               )} (in ${progression.daysUntilMilestone.toFixed(1)} days)`
                             : `Expected to reach: Never (long-time ${getShortStatLabel(stat)} too ${progression.trendingUpward ? "low" : "high"})`}
                     </Typography>
-                    <Tooltip
-                        title={`Based on stats from ${progression.trackingDataTimeInterval.start.toLocaleString(undefined, { dateStyle: "medium" })} to ${progression.trackingDataTimeInterval.end.toLocaleString(undefined, { dateStyle: "medium" })}`}
+
+                    <Stack
+                        direction="row"
+                        gap={0.5}
+                        alignItems="center"
+                        justifyContent="space-between"
                     >
-                        {/* Need a div here for some reason for the tooltip to work :^( */}
-                        <div>
-                            <ProgressionCaption progression={progression} />
-                        </div>
-                    </Tooltip>
+                        <ProgressionCaption progression={progression} />
+                        <Tooltip
+                            title={`Based on stats from ${progression.trackingDataTimeInterval.start.toLocaleString(undefined, { dateStyle: "medium" })} to ${progression.trackingDataTimeInterval.end.toLocaleString(undefined, { dateStyle: "medium" })}`}
+                        >
+                            <InfoOutlined fontSize="small" />
+                        </Tooltip>
+                    </Stack>
                 </Stack>
             </CardContent>
         </Card>
