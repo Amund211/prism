@@ -382,6 +382,15 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			require.NoError(t, err)
 		}
 
+		requireDistribution := func(t *testing.T, history []PlayerDataPIT, expectedDistribution []time.Time) {
+			t.Helper()
+			require.Len(t, history, len(expectedDistribution))
+
+			for i, expectedTime := range expectedDistribution {
+				require.WithinDuration(t, expectedTime, history[i].QueriedAt, 0, fmt.Sprintf("index %d", i))
+			}
+		}
+
 		t.Run("evenly spread across a day", func(t *testing.T) {
 			t.Parallel()
 			p := newPostgresPersistor(t, db, "get_history_evenly_spread_across_a_day")
@@ -405,19 +414,24 @@ func TestPostgresStatsPersistor(t *testing.T) {
 				)
 			}
 
+			require.Len(t, instructions, 24*4+1)
+
 			setStoredStats(t, p, instructions...)
 
-			history, err := p.GetHistory(ctx, player_uuid, janFirst21, janFirst21.Add(24*time.Hour), 25)
+			history, err := p.GetHistory(ctx, player_uuid, janFirst21, janFirst21.Add(24*time.Hour), 48)
 			require.NoError(t, err)
-			require.Len(t, history, 25)
+			expectedDistribution := []time.Time{}
+			for i := 0; i < 24; i++ {
+				startOfHour := janFirst21.Add(time.Duration(i) * time.Hour)
+				expectedDistribution = append(expectedDistribution, startOfHour)
+				if i != 23 {
+					expectedDistribution = append(expectedDistribution, startOfHour.Add(45*time.Minute))
+				} else {
+					expectedDistribution = append(expectedDistribution, startOfHour.Add(time.Hour))
+				}
 
-			for i, playerData := range history {
-				offset := i * density
-				require.Equal(t, player_uuid, playerData.UUID)
-				require.WithinDuration(t, janFirst21.Add(time.Duration(offset)*interval), playerData.QueriedAt, 0)
-				// Mock data matches
-				require.Equal(t, offset, *playerData.Overall.Kills)
 			}
+			requireDistribution(t, history, expectedDistribution)
 		})
 
 		t.Run("random clusters", func(t *testing.T) {
@@ -426,35 +440,51 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			player_uuid := newUUID(t)
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
 
-			instructions := []storageInstruction{
-				{player_uuid, start.Add(0 * time.Hour).Add(-1 * time.Minute), newHypixelAPIPlayer(0)},
-				{player_uuid, start.Add(0 * time.Hour).Add(7 * time.Minute), newHypixelAPIPlayer(1)},
-				{player_uuid, start.Add(0 * time.Hour).Add(17 * time.Minute), newHypixelAPIPlayer(2)},
-				{player_uuid, start.Add(0 * time.Hour).Add(37 * time.Minute), newHypixelAPIPlayer(3)},
-				{player_uuid, start.Add(2 * time.Hour).Add(40 * time.Minute), newHypixelAPIPlayer(4)},
+			instructions := make([]storageInstruction, 13)
+			// Before start
+			instructions[0] = storageInstruction{player_uuid, start.Add(0 * time.Hour).Add(-1 * time.Minute), newHypixelAPIPlayer(0)}
 
-				{player_uuid, start.Add(2 * time.Hour).Add(45 * time.Minute), newHypixelAPIPlayer(5)},
-				{player_uuid, start.Add(2 * time.Hour).Add(50 * time.Minute), newHypixelAPIPlayer(6)},
-				{player_uuid, start.Add(2 * time.Hour).Add(55 * time.Minute), newHypixelAPIPlayer(7)},
+			// First 30 min interval
+			instructions[1] = storageInstruction{player_uuid, start.Add(0 * time.Hour).Add(7 * time.Minute), newHypixelAPIPlayer(1)}
+			instructions[2] = storageInstruction{player_uuid, start.Add(0 * time.Hour).Add(17 * time.Minute), newHypixelAPIPlayer(2)}
 
-				{player_uuid, start.Add(3 * time.Hour).Add(1 * time.Minute), newHypixelAPIPlayer(8)},
-				{player_uuid, start.Add(3 * time.Hour).Add(47 * time.Minute), newHypixelAPIPlayer(9)},
-				{player_uuid, start.Add(3 * time.Hour).Add(59 * time.Minute), newHypixelAPIPlayer(10)},
-				{player_uuid, start.Add(4 * time.Hour).Add(1 * time.Minute), newHypixelAPIPlayer(11)},
-			}
+			// Second 30 min interval
+			instructions[3] = storageInstruction{player_uuid, start.Add(0 * time.Hour).Add(37 * time.Minute), newHypixelAPIPlayer(3)}
+
+			// Sixth 30 min interval
+			instructions[4] = storageInstruction{player_uuid, start.Add(2 * time.Hour).Add(40 * time.Minute), newHypixelAPIPlayer(4)}
+			instructions[5] = storageInstruction{player_uuid, start.Add(2 * time.Hour).Add(45 * time.Minute), newHypixelAPIPlayer(5)}
+			instructions[6] = storageInstruction{player_uuid, start.Add(2 * time.Hour).Add(50 * time.Minute), newHypixelAPIPlayer(6)}
+			instructions[7] = storageInstruction{player_uuid, start.Add(2 * time.Hour).Add(55 * time.Minute), newHypixelAPIPlayer(7)}
+
+			// Seventh 30 min interval
+			instructions[8] = storageInstruction{player_uuid, start.Add(3 * time.Hour).Add(1 * time.Minute), newHypixelAPIPlayer(8)}
+
+			// Eighth 30 min interval
+			instructions[9] = storageInstruction{player_uuid, start.Add(3 * time.Hour).Add(47 * time.Minute), newHypixelAPIPlayer(9)}
+			instructions[10] = storageInstruction{player_uuid, start.Add(3 * time.Hour).Add(59 * time.Minute), newHypixelAPIPlayer(10)}
+
+			// After end
+			instructions[11] = storageInstruction{player_uuid, start.Add(4 * time.Hour).Add(1 * time.Minute), newHypixelAPIPlayer(11)}
+			instructions[12] = storageInstruction{player_uuid, start.Add(4000 * time.Hour).Add(1 * time.Minute), newHypixelAPIPlayer(12)}
 
 			setStoredStats(t, p, instructions...)
 
-			history, err := p.GetHistory(ctx, player_uuid, start, start.Add(4*time.Hour), 16+1)
+			// Get entries at the start and end of each 30 min interval (8 in total)
+			history, err := p.GetHistory(ctx, player_uuid, start, start.Add(4*time.Hour), 16)
 			require.NoError(t, err)
 
 			expectedHistory := []storageInstruction{
 				instructions[1],
 				instructions[2],
+
 				instructions[3],
+
 				instructions[4],
-				instructions[5],
+				instructions[7],
+
 				instructions[8],
+
 				instructions[9],
 				instructions[10],
 			}
@@ -475,8 +505,8 @@ func TestPostgresStatsPersistor(t *testing.T) {
 		})
 
 		t.Run("no duplicates returned", func(t *testing.T) {
-			// The current implementation gets both the first and last stats in the last interval
-			// Make sure these are not the same instance. The test should also cover the first interval
+			// The current implementation gets both the first and last stats in each interval
+			// Make sure these are not the same instance.
 
 			t.Parallel()
 			p := newPostgresPersistor(t, db, "no_duplicates_returned")
@@ -484,7 +514,15 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			t.Run("single stat stored", func(t *testing.T) {
 				start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
 				end := start.Add(24 * time.Hour)
-				for _, queriedAt := range []time.Time{start, end} {
+				for _, queriedAt := range []time.Time{
+					start,
+					start.Add(1 * time.Microsecond),
+					start.Add(1 * time.Second),
+					start.Add(1 * time.Hour),
+					start.Add(3 * time.Hour).Add(15 * time.Minute),
+					start.Add(14 * time.Hour).Add(1 * time.Minute),
+					end,
+				} {
 					for limit := 2; limit < 10; limit++ {
 						t.Run(fmt.Sprintf("limit %d, queriedAt %s", limit, queriedAt), func(t *testing.T) {
 							t.Parallel()

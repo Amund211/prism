@@ -291,60 +291,75 @@ func (p *PostgresStatsPersistor) GetHistory(ctx context.Context, playerUUID stri
 		return nil, fmt.Errorf("StoreStats: failed to set search path: %w", err)
 	}
 
-	intervalLength := timespan / time.Duration(limit-1)
-	for offset := 0; offset < limit-1; offset++ {
+	// NOTE: Odd limit values will be rounded down (limit=3 == limit=2)
+	numberOfIntervals := limit / 2
+
+	intervalLength := timespan / time.Duration(numberOfIntervals)
+	for offset := 0; offset < numberOfIntervals; offset++ {
 		intervalStart := start.Add(intervalLength * time.Duration(offset))
 		intervalEnd := start.Add(intervalLength * time.Duration(offset+1))
 
-		var stats []dbStat
-		err = txx.SelectContext(
+		endOperator := "<"
+		isLastInterval := offset == numberOfIntervals-1
+		if isLastInterval {
+			// Inclusive end for last interval
+			endOperator = "<="
+			// Make sure we get all the way to the end in case of rounding errors
+			intervalEnd = end
+		}
+
+		var firstStat dbStat
+		err = txx.GetContext(
 			ctx,
-			&stats,
-			`select
+			&firstStat,
+			fmt.Sprintf(`select
 				id, data_format_version, player_uuid, queried_at, player_data
 			from stats
 			where
 				player_uuid = $1 and
 				queried_at >= $2 and
-				queried_at < $3
+				queried_at %s $3
 			order by queried_at asc
-			limit 1`,
+			limit 1`, endOperator),
 			playerUUID, intervalStart, intervalEnd)
+
+		if errors.Is(err, sql.ErrNoRows) {
+			continue
+		}
 		if err != nil {
 			return nil, fmt.Errorf("GetHistory: failed to select: %w", err)
 		}
-		if len(stats) > 1 {
-			return nil, fmt.Errorf("GetHistory: expected at most one result, got %d", len(stats))
+
+		dbStats = append(dbStats, firstStat)
+
+		var lastStat dbStat
+		err = txx.GetContext(
+			ctx,
+			&lastStat,
+			fmt.Sprintf(`select
+				id, data_format_version, player_uuid, queried_at, player_data
+			from stats
+			where
+				player_uuid = $1 and
+				queried_at >= $2 and
+				queried_at %s $3
+			order by queried_at desc
+			limit 1`, endOperator),
+			playerUUID, intervalStart, intervalEnd)
+
+		if errors.Is(err, sql.ErrNoRows) {
+			continue
+		}
+		if err != nil {
+			return nil, fmt.Errorf("GetHistory: failed to select: %w", err)
 		}
 
-		if len(stats) == 1 {
-			dbStats = append(dbStats, stats[0])
+		if lastStat.ID == firstStat.ID {
+			// Only one stat in this interval -> don't add it twice
+			continue
 		}
-	}
 
-	var stats []dbStat
-	err = txx.SelectContext(
-		ctx,
-		&stats,
-		`select
-			id, data_format_version, player_uuid, queried_at, player_data
-		from stats
-		where
-			player_uuid = $1 and
-			queried_at >= $2 and
-			queried_at <= $3
-		order by queried_at desc
-		limit 1`,
-		playerUUID, end.Add(-1*intervalLength), end)
-	if err != nil {
-		return nil, fmt.Errorf("GetHistory: failed to select: %w", err)
-	}
-	if len(stats) > 1 {
-		return nil, fmt.Errorf("GetHistory: expected at most one result, got %d", len(stats))
-	}
-	if len(stats) == 1 && (len(dbStats) == 0 || dbStats[len(dbStats)-1].ID != stats[0].ID) {
-		// We got stats, and they were not the same as the first one in this last interval
-		dbStats = append(dbStats, stats[0])
+		dbStats = append(dbStats, lastStat)
 	}
 
 	err = txx.Commit()
