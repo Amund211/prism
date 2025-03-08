@@ -31,7 +31,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
         <OutlinedInput
             value={search}
             onChange={(event) => {
-                setSearch(event.currentTarget.value);
+                setSearch(event.currentTarget.value.replace(/\s/g, ""));
             }}
             placeholder="Search user..."
             startAdornment={
