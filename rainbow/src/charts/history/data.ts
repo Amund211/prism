@@ -89,7 +89,10 @@ export const generateChartData = (histories: readonly History[]): ChartData => {
         return [];
     }
 
-    const clusteredChartData = clusterChartData(chartData);
+    // Don't cluster single history -> leads to better cross graph comparison for single users
+    // The main reason for clustering is to join data from different users
+    const clusteredChartData =
+        histories.length > 1 ? clusterChartData(chartData) : chartData;
 
     // Merge duplicate queriedAt values
     const mergedChartData: MutableChartData = [clusteredChartData[0]];
