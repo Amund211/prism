@@ -10,6 +10,7 @@ import (
 type StatsPersistor interface {
 	StoreStats(ctx context.Context, playerUUID string, player *processing.HypixelAPIPlayer, queriedAt time.Time) error
 	GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]PlayerDataPIT, error)
+	GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]Session, error)
 }
 
 type PlayerDataPIT struct {
@@ -36,4 +37,9 @@ type StatsPIT struct {
 	FinalDeaths *int
 	Kills       *int
 	Deaths      *int
+}
+
+type Session struct {
+	Start PlayerDataPIT
+	End   PlayerDataPIT
 }
