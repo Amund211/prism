@@ -61,6 +61,14 @@ type statsDataStorage struct {
 	Deaths      *int `json:"d,omitempty"`
 }
 
+type dbStat struct {
+	ID                string    `db:"id"`
+	DataFormatVersion int       `db:"data_format_version"`
+	UUID              string    `db:"player_uuid"`
+	QueriedAt         time.Time `db:"queried_at"`
+	PlayerData        []byte    `db:"player_data"`
+}
+
 func playerToDataStorage(player *processing.HypixelAPIPlayer) ([]byte, error) {
 	if player == nil || player.Stats == nil || player.Stats.Bedwars == nil {
 		return []byte(`{}`), nil
@@ -158,6 +166,26 @@ func statsPITFromDataStorage(data *statsDataStorage) *StatsPIT {
 		Kills:       data.Kills,
 		Deaths:      data.Deaths,
 	}
+}
+
+func dbStatToPlayerDataPIT(dbStat dbStat) (*PlayerDataPIT, error) {
+	var playerData playerDataStorage
+	err := json.Unmarshal(dbStat.PlayerData, &playerData)
+	if err != nil {
+		return nil, fmt.Errorf("dbStatToPlayerDataPIT: failed to unmarshal player data: %w", err)
+	}
+	return &PlayerDataPIT{
+		ID:                dbStat.ID,
+		DataFormatVersion: dbStat.DataFormatVersion,
+		UUID:              dbStat.UUID,
+		QueriedAt:         dbStat.QueriedAt,
+		Experience:        playerData.Experience,
+		Solo:              *statsPITFromDataStorage(&playerData.Solo),
+		Doubles:           *statsPITFromDataStorage(&playerData.Doubles),
+		Threes:            *statsPITFromDataStorage(&playerData.Threes),
+		Fours:             *statsPITFromDataStorage(&playerData.Fours),
+		Overall:           *statsPITFromDataStorage(&playerData.Overall),
+	}, nil
 }
 
 func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, playerUUID string, player *processing.HypixelAPIPlayer, queriedAt time.Time) error {
@@ -270,14 +298,6 @@ func (p *PostgresStatsPersistor) GetHistory(ctx context.Context, playerUUID stri
 		return nil, fmt.Errorf("GetHistory: end time must be after start time")
 	}
 
-	type dbStat struct {
-		ID                string    `db:"id"`
-		DataFormatVersion int       `db:"data_format_version"`
-		UUID              string    `db:"player_uuid"`
-		QueriedAt         time.Time `db:"queried_at"`
-		PlayerData        []byte    `db:"player_data"`
-	}
-
 	dbStats := make([]dbStat, 0, limit)
 
 	txx, err := p.db.BeginTxx(ctx, nil)
@@ -369,23 +389,11 @@ func (p *PostgresStatsPersistor) GetHistory(ctx context.Context, playerUUID stri
 
 	result := make([]PlayerDataPIT, 0, len(dbStats))
 	for _, dbStat := range dbStats {
-		var playerData playerDataStorage
-		err := json.Unmarshal(dbStat.PlayerData, &playerData)
+		playerData, err := dbStatToPlayerDataPIT(dbStat)
 		if err != nil {
-			return nil, fmt.Errorf("GetHistory: failed to unmarshal player data: %w", err)
+			return nil, fmt.Errorf("GetHistory: failed to convert db stat: %w", err)
 		}
-		result = append(result, PlayerDataPIT{
-			ID:                dbStat.ID,
-			DataFormatVersion: dbStat.DataFormatVersion,
-			UUID:              dbStat.UUID,
-			QueriedAt:         dbStat.QueriedAt,
-			Experience:        playerData.Experience,
-			Solo:              *statsPITFromDataStorage(&playerData.Solo),
-			Doubles:           *statsPITFromDataStorage(&playerData.Doubles),
-			Threes:            *statsPITFromDataStorage(&playerData.Threes),
-			Fours:             *statsPITFromDataStorage(&playerData.Fours),
-			Overall:           *statsPITFromDataStorage(&playerData.Overall),
-		})
+		result = append(result, *playerData)
 	}
 
 	return result, nil
