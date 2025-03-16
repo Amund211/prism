@@ -414,7 +414,7 @@ func computeSessions(stats []PlayerDataPIT, start, end time.Time) []Session {
 
 	sessions := []Session{}
 
-	getProgressStats := func(stat *PlayerDataPIT) (int, float64) {
+	getProgressStats := func(stat PlayerDataPIT) (int, float64) {
 		gamesPlayed := 0
 		if stat.Overall.GamesPlayed != nil {
 			gamesPlayed = *stat.Overall.GamesPlayed
@@ -427,25 +427,25 @@ func computeSessions(stats []PlayerDataPIT, start, end time.Time) []Session {
 		return gamesPlayed, experience
 	}
 
-	var sessionStart *PlayerDataPIT
-	var lastEventfulEntry *PlayerDataPIT
 	lastEventfulIndex := -1
+	sessionStartIndex := -1
 
 	for i := 0; i < len(stats); i++ {
-		stat := stats[i]
-		if sessionStart == nil || lastEventfulEntry == nil {
-			sessionStart = &stat
-			lastEventfulEntry = &stat
+		if sessionStartIndex == -1 || lastEventfulIndex == -1 {
+			sessionStartIndex = i
 			lastEventfulIndex = i
 			continue
 		}
 
+		stat := stats[i]
+		sessionStart := stats[sessionStartIndex]
+		lastEventfulEntry := stats[lastEventfulIndex]
+
 		// If no activity since session start, move session start to this
 		startGamesPlayed, startExperience := getProgressStats(sessionStart)
-		currentGamesPlayed, currentExperience := getProgressStats(&stat)
+		currentGamesPlayed, currentExperience := getProgressStats(stat)
 		if currentGamesPlayed == startGamesPlayed && currentExperience == startExperience {
-			sessionStart = &stat
-			lastEventfulEntry = &stat
+			sessionStartIndex = i
 			lastEventfulIndex = i
 			continue
 		}
@@ -453,10 +453,10 @@ func computeSessions(stats []PlayerDataPIT, start, end time.Time) []Session {
 		// If more than 60 minutes since last activity, end session
 		if stat.QueriedAt.Sub(lastEventfulEntry.QueriedAt) > 60*time.Minute {
 			// Only return sessions with at least 2 entries
-			if lastEventfulEntry != sessionStart &&
+			if lastEventfulIndex != sessionStartIndex &&
 				// Only return sessions that overlap with the requested interval
 				!sessionStart.QueriedAt.After(end) && !lastEventfulEntry.QueriedAt.Before(start) {
-				sessions = append(sessions, Session{*sessionStart, *lastEventfulEntry})
+				sessions = append(sessions, Session{sessionStart, lastEventfulEntry})
 			}
 			// Jump back to right after the last eventful entry (loop adds one)
 			// This makes sure we include any non-eventful trailing entries, as they could
@@ -464,23 +464,26 @@ func computeSessions(stats []PlayerDataPIT, start, end time.Time) []Session {
 			// E.g. 1, 2, 3, 4, 4, 4, 5, 6, 7 - we don't want to skip over all the 4s and do
 			// 1-4, 5-7, we want 1-4, 4-7
 			i = lastEventfulIndex
-			sessionStart = nil
-			lastEventfulEntry = nil
+			sessionStartIndex = -1
+			lastEventfulIndex = -1
 			continue
 		}
 
 		lastEventfulGamesPlayed, lastEventfulExperience := getProgressStats(lastEventfulEntry)
 		if lastEventfulGamesPlayed != currentGamesPlayed || lastEventfulExperience != currentExperience {
-			lastEventfulEntry = &stat
 			lastEventfulIndex = i
 		}
 	}
 
+	// Add the last session if it was not added by the loop due to inactivity
+	sessionStart := stats[sessionStartIndex]
+	lastEventfulEntry := stats[lastEventfulIndex]
+
 	// Only return sessions with at least 2 entries
-	if lastEventfulEntry != sessionStart &&
+	if lastEventfulIndex != sessionStartIndex &&
 		// Only return sessions that overlap with the requested interval
 		sessionStart.QueriedAt.After(start) && lastEventfulEntry.QueriedAt.Before(end) {
-		sessions = append(sessions, Session{*sessionStart, *lastEventfulEntry})
+		sessions = append(sessions, Session{sessionStart, lastEventfulEntry})
 	}
 
 	return sessions
