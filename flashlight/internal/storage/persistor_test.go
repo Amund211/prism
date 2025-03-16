@@ -937,5 +937,148 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			}
 			requireEqualSessions(t, expectedSessions, sessions)
 		})
+
+		t.Run("sessions before and after", func(t *testing.T) {
+			t.Parallel()
+			p := newPostgresPersistor(t, db, "get_sessions_before_and_after")
+			player_uuid := newUUID(t)
+			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*2))
+
+			instructions := make([]storageInstruction, 8)
+			instructions[0] = storageInstruction{player_uuid, start.Add(-25 * time.Hour).Add(5 * time.Minute), newPlayer(player_uuid, 16, 9_200)}
+			instructions[1] = storageInstruction{player_uuid, start.Add(-25 * time.Hour).Add(30 * time.Minute), newPlayer(player_uuid, 17, 9_400)}
+
+			instructions[2] = storageInstruction{player_uuid, start.Add(-16 * time.Hour).Add(5 * time.Minute), newPlayer(player_uuid, 17, 9_400)}
+			instructions[3] = storageInstruction{player_uuid, start.Add(-16 * time.Hour).Add(30 * time.Minute), newPlayer(player_uuid, 18, 9_900)}
+
+			instructions[4] = storageInstruction{player_uuid, start.Add(25 * time.Hour).Add(5 * time.Minute), newPlayer(player_uuid, 18, 9_900)}
+			instructions[5] = storageInstruction{player_uuid, start.Add(25 * time.Hour).Add(30 * time.Minute), newPlayer(player_uuid, 19, 10_900)}
+
+			instructions[6] = storageInstruction{player_uuid, start.Add(45 * time.Hour).Add(5 * time.Minute), newPlayer(player_uuid, 19, 10_900)}
+			instructions[7] = storageInstruction{player_uuid, start.Add(45 * time.Hour).Add(30 * time.Minute), newPlayer(player_uuid, 20, 11_900)}
+
+			storeStats(t, p, instructions...)
+
+			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
+			require.NoError(t, err)
+
+			expectedSessions := []Session{}
+			requireEqualSessions(t, expectedSessions, sessions)
+		})
+
+		t.Run("only xp change", func(t *testing.T) {
+			t.Parallel()
+			p := newPostgresPersistor(t, db, "get_sessions_only_xp_change")
+			player_uuid := newUUID(t)
+			start := time.Date(2024, time.March, 24, 17, 37, 14, 987_654_321, time.FixedZone("UTC", 3600*9))
+
+			instructions := make([]storageInstruction, 4)
+			// Session 1
+			instructions[0] = storageInstruction{player_uuid, start.Add(1 * time.Hour).Add(5 * time.Minute), newPlayer(player_uuid, 16, 9_200)}
+			instructions[1] = storageInstruction{player_uuid, start.Add(1 * time.Hour).Add(30 * time.Minute), newPlayer(player_uuid, 16, 9_400)}
+			// Session 2
+			instructions[2] = storageInstruction{player_uuid, start.Add(1 * time.Hour).Add(45 * time.Minute), newPlayer(player_uuid, 16, 9_400)}
+			instructions[3] = storageInstruction{player_uuid, start.Add(2 * time.Hour).Add(31 * time.Minute), newPlayer(player_uuid, 16, 10_800)}
+
+			playerData := storeStats(t, p, instructions...)
+
+			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
+			require.NoError(t, err)
+
+			expectedSessions := []Session{
+				{
+					Start: playerData[0],
+					End:   playerData[1],
+				},
+				{
+					Start: playerData[2],
+					End:   playerData[3],
+				},
+			}
+			requireEqualSessions(t, expectedSessions, sessions)
+		})
+
+		t.Run("only games played change", func(t *testing.T) {
+			t.Parallel()
+			p := newPostgresPersistor(t, db, "get_sessions_only_games_played_change")
+			player_uuid := newUUID(t)
+			start := time.Date(2024, time.August, 2, 1, 47, 34, 987_654_321, time.FixedZone("UTC", 3600*3))
+
+			instructions := make([]storageInstruction, 4)
+			// Session 1
+			instructions[0] = storageInstruction{player_uuid, start.Add(1 * time.Hour).Add(5 * time.Minute), newPlayer(player_uuid, 16, 9_200)}
+			instructions[1] = storageInstruction{player_uuid, start.Add(1 * time.Hour).Add(30 * time.Minute), newPlayer(player_uuid, 17, 9_200)}
+			// Session 2
+			instructions[2] = storageInstruction{player_uuid, start.Add(1 * time.Hour).Add(45 * time.Minute), newPlayer(player_uuid, 17, 9_200)}
+			instructions[3] = storageInstruction{player_uuid, start.Add(2 * time.Hour).Add(31 * time.Minute), newPlayer(player_uuid, 18, 9_200)}
+
+			playerData := storeStats(t, p, instructions...)
+
+			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
+			require.NoError(t, err)
+
+			expectedSessions := []Session{
+				{
+					Start: playerData[0],
+					End:   playerData[1],
+				},
+				{
+					Start: playerData[2],
+					End:   playerData[3],
+				},
+			}
+			requireEqualSessions(t, expectedSessions, sessions)
+		})
+
+		t.Run("gaps in sessions", func(t *testing.T) {
+			t.Parallel()
+			p := newPostgresPersistor(t, db, "get_sessions_gaps_in_sessions")
+			player_uuid := newUUID(t)
+			start := time.Date(2022, time.November, 2, 13, 47, 34, 987_654_321, time.FixedZone("UTC", 3600*3))
+
+			// Players not using the overlay, but getting queued by players using the overlay will have sporadic stat distributions
+			// Their actual session may be split into multiple single stat entries, some of which may be
+			// close enough together to be considered a single session. This can result in one actual session
+			// turning into mulitple calculated sessions.
+			instructions := make([]storageInstruction, 10)
+
+			instructions[0] = storageInstruction{player_uuid, start.Add(1 * time.Hour).Add(5 * time.Minute), newPlayer(player_uuid, 16, 9_200)}
+			instructions[1] = storageInstruction{player_uuid, start.Add(1 * time.Hour).Add(30 * time.Minute), newPlayer(player_uuid, 17, 9_200)}
+
+			instructions[2] = storageInstruction{player_uuid, start.Add(3 * time.Hour).Add(45 * time.Minute), newPlayer(player_uuid, 20, 15_200)}
+
+			instructions[3] = storageInstruction{player_uuid, start.Add(5 * time.Hour).Add(45 * time.Minute), newPlayer(player_uuid, 23, 17_200)}
+
+			instructions[4] = storageInstruction{player_uuid, start.Add(7 * time.Hour).Add(45 * time.Minute), newPlayer(player_uuid, 27, 19_200)}
+			instructions[5] = storageInstruction{player_uuid, start.Add(7 * time.Hour).Add(55 * time.Minute), newPlayer(player_uuid, 28, 19_800)}
+
+			instructions[6] = storageInstruction{player_uuid, start.Add(9 * time.Hour).Add(15 * time.Minute), newPlayer(player_uuid, 30, 20_800)}
+			instructions[7] = storageInstruction{player_uuid, start.Add(9 * time.Hour).Add(55 * time.Minute), newPlayer(player_uuid, 33, 23_800)}
+
+			instructions[8] = storageInstruction{player_uuid, start.Add(11 * time.Hour).Add(15 * time.Minute), newPlayer(player_uuid, 35, 28_800)}
+
+			instructions[9] = storageInstruction{player_uuid, start.Add(17 * time.Hour).Add(15 * time.Minute), newPlayer(player_uuid, 44, 38_800)}
+
+			playerData := storeStats(t, p, instructions...)
+
+			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
+			require.NoError(t, err)
+
+			expectedSessions := []Session{
+				{
+					Start: playerData[0],
+					End:   playerData[1],
+				},
+				{
+					Start: playerData[4],
+					End:   playerData[5],
+				},
+				{
+					Start: playerData[6],
+					End:   playerData[7],
+				},
+			}
+			requireEqualSessions(t, expectedSessions, sessions)
+		})
 	})
 }
