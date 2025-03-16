@@ -1080,5 +1080,30 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			}
 			requireEqualSessions(t, expectedSessions, sessions)
 		})
+
+		t.Run("end", func(t *testing.T) {
+			t.Parallel()
+			p := newPostgresPersistor(t, db, "end")
+			player_uuid := newUUID(t)
+			start := time.Date(2025, time.December, 9, 14, 13, 34, 987_654_321, time.FixedZone("UTC", 3600*0))
+
+			instructions := make([]storageInstruction, 3)
+			instructions[0] = storageInstruction{player_uuid, start.Add(23 * time.Hour).Add(5 * time.Minute), newPlayer(player_uuid, 16, 9_200)}
+			instructions[1] = storageInstruction{player_uuid, start.Add(23 * time.Hour).Add(40 * time.Minute), newPlayer(player_uuid, 17, 9_500)}
+			instructions[2] = storageInstruction{player_uuid, start.Add(24 * time.Hour).Add(05 * time.Minute), newPlayer(player_uuid, 18, 9_900)}
+
+			playerData := storeStats(t, p, instructions...)
+
+			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
+			require.NoError(t, err)
+
+			expectedSessions := []Session{
+				{
+					Start: playerData[0],
+					End:   playerData[2],
+				},
+			}
+			requireEqualSessions(t, expectedSessions, sessions)
+		})
 	})
 }
