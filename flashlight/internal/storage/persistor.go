@@ -431,10 +431,14 @@ func computeSessions(stats []PlayerDataPIT, start, end time.Time) []Session {
 	sessionStartIndex := -1
 
 	for i := 0; i < len(stats); i++ {
-		if sessionStartIndex == -1 || lastEventfulIndex == -1 {
+		if sessionStartIndex == -1 {
 			sessionStartIndex = i
 			lastEventfulIndex = i
 			continue
+		}
+
+		if lastEventfulIndex == -1 {
+			panic("lastEventfulIndex is -1")
 		}
 
 		stat := stats[i]
