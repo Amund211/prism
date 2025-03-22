@@ -1101,24 +1101,19 @@ function RouteComponent() {
                                 alignItems="center"
                                 justifyContent="space-between"
                             >
-                                <Typography variant="subtitle2">
-                                    {username === undefined ? (
-                                        <Stack
-                                            direction="row"
-                                            alignItems="center"
-                                        >
-                                            <Skeleton
-                                                variant="rounded"
-                                                width={100}
-                                            />
-                                            <Typography variant="subtitle2">
-                                                {`'s monthly ${getFullStatLabel(stat)}`}
-                                            </Typography>
-                                        </Stack>
-                                    ) : (
-                                        <Typography variant="subtitle2">{`${username}'s monthly ${getFullStatLabel(stat)}`}</Typography>
-                                    )}
-                                </Typography>
+                                {username === undefined ? (
+                                    <Stack direction="row" alignItems="center">
+                                        <Skeleton
+                                            variant="rounded"
+                                            width={100}
+                                        />
+                                        <Typography variant="subtitle2">
+                                            {`'s monthly ${getFullStatLabel(stat)}`}
+                                        </Typography>
+                                    </Stack>
+                                ) : (
+                                    <Typography variant="subtitle2">{`${username}'s monthly ${getFullStatLabel(stat)}`}</Typography>
+                                )}
                                 <Tooltip title="Show in history explorer">
                                     <RouterLinkIconButton
                                         size="small"
