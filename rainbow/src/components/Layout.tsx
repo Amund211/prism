@@ -70,9 +70,20 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                         direction="row"
                         spacing={2}
                         alignItems="center"
-                        justifyContent="flex-end"
+                        justifyContent="space-between"
                         width="100%"
                     >
+                        {/*TODO: Link to "home"*/}
+                        <Stack direction="row" gap={1} alignItems="center">
+                            <img
+                                src="/who.png"
+                                alt="Prism Overlay logo"
+                                width="40"
+                            />
+                            <Typography variant="h6" color="textPrimary">
+                                Prism Overlay
+                            </Typography>
+                        </Stack>
                         <IconButton onClick={handleClickMenu}>
                             {menuOpen ? <MenuOpen /> : <MenuIcon />}
                         </IconButton>
@@ -148,7 +159,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                 {/*TODO: Link to "home"*/}
                 <Stack
                     direction="row"
-                    padding={1.5}
+                    paddingY={1.5}
+                    paddingX={3}
                     gap={1}
                     alignItems="center"
                 >
