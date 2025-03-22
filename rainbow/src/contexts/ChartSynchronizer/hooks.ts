@@ -1,7 +1,7 @@
 import { ChartData } from "#charts/history/data.ts";
 import { DataKey } from "#charts/history/dataKeys.ts";
 import React from "react";
-import { ChartSynchronizerContext } from "./context";
+import { ChartSynchronizerContext } from "./context.ts";
 
 export const useSynchronizeCharts = (
     chartData: ChartData,

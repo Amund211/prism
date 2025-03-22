@@ -1,5 +1,5 @@
 import React from "react";
-import { ChartSynchronizerContext } from "./context";
+import { ChartSynchronizerContext } from "./context.ts";
 
 export const ChartSynchronizerProvider: React.FC<{
     children: React.ReactNode;

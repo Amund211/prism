@@ -1,9 +1,9 @@
 import { type TimeInterval } from "#intervals.ts";
 import { type History } from "#queries/history.ts";
 import { type PlayerDataPIT } from "#queries/playerdata.ts";
-import { getStat } from ".";
-import { type GamemodeKey, type StatKey } from "./keys";
-import { PRESTIGE_EXP } from "./stars";
+import { getStat } from "./index.ts";
+import { type GamemodeKey, type StatKey } from "./keys.ts";
+import { PRESTIGE_EXP } from "./stars.ts";
 
 interface BaseStatProgression {
     trackingDataTimeInterval: TimeInterval;
