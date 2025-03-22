@@ -1,8 +1,8 @@
 import { CssBaseline } from "@mui/material";
-import { QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
-import { queryClient } from "#queryClient.ts";
+import { maxAge, persister, queryClient } from "#queryClient.ts";
 import { routeTree } from "./routeTree.gen.ts";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 
 // Create a new router instance
 const router = createRouter({ routeTree, defaultPreload: "intent" });
@@ -16,10 +16,16 @@ declare module "@tanstack/react-router" {
 
 function App() {
     return (
-        <QueryClientProvider client={queryClient}>
+        <PersistQueryClientProvider
+            client={queryClient}
+            persistOptions={{
+                persister,
+                maxAge,
+            }}
+        >
             <CssBaseline />
             <RouterProvider router={router} />
-        </QueryClientProvider>
+        </PersistQueryClientProvider>
     );
 }
 
