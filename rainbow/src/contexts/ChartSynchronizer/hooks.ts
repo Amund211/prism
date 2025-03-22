@@ -12,18 +12,17 @@ export const useSynchronizeCharts = (
     const { synchronized, yMax, onYMaxChange } = React.use(
         ChartSynchronizerContext,
     );
-    const [lastDataMax, setLastDataMax] = React.useState<number | undefined>();
-
-    if (!synchronized) {
-        return { synchronized: false };
-    }
-
     const dataMax = chartData.reduce((max, data) => {
         return Math.max(max, data[dataKey] ?? 0);
     }, 0);
-    if (lastDataMax !== dataMax) {
-        setLastDataMax(dataMax);
-        onYMaxChange(dataMax);
+
+    React.useEffect(() => {
+        // Make sure to call this in an effect so we don't get set the state of a parent during render
+        onYMaxChange?.(dataMax);
+    }, [dataMax, onYMaxChange]);
+
+    if (!synchronized) {
+        return { synchronized: false };
     }
 
     return { synchronized: true, yMax };
