@@ -1,4 +1,5 @@
-import { type History, type PlayerDataPIT } from "#queries/history.ts";
+import { type History } from "#queries/history.ts";
+import { type PlayerDataPIT } from "#queries/playerdata.ts";
 import { type GamemodeKey, type StatKey, type VariantKey } from "./keys.ts";
 import { bedwarsLevelFromExp } from "./stars.ts";
 

@@ -1,59 +1,12 @@
 import { queryOptions } from "@tanstack/react-query";
 import { env } from "#env.ts";
-
-interface APIStatsPIT {
-    winstreak: number | null;
-    gamesPlayed: number | null;
-    wins: number | null;
-    losses: number | null;
-    bedsBroken: number | null;
-    bedsLost: number | null;
-    finalKills: number | null;
-    finalDeaths: number | null;
-    kills: number | null;
-    deaths: number | null;
-}
-
-interface APIPlayerDataPIT {
-    id: string;
-    dataFormatVersion: number;
-    uuid: string;
-    queriedAt: string;
-    experience: number | null;
-    solo: APIStatsPIT;
-    doubles: APIStatsPIT;
-    threes: APIStatsPIT;
-    fours: APIStatsPIT;
-    overall: APIStatsPIT;
-}
+import {
+    apiToPlayerDataPIT,
+    type APIPlayerDataPIT,
+    type PlayerDataPIT,
+} from "./playerdata.ts";
 
 type APIHistory = readonly APIPlayerDataPIT[];
-
-interface StatsPIT {
-    winstreak: number | null;
-    gamesPlayed: number | null;
-    wins: number | null;
-    losses: number | null;
-    bedsBroken: number | null;
-    bedsLost: number | null;
-    finalKills: number | null;
-    finalDeaths: number | null;
-    kills: number | null;
-    deaths: number | null;
-}
-
-export interface PlayerDataPIT {
-    id: string;
-    dataFormatVersion: number;
-    uuid: string;
-    queriedAt: Date;
-    experience: number | null;
-    solo: StatsPIT;
-    doubles: StatsPIT;
-    threes: StatsPIT;
-    fours: StatsPIT;
-    overall: StatsPIT;
-}
 
 export type History = readonly PlayerDataPIT[];
 
@@ -102,18 +55,7 @@ export const getHistoryQueryOptions = ({
 
             return apiHistory
                 .filter(({ dataFormatVersion }) => dataFormatVersion === 1)
-                .map((apiPlayerData) => ({
-                    id: apiPlayerData.id,
-                    dataFormatVersion: apiPlayerData.dataFormatVersion,
-                    uuid: apiPlayerData.uuid,
-                    queriedAt: new Date(apiPlayerData.queriedAt),
-                    experience: apiPlayerData.experience,
-                    solo: apiPlayerData.solo,
-                    doubles: apiPlayerData.doubles,
-                    threes: apiPlayerData.threes,
-                    fours: apiPlayerData.fours,
-                    overall: apiPlayerData.overall,
-                }));
+                .map(apiToPlayerDataPIT);
         },
     });
 };
