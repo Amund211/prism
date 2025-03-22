@@ -12,6 +12,16 @@ const TanStackRouterDevtools =
               })),
           );
 
+const ReactQueryDevtools =
+    import.meta.env.NODE_ENV === "production"
+        ? () => null // Render nothing in production
+        : React.lazy(() =>
+              // Lazy load in development
+              import("@tanstack/react-query-devtools").then((res) => ({
+                  default: res.ReactQueryDevtools,
+              })),
+          );
+
 const RouteComponent: React.FC = () => {
     return (
         <>
@@ -20,6 +30,7 @@ const RouteComponent: React.FC = () => {
             </Layout>
             <Suspense>
                 <TanStackRouterDevtools />
+                <ReactQueryDevtools initialIsOpen={false} />
             </Suspense>
         </>
     );
