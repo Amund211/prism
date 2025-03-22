@@ -255,110 +255,116 @@ const Sessions: React.FC<SessionsProps> = ({
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {sessions.map((session) => {
-                                    const durationHours =
-                                        (session.end.queriedAt.getTime() -
-                                            session.start.queriedAt.getTime()) /
-                                        1000 /
-                                        60 /
-                                        60;
+                                {sessions
+                                    .map((session) => {
+                                        const durationHours =
+                                            (session.end.queriedAt.getTime() -
+                                                session.start.queriedAt.getTime()) /
+                                            1000 /
+                                            60 /
+                                            60;
 
-                                    if (durationHours <= 0) {
-                                        // This should not happen
-                                        // TODO: Report error
-                                        return null;
-                                    }
-
-                                    const renderStat = (stat: StatKey) => {
-                                        const value = computeStat(
-                                            session.end,
-                                            gamemode,
-                                            stat,
-                                            "session",
-                                            [session.start, session.end],
-                                        );
-                                        if (value === null) {
-                                            return "N/A";
+                                        if (durationHours <= 0) {
+                                            // This should not happen
+                                            // TODO: Report error
+                                            return null;
                                         }
 
-                                        if (
-                                            mode === "rate" &&
-                                            isLinearStat(stat)
-                                        ) {
-                                            return (
-                                                value / durationHours
-                                            ).toLocaleString(undefined, {
-                                                minimumFractionDigits: 2,
-                                                maximumFractionDigits: 2,
-                                            });
-                                        }
+                                        const renderStat = (stat: StatKey) => {
+                                            const value = computeStat(
+                                                session.end,
+                                                gamemode,
+                                                stat,
+                                                "session",
+                                                [session.start, session.end],
+                                            );
+                                            if (value === null) {
+                                                return "N/A";
+                                            }
 
-                                        return value.toLocaleString(/*TODO: format based on stat type*/);
-                                    };
+                                            if (
+                                                mode === "rate" &&
+                                                isLinearStat(stat)
+                                            ) {
+                                                return (
+                                                    value / durationHours
+                                                ).toLocaleString(undefined, {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2,
+                                                });
+                                            }
 
-                                    return (
-                                        <TableRow key={session.start.id}>
-                                            <TableCell>
-                                                <Typography variant="body1">
-                                                    {session.start.queriedAt.toLocaleString(
-                                                        undefined,
-                                                        {
-                                                            day: "2-digit",
-                                                            month: "short",
-                                                            year: "numeric",
-                                                            hour: "2-digit",
-                                                            minute: "2-digit",
-                                                        },
-                                                    )}
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                <Typography variant="body1">
-                                                    {renderDuration(
-                                                        session.end.queriedAt,
-                                                        session.start.queriedAt,
-                                                    )}
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                <Typography variant="body1">
-                                                    {renderStat("gamesPlayed")}
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                <Typography variant="body1">
-                                                    {renderStat("wins")}
-                                                </Typography>
-                                            </TableCell>
-                                            {!statAlreadyIncluded(stat) && (
-                                                <TableCell align="right">
+                                            return value.toLocaleString(/*TODO: format based on stat type*/);
+                                        };
+
+                                        return (
+                                            <TableRow key={session.start.id}>
+                                                <TableCell>
                                                     <Typography variant="body1">
-                                                        {renderStat(stat)}
+                                                        {session.start.queriedAt.toLocaleString(
+                                                            undefined,
+                                                            {
+                                                                day: "2-digit",
+                                                                month: "short",
+                                                                year: "numeric",
+                                                                hour: "2-digit",
+                                                                minute: "2-digit",
+                                                            },
+                                                        )}
                                                     </Typography>
                                                 </TableCell>
-                                            )}
-                                            {getRelatedStats(stat)
-                                                .filter(
-                                                    (relatedStat) =>
-                                                        !statAlreadyIncluded(
-                                                            relatedStat,
-                                                        ),
-                                                )
-                                                .map((relatedStat) => (
-                                                    <TableCell
-                                                        align="right"
-                                                        key={relatedStat}
-                                                    >
+                                                <TableCell align="right">
+                                                    <Typography variant="body1">
+                                                        {renderDuration(
+                                                            session.end
+                                                                .queriedAt,
+                                                            session.start
+                                                                .queriedAt,
+                                                        )}
+                                                    </Typography>
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    <Typography variant="body1">
+                                                        {renderStat(
+                                                            "gamesPlayed",
+                                                        )}
+                                                    </Typography>
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    <Typography variant="body1">
+                                                        {renderStat("wins")}
+                                                    </Typography>
+                                                </TableCell>
+                                                {!statAlreadyIncluded(stat) && (
+                                                    <TableCell align="right">
                                                         <Typography variant="body1">
-                                                            {renderStat(
-                                                                relatedStat,
-                                                            )}
+                                                            {renderStat(stat)}
                                                         </Typography>
                                                     </TableCell>
-                                                ))}
-                                        </TableRow>
-                                    );
-                                })}
+                                                )}
+                                                {getRelatedStats(stat)
+                                                    .filter(
+                                                        (relatedStat) =>
+                                                            !statAlreadyIncluded(
+                                                                relatedStat,
+                                                            ),
+                                                    )
+                                                    .map((relatedStat) => (
+                                                        <TableCell
+                                                            align="right"
+                                                            key={relatedStat}
+                                                        >
+                                                            <Typography variant="body1">
+                                                                {renderStat(
+                                                                    relatedStat,
+                                                                )}
+                                                            </Typography>
+                                                        </TableCell>
+                                                    ))}
+                                            </TableRow>
+                                        );
+                                    })
+                                    .reverse()}
                             </TableBody>
                         </Table>
                     </TableContainer>
