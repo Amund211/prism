@@ -142,8 +142,11 @@ const Sessions: React.FC<SessionsProps> = ({
                 exclusive
                 size="small"
                 value={mode}
-                onChange={(_, newMode) => {
-                    setMode(newMode as "total" | "rate");
+                onChange={(_, newMode: "total" | "rate" | null) => {
+                    if (newMode === null) {
+                        return;
+                    }
+                    setMode(newMode);
                 }}
             >
                 <ToggleButton value="total">Total</ToggleButton>
@@ -1137,14 +1140,21 @@ function RouteComponent() {
                                 exclusive
                                 size="small"
                                 value={variantSelection}
-                                onChange={(_, newSelection) => {
+                                onChange={(
+                                    _,
+                                    newSelection:
+                                        | "overall"
+                                        | "session"
+                                        | "both"
+                                        | null,
+                                ) => {
+                                    if (newSelection === null) {
+                                        return;
+                                    }
                                     navigate({
                                         search: (oldSearch) => ({
                                             ...oldSearch,
-                                            variantSelection: newSelection as
-                                                | "overall"
-                                                | "session"
-                                                | "both",
+                                            variantSelection: newSelection,
                                         }),
                                     }).catch((error: unknown) => {
                                         // TODO: Handle error
