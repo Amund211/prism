@@ -4,6 +4,7 @@ import { UserSearch } from "#components/UserSearch.tsx";
 import { ChartSynchronizerProvider } from "#contexts/ChartSynchronizer/provider.tsx";
 import { TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
+import { getSessionsQueryOptions } from "#queries/sessions.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
 import { computeStat } from "#stats/index.ts";
 import {
@@ -38,6 +39,12 @@ import {
     Skeleton,
     Stack,
     SvgIconOwnProps,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
     ToggleButton,
     ToggleButtonGroup,
     Tooltip,
@@ -58,6 +65,305 @@ export const Route = createLazyFileRoute("/session")({
 const route = getRouteApi("/session");
 
 const RouterLinkIconButton = createLink(IconButton);
+
+interface SessionsProps {
+    uuid: string;
+    gamemode: GamemodeKey;
+    stat: StatKey;
+    start: Date;
+    end: Date;
+}
+
+const renderDuration = (end: Date, start: Date) => {
+    const duration = end.getTime() - start.getTime();
+    const hours = Math.floor(duration / (1000 * 60 * 60));
+    const minutes = Math.floor(
+        (duration % (1000 * 60 * 60)) / (1000 * 60),
+    ).toLocaleString();
+    const paddedMinutes = minutes.length === 1 ? `0${minutes}` : minutes;
+    return hours
+        ? `${hours.toLocaleString()}h ${paddedMinutes}m`
+        : `${paddedMinutes}m`;
+};
+
+const isLinearStat = (stat: StatKey) => {
+    return !["fkdr", "kdr", "index"].includes(stat);
+};
+
+const getRelatedStats = (stat: StatKey): StatKey[] => {
+    switch (stat) {
+        case "fkdr":
+            return ["finalKills", "finalDeaths"];
+        case "kdr":
+            return ["kills", "deaths"];
+        case "index":
+            return ["finalKills", "finalDeaths", "stars"];
+        default:
+            return [];
+    }
+};
+
+const Sessions: React.FC<SessionsProps> = ({
+    uuid,
+    gamemode,
+    stat,
+    start,
+    end,
+}) => {
+    const { data: sessions } = useQuery(
+        getSessionsQueryOptions({
+            uuid,
+            start,
+            end,
+        }),
+    );
+
+    const [mode, setMode] = React.useState<"total" | "rate">("total");
+
+    const header = (
+        <Stack
+            direction="row"
+            gap={1}
+            alignItems="center"
+            justifyContent="space-between"
+        >
+            <Stack
+                direction="row"
+                gap={1}
+                alignItems="center"
+                justifyContent="space-between"
+            >
+                <Typography variant="subtitle2">Sessions</Typography>
+                <Tooltip title="Sessions are automatically recorded when using the Prism ovelay. Users who have disabled 'Online Game Stats' in the settings, or are not using the Prism overlay may have weird or missing sessions.">
+                    <InfoOutlined fontSize="small" />
+                </Tooltip>
+            </Stack>
+            <ToggleButtonGroup
+                exclusive
+                size="small"
+                value={mode}
+                onChange={(_, newMode) => {
+                    setMode(newMode as "total" | "rate");
+                }}
+            >
+                <ToggleButton value="total">Total</ToggleButton>
+                <ToggleButton value="rate">Rate (/hour)</ToggleButton>
+            </ToggleButtonGroup>
+        </Stack>
+    );
+
+    if (sessions === undefined) {
+        return (
+            <Card
+                variant="outlined"
+                sx={{ height: "100%", flexGrow: 1, overflow: "scroll" }}
+            >
+                <CardContent>
+                    {header}
+                    <Skeleton variant="rounded" height={120} sx={{ mt: 2 }} />
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (sessions.length === 0) {
+        return (
+            <Card
+                variant="outlined"
+                sx={{ height: "100%", flexGrow: 1, overflow: "scroll" }}
+            >
+                <CardContent>
+                    {header}
+                    <Stack direction="row" gap={0.5} alignItems="center">
+                        <Info color="error" fontSize="small" />
+                        <Typography variant="body1">
+                            No sessions found
+                        </Typography>
+                    </Stack>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    const labelSuffix = mode === "rate" ? "/hour" : "";
+
+    const statAlreadyIncluded = (stat: StatKey) =>
+        ["gamesPlayed", "wins"].includes(stat);
+
+    return (
+        <Card
+            variant="outlined"
+            sx={{ height: "100%", flexGrow: 1, overflow: "scroll" }}
+        >
+            <CardContent>
+                <Stack gap={1}>
+                    {header}
+                    <TableContainer>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>
+                                        <Typography variant="subtitle2">
+                                            Start
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell align="right">
+                                        <Typography variant="subtitle2">
+                                            Duration
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell align="right">
+                                        <Typography variant="subtitle2">
+                                            {`${getShortStatLabel(
+                                                "gamesPlayed",
+                                                true,
+                                            )}${labelSuffix}`}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell align="right">
+                                        <Typography variant="subtitle2">
+                                            {`${getShortStatLabel("wins", true)}${labelSuffix}`}
+                                        </Typography>
+                                    </TableCell>
+                                    {!statAlreadyIncluded(stat) && (
+                                        <TableCell align="right">
+                                            <Typography variant="subtitle2">
+                                                {`${getShortStatLabel(stat, true)}${isLinearStat(stat) ? labelSuffix : ""}`}
+                                            </Typography>
+                                        </TableCell>
+                                    )}
+                                    {getRelatedStats(stat)
+                                        .filter(
+                                            (relatedStat) =>
+                                                !statAlreadyIncluded(
+                                                    relatedStat,
+                                                ),
+                                        )
+                                        .map((relatedStat) => (
+                                            <TableCell
+                                                align="right"
+                                                key={relatedStat}
+                                            >
+                                                <Typography variant="subtitle2">
+                                                    {`${getShortStatLabel(relatedStat, true)}${isLinearStat(relatedStat) ? labelSuffix : ""}`}
+                                                </Typography>
+                                            </TableCell>
+                                        ))}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {sessions.map((session) => {
+                                    const durationHours =
+                                        (session.end.queriedAt.getTime() -
+                                            session.start.queriedAt.getTime()) /
+                                        1000 /
+                                        60 /
+                                        60;
+
+                                    if (durationHours <= 0) {
+                                        // This should not happen
+                                        // TODO: Report error
+                                        return null;
+                                    }
+
+                                    const renderStat = (stat: StatKey) => {
+                                        const value = computeStat(
+                                            session.end,
+                                            gamemode,
+                                            stat,
+                                            "session",
+                                            [session.start, session.end],
+                                        );
+                                        if (value === null) {
+                                            return "N/A";
+                                        }
+
+                                        if (
+                                            mode === "rate" &&
+                                            isLinearStat(stat)
+                                        ) {
+                                            return (
+                                                value / durationHours
+                                            ).toLocaleString(undefined, {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2,
+                                            });
+                                        }
+
+                                        return value.toLocaleString(/*TODO: format based on stat type*/);
+                                    };
+
+                                    return (
+                                        <TableRow key={session.start.id}>
+                                            <TableCell>
+                                                <Typography variant="body1">
+                                                    {session.start.queriedAt.toLocaleString(
+                                                        undefined,
+                                                        {
+                                                            day: "2-digit",
+                                                            month: "short",
+                                                            year: "numeric",
+                                                            hour: "2-digit",
+                                                            minute: "2-digit",
+                                                        },
+                                                    )}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                <Typography variant="body1">
+                                                    {renderDuration(
+                                                        session.end.queriedAt,
+                                                        session.start.queriedAt,
+                                                    )}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                <Typography variant="body1">
+                                                    {renderStat("gamesPlayed")}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                <Typography variant="body1">
+                                                    {renderStat("wins")}
+                                                </Typography>
+                                            </TableCell>
+                                            {!statAlreadyIncluded(stat) && (
+                                                <TableCell align="right">
+                                                    <Typography variant="body1">
+                                                        {renderStat(stat)}
+                                                    </Typography>
+                                                </TableCell>
+                                            )}
+                                            {getRelatedStats(stat)
+                                                .filter(
+                                                    (relatedStat) =>
+                                                        !statAlreadyIncluded(
+                                                            relatedStat,
+                                                        ),
+                                                )
+                                                .map((relatedStat) => (
+                                                    <TableCell
+                                                        align="right"
+                                                        key={relatedStat}
+                                                    >
+                                                        <Typography variant="body1">
+                                                            {renderStat(
+                                                                relatedStat,
+                                                            )}
+                                                        </Typography>
+                                                    </TableCell>
+                                                ))}
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Stack>
+            </CardContent>
+        </Card>
+    );
+};
 
 interface SessionStatCardProps {
     uuid: string;
@@ -771,6 +1077,15 @@ function RouteComponent() {
                 gamemode={gamemode}
                 stat={stat}
             />
+            <Box>
+                <Sessions
+                    uuid={uuid}
+                    gamemode={gamemode}
+                    stat={stat}
+                    start={month.start}
+                    end={month.end}
+                />
+            </Box>
             <Box>
                 <Card variant="outlined">
                     <CardContent>
