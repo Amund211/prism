@@ -50,14 +50,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                 display: "flex",
                 height: {
                     xs: `calc(100% - ${APP_BAR_HEIGHT_PX})`,
-                    md: "100%",
+                    lg: "100%",
                 },
             }}
         >
             <AppBar
                 position="fixed"
                 sx={{
-                    display: { xs: "auto", md: "none" },
+                    display: { xs: "auto", lg: "none" },
                     boxShadow: 0,
                     bgcolor: "background.paper",
                     borderBottom: "1px solid",
@@ -137,7 +137,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                     flexShrink: 0,
                     boxSizing: "border-box",
                     mt: 10,
-                    display: { xs: "none", md: "block" },
+                    display: { xs: "none", lg: "block" },
                     [`& .${drawerClasses.paper}`]: {
                         backgroundColor: "background.paper",
                         width: 240,
@@ -209,7 +209,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
             <Stack
                 component="main"
                 sx={{
-                    marginTop: { xs: APP_BAR_HEIGHT_PX, md: 0 },
+                    marginTop: { xs: APP_BAR_HEIGHT_PX, lg: 0 },
                     width: "100%",
                     height: "100%",
                 }}
