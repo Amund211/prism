@@ -12,10 +12,10 @@ import { createFileRoute } from '@tanstack/react-router'
 
 // Import Routes
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as SessionImport } from './routes/session'
-import { Route as IndexImport } from './routes/index'
-import { Route as HistoryCompareImport } from './routes/history.compare'
+import { Route as rootRoute } from './routes/__root.tsx'
+import { Route as SessionImport } from './routes/session.tsx'
+import { Route as IndexImport } from './routes/index.tsx'
+import { Route as HistoryCompareImport } from './routes/history.compare.tsx'
 
 // Create Virtual Routes
 
@@ -27,26 +27,26 @@ const AboutLazyRoute = AboutLazyImport.update({
   id: '/about',
   path: '/about',
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/about.lazy').then((d) => d.Route))
+} as any).lazy(() => import('./routes/about.lazy.tsx').then((d) => d.Route))
 
 const SessionRoute = SessionImport.update({
   id: '/session',
   path: '/session',
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/session.lazy').then((d) => d.Route))
+} as any).lazy(() => import('./routes/session.lazy.tsx').then((d) => d.Route))
 
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
+} as any).lazy(() => import('./routes/index.lazy.tsx').then((d) => d.Route))
 
 const HistoryCompareRoute = HistoryCompareImport.update({
   id: '/history/compare',
   path: '/history/compare',
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
-  import('./routes/history.compare.lazy').then((d) => d.Route),
+  import('./routes/history.compare.lazy.tsx').then((d) => d.Route),
 )
 
 // Populate the FileRoutesByPath interface

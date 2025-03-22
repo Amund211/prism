@@ -8,7 +8,9 @@ import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 export default defineConfig(({ mode }) => {
     return {
         plugins: [
-            TanStackRouterVite(),
+            TanStackRouterVite({
+                addExtensions: true,
+            }),
             react({
                 babel: {
                     plugins: ["babel-plugin-react-compiler"],
