@@ -25,22 +25,30 @@ import {
     TrendingFlat,
     TrendingUp,
     InfoOutlined,
+    QueryStats,
 } from "@mui/icons-material";
 import {
     Box,
     Card,
     CardContent,
     Grid2 as Grid,
+    IconButton,
     MenuItem,
     Select,
     Skeleton,
     Stack,
     SvgIconOwnProps,
+    ToggleButton,
+    ToggleButtonGroup,
     Tooltip,
     Typography,
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
-import { createLazyFileRoute, getRouteApi } from "@tanstack/react-router";
+import {
+    createLazyFileRoute,
+    createLink,
+    getRouteApi,
+} from "@tanstack/react-router";
 import React from "react";
 
 export const Route = createLazyFileRoute("/session")({
@@ -48,6 +56,8 @@ export const Route = createLazyFileRoute("/session")({
 });
 
 const route = getRouteApi("/session");
+
+const RouterLinkIconButton = createLink(IconButton);
 
 interface SessionStatCardProps {
     uuid: string;
@@ -761,51 +771,89 @@ function RouteComponent() {
                 gamemode={gamemode}
                 stat={stat}
             />
-            <Select
-                value={variantSelection}
-                label="Variants"
-                fullWidth
-                onChange={(event) => {
-                    const newSelection = event.target.value as
-                        | "session"
-                        | "overall"
-                        | "both";
-
-                    navigate({
-                        search: (oldSearch) => ({
-                            ...oldSearch,
-                            variantSelection: newSelection,
-                        }),
-                    }).catch((error: unknown) => {
-                        // TODO: Handle error
-                        console.error(
-                            "Failed to update search params: variantSelection",
-                            error,
-                        );
-                    });
-                }}
-            >
-                <MenuItem value="overall">
-                    {getVariantLabel("overall", true)}
-                </MenuItem>
-                <MenuItem value="session">
-                    {getVariantLabel("session", true)}
-                </MenuItem>
-                <MenuItem value="both">Both</MenuItem>
-            </Select>
             <Box>
                 <Card variant="outlined">
                     <CardContent>
-                        {username === undefined ? (
-                            <Stack direction="row" alignItems="center">
-                                <Skeleton variant="rounded" width={100} />
+                        <Stack
+                            direction="row"
+                            gap={1}
+                            alignItems="center"
+                            justifyContent="space-between"
+                        >
+                            <Stack
+                                direction="row"
+                                gap={1}
+                                alignItems="center"
+                                justifyContent="space-between"
+                            >
                                 <Typography variant="subtitle2">
-                                    {`'s monthly ${getFullStatLabel(stat)}`}
+                                    {username === undefined ? (
+                                        <Stack
+                                            direction="row"
+                                            alignItems="center"
+                                        >
+                                            <Skeleton
+                                                variant="rounded"
+                                                width={100}
+                                            />
+                                            <Typography variant="subtitle2">
+                                                {`'s monthly ${getFullStatLabel(stat)}`}
+                                            </Typography>
+                                        </Stack>
+                                    ) : (
+                                        <Typography variant="subtitle2">{`${username}'s monthly ${getFullStatLabel(stat)}`}</Typography>
+                                    )}
                                 </Typography>
+                                <Tooltip title="Show in history explorer">
+                                    <RouterLinkIconButton
+                                        size="small"
+                                        color="primary"
+                                        to="/history/compare"
+                                        search={{
+                                            uuids: [uuid],
+                                            gamemodes: [gamemode],
+                                            stats: [stat],
+                                            variants,
+                                            start: month.start,
+                                            end: month.end,
+                                            limit: 100,
+                                        }}
+                                    >
+                                        <QueryStats />
+                                    </RouterLinkIconButton>
+                                </Tooltip>
                             </Stack>
-                        ) : (
-                            <Typography variant="subtitle2">{`${username}'s monthly ${getFullStatLabel(stat)}`}</Typography>
-                        )}
+                            <ToggleButtonGroup
+                                exclusive
+                                size="small"
+                                value={variantSelection}
+                                onChange={(_, newSelection) => {
+                                    navigate({
+                                        search: (oldSearch) => ({
+                                            ...oldSearch,
+                                            variantSelection: newSelection as
+                                                | "overall"
+                                                | "session"
+                                                | "both",
+                                        }),
+                                    }).catch((error: unknown) => {
+                                        // TODO: Handle error
+                                        console.error(
+                                            "Failed to update search params: variantSelection",
+                                            error,
+                                        );
+                                    });
+                                }}
+                            >
+                                <ToggleButton value="overall">
+                                    {getVariantLabel("overall", true)}
+                                </ToggleButton>
+                                <ToggleButton value="session">
+                                    {getVariantLabel("session", true)}
+                                </ToggleButton>
+                                <ToggleButton value="both">Both</ToggleButton>
+                            </ToggleButtonGroup>
+                        </Stack>
                         <HistoryChart
                             start={month.start}
                             end={month.end}
