@@ -27,7 +27,7 @@ import {
     getGamemodeLabel,
     getVariantLabel,
 } from "#stats/labels.ts";
-import { useTheme } from "@mui/material";
+import { Typography, useTheme } from "@mui/material";
 import { useSynchronizeCharts } from "#contexts/ChartSynchronizer/hooks.ts";
 
 interface HistoryChartProps {
@@ -146,6 +146,45 @@ const renderTimeFull = (time: number): string => {
     });
 };
 
+interface HistoryChartTitleProps {
+    uuids: readonly string[];
+    gamemodes: readonly GamemodeKey[];
+    stats: readonly StatKey[];
+    variants: readonly VariantKey[];
+}
+
+export const HistoryChartTitle: React.FC<HistoryChartTitleProps> = ({
+    uuids,
+    gamemodes,
+    stats,
+    variants,
+}) => {
+    const uuidToUsername = useUUIDToUsername(uuids);
+    return (
+        <Typography variant="h6">
+            {contextAwareStatDisplayName(
+                {
+                    // TODO: Display error state if missing uuid
+                    value: uuidToUsername[uuids[0]] ?? "",
+                    shown: uuids.length === 1,
+                },
+                {
+                    value: stats[0],
+                    shown: stats.length === 1,
+                },
+                {
+                    value: gamemodes[0],
+                    shown: gamemodes.length === 1,
+                },
+                {
+                    value: variants[0],
+                    shown: variants.length === 1,
+                },
+            )}
+            {stats.length > 1 ? " Stats" : ""}
+        </Typography>
+    );
+};
 export const HistoryChart: React.FC<HistoryChartProps> = ({
     start,
     end,
@@ -200,28 +239,6 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
 
     return (
         <>
-            <h3>
-                {contextAwareStatDisplayName(
-                    {
-                        // TODO: Display error state if missing uuid
-                        value: uuidToUsername[uuids[0]] ?? "",
-                        shown: uuids.length === 1,
-                    },
-                    {
-                        value: stats[0],
-                        shown: stats.length === 1,
-                    },
-                    {
-                        value: gamemodes[0],
-                        shown: gamemodes.length === 1,
-                    },
-                    {
-                        value: variants[0],
-                        shown: variants.length === 1,
-                    },
-                )}
-                {stats.length > 1 ? " Stats" : ""}
-            </h3>
             <ResponsiveContainer minHeight={300} maxHeight={300} minWidth={100}>
                 <LineChart
                     width={500}

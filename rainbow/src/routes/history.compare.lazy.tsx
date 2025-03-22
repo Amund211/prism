@@ -1,4 +1,4 @@
-import { HistoryChart } from "#charts/history/chart.tsx";
+import { HistoryChart, HistoryChartTitle } from "#charts/history/chart.tsx";
 import {
     ALL_GAMEMODE_KEYS,
     ALL_STAT_KEYS,
@@ -208,6 +208,12 @@ function Index() {
                 />
             </label>
 
+            <HistoryChartTitle
+                uuids={uuids}
+                gamemodes={gamemodes}
+                stats={stats}
+                variants={variants}
+            />
             <HistoryChart
                 start={start}
                 end={end}
