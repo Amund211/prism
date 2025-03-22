@@ -27,6 +27,7 @@ import {
     InfoOutlined,
 } from "@mui/icons-material";
 import {
+    Box,
     Card,
     CardContent,
     Grid2 as Grid,
@@ -606,10 +607,6 @@ function RouteComponent() {
         xs: 6,
         sm: 4,
     };
-    const chartSize = {
-        xs: 12,
-        lg: 6,
-    };
 
     // Stats where we want to show the session value AND the all-time value
     // These are stats where the session and all-time values are usually close
@@ -796,41 +793,31 @@ function RouteComponent() {
                 </MenuItem>
                 <MenuItem value="both">Both</MenuItem>
             </Select>
-            <Grid container spacing={1}>
-                <Grid size={chartSize}>
-                    <HistoryChart
-                        start={day.start}
-                        end={day.end}
-                        uuids={[uuid]}
-                        gamemodes={[gamemode]}
-                        stats={[stat]}
-                        variants={variants}
-                        limit={100}
-                    />
-                </Grid>
-                <Grid size={chartSize}>
-                    <HistoryChart
-                        start={week.start}
-                        end={week.end}
-                        uuids={[uuid]}
-                        gamemodes={[gamemode]}
-                        stats={[stat]}
-                        variants={variants}
-                        limit={100}
-                    />
-                </Grid>
-                <Grid size={chartSize}>
-                    <HistoryChart
-                        start={month.start}
-                        end={month.end}
-                        uuids={[uuid]}
-                        gamemodes={[gamemode]}
-                        stats={[stat]}
-                        variants={variants}
-                        limit={100}
-                    />
-                </Grid>
-            </Grid>
+            <Box>
+                <Card variant="outlined">
+                    <CardContent>
+                        {username === undefined ? (
+                            <Stack direction="row" alignItems="center">
+                                <Skeleton variant="rounded" width={100} />
+                                <Typography variant="subtitle2">
+                                    {`'s monthly ${getFullStatLabel(stat)}`}
+                                </Typography>
+                            </Stack>
+                        ) : (
+                            <Typography variant="subtitle2">{`${username}'s monthly ${getFullStatLabel(stat)}`}</Typography>
+                        )}
+                        <HistoryChart
+                            start={month.start}
+                            end={month.end}
+                            uuids={[uuid]}
+                            gamemodes={[gamemode]}
+                            stats={[stat]}
+                            variants={variants}
+                            limit={100}
+                        />
+                    </CardContent>
+                </Card>
+            </Box>
         </Stack>
     );
 }
