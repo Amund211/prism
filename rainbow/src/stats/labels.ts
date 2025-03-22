@@ -67,7 +67,7 @@ export const getShortStatLabel = (
         case "losses":
             return capitalize ? "Losses" : "losses";
         case "gamesPlayed":
-            return capitalize ? "Games played" : "games played";
+            return capitalize ? "Games" : "games";
         case "kdr":
             return capitalize ? "KDR" : "KDR";
         case "fkdr":
