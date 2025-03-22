@@ -80,7 +80,11 @@ const renderDuration = (end: Date, start: Date) => {
     const minutes = Math.floor(
         (duration % (1000 * 60 * 60)) / (1000 * 60),
     ).toLocaleString();
-    const paddedMinutes = minutes.length === 1 ? `0${minutes}` : minutes;
+
+    // Align the hours with the other rows if this row has hours
+    const paddedMinutes =
+        minutes.length === 1 && hours ? `0${minutes}` : minutes;
+
     return hours
         ? `${hours.toLocaleString()}h ${paddedMinutes}m`
         : `${paddedMinutes}m`;
