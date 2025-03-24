@@ -206,6 +206,7 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
     variants,
     limit,
 }) => {
+    const theme = useTheme();
     const historyQueries = useQueries({
         queries: uuids.map((uuid) =>
             getHistoryQueryOptions({ uuid, start, end, limit }),
@@ -295,6 +296,10 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                     labelFormatter={(time: number) => {
                         return renderTimeFull(time);
                     }}
+                    contentStyle={{
+                        backgroundColor: theme.palette.background.paper,
+                    }}
+                    itemStyle={{ color: theme.palette.text.primary }}
                 />
             </LineChart>
         </ResponsiveContainer>
@@ -429,6 +434,10 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
                         // TODO: Better number formatting
                         return value.toLocaleString();
                     }}
+                    contentStyle={{
+                        backgroundColor: theme.palette.background.paper,
+                    }}
+                    itemStyle={{ color: theme.palette.text.primary }}
                 />
             </AreaChart>
         </ResponsiveContainer>
