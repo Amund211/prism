@@ -24,6 +24,7 @@ import {
 } from "@mui/material";
 import { createLink, useLocation } from "@tanstack/react-router";
 import React from "react";
+import { DarkModeSwitch } from "./DarkModeSwitch.tsx";
 
 const RouterLinkItemButton = createLink(ListItemButton);
 const RouterMenuItem = createLink(MenuItem);
@@ -84,9 +85,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                 Prism Overlay
                             </Typography>
                         </Stack>
-                        <IconButton onClick={handleClickMenu}>
-                            {menuOpen ? <MenuOpen /> : <MenuIcon />}
-                        </IconButton>
+                        <Stack direction="row" gap={1}>
+                            <DarkModeSwitch />
+                            <IconButton onClick={handleClickMenu}>
+                                {menuOpen ? <MenuOpen /> : <MenuIcon />}
+                            </IconButton>
+                        </Stack>
                         <Menu
                             open={menuOpen}
                             anchorEl={anchorEl}
@@ -168,55 +172,67 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                     <Typography variant="h6">Prism Overlay</Typography>
                 </Stack>
                 <Divider />
-                <List dense component="menu">
-                    <ListItem disablePadding>
-                        <RouterLinkItemButton
-                            selected={location.pathname === "/session"}
-                            to="/session"
-                            search={{
-                                uuid: "a937646b-f115-44c3-8dbf-9ae4a65669a0",
-                                timeIntervalDefinition: {
-                                    type: "until",
-                                    date: new Date("2025-01-15T22:30:00+01:00"),
-                                },
-                                gamemode: "overall",
-                                stat: "fkdr",
-                                variantSelection: "both",
-                            }}
-                        >
-                            <ListItemIcon>
-                                <TrendingUp />
-                            </ListItemIcon>
-                            <ListItemText primary="Session stats" />
-                        </RouterLinkItemButton>
-                    </ListItem>
-                    <ListItem disablePadding>
-                        <RouterLinkItemButton
-                            selected={location.pathname === "/history/compare"}
-                            to="/history/compare"
-                            search={{
-                                uuids: [
-                                    "a937646b-f115-44c3-8dbf-9ae4a65669a0", // Skydeath
-                                    "ac04f297-f74c-44de-a24e-0083936ac59a", // USBB
-                                    "062c373b-28de-4ec0-ab2c-0114e59e36ce", // Skydeaf
-                                    "3d58a2de-3831-4a17-a305-67258295f81e", // iCiara
-                                    "6bc1dd0f-f351-4c3d-b6cc-262e55b6e7aa", // HardcoreLizard
-                                ],
-                                start: new Date("2025-01-15T19:55:00+01:00"),
-                                end: new Date("2025-01-15T22:30:00+01:00"),
-                                limit: 100,
-                                stats: ["stars", "finalKills"],
-                                gamemodes: ["overall"],
-                                variantSelection: "session",
-                            }}
-                        >
-                            <ListItemIcon>
-                                <CalendarMonth />
-                            </ListItemIcon>
-                            <ListItemText primary="Compare history" />
-                        </RouterLinkItemButton>
-                    </ListItem>
-                </List>
+                <Stack height="100%" overflow="auto">
+                    <List dense component="menu">
+                        <ListItem disablePadding>
+                            <RouterLinkItemButton
+                                selected={location.pathname === "/session"}
+                                to="/session"
+                                search={{
+                                    uuid: "a937646b-f115-44c3-8dbf-9ae4a65669a0",
+                                    timeIntervalDefinition: {
+                                        type: "until",
+                                        date: new Date(
+                                            "2025-01-15T22:30:00+01:00",
+                                        ),
+                                    },
+                                    gamemode: "overall",
+                                    stat: "fkdr",
+                                    variantSelection: "both",
+                                }}
+                            >
+                                <ListItemIcon>
+                                    <TrendingUp />
+                                </ListItemIcon>
+                                <ListItemText primary="Session stats" />
+                            </RouterLinkItemButton>
+                        </ListItem>
+                        <ListItem disablePadding>
+                            <RouterLinkItemButton
+                                selected={
+                                    location.pathname === "/history/compare"
+                                }
+                                to="/history/compare"
+                                search={{
+                                    uuids: [
+                                        "a937646b-f115-44c3-8dbf-9ae4a65669a0", // Skydeath
+                                        "ac04f297-f74c-44de-a24e-0083936ac59a", // USBB
+                                        "062c373b-28de-4ec0-ab2c-0114e59e36ce", // Skydeaf
+                                        "3d58a2de-3831-4a17-a305-67258295f81e", // iCiara
+                                        "6bc1dd0f-f351-4c3d-b6cc-262e55b6e7aa", // HardcoreLizard
+                                    ],
+                                    start: new Date(
+                                        "2025-01-15T19:55:00+01:00",
+                                    ),
+                                    end: new Date("2025-01-15T22:30:00+01:00"),
+                                    limit: 100,
+                                    stats: ["stars", "finalKills"],
+                                    gamemodes: ["overall"],
+                                    variantSelection: "session",
+                                }}
+                            >
+                                <ListItemIcon>
+                                    <CalendarMonth />
+                                </ListItemIcon>
+                                <ListItemText primary="Compare history" />
+                            </RouterLinkItemButton>
+                        </ListItem>
+                    </List>
+                </Stack>
+                <Divider />
+                <Stack padding={1} justifyContent="center" alignItems="center">
+                    <DarkModeSwitch />
+                </Stack>
             </Drawer>
             <Stack
                 component="main"

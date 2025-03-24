@@ -1,4 +1,4 @@
-import { CssBaseline } from "@mui/material";
+import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { maxAge, persister, queryClient } from "#queryClient.ts";
 import { routeTree } from "./routeTree.gen.ts";
@@ -16,6 +16,12 @@ declare module "@tanstack/react-router" {
     }
 }
 
+const theme = createTheme({
+    colorSchemes: {
+        dark: true,
+    },
+});
+
 function App() {
     return (
         <PersistQueryClientProvider
@@ -26,8 +32,10 @@ function App() {
             }}
         >
             <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <CssBaseline />
-                <RouterProvider router={router} />
+                <ThemeProvider theme={theme} noSsr>
+                    <CssBaseline />
+                    <RouterProvider router={router} />
+                </ThemeProvider>
             </LocalizationProvider>
         </PersistQueryClientProvider>
     );
