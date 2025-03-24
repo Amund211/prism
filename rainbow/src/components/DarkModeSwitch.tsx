@@ -1,5 +1,10 @@
-import { DarkMode, LightMode } from "@mui/icons-material";
-import { ToggleButton, ToggleButtonGroup, useColorScheme } from "@mui/material";
+import { DarkMode, LightMode, SettingsBrightness } from "@mui/icons-material";
+import {
+    ToggleButton,
+    ToggleButtonGroup,
+    Tooltip,
+    useColorScheme,
+} from "@mui/material";
 
 export const DarkModeSwitch: React.FC = () => {
     const { mode, setMode } = useColorScheme();
@@ -14,13 +19,21 @@ export const DarkModeSwitch: React.FC = () => {
                 setMode(newMode);
             }}
         >
-            <ToggleButton value="light">
-                <LightMode />
-            </ToggleButton>
-            <ToggleButton value="system">Auto</ToggleButton>
-            <ToggleButton value="dark">
-                <DarkMode />
-            </ToggleButton>
+            <Tooltip title="Light mode">
+                <ToggleButton value="light">
+                    <LightMode />
+                </ToggleButton>
+            </Tooltip>
+            <Tooltip title="System default">
+                <ToggleButton value="system">
+                    <SettingsBrightness />
+                </ToggleButton>
+            </Tooltip>
+            <Tooltip title="Dark mode">
+                <ToggleButton value="dark">
+                    <DarkMode />
+                </ToggleButton>
+            </Tooltip>
         </ToggleButtonGroup>
     );
 };
