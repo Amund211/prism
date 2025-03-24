@@ -6,6 +6,7 @@ import React from "react";
 
 interface UserSearchProps {
     onSubmit: (uuid: string) => void;
+    placeholder?: string;
     size?: "small" | "medium";
 }
 
@@ -20,6 +21,7 @@ const isUUID = (value: string) => {
 
 export const UserSearch: React.FC<UserSearchProps> = ({
     onSubmit,
+    placeholder = "Search user...",
     size = "small",
 }) => {
     const queryClient = useQueryClient();
@@ -33,7 +35,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
             onChange={(event) => {
                 setSearch(event.currentTarget.value.replace(/\s/g, ""));
             }}
-            placeholder="Search user..."
+            placeholder={placeholder}
             startAdornment={
                 <InputAdornment position="start">
                     {loading ? (

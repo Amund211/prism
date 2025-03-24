@@ -109,6 +109,7 @@ function Index() {
     return (
         <Stack gap={1}>
             <UserSearch
+                placeholder="Add user..."
                 onSubmit={(uuid) => {
                     navigate({
                         search: (oldSearch) => {
@@ -136,7 +137,7 @@ function Index() {
                             <Chip
                                 disabled
                                 variant="outlined"
-                                label="No users selected"
+                                label="No users added"
                             />
                         </span>
                     </Tooltip>
