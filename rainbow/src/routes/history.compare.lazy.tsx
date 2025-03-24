@@ -15,6 +15,7 @@ import {
 import { DateTimePicker } from "@mui/x-date-pickers";
 import {
     Chip,
+    IconButton,
     MenuItem,
     Select,
     Skeleton,
@@ -47,6 +48,7 @@ import {
     startOfWeek,
     startOfYear,
 } from "#intervals.ts";
+import { QueryStats } from "@mui/icons-material";
 
 export const Route = createLazyFileRoute("/history/compare")({
     component: Index,
@@ -55,6 +57,7 @@ export const Route = createLazyFileRoute("/history/compare")({
 const route = getRouteApi("/history/compare");
 
 const RouterLinkChip = createLink(Chip);
+const RouterLinkIconButton = createLink(IconButton);
 
 function Index() {
     const { uuids, stats, gamemodes, variantSelection, start, end, limit } =
@@ -111,6 +114,43 @@ function Index() {
             end: endOfLastYear(now),
         },
     ];
+
+    const badSelectionCount: string[] = [];
+    if (uuids.length !== 1) {
+        badSelectionCount.push("user");
+    }
+    if (stats.length !== 1) {
+        badSelectionCount.push("statistic");
+    }
+    if (gamemodes.length !== 1) {
+        badSelectionCount.push("gamemode");
+    }
+
+    const canGoToSessionPage = badSelectionCount.length === 0;
+
+    let badSelectionCountString = "";
+    switch (badSelectionCount.length) {
+        case 0:
+            break;
+        case 1:
+            badSelectionCountString = badSelectionCount[0];
+            break;
+        case 2:
+            badSelectionCountString = `${badSelectionCount[0]} and ${badSelectionCount[1]}`;
+            break;
+        default:
+            badSelectionCountString = `${badSelectionCount.slice(0, -1).join(", ")}, and ${badSelectionCount[badSelectionCount.length - 1]}`;
+    }
+
+    const goToSessionPageTooltip = canGoToSessionPage
+        ? "Show in session page"
+        : `Select a single ${
+              badSelectionCountString
+          } to enable showing in session page.`;
+
+    const endOfToday = endOfDay(now);
+    const sessionPageEndDate =
+        end.getTime() > endOfToday.getTime() ? endOfToday : end;
 
     return (
         <Stack gap={1}>
@@ -330,12 +370,36 @@ function Index() {
                 alignItems="center"
                 justifyContent="space-between"
             >
-                <HistoryChartTitle
-                    uuids={uuids}
-                    gamemodes={gamemodes}
-                    stats={stats}
-                    variants={variants}
-                />
+                <Stack direction="row" gap={1} alignItems="center">
+                    <HistoryChartTitle
+                        uuids={uuids}
+                        gamemodes={gamemodes}
+                        stats={stats}
+                        variants={variants}
+                    />
+                    <Tooltip title={goToSessionPageTooltip}>
+                        <span>
+                            <RouterLinkIconButton
+                                disabled={!canGoToSessionPage}
+                                size="small"
+                                color="primary"
+                                to="/session"
+                                search={{
+                                    uuid: uuids[0],
+                                    gamemode: gamemodes[0],
+                                    stat: stats[0],
+                                    variantSelection,
+                                    timeIntervalDefinition: {
+                                        type: "until",
+                                        date: sessionPageEndDate,
+                                    },
+                                }}
+                            >
+                                <QueryStats />
+                            </RouterLinkIconButton>
+                        </span>
+                    </Tooltip>
+                </Stack>
                 <ToggleButtonGroup
                     exclusive
                     size="small"
