@@ -12,10 +12,8 @@ import {
     getGamemodeLabel,
     getVariantLabel,
 } from "#stats/labels.ts";
-import { Delete } from "@mui/icons-material";
 import { DateTimePicker } from "@mui/x-date-pickers";
 import {
-    Button,
     Chip,
     MenuItem,
     Select,
@@ -24,7 +22,6 @@ import {
     ToggleButton,
     ToggleButtonGroup,
     Tooltip,
-    Typography,
 } from "@mui/material";
 import { createLazyFileRoute, getRouteApi } from "@tanstack/react-router";
 import dayjs from "dayjs";
@@ -134,25 +131,34 @@ function Index() {
             />
             <Stack direction="row" gap={1} flexWrap="wrap">
                 {uuids.length === 0 && (
-                    <Tooltip title="No users to remove">
+                    <Tooltip title="Use the search bar to add users.">
                         <span>
-                            <Button
+                            <Chip
                                 disabled
-                                color="error"
                                 variant="outlined"
-                                startIcon={<Delete />}
-                            >
-                                <Typography variant="body2">
-                                    Remove user
-                                </Typography>
-                            </Button>
+                                label="No users selected"
+                            />
                         </span>
                     </Tooltip>
                 )}
                 {uuids.map((uuid) => (
-                    <Button
+                    <Chip
                         key={uuid}
-                        onClick={() => {
+                        label={
+                            uuidToUsername[uuid] ?? (
+                                <Skeleton variant="text" width={60} />
+                            )
+                        }
+                        variant="outlined"
+                        color="primary"
+                        avatar={
+                            <img
+                                style={{ backgroundColor: "rgba(0, 0, 0, 0)" }}
+                                // TODO: Attribution - https://crafatar.com/#meta-attribution
+                                src={`https://crafatar.com/renders/head/${uuid}?overlay`}
+                            />
+                        }
+                        onDelete={() => {
                             navigate({
                                 search: (oldSearch) => ({
                                     ...oldSearch,
@@ -168,16 +174,7 @@ function Index() {
                                 );
                             });
                         }}
-                        color="error"
-                        variant="outlined"
-                        startIcon={<Delete />}
-                    >
-                        <Typography variant="body2" color="textPrimary">
-                            {uuidToUsername[uuid] ?? (
-                                <Skeleton variant="text" width={60} />
-                            )}
-                        </Typography>
-                    </Button>
+                    />
                 ))}
             </Stack>
             <Stack direction="row" gap={1}>
