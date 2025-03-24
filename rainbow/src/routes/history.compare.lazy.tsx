@@ -179,7 +179,7 @@ function Index() {
             <Stack direction="row" gap={1} flexWrap="wrap">
                 {uuids.length === 0 && (
                     <Tooltip title="Use the search bar to add users.">
-                        <span>
+                        <span tabIndex={0}>
                             <Chip
                                 disabled
                                 variant="outlined"
@@ -378,7 +378,8 @@ function Index() {
                         variants={variants}
                     />
                     <Tooltip title={goToSessionPageTooltip}>
-                        <span>
+                        {/* Make the span tabbable when the button is disabled so you can get to it and see the tooltip */}
+                        <span tabIndex={canGoToSessionPage ? undefined : 0}>
                             <RouterLinkIconButton
                                 disabled={!canGoToSessionPage}
                                 size="small"
