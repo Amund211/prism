@@ -76,6 +76,7 @@ const contextAwareStatDisplayName = (
     stat: KeyConfig<StatKey>,
     gamemode: KeyConfig<GamemodeKey>,
     variant: KeyConfig<VariantKey>,
+    alwaysIncludePossessive = false,
 ): string => {
     if (!uuid.shown && !stat.shown && !gamemode.shown && !variant.shown) {
         return getFullStatLabel(stat.value, true);
@@ -89,7 +90,12 @@ const contextAwareStatDisplayName = (
 
     let displayName = "";
     if (uuid.shown) {
-        if (!stat.shown && !gamemodeShown && !variant.shown) {
+        if (
+            !stat.shown &&
+            !gamemodeShown &&
+            !variant.shown &&
+            !alwaysIncludePossessive
+        ) {
             return uuid.value;
         }
         displayName += `${uuid.value}'s `;
@@ -185,6 +191,7 @@ export const HistoryChartTitle: React.FC<HistoryChartTitleProps> = ({
                     value: variants[0],
                     shown: variants.length === 1,
                 },
+                true,
             )}
             {stats.length > 1 ? " Stats" : ""}
         </Typography>
