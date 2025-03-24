@@ -81,8 +81,17 @@ const contextAwareStatDisplayName = (
         return getFullStatLabel(stat.value, true);
     }
 
+    const gamemodeShown =
+        gamemode.shown &&
+        gamemode.value !== "overall" &&
+        (!stat.shown ||
+            (stat.value !== "stars" && stat.value !== "experience"));
+
     let displayName = "";
     if (uuid.shown) {
+        if (!stat.shown && !gamemodeShown && !variant.shown) {
+            return uuid.value;
+        }
         displayName += `${uuid.value}'s `;
     }
 
@@ -90,11 +99,7 @@ const contextAwareStatDisplayName = (
         displayName += `${getVariantLabel(variant.value, displayName === "")} `;
     }
 
-    if (
-        gamemode.shown &&
-        gamemode.value !== "overall" &&
-        (!stat.shown || (stat.value !== "stars" && stat.value !== "experience"))
-    ) {
+    if (gamemodeShown) {
         displayName += `${getGamemodeLabel(gamemode.value, displayName === "")} `;
     }
 
