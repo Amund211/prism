@@ -23,7 +23,11 @@ import {
     ToggleButtonGroup,
     Tooltip,
 } from "@mui/material";
-import { createLazyFileRoute, getRouteApi } from "@tanstack/react-router";
+import {
+    createLazyFileRoute,
+    createLink,
+    getRouteApi,
+} from "@tanstack/react-router";
 import dayjs from "dayjs";
 import {
     endOfDay,
@@ -49,6 +53,8 @@ export const Route = createLazyFileRoute("/history/compare")({
 });
 
 const route = getRouteApi("/history/compare");
+
+const RouterLinkChip = createLink(Chip);
 
 function Index() {
     const { uuids, stats, gamemodes, variantSelection, start, end, limit } =
@@ -249,25 +255,24 @@ function Index() {
                                 start.toISOString() &&
                             option.end.toISOString() === end.toISOString();
                         return (
-                            <Chip
+                            <RouterLinkChip
+                                {
+                                    /* This seems to work, but TS won't let me. Guessing it is the chip + link props colliding a bit */
+                                    ...{ component: "a" }
+                                }
                                 key={option.label}
                                 label={option.label}
                                 variant="outlined"
                                 color={selected ? "primary" : "default"}
-                                onClick={() => {
-                                    navigate({
-                                        search: (oldSearch) => ({
-                                            ...oldSearch,
-                                            start: option.start,
-                                            end: option.end,
-                                        }),
-                                    }).catch((error: unknown) => {
-                                        // TODO: Handle error
-                                        console.error(
-                                            "Failed to update search params: start",
-                                            error,
-                                        );
-                                    });
+                                to="/history/compare"
+                                search={{
+                                    uuids,
+                                    stats,
+                                    gamemodes,
+                                    variantSelection,
+                                    start: option.start,
+                                    end: option.end,
+                                    limit,
                                 }}
                             />
                         );
