@@ -1,51 +1,78 @@
-const startOfDay = (date: Date) => {
+export const startOfDay = (date: Date) => {
     const d = new Date(date);
     d.setHours(0, 0, 0, 0);
     return d;
 };
-const endOfDay = (date: Date) => {
+export const endOfDay = (date: Date) => {
     const d = new Date(date);
     d.setHours(23, 59, 59, 999);
     return d;
 };
-const startOfWeek = (date: Date) => {
+export const startOfWeek = (date: Date) => {
     const weekDayIndexedByMonday = (date.getDay() + 6) % 7;
     const d = new Date(date);
     d.setDate(date.getDate() - weekDayIndexedByMonday);
     return startOfDay(d);
 };
-const endOfWeek = (date: Date) => {
+export const endOfWeek = (date: Date) => {
     const weekDayIndexedByMonday = (date.getDay() + 6) % 7;
     const d = new Date(date);
     d.setDate(date.getDate() + (6 - weekDayIndexedByMonday));
     return endOfDay(d);
 };
-const startOfMonth = (date: Date) => {
+export const startOfMonth = (date: Date) => {
     const d = new Date(date);
     d.setDate(1);
     return startOfDay(d);
 };
-const endOfMonth = (date: Date) => {
+export const endOfMonth = (date: Date) => {
     const d = new Date(date);
     d.setMonth(d.getMonth() + 1);
     d.setDate(0);
     return endOfDay(d);
 };
+export const startOfYear = (date: Date) => {
+    const d = new Date(date);
+    d.setMonth(0, 1);
+    return startOfDay(d);
+};
+export const endOfYear = (date: Date) => {
+    const d = new Date(date);
+    d.setMonth(11, 31);
+    return endOfDay(d);
+};
 
+export const startOfLastDay = (date: Date) => {
+    return startOfDay(endOfLastDay(date));
+};
 export const endOfLastDay = (date: Date) => {
     const d = new Date(date);
     d.setDate(d.getDate() - 1);
     return endOfDay(d);
+};
+export const startOfLastWeek = (date: Date) => {
+    return startOfWeek(endOfLastWeek(date));
 };
 export const endOfLastWeek = (date: Date) => {
     const d = endOfWeek(date);
     d.setDate(d.getDate() - 7);
     return d;
 };
+export const startOfLastMonth = (date: Date) => {
+    return startOfMonth(endOfLastMonth(date));
+};
 export const endOfLastMonth = (date: Date) => {
     const d = new Date(date);
     d.setMonth(d.getMonth() - 1);
     return endOfMonth(d);
+};
+export const startOfLastYear = (date: Date) => {
+    return startOfYear(endOfLastYear(date));
+};
+export const endOfLastYear = (date: Date) => {
+    const d = new Date(date);
+    d.setFullYear(d.getFullYear() - 1);
+    return endOfYear(d);
 };
 
 /**

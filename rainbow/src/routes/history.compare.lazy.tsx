@@ -1,10 +1,51 @@
 import { HistoryChart, HistoryChartTitle } from "#charts/history/chart.tsx";
+import { UserSearch } from "#components/UserSearch.tsx";
+import { useUUIDToUsername } from "#queries/username.ts";
 import {
     ALL_GAMEMODE_KEYS,
     ALL_STAT_KEYS,
-    ALL_VARIANT_KEYS,
+    type GamemodeKey,
+    type StatKey,
 } from "#stats/keys.ts";
+import {
+    getFullStatLabel,
+    getGamemodeLabel,
+    getVariantLabel,
+} from "#stats/labels.ts";
+import { Delete } from "@mui/icons-material";
+import { DateTimePicker } from "@mui/x-date-pickers";
+import {
+    Button,
+    Chip,
+    MenuItem,
+    Select,
+    Skeleton,
+    Stack,
+    ToggleButton,
+    ToggleButtonGroup,
+    Tooltip,
+    Typography,
+} from "@mui/material";
 import { createLazyFileRoute, getRouteApi } from "@tanstack/react-router";
+import dayjs from "dayjs";
+import {
+    endOfDay,
+    endOfLastDay,
+    endOfLastMonth,
+    endOfLastWeek,
+    endOfLastYear,
+    endOfMonth,
+    endOfWeek,
+    endOfYear,
+    startOfDay,
+    startOfLastDay,
+    startOfLastMonth,
+    startOfLastWeek,
+    startOfLastYear,
+    startOfMonth,
+    startOfWeek,
+    startOfYear,
+} from "#intervals.ts";
 
 export const Route = createLazyFileRoute("/history/compare")({
     component: Index,
@@ -12,84 +53,76 @@ export const Route = createLazyFileRoute("/history/compare")({
 
 const route = getRouteApi("/history/compare");
 
-interface KeySelectorProps<T extends string> {
-    keys: readonly T[];
-    selectedKeys: readonly T[];
-    onChange: (keys: readonly T[]) => void;
-}
-
-function KeySelector<T extends string>({
-    keys,
-    selectedKeys,
-    onChange,
-}: KeySelectorProps<T>) {
-    return (
-        <div>
-            {keys.map((key) => (
-                <label key={key}>
-                    <input
-                        type="checkbox"
-                        checked={selectedKeys.includes(key)}
-                        onChange={() => {
-                            if (selectedKeys.includes(key)) {
-                                const filtered = selectedKeys.filter(
-                                    (k) => k !== key,
-                                );
-                                onChange(filtered);
-                            } else {
-                                onChange([...selectedKeys, key]);
-                            }
-                        }}
-                    />
-                    {key}
-                </label>
-            ))}
-        </div>
-    );
-}
-
-const toDatetimeLocal = (date: Date) => {
-    // FIXME: Hacky, and probably not entirely correct
-    const newDate = new Date(
-        date.getTime() - date.getTimezoneOffset() * 60 * 1000,
-    );
-    return newDate.toISOString().slice(0, 16);
-};
-
 function Index() {
-    const { uuids, stats, gamemodes, variants, start, end, limit } =
+    const { uuids, stats, gamemodes, variantSelection, start, end, limit } =
         route.useSearch();
     const navigate = route.useNavigate();
 
-    /*
-    const { data, status, error } = useQueries({
-    if (status === "pending") {
-        return <div>Loading...</div>;
-    }
+    const variants =
+        variantSelection === "both"
+            ? (["session", "overall"] as const)
+            : ([variantSelection] as const);
 
-    if (status === "error") {
-        return <div>Error: {error.message}</div>;
-    }
-    */
+    const uuidToUsername = useUUIDToUsername(uuids);
+
+    const now = new Date();
+    const timeFilterOptions = [
+        {
+            label: "Today",
+            start: startOfDay(now),
+            end: endOfDay(now),
+        },
+        {
+            label: "Yesterday",
+            start: startOfLastDay(now),
+            end: endOfLastDay(now),
+        },
+        {
+            label: "This week",
+            start: startOfWeek(now),
+            end: endOfWeek(now),
+        },
+        {
+            label: "Last week",
+            start: startOfLastWeek(now),
+            end: endOfLastWeek(now),
+        },
+        {
+            label: "This month",
+            start: startOfMonth(now),
+            end: endOfMonth(now),
+        },
+        {
+            label: "Last month",
+            start: startOfLastMonth(now),
+            end: endOfLastMonth(now),
+        },
+        {
+            label: "This year",
+            start: startOfYear(now),
+            end: endOfYear(now),
+        },
+        {
+            label: "Last year",
+            start: startOfLastYear(now),
+            end: endOfLastYear(now),
+        },
+    ];
 
     return (
-        <div>
-            <h3>Welcome Home!</h3>
-            <KeySelector
-                keys={[
-                    "a937646b-f115-44c3-8dbf-9ae4a65669a0", // Skydeath
-                    "ac04f297-f74c-44de-a24e-0083936ac59a", // USBB
-                    "062c373b-28de-4ec0-ab2c-0114e59e36ce", // Skydeaf
-                    "3d58a2de-3831-4a17-a305-67258295f81e", // iCiara
-                    "6bc1dd0f-f351-4c3d-b6cc-262e55b6e7aa", // HardcoreLizard
-                ]}
-                selectedKeys={uuids}
-                onChange={(keys) => {
+        <Stack gap={1}>
+            <UserSearch
+                onSubmit={(uuid) => {
                     navigate({
-                        search: (oldSearch) => ({
-                            ...oldSearch,
-                            uuids: keys,
-                        }),
+                        search: (oldSearch) => {
+                            if (oldSearch.uuids.includes(uuid)) {
+                                return oldSearch;
+                            }
+                            return {
+                                ...oldSearch,
+                                uuids: [...oldSearch.uuids, uuid],
+                            };
+                        },
                     }).catch((error: unknown) => {
                         // TODO: Handle error
                         console.error(
@@ -99,121 +132,241 @@ function Index() {
                     });
                 }}
             />
-            <br />
-            <KeySelector
-                keys={ALL_STAT_KEYS}
-                selectedKeys={stats}
-                onChange={(keys) => {
-                    navigate({
-                        search: (oldSearch) => ({
-                            ...oldSearch,
-                            stats: keys,
-                        }),
-                    }).catch((error: unknown) => {
-                        // TODO: Handle error
-                        console.error(
-                            "Failed to update search params: stats",
-                            error,
-                        );
-                    });
-                }}
-            />
-            <br />
-            <KeySelector
-                keys={ALL_GAMEMODE_KEYS}
-                selectedKeys={gamemodes}
-                onChange={(keys) => {
-                    navigate({
-                        search: (oldSearch) => ({
-                            ...oldSearch,
-                            gamemodes: keys,
-                        }),
-                    }).catch((error: unknown) => {
-                        // TODO: Handle error
-                        console.error(
-                            "Failed to update search params: gamemode",
-                            error,
-                        );
-                    });
-                }}
-            />
-
-            <br />
-
-            <KeySelector
-                keys={ALL_VARIANT_KEYS}
-                selectedKeys={variants}
-                onChange={(keys) => {
-                    navigate({
-                        search: (oldSearch) => ({
-                            ...oldSearch,
-                            variants: keys,
-                        }),
-                    }).catch((error: unknown) => {
-                        // TODO: Handle error
-                        console.error(
-                            "Failed to update search params: variants",
-                            error,
-                        );
-                    });
-                }}
-            />
-            <br />
-
-            <br />
-            <label>
-                Start:{" "}
-                <input
-                    type="datetime-local"
-                    value={toDatetimeLocal(start)}
-                    onChange={(e) => {
-                        const newDate = new Date(e.target.value);
+            <Stack direction="row" gap={1} flexWrap="wrap">
+                {uuids.length === 0 && (
+                    <Tooltip title="No users to remove">
+                        <span>
+                            <Button
+                                disabled
+                                color="error"
+                                variant="outlined"
+                                startIcon={<Delete />}
+                            >
+                                <Typography variant="body2">
+                                    Remove user
+                                </Typography>
+                            </Button>
+                        </span>
+                    </Tooltip>
+                )}
+                {uuids.map((uuid) => (
+                    <Button
+                        key={uuid}
+                        onClick={() => {
+                            navigate({
+                                search: (oldSearch) => ({
+                                    ...oldSearch,
+                                    uuids: oldSearch.uuids.filter(
+                                        (u) => u !== uuid,
+                                    ),
+                                }),
+                            }).catch((error: unknown) => {
+                                // TODO: Handle error
+                                console.error(
+                                    "Failed to update search params: variantSelection",
+                                    error,
+                                );
+                            });
+                        }}
+                        color="error"
+                        variant="outlined"
+                        startIcon={<Delete />}
+                    >
+                        <Typography variant="body2" color="textPrimary">
+                            {uuidToUsername[uuid] ?? (
+                                <Skeleton variant="text" width={60} />
+                            )}
+                        </Typography>
+                    </Button>
+                ))}
+            </Stack>
+            <Stack direction="row" gap={1}>
+                <Select
+                    value={gamemodes}
+                    label="Gamemodes"
+                    multiple
+                    fullWidth
+                    onChange={(event) => {
+                        const newGamemodes = event.target
+                            .value as GamemodeKey[];
                         navigate({
                             search: (oldSearch) => ({
                                 ...oldSearch,
-                                start: newDate,
+                                gamemodes: newGamemodes,
                             }),
                         }).catch((error: unknown) => {
                             // TODO: Handle error
                             console.error(
-                                "Failed to update search params: start",
+                                "Failed to update search params: gamemodes",
                                 error,
                             );
                         });
                     }}
-                />
-            </label>
-
-            <br />
-            <label>
-                End:{" "}
-                <input
-                    type="datetime-local"
-                    value={toDatetimeLocal(end)}
-                    onChange={(e) => {
-                        const newDate = new Date(e.target.value);
+                >
+                    {ALL_GAMEMODE_KEYS.map((gamemode) => (
+                        <MenuItem key={gamemode} value={gamemode}>
+                            {getGamemodeLabel(gamemode, true)}
+                        </MenuItem>
+                    ))}
+                </Select>
+                <Select
+                    value={stats}
+                    multiple
+                    label="Stat"
+                    fullWidth
+                    onChange={(event) => {
+                        const newStats = event.target.value as StatKey[];
                         navigate({
                             search: (oldSearch) => ({
                                 ...oldSearch,
-                                end: newDate,
+                                stats: newStats,
                             }),
                         }).catch((error: unknown) => {
                             // TODO: Handle error
                             console.error(
-                                "Failed to update search params: end",
+                                "Failed to update search params: stats",
                                 error,
                             );
                         });
                     }}
-                />
-            </label>
+                >
+                    {ALL_STAT_KEYS.map((stat) => (
+                        <MenuItem key={stat} value={stat}>
+                            {getFullStatLabel(stat, true)}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </Stack>
 
-            <HistoryChartTitle
-                uuids={uuids}
-                gamemodes={gamemodes}
-                stats={stats}
-                variants={variants}
-            />
+            <Stack
+                direction="row"
+                gap={1}
+                alignItems="center"
+                justifyContent="space-between"
+            >
+                <Stack direction="row" gap={1} flexWrap="wrap">
+                    {timeFilterOptions.map((option) => {
+                        const selected =
+                            option.start.toISOString() ===
+                                start.toISOString() &&
+                            option.end.toISOString() === end.toISOString();
+                        return (
+                            <Chip
+                                key={option.label}
+                                label={option.label}
+                                variant={selected ? "outlined" : "outlined"}
+                                color={selected ? "primary" : "default"}
+                                onClick={() => {
+                                    navigate({
+                                        search: (oldSearch) => ({
+                                            ...oldSearch,
+                                            start: option.start,
+                                            end: option.end,
+                                        }),
+                                    }).catch((error: unknown) => {
+                                        // TODO: Handle error
+                                        console.error(
+                                            "Failed to update search params: start",
+                                            error,
+                                        );
+                                    });
+                                }}
+                            />
+                        );
+                    })}
+                </Stack>
+                <Stack direction="row" gap={1}>
+                    <DateTimePicker
+                        label="Start"
+                        value={dayjs(start)}
+                        onChange={(newDate) => {
+                            if (newDate === null) {
+                                return;
+                            }
+                            navigate({
+                                search: (oldSearch) => ({
+                                    ...oldSearch,
+                                    start: newDate.toDate(),
+                                }),
+                            }).catch((error: unknown) => {
+                                // TODO: Handle error
+                                console.error(
+                                    "Failed to update search params: start",
+                                    error,
+                                );
+                            });
+                        }}
+                    />
+                    <DateTimePicker
+                        label="End"
+                        value={dayjs(end)}
+                        onChange={(newDate) => {
+                            if (newDate === null) {
+                                return;
+                            }
+                            navigate({
+                                search: (oldSearch) => ({
+                                    ...oldSearch,
+                                    end: newDate.toDate(),
+                                }),
+                            }).catch((error: unknown) => {
+                                // TODO: Handle error
+                                console.error(
+                                    "Failed to update search params: end",
+                                    error,
+                                );
+                            });
+                        }}
+                    />
+                </Stack>
+            </Stack>
+
+            <Stack
+                direction="row"
+                gap={1}
+                alignItems="center"
+                justifyContent="space-between"
+            >
+                <HistoryChartTitle
+                    uuids={uuids}
+                    gamemodes={gamemodes}
+                    stats={stats}
+                    variants={variants}
+                />
+                <ToggleButtonGroup
+                    exclusive
+                    size="small"
+                    value={variantSelection}
+                    onChange={(
+                        _,
+                        newSelection: "overall" | "session" | "both" | null,
+                    ) => {
+                        if (newSelection === null) {
+                            return;
+                        }
+                        navigate({
+                            search: (oldSearch) => ({
+                                ...oldSearch,
+                                variantSelection: newSelection,
+                            }),
+                        }).catch((error: unknown) => {
+                            // TODO: Handle error
+                            console.error(
+                                "Failed to update search params: variantSelection",
+                                error,
+                            );
+                        });
+                    }}
+                >
+                    <ToggleButton value="overall">
+                        {getVariantLabel("overall", true)}
+                    </ToggleButton>
+                    <ToggleButton value="session">
+                        {getVariantLabel("session", true)}
+                    </ToggleButton>
+                    <ToggleButton value="both">Both</ToggleButton>
+                </ToggleButtonGroup>
+            </Stack>
             <HistoryChart
                 start={start}
                 end={end}
@@ -223,6 +376,6 @@ function Index() {
                 variants={variants}
                 limit={limit}
             />
-        </div>
+        </Stack>
     );
 }

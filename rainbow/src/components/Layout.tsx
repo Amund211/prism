@@ -129,7 +129,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                     limit: 100,
                                     stats: ["stars", "finalKills"],
                                     gamemodes: ["overall"],
-                                    variants: ["session"],
+                                    variantSelection: "session",
                                 }}
                             >
                                 <ListItemIcon>
@@ -207,7 +207,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                 limit: 100,
                                 stats: ["stars", "finalKills"],
                                 gamemodes: ["overall"],
-                                variants: ["session"],
+                                variantSelection: "session",
                             }}
                         >
                             <ListItemIcon>

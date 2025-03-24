@@ -1136,7 +1136,7 @@ function RouteComponent() {
                                             uuids: [uuid],
                                             gamemodes: [gamemode],
                                             stats: [stat],
-                                            variants,
+                                            variantSelection,
                                             start: month.start,
                                             end: month.end,
                                             limit: 100,

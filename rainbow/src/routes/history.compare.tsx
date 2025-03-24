@@ -3,11 +3,7 @@ import { queryClient } from "#queryClient.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import { fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import {
-    ALL_GAMEMODE_KEYS,
-    ALL_STAT_KEYS,
-    ALL_VARIANT_KEYS,
-} from "#stats/keys.ts";
+import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
 import { getUsernameQueryOptions } from "#queries/username.ts";
 
 const defaultStart = new Date();
@@ -25,9 +21,10 @@ const historyCompareSearchSchema = z.object({
     gamemodes: fallback(z.enum(ALL_GAMEMODE_KEYS).array().readonly(), [
         "overall",
     ]),
-    variants: fallback(z.enum(ALL_VARIANT_KEYS).array().readonly(), [
+    variantSelection: fallback(
+        z.enum(["session", "overall", "both"]),
         "session",
-    ]),
+    ),
 });
 
 export const Route = createFileRoute("/history/compare")({
