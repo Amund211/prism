@@ -1108,12 +1108,7 @@ function RouteComponent() {
                             alignItems="center"
                             justifyContent="space-between"
                         >
-                            <Stack
-                                direction="row"
-                                gap={1}
-                                alignItems="center"
-                                justifyContent="space-between"
-                            >
+                            <Stack direction="row" gap={1} alignItems="center">
                                 {username === undefined ? (
                                     <Stack direction="row" alignItems="center">
                                         <Skeleton
