@@ -254,7 +254,7 @@ function Index() {
                             <Chip
                                 key={option.label}
                                 label={option.label}
-                                variant={selected ? "outlined" : "outlined"}
+                                variant="outlined"
                                 color={selected ? "primary" : "default"}
                                 onClick={() => {
                                     navigate({
