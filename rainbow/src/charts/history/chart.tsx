@@ -240,57 +240,52 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
     const mutableChartData = [...chartData];
 
     return (
-        <>
-            <ResponsiveContainer minHeight={300} maxHeight={300} minWidth={100}>
-                <LineChart
-                    width={500}
-                    height={300}
-                    data={mutableChartData}
-                    syncId="history-chart"
-                    syncMethod="value"
-                >
-                    <XAxis
-                        type="number"
-                        domain={[start.getTime(), end.getTime()]}
-                        scale="linear"
-                        dataKey="queriedAt"
-                        tickFormatter={(time: number) => {
-                            return renderTimeShort(
-                                time,
-                                smallestTimeDenomination,
-                            );
-                        }}
-                        ticks={new Array(10).fill(0).map((_, i) => {
-                            const startTime = start.getTime();
-                            const endTime = end.getTime();
-                            return startTime + ((endTime - startTime) / 9) * i;
-                        })}
-                    />
-                    <YAxis />
-                    <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-                    {renderLines({
-                        uuids,
-                        gamemodes,
-                        stats,
-                        variants,
-                        uuidToUsername,
+        <ResponsiveContainer minHeight={300} maxHeight={300} minWidth={100}>
+            <LineChart
+                width={500}
+                height={300}
+                data={mutableChartData}
+                syncId="history-chart"
+                syncMethod="value"
+            >
+                <XAxis
+                    type="number"
+                    domain={[start.getTime(), end.getTime()]}
+                    scale="linear"
+                    dataKey="queriedAt"
+                    tickFormatter={(time: number) => {
+                        return renderTimeShort(time, smallestTimeDenomination);
+                    }}
+                    ticks={new Array(10).fill(0).map((_, i) => {
+                        const startTime = start.getTime();
+                        const endTime = end.getTime();
+                        return startTime + ((endTime - startTime) / 9) * i;
                     })}
-                    {/* Future marker */}
-                    <ReferenceArea
-                        x1={currentDate.getTime()}
-                        x2={end.getTime()}
-                        stroke="#efefef"
-                        fill="#e0e0e0"
-                    />
-                    <Legend />
-                    <Tooltip
-                        labelFormatter={(time: number) => {
-                            return renderTimeFull(time);
-                        }}
-                    />
-                </LineChart>
-            </ResponsiveContainer>
-        </>
+                />
+                <YAxis />
+                <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
+                {renderLines({
+                    uuids,
+                    gamemodes,
+                    stats,
+                    variants,
+                    uuidToUsername,
+                })}
+                {/* Future marker */}
+                <ReferenceArea
+                    x1={currentDate.getTime()}
+                    x2={end.getTime()}
+                    stroke="#efefef"
+                    fill="#e0e0e0"
+                />
+                <Legend />
+                <Tooltip
+                    labelFormatter={(time: number) => {
+                        return renderTimeFull(time);
+                    }}
+                />
+            </LineChart>
+        </ResponsiveContainer>
     );
 };
 
