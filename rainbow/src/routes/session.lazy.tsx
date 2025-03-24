@@ -138,7 +138,7 @@ const Sessions: React.FC<SessionsProps> = ({
                 justifyContent="space-between"
             >
                 <Typography variant="subtitle2">Sessions</Typography>
-                <Tooltip title="Sessions are automatically recorded when using the Prism ovelay. Users who have disabled 'Online Game Stats' in the settings, or are not using the Prism overlay may have weird or missing sessions.">
+                <Tooltip title="Sessions are automatically recorded when using the Prism Overlay. Users who have disabled 'Online Game Stats' in the settings, or are not using the Prism Overlay may have weird or missing sessions.">
                     <InfoOutlined fontSize="small" />
                 </Tooltip>
             </Stack>
