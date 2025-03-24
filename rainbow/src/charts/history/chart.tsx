@@ -232,6 +232,8 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
         return <div>No data</div>;
     }
 
+    const currentDate = new Date();
+
     const smallestTimeDenomination = getSmallestTimeDenomination(start, end);
 
     // Linechart requires a mutable array for some reason. Make a copy here so we can mutate it.
@@ -273,6 +275,13 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                         variants,
                         uuidToUsername,
                     })}
+                    {/* Future marker */}
+                    <ReferenceArea
+                        x1={currentDate.getTime()}
+                        x2={end.getTime()}
+                        stroke="#efefef"
+                        fill="#e0e0e0"
+                    />
                     <Legend />
                     <Tooltip
                         labelFormatter={(time: number) => {
