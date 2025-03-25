@@ -89,7 +89,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                         </Link>
                         <Stack direction="row" gap={1}>
                             <DarkModeSwitch />
-                            <IconButton onClick={handleClickMenu}>
+                            <IconButton
+                                onClick={handleClickMenu}
+                                aria-label="Open toolbar menu"
+                            >
                                 {menuOpen ? <MenuOpen /> : <MenuIcon />}
                             </IconButton>
                         </Stack>
