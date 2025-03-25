@@ -102,6 +102,7 @@ export const Route = createFileRoute("/history/explore")({
 
 const RouterLinkChip = createLink(Chip);
 const RouterLinkIconButton = createLink(IconButton);
+const RouterLinkToggleButton = createLink(ToggleButton);
 
 function Index() {
     const { uuids, stats, gamemodes, variantSelection, start, end, limit } =
@@ -453,34 +454,43 @@ function Index() {
                     exclusive
                     size="small"
                     value={variantSelection}
-                    onChange={(
-                        _,
-                        newSelection: "overall" | "session" | "both" | null,
-                    ) => {
-                        if (newSelection === null) {
-                            return;
-                        }
-                        navigate({
-                            search: (oldSearch) => ({
-                                ...oldSearch,
-                                variantSelection: newSelection,
-                            }),
-                        }).catch((error: unknown) => {
-                            // TODO: Handle error
-                            console.error(
-                                "Failed to update search params: variantSelection",
-                                error,
-                            );
-                        });
-                    }}
                 >
-                    <ToggleButton value="overall">
+                    <RouterLinkToggleButton
+                        value="overall"
+                        from="/history/explore"
+                        to="/history/explore"
+                        search={(oldSearch) => ({
+                            ...oldSearch,
+                            variantSelection: "overall",
+                        })}
+                        sx={{ textAlign: "center" }}
+                    >
                         {getVariantLabel("overall", true)}
-                    </ToggleButton>
-                    <ToggleButton value="session">
+                    </RouterLinkToggleButton>
+                    <RouterLinkToggleButton
+                        value="session"
+                        from="/history/explore"
+                        to="/history/explore"
+                        search={(oldSearch) => ({
+                            ...oldSearch,
+                            variantSelection: "session",
+                        })}
+                        sx={{ textAlign: "center" }}
+                    >
                         {getVariantLabel("session", true)}
-                    </ToggleButton>
-                    <ToggleButton value="both">Both</ToggleButton>
+                    </RouterLinkToggleButton>
+                    <RouterLinkToggleButton
+                        value="both"
+                        from="/history/explore"
+                        to="/history/explore"
+                        search={(oldSearch) => ({
+                            ...oldSearch,
+                            variantSelection: "both",
+                        })}
+                        sx={{ textAlign: "center" }}
+                    >
+                        Both
+                    </RouterLinkToggleButton>
                 </ToggleButtonGroup>
             </Stack>
             <Stack flexGrow={1} paddingBottom={3}>
