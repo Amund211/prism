@@ -141,7 +141,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                 <ListItemIcon>
                                     <CalendarMonth />
                                 </ListItemIcon>
-                                <ListItemText primary="Compare history" />
+                                <ListItemText primary="History explorer" />
                             </RouterMenuItem>
                         </Menu>
                     </Stack>
@@ -234,7 +234,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                 <ListItemIcon>
                                     <CalendarMonth />
                                 </ListItemIcon>
-                                <ListItemText primary="Compare history" />
+                                <ListItemText primary="History explorer" />
                             </RouterLinkItemButton>
                         </ListItem>
                     </List>
