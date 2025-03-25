@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/Amund211/flashlight/internal/cache"
@@ -22,6 +23,26 @@ import (
 	"github.com/Amund211/flashlight/internal/storage"
 	"github.com/google/uuid"
 )
+
+func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		origin := r.Header.Get("Origin")
+		if strings.HasSuffix(origin, ".pages.dev") {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+		}
+
+		if r.Method == http.MethodOptions {
+			w.Header().Set("Access-Control-Allow-Methods", "GET,POST")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+			// TODO: Add longer max age (default 5s) when it works well
+			// w.Header().Set("Access-Control-Max-Age", "3600")
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next(w, r)
+	}
+}
 
 func main() {
 	instanceID := uuid.New().String()
@@ -104,8 +125,13 @@ func main() {
 		ratelimiting.IPKeyFunc,
 	)
 	historyMiddleware := server.ComposeMiddlewares(
+		corsMiddleware,
 		logging.NewRequestLoggerMiddleware(logger.With("component", "history")),
 		server.NewRateLimitMiddleware(historyIPRateLimiter),
+	)
+	http.HandleFunc(
+		"OPTIONS /v1/history",
+		historyMiddleware(func(w http.ResponseWriter, r *http.Request) {}),
 	)
 	http.HandleFunc(
 		"POST /v1/history",
@@ -215,8 +241,13 @@ func main() {
 		ratelimiting.IPKeyFunc,
 	)
 	getSessionsMiddleware := server.ComposeMiddlewares(
+		corsMiddleware,
 		logging.NewRequestLoggerMiddleware(logger.With("component", "history")),
 		server.NewRateLimitMiddleware(getSessionsIPRateLimiter),
+	)
+	http.HandleFunc(
+		"OPTIONS /v1/sessions",
+		getSessionsMiddleware(func(w http.ResponseWriter, r *http.Request) {}),
 	)
 	http.HandleFunc(
 		"POST /v1/sessions",
