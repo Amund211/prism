@@ -8,7 +8,8 @@ export const getUsernameQueryOptions = (uuid: string) =>
         queryKey: ["username", uuid],
         queryFn: async (): Promise<{ uuid: string; username: string }> => {
             const response = await fetch(
-                `${env.VITE_MOJANG_URL}/session/minecraft/profile/${uuid}`,
+                // TODO: Attribution
+                `${env.VITE_MINETOOLS_API_URL}/uuid/${uuid}`,
             );
             if (!response.ok) {
                 throw new Error(`Failed to fetch data: ${response.statusText}`);
@@ -16,13 +17,13 @@ export const getUsernameQueryOptions = (uuid: string) =>
 
             const data: unknown = await response.json();
             if (typeof data !== "object" || data === null) {
-                throw new Error("Invalid response from mojang");
+                throw new Error("Invalid response from minetools");
             }
             if (!("name" in data)) {
-                throw new Error("No name in response from mojang");
+                throw new Error("No name in response from minetools");
             }
             if (typeof data.name !== "string") {
-                throw new Error("Invalid name in response from mojang");
+                throw new Error("Invalid name in response from minetools");
             }
             return { uuid, username: data.name };
         },

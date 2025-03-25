@@ -20,7 +20,7 @@ export const getUUIDQueryOptions = (username: string) =>
         queryKey: ["uuid", username],
         queryFn: async (): Promise<{ uuid: string; username: string }> => {
             const response = await fetch(
-                `${env.VITE_MINECRAFT_SERVICES_API_URL}/minecraft/profile/lookup/name/${username}`,
+                `${env.VITE_MINETOOLS_API_URL}/uuid/${username}`,
             );
             if (!response.ok) {
                 throw new Error(`Failed to fetch data: ${response.statusText}`);

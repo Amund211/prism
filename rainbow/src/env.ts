@@ -2,8 +2,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
     VITE_FLASHLIGHT_URL: z.string().url(),
-    VITE_MOJANG_URL: z.string().url(),
-    VITE_MINECRAFT_SERVICES_API_URL: z.string().url(),
+    VITE_MINETOOLS_API_URL: z.string().url(),
 });
 
 const parse = (source: unknown) => {

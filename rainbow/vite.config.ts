@@ -47,23 +47,6 @@ export default defineConfig(({ mode }) => {
                         },
                         rewrite: (path) => path.replace(/^\/flashlight\//, "/"),
                     },
-                    "/mojang": {
-                        target: "https://sessionserver.mojang.com",
-                        changeOrigin: true,
-                        cookieDomainRewrite: {
-                            "*": "localhost",
-                        },
-                        rewrite: (path) => path.replace(/^\/mojang\//, "/"),
-                    },
-                    "/minecraft-services-api": {
-                        target: "https://api.minecraftservices.com",
-                        changeOrigin: true,
-                        cookieDomainRewrite: {
-                            "*": "localhost",
-                        },
-                        rewrite: (path) =>
-                            path.replace(/^\/minecraft-services-api\//, "/"),
-                    },
                 },
             },
         }),
