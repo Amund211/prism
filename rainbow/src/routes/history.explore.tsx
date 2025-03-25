@@ -454,6 +454,7 @@ function Index() {
                     exclusive
                     size="small"
                     value={variantSelection}
+                    aria-label="Stat chart variant selection"
                 >
                     <RouterLinkToggleButton
                         value="overall"

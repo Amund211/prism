@@ -14,6 +14,7 @@ export const DarkModeSwitch: React.FC = () => {
             size="small"
             value={mode ?? "system"}
             exclusive
+            aria-label="Color theme switcher"
             onChange={(_, newMode: "light" | "system" | "dark" | null) => {
                 if (newMode === null) return;
                 setMode(newMode);

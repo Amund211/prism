@@ -225,7 +225,12 @@ const Sessions: React.FC<SessionsProps> = ({
                     <InfoOutlined fontSize="small" />
                 </Tooltip>
             </Stack>
-            <ToggleButtonGroup exclusive size="small" value={tableMode}>
+            <ToggleButtonGroup
+                exclusive
+                size="small"
+                value={tableMode}
+                aria-label="Session table mode"
+            >
                 <RouterLinkToggleButton
                     value="total"
                     from="/session"
@@ -1256,6 +1261,7 @@ function RouteComponent() {
                                 exclusive
                                 size="small"
                                 value={variantSelection}
+                                aria-label="Stat chart variant selection"
                             >
                                 <RouterLinkToggleButton
                                     value="overall"
