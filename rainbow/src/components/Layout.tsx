@@ -120,7 +120,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                 <ListItemText primary="Session stats" />
                             </RouterMenuItem>
                             <RouterMenuItem
-                                to="/history/compare"
+                                to="/history/explore"
                                 search={{
                                     uuids: [
                                         "a937646b-f115-44c3-8dbf-9ae4a65669a0", // Skydeath
@@ -212,9 +212,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                         <ListItem disablePadding>
                             <RouterLinkItemButton
                                 selected={
-                                    location.pathname === "/history/compare"
+                                    location.pathname === "/history/explore"
                                 }
-                                to="/history/compare"
+                                to="/history/explore"
                                 search={{
                                     uuids: [
                                         "a937646b-f115-44c3-8dbf-9ae4a65669a0", // Skydeath

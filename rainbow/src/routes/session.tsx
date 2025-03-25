@@ -1235,7 +1235,7 @@ function RouteComponent() {
                                     <RouterLinkIconButton
                                         size="small"
                                         color="primary"
-                                        to="/history/compare"
+                                        to="/history/explore"
                                         search={{
                                             uuids: [uuid],
                                             gamemodes: [gamemode],

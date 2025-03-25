@@ -72,7 +72,7 @@ const historyCompareSearchSchema = z.object({
     ),
 });
 
-export const Route = createFileRoute("/history/compare")({
+export const Route = createFileRoute("/history/explore")({
     loaderDeps: ({ search: { uuids, start, end, limit } }) => ({
         uuids,
         start,
@@ -352,8 +352,8 @@ function Index() {
                                 label={option.label}
                                 variant="outlined"
                                 color={selected ? "primary" : "default"}
-                                from="/history/compare"
-                                to="/history/compare"
+                                from="/history/explore"
+                                to="/history/explore"
                                 search={(oldSearch) => ({
                                     ...oldSearch,
                                     start: option.start,
