@@ -978,7 +978,7 @@ function RouteComponent() {
                     />
                     {username === undefined ? (
                         <Stack direction="row" alignItems="center">
-                            <Skeleton variant="rounded" width={100} />
+                            <Skeleton variant="rounded" width={60} />
                             <Typography variant="h6">
                                 {"'s session stats"}
                             </Typography>
