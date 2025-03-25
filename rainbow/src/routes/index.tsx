@@ -16,6 +16,10 @@ function RouteComponent() {
             justifyContent="center"
             alignItems="center"
         >
+            <meta
+                name="description"
+                content="The Prism Overlay for Hypixel Bedwars shows the stats of all players in your game and automatically tracks your progress. View your session stats and compare your stats with other players."
+            />
             <UserSearch
                 onSubmit={(uuid) => {
                     navigate({

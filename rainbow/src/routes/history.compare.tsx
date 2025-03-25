@@ -198,6 +198,10 @@ function Index() {
 
     return (
         <Stack gap={1} height="100%">
+            <meta
+                name="description"
+                content="Compare the stats of multiple players in Hypixel Bedwars. See how you stack up against your friends and rivals. Chart any combination of statistic (FKDR, wins, final kills, ...), players, gamemodes, and session/overall stats."
+            />
             <UserSearch
                 placeholder="Add user..."
                 onSubmit={(uuid) => {
