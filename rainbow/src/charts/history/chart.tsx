@@ -253,10 +253,8 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
     const mutableChartData = [...chartData];
 
     return (
-        <ResponsiveContainer minHeight={300} maxHeight={300} minWidth={100}>
+        <ResponsiveContainer minHeight={300} minWidth={100}>
             <LineChart
-                width={500}
-                height={300}
                 data={mutableChartData}
                 syncId="history-chart"
                 syncMethod="value"

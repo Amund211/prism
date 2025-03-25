@@ -153,7 +153,7 @@ function Index() {
         end.getTime() > endOfToday.getTime() ? endOfToday : end;
 
     return (
-        <Stack gap={1}>
+        <Stack gap={1} height="100%">
             <UserSearch
                 placeholder="Add user..."
                 onSubmit={(uuid) => {
@@ -433,15 +433,17 @@ function Index() {
                     <ToggleButton value="both">Both</ToggleButton>
                 </ToggleButtonGroup>
             </Stack>
-            <HistoryChart
-                start={start}
-                end={end}
-                uuids={uuids}
-                gamemodes={gamemodes}
-                stats={stats}
-                variants={variants}
-                limit={limit}
-            />
+            <Stack flexGrow={1} paddingBottom={3}>
+                <HistoryChart
+                    start={start}
+                    end={end}
+                    uuids={uuids}
+                    gamemodes={gamemodes}
+                    stats={stats}
+                    variants={variants}
+                    limit={limit}
+                />
+            </Stack>
         </Stack>
     );
 }

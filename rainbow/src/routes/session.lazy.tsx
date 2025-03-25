@@ -1232,15 +1232,20 @@ function RouteComponent() {
                                 </RouterLinkToggleButton>
                             </ToggleButtonGroup>
                         </Stack>
-                        <HistoryChart
-                            start={month.start}
-                            end={month.end}
-                            uuids={[uuid]}
-                            gamemodes={[gamemode]}
-                            stats={[stat]}
-                            variants={variants}
-                            limit={100}
-                        />
+                        <Stack
+                            padding={1}
+                            height={{ xs: 300, sm: 400, md: 500, xl: 600 }}
+                        >
+                            <HistoryChart
+                                start={month.start}
+                                end={month.end}
+                                uuids={[uuid]}
+                                gamemodes={[gamemode]}
+                                stats={[stat]}
+                                variants={variants}
+                                limit={100}
+                            />
+                        </Stack>
                     </CardContent>
                 </Card>
             </Box>
