@@ -29,6 +29,7 @@ import {
     QueryStats,
 } from "@mui/icons-material";
 import {
+    Avatar,
     Box,
     Card,
     CardContent,
@@ -966,16 +967,26 @@ function RouteComponent() {
                 justifyContent="space-between"
             >
                 {/*TODO: Profile picture*/}
-                {username === undefined ? (
-                    <Stack direction="row" alignItems="center">
-                        <Skeleton variant="rounded" width={100} />
-                        <Typography variant="h6">
-                            {"'s session stats"}
-                        </Typography>
-                    </Stack>
-                ) : (
-                    <Typography variant="h6">{`${username}'s session stats`}</Typography>
-                )}
+
+                <Stack direction="row" alignItems="center" gap={1}>
+                    <Avatar
+                        key={uuid}
+                        alt={`Profile picture for ${username ?? "unknown"}`}
+                        // TODO: Attribution - https://crafatar.com/#meta-attribution
+                        src={`https://crafatar.com/avatars/${uuid}?overlay`}
+                        variant="square"
+                    />
+                    {username === undefined ? (
+                        <Stack direction="row" alignItems="center">
+                            <Skeleton variant="rounded" width={100} />
+                            <Typography variant="h6">
+                                {"'s session stats"}
+                            </Typography>
+                        </Stack>
+                    ) : (
+                        <Typography variant="h6">{`${username}'s session stats`}</Typography>
+                    )}
+                </Stack>
                 <TimeIntervalPicker
                     intervalDefinition={timeIntervalDefinition}
                     onIntervalChange={(newInterval) => {
