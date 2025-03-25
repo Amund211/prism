@@ -66,6 +66,7 @@ export const Route = createLazyFileRoute("/session")({
 const route = getRouteApi("/session");
 
 const RouterLinkIconButton = createLink(IconButton);
+const RouterLinkToggleButton = createLink(ToggleButton);
 
 interface SessionsProps {
     uuid: string;
@@ -1181,13 +1182,42 @@ function RouteComponent() {
                                     });
                                 }}
                             >
-                                <ToggleButton value="overall">
+                                <RouterLinkToggleButton
+                                    value="overall"
+                                    from="/session"
+                                    to="/session"
+                                    search={(oldSearch) => ({
+                                        ...oldSearch,
+                                        variantSelection: "overall",
+                                    })}
+                                    sx={{ textAlign: "center" }}
+                                >
                                     {getVariantLabel("overall", true)}
-                                </ToggleButton>
-                                <ToggleButton value="session">
+                                </RouterLinkToggleButton>
+                                <RouterLinkToggleButton
+                                    value="session"
+                                    from="/session"
+                                    to="/session"
+                                    search={(oldSearch) => ({
+                                        ...oldSearch,
+                                        variantSelection: "session",
+                                    })}
+                                    sx={{ textAlign: "center" }}
+                                >
                                     {getVariantLabel("session", true)}
-                                </ToggleButton>
-                                <ToggleButton value="both">Both</ToggleButton>
+                                </RouterLinkToggleButton>
+                                <RouterLinkToggleButton
+                                    value="both"
+                                    from="/session"
+                                    to="/session"
+                                    search={(oldSearch) => ({
+                                        ...oldSearch,
+                                        variantSelection: "both",
+                                    })}
+                                    sx={{ textAlign: "center" }}
+                                >
+                                    Both
+                                </RouterLinkToggleButton>
                             </ToggleButtonGroup>
                         </Stack>
                         <HistoryChart
