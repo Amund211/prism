@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
         plugins: [
             TanStackRouterVite({
                 addExtensions: true,
+                autoCodeSplitting: true,
             }),
             react({
                 babel: {

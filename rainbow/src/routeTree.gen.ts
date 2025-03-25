@@ -33,21 +33,19 @@ const SessionRoute = SessionImport.update({
   id: '/session',
   path: '/session',
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/session.lazy.tsx').then((d) => d.Route))
+} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/index.lazy.tsx').then((d) => d.Route))
+} as any)
 
 const HistoryCompareRoute = HistoryCompareImport.update({
   id: '/history/compare',
   path: '/history/compare',
   getParentRoute: () => rootRoute,
-} as any).lazy(() =>
-  import('./routes/history.compare.lazy.tsx').then((d) => d.Route),
-)
+} as any)
 
 // Populate the FileRoutesByPath interface
 
