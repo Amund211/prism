@@ -1256,30 +1256,6 @@ function RouteComponent() {
                                 exclusive
                                 size="small"
                                 value={variantSelection}
-                                onChange={(
-                                    _,
-                                    newSelection:
-                                        | "overall"
-                                        | "session"
-                                        | "both"
-                                        | null,
-                                ) => {
-                                    if (newSelection === null) {
-                                        return;
-                                    }
-                                    navigate({
-                                        search: (oldSearch) => ({
-                                            ...oldSearch,
-                                            variantSelection: newSelection,
-                                        }),
-                                    }).catch((error: unknown) => {
-                                        // TODO: Handle error
-                                        console.error(
-                                            "Failed to update search params: variantSelection",
-                                            error,
-                                        );
-                                    });
-                                }}
                             >
                                 <RouterLinkToggleButton
                                     value="overall"
