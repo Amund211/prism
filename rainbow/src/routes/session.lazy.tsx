@@ -74,6 +74,7 @@ interface SessionsProps {
     stat: StatKey;
     start: Date;
     end: Date;
+    tableMode: "total" | "rate";
 }
 
 const renderDuration = (end: Date, start: Date) => {
@@ -115,6 +116,7 @@ const Sessions: React.FC<SessionsProps> = ({
     stat,
     start,
     end,
+    tableMode,
 }) => {
     const { data: sessions } = useQuery(
         getSessionsQueryOptions({
@@ -123,8 +125,6 @@ const Sessions: React.FC<SessionsProps> = ({
             end,
         }),
     );
-
-    const [mode, setMode] = React.useState<"total" | "rate">("total");
 
     const header = (
         <Stack
@@ -144,19 +144,29 @@ const Sessions: React.FC<SessionsProps> = ({
                     <InfoOutlined fontSize="small" />
                 </Tooltip>
             </Stack>
-            <ToggleButtonGroup
-                exclusive
-                size="small"
-                value={mode}
-                onChange={(_, newMode: "total" | "rate" | null) => {
-                    if (newMode === null) {
-                        return;
-                    }
-                    setMode(newMode);
-                }}
-            >
-                <ToggleButton value="total">Total</ToggleButton>
-                <ToggleButton value="rate">Rate (/hour)</ToggleButton>
+            <ToggleButtonGroup exclusive size="small" value={tableMode}>
+                <RouterLinkToggleButton
+                    value="total"
+                    from="/session"
+                    to="/session"
+                    search={(oldSearch) => ({
+                        ...oldSearch,
+                        sessionTableMode: "total",
+                    })}
+                >
+                    Total
+                </RouterLinkToggleButton>
+                <RouterLinkToggleButton
+                    value="rate"
+                    from="/session"
+                    to="/session"
+                    search={(oldSearch) => ({
+                        ...oldSearch,
+                        sessionTableMode: "rate",
+                    })}
+                >
+                    Rate (/hour)
+                </RouterLinkToggleButton>
             </ToggleButtonGroup>
         </Stack>
     );
@@ -194,7 +204,7 @@ const Sessions: React.FC<SessionsProps> = ({
         );
     }
 
-    const labelSuffix = mode === "rate" ? "/hour" : "";
+    const labelSuffix = tableMode === "rate" ? "/hour" : "";
 
     const statAlreadyIncluded = (stat: StatKey) =>
         ["gamesPlayed", "wins"].includes(stat);
@@ -289,7 +299,7 @@ const Sessions: React.FC<SessionsProps> = ({
                                             }
 
                                             if (
-                                                mode === "rate" &&
+                                                tableMode === "rate" &&
                                                 isLinearStat(stat)
                                             ) {
                                                 return (
@@ -920,7 +930,8 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
 };
 
 function RouteComponent() {
-    const { uuid, gamemode, stat, variantSelection } = route.useSearch();
+    const { uuid, gamemode, stat, variantSelection, sessionTableMode } =
+        route.useSearch();
     const {
         timeIntervalDefinition,
         timeIntervals: { day, week, month },
@@ -1109,6 +1120,7 @@ function RouteComponent() {
                     stat={stat}
                     start={month.start}
                     end={month.end}
+                    tableMode={sessionTableMode}
                 />
             </Box>
             <Box>

@@ -34,6 +34,7 @@ const sessionSearchSchema = z.object({
     gamemode: fallback(z.enum(ALL_GAMEMODE_KEYS), "overall"),
     stat: fallback(z.enum(ALL_STAT_KEYS), "fkdr"),
     variantSelection: fallback(z.enum(["session", "overall", "both"]), "both"),
+    sessionTableMode: fallback(z.enum(["total", "rate"]), "total"),
 });
 
 export const Route = createFileRoute("/session")({

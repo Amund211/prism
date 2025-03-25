@@ -391,6 +391,7 @@ function Index() {
                                         type: "until",
                                         date: sessionPageEndDate,
                                     },
+                                    sessionTableMode: "total",
                                 }}
                             >
                                 <QueryStats />

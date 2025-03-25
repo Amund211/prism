@@ -109,6 +109,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                     gamemode: "overall",
                                     stat: "fkdr",
                                     variantSelection: "both",
+                                    sessionTableMode: "total",
                                 }}
                             >
                                 <ListItemIcon>
@@ -189,6 +190,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                     gamemode: "overall",
                                     stat: "fkdr",
                                     variantSelection: "both",
+                                    sessionTableMode: "total",
                                 }}
                             >
                                 <ListItemIcon>

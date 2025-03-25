@@ -28,6 +28,7 @@ function RouteComponent() {
                             stat: "fkdr",
                             timeIntervalDefinition: { type: "contained" },
                             variantSelection: "both",
+                            sessionTableMode: "total",
                         },
                     }).catch((error: unknown) => {
                         // TODO: Handle error
