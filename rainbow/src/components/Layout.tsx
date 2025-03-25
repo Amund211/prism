@@ -80,6 +80,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                     src="/who.png"
                                     alt="Prism Overlay logo"
                                     width="40"
+                                    height="40"
                                 />
                                 <Typography variant="h6" color="textPrimary">
                                     Prism Overlay
@@ -174,6 +175,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                             src="/who.png"
                             alt="Prism Overlay logo"
                             width="40"
+                            height="40"
                         />
                         <Typography variant="h6" color="textPrimary">
                             Prism Overlay
