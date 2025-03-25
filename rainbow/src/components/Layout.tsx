@@ -22,7 +22,7 @@ import {
     Toolbar,
     Typography,
 } from "@mui/material";
-import { createLink, useLocation } from "@tanstack/react-router";
+import { createLink, Link, useLocation } from "@tanstack/react-router";
 import React from "react";
 import { DarkModeSwitch } from "./DarkModeSwitch.tsx";
 
@@ -74,17 +74,18 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                         justifyContent="space-between"
                         width="100%"
                     >
-                        {/*TODO: Link to "home"*/}
-                        <Stack direction="row" gap={1} alignItems="center">
-                            <img
-                                src="/who.png"
-                                alt="Prism Overlay logo"
-                                width="40"
-                            />
-                            <Typography variant="h6" color="textPrimary">
-                                Prism Overlay
-                            </Typography>
-                        </Stack>
+                        <Link to="/" style={{ textDecoration: "none" }}>
+                            <Stack direction="row" gap={1} alignItems="center">
+                                <img
+                                    src="/who.png"
+                                    alt="Prism Overlay logo"
+                                    width="40"
+                                />
+                                <Typography variant="h6" color="textPrimary">
+                                    Prism Overlay
+                                </Typography>
+                            </Stack>
+                        </Link>
                         <Stack direction="row" gap={1}>
                             <DarkModeSwitch />
                             <IconButton onClick={handleClickMenu}>
@@ -161,17 +162,24 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                     },
                 }}
             >
-                {/*TODO: Link to "home"*/}
-                <Stack
-                    direction="row"
-                    paddingY={1.5}
-                    paddingX={3}
-                    gap={1}
-                    alignItems="center"
-                >
-                    <img src="/who.png" alt="Prism Overlay logo" width="40" />
-                    <Typography variant="h6">Prism Overlay</Typography>
-                </Stack>
+                <Link to="/" style={{ textDecoration: "none" }}>
+                    <Stack
+                        direction="row"
+                        paddingY={1.5}
+                        paddingX={3}
+                        gap={1}
+                        alignItems="center"
+                    >
+                        <img
+                            src="/who.png"
+                            alt="Prism Overlay logo"
+                            width="40"
+                        />
+                        <Typography variant="h6" color="textPrimary">
+                            Prism Overlay
+                        </Typography>
+                    </Stack>
+                </Link>
                 <Divider />
                 <Stack height="100%" overflow="auto">
                     <List dense component="menu">
