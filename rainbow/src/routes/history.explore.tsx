@@ -56,7 +56,7 @@ defaultStart.setHours(0, 0, 0, 0);
 const defaultEnd = new Date();
 defaultEnd.setHours(23, 59, 59, 999);
 
-const historyCompareSearchSchema = z.object({
+const historyExploreSearchSchema = z.object({
     // TODO: Read "preferred user" from local storage or similar
     uuids: fallback(z.array(z.string()).readonly(), []),
     start: fallback(z.coerce.date(), defaultStart),
@@ -96,7 +96,7 @@ export const Route = createFileRoute("/history/explore")({
             console.error(e);
         });
     },
-    validateSearch: historyCompareSearchSchema,
+    validateSearch: historyExploreSearchSchema,
     component: Index,
 });
 
