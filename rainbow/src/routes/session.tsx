@@ -1106,6 +1106,7 @@ function RouteComponent() {
                 <Select
                     value={gamemode}
                     label="Gamemode"
+                    aria-label="Gamemode"
                     fullWidth
                     onChange={(event) => {
                         const newGamemode = event.target.value as GamemodeKey;
@@ -1132,6 +1133,7 @@ function RouteComponent() {
                 <Select
                     value={stat}
                     label="Stat"
+                    aria-label="Stat"
                     fullWidth
                     onChange={(event) => {
                         const newStat = event.target.value as StatKey;

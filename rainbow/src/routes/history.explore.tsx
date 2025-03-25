@@ -276,6 +276,7 @@ function Index() {
                 <Select
                     value={gamemodes}
                     label="Gamemodes"
+                    aria-label="Gamemodes"
                     multiple
                     fullWidth
                     onChange={(event) => {
@@ -305,6 +306,7 @@ function Index() {
                     value={stats}
                     multiple
                     label="Stat"
+                    aria-label="Stat"
                     fullWidth
                     onChange={(event) => {
                         const newStats = event.target.value as StatKey[];
