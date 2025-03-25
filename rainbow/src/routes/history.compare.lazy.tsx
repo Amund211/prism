@@ -304,16 +304,13 @@ function Index() {
                                 label={option.label}
                                 variant="outlined"
                                 color={selected ? "primary" : "default"}
+                                from="/history/compare"
                                 to="/history/compare"
-                                search={{
-                                    uuids,
-                                    stats,
-                                    gamemodes,
-                                    variantSelection,
+                                search={(oldSearch) => ({
+                                    ...oldSearch,
                                     start: option.start,
                                     end: option.end,
-                                    limit,
-                                }}
+                                })}
                             />
                         );
                     })}
