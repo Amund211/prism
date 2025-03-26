@@ -24,10 +24,14 @@ import (
 	"github.com/google/uuid"
 )
 
+// TODO: Put in config
+const PROD_URL = "https://prismoverlay.com"
+const STAGING_URL_SUFFIX = ".rainbow-ctx.pages.dev"
+
 func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
-		if strings.HasSuffix(origin, ".pages.dev") {
+		if origin == PROD_URL || strings.HasSuffix(origin, STAGING_URL_SUFFIX) {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 		}
 
