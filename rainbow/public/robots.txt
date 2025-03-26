@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://rainbow-ctx.pages.dev/sitemap.txt
+Sitemap: https://prismoverlay.com/sitemap.txt
