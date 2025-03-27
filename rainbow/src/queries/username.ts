@@ -1,6 +1,5 @@
 import { queryOptions, useQueries } from "@tanstack/react-query";
 import { env } from "#env.ts";
-import React from "react";
 
 export const getUsernameQueryOptions = (uuid: string) =>
     queryOptions({
@@ -34,13 +33,11 @@ export const useUUIDToUsername = (uuids: readonly string[]) => {
         queries: uuids.map((uuid) => getUsernameQueryOptions(uuid)),
     });
 
-    return React.useMemo(() => {
-        const result: Record<string, string | undefined> = {};
-        usernameQueries.forEach((query) => {
-            if (query.status === "success") {
-                result[query.data.uuid] = query.data.username;
-            }
-        });
-        return result;
-    }, [usernameQueries]);
+    const result: Record<string, string | undefined> = {};
+    usernameQueries.forEach((query) => {
+        if (query.status === "success") {
+            result[query.data.uuid] = query.data.username;
+        }
+    });
+    return result;
 };

@@ -213,15 +213,11 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
         ),
     });
 
-    const histories = React.useMemo(() => {
-        return historyQueries
-            .filter((query) => query.status === "success")
-            .map((query) => query.data);
-    }, [historyQueries]);
+    const histories = historyQueries
+        .filter((query) => query.status === "success")
+        .map((query) => query.data);
 
-    const chartData = React.useMemo(() => {
-        return generateChartData(histories);
-    }, [histories]);
+    const chartData = generateChartData(histories);
 
     const uuidToUsername = useUUIDToUsername(uuids);
 

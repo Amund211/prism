@@ -5,6 +5,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 import reactCompiler from "eslint-plugin-react-compiler";
 import react from "eslint-plugin-react";
+import pluginQuery from "@tanstack/eslint-plugin-query";
 
 export default tseslint.config(
     { ignores: ["dist", "src/routeTree.gen.ts"] },
@@ -25,6 +26,7 @@ export default tseslint.config(
             "react-refresh": reactRefresh,
             "react-compiler": reactCompiler,
             react: react,
+            "@tanstack/query": pluginQuery,
         },
         rules: {
             ...reactHooks.configs.recommended.rules,
@@ -44,4 +46,5 @@ export default tseslint.config(
             },
         },
     },
+    ...pluginQuery.configs["flat/recommended"],
 );
