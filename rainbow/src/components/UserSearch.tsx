@@ -1,4 +1,5 @@
-import { getUUIDQueryOptions, normalizeUUID } from "#queries/uuid.ts";
+import { getUUIDQueryOptions } from "#queries/uuid.ts";
+import { isUUID } from "#helpers/uuid.ts";
 import { Search } from "@mui/icons-material";
 import { CircularProgress, InputAdornment, OutlinedInput } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
@@ -9,15 +10,6 @@ interface UserSearchProps {
     placeholder?: string;
     size?: "small" | "medium";
 }
-
-const isUUID = (value: string) => {
-    try {
-        normalizeUUID(value);
-    } catch {
-        return false;
-    }
-    return true;
-};
 
 export const UserSearch: React.FC<UserSearchProps> = ({
     onSubmit,
