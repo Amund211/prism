@@ -48,7 +48,7 @@ import {
     startOfYear,
 } from "#intervals.ts";
 import { QueryStats } from "@mui/icons-material";
-import { visitPlayer } from "#hooks/useFavoritePlayers.ts";
+import { visitPlayer } from "#helpers/favoritePlayers.ts";
 import React from "react";
 
 const defaultStart = new Date();

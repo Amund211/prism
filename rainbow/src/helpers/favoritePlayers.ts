@@ -118,7 +118,7 @@ export const visitPlayer = (uuid: string) => {
     localStorage.setItem(localStorageKey, JSON.stringify(storedInfo));
 };
 
-export const useFavoritePlayers = (amount: number): string[] => {
+export const getFavoritePlayers = (amount: number): string[] => {
     const stored = localStorage.getItem(localStorageKey);
     return orderPlayers(parseStoredInfo(stored), amount);
 };

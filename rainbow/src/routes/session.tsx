@@ -59,7 +59,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, createLink } from "@tanstack/react-router";
 import React from "react";
-import { visitPlayer } from "#hooks/useFavoritePlayers.ts";
+import { visitPlayer } from "#helpers/favoritePlayers.ts";
 
 const sessionSearchSchema = z.object({
     // TODO: Read "preferred user" from local storage or similar
