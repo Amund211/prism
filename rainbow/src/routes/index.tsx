@@ -98,6 +98,14 @@ function RouteComponent() {
                                     position: "absolute",
                                     top: -5,
                                     right: -5,
+                                    "&:hover": {
+                                        transition: "opacity 0.2s",
+                                        opacity: "1!important",
+                                    },
+                                    "&:focus": {
+                                        transition: "opacity 0.2s",
+                                        opacity: "1!important",
+                                    },
                                 }}
                                 size="small"
                                 color="error"
