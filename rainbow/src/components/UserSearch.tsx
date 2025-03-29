@@ -53,12 +53,14 @@ interface UserSearchOptions<Multiple extends boolean> {
     renderTags: AutocompleteProps<string, Multiple, true, true>["renderTags"];
 }
 
-const useUserSearchOptions = <
-    Multiple extends boolean = false,
->(): UserSearchOptions<Multiple> => {
+const useUserSearchOptions = <Multiple extends boolean = false>(
+    additionalUUIDs?: readonly string[],
+): UserSearchOptions<Multiple> => {
     const knownAliases = getKnownAliases();
     const uuids = Object.keys(knownAliases);
-    const uuidToUsername = useUUIDToUsername(uuids);
+    const uuidToUsername = useUUIDToUsername(
+        uuids.concat(additionalUUIDs ?? []),
+    );
 
     return {
         uuids,
@@ -247,7 +249,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
         getOptionLabel,
         isOptionEqualToValue,
         renderTags,
-    } = useUserSearchOptions<true>();
+    } = useUserSearchOptions<true>(uuids);
     const [loading, setLoading] = React.useState(false);
 
     return (
