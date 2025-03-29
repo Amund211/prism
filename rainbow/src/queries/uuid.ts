@@ -16,7 +16,7 @@ export const normalizeUUID = (uuid: string) => {
 
 export const getUUIDQueryOptions = (username: string) =>
     queryOptions({
-        staleTime: 1000 * 60 * 60,
+        staleTime: 1000 * 60 * 60 * 24 * 21,
         queryKey: ["uuid", username],
         queryFn: async (): Promise<{ uuid: string; username: string }> => {
             const response = await fetch(

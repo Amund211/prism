@@ -37,7 +37,7 @@ export const getSessionsQueryOptions = ({
     const endISOString = end.toISOString();
 
     return queryOptions({
-        staleTime: currentTimeIsInWindow ? 1000 * 60 * 5 : Infinity,
+        staleTime: currentTimeIsInWindow ? 1000 * 60 * 1 : Infinity,
         queryKey: ["sessions", uuid, startISOString, endISOString],
         queryFn: async (): Promise<Sessions> => {
             if (start.getTime() > end.getTime()) {
