@@ -17,6 +17,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { getKnownAliases } from "#helpers/knownAliases.ts";
+import { orderUUIDsByScore } from "#helpers/favoritePlayers.ts";
 
 interface UserSearchProps {
     onSubmit: (uuid: string) => void;
@@ -65,7 +66,6 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
     return {
         uuids,
         filterOptions: (options, { inputValue }) => {
-            if (inputValue === "") return options;
             const namesForOptions = options.map((option) => {
                 const uuid = option;
                 const name = uuidToUsername[uuid];
@@ -79,13 +79,17 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                 return { names: [name, ...names], option };
             });
 
-            return namesForOptions
-                .filter(({ names }) => {
-                    return names.some((name) =>
-                        name.toLowerCase().includes(inputValue.toLowerCase()),
-                    );
-                })
-                .map(({ option }) => option);
+            return orderUUIDsByScore(
+                namesForOptions
+                    .filter(({ names }) => {
+                        return names.some((name) =>
+                            name
+                                .toLowerCase()
+                                .includes(inputValue.toLowerCase()),
+                        );
+                    })
+                    .map(({ option }) => option),
+            );
         },
         renderOption: (props, option) => {
             const { key, ...optionProps } = props; // eslint-disable-line @typescript-eslint/no-unsafe-assignment

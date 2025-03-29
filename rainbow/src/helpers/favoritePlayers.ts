@@ -79,7 +79,6 @@ const computeScore = (info: PlayerInfo): number => {
 
 const orderPlayers = (
     players: Record<string, PlayerInfo | undefined>,
-    amount: number,
 ): string[] => {
     return Object.entries(players)
         .map(([uuid, info]) => {
@@ -92,8 +91,7 @@ const orderPlayers = (
         .sort((a, b) => {
             return computeScore(b[1]) - computeScore(a[1]);
         })
-        .map(([uuid]) => uuid)
-        .slice(0, amount);
+        .map(([uuid]) => uuid);
 };
 
 export const removeFavoritePlayer = (uuid: string) => {
@@ -118,7 +116,26 @@ export const visitPlayer = (uuid: string) => {
     localStorage.setItem(localStorageKey, JSON.stringify(storedInfo));
 };
 
-export const getFavoritePlayers = (amount: number): string[] => {
+export const getFavoritePlayers = (amount?: number): string[] => {
     const stored = localStorage.getItem(localStorageKey);
-    return orderPlayers(parseStoredInfo(stored), amount);
+
+    const ordered = orderPlayers(parseStoredInfo(stored));
+
+    if (amount === undefined) {
+        return ordered;
+    }
+
+    return ordered.slice(0, amount);
+};
+
+export const orderUUIDsByScore = (uuids: string[]): string[] => {
+    const favoritePlayers = getFavoritePlayers();
+
+    return [...uuids].sort((a, b) => {
+        const aIndex = favoritePlayers.indexOf(a);
+        const bIndex = favoritePlayers.indexOf(b);
+        if (aIndex === -1) return 1;
+        if (bIndex === -1) return -1;
+        return aIndex - bIndex;
+    });
 };
