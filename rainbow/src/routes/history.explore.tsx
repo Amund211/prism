@@ -425,10 +425,14 @@ function Index() {
                         stats={stats}
                         variants={variants}
                     />
-                    <Tooltip title={goToSessionPageTooltip}>
+                    <Tooltip
+                        id="go-to-session-page-tooltip"
+                        title={goToSessionPageTooltip}
+                    >
                         {/* Make the span tabbable when the button is disabled so you can get to it and see the tooltip */}
                         <span tabIndex={canGoToSessionPage ? undefined : 0}>
                             <RouterLinkIconButton
+                                aria-labelledby="go-to-session-page-tooltip"
                                 disabled={!canGoToSessionPage}
                                 size="small"
                                 color="primary"
