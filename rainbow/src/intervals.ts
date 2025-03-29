@@ -63,6 +63,7 @@ export const startOfLastMonth = (date: Date) => {
 };
 export const endOfLastMonth = (date: Date) => {
     const d = new Date(date);
+    d.setDate(1);
     d.setMonth(d.getMonth() - 1);
     return endOfMonth(d);
 };

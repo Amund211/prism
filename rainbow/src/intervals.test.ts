@@ -152,6 +152,14 @@ await test("time helpers", async (t) => {
                 date: new Date(2024, 0, 31, 23, 40, 0),
                 expected: new Date(2023, 11, 31, 23, 59, 59, 999),
             },
+            {
+                date: new Date(2025, 2, 29, 18, 40, 0),
+                expected: new Date(2025, 1, 28, 23, 59, 59, 999),
+            },
+            {
+                date: new Date(2025, 2, 31, 23, 40, 0),
+                expected: new Date(2025, 1, 28, 23, 59, 59, 999),
+            },
         ];
         for (const { date, expected } of cases) {
             await t.test(date.toISOString(), () => {
