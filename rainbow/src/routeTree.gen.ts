@@ -8,8 +8,6 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from '@tanstack/react-router'
-
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root.tsx'
@@ -17,17 +15,7 @@ import { Route as SessionImport } from './routes/session.tsx'
 import { Route as IndexImport } from './routes/index.tsx'
 import { Route as HistoryExploreImport } from './routes/history.explore.tsx'
 
-// Create Virtual Routes
-
-const AboutLazyImport = createFileRoute('/about')()
-
 // Create/Update Routes
-
-const AboutLazyRoute = AboutLazyImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/about.lazy.tsx').then((d) => d.Route))
 
 const SessionRoute = SessionImport.update({
   id: '/session',
@@ -65,13 +53,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SessionImport
       parentRoute: typeof rootRoute
     }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutLazyImport
-      parentRoute: typeof rootRoute
-    }
     '/history/explore': {
       id: '/history/explore'
       path: '/history/explore'
@@ -87,14 +68,12 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/session': typeof SessionRoute
-  '/about': typeof AboutLazyRoute
   '/history/explore': typeof HistoryExploreRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/session': typeof SessionRoute
-  '/about': typeof AboutLazyRoute
   '/history/explore': typeof HistoryExploreRoute
 }
 
@@ -102,30 +81,27 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/session': typeof SessionRoute
-  '/about': typeof AboutLazyRoute
   '/history/explore': typeof HistoryExploreRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/session' | '/about' | '/history/explore'
+  fullPaths: '/' | '/session' | '/history/explore'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/session' | '/about' | '/history/explore'
-  id: '__root__' | '/' | '/session' | '/about' | '/history/explore'
+  to: '/' | '/session' | '/history/explore'
+  id: '__root__' | '/' | '/session' | '/history/explore'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SessionRoute: typeof SessionRoute
-  AboutLazyRoute: typeof AboutLazyRoute
   HistoryExploreRoute: typeof HistoryExploreRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SessionRoute: SessionRoute,
-  AboutLazyRoute: AboutLazyRoute,
   HistoryExploreRoute: HistoryExploreRoute,
 }
 
@@ -141,7 +117,6 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/session",
-        "/about",
         "/history/explore"
       ]
     },
@@ -150,9 +125,6 @@ export const routeTree = rootRoute
     },
     "/session": {
       "filePath": "session.tsx"
-    },
-    "/about": {
-      "filePath": "about.lazy.tsx"
     },
     "/history/explore": {
       "filePath": "history.explore.tsx"
