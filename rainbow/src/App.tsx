@@ -5,6 +5,7 @@ import { routeTree } from "./routeTree.gen.ts";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { CurrentUserProvider } from "#contexts/CurrentUser/provider.tsx";
 
 // Create a new router instance
 const router = createRouter({ routeTree, defaultPreload: "intent" });
@@ -33,8 +34,10 @@ function App() {
         >
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <ThemeProvider theme={theme} noSsr>
-                    <CssBaseline />
-                    <RouterProvider router={router} />
+                    <CurrentUserProvider>
+                        <CssBaseline />
+                        <RouterProvider router={router} />
+                    </CurrentUserProvider>
                 </ThemeProvider>
             </LocalizationProvider>
         </PersistQueryClientProvider>

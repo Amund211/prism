@@ -2,6 +2,7 @@ import {
     CalendarMonth,
     Menu as MenuIcon,
     MenuOpen,
+    Settings,
     TrendingUp,
 } from "@mui/icons-material";
 import {
@@ -20,16 +21,36 @@ import {
     MenuItem,
     Stack,
     Toolbar,
+    Tooltip,
     Typography,
 } from "@mui/material";
 import { createLink, Link, useLocation } from "@tanstack/react-router";
 import React from "react";
 import { DarkModeSwitch } from "./DarkModeSwitch.tsx";
+import { endOfMonth, startOfMonth } from "#intervals.ts";
+import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
 
 const RouterLinkItemButton = createLink(ListItemButton);
 const RouterMenuItem = createLink(MenuItem);
 
 const APP_BAR_HEIGHT_PX = "64px";
+
+const MissingDefaultUserTooltip: React.FC<{
+    missing: boolean;
+    children: React.ReactNode;
+}> = ({ missing, children }) => {
+    return (
+        <Tooltip
+            title={
+                missing
+                    ? "You need to set a default user in the settings first"
+                    : undefined
+            }
+        >
+            <span>{children}</span>
+        </Tooltip>
+    );
+};
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({
     children,
@@ -43,6 +64,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
     const handleCloseMenu = () => {
         setAnchorEl(null);
     };
+
+    const { currentUser } = useCurrentUser();
+
+    const now = new Date();
 
     return (
         // Layout inspired by https://github.com/mui/material-ui/tree/v6.4.1/docs/data/material/getting-started/templates/dashboard
@@ -101,51 +126,59 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                             anchorEl={anchorEl}
                             onClose={handleCloseMenu}
                         >
+                            <MissingDefaultUserTooltip missing={!currentUser}>
+                                <RouterMenuItem
+                                    disabled={!currentUser}
+                                    to="/session"
+                                    selected={location.pathname === "/session"}
+                                    search={{
+                                        uuid: currentUser ?? "",
+                                        timeIntervalDefinition: {
+                                            type: "contained",
+                                        },
+                                        gamemode: "overall",
+                                        stat: "fkdr",
+                                        variantSelection: "both",
+                                        sessionTableMode: "total",
+                                    }}
+                                >
+                                    <ListItemIcon>
+                                        <TrendingUp />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Session stats" />
+                                </RouterMenuItem>
+                            </MissingDefaultUserTooltip>
+                            <MissingDefaultUserTooltip missing={!currentUser}>
+                                <RouterMenuItem
+                                    disabled={!currentUser}
+                                    to="/history/explore"
+                                    selected={
+                                        location.pathname === "/history/explore"
+                                    }
+                                    search={{
+                                        uuids: [currentUser ?? ""],
+                                        start: startOfMonth(now),
+                                        end: endOfMonth(now),
+                                        limit: 100,
+                                        stats: ["fkdr"],
+                                        gamemodes: ["overall"],
+                                        variantSelection: "both",
+                                    }}
+                                >
+                                    <ListItemIcon>
+                                        <CalendarMonth />
+                                    </ListItemIcon>
+                                    <ListItemText primary="History explorer" />
+                                </RouterMenuItem>
+                            </MissingDefaultUserTooltip>
                             <RouterMenuItem
-                                to="/session"
-                                search={{
-                                    uuid: "a937646b-f115-44c3-8dbf-9ae4a65669a0",
-                                    timeIntervalDefinition: {
-                                        type: "until",
-                                        date: new Date(
-                                            "2025-01-15T22:30:00+01:00",
-                                        ),
-                                    },
-                                    gamemode: "overall",
-                                    stat: "fkdr",
-                                    variantSelection: "both",
-                                    sessionTableMode: "total",
-                                }}
+                                selected={location.pathname === "/settings"}
+                                to="/settings"
                             >
                                 <ListItemIcon>
-                                    <TrendingUp />
+                                    <Settings />
                                 </ListItemIcon>
-                                <ListItemText primary="Session stats" />
-                            </RouterMenuItem>
-                            <RouterMenuItem
-                                to="/history/explore"
-                                search={{
-                                    uuids: [
-                                        "a937646b-f115-44c3-8dbf-9ae4a65669a0", // Skydeath
-                                        "ac04f297-f74c-44de-a24e-0083936ac59a", // USBB
-                                        "062c373b-28de-4ec0-ab2c-0114e59e36ce", // Skydeaf
-                                        "3d58a2de-3831-4a17-a305-67258295f81e", // iCiara
-                                        "6bc1dd0f-f351-4c3d-b6cc-262e55b6e7aa", // HardcoreLizard
-                                    ],
-                                    start: new Date(
-                                        "2025-01-15T19:55:00+01:00",
-                                    ),
-                                    end: new Date("2025-01-15T22:30:00+01:00"),
-                                    limit: 100,
-                                    stats: ["stars", "finalKills"],
-                                    gamemodes: ["overall"],
-                                    variantSelection: "session",
-                                }}
-                            >
-                                <ListItemIcon>
-                                    <CalendarMonth />
-                                </ListItemIcon>
-                                <ListItemText primary="History explorer" />
+                                <ListItemText primary="Settings" />
                             </RouterMenuItem>
                         </Menu>
                     </Stack>
@@ -188,58 +221,64 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                 <Divider />
                 <Stack height="100%" overflow="auto">
                     <List dense component="menu">
+                        <MissingDefaultUserTooltip missing={!currentUser}>
+                            <ListItem disablePadding>
+                                <RouterLinkItemButton
+                                    disabled={!currentUser}
+                                    selected={location.pathname === "/session"}
+                                    to="/session"
+                                    search={{
+                                        uuid: currentUser ?? "",
+                                        timeIntervalDefinition: {
+                                            type: "contained",
+                                        },
+                                        gamemode: "overall",
+                                        stat: "fkdr",
+                                        variantSelection: "both",
+                                        sessionTableMode: "total",
+                                    }}
+                                >
+                                    <ListItemIcon>
+                                        <TrendingUp />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Session stats" />
+                                </RouterLinkItemButton>
+                            </ListItem>
+                        </MissingDefaultUserTooltip>
+                        <MissingDefaultUserTooltip missing={!currentUser}>
+                            <ListItem disablePadding>
+                                <RouterLinkItemButton
+                                    disabled={!currentUser}
+                                    selected={
+                                        location.pathname === "/history/explore"
+                                    }
+                                    to="/history/explore"
+                                    search={{
+                                        uuids: [currentUser ?? ""],
+                                        start: startOfMonth(now),
+                                        end: endOfMonth(now),
+                                        limit: 100,
+                                        stats: ["fkdr"],
+                                        gamemodes: ["overall"],
+                                        variantSelection: "both",
+                                    }}
+                                >
+                                    <ListItemIcon>
+                                        <CalendarMonth />
+                                    </ListItemIcon>
+                                    <ListItemText primary="History explorer" />
+                                </RouterLinkItemButton>
+                            </ListItem>
+                        </MissingDefaultUserTooltip>
                         <ListItem disablePadding>
                             <RouterLinkItemButton
-                                selected={location.pathname === "/session"}
-                                to="/session"
-                                search={{
-                                    uuid: "a937646b-f115-44c3-8dbf-9ae4a65669a0",
-                                    timeIntervalDefinition: {
-                                        type: "until",
-                                        date: new Date(
-                                            "2025-01-15T22:30:00+01:00",
-                                        ),
-                                    },
-                                    gamemode: "overall",
-                                    stat: "fkdr",
-                                    variantSelection: "both",
-                                    sessionTableMode: "total",
-                                }}
+                                selected={location.pathname === "/settings"}
+                                to="/settings"
                             >
                                 <ListItemIcon>
-                                    <TrendingUp />
+                                    <Settings />
                                 </ListItemIcon>
-                                <ListItemText primary="Session stats" />
-                            </RouterLinkItemButton>
-                        </ListItem>
-                        <ListItem disablePadding>
-                            <RouterLinkItemButton
-                                selected={
-                                    location.pathname === "/history/explore"
-                                }
-                                to="/history/explore"
-                                search={{
-                                    uuids: [
-                                        "a937646b-f115-44c3-8dbf-9ae4a65669a0", // Skydeath
-                                        "ac04f297-f74c-44de-a24e-0083936ac59a", // USBB
-                                        "062c373b-28de-4ec0-ab2c-0114e59e36ce", // Skydeaf
-                                        "3d58a2de-3831-4a17-a305-67258295f81e", // iCiara
-                                        "6bc1dd0f-f351-4c3d-b6cc-262e55b6e7aa", // HardcoreLizard
-                                    ],
-                                    start: new Date(
-                                        "2025-01-15T19:55:00+01:00",
-                                    ),
-                                    end: new Date("2025-01-15T22:30:00+01:00"),
-                                    limit: 100,
-                                    stats: ["stars", "finalKills"],
-                                    gamemodes: ["overall"],
-                                    variantSelection: "session",
-                                }}
-                            >
-                                <ListItemIcon>
-                                    <CalendarMonth />
-                                </ListItemIcon>
-                                <ListItemText primary="History explorer" />
+                                <ListItemText primary="Settings" />
                             </RouterLinkItemButton>
                         </ListItem>
                     </List>
