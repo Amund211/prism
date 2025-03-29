@@ -5,8 +5,7 @@ import { fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { getUsernameQueryOptions } from "#queries/username.ts";
 import { HistoryChart, HistoryChartTitle } from "#charts/history/chart.tsx";
-import { UserSearch } from "#components/UserSearch.tsx";
-import { useUUIDToUsername } from "#queries/username.ts";
+import { UserMultiSelect } from "#components/UserSearch.tsx";
 import {
     ALL_GAMEMODE_KEYS,
     ALL_STAT_KEYS,
@@ -24,7 +23,6 @@ import {
     IconButton,
     MenuItem,
     Select,
-    Skeleton,
     Stack,
     ToggleButton,
     ToggleButtonGroup,
@@ -124,8 +122,6 @@ function Index() {
             ? (["session", "overall"] as const)
             : ([variantSelection] as const);
 
-    const uuidToUsername = useUUIDToUsername(uuids);
-
     const now = new Date();
     const timeFilterOptions = [
         {
@@ -213,18 +209,14 @@ function Index() {
                 name="description"
                 content="Compare the stats of multiple players in Hypixel Bedwars. See how you stack up against your friends and rivals. Chart any combination of statistic (FKDR, wins, final kills, ...), players, gamemodes, and session/overall stats."
             />
-            <UserSearch
-                placeholder="Add user..."
-                onSubmit={(uuid) => {
-                    visitPlayer(uuid);
+            <UserMultiSelect
+                uuids={uuids}
+                onSubmit={(uuids) => {
                     navigate({
                         search: (oldSearch) => {
-                            if (oldSearch.uuids.includes(uuid)) {
-                                return oldSearch;
-                            }
                             return {
                                 ...oldSearch,
-                                uuids: [...oldSearch.uuids, uuid],
+                                uuids,
                             };
                         },
                     }).catch((error: unknown) => {
@@ -236,55 +228,6 @@ function Index() {
                     });
                 }}
             />
-            <Stack direction="row" gap={1} flexWrap="wrap">
-                {uuids.length === 0 && (
-                    <Tooltip title="Use the search bar to add users.">
-                        <span tabIndex={0}>
-                            <Chip
-                                disabled
-                                variant="outlined"
-                                label="No users added"
-                            />
-                        </span>
-                    </Tooltip>
-                )}
-                {uuids.map((uuid) => (
-                    <Chip
-                        key={uuid}
-                        label={
-                            uuidToUsername[uuid] ?? (
-                                <Skeleton variant="text" width={60} />
-                            )
-                        }
-                        variant="outlined"
-                        color="primary"
-                        avatar={
-                            <img
-                                style={{ backgroundColor: "rgba(0, 0, 0, 0)" }}
-                                // TODO: Attribution - https://crafatar.com/#meta-attribution
-                                src={`https://crafatar.com/renders/head/${uuid}?overlay`}
-                                alt={`Player head of ${uuidToUsername[uuid] ?? "unknown"}`}
-                            />
-                        }
-                        onDelete={() => {
-                            navigate({
-                                search: (oldSearch) => ({
-                                    ...oldSearch,
-                                    uuids: oldSearch.uuids.filter(
-                                        (u) => u !== uuid,
-                                    ),
-                                }),
-                            }).catch((error: unknown) => {
-                                // TODO: Handle error
-                                console.error(
-                                    "Failed to update search params: variantSelection",
-                                    error,
-                                );
-                            });
-                        }}
-                    />
-                ))}
-            </Stack>
             <Stack direction="row" gap={1}>
                 <Select
                     value={gamemodes}

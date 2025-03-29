@@ -6,8 +6,10 @@ import {
     Autocomplete,
     AutocompleteProps,
     Avatar,
+    Chip,
     CircularProgress,
     InputAdornment,
+    Skeleton,
     Stack,
     TextField,
     Typography,
@@ -22,15 +24,20 @@ interface UserSearchProps {
     size?: "small" | "medium";
 }
 
-interface UserSearchOptions {
+interface UserSearchOptions<Multiple extends boolean> {
     uuids: string[];
     filterOptions: AutocompleteProps<
         string,
-        false,
+        Multiple,
         true,
         true
     >["filterOptions"];
-    renderOption: AutocompleteProps<string, false, true, true>["renderOption"];
+    renderOption: AutocompleteProps<
+        string,
+        Multiple,
+        true,
+        true
+    >["renderOption"];
     getOptionLabel: AutocompleteProps<
         string,
         false,
@@ -39,13 +46,16 @@ interface UserSearchOptions {
     >["getOptionLabel"];
     isOptionEqualToValue: AutocompleteProps<
         string,
-        false,
+        Multiple,
         true,
         true
     >["isOptionEqualToValue"];
+    renderTags: AutocompleteProps<string, Multiple, true, true>["renderTags"];
 }
 
-const useUserSearchOptions = (): UserSearchOptions => {
+const useUserSearchOptions = <
+    Multiple extends boolean = false,
+>(): UserSearchOptions<Multiple> => {
     const knownAliases = getKnownAliases();
     const uuids = Object.keys(knownAliases);
     const uuidToUsername = useUUIDToUsername(uuids);
@@ -107,6 +117,34 @@ const useUserSearchOptions = (): UserSearchOptions => {
                 uuidToUsername[option]?.toLowerCase() === value.toLowerCase()
             );
         },
+        renderTags: (value, getTagProps) =>
+            value.map((option: string, index: number) => {
+                const uuid = option;
+                const { key, ...tagProps } = getTagProps({ index });
+                return (
+                    <Chip
+                        key={key}
+                        {...tagProps}
+                        label={
+                            uuidToUsername[uuid] ?? (
+                                <Skeleton variant="text" width={60} />
+                            )
+                        }
+                        variant="outlined"
+                        color="primary"
+                        avatar={
+                            <img
+                                style={{
+                                    backgroundColor: "rgba(0, 0, 0, 0)",
+                                }}
+                                // TODO: Attribution - https://crafatar.com/#meta-attribution
+                                src={`https://crafatar.com/renders/head/${uuid}?overlay`}
+                                alt={`Player head of ${uuidToUsername[uuid] ?? "unknown"}`}
+                            />
+                        }
+                    />
+                );
+            }),
     };
 };
 
@@ -171,11 +209,114 @@ export const UserSearch: React.FC<UserSearchProps> = ({
                                 ...params.InputProps,
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        {loading ? (
-                                            <CircularProgress size={20} />
-                                        ) : (
-                                            <Search fontSize="small" />
-                                        )}
+                                        <Search fontSize="small" />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: loading && (
+                                    <InputAdornment position="end">
+                                        <CircularProgress size={20} />
+                                    </InputAdornment>
+                                ),
+                            },
+                        }}
+                    />
+                );
+            }}
+        />
+    );
+};
+
+interface UserMultiSelectProps {
+    uuids: readonly string[];
+    onSubmit: (uuids: string[]) => void;
+    placeholder?: string;
+    size?: "small" | "medium";
+}
+
+export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
+    uuids,
+    onSubmit,
+    placeholder = "Add players",
+    size = "small",
+}) => {
+    const queryClient = useQueryClient();
+    const {
+        uuids: options,
+        filterOptions,
+        renderOption,
+        getOptionLabel,
+        isOptionEqualToValue,
+        renderTags,
+    } = useUserSearchOptions<true>();
+    const [loading, setLoading] = React.useState(false);
+
+    return (
+        <Autocomplete
+            multiple
+            freeSolo
+            options={options}
+            fullWidth
+            size={size}
+            autoHighlight
+            filterOptions={filterOptions}
+            renderOption={renderOption}
+            getOptionLabel={getOptionLabel}
+            isOptionEqualToValue={isOptionEqualToValue}
+            renderTags={renderTags}
+            value={[...uuids]}
+            onChange={(_, newValues) => {
+                setLoading(true);
+                Promise.allSettled(
+                    newValues.map((value) => {
+                        // Allow UUIDs to be entered directly
+                        if (isUUID(value)) {
+                            return value;
+                        }
+
+                        return queryClient
+                            .fetchQuery(getUUIDQueryOptions(value))
+                            .then(({ uuid }) => {
+                                return uuid;
+                            })
+                            .catch((error: unknown) => {
+                                console.error(
+                                    "Failed to fetch username",
+                                    error,
+                                );
+                                throw error;
+                            });
+                    }),
+                )
+                    .then((results) => {
+                        onSubmit(
+                            results
+                                .filter(
+                                    (result) => result.status === "fulfilled",
+                                )
+                                .map((result) => result.value),
+                        );
+                    })
+                    .catch((error: unknown) => {
+                        console.error(
+                            "Failed to settle all uuid promises",
+                            error,
+                        );
+                    })
+                    .finally(() => {
+                        setLoading(false);
+                    });
+            }}
+            renderInput={(params) => {
+                return (
+                    <TextField
+                        {...params}
+                        placeholder={placeholder}
+                        slotProps={{
+                            input: {
+                                ...params.InputProps,
+                                endAdornment: loading && (
+                                    <InputAdornment position="end">
+                                        <CircularProgress size={20} />
                                     </InputAdornment>
                                 ),
                             },
