@@ -59,6 +59,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, createLink } from "@tanstack/react-router";
 import React from "react";
+import { visitPlayer } from "#hooks/useFavoritePlayers.ts";
 
 const sessionSearchSchema = z.object({
     // TODO: Read "preferred user" from local storage or similar
@@ -1026,6 +1027,12 @@ function RouteComponent() {
     const navigate = Route.useNavigate();
     const username = useUUIDToUsername([uuid])[uuid];
 
+    // Register visits for player on page load
+    const [initialUUID] = React.useState(uuid);
+    React.useEffect(() => {
+        visitPlayer(initialUUID);
+    }, [initialUUID]);
+
     const variants =
         variantSelection === "both"
             ? (["session", "overall"] as const)
@@ -1048,6 +1055,7 @@ function RouteComponent() {
             />
             <UserSearch
                 onSubmit={(uuid) => {
+                    visitPlayer(uuid);
                     navigate({
                         search: (oldSearch) => ({
                             ...oldSearch,
