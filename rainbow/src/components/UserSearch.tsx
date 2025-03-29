@@ -59,9 +59,9 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
 ): UserSearchOptions<Multiple> => {
     const knownAliases = getKnownAliases();
     const uuids = Object.keys(knownAliases);
-    const uuidToUsername = useUUIDToUsername(
-        uuids.concat(additionalUUIDs ?? []),
-    );
+    const uuidToUsername = useUUIDToUsername([
+        ...new Set(uuids.concat(additionalUUIDs ?? [])),
+    ]);
 
     return {
         uuids,
