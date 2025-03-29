@@ -1,5 +1,6 @@
 import { queryOptions, useQueries } from "@tanstack/react-query";
 import { env } from "#env.ts";
+import { addKnownAlias } from "#helpers/knownAliases.ts";
 
 export const getUsernameQueryOptions = (uuid: string) =>
     queryOptions({
@@ -24,6 +25,9 @@ export const getUsernameQueryOptions = (uuid: string) =>
             if (typeof data.name !== "string") {
                 throw new Error("Invalid name in response from minetools");
             }
+
+            addKnownAlias({ uuid, username: data.name });
+
             return { uuid, username: data.name };
         },
     });

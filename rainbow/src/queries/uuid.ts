@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { env } from "#env.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
+import { addKnownAlias } from "#helpers/knownAliases.ts";
 
 export const getUUIDQueryOptions = (username: string) =>
     queryOptions({
@@ -31,6 +32,8 @@ export const getUUIDQueryOptions = (username: string) =>
 
             const rawUUID = data.id;
             const uuid = normalizeUUID(rawUUID);
+
+            addKnownAlias({ uuid, username });
 
             return { username, uuid };
         },
