@@ -88,14 +88,6 @@ const daysBefore = (date: Date, days: number) => {
     return startOfDay(d);
 };
 
-const daysInCurrentMonth = (date: Date) => {
-    const d = new Date(date);
-    d.setDate(1);
-    d.setMonth(d.getMonth() + 1);
-    d.setDate(0);
-    return d.getDate();
-};
-
 export interface TimeIntervalDefinition {
     type: "contained" | "until";
     // If missing -> today's date
@@ -135,12 +127,10 @@ export const timeIntervalsFromDefinition = (
     } else {
         const end = endOfDay(definition.date);
 
-        // TODO: Consider static 30 vs days in month
-        const daysInMonth = daysInCurrentMonth(end);
         return {
             day: { start: daysBefore(end, 1), end },
             week: { start: daysBefore(end, 7), end },
-            month: { start: daysBefore(end, daysInMonth), end },
+            month: { start: daysBefore(end, 30), end },
         };
     }
 };

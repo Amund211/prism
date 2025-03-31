@@ -113,10 +113,9 @@ await test("getTimeIntervals", async (t) => {
         );
         assert.strictEqual(week.end.toISOString(), end.toISOString());
 
-        // 29 days in February 2024
         assert.strictEqual(
             month.start.toISOString(),
-            new Date(2024, 0, 17, 0, 0, 0, 0).toISOString(),
+            new Date(2024, 0, 16, 0, 0, 0, 0).toISOString(),
         );
         assert.strictEqual(month.end.toISOString(), end.toISOString());
     });
