@@ -12,38 +12,84 @@ import {
 } from "#intervals.ts";
 
 await test("getTimeIntervals", async (t) => {
-    await t.test("contained", () => {
-        const { day, week, month } = timeIntervalsFromDefinition({
-            type: "contained",
-            date: new Date(2024, 1, 14, 17, 15, 0),
-        });
+    await t.test("contained", async (t) => {
+        const cases = [
+            {
+                date: new Date(2024, 1, 14, 17, 15, 0),
+                expected: {
+                    day: {
+                        start: new Date(2024, 1, 14, 0, 0, 0, 0),
+                        end: new Date(2024, 1, 14, 23, 59, 59, 999),
+                    },
+                    week: {
+                        start: new Date(2024, 1, 12, 0, 0, 0, 0),
+                        end: new Date(2024, 1, 18, 23, 59, 59, 999),
+                    },
+                    month: {
+                        start: new Date(2024, 1, 1, 0, 0, 0, 0),
+                        end: new Date(2024, 1, 29, 23, 59, 59, 999),
+                    },
+                },
+            },
+            {
+                date: new Date(2025, 2, 31, 18, 16, 0),
+                expected: {
+                    day: {
+                        start: new Date(2025, 2, 31, 0, 0, 0, 0),
+                        end: new Date(2025, 2, 31, 23, 59, 59, 999),
+                    },
+                    week: {
+                        start: new Date(2025, 2, 31, 0, 0, 0, 0),
+                        end: new Date(2025, 3, 6, 23, 59, 59, 999),
+                    },
+                    month: {
+                        start: new Date(2025, 2, 1, 0, 0, 0, 0),
+                        end: new Date(2025, 2, 31, 23, 59, 59, 999),
+                    },
+                },
+            },
+        ];
+        for (const { date, expected } of cases) {
+            await t.test(date.toISOString(), () => {
+                const { day, week, month } = timeIntervalsFromDefinition({
+                    type: "contained",
+                    date,
+                });
 
-        assert.strictEqual(
-            day.start.toISOString(),
-            new Date(2024, 1, 14, 0, 0, 0, 0).toISOString(),
-        );
-        assert.strictEqual(
-            day.end.toISOString(),
-            new Date(2024, 1, 14, 23, 59, 59, 999).toISOString(),
-        );
+                assert.strictEqual(
+                    day.start.toISOString(),
+                    expected.day.start.toISOString(),
+                    "day start",
+                );
+                assert.strictEqual(
+                    day.end.toISOString(),
+                    expected.day.end.toISOString(),
+                    "day end",
+                );
 
-        assert.strictEqual(
-            week.start.toISOString(),
-            new Date(2024, 1, 12, 0, 0, 0, 0).toISOString(),
-        );
-        assert.strictEqual(
-            week.end.toISOString(),
-            new Date(2024, 1, 18, 23, 59, 59, 999).toISOString(),
-        );
+                assert.strictEqual(
+                    week.start.toISOString(),
+                    expected.week.start.toISOString(),
+                    "week start",
+                );
+                assert.strictEqual(
+                    week.end.toISOString(),
+                    expected.week.end.toISOString(),
+                    "week end",
+                );
 
-        assert.strictEqual(
-            month.start.toISOString(),
-            new Date(2024, 1, 1, 0, 0, 0, 0).toISOString(),
-        );
-        assert.strictEqual(
-            month.end.toISOString(),
-            new Date(2024, 1, 29, 23, 59, 59, 999).toISOString(),
-        );
+                assert.strictEqual(
+                    month.start.toISOString(),
+                    expected.month.start.toISOString(),
+                    "month start",
+                );
+                assert.strictEqual(
+                    month.end.toISOString(),
+                    expected.month.end.toISOString(),
+                    "month end",
+                );
+            });
+        }
     });
 
     await t.test("until", () => {
@@ -162,6 +208,10 @@ await test("time helpers", async (t) => {
             {
                 date: new Date(2025, 1, 11, 23, 40, 0),
                 expected: new Date(2025, 1, 28, 23, 59, 59, 999),
+            },
+            {
+                date: new Date(2025, 2, 31, 18, 16, 0),
+                expected: new Date(2025, 2, 31, 23, 59, 59, 999),
             },
         ];
         for (const { date, expected } of cases) {
