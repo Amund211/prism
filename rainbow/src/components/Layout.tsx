@@ -148,29 +148,26 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                     <ListItemText primary="Session stats" />
                                 </RouterMenuItem>
                             </MissingDefaultUserTooltip>
-                            <MissingDefaultUserTooltip missing={!currentUser}>
-                                <RouterMenuItem
-                                    disabled={!currentUser}
-                                    to="/history/explore"
-                                    selected={
-                                        location.pathname === "/history/explore"
-                                    }
-                                    search={{
-                                        uuids: [currentUser ?? ""],
-                                        start: startOfMonth(now),
-                                        end: endOfMonth(now),
-                                        limit: 100,
-                                        stats: ["fkdr"],
-                                        gamemodes: ["overall"],
-                                        variantSelection: "both",
-                                    }}
-                                >
-                                    <ListItemIcon>
-                                        <CalendarMonth />
-                                    </ListItemIcon>
-                                    <ListItemText primary="History explorer" />
-                                </RouterMenuItem>
-                            </MissingDefaultUserTooltip>
+                            <RouterMenuItem
+                                to="/history/explore"
+                                selected={
+                                    location.pathname === "/history/explore"
+                                }
+                                search={{
+                                    uuids: currentUser ? [currentUser] : [],
+                                    start: startOfMonth(now),
+                                    end: endOfMonth(now),
+                                    limit: 100,
+                                    stats: ["fkdr"],
+                                    gamemodes: ["overall"],
+                                    variantSelection: "both",
+                                }}
+                            >
+                                <ListItemIcon>
+                                    <CalendarMonth />
+                                </ListItemIcon>
+                                <ListItemText primary="History explorer" />
+                            </RouterMenuItem>
                             <RouterMenuItem
                                 selected={location.pathname === "/settings"}
                                 to="/settings"
@@ -245,31 +242,28 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                 </RouterLinkItemButton>
                             </ListItem>
                         </MissingDefaultUserTooltip>
-                        <MissingDefaultUserTooltip missing={!currentUser}>
-                            <ListItem disablePadding>
-                                <RouterLinkItemButton
-                                    disabled={!currentUser}
-                                    selected={
-                                        location.pathname === "/history/explore"
-                                    }
-                                    to="/history/explore"
-                                    search={{
-                                        uuids: [currentUser ?? ""],
-                                        start: startOfMonth(now),
-                                        end: endOfMonth(now),
-                                        limit: 100,
-                                        stats: ["fkdr"],
-                                        gamemodes: ["overall"],
-                                        variantSelection: "both",
-                                    }}
-                                >
-                                    <ListItemIcon>
-                                        <CalendarMonth />
-                                    </ListItemIcon>
-                                    <ListItemText primary="History explorer" />
-                                </RouterLinkItemButton>
-                            </ListItem>
-                        </MissingDefaultUserTooltip>
+                        <ListItem disablePadding>
+                            <RouterLinkItemButton
+                                selected={
+                                    location.pathname === "/history/explore"
+                                }
+                                to="/history/explore"
+                                search={{
+                                    uuids: currentUser ? [currentUser] : [],
+                                    start: startOfMonth(now),
+                                    end: endOfMonth(now),
+                                    limit: 100,
+                                    stats: ["fkdr"],
+                                    gamemodes: ["overall"],
+                                    variantSelection: "both",
+                                }}
+                            >
+                                <ListItemIcon>
+                                    <CalendarMonth />
+                                </ListItemIcon>
+                                <ListItemText primary="History explorer" />
+                            </RouterLinkItemButton>
+                        </ListItem>
                         <ListItem disablePadding>
                             <RouterLinkItemButton
                                 selected={location.pathname === "/settings"}
