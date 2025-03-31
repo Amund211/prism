@@ -141,6 +141,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                         variantSelection: "both",
                                         sessionTableMode: "total",
                                     }}
+                                    onClick={handleCloseMenu}
                                 >
                                     <ListItemIcon>
                                         <TrendingUp />
@@ -162,6 +163,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                     gamemodes: ["overall"],
                                     variantSelection: "both",
                                 }}
+                                onClick={handleCloseMenu}
                             >
                                 <ListItemIcon>
                                     <CalendarMonth />
@@ -171,6 +173,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                             <RouterMenuItem
                                 selected={location.pathname === "/settings"}
                                 to="/settings"
+                                onClick={handleCloseMenu}
                             >
                                 <ListItemIcon>
                                     <Settings />
