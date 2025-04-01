@@ -4,7 +4,7 @@ import {
     clearPersistedCurrentUser,
     getPersistedCurrentUser,
     setPersistedCurrentUser,
-} from "#helpers/currentUser.ts";
+} from "./helpers.ts";
 
 export const CurrentUserProvider: React.FC<{
     children: React.ReactNode;

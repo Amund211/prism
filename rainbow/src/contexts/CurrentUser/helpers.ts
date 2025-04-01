@@ -1,4 +1,4 @@
-import { isUUID } from "./uuid.ts";
+import { isUUID } from "#helpers/uuid.ts";
 
 const localStorageKey = "currentUser";
 
