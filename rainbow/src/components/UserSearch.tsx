@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
 import React from "react";
-import { getKnownAliases } from "#helpers/knownAliases.ts";
+import { useKnownAliases } from "#helpers/knownAliases.ts";
 import { useOrderUUIDsByScore } from "#helpers/favoritePlayers.ts";
 
 interface UserSearchProps {
@@ -57,7 +57,7 @@ interface UserSearchOptions<Multiple extends boolean> {
 const useUserSearchOptions = <Multiple extends boolean = false>(
     additionalUUIDs?: readonly string[],
 ): UserSearchOptions<Multiple> => {
-    const knownAliases = getKnownAliases();
+    const knownAliases = useKnownAliases();
     const uuids = Object.keys(knownAliases);
     const uuidToUsername = useUUIDToUsername([
         ...new Set(uuids.concat(additionalUUIDs ?? [])),

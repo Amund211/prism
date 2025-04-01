@@ -1,3 +1,5 @@
+import { useLocalStorage } from "#hooks/useLocalStorage.ts";
+
 const localStorageKey = "knownAliases";
 
 const loadedAt = new Date();
@@ -88,8 +90,9 @@ export const addKnownAlias = (alias: { uuid: string; username: string }) => {
     localStorage.setItem(localStorageKey, JSON.stringify(parsed));
 };
 
-export const getKnownAliases = (): Record<string, string[] | undefined> => {
-    const stored = localStorage.getItem(localStorageKey);
+export const useKnownAliases = (): Record<string, string[] | undefined> => {
+    // TODO: Update state when writing to localStorage in this tab (make a context and use state like the current user provider)
+    const stored = useLocalStorage(localStorageKey);
     const parsed = parseStoredAliases(stored);
     return Object.fromEntries(
         Object.entries(parsed).map(([uuid, aliases]) => [
