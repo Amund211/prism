@@ -41,7 +41,7 @@ import {
     Box,
     Card,
     CardContent,
-    Grid2 as Grid,
+    Grid,
     IconButton,
     MenuItem,
     Select,
