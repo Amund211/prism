@@ -1,4 +1,5 @@
 import { isUUID } from "#helpers/uuid.ts";
+import { useLocalStorage } from "#hooks/useLocalStorage.ts";
 
 const localStorageKey = "currentUser";
 
@@ -14,16 +15,16 @@ const parseStoredUUID = (stored: string | null): string | null => {
     return stored;
 };
 
-export const clearPersistedCurrentUser = (): void => {
-    localStorage.removeItem(localStorageKey);
+export const persistCurrentUser = (uuid: string | null): void => {
+    if (uuid === null) {
+        localStorage.removeItem(localStorageKey);
+    } else {
+        localStorage.setItem(localStorageKey, uuid);
+    }
 };
 
-export const setPersistedCurrentUser = (uuid: string): void => {
-    localStorage.setItem(localStorageKey, uuid);
-};
-
-export const getPersistedCurrentUser = (): string | null => {
-    const stored = localStorage.getItem(localStorageKey);
+export const usePersistedCurrentUser = (): string | null => {
+    const stored = useLocalStorage(localStorageKey);
 
     return parseStoredUUID(stored);
 };
