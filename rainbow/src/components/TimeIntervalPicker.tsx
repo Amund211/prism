@@ -2,7 +2,7 @@ import {
     endOfLastDay,
     endOfLastMonth,
     endOfLastWeek,
-    TimeIntervalDefinition,
+    type TimeIntervalDefinition,
 } from "#intervals.ts";
 import { CalendarMonth } from "@mui/icons-material";
 import { Button, Menu, MenuItem, Tooltip, Typography } from "@mui/material";

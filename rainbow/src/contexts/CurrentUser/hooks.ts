@@ -1,5 +1,5 @@
 import React from "react";
-import { CurrentUserContext, CurrentUserContextValue } from "./context.ts";
+import { CurrentUserContext, type CurrentUserContextValue } from "./context.ts";
 
 export const useCurrentUser = (): CurrentUserContextValue => {
     const value = React.use(CurrentUserContext);

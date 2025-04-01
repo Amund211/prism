@@ -1,5 +1,5 @@
-import { ChartData } from "#charts/history/data.ts";
-import { DataKey } from "#charts/history/dataKeys.ts";
+import { type ChartData } from "#charts/history/data.ts";
+import { type DataKey } from "#charts/history/dataKeys.ts";
 import React from "react";
 import { ChartSynchronizerContext } from "./context.ts";
 

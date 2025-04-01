@@ -4,7 +4,7 @@ import { useUUIDToUsername } from "#queries/username.ts";
 import { Search } from "@mui/icons-material";
 import {
     Autocomplete,
-    AutocompleteProps,
+    type AutocompleteProps,
     Avatar,
     Chip,
     CircularProgress,

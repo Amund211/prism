@@ -7,7 +7,7 @@ import { HistoryChart, SimpleHistoryChart } from "#charts/history/chart.tsx";
 import { TimeIntervalPicker } from "#components/TimeIntervalPicker.tsx";
 import { UserSearch } from "#components/UserSearch.tsx";
 import { ChartSynchronizerProvider } from "#contexts/ChartSynchronizer/provider.tsx";
-import { TimeInterval } from "#intervals.ts";
+import { type TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import { getSessionsQueryOptions } from "#queries/sessions.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
@@ -15,8 +15,8 @@ import { computeStat } from "#stats/index.ts";
 import {
     ALL_GAMEMODE_KEYS,
     ALL_STAT_KEYS,
-    GamemodeKey,
-    StatKey,
+    type GamemodeKey,
+    type StatKey,
 } from "#stats/keys.ts";
 import {
     getFullStatLabel,
@@ -24,7 +24,10 @@ import {
     getShortStatLabel,
     getVariantLabel,
 } from "#stats/labels.ts";
-import { computeStatProgression, StatProgression } from "#stats/progression.ts";
+import {
+    computeStatProgression,
+    type StatProgression,
+} from "#stats/progression.ts";
 import {
     Info,
     TrendingDown,
@@ -44,7 +47,7 @@ import {
     Select,
     Skeleton,
     Stack,
-    SvgIconOwnProps,
+    type SvgIconOwnProps,
     Table,
     TableBody,
     TableCell,
