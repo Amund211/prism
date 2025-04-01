@@ -1,3 +1,5 @@
+import { useLocalStorage } from "#hooks/useLocalStorage.ts";
+
 const localStorageKey = "favoritePlayers";
 
 const loadedAt = new Date();
@@ -116,8 +118,9 @@ export const visitPlayer = (uuid: string) => {
     localStorage.setItem(localStorageKey, JSON.stringify(storedInfo));
 };
 
-export const getFavoritePlayers = (amount?: number): string[] => {
-    const stored = localStorage.getItem(localStorageKey);
+export const useFavoritePlayers = (amount?: number): string[] => {
+    // TODO: Update state when writing to localStorage in this tab (make a context and use state like the current user provider)
+    const stored = useLocalStorage(localStorageKey);
 
     const ordered = orderPlayers(parseStoredInfo(stored));
 
@@ -128,11 +131,9 @@ export const getFavoritePlayers = (amount?: number): string[] => {
     return ordered.slice(0, amount);
 };
 
-export const useOrderUUIDsByScore =
-    () =>
-    (uuids: string[]): string[] => {
-        const favoritePlayers = getFavoritePlayers();
-
+export const useOrderUUIDsByScore = () => {
+    const favoritePlayers = useFavoritePlayers();
+    return (uuids: string[]): string[] => {
         return [...uuids].sort((a, b) => {
             const aIndex = favoritePlayers.indexOf(a);
             const bIndex = favoritePlayers.indexOf(b);
@@ -141,3 +142,4 @@ export const useOrderUUIDsByScore =
             return aIndex - bIndex;
         });
     };
+};

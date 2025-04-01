@@ -3,7 +3,7 @@ import { Avatar, Button, IconButton, Stack, Typography } from "@mui/material";
 import { UserSearch } from "#components/UserSearch.tsx";
 import {
     removeFavoritePlayer,
-    getFavoritePlayers,
+    useFavoritePlayers,
 } from "#helpers/favoritePlayers.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
 import { Delete } from "@mui/icons-material";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/")({
 
 function RouteComponent() {
     const navigate = Route.useNavigate();
-    const favorites = getFavoritePlayers(5);
+    const favorites = useFavoritePlayers(5);
     const uuidToUsername = useUUIDToUsername(favorites);
     const [, rerender] = React.useReducer(() => ({}), {});
 
