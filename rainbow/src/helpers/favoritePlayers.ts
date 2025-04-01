@@ -128,14 +128,16 @@ export const getFavoritePlayers = (amount?: number): string[] => {
     return ordered.slice(0, amount);
 };
 
-export const orderUUIDsByScore = (uuids: string[]): string[] => {
-    const favoritePlayers = getFavoritePlayers();
+export const useOrderUUIDsByScore =
+    () =>
+    (uuids: string[]): string[] => {
+        const favoritePlayers = getFavoritePlayers();
 
-    return [...uuids].sort((a, b) => {
-        const aIndex = favoritePlayers.indexOf(a);
-        const bIndex = favoritePlayers.indexOf(b);
-        if (aIndex === -1) return 1;
-        if (bIndex === -1) return -1;
-        return aIndex - bIndex;
-    });
-};
+        return [...uuids].sort((a, b) => {
+            const aIndex = favoritePlayers.indexOf(a);
+            const bIndex = favoritePlayers.indexOf(b);
+            if (aIndex === -1) return 1;
+            if (bIndex === -1) return -1;
+            return aIndex - bIndex;
+        });
+    };
