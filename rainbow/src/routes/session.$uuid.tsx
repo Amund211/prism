@@ -1074,6 +1074,10 @@ function RouteComponent() {
                 name="description"
                 content="View a player's session stats, including daily, weekly, and monthly stats, as well as a progression towards stat milestones, and individual session breakdowns."
             />
+            <link
+                rel="canonical"
+                href={`https://prismoverlay.com/session/${uuid}`}
+            />
             <UserSearch
                 onSubmit={(uuid) => {
                     visitPlayer(uuid);

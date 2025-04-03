@@ -12,6 +12,11 @@ function RouteComponent() {
     const { currentUser, setCurrentUser } = useCurrentUser();
     return (
         <Stack gap={1}>
+            <meta
+                name="description"
+                content="Change your settings for the Prism Overlay stats website. Set a default player to view your stats."
+            />
+            <link rel="canonical" href="https://prismoverlay.com/settings" />
             <Stack
                 component="label"
                 direction="row"

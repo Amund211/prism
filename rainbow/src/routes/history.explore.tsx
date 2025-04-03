@@ -209,6 +209,10 @@ function Index() {
                 name="description"
                 content="Compare the stats of multiple players in Hypixel Bedwars. See how you stack up against your friends and rivals. Chart any combination of statistic (FKDR, wins, final kills, ...), players, gamemodes, and session/overall stats."
             />
+            <link
+                rel="canonical"
+                href="https://prismoverlay.com/history/explore"
+            />
             <UserMultiSelect
                 uuids={uuids}
                 onSubmit={(uuids) => {
