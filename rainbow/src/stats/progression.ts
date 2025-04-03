@@ -29,6 +29,7 @@ export type StatProgression =
 
 const computeQuotientProgression = (
     trackingHistory: History,
+    trackingEnd: Date,
     currentStats: PlayerDataPIT,
     stat: QuotientProgression["stat"],
     dividendStat: Exclude<StatKey, "winstreak">,
@@ -37,7 +38,7 @@ const computeQuotientProgression = (
 ): QuotientProgression | { error: true; reason: string } => {
     const [start, end] = trackingHistory;
     const startDate = start.queriedAt;
-    const endDate = end.queriedAt;
+    const endDate = trackingEnd;
     const daysElapsed =
         (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000);
 
@@ -68,6 +69,7 @@ const computeQuotientProgression = (
         // Currently have "infinite" ratio -> ratio is computed as just dividend
         const dividendProgression = computeStatProgression(
             trackingHistory,
+            trackingEnd,
             currentStats,
             dividendStat,
             gamemode,
@@ -185,6 +187,7 @@ const computeQuotientProgression = (
 };
 export const computeStatProgression = (
     trackingHistory: History | undefined,
+    trackingEnd: Date,
     currentStats: PlayerDataPIT | undefined,
     stat: StatKey,
     gamemode: GamemodeKey,
@@ -207,7 +210,7 @@ export const computeStatProgression = (
 
     const [start, end] = trackingHistory;
     const startDate = start.queriedAt;
-    const endDate = end.queriedAt;
+    const endDate = trackingEnd;
     const daysElapsed =
         (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000);
 
@@ -240,6 +243,7 @@ export const computeStatProgression = (
         case "fkdr":
             return computeQuotientProgression(
                 trackingHistory,
+                trackingEnd,
                 currentStats,
                 stat,
                 "finalKills",
@@ -249,6 +253,7 @@ export const computeStatProgression = (
         case "kdr":
             return computeQuotientProgression(
                 trackingHistory,
+                trackingEnd,
                 currentStats,
                 stat,
                 "kills",

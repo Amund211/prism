@@ -935,23 +935,14 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
         }),
     );
 
-    // TODO: Get "current" stats in a better way
-    const currentDate = new Date(trackingInterval.end);
-    currentDate.setHours(23, 59, 59, 999);
-    const { data: currentHistory } = useQuery(
-        getHistoryQueryOptions({
-            uuid,
-            start: trackingInterval.start,
-            end: currentDate,
-            limit: 2,
-        }),
-    );
-    if (currentHistory === undefined || currentHistory.length === 0) {
+    if (trackingHistory === undefined || trackingHistory.length === 0) {
         return "No data";
     }
-    const currentStats = currentHistory[currentHistory.length - 1];
+    const currentStats = trackingHistory[trackingHistory.length - 1];
 
+    const currentDate = trackingInterval.end;
     const now = new Date();
+
     const currentDateIsToday =
         now.getFullYear() === currentDate.getFullYear() &&
         now.getMonth() === currentDate.getMonth() &&
@@ -960,6 +951,7 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
 
     const progression = computeStatProgression(
         trackingHistory,
+        trackingInterval.end,
         currentStats,
         stat,
         gamemode,
