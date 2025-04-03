@@ -17,7 +17,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { useKnownAliases } from "#helpers/knownAliases.ts";
-import { useOrderUUIDsByScore } from "#helpers/favoritePlayers.ts";
+import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 
 interface UserSearchProps {
     onSubmit: (uuid: string) => void;
@@ -62,7 +62,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
     const uuidToUsername = useUUIDToUsername([
         ...new Set(uuids.concat(additionalUUIDs ?? [])),
     ]);
-    const orderByScore = useOrderUUIDsByScore();
+    const { orderUUIDsByScore } = usePlayerVisits();
 
     return {
         uuids,
@@ -80,7 +80,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                 return { names: [name, ...names], option };
             });
 
-            return orderByScore(
+            return orderUUIDsByScore(
                 namesForOptions
                     .filter(({ names }) => {
                         return names.some((name) =>

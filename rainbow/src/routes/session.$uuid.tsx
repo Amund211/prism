@@ -62,7 +62,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, createLink } from "@tanstack/react-router";
 import React from "react";
-import { visitPlayer } from "#helpers/favoritePlayers.ts";
+import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 
 const sessionSearchSchema = z.object({
     timeIntervalDefinition: fallback(
@@ -1047,12 +1047,14 @@ function RouteComponent() {
     } = Route.useLoaderDeps();
     const navigate = Route.useNavigate();
     const username = useUUIDToUsername([uuid])[uuid];
+    const { visitPlayer } = usePlayerVisits();
 
     // Register visits for player on page load
     const [initialUUID] = React.useState(uuid);
+    const [initialVisitPlayer] = React.useState(() => visitPlayer);
     React.useEffect(() => {
-        visitPlayer(initialUUID);
-    }, [initialUUID]);
+        initialVisitPlayer(initialUUID);
+    }, [initialVisitPlayer, initialUUID]);
 
     const variants =
         variantSelection === "both"

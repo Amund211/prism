@@ -1,6 +1,6 @@
 import { useLocalStorage } from "#hooks/useLocalStorage.ts";
 
-const localStorageKey = "favoritePlayers";
+const localStorageKey = "playerVisits";
 
 const loadedAt = new Date();
 
@@ -9,9 +9,9 @@ interface PlayerInfo {
     lastVisited: Date;
 }
 
-const parseStoredInfo = (
-    stored: string | null,
-): Record<string, PlayerInfo | undefined> => {
+type PlayerVisits = Record<string, PlayerInfo | undefined>;
+
+const parseStoredInfo = (stored: string | null): PlayerVisits => {
     if (stored === null) {
         return {};
     }
@@ -27,7 +27,7 @@ const parseStoredInfo = (
         return {};
     }
 
-    const storedInfo: Record<string, PlayerInfo | undefined> = {};
+    const storedInfo: PlayerVisits = {};
     for (const key in rawParsed) {
         const value = (rawParsed as Record<string, unknown>)[key];
         if (typeof value !== "object" || value === null) {
@@ -79,9 +79,7 @@ const computeScore = (info: PlayerInfo): number => {
     return info.visitedCount * lastVisitedWeight(info.lastVisited);
 };
 
-const orderPlayers = (
-    players: Record<string, PlayerInfo | undefined>,
-): string[] => {
+export const orderPlayers = (players: PlayerVisits): string[] => {
     return Object.entries(players)
         .map(([uuid, info]) => {
             if (info === undefined) {
@@ -96,50 +94,29 @@ const orderPlayers = (
         .map(([uuid]) => uuid);
 };
 
-export const removeFavoritePlayer = (uuid: string) => {
-    const stored = localStorage.getItem(localStorageKey);
-    const storedInfo = parseStoredInfo(stored);
+export const removePlayerVisits = (visits: PlayerVisits, uuid: string) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { [uuid]: _, ...newStoredInfo } = storedInfo;
-    localStorage.setItem(localStorageKey, JSON.stringify(newStoredInfo));
+    const { [uuid]: _, ...newVisits } = visits;
+    return newVisits;
 };
 
-export const visitPlayer = (uuid: string) => {
-    const stored = localStorage.getItem(localStorageKey);
-    const storedInfo = parseStoredInfo(stored);
-
-    const now = new Date();
-    const oldVisitedCount = storedInfo[uuid]?.visitedCount ?? 0;
-    storedInfo[uuid] = {
-        visitedCount: oldVisitedCount + 1,
-        lastVisited: now,
+export const visitPlayer = (visits: PlayerVisits, uuid: string) => {
+    const oldVisitedCount = visits[uuid]?.visitedCount ?? 0;
+    return {
+        ...visits,
+        [uuid]: {
+            visitedCount: oldVisitedCount + 1,
+            lastVisited: new Date(),
+        },
     };
-
-    localStorage.setItem(localStorageKey, JSON.stringify(storedInfo));
 };
 
-export const useFavoritePlayers = (amount?: number): string[] => {
-    // TODO: Update state when writing to localStorage in this tab (make a context and use state like the current user provider)
+export const persistPlayerVisits = (visits: PlayerVisits) => {
+    localStorage.setItem(localStorageKey, JSON.stringify(visits));
+};
+
+export const usePersistedPlayerVisits = (): PlayerVisits => {
     const stored = useLocalStorage(localStorageKey);
 
-    const ordered = orderPlayers(parseStoredInfo(stored));
-
-    if (amount === undefined) {
-        return ordered;
-    }
-
-    return ordered.slice(0, amount);
-};
-
-export const useOrderUUIDsByScore = () => {
-    const favoritePlayers = useFavoritePlayers();
-    return (uuids: string[]): string[] => {
-        return [...uuids].sort((a, b) => {
-            const aIndex = favoritePlayers.indexOf(a);
-            const bIndex = favoritePlayers.indexOf(b);
-            if (aIndex === -1) return 1;
-            if (bIndex === -1) return -1;
-            return aIndex - bIndex;
-        });
-    };
+    return parseStoredInfo(stored);
 };

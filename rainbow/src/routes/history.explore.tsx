@@ -48,8 +48,8 @@ import {
     startOfYear,
 } from "#intervals.ts";
 import { QueryStats } from "@mui/icons-material";
-import { visitPlayer } from "#helpers/favoritePlayers.ts";
 import React from "react";
+import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 
 const defaultStart = new Date();
 defaultStart.setHours(0, 0, 0, 0);
@@ -108,14 +108,16 @@ function Index() {
     const { uuids, stats, gamemodes, variantSelection, start, end, limit } =
         Route.useSearch();
     const navigate = Route.useNavigate();
+    const { visitPlayer } = usePlayerVisits();
 
     // Register visits for all players on page load
     const [initialUUIDs] = React.useState(uuids);
+    const [initialVisitPlayer] = React.useState(() => visitPlayer);
     React.useEffect(() => {
         initialUUIDs.forEach((uuid) => {
-            visitPlayer(uuid);
+            initialVisitPlayer(uuid);
         });
-    }, [initialUUIDs]);
+    }, [initialVisitPlayer, initialUUIDs]);
 
     const variants =
         variantSelection === "both"

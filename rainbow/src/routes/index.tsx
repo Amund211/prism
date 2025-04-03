@@ -1,13 +1,10 @@
 import { createFileRoute, createLink } from "@tanstack/react-router";
 import { Avatar, Button, IconButton, Stack, Typography } from "@mui/material";
 import { UserSearch } from "#components/UserSearch.tsx";
-import {
-    removeFavoritePlayer,
-    useFavoritePlayers,
-} from "#helpers/favoritePlayers.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
 import { Delete } from "@mui/icons-material";
 import React from "react";
+import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 
 const RouterLinkButton = createLink(Button);
 
@@ -17,7 +14,8 @@ export const Route = createFileRoute("/")({
 
 function RouteComponent() {
     const navigate = Route.useNavigate();
-    const favorites = useFavoritePlayers(5);
+    const { favoriteUUIDs, removePlayerVisits } = usePlayerVisits();
+    const favorites = favoriteUUIDs.slice(0, 5);
     const uuidToUsername = useUUIDToUsername(favorites);
     const [, rerender] = React.useReducer(() => ({}), {});
 
@@ -113,7 +111,7 @@ function RouteComponent() {
                                 onClick={(event) => {
                                     event.stopPropagation();
                                     event.preventDefault();
-                                    removeFavoritePlayer(uuid);
+                                    removePlayerVisits(uuid);
                                     rerender();
                                 }}
                             >
