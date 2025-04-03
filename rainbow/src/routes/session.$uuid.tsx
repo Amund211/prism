@@ -65,8 +65,6 @@ import React from "react";
 import { visitPlayer } from "#helpers/favoritePlayers.ts";
 
 const sessionSearchSchema = z.object({
-    // TODO: Read "preferred user" from local storage or similar
-    uuid: fallback(z.string(), ""),
     timeIntervalDefinition: fallback(
         z.union([
             z.object({
@@ -94,17 +92,14 @@ const sessionSearchSchema = z.object({
     sessionTableMode: fallback(z.enum(["total", "rate"]), "total"),
 });
 
-export const Route = createFileRoute("/session")({
-    loaderDeps: ({
-        search: { uuid, timeIntervalDefinition, trackingStart },
-    }) => {
+export const Route = createFileRoute("/session/$uuid")({
+    loaderDeps: ({ search: { timeIntervalDefinition, trackingStart } }) => {
         const timeIntervals = timeIntervalsFromDefinition({
             // If missing -> today's date
             date: new Date(),
             ...timeIntervalDefinition,
         });
         return {
-            uuid,
             timeIntervalDefinition,
             trackingInterval: {
                 start: trackingStart,
@@ -113,7 +108,10 @@ export const Route = createFileRoute("/session")({
             timeIntervals,
         };
     },
-    loader: ({ deps: { uuid, timeIntervals, trackingInterval } }) => {
+    loader: ({
+        params: { uuid },
+        deps: { timeIntervals, trackingInterval },
+    }) => {
         const { day, week, month } = timeIntervals;
         // TODO: Rate limiting
         Promise.all([
@@ -236,8 +234,8 @@ const Sessions: React.FC<SessionsProps> = ({
             >
                 <RouterLinkToggleButton
                     value="total"
-                    from="/session"
-                    to="/session"
+                    from="/session/$uuid"
+                    to="/session/$uuid"
                     search={(oldSearch) => ({
                         ...oldSearch,
                         sessionTableMode: "total",
@@ -247,8 +245,8 @@ const Sessions: React.FC<SessionsProps> = ({
                 </RouterLinkToggleButton>
                 <RouterLinkToggleButton
                     value="rate"
-                    from="/session"
-                    to="/session"
+                    from="/session/$uuid"
+                    to="/session/$uuid"
                     search={(oldSearch) => ({
                         ...oldSearch,
                         sessionTableMode: "rate",
@@ -1039,7 +1037,8 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
 };
 
 function RouteComponent() {
-    const { uuid, gamemode, stat, variantSelection, sessionTableMode } =
+    const { uuid } = Route.useParams();
+    const { gamemode, stat, variantSelection, sessionTableMode } =
         Route.useSearch();
     const {
         timeIntervalDefinition,
@@ -1079,10 +1078,8 @@ function RouteComponent() {
                 onSubmit={(uuid) => {
                     visitPlayer(uuid);
                     navigate({
-                        search: (oldSearch) => ({
-                            ...oldSearch,
-                            uuid,
-                        }),
+                        params: { uuid },
+                        search: (oldSearch) => oldSearch,
                     }).catch((error: unknown) => {
                         // TODO: Handle error
                         console.error(
@@ -1295,8 +1292,8 @@ function RouteComponent() {
                             >
                                 <RouterLinkToggleButton
                                     value="overall"
-                                    from="/session"
-                                    to="/session"
+                                    from="/session/$uuid"
+                                    to="/session/$uuid"
                                     search={(oldSearch) => ({
                                         ...oldSearch,
                                         variantSelection: "overall",
@@ -1307,8 +1304,8 @@ function RouteComponent() {
                                 </RouterLinkToggleButton>
                                 <RouterLinkToggleButton
                                     value="session"
-                                    from="/session"
-                                    to="/session"
+                                    from="/session/$uuid"
+                                    to="/session/$uuid"
                                     search={(oldSearch) => ({
                                         ...oldSearch,
                                         variantSelection: "session",
@@ -1319,8 +1316,8 @@ function RouteComponent() {
                                 </RouterLinkToggleButton>
                                 <RouterLinkToggleButton
                                     value="both"
-                                    from="/session"
-                                    to="/session"
+                                    from="/session/$uuid"
+                                    to="/session/$uuid"
                                     search={(oldSearch) => ({
                                         ...oldSearch,
                                         variantSelection: "both",

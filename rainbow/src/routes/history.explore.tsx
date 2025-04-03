@@ -391,9 +391,9 @@ function Index() {
                                 disabled={!canGoToSessionPage}
                                 size="small"
                                 color="primary"
-                                to="/session"
+                                to="/session/$uuid"
+                                params={{ uuid: uuids[0] }}
                                 search={{
-                                    uuid: uuids[0],
                                     gamemode: gamemodes[0],
                                     stat: stats[0],
                                     variantSelection,

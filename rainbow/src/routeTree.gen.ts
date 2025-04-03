@@ -12,8 +12,8 @@
 
 import { Route as rootRoute } from './routes/__root.tsx'
 import { Route as SettingsImport } from './routes/settings.tsx'
-import { Route as SessionImport } from './routes/session.tsx'
 import { Route as IndexImport } from './routes/index.tsx'
+import { Route as SessionUuidImport } from './routes/session.$uuid.tsx'
 import { Route as HistoryExploreImport } from './routes/history.explore.tsx'
 
 // Create/Update Routes
@@ -24,15 +24,15 @@ const SettingsRoute = SettingsImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const SessionRoute = SessionImport.update({
-  id: '/session',
-  path: '/session',
-  getParentRoute: () => rootRoute,
-} as any)
-
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SessionUuidRoute = SessionUuidImport.update({
+  id: '/session/$uuid',
+  path: '/session/$uuid',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -53,13 +53,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/session': {
-      id: '/session'
-      path: '/session'
-      fullPath: '/session'
-      preLoaderRoute: typeof SessionImport
-      parentRoute: typeof rootRoute
-    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -74,6 +67,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoryExploreImport
       parentRoute: typeof rootRoute
     }
+    '/session/$uuid': {
+      id: '/session/$uuid'
+      path: '/session/$uuid'
+      fullPath: '/session/$uuid'
+      preLoaderRoute: typeof SessionUuidImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -81,47 +81,47 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/session': typeof SessionRoute
   '/settings': typeof SettingsRoute
   '/history/explore': typeof HistoryExploreRoute
+  '/session/$uuid': typeof SessionUuidRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/session': typeof SessionRoute
   '/settings': typeof SettingsRoute
   '/history/explore': typeof HistoryExploreRoute
+  '/session/$uuid': typeof SessionUuidRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/session': typeof SessionRoute
   '/settings': typeof SettingsRoute
   '/history/explore': typeof HistoryExploreRoute
+  '/session/$uuid': typeof SessionUuidRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/session' | '/settings' | '/history/explore'
+  fullPaths: '/' | '/settings' | '/history/explore' | '/session/$uuid'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/session' | '/settings' | '/history/explore'
-  id: '__root__' | '/' | '/session' | '/settings' | '/history/explore'
+  to: '/' | '/settings' | '/history/explore' | '/session/$uuid'
+  id: '__root__' | '/' | '/settings' | '/history/explore' | '/session/$uuid'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  SessionRoute: typeof SessionRoute
   SettingsRoute: typeof SettingsRoute
   HistoryExploreRoute: typeof HistoryExploreRoute
+  SessionUuidRoute: typeof SessionUuidRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  SessionRoute: SessionRoute,
   SettingsRoute: SettingsRoute,
   HistoryExploreRoute: HistoryExploreRoute,
+  SessionUuidRoute: SessionUuidRoute,
 }
 
 export const routeTree = rootRoute
@@ -135,22 +135,22 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/session",
         "/settings",
-        "/history/explore"
+        "/history/explore",
+        "/session/$uuid"
       ]
     },
     "/": {
       "filePath": "index.tsx"
-    },
-    "/session": {
-      "filePath": "session.tsx"
     },
     "/settings": {
       "filePath": "settings.tsx"
     },
     "/history/explore": {
       "filePath": "history.explore.tsx"
+    },
+    "/session/$uuid": {
+      "filePath": "session.$uuid.tsx"
     }
   }
 }

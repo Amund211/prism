@@ -129,10 +129,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                             <MissingDefaultUserTooltip missing={!currentUser}>
                                 <RouterMenuItem
                                     disabled={!currentUser}
-                                    to="/session"
-                                    selected={location.pathname === "/session"}
+                                    to="/session/$uuid"
+                                    selected={location.pathname.startsWith(
+                                        "/session",
+                                    )}
+                                    params={{ uuid: currentUser ?? "" }}
                                     search={{
-                                        uuid: currentUser ?? "",
                                         timeIntervalDefinition: {
                                             type: "contained",
                                         },
@@ -225,10 +227,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                             <ListItem disablePadding>
                                 <RouterLinkItemButton
                                     disabled={!currentUser}
-                                    selected={location.pathname === "/session"}
-                                    to="/session"
+                                    selected={location.pathname.startsWith(
+                                        "/session",
+                                    )}
+                                    to="/session/$uuid"
+                                    params={{ uuid: currentUser ?? "" }}
                                     search={{
-                                        uuid: currentUser ?? "",
                                         timeIntervalDefinition: {
                                             type: "contained",
                                         },

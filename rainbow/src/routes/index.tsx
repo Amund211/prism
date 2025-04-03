@@ -36,9 +36,9 @@ function RouteComponent() {
             <UserSearch
                 onSubmit={(uuid) => {
                     navigate({
-                        to: "/session",
+                        to: "/session/$uuid",
+                        params: { uuid },
                         search: {
-                            uuid,
                             gamemode: "overall",
                             stat: "fkdr",
                             timeIntervalDefinition: { type: "contained" },
@@ -72,9 +72,9 @@ function RouteComponent() {
                                 },
                             }}
                             key={uuid}
-                            to="/session"
+                            to="/session/$uuid"
+                            params={{ uuid }}
                             search={{
-                                uuid,
                                 gamemode: "overall",
                                 stat: "fkdr",
                                 timeIntervalDefinition: { type: "contained" },
