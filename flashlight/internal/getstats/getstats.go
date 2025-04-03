@@ -44,7 +44,9 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI,
 	}
 
 	if parsedAPIResponse.Player != nil {
-		storeCtx, cancel := context.WithTimeout(ctx, 1*time.Second)
+		// Ignore cancellations from the request context and try to store the data anyway
+		// Take a maximum of 1 second to not block the request for too long
+		storeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 1*time.Second)
 		defer cancel()
 		err = persistor.StoreStats(storeCtx, uuid, parsedAPIResponse.Player, queriedAt)
 		if err != nil {
