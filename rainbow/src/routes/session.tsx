@@ -920,6 +920,30 @@ interface StatProgressionCardProps {
     gamemode: GamemodeKey;
 }
 
+const formatDays = (days: number) => {
+    if (days < 1) {
+        const hours = Math.round(days * 24);
+        if (hours < 1) {
+            return "<1 hour";
+        }
+        const plural = hours !== 1 ? "s" : "";
+        return `${Math.round(days * 24).toString()} hour${plural}`;
+    }
+    if (days < 30) {
+        const plural = days !== 1 ? "s" : "";
+        return `${Math.round(days).toString()} day${plural}`;
+    }
+    if (days < 365) {
+        const months = Math.round(days / 30);
+        const plural = months !== 1 ? "s" : "";
+        return `${months.toString()} month${plural}`;
+    }
+
+    const years = Math.round(days / 365);
+    const plural = years !== 1 ? "s" : "";
+    return `${years.toString()} year${plural}`;
+};
+
 const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
     uuid,
     trackingInterval,
@@ -987,7 +1011,7 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
                                   {
                                       dateStyle: "medium",
                                   },
-                              )} (in ${progression.daysUntilMilestone.toFixed(1)} days)`
+                              )} (in ${formatDays(progression.daysUntilMilestone)})`
                             : `Expected to reach: Never (long-time ${getShortStatLabel(stat)} too ${progression.trendingUpward ? "low" : "high"})`}
                     </Typography>
 
