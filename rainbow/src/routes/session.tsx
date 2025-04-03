@@ -1262,11 +1262,11 @@ function RouteComponent() {
                                             width={100}
                                         />
                                         <Typography variant="subtitle2">
-                                            {`'s monthly ${getFullStatLabel(stat)}`}
+                                            {`'s ${getFullStatLabel(stat)}`}
                                         </Typography>
                                     </Stack>
                                 ) : (
-                                    <Typography variant="subtitle2">{`${username}'s monthly ${getFullStatLabel(stat)}`}</Typography>
+                                    <Typography variant="subtitle2">{`${username}'s ${getFullStatLabel(stat)}`}</Typography>
                                 )}
                                 <Tooltip title="Show in history explorer">
                                     <RouterLinkIconButton
