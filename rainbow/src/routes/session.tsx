@@ -959,6 +959,10 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
         }),
     );
 
+    if (stat === "winstreak") {
+        return null;
+    }
+
     if (trackingHistory === undefined || trackingHistory.length === 0) {
         return "No data";
     }
