@@ -106,10 +106,9 @@ export const Route = createFileRoute("/session")({
         return {
             uuid,
             timeIntervalDefinition,
-            // Try to end the interval in the past so we don't need to re-fetch
             trackingInterval: {
                 start: trackingStart,
-                end: timeIntervals.day.start,
+                end: timeIntervals.day.end,
             },
             timeIntervals,
         };
