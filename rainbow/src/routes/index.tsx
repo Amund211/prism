@@ -3,7 +3,6 @@ import { Avatar, Button, IconButton, Stack, Typography } from "@mui/material";
 import { UserSearch } from "#components/UserSearch.tsx";
 import { useUUIDToUsername } from "#queries/username.ts";
 import { Delete } from "@mui/icons-material";
-import React from "react";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 
 const RouterLinkButton = createLink(Button);
@@ -17,7 +16,6 @@ function RouteComponent() {
     const { favoriteUUIDs, removePlayerVisits } = usePlayerVisits();
     const favorites = favoriteUUIDs.slice(0, 5);
     const uuidToUsername = useUUIDToUsername(favorites);
-    const [, rerender] = React.useReducer(() => ({}), {});
 
     return (
         <Stack
@@ -112,7 +110,6 @@ function RouteComponent() {
                                     event.stopPropagation();
                                     event.preventDefault();
                                     removePlayerVisits(uuid);
-                                    rerender();
                                 }}
                             >
                                 <Delete
