@@ -16,8 +16,8 @@ import {
 } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
 import React from "react";
-import { useKnownAliases } from "#helpers/knownAliases.ts";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
+import { useKnownAliases } from "#contexts/KnownAliases/hooks.ts";
 
 interface UserSearchProps {
     onSubmit: (uuid: string) => void;
@@ -57,7 +57,7 @@ interface UserSearchOptions<Multiple extends boolean> {
 const useUserSearchOptions = <Multiple extends boolean = false>(
     additionalUUIDs?: readonly string[],
 ): UserSearchOptions<Multiple> => {
-    const knownAliases = useKnownAliases();
+    const { knownAliases } = useKnownAliases();
     const uuids = Object.keys(knownAliases);
     const uuidToUsername = useUUIDToUsername([
         ...new Set(uuids.concat(additionalUUIDs ?? [])),
@@ -161,6 +161,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
     size = "small",
 }) => {
     const queryClient = useQueryClient();
+    const { addKnownAlias } = useKnownAliases();
     const {
         uuids,
         filterOptions,
@@ -195,7 +196,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
 
                 setLoading(true);
                 queryClient
-                    .fetchQuery(getUUIDQueryOptions(value))
+                    .fetchQuery(getUUIDQueryOptions(value, addKnownAlias))
                     .then(({ uuid }) => {
                         onSubmit(uuid);
                     })
@@ -247,6 +248,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
     size = "small",
 }) => {
     const queryClient = useQueryClient();
+    const { addKnownAlias } = useKnownAliases();
     const {
         uuids: options,
         filterOptions,
@@ -281,7 +283,9 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                         }
 
                         return queryClient
-                            .fetchQuery(getUUIDQueryOptions(value))
+                            .fetchQuery(
+                                getUUIDQueryOptions(value, addKnownAlias),
+                            )
                             .then(({ uuid }) => {
                                 return uuid;
                             })

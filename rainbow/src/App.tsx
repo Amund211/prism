@@ -7,6 +7,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { CurrentUserProvider } from "#contexts/CurrentUser/provider.tsx";
 import { PlayerVisitsProvider } from "#contexts/PlayerVisits/provider.tsx";
+import { KnownAliasesProvider } from "#contexts/KnownAliases/provider.tsx";
 
 // Create a new router instance
 const router = createRouter({ routeTree, defaultPreload: "intent" });
@@ -37,8 +38,10 @@ function App() {
                 <ThemeProvider theme={theme} noSsr>
                     <CurrentUserProvider>
                         <PlayerVisitsProvider>
-                            <CssBaseline />
-                            <RouterProvider router={router} />
+                            <KnownAliasesProvider>
+                                <CssBaseline />
+                                <RouterProvider router={router} />
+                            </KnownAliasesProvider>
                         </PlayerVisitsProvider>
                     </CurrentUserProvider>
                 </ThemeProvider>

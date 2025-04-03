@@ -1,10 +1,16 @@
 import { queryOptions, useQueries } from "@tanstack/react-query";
 import { env } from "#env.ts";
-import { addKnownAlias } from "#helpers/knownAliases.ts";
+import { addKnownAliasWithoutRerendering } from "#contexts/KnownAliases/helpers.ts";
+import { useKnownAliases } from "#contexts/KnownAliases/hooks.ts";
 
-export const getUsernameQueryOptions = (uuid: string) =>
+export const getUsernameQueryOptions = (
+    uuid: string,
+    addKnownAlias?: (alias: { uuid: string; username: string }) => void,
+) =>
     queryOptions({
         staleTime: 1000 * 60 * 60,
+        // The query does not depend on our addKnownAlias side-effect
+        // eslint-disable-next-line @tanstack/query/exhaustive-deps
         queryKey: ["username", uuid],
         queryFn: async (): Promise<{ uuid: string; username: string }> => {
             const response = await fetch(
@@ -28,15 +34,22 @@ export const getUsernameQueryOptions = (uuid: string) =>
                 throw new Error("Invalid name in response from minetools");
             }
 
-            addKnownAlias({ uuid, username: data.name });
+            if (addKnownAlias) {
+                addKnownAlias({ uuid, username: data.name });
+            } else {
+                addKnownAliasWithoutRerendering({ uuid, username: data.name });
+            }
 
             return { uuid, username: data.name };
         },
     });
 
 export const useUUIDToUsername = (uuids: readonly string[]) => {
+    const { addKnownAlias } = useKnownAliases();
     const usernameQueries = useQueries({
-        queries: uuids.map((uuid) => getUsernameQueryOptions(uuid)),
+        queries: uuids.map((uuid) =>
+            getUsernameQueryOptions(uuid, addKnownAlias),
+        ),
     });
 
     const result: Record<string, string | undefined> = {};

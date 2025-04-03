@@ -9,9 +9,9 @@ interface AliasInfo {
     lastResolved: Date;
 }
 
-const parseStoredAliases = (
-    stored: string | null,
-): Record<string, AliasInfo[] | undefined> => {
+type KnownAliases = Record<string, AliasInfo[] | undefined>;
+
+const parseStoredAliases = (stored: string | null): KnownAliases => {
     if (stored === null) {
         return {};
     }
@@ -27,7 +27,7 @@ const parseStoredAliases = (
         return {};
     }
 
-    const storedAliases: Record<string, AliasInfo[] | undefined> = {};
+    const storedAliases: KnownAliases = {};
     for (const key in rawParsed) {
         const value = (rawParsed as Record<string, unknown>)[key];
         if (typeof value !== "object" || value === null) {
@@ -73,29 +73,45 @@ const parseStoredAliases = (
     return storedAliases;
 };
 
-export const addKnownAlias = (alias: { uuid: string; username: string }) => {
-    const stored = localStorage.getItem(localStorageKey);
-    const parsed = parseStoredAliases(stored);
-    const oldAliases = parsed[alias.uuid] ?? [];
-    parsed[alias.uuid] = [
-        ...oldAliases.filter(
-            (info) =>
-                info.username.toLowerCase() !== alias.username.toLowerCase(),
-        ),
-        {
-            username: alias.username,
-            lastResolved: new Date(),
-        },
-    ];
-    localStorage.setItem(localStorageKey, JSON.stringify(parsed));
+export const addKnownAlias = (
+    aliases: KnownAliases,
+    alias: { uuid: string; username: string },
+) => {
+    const oldPlayerAliases = aliases[alias.uuid] ?? [];
+    return {
+        ...aliases,
+        [alias.uuid]: [
+            ...oldPlayerAliases.filter(
+                (info) =>
+                    info.username.toLowerCase() !==
+                    alias.username.toLowerCase(),
+            ),
+            {
+                username: alias.username,
+                lastResolved: new Date(),
+            },
+        ],
+    };
 };
 
-export const useKnownAliases = (): Record<string, string[] | undefined> => {
-    // TODO: Update state when writing to localStorage in this tab (make a context and use state like the current user provider)
-    const stored = useLocalStorage(localStorageKey);
-    const parsed = parseStoredAliases(stored);
+export const persistKnownAliases = (aliases: KnownAliases): void => {
+    localStorage.setItem(localStorageKey, JSON.stringify(aliases));
+};
+
+export const addKnownAliasWithoutRerendering = (alias: {
+    uuid: string;
+    username: string;
+}): void => {
+    const aliases = parseStoredAliases(localStorage.getItem(localStorageKey));
+    persistKnownAliases(addKnownAlias(aliases, alias));
+};
+
+// Convert known aliases to a map uuid -> username[] while filtering out old aliases
+export const presentRecentKnownAliases = (
+    aliases: KnownAliases,
+): Record<string, string[] | undefined> => {
     return Object.fromEntries(
-        Object.entries(parsed).map(([uuid, aliases]) => [
+        Object.entries(aliases).map(([uuid, aliases]) => [
             uuid,
             aliases
                 ?.filter(
@@ -107,4 +123,9 @@ export const useKnownAliases = (): Record<string, string[] | undefined> => {
                 .map((info) => info.username) ?? [],
         ]),
     );
+};
+
+export const usePersistedKnownAliases = (): KnownAliases => {
+    const stored = useLocalStorage(localStorageKey);
+    return parseStoredAliases(stored);
 };
