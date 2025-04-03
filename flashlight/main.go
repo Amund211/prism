@@ -124,7 +124,7 @@ func main() {
 	historyIPRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		ratelimiting.NewTokenBucketRateLimiter(
 			ratelimiting.RefillPerSecond(1),
-			ratelimiting.BurstSize(20),
+			ratelimiting.BurstSize(60),
 		),
 		ratelimiting.IPKeyFunc,
 	)
