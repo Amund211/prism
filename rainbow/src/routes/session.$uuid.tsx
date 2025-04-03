@@ -918,7 +918,7 @@ interface StatProgressionCardProps {
     gamemode: GamemodeKey;
 }
 
-const formatDays = (days: number) => {
+const formatDays = (days: number): string => {
     if (days < 1) {
         const hours = Math.round(days * 24);
         if (hours < 1) {
@@ -992,6 +992,10 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
             progression.daysUntilMilestone * 24 * 60 * 60 * 1000,
     );
 
+    const daysUntilMilestoneFromNow =
+        (projectedMilestoneDate.getTime() - now.getTime()) /
+        (1000 * 60 * 60 * 24);
+
     return (
         <Card variant="outlined" sx={{ height: "100%" }}>
             <CardContent>
@@ -1013,7 +1017,7 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
                                   {
                                       dateStyle: "medium",
                                   },
-                              )} (in ${formatDays(progression.daysUntilMilestone)})`
+                              )} (${daysUntilMilestoneFromNow >= 0 ? "in " : ""}${formatDays(Math.abs(daysUntilMilestoneFromNow))}${daysUntilMilestoneFromNow < 0 ? " ago" : ""})`
                             : `Expected to reach: Never (long-time ${getShortStatLabel(stat)} too ${progression.trendingUpward ? "low" : "high"})`}
                     </Typography>
 
