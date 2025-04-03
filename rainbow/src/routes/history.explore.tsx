@@ -217,12 +217,20 @@ function Index() {
             />
             <UserMultiSelect
                 uuids={uuids}
-                onSubmit={(uuids) => {
+                onSubmit={(newUUIDs) => {
+                    // Visit all newly added players
+                    const addedUUIDs = newUUIDs.filter(
+                        (uuid) => !uuids.includes(uuid),
+                    );
+                    addedUUIDs.forEach((uuid) => {
+                        visitPlayer(uuid);
+                    });
+
                     navigate({
                         search: (oldSearch) => {
                             return {
                                 ...oldSearch,
-                                uuids,
+                                uuids: newUUIDs,
                             };
                         },
                     }).catch((error: unknown) => {
