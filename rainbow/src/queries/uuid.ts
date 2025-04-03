@@ -12,7 +12,9 @@ export const getUUIDQueryOptions = (username: string) =>
                 `${env.VITE_MINETOOLS_API_URL}/uuid/${username}`,
             );
             if (!response.ok) {
-                throw new Error(`Failed to fetch data: ${response.statusText}`);
+                throw new Error(
+                    `Failed to fetch uuid for username. ${response.status.toString()} - ${response.statusText}: ${await response.text()}`,
+                );
             }
 
             const data: unknown = await response.json();

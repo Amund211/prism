@@ -57,6 +57,13 @@ export const getSessionsQueryOptions = ({
                     }),
                 },
             );
+
+            if (!response.ok) {
+                throw new Error(
+                    `Failed to fetch session data from API. ${response.status.toString()} - ${response.statusText}: ${await response.text()}`,
+                );
+            }
+
             const apiSessions = (await response.json()) as APISessions;
 
             return apiSessions

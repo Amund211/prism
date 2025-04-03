@@ -12,7 +12,9 @@ export const getUsernameQueryOptions = (uuid: string) =>
                 `${env.VITE_MINETOOLS_API_URL}/uuid/${uuid}`,
             );
             if (!response.ok) {
-                throw new Error(`Failed to fetch data: ${response.statusText}`);
+                throw new Error(
+                    `Failed to fetch username for uuid. ${response.status.toString()} - ${response.statusText}: ${await response.text()}`,
+                );
             }
 
             const data: unknown = await response.json();

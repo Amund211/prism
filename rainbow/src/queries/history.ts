@@ -51,6 +51,13 @@ export const getHistoryQueryOptions = ({
                     }),
                 },
             );
+
+            if (!response.ok) {
+                throw new Error(
+                    `Failed to fetch history data from API. ${response.status.toString()} - ${response.statusText}: ${await response.text()}`,
+                );
+            }
+
             const apiHistory = (await response.json()) as APIHistory;
 
             return apiHistory
