@@ -652,7 +652,7 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
         diff === null ||
         sessionValue === null
     ) {
-        return "Missing data";
+        return `Hypixel API disabled for ${getFullStatLabel(stat)}.`;
     }
 
     const trendDirection = diff == 0 ? "flat" : diff > 0 ? "up" : "down";
