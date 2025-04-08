@@ -743,12 +743,14 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			expectedSessions := []Session{
 				{
-					Start: playerData[5],
-					End:   playerData[16],
+					Start:       playerData[5],
+					End:         playerData[16],
+					Consecutive: true,
 				},
 				{
-					Start: playerData[24],
-					End:   playerData[25],
+					Start:       playerData[24],
+					End:         playerData[25],
+					Consecutive: true,
 				},
 			}
 			requireEqualSessions(t, expectedSessions, sessions)
@@ -790,8 +792,9 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			expectedSessions := []Session{
 				{
-					Start: playerData[1],
-					End:   playerData[2],
+					Start:       playerData[1],
+					End:         playerData[2],
+					Consecutive: true,
 				},
 			}
 			requireEqualSessions(t, expectedSessions, sessions)
@@ -816,8 +819,9 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			expectedSessions := []Session{
 				{
-					Start: playerData[0],
-					End:   playerData[1],
+					Start:       playerData[0],
+					End:         playerData[1],
+					Consecutive: true,
 				},
 			}
 			requireEqualSessions(t, expectedSessions, sessions)
@@ -844,8 +848,9 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			expectedSessions := []Session{
 				{
-					Start: playerData[1],
-					End:   playerData[2],
+					Start:       playerData[1],
+					End:         playerData[2],
+					Consecutive: true,
 				},
 			}
 			requireEqualSessions(t, expectedSessions, sessions)
@@ -895,12 +900,14 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			expectedSessions := []Session{
 				{
-					Start: playerData[1],
-					End:   playerData[3],
+					Start:       playerData[1],
+					End:         playerData[3],
+					Consecutive: true,
 				},
 				{
-					Start: playerData[10],
-					End:   playerData[11],
+					Start:       playerData[10],
+					End:         playerData[11],
+					Consecutive: true,
 				},
 			}
 			requireEqualSessions(t, expectedSessions, sessions)
@@ -927,12 +934,14 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			expectedSessions := []Session{
 				{
-					Start: playerData[0],
-					End:   playerData[1],
+					Start:       playerData[0],
+					End:         playerData[1],
+					Consecutive: true,
 				},
 				{
-					Start: playerData[2],
-					End:   playerData[3],
+					Start:       playerData[2],
+					End:         playerData[3],
+					Consecutive: true,
 				},
 			}
 			requireEqualSessions(t, expectedSessions, sessions)
@@ -987,12 +996,14 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			expectedSessions := []Session{
 				{
-					Start: playerData[0],
-					End:   playerData[1],
+					Start:       playerData[0],
+					End:         playerData[1],
+					Consecutive: true,
 				},
 				{
-					Start: playerData[2],
-					End:   playerData[3],
+					Start:       playerData[2],
+					End:         playerData[3],
+					Consecutive: true,
 				},
 			}
 			requireEqualSessions(t, expectedSessions, sessions)
@@ -1019,12 +1030,14 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			expectedSessions := []Session{
 				{
-					Start: playerData[0],
-					End:   playerData[1],
+					Start:       playerData[0],
+					End:         playerData[1],
+					Consecutive: true,
 				},
 				{
-					Start: playerData[2],
-					End:   playerData[3],
+					Start:       playerData[2],
+					End:         playerData[3],
+					Consecutive: true,
 				},
 			}
 			requireEqualSessions(t, expectedSessions, sessions)
@@ -1066,16 +1079,19 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			expectedSessions := []Session{
 				{
-					Start: playerData[0],
-					End:   playerData[1],
+					Start:       playerData[0],
+					End:         playerData[1],
+					Consecutive: true,
 				},
 				{
-					Start: playerData[4],
-					End:   playerData[5],
+					Start:       playerData[4],
+					End:         playerData[5],
+					Consecutive: true,
 				},
 				{
-					Start: playerData[6],
-					End:   playerData[7],
+					Start:       playerData[6],
+					End:         playerData[7],
+					Consecutive: false,
 				},
 			}
 			requireEqualSessions(t, expectedSessions, sessions)
@@ -1099,8 +1115,67 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			expectedSessions := []Session{
 				{
-					Start: playerData[0],
-					End:   playerData[2],
+					Start:       playerData[0],
+					End:         playerData[2],
+					Consecutive: true,
+				},
+			}
+			requireEqualSessions(t, expectedSessions, sessions)
+		})
+
+		t.Run("mostly consecutive", func(t *testing.T) {
+			t.Parallel()
+			p := newPostgresPersistor(t, db, "mostly_consecutive")
+			player_uuid := newUUID(t)
+			start := time.Date(2025, time.February, 7, 4, 13, 34, 987_654_321, time.FixedZone("UTC", 3600*-10))
+
+			instructions := make([]storageInstruction, 6)
+			instructions[0] = storageInstruction{player_uuid, start.Add(3 * time.Hour).Add(5 * time.Minute), newPlayer(player_uuid, 16, 9_200)}
+			instructions[1] = storageInstruction{player_uuid, start.Add(3 * time.Hour).Add(40 * time.Minute), newPlayer(player_uuid, 17, 9_500)}
+			instructions[2] = storageInstruction{player_uuid, start.Add(4 * time.Hour).Add(05 * time.Minute), newPlayer(player_uuid, 18, 9_900)}
+			instructions[3] = storageInstruction{player_uuid, start.Add(4 * time.Hour).Add(45 * time.Minute), newPlayer(player_uuid, 20, 10_900)}
+			instructions[4] = storageInstruction{player_uuid, start.Add(4 * time.Hour).Add(55 * time.Minute), newPlayer(player_uuid, 21, 11_900)}
+			instructions[5] = storageInstruction{player_uuid, start.Add(5 * time.Hour).Add(15 * time.Minute), newPlayer(player_uuid, 22, 12_900)}
+
+			playerData := storeStats(t, p, instructions...)
+
+			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
+			require.NoError(t, err)
+
+			expectedSessions := []Session{
+				{
+					Start:       playerData[0],
+					End:         playerData[5],
+					Consecutive: false,
+				},
+			}
+			requireEqualSessions(t, expectedSessions, sessions)
+		})
+
+		t.Run("short pauses", func(t *testing.T) {
+			t.Parallel()
+			p := newPostgresPersistor(t, db, "short_pauses")
+			player_uuid := newUUID(t)
+			start := time.Date(2025, time.December, 1, 7, 13, 34, 987_654_321, time.FixedZone("UTC", 3600*7))
+
+			instructions := make([]storageInstruction, 6)
+			instructions[0] = storageInstruction{player_uuid, start.Add(1 * time.Hour).Add(5 * time.Minute), newPlayer(player_uuid, 16, 9_200)}
+			instructions[1] = storageInstruction{player_uuid, start.Add(1 * time.Hour).Add(40 * time.Minute), newPlayer(player_uuid, 16, 9_500)}
+			instructions[2] = storageInstruction{player_uuid, start.Add(2 * time.Hour).Add(05 * time.Minute), newPlayer(player_uuid, 16, 9_600)}
+			instructions[3] = storageInstruction{player_uuid, start.Add(2 * time.Hour).Add(45 * time.Minute), newPlayer(player_uuid, 17, 10_900)}
+			instructions[4] = storageInstruction{player_uuid, start.Add(2 * time.Hour).Add(55 * time.Minute), newPlayer(player_uuid, 17, 10_900)}
+			instructions[5] = storageInstruction{player_uuid, start.Add(3 * time.Hour).Add(15 * time.Minute), newPlayer(player_uuid, 17, 11_900)}
+
+			playerData := storeStats(t, p, instructions...)
+
+			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
+			require.NoError(t, err)
+
+			expectedSessions := []Session{
+				{
+					Start:       playerData[0],
+					End:         playerData[5],
+					Consecutive: true,
 				},
 			}
 			requireEqualSessions(t, expectedSessions, sessions)

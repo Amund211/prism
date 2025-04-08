@@ -40,6 +40,7 @@ type StatsPIT struct {
 }
 
 type Session struct {
-	Start PlayerDataPIT
-	End   PlayerDataPIT
+	Start       PlayerDataPIT
+	End         PlayerDataPIT
+	Consecutive bool
 }

@@ -443,10 +443,14 @@ func computeSessions(stats []PlayerDataPIT, start, end time.Time) []Session {
 	lastEventfulIndex := -1
 	sessionStartIndex := -1
 
+	consecutive := true
+
 	for i := 0; i < len(stats); i++ {
 		if sessionStartIndex == -1 {
+			// Start a new session
 			sessionStartIndex = i
 			lastEventfulIndex = i
+			consecutive = true
 			continue
 		}
 
@@ -470,7 +474,7 @@ func computeSessions(stats []PlayerDataPIT, start, end time.Time) []Session {
 		// If more than 60 minutes since last activity, end session
 		if stat.QueriedAt.Sub(lastEventfulEntry.QueriedAt) > 60*time.Minute {
 			if includeSession(sessionStart, lastEventfulEntry) {
-				sessions = append(sessions, Session{sessionStart, lastEventfulEntry})
+				sessions = append(sessions, Session{sessionStart, lastEventfulEntry, consecutive})
 			}
 			// Jump back to right after the last eventful entry (loop adds one)
 			// This makes sure we include any non-eventful trailing entries, as they could
@@ -484,6 +488,13 @@ func computeSessions(stats []PlayerDataPIT, start, end time.Time) []Session {
 		}
 
 		lastEventfulGamesPlayed, lastEventfulExperience := getProgressStats(lastEventfulEntry)
+
+		// Games played changed by more than 1
+		if lastEventfulGamesPlayed != currentGamesPlayed && lastEventfulGamesPlayed+1 != currentGamesPlayed {
+			consecutive = false
+		}
+
+		// Stats changed
 		if lastEventfulGamesPlayed != currentGamesPlayed || lastEventfulExperience != currentExperience {
 			lastEventfulIndex = i
 		}
@@ -494,7 +505,7 @@ func computeSessions(stats []PlayerDataPIT, start, end time.Time) []Session {
 	lastEventfulEntry := stats[lastEventfulIndex]
 
 	if includeSession(sessionStart, lastEventfulEntry) {
-		sessions = append(sessions, Session{sessionStart, lastEventfulEntry})
+		sessions = append(sessions, Session{sessionStart, lastEventfulEntry, consecutive})
 	}
 
 	return sessions
