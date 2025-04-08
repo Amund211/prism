@@ -308,8 +308,9 @@ func main() {
 				}
 
 				type sessionResponse struct {
-					Start playerDataResponse `json:"start"`
-					End   playerDataResponse `json:"end"`
+					Start       playerDataResponse `json:"start"`
+					End         playerDataResponse `json:"end"`
+					Consecutive bool               `json:"consecutive"`
 				}
 
 				pitStatsToResponse := func(stats storage.StatsPIT) statsResponse {
@@ -346,8 +347,9 @@ func main() {
 
 				for _, session := range sessions {
 					responseData = append(responseData, sessionResponse{
-						Start: playerDataToResponse(session.Start),
-						End:   playerDataToResponse(session.End),
+						Start:       playerDataToResponse(session.Start),
+						End:         playerDataToResponse(session.End),
+						Consecutive: session.Consecutive,
 					})
 				}
 
