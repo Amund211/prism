@@ -4,6 +4,7 @@ import { UserSearch } from "#components/UserSearch.tsx";
 import { useUUIDToUsername } from "#queries/username.ts";
 import { Delete } from "@mui/icons-material";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
+import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
 
 const RouterLinkButton = createLink(Button);
 
@@ -13,8 +14,14 @@ export const Route = createFileRoute("/")({
 
 function RouteComponent() {
     const navigate = Route.useNavigate();
+    const { currentUser } = useCurrentUser();
     const { favoriteUUIDs, removePlayerVisits } = usePlayerVisits();
-    const favorites = favoriteUUIDs.slice(0, 5);
+    const favorites = currentUser
+        ? [
+              currentUser,
+              ...favoriteUUIDs.filter((uuid) => uuid !== currentUser),
+          ].slice(0, 5)
+        : favoriteUUIDs.slice(0, 5);
     const uuidToUsername = useUUIDToUsername(favorites);
 
     return (
