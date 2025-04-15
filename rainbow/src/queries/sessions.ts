@@ -14,9 +14,10 @@ interface APISession {
 
 type APISessions = readonly APISession[];
 
-interface Session {
+export interface Session {
     start: PlayerDataPIT;
     end: PlayerDataPIT;
+    extrapolated: boolean;
     consecutive: boolean;
 }
 export type Sessions = readonly Session[];
@@ -79,6 +80,7 @@ export const getSessionsQueryOptions = ({
                         start: apiToPlayerDataPIT(apiSession.start),
                         end: apiToPlayerDataPIT(apiSession.end),
                         consecutive: apiSession.consecutive,
+                        extrapolated: false,
                     };
                 });
         },

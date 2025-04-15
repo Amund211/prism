@@ -24,7 +24,7 @@ export interface APIPlayerDataPIT {
     overall: APIStatsPIT;
 }
 
-interface StatsPIT {
+export interface StatsPIT {
     winstreak: number | null;
     gamesPlayed: number | null;
     wins: number | null;
