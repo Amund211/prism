@@ -9,7 +9,7 @@ import { UserSearch } from "#components/UserSearch.tsx";
 import { ChartSynchronizerProvider } from "#contexts/ChartSynchronizer/provider.tsx";
 import { type TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
-import { getSessionsQueryOptions } from "#queries/sessions.ts";
+import { getSessionsQueryOptions, type Sessions } from "#queries/sessions.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
 import { computeStat } from "#stats/index.ts";
 import {
@@ -35,6 +35,7 @@ import {
     TrendingUp,
     InfoOutlined,
     QueryStats,
+    Warning,
 } from "@mui/icons-material";
 import {
     Avatar,
@@ -63,6 +64,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, createLink } from "@tanstack/react-router";
 import React from "react";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
+import { addExtrapolatedSessions } from "#helpers/session.ts";
 
 const sessionSearchSchema = z.object({
     timeIntervalDefinition: fallback(
@@ -200,7 +202,16 @@ const Sessions: React.FC<SessionsProps> = ({
     end,
     tableMode,
 }) => {
-    const { data: sessions } = useQuery(
+    const { data: history } = useQuery(
+        getHistoryQueryOptions({
+            uuid,
+            start,
+            end,
+            limit: 2,
+        }),
+    );
+
+    const { data: flashlightSessions } = useQuery(
         getSessionsQueryOptions({
             uuid,
             start,
@@ -258,7 +269,7 @@ const Sessions: React.FC<SessionsProps> = ({
         </Stack>
     );
 
-    if (sessions === undefined) {
+    if (flashlightSessions === undefined) {
         return (
             <Card
                 variant="outlined"
@@ -271,6 +282,8 @@ const Sessions: React.FC<SessionsProps> = ({
             </Card>
         );
     }
+
+    const sessions = addExtrapolatedSessions(flashlightSessions, history);
 
     if (sessions.length === 0) {
         return (
@@ -296,6 +309,13 @@ const Sessions: React.FC<SessionsProps> = ({
     const statAlreadyIncluded = (stat: StatKey) =>
         ["gamesPlayed", "wins"].includes(stat);
 
+    const hasExtrapolatedSessions = sessions.some(
+        (session) => session.extrapolated,
+    );
+    const hasNonConsecutiveSessions = sessions.some(
+        (session) => !session.consecutive,
+    );
+
     return (
         <Card
             variant="outlined"
@@ -308,6 +328,15 @@ const Sessions: React.FC<SessionsProps> = ({
                         <Table>
                             <TableHead>
                                 <TableRow>
+                                    {(hasExtrapolatedSessions ||
+                                        hasNonConsecutiveSessions) && (
+                                        // Cell for extrapolated/non-consecutive info icons
+                                        <TableCell
+                                            style={{
+                                                width: 20,
+                                            }}
+                                        />
+                                    )}
                                     <TableCell>
                                         <Typography variant="subtitle2">
                                             Start
@@ -389,12 +418,16 @@ const Sessions: React.FC<SessionsProps> = ({
                                                 tableMode === "rate" &&
                                                 isLinearStat(stat)
                                             ) {
-                                                return (
+                                                const formattedNumber = (
                                                     value / durationHours
                                                 ).toLocaleString(undefined, {
                                                     minimumFractionDigits: 2,
                                                     maximumFractionDigits: 2,
                                                 });
+                                                if (session.extrapolated) {
+                                                    return `> ${formattedNumber}`;
+                                                }
+                                                return formattedNumber;
                                             }
 
                                             return value.toLocaleString(/*TODO: format based on stat type*/);
@@ -402,6 +435,33 @@ const Sessions: React.FC<SessionsProps> = ({
 
                                         return (
                                             <TableRow key={session.start.id}>
+                                                {(hasExtrapolatedSessions ||
+                                                    hasNonConsecutiveSessions) && (
+                                                    // Cell for extrapolated/non-consecutive info icons
+                                                    <TableCell
+                                                        style={{
+                                                            width: 20,
+                                                        }}
+                                                        align="center"
+                                                    >
+                                                        {session.extrapolated && (
+                                                            <Tooltip title="The Prism Overlay has not recorded the player's stats during this time. This may be due to the player not using the Prism Overlay; therefore the duration may be incorrect, and the session may include stats from multiple sessions.">
+                                                                <InfoOutlined fontSize="small" />
+                                                            </Tooltip>
+                                                        )}
+                                                        {!session.consecutive &&
+                                                            !session.extrapolated && (
+                                                                <Tooltip
+                                                                    title={`The Prism Overlay has not recorded the result of every game during this time. This may be due to the player not using the Prism Overlay or having disabled "Online Game Stats" in their Hypixel settings; therefore the duration may be incorrect, and the session may include stats from multiple sessions.`}
+                                                                >
+                                                                    <Warning
+                                                                        color="warning"
+                                                                        fontSize="small"
+                                                                    />
+                                                                </Tooltip>
+                                                            )}
+                                                    </TableCell>
+                                                )}
                                                 <TableCell>
                                                     <Typography variant="body1">
                                                         {session.start.queriedAt.toLocaleString(
@@ -418,6 +478,9 @@ const Sessions: React.FC<SessionsProps> = ({
                                                 </TableCell>
                                                 <TableCell align="right">
                                                     <Typography variant="body1">
+                                                        {session.extrapolated
+                                                            ? "< "
+                                                            : undefined}
                                                         {renderDuration(
                                                             session.end
                                                                 .queriedAt,
