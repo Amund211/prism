@@ -32,6 +32,7 @@ function App() {
             persistOptions={{
                 persister,
                 maxAge,
+                buster: "1", // API version
             }}
         >
             <LocalizationProvider dateAdapter={AdapterDayjs}>
