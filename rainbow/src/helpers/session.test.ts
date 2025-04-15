@@ -143,7 +143,7 @@ await test("addExtrapolatedSessions", async (t) => {
             ],
         },
         {
-            name: "extraplated session at start",
+            name: "extrapolated session at start",
             input: [
                 {
                     start: makePlayerDataPIT(10, 11_000),
@@ -172,7 +172,7 @@ await test("addExtrapolatedSessions", async (t) => {
             ],
         },
         {
-            name: "extraplated session at end",
+            name: "extrapolated session at end",
             input: [
                 {
                     start: makePlayerDataPIT(10, 11_000),
@@ -201,7 +201,7 @@ await test("addExtrapolatedSessions", async (t) => {
             ],
         },
         {
-            name: "extraplated session at start and end",
+            name: "extrapolated session at start and end",
             input: [
                 {
                     start: makePlayerDataPIT(10, 11_000),
@@ -236,7 +236,7 @@ await test("addExtrapolatedSessions", async (t) => {
             ],
         },
         {
-            name: "extraplated session at start and end and middle",
+            name: "extrapolated session at start and end and middle",
             input: [
                 {
                     start: makePlayerDataPIT(10, 11_000),
