@@ -18,6 +18,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { useKnownAliases } from "#contexts/KnownAliases/hooks.ts";
+import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
 
 interface UserSearchProps {
     onSubmit: (uuid: string) => void;
@@ -63,6 +64,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
         ...new Set(uuids.concat(additionalUUIDs ?? [])),
     ]);
     const { orderUUIDsByScore } = usePlayerVisits();
+    const { currentUser } = useCurrentUser();
 
     return {
         uuids,
@@ -90,6 +92,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                         );
                     })
                     .map(({ option }) => option),
+                currentUser ?? undefined,
             );
         },
         renderOption: (props, option) => {

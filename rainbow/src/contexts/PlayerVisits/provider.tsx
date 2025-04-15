@@ -35,8 +35,17 @@ export const PlayerVisitsProvider: React.FC<{
 
     const favoriteUUIDs = orderPlayers(playerVisits);
 
-    const orderUUIDsByScore = (uuids: string[]): string[] => {
+    const orderUUIDsByScore = (
+        uuids: string[],
+        currentUser?: string,
+    ): string[] => {
         return [...uuids].sort((a, b) => {
+            // If provided with a current user, sort them to the top
+            if (currentUser !== undefined) {
+                if (a === currentUser) return -1;
+                if (b === currentUser) return 1;
+            }
+
             const aIndex = favoriteUUIDs.indexOf(a);
             const bIndex = favoriteUUIDs.indexOf(b);
             if (aIndex === -1) return 1;
