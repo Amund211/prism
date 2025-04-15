@@ -9,6 +9,7 @@ import {
 interface APISession {
     start: APIPlayerDataPIT;
     end: APIPlayerDataPIT;
+    consecutive: boolean;
 }
 
 type APISessions = readonly APISession[];
@@ -16,6 +17,7 @@ type APISessions = readonly APISession[];
 interface Session {
     start: PlayerDataPIT;
     end: PlayerDataPIT;
+    consecutive: boolean;
 }
 export type Sessions = readonly Session[];
 
@@ -76,6 +78,7 @@ export const getSessionsQueryOptions = ({
                     return {
                         start: apiToPlayerDataPIT(apiSession.start),
                         end: apiToPlayerDataPIT(apiSession.end),
+                        consecutive: apiSession.consecutive,
                     };
                 });
         },
