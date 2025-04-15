@@ -41,6 +41,7 @@ function RouteComponent() {
                             timeIntervalDefinition: { type: "contained" },
                             variantSelection: "both",
                             sessionTableMode: "total",
+                            showExtrapolatedSessions: false,
                         },
                     }).catch((error: unknown) => {
                         // TODO: Handle error
@@ -77,6 +78,7 @@ function RouteComponent() {
                                 timeIntervalDefinition: { type: "contained" },
                                 variantSelection: "both",
                                 sessionTableMode: "total",
+                                showExtrapolatedSessions: false,
                             }}
                         >
                             <Stack alignItems="center" gap={1}>

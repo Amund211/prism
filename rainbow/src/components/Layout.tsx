@@ -142,6 +142,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                         stat: "fkdr",
                                         variantSelection: "both",
                                         sessionTableMode: "total",
+                                        showExtrapolatedSessions: false,
                                     }}
                                     onClick={handleCloseMenu}
                                 >
@@ -240,6 +241,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                         stat: "fkdr",
                                         variantSelection: "both",
                                         sessionTableMode: "total",
+                                        showExtrapolatedSessions: false,
                                     }}
                                 >
                                     <ListItemIcon>

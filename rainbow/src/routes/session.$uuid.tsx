@@ -42,6 +42,7 @@ import {
     Box,
     Card,
     CardContent,
+    FormControlLabel,
     Grid,
     IconButton,
     MenuItem,
@@ -49,6 +50,7 @@ import {
     Skeleton,
     Stack,
     type SvgIconOwnProps,
+    Switch,
     Table,
     TableBody,
     TableCell,
@@ -61,8 +63,12 @@ import {
     Typography,
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, createLink } from "@tanstack/react-router";
-import React from "react";
+import {
+    createFileRoute,
+    createLink,
+    useNavigate,
+} from "@tanstack/react-router";
+import React, { type JSX } from "react";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { addExtrapolatedSessions } from "#helpers/session.ts";
 
@@ -92,6 +98,7 @@ const sessionSearchSchema = z.object({
     stat: fallback(z.enum(ALL_STAT_KEYS), "fkdr"),
     variantSelection: fallback(z.enum(["session", "overall", "both"]), "both"),
     sessionTableMode: fallback(z.enum(["total", "rate"]), "total"),
+    showExtrapolatedSessions: fallback(z.boolean(), false),
 });
 
 export const Route = createFileRoute("/session/$uuid")({
@@ -159,6 +166,7 @@ interface SessionsProps {
     start: Date;
     end: Date;
     tableMode: "total" | "rate";
+    showExtrapolatedSessions: boolean;
 }
 
 const renderDuration = (end: Date, start: Date) => {
@@ -201,7 +209,10 @@ const Sessions: React.FC<SessionsProps> = ({
     start,
     end,
     tableMode,
+    showExtrapolatedSessions,
 }) => {
+    const navigate = useNavigate();
+
     const { data: history } = useQuery(
         getHistoryQueryOptions({
             uuid,
@@ -219,7 +230,7 @@ const Sessions: React.FC<SessionsProps> = ({
         }),
     );
 
-    const header = (
+    const renderHeader = (showExtrapolatedToggle?: JSX.Element) => (
         <Stack
             direction="row"
             gap={1}
@@ -237,35 +248,38 @@ const Sessions: React.FC<SessionsProps> = ({
                     <InfoOutlined fontSize="small" />
                 </Tooltip>
             </Stack>
-            <ToggleButtonGroup
-                exclusive
-                size="small"
-                value={tableMode}
-                aria-label="Session table mode"
-            >
-                <RouterLinkToggleButton
-                    value="total"
-                    from="/session/$uuid"
-                    to="/session/$uuid"
-                    search={(oldSearch) => ({
-                        ...oldSearch,
-                        sessionTableMode: "total",
-                    })}
+            <Stack direction="row" gap={3} alignItems="center">
+                {showExtrapolatedToggle}
+                <ToggleButtonGroup
+                    exclusive
+                    size="small"
+                    value={tableMode}
+                    aria-label="Session table mode"
                 >
-                    Total
-                </RouterLinkToggleButton>
-                <RouterLinkToggleButton
-                    value="rate"
-                    from="/session/$uuid"
-                    to="/session/$uuid"
-                    search={(oldSearch) => ({
-                        ...oldSearch,
-                        sessionTableMode: "rate",
-                    })}
-                >
-                    Rate (/hour)
-                </RouterLinkToggleButton>
-            </ToggleButtonGroup>
+                    <RouterLinkToggleButton
+                        value="total"
+                        from="/session/$uuid"
+                        to="/session/$uuid"
+                        search={(oldSearch) => ({
+                            ...oldSearch,
+                            sessionTableMode: "total",
+                        })}
+                    >
+                        Total
+                    </RouterLinkToggleButton>
+                    <RouterLinkToggleButton
+                        value="rate"
+                        from="/session/$uuid"
+                        to="/session/$uuid"
+                        search={(oldSearch) => ({
+                            ...oldSearch,
+                            sessionTableMode: "rate",
+                        })}
+                    >
+                        Rate (/hour)
+                    </RouterLinkToggleButton>
+                </ToggleButtonGroup>
+            </Stack>
         </Stack>
     );
 
@@ -276,14 +290,17 @@ const Sessions: React.FC<SessionsProps> = ({
                 sx={{ height: "100%", flexGrow: 1, overflow: "scroll" }}
             >
                 <CardContent>
-                    {header}
+                    {renderHeader()}
                     <Skeleton variant="rounded" height={120} sx={{ mt: 2 }} />
                 </CardContent>
             </Card>
         );
     }
 
-    const sessions = addExtrapolatedSessions(flashlightSessions, history);
+    const allSessions = addExtrapolatedSessions(flashlightSessions, history);
+    const sessions = showExtrapolatedSessions
+        ? allSessions
+        : allSessions.filter((session) => !session.extrapolated);
 
     if (sessions.length === 0) {
         return (
@@ -292,7 +309,7 @@ const Sessions: React.FC<SessionsProps> = ({
                 sx={{ height: "100%", flexGrow: 1, overflow: "scroll" }}
             >
                 <CardContent>
-                    {header}
+                    {renderHeader()}
                     <Stack direction="row" gap={0.5} alignItems="center">
                         <Info color="error" fontSize="small" />
                         <Typography variant="body1">
@@ -309,9 +326,11 @@ const Sessions: React.FC<SessionsProps> = ({
     const statAlreadyIncluded = (stat: StatKey) =>
         ["gamesPlayed", "wins"].includes(stat);
 
-    const hasExtrapolatedSessions = sessions.some(
+    const hasExtrapolatedSessions = allSessions.some(
         (session) => session.extrapolated,
     );
+    const willShowExtrapolatedSessions =
+        hasExtrapolatedSessions && showExtrapolatedSessions;
     const hasNonConsecutiveSessions = sessions.some(
         (session) => !session.consecutive,
     );
@@ -323,12 +342,57 @@ const Sessions: React.FC<SessionsProps> = ({
         >
             <CardContent>
                 <Stack gap={1}>
-                    {header}
+                    {renderHeader(
+                        hasExtrapolatedSessions ? (
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={showExtrapolatedSessions}
+                                        onChange={(_, checked) => {
+                                            navigate({
+                                                from: "/session/$uuid",
+                                                to: "/session/$uuid",
+                                                search: (oldSearch) => ({
+                                                    ...oldSearch,
+                                                    showExtrapolatedSessions:
+                                                        checked,
+                                                }),
+                                            }).catch((error: unknown) => {
+                                                // TODO: Handle error
+                                                console.error(
+                                                    "Failed to update search params: showExtrapolatedSessions",
+                                                    error,
+                                                );
+                                            });
+                                        }}
+                                    />
+                                }
+                                label={
+                                    <Stack
+                                        direction="row"
+                                        gap={1}
+                                        alignItems="center"
+                                    >
+                                        <Typography
+                                            variant="body2"
+                                            color="textSecondary"
+                                        >
+                                            Show extrapolated sessions
+                                        </Typography>
+                                        <Tooltip title="Show the player's stats between sessions recorded by the Prism Overlay. These sessions may include stats from multiple sessions, and the duration may be incorrect.">
+                                            <InfoOutlined fontSize="small" />
+                                        </Tooltip>
+                                    </Stack>
+                                }
+                                labelPlacement="start"
+                            />
+                        ) : undefined,
+                    )}
                     <TableContainer>
                         <Table>
                             <TableHead>
                                 <TableRow>
-                                    {(hasExtrapolatedSessions ||
+                                    {(willShowExtrapolatedSessions ||
                                         hasNonConsecutiveSessions) && (
                                         // Cell for extrapolated/non-consecutive info icons
                                         <TableCell
@@ -435,7 +499,7 @@ const Sessions: React.FC<SessionsProps> = ({
 
                                         return (
                                             <TableRow key={session.start.id}>
-                                                {(hasExtrapolatedSessions ||
+                                                {(willShowExtrapolatedSessions ||
                                                     hasNonConsecutiveSessions) && (
                                                     // Cell for extrapolated/non-consecutive info icons
                                                     <TableCell
@@ -1105,8 +1169,13 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
 
 function RouteComponent() {
     const { uuid } = Route.useParams();
-    const { gamemode, stat, variantSelection, sessionTableMode } =
-        Route.useSearch();
+    const {
+        gamemode,
+        stat,
+        variantSelection,
+        sessionTableMode,
+        showExtrapolatedSessions,
+    } = Route.useSearch();
     const {
         timeIntervalDefinition,
         timeIntervals: { day, week, month },
@@ -1313,6 +1382,7 @@ function RouteComponent() {
                     start={month.start}
                     end={month.end}
                     tableMode={sessionTableMode}
+                    showExtrapolatedSessions={showExtrapolatedSessions}
                 />
             </Box>
             <Box>

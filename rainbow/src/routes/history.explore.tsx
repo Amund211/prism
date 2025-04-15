@@ -416,6 +416,7 @@ function Index() {
                                         date: sessionPageEndDate,
                                     },
                                     sessionTableMode: "total",
+                                    showExtrapolatedSessions: false,
                                 }}
                             >
                                 <QueryStats />
