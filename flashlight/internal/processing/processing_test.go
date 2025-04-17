@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"sync"
 	"testing"
 
 	e "github.com/Amund211/flashlight/internal/errors"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type processPlayerDataTest struct {
@@ -24,7 +24,8 @@ type processPlayerDataTest struct {
 	error              error
 }
 
-const processFixtureDir = "fixtures/"
+const hypixelAPIResponsesDir = "../../fixtures/hypixel_api_responses/"
+const expectedMinifiedDataDir = "testdata/expected_minified_data/"
 
 // NOTE: for readability, after is compacted before being compared
 var literalTests = []processPlayerDataTest{
@@ -122,19 +123,9 @@ var literalTests = []processPlayerDataTest{
 	},
 }
 
-func parsePlayerDataFile(filePath string) (processPlayerDataTest, error) {
-	data, err := os.ReadFile(filePath)
-	if err != nil {
-		return processPlayerDataTest{}, err
-	}
-	lines := bytes.Split(data, []byte("\n"))
-	if len(lines) != 2 {
-		return processPlayerDataTest{}, fmt.Errorf("File %s does not contain 2 lines", filePath)
-	}
-	return processPlayerDataTest{name: fmt.Sprintf("<%s>", filePath), before: lines[0], after: lines[1]}, nil
-}
-
 func runProcessPlayerDataTest(t *testing.T, test processPlayerDataTest) {
+	t.Helper()
+
 	hypixelStatusCode := 200
 	if test.hypixelStatusCode != 0 {
 		hypixelStatusCode = test.hypixelStatusCode
@@ -160,6 +151,8 @@ func runProcessPlayerDataTest(t *testing.T, test processPlayerDataTest) {
 }
 
 func TestProcessPlayerDataLiterals(t *testing.T) {
+	t.Parallel()
+
 	cloudfareTests := []processPlayerDataTest{}
 	for _, statusCode := range []int{502, 503, 504, 520, 521, 522, 523, 524, 525, 526, 527, 530} {
 		cloudfareTests = append(cloudfareTests, processPlayerDataTest{
@@ -194,32 +187,66 @@ func TestProcessPlayerDataLiterals(t *testing.T) {
 }
 
 func TestProcessPlayerDataFiles(t *testing.T) {
-	files, err := os.ReadDir(processFixtureDir)
+	t.Parallel()
 
-	assert.Nil(t, err, "Error reading fixtures directory: %v", err)
-
-	wg := sync.WaitGroup{}
-	wg.Add(len(files))
-
-	for _, file := range files {
-		file := file
+	hypixelAPIResponseFiles, err := os.ReadDir(hypixelAPIResponsesDir)
+	require.NoError(t, err)
+	hypixelResponseFileNames := make([]string, 0, len(hypixelAPIResponseFiles))
+	for _, file := range hypixelAPIResponseFiles {
 		if file.IsDir() {
 			continue
 		}
-		go func() {
-			filePath := path.Join(processFixtureDir, file.Name())
-			test, err := parsePlayerDataFile(filePath)
-			assert.Nil(t, err, "Error parsing file %s: %v", filePath, err)
-			// Real test
-			runProcessPlayerDataTest(t, test)
-
-			// Test that minification is idempotent
-			test.before = test.after
-			test.name = test.name + " (minified)"
-			runProcessPlayerDataTest(t, test)
-			wg.Done()
-		}()
+		hypixelResponseFileNames = append(hypixelResponseFileNames, file.Name())
 	}
 
-	wg.Wait()
+	expectedMinifiedDataFiles, err := os.ReadDir(expectedMinifiedDataDir)
+	require.NoError(t, err)
+	expectedMinifiedDataFileNames := make([]string, 0, len(expectedMinifiedDataFiles))
+	for _, file := range expectedMinifiedDataFiles {
+		if file.IsDir() {
+			continue
+		}
+		expectedMinifiedDataFileNames = append(expectedMinifiedDataFileNames, file.Name())
+	}
+
+	require.ElementsMatch(
+		t,
+		hypixelResponseFileNames,
+		expectedMinifiedDataFileNames,
+		"All hypixel api response files must have a corresponding minified data file",
+	)
+
+	for _, name := range hypixelResponseFileNames {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			hypixelAPIResponse, err := os.ReadFile(path.Join(hypixelAPIResponsesDir, name))
+			require.NoError(t, err)
+			expectedMinifiedData, err := os.ReadFile(path.Join(expectedMinifiedDataDir, name))
+			require.NoError(t, err)
+
+			// Real test
+			t.Run("real->minified", func(t *testing.T) {
+				t.Parallel()
+				runProcessPlayerDataTest(t,
+					processPlayerDataTest{
+						name:   name,
+						before: hypixelAPIResponse,
+						after:  expectedMinifiedData,
+					},
+				)
+			})
+
+			// Test that minification is idempotent
+			t.Run("minified->minified", func(t *testing.T) {
+				t.Parallel()
+				runProcessPlayerDataTest(t,
+					processPlayerDataTest{
+						name:   fmt.Sprintf("%s (minified)", name),
+						before: expectedMinifiedData,
+						after:  expectedMinifiedData,
+					},
+				)
+			})
+		})
+	}
 }

@@ -1,2 +1,3 @@
-**/fixtures/*.ndjson
+internal/processing/testdata/expected_minified_data/*.json
+fixtures/hypixel_api_responses/*.json
 go.sum
