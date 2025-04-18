@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/Amund211/flashlight/internal/config"
+	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/processing"
 	"github.com/Amund211/flashlight/internal/strutils"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -70,92 +70,50 @@ type dbStat struct {
 	PlayerData        []byte    `db:"player_data"`
 }
 
-func playerToDataStorage(player *processing.HypixelAPIPlayer) ([]byte, error) {
-	if player == nil || player.Stats == nil || player.Stats.Bedwars == nil {
+type playerPITWithID struct {
+	domain.PlayerPIT
+	ID string
+}
+
+func gamemodeStatsToDataStorage(stats *domain.GamemodeStatsPIT) statsDataStorage {
+	return statsDataStorage{
+		Winstreak:   stats.Winstreak,
+		GamesPlayed: stats.GamesPlayed,
+		Wins:        stats.Wins,
+		Losses:      stats.Losses,
+		BedsBroken:  stats.BedsBroken,
+		BedsLost:    stats.BedsLost,
+		FinalKills:  stats.FinalKills,
+		FinalDeaths: stats.FinalDeaths,
+		Kills:       stats.Kills,
+		Deaths:      stats.Deaths,
+	}
+}
+
+func playerToDataStorage(player *domain.PlayerPIT) ([]byte, error) {
+	if player == nil {
 		return []byte(`{}`), nil
 	}
 
-	bw := player.Stats.Bedwars
-
-	solo := statsDataStorage{
-		Winstreak:   bw.SoloWinstreak,
-		GamesPlayed: bw.SoloGamesPlayed,
-		Wins:        bw.SoloWins,
-		Losses:      bw.SoloLosses,
-		BedsBroken:  bw.SoloBedsBroken,
-		BedsLost:    bw.SoloBedsLost,
-		FinalKills:  bw.SoloFinalKills,
-		FinalDeaths: bw.SoloFinalDeaths,
-		Kills:       bw.SoloKills,
-		Deaths:      bw.SoloDeaths,
-	}
-
-	doubles := statsDataStorage{
-		Winstreak:   bw.DoublesWinstreak,
-		GamesPlayed: bw.DoublesGamesPlayed,
-		Wins:        bw.DoublesWins,
-		Losses:      bw.DoublesLosses,
-		BedsBroken:  bw.DoublesBedsBroken,
-		BedsLost:    bw.DoublesBedsLost,
-		FinalKills:  bw.DoublesFinalKills,
-		FinalDeaths: bw.DoublesFinalDeaths,
-		Kills:       bw.DoublesKills,
-		Deaths:      bw.DoublesDeaths,
-	}
-
-	threes := statsDataStorage{
-		Winstreak:   bw.ThreesWinstreak,
-		GamesPlayed: bw.ThreesGamesPlayed,
-		Wins:        bw.ThreesWins,
-		Losses:      bw.ThreesLosses,
-		BedsBroken:  bw.ThreesBedsBroken,
-		BedsLost:    bw.ThreesBedsLost,
-		FinalKills:  bw.ThreesFinalKills,
-		FinalDeaths: bw.ThreesFinalDeaths,
-		Kills:       bw.ThreesKills,
-		Deaths:      bw.ThreesDeaths,
-	}
-
-	fours := statsDataStorage{
-		Winstreak:   bw.FoursWinstreak,
-		GamesPlayed: bw.FoursGamesPlayed,
-		Wins:        bw.FoursWins,
-		Losses:      bw.FoursLosses,
-		BedsBroken:  bw.FoursBedsBroken,
-		BedsLost:    bw.FoursBedsLost,
-		FinalKills:  bw.FoursFinalKills,
-		FinalDeaths: bw.FoursFinalDeaths,
-		Kills:       bw.FoursKills,
-		Deaths:      bw.FoursDeaths,
-	}
-
-	overall := statsDataStorage{
-		Winstreak:   bw.Winstreak,
-		GamesPlayed: bw.GamesPlayed,
-		Wins:        bw.Wins,
-		Losses:      bw.Losses,
-		BedsBroken:  bw.BedsBroken,
-		BedsLost:    bw.BedsLost,
-		FinalKills:  bw.FinalKills,
-		FinalDeaths: bw.FinalDeaths,
-		Kills:       bw.Kills,
-		Deaths:      bw.Deaths,
+	var experience *float64
+	if player.Experience != 500 {
+		experience = &player.Experience
 	}
 
 	data := playerDataStorage{
-		Experience: bw.Experience,
-		Solo:       solo,
-		Doubles:    doubles,
-		Threes:     threes,
-		Fours:      fours,
-		Overall:    overall,
+		Experience: experience,
+		Solo:       gamemodeStatsToDataStorage(&player.Solo),
+		Doubles:    gamemodeStatsToDataStorage(&player.Doubles),
+		Threes:     gamemodeStatsToDataStorage(&player.Threes),
+		Fours:      gamemodeStatsToDataStorage(&player.Fours),
+		Overall:    gamemodeStatsToDataStorage(&player.Overall),
 	}
 
 	return json.Marshal(data)
 }
 
-func statsPITFromDataStorage(data *statsDataStorage) *StatsPIT {
-	return &StatsPIT{
+func gamemodeStatsPITFromDataStorage(data *statsDataStorage) *domain.GamemodeStatsPIT {
+	return &domain.GamemodeStatsPIT{
 		Winstreak:   data.Winstreak,
 		GamesPlayed: data.GamesPlayed,
 		Wins:        data.Wins,
@@ -169,37 +127,48 @@ func statsPITFromDataStorage(data *statsDataStorage) *StatsPIT {
 	}
 }
 
-func dbStatToPlayerDataPIT(dbStat dbStat) (*PlayerDataPIT, error) {
+func dbStatToPlayerPITWithID(dbStat dbStat) (*playerPITWithID, error) {
 	var playerData playerDataStorage
 	err := json.Unmarshal(dbStat.PlayerData, &playerData)
 	if err != nil {
-		return nil, fmt.Errorf("dbStatToPlayerDataPIT: failed to unmarshal player data: %w", err)
+		return nil, fmt.Errorf("dbStatToPlayerPIT: failed to unmarshal player data: %w", err)
 	}
+
 	experience := 500.0
 	if playerData.Experience != nil {
 		experience = *playerData.Experience
 	}
 
-	return &PlayerDataPIT{
-		ID:                dbStat.ID,
-		DataFormatVersion: dbStat.DataFormatVersion,
-		UUID:              dbStat.UUID,
-		QueriedAt:         dbStat.QueriedAt,
-		Experience:        experience,
-		Solo:              *statsPITFromDataStorage(&playerData.Solo),
-		Doubles:           *statsPITFromDataStorage(&playerData.Doubles),
-		Threes:            *statsPITFromDataStorage(&playerData.Threes),
-		Fours:             *statsPITFromDataStorage(&playerData.Fours),
-		Overall:           *statsPITFromDataStorage(&playerData.Overall),
+	playerPIT := domain.PlayerPIT{
+		QueriedAt: dbStat.QueriedAt,
+
+		UUID: dbStat.UUID,
+
+		// NOTE: Not currently stored to persistor
+		Displayname: nil,
+		LastLogin:   nil,
+		LastLogout:  nil,
+
+		Experience: experience,
+		Solo:       *gamemodeStatsPITFromDataStorage(&playerData.Solo),
+		Doubles:    *gamemodeStatsPITFromDataStorage(&playerData.Doubles),
+		Threes:     *gamemodeStatsPITFromDataStorage(&playerData.Threes),
+		Fours:      *gamemodeStatsPITFromDataStorage(&playerData.Fours),
+		Overall:    *gamemodeStatsPITFromDataStorage(&playerData.Overall),
+	}
+
+	return &playerPITWithID{
+		ID:        dbStat.ID,
+		PlayerPIT: playerPIT,
 	}, nil
 }
 
-func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, playerUUID string, player *processing.HypixelAPIPlayer, queriedAt time.Time) error {
+func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, player *domain.PlayerPIT) error {
 	if player == nil {
 		return fmt.Errorf("StoreStats: player is nil")
 	}
 
-	normalizedUUID, err := strutils.NormalizeUUID(playerUUID)
+	normalizedUUID, err := strutils.NormalizeUUID(player.UUID)
 	if err != nil {
 		return fmt.Errorf("StoreStats: failed to normalize uuid: %w", err)
 	}
@@ -230,7 +199,7 @@ func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, playerUUID stri
 		ctx,
 		"SELECT COUNT(*) FROM stats WHERE player_uuid = $1 AND queried_at > $2",
 		normalizedUUID,
-		queriedAt.Add(-time.Minute),
+		player.QueriedAt.Add(-time.Minute),
 	).Scan(&count)
 	if err != nil {
 		return fmt.Errorf("StoreStats: failed to query existing stats: %w", err)
@@ -253,7 +222,7 @@ func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, playerUUID stri
 			queried_at > $2
 		ORDER BY queried_at DESC LIMIT 1`,
 		normalizedUUID,
-		queriedAt.Add(-1*time.Hour),
+		player.QueriedAt.Add(-1*time.Hour),
 	).Scan(&lastDataFormatVersion, &lastPlayerData)
 	if err == nil && lastDataFormatVersion == DATA_FORMAT_VERSION {
 		equal, err := strutils.JSONStringsEqual(playerData, lastPlayerData)
@@ -276,7 +245,7 @@ func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, playerUUID stri
 		dbID.String(),
 		normalizedUUID,
 		playerData,
-		queriedAt,
+		player.QueriedAt,
 		DATA_FORMAT_VERSION,
 	)
 	if err != nil {
@@ -293,7 +262,7 @@ func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, playerUUID stri
 	return nil
 }
 
-func (p *PostgresStatsPersistor) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]PlayerDataPIT, error) {
+func (p *PostgresStatsPersistor) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error) {
 	if limit < 2 || limit > 1000 {
 		// TODO: Use known error
 		return nil, fmt.Errorf("GetHistory: invalid limit: %d", limit)
@@ -393,21 +362,21 @@ func (p *PostgresStatsPersistor) GetHistory(ctx context.Context, playerUUID stri
 		return nil, fmt.Errorf("StoreStats: failed to commit transaction: %w", err)
 	}
 
-	result := make([]PlayerDataPIT, 0, len(dbStats))
+	result := make([]domain.PlayerPIT, 0, len(dbStats))
 	for _, dbStat := range dbStats {
-		playerData, err := dbStatToPlayerDataPIT(dbStat)
+		playerWithID, err := dbStatToPlayerPITWithID(dbStat)
 		if err != nil {
 			return nil, fmt.Errorf("GetHistory: failed to convert db stat: %w", err)
 		}
-		result = append(result, *playerData)
+		result = append(result, playerWithID.PlayerPIT)
 	}
 
 	return result, nil
 }
 
-// NOTE: All PlayerDataPIT entries must for the same player
-func computeSessions(stats []PlayerDataPIT, start, end time.Time) []Session {
-	slices.SortStableFunc(stats, func(a, b PlayerDataPIT) int {
+// NOTE: All domain.PlayerPIT entries must for the same player
+func computeSessions(stats []playerPITWithID, start, end time.Time) []Session {
+	slices.SortStableFunc(stats, func(a, b playerPITWithID) int {
 		if a.QueriedAt.Before(b.QueriedAt) {
 			return -1
 		}
@@ -419,11 +388,11 @@ func computeSessions(stats []PlayerDataPIT, start, end time.Time) []Session {
 
 	sessions := []Session{}
 
-	getProgressStats := func(stat PlayerDataPIT) (int, float64) {
+	getProgressStats := func(stat playerPITWithID) (int, float64) {
 		return stat.Overall.GamesPlayed, stat.Experience
 	}
 
-	includeSession := func(sessionStart, lastEventfulEntry PlayerDataPIT) bool {
+	includeSession := func(sessionStart, lastEventfulEntry playerPITWithID) bool {
 		if sessionStart.ID == lastEventfulEntry.ID {
 			// Session starts and ends with the same entry -> not a session
 			return false
@@ -470,7 +439,7 @@ func computeSessions(stats []PlayerDataPIT, start, end time.Time) []Session {
 		// If more than 60 minutes since last activity, end session
 		if stat.QueriedAt.Sub(lastEventfulEntry.QueriedAt) > 60*time.Minute {
 			if includeSession(sessionStart, lastEventfulEntry) {
-				sessions = append(sessions, Session{sessionStart, lastEventfulEntry, consecutive})
+				sessions = append(sessions, Session{sessionStart.PlayerPIT, lastEventfulEntry.PlayerPIT, consecutive})
 			}
 			// Jump back to right after the last eventful entry (loop adds one)
 			// This makes sure we include any non-eventful trailing entries, as they could
@@ -501,7 +470,7 @@ func computeSessions(stats []PlayerDataPIT, start, end time.Time) []Session {
 	lastEventfulEntry := stats[lastEventfulIndex]
 
 	if includeSession(sessionStart, lastEventfulEntry) {
-		sessions = append(sessions, Session{sessionStart, lastEventfulEntry, consecutive})
+		sessions = append(sessions, Session{sessionStart.PlayerPIT, lastEventfulEntry.PlayerPIT, consecutive})
 	}
 
 	return sessions
@@ -567,13 +536,13 @@ func (p *PostgresStatsPersistor) GetSessions(ctx context.Context, playerUUID str
 		return nil, nil
 	}
 
-	stats := make([]PlayerDataPIT, 0, len(dbStats))
+	stats := make([]playerPITWithID, 0, len(dbStats))
 	for _, dbStat := range dbStats {
-		playerData, err := dbStatToPlayerDataPIT(dbStat)
+		playerWithID, err := dbStatToPlayerPITWithID(dbStat)
 		if err != nil {
 			return nil, fmt.Errorf("GetSessions: failed to convert db stat: %w", err)
 		}
-		stats = append(stats, *playerData)
+		stats = append(stats, *playerWithID)
 	}
 
 	return computeSessions(stats, start, end), nil
@@ -581,12 +550,12 @@ func (p *PostgresStatsPersistor) GetSessions(ctx context.Context, playerUUID str
 
 type StubPersistor struct{}
 
-func (p *StubPersistor) StoreStats(ctx context.Context, playerUUID string, player *processing.HypixelAPIPlayer, queriedAt time.Time) error {
+func (p *StubPersistor) StoreStats(ctx context.Context, player *domain.PlayerPIT) error {
 	return nil
 }
 
-func (p *StubPersistor) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]PlayerDataPIT, error) {
-	return []PlayerDataPIT{}, nil
+func (p *StubPersistor) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error) {
+	return []domain.PlayerPIT{}, nil
 }
 
 func (p *StubPersistor) GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]Session, error) {

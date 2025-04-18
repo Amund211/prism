@@ -58,7 +58,7 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI,
 		// Take a maximum of 1 second to not block the request for too long
 		storeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 1*time.Second)
 		defer cancel()
-		err = persistor.StoreStats(storeCtx, uuid, apiResponseFromDomain.Player, queriedAt)
+		err = persistor.StoreStats(storeCtx, domainPlayer)
 		if err != nil {
 			err = fmt.Errorf("failed to persist player data: %w", err)
 			reporting.Report(

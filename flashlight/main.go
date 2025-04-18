@@ -14,6 +14,7 @@ import (
 
 	"github.com/Amund211/flashlight/internal/cache"
 	"github.com/Amund211/flashlight/internal/config"
+	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/getstats"
 	"github.com/Amund211/flashlight/internal/hypixel"
 	"github.com/Amund211/flashlight/internal/logging"
@@ -180,19 +181,17 @@ func main() {
 				}
 
 				type playerDataResponse struct {
-					ID                string        `json:"id"`
-					DataFormatVersion int           `json:"dataFormatVersion"`
-					UUID              string        `json:"uuid"`
-					QueriedAt         time.Time     `json:"queriedAt"`
-					Experience        float64       `json:"experience"`
-					Solo              statsResponse `json:"solo"`
-					Doubles           statsResponse `json:"doubles"`
-					Threes            statsResponse `json:"threes"`
-					Fours             statsResponse `json:"fours"`
-					Overall           statsResponse `json:"overall"`
+					UUID       string        `json:"uuid"`
+					QueriedAt  time.Time     `json:"queriedAt"`
+					Experience float64       `json:"experience"`
+					Solo       statsResponse `json:"solo"`
+					Doubles    statsResponse `json:"doubles"`
+					Threes     statsResponse `json:"threes"`
+					Fours      statsResponse `json:"fours"`
+					Overall    statsResponse `json:"overall"`
 				}
 
-				pitStatsToResponse := func(stats storage.StatsPIT) statsResponse {
+				pitStatsToResponse := func(stats domain.GamemodeStatsPIT) statsResponse {
 					return statsResponse{
 						Winstreak:   stats.Winstreak,
 						GamesPlayed: stats.GamesPlayed,
@@ -211,16 +210,14 @@ func main() {
 
 				for _, data := range history {
 					responseData = append(responseData, playerDataResponse{
-						ID:                data.ID,
-						DataFormatVersion: data.DataFormatVersion,
-						UUID:              data.UUID,
-						QueriedAt:         data.QueriedAt,
-						Experience:        data.Experience,
-						Solo:              pitStatsToResponse(data.Solo),
-						Doubles:           pitStatsToResponse(data.Doubles),
-						Threes:            pitStatsToResponse(data.Threes),
-						Fours:             pitStatsToResponse(data.Fours),
-						Overall:           pitStatsToResponse(data.Overall),
+						UUID:       data.UUID,
+						QueriedAt:  data.QueriedAt,
+						Experience: data.Experience,
+						Solo:       pitStatsToResponse(data.Solo),
+						Doubles:    pitStatsToResponse(data.Doubles),
+						Threes:     pitStatsToResponse(data.Threes),
+						Fours:      pitStatsToResponse(data.Fours),
+						Overall:    pitStatsToResponse(data.Overall),
 					})
 				}
 
@@ -313,7 +310,7 @@ func main() {
 					Consecutive bool               `json:"consecutive"`
 				}
 
-				pitStatsToResponse := func(stats storage.StatsPIT) statsResponse {
+				pitStatsToResponse := func(stats domain.GamemodeStatsPIT) statsResponse {
 					return statsResponse{
 						Winstreak:   stats.Winstreak,
 						GamesPlayed: stats.GamesPlayed,
@@ -328,18 +325,16 @@ func main() {
 					}
 				}
 
-				playerDataToResponse := func(data storage.PlayerDataPIT) playerDataResponse {
+				playerDataToResponse := func(data domain.PlayerPIT) playerDataResponse {
 					return playerDataResponse{
-						ID:                data.ID,
-						DataFormatVersion: data.DataFormatVersion,
-						UUID:              data.UUID,
-						QueriedAt:         data.QueriedAt,
-						Experience:        data.Experience,
-						Solo:              pitStatsToResponse(data.Solo),
-						Doubles:           pitStatsToResponse(data.Doubles),
-						Threes:            pitStatsToResponse(data.Threes),
-						Fours:             pitStatsToResponse(data.Fours),
-						Overall:           pitStatsToResponse(data.Overall),
+						UUID:       data.UUID,
+						QueriedAt:  data.QueriedAt,
+						Experience: data.Experience,
+						Solo:       pitStatsToResponse(data.Solo),
+						Doubles:    pitStatsToResponse(data.Doubles),
+						Threes:     pitStatsToResponse(data.Threes),
+						Fours:      pitStatsToResponse(data.Fours),
+						Overall:    pitStatsToResponse(data.Overall),
 					}
 				}
 
