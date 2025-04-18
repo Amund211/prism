@@ -624,7 +624,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			return playerData
 		}
 
-		requireEqualSessions := func(t *testing.T, expected, actual []Session) {
+		requireEqualSessions := func(t *testing.T, expected, actual []domain.Session) {
 			t.Helper()
 
 			type normalizedPlayerPIT struct {
@@ -721,7 +721,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
 
-			expectedSessions := []Session{
+			expectedSessions := []domain.Session{
 				{
 					Start:       *playerData[5],
 					End:         *playerData[16],
@@ -770,7 +770,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
 
-			expectedSessions := []Session{
+			expectedSessions := []domain.Session{
 				{
 					Start:       *playerData[1],
 					End:         *playerData[2],
@@ -797,7 +797,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
 
-			expectedSessions := []Session{
+			expectedSessions := []domain.Session{
 				{
 					Start:       *playerData[0],
 					End:         *playerData[1],
@@ -826,7 +826,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
 
-			expectedSessions := []Session{
+			expectedSessions := []domain.Session{
 				{
 					Start:       *playerData[1],
 					End:         *playerData[2],
@@ -878,7 +878,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
 
-			expectedSessions := []Session{
+			expectedSessions := []domain.Session{
 				{
 					Start:       *playerData[1],
 					End:         *playerData[3],
@@ -912,7 +912,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
 
-			expectedSessions := []Session{
+			expectedSessions := []domain.Session{
 				{
 					Start:       *playerData[0],
 					End:         *playerData[1],
@@ -951,7 +951,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
 
-			expectedSessions := []Session{}
+			expectedSessions := []domain.Session{}
 			requireEqualSessions(t, expectedSessions, sessions)
 		})
 
@@ -974,7 +974,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
 
-			expectedSessions := []Session{
+			expectedSessions := []domain.Session{
 				{
 					Start:       *playerData[0],
 					End:         *playerData[1],
@@ -1008,7 +1008,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
 
-			expectedSessions := []Session{
+			expectedSessions := []domain.Session{
 				{
 					Start:       *playerData[0],
 					End:         *playerData[1],
@@ -1057,7 +1057,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
 
-			expectedSessions := []Session{
+			expectedSessions := []domain.Session{
 				{
 					Start:       *playerData[0],
 					End:         *playerData[1],
@@ -1093,7 +1093,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
 
-			expectedSessions := []Session{
+			expectedSessions := []domain.Session{
 				{
 					Start:       *playerData[0],
 					End:         *playerData[2],
@@ -1122,7 +1122,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
 
-			expectedSessions := []Session{
+			expectedSessions := []domain.Session{
 				{
 					Start:       *playerData[0],
 					End:         *playerData[5],
@@ -1151,7 +1151,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
 
-			expectedSessions := []Session{
+			expectedSessions := []domain.Session{
 				{
 					Start:       *playerData[0],
 					End:         *playerData[5],

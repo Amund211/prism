@@ -10,11 +10,5 @@ import (
 type StatsPersistor interface {
 	StoreStats(ctx context.Context, player *domain.PlayerPIT) error
 	GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error)
-	GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]Session, error)
-}
-
-type Session struct {
-	Start       domain.PlayerPIT
-	End         domain.PlayerPIT
-	Consecutive bool
+	GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]domain.Session, error)
 }

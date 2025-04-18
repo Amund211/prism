@@ -375,7 +375,7 @@ func (p *PostgresStatsPersistor) GetHistory(ctx context.Context, playerUUID stri
 }
 
 // NOTE: All domain.PlayerPIT entries must for the same player
-func computeSessions(stats []playerPITWithID, start, end time.Time) []Session {
+func computeSessions(stats []playerPITWithID, start, end time.Time) []domain.Session {
 	slices.SortStableFunc(stats, func(a, b playerPITWithID) int {
 		if a.QueriedAt.Before(b.QueriedAt) {
 			return -1
@@ -386,7 +386,7 @@ func computeSessions(stats []playerPITWithID, start, end time.Time) []Session {
 		return 0
 	})
 
-	sessions := []Session{}
+	sessions := []domain.Session{}
 
 	getProgressStats := func(stat playerPITWithID) (int, float64) {
 		return stat.Overall.GamesPlayed, stat.Experience
@@ -439,7 +439,11 @@ func computeSessions(stats []playerPITWithID, start, end time.Time) []Session {
 		// If more than 60 minutes since last activity, end session
 		if stat.QueriedAt.Sub(lastEventfulEntry.QueriedAt) > 60*time.Minute {
 			if includeSession(sessionStart, lastEventfulEntry) {
-				sessions = append(sessions, Session{sessionStart.PlayerPIT, lastEventfulEntry.PlayerPIT, consecutive})
+				sessions = append(sessions, domain.Session{
+					Start:       sessionStart.PlayerPIT,
+					End:         lastEventfulEntry.PlayerPIT,
+					Consecutive: consecutive,
+				})
 			}
 			// Jump back to right after the last eventful entry (loop adds one)
 			// This makes sure we include any non-eventful trailing entries, as they could
@@ -470,13 +474,17 @@ func computeSessions(stats []playerPITWithID, start, end time.Time) []Session {
 	lastEventfulEntry := stats[lastEventfulIndex]
 
 	if includeSession(sessionStart, lastEventfulEntry) {
-		sessions = append(sessions, Session{sessionStart.PlayerPIT, lastEventfulEntry.PlayerPIT, consecutive})
+		sessions = append(sessions, domain.Session{
+			Start:       sessionStart.PlayerPIT,
+			End:         lastEventfulEntry.PlayerPIT,
+			Consecutive: consecutive,
+		})
 	}
 
 	return sessions
 }
 
-func (p *PostgresStatsPersistor) GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]Session, error) {
+func (p *PostgresStatsPersistor) GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]domain.Session, error) {
 	timespan := end.Sub(start)
 	if timespan <= 0 {
 		// TODO: Use known error
@@ -558,8 +566,8 @@ func (p *StubPersistor) GetHistory(ctx context.Context, playerUUID string, start
 	return []domain.PlayerPIT{}, nil
 }
 
-func (p *StubPersistor) GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]Session, error) {
-	return []Session{}, nil
+func (p *StubPersistor) GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]domain.Session, error) {
+	return []domain.Session{}, nil
 }
 
 func NewStubPersistor() *StubPersistor {
