@@ -17,20 +17,32 @@ import (
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
-func newPlayerPIT(uuid string, value int, queriedAt time.Time) *domain.PlayerPIT {
-	stats := domain.GamemodeStatsPIT{
-		Kills: value,
+type playerBuilder struct {
+	player *domain.PlayerPIT
+}
+
+func (pb *playerBuilder) WithGamesPlayed(gamesPlayed int) *playerBuilder {
+	pb.player.Overall.GamesPlayed = gamesPlayed
+	return pb
+}
+
+func (pb *playerBuilder) WithExperience(exp float64) *playerBuilder {
+	pb.player.Experience = exp
+	return pb
+}
+
+func (pb *playerBuilder) Build() *domain.PlayerPIT {
+	return pb.player
+}
+
+func newPlayerBuilder(uuid string, queriedAt time.Time) *playerBuilder {
+	player := &domain.PlayerPIT{
+		QueriedAt:  queriedAt,
+		UUID:       uuid,
+		Experience: 500,
 	}
-	return &domain.PlayerPIT{
-		QueriedAt: queriedAt,
-
-		UUID: uuid,
-
-		Solo:    stats,
-		Doubles: stats,
-		Threes:  stats,
-		Fours:   stats,
-		Overall: stats,
+	return &playerBuilder{
+		player: player,
 	}
 }
 
@@ -118,7 +130,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			t.Parallel()
 
 			uuid := newUUID(t)
-			player := newPlayerPIT(uuid, 0, now)
+			player := newPlayerBuilder(uuid, now).WithGamesPlayed(0).Build()
 
 			requireNotStored(t, player)
 			err := p.StoreStats(ctx, player)
@@ -132,8 +144,8 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			t1 := now
 			t2 := t1.Add(3 * time.Minute)
 
-			player1 := newPlayerPIT(player_uuid, 1, t1)
-			player2 := newPlayerPIT(player_uuid, 2, t2)
+			player1 := newPlayerBuilder(player_uuid, t1).WithGamesPlayed(1).Build()
+			player2 := newPlayerBuilder(player_uuid, t2).WithGamesPlayed(2).Build()
 
 			requireNotStored(t, player1)
 			err := p.StoreStats(ctx, player1)
@@ -146,9 +158,9 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			requireStoredOnce(t, player2)
 
 			// We never stored these combinations
-			player1t2 := newPlayerPIT(player_uuid, 1, t2)
+			player1t2 := newPlayerBuilder(player_uuid, t2).WithGamesPlayed(1).Build()
 			requireNotStored(t, player1t2)
-			player2t1 := newPlayerPIT(player_uuid, 2, t1)
+			player2t1 := newPlayerBuilder(player_uuid, t1).WithGamesPlayed(2).Build()
 			requireNotStored(t, player2t1)
 		})
 
@@ -157,7 +169,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			player_uuid := newUUID(t)
 			t1 := now
 
-			player1 := newPlayerPIT(player_uuid, 1, t1)
+			player1 := newPlayerBuilder(player_uuid, t1).WithGamesPlayed(1).Build()
 
 			requireNotStored(t, player1)
 			err := p.StoreStats(ctx, player1)
@@ -166,7 +178,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			for i := 0; i < 60; i++ {
 				t2 := t1.Add(time.Duration(i) * time.Second)
-				player2 := newPlayerPIT(player_uuid, 2, t2)
+				player2 := newPlayerBuilder(player_uuid, t2).WithGamesPlayed(2).Build()
 
 				requireNotStored(t, player2)
 				err = p.StoreStats(ctx, player2)
@@ -180,7 +192,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			player_uuid := newUUID(t)
 
 			t1 := now
-			player1 := newPlayerPIT(player_uuid, 1, t1)
+			player1 := newPlayerBuilder(player_uuid, t1).WithGamesPlayed(1).Build()
 
 			requireNotStored(t, player1)
 			err := p.StoreStats(ctx, player1)
@@ -189,7 +201,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			for i := 1; i < 60; i++ {
 				t2 := t1.Add(time.Duration(i) * time.Minute)
-				player2 := newPlayerPIT(player_uuid, 1, t2)
+				player2 := newPlayerBuilder(player_uuid, t2).WithGamesPlayed(1).Build()
 				requireNotStored(t, player2)
 				err = p.StoreStats(ctx, player2)
 				require.NoError(t, err)
@@ -202,7 +214,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			player_uuid := newUUID(t)
 
 			t1 := now
-			player1 := newPlayerPIT(player_uuid, 1, t1)
+			player1 := newPlayerBuilder(player_uuid, t1).WithGamesPlayed(1).Build()
 
 			requireNotStored(t, player1)
 			err := p.StoreStats(ctx, player1)
@@ -211,7 +223,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			// Consecutive duplicate data is more than an hour old -> store this one
 			t2 := t1.Add(1 * time.Hour)
-			player2 := newPlayerPIT(player_uuid, 1, t2)
+			player2 := newPlayerBuilder(player_uuid, t2).WithGamesPlayed(1).Build()
 
 			err = p.StoreStats(ctx, player2)
 			require.NoError(t, err)
@@ -223,7 +235,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			player_uuid := newUUID(t)
 
 			t1 := now
-			player1 := newPlayerPIT(player_uuid, 1, t1)
+			player1 := newPlayerBuilder(player_uuid, t1).WithGamesPlayed(1).Build()
 
 			requireNotStored(t, player1)
 			err := p.StoreStats(ctx, player1)
@@ -231,7 +243,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			requireStoredOnce(t, player1)
 
 			t2 := t1.Add(2 * time.Minute)
-			player2 := newPlayerPIT(player_uuid, 2, t2)
+			player2 := newPlayerBuilder(player_uuid, t2).WithGamesPlayed(2).Build()
 
 			requireNotStored(t, player2)
 			err = p.StoreStats(ctx, player2)
@@ -240,7 +252,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			// Old duplicate data is not consecutive any more -> store it
 			t3 := t2.Add(2 * time.Minute)
-			player3 := newPlayerPIT(player_uuid, 1, t3)
+			player3 := newPlayerBuilder(player_uuid, t3).WithGamesPlayed(1).Build()
 			requireNotStored(t, player3)
 			err = p.StoreStats(ctx, player3)
 			require.NoError(t, err)
@@ -275,7 +287,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			require.NoError(t, err)
 
 			t2 := t1.Add(2 * time.Minute)
-			player2 := newPlayerPIT(player_uuid, 1, t2)
+			player2 := newPlayerBuilder(player_uuid, t2).WithGamesPlayed(1).Build()
 			err = p.StoreStats(ctx, player2)
 			require.NoError(t, err)
 			requireStoredOnce(t, player2)
@@ -286,8 +298,8 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			t1 := now
 			uuid1 := newUUID(t)
 			uuid2 := newUUID(t)
-			player1 := newPlayerPIT(uuid1, 3, t1)
-			player2 := newPlayerPIT(uuid2, 3, t1)
+			player1 := newPlayerBuilder(uuid1, t1).WithGamesPlayed(3).Build()
+			player2 := newPlayerBuilder(uuid2, t1).WithGamesPlayed(3).Build()
 
 			requireNotStored(t, player1)
 			err := p.StoreStats(ctx, player1)
@@ -323,7 +335,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 				for i := 0; i < limit; i++ {
 					t1 := now.Add(time.Duration(i) * time.Minute)
 					uuid := newUUID(t)
-					player := newPlayerPIT(uuid, i, t1)
+					player := newPlayerBuilder(uuid, t1).WithGamesPlayed(i).Build()
 
 					err := p.StoreStats(ctx, player)
 					require.NoError(t, err)
@@ -334,7 +346,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 				t.Parallel()
 				uuid := newUUID(t)
 				t1 := now
-				player := newPlayerPIT(uuid, 1, t1)
+				player := newPlayerBuilder(uuid, t1).WithGamesPlayed(1).Build()
 
 				for i := 0; i < limit; i++ {
 					err := p.StoreStats(ctx, player)
@@ -413,7 +425,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			for i := 0; i < count+1; i++ {
 				players = append(
 					players,
-					newPlayerPIT(player_uuid, i, janFirst21.Add(time.Duration(i)*interval)),
+					newPlayerBuilder(player_uuid, janFirst21.Add(time.Duration(i)*interval)).WithGamesPlayed(i).Build(),
 				)
 			}
 
@@ -445,31 +457,31 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			players := make([]*domain.PlayerPIT, 13)
 			// Before start
-			players[0] = newPlayerPIT(player_uuid, 0, start.Add(0*time.Hour).Add(-1*time.Minute))
+			players[0] = newPlayerBuilder(player_uuid, start.Add(0*time.Hour).Add(-1*time.Minute)).WithGamesPlayed(0).Build()
 
 			// First 30 min interval
-			players[1] = newPlayerPIT(player_uuid, 1, start.Add(0*time.Hour).Add(7*time.Minute))
-			players[2] = newPlayerPIT(player_uuid, 2, start.Add(0*time.Hour).Add(17*time.Minute))
+			players[1] = newPlayerBuilder(player_uuid, start.Add(0*time.Hour).Add(7*time.Minute)).WithGamesPlayed(1).Build()
+			players[2] = newPlayerBuilder(player_uuid, start.Add(0*time.Hour).Add(17*time.Minute)).WithGamesPlayed(2).Build()
 
 			// Second 30 min interval
-			players[3] = newPlayerPIT(player_uuid, 3, start.Add(0*time.Hour).Add(37*time.Minute))
+			players[3] = newPlayerBuilder(player_uuid, start.Add(0*time.Hour).Add(37*time.Minute)).WithGamesPlayed(3).Build()
 
 			// Sixth 30 min interval
-			players[4] = newPlayerPIT(player_uuid, 4, start.Add(2*time.Hour).Add(40*time.Minute))
-			players[5] = newPlayerPIT(player_uuid, 5, start.Add(2*time.Hour).Add(45*time.Minute))
-			players[6] = newPlayerPIT(player_uuid, 6, start.Add(2*time.Hour).Add(50*time.Minute))
-			players[7] = newPlayerPIT(player_uuid, 7, start.Add(2*time.Hour).Add(55*time.Minute))
+			players[4] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(40*time.Minute)).WithGamesPlayed(4).Build()
+			players[5] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(45*time.Minute)).WithGamesPlayed(5).Build()
+			players[6] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(50*time.Minute)).WithGamesPlayed(6).Build()
+			players[7] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(55*time.Minute)).WithGamesPlayed(7).Build()
 
 			// Seventh 30 min interval
-			players[8] = newPlayerPIT(player_uuid, 8, start.Add(3*time.Hour).Add(1*time.Minute))
+			players[8] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(1*time.Minute)).WithGamesPlayed(8).Build()
 
 			// Eighth 30 min interval
-			players[9] = newPlayerPIT(player_uuid, 9, start.Add(3*time.Hour).Add(47*time.Minute))
-			players[10] = newPlayerPIT(player_uuid, 10, start.Add(3*time.Hour).Add(59*time.Minute))
+			players[9] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(47*time.Minute)).WithGamesPlayed(9).Build()
+			players[10] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(59*time.Minute)).WithGamesPlayed(0).Build()
 
 			// After end
-			players[11] = newPlayerPIT(player_uuid, 11, start.Add(4*time.Hour).Add(1*time.Minute))
-			players[12] = newPlayerPIT(player_uuid, 12, start.Add(4000*time.Hour).Add(1*time.Minute))
+			players[11] = newPlayerBuilder(player_uuid, start.Add(4*time.Hour).Add(1*time.Minute)).WithGamesPlayed(1).Build()
+			players[12] = newPlayerBuilder(player_uuid, start.Add(4000*time.Hour).Add(1*time.Minute)).WithGamesPlayed(2).Build()
 
 			setStoredStats(t, p, players...)
 
@@ -531,7 +543,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 							t.Parallel()
 							player_uuid := newUUID(t)
 							players := []*domain.PlayerPIT{
-								newPlayerPIT(player_uuid, 1, queriedAt),
+								newPlayerBuilder(player_uuid, queriedAt).WithGamesPlayed(1).Build(),
 							}
 
 							storeStats(t, p, players...)
@@ -565,8 +577,8 @@ func TestPostgresStatsPersistor(t *testing.T) {
 					t.Run(fmt.Sprintf("limit %d", limit), func(t *testing.T) {
 						player_uuid := newUUID(t)
 						players := []*domain.PlayerPIT{
-							newPlayerPIT(player_uuid, 1, start.Add(time.Minute)),
-							newPlayerPIT(player_uuid, 10, end.Add(-1*time.Minute)),
+							newPlayerBuilder(player_uuid, start.Add(time.Minute)).WithGamesPlayed(1).Build(),
+							newPlayerBuilder(player_uuid, end.Add(-1*time.Minute)).WithGamesPlayed(0).Build(),
 						}
 
 						storeStats(t, p, players...)
@@ -610,17 +622,6 @@ func TestPostgresStatsPersistor(t *testing.T) {
 				playerData[i] = &history[0]
 			}
 			return playerData
-		}
-
-		newPlayer := func(uuid string, gamesPlayed int, exp float64, queriedAt time.Time) *domain.PlayerPIT {
-			return &domain.PlayerPIT{
-				QueriedAt:  queriedAt,
-				UUID:       uuid,
-				Experience: exp,
-				Overall: domain.GamemodeStatsPIT{
-					GamesPlayed: gamesPlayed,
-				},
-			}
 		}
 
 		requireEqualSessions := func(t *testing.T, expected, actual []Session) {
@@ -680,40 +681,40 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			players := make([]*domain.PlayerPIT, 26)
 			// Ended session befor the start
-			players[0] = newPlayer(player_uuid, 10, 1_000, start.Add(-8*time.Hour).Add(-1*time.Minute))
-			players[1] = newPlayer(player_uuid, 11, 1_300, start.Add(-8*time.Hour).Add(7*time.Minute))
-			players[2] = newPlayer(player_uuid, 12, 1_600, start.Add(-8*time.Hour).Add(17*time.Minute))
+			players[0] = newPlayerBuilder(player_uuid, start.Add(-8*time.Hour).Add(-1*time.Minute)).WithGamesPlayed(10).WithExperience(1_000).Build()
+			players[1] = newPlayerBuilder(player_uuid, start.Add(-8*time.Hour).Add(7*time.Minute)).WithGamesPlayed(11).WithExperience(1_300).Build()
+			players[2] = newPlayerBuilder(player_uuid, start.Add(-8*time.Hour).Add(17*time.Minute)).WithGamesPlayed(12).WithExperience(1_600).Build()
 
 			// Session starting just before the start
 			// Some inactivity at the start of the session
-			players[3] = newPlayer(player_uuid, 12, 1_600, start.Add(0*time.Hour).Add(-37*time.Minute))
-			players[4] = newPlayer(player_uuid, 12, 1_600, start.Add(0*time.Hour).Add(-27*time.Minute))
-			players[5] = newPlayer(player_uuid, 12, 1_600, start.Add(0*time.Hour).Add(-17*time.Minute))
-			players[6] = newPlayer(player_uuid, 13, 1_900, start.Add(0*time.Hour).Add(-12*time.Minute))
-			players[7] = newPlayer(player_uuid, 14, 2_200, start.Add(0*time.Hour).Add(2*time.Minute))
+			players[3] = newPlayerBuilder(player_uuid, start.Add(0*time.Hour).Add(-37*time.Minute)).WithGamesPlayed(12).WithExperience(1_600).Build()
+			players[4] = newPlayerBuilder(player_uuid, start.Add(0*time.Hour).Add(-27*time.Minute)).WithGamesPlayed(12).WithExperience(1_600).Build()
+			players[5] = newPlayerBuilder(player_uuid, start.Add(0*time.Hour).Add(-17*time.Minute)).WithGamesPlayed(12).WithExperience(1_600).Build()
+			players[6] = newPlayerBuilder(player_uuid, start.Add(0*time.Hour).Add(-12*time.Minute)).WithGamesPlayed(13).WithExperience(1_900).Build()
+			players[7] = newPlayerBuilder(player_uuid, start.Add(0*time.Hour).Add(2*time.Minute)).WithGamesPlayed(14).WithExperience(2_200).Build()
 			// One hour space between entries
-			players[8] = newPlayer(player_uuid, 15, 7_200, start.Add(0*time.Hour).Add(38*time.Minute))
-			players[9] = newPlayer(player_uuid, 16, 7_900, start.Add(1*time.Hour).Add(38*time.Minute))
+			players[8] = newPlayerBuilder(player_uuid, start.Add(0*time.Hour).Add(38*time.Minute)).WithGamesPlayed(15).WithExperience(7_200).Build()
+			players[9] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(38*time.Minute)).WithGamesPlayed(16).WithExperience(7_900).Build()
 			// One hour space between stat change, with some inactivity events in between
-			players[10] = newPlayer(player_uuid, 17, 8_900, start.Add(1*time.Hour).Add(45*time.Minute))
-			players[11] = newPlayer(player_uuid, 17, 8_900, start.Add(1*time.Hour).Add(55*time.Minute))
-			players[12] = newPlayer(player_uuid, 17, 8_900, start.Add(2*time.Hour).Add(5*time.Minute))
-			players[13] = newPlayer(player_uuid, 17, 8_900, start.Add(2*time.Hour).Add(15*time.Minute))
-			players[14] = newPlayer(player_uuid, 17, 8_900, start.Add(2*time.Hour).Add(25*time.Minute))
-			players[15] = newPlayer(player_uuid, 17, 8_900, start.Add(2*time.Hour).Add(35*time.Minute))
-			players[16] = newPlayer(player_uuid, 18, 9_500, start.Add(2*time.Hour).Add(45*time.Minute))
+			players[10] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(45*time.Minute)).WithGamesPlayed(17).WithExperience(8_900).Build()
+			players[11] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(55*time.Minute)).WithGamesPlayed(17).WithExperience(8_900).Build()
+			players[12] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(5*time.Minute)).WithGamesPlayed(17).WithExperience(8_900).Build()
+			players[13] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(15*time.Minute)).WithGamesPlayed(17).WithExperience(8_900).Build()
+			players[14] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(25*time.Minute)).WithGamesPlayed(17).WithExperience(8_900).Build()
+			players[15] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(35*time.Minute)).WithGamesPlayed(17).WithExperience(8_900).Build()
+			players[16] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(45*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
 			// Some inactivity at the end
-			players[17] = newPlayer(player_uuid, 18, 9_500, start.Add(2*time.Hour).Add(55*time.Minute))
-			players[18] = newPlayer(player_uuid, 18, 9_500, start.Add(3*time.Hour).Add(5*time.Minute))
-			players[19] = newPlayer(player_uuid, 18, 9_500, start.Add(3*time.Hour).Add(15*time.Minute))
-			players[20] = newPlayer(player_uuid, 18, 9_500, start.Add(3*time.Hour).Add(25*time.Minute))
-			players[21] = newPlayer(player_uuid, 18, 9_500, start.Add(3*time.Hour).Add(35*time.Minute))
-			players[22] = newPlayer(player_uuid, 18, 9_500, start.Add(3*time.Hour).Add(45*time.Minute))
-			players[23] = newPlayer(player_uuid, 18, 9_500, start.Add(3*time.Hour).Add(55*time.Minute))
+			players[17] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(55*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
+			players[18] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(5*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
+			players[19] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(15*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
+			players[20] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(25*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
+			players[21] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(35*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
+			players[22] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(45*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
+			players[23] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(55*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
 
 			// New activity 71 minutues after the last entry -> new session
-			players[24] = newPlayer(player_uuid, 18, 9_500, start.Add(3*time.Hour).Add(56*time.Minute))
-			players[25] = newPlayer(player_uuid, 19, 10_800, start.Add(4*time.Hour).Add(16*time.Minute))
+			players[24] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(56*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
+			players[25] = newPlayerBuilder(player_uuid, start.Add(4*time.Hour).Add(16*time.Minute)).WithGamesPlayed(19).WithExperience(10_800).Build()
 
 			playerData := storeStats(t, p, players...)
 
@@ -742,7 +743,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
 
 			players := make([]*domain.PlayerPIT, 1)
-			players[0] = newPlayer(player_uuid, 11, 1_300, start.Add(6*time.Hour).Add(7*time.Minute))
+			players[0] = newPlayerBuilder(player_uuid, start.Add(6*time.Hour).Add(7*time.Minute)).WithGamesPlayed(11).WithExperience(1_300).Build()
 
 			_ = storeStats(t, p, players...)
 
@@ -759,10 +760,10 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
 
 			players := make([]*domain.PlayerPIT, 3)
-			players[0] = newPlayer(player_uuid, 9, 1_000, start.Add(6*time.Hour).Add(7*time.Minute))
+			players[0] = newPlayerBuilder(player_uuid, start.Add(6*time.Hour).Add(7*time.Minute)).WithGamesPlayed(9).WithExperience(1_000).Build()
 
-			players[1] = newPlayer(player_uuid, 10, 1_100, start.Add(8*time.Hour).Add(-1*time.Minute))
-			players[2] = newPlayer(player_uuid, 11, 1_300, start.Add(8*time.Hour).Add(7*time.Minute))
+			players[1] = newPlayerBuilder(player_uuid, start.Add(8*time.Hour).Add(-1*time.Minute)).WithGamesPlayed(10).WithExperience(1_100).Build()
+			players[2] = newPlayerBuilder(player_uuid, start.Add(8*time.Hour).Add(7*time.Minute)).WithGamesPlayed(11).WithExperience(1_300).Build()
 
 			playerData := storeStats(t, p, players...)
 
@@ -786,10 +787,10 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
 
 			players := make([]*domain.PlayerPIT, 3)
-			players[0] = newPlayer(player_uuid, 10, 1_000, start.Add(6*time.Hour).Add(-1*time.Minute))
-			players[1] = newPlayer(player_uuid, 11, 1_300, start.Add(6*time.Hour).Add(7*time.Minute))
+			players[0] = newPlayerBuilder(player_uuid, start.Add(6*time.Hour).Add(-1*time.Minute)).WithGamesPlayed(10).WithExperience(1_000).Build()
+			players[1] = newPlayerBuilder(player_uuid, start.Add(6*time.Hour).Add(7*time.Minute)).WithGamesPlayed(11).WithExperience(1_300).Build()
 
-			players[2] = newPlayer(player_uuid, 12, 1_600, start.Add(8*time.Hour).Add(7*time.Minute))
+			players[2] = newPlayerBuilder(player_uuid, start.Add(8*time.Hour).Add(7*time.Minute)).WithGamesPlayed(12).WithExperience(1_600).Build()
 
 			playerData := storeStats(t, p, players...)
 
@@ -813,12 +814,12 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*2))
 
 			players := make([]*domain.PlayerPIT, 4)
-			players[0] = newPlayer(player_uuid, 9, 1_000, start.Add(5*time.Hour).Add(7*time.Minute))
+			players[0] = newPlayerBuilder(player_uuid, start.Add(5*time.Hour).Add(7*time.Minute)).WithGamesPlayed(9).WithExperience(1_000).Build()
 
-			players[1] = newPlayer(player_uuid, 10, 1_000, start.Add(8*time.Hour).Add(-1*time.Minute))
-			players[2] = newPlayer(player_uuid, 11, 1_300, start.Add(8*time.Hour).Add(7*time.Minute))
+			players[1] = newPlayerBuilder(player_uuid, start.Add(8*time.Hour).Add(-1*time.Minute)).WithGamesPlayed(10).WithExperience(1_000).Build()
+			players[2] = newPlayerBuilder(player_uuid, start.Add(8*time.Hour).Add(7*time.Minute)).WithGamesPlayed(11).WithExperience(1_300).Build()
 
-			players[3] = newPlayer(player_uuid, 12, 1_600, start.Add(10*time.Hour).Add(7*time.Minute))
+			players[3] = newPlayerBuilder(player_uuid, start.Add(10*time.Hour).Add(7*time.Minute)).WithGamesPlayed(12).WithExperience(1_600).Build()
 
 			playerData := storeStats(t, p, players...)
 
@@ -858,19 +859,19 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*2))
 
 			players := make([]*domain.PlayerPIT, 13)
-			players[0] = newPlayer(player_uuid, 16, 9_200, start.Add(2*time.Hour).Add(30*time.Minute))
-			players[1] = newPlayer(player_uuid, 16, 9_200, start.Add(2*time.Hour).Add(35*time.Minute))
-			players[2] = newPlayer(player_uuid, 17, 9_400, start.Add(2*time.Hour).Add(45*time.Minute))
-			players[3] = newPlayer(player_uuid, 18, 9_500, start.Add(2*time.Hour).Add(55*time.Minute))
-			players[4] = newPlayer(player_uuid, 18, 9_500, start.Add(3*time.Hour).Add(5*time.Minute))
-			players[5] = newPlayer(player_uuid, 18, 9_500, start.Add(3*time.Hour).Add(15*time.Minute))
-			players[6] = newPlayer(player_uuid, 18, 9_500, start.Add(3*time.Hour).Add(25*time.Minute))
-			players[7] = newPlayer(player_uuid, 18, 9_500, start.Add(3*time.Hour).Add(35*time.Minute))
-			players[8] = newPlayer(player_uuid, 18, 9_500, start.Add(3*time.Hour).Add(45*time.Minute))
-			players[9] = newPlayer(player_uuid, 18, 9_500, start.Add(3*time.Hour).Add(55*time.Minute))
-			players[10] = newPlayer(player_uuid, 18, 9_500, start.Add(3*time.Hour).Add(56*time.Minute))
-			players[11] = newPlayer(player_uuid, 19, 10_800, start.Add(4*time.Hour).Add(16*time.Minute))
-			players[12] = newPlayer(player_uuid, 19, 10_800, start.Add(4*time.Hour).Add(20*time.Minute))
+			players[0] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(30*time.Minute)).WithGamesPlayed(16).WithExperience(9_200).Build()
+			players[1] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(35*time.Minute)).WithGamesPlayed(16).WithExperience(9_200).Build()
+			players[2] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(45*time.Minute)).WithGamesPlayed(17).WithExperience(9_400).Build()
+			players[3] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(55*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
+			players[4] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(5*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
+			players[5] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(15*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
+			players[6] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(25*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
+			players[7] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(35*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
+			players[8] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(45*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
+			players[9] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(55*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
+			players[10] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(56*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
+			players[11] = newPlayerBuilder(player_uuid, start.Add(4*time.Hour).Add(16*time.Minute)).WithGamesPlayed(19).WithExperience(10_800).Build()
+			players[12] = newPlayerBuilder(player_uuid, start.Add(4*time.Hour).Add(20*time.Minute)).WithGamesPlayed(19).WithExperience(10_800).Build()
 
 			playerData := storeStats(t, p, players...)
 
@@ -900,11 +901,11 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			players := make([]*domain.PlayerPIT, 4)
 			// Session 1
-			players[0] = newPlayer(player_uuid, 16, 9_200, start.Add(1*time.Hour).Add(5*time.Minute))
-			players[1] = newPlayer(player_uuid, 17, 9_400, start.Add(1*time.Hour).Add(30*time.Minute))
+			players[0] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(5*time.Minute)).WithGamesPlayed(16).WithExperience(9_200).Build()
+			players[1] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(30*time.Minute)).WithGamesPlayed(17).WithExperience(9_400).Build()
 			// Session 2
-			players[2] = newPlayer(player_uuid, 17, 9_400, start.Add(1*time.Hour).Add(45*time.Minute))
-			players[3] = newPlayer(player_uuid, 18, 10_800, start.Add(2*time.Hour).Add(31*time.Minute))
+			players[2] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(45*time.Minute)).WithGamesPlayed(17).WithExperience(9_400).Build()
+			players[3] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(31*time.Minute)).WithGamesPlayed(18).WithExperience(10_800).Build()
 
 			playerData := storeStats(t, p, players...)
 
@@ -933,17 +934,17 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*2))
 
 			players := make([]*domain.PlayerPIT, 8)
-			players[0] = newPlayer(player_uuid, 16, 9_200, start.Add(-25*time.Hour).Add(5*time.Minute))
-			players[1] = newPlayer(player_uuid, 17, 9_400, start.Add(-25*time.Hour).Add(30*time.Minute))
+			players[0] = newPlayerBuilder(player_uuid, start.Add(-25*time.Hour).Add(5*time.Minute)).WithGamesPlayed(16).WithExperience(9_200).Build()
+			players[1] = newPlayerBuilder(player_uuid, start.Add(-25*time.Hour).Add(30*time.Minute)).WithGamesPlayed(17).WithExperience(9_400).Build()
 
-			players[2] = newPlayer(player_uuid, 17, 9_400, start.Add(-16*time.Hour).Add(5*time.Minute))
-			players[3] = newPlayer(player_uuid, 18, 9_900, start.Add(-16*time.Hour).Add(30*time.Minute))
+			players[2] = newPlayerBuilder(player_uuid, start.Add(-16*time.Hour).Add(5*time.Minute)).WithGamesPlayed(17).WithExperience(9_400).Build()
+			players[3] = newPlayerBuilder(player_uuid, start.Add(-16*time.Hour).Add(30*time.Minute)).WithGamesPlayed(18).WithExperience(9_900).Build()
 
-			players[4] = newPlayer(player_uuid, 18, 9_900, start.Add(25*time.Hour).Add(5*time.Minute))
-			players[5] = newPlayer(player_uuid, 19, 10_900, start.Add(25*time.Hour).Add(30*time.Minute))
+			players[4] = newPlayerBuilder(player_uuid, start.Add(25*time.Hour).Add(5*time.Minute)).WithGamesPlayed(18).WithExperience(9_900).Build()
+			players[5] = newPlayerBuilder(player_uuid, start.Add(25*time.Hour).Add(30*time.Minute)).WithGamesPlayed(19).WithExperience(10_900).Build()
 
-			players[6] = newPlayer(player_uuid, 19, 10_900, start.Add(45*time.Hour).Add(5*time.Minute))
-			players[7] = newPlayer(player_uuid, 20, 11_900, start.Add(45*time.Hour).Add(30*time.Minute))
+			players[6] = newPlayerBuilder(player_uuid, start.Add(45*time.Hour).Add(5*time.Minute)).WithGamesPlayed(19).WithExperience(10_900).Build()
+			players[7] = newPlayerBuilder(player_uuid, start.Add(45*time.Hour).Add(30*time.Minute)).WithGamesPlayed(20).WithExperience(11_900).Build()
 
 			storeStats(t, p, players...)
 
@@ -962,11 +963,11 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			players := make([]*domain.PlayerPIT, 4)
 			// Session 1
-			players[0] = newPlayer(player_uuid, 16, 9_200, start.Add(1*time.Hour).Add(5*time.Minute))
-			players[1] = newPlayer(player_uuid, 16, 9_400, start.Add(1*time.Hour).Add(30*time.Minute))
+			players[0] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(5*time.Minute)).WithGamesPlayed(16).WithExperience(9_200).Build()
+			players[1] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(30*time.Minute)).WithGamesPlayed(16).WithExperience(9_400).Build()
 			// Session 2
-			players[2] = newPlayer(player_uuid, 16, 9_400, start.Add(1*time.Hour).Add(45*time.Minute))
-			players[3] = newPlayer(player_uuid, 16, 10_800, start.Add(2*time.Hour).Add(31*time.Minute))
+			players[2] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(45*time.Minute)).WithGamesPlayed(16).WithExperience(9_400).Build()
+			players[3] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(31*time.Minute)).WithGamesPlayed(16).WithExperience(10_800).Build()
 
 			playerData := storeStats(t, p, players...)
 
@@ -996,11 +997,11 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			players := make([]*domain.PlayerPIT, 4)
 			// Session 1
-			players[0] = newPlayer(player_uuid, 16, 9_200, start.Add(1*time.Hour).Add(5*time.Minute))
-			players[1] = newPlayer(player_uuid, 17, 9_200, start.Add(1*time.Hour).Add(30*time.Minute))
+			players[0] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(5*time.Minute)).WithGamesPlayed(16).WithExperience(9_200).Build()
+			players[1] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(30*time.Minute)).WithGamesPlayed(17).WithExperience(9_200).Build()
 			// Session 2
-			players[2] = newPlayer(player_uuid, 17, 9_200, start.Add(1*time.Hour).Add(45*time.Minute))
-			players[3] = newPlayer(player_uuid, 18, 9_200, start.Add(2*time.Hour).Add(31*time.Minute))
+			players[2] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(45*time.Minute)).WithGamesPlayed(17).WithExperience(9_200).Build()
+			players[3] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(31*time.Minute)).WithGamesPlayed(18).WithExperience(9_200).Build()
 
 			playerData := storeStats(t, p, players...)
 
@@ -1034,22 +1035,22 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			// turning into mulitple calculated sessions.
 			players := make([]*domain.PlayerPIT, 10)
 
-			players[0] = newPlayer(player_uuid, 16, 9_200, start.Add(1*time.Hour).Add(5*time.Minute))
-			players[1] = newPlayer(player_uuid, 17, 9_200, start.Add(1*time.Hour).Add(30*time.Minute))
+			players[0] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(5*time.Minute)).WithGamesPlayed(16).WithExperience(9_200).Build()
+			players[1] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(30*time.Minute)).WithGamesPlayed(17).WithExperience(9_200).Build()
 
-			players[2] = newPlayer(player_uuid, 20, 15_200, start.Add(3*time.Hour).Add(45*time.Minute))
+			players[2] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(45*time.Minute)).WithGamesPlayed(20).WithExperience(15_200).Build()
 
-			players[3] = newPlayer(player_uuid, 23, 17_200, start.Add(5*time.Hour).Add(45*time.Minute))
+			players[3] = newPlayerBuilder(player_uuid, start.Add(5*time.Hour).Add(45*time.Minute)).WithGamesPlayed(23).WithExperience(17_200).Build()
 
-			players[4] = newPlayer(player_uuid, 27, 19_200, start.Add(7*time.Hour).Add(45*time.Minute))
-			players[5] = newPlayer(player_uuid, 28, 19_800, start.Add(7*time.Hour).Add(55*time.Minute))
+			players[4] = newPlayerBuilder(player_uuid, start.Add(7*time.Hour).Add(45*time.Minute)).WithGamesPlayed(27).WithExperience(19_200).Build()
+			players[5] = newPlayerBuilder(player_uuid, start.Add(7*time.Hour).Add(55*time.Minute)).WithGamesPlayed(28).WithExperience(19_800).Build()
 
-			players[6] = newPlayer(player_uuid, 30, 20_800, start.Add(9*time.Hour).Add(15*time.Minute))
-			players[7] = newPlayer(player_uuid, 33, 23_800, start.Add(9*time.Hour).Add(55*time.Minute))
+			players[6] = newPlayerBuilder(player_uuid, start.Add(9*time.Hour).Add(15*time.Minute)).WithGamesPlayed(30).WithExperience(20_800).Build()
+			players[7] = newPlayerBuilder(player_uuid, start.Add(9*time.Hour).Add(55*time.Minute)).WithGamesPlayed(33).WithExperience(23_800).Build()
 
-			players[8] = newPlayer(player_uuid, 35, 28_800, start.Add(11*time.Hour).Add(15*time.Minute))
+			players[8] = newPlayerBuilder(player_uuid, start.Add(11*time.Hour).Add(15*time.Minute)).WithGamesPlayed(35).WithExperience(28_800).Build()
 
-			players[9] = newPlayer(player_uuid, 44, 38_800, start.Add(17*time.Hour).Add(15*time.Minute))
+			players[9] = newPlayerBuilder(player_uuid, start.Add(17*time.Hour).Add(15*time.Minute)).WithGamesPlayed(44).WithExperience(38_800).Build()
 
 			playerData := storeStats(t, p, players...)
 
@@ -1083,9 +1084,9 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			start := time.Date(2025, time.December, 9, 14, 13, 34, 987_654_321, time.FixedZone("UTC", 3600*0))
 
 			players := make([]*domain.PlayerPIT, 3)
-			players[0] = newPlayer(player_uuid, 16, 9_200, start.Add(23*time.Hour).Add(5*time.Minute))
-			players[1] = newPlayer(player_uuid, 17, 9_500, start.Add(23*time.Hour).Add(40*time.Minute))
-			players[2] = newPlayer(player_uuid, 18, 9_900, start.Add(24*time.Hour).Add(05*time.Minute))
+			players[0] = newPlayerBuilder(player_uuid, start.Add(23*time.Hour).Add(5*time.Minute)).WithGamesPlayed(16).WithExperience(9_200).Build()
+			players[1] = newPlayerBuilder(player_uuid, start.Add(23*time.Hour).Add(40*time.Minute)).WithGamesPlayed(17).WithExperience(9_500).Build()
+			players[2] = newPlayerBuilder(player_uuid, start.Add(24*time.Hour).Add(05*time.Minute)).WithGamesPlayed(18).WithExperience(9_900).Build()
 
 			playerData := storeStats(t, p, players...)
 
@@ -1109,12 +1110,12 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			start := time.Date(2025, time.February, 7, 4, 13, 34, 987_654_321, time.FixedZone("UTC", 3600*-10))
 
 			players := make([]*domain.PlayerPIT, 6)
-			players[0] = newPlayer(player_uuid, 16, 9_200, start.Add(3*time.Hour).Add(5*time.Minute))
-			players[1] = newPlayer(player_uuid, 17, 9_500, start.Add(3*time.Hour).Add(40*time.Minute))
-			players[2] = newPlayer(player_uuid, 18, 9_900, start.Add(4*time.Hour).Add(05*time.Minute))
-			players[3] = newPlayer(player_uuid, 20, 10_900, start.Add(4*time.Hour).Add(45*time.Minute))
-			players[4] = newPlayer(player_uuid, 21, 11_900, start.Add(4*time.Hour).Add(55*time.Minute))
-			players[5] = newPlayer(player_uuid, 22, 12_900, start.Add(5*time.Hour).Add(15*time.Minute))
+			players[0] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(5*time.Minute)).WithGamesPlayed(16).WithExperience(9_200).Build()
+			players[1] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(40*time.Minute)).WithGamesPlayed(17).WithExperience(9_500).Build()
+			players[2] = newPlayerBuilder(player_uuid, start.Add(4*time.Hour).Add(05*time.Minute)).WithGamesPlayed(18).WithExperience(9_900).Build()
+			players[3] = newPlayerBuilder(player_uuid, start.Add(4*time.Hour).Add(45*time.Minute)).WithGamesPlayed(20).WithExperience(10_900).Build()
+			players[4] = newPlayerBuilder(player_uuid, start.Add(4*time.Hour).Add(55*time.Minute)).WithGamesPlayed(21).WithExperience(11_900).Build()
+			players[5] = newPlayerBuilder(player_uuid, start.Add(5*time.Hour).Add(15*time.Minute)).WithGamesPlayed(22).WithExperience(12_900).Build()
 
 			playerData := storeStats(t, p, players...)
 
@@ -1138,12 +1139,12 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			start := time.Date(2025, time.December, 1, 7, 13, 34, 987_654_321, time.FixedZone("UTC", 3600*7))
 
 			players := make([]*domain.PlayerPIT, 6)
-			players[0] = newPlayer(player_uuid, 16, 9_200, start.Add(1*time.Hour).Add(5*time.Minute))
-			players[1] = newPlayer(player_uuid, 16, 9_500, start.Add(1*time.Hour).Add(40*time.Minute))
-			players[2] = newPlayer(player_uuid, 16, 9_600, start.Add(2*time.Hour).Add(05*time.Minute))
-			players[3] = newPlayer(player_uuid, 17, 10_900, start.Add(2*time.Hour).Add(45*time.Minute))
-			players[4] = newPlayer(player_uuid, 17, 10_900, start.Add(2*time.Hour).Add(55*time.Minute))
-			players[5] = newPlayer(player_uuid, 17, 11_900, start.Add(3*time.Hour).Add(15*time.Minute))
+			players[0] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(5*time.Minute)).WithGamesPlayed(16).WithExperience(9_200).Build()
+			players[1] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(40*time.Minute)).WithGamesPlayed(16).WithExperience(9_500).Build()
+			players[2] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(05*time.Minute)).WithGamesPlayed(16).WithExperience(9_600).Build()
+			players[3] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(45*time.Minute)).WithGamesPlayed(17).WithExperience(10_900).Build()
+			players[4] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(55*time.Minute)).WithGamesPlayed(17).WithExperience(10_900).Build()
+			players[5] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(15*time.Minute)).WithGamesPlayed(17).WithExperience(11_900).Build()
 
 			playerData := storeStats(t, p, players...)
 
