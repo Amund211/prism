@@ -9,6 +9,7 @@ import (
 	"github.com/Amund211/flashlight/internal/processing"
 	"github.com/Amund211/flashlight/internal/storage"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const UUID = "01234567-89AB---CDEF-0123-456789abcdef"
@@ -43,7 +44,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 	t.Run("Test GetStats", func(t *testing.T) {
 		hypixelAPI := &mockedHypixelAPI{
 			t:          t,
-			data:       []byte(`{"success":true,"player":{"stats":{"Bedwars":{"Experience":0}}}}`),
+			data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef","stats":{"Bedwars":{"Experience":0}}}}`),
 			statusCode: 200,
 			err:        nil,
 		}
@@ -65,32 +66,36 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 	t.Run("stats are not created if they already exist", func(t *testing.T) {
 		hypixelAPI := &mockedHypixelAPI{
 			t:          t,
-			data:       []byte(`{}`),
+			data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef","stats":{"Bedwars":{"Experience":0}}}}`),
 			statusCode: 200,
 			err:        nil,
 		}
 		panicHypixelAPI := &panicHypixelAPI{t: t}
 		cache := cache.NewMockedPlayerCache()
 
-		GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), UUID)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), UUID)
+		require.NoError(t, err)
 
-		GetOrCreateProcessedPlayerData(context.Background(), cache, panicHypixelAPI, storage.NewStubPersistor(), UUID)
+		_, _, err = GetOrCreateProcessedPlayerData(context.Background(), cache, panicHypixelAPI, storage.NewStubPersistor(), UUID)
+		require.NoError(t, err)
 	})
 
 	t.Run("cache keys are normalized", func(t *testing.T) {
 		// Requesting abcdef12-... and then ABCDEF12-... should only go to Hypixel once
 		hypixelAPI := &mockedHypixelAPI{
 			t:          t,
-			data:       []byte(`{}`),
+			data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef","stats":{"Bedwars":{"Experience":0}}}}`),
 			statusCode: 200,
 			err:        nil,
 		}
 		panicHypixelAPI := &panicHypixelAPI{t: t}
 		cache := cache.NewMockedPlayerCache()
 
-		GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), "01234567-89ab-cdef-0123-456789abcdef")
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, storage.NewStubPersistor(), "01234567-89ab-cdef-0123-456789abcdef")
+		require.NoError(t, err)
 
-		GetOrCreateProcessedPlayerData(context.Background(), cache, panicHypixelAPI, storage.NewStubPersistor(), "01---23456789aBCDef0123456789aBcdef")
+		_, _, err = GetOrCreateProcessedPlayerData(context.Background(), cache, panicHypixelAPI, storage.NewStubPersistor(), "01---23456789aBCDef0123456789aBcdef")
+		require.NoError(t, err)
 	})
 
 	t.Run("error from hypixel", func(t *testing.T) {
@@ -146,7 +151,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 	t.Run("weird data format from hypixel", func(t *testing.T) {
 		hypixelAPI := &mockedHypixelAPI{
 			t:          t,
-			data:       []byte(`{"success":true,"player":{"stats":{"Bedwars":{"final_kills_bedwars":"string"}}}}`),
+			data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef","stats":{"Bedwars":{"final_kills_bedwars":"string"}}}}`),
 			statusCode: 200,
 			err:        nil,
 		}

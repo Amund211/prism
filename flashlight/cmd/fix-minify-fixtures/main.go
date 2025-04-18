@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"time"
 
 	"github.com/Amund211/flashlight/internal/processing"
 )
@@ -36,7 +37,20 @@ func main() {
 		}
 
 		parsedAPIResponse, _, err := processing.ParseHypixelAPIResponse(context.Background(), hypixelAPIResponse, 200)
-		newMinified, err := processing.MarshalPlayerData(context.Background(), parsedAPIResponse)
+		if err != nil {
+			log.Printf("Error parsing hypixel api response %s: %s", fileName, err.Error())
+			continue
+		}
+
+		domainPlayer, err := processing.HypixelAPIResponseToDomainPlayer(parsedAPIResponse, time.Now(), nil)
+		if err != nil {
+			log.Printf("Error converting hypixel api response to domain player %s: %s", fileName, err.Error())
+			continue
+		}
+
+		apiResponseFromDomain := processing.DomainPlayerToHypixelAPIResponse(domainPlayer)
+
+		newMinified, err := processing.MarshalPlayerData(context.Background(), apiResponseFromDomain)
 		if err != nil {
 			log.Printf("Error minifying player data: %s", err.Error())
 			continue

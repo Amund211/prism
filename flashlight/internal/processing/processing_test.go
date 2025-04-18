@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	e "github.com/Amund211/flashlight/internal/errors"
 
@@ -22,6 +23,7 @@ type processPlayerDataTest struct {
 	after              []byte
 	expectedStatusCode int
 	error              error
+	toDomainError      error
 }
 
 const hypixelAPIResponsesDir = "../../fixtures/hypixel_api_responses/"
@@ -29,7 +31,7 @@ const expectedMinifiedDataDir = "testdata/expected_minified_data/"
 
 // NOTE: for readability, after is compacted before being compared
 var literalTests = []processPlayerDataTest{
-	{name: "empty object", before: []byte(`{}`), after: []byte(`{"success":false,"player":null}`)},
+	{name: "empty object", before: []byte(`{}`), toDomainError: e.APIServerError},
 	{name: "empty list", before: []byte(`[]`), after: []byte{}, error: e.APIServerError},
 	{name: "empty string", before: []byte(``), after: []byte{}, error: e.APIServerError},
 	{
@@ -37,6 +39,7 @@ var literalTests = []processPlayerDataTest{
 		before: []byte(`{
 			"success": true,
 			"player": {
+				"uuid":"1234567890abcdef1234567890abcdef",
 				"stats": {
 					"Bedwars": {
 						"Experience": 1087.0
@@ -47,6 +50,7 @@ var literalTests = []processPlayerDataTest{
 		after: []byte(`{
 			"success": true,
 			"player": {
+				"uuid":"1234567890abcdef1234567890abcdef",
 				"stats": {
 					"Bedwars": {
 						"Experience": 1087
@@ -60,6 +64,7 @@ var literalTests = []processPlayerDataTest{
 		before: []byte(`{
 			"success": true,
 			"player": {
+				"uuid":"1234567890abcdef1234567890abcdef",
 				"stats": {
 					"Bedwars": {
 						"Experience": 1.2227806E7
@@ -70,6 +75,7 @@ var literalTests = []processPlayerDataTest{
 		after: []byte(`{
 			"success": true,
 			"player": {
+				"uuid":"1234567890abcdef1234567890abcdef",
 				"stats": {
 					"Bedwars": {
 						"Experience": 12227806
@@ -134,16 +140,24 @@ func runProcessPlayerDataTest(t *testing.T, test processPlayerDataTest) {
 	if test.expectedStatusCode != 0 {
 		expectedStatusCode = test.expectedStatusCode
 	}
-	parsedResponse, statusCode, err := ParseHypixelAPIResponse(context.Background(), test.before, hypixelStatusCode)
 
+	parsedResponse, statusCode, err := ParseHypixelAPIResponse(context.Background(), test.before, hypixelStatusCode)
 	if test.error != nil {
 		assert.Equal(t, 0, test.expectedStatusCode, "status code not returned on error")
 		assert.ErrorIs(t, err, test.error, "processPlayerData(%s) - expected error", test.name)
 		return
 	}
-	assert.Nil(t, err, "processPlayerData(%s) - unexpected parse error: %v", test.name, err)
+	require.NoError(t, err)
 
-	minified, err := MarshalPlayerData(context.Background(), parsedResponse)
+	domainPlayer, err := HypixelAPIResponseToDomainPlayer(parsedResponse, time.Now(), nil)
+	if test.toDomainError != nil {
+		require.ErrorIs(t, err, test.toDomainError)
+		return
+	}
+	require.NoError(t, err)
+	responseFromDomain := DomainPlayerToHypixelAPIResponse(domainPlayer)
+
+	minified, err := MarshalPlayerData(context.Background(), responseFromDomain)
 
 	assert.Nil(t, err, "processPlayerData(%s) - unexpected marshall error: %v", test.name, err)
 	assert.Equal(t, expectedStatusCode, statusCode, test.name)
@@ -166,7 +180,7 @@ func TestProcessPlayerDataLiterals(t *testing.T) {
 	for _, test := range append(literalTests, cloudfareTests...) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
-			if test.error == nil {
+			if test.error == nil && test.toDomainError == nil {
 				var compacted bytes.Buffer
 				err := json.Compact(&compacted, test.after)
 				assert.Nil(t, err, "processPlayerData(%s): Error compacting JSON: %v", test.name, err)
@@ -176,7 +190,7 @@ func TestProcessPlayerDataLiterals(t *testing.T) {
 			// Real test
 			runProcessPlayerDataTest(t, test)
 
-			if test.error == nil {
+			if test.error == nil && test.toDomainError == nil {
 				// Test that minification is idempotent
 				test.before = test.after
 				test.name = test.name + " (minified)"

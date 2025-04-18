@@ -28,7 +28,17 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI,
 		return []byte{}, -1, err
 	}
 
-	minifiedPlayerData, err := processing.MarshalPlayerData(ctx, parsedAPIResponse)
+	domainPlayer, err := processing.HypixelAPIResponseToDomainPlayer(parsedAPIResponse, queriedAt, nil)
+	if err != nil {
+		return []byte{}, -1, fmt.Errorf("%w: failed to convert hypixel api response to domain player: %w", e.APIServerError, err)
+	}
+	// Hack: Set the properly formatted UUID
+	if domainPlayer != nil {
+		domainPlayer.UUID = uuid
+	}
+	apiResponseFromDomain := processing.DomainPlayerToHypixelAPIResponse(domainPlayer)
+
+	minifiedPlayerData, err := processing.MarshalPlayerData(ctx, apiResponseFromDomain)
 	if err != nil {
 		err = fmt.Errorf("%w: failed to marshal player data: %w", e.APIServerError, err)
 		reporting.Report(
@@ -43,12 +53,12 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI,
 		return []byte{}, -1, err
 	}
 
-	if parsedAPIResponse.Player != nil {
+	if apiResponseFromDomain.Player != nil {
 		// Ignore cancellations from the request context and try to store the data anyway
 		// Take a maximum of 1 second to not block the request for too long
 		storeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 1*time.Second)
 		defer cancel()
-		err = persistor.StoreStats(storeCtx, uuid, parsedAPIResponse.Player, queriedAt)
+		err = persistor.StoreStats(storeCtx, uuid, apiResponseFromDomain.Player, queriedAt)
 		if err != nil {
 			err = fmt.Errorf("failed to persist player data: %w", err)
 			reporting.Report(
