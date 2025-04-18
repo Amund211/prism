@@ -18,7 +18,7 @@ import (
 )
 
 func newHypixelAPIPlayer(id int) *processing.HypixelAPIPlayer {
-	value := &id
+	value := id
 	return &processing.HypixelAPIPlayer{
 		Stats: &processing.HypixelAPIStats{
 			Bedwars: &processing.HypixelAPIBedwarsStats{
@@ -498,7 +498,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 				require.Equal(t, player_uuid, playerPIT.UUID)
 
 				// Mock data matches
-				require.Equal(t, *expectedPIT.player.Stats.Bedwars.Kills, *playerPIT.Overall.Kills)
+				require.Equal(t, expectedPIT.player.Stats.Bedwars.Kills, playerPIT.Overall.Kills)
 
 				require.WithinDuration(t, expectedPIT.queriedAt, playerPIT.QueriedAt, 0)
 			}
@@ -545,7 +545,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 							require.Equal(t, player_uuid, playerPIT.UUID)
 
 							// Mock data matches
-							require.Equal(t, *expectedPIT.player.Stats.Bedwars.Kills, *playerPIT.Overall.Kills)
+							require.Equal(t, expectedPIT.player.Stats.Bedwars.Kills, playerPIT.Overall.Kills)
 
 							require.WithinDuration(t, expectedPIT.queriedAt, playerPIT.QueriedAt, 0)
 						})
@@ -580,7 +580,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 							require.Equal(t, player_uuid, playerPIT.UUID)
 
 							// Mock data matches
-							require.Equal(t, *expectedPIT.player.Stats.Bedwars.Kills, *playerPIT.Overall.Kills)
+							require.Equal(t, expectedPIT.player.Stats.Bedwars.Kills, playerPIT.Overall.Kills)
 
 							require.WithinDuration(t, expectedPIT.queriedAt, playerPIT.QueriedAt, 0)
 						}
@@ -626,7 +626,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 				Stats: &processing.HypixelAPIStats{
 					Bedwars: &processing.HypixelAPIBedwarsStats{
 						Experience:  &exp,
-						GamesPlayed: &gamesPlayed,
+						GamesPlayed: gamesPlayed,
 					},
 				},
 			}
@@ -651,14 +651,6 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			}
 
 			normalizePlayerData := func(playerData PlayerDataPIT) normalizedPlayerDataPIT {
-				exp := -1.0
-				if playerData.Experience != nil {
-					exp = *playerData.Experience
-				}
-				gamesPlayed := -1
-				if playerData.Overall.GamesPlayed != nil {
-					gamesPlayed = *playerData.Overall.GamesPlayed
-				}
 				soloWinstreak := -1
 				if playerData.Solo.Winstreak != nil {
 					soloWinstreak = *playerData.Solo.Winstreak
@@ -668,8 +660,8 @@ func TestPostgresStatsPersistor(t *testing.T) {
 					queriedAtISO:      playerData.QueriedAt.Format(time.RFC3339),
 					dataFormatVersion: playerData.DataFormatVersion,
 					uuid:              playerData.UUID,
-					experience:        exp,
-					gamesPlayed:       gamesPlayed,
+					experience:        playerData.Experience,
+					gamesPlayed:       playerData.Overall.GamesPlayed,
 					soloWinstreak:     soloWinstreak,
 				}
 

@@ -59,7 +59,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		assert.Nil(t, playerData.Cause)
 		assert.True(t, playerData.Success)
 		assert.Equal(t, 0.0, *playerData.Player.Stats.Bedwars.Experience)
-		assert.Nil(t, playerData.Player.Stats.Bedwars.FinalKills)
+		assert.Equal(t, 0, playerData.Player.Stats.Bedwars.FinalKills)
 	})
 
 	t.Run("stats are not created if they already exist", func(t *testing.T) {

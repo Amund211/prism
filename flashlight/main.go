@@ -168,15 +168,15 @@ func main() {
 
 				type statsResponse struct {
 					Winstreak   *int `json:"winstreak"`
-					GamesPlayed *int `json:"gamesPlayed"`
-					Wins        *int `json:"wins"`
-					Losses      *int `json:"losses"`
-					BedsBroken  *int `json:"bedsBroken"`
-					BedsLost    *int `json:"bedsLost"`
-					FinalKills  *int `json:"finalKills"`
-					FinalDeaths *int `json:"finalDeaths"`
-					Kills       *int `json:"kills"`
-					Deaths      *int `json:"deaths"`
+					GamesPlayed int  `json:"gamesPlayed"`
+					Wins        int  `json:"wins"`
+					Losses      int  `json:"losses"`
+					BedsBroken  int  `json:"bedsBroken"`
+					BedsLost    int  `json:"bedsLost"`
+					FinalKills  int  `json:"finalKills"`
+					FinalDeaths int  `json:"finalDeaths"`
+					Kills       int  `json:"kills"`
+					Deaths      int  `json:"deaths"`
 				}
 
 				type playerDataResponse struct {
@@ -184,7 +184,7 @@ func main() {
 					DataFormatVersion int           `json:"dataFormatVersion"`
 					UUID              string        `json:"uuid"`
 					QueriedAt         time.Time     `json:"queriedAt"`
-					Experience        *float64      `json:"experience"`
+					Experience        float64       `json:"experience"`
 					Solo              statsResponse `json:"solo"`
 					Doubles           statsResponse `json:"doubles"`
 					Threes            statsResponse `json:"threes"`
@@ -283,15 +283,15 @@ func main() {
 
 				type statsResponse struct {
 					Winstreak   *int `json:"winstreak"`
-					GamesPlayed *int `json:"gamesPlayed"`
-					Wins        *int `json:"wins"`
-					Losses      *int `json:"losses"`
-					BedsBroken  *int `json:"bedsBroken"`
-					BedsLost    *int `json:"bedsLost"`
-					FinalKills  *int `json:"finalKills"`
-					FinalDeaths *int `json:"finalDeaths"`
-					Kills       *int `json:"kills"`
-					Deaths      *int `json:"deaths"`
+					GamesPlayed int  `json:"gamesPlayed"`
+					Wins        int  `json:"wins"`
+					Losses      int  `json:"losses"`
+					BedsBroken  int  `json:"bedsBroken"`
+					BedsLost    int  `json:"bedsLost"`
+					FinalKills  int  `json:"finalKills"`
+					FinalDeaths int  `json:"finalDeaths"`
+					Kills       int  `json:"kills"`
+					Deaths      int  `json:"deaths"`
 				}
 
 				type playerDataResponse struct {
@@ -299,7 +299,7 @@ func main() {
 					DataFormatVersion int           `json:"dataFormatVersion"`
 					UUID              string        `json:"uuid"`
 					QueriedAt         time.Time     `json:"queriedAt"`
-					Experience        *float64      `json:"experience"`
+					Experience        float64       `json:"experience"`
 					Solo              statsResponse `json:"solo"`
 					Doubles           statsResponse `json:"doubles"`
 					Threes            statsResponse `json:"threes"`

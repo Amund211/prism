@@ -18,7 +18,7 @@ type PlayerDataPIT struct {
 	DataFormatVersion int
 	UUID              string
 	QueriedAt         time.Time
-	Experience        *float64
+	Experience        float64
 	Solo              StatsPIT
 	Doubles           StatsPIT
 	Threes            StatsPIT
@@ -28,15 +28,15 @@ type PlayerDataPIT struct {
 
 type StatsPIT struct {
 	Winstreak   *int
-	GamesPlayed *int
-	Wins        *int
-	Losses      *int
-	BedsBroken  *int
-	BedsLost    *int
-	FinalKills  *int
-	FinalDeaths *int
-	Kills       *int
-	Deaths      *int
+	GamesPlayed int
+	Wins        int
+	Losses      int
+	BedsBroken  int
+	BedsLost    int
+	FinalKills  int
+	FinalDeaths int
+	Kills       int
+	Deaths      int
 }
 
 type Session struct {

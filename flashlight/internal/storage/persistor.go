@@ -51,15 +51,15 @@ type playerDataStorage struct {
 
 type statsDataStorage struct {
 	Winstreak   *int `json:"ws,omitempty"`
-	GamesPlayed *int `json:"gp,omitempty"`
-	Wins        *int `json:"w,omitempty"`
-	Losses      *int `json:"l,omitempty"`
-	BedsBroken  *int `json:"bb,omitempty"`
-	BedsLost    *int `json:"bl,omitempty"`
-	FinalKills  *int `json:"fk,omitempty"`
-	FinalDeaths *int `json:"fd,omitempty"`
-	Kills       *int `json:"k,omitempty"`
-	Deaths      *int `json:"d,omitempty"`
+	GamesPlayed int  `json:"gp,omitempty"`
+	Wins        int  `json:"w,omitempty"`
+	Losses      int  `json:"l,omitempty"`
+	BedsBroken  int  `json:"bb,omitempty"`
+	BedsLost    int  `json:"bl,omitempty"`
+	FinalKills  int  `json:"fk,omitempty"`
+	FinalDeaths int  `json:"fd,omitempty"`
+	Kills       int  `json:"k,omitempty"`
+	Deaths      int  `json:"d,omitempty"`
 }
 
 type dbStat struct {
@@ -175,12 +175,17 @@ func dbStatToPlayerDataPIT(dbStat dbStat) (*PlayerDataPIT, error) {
 	if err != nil {
 		return nil, fmt.Errorf("dbStatToPlayerDataPIT: failed to unmarshal player data: %w", err)
 	}
+	experience := 500.0
+	if playerData.Experience != nil {
+		experience = *playerData.Experience
+	}
+
 	return &PlayerDataPIT{
 		ID:                dbStat.ID,
 		DataFormatVersion: dbStat.DataFormatVersion,
 		UUID:              dbStat.UUID,
 		QueriedAt:         dbStat.QueriedAt,
-		Experience:        playerData.Experience,
+		Experience:        experience,
 		Solo:              *statsPITFromDataStorage(&playerData.Solo),
 		Doubles:           *statsPITFromDataStorage(&playerData.Doubles),
 		Threes:            *statsPITFromDataStorage(&playerData.Threes),
@@ -415,16 +420,7 @@ func computeSessions(stats []PlayerDataPIT, start, end time.Time) []Session {
 	sessions := []Session{}
 
 	getProgressStats := func(stat PlayerDataPIT) (int, float64) {
-		gamesPlayed := 0
-		if stat.Overall.GamesPlayed != nil {
-			gamesPlayed = *stat.Overall.GamesPlayed
-		}
-		experience := 500.0
-		if stat.Experience != nil {
-			experience = *stat.Experience
-		}
-
-		return gamesPlayed, experience
+		return stat.Overall.GamesPlayed, stat.Experience
 	}
 
 	includeSession := func(sessionStart, lastEventfulEntry PlayerDataPIT) bool {
