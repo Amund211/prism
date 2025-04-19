@@ -8,11 +8,11 @@ import (
 	"path"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/processing"
+	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 )
 
 const hypixelAPIResponsesDir = "./fixtures/hypixel_api_responses/"
-const expectedMinifiedDataDir = "./internal/processing/testdata/expected_minified_data/"
+const expectedMinifiedDataDir = "./internal/adapters/playerprovider/testdata/expected_minified_data/"
 
 func main() {
 	hypixelAPIResponseFiles, err := os.ReadDir(hypixelAPIResponsesDir)
@@ -36,21 +36,21 @@ func main() {
 			expectedMinifiedData = nil
 		}
 
-		parsedAPIResponse, _, err := processing.ParseHypixelAPIResponse(context.Background(), hypixelAPIResponse, 200)
+		parsedAPIResponse, _, err := playerprovider.ParseHypixelAPIResponse(context.Background(), hypixelAPIResponse, 200)
 		if err != nil {
 			log.Printf("Error parsing hypixel api response %s: %s", fileName, err.Error())
 			continue
 		}
 
-		domainPlayer, err := processing.HypixelAPIResponseToDomainPlayer(parsedAPIResponse, time.Now(), nil)
+		domainPlayer, err := playerprovider.HypixelAPIResponseToDomainPlayer(parsedAPIResponse, time.Now(), nil)
 		if err != nil {
 			log.Printf("Error converting hypixel api response to domain player %s: %s", fileName, err.Error())
 			continue
 		}
 
-		apiResponseFromDomain := processing.DomainPlayerToHypixelAPIResponse(domainPlayer)
+		apiResponseFromDomain := playerprovider.DomainPlayerToHypixelAPIResponse(domainPlayer)
 
-		newMinified, err := processing.MarshalPlayerData(context.Background(), apiResponseFromDomain)
+		newMinified, err := playerprovider.MarshalPlayerData(context.Background(), apiResponseFromDomain)
 		if err != nil {
 			log.Printf("Error minifying player data: %s", err.Error())
 			continue

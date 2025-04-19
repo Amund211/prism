@@ -1,4 +1,4 @@
-package processing
+package playerprovider
 
 import (
 	"bytes"
@@ -26,7 +26,7 @@ type processPlayerDataTest struct {
 	toDomainError      error
 }
 
-const hypixelAPIResponsesDir = "../../fixtures/hypixel_api_responses/"
+const hypixelAPIResponsesDir = "../../../fixtures/hypixel_api_responses/"
 const expectedMinifiedDataDir = "testdata/expected_minified_data/"
 
 // NOTE: for readability, after is compacted before being compared

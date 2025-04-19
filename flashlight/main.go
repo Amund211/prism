@@ -12,12 +12,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/cache"
 	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/getstats"
-	"github.com/Amund211/flashlight/internal/hypixel"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
@@ -69,7 +69,7 @@ func main() {
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
 	}
-	hypixelAPI, err := hypixel.NewHypixelAPIOrMock(config, httpClient)
+	hypixelAPI, err := playerprovider.NewHypixelAPIOrMock(config, httpClient)
 	if err != nil {
 		fail("Failed to initialize Hypixel API", "error", err.Error())
 	}

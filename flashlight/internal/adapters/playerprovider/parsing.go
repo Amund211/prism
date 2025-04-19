@@ -1,4 +1,4 @@
-package processing
+package playerprovider
 
 import (
 	"context"
@@ -86,14 +86,14 @@ type HypixelAPIBedwarsStats struct {
 
 func ParsePlayerData(ctx context.Context, data []byte) (*hypixelAPIResponse, error) {
 	logger := logging.FromContext(ctx)
-	var response hypixelAPIResponse
+	response := new(hypixelAPIResponse)
 
-	err := json.Unmarshal(data, &response)
+	err := json.Unmarshal(data, response)
 	if err != nil {
 		logger.Error("Failed to unmarshal player data", "error", err)
 		return nil, err
 	}
-	return &response, nil
+	return response, nil
 }
 
 func MarshalPlayerData(ctx context.Context, response *hypixelAPIResponse) ([]byte, error) {

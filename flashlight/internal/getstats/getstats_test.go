@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/cache"
 	e "github.com/Amund211/flashlight/internal/errors"
-	"github.com/Amund211/flashlight/internal/processing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -53,7 +53,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		data, statusCode, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), UUID)
 		assert.Nil(t, err)
 
-		playerData, err := processing.ParsePlayerData(context.Background(), data)
+		playerData, err := playerprovider.ParsePlayerData(context.Background(), data)
 
 		assert.Nil(t, err, "Can't parse processed playerdata '%s'", data)
 		assert.Equal(t, 200, statusCode)

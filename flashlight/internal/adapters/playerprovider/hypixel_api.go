@@ -1,4 +1,4 @@
-package hypixel
+package playerprovider
 
 import (
 	"context"

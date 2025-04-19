@@ -5,17 +5,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/cache"
 	e "github.com/Amund211/flashlight/internal/errors"
-	"github.com/Amund211/flashlight/internal/hypixel"
 	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/processing"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
-func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI, repo playerrepository.PlayerRepository, uuid string) ([]byte, int, error) {
+func getAndProcessPlayerData(ctx context.Context, hypixelAPI playerprovider.HypixelAPI, repo playerrepository.PlayerRepository, uuid string) ([]byte, int, error) {
 	playerData, statusCode, err := hypixelAPI.GetPlayerData(ctx, uuid)
 	if err != nil {
 		reporting.Report(ctx, err)
@@ -23,12 +22,12 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI,
 	}
 	queriedAt := time.Now()
 
-	parsedAPIResponse, processedStatusCode, err := processing.ParseHypixelAPIResponse(ctx, playerData, statusCode)
+	parsedAPIResponse, processedStatusCode, err := playerprovider.ParseHypixelAPIResponse(ctx, playerData, statusCode)
 	if err != nil {
 		return []byte{}, -1, err
 	}
 
-	domainPlayer, err := processing.HypixelAPIResponseToDomainPlayer(parsedAPIResponse, queriedAt, nil)
+	domainPlayer, err := playerprovider.HypixelAPIResponseToDomainPlayer(parsedAPIResponse, queriedAt, nil)
 	if err != nil {
 		return []byte{}, -1, fmt.Errorf("%w: failed to convert hypixel api response to domain player: %w", e.APIServerError, err)
 	}
@@ -36,9 +35,9 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI,
 	if domainPlayer != nil {
 		domainPlayer.UUID = uuid
 	}
-	apiResponseFromDomain := processing.DomainPlayerToHypixelAPIResponse(domainPlayer)
+	apiResponseFromDomain := playerprovider.DomainPlayerToHypixelAPIResponse(domainPlayer)
 
-	minifiedPlayerData, err := processing.MarshalPlayerData(ctx, apiResponseFromDomain)
+	minifiedPlayerData, err := playerprovider.MarshalPlayerData(ctx, apiResponseFromDomain)
 	if err != nil {
 		err = fmt.Errorf("%w: failed to marshal player data: %w", e.APIServerError, err)
 		reporting.Report(
@@ -76,7 +75,7 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI hypixel.HypixelAPI,
 	return minifiedPlayerData, processedStatusCode, nil
 }
 
-func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.PlayerCache, hypixelAPI hypixel.HypixelAPI, repo playerrepository.PlayerRepository, uuid string) ([]byte, int, error) {
+func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.PlayerCache, hypixelAPI playerprovider.HypixelAPI, repo playerrepository.PlayerRepository, uuid string) ([]byte, int, error) {
 	logger := logging.FromContext(ctx)
 
 	if uuid == "" {
