@@ -161,7 +161,7 @@ func runProcessPlayerDataTest(t *testing.T, test processPlayerDataTest) {
 
 	assert.Nil(t, err, "processPlayerData(%s) - unexpected marshall error: %v", test.name, err)
 	assert.Equal(t, expectedStatusCode, statusCode, test.name)
-	assert.Equal(t, string(test.after), string(minified), "processPlayerData(%s) - expected '%s', got '%s'", test.name, test.after, minified)
+	assert.JSONEq(t, string(test.after), string(minified), "processPlayerData(%s) - expected '%s', got '%s'", test.name, test.after, minified)
 }
 
 func TestProcessPlayerDataLiterals(t *testing.T) {

@@ -1,1 +1,57 @@
-{"success":true,"player":{"uuid":"23f55db9a6154d83a63a152e1b1315f5","displayname":"RRG_","stats":{"Bedwars":{"Experience":10278861,"games_played_bedwars":48987,"wins_bedwars":45749,"losses_bedwars":3109,"beds_broken_bedwars":50797,"beds_lost_bedwars":5303,"final_kills_bedwars":132542,"final_deaths_bedwars":3590,"kills_bedwars":96746,"deaths_bedwars":137381,"eight_one_games_played_bedwars":394,"eight_one_wins_bedwars":140,"eight_one_losses_bedwars":245,"eight_one_beds_broken_bedwars":702,"eight_one_beds_lost_bedwars":257,"eight_one_final_kills_bedwars":605,"eight_one_final_deaths_bedwars":223,"eight_one_kills_bedwars":673,"eight_one_deaths_bedwars":1161,"eight_two_games_played_bedwars":2676,"eight_two_wins_bedwars":2002,"eight_two_losses_bedwars":665,"eight_two_beds_broken_bedwars":4629,"eight_two_beds_lost_bedwars":1011,"eight_two_final_kills_bedwars":7922,"eight_two_final_deaths_bedwars":746,"eight_two_kills_bedwars":7636,"eight_two_deaths_bedwars":10360,"four_three_games_played_bedwars":36639,"four_three_wins_bedwars":35804,"four_three_losses_bedwars":810,"four_three_beds_broken_bedwars":39097,"four_three_beds_lost_bedwars":1978,"four_three_final_kills_bedwars":106047,"four_three_final_deaths_bedwars":1000,"four_three_kills_bedwars":72021,"four_three_deaths_bedwars":96421,"four_four_games_played_bedwars":8284,"four_four_wins_bedwars":6883,"four_four_losses_bedwars":1338,"four_four_beds_broken_bedwars":6121,"four_four_beds_lost_bedwars":1978,"four_four_final_kills_bedwars":17125,"four_four_final_deaths_bedwars":1557,"four_four_kills_bedwars":15657,"four_four_deaths_bedwars":27911}}}}
+{
+  "success": true,
+  "player": {
+    "uuid": "23f55db9a6154d83a63a152e1b1315f5",
+    "displayname": "RRG_",
+    "stats": {
+      "Bedwars": {
+        "Experience": 10278861,
+        "games_played_bedwars": 48987,
+        "wins_bedwars": 45749,
+        "losses_bedwars": 3109,
+        "beds_broken_bedwars": 50797,
+        "beds_lost_bedwars": 5303,
+        "final_kills_bedwars": 132542,
+        "final_deaths_bedwars": 3590,
+        "kills_bedwars": 96746,
+        "deaths_bedwars": 137381,
+        "eight_one_games_played_bedwars": 394,
+        "eight_one_wins_bedwars": 140,
+        "eight_one_losses_bedwars": 245,
+        "eight_one_beds_broken_bedwars": 702,
+        "eight_one_beds_lost_bedwars": 257,
+        "eight_one_final_kills_bedwars": 605,
+        "eight_one_final_deaths_bedwars": 223,
+        "eight_one_kills_bedwars": 673,
+        "eight_one_deaths_bedwars": 1161,
+        "eight_two_games_played_bedwars": 2676,
+        "eight_two_wins_bedwars": 2002,
+        "eight_two_losses_bedwars": 665,
+        "eight_two_beds_broken_bedwars": 4629,
+        "eight_two_beds_lost_bedwars": 1011,
+        "eight_two_final_kills_bedwars": 7922,
+        "eight_two_final_deaths_bedwars": 746,
+        "eight_two_kills_bedwars": 7636,
+        "eight_two_deaths_bedwars": 10360,
+        "four_three_games_played_bedwars": 36639,
+        "four_three_wins_bedwars": 35804,
+        "four_three_losses_bedwars": 810,
+        "four_three_beds_broken_bedwars": 39097,
+        "four_three_beds_lost_bedwars": 1978,
+        "four_three_final_kills_bedwars": 106047,
+        "four_three_final_deaths_bedwars": 1000,
+        "four_three_kills_bedwars": 72021,
+        "four_three_deaths_bedwars": 96421,
+        "four_four_games_played_bedwars": 8284,
+        "four_four_wins_bedwars": 6883,
+        "four_four_losses_bedwars": 1338,
+        "four_four_beds_broken_bedwars": 6121,
+        "four_four_beds_lost_bedwars": 1978,
+        "four_four_final_kills_bedwars": 17125,
+        "four_four_final_deaths_bedwars": 1557,
+        "four_four_kills_bedwars": 15657,
+        "four_four_deaths_bedwars": 27911
+      }
+    }
+  }
+}

@@ -1,1 +1,11 @@
-{"success":true,"player":{"uuid":"fffaceca46b24658b21f12c3cd2b413f","stats":{"Bedwars":{"Experience":500}}}}
+{
+  "success": true,
+  "player": {
+    "uuid": "fffaceca46b24658b21f12c3cd2b413f",
+    "stats": {
+      "Bedwars": {
+        "Experience": 500
+      }
+    }
+  }
+}

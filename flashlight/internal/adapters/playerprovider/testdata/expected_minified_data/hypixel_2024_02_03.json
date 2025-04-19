@@ -1,1 +1,34 @@
-{"success":true,"player":{"uuid":"f7c77d999f154a66a87dc4a51ef30d19","displayname":"hypixel","stats":{"Bedwars":{"Experience":1087,"winstreak":2,"games_played_bedwars":3,"wins_bedwars":2,"losses_bedwars":1,"beds_lost_bedwars":1,"final_kills_bedwars":2,"final_deaths_bedwars":1,"kills_bedwars":6,"deaths_bedwars":5,"eight_one_games_played_bedwars":1,"eight_one_losses_bedwars":1,"eight_one_beds_lost_bedwars":1,"eight_one_final_deaths_bedwars":1,"eight_one_kills_bedwars":6,"eight_one_deaths_bedwars":3,"eight_two_games_played_bedwars":1,"eight_two_wins_bedwars":1,"eight_two_deaths_bedwars":1,"four_four_games_played_bedwars":1,"four_four_wins_bedwars":1,"four_four_final_kills_bedwars":2,"four_four_deaths_bedwars":1}}}}
+{
+  "success": true,
+  "player": {
+    "uuid": "f7c77d999f154a66a87dc4a51ef30d19",
+    "displayname": "hypixel",
+    "stats": {
+      "Bedwars": {
+        "Experience": 1087,
+        "winstreak": 2,
+        "games_played_bedwars": 3,
+        "wins_bedwars": 2,
+        "losses_bedwars": 1,
+        "beds_lost_bedwars": 1,
+        "final_kills_bedwars": 2,
+        "final_deaths_bedwars": 1,
+        "kills_bedwars": 6,
+        "deaths_bedwars": 5,
+        "eight_one_games_played_bedwars": 1,
+        "eight_one_losses_bedwars": 1,
+        "eight_one_beds_lost_bedwars": 1,
+        "eight_one_final_deaths_bedwars": 1,
+        "eight_one_kills_bedwars": 6,
+        "eight_one_deaths_bedwars": 3,
+        "eight_two_games_played_bedwars": 1,
+        "eight_two_wins_bedwars": 1,
+        "eight_two_deaths_bedwars": 1,
+        "four_four_games_played_bedwars": 1,
+        "four_four_wins_bedwars": 1,
+        "four_four_final_kills_bedwars": 2,
+        "four_four_deaths_bedwars": 1
+      }
+    }
+  }
+}

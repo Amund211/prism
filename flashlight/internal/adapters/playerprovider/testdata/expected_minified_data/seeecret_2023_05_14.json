@@ -1,1 +1,33 @@
-{"success":true,"player":{"uuid":"437e8dfc93e6490ca90bde65f1b29d62","displayname":"Seeecret","stats":{"Bedwars":{"Experience":367805,"winstreak":3238,"games_played_bedwars":3237,"wins_bedwars":3238,"beds_broken_bedwars":3272,"final_kills_bedwars":12378,"kills_bedwars":3860,"deaths_bedwars":3304,"four_three_winstreak":1094,"four_three_games_played_bedwars":1093,"four_three_wins_bedwars":1094,"four_three_beds_broken_bedwars":1145,"four_three_final_kills_bedwars":3445,"four_three_kills_bedwars":1163,"four_three_deaths_bedwars":945,"four_four_winstreak":2144,"four_four_games_played_bedwars":2144,"four_four_wins_bedwars":2144,"four_four_beds_broken_bedwars":2127,"four_four_final_kills_bedwars":8933,"four_four_kills_bedwars":2697,"four_four_deaths_bedwars":2359}}}}
+{
+  "success": true,
+  "player": {
+    "uuid": "437e8dfc93e6490ca90bde65f1b29d62",
+    "displayname": "Seeecret",
+    "stats": {
+      "Bedwars": {
+        "Experience": 367805,
+        "winstreak": 3238,
+        "games_played_bedwars": 3237,
+        "wins_bedwars": 3238,
+        "beds_broken_bedwars": 3272,
+        "final_kills_bedwars": 12378,
+        "kills_bedwars": 3860,
+        "deaths_bedwars": 3304,
+        "four_three_winstreak": 1094,
+        "four_three_games_played_bedwars": 1093,
+        "four_three_wins_bedwars": 1094,
+        "four_three_beds_broken_bedwars": 1145,
+        "four_three_final_kills_bedwars": 3445,
+        "four_three_kills_bedwars": 1163,
+        "four_three_deaths_bedwars": 945,
+        "four_four_winstreak": 2144,
+        "four_four_games_played_bedwars": 2144,
+        "four_four_wins_bedwars": 2144,
+        "four_four_beds_broken_bedwars": 2127,
+        "four_four_final_kills_bedwars": 8933,
+        "four_four_kills_bedwars": 2697,
+        "four_four_deaths_bedwars": 2359
+      }
+    }
+  }
+}

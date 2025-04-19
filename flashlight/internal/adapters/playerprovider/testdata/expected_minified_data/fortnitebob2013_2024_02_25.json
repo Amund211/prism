@@ -1,1 +1,43 @@
-{"success":true,"player":{"uuid":"98365216bd274d3bb4d09d4f64a71c49","displayname":"fortnitebob2013","lastLogin":1707628914691,"lastLogout":1707628924715,"stats":{"Bedwars":{"Experience":992,"winstreak":0,"games_played_bedwars":3,"wins_bedwars":1,"losses_bedwars":2,"beds_broken_bedwars":6,"beds_lost_bedwars":2,"final_kills_bedwars":9,"final_deaths_bedwars":2,"kills_bedwars":5,"deaths_bedwars":5,"eight_one_winstreak":1,"eight_one_games_played_bedwars":2,"eight_one_wins_bedwars":1,"eight_one_losses_bedwars":1,"eight_one_beds_broken_bedwars":4,"eight_one_beds_lost_bedwars":1,"eight_one_final_kills_bedwars":5,"eight_one_final_deaths_bedwars":1,"eight_one_kills_bedwars":4,"eight_one_deaths_bedwars":3,"eight_two_winstreak":0,"eight_two_games_played_bedwars":1,"eight_two_losses_bedwars":1,"eight_two_beds_broken_bedwars":2,"eight_two_beds_lost_bedwars":1,"eight_two_final_kills_bedwars":4,"eight_two_final_deaths_bedwars":1,"eight_two_kills_bedwars":1,"eight_two_deaths_bedwars":2}}}}
+{
+  "success": true,
+  "player": {
+    "uuid": "98365216bd274d3bb4d09d4f64a71c49",
+    "displayname": "fortnitebob2013",
+    "lastLogin": 1707628914691,
+    "lastLogout": 1707628924715,
+    "stats": {
+      "Bedwars": {
+        "Experience": 992,
+        "winstreak": 0,
+        "games_played_bedwars": 3,
+        "wins_bedwars": 1,
+        "losses_bedwars": 2,
+        "beds_broken_bedwars": 6,
+        "beds_lost_bedwars": 2,
+        "final_kills_bedwars": 9,
+        "final_deaths_bedwars": 2,
+        "kills_bedwars": 5,
+        "deaths_bedwars": 5,
+        "eight_one_winstreak": 1,
+        "eight_one_games_played_bedwars": 2,
+        "eight_one_wins_bedwars": 1,
+        "eight_one_losses_bedwars": 1,
+        "eight_one_beds_broken_bedwars": 4,
+        "eight_one_beds_lost_bedwars": 1,
+        "eight_one_final_kills_bedwars": 5,
+        "eight_one_final_deaths_bedwars": 1,
+        "eight_one_kills_bedwars": 4,
+        "eight_one_deaths_bedwars": 3,
+        "eight_two_winstreak": 0,
+        "eight_two_games_played_bedwars": 1,
+        "eight_two_losses_bedwars": 1,
+        "eight_two_beds_broken_bedwars": 2,
+        "eight_two_beds_lost_bedwars": 1,
+        "eight_two_final_kills_bedwars": 4,
+        "eight_two_final_deaths_bedwars": 1,
+        "eight_two_kills_bedwars": 1,
+        "eight_two_deaths_bedwars": 2
+      }
+    }
+  }
+}

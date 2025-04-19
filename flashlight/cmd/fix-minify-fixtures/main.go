@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"log"
 	"os"
 	"path"
@@ -56,9 +57,17 @@ func main() {
 			continue
 		}
 
-		if !bytes.Equal(newMinified, expectedMinifiedData) {
+		indented := bytes.NewBuffer(nil)
+		err = json.Indent(indented, newMinified, "", "  ")
+		if err != nil {
+			log.Fatalf("Error indenting JSON: %s", err.Error())
+		}
+
+		indentedBytes := indented.Bytes()
+
+		if !bytes.Equal(indentedBytes, expectedMinifiedData) {
 			log.Printf("Updating fixture %s", fileName)
-			os.WriteFile(expectedMinifiedDataPath, newMinified, 0644)
+			os.WriteFile(expectedMinifiedDataPath, indentedBytes, 0644)
 		}
 	}
 }
