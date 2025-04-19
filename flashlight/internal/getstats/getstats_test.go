@@ -3,6 +3,7 @@ package getstats
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
@@ -19,7 +20,7 @@ type panicHypixelAPI struct {
 	t *testing.T
 }
 
-func (p *panicHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, error) {
+func (p *panicHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, time.Time, error) {
 	p.t.Helper()
 	p.t.Fatal("should not be called")
 	panic("unreachable")
@@ -29,23 +30,27 @@ type mockedHypixelAPI struct {
 	t          *testing.T
 	data       []byte
 	statusCode int
+	queriedAt  time.Time
 	err        error
 }
 
-func (m *mockedHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, error) {
+func (m *mockedHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, time.Time, error) {
 	m.t.Helper()
 
 	assert.Equal(m.t, NORMALIZED_UUID, uuid)
 
-	return m.data, m.statusCode, m.err
+	return m.data, m.statusCode, m.queriedAt, m.err
 }
 
 func TestGetOrCreateProcessedPlayerData(t *testing.T) {
+	now := time.Now()
+
 	t.Run("Test GetStats", func(t *testing.T) {
 		hypixelAPI := &mockedHypixelAPI{
 			t:          t,
 			data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef","stats":{"Bedwars":{"Experience":0}}}}`),
 			statusCode: 200,
+			queriedAt:  now,
 			err:        nil,
 		}
 		cache := cache.NewMockedPlayerCache()
@@ -68,6 +73,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 			t:          t,
 			data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef","stats":{"Bedwars":{"Experience":0}}}}`),
 			statusCode: 200,
+			queriedAt:  now,
 			err:        nil,
 		}
 		panicHypixelAPI := &panicHypixelAPI{t: t}
@@ -86,6 +92,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 			t:          t,
 			data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef","stats":{"Bedwars":{"Experience":0}}}}`),
 			statusCode: 200,
+			queriedAt:  now,
 			err:        nil,
 		}
 		panicHypixelAPI := &panicHypixelAPI{t: t}
@@ -103,6 +110,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 			t:          t,
 			data:       []byte(``),
 			statusCode: -1,
+			queriedAt:  time.Time{},
 			err:        assert.AnError,
 		}
 		cache := cache.NewMockedPlayerCache()
@@ -123,6 +131,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 			t:          t,
 			data:       []byte(`<!DOCTYPE html>`),
 			statusCode: 200,
+			queriedAt:  time.Time{},
 			err:        nil,
 		}
 		cache := cache.NewMockedPlayerCache()
@@ -138,6 +147,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 			t:          t,
 			data:       []byte(`something went wrong`),
 			statusCode: 200,
+			queriedAt:  time.Time{},
 			err:        nil,
 		}
 		cache := cache.NewMockedPlayerCache()
@@ -153,6 +163,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 			t:          t,
 			data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef","stats":{"Bedwars":{"final_kills_bedwars":"string"}}}}`),
 			statusCode: 200,
+			queriedAt:  now,
 			err:        nil,
 		}
 		cache := cache.NewMockedPlayerCache()
@@ -193,6 +204,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 			t:          t,
 			data:       []byte(`{"success":false,"cause":"Invalid API key"}`),
 			statusCode: 403,
+			queriedAt:  now,
 			err:        nil,
 		}
 		cache := cache.NewMockedPlayerCache()
@@ -208,6 +220,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 			t:          t,
 			data:       []byte(`<!DOCTYPE html>`),
 			statusCode: 502,
+			queriedAt:  now,
 			err:        nil,
 		}
 		cache := cache.NewMockedPlayerCache()
@@ -223,6 +236,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 			t:          t,
 			data:       []byte(`<!DOCTYPE html>`),
 			statusCode: 503,
+			queriedAt:  now,
 			err:        nil,
 		}
 		cache := cache.NewMockedPlayerCache()
@@ -238,6 +252,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 			t:          t,
 			data:       []byte(`<!DOCTYPE html>`),
 			statusCode: 504,
+			queriedAt:  now,
 			err:        nil,
 		}
 		cache := cache.NewMockedPlayerCache()

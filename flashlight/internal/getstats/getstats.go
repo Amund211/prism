@@ -15,12 +15,11 @@ import (
 )
 
 func getAndProcessPlayerData(ctx context.Context, hypixelAPI playerprovider.HypixelAPI, repo playerrepository.PlayerRepository, uuid string) ([]byte, int, error) {
-	playerData, statusCode, err := hypixelAPI.GetPlayerData(ctx, uuid)
+	playerData, statusCode, queriedAt, err := hypixelAPI.GetPlayerData(ctx, uuid)
 	if err != nil {
 		reporting.Report(ctx, err)
 		return []byte{}, -1, err
 	}
-	queriedAt := time.Now()
 
 	player, err := playerprovider.HypixelAPIResponseToPlayerPIT(ctx, uuid, queriedAt, playerData, statusCode)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"reflect"
 	"testing"
+	"time"
 
 	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/stretchr/testify/assert"
@@ -67,11 +68,14 @@ func TestGetPlayerData(t *testing.T) {
 		)
 		hypixelAPI := NewHypixelAPI(httpClient, apiKey)
 
-		data, statusCode, err := hypixelAPI.GetPlayerData(context.Background(), "uuid1234")
+		expectedQueriedAt := time.Now()
+
+		data, statusCode, queriedAt, err := hypixelAPI.GetPlayerData(context.Background(), "uuid1234")
 
 		assert.Nil(t, err)
 		assert.Equal(t, 200, statusCode)
 		assert.Equal(t, `{"success":true,"player":null}`, string(data))
+		assert.WithinDuration(t, expectedQueriedAt, queriedAt, time.Second)
 	})
 
 	t.Run("request error", func(t *testing.T) {
@@ -84,7 +88,7 @@ func TestGetPlayerData(t *testing.T) {
 		)
 		hypixelAPI := NewHypixelAPI(httpClient, apiKey)
 
-		_, _, err := hypixelAPI.GetPlayerData(context.Background(), "uuid123456")
+		_, _, _, err := hypixelAPI.GetPlayerData(context.Background(), "uuid123456")
 
 		assert.ErrorIs(t, err, e.APIServerError)
 		assert.ErrorIs(t, err, assert.AnError)
@@ -102,7 +106,7 @@ func TestGetPlayerData(t *testing.T) {
 		}
 		hypixelAPI := NewHypixelAPI(httpClient, apiKey)
 
-		_, _, err := hypixelAPI.GetPlayerData(context.Background(), "uuid")
+		_, _, _, err := hypixelAPI.GetPlayerData(context.Background(), "uuid")
 
 		assert.ErrorIs(t, err, e.APIServerError)
 		assert.ErrorIs(t, err, assert.AnError)
