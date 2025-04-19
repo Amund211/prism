@@ -14,14 +14,8 @@ import (
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
-func getAndProcessPlayerData(ctx context.Context, hypixelAPI playerprovider.HypixelAPI, repo playerrepository.PlayerRepository, uuid string) ([]byte, int, error) {
-	playerData, statusCode, queriedAt, err := hypixelAPI.GetPlayerData(ctx, uuid)
-	if err != nil {
-		reporting.Report(ctx, err)
-		return []byte{}, -1, err
-	}
-
-	player, err := playerprovider.HypixelAPIResponseToPlayerPIT(ctx, uuid, queriedAt, playerData, statusCode)
+func getAndProcessPlayerData(ctx context.Context, provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) ([]byte, int, error) {
+	player, err := provider.GetPlayer(ctx, uuid)
 	if err != nil {
 		return []byte{}, -1, err
 	}
@@ -31,14 +25,7 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI playerprovider.Hypi
 	minifiedPlayerData, err := playerprovider.MarshalPlayerData(ctx, apiResponseFromDomain)
 	if err != nil {
 		err = fmt.Errorf("%w: failed to marshal player data: %w", e.APIServerError, err)
-		reporting.Report(
-			ctx,
-			err,
-			map[string]string{
-				"statusCode": fmt.Sprint(statusCode),
-				"data":       string(playerData),
-			},
-		)
+		reporting.Report(ctx, err)
 		return []byte{}, -1, err
 	}
 
@@ -50,21 +37,14 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI playerprovider.Hypi
 		err = repo.StorePlayer(storeCtx, player)
 		if err != nil {
 			err = fmt.Errorf("failed to store player: %w", err)
-			reporting.Report(
-				ctx,
-				err,
-				map[string]string{
-					"statusCode": fmt.Sprint(statusCode),
-					"data":       string(playerData),
-				},
-			)
+			reporting.Report(ctx, err)
 		}
 	}
 
-	return minifiedPlayerData, statusCode, nil
+	return minifiedPlayerData, 200, nil
 }
 
-func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.PlayerCache, hypixelAPI playerprovider.HypixelAPI, repo playerrepository.PlayerRepository, uuid string) ([]byte, int, error) {
+func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.PlayerCache, provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) ([]byte, int, error) {
 	logger := logging.FromContext(ctx)
 
 	if uuid == "" {
@@ -84,7 +64,7 @@ func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.Playe
 	}
 
 	processedPlayerData, statusCode, err := cache.GetOrCreateCachedResponse(ctx, playerCache, normalizedUUID, func() ([]byte, int, error) {
-		return getAndProcessPlayerData(ctx, hypixelAPI, repo, normalizedUUID)
+		return getAndProcessPlayerData(ctx, provider, repo, normalizedUUID)
 	})
 
 	if err != nil {

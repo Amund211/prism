@@ -75,6 +75,8 @@ func main() {
 	}
 	logger.Info("Initialized Hypixel API")
 
+	provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		ratelimiting.NewTokenBucketRateLimiter(
 			ratelimiting.RefillPerSecond(8),
@@ -116,7 +118,7 @@ func main() {
 		middleware(
 			server.MakeGetPlayerDataHandler(
 				func(ctx context.Context, uuid string) ([]byte, int, error) {
-					return getstats.GetOrCreateProcessedPlayerData(ctx, playerCache, hypixelAPI, repo, uuid)
+					return getstats.GetOrCreateProcessedPlayerData(ctx, playerCache, provider, repo, uuid)
 				},
 			),
 		),
@@ -367,7 +369,7 @@ func main() {
 		middleware(
 			server.MakeGetPlayerDataHandler(
 				func(ctx context.Context, uuid string) ([]byte, int, error) {
-					return getstats.GetOrCreateProcessedPlayerData(ctx, playerCache, hypixelAPI, repo, uuid)
+					return getstats.GetOrCreateProcessedPlayerData(ctx, playerCache, provider, repo, uuid)
 				},
 			),
 		),

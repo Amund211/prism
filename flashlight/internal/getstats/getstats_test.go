@@ -3,263 +3,97 @@ package getstats
 import (
 	"context"
 	"testing"
-	"time"
 
-	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/cache"
+	"github.com/Amund211/flashlight/internal/domain"
 	e "github.com/Amund211/flashlight/internal/errors"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 const UUID = "01234567-89AB---CDEF-0123-456789abcdef"
 const NORMALIZED_UUID = "01234567-89ab-cdef-0123-456789abcdef"
 
-type panicHypixelAPI struct {
+type panicPlayerProvider struct {
 	t *testing.T
 }
 
-func (p *panicHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, time.Time, error) {
+func (p *panicPlayerProvider) GetPlayer(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 	p.t.Helper()
 	p.t.Fatal("should not be called")
 	panic("unreachable")
 }
 
-type mockedHypixelAPI struct {
-	t          *testing.T
-	data       []byte
-	statusCode int
-	queriedAt  time.Time
-	err        error
+type mockedPlayerProvider struct {
+	t      *testing.T
+	player *domain.PlayerPIT
+	err    error
 }
 
-func (m *mockedHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, time.Time, error) {
+func (m *mockedPlayerProvider) GetPlayer(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 	m.t.Helper()
 
-	assert.Equal(m.t, NORMALIZED_UUID, uuid)
+	require.Equal(m.t, NORMALIZED_UUID, uuid)
 
-	return m.data, m.statusCode, m.queriedAt, m.err
+	return m.player, m.err
 }
 
 func TestGetOrCreateProcessedPlayerData(t *testing.T) {
-	now := time.Now()
-
-	t.Run("Test GetStats", func(t *testing.T) {
-		hypixelAPI := &mockedHypixelAPI{
-			t:          t,
-			data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef","stats":{"Bedwars":{"Experience":0}}}}`),
-			statusCode: 200,
-			queriedAt:  now,
-			err:        nil,
-		}
-		cache := cache.NewMockedPlayerCache()
-
-		data, statusCode, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), UUID)
-		assert.Nil(t, err)
-
-		playerData, err := playerprovider.ParseHypixelAPIResponse(context.Background(), data)
-
-		assert.Nil(t, err, "Can't parse processed playerdata '%s'", data)
-		assert.Equal(t, 200, statusCode)
-		assert.Nil(t, playerData.Cause)
-		assert.True(t, playerData.Success)
-		assert.Equal(t, 0.0, *playerData.Player.Stats.Bedwars.Experience)
-		assert.Equal(t, 0, playerData.Player.Stats.Bedwars.FinalKills)
-	})
-
 	t.Run("stats are not created if they already exist", func(t *testing.T) {
-		hypixelAPI := &mockedHypixelAPI{
-			t:          t,
-			data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef","stats":{"Bedwars":{"Experience":0}}}}`),
-			statusCode: 200,
-			queriedAt:  now,
-			err:        nil,
+		provider := &mockedPlayerProvider{
+			t:      t,
+			player: &domain.PlayerPIT{UUID: UUID, Experience: 500, Overall: domain.GamemodeStatsPIT{FinalKills: 0}},
+			err:    nil,
 		}
-		panicHypixelAPI := &panicHypixelAPI{t: t}
+		panicProvider := &panicPlayerProvider{t: t}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), UUID)
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), UUID)
 		require.NoError(t, err)
 
-		_, _, err = GetOrCreateProcessedPlayerData(context.Background(), cache, panicHypixelAPI, playerrepository.NewStubPlayerRepository(), UUID)
+		_, _, err = GetOrCreateProcessedPlayerData(context.Background(), cache, panicProvider, playerrepository.NewStubPlayerRepository(), UUID)
 		require.NoError(t, err)
 	})
 
 	t.Run("cache keys are normalized", func(t *testing.T) {
 		// Requesting abcdef12-... and then ABCDEF12-... should only go to Hypixel once
-		hypixelAPI := &mockedHypixelAPI{
-			t:          t,
-			data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef","stats":{"Bedwars":{"Experience":0}}}}`),
-			statusCode: 200,
-			queriedAt:  now,
-			err:        nil,
+		provider := &mockedPlayerProvider{
+			t:      t,
+			player: &domain.PlayerPIT{UUID: UUID, Experience: 500, Overall: domain.GamemodeStatsPIT{FinalKills: 0}},
+			err:    nil,
 		}
-		panicHypixelAPI := &panicHypixelAPI{t: t}
+		panicProvider := &panicPlayerProvider{t: t}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), "01234567-89ab-cdef-0123-456789abcdef")
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), "01234567-89ab-cdef-0123-456789abcdef")
 		require.NoError(t, err)
 
-		_, _, err = GetOrCreateProcessedPlayerData(context.Background(), cache, panicHypixelAPI, playerrepository.NewStubPlayerRepository(), "01---23456789aBCDef0123456789aBcdef")
+		_, _, err = GetOrCreateProcessedPlayerData(context.Background(), cache, panicProvider, playerrepository.NewStubPlayerRepository(), "01---23456789aBCDef0123456789aBcdef")
 		require.NoError(t, err)
-	})
-
-	t.Run("error from hypixel", func(t *testing.T) {
-		hypixelAPI := &mockedHypixelAPI{
-			t:          t,
-			data:       []byte(``),
-			statusCode: -1,
-			queriedAt:  time.Time{},
-			err:        assert.AnError,
-		}
-		cache := cache.NewMockedPlayerCache()
-
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), UUID)
-
-		assert.ErrorIs(t, err, assert.AnError)
-
-		// Errors from the Hypixel API are passed through
-		assert.NotErrorIs(t, err, e.APIServerError)
-		assert.NotErrorIs(t, err, e.RetriableError)
-	})
-
-	t.Run("html from hypixel", func(t *testing.T) {
-		// This can happen with gateway errors, giving us cloudflare html
-		// We now pass through gateway errors, so I've altered this test to return 200
-		hypixelAPI := &mockedHypixelAPI{
-			t:          t,
-			data:       []byte(`<!DOCTYPE html>`),
-			statusCode: 200,
-			queriedAt:  time.Time{},
-			err:        nil,
-		}
-		cache := cache.NewMockedPlayerCache()
-
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), UUID)
-
-		assert.ErrorIs(t, err, e.APIServerError)
-		assert.ErrorIs(t, err, e.RetriableError)
-	})
-
-	t.Run("invalid JSON from hypixel", func(t *testing.T) {
-		hypixelAPI := &mockedHypixelAPI{
-			t:          t,
-			data:       []byte(`something went wrong`),
-			statusCode: 200,
-			queriedAt:  time.Time{},
-			err:        nil,
-		}
-		cache := cache.NewMockedPlayerCache()
-
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), UUID)
-
-		assert.ErrorIs(t, err, e.APIServerError)
-		assert.NotErrorIs(t, err, e.RetriableError)
-	})
-
-	t.Run("weird data format from hypixel", func(t *testing.T) {
-		hypixelAPI := &mockedHypixelAPI{
-			t:          t,
-			data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef","stats":{"Bedwars":{"final_kills_bedwars":"string"}}}}`),
-			statusCode: 200,
-			queriedAt:  now,
-			err:        nil,
-		}
-		cache := cache.NewMockedPlayerCache()
-
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), UUID)
-
-		assert.ErrorIs(t, err, e.APIServerError)
-		assert.NotErrorIs(t, err, e.RetriableError)
 	})
 
 	t.Run("invalid uuid", func(t *testing.T) {
-		hypixelAPI := &panicHypixelAPI{t: t}
+		provider := &panicPlayerProvider{t: t}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), "invalid")
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), "invalid")
 
-		assert.ErrorIs(t, err, e.APIClientError)
-		assert.NotErrorIs(t, err, e.RetriableError)
+		require.ErrorIs(t, err, e.APIClientError)
+		require.NotErrorIs(t, err, e.RetriableError)
 
-		_, _, err = GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), "01234567-89ab-xxxx-0123-456789abcdef")
+		_, _, err = GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), "01234567-89ab-xxxx-0123-456789abcdef")
 
-		assert.ErrorIs(t, err, e.APIClientError)
-		assert.NotErrorIs(t, err, e.RetriableError)
+		require.ErrorIs(t, err, e.APIClientError)
+		require.NotErrorIs(t, err, e.RetriableError)
 	})
 
 	t.Run("missing uuid", func(t *testing.T) {
-		hypixelAPI := &panicHypixelAPI{t: t}
+		provider := &panicPlayerProvider{t: t}
 		cache := cache.NewMockedPlayerCache()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), "")
+		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), "")
 
-		assert.ErrorIs(t, err, e.APIClientError)
-		assert.NotErrorIs(t, err, e.RetriableError)
-	})
-
-	t.Run("403 from hypixel", func(t *testing.T) {
-		hypixelAPI := &mockedHypixelAPI{
-			t:          t,
-			data:       []byte(`{"success":false,"cause":"Invalid API key"}`),
-			statusCode: 403,
-			queriedAt:  now,
-			err:        nil,
-		}
-		cache := cache.NewMockedPlayerCache()
-
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), UUID)
-
-		assert.ErrorIs(t, err, e.APIServerError)
-		assert.NotErrorIs(t, err, e.RetriableError)
-	})
-
-	t.Run("bad gateway from hypixel", func(t *testing.T) {
-		hypixelAPI := &mockedHypixelAPI{
-			t:          t,
-			data:       []byte(`<!DOCTYPE html>`),
-			statusCode: 502,
-			queriedAt:  now,
-			err:        nil,
-		}
-		cache := cache.NewMockedPlayerCache()
-
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), UUID)
-
-		assert.ErrorIs(t, err, e.APIServerError)
-		assert.ErrorIs(t, err, e.RetriableError)
-	})
-
-	t.Run("service unavailable from hypixel", func(t *testing.T) {
-		hypixelAPI := &mockedHypixelAPI{
-			t:          t,
-			data:       []byte(`<!DOCTYPE html>`),
-			statusCode: 503,
-			queriedAt:  now,
-			err:        nil,
-		}
-		cache := cache.NewMockedPlayerCache()
-
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), UUID)
-
-		assert.ErrorIs(t, err, e.APIServerError)
-		assert.ErrorIs(t, err, e.RetriableError)
-	})
-
-	t.Run("gateway timeout from hypixel", func(t *testing.T) {
-		hypixelAPI := &mockedHypixelAPI{
-			t:          t,
-			data:       []byte(`<!DOCTYPE html>`),
-			statusCode: 504,
-			queriedAt:  now,
-			err:        nil,
-		}
-		cache := cache.NewMockedPlayerCache()
-
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), UUID)
-
-		assert.ErrorIs(t, err, e.APIServerError)
-		assert.ErrorIs(t, err, e.RetriableError)
+		require.ErrorIs(t, err, e.APIClientError)
+		require.NotErrorIs(t, err, e.RetriableError)
 	})
 }
