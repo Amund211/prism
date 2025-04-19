@@ -1,4 +1,4 @@
-package storage
+package playerrepository
 
 import (
 	"context"
@@ -52,7 +52,7 @@ func newUUID(t *testing.T) string {
 	return id.String()
 }
 
-func newPostgresPersistor(t *testing.T, db *sqlx.DB, schema string) *PostgresStatsPersistor {
+func newPostgresPlayerRepository(t *testing.T, db *sqlx.DB, schema string) *PostgresPlayerRepository {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	db.MustExec(fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", pq.QuoteIdentifier(schema)))
@@ -62,10 +62,10 @@ func newPostgresPersistor(t *testing.T, db *sqlx.DB, schema string) *PostgresSta
 	err := migrator.Migrate(schema)
 	require.NoError(t, err)
 
-	return NewPostgresStatsPersistor(db, schema)
+	return NewPostgresPlayerRepository(db, schema)
 }
 
-func TestPostgresStatsPersistor(t *testing.T) {
+func TestPostgresPlayerRepository(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping db tests in short mode.")
 	}
@@ -76,10 +76,10 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 	now := time.Now()
 
-	t.Run("StoreStats", func(t *testing.T) {
+	t.Run("StorePlayer", func(t *testing.T) {
 		SCHEMA_NAME := "store_stats"
 		t.Parallel()
-		p := newPostgresPersistor(t, db, SCHEMA_NAME)
+		p := newPostgresPlayerRepository(t, db, SCHEMA_NAME)
 
 		requireStored := func(t *testing.T, player *domain.PlayerPIT, targetCount int) {
 			t.Helper()
@@ -133,7 +133,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			player := newPlayerBuilder(uuid, now).WithGamesPlayed(0).Build()
 
 			requireNotStored(t, player)
-			err := p.StoreStats(ctx, player)
+			err := p.StorePlayer(ctx, player)
 			require.NoError(t, err)
 			requireStoredOnce(t, player)
 		})
@@ -148,12 +148,12 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			player2 := newPlayerBuilder(player_uuid, t2).WithGamesPlayed(2).Build()
 
 			requireNotStored(t, player1)
-			err := p.StoreStats(ctx, player1)
+			err := p.StorePlayer(ctx, player1)
 			require.NoError(t, err)
 			requireStoredOnce(t, player1)
 
 			requireNotStored(t, player2)
-			err = p.StoreStats(ctx, player2)
+			err = p.StorePlayer(ctx, player2)
 			require.NoError(t, err)
 			requireStoredOnce(t, player2)
 
@@ -172,7 +172,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			player1 := newPlayerBuilder(player_uuid, t1).WithGamesPlayed(1).Build()
 
 			requireNotStored(t, player1)
-			err := p.StoreStats(ctx, player1)
+			err := p.StorePlayer(ctx, player1)
 			require.NoError(t, err)
 			requireStoredOnce(t, player1)
 
@@ -181,7 +181,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 				player2 := newPlayerBuilder(player_uuid, t2).WithGamesPlayed(2).Build()
 
 				requireNotStored(t, player2)
-				err = p.StoreStats(ctx, player2)
+				err = p.StorePlayer(ctx, player2)
 				require.NoError(t, err)
 				requireNotStored(t, player2)
 			}
@@ -195,7 +195,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			player1 := newPlayerBuilder(player_uuid, t1).WithGamesPlayed(1).Build()
 
 			requireNotStored(t, player1)
-			err := p.StoreStats(ctx, player1)
+			err := p.StorePlayer(ctx, player1)
 			require.NoError(t, err)
 			requireStoredOnce(t, player1)
 
@@ -203,7 +203,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 				t2 := t1.Add(time.Duration(i) * time.Minute)
 				player2 := newPlayerBuilder(player_uuid, t2).WithGamesPlayed(1).Build()
 				requireNotStored(t, player2)
-				err = p.StoreStats(ctx, player2)
+				err = p.StorePlayer(ctx, player2)
 				require.NoError(t, err)
 				requireNotStored(t, player2)
 			}
@@ -217,7 +217,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			player1 := newPlayerBuilder(player_uuid, t1).WithGamesPlayed(1).Build()
 
 			requireNotStored(t, player1)
-			err := p.StoreStats(ctx, player1)
+			err := p.StorePlayer(ctx, player1)
 			require.NoError(t, err)
 			requireStoredOnce(t, player1)
 
@@ -225,7 +225,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			t2 := t1.Add(1 * time.Hour)
 			player2 := newPlayerBuilder(player_uuid, t2).WithGamesPlayed(1).Build()
 
-			err = p.StoreStats(ctx, player2)
+			err = p.StorePlayer(ctx, player2)
 			require.NoError(t, err)
 			requireStoredOnce(t, player2)
 		})
@@ -238,7 +238,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			player1 := newPlayerBuilder(player_uuid, t1).WithGamesPlayed(1).Build()
 
 			requireNotStored(t, player1)
-			err := p.StoreStats(ctx, player1)
+			err := p.StorePlayer(ctx, player1)
 			require.NoError(t, err)
 			requireStoredOnce(t, player1)
 
@@ -246,7 +246,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			player2 := newPlayerBuilder(player_uuid, t2).WithGamesPlayed(2).Build()
 
 			requireNotStored(t, player2)
-			err = p.StoreStats(ctx, player2)
+			err = p.StorePlayer(ctx, player2)
 			require.NoError(t, err)
 			requireStoredOnce(t, player2)
 
@@ -254,7 +254,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			t3 := t2.Add(2 * time.Minute)
 			player3 := newPlayerBuilder(player_uuid, t3).WithGamesPlayed(1).Build()
 			requireNotStored(t, player3)
-			err = p.StoreStats(ctx, player3)
+			err = p.StorePlayer(ctx, player3)
 			require.NoError(t, err)
 			requireStoredOnce(t, player3)
 		})
@@ -288,7 +288,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			t2 := t1.Add(2 * time.Minute)
 			player2 := newPlayerBuilder(player_uuid, t2).WithGamesPlayed(1).Build()
-			err = p.StoreStats(ctx, player2)
+			err = p.StorePlayer(ctx, player2)
 			require.NoError(t, err)
 			requireStoredOnce(t, player2)
 		})
@@ -302,12 +302,12 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			player2 := newPlayerBuilder(uuid2, t1).WithGamesPlayed(3).Build()
 
 			requireNotStored(t, player1)
-			err := p.StoreStats(ctx, player1)
+			err := p.StorePlayer(ctx, player1)
 			require.NoError(t, err)
 			requireStoredOnce(t, player1)
 
 			requireNotStored(t, player2)
-			err = p.StoreStats(ctx, player2)
+			err = p.StorePlayer(ctx, player2)
 			require.NoError(t, err)
 			requireStoredOnce(t, player2)
 
@@ -316,7 +316,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("store nil player fails", func(t *testing.T) {
 			t.Parallel()
-			err := p.StoreStats(ctx, nil)
+			err := p.StorePlayer(ctx, nil)
 			require.Error(t, err)
 			require.Contains(t, err.Error(), "player is nil")
 		})
@@ -337,7 +337,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 					uuid := newUUID(t)
 					player := newPlayerBuilder(uuid, t1).WithGamesPlayed(i).Build()
 
-					err := p.StoreStats(ctx, player)
+					err := p.StorePlayer(ctx, player)
 					require.NoError(t, err)
 					requireStoredOnce(t, player)
 				}
@@ -349,7 +349,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 				player := newPlayerBuilder(uuid, t1).WithGamesPlayed(1).Build()
 
 				for i := 0; i < limit; i++ {
-					err := p.StoreStats(ctx, player)
+					err := p.StorePlayer(ctx, player)
 					require.NoError(t, err)
 					// Will only ever be stored once since the time is within one minute
 					requireStoredOnce(t, player)
@@ -361,15 +361,15 @@ func TestPostgresStatsPersistor(t *testing.T) {
 	t.Run("GetHistory", func(t *testing.T) {
 		t.Parallel()
 
-		storeStats := func(t *testing.T, p *PostgresStatsPersistor, players ...*domain.PlayerPIT) {
+		storePlayer := func(t *testing.T, p PlayerRepository, players ...*domain.PlayerPIT) {
 			t.Helper()
 			for _, player := range players {
-				err := p.StoreStats(ctx, player)
+				err := p.StorePlayer(ctx, player)
 				require.NoError(t, err)
 			}
 		}
 
-		setStoredStats := func(t *testing.T, p *PostgresStatsPersistor, players ...*domain.PlayerPIT) {
+		setStoredStats := func(t *testing.T, p *PostgresPlayerRepository, players ...*domain.PlayerPIT) {
 			t.Helper()
 			txx, err := db.Beginx()
 			require.NoError(t, err)
@@ -383,7 +383,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			err = txx.Commit()
 			require.NoError(t, err)
 
-			storeStats(t, p, players...)
+			storePlayer(t, p, players...)
 
 			txx, err = db.Beginx()
 			require.NoError(t, err)
@@ -412,7 +412,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("evenly spread across a day", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "get_history_evenly_spread_across_a_day")
+			p := newPostgresPlayerRepository(t, db, "get_history_evenly_spread_across_a_day")
 			janFirst21 := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", 3600*10))
 
 			player_uuid := newUUID(t)
@@ -451,7 +451,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("random clusters", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "get_history_random_clusters")
+			p := newPostgresPlayerRepository(t, db, "get_history_random_clusters")
 			player_uuid := newUUID(t)
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
 
@@ -524,7 +524,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			// Make sure these are not the same instance.
 
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "no_duplicates_returned")
+			p := newPostgresPlayerRepository(t, db, "no_duplicates_returned")
 
 			t.Run("single stat stored", func(t *testing.T) {
 				start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
@@ -546,7 +546,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 								newPlayerBuilder(player_uuid, queriedAt).WithGamesPlayed(1).Build(),
 							}
 
-							storeStats(t, p, players...)
+							storePlayer(t, p, players...)
 
 							history, err := p.GetHistory(ctx, player_uuid, start, end, limit)
 							require.NoError(t, err)
@@ -581,7 +581,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 							newPlayerBuilder(player_uuid, end.Add(-1*time.Minute)).WithGamesPlayed(0).Build(),
 						}
 
-						storeStats(t, p, players...)
+						storePlayer(t, p, players...)
 
 						history, err := p.GetHistory(ctx, player_uuid, start, end, limit)
 						require.NoError(t, err)
@@ -607,13 +607,13 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 	t.Run("GetSessions", func(t *testing.T) {
 		t.Parallel()
-		storeStats := func(t *testing.T, p *PostgresStatsPersistor, players ...*domain.PlayerPIT) []*domain.PlayerPIT {
+		storePlayer := func(t *testing.T, p PlayerRepository, players ...*domain.PlayerPIT) []*domain.PlayerPIT {
 			t.Helper()
 			playerData := make([]*domain.PlayerPIT, len(players))
 			for i, player := range players {
 				// Add a random number to prevent de-duplication of the stored stats
 				player.Solo.Winstreak = &i
-				err := p.StoreStats(ctx, player)
+				err := p.StorePlayer(ctx, player)
 				require.NoError(t, err)
 
 				history, err := p.GetHistory(ctx, player.UUID, player.QueriedAt, player.QueriedAt.Add(1*time.Microsecond), 2)
@@ -675,7 +675,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("random clusters", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "get_sessions_random_clusters")
+			p := newPostgresPlayerRepository(t, db, "get_sessions_random_clusters")
 			player_uuid := newUUID(t)
 			start := time.Date(2022, time.February, 14, 0, 0, 0, 0, time.FixedZone("UTC", 3600*1))
 
@@ -716,7 +716,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			players[24] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(56*time.Minute)).WithGamesPlayed(18).WithExperience(9_500).Build()
 			players[25] = newPlayerBuilder(player_uuid, start.Add(4*time.Hour).Add(16*time.Minute)).WithGamesPlayed(19).WithExperience(10_800).Build()
 
-			playerData := storeStats(t, p, players...)
+			playerData := storePlayer(t, p, players...)
 
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
@@ -738,14 +738,14 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("Single stat", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "get_sessions_single")
+			p := newPostgresPlayerRepository(t, db, "get_sessions_single")
 			player_uuid := newUUID(t)
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
 
 			players := make([]*domain.PlayerPIT, 1)
 			players[0] = newPlayerBuilder(player_uuid, start.Add(6*time.Hour).Add(7*time.Minute)).WithGamesPlayed(11).WithExperience(1_300).Build()
 
-			_ = storeStats(t, p, players...)
+			_ = storePlayer(t, p, players...)
 
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
@@ -755,7 +755,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("Single stat at the start", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "get_sessions_single_at_start")
+			p := newPostgresPlayerRepository(t, db, "get_sessions_single_at_start")
 			player_uuid := newUUID(t)
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
 
@@ -765,7 +765,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			players[1] = newPlayerBuilder(player_uuid, start.Add(8*time.Hour).Add(-1*time.Minute)).WithGamesPlayed(10).WithExperience(1_100).Build()
 			players[2] = newPlayerBuilder(player_uuid, start.Add(8*time.Hour).Add(7*time.Minute)).WithGamesPlayed(11).WithExperience(1_300).Build()
 
-			playerData := storeStats(t, p, players...)
+			playerData := storePlayer(t, p, players...)
 
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
@@ -782,7 +782,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("Single stat at the end", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "get_sessions_single_at_end")
+			p := newPostgresPlayerRepository(t, db, "get_sessions_single_at_end")
 			player_uuid := newUUID(t)
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
 
@@ -792,7 +792,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			players[2] = newPlayerBuilder(player_uuid, start.Add(8*time.Hour).Add(7*time.Minute)).WithGamesPlayed(12).WithExperience(1_600).Build()
 
-			playerData := storeStats(t, p, players...)
+			playerData := storePlayer(t, p, players...)
 
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
@@ -809,7 +809,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("Single stat at start and end", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "get_sessions_single_at_start_and_end")
+			p := newPostgresPlayerRepository(t, db, "get_sessions_single_at_start_and_end")
 			player_uuid := newUUID(t)
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*2))
 
@@ -821,7 +821,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			players[3] = newPlayerBuilder(player_uuid, start.Add(10*time.Hour).Add(7*time.Minute)).WithGamesPlayed(12).WithExperience(1_600).Build()
 
-			playerData := storeStats(t, p, players...)
+			playerData := storePlayer(t, p, players...)
 
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
@@ -838,13 +838,13 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("No stats", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "get_sessions_no_stats")
+			p := newPostgresPlayerRepository(t, db, "get_sessions_no_stats")
 			player_uuid := newUUID(t)
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*10))
 
 			players := make([]*domain.PlayerPIT, 0)
 
-			_ = storeStats(t, p, players...)
+			_ = storePlayer(t, p, players...)
 
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
@@ -854,7 +854,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("inactivity between sessions", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "get_sessions_inactivity_between_sessions")
+			p := newPostgresPlayerRepository(t, db, "get_sessions_inactivity_between_sessions")
 			player_uuid := newUUID(t)
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*2))
 
@@ -873,7 +873,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			players[11] = newPlayerBuilder(player_uuid, start.Add(4*time.Hour).Add(16*time.Minute)).WithGamesPlayed(19).WithExperience(10_800).Build()
 			players[12] = newPlayerBuilder(player_uuid, start.Add(4*time.Hour).Add(20*time.Minute)).WithGamesPlayed(19).WithExperience(10_800).Build()
 
-			playerData := storeStats(t, p, players...)
+			playerData := storePlayer(t, p, players...)
 
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
@@ -895,7 +895,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("1 hr inactivity between sessions", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "get_sessions_1_hr_inactivity_between_sessions")
+			p := newPostgresPlayerRepository(t, db, "get_sessions_1_hr_inactivity_between_sessions")
 			player_uuid := newUUID(t)
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*2))
 
@@ -907,7 +907,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			players[2] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(45*time.Minute)).WithGamesPlayed(17).WithExperience(9_400).Build()
 			players[3] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(31*time.Minute)).WithGamesPlayed(18).WithExperience(10_800).Build()
 
-			playerData := storeStats(t, p, players...)
+			playerData := storePlayer(t, p, players...)
 
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
@@ -929,7 +929,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("sessions before and after", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "get_sessions_before_and_after")
+			p := newPostgresPlayerRepository(t, db, "get_sessions_before_and_after")
 			player_uuid := newUUID(t)
 			start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*2))
 
@@ -946,7 +946,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			players[6] = newPlayerBuilder(player_uuid, start.Add(45*time.Hour).Add(5*time.Minute)).WithGamesPlayed(19).WithExperience(10_900).Build()
 			players[7] = newPlayerBuilder(player_uuid, start.Add(45*time.Hour).Add(30*time.Minute)).WithGamesPlayed(20).WithExperience(11_900).Build()
 
-			storeStats(t, p, players...)
+			storePlayer(t, p, players...)
 
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
@@ -957,7 +957,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("only xp change", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "get_sessions_only_xp_change")
+			p := newPostgresPlayerRepository(t, db, "get_sessions_only_xp_change")
 			player_uuid := newUUID(t)
 			start := time.Date(2024, time.March, 24, 17, 37, 14, 987_654_321, time.FixedZone("UTC", 3600*9))
 
@@ -969,7 +969,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			players[2] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(45*time.Minute)).WithGamesPlayed(16).WithExperience(9_400).Build()
 			players[3] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(31*time.Minute)).WithGamesPlayed(16).WithExperience(10_800).Build()
 
-			playerData := storeStats(t, p, players...)
+			playerData := storePlayer(t, p, players...)
 
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
@@ -991,7 +991,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("only games played change", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "get_sessions_only_games_played_change")
+			p := newPostgresPlayerRepository(t, db, "get_sessions_only_games_played_change")
 			player_uuid := newUUID(t)
 			start := time.Date(2024, time.August, 2, 1, 47, 34, 987_654_321, time.FixedZone("UTC", 3600*3))
 
@@ -1003,7 +1003,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			players[2] = newPlayerBuilder(player_uuid, start.Add(1*time.Hour).Add(45*time.Minute)).WithGamesPlayed(17).WithExperience(9_200).Build()
 			players[3] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(31*time.Minute)).WithGamesPlayed(18).WithExperience(9_200).Build()
 
-			playerData := storeStats(t, p, players...)
+			playerData := storePlayer(t, p, players...)
 
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
@@ -1025,7 +1025,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("gaps in sessions", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "get_sessions_gaps_in_sessions")
+			p := newPostgresPlayerRepository(t, db, "get_sessions_gaps_in_sessions")
 			player_uuid := newUUID(t)
 			start := time.Date(2022, time.November, 2, 13, 47, 34, 987_654_321, time.FixedZone("UTC", 3600*3))
 
@@ -1052,7 +1052,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 			players[9] = newPlayerBuilder(player_uuid, start.Add(17*time.Hour).Add(15*time.Minute)).WithGamesPlayed(44).WithExperience(38_800).Build()
 
-			playerData := storeStats(t, p, players...)
+			playerData := storePlayer(t, p, players...)
 
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
@@ -1079,7 +1079,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("end", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "end")
+			p := newPostgresPlayerRepository(t, db, "end")
 			player_uuid := newUUID(t)
 			start := time.Date(2025, time.December, 9, 14, 13, 34, 987_654_321, time.FixedZone("UTC", 3600*0))
 
@@ -1088,7 +1088,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			players[1] = newPlayerBuilder(player_uuid, start.Add(23*time.Hour).Add(40*time.Minute)).WithGamesPlayed(17).WithExperience(9_500).Build()
 			players[2] = newPlayerBuilder(player_uuid, start.Add(24*time.Hour).Add(05*time.Minute)).WithGamesPlayed(18).WithExperience(9_900).Build()
 
-			playerData := storeStats(t, p, players...)
+			playerData := storePlayer(t, p, players...)
 
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
@@ -1105,7 +1105,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("mostly consecutive", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "mostly_consecutive")
+			p := newPostgresPlayerRepository(t, db, "mostly_consecutive")
 			player_uuid := newUUID(t)
 			start := time.Date(2025, time.February, 7, 4, 13, 34, 987_654_321, time.FixedZone("UTC", 3600*-10))
 
@@ -1117,7 +1117,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			players[4] = newPlayerBuilder(player_uuid, start.Add(4*time.Hour).Add(55*time.Minute)).WithGamesPlayed(21).WithExperience(11_900).Build()
 			players[5] = newPlayerBuilder(player_uuid, start.Add(5*time.Hour).Add(15*time.Minute)).WithGamesPlayed(22).WithExperience(12_900).Build()
 
-			playerData := storeStats(t, p, players...)
+			playerData := storePlayer(t, p, players...)
 
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)
@@ -1134,7 +1134,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 
 		t.Run("short pauses", func(t *testing.T) {
 			t.Parallel()
-			p := newPostgresPersistor(t, db, "short_pauses")
+			p := newPostgresPlayerRepository(t, db, "short_pauses")
 			player_uuid := newUUID(t)
 			start := time.Date(2025, time.December, 1, 7, 13, 34, 987_654_321, time.FixedZone("UTC", 3600*7))
 
@@ -1146,7 +1146,7 @@ func TestPostgresStatsPersistor(t *testing.T) {
 			players[4] = newPlayerBuilder(player_uuid, start.Add(2*time.Hour).Add(55*time.Minute)).WithGamesPlayed(17).WithExperience(10_900).Build()
 			players[5] = newPlayerBuilder(player_uuid, start.Add(3*time.Hour).Add(15*time.Minute)).WithGamesPlayed(17).WithExperience(11_900).Build()
 
-			playerData := storeStats(t, p, players...)
+			playerData := storePlayer(t, p, players...)
 
 			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
 			require.NoError(t, err)

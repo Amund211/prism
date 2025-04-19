@@ -1,4 +1,4 @@
-package storage
+package playerrepository
 
 import "fmt"
 

@@ -1,4 +1,4 @@
-package storage
+package playerrepository
 
 import (
 	"context"
@@ -21,7 +21,7 @@ import (
 
 const DATA_FORMAT_VERSION = 1
 
-type PostgresStatsPersistor struct {
+type PostgresPlayerRepository struct {
 	db     *sqlx.DB
 	schema string
 }
@@ -36,8 +36,8 @@ func GetSchemaName(isTesting bool) string {
 	return MAIN_SCHEMA
 }
 
-func NewPostgresStatsPersistor(db *sqlx.DB, schema string) *PostgresStatsPersistor {
-	return &PostgresStatsPersistor{db, schema}
+func NewPostgresPlayerRepository(db *sqlx.DB, schema string) *PostgresPlayerRepository {
+	return &PostgresPlayerRepository{db, schema}
 }
 
 type playerDataStorage struct {
@@ -144,7 +144,7 @@ func dbStatToPlayerPITWithID(dbStat dbStat) (*playerPITWithID, error) {
 
 		UUID: dbStat.UUID,
 
-		// NOTE: Not currently stored to persistor
+		// NOTE: Not currently stored to postgres
 		Displayname: nil,
 		LastLogin:   nil,
 		LastLogout:  nil,
@@ -163,35 +163,35 @@ func dbStatToPlayerPITWithID(dbStat dbStat) (*playerPITWithID, error) {
 	}, nil
 }
 
-func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, player *domain.PlayerPIT) error {
+func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *domain.PlayerPIT) error {
 	if player == nil {
-		return fmt.Errorf("StoreStats: player is nil")
+		return fmt.Errorf("StorePlayer: player is nil")
 	}
 
 	normalizedUUID, err := strutils.NormalizeUUID(player.UUID)
 	if err != nil {
-		return fmt.Errorf("StoreStats: failed to normalize uuid: %w", err)
+		return fmt.Errorf("StorePlayer: failed to normalize uuid: %w", err)
 	}
 
 	playerData, err := playerToDataStorage(player)
 	if err != nil {
-		return fmt.Errorf("StoreStats: failed to marshal player data: %w", err)
+		return fmt.Errorf("StorePlayer: failed to marshal player data: %w", err)
 	}
 
 	dbID, err := uuid.NewV7()
 	if err != nil {
-		return fmt.Errorf("StoreStats: failed to generate uuid: %w", err)
+		return fmt.Errorf("StorePlayer: failed to generate uuid: %w", err)
 	}
 
 	txx, err := p.db.BeginTxx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("StoreStats: failed to start transaction: %w", err)
+		return fmt.Errorf("StorePlayer: failed to start transaction: %w", err)
 	}
 	defer txx.Rollback()
 
 	_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
 	if err != nil {
-		return fmt.Errorf("StoreStats: failed to set search path: %w", err)
+		return fmt.Errorf("StorePlayer: failed to set search path: %w", err)
 	}
 
 	var count int
@@ -202,7 +202,7 @@ func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, player *domain.
 		player.QueriedAt.Add(-time.Minute),
 	).Scan(&count)
 	if err != nil {
-		return fmt.Errorf("StoreStats: failed to query existing stats: %w", err)
+		return fmt.Errorf("StorePlayer: failed to query existing stats: %w", err)
 	}
 	if count > 0 {
 		// Recent stats already exist, no need to store them again
@@ -227,14 +227,14 @@ func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, player *domain.
 	if err == nil && lastDataFormatVersion == DATA_FORMAT_VERSION {
 		equal, err := strutils.JSONStringsEqual(playerData, lastPlayerData)
 		if err != nil {
-			return fmt.Errorf("StoreStats: failed to compare player data: %w", err)
+			return fmt.Errorf("StorePlayer: failed to compare player data: %w", err)
 		}
 		if equal {
 			return nil
 		}
 	}
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("StoreStats: failed to query last player data: %w", err)
+		return fmt.Errorf("StorePlayer: failed to query last player data: %w", err)
 	}
 
 	_, err = txx.ExecContext(
@@ -249,12 +249,12 @@ func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, player *domain.
 		DATA_FORMAT_VERSION,
 	)
 	if err != nil {
-		return fmt.Errorf("StoreStats: failed to insert stats: %w", err)
+		return fmt.Errorf("StorePlayer: failed to insert stats: %w", err)
 	}
 
 	err = txx.Commit()
 	if err != nil {
-		return fmt.Errorf("StoreStats: failed to commit transaction: %w", err)
+		return fmt.Errorf("StorePlayer: failed to commit transaction: %w", err)
 	}
 
 	logging.FromContext(ctx).Info("Stored stats", "dataFormatVersion", DATA_FORMAT_VERSION)
@@ -262,7 +262,7 @@ func (p *PostgresStatsPersistor) StoreStats(ctx context.Context, player *domain.
 	return nil
 }
 
-func (p *PostgresStatsPersistor) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error) {
+func (p *PostgresPlayerRepository) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error) {
 	if limit < 2 || limit > 1000 {
 		// TODO: Use known error
 		return nil, fmt.Errorf("GetHistory: invalid limit: %d", limit)
@@ -283,7 +283,7 @@ func (p *PostgresStatsPersistor) GetHistory(ctx context.Context, playerUUID stri
 
 	_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
 	if err != nil {
-		return nil, fmt.Errorf("StoreStats: failed to set search path: %w", err)
+		return nil, fmt.Errorf("StorePlayer: failed to set search path: %w", err)
 	}
 
 	// NOTE: Odd limit values will be rounded down (limit=3 == limit=2)
@@ -359,7 +359,7 @@ func (p *PostgresStatsPersistor) GetHistory(ctx context.Context, playerUUID stri
 
 	err = txx.Commit()
 	if err != nil {
-		return nil, fmt.Errorf("StoreStats: failed to commit transaction: %w", err)
+		return nil, fmt.Errorf("StorePlayer: failed to commit transaction: %w", err)
 	}
 
 	result := make([]domain.PlayerPIT, 0, len(dbStats))
@@ -484,7 +484,7 @@ func computeSessions(stats []playerPITWithID, start, end time.Time) []domain.Ses
 	return sessions
 }
 
-func (p *PostgresStatsPersistor) GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]domain.Session, error) {
+func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]domain.Session, error) {
 	timespan := end.Sub(start)
 	if timespan <= 0 {
 		// TODO: Use known error
@@ -556,25 +556,25 @@ func (p *PostgresStatsPersistor) GetSessions(ctx context.Context, playerUUID str
 	return computeSessions(stats, start, end), nil
 }
 
-type StubPersistor struct{}
+type StubPlayerRepository struct{}
 
-func (p *StubPersistor) StoreStats(ctx context.Context, player *domain.PlayerPIT) error {
+func (p *StubPlayerRepository) StorePlayer(ctx context.Context, player *domain.PlayerPIT) error {
 	return nil
 }
 
-func (p *StubPersistor) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error) {
+func (p *StubPlayerRepository) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error) {
 	return []domain.PlayerPIT{}, nil
 }
 
-func (p *StubPersistor) GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]domain.Session, error) {
+func (p *StubPlayerRepository) GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]domain.Session, error) {
 	return []domain.Session{}, nil
 }
 
-func NewStubPersistor() *StubPersistor {
-	return &StubPersistor{}
+func NewStubPlayerRepository() *StubPlayerRepository {
+	return &StubPlayerRepository{}
 }
 
-func NewPostgresStatsPersistorOrMock(conf config.Config, logger *slog.Logger) (StatsPersistor, error) {
+func NewPostgresPlayerRepositoryOrMock(conf config.Config, logger *slog.Logger) (PlayerRepository, error) {
 	var connectionString string
 	if conf.IsDevelopment() {
 		connectionString = LOCAL_CONNECTION_STRING
@@ -582,19 +582,19 @@ func NewPostgresStatsPersistorOrMock(conf config.Config, logger *slog.Logger) (S
 		connectionString = GetCloudSQLConnectionString(conf.DBUsername(), conf.DBPassword(), conf.CloudSQLUnixSocketPath())
 	}
 
-	persistorSchemaName := GetSchemaName(!conf.IsProduction())
+	repositorySchemaName := GetSchemaName(!conf.IsProduction())
 
 	logger.Info("Initializing database connection")
 	db, err := NewPostgresDatabase(connectionString)
 
 	if err == nil {
-		NewDatabaseMigrator(db, logger.With("component", "migrator")).Migrate(persistorSchemaName)
-		return NewPostgresStatsPersistor(db, persistorSchemaName), nil
+		NewDatabaseMigrator(db, logger.With("component", "migrator")).Migrate(repositorySchemaName)
+		return NewPostgresPlayerRepository(db, repositorySchemaName), nil
 	}
 
 	if conf.IsDevelopment() {
-		logger.Warn("Failed to connect to database. Falling back to stub persistor.", "errror", err.Error())
-		return NewStubPersistor(), nil
+		logger.Warn("Failed to connect to database. Falling back to stub repository.", "errror", err.Error())
+		return NewStubPlayerRepository(), nil
 	}
 
 	return nil, fmt.Errorf("Failed to connect to database: %w", err)

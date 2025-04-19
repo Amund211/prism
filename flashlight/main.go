@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/cache"
 	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/domain"
@@ -21,7 +22,6 @@ import (
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/server"
-	"github.com/Amund211/flashlight/internal/storage"
 	"github.com/google/uuid"
 )
 
@@ -98,11 +98,11 @@ func main() {
 	defer flush()
 	logger.Info("Initialized Sentry middleware")
 
-	persistor, err := storage.NewPostgresStatsPersistorOrMock(config, logger)
+	repo, err := playerrepository.NewPostgresPlayerRepositoryOrMock(config, logger)
 	if err != nil {
-		fail("Failed to initialize PostgresStatsPersistor", "error", err.Error())
+		fail("Failed to initialize PostgresPlayerRepository", "error", err.Error())
 	}
-	logger.Info("Initialized StatsPersistor")
+	logger.Info("Initialized PlayerRepository")
 
 	middleware := server.ComposeMiddlewares(
 		logging.NewRequestLoggerMiddleware(logger.With("component", "getPlayerData")),
@@ -116,7 +116,7 @@ func main() {
 		middleware(
 			server.MakeGetPlayerDataHandler(
 				func(ctx context.Context, uuid string) ([]byte, int, error) {
-					return getstats.GetOrCreateProcessedPlayerData(ctx, playerCache, hypixelAPI, persistor, uuid)
+					return getstats.GetOrCreateProcessedPlayerData(ctx, playerCache, hypixelAPI, repo, uuid)
 				},
 			),
 		),
@@ -161,7 +161,7 @@ func main() {
 					return
 				}
 
-				history, err := persistor.GetHistory(r.Context(), request.UUID, request.Start, request.End, request.Limit)
+				history, err := repo.GetHistory(r.Context(), request.UUID, request.Start, request.End, request.Limit)
 				if err != nil {
 					http.Error(w, "Failed to get history", http.StatusInternalServerError)
 					return
@@ -272,7 +272,7 @@ func main() {
 					return
 				}
 
-				sessions, err := persistor.GetSessions(r.Context(), request.UUID, request.Start, request.End)
+				sessions, err := repo.GetSessions(r.Context(), request.UUID, request.Start, request.End)
 				if err != nil {
 					http.Error(w, "Failed to get sessions", http.StatusInternalServerError)
 					return
@@ -367,7 +367,7 @@ func main() {
 		middleware(
 			server.MakeGetPlayerDataHandler(
 				func(ctx context.Context, uuid string) ([]byte, int, error) {
-					return getstats.GetOrCreateProcessedPlayerData(ctx, playerCache, hypixelAPI, persistor, uuid)
+					return getstats.GetOrCreateProcessedPlayerData(ctx, playerCache, hypixelAPI, repo, uuid)
 				},
 			),
 		),
