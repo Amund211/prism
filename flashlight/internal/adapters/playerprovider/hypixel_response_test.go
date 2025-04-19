@@ -11,19 +11,20 @@ import (
 	"time"
 
 	e "github.com/Amund211/flashlight/internal/errors"
+	"github.com/Amund211/flashlight/internal/strutils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 type processPlayerDataTest struct {
-	name               string
-	before             []byte
-	hypixelStatusCode  int
-	after              []byte
-	expectedStatusCode int
-	error              error
-	toDomainError      error
+	name              string
+	uuid              string
+	queriedAt         time.Time
+	before            []byte
+	hypixelStatusCode int
+	after             []byte
+	error             error
 }
 
 const hypixelAPIResponsesDir = "../../../fixtures/hypixel_api_responses/"
@@ -31,11 +32,12 @@ const expectedMinifiedDataDir = "testdata/expected_minified_data/"
 
 // NOTE: for readability, after is compacted before being compared
 var literalTests = []processPlayerDataTest{
-	{name: "empty object", before: []byte(`{}`), toDomainError: e.APIServerError},
+	{name: "empty object", before: []byte(`{}`), error: e.APIServerError},
 	{name: "empty list", before: []byte(`[]`), after: []byte{}, error: e.APIServerError},
 	{name: "empty string", before: []byte(``), after: []byte{}, error: e.APIServerError},
 	{
 		name: "float experience",
+		uuid: "12345678-90ab-cdef-1234-567890abcdef",
 		before: []byte(`{
 			"success": true,
 			"player": {
@@ -50,7 +52,7 @@ var literalTests = []processPlayerDataTest{
 		after: []byte(`{
 			"success": true,
 			"player": {
-				"uuid":"1234567890abcdef1234567890abcdef",
+				"uuid":"12345678-90ab-cdef-1234-567890abcdef",
 				"stats": {
 					"Bedwars": {
 						"Experience": 1087
@@ -61,6 +63,7 @@ var literalTests = []processPlayerDataTest{
 	},
 	{
 		name: "float experience - scientific notation",
+		uuid: "12345678-90ab-cdef-1234-567890abcdef",
 		before: []byte(`{
 			"success": true,
 			"player": {
@@ -75,7 +78,7 @@ var literalTests = []processPlayerDataTest{
 		after: []byte(`{
 			"success": true,
 			"player": {
-				"uuid":"1234567890abcdef1234567890abcdef",
+				"uuid":"12345678-90ab-cdef-1234-567890abcdef",
 				"stats": {
 					"Bedwars": {
 						"Experience": 12227806
@@ -85,10 +88,9 @@ var literalTests = []processPlayerDataTest{
 		}`),
 	},
 	{
-		name:               "not found",
-		before:             []byte(`{"success": true, "player": null}`),
-		after:              []byte(`{"success": true, "player": null}`),
-		expectedStatusCode: 404,
+		name:   "not found",
+		before: []byte(`{"success": true, "player": null}`),
+		after:  []byte(`{"success": true, "player": null}`),
 	},
 	{
 		name:              "hypixel 500",
@@ -136,31 +138,19 @@ func runProcessPlayerDataTest(t *testing.T, test processPlayerDataTest) {
 	if test.hypixelStatusCode != 0 {
 		hypixelStatusCode = test.hypixelStatusCode
 	}
-	expectedStatusCode := 200
-	if test.expectedStatusCode != 0 {
-		expectedStatusCode = test.expectedStatusCode
-	}
 
-	parsedResponse, statusCode, err := ParseHypixelAPIResponse(context.Background(), test.before, hypixelStatusCode)
+	player, err := HypixelAPIResponseToPlayerPIT(context.Background(), test.uuid, test.queriedAt, test.before, hypixelStatusCode)
 	if test.error != nil {
-		assert.Equal(t, 0, test.expectedStatusCode, "status code not returned on error")
 		assert.ErrorIs(t, err, test.error, "processPlayerData(%s) - expected error", test.name)
 		return
 	}
 	require.NoError(t, err)
 
-	domainPlayer, err := HypixelAPIResponseToDomainPlayer(parsedResponse, time.Now(), nil)
-	if test.toDomainError != nil {
-		require.ErrorIs(t, err, test.toDomainError)
-		return
-	}
-	require.NoError(t, err)
-	responseFromDomain := DomainPlayerToHypixelAPIResponse(domainPlayer)
+	responseFromDomain := DomainPlayerToHypixelAPIResponse(player)
 
 	minified, err := MarshalPlayerData(context.Background(), responseFromDomain)
 
 	assert.Nil(t, err, "processPlayerData(%s) - unexpected marshall error: %v", test.name, err)
-	assert.Equal(t, expectedStatusCode, statusCode, test.name)
 	assert.JSONEq(t, string(test.after), string(minified), "processPlayerData(%s) - expected '%s', got '%s'", test.name, test.after, minified)
 }
 
@@ -180,7 +170,7 @@ func TestProcessPlayerDataLiterals(t *testing.T) {
 	for _, test := range append(literalTests, cloudfareTests...) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
-			if test.error == nil && test.toDomainError == nil {
+			if test.error == nil {
 				var compacted bytes.Buffer
 				err := json.Compact(&compacted, test.after)
 				assert.Nil(t, err, "processPlayerData(%s): Error compacting JSON: %v", test.name, err)
@@ -190,7 +180,7 @@ func TestProcessPlayerDataLiterals(t *testing.T) {
 			// Real test
 			runProcessPlayerDataTest(t, test)
 
-			if test.error == nil && test.toDomainError == nil {
+			if test.error == nil {
 				// Test that minification is idempotent
 				test.before = test.after
 				test.name = test.name + " (minified)"
@@ -238,12 +228,23 @@ func TestProcessPlayerDataFiles(t *testing.T) {
 			expectedMinifiedData, err := os.ReadFile(path.Join(expectedMinifiedDataDir, name))
 			require.NoError(t, err)
 
+			parsedAPIResponse, err := ParseHypixelAPIResponse(context.Background(), hypixelAPIResponse)
+			require.NoError(t, err)
+
+			uuid := "12345678-1234-1234-1234-12345678abcd"
+			if parsedAPIResponse.Player != nil && parsedAPIResponse.Player.UUID != nil {
+				normalizedUUID, err := strutils.NormalizeUUID(*parsedAPIResponse.Player.UUID)
+				require.NoError(t, err)
+				uuid = normalizedUUID
+			}
+
 			// Real test
 			t.Run("real->minified", func(t *testing.T) {
 				t.Parallel()
 				runProcessPlayerDataTest(t,
 					processPlayerDataTest{
 						name:   name,
+						uuid:   uuid,
 						before: hypixelAPIResponse,
 						after:  expectedMinifiedData,
 					},
@@ -256,6 +257,7 @@ func TestProcessPlayerDataFiles(t *testing.T) {
 				runProcessPlayerDataTest(t,
 					processPlayerDataTest{
 						name:   fmt.Sprintf("%s (minified)", name),
+						uuid:   uuid,
 						before: expectedMinifiedData,
 						after:  expectedMinifiedData,
 					},

@@ -53,7 +53,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		data, statusCode, err := GetOrCreateProcessedPlayerData(context.Background(), cache, hypixelAPI, playerrepository.NewStubPlayerRepository(), UUID)
 		assert.Nil(t, err)
 
-		playerData, err := playerprovider.ParsePlayerData(context.Background(), data)
+		playerData, err := playerprovider.ParseHypixelAPIResponse(context.Background(), data)
 
 		assert.Nil(t, err, "Can't parse processed playerdata '%s'", data)
 		assert.Equal(t, 200, statusCode)

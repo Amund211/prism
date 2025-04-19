@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
+	"github.com/Amund211/flashlight/internal/strutils"
 )
 
 const hypixelAPIResponsesDir = "./fixtures/hypixel_api_responses/"
@@ -37,19 +38,28 @@ func main() {
 			expectedMinifiedData = nil
 		}
 
-		parsedAPIResponse, _, err := playerprovider.ParseHypixelAPIResponse(context.Background(), hypixelAPIResponse, 200)
+		parsedAPIResponse, err := playerprovider.ParseHypixelAPIResponse(context.Background(), hypixelAPIResponse)
+		if err != nil {
+			log.Printf("Error initially parsing hypixel api response %s: %s", fileName, err.Error())
+			continue
+		}
+
+		uuid := "12345678-1234-1234-1234-12345678abcd"
+		if parsedAPIResponse.Player != nil && parsedAPIResponse.Player.UUID != nil {
+			normalizedUUID, err := strutils.NormalizeUUID(*parsedAPIResponse.Player.UUID)
+			if err != nil {
+				log.Fatalf("Error normalizing UUID: %s", err.Error())
+			}
+			uuid = normalizedUUID
+		}
+
+		player, err := playerprovider.HypixelAPIResponseToPlayerPIT(context.Background(), uuid, time.Now(), hypixelAPIResponse, 200)
 		if err != nil {
 			log.Printf("Error parsing hypixel api response %s: %s", fileName, err.Error())
 			continue
 		}
 
-		domainPlayer, err := playerprovider.HypixelAPIResponseToDomainPlayer(parsedAPIResponse, time.Now(), nil)
-		if err != nil {
-			log.Printf("Error converting hypixel api response to domain player %s: %s", fileName, err.Error())
-			continue
-		}
-
-		apiResponseFromDomain := playerprovider.DomainPlayerToHypixelAPIResponse(domainPlayer)
+		apiResponseFromDomain := playerprovider.DomainPlayerToHypixelAPIResponse(player)
 
 		newMinified, err := playerprovider.MarshalPlayerData(context.Background(), apiResponseFromDomain)
 		if err != nil {

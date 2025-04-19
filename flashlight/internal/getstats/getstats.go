@@ -22,20 +22,12 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI playerprovider.Hypi
 	}
 	queriedAt := time.Now()
 
-	parsedAPIResponse, processedStatusCode, err := playerprovider.ParseHypixelAPIResponse(ctx, playerData, statusCode)
+	player, err := playerprovider.HypixelAPIResponseToPlayerPIT(ctx, uuid, queriedAt, playerData, statusCode)
 	if err != nil {
 		return []byte{}, -1, err
 	}
 
-	domainPlayer, err := playerprovider.HypixelAPIResponseToDomainPlayer(parsedAPIResponse, queriedAt, nil)
-	if err != nil {
-		return []byte{}, -1, fmt.Errorf("%w: failed to convert hypixel api response to domain player: %w", e.APIServerError, err)
-	}
-	// Hack: Set the properly formatted UUID
-	if domainPlayer != nil {
-		domainPlayer.UUID = uuid
-	}
-	apiResponseFromDomain := playerprovider.DomainPlayerToHypixelAPIResponse(domainPlayer)
+	apiResponseFromDomain := playerprovider.DomainPlayerToHypixelAPIResponse(player)
 
 	minifiedPlayerData, err := playerprovider.MarshalPlayerData(ctx, apiResponseFromDomain)
 	if err != nil {
@@ -44,9 +36,8 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI playerprovider.Hypi
 			ctx,
 			err,
 			map[string]string{
-				"processedStatusCode": fmt.Sprint(processedStatusCode),
-				"statusCode":          fmt.Sprint(statusCode),
-				"data":                string(playerData),
+				"statusCode": fmt.Sprint(statusCode),
+				"data":       string(playerData),
 			},
 		)
 		return []byte{}, -1, err
@@ -57,22 +48,21 @@ func getAndProcessPlayerData(ctx context.Context, hypixelAPI playerprovider.Hypi
 		// Take a maximum of 1 second to not block the request for too long
 		storeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 1*time.Second)
 		defer cancel()
-		err = repo.StorePlayer(storeCtx, domainPlayer)
+		err = repo.StorePlayer(storeCtx, player)
 		if err != nil {
 			err = fmt.Errorf("failed to store player: %w", err)
 			reporting.Report(
 				ctx,
 				err,
 				map[string]string{
-					"processedStatusCode": fmt.Sprint(processedStatusCode),
-					"statusCode":          fmt.Sprint(statusCode),
-					"data":                string(playerData),
+					"statusCode": fmt.Sprint(statusCode),
+					"data":       string(playerData),
 				},
 			)
 		}
 	}
 
-	return minifiedPlayerData, processedStatusCode, nil
+	return minifiedPlayerData, statusCode, nil
 }
 
 func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.PlayerCache, hypixelAPI playerprovider.HypixelAPI, repo playerrepository.PlayerRepository, uuid string) ([]byte, int, error) {

@@ -1,7 +1,7 @@
 {
   "success": true,
   "player": {
-    "uuid": "fffaceca46b24658b21f12c3cd2b413f",
+    "uuid": "fffaceca-46b2-4658-b21f-12c3cd2b413f",
     "stats": {
       "Bedwars": {
         "Experience": 500

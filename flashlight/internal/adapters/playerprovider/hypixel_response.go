@@ -2,6 +2,7 @@ package playerprovider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -11,6 +12,95 @@ import (
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/reporting"
 )
+
+type hypixelAPIResponse struct {
+	Success bool              `json:"success"`
+	Player  *HypixelAPIPlayer `json:"player"`
+	Cause   *string           `json:"cause,omitempty"`
+}
+
+type HypixelAPIPlayer struct {
+	UUID        *string          `json:"uuid,omitempty"`
+	Displayname *string          `json:"displayname,omitempty"`
+	LastLogin   *int64           `json:"lastLogin,omitempty"`
+	LastLogout  *int64           `json:"lastLogout,omitempty"`
+	Stats       *HypixelAPIStats `json:"stats,omitempty"`
+}
+
+type HypixelAPIStats struct {
+	Bedwars *HypixelAPIBedwarsStats `json:"Bedwars,omitempty"`
+}
+
+type HypixelAPIBedwarsStats struct {
+	Experience *float64 `json:"Experience,omitempty"`
+
+	Winstreak   *int `json:"winstreak,omitempty"`
+	GamesPlayed int  `json:"games_played_bedwars,omitempty"`
+	Wins        int  `json:"wins_bedwars,omitempty"`
+	Losses      int  `json:"losses_bedwars,omitempty"`
+	BedsBroken  int  `json:"beds_broken_bedwars,omitempty"`
+	BedsLost    int  `json:"beds_lost_bedwars,omitempty"`
+	FinalKills  int  `json:"final_kills_bedwars,omitempty"`
+	FinalDeaths int  `json:"final_deaths_bedwars,omitempty"`
+	Kills       int  `json:"kills_bedwars,omitempty"`
+	Deaths      int  `json:"deaths_bedwars,omitempty"`
+
+	SoloWinstreak   *int `json:"eight_one_winstreak,omitempty"`
+	SoloGamesPlayed int  `json:"eight_one_games_played_bedwars,omitempty"`
+	SoloWins        int  `json:"eight_one_wins_bedwars,omitempty"`
+	SoloLosses      int  `json:"eight_one_losses_bedwars,omitempty"`
+	SoloBedsBroken  int  `json:"eight_one_beds_broken_bedwars,omitempty"`
+	SoloBedsLost    int  `json:"eight_one_beds_lost_bedwars,omitempty"`
+	SoloFinalKills  int  `json:"eight_one_final_kills_bedwars,omitempty"`
+	SoloFinalDeaths int  `json:"eight_one_final_deaths_bedwars,omitempty"`
+	SoloKills       int  `json:"eight_one_kills_bedwars,omitempty"`
+	SoloDeaths      int  `json:"eight_one_deaths_bedwars,omitempty"`
+
+	DoublesWinstreak   *int `json:"eight_two_winstreak,omitempty"`
+	DoublesGamesPlayed int  `json:"eight_two_games_played_bedwars,omitempty"`
+	DoublesWins        int  `json:"eight_two_wins_bedwars,omitempty"`
+	DoublesLosses      int  `json:"eight_two_losses_bedwars,omitempty"`
+	DoublesBedsBroken  int  `json:"eight_two_beds_broken_bedwars,omitempty"`
+	DoublesBedsLost    int  `json:"eight_two_beds_lost_bedwars,omitempty"`
+	DoublesFinalKills  int  `json:"eight_two_final_kills_bedwars,omitempty"`
+	DoublesFinalDeaths int  `json:"eight_two_final_deaths_bedwars,omitempty"`
+	DoublesKills       int  `json:"eight_two_kills_bedwars,omitempty"`
+	DoublesDeaths      int  `json:"eight_two_deaths_bedwars,omitempty"`
+
+	ThreesWinstreak   *int `json:"four_three_winstreak,omitempty"`
+	ThreesGamesPlayed int  `json:"four_three_games_played_bedwars,omitempty"`
+	ThreesWins        int  `json:"four_three_wins_bedwars,omitempty"`
+	ThreesLosses      int  `json:"four_three_losses_bedwars,omitempty"`
+	ThreesBedsBroken  int  `json:"four_three_beds_broken_bedwars,omitempty"`
+	ThreesBedsLost    int  `json:"four_three_beds_lost_bedwars,omitempty"`
+	ThreesFinalKills  int  `json:"four_three_final_kills_bedwars,omitempty"`
+	ThreesFinalDeaths int  `json:"four_three_final_deaths_bedwars,omitempty"`
+	ThreesKills       int  `json:"four_three_kills_bedwars,omitempty"`
+	ThreesDeaths      int  `json:"four_three_deaths_bedwars,omitempty"`
+
+	FoursWinstreak   *int `json:"four_four_winstreak,omitempty"`
+	FoursGamesPlayed int  `json:"four_four_games_played_bedwars,omitempty"`
+	FoursWins        int  `json:"four_four_wins_bedwars,omitempty"`
+	FoursLosses      int  `json:"four_four_losses_bedwars,omitempty"`
+	FoursBedsBroken  int  `json:"four_four_beds_broken_bedwars,omitempty"`
+	FoursBedsLost    int  `json:"four_four_beds_lost_bedwars,omitempty"`
+	FoursFinalKills  int  `json:"four_four_final_kills_bedwars,omitempty"`
+	FoursFinalDeaths int  `json:"four_four_final_deaths_bedwars,omitempty"`
+	FoursKills       int  `json:"four_four_kills_bedwars,omitempty"`
+	FoursDeaths      int  `json:"four_four_deaths_bedwars,omitempty"`
+}
+
+func ParseHypixelAPIResponse(ctx context.Context, data []byte) (*hypixelAPIResponse, error) {
+	logger := logging.FromContext(ctx)
+	response := new(hypixelAPIResponse)
+
+	err := json.Unmarshal(data, response)
+	if err != nil {
+		logger.Error("Failed to unmarshal player data", "error", err)
+		return nil, err
+	}
+	return response, nil
+}
 
 func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte) error {
 	// Only support 200 OK
@@ -37,7 +127,7 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 	return err
 }
 
-func ParseHypixelAPIResponse(ctx context.Context, playerData []byte, statusCode int) (*hypixelAPIResponse, int, error) {
+func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt time.Time, playerData []byte, statusCode int) (*domain.PlayerPIT, error) {
 	err := checkForHypixelError(ctx, statusCode, playerData)
 	if err != nil {
 		reporting.Report(
@@ -56,7 +146,7 @@ func ParseHypixelAPIResponse(ctx context.Context, playerData []byte, statusCode 
 			"statusCode", statusCode,
 			"contentLength", len(playerData),
 		)
-		return nil, -1, err
+		return nil, err
 	}
 
 	logging.FromContext(ctx).Info(
@@ -66,7 +156,7 @@ func ParseHypixelAPIResponse(ctx context.Context, playerData []byte, statusCode 
 		"contentLength", len(playerData),
 	)
 
-	parsedPlayerData, err := ParsePlayerData(ctx, playerData)
+	parsedAPIResponse, err := ParseHypixelAPIResponse(ctx, playerData)
 	if err != nil {
 		err = fmt.Errorf("%w: failed to parse player data: %w", e.APIServerError, err)
 		reporting.Report(
@@ -77,18 +167,9 @@ func ParseHypixelAPIResponse(ctx context.Context, playerData []byte, statusCode 
 				"data":       string(playerData),
 			},
 		)
-		return nil, -1, err
+		return nil, err
 	}
 
-	processedStatusCode := 200
-	if parsedPlayerData.Success && parsedPlayerData.Player == nil {
-		processedStatusCode = 404
-	}
-
-	return parsedPlayerData, processedStatusCode, nil
-}
-
-func HypixelAPIResponseToDomainPlayer(parsedAPIResponse *hypixelAPIResponse, queriedAt time.Time, flashlightStatID *string) (*domain.PlayerPIT, error) {
 	if !parsedAPIResponse.Success {
 		cause := "unknown error (flashlight)"
 		if parsedAPIResponse.Cause != nil {
@@ -103,11 +184,6 @@ func HypixelAPIResponseToDomainPlayer(parsedAPIResponse *hypixelAPIResponse, que
 	}
 
 	apiPlayer := parsedAPIResponse.Player
-
-	if apiPlayer.UUID == nil {
-		return nil, fmt.Errorf("%w: %s", e.APIServerError, "missing uuid")
-	}
-	uuid := *apiPlayer.UUID
 
 	var lastLogin, lastLogout *time.Time
 	if apiPlayer.LastLogin != nil {
@@ -302,4 +378,15 @@ func DomainPlayerToHypixelAPIResponse(player *domain.PlayerPIT) *hypixelAPIRespo
 			},
 		},
 	}
+}
+
+func MarshalPlayerData(ctx context.Context, response *hypixelAPIResponse) ([]byte, error) {
+	logger := logging.FromContext(ctx)
+	data, err := json.Marshal(response)
+	if err != nil {
+		logger.Error("Failed to marshal player data", "error", err)
+		return []byte{}, err
+	}
+
+	return data, nil
 }
