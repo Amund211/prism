@@ -1,51 +1,58 @@
 package cache
 
 import (
-	"github.com/jellydator/ttlcache/v3"
 	"time"
+
+	"github.com/jellydator/ttlcache/v3"
 )
 
-type cachedResponse struct {
-	data       []byte
-	statusCode int
-	valid      bool
+type cacheEntry[T any] struct {
+	data  T
+	valid bool
 }
 
-var invalid = cachedResponse{valid: false}
-
-type PlayerCache interface {
-	getOrClaim(uuid string) (cachedResponse, bool)
-	set(uuid string, data []byte, statusCode int)
-	delete(uuid string)
+type Cache[T any] interface {
+	getOrClaim(key string) (cacheEntry[T], bool)
+	set(key string, data T)
+	delete(key string)
 	wait()
 }
 
-type playerCacheImpl struct {
-	cache *ttlcache.Cache[string, cachedResponse]
+type playerResponse struct {
+	data       []byte
+	statusCode int
 }
 
-func (playerCache *playerCacheImpl) getOrClaim(uuid string) (cachedResponse, bool) {
-	item, existed := playerCache.cache.GetOrSet(uuid, invalid)
+type playerCacheEntry = cacheEntry[playerResponse]
+type PlayerCache = Cache[playerResponse]
+
+type ttlCache[T any] struct {
+	cache *ttlcache.Cache[string, cacheEntry[T]]
+}
+
+func (c *ttlCache[T]) getOrClaim(uuid string) (cacheEntry[T], bool) {
+	invalid := cacheEntry[T]{valid: false}
+	item, existed := c.cache.GetOrSet(uuid, invalid)
 	return item.Value(), !existed
 }
 
-func (playerCache *playerCacheImpl) set(uuid string, data []byte, statusCode int) {
-	playerCache.cache.Set(uuid, cachedResponse{data: data, statusCode: statusCode, valid: true}, ttlcache.DefaultTTL)
+func (c *ttlCache[T]) set(uuid string, data T) {
+	c.cache.Set(uuid, cacheEntry[T]{data: data, valid: true}, ttlcache.DefaultTTL)
 }
 
-func (playerCache *playerCacheImpl) delete(uuid string) {
-	playerCache.cache.Delete(uuid)
+func (c *ttlCache[T]) delete(uuid string) {
+	c.cache.Delete(uuid)
 }
 
-func (playerCache *playerCacheImpl) wait() {
+func (c *ttlCache[T]) wait() {
 	time.Sleep(50 * time.Millisecond)
 }
 
-func NewPlayerCache(ttl time.Duration) PlayerCache {
-	playerTTLCache := ttlcache.New[string, cachedResponse](
-		ttlcache.WithTTL[string, cachedResponse](ttl),
-		ttlcache.WithDisableTouchOnHit[string, cachedResponse](),
+func NewTTLPlayerCache(ttl time.Duration) Cache[playerResponse] {
+	playerTTLCache := ttlcache.New[string, cacheEntry[playerResponse]](
+		ttlcache.WithTTL[string, cacheEntry[playerResponse]](ttl),
+		ttlcache.WithDisableTouchOnHit[string, cacheEntry[playerResponse]](),
 	)
 	go playerTTLCache.Start()
-	return &playerCacheImpl{cache: playerTTLCache}
+	return &ttlCache[playerResponse]{cache: playerTTLCache}
 }

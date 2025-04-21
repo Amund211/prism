@@ -46,7 +46,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 			err:    nil,
 		}
 		panicProvider := &panicPlayerProvider{t: t}
-		cache := cache.NewMockedPlayerCache()
+		cache := cache.NewBasicPlayerCache()
 
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), UUID)
 		require.NoError(t, err)
@@ -63,7 +63,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 			err:    nil,
 		}
 		panicProvider := &panicPlayerProvider{t: t}
-		cache := cache.NewMockedPlayerCache()
+		cache := cache.NewBasicPlayerCache()
 
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), "01234567-89ab-cdef-0123-456789abcdef")
 		require.NoError(t, err)
@@ -74,7 +74,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 
 	t.Run("invalid uuid", func(t *testing.T) {
 		provider := &panicPlayerProvider{t: t}
-		cache := cache.NewMockedPlayerCache()
+		cache := cache.NewBasicPlayerCache()
 
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), "invalid")
 
@@ -89,7 +89,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 
 	t.Run("missing uuid", func(t *testing.T) {
 		provider := &panicPlayerProvider{t: t}
-		cache := cache.NewMockedPlayerCache()
+		cache := cache.NewBasicPlayerCache()
 
 		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), "")
 

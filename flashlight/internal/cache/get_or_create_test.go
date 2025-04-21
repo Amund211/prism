@@ -164,7 +164,7 @@ func TestGetOrCreateErrorRetries(t *testing.T) {
 func TestGetOrCreateRealCache(t *testing.T) {
 	t.Run("requests are de-duplicated in highly concurrent environment", func(t *testing.T) {
 		ctx := context.Background()
-		playerCache := NewPlayerCache(1 * time.Minute)
+		playerCache := NewTTLPlayerCache(1 * time.Minute)
 
 		for testIndex := 0; testIndex < 100; testIndex++ {
 			t.Run(fmt.Sprintf("attempt #%d", testIndex), func(t *testing.T) {
