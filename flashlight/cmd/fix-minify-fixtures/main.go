@@ -77,7 +77,10 @@ func main() {
 
 		if !bytes.Equal(indentedBytes, expectedMinifiedData) {
 			log.Printf("Updating fixture %s", fileName)
-			os.WriteFile(expectedMinifiedDataPath, indentedBytes, 0644)
+			err := os.WriteFile(expectedMinifiedDataPath, indentedBytes, 0644)
+			if err != nil {
+				log.Fatalf("Error writing expected minified data to %s: %s", expectedMinifiedDataPath, err.Error())
+			}
 		}
 	}
 }
