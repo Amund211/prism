@@ -38,6 +38,7 @@ func writeErrorResponse(ctx context.Context, w http.ResponseWriter, responseErro
 	}
 
 	w.WriteHeader(statusCode)
+	// TODO: Sanitize the errors before sending them to the client
 	w.Write(errorBytes)
 
 	return statusCode
