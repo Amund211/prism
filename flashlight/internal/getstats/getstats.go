@@ -8,16 +8,17 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/cache"
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
+	"github.com/Amund211/flashlight/internal/domain"
 	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
-func getAndProcessPlayerData(ctx context.Context, provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) (cache.PlayerResponse, error) {
+func getAndProcessPlayerData(ctx context.Context, provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) (domain.PlayerResponse, error) {
 	player, err := provider.GetPlayer(ctx, uuid)
 	if err != nil {
-		return cache.PlayerResponse{}, err
+		return domain.PlayerResponse{}, err
 	}
 
 	apiResponseFromDomain := playerprovider.DomainPlayerToHypixelAPIResponse(player)
@@ -26,7 +27,7 @@ func getAndProcessPlayerData(ctx context.Context, provider playerprovider.Player
 	if err != nil {
 		err = fmt.Errorf("%w: failed to marshal player data: %w", e.APIServerError, err)
 		reporting.Report(ctx, err)
-		return cache.PlayerResponse{}, err
+		return domain.PlayerResponse{}, err
 	}
 
 	if apiResponseFromDomain.Player != nil {
@@ -41,13 +42,13 @@ func getAndProcessPlayerData(ctx context.Context, provider playerprovider.Player
 		}
 	}
 
-	return cache.PlayerResponse{
+	return domain.PlayerResponse{
 		Data:       minifiedPlayerData,
 		StatusCode: 200,
 	}, nil
 }
 
-func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.PlayerCache, provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) ([]byte, int, error) {
+func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.Cache[domain.PlayerResponse], provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) ([]byte, int, error) {
 	logger := logging.FromContext(ctx)
 
 	if uuid == "" {
@@ -66,7 +67,7 @@ func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.Playe
 		return []byte{}, -1, fmt.Errorf("%w: Failed to normalize uuid", e.APIClientError)
 	}
 
-	response, err := cache.GetOrCreatePlayer(ctx, playerCache, normalizedUUID, func() (cache.PlayerResponse, error) {
+	response, err := cache.GetOrCreate(ctx, playerCache, normalizedUUID, func() (domain.PlayerResponse, error) {
 		return getAndProcessPlayerData(ctx, provider, repo, normalizedUUID)
 	})
 

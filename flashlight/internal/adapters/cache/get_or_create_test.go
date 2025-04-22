@@ -48,7 +48,7 @@ func createUnreachable(t *testing.T) Callback {
 	}
 }
 
-func TestMockedPlayerCacheFinishes(t *testing.T) {
+func TestMockedCacheFinishes(t *testing.T) {
 	for clientCount := 0; clientCount < 10; clientCount++ {
 		server, clients := NewMockCacheServer[Data](clientCount, 100)
 		completedWg := sync.WaitGroup{}

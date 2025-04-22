@@ -39,10 +39,10 @@ func (c *ttlCache[T]) wait() {
 }
 
 func NewTTLCache[T any](ttl time.Duration) Cache[T] {
-	playerTTLCache := ttlcache.New[string, tllCacheEntry[T]](
+	cache := ttlcache.New[string, tllCacheEntry[T]](
 		ttlcache.WithTTL[string, tllCacheEntry[T]](ttl),
 		ttlcache.WithDisableTouchOnHit[string, tllCacheEntry[T]](),
 	)
-	go playerTTLCache.Start()
-	return &ttlCache[T]{cache: playerTTLCache}
+	go cache.Start()
+	return &ttlCache[T]{cache: cache}
 }
