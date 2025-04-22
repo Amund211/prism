@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,9 +14,9 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/cache"
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
+	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/getstats"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
@@ -106,6 +105,8 @@ func main() {
 	}
 	logger.Info("Initialized PlayerRepository")
 
+	getAndPersistPlayerWithCache := app.BuildGetAndPersistPlayerWithCache(playerCache, provider, repo)
+
 	middleware := server.ComposeMiddlewares(
 		logging.NewRequestLoggerMiddleware(logger.With("component", "getPlayerData")),
 		sentryMiddleware,
@@ -116,11 +117,7 @@ func main() {
 	http.HandleFunc(
 		"GET /v1/playerdata",
 		middleware(
-			server.MakeGetPlayerDataHandler(
-				func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
-					return getstats.GetAndPersistPlayer(ctx, playerCache, provider, repo, uuid)
-				},
-			),
+			server.MakeGetPlayerDataHandler(getAndPersistPlayerWithCache),
 		),
 	)
 
@@ -367,11 +364,7 @@ func main() {
 	http.HandleFunc(
 		"GET /playerdata",
 		middleware(
-			server.MakeGetPlayerDataHandler(
-				func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
-					return getstats.GetAndPersistPlayer(ctx, playerCache, provider, repo, uuid)
-				},
-			),
+			server.MakeGetPlayerDataHandler(getAndPersistPlayerWithCache),
 		),
 	)
 

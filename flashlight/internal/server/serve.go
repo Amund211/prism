@@ -12,7 +12,7 @@ import (
 	"github.com/Amund211/flashlight/internal/reporting"
 )
 
-type GetProcessedPlayerData func(ctx context.Context, uuid string) (*domain.PlayerPIT, error)
+type GetProcessedPlayerData = func(ctx context.Context, uuid string) (*domain.PlayerPIT, error)
 
 func MakeGetPlayerDataHandler(getProcessedPlayerData GetProcessedPlayerData) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
