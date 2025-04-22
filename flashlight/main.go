@@ -64,7 +64,7 @@ func main() {
 	}
 	logger.Info("Loaded config", "config", config.NonSensitiveString())
 
-	playerCache := cache.NewTTLCache[domain.PlayerResponse](1 * time.Minute)
+	playerCache := cache.NewTTLCache[*domain.PlayerPIT](1 * time.Minute)
 
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
