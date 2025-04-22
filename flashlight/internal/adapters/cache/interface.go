@@ -1,12 +1,13 @@
 package cache
 
-type cacheEntry[T any] struct {
-	data  T
-	valid bool
+type hitResult[T any] struct {
+	data    T
+	valid   bool
+	claimed bool
 }
 
 type Cache[T any] interface {
-	getOrClaim(key string) (cacheEntry[T], bool)
+	getOrClaim(key string) hitResult[T]
 	set(key string, data T)
 	delete(key string)
 	wait()
@@ -17,5 +18,4 @@ type playerResponse struct {
 	statusCode int
 }
 
-type playerCacheEntry = cacheEntry[playerResponse]
 type PlayerCache = Cache[playerResponse]

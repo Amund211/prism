@@ -5,23 +5,34 @@ import (
 	"sync"
 )
 
-type basicCache[T any] struct {
-	cache map[string]cacheEntry[T]
+type basicCacheEntry[T any] struct {
+	data  T
+	valid bool
 }
 
-func (c *basicCache[T]) getOrClaim(uuid string) (cacheEntry[T], bool) {
+type basicCache[T any] struct {
+	cache map[string]basicCacheEntry[T]
+}
+
+func (c *basicCache[T]) getOrClaim(uuid string) hitResult[T] {
 	oldValue, ok := c.cache[uuid]
 	if ok {
-		return oldValue, false
+		return hitResult[T]{
+			data:    oldValue.data,
+			valid:   oldValue.valid,
+			claimed: false,
+		}
 	}
 
-	invalid := cacheEntry[T]{valid: false}
-	c.cache[uuid] = invalid
-	return invalid, true
+	c.cache[uuid] = basicCacheEntry[T]{valid: false}
+	return hitResult[T]{
+		valid:   false,
+		claimed: true,
+	}
 }
 
 func (c *basicCache[T]) set(uuid string, data T) {
-	c.cache[uuid] = cacheEntry[T]{data: data, valid: true}
+	c.cache[uuid] = basicCacheEntry[T]{data: data, valid: true}
 }
 
 func (c *basicCache[T]) delete(uuid string) {
@@ -33,12 +44,12 @@ func (c *basicCache[T]) wait() {
 
 func NewBasicPlayerCache() *basicCache[playerResponse] {
 	return &basicCache[playerResponse]{
-		cache: make(map[string]cacheEntry[playerResponse]),
+		cache: make(map[string]basicCacheEntry[playerResponse]),
 	}
 }
 
 type mockPlayerCacheValue struct {
-	cachedResponse cacheEntry[playerResponse]
+	cachedResponse basicCacheEntry[playerResponse]
 	insertedAt     int
 }
 
@@ -56,19 +67,27 @@ type mockPlayerCacheClient struct {
 	desiredTick int
 }
 
-func (cacheClient *mockPlayerCacheClient) getOrClaim(uuid string) (playerCacheEntry, bool) {
+func (cacheClient *mockPlayerCacheClient) getOrClaim(uuid string) hitResult[playerResponse] {
 	oldValue, ok := cacheClient.server.cache[uuid]
 	if ok {
-		return oldValue.cachedResponse, false
+		return hitResult[playerResponse]{
+			data:    oldValue.cachedResponse.data,
+			valid:   oldValue.cachedResponse.valid,
+			claimed: false,
+		}
 	}
 
-	invalid := playerCacheEntry{valid: false}
+	invalid := basicCacheEntry[playerResponse]{valid: false}
 	cacheClient.server.cache[uuid] = mockPlayerCacheValue{cachedResponse: invalid, insertedAt: cacheClient.server.currentTick}
-	return invalid, true
+	return hitResult[playerResponse]{
+		data:    invalid.data,
+		valid:   invalid.valid,
+		claimed: true,
+	}
 }
 
 func (cacheClient *mockPlayerCacheClient) set(uuid string, data playerResponse) {
-	cacheClient.server.cache[uuid] = mockPlayerCacheValue{cachedResponse: playerCacheEntry{data: data, valid: true}, insertedAt: cacheClient.server.currentTick}
+	cacheClient.server.cache[uuid] = mockPlayerCacheValue{cachedResponse: basicCacheEntry[playerResponse]{data: data, valid: true}, insertedAt: cacheClient.server.currentTick}
 }
 
 func (cacheClient *mockPlayerCacheClient) delete(uuid string) {

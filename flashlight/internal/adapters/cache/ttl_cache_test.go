@@ -13,21 +13,21 @@ func TestPlayerCacheImpl(t *testing.T) {
 
 		playerCache.set("test", playerResponse{data: []byte("test"), statusCode: 200})
 
-		value, claimed := playerCache.getOrClaim("test")
-		assert.False(t, claimed, "Expected entry to exist")
-		assert.Equal(t, "test", string(value.data.data))
-		assert.Equal(t, 200, value.data.statusCode)
+		result := playerCache.getOrClaim("test")
+		assert.False(t, result.claimed, "Expected entry to exist")
+		assert.Equal(t, "test", string(result.data.data))
+		assert.Equal(t, 200, result.data.statusCode)
 	})
 
 	t.Run("getOrClaim claims when missing", func(t *testing.T) {
 		playerCache := NewTTLPlayerCache(1000 * time.Second)
 
-		value, claimed := playerCache.getOrClaim("test")
-		assert.True(t, claimed, "Expected entry to not exist and get claimed")
+		result := playerCache.getOrClaim("test")
+		assert.True(t, result.claimed, "Expected entry to not exist and get claimed")
 
-		value, claimed = playerCache.getOrClaim("test")
-		assert.False(t, claimed, "Expected entry to exist and not get claimed")
-		assert.False(t, value.valid, "Expected entry to be invalid")
+		result = playerCache.getOrClaim("test")
+		assert.False(t, result.claimed, "Expected entry to exist and not get claimed")
+		assert.False(t, result.valid, "Expected entry to be invalid")
 	})
 
 	t.Run("delete", func(t *testing.T) {
@@ -36,8 +36,8 @@ func TestPlayerCacheImpl(t *testing.T) {
 
 		playerCache.delete("test")
 
-		_, claimed := playerCache.getOrClaim("test")
-		assert.True(t, claimed, "Expected to not find a value")
+		result := playerCache.getOrClaim("test")
+		assert.True(t, result.claimed, "Expected to not find a value")
 	})
 
 	t.Run("delete missing entry", func(t *testing.T) {
@@ -45,8 +45,8 @@ func TestPlayerCacheImpl(t *testing.T) {
 
 		playerCache.delete("test")
 
-		_, claimed := playerCache.getOrClaim("test")
-		assert.True(t, claimed, "Expected to not find a value")
+		result := playerCache.getOrClaim("test")
+		assert.True(t, result.claimed, "Expected to not find a value")
 	})
 
 	t.Run("wait", func(t *testing.T) {

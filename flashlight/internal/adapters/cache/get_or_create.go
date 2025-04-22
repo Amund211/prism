@@ -11,7 +11,6 @@ func GetOrCreateCachedResponse(ctx context.Context, playerCache PlayerCache, uui
 
 	// Clean up the cache if we claim an entry, but don't set it
 	// This allows other requests to try again
-	var value playerCacheEntry
 	claimed := false
 	set := false
 	defer func() {
@@ -21,9 +20,11 @@ func GetOrCreateCachedResponse(ctx context.Context, playerCache PlayerCache, uui
 	}()
 
 	for {
-		value, claimed = playerCache.getOrClaim(uuid)
+		result := playerCache.getOrClaim(uuid)
 
-		if claimed {
+		if result.claimed {
+			claimed = true
+
 			logger.Info("Getting player stats", "cache", "miss")
 
 			data, statusCode, err := create()
@@ -40,10 +41,10 @@ func GetOrCreateCachedResponse(ctx context.Context, playerCache PlayerCache, uui
 			return data, statusCode, nil
 		}
 
-		if value.valid {
+		if result.valid {
 			// Cache hit
 			logger.Info("Getting player stats", "cache", "hit")
-			return value.data.data, value.data.statusCode, nil
+			return result.data.data, result.data.statusCode, nil
 		}
 
 		logger.Info("Waiting for cache")
