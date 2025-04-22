@@ -48,13 +48,14 @@ func NewBasicCache[T any]() *basicCache[T] {
 	}
 }
 
-type mockCacheEntry[T any] struct {
-	cachedResponse basicCacheEntry[T]
-	insertedAt     int
+type mockCacheServerEntry[T any] struct {
+	data       T
+	valid      bool
+	insertedAt int
 }
 
 type mockCacheServer[T any] struct {
-	cache             map[string]mockCacheEntry[T]
+	cache             map[string]mockCacheServerEntry[T]
 	cacheLock         sync.Mutex
 	tickLock          sync.Mutex
 	currentTick       int
@@ -75,17 +76,18 @@ func (cacheClient *mockCacheClient[T]) getOrClaim(uuid string) hitResult[T] {
 	oldValue, ok := cacheClient.server.cache[uuid]
 	if ok {
 		return hitResult[T]{
-			data:    oldValue.cachedResponse.data,
-			valid:   oldValue.cachedResponse.valid,
+			data:    oldValue.data,
+			valid:   oldValue.valid,
 			claimed: false,
 		}
 	}
 
-	invalid := basicCacheEntry[T]{valid: false}
-	cacheClient.server.cache[uuid] = mockCacheEntry[T]{cachedResponse: invalid, insertedAt: cacheClient.server.currentTick}
+	cacheClient.server.cache[uuid] = mockCacheServerEntry[T]{
+		valid:      false,
+		insertedAt: cacheClient.server.currentTick,
+	}
 	return hitResult[T]{
-		data:    invalid.data,
-		valid:   invalid.valid,
+		valid:   false,
 		claimed: true,
 	}
 }
@@ -94,7 +96,11 @@ func (cacheClient *mockCacheClient[T]) set(uuid string, data T) {
 	cacheClient.server.cacheLock.Lock()
 	defer cacheClient.server.cacheLock.Unlock()
 
-	cacheClient.server.cache[uuid] = mockCacheEntry[T]{cachedResponse: basicCacheEntry[T]{data: data, valid: true}, insertedAt: cacheClient.server.currentTick}
+	cacheClient.server.cache[uuid] = mockCacheServerEntry[T]{
+		data:       data,
+		valid:      true,
+		insertedAt: cacheClient.server.currentTick,
+	}
 }
 
 func (cacheClient *mockCacheClient[T]) delete(uuid string) {
@@ -146,7 +152,7 @@ func (cacheServer *mockCacheServer[T]) processTicks() {
 
 func NewMockCacheServer[T any](numGoroutines int, maxTicks int) (*mockCacheServer[T], []*mockCacheClient[T]) {
 	server := &mockCacheServer[T]{
-		cache:             make(map[string]mockCacheEntry[T]),
+		cache:             make(map[string]mockCacheServerEntry[T]),
 		tickLock:          sync.Mutex{},
 		currentTick:       0,
 		maxTicks:          maxTicks,
