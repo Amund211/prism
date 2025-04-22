@@ -13,28 +13,41 @@ import (
 )
 
 func TestMakeGetPlayerDataHandler(t *testing.T) {
+	const UUID = "01234567-89ab-cdef-0123-456789abcdef"
+	target := fmt.Sprintf("/?uuid=%s", UUID)
+
 	t.Run("success", func(t *testing.T) {
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (domain.PlayerResponse, error) {
-			return domain.PlayerResponse{Data: []byte(`data`), StatusCode: 200}, nil
+		player := &domain.PlayerPIT{
+			UUID:       UUID,
+			Experience: 1000,
+		}
+
+		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
+			return player, nil
 		})
+
 		w := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "/?uuid=uuid1234", nil)
+		req := httptest.NewRequest(http.MethodGet, target, nil)
 		getPlayerDataHandler(w, req)
 
 		resp := w.Result()
 
 		assert.Equal(t, 200, resp.StatusCode)
-		assert.Equal(t, `data`, w.Body.String())
+		body := w.Body.String()
+
+		assert.Contains(t, body, UUID)
+		assert.Contains(t, body, `1000`)
+
 		contentType := resp.Header.Get("Content-Type")
 		assert.Equal(t, "application/json", contentType)
 	})
 
 	t.Run("client error", func(t *testing.T) {
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (domain.PlayerResponse, error) {
-			return domain.PlayerResponse{}, fmt.Errorf("%w: error :^)", e.APIClientError)
+		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
+			return nil, fmt.Errorf("%w: error :^)", e.APIClientError)
 		})
 		w := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "/?uuid=uuid1234", nil)
+		req := httptest.NewRequest(http.MethodGet, target, nil)
 
 		getPlayerDataHandler(w, req)
 
@@ -46,11 +59,11 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	})
 
 	t.Run("server error", func(t *testing.T) {
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (domain.PlayerResponse, error) {
-			return domain.PlayerResponse{}, fmt.Errorf("%w: error :^(", e.APIServerError)
+		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
+			return nil, fmt.Errorf("%w: error :^(", e.APIServerError)
 		})
 		w := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "/?uuid=uuid1234", nil)
+		req := httptest.NewRequest(http.MethodGet, target, nil)
 
 		getPlayerDataHandler(w, req)
 

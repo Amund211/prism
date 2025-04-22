@@ -36,23 +36,23 @@ func getAndProcessPlayerData(ctx context.Context, provider playerprovider.Player
 	return player, nil
 }
 
-func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.Cache[*domain.PlayerPIT], provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) (domain.PlayerResponse, error) {
+func GetAndPersistPlayer(ctx context.Context, playerCache cache.Cache[*domain.PlayerPIT], provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) (*domain.PlayerPIT, error) {
 	logger := logging.FromContext(ctx)
 
 	if uuid == "" {
 		logger.Error("Missing uuid")
-		return domain.PlayerResponse{}, fmt.Errorf("%w: Missing uuid", e.APIClientError)
+		return nil, fmt.Errorf("%w: Missing uuid", e.APIClientError)
 	}
 	uuidLength := len(uuid)
 	if uuidLength < 10 || uuidLength > 100 {
 		logger.Error("Invalid uuid", "length", uuidLength, "uuid", uuid)
-		return domain.PlayerResponse{}, fmt.Errorf("%w: Invalid uuid", e.APIClientError)
+		return nil, fmt.Errorf("%w: Invalid uuid", e.APIClientError)
 	}
 
 	normalizedUUID, err := strutils.NormalizeUUID(uuid)
 	if err != nil {
 		logger.Error("Failed to normalize uuid", "uuid", uuid, "error", err)
-		return domain.PlayerResponse{}, fmt.Errorf("%w: Failed to normalize uuid", e.APIClientError)
+		return nil, fmt.Errorf("%w: Failed to normalize uuid", e.APIClientError)
 	}
 
 	player, err := cache.GetOrCreate(ctx, playerCache, normalizedUUID, func() (*domain.PlayerPIT, error) {
@@ -60,22 +60,8 @@ func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.Cache
 	})
 
 	if err != nil {
-		return domain.PlayerResponse{}, err
+		return nil, fmt.Errorf("%w: failed to cache.GetOrCreate player data: %w", e.APIServerError, err)
 	}
 
-	apiResponseFromDomain := playerprovider.DomainPlayerToHypixelAPIResponse(player)
-
-	minifiedPlayerData, err := playerprovider.MarshalPlayerData(ctx, apiResponseFromDomain)
-	if err != nil {
-		err = fmt.Errorf("%w: failed to marshal player data: %w", e.APIServerError, err)
-		reporting.Report(ctx, err)
-		return domain.PlayerResponse{}, err
-	}
-
-	logger.Info("Got minified player data", "contentLength", len(minifiedPlayerData), "statusCode", 200)
-
-	return domain.PlayerResponse{
-		Data:       minifiedPlayerData,
-		StatusCode: 200,
-	}, nil
+	return player, nil
 }
