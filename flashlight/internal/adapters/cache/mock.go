@@ -55,7 +55,8 @@ type mockCacheEntry[T any] struct {
 
 type mockCacheServer[T any] struct {
 	cache             map[string]mockCacheEntry[T]
-	lock              sync.Mutex
+	cacheLock         sync.Mutex
+	tickLock          sync.Mutex
 	currentTick       int
 	maxTicks          int
 	numGoroutines     int
@@ -68,6 +69,9 @@ type mockCacheClient[T any] struct {
 }
 
 func (cacheClient *mockCacheClient[T]) getOrClaim(uuid string) hitResult[T] {
+	cacheClient.server.cacheLock.Lock()
+	defer cacheClient.server.cacheLock.Unlock()
+
 	oldValue, ok := cacheClient.server.cache[uuid]
 	if ok {
 		return hitResult[T]{
@@ -87,10 +91,16 @@ func (cacheClient *mockCacheClient[T]) getOrClaim(uuid string) hitResult[T] {
 }
 
 func (cacheClient *mockCacheClient[T]) set(uuid string, data T) {
+	cacheClient.server.cacheLock.Lock()
+	defer cacheClient.server.cacheLock.Unlock()
+
 	cacheClient.server.cache[uuid] = mockCacheEntry[T]{cachedResponse: basicCacheEntry[T]{data: data, valid: true}, insertedAt: cacheClient.server.currentTick}
 }
 
 func (cacheClient *mockCacheClient[T]) delete(uuid string) {
+	cacheClient.server.cacheLock.Lock()
+	defer cacheClient.server.cacheLock.Unlock()
+
 	delete(cacheClient.server.cache, uuid)
 }
 
@@ -99,9 +109,9 @@ func (cacheClient *mockCacheClient[T]) wait() {
 		panic("wait() called on a client that is already done")
 	}
 
-	cacheClient.server.lock.Lock()
+	cacheClient.server.tickLock.Lock()
 	cacheClient.server.completedThisTick++
-	cacheClient.server.lock.Unlock()
+	cacheClient.server.tickLock.Unlock()
 
 	cacheClient.desiredTick++
 
@@ -127,17 +137,17 @@ func (cacheServer *mockCacheServer[T]) processTicks() {
 			continue
 		}
 
-		cacheServer.lock.Lock()
+		cacheServer.tickLock.Lock()
 		cacheServer.completedThisTick = 0
 		cacheServer.currentTick++
-		cacheServer.lock.Unlock()
+		cacheServer.tickLock.Unlock()
 	}
 }
 
 func NewMockCacheServer[T any](numGoroutines int, maxTicks int) (*mockCacheServer[T], []*mockCacheClient[T]) {
 	server := &mockCacheServer[T]{
 		cache:             make(map[string]mockCacheEntry[T]),
-		lock:              sync.Mutex{},
+		tickLock:          sync.Mutex{},
 		currentTick:       0,
 		maxTicks:          maxTicks,
 		numGoroutines:     numGoroutines,
