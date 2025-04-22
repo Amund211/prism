@@ -38,11 +38,11 @@ func (c *ttlCache[T]) wait() {
 	time.Sleep(50 * time.Millisecond)
 }
 
-func NewTTLPlayerCache(ttl time.Duration) Cache[playerResponse] {
-	playerTTLCache := ttlcache.New[string, tllCacheEntry[playerResponse]](
-		ttlcache.WithTTL[string, tllCacheEntry[playerResponse]](ttl),
-		ttlcache.WithDisableTouchOnHit[string, tllCacheEntry[playerResponse]](),
+func NewTTLCache[T any](ttl time.Duration) Cache[T] {
+	playerTTLCache := ttlcache.New[string, tllCacheEntry[T]](
+		ttlcache.WithTTL[string, tllCacheEntry[T]](ttl),
+		ttlcache.WithDisableTouchOnHit[string, tllCacheEntry[T]](),
 	)
 	go playerTTLCache.Start()
-	return &ttlCache[playerResponse]{cache: playerTTLCache}
+	return &ttlCache[T]{cache: playerTTLCache}
 }
