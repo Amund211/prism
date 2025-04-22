@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/Amund211/flashlight/internal/adapters/cache"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
-	"github.com/Amund211/flashlight/internal/cache"
 	"github.com/Amund211/flashlight/internal/domain"
 	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/stretchr/testify/require"

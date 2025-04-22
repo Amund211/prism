@@ -6,26 +6,6 @@ import (
 	"github.com/jellydator/ttlcache/v3"
 )
 
-type cacheEntry[T any] struct {
-	data  T
-	valid bool
-}
-
-type Cache[T any] interface {
-	getOrClaim(key string) (cacheEntry[T], bool)
-	set(key string, data T)
-	delete(key string)
-	wait()
-}
-
-type playerResponse struct {
-	data       []byte
-	statusCode int
-}
-
-type playerCacheEntry = cacheEntry[playerResponse]
-type PlayerCache = Cache[playerResponse]
-
 type ttlCache[T any] struct {
 	cache *ttlcache.Cache[string, cacheEntry[T]]
 }
