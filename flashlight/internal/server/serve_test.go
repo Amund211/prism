@@ -7,14 +7,15 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/Amund211/flashlight/internal/domain"
 	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMakeGetPlayerDataHandler(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) ([]byte, int, error) {
-			return []byte(`data`), 200, nil
+		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (domain.PlayerResponse, error) {
+			return domain.PlayerResponse{Data: []byte(`data`), StatusCode: 200}, nil
 		})
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/?uuid=uuid1234", nil)
@@ -29,8 +30,8 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	})
 
 	t.Run("client error", func(t *testing.T) {
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) ([]byte, int, error) {
-			return []byte(``), -1, fmt.Errorf("%w: error :^)", e.APIClientError)
+		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (domain.PlayerResponse, error) {
+			return domain.PlayerResponse{}, fmt.Errorf("%w: error :^)", e.APIClientError)
 		})
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/?uuid=uuid1234", nil)
@@ -45,8 +46,8 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	})
 
 	t.Run("server error", func(t *testing.T) {
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) ([]byte, int, error) {
-			return []byte(``), -1, fmt.Errorf("%w: error :^(", e.APIServerError)
+		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (domain.PlayerResponse, error) {
+			return domain.PlayerResponse{}, fmt.Errorf("%w: error :^(", e.APIServerError)
 		})
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/?uuid=uuid1234", nil)

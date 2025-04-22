@@ -117,7 +117,7 @@ func main() {
 		"GET /v1/playerdata",
 		middleware(
 			server.MakeGetPlayerDataHandler(
-				func(ctx context.Context, uuid string) ([]byte, int, error) {
+				func(ctx context.Context, uuid string) (domain.PlayerResponse, error) {
 					return getstats.GetOrCreateProcessedPlayerData(ctx, playerCache, provider, repo, uuid)
 				},
 			),
@@ -368,7 +368,7 @@ func main() {
 		"GET /playerdata",
 		middleware(
 			server.MakeGetPlayerDataHandler(
-				func(ctx context.Context, uuid string) ([]byte, int, error) {
+				func(ctx context.Context, uuid string) (domain.PlayerResponse, error) {
 					return getstats.GetOrCreateProcessedPlayerData(ctx, playerCache, provider, repo, uuid)
 				},
 			),

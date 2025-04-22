@@ -48,23 +48,23 @@ func getAndProcessPlayerData(ctx context.Context, provider playerprovider.Player
 	}, nil
 }
 
-func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.Cache[domain.PlayerResponse], provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) ([]byte, int, error) {
+func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.Cache[domain.PlayerResponse], provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) (domain.PlayerResponse, error) {
 	logger := logging.FromContext(ctx)
 
 	if uuid == "" {
 		logger.Error("Missing uuid")
-		return []byte{}, -1, fmt.Errorf("%w: Missing uuid", e.APIClientError)
+		return domain.PlayerResponse{}, fmt.Errorf("%w: Missing uuid", e.APIClientError)
 	}
 	uuidLength := len(uuid)
 	if uuidLength < 10 || uuidLength > 100 {
 		logger.Error("Invalid uuid", "length", uuidLength, "uuid", uuid)
-		return []byte{}, -1, fmt.Errorf("%w: Invalid uuid", e.APIClientError)
+		return domain.PlayerResponse{}, fmt.Errorf("%w: Invalid uuid", e.APIClientError)
 	}
 
 	normalizedUUID, err := strutils.NormalizeUUID(uuid)
 	if err != nil {
 		logger.Error("Failed to normalize uuid", "uuid", uuid, "error", err)
-		return []byte{}, -1, fmt.Errorf("%w: Failed to normalize uuid", e.APIClientError)
+		return domain.PlayerResponse{}, fmt.Errorf("%w: Failed to normalize uuid", e.APIClientError)
 	}
 
 	response, err := cache.GetOrCreate(ctx, playerCache, normalizedUUID, func() (domain.PlayerResponse, error) {
@@ -72,10 +72,10 @@ func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.Cache
 	})
 
 	if err != nil {
-		return []byte{}, -1, err
+		return domain.PlayerResponse{}, err
 	}
 
 	logger.Info("Got minified player data", "contentLength", len(response.Data), "statusCode", response.StatusCode)
 
-	return response.Data, response.StatusCode, nil
+	return response, nil
 }

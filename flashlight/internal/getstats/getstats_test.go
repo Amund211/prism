@@ -48,10 +48,10 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		panicProvider := &panicPlayerProvider{t: t}
 		cache := cache.NewBasicCache[domain.PlayerResponse]()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), UUID)
+		_, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), UUID)
 		require.NoError(t, err)
 
-		_, _, err = GetOrCreateProcessedPlayerData(context.Background(), cache, panicProvider, playerrepository.NewStubPlayerRepository(), UUID)
+		_, err = GetOrCreateProcessedPlayerData(context.Background(), cache, panicProvider, playerrepository.NewStubPlayerRepository(), UUID)
 		require.NoError(t, err)
 	})
 
@@ -65,10 +65,10 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		panicProvider := &panicPlayerProvider{t: t}
 		cache := cache.NewBasicCache[domain.PlayerResponse]()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), "01234567-89ab-cdef-0123-456789abcdef")
+		_, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), "01234567-89ab-cdef-0123-456789abcdef")
 		require.NoError(t, err)
 
-		_, _, err = GetOrCreateProcessedPlayerData(context.Background(), cache, panicProvider, playerrepository.NewStubPlayerRepository(), "01---23456789aBCDef0123456789aBcdef")
+		_, err = GetOrCreateProcessedPlayerData(context.Background(), cache, panicProvider, playerrepository.NewStubPlayerRepository(), "01---23456789aBCDef0123456789aBcdef")
 		require.NoError(t, err)
 	})
 
@@ -76,12 +76,12 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		provider := &panicPlayerProvider{t: t}
 		cache := cache.NewBasicCache[domain.PlayerResponse]()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), "invalid")
+		_, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), "invalid")
 
 		require.ErrorIs(t, err, e.APIClientError)
 		require.NotErrorIs(t, err, e.RetriableError)
 
-		_, _, err = GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), "01234567-89ab-xxxx-0123-456789abcdef")
+		_, err = GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), "01234567-89ab-xxxx-0123-456789abcdef")
 
 		require.ErrorIs(t, err, e.APIClientError)
 		require.NotErrorIs(t, err, e.RetriableError)
@@ -91,7 +91,7 @@ func TestGetOrCreateProcessedPlayerData(t *testing.T) {
 		provider := &panicPlayerProvider{t: t}
 		cache := cache.NewBasicCache[domain.PlayerResponse]()
 
-		_, _, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), "")
+		_, err := GetOrCreateProcessedPlayerData(context.Background(), cache, provider, playerrepository.NewStubPlayerRepository(), "")
 
 		require.ErrorIs(t, err, e.APIClientError)
 		require.NotErrorIs(t, err, e.RetriableError)
