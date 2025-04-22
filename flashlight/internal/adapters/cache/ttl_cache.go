@@ -15,9 +15,9 @@ type ttlCache[T any] struct {
 	cache *ttlcache.Cache[string, tllCacheEntry[T]]
 }
 
-func (c *ttlCache[T]) getOrClaim(uuid string) hitResult[T] {
+func (c *ttlCache[T]) getOrClaim(key string) hitResult[T] {
 	invalid := tllCacheEntry[T]{valid: false}
-	item, existed := c.cache.GetOrSet(uuid, invalid)
+	item, existed := c.cache.GetOrSet(key, invalid)
 
 	return hitResult[T]{
 		data:    item.Value().data,
@@ -26,12 +26,12 @@ func (c *ttlCache[T]) getOrClaim(uuid string) hitResult[T] {
 	}
 }
 
-func (c *ttlCache[T]) set(uuid string, data T) {
-	c.cache.Set(uuid, tllCacheEntry[T]{data: data, valid: true}, ttlcache.DefaultTTL)
+func (c *ttlCache[T]) set(key string, data T) {
+	c.cache.Set(key, tllCacheEntry[T]{data: data, valid: true}, ttlcache.DefaultTTL)
 }
 
-func (c *ttlCache[T]) delete(uuid string) {
-	c.cache.Delete(uuid)
+func (c *ttlCache[T]) delete(key string) {
+	c.cache.Delete(key)
 }
 
 func (c *ttlCache[T]) wait() {

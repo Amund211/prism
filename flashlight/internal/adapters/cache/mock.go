@@ -14,8 +14,8 @@ type basicCache[T any] struct {
 	cache map[string]basicCacheEntry[T]
 }
 
-func (c *basicCache[T]) getOrClaim(uuid string) hitResult[T] {
-	oldValue, ok := c.cache[uuid]
+func (c *basicCache[T]) getOrClaim(key string) hitResult[T] {
+	oldValue, ok := c.cache[key]
 	if ok {
 		return hitResult[T]{
 			data:    oldValue.data,
@@ -24,19 +24,19 @@ func (c *basicCache[T]) getOrClaim(uuid string) hitResult[T] {
 		}
 	}
 
-	c.cache[uuid] = basicCacheEntry[T]{valid: false}
+	c.cache[key] = basicCacheEntry[T]{valid: false}
 	return hitResult[T]{
 		valid:   false,
 		claimed: true,
 	}
 }
 
-func (c *basicCache[T]) set(uuid string, data T) {
-	c.cache[uuid] = basicCacheEntry[T]{data: data, valid: true}
+func (c *basicCache[T]) set(key string, data T) {
+	c.cache[key] = basicCacheEntry[T]{data: data, valid: true}
 }
 
-func (c *basicCache[T]) delete(uuid string) {
-	delete(c.cache, uuid)
+func (c *basicCache[T]) delete(key string) {
+	delete(c.cache, key)
 }
 
 func (c *basicCache[T]) wait() {
