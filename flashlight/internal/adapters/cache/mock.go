@@ -42,19 +42,19 @@ func (c *basicCache[T]) delete(key string) {
 func (c *basicCache[T]) wait() {
 }
 
-func NewBasicPlayerCache() *basicCache[playerResponse] {
-	return &basicCache[playerResponse]{
-		cache: make(map[string]basicCacheEntry[playerResponse]),
+func NewBasicCache[T any]() *basicCache[T] {
+	return &basicCache[T]{
+		cache: make(map[string]basicCacheEntry[T]),
 	}
 }
 
-type mockPlayerCacheValue struct {
-	cachedResponse basicCacheEntry[playerResponse]
+type mockCacheEntry[T any] struct {
+	cachedResponse basicCacheEntry[T]
 	insertedAt     int
 }
 
-type mockPlayerCacheServer struct {
-	cache             map[string]mockPlayerCacheValue
+type mockCacheServer[T any] struct {
+	cache             map[string]mockCacheEntry[T]
 	lock              sync.Mutex
 	currentTick       int
 	maxTicks          int
@@ -62,39 +62,39 @@ type mockPlayerCacheServer struct {
 	completedThisTick int
 }
 
-type mockPlayerCacheClient struct {
-	server      *mockPlayerCacheServer
+type mockCacheClient[T any] struct {
+	server      *mockCacheServer[T]
 	desiredTick int
 }
 
-func (cacheClient *mockPlayerCacheClient) getOrClaim(uuid string) hitResult[playerResponse] {
+func (cacheClient *mockCacheClient[T]) getOrClaim(uuid string) hitResult[T] {
 	oldValue, ok := cacheClient.server.cache[uuid]
 	if ok {
-		return hitResult[playerResponse]{
+		return hitResult[T]{
 			data:    oldValue.cachedResponse.data,
 			valid:   oldValue.cachedResponse.valid,
 			claimed: false,
 		}
 	}
 
-	invalid := basicCacheEntry[playerResponse]{valid: false}
-	cacheClient.server.cache[uuid] = mockPlayerCacheValue{cachedResponse: invalid, insertedAt: cacheClient.server.currentTick}
-	return hitResult[playerResponse]{
+	invalid := basicCacheEntry[T]{valid: false}
+	cacheClient.server.cache[uuid] = mockCacheEntry[T]{cachedResponse: invalid, insertedAt: cacheClient.server.currentTick}
+	return hitResult[T]{
 		data:    invalid.data,
 		valid:   invalid.valid,
 		claimed: true,
 	}
 }
 
-func (cacheClient *mockPlayerCacheClient) set(uuid string, data playerResponse) {
-	cacheClient.server.cache[uuid] = mockPlayerCacheValue{cachedResponse: basicCacheEntry[playerResponse]{data: data, valid: true}, insertedAt: cacheClient.server.currentTick}
+func (cacheClient *mockCacheClient[T]) set(uuid string, data T) {
+	cacheClient.server.cache[uuid] = mockCacheEntry[T]{cachedResponse: basicCacheEntry[T]{data: data, valid: true}, insertedAt: cacheClient.server.currentTick}
 }
 
-func (cacheClient *mockPlayerCacheClient) delete(uuid string) {
+func (cacheClient *mockCacheClient[T]) delete(uuid string) {
 	delete(cacheClient.server.cache, uuid)
 }
 
-func (cacheClient *mockPlayerCacheClient) wait() {
+func (cacheClient *mockCacheClient[T]) wait() {
 	if cacheClient.server.isDone() {
 		panic("wait() called on a client that is already done")
 	}
@@ -110,17 +110,17 @@ func (cacheClient *mockPlayerCacheClient) wait() {
 	}
 }
 
-func (cacheClient *mockPlayerCacheClient) waitUntilDone() {
+func (cacheClient *mockCacheClient[T]) waitUntilDone() {
 	for !cacheClient.server.isDone() {
 		cacheClient.wait()
 	}
 }
 
-func (cacheServer *mockPlayerCacheServer) isDone() bool {
+func (cacheServer *mockCacheServer[T]) isDone() bool {
 	return cacheServer.currentTick >= cacheServer.maxTicks
 }
 
-func (cacheServer *mockPlayerCacheServer) processTicks() {
+func (cacheServer *mockCacheServer[T]) processTicks() {
 	for !cacheServer.isDone() {
 		if cacheServer.completedThisTick != cacheServer.numGoroutines {
 			runtime.Gosched()
@@ -134,9 +134,9 @@ func (cacheServer *mockPlayerCacheServer) processTicks() {
 	}
 }
 
-func NewMockPlayerCacheServer(numGoroutines int, maxTicks int) (*mockPlayerCacheServer, []*mockPlayerCacheClient) {
-	server := &mockPlayerCacheServer{
-		cache:             make(map[string]mockPlayerCacheValue),
+func NewMockCacheServer[T any](numGoroutines int, maxTicks int) (*mockCacheServer[T], []*mockCacheClient[T]) {
+	server := &mockCacheServer[T]{
+		cache:             make(map[string]mockCacheEntry[T]),
 		lock:              sync.Mutex{},
 		currentTick:       0,
 		maxTicks:          maxTicks,
@@ -144,9 +144,9 @@ func NewMockPlayerCacheServer(numGoroutines int, maxTicks int) (*mockPlayerCache
 		completedThisTick: 0,
 	}
 
-	clients := make([]*mockPlayerCacheClient, numGoroutines)
+	clients := make([]*mockCacheClient[T], numGoroutines)
 	for i := 0; i < numGoroutines; i++ {
-		clients[i] = &mockPlayerCacheClient{
+		clients[i] = &mockCacheClient[T]{
 			server:      server,
 			desiredTick: 0,
 		}

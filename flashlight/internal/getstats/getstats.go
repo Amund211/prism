@@ -14,10 +14,10 @@ import (
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
-func getAndProcessPlayerData(ctx context.Context, provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) ([]byte, int, error) {
+func getAndProcessPlayerData(ctx context.Context, provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) (cache.PlayerResponse, error) {
 	player, err := provider.GetPlayer(ctx, uuid)
 	if err != nil {
-		return []byte{}, -1, err
+		return cache.PlayerResponse{}, err
 	}
 
 	apiResponseFromDomain := playerprovider.DomainPlayerToHypixelAPIResponse(player)
@@ -26,7 +26,7 @@ func getAndProcessPlayerData(ctx context.Context, provider playerprovider.Player
 	if err != nil {
 		err = fmt.Errorf("%w: failed to marshal player data: %w", e.APIServerError, err)
 		reporting.Report(ctx, err)
-		return []byte{}, -1, err
+		return cache.PlayerResponse{}, err
 	}
 
 	if apiResponseFromDomain.Player != nil {
@@ -41,7 +41,10 @@ func getAndProcessPlayerData(ctx context.Context, provider playerprovider.Player
 		}
 	}
 
-	return minifiedPlayerData, 200, nil
+	return cache.PlayerResponse{
+		Data:       minifiedPlayerData,
+		StatusCode: 200,
+	}, nil
 }
 
 func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.PlayerCache, provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) ([]byte, int, error) {
@@ -63,7 +66,7 @@ func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.Playe
 		return []byte{}, -1, fmt.Errorf("%w: Failed to normalize uuid", e.APIClientError)
 	}
 
-	processedPlayerData, statusCode, err := cache.GetOrCreateCachedResponse(ctx, playerCache, normalizedUUID, func() ([]byte, int, error) {
+	response, err := cache.GetOrCreatePlayer(ctx, playerCache, normalizedUUID, func() (cache.PlayerResponse, error) {
 		return getAndProcessPlayerData(ctx, provider, repo, normalizedUUID)
 	})
 
@@ -71,7 +74,7 @@ func GetOrCreateProcessedPlayerData(ctx context.Context, playerCache cache.Playe
 		return []byte{}, -1, err
 	}
 
-	logger.Info("Got minified player data", "contentLength", len(processedPlayerData), "statusCode", statusCode)
+	logger.Info("Got minified player data", "contentLength", len(response.Data), "statusCode", response.StatusCode)
 
-	return processedPlayerData, statusCode, nil
+	return response.Data, response.StatusCode, nil
 }

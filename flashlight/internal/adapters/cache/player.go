@@ -2,13 +2,19 @@ package cache
 
 import "time"
 
-type playerResponse struct {
-	data       []byte
-	statusCode int
+type PlayerResponse struct {
+	Data       []byte
+	StatusCode int
 }
 
-type PlayerCache = Cache[playerResponse]
+type PlayerCache = Cache[PlayerResponse]
 
-func NewTTLPlayerCache(ttl time.Duration) Cache[playerResponse] {
-	return NewTTLCache[playerResponse](ttl)
+func NewBasicPlayerCache() PlayerCache {
+	return NewBasicCache[PlayerResponse]()
 }
+
+func NewTTLPlayerCache(ttl time.Duration) Cache[PlayerResponse] {
+	return NewTTLCache[PlayerResponse](ttl)
+}
+
+var GetOrCreatePlayer = GetOrCreate[PlayerResponse]

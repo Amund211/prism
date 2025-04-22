@@ -11,12 +11,12 @@ func TestPlayerCacheImpl(t *testing.T) {
 	t.Run("Set and get", func(t *testing.T) {
 		playerCache := NewTTLPlayerCache(1000 * time.Second)
 
-		playerCache.set("test", playerResponse{data: []byte("test"), statusCode: 200})
+		playerCache.set("test", PlayerResponse{Data: []byte("test"), StatusCode: 200})
 
 		result := playerCache.getOrClaim("test")
 		assert.False(t, result.claimed, "Expected entry to exist")
-		assert.Equal(t, "test", string(result.data.data))
-		assert.Equal(t, 200, result.data.statusCode)
+		assert.Equal(t, "test", string(result.data.Data))
+		assert.Equal(t, 200, result.data.StatusCode)
 	})
 
 	t.Run("getOrClaim claims when missing", func(t *testing.T) {
@@ -32,7 +32,7 @@ func TestPlayerCacheImpl(t *testing.T) {
 
 	t.Run("delete", func(t *testing.T) {
 		playerCache := NewTTLPlayerCache(1000 * time.Second)
-		playerCache.set("test", playerResponse{data: []byte("test"), statusCode: 200})
+		playerCache.set("test", PlayerResponse{Data: []byte("test"), StatusCode: 200})
 
 		playerCache.delete("test")
 

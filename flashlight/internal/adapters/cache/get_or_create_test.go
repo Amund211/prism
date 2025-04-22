@@ -11,10 +11,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type Callback func() ([]byte, int, error)
+type Data = string
 
-func withWait(client *mockPlayerCacheClient, waits int, f Callback) Callback {
-	wrapped := func() ([]byte, int, error) {
+type Callback func() (Data, error)
+
+func withWait[T any](client *mockCacheClient[T], waits int, f Callback) Callback {
+	wrapped := func() (Data, error) {
 		for i := 0; i < waits; i++ {
 			client.wait()
 		}
@@ -23,32 +25,32 @@ func withWait(client *mockPlayerCacheClient, waits int, f Callback) Callback {
 	return wrapped
 }
 
-func createResponse(data int, statusCode int) ([]byte, int, error) {
-	return []byte(fmt.Sprintf("data%d", data)), statusCode, nil
+func createResponse(data int) (Data, error) {
+	return fmt.Sprintf("data%d", data), nil
 }
 
-func createCallback(data int, statusCode int) Callback {
-	return func() ([]byte, int, error) {
-		return createResponse(data, statusCode)
+func createCallback(data int) Callback {
+	return func() (Data, error) {
+		return createResponse(data)
 	}
 }
 
 func createErrorCallback(variant int) Callback {
-	return func() ([]byte, int, error) {
-		return nil, -1, fmt.Errorf("error%d", variant)
+	return func() (Data, error) {
+		return "", fmt.Errorf("error%d", variant)
 	}
 }
 
 func createUnreachable(t *testing.T) Callback {
-	return func() ([]byte, int, error) {
+	return func() (Data, error) {
 		t.Fatal("Unreachable code executed")
-		return nil, -1, nil
+		return "", nil
 	}
 }
 
 func TestMockedPlayerCacheFinishes(t *testing.T) {
 	for clientCount := 0; clientCount < 10; clientCount++ {
-		server, clients := NewMockPlayerCacheServer(clientCount, 100)
+		server, clients := NewMockCacheServer[Data](clientCount, 100)
 		completedWg := sync.WaitGroup{}
 		completedWg.Add(clientCount)
 		for i := 0; i < clientCount; i++ {
@@ -65,16 +67,15 @@ func TestMockedPlayerCacheFinishes(t *testing.T) {
 }
 
 func TestGetOrCreateSingle(t *testing.T) {
-	server, clients := NewMockPlayerCacheServer(1, 10)
+	server, clients := NewMockCacheServer[Data](1, 10)
 
 	go func() {
 		client := clients[0]
 		assert.Equal(t, 0, client.server.currentTick)
 
-		data, statusCode, err := GetOrCreateCachedResponse(context.Background(), client, "uuid1", createCallback(1, 200))
+		data, err := GetOrCreate(context.Background(), client, "uuid1", createCallback(1))
 		assert.Nil(t, err)
 		assert.Equal(t, "data1", string(data))
-		assert.Equal(t, 200, statusCode)
 		assert.Equal(t, 0, client.server.currentTick)
 
 		client.wait()
@@ -88,20 +89,18 @@ func TestGetOrCreateSingle(t *testing.T) {
 }
 
 func TestGetOrCreateMultiple(t *testing.T) {
-	server, clients := NewMockPlayerCacheServer(2, 10)
+	server, clients := NewMockCacheServer[Data](2, 10)
 
 	go func() {
 		client := clients[0]
-		data, statusCode, err := GetOrCreateCachedResponse(context.Background(), client, "uuid1", createCallback(1, 200))
+		data, err := GetOrCreate(context.Background(), client, "uuid1", createCallback(1))
 		assert.Nil(t, err)
 		assert.Equal(t, "data1", string(data))
-		assert.Equal(t, 200, statusCode)
 		assert.Equal(t, 0, client.server.currentTick)
 
-		data, statusCode, err = GetOrCreateCachedResponse(context.Background(), client, "uuid2", withWait(client, 2, createCallback(2, 201)))
+		data, err = GetOrCreate(context.Background(), client, "uuid2", withWait(client, 2, createCallback(2)))
 		assert.Nil(t, err)
 		assert.Equal(t, "data2", string(data))
-		assert.Equal(t, 201, statusCode)
 		assert.Equal(t, 2, client.server.currentTick)
 
 		client.waitUntilDone()
@@ -110,16 +109,14 @@ func TestGetOrCreateMultiple(t *testing.T) {
 	go func() {
 		client := clients[1]
 		client.wait() // Wait for the first client to populate the cache
-		data, statusCode, err := GetOrCreateCachedResponse(context.Background(), client, "uuid1", createUnreachable(t))
+		data, err := GetOrCreate(context.Background(), client, "uuid1", createUnreachable(t))
 		assert.Nil(t, err)
 		assert.Equal(t, "data1", string(data))
-		assert.Equal(t, 200, statusCode)
 		assert.Equal(t, 1, client.server.currentTick)
 
-		data, statusCode, err = GetOrCreateCachedResponse(context.Background(), client, "uuid2", createUnreachable(t))
+		data, err = GetOrCreate(context.Background(), client, "uuid2", createUnreachable(t))
 		assert.Nil(t, err)
 		assert.Equal(t, "data2", string(data))
-		assert.Equal(t, 201, statusCode)
 		// The fist client will insert this during the second tick
 		// If our second tick processes after the first client's we will get it in the second tick
 		// If our second tick processes before the first client's we will get it in the third tick
@@ -132,11 +129,11 @@ func TestGetOrCreateMultiple(t *testing.T) {
 }
 
 func TestGetOrCreateErrorRetries(t *testing.T) {
-	server, clients := NewMockPlayerCacheServer(2, 10)
+	server, clients := NewMockCacheServer[Data](2, 10)
 
 	go func() {
 		client := clients[0]
-		_, _, err := GetOrCreateCachedResponse(context.Background(), client, "uuid1", withWait(client, 2, createErrorCallback(1)))
+		_, err := GetOrCreate(context.Background(), client, "uuid1", withWait(client, 2, createErrorCallback(1)))
 		assert.NotNil(t, err)
 		assert.Equal(t, 2, client.server.currentTick)
 
@@ -149,10 +146,9 @@ func TestGetOrCreateErrorRetries(t *testing.T) {
 
 		// This should wait for the first client to finish (not storing a result due to an error)
 		// then it should retry and get the result
-		data, statusCode, err := GetOrCreateCachedResponse(context.Background(), client, "uuid1", withWait(client, 2, createCallback(1, 200)))
+		data, err := GetOrCreate(context.Background(), client, "uuid1", withWait(client, 2, createCallback(1)))
 		assert.Nil(t, err)
 		assert.Equal(t, "data1", string(data))
-		assert.Equal(t, 200, statusCode)
 		assert.True(t, client.server.currentTick == 4 || client.server.currentTick == 5)
 
 		client.waitUntilDone()
@@ -165,28 +161,27 @@ func TestGetOrCreateCleansUpOnError(t *testing.T) {
 	t.Parallel()
 	cases := []struct {
 		name  string
-		cache PlayerCache
+		cache Cache[Data]
 	}{
 		{
-			name:  "BasicPlayerCache",
-			cache: NewBasicPlayerCache(),
+			name:  "BasicCache",
+			cache: NewBasicCache[Data](),
 		},
 		{
-			name:  "TTLPlayerCache",
-			cache: NewTTLPlayerCache(1 * time.Minute),
+			name:  "TTLCache",
+			cache: NewTTLCache[Data](1 * time.Minute),
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			_, _, err := GetOrCreateCachedResponse(context.Background(), c.cache, "uuid1", createErrorCallback(10))
+			_, err := GetOrCreate(context.Background(), c.cache, "uuid1", createErrorCallback(10))
 			require.Error(t, err)
 
 			// The cache should be empty and allow us to create a new entry
-			data, statusCode, err := GetOrCreateCachedResponse(context.Background(), c.cache, "uuid1", createCallback(1, 200))
+			data, err := GetOrCreate(context.Background(), c.cache, "uuid1", createCallback(1))
 			require.Nil(t, err)
 			require.Equal(t, "data1", string(data))
-			require.Equal(t, 200, statusCode)
 		})
 	}
 }
@@ -194,25 +189,24 @@ func TestGetOrCreateCleansUpOnError(t *testing.T) {
 func TestGetOrCreateRealCache(t *testing.T) {
 	t.Run("requests are de-duplicated in highly concurrent environment", func(t *testing.T) {
 		ctx := context.Background()
-		playerCache := NewTTLPlayerCache(1 * time.Minute)
+		cache := NewTTLCache[Data](1 * time.Minute)
 
 		for testIndex := 0; testIndex < 100; testIndex++ {
 			t.Run(fmt.Sprintf("attempt #%d", testIndex), func(t *testing.T) {
 				t.Parallel()
 
 				called := false
-				monoStableCallback := func() ([]byte, int, error) {
+				monoStableCallback := func() (Data, error) {
 					require.False(t, called, "Callback should only be called once")
 					called = true
-					return createResponse(1, 200)
+					return createResponse(1)
 				}
 
 				for callIndex := 0; callIndex < 10; callIndex++ {
 					go func() {
-						data, statusCode, err := GetOrCreateCachedResponse(ctx, playerCache, fmt.Sprintf("uuid%d", testIndex), monoStableCallback)
+						data, err := GetOrCreate(ctx, cache, fmt.Sprintf("uuid%d", testIndex), monoStableCallback)
 						require.Nil(t, err)
 						require.Equal(t, "data1", string(data))
-						require.Equal(t, 200, statusCode)
 					}()
 				}
 			})
