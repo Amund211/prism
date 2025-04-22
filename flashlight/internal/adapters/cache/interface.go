@@ -12,10 +12,3 @@ type Cache[T any] interface {
 	delete(key string)
 	wait()
 }
-
-type playerResponse struct {
-	data       []byte
-	statusCode int
-}
-
-type PlayerCache = Cache[playerResponse]
