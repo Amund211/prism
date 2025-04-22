@@ -161,6 +161,36 @@ func TestGetOrCreateErrorRetries(t *testing.T) {
 	server.processTicks()
 }
 
+func TestGetOrCreateCleansUpOnError(t *testing.T) {
+	t.Parallel()
+	cases := []struct {
+		name  string
+		cache PlayerCache
+	}{
+		{
+			name:  "BasicPlayerCache",
+			cache: NewBasicPlayerCache(),
+		},
+		{
+			name:  "TTLPlayerCache",
+			cache: NewTTLPlayerCache(1 * time.Minute),
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			_, _, err := GetOrCreateCachedResponse(context.Background(), c.cache, "uuid1", createErrorCallback(10))
+			require.Error(t, err)
+
+			// The cache should be empty and allow us to create a new entry
+			data, statusCode, err := GetOrCreateCachedResponse(context.Background(), c.cache, "uuid1", createCallback(1, 200))
+			require.Nil(t, err)
+			require.Equal(t, "data1", string(data))
+			require.Equal(t, 200, statusCode)
+		})
+	}
+}
+
 func TestGetOrCreateRealCache(t *testing.T) {
 	t.Run("requests are de-duplicated in highly concurrent environment", func(t *testing.T) {
 		ctx := context.Background()
