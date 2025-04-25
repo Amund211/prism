@@ -657,14 +657,14 @@ def parse_chat_message(message: str) -> ChatEvent | None:
                 dirty_string.strip()
                 .replace(" ●", "")  # Replace online orb
                 .replace(" ?", "")  # Replace online orb if turned into ?
-                .replace(" \uFFFD", "")  # ... turned into unicode replacement character
+                .replace(" \ufffd", "")  # ... turned into unicode replacement character
             )
 
             players = clean_string.split(" ")
 
             logger.debug(f"Parsing passed. Party {role=} are {players}")
-            # I can't for the life of me get the literal types here
-            return PartyMembershipListEvent(usernames=players, role=role)  # type:ignore
+
+            return PartyMembershipListEvent(usernames=players, role=role)
 
     WHISPER_COMMAND_PREFIX = "Can't find a player by the name of '!"
     if message.startswith(WHISPER_COMMAND_PREFIX):

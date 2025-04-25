@@ -186,7 +186,7 @@ class RatingConfigCollectionDict(TypedDict):
 
 
 def read_rating_config_collection_dict(
-    source: Mapping[str, object]
+    source: Mapping[str, object],
 ) -> tuple[RatingConfigCollectionDict, bool]:
     """Read a RatingConfigCollectionDict from the source mapping"""
     any_source_updated = False

@@ -260,7 +260,7 @@ class ActiveLogfile:
 
 
 def create_active_logfiles(
-    logfile_paths: tuple[Path, ...]
+    logfile_paths: tuple[Path, ...],
 ) -> tuple[ActiveLogfile, ...]:
     """Create a tuple of ActiveLogfile instances from a tuple of paths"""
 
@@ -276,7 +276,7 @@ def create_active_logfiles(
 
 
 def refresh_active_logfiles(
-    active_logfiles: tuple[ActiveLogfile, ...]
+    active_logfiles: tuple[ActiveLogfile, ...],
 ) -> tuple[ActiveLogfile, ...]:
     """Return a sorted tuple of ActiveLogfile instances with updated ages"""
     return tuple(
@@ -288,7 +288,7 @@ def refresh_active_logfiles(
 
 
 def autoselect_logfile(
-    active_logfiles: tuple[ActiveLogfile, ...]
+    active_logfiles: tuple[ActiveLogfile, ...],
 ) -> ActiveLogfile | None:
     """The active logfiles tuple must be sorted"""
     if not active_logfiles:

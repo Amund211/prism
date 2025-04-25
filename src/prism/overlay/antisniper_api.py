@@ -299,7 +299,7 @@ def get_estimated_winstreaks(
 
 
 def parse_estimated_winstreaks_response(
-    response_json: Mapping[str, object]
+    response_json: Mapping[str, object],
 ) -> tuple[Winstreaks, bool]:
     """Parse the reponse from the winstreaks endpoint"""
     if not response_json.get("success", False):

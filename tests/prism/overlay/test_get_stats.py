@@ -168,7 +168,7 @@ def test_fetch_bedwars_stats(
 
 
 def test_fetch_bedwars_stats_wrong_displayname(
-    technoblade_playerdata: Mapping[str, object]
+    technoblade_playerdata: Mapping[str, object],
 ) -> None:
     wrong_user = User(
         uuid="fe3d80923dcf4147a35921f6b9fc460f",
@@ -213,7 +213,7 @@ def test_fetch_bedwars_stats_weird(ares_playerdata: Mapping[str, object]) -> Non
 
 
 def test_fetch_bedwars_stats_weird_nicked(
-    ares_playerdata: Mapping[str, object]
+    ares_playerdata: Mapping[str, object],
 ) -> None:
     ares = User(
         uuid="fffaceca46b24658b21f12c3cd2b413f",

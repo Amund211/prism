@@ -22,7 +22,7 @@ DEFAULT_ACTIVE_LOGFILES = (
 
 
 def paths_from_active_logfiles(
-    active_logfiles: tuple[ActiveLogfile, ...]
+    active_logfiles: tuple[ActiveLogfile, ...],
 ) -> tuple[Path, ...]:
     return tuple(active_logfile.path for active_logfile in active_logfiles)
 

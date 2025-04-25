@@ -83,7 +83,7 @@ def test_remove_ranks(rank_string: str, name_string: str) -> None:
     (
         ("Player1", "Player1"),
         *((f"§{char}Player1", "Player1") for char in "0123456789abcdefklmnor"),
-        *((f"\u00A7{char}Player1", "Player1") for char in "0123456789abcdefklmnor"),
+        *((f"\u00a7{char}Player1", "Player1") for char in "0123456789abcdefklmnor"),
         (
             "§kPlayer1, §aPlayer2, §bPlayer3, §dPlayer4, §7Player5, §fPlayer6",
             "Player1, Player2, Player3, Player4, Player5, Player6",
@@ -95,7 +95,7 @@ def test_remove_ranks(rank_string: str, name_string: str) -> None:
             for char in "ghijpqstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         ),
         *(
-            (f"\u00A7{char}Player1", f"\u00A7{char}Player1")
+            (f"\u00a7{char}Player1", f"\u00a7{char}Player1")
             for char in "ghijpqstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         ),
         (
@@ -693,7 +693,7 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     (
         # Decoding error on windows due to reading win-encoded file as utf8 makes the
         # orb turn into a the unicode replacement character
-        "[22:47:04] [Client thread/INFO]: [CHAT] Party Leader: [MVP+] Player1 \uFFFD",
+        "[22:47:04] [Client thread/INFO]: [CHAT] Party Leader: [MVP+] Player1 \ufffd",
         PartyMembershipListEvent(usernames=["Player1"], role="leader"),
     ),
     (
