@@ -446,7 +446,7 @@ def test_get_logfile(
         return old_cache, False
 
     def create_active_logfiles(
-        known_logfiles: tuple[Path, ...]
+        known_logfiles: tuple[Path, ...],
     ) -> tuple[ActiveLogfile, ...]:
         # TODO: Too much business logic in this mock
         aged_logfiles = zip(known_logfiles, logfile_ages_seconds, strict=True)

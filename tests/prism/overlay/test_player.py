@@ -645,7 +645,7 @@ def test_create_known_player(technoblade_playerdata: Mapping[str, object]) -> No
 
 
 def test_create_known_player_seeecret(
-    seeecret_playerdata: Mapping[str, object]
+    seeecret_playerdata: Mapping[str, object],
 ) -> None:
     fkdr = 12378
     stars = 76 + 805 / 5000
