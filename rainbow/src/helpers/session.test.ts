@@ -22,8 +22,6 @@ const makePlayerDataPIT = (
     gamesPlayed: number,
     experience: number,
 ): PlayerDataPIT => ({
-    id: `${playerUUID}-${gamesPlayed.toString()}-${experience.toString()}`,
-    dataFormatVersion: gamesPlayed, // This shows up early in the test diff, so it makes it easier to debug
     uuid: playerUUID,
     queriedAt: new Date(1_700_000_000_000 + gamesPlayed * 60_000),
     experience,

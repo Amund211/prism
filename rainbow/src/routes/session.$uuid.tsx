@@ -498,7 +498,9 @@ const Sessions: React.FC<SessionsProps> = ({
                                         };
 
                                         return (
-                                            <TableRow key={session.start.id}>
+                                            <TableRow
+                                                key={session.start.queriedAt.toString()}
+                                            >
                                                 {(willShowExtrapolatedSessions ||
                                                     hasNonConsecutiveSessions) && (
                                                     // Cell for extrapolated/non-consecutive info icons

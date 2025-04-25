@@ -1,22 +1,20 @@
 interface APIStatsPIT {
     winstreak: number | null;
-    gamesPlayed: number | null;
-    wins: number | null;
-    losses: number | null;
-    bedsBroken: number | null;
-    bedsLost: number | null;
-    finalKills: number | null;
-    finalDeaths: number | null;
-    kills: number | null;
-    deaths: number | null;
+    gamesPlayed: number;
+    wins: number;
+    losses: number;
+    bedsBroken: number;
+    bedsLost: number;
+    finalKills: number;
+    finalDeaths: number;
+    kills: number;
+    deaths: number;
 }
 
 export interface APIPlayerDataPIT {
-    id: string;
-    dataFormatVersion: number;
     uuid: string;
     queriedAt: string;
-    experience: number | null;
+    experience: number;
     solo: APIStatsPIT;
     doubles: APIStatsPIT;
     threes: APIStatsPIT;
@@ -26,23 +24,21 @@ export interface APIPlayerDataPIT {
 
 export interface StatsPIT {
     winstreak: number | null;
-    gamesPlayed: number | null;
-    wins: number | null;
-    losses: number | null;
-    bedsBroken: number | null;
-    bedsLost: number | null;
-    finalKills: number | null;
-    finalDeaths: number | null;
-    kills: number | null;
-    deaths: number | null;
+    gamesPlayed: number;
+    wins: number;
+    losses: number;
+    bedsBroken: number;
+    bedsLost: number;
+    finalKills: number;
+    finalDeaths: number;
+    kills: number;
+    deaths: number;
 }
 
 export interface PlayerDataPIT {
-    id: string;
-    dataFormatVersion: number;
     uuid: string;
     queriedAt: Date;
-    experience: number | null;
+    experience: number;
     solo: StatsPIT;
     doubles: StatsPIT;
     threes: StatsPIT;
@@ -53,8 +49,6 @@ export interface PlayerDataPIT {
 export const apiToPlayerDataPIT = (
     apiPlayerData: APIPlayerDataPIT,
 ): PlayerDataPIT => ({
-    id: apiPlayerData.id,
-    dataFormatVersion: apiPlayerData.dataFormatVersion,
     uuid: apiPlayerData.uuid,
     queriedAt: new Date(apiPlayerData.queriedAt),
     experience: apiPlayerData.experience,

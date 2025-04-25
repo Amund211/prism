@@ -3,10 +3,7 @@ import type { PlayerDataPIT } from "#queries/playerdata.ts";
 import type { Session, Sessions } from "#queries/sessions.ts";
 
 const statsConsecutive = (a: PlayerDataPIT, b: PlayerDataPIT): boolean => {
-    const aGamesPlayed = a.overall.gamesPlayed ?? 0;
-    const bGamesPlayed = b.overall.gamesPlayed ?? 0;
-
-    return Math.abs(aGamesPlayed - bGamesPlayed) <= 1;
+    return Math.abs(a.overall.gamesPlayed - b.overall.gamesPlayed) <= 1;
 };
 
 const differentStats = (a: PlayerDataPIT, b: PlayerDataPIT): boolean => {

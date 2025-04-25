@@ -60,9 +60,7 @@ export const getHistoryQueryOptions = ({
 
             const apiHistory = (await response.json()) as APIHistory;
 
-            return apiHistory
-                .filter(({ dataFormatVersion }) => dataFormatVersion === 1)
-                .map(apiToPlayerDataPIT);
+            return apiHistory.map(apiToPlayerDataPIT);
         },
     });
 };

@@ -69,20 +69,14 @@ export const getSessionsQueryOptions = ({
 
             const apiSessions = (await response.json()) as APISessions;
 
-            return apiSessions
-                .filter(
-                    ({ start, end }) =>
-                        start.dataFormatVersion === 1 &&
-                        end.dataFormatVersion === 1,
-                )
-                .map((apiSession) => {
-                    return {
-                        start: apiToPlayerDataPIT(apiSession.start),
-                        end: apiToPlayerDataPIT(apiSession.end),
-                        consecutive: apiSession.consecutive,
-                        extrapolated: false,
-                    };
-                });
+            return apiSessions.map((apiSession) => {
+                return {
+                    start: apiToPlayerDataPIT(apiSession.start),
+                    end: apiToPlayerDataPIT(apiSession.end),
+                    consecutive: apiSession.consecutive,
+                    extrapolated: false,
+                };
+            });
         },
     });
 };

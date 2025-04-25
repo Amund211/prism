@@ -22,12 +22,14 @@ export function getStat(
 
     switch (stat) {
         case "experience":
-            return playerData.experience ?? 0;
+            return playerData.experience;
+        case "winstreak":
+            return selectedGamemode.winstreak;
         case "stars":
-            return bedwarsLevelFromExp(playerData.experience ?? 0);
+            return bedwarsLevelFromExp(playerData.experience);
         case "fkdr": {
-            const finalKills = selectedGamemode.finalKills ?? 0;
-            const finalDeaths = selectedGamemode.finalDeaths ?? 0;
+            const finalKills = selectedGamemode.finalKills;
+            const finalDeaths = selectedGamemode.finalDeaths;
             if (finalDeaths === 0) {
                 return finalKills;
             } else {
@@ -35,8 +37,8 @@ export function getStat(
             }
         }
         case "kdr": {
-            const kills = selectedGamemode.kills ?? 0;
-            const deaths = selectedGamemode.deaths ?? 0;
+            const kills = selectedGamemode.kills;
+            const deaths = selectedGamemode.deaths;
             if (deaths === 0) {
                 return kills;
             } else {
@@ -49,12 +51,8 @@ export function getStat(
             return fkdr ** 2 * stars;
         }
         default:
-            // Stats that may be hidden from the API
-            if (stat === "winstreak") {
-                return playerData[gamemode][stat];
-            }
             // I believe all stats default to 0 if they are not present
-            return playerData[gamemode][stat] ?? 0;
+            return playerData[gamemode][stat];
     }
 }
 
