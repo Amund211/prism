@@ -18,9 +18,9 @@ import (
 	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
-	"github.com/Amund211/flashlight/internal/server"
 	"github.com/google/uuid"
 )
 
@@ -107,17 +107,17 @@ func main() {
 
 	getAndPersistPlayerWithCache := app.BuildGetAndPersistPlayerWithCache(playerCache, provider, repo)
 
-	middleware := server.ComposeMiddlewares(
+	middleware := ports.ComposeMiddlewares(
 		logging.NewRequestLoggerMiddleware(logger.With("component", "getPlayerData")),
 		sentryMiddleware,
-		server.NewRateLimitMiddleware(ipRateLimiter),
-		server.NewRateLimitMiddleware(userIdRateLimiter),
+		ports.NewRateLimitMiddleware(ipRateLimiter),
+		ports.NewRateLimitMiddleware(userIdRateLimiter),
 	)
 
 	http.HandleFunc(
 		"GET /v1/playerdata",
 		middleware(
-			server.MakeGetPlayerDataHandler(getAndPersistPlayerWithCache),
+			ports.MakeGetPlayerDataHandler(getAndPersistPlayerWithCache),
 		),
 	)
 
@@ -128,10 +128,10 @@ func main() {
 		),
 		ratelimiting.IPKeyFunc,
 	)
-	historyMiddleware := server.ComposeMiddlewares(
+	historyMiddleware := ports.ComposeMiddlewares(
 		corsMiddleware,
 		logging.NewRequestLoggerMiddleware(logger.With("component", "history")),
-		server.NewRateLimitMiddleware(historyIPRateLimiter),
+		ports.NewRateLimitMiddleware(historyIPRateLimiter),
 	)
 	http.HandleFunc(
 		"OPTIONS /v1/history",
@@ -240,10 +240,10 @@ func main() {
 		),
 		ratelimiting.IPKeyFunc,
 	)
-	getSessionsMiddleware := server.ComposeMiddlewares(
+	getSessionsMiddleware := ports.ComposeMiddlewares(
 		corsMiddleware,
 		logging.NewRequestLoggerMiddleware(logger.With("component", "history")),
-		server.NewRateLimitMiddleware(getSessionsIPRateLimiter),
+		ports.NewRateLimitMiddleware(getSessionsIPRateLimiter),
 	)
 	http.HandleFunc(
 		"OPTIONS /v1/sessions",
@@ -364,7 +364,7 @@ func main() {
 	http.HandleFunc(
 		"GET /playerdata",
 		middleware(
-			server.MakeGetPlayerDataHandler(getAndPersistPlayerWithCache),
+			ports.MakeGetPlayerDataHandler(getAndPersistPlayerWithCache),
 		),
 	)
 

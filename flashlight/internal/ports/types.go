@@ -1,4 +1,4 @@
-package server
+package ports
 
 type HypixelAPIErrorResponse struct {
 	Success bool   `json:"success"`
