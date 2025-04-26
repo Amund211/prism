@@ -76,22 +76,6 @@ func main() {
 
 	provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
 
-	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		ratelimiting.NewTokenBucketRateLimiter(
-			ratelimiting.RefillPerSecond(8),
-			ratelimiting.BurstSize(480),
-		),
-		ratelimiting.IPKeyFunc,
-	)
-	userIdRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		// NOTE: Rate limiting based on user controlled value
-		ratelimiting.NewTokenBucketRateLimiter(
-			ratelimiting.RefillPerSecond(2),
-			ratelimiting.BurstSize(120),
-		),
-		ratelimiting.UserIdKeyFunc,
-	)
-
 	sentryMiddleware, flush, err := reporting.NewSentryMiddlewareOrMock(config)
 	if err != nil {
 		fail("Failed to initialize Sentry", "error", err.Error())
@@ -107,17 +91,12 @@ func main() {
 
 	getAndPersistPlayerWithCache := app.BuildGetAndPersistPlayerWithCache(playerCache, provider, repo)
 
-	middleware := ports.ComposeMiddlewares(
-		logging.NewRequestLoggerMiddleware(logger.With("component", "getPlayerData")),
-		sentryMiddleware,
-		ports.NewRateLimitMiddleware(ipRateLimiter),
-		ports.NewRateLimitMiddleware(userIdRateLimiter),
-	)
-
 	http.HandleFunc(
 		"GET /v1/playerdata",
-		middleware(
-			ports.MakeGetPlayerDataHandler(getAndPersistPlayerWithCache),
+		ports.MakeGetPlayerDataHandler(
+			getAndPersistPlayerWithCache,
+			logger.With("component", "getPlayerData"),
+			sentryMiddleware,
 		),
 	)
 
@@ -363,8 +342,10 @@ func main() {
 	// TODO: Remove
 	http.HandleFunc(
 		"GET /playerdata",
-		middleware(
-			ports.MakeGetPlayerDataHandler(getAndPersistPlayerWithCache),
+		ports.MakeGetPlayerDataHandler(
+			getAndPersistPlayerWithCache,
+			logger.With("component", "getPlayerData"),
+			sentryMiddleware,
 		),
 	)
 

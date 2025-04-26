@@ -3,19 +3,48 @@ package ports
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/domain"
 	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 )
 
 type GetProcessedPlayerData = func(ctx context.Context, uuid string) (*domain.PlayerPIT, error)
 
-func MakeGetPlayerDataHandler(getProcessedPlayerData GetProcessedPlayerData) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func MakeGetPlayerDataHandler(
+	getProcessedPlayerData GetProcessedPlayerData,
+	logger *slog.Logger,
+	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
+) http.HandlerFunc {
+	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
+		ratelimiting.NewTokenBucketRateLimiter(
+			ratelimiting.RefillPerSecond(8),
+			ratelimiting.BurstSize(480),
+		),
+		ratelimiting.IPKeyFunc,
+	)
+	userIdRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
+		// NOTE: Rate limiting based on user controlled value
+		ratelimiting.NewTokenBucketRateLimiter(
+			ratelimiting.RefillPerSecond(2),
+			ratelimiting.BurstSize(120),
+		),
+		ratelimiting.UserIdKeyFunc,
+	)
+
+	middleware := ComposeMiddlewares(
+		logging.NewRequestLoggerMiddleware(logger),
+		sentryMiddleware,
+		NewRateLimitMiddleware(ipRateLimiter),
+		NewRateLimitMiddleware(userIdRateLimiter),
+	)
+
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		logger := logging.FromContext(ctx)
 		uuid := r.URL.Query().Get("uuid")
@@ -51,4 +80,6 @@ func MakeGetPlayerDataHandler(getProcessedPlayerData GetProcessedPlayerData) htt
 		w.WriteHeader(statusCode)
 		w.Write(minifiedPlayerData)
 	}
+
+	return middleware(handler)
 }

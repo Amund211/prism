@@ -3,8 +3,10 @@ package ports
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/Amund211/flashlight/internal/domain"
@@ -16,6 +18,11 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	const UUID = "01234567-89ab-cdef-0123-456789abcdef"
 	target := fmt.Sprintf("/?uuid=%s", UUID)
 
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	sentryMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
+		return next
+	}
+
 	t.Run("success", func(t *testing.T) {
 		player := &domain.PlayerPIT{
 			UUID:       UUID,
@@ -24,7 +31,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return player, nil
-		})
+		}, logger, sentryMiddleware)
 
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, target, nil)
@@ -45,7 +52,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	t.Run("client error", func(t *testing.T) {
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return nil, fmt.Errorf("%w: error :^)", e.APIClientError)
-		})
+		}, logger, sentryMiddleware)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, target, nil)
 
@@ -61,7 +68,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	t.Run("server error", func(t *testing.T) {
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return nil, fmt.Errorf("%w: error :^(", e.APIServerError)
-		})
+		}, logger, sentryMiddleware)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, target, nil)
 
