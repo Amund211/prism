@@ -44,3 +44,11 @@ func NormalizeUUID(uuid string) (string, error) {
 	}
 	return normalized.String(), nil
 }
+
+func UUIDIsNormalized(uuid string) bool {
+	normalizedUUID, err := NormalizeUUID(uuid)
+	if err != nil {
+		return false
+	}
+	return normalizedUUID == uuid
+}
