@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/Amund211/flashlight/internal/adapters/cache"
@@ -25,28 +24,8 @@ import (
 )
 
 // TODO: Put in config
-const PROD_URL = "https://prismoverlay.com"
-const STAGING_URL_SUFFIX = ".rainbow-ctx.pages.dev"
-
-func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		origin := r.Header.Get("Origin")
-		if origin == PROD_URL || strings.HasSuffix(origin, STAGING_URL_SUFFIX) {
-			w.Header().Set("Access-Control-Allow-Origin", origin)
-		}
-
-		if r.Method == http.MethodOptions {
-			w.Header().Set("Access-Control-Allow-Methods", "GET,POST")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-			// TODO: Add longer max age (default 5s) when it works well
-			// w.Header().Set("Access-Control-Max-Age", "3600")
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-
-		next(w, r)
-	}
-}
+const PROD_DOMAIN_SUFFIX = "prismoverlay.com"
+const STAGING_DOMAIN_SUFFIX = "rainbow-ctx.pages.dev"
 
 func main() {
 	instanceID := uuid.New().String()
@@ -89,6 +68,11 @@ func main() {
 	}
 	logger.Info("Initialized PlayerRepository")
 
+	allowedOrigins, err := ports.NewDomainSuffixes(PROD_DOMAIN_SUFFIX, STAGING_DOMAIN_SUFFIX)
+	if err != nil {
+		fail("Failed to initialize allowed origins", "error", err.Error())
+	}
+
 	getAndPersistPlayerWithCache := app.BuildGetAndPersistPlayerWithCache(playerCache, provider, repo)
 
 	http.HandleFunc(
@@ -108,13 +92,13 @@ func main() {
 		ratelimiting.IPKeyFunc,
 	)
 	historyMiddleware := ports.ComposeMiddlewares(
-		corsMiddleware,
+		ports.BuildCORSMiddleware(allowedOrigins),
 		logging.NewRequestLoggerMiddleware(logger.With("component", "history")),
 		ports.NewRateLimitMiddleware(historyIPRateLimiter),
 	)
 	http.HandleFunc(
 		"OPTIONS /v1/history",
-		historyMiddleware(func(w http.ResponseWriter, r *http.Request) {}),
+		ports.BuildCORSHandler(allowedOrigins),
 	)
 	http.HandleFunc(
 		"POST /v1/history",
@@ -220,13 +204,13 @@ func main() {
 		ratelimiting.IPKeyFunc,
 	)
 	getSessionsMiddleware := ports.ComposeMiddlewares(
-		corsMiddleware,
+		ports.BuildCORSMiddleware(allowedOrigins),
 		logging.NewRequestLoggerMiddleware(logger.With("component", "history")),
 		ports.NewRateLimitMiddleware(getSessionsIPRateLimiter),
 	)
 	http.HandleFunc(
 		"OPTIONS /v1/sessions",
-		getSessionsMiddleware(func(w http.ResponseWriter, r *http.Request) {}),
+		ports.BuildCORSHandler(allowedOrigins),
 	)
 	http.HandleFunc(
 		"POST /v1/sessions",
