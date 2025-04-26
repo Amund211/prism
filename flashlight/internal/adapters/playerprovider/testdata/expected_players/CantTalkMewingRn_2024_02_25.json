@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "b16ab59c-73a8-41f5-ba92-fcb7277af845",
+  "Displayname": "CantTalkMewingRn",
+  "LastLogin": "2024-02-24T23:05:27.393+01:00",
+  "LastLogout": "2024-02-24T23:34:01.126+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 939092,
+  "Solo": {
+    "Winstreak": 1,
+    "GamesPlayed": 361,
+    "Wins": 186,
+    "Losses": 175,
+    "BedsBroken": 765,
+    "BedsLost": 231,
+    "FinalKills": 804,
+    "FinalDeaths": 167,
+    "Kills": 798,
+    "Deaths": 814
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 658,
+    "Wins": 266,
+    "Losses": 391,
+    "BedsBroken": 620,
+    "BedsLost": 251,
+    "FinalKills": 1148,
+    "FinalDeaths": 377,
+    "Kills": 1582,
+    "Deaths": 1946
+  },
+  "Threes": {
+    "Winstreak": 4,
+    "GamesPlayed": 648,
+    "Wins": 453,
+    "Losses": 193,
+    "BedsBroken": 473,
+    "BedsLost": 205,
+    "FinalKills": 1292,
+    "FinalDeaths": 209,
+    "Kills": 1701,
+    "Deaths": 2109
+  },
+  "Fours": {
+    "Winstreak": 14,
+    "GamesPlayed": 2518,
+    "Wins": 1052,
+    "Losses": 1446,
+    "BedsBroken": 959,
+    "BedsLost": 912,
+    "FinalKills": 3044,
+    "FinalDeaths": 1239,
+    "Kills": 4803,
+    "Deaths": 6286
+  },
+  "Overall": {
+    "Winstreak": 17,
+    "GamesPlayed": 4187,
+    "Wins": 1958,
+    "Losses": 2206,
+    "BedsBroken": 2818,
+    "BedsLost": 1600,
+    "FinalKills": 6289,
+    "FinalDeaths": 1993,
+    "Kills": 8892,
+    "Deaths": 11156
+  }
+}

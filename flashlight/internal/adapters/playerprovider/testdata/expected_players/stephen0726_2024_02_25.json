@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "83c7856b-a26f-4fe8-b283-d4bb301493de",
+  "Displayname": "stephen0726",
+  "LastLogin": "2024-02-24T07:35:17.896+01:00",
+  "LastLogout": "2024-02-24T08:04:12.766+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 142483,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 36,
+    "Wins": 0,
+    "Losses": 36,
+    "BedsBroken": 10,
+    "BedsLost": 32,
+    "FinalKills": 4,
+    "FinalDeaths": 36,
+    "Kills": 21,
+    "Deaths": 85
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 292,
+    "Wins": 3,
+    "Losses": 289,
+    "BedsBroken": 33,
+    "BedsLost": 272,
+    "FinalKills": 53,
+    "FinalDeaths": 281,
+    "Kills": 296,
+    "Deaths": 787
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 33,
+    "Wins": 1,
+    "Losses": 32,
+    "BedsBroken": 0,
+    "BedsLost": 29,
+    "FinalKills": 3,
+    "FinalDeaths": 31,
+    "Kills": 27,
+    "Deaths": 106
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 239,
+    "Wins": 17,
+    "Losses": 222,
+    "BedsBroken": 3,
+    "BedsLost": 207,
+    "FinalKills": 34,
+    "FinalDeaths": 224,
+    "Kills": 263,
+    "Deaths": 888
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 1152,
+    "Wins": 205,
+    "Losses": 939,
+    "BedsBroken": 57,
+    "BedsLost": 858,
+    "FinalKills": 182,
+    "FinalDeaths": 939,
+    "Kills": 1360,
+    "Deaths": 3620
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "317517f7-470d-456a-a6ee-ea037425db33",
+  "Displayname": "GreenSheepi",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 11353242,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 3312,
+    "Wins": 992,
+    "Losses": 2179,
+    "BedsBroken": 5980,
+    "BedsLost": 2341,
+    "FinalKills": 5215,
+    "FinalDeaths": 1987,
+    "Kills": 5385,
+    "Deaths": 7411
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 22184,
+    "Wins": 16731,
+    "Losses": 5262,
+    "BedsBroken": 47757,
+    "BedsLost": 8342,
+    "FinalKills": 92970,
+    "FinalDeaths": 5756,
+    "Kills": 66293,
+    "Deaths": 68017
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 9422,
+    "Wins": 8566,
+    "Losses": 833,
+    "BedsBroken": 11564,
+    "BedsLost": 1474,
+    "FinalKills": 28984,
+    "FinalDeaths": 950,
+    "Kills": 17589,
+    "Deaths": 22562
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 10933,
+    "Wins": 10105,
+    "Losses": 796,
+    "BedsBroken": 10222,
+    "BedsLost": 1523,
+    "FinalKills": 33819,
+    "FinalDeaths": 966,
+    "Kills": 18873,
+    "Deaths": 25801
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 46622,
+    "Wins": 37138,
+    "Losses": 9082,
+    "BedsBroken": 75719,
+    "BedsLost": 13698,
+    "FinalKills": 161743,
+    "FinalDeaths": 9671,
+    "Kills": 108670,
+    "Deaths": 124609
+  }
+}

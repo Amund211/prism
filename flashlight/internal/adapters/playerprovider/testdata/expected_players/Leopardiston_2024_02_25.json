@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "69d462e4-c123-4e4a-b204-29804cc9d6f7",
+  "Displayname": "Leopardiston",
+  "LastLogin": "2023-12-11T23:09:52.115+01:00",
+  "LastLogout": "2023-12-12T00:03:24.136+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 10611819,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 3156,
+    "Wins": 1787,
+    "Losses": 1345,
+    "BedsBroken": 7069,
+    "BedsLost": 1681,
+    "FinalKills": 6843,
+    "FinalDeaths": 1228,
+    "Kills": 9431,
+    "Deaths": 10441
+  },
+  "Doubles": {
+    "Winstreak": 11,
+    "GamesPlayed": 18834,
+    "Wins": 14292,
+    "Losses": 4393,
+    "BedsBroken": 33878,
+    "BedsLost": 6108,
+    "FinalKills": 63752,
+    "FinalDeaths": 4574,
+    "Kills": 78938,
+    "Deaths": 72499
+  },
+  "Threes": {
+    "Winstreak": 42,
+    "GamesPlayed": 2743,
+    "Wins": 2282,
+    "Losses": 434,
+    "BedsBroken": 2576,
+    "BedsLost": 654,
+    "FinalKills": 6206,
+    "FinalDeaths": 473,
+    "Kills": 7136,
+    "Deaths": 7994
+  },
+  "Fours": {
+    "Winstreak": 2,
+    "GamesPlayed": 11618,
+    "Wins": 8798,
+    "Losses": 2704,
+    "BedsBroken": 8595,
+    "BedsLost": 3603,
+    "FinalKills": 26988,
+    "FinalDeaths": 2836,
+    "Kills": 39058,
+    "Deaths": 36584
+  },
+  "Overall": {
+    "Winstreak": 2,
+    "GamesPlayed": 36377,
+    "Wins": 27181,
+    "Losses": 8878,
+    "BedsBroken": 52125,
+    "BedsLost": 12048,
+    "FinalKills": 103804,
+    "FinalDeaths": 9113,
+    "Kills": 134588,
+    "Deaths": 127553
+  }
+}

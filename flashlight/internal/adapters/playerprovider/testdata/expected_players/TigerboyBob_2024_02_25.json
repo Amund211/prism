@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "8357e409-9167-42e1-88c0-9df04db46800",
+  "Displayname": "TigerboyBob",
+  "LastLogin": "2024-02-25T03:30:57.681+01:00",
+  "LastLogout": "2024-02-25T05:05:38.748+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 290438,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 142,
+    "Wins": 2,
+    "Losses": 140,
+    "BedsBroken": 35,
+    "BedsLost": 127,
+    "FinalKills": 27,
+    "FinalDeaths": 136,
+    "Kills": 74,
+    "Deaths": 210
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 534,
+    "Wins": 13,
+    "Losses": 521,
+    "BedsBroken": 49,
+    "BedsLost": 485,
+    "FinalKills": 123,
+    "FinalDeaths": 518,
+    "Kills": 573,
+    "Deaths": 1127
+  },
+  "Threes": {
+    "Winstreak": 1,
+    "GamesPlayed": 131,
+    "Wins": 11,
+    "Losses": 120,
+    "BedsBroken": 4,
+    "BedsLost": 115,
+    "FinalKills": 24,
+    "FinalDeaths": 122,
+    "Kills": 157,
+    "Deaths": 358
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 776,
+    "Wins": 78,
+    "Losses": 695,
+    "BedsBroken": 42,
+    "BedsLost": 562,
+    "FinalKills": 132,
+    "FinalDeaths": 712,
+    "Kills": 736,
+    "Deaths": 1914
+  },
+  "Overall": {
+    "Winstreak": 1,
+    "GamesPlayed": 2396,
+    "Wins": 416,
+    "Losses": 1973,
+    "BedsBroken": 229,
+    "BedsLost": 1680,
+    "FinalKills": 569,
+    "FinalDeaths": 2007,
+    "Kills": 2468,
+    "Deaths": 5815
+  }
+}

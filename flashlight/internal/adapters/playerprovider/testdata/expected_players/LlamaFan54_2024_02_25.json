@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "6aef53ae-7954-4709-8e1b-19544c9d5aee",
+  "Displayname": "LlamaFan54",
+  "LastLogin": "2024-02-22T01:57:27.008+01:00",
+  "LastLogout": "2024-02-22T02:16:18.564+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 117322,
+  "Solo": {
+    "Winstreak": 1,
+    "GamesPlayed": 225,
+    "Wins": 3,
+    "Losses": 222,
+    "BedsBroken": 117,
+    "BedsLost": 199,
+    "FinalKills": 81,
+    "FinalDeaths": 221,
+    "Kills": 168,
+    "Deaths": 428
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 471,
+    "Wins": 3,
+    "Losses": 468,
+    "BedsBroken": 141,
+    "BedsLost": 442,
+    "FinalKills": 189,
+    "FinalDeaths": 468,
+    "Kills": 475,
+    "Deaths": 1069
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 345,
+    "Wins": 24,
+    "Losses": 321,
+    "BedsBroken": 61,
+    "BedsLost": 282,
+    "FinalKills": 94,
+    "FinalDeaths": 327,
+    "Kills": 518,
+    "Deaths": 1090
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 12,
+    "Wins": 1,
+    "Losses": 11,
+    "BedsBroken": 7,
+    "BedsLost": 11,
+    "FinalKills": 6,
+    "FinalDeaths": 11,
+    "Kills": 21,
+    "Deaths": 57
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 1058,
+    "Wins": 33,
+    "Losses": 1025,
+    "BedsBroken": 326,
+    "BedsLost": 938,
+    "FinalKills": 373,
+    "FinalDeaths": 1031,
+    "Kills": 1189,
+    "Deaths": 2658
+  }
+}

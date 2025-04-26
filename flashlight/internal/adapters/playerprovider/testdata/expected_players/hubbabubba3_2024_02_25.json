@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "961ceb18-ff7d-43c5-8039-635f488c6f1c",
+  "Displayname": "hubbabubba3",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 176294,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 86,
+    "Wins": 53,
+    "Losses": 33,
+    "BedsBroken": 235,
+    "BedsLost": 47,
+    "FinalKills": 253,
+    "FinalDeaths": 31,
+    "Kills": 158,
+    "Deaths": 228
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 152,
+    "Wins": 76,
+    "Losses": 76,
+    "BedsBroken": 237,
+    "BedsLost": 93,
+    "FinalKills": 423,
+    "FinalDeaths": 81,
+    "Kills": 613,
+    "Deaths": 575
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 53,
+    "Wins": 41,
+    "Losses": 12,
+    "BedsBroken": 55,
+    "BedsLost": 19,
+    "FinalKills": 143,
+    "FinalDeaths": 12,
+    "Kills": 239,
+    "Deaths": 203
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 160,
+    "Wins": 89,
+    "Losses": 71,
+    "BedsBroken": 71,
+    "BedsLost": 75,
+    "FinalKills": 315,
+    "FinalDeaths": 73,
+    "Kills": 404,
+    "Deaths": 490
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 604,
+    "Wins": 397,
+    "Losses": 207,
+    "BedsBroken": 681,
+    "BedsLost": 252,
+    "FinalKills": 1394,
+    "FinalDeaths": 213,
+    "Kills": 1734,
+    "Deaths": 1770
+  }
+}

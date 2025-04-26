@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "7f78ff4e-306c-4672-bce1-35d20a2a5bda",
+  "Displayname": "eggyu",
+  "LastLogin": "2024-01-29T23:22:41.299+01:00",
+  "LastLogout": "2024-01-29T23:22:59.321+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 1130405,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 1935,
+    "Wins": 239,
+    "Losses": 1678,
+    "BedsBroken": 1901,
+    "BedsLost": 1747,
+    "FinalKills": 1391,
+    "FinalDeaths": 1626,
+    "Kills": 2793,
+    "Deaths": 5098
+  },
+  "Doubles": {
+    "Winstreak": 3,
+    "GamesPlayed": 884,
+    "Wins": 116,
+    "Losses": 756,
+    "BedsBroken": 454,
+    "BedsLost": 773,
+    "FinalKills": 705,
+    "FinalDeaths": 765,
+    "Kills": 1564,
+    "Deaths": 3141
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 356,
+    "Wins": 133,
+    "Losses": 217,
+    "BedsBroken": 130,
+    "BedsLost": 238,
+    "FinalKills": 290,
+    "FinalDeaths": 226,
+    "Kills": 713,
+    "Deaths": 1388
+  },
+  "Fours": {
+    "Winstreak": 2,
+    "GamesPlayed": 2034,
+    "Wins": 685,
+    "Losses": 1310,
+    "BedsBroken": 503,
+    "BedsLost": 1387,
+    "FinalKills": 1580,
+    "FinalDeaths": 1317,
+    "Kills": 3817,
+    "Deaths": 8101
+  },
+  "Overall": {
+    "Winstreak": 2,
+    "GamesPlayed": 5420,
+    "Wins": 1324,
+    "Losses": 4019,
+    "BedsBroken": 3028,
+    "BedsLost": 4208,
+    "FinalKills": 4053,
+    "FinalDeaths": 3993,
+    "Kills": 9182,
+    "Deaths": 18329
+  }
+}

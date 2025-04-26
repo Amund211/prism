@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "24c182c6-716b-47c6-8f60-a1be9045c449",
+  "Displayname": "gamerboy80",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 7933525,
+  "Solo": {
+    "Winstreak": 1,
+    "GamesPlayed": 2471,
+    "Wins": 2073,
+    "Losses": 395,
+    "BedsBroken": 8451,
+    "BedsLost": 942,
+    "FinalKills": 8233,
+    "FinalDeaths": 372,
+    "Kills": 5677,
+    "Deaths": 4874
+  },
+  "Doubles": {
+    "Winstreak": 1,
+    "GamesPlayed": 12465,
+    "Wins": 10953,
+    "Losses": 1495,
+    "BedsBroken": 30937,
+    "BedsLost": 3513,
+    "FinalKills": 55154,
+    "FinalDeaths": 1756,
+    "Kills": 35865,
+    "Deaths": 37862
+  },
+  "Threes": {
+    "Winstreak": 45,
+    "GamesPlayed": 4220,
+    "Wins": 3930,
+    "Losses": 284,
+    "BedsBroken": 5346,
+    "BedsLost": 658,
+    "FinalKills": 13410,
+    "FinalDeaths": 348,
+    "Kills": 7771,
+    "Deaths": 10180
+  },
+  "Fours": {
+    "Winstreak": 1,
+    "GamesPlayed": 9533,
+    "Wins": 9034,
+    "Losses": 491,
+    "BedsBroken": 9331,
+    "BedsLost": 1183,
+    "FinalKills": 28257,
+    "FinalDeaths": 617,
+    "Kills": 14093,
+    "Deaths": 21087
+  },
+  "Overall": {
+    "Winstreak": 1,
+    "GamesPlayed": 28731,
+    "Wins": 26025,
+    "Losses": 2672,
+    "BedsBroken": 54088,
+    "BedsLost": 6305,
+    "FinalKills": 105109,
+    "FinalDeaths": 3100,
+    "Kills": 63488,
+    "Deaths": 74088
+  }
+}

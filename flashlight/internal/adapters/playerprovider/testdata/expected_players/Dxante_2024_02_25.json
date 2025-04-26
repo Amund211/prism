@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "c7dc5643-3fb8-4106-8ff4-6108e0d3eb84",
+  "Displayname": "Dxante",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 2984324,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 1126,
+    "Wins": 494,
+    "Losses": 602,
+    "BedsBroken": 2081,
+    "BedsLost": 770,
+    "FinalKills": 1821,
+    "FinalDeaths": 579,
+    "Kills": 2062,
+    "Deaths": 3164
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 4337,
+    "Wins": 2572,
+    "Losses": 1715,
+    "BedsBroken": 5756,
+    "BedsLost": 2217,
+    "FinalKills": 10146,
+    "FinalDeaths": 1860,
+    "Kills": 12728,
+    "Deaths": 19782
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 840,
+    "Wins": 569,
+    "Losses": 264,
+    "BedsBroken": 624,
+    "BedsLost": 322,
+    "FinalKills": 1353,
+    "FinalDeaths": 285,
+    "Kills": 1803,
+    "Deaths": 3179
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 3263,
+    "Wins": 2837,
+    "Losses": 416,
+    "BedsBroken": 2227,
+    "BedsLost": 740,
+    "FinalKills": 7243,
+    "FinalDeaths": 518,
+    "Kills": 5731,
+    "Deaths": 11569
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 10017,
+    "Wins": 6728,
+    "Losses": 3188,
+    "BedsBroken": 10774,
+    "BedsLost": 4248,
+    "FinalKills": 20811,
+    "FinalDeaths": 3426,
+    "Kills": 23640,
+    "Deaths": 39126
+  }
+}

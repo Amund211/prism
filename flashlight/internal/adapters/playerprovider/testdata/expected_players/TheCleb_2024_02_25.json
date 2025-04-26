@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "ed6dd177-717a-43b3-b17b-f02031cfac4e",
+  "Displayname": "TheCleb",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 6104912,
+  "Solo": {
+    "Winstreak": 1,
+    "GamesPlayed": 17,
+    "Wins": 9,
+    "Losses": 7,
+    "BedsBroken": 39,
+    "BedsLost": 9,
+    "FinalKills": 36,
+    "FinalDeaths": 6,
+    "Kills": 17,
+    "Deaths": 55
+  },
+  "Doubles": {
+    "Winstreak": 1,
+    "GamesPlayed": 384,
+    "Wins": 285,
+    "Losses": 98,
+    "BedsBroken": 610,
+    "BedsLost": 160,
+    "FinalKills": 977,
+    "FinalDeaths": 119,
+    "Kills": 658,
+    "Deaths": 1302
+  },
+  "Threes": {
+    "Winstreak": 3,
+    "GamesPlayed": 1398,
+    "Wins": 1241,
+    "Losses": 154,
+    "BedsBroken": 871,
+    "BedsLost": 276,
+    "FinalKills": 2007,
+    "FinalDeaths": 195,
+    "Kills": 1799,
+    "Deaths": 3843
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 32087,
+    "Wins": 29292,
+    "Losses": 2505,
+    "BedsBroken": 17940,
+    "BedsLost": 5273,
+    "FinalKills": 51098,
+    "FinalDeaths": 3683,
+    "Kills": 33884,
+    "Deaths": 72105
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 33891,
+    "Wins": 30831,
+    "Losses": 2765,
+    "BedsBroken": 19462,
+    "BedsLost": 5720,
+    "FinalKills": 54119,
+    "FinalDeaths": 4004,
+    "Kills": 36369,
+    "Deaths": 77316
+  }
+}

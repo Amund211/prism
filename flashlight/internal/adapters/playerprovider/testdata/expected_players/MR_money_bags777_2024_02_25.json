@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "9e03c961-ff4a-4b8e-af50-71b8a85261cd",
+  "Displayname": "MR_money_bags777",
+  "LastLogin": "2024-02-25T00:56:18.623+01:00",
+  "LastLogout": "2024-02-25T04:16:14.109+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 320490,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 31,
+    "Wins": 5,
+    "Losses": 26,
+    "BedsBroken": 31,
+    "BedsLost": 27,
+    "FinalKills": 26,
+    "FinalDeaths": 26,
+    "Kills": 45,
+    "Deaths": 83
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 236,
+    "Wins": 15,
+    "Losses": 221,
+    "BedsBroken": 60,
+    "BedsLost": 210,
+    "FinalKills": 107,
+    "FinalDeaths": 215,
+    "Kills": 381,
+    "Deaths": 336
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 34,
+    "Wins": 5,
+    "Losses": 29,
+    "BedsBroken": 4,
+    "BedsLost": 32,
+    "FinalKills": 14,
+    "FinalDeaths": 29,
+    "Kills": 53,
+    "Deaths": 36
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 706,
+    "Wins": 75,
+    "Losses": 628,
+    "BedsBroken": 13,
+    "BedsLost": 591,
+    "FinalKills": 144,
+    "FinalDeaths": 647,
+    "Kills": 927,
+    "Deaths": 547
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 1633,
+    "Wins": 389,
+    "Losses": 1235,
+    "BedsBroken": 156,
+    "BedsLost": 1174,
+    "FinalKills": 545,
+    "FinalDeaths": 1260,
+    "Kills": 2578,
+    "Deaths": 1810
+  }
+}

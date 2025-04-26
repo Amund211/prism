@@ -13,6 +13,7 @@ type PlayerPIT struct {
 	LastLogin   *time.Time
 	LastLogout  *time.Time
 
+	// TODO: Remove? -> Can be derived from checking gamesplayed == 0
 	MissingBedwarsStats bool
 
 	Experience float64

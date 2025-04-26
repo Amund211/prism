@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "8651edac-fb97-4c8a-8ca7-f229e4a65356",
+  "Displayname": "oCheddar",
+  "LastLogin": "2024-02-24T15:56:42.929+01:00",
+  "LastLogout": "2024-02-24T16:59:38.567+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 244233,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 14,
+    "Wins": 11,
+    "Losses": 3,
+    "BedsBroken": 33,
+    "BedsLost": 7,
+    "FinalKills": 43,
+    "FinalDeaths": 3,
+    "Kills": 29,
+    "Deaths": 46
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 232,
+    "Wins": 149,
+    "Losses": 83,
+    "BedsBroken": 341,
+    "BedsLost": 108,
+    "FinalKills": 813,
+    "FinalDeaths": 90,
+    "Kills": 960,
+    "Deaths": 1230
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 106,
+    "Wins": 83,
+    "Losses": 23,
+    "BedsBroken": 96,
+    "BedsLost": 34,
+    "FinalKills": 291,
+    "FinalDeaths": 26,
+    "Kills": 330,
+    "Deaths": 452
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 42,
+    "Wins": 33,
+    "Losses": 9,
+    "BedsBroken": 39,
+    "BedsLost": 13,
+    "FinalKills": 125,
+    "FinalDeaths": 11,
+    "Kills": 169,
+    "Deaths": 218
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 407,
+    "Wins": 288,
+    "Losses": 119,
+    "BedsBroken": 515,
+    "BedsLost": 164,
+    "FinalKills": 1293,
+    "FinalDeaths": 131,
+    "Kills": 1525,
+    "Deaths": 1979
+  }
+}

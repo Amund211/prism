@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "58b09e5d-ea86-41f9-82c6-2636fb8e8c91",
+  "Displayname": "l_PoopJuice_l",
+  "LastLogin": "2023-12-03T01:37:35.465+01:00",
+  "LastLogout": "2023-12-03T01:43:18.98+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 130976,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 11,
+    "Wins": 0,
+    "Losses": 11,
+    "BedsBroken": 4,
+    "BedsLost": 8,
+    "FinalKills": 2,
+    "FinalDeaths": 6,
+    "Kills": 5,
+    "Deaths": 23
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 156,
+    "Wins": 10,
+    "Losses": 136,
+    "BedsBroken": 7,
+    "BedsLost": 129,
+    "FinalKills": 25,
+    "FinalDeaths": 134,
+    "Kills": 169,
+    "Deaths": 270
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 87,
+    "Wins": 14,
+    "Losses": 71,
+    "BedsBroken": 0,
+    "BedsLost": 66,
+    "FinalKills": 14,
+    "FinalDeaths": 67,
+    "Kills": 122,
+    "Deaths": 180
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 266,
+    "Wins": 52,
+    "Losses": 206,
+    "BedsBroken": 4,
+    "BedsLost": 195,
+    "FinalKills": 55,
+    "FinalDeaths": 196,
+    "Kills": 347,
+    "Deaths": 458
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 611,
+    "Wins": 112,
+    "Losses": 479,
+    "BedsBroken": 15,
+    "BedsLost": 455,
+    "FinalKills": 103,
+    "FinalDeaths": 462,
+    "Kills": 820,
+    "Deaths": 1072
+  }
+}

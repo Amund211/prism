@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "72d4c9fb-4061-46a7-81d1-b060ec62e11b",
+  "Displayname": "hotmami",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 1124829,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 161,
+    "Wins": 51,
+    "Losses": 108,
+    "BedsBroken": 203,
+    "BedsLost": 114,
+    "FinalKills": 182,
+    "FinalDeaths": 101,
+    "Kills": 420,
+    "Deaths": 376
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 895,
+    "Wins": 590,
+    "Losses": 295,
+    "BedsBroken": 793,
+    "BedsLost": 413,
+    "FinalKills": 1389,
+    "FinalDeaths": 336,
+    "Kills": 2127,
+    "Deaths": 2586
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 236,
+    "Wins": 194,
+    "Losses": 41,
+    "BedsBroken": 81,
+    "BedsLost": 60,
+    "FinalKills": 211,
+    "FinalDeaths": 49,
+    "Kills": 318,
+    "Deaths": 483
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 2099,
+    "Wins": 1920,
+    "Losses": 178,
+    "BedsBroken": 769,
+    "BedsLost": 333,
+    "FinalKills": 3094,
+    "FinalDeaths": 216,
+    "Kills": 2371,
+    "Deaths": 4565
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 3520,
+    "Wins": 2884,
+    "Losses": 622,
+    "BedsBroken": 1874,
+    "BedsLost": 921,
+    "FinalKills": 4978,
+    "FinalDeaths": 702,
+    "Kills": 5304,
+    "Deaths": 8143
+  }
+}

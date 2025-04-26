@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "4a7db0e9-d0cf-47f7-8a97-e9903e30ac23",
+  "Displayname": "TheGoldenBalls",
+  "LastLogin": "2023-12-27T00:23:18.32+01:00",
+  "LastLogout": "2023-12-27T01:04:58.431+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 121903,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 35,
+    "Wins": 24,
+    "Losses": 11,
+    "BedsBroken": 110,
+    "BedsLost": 9,
+    "FinalKills": 118,
+    "FinalDeaths": 10,
+    "Kills": 97,
+    "Deaths": 121
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 184,
+    "Wins": 106,
+    "Losses": 78,
+    "BedsBroken": 314,
+    "BedsLost": 99,
+    "FinalKills": 623,
+    "FinalDeaths": 83,
+    "Kills": 814,
+    "Deaths": 792
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 175,
+    "Wins": 56,
+    "Losses": 119,
+    "BedsBroken": 54,
+    "BedsLost": 119,
+    "FinalKills": 157,
+    "FinalDeaths": 119,
+    "Kills": 601,
+    "Deaths": 592
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 147,
+    "Wins": 27,
+    "Losses": 120,
+    "BedsBroken": 17,
+    "BedsLost": 108,
+    "FinalKills": 52,
+    "FinalDeaths": 122,
+    "Kills": 256,
+    "Deaths": 533
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 541,
+    "Wins": 213,
+    "Losses": 328,
+    "BedsBroken": 495,
+    "BedsLost": 335,
+    "FinalKills": 950,
+    "FinalDeaths": 334,
+    "Kills": 1768,
+    "Deaths": 2038
+  }
+}

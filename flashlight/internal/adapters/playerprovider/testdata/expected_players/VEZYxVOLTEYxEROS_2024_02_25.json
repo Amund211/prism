@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "1b5f63a0-9f1a-4666-9b7c-fa563fc77ad6",
+  "Displayname": "VEZYxVOLTEYxEROS",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 12519536,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 226,
+    "Wins": 35,
+    "Losses": 179,
+    "BedsBroken": 171,
+    "BedsLost": 116,
+    "FinalKills": 69,
+    "FinalDeaths": 145,
+    "Kills": 515,
+    "Deaths": 477
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 1113,
+    "Wins": 152,
+    "Losses": 941,
+    "BedsBroken": 436,
+    "BedsLost": 946,
+    "FinalKills": 696,
+    "FinalDeaths": 933,
+    "Kills": 1778,
+    "Deaths": 2834
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 1163,
+    "Wins": 511,
+    "Losses": 631,
+    "BedsBroken": 168,
+    "BedsLost": 684,
+    "FinalKills": 659,
+    "FinalDeaths": 631,
+    "Kills": 1804,
+    "Deaths": 2943
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 41766,
+    "Wins": 33413,
+    "Losses": 7945,
+    "BedsBroken": 6520,
+    "BedsLost": 12723,
+    "FinalKills": 46092,
+    "FinalDeaths": 9420,
+    "Kills": 70910,
+    "Deaths": 76790
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 44390,
+    "Wins": 34229,
+    "Losses": 9697,
+    "BedsBroken": 7300,
+    "BedsLost": 14473,
+    "FinalKills": 47577,
+    "FinalDeaths": 11130,
+    "Kills": 75058,
+    "Deaths": 83106
+  }
+}

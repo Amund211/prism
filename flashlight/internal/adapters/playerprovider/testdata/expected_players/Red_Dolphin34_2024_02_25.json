@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "310ef7f3-4d56-495e-ab0a-9f73ddf31af3",
+  "Displayname": "Red_Dolphin34",
+  "LastLogin": "2024-01-14T04:43:38.754+01:00",
+  "LastLogout": "2024-01-14T06:04:01.443+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 96980,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 1,
+    "Wins": 0,
+    "Losses": 1,
+    "BedsBroken": 0,
+    "BedsLost": 1,
+    "FinalKills": 0,
+    "FinalDeaths": 1,
+    "Kills": 1,
+    "Deaths": 1
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 47,
+    "Wins": 0,
+    "Losses": 47,
+    "BedsBroken": 6,
+    "BedsLost": 45,
+    "FinalKills": 11,
+    "FinalDeaths": 47,
+    "Kills": 79,
+    "Deaths": 157
+  },
+  "Threes": {
+    "Winstreak": 1,
+    "GamesPlayed": 40,
+    "Wins": 3,
+    "Losses": 37,
+    "BedsBroken": 6,
+    "BedsLost": 31,
+    "FinalKills": 20,
+    "FinalDeaths": 38,
+    "Kills": 70,
+    "Deaths": 150
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 331,
+    "Wins": 50,
+    "Losses": 281,
+    "BedsBroken": 18,
+    "BedsLost": 287,
+    "FinalKills": 112,
+    "FinalDeaths": 288,
+    "Kills": 530,
+    "Deaths": 1249
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 421,
+    "Wins": 53,
+    "Losses": 368,
+    "BedsBroken": 30,
+    "BedsLost": 365,
+    "FinalKills": 143,
+    "FinalDeaths": 376,
+    "Kills": 695,
+    "Deaths": 1567
+  }
+}

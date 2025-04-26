@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "3b76b69a-e513-4296-a730-ed49171ad6f8",
+  "Displayname": "WarOG",
+  "LastLogin": "2024-02-25T10:02:09.348+01:00",
+  "LastLogout": "2024-02-25T10:01:35.332+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 23134982,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 7581,
+    "Wins": 5312,
+    "Losses": 2226,
+    "BedsBroken": 21593,
+    "BedsLost": 4097,
+    "FinalKills": 21491,
+    "FinalDeaths": 2134,
+    "Kills": 20010,
+    "Deaths": 14388
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 23895,
+    "Wins": 18593,
+    "Losses": 5247,
+    "BedsBroken": 56361,
+    "BedsLost": 10709,
+    "FinalKills": 105864,
+    "FinalDeaths": 5540,
+    "Kills": 105893,
+    "Deaths": 75578
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 13602,
+    "Wins": 11496,
+    "Losses": 2049,
+    "BedsBroken": 18111,
+    "BedsLost": 4116,
+    "FinalKills": 42518,
+    "FinalDeaths": 2208,
+    "Kills": 48215,
+    "Deaths": 39333
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 22176,
+    "Wins": 18550,
+    "Losses": 3453,
+    "BedsBroken": 25137,
+    "BedsLost": 6706,
+    "FinalKills": 71147,
+    "FinalDeaths": 3862,
+    "Kills": 78325,
+    "Deaths": 66455
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 68795,
+    "Wins": 55424,
+    "Losses": 13010,
+    "BedsBroken": 121840,
+    "BedsLost": 25700,
+    "FinalKills": 242731,
+    "FinalDeaths": 13785,
+    "Kills": 254049,
+    "Deaths": 197592
+  }
+}

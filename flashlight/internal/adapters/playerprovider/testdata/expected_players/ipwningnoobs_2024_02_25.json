@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "2d0f238d-3722-453d-a7e5-a3249d6f125c",
+  "Displayname": "ipwningnoobs",
+  "LastLogin": "2024-02-19T18:51:59.017+01:00",
+  "LastLogout": "2024-02-19T18:52:23.539+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 151216,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 176,
+    "Wins": 8,
+    "Losses": 168,
+    "BedsBroken": 104,
+    "BedsLost": 151,
+    "FinalKills": 78,
+    "FinalDeaths": 156,
+    "Kills": 220,
+    "Deaths": 371
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 817,
+    "Wins": 27,
+    "Losses": 780,
+    "BedsBroken": 178,
+    "BedsLost": 724,
+    "FinalKills": 295,
+    "FinalDeaths": 748,
+    "Kills": 1306,
+    "Deaths": 2005
+  },
+  "Threes": {
+    "Winstreak": 1,
+    "GamesPlayed": 47,
+    "Wins": 2,
+    "Losses": 35,
+    "BedsBroken": 7,
+    "BedsLost": 43,
+    "FinalKills": 13,
+    "FinalDeaths": 43,
+    "Kills": 82,
+    "Deaths": 112
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 37,
+    "Wins": 5,
+    "Losses": 32,
+    "BedsBroken": 2,
+    "BedsLost": 24,
+    "FinalKills": 14,
+    "FinalDeaths": 26,
+    "Kills": 47,
+    "Deaths": 84
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 1131,
+    "Wins": 66,
+    "Losses": 1045,
+    "BedsBroken": 304,
+    "BedsLost": 972,
+    "FinalKills": 448,
+    "FinalDeaths": 1003,
+    "Kills": 1895,
+    "Deaths": 2784
+  }
+}

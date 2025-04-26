@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "3cf23c85-f370-4cc3-be01-ac7c8aabbfdf",
+  "Displayname": "poopoosnake75",
+  "LastLogin": "2024-02-24T17:29:12.519+01:00",
+  "LastLogout": "2024-02-24T20:16:31.323+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 10298563,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 1018,
+    "Wins": 226,
+    "Losses": 772,
+    "BedsBroken": 1523,
+    "BedsLost": 850,
+    "FinalKills": 1063,
+    "FinalDeaths": 745,
+    "Kills": 1123,
+    "Deaths": 2423
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 2943,
+    "Wins": 1198,
+    "Losses": 1689,
+    "BedsBroken": 3607,
+    "BedsLost": 1979,
+    "FinalKills": 6096,
+    "FinalDeaths": 1731,
+    "Kills": 6563,
+    "Deaths": 10328
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 3328,
+    "Wins": 2135,
+    "Losses": 1091,
+    "BedsBroken": 2953,
+    "BedsLost": 1508,
+    "FinalKills": 7616,
+    "FinalDeaths": 1202,
+    "Kills": 7976,
+    "Deaths": 9538
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 29307,
+    "Wins": 23102,
+    "Losses": 5917,
+    "BedsBroken": 24718,
+    "BedsLost": 9396,
+    "FinalKills": 91692,
+    "FinalDeaths": 6586,
+    "Kills": 53671,
+    "Deaths": 69155
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 37174,
+    "Wins": 27128,
+    "Losses": 9562,
+    "BedsBroken": 33016,
+    "BedsLost": 13858,
+    "FinalKills": 107088,
+    "FinalDeaths": 10362,
+    "Kills": 70383,
+    "Deaths": 92614
+  }
+}

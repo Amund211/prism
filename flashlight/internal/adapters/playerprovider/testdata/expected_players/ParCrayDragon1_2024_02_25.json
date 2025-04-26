@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "e6c0acf7-0c92-425f-bf71-5c4b05989b9b",
+  "Displayname": "ParCrayDragon1",
+  "LastLogin": "2024-02-15T01:32:49.637+01:00",
+  "LastLogout": "2024-02-15T01:32:57.92+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 394186,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 166,
+    "Wins": 11,
+    "Losses": 155,
+    "BedsBroken": 154,
+    "BedsLost": 141,
+    "FinalKills": 124,
+    "FinalDeaths": 153,
+    "Kills": 231,
+    "Deaths": 415
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 1192,
+    "Wins": 74,
+    "Losses": 1118,
+    "BedsBroken": 494,
+    "BedsLost": 1041,
+    "FinalKills": 895,
+    "FinalDeaths": 1113,
+    "Kills": 2778,
+    "Deaths": 3810
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 103,
+    "Wins": 21,
+    "Losses": 82,
+    "BedsBroken": 22,
+    "BedsLost": 78,
+    "FinalKills": 64,
+    "FinalDeaths": 79,
+    "Kills": 256,
+    "Deaths": 371
+  },
+  "Fours": {
+    "Winstreak": 1,
+    "GamesPlayed": 262,
+    "Wins": 56,
+    "Losses": 201,
+    "BedsBroken": 49,
+    "BedsLost": 186,
+    "FinalKills": 208,
+    "FinalDeaths": 209,
+    "Kills": 792,
+    "Deaths": 993
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 2586,
+    "Wins": 591,
+    "Losses": 1981,
+    "BedsBroken": 793,
+    "BedsLost": 1780,
+    "FinalKills": 1708,
+    "FinalDeaths": 2004,
+    "Kills": 6695,
+    "Deaths": 8719
+  }
+}

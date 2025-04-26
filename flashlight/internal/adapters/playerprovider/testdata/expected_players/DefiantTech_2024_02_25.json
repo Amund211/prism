@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "ceeee37c-9b5b-43c7-82bf-aa0ed719272d",
+  "Displayname": "DefiantTech",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 12437823,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 71,
+    "Wins": 23,
+    "Losses": 47,
+    "BedsBroken": 107,
+    "BedsLost": 48,
+    "FinalKills": 112,
+    "FinalDeaths": 39,
+    "Kills": 198,
+    "Deaths": 233
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 10308,
+    "Wins": 8560,
+    "Losses": 1688,
+    "BedsBroken": 16024,
+    "BedsLost": 2966,
+    "FinalKills": 28717,
+    "FinalDeaths": 2062,
+    "Kills": 24709,
+    "Deaths": 35680
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 5712,
+    "Wins": 4967,
+    "Losses": 714,
+    "BedsBroken": 4391,
+    "BedsLost": 1119,
+    "FinalKills": 10733,
+    "FinalDeaths": 825,
+    "Kills": 10331,
+    "Deaths": 15242
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 15799,
+    "Wins": 14183,
+    "Losses": 1534,
+    "BedsBroken": 11813,
+    "BedsLost": 2844,
+    "FinalKills": 33924,
+    "FinalDeaths": 1961,
+    "Kills": 25138,
+    "Deaths": 42009
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 32088,
+    "Wins": 27925,
+    "Losses": 3984,
+    "BedsBroken": 32395,
+    "BedsLost": 6979,
+    "FinalKills": 73628,
+    "FinalDeaths": 4889,
+    "Kills": 60457,
+    "Deaths": 93371
+  }
+}

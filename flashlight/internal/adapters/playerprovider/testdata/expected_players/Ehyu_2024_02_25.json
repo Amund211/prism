@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "4f6027cb-c17f-42d3-8118-c8391612c8b3",
+  "Displayname": "Ehyu",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 2191174,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 211,
+    "Wins": 88,
+    "Losses": 120,
+    "BedsBroken": 389,
+    "BedsLost": 147,
+    "FinalKills": 367,
+    "FinalDeaths": 113,
+    "Kills": 480,
+    "Deaths": 436
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 1448,
+    "Wins": 676,
+    "Losses": 762,
+    "BedsBroken": 1784,
+    "BedsLost": 920,
+    "FinalKills": 3190,
+    "FinalDeaths": 774,
+    "Kills": 4144,
+    "Deaths": 4481
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 1262,
+    "Wins": 830,
+    "Losses": 420,
+    "BedsBroken": 868,
+    "BedsLost": 521,
+    "FinalKills": 2083,
+    "FinalDeaths": 415,
+    "Kills": 2613,
+    "Deaths": 3654
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 873,
+    "Wins": 536,
+    "Losses": 327,
+    "BedsBroken": 446,
+    "BedsLost": 371,
+    "FinalKills": 1204,
+    "FinalDeaths": 315,
+    "Kills": 1551,
+    "Deaths": 2339
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 3826,
+    "Wins": 2152,
+    "Losses": 1637,
+    "BedsBroken": 3498,
+    "BedsLost": 1967,
+    "FinalKills": 6866,
+    "FinalDeaths": 1624,
+    "Kills": 8810,
+    "Deaths": 10970
+  }
+}

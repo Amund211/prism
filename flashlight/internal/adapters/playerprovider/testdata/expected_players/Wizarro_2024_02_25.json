@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "b5e22ad7-44de-45bf-bc45-e06779f59c33",
+  "Displayname": "Wizarro",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 11381192,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 8204,
+    "Wins": 5641,
+    "Losses": 2547,
+    "BedsBroken": 19602,
+    "BedsLost": 4388,
+    "FinalKills": 19918,
+    "FinalDeaths": 2449,
+    "Kills": 20728,
+    "Deaths": 17694
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 3359,
+    "Wins": 2165,
+    "Losses": 1182,
+    "BedsBroken": 4693,
+    "BedsLost": 1493,
+    "FinalKills": 8185,
+    "FinalDeaths": 1202,
+    "Kills": 8189,
+    "Deaths": 10902
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 2218,
+    "Wins": 1458,
+    "Losses": 720,
+    "BedsBroken": 1442,
+    "BedsLost": 843,
+    "FinalKills": 2958,
+    "FinalDeaths": 730,
+    "Kills": 2949,
+    "Deaths": 5835
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 21604,
+    "Wins": 17953,
+    "Losses": 3481,
+    "BedsBroken": 15529,
+    "BedsLost": 4730,
+    "FinalKills": 45905,
+    "FinalDeaths": 3648,
+    "Kills": 29354,
+    "Deaths": 50252
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 36070,
+    "Wins": 27883,
+    "Losses": 7936,
+    "BedsBroken": 41449,
+    "BedsLost": 11467,
+    "FinalKills": 77497,
+    "FinalDeaths": 8034,
+    "Kills": 61718,
+    "Deaths": 85396
+  }
+}

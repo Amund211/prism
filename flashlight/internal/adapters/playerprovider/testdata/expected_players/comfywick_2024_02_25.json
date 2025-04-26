@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "aed54fc3-1e4c-494a-8753-2f1ea78a6e53",
+  "Displayname": "comfywick",
+  "LastLogin": "2024-02-23T03:13:27.777+01:00",
+  "LastLogout": "2024-02-23T04:59:56.002+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 3609175,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 1140,
+    "Wins": 187,
+    "Losses": 943,
+    "BedsBroken": 1424,
+    "BedsLost": 696,
+    "FinalKills": 1080,
+    "FinalDeaths": 643,
+    "Kills": 1684,
+    "Deaths": 2752
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 3120,
+    "Wins": 1375,
+    "Losses": 1716,
+    "BedsBroken": 3344,
+    "BedsLost": 1926,
+    "FinalKills": 6087,
+    "FinalDeaths": 1739,
+    "Kills": 8303,
+    "Deaths": 10840
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 1944,
+    "Wins": 1401,
+    "Losses": 534,
+    "BedsBroken": 1426,
+    "BedsLost": 650,
+    "FinalKills": 3697,
+    "FinalDeaths": 567,
+    "Kills": 4556,
+    "Deaths": 6142
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 2649,
+    "Wins": 2053,
+    "Losses": 577,
+    "BedsBroken": 1523,
+    "BedsLost": 794,
+    "FinalKills": 5444,
+    "FinalDeaths": 655,
+    "Kills": 5989,
+    "Deaths": 8697
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 8942,
+    "Wins": 5088,
+    "Losses": 3786,
+    "BedsBroken": 7744,
+    "BedsLost": 4082,
+    "FinalKills": 16389,
+    "FinalDeaths": 3619,
+    "Kills": 20649,
+    "Deaths": 28604
+  }
+}

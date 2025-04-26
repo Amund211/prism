@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "8a96f649-8889-474a-b35e-1242eea1e14d",
+  "Displayname": "Buhzai",
+  "LastLogin": "2024-02-23T21:16:26.316+01:00",
+  "LastLogout": "2024-02-23T21:17:01.127+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 1753890,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 412,
+    "Wins": 92,
+    "Losses": 320,
+    "BedsBroken": 533,
+    "BedsLost": 350,
+    "FinalKills": 439,
+    "FinalDeaths": 312,
+    "Kills": 597,
+    "Deaths": 739
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 1544,
+    "Wins": 488,
+    "Losses": 1035,
+    "BedsBroken": 1326,
+    "BedsLost": 1136,
+    "FinalKills": 2348,
+    "FinalDeaths": 1040,
+    "Kills": 3300,
+    "Deaths": 3958
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 827,
+    "Wins": 652,
+    "Losses": 170,
+    "BedsBroken": 614,
+    "BedsLost": 208,
+    "FinalKills": 1693,
+    "FinalDeaths": 178,
+    "Kills": 1461,
+    "Deaths": 2114
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 1064,
+    "Wins": 962,
+    "Losses": 101,
+    "BedsBroken": 918,
+    "BedsLost": 167,
+    "FinalKills": 2831,
+    "FinalDeaths": 108,
+    "Kills": 1821,
+    "Deaths": 3090
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 3876,
+    "Wins": 2213,
+    "Losses": 1635,
+    "BedsBroken": 3400,
+    "BedsLost": 1873,
+    "FinalKills": 7330,
+    "FinalDeaths": 1648,
+    "Kills": 7199,
+    "Deaths": 9950
+  }
+}

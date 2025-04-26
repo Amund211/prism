@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "8a1bcf29-7bf0-4883-86ba-6af0f52f887d",
+  "Displayname": "Gatore",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 3000621,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 499,
+    "Wins": 199,
+    "Losses": 289,
+    "BedsBroken": 1050,
+    "BedsLost": 322,
+    "FinalKills": 926,
+    "FinalDeaths": 262,
+    "Kills": 940,
+    "Deaths": 1368
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 3947,
+    "Wins": 1342,
+    "Losses": 2536,
+    "BedsBroken": 4160,
+    "BedsLost": 2663,
+    "FinalKills": 6942,
+    "FinalDeaths": 2489,
+    "Kills": 11269,
+    "Deaths": 15295
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 2756,
+    "Wins": 1663,
+    "Losses": 1060,
+    "BedsBroken": 2101,
+    "BedsLost": 1197,
+    "FinalKills": 4619,
+    "FinalDeaths": 1060,
+    "Kills": 7618,
+    "Deaths": 10324
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 2840,
+    "Wins": 2162,
+    "Losses": 650,
+    "BedsBroken": 2146,
+    "BedsLost": 813,
+    "FinalKills": 5687,
+    "FinalDeaths": 674,
+    "Kills": 6879,
+    "Deaths": 10230
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 10193,
+    "Wins": 5480,
+    "Losses": 4568,
+    "BedsBroken": 9522,
+    "BedsLost": 5034,
+    "FinalKills": 18336,
+    "FinalDeaths": 4518,
+    "Kills": 27076,
+    "Deaths": 37545
+  }
+}

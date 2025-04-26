@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "11d07987-b08b-41fb-9f38-c3f77233623a",
+  "Displayname": "OkayShawny",
+  "LastLogin": "2024-02-09T05:43:13.605+01:00",
+  "LastLogout": "2024-02-09T05:55:51.887+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 67749,
+  "Solo": {
+    "Winstreak": 6,
+    "GamesPlayed": 6,
+    "Wins": 6,
+    "Losses": 0,
+    "BedsBroken": 22,
+    "BedsLost": 2,
+    "FinalKills": 23,
+    "FinalDeaths": 0,
+    "Kills": 16,
+    "Deaths": 11
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 28,
+    "Wins": 7,
+    "Losses": 21,
+    "BedsBroken": 44,
+    "BedsLost": 22,
+    "FinalKills": 71,
+    "FinalDeaths": 21,
+    "Kills": 101,
+    "Deaths": 80
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 17,
+    "Wins": 5,
+    "Losses": 12,
+    "BedsBroken": 17,
+    "BedsLost": 13,
+    "FinalKills": 37,
+    "FinalDeaths": 12,
+    "Kills": 87,
+    "Deaths": 62
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 36,
+    "Wins": 10,
+    "Losses": 26,
+    "BedsBroken": 27,
+    "BedsLost": 30,
+    "FinalKills": 61,
+    "FinalDeaths": 27,
+    "Kills": 146,
+    "Deaths": 98
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 88,
+    "Wins": 29,
+    "Losses": 59,
+    "BedsBroken": 111,
+    "BedsLost": 67,
+    "FinalKills": 195,
+    "FinalDeaths": 60,
+    "Kills": 351,
+    "Deaths": 254
+  }
+}

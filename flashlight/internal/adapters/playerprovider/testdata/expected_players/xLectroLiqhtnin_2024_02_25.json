@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "383a081f-6dc0-4ac0-bb95-1f8d50c3e532",
+  "Displayname": "xLectroLiqhtnin",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 12999553,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 117,
+    "Wins": 16,
+    "Losses": 100,
+    "BedsBroken": 155,
+    "BedsLost": 101,
+    "FinalKills": 81,
+    "FinalDeaths": 93,
+    "Kills": 103,
+    "Deaths": 371
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 330,
+    "Wins": 108,
+    "Losses": 219,
+    "BedsBroken": 359,
+    "BedsLost": 242,
+    "FinalKills": 442,
+    "FinalDeaths": 218,
+    "Kills": 516,
+    "Deaths": 1081
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 2600,
+    "Wins": 1836,
+    "Losses": 761,
+    "BedsBroken": 3146,
+    "BedsLost": 1000,
+    "FinalKills": 4129,
+    "FinalDeaths": 803,
+    "Kills": 3050,
+    "Deaths": 8062
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 45206,
+    "Wins": 40519,
+    "Losses": 4642,
+    "BedsBroken": 51433,
+    "BedsLost": 8712,
+    "FinalKills": 85058,
+    "FinalDeaths": 5493,
+    "Kills": 45290,
+    "Deaths": 117853
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 48307,
+    "Wins": 42530,
+    "Losses": 5724,
+    "BedsBroken": 55121,
+    "BedsLost": 10058,
+    "FinalKills": 89754,
+    "FinalDeaths": 6609,
+    "Kills": 48995,
+    "Deaths": 127437
+  }
+}

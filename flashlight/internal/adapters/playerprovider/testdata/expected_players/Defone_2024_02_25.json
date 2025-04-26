@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "d4252acb-8199-49a6-aa39-e9785993f784",
+  "Displayname": "Defone",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 7152446,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 534,
+    "Wins": 430,
+    "Losses": 104,
+    "BedsBroken": 1679,
+    "BedsLost": 175,
+    "FinalKills": 1720,
+    "FinalDeaths": 99,
+    "Kills": 1277,
+    "Deaths": 875
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 12149,
+    "Wins": 11881,
+    "Losses": 265,
+    "BedsBroken": 30243,
+    "BedsLost": 983,
+    "FinalKills": 59824,
+    "FinalDeaths": 305,
+    "Kills": 46922,
+    "Deaths": 33660
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 2609,
+    "Wins": 2497,
+    "Losses": 113,
+    "BedsBroken": 3594,
+    "BedsLost": 243,
+    "FinalKills": 9323,
+    "FinalDeaths": 111,
+    "Kills": 7047,
+    "Deaths": 5692
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 13046,
+    "Wins": 12757,
+    "Losses": 287,
+    "BedsBroken": 14201,
+    "BedsLost": 779,
+    "FinalKills": 50692,
+    "FinalDeaths": 340,
+    "Kills": 24179,
+    "Deaths": 24439
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 29847,
+    "Wins": 29066,
+    "Losses": 770,
+    "BedsBroken": 50246,
+    "BedsLost": 2184,
+    "FinalKills": 124144,
+    "FinalDeaths": 856,
+    "Kills": 81108,
+    "Deaths": 65550
+  }
+}

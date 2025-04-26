@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "0102e3f2-cd20-4d7e-bd82-023552a3c1de",
+  "Displayname": "Chapeey",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 14768246,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 9758,
+    "Wins": 7548,
+    "Losses": 2160,
+    "BedsBroken": 27141,
+    "BedsLost": 3912,
+    "FinalKills": 27680,
+    "FinalDeaths": 1918,
+    "Kills": 27450,
+    "Deaths": 21658
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 12371,
+    "Wins": 9960,
+    "Losses": 2310,
+    "BedsBroken": 22658,
+    "BedsLost": 3608,
+    "FinalKills": 41935,
+    "FinalDeaths": 2436,
+    "Kills": 42176,
+    "Deaths": 43871
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 3533,
+    "Wins": 2841,
+    "Losses": 663,
+    "BedsBroken": 3094,
+    "BedsLost": 901,
+    "FinalKills": 7031,
+    "FinalDeaths": 664,
+    "Kills": 7535,
+    "Deaths": 10181
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 12065,
+    "Wins": 10616,
+    "Losses": 1378,
+    "BedsBroken": 9329,
+    "BedsLost": 2216,
+    "FinalKills": 25847,
+    "FinalDeaths": 1558,
+    "Kills": 19198,
+    "Deaths": 31535
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 38801,
+    "Wins": 32000,
+    "Losses": 6534,
+    "BedsBroken": 62574,
+    "BedsLost": 10676,
+    "FinalKills": 103384,
+    "FinalDeaths": 6602,
+    "Kills": 97037,
+    "Deaths": 108507
+  }
+}

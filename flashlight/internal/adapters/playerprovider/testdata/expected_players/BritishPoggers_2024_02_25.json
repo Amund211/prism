@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "5bcb25c6-091b-407d-a235-92cadda148a2",
+  "Displayname": "BritishPoggers",
+  "LastLogin": "2023-12-28T23:01:30.639+01:00",
+  "LastLogout": "2023-12-28T23:14:28.465+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 690745,
+  "Solo": {
+    "Winstreak": 1,
+    "GamesPlayed": 378,
+    "Wins": 46,
+    "Losses": 323,
+    "BedsBroken": 378,
+    "BedsLost": 200,
+    "FinalKills": 304,
+    "FinalDeaths": 200,
+    "Kills": 510,
+    "Deaths": 1293
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 668,
+    "Wins": 323,
+    "Losses": 337,
+    "BedsBroken": 775,
+    "BedsLost": 356,
+    "FinalKills": 1338,
+    "FinalDeaths": 331,
+    "Kills": 2185,
+    "Deaths": 3883
+  },
+  "Threes": {
+    "Winstreak": 16,
+    "GamesPlayed": 535,
+    "Wins": 418,
+    "Losses": 114,
+    "BedsBroken": 297,
+    "BedsLost": 140,
+    "FinalKills": 771,
+    "FinalDeaths": 123,
+    "Kills": 1070,
+    "Deaths": 2469
+  },
+  "Fours": {
+    "Winstreak": 9,
+    "GamesPlayed": 1103,
+    "Wins": 950,
+    "Losses": 147,
+    "BedsBroken": 502,
+    "BedsLost": 223,
+    "FinalKills": 1488,
+    "FinalDeaths": 190,
+    "Kills": 1852,
+    "Deaths": 4657
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 2728,
+    "Wins": 1775,
+    "Losses": 926,
+    "BedsBroken": 1958,
+    "BedsLost": 924,
+    "FinalKills": 3933,
+    "FinalDeaths": 848,
+    "Kills": 5678,
+    "Deaths": 12410
+  }
+}

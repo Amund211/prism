@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "fb401c84-dc7f-4b4a-8a90-f02e7e16f53d",
+  "Displayname": "GawCHINKK",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 327076,
+  "Solo": {
+    "Winstreak": 5,
+    "GamesPlayed": 49,
+    "Wins": 44,
+    "Losses": 5,
+    "BedsBroken": 161,
+    "BedsLost": 11,
+    "FinalKills": 162,
+    "FinalDeaths": 4,
+    "Kills": 134,
+    "Deaths": 141
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 256,
+    "Wins": 244,
+    "Losses": 10,
+    "BedsBroken": 509,
+    "BedsLost": 31,
+    "FinalKills": 971,
+    "FinalDeaths": 13,
+    "Kills": 845,
+    "Deaths": 688
+  },
+  "Threes": {
+    "Winstreak": 38,
+    "GamesPlayed": 221,
+    "Wins": 217,
+    "Losses": 4,
+    "BedsBroken": 189,
+    "BedsLost": 14,
+    "FinalKills": 532,
+    "FinalDeaths": 7,
+    "Kills": 309,
+    "Deaths": 428
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 315,
+    "Wins": 306,
+    "Losses": 8,
+    "BedsBroken": 197,
+    "BedsLost": 26,
+    "FinalKills": 789,
+    "FinalDeaths": 14,
+    "Kills": 436,
+    "Deaths": 674
+  },
+  "Overall": {
+    "Winstreak": 16,
+    "GamesPlayed": 854,
+    "Wins": 824,
+    "Losses": 27,
+    "BedsBroken": 1059,
+    "BedsLost": 82,
+    "FinalKills": 2469,
+    "FinalDeaths": 38,
+    "Kills": 1736,
+    "Deaths": 1941
+  }
+}

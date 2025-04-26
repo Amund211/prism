@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "3d58a2de-3831-4a17-a305-67258295f81e",
+  "Displayname": "iCiara",
+  "LastLogin": "2024-02-21T00:45:56.379+01:00",
+  "LastLogout": "2024-02-21T01:19:57.303+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 2338645,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 436,
+    "Wins": 126,
+    "Losses": 310,
+    "BedsBroken": 595,
+    "BedsLost": 339,
+    "FinalKills": 554,
+    "FinalDeaths": 302,
+    "Kills": 728,
+    "Deaths": 1453
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 1247,
+    "Wins": 789,
+    "Losses": 458,
+    "BedsBroken": 1061,
+    "BedsLost": 561,
+    "FinalKills": 2335,
+    "FinalDeaths": 503,
+    "Kills": 3049,
+    "Deaths": 6409
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 1652,
+    "Wins": 1415,
+    "Losses": 237,
+    "BedsBroken": 737,
+    "BedsLost": 326,
+    "FinalKills": 2428,
+    "FinalDeaths": 286,
+    "Kills": 2636,
+    "Deaths": 6268
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 2955,
+    "Wins": 2505,
+    "Losses": 448,
+    "BedsBroken": 1074,
+    "BedsLost": 603,
+    "FinalKills": 4443,
+    "FinalDeaths": 512,
+    "Kills": 4085,
+    "Deaths": 10725
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 6301,
+    "Wins": 4841,
+    "Losses": 1458,
+    "BedsBroken": 3469,
+    "BedsLost": 1834,
+    "FinalKills": 9764,
+    "FinalDeaths": 1609,
+    "Kills": 10508,
+    "Deaths": 24874
+  }
+}

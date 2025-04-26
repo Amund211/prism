@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "896f7799-f2a2-4185-a9c0-9a756ace1f0c",
+  "Displayname": "Lyndonz",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 6141777,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 30,
+    "Wins": 19,
+    "Losses": 10,
+    "BedsBroken": 76,
+    "BedsLost": 16,
+    "FinalKills": 72,
+    "FinalDeaths": 10,
+    "Kills": 59,
+    "Deaths": 93
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 3982,
+    "Wins": 3214,
+    "Losses": 755,
+    "BedsBroken": 7362,
+    "BedsLost": 1046,
+    "FinalKills": 14310,
+    "FinalDeaths": 780,
+    "Kills": 13612,
+    "Deaths": 17268
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 5823,
+    "Wins": 5172,
+    "Losses": 625,
+    "BedsBroken": 5810,
+    "BedsLost": 888,
+    "FinalKills": 14306,
+    "FinalDeaths": 668,
+    "Kills": 12831,
+    "Deaths": 19121
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 11449,
+    "Wins": 10478,
+    "Losses": 947,
+    "BedsBroken": 10129,
+    "BedsLost": 1556,
+    "FinalKills": 31278,
+    "FinalDeaths": 1057,
+    "Kills": 22106,
+    "Deaths": 34615
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 21423,
+    "Wins": 19011,
+    "Losses": 2343,
+    "BedsBroken": 23422,
+    "BedsLost": 3515,
+    "FinalKills": 60065,
+    "FinalDeaths": 2520,
+    "Kills": 48736,
+    "Deaths": 71296
+  }
+}

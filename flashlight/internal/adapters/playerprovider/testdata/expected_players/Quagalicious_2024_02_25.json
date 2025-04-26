@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "3e74ee59-6310-407d-bd82-1e1e644cc4d1",
+  "Displayname": "Quagalicious",
+  "LastLogin": "2024-01-02T04:44:10.065+01:00",
+  "LastLogout": "2024-01-02T06:12:05.012+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 582496,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 439,
+    "Wins": 50,
+    "Losses": 388,
+    "BedsBroken": 433,
+    "BedsLost": 389,
+    "FinalKills": 362,
+    "FinalDeaths": 381,
+    "Kills": 653,
+    "Deaths": 1151
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 699,
+    "Wins": 81,
+    "Losses": 616,
+    "BedsBroken": 306,
+    "BedsLost": 602,
+    "FinalKills": 609,
+    "FinalDeaths": 602,
+    "Kills": 1474,
+    "Deaths": 2261
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 252,
+    "Wins": 54,
+    "Losses": 194,
+    "BedsBroken": 54,
+    "BedsLost": 197,
+    "FinalKills": 168,
+    "FinalDeaths": 192,
+    "Kills": 508,
+    "Deaths": 752
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 236,
+    "Wins": 56,
+    "Losses": 180,
+    "BedsBroken": 36,
+    "BedsLost": 176,
+    "FinalKills": 161,
+    "FinalDeaths": 176,
+    "Kills": 505,
+    "Deaths": 814
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 1673,
+    "Wins": 262,
+    "Losses": 1404,
+    "BedsBroken": 834,
+    "BedsLost": 1391,
+    "FinalKills": 1319,
+    "FinalDeaths": 1378,
+    "Kills": 3215,
+    "Deaths": 5073
+  }
+}

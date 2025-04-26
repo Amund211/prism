@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "eff10c1c-4560-44cd-af6f-198921723d4f",
+  "Displayname": "Hashito",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 13314311,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 41675,
+    "Wins": 36709,
+    "Losses": 4982,
+    "BedsBroken": 139887,
+    "BedsLost": 15983,
+    "FinalKills": 146390,
+    "FinalDeaths": 4825,
+    "Kills": 112612,
+    "Deaths": 67819
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 2306,
+    "Wins": 1689,
+    "Losses": 613,
+    "BedsBroken": 5977,
+    "BedsLost": 1163,
+    "FinalKills": 10641,
+    "FinalDeaths": 612,
+    "Kills": 10556,
+    "Deaths": 5974
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 199,
+    "Wins": 161,
+    "Losses": 37,
+    "BedsBroken": 283,
+    "BedsLost": 55,
+    "FinalKills": 622,
+    "FinalDeaths": 41,
+    "Kills": 517,
+    "Deaths": 455
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 2002,
+    "Wins": 1967,
+    "Losses": 31,
+    "BedsBroken": 2350,
+    "BedsLost": 111,
+    "FinalKills": 5595,
+    "FinalDeaths": 44,
+    "Kills": 1949,
+    "Deaths": 3286
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 46182,
+    "Wins": 40526,
+    "Losses": 5663,
+    "BedsBroken": 148497,
+    "BedsLost": 17312,
+    "FinalKills": 163248,
+    "FinalDeaths": 5522,
+    "Kills": 125634,
+    "Deaths": 77534
+  }
+}

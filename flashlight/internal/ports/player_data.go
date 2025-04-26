@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/domain"
 	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/logging"
@@ -58,13 +57,11 @@ func MakeGetPlayerDataHandler(
 			return
 		}
 
-		apiResponseFromDomain := playerprovider.DomainPlayerToHypixelAPIResponse(player)
-
-		minifiedPlayerData, err := playerprovider.MarshalPlayerData(ctx, apiResponseFromDomain)
+		hypixelAPIResponseData, err := PlayerToHypixelAPIResponseData(player)
 		if err != nil {
-			logger.Error("Failed to marshal player data", "error", err)
+			logger.Error("Failed to convert player to hypixel API response", "error", err)
 
-			err = fmt.Errorf("%w: failed to marshal player data: %w", e.APIServerError, err)
+			err = fmt.Errorf("%w: failed to convert player to hypixel API response: %w", e.APIServerError, err)
 			reporting.Report(ctx, err)
 
 			statusCode := writeErrorResponse(r.Context(), w, err)
@@ -73,12 +70,12 @@ func MakeGetPlayerDataHandler(
 		}
 
 		statusCode := 200
-		logger.Info("Got minified player data", "contentLength", len(minifiedPlayerData), "statusCode", 200)
+		logger.Info("Got minified player data", "contentLength", len(hypixelAPIResponseData), "statusCode", 200)
 
 		logger.Info("Returning response", "statusCode", statusCode, "reason", "success")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
-		w.Write(minifiedPlayerData)
+		w.Write(hypixelAPIResponseData)
 	}
 
 	return middleware(handler)

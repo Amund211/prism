@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "67010071-1c6b-4079-942c-a559b9285507",
+  "Displayname": "Galnox",
+  "LastLogin": "2024-02-24T16:47:24.196+01:00",
+  "LastLogout": "2024-02-24T17:10:40.812+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 353556,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 127,
+    "Wins": 5,
+    "Losses": 122,
+    "BedsBroken": 39,
+    "BedsLost": 119,
+    "FinalKills": 26,
+    "FinalDeaths": 121,
+    "Kills": 103,
+    "Deaths": 298
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 1181,
+    "Wins": 17,
+    "Losses": 1164,
+    "BedsBroken": 183,
+    "BedsLost": 1099,
+    "FinalKills": 269,
+    "FinalDeaths": 1133,
+    "Kills": 1366,
+    "Deaths": 3095
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 277,
+    "Wins": 20,
+    "Losses": 257,
+    "BedsBroken": 16,
+    "BedsLost": 245,
+    "FinalKills": 54,
+    "FinalDeaths": 257,
+    "Kills": 385,
+    "Deaths": 926
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 388,
+    "Wins": 36,
+    "Losses": 352,
+    "BedsBroken": 41,
+    "BedsLost": 332,
+    "FinalKills": 118,
+    "FinalDeaths": 357,
+    "Kills": 560,
+    "Deaths": 1304
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 2075,
+    "Wins": 123,
+    "Losses": 1950,
+    "BedsBroken": 285,
+    "BedsLost": 1845,
+    "FinalKills": 502,
+    "FinalDeaths": 1927,
+    "Kills": 2595,
+    "Deaths": 6027
+  }
+}

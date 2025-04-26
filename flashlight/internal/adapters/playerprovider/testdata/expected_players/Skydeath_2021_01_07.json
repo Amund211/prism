@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "a937646b-f115-44c3-8dbf-9ae4a65669a0",
+  "Displayname": "Skydeath",
+  "LastLogin": "2021-01-06T20:12:53.602+01:00",
+  "LastLogout": "2021-01-06T22:49:18.379+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 1816289,
+  "Solo": {
+    "Winstreak": 1,
+    "GamesPlayed": 483,
+    "Wins": 251,
+    "Losses": 232,
+    "BedsBroken": 968,
+    "BedsLost": 330,
+    "FinalKills": 866,
+    "FinalDeaths": 231,
+    "Kills": 1027,
+    "Deaths": 1464
+  },
+  "Doubles": {
+    "Winstreak": 2,
+    "GamesPlayed": 1446,
+    "Wins": 820,
+    "Losses": 622,
+    "BedsBroken": 1844,
+    "BedsLost": 825,
+    "FinalKills": 3105,
+    "FinalDeaths": 661,
+    "Kills": 4792,
+    "Deaths": 5524
+  },
+  "Threes": {
+    "Winstreak": 43,
+    "GamesPlayed": 922,
+    "Wins": 676,
+    "Losses": 242,
+    "BedsBroken": 695,
+    "BedsLost": 334,
+    "FinalKills": 1516,
+    "FinalDeaths": 264,
+    "Kills": 2395,
+    "Deaths": 3282
+  },
+  "Fours": {
+    "Winstreak": 7,
+    "GamesPlayed": 1022,
+    "Wins": 803,
+    "Losses": 211,
+    "BedsBroken": 652,
+    "BedsLost": 286,
+    "FinalKills": 1872,
+    "FinalDeaths": 224,
+    "Kills": 2370,
+    "Deaths": 3576
+  },
+  "Overall": {
+    "Winstreak": 7,
+    "GamesPlayed": 3940,
+    "Wins": 2589,
+    "Losses": 1333,
+    "BedsBroken": 4192,
+    "BedsLost": 1808,
+    "FinalKills": 7425,
+    "FinalDeaths": 1406,
+    "Kills": 10799,
+    "Deaths": 14032
+  }
+}

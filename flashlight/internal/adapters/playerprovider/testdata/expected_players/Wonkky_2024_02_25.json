@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "7a3a8782-8bf8-4a06-92e5-43168d852f4b",
+  "Displayname": "Wonkky",
+  "LastLogin": "2024-02-03T05:49:27.648+01:00",
+  "LastLogout": "2024-02-03T09:29:46.057+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 3129475,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 349,
+    "Wins": 70,
+    "Losses": 273,
+    "BedsBroken": 420,
+    "BedsLost": 280,
+    "FinalKills": 354,
+    "FinalDeaths": 261,
+    "Kills": 560,
+    "Deaths": 1034
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 884,
+    "Wins": 298,
+    "Losses": 568,
+    "BedsBroken": 918,
+    "BedsLost": 612,
+    "FinalKills": 1469,
+    "FinalDeaths": 584,
+    "Kills": 2644,
+    "Deaths": 4195
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 2601,
+    "Wins": 1609,
+    "Losses": 931,
+    "BedsBroken": 2100,
+    "BedsLost": 1074,
+    "FinalKills": 4762,
+    "FinalDeaths": 964,
+    "Kills": 7850,
+    "Deaths": 12259
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 4810,
+    "Wins": 2905,
+    "Losses": 1783,
+    "BedsBroken": 3065,
+    "BedsLost": 2002,
+    "FinalKills": 8998,
+    "FinalDeaths": 1848,
+    "Kills": 14914,
+    "Deaths": 22389
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 8735,
+    "Wins": 4958,
+    "Losses": 3566,
+    "BedsBroken": 6534,
+    "BedsLost": 3985,
+    "FinalKills": 15651,
+    "FinalDeaths": 3670,
+    "Kills": 26122,
+    "Deaths": 40087
+  }
+}

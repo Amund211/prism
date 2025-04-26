@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "b14827f7-6163-4d81-b40b-a54d04945b27",
+  "Displayname": "bulizhnik3012",
+  "LastLogin": "2024-02-03T00:41:51.538+01:00",
+  "LastLogout": "2024-02-03T00:47:58.693+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 52736,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 26,
+    "Wins": 3,
+    "Losses": 23,
+    "BedsBroken": 26,
+    "BedsLost": 20,
+    "FinalKills": 22,
+    "FinalDeaths": 19,
+    "Kills": 74,
+    "Deaths": 54
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 135,
+    "Wins": 22,
+    "Losses": 112,
+    "BedsBroken": 59,
+    "BedsLost": 105,
+    "FinalKills": 152,
+    "FinalDeaths": 106,
+    "Kills": 500,
+    "Deaths": 352
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 18,
+    "Wins": 3,
+    "Losses": 15,
+    "BedsBroken": 4,
+    "BedsLost": 13,
+    "FinalKills": 10,
+    "FinalDeaths": 14,
+    "Kills": 53,
+    "Deaths": 47
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 42,
+    "Wins": 8,
+    "Losses": 34,
+    "BedsBroken": 0,
+    "BedsLost": 28,
+    "FinalKills": 10,
+    "FinalDeaths": 32,
+    "Kills": 85,
+    "Deaths": 82
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 228,
+    "Wins": 39,
+    "Losses": 188,
+    "BedsBroken": 89,
+    "BedsLost": 170,
+    "FinalKills": 194,
+    "FinalDeaths": 175,
+    "Kills": 723,
+    "Deaths": 546
+  }
+}

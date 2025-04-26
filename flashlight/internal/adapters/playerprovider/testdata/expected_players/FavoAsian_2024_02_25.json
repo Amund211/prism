@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "da1584ce-1b53-4da3-9f0c-1e5ae3f60fd5",
+  "Displayname": "FavoAsian",
+  "LastLogin": "2024-02-19T21:48:26.586+01:00",
+  "LastLogout": "2024-02-19T22:16:32.042+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 202594,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 361,
+    "Wins": 55,
+    "Losses": 294,
+    "BedsBroken": 397,
+    "BedsLost": 300,
+    "FinalKills": 298,
+    "FinalDeaths": 284,
+    "Kills": 578,
+    "Deaths": 1111
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 483,
+    "Wins": 33,
+    "Losses": 446,
+    "BedsBroken": 294,
+    "BedsLost": 452,
+    "FinalKills": 406,
+    "FinalDeaths": 447,
+    "Kills": 1153,
+    "Deaths": 1427
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 362,
+    "Wins": 52,
+    "Losses": 303,
+    "BedsBroken": 122,
+    "BedsLost": 311,
+    "FinalKills": 240,
+    "FinalDeaths": 304,
+    "Kills": 788,
+    "Deaths": 1078
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 231,
+    "Wins": 42,
+    "Losses": 188,
+    "BedsBroken": 62,
+    "BedsLost": 193,
+    "FinalKills": 175,
+    "FinalDeaths": 185,
+    "Kills": 585,
+    "Deaths": 716
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 1446,
+    "Wins": 187,
+    "Losses": 1233,
+    "BedsBroken": 876,
+    "BedsLost": 1260,
+    "FinalKills": 1125,
+    "FinalDeaths": 1223,
+    "Kills": 3117,
+    "Deaths": 4358
+  }
+}

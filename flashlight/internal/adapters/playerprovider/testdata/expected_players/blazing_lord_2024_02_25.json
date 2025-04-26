@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "014485a3-feeb-4afa-9d02-01dc5434f03a",
+  "Displayname": "blazing_lord",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 12227806,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 4000,
+    "Wins": 1726,
+    "Losses": 2259,
+    "BedsBroken": 9565,
+    "BedsLost": 2832,
+    "FinalKills": 8398,
+    "FinalDeaths": 2127,
+    "Kills": 5974,
+    "Deaths": 9046
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 11790,
+    "Wins": 9539,
+    "Losses": 2235,
+    "BedsBroken": 25896,
+    "BedsLost": 3781,
+    "FinalKills": 49211,
+    "FinalDeaths": 2517,
+    "Kills": 30904,
+    "Deaths": 40801
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 6714,
+    "Wins": 5728,
+    "Losses": 967,
+    "BedsBroken": 6822,
+    "BedsLost": 1471,
+    "FinalKills": 16717,
+    "FinalDeaths": 1101,
+    "Kills": 12201,
+    "Deaths": 19550
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 13706,
+    "Wins": 12165,
+    "Losses": 1482,
+    "BedsBroken": 11003,
+    "BedsLost": 2708,
+    "FinalKills": 34838,
+    "FinalDeaths": 1874,
+    "Kills": 20800,
+    "Deaths": 37985
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 38305,
+    "Wins": 31194,
+    "Losses": 6987,
+    "BedsBroken": 53922,
+    "BedsLost": 10866,
+    "FinalKills": 111224,
+    "FinalDeaths": 7664,
+    "Kills": 70955,
+    "Deaths": 109031
+  }
+}

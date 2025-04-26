@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "f3669348-3102-4df6-b468-6fe66da84d40",
+  "Displayname": "MrPoluxX",
+  "LastLogin": "2024-02-24T18:03:07.339+01:00",
+  "LastLogout": "2024-02-24T18:15:46.936+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 727141,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 63,
+    "Wins": 2,
+    "Losses": 58,
+    "BedsBroken": 11,
+    "BedsLost": 57,
+    "FinalKills": 5,
+    "FinalDeaths": 55,
+    "Kills": 28,
+    "Deaths": 57
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 1108,
+    "Wins": 81,
+    "Losses": 995,
+    "BedsBroken": 513,
+    "BedsLost": 963,
+    "FinalKills": 508,
+    "FinalDeaths": 1003,
+    "Kills": 1725,
+    "Deaths": 4703
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 901,
+    "Wins": 111,
+    "Losses": 781,
+    "BedsBroken": 193,
+    "BedsLost": 777,
+    "FinalKills": 340,
+    "FinalDeaths": 774,
+    "Kills": 1489,
+    "Deaths": 3581
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 92,
+    "Wins": 24,
+    "Losses": 67,
+    "BedsBroken": 20,
+    "BedsLost": 73,
+    "FinalKills": 73,
+    "FinalDeaths": 69,
+    "Kills": 183,
+    "Deaths": 375
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 2573,
+    "Wins": 373,
+    "Losses": 2152,
+    "BedsBroken": 792,
+    "BedsLost": 2125,
+    "FinalKills": 1106,
+    "FinalDeaths": 2156,
+    "Kills": 4352,
+    "Deaths": 10175
+  }
+}

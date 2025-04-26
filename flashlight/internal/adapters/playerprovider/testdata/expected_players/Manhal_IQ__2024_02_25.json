@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "fe15273a-c660-4a6f-95da-ee3f9458eeba",
+  "Displayname": "Manhal_IQ_",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 17868192,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 7317,
+    "Wins": 5189,
+    "Losses": 2092,
+    "BedsBroken": 19695,
+    "BedsLost": 3849,
+    "FinalKills": 21319,
+    "FinalDeaths": 1966,
+    "Kills": 20302,
+    "Deaths": 17049
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 30716,
+    "Wins": 26219,
+    "Losses": 4435,
+    "BedsBroken": 67490,
+    "BedsLost": 9461,
+    "FinalKills": 133316,
+    "FinalDeaths": 5327,
+    "Kills": 117483,
+    "Deaths": 112055
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 4886,
+    "Wins": 4145,
+    "Losses": 731,
+    "BedsBroken": 4701,
+    "BedsLost": 1106,
+    "FinalKills": 12294,
+    "FinalDeaths": 764,
+    "Kills": 12448,
+    "Deaths": 15374
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 14134,
+    "Wins": 12720,
+    "Losses": 1371,
+    "BedsBroken": 11828,
+    "BedsLost": 2340,
+    "FinalKills": 37709,
+    "FinalDeaths": 1597,
+    "Kills": 31230,
+    "Deaths": 44553
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 61000,
+    "Wins": 52083,
+    "Losses": 8683,
+    "BedsBroken": 104906,
+    "BedsLost": 16859,
+    "FinalKills": 208732,
+    "FinalDeaths": 9711,
+    "Kills": 184276,
+    "Deaths": 192275
+  }
+}

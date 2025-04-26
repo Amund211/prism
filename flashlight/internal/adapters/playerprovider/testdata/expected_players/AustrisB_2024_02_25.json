@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "59b40940-d29c-4f79-a755-74fcce089cae",
+  "Displayname": "AustrisB",
+  "LastLogin": "2024-02-25T02:46:07.852+01:00",
+  "LastLogout": "2024-02-25T04:28:05.324+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 40025,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 8,
+    "Wins": 1,
+    "Losses": 7,
+    "BedsBroken": 10,
+    "BedsLost": 7,
+    "FinalKills": 7,
+    "FinalDeaths": 7,
+    "Kills": 16,
+    "Deaths": 14
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 98,
+    "Wins": 10,
+    "Losses": 88,
+    "BedsBroken": 10,
+    "BedsLost": 83,
+    "FinalKills": 33,
+    "FinalDeaths": 88,
+    "Kills": 123,
+    "Deaths": 243
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 48,
+    "Wins": 4,
+    "Losses": 44,
+    "BedsBroken": 1,
+    "BedsLost": 41,
+    "FinalKills": 5,
+    "FinalDeaths": 44,
+    "Kills": 80,
+    "Deaths": 100
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 9,
+    "Wins": 0,
+    "Losses": 9,
+    "BedsBroken": 0,
+    "BedsLost": 8,
+    "FinalKills": 1,
+    "FinalDeaths": 9,
+    "Kills": 7,
+    "Deaths": 6
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 169,
+    "Wins": 17,
+    "Losses": 152,
+    "BedsBroken": 21,
+    "BedsLost": 143,
+    "FinalKills": 47,
+    "FinalDeaths": 152,
+    "Kills": 248,
+    "Deaths": 378
+  }
+}

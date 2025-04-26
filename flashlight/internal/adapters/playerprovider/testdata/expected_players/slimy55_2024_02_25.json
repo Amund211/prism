@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "f0b83e64-094e-444e-b5f8-73357abcaad4",
+  "Displayname": "slimy55",
+  "LastLogin": "2024-02-25T04:40:36.383+01:00",
+  "LastLogout": "2024-02-25T05:19:40.675+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 336155,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 394,
+    "Wins": 14,
+    "Losses": 357,
+    "BedsBroken": 136,
+    "BedsLost": 359,
+    "FinalKills": 99,
+    "FinalDeaths": 349,
+    "Kills": 348,
+    "Deaths": 787
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 1113,
+    "Wins": 66,
+    "Losses": 1032,
+    "BedsBroken": 247,
+    "BedsLost": 1016,
+    "FinalKills": 529,
+    "FinalDeaths": 1029,
+    "Kills": 1754,
+    "Deaths": 3222
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 124,
+    "Wins": 18,
+    "Losses": 102,
+    "BedsBroken": 2,
+    "BedsLost": 99,
+    "FinalKills": 25,
+    "FinalDeaths": 100,
+    "Kills": 230,
+    "Deaths": 319
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 436,
+    "Wins": 44,
+    "Losses": 380,
+    "BedsBroken": 16,
+    "BedsLost": 374,
+    "FinalKills": 67,
+    "FinalDeaths": 370,
+    "Kills": 438,
+    "Deaths": 765
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 2069,
+    "Wins": 143,
+    "Losses": 1872,
+    "BedsBroken": 401,
+    "BedsLost": 1848,
+    "FinalKills": 720,
+    "FinalDeaths": 1848,
+    "Kills": 2771,
+    "Deaths": 5098
+  }
+}

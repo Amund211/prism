@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "9d49aace-7214-4230-8a5e-a933e374ea80",
+  "Displayname": "baller_NY",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 2249272,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 1872,
+    "Wins": 383,
+    "Losses": 1468,
+    "BedsBroken": 2807,
+    "BedsLost": 1269,
+    "FinalKills": 2104,
+    "FinalDeaths": 1176,
+    "Kills": 2778,
+    "Deaths": 5763
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 3448,
+    "Wins": 1235,
+    "Losses": 2162,
+    "BedsBroken": 3539,
+    "BedsLost": 2249,
+    "FinalKills": 5570,
+    "FinalDeaths": 2140,
+    "Kills": 7905,
+    "Deaths": 13798
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 1331,
+    "Wins": 897,
+    "Losses": 419,
+    "BedsBroken": 822,
+    "BedsLost": 499,
+    "FinalKills": 2023,
+    "FinalDeaths": 436,
+    "Kills": 2871,
+    "Deaths": 5140
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 1394,
+    "Wins": 878,
+    "Losses": 496,
+    "BedsBroken": 727,
+    "BedsLost": 525,
+    "FinalKills": 1994,
+    "FinalDeaths": 490,
+    "Kills": 2696,
+    "Deaths": 5195
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 8142,
+    "Wins": 3483,
+    "Losses": 4552,
+    "BedsBroken": 7923,
+    "BedsLost": 4552,
+    "FinalKills": 11789,
+    "FinalDeaths": 4250,
+    "Kills": 16398,
+    "Deaths": 30099
+  }
+}

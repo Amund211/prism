@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "c5abd843-7734-434d-ac0c-7ec9a2e50271",
+  "Displayname": "MonsterGG",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 7341488,
+  "Solo": {
+    "Winstreak": 10,
+    "GamesPlayed": 1951,
+    "Wins": 1446,
+    "Losses": 506,
+    "BedsBroken": 5732,
+    "BedsLost": 754,
+    "FinalKills": 5731,
+    "FinalDeaths": 479,
+    "Kills": 5059,
+    "Deaths": 3614
+  },
+  "Doubles": {
+    "Winstreak": 718,
+    "GamesPlayed": 7821,
+    "Wins": 6738,
+    "Losses": 1068,
+    "BedsBroken": 15779,
+    "BedsLost": 2128,
+    "FinalKills": 29854,
+    "FinalDeaths": 1366,
+    "Kills": 24645,
+    "Deaths": 28405
+  },
+  "Threes": {
+    "Winstreak": 201,
+    "GamesPlayed": 2152,
+    "Wins": 1950,
+    "Losses": 201,
+    "BedsBroken": 2066,
+    "BedsLost": 408,
+    "FinalKills": 4875,
+    "FinalDeaths": 285,
+    "Kills": 3116,
+    "Deaths": 4928
+  },
+  "Fours": {
+    "Winstreak": 190,
+    "GamesPlayed": 17807,
+    "Wins": 16767,
+    "Losses": 1027,
+    "BedsBroken": 12683,
+    "BedsLost": 2609,
+    "FinalKills": 40632,
+    "FinalDeaths": 1620,
+    "Kills": 15628,
+    "Deaths": 34343
+  },
+  "Overall": {
+    "Winstreak": 11,
+    "GamesPlayed": 29996,
+    "Wins": 27164,
+    "Losses": 2802,
+    "BedsBroken": 36335,
+    "BedsLost": 5901,
+    "FinalKills": 81342,
+    "FinalDeaths": 3751,
+    "Kills": 48588,
+    "Deaths": 71529
+  }
+}

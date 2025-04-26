@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "b572206c-7f06-4d96-9615-4761a2569215",
+  "Displayname": "TeamLuxGlez",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 11879660,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 1378,
+    "Wins": 1001,
+    "Losses": 374,
+    "BedsBroken": 4641,
+    "BedsLost": 512,
+    "FinalKills": 4322,
+    "FinalDeaths": 312,
+    "Kills": 3013,
+    "Deaths": 3741
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 21854,
+    "Wins": 20333,
+    "Losses": 1508,
+    "BedsBroken": 50315,
+    "BedsLost": 2200,
+    "FinalKills": 107046,
+    "FinalDeaths": 1470,
+    "Kills": 62360,
+    "Deaths": 83805
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 3197,
+    "Wins": 2906,
+    "Losses": 296,
+    "BedsBroken": 3187,
+    "BedsLost": 421,
+    "FinalKills": 8461,
+    "FinalDeaths": 307,
+    "Kills": 6498,
+    "Deaths": 8339
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 5891,
+    "Wins": 5562,
+    "Losses": 297,
+    "BedsBroken": 4824,
+    "BedsLost": 488,
+    "FinalKills": 16710,
+    "FinalDeaths": 326,
+    "Kills": 11570,
+    "Deaths": 17182
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 32332,
+    "Wins": 29813,
+    "Losses": 2476,
+    "BedsBroken": 62972,
+    "BedsLost": 3623,
+    "FinalKills": 136556,
+    "FinalDeaths": 2417,
+    "Kills": 83452,
+    "Deaths": 113070
+  }
+}

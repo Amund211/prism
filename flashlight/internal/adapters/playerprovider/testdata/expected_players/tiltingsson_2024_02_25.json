@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "fcc17374-2835-4846-bdea-ba4899d637ed",
+  "Displayname": "tiltingsson",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 14389225,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 2226,
+    "Wins": 2052,
+    "Losses": 169,
+    "BedsBroken": 7592,
+    "BedsLost": 493,
+    "FinalKills": 8330,
+    "FinalDeaths": 131,
+    "Kills": 4547,
+    "Deaths": 3642
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 25916,
+    "Wins": 23828,
+    "Losses": 2050,
+    "BedsBroken": 63794,
+    "BedsLost": 4450,
+    "FinalKills": 127758,
+    "FinalDeaths": 2371,
+    "Kills": 80748,
+    "Deaths": 67213
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 7380,
+    "Wins": 6475,
+    "Losses": 866,
+    "BedsBroken": 8298,
+    "BedsLost": 1287,
+    "FinalKills": 22930,
+    "FinalDeaths": 920,
+    "Kills": 16022,
+    "Deaths": 17598
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 7488,
+    "Wins": 6633,
+    "Losses": 811,
+    "BedsBroken": 5348,
+    "BedsLost": 1252,
+    "FinalKills": 19999,
+    "FinalDeaths": 903,
+    "Kills": 15663,
+    "Deaths": 17373
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 45665,
+    "Wins": 41612,
+    "Losses": 3914,
+    "BedsBroken": 85889,
+    "BedsLost": 7513,
+    "FinalKills": 181798,
+    "FinalDeaths": 4343,
+    "Kills": 118646,
+    "Deaths": 107800
+  }
+}

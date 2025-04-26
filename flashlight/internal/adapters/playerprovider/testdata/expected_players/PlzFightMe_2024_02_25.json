@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "093c5535-8098-4f4a-a01d-3c09edd4c120",
+  "Displayname": "PlzFightMe",
+  "LastLogin": "2024-02-24T21:17:50.377+01:00",
+  "LastLogout": "2024-02-24T22:52:38.536+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 10083658,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 681,
+    "Wins": 555,
+    "Losses": 126,
+    "BedsBroken": 2169,
+    "BedsLost": 187,
+    "FinalKills": 2268,
+    "FinalDeaths": 100,
+    "Kills": 1542,
+    "Deaths": 1596
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 8489,
+    "Wins": 7554,
+    "Losses": 920,
+    "BedsBroken": 19711,
+    "BedsLost": 1900,
+    "FinalKills": 38988,
+    "FinalDeaths": 1025,
+    "Kills": 30054,
+    "Deaths": 27595
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 2570,
+    "Wins": 2360,
+    "Losses": 208,
+    "BedsBroken": 2852,
+    "BedsLost": 385,
+    "FinalKills": 8134,
+    "FinalDeaths": 239,
+    "Kills": 5553,
+    "Deaths": 6178
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 20779,
+    "Wins": 19158,
+    "Losses": 1552,
+    "BedsBroken": 20691,
+    "BedsLost": 3088,
+    "FinalKills": 66266,
+    "FinalDeaths": 1826,
+    "Kills": 48159,
+    "Deaths": 52228
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 33812,
+    "Wins": 30893,
+    "Losses": 2819,
+    "BedsBroken": 45835,
+    "BedsLost": 5580,
+    "FinalKills": 117239,
+    "FinalDeaths": 3205,
+    "Kills": 86333,
+    "Deaths": 88711
+  }
+}

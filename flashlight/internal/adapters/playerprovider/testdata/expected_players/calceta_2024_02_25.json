@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "e8d9414f-cfd1-439a-b6b1-606efd50bcc1",
+  "Displayname": "calceta",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 4945969,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 1796,
+    "Wins": 755,
+    "Losses": 1041,
+    "BedsBroken": 3403,
+    "BedsLost": 1330,
+    "FinalKills": 3118,
+    "FinalDeaths": 1013,
+    "Kills": 3742,
+    "Deaths": 4174
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 2953,
+    "Wins": 1700,
+    "Losses": 1253,
+    "BedsBroken": 3829,
+    "BedsLost": 1566,
+    "FinalKills": 7134,
+    "FinalDeaths": 1306,
+    "Kills": 10383,
+    "Deaths": 10953
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 2772,
+    "Wins": 2331,
+    "Losses": 441,
+    "BedsBroken": 2056,
+    "BedsLost": 661,
+    "FinalKills": 5629,
+    "FinalDeaths": 478,
+    "Kills": 6607,
+    "Deaths": 8074
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 8730,
+    "Wins": 5858,
+    "Losses": 2801,
+    "BedsBroken": 4496,
+    "BedsLost": 3260,
+    "FinalKills": 15201,
+    "FinalDeaths": 2814,
+    "Kills": 18467,
+    "Deaths": 23814
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 16296,
+    "Wins": 10686,
+    "Losses": 5538,
+    "BedsBroken": 13797,
+    "BedsLost": 6819,
+    "FinalKills": 31110,
+    "FinalDeaths": 5614,
+    "Kills": 39238,
+    "Deaths": 47070
+  }
+}

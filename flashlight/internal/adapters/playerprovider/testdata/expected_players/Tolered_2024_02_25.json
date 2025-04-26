@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "d0e1ce0f-9f22-4111-8833-65707daa0e89",
+  "Displayname": "Tolered",
+  "LastLogin": "2024-02-25T16:12:12.764+01:00",
+  "LastLogout": "2024-02-25T05:24:17.079+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 368756,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 70,
+    "Wins": 4,
+    "Losses": 66,
+    "BedsBroken": 36,
+    "BedsLost": 67,
+    "FinalKills": 25,
+    "FinalDeaths": 66,
+    "Kills": 40,
+    "Deaths": 129
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 763,
+    "Wins": 9,
+    "Losses": 754,
+    "BedsBroken": 106,
+    "BedsLost": 735,
+    "FinalKills": 134,
+    "FinalDeaths": 755,
+    "Kills": 638,
+    "Deaths": 1608
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 116,
+    "Wins": 12,
+    "Losses": 104,
+    "BedsBroken": 5,
+    "BedsLost": 105,
+    "FinalKills": 20,
+    "FinalDeaths": 108,
+    "Kills": 104,
+    "Deaths": 241
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 455,
+    "Wins": 33,
+    "Losses": 421,
+    "BedsBroken": 17,
+    "BedsLost": 417,
+    "FinalKills": 70,
+    "FinalDeaths": 432,
+    "Kills": 455,
+    "Deaths": 1033
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 1830,
+    "Wins": 201,
+    "Losses": 1628,
+    "BedsBroken": 185,
+    "BedsLost": 1604,
+    "FinalKills": 338,
+    "FinalDeaths": 1655,
+    "Kills": 1885,
+    "Deaths": 4052
+  }
+}

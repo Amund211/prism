@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "9ef70a61-c7a5-47f3-a0aa-94dd77a946e4",
+  "Displayname": "Ohhhduck",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 436587,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 1255,
+    "Wins": 233,
+    "Losses": 969,
+    "BedsBroken": 1636,
+    "BedsLost": 1037,
+    "FinalKills": 1472,
+    "FinalDeaths": 950,
+    "Kills": 2161,
+    "Deaths": 2918
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 920,
+    "Wins": 127,
+    "Losses": 756,
+    "BedsBroken": 476,
+    "BedsLost": 775,
+    "FinalKills": 867,
+    "FinalDeaths": 758,
+    "Kills": 2458,
+    "Deaths": 2300
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 125,
+    "Wins": 34,
+    "Losses": 81,
+    "BedsBroken": 34,
+    "BedsLost": 94,
+    "FinalKills": 109,
+    "FinalDeaths": 86,
+    "Kills": 462,
+    "Deaths": 401
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 103,
+    "Wins": 57,
+    "Losses": 40,
+    "BedsBroken": 31,
+    "BedsLost": 49,
+    "FinalKills": 119,
+    "FinalDeaths": 44,
+    "Kills": 230,
+    "Deaths": 265
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 2595,
+    "Wins": 591,
+    "Losses": 1897,
+    "BedsBroken": 2236,
+    "BedsLost": 2012,
+    "FinalKills": 2756,
+    "FinalDeaths": 1891,
+    "Kills": 5844,
+    "Deaths": 6312
+  }
+}

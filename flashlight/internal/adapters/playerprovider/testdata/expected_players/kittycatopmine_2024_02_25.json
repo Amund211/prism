@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "4430ab4e-56ef-4eca-987e-cdff56697930",
+  "Displayname": "kittycatopmine",
+  "LastLogin": "2024-02-24T19:44:19.954+01:00",
+  "LastLogout": "2024-02-24T20:52:46.735+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 14440035,
+  "Solo": {
+    "Winstreak": 5,
+    "GamesPlayed": 3324,
+    "Wins": 1807,
+    "Losses": 1478,
+    "BedsBroken": 8150,
+    "BedsLost": 1859,
+    "FinalKills": 7319,
+    "FinalDeaths": 1174,
+    "Kills": 7119,
+    "Deaths": 7405
+  },
+  "Doubles": {
+    "Winstreak": 25,
+    "GamesPlayed": 7063,
+    "Wins": 5795,
+    "Losses": 1256,
+    "BedsBroken": 12901,
+    "BedsLost": 2155,
+    "FinalKills": 22328,
+    "FinalDeaths": 1315,
+    "Kills": 21715,
+    "Deaths": 22097
+  },
+  "Threes": {
+    "Winstreak": 1,
+    "GamesPlayed": 16407,
+    "Wins": 15300,
+    "Losses": 1087,
+    "BedsBroken": 14140,
+    "BedsLost": 2107,
+    "FinalKills": 32081,
+    "FinalDeaths": 1291,
+    "Kills": 22930,
+    "Deaths": 34487
+  },
+  "Fours": {
+    "Winstreak": 2,
+    "GamesPlayed": 15211,
+    "Wins": 14134,
+    "Losses": 1035,
+    "BedsBroken": 11469,
+    "BedsLost": 2083,
+    "FinalKills": 32187,
+    "FinalDeaths": 1282,
+    "Kills": 22035,
+    "Deaths": 32981
+  },
+  "Overall": {
+    "Winstreak": 14,
+    "GamesPlayed": 49136,
+    "Wins": 43979,
+    "Losses": 4918,
+    "BedsBroken": 48297,
+    "BedsLost": 8346,
+    "FinalKills": 99015,
+    "FinalDeaths": 5129,
+    "Kills": 77570,
+    "Deaths": 102634
+  }
+}

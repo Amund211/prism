@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "07fd53b7-51a6-4238-bba1-e56d7d5db9c4",
+  "Displayname": "acehubs",
+  "LastLogin": "2024-02-25T15:36:46.317+01:00",
+  "LastLogout": "2024-02-25T15:39:31.703+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 269460,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 629,
+    "Wins": 23,
+    "Losses": 606,
+    "BedsBroken": 259,
+    "BedsLost": 586,
+    "FinalKills": 215,
+    "FinalDeaths": 597,
+    "Kills": 557,
+    "Deaths": 1001
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 770,
+    "Wins": 36,
+    "Losses": 734,
+    "BedsBroken": 206,
+    "BedsLost": 728,
+    "FinalKills": 374,
+    "FinalDeaths": 736,
+    "Kills": 1338,
+    "Deaths": 1649
+  },
+  "Threes": {
+    "Winstreak": 1,
+    "GamesPlayed": 112,
+    "Wins": 11,
+    "Losses": 101,
+    "BedsBroken": 15,
+    "BedsLost": 99,
+    "FinalKills": 42,
+    "FinalDeaths": 102,
+    "Kills": 217,
+    "Deaths": 335
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 142,
+    "Wins": 14,
+    "Losses": 128,
+    "BedsBroken": 24,
+    "BedsLost": 125,
+    "FinalKills": 65,
+    "FinalDeaths": 130,
+    "Kills": 220,
+    "Deaths": 407
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 1799,
+    "Wins": 155,
+    "Losses": 1644,
+    "BedsBroken": 539,
+    "BedsLost": 1617,
+    "FinalKills": 777,
+    "FinalDeaths": 1644,
+    "Kills": 2634,
+    "Deaths": 3825
+  }
+}

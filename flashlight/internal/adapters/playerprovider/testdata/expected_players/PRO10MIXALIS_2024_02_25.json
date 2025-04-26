@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "2eb8b665-ca3d-4f9a-add2-1639ee884140",
+  "Displayname": "PRO10MIXALIS",
+  "LastLogin": "2024-02-24T14:19:24.392+01:00",
+  "LastLogout": "2024-02-24T15:12:08.519+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 33833,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 38,
+    "Wins": 0,
+    "Losses": 38,
+    "BedsBroken": 23,
+    "BedsLost": 32,
+    "FinalKills": 20,
+    "FinalDeaths": 35,
+    "Kills": 41,
+    "Deaths": 77
+  },
+  "Doubles": {
+    "Winstreak": 1,
+    "GamesPlayed": 75,
+    "Wins": 10,
+    "Losses": 65,
+    "BedsBroken": 20,
+    "BedsLost": 62,
+    "FinalKills": 47,
+    "FinalDeaths": 62,
+    "Kills": 199,
+    "Deaths": 241
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 11,
+    "Wins": 4,
+    "Losses": 7,
+    "BedsBroken": 1,
+    "BedsLost": 7,
+    "FinalKills": 4,
+    "FinalDeaths": 8,
+    "Kills": 23,
+    "Deaths": 36
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 16,
+    "Wins": 5,
+    "Losses": 11,
+    "BedsBroken": 2,
+    "BedsLost": 8,
+    "FinalKills": 6,
+    "FinalDeaths": 11,
+    "Kills": 39,
+    "Deaths": 52
+  },
+  "Overall": {
+    "Winstreak": 1,
+    "GamesPlayed": 143,
+    "Wins": 20,
+    "Losses": 123,
+    "BedsBroken": 46,
+    "BedsLost": 110,
+    "FinalKills": 78,
+    "FinalDeaths": 118,
+    "Kills": 312,
+    "Deaths": 418
+  }
+}

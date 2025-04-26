@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "5ca8ff97-53a3-4449-90d1-685b14eca974",
+  "Displayname": "Kelsov",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 2951258,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 868,
+    "Wins": 249,
+    "Losses": 607,
+    "BedsBroken": 1198,
+    "BedsLost": 492,
+    "FinalKills": 1019,
+    "FinalDeaths": 386,
+    "Kills": 1292,
+    "Deaths": 1939
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 2828,
+    "Wins": 1637,
+    "Losses": 1155,
+    "BedsBroken": 4068,
+    "BedsLost": 1355,
+    "FinalKills": 7615,
+    "FinalDeaths": 1166,
+    "Kills": 9224,
+    "Deaths": 10144
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 1781,
+    "Wins": 1338,
+    "Losses": 428,
+    "BedsBroken": 1521,
+    "BedsLost": 535,
+    "FinalKills": 3790,
+    "FinalDeaths": 465,
+    "Kills": 4830,
+    "Deaths": 5751
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 3075,
+    "Wins": 2690,
+    "Losses": 370,
+    "BedsBroken": 2379,
+    "BedsLost": 545,
+    "FinalKills": 7404,
+    "FinalDeaths": 429,
+    "Kills": 6760,
+    "Deaths": 8951
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 8802,
+    "Wins": 6092,
+    "Losses": 2615,
+    "BedsBroken": 9260,
+    "BedsLost": 2987,
+    "FinalKills": 20042,
+    "FinalDeaths": 2496,
+    "Kills": 22589,
+    "Deaths": 27317
+  }
+}

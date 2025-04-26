@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "80985a66-2d1e-4878-862f-5dd02a115793",
+  "Displayname": "rvdes",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 10939164,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 280,
+    "Wins": 186,
+    "Losses": 93,
+    "BedsBroken": 751,
+    "BedsLost": 158,
+    "FinalKills": 773,
+    "FinalDeaths": 92,
+    "Kills": 574,
+    "Deaths": 706
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 13155,
+    "Wins": 11621,
+    "Losses": 1524,
+    "BedsBroken": 27102,
+    "BedsLost": 3291,
+    "FinalKills": 53425,
+    "FinalDeaths": 1930,
+    "Kills": 43295,
+    "Deaths": 48993
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 1694,
+    "Wins": 1467,
+    "Losses": 222,
+    "BedsBroken": 1399,
+    "BedsLost": 352,
+    "FinalKills": 3751,
+    "FinalDeaths": 251,
+    "Kills": 4136,
+    "Deaths": 5231
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 15354,
+    "Wins": 12521,
+    "Losses": 2788,
+    "BedsBroken": 9629,
+    "BedsLost": 4084,
+    "FinalKills": 33713,
+    "FinalDeaths": 3135,
+    "Kills": 38409,
+    "Deaths": 42367
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 31086,
+    "Wins": 26361,
+    "Losses": 4649,
+    "BedsBroken": 39005,
+    "BedsLost": 7930,
+    "FinalKills": 92167,
+    "FinalDeaths": 5434,
+    "Kills": 86983,
+    "Deaths": 98029
+  }
+}

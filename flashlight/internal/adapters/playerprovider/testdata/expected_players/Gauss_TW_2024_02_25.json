@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "0f1cc9cd-a050-4026-891b-a30d878a7bcd",
+  "Displayname": "Gauss_TW",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 1903784,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 278,
+    "Wins": 174,
+    "Losses": 102,
+    "BedsBroken": 672,
+    "BedsLost": 155,
+    "FinalKills": 680,
+    "FinalDeaths": 99,
+    "Kills": 689,
+    "Deaths": 741
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 1376,
+    "Wins": 1172,
+    "Losses": 197,
+    "BedsBroken": 2348,
+    "BedsLost": 344,
+    "FinalKills": 4721,
+    "FinalDeaths": 223,
+    "Kills": 5102,
+    "Deaths": 4877
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 1133,
+    "Wins": 955,
+    "Losses": 172,
+    "BedsBroken": 991,
+    "BedsLost": 241,
+    "FinalKills": 2501,
+    "FinalDeaths": 187,
+    "Kills": 2713,
+    "Deaths": 3763
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 1262,
+    "Wins": 1100,
+    "Losses": 152,
+    "BedsBroken": 907,
+    "BedsLost": 241,
+    "FinalKills": 2948,
+    "FinalDeaths": 174,
+    "Kills": 2561,
+    "Deaths": 3767
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 4308,
+    "Wins": 3600,
+    "Losses": 675,
+    "BedsBroken": 5004,
+    "BedsLost": 1034,
+    "FinalKills": 11093,
+    "FinalDeaths": 723,
+    "Kills": 11410,
+    "Deaths": 13710
+  }
+}

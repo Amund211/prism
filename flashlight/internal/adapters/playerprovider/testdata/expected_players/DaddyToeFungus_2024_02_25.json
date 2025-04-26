@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "6bc1dd0f-f351-4c3d-b6cc-262e55b6e7aa",
+  "Displayname": "DaddyToeFungus",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 3502298,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 330,
+    "Wins": 179,
+    "Losses": 148,
+    "BedsBroken": 694,
+    "BedsLost": 184,
+    "FinalKills": 709,
+    "FinalDeaths": 131,
+    "Kills": 774,
+    "Deaths": 857
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 5683,
+    "Wins": 4296,
+    "Losses": 1365,
+    "BedsBroken": 9084,
+    "BedsLost": 1966,
+    "FinalKills": 19331,
+    "FinalDeaths": 1432,
+    "Kills": 30578,
+    "Deaths": 26906
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 1799,
+    "Wins": 1613,
+    "Losses": 180,
+    "BedsBroken": 953,
+    "BedsLost": 279,
+    "FinalKills": 3663,
+    "FinalDeaths": 198,
+    "Kills": 6692,
+    "Deaths": 6737
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 5302,
+    "Wins": 4425,
+    "Losses": 859,
+    "BedsBroken": 2333,
+    "BedsLost": 1109,
+    "FinalKills": 11413,
+    "FinalDeaths": 959,
+    "Kills": 17096,
+    "Deaths": 18528
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 13143,
+    "Wins": 10540,
+    "Losses": 2554,
+    "BedsBroken": 13076,
+    "BedsLost": 3541,
+    "FinalKills": 35147,
+    "FinalDeaths": 2722,
+    "Kills": 55202,
+    "Deaths": 53084
+  }
+}

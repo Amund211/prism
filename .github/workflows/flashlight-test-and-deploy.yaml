@@ -71,7 +71,7 @@ jobs:
         run: |
           go build
           go build ./cmd/get-stats/main.go
-          go build ./cmd/fix-minify-fixtures/main.go
+          go build ./cmd/fix-fixtures/main.go
 
       - name: Make .env for local server
         run: |

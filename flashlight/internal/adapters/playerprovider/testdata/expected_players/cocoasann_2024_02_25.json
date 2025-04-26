@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "7fab58b2-6e27-461d-b7c2-6b046965f433",
+  "Displayname": "cocoasann",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 11651186,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 4762,
+    "Wins": 2790,
+    "Losses": 1961,
+    "BedsBroken": 12313,
+    "BedsLost": 2817,
+    "FinalKills": 11498,
+    "FinalDeaths": 1901,
+    "Kills": 9866,
+    "Deaths": 9193
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 9445,
+    "Wins": 7367,
+    "Losses": 1912,
+    "BedsBroken": 19348,
+    "BedsLost": 2972,
+    "FinalKills": 33796,
+    "FinalDeaths": 2151,
+    "Kills": 33457,
+    "Deaths": 27999
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 3157,
+    "Wins": 2672,
+    "Losses": 450,
+    "BedsBroken": 3547,
+    "BedsLost": 641,
+    "FinalKills": 7061,
+    "FinalDeaths": 478,
+    "Kills": 7019,
+    "Deaths": 8586
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 19952,
+    "Wins": 16019,
+    "Losses": 3731,
+    "BedsBroken": 17844,
+    "BedsLost": 4899,
+    "FinalKills": 45703,
+    "FinalDeaths": 4004,
+    "Kills": 36666,
+    "Deaths": 49589
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 44981,
+    "Wins": 36473,
+    "Losses": 8077,
+    "BedsBroken": 55068,
+    "BedsLost": 11375,
+    "FinalKills": 105358,
+    "FinalDeaths": 8555,
+    "Kills": 90890,
+    "Deaths": 101028
+  }
+}

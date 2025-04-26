@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "f7ce5ebc-65c5-4226-8ebf-bbee28829c0e",
+  "Displayname": "jonzus",
+  "LastLogin": "2024-02-10T01:22:44.602+01:00",
+  "LastLogout": "2024-02-10T01:42:18.335+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 135140,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 180,
+    "Wins": 8,
+    "Losses": 170,
+    "BedsBroken": 70,
+    "BedsLost": 166,
+    "FinalKills": 51,
+    "FinalDeaths": 165,
+    "Kills": 245,
+    "Deaths": 323
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 104,
+    "Wins": 8,
+    "Losses": 95,
+    "BedsBroken": 22,
+    "BedsLost": 90,
+    "FinalKills": 60,
+    "FinalDeaths": 88,
+    "Kills": 216,
+    "Deaths": 242
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 85,
+    "Wins": 23,
+    "Losses": 62,
+    "BedsBroken": 14,
+    "BedsLost": 57,
+    "FinalKills": 42,
+    "FinalDeaths": 59,
+    "Kills": 104,
+    "Deaths": 193
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 71,
+    "Wins": 10,
+    "Losses": 61,
+    "BedsBroken": 9,
+    "BedsLost": 60,
+    "FinalKills": 30,
+    "FinalDeaths": 59,
+    "Kills": 163,
+    "Deaths": 148
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 468,
+    "Wins": 61,
+    "Losses": 403,
+    "BedsBroken": 117,
+    "BedsLost": 385,
+    "FinalKills": 199,
+    "FinalDeaths": 384,
+    "Kills": 773,
+    "Deaths": 956
+  }
+}

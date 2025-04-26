@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "98365216-bd27-4d3b-b4d0-9d4f64a71c49",
+  "Displayname": "fortnitebob2013",
+  "LastLogin": "2024-02-11T06:21:54.691+01:00",
+  "LastLogout": "2024-02-11T06:22:04.715+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 992,
+  "Solo": {
+    "Winstreak": 1,
+    "GamesPlayed": 2,
+    "Wins": 1,
+    "Losses": 1,
+    "BedsBroken": 4,
+    "BedsLost": 1,
+    "FinalKills": 5,
+    "FinalDeaths": 1,
+    "Kills": 4,
+    "Deaths": 3
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 1,
+    "Wins": 0,
+    "Losses": 1,
+    "BedsBroken": 2,
+    "BedsLost": 1,
+    "FinalKills": 4,
+    "FinalDeaths": 1,
+    "Kills": 1,
+    "Deaths": 2
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 0,
+    "Wins": 0,
+    "Losses": 0,
+    "BedsBroken": 0,
+    "BedsLost": 0,
+    "FinalKills": 0,
+    "FinalDeaths": 0,
+    "Kills": 0,
+    "Deaths": 0
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 0,
+    "Wins": 0,
+    "Losses": 0,
+    "BedsBroken": 0,
+    "BedsLost": 0,
+    "FinalKills": 0,
+    "FinalDeaths": 0,
+    "Kills": 0,
+    "Deaths": 0
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 3,
+    "Wins": 1,
+    "Losses": 2,
+    "BedsBroken": 6,
+    "BedsLost": 2,
+    "FinalKills": 9,
+    "FinalDeaths": 2,
+    "Kills": 5,
+    "Deaths": 5
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "f38cb4f1-59fc-469a-929a-52e83fb672f2",
+  "Displayname": "BIDENBLASTO",
+  "LastLogin": "2024-02-25T02:22:44.609+01:00",
+  "LastLogout": "2024-02-25T02:28:42.42+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 6737,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 5,
+    "Wins": 1,
+    "Losses": 4,
+    "BedsBroken": 7,
+    "BedsLost": 3,
+    "FinalKills": 6,
+    "FinalDeaths": 3,
+    "Kills": 6,
+    "Deaths": 7
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 0,
+    "Wins": 0,
+    "Losses": 0,
+    "BedsBroken": 0,
+    "BedsLost": 0,
+    "FinalKills": 0,
+    "FinalDeaths": 0,
+    "Kills": 0,
+    "Deaths": 0
+  },
+  "Threes": {
+    "Winstreak": 4,
+    "GamesPlayed": 12,
+    "Wins": 8,
+    "Losses": 4,
+    "BedsBroken": 5,
+    "BedsLost": 5,
+    "FinalKills": 28,
+    "FinalDeaths": 4,
+    "Kills": 46,
+    "Deaths": 58
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 4,
+    "Wins": 2,
+    "Losses": 2,
+    "BedsBroken": 1,
+    "BedsLost": 3,
+    "FinalKills": 8,
+    "FinalDeaths": 3,
+    "Kills": 37,
+    "Deaths": 31
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 21,
+    "Wins": 11,
+    "Losses": 10,
+    "BedsBroken": 13,
+    "BedsLost": 11,
+    "FinalKills": 42,
+    "FinalDeaths": 10,
+    "Kills": 89,
+    "Deaths": 96
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "b876ec32-e396-476b-a115-8438d83c67d4",
+  "Displayname": "Technoblade",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 1076936,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 21,
+    "Wins": 12,
+    "Losses": 9,
+    "BedsBroken": 51,
+    "BedsLost": 9,
+    "FinalKills": 47,
+    "FinalDeaths": 5,
+    "Kills": 52,
+    "Deaths": 28
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 1027,
+    "Wins": 813,
+    "Losses": 213,
+    "BedsBroken": 2901,
+    "BedsLost": 433,
+    "FinalKills": 5451,
+    "FinalDeaths": 204,
+    "Kills": 3519,
+    "Deaths": 2318
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 525,
+    "Wins": 513,
+    "Losses": 12,
+    "BedsBroken": 586,
+    "BedsLost": 25,
+    "FinalKills": 1626,
+    "FinalDeaths": 14,
+    "Kills": 632,
+    "Deaths": 735
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 3600,
+    "Wins": 3576,
+    "Losses": 24,
+    "BedsBroken": 3048,
+    "BedsLost": 124,
+    "FinalKills": 12990,
+    "FinalDeaths": 36,
+    "Kills": 3489,
+    "Deaths": 4483
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 5184,
+    "Wins": 4924,
+    "Losses": 259,
+    "BedsBroken": 6591,
+    "BedsLost": 592,
+    "FinalKills": 20124,
+    "FinalDeaths": 260,
+    "Kills": 7707,
+    "Deaths": 7578
+  }
+}

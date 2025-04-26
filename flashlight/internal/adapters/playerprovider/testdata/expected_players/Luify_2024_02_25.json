@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "3b085d99-0d10-4f63-8132-2b5ba0147c5c",
+  "Displayname": "Luify",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 1983650,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 1983,
+    "Wins": 615,
+    "Losses": 1365,
+    "BedsBroken": 3105,
+    "BedsLost": 755,
+    "FinalKills": 2935,
+    "FinalDeaths": 581,
+    "Kills": 2896,
+    "Deaths": 4845
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 1807,
+    "Wins": 797,
+    "Losses": 997,
+    "BedsBroken": 2660,
+    "BedsLost": 1178,
+    "FinalKills": 4737,
+    "FinalDeaths": 1035,
+    "Kills": 6827,
+    "Deaths": 7622
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 1127,
+    "Wins": 638,
+    "Losses": 468,
+    "BedsBroken": 1253,
+    "BedsLost": 584,
+    "FinalKills": 2764,
+    "FinalDeaths": 480,
+    "Kills": 4020,
+    "Deaths": 4146
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 1468,
+    "Wins": 815,
+    "Losses": 636,
+    "BedsBroken": 1409,
+    "BedsLost": 742,
+    "FinalKills": 3913,
+    "FinalDeaths": 650,
+    "Kills": 5492,
+    "Deaths": 5298
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 6462,
+    "Wins": 2918,
+    "Losses": 3488,
+    "BedsBroken": 8447,
+    "BedsLost": 3285,
+    "FinalKills": 14413,
+    "FinalDeaths": 2768,
+    "Kills": 19393,
+    "Deaths": 22075
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "7c179d8d-8a7c-42f2-9994-74db4b4df127",
+  "Displayname": "Sharmoy",
+  "LastLogin": "2024-01-07T05:44:45.135+01:00",
+  "LastLogout": "2024-01-07T05:48:12.271+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 609174,
+  "Solo": {
+    "Winstreak": 1,
+    "GamesPlayed": 147,
+    "Wins": 24,
+    "Losses": 120,
+    "BedsBroken": 190,
+    "BedsLost": 118,
+    "FinalKills": 146,
+    "FinalDeaths": 107,
+    "Kills": 240,
+    "Deaths": 437
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 1077,
+    "Wins": 202,
+    "Losses": 859,
+    "BedsBroken": 815,
+    "BedsLost": 846,
+    "FinalKills": 1336,
+    "FinalDeaths": 822,
+    "Kills": 2807,
+    "Deaths": 4000
+  },
+  "Threes": {
+    "Winstreak": 1,
+    "GamesPlayed": 373,
+    "Wins": 104,
+    "Losses": 262,
+    "BedsBroken": 152,
+    "BedsLost": 254,
+    "FinalKills": 353,
+    "FinalDeaths": 241,
+    "Kills": 1076,
+    "Deaths": 1256
+  },
+  "Fours": {
+    "Winstreak": 4,
+    "GamesPlayed": 732,
+    "Wins": 219,
+    "Losses": 494,
+    "BedsBroken": 178,
+    "BedsLost": 472,
+    "FinalKills": 772,
+    "FinalDeaths": 452,
+    "Kills": 2340,
+    "Deaths": 2620
+  },
+  "Overall": {
+    "Winstreak": 4,
+    "GamesPlayed": 2343,
+    "Wins": 560,
+    "Losses": 1738,
+    "BedsBroken": 1337,
+    "BedsLost": 1694,
+    "FinalKills": 2616,
+    "FinalDeaths": 1625,
+    "Kills": 6480,
+    "Deaths": 8334
+  }
+}

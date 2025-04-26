@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "11ff029f-2f9a-4246-8275-f513e1372d54",
+  "Displayname": "DucktheShuk",
+  "LastLogin": "2023-12-23T18:23:51.86+01:00",
+  "LastLogout": "2023-12-23T18:30:18.034+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 392033,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 227,
+    "Wins": 37,
+    "Losses": 190,
+    "BedsBroken": 231,
+    "BedsLost": 176,
+    "FinalKills": 210,
+    "FinalDeaths": 184,
+    "Kills": 323,
+    "Deaths": 535
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 1453,
+    "Wins": 168,
+    "Losses": 1285,
+    "BedsBroken": 517,
+    "BedsLost": 1087,
+    "FinalKills": 957,
+    "FinalDeaths": 1240,
+    "Kills": 2463,
+    "Deaths": 4024
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 162,
+    "Wins": 56,
+    "Losses": 106,
+    "BedsBroken": 46,
+    "BedsLost": 102,
+    "FinalKills": 119,
+    "FinalDeaths": 107,
+    "Kills": 322,
+    "Deaths": 508
+  },
+  "Fours": {
+    "Winstreak": 6,
+    "GamesPlayed": 100,
+    "Wins": 44,
+    "Losses": 56,
+    "BedsBroken": 22,
+    "BedsLost": 56,
+    "FinalKills": 87,
+    "FinalDeaths": 61,
+    "Kills": 157,
+    "Deaths": 315
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 1959,
+    "Wins": 319,
+    "Losses": 1639,
+    "BedsBroken": 819,
+    "BedsLost": 1425,
+    "FinalKills": 1382,
+    "FinalDeaths": 1594,
+    "Kills": 3270,
+    "Deaths": 5409
+  }
+}

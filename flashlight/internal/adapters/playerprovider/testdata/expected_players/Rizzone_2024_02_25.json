@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "0f9b88cf-b1ad-45d6-995a-adc1d5580a77",
+  "Displayname": "Rizzone",
+  "LastLogin": "2024-02-20T02:31:40.232+01:00",
+  "LastLogout": "2024-02-20T03:37:18.144+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 894669,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 1162,
+    "Wins": 142,
+    "Losses": 1019,
+    "BedsBroken": 1242,
+    "BedsLost": 1056,
+    "FinalKills": 1017,
+    "FinalDeaths": 991,
+    "Kills": 1748,
+    "Deaths": 3070
+  },
+  "Doubles": {
+    "Winstreak": 1,
+    "GamesPlayed": 425,
+    "Wins": 62,
+    "Losses": 348,
+    "BedsBroken": 193,
+    "BedsLost": 346,
+    "FinalKills": 261,
+    "FinalDeaths": 349,
+    "Kills": 529,
+    "Deaths": 1344
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 40,
+    "Wins": 11,
+    "Losses": 29,
+    "BedsBroken": 10,
+    "BedsLost": 31,
+    "FinalKills": 15,
+    "FinalDeaths": 29,
+    "Kills": 51,
+    "Deaths": 122
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 166,
+    "Wins": 32,
+    "Losses": 129,
+    "BedsBroken": 27,
+    "BedsLost": 128,
+    "FinalKills": 53,
+    "FinalDeaths": 127,
+    "Kills": 193,
+    "Deaths": 654
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 1799,
+    "Wins": 252,
+    "Losses": 1526,
+    "BedsBroken": 1474,
+    "BedsLost": 1565,
+    "FinalKills": 1349,
+    "FinalDeaths": 1498,
+    "Kills": 2527,
+    "Deaths": 5207
+  }
+}

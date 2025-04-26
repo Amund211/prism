@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "fdbac989-cc52-4a0f-85a9-7fdc427f4adf",
+  "Displayname": "Itz_Theo",
+  "LastLogin": "2024-02-24T14:00:25.89+01:00",
+  "LastLogout": "2024-02-24T14:59:13.97+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 163738,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 26,
+    "Wins": 0,
+    "Losses": 26,
+    "BedsBroken": 7,
+    "BedsLost": 25,
+    "FinalKills": 6,
+    "FinalDeaths": 26,
+    "Kills": 20,
+    "Deaths": 71
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 683,
+    "Wins": 27,
+    "Losses": 637,
+    "BedsBroken": 175,
+    "BedsLost": 619,
+    "FinalKills": 241,
+    "FinalDeaths": 634,
+    "Kills": 971,
+    "Deaths": 1883
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 79,
+    "Wins": 19,
+    "Losses": 60,
+    "BedsBroken": 23,
+    "BedsLost": 60,
+    "FinalKills": 59,
+    "FinalDeaths": 64,
+    "Kills": 173,
+    "Deaths": 306
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 103,
+    "Wins": 19,
+    "Losses": 73,
+    "BedsBroken": 20,
+    "BedsLost": 66,
+    "FinalKills": 57,
+    "FinalDeaths": 69,
+    "Kills": 190,
+    "Deaths": 387
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 906,
+    "Wins": 70,
+    "Losses": 806,
+    "BedsBroken": 229,
+    "BedsLost": 779,
+    "FinalKills": 368,
+    "FinalDeaths": 803,
+    "Kills": 1382,
+    "Deaths": 2699
+  }
+}

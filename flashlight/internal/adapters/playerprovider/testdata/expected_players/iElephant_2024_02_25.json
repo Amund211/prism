@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "5d9d6c77-af11-4cef-8119-290342cbf055",
+  "Displayname": "iElephant",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 8998254,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 334,
+    "Wins": 179,
+    "Losses": 155,
+    "BedsBroken": 778,
+    "BedsLost": 180,
+    "FinalKills": 740,
+    "FinalDeaths": 131,
+    "Kills": 856,
+    "Deaths": 1067
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 5522,
+    "Wins": 4687,
+    "Losses": 834,
+    "BedsBroken": 9773,
+    "BedsLost": 1418,
+    "FinalKills": 19833,
+    "FinalDeaths": 921,
+    "Kills": 17389,
+    "Deaths": 19793
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 3015,
+    "Wins": 2742,
+    "Losses": 271,
+    "BedsBroken": 2481,
+    "BedsLost": 470,
+    "FinalKills": 6733,
+    "FinalDeaths": 324,
+    "Kills": 6032,
+    "Deaths": 9427
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 27776,
+    "Wins": 26273,
+    "Losses": 1486,
+    "BedsBroken": 17317,
+    "BedsLost": 3223,
+    "FinalKills": 68341,
+    "FinalDeaths": 2041,
+    "Kills": 42113,
+    "Deaths": 72205
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 40762,
+    "Wins": 37929,
+    "Losses": 2776,
+    "BedsBroken": 31215,
+    "BedsLost": 5352,
+    "FinalKills": 99204,
+    "FinalDeaths": 3449,
+    "Kills": 68481,
+    "Deaths": 106462
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "cf8b2bc6-1fec-40fb-8c75-54a99fed8baa",
+  "Displayname": "Andorite",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 7313759,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 2140,
+    "Wins": 1903,
+    "Losses": 234,
+    "BedsBroken": 6385,
+    "BedsLost": 466,
+    "FinalKills": 6576,
+    "FinalDeaths": 214,
+    "Kills": 4278,
+    "Deaths": 5914
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 1660,
+    "Wins": 1354,
+    "Losses": 304,
+    "BedsBroken": 3097,
+    "BedsLost": 356,
+    "FinalKills": 5499,
+    "FinalDeaths": 296,
+    "Kills": 3931,
+    "Deaths": 5376
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 14255,
+    "Wins": 13842,
+    "Losses": 412,
+    "BedsBroken": 14435,
+    "BedsLost": 710,
+    "FinalKills": 33042,
+    "FinalDeaths": 417,
+    "Kills": 17643,
+    "Deaths": 32549
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 22890,
+    "Wins": 20846,
+    "Losses": 1953,
+    "BedsBroken": 20946,
+    "BedsLost": 2961,
+    "FinalKills": 46615,
+    "FinalDeaths": 2144,
+    "Kills": 27735,
+    "Deaths": 58400
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 41254,
+    "Wins": 38239,
+    "Losses": 2914,
+    "BedsBroken": 44962,
+    "BedsLost": 4506,
+    "FinalKills": 92018,
+    "FinalDeaths": 3083,
+    "Kills": 53841,
+    "Deaths": 102589
+  }
+}

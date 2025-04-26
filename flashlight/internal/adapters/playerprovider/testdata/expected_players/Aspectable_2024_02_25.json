@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "fd89681c-e4d2-4359-80da-30e6ffcdadea",
+  "Displayname": "Aspectable",
+  "LastLogin": "2024-02-19T14:43:41.731+01:00",
+  "LastLogout": "2024-02-19T16:44:36.26+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 1012940,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 166,
+    "Wins": 34,
+    "Losses": 131,
+    "BedsBroken": 205,
+    "BedsLost": 138,
+    "FinalKills": 160,
+    "FinalDeaths": 118,
+    "Kills": 235,
+    "Deaths": 434
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 1755,
+    "Wins": 399,
+    "Losses": 1324,
+    "BedsBroken": 1562,
+    "BedsLost": 1374,
+    "FinalKills": 2742,
+    "FinalDeaths": 1290,
+    "Kills": 4474,
+    "Deaths": 6155
+  },
+  "Threes": {
+    "Winstreak": 4,
+    "GamesPlayed": 569,
+    "Wins": 254,
+    "Losses": 307,
+    "BedsBroken": 337,
+    "BedsLost": 335,
+    "FinalKills": 847,
+    "FinalDeaths": 296,
+    "Kills": 1462,
+    "Deaths": 1870
+  },
+  "Fours": {
+    "Winstreak": 3,
+    "GamesPlayed": 585,
+    "Wins": 184,
+    "Losses": 396,
+    "BedsBroken": 205,
+    "BedsLost": 393,
+    "FinalKills": 599,
+    "FinalDeaths": 373,
+    "Kills": 1471,
+    "Deaths": 2104
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 3096,
+    "Wins": 886,
+    "Losses": 2162,
+    "BedsBroken": 2312,
+    "BedsLost": 2244,
+    "FinalKills": 4356,
+    "FinalDeaths": 2080,
+    "Kills": 7663,
+    "Deaths": 10609
+  }
+}

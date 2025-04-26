@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "77006fb6-d4c1-4653-a826-e6f799567c22",
+  "Displayname": "mineplayz2020",
+  "LastLogin": "2024-02-25T02:57:48.458+01:00",
+  "LastLogout": "2024-02-25T04:09:37.901+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 1568228,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 2003,
+    "Wins": 277,
+    "Losses": 1716,
+    "BedsBroken": 2038,
+    "BedsLost": 1794,
+    "FinalKills": 1792,
+    "FinalDeaths": 1674,
+    "Kills": 2948,
+    "Deaths": 5680
+  },
+  "Doubles": {
+    "Winstreak": 5,
+    "GamesPlayed": 1013,
+    "Wins": 188,
+    "Losses": 816,
+    "BedsBroken": 612,
+    "BedsLost": 827,
+    "FinalKills": 1127,
+    "FinalDeaths": 815,
+    "Kills": 2222,
+    "Deaths": 3908
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 422,
+    "Wins": 129,
+    "Losses": 288,
+    "BedsBroken": 126,
+    "BedsLost": 292,
+    "FinalKills": 355,
+    "FinalDeaths": 288,
+    "Kills": 815,
+    "Deaths": 1547
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 981,
+    "Wins": 385,
+    "Losses": 583,
+    "BedsBroken": 233,
+    "BedsLost": 630,
+    "FinalKills": 901,
+    "FinalDeaths": 603,
+    "Kills": 1703,
+    "Deaths": 3837
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 5059,
+    "Wins": 1303,
+    "Losses": 3710,
+    "BedsBroken": 3100,
+    "BedsLost": 3840,
+    "FinalKills": 4473,
+    "FinalDeaths": 3683,
+    "Kills": 8653,
+    "Deaths": 17047
+  }
+}

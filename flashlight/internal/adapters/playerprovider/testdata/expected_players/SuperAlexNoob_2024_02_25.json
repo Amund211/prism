@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "3230f01e-6027-4ddc-ae9e-e2d81fc1a71c",
+  "Displayname": "SuperAlexNoob",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 12225013,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 5957,
+    "Wins": 3496,
+    "Losses": 2433,
+    "BedsBroken": 14916,
+    "BedsLost": 3302,
+    "FinalKills": 14469,
+    "FinalDeaths": 2184,
+    "Kills": 10121,
+    "Deaths": 15680
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 23844,
+    "Wins": 18668,
+    "Losses": 5122,
+    "BedsBroken": 48551,
+    "BedsLost": 8560,
+    "FinalKills": 91554,
+    "FinalDeaths": 5704,
+    "Kills": 65307,
+    "Deaths": 89082
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 1968,
+    "Wins": 1342,
+    "Losses": 606,
+    "BedsBroken": 1654,
+    "BedsLost": 728,
+    "FinalKills": 3574,
+    "FinalDeaths": 602,
+    "Kills": 3425,
+    "Deaths": 5517
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 4186,
+    "Wins": 3113,
+    "Losses": 1044,
+    "BedsBroken": 2888,
+    "BedsLost": 1254,
+    "FinalKills": 8470,
+    "FinalDeaths": 1024,
+    "Kills": 7484,
+    "Deaths": 12741
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 36288,
+    "Wins": 26931,
+    "Losses": 9218,
+    "BedsBroken": 68106,
+    "BedsLost": 13865,
+    "FinalKills": 118347,
+    "FinalDeaths": 9527,
+    "Kills": 86565,
+    "Deaths": 123439
+  }
+}

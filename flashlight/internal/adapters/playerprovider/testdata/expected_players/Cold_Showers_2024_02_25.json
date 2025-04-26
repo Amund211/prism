@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "4e8af5a3-b46d-456c-b17e-2a41785f6050",
+  "Displayname": "Cold_Showers",
+  "LastLogin": "2024-02-23T07:59:43.512+01:00",
+  "LastLogout": "2024-02-23T08:27:11.751+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 119547,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 91,
+    "Wins": 2,
+    "Losses": 89,
+    "BedsBroken": 54,
+    "BedsLost": 69,
+    "FinalKills": 26,
+    "FinalDeaths": 67,
+    "Kills": 75,
+    "Deaths": 175
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 293,
+    "Wins": 14,
+    "Losses": 274,
+    "BedsBroken": 92,
+    "BedsLost": 259,
+    "FinalKills": 119,
+    "FinalDeaths": 264,
+    "Kills": 445,
+    "Deaths": 667
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 33,
+    "Wins": 4,
+    "Losses": 28,
+    "BedsBroken": 9,
+    "BedsLost": 28,
+    "FinalKills": 10,
+    "FinalDeaths": 28,
+    "Kills": 64,
+    "Deaths": 88
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 164,
+    "Wins": 33,
+    "Losses": 130,
+    "BedsBroken": 14,
+    "BedsLost": 128,
+    "FinalKills": 59,
+    "FinalDeaths": 128,
+    "Kills": 316,
+    "Deaths": 252
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 617,
+    "Wins": 67,
+    "Losses": 543,
+    "BedsBroken": 171,
+    "BedsLost": 504,
+    "FinalKills": 220,
+    "FinalDeaths": 506,
+    "Kills": 971,
+    "Deaths": 1263
+  }
+}

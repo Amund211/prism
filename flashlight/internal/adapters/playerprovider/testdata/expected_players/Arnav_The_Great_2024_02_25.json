@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "779511db-3285-4a48-8e8b-b6bcb9df15c1",
+  "Displayname": "Arnav_The_Great",
+  "LastLogin": "2024-02-22T12:06:22.534+01:00",
+  "LastLogout": "2024-02-22T12:07:34.306+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 1510174,
+  "Solo": {
+    "Winstreak": 1,
+    "GamesPlayed": 671,
+    "Wins": 125,
+    "Losses": 546,
+    "BedsBroken": 899,
+    "BedsLost": 583,
+    "FinalKills": 745,
+    "FinalDeaths": 545,
+    "Kills": 629,
+    "Deaths": 1441
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 630,
+    "Wins": 153,
+    "Losses": 477,
+    "BedsBroken": 768,
+    "BedsLost": 513,
+    "FinalKills": 1202,
+    "FinalDeaths": 499,
+    "Kills": 1214,
+    "Deaths": 2151
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 506,
+    "Wins": 210,
+    "Losses": 296,
+    "BedsBroken": 432,
+    "BedsLost": 333,
+    "FinalKills": 878,
+    "FinalDeaths": 312,
+    "Kills": 905,
+    "Deaths": 1652
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 996,
+    "Wins": 316,
+    "Losses": 678,
+    "BedsBroken": 433,
+    "BedsLost": 682,
+    "FinalKills": 1222,
+    "FinalDeaths": 711,
+    "Kills": 1407,
+    "Deaths": 3320
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 2869,
+    "Wins": 852,
+    "Losses": 2014,
+    "BedsBroken": 2560,
+    "BedsLost": 2131,
+    "FinalKills": 4109,
+    "FinalDeaths": 2085,
+    "Kills": 4298,
+    "Deaths": 8726
+  }
+}

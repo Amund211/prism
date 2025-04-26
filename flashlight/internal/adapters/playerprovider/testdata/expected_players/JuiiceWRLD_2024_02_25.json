@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "73bab6ef-a5fd-4062-846f-19ecec22a547",
+  "Displayname": "JuiiceWRLD",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 1569933,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 359,
+    "Wins": 37,
+    "Losses": 322,
+    "BedsBroken": 303,
+    "BedsLost": 325,
+    "FinalKills": 243,
+    "FinalDeaths": 319,
+    "Kills": 443,
+    "Deaths": 736
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 1803,
+    "Wins": 437,
+    "Losses": 1366,
+    "BedsBroken": 1399,
+    "BedsLost": 1452,
+    "FinalKills": 2370,
+    "FinalDeaths": 1382,
+    "Kills": 4135,
+    "Deaths": 6010
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 519,
+    "Wins": 211,
+    "Losses": 308,
+    "BedsBroken": 251,
+    "BedsLost": 333,
+    "FinalKills": 657,
+    "FinalDeaths": 316,
+    "Kills": 1159,
+    "Deaths": 1431
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 2095,
+    "Wins": 1025,
+    "Losses": 1070,
+    "BedsBroken": 663,
+    "BedsLost": 1227,
+    "FinalKills": 2623,
+    "FinalDeaths": 1164,
+    "Kills": 4245,
+    "Deaths": 5714
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 5350,
+    "Wins": 2046,
+    "Losses": 3304,
+    "BedsBroken": 2725,
+    "BedsLost": 3595,
+    "FinalKills": 6257,
+    "FinalDeaths": 3435,
+    "Kills": 11229,
+    "Deaths": 15378
+  }
+}

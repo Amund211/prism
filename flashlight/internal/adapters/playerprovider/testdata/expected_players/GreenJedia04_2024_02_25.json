@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "1baaf460-779a-47f4-9c05-4168407e6a09",
+  "Displayname": "GreenJedia04",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 12359551,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 14882,
+    "Wins": 11143,
+    "Losses": 3684,
+    "BedsBroken": 39128,
+    "BedsLost": 6156,
+    "FinalKills": 41548,
+    "FinalDeaths": 3488,
+    "Kills": 40736,
+    "Deaths": 37816
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 10166,
+    "Wins": 7996,
+    "Losses": 2117,
+    "BedsBroken": 18913,
+    "BedsLost": 3383,
+    "FinalKills": 35771,
+    "FinalDeaths": 2283,
+    "Kills": 32976,
+    "Deaths": 36228
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 4063,
+    "Wins": 3495,
+    "Losses": 547,
+    "BedsBroken": 3802,
+    "BedsLost": 817,
+    "FinalKills": 9708,
+    "FinalDeaths": 586,
+    "Kills": 6608,
+    "Deaths": 10635
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 11870,
+    "Wins": 9673,
+    "Losses": 2049,
+    "BedsBroken": 7913,
+    "BedsLost": 2802,
+    "FinalKills": 24468,
+    "FinalDeaths": 2186,
+    "Kills": 18019,
+    "Deaths": 31895
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 43721,
+    "Wins": 34957,
+    "Losses": 8424,
+    "BedsBroken": 70471,
+    "BedsLost": 13221,
+    "FinalKills": 113641,
+    "FinalDeaths": 8576,
+    "Kills": 100137,
+    "Deaths": 119735
+  }
+}

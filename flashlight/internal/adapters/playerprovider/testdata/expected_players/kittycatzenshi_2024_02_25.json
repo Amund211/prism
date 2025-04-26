@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "3641589f-bef4-4a63-a5c1-27d16514a772",
+  "Displayname": "kittycatzenshi",
+  "LastLogin": "2024-02-23T04:14:40.243+01:00",
+  "LastLogout": "2024-02-23T05:05:40.068+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 11369520,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 5498,
+    "Wins": 3638,
+    "Losses": 1814,
+    "BedsBroken": 13689,
+    "BedsLost": 2740,
+    "FinalKills": 13605,
+    "FinalDeaths": 1710,
+    "Kills": 17701,
+    "Deaths": 16290
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 17622,
+    "Wins": 13076,
+    "Losses": 4417,
+    "BedsBroken": 30181,
+    "BedsLost": 6199,
+    "FinalKills": 56178,
+    "FinalDeaths": 4652,
+    "Kills": 69306,
+    "Deaths": 63476
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 2899,
+    "Wins": 2447,
+    "Losses": 424,
+    "BedsBroken": 2698,
+    "BedsLost": 681,
+    "FinalKills": 6552,
+    "FinalDeaths": 494,
+    "Kills": 5767,
+    "Deaths": 7518
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 10737,
+    "Wins": 8004,
+    "Losses": 2594,
+    "BedsBroken": 7670,
+    "BedsLost": 3508,
+    "FinalKills": 23919,
+    "FinalDeaths": 2681,
+    "Kills": 27338,
+    "Deaths": 28980
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 36789,
+    "Wins": 27196,
+    "Losses": 9251,
+    "BedsBroken": 54248,
+    "BedsLost": 13130,
+    "FinalKills": 100279,
+    "FinalDeaths": 9539,
+    "Kills": 120174,
+    "Deaths": 116303
+  }
+}

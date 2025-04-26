@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "7db21ed8-d227-45af-a0c1-f5c5b7c8ff08",
+  "Displayname": "fart_da_ass",
+  "LastLogin": "2024-02-25T14:00:46.439+01:00",
+  "LastLogout": "2024-02-25T14:26:40.353+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 239779,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 233,
+    "Wins": 41,
+    "Losses": 192,
+    "BedsBroken": 291,
+    "BedsLost": 214,
+    "FinalKills": 264,
+    "FinalDeaths": 192,
+    "Kills": 473,
+    "Deaths": 427
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 423,
+    "Wins": 25,
+    "Losses": 398,
+    "BedsBroken": 293,
+    "BedsLost": 410,
+    "FinalKills": 465,
+    "FinalDeaths": 404,
+    "Kills": 1290,
+    "Deaths": 1084
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 25,
+    "Wins": 3,
+    "Losses": 22,
+    "BedsBroken": 8,
+    "BedsLost": 23,
+    "FinalKills": 16,
+    "FinalDeaths": 22,
+    "Kills": 80,
+    "Deaths": 69
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 358,
+    "Wins": 75,
+    "Losses": 283,
+    "BedsBroken": 113,
+    "BedsLost": 298,
+    "FinalKills": 446,
+    "FinalDeaths": 290,
+    "Kills": 1511,
+    "Deaths": 1318
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 1053,
+    "Wins": 153,
+    "Losses": 900,
+    "BedsBroken": 709,
+    "BedsLost": 952,
+    "FinalKills": 1206,
+    "FinalDeaths": 913,
+    "Kills": 3387,
+    "Deaths": 2931
+  }
+}

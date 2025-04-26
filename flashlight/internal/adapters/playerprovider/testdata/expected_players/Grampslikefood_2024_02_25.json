@@ -1,0 +1,69 @@
+{
+  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "UUID": "1184cc84-3dd8-4b6c-bbc2-e4a89140d81d",
+  "Displayname": "Grampslikefood",
+  "LastLogin": "2024-02-23T06:03:22.627+01:00",
+  "LastLogout": "2024-02-23T06:06:36.785+01:00",
+  "MissingBedwarsStats": false,
+  "Experience": 636466,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 350,
+    "Wins": 59,
+    "Losses": 291,
+    "BedsBroken": 399,
+    "BedsLost": 308,
+    "FinalKills": 365,
+    "FinalDeaths": 283,
+    "Kills": 526,
+    "Deaths": 767
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 929,
+    "Wins": 54,
+    "Losses": 865,
+    "BedsBroken": 411,
+    "BedsLost": 836,
+    "FinalKills": 586,
+    "FinalDeaths": 857,
+    "Kills": 1513,
+    "Deaths": 2591
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 378,
+    "Wins": 57,
+    "Losses": 318,
+    "BedsBroken": 76,
+    "BedsLost": 306,
+    "FinalKills": 170,
+    "FinalDeaths": 310,
+    "Kills": 789,
+    "Deaths": 1112
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 508,
+    "Wins": 83,
+    "Losses": 422,
+    "BedsBroken": 146,
+    "BedsLost": 415,
+    "FinalKills": 440,
+    "FinalDeaths": 420,
+    "Kills": 1569,
+    "Deaths": 1473
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 2266,
+    "Wins": 314,
+    "Losses": 1935,
+    "BedsBroken": 1063,
+    "BedsLost": 1903,
+    "FinalKills": 1650,
+    "FinalDeaths": 1907,
+    "Kills": 4566,
+    "Deaths": 6221
+  }
+}
