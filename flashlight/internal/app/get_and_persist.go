@@ -15,7 +15,7 @@ import (
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
-type GetAndPersistPlayer = func(ctx context.Context, uuid string) (*domain.PlayerPIT, error)
+type GetAndPersistPlayerWithCache func(ctx context.Context, uuid string) (*domain.PlayerPIT, error)
 
 func getAndPersistPlayerWithoutCache(ctx context.Context, provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) (*domain.PlayerPIT, error) {
 	player, err := provider.GetPlayer(ctx, uuid)
@@ -38,7 +38,7 @@ func getAndPersistPlayerWithoutCache(ctx context.Context, provider playerprovide
 	return player, nil
 }
 
-func BuildGetAndPersistPlayerWithCache(playerCache cache.Cache[*domain.PlayerPIT], provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository) GetAndPersistPlayer {
+func BuildGetAndPersistPlayerWithCache(playerCache cache.Cache[*domain.PlayerPIT], provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository) GetAndPersistPlayerWithCache {
 	return func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 		logger := logging.FromContext(ctx)
 

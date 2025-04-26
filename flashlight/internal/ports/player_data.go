@@ -1,22 +1,19 @@
 package ports
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
 
-	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/app"
 	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 )
 
-type GetProcessedPlayerData = func(ctx context.Context, uuid string) (*domain.PlayerPIT, error)
-
 func MakeGetPlayerDataHandler(
-	getProcessedPlayerData GetProcessedPlayerData,
+	getAndPersistPlayerWithCache app.GetAndPersistPlayerWithCache,
 	logger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 ) http.HandlerFunc {
@@ -48,7 +45,7 @@ func MakeGetPlayerDataHandler(
 		logger := logging.FromContext(ctx)
 		uuid := r.URL.Query().Get("uuid")
 
-		player, err := getProcessedPlayerData(r.Context(), uuid)
+		player, err := getAndPersistPlayerWithCache(r.Context(), uuid)
 
 		if err != nil {
 			logger.Error("Error getting player data", "error", err)
