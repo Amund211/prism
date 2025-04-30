@@ -10,3 +10,7 @@
 .git
 .gitignore
 cmd/*
+
+# Test data
+fixtures/
+testdata/
