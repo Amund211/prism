@@ -20,6 +20,7 @@ import (
 	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/flashlight/internal/strutils"
 	"github.com/google/uuid"
 )
 
@@ -75,6 +76,8 @@ func main() {
 
 	getAndPersistPlayerWithCache := app.BuildGetAndPersistPlayerWithCache(playerCache, provider, repo)
 
+	getHistory := app.BuildGetHistory(repo, getAndPersistPlayerWithCache, time.Now)
+
 	http.HandleFunc(
 		"GET /v1/playerdata",
 		ports.MakeGetPlayerDataHandler(
@@ -124,7 +127,13 @@ func main() {
 					return
 				}
 
-				history, err := repo.GetHistory(r.Context(), request.UUID, request.Start, request.End, request.Limit)
+				normalizedUUID, err := strutils.NormalizeUUID(request.UUID)
+				if err != nil {
+					http.Error(w, "invalid uuid", http.StatusBadRequest)
+					return
+				}
+
+				history, err := getHistory(r.Context(), normalizedUUID, request.Start, request.End, request.Limit)
 				if err != nil {
 					http.Error(w, "Failed to get history", http.StatusInternalServerError)
 					return
