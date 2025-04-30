@@ -43,6 +43,7 @@ func TestPlayerToHypixelAPIResponse(t *testing.T) {
 	queriedAt := time.Now()
 
 	timePtr := func(timeStr string) *time.Time {
+		t.Helper()
 		timeTime, err := time.Parse(time.RFC3339, timeStr)
 		require.NoError(t, err)
 		return &timeTime
