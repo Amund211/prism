@@ -141,61 +141,7 @@ func main() {
 					return
 				}
 
-				type statsResponse struct {
-					Winstreak   *int `json:"winstreak"`
-					GamesPlayed int  `json:"gamesPlayed"`
-					Wins        int  `json:"wins"`
-					Losses      int  `json:"losses"`
-					BedsBroken  int  `json:"bedsBroken"`
-					BedsLost    int  `json:"bedsLost"`
-					FinalKills  int  `json:"finalKills"`
-					FinalDeaths int  `json:"finalDeaths"`
-					Kills       int  `json:"kills"`
-					Deaths      int  `json:"deaths"`
-				}
-
-				type playerDataResponse struct {
-					UUID       string        `json:"uuid"`
-					QueriedAt  time.Time     `json:"queriedAt"`
-					Experience float64       `json:"experience"`
-					Solo       statsResponse `json:"solo"`
-					Doubles    statsResponse `json:"doubles"`
-					Threes     statsResponse `json:"threes"`
-					Fours      statsResponse `json:"fours"`
-					Overall    statsResponse `json:"overall"`
-				}
-
-				pitStatsToResponse := func(stats domain.GamemodeStatsPIT) statsResponse {
-					return statsResponse{
-						Winstreak:   stats.Winstreak,
-						GamesPlayed: stats.GamesPlayed,
-						Wins:        stats.Wins,
-						Losses:      stats.Losses,
-						BedsBroken:  stats.BedsBroken,
-						BedsLost:    stats.BedsLost,
-						FinalKills:  stats.FinalKills,
-						FinalDeaths: stats.FinalDeaths,
-						Kills:       stats.Kills,
-						Deaths:      stats.Deaths,
-					}
-				}
-
-				responseData := make([]playerDataResponse, 0, len(history))
-
-				for _, data := range history {
-					responseData = append(responseData, playerDataResponse{
-						UUID:       data.UUID,
-						QueriedAt:  data.QueriedAt,
-						Experience: data.Experience,
-						Solo:       pitStatsToResponse(data.Solo),
-						Doubles:    pitStatsToResponse(data.Doubles),
-						Threes:     pitStatsToResponse(data.Threes),
-						Fours:      pitStatsToResponse(data.Fours),
-						Overall:    pitStatsToResponse(data.Overall),
-					})
-				}
-
-				marshalled, err := json.Marshal(responseData)
+				marshalled, err := ports.HistoryToRainbowHistoryData(history)
 				if err != nil {
 					http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
 					return
@@ -259,77 +205,7 @@ func main() {
 					return
 				}
 
-				type statsResponse struct {
-					Winstreak   *int `json:"winstreak"`
-					GamesPlayed int  `json:"gamesPlayed"`
-					Wins        int  `json:"wins"`
-					Losses      int  `json:"losses"`
-					BedsBroken  int  `json:"bedsBroken"`
-					BedsLost    int  `json:"bedsLost"`
-					FinalKills  int  `json:"finalKills"`
-					FinalDeaths int  `json:"finalDeaths"`
-					Kills       int  `json:"kills"`
-					Deaths      int  `json:"deaths"`
-				}
-
-				type playerDataResponse struct {
-					ID                string        `json:"id"`
-					DataFormatVersion int           `json:"dataFormatVersion"`
-					UUID              string        `json:"uuid"`
-					QueriedAt         time.Time     `json:"queriedAt"`
-					Experience        float64       `json:"experience"`
-					Solo              statsResponse `json:"solo"`
-					Doubles           statsResponse `json:"doubles"`
-					Threes            statsResponse `json:"threes"`
-					Fours             statsResponse `json:"fours"`
-					Overall           statsResponse `json:"overall"`
-				}
-
-				type sessionResponse struct {
-					Start       playerDataResponse `json:"start"`
-					End         playerDataResponse `json:"end"`
-					Consecutive bool               `json:"consecutive"`
-				}
-
-				pitStatsToResponse := func(stats domain.GamemodeStatsPIT) statsResponse {
-					return statsResponse{
-						Winstreak:   stats.Winstreak,
-						GamesPlayed: stats.GamesPlayed,
-						Wins:        stats.Wins,
-						Losses:      stats.Losses,
-						BedsBroken:  stats.BedsBroken,
-						BedsLost:    stats.BedsLost,
-						FinalKills:  stats.FinalKills,
-						FinalDeaths: stats.FinalDeaths,
-						Kills:       stats.Kills,
-						Deaths:      stats.Deaths,
-					}
-				}
-
-				playerDataToResponse := func(data domain.PlayerPIT) playerDataResponse {
-					return playerDataResponse{
-						UUID:       data.UUID,
-						QueriedAt:  data.QueriedAt,
-						Experience: data.Experience,
-						Solo:       pitStatsToResponse(data.Solo),
-						Doubles:    pitStatsToResponse(data.Doubles),
-						Threes:     pitStatsToResponse(data.Threes),
-						Fours:      pitStatsToResponse(data.Fours),
-						Overall:    pitStatsToResponse(data.Overall),
-					}
-				}
-
-				responseData := make([]sessionResponse, 0, len(sessions))
-
-				for _, session := range sessions {
-					responseData = append(responseData, sessionResponse{
-						Start:       playerDataToResponse(session.Start),
-						End:         playerDataToResponse(session.End),
-						Consecutive: session.Consecutive,
-					})
-				}
-
-				marshalled, err := json.Marshal(responseData)
+				marshalled, err := ports.SessionsToRainbowSessionsData(sessions)
 				if err != nil {
 					http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
 					return
