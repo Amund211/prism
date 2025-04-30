@@ -92,8 +92,9 @@ func main() {
 		ratelimiting.IPKeyFunc,
 	)
 	historyMiddleware := ports.ComposeMiddlewares(
-		ports.BuildCORSMiddleware(allowedOrigins),
 		logging.NewRequestLoggerMiddleware(logger.With("component", "history")),
+		sentryMiddleware,
+		ports.BuildCORSMiddleware(allowedOrigins),
 		ports.NewRateLimitMiddleware(historyIPRateLimiter),
 	)
 	http.HandleFunc(
@@ -204,8 +205,9 @@ func main() {
 		ratelimiting.IPKeyFunc,
 	)
 	getSessionsMiddleware := ports.ComposeMiddlewares(
+		logging.NewRequestLoggerMiddleware(logger.With("component", "sessions")),
+		sentryMiddleware,
 		ports.BuildCORSMiddleware(allowedOrigins),
-		logging.NewRequestLoggerMiddleware(logger.With("component", "history")),
 		ports.NewRateLimitMiddleware(getSessionsIPRateLimiter),
 	)
 	http.HandleFunc(
