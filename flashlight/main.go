@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -16,11 +14,8 @@ import (
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ports"
-	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
-	"github.com/Amund211/flashlight/internal/strutils"
 	"github.com/google/uuid"
 )
 
@@ -89,132 +84,31 @@ func main() {
 		),
 	)
 
-	historyIPRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		ratelimiting.NewTokenBucketRateLimiter(
-			ratelimiting.RefillPerSecond(1),
-			ratelimiting.BurstSize(60),
-		),
-		ratelimiting.IPKeyFunc,
-	)
-	historyMiddleware := ports.ComposeMiddlewares(
-		logging.NewRequestLoggerMiddleware(logger.With("component", "history")),
-		sentryMiddleware,
-		ports.BuildCORSMiddleware(allowedOrigins),
-		ports.NewRateLimitMiddleware(historyIPRateLimiter),
-	)
 	http.HandleFunc(
 		"OPTIONS /v1/history",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
 	http.HandleFunc(
 		"POST /v1/history",
-		// TODO: Implement sentry + logging middleware
-		historyMiddleware(
-			func(w http.ResponseWriter, r *http.Request) {
-				defer r.Body.Close()
-				body, err := io.ReadAll(r.Body)
-				if err != nil {
-					http.Error(w, "Failed to read request body", http.StatusBadRequest)
-					return
-				}
-				request := struct {
-					UUID  string    `json:"uuid"`
-					Start time.Time `json:"start"`
-					End   time.Time `json:"end"`
-					Limit int       `json:"limit"`
-				}{}
-				err = json.Unmarshal(body, &request)
-				if err != nil {
-					http.Error(w, "Failed to parse request body", http.StatusBadRequest)
-					return
-				}
-
-				normalizedUUID, err := strutils.NormalizeUUID(request.UUID)
-				if err != nil {
-					http.Error(w, "invalid uuid", http.StatusBadRequest)
-					return
-				}
-
-				history, err := getHistory(r.Context(), normalizedUUID, request.Start, request.End, request.Limit)
-				if err != nil {
-					http.Error(w, "Failed to get history", http.StatusInternalServerError)
-					return
-				}
-
-				marshalled, err := ports.HistoryToRainbowHistoryData(history)
-				if err != nil {
-					http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
-					return
-				}
-
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusOK)
-				w.Write(marshalled)
-			},
+		ports.MakeGetHistoryHandler(
+			getHistory,
+			allowedOrigins,
+			logger.With("component", "history"),
+			sentryMiddleware,
 		),
 	)
 
-	getSessionsIPRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		ratelimiting.NewTokenBucketRateLimiter(
-			ratelimiting.RefillPerSecond(1),
-			ratelimiting.BurstSize(20),
-		),
-		ratelimiting.IPKeyFunc,
-	)
-	getSessionsMiddleware := ports.ComposeMiddlewares(
-		logging.NewRequestLoggerMiddleware(logger.With("component", "sessions")),
-		sentryMiddleware,
-		ports.BuildCORSMiddleware(allowedOrigins),
-		ports.NewRateLimitMiddleware(getSessionsIPRateLimiter),
-	)
 	http.HandleFunc(
 		"OPTIONS /v1/sessions",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
 	http.HandleFunc(
 		"POST /v1/sessions",
-		// TODO: Implement sentry + logging middleware
-		getSessionsMiddleware(
-			func(w http.ResponseWriter, r *http.Request) {
-				defer r.Body.Close()
-				body, err := io.ReadAll(r.Body)
-				if err != nil {
-					http.Error(w, "Failed to read request body", http.StatusBadRequest)
-					return
-				}
-				request := struct {
-					UUID  string    `json:"uuid"`
-					Start time.Time `json:"start"`
-					End   time.Time `json:"end"`
-				}{}
-				err = json.Unmarshal(body, &request)
-				if err != nil {
-					http.Error(w, "Failed to parse request body", http.StatusBadRequest)
-					return
-				}
-
-				normalizedUUID, err := strutils.NormalizeUUID(request.UUID)
-				if err != nil {
-					http.Error(w, "invalid uuid", http.StatusBadRequest)
-					return
-				}
-
-				sessions, err := getSessions(r.Context(), normalizedUUID, request.Start, request.End)
-				if err != nil {
-					http.Error(w, "Failed to get sessions", http.StatusInternalServerError)
-					return
-				}
-
-				marshalled, err := ports.SessionsToRainbowSessionsData(sessions)
-				if err != nil {
-					http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
-					return
-				}
-
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusOK)
-				w.Write(marshalled)
-			},
+		ports.MakeGetSessionsHandler(
+			getSessions,
+			allowedOrigins,
+			logger.With("component", "sessions"),
+			sentryMiddleware,
 		),
 	)
 
