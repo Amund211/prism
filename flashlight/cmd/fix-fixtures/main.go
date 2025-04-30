@@ -118,7 +118,7 @@ func main() {
 		}
 
 		// Fix expected hypixel style responses
-		hypixelStyleResponse, err := ports.PlayerToHypixelAPIResponseData(player)
+		hypixelStyleResponse, err := ports.PlayerToPrismPlayerDataResponseData(player)
 		if err != nil {
 			log.Printf("Error converting player to hypixel style response: %s", err.Error())
 			continue

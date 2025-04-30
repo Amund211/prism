@@ -32,7 +32,7 @@ type playerToHypixelAPIResponseTestCase struct {
 func runPlayerToHypixelAPIResponseTest(t *testing.T, test playerToHypixelAPIResponseTestCase) {
 	t.Helper()
 
-	result, err := ports.PlayerToHypixelAPIResponseData(test.player)
+	result, err := ports.PlayerToPrismPlayerDataResponseData(test.player)
 	require.NoError(t, err)
 	require.JSONEq(t, string(test.result), string(result))
 }

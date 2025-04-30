@@ -6,6 +6,7 @@ import (
 	"github.com/Amund211/flashlight/internal/domain"
 )
 
+// Prism expects a hypixel API response
 type hypixelAPIResponse struct {
 	Success bool              `json:"success"`
 	Player  *hypixelAPIPlayer `json:"player"`
@@ -83,7 +84,7 @@ type hypixelAPIBedwarsStats struct {
 	FoursDeaths      int  `json:"four_four_deaths_bedwars,omitempty"`
 }
 
-func playerToHypixelAPIResponse(player *domain.PlayerPIT) *hypixelAPIResponse {
+func playerToPrismPlayerDataResponse(player *domain.PlayerPIT) *hypixelAPIResponse {
 	if player == nil {
 		return &hypixelAPIResponse{
 			Success: true,
@@ -174,8 +175,8 @@ func playerToHypixelAPIResponse(player *domain.PlayerPIT) *hypixelAPIResponse {
 	}
 }
 
-func PlayerToHypixelAPIResponseData(player *domain.PlayerPIT) ([]byte, error) {
-	data, err := json.Marshal(playerToHypixelAPIResponse(player))
+func PlayerToPrismPlayerDataResponseData(player *domain.PlayerPIT) ([]byte, error) {
+	data, err := json.Marshal(playerToPrismPlayerDataResponse(player))
 	if err != nil {
 		return []byte{}, err
 	}

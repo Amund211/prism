@@ -54,7 +54,7 @@ func MakeGetPlayerDataHandler(
 			return
 		}
 
-		hypixelAPIResponseData, err := PlayerToHypixelAPIResponseData(player)
+		hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(player)
 		if err != nil {
 			logger.Error("Failed to convert player to hypixel API response", "error", err)
 
