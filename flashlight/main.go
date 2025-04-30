@@ -78,6 +78,8 @@ func main() {
 
 	getHistory := app.BuildGetHistory(repo, getAndPersistPlayerWithCache, time.Now)
 
+	getSessions := app.BuildGetSessions(repo, getAndPersistPlayerWithCache, time.Now)
+
 	http.HandleFunc(
 		"GET /v1/playerdata",
 		ports.MakeGetPlayerDataHandler(
@@ -245,7 +247,13 @@ func main() {
 					return
 				}
 
-				sessions, err := repo.GetSessions(r.Context(), request.UUID, request.Start, request.End)
+				normalizedUUID, err := strutils.NormalizeUUID(request.UUID)
+				if err != nil {
+					http.Error(w, "invalid uuid", http.StatusBadRequest)
+					return
+				}
+
+				sessions, err := getSessions(r.Context(), normalizedUUID, request.Start, request.End)
 				if err != nil {
 					http.Error(w, "Failed to get sessions", http.StatusInternalServerError)
 					return
