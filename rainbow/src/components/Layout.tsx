@@ -21,7 +21,6 @@ import {
     MenuItem,
     Stack,
     Toolbar,
-    Tooltip,
     Typography,
 } from "@mui/material";
 import { createLink, Link, useLocation } from "@tanstack/react-router";
@@ -34,23 +33,6 @@ const RouterLinkItemButton = createLink(ListItemButton);
 const RouterMenuItem = createLink(MenuItem);
 
 const APP_BAR_HEIGHT_PX = "64px";
-
-const MissingDefaultUserTooltip: React.FC<{
-    missing: boolean;
-    children: React.ReactNode;
-}> = ({ missing, children }) => {
-    return (
-        <Tooltip
-            title={
-                missing
-                    ? "You need to set a default user in the settings first"
-                    : undefined
-            }
-        >
-            <span>{children}</span>
-        </Tooltip>
-    );
-};
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({
     children,
@@ -126,14 +108,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                             anchorEl={anchorEl}
                             onClose={handleCloseMenu}
                         >
-                            <MissingDefaultUserTooltip missing={!currentUser}>
+                            {currentUser ? (
                                 <RouterMenuItem
-                                    disabled={!currentUser}
                                     to="/session/$uuid"
                                     selected={location.pathname.startsWith(
                                         "/session",
                                     )}
-                                    params={{ uuid: currentUser ?? "" }}
+                                    params={{ uuid: currentUser }}
                                     search={{
                                         timeIntervalDefinition: {
                                             type: "contained",
@@ -151,7 +132,20 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                     </ListItemIcon>
                                     <ListItemText primary="Session stats" />
                                 </RouterMenuItem>
-                            </MissingDefaultUserTooltip>
+                            ) : (
+                                <RouterMenuItem
+                                    to="/session"
+                                    selected={location.pathname.startsWith(
+                                        "/session",
+                                    )}
+                                    onClick={handleCloseMenu}
+                                >
+                                    <ListItemIcon>
+                                        <TrendingUp />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Session stats" />
+                                </RouterMenuItem>
+                            )}
                             <RouterMenuItem
                                 to="/history/explore"
                                 selected={
@@ -224,15 +218,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                 <Divider />
                 <Stack height="100%" overflow="auto">
                     <List dense component="menu">
-                        <MissingDefaultUserTooltip missing={!currentUser}>
-                            <ListItem disablePadding>
+                        <ListItem disablePadding>
+                            {currentUser ? (
                                 <RouterLinkItemButton
-                                    disabled={!currentUser}
                                     selected={location.pathname.startsWith(
                                         "/session",
                                     )}
                                     to="/session/$uuid"
-                                    params={{ uuid: currentUser ?? "" }}
+                                    params={{ uuid: currentUser }}
                                     search={{
                                         timeIntervalDefinition: {
                                             type: "contained",
@@ -249,8 +242,20 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                     </ListItemIcon>
                                     <ListItemText primary="Session stats" />
                                 </RouterLinkItemButton>
-                            </ListItem>
-                        </MissingDefaultUserTooltip>
+                            ) : (
+                                <RouterLinkItemButton
+                                    selected={location.pathname.startsWith(
+                                        "/session",
+                                    )}
+                                    to="/session"
+                                >
+                                    <ListItemIcon>
+                                        <TrendingUp />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Session stats" />
+                                </RouterLinkItemButton>
+                            )}
+                        </ListItem>
                         <ListItem disablePadding>
                             <RouterLinkItemButton
                                 selected={
