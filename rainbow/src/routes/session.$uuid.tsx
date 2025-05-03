@@ -384,7 +384,7 @@ const Sessions: React.FC<SessionsProps> = ({
                                             variant="body2"
                                             color="textSecondary"
                                         >
-                                            Show extrapolated sessions
+                                            Add extrapolated sessions
                                         </Typography>
                                         <Tooltip title="Show the player's stats between sessions recorded by the Prism Overlay. These sessions may include stats from multiple sessions, and the duration may be incorrect.">
                                             <InfoOutlined fontSize="small" />
