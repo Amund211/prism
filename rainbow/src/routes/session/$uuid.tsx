@@ -61,6 +61,7 @@ import {
     ToggleButtonGroup,
     Tooltip,
     Typography,
+    type TypographyOwnProps,
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -504,6 +505,11 @@ const Sessions: React.FC<SessionsProps> = ({
                                             return value.toLocaleString(/*TODO: format based on stat type*/);
                                         };
 
+                                        const textColor: TypographyOwnProps["color"] =
+                                            session.extrapolated
+                                                ? "textSecondary"
+                                                : undefined;
+
                                         return (
                                             <TableRow
                                                 key={session.start.queriedAt.toString()}
@@ -536,7 +542,10 @@ const Sessions: React.FC<SessionsProps> = ({
                                                     </TableCell>
                                                 )}
                                                 <TableCell>
-                                                    <Typography variant="body1">
+                                                    <Typography
+                                                        variant="body1"
+                                                        color={textColor}
+                                                    >
                                                         {session.start.queriedAt.toLocaleString(
                                                             undefined,
                                                             {
@@ -550,7 +559,10 @@ const Sessions: React.FC<SessionsProps> = ({
                                                     </Typography>
                                                 </TableCell>
                                                 <TableCell align="right">
-                                                    <Typography variant="body1">
+                                                    <Typography
+                                                        variant="body1"
+                                                        color={textColor}
+                                                    >
                                                         {session.extrapolated
                                                             ? "< "
                                                             : undefined}
@@ -563,20 +575,29 @@ const Sessions: React.FC<SessionsProps> = ({
                                                     </Typography>
                                                 </TableCell>
                                                 <TableCell align="right">
-                                                    <Typography variant="body1">
+                                                    <Typography
+                                                        variant="body1"
+                                                        color={textColor}
+                                                    >
                                                         {renderStat(
                                                             "gamesPlayed",
                                                         )}
                                                     </Typography>
                                                 </TableCell>
                                                 <TableCell align="right">
-                                                    <Typography variant="body1">
+                                                    <Typography
+                                                        variant="body1"
+                                                        color={textColor}
+                                                    >
                                                         {renderStat("wins")}
                                                     </Typography>
                                                 </TableCell>
                                                 {!statAlreadyIncluded(stat) && (
                                                     <TableCell align="right">
-                                                        <Typography variant="body1">
+                                                        <Typography
+                                                            variant="body1"
+                                                            color={textColor}
+                                                        >
                                                             {renderStat(stat)}
                                                         </Typography>
                                                     </TableCell>
@@ -593,7 +614,12 @@ const Sessions: React.FC<SessionsProps> = ({
                                                             align="right"
                                                             key={relatedStat}
                                                         >
-                                                            <Typography variant="body1">
+                                                            <Typography
+                                                                variant="body1"
+                                                                color={
+                                                                    textColor
+                                                                }
+                                                            >
                                                                 {renderStat(
                                                                     relatedStat,
                                                                 )}
