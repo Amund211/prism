@@ -14,7 +14,7 @@ import { Route as rootRoute } from './routes/__root.tsx'
 import { Route as SettingsImport } from './routes/settings.tsx'
 import { Route as IndexImport } from './routes/index.tsx'
 import { Route as SessionIndexImport } from './routes/session/index.tsx'
-import { Route as SessionUuidImport } from './routes/session.$uuid.tsx'
+import { Route as SessionUuidImport } from './routes/session/$uuid.tsx'
 import { Route as HistoryExploreImport } from './routes/history.explore.tsx'
 
 // Create/Update Routes
@@ -181,7 +181,7 @@ export const routeTree = rootRoute
       "filePath": "history.explore.tsx"
     },
     "/session/$uuid": {
-      "filePath": "session.$uuid.tsx"
+      "filePath": "session/$uuid.tsx"
     },
     "/session/": {
       "filePath": "session/index.tsx"
