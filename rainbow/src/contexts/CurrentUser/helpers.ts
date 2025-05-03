@@ -1,4 +1,4 @@
-import { isUUID } from "#helpers/uuid.ts";
+import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { useLocalStorage } from "#hooks/useLocalStorage.ts";
 
 const localStorageKey = "currentUser";
@@ -8,7 +8,7 @@ const parseStoredUUID = (stored: string | null): string | null => {
         return null;
     }
 
-    if (!isUUID(stored)) {
+    if (!isNormalizedUUID(stored)) {
         return null;
     }
 
@@ -19,6 +19,10 @@ export const persistCurrentUser = (uuid: string | null): void => {
     if (uuid === null) {
         localStorage.removeItem(localStorageKey);
     } else {
+        if (!isNormalizedUUID(uuid)) {
+            throw new Error(`UUID not normalized: ${uuid}`);
+        }
+
         localStorage.setItem(localStorageKey, uuid);
     }
 };

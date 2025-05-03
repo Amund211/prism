@@ -7,6 +7,7 @@ import {
     usePersistedPlayerVisits,
     visitPlayer,
 } from "./helpers.ts";
+import { isNormalizedUUID } from "#helpers/uuid.ts";
 
 export const PlayerVisitsProvider: React.FC<{
     children: React.ReactNode;
@@ -22,12 +23,20 @@ export const PlayerVisitsProvider: React.FC<{
     }, [persistedPlayerVisits]);
 
     const visitPlayerAndPersist = (uuid: string) => {
+        if (!isNormalizedUUID(uuid)) {
+            throw new Error(`UUID not normalized: ${uuid}`);
+        }
+
         const newVisits = visitPlayer(playerVisits, uuid);
         setPlayerVisits(newVisits);
         persistPlayerVisits(newVisits);
     };
 
     const removePlayerVisitsAndPersist = (uuid: string) => {
+        if (!isNormalizedUUID(uuid)) {
+            throw new Error(`UUID not normalized: ${uuid}`);
+        }
+
         const newVisits = removePlayerVisits(playerVisits, uuid);
         setPlayerVisits(newVisits);
         persistPlayerVisits(newVisits);
@@ -39,6 +48,12 @@ export const PlayerVisitsProvider: React.FC<{
         uuids: string[],
         currentUser?: string,
     ): string[] => {
+        if (uuids.some((uuid) => !isNormalizedUUID(uuid))) {
+            throw new Error(
+                `Some UUIDs are not normalized: ${uuids.join(", ")}`,
+            );
+        }
+
         return [...uuids].sort((a, b) => {
             // If provided with a current user, sort them to the top
             if (currentUser !== undefined) {

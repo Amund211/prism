@@ -5,6 +5,7 @@ import {
     type APIPlayerDataPIT,
     type PlayerDataPIT,
 } from "./playerdata.ts";
+import { isNormalizedUUID } from "#helpers/uuid.ts";
 
 interface APISession {
     start: APIPlayerDataPIT;
@@ -43,6 +44,10 @@ export const getSessionsQueryOptions = ({
         staleTime: currentTimeIsInWindow ? 1000 * 60 * 1 : Infinity,
         queryKey: ["sessions", uuid, startISOString, endISOString],
         queryFn: async (): Promise<Sessions> => {
+            if (!isNormalizedUUID(uuid)) {
+                throw new Error(`UUID not normalized: ${uuid}`);
+            }
+
             if (start.getTime() > end.getTime()) {
                 return [];
             }

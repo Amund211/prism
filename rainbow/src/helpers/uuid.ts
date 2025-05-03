@@ -19,3 +19,13 @@ export const isUUID = (value: string) => {
     }
     return true;
 };
+
+export const isNormalizedUUID = (value: string) => {
+    let normalized: string | null = null;
+    try {
+        normalized = normalizeUUID(value);
+    } catch {
+        return false;
+    }
+    return normalized === value;
+};

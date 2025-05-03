@@ -1,3 +1,4 @@
+import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { useLocalStorage } from "#hooks/useLocalStorage.ts";
 
 const localStorageKey = "playerVisits";
@@ -28,8 +29,12 @@ const parseStoredInfo = (stored: string | null): PlayerVisits => {
     }
 
     const storedInfo: PlayerVisits = {};
-    for (const key in rawParsed) {
-        const value = (rawParsed as Record<string, unknown>)[key];
+    for (const uuid in rawParsed) {
+        if (!isNormalizedUUID(uuid)) {
+            continue;
+        }
+
+        const value = (rawParsed as Record<string, unknown>)[uuid];
         if (typeof value !== "object" || value === null) {
             continue;
         }
@@ -52,7 +57,7 @@ const parseStoredInfo = (stored: string | null): PlayerVisits => {
             continue;
         }
 
-        storedInfo[key] = { lastVisited, visitedCount: value.visitedCount };
+        storedInfo[uuid] = { lastVisited, visitedCount: value.visitedCount };
     }
 
     return storedInfo;
@@ -95,12 +100,20 @@ export const orderPlayers = (players: PlayerVisits): string[] => {
 };
 
 export const removePlayerVisits = (visits: PlayerVisits, uuid: string) => {
+    if (!isNormalizedUUID(uuid)) {
+        throw new Error(`UUID not normalized: ${uuid}`);
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { [uuid]: _, ...newVisits } = visits;
     return newVisits;
 };
 
 export const visitPlayer = (visits: PlayerVisits, uuid: string) => {
+    if (!isNormalizedUUID(uuid)) {
+        throw new Error(`UUID not normalized: ${uuid}`);
+    }
+
     const oldVisitedCount = visits[uuid]?.visitedCount ?? 0;
     return {
         ...visits,

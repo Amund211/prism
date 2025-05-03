@@ -6,6 +6,7 @@ import {
     presentRecentKnownAliases,
     usePersistedKnownAliases,
 } from "./helpers.ts";
+import { isNormalizedUUID } from "#helpers/uuid.ts";
 
 export const KnownAliasesProvider: React.FC<{
     children: React.ReactNode;
@@ -24,6 +25,10 @@ export const KnownAliasesProvider: React.FC<{
         uuid: string;
         username: string;
     }) => {
+        if (!isNormalizedUUID(alias.uuid)) {
+            throw new Error(`UUID not normalized: ${alias.uuid}`);
+        }
+
         const newAliases = addKnownAlias(knownAliases, alias);
         setKnownAliases(newAliases);
         persistKnownAliases(newAliases);

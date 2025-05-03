@@ -66,11 +66,13 @@ import { useQuery } from "@tanstack/react-query";
 import {
     createFileRoute,
     createLink,
+    Navigate,
     useNavigate,
 } from "@tanstack/react-router";
 import React, { type JSX } from "react";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { addExtrapolatedSessions } from "#helpers/session.ts";
+import { normalizeUUID } from "#helpers/uuid.ts";
 
 const sessionSearchSchema = z.object({
     timeIntervalDefinition: fallback(
@@ -118,9 +120,10 @@ export const Route = createFileRoute("/session/$uuid")({
         };
     },
     loader: ({
-        params: { uuid },
+        params: { uuid: rawUUID },
         deps: { timeIntervals, trackingInterval },
     }) => {
+        const uuid = normalizeUUID(rawUUID);
         const { day, week, month } = timeIntervals;
         // TODO: Rate limiting
         Promise.all([
@@ -1172,7 +1175,9 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
 };
 
 function RouteComponent() {
-    const { uuid } = Route.useParams();
+    const { uuid: rawUUID } = Route.useParams();
+    const uuid = normalizeUUID(rawUUID);
+
     const {
         gamemode,
         stat,
@@ -1180,6 +1185,7 @@ function RouteComponent() {
         sessionTableMode,
         showExtrapolatedSessions,
     } = Route.useSearch();
+
     const {
         timeIntervalDefinition,
         timeIntervals: { day, week, month },
@@ -1195,6 +1201,22 @@ function RouteComponent() {
     React.useEffect(() => {
         initialVisitPlayer(initialUUID);
     }, [initialVisitPlayer, initialUUID]);
+
+    if (uuid !== rawUUID) {
+        // Redirect to the normalized UUID
+        return (
+            <Navigate
+                from="/session/$uuid"
+                to="/session/$uuid"
+                replace
+                params={{ uuid }}
+                search={(oldSearch) => ({
+                    ...oldSearch,
+                    uuid,
+                })}
+            />
+        );
+    }
 
     const variants =
         variantSelection === "both"

@@ -1,3 +1,4 @@
+import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { useLocalStorage } from "#hooks/useLocalStorage.ts";
 
 const localStorageKey = "knownAliases";
@@ -28,8 +29,12 @@ const parseStoredAliases = (stored: string | null): KnownAliases => {
     }
 
     const storedAliases: KnownAliases = {};
-    for (const key in rawParsed) {
-        const value = (rawParsed as Record<string, unknown>)[key];
+    for (const uuid in rawParsed) {
+        if (!isNormalizedUUID(uuid)) {
+            continue;
+        }
+
+        const value = (rawParsed as Record<string, unknown>)[uuid];
         if (typeof value !== "object" || value === null) {
             continue;
         }
@@ -67,7 +72,7 @@ const parseStoredAliases = (stored: string | null): KnownAliases => {
             })
             .filter((v) => v !== null);
 
-        storedAliases[key] = validAliases;
+        storedAliases[uuid] = validAliases;
     }
 
     return storedAliases;
@@ -77,6 +82,10 @@ export const addKnownAlias = (
     aliases: KnownAliases,
     alias: { uuid: string; username: string },
 ) => {
+    if (!isNormalizedUUID(alias.uuid)) {
+        throw new Error(`UUID not normalized: ${alias.uuid}`);
+    }
+
     const oldPlayerAliases = aliases[alias.uuid] ?? [];
     return {
         ...aliases,

@@ -1,6 +1,7 @@
 import React from "react";
 import { CurrentUserContext } from "./context.ts";
 import { persistCurrentUser, usePersistedCurrentUser } from "./helpers.ts";
+import { isNormalizedUUID } from "#helpers/uuid.ts";
 
 export const CurrentUserProvider: React.FC<{
     children: React.ReactNode;
@@ -13,9 +14,13 @@ export const CurrentUserProvider: React.FC<{
         setCurrentUser(persistedCurrentUser);
     }, [persistedCurrentUser]);
 
-    const setCurrentUserAndPersist = (newUser: string | null) => {
-        persistCurrentUser(newUser);
-        setCurrentUser(newUser);
+    const setCurrentUserAndPersist = (newUUID: string | null) => {
+        if (newUUID !== null && !isNormalizedUUID(newUUID)) {
+            throw new Error(`UUID not normalized: ${newUUID}`);
+        }
+
+        persistCurrentUser(newUUID);
+        setCurrentUser(newUUID);
     };
 
     return (

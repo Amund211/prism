@@ -2,6 +2,7 @@ import { queryOptions, useQueries } from "@tanstack/react-query";
 import { env } from "#env.ts";
 import { addKnownAliasWithoutRerendering } from "#contexts/KnownAliases/helpers.ts";
 import { useKnownAliases } from "#contexts/KnownAliases/hooks.ts";
+import { isNormalizedUUID } from "#helpers/uuid.ts";
 
 export const getUsernameQueryOptions = (
     uuid: string,
@@ -13,6 +14,10 @@ export const getUsernameQueryOptions = (
         // eslint-disable-next-line @tanstack/query/exhaustive-deps
         queryKey: ["username", uuid],
         queryFn: async (): Promise<{ uuid: string; username: string }> => {
+            if (!isNormalizedUUID(uuid)) {
+                throw new Error(`UUID not normalized: ${uuid}`);
+            }
+
             const response = await fetch(
                 // TODO: Attribution
                 `${env.VITE_MINETOOLS_API_URL}/uuid/${uuid}`,

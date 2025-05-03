@@ -5,6 +5,7 @@ import {
     type APIPlayerDataPIT,
     type PlayerDataPIT,
 } from "./playerdata.ts";
+import { isNormalizedUUID } from "#helpers/uuid.ts";
 
 type APIHistory = readonly APIPlayerDataPIT[];
 
@@ -33,6 +34,10 @@ export const getHistoryQueryOptions = ({
         staleTime: currentTimeIsInWindow ? 1000 * 60 * 1 : Infinity,
         queryKey: ["history", uuid, startISOString, endISOString, limit],
         queryFn: async (): Promise<History> => {
+            if (!isNormalizedUUID(uuid)) {
+                throw new Error(`UUID not normalized: ${uuid}`);
+            }
+
             if (start.getTime() > end.getTime()) {
                 return [];
             }

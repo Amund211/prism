@@ -1,4 +1,4 @@
-import { createFileRoute, createLink } from "@tanstack/react-router";
+import { createFileRoute, createLink, Navigate } from "@tanstack/react-router";
 import { queryClient } from "#queryClient.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import { fallback } from "@tanstack/zod-adapter";
@@ -50,6 +50,7 @@ import {
 import { QueryStats } from "@mui/icons-material";
 import React from "react";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
+import { normalizeUUID } from "#helpers/uuid.ts";
 
 const defaultStart = new Date();
 defaultStart.setHours(0, 0, 0, 0);
@@ -72,6 +73,18 @@ const historyExploreSearchSchema = z.object({
     ),
 });
 
+const normalizeUUIDsSkippingInvalid = (uuids: readonly string[]) => {
+    return uuids
+        .map((uuid) => {
+            try {
+                return normalizeUUID(uuid);
+            } catch {
+                return null;
+            }
+        })
+        .filter((uuid) => uuid !== null);
+};
+
 export const Route = createFileRoute("/history/explore")({
     loaderDeps: ({ search: { uuids, start, end, limit } }) => ({
         uuids,
@@ -80,7 +93,8 @@ export const Route = createFileRoute("/history/explore")({
         limit,
     }),
 
-    loader: ({ deps: { uuids, start, end, limit } }) => {
+    loader: ({ deps: { uuids: rawUUIDs, start, end, limit } }) => {
+        const uuids = normalizeUUIDsSkippingInvalid(rawUUIDs);
         // TODO: Rate limiting
         Promise.all([
             ...uuids.map((uuid) =>
@@ -105,8 +119,16 @@ const RouterLinkIconButton = createLink(IconButton);
 const RouterLinkToggleButton = createLink(ToggleButton);
 
 function Index() {
-    const { uuids, stats, gamemodes, variantSelection, start, end, limit } =
-        Route.useSearch();
+    const {
+        uuids: rawUUIDs,
+        stats,
+        gamemodes,
+        variantSelection,
+        start,
+        end,
+        limit,
+    } = Route.useSearch();
+    const uuids = normalizeUUIDsSkippingInvalid(rawUUIDs);
     const navigate = Route.useNavigate();
     const { visitPlayer } = usePlayerVisits();
 
@@ -118,6 +140,21 @@ function Index() {
             initialVisitPlayer(uuid);
         });
     }, [initialVisitPlayer, initialUUIDs]);
+
+    if (JSON.stringify(uuids) !== JSON.stringify(rawUUIDs)) {
+        // Redirect to the normalized UUIDs
+        return (
+            <Navigate
+                from="/history/explore"
+                to="/history/explore"
+                replace
+                search={(oldSearch) => ({
+                    ...oldSearch,
+                    uuids: uuids,
+                })}
+            />
+        );
+    }
 
     const variants =
         variantSelection === "both"
