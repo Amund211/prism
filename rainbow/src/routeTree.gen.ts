@@ -13,6 +13,7 @@
 import { Route as rootRoute } from './routes/__root.tsx'
 import { Route as SettingsImport } from './routes/settings.tsx'
 import { Route as IndexImport } from './routes/index.tsx'
+import { Route as SessionIndexImport } from './routes/session/index.tsx'
 import { Route as SessionUuidImport } from './routes/session.$uuid.tsx'
 import { Route as HistoryExploreImport } from './routes/history.explore.tsx'
 
@@ -27,6 +28,12 @@ const SettingsRoute = SettingsImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SessionIndexRoute = SessionIndexImport.update({
+  id: '/session/',
+  path: '/session/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -74,6 +81,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SessionUuidImport
       parentRoute: typeof rootRoute
     }
+    '/session/': {
+      id: '/session/'
+      path: '/session'
+      fullPath: '/session'
+      preLoaderRoute: typeof SessionIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -84,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/history/explore': typeof HistoryExploreRoute
   '/session/$uuid': typeof SessionUuidRoute
+  '/session': typeof SessionIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -91,6 +106,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/history/explore': typeof HistoryExploreRoute
   '/session/$uuid': typeof SessionUuidRoute
+  '/session': typeof SessionIndexRoute
 }
 
 export interface FileRoutesById {
@@ -99,14 +115,26 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/history/explore': typeof HistoryExploreRoute
   '/session/$uuid': typeof SessionUuidRoute
+  '/session/': typeof SessionIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/settings' | '/history/explore' | '/session/$uuid'
+  fullPaths:
+    | '/'
+    | '/settings'
+    | '/history/explore'
+    | '/session/$uuid'
+    | '/session'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/settings' | '/history/explore' | '/session/$uuid'
-  id: '__root__' | '/' | '/settings' | '/history/explore' | '/session/$uuid'
+  to: '/' | '/settings' | '/history/explore' | '/session/$uuid' | '/session'
+  id:
+    | '__root__'
+    | '/'
+    | '/settings'
+    | '/history/explore'
+    | '/session/$uuid'
+    | '/session/'
   fileRoutesById: FileRoutesById
 }
 
@@ -115,6 +143,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   HistoryExploreRoute: typeof HistoryExploreRoute
   SessionUuidRoute: typeof SessionUuidRoute
+  SessionIndexRoute: typeof SessionIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -122,6 +151,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   HistoryExploreRoute: HistoryExploreRoute,
   SessionUuidRoute: SessionUuidRoute,
+  SessionIndexRoute: SessionIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -137,7 +167,8 @@ export const routeTree = rootRoute
         "/",
         "/settings",
         "/history/explore",
-        "/session/$uuid"
+        "/session/$uuid",
+        "/session/"
       ]
     },
     "/": {
@@ -151,6 +182,9 @@ export const routeTree = rootRoute
     },
     "/session/$uuid": {
       "filePath": "session.$uuid.tsx"
+    },
+    "/session/": {
+      "filePath": "session/index.tsx"
     }
   }
 }
