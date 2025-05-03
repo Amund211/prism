@@ -1,5 +1,5 @@
 import { getUUIDQueryOptions } from "#queries/uuid.ts";
-import { isUUID, normalizeUUID } from "#helpers/uuid.ts";
+import { normalizeUUID } from "#helpers/uuid.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
 import { Search } from "@mui/icons-material";
 import {
@@ -192,8 +192,9 @@ export const UserSearch: React.FC<UserSearchProps> = ({
                 if (!value) return; // Ignore clearing the input
 
                 // Allow UUIDs to be entered directly
-                if (isUUID(value)) {
-                    onSubmit(normalizeUUID(value));
+                const valueAsNormalizedUUID = normalizeUUID(value);
+                if (valueAsNormalizedUUID) {
+                    onSubmit(valueAsNormalizedUUID);
                     return;
                 }
 
@@ -281,8 +282,9 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                 Promise.allSettled(
                     newValues.map((value) => {
                         // Allow UUIDs to be entered directly
-                        if (isUUID(value)) {
-                            return normalizeUUID(value);
+                        const valueAsNormalizedUUID = normalizeUUID(value);
+                        if (valueAsNormalizedUUID) {
+                            return valueAsNormalizedUUID;
                         }
 
                         return queryClient

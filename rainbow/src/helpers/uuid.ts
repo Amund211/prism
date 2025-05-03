@@ -1,8 +1,8 @@
-export const normalizeUUID = (uuid: string) => {
+export const normalizeUUID = (uuid: string): string | null => {
     const cleaned = uuid.replace(/[^\da-fA-F]/g, "").toLowerCase();
 
     if (cleaned.length !== 32) {
-        throw new Error(`Invalid UUID: ${uuid}`);
+        return null;
     }
 
     return `${cleaned.slice(0, 8)}-${cleaned.slice(8, 12)}-${cleaned.slice(

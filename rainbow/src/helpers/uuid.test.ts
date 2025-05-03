@@ -47,26 +47,17 @@ await test("normalizeUUID", async (t) => {
         {
             // Too long
             input: "01234567-89ab-cdef-0123-456789abcdef-0",
-            expectedError: new Error(
-                "Invalid UUID: 01234567-89ab-cdef-0123-456789abcdef-0",
-            ),
+            expected: null,
         },
         {
             // Too short
             input: "01234567-89ab-cdef-0123-456789abcde",
-            expectedError: new Error(
-                "Invalid UUID: 01234567-89ab-cdef-0123-456789abcde",
-            ),
+            expected: null,
         },
     ];
 
     for (const tc of cases) {
         await t.test(tc.input, () => {
-            if (tc.expectedError) {
-                assert.throws(() => normalizeUUID(tc.input), tc.expectedError);
-                return;
-            }
-
             const result = normalizeUUID(tc.input);
             assert.strictEqual(result, tc.expected, `input ${tc.input}`);
         });

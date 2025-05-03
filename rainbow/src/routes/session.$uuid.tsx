@@ -124,6 +124,8 @@ export const Route = createFileRoute("/session/$uuid")({
         deps: { timeIntervals, trackingInterval },
     }) => {
         const uuid = normalizeUUID(rawUUID);
+        if (!uuid) return;
+
         const { day, week, month } = timeIntervals;
         // TODO: Rate limiting
         Promise.all([
@@ -1192,15 +1194,21 @@ function RouteComponent() {
         trackingInterval,
     } = Route.useLoaderDeps();
     const navigate = Route.useNavigate();
-    const username = useUUIDToUsername([uuid])[uuid];
+    const uuidToUsername = useUUIDToUsername(uuid ? [uuid] : []);
+    const username = uuid ? uuidToUsername[uuid] : undefined;
     const { visitPlayer } = usePlayerVisits();
 
     // Register visits for player on page load
     const [initialUUID] = React.useState(uuid);
     const [initialVisitPlayer] = React.useState(() => visitPlayer);
     React.useEffect(() => {
+        if (!initialUUID) return;
         initialVisitPlayer(initialUUID);
     }, [initialVisitPlayer, initialUUID]);
+
+    if (!uuid) {
+        return <Navigate to="/session" replace />;
+    }
 
     if (uuid !== rawUUID) {
         // Redirect to the normalized UUID

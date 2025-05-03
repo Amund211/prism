@@ -75,13 +75,7 @@ const historyExploreSearchSchema = z.object({
 
 const normalizeUUIDsSkippingInvalid = (uuids: readonly string[]) => {
     return uuids
-        .map((uuid) => {
-            try {
-                return normalizeUUID(uuid);
-            } catch {
-                return null;
-            }
-        })
+        .map((uuid) => normalizeUUID(uuid))
         .filter((uuid) => uuid !== null);
 };
 

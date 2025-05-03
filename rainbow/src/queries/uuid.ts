@@ -39,6 +39,11 @@ export const getUUIDQueryOptions = (
 
             const rawUUID = data.id;
             const uuid = normalizeUUID(rawUUID);
+            if (!uuid) {
+                throw new Error(
+                    `Could not normalize uuid from minecraft services api: ${rawUUID}`,
+                );
+            }
 
             if (addKnownAlias) {
                 addKnownAlias({ uuid, username });
