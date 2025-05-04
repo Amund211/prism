@@ -13,7 +13,7 @@ func NewRateLimitMiddleware(rateLimiter ratelimiting.RequestRateLimiter) func(ht
 		return func(w http.ResponseWriter, r *http.Request) {
 			if !rateLimiter.Consume(r) {
 				logger := logging.FromContext(r.Context())
-				statusCode := writeErrorResponse(r.Context(), w, e.RatelimitExceededError)
+				statusCode := writeHypixelStyleErrorResponse(r.Context(), w, e.RatelimitExceededError)
 				logger.Info("Returning response", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
 				return
 			}

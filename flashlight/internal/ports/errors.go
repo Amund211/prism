@@ -10,7 +10,7 @@ import (
 	"github.com/Amund211/flashlight/internal/logging"
 )
 
-func writeErrorResponse(ctx context.Context, w http.ResponseWriter, responseError error) int {
+func writeHypixelStyleErrorResponse(ctx context.Context, w http.ResponseWriter, responseError error) int {
 	w.Header().Set("Content-Type", "application/json")
 
 	errorResponse := HypixelAPIErrorResponse{

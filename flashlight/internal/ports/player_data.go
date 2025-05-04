@@ -49,7 +49,7 @@ func MakeGetPlayerDataHandler(
 
 		if err != nil {
 			logger.Error("Error getting player data", "error", err)
-			statusCode := writeErrorResponse(r.Context(), w, err)
+			statusCode := writeHypixelStyleErrorResponse(r.Context(), w, err)
 			logger.Info("Returning response", "statusCode", statusCode, "reason", "error")
 			return
 		}
@@ -61,7 +61,7 @@ func MakeGetPlayerDataHandler(
 			err = fmt.Errorf("%w: failed to convert player to hypixel API response: %w", e.APIServerError, err)
 			reporting.Report(ctx, err)
 
-			statusCode := writeErrorResponse(r.Context(), w, err)
+			statusCode := writeHypixelStyleErrorResponse(r.Context(), w, err)
 			logger.Info("Returning response", "statusCode", statusCode, "reason", "error")
 			return
 		}

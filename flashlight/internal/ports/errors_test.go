@@ -51,7 +51,7 @@ func TestWriteErrorResponse(t *testing.T) {
 	for _, testCase := range testCases {
 		w := httptest.NewRecorder()
 
-		returnedStatusCode := writeErrorResponse(context.Background(), w, testCase.err)
+		returnedStatusCode := writeHypixelStyleErrorResponse(context.Background(), w, testCase.err)
 		result := w.Result()
 
 		assert.True(t, reflect.DeepEqual(expectedHeaders, result.Header), "Expected %v, got %v", expectedHeaders, result.Header)
