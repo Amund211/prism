@@ -30,7 +30,12 @@ func MakeGetSessionsHandler(
 		logging.NewRequestLoggerMiddleware(logger),
 		sentryMiddleware,
 		BuildCORSMiddleware(allowedOrigins),
-		NewRateLimitMiddleware(ipRatelimiter),
+		NewRateLimitMiddleware(
+			ipRatelimiter,
+			func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+			},
+		),
 	)
 
 	handler := func(w http.ResponseWriter, r *http.Request) {

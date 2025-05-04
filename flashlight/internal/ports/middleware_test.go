@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/Amund211/flashlight/internal/ratelimiting"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type mockedRateLimiter struct {
@@ -16,14 +16,16 @@ type mockedRateLimiter struct {
 }
 
 func (m *mockedRateLimiter) Consume(key string) bool {
-	assert.Equal(m.t, m.expectedKey, key)
+	m.t.Helper()
+	require.Equal(m.t, m.expectedKey, key)
 	return m.allow
 }
 
 func TestRateLimitMiddleware(t *testing.T) {
 	runTest := func(t *testing.T, allow bool) {
 		t.Helper()
-		called := false
+		handlerCalled := false
+		onLimitExceededCalled := false
 		rateLimiter := &mockedRateLimiter{
 			t:           t,
 			allow:       allow,
@@ -34,10 +36,16 @@ func TestRateLimitMiddleware(t *testing.T) {
 		)
 
 		w := httptest.NewRecorder()
-		middleware := NewRateLimitMiddleware(ipRateLimiter)
+		middleware := NewRateLimitMiddleware(
+			ipRateLimiter,
+			func(w http.ResponseWriter, r *http.Request) {
+				onLimitExceededCalled = true
+				http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+			},
+		)
 		handler := middleware(
 			func(w http.ResponseWriter, r *http.Request) {
-				called = true
+				handlerCalled = true
 				w.WriteHeader(http.StatusOK)
 			},
 		)
@@ -45,11 +53,13 @@ func TestRateLimitMiddleware(t *testing.T) {
 		handler(w, &http.Request{RemoteAddr: "127.0.0.1"})
 
 		if allow {
-			assert.True(t, called, "Expected handler to be called")
-			assert.Equal(t, http.StatusOK, w.Code)
+			require.True(t, handlerCalled, "Expected handler to be called")
+			require.False(t, onLimitExceededCalled)
+			require.Equal(t, http.StatusOK, w.Code)
 		} else {
-			assert.False(t, called, "Expected handler to not be called")
-			assert.Equal(t, http.StatusTooManyRequests, w.Code)
+			require.True(t, onLimitExceededCalled)
+			require.False(t, handlerCalled, "Expected handler to not be called")
+			require.Equal(t, http.StatusTooManyRequests, w.Code)
 		}
 	}
 
@@ -79,15 +89,15 @@ func TestComposeMiddlewares(t *testing.T) {
 		handler := middleware(
 			func(w http.ResponseWriter, r *http.Request) {
 				handlerCalled = true
-				assert.Equal(t, "pre", middlewareStage)
+				require.Equal(t, "pre", middlewareStage)
 			},
 		)
 
 		w := httptest.NewRecorder()
 		handler(w, &http.Request{})
 
-		assert.True(t, handlerCalled)
-		assert.Equal(t, "post", middlewareStage)
+		require.True(t, handlerCalled)
+		require.Equal(t, "post", middlewareStage)
 	})
 
 	t.Run("multiple middleware", func(t *testing.T) {
@@ -99,47 +109,47 @@ func TestComposeMiddlewares(t *testing.T) {
 
 		middleware1 := func(next http.HandlerFunc) http.HandlerFunc {
 			return func(w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, "not called", stage1)
-				assert.Equal(t, "not called", stage2)
-				assert.Equal(t, "not called", stage3)
+				require.Equal(t, "not called", stage1)
+				require.Equal(t, "not called", stage2)
+				require.Equal(t, "not called", stage3)
 
 				stage1 = "pre"
 				next(w, r)
 				stage1 = "post"
 
-				assert.Equal(t, "post", stage1)
-				assert.Equal(t, "post", stage2)
-				assert.Equal(t, "post", stage3)
+				require.Equal(t, "post", stage1)
+				require.Equal(t, "post", stage2)
+				require.Equal(t, "post", stage3)
 			}
 		}
 		middleware2 := func(next http.HandlerFunc) http.HandlerFunc {
 			return func(w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, "pre", stage1)
-				assert.Equal(t, "not called", stage2)
-				assert.Equal(t, "not called", stage3)
+				require.Equal(t, "pre", stage1)
+				require.Equal(t, "not called", stage2)
+				require.Equal(t, "not called", stage3)
 
 				stage2 = "pre"
 				next(w, r)
 				stage2 = "post"
 
-				assert.Equal(t, "pre", stage1)
-				assert.Equal(t, "post", stage2)
-				assert.Equal(t, "post", stage3)
+				require.Equal(t, "pre", stage1)
+				require.Equal(t, "post", stage2)
+				require.Equal(t, "post", stage3)
 			}
 		}
 		middleware3 := func(next http.HandlerFunc) http.HandlerFunc {
 			return func(w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, "pre", stage1)
-				assert.Equal(t, "pre", stage2)
-				assert.Equal(t, "not called", stage3)
+				require.Equal(t, "pre", stage1)
+				require.Equal(t, "pre", stage2)
+				require.Equal(t, "not called", stage3)
 
 				stage3 = "pre"
 				next(w, r)
 				stage3 = "post"
 
-				assert.Equal(t, "pre", stage1)
-				assert.Equal(t, "pre", stage2)
-				assert.Equal(t, "post", stage3)
+				require.Equal(t, "pre", stage1)
+				require.Equal(t, "pre", stage2)
+				require.Equal(t, "post", stage3)
 			}
 		}
 
@@ -147,9 +157,9 @@ func TestComposeMiddlewares(t *testing.T) {
 
 		handler := middleware(
 			func(w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, "pre", stage1)
-				assert.Equal(t, "pre", stage2)
-				assert.Equal(t, "pre", stage3)
+				require.Equal(t, "pre", stage1)
+				require.Equal(t, "pre", stage2)
+				require.Equal(t, "pre", stage3)
 				handlerCalled = true
 			},
 		)
@@ -157,10 +167,10 @@ func TestComposeMiddlewares(t *testing.T) {
 		w := httptest.NewRecorder()
 		handler(w, &http.Request{})
 
-		assert.True(t, handlerCalled)
+		require.True(t, handlerCalled)
 
-		assert.Equal(t, "post", stage1)
-		assert.Equal(t, "post", stage2)
-		assert.Equal(t, "post", stage3)
+		require.Equal(t, "post", stage1)
+		require.Equal(t, "post", stage2)
+		require.Equal(t, "post", stage3)
 	})
 }

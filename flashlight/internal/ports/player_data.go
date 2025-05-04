@@ -36,11 +36,19 @@ func MakeGetPlayerDataHandler(
 		ratelimiting.UserIdKeyFunc,
 	)
 
+	makeOnLimitExceeded := func(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			logger := logging.FromContext(r.Context())
+			statusCode := writeHypixelStyleErrorResponse(r.Context(), w, e.RatelimitExceededError)
+			logger.Info("Returning response", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
+		}
+	}
+
 	middleware := ComposeMiddlewares(
 		logging.NewRequestLoggerMiddleware(logger),
 		sentryMiddleware,
-		NewRateLimitMiddleware(ipRateLimiter),
-		NewRateLimitMiddleware(userIdRateLimiter),
+		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
+		NewRateLimitMiddleware(userIdRateLimiter, makeOnLimitExceeded(userIdRateLimiter)),
 	)
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
