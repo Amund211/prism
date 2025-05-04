@@ -66,9 +66,12 @@ func MakeGetPlayerDataHandler(
 			return
 		}
 
-		statusCode := 200
 		logger.Info("Got minified player data", "contentLength", len(hypixelAPIResponseData), "statusCode", 200)
 
+		statusCode := 200
+		if player == nil {
+			statusCode = 404
+		}
 		logger.Info("Returning response", "statusCode", statusCode, "reason", "success")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
