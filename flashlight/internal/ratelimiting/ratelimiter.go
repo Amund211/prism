@@ -20,7 +20,7 @@ type tokenBucketRateLimiter struct {
 	burstSize       int
 }
 
-func (rateLimiter tokenBucketRateLimiter) Consume(key string) bool {
+func (rateLimiter *tokenBucketRateLimiter) Consume(key string) bool {
 	limiter, _ := rateLimiter.limiterByIP.GetOrSet(key, rate.NewLimiter(rate.Limit(rateLimiter.refillPerSecond), rateLimiter.burstSize))
 	return limiter.Value().Allow()
 }
@@ -34,7 +34,7 @@ func NewTokenBucketRateLimiter(refillPerSecond RefillPerSecond, burstSize BurstS
 	)
 	go limiterTTLCache.Start()
 
-	return tokenBucketRateLimiter{
+	return &tokenBucketRateLimiter{
 		limiterByIP:     limiterTTLCache,
 		refillPerSecond: int(refillPerSecond),
 		burstSize:       int(burstSize),
@@ -51,16 +51,16 @@ type requestBasedRateLimiter struct {
 	keyFunc func(r *http.Request) string
 }
 
-func (rateLimiter requestBasedRateLimiter) Consume(r *http.Request) bool {
+func (rateLimiter *requestBasedRateLimiter) Consume(r *http.Request) bool {
 	return rateLimiter.limiter.Consume(rateLimiter.keyFunc(r))
 }
 
-func (rateLimiter requestBasedRateLimiter) KeyFor(r *http.Request) string {
+func (rateLimiter *requestBasedRateLimiter) KeyFor(r *http.Request) string {
 	return rateLimiter.keyFunc(r)
 }
 
 func NewRequestBasedRateLimiter(limiter RateLimiter, keyFunc func(r *http.Request) string) RequestRateLimiter {
-	return requestBasedRateLimiter{
+	return &requestBasedRateLimiter{
 		limiter: limiter,
 		keyFunc: keyFunc,
 	}
