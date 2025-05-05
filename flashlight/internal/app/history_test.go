@@ -194,8 +194,7 @@ func TestBuildGetHistory(t *testing.T) {
 						t.Parallel()
 
 						getAndPersistPlayerWithCache := func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
-							t.Log("should not call getAndPersistPlayerWithCache when now is outside range")
-							t.FailNow()
+							t.Fatal("should not call getAndPersistPlayerWithCache when now is outside range")
 							return nil, nil
 						}
 

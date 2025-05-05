@@ -20,7 +20,7 @@ type panicPlayerProvider struct {
 func (p *panicPlayerProvider) GetPlayer(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 	p.t.Helper()
 	p.t.Fatal("should not be called")
-	panic("unreachable")
+	return nil, nil
 }
 
 type mockedPlayerProvider struct {
