@@ -9,7 +9,6 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/domain"
-	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
@@ -38,26 +37,17 @@ func getAndPersistPlayerWithoutCache(ctx context.Context, provider playerprovide
 
 func BuildGetAndPersistPlayerWithCache(playerCache cache.Cache[*domain.PlayerPIT], provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository) GetAndPersistPlayerWithCache {
 	return func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
-		logger := logging.FromContext(ctx)
-
-		if uuid == "" {
-			logger.Error("Missing uuid")
-			return nil, fmt.Errorf("%w: Missing uuid", e.APIClientError)
-		}
-		uuidLength := len(uuid)
-		if uuidLength < 10 || uuidLength > 100 {
-			logger.Error("Invalid uuid", "length", uuidLength, "uuid", uuid)
-			return nil, fmt.Errorf("%w: Invalid uuid", e.APIClientError)
+		if !strutils.UUIDIsNormalized(uuid) {
+			logging.FromContext(ctx).Error("UUID is not normalized", "uuid", uuid)
+			err := fmt.Errorf("UUID is not normalized")
+			reporting.Report(ctx, err, map[string]string{
+				"uuid": uuid,
+			})
+			return nil, err
 		}
 
-		normalizedUUID, err := strutils.NormalizeUUID(uuid)
-		if err != nil {
-			logger.Error("Failed to normalize uuid", "uuid", uuid, "error", err)
-			return nil, fmt.Errorf("%w: Failed to normalize uuid", e.APIClientError)
-		}
-
-		player, err := cache.GetOrCreate(ctx, playerCache, normalizedUUID, func() (*domain.PlayerPIT, error) {
-			return getAndPersistPlayerWithoutCache(ctx, provider, repo, normalizedUUID)
+		player, err := cache.GetOrCreate(ctx, playerCache, uuid, func() (*domain.PlayerPIT, error) {
+			return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
 		})
 
 		if err != nil {

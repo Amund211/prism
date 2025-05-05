@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/Amund211/flashlight/internal/domain"
-	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -49,18 +48,21 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 		require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 	})
 
-	t.Run("client error", func(t *testing.T) {
+	t.Run("client error: invalid uuid", func(t *testing.T) {
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
-			return nil, fmt.Errorf("%w: error :^)", e.APIClientError)
+			t.Helper()
+			t.Fatal("should not be called")
+			return nil, nil
 		}, logger, sentryMiddleware)
 		w := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, target, nil)
+
+		req := httptest.NewRequest(http.MethodGet, "/?uuid=1234-1234-1234", nil)
 
 		getPlayerDataHandler(w, req)
 
 		resp := w.Result()
 		require.Equal(t, 400, resp.StatusCode)
-		require.Equal(t, `{"success":false,"cause":"Client error: error :^)"}`, w.Body.String())
+		require.Equal(t, `{"success":false,"cause":"Invalid UUID"}`, w.Body.String())
 		require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 	})
 
@@ -149,11 +151,6 @@ func TestWriteErrorResponse(t *testing.T) {
 			err:            fmt.Errorf("something happened"),
 			expectedStatus: 500,
 			expectedBody:   `{"success":false,"cause":"something happened"}`,
-		},
-		{
-			err:            e.APIClientError,
-			expectedStatus: 400,
-			expectedBody:   `{"success":false,"cause":"Client error"}`,
 		},
 		{
 			err:            fmt.Errorf("something happened (%w)", domain.ErrTemporarilyUnavailable),

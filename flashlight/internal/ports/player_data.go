@@ -10,10 +10,10 @@ import (
 
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
-	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/flashlight/internal/strutils"
 )
 
 func MakeGetPlayerDataHandler(
@@ -61,7 +61,19 @@ func MakeGetPlayerDataHandler(
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		logger := logging.FromContext(ctx)
-		uuid := r.URL.Query().Get("uuid")
+		rawUUID := r.URL.Query().Get("uuid")
+
+		uuid, err := strutils.NormalizeUUID(rawUUID)
+		if err != nil {
+			statusCode := http.StatusBadRequest
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(statusCode)
+			w.Write([]byte(`{"success":false,"cause":"Invalid UUID"}`))
+
+			logger.Info("Returning response", "statusCode", statusCode, "reason", "invalid uuid")
+			return
+		}
 
 		player, err := getAndPersistPlayerWithCache(r.Context(), uuid)
 		if errors.Is(err, domain.ErrPlayerNotFound) {
@@ -135,8 +147,6 @@ func writeHypixelStyleErrorResponse(ctx context.Context, w http.ResponseWriter, 
 	if errors.Is(responseError, domain.ErrTemporarilyUnavailable) {
 		// TODO: Use a more descriptive status code when most prism clients support it
 		statusCode = http.StatusGatewayTimeout
-	} else if errors.Is(responseError, e.APIClientError) {
-		statusCode = http.StatusBadRequest
 	}
 
 	w.WriteHeader(statusCode)
