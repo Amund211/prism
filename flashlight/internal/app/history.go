@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -40,7 +41,7 @@ func BuildGetHistory(
 		if start.Before(now) && end.After(now) {
 			// This is a current interval -> update the repo with the latest data
 			_, err := getAndPersistPlayerWithCache(ctx, uuid)
-			if err != nil {
+			if err != nil && !errors.Is(err, domain.ErrPlayerNotFound) {
 				logger.Error("Failed to get player data", "error", err)
 				reporting.Report(ctx, err)
 			}

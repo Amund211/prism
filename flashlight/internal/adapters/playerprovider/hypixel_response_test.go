@@ -3,6 +3,7 @@ package playerprovider
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -10,7 +11,6 @@ import (
 	"time"
 
 	"github.com/Amund211/flashlight/internal/domain"
-	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/strutils"
 
 	"github.com/stretchr/testify/require"
@@ -29,11 +29,19 @@ type hypixelAPIResponseToPlayerTest struct {
 const hypixelAPIResponsesDir = "../../../fixtures/hypixel_api_responses/"
 const expectedPlayersDir = "testdata/expected_players/"
 
+var errAnyError = fmt.Errorf("any error")
+
 func runHypixelAPIResponseToPlayerTest(t *testing.T, test hypixelAPIResponseToPlayerTest) {
 	t.Helper()
 
 	player, err := HypixelAPIResponseToPlayerPIT(context.Background(), test.uuid, test.queriedAt, test.hypixelAPIResponse, test.hypixelStatusCode)
 	if test.error != nil {
+		if errors.Is(test.error, errAnyError) {
+			// The test just expects there to be any error
+			require.Error(t, err)
+			return
+		}
+
 		require.ErrorIs(t, err, test.error)
 		return
 	}
@@ -72,9 +80,9 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 		later := now.Add(1 * time.Hour)
 
 		literalTests := []hypixelAPIResponseToPlayerTest{
-			{name: "empty object", hypixelAPIResponse: []byte(`{}`), error: e.APIServerError},
-			{name: "empty list", hypixelAPIResponse: []byte(`[]`), error: e.APIServerError},
-			{name: "empty string", hypixelAPIResponse: []byte(``), error: e.APIServerError},
+			{name: "empty object", hypixelAPIResponse: []byte(`{}`), error: errAnyError},
+			{name: "empty list", hypixelAPIResponse: []byte(`[]`), error: errAnyError},
+			{name: "empty string", hypixelAPIResponse: []byte(``), error: errAnyError},
 			{
 				name:      "float experience",
 				uuid:      "12345678-90ab-cdef-1234-567890abcdef",
@@ -125,6 +133,7 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 				queriedAt:          now,
 				hypixelAPIResponse: []byte(`{"success": true, "player": null}`),
 				hypixelStatusCode:  200,
+				error:              domain.ErrPlayerNotFound,
 			},
 			{
 				name:               "hypixel 500",
@@ -132,7 +141,7 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 				queriedAt:          now,
 				hypixelAPIResponse: []byte(`{"success":false,"cause":"Internal error"}`),
 				hypixelStatusCode:  500,
-				error:              e.RetriableError,
+				error:              domain.ErrTemporarilyUnavailable,
 			},
 			// The "hypixel weird" cases are just made up to test status code handling
 			{
@@ -141,7 +150,7 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 				queriedAt:          now,
 				hypixelAPIResponse: []byte(`{"success": true, "player": null}`),
 				hypixelStatusCode:  100,
-				error:              e.APIServerError,
+				error:              errAnyError,
 			},
 			{
 				name:               "hypixel weird 204",
@@ -149,7 +158,7 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 				queriedAt:          now,
 				hypixelAPIResponse: []byte(`{"success": true, "player": null}`),
 				hypixelStatusCode:  204,
-				error:              e.APIServerError,
+				error:              errAnyError,
 			},
 			{
 				name:               "hypixel weird 301",
@@ -157,7 +166,7 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 				queriedAt:          now,
 				hypixelAPIResponse: []byte(`{"success": true, "player": null}`),
 				hypixelStatusCode:  301,
-				error:              e.APIServerError,
+				error:              errAnyError,
 			},
 			{
 				name:               "hypixel weird 418",
@@ -165,7 +174,7 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 				queriedAt:          now,
 				hypixelAPIResponse: []byte(`{"success": true, "player": null}`),
 				hypixelStatusCode:  418,
-				error:              e.APIServerError,
+				error:              errAnyError,
 			},
 			{
 				name:               "hypixel weird 508",
@@ -173,7 +182,7 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 				queriedAt:          now,
 				hypixelAPIResponse: []byte(`{"success": true, "player": null}`),
 				hypixelStatusCode:  508,
-				error:              e.APIServerError,
+				error:              errAnyError,
 			},
 		}
 
@@ -185,7 +194,7 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 				queriedAt:          now,
 				hypixelAPIResponse: []byte(fmt.Sprintf("error code: %d", statusCode)),
 				hypixelStatusCode:  statusCode,
-				error:              e.RetriableError,
+				error:              domain.ErrTemporarilyUnavailable,
 			})
 		}
 

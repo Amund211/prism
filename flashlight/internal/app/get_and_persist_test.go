@@ -72,19 +72,32 @@ func TestGetAndPersistPlayer(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("provider errors are passed through", func(t *testing.T) {
+		for _, providerErr := range []error{
+			domain.ErrPlayerNotFound,
+			domain.ErrTemporarilyUnavailable,
+		} {
+			provider := &mockedPlayerProvider{
+				t:      t,
+				player: nil,
+				err:    providerErr,
+			}
+			cache := cache.NewBasicCache[*domain.PlayerPIT]()
+
+			_, err := BuildGetAndPersistPlayerWithCache(cache, provider, playerrepository.NewStubPlayerRepository())(context.Background(), "01234567-89ab-cdef-0123-456789abcdef")
+			require.ErrorIs(t, err, providerErr)
+		}
+	})
+
 	t.Run("invalid uuid", func(t *testing.T) {
 		provider := &panicPlayerProvider{t: t}
 		cache := cache.NewBasicCache[*domain.PlayerPIT]()
 
 		_, err := BuildGetAndPersistPlayerWithCache(cache, provider, playerrepository.NewStubPlayerRepository())(context.Background(), "invalid")
-
 		require.ErrorIs(t, err, e.APIClientError)
-		require.NotErrorIs(t, err, e.RetriableError)
 
 		_, err = BuildGetAndPersistPlayerWithCache(cache, provider, playerrepository.NewStubPlayerRepository())(context.Background(), "01234567-89ab-xxxx-0123-456789abcdef")
-
 		require.ErrorIs(t, err, e.APIClientError)
-		require.NotErrorIs(t, err, e.RetriableError)
 	})
 
 	t.Run("missing uuid", func(t *testing.T) {
@@ -92,8 +105,6 @@ func TestGetAndPersistPlayer(t *testing.T) {
 		cache := cache.NewBasicCache[*domain.PlayerPIT]()
 
 		_, err := BuildGetAndPersistPlayerWithCache(cache, provider, playerrepository.NewStubPlayerRepository())(context.Background(), "")
-
 		require.ErrorIs(t, err, e.APIClientError)
-		require.NotErrorIs(t, err, e.RetriableError)
 	})
 }

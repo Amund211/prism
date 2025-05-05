@@ -12,7 +12,7 @@ import (
 
 	"github.com/Amund211/flashlight/internal/domain"
 	e "github.com/Amund211/flashlight/internal/errors"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMakeGetPlayerDataHandler(t *testing.T) {
@@ -40,14 +40,13 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		resp := w.Result()
 
-		assert.Equal(t, 200, resp.StatusCode)
+		require.Equal(t, 200, resp.StatusCode)
 		body := w.Body.String()
 
-		assert.Contains(t, body, UUID)
-		assert.Contains(t, body, `1000`)
+		require.Contains(t, body, UUID)
+		require.Contains(t, body, `1000`)
 
-		contentType := resp.Header.Get("Content-Type")
-		assert.Equal(t, "application/json", contentType)
+		require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 	})
 
 	t.Run("client error", func(t *testing.T) {
@@ -60,15 +59,14 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 		getPlayerDataHandler(w, req)
 
 		resp := w.Result()
-		assert.Equal(t, 400, resp.StatusCode)
-		assert.Equal(t, `{"success":false,"cause":"Client error: error :^)"}`, w.Body.String())
-		contentType := resp.Header.Get("Content-Type")
-		assert.Equal(t, "application/json", contentType)
+		require.Equal(t, 400, resp.StatusCode)
+		require.Equal(t, `{"success":false,"cause":"Client error: error :^)"}`, w.Body.String())
+		require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 	})
 
-	t.Run("server error", func(t *testing.T) {
+	t.Run("player not found", func(t *testing.T) {
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
-			return nil, fmt.Errorf("%w: error :^(", e.APIServerError)
+			return nil, fmt.Errorf("%w: couldn't find him", domain.ErrPlayerNotFound)
 		}, logger, sentryMiddleware)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, target, nil)
@@ -76,10 +74,68 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 		getPlayerDataHandler(w, req)
 
 		resp := w.Result()
-		assert.Equal(t, 500, resp.StatusCode)
-		assert.Equal(t, `{"success":false,"cause":"Server error: error :^("}`, w.Body.String())
-		contentType := resp.Header.Get("Content-Type")
-		assert.Equal(t, "application/json", contentType)
+		require.Equal(t, 404, resp.StatusCode)
+		require.Equal(t, `{"success":true,"player":null}`, w.Body.String())
+		require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+	})
+
+	t.Run("provider temporarily unavailable", func(t *testing.T) {
+		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
+			return nil, fmt.Errorf("error :^(: (%w)", domain.ErrTemporarilyUnavailable)
+		}, logger, sentryMiddleware)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, target, nil)
+
+		getPlayerDataHandler(w, req)
+
+		resp := w.Result()
+		require.Equal(t, 504, resp.StatusCode)
+		require.Equal(t, `{"success":false,"cause":"error :^(: (temporarily unavailable)"}`, w.Body.String())
+		require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+	})
+
+	t.Run("rate limit exceeded", func(t *testing.T) {
+		player := &domain.PlayerPIT{
+			UUID:       UUID,
+			Experience: 1000,
+		}
+
+		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
+			return player, nil
+		}, logger, sentryMiddleware)
+
+		// Exhaust the rate limit
+		for i := 0; i < 200; i++ {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, target, nil)
+			getPlayerDataHandler(w, req)
+
+			resp := w.Result()
+			if resp.StatusCode != 200 {
+				require.Equal(t, 429, resp.StatusCode)
+				break
+			}
+		}
+
+		for i := 0; i < 30; i++ {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, target, nil)
+			getPlayerDataHandler(w, req)
+
+			resp := w.Result()
+			if resp.StatusCode != 429 {
+				// We may have gotten some credits back so this request could go through
+				require.Equal(t, 200, resp.StatusCode)
+				continue
+			}
+
+			require.Equal(t, 429, resp.StatusCode)
+			require.Equal(t, `{"success":false,"cause":"Rate limit exceeded"}`, w.Body.String())
+			require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+			return
+		}
+
+		require.Fail(t, "Rate limit not exceeded")
 	})
 }
 
@@ -90,9 +146,9 @@ func TestWriteErrorResponse(t *testing.T) {
 		expectedBody   string
 	}{
 		{
-			err:            e.APIServerError,
+			err:            fmt.Errorf("something happened"),
 			expectedStatus: 500,
-			expectedBody:   `{"success":false,"cause":"Server error"}`,
+			expectedBody:   `{"success":false,"cause":"something happened"}`,
 		},
 		{
 			err:            e.APIClientError,
@@ -100,19 +156,15 @@ func TestWriteErrorResponse(t *testing.T) {
 			expectedBody:   `{"success":false,"cause":"Client error"}`,
 		},
 		{
-			err:            e.RatelimitExceededError,
-			expectedStatus: 429,
-			expectedBody:   `{"success":false,"cause":"Ratelimit exceeded"}`,
-		},
-		{
-			err:            fmt.Errorf("something happened %w", e.RetriableError),
+			err:            fmt.Errorf("something happened (%w)", domain.ErrTemporarilyUnavailable),
 			expectedStatus: 504,
-			expectedBody:   `{"success":false,"cause":"something happened (retriable)"}`,
+			expectedBody:   `{"success":false,"cause":"something happened (temporarily unavailable)"}`,
 		},
 		{
-			err:            fmt.Errorf("%w %w", e.RatelimitExceededError, e.RetriableError),
-			expectedStatus: 429,
-			expectedBody:   `{"success":false,"cause":"Ratelimit exceeded (retriable)"}`,
+			// NOTE: We don't pass player not found to write error response
+			err:            fmt.Errorf("%w: never heard of him", domain.ErrPlayerNotFound),
+			expectedStatus: 500,
+			expectedBody:   `{"success":false,"cause":"player not found: never heard of him"}`,
 		},
 	}
 
@@ -125,12 +177,12 @@ func TestWriteErrorResponse(t *testing.T) {
 		returnedStatusCode := writeHypixelStyleErrorResponse(context.Background(), w, testCase.err)
 		result := w.Result()
 
-		assert.True(t, reflect.DeepEqual(expectedHeaders, result.Header), "Expected %v, got %v", expectedHeaders, result.Header)
+		require.True(t, reflect.DeepEqual(expectedHeaders, result.Header), "Expected %v, got %v", expectedHeaders, result.Header)
 
-		assert.Equal(t, testCase.expectedStatus, result.StatusCode)
-		assert.Equal(t, testCase.expectedStatus, returnedStatusCode)
+		require.Equal(t, testCase.expectedStatus, result.StatusCode)
+		require.Equal(t, testCase.expectedStatus, returnedStatusCode)
 
 		body := w.Body.String()
-		assert.Equal(t, testCase.expectedBody, body)
+		require.Equal(t, testCase.expectedBody, body)
 	}
 }

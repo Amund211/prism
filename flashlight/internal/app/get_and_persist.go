@@ -20,19 +20,17 @@ type GetAndPersistPlayerWithCache func(ctx context.Context, uuid string) (*domai
 func getAndPersistPlayerWithoutCache(ctx context.Context, provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) (*domain.PlayerPIT, error) {
 	player, err := provider.GetPlayer(ctx, uuid)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not get player: %w", err)
 	}
 
-	if player != nil {
-		// Ignore cancellations from the request context and try to store the data anyway
-		// Take a maximum of 1 second to not block the request for too long
-		storeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 1*time.Second)
-		defer cancel()
-		err = repo.StorePlayer(storeCtx, player)
-		if err != nil {
-			err = fmt.Errorf("failed to store player: %w", err)
-			reporting.Report(ctx, err)
-		}
+	// Ignore cancellations from the request context and try to store the data anyway
+	// Take a maximum of 1 second to not block the request for too long
+	storeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 1*time.Second)
+	defer cancel()
+	err = repo.StorePlayer(storeCtx, player)
+	if err != nil {
+		err = fmt.Errorf("failed to store player: %w", err)
+		reporting.Report(ctx, err)
 	}
 
 	return player, nil
@@ -63,7 +61,7 @@ func BuildGetAndPersistPlayerWithCache(playerCache cache.Cache[*domain.PlayerPIT
 		})
 
 		if err != nil {
-			return nil, fmt.Errorf("%w: failed to cache.GetOrCreate player data: %w", e.APIServerError, err)
+			return nil, fmt.Errorf("failed to cache.GetOrCreate player data: %w", err)
 		}
 
 		return player, nil

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
-	e "github.com/Amund211/flashlight/internal/errors"
+	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -68,6 +68,41 @@ func TestHypixelPlayerProvider(t *testing.T) {
 			require.Equal(t, UUID, player.UUID)
 		})
 
+		t.Run("player not found", func(t *testing.T) {
+			hypixelAPI := &mockedHypixelAPI{
+				t:          t,
+				data:       []byte(`{"success":true,"player":null}`),
+				statusCode: 200,
+				queriedAt:  time.Time{},
+				err:        nil,
+			}
+			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			player, err := provider.GetPlayer(context.Background(), UUID)
+			require.Error(t, err)
+			require.Nil(t, player)
+
+			require.ErrorIs(t, err, domain.ErrPlayerNotFound)
+			require.NotErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+		})
+
+		t.Run("success=false from Hypixel", func(t *testing.T) {
+			hypixelAPI := &mockedHypixelAPI{
+				t: t,
+				// NOTE: Not real data
+				data:       []byte(`{"success":false,"player":null}`),
+				statusCode: 200,
+				queriedAt:  time.Time{},
+				err:        nil,
+			}
+			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			player, err := provider.GetPlayer(context.Background(), UUID)
+			require.Error(t, err)
+			require.Nil(t, player)
+
+			require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
+			require.NotErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+		})
+
 		t.Run("error from hypixel", func(t *testing.T) {
 			hypixelAPI := &mockedHypixelAPI{
 				t:          t,
@@ -82,6 +117,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 			require.Nil(t, player)
 
 			require.ErrorIs(t, err, assert.AnError)
+			require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
+			require.NotErrorIs(t, err, domain.ErrTemporarilyUnavailable)
 		})
 
 		t.Run("html from hypixel", func(t *testing.T) {
@@ -99,9 +136,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 			require.Error(t, err)
 			require.Nil(t, player)
 
-			// TODO: Use errors specific to the provider
-			require.ErrorIs(t, err, e.APIServerError)
-			require.ErrorIs(t, err, e.RetriableError)
+			require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
 		})
 
 		t.Run("invalid JSON from hypixel", func(t *testing.T) {
@@ -117,8 +153,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 			require.Error(t, err)
 			require.Nil(t, player)
 
-			require.ErrorIs(t, err, e.APIServerError)
-			require.NotErrorIs(t, err, e.RetriableError)
+			require.NotErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
 		})
 
 		t.Run("weird data format from hypixel", func(t *testing.T) {
@@ -134,8 +170,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 			require.Error(t, err)
 			require.Nil(t, player)
 
-			require.ErrorIs(t, err, e.APIServerError)
-			require.NotErrorIs(t, err, e.RetriableError)
+			require.NotErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
 		})
 
 		t.Run("403 from hypixel", func(t *testing.T) {
@@ -151,8 +187,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 			require.Error(t, err)
 			require.Nil(t, player)
 
-			require.ErrorIs(t, err, e.APIServerError)
-			require.NotErrorIs(t, err, e.RetriableError)
+			require.NotErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
 		})
 
 		t.Run("bad gateway from hypixel", func(t *testing.T) {
@@ -168,8 +204,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 			require.Error(t, err)
 			require.Nil(t, player)
 
-			require.ErrorIs(t, err, e.APIServerError)
-			require.ErrorIs(t, err, e.RetriableError)
+			require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
 		})
 
 		t.Run("service unavailable from hypixel", func(t *testing.T) {
@@ -185,8 +221,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 			require.Error(t, err)
 			require.Nil(t, player)
 
-			require.ErrorIs(t, err, e.APIServerError)
-			require.ErrorIs(t, err, e.RetriableError)
+			require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
 		})
 
 		t.Run("gateway timeout from hypixel", func(t *testing.T) {
@@ -202,8 +238,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 			require.Error(t, err)
 			require.Nil(t, player)
 
-			require.ErrorIs(t, err, e.APIServerError)
-			require.ErrorIs(t, err, e.RetriableError)
+			require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
 		})
 	})
 }

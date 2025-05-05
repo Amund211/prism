@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/flashlight/internal/domain"
 	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
@@ -39,7 +40,13 @@ func MakeGetPlayerDataHandler(
 	makeOnLimitExceeded := func(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			logger := logging.FromContext(r.Context())
-			statusCode := writeHypixelStyleErrorResponse(r.Context(), w, e.RatelimitExceededError)
+
+			statusCode := http.StatusTooManyRequests
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(statusCode)
+			w.Write([]byte(`{"success":false,"cause":"Rate limit exceeded"}`))
+
 			logger.Info("Returning response", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
 		}
 	}
@@ -57,6 +64,24 @@ func MakeGetPlayerDataHandler(
 		uuid := r.URL.Query().Get("uuid")
 
 		player, err := getAndPersistPlayerWithCache(r.Context(), uuid)
+		if errors.Is(err, domain.ErrPlayerNotFound) {
+			hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(nil)
+			if err != nil {
+				logger.Error("Failed to convert player to hypixel API response", "error", err)
+				err = fmt.Errorf("%w: failed to convert player to hypixel API response: %w", e.APIServerError, err)
+				reporting.Report(ctx, err)
+				statusCode := writeHypixelStyleErrorResponse(r.Context(), w, err)
+				logger.Info("Returning response", "statusCode", statusCode, "reason", "error")
+				return
+			}
+
+			statusCode := 404
+			logger.Info("Returning response", "statusCode", statusCode, "reason", "success")
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(statusCode)
+			w.Write(hypixelAPIResponseData)
+			return
+		}
 
 		if err != nil {
 			logger.Error("Error getting player data", "error", err)
@@ -80,9 +105,6 @@ func MakeGetPlayerDataHandler(
 		logger.Info("Got minified player data", "contentLength", len(hypixelAPIResponseData), "statusCode", 200)
 
 		statusCode := 200
-		if player == nil {
-			statusCode = 404
-		}
 		logger.Info("Returning response", "statusCode", statusCode, "reason", "success")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
@@ -110,9 +132,7 @@ func writeHypixelStyleErrorResponse(ctx context.Context, w http.ResponseWriter, 
 	// Unknown error: default to 500
 	statusCode := http.StatusInternalServerError
 
-	if errors.Is(responseError, e.RatelimitExceededError) {
-		statusCode = http.StatusTooManyRequests
-	} else if errors.Is(responseError, e.RetriableError) {
+	if errors.Is(responseError, domain.ErrTemporarilyUnavailable) {
 		// TODO: Use a more descriptive status code when most prism clients support it
 		statusCode = http.StatusGatewayTimeout
 	} else if errors.Is(responseError, e.APIClientError) {

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Amund211/flashlight/internal/domain"
-	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/reporting"
 )
@@ -107,21 +106,21 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 	if statusCode == 200 {
 		// Check for HTML response
 		if len(playerData) > 0 && playerData[0] == '<' {
-			return fmt.Errorf("%w: Hypixel API returned HTML %w", e.APIServerError, e.RetriableError)
+			return fmt.Errorf("Hypixel API returned HTML (%w)", domain.ErrTemporarilyUnavailable)
 		}
 
 		return nil
 	}
 
 	// Error for unknown status code
-	err := fmt.Errorf("%w: Hypixel API returned unsupported status code: %d", e.APIServerError, statusCode)
+	err := fmt.Errorf("Hypixel API returned unsupported status code: %d", statusCode)
 
 	// Errors for known status codes
 	switch statusCode {
 	case 429:
-		err = fmt.Errorf("%w: Hypixel ratelimit exceeded %w", e.RatelimitExceededError, e.RetriableError)
+		err = fmt.Errorf("Hypixel ratelimit exceeded (%w)", domain.ErrTemporarilyUnavailable)
 	case 500, 502, 503, 504, 520, 521, 522, 523, 524, 525, 526, 527, 530:
-		err = fmt.Errorf("%w: Hypixel returned status code %d (%s) %w", e.APIServerError, statusCode, http.StatusText(statusCode), e.RetriableError)
+		err = fmt.Errorf("Hypixel returned status code %d (%s) (%w)", statusCode, http.StatusText(statusCode), domain.ErrTemporarilyUnavailable)
 	}
 
 	return err
@@ -158,7 +157,7 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 
 	parsedAPIResponse, err := ParseHypixelAPIResponse(ctx, playerData)
 	if err != nil {
-		err = fmt.Errorf("%w: failed to parse player data: %w", e.APIServerError, err)
+		err = fmt.Errorf("failed to parse player data: %w", err)
 		reporting.Report(
 			ctx,
 			err,
@@ -175,12 +174,11 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 		if parsedAPIResponse.Cause != nil {
 			cause = *parsedAPIResponse.Cause
 		}
-		return nil, fmt.Errorf("%w: %s", e.APIServerError, cause)
+		return nil, fmt.Errorf("got success=false from Hypixel: %s", cause)
 	}
 
 	if parsedAPIResponse.Player == nil {
-		// TODO: ErrPlayerNotFound?
-		return nil, nil
+		return nil, domain.ErrPlayerNotFound
 	}
 
 	apiPlayer := parsedAPIResponse.Player
