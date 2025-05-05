@@ -68,7 +68,7 @@ func MakeGetPlayerDataHandler(
 			hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(nil)
 			if err != nil {
 				logger.Error("Failed to convert player to hypixel API response", "error", err)
-				err = fmt.Errorf("%w: failed to convert player to hypixel API response: %w", e.APIServerError, err)
+				err = fmt.Errorf("failed to convert player to hypixel API response: %w", err)
 				reporting.Report(ctx, err)
 				statusCode := writeHypixelStyleErrorResponse(r.Context(), w, err)
 				logger.Info("Returning response", "statusCode", statusCode, "reason", "error")
@@ -94,7 +94,7 @@ func MakeGetPlayerDataHandler(
 		if err != nil {
 			logger.Error("Failed to convert player to hypixel API response", "error", err)
 
-			err = fmt.Errorf("%w: failed to convert player to hypixel API response: %w", e.APIServerError, err)
+			err = fmt.Errorf("failed to convert player to hypixel API response: %w", err)
 			reporting.Report(ctx, err)
 
 			statusCode := writeHypixelStyleErrorResponse(r.Context(), w, err)

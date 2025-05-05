@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -89,8 +88,6 @@ func TestGetPlayerData(t *testing.T) {
 		hypixelAPI := NewHypixelAPI(httpClient, apiKey)
 
 		_, _, _, err := hypixelAPI.GetPlayerData(context.Background(), "uuid123456")
-
-		assert.ErrorIs(t, err, e.APIServerError)
 		assert.ErrorIs(t, err, assert.AnError)
 	})
 
@@ -107,8 +104,6 @@ func TestGetPlayerData(t *testing.T) {
 		hypixelAPI := NewHypixelAPI(httpClient, apiKey)
 
 		_, _, _, err := hypixelAPI.GetPlayerData(context.Background(), "uuid")
-
-		assert.ErrorIs(t, err, e.APIServerError)
 		assert.ErrorIs(t, err, assert.AnError)
 	})
 }

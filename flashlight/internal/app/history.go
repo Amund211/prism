@@ -8,7 +8,6 @@ import (
 
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/domain"
-	e "github.com/Amund211/flashlight/internal/errors"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
@@ -34,7 +33,7 @@ func BuildGetHistory(
 		logger := logging.FromContext(ctx)
 
 		if !strutils.UUIDIsNormalized(uuid) {
-			return nil, fmt.Errorf("%w: UUID is not normalized", e.APIServerError)
+			return nil, fmt.Errorf("UUID is not normalized")
 		}
 
 		now := nowFunc()
