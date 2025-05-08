@@ -54,8 +54,9 @@ func BuildGetAndPersistPlayerWithCache(playerCache cache.Cache[*domain.PlayerPIT
 		player, err := cache.GetOrCreate(ctx, playerCache, uuid, func() (*domain.PlayerPIT, error) {
 			return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
 		})
-
 		if err != nil {
+			// NOTE: GetOrCreate only returns an error if create() fails.
+			// getAndPersistPlayerWithoutCache handles its own error reporting
 			return nil, fmt.Errorf("failed to cache.GetOrCreate player data: %w", err)
 		}
 

@@ -64,6 +64,7 @@ func MakeGetSessionsHandler(
 
 		sessions, err := getSessions(r.Context(), uuid, request.Start, request.End)
 		if err != nil {
+			// NOTE: GetSessions implementations handle their own error reporting
 			http.Error(w, "Failed to get sessions", http.StatusInternalServerError)
 			return
 		}

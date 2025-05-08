@@ -2,8 +2,8 @@ package app
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
@@ -33,16 +33,26 @@ func BuildGetHistory(
 		logger := logging.FromContext(ctx)
 
 		if !strutils.UUIDIsNormalized(uuid) {
-			return nil, fmt.Errorf("UUID is not normalized")
+			err := fmt.Errorf("UUID is not normalized")
+			reporting.Report(ctx, err, map[string]string{
+				"uuid":  uuid,
+				"start": end.Format(time.RFC3339),
+				"end":   end.Format(time.RFC3339),
+				"limit": strconv.Itoa(limit),
+			})
+			return nil, err
 		}
 
 		now := nowFunc()
 		if start.Before(now) && end.After(now) {
 			// This is a current interval -> update the repo with the latest data
 			_, err := getAndPersistPlayerWithCache(ctx, uuid)
-			if err != nil && !errors.Is(err, domain.ErrPlayerNotFound) {
-				logger.Error("Failed to get player data", "error", err)
-				reporting.Report(ctx, err)
+			if err != nil {
+				// NOTE: GetAndPersistPlayerWithCache implementations handle their own error reporting
+				logger.Error("Failed to get updated player data", "error", err)
+
+				// NOTE: We continue even though we failed to get updated player data
+				// We may still be able to get the history and fulfill the request
 			}
 		}
 

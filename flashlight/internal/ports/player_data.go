@@ -96,6 +96,7 @@ func MakeGetPlayerDataHandler(
 		}
 
 		if err != nil {
+			// NOTE: GetAndPersistPlayerWithCache implementations handle their own error reporting
 			logger.Error("Error getting player data", "error", err)
 			statusCode := writeHypixelStyleErrorResponse(r.Context(), w, err)
 			logger.Info("Returning response", "statusCode", statusCode, "reason", "error")
