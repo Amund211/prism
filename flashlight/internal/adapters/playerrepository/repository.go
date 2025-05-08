@@ -634,6 +634,7 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 
 	dbStats := []dbStat{}
 
+	// NOTE: Using a connection without a transaction as the ids are time-sortable, and we're using them as a cursor (not offset/limit)
 	conn, err := p.db.Connx(ctx)
 	if err != nil {
 		err := fmt.Errorf("failed to get connection: %w", err)
@@ -696,6 +697,7 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 	}
 
 	if len(dbStats) == 0 {
+		// NOTE: Returning nil in place of an empty slice
 		return nil, nil
 	}
 
