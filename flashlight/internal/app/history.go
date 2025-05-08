@@ -36,7 +36,7 @@ func BuildGetHistory(
 			err := fmt.Errorf("UUID is not normalized")
 			reporting.Report(ctx, err, map[string]string{
 				"uuid":  uuid,
-				"start": end.Format(time.RFC3339),
+				"start": start.Format(time.RFC3339),
 				"end":   end.Format(time.RFC3339),
 				"limit": strconv.Itoa(limit),
 			})
