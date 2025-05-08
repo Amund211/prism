@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Amund211/flashlight/internal/logging"
 )
@@ -30,7 +31,7 @@ func GetOrCreate[T any](ctx context.Context, cache Cache[T], key string, create 
 			data, err := create()
 			if err != nil {
 				var empty T
-				return empty, err
+				return empty, fmt.Errorf("failed to create cache entry: %w", err)
 			}
 
 			cache.set(key, data)
