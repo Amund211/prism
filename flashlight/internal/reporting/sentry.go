@@ -59,7 +59,9 @@ func Report(ctx context.Context, err error, extras ...map[string]string) {
 
 func addTagsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		hub := sentry.GetHubFromContext(r.Context())
+		ctx := r.Context()
+
+		hub := sentry.GetHubFromContext(ctx)
 		if hub == nil {
 			logging.FromContext(r.Context()).Warn("Failed to get Sentry hub from context")
 			next(w, r)
@@ -81,7 +83,7 @@ func addTagsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			}
 		})
 
-		ctxWithStartedAt := context.WithValue(r.Context(), startedAtContextKey{}, time.Now())
+		ctxWithStartedAt := context.WithValue(ctx, startedAtContextKey{}, time.Now())
 		next(w, r.WithContext(ctxWithStartedAt))
 	}
 }

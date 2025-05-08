@@ -25,6 +25,7 @@ func FromContext(ctx context.Context) *slog.Logger {
 func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
 			correlationID := uuid.New().String()
 
 			uuid := r.URL.Query().Get("uuid")
@@ -50,7 +51,7 @@ func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc)
 				slog.String("methodPath", fmt.Sprintf("%s %s", r.Method, r.URL.Path)),
 			)
 
-			next(w, r.WithContext(context.WithValue(r.Context(), requestLoggerContextKey{}, requestLogger)))
+			next(w, r.WithContext(context.WithValue(ctx, requestLoggerContextKey{}, requestLogger)))
 		}
 	}
 }

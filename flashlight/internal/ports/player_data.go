@@ -39,7 +39,8 @@ func MakeGetPlayerDataHandler(
 
 	makeOnLimitExceeded := func(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			logger := logging.FromContext(r.Context())
+			ctx := r.Context()
+			logger := logging.FromContext(ctx)
 
 			statusCode := http.StatusTooManyRequests
 
@@ -75,14 +76,14 @@ func MakeGetPlayerDataHandler(
 			return
 		}
 
-		player, err := getAndPersistPlayerWithCache(r.Context(), uuid)
+		player, err := getAndPersistPlayerWithCache(ctx, uuid)
 		if errors.Is(err, domain.ErrPlayerNotFound) {
 			hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(nil)
 			if err != nil {
 				logger.Error("Failed to convert player to hypixel API response", "error", err)
 				err = fmt.Errorf("failed to convert player to hypixel API response: %w", err)
 				reporting.Report(ctx, err)
-				statusCode := writeHypixelStyleErrorResponse(r.Context(), w, err)
+				statusCode := writeHypixelStyleErrorResponse(ctx, w, err)
 				logger.Info("Returning response", "statusCode", statusCode, "reason", "error")
 				return
 			}
@@ -98,7 +99,7 @@ func MakeGetPlayerDataHandler(
 		if err != nil {
 			// NOTE: GetAndPersistPlayerWithCache implementations handle their own error reporting
 			logger.Error("Error getting player data", "error", err)
-			statusCode := writeHypixelStyleErrorResponse(r.Context(), w, err)
+			statusCode := writeHypixelStyleErrorResponse(ctx, w, err)
 			logger.Info("Returning response", "statusCode", statusCode, "reason", "error")
 			return
 		}
@@ -110,7 +111,7 @@ func MakeGetPlayerDataHandler(
 			err = fmt.Errorf("failed to convert player to hypixel API response: %w", err)
 			reporting.Report(ctx, err)
 
-			statusCode := writeHypixelStyleErrorResponse(r.Context(), w, err)
+			statusCode := writeHypixelStyleErrorResponse(ctx, w, err)
 			logger.Info("Returning response", "statusCode", statusCode, "reason", "error")
 			return
 		}
