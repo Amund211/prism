@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
 )
@@ -20,26 +21,27 @@ func NewHypixelPlayerProvider(hypixelAPI HypixelAPI) PlayerProvider {
 }
 
 func (h *hypixelPlayerProvider) GetPlayer(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
-	normalizedUUID, err := strutils.NormalizeUUID(uuid)
-	if err != nil {
-		reporting.Report(ctx, fmt.Errorf("failed to normalize uuid: %w", err), map[string]string{
+	if !strutils.UUIDIsNormalized(uuid) {
+		logging.FromContext(ctx).Error("UUID is not normalized", "uuid", uuid)
+		err := fmt.Errorf("UUID is not normalized")
+		reporting.Report(ctx, err, map[string]string{
 			"uuid": uuid,
 		})
-		return nil, fmt.Errorf("failed to normalize uuid: %w", err)
+		return nil, err
 	}
 
-	playerData, statusCode, queriedAt, err := h.hypixelAPI.GetPlayerData(ctx, normalizedUUID)
+	playerData, statusCode, queriedAt, err := h.hypixelAPI.GetPlayerData(ctx, uuid)
 	if err != nil {
 		reporting.Report(ctx, fmt.Errorf("failed to get player data: %w", err), map[string]string{
-			"uuid": normalizedUUID,
+			"uuid": uuid,
 		})
 		return nil, fmt.Errorf("failed to get player data: %w", err)
 	}
 
-	player, err := HypixelAPIResponseToPlayerPIT(ctx, normalizedUUID, queriedAt, playerData, statusCode)
+	player, err := HypixelAPIResponseToPlayerPIT(ctx, uuid, queriedAt, playerData, statusCode)
 	if err != nil {
 		reporting.Report(ctx, fmt.Errorf("failed to convert hypixel api response to player: %w", err), map[string]string{
-			"uuid":       normalizedUUID,
+			"uuid":       uuid,
 			"data":       string(playerData),
 			"statusCode": fmt.Sprint(statusCode),
 		})

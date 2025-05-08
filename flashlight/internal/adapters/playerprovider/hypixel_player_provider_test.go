@@ -51,7 +51,7 @@ func TestHypixelPlayerProvider(t *testing.T) {
 			require.Equal(t, 0, player.Overall.FinalKills)
 		})
 
-		t.Run("input uuid is normalized", func(t *testing.T) {
+		t.Run("only accepts normalized ids", func(t *testing.T) {
 			hypixelAPI := &mockedHypixelAPI{
 				t:          t,
 				data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef"}}`),
@@ -61,11 +61,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 			}
 
 			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
-			player, err := provider.GetPlayer(context.Background(), "0123456789abcdef0123456789abcdef")
-			require.NoError(t, err)
-
-			require.NotNil(t, player)
-			require.Equal(t, UUID, player.UUID)
+			_, err := provider.GetPlayer(context.Background(), "0123456789abcdef0123456789abcdef")
+			require.Error(t, err)
 		})
 
 		t.Run("player not found", func(t *testing.T) {

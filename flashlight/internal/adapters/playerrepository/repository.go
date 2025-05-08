@@ -168,9 +168,8 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 		return fmt.Errorf("StorePlayer: player is nil")
 	}
 
-	normalizedUUID, err := strutils.NormalizeUUID(player.UUID)
-	if err != nil {
-		return fmt.Errorf("StorePlayer: failed to normalize uuid: %w", err)
+	if !strutils.UUIDIsNormalized(player.UUID) {
+		return fmt.Errorf("StorePlayer: uuid is not normalized: %s", player.UUID)
 	}
 
 	playerData, err := playerToDataStorage(player)
@@ -198,7 +197,7 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 	err = txx.QueryRowxContext(
 		ctx,
 		"SELECT COUNT(*) FROM stats WHERE player_uuid = $1 AND queried_at > $2",
-		normalizedUUID,
+		player.UUID,
 		player.QueriedAt.Add(-time.Minute),
 	).Scan(&count)
 	if err != nil {
@@ -221,7 +220,7 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 			player_uuid = $1 AND
 			queried_at > $2
 		ORDER BY queried_at DESC LIMIT 1`,
-		normalizedUUID,
+		player.UUID,
 		player.QueriedAt.Add(-1*time.Hour),
 	).Scan(&lastDataFormatVersion, &lastPlayerData)
 	if err == nil && lastDataFormatVersion == DATA_FORMAT_VERSION {
@@ -243,7 +242,7 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 		(id, player_uuid, player_data, queried_at, data_format_version)
 		VALUES ($1, $2, $3, $4, $5)`,
 		dbID.String(),
-		normalizedUUID,
+		player.UUID,
 		playerData,
 		player.QueriedAt,
 		DATA_FORMAT_VERSION,

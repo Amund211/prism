@@ -56,13 +56,13 @@ func MakeGetSessionsHandler(
 			return
 		}
 
-		normalizedUUID, err := strutils.NormalizeUUID(request.UUID)
+		uuid, err := strutils.NormalizeUUID(request.UUID)
 		if err != nil {
 			http.Error(w, "invalid uuid", http.StatusBadRequest)
 			return
 		}
 
-		sessions, err := getSessions(r.Context(), normalizedUUID, request.Start, request.End)
+		sessions, err := getSessions(r.Context(), uuid, request.Start, request.End)
 		if err != nil {
 			http.Error(w, "Failed to get sessions", http.StatusInternalServerError)
 			return

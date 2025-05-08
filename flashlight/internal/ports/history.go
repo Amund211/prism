@@ -57,13 +57,13 @@ func MakeGetHistoryHandler(
 			return
 		}
 
-		normalizedUUID, err := strutils.NormalizeUUID(request.UUID)
+		uuid, err := strutils.NormalizeUUID(request.UUID)
 		if err != nil {
 			http.Error(w, "invalid uuid", http.StatusBadRequest)
 			return
 		}
 
-		history, err := getHistory(r.Context(), normalizedUUID, request.Start, request.End, request.Limit)
+		history, err := getHistory(r.Context(), uuid, request.Start, request.End, request.Limit)
 		if err != nil {
 			http.Error(w, "Failed to get history", http.StatusInternalServerError)
 			return
