@@ -315,6 +315,17 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 }
 
 func (p *PostgresPlayerRepository) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error) {
+	if !strutils.UUIDIsNormalized(playerUUID) {
+		err := fmt.Errorf("uuid is not normalized")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid":  playerUUID,
+			"start": start.Format(time.RFC3339),
+			"end":   end.Format(time.RFC3339),
+			"limit": strconv.Itoa(limit),
+		})
+		return nil, err
+	}
+
 	if limit < 2 || limit > 1000 {
 		// TODO: Use known error
 		err := fmt.Errorf("invalid limit")
@@ -604,6 +615,16 @@ func computeSessions(stats []playerPITWithID, start, end time.Time) []domain.Ses
 }
 
 func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]domain.Session, error) {
+	if !strutils.UUIDIsNormalized(playerUUID) {
+		err := fmt.Errorf("uuid is not normalized")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid":  playerUUID,
+			"start": start.Format(time.RFC3339),
+			"end":   end.Format(time.RFC3339),
+		})
+		return nil, err
+	}
+
 	timespan := end.Sub(start)
 	if timespan <= 0 {
 		// TODO: Use known error
