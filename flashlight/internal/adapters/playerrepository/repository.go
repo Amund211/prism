@@ -223,16 +223,21 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 		player.UUID,
 		player.QueriedAt.Add(-1*time.Hour),
 	).Scan(&lastDataFormatVersion, &lastPlayerData)
-	if err == nil && lastDataFormatVersion == DATA_FORMAT_VERSION {
-		equal, err := strutils.JSONStringsEqual(playerData, lastPlayerData)
-		if err != nil {
-			return fmt.Errorf("StorePlayer: failed to compare player data: %w", err)
+	if err == nil {
+		if lastDataFormatVersion == DATA_FORMAT_VERSION {
+			// Found recent stats with the same data format version -> compare
+			equal, err := strutils.JSONStringsEqual(playerData, lastPlayerData)
+			if err != nil {
+				return fmt.Errorf("StorePlayer: failed to compare player data: %w", err)
+			}
+			if equal {
+				// Recent stats were equal -> don't store
+				return nil
+			}
 		}
-		if equal {
-			return nil
-		}
-	}
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	} else if errors.Is(err, sql.ErrNoRows) {
+		// No recent stats -> store
+	} else {
 		return fmt.Errorf("StorePlayer: failed to query last player data: %w", err)
 	}
 
