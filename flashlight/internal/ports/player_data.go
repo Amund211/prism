@@ -137,6 +137,9 @@ func writeHypixelStyleErrorResponse(ctx context.Context, w http.ResponseWriter, 
 	errorBytes, err := json.Marshal(errorResponse)
 	if err != nil {
 		logging.FromContext(ctx).Error("Failed to marshal error response", "error", err)
+		reporting.Report(ctx, fmt.Errorf("failed to marshal error response: %w", err), map[string]string{
+			"responseError": responseError.Error(),
+		})
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(`{"success":false,"cause":"Internal server error (flashlight)"}`))
 		return http.StatusInternalServerError
