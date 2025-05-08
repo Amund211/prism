@@ -32,19 +32,13 @@ func (h *hypixelPlayerProvider) GetPlayer(ctx context.Context, uuid string) (*do
 
 	playerData, statusCode, queriedAt, err := h.hypixelAPI.GetPlayerData(ctx, uuid)
 	if err != nil {
-		reporting.Report(ctx, fmt.Errorf("failed to get player data: %w", err), map[string]string{
-			"uuid": uuid,
-		})
+		// NOTE: HypixelAPI implementations handle their own error reporting
 		return nil, fmt.Errorf("failed to get player data: %w", err)
 	}
 
 	player, err := HypixelAPIResponseToPlayerPIT(ctx, uuid, queriedAt, playerData, statusCode)
 	if err != nil {
-		reporting.Report(ctx, fmt.Errorf("failed to convert hypixel api response to player: %w", err), map[string]string{
-			"uuid":       uuid,
-			"data":       string(playerData),
-			"statusCode": fmt.Sprint(statusCode),
-		})
+		// NOTE: HypixelAPIResponseToPlayerPIT handles its own error reporting
 		return nil, fmt.Errorf("failed to convert hypixel api response to player: %w", err)
 	}
 

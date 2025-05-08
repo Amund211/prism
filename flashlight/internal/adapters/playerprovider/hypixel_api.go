@@ -10,6 +10,7 @@ import (
 	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/constants"
 	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/reporting"
 )
 
 type HttpClient interface {
@@ -37,8 +38,12 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		logger.Error("Failed to create request", "error", err)
-		return []byte{}, -1, time.Time{}, fmt.Errorf("failed to create request: %w", err)
+		err := fmt.Errorf("failed to create request: %w", err)
+		logger.Error(err.Error())
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": uuid,
+		})
+		return []byte{}, -1, time.Time{}, err
 	}
 
 	req.Header.Set("User-Agent", constants.USER_AGENT)
@@ -46,8 +51,12 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 
 	resp, err := hypixelAPI.httpClient.Do(req)
 	if err != nil {
-		logger.Error("Failed to send request", "error", err)
-		return []byte{}, -1, time.Time{}, fmt.Errorf("failed to send request: %w", err)
+		err := fmt.Errorf("failed to send request: %w", err)
+		logger.Error(err.Error())
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": uuid,
+		})
+		return []byte{}, -1, time.Time{}, err
 	}
 
 	queriedAt := time.Now()
@@ -55,8 +64,12 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.Error("Failed to read response body", "error", err)
-		return []byte{}, -1, time.Time{}, fmt.Errorf("failed to read response body: %w", err)
+		err := fmt.Errorf("failed to read response body: %w", err)
+		logger.Error(err.Error())
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": uuid,
+		})
+		return []byte{}, -1, time.Time{}, err
 	}
 
 	return data, resp.StatusCode, queriedAt, nil

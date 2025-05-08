@@ -127,17 +127,19 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 }
 
 func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt time.Time, playerData []byte, statusCode int) (*domain.PlayerPIT, error) {
-	err := checkForHypixelError(ctx, statusCode, playerData)
-	if err != nil {
+	logger := logging.FromContext(ctx)
+
+	if err := checkForHypixelError(ctx, statusCode, playerData); err != nil {
 		reporting.Report(
 			ctx,
 			err,
 			map[string]string{
+				"uuid":       uuid,
 				"statusCode": fmt.Sprint(statusCode),
 				"data":       string(playerData),
 			},
 		)
-		logging.FromContext(ctx).Error(
+		logger.Error(
 			"Got response from hypixel",
 			"status", "error",
 			"error", err.Error(),
@@ -148,7 +150,7 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 		return nil, err
 	}
 
-	logging.FromContext(ctx).Info(
+	logger.Info(
 		"Got response from hypixel",
 		"status", "success",
 		"statusCode", statusCode,
@@ -162,6 +164,7 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 			ctx,
 			err,
 			map[string]string{
+				"uuid":       uuid,
 				"statusCode": fmt.Sprint(statusCode),
 				"data":       string(playerData),
 			},
@@ -174,10 +177,21 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 		if parsedAPIResponse.Cause != nil {
 			cause = *parsedAPIResponse.Cause
 		}
-		return nil, fmt.Errorf("got success=false from Hypixel: %s", cause)
+		err := fmt.Errorf("got success=false from Hypixel: %s", cause)
+		reporting.Report(
+			ctx,
+			err,
+			map[string]string{
+				"uuid":       uuid,
+				"statusCode": fmt.Sprint(statusCode),
+				"data":       string(playerData),
+			},
+		)
+		return nil, err
 	}
 
 	if parsedAPIResponse.Player == nil {
+		logger.Info("Player not found")
 		return nil, domain.ErrPlayerNotFound
 	}
 
