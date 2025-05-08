@@ -698,7 +698,8 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 		lastID = batch[len(batch)-1].ID
 	}
 
-	if len(dbStats) == 0 {
+	if len(dbStats) <= 1 {
+		// Need at least a start and an end to create a session
 		return []domain.Session{}, nil
 	}
 
