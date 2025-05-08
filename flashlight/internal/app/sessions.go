@@ -46,7 +46,7 @@ func BuildGetSessions(
 
 		sessions, err := repo.GetSessions(ctx, uuid, start, end)
 		if err != nil {
-			reporting.Report(ctx, err)
+			// NOTE: PlayerRepository implementations handle their own error reporting
 			return nil, fmt.Errorf("failed to get sessions: %w", err)
 		}
 

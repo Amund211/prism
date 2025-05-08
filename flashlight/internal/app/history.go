@@ -48,7 +48,7 @@ func BuildGetHistory(
 
 		history, err := repo.GetHistory(ctx, uuid, start, end, limit)
 		if err != nil {
-			reporting.Report(ctx, err)
+			// NOTE: PlayerRepository implementations handle their own error reporting
 			return nil, fmt.Errorf("failed to get history: %w", err)
 		}
 

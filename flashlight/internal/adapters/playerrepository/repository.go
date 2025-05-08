@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strconv"
 	"time"
 
 	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -109,7 +111,11 @@ func playerToDataStorage(player *domain.PlayerPIT) ([]byte, error) {
 		Overall:    gamemodeStatsToDataStorage(&player.Overall),
 	}
 
-	return json.Marshal(data)
+	json, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal playerdatastorage: %w", err)
+	}
+	return json, nil
 }
 
 func gamemodeStatsPITFromDataStorage(data *statsDataStorage) *domain.GamemodeStatsPIT {
@@ -131,7 +137,7 @@ func dbStatToPlayerPITWithID(dbStat dbStat) (*playerPITWithID, error) {
 	var playerData playerDataStorage
 	err := json.Unmarshal(dbStat.PlayerData, &playerData)
 	if err != nil {
-		return nil, fmt.Errorf("dbStatToPlayerPIT: failed to unmarshal player data: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal player data: %w", err)
 	}
 
 	experience := 500.0
@@ -165,32 +171,54 @@ func dbStatToPlayerPITWithID(dbStat dbStat) (*playerPITWithID, error) {
 
 func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *domain.PlayerPIT) error {
 	if player == nil {
-		return fmt.Errorf("StorePlayer: player is nil")
+		err := fmt.Errorf("player is nil")
+		reporting.Report(ctx, err)
+		return err
 	}
 
 	if !strutils.UUIDIsNormalized(player.UUID) {
-		return fmt.Errorf("StorePlayer: uuid is not normalized: %s", player.UUID)
+		err := fmt.Errorf("uuid is not normalized")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": player.UUID,
+		})
+		return err
 	}
 
 	playerData, err := playerToDataStorage(player)
 	if err != nil {
-		return fmt.Errorf("StorePlayer: failed to marshal player data: %w", err)
+		err := fmt.Errorf("failed to convert player to data storage: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": player.UUID,
+		})
+		return err
 	}
 
 	dbID, err := uuid.NewV7()
 	if err != nil {
-		return fmt.Errorf("StorePlayer: failed to generate uuid: %w", err)
+		err := fmt.Errorf("failed to generate db id: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": player.UUID,
+		})
+		return err
 	}
 
 	txx, err := p.db.BeginTxx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("StorePlayer: failed to start transaction: %w", err)
+		err := fmt.Errorf("failed to start transaction: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": player.UUID,
+		})
+		return err
 	}
 	defer txx.Rollback()
 
 	_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
 	if err != nil {
-		return fmt.Errorf("StorePlayer: failed to set search path: %w", err)
+		err := fmt.Errorf("failed to set search path: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": player.UUID,
+		})
+		return err
 	}
 
 	var count int
@@ -201,7 +229,11 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 		player.QueriedAt.Add(-time.Minute),
 	).Scan(&count)
 	if err != nil {
-		return fmt.Errorf("StorePlayer: failed to query existing stats: %w", err)
+		err := fmt.Errorf("failed to query recent entries: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": player.UUID,
+		})
+		return err
 	}
 	if count > 0 {
 		// Recent stats already exist, no need to store them again
@@ -228,7 +260,11 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 			// Found recent stats with the same data format version -> compare
 			equal, err := strutils.JSONStringsEqual(playerData, lastPlayerData)
 			if err != nil {
-				return fmt.Errorf("StorePlayer: failed to compare player data: %w", err)
+				err := fmt.Errorf("failed to compare player data to previously stored data: %w", err)
+				reporting.Report(ctx, err, map[string]string{
+					"uuid": player.UUID,
+				})
+				return err
 			}
 			if equal {
 				// Recent stats were equal -> don't store
@@ -238,7 +274,11 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 	} else if errors.Is(err, sql.ErrNoRows) {
 		// No recent stats -> store
 	} else {
-		return fmt.Errorf("StorePlayer: failed to query last player data: %w", err)
+		err := fmt.Errorf("failed to query last player data: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": player.UUID,
+		})
+		return err
 	}
 
 	_, err = txx.ExecContext(
@@ -253,12 +293,20 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 		DATA_FORMAT_VERSION,
 	)
 	if err != nil {
-		return fmt.Errorf("StorePlayer: failed to insert stats: %w", err)
+		err := fmt.Errorf("failed to insert new stats: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": player.UUID,
+		})
+		return err
 	}
 
 	err = txx.Commit()
 	if err != nil {
-		return fmt.Errorf("StorePlayer: failed to commit transaction: %w", err)
+		err := fmt.Errorf("failed to commit transaction: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": player.UUID,
+		})
+		return err
 	}
 
 	logging.FromContext(ctx).Info("Stored stats", "dataFormatVersion", DATA_FORMAT_VERSION)
@@ -269,25 +317,55 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 func (p *PostgresPlayerRepository) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error) {
 	if limit < 2 || limit > 1000 {
 		// TODO: Use known error
-		return nil, fmt.Errorf("GetHistory: invalid limit: %d", limit)
+		err := fmt.Errorf("invalid limit")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid":  playerUUID,
+			"start": start.Format(time.RFC3339),
+			"end":   end.Format(time.RFC3339),
+			"limit": strconv.Itoa(limit),
+		})
+		return nil, err
 	}
 
 	timespan := end.Sub(start)
 	if timespan <= 0 {
-		return nil, fmt.Errorf("GetHistory: end time must be after start time")
+		err := fmt.Errorf("end time must be after start time")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid":     playerUUID,
+			"start":    start.Format(time.RFC3339),
+			"end":      end.Format(time.RFC3339),
+			"limit":    strconv.Itoa(limit),
+			"timespan": timespan.String(),
+		})
+		return nil, err
 	}
 
 	dbStats := make([]dbStat, 0, limit)
 
 	txx, err := p.db.BeginTxx(ctx, nil)
 	if err != nil {
-		return nil, fmt.Errorf("GetHistory: failed to start transaction: %w", err)
+		err := fmt.Errorf("failed to start transaction: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid":  playerUUID,
+			"start": start.Format(time.RFC3339),
+			"end":   end.Format(time.RFC3339),
+			"limit": strconv.Itoa(limit),
+		})
+		return nil, err
 	}
 	defer txx.Rollback()
 
 	_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
 	if err != nil {
-		return nil, fmt.Errorf("StorePlayer: failed to set search path: %w", err)
+		err := fmt.Errorf("failed to set search path: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid":   playerUUID,
+			"start":  start.Format(time.RFC3339),
+			"end":    end.Format(time.RFC3339),
+			"limit":  strconv.Itoa(limit),
+			"schema": p.schema,
+		})
+		return nil, err
 	}
 
 	// NOTE: Odd limit values will be rounded down (limit=3 == limit=2)
@@ -326,7 +404,18 @@ func (p *PostgresPlayerRepository) GetHistory(ctx context.Context, playerUUID st
 			continue
 		}
 		if err != nil {
-			return nil, fmt.Errorf("GetHistory: failed to select: %w", err)
+			err := fmt.Errorf("failed to select first stat in interval: %w", err)
+			reporting.Report(ctx, err, map[string]string{
+				"uuid":           playerUUID,
+				"start":          start.Format(time.RFC3339),
+				"end":            end.Format(time.RFC3339),
+				"limit":          strconv.Itoa(limit),
+				"intervalStart":  intervalStart.Format(time.RFC3339),
+				"intervalEnd":    intervalEnd.Format(time.RFC3339),
+				"endOperator":    endOperator,
+				"isLastInterval": strconv.FormatBool(isLastInterval),
+			})
+			return nil, err
 		}
 
 		dbStats = append(dbStats, firstStat)
@@ -350,7 +439,18 @@ func (p *PostgresPlayerRepository) GetHistory(ctx context.Context, playerUUID st
 			continue
 		}
 		if err != nil {
-			return nil, fmt.Errorf("GetHistory: failed to select: %w", err)
+			err := fmt.Errorf("failed to select last stat in interval: %w", err)
+			reporting.Report(ctx, err, map[string]string{
+				"uuid":           playerUUID,
+				"start":          start.Format(time.RFC3339),
+				"end":            end.Format(time.RFC3339),
+				"limit":          strconv.Itoa(limit),
+				"intervalStart":  intervalStart.Format(time.RFC3339),
+				"intervalEnd":    intervalEnd.Format(time.RFC3339),
+				"endOperator":    endOperator,
+				"isLastInterval": strconv.FormatBool(isLastInterval),
+			})
+			return nil, err
 		}
 
 		if lastStat.ID == firstStat.ID {
@@ -363,14 +463,29 @@ func (p *PostgresPlayerRepository) GetHistory(ctx context.Context, playerUUID st
 
 	err = txx.Commit()
 	if err != nil {
-		return nil, fmt.Errorf("StorePlayer: failed to commit transaction: %w", err)
+		err := fmt.Errorf("failed to commit transaction: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid":  playerUUID,
+			"start": start.Format(time.RFC3339),
+			"end":   end.Format(time.RFC3339),
+			"limit": strconv.Itoa(limit),
+		})
+		return nil, err
 	}
 
 	result := make([]domain.PlayerPIT, 0, len(dbStats))
 	for _, dbStat := range dbStats {
 		playerWithID, err := dbStatToPlayerPITWithID(dbStat)
 		if err != nil {
-			return nil, fmt.Errorf("GetHistory: failed to convert db stat: %w", err)
+			err := fmt.Errorf("failed to convert db stat to playerpit with id: %w", err)
+			reporting.Report(ctx, err, map[string]string{
+				"uuid":   playerUUID,
+				"start":  start.Format(time.RFC3339),
+				"end":    end.Format(time.RFC3339),
+				"limit":  strconv.Itoa(limit),
+				"statID": dbStat.ID,
+			})
+			return nil, err
 		}
 		result = append(result, playerWithID.PlayerPIT)
 	}
@@ -492,11 +607,25 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 	timespan := end.Sub(start)
 	if timespan <= 0 {
 		// TODO: Use known error
-		return nil, fmt.Errorf("GetSessions: end time must be after start time")
+		err := fmt.Errorf("end time must be after start time")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid":     playerUUID,
+			"start":    start.Format(time.RFC3339),
+			"end":      end.Format(time.RFC3339),
+			"timespan": timespan.String(),
+		})
+		return nil, err
 	}
 	if timespan >= 60*24*time.Hour {
 		// TODO: Use known error
-		return nil, fmt.Errorf("GetSessions: interval too long")
+		err := fmt.Errorf("timespan too long")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid":     playerUUID,
+			"start":    start.Format(time.RFC3339),
+			"end":      end.Format(time.RFC3339),
+			"timespan": timespan.String(),
+		})
+		return nil, err
 	}
 
 	// Add some padding on both sides to try to complete sessions that cross the interval borders
@@ -507,13 +636,26 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 
 	conn, err := p.db.Connx(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("GetSessions: failed to get connection: %w", err)
+		err := fmt.Errorf("failed to get connection: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid":  playerUUID,
+			"start": start.Format(time.RFC3339),
+			"end":   end.Format(time.RFC3339),
+		})
+		return nil, err
 	}
 	defer conn.Close()
 
 	_, err = conn.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
 	if err != nil {
-		return nil, fmt.Errorf("GetSessions: failed to set search path: %w", err)
+		err := fmt.Errorf("failed to set search path: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid":   playerUUID,
+			"start":  start.Format(time.RFC3339),
+			"end":    end.Format(time.RFC3339),
+			"schema": p.schema,
+		})
+		return nil, err
 	}
 
 	lastID := "00000000-0000-0000-0000-000000000000" // Initial cursor
@@ -535,7 +677,16 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 			limit 100`,
 			lastID, playerUUID, filterStart, filterEnd)
 		if err != nil {
-			return nil, fmt.Errorf("GetSessions: failed to select: %w", err)
+			err := fmt.Errorf("failed to select batch of stats: %w", err)
+			reporting.Report(ctx, err, map[string]string{
+				"uuid":        playerUUID,
+				"start":       start.Format(time.RFC3339),
+				"end":         end.Format(time.RFC3339),
+				"filterStart": filterStart.Format(time.RFC3339),
+				"filterEnd":   filterEnd.Format(time.RFC3339),
+				"lastID":      lastID,
+			})
+			return nil, err
 		}
 		if len(batch) == 0 {
 			break
@@ -552,7 +703,14 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 	for _, dbStat := range dbStats {
 		playerWithID, err := dbStatToPlayerPITWithID(dbStat)
 		if err != nil {
-			return nil, fmt.Errorf("GetSessions: failed to convert db stat: %w", err)
+			err := fmt.Errorf("failed to convert db stat to playerpit with id: %w", err)
+			reporting.Report(ctx, err, map[string]string{
+				"uuid":   playerUUID,
+				"start":  start.Format(time.RFC3339),
+				"end":    end.Format(time.RFC3339),
+				"statID": dbStat.ID,
+			})
+			return nil, err
 		}
 		stats = append(stats, *playerWithID)
 	}

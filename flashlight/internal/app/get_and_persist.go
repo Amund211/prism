@@ -17,6 +17,8 @@ import (
 type GetAndPersistPlayerWithCache func(ctx context.Context, uuid string) (*domain.PlayerPIT, error)
 
 func getAndPersistPlayerWithoutCache(ctx context.Context, provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) (*domain.PlayerPIT, error) {
+	logger := logging.FromContext(ctx)
+
 	player, err := provider.GetPlayer(ctx, uuid)
 	if err != nil {
 		// NOTE: PlayerProvider implementations handle their own error reporting
@@ -29,8 +31,10 @@ func getAndPersistPlayerWithoutCache(ctx context.Context, provider playerprovide
 	defer cancel()
 	err = repo.StorePlayer(storeCtx, player)
 	if err != nil {
-		err = fmt.Errorf("failed to store player: %w", err)
-		reporting.Report(ctx, err)
+		// NOTE: PlayerRepository implementations handle their own error reporting
+		logger.Error("failed to store player", "error", err.Error())
+
+		// NOTE: We still return the player to fulfill the request even though storing failed
 	}
 
 	return player, nil
