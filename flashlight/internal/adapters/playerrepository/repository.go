@@ -699,8 +699,7 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 	}
 
 	if len(dbStats) == 0 {
-		// NOTE: Returning nil in place of an empty slice
-		return nil, nil
+		return []domain.Session{}, nil
 	}
 
 	stats := make([]playerPITWithID, 0, len(dbStats))
