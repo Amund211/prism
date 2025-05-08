@@ -221,25 +221,6 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 		return err
 	}
 
-	var count int
-	err = txx.QueryRowxContext(
-		ctx,
-		"SELECT COUNT(*) FROM stats WHERE player_uuid = $1 AND queried_at > $2",
-		player.UUID,
-		player.QueriedAt.Add(-time.Minute),
-	).Scan(&count)
-	if err != nil {
-		err := fmt.Errorf("failed to query recent entries: %w", err)
-		reporting.Report(ctx, err, map[string]string{
-			"uuid": player.UUID,
-		})
-		return err
-	}
-	if count > 0 {
-		// Recent stats already exist, no need to store them again
-		return nil
-	}
-
 	// Don't store consecutive duplicate stats
 	var lastPlayerData []byte
 	var lastDataFormatVersion int

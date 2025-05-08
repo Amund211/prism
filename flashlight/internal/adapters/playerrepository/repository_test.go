@@ -164,7 +164,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			requireNotStored(t, player2t1)
 		})
 
-		t.Run("stats are not stored within one minute", func(t *testing.T) {
+		t.Run("stats are stored within a short time span if they are different", func(t *testing.T) {
 			t.Parallel()
 			player_uuid := newUUID(t)
 			t1 := now
@@ -176,15 +176,13 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			require.NoError(t, err)
 			requireStoredOnce(t, player1)
 
-			for i := 0; i < 60; i++ {
-				t2 := t1.Add(time.Duration(i) * time.Second)
-				player2 := newPlayerBuilder(player_uuid, t2).WithGamesPlayed(2).Build()
+			t2 := t1.Add(time.Millisecond)
+			player2 := newPlayerBuilder(player_uuid, t2).WithGamesPlayed(2).Build()
 
-				requireNotStored(t, player2)
-				err = p.StorePlayer(ctx, player2)
-				require.NoError(t, err)
-				requireNotStored(t, player2)
-			}
+			requireNotStored(t, player2)
+			err = p.StorePlayer(ctx, player2)
+			require.NoError(t, err)
+			requireStoredOnce(t, player2)
 		})
 
 		t.Run("consecutive duplicate stats are not stored", func(t *testing.T) {
