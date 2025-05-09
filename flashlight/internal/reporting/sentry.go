@@ -57,7 +57,7 @@ func Report(ctx context.Context, err error, extras ...map[string]string) {
 			err = errors.New("No error provided")
 		}
 
-		scope.SetFingerprint([]string{sanitizeError(err.Error())})
+		scope.SetFingerprint([]string{"{{ default }}", sanitizeError(err.Error())})
 		hub.CaptureException(err)
 	})
 }
