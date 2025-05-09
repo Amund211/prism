@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"regexp"
 	"time"
@@ -30,6 +31,12 @@ func Report(ctx context.Context, err error, extras ...map[string]string) {
 		logger.Warn("Failed to get Sentry hub from context", "Error:", err, "Extras:", extras)
 		return
 	}
+
+	logger.Error(
+		"Reporting error to Sentry",
+		slog.String("error", err.Error()),
+		slog.Any("extras", extras),
+	)
 
 	hub.WithScope(func(scope *sentry.Scope) {
 		meta := MetaFromContext(ctx)
