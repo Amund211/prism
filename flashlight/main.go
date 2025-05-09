@@ -79,7 +79,7 @@ func main() {
 		"GET /v1/playerdata",
 		ports.MakeGetPlayerDataHandler(
 			getAndPersistPlayerWithCache,
-			logger.With("component", "getPlayerData"),
+			logger.With("port", "playerdata"),
 			sentryMiddleware,
 		),
 	)
@@ -93,7 +93,7 @@ func main() {
 		ports.MakeGetHistoryHandler(
 			getHistory,
 			allowedOrigins,
-			logger.With("component", "history"),
+			logger.With("port", "history"),
 			sentryMiddleware,
 		),
 	)
@@ -107,7 +107,7 @@ func main() {
 		ports.MakeGetSessionsHandler(
 			getSessions,
 			allowedOrigins,
-			logger.With("component", "sessions"),
+			logger.With("port", "sessions"),
 			sentryMiddleware,
 		),
 	)
@@ -117,7 +117,7 @@ func main() {
 		"GET /playerdata",
 		ports.MakeGetPlayerDataHandler(
 			getAndPersistPlayerWithCache,
-			logger.With("component", "getPlayerData"),
+			logger.With("port", "playerdata"),
 			sentryMiddleware,
 		),
 	)
