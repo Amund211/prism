@@ -55,6 +55,7 @@ func MakeGetPlayerDataHandler(
 	middleware := ComposeMiddlewares(
 		logging.NewRequestLoggerMiddleware(logger),
 		sentryMiddleware,
+		reporting.AddMetaMiddleware,
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
 	)

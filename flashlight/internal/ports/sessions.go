@@ -32,6 +32,7 @@ func MakeGetSessionsHandler(
 	middleware := ComposeMiddlewares(
 		logging.NewRequestLoggerMiddleware(logger),
 		sentryMiddleware,
+		reporting.AddMetaMiddleware,
 		BuildCORSMiddleware(allowedOrigins),
 		NewRateLimitMiddleware(
 			ipRatelimiter,

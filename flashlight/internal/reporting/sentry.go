@@ -69,7 +69,7 @@ func Report(ctx context.Context, err error, extras ...map[string]string) {
 	})
 }
 
-func addMetaMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func AddMetaMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
@@ -106,9 +106,8 @@ func InitSentryMiddleware(sentryDSN string) (func(http.HandlerFunc) http.Handler
 
 	// Wrap sentry middleware in a http.HandlerFunc
 	middleware := func(next http.HandlerFunc) http.HandlerFunc {
-		withAddTags := addMetaMiddleware(next)
 		return func(w http.ResponseWriter, r *http.Request) {
-			sentryHandler.HandleFunc(withAddTags).ServeHTTP(w, r)
+			sentryHandler.HandleFunc(next).ServeHTTP(w, r)
 		}
 	}
 
