@@ -65,9 +65,9 @@ func TestIPKeyFunc(t *testing.T) {
 	}
 }
 
-func TestUserIdKeyFunc(t *testing.T) {
+func TestUserIDKeyFunc(t *testing.T) {
 	cases := []struct {
-		userId string
+		userID string
 		key    string
 	}{
 		// Standard user ids (uuid)
@@ -81,16 +81,16 @@ func TestUserIdKeyFunc(t *testing.T) {
 		{strings.Repeat("1", 1000), "user-id: " + strings.Repeat("1", 50)},
 	}
 	for _, c := range cases {
-		t.Run(c.userId, func(t *testing.T) {
+		t.Run(c.userID, func(t *testing.T) {
 			request := &http.Request{
-				Header: http.Header{"X-User-Id": []string{c.userId}},
+				Header: http.Header{"X-User-Id": []string{c.userID}},
 			}
-			require.Equal(t, c.key, UserIdKeyFunc(request))
+			require.Equal(t, c.key, UserIDKeyFunc(request))
 		})
 	}
 	t.Run("missing", func(t *testing.T) {
 		request := &http.Request{}
-		require.Equal(t, "user-id: <missing>", UserIdKeyFunc(request))
+		require.Equal(t, "user-id: <missing>", UserIDKeyFunc(request))
 	})
 }
 

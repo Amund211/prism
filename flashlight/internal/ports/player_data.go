@@ -28,13 +28,13 @@ func MakeGetPlayerDataHandler(
 		),
 		ratelimiting.IPKeyFunc,
 	)
-	userIdRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
+	userIDRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		// NOTE: Rate limiting based on user controlled value
 		ratelimiting.NewTokenBucketRateLimiter(
 			ratelimiting.RefillPerSecond(2),
 			ratelimiting.BurstSize(120),
 		),
-		ratelimiting.UserIdKeyFunc,
+		ratelimiting.UserIDKeyFunc,
 	)
 
 	makeOnLimitExceeded := func(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {
@@ -56,19 +56,19 @@ func MakeGetPlayerDataHandler(
 		logging.NewRequestLoggerMiddleware(logger),
 		sentryMiddleware,
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
-		NewRateLimitMiddleware(userIdRateLimiter, makeOnLimitExceeded(userIdRateLimiter)),
+		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
 	)
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		rawUUID := r.URL.Query().Get("uuid")
-		userId := r.Header.Get("X-User-Id")
-		ctx = reporting.SetUserIDInContext(ctx, userId)
-		if userId == "" {
-			userId = "<missing>"
+		userID := r.Header.Get("X-User-Id")
+		ctx = reporting.SetUserIDInContext(ctx, userID)
+		if userID == "" {
+			userID = "<missing>"
 		}
 		ctx = logging.AddMetaToContext(ctx,
-			slog.String("userId", userId),
+			slog.String("userID", userID),
 			slog.String("uuid", rawUUID),
 		)
 		logger := logging.FromContext(ctx)

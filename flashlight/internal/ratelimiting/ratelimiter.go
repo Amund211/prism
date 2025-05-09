@@ -77,7 +77,7 @@ func IPKeyFunc(r *http.Request) string {
 	return fmt.Sprintf("ip: %s", withoutPort)
 }
 
-func UserIdKeyFunc(r *http.Request) string {
+func UserIDKeyFunc(r *http.Request) string {
 	userId := r.Header.Get("X-User-Id")
 	if userId == "" {
 		userId = "<missing>"
