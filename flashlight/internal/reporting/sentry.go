@@ -69,26 +69,29 @@ func Report(ctx context.Context, err error, extras ...map[string]string) {
 	})
 }
 
-func AddMetaMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+func NewAddMetaMiddleware(port string) func(http.HandlerFunc) http.HandlerFunc {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
 
-		userAgent := r.UserAgent()
-		if userAgent == "" {
-			userAgent = "<missing>"
+			userAgent := r.UserAgent()
+			if userAgent == "" {
+				userAgent = "<missing>"
+			}
+			methodPath := fmt.Sprintf("%s %s", r.Method, r.URL.Path)
+
+			ctx = AddTagsToContext(ctx,
+				map[string]string{
+					"port":       port,
+					"userAgent":  userAgent,
+					"methodPath": methodPath,
+				},
+			)
+
+			ctx = setStartedAtInContext(ctx, time.Now())
+
+			next(w, r.WithContext(ctx))
 		}
-		methodPath := fmt.Sprintf("%s %s", r.Method, r.URL.Path)
-
-		ctx = AddTagsToContext(ctx,
-			map[string]string{
-				"userAgent":  userAgent,
-				"methodPath": methodPath,
-			},
-		)
-
-		ctx = setStartedAtInContext(ctx, time.Now())
-
-		next(w, r.WithContext(ctx))
 	}
 }
 

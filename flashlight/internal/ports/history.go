@@ -32,7 +32,7 @@ func MakeGetHistoryHandler(
 	middleware := ComposeMiddlewares(
 		logging.NewRequestLoggerMiddleware(logger),
 		sentryMiddleware,
-		reporting.AddMetaMiddleware,
+		reporting.NewAddMetaMiddleware("history"),
 		BuildCORSMiddleware(allowedOrigins),
 		NewRateLimitMiddleware(
 			ipRatelimiter,
