@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -71,16 +70,16 @@ func TestGetOrCreateSingle(t *testing.T) {
 
 	go func() {
 		client := clients[0]
-		assert.Equal(t, 0, client.server.currentTick)
+		require.Equal(t, 0, client.server.currentTick)
 
 		data, err := GetOrCreate(context.Background(), client, "key1", createCallback(1))
-		assert.Nil(t, err)
-		assert.Equal(t, "data1", string(data))
-		assert.Equal(t, 0, client.server.currentTick)
+		require.Nil(t, err)
+		require.Equal(t, "data1", string(data))
+		require.Equal(t, 0, client.server.currentTick)
 
 		client.wait()
 
-		assert.Equal(t, 1, client.server.currentTick)
+		require.Equal(t, 1, client.server.currentTick)
 
 		client.waitUntilDone()
 	}()
@@ -94,14 +93,14 @@ func TestGetOrCreateMultiple(t *testing.T) {
 	go func() {
 		client := clients[0]
 		data, err := GetOrCreate(context.Background(), client, "key1", createCallback(1))
-		assert.Nil(t, err)
-		assert.Equal(t, "data1", string(data))
-		assert.Equal(t, 0, client.server.currentTick)
+		require.Nil(t, err)
+		require.Equal(t, "data1", string(data))
+		require.Equal(t, 0, client.server.currentTick)
 
 		data, err = GetOrCreate(context.Background(), client, "key2", withWait(client, 2, createCallback(2)))
-		assert.Nil(t, err)
-		assert.Equal(t, "data2", string(data))
-		assert.Equal(t, 2, client.server.currentTick)
+		require.Nil(t, err)
+		require.Equal(t, "data2", string(data))
+		require.Equal(t, 2, client.server.currentTick)
 
 		client.waitUntilDone()
 	}()
@@ -110,17 +109,17 @@ func TestGetOrCreateMultiple(t *testing.T) {
 		client := clients[1]
 		client.wait() // Wait for the first client to populate the cache
 		data, err := GetOrCreate(context.Background(), client, "key1", createUnreachable(t))
-		assert.Nil(t, err)
-		assert.Equal(t, "data1", string(data))
-		assert.Equal(t, 1, client.server.currentTick)
+		require.Nil(t, err)
+		require.Equal(t, "data1", string(data))
+		require.Equal(t, 1, client.server.currentTick)
 
 		data, err = GetOrCreate(context.Background(), client, "key2", createUnreachable(t))
-		assert.Nil(t, err)
-		assert.Equal(t, "data2", string(data))
+		require.Nil(t, err)
+		require.Equal(t, "data2", string(data))
 		// The fist client will insert this during the second tick
 		// If our second tick processes after the first client's we will get it in the second tick
 		// If our second tick processes before the first client's we will get it in the third tick
-		assert.True(t, client.server.currentTick == 2 || client.server.currentTick == 3)
+		require.True(t, client.server.currentTick == 2 || client.server.currentTick == 3)
 
 		client.waitUntilDone()
 	}()
@@ -134,8 +133,8 @@ func TestGetOrCreateErrorRetries(t *testing.T) {
 	go func() {
 		client := clients[0]
 		_, err := GetOrCreate(context.Background(), client, "key1", withWait(client, 2, createErrorCallback(1)))
-		assert.NotNil(t, err)
-		assert.Equal(t, 2, client.server.currentTick)
+		require.NotNil(t, err)
+		require.Equal(t, 2, client.server.currentTick)
 
 		client.waitUntilDone()
 	}()
@@ -147,9 +146,9 @@ func TestGetOrCreateErrorRetries(t *testing.T) {
 		// This should wait for the first client to finish (not storing a result due to an error)
 		// then it should retry and get the result
 		data, err := GetOrCreate(context.Background(), client, "key1", withWait(client, 2, createCallback(1)))
-		assert.Nil(t, err)
-		assert.Equal(t, "data1", string(data))
-		assert.True(t, client.server.currentTick == 4 || client.server.currentTick == 5)
+		require.Nil(t, err)
+		require.Equal(t, "data1", string(data))
+		require.True(t, client.server.currentTick == 4 || client.server.currentTick == 5)
 
 		client.waitUntilDone()
 	}()

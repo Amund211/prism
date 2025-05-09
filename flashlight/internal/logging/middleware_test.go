@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type StringAttr struct {
@@ -40,16 +40,16 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 
 		var logEntry map[string]interface{}
 		err := json.Unmarshal(buf.Bytes(), &logEntry)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		attrs := make([]StringAttr, 0)
 
 		foundBase := 0
 		for key, value := range logEntry {
 			if key == "msg" {
-				assert.Equal(t, "test", value)
+				require.Equal(t, "test", value)
 				foundBase++
 			} else if key == "level" {
-				assert.Equal(t, "INFO", value)
+				require.Equal(t, "INFO", value)
 				foundBase++
 			} else if key == "time" {
 				foundBase++
@@ -60,7 +60,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 			}
 		}
 
-		assert.Equal(t, 4, foundBase)
+		require.Equal(t, 4, foundBase)
 
 		return attrs
 	}
@@ -68,7 +68,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 	t.Run("with middleware", func(t *testing.T) {
 		t.Run("all props", func(t *testing.T) {
 			requestUrl, err := url.Parse("http://example.com/my-path?uuid=requested-uuid")
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			attrs := run(&http.Request{
 				URL:    requestUrl,
@@ -78,7 +78,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 				},
 			}, true)
 
-			assert.ElementsMatch(t, []StringAttr{
+			require.ElementsMatch(t, []StringAttr{
 				{Key: "userAgent", Value: "user-agent/1.0"},
 				{Key: "methodPath", Value: "GET /my-path"},
 			}, attrs)
@@ -86,14 +86,14 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 
 		t.Run("bad request", func(t *testing.T) {
 			requestUrl, err := url.Parse("http://example.com/my-other-path")
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			attrs := run(&http.Request{
 				URL:    requestUrl,
 				Method: "POST",
 			}, true)
 
-			assert.ElementsMatch(t, []StringAttr{
+			require.ElementsMatch(t, []StringAttr{
 				{Key: "userAgent", Value: "<missing>"},
 				{Key: "methodPath", Value: "POST /my-other-path"},
 			}, attrs)

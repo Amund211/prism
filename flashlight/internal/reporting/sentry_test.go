@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSanitizeError(t *testing.T) {
 	t.Run("connection reset by peer", func(t *testing.T) {
 		err := `Server error: Get "https://api.hypixel.net/player?uuid=deadbeef8315465d9d44cfc238c64f71": read tcp [dead:beef:feb1:d745::c001]:64079->[dead:beef::6811:112a]:443: read: connection reset by peer`
 		want := `Server error: Get "https://api.hypixel.net/player?uuid=<uuid>": read tcp <host>-><host>: read: connection reset by peer`
-		assert.Equal(t, want, sanitizeError(err))
+		require.Equal(t, want, sanitizeError(err))
 	})
 	t.Run("context deadline", func(t *testing.T) {
 		err := `Server error: Get "https://api.hypixel.net/player?uuid=deadbeef810845ca8424cf7ba5929a3e": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`
 		want := `Server error: Get "https://api.hypixel.net/player?uuid=<uuid>": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`
-		assert.Equal(t, want, sanitizeError(err))
+		require.Equal(t, want, sanitizeError(err))
 	})
 	t.Run("misc ipv6", func(t *testing.T) {
 		ips := []string{
@@ -47,7 +47,7 @@ func TestSanitizeError(t *testing.T) {
 		}
 		for _, ip := range ips {
 			t.Run(ip, func(t *testing.T) {
-				assert.Equal(t, "<host>", sanitizeError(fmt.Sprintf("[%s]:1234", ip)))
+				require.Equal(t, "<host>", sanitizeError(fmt.Sprintf("[%s]:1234", ip)))
 			})
 		}
 	})

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const apiKey = "key"
@@ -28,8 +29,8 @@ type mockedHttpClient struct {
 }
 
 func (m *mockedHttpClient) Do(req *http.Request) (*http.Response, error) {
-	assert.Equal(m.t, m.expectedURL, req.URL.String())
-	assert.True(m.t, reflect.DeepEqual(expectedHeaders, req.Header), "Expected %v, got %v", expectedHeaders, req.Header)
+	require.Equal(m.t, m.expectedURL, req.URL.String())
+	require.True(m.t, reflect.DeepEqual(expectedHeaders, req.Header), "Expected %v, got %v", expectedHeaders, req.Header)
 
 	return m.response, m.requestErr
 }
@@ -71,10 +72,10 @@ func TestGetPlayerData(t *testing.T) {
 
 		data, statusCode, queriedAt, err := hypixelAPI.GetPlayerData(context.Background(), "uuid1234")
 
-		assert.Nil(t, err)
-		assert.Equal(t, 200, statusCode)
-		assert.Equal(t, `{"success":true,"player":null}`, string(data))
-		assert.WithinDuration(t, expectedQueriedAt, queriedAt, time.Second)
+		require.Nil(t, err)
+		require.Equal(t, 200, statusCode)
+		require.Equal(t, `{"success":true,"player":null}`, string(data))
+		require.WithinDuration(t, expectedQueriedAt, queriedAt, time.Second)
 	})
 
 	t.Run("request error", func(t *testing.T) {
@@ -88,7 +89,7 @@ func TestGetPlayerData(t *testing.T) {
 		hypixelAPI := NewHypixelAPI(httpClient, apiKey)
 
 		_, _, _, err := hypixelAPI.GetPlayerData(context.Background(), "uuid123456")
-		assert.ErrorIs(t, err, assert.AnError)
+		require.ErrorIs(t, err, assert.AnError)
 	})
 
 	t.Run("body read error", func(t *testing.T) {
@@ -104,6 +105,6 @@ func TestGetPlayerData(t *testing.T) {
 		hypixelAPI := NewHypixelAPI(httpClient, apiKey)
 
 		_, _, _, err := hypixelAPI.GetPlayerData(context.Background(), "uuid")
-		assert.ErrorIs(t, err, assert.AnError)
+		require.ErrorIs(t, err, assert.AnError)
 	})
 }

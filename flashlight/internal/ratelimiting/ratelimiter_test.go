@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type mockedRateLimiter struct {
@@ -24,28 +24,28 @@ func TestTokenBucketRateLimiter(t *testing.T) {
 	}
 	rateLimiter := NewTokenBucketRateLimiter(RefillPerSecond(1), BurstSize(2))
 
-	assert.True(t, rateLimiter.Consume("user2"))
+	require.True(t, rateLimiter.Consume("user2"))
 
 	// Burst of 2
-	assert.True(t, rateLimiter.Consume("user1"))
-	assert.True(t, rateLimiter.Consume("user1"))
-	assert.False(t, rateLimiter.Consume("user1"))
+	require.True(t, rateLimiter.Consume("user1"))
+	require.True(t, rateLimiter.Consume("user1"))
+	require.False(t, rateLimiter.Consume("user1"))
 
 	time.Sleep(1000 * time.Millisecond)
 	runtime.Gosched()
 
 	// Refill rate of 1
-	assert.True(t, rateLimiter.Consume("user1"))
-	assert.False(t, rateLimiter.Consume("user1"))
+	require.True(t, rateLimiter.Consume("user1"))
+	require.False(t, rateLimiter.Consume("user1"))
 
 	// Burst of 2 - even after refill
-	assert.True(t, rateLimiter.Consume("user3"))
-	assert.True(t, rateLimiter.Consume("user3"))
-	assert.False(t, rateLimiter.Consume("user3"))
+	require.True(t, rateLimiter.Consume("user3"))
+	require.True(t, rateLimiter.Consume("user3"))
+	require.False(t, rateLimiter.Consume("user3"))
 
-	assert.True(t, rateLimiter.Consume("user2"))
-	assert.True(t, rateLimiter.Consume("user2"))
-	assert.False(t, rateLimiter.Consume("user2"))
+	require.True(t, rateLimiter.Consume("user2"))
+	require.True(t, rateLimiter.Consume("user2"))
+	require.False(t, rateLimiter.Consume("user2"))
 }
 
 func TestIPKeyFunc(t *testing.T) {
@@ -60,7 +60,7 @@ func TestIPKeyFunc(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.remoteAddr, func(t *testing.T) {
 			request := &http.Request{RemoteAddr: c.remoteAddr}
-			assert.Equal(t, c.key, IPKeyFunc(request))
+			require.Equal(t, c.key, IPKeyFunc(request))
 		})
 	}
 }
@@ -85,12 +85,12 @@ func TestUserIdKeyFunc(t *testing.T) {
 			request := &http.Request{
 				Header: http.Header{"X-User-Id": []string{c.userId}},
 			}
-			assert.Equal(t, c.key, UserIdKeyFunc(request))
+			require.Equal(t, c.key, UserIdKeyFunc(request))
 		})
 	}
 	t.Run("missing", func(t *testing.T) {
 		request := &http.Request{}
-		assert.Equal(t, "user-id: <missing>", UserIdKeyFunc(request))
+		require.Equal(t, "user-id: <missing>", UserIdKeyFunc(request))
 	})
 }
 
@@ -100,7 +100,7 @@ func TestRequestBasedRateLimiter(t *testing.T) {
 	rateLimiter := &mockedRateLimiter{
 		consumeFunc: func(key string) bool {
 			t.Helper()
-			assert.Equal(t, expectedKey, key)
+			require.Equal(t, expectedKey, key)
 			return allowed
 		},
 	}
@@ -108,16 +108,16 @@ func TestRequestBasedRateLimiter(t *testing.T) {
 
 	expectedKey = "ip: 1.1.1.1"
 	allowed = true
-	assert.True(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
-	assert.True(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
+	require.True(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
+	require.True(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
 	allowed = false
-	assert.False(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
+	require.False(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
 
 	expectedKey = "ip: 2.1.1.1"
 	allowed = true
-	assert.True(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "2.1.1.1"}))
+	require.True(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "2.1.1.1"}))
 
 	expectedKey = "ip: 1.1.1.1"
 	allowed = false
-	assert.False(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
+	require.False(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
 }
