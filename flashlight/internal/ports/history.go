@@ -74,6 +74,13 @@ func MakeGetHistoryHandler(
 			return
 		}
 
+		ctx = logging.AddMetaToContext(ctx,
+			slog.String("uuid", uuid),
+			slog.String("start", request.Start.Format(time.RFC3339)),
+			slog.String("end", request.End.Format(time.RFC3339)),
+			slog.Int("limit", request.Limit),
+		)
+
 		history, err := getHistory(ctx, uuid, request.Start, request.End, request.Limit)
 		if err != nil {
 			// NOTE: GetHistory implementations handle their own error reporting

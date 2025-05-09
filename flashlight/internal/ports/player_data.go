@@ -59,10 +59,23 @@ func MakeGetPlayerDataHandler(
 		NewRateLimitMiddleware(userIdRateLimiter, makeOnLimitExceeded(userIdRateLimiter)),
 	)
 
+	loggerWithMeta := func(ctx context.Context, rawUUID string, r *http.Request) *slog.Logger {
+		userId := r.Header.Get("X-User-Id")
+		if userId == "" {
+			userId = "<missing>"
+		}
+
+		ctx = logging.AddMetaToContext(ctx,
+			slog.String("userId", userId),
+			slog.String("uuid", rawUUID),
+		)
+		return logging.FromContext(ctx)
+	}
+
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		logger := logging.FromContext(ctx)
 		rawUUID := r.URL.Query().Get("uuid")
+		logger := loggerWithMeta(ctx, rawUUID, r)
 
 		uuid, err := strutils.NormalizeUUID(rawUUID)
 		if err != nil {

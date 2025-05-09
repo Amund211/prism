@@ -71,6 +71,12 @@ func MakeGetSessionsHandler(
 			return
 		}
 
+		ctx = logging.AddMetaToContext(ctx,
+			slog.String("uuid", uuid),
+			slog.String("start", request.Start.Format(time.RFC3339)),
+			slog.String("end", request.End.Format(time.RFC3339)),
+		)
+
 		sessions, err := getSessions(ctx, uuid, request.Start, request.End)
 		if err != nil {
 			// NOTE: GetSessions implementations handle their own error reporting
