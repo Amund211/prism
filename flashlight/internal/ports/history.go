@@ -65,15 +65,24 @@ func MakeGetHistoryHandler(
 			return
 		}
 
+		ctx = reporting.AddExtrasToContext(ctx, map[string]string{
+			"start": request.Start.Format(time.RFC3339),
+			"end":   request.End.Format(time.RFC3339),
+			"limit": strconv.Itoa(request.Limit),
+		})
+
 		uuid, err := strutils.NormalizeUUID(request.UUID)
 		if err != nil {
 			reporting.Report(ctx, fmt.Errorf("failed to normalize UUID: %w", err), map[string]string{
-				"uuid": request.UUID,
+				"rawUUID": request.UUID,
 			})
 			http.Error(w, "invalid uuid", http.StatusBadRequest)
 			return
 		}
 
+		ctx = reporting.AddExtrasToContext(ctx, map[string]string{
+			"uuid": uuid,
+		})
 		ctx = logging.AddMetaToContext(ctx,
 			slog.String("uuid", uuid),
 			slog.String("start", request.Start.Format(time.RFC3339)),

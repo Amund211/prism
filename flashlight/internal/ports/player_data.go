@@ -59,23 +59,25 @@ func MakeGetPlayerDataHandler(
 		NewRateLimitMiddleware(userIdRateLimiter, makeOnLimitExceeded(userIdRateLimiter)),
 	)
 
-	loggerWithMeta := func(ctx context.Context, rawUUID string, r *http.Request) *slog.Logger {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		rawUUID := r.URL.Query().Get("uuid")
 		userId := r.Header.Get("X-User-Id")
+		ctx = reporting.SetUserIDInContext(ctx, userId)
 		if userId == "" {
 			userId = "<missing>"
 		}
-
 		ctx = logging.AddMetaToContext(ctx,
 			slog.String("userId", userId),
 			slog.String("uuid", rawUUID),
 		)
-		return logging.FromContext(ctx)
-	}
+		logger := logging.FromContext(ctx)
 
-	handler := func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		rawUUID := r.URL.Query().Get("uuid")
-		logger := loggerWithMeta(ctx, rawUUID, r)
+		ctx = reporting.AddExtrasToContext(ctx,
+			map[string]string{
+				"rawUUID": rawUUID,
+			},
+		)
 
 		uuid, err := strutils.NormalizeUUID(rawUUID)
 		if err != nil {
@@ -88,6 +90,12 @@ func MakeGetPlayerDataHandler(
 			logger.Info("Returning response", "statusCode", statusCode, "reason", "invalid uuid")
 			return
 		}
+
+		ctx = reporting.AddExtrasToContext(ctx,
+			map[string]string{
+				"uuid": uuid,
+			},
+		)
 
 		player, err := getAndPersistPlayerWithCache(ctx, uuid)
 		if errors.Is(err, domain.ErrPlayerNotFound) {

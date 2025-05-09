@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
@@ -34,12 +33,7 @@ func BuildGetHistory(
 
 		if !strutils.UUIDIsNormalized(uuid) {
 			err := fmt.Errorf("UUID is not normalized")
-			reporting.Report(ctx, err, map[string]string{
-				"uuid":  uuid,
-				"start": start.Format(time.RFC3339),
-				"end":   end.Format(time.RFC3339),
-				"limit": strconv.Itoa(limit),
-			})
+			reporting.Report(ctx, err)
 			return nil, err
 		}
 

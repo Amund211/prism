@@ -40,9 +40,7 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 	if err != nil {
 		err := fmt.Errorf("failed to create request: %w", err)
 		logger.Error(err.Error())
-		reporting.Report(ctx, err, map[string]string{
-			"uuid": uuid,
-		})
+		reporting.Report(ctx, err)
 		return []byte{}, -1, time.Time{}, err
 	}
 
@@ -53,9 +51,7 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 	if err != nil {
 		err := fmt.Errorf("failed to send request: %w", err)
 		logger.Error(err.Error())
-		reporting.Report(ctx, err, map[string]string{
-			"uuid": uuid,
-		})
+		reporting.Report(ctx, err)
 		return []byte{}, -1, time.Time{}, err
 	}
 
@@ -66,9 +62,7 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 	if err != nil {
 		err := fmt.Errorf("failed to read response body: %w", err)
 		logger.Error(err.Error())
-		reporting.Report(ctx, err, map[string]string{
-			"uuid": uuid,
-		})
+		reporting.Report(ctx, err)
 		return []byte{}, -1, time.Time{}, err
 	}
 

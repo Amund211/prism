@@ -14,8 +14,6 @@ import (
 	sentryhttp "github.com/getsentry/sentry-go/http"
 )
 
-type startedAtContextKey struct{}
-
 var uuidRx = regexp.MustCompile(`[0-9a-f]{8}-?([0-9a-f]{4}-?){3}[0-9a-f]{12}`)
 var hostRx = regexp.MustCompile(`\[:{0,2}([0-9a-f]{0,4}:?){1,8}\]:\d+`)
 
@@ -34,6 +32,18 @@ func Report(ctx context.Context, err error, extras ...map[string]string) {
 	}
 
 	hub.WithScope(func(scope *sentry.Scope) {
+		meta := MetaFromContext(ctx)
+		scope.SetTags(meta.tags)
+		for key, value := range meta.extras {
+			scope.SetExtra(key, value)
+		}
+		if meta.userID != "" {
+			scope.SetUser(sentry.User{
+				ID: meta.userID,
+			})
+		}
+		scope.SetExtra("secondsSinceStart", time.Since(meta.startedAt).Seconds())
+
 		for _, extra := range extras {
 			if extra == nil {
 				continue
@@ -41,11 +51,6 @@ func Report(ctx context.Context, err error, extras ...map[string]string) {
 			for key, value := range extra {
 				scope.SetExtra(key, value)
 			}
-		}
-
-		startedAt, ok := ctx.Value(startedAtContextKey{}).(time.Time)
-		if ok {
-			scope.SetExtra("secondsSinceStart", time.Since(startedAt).Seconds())
 		}
 
 		if err == nil {
@@ -57,34 +62,26 @@ func Report(ctx context.Context, err error, extras ...map[string]string) {
 	})
 }
 
-func addTagsMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func addMetaMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		hub := sentry.GetHubFromContext(ctx)
-		if hub == nil {
-			logging.FromContext(r.Context()).Warn("Failed to get Sentry hub from context")
-			next(w, r)
-			return
+		userAgent := r.UserAgent()
+		if userAgent == "" {
+			userAgent = "<missing>"
 		}
+		methodPath := fmt.Sprintf("%s %s", r.Method, r.URL.Path)
 
-		hub.ConfigureScope(func(scope *sentry.Scope) {
-			scope.SetTag("user-agent", r.Header.Get("User-Agent"))
+		ctx = AddTagsToContext(ctx,
+			map[string]string{
+				"userAgent":  userAgent,
+				"methodPath": methodPath,
+			},
+		)
 
-			uuid := r.URL.Query().Get("uuid")
-			if uuid == "" {
-				uuid = "<missing>"
-			}
-			scope.SetTag("uuid", uuid)
+		ctx = setStartedAtInContext(ctx, time.Now())
 
-			userId := r.Header.Get("X-User-Id")
-			if userId != "" {
-				scope.SetUser(sentry.User{ID: userId})
-			}
-		})
-
-		ctxWithStartedAt := context.WithValue(ctx, startedAtContextKey{}, time.Now())
-		next(w, r.WithContext(ctxWithStartedAt))
+		next(w, r.WithContext(ctx))
 	}
 }
 
@@ -102,7 +99,7 @@ func InitSentryMiddleware(sentryDSN string) (func(http.HandlerFunc) http.Handler
 
 	// Wrap sentry middleware in a http.HandlerFunc
 	middleware := func(next http.HandlerFunc) http.HandlerFunc {
-		withAddTags := addTagsMiddleware(next)
+		withAddTags := addMetaMiddleware(next)
 		return func(w http.ResponseWriter, r *http.Request) {
 			sentryHandler.HandleFunc(withAddTags).ServeHTTP(w, r)
 		}

@@ -45,9 +45,7 @@ func BuildGetAndPersistPlayerWithCache(playerCache cache.Cache[*domain.PlayerPIT
 		if !strutils.UUIDIsNormalized(uuid) {
 			logging.FromContext(ctx).Error("UUID is not normalized", "uuid", uuid)
 			err := fmt.Errorf("UUID is not normalized")
-			reporting.Report(ctx, err, map[string]string{
-				"uuid": uuid,
-			})
+			reporting.Report(ctx, err)
 			return nil, err
 		}
 

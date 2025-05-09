@@ -134,7 +134,6 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 			ctx,
 			err,
 			map[string]string{
-				"uuid":       uuid,
 				"statusCode": fmt.Sprint(statusCode),
 				"data":       string(playerData),
 			},
@@ -164,7 +163,6 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 			ctx,
 			err,
 			map[string]string{
-				"uuid":       uuid,
 				"statusCode": fmt.Sprint(statusCode),
 				"data":       string(playerData),
 			},
@@ -182,7 +180,6 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 			ctx,
 			err,
 			map[string]string{
-				"uuid":       uuid,
 				"statusCode": fmt.Sprint(statusCode),
 				"data":       string(playerData),
 			},
