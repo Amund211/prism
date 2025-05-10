@@ -69,7 +69,7 @@ func MakeGetPlayerDataHandler(
 			userID = "<missing>"
 		}
 		ctx = logging.AddMetaToContext(ctx,
-			slog.String("userID", userID),
+			slog.String("userId", userID),
 			slog.String("uuid", rawUUID),
 		)
 		logger := logging.FromContext(ctx)
