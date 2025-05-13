@@ -15,9 +15,9 @@ function RouteComponent() {
         <Stack spacing={1}>
             <meta
                 name="description"
-                content={`Search for player's session stats, including daily, weekly, and monthly stats, as well as a progression towards stat milestones, and individual session breakdowns.`}
+                content="Search for player's session stats, including daily, weekly, and monthly stats, as well as a progression towards stat milestones, and individual session breakdowns."
             />
-            <link rel="canonical" href={`https://prismoverlay.com/session`} />
+            <link rel="canonical" href="https://prismoverlay.com/session" />
             <UserSearch
                 onSubmit={(uuid) => {
                     visitPlayer(uuid);
