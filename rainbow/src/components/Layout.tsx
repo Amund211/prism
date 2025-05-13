@@ -1,5 +1,6 @@
 import {
     CalendarMonth,
+    Download,
     Menu as MenuIcon,
     MenuOpen,
     Settings,
@@ -168,6 +169,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                 <ListItemText primary="History explorer" />
                             </RouterMenuItem>
                             <RouterMenuItem
+                                selected={location.pathname === "/downloads"}
+                                to="/downloads"
+                                onClick={handleCloseMenu}
+                            >
+                                <ListItemIcon>
+                                    <Download />
+                                </ListItemIcon>
+                                <ListItemText primary="Downloads" />
+                            </RouterMenuItem>
+                            <RouterMenuItem
                                 selected={location.pathname === "/settings"}
                                 to="/settings"
                                 onClick={handleCloseMenu}
@@ -276,6 +287,17 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                     <CalendarMonth />
                                 </ListItemIcon>
                                 <ListItemText primary="History explorer" />
+                            </RouterLinkItemButton>
+                        </ListItem>
+                        <ListItem disablePadding>
+                            <RouterLinkItemButton
+                                selected={location.pathname === "/downloads"}
+                                to="/downloads"
+                            >
+                                <ListItemIcon>
+                                    <Download />
+                                </ListItemIcon>
+                                <ListItemText primary="Downloads" />
                             </RouterLinkItemButton>
                         </ListItem>
                         <ListItem disablePadding>

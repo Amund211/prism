@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root.tsx'
 import { Route as SettingsImport } from './routes/settings.tsx'
+import { Route as DownloadsImport } from './routes/downloads.tsx'
 import { Route as IndexImport } from './routes/index.tsx'
 import { Route as SessionIndexImport } from './routes/session/index.tsx'
 import { Route as SessionUuidImport } from './routes/session/$uuid.tsx'
@@ -22,6 +23,12 @@ import { Route as HistoryExploreImport } from './routes/history.explore.tsx'
 const SettingsRoute = SettingsImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DownloadsRoute = DownloadsImport.update({
+  id: '/downloads',
+  path: '/downloads',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -60,6 +67,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/downloads': {
+      id: '/downloads'
+      path: '/downloads'
+      fullPath: '/downloads'
+      preLoaderRoute: typeof DownloadsImport
+      parentRoute: typeof rootRoute
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -95,6 +109,7 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/downloads': typeof DownloadsRoute
   '/settings': typeof SettingsRoute
   '/history/explore': typeof HistoryExploreRoute
   '/session/$uuid': typeof SessionUuidRoute
@@ -103,6 +118,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/downloads': typeof DownloadsRoute
   '/settings': typeof SettingsRoute
   '/history/explore': typeof HistoryExploreRoute
   '/session/$uuid': typeof SessionUuidRoute
@@ -112,6 +128,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/downloads': typeof DownloadsRoute
   '/settings': typeof SettingsRoute
   '/history/explore': typeof HistoryExploreRoute
   '/session/$uuid': typeof SessionUuidRoute
@@ -122,15 +139,23 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/downloads'
     | '/settings'
     | '/history/explore'
     | '/session/$uuid'
     | '/session'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/settings' | '/history/explore' | '/session/$uuid' | '/session'
+  to:
+    | '/'
+    | '/downloads'
+    | '/settings'
+    | '/history/explore'
+    | '/session/$uuid'
+    | '/session'
   id:
     | '__root__'
     | '/'
+    | '/downloads'
     | '/settings'
     | '/history/explore'
     | '/session/$uuid'
@@ -140,6 +165,7 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DownloadsRoute: typeof DownloadsRoute
   SettingsRoute: typeof SettingsRoute
   HistoryExploreRoute: typeof HistoryExploreRoute
   SessionUuidRoute: typeof SessionUuidRoute
@@ -148,6 +174,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DownloadsRoute: DownloadsRoute,
   SettingsRoute: SettingsRoute,
   HistoryExploreRoute: HistoryExploreRoute,
   SessionUuidRoute: SessionUuidRoute,
@@ -165,6 +192,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/downloads",
         "/settings",
         "/history/explore",
         "/session/$uuid",
@@ -173,6 +201,9 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/downloads": {
+      "filePath": "downloads.tsx"
     },
     "/settings": {
       "filePath": "settings.tsx"
