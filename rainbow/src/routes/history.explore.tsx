@@ -100,9 +100,16 @@ export const Route = createFileRoute("/history/explore")({
             ...uuids.map((uuid) =>
                 queryClient.fetchQuery(getUsernameQueryOptions(uuid)),
             ),
-        ]).catch((e: unknown) => {
-            // TODO: Report error
-            console.error(e);
+        ]).catch((error: unknown) => {
+            captureException(error, {
+                extra: {
+                    uuids: rawUUIDs,
+                    start,
+                    end,
+                    limit,
+                    message: "Failed to fetch history + username data",
+                },
+            });
         });
     },
     validateSearch: historyExploreSearchSchema,

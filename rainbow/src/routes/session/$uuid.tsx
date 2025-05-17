@@ -154,9 +154,16 @@ export const Route = createFileRoute("/session/$uuid")({
                 }),
             ),
             queryClient.fetchQuery(getUsernameQueryOptions(uuid)),
-        ]).catch((e: unknown) => {
-            // TODO: Report error
-            console.error(e);
+        ]).catch((error: unknown) => {
+            captureException(error, {
+                extra: {
+                    uuid,
+                    trackingInterval,
+                    timeIntervals,
+                    message:
+                        "Failed to fetch history + tracking history + username data",
+                },
+            });
         });
     },
     validateSearch: sessionSearchSchema,
