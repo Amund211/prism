@@ -24,4 +24,7 @@ jobs:
               run: npm test
 
             - name: Build
+              env:
+                  # Upload source maps on every build
+                  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
               run: npm run build
