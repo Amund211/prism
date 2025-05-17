@@ -51,6 +51,7 @@ import { QueryStats } from "@mui/icons-material";
 import React from "react";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
+import { captureException } from "@sentry/react";
 
 const defaultStart = new Date();
 defaultStart.setHours(0, 0, 0, 0);
@@ -265,11 +266,15 @@ function Index() {
                             };
                         },
                     }).catch((error: unknown) => {
-                        // TODO: Handle error
-                        console.error(
-                            "Failed to update search params: uuids",
-                            error,
-                        );
+                        captureException(error, {
+                            tags: {
+                                param: "uuids",
+                            },
+                            extra: {
+                                message: "Failed to update search params",
+                                uuids: newUUIDs,
+                            },
+                        });
                     });
                 }}
             />
@@ -289,11 +294,15 @@ function Index() {
                                 gamemodes: newGamemodes,
                             }),
                         }).catch((error: unknown) => {
-                            // TODO: Handle error
-                            console.error(
-                                "Failed to update search params: gamemodes",
-                                error,
-                            );
+                            captureException(error, {
+                                tags: {
+                                    param: "gamemodes",
+                                },
+                                extra: {
+                                    message: "Failed to update search params",
+                                    gamemodes: newGamemodes,
+                                },
+                            });
                         });
                     }}
                 >
@@ -317,11 +326,15 @@ function Index() {
                                 stats: newStats,
                             }),
                         }).catch((error: unknown) => {
-                            // TODO: Handle error
-                            console.error(
-                                "Failed to update search params: stats",
-                                error,
-                            );
+                            captureException(error, {
+                                tags: {
+                                    param: "stats",
+                                },
+                                extra: {
+                                    message: "Failed to update search params",
+                                    stats: newStats,
+                                },
+                            });
                         });
                     }}
                 >
@@ -380,11 +393,16 @@ function Index() {
                                     start: newDate.toDate(),
                                 }),
                             }).catch((error: unknown) => {
-                                // TODO: Handle error
-                                console.error(
-                                    "Failed to update search params: start",
-                                    error,
-                                );
+                                captureException(error, {
+                                    tags: {
+                                        param: "start",
+                                    },
+                                    extra: {
+                                        message:
+                                            "Failed to update search params",
+                                        start: newDate.toDate(),
+                                    },
+                                });
                             });
                         }}
                     />
@@ -401,11 +419,16 @@ function Index() {
                                     end: newDate.toDate(),
                                 }),
                             }).catch((error: unknown) => {
-                                // TODO: Handle error
-                                console.error(
-                                    "Failed to update search params: end",
-                                    error,
-                                );
+                                captureException(error, {
+                                    tags: {
+                                        param: "end",
+                                    },
+                                    extra: {
+                                        message:
+                                            "Failed to update search params",
+                                        end: newDate.toDate(),
+                                    },
+                                });
                             });
                         }}
                     />

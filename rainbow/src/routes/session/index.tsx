@@ -2,6 +2,7 @@ import { UserSearch } from "#components/UserSearch.tsx";
 import { Stack } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
+import { captureException } from "@sentry/react";
 
 export const Route = createFileRoute("/session/")({
     component: RouteComponent,
@@ -34,11 +35,15 @@ function RouteComponent() {
                             showExtrapolatedSessions: false,
                         },
                     }).catch((error: unknown) => {
-                        // TODO: Handle error
-                        console.error(
-                            "Failed to update search params: uuid",
-                            error,
-                        );
+                        captureException(error, {
+                            tags: {
+                                param: "uuid",
+                            },
+                            extra: {
+                                message: "Failed to update search params",
+                                uuid,
+                            },
+                        });
                     });
                 }}
             />

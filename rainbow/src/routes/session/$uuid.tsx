@@ -74,6 +74,7 @@ import React, { type JSX } from "react";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { addExtrapolatedSessions } from "#helpers/session.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
+import { captureException } from "@sentry/react";
 
 const sessionSearchSchema = z.object({
     timeIntervalDefinition: fallback(
@@ -366,11 +367,17 @@ const Sessions: React.FC<SessionsProps> = ({
                                                         checked,
                                                 }),
                                             }).catch((error: unknown) => {
-                                                // TODO: Handle error
-                                                console.error(
-                                                    "Failed to update search params: showExtrapolatedSessions",
-                                                    error,
-                                                );
+                                                captureException(error, {
+                                                    tags: {
+                                                        param: "showExtrapolatedSessions",
+                                                    },
+                                                    extra: {
+                                                        message:
+                                                            "Failed to update search params",
+                                                        showExtrapolatedSessions:
+                                                            checked,
+                                                    },
+                                                });
                                             });
                                         }}
                                     />
@@ -1283,11 +1290,15 @@ function RouteComponent() {
                         params: { uuid },
                         search: (oldSearch) => oldSearch,
                     }).catch((error: unknown) => {
-                        // TODO: Handle error
-                        console.error(
-                            "Failed to update search params: uuid",
-                            error,
-                        );
+                        captureException(error, {
+                            tags: {
+                                param: "uuid",
+                            },
+                            extra: {
+                                message: "Failed to update search params",
+                                uuid,
+                            },
+                        });
                     });
                 }}
             />
@@ -1327,11 +1338,15 @@ function RouteComponent() {
                                 timeIntervalDefinition: newInterval,
                             }),
                         }).catch((error: unknown) => {
-                            // TODO: Handle error
-                            console.error(
-                                "Failed to update search params: timeIntervalDefinition",
-                                error,
-                            );
+                            captureException(error, {
+                                tags: {
+                                    param: "timeIntervalDefinition",
+                                },
+                                extra: {
+                                    message: "Failed to update search params",
+                                    timeIntervalDefinition: newInterval,
+                                },
+                            });
                         });
                     }}
                 />
@@ -1350,11 +1365,15 @@ function RouteComponent() {
                                 gamemode: newGamemode,
                             }),
                         }).catch((error: unknown) => {
-                            // TODO: Handle error
-                            console.error(
-                                "Failed to update search params: gamemode",
-                                error,
-                            );
+                            captureException(error, {
+                                tags: {
+                                    param: "gamemode",
+                                },
+                                extra: {
+                                    message: "Failed to update search params",
+                                    gamemode: newGamemode,
+                                },
+                            });
                         });
                     }}
                 >
@@ -1383,11 +1402,15 @@ function RouteComponent() {
                                         : "session",
                             }),
                         }).catch((error: unknown) => {
-                            // TODO: Handle error
-                            console.error(
-                                "Failed to update search params: stat",
-                                error,
-                            );
+                            captureException(error, {
+                                tags: {
+                                    param: "stat",
+                                },
+                                extra: {
+                                    message: "Failed to update search params",
+                                    stat: newStat,
+                                },
+                            });
                         });
                     }}
                 >

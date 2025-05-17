@@ -5,6 +5,7 @@ import { useUUIDToUsername } from "#queries/username.ts";
 import { Delete } from "@mui/icons-material";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
+import { captureException } from "@sentry/react";
 
 const RouterLinkButton = createLink(Button);
 
@@ -51,11 +52,15 @@ function RouteComponent() {
                             showExtrapolatedSessions: false,
                         },
                     }).catch((error: unknown) => {
-                        // TODO: Handle error
-                        console.error(
-                            "Failed to update search params: gamemode",
-                            error,
-                        );
+                        captureException(error, {
+                            tags: {
+                                param: "gamemode",
+                            },
+                            extra: {
+                                message: "Failed to update search params",
+                                gamemode: "overall",
+                            },
+                        });
                     });
                 }}
                 size="medium"
