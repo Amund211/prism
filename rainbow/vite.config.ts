@@ -29,6 +29,7 @@ export default defineConfig(({ mode }) => {
                 authToken: process.env.SENTRY_AUTH_TOKEN,
                 org: "prism-overlay",
                 project: "rainbow",
+                telemetry: false,
                 bundleSizeOptimizations: {
                     excludeDebugStatements: true,
                     // Only relevant if you added `browserTracingIntegration`
