@@ -9,10 +9,15 @@ import {
     TableHead,
     TableRow,
     Typography,
+    useColorScheme,
 } from "@mui/material";
 import downloadWindowsURL from "#media/download_windows.png";
 import downloadMacURL from "#media/download_mac.png";
 import downloadLinuxURL from "#media/download_linux.png";
+import tuxURL from "#media/tux.svg";
+import windowsLogoURL from "#media/windows_logo.svg";
+import macLogoURL from "#media/mac_logo.svg";
+import macLogoGreyURL from "#media/mac_logo_grey.svg";
 
 type OS = "Linux" | "Windows" | "Mac OS";
 
@@ -127,6 +132,76 @@ const getOS = (): OS | "Unknown" => {
     }
 };
 
+const getOSLogoImage = (os: OS, colorScheme: "light" | "dark") => {
+    switch (os) {
+        case "Linux":
+            return {
+                url: tuxURL,
+                aspectRatio: 1,
+            };
+        case "Windows":
+            return {
+                url: windowsLogoURL,
+                aspectRatio: 1,
+            };
+        case "Mac OS":
+            if (colorScheme === "dark") {
+                return {
+                    url: macLogoGreyURL,
+                    aspectRatio: 1,
+                };
+            }
+            return {
+                url: macLogoURL,
+                aspectRatio: 814 / 1000,
+            };
+    }
+};
+
+const OSLogo = ({ os, height }: { os: OS; height: number }) => {
+    const { mode, systemMode } = useColorScheme();
+    const activeMode = mode === "system" ? systemMode : mode;
+    const image = getOSLogoImage(os, activeMode ?? "light");
+
+    return (
+        <img
+            src={image.url}
+            alt={`${os} logo`}
+            width={height * image.aspectRatio}
+            height={height}
+        />
+    );
+};
+
+const OSLogoAttribution = ({ os }: { os: OS }) => {
+    const getAttributionId = (os: OS) => {
+        switch (os) {
+            case "Windows":
+                return "windows-logo";
+            case "Mac OS":
+                return "mac-logo";
+            case "Linux":
+                return "linux-logo";
+        }
+    };
+    const getAttributionText = (os: OS) => {
+        switch (os) {
+            case "Windows":
+                return "[1]";
+            case "Mac OS":
+                return "[2]";
+            case "Linux":
+                return "[3]";
+        }
+    };
+
+    return (
+        <a href={`#${getAttributionId(os)}`}>
+            <Typography variant="body1">{getAttributionText(os)}</Typography>
+        </a>
+    );
+};
+
 const osLabel = (os: OS) => {
     switch (os) {
         case "Linux":
@@ -189,9 +264,18 @@ function RouteComponent() {
                                             </a>
                                         </TableCell>
                                         <TableCell>
-                                            <Typography variant="body1">
-                                                {osLabel(download.os)}
-                                            </Typography>
+                                            <Stack direction="row" gap={1}>
+                                                <OSLogoAttribution
+                                                    os={download.os}
+                                                />
+                                                <OSLogo
+                                                    os={download.os}
+                                                    height={20}
+                                                />
+                                                <Typography variant="body1">
+                                                    {osLabel(download.os)}
+                                                </Typography>
+                                            </Stack>
                                         </TableCell>
                                         <TableCell align="right">
                                             <Typography variant="body1">
@@ -253,9 +337,7 @@ const LatestDownloadWindows = () => {
             <a href={download.link} download>
                 <img src={downloadWindowsURL} alt="Download for Windows" />
             </a>
-            <a href="#windows-logo">
-                <Typography variant="body1">[1]</Typography>
-            </a>
+            <OSLogoAttribution os="Windows" />
         </Stack>
     );
 };
@@ -269,9 +351,7 @@ const LatestDownloadMac = () => {
             <a href={download.link} download>
                 <img src={downloadMacURL} alt="Download for Mac" />
             </a>
-            <a href="#mac-logo">
-                <Typography variant="body1">[3]</Typography>
-            </a>
+            <OSLogoAttribution os="Mac OS" />
         </Stack>
     );
 };
@@ -285,9 +365,7 @@ const LatestDownloadLinux = () => {
             <a href={download.link} download>
                 <img src={downloadLinuxURL} alt="Download for Linux" />
             </a>
-            <a href="#linux-logo">
-                <Typography variant="body1">[3]</Typography>
-            </a>
+            <OSLogoAttribution os="Linux" />
         </Stack>
     );
 };
