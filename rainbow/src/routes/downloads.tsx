@@ -28,19 +28,19 @@ const DOWNLOADS: Download[] = [
         os: "Windows",
         version: "1.9.0",
         releasedAt: new Date("2024-09-18T18:44:37Z"),
-        link: "https://downloads.prismoverlay.com/prism-v1.9.0-windows.exe",
+        link: "https://github.com/Amund211/prism/releases/download/v1.9.0/prism-v1.9.0-windows.exe",
     },
     {
         os: "Linux",
         version: "1.9.0",
         releasedAt: new Date("2024-09-18T18:44:37Z"),
-        link: "https://downloads.prismoverlay.com/prism-v1.9.0-linux",
+        link: "https://github.com/Amund211/prism/releases/download/v1.9.0/prism-v1.9.0-linux",
     },
     {
         os: "Mac OS",
         version: "1.9.0",
         releasedAt: new Date("2024-09-18T18:44:37Z"),
-        link: "https://downloads.prismoverlay.com/prism-v1.9.0-mac.dmg",
+        link: "https://github.com/Amund211/prism/releases/download/v1.9.0/prism-v1.9.0-mac.dmg",
     },
     {
         os: "Linux",
