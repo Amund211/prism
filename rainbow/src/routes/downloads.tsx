@@ -31,12 +31,6 @@ const DOWNLOADS: Download[] = [
         link: "https://github.com/Amund211/prism/releases/download/v1.9.0/prism-v1.9.0-windows.exe",
     },
     {
-        os: "Linux",
-        version: "1.9.0",
-        releasedAt: new Date("2024-09-18T18:44:37Z"),
-        link: "https://github.com/Amund211/prism/releases/download/v1.9.0/prism-v1.9.0-linux",
-    },
-    {
         os: "Mac OS",
         version: "1.9.0",
         releasedAt: new Date("2024-09-18T18:44:37Z"),
@@ -44,15 +38,9 @@ const DOWNLOADS: Download[] = [
     },
     {
         os: "Linux",
-        version: "1.8.0",
-        releasedAt: new Date("2024-09-06T22:31:59Z"),
-        link: "https://github.com/Amund211/prism/releases/download/v1.8.0/prism-v1.8.0-linux",
-    },
-    {
-        os: "Mac OS",
-        version: "1.8.0",
-        releasedAt: new Date("2024-09-06T22:31:59Z"),
-        link: "https://github.com/Amund211/prism/releases/download/v1.8.0/prism-v1.8.0-mac.dmg",
+        version: "1.9.0",
+        releasedAt: new Date("2024-09-18T18:44:37Z"),
+        link: "https://github.com/Amund211/prism/releases/download/v1.9.0/prism-v1.9.0-linux",
     },
     {
         os: "Windows",
@@ -61,16 +49,16 @@ const DOWNLOADS: Download[] = [
         link: "https://github.com/Amund211/prism/releases/download/v1.8.0/prism-v1.8.0-windows.exe",
     },
     {
-        os: "Linux",
-        version: "1.7.0",
-        releasedAt: new Date("2024-08-09T16:32:24Z"),
-        link: "https://github.com/Amund211/prism/releases/download/v1.7.0/prism-v1.7.0-linux",
+        os: "Mac OS",
+        version: "1.8.0",
+        releasedAt: new Date("2024-09-06T22:31:59Z"),
+        link: "https://github.com/Amund211/prism/releases/download/v1.8.0/prism-v1.8.0-mac.dmg",
     },
     {
-        os: "Mac OS",
-        version: "1.7.0",
-        releasedAt: new Date("2024-08-09T16:32:24Z"),
-        link: "https://github.com/Amund211/prism/releases/download/v1.7.0/prism-v1.7.0-mac.dmg",
+        os: "Linux",
+        version: "1.8.0",
+        releasedAt: new Date("2024-09-06T22:31:59Z"),
+        link: "https://github.com/Amund211/prism/releases/download/v1.8.0/prism-v1.8.0-linux",
     },
     {
         os: "Windows",
@@ -79,10 +67,22 @@ const DOWNLOADS: Download[] = [
         link: "https://github.com/Amund211/prism/releases/download/v1.7.0/prism-v1.7.0-windows.exe",
     },
     {
+        os: "Mac OS",
+        version: "1.7.0",
+        releasedAt: new Date("2024-08-09T16:32:24Z"),
+        link: "https://github.com/Amund211/prism/releases/download/v1.7.0/prism-v1.7.0-mac.dmg",
+    },
+    {
         os: "Linux",
+        version: "1.7.0",
+        releasedAt: new Date("2024-08-09T16:32:24Z"),
+        link: "https://github.com/Amund211/prism/releases/download/v1.7.0/prism-v1.7.0-linux",
+    },
+    {
+        os: "Windows",
         version: "1.6.0",
         releasedAt: new Date("2024-03-31T20:52:46Z"),
-        link: "https://github.com/Amund211/prism/releases/download/v1.6.0/prism-v1.6.0-linux",
+        link: "https://github.com/Amund211/prism/releases/download/v1.6.0/prism-v1.6.0-windows.exe",
     },
     {
         os: "Mac OS",
@@ -91,10 +91,10 @@ const DOWNLOADS: Download[] = [
         link: "https://github.com/Amund211/prism/releases/download/v1.6.0/prism-v1.6.0-mac.dmg",
     },
     {
-        os: "Windows",
+        os: "Linux",
         version: "1.6.0",
         releasedAt: new Date("2024-03-31T20:52:46Z"),
-        link: "https://github.com/Amund211/prism/releases/download/v1.6.0/prism-v1.6.0-windows.exe",
+        link: "https://github.com/Amund211/prism/releases/download/v1.6.0/prism-v1.6.0-linux",
     },
 ];
 
