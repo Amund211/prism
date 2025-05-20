@@ -399,9 +399,9 @@ const Sessions: React.FC<SessionsProps> = ({
                                             variant="body2"
                                             color="textSecondary"
                                         >
-                                            Add non-prism sessions
+                                            Add missing data
                                         </Typography>
-                                        <Tooltip title="Show the player's stats between sessions recorded by the Prism Overlay. These sessions may include stats from multiple sessions, and the duration may be incorrect.">
+                                        <Tooltip title="Show the player's stats between sessions recorded by the Prism Overlay. This data may include stats from multiple sessions, and the duration may be incorrect.">
                                             <InfoOutlined fontSize="small" />
                                         </Tooltip>
                                     </Stack>
@@ -538,7 +538,7 @@ const Sessions: React.FC<SessionsProps> = ({
                                                         align="center"
                                                     >
                                                         {session.extrapolated && (
-                                                            <Tooltip title="The Prism Overlay has not recorded the player's stats during this time. This may be due to the player not using the Prism Overlay; therefore the duration may be incorrect, and the session may include stats from multiple sessions.">
+                                                            <Tooltip title="The Prism Overlay has not recorded the player's stats during this time. This may be due to the player not using the Prism Overlay; therefore the duration may be incorrect, and the data may include stats from multiple sessions.">
                                                                 <InfoOutlined fontSize="small" />
                                                             </Tooltip>
                                                         )}
