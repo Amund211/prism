@@ -29,8 +29,14 @@ function RouteComponent() {
                             <AccountCircle />
                         </ListItemIcon>
                         <ListItemText>
-                            <a href="https://crafatar.com">Crafatar</a> for
-                            providing avatars.
+                            <a
+                                href="https://crafatar.com"
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                Crafatar
+                            </a>{" "}
+                            for providing avatars.
                         </ListItemText>
                     </ListItem>
                     <ListItem>
@@ -38,7 +44,13 @@ function RouteComponent() {
                             <Badge />
                         </ListItemIcon>
                         <ListItemText>
-                            <a href="https://api.minetools.eu/">MineTools</a>{" "}
+                            <a
+                                href="https://api.minetools.eu/"
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                MineTools
+                            </a>{" "}
                             for providing UUID/username conversion.
                         </ListItemText>
                     </ListItem>
