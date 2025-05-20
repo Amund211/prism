@@ -185,6 +185,10 @@ const computeQuotientProgression = (
         trendingUpward,
     };
 };
+
+export const ERR_NO_DATA = "No data";
+export const ERR_TRACKING_STARTED = "Tracking started!";
+
 export const computeStatProgression = (
     trackingHistory: History | undefined,
     trackingEnd: Date,
@@ -193,11 +197,11 @@ export const computeStatProgression = (
     gamemode: GamemodeKey,
 ): StatProgression | { error: true; reason: string } => {
     if (trackingHistory === undefined || trackingHistory.length === 0) {
-        return { error: true, reason: "No data" };
+        return { error: true, reason: ERR_NO_DATA };
     }
 
     if (trackingHistory.length === 1) {
-        return { error: true, reason: "Not enough data" };
+        return { error: true, reason: ERR_TRACKING_STARTED };
     }
 
     if (trackingHistory.length > 2) {
