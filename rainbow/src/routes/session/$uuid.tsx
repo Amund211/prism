@@ -1394,7 +1394,6 @@ function RouteComponent() {
                     <Avatar
                         key={uuid}
                         alt={`Profile picture for ${username ?? "unknown"}`}
-                        // TODO: Attribution - https://crafatar.com/#meta-attribution
                         src={`https://crafatar.com/avatars/${uuid}?overlay`}
                         variant="square"
                     />

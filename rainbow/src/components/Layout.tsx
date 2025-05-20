@@ -1,6 +1,7 @@
 import {
     CalendarMonth,
     Download,
+    Info,
     Menu as MenuIcon,
     MenuOpen,
     Settings,
@@ -188,6 +189,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                 </ListItemIcon>
                                 <ListItemText primary="Settings" />
                             </RouterMenuItem>
+                            <RouterMenuItem
+                                selected={location.pathname === "/about"}
+                                to="/about"
+                                onClick={handleCloseMenu}
+                            >
+                                <ListItemIcon>
+                                    <Info />
+                                </ListItemIcon>
+                                <ListItemText primary="About" />
+                            </RouterMenuItem>
                         </Menu>
                     </Stack>
                 </Toolbar>
@@ -309,6 +320,17 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                     <Settings />
                                 </ListItemIcon>
                                 <ListItemText primary="Settings" />
+                            </RouterLinkItemButton>
+                        </ListItem>
+                        <ListItem disablePadding>
+                            <RouterLinkItemButton
+                                selected={location.pathname === "/about"}
+                                to="/about"
+                            >
+                                <ListItemIcon>
+                                    <Info />
+                                </ListItemIcon>
+                                <ListItemText primary="About" />
                             </RouterLinkItemButton>
                         </ListItem>
                     </List>

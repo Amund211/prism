@@ -95,7 +95,6 @@ function RouteComponent() {
                         >
                             <Stack alignItems="center" gap={1}>
                                 <Avatar
-                                    // TODO: Attribution - https://crafatar.com/#meta-attribution
                                     src={`https://crafatar.com/renders/head/${uuid}?overlay`}
                                     alt={`Player head of ${uuidToUsername[uuid] ?? "unknown"}`}
                                 />

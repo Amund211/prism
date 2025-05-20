@@ -108,7 +108,6 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                     {...optionProps}
                 >
                     <Avatar
-                        // TODO: Attribution - https://crafatar.com/#meta-attribution
                         src={`https://crafatar.com/renders/head/${uuid}?overlay`}
                         alt={`Player head of ${uuidToUsername[uuid] ?? "unknown"}`}
                     />
@@ -147,7 +146,6 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                                 style={{
                                     backgroundColor: "rgba(0, 0, 0, 0)",
                                 }}
-                                // TODO: Attribution - https://crafatar.com/#meta-attribution
                                 src={`https://crafatar.com/renders/head/${uuid}?overlay`}
                                 alt={`Player head of ${uuidToUsername[uuid] ?? "unknown"}`}
                             />

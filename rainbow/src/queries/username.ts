@@ -29,7 +29,6 @@ export const getUsernameQueryOptions = (
             }
 
             const response = await fetch(
-                // TODO: Attribution
                 `${env.VITE_MINETOOLS_API_URL}/uuid/${uuid}`,
             ).catch((error: unknown) => {
                 captureException(error, {

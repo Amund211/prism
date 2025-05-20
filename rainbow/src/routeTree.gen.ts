@@ -13,6 +13,7 @@
 import { Route as rootRoute } from './routes/__root.tsx'
 import { Route as SettingsImport } from './routes/settings.tsx'
 import { Route as DownloadsImport } from './routes/downloads.tsx'
+import { Route as AboutImport } from './routes/about.tsx'
 import { Route as IndexImport } from './routes/index.tsx'
 import { Route as SessionIndexImport } from './routes/session/index.tsx'
 import { Route as SessionUuidImport } from './routes/session/$uuid.tsx'
@@ -29,6 +30,12 @@ const SettingsRoute = SettingsImport.update({
 const DownloadsRoute = DownloadsImport.update({
   id: '/downloads',
   path: '/downloads',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AboutRoute = AboutImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -65,6 +72,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutImport
       parentRoute: typeof rootRoute
     }
     '/downloads': {
@@ -109,6 +123,7 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/downloads': typeof DownloadsRoute
   '/settings': typeof SettingsRoute
   '/history/explore': typeof HistoryExploreRoute
@@ -118,6 +133,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/downloads': typeof DownloadsRoute
   '/settings': typeof SettingsRoute
   '/history/explore': typeof HistoryExploreRoute
@@ -128,6 +144,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/downloads': typeof DownloadsRoute
   '/settings': typeof SettingsRoute
   '/history/explore': typeof HistoryExploreRoute
@@ -139,6 +156,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/downloads'
     | '/settings'
     | '/history/explore'
@@ -147,6 +165,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/downloads'
     | '/settings'
     | '/history/explore'
@@ -155,6 +174,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/downloads'
     | '/settings'
     | '/history/explore'
@@ -165,6 +185,7 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   DownloadsRoute: typeof DownloadsRoute
   SettingsRoute: typeof SettingsRoute
   HistoryExploreRoute: typeof HistoryExploreRoute
@@ -174,6 +195,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   DownloadsRoute: DownloadsRoute,
   SettingsRoute: SettingsRoute,
   HistoryExploreRoute: HistoryExploreRoute,
@@ -192,6 +214,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/about",
         "/downloads",
         "/settings",
         "/history/explore",
@@ -201,6 +224,9 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/about": {
+      "filePath": "about.tsx"
     },
     "/downloads": {
       "filePath": "downloads.tsx"
