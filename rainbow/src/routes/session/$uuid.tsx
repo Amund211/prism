@@ -26,6 +26,8 @@ import {
 } from "#stats/labels.ts";
 import {
     computeStatProgression,
+    ERR_NO_DATA,
+    ERR_TRACKING_STARTED,
     type StatProgression,
 } from "#stats/progression.ts";
 import {
@@ -1137,8 +1139,37 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
         return null;
     }
 
+    const noDataComponent = (
+        <Card variant="outlined" sx={{ height: "100%" }}>
+            <CardContent>
+                <Typography variant="subtitle2">
+                    {`${getGamemodeLabel(gamemode, true)} ${getFullStatLabel(stat)} milestone progress`}
+                </Typography>
+
+                <Typography variant="body1">
+                    <Skeleton variant="text" width={120} />
+                </Typography>
+
+                <Stack
+                    direction="row"
+                    gap={1}
+                    alignItems="center"
+                    justifyContent="space-between"
+                >
+                    <Typography variant="body1">
+                        <Skeleton variant="text" width={200} />
+                    </Typography>
+
+                    <Typography variant="caption">
+                        <Skeleton variant="text" width={240} />
+                    </Typography>
+                </Stack>
+            </CardContent>
+        </Card>
+    );
+
     if (trackingHistory === undefined || trackingHistory.length === 0) {
-        return "No data";
+        return noDataComponent;
     }
     const currentStats = trackingHistory[trackingHistory.length - 1];
 
@@ -1160,7 +1191,49 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
     );
 
     if (progression.error) {
-        return progression.reason;
+        switch (progression.reason) {
+            case ERR_TRACKING_STARTED:
+                return (
+                    <Card variant="outlined" sx={{ height: "100%" }}>
+                        <CardContent>
+                            <Typography variant="subtitle2">
+                                {`${getGamemodeLabel(gamemode, true)} ${getFullStatLabel(stat)} milestone progress`}
+                            </Typography>
+                            <Stack
+                                pt={1}
+                                gap={1}
+                                direction="row"
+                                alignItems="center"
+                            >
+                                <Tooltip title="The player's stats have been recorded by the Prism Overlay. Come back later to see their updated stat progression.">
+                                    <Info color="info" fontSize="small" />
+                                </Tooltip>
+                                <Typography variant="body2">
+                                    Tracking started!
+                                </Typography>
+                            </Stack>
+                        </CardContent>
+                    </Card>
+                );
+            case ERR_NO_DATA:
+                return noDataComponent;
+        }
+
+        return (
+            <Card variant="outlined" sx={{ height: "100%" }}>
+                <CardContent>
+                    <Typography variant="subtitle2">
+                        {`${getGamemodeLabel(gamemode, true)} ${getFullStatLabel(stat)} milestone progress`}
+                    </Typography>
+                    <Stack pt={1} gap={1} direction="row" alignItems="center">
+                        <Info color="error" fontSize="small" />
+                        <Typography variant="body2">
+                            {progression.reason}
+                        </Typography>
+                    </Stack>
+                </CardContent>
+            </Card>
+        );
     }
 
     const projectedMilestoneDate = new Date(
