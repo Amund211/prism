@@ -328,7 +328,7 @@ const Sessions: React.FC<SessionsProps> = ({
                         <Tooltip title="The player has no recorded sessions with the Prism overlay in the given time interval. They have either not played, or played without using the Prism Overlay.">
                             <Info color="error" fontSize="small" />
                         </Tooltip>
-                        <Typography variant="body1">
+                        <Typography variant="body2">
                             No sessions found
                         </Typography>
                     </Stack>
