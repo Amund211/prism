@@ -21,49 +21,60 @@ function RouteComponent() {
                 content="Learn more about the Prism Overlay, a tool for Hypixel Bedwars that shows the stats of all players in your game and automatically tracks your progress. Use it to view your session stats and compare your stats with other players."
             />
             <link rel="canonical" href="https://prismoverlay.com/about" />
-            <Stack>
-                <Typography variant="h6">Thanks</Typography>
-                <List>
-                    <ListItem>
-                        <ListItemIcon>
-                            <AccountCircle />
-                        </ListItemIcon>
-                        <ListItemText>
-                            <a
-                                href="https://crafatar.com"
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                Crafatar
-                            </a>{" "}
-                            for providing avatars.
-                        </ListItemText>
-                    </ListItem>
-                    <ListItem>
-                        <ListItemIcon>
-                            <Badge />
-                        </ListItemIcon>
-                        <ListItemText>
-                            <a
-                                href="https://api.minetools.eu/"
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                MineTools
-                            </a>{" "}
-                            for providing UUID/username conversion.
-                        </ListItemText>
-                    </ListItem>
-                </List>
-            </Stack>
-
-            <Stack>
-                <Typography variant="h6">Disclaimer</Typography>
-                <Typography variant="body1">
-                    Prism Overlay is not associated with or endorsed by Mojang
-                    Studios or The Hypixel Network.
-                </Typography>
-            </Stack>
+            <Thanks />
+            <Disclaimer />
         </Stack>
     );
 }
+
+const Thanks = () => {
+    return (
+        <Stack>
+            <Typography variant="h6">Thanks</Typography>
+            <List>
+                <ListItem>
+                    <ListItemIcon>
+                        <AccountCircle />
+                    </ListItemIcon>
+                    <ListItemText>
+                        <a
+                            href="https://crafatar.com"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            Crafatar
+                        </a>{" "}
+                        for providing avatars.
+                    </ListItemText>
+                </ListItem>
+                <ListItem>
+                    <ListItemIcon>
+                        <Badge />
+                    </ListItemIcon>
+                    <ListItemText>
+                        <a
+                            href="https://api.minetools.eu/"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            MineTools
+                        </a>{" "}
+                        for providing UUID/username conversion.
+                    </ListItemText>
+                </ListItem>
+            </List>
+        </Stack>
+    );
+};
+
+const Disclaimer = () => {
+    return (
+        <Stack>
+            <Typography variant="h6">Disclaimer</Typography>
+            <Typography variant="body1">
+                Prism Overlay is not associated with or endorsed by Mojang
+                Studios or The Hypixel Network.
+            </Typography>
+        </Stack>
+    );
+};
