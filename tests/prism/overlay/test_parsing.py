@@ -435,6 +435,11 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         InitializeAsEvent("Player1"),
     ),
     (
+        # Initialize as on new new new lunar - v3
+        "[2025-05-22 10:00:48.158] [info]  [10:00:48] [Client thread/INFO]: Setting user: Player1",
+        InitializeAsEvent("Player1"),
+    ),
+    (
         # Initialize as on fabric 1.20
         "[13:03:20] [Render thread/INFO]: Setting user: Player1",
         InitializeAsEvent("Player1"),
