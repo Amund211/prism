@@ -3,12 +3,21 @@ import "#instrumentation.ts"; // Set up Sentry
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { reactErrorHandler } from "@sentry/react";
+import { reactErrorHandler, setUser } from "@sentry/react";
 
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
+
+import { getOrSetUserId } from "#helpers/userId.ts";
+
+const userId = getOrSetUserId(); // Ensure a user ID is set
+
+// Set the user in Sentry
+setUser({
+    id: userId,
+});
 
 import App from "./App.tsx";
 
