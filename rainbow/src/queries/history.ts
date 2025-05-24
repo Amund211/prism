@@ -7,6 +7,7 @@ import {
 } from "./playerdata.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { captureException, captureMessage } from "@sentry/react";
+import { getOrSetUserId } from "#helpers/userId.ts";
 
 type APIHistory = readonly APIPlayerDataPIT[];
 
@@ -59,6 +60,7 @@ export const getHistoryQueryOptions = ({
                 {
                     headers: {
                         "Content-Type": "application/json",
+                        "X-User-Id": getOrSetUserId(),
                     },
                     method: "POST",
                     body: JSON.stringify({
