@@ -24,22 +24,40 @@ func MakeGetSessionsHandler(
 ) http.HandlerFunc {
 	ipRatelimiter := ratelimiting.NewRequestBasedRateLimiter(
 		ratelimiting.NewTokenBucketRateLimiter(
-			ratelimiting.RefillPerSecond(1),
-			ratelimiting.BurstSize(20),
+			ratelimiting.RefillPerSecond(4),
+			ratelimiting.BurstSize(80),
 		),
 		ratelimiting.IPKeyFunc,
 	)
+	userIDRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
+		// NOTE: Rate limiting based on user controlled value
+		ratelimiting.NewTokenBucketRateLimiter(
+			ratelimiting.RefillPerSecond(1),
+			ratelimiting.BurstSize(20),
+		),
+		ratelimiting.UserIDKeyFunc,
+	)
+
+	makeOnLimitExceeded := func(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			logger := logging.FromContext(ctx)
+
+			statusCode := http.StatusTooManyRequests
+
+			logger.Info("Rate limit exceeded", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
+
+			http.Error(w, "Rate limit exceeded", statusCode)
+		}
+	}
+
 	middleware := ComposeMiddlewares(
 		logging.NewRequestLoggerMiddleware(logger),
 		sentryMiddleware,
 		reporting.NewAddMetaMiddleware("sessions"),
 		BuildCORSMiddleware(allowedOrigins),
-		NewRateLimitMiddleware(
-			ipRatelimiter,
-			func(w http.ResponseWriter, r *http.Request) {
-				http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
-			},
-		),
+		NewRateLimitMiddleware(ipRatelimiter, makeOnLimitExceeded(ipRatelimiter)),
+		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
 	)
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
