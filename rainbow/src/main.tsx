@@ -3,7 +3,7 @@ import "#instrumentation.ts"; // Set up Sentry
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { reactErrorHandler, setUser } from "@sentry/react";
+import { captureMessage, reactErrorHandler, setUser } from "@sentry/react";
 
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
@@ -21,8 +21,16 @@ setUser({
 
 import App from "./App.tsx";
 
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-createRoot(document.getElementById("root")!, {
+const root = document.getElementById("root");
+
+if (!root) {
+    captureMessage("Root element not found", {
+        level: "fatal",
+    });
+    throw new Error("Root element not found");
+}
+
+createRoot(root, {
     // Callback called when an error is thrown and not caught by an ErrorBoundary.
     onUncaughtError: reactErrorHandler((error, errorInfo) => {
         console.warn("Uncaught error", error, errorInfo.componentStack);
