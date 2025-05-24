@@ -62,7 +62,7 @@ func BuildCORSMiddleware(allowedSuffixes *DomainSuffixes) func(http.HandlerFunc)
 
 				if r.Method == http.MethodOptions {
 					w.Header().Set("Access-Control-Allow-Methods", "GET,POST")
-					w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+					w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-User-Id")
 					// TODO: Add longer max age (default 5s) when it works well
 					// w.Header().Set("Access-Control-Max-Age", "3600")
 					w.WriteHeader(http.StatusNoContent)
