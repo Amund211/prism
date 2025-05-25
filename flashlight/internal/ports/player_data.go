@@ -18,7 +18,7 @@ import (
 
 func MakeGetPlayerDataHandler(
 	getAndPersistPlayerWithCache app.GetAndPersistPlayerWithCache,
-	logger *slog.Logger,
+	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 ) http.HandlerFunc {
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
@@ -53,7 +53,7 @@ func MakeGetPlayerDataHandler(
 	}
 
 	middleware := ComposeMiddlewares(
-		logging.NewRequestLoggerMiddleware(logger),
+		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,
 		reporting.NewAddMetaMiddleware("playerdata"),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),

@@ -19,7 +19,7 @@ import (
 func MakeGetSessionsHandler(
 	getSessions app.GetSessions,
 	allowedOrigins *DomainSuffixes,
-	logger *slog.Logger,
+	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 ) http.HandlerFunc {
 	ipRatelimiter := ratelimiting.NewRequestBasedRateLimiter(
@@ -52,7 +52,7 @@ func MakeGetSessionsHandler(
 	}
 
 	middleware := ComposeMiddlewares(
-		logging.NewRequestLoggerMiddleware(logger),
+		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,
 		reporting.NewAddMetaMiddleware("sessions"),
 		BuildCORSMiddleware(allowedOrigins),
@@ -128,7 +128,7 @@ func MakeGetSessionsHandler(
 			return
 		}
 
-		logger.Info("Returning sessions data")
+		logging.FromContext(ctx).Info("Returning sessions data")
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)

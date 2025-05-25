@@ -19,7 +19,7 @@ import (
 func MakeGetHistoryHandler(
 	getHistory app.GetHistory,
 	allowedOrigins *DomainSuffixes,
-	logger *slog.Logger,
+	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 ) http.HandlerFunc {
 	ipRatelimiter := ratelimiting.NewRequestBasedRateLimiter(
@@ -52,7 +52,7 @@ func MakeGetHistoryHandler(
 	}
 
 	middleware := ComposeMiddlewares(
-		logging.NewRequestLoggerMiddleware(logger),
+		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,
 		reporting.NewAddMetaMiddleware("history"),
 		BuildCORSMiddleware(allowedOrigins),
@@ -133,7 +133,7 @@ func MakeGetHistoryHandler(
 			return
 		}
 
-		logger.Info("Returning history data")
+		logging.FromContext(ctx).Info("Returning history data")
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
