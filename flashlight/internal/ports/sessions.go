@@ -128,6 +128,8 @@ func MakeGetSessionsHandler(
 			return
 		}
 
+		logger.Info("Returning sessions data")
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(marshalled)

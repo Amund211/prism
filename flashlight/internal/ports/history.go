@@ -133,6 +133,8 @@ func MakeGetHistoryHandler(
 			return
 		}
 
+		logger.Info("Returning history data")
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(marshalled)
