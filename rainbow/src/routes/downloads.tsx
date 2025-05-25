@@ -18,6 +18,7 @@ import tuxURL from "#media/tux.svg";
 import windowsLogoURL from "#media/windows_logo.svg";
 import macLogoURL from "#media/mac_logo.svg";
 import macLogoGreyURL from "#media/mac_logo_grey.svg";
+import autoWhoURL from "#media/autowho.webp";
 
 type OS = "Linux" | "Windows" | "Mac OS";
 
@@ -222,12 +223,13 @@ function RouteComponent() {
             />
             <link rel="canonical" href="https://prismoverlay.com/downloads" />
             <Stack gap={1} alignItems="center">
-                <LatestDownload />
                 <Typography variant="body1">
                     Get started with real-time statistics and automated stat
                     tracking by downloading the Prism Overlay.
                 </Typography>
+                <LatestDownload />
             </Stack>
+            <AutoWhoVideo />
             <Stack gap={1} alignItems="center" paddingTop={10}>
                 <Typography variant="h5">Archive</Typography>
                 <Stack width="100%" gap={1}>
@@ -314,6 +316,25 @@ function RouteComponent() {
         </Stack>
     );
 }
+
+const AutoWhoVideo = () => {
+    return (
+        <Stack gap={1} alignItems="center">
+            <Stack maxWidth="calc(min(100vw, 800px))" width="100%">
+                <img
+                    alt="Video of a bedwars game starting, with the Prism Overlay in the top left corner. When the game starts, the overlay automatically types '/who' to show all players."
+                    src={autoWhoURL}
+                    width="100%"
+                    aria-describedby="auto-who-video-description"
+                />
+            </Stack>
+            <Typography variant="caption" id="auto-who-video-description">
+                The Prism Overlay automatically typing /who to show all players
+                and displaying their stats.
+            </Typography>
+        </Stack>
+    );
+};
 
 const LatestDownload = () => {
     switch (getOS()) {
