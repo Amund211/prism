@@ -40,6 +40,75 @@ await test("newUserId", async (t) => {
             }
         },
     );
+
+    await t.test("without crypto.randomUUID", async (t) => {
+        let originalRandomUUID: typeof crypto.randomUUID | undefined;
+        t.before(() => {
+            originalRandomUUID = crypto.randomUUID.bind(crypto);
+
+            // Simulate an environment without crypto.randomUUID
+            crypto.randomUUID =
+                undefined as unknown as typeof crypto.randomUUID;
+        });
+        t.after(() => {
+            assert.ok(
+                originalRandomUUID,
+                "crypto.randomUUID should be restored after the test",
+            );
+            crypto.randomUUID = originalRandomUUID;
+        });
+
+        await t.test(
+            "should generate a new user ID like rnb_<random-string>",
+            async (t) => {
+                for (let i = 0; i < 10; i++) {
+                    const userId = newUserId();
+                    await t.test(userId, () => {
+                        assert.ok(
+                            userId.startsWith("rnb_"),
+                            "User ID should start with 'rnb_'",
+                        );
+
+                        const suffix = userId.slice(4);
+
+                        assert.ok(
+                            /^([a-f0-9-]+-){3}([a-f0-9-]+)$/.test(suffix),
+                            "User ID suffix should be a four random hex strings",
+                        );
+
+                        assert.strictEqual(
+                            suffix.split("-").length,
+                            4,
+                            "User ID suffix should consist of 4 parts",
+                        );
+
+                        for (const part of suffix.split("-")) {
+                            assert.strictEqual(
+                                part.length,
+                                12,
+                                "Each part of the user ID suffix should be 12 characters long",
+                            );
+                        }
+                    });
+                }
+            },
+        );
+
+        await t.test(
+            "should generate a new user ID that passes validation",
+            async (t) => {
+                for (let i = 0; i < 10; i++) {
+                    const userId = newUserId();
+                    await t.test(userId, () => {
+                        assert.ok(
+                            validateUserId(userId),
+                            "User ID should be valid",
+                        );
+                    });
+                }
+            },
+        );
+    });
 });
 
 await test("validateUserId", async (t) => {
