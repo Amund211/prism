@@ -5,7 +5,7 @@ import { isNormalizedUUID } from "./uuid.ts";
 
 await test("newUserId", async (t) => {
     await t.test(
-        "should generate a new user ID according to the spec",
+        "should generate a new user ID like rnb_<uuid-v4>",
         async (t) => {
             for (let i = 0; i < 10; i++) {
                 const userId = newUserId();
@@ -21,7 +21,17 @@ await test("newUserId", async (t) => {
                         isNormalizedUUID(suffix),
                         "User ID suffix should be a normalized UUID",
                     );
+                });
+            }
+        },
+    );
 
+    await t.test(
+        "should generate a new user ID that passes validation",
+        async (t) => {
+            for (let i = 0; i < 10; i++) {
+                const userId = newUserId();
+                await t.test(userId, () => {
                     assert.ok(
                         validateUserId(userId),
                         "User ID should be valid",
@@ -30,21 +40,6 @@ await test("newUserId", async (t) => {
             }
         },
     );
-
-    await t.test("should generate a new user ID according to the spec", () => {
-        const userId = newUserId();
-        assert.ok(
-            userId.startsWith("rnb_"),
-            "User ID should start with 'rnb_'",
-        );
-
-        const suffix = userId.slice(4);
-
-        assert.ok(
-            isNormalizedUUID(suffix),
-            "User ID suffix should be a normalized UUID",
-        );
-    });
 });
 
 await test("validateUserId", async (t) => {
