@@ -61,3 +61,34 @@ func BuildGetAndPersistPlayerWithCache(playerCache cache.Cache[*domain.PlayerPIT
 		return player, nil
 	}
 }
+
+// Ensure that the player data is up to date in the repository in the given interval.
+type UpdatePlayerInInterval func(ctx context.Context, uuid string, start, end time.Time) error
+
+func BuildUpdatePlayerInInterval(
+	getAndPersistPlayerWithCache GetAndPersistPlayerWithCache,
+	nowFunc func() time.Time,
+) UpdatePlayerInInterval {
+	return func(ctx context.Context, uuid string, start, end time.Time) error {
+		now := nowFunc()
+
+		if start.After(now) {
+			// The interval is in the future, getting and persisting player data will not affect it
+			return nil
+		}
+
+		if end.Before(now) {
+			// The interval is in the past, getting and persisting player data will not affect it
+			return nil
+		}
+
+		// This is a current interval -> fetch new data and persist it to the repository
+		_, err := getAndPersistPlayerWithCache(ctx, uuid)
+		if err != nil {
+			// NOTE: GetAndPersistPlayerWithCache implementations handle their own error reporting
+			return fmt.Errorf("failed to get updated player data: %w", err)
+		}
+
+		return nil
+	}
+}

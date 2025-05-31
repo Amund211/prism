@@ -8,6 +8,7 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -47,10 +48,6 @@ func TestBuildGetSessions(t *testing.T) {
 	t.Parallel()
 
 	now := time.Now()
-
-	nowFunc := func() time.Time {
-		return now
-	}
 
 	t.Run("now within range", func(t *testing.T) {
 		t.Parallel()
@@ -118,15 +115,26 @@ func TestBuildGetSessions(t *testing.T) {
 					t.Run(sessionsCase.name, func(t *testing.T) {
 						t.Parallel()
 
+						updatePlayerInIntervalCalled := false
+						updatePlayerInInterval := func(ctx context.Context, updateUUID string, start, end time.Time) error {
+							t.Helper()
+							require.Equal(t, uuid, updateUUID)
+							require.WithinDuration(t, timeCase.start, start, 0)
+							require.WithinDuration(t, timeCase.end, end, 0)
+							updatePlayerInIntervalCalled = true
+							return nil
+						}
+
 						getSessions := app.BuildGetSessions(
 							newMockSessionsRepository(t, sessionsCase.sessions, nil),
-							newGetAndPersistPlayerWithCacheForSessions(nil),
-							nowFunc,
+							updatePlayerInInterval,
 						)
 
 						sessions, err := getSessions(context.Background(), uuid, timeCase.start, timeCase.end)
 						require.NoError(t, err)
 						require.Equal(t, sessionsCase.sessions, sessions)
+
+						require.True(t, updatePlayerInIntervalCalled)
 					})
 				}
 			})
@@ -199,23 +207,75 @@ func TestBuildGetSessions(t *testing.T) {
 					t.Run(sessionsCase.name, func(t *testing.T) {
 						t.Parallel()
 
-						getAndPersistPlayerWithCache := func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
-							t.Fatal("should not call getAndPersistPlayerWithCache when now is outside range")
-							return nil, nil
+						updatePlayerInIntervalCalled := false
+						updatePlayerInInterval := func(ctx context.Context, updateUUID string, start, end time.Time) error {
+							t.Helper()
+							require.Equal(t, uuid, updateUUID)
+							require.WithinDuration(t, timeCase.start, start, 0)
+							require.WithinDuration(t, timeCase.end, end, 0)
+							updatePlayerInIntervalCalled = true
+							return nil
 						}
 
 						getSessions := app.BuildGetSessions(
 							newMockSessionsRepository(t, sessionsCase.sessions, nil),
-							getAndPersistPlayerWithCache,
-							nowFunc,
+							updatePlayerInInterval,
 						)
 
 						sessions, err := getSessions(context.Background(), uuid, timeCase.start, timeCase.end)
 						require.NoError(t, err)
 						require.Equal(t, sessionsCase.sessions, sessions)
+
+						require.True(t, updatePlayerInIntervalCalled)
 					})
 				}
 			})
 		}
+	})
+
+	t.Run("update player in interval fails", func(t *testing.T) {
+		t.Parallel()
+
+		uuid := "12345678-1234-1234-1234-123456789012"
+
+		start := time.Date(2024, time.March, 1, 0, 0, 0, 0, time.UTC)
+		end := time.Date(2024, time.March, 31, 23, 59, 59, 999_999_999, time.UTC)
+
+		expectedSessions := []domain.Session{
+			{
+				// NOTE: Stub players
+				Start: domain.PlayerPIT{
+					UUID:       uuid,
+					Experience: 500,
+				},
+				End: domain.PlayerPIT{
+					UUID:       uuid,
+					Experience: 501,
+				},
+				Consecutive: true,
+			},
+		}
+
+		updatePlayerInIntervalCalled := false
+		updatePlayerInInterval := func(ctx context.Context, updateUUID string, updateStart, updateEnd time.Time) error {
+			t.Helper()
+			require.Equal(t, uuid, updateUUID)
+			require.WithinDuration(t, start, updateStart, 0)
+			require.WithinDuration(t, end, updateEnd, 0)
+			updatePlayerInIntervalCalled = true
+			return assert.AnError
+		}
+
+		getSessions := app.BuildGetSessions(
+			newMockSessionsRepository(t, expectedSessions, nil),
+			updatePlayerInInterval,
+		)
+
+		sessions, err := getSessions(context.Background(), uuid, start, end)
+		// Should not error even if updatePlayerInInterval fails
+		require.NoError(t, err)
+		require.Equal(t, expectedSessions, sessions)
+
+		require.True(t, updatePlayerInIntervalCalled)
 	})
 }

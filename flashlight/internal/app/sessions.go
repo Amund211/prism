@@ -20,8 +20,7 @@ type GetSessions = func(
 
 func BuildGetSessions(
 	repo playerrepository.PlayerRepository,
-	getAndPersistPlayerWithCache GetAndPersistPlayerWithCache,
-	nowFunc func() time.Time,
+	updatePlayerInInterval UpdatePlayerInInterval,
 ) GetSessions {
 	return func(ctx context.Context,
 		uuid string,
@@ -35,17 +34,13 @@ func BuildGetSessions(
 			return nil, err
 		}
 
-		now := nowFunc()
-		if start.Before(now) && end.After(now) {
-			// This is a current interval -> update the repo with the latest data
-			_, err := getAndPersistPlayerWithCache(ctx, uuid)
-			if err != nil {
-				// NOTE: GetAndPersistPlayerWithCache implementations handle their own error reporting
-				logger.Error("Failed to get updated player data", "error", err)
+		err := updatePlayerInInterval(ctx, uuid, start, end)
+		if err != nil {
+			// NOTE: UpdatePlayerInInterval implementations handle their own error reporting
+			logger.Error("Failed to update player data in interval", "error", err)
 
-				// NOTE: We continue even though we failed to get updated player data
-				// We may still be able to get the history and fulfill the request
-			}
+			// NOTE: We continue even though we failed to update player data
+			// We may still be able to get the history and fulfill the request
 		}
 
 		sessions, err := repo.GetSessions(ctx, uuid, start, end)

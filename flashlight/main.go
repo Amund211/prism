@@ -70,10 +70,11 @@ func main() {
 	}
 
 	getAndPersistPlayerWithCache := app.BuildGetAndPersistPlayerWithCache(playerCache, provider, repo)
+	updatePlayerInInterval := app.BuildUpdatePlayerInInterval(getAndPersistPlayerWithCache, time.Now)
 
-	getHistory := app.BuildGetHistory(repo, getAndPersistPlayerWithCache, time.Now)
+	getHistory := app.BuildGetHistory(repo, updatePlayerInInterval)
 
-	getSessions := app.BuildGetSessions(repo, getAndPersistPlayerWithCache, time.Now)
+	getSessions := app.BuildGetSessions(repo, updatePlayerInInterval)
 
 	http.HandleFunc(
 		"GET /v1/playerdata",
