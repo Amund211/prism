@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
@@ -33,6 +34,20 @@ func BuildGetHistory(
 		if !strutils.UUIDIsNormalized(uuid) {
 			err := fmt.Errorf("UUID is not normalized")
 			reporting.Report(ctx, err)
+			return nil, err
+		}
+
+		if start.After(end) {
+			err := fmt.Errorf("start time is after end time")
+			reporting.Report(ctx, err)
+			return nil, err
+		}
+
+		if limit < 2 || limit > 1000 {
+			err := fmt.Errorf("invalid limit in app.GetHistory")
+			reporting.Report(ctx, err, map[string]string{
+				"limit": strconv.Itoa(limit),
+			})
 			return nil, err
 		}
 

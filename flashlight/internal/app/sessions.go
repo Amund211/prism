@@ -34,6 +34,12 @@ func BuildGetSessions(
 			return nil, err
 		}
 
+		if start.After(end) {
+			err := fmt.Errorf("start time is after end time")
+			reporting.Report(ctx, err)
+			return nil, err
+		}
+
 		err := updatePlayerInInterval(ctx, uuid, start, end)
 		if err != nil {
 			// NOTE: UpdatePlayerInInterval implementations handle their own error reporting

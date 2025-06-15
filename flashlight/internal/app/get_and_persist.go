@@ -70,6 +70,18 @@ func BuildUpdatePlayerInInterval(
 	nowFunc func() time.Time,
 ) UpdatePlayerInInterval {
 	return func(ctx context.Context, uuid string, start, end time.Time) error {
+		if !strutils.UUIDIsNormalized(uuid) {
+			err := fmt.Errorf("UUID is not normalized")
+			reporting.Report(ctx, err)
+			return err
+		}
+
+		if start.After(end) {
+			err := fmt.Errorf("start time is after end time")
+			reporting.Report(ctx, err)
+			return err
+		}
+
 		now := nowFunc()
 
 		if start.After(now) {
