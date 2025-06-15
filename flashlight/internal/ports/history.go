@@ -117,6 +117,12 @@ func MakeGetHistoryHandler(
 			slog.Int("limit", request.Limit),
 		)
 
+		if request.Start.After(request.End) {
+			reporting.Report(ctx, fmt.Errorf("start time is after end time"))
+			http.Error(w, "Start time cannot be after end time", http.StatusBadRequest)
+			return
+		}
+
 		history, err := getHistory(ctx, uuid, request.Start, request.End, request.Limit)
 		if err != nil {
 			// NOTE: GetHistory implementations handle their own error reporting

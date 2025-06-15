@@ -112,6 +112,12 @@ func MakeGetSessionsHandler(
 			slog.String("end", request.End.Format(time.RFC3339)),
 		)
 
+		if request.Start.After(request.End) {
+			reporting.Report(ctx, fmt.Errorf("start time is after end time"))
+			http.Error(w, "Start time cannot be after end time", http.StatusBadRequest)
+			return
+		}
+
 		sessions, err := getSessions(ctx, uuid, request.Start, request.End)
 		if err != nil {
 			// NOTE: GetSessions implementations handle their own error reporting
