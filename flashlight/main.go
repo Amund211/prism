@@ -11,6 +11,7 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/cache"
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
+	"github.com/Amund211/flashlight/internal/adapters/uuidprovider"
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/domain"
@@ -40,6 +41,8 @@ func main() {
 
 	playerCache := cache.NewTTLCache[*domain.PlayerPIT](1 * time.Minute)
 
+	uuidCache := cache.NewTTLCache[string](24 * time.Hour)
+
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
 	}
@@ -49,7 +52,9 @@ func main() {
 	}
 	logger.Info("Initialized Hypixel API")
 
-	provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+	playerProvider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+
+	uuidProvider := uuidprovider.NewMojangUUIDProvider(httpClient)
 
 	sentryMiddleware, flush, err := reporting.NewSentryMiddlewareOrMock(config)
 	if err != nil {
@@ -69,8 +74,10 @@ func main() {
 		fail("Failed to initialize allowed origins", "error", err.Error())
 	}
 
-	getAndPersistPlayerWithCache := app.BuildGetAndPersistPlayerWithCache(playerCache, provider, repo)
+	getAndPersistPlayerWithCache := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, repo)
 	updatePlayerInInterval := app.BuildUpdatePlayerInInterval(getAndPersistPlayerWithCache, time.Now)
+
+	getUUID := app.BuildGetUUIDWithCache(uuidCache, uuidProvider)
 
 	getHistory := app.BuildGetHistory(repo, updatePlayerInInterval)
 
@@ -81,6 +88,15 @@ func main() {
 		ports.MakeGetPlayerDataHandler(
 			getAndPersistPlayerWithCache,
 			logger.With("port", "playerdata"),
+			sentryMiddleware,
+		),
+	)
+
+	http.HandleFunc(
+		"GET /v1/uuid/{username}",
+		ports.MakeGetUUIDHandler(
+			getUUID,
+			logger.With("port", "getuuid"),
 			sentryMiddleware,
 		),
 	)
