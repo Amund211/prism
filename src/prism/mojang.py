@@ -44,7 +44,8 @@ def _make_request(
     try:
         # Uphold our prescribed rate-limits
         with limiter, burst_limiter:
-            response = SESSION.get(f"{USERPROFILES_ENDPOINT}/{username}")
+            # response = SESSION.get(f"{USERPROFILES_ENDPOINT}/{username}")
+            response = SESSION.get(f"{'https://api.minetools.eu'}/uuid/{username}")
     except SSLError as e:
         if is_missing_local_issuer_error(e):
             # Short circuit out of get_uuid
