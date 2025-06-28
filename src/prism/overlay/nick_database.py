@@ -25,7 +25,7 @@ def read_databases(database_paths: list[Path]) -> list[dict[str, str]]:
             raise DatabaseDecodeError(f"Can only decode json, not '{path.suffix}'")
 
         try:
-            with path.open("r") as f:
+            with path.open("r", encoding="utf-8") as f:
                 try:
                     database = json.load(f)
                 except json.JSONDecodeError as e:

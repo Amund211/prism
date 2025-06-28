@@ -386,7 +386,7 @@ def write_logfile_cache(logfile_cache_path: Path, cache: LogfileCache) -> None:
         and 0 <= cache.last_used_index < len(known_logfiles)
         else None
     )
-    with logfile_cache_path.open("w") as cache_file:
+    with logfile_cache_path.open("w", encoding="utf-8") as cache_file:
         toml.dump(
             {"known_logfiles": known_logfiles, "last_used": last_used}, cache_file
         )

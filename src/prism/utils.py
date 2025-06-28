@@ -11,7 +11,7 @@ class SupportsLT(Protocol):  # pragma: no cover
 
 def read_key(key_file: Path) -> str:
     """Read the api key from the given file"""
-    with key_file.open("r") as f:
+    with key_file.open("r", encoding="utf-8") as f:
         return f.read().strip()
 
 
