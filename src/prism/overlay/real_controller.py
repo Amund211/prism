@@ -80,8 +80,8 @@ class RealOverlayController:
             logger.exception("get_uuid: missing local issuer cert")
             self.missing_local_issuer_certificate = True
             return ERROR_DURING_PROCESSING
-        except MojangAPIError as e:
-            logger.debug(f"Failed getting uuid for username {username}.", exc_info=e)
+        except MojangAPIError:
+            logger.exception(f"Failed getting uuid for username {username}.")
             # TODO: RETURN SOMETHING ELSE
             return ERROR_DURING_PROCESSING
         else:
