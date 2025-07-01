@@ -11,7 +11,8 @@ from prism.requests import make_prism_requests_session
 from prism.retry import ExecutionError, execute_with_retry
 from prism.ssl_errors import MissingLocalIssuerSSLError, is_missing_local_issuer_error
 
-USERPROFILES_ENDPOINT = "https://api.mojang.com/users/profiles/minecraft"
+# TODO: Rename implementation and create interface
+FLASHLIGHT_UUID_ENDPOINT = "https://flashlight.prismoverlay.com/v1/account/username"
 REQUEST_LIMIT, REQUEST_WINDOW = 600, 10 * 60  # Max requests per time window
 BURST_REQUEST_LIMIT, BURST_REQUEST_WINDOW = 50, 8  # Found by trial and error
 
@@ -41,7 +42,7 @@ def _make_request(
     try:
         # Uphold our prescribed rate-limits
         with limiter, burst_limiter:
-            response = SESSION.get(f"{USERPROFILES_ENDPOINT}/{username}")
+            response = SESSION.get(f"{FLASHLIGHT_UUID_ENDPOINT}/{username}")
     except SSLError as e:
         if is_missing_local_issuer_error(e):
             # Short circuit out of get_uuid
@@ -104,8 +105,8 @@ def get_uuid(
             f"Raw content: {response.text}"
         ) from e
 
-    # reponse is {"id": "...", "name": "..."}
-    uuid = response_json.get("id", None)
+    # reponse is {"uuid": "...", "username": "..."}
+    uuid = response_json.get("uuid", None)
 
     if not isinstance(uuid, str):
         raise APIError(f"Request to Mojang API returned wrong type for uuid {uuid=}")
