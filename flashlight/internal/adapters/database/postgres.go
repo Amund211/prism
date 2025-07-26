@@ -2,7 +2,6 @@ package database
 
 import (
 	"fmt"
-	"log/slog"
 
 	"github.com/Amund211/flashlight/internal/config"
 	"github.com/jmoiron/sqlx"
@@ -37,7 +36,7 @@ func NewPostgresDatabase(connectionString string) (*sqlx.DB, error) {
 	return db, nil
 }
 
-func NewCloudsqlPostgresDatabase(conf config.Config, logger *slog.Logger) (*sqlx.DB, error) {
+func NewCloudsqlPostgresDatabase(conf config.Config) (*sqlx.DB, error) {
 	var connectionString string
 	if conf.IsDevelopment() {
 		connectionString = LOCAL_CONNECTION_STRING
@@ -45,17 +44,9 @@ func NewCloudsqlPostgresDatabase(conf config.Config, logger *slog.Logger) (*sqlx
 		connectionString = GetCloudSQLConnectionString(conf.DBUsername(), conf.DBPassword(), conf.CloudSQLUnixSocketPath())
 	}
 
-	logger.Info("Initializing database connection")
 	db, err := NewPostgresDatabase(connectionString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create postgres database: %w", err)
-	}
-
-	repositorySchemaName := GetSchemaName(!conf.IsProduction())
-
-	err = NewDatabaseMigrator(db, logger.With("component", "migrator")).Migrate(repositorySchemaName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
 
 	return db, nil

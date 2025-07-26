@@ -64,12 +64,21 @@ func main() {
 	defer flush()
 	logger.Info("Initialized Sentry middleware")
 
-	db, err := database.NewCloudsqlPostgresDatabase(config, logger)
+	logger.Info("Initializing database connection")
+	db, err := database.NewCloudsqlPostgresDatabase(config)
 	if err != nil {
 		fail("Failed to initialize PostgresPlayerRepository", "error", err.Error())
 	}
+	logger.Info("Initialized database connection")
 
-	repo := playerrepository.NewPostgresPlayerRepository(db, database.GetSchemaName(!config.IsProduction()))
+	repositorySchemaName := database.GetSchemaName(!config.IsProduction())
+
+	err = database.NewDatabaseMigrator(db, logger.With("component", "migrator")).Migrate(repositorySchemaName)
+	if err != nil {
+		fail("Failed to migrate database", "error", err.Error())
+	}
+
+	repo := playerrepository.NewPostgresPlayerRepository(db, repositorySchemaName)
 	logger.Info("Initialized PlayerRepository")
 
 	allowedOrigins, err := ports.NewDomainSuffixes(PROD_DOMAIN_SUFFIX, STAGING_DOMAIN_SUFFIX)
