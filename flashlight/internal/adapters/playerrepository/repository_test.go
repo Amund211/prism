@@ -13,6 +13,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 
+	"github.com/Amund211/flashlight/internal/adapters/database"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/strutils"
 )
@@ -57,7 +58,7 @@ func newPostgresPlayerRepository(t *testing.T, db *sqlx.DB, schema string) *Post
 
 	db.MustExec(fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", pq.QuoteIdentifier(schema)))
 
-	migrator := NewDatabaseMigrator(db, logger)
+	migrator := database.NewDatabaseMigrator(db, logger)
 
 	err := migrator.Migrate(schema)
 	require.NoError(t, err)
@@ -71,7 +72,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	db, err := NewPostgresDatabase(LOCAL_CONNECTION_STRING)
+	db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
 	require.NoError(t, err)
 
 	now := time.Now()

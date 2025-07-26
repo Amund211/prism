@@ -6,12 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log/slog"
 	"slices"
 	"strconv"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/reporting"
@@ -26,16 +24,6 @@ const DATA_FORMAT_VERSION = 1
 type PostgresPlayerRepository struct {
 	db     *sqlx.DB
 	schema string
-}
-
-const MAIN_SCHEMA = "flashlight"
-const TESTING_SCHEMA = "flashlight_test"
-
-func GetSchemaName(isTesting bool) string {
-	if isTesting {
-		return TESTING_SCHEMA
-	}
-	return MAIN_SCHEMA
 }
 
 func NewPostgresPlayerRepository(db *sqlx.DB, schema string) *PostgresPlayerRepository {
@@ -679,30 +667,4 @@ func (p *StubPlayerRepository) GetSessions(ctx context.Context, playerUUID strin
 
 func NewStubPlayerRepository() *StubPlayerRepository {
 	return &StubPlayerRepository{}
-}
-
-func NewPostgresPlayerRepositoryOrMock(conf config.Config, logger *slog.Logger) (PlayerRepository, error) {
-	var connectionString string
-	if conf.IsDevelopment() {
-		connectionString = LOCAL_CONNECTION_STRING
-	} else {
-		connectionString = GetCloudSQLConnectionString(conf.DBUsername(), conf.DBPassword(), conf.CloudSQLUnixSocketPath())
-	}
-
-	repositorySchemaName := GetSchemaName(!conf.IsProduction())
-
-	logger.Info("Initializing database connection")
-	db, err := NewPostgresDatabase(connectionString)
-
-	if err == nil {
-		NewDatabaseMigrator(db, logger.With("component", "migrator")).Migrate(repositorySchemaName)
-		return NewPostgresPlayerRepository(db, repositorySchemaName), nil
-	}
-
-	if conf.IsDevelopment() {
-		logger.Warn("Failed to connect to database. Falling back to stub repository.", "errror", err.Error())
-		return NewStubPlayerRepository(), nil
-	}
-
-	return nil, fmt.Errorf("Failed to connect to database: %w", err)
 }

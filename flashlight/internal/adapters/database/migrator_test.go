@@ -1,4 +1,4 @@
-package playerrepository
+package database
 
 import (
 	"context"

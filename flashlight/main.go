@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Amund211/flashlight/internal/adapters/cache"
+	"github.com/Amund211/flashlight/internal/adapters/database"
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/adapters/uuidprovider"
@@ -63,10 +64,12 @@ func main() {
 	defer flush()
 	logger.Info("Initialized Sentry middleware")
 
-	repo, err := playerrepository.NewPostgresPlayerRepositoryOrMock(config, logger)
+	db, err := database.NewCloudsqlPostgresDatabase(config, logger)
 	if err != nil {
 		fail("Failed to initialize PostgresPlayerRepository", "error", err.Error())
 	}
+
+	repo := playerrepository.NewPostgresPlayerRepository(db, database.GetSchemaName(!config.IsProduction()))
 	logger.Info("Initialized PlayerRepository")
 
 	allowedOrigins, err := ports.NewDomainSuffixes(PROD_DOMAIN_SUFFIX, STAGING_DOMAIN_SUFFIX)
