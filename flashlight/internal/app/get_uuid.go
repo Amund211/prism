@@ -29,15 +29,15 @@ func getUUIDWithoutCache(
 	username string,
 ) (string, error) {
 	// time.Since(queriedAt) implemented using nowFunc()
-	repoUUID, queriedAt, err := repo.GetUUID(ctx, username)
-	if errors.Is(err, domain.ErrUsernameNotFound) {
+	repoUUID, queriedAt, repoGetErr := repo.GetUUID(ctx, username)
+	if errors.Is(repoGetErr, domain.ErrUsernameNotFound) {
 		// No entry in the repo - try to query the provider
-	} else if err != nil {
+	} else if repoGetErr != nil {
 		// Failed to get UUID from repository - can still try to query the provider
 		// NOTE: usernameRepository implementations handle their own error reporting
 	} else {
-		uuidAge := nowFunc().Sub(queriedAt)
-		if uuidAge < 10*24*time.Hour {
+		repoUUIDAge := nowFunc().Sub(queriedAt)
+		if repoUUIDAge < 10*24*time.Hour {
 			if !strutils.UUIDIsNormalized(repoUUID) {
 				err := fmt.Errorf("UUID from repo is not normalized")
 				reporting.Report(ctx, err, map[string]string{
@@ -54,6 +54,24 @@ func getUUIDWithoutCache(
 	identity, err := provider.GetUUID(ctx, username)
 	if err != nil {
 		// NOTE: UUIDProvider implementations handle their own error reporting
+
+		// Try to fall back to the repository result, if available
+		if repoGetErr == nil {
+			repoUUIDAge := nowFunc().Sub(queriedAt)
+			// 30 day name change interval + 7 days grace period of reclaiming your name
+			if repoUUIDAge < 37*24*time.Hour {
+				if !strutils.UUIDIsNormalized(repoUUID) {
+					err := fmt.Errorf("UUID from repo is not normalized")
+					reporting.Report(ctx, err, map[string]string{
+						"uuid": repoUUID,
+					})
+				} else {
+					// We have a valid, recent-ish UUID from the repository, return it
+					return repoUUID, nil
+				}
+			}
+
+		}
 		return "", fmt.Errorf("could not get uuid for username: %w", err)
 	}
 
