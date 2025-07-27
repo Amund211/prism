@@ -3,6 +3,7 @@ package uuidprovider
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -51,6 +52,11 @@ func (m mojangUUIDProvider) GetUUID(ctx context.Context, username string) (Ident
 
 	identity, err := identityFromMojangResponse(resp.StatusCode, data)
 	if err != nil {
+		if errors.Is(err, domain.ErrUsernameNotFound) {
+			// Pass through error but don't report
+			return Identity{}, err
+		}
+
 		err := fmt.Errorf("failed to get identity from mojang response: %w", err)
 		reporting.Report(ctx, err, map[string]string{
 			"data":   string(data),
