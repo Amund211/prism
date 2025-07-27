@@ -486,7 +486,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			},
 			)
 
-			err = p.RemoveUsername(ctx, "testuser1")
+			err = p.RemoveUsername(ctx, "TestUser1")
 			require.NoError(t, err)
 
 			expectStoredUsernames(t, p)
