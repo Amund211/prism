@@ -78,7 +78,7 @@ func main() {
 		fail("Failed to migrate database", "error", err.Error())
 	}
 
-	repo := playerrepository.NewPostgresPlayerRepository(db, repositorySchemaName)
+	playerRepo := playerrepository.NewPostgresPlayerRepository(db, repositorySchemaName)
 	logger.Info("Initialized PlayerRepository")
 
 	allowedOrigins, err := ports.NewDomainSuffixes(PROD_DOMAIN_SUFFIX, STAGING_DOMAIN_SUFFIX)
@@ -86,14 +86,14 @@ func main() {
 		fail("Failed to initialize allowed origins", "error", err.Error())
 	}
 
-	getAndPersistPlayerWithCache := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, repo)
+	getAndPersistPlayerWithCache := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, playerRepo)
 	updatePlayerInInterval := app.BuildUpdatePlayerInInterval(getAndPersistPlayerWithCache, time.Now)
 
 	getUUID := app.BuildGetUUIDWithCache(uuidCache, uuidProvider)
 
-	getHistory := app.BuildGetHistory(repo, updatePlayerInInterval)
+	getHistory := app.BuildGetHistory(playerRepo, updatePlayerInInterval)
 
-	getSessions := app.BuildGetSessions(repo, updatePlayerInInterval)
+	getSessions := app.BuildGetSessions(playerRepo, updatePlayerInInterval)
 
 	http.HandleFunc(
 		"GET /v1/playerdata",
