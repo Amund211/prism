@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/Amund211/flashlight/internal/adapters/cache"
 	"github.com/Amund211/flashlight/internal/adapters/uuidprovider"
@@ -13,7 +14,17 @@ import (
 
 type GetUUID func(ctx context.Context, username string) (string, error)
 
-func getUUIDWithoutCache(ctx context.Context, provider uuidprovider.UUIDProvider, username string) (string, error) {
+type usernameRepository interface {
+	StoreUsername(ctx context.Context, uuid string, queriedAt time.Time, username string) error
+}
+
+func getUUIDWithoutCache(
+	ctx context.Context,
+	provider uuidprovider.UUIDProvider,
+	repo usernameRepository,
+	nowFunc func() time.Time,
+	username string,
+) (string, error) {
 	identity, err := provider.GetUUID(ctx, username)
 	if err != nil {
 		// NOTE: UUIDProvider implementations handle their own error reporting
@@ -28,10 +39,20 @@ func getUUIDWithoutCache(ctx context.Context, provider uuidprovider.UUIDProvider
 		return "", err
 	}
 
+	err = repo.StoreUsername(ctx, identity.UUID, nowFunc(), identity.Username)
+	if err != nil {
+		// NOTE: This error is not critical, we can still return the UUID
+	}
+
 	return identity.UUID, nil
 }
 
-func BuildGetUUIDWithCache(uuidCache cache.Cache[string], provider uuidprovider.UUIDProvider) GetUUID {
+func BuildGetUUIDWithCache(
+	uuidCache cache.Cache[string],
+	provider uuidprovider.UUIDProvider,
+	repo usernameRepository,
+	nowFunc func() time.Time,
+) GetUUID {
 	return func(ctx context.Context, username string) (string, error) {
 		usernameLength := len(username)
 		if usernameLength == 0 || usernameLength > 100 {
@@ -44,7 +65,7 @@ func BuildGetUUIDWithCache(uuidCache cache.Cache[string], provider uuidprovider.
 		}
 
 		uuid, err := cache.GetOrCreate(ctx, uuidCache, username, func() (string, error) {
-			return getUUIDWithoutCache(ctx, provider, username)
+			return getUUIDWithoutCache(ctx, provider, repo, nowFunc, username)
 		})
 		if err != nil {
 			// NOTE: GetOrCreate only returns an error if create() fails.
