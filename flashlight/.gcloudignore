@@ -9,8 +9,19 @@
 .gcloudignore
 .git
 .gitignore
+
+# Repository config
+.github
+.pre-commit-config.yaml
+.rgignore
+LICENSE
+
+# Util binaries
 cmd/*
 
 # Test data
 fixtures/
 testdata/
+
+# Test code files
+*_test.go
