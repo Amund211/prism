@@ -14,21 +14,21 @@ import (
 type GetUUID func(ctx context.Context, username string) (string, error)
 
 func getUUIDWithoutCache(ctx context.Context, provider uuidprovider.UUIDProvider, username string) (string, error) {
-	uuid, err := provider.GetUUID(ctx, username)
+	identity, err := provider.GetUUID(ctx, username)
 	if err != nil {
 		// NOTE: UUIDProvider implementations handle their own error reporting
 		return "", fmt.Errorf("could not get uuid for username: %w", err)
 	}
 
-	if !strutils.UUIDIsNormalized(uuid) {
+	if !strutils.UUIDIsNormalized(identity.UUID) {
 		err := fmt.Errorf("UUID is not normalized")
 		reporting.Report(ctx, err, map[string]string{
-			"uuid": uuid,
+			"uuid": identity.UUID,
 		})
 		return "", err
 	}
 
-	return uuid, nil
+	return identity.UUID, nil
 }
 
 func BuildGetUUIDWithCache(uuidCache cache.Cache[string], provider uuidprovider.UUIDProvider) GetUUID {

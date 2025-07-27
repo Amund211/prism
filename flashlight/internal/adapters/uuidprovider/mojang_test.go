@@ -15,7 +15,7 @@ func TestUUIDFromMojangResponse(t *testing.T) {
 		name       string
 		response   []byte
 		statusCode int
-		expected   string
+		expected   Identity
 		err        error
 	}{
 		{
@@ -25,7 +25,10 @@ func TestUUIDFromMojangResponse(t *testing.T) {
   "name" : "Skydeath"
 }`),
 			statusCode: 200,
-			expected:   "a937646b-f115-44c3-8dbf-9ae4a65669a0",
+			expected: Identity{
+				UUID:     "a937646b-f115-44c3-8dbf-9ae4a65669a0",
+				Username: "Skydeath",
+			},
 		},
 		{
 			name: "Real not found response",
@@ -91,7 +94,7 @@ func TestUUIDFromMojangResponse(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			uuid, err := uuidFromMojangResponse(tc.statusCode, tc.response)
+			identity, err := identityFromMojangResponse(tc.statusCode, tc.response)
 			if tc.err != nil {
 				if errors.Is(tc.err, assert.AnError) {
 					require.Error(t, err)
@@ -102,8 +105,8 @@ func TestUUIDFromMojangResponse(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			require.Equal(t, tc.expected, uuid)
-			require.True(t, strutils.UUIDIsNormalized(uuid))
+			require.Equal(t, tc.expected, identity)
+			require.True(t, strutils.UUIDIsNormalized(identity.UUID))
 		})
 	}
 }
