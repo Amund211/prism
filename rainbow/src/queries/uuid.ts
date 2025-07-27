@@ -15,7 +15,7 @@ export const getUUIDQueryOptions = (
         queryKey: ["uuid", username],
         queryFn: async (): Promise<{ uuid: string; username: string }> => {
             const response = await fetch(
-                `${env.VITE_MINETOOLS_API_URL}/uuid/${username}`,
+                `${env.VITE_FLASHLIGHT_URL}/v1/uuid/${username}`,
             ).catch((error: unknown) => {
                 captureException(error, {
                     extra: {
@@ -97,7 +97,7 @@ export const getUUIDQueryOptions = (
                 });
                 throw new Error("Invalid response from minecraft services api");
             }
-            if (!("id" in data)) {
+            if (!("uuid" in data)) {
                 captureMessage("Failed to get uuid: no uuid in response", {
                     level: "error",
                     extra: {
@@ -109,7 +109,7 @@ export const getUUIDQueryOptions = (
                     "No uuid in response from minecraft services api",
                 );
             }
-            if (typeof data.id !== "string") {
+            if (typeof data.uuid !== "string") {
                 captureMessage(
                     "Failed to get uuid: uuid is not a string in response",
                     {
@@ -125,7 +125,7 @@ export const getUUIDQueryOptions = (
                 );
             }
 
-            const rawUUID = data.id;
+            const rawUUID = data.uuid;
             const uuid = normalizeUUID(rawUUID);
             if (!uuid) {
                 captureMessage("Failed to get uuid: failed to normalize uuid", {
