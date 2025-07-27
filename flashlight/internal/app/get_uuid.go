@@ -22,83 +22,83 @@ type usernameRepository interface {
 	GetUUID(ctx context.Context, username string) (string, time.Time, error)
 }
 
-func getUUIDWithoutCache(
-	ctx context.Context,
+func buildGetUUIDWithoutCache(
 	provider uuidprovider.UUIDProvider,
 	repo usernameRepository,
 	nowFunc func() time.Time,
-	username string,
-) (string, error) {
-	// time.Since(queriedAt) implemented using nowFunc()
-	repoUUID, queriedAt, repoGetErr := repo.GetUUID(ctx, username)
-	if errors.Is(repoGetErr, domain.ErrUsernameNotFound) {
-		// No entry in the repo - try to query the provider
-	} else if repoGetErr != nil {
-		// Failed to get UUID from repository - can still try to query the provider
-		// NOTE: usernameRepository implementations handle their own error reporting
-	} else {
-		repoUUIDAge := nowFunc().Sub(queriedAt)
-		if repoUUIDAge < 10*24*time.Hour {
-			if !strutils.UUIDIsNormalized(repoUUID) {
-				err := fmt.Errorf("UUID from repo is not normalized")
-				reporting.Report(ctx, err, map[string]string{
-					"uuid": repoUUID,
-				})
-				// We can still try to query the provider
-			} else {
-				// We have a valid, recent UUID from the repository, return it
-				return repoUUID, nil
-			}
-		}
-	}
-
-	identity, err := provider.GetUUID(ctx, username)
-	if errors.Is(err, domain.ErrUsernameNotFound) {
-		err := repo.RemoveUsername(ctx, username)
-		if err != nil {
+) func(ctx context.Context, username string) (string, error) {
+	return func(ctx context.Context, username string) (string, error) {
+		// time.Since(queriedAt) implemented using nowFunc()
+		repoUUID, queriedAt, repoGetErr := repo.GetUUID(ctx, username)
+		if errors.Is(repoGetErr, domain.ErrUsernameNotFound) {
+			// No entry in the repo - try to query the provider
+		} else if repoGetErr != nil {
+			// Failed to get UUID from repository - can still try to query the provider
 			// NOTE: usernameRepository implementations handle their own error reporting
-			// Still fall through to return the ErrUsernameNotFound
-		}
-
-		// Pass through ErrUsernameNotFound to the caller
-		return "", err
-	} else if err != nil {
-		// NOTE: UUIDProvider implementations handle their own error reporting
-
-		// Try to fall back to the repository result, if available
-		if repoGetErr == nil {
+		} else {
 			repoUUIDAge := nowFunc().Sub(queriedAt)
-			// 30 day name change interval + 7 days grace period of reclaiming your name
-			if repoUUIDAge < 37*24*time.Hour {
+			if repoUUIDAge < 10*24*time.Hour {
 				if !strutils.UUIDIsNormalized(repoUUID) {
 					err := fmt.Errorf("UUID from repo is not normalized")
 					reporting.Report(ctx, err, map[string]string{
 						"uuid": repoUUID,
 					})
+					// We can still try to query the provider
 				} else {
-					// We have a valid, recent-ish UUID from the repository, return it
+					// We have a valid, recent UUID from the repository, return it
 					return repoUUID, nil
 				}
 			}
-
 		}
-		return "", fmt.Errorf("could not get uuid for username: %w", err)
-	}
 
-	if !strutils.UUIDIsNormalized(identity.UUID) {
-		err := fmt.Errorf("UUID is not normalized")
-		reporting.Report(ctx, err, map[string]string{
-			"uuid": identity.UUID,
-		})
-		return "", err
-	}
+		identity, err := provider.GetUUID(ctx, username)
+		if errors.Is(err, domain.ErrUsernameNotFound) {
+			err := repo.RemoveUsername(ctx, username)
+			if err != nil {
+				// NOTE: usernameRepository implementations handle their own error reporting
+				// Still fall through to return the ErrUsernameNotFound
+			}
 
-	err = repo.StoreUsername(ctx, identity.UUID, nowFunc(), identity.Username)
-	if err != nil {
-		// NOTE: This error is not critical, we can still return the UUID
-	}
+			// Pass through ErrUsernameNotFound to the caller
+			return "", err
+		} else if err != nil {
+			// NOTE: UUIDProvider implementations handle their own error reporting
 
-	return identity.UUID, nil
+			// Try to fall back to the repository result, if available
+			if repoGetErr == nil {
+				repoUUIDAge := nowFunc().Sub(queriedAt)
+				// 30 day name change interval + 7 days grace period of reclaiming your name
+				if repoUUIDAge < 37*24*time.Hour {
+					if !strutils.UUIDIsNormalized(repoUUID) {
+						err := fmt.Errorf("UUID from repo is not normalized")
+						reporting.Report(ctx, err, map[string]string{
+							"uuid": repoUUID,
+						})
+					} else {
+						// We have a valid, recent-ish UUID from the repository, return it
+						return repoUUID, nil
+					}
+				}
+
+			}
+			return "", fmt.Errorf("could not get uuid for username: %w", err)
+		}
+
+		if !strutils.UUIDIsNormalized(identity.UUID) {
+			err := fmt.Errorf("UUID is not normalized")
+			reporting.Report(ctx, err, map[string]string{
+				"uuid": identity.UUID,
+			})
+			return "", err
+		}
+
+		err = repo.StoreUsername(ctx, identity.UUID, nowFunc(), identity.Username)
+		if err != nil {
+			// NOTE: This error is not critical, we can still return the UUID
+		}
+
+		return identity.UUID, nil
+	}
 }
 
 func BuildGetUUIDWithCache(
@@ -107,6 +107,8 @@ func BuildGetUUIDWithCache(
 	repo usernameRepository,
 	nowFunc func() time.Time,
 ) GetUUID {
+	getUUIDWithoutCache := buildGetUUIDWithoutCache(provider, repo, nowFunc)
+
 	return func(ctx context.Context, username string) (string, error) {
 		usernameLength := len(username)
 		if usernameLength == 0 || usernameLength > 100 {
@@ -119,7 +121,7 @@ func BuildGetUUIDWithCache(
 		}
 
 		uuid, err := cache.GetOrCreate(ctx, uuidCache, username, func() (string, error) {
-			return getUUIDWithoutCache(ctx, provider, repo, nowFunc, username)
+			return getUUIDWithoutCache(ctx, username)
 		})
 		if err != nil {
 			// NOTE: GetOrCreate only returns an error if create() fails.
