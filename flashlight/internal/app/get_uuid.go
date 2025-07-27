@@ -2,12 +2,14 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/Amund211/flashlight/internal/adapters/cache"
 	"github.com/Amund211/flashlight/internal/adapters/uuidprovider"
+	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
 )
@@ -16,6 +18,7 @@ type GetUUID func(ctx context.Context, username string) (string, error)
 
 type usernameRepository interface {
 	StoreUsername(ctx context.Context, uuid string, queriedAt time.Time, username string) error
+	GetUUID(ctx context.Context, username string) (string, time.Time, error)
 }
 
 func getUUIDWithoutCache(
@@ -25,6 +28,29 @@ func getUUIDWithoutCache(
 	nowFunc func() time.Time,
 	username string,
 ) (string, error) {
+	// time.Since(queriedAt) implemented using nowFunc()
+	repoUUID, queriedAt, err := repo.GetUUID(ctx, username)
+	if errors.Is(err, domain.ErrUsernameNotFound) {
+		// No entry in the repo - try to query the provider
+	} else if err != nil {
+		// Failed to get UUID from repository - can still try to query the provider
+		// NOTE: usernameRepository implementations handle their own error reporting
+	} else {
+		uuidAge := nowFunc().Sub(queriedAt)
+		if uuidAge < 10*24*time.Hour {
+			if !strutils.UUIDIsNormalized(repoUUID) {
+				err := fmt.Errorf("UUID from repo is not normalized")
+				reporting.Report(ctx, err, map[string]string{
+					"uuid": repoUUID,
+				})
+				// We can still try to query the provider
+			} else {
+				// We have a valid, recent UUID from the repository, return it
+				return repoUUID, nil
+			}
+		}
+	}
+
 	identity, err := provider.GetUUID(ctx, username)
 	if err != nil {
 		// NOTE: UUIDProvider implementations handle their own error reporting
