@@ -145,6 +145,25 @@ func (p *PostgresUsernameRepository) StoreUsername(ctx context.Context, uuid str
 	return nil
 }
 
+func (p *PostgresUsernameRepository) RemoveUsername(ctx context.Context, username string) error {
+	_, err := p.db.ExecContext(ctx, fmt.Sprintf(`
+			DELETE FROM %s.usernames
+			WHERE lower(username) = lower($1)`,
+		pq.QuoteIdentifier(p.schema),
+	),
+		username,
+	)
+	if err != nil {
+		err := fmt.Errorf("failed to delete username (case insensitive): %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"username": username,
+		})
+		return err
+	}
+
+	return nil
+}
+
 func (p *PostgresUsernameRepository) GetUsername(ctx context.Context, uuid string) (username string, queriedAt time.Time, err error) {
 	if !strutils.UUIDIsNormalized(uuid) {
 		err := fmt.Errorf("uuid is not normalized")

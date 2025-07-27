@@ -18,6 +18,7 @@ type GetUUID func(ctx context.Context, username string) (string, error)
 
 type usernameRepository interface {
 	StoreUsername(ctx context.Context, uuid string, queriedAt time.Time, username string) error
+	RemoveUsername(ctx context.Context, username string) error
 	GetUUID(ctx context.Context, username string) (string, time.Time, error)
 }
 
@@ -52,7 +53,16 @@ func getUUIDWithoutCache(
 	}
 
 	identity, err := provider.GetUUID(ctx, username)
-	if err != nil {
+	if errors.Is(err, domain.ErrUsernameNotFound) {
+		err := repo.RemoveUsername(ctx, username)
+		if err != nil {
+			// NOTE: usernameRepository implementations handle their own error reporting
+			// Still fall through to return the ErrUsernameNotFound
+		}
+
+		// Pass through ErrUsernameNotFound to the caller
+		return "", err
+	} else if err != nil {
 		// NOTE: UUIDProvider implementations handle their own error reporting
 
 		// Try to fall back to the repository result, if available

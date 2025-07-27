@@ -51,7 +51,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 
 	now := time.Now()
 
-	t.Run("StoreUsername", func(t *testing.T) {
+	t.Run("Store/RemoveUsername", func(t *testing.T) {
 		t.Parallel()
 
 		getStoredUsernames := func(t *testing.T, p *PostgresUsernameRepository) []dbUsernamesEntry {
@@ -462,6 +462,44 @@ func TestPostgresUsernameRepository(t *testing.T) {
 					LastQueriedAt: t2,
 				},
 			)
+		})
+
+		t.Run("remove username", func(t *testing.T) {
+			t.Parallel()
+
+			p := newPostgresUsernameRepository(t, db, "remove_username")
+
+			err := p.StoreUsername(ctx, makeUUID(1), now, "testuser1")
+			require.NoError(t, err)
+
+			expectStoredUsernames(t, p, dbUsernamesEntry{
+				PlayerUUID: makeUUID(1),
+				Username:   "testuser1",
+				QueriedAt:  now,
+			},
+			)
+
+			expectStoredUsernameQueries(t, p, dbUsernameQueriesEntry{
+				PlayerUUID:    makeUUID(1),
+				Username:      "testuser1",
+				LastQueriedAt: now,
+			},
+			)
+
+			err = p.RemoveUsername(ctx, "testuser1")
+			require.NoError(t, err)
+
+			expectStoredUsernames(t, p)
+
+			expectStoredUsernameQueries(t, p, dbUsernameQueriesEntry{
+				PlayerUUID:    makeUUID(1),
+				Username:      "testuser1",
+				LastQueriedAt: now,
+			},
+			)
+
+			err = p.RemoveUsername(ctx, "nonexistentuser")
+			require.NoError(t, err)
 		})
 
 		t.Run("ensure no unique constraint violations", func(t *testing.T) {
