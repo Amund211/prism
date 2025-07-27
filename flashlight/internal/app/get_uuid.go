@@ -53,8 +53,8 @@ func buildGetUUIDWithoutCache(
 
 		identity, err := provider.GetUUID(ctx, username)
 		if errors.Is(err, domain.ErrUsernameNotFound) {
-			err := repo.RemoveUsername(ctx, username)
-			if err != nil {
+			removeUsernameErr := repo.RemoveUsername(ctx, username)
+			if removeUsernameErr != nil {
 				// NOTE: usernameRepository implementations handle their own error reporting
 				// Still fall through to return the ErrUsernameNotFound
 			}
