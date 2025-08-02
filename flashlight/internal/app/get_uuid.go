@@ -28,7 +28,6 @@ func buildGetUUIDWithoutCache(
 	nowFunc func() time.Time,
 ) func(ctx context.Context, username string) (string, error) {
 	return func(ctx context.Context, username string) (string, error) {
-		// time.Since(queriedAt) implemented using nowFunc()
 		repoUUID, queriedAt, repoGetErr := repo.GetUUID(ctx, username)
 		if errors.Is(repoGetErr, domain.ErrUsernameNotFound) {
 			// No entry in the repo - try to query the provider
@@ -36,6 +35,7 @@ func buildGetUUIDWithoutCache(
 			// Failed to get UUID from repository - can still try to query the provider
 			// NOTE: usernameRepository implementations handle their own error reporting
 		} else {
+			// time.Since(queriedAt) implemented using nowFunc()
 			repoUUIDAge := nowFunc().Sub(queriedAt)
 			if repoUUIDAge < 10*24*time.Hour {
 				if !strutils.UUIDIsNormalized(repoUUID) {
@@ -66,6 +66,7 @@ func buildGetUUIDWithoutCache(
 
 			// Try to fall back to the repository result, if available
 			if repoGetErr == nil {
+				// time.Since(queriedAt) implemented using nowFunc()
 				repoUUIDAge := nowFunc().Sub(queriedAt)
 				// 30 day name change interval + 7 days grace period of reclaiming your name
 				if repoUUIDAge < 37*24*time.Hour {
