@@ -66,7 +66,8 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 		handler.ServeHTTP(w, req)
 
 		require.Equal(t, http.StatusOK, w.Code)
-		require.JSONEq(t, successJSON, w.Body.String())
+		body := w.Body.String()
+		require.JSONEq(t, successJSON, body)
 		require.True(t, *called)
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
 	})
@@ -81,7 +82,8 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 		handler.ServeHTTP(w, req)
 
 		require.Equal(t, http.StatusNotFound, w.Code)
-		require.NotContains(t, w.Body.String(), "uuid")
+		body := w.Body.String()
+		require.NotContains(t, body, "uuid")
 		require.True(t, *called)
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
 	})
@@ -96,7 +98,8 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 		handler.ServeHTTP(w, req)
 
 		require.Equal(t, http.StatusServiceUnavailable, w.Code)
-		require.NotContains(t, w.Body.String(), "uuid")
+		body := w.Body.String()
+		require.NotContains(t, body, "uuid")
 		require.True(t, *called)
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
 	})
@@ -111,8 +114,9 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 		handler.ServeHTTP(w, req)
 
 		require.Equal(t, http.StatusBadRequest, w.Code)
-		require.Contains(t, w.Body.String(), "invalid username length")
-		require.NotContains(t, w.Body.String(), "uuid")
+		body := w.Body.String()
+		require.Contains(t, body, "invalid username length")
+		require.NotContains(t, body, "uuid")
 		require.False(t, *called)
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
 	})
@@ -130,7 +134,8 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 		handler.ServeHTTP(w, req)
 
 		require.Equal(t, http.StatusOK, w.Code)
-		require.JSONEq(t, successJSON, w.Body.String())
+		body := w.Body.String()
+		require.JSONEq(t, successJSON, body)
 		require.True(t, *called)
 
 		resp := w.Result()
