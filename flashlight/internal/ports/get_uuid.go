@@ -97,6 +97,7 @@ func MakeGetUUIDHandler(
 
 		usernameLength := len(username)
 		if usernameLength == 0 || usernameLength > 100 {
+			username = "<invalid>"
 			handleError(ctx, "invalid username length", http.StatusBadRequest)
 			return
 		}

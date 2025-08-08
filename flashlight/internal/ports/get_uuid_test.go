@@ -159,6 +159,8 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 		require.NotNil(t, parsed.Success)
 		require.False(t, *parsed.Success)
 		require.Nil(t, parsed.UUID)
+		require.NotNil(t, parsed.Username)
+		require.Equal(t, "<invalid>", *parsed.Username)
 		require.NotNil(t, parsed.Cause)
 		require.Contains(t, *parsed.Cause, "invalid username length")
 
