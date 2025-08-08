@@ -2,6 +2,7 @@ package ports_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -50,6 +51,20 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 	uuid := "01234567-89ab-cdef-0123-456789abcdef"
 	successJSON := fmt.Sprintf(`{"success":true,"username":"someguy","uuid":"%s"}`, uuid)
 
+	type response struct {
+		Success  *bool   `json:"success"`
+		Username *string `json:"username"`
+		UUID     *string `json:"uuid"`
+		Cause    *string `json:"cause"`
+	}
+
+	parseResponse := func(t *testing.T, body string) response {
+		var resp response
+		err := json.Unmarshal([]byte(body), &resp)
+		require.NoError(t, err)
+		return resp
+	}
+
 	makeRequest := func(username string) *http.Request {
 		req := httptest.NewRequest("GET", fmt.Sprintf("/v1/uuid/%s", username), nil)
 		req.SetPathValue("username", username)
@@ -68,6 +83,15 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 		require.Equal(t, http.StatusOK, w.Code)
 		body := w.Body.String()
 		require.JSONEq(t, successJSON, body)
+		parsed := parseResponse(t, body)
+		require.NotNil(t, parsed.Success)
+		require.True(t, *parsed.Success)
+		require.NotNil(t, parsed.UUID)
+		require.Equal(t, uuid, *parsed.UUID)
+		require.Nil(t, parsed.Cause)
+		require.NotNil(t, parsed.Username)
+		require.Equal(t, "someguy", *parsed.Username)
+
 		require.True(t, *called)
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
 	})
@@ -83,7 +107,15 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 
 		require.Equal(t, http.StatusNotFound, w.Code)
 		body := w.Body.String()
-		require.NotContains(t, body, "uuid")
+		parsed := parseResponse(t, body)
+		require.NotNil(t, parsed.Success)
+		require.False(t, *parsed.Success)
+		require.Nil(t, parsed.UUID)
+		require.NotNil(t, parsed.Username)
+		require.Equal(t, username, *parsed.Username)
+		require.NotNil(t, parsed.Cause)
+		require.Contains(t, *parsed.Cause, "not found")
+
 		require.True(t, *called)
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
 	})
@@ -99,7 +131,15 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 
 		require.Equal(t, http.StatusServiceUnavailable, w.Code)
 		body := w.Body.String()
-		require.NotContains(t, body, "uuid")
+		parsed := parseResponse(t, body)
+		require.NotNil(t, parsed.Success)
+		require.False(t, *parsed.Success)
+		require.Nil(t, parsed.UUID)
+		require.NotNil(t, parsed.Username)
+		require.Equal(t, username, *parsed.Username)
+		require.NotNil(t, parsed.Cause)
+		require.Contains(t, *parsed.Cause, "temporarily unavailable")
+
 		require.True(t, *called)
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
 	})
@@ -115,8 +155,13 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 
 		require.Equal(t, http.StatusBadRequest, w.Code)
 		body := w.Body.String()
-		require.Contains(t, body, "invalid username length")
-		require.NotContains(t, body, "uuid")
+		parsed := parseResponse(t, body)
+		require.NotNil(t, parsed.Success)
+		require.False(t, *parsed.Success)
+		require.Nil(t, parsed.UUID)
+		require.NotNil(t, parsed.Cause)
+		require.Contains(t, *parsed.Cause, "invalid username length")
+
 		require.False(t, *called)
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
 	})

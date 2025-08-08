@@ -140,7 +140,7 @@ func MakeGetUUIDHandler(
 
 func makeResponse(ctx context.Context, username string, success bool, uuid string, cause string) ([]byte, error) {
 	resp := response{
-		Success:  true,
+		Success:  success,
 		Username: username,
 		UUID:     uuid,
 		Cause:    cause,
