@@ -17,6 +17,8 @@ import (
 
 func TestMakeGetUUIDHandler(t *testing.T) {
 	testLogger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	allowedOrigins, err := ports.NewDomainSuffixes("example.com", "test.com")
+	require.NoError(t, err)
 	noopMiddleware := func(h http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			h(w, r)
@@ -38,6 +40,7 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 	makeGetUUIDHandler := func(getUUID app.GetUUID) http.HandlerFunc {
 		return ports.MakeGetUUIDHandler(
 			getUUID,
+			allowedOrigins,
 			testLogger,
 			noopMiddleware,
 		)
@@ -112,5 +115,26 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 		require.NotContains(t, w.Body.String(), "uuid")
 		require.False(t, *called)
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
+	})
+
+	t.Run("returns cors headers", func(t *testing.T) {
+		getUUIDFunc, called := makeGetUUID(t, username, uuid, nil)
+		handler := makeGetUUIDHandler(getUUIDFunc)
+
+		origin := "https://subdomain.example.com"
+
+		req := makeRequest(username)
+		req.Header.Set("Origin", origin)
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusOK, w.Code)
+		require.JSONEq(t, successJSON, w.Body.String())
+		require.True(t, *called)
+
+		resp := w.Result()
+		require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+		require.Equal(t, origin, resp.Header.Get("Access-Control-Allow-Origin"))
 	})
 }

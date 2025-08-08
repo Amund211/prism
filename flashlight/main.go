@@ -108,9 +108,14 @@ func main() {
 	)
 
 	http.HandleFunc(
+		"OPTIONS /v1/uuid/{username}",
+		ports.BuildCORSHandler(allowedOrigins),
+	)
+	http.HandleFunc(
 		"GET /v1/uuid/{username}",
 		ports.MakeGetUUIDHandler(
 			getUUID,
+			allowedOrigins,
 			logger.With("port", "getuuid"),
 			sentryMiddleware,
 		),
