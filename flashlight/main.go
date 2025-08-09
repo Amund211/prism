@@ -56,7 +56,7 @@ func main() {
 
 	playerProvider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
 
-	uuidProvider := uuidprovider.NewMojangUUIDProvider(httpClient)
+	uuidProvider := uuidprovider.NewMojangUUIDProvider(httpClient, time.Now)
 
 	sentryMiddleware, flush, err := reporting.NewSentryMiddlewareOrMock(config)
 	if err != nil {

@@ -3,6 +3,7 @@ package uuidprovider
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/strutils"
@@ -15,7 +16,8 @@ func TestUUIDFromMojangResponse(t *testing.T) {
 		name       string
 		response   []byte
 		statusCode int
-		expected   Identity
+		queriedAt  time.Time
+		expected   domain.Account
 		err        error
 	}{
 		{
@@ -25,9 +27,11 @@ func TestUUIDFromMojangResponse(t *testing.T) {
   "name" : "Skydeath"
 }`),
 			statusCode: 200,
-			expected: Identity{
-				UUID:     "a937646b-f115-44c3-8dbf-9ae4a65669a0",
-				Username: "Skydeath",
+			queriedAt:  time.Date(2023, 10, 1, 12, 0, 0, 0, time.UTC),
+			expected: domain.Account{
+				UUID:      "a937646b-f115-44c3-8dbf-9ae4a65669a0",
+				Username:  "Skydeath",
+				QueriedAt: time.Date(2023, 10, 1, 12, 0, 0, 0, time.UTC),
 			},
 		},
 		{
@@ -94,7 +98,7 @@ func TestUUIDFromMojangResponse(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			identity, err := identityFromMojangResponse(tc.statusCode, tc.response)
+			account, err := accountFromMojangResponse(tc.statusCode, tc.response, tc.queriedAt)
 			if tc.err != nil {
 				if errors.Is(tc.err, assert.AnError) {
 					require.Error(t, err)
@@ -105,8 +109,8 @@ func TestUUIDFromMojangResponse(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			require.Equal(t, tc.expected, identity)
-			require.True(t, strutils.UUIDIsNormalized(identity.UUID))
+			require.Equal(t, tc.expected, account)
+			require.True(t, strutils.UUIDIsNormalized(account.UUID))
 		})
 	}
 }

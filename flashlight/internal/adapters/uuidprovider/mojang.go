@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/Amund211/flashlight/internal/constants"
 	"github.com/Amund211/flashlight/internal/domain"
@@ -21,16 +22,24 @@ type HttpClient interface {
 
 type mojangUUIDProvider struct {
 	httpClient HttpClient
+	nowFunc    func() time.Time
 }
 
-func (m mojangUUIDProvider) GetUUID(ctx context.Context, username string) (Identity, error) {
+func NewMojangUUIDProvider(httpClient HttpClient, nowFunc func() time.Time) UUIDProvider {
+	return mojangUUIDProvider{
+		httpClient: httpClient,
+		nowFunc:    nowFunc,
+	}
+}
+
+func (m mojangUUIDProvider) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
 	url := fmt.Sprintf("https://api.mojang.com/users/profiles/minecraft/%s", username)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		err := fmt.Errorf("failed to create request: %w", err)
 		reporting.Report(ctx, err)
-		return Identity{}, err
+		return domain.Account{}, err
 	}
 
 	req.Header.Set("User-Agent", constants.USER_AGENT)
@@ -39,7 +48,7 @@ func (m mojangUUIDProvider) GetUUID(ctx context.Context, username string) (Ident
 	if err != nil {
 		err := fmt.Errorf("failed to send request: %w", err)
 		reporting.Report(ctx, err)
-		return Identity{}, err
+		return domain.Account{}, err
 	}
 
 	defer resp.Body.Close()
@@ -47,14 +56,14 @@ func (m mojangUUIDProvider) GetUUID(ctx context.Context, username string) (Ident
 	if err != nil {
 		err := fmt.Errorf("failed to read response body: %w", err)
 		reporting.Report(ctx, err)
-		return Identity{}, err
+		return domain.Account{}, err
 	}
 
-	identity, err := identityFromMojangResponse(resp.StatusCode, data)
+	identity, err := accountFromMojangResponse(resp.StatusCode, data, m.nowFunc())
 	if err != nil {
 		if errors.Is(err, domain.ErrUsernameNotFound) {
 			// Pass through error but don't report
-			return Identity{}, err
+			return domain.Account{}, err
 		}
 
 		err := fmt.Errorf("failed to get identity from mojang response: %w", err)
@@ -62,7 +71,7 @@ func (m mojangUUIDProvider) GetUUID(ctx context.Context, username string) (Ident
 			"data":   string(data),
 			"status": strconv.Itoa(resp.StatusCode),
 		})
-		return Identity{}, err
+		return domain.Account{}, err
 	}
 
 	return identity, nil
@@ -73,38 +82,33 @@ type mojangResponse struct {
 	Username string `json:"name"`
 }
 
-func identityFromMojangResponse(statusCode int, data []byte) (Identity, error) {
+func accountFromMojangResponse(statusCode int, data []byte, queriedAt time.Time) (domain.Account, error) {
 	switch statusCode {
 	case http.StatusTooManyRequests,
 		http.StatusServiceUnavailable,
 		http.StatusGatewayTimeout:
-		return Identity{}, fmt.Errorf("%w: mojang API returned status code %d", domain.ErrTemporarilyUnavailable, statusCode)
+		return domain.Account{}, fmt.Errorf("%w: mojang API returned status code %d", domain.ErrTemporarilyUnavailable, statusCode)
 	}
 
 	switch statusCode {
 	case http.StatusNotFound,
 		http.StatusNoContent:
-		return Identity{}, domain.ErrUsernameNotFound
+		return domain.Account{}, domain.ErrUsernameNotFound
 	}
 
 	var response mojangResponse
 	if err := json.Unmarshal(data, &response); err != nil {
-		return Identity{}, fmt.Errorf("failed to parse mojang response: %w", err)
+		return domain.Account{}, fmt.Errorf("failed to parse mojang response: %w", err)
 	}
 
 	uuid, err := strutils.NormalizeUUID(response.UUID)
 	if err != nil {
-		return Identity{}, fmt.Errorf("failed to normalize UUID from mojang: %w", err)
+		return domain.Account{}, fmt.Errorf("failed to normalize UUID from mojang: %w", err)
 	}
 
-	return Identity{
-		Username: response.Username,
-		UUID:     uuid,
+	return domain.Account{
+		Username:  response.Username,
+		UUID:      uuid,
+		QueriedAt: queriedAt,
 	}, nil
-}
-
-func NewMojangUUIDProvider(httpClient HttpClient) UUIDProvider {
-	return mojangUUIDProvider{
-		httpClient: httpClient,
-	}
 }

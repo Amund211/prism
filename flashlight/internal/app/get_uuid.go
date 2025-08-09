@@ -51,7 +51,7 @@ func buildGetUUIDWithoutCache(
 			}
 		}
 
-		identity, err := provider.GetUUID(ctx, username)
+		providerAccount, err := provider.GetAccountByUsername(ctx, username)
 		if errors.Is(err, domain.ErrUsernameNotFound) {
 			removeUsernameErr := repo.RemoveUsername(ctx, username)
 			if removeUsernameErr != nil {
@@ -85,24 +85,24 @@ func buildGetUUIDWithoutCache(
 			return "", fmt.Errorf("could not get uuid for username: %w", err)
 		}
 
-		if !strutils.UUIDIsNormalized(identity.UUID) {
+		if !strutils.UUIDIsNormalized(providerAccount.UUID) {
 			err := fmt.Errorf("UUID is not normalized")
 			reporting.Report(ctx, err, map[string]string{
-				"uuid": identity.UUID,
+				"uuid": providerAccount.UUID,
 			})
 			return "", err
 		}
 
 		err = repo.StoreAccount(ctx, domain.Account{
-			UUID:      identity.UUID,
-			Username:  identity.Username,
-			QueriedAt: nowFunc(),
+			UUID:      providerAccount.UUID,
+			Username:  providerAccount.Username,
+			QueriedAt: providerAccount.QueriedAt,
 		})
 		if err != nil {
 			// NOTE: This error is not critical, we can still return the UUID
 		}
 
-		return identity.UUID, nil
+		return providerAccount.UUID, nil
 	}
 }
 

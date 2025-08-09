@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Amund211/flashlight/internal/adapters/cache"
-	"github.com/Amund211/flashlight/internal/adapters/uuidprovider"
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/stretchr/testify/assert"
@@ -16,20 +15,20 @@ import (
 type mockUUIDProvider struct {
 	t *testing.T
 
-	getUUIDUsername string
-	getUUIDCalled   bool
-	getUUIDIdentity uuidprovider.Identity
-	getUUIDErr      error
+	getAccountByUsernameUsername string
+	getAccountByUsernameCalled   bool
+	getAccountByUsernameAccount  domain.Account
+	getAccountByUsernameErr      error
 }
 
-func (m *mockUUIDProvider) GetUUID(ctx context.Context, username string) (uuidprovider.Identity, error) {
+func (m *mockUUIDProvider) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
 	m.t.Helper()
-	require.Equal(m.t, m.getUUIDUsername, username)
+	require.Equal(m.t, m.getAccountByUsernameUsername, username)
 
-	require.False(m.t, m.getUUIDCalled)
+	require.False(m.t, m.getAccountByUsernameCalled)
 
-	m.getUUIDCalled = true
-	return m.getUUIDIdentity, m.getUUIDErr
+	m.getAccountByUsernameCalled = true
+	return m.getAccountByUsernameAccount, m.getAccountByUsernameErr
 }
 
 type mockAccountRepository struct {
@@ -94,11 +93,12 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 
 		c := cache.NewBasicCache[string]()
 		provider := &mockUUIDProvider{
-			t:               t,
-			getUUIDUsername: "testuser",
-			getUUIDIdentity: uuidprovider.Identity{
-				Username: "TestUser",
-				UUID:     UUID,
+			t:                            t,
+			getAccountByUsernameUsername: "testuser",
+			getAccountByUsernameAccount: domain.Account{
+				Username:  "TestUser",
+				UUID:      UUID,
+				QueriedAt: now,
 			},
 		}
 		repo := &mockAccountRepository{
@@ -119,7 +119,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 		require.Equal(t, UUID, uuid)
 
 		require.True(t, repo.getAccountByUsernameCalled)
-		require.True(t, provider.getUUIDCalled)
+		require.True(t, provider.getAccountByUsernameCalled)
 		require.True(t, repo.storeAccountCalled)
 		require.False(t, repo.removeUsernameCalled)
 	})
@@ -162,7 +162,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				require.Equal(t, UUID, uuid)
 
 				require.True(t, repo.getAccountByUsernameCalled)
-				require.False(t, provider.getUUIDCalled)
+				require.False(t, provider.getAccountByUsernameCalled)
 				require.False(t, repo.storeAccountCalled)
 				require.False(t, repo.removeUsernameCalled)
 			})
@@ -182,11 +182,12 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 
 				c := cache.NewBasicCache[string]()
 				provider := &mockUUIDProvider{
-					t:               t,
-					getUUIDUsername: "testuser",
-					getUUIDIdentity: uuidprovider.Identity{
-						Username: "TestUser",
-						UUID:     UUID,
+					t:                            t,
+					getAccountByUsernameUsername: "testuser",
+					getAccountByUsernameAccount: domain.Account{
+						Username:  "TestUser",
+						UUID:      UUID,
+						QueriedAt: now,
 					},
 				}
 				repo := &mockAccountRepository{
@@ -211,7 +212,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				require.Equal(t, UUID, uuid)
 
 				require.True(t, repo.getAccountByUsernameCalled)
-				require.True(t, provider.getUUIDCalled)
+				require.True(t, provider.getAccountByUsernameCalled)
 				require.True(t, repo.storeAccountCalled)
 				require.False(t, repo.removeUsernameCalled)
 			})
@@ -230,11 +231,12 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 
 				c := cache.NewBasicCache[string]()
 				provider := &mockUUIDProvider{
-					t:               t,
-					getUUIDUsername: "testuser",
-					getUUIDIdentity: uuidprovider.Identity{
-						Username: "TestUser",
-						UUID:     UUID,
+					t:                            t,
+					getAccountByUsernameUsername: "testuser",
+					getAccountByUsernameAccount: domain.Account{
+						Username:  "TestUser",
+						UUID:      UUID,
+						QueriedAt: now,
 					},
 				}
 				repo := &mockAccountRepository{
@@ -255,7 +257,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				require.Equal(t, UUID, uuid)
 
 				require.True(t, repo.getAccountByUsernameCalled)
-				require.True(t, provider.getUUIDCalled)
+				require.True(t, provider.getAccountByUsernameCalled)
 				require.True(t, repo.storeAccountCalled)
 				require.False(t, repo.removeUsernameCalled)
 			})
@@ -267,9 +269,9 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 
 		c := cache.NewBasicCache[string]()
 		provider := &mockUUIDProvider{
-			t:               t,
-			getUUIDUsername: "testuser",
-			getUUIDErr:      domain.ErrUsernameNotFound,
+			t:                            t,
+			getAccountByUsernameUsername: "testuser",
+			getAccountByUsernameErr:      domain.ErrUsernameNotFound,
 		}
 		repo := &mockAccountRepository{
 			t:                            t,
@@ -289,7 +291,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 		require.Empty(t, uuid)
 
 		require.True(t, repo.getAccountByUsernameCalled)
-		require.True(t, provider.getUUIDCalled)
+		require.True(t, provider.getAccountByUsernameCalled)
 		require.False(t, repo.storeAccountCalled)
 		require.True(t, repo.removeUsernameCalled)
 	})
@@ -306,9 +308,9 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 
 				c := cache.NewBasicCache[string]()
 				provider := &mockUUIDProvider{
-					t:               t,
-					getUUIDUsername: "testuser",
-					getUUIDErr:      assert.AnError,
+					t:                            t,
+					getAccountByUsernameUsername: "testuser",
+					getAccountByUsernameErr:      assert.AnError,
 				}
 				repo := &mockAccountRepository{
 					t:                            t,
@@ -328,7 +330,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				require.Equal(t, UUID, uuid)
 
 				require.True(t, repo.getAccountByUsernameCalled)
-				require.True(t, provider.getUUIDCalled)
+				require.True(t, provider.getAccountByUsernameCalled)
 				require.False(t, repo.storeAccountCalled)
 				require.False(t, repo.removeUsernameCalled)
 			})
@@ -347,9 +349,9 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 
 				c := cache.NewBasicCache[string]()
 				provider := &mockUUIDProvider{
-					t:               t,
-					getUUIDUsername: "testuser",
-					getUUIDErr:      assert.AnError,
+					t:                            t,
+					getAccountByUsernameUsername: "testuser",
+					getAccountByUsernameErr:      assert.AnError,
 				}
 				repo := &mockAccountRepository{
 					t:                            t,
@@ -369,7 +371,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				require.Empty(t, uuid)
 
 				require.True(t, repo.getAccountByUsernameCalled)
-				require.True(t, provider.getUUIDCalled)
+				require.True(t, provider.getAccountByUsernameCalled)
 				require.False(t, repo.storeAccountCalled)
 				require.False(t, repo.removeUsernameCalled)
 			})
@@ -381,11 +383,12 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 
 		c := cache.NewBasicCache[string]()
 		provider := &mockUUIDProvider{
-			t:               t,
-			getUUIDUsername: "testuser",
-			getUUIDIdentity: uuidprovider.Identity{
-				Username: "testuser",
-				UUID:     UUID,
+			t:                            t,
+			getAccountByUsernameUsername: "testuser",
+			getAccountByUsernameAccount: domain.Account{
+				Username:  "testuser",
+				UUID:      UUID,
+				QueriedAt: now,
 			},
 		}
 		repo := &mockAccountRepository{
@@ -418,7 +421,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 		require.Equal(t, UUID, uuid)
 
 		// We should have hit the cache, so no calls to provider or repo
-		require.False(t, provider.getUUIDCalled)
+		require.False(t, provider.getAccountByUsernameCalled)
 		require.False(t, repo.getAccountByUsernameCalled)
 		require.False(t, repo.storeAccountCalled)
 		require.False(t, repo.removeUsernameCalled)
