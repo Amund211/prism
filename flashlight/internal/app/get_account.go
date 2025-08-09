@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Amund211/flashlight/internal/adapters/cache"
@@ -128,7 +129,10 @@ func BuildGetAccountByUsernameWithCache(
 			return domain.Account{}, err
 		}
 
-		account, err := cache.GetOrCreate(ctx, accountByUsernameCache, username, func() (domain.Account, error) {
+		// No two accounts can have the same username with case-insensitive comparison
+		cacheKey := strings.ToLower(username)
+
+		account, err := cache.GetOrCreate(ctx, accountByUsernameCache, cacheKey, func() (domain.Account, error) {
 			return getAccountByUsernameWithoutCache(ctx, username)
 		})
 		if err != nil {
