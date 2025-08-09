@@ -110,7 +110,7 @@ func buildGetAccountByUsernameWithoutCache(
 }
 
 func BuildGetAccountByUsernameWithCache(
-	accountCache cache.Cache[domain.Account],
+	accountByUsernameCache cache.Cache[domain.Account],
 	provider accountProvider,
 	repo accountRepository,
 	nowFunc func() time.Time,
@@ -128,7 +128,7 @@ func BuildGetAccountByUsernameWithCache(
 			return domain.Account{}, err
 		}
 
-		account, err := cache.GetOrCreate(ctx, accountCache, username, func() (domain.Account, error) {
+		account, err := cache.GetOrCreate(ctx, accountByUsernameCache, username, func() (domain.Account, error) {
 			return getAccountByUsernameWithoutCache(ctx, username)
 		})
 		if err != nil {
