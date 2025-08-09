@@ -141,7 +141,11 @@ func TestPostgresUsernameRepository(t *testing.T) {
 
 			p := newPostgresUsernameRepository(t, db, "store_single_username")
 
-			err := p.StoreUsername(ctx, makeUUID(1), now, "testuser1")
+			err := p.StoreAccount(ctx, domain.Account{
+				UUID:      makeUUID(1),
+				Username:  "testuser1",
+				QueriedAt: now,
+			})
 			require.NoError(t, err)
 
 			expectStoredUsernames(t, p, dbUsernamesEntry{
@@ -165,11 +169,19 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			p := newPostgresUsernameRepository(t, db, "store_multiple_usernames_different_players")
 
 			t1 := now.Add(1 * time.Minute)
-			err := p.StoreUsername(ctx, makeUUID(1), t1, "testuser1")
+			err := p.StoreAccount(ctx, domain.Account{
+				UUID:      makeUUID(1),
+				Username:  "testuser1",
+				QueriedAt: t1,
+			})
 			require.NoError(t, err)
 
 			t2 := now.Add(2 * time.Minute)
-			err = p.StoreUsername(ctx, makeUUID(2), t2, "testuser2")
+			err = p.StoreAccount(ctx, domain.Account{
+				UUID:      makeUUID(2),
+				Username:  "testuser2",
+				QueriedAt: t2,
+			})
 			require.NoError(t, err)
 
 			expectStoredUsernames(t, p,
@@ -205,7 +217,11 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			p := newPostgresUsernameRepository(t, db, "store_duplicate_uuid")
 
 			t1 := now.Add(1 * time.Minute)
-			err := p.StoreUsername(ctx, makeUUID(1), t1, "testuser1")
+			err := p.StoreAccount(ctx, domain.Account{
+				UUID:      makeUUID(1),
+				Username:  "testuser1",
+				QueriedAt: t1,
+			})
 			require.NoError(t, err)
 
 			expectStoredUsernames(t, p,
@@ -224,7 +240,11 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			)
 
 			t2 := now.Add(2 * time.Minute)
-			err = p.StoreUsername(ctx, makeUUID(1), t2, "testuser2")
+			err = p.StoreAccount(ctx, domain.Account{
+				UUID:      makeUUID(1),
+				Username:  "testuser2",
+				QueriedAt: t2,
+			})
 			require.NoError(t, err)
 
 			// Should replace existing entry with the given uuid to ensure no duplicates
@@ -256,7 +276,11 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			p := newPostgresUsernameRepository(t, db, "store_duplicate_username")
 
 			t1 := now.Add(1 * time.Minute)
-			err := p.StoreUsername(ctx, makeUUID(1), t1, "testuser1")
+			err := p.StoreAccount(ctx, domain.Account{
+				UUID:      makeUUID(1),
+				Username:  "testuser1",
+				QueriedAt: t1,
+			})
 			require.NoError(t, err)
 
 			expectStoredUsernames(t, p,
@@ -275,7 +299,11 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			)
 
 			t2 := now.Add(2 * time.Minute)
-			err = p.StoreUsername(ctx, makeUUID(2), t2, "testuser1")
+			err = p.StoreAccount(ctx, domain.Account{
+				UUID:      makeUUID(2),
+				Username:  "testuser1",
+				QueriedAt: t2,
+			})
 			require.NoError(t, err)
 
 			// Should replace existing entry with the given username to ensure no duplicates
@@ -307,7 +335,11 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			p := newPostgresUsernameRepository(t, db, "store_duplicate_username_different_casing")
 
 			t1 := now.Add(1 * time.Minute)
-			err := p.StoreUsername(ctx, makeUUID(1), t1, "testuser1")
+			err := p.StoreAccount(ctx, domain.Account{
+				UUID:      makeUUID(1),
+				Username:  "testuser1",
+				QueriedAt: t1,
+			})
 			require.NoError(t, err)
 
 			expectStoredUsernames(t, p,
@@ -326,7 +358,11 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			)
 
 			t2 := now.Add(2 * time.Minute)
-			err = p.StoreUsername(ctx, makeUUID(2), t2, "TESTUSER1")
+			err = p.StoreAccount(ctx, domain.Account{
+				UUID:      makeUUID(2),
+				Username:  "TESTUSER1",
+				QueriedAt: t2,
+			})
 			require.NoError(t, err)
 
 			// Should replace existing entry with the given username to ensure no duplicates
@@ -359,10 +395,18 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			p := newPostgresUsernameRepository(t, db, "store_duplicate_uuid_and_duplicate_username")
 
 			t1 := now.Add(1 * time.Minute)
-			err := p.StoreUsername(ctx, makeUUID(1), t1, "testuser1")
+			err := p.StoreAccount(ctx, domain.Account{
+				UUID:      makeUUID(1),
+				Username:  "testuser1",
+				QueriedAt: t1,
+			})
 			require.NoError(t, err)
 
-			err = p.StoreUsername(ctx, makeUUID(2), t1, "testuser2")
+			err = p.StoreAccount(ctx, domain.Account{
+				UUID:      makeUUID(2),
+				Username:  "testuser2",
+				QueriedAt: t1,
+			})
 			require.NoError(t, err)
 
 			expectStoredUsernames(t, p,
@@ -391,7 +435,11 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			)
 
 			t2 := now.Add(2 * time.Minute)
-			err = p.StoreUsername(ctx, makeUUID(1), t2, "testuser2")
+			err = p.StoreAccount(ctx, domain.Account{
+				UUID:      makeUUID(1),
+				Username:  "testuser2",
+				QueriedAt: t2,
+			})
 			require.NoError(t, err)
 
 			expectStoredUsernames(t, p,
@@ -426,7 +474,11 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			p := newPostgresUsernameRepository(t, db, "store_identical_uuid_and_username")
 
 			t1 := now.Add(1 * time.Minute)
-			err := p.StoreUsername(ctx, makeUUID(1), t1, "testuser1")
+			err := p.StoreAccount(ctx, domain.Account{
+				UUID:      makeUUID(1),
+				Username:  "testuser1",
+				QueriedAt: t1,
+			})
 			require.NoError(t, err)
 
 			expectStoredUsernames(t, p,
@@ -445,7 +497,11 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			)
 
 			t2 := now.Add(2 * time.Minute)
-			err = p.StoreUsername(ctx, makeUUID(1), t2, "testuser1")
+			err = p.StoreAccount(ctx, domain.Account{
+				UUID:      makeUUID(1),
+				Username:  "testuser1",
+				QueriedAt: t2,
+			})
 			require.NoError(t, err)
 
 			expectStoredUsernames(t, p,
@@ -469,7 +525,11 @@ func TestPostgresUsernameRepository(t *testing.T) {
 
 			p := newPostgresUsernameRepository(t, db, "remove_username")
 
-			err := p.StoreUsername(ctx, makeUUID(1), now, "testuser1")
+			err := p.StoreAccount(ctx, domain.Account{
+				UUID:      makeUUID(1),
+				Username:  "testuser1",
+				QueriedAt: now,
+			})
 			require.NoError(t, err)
 
 			expectStoredUsernames(t, p, dbUsernamesEntry{
@@ -515,7 +575,11 @@ func TestPostgresUsernameRepository(t *testing.T) {
 				go func(i int) {
 					defer wg.Done()
 					t1 := now.Add(time.Duration(i) * time.Minute)
-					err := p.StoreUsername(ctx, makeUUID(333+(i%3)), t1, fmt.Sprintf("testuser%d", i%2))
+					err := p.StoreAccount(ctx, domain.Account{
+						UUID:      makeUUID(333 + (i % 3)),
+						Username:  fmt.Sprintf("testuser%d", i%2),
+						QueriedAt: t1,
+					})
 					require.NoError(t, err)
 				}(i)
 			}
@@ -539,7 +603,11 @@ func TestPostgresUsernameRepository(t *testing.T) {
 				t.Parallel()
 				for i := 0; i < limit; i++ {
 					t1 := now.Add(time.Duration(i) * time.Minute)
-					err := p.StoreUsername(ctx, makeUUID(i), t1, fmt.Sprintf("testuser%d", i))
+					err := p.StoreAccount(ctx, domain.Account{
+						UUID:      makeUUID(i),
+						Username:  fmt.Sprintf("testuser%d", i),
+						QueriedAt: t1,
+					})
 					require.NoError(t, err)
 				}
 			})
@@ -547,7 +615,11 @@ func TestPostgresUsernameRepository(t *testing.T) {
 				t.Parallel()
 				for i := 0; i < limit; i++ {
 					t1 := now.Add(time.Duration(i) * time.Minute)
-					err := p.StoreUsername(ctx, makeUUID(4_192), t1, fmt.Sprintf("testuser%d", i))
+					err := p.StoreAccount(ctx, domain.Account{
+						UUID:      makeUUID(4_192),
+						Username:  fmt.Sprintf("testuser%d", i),
+						QueriedAt: t1,
+					})
 					require.NoError(t, err)
 				}
 			})
@@ -558,13 +630,25 @@ func TestPostgresUsernameRepository(t *testing.T) {
 		t.Parallel()
 		p := newPostgresUsernameRepository(t, db, "get_account_by_username")
 
-		err := p.StoreUsername(ctx, makeUUID(1), now.Add(-24*time.Hour), "Ghanima")
+		err := p.StoreAccount(ctx, domain.Account{
+			UUID:      makeUUID(1),
+			Username:  "Ghanima",
+			QueriedAt: now.Add(-24 * time.Hour),
+		})
 		require.NoError(t, err)
 
-		err = p.StoreUsername(ctx, makeUUID(2), now, "Leto")
+		err = p.StoreAccount(ctx, domain.Account{
+			UUID:      makeUUID(2),
+			Username:  "Leto",
+			QueriedAt: now,
+		})
 		require.NoError(t, err)
 
-		err = p.StoreUsername(ctx, makeUUID(3), now.Add(2*time.Hour), "Siona")
+		err = p.StoreAccount(ctx, domain.Account{
+			UUID:      makeUUID(3),
+			Username:  "Siona",
+			QueriedAt: now.Add(2 * time.Hour),
+		})
 		require.NoError(t, err)
 
 		t.Run("get missing", func(t *testing.T) {
@@ -599,13 +683,25 @@ func TestPostgresUsernameRepository(t *testing.T) {
 		t.Parallel()
 		p := newPostgresUsernameRepository(t, db, "get_account_by_uuid")
 
-		err := p.StoreUsername(ctx, makeUUID(1), now.Add(24*time.Hour), "Ghanima")
+		err := p.StoreAccount(ctx, domain.Account{
+			UUID:      makeUUID(1),
+			Username:  "Ghanima",
+			QueriedAt: now.Add(24 * time.Hour),
+		})
 		require.NoError(t, err)
 
-		err = p.StoreUsername(ctx, makeUUID(2), now, "Leto")
+		err = p.StoreAccount(ctx, domain.Account{
+			UUID:      makeUUID(2),
+			Username:  "Leto",
+			QueriedAt: now,
+		})
 		require.NoError(t, err)
 
-		err = p.StoreUsername(ctx, makeUUID(3), now.Add(-2*time.Hour), "Siona")
+		err = p.StoreAccount(ctx, domain.Account{
+			UUID:      makeUUID(3),
+			Username:  "Siona",
+			QueriedAt: now.Add(-2 * time.Hour),
+		})
 		require.NoError(t, err)
 
 		t.Run("get missing", func(t *testing.T) {

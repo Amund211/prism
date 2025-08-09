@@ -35,11 +35,11 @@ type dbUsernameQueriesEntry struct {
 	LastQueriedAt time.Time `db:"last_queried_at"`
 }
 
-func (p *PostgresUsernameRepository) StoreUsername(ctx context.Context, uuid string, queriedAt time.Time, username string) error {
-	if !strutils.UUIDIsNormalized(uuid) {
+func (p *PostgresUsernameRepository) StoreAccount(ctx context.Context, account domain.Account) error {
+	if !strutils.UUIDIsNormalized(account.UUID) {
 		err := fmt.Errorf("uuid is not normalized")
 		reporting.Report(ctx, err, map[string]string{
-			"uuid": uuid,
+			"uuid": account.UUID,
 		})
 		return err
 	}
@@ -70,16 +70,16 @@ func (p *PostgresUsernameRepository) StoreUsername(ctx context.Context, uuid str
 		ON CONFLICT (player_uuid, username)
 		DO UPDATE SET
 			last_queried_at = EXCLUDED.last_queried_at`,
-		uuid,
-		username,
-		queriedAt,
+		account.UUID,
+		account.Username,
+		account.QueriedAt,
 	)
 	if err != nil {
 		err := fmt.Errorf("failed to insert or update username_queries entry: %w", err)
 		reporting.Report(ctx, err, map[string]string{
-			"uuid":          uuid,
-			"username":      username,
-			"lastQueriedAt": queriedAt.Format(time.RFC3339),
+			"uuid":          account.UUID,
+			"username":      account.Username,
+			"lastQueriedAt": account.QueriedAt.Format(time.RFC3339),
 		})
 		return err
 	}
@@ -102,11 +102,12 @@ func (p *PostgresUsernameRepository) StoreUsername(ctx context.Context, uuid str
 
 	// Remove existing entries with same username case insensitively
 	// NOTE: Not deleting entries with the same UUID, as we will update it later if it exists
-	_, err = txx.ExecContext(ctx, "DELETE FROM usernames WHERE lower(username) = lower($1) AND player_uuid != $2", username, uuid)
+	_, err = txx.ExecContext(ctx, "DELETE FROM usernames WHERE lower(username) = lower($1) AND player_uuid != $2", account.Username, account.UUID)
 	if err != nil {
 		err := fmt.Errorf("failed to delete entries with given username (case insensitive): %w", err)
 		reporting.Report(ctx, err, map[string]string{
-			"username": username,
+			"username": account.Username,
+			"uuid":     account.UUID,
 		})
 		return err
 	}
@@ -121,16 +122,16 @@ func (p *PostgresUsernameRepository) StoreUsername(ctx context.Context, uuid str
 		DO UPDATE SET
 			username = EXCLUDED.username,
 			queried_at = EXCLUDED.queried_at`,
-		uuid,
-		username,
-		queriedAt,
+		account.UUID,
+		account.Username,
+		account.QueriedAt,
 	)
 	if err != nil {
 		err := fmt.Errorf("failed to upsert new usernames entry: %w", err)
 		reporting.Report(ctx, err, map[string]string{
-			"uuid":      uuid,
-			"username":  username,
-			"queriedAt": queriedAt.Format(time.RFC3339),
+			"uuid":      account.UUID,
+			"username":  account.Username,
+			"queriedAt": account.QueriedAt.Format(time.RFC3339),
 		})
 		return err
 	}

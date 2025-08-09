@@ -17,7 +17,7 @@ import (
 type GetUUID func(ctx context.Context, username string) (string, error)
 
 type usernameRepository interface {
-	StoreUsername(ctx context.Context, uuid string, queriedAt time.Time, username string) error
+	StoreAccount(ctx context.Context, account domain.Account) error
 	RemoveUsername(ctx context.Context, username string) error
 	GetAccountByUsername(ctx context.Context, username string) (domain.Account, error)
 }
@@ -93,7 +93,11 @@ func buildGetUUIDWithoutCache(
 			return "", err
 		}
 
-		err = repo.StoreUsername(ctx, identity.UUID, nowFunc(), identity.Username)
+		err = repo.StoreAccount(ctx, domain.Account{
+			UUID:      identity.UUID,
+			Username:  identity.Username,
+			QueriedAt: nowFunc(),
+		})
 		if err != nil {
 			// NOTE: This error is not critical, we can still return the UUID
 		}
