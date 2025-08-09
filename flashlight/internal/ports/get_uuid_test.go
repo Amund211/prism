@@ -50,7 +50,7 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 
 	username := "someguy"
 	uuid := "01234567-89ab-cdef-0123-456789abcdef"
-	successJSON := fmt.Sprintf(`{"success":true,"username":"someguy","uuid":"%s"}`, uuid)
+	successJSON := fmt.Sprintf(`{"success":true,"username":"SomeGuy","uuid":"%s"}`, uuid)
 
 	type response struct {
 		Success  *bool   `json:"success"`
@@ -97,7 +97,7 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 		require.Equal(t, uuid, *parsed.UUID)
 		require.Nil(t, parsed.Cause)
 		require.NotNil(t, parsed.Username)
-		require.Equal(t, "someguy", *parsed.Username) // TODO: Return authoritative username from usecase
+		require.Equal(t, "SomeGuy", *parsed.Username)
 
 		require.True(t, *called)
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
