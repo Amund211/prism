@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
@@ -16,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMakeGetUUIDHandler(t *testing.T) {
+func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 	testLogger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	allowedOrigins, err := ports.NewDomainSuffixes("example.com", "test.com")
 	require.NoError(t, err)
@@ -26,21 +27,21 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 		}
 	}
 
-	makeGetUUID := func(t *testing.T, expectedUsername string, uuid string, err error) (app.GetUUID, *bool) {
+	makeGetAccountByUsername := func(t *testing.T, expectedUsername string, account domain.Account, err error) (app.GetAccountByUsername, *bool) {
 		called := false
-		return func(ctx context.Context, username string) (string, error) {
+		return func(ctx context.Context, username string) (domain.Account, error) {
 			t.Helper()
 			require.Equal(t, expectedUsername, username)
 
 			called = true
 
-			return uuid, err
+			return account, err
 		}, &called
 	}
 
-	makeGetUUIDHandler := func(getUUID app.GetUUID) http.HandlerFunc {
+	makeGetUUIDHandler := func(getAccountByUsername app.GetAccountByUsername) http.HandlerFunc {
 		return ports.MakeGetUUIDHandler(
-			getUUID,
+			getAccountByUsername,
 			allowedOrigins,
 			testLogger,
 			noopMiddleware,
@@ -71,11 +72,17 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 		return req
 	}
 
-	t.Run("successful get uuid", func(t *testing.T) {
-		getUUIDFunc, called := makeGetUUID(t, username, uuid, nil)
-		handler := makeGetUUIDHandler(getUUIDFunc)
+	now := time.Now()
 
-		req := makeRequest(username)
+	t.Run("successful get uuid", func(t *testing.T) {
+		getAccountByUsername, called := makeGetAccountByUsername(t, "someguy", domain.Account{
+			Username:  "SomeGuy",
+			UUID:      uuid,
+			QueriedAt: now.Add(-time.Hour),
+		}, nil)
+		handler := makeGetUUIDHandler(getAccountByUsername)
+
+		req := makeRequest("someguy")
 		w := httptest.NewRecorder()
 
 		handler.ServeHTTP(w, req)
@@ -90,15 +97,15 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 		require.Equal(t, uuid, *parsed.UUID)
 		require.Nil(t, parsed.Cause)
 		require.NotNil(t, parsed.Username)
-		require.Equal(t, "someguy", *parsed.Username)
+		require.Equal(t, "someguy", *parsed.Username) // TODO: Return authoritative username from usecase
 
 		require.True(t, *called)
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
 	})
 
 	t.Run("username does not exist", func(t *testing.T) {
-		getUUIDFunc, called := makeGetUUID(t, username, "", domain.ErrUsernameNotFound)
-		handler := makeGetUUIDHandler(getUUIDFunc)
+		getAccountByUsername, called := makeGetAccountByUsername(t, username, domain.Account{}, domain.ErrUsernameNotFound)
+		handler := makeGetUUIDHandler(getAccountByUsername)
 
 		req := makeRequest(username)
 		w := httptest.NewRecorder()
@@ -121,8 +128,8 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 	})
 
 	t.Run("temporarily unavailable", func(t *testing.T) {
-		getUUIDFunc, called := makeGetUUID(t, username, "", domain.ErrTemporarilyUnavailable)
-		handler := makeGetUUIDHandler(getUUIDFunc)
+		getAccountByUsername, called := makeGetAccountByUsername(t, username, domain.Account{}, domain.ErrTemporarilyUnavailable)
+		handler := makeGetUUIDHandler(getAccountByUsername)
 
 		req := makeRequest(username)
 		w := httptest.NewRecorder()
@@ -145,8 +152,8 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 	})
 
 	t.Run("invalid username length", func(t *testing.T) {
-		getUUIDFunc, called := makeGetUUID(t, "", uuid, nil)
-		handler := makeGetUUIDHandler(getUUIDFunc)
+		getAccountByUsername, called := makeGetAccountByUsername(t, "", domain.Account{}, nil)
+		handler := makeGetUUIDHandler(getAccountByUsername)
 
 		req := makeRequest("")
 		w := httptest.NewRecorder()
@@ -169,8 +176,12 @@ func TestMakeGetUUIDHandler(t *testing.T) {
 	})
 
 	t.Run("returns cors headers", func(t *testing.T) {
-		getUUIDFunc, called := makeGetUUID(t, username, uuid, nil)
-		handler := makeGetUUIDHandler(getUUIDFunc)
+		getAccountByUsername, called := makeGetAccountByUsername(t, username, domain.Account{
+			Username:  "SomeGuy",
+			UUID:      uuid,
+			QueriedAt: now.Add(-time.Hour),
+		}, nil)
+		handler := makeGetUUIDHandler(getAccountByUsername)
 
 		origin := "https://subdomain.example.com"
 

@@ -23,7 +23,7 @@ type response struct {
 }
 
 func MakeGetUUIDHandler(
-	getUUID app.GetUUID,
+	getAccountByUsername app.GetAccountByUsername,
 	allowedOrigins *DomainSuffixes,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
@@ -102,7 +102,7 @@ func MakeGetUUIDHandler(
 			return
 		}
 
-		uuid, err := getUUID(ctx, username)
+		account, err := getAccountByUsername(ctx, username)
 		if errors.Is(err, domain.ErrUsernameNotFound) {
 			handleError(ctx, "not found", http.StatusNotFound)
 			return
@@ -112,19 +112,19 @@ func MakeGetUUIDHandler(
 		}
 
 		if err != nil {
-			// NOTE: GetUUID implementations handle their own error reporting
+			// NOTE: GetAccountByUsername implementations handle their own error reporting
 			handleError(ctx, "internal server error", http.StatusInternalServerError)
 			return
 		}
 
 		ctx = reporting.AddExtrasToContext(ctx,
 			map[string]string{
-				"uuid": uuid,
+				"uuid": account.UUID,
 			},
 		)
-		ctx = logging.AddMetaToContext(ctx, slog.String("uuid", uuid))
+		ctx = logging.AddMetaToContext(ctx, slog.String("uuid", account.UUID))
 
-		response, err := makeSuccessResponse(ctx, username, uuid)
+		response, err := makeSuccessResponse(ctx, username, account.UUID)
 		if err != nil {
 			reporting.Report(ctx, fmt.Errorf("failed to create success response: %w", err))
 			handleError(ctx, "internal server error", http.StatusInternalServerError)

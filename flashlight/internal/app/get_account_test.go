@@ -78,7 +78,7 @@ func (m *mockAccountRepository) StoreAccount(ctx context.Context, account domain
 	return m.storeAccountErr
 }
 
-func TestBuildGetUUIDWithCache(t *testing.T) {
+func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -91,7 +91,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 	t.Run("miss in repo results in call to provider and store to repo", func(t *testing.T) {
 		t.Parallel()
 
-		c := cache.NewBasicCache[string]()
+		c := cache.NewBasicCache[domain.Account]()
 		provider := &mockAccountProvider{
 			t:                            t,
 			getAccountByUsernameUsername: "testuser",
@@ -112,11 +112,15 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				QueriedAt: now,
 			},
 		}
-		getUUIDWithCache := app.BuildGetUUIDWithCache(c, provider, repo, nowFunc)
+		getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
 
-		uuid, err := getUUIDWithCache(ctx, "testuser")
+		account, err := getAccountByUsernameWithCache(ctx, "testuser")
 		require.NoError(t, err)
-		require.Equal(t, UUID, uuid)
+		require.Equal(t, domain.Account{
+			Username:  "TestUser",
+			UUID:      UUID,
+			QueriedAt: now,
+		}, account)
 
 		require.True(t, repo.getAccountByUsernameCalled)
 		require.True(t, provider.getAccountByUsernameCalled)
@@ -136,7 +140,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 			t.Run("repo age "+repoAge.String(), func(t *testing.T) {
 				t.Parallel()
 
-				c := cache.NewBasicCache[string]()
+				c := cache.NewBasicCache[domain.Account]()
 				provider := &mockAccountProvider{
 					t: t,
 				}
@@ -155,11 +159,15 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 						QueriedAt: now,
 					},
 				}
-				getUUIDWithCache := app.BuildGetUUIDWithCache(c, provider, repo, nowFunc)
+				getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
 
-				uuid, err := getUUIDWithCache(ctx, "testuser")
+				account, err := getAccountByUsernameWithCache(ctx, "testuser")
 				require.NoError(t, err)
-				require.Equal(t, UUID, uuid)
+				require.Equal(t, domain.Account{
+					UUID:      UUID,
+					Username:  "TestUser",
+					QueriedAt: now.Add(-repoAge),
+				}, account)
 
 				require.True(t, repo.getAccountByUsernameCalled)
 				require.False(t, provider.getAccountByUsernameCalled)
@@ -180,7 +188,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 			t.Run("repo age "+repoAge.String(), func(t *testing.T) {
 				t.Parallel()
 
-				c := cache.NewBasicCache[string]()
+				c := cache.NewBasicCache[domain.Account]()
 				provider := &mockAccountProvider{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
@@ -205,11 +213,15 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 						QueriedAt: now,
 					},
 				}
-				getUUIDWithCache := app.BuildGetUUIDWithCache(c, provider, repo, nowFunc)
+				getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
 
-				uuid, err := getUUIDWithCache(ctx, "testuser")
+				account, err := getAccountByUsernameWithCache(ctx, "testuser")
 				require.NoError(t, err)
-				require.Equal(t, UUID, uuid)
+				require.Equal(t, domain.Account{
+					Username:  "TestUser",
+					UUID:      UUID,
+					QueriedAt: now,
+				}, account)
 
 				require.True(t, repo.getAccountByUsernameCalled)
 				require.True(t, provider.getAccountByUsernameCalled)
@@ -229,7 +241,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 			t.Run("repo get error: "+repoErr.Error(), func(t *testing.T) {
 				t.Parallel()
 
-				c := cache.NewBasicCache[string]()
+				c := cache.NewBasicCache[domain.Account]()
 				provider := &mockAccountProvider{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
@@ -250,11 +262,15 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 						QueriedAt: now,
 					},
 				}
-				getUUIDWithCache := app.BuildGetUUIDWithCache(c, provider, repo, nowFunc)
+				getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
 
-				uuid, err := getUUIDWithCache(ctx, "testuser")
+				account, err := getAccountByUsernameWithCache(ctx, "testuser")
 				require.NoError(t, err)
-				require.Equal(t, UUID, uuid)
+				require.Equal(t, domain.Account{
+					Username:  "TestUser",
+					UUID:      UUID,
+					QueriedAt: now,
+				}, account)
 
 				require.True(t, repo.getAccountByUsernameCalled)
 				require.True(t, provider.getAccountByUsernameCalled)
@@ -267,7 +283,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 	t.Run("not found in provider get results in call to remove in repo", func(t *testing.T) {
 		t.Parallel()
 
-		c := cache.NewBasicCache[string]()
+		c := cache.NewBasicCache[domain.Account]()
 		provider := &mockAccountProvider{
 			t:                            t,
 			getAccountByUsernameUsername: "testuser",
@@ -284,11 +300,10 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 
 			removeUsernameUsername: "testuser",
 		}
-		getUUIDWithCache := app.BuildGetUUIDWithCache(c, provider, repo, nowFunc)
+		getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
 
-		uuid, err := getUUIDWithCache(ctx, "testuser")
+		_, err := getAccountByUsernameWithCache(ctx, "testuser")
 		require.ErrorIs(t, err, domain.ErrUsernameNotFound)
-		require.Empty(t, uuid)
 
 		require.True(t, repo.getAccountByUsernameCalled)
 		require.True(t, provider.getAccountByUsernameCalled)
@@ -306,7 +321,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 			t.Run("repo age "+repoAge.String(), func(t *testing.T) {
 				t.Parallel()
 
-				c := cache.NewBasicCache[string]()
+				c := cache.NewBasicCache[domain.Account]()
 				provider := &mockAccountProvider{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
@@ -323,11 +338,15 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 
 					removeUsernameUsername: "testuser",
 				}
-				getUUIDWithCache := app.BuildGetUUIDWithCache(c, provider, repo, nowFunc)
+				getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
 
-				uuid, err := getUUIDWithCache(ctx, "testuser")
+				account, err := getAccountByUsernameWithCache(ctx, "testuser")
 				require.NoError(t, err)
-				require.Equal(t, UUID, uuid)
+				require.Equal(t, domain.Account{
+					UUID:      UUID,
+					Username:  "testuser",
+					QueriedAt: now.Add(-repoAge),
+				}, account)
 
 				require.True(t, repo.getAccountByUsernameCalled)
 				require.True(t, provider.getAccountByUsernameCalled)
@@ -347,7 +366,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 			t.Run("repo age "+repoAge.String(), func(t *testing.T) {
 				t.Parallel()
 
-				c := cache.NewBasicCache[string]()
+				c := cache.NewBasicCache[domain.Account]()
 				provider := &mockAccountProvider{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
@@ -364,11 +383,10 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 
 					removeUsernameUsername: "testuser",
 				}
-				getUUIDWithCache := app.BuildGetUUIDWithCache(c, provider, repo, nowFunc)
+				getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
 
-				uuid, err := getUUIDWithCache(ctx, "testuser")
+				_, err := getAccountByUsernameWithCache(ctx, "testuser")
 				require.ErrorIs(t, err, assert.AnError)
-				require.Empty(t, uuid)
 
 				require.True(t, repo.getAccountByUsernameCalled)
 				require.True(t, provider.getAccountByUsernameCalled)
@@ -381,7 +399,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 	t.Run("cache hit results in no calls", func(t *testing.T) {
 		t.Parallel()
 
-		c := cache.NewBasicCache[string]()
+		c := cache.NewBasicCache[domain.Account]()
 		provider := &mockAccountProvider{
 			t:                            t,
 			getAccountByUsernameUsername: "testuser",
@@ -402,11 +420,15 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				QueriedAt: now,
 			},
 		}
-		getUUIDWithCache := app.BuildGetUUIDWithCache(c, provider, repo, nowFunc)
+		getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
 
-		uuid, err := getUUIDWithCache(ctx, "testuser")
+		account, err := getAccountByUsernameWithCache(ctx, "testuser")
 		require.NoError(t, err)
-		require.Equal(t, UUID, uuid)
+		require.Equal(t, domain.Account{
+			Username:  "testuser",
+			UUID:      UUID,
+			QueriedAt: now,
+		}, account)
 
 		provider = &mockAccountProvider{
 			t: t,
@@ -414,11 +436,15 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 		repo = &mockAccountRepository{
 			t: t,
 		}
-		getUUIDWithCache = app.BuildGetUUIDWithCache(c, provider, repo, nowFunc)
+		getAccountByUsernameWithCache = app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
 
-		uuid, err = getUUIDWithCache(ctx, "testuser")
+		account, err = getAccountByUsernameWithCache(ctx, "testuser")
 		require.NoError(t, err)
-		require.Equal(t, UUID, uuid)
+		require.Equal(t, domain.Account{
+			Username:  "testuser",
+			UUID:      UUID,
+			QueriedAt: now,
+		}, account)
 
 		// We should have hit the cache, so no calls to provider or repo
 		require.False(t, provider.getAccountByUsernameCalled)

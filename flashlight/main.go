@@ -43,7 +43,7 @@ func main() {
 
 	playerCache := cache.NewTTLCache[*domain.PlayerPIT](1 * time.Minute)
 
-	uuidCache := cache.NewTTLCache[string](24 * time.Hour)
+	accountCache := cache.NewTTLCache[domain.Account](24 * time.Hour)
 
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
@@ -92,7 +92,7 @@ func main() {
 	getAndPersistPlayerWithCache := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, playerRepo)
 	updatePlayerInInterval := app.BuildUpdatePlayerInInterval(getAndPersistPlayerWithCache, time.Now)
 
-	getUUID := app.BuildGetUUIDWithCache(uuidCache, accountProvider, accountRepo, time.Now)
+	getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(accountCache, accountProvider, accountRepo, time.Now)
 
 	getHistory := app.BuildGetHistory(playerRepo, updatePlayerInInterval)
 
@@ -114,7 +114,7 @@ func main() {
 	http.HandleFunc(
 		"GET /v1/uuid/{username}",
 		ports.MakeGetUUIDHandler(
-			getUUID,
+			getAccountByUsernameWithCache,
 			allowedOrigins,
 			logger.With("port", "getuuid"),
 			sentryMiddleware,
