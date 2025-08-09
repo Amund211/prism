@@ -554,9 +554,9 @@ func TestPostgresUsernameRepository(t *testing.T) {
 		})
 	})
 
-	t.Run("GetUUID", func(t *testing.T) {
+	t.Run("GetAccountByUsername", func(t *testing.T) {
 		t.Parallel()
-		p := newPostgresUsernameRepository(t, db, "get_uuid")
+		p := newPostgresUsernameRepository(t, db, "get_account_by_username")
 
 		err := p.StoreUsername(ctx, makeUUID(1), now, "Ghanima")
 		require.NoError(t, err)
@@ -570,27 +570,28 @@ func TestPostgresUsernameRepository(t *testing.T) {
 		t.Run("get missing", func(t *testing.T) {
 			t.Parallel()
 
-			uuid, _, err := p.GetUUID(ctx, "nonexistentuser")
+			_, err := p.GetAccountByUsername(ctx, "nonexistentuser")
 			require.ErrorIs(t, err, domain.ErrUsernameNotFound)
-			require.Empty(t, uuid)
 		})
 
 		t.Run("get same casing", func(t *testing.T) {
 			t.Parallel()
 
-			uuid, queriedAt, err := p.GetUUID(ctx, "Leto")
+			account, err := p.GetAccountByUsername(ctx, "Leto")
 			require.NoError(t, err)
-			require.Equal(t, makeUUID(2), uuid)
-			require.WithinDuration(t, now, queriedAt, 1*time.Millisecond)
+			require.Equal(t, makeUUID(2), account.UUID)
+			require.Equal(t, "Leto", account.Username)
+			require.WithinDuration(t, now, account.QueriedAt, 1*time.Millisecond)
 		})
 
 		t.Run("get different casing", func(t *testing.T) {
 			t.Parallel()
 
-			uuid, queriedAt, err := p.GetUUID(ctx, "siona")
+			account, err := p.GetAccountByUsername(ctx, "siona")
 			require.NoError(t, err)
-			require.Equal(t, makeUUID(3), uuid)
-			require.WithinDuration(t, now, queriedAt, 1*time.Millisecond)
+			require.Equal(t, makeUUID(3), account.UUID)
+			require.Equal(t, "Siona", account.Username)
+			require.WithinDuration(t, now, account.QueriedAt, 1*time.Millisecond)
 		})
 	})
 

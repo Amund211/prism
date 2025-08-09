@@ -35,11 +35,10 @@ func (m *mockUUIDProvider) GetUUID(ctx context.Context, username string) (uuidpr
 type mockUsernameRepository struct {
 	t *testing.T
 
-	getUUIDUsername  string
-	getUUIDCalled    bool
-	getUUIDUUID      string
-	getUUIDQueriedAt time.Time
-	getUUIDErr       error
+	getAccountByUsernameUsername string
+	getAccountByUsernameCalled   bool
+	getAccountByUsernameAccount  domain.Account
+	getAccountByUsernameErr      error
 
 	removeUsernameUsername string
 	removeUsernameCalled   bool
@@ -52,14 +51,14 @@ type mockUsernameRepository struct {
 	storeUsernameErr       error
 }
 
-func (m *mockUsernameRepository) GetUUID(ctx context.Context, username string) (string, time.Time, error) {
+func (m *mockUsernameRepository) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
 	m.t.Helper()
-	require.Equal(m.t, m.getUUIDUsername, username)
+	require.Equal(m.t, m.getAccountByUsernameUsername, username)
 
-	require.False(m.t, m.getUUIDCalled)
+	require.False(m.t, m.getAccountByUsernameCalled)
 
-	m.getUUIDCalled = true
-	return m.getUUIDUUID, m.getUUIDQueriedAt, m.getUUIDErr
+	m.getAccountByUsernameCalled = true
+	return m.getAccountByUsernameAccount, m.getAccountByUsernameErr
 }
 
 func (m *mockUsernameRepository) RemoveUsername(ctx context.Context, username string) error {
@@ -107,9 +106,9 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 			},
 		}
 		repo := &mockUsernameRepository{
-			t:               t,
-			getUUIDUsername: "testuser",
-			getUUIDErr:      domain.ErrUsernameNotFound,
+			t:                            t,
+			getAccountByUsernameUsername: "testuser",
+			getAccountByUsernameErr:      domain.ErrUsernameNotFound,
 
 			storeUsernameUUID:      UUID,
 			storeUsernameUsername:  "TestUser",
@@ -121,7 +120,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, UUID, uuid)
 
-		require.True(t, repo.getUUIDCalled)
+		require.True(t, repo.getAccountByUsernameCalled)
 		require.True(t, provider.getUUIDCalled)
 		require.True(t, repo.storeUsernameCalled)
 		require.False(t, repo.removeUsernameCalled)
@@ -144,10 +143,13 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 					t: t,
 				}
 				repo := &mockUsernameRepository{
-					t:                t,
-					getUUIDUsername:  "testuser",
-					getUUIDUUID:      UUID,
-					getUUIDQueriedAt: now.Add(-repoAge),
+					t:                            t,
+					getAccountByUsernameUsername: "testuser",
+					getAccountByUsernameAccount: domain.Account{
+						UUID:      UUID,
+						Username:  "TestUser",
+						QueriedAt: now.Add(-repoAge),
+					},
 
 					storeUsernameUUID:      UUID,
 					storeUsernameUsername:  "testuser",
@@ -159,7 +161,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, UUID, uuid)
 
-				require.True(t, repo.getUUIDCalled)
+				require.True(t, repo.getAccountByUsernameCalled)
 				require.False(t, provider.getUUIDCalled)
 				require.False(t, repo.storeUsernameCalled)
 				require.False(t, repo.removeUsernameCalled)
@@ -188,10 +190,13 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 					},
 				}
 				repo := &mockUsernameRepository{
-					t:                t,
-					getUUIDUsername:  "testuser",
-					getUUIDUUID:      UUID,
-					getUUIDQueriedAt: now.Add(-repoAge),
+					t:                            t,
+					getAccountByUsernameUsername: "testuser",
+					getAccountByUsernameAccount: domain.Account{
+						UUID:      UUID,
+						Username:  "testuser",
+						QueriedAt: now.Add(-repoAge),
+					},
 
 					storeUsernameUUID:      UUID,
 					storeUsernameUsername:  "TestUser",
@@ -203,7 +208,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, UUID, uuid)
 
-				require.True(t, repo.getUUIDCalled)
+				require.True(t, repo.getAccountByUsernameCalled)
 				require.True(t, provider.getUUIDCalled)
 				require.True(t, repo.storeUsernameCalled)
 				require.False(t, repo.removeUsernameCalled)
@@ -231,9 +236,9 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 					},
 				}
 				repo := &mockUsernameRepository{
-					t:               t,
-					getUUIDUsername: "testuser",
-					getUUIDErr:      repoErr,
+					t:                            t,
+					getAccountByUsernameUsername: "testuser",
+					getAccountByUsernameErr:      repoErr,
 
 					storeUsernameUUID:      UUID,
 					storeUsernameUsername:  "TestUser",
@@ -245,7 +250,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, UUID, uuid)
 
-				require.True(t, repo.getUUIDCalled)
+				require.True(t, repo.getAccountByUsernameCalled)
 				require.True(t, provider.getUUIDCalled)
 				require.True(t, repo.storeUsernameCalled)
 				require.False(t, repo.removeUsernameCalled)
@@ -263,10 +268,13 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 			getUUIDErr:      domain.ErrUsernameNotFound,
 		}
 		repo := &mockUsernameRepository{
-			t:                t,
-			getUUIDUsername:  "testuser",
-			getUUIDUUID:      UUID,
-			getUUIDQueriedAt: now.Add(-12 * 24 * time.Hour),
+			t:                            t,
+			getAccountByUsernameUsername: "testuser",
+			getAccountByUsernameAccount: domain.Account{
+				UUID:      UUID,
+				Username:  "testuser",
+				QueriedAt: now.Add(-12 * 24 * time.Hour),
+			},
 
 			removeUsernameUsername: "testuser",
 		}
@@ -276,7 +284,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 		require.ErrorIs(t, err, domain.ErrUsernameNotFound)
 		require.Empty(t, uuid)
 
-		require.True(t, repo.getUUIDCalled)
+		require.True(t, repo.getAccountByUsernameCalled)
 		require.True(t, provider.getUUIDCalled)
 		require.False(t, repo.storeUsernameCalled)
 		require.True(t, repo.removeUsernameCalled)
@@ -299,10 +307,13 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 					getUUIDErr:      assert.AnError,
 				}
 				repo := &mockUsernameRepository{
-					t:                t,
-					getUUIDUsername:  "testuser",
-					getUUIDUUID:      UUID,
-					getUUIDQueriedAt: now.Add(-repoAge),
+					t:                            t,
+					getAccountByUsernameUsername: "testuser",
+					getAccountByUsernameAccount: domain.Account{
+						UUID:      UUID,
+						Username:  "testuser",
+						QueriedAt: now.Add(-repoAge),
+					},
 
 					removeUsernameUsername: "testuser",
 				}
@@ -312,7 +323,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, UUID, uuid)
 
-				require.True(t, repo.getUUIDCalled)
+				require.True(t, repo.getAccountByUsernameCalled)
 				require.True(t, provider.getUUIDCalled)
 				require.False(t, repo.storeUsernameCalled)
 				require.False(t, repo.removeUsernameCalled)
@@ -337,10 +348,13 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 					getUUIDErr:      assert.AnError,
 				}
 				repo := &mockUsernameRepository{
-					t:                t,
-					getUUIDUsername:  "testuser",
-					getUUIDUUID:      UUID,
-					getUUIDQueriedAt: now.Add(-repoAge),
+					t:                            t,
+					getAccountByUsernameUsername: "testuser",
+					getAccountByUsernameAccount: domain.Account{
+						UUID:      UUID,
+						Username:  "testUSER",
+						QueriedAt: now.Add(-repoAge),
+					},
 
 					removeUsernameUsername: "testuser",
 				}
@@ -350,7 +364,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				require.ErrorIs(t, err, assert.AnError)
 				require.Empty(t, uuid)
 
-				require.True(t, repo.getUUIDCalled)
+				require.True(t, repo.getAccountByUsernameCalled)
 				require.True(t, provider.getUUIDCalled)
 				require.False(t, repo.storeUsernameCalled)
 				require.False(t, repo.removeUsernameCalled)
@@ -371,9 +385,9 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 			},
 		}
 		repo := &mockUsernameRepository{
-			t:               t,
-			getUUIDUsername: "testuser",
-			getUUIDErr:      domain.ErrUsernameNotFound,
+			t:                            t,
+			getAccountByUsernameUsername: "testuser",
+			getAccountByUsernameErr:      domain.ErrUsernameNotFound,
 
 			storeUsernameUUID:      UUID,
 			storeUsernameUsername:  "testuser",
@@ -399,7 +413,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 
 		// We should have hit the cache, so no calls to provider or repo
 		require.False(t, provider.getUUIDCalled)
-		require.False(t, repo.getUUIDCalled)
+		require.False(t, repo.getAccountByUsernameCalled)
 		require.False(t, repo.storeUsernameCalled)
 		require.False(t, repo.removeUsernameCalled)
 	})

@@ -197,9 +197,9 @@ func (p *PostgresUsernameRepository) GetUsername(ctx context.Context, uuid strin
 	return entry.Username, entry.QueriedAt, nil
 }
 
-func (p *PostgresUsernameRepository) GetUUID(ctx context.Context, username string) (uuid string, queriedAt time.Time, err error) {
+func (p *PostgresUsernameRepository) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
 	var entry dbUsernamesEntry
-	err = p.db.GetContext(ctx, &entry, fmt.Sprintf(`SELECT
+	err := p.db.GetContext(ctx, &entry, fmt.Sprintf(`SELECT
 		player_uuid, username, queried_at
 		FROM %s.usernames
 		WHERE lower(username) = lower($1)`,
@@ -210,13 +210,13 @@ func (p *PostgresUsernameRepository) GetUUID(ctx context.Context, username strin
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			// No entry found
-			return "", time.Time{}, domain.ErrUsernameNotFound
+			return domain.Account{}, domain.ErrUsernameNotFound
 		}
 		err := fmt.Errorf("failed to select usernames entry: %w", err)
 		reporting.Report(ctx, err, map[string]string{
 			"username": username,
 		})
-		return "", time.Time{}, err
+		return domain.Account{}, err
 	}
 
 	if !strutils.UUIDIsNormalized(entry.PlayerUUID) {
@@ -224,8 +224,12 @@ func (p *PostgresUsernameRepository) GetUUID(ctx context.Context, username strin
 		reporting.Report(ctx, err, map[string]string{
 			"uuid": entry.PlayerUUID,
 		})
-		return "", time.Time{}, err
+		return domain.Account{}, err
 	}
 
-	return entry.PlayerUUID, entry.QueriedAt, nil
+	return domain.Account{
+		UUID:      entry.PlayerUUID,
+		Username:  entry.Username,
+		QueriedAt: entry.QueriedAt,
+	}, nil
 }
