@@ -1,4 +1,4 @@
-package usernamerepository
+package accountrepository
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 	"github.com/Amund211/flashlight/internal/domain"
 )
 
-func newPostgresUsernameRepository(t *testing.T, db *sqlx.DB, schemaSuffix string) *PostgresUsernameRepository {
+func newPostgres(t *testing.T, db *sqlx.DB, schemaSuffix string) *Postgres {
 	require.NotEmpty(t, schemaSuffix, "schemaSuffix must not be empty")
 	schema := fmt.Sprintf("usernames_repo_test_%s", schemaSuffix)
 
@@ -30,7 +30,7 @@ func newPostgresUsernameRepository(t *testing.T, db *sqlx.DB, schemaSuffix strin
 	err := migrator.Migrate(schema)
 	require.NoError(t, err)
 
-	return NewPostgresUsernameRepository(db, schema)
+	return NewPostgres(db, schema)
 }
 
 func makeUUID(x int) string {
@@ -40,7 +40,7 @@ func makeUUID(x int) string {
 	return fmt.Sprintf("00000000-0000-0000-0000-%012x", x)
 }
 
-func TestPostgresUsernameRepository(t *testing.T) {
+func TestPostgres(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping db tests in short mode.")
 	}
@@ -54,7 +54,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 	t.Run("Store/RemoveUsername", func(t *testing.T) {
 		t.Parallel()
 
-		getStoredUsernames := func(t *testing.T, p *PostgresUsernameRepository) []dbUsernamesEntry {
+		getStoredUsernames := func(t *testing.T, p *Postgres) []dbUsernamesEntry {
 			t.Helper()
 
 			txx, err := db.Beginx()
@@ -71,7 +71,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			return entries
 		}
 
-		expectStoredUsernames := func(t *testing.T, p *PostgresUsernameRepository, expected ...dbUsernamesEntry) {
+		expectStoredUsernames := func(t *testing.T, p *Postgres, expected ...dbUsernamesEntry) {
 			t.Helper()
 
 			type username struct {
@@ -95,7 +95,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			require.ElementsMatch(t, convert(expected), convert(getStoredUsernames(t, p)))
 		}
 
-		getStoredUsernameQueries := func(t *testing.T, p *PostgresUsernameRepository) []dbUsernameQueriesEntry {
+		getStoredUsernameQueries := func(t *testing.T, p *Postgres) []dbUsernameQueriesEntry {
 			t.Helper()
 
 			txx, err := db.Beginx()
@@ -112,7 +112,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			return entries
 		}
 
-		expectStoredUsernameQueries := func(t *testing.T, p *PostgresUsernameRepository, expected ...dbUsernameQueriesEntry) {
+		expectStoredUsernameQueries := func(t *testing.T, p *Postgres, expected ...dbUsernameQueriesEntry) {
 			t.Helper()
 
 			type usernameQuery struct {
@@ -139,7 +139,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 		t.Run("store single username", func(t *testing.T) {
 			t.Parallel()
 
-			p := newPostgresUsernameRepository(t, db, "store_single_username")
+			p := newPostgres(t, db, "store_single_username")
 
 			err := p.StoreAccount(ctx, domain.Account{
 				UUID:      makeUUID(1),
@@ -166,7 +166,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 		t.Run("store multiple usernames for different players", func(t *testing.T) {
 			t.Parallel()
 
-			p := newPostgresUsernameRepository(t, db, "store_multiple_usernames_different_players")
+			p := newPostgres(t, db, "store_multiple_usernames_different_players")
 
 			t1 := now.Add(1 * time.Minute)
 			err := p.StoreAccount(ctx, domain.Account{
@@ -214,7 +214,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 		t.Run("store duplicate uuid", func(t *testing.T) {
 			t.Parallel()
 
-			p := newPostgresUsernameRepository(t, db, "store_duplicate_uuid")
+			p := newPostgres(t, db, "store_duplicate_uuid")
 
 			t1 := now.Add(1 * time.Minute)
 			err := p.StoreAccount(ctx, domain.Account{
@@ -273,7 +273,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 		t.Run("store duplicate username", func(t *testing.T) {
 			t.Parallel()
 
-			p := newPostgresUsernameRepository(t, db, "store_duplicate_username")
+			p := newPostgres(t, db, "store_duplicate_username")
 
 			t1 := now.Add(1 * time.Minute)
 			err := p.StoreAccount(ctx, domain.Account{
@@ -332,7 +332,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 		t.Run("store duplicate username with different casing", func(t *testing.T) {
 			t.Parallel()
 
-			p := newPostgresUsernameRepository(t, db, "store_duplicate_username_different_casing")
+			p := newPostgres(t, db, "store_duplicate_username_different_casing")
 
 			t1 := now.Add(1 * time.Minute)
 			err := p.StoreAccount(ctx, domain.Account{
@@ -392,7 +392,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			t.Parallel()
 
 			// Store a uuid and username that both already exist in different rows
-			p := newPostgresUsernameRepository(t, db, "store_duplicate_uuid_and_duplicate_username")
+			p := newPostgres(t, db, "store_duplicate_uuid_and_duplicate_username")
 
 			t1 := now.Add(1 * time.Minute)
 			err := p.StoreAccount(ctx, domain.Account{
@@ -471,7 +471,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 		t.Run("store identical uuid+username", func(t *testing.T) {
 			t.Parallel()
 
-			p := newPostgresUsernameRepository(t, db, "store_identical_uuid_and_username")
+			p := newPostgres(t, db, "store_identical_uuid_and_username")
 
 			t1 := now.Add(1 * time.Minute)
 			err := p.StoreAccount(ctx, domain.Account{
@@ -523,7 +523,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 		t.Run("remove username", func(t *testing.T) {
 			t.Parallel()
 
-			p := newPostgresUsernameRepository(t, db, "remove_username")
+			p := newPostgres(t, db, "remove_username")
 
 			err := p.StoreAccount(ctx, domain.Account{
 				UUID:      makeUUID(1),
@@ -566,7 +566,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			t.Parallel()
 			limit := 20
 
-			p := newPostgresUsernameRepository(t, db, "ensure_no_unique_constraint_violations")
+			p := newPostgres(t, db, "ensure_no_unique_constraint_violations")
 
 			wg := &sync.WaitGroup{}
 			wg.Add(limit)
@@ -590,7 +590,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 		t.Run("ensure no db connection leaks", func(t *testing.T) {
 			t.Parallel()
 
-			p := newPostgresUsernameRepository(t, db, "ensure_no_db_connection_leaks")
+			p := newPostgres(t, db, "ensure_no_db_connection_leaks")
 
 			var maxConnections int
 			err := db.QueryRowxContext(ctx, "show max_connections").Scan(&maxConnections)
@@ -628,7 +628,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 
 	t.Run("GetAccountByUsername", func(t *testing.T) {
 		t.Parallel()
-		p := newPostgresUsernameRepository(t, db, "get_account_by_username")
+		p := newPostgres(t, db, "get_account_by_username")
 
 		err := p.StoreAccount(ctx, domain.Account{
 			UUID:      makeUUID(1),
@@ -681,7 +681,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 
 	t.Run("GetAccountByUUID", func(t *testing.T) {
 		t.Parallel()
-		p := newPostgresUsernameRepository(t, db, "get_account_by_uuid")
+		p := newPostgres(t, db, "get_account_by_uuid")
 
 		err := p.StoreAccount(ctx, domain.Account{
 			UUID:      makeUUID(1),

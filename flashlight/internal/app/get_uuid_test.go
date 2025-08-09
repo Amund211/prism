@@ -32,7 +32,7 @@ func (m *mockUUIDProvider) GetUUID(ctx context.Context, username string) (uuidpr
 	return m.getUUIDIdentity, m.getUUIDErr
 }
 
-type mockUsernameRepository struct {
+type mockAccountRepository struct {
 	t *testing.T
 
 	getAccountByUsernameUsername string
@@ -49,7 +49,7 @@ type mockUsernameRepository struct {
 	storeAccountErr     error
 }
 
-func (m *mockUsernameRepository) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
+func (m *mockAccountRepository) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
 	m.t.Helper()
 	require.Equal(m.t, m.getAccountByUsernameUsername, username)
 
@@ -59,7 +59,7 @@ func (m *mockUsernameRepository) GetAccountByUsername(ctx context.Context, usern
 	return m.getAccountByUsernameAccount, m.getAccountByUsernameErr
 }
 
-func (m *mockUsernameRepository) RemoveUsername(ctx context.Context, username string) error {
+func (m *mockAccountRepository) RemoveUsername(ctx context.Context, username string) error {
 	m.t.Helper()
 	require.Equal(m.t, m.removeUsernameUsername, username)
 
@@ -69,7 +69,7 @@ func (m *mockUsernameRepository) RemoveUsername(ctx context.Context, username st
 	return m.removeUsernameErr
 }
 
-func (m *mockUsernameRepository) StoreAccount(ctx context.Context, account domain.Account) error {
+func (m *mockAccountRepository) StoreAccount(ctx context.Context, account domain.Account) error {
 	m.t.Helper()
 	require.Equal(m.t, m.storeAccountAccount, account)
 
@@ -101,7 +101,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				UUID:     UUID,
 			},
 		}
-		repo := &mockUsernameRepository{
+		repo := &mockAccountRepository{
 			t:                            t,
 			getAccountByUsernameUsername: "testuser",
 			getAccountByUsernameErr:      domain.ErrUsernameNotFound,
@@ -140,7 +140,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				provider := &mockUUIDProvider{
 					t: t,
 				}
-				repo := &mockUsernameRepository{
+				repo := &mockAccountRepository{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameAccount: domain.Account{
@@ -189,7 +189,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 						UUID:     UUID,
 					},
 				}
-				repo := &mockUsernameRepository{
+				repo := &mockAccountRepository{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameAccount: domain.Account{
@@ -237,7 +237,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 						UUID:     UUID,
 					},
 				}
-				repo := &mockUsernameRepository{
+				repo := &mockAccountRepository{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameErr:      repoErr,
@@ -271,7 +271,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 			getUUIDUsername: "testuser",
 			getUUIDErr:      domain.ErrUsernameNotFound,
 		}
-		repo := &mockUsernameRepository{
+		repo := &mockAccountRepository{
 			t:                            t,
 			getAccountByUsernameUsername: "testuser",
 			getAccountByUsernameAccount: domain.Account{
@@ -310,7 +310,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 					getUUIDUsername: "testuser",
 					getUUIDErr:      assert.AnError,
 				}
-				repo := &mockUsernameRepository{
+				repo := &mockAccountRepository{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameAccount: domain.Account{
@@ -351,7 +351,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 					getUUIDUsername: "testuser",
 					getUUIDErr:      assert.AnError,
 				}
-				repo := &mockUsernameRepository{
+				repo := &mockAccountRepository{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameAccount: domain.Account{
@@ -388,7 +388,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				UUID:     UUID,
 			},
 		}
-		repo := &mockUsernameRepository{
+		repo := &mockAccountRepository{
 			t:                            t,
 			getAccountByUsernameUsername: "testuser",
 			getAccountByUsernameErr:      domain.ErrUsernameNotFound,
@@ -408,7 +408,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 		provider = &mockUUIDProvider{
 			t: t,
 		}
-		repo = &mockUsernameRepository{
+		repo = &mockAccountRepository{
 			t: t,
 		}
 		getUUIDWithCache = app.BuildGetUUIDWithCache(c, provider, repo, nowFunc)

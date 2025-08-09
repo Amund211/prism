@@ -1,4 +1,4 @@
-package usernamerepository
+package accountrepository
 
 import (
 	"context"
@@ -14,13 +14,13 @@ import (
 	"github.com/lib/pq"
 )
 
-type PostgresUsernameRepository struct {
+type Postgres struct {
 	db     *sqlx.DB
 	schema string
 }
 
-func NewPostgresUsernameRepository(db *sqlx.DB, schema string) *PostgresUsernameRepository {
-	return &PostgresUsernameRepository{db, schema}
+func NewPostgres(db *sqlx.DB, schema string) *Postgres {
+	return &Postgres{db, schema}
 }
 
 type dbUsernamesEntry struct {
@@ -35,7 +35,7 @@ type dbUsernameQueriesEntry struct {
 	LastQueriedAt time.Time `db:"last_queried_at"`
 }
 
-func (p *PostgresUsernameRepository) StoreAccount(ctx context.Context, account domain.Account) error {
+func (p *Postgres) StoreAccount(ctx context.Context, account domain.Account) error {
 	if !strutils.UUIDIsNormalized(account.UUID) {
 		err := fmt.Errorf("uuid is not normalized")
 		reporting.Report(ctx, err, map[string]string{
@@ -146,7 +146,7 @@ func (p *PostgresUsernameRepository) StoreAccount(ctx context.Context, account d
 	return nil
 }
 
-func (p *PostgresUsernameRepository) RemoveUsername(ctx context.Context, username string) error {
+func (p *Postgres) RemoveUsername(ctx context.Context, username string) error {
 	_, err := p.db.ExecContext(ctx, fmt.Sprintf(`
 			DELETE FROM %s.usernames
 			WHERE lower(username) = lower($1)`,
@@ -165,7 +165,7 @@ func (p *PostgresUsernameRepository) RemoveUsername(ctx context.Context, usernam
 	return nil
 }
 
-func (p *PostgresUsernameRepository) GetAccountByUUID(ctx context.Context, uuid string) (domain.Account, error) {
+func (p *Postgres) GetAccountByUUID(ctx context.Context, uuid string) (domain.Account, error) {
 	if !strutils.UUIDIsNormalized(uuid) {
 		err := fmt.Errorf("uuid is not normalized")
 		reporting.Report(ctx, err, map[string]string{
@@ -202,7 +202,7 @@ func (p *PostgresUsernameRepository) GetAccountByUUID(ctx context.Context, uuid 
 	}, nil
 }
 
-func (p *PostgresUsernameRepository) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
+func (p *Postgres) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
 	var entry dbUsernamesEntry
 	err := p.db.GetContext(ctx, &entry, fmt.Sprintf(`SELECT
 		player_uuid, username, queried_at

@@ -16,7 +16,7 @@ import (
 
 type GetUUID func(ctx context.Context, username string) (string, error)
 
-type usernameRepository interface {
+type accountRepository interface {
 	StoreAccount(ctx context.Context, account domain.Account) error
 	RemoveUsername(ctx context.Context, username string) error
 	GetAccountByUsername(ctx context.Context, username string) (domain.Account, error)
@@ -24,7 +24,7 @@ type usernameRepository interface {
 
 func buildGetUUIDWithoutCache(
 	provider uuidprovider.UUIDProvider,
-	repo usernameRepository,
+	repo accountRepository,
 	nowFunc func() time.Time,
 ) func(ctx context.Context, username string) (string, error) {
 	return func(ctx context.Context, username string) (string, error) {
@@ -33,7 +33,7 @@ func buildGetUUIDWithoutCache(
 			// No entry in the repo - try to query the provider
 		} else if repoGetErr != nil {
 			// Failed to get UUID from repository - can still try to query the provider
-			// NOTE: usernameRepository implementations handle their own error reporting
+			// NOTE: accountRepository implementations handle their own error reporting
 		} else {
 			// time.Since(repoAccount.QueriedAt) implemented using nowFunc()
 			repoUUIDAge := nowFunc().Sub(repoAccount.QueriedAt)
@@ -55,7 +55,7 @@ func buildGetUUIDWithoutCache(
 		if errors.Is(err, domain.ErrUsernameNotFound) {
 			removeUsernameErr := repo.RemoveUsername(ctx, username)
 			if removeUsernameErr != nil {
-				// NOTE: usernameRepository implementations handle their own error reporting
+				// NOTE: accountRepository implementations handle their own error reporting
 				// Still fall through to return the ErrUsernameNotFound
 			}
 
@@ -109,7 +109,7 @@ func buildGetUUIDWithoutCache(
 func BuildGetUUIDWithCache(
 	uuidCache cache.Cache[string],
 	provider uuidprovider.UUIDProvider,
-	repo usernameRepository,
+	repo accountRepository,
 	nowFunc func() time.Time,
 ) GetUUID {
 	getUUIDWithoutCache := buildGetUUIDWithoutCache(provider, repo, nowFunc)

@@ -8,11 +8,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/adapters/accountrepository"
 	"github.com/Amund211/flashlight/internal/adapters/cache"
 	"github.com/Amund211/flashlight/internal/adapters/database"
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
-	"github.com/Amund211/flashlight/internal/adapters/usernamerepository"
 	"github.com/Amund211/flashlight/internal/adapters/uuidprovider"
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/config"
@@ -82,7 +82,7 @@ func main() {
 	playerRepo := playerrepository.NewPostgresPlayerRepository(db, repositorySchemaName)
 	logger.Info("Initialized PlayerRepository")
 
-	usernameRepo := usernamerepository.NewPostgresUsernameRepository(db, repositorySchemaName)
+	accountRepo := accountrepository.NewPostgres(db, repositorySchemaName)
 
 	allowedOrigins, err := ports.NewDomainSuffixes(PROD_DOMAIN_SUFFIX, STAGING_DOMAIN_SUFFIX)
 	if err != nil {
@@ -92,7 +92,7 @@ func main() {
 	getAndPersistPlayerWithCache := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, playerRepo)
 	updatePlayerInInterval := app.BuildUpdatePlayerInInterval(getAndPersistPlayerWithCache, time.Now)
 
-	getUUID := app.BuildGetUUIDWithCache(uuidCache, uuidProvider, usernameRepo, time.Now)
+	getUUID := app.BuildGetUUIDWithCache(uuidCache, uuidProvider, accountRepo, time.Now)
 
 	getHistory := app.BuildGetHistory(playerRepo, updatePlayerInInterval)
 
