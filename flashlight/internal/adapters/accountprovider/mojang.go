@@ -1,4 +1,4 @@
-package uuidprovider
+package accountprovider
 
 import (
 	"context"
@@ -20,19 +20,19 @@ type HttpClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-type mojangUUIDProvider struct {
+type Mojang struct {
 	httpClient HttpClient
 	nowFunc    func() time.Time
 }
 
-func NewMojangUUIDProvider(httpClient HttpClient, nowFunc func() time.Time) UUIDProvider {
-	return mojangUUIDProvider{
+func NewMojang(httpClient HttpClient, nowFunc func() time.Time) *Mojang {
+	return &Mojang{
 		httpClient: httpClient,
 		nowFunc:    nowFunc,
 	}
 }
 
-func (m mojangUUIDProvider) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
+func (m *Mojang) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
 	url := fmt.Sprintf("https://api.mojang.com/users/profiles/minecraft/%s", username)
 
 	req, err := http.NewRequest("GET", url, nil)

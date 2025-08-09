@@ -8,12 +8,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/adapters/accountprovider"
 	"github.com/Amund211/flashlight/internal/adapters/accountrepository"
 	"github.com/Amund211/flashlight/internal/adapters/cache"
 	"github.com/Amund211/flashlight/internal/adapters/database"
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
-	"github.com/Amund211/flashlight/internal/adapters/uuidprovider"
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/domain"
@@ -56,7 +56,7 @@ func main() {
 
 	playerProvider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
 
-	uuidProvider := uuidprovider.NewMojangUUIDProvider(httpClient, time.Now)
+	accountProvider := accountprovider.NewMojang(httpClient, time.Now)
 
 	sentryMiddleware, flush, err := reporting.NewSentryMiddlewareOrMock(config)
 	if err != nil {
@@ -92,7 +92,7 @@ func main() {
 	getAndPersistPlayerWithCache := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, playerRepo)
 	updatePlayerInInterval := app.BuildUpdatePlayerInInterval(getAndPersistPlayerWithCache, time.Now)
 
-	getUUID := app.BuildGetUUIDWithCache(uuidCache, uuidProvider, accountRepo, time.Now)
+	getUUID := app.BuildGetUUIDWithCache(uuidCache, accountProvider, accountRepo, time.Now)
 
 	getHistory := app.BuildGetHistory(playerRepo, updatePlayerInInterval)
 

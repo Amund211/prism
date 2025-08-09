@@ -1,4 +1,4 @@
-package uuidprovider
+package accountprovider
 
 import (
 	"errors"

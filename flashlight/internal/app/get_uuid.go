@@ -8,13 +8,16 @@ import (
 	"time"
 
 	"github.com/Amund211/flashlight/internal/adapters/cache"
-	"github.com/Amund211/flashlight/internal/adapters/uuidprovider"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
 type GetUUID func(ctx context.Context, username string) (string, error)
+
+type accountProvider interface {
+	GetAccountByUsername(ctx context.Context, username string) (domain.Account, error)
+}
 
 type accountRepository interface {
 	StoreAccount(ctx context.Context, account domain.Account) error
@@ -23,7 +26,7 @@ type accountRepository interface {
 }
 
 func buildGetUUIDWithoutCache(
-	provider uuidprovider.UUIDProvider,
+	provider accountProvider,
 	repo accountRepository,
 	nowFunc func() time.Time,
 ) func(ctx context.Context, username string) (string, error) {
@@ -62,7 +65,7 @@ func buildGetUUIDWithoutCache(
 			// Pass through ErrUsernameNotFound to the caller
 			return "", err
 		} else if err != nil {
-			// NOTE: UUIDProvider implementations handle their own error reporting
+			// NOTE: accountProvider implementations handle their own error reporting
 
 			// Try to fall back to the repository result, if available
 			if repoGetErr == nil {
@@ -108,7 +111,7 @@ func buildGetUUIDWithoutCache(
 
 func BuildGetUUIDWithCache(
 	uuidCache cache.Cache[string],
-	provider uuidprovider.UUIDProvider,
+	provider accountProvider,
 	repo accountRepository,
 	nowFunc func() time.Time,
 ) GetUUID {

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type mockUUIDProvider struct {
+type mockAccountProvider struct {
 	t *testing.T
 
 	getAccountByUsernameUsername string
@@ -21,7 +21,7 @@ type mockUUIDProvider struct {
 	getAccountByUsernameErr      error
 }
 
-func (m *mockUUIDProvider) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
+func (m *mockAccountProvider) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
 	m.t.Helper()
 	require.Equal(m.t, m.getAccountByUsernameUsername, username)
 
@@ -92,7 +92,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 		t.Parallel()
 
 		c := cache.NewBasicCache[string]()
-		provider := &mockUUIDProvider{
+		provider := &mockAccountProvider{
 			t:                            t,
 			getAccountByUsernameUsername: "testuser",
 			getAccountByUsernameAccount: domain.Account{
@@ -137,7 +137,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				t.Parallel()
 
 				c := cache.NewBasicCache[string]()
-				provider := &mockUUIDProvider{
+				provider := &mockAccountProvider{
 					t: t,
 				}
 				repo := &mockAccountRepository{
@@ -181,7 +181,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				t.Parallel()
 
 				c := cache.NewBasicCache[string]()
-				provider := &mockUUIDProvider{
+				provider := &mockAccountProvider{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameAccount: domain.Account{
@@ -230,7 +230,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				t.Parallel()
 
 				c := cache.NewBasicCache[string]()
-				provider := &mockUUIDProvider{
+				provider := &mockAccountProvider{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameAccount: domain.Account{
@@ -268,7 +268,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 		t.Parallel()
 
 		c := cache.NewBasicCache[string]()
-		provider := &mockUUIDProvider{
+		provider := &mockAccountProvider{
 			t:                            t,
 			getAccountByUsernameUsername: "testuser",
 			getAccountByUsernameErr:      domain.ErrUsernameNotFound,
@@ -307,7 +307,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				t.Parallel()
 
 				c := cache.NewBasicCache[string]()
-				provider := &mockUUIDProvider{
+				provider := &mockAccountProvider{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameErr:      assert.AnError,
@@ -348,7 +348,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 				t.Parallel()
 
 				c := cache.NewBasicCache[string]()
-				provider := &mockUUIDProvider{
+				provider := &mockAccountProvider{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameErr:      assert.AnError,
@@ -382,7 +382,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 		t.Parallel()
 
 		c := cache.NewBasicCache[string]()
-		provider := &mockUUIDProvider{
+		provider := &mockAccountProvider{
 			t:                            t,
 			getAccountByUsernameUsername: "testuser",
 			getAccountByUsernameAccount: domain.Account{
@@ -408,7 +408,7 @@ func TestBuildGetUUIDWithCache(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, UUID, uuid)
 
-		provider = &mockUUIDProvider{
+		provider = &mockAccountProvider{
 			t: t,
 		}
 		repo = &mockAccountRepository{
