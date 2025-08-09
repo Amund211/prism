@@ -558,13 +558,13 @@ func TestPostgresUsernameRepository(t *testing.T) {
 		t.Parallel()
 		p := newPostgresUsernameRepository(t, db, "get_account_by_username")
 
-		err := p.StoreUsername(ctx, makeUUID(1), now, "Ghanima")
+		err := p.StoreUsername(ctx, makeUUID(1), now.Add(-24*time.Hour), "Ghanima")
 		require.NoError(t, err)
 
 		err = p.StoreUsername(ctx, makeUUID(2), now, "Leto")
 		require.NoError(t, err)
 
-		err = p.StoreUsername(ctx, makeUUID(3), now, "Siona")
+		err = p.StoreUsername(ctx, makeUUID(3), now.Add(2*time.Hour), "Siona")
 		require.NoError(t, err)
 
 		t.Run("get missing", func(t *testing.T) {
@@ -591,7 +591,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, makeUUID(3), account.UUID)
 			require.Equal(t, "Siona", account.Username)
-			require.WithinDuration(t, now, account.QueriedAt, 1*time.Millisecond)
+			require.WithinDuration(t, now.Add(2*time.Hour), account.QueriedAt, 1*time.Millisecond)
 		})
 	})
 
@@ -599,13 +599,13 @@ func TestPostgresUsernameRepository(t *testing.T) {
 		t.Parallel()
 		p := newPostgresUsernameRepository(t, db, "get_account_by_uuid")
 
-		err := p.StoreUsername(ctx, makeUUID(1), now, "Ghanima")
+		err := p.StoreUsername(ctx, makeUUID(1), now.Add(24*time.Hour), "Ghanima")
 		require.NoError(t, err)
 
 		err = p.StoreUsername(ctx, makeUUID(2), now, "Leto")
 		require.NoError(t, err)
 
-		err = p.StoreUsername(ctx, makeUUID(3), now, "Siona")
+		err = p.StoreUsername(ctx, makeUUID(3), now.Add(-2*time.Hour), "Siona")
 		require.NoError(t, err)
 
 		t.Run("get missing", func(t *testing.T) {
@@ -632,7 +632,7 @@ func TestPostgresUsernameRepository(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, makeUUID(3), account.UUID)
 			require.Equal(t, "Siona", account.Username)
-			require.WithinDuration(t, now, account.QueriedAt, 1*time.Millisecond)
+			require.WithinDuration(t, now.Add(-2*time.Hour), account.QueriedAt, 1*time.Millisecond)
 		})
 	})
 }
