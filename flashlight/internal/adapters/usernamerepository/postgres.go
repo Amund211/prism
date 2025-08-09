@@ -164,17 +164,17 @@ func (p *PostgresUsernameRepository) RemoveUsername(ctx context.Context, usernam
 	return nil
 }
 
-func (p *PostgresUsernameRepository) GetUsername(ctx context.Context, uuid string) (username string, queriedAt time.Time, err error) {
+func (p *PostgresUsernameRepository) GetAccountByUUID(ctx context.Context, uuid string) (domain.Account, error) {
 	if !strutils.UUIDIsNormalized(uuid) {
 		err := fmt.Errorf("uuid is not normalized")
 		reporting.Report(ctx, err, map[string]string{
 			"uuid": uuid,
 		})
-		return "", time.Time{}, err
+		return domain.Account{}, err
 	}
 
 	var entry dbUsernamesEntry
-	err = p.db.GetContext(ctx, &entry, fmt.Sprintf(`SELECT
+	err := p.db.GetContext(ctx, &entry, fmt.Sprintf(`SELECT
 		player_uuid, username, queried_at
 		FROM %s.usernames
 		WHERE player_uuid = $1`,
@@ -185,16 +185,20 @@ func (p *PostgresUsernameRepository) GetUsername(ctx context.Context, uuid strin
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			// No entry found
-			return "", time.Time{}, domain.ErrUsernameNotFound
+			return domain.Account{}, domain.ErrUsernameNotFound
 		}
 		err := fmt.Errorf("failed to select usernames entry: %w", err)
 		reporting.Report(ctx, err, map[string]string{
 			"uuid": uuid,
 		})
-		return "", time.Time{}, err
+		return domain.Account{}, err
 	}
 
-	return entry.Username, entry.QueriedAt, nil
+	return domain.Account{
+		UUID:      entry.PlayerUUID,
+		Username:  entry.Username,
+		QueriedAt: entry.QueriedAt,
+	}, nil
 }
 
 func (p *PostgresUsernameRepository) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
