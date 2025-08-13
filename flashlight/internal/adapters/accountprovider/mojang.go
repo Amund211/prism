@@ -33,7 +33,7 @@ func NewMojang(httpClient HttpClient, nowFunc func() time.Time) *Mojang {
 }
 
 func (m *Mojang) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
-	return m.getProfile(ctx, fmt.Sprintf("https://api.mojang.com/users/profiles/minecraft/%s", username))
+	return m.getProfile(ctx, fmt.Sprintf("https://api.minecraftservices.com/minecraft/profile/lookup/name/%s", username))
 }
 
 func (m *Mojang) getProfile(ctx context.Context, url string) (domain.Account, error) {
