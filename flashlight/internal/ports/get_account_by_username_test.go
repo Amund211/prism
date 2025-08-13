@@ -39,8 +39,8 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 		}, &called
 	}
 
-	makeGetUUIDHandler := func(getAccountByUsername app.GetAccountByUsername) http.HandlerFunc {
-		return ports.MakeGetUUIDHandler(
+	makeGetAccountByUsernameHandler := func(getAccountByUsername app.GetAccountByUsername) http.HandlerFunc {
+		return ports.MakeGetAccountByUsernameHandler(
 			getAccountByUsername,
 			allowedOrigins,
 			testLogger,
@@ -80,7 +80,7 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 			UUID:      uuid,
 			QueriedAt: now.Add(-time.Hour),
 		}, nil)
-		handler := makeGetUUIDHandler(getAccountByUsername)
+		handler := makeGetAccountByUsernameHandler(getAccountByUsername)
 
 		req := makeRequest("someguy")
 		w := httptest.NewRecorder()
@@ -105,7 +105,7 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 
 	t.Run("username does not exist", func(t *testing.T) {
 		getAccountByUsername, called := makeGetAccountByUsername(t, username, domain.Account{}, domain.ErrUsernameNotFound)
-		handler := makeGetUUIDHandler(getAccountByUsername)
+		handler := makeGetAccountByUsernameHandler(getAccountByUsername)
 
 		req := makeRequest(username)
 		w := httptest.NewRecorder()
@@ -129,7 +129,7 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 
 	t.Run("temporarily unavailable", func(t *testing.T) {
 		getAccountByUsername, called := makeGetAccountByUsername(t, username, domain.Account{}, domain.ErrTemporarilyUnavailable)
-		handler := makeGetUUIDHandler(getAccountByUsername)
+		handler := makeGetAccountByUsernameHandler(getAccountByUsername)
 
 		req := makeRequest(username)
 		w := httptest.NewRecorder()
@@ -153,7 +153,7 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 
 	t.Run("invalid username length", func(t *testing.T) {
 		getAccountByUsername, called := makeGetAccountByUsername(t, "", domain.Account{}, nil)
-		handler := makeGetUUIDHandler(getAccountByUsername)
+		handler := makeGetAccountByUsernameHandler(getAccountByUsername)
 
 		req := makeRequest("")
 		w := httptest.NewRecorder()
@@ -181,7 +181,7 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 			UUID:      uuid,
 			QueriedAt: now.Add(-time.Hour),
 		}, nil)
-		handler := makeGetUUIDHandler(getAccountByUsername)
+		handler := makeGetAccountByUsernameHandler(getAccountByUsername)
 
 		origin := "https://subdomain.example.com"
 

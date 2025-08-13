@@ -22,7 +22,7 @@ type response struct {
 	Cause    string `json:"cause,omitempty"`
 }
 
-func MakeGetUUIDHandler(
+func MakeGetAccountByUsernameHandler(
 	getAccountByUsername app.GetAccountByUsername,
 	allowedOrigins *DomainSuffixes,
 	rootLogger *slog.Logger,
@@ -55,7 +55,7 @@ func MakeGetUUIDHandler(
 	middleware := ComposeMiddlewares(
 		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,
-		reporting.NewAddMetaMiddleware("getuuid"),
+		reporting.NewAddMetaMiddleware("get_account_by_username"),
 		BuildCORSMiddleware(allowedOrigins),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),

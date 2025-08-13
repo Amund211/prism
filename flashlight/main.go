@@ -113,7 +113,7 @@ func main() {
 	)
 	http.HandleFunc(
 		"GET /v1/account/username/{username}",
-		ports.MakeGetUUIDHandler(
+		ports.MakeGetAccountByUsernameHandler(
 			getAccountByUsernameWithCache,
 			allowedOrigins,
 			logger.With("port", "getaccountbyusername"),
@@ -128,7 +128,7 @@ func main() {
 	)
 	http.HandleFunc(
 		"GET /v1/uuid/{username}",
-		ports.MakeGetUUIDHandler(
+		ports.MakeGetAccountByUsernameHandler(
 			getAccountByUsernameWithCache,
 			allowedOrigins,
 			logger.With("port", "getuuid"),
