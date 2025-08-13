@@ -12,12 +12,7 @@ const DASHED_UUID_LENGTH = 36
 
 // Converts the input string to a dashed, lowercase UUID string
 func NormalizeUUID(uuid string) (string, error) {
-	var normalized strings.Builder
-	builderCap := normalized.Cap()
-	missingCap := DASHED_UUID_LENGTH - builderCap
-	if missingCap > 0 {
-		normalized.Grow(missingCap)
-	}
+	normalized := stringBuilderWithCapacity(DASHED_UUID_LENGTH)
 
 	for _, char := range uuid {
 		normLen := normalized.Len()
@@ -51,4 +46,16 @@ func UUIDIsNormalized(uuid string) bool {
 		return false
 	}
 	return normalizedUUID == uuid
+}
+
+func stringBuilderWithCapacity(cap int) *strings.Builder {
+	var sb strings.Builder
+
+	missingCap := cap - sb.Cap()
+
+	if missingCap > 0 {
+		sb.Grow(missingCap)
+	}
+
+	return &sb
 }
