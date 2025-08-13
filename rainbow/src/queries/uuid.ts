@@ -15,7 +15,7 @@ export const getUUIDQueryOptions = (
         queryKey: ["uuid", username],
         queryFn: async (): Promise<{ uuid: string; username: string }> => {
             const response = await fetch(
-                `${env.VITE_FLASHLIGHT_URL}/v1/uuid/${username}`,
+                `${env.VITE_FLASHLIGHT_URL}/v1/account/username/${username}`,
             ).catch((error: unknown) => {
                 captureException(error, {
                     extra: {
