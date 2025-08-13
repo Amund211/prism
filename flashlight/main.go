@@ -44,6 +44,7 @@ func main() {
 	playerCache := cache.NewTTLCache[*domain.PlayerPIT](1 * time.Minute)
 
 	accountByUsernameCache := cache.NewTTLCache[domain.Account](24 * time.Hour)
+	accountByUUIDCache := cache.NewTTLCache[domain.Account](1 * time.Minute) // Low TTL to quickly show name changes
 
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
@@ -93,6 +94,7 @@ func main() {
 	updatePlayerInInterval := app.BuildUpdatePlayerInInterval(getAndPersistPlayerWithCache, time.Now)
 
 	getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(accountByUsernameCache, accountProvider, accountRepo, time.Now)
+	getAccountByUUIDWithCache := app.BuildGetAccountByUUIDWithCache(accountByUUIDCache, accountProvider, accountRepo, time.Now)
 
 	getHistory := app.BuildGetHistory(playerRepo, updatePlayerInInterval)
 
@@ -117,6 +119,20 @@ func main() {
 			getAccountByUsernameWithCache,
 			allowedOrigins,
 			logger.With("port", "getaccountbyusername"),
+			sentryMiddleware,
+		),
+	)
+
+	http.HandleFunc(
+		"OPTIONS /v1/account/uuid/{uuid}",
+		ports.BuildCORSHandler(allowedOrigins),
+	)
+	http.HandleFunc(
+		"GET /v1/account/uuid/{uuid}",
+		ports.MakeGetAccountByUUIDHandler(
+			getAccountByUUIDWithCache,
+			allowedOrigins,
+			logger.With("port", "getaccountbyuuid"),
 			sentryMiddleware,
 		),
 	)
