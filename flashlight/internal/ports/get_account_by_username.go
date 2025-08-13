@@ -15,7 +15,7 @@ import (
 	"github.com/Amund211/flashlight/internal/reporting"
 )
 
-type response struct {
+type accountResponse struct {
 	Success  bool   `json:"success"`
 	Username string `json:"username,omitempty"`
 	UUID     string `json:"uuid,omitempty"`
@@ -66,7 +66,7 @@ func MakeGetAccountByUsernameHandler(
 		username := r.PathValue("username")
 
 		handleError := func(ctx context.Context, cause string, statusCode int) {
-			response, err := makeErrorResponse(ctx, username, cause)
+			response, err := makeErrorAccountResponseForUsername(ctx, username, cause)
 			if err != nil {
 				reporting.Report(ctx, fmt.Errorf("failed to marshal error response: %w", err))
 				w.Header().Set("Content-Type", "application/json")
@@ -124,7 +124,7 @@ func MakeGetAccountByUsernameHandler(
 		)
 		ctx = logging.AddMetaToContext(ctx, slog.String("uuid", account.UUID))
 
-		response, err := makeSuccessResponse(ctx, account)
+		response, err := makeSuccessAccountResponse(ctx, account)
 		if err != nil {
 			reporting.Report(ctx, fmt.Errorf("failed to create success response: %w", err))
 			handleError(ctx, "internal server error", http.StatusInternalServerError)
@@ -139,8 +139,8 @@ func MakeGetAccountByUsernameHandler(
 	return middleware(handler)
 }
 
-func makeResponse(ctx context.Context, username string, success bool, uuid string, cause string) ([]byte, error) {
-	resp := response{
+func makeAccountResponse(ctx context.Context, username string, success bool, uuid string, cause string) ([]byte, error) {
+	resp := accountResponse{
 		Success:  success,
 		Username: username,
 		UUID:     uuid,
@@ -153,10 +153,10 @@ func makeResponse(ctx context.Context, username string, success bool, uuid strin
 	return data, nil
 }
 
-func makeSuccessResponse(ctx context.Context, account domain.Account) ([]byte, error) {
-	return makeResponse(ctx, account.Username, true, account.UUID, "")
+func makeSuccessAccountResponse(ctx context.Context, account domain.Account) ([]byte, error) {
+	return makeAccountResponse(ctx, account.Username, true, account.UUID, "")
 }
 
-func makeErrorResponse(ctx context.Context, username string, cause string) ([]byte, error) {
-	return makeResponse(ctx, username, false, "", cause)
+func makeErrorAccountResponseForUsername(ctx context.Context, username string, cause string) ([]byte, error) {
+	return makeAccountResponse(ctx, username, false, "", cause)
 }
