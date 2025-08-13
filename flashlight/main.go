@@ -121,21 +121,6 @@ func main() {
 		),
 	)
 
-	// TODO: remove this when clients use the accounts endpoint
-	http.HandleFunc(
-		"OPTIONS /v1/uuid/{username}",
-		ports.BuildCORSHandler(allowedOrigins),
-	)
-	http.HandleFunc(
-		"GET /v1/uuid/{username}",
-		ports.MakeGetAccountByUsernameHandler(
-			getAccountByUsernameWithCache,
-			allowedOrigins,
-			logger.With("port", "getuuid"),
-			sentryMiddleware,
-		),
-	)
-
 	http.HandleFunc(
 		"OPTIONS /v1/history",
 		ports.BuildCORSHandler(allowedOrigins),
