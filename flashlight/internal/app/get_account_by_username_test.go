@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type mockAccountProvider struct {
+type mockAccountProviderByUsername struct {
 	t *testing.T
 
 	getAccountByUsernameUsername string
@@ -21,7 +21,7 @@ type mockAccountProvider struct {
 	getAccountByUsernameErr      error
 }
 
-func (m *mockAccountProvider) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
+func (m *mockAccountProviderByUsername) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
 	m.t.Helper()
 	require.Equal(m.t, m.getAccountByUsernameUsername, username)
 
@@ -31,7 +31,7 @@ func (m *mockAccountProvider) GetAccountByUsername(ctx context.Context, username
 	return m.getAccountByUsernameAccount, m.getAccountByUsernameErr
 }
 
-type mockAccountRepository struct {
+type mockAccountRepositoryByUsername struct {
 	t *testing.T
 
 	getAccountByUsernameUsername string
@@ -48,7 +48,7 @@ type mockAccountRepository struct {
 	storeAccountErr     error
 }
 
-func (m *mockAccountRepository) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
+func (m *mockAccountRepositoryByUsername) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
 	m.t.Helper()
 	require.Equal(m.t, m.getAccountByUsernameUsername, username)
 
@@ -58,7 +58,7 @@ func (m *mockAccountRepository) GetAccountByUsername(ctx context.Context, userna
 	return m.getAccountByUsernameAccount, m.getAccountByUsernameErr
 }
 
-func (m *mockAccountRepository) RemoveUsername(ctx context.Context, username string) error {
+func (m *mockAccountRepositoryByUsername) RemoveUsername(ctx context.Context, username string) error {
 	m.t.Helper()
 	require.Equal(m.t, m.removeUsernameUsername, username)
 
@@ -68,7 +68,7 @@ func (m *mockAccountRepository) RemoveUsername(ctx context.Context, username str
 	return m.removeUsernameErr
 }
 
-func (m *mockAccountRepository) StoreAccount(ctx context.Context, account domain.Account) error {
+func (m *mockAccountRepositoryByUsername) StoreAccount(ctx context.Context, account domain.Account) error {
 	m.t.Helper()
 	require.Equal(m.t, m.storeAccountAccount, account)
 
@@ -92,7 +92,7 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 		t.Parallel()
 
 		c := cache.NewBasicCache[domain.Account]()
-		provider := &mockAccountProvider{
+		provider := &mockAccountProviderByUsername{
 			t:                            t,
 			getAccountByUsernameUsername: "testuser",
 			getAccountByUsernameAccount: domain.Account{
@@ -101,7 +101,7 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 				QueriedAt: now,
 			},
 		}
-		repo := &mockAccountRepository{
+		repo := &mockAccountRepositoryByUsername{
 			t:                            t,
 			getAccountByUsernameUsername: "testuser",
 			getAccountByUsernameErr:      domain.ErrUsernameNotFound,
@@ -141,10 +141,10 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 				t.Parallel()
 
 				c := cache.NewBasicCache[domain.Account]()
-				provider := &mockAccountProvider{
+				provider := &mockAccountProviderByUsername{
 					t: t,
 				}
-				repo := &mockAccountRepository{
+				repo := &mockAccountRepositoryByUsername{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameAccount: domain.Account{
@@ -189,7 +189,7 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 				t.Parallel()
 
 				c := cache.NewBasicCache[domain.Account]()
-				provider := &mockAccountProvider{
+				provider := &mockAccountProviderByUsername{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameAccount: domain.Account{
@@ -198,7 +198,7 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 						QueriedAt: now,
 					},
 				}
-				repo := &mockAccountRepository{
+				repo := &mockAccountRepositoryByUsername{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameAccount: domain.Account{
@@ -242,7 +242,7 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 				t.Parallel()
 
 				c := cache.NewBasicCache[domain.Account]()
-				provider := &mockAccountProvider{
+				provider := &mockAccountProviderByUsername{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameAccount: domain.Account{
@@ -251,7 +251,7 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 						QueriedAt: now,
 					},
 				}
-				repo := &mockAccountRepository{
+				repo := &mockAccountRepositoryByUsername{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameErr:      repoErr,
@@ -284,12 +284,12 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 		t.Parallel()
 
 		c := cache.NewBasicCache[domain.Account]()
-		provider := &mockAccountProvider{
+		provider := &mockAccountProviderByUsername{
 			t:                            t,
 			getAccountByUsernameUsername: "testuser",
 			getAccountByUsernameErr:      domain.ErrUsernameNotFound,
 		}
-		repo := &mockAccountRepository{
+		repo := &mockAccountRepositoryByUsername{
 			t:                            t,
 			getAccountByUsernameUsername: "testuser",
 			getAccountByUsernameAccount: domain.Account{
@@ -322,12 +322,12 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 				t.Parallel()
 
 				c := cache.NewBasicCache[domain.Account]()
-				provider := &mockAccountProvider{
+				provider := &mockAccountProviderByUsername{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameErr:      assert.AnError,
 				}
-				repo := &mockAccountRepository{
+				repo := &mockAccountRepositoryByUsername{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameAccount: domain.Account{
@@ -367,12 +367,12 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 				t.Parallel()
 
 				c := cache.NewBasicCache[domain.Account]()
-				provider := &mockAccountProvider{
+				provider := &mockAccountProviderByUsername{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameErr:      assert.AnError,
 				}
-				repo := &mockAccountRepository{
+				repo := &mockAccountRepositoryByUsername{
 					t:                            t,
 					getAccountByUsernameUsername: "testuser",
 					getAccountByUsernameAccount: domain.Account{
@@ -400,7 +400,7 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 		t.Parallel()
 
 		c := cache.NewBasicCache[domain.Account]()
-		provider := &mockAccountProvider{
+		provider := &mockAccountProviderByUsername{
 			t:                            t,
 			getAccountByUsernameUsername: "testuser",
 			getAccountByUsernameAccount: domain.Account{
@@ -409,7 +409,7 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 				QueriedAt: now,
 			},
 		}
-		repo := &mockAccountRepository{
+		repo := &mockAccountRepositoryByUsername{
 			t:                            t,
 			getAccountByUsernameUsername: "testuser",
 			getAccountByUsernameErr:      domain.ErrUsernameNotFound,
@@ -430,10 +430,10 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 			QueriedAt: now,
 		}, account)
 
-		provider = &mockAccountProvider{
+		provider = &mockAccountProviderByUsername{
 			t: t,
 		}
-		repo = &mockAccountRepository{
+		repo = &mockAccountRepositoryByUsername{
 			t: t,
 		}
 		getAccountByUsernameWithCache = app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)

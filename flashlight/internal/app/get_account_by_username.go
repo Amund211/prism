@@ -16,19 +16,19 @@ import (
 
 type GetAccountByUsername func(ctx context.Context, username string) (domain.Account, error)
 
-type accountProvider interface {
+type accountProviderByUsername interface {
 	GetAccountByUsername(ctx context.Context, username string) (domain.Account, error)
 }
 
-type accountRepository interface {
+type accountRepositoryByUsername interface {
 	StoreAccount(ctx context.Context, account domain.Account) error
 	RemoveUsername(ctx context.Context, username string) error
 	GetAccountByUsername(ctx context.Context, username string) (domain.Account, error)
 }
 
 func buildGetAccountByUsernameWithoutCache(
-	provider accountProvider,
-	repo accountRepository,
+	provider accountProviderByUsername,
+	repo accountRepositoryByUsername,
 	nowFunc func() time.Time,
 ) func(ctx context.Context, username string) (domain.Account, error) {
 	return func(ctx context.Context, username string) (domain.Account, error) {
@@ -112,8 +112,8 @@ func buildGetAccountByUsernameWithoutCache(
 
 func BuildGetAccountByUsernameWithCache(
 	accountByUsernameCache cache.Cache[domain.Account],
-	provider accountProvider,
-	repo accountRepository,
+	provider accountProviderByUsername,
+	repo accountRepositoryByUsername,
 	nowFunc func() time.Time,
 ) GetAccountByUsername {
 	getAccountByUsernameWithoutCache := buildGetAccountByUsernameWithoutCache(provider, repo, nowFunc)
