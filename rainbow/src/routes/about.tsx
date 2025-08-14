@@ -1,4 +1,4 @@
-import { AccountCircle, Badge } from "@mui/icons-material";
+import { AccountCircle } from "@mui/icons-material";
 import {
     List,
     ListItem,
@@ -66,21 +66,6 @@ const Thanks = () => {
                             Crafatar
                         </a>{" "}
                         for providing avatars.
-                    </ListItemText>
-                </ListItem>
-                <ListItem>
-                    <ListItemIcon>
-                        <Badge />
-                    </ListItemIcon>
-                    <ListItemText>
-                        <a
-                            href="https://api.minetools.eu/"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            MineTools
-                        </a>{" "}
-                        for providing UUID/username conversion.
                     </ListItemText>
                 </ListItem>
             </List>

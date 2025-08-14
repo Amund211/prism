@@ -2,7 +2,6 @@ import { z } from "zod";
 
 const envSchema = z.object({
     VITE_FLASHLIGHT_URL: z.string().url(),
-    VITE_MINETOOLS_API_URL: z.string().url(),
     VITE_SENTRY_DSN: z.string().url().optional(),
 });
 

@@ -29,7 +29,7 @@ export const getUsernameQueryOptions = (
             }
 
             const response = await fetch(
-                `${env.VITE_MINETOOLS_API_URL}/uuid/${uuid}`,
+                `${env.VITE_FLASHLIGHT_URL}/v1/account/uuid/${uuid}`,
             ).catch((error: unknown) => {
                 captureException(error, {
                     extra: {
@@ -103,36 +103,47 @@ export const getUsernameQueryOptions = (
                         data,
                     },
                 });
-                throw new Error("Invalid response from minetools");
+                throw new Error("Invalid response from flashlight api");
             }
-            if (!("name" in data)) {
-                captureMessage("Failed to get username: no name in response", {
-                    level: "error",
-                    extra: {
-                        uuid,
-                        data,
+            if (!("username" in data)) {
+                captureMessage(
+                    "Failed to get username: no username in response",
+                    {
+                        level: "error",
+                        extra: {
+                            uuid,
+                            data,
+                        },
                     },
-                });
-                throw new Error("No name in response from minetools");
+                );
+                throw new Error("No username in response from flashlight api");
             }
-            if (typeof data.name !== "string") {
-                captureMessage("Failed to get username: name is not a string", {
-                    level: "error",
-                    extra: {
-                        uuid,
-                        data,
+            if (typeof data.username !== "string") {
+                captureMessage(
+                    "Failed to get username: username is not a string",
+                    {
+                        level: "error",
+                        extra: {
+                            uuid,
+                            data,
+                        },
                     },
-                });
-                throw new Error("Invalid name in response from minetools");
+                );
+                throw new Error(
+                    "Invalid username in response from flashlight api",
+                );
             }
 
             if (addKnownAlias) {
-                addKnownAlias({ uuid, username: data.name });
+                addKnownAlias({ uuid, username: data.username });
             } else {
-                addKnownAliasWithoutRerendering({ uuid, username: data.name });
+                addKnownAliasWithoutRerendering({
+                    uuid,
+                    username: data.username,
+                });
             }
 
-            return { uuid, username: data.name };
+            return { uuid, username: data.username };
         },
     });
 
