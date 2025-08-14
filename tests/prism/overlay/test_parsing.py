@@ -384,6 +384,8 @@ UNEVENTFUL_LOGLINES = (
     # Team chat
     "[21:18:20] [Client thread/INFO]: [CHAT] §c§7[5✫] §c[RED] §7Player1§7: def",
     # #########################################
+    # Bedwars duels
+    "[21:23:52] [Client thread/INFO]: [CHAT]                              Bed Wars Duels",
 )
 
 
