@@ -60,7 +60,7 @@ def make_scenario_controller(*users: User) -> MockedController:
         return CURRENT_TIME_MS, user.playerdata if user is not None else None
 
     controller = MockedController(
-        get_uuid=get_uuid,
+        get_uuid_func=get_uuid,
         get_playerdata=get_playerdata,
         nick_database=NickDatabase([nick_table]),
     )
@@ -300,7 +300,7 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
             controller.player_cache.clear_cache()
         return 1234567, my_player_data
 
-    controller = MockedController(get_uuid=get_uuid, get_playerdata=get_playerdata)
+    controller = MockedController(get_uuid_func=get_uuid, get_playerdata=get_playerdata)
 
     player = create_known_player(
         dataReceivedAtMs=1234567,
@@ -322,7 +322,7 @@ def test_fetch_bedwars_stats_error_during_uuid() -> None:
     def get_uuid(username: str) -> str | None | ProcessingError:
         return ERROR_DURING_PROCESSING
 
-    controller = MockedController(get_uuid=get_uuid)
+    controller = MockedController(get_uuid_func=get_uuid)
 
     assert fetch_bedwars_stats("someone", controller) == UnknownPlayer("someone")
 
@@ -336,6 +336,6 @@ def test_fetch_bedwars_stats_error_during_playerdata() -> None:
     ) -> tuple[int, Mapping[str, object] | None | ProcessingError]:
         return CURRENT_TIME_MS, ERROR_DURING_PROCESSING
 
-    controller = MockedController(get_uuid=get_uuid, get_playerdata=get_playerdata)
+    controller = MockedController(get_uuid_func=get_uuid, get_playerdata=get_playerdata)
 
     assert fetch_bedwars_stats("someone", controller) == UnknownPlayer("someone")

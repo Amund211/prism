@@ -2,7 +2,7 @@ import logging
 import sys
 import threading
 import time
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING
 
 from prism.hypixel import (
@@ -11,7 +11,7 @@ from prism.hypixel import (
     HypixelAPIThrottleError,
     HypixelPlayerNotFoundError,
 )
-from prism.mojang import MojangAPIError, get_uuid
+from prism.mojang import MojangAPIError, get_uuid as mojang_get_uuid
 from prism.overlay.antisniper_api import (
     AntiSniperAPIKeyHolder,
     get_estimated_winstreaks,
@@ -45,6 +45,7 @@ class RealOverlayController:
         state: "OverlayState",
         settings: "Settings",
         nick_database: "NickDatabase",
+        get_uuid_func: Callable[[str], str | None] | None = None,
     ) -> None:
         from prism.overlay.player_cache import PlayerCache
 
@@ -71,11 +72,14 @@ class RealOverlayController:
             else None
         )
 
+        # Set up dependency-injected get_uuid function
+        self._get_uuid_func = get_uuid_func or mojang_get_uuid
+
         AutoWhoThread(self).start()
 
     def get_uuid(self, username: str) -> str | None | ProcessingError:
         try:
-            uuid = get_uuid(username)
+            uuid = self._get_uuid_func(username)
         except MissingLocalIssuerSSLError:
             logger.exception("get_uuid: missing local issuer cert")
             self.missing_local_issuer_certificate = True

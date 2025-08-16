@@ -15,7 +15,7 @@ from prism.overlay.nick_database import NickDatabase
 from prism.overlay.real_controller import RealOverlayController
 from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
-from tests.prism.overlay.utils import create_state, make_settings
+from tests.prism.overlay.utils import MockedController, create_state, make_settings
 
 
 def test_real_overlay_controller() -> None:
@@ -46,6 +46,16 @@ def test_real_overlay_controller_no_antisniper_key() -> None:
 
 
 def test_real_overlay_controller_get_uuid() -> None:
+    error: Exception | None = None
+    returned_uuid: str | None = None
+
+    def get_uuid_mock(username: str) -> str | None:
+        assert username == "username"
+        if error:
+            raise error
+
+        return returned_uuid
+
     controller = RealOverlayController(
         state=create_state(),
         settings=make_settings(
@@ -54,38 +64,25 @@ def test_real_overlay_controller_get_uuid() -> None:
             user_id="1234",
         ),
         nick_database=NickDatabase([{}]),
+        get_uuid_func=get_uuid_mock,
     )
 
-    error: Exception | None = None
-    returned_uuid: str | None = None
+    error = MojangAPIError()
+    uuid = controller.get_uuid("username")
+    assert uuid is ERROR_DURING_PROCESSING
 
-    def get_uuid(username: str) -> str | None:
-        assert username == "username"
-        if error:
-            raise error
+    error = MissingLocalIssuerSSLError()
+    assert not controller.missing_local_issuer_certificate
+    uuid = controller.get_uuid("username")
+    assert uuid is ERROR_DURING_PROCESSING
+    assert controller.missing_local_issuer_certificate
 
-        return returned_uuid
+    error = None
+    returned_uuid = "uuid"
+    uuid = controller.get_uuid("username")
+    assert uuid is returned_uuid
 
-    with unittest.mock.patch(
-        "prism.overlay.real_controller.get_uuid",
-        get_uuid,
-    ):
-        error = MojangAPIError()
-        uuid = controller.get_uuid("username")
-        assert uuid is ERROR_DURING_PROCESSING
-
-        error = MissingLocalIssuerSSLError()
-        assert not controller.missing_local_issuer_certificate
-        uuid = controller.get_uuid("username")
-        assert uuid is ERROR_DURING_PROCESSING
-        assert controller.missing_local_issuer_certificate
-
-        error = None
-        returned_uuid = "uuid"
-        uuid = controller.get_uuid("username")
-        assert uuid is returned_uuid
-
-        assert not controller.missing_local_issuer_certificate
+    assert not controller.missing_local_issuer_certificate
 
 
 def test_real_overlay_controller_get_playerdata() -> None:
@@ -160,3 +157,38 @@ def test_real_overlay_controller_get_playerdata() -> None:
         assert not controller.api_key_invalid
         assert not controller.api_key_throttled
         assert not controller.missing_local_issuer_certificate
+
+
+def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
+    """Test that RealOverlayController uses injected get_uuid function"""
+    custom_uuid = "custom-uuid-12345"
+    
+    def custom_get_uuid(username: str) -> str:
+        assert username == "testuser"
+        return custom_uuid
+    
+    controller = RealOverlayController(
+        state=create_state(),
+        settings=make_settings(),
+        nick_database=NickDatabase([{}]),
+        get_uuid_func=custom_get_uuid,
+    )
+    
+    result = controller.get_uuid("testuser")
+    assert result == custom_uuid
+
+
+def test_mocked_controller_get_uuid_dependency_injection() -> None:
+    """Test that MockedController uses injected get_uuid function"""
+    custom_uuid = "mocked-uuid-67890"
+    
+    def custom_get_uuid(username: str) -> str:
+        assert username == "mockuser"
+        return custom_uuid
+    
+    controller = MockedController(
+        get_uuid_func=custom_get_uuid,
+    )
+    
+    result = controller.get_uuid("mockuser")
+    assert result == custom_uuid
