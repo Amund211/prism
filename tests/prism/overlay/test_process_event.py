@@ -32,7 +32,12 @@ from prism.overlay.process_event import (
     process_event,
     process_loglines,
 )
-from tests.prism.overlay.utils import OWN_USERNAME, MockedController, create_state
+from tests.prism.overlay.utils import (
+    OWN_USERNAME,
+    MockedController,
+    create_state,
+    make_settings,
+)
 
 process_event_test_cases_base: tuple[
     tuple[str, MockedController, Event, MockedController, bool], ...
@@ -281,11 +286,41 @@ process_event_test_cases_base: tuple[
         MockedController(
             wants_shown=False, state=create_state(in_queue=True, now_func=lambda: 1234)
         ),
-        StartBedwarsGameEvent(),
+        StartBedwarsGameEvent(is_bedwars_duel=False),
         MockedController(
             wants_shown=None,
             autowho_event_set=True,
             state=create_state(in_queue=False, out_of_sync=True, last_game_start=1234),
+        ),
+        False,  # No need to redraw the screen - only hide the overlay
+    ),
+    (
+        "start bedwars duels game when disabled in duels",
+        MockedController(
+            wants_shown=False,
+            state=create_state(in_queue=True),
+            # Disabled in duels is the default
+        ),
+        StartBedwarsGameEvent(is_bedwars_duel=True),
+        MockedController(
+            wants_shown=False,
+            state=create_state(in_queue=True),
+        ),
+        False,
+    ),
+    (
+        "start bedwars duels game when enabled in duels",
+        MockedController(
+            wants_shown=False,
+            state=create_state(in_queue=True, now_func=lambda: 1234),
+            settings=make_settings(activate_in_bedwars_duels=True),
+        ),
+        StartBedwarsGameEvent(is_bedwars_duel=True),
+        MockedController(
+            wants_shown=None,
+            autowho_event_set=True,
+            state=create_state(in_queue=False, out_of_sync=True, last_game_start=1234),
+            settings=make_settings(activate_in_bedwars_duels=True),
         ),
         False,  # No need to redraw the screen - only hide the overlay
     ),
@@ -297,7 +332,7 @@ process_event_test_cases_base: tuple[
             wants_shown=False,
             state=create_state(in_queue=True, now_func=lambda: 1234),
         ),
-        StartBedwarsGameEvent(),
+        StartBedwarsGameEvent(is_bedwars_duel=False),
         MockedController(
             ready=False,
             wants_shown=None,

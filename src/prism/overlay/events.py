@@ -134,6 +134,7 @@ class BedwarsGameStartingSoonEvent:
 
 @dataclass
 class StartBedwarsGameEvent:
+    is_bedwars_duel: bool
     event_type: Literal[EventType.START_BEDWARS_GAME] = EventType.START_BEDWARS_GAME
 
 

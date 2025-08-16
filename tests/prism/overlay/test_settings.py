@@ -62,6 +62,7 @@ def make_settings_dict(
     autowho: bool | None = None,
     autowho_delay: float | None = None,
     chat_hotkey: KeyDict | None = None,
+    activate_in_bedwars_duels: bool | None = None,
     check_for_updates: bool | None = None,
     include_patch_updates: bool | None = None,
     use_included_certs: bool | None = None,
@@ -106,6 +107,9 @@ def make_settings_dict(
             chat_hotkey,
             default=AlphanumericKeyDict(name="t", char="t", key_type="alphanumeric"),
         ),
+        "activate_in_bedwars_duels": value_or_default(
+            activate_in_bedwars_duels, default=False
+        ),
         "check_for_updates": value_or_default(check_for_updates, default=True),
         "include_patch_updates": value_or_default(include_patch_updates, default=False),
         "use_included_certs": value_or_default(use_included_certs, default=True),
@@ -148,6 +152,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             autowho=True,
             autowho_delay=2.1,
             chat_hotkey=AlphanumericKey(name="u", char="u"),
+            activate_in_bedwars_duels=False,
             check_for_updates=True,
             include_patch_updates=False,
             use_included_certs=False,
@@ -183,6 +188,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "chat_hotkey": AlphanumericKeyDict(
                 name="u", char="u", key_type="alphanumeric"
             ),
+            "activate_in_bedwars_duels": False,
             "check_for_updates": True,
             "include_patch_updates": False,
             "use_included_certs": False,
@@ -215,6 +221,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             autowho=False,
             autowho_delay=0.1,
             chat_hotkey=AlphanumericKey(name="x", char="x"),
+            activate_in_bedwars_duels=True,
             check_for_updates=False,
             include_patch_updates=True,
             use_included_certs=True,
@@ -250,6 +257,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "chat_hotkey": AlphanumericKeyDict(
                 name="x", char="x", key_type="alphanumeric"
             ),
+            "activate_in_bedwars_duels": True,
             "check_for_updates": False,
             "include_patch_updates": True,
             "use_included_certs": True,
@@ -426,6 +434,7 @@ fill_settings_test_cases: tuple[
             "chat_hotkey": SpecialKeyDict(
                 name="somekey", vk=1234567, key_type="special"
             ),
+            "activate_in_bedwars_duels": True,
             "check_for_updates": False,
             "include_patch_updates": True,
             "use_included_certs": True,
@@ -457,6 +466,7 @@ fill_settings_test_cases: tuple[
             autowho=True,
             autowho_delay=1,
             chat_hotkey=SpecialKeyDict(name="somekey", vk=1234567, key_type="special"),
+            activate_in_bedwars_duels=True,
             check_for_updates=False,
             include_patch_updates=True,
             use_included_certs=True,
