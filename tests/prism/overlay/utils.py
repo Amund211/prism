@@ -278,6 +278,7 @@ def make_settings(
     autowho: bool | None = None,
     autowho_delay: float | None = None,
     chat_hotkey: Key | None = None,
+    activate_in_bedwars_duels: bool | None = None,
     path: Path | PurePath | None = None,
 ) -> Settings:
     return Settings.from_dict(
@@ -293,6 +294,7 @@ def make_settings(
                 "chat_hotkey": (
                     chat_hotkey.to_dict() if chat_hotkey is not None else None
                 ),
+                "activate_in_bedwars_duels": activate_in_bedwars_duels,
             },
             2,
         )[0],
