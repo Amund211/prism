@@ -187,7 +187,11 @@ def process_event(
 
     if event.event_type is EventType.START_BEDWARS_GAME:
         # Bedwars game has started
-        logger.info("Bedwars game starting")
+        logger.info(f"Bedwars game starting (duel={event.is_bedwars_duel})")
+
+        if not controller.settings.activate_in_bedwars_duels and event.is_bedwars_duel:
+            logger.info("Not activating overlay in bedwars duels due to setting")
+            return state, False
 
         if controller.ready:
             controller.autowho_event.set()

@@ -318,6 +318,7 @@ def test_update_settings_everything_changed() -> None:
         autowho=False,
         autowho_delay=4.5,
         chat_hotkey=AlphanumericKeyDict(name="u", char="u", key_type="alphanumeric"),
+        activate_in_bedwars_duels=True,
         check_for_updates=False,
         include_patch_updates=True,
         use_included_certs=False,
