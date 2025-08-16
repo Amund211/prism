@@ -239,6 +239,21 @@ class GeneralSettingSection:  # pragma: nocover
                 cursor="hand2" if enabled else "arrow",
             )
 
+        activate_in_bedwars_duels_label = tk.Label(
+            self.frame,
+            text="Activate in Bedwars Duels: ",
+            font=("Consolas", 12),
+            foreground="white",
+            background="black",
+        )
+        activate_in_bedwars_duels_label.grid(row=4, column=0, sticky=tk.E)
+        self.activate_in_bedwars_duels_toggle = ToggleButton(self.frame)
+        self.activate_in_bedwars_duels_toggle.button.grid(row=4, column=1)
+        parent.make_widgets_scrollable(
+            activate_in_bedwars_duels_label,
+            self.activate_in_bedwars_duels_toggle.button,
+        )
+
         check_for_updates_label = tk.Label(
             self.frame,
             text="Check for major version updates: ",
@@ -246,11 +261,11 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        check_for_updates_label.grid(row=4, column=0, sticky=tk.E)
+        check_for_updates_label.grid(row=5, column=0, sticky=tk.E)
         self.check_for_updates_toggle = ToggleButton(
             self.frame, toggle_callback=disable_include_patch_updates_toggle
         )
-        self.check_for_updates_toggle.button.grid(row=4, column=1)
+        self.check_for_updates_toggle.button.grid(row=5, column=1)
         parent.make_widgets_scrollable(
             check_for_updates_label,
             self.check_for_updates_toggle.button,
@@ -263,9 +278,9 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        include_patch_updates_label.grid(row=5, column=0, sticky=tk.E)
+        include_patch_updates_label.grid(row=6, column=0, sticky=tk.E)
         self.include_patch_updates_toggle = ToggleButton(self.frame)
-        self.include_patch_updates_toggle.button.grid(row=5, column=1)
+        self.include_patch_updates_toggle.button.grid(row=6, column=1)
         parent.make_widgets_scrollable(
             include_patch_updates_label,
             self.include_patch_updates_toggle.button,
@@ -278,9 +293,9 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        use_included_certs_label.grid(row=6, column=0, sticky=tk.E)
+        use_included_certs_label.grid(row=7, column=0, sticky=tk.E)
         self.use_included_certs_toggle = ToggleButton(self.frame)
-        self.use_included_certs_toggle.button.grid(row=6, column=1)
+        self.use_included_certs_toggle.button.grid(row=7, column=1)
         parent.make_widgets_scrollable(
             use_included_certs_label,
             self.use_included_certs_toggle.button,
@@ -299,7 +314,7 @@ class GeneralSettingSection:  # pragma: nocover
                 foreground="red",
                 background="black",
             )
-            show_on_tab_disabled_label.grid(row=7, column=0, columnspan=2)
+            show_on_tab_disabled_label.grid(row=8, column=0, columnspan=2)
             parent.make_widgets_scrollable(show_on_tab_disabled_label)
 
     def set(
@@ -308,6 +323,7 @@ class GeneralSettingSection:  # pragma: nocover
         autoselect_logfile: bool,
         show_on_tab: bool,
         show_on_tab_keybind: Key,
+        activate_in_bedwars_duels: bool,
         check_for_updates: bool,
         include_patch_updates: bool,
         use_included_certs: bool,
@@ -317,17 +333,19 @@ class GeneralSettingSection:  # pragma: nocover
         self.autoselect_logfile_toggle.set(autoselect_logfile)
         self.show_on_tab_toggle.set(show_on_tab)
         self.show_on_tab_keybind_selector.set_key(show_on_tab_keybind)
+        self.activate_in_bedwars_duels_toggle.set(activate_in_bedwars_duels)
         self.check_for_updates_toggle.set(check_for_updates)
         self.include_patch_updates_toggle.set(include_patch_updates)
         self.use_included_certs_toggle.set(use_included_certs)
 
-    def get(self) -> tuple[bool, bool, bool, Key, bool, bool, bool]:
+    def get(self) -> tuple[bool, bool, bool, Key, bool, bool, bool, bool]:
         """Get the state of this section"""
         return (
             self.autodenick_teammates_toggle.enabled,
             self.autoselect_logfile_toggle.enabled,
             self.show_on_tab_toggle.enabled,
             self.show_on_tab_keybind_selector.key,
+            self.activate_in_bedwars_duels_toggle.enabled,
             self.check_for_updates_toggle.enabled,
             self.include_patch_updates_toggle.enabled,
             self.use_included_certs_toggle.enabled,
@@ -1282,6 +1300,7 @@ class SettingsPage:  # pragma: nocover
                 autoselect_logfile=settings.autoselect_logfile,
                 show_on_tab=settings.show_on_tab,
                 show_on_tab_keybind=settings.show_on_tab_keybind,
+                activate_in_bedwars_duels=settings.activate_in_bedwars_duels,
                 check_for_updates=settings.check_for_updates,
                 include_patch_updates=settings.include_patch_updates,
                 use_included_certs=settings.use_included_certs,
@@ -1334,6 +1353,7 @@ class SettingsPage:  # pragma: nocover
             autoselect_logfile,
             show_on_tab,
             show_on_tab_keybind,
+            activate_in_bedwars_duels,
             check_for_updates,
             include_patch_updates,
             use_included_certs,
@@ -1380,6 +1400,7 @@ class SettingsPage:  # pragma: nocover
             autowho=autowho,
             autowho_delay=autowho_delay,
             chat_hotkey=chat_hotkey.to_dict(),
+            activate_in_bedwars_duels=activate_in_bedwars_duels,
             check_for_updates=check_for_updates,
             include_patch_updates=include_patch_updates,
             use_included_certs=use_included_certs,

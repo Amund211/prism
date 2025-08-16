@@ -310,12 +310,10 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
     # NOTE: This also appears at the end of a game, but before endgameevent is sent
     if message.strip().startswith("Bed Wars"):
-        if message.strip().startswith("Bed Wars Duels"):
-            logger.debug("Starting bedwars duels game - not starting game")
-            return None
+        is_bedwars_duel = message.strip().startswith("Bed Wars Duels")
 
-        logger.debug("Parsing passed. Starting game")
-        return StartBedwarsGameEvent()
+        logger.debug(f"Parsing passed. Starting game {is_bedwars_duel=}")
+        return StartBedwarsGameEvent(is_bedwars_duel=is_bedwars_duel)
 
     if (
         message.strip(PUNCTUATION_AND_WHITESPACE).endswith("FINAL KILL")

@@ -384,8 +384,6 @@ UNEVENTFUL_LOGLINES = (
     # Team chat
     "[21:18:20] [Client thread/INFO]: [CHAT] §c§7[5✫] §c[RED] §7Player1§7: def",
     # #########################################
-    # Bedwars duels
-    "[21:23:52] [Client thread/INFO]: [CHAT]                              Bed Wars Duels",
 )
 
 
@@ -716,13 +714,17 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         BedwarsGameStartingSoonEvent(seconds=1),
     ),
     (
+        "[21:23:52] [Client thread/INFO]: [CHAT]                              Bed Wars Duels",
+        StartBedwarsGameEvent(is_bedwars_duel=True),
+    ),
+    (
         "[16:12:21] [Client thread/INFO]: [CHAT]                                   Bed Wars ",
-        StartBedwarsGameEvent(),
+        StartBedwarsGameEvent(is_bedwars_duel=False),
     ),
     (
         # Start game on astolfo chat bridge
         "[04:05:13] [Astolfo HTTP Bridge]: [CHAT]                                   Bed Wars",
-        StartBedwarsGameEvent(),
+        StartBedwarsGameEvent(is_bedwars_duel=False),
     ),
     (
         "[00:01:04] [Client thread/INFO]: [CHAT] Player1 was spooked off the map by Player2. FINAL KILL!",
