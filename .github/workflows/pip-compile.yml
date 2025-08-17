@@ -3,7 +3,7 @@ name: Python dependencies
 permissions:
   contents: read
 
-on: [push, pull_request, workflow_dispatch]
+on: [push, workflow_dispatch]
 
 jobs:
   test:
