@@ -52,7 +52,7 @@ KNOWN_NICKS: tuple[dict[str, str], ...] = (
 @pytest.mark.parametrize("known_nicks", KNOWN_NICKS)
 def test_set_nickname(known_nicks: dict[str, str]) -> None:
     """Assert that set_nickname works when setting a nick"""
-    controller = MockedController(get_uuid_func=lambda username: UUID)
+    controller = MockedController(get_uuid=lambda username: UUID)
     controller.player_cache.uncache_player = unittest.mock.MagicMock()  # type: ignore
 
     set_known_nicks(known_nicks, controller)
@@ -110,7 +110,7 @@ def test_unset_nickname(known_nicks: dict[str, str], explicit: bool) -> None:
     Unsetting is either explicit with username=None, or when the uuid of the player
     can't be found
     """
-    controller = MockedController(get_uuid_func=lambda username: UUID if explicit else None)
+    controller = MockedController(get_uuid=lambda username: UUID if explicit else None)
     controller.player_cache.uncache_player = unittest.mock.MagicMock()  # type: ignore
 
     set_known_nicks(known_nicks, controller)
@@ -855,7 +855,7 @@ def test_autodenick_teammate(
             in_queue=True,
             out_of_sync=False,
         ),
-        get_uuid_func=get_uuid,
+        get_uuid=get_uuid,
     )
 
     # Update the controller state by setting cache and denicks

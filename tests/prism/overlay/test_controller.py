@@ -26,6 +26,7 @@ def test_real_overlay_controller() -> None:
             use_antisniper_api=True,
         ),
         nick_database=NickDatabase([{}]),
+        get_uuid=lambda username: f"uuid-{username}",
     )
 
     assert controller.antisniper_key_holder is not None
@@ -40,6 +41,7 @@ def test_real_overlay_controller_no_antisniper_key() -> None:
             use_antisniper_api=True,
         ),
         nick_database=NickDatabase([{}]),
+        get_uuid=lambda username: f"uuid-{username}",
     )
 
     assert controller.antisniper_key_holder is None
@@ -64,7 +66,7 @@ def test_real_overlay_controller_get_uuid() -> None:
             user_id="1234",
         ),
         nick_database=NickDatabase([{}]),
-        get_uuid_func=get_uuid_mock,
+        get_uuid=get_uuid_mock,
     )
 
     error = MojangAPIError()
@@ -94,6 +96,7 @@ def test_real_overlay_controller_get_playerdata() -> None:
             user_id="1234",
         ),
         nick_database=NickDatabase([{}]),
+        get_uuid=lambda username: f"uuid-{username}",
     )
 
     error: Exception | None = None
@@ -171,7 +174,7 @@ def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
         state=create_state(),
         settings=make_settings(),
         nick_database=NickDatabase([{}]),
-        get_uuid_func=custom_get_uuid,
+        get_uuid=custom_get_uuid,
     )
     
     result = controller.get_uuid("testuser")
@@ -187,7 +190,7 @@ def test_mocked_controller_get_uuid_dependency_injection() -> None:
         return custom_uuid
     
     controller = MockedController(
-        get_uuid_func=custom_get_uuid,
+        get_uuid=custom_get_uuid,
     )
     
     result = controller.get_uuid("mockuser")

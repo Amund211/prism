@@ -357,9 +357,8 @@ class MockedController:
         default_factory=threading.Lock, repr=False, compare=False, hash=False
     )
 
-    get_uuid_func: InitVar[Callable[[str], str | None | ProcessingError] | None] = None
-    _get_uuid_func: Callable[[str], str | None | ProcessingError] = field(
-        init=False, repr=False, compare=False, hash=False
+    get_uuid: Callable[[str], str | None | ProcessingError] = field(
+        default=missing_method, repr=False, compare=False, hash=False
     )
     get_playerdata: Callable[
         [str], tuple[int, Mapping[str, object] | None | ProcessingError]
@@ -375,7 +374,6 @@ class MockedController:
         autowho_event_set: bool,
         redraw_event_set: bool,
         update_presence_event_set: bool,
-        get_uuid_func: Callable[[str], str | None | ProcessingError] | None,
     ) -> None:
         self.autowho_event = threading.Event()
         if autowho_event_set:
@@ -395,14 +393,8 @@ class MockedController:
             else None
         )
 
-        # Set up dependency-injected get_uuid function
-        self._get_uuid_func = get_uuid_func or missing_method
-
     def store_settings(self) -> None:
         self._stored_settings = replace(self.settings)
-
-    def get_uuid(self, username: str) -> str | None | ProcessingError:
-        return self._get_uuid_func(username)
 
     @property
     def extra(self) -> ExtraAttributes:
