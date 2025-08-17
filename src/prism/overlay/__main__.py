@@ -60,6 +60,7 @@ def main() -> None:  # pragma: nocover
     nick_database = NickDatabase.from_disk([], default_database=default_database)
 
     # Import late so we can patch ssl certs in requests
+    from prism.mojang import get_uuid
     from prism.overlay.process_loglines import process_loglines, prompt_and_read_logfile
     from prism.overlay.real_controller import RealOverlayController
 
@@ -67,6 +68,7 @@ def main() -> None:  # pragma: nocover
         state=OverlayState(),
         settings=settings,
         nick_database=nick_database,
+        get_uuid=get_uuid,
     )
 
     if options.test_ssl:

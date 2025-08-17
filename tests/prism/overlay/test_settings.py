@@ -359,7 +359,10 @@ def test_flush_settings_from_controller(tmp_path: Path) -> None:
     )
 
     controller = RealOverlayController(
-        state=create_state(), settings=settings, nick_database=NickDatabase([{}])
+        state=create_state(),
+        settings=settings,
+        nick_database=NickDatabase([{}]),
+        get_uuid=lambda username: f"uuid-{username}",
     )
 
     controller.store_settings()
