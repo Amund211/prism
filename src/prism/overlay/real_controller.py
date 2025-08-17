@@ -72,7 +72,6 @@ class RealOverlayController:
             else None
         )
 
-        # Set up dependency-injected get_uuid function
         self._get_uuid = get_uuid
 
         AutoWhoThread(self).start()
