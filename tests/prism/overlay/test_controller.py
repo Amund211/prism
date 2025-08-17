@@ -165,18 +165,18 @@ def test_real_overlay_controller_get_playerdata() -> None:
 def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
     """Test that RealOverlayController uses injected get_uuid function"""
     custom_uuid = "custom-uuid-12345"
-    
+
     def custom_get_uuid(username: str) -> str:
         assert username == "testuser"
         return custom_uuid
-    
+
     controller = RealOverlayController(
         state=create_state(),
         settings=make_settings(),
         nick_database=NickDatabase([{}]),
         get_uuid=custom_get_uuid,
     )
-    
+
     result = controller.get_uuid("testuser")
     assert result == custom_uuid
 
@@ -184,14 +184,14 @@ def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
 def test_mocked_controller_get_uuid_dependency_injection() -> None:
     """Test that MockedController uses injected get_uuid function"""
     custom_uuid = "mocked-uuid-67890"
-    
+
     def custom_get_uuid(username: str) -> str:
         assert username == "mockuser"
         return custom_uuid
-    
+
     controller = MockedController(
         get_uuid=custom_get_uuid,
     )
-    
+
     result = controller.get_uuid("mockuser")
     assert result == custom_uuid
