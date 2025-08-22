@@ -12,40 +12,28 @@
 
 ## Build Instructions and Development Setup
 
-### Prerequisites
+### Prerequisites for Coding Agents
 - **Python Version**: Requires Python 3.12 or higher (project currently uses 3.13)
-- **Virtual Environment**: Always use a virtual environment to isolate dependencies
-- **Platform**: Linux/macOS/Windows supported with platform-specific requirements
+- **Dependencies**: All required dependencies are already installed in your global environment
+- **Virtual Environment**: **CRITICAL - DO NOT USE** virtual environments. Dependencies are pre-installed globally.
+- **Platform**: Linux environment (coding agents run in Linux containers)
 
 ### Initial Setup (CRITICAL - Follow This Order)
 
-1. **Create and activate virtual environment** (REQUIRED):
-```bash
-python3 -m venv venv
-
-# Activation depends on your platform:
-source venv/bin/activate              # Linux/macOS
-# OR
-venv\Scripts\activate.bat            # Windows cmd
-# OR  
-venv\Scripts\activate.ps1            # Windows PowerShell
-```
-
-2. **Install dependencies** (PLATFORM-SPECIFIC - pick ONE):
-```bash
-# For Linux development:
-pip install -r requirements/linux.txt -r requirements/linux-dev.txt
-
-# For Windows development:
-pip install -r requirements/windows.txt -r requirements/windows-dev.txt
-
-# For macOS development:
-pip install -r requirements/mac.txt -r requirements/mac-dev.txt
-```
-
-3. **Install the package in development mode**:
+1. **Install the package in development mode** (REQUIRED):
 ```bash
 pip install --no-deps -e .
+```
+
+2. **Verify setup works**:
+```bash
+python -c "from prism import VERSION_STRING; print(f'Setup OK: {VERSION_STRING}')"
+```
+
+**Note for Standard Users**: While this repository's documentation may reference virtual environments, coding agents must NOT use them as dependencies are pre-installed globally. If you ever need to install dependencies manually (unlikely), use:
+```bash
+# Only if dependencies are missing (should not happen)
+pip install -r requirements/linux.txt -r requirements/linux-dev.txt
 ```
 
 ### Core Development Commands
@@ -70,33 +58,11 @@ isort .
 flake8 .
 ```
 
-#### Running the Application
-```bash
-# Run overlay from source (requires log file for testing)
-python3 prism_overlay.py --help
-python3 prism_overlay.py --logfile=latest.log
-```
+#### Core Development Commands for Coding Agents
 
-#### Building Binaries
-```bash
-# Create versioned icon (REQUIRED before pyinstaller)
-python add_version_to_icon.py
+**Important**: This is a GUI desktop application. Do not attempt to run the application in a headless environment.
 
-# Build single-file executable
-pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who_with_version.ico --name "prism-v1.9.1-dev" --additional-hooks-dir=pyinstaller
-```
 
-### Pre-commit Hooks Setup (RECOMMENDED)
-```bash
-# Install pre-commit (if not already installed)
-pip install pre-commit
-
-# Install hooks (runs quality checks automatically)
-pre-commit install
-
-# Run hooks manually
-pre-commit run --all-files
-```
 
 ### Dependency Management
 **IMPORTANT**: Dependencies are managed with pip-compile and are platform-specific.
@@ -107,21 +73,22 @@ pre-commit run --all-files
 
 To update dependencies:
 ```bash
-# Install pip-tools first
-pip install pip-tools
-
 # Recompile requirements (updates pinned versions)
+# Note: pip-tools is already installed in your environment
 pip-compile --output-file requirements/linux.txt setup.cfg
 pip-compile --output-file requirements/linux-dev.txt requirements/dev.in
 ```
 
 ### Common Issues and Workarounds
 
-1. **Virtual Environment Issues**: ALWAYS activate the virtual environment before running any commands
-2. **Platform Dependencies**: Use the correct requirements file for your platform
+1. **Import Issues**: Run `pip install --no-deps -e .` after dependency changes
+2. **Platform Dependencies**: Use Linux requirements (`requirements/linux.txt` + `requirements/linux-dev.txt`)
 3. **Coverage Requirement**: Tests must maintain 100% coverage (some files are excluded in setup.cfg)
-4. **Import Issues**: Run `pip install --no-deps -e .` after dependency changes
-5. **Network Issues**: Some dependencies require network access; use offline wheels if needed
+4. **Network Issues**: Some dependencies require network access; use offline wheels if needed
+
+### Building and Distribution
+
+**Note**: As a coding agent, you typically don't need to build binaries. If tests and linting pass, the PyInstaller build will likely succeed. This saves significant time in the development cycle.
 
 ## Project Layout and Architecture
 
@@ -177,11 +144,10 @@ tests/
 
 ### Critical Validation Steps
 Before making any changes, ALWAYS:
-1. Activate virtual environment
-2. Install correct platform dependencies
-3. Run `coverage run && coverage report` (must be 100%)
-4. Run `mypy --strict .` (must pass)
-5. Run `black . && isort . && flake8 .` (must pass)
+1. Run `pip install --no-deps -e .` (ensures package is installed)
+2. Run `coverage run && coverage report` (must be 100%)
+3. Run `mypy --strict .` (must pass)
+4. Run `black . && isort . && flake8 .` (must pass)
 
 ### Performance Notes
 - **Build time**: PyInstaller builds take 2-5 minutes

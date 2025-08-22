@@ -14,10 +14,6 @@ Prism uses pytest with comprehensive test coverage requirements and strict type 
 
 ### Full Test Suite (REQUIRED before committing)
 ```bash
-# ALWAYS activate virtual environment first
-source venv/bin/activate  # Linux/macOS
-# OR venv\Scripts\activate.bat  # Windows
-
 # Run tests with coverage (MUST achieve 100% coverage)
 coverage run
 coverage report
@@ -88,12 +84,12 @@ python -m pytest tests/prism/test_specific.py::test_function -vvv
 coverage report --show-missing
 ```
 
-## Pre-commit Integration
-Tests automatically run via pre-commit hooks:
+## Manual Test Execution
+For coding agents, run tests manually:
 ```bash
-pre-commit run coverage_run
-pre-commit run coverage_report
-pre-commit run mypy
+coverage run
+coverage report
+mypy --strict .
 ```
 
 ## Writing New Tests

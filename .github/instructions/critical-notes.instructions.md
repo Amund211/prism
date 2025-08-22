@@ -4,32 +4,20 @@ applyTo: "**"
 
 # Critical Development Notes and Workarounds for Prism
 
-## ALWAYS DO FIRST (Critical Setup)
+## ALWAYS DO FIRST (Critical Setup for Coding Agents)
 ```bash
-# 1. MUST activate virtual environment (errors without this)
-source venv/bin/activate  # Linux/macOS
-# OR venv\Scripts\activate.bat  # Windows
-
-# 2. MUST install package in development mode (import errors without this)
+# 1. MUST install package in development mode (import errors without this)
 pip install --no-deps -e .
 
-# 3. Verify setup works
+# 2. Verify setup works
 python -c "from prism import VERSION_STRING; print(f'Setup OK: {VERSION_STRING}')"
 ```
 
-## Platform-Specific Gotchas
-
-### Virtual Environment Activation
-- **Windows cmd**: `venv\Scripts\activate.bat`
-- **Windows PowerShell**: `venv\Scripts\activate.ps1`  
-- **Linux/macOS**: `source venv/bin/activate`
-- **CRITICAL**: Must activate before ANY development commands
+**IMPORTANT**: Coding agents must NOT use virtual environments. Dependencies are pre-installed in your global environment.
 
 ### Requirements Files (Platform-Specific)
-- **NEVER** mix platform requirements
+- **Coding Agents**: Use Linux requirements only
 - **Linux**: `requirements/linux.txt` + `requirements/linux-dev.txt`
-- **Windows**: `requirements/windows.txt` + `requirements/windows-dev.txt`
-- **macOS**: `requirements/mac.txt` + `requirements/mac-dev.txt`
 
 ### Import Path Issues
 ```bash
@@ -99,15 +87,9 @@ pip-compile --output-file requirements/linux-dev.txt requirements/dev.in
 
 ## Code Quality Workarounds
 
-### Pre-commit Hook Issues
+### Manual Quality Checks
 ```bash
-# If pre-commit hooks not running:
-pre-commit install
-
-# If hooks fail:
-pre-commit run --all-files
-
-# Manual quality check (if pre-commit unavailable):
+# Run quality checks manually (coding agents don't use pre-commit hooks):
 isort . && black . && flake8 . && mypy --strict .
 ```
 

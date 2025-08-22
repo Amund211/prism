@@ -13,20 +13,10 @@ Prism uses PyInstaller to create standalone executables for Windows, macOS, and 
 
 ## Local Build Process
 
-### Prerequisites (CRITICAL)
-```bash
-# MUST have virtual environment activated
-source venv/bin/activate  # Linux/macOS
-# OR venv\Scripts\activate.bat  # Windows
+### Prerequisites for Coding Agents
+**Note**: As a coding agent, you typically don't need to build binaries locally. If tests and linting pass, the PyInstaller build will likely succeed in CI. This section is provided for reference but building is generally unnecessary.
 
-# MUST have platform-specific dependencies installed
-pip install -r requirements/linux.txt -r requirements/linux-dev.txt     # Linux
-pip install -r requirements/windows.txt -r requirements/windows-dev.txt # Windows  
-pip install -r requirements/mac.txt -r requirements/mac-dev.txt         # macOS
-
-# MUST install package in development mode
-pip install --no-deps -e .
-```
+Dependencies are already installed in your global environment. If you do need to build locally:
 
 ### Build Steps (EXACT ORDER)
 
@@ -36,46 +26,17 @@ python add_version_to_icon.py
 # Creates pyinstaller/who_with_version.ico with version overlay
 ```
 
-2. **Build executable**:
+2. **Build executable** (Linux only):
 ```bash
+# First, get the current version from the source
+CURRENT_VERSION=$(python -c "from prism import VERSION_STRING; print(VERSION_STRING)")
+
 # Linux build
-pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who_with_version.ico --name "prism-v1.9.1-dev" --additional-hooks-dir=pyinstaller
-
-# Windows build
-pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who_with_version.ico --name "prism-v1.9.1-dev" --additional-hooks-dir=pyinstaller --hide-console=minimize-early
-
-# macOS build (Universal2 for Intel + Apple Silicon)
-pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who_with_version.ico --name "prism-v1.9.1-dev" --additional-hooks-dir=pyinstaller --target-architecture universal2 --windowed
-```
-
-### macOS-Specific: DMG Creation
-```bash
-# Convert icon to .icns format
-brew install imagemagick
-magick pyinstaller/who_with_version.ico pyinstaller/who_with_version.icns
-
-# Create DMG installer
-brew install create-dmg
-mkdir -p 'dist/app'
-mv "dist/prism-v1.9.1-dev.app" "dist/app"
-
-create-dmg \
-  --volname "Prism v1.9.1-dev installer" \
-  --volicon 'pyinstaller/who_with_version.icns' \
-  --window-pos 200 120 \
-  --window-size 600 300 \
-  --icon-size 100 \
-  --icon "prism-v1.9.1-dev.app" 175 120 \
-  --hide-extension "prism-v1.9.1-dev.app" \
-  --app-drop-link 425 120 \
-  "prism-v1.9.1-dev.dmg" \
-  "dist/app/"
+pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who_with_version.ico --name "prism-${CURRENT_VERSION}" --additional-hooks-dir=pyinstaller
 ```
 
 ## Build Artifacts
-- **Linux**: `dist/prism-v1.9.1-dev` (executable binary)
-- **Windows**: `dist/prism-v1.9.1-dev.exe` (executable)
-- **macOS**: `prism-v1.9.1-dev.dmg` (disk image with .app bundle)
+- **Linux**: `dist/prism-${VERSION}` (executable binary)
 
 ## PyInstaller Configuration
 
@@ -96,17 +57,6 @@ create-dmg \
 - `--hide-console=minimize-early`: Windows-only, minimizes console window
 - `--target-architecture universal2`: macOS-only, Intel + Apple Silicon
 - `--windowed`: macOS-only, creates .app bundle instead of console app
-
-## Build Validation
-
-### Test Built Executable
-```bash
-# Check version info
-dist/prism-v1.9.1-dev --help
-
-# Test SSL functionality (requires test environment)
-dist/prism-v1.9.1-dev --test-ssl --settings=test_settings.toml --logfile=latest.log
-```
 
 ## CI/CD Build Process
 GitHub Actions (`.github/workflows/testing.yml`) automatically:

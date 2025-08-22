@@ -40,20 +40,15 @@ flake8 .
 mypy --strict .
 ```
 
-## Pre-commit Hooks (STRONGLY RECOMMENDED)
+## Manual Quality Checks for Coding Agents
+Coding agents should run quality checks manually rather than using pre-commit hooks:
+
 ```bash
-# Install pre-commit (if not already installed)
-pip install pre-commit
-
-# Install hooks to run automatically on commit
-pre-commit install
-
-# Run all hooks manually
-pre-commit run --all-files
-
-# Run specific hook
-pre-commit run black
-pre-commit run mypy
+# ALWAYS run in this exact order before committing:
+isort .
+black .
+flake8 .
+mypy --strict .
 ```
 
 ## Tool Configurations
@@ -141,22 +136,6 @@ GitHub Actions (`.github/workflows/linting.yml`) enforces:
 
 Type checking runs in testing workflow with `mypy --strict .`
 
-## Pre-commit Hook Configuration
-File: `.pre-commit-config.yaml`
-
-### External Hooks:
-- `check-yaml`: YAML syntax validation
-- `end-of-file-fixer`: Ensures files end with newline
-- `check-merge-conflict`: Prevents committing merge conflicts
-- `check-added-large-files`: Prevents large file commits
-
-### Code Quality Hooks:
-- `black`: Auto-formats Python code
-- `isort`: Sorts imports
-- `flake8`: Linting
-- `mypy`: Type checking (local hook using venv)
-- `coverage`: Test coverage (run and report)
-
 ## Fixing Quality Issues
 
 ### Common Black Issues:
@@ -232,13 +211,12 @@ def calculate_fkdr(kills: int, deaths: int) -> float:
 - **MyPy**: ~10-15 seconds for full codebase (first run slower)
 
 ## Integration with Development Workflow
-1. **Before coding**: Ensure pre-commit hooks installed
+1. **Before coding**: Ensure dependencies are installed (`pip install --no-deps -e .`)
 2. **During coding**: Run formatters as needed (`black .`, `isort .`)
-3. **Before committing**: Either rely on pre-commit hooks OR manually run all checks
+3. **Before committing**: Manually run all checks (`isort . && black . && flake8 . && mypy --strict .`)
 4. **CI verification**: All checks run automatically in GitHub Actions
 
 ## Troubleshooting
 - **MyPy cache issues**: Remove `.mypy_cache/` directory
 - **Import path issues**: Ensure `pip install --no-deps -e .` was run
-- **Pre-commit not running**: Check `pre-commit install` was executed
 - **Tool conflicts**: Tools are configured to work together; don't override settings
