@@ -3,6 +3,7 @@ import logging
 import string
 import sys
 import tkinter as tk
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal, TypedDict
 
 from prism.overlay.behaviour import update_settings
@@ -45,6 +46,19 @@ logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:  # pragma: nocover
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay
+
+
+@dataclass(frozen=True, slots=True)
+class GeneralSettings:
+    """Settings for the GeneralSettingSection"""
+    autodenick_teammates: bool
+    autoselect_logfile: bool
+    show_on_tab: bool
+    show_on_tab_keybind: Key
+    activate_in_bedwars_duels: bool
+    check_for_updates: bool
+    include_patch_updates: bool
+    use_included_certs: bool
 
 
 class SupportSection:  # pragma: nocover
@@ -317,38 +331,28 @@ class GeneralSettingSection:  # pragma: nocover
             show_on_tab_disabled_label.grid(row=8, column=0, columnspan=2)
             parent.make_widgets_scrollable(show_on_tab_disabled_label)
 
-    def set(
-        self,
-        autodenick_teammates: bool,
-        autoselect_logfile: bool,
-        show_on_tab: bool,
-        show_on_tab_keybind: Key,
-        activate_in_bedwars_duels: bool,
-        check_for_updates: bool,
-        include_patch_updates: bool,
-        use_included_certs: bool,
-    ) -> None:
+    def set(self, settings: GeneralSettings) -> None:
         """Set the state of this section"""
-        self.autodenick_teammates_toggle.set(autodenick_teammates)
-        self.autoselect_logfile_toggle.set(autoselect_logfile)
-        self.show_on_tab_toggle.set(show_on_tab)
-        self.show_on_tab_keybind_selector.set_key(show_on_tab_keybind)
-        self.activate_in_bedwars_duels_toggle.set(activate_in_bedwars_duels)
-        self.check_for_updates_toggle.set(check_for_updates)
-        self.include_patch_updates_toggle.set(include_patch_updates)
-        self.use_included_certs_toggle.set(use_included_certs)
+        self.autodenick_teammates_toggle.set(settings.autodenick_teammates)
+        self.autoselect_logfile_toggle.set(settings.autoselect_logfile)
+        self.show_on_tab_toggle.set(settings.show_on_tab)
+        self.show_on_tab_keybind_selector.set_key(settings.show_on_tab_keybind)
+        self.activate_in_bedwars_duels_toggle.set(settings.activate_in_bedwars_duels)
+        self.check_for_updates_toggle.set(settings.check_for_updates)
+        self.include_patch_updates_toggle.set(settings.include_patch_updates)
+        self.use_included_certs_toggle.set(settings.use_included_certs)
 
-    def get(self) -> tuple[bool, bool, bool, Key, bool, bool, bool, bool]:
+    def get(self) -> GeneralSettings:
         """Get the state of this section"""
-        return (
-            self.autodenick_teammates_toggle.enabled,
-            self.autoselect_logfile_toggle.enabled,
-            self.show_on_tab_toggle.enabled,
-            self.show_on_tab_keybind_selector.key,
-            self.activate_in_bedwars_duels_toggle.enabled,
-            self.check_for_updates_toggle.enabled,
-            self.include_patch_updates_toggle.enabled,
-            self.use_included_certs_toggle.enabled,
+        return GeneralSettings(
+            autodenick_teammates=self.autodenick_teammates_toggle.enabled,
+            autoselect_logfile=self.autoselect_logfile_toggle.enabled,
+            show_on_tab=self.show_on_tab_toggle.enabled,
+            show_on_tab_keybind=self.show_on_tab_keybind_selector.key,
+            activate_in_bedwars_duels=self.activate_in_bedwars_duels_toggle.enabled,
+            check_for_updates=self.check_for_updates_toggle.enabled,
+            include_patch_updates=self.include_patch_updates_toggle.enabled,
+            use_included_certs=self.use_included_certs_toggle.enabled,
         )
 
 
@@ -1296,14 +1300,16 @@ class SettingsPage:  # pragma: nocover
                 antisniper_api_key=settings.antisniper_api_key,
             )
             self.general_settings_section.set(
-                autodenick_teammates=settings.autodenick_teammates,
-                autoselect_logfile=settings.autoselect_logfile,
-                show_on_tab=settings.show_on_tab,
-                show_on_tab_keybind=settings.show_on_tab_keybind,
-                activate_in_bedwars_duels=settings.activate_in_bedwars_duels,
-                check_for_updates=settings.check_for_updates,
-                include_patch_updates=settings.include_patch_updates,
-                use_included_certs=settings.use_included_certs,
+                GeneralSettings(
+                    autodenick_teammates=settings.autodenick_teammates,
+                    autoselect_logfile=settings.autoselect_logfile,
+                    show_on_tab=settings.show_on_tab,
+                    show_on_tab_keybind=settings.show_on_tab_keybind,
+                    activate_in_bedwars_duels=settings.activate_in_bedwars_duels,
+                    check_for_updates=settings.check_for_updates,
+                    include_patch_updates=settings.include_patch_updates,
+                    use_included_certs=settings.use_included_certs,
+                )
             )
             self.autowho_section.set(
                 autowho=settings.autowho,
@@ -1348,16 +1354,7 @@ class SettingsPage:  # pragma: nocover
         hypixel_api_key = self.controller.settings.hypixel_api_key
 
         use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
-        (
-            autodenick_teammates,
-            autoselect_logfile,
-            show_on_tab,
-            show_on_tab_keybind,
-            activate_in_bedwars_duels,
-            check_for_updates,
-            include_patch_updates,
-            use_included_certs,
-        ) = self.general_settings_section.get()
+        general_settings = self.general_settings_section.get()
 
         autowho, chat_hotkey, autowho_delay = self.autowho_section.get()
 
@@ -1392,18 +1389,18 @@ class SettingsPage:  # pragma: nocover
             column_order=column_order,
             rating_configs=rating_configs.to_dict(),
             known_nicks=known_nicks,
-            autodenick_teammates=autodenick_teammates,
-            autoselect_logfile=autoselect_logfile,
+            autodenick_teammates=general_settings.autodenick_teammates,
+            autoselect_logfile=general_settings.autoselect_logfile,
             autohide_timeout=autohide_timeout,
-            show_on_tab=show_on_tab,
-            show_on_tab_keybind=show_on_tab_keybind.to_dict(),
+            show_on_tab=general_settings.show_on_tab,
+            show_on_tab_keybind=general_settings.show_on_tab_keybind.to_dict(),
             autowho=autowho,
             autowho_delay=autowho_delay,
             chat_hotkey=chat_hotkey.to_dict(),
-            activate_in_bedwars_duels=activate_in_bedwars_duels,
-            check_for_updates=check_for_updates,
-            include_patch_updates=include_patch_updates,
-            use_included_certs=use_included_certs,
+            activate_in_bedwars_duels=general_settings.activate_in_bedwars_duels,
+            check_for_updates=general_settings.check_for_updates,
+            include_patch_updates=general_settings.include_patch_updates,
+            use_included_certs=general_settings.use_included_certs,
             stats_thread_count=stats_thread_count,
             discord_rich_presence=discord_settings["discord_rich_presence"],
             discord_show_username=discord_settings["discord_show_username"],
@@ -1423,7 +1420,7 @@ class SettingsPage:  # pragma: nocover
         #       update_settings is called somewhere else to also setup/stop the listener
         if self.controller.settings.show_on_tab:
             self.overlay.setup_tab_listener(
-                restart=show_on_tab_keybind != old_show_on_tab_keybind
+                restart=general_settings.show_on_tab_keybind != old_show_on_tab_keybind
             )
         else:
             self.overlay.stop_tab_listener()
@@ -1431,9 +1428,9 @@ class SettingsPage:  # pragma: nocover
         # Check for updates if our related settings changed, but only if we have checks
         # enabled and if we don't already know that there is an update available
         if (
-            (check_for_updates, include_patch_updates)
+            (general_settings.check_for_updates, general_settings.include_patch_updates)
             != (old_check_for_updates, old_include_patch_updates)
-            and check_for_updates
+            and general_settings.check_for_updates
             and not self.overlay.update_available_event.is_set()
         ):
             UpdateCheckerThread(
