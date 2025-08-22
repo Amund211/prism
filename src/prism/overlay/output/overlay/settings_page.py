@@ -826,6 +826,12 @@ class DisplaySection:  # pragma: nocover
         )
 
 
+@dataclass(frozen=True, slots=True)
+class ColumnSettings:
+    """Settings for the ColumnSection"""
+    column_order: tuple[ColumnName, ...]
+
+
 class ColumnSection:  # pragma: nocover
     def __init__(self, parent: "SettingsPage") -> None:
         self.frame = parent.make_section(
@@ -845,12 +851,12 @@ class ColumnSection:  # pragma: nocover
             self.column_order_selection.reset_button,
         )
 
-    def set(self, column_order: tuple[ColumnName, ...]) -> None:
+    def set(self, settings: ColumnSettings) -> None:
         """Set the state of this section"""
-        self.column_order_selection.set_selection(column_order)
+        self.column_order_selection.set_selection(settings.column_order)
         pass
 
-    def get(self) -> tuple[ColumnName, ...]:
+    def get(self) -> ColumnSettings:
         """Get the state of this section"""
         selection = self.column_order_selection.get_selection()
 
@@ -862,7 +868,13 @@ class ColumnSection:  # pragma: nocover
         if not column_order:
             column_order = DEFAULT_COLUMN_ORDER
 
-        return column_order
+        return ColumnSettings(column_order=column_order)
+
+
+@dataclass(frozen=True, slots=True)
+class GraphicsSettings:
+    """Settings for the GraphicsSection"""
+    alpha_hundredths: int
 
 
 class GraphicsSection:  # pragma: nocover
@@ -905,13 +917,15 @@ class GraphicsSection:  # pragma: nocover
         """Clamp the alpha_hundredths to a valid range"""
         return min(100, max(10, alpha_hundredths))
 
-    def set(self, alpha_hundredths: int) -> None:
+    def set(self, settings: GraphicsSettings) -> None:
         """Set the state of this section"""
-        self.alpha_hundredths_variable.set(self.clamp_alpha(alpha_hundredths))
+        self.alpha_hundredths_variable.set(self.clamp_alpha(settings.alpha_hundredths))
 
-    def get(self) -> int:
+    def get(self) -> GraphicsSettings:
         """Get the state of this section"""
-        return self.clamp_alpha(self.alpha_hundredths_variable.get())
+        return GraphicsSettings(
+            alpha_hundredths=self.clamp_alpha(self.alpha_hundredths_variable.get())
+        )
 
 
 class RatingConfigEditor:  # pragma: nocover
@@ -1359,7 +1373,9 @@ class SettingsPage:  # pragma: nocover
                     autohide_timeout=settings.autohide_timeout,
                 )
             )
-            self.column_section.set(settings.column_order)
+            self.column_section.set(
+                ColumnSettings(column_order=settings.column_order)
+            )
 
             self.discord_section.set(
                 DiscordSettings(
@@ -1369,7 +1385,9 @@ class SettingsPage:  # pragma: nocover
                     discord_show_party=settings.discord_show_party,
                 )
             )
-            self.graphics_section.set(settings.alpha_hundredths)
+            self.graphics_section.set(
+                GraphicsSettings(alpha_hundredths=settings.alpha_hundredths)
+            )
             self.stats_section.set(settings.rating_configs)
 
     def on_close(self) -> None:
@@ -1401,7 +1419,7 @@ class SettingsPage:  # pragma: nocover
         display_settings = self.display_section.get(
             fallback_sort_order=self.controller.settings.sort_order
         )
-        column_order = self.column_section.get()
+        column_settings = self.column_section.get()
 
         discord_settings = self.discord_section.get()
 
@@ -1414,7 +1432,7 @@ class SettingsPage:  # pragma: nocover
         disable_overrideredirect = self.controller.settings.disable_overrideredirect
         hide_with_alpha = self.controller.settings.hide_with_alpha
 
-        alpha_hundredths = self.graphics_section.get()
+        graphics_settings = self.graphics_section.get()
 
         rating_configs = self.stats_section.get()
 
@@ -1424,7 +1442,7 @@ class SettingsPage:  # pragma: nocover
             antisniper_api_key=antisniper_settings.antisniper_api_key,
             use_antisniper_api=antisniper_settings.use_antisniper_api,
             sort_order=display_settings.sort_order,
-            column_order=column_order,
+            column_order=column_settings.column_order,
             rating_configs=rating_configs.to_dict(),
             known_nicks=known_nicks,
             autodenick_teammates=general_settings.autodenick_teammates,
@@ -1447,7 +1465,7 @@ class SettingsPage:  # pragma: nocover
             hide_dead_players=display_settings.hide_dead_players,
             disable_overrideredirect=disable_overrideredirect,
             hide_with_alpha=hide_with_alpha,
-            alpha_hundredths=alpha_hundredths,
+            alpha_hundredths=graphics_settings.alpha_hundredths,
         )
 
         with self.controller.settings.mutex:
