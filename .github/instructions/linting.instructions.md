@@ -211,12 +211,12 @@ def calculate_fkdr(kills: int, deaths: int) -> float:
 - **MyPy**: ~10-15 seconds for full codebase (first run slower)
 
 ## Integration with Development Workflow
-1. **Before coding**: Ensure dependencies are installed (`pip install --no-deps -e .`)
+1. **Before coding**: Package and dependencies are pre-installed in your environment
 2. **During coding**: Run formatters as needed (`black .`, `isort .`)
 3. **Before committing**: Manually run all checks (`isort . && black . && flake8 . && mypy --strict .`)
 4. **CI verification**: All checks run automatically in GitHub Actions
 
 ## Troubleshooting
 - **MyPy cache issues**: Remove `.mypy_cache/` directory
-- **Import path issues**: Ensure `pip install --no-deps -e .` was run
+- **Import path issues**: Package is pre-installed; check PYTHONPATH if needed
 - **Tool conflicts**: Tools are configured to work together; don't override settings

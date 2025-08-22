@@ -15,25 +15,24 @@
 ### Prerequisites for Coding Agents
 - **Python Version**: Requires Python 3.12 or higher (project currently uses 3.13)
 - **Dependencies**: All required dependencies are already installed in your global environment
-- **Virtual Environment**: **CRITICAL - DO NOT USE** virtual environments. Dependencies are pre-installed globally.
+- **Package**: The prism package is already installed in development mode in your global environment
+- **Virtual Environment**: **CRITICAL - DO NOT USE** virtual environments. Dependencies and package are pre-installed globally.
 - **Platform**: Linux environment (coding agents run in Linux containers)
 
-### Initial Setup (CRITICAL - Follow This Order)
+### Initial Setup
 
-1. **Install the package in development mode** (REQUIRED):
-```bash
-pip install --no-deps -e .
-```
+**No setup required** - the prism package and all dependencies are already installed in your environment.
 
-2. **Verify setup works**:
+**Verify setup works** (optional):
 ```bash
 python -c "from prism import VERSION_STRING; print(f'Setup OK: {VERSION_STRING}')"
 ```
 
-**Note for Standard Users**: While this repository's documentation may reference virtual environments, coding agents must NOT use them as dependencies are pre-installed globally. If you ever need to install dependencies manually (unlikely), use:
+**Note for Standard Users**: While this repository's documentation may reference virtual environments, coding agents must NOT use them as dependencies and the package are pre-installed globally. If you ever need to install dependencies or the package manually (unlikely), use:
 ```bash
-# Only if dependencies are missing (should not happen)
+# Only if dependencies or package are missing (should not happen)
 pip install -r requirements/linux.txt -r requirements/linux-dev.txt
+pip install --no-deps -e .
 ```
 
 ### Core Development Commands
@@ -81,7 +80,7 @@ pip-compile --output-file requirements/linux-dev.txt requirements/dev.in
 
 ### Common Issues and Workarounds
 
-1. **Import Issues**: Run `pip install --no-deps -e .` after dependency changes
+1. **Import Issues**: Package and dependencies are pre-installed; if imports fail, see troubleshooting section
 2. **Platform Dependencies**: Use Linux requirements (`requirements/linux.txt` + `requirements/linux-dev.txt`)
 3. **Coverage Requirement**: Tests must maintain 100% coverage (some files are excluded in setup.cfg)
 4. **Network Issues**: Some dependencies require network access; use offline wheels if needed
@@ -144,10 +143,9 @@ tests/
 
 ### Critical Validation Steps
 Before making any changes, ALWAYS:
-1. Run `pip install --no-deps -e .` (ensures package is installed)
-2. Run `coverage run && coverage report` (must be 100%)
-3. Run `mypy --strict .` (must pass)
-4. Run `black . && isort . && flake8 .` (must pass)
+1. Run `coverage run && coverage report` (must be 100%)
+2. Run `mypy --strict .` (must pass)
+3. Run `black . && isort . && flake8 .` (must pass)
 
 ### Performance Notes
 - **Build time**: PyInstaller builds take 2-5 minutes

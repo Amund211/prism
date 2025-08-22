@@ -83,7 +83,7 @@ GitHub Actions (`.github/workflows/testing.yml`) automatically:
 ### Common Problems:
 1. **Missing dependencies**: Ensure all requirements installed
 2. **Icon generation fails**: Check PIL/Pillow installation
-3. **Import errors**: Run `pip install --no-deps -e .`
+3. **Import errors**: Package is pre-installed; check if `pip install --no-deps -e .` needed (rare)
 4. **Platform-specific failures**: Check platform requirements
 5. **PyInstaller hook issues**: Verify hook files exist
 

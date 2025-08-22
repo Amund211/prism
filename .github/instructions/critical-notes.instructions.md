@@ -5,23 +5,24 @@ applyTo: "**"
 # Critical Development Notes and Workarounds for Prism
 
 ## ALWAYS DO FIRST (Critical Setup for Coding Agents)
-```bash
-# 1. MUST install package in development mode (import errors without this)
-pip install --no-deps -e .
 
-# 2. Verify setup works
+**No setup required** - the prism package and all dependencies are already installed in your environment.
+
+**Verify setup works** (optional):
+```bash
 python -c "from prism import VERSION_STRING; print(f'Setup OK: {VERSION_STRING}')"
 ```
 
-**IMPORTANT**: Coding agents must NOT use virtual environments. Dependencies are pre-installed in your global environment.
+**IMPORTANT**: Coding agents must NOT use virtual environments. Dependencies and package are pre-installed in your global environment.
 
 ### Requirements Files (Platform-Specific)
 - **Coding Agents**: Use Linux requirements only
 - **Linux**: `requirements/linux.txt` + `requirements/linux-dev.txt`
 
 ### Import Path Issues
+Package and dependencies are pre-installed. If imports still fail (rare):
 ```bash
-# If imports fail, ALWAYS run this:
+# Only if package is missing (should not happen)
 pip install --no-deps -e .
 
 # Or use PYTHONPATH for testing:
@@ -158,19 +159,20 @@ src/prism/               # ONLY source code here
 
 ### Clean State
 ```bash
-# Nuclear option - clean everything
+# Nuclear option - clean everything (package should not need reinstalling)
 rm -rf .mypy_cache/ __pycache__/ build/ dist/ *.egg-info/
 find . -name "*.pyc" -delete
-pip uninstall prism-amund211 -y
-pip install --no-deps -e .
+# Package should already be installed; only reinstall if truly necessary:
+# pip uninstall prism-amund211 -y
+# pip install --no-deps -e .
 ```
 
 ### Import Errors
 ```bash
-# If "No module named 'prism'" errors:
-pip install --no-deps -e .
+# Package should already be installed; if "No module named 'prism'" errors persist:
+# pip install --no-deps -e .
 
-# If still failing:
+# Alternative approach:
 PYTHONPATH=src python3 your_script.py
 ```
 
