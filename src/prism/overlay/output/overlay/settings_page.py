@@ -3,7 +3,8 @@ import logging
 import string
 import sys
 import tkinter as tk
-from typing import TYPE_CHECKING, Any, Literal, TypedDict
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Literal
 
 from prism.overlay.behaviour import update_settings
 from prism.overlay.controller import OverlayController
@@ -63,6 +64,14 @@ class SupportSection:  # pragma: nocover
         )
         discord_button.pack(side=tk.TOP)
         parent.make_widgets_scrollable(discord_button)
+
+
+@dataclass(frozen=True, slots=True)
+class AntisniperSettings:
+    """Settings for the AntisniperSection"""
+
+    use_antisniper_api: bool
+    antisniper_api_key: str | None
 
 
 class AntisniperSection:  # pragma: nocover
@@ -140,13 +149,13 @@ class AntisniperSection:  # pragma: nocover
             api_key_label, self.antisniper_api_key_entry, show_button
         )
 
-    def set(self, use_antisniper_api: bool, antisniper_api_key: str | None) -> None:
+    def set(self, settings: AntisniperSettings) -> None:
         """Set the state of this section"""
-        self.use_antisniper_api_toggle.set(use_antisniper_api)
+        self.use_antisniper_api_toggle.set(settings.use_antisniper_api)
         self.antisniper_api_key_entry.config(show="*")
-        self.antisniper_api_key_variable.set(antisniper_api_key or "")
+        self.antisniper_api_key_variable.set(settings.antisniper_api_key or "")
 
-    def get(self) -> tuple[bool, str | None]:
+    def get(self) -> AntisniperSettings:
         """Get the state of this section"""
         value = self.antisniper_api_key_variable.get()
         if ":" in value:
@@ -157,7 +166,24 @@ class AntisniperSection:  # pragma: nocover
 
         key = value if len(value) > 3 else None
 
-        return self.use_antisniper_api_toggle.enabled, key
+        return AntisniperSettings(
+            use_antisniper_api=self.use_antisniper_api_toggle.enabled,
+            antisniper_api_key=key,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class GeneralSettings:
+    """Settings for the GeneralSettingSection"""
+
+    autodenick_teammates: bool
+    autoselect_logfile: bool
+    show_on_tab: bool
+    show_on_tab_keybind: Key
+    activate_in_bedwars_duels: bool
+    check_for_updates: bool
+    include_patch_updates: bool
+    use_included_certs: bool
 
 
 class GeneralSettingSection:  # pragma: nocover
@@ -317,39 +343,38 @@ class GeneralSettingSection:  # pragma: nocover
             show_on_tab_disabled_label.grid(row=8, column=0, columnspan=2)
             parent.make_widgets_scrollable(show_on_tab_disabled_label)
 
-    def set(
-        self,
-        autodenick_teammates: bool,
-        autoselect_logfile: bool,
-        show_on_tab: bool,
-        show_on_tab_keybind: Key,
-        activate_in_bedwars_duels: bool,
-        check_for_updates: bool,
-        include_patch_updates: bool,
-        use_included_certs: bool,
-    ) -> None:
+    def set(self, settings: GeneralSettings) -> None:
         """Set the state of this section"""
-        self.autodenick_teammates_toggle.set(autodenick_teammates)
-        self.autoselect_logfile_toggle.set(autoselect_logfile)
-        self.show_on_tab_toggle.set(show_on_tab)
-        self.show_on_tab_keybind_selector.set_key(show_on_tab_keybind)
-        self.activate_in_bedwars_duels_toggle.set(activate_in_bedwars_duels)
-        self.check_for_updates_toggle.set(check_for_updates)
-        self.include_patch_updates_toggle.set(include_patch_updates)
-        self.use_included_certs_toggle.set(use_included_certs)
+        self.autodenick_teammates_toggle.set(settings.autodenick_teammates)
+        self.autoselect_logfile_toggle.set(settings.autoselect_logfile)
+        self.show_on_tab_toggle.set(settings.show_on_tab)
+        self.show_on_tab_keybind_selector.set_key(settings.show_on_tab_keybind)
+        self.activate_in_bedwars_duels_toggle.set(settings.activate_in_bedwars_duels)
+        self.check_for_updates_toggle.set(settings.check_for_updates)
+        self.include_patch_updates_toggle.set(settings.include_patch_updates)
+        self.use_included_certs_toggle.set(settings.use_included_certs)
 
-    def get(self) -> tuple[bool, bool, bool, Key, bool, bool, bool, bool]:
+    def get(self) -> GeneralSettings:
         """Get the state of this section"""
-        return (
-            self.autodenick_teammates_toggle.enabled,
-            self.autoselect_logfile_toggle.enabled,
-            self.show_on_tab_toggle.enabled,
-            self.show_on_tab_keybind_selector.key,
-            self.activate_in_bedwars_duels_toggle.enabled,
-            self.check_for_updates_toggle.enabled,
-            self.include_patch_updates_toggle.enabled,
-            self.use_included_certs_toggle.enabled,
+        return GeneralSettings(
+            autodenick_teammates=self.autodenick_teammates_toggle.enabled,
+            autoselect_logfile=self.autoselect_logfile_toggle.enabled,
+            show_on_tab=self.show_on_tab_toggle.enabled,
+            show_on_tab_keybind=self.show_on_tab_keybind_selector.key,
+            activate_in_bedwars_duels=self.activate_in_bedwars_duels_toggle.enabled,
+            check_for_updates=self.check_for_updates_toggle.enabled,
+            include_patch_updates=self.include_patch_updates_toggle.enabled,
+            use_included_certs=self.use_included_certs_toggle.enabled,
         )
+
+
+@dataclass(frozen=True, slots=True)
+class AutoWhoSettings:
+    """Settings for the AutoWhoSection"""
+
+    autowho: bool
+    chat_hotkey: Key
+    autowho_delay: float
 
 
 class AutoWhoSection:  # pragma: nocover
@@ -460,33 +485,35 @@ class AutoWhoSection:  # pragma: nocover
         """Clamp the autowho_delay to a valid range"""
         return min(5, max(0.1, autowho_delay))
 
-    def set(
-        self,
-        autowho: bool,
-        chat_hotkey: Key,
-        autowho_delay: float,
-    ) -> None:
+    def set(self, settings: AutoWhoSettings) -> None:
         """Set the state of this section"""
         if sys.platform == "darwin":  # Not supported on macOS
             return
 
-        self.autowho_toggle.set(autowho)
-        self.chat_keybind_selector.set_key(chat_hotkey)
-        self.autowho_delay_variable.set(autowho_delay)
+        self.autowho_toggle.set(settings.autowho)
+        self.chat_keybind_selector.set_key(settings.chat_hotkey)
+        self.autowho_delay_variable.set(settings.autowho_delay)
 
-    def get(self) -> tuple[bool, Key, float]:
+    def get(self) -> AutoWhoSettings:
         """Get the state of this section"""
         if sys.platform == "darwin":  # Not supported on macOS
-            return False, AlphanumericKey("t", "t"), 2.0
+            return AutoWhoSettings(
+                autowho=False,
+                chat_hotkey=AlphanumericKey("t", "t"),
+                autowho_delay=2.0,
+            )
 
-        return (
-            self.autowho_toggle.enabled,
-            self.chat_keybind_selector.key,
-            self.clamp_autowho_delay(self.autowho_delay_variable.get()),
+        return AutoWhoSettings(
+            autowho=self.autowho_toggle.enabled,
+            chat_hotkey=self.chat_keybind_selector.key,
+            autowho_delay=self.clamp_autowho_delay(self.autowho_delay_variable.get()),
         )
 
 
-class _DiscordSettings(TypedDict):
+@dataclass(frozen=True, slots=True)
+class DiscordSettings:
+    """Settings for the DiscordSection"""
+
     discord_rich_presence: bool
     discord_show_username: bool
     discord_show_session_stats: bool
@@ -584,27 +611,28 @@ class DiscordSection:  # pragma: nocover
         self.discord_show_session_stats_toggle.button.config(state=state, cursor=cursor)
         self.discord_show_party_toggle.button.config(state=state, cursor=cursor)
 
-    def set(
-        self,
-        discord_rich_presence: bool,
-        discord_show_username: bool,
-        discord_show_session_stats: bool,
-        discord_show_party: bool,
-    ) -> None:
+    def set(self, settings: DiscordSettings) -> None:
         """Set the state of this section"""
-        self.discord_rich_presence_toggle.set(discord_rich_presence)
-        self.discord_show_username_toggle.set(discord_show_username)
-        self.discord_show_session_stats_toggle.set(discord_show_session_stats)
-        self.discord_show_party_toggle.set(discord_show_party)
+        self.discord_rich_presence_toggle.set(settings.discord_rich_presence)
+        self.discord_show_username_toggle.set(settings.discord_show_username)
+        self.discord_show_session_stats_toggle.set(settings.discord_show_session_stats)
+        self.discord_show_party_toggle.set(settings.discord_show_party)
 
-    def get(self) -> _DiscordSettings:
+    def get(self) -> DiscordSettings:
         """Get the state of this section"""
-        return {
-            "discord_rich_presence": self.discord_rich_presence_toggle.enabled,
-            "discord_show_username": self.discord_show_username_toggle.enabled,
-            "discord_show_session_stats": self.discord_show_session_stats_toggle.enabled,  # noqa: E501
-            "discord_show_party": self.discord_show_party_toggle.enabled,
-        }
+        return DiscordSettings(
+            discord_rich_presence=self.discord_rich_presence_toggle.enabled,
+            discord_show_username=self.discord_show_username_toggle.enabled,
+            discord_show_session_stats=self.discord_show_session_stats_toggle.enabled,
+            discord_show_party=self.discord_show_party_toggle.enabled,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class PerformanceSettings:
+    """Settings for the PerformanceSection"""
+
+    stats_thread_count: int
 
 
 class PerformanceSection:  # pragma: nocover
@@ -675,15 +703,28 @@ class PerformanceSection:  # pragma: nocover
         """Clamp the stats_thread_count to a valid range"""
         return min(16, max(1, stats_thread_count))
 
-    def set(self, stats_thread_count: int) -> None:
+    def set(self, settings: PerformanceSettings) -> None:
         """Set the state of this section"""
         self.stats_thread_count_variable.set(
-            self.clamp_stats_thread_count(stats_thread_count)
+            self.clamp_stats_thread_count(settings.stats_thread_count)
         )
 
-    def get(self) -> int:
+    def get(self) -> PerformanceSettings:
         """Get the state of this section"""
-        return self.clamp_stats_thread_count(self.stats_thread_count_variable.get())
+        return PerformanceSettings(
+            stats_thread_count=self.clamp_stats_thread_count(
+                self.stats_thread_count_variable.get()
+            )
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class DisplaySettings:
+    """Settings for the DisplaySection"""
+
+    sort_order: ColumnName
+    hide_dead_players: bool
+    autohide_timeout: int
 
 
 class DisplaySection:  # pragma: nocover
@@ -767,15 +808,13 @@ class DisplaySection:  # pragma: nocover
         """Clamp the autohide_timeout to a valid range"""
         return min(20, max(1, autohide_timeout))
 
-    def set(
-        self, sort_order: ColumnName, hide_dead_players: bool, autohide_timeout: int
-    ) -> None:
+    def set(self, settings: DisplaySettings) -> None:
         """Set the state of this section"""
-        self.sort_order_variable.set(sort_order)
-        self.hide_dead_players_toggle.set(hide_dead_players)
-        self.autohide_timeout_variable.set(autohide_timeout)
+        self.sort_order_variable.set(settings.sort_order)
+        self.hide_dead_players_toggle.set(settings.hide_dead_players)
+        self.autohide_timeout_variable.set(settings.autohide_timeout)
 
-    def get(self, fallback_sort_order: ColumnName) -> tuple[ColumnName, bool, int]:
+    def get(self, fallback_sort_order: ColumnName) -> DisplaySettings:
         """Get the state of this section"""
         sort_order: str | ColumnName = self.sort_order_variable.get()
 
@@ -786,11 +825,20 @@ class DisplaySection:  # pragma: nocover
             )
             sort_order = fallback_sort_order
 
-        return (
-            sort_order,
-            self.hide_dead_players_toggle.enabled,
-            self.clamp_autohide_timeout(self.autohide_timeout_variable.get()),
+        return DisplaySettings(
+            sort_order=sort_order,
+            hide_dead_players=self.hide_dead_players_toggle.enabled,
+            autohide_timeout=self.clamp_autohide_timeout(
+                self.autohide_timeout_variable.get()
+            ),
         )
+
+
+@dataclass(frozen=True, slots=True)
+class ColumnSettings:
+    """Settings for the ColumnSection"""
+
+    column_order: tuple[ColumnName, ...]
 
 
 class ColumnSection:  # pragma: nocover
@@ -812,12 +860,12 @@ class ColumnSection:  # pragma: nocover
             self.column_order_selection.reset_button,
         )
 
-    def set(self, column_order: tuple[ColumnName, ...]) -> None:
+    def set(self, settings: ColumnSettings) -> None:
         """Set the state of this section"""
-        self.column_order_selection.set_selection(column_order)
+        self.column_order_selection.set_selection(settings.column_order)
         pass
 
-    def get(self) -> tuple[ColumnName, ...]:
+    def get(self) -> ColumnSettings:
         """Get the state of this section"""
         selection = self.column_order_selection.get_selection()
 
@@ -829,7 +877,14 @@ class ColumnSection:  # pragma: nocover
         if not column_order:
             column_order = DEFAULT_COLUMN_ORDER
 
-        return column_order
+        return ColumnSettings(column_order=column_order)
+
+
+@dataclass(frozen=True, slots=True)
+class GraphicsSettings:
+    """Settings for the GraphicsSection"""
+
+    alpha_hundredths: int
 
 
 class GraphicsSection:  # pragma: nocover
@@ -872,13 +927,15 @@ class GraphicsSection:  # pragma: nocover
         """Clamp the alpha_hundredths to a valid range"""
         return min(100, max(10, alpha_hundredths))
 
-    def set(self, alpha_hundredths: int) -> None:
+    def set(self, settings: GraphicsSettings) -> None:
         """Set the state of this section"""
-        self.alpha_hundredths_variable.set(self.clamp_alpha(alpha_hundredths))
+        self.alpha_hundredths_variable.set(self.clamp_alpha(settings.alpha_hundredths))
 
-    def get(self) -> int:
+    def get(self) -> GraphicsSettings:
         """Get the state of this section"""
-        return self.clamp_alpha(self.alpha_hundredths_variable.get())
+        return GraphicsSettings(
+            alpha_hundredths=self.clamp_alpha(self.alpha_hundredths_variable.get())
+        )
 
 
 class RatingConfigEditor:  # pragma: nocover
@@ -1292,39 +1349,53 @@ class SettingsPage:  # pragma: nocover
 
         with settings.mutex:
             self.antisniper_section.set(
-                use_antisniper_api=settings.use_antisniper_api,
-                antisniper_api_key=settings.antisniper_api_key,
+                AntisniperSettings(
+                    use_antisniper_api=settings.use_antisniper_api,
+                    antisniper_api_key=settings.antisniper_api_key,
+                )
             )
             self.general_settings_section.set(
-                autodenick_teammates=settings.autodenick_teammates,
-                autoselect_logfile=settings.autoselect_logfile,
-                show_on_tab=settings.show_on_tab,
-                show_on_tab_keybind=settings.show_on_tab_keybind,
-                activate_in_bedwars_duels=settings.activate_in_bedwars_duels,
-                check_for_updates=settings.check_for_updates,
-                include_patch_updates=settings.include_patch_updates,
-                use_included_certs=settings.use_included_certs,
+                GeneralSettings(
+                    autodenick_teammates=settings.autodenick_teammates,
+                    autoselect_logfile=settings.autoselect_logfile,
+                    show_on_tab=settings.show_on_tab,
+                    show_on_tab_keybind=settings.show_on_tab_keybind,
+                    activate_in_bedwars_duels=settings.activate_in_bedwars_duels,
+                    check_for_updates=settings.check_for_updates,
+                    include_patch_updates=settings.include_patch_updates,
+                    use_included_certs=settings.use_included_certs,
+                )
             )
             self.autowho_section.set(
-                autowho=settings.autowho,
-                chat_hotkey=settings.chat_hotkey,
-                autowho_delay=settings.autowho_delay,
+                AutoWhoSettings(
+                    autowho=settings.autowho,
+                    chat_hotkey=settings.chat_hotkey,
+                    autowho_delay=settings.autowho_delay,
+                )
             )
-            self.performance_section.set(stats_thread_count=settings.stats_thread_count)
+            self.performance_section.set(
+                PerformanceSettings(stats_thread_count=settings.stats_thread_count)
+            )
             self.display_section.set(
-                settings.sort_order,
-                settings.hide_dead_players,
-                settings.autohide_timeout,
+                DisplaySettings(
+                    sort_order=settings.sort_order,
+                    hide_dead_players=settings.hide_dead_players,
+                    autohide_timeout=settings.autohide_timeout,
+                )
             )
-            self.column_section.set(settings.column_order)
+            self.column_section.set(ColumnSettings(column_order=settings.column_order))
 
             self.discord_section.set(
-                discord_rich_presence=settings.discord_rich_presence,
-                discord_show_username=settings.discord_show_username,
-                discord_show_session_stats=settings.discord_show_session_stats,
-                discord_show_party=settings.discord_show_party,
+                DiscordSettings(
+                    discord_rich_presence=settings.discord_rich_presence,
+                    discord_show_username=settings.discord_show_username,
+                    discord_show_session_stats=settings.discord_show_session_stats,
+                    discord_show_party=settings.discord_show_party,
+                )
             )
-            self.graphics_section.set(settings.alpha_hundredths)
+            self.graphics_section.set(
+                GraphicsSettings(alpha_hundredths=settings.alpha_hundredths)
+            )
             self.stats_section.set(settings.rating_configs)
 
     def on_close(self) -> None:
@@ -1347,26 +1418,16 @@ class SettingsPage:  # pragma: nocover
         user_id = self.controller.settings.user_id
         hypixel_api_key = self.controller.settings.hypixel_api_key
 
-        use_antisniper_api, antisniper_api_key = self.antisniper_section.get()
-        (
-            autodenick_teammates,
-            autoselect_logfile,
-            show_on_tab,
-            show_on_tab_keybind,
-            activate_in_bedwars_duels,
-            check_for_updates,
-            include_patch_updates,
-            use_included_certs,
-        ) = self.general_settings_section.get()
+        antisniper_settings = self.antisniper_section.get()
+        general_settings = self.general_settings_section.get()
+        autowho_settings = self.autowho_section.get()
 
-        autowho, chat_hotkey, autowho_delay = self.autowho_section.get()
+        performance_settings = self.performance_section.get()
 
-        stats_thread_count = self.performance_section.get()
-
-        sort_order, hide_dead_players, autohide_timeout = self.display_section.get(
+        display_settings = self.display_section.get(
             fallback_sort_order=self.controller.settings.sort_order
         )
-        column_order = self.column_section.get()
+        column_settings = self.column_section.get()
 
         discord_settings = self.discord_section.get()
 
@@ -1379,40 +1440,40 @@ class SettingsPage:  # pragma: nocover
         disable_overrideredirect = self.controller.settings.disable_overrideredirect
         hide_with_alpha = self.controller.settings.hide_with_alpha
 
-        alpha_hundredths = self.graphics_section.get()
+        graphics_settings = self.graphics_section.get()
 
         rating_configs = self.stats_section.get()
 
         new_settings = SettingsDict(
             user_id=user_id,
             hypixel_api_key=hypixel_api_key,
-            antisniper_api_key=antisniper_api_key,
-            use_antisniper_api=use_antisniper_api,
-            sort_order=sort_order,
-            column_order=column_order,
+            antisniper_api_key=antisniper_settings.antisniper_api_key,
+            use_antisniper_api=antisniper_settings.use_antisniper_api,
+            sort_order=display_settings.sort_order,
+            column_order=column_settings.column_order,
             rating_configs=rating_configs.to_dict(),
             known_nicks=known_nicks,
-            autodenick_teammates=autodenick_teammates,
-            autoselect_logfile=autoselect_logfile,
-            autohide_timeout=autohide_timeout,
-            show_on_tab=show_on_tab,
-            show_on_tab_keybind=show_on_tab_keybind.to_dict(),
-            autowho=autowho,
-            autowho_delay=autowho_delay,
-            chat_hotkey=chat_hotkey.to_dict(),
-            activate_in_bedwars_duels=activate_in_bedwars_duels,
-            check_for_updates=check_for_updates,
-            include_patch_updates=include_patch_updates,
-            use_included_certs=use_included_certs,
-            stats_thread_count=stats_thread_count,
-            discord_rich_presence=discord_settings["discord_rich_presence"],
-            discord_show_username=discord_settings["discord_show_username"],
-            discord_show_session_stats=discord_settings["discord_show_session_stats"],
-            discord_show_party=discord_settings["discord_show_party"],
-            hide_dead_players=hide_dead_players,
+            autodenick_teammates=general_settings.autodenick_teammates,
+            autoselect_logfile=general_settings.autoselect_logfile,
+            autohide_timeout=display_settings.autohide_timeout,
+            show_on_tab=general_settings.show_on_tab,
+            show_on_tab_keybind=general_settings.show_on_tab_keybind.to_dict(),
+            autowho=autowho_settings.autowho,
+            autowho_delay=autowho_settings.autowho_delay,
+            chat_hotkey=autowho_settings.chat_hotkey.to_dict(),
+            activate_in_bedwars_duels=general_settings.activate_in_bedwars_duels,
+            check_for_updates=general_settings.check_for_updates,
+            include_patch_updates=general_settings.include_patch_updates,
+            use_included_certs=general_settings.use_included_certs,
+            stats_thread_count=performance_settings.stats_thread_count,
+            discord_rich_presence=discord_settings.discord_rich_presence,
+            discord_show_username=discord_settings.discord_show_username,
+            discord_show_session_stats=discord_settings.discord_show_session_stats,
+            discord_show_party=discord_settings.discord_show_party,
+            hide_dead_players=display_settings.hide_dead_players,
             disable_overrideredirect=disable_overrideredirect,
             hide_with_alpha=hide_with_alpha,
-            alpha_hundredths=alpha_hundredths,
+            alpha_hundredths=graphics_settings.alpha_hundredths,
         )
 
         with self.controller.settings.mutex:
@@ -1423,7 +1484,7 @@ class SettingsPage:  # pragma: nocover
         #       update_settings is called somewhere else to also setup/stop the listener
         if self.controller.settings.show_on_tab:
             self.overlay.setup_tab_listener(
-                restart=show_on_tab_keybind != old_show_on_tab_keybind
+                restart=general_settings.show_on_tab_keybind != old_show_on_tab_keybind
             )
         else:
             self.overlay.stop_tab_listener()
@@ -1431,9 +1492,9 @@ class SettingsPage:  # pragma: nocover
         # Check for updates if our related settings changed, but only if we have checks
         # enabled and if we don't already know that there is an update available
         if (
-            (check_for_updates, include_patch_updates)
+            (general_settings.check_for_updates, general_settings.include_patch_updates)
             != (old_check_for_updates, old_include_patch_updates)
-            and check_for_updates
+            and general_settings.check_for_updates
             and not self.overlay.update_available_event.is_set()
         ):
             UpdateCheckerThread(
