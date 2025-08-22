@@ -1,6 +1,5 @@
 import time
 from collections.abc import Mapping
-from typing import Any
 
 from prism.hypixel import (
     HypixelAPIError,
@@ -18,8 +17,8 @@ from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
 from tests.prism.overlay.utils import (
     MockedController,
-    assert_get_playerdata_not_called,
     assert_get_estimated_winstreaks_not_called,
+    assert_get_playerdata_not_called,
     create_state,
     make_settings,
 )
@@ -253,8 +252,11 @@ def test_mocked_controller_get_playerdata_dependency_injection() -> None:
     assert result is custom_playerdata
 
 
-def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection() -> None:
-    """Test that RealOverlayController uses injected get_estimated_winstreaks function"""
+def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection() -> (
+    None
+):
+    """Test that RealOverlayController uses injected get_estimated_winstreaks
+    function"""
     custom_winstreaks = Winstreaks(overall=5, solo=3, doubles=2, threes=1, fours=0)
     custom_accurate = True
 
@@ -285,7 +287,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection()
 def test_mocked_controller_get_estimated_winstreaks_dependency_injection() -> None:
     """Test that MockedController uses injected get_estimated_winstreaks function"""
     from prism.overlay.player import Winstreaks
-    
+
     custom_winstreaks = Winstreaks(overall=10, solo=8, doubles=6, threes=4, fours=2)
     custom_accurate = False
 
@@ -303,7 +305,8 @@ def test_mocked_controller_get_estimated_winstreaks_dependency_injection() -> No
 
 
 def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
-    """Test that RealOverlayController returns MISSING_WINSTREAKS when antisniper API is disabled"""
+    """Test that RealOverlayController returns MISSING_WINSTREAKS when
+    antisniper API is disabled"""
     controller = RealOverlayController(
         state=create_state(),
         settings=make_settings(
@@ -322,7 +325,8 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
 
 
 def test_real_overlay_controller_get_estimated_winstreaks_no_key() -> None:
-    """Test that RealOverlayController returns MISSING_WINSTREAKS when no API key is set"""
+    """Test that RealOverlayController returns MISSING_WINSTREAKS when no API
+    key is set"""
     controller = RealOverlayController(
         state=create_state(),
         settings=make_settings(

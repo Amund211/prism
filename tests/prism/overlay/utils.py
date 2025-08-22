@@ -313,9 +313,7 @@ def assert_get_playerdata_not_called(
     assert False, "get_playerdata should not be called"
 
 
-def assert_get_estimated_winstreaks_not_called(
-    uuid: str, key_holder: Any
-) -> Any:
+def assert_get_estimated_winstreaks_not_called(uuid: str, key_holder: Any) -> Any:
     """Test helper that asserts if get_estimated_winstreaks is unexpectedly called."""
     assert False, "get_estimated_winstreaks should not be called"
 
