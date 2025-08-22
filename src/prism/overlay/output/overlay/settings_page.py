@@ -48,26 +48,6 @@ if TYPE_CHECKING:  # pragma: nocover
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay
 
 
-@dataclass(frozen=True, slots=True)
-class GeneralSettings:
-    """Settings for the GeneralSettingSection"""
-    autodenick_teammates: bool
-    autoselect_logfile: bool
-    show_on_tab: bool
-    show_on_tab_keybind: Key
-    activate_in_bedwars_duels: bool
-    check_for_updates: bool
-    include_patch_updates: bool
-    use_included_certs: bool
-
-
-@dataclass(frozen=True, slots=True)
-class AntisniperSettings:
-    """Settings for the AntisniperSection"""
-    use_antisniper_api: bool
-    antisniper_api_key: str | None
-
-
 class SupportSection:  # pragma: nocover
     def __init__(self, parent: "SettingsPage") -> None:
         self.frame = parent.make_section("Support and Feedback")
@@ -84,6 +64,13 @@ class SupportSection:  # pragma: nocover
         )
         discord_button.pack(side=tk.TOP)
         parent.make_widgets_scrollable(discord_button)
+
+
+@dataclass(frozen=True, slots=True)
+class AntisniperSettings:
+    """Settings for the AntisniperSection"""
+    use_antisniper_api: bool
+    antisniper_api_key: str | None
 
 
 class AntisniperSection:  # pragma: nocover
@@ -182,6 +169,19 @@ class AntisniperSection:  # pragma: nocover
             use_antisniper_api=self.use_antisniper_api_toggle.enabled,
             antisniper_api_key=key,
         )
+
+
+@dataclass(frozen=True, slots=True)
+class GeneralSettings:
+    """Settings for the GeneralSettingSection"""
+    autodenick_teammates: bool
+    autoselect_logfile: bool
+    show_on_tab: bool
+    show_on_tab_keybind: Key
+    activate_in_bedwars_duels: bool
+    check_for_updates: bool
+    include_patch_updates: bool
+    use_included_certs: bool
 
 
 class GeneralSettingSection:  # pragma: nocover
@@ -624,6 +624,12 @@ class DiscordSection:  # pragma: nocover
         )
 
 
+@dataclass(frozen=True, slots=True)
+class PerformanceSettings:
+    """Settings for the PerformanceSection"""
+    stats_thread_count: int
+
+
 class PerformanceSection:  # pragma: nocover
     def __init__(self, parent: "SettingsPage") -> None:
         self.frame = parent.make_section("Performance Settings")
@@ -692,15 +698,19 @@ class PerformanceSection:  # pragma: nocover
         """Clamp the stats_thread_count to a valid range"""
         return min(16, max(1, stats_thread_count))
 
-    def set(self, stats_thread_count: int) -> None:
+    def set(self, settings: PerformanceSettings) -> None:
         """Set the state of this section"""
         self.stats_thread_count_variable.set(
-            self.clamp_stats_thread_count(stats_thread_count)
+            self.clamp_stats_thread_count(settings.stats_thread_count)
         )
 
-    def get(self) -> int:
+    def get(self) -> PerformanceSettings:
         """Get the state of this section"""
-        return self.clamp_stats_thread_count(self.stats_thread_count_variable.get())
+        return PerformanceSettings(
+            stats_thread_count=self.clamp_stats_thread_count(
+                self.stats_thread_count_variable.get()
+            )
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -1339,7 +1349,9 @@ class SettingsPage:  # pragma: nocover
                     autowho_delay=settings.autowho_delay,
                 )
             )
-            self.performance_section.set(stats_thread_count=settings.stats_thread_count)
+            self.performance_section.set(
+                PerformanceSettings(stats_thread_count=settings.stats_thread_count)
+            )
             self.display_section.set(
                 DisplaySettings(
                     sort_order=settings.sort_order,
@@ -1384,7 +1396,7 @@ class SettingsPage:  # pragma: nocover
         general_settings = self.general_settings_section.get()
         autowho_settings = self.autowho_section.get()
 
-        stats_thread_count = self.performance_section.get()
+        performance_settings = self.performance_section.get()
 
         display_settings = self.display_section.get(
             fallback_sort_order=self.controller.settings.sort_order
@@ -1427,7 +1439,7 @@ class SettingsPage:  # pragma: nocover
             check_for_updates=general_settings.check_for_updates,
             include_patch_updates=general_settings.include_patch_updates,
             use_included_certs=general_settings.use_included_certs,
-            stats_thread_count=stats_thread_count,
+            stats_thread_count=performance_settings.stats_thread_count,
             discord_rich_presence=discord_settings.discord_rich_presence,
             discord_show_username=discord_settings.discord_show_username,
             discord_show_session_stats=discord_settings.discord_show_session_stats,
