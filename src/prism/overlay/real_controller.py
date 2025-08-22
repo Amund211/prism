@@ -14,7 +14,6 @@ from prism.hypixel import (
 from prism.mojang import MojangAPIError
 from prism.overlay.antisniper_api import (
     AntiSniperAPIKeyHolder,
-    get_estimated_winstreaks,
 )
 from prism.overlay.controller import (
     ERROR_DURING_PROCESSING,
@@ -49,6 +48,9 @@ class RealOverlayController:
             [str, str, "AntiSniperAPIKeyHolder | None", "RateLimiter"],
             Mapping[str, object],
         ],
+        get_estimated_winstreaks: Callable[
+            [str, "AntiSniperAPIKeyHolder"], tuple["Winstreaks", bool]
+        ],
     ) -> None:
         from prism.overlay.player_cache import PlayerCache
 
@@ -77,6 +79,7 @@ class RealOverlayController:
 
         self._get_uuid = get_uuid
         self._get_playerdata = get_playerdata
+        self._get_estimated_winstreaks = get_estimated_winstreaks
 
         AutoWhoThread(self).start()
 
@@ -144,7 +147,9 @@ class RealOverlayController:
         if not self.settings.use_antisniper_api or self.antisniper_key_holder is None:
             return MISSING_WINSTREAKS, False
 
-        return get_estimated_winstreaks(uuid, self.antisniper_key_holder)
+        # TODO: The controller should handle errors raised by
+        # self._get_estimated_winstreaks
+        return self._get_estimated_winstreaks(uuid, self.antisniper_key_holder)
 
     def store_settings(self) -> None:
         self.settings.flush_to_disk()
