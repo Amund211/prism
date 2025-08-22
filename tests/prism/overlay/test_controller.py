@@ -1,5 +1,4 @@
 import time
-import unittest.mock
 from collections.abc import Mapping
 
 from prism.hypixel import (
@@ -15,7 +14,12 @@ from prism.overlay.nick_database import NickDatabase
 from prism.overlay.real_controller import RealOverlayController
 from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
-from tests.prism.overlay.utils import MockedController, create_state, make_settings
+from tests.prism.overlay.utils import (
+    MockedController,
+    assert_get_playerdata_not_called,
+    create_state,
+    make_settings,
+)
 
 
 def test_real_overlay_controller() -> None:
@@ -27,6 +31,7 @@ def test_real_overlay_controller() -> None:
         ),
         nick_database=NickDatabase([{}]),
         get_uuid=lambda username: f"uuid-{username}",
+        get_playerdata=assert_get_playerdata_not_called,
     )
 
     assert controller.antisniper_key_holder is not None
@@ -42,6 +47,7 @@ def test_real_overlay_controller_no_antisniper_key() -> None:
         ),
         nick_database=NickDatabase([{}]),
         get_uuid=lambda username: f"uuid-{username}",
+        get_playerdata=assert_get_playerdata_not_called,
     )
 
     assert controller.antisniper_key_holder is None
@@ -67,6 +73,7 @@ def test_real_overlay_controller_get_uuid() -> None:
         ),
         nick_database=NickDatabase([{}]),
         get_uuid=get_uuid_mock,
+        get_playerdata=assert_get_playerdata_not_called,
     )
 
     error = MojangAPIError()
@@ -88,27 +95,14 @@ def test_real_overlay_controller_get_uuid() -> None:
 
 
 def test_real_overlay_controller_get_playerdata() -> None:
-    controller = RealOverlayController(
-        state=create_state(),
-        settings=make_settings(
-            antisniper_api_key="antisniper_key",
-            use_antisniper_api=True,
-            user_id="1234",
-        ),
-        nick_database=NickDatabase([{}]),
-        get_uuid=lambda username: f"uuid-{username}",
-    )
-
     error: Exception | None = None
     returned_playerdata: Mapping[str, object] = {}
 
-    def get_playerdata(
+    def mock_get_playerdata(
         uuid: str,
         user_id: str,
         key_holder: AntiSniperAPIKeyHolder | None,
         api_limiter: RateLimiter,
-        retry_limit: int = 5,
-        initial_timeout: float = 2,
     ) -> Mapping[str, object]:
         assert uuid == "uuid"
         assert user_id == "1234"
@@ -118,48 +112,55 @@ def test_real_overlay_controller_get_playerdata() -> None:
 
         return returned_playerdata
 
-    with unittest.mock.patch(
-        "prism.overlay.real_controller.get_playerdata",
-        get_playerdata,
-    ):
-        error = HypixelAPIError()
-        _, playerdata = controller.get_playerdata("uuid")
-        assert playerdata is ERROR_DURING_PROCESSING
+    controller = RealOverlayController(
+        state=create_state(),
+        settings=make_settings(
+            antisniper_api_key="antisniper_key",
+            use_antisniper_api=True,
+            user_id="1234",
+        ),
+        nick_database=NickDatabase([{}]),
+        get_uuid=lambda username: f"uuid-{username}",
+        get_playerdata=mock_get_playerdata,
+    )
+    error = HypixelAPIError()
+    _, playerdata = controller.get_playerdata("uuid")
+    assert playerdata is ERROR_DURING_PROCESSING
 
-        error = HypixelPlayerNotFoundError()
-        _, playerdata = controller.get_playerdata("uuid")
-        assert playerdata is None
+    error = HypixelPlayerNotFoundError()
+    _, playerdata = controller.get_playerdata("uuid")
+    assert playerdata is None
 
-        error = HypixelAPIKeyError()
-        assert not controller.api_key_invalid
-        _, playerdata = controller.get_playerdata("uuid")
-        assert playerdata is ERROR_DURING_PROCESSING
-        assert controller.api_key_invalid
+    error = HypixelAPIKeyError()
+    assert not controller.api_key_invalid
+    _, playerdata = controller.get_playerdata("uuid")
+    assert playerdata is ERROR_DURING_PROCESSING
+    assert controller.api_key_invalid
 
-        error = HypixelAPIThrottleError()
-        assert not controller.api_key_throttled
-        _, playerdata = controller.get_playerdata("uuid")
-        assert playerdata is ERROR_DURING_PROCESSING
-        assert controller.api_key_throttled
+    error = HypixelAPIThrottleError()
+    assert not controller.api_key_throttled
+    _, playerdata = controller.get_playerdata("uuid")
+    assert playerdata is ERROR_DURING_PROCESSING
+    assert controller.api_key_throttled
 
-        error = MissingLocalIssuerSSLError()
-        assert not controller.missing_local_issuer_certificate
-        _, playerdata = controller.get_playerdata("uuid")
-        assert playerdata is ERROR_DURING_PROCESSING
-        assert controller.missing_local_issuer_certificate
+    error = MissingLocalIssuerSSLError()
+    assert not controller.missing_local_issuer_certificate
+    _, playerdata = controller.get_playerdata("uuid")
+    assert playerdata is ERROR_DURING_PROCESSING
+    assert controller.missing_local_issuer_certificate
 
-        error = None
-        dataReceivedAtMs, playerdata = controller.get_playerdata("uuid")
+    error = None
+    dataReceivedAtMs, playerdata = controller.get_playerdata("uuid")
 
-        assert playerdata is returned_playerdata
+    assert playerdata is returned_playerdata
 
-        current_time_seconds = time.time()
-        time_diff = current_time_seconds - dataReceivedAtMs / 1000
-        assert abs(time_diff) < 0.1, "Time diff should be less than 0.1 seconds"
+    current_time_seconds = time.time()
+    time_diff = current_time_seconds - dataReceivedAtMs / 1000
+    assert abs(time_diff) < 0.1, "Time diff should be less than 0.1 seconds"
 
-        assert not controller.api_key_invalid
-        assert not controller.api_key_throttled
-        assert not controller.missing_local_issuer_certificate
+    assert not controller.api_key_invalid
+    assert not controller.api_key_throttled
+    assert not controller.missing_local_issuer_certificate
 
 
 def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
@@ -175,6 +176,7 @@ def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
         settings=make_settings(),
         nick_database=NickDatabase([{}]),
         get_uuid=custom_get_uuid,
+        get_playerdata=assert_get_playerdata_not_called,
     )
 
     result = controller.get_uuid("testuser")
@@ -195,3 +197,48 @@ def test_mocked_controller_get_uuid_dependency_injection() -> None:
 
     result = controller.get_uuid("mockuser")
     assert result == custom_uuid
+
+
+def test_real_overlay_controller_get_playerdata_dependency_injection() -> None:
+    """Test that RealOverlayController uses injected get_playerdata function"""
+    custom_playerdata = {"custom": "data", "uuid": "test-uuid"}
+
+    def custom_get_playerdata(
+        uuid: str,
+        user_id: str,
+        key_holder: AntiSniperAPIKeyHolder | None,
+        api_limiter: RateLimiter,
+    ) -> Mapping[str, object]:
+        assert uuid == "test-uuid"
+        assert user_id == "test-user-id"
+        return custom_playerdata
+
+    controller = RealOverlayController(
+        state=create_state(),
+        settings=make_settings(user_id="test-user-id"),
+        nick_database=NickDatabase([{}]),
+        get_uuid=lambda username: f"uuid-{username}",
+        get_playerdata=custom_get_playerdata,
+    )
+
+    timestamp, result = controller.get_playerdata("test-uuid")
+    assert result is custom_playerdata
+    assert timestamp > 0  # Should have a valid timestamp
+
+
+def test_mocked_controller_get_playerdata_dependency_injection() -> None:
+    """Test that MockedController uses injected get_playerdata function"""
+    custom_timestamp = 1234567890
+    custom_playerdata = {"mocked": "playerdata", "uuid": "mock-uuid"}
+
+    def custom_get_playerdata(uuid: str) -> tuple[int, Mapping[str, object]]:
+        assert uuid == "mock-uuid"
+        return custom_timestamp, custom_playerdata
+
+    controller = MockedController(
+        get_playerdata=custom_get_playerdata,
+    )
+
+    timestamp, result = controller.get_playerdata("mock-uuid")
+    assert timestamp == custom_timestamp
+    assert result is custom_playerdata

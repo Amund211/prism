@@ -356,7 +356,7 @@ def test_read_missing_settings_file(tmp_path: Path) -> None:
 def test_flush_settings_from_controller(tmp_path: Path) -> None:
     from prism.overlay.nick_database import NickDatabase
     from prism.overlay.real_controller import RealOverlayController
-    from tests.prism.overlay.utils import create_state
+    from tests.prism.overlay.utils import assert_get_playerdata_not_called, create_state
 
     settings = make_settings(path=tmp_path / "settings.toml")
 
@@ -371,6 +371,7 @@ def test_flush_settings_from_controller(tmp_path: Path) -> None:
         settings=settings,
         nick_database=NickDatabase([{}]),
         get_uuid=lambda username: f"uuid-{username}",
+        get_playerdata=assert_get_playerdata_not_called,
     )
 
     controller.store_settings()
