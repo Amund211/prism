@@ -4,7 +4,7 @@ import string
 import sys
 import tkinter as tk
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Literal
 
 from prism.overlay.behaviour import update_settings
 from prism.overlay.controller import OverlayController
@@ -69,6 +69,7 @@ class SupportSection:  # pragma: nocover
 @dataclass(frozen=True, slots=True)
 class AntisniperSettings:
     """Settings for the AntisniperSection"""
+
     use_antisniper_api: bool
     antisniper_api_key: str | None
 
@@ -174,6 +175,7 @@ class AntisniperSection:  # pragma: nocover
 @dataclass(frozen=True, slots=True)
 class GeneralSettings:
     """Settings for the GeneralSettingSection"""
+
     autodenick_teammates: bool
     autoselect_logfile: bool
     show_on_tab: bool
@@ -369,6 +371,7 @@ class GeneralSettingSection:  # pragma: nocover
 @dataclass(frozen=True, slots=True)
 class AutoWhoSettings:
     """Settings for the AutoWhoSection"""
+
     autowho: bool
     chat_hotkey: Key
     autowho_delay: float
@@ -510,6 +513,7 @@ class AutoWhoSection:  # pragma: nocover
 @dataclass(frozen=True, slots=True)
 class DiscordSettings:
     """Settings for the DiscordSection"""
+
     discord_rich_presence: bool
     discord_show_username: bool
     discord_show_session_stats: bool
@@ -627,6 +631,7 @@ class DiscordSection:  # pragma: nocover
 @dataclass(frozen=True, slots=True)
 class PerformanceSettings:
     """Settings for the PerformanceSection"""
+
     stats_thread_count: int
 
 
@@ -716,6 +721,7 @@ class PerformanceSection:  # pragma: nocover
 @dataclass(frozen=True, slots=True)
 class DisplaySettings:
     """Settings for the DisplaySection"""
+
     sort_order: ColumnName
     hide_dead_players: bool
     autohide_timeout: int
@@ -822,13 +828,16 @@ class DisplaySection:  # pragma: nocover
         return DisplaySettings(
             sort_order=sort_order,
             hide_dead_players=self.hide_dead_players_toggle.enabled,
-            autohide_timeout=self.clamp_autohide_timeout(self.autohide_timeout_variable.get()),
+            autohide_timeout=self.clamp_autohide_timeout(
+                self.autohide_timeout_variable.get()
+            ),
         )
 
 
 @dataclass(frozen=True, slots=True)
 class ColumnSettings:
     """Settings for the ColumnSection"""
+
     column_order: tuple[ColumnName, ...]
 
 
@@ -874,6 +883,7 @@ class ColumnSection:  # pragma: nocover
 @dataclass(frozen=True, slots=True)
 class GraphicsSettings:
     """Settings for the GraphicsSection"""
+
     alpha_hundredths: int
 
 
@@ -1373,9 +1383,7 @@ class SettingsPage:  # pragma: nocover
                     autohide_timeout=settings.autohide_timeout,
                 )
             )
-            self.column_section.set(
-                ColumnSettings(column_order=settings.column_order)
-            )
+            self.column_section.set(ColumnSettings(column_order=settings.column_order))
 
             self.discord_section.set(
                 DiscordSettings(
