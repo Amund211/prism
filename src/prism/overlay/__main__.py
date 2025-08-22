@@ -61,7 +61,7 @@ def main() -> None:  # pragma: nocover
 
     # Import late so we can patch ssl certs in requests
     from prism.mojang import get_uuid
-    from prism.overlay.antisniper_api import get_playerdata
+    from prism.overlay.antisniper_api import get_playerdata, get_estimated_winstreaks
     from prism.overlay.process_loglines import process_loglines, prompt_and_read_logfile
     from prism.overlay.real_controller import RealOverlayController
 
@@ -71,6 +71,7 @@ def main() -> None:  # pragma: nocover
         nick_database=nick_database,
         get_uuid=get_uuid,
         get_playerdata=get_playerdata,
+        get_estimated_winstreaks=get_estimated_winstreaks,
     )
 
     if options.test_ssl:

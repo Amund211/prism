@@ -14,7 +14,6 @@ from prism.hypixel import (
 from prism.mojang import MojangAPIError
 from prism.overlay.antisniper_api import (
     AntiSniperAPIKeyHolder,
-    get_estimated_winstreaks,
 )
 from prism.overlay.controller import (
     ERROR_DURING_PROCESSING,
@@ -49,6 +48,9 @@ class RealOverlayController:
             [str, str, "AntiSniperAPIKeyHolder | None", "RateLimiter"],
             Mapping[str, object],
         ],
+        get_estimated_winstreaks: Callable[
+            [str, "AntiSniperAPIKeyHolder"], tuple["Winstreaks", bool]
+        ],
     ) -> None:
         from prism.overlay.player_cache import PlayerCache
 
@@ -77,6 +79,7 @@ class RealOverlayController:
 
         self._get_uuid = get_uuid
         self._get_playerdata = get_playerdata
+        self._get_estimated_winstreaks = get_estimated_winstreaks
 
         AutoWhoThread(self).start()
 
@@ -144,7 +147,15 @@ class RealOverlayController:
         if not self.settings.use_antisniper_api or self.antisniper_key_holder is None:
             return MISSING_WINSTREAKS, False
 
-        return get_estimated_winstreaks(uuid, self.antisniper_key_holder)
+        try:
+            return self._get_estimated_winstreaks(uuid, self.antisniper_key_holder)
+        except MissingLocalIssuerSSLError:
+            logger.exception("get_estimated_winstreaks: missing local issuer cert")
+            self.missing_local_issuer_certificate = True
+            return MISSING_WINSTREAKS, False
+        except Exception:
+            logger.exception(f"Failed getting estimated winstreaks for {uuid=}")
+            return MISSING_WINSTREAKS, False
 
     def store_settings(self) -> None:
         self.settings.flush_to_disk()
