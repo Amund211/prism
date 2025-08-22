@@ -15,7 +15,6 @@ from prism.mojang import MojangAPIError
 from prism.overlay.antisniper_api import (
     AntiSniperAPIKeyHolder,
     get_estimated_winstreaks,
-    get_playerdata,
 )
 from prism.overlay.controller import (
     ERROR_DURING_PROCESSING,
@@ -46,6 +45,10 @@ class RealOverlayController:
         settings: "Settings",
         nick_database: "NickDatabase",
         get_uuid: Callable[[str], str | None],
+        get_playerdata: Callable[
+            [str, str, "AntiSniperAPIKeyHolder | None", "RateLimiter"],
+            Mapping[str, object],
+        ],
     ) -> None:
         from prism.overlay.player_cache import PlayerCache
 
@@ -73,6 +76,7 @@ class RealOverlayController:
         )
 
         self._get_uuid = get_uuid
+        self._get_playerdata = get_playerdata
 
         AutoWhoThread(self).start()
 
@@ -96,7 +100,7 @@ class RealOverlayController:
     ) -> tuple[int, Mapping[str, object] | None | ProcessingError]:
         # TODO: set api key flags
         try:
-            playerdata = get_playerdata(
+            playerdata = self._get_playerdata(
                 uuid,
                 self.settings.user_id,
                 self.antisniper_key_holder,

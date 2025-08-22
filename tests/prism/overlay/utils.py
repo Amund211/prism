@@ -306,6 +306,13 @@ def missing_method(*args: Any, **kwargs: Any) -> Any:
     raise NotImplementedError
 
 
+def assert_get_playerdata_not_called(
+    uuid: str, user_id: str, key_holder: Any, api_limiter: Any
+) -> Any:
+    """Test helper that asserts if get_playerdata is unexpectedly called."""
+    assert False, "get_playerdata should not be called"
+
+
 class ExtraAttributes(TypedDict):
     antisniper_api_key: str | None
     autowho_event_set: bool
