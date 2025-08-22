@@ -12,6 +12,7 @@ from prism.mojang import MojangAPIError
 from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from prism.overlay.controller import ERROR_DURING_PROCESSING
 from prism.overlay.nick_database import NickDatabase
+from prism.overlay.player import MISSING_WINSTREAKS, Winstreaks
 from prism.overlay.real_controller import RealOverlayController
 from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
@@ -254,9 +255,6 @@ def test_mocked_controller_get_playerdata_dependency_injection() -> None:
 
 def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection() -> None:
     """Test that RealOverlayController uses injected get_estimated_winstreaks function"""
-    from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
-    from prism.overlay.player import Winstreaks
-    
     custom_winstreaks = Winstreaks(overall=5, solo=3, doubles=2, threes=1, fours=0)
     custom_accurate = True
 
@@ -306,11 +304,6 @@ def test_mocked_controller_get_estimated_winstreaks_dependency_injection() -> No
 
 def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
     """Test that RealOverlayController returns MISSING_WINSTREAKS when antisniper API is disabled"""
-    from prism.overlay.player import MISSING_WINSTREAKS
-
-    def should_not_be_called(uuid: str, key_holder: Any) -> Any:
-        assert False, "get_estimated_winstreaks should not be called when API is disabled"
-
     controller = RealOverlayController(
         state=create_state(),
         settings=make_settings(
@@ -320,7 +313,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
         nick_database=NickDatabase([{}]),
         get_uuid=lambda username: f"uuid-{username}",
         get_playerdata=assert_get_playerdata_not_called,
-        get_estimated_winstreaks=should_not_be_called,
+        get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
@@ -330,11 +323,6 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
 
 def test_real_overlay_controller_get_estimated_winstreaks_no_key() -> None:
     """Test that RealOverlayController returns MISSING_WINSTREAKS when no API key is set"""
-    from prism.overlay.player import MISSING_WINSTREAKS
-
-    def should_not_be_called(uuid: str, key_holder: Any) -> Any:
-        assert False, "get_estimated_winstreaks should not be called when no API key is set"
-
     controller = RealOverlayController(
         state=create_state(),
         settings=make_settings(
@@ -344,60 +332,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_key() -> None:
         nick_database=NickDatabase([{}]),
         get_uuid=lambda username: f"uuid-{username}",
         get_playerdata=assert_get_playerdata_not_called,
-        get_estimated_winstreaks=should_not_be_called,
-    )
-
-    winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
-    assert winstreaks == MISSING_WINSTREAKS
-    assert accurate is False
-
-
-def test_real_overlay_controller_get_estimated_winstreaks_ssl_error() -> None:
-    """Test that RealOverlayController handles SSL errors properly"""
-    from prism.overlay.player import MISSING_WINSTREAKS
-    from prism.ssl_errors import MissingLocalIssuerSSLError
-
-    def mock_get_estimated_winstreaks_with_ssl_error(uuid: str, key_holder: Any) -> Any:
-        assert uuid == "test-uuid"
-        raise MissingLocalIssuerSSLError("Test SSL error")
-
-    controller = RealOverlayController(
-        state=create_state(),
-        settings=make_settings(
-            antisniper_api_key="test-api-key",
-            use_antisniper_api=True,
-        ),
-        nick_database=NickDatabase([{}]),
-        get_uuid=lambda username: f"uuid-{username}",
-        get_playerdata=assert_get_playerdata_not_called,
-        get_estimated_winstreaks=mock_get_estimated_winstreaks_with_ssl_error,
-    )
-
-    assert not controller.missing_local_issuer_certificate
-    winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
-    assert winstreaks == MISSING_WINSTREAKS
-    assert accurate is False
-    assert controller.missing_local_issuer_certificate
-
-
-def test_real_overlay_controller_get_estimated_winstreaks_general_error() -> None:
-    """Test that RealOverlayController handles general errors properly"""
-    from prism.overlay.player import MISSING_WINSTREAKS
-
-    def mock_get_estimated_winstreaks_with_error(uuid: str, key_holder: Any) -> Any:
-        assert uuid == "test-uuid"
-        raise ValueError("Test general error")
-
-    controller = RealOverlayController(
-        state=create_state(),
-        settings=make_settings(
-            antisniper_api_key="test-api-key",
-            use_antisniper_api=True,
-        ),
-        nick_database=NickDatabase([{}]),
-        get_uuid=lambda username: f"uuid-{username}",
-        get_playerdata=assert_get_playerdata_not_called,
-        get_estimated_winstreaks=mock_get_estimated_winstreaks_with_error,
+        get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")

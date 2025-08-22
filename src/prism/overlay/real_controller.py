@@ -147,15 +147,8 @@ class RealOverlayController:
         if not self.settings.use_antisniper_api or self.antisniper_key_holder is None:
             return MISSING_WINSTREAKS, False
 
-        try:
-            return self._get_estimated_winstreaks(uuid, self.antisniper_key_holder)
-        except MissingLocalIssuerSSLError:
-            logger.exception("get_estimated_winstreaks: missing local issuer cert")
-            self.missing_local_issuer_certificate = True
-            return MISSING_WINSTREAKS, False
-        except Exception:
-            logger.exception(f"Failed getting estimated winstreaks for {uuid=}")
-            return MISSING_WINSTREAKS, False
+        # TODO: The controller should handle errors raised by self._get_estimated_winstreaks
+        return self._get_estimated_winstreaks(uuid, self.antisniper_key_holder)
 
     def store_settings(self) -> None:
         self.settings.flush_to_disk()
