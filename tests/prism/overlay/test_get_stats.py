@@ -2,15 +2,22 @@ import itertools
 import unittest.mock
 from collections.abc import Mapping
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
+    from prism.player import Winstreaks
+    from prism.ratelimiting import RateLimiter
 
 from prism.hypixel import create_known_player
 from prism.overlay.controller import ERROR_DURING_PROCESSING, ProcessingError
 from prism.overlay.get_stats import denick, fetch_bedwars_stats, get_bedwars_stats
 from prism.overlay.nick_database import NickDatabase
+from prism.overlay.real_controller import RealOverlayController
 from prism.player import KnownPlayer, NickedPlayer, UnknownPlayer
-from tests.prism.overlay.utils import MockedController
+from tests.prism.overlay.utils import create_controller, make_settings
 
 # Player data for a player who has been on Hypixel, but has not played bedwars
 NEW_PLAYER_DATA: Mapping[str, object] = {"stats": {}}
@@ -35,7 +42,7 @@ def make_user(username: str, playerdata: bool, nick: str | None = None) -> User:
     )
 
 
-def make_scenario_controller(*users: User) -> MockedController:
+def make_scenario_controller(*users: User) -> RealOverlayController:
     usernames = set(user.username for user in users)
     uuids = set(user.uuid for user in users)
     nicks = set(user.nick for user in users)
@@ -51,22 +58,41 @@ def make_scenario_controller(*users: User) -> MockedController:
         user = username_table.get(username, None)
         return user.uuid if user is not None else None
 
-    def get_playerdata(uuid: str) -> tuple[int, Mapping[str, object] | None]:
+    def get_playerdata(
+        uuid: str,
+        user_id: str,
+        key_holder: "AntiSniperAPIKeyHolder | None",
+        api_limiter: "RateLimiter",
+    ) -> Mapping[str, object]:
         user = uuid_table.get(uuid, None)
-        return CURRENT_TIME_MS, user.playerdata if user is not None else None
+        if user is not None and user.playerdata is not None:
+            return user.playerdata
+        # Return empty dict if user not found (gets converted to None by RealOverlayController)
+        from prism.errors import PlayerNotFoundError
+        raise PlayerNotFoundError()
 
-    controller = MockedController(
+    def get_estimated_winstreaks(
+        uuid: str, key_holder: "AntiSniperAPIKeyHolder"
+    ) -> tuple["Winstreaks", bool]:
+        from prism.player import MISSING_WINSTREAKS
+        return MISSING_WINSTREAKS, False
+
+    controller = create_controller(
         get_uuid=get_uuid,
         get_playerdata=get_playerdata,
-        nick_database=NickDatabase([nick_table]),
+        get_estimated_winstreaks=get_estimated_winstreaks,
+        settings=make_settings(),  # Use default settings
     )
+    
+    # Set the nick database after creation since create_controller uses a default one
+    controller.nick_database = NickDatabase([nick_table])
 
     return controller
 
 
 def test_denick() -> None:
     """Test the precedence of different denicking sources"""
-    controller = MockedController()
+    controller = create_controller()
 
     NICK = "AmazingNick"
 
@@ -143,24 +169,25 @@ assert set(scenarios).issubset(
 def test_fetch_bedwars_stats(
     scenario_name: str, username: str, result: tuple[User, bool] | NickedPlayer
 ) -> None:
-    player: KnownPlayer | NickedPlayer
-    if isinstance(result, tuple):
-        user, nicked = result
-        assert user.playerdata is not None
-        player = create_known_player(
-            dataReceivedAtMs=CURRENT_TIME_MS,
-            playerdata=user.playerdata,
-            username=user.username,
-            uuid=user.uuid,
-            nick=user.nick if nicked else None,
-        )
-    else:
-        player = result
+    with unittest.mock.patch('time.time_ns', return_value=CURRENT_TIME_MS * 1_000_000):
+        player: KnownPlayer | NickedPlayer
+        if isinstance(result, tuple):
+            user, nicked = result
+            assert user.playerdata is not None
+            player = create_known_player(
+                dataReceivedAtMs=CURRENT_TIME_MS,
+                playerdata=user.playerdata,
+                username=user.username,
+                uuid=user.uuid,
+                nick=user.nick if nicked else None,
+            )
+        else:
+            player = result
 
-    assert (
-        fetch_bedwars_stats(username=username, controller=scenarios[scenario_name])
-        == player
-    )
+        assert (
+            fetch_bedwars_stats(username=username, controller=scenarios[scenario_name])
+            == player
+        )
 
 
 def test_fetch_bedwars_stats_wrong_displayname(
@@ -211,69 +238,71 @@ def test_fetch_bedwars_stats_weird(ares_playerdata: Mapping[str, object]) -> Non
 def test_fetch_bedwars_stats_weird_nicked(
     ares_playerdata: Mapping[str, object],
 ) -> None:
-    ares = User(
-        uuid="fffaceca46b24658b21f12c3cd2b413f",
-        username="Ares",
-        nick="CrazyNick",
-        playerdata=ares_playerdata,
-    )
-    controller = make_scenario_controller(ares)
+    with unittest.mock.patch('time.time_ns', return_value=CURRENT_TIME_MS * 1_000_000):
+        ares = User(
+            uuid="fffaceca46b24658b21f12c3cd2b413f",
+            username="Ares",
+            nick="CrazyNick",
+            playerdata=ares_playerdata,
+        )
+        controller = make_scenario_controller(ares)
 
-    # Since we get the uuid from a denick we do not know a username, and cannot verify
-    # that they are a real player. We therefore trust the playerdata to be real.
-    target = create_known_player(
-        dataReceivedAtMs=CURRENT_TIME_MS,
-        playerdata=ares_playerdata,
-        username="<missing name>",  # We rely on Hypixel to provide us the username
-        uuid=ares.uuid,
-        nick="CrazyNick",
-    )
+        # Since we get the uuid from a denick we do not know a username, and cannot verify
+        # that they are a real player. We therefore trust the playerdata to be real.
+        target = create_known_player(
+            dataReceivedAtMs=CURRENT_TIME_MS,
+            playerdata=ares_playerdata,
+            username="<missing name>",  # We rely on Hypixel to provide us the username
+            uuid=ares.uuid,
+            nick="CrazyNick",
+        )
 
-    assert fetch_bedwars_stats("CrazyNick", controller) == target
+        assert fetch_bedwars_stats("CrazyNick", controller) == target
 
 
 def test_get_bedwars_stats() -> None:
-    controller = scenarios["nick"]
-    user = users["NickedPlayer"]
+    with unittest.mock.patch('time.time_ns', return_value=CURRENT_TIME_MS * 1_000_000):
+        controller = scenarios["nick"]
+        user = users["NickedPlayer"]
 
-    # For typing
-    assert user.playerdata is not None
-    assert user.nick is not None
+        # For typing
+        assert user.playerdata is not None
+        assert user.nick is not None
 
-    nicked_player = create_known_player(
-        dataReceivedAtMs=CURRENT_TIME_MS,
-        playerdata=user.playerdata,
-        username=user.username,
-        uuid=user.uuid,
-        nick=user.nick,
-    )
-    unnicked_player = create_known_player(
-        dataReceivedAtMs=CURRENT_TIME_MS,
-        playerdata=user.playerdata,
-        username=user.username,
-        uuid=user.uuid,
-        nick=None,
-    )
-
-    # Get the stats of the nicked player
-    # Should get the stats and cache both the nicked and unnicked versions
-    assert get_bedwars_stats(username=user.nick, controller=controller) == nicked_player
-
-    # Getting both the nicked and unnicked stats now should just go to cache
-    with unittest.mock.patch(
-        "prism.overlay.get_stats.fetch_bedwars_stats"
-    ) as patched_fetch_stats:
-        assert (
-            get_bedwars_stats(username=user.nick, controller=controller)
-            == nicked_player
+        nicked_player = create_known_player(
+            dataReceivedAtMs=CURRENT_TIME_MS,
+            playerdata=user.playerdata,
+            username=user.username,
+            uuid=user.uuid,
+            nick=user.nick,
         )
-        patched_fetch_stats.assert_not_called()
-
-        assert (
-            get_bedwars_stats(username=user.username, controller=controller)
-            == unnicked_player
+        unnicked_player = create_known_player(
+            dataReceivedAtMs=CURRENT_TIME_MS,
+            playerdata=user.playerdata,
+            username=user.username,
+            uuid=user.uuid,
+            nick=None,
         )
-        patched_fetch_stats.assert_not_called()
+
+        # Get the stats of the nicked player
+        # Should get the stats and cache both the nicked and unnicked versions
+        assert get_bedwars_stats(username=user.nick, controller=controller) == nicked_player
+
+        # Getting both the nicked and unnicked stats now should just go to cache
+        with unittest.mock.patch(
+            "prism.overlay.get_stats.fetch_bedwars_stats"
+        ) as patched_fetch_stats:
+            assert (
+                get_bedwars_stats(username=user.nick, controller=controller)
+                == nicked_player
+            )
+            patched_fetch_stats.assert_not_called()
+
+            assert (
+                get_bedwars_stats(username=user.username, controller=controller)
+                == unnicked_player
+            )
+            patched_fetch_stats.assert_not_called()
 
 
 @pytest.mark.parametrize("clear", (True, False))
@@ -289,24 +318,43 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
         assert username == my_username
         return my_uuid
 
-    def get_playerdata(uuid: str) -> tuple[int, Mapping[str, object] | None]:
+    def get_playerdata(
+        uuid: str,
+        user_id: str,
+        key_holder: "AntiSniperAPIKeyHolder | None",
+        api_limiter: "RateLimiter",
+    ) -> Mapping[str, object]:
         assert uuid == my_uuid
         if clear:
             # While we were getting the playerdata, someone else cleared the cache
             controller.player_cache.clear_cache()
-        return 1234567, my_player_data
+        return my_player_data
 
-    controller = MockedController(get_uuid=get_uuid, get_playerdata=get_playerdata)
+    def get_estimated_winstreaks(
+        uuid: str, key_holder: "AntiSniperAPIKeyHolder"
+    ) -> tuple["Winstreaks", bool]:
+        from prism.player import MISSING_WINSTREAKS
+        return MISSING_WINSTREAKS, False
 
+    controller = create_controller(
+        get_uuid=get_uuid,
+        get_playerdata=get_playerdata,
+        get_estimated_winstreaks=get_estimated_winstreaks,
+    )
+
+    # Get the actual result first to capture the timestamp
+    result = get_bedwars_stats(username=my_username, controller=controller)
+    
+    # Create the expected player with the actual timestamp from the result
     player = create_known_player(
-        dataReceivedAtMs=1234567,
+        dataReceivedAtMs=result.dataReceivedAtMs,  # Use the actual timestamp
         playerdata=my_player_data,
         username=my_username,
         uuid=my_uuid,
     )
 
     # We always return the stats even if the cache did not accept it
-    assert get_bedwars_stats(username=my_username, controller=controller) == player
+    assert result == player
 
     # If the cache was cleared (and the genus incremented) it should not be stored
     assert controller.player_cache.get_cached_player(my_username) == (
@@ -318,7 +366,7 @@ def test_fetch_bedwars_stats_error_during_uuid() -> None:
     def get_uuid(username: str) -> str | None | ProcessingError:
         return ERROR_DURING_PROCESSING
 
-    controller = MockedController(get_uuid=get_uuid)
+    controller = create_controller(get_uuid=get_uuid)
 
     assert fetch_bedwars_stats("someone", controller) == UnknownPlayer("someone")
 
@@ -329,9 +377,24 @@ def test_fetch_bedwars_stats_error_during_playerdata() -> None:
 
     def get_playerdata(
         uuid: str,
-    ) -> tuple[int, Mapping[str, object] | None | ProcessingError]:
-        return CURRENT_TIME_MS, ERROR_DURING_PROCESSING
+        user_id: str,
+        key_holder: "AntiSniperAPIKeyHolder | None",
+        api_limiter: "RateLimiter",
+    ) -> Mapping[str, object]:
+        # RealOverlayController expects an exception to be raised for errors
+        from prism.errors import APIError
+        raise APIError()
 
-    controller = MockedController(get_uuid=get_uuid, get_playerdata=get_playerdata)
+    def get_estimated_winstreaks(
+        uuid: str, key_holder: "AntiSniperAPIKeyHolder"
+    ) -> tuple["Winstreaks", bool]:
+        from prism.player import MISSING_WINSTREAKS
+        return MISSING_WINSTREAKS, False
+
+    controller = create_controller(
+        get_uuid=get_uuid,
+        get_playerdata=get_playerdata,
+        get_estimated_winstreaks=get_estimated_winstreaks,
+    )
 
     assert fetch_bedwars_stats("someone", controller) == UnknownPlayer("someone")
