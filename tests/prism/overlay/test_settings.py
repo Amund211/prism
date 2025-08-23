@@ -2,6 +2,7 @@ import dataclasses
 import io
 from collections.abc import Mapping
 from pathlib import Path
+from typing import TextIO
 from unittest import mock
 
 import pytest
@@ -38,6 +39,13 @@ from tests.prism.overlay.utils import (
 DEFAULT_USER_ID = "default-user-id-test"
 
 DEFAULT_STATS_THREAD_COUNT = 7
+
+
+def no_close(file: io.StringIO) -> io.StringIO:
+    """Monkeypatch StringIO to not close - discarding the contents"""
+    file.close = lambda: None  # type: ignore[method-assign]
+
+    return file
 
 
 def noop_update_settings(
@@ -325,17 +333,19 @@ def test_value_or_default(
 
 @pytest.mark.parametrize("settings, settings_dict", settings_to_dict_cases)
 def test_read_and_write_settings(
-    settings: Settings, settings_dict: SettingsDict, tmp_path: Path
+    settings: Settings, settings_dict: SettingsDict
 ) -> None:
+    file = no_close(io.StringIO())
+
     # Make a copy so we can mutate it
     settings = dataclasses.replace(settings)
 
-    settings_path = tmp_path / "settings.toml"
-    settings.write_settings_file_utf8 = lambda: open(
-        settings_path, "w", encoding="utf-8"
-    )
+    settings.write_settings_file_utf8 = lambda: file
 
     settings.flush_to_disk()
+
+    def dont_write_file() -> TextIO:
+        assert False, "Should not be called"
 
     # NOTE: We can no longer do this since we store some null values in the dictionary
     #       which just get stored as missing keys in the toml
@@ -343,7 +353,12 @@ def test_read_and_write_settings(
     # assert read_settings_dict == settings_dict
 
     assert (
-        get_settings(settings_path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
+        get_settings(
+            read_settings_file_utf8=lambda: io.StringIO(file.getvalue()),
+            write_settings_file_utf8=dont_write_file,
+            default_stats_thread_count=DEFAULT_STATS_THREAD_COUNT,
+            update_settings=noop_update_settings,
+        )
         == settings
     )
 
@@ -361,13 +376,49 @@ def test_read_missing_settings_file(tmp_path: Path) -> None:
         return_value=FakeUUID(hex=DEFAULT_USER_ID),
     ):
         assert get_settings(
-            empty_path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings
+            read_settings_file_utf8=lambda: open(empty_path, "r", encoding="utf-8"),
+            write_settings_file_utf8=lambda: open(empty_path, "w", encoding="utf-8"),
+            default_stats_thread_count=DEFAULT_STATS_THREAD_COUNT,
+            update_settings=noop_update_settings,
         ) == Settings.from_dict(
             source=make_settings_dict(), write_settings_file_utf8=lambda: io.StringIO()
         )
 
 
-def test_flush_settings_from_controller(tmp_path: Path) -> None:
+def test_read_settings_file_error() -> None:
+    # Assert that get_settings doesn't fail when reading the file fails
+    def read_settings_file_utf8() -> TextIO:
+        raise IOError("Failed to read file")
+
+    write_settings_called = False
+
+    def write_settings_file_utf8() -> TextIO:
+        nonlocal write_settings_called
+        write_settings_called = True
+
+        return io.StringIO()
+
+    @dataclasses.dataclass(frozen=True)
+    class FakeUUID:
+        hex: str
+
+    with mock.patch(
+        "prism.overlay.settings.uuid.uuid4",
+        return_value=FakeUUID(hex=DEFAULT_USER_ID),
+    ):
+        assert get_settings(
+            read_settings_file_utf8=read_settings_file_utf8,
+            write_settings_file_utf8=write_settings_file_utf8,
+            default_stats_thread_count=DEFAULT_STATS_THREAD_COUNT,
+            update_settings=noop_update_settings,
+        ) == Settings.from_dict(
+            source=make_settings_dict(), write_settings_file_utf8=lambda: io.StringIO()
+        )
+
+    assert write_settings_called
+
+
+def test_flush_settings_from_controller() -> None:
     from prism.overlay.nick_database import NickDatabase
     from prism.overlay.real_controller import RealOverlayController
     from tests.prism.overlay.utils import (
@@ -376,14 +427,18 @@ def test_flush_settings_from_controller(tmp_path: Path) -> None:
         create_state,
     )
 
-    settings_path = tmp_path / "settings.toml"
-    settings = make_settings(
-        write_settings_file_utf8=lambda: open(settings_path, "w", encoding="utf-8")
-    )
+    file = no_close(io.StringIO())
+
+    settings = make_settings(write_settings_file_utf8=lambda: file)
 
     # File not found
     assert (
-        get_settings(settings_path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
+        get_settings(
+            read_settings_file_utf8=lambda: io.StringIO(""),
+            write_settings_file_utf8=lambda: io.StringIO(),
+            default_stats_thread_count=DEFAULT_STATS_THREAD_COUNT,
+            update_settings=noop_update_settings,
+        )
         != settings
     )
 
@@ -400,7 +455,12 @@ def test_flush_settings_from_controller(tmp_path: Path) -> None:
 
     # File properly stored
     assert (
-        get_settings(settings_path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
+        get_settings(
+            read_settings_file_utf8=lambda: io.StringIO(file.getvalue()),
+            write_settings_file_utf8=lambda: io.StringIO(),
+            default_stats_thread_count=DEFAULT_STATS_THREAD_COUNT,
+            update_settings=noop_update_settings,
+        )
         == settings
     )
 
@@ -912,9 +972,7 @@ def test_sort_ascending() -> None:
     assert not settings.sort_ascending
 
 
-def test_update_settings(tmp_path: Path) -> None:
-    settings_path = tmp_path / "settings.toml"
-
+def test_update_settings() -> None:
     def update_settings(
         settings: Settings, incomplete_settings: Mapping[str, object]
     ) -> tuple[Settings, bool]:
@@ -935,12 +993,24 @@ def test_update_settings(tmp_path: Path) -> None:
         write_settings_file_utf8=lambda: io.StringIO(),
     )
 
+    file = no_close(io.StringIO())
+
     assert (
-        get_settings(settings_path, DEFAULT_STATS_THREAD_COUNT, update_settings)
+        get_settings(
+            read_settings_file_utf8=lambda: io.StringIO(""),  # Empty file to start
+            write_settings_file_utf8=lambda: file,  # Capture writes to this file
+            default_stats_thread_count=DEFAULT_STATS_THREAD_COUNT,
+            update_settings=update_settings,
+        )
         == target_settings
     ), "Get with updates should return updated settings"
 
     assert (
-        get_settings(settings_path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
+        get_settings(
+            read_settings_file_utf8=lambda: io.StringIO(file.getvalue()),
+            write_settings_file_utf8=lambda: io.StringIO(),  # Should not be called
+            default_stats_thread_count=DEFAULT_STATS_THREAD_COUNT,
+            update_settings=noop_update_settings,
+        )
         == target_settings
     ), "Updated settings should have been persisted in last call"

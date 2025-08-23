@@ -3,7 +3,6 @@ import threading
 import uuid
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Self, TextIO, TypedDict, TypeVar
 
 import toml
@@ -250,8 +249,9 @@ def api_key_is_valid(key: str) -> bool:
     return key != PLACEHOLDER_API_KEY and len(key) > 5
 
 
-def read_settings(path: Path) -> Mapping[str, object]:
-    return toml.load(path)
+def read_settings(read_file: Callable[[], TextIO]) -> Mapping[str, object]:
+    with read_file() as f:
+        return toml.load(f)
 
 
 def get_boolean_setting(
@@ -498,7 +498,8 @@ def fill_missing_settings(
 
 
 def get_settings(
-    path: Path,
+    read_settings_file_utf8: Callable[[], TextIO],
+    write_settings_file_utf8: Callable[[], TextIO],
     default_stats_thread_count: int,
     update_settings: Callable[[Settings, Mapping[str, object]], tuple[Settings, bool]],
 ) -> Settings:
@@ -509,7 +510,7 @@ def get_settings(
     NOTE: Will write to the path if the API key is missing
     """
     try:
-        incomplete_settings = read_settings(path)
+        incomplete_settings = read_settings(read_settings_file_utf8)
     except Exception as e:
         # Error either in reading or parsing file
         incomplete_settings = {}
@@ -520,7 +521,7 @@ def get_settings(
     )
 
     settings = Settings.from_dict(
-        settings_dict, write_settings_file_utf8=lambda: path.open("w", encoding="utf-8")
+        settings_dict, write_settings_file_utf8=write_settings_file_utf8
     )
 
     settings, post_update = update_settings(settings, incomplete_settings)

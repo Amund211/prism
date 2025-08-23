@@ -43,9 +43,14 @@ def main() -> None:  # pragma: nocover
 
     # Read settings and populate missing values
     settings = get_settings(
-        options.settings_path,
-        recommend_stats_thread_count(),
-        prompt_if_no_autowho,
+        read_settings_file_utf8=lambda: options.settings_path.open(
+            "r", encoding="utf-8"
+        ),
+        write_settings_file_utf8=lambda: options.settings_path.open(
+            "w", encoding="utf-8"
+        ),
+        default_stats_thread_count=recommend_stats_thread_count(),
+        update_settings=prompt_if_no_autowho,
     )
 
     if not settings.use_included_certs:
