@@ -5,7 +5,8 @@ from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Literal, Self, TypedDict, TypeVar, assert_never
 
 from prism.calc import bedwars_level_from_exp
-from prism.hypixel import MissingStatsError, get_gamemode_stats
+from prism.errors import MissingBedwarsStatsError
+from prism.hypixel import get_gamemode_stats
 from prism.utils import div
 
 if TYPE_CHECKING:  # pragma: no coverage
@@ -285,7 +286,7 @@ def create_known_player(
 
     try:
         bw_stats = get_gamemode_stats(playerdata, gamemode="Bedwars")
-    except MissingStatsError:
+    except MissingBedwarsStatsError:
         return KnownPlayer(
             dataReceivedAtMs=dataReceivedAtMs,
             username=username,

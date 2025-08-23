@@ -8,17 +8,19 @@ from pathlib import Path
 from typing import Any, cast
 
 from prism.calc import bedwars_level_from_exp
+from prism.errors import (
+    APIError,
+    APIKeyError,
+    APIThrottleError,
+    PlayerNotFoundError,
+)
 from prism.hypixel import (
-    HypixelAPIError,
-    HypixelAPIKeyError,
     HypixelAPIKeyHolder,
-    HypixelAPIThrottleError,
-    HypixelPlayerNotFoundError,
-    MissingStatsError,
+    MissingBedwarsStatsError,
     get_gamemode_stats,
     get_player_data,
 )
-from prism.mojang import MojangAPIError, get_uuid
+from prism.mojang import get_uuid
 from prism.utils import div, format_seconds, read_key, truncate_float
 
 api_key = read_key(Path(sys.path[0]) / "api_key")
@@ -85,7 +87,7 @@ def print_bedwars_stats(
         bw_stats = cast(
             Mapping[str, Any], get_gamemode_stats(playerdata, gamemode="Bedwars")
         )
-    except MissingStatsError as e:
+    except MissingBedwarsStatsError as e:
         # Player is missing stats in bedwars
         print(e)
         return
@@ -167,7 +169,7 @@ def get_and_display(username: str) -> None:
     try:
         uuid = get_uuid(username)
         nick = None
-    except MojangAPIError:
+    except APIError:
         uuid = None
 
     if uuid is None:
@@ -177,10 +179,10 @@ def get_and_display(username: str) -> None:
     try:
         playerdata = get_player_data(uuid, key_holder)
     except (
-        HypixelPlayerNotFoundError,
-        HypixelAPIError,
-        HypixelAPIKeyError,
-        HypixelAPIThrottleError,
+        PlayerNotFoundError,
+        APIError,
+        APIKeyError,
+        APIThrottleError,
     ) as e:
         print(e)
     else:

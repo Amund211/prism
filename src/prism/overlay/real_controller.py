@@ -5,13 +5,7 @@ import time
 from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING
 
-from prism.hypixel import (
-    HypixelAPIError,
-    HypixelAPIKeyError,
-    HypixelAPIThrottleError,
-    HypixelPlayerNotFoundError,
-)
-from prism.mojang import MojangAPIError
+from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
 from prism.overlay.antisniper_api import (
     AntiSniperAPIKeyHolder,
 )
@@ -90,7 +84,7 @@ class RealOverlayController:
             logger.exception("get_uuid: missing local issuer cert")
             self.missing_local_issuer_certificate = True
             return ERROR_DURING_PROCESSING
-        except MojangAPIError:
+        except APIError:
             logger.exception(f"Failed getting uuid for username {username}.")
             # TODO: RETURN SOMETHING ELSE
             return ERROR_DURING_PROCESSING
@@ -113,22 +107,22 @@ class RealOverlayController:
             logger.exception("get_playerdata: missing local issuer cert")
             self.missing_local_issuer_certificate = True
             return 0, ERROR_DURING_PROCESSING
-        except HypixelPlayerNotFoundError as e:
+        except PlayerNotFoundError as e:
             logger.debug(f"Player not found on Hypixel: {uuid=}", exc_info=e)
             self.api_key_invalid = False
             self.api_key_throttled = False
             self.missing_local_issuer_certificate = False
             return 0, None
-        except HypixelAPIError as e:
+        except APIError as e:
             logger.error(f"Hypixel API error getting stats for {uuid=}", exc_info=e)
             return 0, ERROR_DURING_PROCESSING
-        except HypixelAPIKeyError as e:
+        except APIKeyError as e:
             logger.warning(f"Invalid API key getting stats for {uuid=}", exc_info=e)
             self.api_key_invalid = True
             self.api_key_throttled = False
             self.missing_local_issuer_certificate = False
             return 0, ERROR_DURING_PROCESSING
-        except HypixelAPIThrottleError as e:
+        except APIThrottleError as e:
             logger.warning(f"API key throttled getting stats for {uuid=}", exc_info=e)
             self.api_key_invalid = False
             self.api_key_throttled = True

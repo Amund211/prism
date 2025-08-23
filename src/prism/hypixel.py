@@ -5,6 +5,12 @@ from json import JSONDecodeError
 import requests
 from requests.exceptions import RequestException
 
+from prism.errors import (
+    APIError,
+    APIKeyError,
+    APIThrottleError,
+    PlayerNotFoundError,
+)
 from prism.ratelimiting import RateLimiter
 from prism.requests import make_prism_requests_session
 from prism.retry import ExecutionError, execute_with_retry
@@ -16,6 +22,10 @@ REQUEST_LIMIT, REQUEST_WINDOW = 60, 60  # Max requests per time window
 SESSION = make_prism_requests_session()
 
 
+class MissingBedwarsStatsError(ValueError):
+    """Exception raised when the player has no stats in bedwars"""
+
+
 class HypixelAPIKeyHolder:
     """Class associating an api key with a RateLimiter instance"""
 
@@ -25,26 +35,6 @@ class HypixelAPIKeyHolder:
         self.key = key
         # Be nice to the Hypixel api :)
         self.limiter = RateLimiter(limit=limit, window=window)
-
-
-class MissingStatsError(ValueError):
-    """Exception raised when the player has no stats for the gamemode"""
-
-
-class HypixelPlayerNotFoundError(ValueError):
-    """Exception raised when the player is not found"""
-
-
-class HypixelAPIError(ValueError):
-    """Exception raised when the API returned an error"""
-
-
-class HypixelAPIKeyError(ValueError):
-    """Exception raised when the API key is invalid"""
-
-
-class HypixelAPIThrottleError(ValueError):
-    """Exception raised when the API key is being throttled"""
 
 
 def _make_request(
@@ -82,25 +72,25 @@ def get_player_data(
             initial_timeout=initial_timeout,
         )
     except ExecutionError as e:
-        raise HypixelAPIError(f"Request to Hypixel API failed for {uuid=}.") from e
+        raise APIError(f"Request to Hypixel API failed for {uuid=}.") from e
 
     if response.status_code == 404:
-        raise HypixelPlayerNotFoundError(f"Could not find a user with {uuid=} (404)")
+        raise PlayerNotFoundError(f"Could not find a user with {uuid=} (404)")
 
     if response.status_code == 403:
-        raise HypixelAPIKeyError(
+        raise APIKeyError(
             f"Request to Hypixel API failed with status code {response.status_code}. "
             f"Assumed invalid API key. Response: {response.text}"
         )
 
     if response.status_code == 429:
-        raise HypixelAPIThrottleError(
+        raise APIThrottleError(
             f"Request to Hypixel API failed with status code {response.status_code}. "
             f"Assumed due to API key throttle. Response: {response.text}"
         )
 
     if not response:
-        raise HypixelAPIError(
+        raise APIError(
             f"Request to Hypixel API failed with status code {response.status_code} "
             f"when getting data for player {uuid}. Response: {response.text}"
         )
@@ -108,23 +98,21 @@ def get_player_data(
     try:
         response_json = response.json()
     except JSONDecodeError as e:
-        raise HypixelAPIError(
+        raise APIError(
             "Failed parsing the response from the Hypixel API. "
             f"Raw content: {response.text}"
         ) from e
 
     if not response_json.get("success", False):
-        raise HypixelAPIError(
-            f"Hypixel API returned an error. Response: {response_json}"
-        )
+        raise APIError(f"Hypixel API returned an error. Response: {response_json}")
 
     playerdata = response_json.get("player", None)
 
     if playerdata is None:
-        raise HypixelPlayerNotFoundError(f"Could not find a user with {uuid=}")
+        raise PlayerNotFoundError(f"Could not find a user with {uuid=}")
 
     if not isinstance(playerdata, dict):
-        raise HypixelAPIError(f"Invalid playerdata {playerdata=} {type(playerdata)=}")
+        raise APIError(f"Invalid playerdata {playerdata=} {type(playerdata)=}")
 
     return playerdata
 
@@ -137,11 +125,11 @@ def get_gamemode_stats(
     name = playerdata.get("displayname", "<missing name>")
 
     if not isinstance(stats, dict):
-        raise MissingStatsError(f"{name} is missing stats in all gamemodes")
+        raise MissingBedwarsStatsError(f"{name} is missing stats in all gamemodes")
 
     gamemode_data = stats.get(gamemode, None)
 
     if not isinstance(gamemode_data, dict):
-        raise MissingStatsError(f"{name} is missing stats in {gamemode.lower()}")
+        raise MissingBedwarsStatsError(f"{name} is missing stats in {gamemode.lower()}")
 
     return gamemode_data
