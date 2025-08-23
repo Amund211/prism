@@ -31,7 +31,7 @@ from tests.prism.overlay.test_settings import (
 )
 from tests.prism.overlay.utils import (
     CUSTOM_RATING_CONFIG_COLLECTION_DICT,
-    MockedController,
+    create_controller,
     create_state,
     make_player,
     make_settings,
@@ -65,7 +65,7 @@ def test_set_nickname(known_nicks: dict[str, str]) -> None:
     """Assert that set_nickname works when setting a nick"""
     settings_file = no_close(io.StringIO())
 
-    controller = MockedController(
+    controller = create_controller(
         get_uuid=lambda username: UUID,
         settings=make_settings(write_settings_file_utf8=lambda: settings_file),
     )
@@ -134,7 +134,7 @@ def test_unset_nickname(known_nicks: dict[str, str], explicit: bool) -> None:
     """
     settings_file = no_close(io.StringIO())
 
-    controller = MockedController(
+    controller = create_controller(
         get_uuid=lambda username: UUID if explicit else None,
         settings=make_settings(write_settings_file_utf8=lambda: settings_file),
     )
@@ -181,7 +181,7 @@ def test_unset_nickname(known_nicks: dict[str, str], explicit: bool) -> None:
 def test_should_redraw(
     redraw_event_set: bool, completed_stats: tuple[str], result: bool
 ) -> None:
-    controller = MockedController(
+    controller = create_controller(
         state=create_state(
             lobby_players={"OwnUsername", "Player1", "Player2"}, in_queue=True
         )
@@ -261,7 +261,7 @@ def test_get_and_cache_stats(
 
 def test_update_settings_nothing() -> None:
     settings_file = no_close(io.StringIO())
-    controller = MockedController(
+    controller = create_controller(
         settings=make_settings(write_settings_file_utf8=lambda: settings_file),
     )
     settings_before = replace(controller.settings)
@@ -285,7 +285,7 @@ def test_update_settings_nothing() -> None:
 def test_update_settings_known_nicks() -> None:
     settings_file = no_close(io.StringIO())
 
-    controller = MockedController(
+    controller = create_controller(
         settings=make_settings(
             known_nicks={
                 "SuperbNick": {"uuid": "2", "comment": "2"},
@@ -344,9 +344,9 @@ def test_update_settings_everything_changed() -> None:
         write_settings_file_utf8=lambda: settings_file,
     )
 
-    controller = MockedController(
-        settings=settings, api_key_invalid=True, api_key_throttled=True
-    )
+    controller = create_controller(settings=settings)
+    controller.api_key_invalid = True
+    controller.api_key_throttled = True
 
     # NOTE: Make sure everything specified here is different from its default value
     new_settings = SettingsDict(
@@ -425,7 +425,7 @@ def test_update_settings_everything_changed() -> None:
 
 
 def test_update_settings_clear_antisniper_key() -> None:
-    controller = MockedController(
+    controller = create_controller(
         settings=make_settings(antisniper_api_key="my-api-key")
     )
     controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
@@ -440,11 +440,15 @@ def test_update_settings_clear_antisniper_key() -> None:
     # Updated antisniper key -> should redraw
     assert controller.redraw_event.is_set()
 
-    assert controller.extra["antisniper_api_key"] is None
+    assert (
+        controller.antisniper_key_holder.key
+        if controller.antisniper_key_holder is not None
+        else None
+    ) is None
 
 
 def test_update_settings_set_antisniper_key() -> None:
-    controller = MockedController(settings=make_settings(antisniper_api_key=None))
+    controller = create_controller(settings=make_settings(antisniper_api_key=None))
     controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
 
     new_settings = replace(
@@ -459,7 +463,11 @@ def test_update_settings_set_antisniper_key() -> None:
     # Updated antisniper key -> should redraw
     assert controller.redraw_event.is_set()
 
-    assert controller.extra["antisniper_api_key"] == "my-new-antisniper-api-key"
+    assert (
+        controller.antisniper_key_holder.key
+        if controller.antisniper_key_holder is not None
+        else None
+    ) == "my-new-antisniper-api-key"
 
 
 @dataclass(frozen=True, slots=True)
@@ -911,7 +919,7 @@ def test_autodenick_teammate(
     def get_uuid(username: str) -> str:
         return f"uuid-for-{username}"
 
-    controller = MockedController(
+    controller = create_controller(
         state=create_state(
             lobby_players=lobby_players,
             party_members=party_members,
@@ -965,21 +973,31 @@ def test_autodenick_teammate(
         )
 
 
+def create_controller_with_flags(state=None, api_key_invalid=False, api_key_throttled=False):
+    """Helper to create controller and set API key flags if needed."""
+    controller = create_controller(state=state)
+    if api_key_invalid:
+        controller.api_key_invalid = True
+    if api_key_throttled:
+        controller.api_key_throttled = True
+    return controller
+
+
 @pytest.mark.parametrize(
     "controller",
     (
-        MockedController(state=create_state(in_queue=False)),
-        MockedController(state=create_state(out_of_sync=True)),
-        MockedController(api_key_invalid=True),
-        MockedController(api_key_throttled=True),
-        MockedController(
+        create_controller(state=create_state(in_queue=False)),
+        create_controller(state=create_state(out_of_sync=True)),
+        create_controller_with_flags(api_key_invalid=True),
+        create_controller_with_flags(api_key_throttled=True),
+        create_controller_with_flags(
             state=create_state(in_queue=False, out_of_sync=True),
             api_key_invalid=True,
             api_key_throttled=True,
         ),
     ),
 )
-def test_autodenick_teammate_early_exit(controller: MockedController) -> None:
+def test_autodenick_teammate_early_exit(controller) -> None:
     with unittest.mock.patch(
         "prism.overlay.behaviour.set_nickname"
     ) as patched_set_nickname:
@@ -989,7 +1007,7 @@ def test_autodenick_teammate_early_exit(controller: MockedController) -> None:
 
 
 def test_autodenick_alive_players_mismatch() -> None:
-    controller = MockedController(
+    controller = create_controller(
         state=create_state(
             lobby_players={
                 "SomeNick",
@@ -1024,7 +1042,7 @@ def test_autodenick_alive_players_mismatch() -> None:
 
 
 def test_bedwars_game_ended() -> None:
-    controller = MockedController()
+    controller = create_controller()
     controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
 
     bedwars_game_ended(controller)
