@@ -4,10 +4,11 @@ from collections.abc import Callable, Mapping
 from enum import Enum
 from typing import TYPE_CHECKING, Protocol
 
+from prism.player import Winstreaks
+
 if TYPE_CHECKING:  # pragma: no cover
     from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
     from prism.overlay.nick_database import NickDatabase
-    from prism.overlay.player import Winstreaks
     from prism.overlay.player_cache import PlayerCache
     from prism.overlay.settings import Settings
     from prism.overlay.state import OverlayState
@@ -54,7 +55,7 @@ class OverlayController(Protocol):  # pragma: no cover
 
     @property
     @abstractmethod
-    def get_estimated_winstreaks(self) -> Callable[[str], tuple["Winstreaks", bool]]:
+    def get_estimated_winstreaks(self) -> Callable[[str], tuple[Winstreaks, bool]]:
         raise NotImplementedError
 
     @property

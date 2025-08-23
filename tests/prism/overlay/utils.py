@@ -15,7 +15,10 @@ from prism.overlay.output.config import (
     RatingConfigCollectionDict,
     safe_read_rating_config_collection_dict,
 )
-from prism.overlay.player import (
+from prism.overlay.player_cache import PlayerCache
+from prism.overlay.settings import NickValue, Settings, fill_missing_settings
+from prism.overlay.state import OverlayState
+from prism.player import (
     KnownPlayer,
     NickedPlayer,
     PendingPlayer,
@@ -24,9 +27,6 @@ from prism.overlay.player import (
     UnknownPlayer,
     Winstreaks,
 )
-from prism.overlay.player_cache import PlayerCache
-from prism.overlay.settings import NickValue, Settings, fill_missing_settings
-from prism.overlay.state import OverlayState
 from prism.ratelimiting import RateLimiter
 
 # Username set by default in create_state

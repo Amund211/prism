@@ -15,13 +15,12 @@ from prism.overlay.controller import (
     ProcessingError,
 )
 from prism.overlay.keybinds import AlphanumericKey
-from prism.overlay.player import MISSING_WINSTREAKS
+from prism.player import MISSING_WINSTREAKS, Winstreaks
 from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
 
 if TYPE_CHECKING:  # pragma: no cover
     from prism.overlay.nick_database import NickDatabase
-    from prism.overlay.player import Winstreaks
     from prism.overlay.settings import Settings
     from prism.overlay.state import OverlayState
 
@@ -43,7 +42,7 @@ class RealOverlayController:
             Mapping[str, object],
         ],
         get_estimated_winstreaks: Callable[
-            [str, "AntiSniperAPIKeyHolder"], tuple["Winstreaks", bool]
+            [str, "AntiSniperAPIKeyHolder"], tuple[Winstreaks, bool]
         ],
     ) -> None:
         from prism.overlay.player_cache import PlayerCache
@@ -137,7 +136,7 @@ class RealOverlayController:
 
     def get_estimated_winstreaks(
         self, uuid: str
-    ) -> tuple["Winstreaks", bool]:  # pragma: no cover
+    ) -> tuple[Winstreaks, bool]:  # pragma: no cover
         if not self.settings.use_antisniper_api or self.antisniper_key_holder is None:
             return MISSING_WINSTREAKS, False
 

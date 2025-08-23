@@ -4,13 +4,7 @@ from collections.abc import Callable
 
 from cachetools import TTLCache
 
-from prism.overlay.player import (
-    KnownPlayer,
-    NickedPlayer,
-    PendingPlayer,
-    Player,
-    UnknownPlayer,
-)
+from prism.player import KnownPlayer, NickedPlayer, PendingPlayer, Player, UnknownPlayer
 
 logger = logging.getLogger(__name__)
 

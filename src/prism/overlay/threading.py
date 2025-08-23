@@ -7,9 +7,10 @@ from collections.abc import Callable, Iterable
 
 from prism.overlay.behaviour import get_stats_and_winstreak, should_redraw
 from prism.overlay.controller import OverlayController
-from prism.overlay.player import KnownPlayer, Player, sort_players
 from prism.overlay.process_event import process_loglines
+from prism.overlay.rating import sort_players
 from prism.overlay.rich_presence import RPCThread
+from prism.player import KnownPlayer, Player
 from prism.update_checker import update_available
 
 logger = logging.getLogger(__name__)

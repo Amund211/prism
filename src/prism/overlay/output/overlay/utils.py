@@ -3,7 +3,7 @@ import webbrowser
 
 from prism.overlay.output.cell_renderer import RenderedStats, render_stats
 from prism.overlay.output.config import RatingConfigCollection
-from prism.overlay.player import KnownPlayer, NickedPlayer, Player, UnknownPlayer
+from prism.player import KnownPlayer, NickedPlayer, Player, UnknownPlayer
 
 logger = logging.getLogger(__name__)
 
