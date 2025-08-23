@@ -32,7 +32,7 @@ from tests.prism.overlay.utils import (
     CUSTOM_RATING_CONFIG_COLLECTION_DICT,
     DEFAULT_RATING_CONFIG_COLLECTION,
     DEFAULT_RATING_CONFIG_COLLECTION_DICT,
-    assert_not_called,
+    create_controller,
     make_dead_path,
     make_settings,
     no_close,
@@ -414,12 +414,6 @@ def test_read_settings_file_error() -> None:
 
 
 def test_flush_settings_from_controller() -> None:
-    from prism.overlay.nick_database import NickDatabase
-    from prism.overlay.real_controller import RealOverlayController
-    from tests.prism.overlay.utils import (
-        create_state,
-    )
-
     file = no_close(io.StringIO())
 
     settings = make_settings(write_settings_file_utf8=lambda: file)
@@ -435,15 +429,7 @@ def test_flush_settings_from_controller() -> None:
         != settings
     )
 
-    controller = RealOverlayController(
-        state=create_state(),
-        settings=settings,
-        nick_database=NickDatabase([{}]),
-        get_uuid=assert_not_called,
-        get_playerdata=assert_not_called,
-        get_estimated_winstreaks=assert_not_called,
-        get_time_ns=assert_not_called,
-    )
+    controller = create_controller(settings=settings)
 
     controller.store_settings()
 
