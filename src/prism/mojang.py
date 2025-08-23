@@ -5,6 +5,7 @@ from json import JSONDecodeError
 import requests
 from requests.exceptions import RequestException, SSLError
 
+from prism.errors import APIError
 from prism.ratelimiting import RateLimiter
 from prism.requests import make_prism_requests_session
 from prism.retry import ExecutionError, execute_with_retry
@@ -16,10 +17,6 @@ BURST_REQUEST_LIMIT, BURST_REQUEST_WINDOW = 50, 8  # Found by trial and error
 
 # Use a connection pool for the requests
 SESSION = make_prism_requests_session()
-
-
-class MojangAPIError(ValueError):
-    """Exception raised when we receive an error from the Mojang api"""
 
 
 # Be nice to the Mojang api :)
@@ -87,14 +84,14 @@ def get_uuid(
             initial_timeout=initial_timeout,
         )
     except ExecutionError as e:
-        raise MojangAPIError(f"Request to Mojang API failed for {username=}.") from e
+        raise APIError(f"Request to Mojang API failed for {username=}.") from e
 
     if response.status_code == 404 or response.status_code == 204:
         # Not found
         return None
 
     if not response:
-        raise MojangAPIError(
+        raise APIError(
             f"Request to Mojang API failed with status code {response.status_code}. "
             f"Response: {response.text}"
         )
@@ -102,7 +99,7 @@ def get_uuid(
     try:
         response_json = response.json()
     except JSONDecodeError as e:
-        raise MojangAPIError(
+        raise APIError(
             "Failed parsing the response from the Mojang API. "
             f"Raw content: {response.text}"
         ) from e
@@ -111,9 +108,7 @@ def get_uuid(
     uuid = response_json.get("id", None)
 
     if not isinstance(uuid, str):
-        raise MojangAPIError(
-            f"Request to Mojang API returned wrong type for uuid {uuid=}"
-        )
+        raise APIError(f"Request to Mojang API returned wrong type for uuid {uuid=}")
 
     # Set cache
     with UUID_MUTEX:

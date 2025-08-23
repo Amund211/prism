@@ -2,7 +2,11 @@ from collections.abc import Mapping
 
 import pytest
 
-from prism.hypixel import HypixelAPIKeyHolder, MissingStatsError, get_gamemode_stats
+from prism.hypixel import (
+    HypixelAPIKeyHolder,
+    MissingBedwarsStatsError,
+    get_gamemode_stats,
+)
 
 
 def test_hypixel_key_holder() -> None:
@@ -24,7 +28,7 @@ def test_get_gamemode_stats(
     playerdata: Mapping[str, object], gamemode: str, stats: Mapping[str, object] | None
 ) -> None:
     if stats is None:
-        with pytest.raises(MissingStatsError):
+        with pytest.raises(MissingBedwarsStatsError):
             get_gamemode_stats(playerdata, gamemode)
     else:
         assert get_gamemode_stats(playerdata, gamemode) == stats

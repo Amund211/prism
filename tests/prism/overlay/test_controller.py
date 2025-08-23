@@ -1,13 +1,7 @@
 import time
 from collections.abc import Mapping
 
-from prism.hypixel import (
-    HypixelAPIError,
-    HypixelAPIKeyError,
-    HypixelAPIThrottleError,
-    HypixelPlayerNotFoundError,
-)
-from prism.mojang import MojangAPIError
+from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
 from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from prism.overlay.controller import ERROR_DURING_PROCESSING
 from prism.overlay.nick_database import NickDatabase
@@ -81,7 +75,7 @@ def test_real_overlay_controller_get_uuid() -> None:
         get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
     )
 
-    error = MojangAPIError()
+    error = APIError()
     uuid = controller.get_uuid("username")
     assert uuid is ERROR_DURING_PROCESSING
 
@@ -129,21 +123,21 @@ def test_real_overlay_controller_get_playerdata() -> None:
         get_playerdata=mock_get_playerdata,
         get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
     )
-    error = HypixelAPIError()
+    error = APIError()
     _, playerdata = controller.get_playerdata("uuid")
     assert playerdata is ERROR_DURING_PROCESSING
 
-    error = HypixelPlayerNotFoundError()
+    error = PlayerNotFoundError()
     _, playerdata = controller.get_playerdata("uuid")
     assert playerdata is None
 
-    error = HypixelAPIKeyError()
+    error = APIKeyError()
     assert not controller.api_key_invalid
     _, playerdata = controller.get_playerdata("uuid")
     assert playerdata is ERROR_DURING_PROCESSING
     assert controller.api_key_invalid
 
-    error = HypixelAPIThrottleError()
+    error = APIThrottleError()
     assert not controller.api_key_throttled
     _, playerdata = controller.get_playerdata("uuid")
     assert playerdata is ERROR_DURING_PROCESSING
