@@ -7,7 +7,7 @@ from prism.overlay.player_cache import PlayerCache
 from prism.overlay.threading import get_stat_list
 from prism.player import KnownPlayer, PendingPlayer, Player
 from tests.prism.overlay.utils import (
-    MockedController,
+    create_controller,
     create_state,
     make_player,
     make_settings,
@@ -42,44 +42,54 @@ FULL_CACHE = make_player_cache(paul, kynes, liet, piter, leto)
 
 
 def test_get_stat_list_no_redraw() -> None:
-    assert get_stat_list(MockedController(), EMPTY_QUEUE, queue.Queue[str]()) is None
+    assert get_stat_list(create_controller(), EMPTY_QUEUE, queue.Queue[str]()) is None
+
+
+def create_controller_with_cache(
+    state=None, settings=None, player_cache=None
+):
+    """Helper to create controller and set player_cache if provided."""
+    controller = create_controller(state=state, settings=settings)
+    if player_cache is not None:
+        controller.player_cache = player_cache
+    return controller
 
 
 @pytest.mark.parametrize(
     "controller, expected_requested_stats, result",
     (
         # No players in the lobby
-        (MockedController(), set(), []),
+        (create_controller(), set(), []),
         (
             # Cache miss -> Request and return pending
-            MockedController(state=create_state(lobby_players={"Paul"})),
+            create_controller(state=create_state(lobby_players={"Paul"})),
             {"Paul"},
             [make_player("pending", "Paul")],
         ),
         # Different kinds of players
         (
-            MockedController(
+            create_controller_with_cache(
                 state=create_state(lobby_players={"Paul"}), player_cache=FULL_CACHE
             ),
             set(),
             [paul],
         ),
         (
-            MockedController(
+            create_controller_with_cache(
                 state=create_state(lobby_players={"Kynes"}), player_cache=FULL_CACHE
             ),
             set(),
             [kynes],
         ),
         (
-            MockedController(
+            create_controller_with_cache(
                 state=create_state(lobby_players={"Liet"}), player_cache=FULL_CACHE
             ),
             set(),
             [liet],
         ),
         (
-            MockedController(
+            create_controller_with_cache(
                 state=create_state(lobby_players={"Leto"}), player_cache=FULL_CACHE
             ),
             set(),
@@ -87,13 +97,13 @@ def test_get_stat_list_no_redraw() -> None:
         ),
         (
             # Cache miss -> Request and return pending
-            MockedController(state=create_state(lobby_players={"Leto"})),
+            create_controller(state=create_state(lobby_players={"Leto"})),
             {"Leto"},
             [leto],
         ),
         (
             # Bunch of players, properly sorted
-            MockedController(
+            create_controller_with_cache(
                 state=create_state(lobby_players={"Paul", "Kynes", "Piter", "Leto"}),
                 player_cache=FULL_CACHE,
             ),
@@ -102,7 +112,7 @@ def test_get_stat_list_no_redraw() -> None:
         ),
         (
             # Only show alive players
-            MockedController(
+            create_controller_with_cache(
                 settings=make_settings(hide_dead_players=True),
                 state=create_state(
                     lobby_players={"Paul", "Kynes", "Piter", "Leto"},
@@ -115,7 +125,7 @@ def test_get_stat_list_no_redraw() -> None:
         ),
         (
             # Show all players
-            MockedController(
+            create_controller_with_cache(
                 settings=make_settings(hide_dead_players=False),
                 state=create_state(
                     lobby_players={"Paul", "Kynes", "Piter", "Leto"},
@@ -128,7 +138,7 @@ def test_get_stat_list_no_redraw() -> None:
         ),
         (
             # Sort correctly wrt party
-            MockedController(
+            create_controller_with_cache(
                 state=create_state(
                     lobby_players={"Paul", "Kynes", "Piter", "Leto"},
                     party_members={"Piter", "Paul"},
@@ -141,7 +151,7 @@ def test_get_stat_list_no_redraw() -> None:
         ),
         (
             # Cache miss on all
-            MockedController(
+            create_controller(
                 state=create_state(lobby_players={"Paul", "Kynes", "Piter", "Leto"}),
             ),
             {"Paul", "Kynes", "Piter", "Leto"},
@@ -154,7 +164,7 @@ def test_get_stat_list_no_redraw() -> None:
         ),
         (
             # Duplicate nicked player
-            MockedController(
+            create_controller_with_cache(
                 state=create_state(
                     lobby_players={"Liet", "Kynes"},
                     party_members={"Liet"},
@@ -167,7 +177,7 @@ def test_get_stat_list_no_redraw() -> None:
         ),
         (
             # Duplicate nicked player, but nicked is pending
-            MockedController(
+            create_controller_with_cache(
                 state=create_state(
                     lobby_players={"Liet", "Kynes"},
                     party_members={"Liet"},
@@ -181,7 +191,7 @@ def test_get_stat_list_no_redraw() -> None:
         ),
         (
             # Duplicate nicked player, but un-nicked is pending
-            MockedController(
+            create_controller_with_cache(
                 state=create_state(
                     lobby_players={"Liet", "Kynes"},
                     party_members={"Liet"},
