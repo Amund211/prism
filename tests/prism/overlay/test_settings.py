@@ -34,18 +34,12 @@ from tests.prism.overlay.utils import (
     DEFAULT_RATING_CONFIG_COLLECTION_DICT,
     make_dead_path,
     make_settings,
+    no_close,
 )
 
 DEFAULT_USER_ID = "default-user-id-test"
 
 DEFAULT_STATS_THREAD_COUNT = 7
-
-
-def no_close(file: io.StringIO) -> io.StringIO:
-    """Monkeypatch StringIO to not close - discarding the contents"""
-    file.close = lambda: None  # type: ignore[method-assign]
-
-    return file
 
 
 def noop_update_settings(

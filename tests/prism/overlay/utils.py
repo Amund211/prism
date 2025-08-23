@@ -1,7 +1,7 @@
 import io
 import threading
 from collections.abc import Callable, Mapping, Set
-from dataclasses import InitVar, dataclass, field, replace
+from dataclasses import InitVar, dataclass, field
 from pathlib import Path, PurePath
 from typing import Any, Literal, TextIO, TypedDict, cast, overload
 
@@ -127,6 +127,13 @@ CUSTOM_RATING_CONFIG_COLLECTION_DICT: RatingConfigCollectionDict = {
 CUSTOM_RATING_CONFIG_COLLECTION = RatingConfigCollection.from_dict(
     CUSTOM_RATING_CONFIG_COLLECTION_DICT
 )
+
+
+def no_close(file: io.StringIO) -> io.StringIO:
+    """Monkeypatch StringIO to not close - discarding the contents"""
+    file.close = lambda: None  # type: ignore[method-assign]
+
+    return file
 
 
 def make_dead_path(path_str: str) -> Path:
@@ -382,8 +389,6 @@ class MockedController:
         default=missing_method, repr=False, compare=False, hash=False
     )
 
-    _stored_settings: Settings | None = field(default=None, init=False)
-
     def __post_init__(
         self,
         autowho_event_set: bool,
@@ -409,7 +414,7 @@ class MockedController:
         )
 
     def store_settings(self) -> None:
-        self._stored_settings = replace(self.settings)
+        self.settings.flush_to_disk()
 
     @property
     def extra(self) -> ExtraAttributes:
