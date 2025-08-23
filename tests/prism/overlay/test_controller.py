@@ -3,31 +3,23 @@ from collections.abc import Mapping
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
 from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from prism.overlay.controller import ERROR_DURING_PROCESSING
-from prism.overlay.nick_database import NickDatabase
-from prism.overlay.real_controller import RealOverlayController
 from prism.player import MISSING_WINSTREAKS, Winstreaks
 from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
 from tests.prism.overlay.utils import (
     MockedController,
     assert_not_called,
-    create_state,
+    create_controller,
     make_settings,
 )
 
 
 def test_real_overlay_controller() -> None:
-    controller = RealOverlayController(
-        state=create_state(),
+    controller = create_controller(
         settings=make_settings(
             antisniper_api_key="antisniper_key",
             use_antisniper_api=True,
         ),
-        nick_database=NickDatabase([{}]),
-        get_uuid=assert_not_called,
-        get_playerdata=assert_not_called,
-        get_estimated_winstreaks=assert_not_called,
-        get_time_ns=assert_not_called,
     )
 
     assert controller.antisniper_key_holder is not None
@@ -35,17 +27,11 @@ def test_real_overlay_controller() -> None:
 
 
 def test_real_overlay_controller_no_antisniper_key() -> None:
-    controller = RealOverlayController(
-        state=create_state(),
+    controller = create_controller(
         settings=make_settings(
             antisniper_api_key=None,
             use_antisniper_api=True,
         ),
-        nick_database=NickDatabase([{}]),
-        get_uuid=assert_not_called,
-        get_playerdata=assert_not_called,
-        get_estimated_winstreaks=assert_not_called,
-        get_time_ns=assert_not_called,
     )
 
     assert controller.antisniper_key_holder is None
@@ -62,18 +48,13 @@ def test_real_overlay_controller_get_uuid() -> None:
 
         return returned_uuid
 
-    controller = RealOverlayController(
-        state=create_state(),
+    controller = create_controller(
         settings=make_settings(
             antisniper_api_key="antisniper_key",
             use_antisniper_api=True,
             user_id="1234",
         ),
-        nick_database=NickDatabase([{}]),
         get_uuid=get_uuid_mock,
-        get_playerdata=assert_not_called,
-        get_estimated_winstreaks=assert_not_called,
-        get_time_ns=assert_not_called,
     )
 
     error = APIError()
@@ -115,17 +96,13 @@ def test_real_overlay_controller_get_playerdata() -> None:
     def mock_get_time_ns() -> int:
         return 1234567890123456789
 
-    controller = RealOverlayController(
-        state=create_state(),
+    controller = create_controller(
         settings=make_settings(
             antisniper_api_key="antisniper_key",
             use_antisniper_api=True,
             user_id="1234",
         ),
-        nick_database=NickDatabase([{}]),
-        get_uuid=assert_not_called,
         get_playerdata=mock_get_playerdata,
-        get_estimated_winstreaks=assert_not_called,
         get_time_ns=mock_get_time_ns,
     )
     error = APIError()
@@ -173,15 +150,7 @@ def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
         assert username == "testuser"
         return custom_uuid
 
-    controller = RealOverlayController(
-        state=create_state(),
-        settings=make_settings(),
-        nick_database=NickDatabase([{}]),
-        get_uuid=custom_get_uuid,
-        get_playerdata=assert_not_called,
-        get_estimated_winstreaks=assert_not_called,
-        get_time_ns=assert_not_called,
-    )
+    controller = create_controller(get_uuid=custom_get_uuid)
 
     result = controller.get_uuid("testuser")
     assert result == custom_uuid
@@ -220,13 +189,9 @@ def test_real_overlay_controller_get_playerdata_dependency_injection() -> None:
     def custom_get_time_ns() -> int:
         return 9876543210987654321
 
-    controller = RealOverlayController(
-        state=create_state(),
+    controller = create_controller(
         settings=make_settings(user_id="test-user-id"),
-        nick_database=NickDatabase([{}]),
-        get_uuid=assert_not_called,
         get_playerdata=custom_get_playerdata,
-        get_estimated_winstreaks=assert_not_called,
         get_time_ns=custom_get_time_ns,
     )
 
@@ -268,17 +233,12 @@ def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection()
         assert key_holder.key == "test-api-key"
         return custom_winstreaks, custom_accurate
 
-    controller = RealOverlayController(
-        state=create_state(),
+    controller = create_controller(
         settings=make_settings(
             antisniper_api_key="test-api-key",
             use_antisniper_api=True,
         ),
-        nick_database=NickDatabase([{}]),
-        get_uuid=assert_not_called,
-        get_playerdata=assert_not_called,
         get_estimated_winstreaks=custom_get_estimated_winstreaks,
-        get_time_ns=assert_not_called,
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
@@ -307,17 +267,12 @@ def test_mocked_controller_get_estimated_winstreaks_dependency_injection() -> No
 def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
     """Test that RealOverlayController returns MISSING_WINSTREAKS when
     antisniper API is disabled"""
-    controller = RealOverlayController(
-        state=create_state(),
+    controller = create_controller(
         settings=make_settings(
             antisniper_api_key="test-api-key",
             use_antisniper_api=False,  # API is disabled
         ),
-        nick_database=NickDatabase([{}]),
-        get_uuid=assert_not_called,
-        get_playerdata=assert_not_called,
         get_estimated_winstreaks=assert_not_called,
-        get_time_ns=assert_not_called,
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
@@ -328,17 +283,12 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
 def test_real_overlay_controller_get_estimated_winstreaks_no_key() -> None:
     """Test that RealOverlayController returns MISSING_WINSTREAKS when no API
     key is set"""
-    controller = RealOverlayController(
-        state=create_state(),
+    controller = create_controller(
         settings=make_settings(
             antisniper_api_key=None,  # No API key
             use_antisniper_api=True,
         ),
-        nick_database=NickDatabase([{}]),
-        get_uuid=assert_not_called,
-        get_playerdata=assert_not_called,
         get_estimated_winstreaks=assert_not_called,
-        get_time_ns=assert_not_called,
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
@@ -365,13 +315,9 @@ def test_real_overlay_controller_get_time_ns_dependency_injection() -> None:
         assert user_id == "test-user-id"
         return custom_playerdata
 
-    controller = RealOverlayController(
-        state=create_state(),
+    controller = create_controller(
         settings=make_settings(user_id="test-user-id"),
-        nick_database=NickDatabase([{}]),
-        get_uuid=assert_not_called,
         get_playerdata=custom_get_playerdata,
-        get_estimated_winstreaks=assert_not_called,
         get_time_ns=custom_get_time_ns,
     )
 
