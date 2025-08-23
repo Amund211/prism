@@ -1,3 +1,4 @@
+import io
 import queue
 import unittest.mock
 from collections.abc import Mapping
@@ -342,7 +343,9 @@ def test_update_settings_everything_changed() -> None:
     assert (
         controller.settings
         == controller._stored_settings
-        == Settings.from_dict(new_settings, path=controller.settings.path)
+        == Settings.from_dict(
+            new_settings, write_settings_file_utf8=lambda: io.StringIO()
+        )
     )
 
     assert controller.nick_database.default_database == {

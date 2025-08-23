@@ -1,8 +1,9 @@
+import io
 import threading
 from collections.abc import Callable, Mapping, Set
 from dataclasses import InitVar, dataclass, field, replace
 from pathlib import Path, PurePath
-from typing import Any, Literal, TypedDict, cast, overload
+from typing import Any, Literal, TextIO, TypedDict, cast, overload
 
 from cachetools import TTLCache
 
@@ -279,7 +280,7 @@ def make_settings(
     autowho_delay: float | None = None,
     chat_hotkey: Key | None = None,
     activate_in_bedwars_duels: bool | None = None,
-    path: Path | PurePath | None = None,
+    write_settings_file_utf8: Callable[[], TextIO] = lambda: io.StringIO(),
 ) -> Settings:
     return Settings.from_dict(
         fill_missing_settings(
@@ -298,7 +299,7 @@ def make_settings(
             },
             2,
         )[0],
-        path=cast(Path, path or PurePath("make_settings_settingsfile.json")),
+        write_settings_file_utf8=write_settings_file_utf8,
     )
 
 

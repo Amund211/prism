@@ -1,4 +1,5 @@
 import dataclasses
+import io
 from collections.abc import Mapping
 from pathlib import Path
 from unittest import mock
@@ -165,7 +166,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             disable_overrideredirect=True,
             hide_with_alpha=True,
             alpha_hundredths=80,
-            path=PLACEHOLDER_PATH,
+            write_settings_file_utf8=lambda: io.StringIO(),
         ),
         {
             "user_id": "my-user-id",
@@ -234,7 +235,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             disable_overrideredirect=False,
             hide_with_alpha=False,
             alpha_hundredths=30,
-            path=PLACEHOLDER_PATH,
+            write_settings_file_utf8=lambda: io.StringIO(),
         ),
         {
             "user_id": "my-user-id-2",
@@ -284,14 +285,21 @@ def test_settings_to_dict(settings: Settings, result: SettingsDict) -> None:
     "settings_dict, result", tuple((t[1], t[0]) for t in settings_to_dict_cases)
 )
 def test_settings_from_dict(settings_dict: SettingsDict, result: Settings) -> None:
-    assert Settings.from_dict(settings_dict, path=PLACEHOLDER_PATH) == result
+    assert (
+        Settings.from_dict(
+            settings_dict, write_settings_file_utf8=lambda: io.StringIO()
+        )
+        == result
+    )
 
 
 @pytest.mark.parametrize(
     "settings_dict, result", tuple((t[1], t[0]) for t in settings_to_dict_cases)
 )
 def test_settings_update_from(settings_dict: SettingsDict, result: Settings) -> None:
-    settings = Settings.from_dict(make_settings_dict(), path=PLACEHOLDER_PATH)
+    settings = Settings.from_dict(
+        make_settings_dict(), write_settings_file_utf8=lambda: io.StringIO()
+    )
     settings.update_from(settings_dict)
     assert settings == result
 
@@ -322,7 +330,11 @@ def test_read_and_write_settings(
     # Make a copy so we can mutate it
     settings = dataclasses.replace(settings)
 
-    settings.path = tmp_path / "settings.toml"
+    settings_path = tmp_path / "settings.toml"
+    settings.write_settings_file_utf8 = lambda: open(
+        settings_path, "w", encoding="utf-8"
+    )
+
     settings.flush_to_disk()
 
     # NOTE: We can no longer do this since we store some null values in the dictionary
@@ -331,7 +343,7 @@ def test_read_and_write_settings(
     # assert read_settings_dict == settings_dict
 
     assert (
-        get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
+        get_settings(settings_path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
         == settings
     )
 
@@ -350,7 +362,9 @@ def test_read_missing_settings_file(tmp_path: Path) -> None:
     ):
         assert get_settings(
             empty_path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings
-        ) == Settings.from_dict(source=make_settings_dict(), path=empty_path)
+        ) == Settings.from_dict(
+            source=make_settings_dict(), write_settings_file_utf8=lambda: io.StringIO()
+        )
 
 
 def test_flush_settings_from_controller(tmp_path: Path) -> None:
@@ -362,11 +376,14 @@ def test_flush_settings_from_controller(tmp_path: Path) -> None:
         create_state,
     )
 
-    settings = make_settings(path=tmp_path / "settings.toml")
+    settings_path = tmp_path / "settings.toml"
+    settings = make_settings(
+        write_settings_file_utf8=lambda: open(settings_path, "w", encoding="utf-8")
+    )
 
     # File not found
     assert (
-        get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
+        get_settings(settings_path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
         != settings
     )
 
@@ -383,7 +400,7 @@ def test_flush_settings_from_controller(tmp_path: Path) -> None:
 
     # File properly stored
     assert (
-        get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
+        get_settings(settings_path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
         == settings
     )
 
@@ -883,7 +900,7 @@ def test_sort_ascending() -> None:
         make_settings_dict(
             sort_order="stars", rating_configs=CUSTOM_RATING_CONFIG_COLLECTION_DICT
         ),
-        path=PLACEHOLDER_PATH,
+        write_settings_file_utf8=lambda: io.StringIO(),
     )
 
     assert settings.sort_ascending
@@ -896,7 +913,7 @@ def test_sort_ascending() -> None:
 
 
 def test_update_settings(tmp_path: Path) -> None:
-    settings = Settings.from_dict(make_settings_dict(), path=tmp_path / "settings.toml")
+    settings_path = tmp_path / "settings.toml"
 
     def update_settings(
         settings: Settings, incomplete_settings: Mapping[str, object]
@@ -915,15 +932,15 @@ def test_update_settings(tmp_path: Path) -> None:
             user_id="new-user-id",
             antisniper_api_key="updated-antisniper-key",
         ),
-        path=settings.path,
+        write_settings_file_utf8=lambda: io.StringIO(),
     )
 
     assert (
-        get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT, update_settings)
+        get_settings(settings_path, DEFAULT_STATS_THREAD_COUNT, update_settings)
         == target_settings
     ), "Get with updates should return updated settings"
 
     assert (
-        get_settings(settings.path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
+        get_settings(settings_path, DEFAULT_STATS_THREAD_COUNT, noop_update_settings)
         == target_settings
     ), "Updated settings should have been persisted in last call"
