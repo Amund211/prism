@@ -4,7 +4,7 @@ import uuid
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Self, TypedDict, TypeVar
+from typing import Self, TextIO, TypedDict, TypeVar
 
 import toml
 
@@ -107,7 +107,9 @@ class Settings:
     disable_overrideredirect: bool
     hide_with_alpha: bool
     alpha_hundredths: int
-    path: Path
+
+    write_settings_file_utf8: Callable[[], TextIO] = field(compare=False, repr=False)
+
     mutex: threading.Lock = field(
         default_factory=threading.Lock, init=False, compare=False, repr=False
     )
@@ -124,7 +126,9 @@ class Settings:
         return config["sort_ascending"]
 
     @classmethod
-    def from_dict(cls, source: SettingsDict, path: Path) -> Self:
+    def from_dict(
+        cls, source: SettingsDict, write_settings_file_utf8: Callable[[], TextIO]
+    ) -> Self:
         return cls(
             user_id=source["user_id"],
             hypixel_api_key=source["hypixel_api_key"],
@@ -155,7 +159,7 @@ class Settings:
             disable_overrideredirect=source["disable_overrideredirect"],
             hide_with_alpha=source["hide_with_alpha"],
             alpha_hundredths=source["alpha_hundredths"],
-            path=path,
+            write_settings_file_utf8=write_settings_file_utf8,
         )
 
     def to_dict(self) -> SettingsDict:
@@ -227,7 +231,7 @@ class Settings:
 
     def flush_to_disk(self) -> None:
         # toml.load(path) uses encoding='utf-8'
-        with self.path.open("w", encoding="utf-8") as f:
+        with self.write_settings_file_utf8() as f:
             toml.dump(self.to_dict(), f)
         logger.info(f"Wrote settings to disk: {self}")
 
@@ -515,7 +519,9 @@ def get_settings(
         incomplete_settings, default_stats_thread_count
     )
 
-    settings = Settings.from_dict(settings_dict, path=path)
+    settings = Settings.from_dict(
+        settings_dict, write_settings_file_utf8=lambda: path.open("w", encoding="utf-8")
+    )
 
     settings, post_update = update_settings(settings, incomplete_settings)
 
