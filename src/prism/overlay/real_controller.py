@@ -1,5 +1,4 @@
 import logging
-import sys
 import threading
 import time
 from collections.abc import Callable, Mapping
@@ -11,10 +10,8 @@ from prism.overlay.antisniper_api import (
 )
 from prism.overlay.controller import (
     ERROR_DURING_PROCESSING,
-    OverlayController,
     ProcessingError,
 )
-from prism.overlay.keybinds import AlphanumericKey
 from prism.player import MISSING_WINSTREAKS, Winstreaks
 from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
@@ -73,8 +70,6 @@ class RealOverlayController:
         self._get_uuid = get_uuid
         self._get_playerdata = get_playerdata
         self._get_estimated_winstreaks = get_estimated_winstreaks
-
-        AutoWhoThread(self).start()
 
     def get_uuid(self, username: str) -> str | None | ProcessingError:
         try:
@@ -146,60 +141,3 @@ class RealOverlayController:
 
     def store_settings(self) -> None:
         self.settings.flush_to_disk()
-
-
-class AutoWhoThread(threading.Thread):  # pragma: nocover
-    """Thread that types /who on request, unless cancelled"""
-
-    def __init__(self, controller: OverlayController) -> None:
-        super().__init__(daemon=True)  # Don't block the process from exiting
-        self.controller = controller
-
-    def run(self) -> None:
-        """Wait for requests, check if not cancelled, then type /who"""
-        if sys.platform == "darwin":  # Not supported on macOS
-            return
-
-        try:
-            from pynput.keyboard import Controller, Key, KeyCode
-
-            keyboard = Controller()
-
-            while True:
-                # Wait until autowho is requested
-                self.controller.autowho_event.wait()
-
-                if not self.controller.settings.autowho:
-                    self.controller.autowho_event.clear()
-                    continue
-
-                # NOTE: The delay must not be zero!
-                # The bedwars game start event is parsed also at the end of a game.
-                # We cancel this by parsing a bedwars game end event right after, but
-                # need to give a bit of time for the state updater thread to process
-                # this event so we don't send /who at the end of a game as well.
-                time.sleep(self.controller.settings.autowho_delay)
-
-                if not self.controller.autowho_event.is_set():
-                    # Autowho was cancelled
-                    continue
-
-                self.controller.autowho_event.clear()
-
-                chat_hotkey = self.controller.settings.chat_hotkey
-                chat_keycode: KeyCode
-                if isinstance(chat_hotkey, AlphanumericKey):
-                    chat_keycode = KeyCode.from_char(chat_hotkey.char)
-                elif chat_hotkey.vk is not None:
-                    chat_keycode = KeyCode.from_vk(chat_hotkey.vk)
-                else:
-                    logger.error(f"Invalid chat hotkey {chat_hotkey}")
-                    continue
-
-                keyboard.tap(chat_keycode)
-                time.sleep(0.1)
-                keyboard.type("/who")
-                keyboard.tap(Key.enter)
-        except Exception:
-            logger.exception("Exception caught in autowho thread. Exiting.")
-            # We let the overlay keep working if the autowho thread dies

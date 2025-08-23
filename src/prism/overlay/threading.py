@@ -7,6 +7,7 @@ from collections.abc import Callable, Iterable
 
 from prism.overlay.behaviour import get_stats_and_winstreak, should_redraw
 from prism.overlay.controller import OverlayController
+from prism.overlay.keybinds import AlphanumericKey
 from prism.overlay.process_event import process_loglines
 from prism.overlay.rating import sort_players
 from prism.overlay.rich_presence import RPCThread
@@ -124,6 +125,63 @@ class UpdateCheckerThread(threading.Thread):  # pragma: nocover
             logger.exception("Exception caught in update checker thread. Exiting.")
 
 
+class AutoWhoThread(threading.Thread):  # pragma: nocover
+    """Thread that types /who on request, unless cancelled"""
+
+    def __init__(self, controller: OverlayController) -> None:
+        super().__init__(daemon=True)  # Don't block the process from exiting
+        self.controller = controller
+
+    def run(self) -> None:
+        """Wait for requests, check if not cancelled, then type /who"""
+        if sys.platform == "darwin":  # Not supported on macOS
+            return
+
+        try:
+            from pynput.keyboard import Controller, Key, KeyCode
+
+            keyboard = Controller()
+
+            while True:
+                # Wait until autowho is requested
+                self.controller.autowho_event.wait()
+
+                if not self.controller.settings.autowho:
+                    self.controller.autowho_event.clear()
+                    continue
+
+                # NOTE: The delay must not be zero!
+                # The bedwars game start event is parsed also at the end of a game.
+                # We cancel this by parsing a bedwars game end event right after, but
+                # need to give a bit of time for the state updater thread to process
+                # this event so we don't send /who at the end of a game as well.
+                time.sleep(self.controller.settings.autowho_delay)
+
+                if not self.controller.autowho_event.is_set():
+                    # Autowho was cancelled
+                    continue
+
+                self.controller.autowho_event.clear()
+
+                chat_hotkey = self.controller.settings.chat_hotkey
+                chat_keycode: KeyCode
+                if isinstance(chat_hotkey, AlphanumericKey):
+                    chat_keycode = KeyCode.from_char(chat_hotkey.char)
+                elif chat_hotkey.vk is not None:
+                    chat_keycode = KeyCode.from_vk(chat_hotkey.vk)
+                else:
+                    logger.error(f"Invalid chat hotkey {chat_hotkey}")
+                    continue
+
+                keyboard.tap(chat_keycode)
+                time.sleep(0.1)
+                keyboard.type("/who")
+                keyboard.tap(Key.enter)
+        except Exception:
+            logger.exception("Exception caught in autowho thread. Exiting.")
+            # We let the overlay keep working if the autowho thread dies
+
+
 def get_stat_list(
     controller: OverlayController,
     completed_stats_queue: queue.Queue[str],
@@ -232,6 +290,8 @@ def prepare_overlay(
     RPCThread(
         controller=controller, requested_stats_queue=requested_stats_queue
     ).start()
+
+    AutoWhoThread(controller=controller).start()
 
     return lambda: get_stat_list(
         controller, completed_stats_queue, requested_stats_queue
