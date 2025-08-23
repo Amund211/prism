@@ -2,15 +2,17 @@ import itertools
 import unittest.mock
 from collections.abc import Mapping
 from dataclasses import dataclass
+from typing import Any
 
 import pytest
 
+from prism.errors import APIError, PlayerNotFoundError
 from prism.hypixel import create_known_player
-from prism.overlay.controller import ERROR_DURING_PROCESSING, ProcessingError
 from prism.overlay.get_stats import denick, fetch_bedwars_stats, get_bedwars_stats
 from prism.overlay.nick_database import NickDatabase
+from prism.overlay.real_controller import RealOverlayController
 from prism.player import KnownPlayer, NickedPlayer, UnknownPlayer
-from tests.prism.overlay.utils import MockedController
+from tests.prism.overlay.utils import create_controller
 
 # Player data for a player who has been on Hypixel, but has not played bedwars
 NEW_PLAYER_DATA: Mapping[str, object] = {"stats": {}}
@@ -35,7 +37,7 @@ def make_user(username: str, playerdata: bool, nick: str | None = None) -> User:
     )
 
 
-def make_scenario_controller(*users: User) -> MockedController:
+def make_scenario_controller(*users: User) -> RealOverlayController:
     usernames = set(user.username for user in users)
     uuids = set(user.uuid for user in users)
     nicks = set(user.nick for user in users)
@@ -51,13 +53,21 @@ def make_scenario_controller(*users: User) -> MockedController:
         user = username_table.get(username, None)
         return user.uuid if user is not None else None
 
-    def get_playerdata(uuid: str) -> tuple[int, Mapping[str, object] | None]:
+    def get_playerdata(
+        uuid: str, user_id: str, antisniper_key_holder: Any, api_limiter: Any
+    ) -> Mapping[str, object]:
         user = uuid_table.get(uuid, None)
-        return CURRENT_TIME_MS, user.playerdata if user is not None else None
+        if user is None or user.playerdata is None:
+            raise PlayerNotFoundError("Player not found")
+        return user.playerdata
 
-    controller = MockedController(
+    def get_time_ns() -> int:
+        return CURRENT_TIME_MS * 1_000_000
+
+    controller = create_controller(
         get_uuid=get_uuid,
         get_playerdata=get_playerdata,
+        get_time_ns=get_time_ns,
         nick_database=NickDatabase([nick_table]),
     )
 
@@ -66,7 +76,7 @@ def make_scenario_controller(*users: User) -> MockedController:
 
 def test_denick() -> None:
     """Test the precedence of different denicking sources"""
-    controller = MockedController()
+    controller = create_controller()
 
     NICK = "AmazingNick"
 
@@ -289,14 +299,21 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
         assert username == my_username
         return my_uuid
 
-    def get_playerdata(uuid: str) -> tuple[int, Mapping[str, object] | None]:
+    def get_playerdata(
+        uuid: str, user_id: str, antisniper_key_holder: Any, api_limiter: Any
+    ) -> Mapping[str, object]:
         assert uuid == my_uuid
         if clear:
             # While we were getting the playerdata, someone else cleared the cache
             controller.player_cache.clear_cache()
-        return 1234567, my_player_data
+        return my_player_data
 
-    controller = MockedController(get_uuid=get_uuid, get_playerdata=get_playerdata)
+    def get_time_ns() -> int:
+        return 1234567 * 1_000_000
+
+    controller = create_controller(
+        get_uuid=get_uuid, get_playerdata=get_playerdata, get_time_ns=get_time_ns
+    )
 
     player = create_known_player(
         dataReceivedAtMs=1234567,
@@ -315,10 +332,10 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
 
 
 def test_fetch_bedwars_stats_error_during_uuid() -> None:
-    def get_uuid(username: str) -> str | None | ProcessingError:
-        return ERROR_DURING_PROCESSING
+    def get_uuid(username: str) -> str | None:
+        raise APIError("Test error")
 
-    controller = MockedController(get_uuid=get_uuid)
+    controller = create_controller(get_uuid=get_uuid)
 
     assert fetch_bedwars_stats("someone", controller) == UnknownPlayer("someone")
 
@@ -328,10 +345,15 @@ def test_fetch_bedwars_stats_error_during_playerdata() -> None:
         return "uuid"
 
     def get_playerdata(
-        uuid: str,
-    ) -> tuple[int, Mapping[str, object] | None | ProcessingError]:
-        return CURRENT_TIME_MS, ERROR_DURING_PROCESSING
+        uuid: str, user_id: str, antisniper_key_holder: Any, api_limiter: Any
+    ) -> Mapping[str, object]:
+        raise APIError("Test error")
 
-    controller = MockedController(get_uuid=get_uuid, get_playerdata=get_playerdata)
+    def get_time_ns() -> int:
+        return CURRENT_TIME_MS * 1_000_000
+
+    controller = create_controller(
+        get_uuid=get_uuid, get_playerdata=get_playerdata, get_time_ns=get_time_ns
+    )
 
     assert fetch_bedwars_stats("someone", controller) == UnknownPlayer("someone")

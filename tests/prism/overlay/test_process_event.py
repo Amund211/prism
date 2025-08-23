@@ -32,26 +32,28 @@ from prism.overlay.process_event import (
     process_event,
     process_loglines,
 )
+from prism.overlay.real_controller import RealOverlayController
 from tests.prism.overlay.utils import (
     OWN_USERNAME,
-    MockedController,
+    assert_controllers_equal,
+    create_controller,
     create_state,
     make_settings,
 )
 
 process_event_test_cases_base: tuple[
-    tuple[str, MockedController, Event, MockedController, bool], ...
+    tuple[str, RealOverlayController, Event, RealOverlayController, bool], ...
 ] = (
     (
         "initialize",
-        MockedController(state=create_state(own_username=None)),
+        create_controller(state=create_state(own_username=None)),
         InitializeAsEvent("NewPlayer"),
-        MockedController(state=create_state(own_username="NewPlayer")),
+        create_controller(state=create_state(own_username="NewPlayer")),
         True,
     ),
     (
         "re-initialize",
-        MockedController(
+        create_controller(
             state=create_state(
                 party_members={"OwnUsername", "Player1"},
                 lobby_players={"OwnUsername", "Player1"},
@@ -61,19 +63,19 @@ process_event_test_cases_base: tuple[
             )
         ),
         InitializeAsEvent("NewPlayer"),
-        MockedController(state=create_state(own_username="NewPlayer")),
+        create_controller(state=create_state(own_username="NewPlayer")),
         True,
     ),
     (
         "swap lobby",
-        MockedController(
+        create_controller(
             wants_shown=True,
             state=create_state(
                 party_members={"OwnUsername", "Player2"}, lobby_players={"RandomPlayer"}
             ),
         ),
         LobbySwapEvent(),
-        MockedController(
+        create_controller(
             wants_shown=None,
             state=create_state(party_members={"OwnUsername", "Player2"}),
         ),
@@ -81,69 +83,69 @@ process_event_test_cases_base: tuple[
     ),
     (
         "swap lobby clears autowho",
-        MockedController(autowho_event_set=True),
+        create_controller(autowho_event_set=True),
         LobbySwapEvent(),
-        MockedController(autowho_event_set=False),
+        create_controller(autowho_event_set=False),
         True,  # TODO: Could be False
     ),
     (
         "lobby join solo",
-        MockedController(wants_shown=True),
+        create_controller(wants_shown=True),
         LobbyJoinEvent("JooSGwsk", player_count=1, player_cap=8),
-        MockedController(
+        create_controller(
             state=create_state(in_queue=True, lobby_players={OWN_USERNAME})
         ),
         True,
     ),
     (
         "lobby join doubles/fours",
-        MockedController(wants_shown=False),
+        create_controller(wants_shown=False),
         LobbyJoinEvent("VNkQSmXugzD", player_count=1, player_cap=16),
-        MockedController(
+        create_controller(
             state=create_state(in_queue=True, lobby_players={OWN_USERNAME})
         ),
         True,
     ),
     (
         "lobby leave",
-        MockedController(state=create_state(lobby_players={"Player1"}, in_queue=True)),
+        create_controller(state=create_state(lobby_players={"Player1"}, in_queue=True)),
         LobbyLeaveEvent("finTmD6Lq"),
-        MockedController(state=create_state(lobby_players={"Player1"}, in_queue=True)),
+        create_controller(state=create_state(lobby_players={"Player1"}, in_queue=True)),
         False,
     ),
     (
         "lobby leave out of queue",
-        MockedController(
+        create_controller(
             wants_shown=True, state=create_state(lobby_players={"Player1"})
         ),
         LobbyLeaveEvent("idJfqPlA5T"),
         # TODO: Should the existing player get removed?
-        MockedController(
+        create_controller(
             state=create_state(lobby_players={"Player1", OWN_USERNAME}, in_queue=True)
         ),
         True,
     ),
     (
         "chat message in queue",
-        MockedController(state=create_state(in_queue=True)),
+        create_controller(state=create_state(in_queue=True)),
         ChatMessageEvent(username="Player1", message="Hello!"),
-        MockedController(state=create_state(in_queue=True, lobby_players={"Player1"})),
+        create_controller(state=create_state(in_queue=True, lobby_players={"Player1"})),
         True,
     ),
     (
         "chat message out of queue",
-        MockedController(state=create_state(in_queue=False)),
+        create_controller(state=create_state(in_queue=False)),
         ChatMessageEvent(username="Player1", message="Hello!"),
-        MockedController(state=create_state(in_queue=False)),
+        create_controller(state=create_state(in_queue=False)),
         False,
     ),
     (
         "lobby list out of queue",
-        MockedController(
+        create_controller(
             state=create_state(lobby_players={"PersonFromLastLobby"}, in_queue=False)
         ),
         LobbyListEvent([OWN_USERNAME, "Player1", "Player2"]),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={OWN_USERNAME, "Player1", "Player2"}, in_queue=False
             ),
@@ -154,12 +156,12 @@ process_event_test_cases_base: tuple[
     (
         # NOTE: Not a valid test case any more since /who no longer works in queue
         "lobby list in queue",
-        MockedController(
+        create_controller(
             state=create_state(lobby_players={"PersonFromLastLobby"}, in_queue=True),
             wants_shown=False,
         ),  # Old members cleared
         LobbyListEvent([OWN_USERNAME, "Player1", "Player2"]),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={OWN_USERNAME, "Player1", "Player2"}, in_queue=True
             ),
@@ -169,14 +171,14 @@ process_event_test_cases_base: tuple[
     ),
     (
         "lobby list early in game",
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"PersonFromLastLobby"}, last_game_start=10
             ),
             wants_shown=None,
         ),  # Old members cleared
         LobbyListEvent([OWN_USERNAME, "Player1", "Player2"]),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={OWN_USERNAME, "Player1", "Player2"},
                 last_game_start=10,
@@ -188,7 +190,7 @@ process_event_test_cases_base: tuple[
     ),
     (
         "lobby list late in game",
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"PersonFromLastLobby"},
                 last_game_start=10,
@@ -197,7 +199,7 @@ process_event_test_cases_base: tuple[
             wants_shown=None,
         ),  # Old members cleared
         LobbyListEvent([OWN_USERNAME, "Player1", "Player2"]),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={OWN_USERNAME, "Player1", "Player2"},
                 last_game_start=10,
@@ -208,23 +210,23 @@ process_event_test_cases_base: tuple[
     ),
     (
         "party attach",
-        MockedController(),
+        create_controller(),
         PartyAttachEvent("Player2"),
-        MockedController(state=create_state(party_members={"OwnUsername", "Player2"})),
+        create_controller(state=create_state(party_members={"OwnUsername", "Player2"})),
         True,
     ),
     (
         "party detach",
-        MockedController(state=create_state(party_members={"OwnUsername", "Player2"})),
+        create_controller(state=create_state(party_members={"OwnUsername", "Player2"})),
         PartyDetachEvent(),
-        MockedController(),
+        create_controller(),
         True,
     ),
     (
         "party join multiple",
-        MockedController(state=create_state(party_members={"OwnUsername", "Player2"})),
+        create_controller(state=create_state(party_members={"OwnUsername", "Player2"})),
         PartyJoinEvent(["Player3", "Player4"]),
-        MockedController(
+        create_controller(
             state=create_state(
                 party_members={"OwnUsername", "Player2", "Player3", "Player4"}
             )
@@ -233,61 +235,61 @@ process_event_test_cases_base: tuple[
     ),
     (
         "party leave",
-        MockedController(
+        create_controller(
             state=create_state(party_members={"OwnUsername", "Player2", "Player3"})
         ),
         PartyLeaveEvent(["Player3"]),
-        MockedController(state=create_state(party_members={"OwnUsername", "Player2"})),
+        create_controller(state=create_state(party_members={"OwnUsername", "Player2"})),
         True,
     ),
     (
         "party leave multiple",
-        MockedController(
+        create_controller(
             state=create_state(party_members={"OwnUsername", "Player2", "Player3"})
         ),
         PartyLeaveEvent(["Player3", "Player2"]),
-        MockedController(state=create_state(party_members={"OwnUsername"})),
+        create_controller(state=create_state(party_members={"OwnUsername"})),
         True,
     ),
     (
         "party list incoming",
-        MockedController(
+        create_controller(
             state=create_state(party_members={"OwnUsername", "Player2", "Player3"})
         ),
         PartyListIncomingEvent(),
-        MockedController(),
+        create_controller(),
         False,
     ),
     (
         "party list moderators",
-        MockedController(state=create_state(party_members={"OwnUsername"})),
+        create_controller(state=create_state(party_members={"OwnUsername"})),
         PartyMembershipListEvent(usernames=["Player1", "Player2"], role="moderators"),
-        MockedController(
+        create_controller(
             state=create_state(party_members={"Player1", "Player2", "OwnUsername"})
         ),
         True,
     ),
     (
         "bedwars game starting soon",
-        MockedController(),
+        create_controller(),
         BedwarsGameStartingSoonEvent(seconds=5),
-        MockedController(),
+        create_controller(),
         False,  # No need to redraw the screen - only show the overlay
     ),
     (
         "bedwars game starting soon, already in queue",
-        MockedController(state=create_state(in_queue=True)),
+        create_controller(state=create_state(in_queue=True)),
         BedwarsGameStartingSoonEvent(seconds=4),
-        MockedController(state=create_state(in_queue=True)),
+        create_controller(state=create_state(in_queue=True)),
         False,  # No need to redraw the screen - only show the overlay
     ),
     (
         "start bedwars game",
-        MockedController(
+        create_controller(
             wants_shown=False, state=create_state(in_queue=True, now_func=lambda: 1234)
         ),
         StartBedwarsGameEvent(is_bedwars_duel=False),
-        MockedController(
+        create_controller(
             wants_shown=None,
             autowho_event_set=True,
             state=create_state(in_queue=False, out_of_sync=True, last_game_start=1234),
@@ -296,13 +298,13 @@ process_event_test_cases_base: tuple[
     ),
     (
         "start bedwars duels game when disabled in duels",
-        MockedController(
+        create_controller(
             wants_shown=False,
             state=create_state(in_queue=True),
             # Disabled in duels is the default
         ),
         StartBedwarsGameEvent(is_bedwars_duel=True),
-        MockedController(
+        create_controller(
             wants_shown=False,
             state=create_state(in_queue=True),
         ),
@@ -310,13 +312,13 @@ process_event_test_cases_base: tuple[
     ),
     (
         "start bedwars duels game when enabled in duels",
-        MockedController(
+        create_controller(
             wants_shown=False,
             state=create_state(in_queue=True, now_func=lambda: 1234),
             settings=make_settings(activate_in_bedwars_duels=True),
         ),
         StartBedwarsGameEvent(is_bedwars_duel=True),
-        MockedController(
+        create_controller(
             wants_shown=None,
             autowho_event_set=True,
             state=create_state(in_queue=False, out_of_sync=True, last_game_start=1234),
@@ -327,13 +329,13 @@ process_event_test_cases_base: tuple[
     (
         "start bedwars game when not ready",
         # Got a start bedwars game event while fast forwarding -> don't autowho
-        MockedController(
+        create_controller(
             ready=False,
             wants_shown=False,
             state=create_state(in_queue=True, now_func=lambda: 1234),
         ),
         StartBedwarsGameEvent(is_bedwars_duel=False),
-        MockedController(
+        create_controller(
             ready=False,
             wants_shown=None,
             state=create_state(in_queue=False, out_of_sync=True, last_game_start=1234),
@@ -342,7 +344,7 @@ process_event_test_cases_base: tuple[
     ),
     (
         "final kill",
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player1", "Player2"},
                 alive_players={"Player1", "Player2"},
@@ -352,7 +354,7 @@ process_event_test_cases_base: tuple[
             dead_player="Player1",
             raw_message="Player1 was killed by Player2. FINAL KILL!",
         ),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
             )
@@ -361,7 +363,7 @@ process_event_test_cases_base: tuple[
     ),
     (
         "final kill on already dead player",
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
             )
@@ -370,7 +372,7 @@ process_event_test_cases_base: tuple[
             dead_player="Player1",
             raw_message="Player1 was killed by Player2. FINAL KILL!",
         ),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
             )
@@ -379,14 +381,14 @@ process_event_test_cases_base: tuple[
     ),
     (
         "disconnect",
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player1", "Player2"},
                 alive_players={"Player1", "Player2"},
             )
         ),
         BedwarsDisconnectEvent(username="Player1"),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
             )
@@ -395,13 +397,13 @@ process_event_test_cases_base: tuple[
     ),
     (
         "disconnect while not alive",
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
             )
         ),
         BedwarsDisconnectEvent(username="Player1"),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
             )
@@ -410,11 +412,11 @@ process_event_test_cases_base: tuple[
     ),
     (
         "disconnect while not in lobby",
-        MockedController(
+        create_controller(
             state=create_state(lobby_players={"Player2"}, alive_players={"Player2"})
         ),
         BedwarsDisconnectEvent(username="Player1"),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player2", "Player1"}, alive_players={"Player2"}
             )
@@ -423,26 +425,26 @@ process_event_test_cases_base: tuple[
     ),
     (
         "disconnect while not in lobby, but alive somehow",
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player2"}, alive_players={"Player1", "Player2"}
             )
         ),
         BedwarsDisconnectEvent(username="Player1"),
-        MockedController(
+        create_controller(
             state=create_state(lobby_players={"Player2"}, alive_players={"Player2"})
         ),
         True,
     ),
     (
         "reconnect",
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
             )
         ),
         BedwarsReconnectEvent(username="Player1"),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player1", "Player2"},
                 alive_players={"Player1", "Player2"},
@@ -452,13 +454,13 @@ process_event_test_cases_base: tuple[
     ),
     (
         "disconnect while alive",
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
             )
         ),
         BedwarsReconnectEvent(username="Player2"),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player1", "Player2"}, alive_players={"Player2"}
             )
@@ -467,11 +469,11 @@ process_event_test_cases_base: tuple[
     ),
     (
         "reconnect while not in lobby",
-        MockedController(
+        create_controller(
             state=create_state(lobby_players={"Player2"}, alive_players={"Player2"})
         ),
         BedwarsReconnectEvent(username="Player1"),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player1", "Player2"},
                 alive_players={"Player1", "Player2"},
@@ -481,13 +483,13 @@ process_event_test_cases_base: tuple[
     ),
     (
         "reconnect while not in lobby, but alive somehow",
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player2"}, alive_players={"Player1", "Player2"}
             )
         ),
         BedwarsReconnectEvent(username="Player1"),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player1", "Player2"},
                 alive_players={"Player1", "Player2"},
@@ -497,79 +499,79 @@ process_event_test_cases_base: tuple[
     ),
     (
         "end bedwars game",
-        MockedController(
+        create_controller(
             state=create_state(lobby_players={"a", "bunch", "of", "players"})
         ),
         EndBedwarsGameEvent(),
-        MockedController(update_presence_event_set=True),
+        create_controller(update_presence_event_set=True),
         True,
     ),
     (
         "bedwars game end clears autowho",
-        MockedController(autowho_event_set=True),
+        create_controller(autowho_event_set=True),
         EndBedwarsGameEvent(),
-        MockedController(autowho_event_set=False, update_presence_event_set=True),
+        create_controller(autowho_event_set=False, update_presence_event_set=True),
         True,  # TODO: Could be False
     ),
     # Special cases
     (
         # New nickname when own username is unknown
         "new nickname unknown username",
-        MockedController(state=create_state(own_username=None)),
+        create_controller(state=create_state(own_username=None)),
         NewNicknameEvent("AmazingNick"),
-        MockedController(state=create_state(own_username=None)),
+        create_controller(state=create_state(own_username=None)),
         False,
     ),
     (
         # Party leave when own username is unknown
         "party leave unknown username",
-        MockedController(
+        create_controller(
             state=create_state(party_members={"Player1", "Player2"}, own_username=None)
         ),
         PartyDetachEvent(),
-        MockedController(state=create_state(own_username=None)),
+        create_controller(state=create_state(own_username=None)),
         True,
     ),
     (
         # Lobby swap when own username is unknown
         "lobby swap unknown username",
-        MockedController(
+        create_controller(
             wants_shown=False,
             state=create_state(lobby_players={"Player1", "Player2"}, own_username=None),
         ),
         LobbySwapEvent(),
-        MockedController(wants_shown=None, state=create_state(own_username=None)),
+        create_controller(wants_shown=None, state=create_state(own_username=None)),
         True,
     ),
     (
         # Player not in party leaves party
         "player not in party leaves party",
-        MockedController(state=create_state(party_members={"OwnUsername", "Player2"})),
+        create_controller(state=create_state(party_members={"OwnUsername", "Player2"})),
         PartyLeaveEvent(["RandomPlayer"]),
-        MockedController(state=create_state(party_members={"OwnUsername", "Player2"})),
+        create_controller(state=create_state(party_members={"OwnUsername", "Player2"})),
         # TODO: False,
         True,
     ),
     (
         # Player not in lobby leaves lobby
         "player not in lobby leaves lobby",
-        MockedController(
+        create_controller(
             state=create_state(in_queue=True, lobby_players={"Player1", "Player2"})
         ),
         LobbyLeaveEvent("RandomPlayer"),
-        MockedController(
+        create_controller(
             state=create_state(in_queue=True, lobby_players={"Player1", "Player2"})
         ),
         False,
     ),
     (
         "final kill on player not in lobby",
-        MockedController(state=create_state(lobby_players={"Player2"})),
+        create_controller(state=create_state(lobby_players={"Player2"})),
         BedwarsFinalKillEvent(
             dead_player="Player1",
             raw_message="Player1 was killed by Player2. FINAL KILL!",
         ),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player2", "Player1"}, alive_players={"Player2"}
             )
@@ -578,7 +580,7 @@ process_event_test_cases_base: tuple[
     ),
     (
         "final kill on player not in lobby, but alive somehow",
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"Player2"}, alive_players={"Player1", "Player2"}
             )
@@ -587,7 +589,7 @@ process_event_test_cases_base: tuple[
             dead_player="Player1",
             raw_message="Player1 was killed by Player2. FINAL KILL!",
         ),
-        MockedController(
+        create_controller(
             state=create_state(lobby_players={"Player2"}, alive_players={"Player2"})
         ),
         True,
@@ -595,40 +597,40 @@ process_event_test_cases_base: tuple[
     (
         # Small player cap -> not bedwars
         "player join non bedwars",
-        MockedController(),
+        create_controller(),
         LobbyJoinEvent("lll7a9UqaBV4h", player_count=2, player_cap=2),
-        MockedController(),
+        create_controller(),
         False,
     ),
     (
         "too few known players in lobby",
-        MockedController(),
+        create_controller(),
         LobbyJoinEvent("rkxyCRIUchq", player_count=5, player_cap=16),
-        MockedController(
+        create_controller(
             state=create_state(in_queue=True, lobby_players={OWN_USERNAME})
         ),
         True,
     ),
     (
         "too many known players in lobby",
-        MockedController(
+        create_controller(
             state=create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=True)
         ),
         LobbyJoinEvent("RoUmY6hqDeAZo", player_count=1, player_cap=16),
-        MockedController(
+        create_controller(
             state=create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=True)
         ),
         False,
     ),
     (
         "too many known players in lobby, too few remaining",
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"PlayerA", "PlayerB", "PlayerC"}, in_queue=True
             )
         ),
         LobbyJoinEvent("UgpXFdApWotX9", player_count=3, player_cap=16),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"PlayerA", "PlayerB", "PlayerC"}, in_queue=True
             )
@@ -637,11 +639,11 @@ process_event_test_cases_base: tuple[
     ),
     (
         "new queue with in-sync old lobby (weird)",
-        MockedController(
+        create_controller(
             state=create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=False)
         ),
         LobbyJoinEvent("mY7r7eVmAP", player_count=8, player_cap=16),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"PlayerA", "PlayerB", OWN_USERNAME}, in_queue=True
             )
@@ -650,7 +652,7 @@ process_event_test_cases_base: tuple[
     ),
     (
         "new queue with lobby from previous game",
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"PlayerA", "PlayerB"},
                 alive_players={"PlayerB"},
@@ -658,18 +660,18 @@ process_event_test_cases_base: tuple[
             )
         ),
         LobbyJoinEvent("oU9ivfVPB", player_count=8, player_cap=16),
-        MockedController(
+        create_controller(
             state=create_state(in_queue=True, lobby_players={OWN_USERNAME})
         ),
         True,
     ),
     (
         "new queue with old lobby and too many players",
-        MockedController(
+        create_controller(
             state=create_state(lobby_players={"PlayerA", "PlayerB"}, in_queue=False)
         ),
         LobbyJoinEvent("uTreXGQE", player_count=1, player_cap=16),
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"PlayerA", "PlayerB", OWN_USERNAME}, in_queue=True
             )
@@ -678,25 +680,25 @@ process_event_test_cases_base: tuple[
     ),
     (
         "don't remove yourself from the party",
-        MockedController(state=create_state()),
+        create_controller(state=create_state()),
         PartyLeaveEvent(["OwnUsername"]),
-        MockedController(state=create_state()),
+        create_controller(state=create_state()),
         True,
     ),
     (
         "clear the party when you leave",
-        MockedController(
+        create_controller(
             state=create_state(party_members={"OwnUsername", "abc", "def"})
         ),
         PartyLeaveEvent(["OwnUsername"]),
-        MockedController(state=create_state()),
+        create_controller(state=create_state()),
         True,
     ),
     (
         "party leave with no own_username",
-        MockedController(state=create_state(own_username=None)),
+        create_controller(state=create_state(own_username=None)),
         PartyLeaveEvent(["OwnUsername"]),
-        MockedController(state=create_state(own_username=None)),
+        create_controller(state=create_state(own_username=None)),
         True,
     ),
 )
@@ -717,17 +719,16 @@ process_event_test_cases = [
     ids=process_event_test_ids,
 )
 def test_process_event(
-    initial_controller: MockedController,
+    initial_controller: RealOverlayController,
     event: Event,
-    target_controller: MockedController,
+    target_controller: RealOverlayController,
     redraw: bool,
 ) -> None:
     """Assert that process_event functions properly"""
     initial_controller.state, will_redraw = process_event(initial_controller, event)
 
     new_controller = initial_controller
-    assert new_controller == target_controller
-    assert new_controller.extra == target_controller.extra
+    assert_controllers_equal(new_controller, target_controller)
     assert will_redraw == redraw
 
 
@@ -743,7 +744,7 @@ def test_process_event_set_nickname(event: Event) -> None:
     username = "MyIGN"
     nick = "AmazingNick"
 
-    controller = MockedController(state=create_state(own_username=username))
+    controller = create_controller(state=create_state(own_username=username))
 
     with unittest.mock.patch(
         "prism.overlay.process_event.set_nickname"
@@ -760,7 +761,7 @@ def test_process_event_bedwars_game_ended() -> None:
     """
     Assert that bedwars_game_ended is called when EndBedwarsGameEvent is received
     """
-    controller = MockedController()
+    controller = create_controller()
 
     with unittest.mock.patch(
         "prism.overlay.process_event.bedwars_game_ended"
@@ -779,7 +780,7 @@ INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.m
 
 FAST_FORWARD_STATE_CASES: Final = (
     (
-        MockedController(state=create_state(own_username=None)),
+        create_controller(state=create_state(own_username=None)),
         (
             f"{INFO}Setting user: Me",
             f"{CHAT}Party Moderators: Player1 ● [MVP+] Player2 ● ",
@@ -789,7 +790,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}DH0Jtkt0d has joined (4/16)!",
             f"{CHAT}[MVP+] Player1: hows ur day?",
         ),
-        MockedController(
+        create_controller(
             state=create_state(
                 own_username="Me",
                 party_members={"Me", "Player1", "Player2"},
@@ -800,7 +801,7 @@ FAST_FORWARD_STATE_CASES: Final = (
     ),
     (
         # Excerpt from new multiver lunar logfile
-        MockedController(state=create_state(own_username=None)),
+        create_controller(state=create_state(own_username=None)),
         (
             "[16:54:00] [Client thread/INFO]: Setting user: Player595",  # Strange
             "[16:54:00] [Client thread/INFO]: (Session ID is token:0:Player595)",
@@ -816,11 +817,11 @@ FAST_FORWARD_STATE_CASES: Final = (
             "[16:55:01] [Client thread/INFO]: [CHAT]                          ",
             "[16:55:01] [Client thread/INFO]: [CHAT] --------------  Guild: Message Of The Day  --------------",  # noqa: E501
         ),
-        MockedController(state=create_state(own_username="YourIGN")),
+        create_controller(state=create_state(own_username="YourIGN")),
     ),
     (
         # Ensure game starts in lucky blocks
-        MockedController(
+        create_controller(
             state=create_state(
                 now_func=lambda: 1.5,
                 in_queue=True,
@@ -854,7 +855,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             "[16:12:40] [Client thread/INFO]: [CHAT] ",
             "[16:12:40] [Client thread/INFO]: [CHAT] ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
         ),
-        MockedController(
+        create_controller(
             autowho_event_set=True,
             state=create_state(
                 last_game_start=1.5,
@@ -881,7 +882,7 @@ FAST_FORWARD_STATE_CASES: Final = (
         ),
     ),
     (
-        MockedController(state=create_state(own_username=None)),
+        create_controller(state=create_state(own_username=None)),
         (
             f"{INFO}Setting user: Me",
             f"{CHAT}Party Moderators: Player1 ● [MVP+] Player2 ● ",
@@ -933,7 +934,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
             f"{CHAT}ONLINE: Player1, Player2, Me, Player4, Player5, Player6, Player7, Player8, Player9, Player10, Player11, Player12",  # noqa: E501
         ),
-        MockedController(
+        create_controller(
             update_presence_event_set=True,
             autowho_event_set=True,
             state=create_state(
@@ -959,13 +960,13 @@ FAST_FORWARD_STATE_CASES: Final = (
         ),
     ),
     (
-        MockedController(state=create_state(own_username=None)),
+        create_controller(state=create_state(own_username=None)),
         (
             f"{INFO}Setting user: MYIGN",
             f"{CHAT}ONLINE: Player1, Player2, MYIGN, Player4",
             f"{CHAT}Of6neF has joined (4/12)!",
         ),
-        MockedController(
+        create_controller(
             state=create_state(
                 own_username="MYIGN",
                 lobby_players={
@@ -980,13 +981,13 @@ FAST_FORWARD_STATE_CASES: Final = (
         ),
     ),
     (
-        MockedController(state=create_state(own_username=None)),
+        create_controller(state=create_state(own_username=None)),
         (
             f"{INFO}Setting user: Me",
             f"{CHAT}ONLINE: Player1, Player2, Me, Player4",
             f"{CHAT}EIfDv has joined (4/12)!",
         ),
-        MockedController(
+        create_controller(
             state=create_state(
                 own_username="Me",
                 lobby_players={"Player1", "Player2", "Me", "Player4"},
@@ -995,7 +996,7 @@ FAST_FORWARD_STATE_CASES: Final = (
         ),
     ),
     (
-        MockedController(wants_shown=True),
+        create_controller(wants_shown=True),
         (
             f"{INFO}Setting user: Me",
             f"{CHAT}Party Moderators: Teammate1 ● [MVP+] Teammate2 ● ",
@@ -1036,7 +1037,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}Player1 disconnected.",
             f"{CHAT}Teammate2 disconnected.",
         ),
-        MockedController(
+        create_controller(
             autowho_event_set=True,
             state=create_state(
                 own_username="Me",
@@ -1065,7 +1066,7 @@ FAST_FORWARD_STATE_CASES: Final = (
     ),
     (
         # Disconnect right before game starts, then rejoin
-        MockedController(state=create_state(in_queue=True)),
+        create_controller(state=create_state(in_queue=True)),
         (
             f"{CHAT}ONLINE: Player1, Player2, Player3, Player4, Player5, Player6, Player7, OwnUsername",  # noqa: E501
             f"{CHAT}The game starts in 5 seconds!",
@@ -1077,11 +1078,11 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}                         ",
             f"{CHAT}Sending you to mini10AR!",
         ),
-        MockedController(),  # TODO: Keep the lobby?
+        create_controller(),  # TODO: Keep the lobby?
     ),
     (
         # Disconnect during the game, then rejoin
-        MockedController(state=create_state(in_queue=True)),
+        create_controller(state=create_state(in_queue=True)),
         (
             f"{CHAT}ONLINE: Player1, Player2, Player3, Player4, Player5, Player6, Player7, OwnUsername",  # noqa: E501
             f"{CHAT}The game starts in 5 seconds!",
@@ -1102,10 +1103,10 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}                         ",
             f"{CHAT}Sending you to mini10AR!",
         ),
-        MockedController(),  # TODO: Keep the lobby?
+        create_controller(),  # TODO: Keep the lobby?
     ),
     (
-        MockedController(
+        create_controller(
             state=create_state(
                 lobby_players={"OwnUsername", "Player1", "Player2"},
                 alive_players={"OwnUsername", "Player2"},
@@ -1128,7 +1129,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
             f"{CHAT}lV4Za9p has joined (1/12)!",
         ),
-        MockedController(
+        create_controller(
             state=create_state(in_queue=True, lobby_players={OWN_USERNAME}),
             update_presence_event_set=True,
             wants_shown=None,
@@ -1136,15 +1137,15 @@ FAST_FORWARD_STATE_CASES: Final = (
     ),
     # Don't set in_queue in sumo
     (
-        MockedController(state=create_state(in_queue=False)),
+        create_controller(state=create_state(in_queue=False)),
         (
             f"{CHAT}wm3EcJCi has joined (1/2)!",
             f"{CHAT}LCvmX8z has joined (2/2)!",
         ),
-        MockedController(state=create_state(in_queue=False)),
+        create_controller(state=create_state(in_queue=False)),
     ),
     (
-        MockedController(state=create_state(in_queue=False)),
+        create_controller(state=create_state(in_queue=False)),
         (
             f"{CHAT}wm3EcJCi has joined (1/2)!",
             f"{CHAT}LCvmX8z has joined (2/2)!",
@@ -1155,10 +1156,10 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}The game starts in 1 second!",
             f"{CHAT}Your party was split for balancing purposes.",
         ),
-        MockedController(state=create_state(in_queue=False)),
+        create_controller(state=create_state(in_queue=False)),
     ),
     (
-        MockedController(state=create_state(in_queue=False)),
+        create_controller(state=create_state(in_queue=False)),
         (
             f"{CHAT}wm3EcJCi has joined (1/2)!",
             f"{CHAT}LCvmX8z has joined (2/2)!",
@@ -1192,11 +1193,11 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}Your stats did not change because you dueled someone in your party!",  # noqa: E501
             f"{CHAT}Sending you to mini37CP!",
         ),
-        MockedController(state=create_state(in_queue=False)),
+        create_controller(state=create_state(in_queue=False)),
     ),
     (
         # Regular queue, start
-        MockedController(state=create_state(now_func=lambda: 3.5)),
+        create_controller(state=create_state(now_func=lambda: 3.5)),
         (
             f"{CHAT}hhSWoTBsCEubb4 has joined (16/16)!",
             f"{CHAT}[MVP+] Player1: hows ur day?",
@@ -1214,7 +1215,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
             f"{CHAT}[SHOUT] [RED] [VIP+] Player2: some chat message",
         ),
-        MockedController(
+        create_controller(
             autowho_event_set=True,
             state=create_state(
                 lobby_players={
@@ -1230,7 +1231,7 @@ FAST_FORWARD_STATE_CASES: Final = (
     ),
     (
         # Regular queue, start, end
-        MockedController(state=create_state()),
+        create_controller(state=create_state()),
         (
             f"{CHAT}hhSWoTBsCEubb4 has joined (16/16)!",
             f"{CHAT}[MVP+] Player1: hows ur day?",
@@ -1258,14 +1259,14 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}",
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
         ),
-        MockedController(
+        create_controller(
             state=create_state(),
             update_presence_event_set=True,
         ),
     ),
     (
         # Regular queue, start and /who
-        MockedController(state=create_state(now_func=lambda: 1.5)),
+        create_controller(state=create_state(now_func=lambda: 1.5)),
         (
             f"{CHAT}hhSWoTBsCEubb4 has joined (16/16)!",
             f"{CHAT}[MVP+] Player2: hows ur day?",
@@ -1284,7 +1285,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}ONLINE: Player1, Player2, Player3, Player4, Player5, Player6, Player7, Player8, Player9, Player10, Player11, Player12, Player13, Player14, Player15",  # noqa: E501
             f"{CHAT}[SHOUT] [RED] [VIP+] Player2: some chat message",
         ),
-        MockedController(
+        create_controller(
             autowho_event_set=True,
             state=create_state(
                 lobby_players={
@@ -1310,7 +1311,7 @@ FAST_FORWARD_STATE_CASES: Final = (
     ),
     (
         # Setting user clears state
-        MockedController(),
+        create_controller(),
         (
             f"{CHAT}hhSWoTBsCEubb4 has joined (16/16)!",
             f"{CHAT}[MVP+] Player2: hows ur day?",
@@ -1325,7 +1326,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
             f"{INFO}Setting user: MyUsername",
         ),
-        MockedController(
+        create_controller(
             autowho_event_set=True, state=create_state(own_username="MyUsername")
         ),
     ),
@@ -1336,15 +1337,14 @@ FAST_FORWARD_STATE_CASES: Final = (
     "initial_controller, loglines, target_controller", FAST_FORWARD_STATE_CASES
 )
 def test_fast_forward_state(
-    initial_controller: MockedController,
+    initial_controller: RealOverlayController,
     loglines: Iterable[str],
-    target_controller: MockedController,
+    target_controller: RealOverlayController,
 ) -> None:
     fast_forward_state(initial_controller, loglines)
 
     new_controller = initial_controller
-    assert new_controller == target_controller
-    assert new_controller.extra == target_controller.extra
+    assert_controllers_equal(new_controller, target_controller)
 
 
 @pytest.mark.parametrize(
@@ -1352,18 +1352,18 @@ def test_fast_forward_state(
     (
         (
             (f"{CHAT}You have 1 unclaimed leveling reward!",),
-            MockedController(redraw_event_set=False),
+            create_controller(redraw_event_set=False),
         ),
         (
             (f"{CHAT}hhSWoTBsCEubb4 has joined (1/16)!",),
-            MockedController(
+            create_controller(
                 state=create_state(in_queue=True, lobby_players={OWN_USERNAME}),
                 redraw_event_set=True,
             ),
         ),
         (
             (f"{CHAT}ONLINE: Player1, Player2",),
-            MockedController(
+            create_controller(
                 state=create_state(lobby_players={"Player1", "Player2"}),
                 redraw_event_set=True,
                 wants_shown=True,
@@ -1372,10 +1372,9 @@ def test_fast_forward_state(
     ),
 )
 def test_process_loglines(
-    loglines: tuple[str], resulting_controller: MockedController
+    loglines: tuple[str], resulting_controller: RealOverlayController
 ) -> None:
-    controller = MockedController()
+    controller = create_controller()
 
     process_loglines(loglines, controller)
-    assert controller == resulting_controller
-    assert controller.extra == resulting_controller.extra
+    assert_controllers_equal(controller, resulting_controller)
