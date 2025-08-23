@@ -1,5 +1,5 @@
-from prism.overlay.player import NickedPlayer, PendingPlayer
 from prism.overlay.player_cache import PlayerCache
+from prism.player import NickedPlayer, PendingPlayer
 from tests.prism.overlay.utils import make_player
 
 

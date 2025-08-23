@@ -1,15 +1,9 @@
 import logging
 from dataclasses import replace
 
+from prism.hypixel import create_known_player, get_playerdata_field
 from prism.overlay.controller import ERROR_DURING_PROCESSING, OverlayController
-from prism.overlay.player import (
-    KnownPlayer,
-    NickedPlayer,
-    PendingPlayer,
-    UnknownPlayer,
-    create_known_player,
-    get_playerdata_field,
-)
+from prism.player import KnownPlayer, NickedPlayer, PendingPlayer, UnknownPlayer
 
 logger = logging.getLogger(__name__)
 

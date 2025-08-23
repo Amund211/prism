@@ -6,13 +6,7 @@ from typing import assert_never
 from prism.overlay.output.cells import CellValue, ColorSection, ColumnName
 from prism.overlay.output.color import GUIColor, MinecraftColor, TerminalColor
 from prism.overlay.output.config import RatingConfig, RatingConfigCollection
-from prism.overlay.player import (
-    KnownPlayer,
-    NickedPlayer,
-    PendingPlayer,
-    Player,
-    UnknownPlayer,
-)
+from prism.player import KnownPlayer, NickedPlayer, PendingPlayer, Player, UnknownPlayer
 from prism.utils import format_seconds_short, truncate_float
 
 TERMINAL_FORMATTINGS = (
@@ -391,7 +385,7 @@ def render_stars(
 
 @lru_cache(maxsize=100)
 def render_stats(
-    player: "Player",
+    player: Player,
     rating_configs: RatingConfigCollection,
 ) -> RenderedStats:
     username_str = player.username

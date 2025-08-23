@@ -9,7 +9,7 @@ from requests.exceptions import RequestException, SSLError
 
 from prism import VERSION_STRING
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
-from prism.overlay.player import MISSING_WINSTREAKS, GamemodeName, Winstreaks
+from prism.player import MISSING_WINSTREAKS, GamemodeName, Winstreaks
 from prism.ratelimiting import RateLimiter
 from prism.requests import make_prism_requests_session
 from prism.retry import ExecutionError, execute_with_retry

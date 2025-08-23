@@ -1,5 +1,6 @@
 import pytest
 
+from prism.hypixel import create_known_player
 from prism.overlay.output.cell_renderer import (
     GUI_COLORS,
     TERMINAL_FORMATTINGS,
@@ -12,14 +13,13 @@ from prism.overlay.output.config import (
     read_rating_config_collection_dict,
 )
 from prism.overlay.output.overlay.utils import OverlayRowData, player_to_row
-from prism.overlay.player import (
+from prism.player import (
     KnownPlayer,
     NickedPlayer,
     PendingPlayer,
     Player,
     Stats,
     UnknownPlayer,
-    create_known_player,
 )
 
 CURRENT_TIME_MS = 1234567890123

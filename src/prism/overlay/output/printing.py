@@ -5,7 +5,7 @@ from prism.overlay.output.cell_renderer import pick_columns, render_stats
 from prism.overlay.output.cells import COLUMN_NAMES, ColumnName
 from prism.overlay.output.color import TerminalColor
 from prism.overlay.output.config import RatingConfigCollection
-from prism.overlay.player import Player
+from prism.player import Player
 
 # Column separator
 SEP = " " * 4

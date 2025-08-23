@@ -7,8 +7,8 @@ from prism.overlay.controller import OverlayController
 from prism.overlay.output.cells import InfoCellValue
 from prism.overlay.output.overlay.stats_overlay import StatsOverlay
 from prism.overlay.output.overlay.utils import OverlayRowData, player_to_row
-from prism.overlay.player import Player
 from prism.overlay.threading import UpdateCheckerThread
+from prism.player import Player
 
 
 def run_overlay(

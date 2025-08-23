@@ -3,15 +3,10 @@ from collections.abc import Mapping
 import pytest
 
 from prism.calc import bedwars_level_from_exp
+from prism.hypixel import create_known_player
 from prism.overlay.output.cells import ColumnName
-from prism.overlay.player import (
-    KnownPlayer,
-    Player,
-    Stats,
-    Winstreaks,
-    create_known_player,
-    sort_players,
-)
+from prism.overlay.rating import sort_players
+from prism.player import KnownPlayer, Player, Stats, Winstreaks
 from tests.prism.overlay.utils import make_player
 
 CURRENT_TIME_MS = 1234567890123

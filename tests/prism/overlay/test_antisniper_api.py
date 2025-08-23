@@ -7,7 +7,7 @@ from prism.overlay.antisniper_api import (
     AntiSniperAPIKeyHolder,
     parse_estimated_winstreaks_response,
 )
-from prism.overlay.player import MISSING_WINSTREAKS, Winstreaks
+from prism.player import MISSING_WINSTREAKS, Winstreaks
 from tests.prism.overlay.utils import make_winstreaks
 
 assert MISSING_WINSTREAKS == make_winstreaks()

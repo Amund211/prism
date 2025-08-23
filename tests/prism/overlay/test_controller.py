@@ -5,8 +5,8 @@ from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFound
 from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from prism.overlay.controller import ERROR_DURING_PROCESSING
 from prism.overlay.nick_database import NickDatabase
-from prism.overlay.player import MISSING_WINSTREAKS, Winstreaks
 from prism.overlay.real_controller import RealOverlayController
+from prism.player import MISSING_WINSTREAKS, Winstreaks
 from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
 from tests.prism.overlay.utils import (
@@ -280,8 +280,6 @@ def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection()
 
 def test_mocked_controller_get_estimated_winstreaks_dependency_injection() -> None:
     """Test that MockedController uses injected get_estimated_winstreaks function"""
-    from prism.overlay.player import Winstreaks
-
     custom_winstreaks = Winstreaks(overall=10, solo=8, doubles=6, threes=4, fours=2)
     custom_accurate = False
 

@@ -16,8 +16,8 @@ from prism.overlay.behaviour import (
 )
 from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKeyDict
-from prism.overlay.player import MISSING_WINSTREAKS
 from prism.overlay.settings import NickValue, Settings, SettingsDict
+from prism.player import MISSING_WINSTREAKS
 from tests.prism.overlay import test_get_stats
 from tests.prism.overlay.utils import (
     CUSTOM_RATING_CONFIG_COLLECTION_DICT,
