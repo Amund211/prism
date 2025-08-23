@@ -17,9 +17,18 @@ from prism.overlay.behaviour import (
 )
 from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKeyDict
-from prism.overlay.settings import NickValue, Settings, SettingsDict
+from prism.overlay.settings import (
+    NickValue,
+    Settings,
+    SettingsDict,
+    get_settings,
+)
 from prism.player import MISSING_WINSTREAKS
 from tests.prism.overlay import test_get_stats
+from tests.prism.overlay.test_settings import (
+    DEFAULT_STATS_THREAD_COUNT,
+    noop_update_settings,
+)
 from tests.prism.overlay.utils import (
     CUSTOM_RATING_CONFIG_COLLECTION_DICT,
     MockedController,
@@ -27,6 +36,7 @@ from tests.prism.overlay.utils import (
     make_player,
     make_settings,
     make_winstreaks,
+    no_close,
 )
 
 USERNAME = "MyIGN"
@@ -53,7 +63,12 @@ KNOWN_NICKS: tuple[dict[str, str], ...] = (
 @pytest.mark.parametrize("known_nicks", KNOWN_NICKS)
 def test_set_nickname(known_nicks: dict[str, str]) -> None:
     """Assert that set_nickname works when setting a nick"""
-    controller = MockedController(get_uuid=lambda username: UUID)
+    settings_file = no_close(io.StringIO())
+
+    controller = MockedController(
+        get_uuid=lambda username: UUID,
+        settings=make_settings(write_settings_file_utf8=lambda: settings_file),
+    )
     controller.player_cache.uncache_player = unittest.mock.MagicMock()  # type: ignore
 
     set_known_nicks(known_nicks, controller)
@@ -82,7 +97,13 @@ def test_set_nickname(known_nicks: dict[str, str]) -> None:
     }
 
     # Settings stored
-    assert controller._stored_settings == controller.settings
+    stored_settings = get_settings(
+        read_settings_file_utf8=lambda: io.StringIO(settings_file.getvalue()),
+        write_settings_file_utf8=lambda: io.StringIO(),
+        default_stats_thread_count=DEFAULT_STATS_THREAD_COUNT,
+        update_settings=noop_update_settings,
+    )
+    assert stored_settings == controller.settings
 
     # Nick updated in database
     assert controller.nick_database.get(NICK) == UUID
@@ -111,7 +132,12 @@ def test_unset_nickname(known_nicks: dict[str, str], explicit: bool) -> None:
     Unsetting is either explicit with username=None, or when the uuid of the player
     can't be found
     """
-    controller = MockedController(get_uuid=lambda username: UUID if explicit else None)
+    settings_file = no_close(io.StringIO())
+
+    controller = MockedController(
+        get_uuid=lambda username: UUID if explicit else None,
+        settings=make_settings(write_settings_file_utf8=lambda: settings_file),
+    )
     controller.player_cache.uncache_player = unittest.mock.MagicMock()  # type: ignore
 
     set_known_nicks(known_nicks, controller)
@@ -124,7 +150,13 @@ def test_unset_nickname(known_nicks: dict[str, str], explicit: bool) -> None:
     assert controller.settings.known_nicks.get(NICK, None) is None
 
     # Settings stored
-    assert controller._stored_settings == controller.settings
+    stored_settings = get_settings(
+        read_settings_file_utf8=lambda: io.StringIO(settings_file.getvalue()),
+        write_settings_file_utf8=lambda: io.StringIO(),
+        default_stats_thread_count=DEFAULT_STATS_THREAD_COUNT,
+        update_settings=noop_update_settings,
+    )
+    assert stored_settings == controller.settings
 
     # Nick updated in database
     assert controller.nick_database.get(NICK) is None
@@ -228,7 +260,10 @@ def test_get_and_cache_stats(
 
 
 def test_update_settings_nothing() -> None:
-    controller = MockedController()
+    settings_file = no_close(io.StringIO())
+    controller = MockedController(
+        settings=make_settings(write_settings_file_utf8=lambda: settings_file),
+    )
     settings_before = replace(controller.settings)
 
     # Make sure player cache and nick database aren't updated
@@ -238,16 +273,25 @@ def test_update_settings_nothing() -> None:
     update_settings(settings_before.to_dict(), controller)
 
     # We store the settings every time, even if no changes occurred.
-    assert controller.settings == controller._stored_settings == settings_before
+    stored_settings = get_settings(
+        read_settings_file_utf8=lambda: io.StringIO(settings_file.getvalue()),
+        write_settings_file_utf8=lambda: io.StringIO(),
+        default_stats_thread_count=DEFAULT_STATS_THREAD_COUNT,
+        update_settings=noop_update_settings,
+    )
+    assert controller.settings == stored_settings == settings_before
 
 
 def test_update_settings_known_nicks() -> None:
+    settings_file = no_close(io.StringIO())
+
     controller = MockedController(
         settings=make_settings(
             known_nicks={
                 "SuperbNick": {"uuid": "2", "comment": "2"},
                 "OldNick": {"uuid": "5", "comment": "5"},
-            }
+            },
+            write_settings_file_utf8=lambda: settings_file,
         ),
     )
 
@@ -263,7 +307,13 @@ def test_update_settings_known_nicks() -> None:
 
     update_settings(new_settings, controller)
 
-    assert controller.settings == controller._stored_settings
+    stored_settings = get_settings(
+        read_settings_file_utf8=lambda: io.StringIO(settings_file.getvalue()),
+        write_settings_file_utf8=lambda: io.StringIO(),
+        default_stats_thread_count=DEFAULT_STATS_THREAD_COUNT,
+        update_settings=noop_update_settings,
+    )
+    assert controller.settings == stored_settings
     assert controller.settings.known_nicks == known_nicks
 
     assert controller.nick_database.default_database == {
@@ -283,6 +333,7 @@ def test_update_settings_known_nicks() -> None:
 
 
 def test_update_settings_everything_changed() -> None:
+    settings_file = no_close(io.StringIO())
     settings = make_settings(
         known_nicks={
             "AmazingNick": {"uuid": "1", "comment": "1"},
@@ -290,6 +341,7 @@ def test_update_settings_everything_changed() -> None:
             "AstoundingNick": {"uuid": "3", "comment": "3"},
         },
         antisniper_api_key="my-api-key",
+        write_settings_file_utf8=lambda: settings_file,
     )
 
     controller = MockedController(
@@ -339,10 +391,17 @@ def test_update_settings_everything_changed() -> None:
 
     update_settings(new_settings, controller)
 
+    stored_settings = get_settings(
+        read_settings_file_utf8=lambda: io.StringIO(settings_file.getvalue()),
+        write_settings_file_utf8=lambda: io.StringIO(),
+        default_stats_thread_count=DEFAULT_STATS_THREAD_COUNT,
+        update_settings=noop_update_settings,
+    )
+
     # We store the settings every time, even if no changes occurred.
     assert (
         controller.settings
-        == controller._stored_settings
+        == stored_settings
         == Settings.from_dict(
             new_settings, write_settings_file_utf8=lambda: io.StringIO()
         )
