@@ -25,7 +25,7 @@ from prism.overlay.settings import (
     SettingsDict,
     get_settings,
 )
-from prism.player import MISSING_WINSTREAKS, Winstreaks
+from prism.player import MISSING_WINSTREAKS, KnownPlayer, Winstreaks
 from tests.prism.overlay import test_get_stats
 from tests.prism.overlay.test_get_stats import CURRENT_TIME_MS
 from tests.prism.overlay.test_settings import (
@@ -288,8 +288,14 @@ def test_get_and_cache_stats(
     # One update for getting the stats
     assert completed_queue.get_nowait() == user.nick
 
-    # One update for getting estimated winstreaks
-    if not winstreak_api_enabled and estimated_winstreaks:
+    # One update for getting estimated winstreaks - only for KnownPlayer instances
+    player = controller.player_cache.get_cached_player(user.nick or user.username)
+    if (
+        not winstreak_api_enabled
+        and estimated_winstreaks
+        and isinstance(player, KnownPlayer)
+        and player.is_missing_winstreaks
+    ):
         assert completed_queue.get_nowait() == user.nick
     else:
         with pytest.raises(queue.Empty):
