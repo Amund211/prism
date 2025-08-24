@@ -11,8 +11,7 @@ from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
 from tests.prism.overlay.utils import (
     MockedController,
-    assert_get_estimated_winstreaks_not_called,
-    assert_get_playerdata_not_called,
+    assert_not_called,
     create_state,
     make_settings,
 )
@@ -27,8 +26,8 @@ def test_real_overlay_controller() -> None:
         ),
         nick_database=NickDatabase([{}]),
         get_uuid=lambda username: f"uuid-{username}",
-        get_playerdata=assert_get_playerdata_not_called,
-        get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_playerdata=assert_not_called,
+        get_estimated_winstreaks=assert_not_called,
     )
 
     assert controller.antisniper_key_holder is not None
@@ -44,8 +43,8 @@ def test_real_overlay_controller_no_antisniper_key() -> None:
         ),
         nick_database=NickDatabase([{}]),
         get_uuid=lambda username: f"uuid-{username}",
-        get_playerdata=assert_get_playerdata_not_called,
-        get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_playerdata=assert_not_called,
+        get_estimated_winstreaks=assert_not_called,
     )
 
     assert controller.antisniper_key_holder is None
@@ -71,8 +70,8 @@ def test_real_overlay_controller_get_uuid() -> None:
         ),
         nick_database=NickDatabase([{}]),
         get_uuid=get_uuid_mock,
-        get_playerdata=assert_get_playerdata_not_called,
-        get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_playerdata=assert_not_called,
+        get_estimated_winstreaks=assert_not_called,
     )
 
     error = APIError()
@@ -121,7 +120,7 @@ def test_real_overlay_controller_get_playerdata() -> None:
         nick_database=NickDatabase([{}]),
         get_uuid=lambda username: f"uuid-{username}",
         get_playerdata=mock_get_playerdata,
-        get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_estimated_winstreaks=assert_not_called,
     )
     error = APIError()
     _, playerdata = controller.get_playerdata("uuid")
@@ -176,8 +175,8 @@ def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
         settings=make_settings(),
         nick_database=NickDatabase([{}]),
         get_uuid=custom_get_uuid,
-        get_playerdata=assert_get_playerdata_not_called,
-        get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_playerdata=assert_not_called,
+        get_estimated_winstreaks=assert_not_called,
     )
 
     result = controller.get_uuid("testuser")
@@ -220,7 +219,7 @@ def test_real_overlay_controller_get_playerdata_dependency_injection() -> None:
         nick_database=NickDatabase([{}]),
         get_uuid=lambda username: f"uuid-{username}",
         get_playerdata=custom_get_playerdata,
-        get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_estimated_winstreaks=assert_not_called,
     )
 
     timestamp, result = controller.get_playerdata("test-uuid")
@@ -269,7 +268,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection()
         ),
         nick_database=NickDatabase([{}]),
         get_uuid=lambda username: f"uuid-{username}",
-        get_playerdata=assert_get_playerdata_not_called,
+        get_playerdata=assert_not_called,
         get_estimated_winstreaks=custom_get_estimated_winstreaks,
     )
 
@@ -307,8 +306,8 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
         ),
         nick_database=NickDatabase([{}]),
         get_uuid=lambda username: f"uuid-{username}",
-        get_playerdata=assert_get_playerdata_not_called,
-        get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_playerdata=assert_not_called,
+        get_estimated_winstreaks=assert_not_called,
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
@@ -327,8 +326,8 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_key() -> None:
         ),
         nick_database=NickDatabase([{}]),
         get_uuid=lambda username: f"uuid-{username}",
-        get_playerdata=assert_get_playerdata_not_called,
-        get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_playerdata=assert_not_called,
+        get_estimated_winstreaks=assert_not_called,
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
