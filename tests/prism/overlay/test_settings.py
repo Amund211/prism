@@ -1,5 +1,6 @@
 import dataclasses
 import io
+import time
 from collections.abc import Mapping
 from pathlib import Path
 from typing import TextIO
@@ -443,6 +444,7 @@ def test_flush_settings_from_controller() -> None:
         get_uuid=lambda username: f"uuid-{username}",
         get_playerdata=assert_get_playerdata_not_called,
         get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_time_ns=lambda: int(time.time() * 1_000_000_000),
     )
 
     controller.store_settings()

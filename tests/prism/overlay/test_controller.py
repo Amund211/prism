@@ -29,6 +29,7 @@ def test_real_overlay_controller() -> None:
         get_uuid=lambda username: f"uuid-{username}",
         get_playerdata=assert_get_playerdata_not_called,
         get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_time_ns=lambda: int(time.time() * 1_000_000_000),
     )
 
     assert controller.antisniper_key_holder is not None
@@ -46,6 +47,7 @@ def test_real_overlay_controller_no_antisniper_key() -> None:
         get_uuid=lambda username: f"uuid-{username}",
         get_playerdata=assert_get_playerdata_not_called,
         get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_time_ns=lambda: int(time.time() * 1_000_000_000),
     )
 
     assert controller.antisniper_key_holder is None
@@ -73,6 +75,7 @@ def test_real_overlay_controller_get_uuid() -> None:
         get_uuid=get_uuid_mock,
         get_playerdata=assert_get_playerdata_not_called,
         get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_time_ns=lambda: int(time.time() * 1_000_000_000),
     )
 
     error = APIError()
@@ -122,6 +125,7 @@ def test_real_overlay_controller_get_playerdata() -> None:
         get_uuid=lambda username: f"uuid-{username}",
         get_playerdata=mock_get_playerdata,
         get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_time_ns=lambda: int(time.time() * 1_000_000_000),
     )
     error = APIError()
     _, playerdata = controller.get_playerdata("uuid")
@@ -178,6 +182,7 @@ def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
         get_uuid=custom_get_uuid,
         get_playerdata=assert_get_playerdata_not_called,
         get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_time_ns=lambda: int(time.time() * 1_000_000_000),
     )
 
     result = controller.get_uuid("testuser")
@@ -221,6 +226,7 @@ def test_real_overlay_controller_get_playerdata_dependency_injection() -> None:
         get_uuid=lambda username: f"uuid-{username}",
         get_playerdata=custom_get_playerdata,
         get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_time_ns=lambda: int(time.time() * 1_000_000_000),
     )
 
     timestamp, result = controller.get_playerdata("test-uuid")
@@ -271,6 +277,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection()
         get_uuid=lambda username: f"uuid-{username}",
         get_playerdata=assert_get_playerdata_not_called,
         get_estimated_winstreaks=custom_get_estimated_winstreaks,
+        get_time_ns=lambda: int(time.time() * 1_000_000_000),
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
@@ -309,6 +316,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
         get_uuid=lambda username: f"uuid-{username}",
         get_playerdata=assert_get_playerdata_not_called,
         get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_time_ns=lambda: int(time.time() * 1_000_000_000),
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
@@ -329,8 +337,40 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_key() -> None:
         get_uuid=lambda username: f"uuid-{username}",
         get_playerdata=assert_get_playerdata_not_called,
         get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_time_ns=lambda: int(time.time() * 1_000_000_000),
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
     assert winstreaks == MISSING_WINSTREAKS
     assert accurate is False
+
+
+def test_real_overlay_controller_get_time_ns_dependency_injection() -> None:
+    """Test that RealOverlayController uses injected get_time_ns function"""
+    custom_time_ns = 1234567890123456789
+
+    def custom_get_time_ns() -> int:
+        return custom_time_ns
+
+    def custom_get_playerdata(
+        uuid: str,
+        user_id: str,
+        key_holder: AntiSniperAPIKeyHolder | None,
+        api_limiter: RateLimiter,
+    ) -> Mapping[str, object]:
+        return {"test": "data"}
+
+    controller = RealOverlayController(
+        state=create_state(),
+        settings=make_settings(user_id="test-user-id"),
+        nick_database=NickDatabase([{}]),
+        get_uuid=lambda username: f"uuid-{username}",
+        get_playerdata=custom_get_playerdata,
+        get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
+        get_time_ns=custom_get_time_ns,
+    )
+
+    timestamp, result = controller.get_playerdata("test-uuid")
+    expected_timestamp = custom_time_ns // 1_000_000
+    assert timestamp == expected_timestamp
+    assert result == {"test": "data"}

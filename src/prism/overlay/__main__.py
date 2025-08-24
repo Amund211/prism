@@ -6,6 +6,7 @@ Run from the root dir by `python -m prism.overlay [--logfile <path-to-logfile>]`
 
 import logging
 import sys
+import time
 
 import truststore
 
@@ -77,6 +78,7 @@ def main() -> None:  # pragma: nocover
         get_uuid=get_uuid,
         get_playerdata=get_playerdata,
         get_estimated_winstreaks=get_estimated_winstreaks,
+        get_time_ns=time.time_ns,
     )
 
     if options.test_ssl:

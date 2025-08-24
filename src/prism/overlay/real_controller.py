@@ -1,6 +1,5 @@
 import logging
 import threading
-import time
 from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING
 
@@ -41,6 +40,7 @@ class RealOverlayController:
         get_estimated_winstreaks: Callable[
             [str, "AntiSniperAPIKeyHolder"], tuple[Winstreaks, bool]
         ],
+        get_time_ns: Callable[[], int],
     ) -> None:
         from prism.overlay.player_cache import PlayerCache
 
@@ -70,6 +70,7 @@ class RealOverlayController:
         self._get_uuid = get_uuid
         self._get_playerdata = get_playerdata
         self._get_estimated_winstreaks = get_estimated_winstreaks
+        self._get_time_ns = get_time_ns
 
     def get_uuid(self, username: str) -> str | None | ProcessingError:
         try:
@@ -123,7 +124,7 @@ class RealOverlayController:
             self.missing_local_issuer_certificate = False
             return 0, ERROR_DURING_PROCESSING
         else:
-            dataReceivedAtMs = time.time_ns() // 1_000_000
+            dataReceivedAtMs = self._get_time_ns() // 1_000_000
             self.api_key_invalid = False
             self.api_key_throttled = False
             self.missing_local_issuer_certificate = False

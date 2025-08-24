@@ -68,6 +68,10 @@ class _MockedTimeModule:
         """Mock time.monotonic"""
         return self.parent.current_time
 
+    def time_ns(self) -> int:
+        """Mock time.time_ns"""
+        return int(self.parent.current_time * 1_000_000_000)
+
 
 @dataclass
 class _MockedDateTime:
