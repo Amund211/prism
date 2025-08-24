@@ -33,6 +33,9 @@ from prism.ratelimiting import RateLimiter
 # Username set by default in create_state
 OWN_USERNAME = "OwnUsername"
 
+# Constant time value for testing (roughly 2025-01-24)
+CURRENT_TIME_NS = 1737676800000000000
+
 DEFAULT_RATING_CONFIG_COLLECTION_DICT, _ = safe_read_rating_config_collection_dict({})
 DEFAULT_RATING_CONFIG_COLLECTION = RatingConfigCollection.from_dict(
     DEFAULT_RATING_CONFIG_COLLECTION_DICT
@@ -324,6 +327,11 @@ def assert_get_playerdata_not_called(
 def assert_get_estimated_winstreaks_not_called(uuid: str, key_holder: Any) -> Any:
     """Test helper that asserts if get_estimated_winstreaks is unexpectedly called."""
     assert False, "get_estimated_winstreaks should not be called"
+
+
+def mock_get_time_ns() -> int:
+    """Test helper that returns a constant time value for testing."""
+    return CURRENT_TIME_NS
 
 
 class ExtraAttributes(TypedDict):

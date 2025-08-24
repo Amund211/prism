@@ -70,7 +70,8 @@ class _MockedTimeModule:
 
     def time_ns(self) -> int:
         """Mock time.time_ns"""
-        return int(self.parent.current_time * 1_000_000_000)
+        # Add offset to ensure it doesn't return the same time as monotonic
+        return int((self.parent.current_time + 1000) * 1_000_000_000)
 
 
 @dataclass

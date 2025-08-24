@@ -1,6 +1,5 @@
 import dataclasses
 import io
-import time
 from collections.abc import Mapping
 from pathlib import Path
 from typing import TextIO
@@ -35,6 +34,7 @@ from tests.prism.overlay.utils import (
     DEFAULT_RATING_CONFIG_COLLECTION_DICT,
     make_dead_path,
     make_settings,
+    mock_get_time_ns,
     no_close,
 )
 
@@ -444,7 +444,7 @@ def test_flush_settings_from_controller() -> None:
         get_uuid=lambda username: f"uuid-{username}",
         get_playerdata=assert_get_playerdata_not_called,
         get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
-        get_time_ns=lambda: int(time.time() * 1_000_000_000),
+        get_time_ns=mock_get_time_ns,
     )
 
     controller.store_settings()
