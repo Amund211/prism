@@ -6,8 +6,8 @@ from typing import Any
 
 import pytest
 
+from prism.errors import APIError, PlayerNotFoundError
 from prism.hypixel import create_known_player
-from prism.overlay.controller import ERROR_DURING_PROCESSING, ProcessingError
 from prism.overlay.get_stats import denick, fetch_bedwars_stats, get_bedwars_stats
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.real_controller import RealOverlayController
@@ -58,8 +58,6 @@ def make_scenario_controller(*users: User) -> RealOverlayController:
     ) -> Mapping[str, object]:
         user = uuid_table.get(uuid, None)
         if user is None or user.playerdata is None:
-            from prism.errors import PlayerNotFoundError
-            
             raise PlayerNotFoundError("Player not found")
         return user.playerdata
 
@@ -335,8 +333,6 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
 
 def test_fetch_bedwars_stats_error_during_uuid() -> None:
     def get_uuid(username: str) -> str | None:
-        from prism.errors import APIError
-        
         raise APIError("Test error")
 
     controller = create_controller(get_uuid=get_uuid)
@@ -351,8 +347,6 @@ def test_fetch_bedwars_stats_error_during_playerdata() -> None:
     def get_playerdata(
         uuid: str, user_id: str, antisniper_key_holder: Any, api_limiter: Any
     ) -> Mapping[str, object]:
-        from prism.errors import APIError
-        
         raise APIError("Test error")
 
     def get_time_ns() -> int:

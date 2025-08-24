@@ -17,6 +17,7 @@ from prism.overlay.behaviour import (
 )
 from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKeyDict
+from prism.overlay.nick_database import NickDatabase
 from prism.overlay.real_controller import RealOverlayController
 from prism.overlay.settings import (
     NickValue,
@@ -24,7 +25,6 @@ from prism.overlay.settings import (
     SettingsDict,
     get_settings,
 )
-from prism.overlay.nick_database import NickDatabase
 from prism.player import MISSING_WINSTREAKS, Winstreaks
 from tests.prism.overlay import test_get_stats
 from tests.prism.overlay.test_get_stats import CURRENT_TIME_MS
@@ -234,10 +234,14 @@ def test_get_and_cache_stats(
         else replace(base_user, playerdata=playerdata_without_winstreaks)
     )
 
-    def get_estimated_winstreaks(uuid: str, antisniper_key_holder: Any) -> tuple[Winstreaks, bool]:
+    def get_estimated_winstreaks(
+        uuid: str, antisniper_key_holder: Any
+    ) -> tuple[Winstreaks, bool]:
         return (
             (
-                make_winstreaks(overall=100, solo=100, doubles=100, threes=100, fours=100),
+                make_winstreaks(
+                    overall=100, solo=100, doubles=100, threes=100, fours=100
+                ),
                 True,
             )
             if estimated_winstreaks
@@ -256,7 +260,7 @@ def test_get_and_cache_stats(
         if uuid == user.uuid and user.playerdata is not None:
             return user.playerdata
         from prism.errors import PlayerNotFoundError
-        
+
         raise PlayerNotFoundError("Player not found")
 
     def get_time_ns() -> int:
