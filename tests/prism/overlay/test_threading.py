@@ -45,16 +45,6 @@ def test_get_stat_list_no_redraw() -> None:
     assert get_stat_list(create_controller(), EMPTY_QUEUE, queue.Queue[str]()) is None
 
 
-def create_controller_with_cache(
-    state=None, settings=None, player_cache=None
-):
-    """Helper to create controller and set player_cache if provided."""
-    controller = create_controller(state=state, settings=settings)
-    if player_cache is not None:
-        controller.player_cache = player_cache
-    return controller
-
-
 @pytest.mark.parametrize(
     "controller, expected_requested_stats, result",
     (
@@ -68,28 +58,28 @@ def create_controller_with_cache(
         ),
         # Different kinds of players
         (
-            create_controller_with_cache(
+            create_controller(
                 state=create_state(lobby_players={"Paul"}), player_cache=FULL_CACHE
             ),
             set(),
             [paul],
         ),
         (
-            create_controller_with_cache(
+            create_controller(
                 state=create_state(lobby_players={"Kynes"}), player_cache=FULL_CACHE
             ),
             set(),
             [kynes],
         ),
         (
-            create_controller_with_cache(
+            create_controller(
                 state=create_state(lobby_players={"Liet"}), player_cache=FULL_CACHE
             ),
             set(),
             [liet],
         ),
         (
-            create_controller_with_cache(
+            create_controller(
                 state=create_state(lobby_players={"Leto"}), player_cache=FULL_CACHE
             ),
             set(),
@@ -103,7 +93,7 @@ def create_controller_with_cache(
         ),
         (
             # Bunch of players, properly sorted
-            create_controller_with_cache(
+            create_controller(
                 state=create_state(lobby_players={"Paul", "Kynes", "Piter", "Leto"}),
                 player_cache=FULL_CACHE,
             ),
@@ -112,7 +102,7 @@ def create_controller_with_cache(
         ),
         (
             # Only show alive players
-            create_controller_with_cache(
+            create_controller(
                 settings=make_settings(hide_dead_players=True),
                 state=create_state(
                     lobby_players={"Paul", "Kynes", "Piter", "Leto"},
@@ -125,7 +115,7 @@ def create_controller_with_cache(
         ),
         (
             # Show all players
-            create_controller_with_cache(
+            create_controller(
                 settings=make_settings(hide_dead_players=False),
                 state=create_state(
                     lobby_players={"Paul", "Kynes", "Piter", "Leto"},
@@ -138,7 +128,7 @@ def create_controller_with_cache(
         ),
         (
             # Sort correctly wrt party
-            create_controller_with_cache(
+            create_controller(
                 state=create_state(
                     lobby_players={"Paul", "Kynes", "Piter", "Leto"},
                     party_members={"Piter", "Paul"},
@@ -164,7 +154,7 @@ def create_controller_with_cache(
         ),
         (
             # Duplicate nicked player
-            create_controller_with_cache(
+            create_controller(
                 state=create_state(
                     lobby_players={"Liet", "Kynes"},
                     party_members={"Liet"},
@@ -177,7 +167,7 @@ def create_controller_with_cache(
         ),
         (
             # Duplicate nicked player, but nicked is pending
-            create_controller_with_cache(
+            create_controller(
                 state=create_state(
                     lobby_players={"Liet", "Kynes"},
                     party_members={"Liet"},
@@ -191,7 +181,7 @@ def create_controller_with_cache(
         ),
         (
             # Duplicate nicked player, but un-nicked is pending
-            create_controller_with_cache(
+            create_controller(
                 state=create_state(
                     lobby_players={"Liet", "Kynes"},
                     party_members={"Liet"},

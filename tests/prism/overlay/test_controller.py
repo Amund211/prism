@@ -183,27 +183,6 @@ def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
     assert result == custom_uuid
 
 
-def test_mocked_controller_get_uuid_dependency_injection() -> None:
-    """Test that RealOverlayController uses injected get_uuid function (converted from MockedController test)"""
-    custom_uuid = "mocked-uuid-67890"
-
-    def custom_get_uuid(username: str) -> str:
-        assert username == "mockuser"
-        return custom_uuid
-
-    controller = RealOverlayController(
-        state=create_state(),
-        settings=make_settings(),
-        nick_database=NickDatabase([{}]),
-        get_uuid=custom_get_uuid,
-        get_playerdata=assert_get_playerdata_not_called,
-        get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
-    )
-
-    result = controller.get_uuid("mockuser")
-    assert result == custom_uuid
-
-
 def test_real_overlay_controller_get_playerdata_dependency_injection() -> None:
     """Test that RealOverlayController uses injected get_playerdata function"""
     custom_playerdata = {"custom": "data", "uuid": "test-uuid"}
@@ -228,35 +207,6 @@ def test_real_overlay_controller_get_playerdata_dependency_injection() -> None:
     )
 
     timestamp, result = controller.get_playerdata("test-uuid")
-    assert result is custom_playerdata
-    assert timestamp > 0  # Should have a valid timestamp
-
-
-def test_mocked_controller_get_playerdata_dependency_injection() -> None:
-    """Test that RealOverlayController uses injected get_playerdata function (converted from MockedController test)"""
-    custom_playerdata = {"mocked": "playerdata", "uuid": "mock-uuid"}
-
-    def custom_get_playerdata(
-        uuid: str,
-        user_id: str,
-        key_holder: AntiSniperAPIKeyHolder | None,
-        api_limiter: RateLimiter,
-    ) -> Mapping[str, object]:
-        assert uuid == "mock-uuid"
-        # We don't need to assert on user_id, key_holder, or api_limiter 
-        # since this test is focused on dependency injection of the function
-        return custom_playerdata
-
-    controller = RealOverlayController(
-        state=create_state(),
-        settings=make_settings(user_id="test-user-id"),
-        nick_database=NickDatabase([{}]),
-        get_uuid=lambda username: f"uuid-{username}",
-        get_playerdata=custom_get_playerdata,
-        get_estimated_winstreaks=assert_get_estimated_winstreaks_not_called,
-    )
-
-    timestamp, result = controller.get_playerdata("mock-uuid")
     assert result is custom_playerdata
     assert timestamp > 0  # Should have a valid timestamp
 
@@ -289,35 +239,6 @@ def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection()
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
-    assert winstreaks == custom_winstreaks
-    assert accurate == custom_accurate
-
-
-def test_mocked_controller_get_estimated_winstreaks_dependency_injection() -> None:
-    """Test that RealOverlayController uses injected get_estimated_winstreaks function (converted from MockedController test)"""
-    custom_winstreaks = Winstreaks(overall=10, solo=8, doubles=6, threes=4, fours=2)
-    custom_accurate = False
-
-    def custom_get_estimated_winstreaks(
-        uuid: str, key_holder: AntiSniperAPIKeyHolder
-    ) -> tuple[Winstreaks, bool]:
-        assert uuid == "mock-uuid"
-        # We don't need to assert on key_holder since this test is focused on dependency injection
-        return custom_winstreaks, custom_accurate
-
-    controller = RealOverlayController(
-        state=create_state(),
-        settings=make_settings(
-            antisniper_api_key="test-api-key",
-            use_antisniper_api=True,
-        ),
-        nick_database=NickDatabase([{}]),
-        get_uuid=lambda username: f"uuid-{username}",
-        get_playerdata=assert_get_playerdata_not_called,
-        get_estimated_winstreaks=custom_get_estimated_winstreaks,
-    )
-
-    winstreaks, accurate = controller.get_estimated_winstreaks("mock-uuid")
     assert winstreaks == custom_winstreaks
     assert accurate == custom_accurate
 

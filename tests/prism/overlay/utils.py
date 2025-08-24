@@ -446,8 +446,11 @@ def create_controller(
     get_estimated_winstreaks: Callable[
         [str, "AntiSniperAPIKeyHolder"], tuple[Winstreaks, bool]
     ] = missing_method,
+    api_key_invalid: bool = False,
+    api_key_throttled: bool = False,
+    player_cache: PlayerCache | None = None,
 ) -> RealOverlayController:
-    return RealOverlayController(
+    controller = RealOverlayController(
         state=state or create_state(),
         settings=settings or make_settings(),
         nick_database=NickDatabase([{}]),
@@ -455,6 +458,18 @@ def create_controller(
         get_playerdata=get_playerdata,
         get_estimated_winstreaks=get_estimated_winstreaks,
     )
+
+    # Set API key flags if requested
+    if api_key_invalid:
+        controller.api_key_invalid = True
+    if api_key_throttled:
+        controller.api_key_throttled = True
+
+    # Set player cache if provided
+    if player_cache is not None:
+        controller.player_cache = player_cache
+
+    return controller
 
 
 def assert_controllers_equal(

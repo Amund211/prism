@@ -16,6 +16,7 @@ from prism.overlay.behaviour import (
     update_settings,
 )
 from prism.overlay.controller import OverlayController
+from prism.overlay.real_controller import RealOverlayController
 from prism.overlay.keybinds import AlphanumericKeyDict
 from prism.overlay.settings import (
     NickValue,
@@ -232,31 +233,39 @@ def test_get_and_cache_stats(
     )
     controller = test_get_stats.make_scenario_controller(user)
 
-    controller.get_estimated_winstreaks = lambda uuid: (
-        (
-            make_winstreaks(overall=100, solo=100, doubles=100, threes=100, fours=100),
-            True,
+    # Mock the get_estimated_winstreaks method
+    def mock_get_estimated_winstreaks(uuid: str) -> tuple[object, bool]:
+        return (
+            (
+                make_winstreaks(
+                    overall=100, solo=100, doubles=100, threes=100, fours=100
+                ),
+                True,
+            )
+            if estimated_winstreaks
+            else (MISSING_WINSTREAKS, False)
         )
-        if estimated_winstreaks
-        else (MISSING_WINSTREAKS, False)
-    )
 
-    completed_queue = queue.Queue[str]()
+    with unittest.mock.patch.object(
+        controller, 'get_estimated_winstreaks',
+        side_effect=mock_get_estimated_winstreaks
+    ):
+        completed_queue = queue.Queue[str]()
 
-    # For typing
-    assert user.nick is not None
+        # For typing
+        assert user.nick is not None
 
-    get_stats_and_winstreak(user.nick, completed_queue, controller)
+        get_stats_and_winstreak(user.nick, completed_queue, controller)
 
-    # One update for getting the stats
-    assert completed_queue.get_nowait() == user.nick
-
-    # One update for getting estimated winstreaks
-    if not winstreak_api_enabled and estimated_winstreaks:
+        # One update for getting the stats
         assert completed_queue.get_nowait() == user.nick
-    else:
-        with pytest.raises(queue.Empty):
-            completed_queue.get_nowait()
+
+        # One update for getting estimated winstreaks
+        if not winstreak_api_enabled and estimated_winstreaks:
+            assert completed_queue.get_nowait() == user.nick
+        else:
+            with pytest.raises(queue.Empty):
+                completed_queue.get_nowait()
 
 
 def test_update_settings_nothing() -> None:
@@ -344,9 +353,9 @@ def test_update_settings_everything_changed() -> None:
         write_settings_file_utf8=lambda: settings_file,
     )
 
-    controller = create_controller(settings=settings)
-    controller.api_key_invalid = True
-    controller.api_key_throttled = True
+    controller = create_controller(
+        settings=settings, api_key_invalid=True, api_key_throttled=True
+    )
 
     # NOTE: Make sure everything specified here is different from its default value
     new_settings = SettingsDict(
@@ -973,31 +982,21 @@ def test_autodenick_teammate(
         )
 
 
-def create_controller_with_flags(state=None, api_key_invalid=False, api_key_throttled=False):
-    """Helper to create controller and set API key flags if needed."""
-    controller = create_controller(state=state)
-    if api_key_invalid:
-        controller.api_key_invalid = True
-    if api_key_throttled:
-        controller.api_key_throttled = True
-    return controller
-
-
 @pytest.mark.parametrize(
     "controller",
     (
         create_controller(state=create_state(in_queue=False)),
         create_controller(state=create_state(out_of_sync=True)),
-        create_controller_with_flags(api_key_invalid=True),
-        create_controller_with_flags(api_key_throttled=True),
-        create_controller_with_flags(
+        create_controller(api_key_invalid=True),
+        create_controller(api_key_throttled=True),
+        create_controller(
             state=create_state(in_queue=False, out_of_sync=True),
             api_key_invalid=True,
             api_key_throttled=True,
         ),
     ),
 )
-def test_autodenick_teammate_early_exit(controller) -> None:
+def test_autodenick_teammate_early_exit(controller: RealOverlayController) -> None:
     with unittest.mock.patch(
         "prism.overlay.behaviour.set_nickname"
     ) as patched_set_nickname:
