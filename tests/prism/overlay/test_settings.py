@@ -442,6 +442,7 @@ def test_flush_settings_from_controller() -> None:
         get_uuid=assert_not_called,
         get_playerdata=assert_not_called,
         get_estimated_winstreaks=assert_not_called,
+        get_time_ns=assert_not_called,
     )
 
     controller.store_settings()

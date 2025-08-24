@@ -28,6 +28,7 @@ def test_real_overlay_controller() -> None:
         get_uuid=assert_not_called,
         get_playerdata=assert_not_called,
         get_estimated_winstreaks=assert_not_called,
+        get_time_ns=assert_not_called,
     )
 
     assert controller.antisniper_key_holder is not None
@@ -45,6 +46,7 @@ def test_real_overlay_controller_no_antisniper_key() -> None:
         get_uuid=assert_not_called,
         get_playerdata=assert_not_called,
         get_estimated_winstreaks=assert_not_called,
+        get_time_ns=assert_not_called,
     )
 
     assert controller.antisniper_key_holder is None
@@ -72,6 +74,7 @@ def test_real_overlay_controller_get_uuid() -> None:
         get_uuid=get_uuid_mock,
         get_playerdata=assert_not_called,
         get_estimated_winstreaks=assert_not_called,
+        get_time_ns=assert_not_called,
     )
 
     error = APIError()
@@ -121,6 +124,7 @@ def test_real_overlay_controller_get_playerdata() -> None:
         get_uuid=assert_not_called,
         get_playerdata=mock_get_playerdata,
         get_estimated_winstreaks=assert_not_called,
+        get_time_ns=time.time_ns,
     )
     error = APIError()
     _, playerdata = controller.get_playerdata("uuid")
@@ -177,6 +181,7 @@ def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
         get_uuid=custom_get_uuid,
         get_playerdata=assert_not_called,
         get_estimated_winstreaks=assert_not_called,
+        get_time_ns=assert_not_called,
     )
 
     result = controller.get_uuid("testuser")
@@ -220,6 +225,7 @@ def test_real_overlay_controller_get_playerdata_dependency_injection() -> None:
         get_uuid=assert_not_called,
         get_playerdata=custom_get_playerdata,
         get_estimated_winstreaks=assert_not_called,
+        get_time_ns=time.time_ns,
     )
 
     timestamp, result = controller.get_playerdata("test-uuid")
@@ -270,6 +276,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection()
         get_uuid=assert_not_called,
         get_playerdata=assert_not_called,
         get_estimated_winstreaks=custom_get_estimated_winstreaks,
+        get_time_ns=assert_not_called,
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
@@ -308,6 +315,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
         get_uuid=assert_not_called,
         get_playerdata=assert_not_called,
         get_estimated_winstreaks=assert_not_called,
+        get_time_ns=assert_not_called,
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
@@ -328,8 +336,43 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_key() -> None:
         get_uuid=assert_not_called,
         get_playerdata=assert_not_called,
         get_estimated_winstreaks=assert_not_called,
+        get_time_ns=assert_not_called,
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
     assert winstreaks == MISSING_WINSTREAKS
     assert accurate is False
+
+
+def test_real_overlay_controller_get_time_ns_dependency_injection() -> None:
+    """Test that RealOverlayController uses injected get_time_ns function"""
+    custom_time_ns = 1234567890123456789
+
+    def custom_get_time_ns() -> int:
+        return custom_time_ns
+
+    custom_playerdata = {"test": "data", "uuid": "test-uuid"}
+
+    def custom_get_playerdata(
+        uuid: str,
+        user_id: str,
+        key_holder: AntiSniperAPIKeyHolder | None,
+        api_limiter: RateLimiter,
+    ) -> Mapping[str, object]:
+        assert uuid == "test-uuid"
+        assert user_id == "test-user-id"
+        return custom_playerdata
+
+    controller = RealOverlayController(
+        state=create_state(),
+        settings=make_settings(user_id="test-user-id"),
+        nick_database=NickDatabase([{}]),
+        get_uuid=assert_not_called,
+        get_playerdata=custom_get_playerdata,
+        get_estimated_winstreaks=assert_not_called,
+        get_time_ns=custom_get_time_ns,
+    )
+
+    timestamp, result = controller.get_playerdata("test-uuid")
+    assert result is custom_playerdata
+    assert timestamp == custom_time_ns // 1_000_000  # Should use injected time function
