@@ -1,13 +1,8 @@
 import io
-import threading
 from collections.abc import Callable, Mapping, Set
-from dataclasses import InitVar, dataclass, field
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING, Any, Literal, TextIO, TypedDict, cast, overload
+from typing import TYPE_CHECKING, Any, Literal, TextIO, cast, overload
 
-from cachetools import TTLCache
-
-from prism.overlay.controller import ProcessingError
 from prism.overlay.keybinds import Key
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.output.config import (
@@ -313,120 +308,9 @@ def make_settings(
     )
 
 
-def missing_method(*args: Any, **kwargs: Any) -> Any:
-    raise NotImplementedError
-
-
 def assert_not_called(*args: Any, **kwargs: Any) -> Any:
     """Test helper that asserts that the method is not called."""
     assert False, "This function should not have been called"
-
-
-class ExtraAttributes(TypedDict):
-    antisniper_api_key: str | None
-    autowho_event_set: bool
-    redraw_event_set: bool
-    update_presence_event_set: bool
-    player_cache_data: TTLCache[str, Player]
-
-
-@dataclass
-class MockedController:
-    """Class implementing the OverlayController protocol for testing"""
-
-    api_key_invalid: bool = False
-    api_key_throttled: bool = False
-    missing_local_issuer_certificate: bool = False
-    antisniper_key_holder: "AntiSniperAPIKeyHolder | None" = field(
-        init=False, repr=False, compare=False, hash=False
-    )
-    api_limiter: RateLimiter = field(
-        default_factory=lambda: RateLimiter(limit=1, window=60),
-        repr=False,
-        compare=False,
-        hash=False,
-    )
-
-    wants_shown: bool | None = None
-    ready: bool = True
-    state: OverlayState = field(default_factory=create_state)
-    settings: Settings = field(default_factory=make_settings)
-    nick_database: NickDatabase = field(default_factory=lambda: NickDatabase([{}]))
-    player_cache: PlayerCache = field(
-        default_factory=PlayerCache, repr=False, compare=False, hash=False
-    )
-
-    autowho_event_set: InitVar[bool] = False
-    autowho_event: threading.Event = field(
-        init=False, repr=False, compare=False, hash=False
-    )
-
-    redraw_event_set: InitVar[bool] = False
-    redraw_event: threading.Event = field(
-        init=False, repr=False, compare=False, hash=False
-    )
-
-    update_presence_event_set: InitVar[bool] = False
-    update_presence_event: threading.Event = field(
-        init=False, repr=False, compare=False, hash=False
-    )
-
-    state_mutex: threading.Lock = field(
-        default_factory=threading.Lock, repr=False, compare=False, hash=False
-    )
-
-    get_uuid: Callable[[str], str | None | ProcessingError] = field(
-        default=missing_method, repr=False, compare=False, hash=False
-    )
-    get_playerdata: Callable[
-        [str], tuple[int, Mapping[str, object] | None | ProcessingError]
-    ] = field(default=missing_method, repr=False, compare=False, hash=False)
-    get_estimated_winstreaks: Callable[[str], tuple[Winstreaks, bool]] = field(
-        default=missing_method, repr=False, compare=False, hash=False
-    )
-
-    def __post_init__(
-        self,
-        autowho_event_set: bool,
-        redraw_event_set: bool,
-        update_presence_event_set: bool,
-    ) -> None:
-        from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
-
-        self.autowho_event = threading.Event()
-        if autowho_event_set:
-            self.autowho_event.set()
-
-        self.redraw_event = threading.Event()
-        if redraw_event_set:
-            self.redraw_event.set()
-
-        self.update_presence_event = threading.Event()
-        if update_presence_event_set:
-            self.update_presence_event.set()
-
-        self.antisniper_key_holder = (
-            AntiSniperAPIKeyHolder(self.settings.antisniper_api_key)
-            if self.settings.antisniper_api_key is not None
-            else None
-        )
-
-    def store_settings(self) -> None:
-        self.settings.flush_to_disk()
-
-    @property
-    def extra(self) -> ExtraAttributes:
-        return {
-            "antisniper_api_key": (
-                self.antisniper_key_holder.key
-                if self.antisniper_key_holder is not None
-                else None
-            ),
-            "autowho_event_set": self.autowho_event.is_set(),
-            "redraw_event_set": self.redraw_event.is_set(),
-            "update_presence_event_set": self.update_presence_event.is_set(),
-            "player_cache_data": self.player_cache._cache,
-        }
 
 
 def create_controller(
