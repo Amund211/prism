@@ -435,10 +435,13 @@ def create_controller(
     wants_shown: bool | None = None,
     api_key_invalid: bool = False,
     api_key_throttled: bool = False,
+    missing_local_issuer_certificate: bool = False,
+    ready: bool = True,
     autowho_event_set: bool = False,
     redraw_event_set: bool = False,
     update_presence_event_set: bool = False,
     player_cache: PlayerCache | None = None,
+    nick_database: NickDatabase | None = None,
     get_uuid: Callable[[str], str | None] = assert_not_called,
     get_playerdata: Callable[
         [str, str, "AntiSniperAPIKeyHolder | None", RateLimiter], Mapping[str, object]
@@ -451,7 +454,7 @@ def create_controller(
     controller = RealOverlayController(
         state=state or create_state(),
         settings=settings or make_settings(),
-        nick_database=NickDatabase([{}]),
+        nick_database=nick_database or NickDatabase([{}]),
         get_uuid=get_uuid,
         get_playerdata=get_playerdata,
         get_estimated_winstreaks=get_estimated_winstreaks,
@@ -461,6 +464,8 @@ def create_controller(
     controller.wants_shown = wants_shown
     controller.api_key_invalid = api_key_invalid
     controller.api_key_throttled = api_key_throttled
+    controller.missing_local_issuer_certificate = missing_local_issuer_certificate
+    controller.ready = ready
 
     if autowho_event_set:
         controller.autowho_event.set()
@@ -497,6 +502,9 @@ def assert_controllers_equal(
         controller1.update_presence_event.is_set()
         == controller2.update_presence_event.is_set()
     )
+
+    # Compare player cache data
+    assert controller1.player_cache._cache == controller2.player_cache._cache
 
     # TODO: Stored settings
 

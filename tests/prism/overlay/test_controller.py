@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+from typing import Any
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
 from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
@@ -164,7 +165,7 @@ def test_mocked_controller_get_uuid_dependency_injection() -> None:
         assert username == "mockuser"
         return custom_uuid
 
-    controller = MockedController(
+    controller = create_controller(
         get_uuid=custom_get_uuid,
     )
 
@@ -205,12 +206,18 @@ def test_mocked_controller_get_playerdata_dependency_injection() -> None:
     custom_timestamp = 1234567890
     custom_playerdata = {"mocked": "playerdata", "uuid": "mock-uuid"}
 
-    def custom_get_playerdata(uuid: str) -> tuple[int, Mapping[str, object]]:
+    def custom_get_playerdata(
+        uuid: str, user_id: str, antisniper_key_holder: Any, api_limiter: Any
+    ) -> Mapping[str, object]:
         assert uuid == "mock-uuid"
-        return custom_timestamp, custom_playerdata
+        return custom_playerdata
 
-    controller = MockedController(
+    def custom_get_time_ns() -> int:
+        return custom_timestamp * 1_000_000
+
+    controller = create_controller(
         get_playerdata=custom_get_playerdata,
+        get_time_ns=custom_get_time_ns,
     )
 
     timestamp, result = controller.get_playerdata("mock-uuid")
@@ -251,12 +258,15 @@ def test_mocked_controller_get_estimated_winstreaks_dependency_injection() -> No
     custom_winstreaks = Winstreaks(overall=10, solo=8, doubles=6, threes=4, fours=2)
     custom_accurate = False
 
-    def custom_get_estimated_winstreaks(uuid: str) -> tuple[Winstreaks, bool]:
+    def custom_get_estimated_winstreaks(
+        uuid: str, antisniper_key_holder: Any
+    ) -> tuple[Winstreaks, bool]:
         assert uuid == "mock-uuid"
         return custom_winstreaks, custom_accurate
 
-    controller = MockedController(
+    controller = create_controller(
         get_estimated_winstreaks=custom_get_estimated_winstreaks,
+        settings=make_settings(antisniper_api_key="test_key", use_antisniper_api=True),
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("mock-uuid")
