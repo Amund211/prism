@@ -439,7 +439,7 @@ def test_flush_settings_from_controller() -> None:
         state=create_state(),
         settings=settings,
         nick_database=NickDatabase([{}]),
-        get_uuid=lambda username: f"uuid-{username}",
+        get_uuid=assert_not_called,
         get_playerdata=assert_not_called,
         get_estimated_winstreaks=assert_not_called,
     )
