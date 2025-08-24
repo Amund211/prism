@@ -285,7 +285,7 @@ def test_get_and_cache_stats(
     assert completed_queue.get_nowait() == user.nick
 
     # One update for getting estimated winstreaks
-    if not winstreak_api_enabled and estimated_winstreaks:  # Missing winstreaks AND successful estimated winstreaks
+    if not winstreak_api_enabled and estimated_winstreaks:
         assert completed_queue.get_nowait() == user.nick
     else:
         with pytest.raises(queue.Empty):
