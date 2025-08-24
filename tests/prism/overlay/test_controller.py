@@ -25,7 +25,7 @@ def test_real_overlay_controller() -> None:
             use_antisniper_api=True,
         ),
         nick_database=NickDatabase([{}]),
-        get_uuid=lambda username: f"uuid-{username}",
+        get_uuid=assert_not_called,
         get_playerdata=assert_not_called,
         get_estimated_winstreaks=assert_not_called,
     )
@@ -42,7 +42,7 @@ def test_real_overlay_controller_no_antisniper_key() -> None:
             use_antisniper_api=True,
         ),
         nick_database=NickDatabase([{}]),
-        get_uuid=lambda username: f"uuid-{username}",
+        get_uuid=assert_not_called,
         get_playerdata=assert_not_called,
         get_estimated_winstreaks=assert_not_called,
     )
@@ -118,7 +118,7 @@ def test_real_overlay_controller_get_playerdata() -> None:
             user_id="1234",
         ),
         nick_database=NickDatabase([{}]),
-        get_uuid=lambda username: f"uuid-{username}",
+        get_uuid=assert_not_called,
         get_playerdata=mock_get_playerdata,
         get_estimated_winstreaks=assert_not_called,
     )
@@ -217,7 +217,7 @@ def test_real_overlay_controller_get_playerdata_dependency_injection() -> None:
         state=create_state(),
         settings=make_settings(user_id="test-user-id"),
         nick_database=NickDatabase([{}]),
-        get_uuid=lambda username: f"uuid-{username}",
+        get_uuid=assert_not_called,
         get_playerdata=custom_get_playerdata,
         get_estimated_winstreaks=assert_not_called,
     )
@@ -267,7 +267,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection()
             use_antisniper_api=True,
         ),
         nick_database=NickDatabase([{}]),
-        get_uuid=lambda username: f"uuid-{username}",
+        get_uuid=assert_not_called,
         get_playerdata=assert_not_called,
         get_estimated_winstreaks=custom_get_estimated_winstreaks,
     )
@@ -305,7 +305,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
             use_antisniper_api=False,  # API is disabled
         ),
         nick_database=NickDatabase([{}]),
-        get_uuid=lambda username: f"uuid-{username}",
+        get_uuid=assert_not_called,
         get_playerdata=assert_not_called,
         get_estimated_winstreaks=assert_not_called,
     )
@@ -325,7 +325,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_key() -> None:
             use_antisniper_api=True,
         ),
         nick_database=NickDatabase([{}]),
-        get_uuid=lambda username: f"uuid-{username}",
+        get_uuid=assert_not_called,
         get_playerdata=assert_not_called,
         get_estimated_winstreaks=assert_not_called,
     )
