@@ -25,7 +25,7 @@ from prism.overlay.settings import (
     SettingsDict,
     get_settings,
 )
-from prism.player import MISSING_WINSTREAKS, KnownPlayer, Winstreaks
+from prism.player import MISSING_WINSTREAKS, Winstreaks
 from tests.prism.overlay import test_get_stats
 from tests.prism.overlay.test_get_stats import CURRENT_TIME_MS
 from tests.prism.overlay.test_settings import (
@@ -233,35 +233,36 @@ def test_get_and_cache_stats(
         if winstreak_api_enabled
         else replace(base_user, playerdata=playerdata_without_winstreaks)
     )
+    assert user.nick is not None  # For typing
 
     def get_estimated_winstreaks(
         uuid: str, antisniper_key_holder: Any
     ) -> tuple[Winstreaks, bool]:
-        return (
-            (
+        assert uuid == user.uuid
+
+        if estimated_winstreaks:
+            return (
                 make_winstreaks(
                     overall=100, solo=100, doubles=100, threes=100, fours=100
                 ),
                 True,
             )
-            if estimated_winstreaks
-            else (MISSING_WINSTREAKS, False)
-        )
 
-    # Create the controller with all the required dependency injections
+        return (MISSING_WINSTREAKS, False)
+
     def get_uuid(username: str) -> str | None:
-        if username == user.username:
-            return user.uuid
-        return None
+        if username == user.nick:
+            return None
+
+        assert username == user.username
+        return user.uuid
 
     def get_playerdata(
         uuid: str, user_id: str, antisniper_key_holder: Any, api_limiter: Any
     ) -> Mapping[str, object]:
-        if uuid == user.uuid and user.playerdata is not None:
-            return user.playerdata
-        from prism.errors import PlayerNotFoundError
-
-        raise PlayerNotFoundError("Player not found")
+        assert uuid == user.uuid
+        assert user.playerdata is not None
+        return user.playerdata
 
     def get_time_ns() -> int:
         return CURRENT_TIME_MS * 1_000_000
@@ -271,7 +272,7 @@ def test_get_and_cache_stats(
         get_playerdata=get_playerdata,
         get_time_ns=get_time_ns,
         get_estimated_winstreaks=get_estimated_winstreaks,
-        nick_database=NickDatabase([{}]),
+        nick_database=NickDatabase([{user.nick: user.uuid}]),
         settings=make_settings(
             use_antisniper_api=True,  # Always enable antisniper API for testing
             antisniper_api_key="test_key",
@@ -280,22 +281,13 @@ def test_get_and_cache_stats(
 
     completed_queue = queue.Queue[str]()
 
-    # For typing
-    assert user.nick is not None
-
     get_stats_and_winstreak(user.nick, completed_queue, controller)
 
     # One update for getting the stats
     assert completed_queue.get_nowait() == user.nick
 
-    # One update for getting estimated winstreaks - only for KnownPlayer instances
-    player = controller.player_cache.get_cached_player(user.nick or user.username)
-    if (
-        not winstreak_api_enabled
-        and estimated_winstreaks
-        and isinstance(player, KnownPlayer)
-        and player.is_missing_winstreaks
-    ):
+    # One update for getting estimated winstreaks - only when missing + gotten
+    if not winstreak_api_enabled and estimated_winstreaks:
         assert completed_queue.get_nowait() == user.nick
     else:
         with pytest.raises(queue.Empty):
