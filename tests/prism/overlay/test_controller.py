@@ -8,7 +8,6 @@ from prism.player import MISSING_WINSTREAKS, Winstreaks
 from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
 from tests.prism.overlay.utils import (
-    MockedController,
     assert_not_called,
     create_controller,
     make_settings,

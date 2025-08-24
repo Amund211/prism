@@ -10,8 +10,9 @@ from prism.hypixel import create_known_player
 from prism.overlay.controller import ERROR_DURING_PROCESSING, ProcessingError
 from prism.overlay.get_stats import denick, fetch_bedwars_stats, get_bedwars_stats
 from prism.overlay.nick_database import NickDatabase
+from prism.overlay.real_controller import RealOverlayController
 from prism.player import KnownPlayer, NickedPlayer, UnknownPlayer
-from tests.prism.overlay.utils import MockedController, create_controller
+from tests.prism.overlay.utils import create_controller
 
 # Player data for a player who has been on Hypixel, but has not played bedwars
 NEW_PLAYER_DATA: Mapping[str, object] = {"stats": {}}
@@ -36,7 +37,7 @@ def make_user(username: str, playerdata: bool, nick: str | None = None) -> User:
     )
 
 
-def make_scenario_controller(*users: User) -> MockedController:
+def make_scenario_controller(*users: User) -> RealOverlayController:
     usernames = set(user.username for user in users)
     uuids = set(user.uuid for user in users)
     nicks = set(user.nick for user in users)
@@ -333,8 +334,10 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
 
 
 def test_fetch_bedwars_stats_error_during_uuid() -> None:
-    def get_uuid(username: str) -> str | None | ProcessingError:
-        return ERROR_DURING_PROCESSING
+    def get_uuid(username: str) -> str | None:
+        from prism.errors import APIError
+        
+        raise APIError("Test error")
 
     controller = create_controller(get_uuid=get_uuid)
 
