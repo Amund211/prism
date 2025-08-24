@@ -387,9 +387,4 @@ def assert_controllers_equal(
         == controller2.update_presence_event.is_set()
     )
 
-    # Compare player cache data
     assert controller1.player_cache._cache == controller2.player_cache._cache
-
-    # TODO: Stored settings
-
-    # player cache data?
