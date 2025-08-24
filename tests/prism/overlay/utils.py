@@ -314,16 +314,9 @@ def missing_method(*args: Any, **kwargs: Any) -> Any:
     raise NotImplementedError
 
 
-def assert_get_playerdata_not_called(
-    uuid: str, user_id: str, key_holder: Any, api_limiter: Any
-) -> Any:
-    """Test helper that asserts if get_playerdata is unexpectedly called."""
-    assert False, "get_playerdata should not be called"
-
-
-def assert_get_estimated_winstreaks_not_called(uuid: str, key_holder: Any) -> Any:
-    """Test helper that asserts if get_estimated_winstreaks is unexpectedly called."""
-    assert False, "get_estimated_winstreaks should not be called"
+def assert_not_called(*args: Any, **kwargs: Any) -> Any:
+    """Test helper that asserts that the method is not called."""
+    assert False, "This function should not have been called"
 
 
 class ExtraAttributes(TypedDict):
