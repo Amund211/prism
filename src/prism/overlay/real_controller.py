@@ -148,12 +148,10 @@ class OverlayController:
         self.settings.flush_to_disk()
 
 
+# Type alias for compatibility with tests that use MockedController
 if TYPE_CHECKING:  # pragma: no cover
-    # Import MockedController only for type checking to avoid circular imports
     from tests.prism.overlay.utils import MockedController
 
-    # Type alias to allow functions to work with both real and mocked controllers
     OverlayControllerType = Union[OverlayController, MockedController]
 else:
-    # At runtime, just use OverlayController
     OverlayControllerType = OverlayController
