@@ -415,7 +415,7 @@ def test_read_settings_file_error() -> None:
 
 def test_flush_settings_from_controller() -> None:
     from prism.overlay.nick_database import NickDatabase
-    from prism.overlay.real_controller import RealOverlayController
+    from prism.overlay.real_controller import OverlayController
     from tests.prism.overlay.utils import (
         create_state,
     )
@@ -435,7 +435,7 @@ def test_flush_settings_from_controller() -> None:
         != settings
     )
 
-    controller = RealOverlayController(
+    controller = OverlayController(
         state=create_state(),
         settings=settings,
         nick_database=NickDatabase([{}]),

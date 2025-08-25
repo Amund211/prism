@@ -30,7 +30,7 @@ class ProcessingError(Enum):
 ERROR_DURING_PROCESSING = ProcessingError.token
 
 
-class RealOverlayController:
+class OverlayController:
     def __init__(
         self,
         state: "OverlayState",
@@ -153,7 +153,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from tests.prism.overlay.utils import MockedController
 
     # Type alias to allow functions to work with both real and mocked controllers
-    OverlayControllerType = Union[RealOverlayController, MockedController]
+    OverlayControllerType = Union[OverlayController, MockedController]
 else:
-    # At runtime, just use RealOverlayController
-    OverlayControllerType = RealOverlayController
+    # At runtime, just use OverlayController
+    OverlayControllerType = OverlayController
