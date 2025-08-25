@@ -8,7 +8,6 @@ from typing import Any, Literal, TextIO, TypedDict, cast, overload
 from cachetools import TTLCache
 
 from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
-from prism.overlay.controller import ProcessingError
 from prism.overlay.keybinds import Key
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.output.config import (
@@ -17,6 +16,7 @@ from prism.overlay.output.config import (
     safe_read_rating_config_collection_dict,
 )
 from prism.overlay.player_cache import PlayerCache
+from prism.overlay.real_controller import ProcessingError
 from prism.overlay.settings import NickValue, Settings, fill_missing_settings
 from prism.overlay.state import OverlayState
 from prism.player import (

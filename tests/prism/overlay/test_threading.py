@@ -2,8 +2,8 @@ import queue
 
 import pytest
 
-from prism.overlay.controller import OverlayController
 from prism.overlay.player_cache import PlayerCache
+from prism.overlay.real_controller import OverlayControllerType
 from prism.overlay.threading import get_stat_list
 from prism.player import KnownPlayer, PendingPlayer, Player
 from tests.prism.overlay.utils import (
@@ -197,7 +197,7 @@ def test_get_stat_list_no_redraw() -> None:
     ),
 )
 def test_get_stat_list(
-    controller: OverlayController,
+    controller: OverlayControllerType,
     expected_requested_stats: set[str],
     result: list[Player],
 ) -> None:

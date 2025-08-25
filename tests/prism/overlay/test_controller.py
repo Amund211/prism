@@ -2,9 +2,8 @@ from collections.abc import Mapping
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
 from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
-from prism.overlay.controller import ERROR_DURING_PROCESSING
 from prism.overlay.nick_database import NickDatabase
-from prism.overlay.real_controller import RealOverlayController
+from prism.overlay.real_controller import ERROR_DURING_PROCESSING, RealOverlayController
 from prism.player import MISSING_WINSTREAKS, Winstreaks
 from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError

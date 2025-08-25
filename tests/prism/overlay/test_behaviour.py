@@ -15,8 +15,8 @@ from prism.overlay.behaviour import (
     should_redraw,
     update_settings,
 )
-from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKeyDict
+from prism.overlay.real_controller import OverlayControllerType
 from prism.overlay.settings import (
     NickValue,
     Settings,
@@ -44,7 +44,9 @@ NICK = "AmazingNick"
 UUID = "MyUUID"
 
 
-def set_known_nicks(known_nicks: dict[str, str], controller: OverlayController) -> None:
+def set_known_nicks(
+    known_nicks: dict[str, str], controller: OverlayControllerType
+) -> None:
     """Update the settings and nickdatabase with the uuid->nick mapping"""
     for uuid, nick in known_nicks.items():
         controller.settings.known_nicks[nick] = {"uuid": uuid, "comment": ""}

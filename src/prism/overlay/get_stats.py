@@ -2,13 +2,13 @@ import logging
 from dataclasses import replace
 
 from prism.hypixel import create_known_player, get_playerdata_field
-from prism.overlay.controller import ERROR_DURING_PROCESSING, OverlayController
+from prism.overlay.real_controller import ERROR_DURING_PROCESSING, OverlayControllerType
 from prism.player import KnownPlayer, NickedPlayer, PendingPlayer, UnknownPlayer
 
 logger = logging.getLogger(__name__)
 
 
-def denick(nick: str, controller: OverlayController) -> str | None:
+def denick(nick: str, controller: OverlayControllerType) -> str | None:
     """Try denicking via the antisniper API, fallback to dict"""
     uuid = controller.nick_database.get_default(nick)
 
@@ -29,7 +29,7 @@ def denick(nick: str, controller: OverlayController) -> str | None:
 
 
 def fetch_bedwars_stats(
-    username: str, controller: OverlayController
+    username: str, controller: OverlayControllerType
 ) -> KnownPlayer | NickedPlayer | UnknownPlayer:
     """Fetches the bedwars stats for the given player"""
     uuid = controller.get_uuid(username)
@@ -121,7 +121,7 @@ def fetch_bedwars_stats(
 
 def get_bedwars_stats(
     username: str,
-    controller: OverlayController,
+    controller: OverlayControllerType,
 ) -> KnownPlayer | NickedPlayer | UnknownPlayer:
     """Get and cache the bedwars stats for the given player"""
     cached_stats = controller.player_cache.get_cached_player(username)

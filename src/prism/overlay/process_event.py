@@ -3,16 +3,16 @@ from dataclasses import replace
 from typing import Iterable
 
 from prism.overlay.behaviour import bedwars_game_ended, set_nickname
-from prism.overlay.controller import OverlayController
 from prism.overlay.events import Event, EventType
 from prism.overlay.parsing import parse_logline
+from prism.overlay.real_controller import OverlayControllerType
 from prism.overlay.state import OverlayState
 
 logger = logging.getLogger(__name__)
 
 
 def process_event(
-    controller: OverlayController, event: Event
+    controller: OverlayControllerType, event: Event
 ) -> tuple[OverlayState, bool]:
     """Return an updated OverlayState, and a boolean flag redraw"""
     # Store a persistent view to the current state
@@ -248,7 +248,9 @@ def process_event(
         return state, False
 
 
-def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -> None:
+def fast_forward_state(
+    controller: OverlayControllerType, loglines: Iterable[str]
+) -> None:
     """
     Process the state changes for each logline without outputting anything
 
@@ -265,7 +267,9 @@ def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -
     logger.info("Done fast forwarding state")
 
 
-def process_loglines(loglines: Iterable[str], controller: OverlayController) -> None:
+def process_loglines(
+    loglines: Iterable[str], controller: OverlayControllerType
+) -> None:
     """
     Update state and set the redraw event
 

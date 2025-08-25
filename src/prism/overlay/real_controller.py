@@ -1,15 +1,12 @@
 import logging
 import threading
 from collections.abc import Callable, Mapping
-from typing import TYPE_CHECKING
+from enum import Enum
+from typing import TYPE_CHECKING, Union
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
 from prism.overlay.antisniper_api import (
     AntiSniperAPIKeyHolder,
-)
-from prism.overlay.controller import (
-    ERROR_DURING_PROCESSING,
-    ProcessingError,
 )
 from prism.player import MISSING_WINSTREAKS, Winstreaks
 from prism.ratelimiting import RateLimiter
@@ -24,6 +21,13 @@ logger = logging.getLogger(__name__)
 
 API_REQUEST_LIMIT = 120
 API_REQUEST_WINDOW = 60
+
+
+class ProcessingError(Enum):
+    token = 0
+
+
+ERROR_DURING_PROCESSING = ProcessingError.token
 
 
 class RealOverlayController:
@@ -142,3 +146,14 @@ class RealOverlayController:
 
     def store_settings(self) -> None:
         self.settings.flush_to_disk()
+
+
+if TYPE_CHECKING:  # pragma: no cover
+    # Import MockedController only for type checking to avoid circular imports
+    from tests.prism.overlay.utils import MockedController
+
+    # Type alias to allow functions to work with both real and mocked controllers
+    OverlayControllerType = Union[RealOverlayController, MockedController]
+else:
+    # At runtime, just use RealOverlayController
+    OverlayControllerType = RealOverlayController

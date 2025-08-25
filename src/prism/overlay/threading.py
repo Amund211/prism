@@ -6,10 +6,10 @@ import time
 from collections.abc import Callable, Iterable
 
 from prism.overlay.behaviour import get_stats_and_winstreak, should_redraw
-from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKey
 from prism.overlay.process_event import process_loglines
 from prism.overlay.rating import sort_players
+from prism.overlay.real_controller import OverlayControllerType
 from prism.overlay.rich_presence import RPCThread
 from prism.player import KnownPlayer, Player
 from prism.update_checker import update_available
@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 class UpdateStateThread(threading.Thread):  # pragma: nocover
     """Thread that reads from the logfile and updates the state"""
 
-    def __init__(self, controller: OverlayController, loglines: Iterable[str]) -> None:
+    def __init__(
+        self, controller: OverlayControllerType, loglines: Iterable[str]
+    ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.controller = controller
         self.loglines = loglines
@@ -44,7 +46,7 @@ class GetStatsThread(threading.Thread):  # pragma: nocover
         self,
         requests_queue: queue.Queue[str],
         completed_queue: queue.Queue[str],
-        controller: OverlayController,
+        controller: OverlayControllerType,
     ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.requests_queue = requests_queue
@@ -90,7 +92,7 @@ class UpdateCheckerThread(threading.Thread):  # pragma: nocover
         self,
         one_shot: bool,
         update_available_event: threading.Event,
-        controller: OverlayController,
+        controller: OverlayControllerType,
     ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.one_shot = one_shot
@@ -128,7 +130,7 @@ class UpdateCheckerThread(threading.Thread):  # pragma: nocover
 class AutoWhoThread(threading.Thread):  # pragma: nocover
     """Thread that types /who on request, unless cancelled"""
 
-    def __init__(self, controller: OverlayController) -> None:
+    def __init__(self, controller: OverlayControllerType) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.controller = controller
 
@@ -183,7 +185,7 @@ class AutoWhoThread(threading.Thread):  # pragma: nocover
 
 
 def get_stat_list(
-    controller: OverlayController,
+    controller: OverlayControllerType,
     completed_stats_queue: queue.Queue[str],
     requested_stats_queue: queue.Queue[str],
 ) -> list[Player] | None:
@@ -260,7 +262,7 @@ def get_stat_list(
 
 
 def prepare_overlay(
-    controller: OverlayController, loglines: Iterable[str]
+    controller: OverlayControllerType, loglines: Iterable[str]
 ) -> Callable[[], list[Player] | None]:  # pragma: nocover
     """
     Set up and return get_stat_list

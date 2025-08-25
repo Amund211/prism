@@ -8,7 +8,7 @@ from collections.abc import Mapping
 
 from prism import VERSION_STRING
 from prism.discordrp import Presence
-from prism.overlay.controller import OverlayController
+from prism.overlay.real_controller import OverlayControllerType
 from prism.player import KnownPlayer, NickedPlayer, Player
 
 CLIENT_ID = "1102365189845823569"
@@ -37,7 +37,7 @@ class RPCThread(threading.Thread):  # pragma: no coverage
     """Thread that updates discord rich presence after every game"""
 
     def __init__(
-        self, controller: OverlayController, requested_stats_queue: queue.Queue[str]
+        self, controller: OverlayControllerType, requested_stats_queue: queue.Queue[str]
     ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.controller = controller

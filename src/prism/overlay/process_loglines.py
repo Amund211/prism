@@ -2,12 +2,12 @@ import time
 from collections.abc import Iterable
 
 from prism.overlay.commandline import Options
-from prism.overlay.controller import OverlayController
 from prism.overlay.directories import DEFAULT_LOGFILE_CACHE_PATH
 from prism.overlay.file_utils import watch_file_with_reopen
 from prism.overlay.output.overlay.run_overlay import run_overlay
 from prism.overlay.output.printing import print_stats_table
 from prism.overlay.process_event import fast_forward_state
+from prism.overlay.real_controller import OverlayControllerType
 from prism.overlay.settings import Settings
 from prism.overlay.threading import prepare_overlay
 from prism.overlay.user_interaction.get_logfile import prompt_for_logfile_path
@@ -17,7 +17,7 @@ CLEAR_BETWEEN_DRAWS = True
 
 
 def prompt_and_read_logfile(
-    controller: OverlayController, options: Options, settings: Settings
+    controller: OverlayControllerType, options: Options, settings: Settings
 ) -> Iterable[str]:  # pragma: nocover
     if options.logfile_path is None:
         logfile_path = prompt_for_logfile_path(
@@ -36,7 +36,7 @@ def prompt_and_read_logfile(
 
 
 def process_loglines_to_stdout(
-    controller: OverlayController, loglines: Iterable[str]
+    controller: OverlayControllerType, loglines: Iterable[str]
 ) -> None:  # pragma: nocover
     """Process the state changes for each logline and redraw the screen if neccessary"""
     get_stat_list = prepare_overlay(controller, loglines=loglines)
@@ -63,7 +63,7 @@ def process_loglines_to_stdout(
 
 
 def process_loglines_to_overlay(
-    controller: OverlayController, loglines: Iterable[str], output_to_console: bool
+    controller: OverlayControllerType, loglines: Iterable[str], output_to_console: bool
 ) -> None:  # pragma: nocover
     """Process the state changes for each logline and output to an overlay"""
     get_stat_list = prepare_overlay(controller, loglines=loglines)
@@ -94,7 +94,7 @@ def process_loglines_to_overlay(
 
 
 def process_loglines(
-    controller: OverlayController,
+    controller: OverlayControllerType,
     loglines: Iterable[str],
     overlay: bool,
     console: bool,

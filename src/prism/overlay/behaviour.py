@@ -4,8 +4,8 @@ import queue
 
 from prism.mojang import compare_uuids
 from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
-from prism.overlay.controller import ERROR_DURING_PROCESSING, OverlayController
 from prism.overlay.get_stats import get_bedwars_stats
+from prism.overlay.real_controller import ERROR_DURING_PROCESSING, OverlayControllerType
 from prism.overlay.settings import SettingsDict
 from prism.player import MISSING_WINSTREAKS, KnownPlayer, PendingPlayer
 
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def set_nickname(
-    *, username: str | None, nick: str, controller: OverlayController
+    *, username: str | None, nick: str, controller: OverlayControllerType
 ) -> None:
     """Update the user's nickname"""
     logger.debug(f"Setting denick {nick=} => {username=}")
@@ -80,7 +80,7 @@ def set_nickname(
 
 
 def should_redraw(
-    controller: OverlayController, completed_stats_queue: queue.Queue[str]
+    controller: OverlayControllerType, completed_stats_queue: queue.Queue[str]
 ) -> bool:
     """Check if any updates happened since last time that needs a redraw"""
     # Check if the state update thread has issued any redraws since last time
@@ -107,7 +107,7 @@ def should_redraw(
 
 
 def get_stats_and_winstreak(
-    username: str, completed_queue: queue.Queue[str], controller: OverlayController
+    username: str, completed_queue: queue.Queue[str], controller: OverlayControllerType
 ) -> None:
     """Get a username from the requests queue and cache their stats"""
     # get_bedwars_stats sets the stats cache which will be read from later
@@ -142,7 +142,9 @@ def get_stats_and_winstreak(
             logger.debug(f"Updated missing winstreak for {username}")
 
 
-def update_settings(new_settings: SettingsDict, controller: OverlayController) -> None:
+def update_settings(
+    new_settings: SettingsDict, controller: OverlayControllerType
+) -> None:
     """
     Update the settings from the settings dict, with required side-effects
 
@@ -243,7 +245,7 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
     controller.store_settings()
 
 
-def autodenick_teammate(controller: OverlayController) -> None:
+def autodenick_teammate(controller: OverlayControllerType) -> None:
     """
     Automatically denick one teammate if possible
 
@@ -349,7 +351,7 @@ def autodenick_teammate(controller: OverlayController) -> None:
     set_nickname(username=teammate, nick=unknown_nick, controller=controller)
 
 
-def bedwars_game_ended(controller: OverlayController) -> None:
+def bedwars_game_ended(controller: OverlayControllerType) -> None:
     """Clear the stats cache and set the game ended event"""
     controller.player_cache.clear_cache(short_term_only=True)
     controller.update_presence_event.set()

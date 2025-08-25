@@ -3,7 +3,7 @@ import tkinter as tk
 from typing import TYPE_CHECKING, Any
 
 from prism.overlay.behaviour import set_nickname
-from prism.overlay.controller import OverlayController
+from prism.overlay.real_controller import OverlayControllerType
 
 if TYPE_CHECKING:  # pragma: nocover
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay
@@ -22,7 +22,7 @@ class SetNicknamePage:  # pragma: nocover
         self,
         parent: tk.Misc,
         overlay: "StatsOverlay",
-        controller: OverlayController,
+        controller: OverlayControllerType,
     ) -> None:
         """Set up a frame containing the gui"""
         self.frame = tk.Frame(parent, background="black")

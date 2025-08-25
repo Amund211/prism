@@ -6,7 +6,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from prism import VERSION_STRING
-from prism.overlay.controller import OverlayController
+from prism.overlay.real_controller import OverlayControllerType
 
 if TYPE_CHECKING:  # pragma: nocover
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay
@@ -26,7 +26,7 @@ class Toolbar:  # pragma: nocover
         self,
         parent: tk.Misc,
         overlay: "StatsOverlay",
-        controller: OverlayController,
+        controller: OverlayControllerType,
     ) -> None:
         """Set up a frame containing the toolbar for the overlay"""
         self.overlay = overlay

@@ -6,9 +6,9 @@ from dataclasses import dataclass
 import pytest
 
 from prism.hypixel import create_known_player
-from prism.overlay.controller import ERROR_DURING_PROCESSING, ProcessingError
 from prism.overlay.get_stats import denick, fetch_bedwars_stats, get_bedwars_stats
 from prism.overlay.nick_database import NickDatabase
+from prism.overlay.real_controller import ERROR_DURING_PROCESSING, ProcessingError
 from prism.player import KnownPlayer, NickedPlayer, UnknownPlayer
 from tests.prism.overlay.utils import MockedController
 
