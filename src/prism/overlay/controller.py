@@ -36,7 +36,7 @@ class OverlayController:
         state: "OverlayState",
         settings: "Settings",
         nick_database: "NickDatabase",
-        get_uuid: Callable[[str], str | None],
+        get_uuid: Callable[[str], str],
         get_playerdata: Callable[
             [str, str, "AntiSniperAPIKeyHolder | None", "RateLimiter"],
             Mapping[str, object],
@@ -79,6 +79,9 @@ class OverlayController:
     def get_uuid(self, username: str) -> str | None | ProcessingError:
         try:
             uuid = self._get_uuid(username)
+        except PlayerNotFoundError:
+            self.missing_local_issuer_certificate = False
+            return None
         except MissingLocalIssuerSSLError:
             logger.exception("get_uuid: missing local issuer cert")
             self.missing_local_issuer_certificate = True

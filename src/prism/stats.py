@@ -168,8 +168,7 @@ def print_bedwars_stats(
 def get_and_display(username: str) -> None:
     try:
         uuid = get_uuid(username)
-        nick = None
-    except APIError:
+    except (APIError, PlayerNotFoundError):
         uuid = None
 
     if uuid is None:
@@ -186,7 +185,7 @@ def get_and_display(username: str) -> None:
     ) as e:
         print(e)
     else:
-        print_bedwars_stats(playerdata, nick=nick)
+        print_bedwars_stats(playerdata, nick=None)
 
 
 def main() -> None:

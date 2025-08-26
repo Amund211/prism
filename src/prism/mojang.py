@@ -5,7 +5,7 @@ from json import JSONDecodeError
 import requests
 from requests.exceptions import RequestException, SSLError
 
-from prism.errors import APIError
+from prism.errors import APIError, PlayerNotFoundError
 from prism.ratelimiting import RateLimiter
 from prism.requests import make_prism_requests_session
 from prism.retry import ExecutionError, execute_with_retry
@@ -69,7 +69,7 @@ def _make_request(
 
 def get_uuid(
     username: str, retry_limit: int = 5, initial_timeout: float = 2
-) -> str | None:  # pragma: nocover
+) -> str:  # pragma: nocover
     """Get the uuid of the user. None if not found."""
     with UUID_MUTEX:
         cache_hit = LOWERCASE_UUID_CACHE.get(username.lower(), None)
@@ -88,7 +88,9 @@ def get_uuid(
 
     if response.status_code == 404 or response.status_code == 204:
         # Not found
-        return None
+        raise PlayerNotFoundError(
+            f"Player with username {username} not found from Mojang API."
+        )
 
     if not response:
         raise APIError(
