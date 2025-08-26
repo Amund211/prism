@@ -1,6 +1,6 @@
 import pytest
 
-from prism.mojang import compare_uuids
+from prism.mojang import MojangAccountProvider, compare_uuids
 
 
 @pytest.mark.parametrize(
@@ -33,3 +33,7 @@ from prism.mojang import compare_uuids
 )
 def test_compare_uuids(uuid_1: str, uuid_2: str, equal: bool) -> None:
     assert compare_uuids(uuid_1, uuid_2) is equal
+
+
+def test_make_provider() -> None:
+    MojangAccountProvider(retry_limit=3, initial_timeout=1.0)

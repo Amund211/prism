@@ -20,11 +20,13 @@ from prism.hypixel import (
     get_gamemode_stats,
     get_player_data,
 )
-from prism.mojang import get_uuid
+from prism.mojang import MojangAccountProvider
 from prism.utils import div, format_seconds, read_key, truncate_float
 
 api_key = read_key(Path(sys.path[0]) / "api_key")
 key_holder = HypixelAPIKeyHolder(api_key)
+
+ACCOUNT_PROVIDER = MojangAccountProvider(retry_limit=0, initial_timeout=0)
 
 
 SEP = " " * 4
@@ -167,7 +169,7 @@ def print_bedwars_stats(
 
 def get_and_display(username: str) -> None:
     try:
-        uuid = get_uuid(username)
+        uuid = ACCOUNT_PROVIDER.get_uuid_for_username(username)
     except (APIError, PlayerNotFoundError):
         uuid = None
 

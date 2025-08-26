@@ -66,16 +66,18 @@ def main() -> None:  # pragma: nocover
     nick_database = NickDatabase.from_disk([], default_database=default_database)
 
     # Import late so we can patch ssl certs in requests
-    from prism.mojang import get_uuid
+    from prism.mojang import MojangAccountProvider
     from prism.overlay.antisniper_api import get_estimated_winstreaks, get_playerdata
     from prism.overlay.controller import OverlayController
     from prism.overlay.process_loglines import process_loglines, prompt_and_read_logfile
+
+    account_provider = MojangAccountProvider(retry_limit=5, initial_timeout=2)
 
     controller = OverlayController(
         state=OverlayState(),
         settings=settings,
         nick_database=nick_database,
-        get_uuid=get_uuid,
+        account_provider=account_provider,
         get_playerdata=get_playerdata,
         get_estimated_winstreaks=get_estimated_winstreaks,
         get_time_ns=time.time_ns,

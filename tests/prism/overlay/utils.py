@@ -3,7 +3,7 @@ from collections.abc import Callable, Mapping, Set
 from pathlib import Path, PurePath
 from typing import TYPE_CHECKING, Any, Literal, TextIO, cast, overload
 
-from prism.overlay.controller import OverlayController
+from prism.overlay.controller import AccountProvider, OverlayController
 from prism.overlay.keybinds import Key
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.output.config import (
@@ -313,6 +313,14 @@ def assert_not_called(*args: Any, **kwargs: Any) -> Any:
     assert False, "This function should not have been called"
 
 
+class MockedAccountProvider:
+    def __init__(self, get_uuid_for_username: Callable[[str], str]) -> None:
+        self._get_uuid_for_username = get_uuid_for_username
+
+    def get_uuid_for_username(self, username: str, /) -> str:
+        return self._get_uuid_for_username(username)
+
+
 def create_controller(
     state: OverlayState | None = None,
     settings: Settings | None = None,
@@ -326,7 +334,7 @@ def create_controller(
     update_presence_event_set: bool = False,
     player_cache: PlayerCache | None = None,
     nick_database: NickDatabase | None = None,
-    get_uuid: Callable[[str], str] = assert_not_called,
+    account_provider: AccountProvider = MockedAccountProvider(assert_not_called),
     get_playerdata: Callable[
         [str, str, "AntiSniperAPIKeyHolder | None", RateLimiter], Mapping[str, object]
     ] = assert_not_called,
@@ -339,7 +347,7 @@ def create_controller(
         state=state or create_state(),
         settings=settings or make_settings(),
         nick_database=nick_database or NickDatabase([{}]),
-        get_uuid=get_uuid,
+        account_provider=account_provider,
         get_playerdata=get_playerdata,
         get_estimated_winstreaks=get_estimated_winstreaks,
         get_time_ns=get_time_ns,
