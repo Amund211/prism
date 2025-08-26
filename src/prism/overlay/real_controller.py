@@ -1,15 +1,12 @@
 import logging
 import threading
 from collections.abc import Callable, Mapping
+from enum import Enum
 from typing import TYPE_CHECKING
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
 from prism.overlay.antisniper_api import (
     AntiSniperAPIKeyHolder,
-)
-from prism.overlay.controller import (
-    ERROR_DURING_PROCESSING,
-    ProcessingError,
 )
 from prism.player import MISSING_WINSTREAKS, Winstreaks
 from prism.ratelimiting import RateLimiter
@@ -26,7 +23,14 @@ API_REQUEST_LIMIT = 120
 API_REQUEST_WINDOW = 60
 
 
-class RealOverlayController:
+class ProcessingError(Enum):
+    token = 0
+
+
+ERROR_DURING_PROCESSING = ProcessingError.token
+
+
+class OverlayController:
     def __init__(
         self,
         state: "OverlayState",

@@ -2,7 +2,7 @@ from collections.abc import Mapping
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
 from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
-from prism.overlay.controller import ERROR_DURING_PROCESSING
+from prism.overlay.real_controller import ERROR_DURING_PROCESSING
 from prism.player import MISSING_WINSTREAKS, Winstreaks
 from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
@@ -142,7 +142,7 @@ def test_real_overlay_controller_get_playerdata() -> None:
 
 
 def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
-    """Test that RealOverlayController uses injected get_uuid function"""
+    """Test that OverlayController uses injected get_uuid function"""
     custom_uuid = "custom-uuid-12345"
 
     def custom_get_uuid(username: str) -> str:
@@ -156,7 +156,7 @@ def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
 
 
 def test_real_overlay_controller_get_playerdata_dependency_injection() -> None:
-    """Test that RealOverlayController uses injected get_playerdata function"""
+    """Test that OverlayController uses injected get_playerdata function"""
     custom_playerdata = {"custom": "data", "uuid": "test-uuid"}
 
     def custom_get_playerdata(
@@ -186,7 +186,7 @@ def test_real_overlay_controller_get_playerdata_dependency_injection() -> None:
 def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection() -> (
     None
 ):
-    """Test that RealOverlayController uses injected get_estimated_winstreaks
+    """Test that OverlayController uses injected get_estimated_winstreaks
     function"""
     custom_winstreaks = Winstreaks(overall=5, solo=3, doubles=2, threes=1, fours=0)
     custom_accurate = True
@@ -212,7 +212,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection()
 
 
 def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
-    """Test that RealOverlayController returns MISSING_WINSTREAKS when
+    """Test that OverlayController returns MISSING_WINSTREAKS when
     antisniper API is disabled"""
     controller = create_controller(
         settings=make_settings(
@@ -228,7 +228,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
 
 
 def test_real_overlay_controller_get_estimated_winstreaks_no_key() -> None:
-    """Test that RealOverlayController returns MISSING_WINSTREAKS when no API
+    """Test that OverlayController returns MISSING_WINSTREAKS when no API
     key is set"""
     controller = create_controller(
         settings=make_settings(
@@ -244,7 +244,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_key() -> None:
 
 
 def test_real_overlay_controller_get_time_ns_dependency_injection() -> None:
-    """Test that RealOverlayController uses injected get_time_ns function"""
+    """Test that OverlayController uses injected get_time_ns function"""
     custom_time_ns = 1234567890123456789
 
     def custom_get_time_ns() -> int:

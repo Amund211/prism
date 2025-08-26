@@ -69,9 +69,9 @@ def main() -> None:  # pragma: nocover
     from prism.mojang import get_uuid
     from prism.overlay.antisniper_api import get_estimated_winstreaks, get_playerdata
     from prism.overlay.process_loglines import process_loglines, prompt_and_read_logfile
-    from prism.overlay.real_controller import RealOverlayController
+    from prism.overlay.real_controller import OverlayController
 
-    controller = RealOverlayController(
+    controller = OverlayController(
         state=OverlayState(),
         settings=settings,
         nick_database=nick_database,

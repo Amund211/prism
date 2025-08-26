@@ -2,12 +2,12 @@ import time
 from collections.abc import Iterable
 
 from prism.overlay.commandline import Options
-from prism.overlay.controller import OverlayController
 from prism.overlay.directories import DEFAULT_LOGFILE_CACHE_PATH
 from prism.overlay.file_utils import watch_file_with_reopen
 from prism.overlay.output.overlay.run_overlay import run_overlay
 from prism.overlay.output.printing import print_stats_table
 from prism.overlay.process_event import fast_forward_state
+from prism.overlay.real_controller import OverlayController
 from prism.overlay.settings import Settings
 from prism.overlay.threading import prepare_overlay
 from prism.overlay.user_interaction.get_logfile import prompt_for_logfile_path
