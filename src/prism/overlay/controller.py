@@ -2,7 +2,7 @@ import logging
 import threading
 from collections.abc import Callable, Mapping
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
 from prism.overlay.antisniper_api import (
@@ -30,13 +30,17 @@ class ProcessingError(Enum):
 ERROR_DURING_PROCESSING = ProcessingError.token
 
 
+class AccountProvider(Protocol):
+    def get_uuid_for_username(self, username: str, /) -> str: ...
+
+
 class OverlayController:
     def __init__(
         self,
         state: "OverlayState",
         settings: "Settings",
         nick_database: "NickDatabase",
-        get_uuid: Callable[[str], str],
+        account_provider: AccountProvider,
         get_playerdata: Callable[
             [str, str, "AntiSniperAPIKeyHolder | None", "RateLimiter"],
             Mapping[str, object],
@@ -71,14 +75,14 @@ class OverlayController:
             else None
         )
 
-        self._get_uuid = get_uuid
+        self._account_provider = account_provider
         self._get_playerdata = get_playerdata
         self._get_estimated_winstreaks = get_estimated_winstreaks
         self._get_time_ns = get_time_ns
 
     def get_uuid(self, username: str) -> str | None | ProcessingError:
         try:
-            uuid = self._get_uuid(username)
+            uuid = self._account_provider.get_uuid_for_username(username)
         except PlayerNotFoundError:
             self.missing_local_issuer_certificate = False
             return None

@@ -34,6 +34,7 @@ from tests.prism.overlay.test_settings import (
 )
 from tests.prism.overlay.utils import (
     CUSTOM_RATING_CONFIG_COLLECTION_DICT,
+    MockedAccountProvider,
     create_controller,
     create_state,
     make_player,
@@ -69,7 +70,9 @@ def test_set_nickname(known_nicks: dict[str, str]) -> None:
     settings_file = no_close(io.StringIO())
 
     controller = create_controller(
-        get_uuid=lambda username: UUID,
+        account_provider=MockedAccountProvider(
+            get_uuid_for_username=lambda username: UUID
+        ),
         settings=make_settings(write_settings_file_utf8=lambda: settings_file),
     )
     controller.player_cache.uncache_player = unittest.mock.MagicMock()  # type: ignore
@@ -144,7 +147,7 @@ def test_unset_nickname(known_nicks: dict[str, str], explicit: bool) -> None:
         raise PlayerNotFoundError
 
     controller = create_controller(
-        get_uuid=get_uuid,
+        account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
         settings=make_settings(write_settings_file_utf8=lambda: settings_file),
     )
     controller.player_cache.uncache_player = unittest.mock.MagicMock()  # type: ignore
@@ -274,7 +277,7 @@ def test_get_and_cache_stats(
         return CURRENT_TIME_MS * 1_000_000
 
     controller = create_controller(
-        get_uuid=get_uuid,
+        account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
         get_playerdata=get_playerdata,
         get_time_ns=get_time_ns,
         get_estimated_winstreaks=get_estimated_winstreaks,
@@ -960,7 +963,7 @@ def test_autodenick_teammate(
             in_queue=True,
             out_of_sync=False,
         ),
-        get_uuid=get_uuid,
+        account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
     )
 
     # Update the controller state by setting cache and denicks

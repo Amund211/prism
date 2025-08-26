@@ -7,6 +7,7 @@ from prism.player import MISSING_WINSTREAKS, Winstreaks
 from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
 from tests.prism.overlay.utils import (
+    MockedAccountProvider,
     assert_not_called,
     create_controller,
     make_settings,
@@ -53,7 +54,7 @@ def test_real_overlay_controller_get_uuid() -> None:
             use_antisniper_api=True,
             user_id="1234",
         ),
-        get_uuid=get_uuid_mock,
+        account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid_mock),
     )
 
     error = APIError()
@@ -153,7 +154,9 @@ def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
         assert username == "testuser"
         return custom_uuid
 
-    controller = create_controller(get_uuid=custom_get_uuid)
+    controller = create_controller(
+        account_provider=MockedAccountProvider(get_uuid_for_username=custom_get_uuid)
+    )
 
     result = controller.get_uuid("testuser")
     assert result == custom_uuid
