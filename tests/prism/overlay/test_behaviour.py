@@ -15,9 +15,9 @@ from prism.overlay.behaviour import (
     should_redraw,
     update_settings,
 )
+from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKeyDict
 from prism.overlay.nick_database import NickDatabase
-from prism.overlay.real_controller import OverlayController
 from prism.overlay.settings import (
     NickValue,
     Settings,

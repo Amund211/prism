@@ -3,6 +3,7 @@ from collections.abc import Callable, Mapping, Set
 from pathlib import Path, PurePath
 from typing import TYPE_CHECKING, Any, Literal, TextIO, cast, overload
 
+from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import Key
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.output.config import (
@@ -11,7 +12,6 @@ from prism.overlay.output.config import (
     safe_read_rating_config_collection_dict,
 )
 from prism.overlay.player_cache import PlayerCache
-from prism.overlay.real_controller import OverlayController
 from prism.overlay.settings import NickValue, Settings, fill_missing_settings
 from prism.overlay.state import OverlayState
 from prism.player import (

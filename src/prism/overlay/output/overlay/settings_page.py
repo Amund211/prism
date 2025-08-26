@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal
 
 from prism.overlay.behaviour import update_settings
+from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKey, Key
 from prism.overlay.output.cells import (
     ALL_COLUMN_NAMES_ORDERED,
@@ -37,7 +38,6 @@ from prism.overlay.output.overlay.gui_components import (
     ToggleButton,
 )
 from prism.overlay.output.overlay.utils import open_url
-from prism.overlay.real_controller import OverlayController
 from prism.overlay.settings import NickValue, Settings, SettingsDict
 from prism.overlay.thread_count import recommend_stats_thread_count
 from prism.overlay.threading import UpdateCheckerThread

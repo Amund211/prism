@@ -8,9 +8,9 @@ import pytest
 
 from prism.errors import APIError, PlayerNotFoundError
 from prism.hypixel import create_known_player
+from prism.overlay.controller import OverlayController
 from prism.overlay.get_stats import denick, fetch_bedwars_stats, get_bedwars_stats
 from prism.overlay.nick_database import NickDatabase
-from prism.overlay.real_controller import OverlayController
 from prism.player import KnownPlayer, NickedPlayer, UnknownPlayer
 from tests.prism.overlay.utils import create_controller
 

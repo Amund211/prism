@@ -4,6 +4,7 @@ from typing import Final
 
 import pytest
 
+from prism.overlay.controller import OverlayController
 from prism.overlay.events import (
     BedwarsDisconnectEvent,
     BedwarsFinalKillEvent,
@@ -32,7 +33,6 @@ from prism.overlay.process_event import (
     process_event,
     process_loglines,
 )
-from prism.overlay.real_controller import OverlayController
 from tests.prism.overlay.utils import (
     OWN_USERNAME,
     assert_controllers_equal,

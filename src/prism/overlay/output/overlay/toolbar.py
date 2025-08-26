@@ -6,7 +6,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from prism import VERSION_STRING
-from prism.overlay.real_controller import OverlayController
+from prism.overlay.controller import OverlayController
 
 if TYPE_CHECKING:  # pragma: nocover
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay
