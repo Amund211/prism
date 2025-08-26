@@ -326,7 +326,7 @@ def create_controller(
     update_presence_event_set: bool = False,
     player_cache: PlayerCache | None = None,
     nick_database: NickDatabase | None = None,
-    get_uuid: Callable[[str], str | None] = assert_not_called,
+    get_uuid: Callable[[str], str] = assert_not_called,
     get_playerdata: Callable[
         [str, str, "AntiSniperAPIKeyHolder | None", RateLimiter], Mapping[str, object]
     ] = assert_not_called,

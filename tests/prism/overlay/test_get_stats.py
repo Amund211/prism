@@ -49,9 +49,12 @@ def make_scenario_controller(*users: User) -> OverlayController:
     uuid_table = {user.uuid: user for user in users}
     nick_table = {user.nick: user.uuid for user in users if user.nick is not None}
 
-    def get_uuid(username: str) -> str | None:
+    def get_uuid(username: str) -> str:
         user = username_table.get(username, None)
-        return user.uuid if user is not None else None
+        if user is None:
+            raise PlayerNotFoundError("Player not found")
+
+        return user.uuid
 
     def get_playerdata(
         uuid: str, user_id: str, antisniper_key_holder: Any, api_limiter: Any
@@ -295,7 +298,7 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
         **NEW_PLAYER_DATA,
     }
 
-    def get_uuid(username: str) -> str | None:
+    def get_uuid(username: str) -> str:
         assert username == my_username
         return my_uuid
 
@@ -332,7 +335,7 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
 
 
 def test_fetch_bedwars_stats_error_during_uuid() -> None:
-    def get_uuid(username: str) -> str | None:
+    def get_uuid(username: str) -> str:
         raise APIError("Test error")
 
     controller = create_controller(get_uuid=get_uuid)
@@ -341,7 +344,7 @@ def test_fetch_bedwars_stats_error_during_uuid() -> None:
 
 
 def test_fetch_bedwars_stats_error_during_playerdata() -> None:
-    def get_uuid(username: str) -> str | None:
+    def get_uuid(username: str) -> str:
         return "uuid"
 
     def get_playerdata(

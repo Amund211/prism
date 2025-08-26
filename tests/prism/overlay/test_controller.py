@@ -38,9 +38,9 @@ def test_real_overlay_controller_no_antisniper_key() -> None:
 
 def test_real_overlay_controller_get_uuid() -> None:
     error: Exception | None = None
-    returned_uuid: str | None = None
+    returned_uuid: str = ""
 
-    def get_uuid_mock(username: str) -> str | None:
+    def get_uuid_mock(username: str) -> str:
         assert username == "username"
         if error:
             raise error
@@ -59,6 +59,10 @@ def test_real_overlay_controller_get_uuid() -> None:
     error = APIError()
     uuid = controller.get_uuid("username")
     assert uuid is ERROR_DURING_PROCESSING
+
+    error = PlayerNotFoundError()
+    uuid = controller.get_uuid("username")
+    assert uuid is None
 
     error = MissingLocalIssuerSSLError()
     assert not controller.missing_local_issuer_certificate

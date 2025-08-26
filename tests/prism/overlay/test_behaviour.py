@@ -7,6 +7,7 @@ from typing import Any, cast
 
 import pytest
 
+from prism.errors import PlayerNotFoundError
 from prism.overlay.behaviour import (
     autodenick_teammate,
     bedwars_game_ended,
@@ -136,8 +137,14 @@ def test_unset_nickname(known_nicks: dict[str, str], explicit: bool) -> None:
     """
     settings_file = no_close(io.StringIO())
 
+    def get_uuid(_: str) -> str:
+        if explicit:
+            return UUID
+
+        raise PlayerNotFoundError
+
     controller = create_controller(
-        get_uuid=lambda username: UUID if explicit else None,
+        get_uuid=get_uuid,
         settings=make_settings(write_settings_file_utf8=lambda: settings_file),
     )
     controller.player_cache.uncache_player = unittest.mock.MagicMock()  # type: ignore
@@ -249,9 +256,9 @@ def test_get_and_cache_stats(
 
         return (MISSING_WINSTREAKS, False)
 
-    def get_uuid(username: str) -> str | None:
+    def get_uuid(username: str) -> str:
         if username == user.nick:
-            return None
+            raise PlayerNotFoundError
 
         assert username == user.username
         return user.uuid
