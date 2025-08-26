@@ -32,7 +32,7 @@ from prism.overlay.process_event import (
     process_event,
     process_loglines,
 )
-from prism.overlay.real_controller import RealOverlayController
+from prism.overlay.real_controller import OverlayController
 from tests.prism.overlay.utils import (
     OWN_USERNAME,
     assert_controllers_equal,
@@ -42,7 +42,7 @@ from tests.prism.overlay.utils import (
 )
 
 process_event_test_cases_base: tuple[
-    tuple[str, RealOverlayController, Event, RealOverlayController, bool], ...
+    tuple[str, OverlayController, Event, OverlayController, bool], ...
 ] = (
     (
         "initialize",
@@ -719,9 +719,9 @@ process_event_test_cases = [
     ids=process_event_test_ids,
 )
 def test_process_event(
-    initial_controller: RealOverlayController,
+    initial_controller: OverlayController,
     event: Event,
-    target_controller: RealOverlayController,
+    target_controller: OverlayController,
     redraw: bool,
 ) -> None:
     """Assert that process_event functions properly"""
@@ -1337,9 +1337,9 @@ FAST_FORWARD_STATE_CASES: Final = (
     "initial_controller, loglines, target_controller", FAST_FORWARD_STATE_CASES
 )
 def test_fast_forward_state(
-    initial_controller: RealOverlayController,
+    initial_controller: OverlayController,
     loglines: Iterable[str],
-    target_controller: RealOverlayController,
+    target_controller: OverlayController,
 ) -> None:
     fast_forward_state(initial_controller, loglines)
 
@@ -1372,7 +1372,7 @@ def test_fast_forward_state(
     ),
 )
 def test_process_loglines(
-    loglines: tuple[str], resulting_controller: RealOverlayController
+    loglines: tuple[str], resulting_controller: OverlayController
 ) -> None:
     controller = create_controller()
 

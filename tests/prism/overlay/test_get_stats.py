@@ -10,7 +10,7 @@ from prism.errors import APIError, PlayerNotFoundError
 from prism.hypixel import create_known_player
 from prism.overlay.get_stats import denick, fetch_bedwars_stats, get_bedwars_stats
 from prism.overlay.nick_database import NickDatabase
-from prism.overlay.real_controller import RealOverlayController
+from prism.overlay.real_controller import OverlayController
 from prism.player import KnownPlayer, NickedPlayer, UnknownPlayer
 from tests.prism.overlay.utils import create_controller
 
@@ -37,7 +37,7 @@ def make_user(username: str, playerdata: bool, nick: str | None = None) -> User:
     )
 
 
-def make_scenario_controller(*users: User) -> RealOverlayController:
+def make_scenario_controller(*users: User) -> OverlayController:
     usernames = set(user.username for user in users)
     uuids = set(user.uuid for user in users)
     nicks = set(user.nick for user in users)

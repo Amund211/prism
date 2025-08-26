@@ -11,7 +11,7 @@ from prism.overlay.output.config import (
     safe_read_rating_config_collection_dict,
 )
 from prism.overlay.player_cache import PlayerCache
-from prism.overlay.real_controller import RealOverlayController
+from prism.overlay.real_controller import OverlayController
 from prism.overlay.settings import NickValue, Settings, fill_missing_settings
 from prism.overlay.state import OverlayState
 from prism.player import (
@@ -334,8 +334,8 @@ def create_controller(
         [str, "AntiSniperAPIKeyHolder"], tuple[Winstreaks, bool]
     ] = assert_not_called,
     get_time_ns: Callable[[], int] = assert_not_called,
-) -> RealOverlayController:
-    controller = RealOverlayController(
+) -> OverlayController:
+    controller = OverlayController(
         state=state or create_state(),
         settings=settings or make_settings(),
         nick_database=nick_database or NickDatabase([{}]),
@@ -365,7 +365,7 @@ def create_controller(
 
 
 def assert_controllers_equal(
-    controller1: RealOverlayController, controller2: RealOverlayController, /
+    controller1: OverlayController, controller2: OverlayController, /
 ) -> None:
     assert controller1.api_key_invalid == controller2.api_key_invalid
     assert controller1.api_key_throttled == controller2.api_key_throttled

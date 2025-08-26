@@ -14,7 +14,7 @@ from types import TracebackType
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: nocover
-    from prism.overlay.controller import OverlayController
+    from prism.overlay.real_controller import OverlayController
 
 logger = logging.getLogger(__name__)
 

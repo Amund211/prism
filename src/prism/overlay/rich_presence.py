@@ -8,7 +8,7 @@ from collections.abc import Mapping
 
 from prism import VERSION_STRING
 from prism.discordrp import Presence
-from prism.overlay.controller import OverlayController
+from prism.overlay.real_controller import OverlayController
 from prism.player import KnownPlayer, NickedPlayer, Player
 
 CLIENT_ID = "1102365189845823569"

@@ -15,10 +15,9 @@ from prism.overlay.behaviour import (
     should_redraw,
     update_settings,
 )
-from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKeyDict
 from prism.overlay.nick_database import NickDatabase
-from prism.overlay.real_controller import RealOverlayController
+from prism.overlay.real_controller import OverlayController
 from prism.overlay.settings import (
     NickValue,
     Settings,
@@ -1015,7 +1014,7 @@ def test_autodenick_teammate(
         ),
     ),
 )
-def test_autodenick_teammate_early_exit(controller: RealOverlayController) -> None:
+def test_autodenick_teammate_early_exit(controller: OverlayController) -> None:
     with unittest.mock.patch(
         "prism.overlay.behaviour.set_nickname"
     ) as patched_set_nickname:
