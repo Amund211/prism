@@ -3,7 +3,7 @@ import tkinter as tk
 from typing import TYPE_CHECKING, Any
 
 from prism.overlay.behaviour import set_nickname
-from prism.overlay.real_controller import OverlayController
+from prism.overlay.controller import OverlayController
 
 if TYPE_CHECKING:  # pragma: nocover
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay

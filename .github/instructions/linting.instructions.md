@@ -185,7 +185,7 @@ import requests
 import tkinter as tk
 
 # Local imports
-from prism.overlay.controller import Controller
+from prism.overlay.controller import OverlayController
 from prism.stats import calculate_stats
 ```
 

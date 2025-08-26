@@ -3,9 +3,9 @@ from dataclasses import replace
 from typing import Iterable
 
 from prism.overlay.behaviour import bedwars_game_ended, set_nickname
+from prism.overlay.controller import OverlayController
 from prism.overlay.events import Event, EventType
 from prism.overlay.parsing import parse_logline
-from prism.overlay.real_controller import OverlayController
 from prism.overlay.state import OverlayState
 
 logger = logging.getLogger(__name__)

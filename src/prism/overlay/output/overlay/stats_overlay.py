@@ -5,6 +5,7 @@ import tkinter as tk
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Literal, assert_never
 
+from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import SpecialKey, create_pynput_normalizer
 from prism.overlay.output.cells import ColumnName, InfoCellValue
 from prism.overlay.output.overlay.main_content import MainContent
@@ -13,7 +14,6 @@ from prism.overlay.output.overlay.set_nickname_page import SetNicknamePage
 from prism.overlay.output.overlay.settings_page import SettingsPage
 from prism.overlay.output.overlay.toolbar import Toolbar
 from prism.overlay.output.overlay.utils import OverlayRowData
-from prism.overlay.real_controller import OverlayController
 
 if TYPE_CHECKING:  # pragma: nocover
     import pynput
