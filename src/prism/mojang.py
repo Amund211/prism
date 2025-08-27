@@ -16,11 +16,6 @@ REQUEST_LIMIT, REQUEST_WINDOW = 600, 10 * 60  # Max requests per time window
 BURST_REQUEST_LIMIT, BURST_REQUEST_WINDOW = 50, 8  # Found by trial and error
 
 
-def compare_uuids(uuid_1: str, uuid_2: str, /) -> bool:
-    """Return True if the two uuids (dashed or not) are equal"""
-    return uuid_1.replace("-", "") == uuid_2.replace("-", "")
-
-
 class MojangAccountProvider:
     def __init__(self, *, retry_limit: int, initial_timeout: float) -> None:
         self._retry_limit = retry_limit

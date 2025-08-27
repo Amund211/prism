@@ -2,12 +2,12 @@ import functools
 import logging
 import queue
 
-from prism.mojang import compare_uuids
 from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from prism.overlay.controller import ERROR_DURING_PROCESSING, OverlayController
 from prism.overlay.get_stats import get_bedwars_stats
 from prism.overlay.settings import SettingsDict
 from prism.player import MISSING_WINSTREAKS, KnownPlayer, PendingPlayer
+from prism.uuid import compare_uuids
 
 logger = logging.getLogger(__name__)
 
