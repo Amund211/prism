@@ -23,7 +23,6 @@ from prism.player import (
     UnknownPlayer,
     Winstreaks,
 )
-from prism.ratelimiting import RateLimiter
 
 if TYPE_CHECKING:  # pragma: no cover
     from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
@@ -325,19 +324,24 @@ class MockedPlayerProvider:
     def __init__(
         self,
         get_playerdata_for_uuid: Callable[
-            [str, str, RateLimiter],
+            [str, str],
             Mapping[str, object],
         ],
+        seconds_until_unblocked: float = 0.0,
     ) -> None:
         self._get_playerdata_for_uuid = get_playerdata_for_uuid
+        self._seconds_until_unblocked = seconds_until_unblocked
 
     def get_playerdata_for_uuid(
         self,
         uuid: str,
         user_id: str,
-        limiter: RateLimiter,
     ) -> Mapping[str, object]:
-        return self._get_playerdata_for_uuid(uuid, user_id, limiter)
+        return self._get_playerdata_for_uuid(uuid, user_id)
+
+    @property
+    def seconds_until_unblocked(self) -> float:
+        return self._seconds_until_unblocked
 
 
 def create_controller(

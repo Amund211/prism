@@ -4,7 +4,6 @@ from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFound
 from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from prism.overlay.controller import ERROR_DURING_PROCESSING
 from prism.player import MISSING_WINSTREAKS, Winstreaks
-from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
 from tests.prism.overlay.utils import (
     MockedAccountProvider,
@@ -84,11 +83,7 @@ def test_real_overlay_controller_get_playerdata() -> None:
     error: Exception | None = None
     returned_playerdata: Mapping[str, object] = {}
 
-    def mock_get_playerdata(
-        uuid: str,
-        user_id: str,
-        api_limiter: RateLimiter,
-    ) -> Mapping[str, object]:
+    def mock_get_playerdata(uuid: str, user_id: str) -> Mapping[str, object]:
         assert uuid == "uuid"
         assert user_id == "1234"
 
@@ -168,11 +163,7 @@ def test_real_overlay_controller_get_playerdata_dependency_injection() -> None:
     """Test that OverlayController uses injected get_playerdata function"""
     custom_playerdata = {"custom": "data", "uuid": "test-uuid"}
 
-    def custom_get_playerdata(
-        uuid: str,
-        user_id: str,
-        api_limiter: RateLimiter,
-    ) -> Mapping[str, object]:
+    def custom_get_playerdata(uuid: str, user_id: str) -> Mapping[str, object]:
         assert uuid == "test-uuid"
         assert user_id == "test-user-id"
         return custom_playerdata
@@ -262,11 +253,7 @@ def test_real_overlay_controller_get_time_ns_dependency_injection() -> None:
 
     custom_playerdata = {"test": "data", "uuid": "test-uuid"}
 
-    def custom_get_playerdata(
-        uuid: str,
-        user_id: str,
-        api_limiter: RateLimiter,
-    ) -> Mapping[str, object]:
+    def custom_get_playerdata(uuid: str, user_id: str) -> Mapping[str, object]:
         assert uuid == "test-uuid"
         assert user_id == "test-user-id"
         return custom_playerdata

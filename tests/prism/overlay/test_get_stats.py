@@ -2,7 +2,6 @@ import itertools
 import unittest.mock
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any
 
 import pytest
 
@@ -60,9 +59,7 @@ def make_scenario_controller(*users: User) -> OverlayController:
 
         return user.uuid
 
-    def get_playerdata(
-        uuid: str, user_id: str, api_limiter: Any
-    ) -> Mapping[str, object]:
+    def get_playerdata(uuid: str, user_id: str) -> Mapping[str, object]:
         user = uuid_table.get(uuid, None)
         if user is None or user.playerdata is None:
             raise PlayerNotFoundError("Player not found")
@@ -306,9 +303,7 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
         assert username == my_username
         return my_uuid
 
-    def get_playerdata(
-        uuid: str, user_id: str, api_limiter: Any
-    ) -> Mapping[str, object]:
+    def get_playerdata(uuid: str, user_id: str) -> Mapping[str, object]:
         assert uuid == my_uuid
         if clear:
             # While we were getting the playerdata, someone else cleared the cache
@@ -355,9 +350,7 @@ def test_fetch_bedwars_stats_error_during_playerdata() -> None:
     def get_uuid(username: str) -> str:
         return "uuid"
 
-    def get_playerdata(
-        uuid: str, user_id: str, api_limiter: Any
-    ) -> Mapping[str, object]:
+    def get_playerdata(uuid: str, user_id: str) -> Mapping[str, object]:
         raise APIError("Test error")
 
     def get_time_ns() -> int:

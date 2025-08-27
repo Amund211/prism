@@ -267,9 +267,7 @@ def test_get_and_cache_stats(
         assert username == user.username
         return user.uuid
 
-    def get_playerdata(
-        uuid: str, user_id: str, api_limiter: Any
-    ) -> Mapping[str, object]:
+    def get_playerdata(uuid: str, user_id: str) -> Mapping[str, object]:
         assert uuid == user.uuid
         assert user.playerdata is not None
         return user.playerdata

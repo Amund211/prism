@@ -118,4 +118,5 @@ def test_stats_endpoint() -> None:
 
 
 def test_strange_player_provider() -> None:
-    StrangePlayerProvider(retry_limit=3, initial_timeout=1.0)
+    provider = StrangePlayerProvider(retry_limit=3, initial_timeout=1.0)
+    assert provider.seconds_until_unblocked == 0.0
