@@ -87,7 +87,6 @@ def test_real_overlay_controller_get_playerdata() -> None:
     def mock_get_playerdata(
         uuid: str,
         user_id: str,
-        key_holder: AntiSniperAPIKeyHolder | None,
         api_limiter: RateLimiter,
     ) -> Mapping[str, object]:
         assert uuid == "uuid"
@@ -172,7 +171,6 @@ def test_real_overlay_controller_get_playerdata_dependency_injection() -> None:
     def custom_get_playerdata(
         uuid: str,
         user_id: str,
-        key_holder: AntiSniperAPIKeyHolder | None,
         api_limiter: RateLimiter,
     ) -> Mapping[str, object]:
         assert uuid == "test-uuid"
@@ -267,7 +265,6 @@ def test_real_overlay_controller_get_time_ns_dependency_injection() -> None:
     def custom_get_playerdata(
         uuid: str,
         user_id: str,
-        key_holder: AntiSniperAPIKeyHolder | None,
         api_limiter: RateLimiter,
     ) -> Mapping[str, object]:
         assert uuid == "test-uuid"

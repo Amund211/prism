@@ -40,7 +40,6 @@ class PlayerProvider(Protocol):
         uuid: str,
         *,
         user_id: str,
-        antisniper_key_holder: "AntiSniperAPIKeyHolder | None",
         limiter: "RateLimiter",
     ) -> Mapping[str, object]: ...
 
@@ -114,7 +113,6 @@ class OverlayController:
             playerdata = self._player_provider.get_playerdata_for_uuid(
                 uuid=uuid,
                 user_id=self.settings.user_id,
-                antisniper_key_holder=self.antisniper_key_holder,
                 limiter=self.api_limiter,
             )
         except MissingLocalIssuerSSLError:
