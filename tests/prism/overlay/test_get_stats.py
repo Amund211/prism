@@ -12,7 +12,11 @@ from prism.overlay.controller import OverlayController
 from prism.overlay.get_stats import denick, fetch_bedwars_stats, get_bedwars_stats
 from prism.overlay.nick_database import NickDatabase
 from prism.player import KnownPlayer, NickedPlayer, UnknownPlayer
-from tests.prism.overlay.utils import MockedAccountProvider, create_controller
+from tests.prism.overlay.utils import (
+    MockedAccountProvider,
+    MockedPlayerProvider,
+    create_controller,
+)
 
 # Player data for a player who has been on Hypixel, but has not played bedwars
 NEW_PLAYER_DATA: Mapping[str, object] = {"stats": {}}
@@ -69,7 +73,7 @@ def make_scenario_controller(*users: User) -> OverlayController:
 
     controller = create_controller(
         account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
-        get_playerdata=get_playerdata,
+        player_provider=MockedPlayerProvider(get_playerdata_for_uuid=get_playerdata),
         get_time_ns=get_time_ns,
         nick_database=NickDatabase([nick_table]),
     )
@@ -316,7 +320,7 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
 
     controller = create_controller(
         account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
-        get_playerdata=get_playerdata,
+        player_provider=MockedPlayerProvider(get_playerdata_for_uuid=get_playerdata),
         get_time_ns=get_time_ns,
     )
 
@@ -361,7 +365,7 @@ def test_fetch_bedwars_stats_error_during_playerdata() -> None:
 
     controller = create_controller(
         account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
-        get_playerdata=get_playerdata,
+        player_provider=MockedPlayerProvider(get_playerdata_for_uuid=get_playerdata),
         get_time_ns=get_time_ns,
     )
 

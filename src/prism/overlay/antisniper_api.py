@@ -129,125 +129,140 @@ def _make_request(
     return response
 
 
-def _make_playerdata_request(
-    *,
-    url: str,
-    user_id: str,
-    key_holder: AntiSniperAPIKeyHolder | None,
-    api_limiter: RateLimiter,
-    last_try: bool,
-) -> requests.Response:  # pragma: nocover
-    key_holder_limiter: contextlib.nullcontext[None] | RateLimiter = (
-        contextlib.nullcontext()
-    )
-    if key_holder is not None:
-        key_holder_limiter = key_holder.limiter
+class StrangePlayerProvider:
+    def __init__(
+        self,
+        *,
+        retry_limit: int,
+        initial_timeout: float,
+    ) -> None:
+        self._retry_limit = retry_limit
+        self._initial_timeout = initial_timeout
 
-    try:
-        # Uphold our prescribed rate-limits
-        with key_holder_limiter, api_limiter:
-            response = SESSION.get(url, headers={"X-User-Id": user_id})
-    except SSLError as e:
-        if is_missing_local_issuer_error(e):
-            # Short circuit out of get_playerdata
-            # NOTE: Remember to catch this exception in the caller
-            raise MissingLocalIssuerSSLError(
-                "Request to Hypixel API failed due to missing local issuer cert"
+    def _make_playerdata_request(
+        self,
+        *,
+        url: str,
+        user_id: str,
+        key_holder: AntiSniperAPIKeyHolder | None,
+        api_limiter: RateLimiter,
+        last_try: bool,
+    ) -> requests.Response:  # pragma: nocover
+        key_holder_limiter: contextlib.nullcontext[None] | RateLimiter = (
+            contextlib.nullcontext()
+        )
+        if key_holder is not None:
+            key_holder_limiter = key_holder.limiter
+
+        try:
+            # Uphold our prescribed rate-limits
+            with key_holder_limiter, api_limiter:
+                response = SESSION.get(url, headers={"X-User-Id": user_id})
+        except SSLError as e:
+            if is_missing_local_issuer_error(e):
+                # Short circuit out of get_playerdata
+                # NOTE: Remember to catch this exception in the caller
+                raise MissingLocalIssuerSSLError(
+                    "Request to Hypixel API failed due to missing local issuer cert"
+                ) from e
+            raise ExecutionError(
+                "Request to Hypixel API failed due to an unknown SSL error"
             ) from e
-        raise ExecutionError(
-            "Request to Hypixel API failed due to an unknown SSL error"
-        ) from e
-    except RequestException as e:
-        raise ExecutionError(
-            "Request to AntiSniper API failed due to an unknown error"
-        ) from e
+        except RequestException as e:
+            raise ExecutionError(
+                "Request to AntiSniper API failed due to an unknown error"
+            ) from e
 
-    if is_checked_too_many_offline_players_response(response):
-        raise ExecutionError(f"Checked too many offline players for {url}, retrying")
+        if is_checked_too_many_offline_players_response(response):
+            raise ExecutionError(
+                f"Checked too many offline players for {url}, retrying"
+            )
 
-    if response.status_code == 429 or response.status_code == 504 and not last_try:
-        raise ExecutionError(
-            "Request to AntiSniper API failed due to ratelimit, retrying"
-        )
+        if response.status_code == 429 or response.status_code == 504 and not last_try:
+            raise ExecutionError(
+                "Request to AntiSniper API failed due to ratelimit, retrying"
+            )
 
-    return response
+        return response
 
+    def get_playerdata_for_uuid(
+        self,
+        uuid: str,
+        *,
+        user_id: str,
+        antisniper_key_holder: AntiSniperAPIKeyHolder | None,
+        limiter: RateLimiter,
+    ) -> Mapping[str, object]:  # pragma: nocover
+        """Get data about the given player from the /player API endpoint"""
 
-def get_playerdata(
-    uuid: str,
-    user_id: str,
-    key_holder: AntiSniperAPIKeyHolder | None,
-    api_limiter: RateLimiter,
-    retry_limit: int = 5,
-    initial_timeout: float = 2,
-) -> Mapping[str, object]:  # pragma: nocover
-    """Get data about the given player from the /player API endpoint"""
+        url = f"{STATS_ENDPOINT}?uuid={uuid}"
 
-    url = f"{STATS_ENDPOINT}?uuid={uuid}"
+        if antisniper_key_holder is not None:
+            # Add antisniper params in case we have to switch back to antisniper
+            url += f"&player={uuid}&raw=true&key={antisniper_key_holder.key}"
 
-    if key_holder is not None:
-        # Add antisniper params in case we have to switch back to antisniper
-        url += f"&player={uuid}&raw=true&key={key_holder.key}"
+        try:
+            response = execute_with_retry(
+                functools.partial(
+                    self._make_playerdata_request,
+                    url=url,
+                    user_id=user_id,
+                    key_holder=antisniper_key_holder,
+                    api_limiter=limiter,
+                ),
+                retry_limit=self._retry_limit,
+                initial_timeout=self._initial_timeout,
+            )
+        except ExecutionError as e:
+            raise APIError(f"Request to Hypixel API failed for {uuid=}.") from e
 
-    try:
-        response = execute_with_retry(
-            functools.partial(
-                _make_playerdata_request,
-                url=url,
-                user_id=user_id,
-                key_holder=key_holder,
-                api_limiter=api_limiter,
-            ),
-            retry_limit=retry_limit,
-            initial_timeout=initial_timeout,
-        )
-    except ExecutionError as e:
-        raise APIError(f"Request to Hypixel API failed for {uuid=}.") from e
+        if is_global_throttle_response(response) or response.status_code == 429:
+            raise APIThrottleError(
+                f"Request to Hypixel API failed with status code "
+                f"{response.status_code}. Assumed due to API key throttle. "
+                f"Response: {response.text}"
+            )
 
-    if is_global_throttle_response(response) or response.status_code == 429:
-        raise APIThrottleError(
-            f"Request to Hypixel API failed with status code {response.status_code}. "
-            f"Assumed due to API key throttle. Response: {response.text}"
-        )
+        if is_invalid_api_key_response(response):
+            raise APIKeyError(
+                f"Request to Hypixel API failed with status code "
+                f"{response.status_code}. Assumed invalid API key. "
+                f"Response: {response.text}"
+            )
 
-    if is_invalid_api_key_response(response):
-        raise APIKeyError(
-            f"Request to Hypixel API failed with status code {response.status_code}. "
-            f"Assumed invalid API key. Response: {response.text}"
-        )
+        if is_checked_too_many_offline_players_response(response):
+            raise APIError("Checked too many offline players for {uuid}")
 
-    if is_checked_too_many_offline_players_response(response):
-        raise APIError("Checked too many offline players for {uuid}")
+        if response.status_code == 404:
+            raise PlayerNotFoundError(f"Could not find a user with {uuid=} (404)")
 
-    if response.status_code == 404:
-        raise PlayerNotFoundError(f"Could not find a user with {uuid=} (404)")
+        if not response:
+            raise APIError(
+                f"Request to Hypixel API failed with status code "
+                f"{response.status_code} when getting data for player {uuid}. "
+                f"Response: {response.text}"
+            )
 
-    if not response:
-        raise APIError(
-            f"Request to Hypixel API failed with status code {response.status_code} "
-            f"when getting data for player {uuid}. Response: {response.text}"
-        )
+        try:
+            response_json = response.json()
+        except JSONDecodeError as e:
+            raise APIError(
+                "Failed parsing the response from the Hypixel API. "
+                f"Raw content: {response.text}"
+            ) from e
 
-    try:
-        response_json = response.json()
-    except JSONDecodeError as e:
-        raise APIError(
-            "Failed parsing the response from the Hypixel API. "
-            f"Raw content: {response.text}"
-        ) from e
+        if not response_json.get("success", False):
+            raise APIError(f"Hypixel API returned an error. Response: {response_json}")
 
-    if not response_json.get("success", False):
-        raise APIError(f"Hypixel API returned an error. Response: {response_json}")
+        playerdata = response_json.get("player", None)
 
-    playerdata = response_json.get("player", None)
+        if playerdata is None:
+            raise PlayerNotFoundError(f"Could not find a user with {uuid=}")
 
-    if playerdata is None:
-        raise PlayerNotFoundError(f"Could not find a user with {uuid=}")
+        if not isinstance(playerdata, dict):
+            raise APIError(f"Invalid playerdata {playerdata=} {type(playerdata)=}")
 
-    if not isinstance(playerdata, dict):
-        raise APIError(f"Invalid playerdata {playerdata=} {type(playerdata)=}")
-
-    return playerdata
+        return playerdata
 
 
 def get_estimated_winstreaks(

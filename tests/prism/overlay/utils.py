@@ -3,7 +3,7 @@ from collections.abc import Callable, Mapping, Set
 from pathlib import Path, PurePath
 from typing import TYPE_CHECKING, Any, Literal, TextIO, cast, overload
 
-from prism.overlay.controller import AccountProvider, OverlayController
+from prism.overlay.controller import AccountProvider, OverlayController, PlayerProvider
 from prism.overlay.keybinds import Key
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.output.config import (
@@ -321,6 +321,28 @@ class MockedAccountProvider:
         return self._get_uuid_for_username(username)
 
 
+class MockedPlayerProvider:
+    def __init__(
+        self,
+        get_playerdata_for_uuid: Callable[
+            [str, str, "AntiSniperAPIKeyHolder | None", RateLimiter],
+            Mapping[str, object],
+        ],
+    ) -> None:
+        self._get_playerdata_for_uuid = get_playerdata_for_uuid
+
+    def get_playerdata_for_uuid(
+        self,
+        uuid: str,
+        user_id: str,
+        antisniper_key_holder: "AntiSniperAPIKeyHolder | None",
+        limiter: RateLimiter,
+    ) -> Mapping[str, object]:
+        return self._get_playerdata_for_uuid(
+            uuid, user_id, antisniper_key_holder, limiter
+        )
+
+
 def create_controller(
     state: OverlayState | None = None,
     settings: Settings | None = None,
@@ -335,9 +357,7 @@ def create_controller(
     player_cache: PlayerCache | None = None,
     nick_database: NickDatabase | None = None,
     account_provider: AccountProvider = MockedAccountProvider(assert_not_called),
-    get_playerdata: Callable[
-        [str, str, "AntiSniperAPIKeyHolder | None", RateLimiter], Mapping[str, object]
-    ] = assert_not_called,
+    player_provider: PlayerProvider = MockedPlayerProvider(assert_not_called),
     get_estimated_winstreaks: Callable[
         [str, "AntiSniperAPIKeyHolder"], tuple[Winstreaks, bool]
     ] = assert_not_called,
@@ -348,7 +368,7 @@ def create_controller(
         settings=settings or make_settings(),
         nick_database=nick_database or NickDatabase([{}]),
         account_provider=account_provider,
-        get_playerdata=get_playerdata,
+        player_provider=player_provider,
         get_estimated_winstreaks=get_estimated_winstreaks,
         get_time_ns=get_time_ns,
     )

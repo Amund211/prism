@@ -5,6 +5,7 @@ import pytest
 from prism.overlay.antisniper_api import (
     STATS_ENDPOINT,
     AntiSniperAPIKeyHolder,
+    StrangePlayerProvider,
     parse_estimated_winstreaks_response,
 )
 from prism.player import MISSING_WINSTREAKS, Winstreaks
@@ -114,3 +115,7 @@ def test_antisniper_key_holder() -> None:
 def test_stats_endpoint() -> None:
     # Make sure we don't release a version using the test endpoint
     assert STATS_ENDPOINT == "https://flashlight.recdep.no"
+
+
+def test_strange_player_provider() -> None:
+    StrangePlayerProvider(retry_limit=3, initial_timeout=1.0)
