@@ -34,6 +34,17 @@ class AccountProvider(Protocol):
     def get_uuid_for_username(self, username: str, /) -> str: ...
 
 
+class PlayerProvider(Protocol):
+    def get_playerdata_for_uuid(
+        self,
+        uuid: str,
+        *,
+        user_id: str,
+        antisniper_key_holder: "AntiSniperAPIKeyHolder | None",
+        limiter: "RateLimiter",
+    ) -> Mapping[str, object]: ...
+
+
 class OverlayController:
     def __init__(
         self,
@@ -41,10 +52,7 @@ class OverlayController:
         settings: "Settings",
         nick_database: "NickDatabase",
         account_provider: AccountProvider,
-        get_playerdata: Callable[
-            [str, str, "AntiSniperAPIKeyHolder | None", "RateLimiter"],
-            Mapping[str, object],
-        ],
+        player_provider: PlayerProvider,
         get_estimated_winstreaks: Callable[
             [str, "AntiSniperAPIKeyHolder"], tuple[Winstreaks, bool]
         ],
@@ -76,7 +84,7 @@ class OverlayController:
         )
 
         self._account_provider = account_provider
-        self._get_playerdata = get_playerdata
+        self._player_provider = player_provider
         self._get_estimated_winstreaks = get_estimated_winstreaks
         self._get_time_ns = get_time_ns
 
@@ -103,11 +111,11 @@ class OverlayController:
     ) -> tuple[int, Mapping[str, object] | None | ProcessingError]:
         # TODO: set api key flags
         try:
-            playerdata = self._get_playerdata(
-                uuid,
-                self.settings.user_id,
-                self.antisniper_key_holder,
-                self.api_limiter,
+            playerdata = self._player_provider.get_playerdata_for_uuid(
+                uuid=uuid,
+                user_id=self.settings.user_id,
+                antisniper_key_holder=self.antisniper_key_holder,
+                limiter=self.api_limiter,
             )
         except MissingLocalIssuerSSLError:
             logger.exception("get_playerdata: missing local issuer cert")

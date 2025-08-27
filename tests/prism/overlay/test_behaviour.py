@@ -35,6 +35,7 @@ from tests.prism.overlay.test_settings import (
 from tests.prism.overlay.utils import (
     CUSTOM_RATING_CONFIG_COLLECTION_DICT,
     MockedAccountProvider,
+    MockedPlayerProvider,
     create_controller,
     create_state,
     make_player,
@@ -278,7 +279,7 @@ def test_get_and_cache_stats(
 
     controller = create_controller(
         account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
-        get_playerdata=get_playerdata,
+        player_provider=MockedPlayerProvider(get_playerdata_for_uuid=get_playerdata),
         get_time_ns=get_time_ns,
         get_estimated_winstreaks=get_estimated_winstreaks,
         nick_database=NickDatabase([{user.nick: user.uuid}]),

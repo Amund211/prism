@@ -8,6 +8,7 @@ from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
 from tests.prism.overlay.utils import (
     MockedAccountProvider,
+    MockedPlayerProvider,
     assert_not_called,
     create_controller,
     make_settings,
@@ -106,7 +107,9 @@ def test_real_overlay_controller_get_playerdata() -> None:
             use_antisniper_api=True,
             user_id="1234",
         ),
-        get_playerdata=mock_get_playerdata,
+        player_provider=MockedPlayerProvider(
+            get_playerdata_for_uuid=mock_get_playerdata
+        ),
         get_time_ns=mock_get_time_ns,
     )
     error = APIError()
@@ -181,7 +184,9 @@ def test_real_overlay_controller_get_playerdata_dependency_injection() -> None:
 
     controller = create_controller(
         settings=make_settings(user_id="test-user-id"),
-        get_playerdata=custom_get_playerdata,
+        player_provider=MockedPlayerProvider(
+            get_playerdata_for_uuid=custom_get_playerdata
+        ),
         get_time_ns=custom_get_time_ns,
     )
 
@@ -271,7 +276,9 @@ def test_real_overlay_controller_get_time_ns_dependency_injection() -> None:
 
     controller = create_controller(
         settings=make_settings(user_id="test-user-id"),
-        get_playerdata=custom_get_playerdata,
+        player_provider=MockedPlayerProvider(
+            get_playerdata_for_uuid=custom_get_playerdata
+        ),
         get_time_ns=custom_get_time_ns,
     )
 
