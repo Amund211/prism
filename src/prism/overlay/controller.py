@@ -9,7 +9,6 @@ from prism.overlay.antisniper_api import (
     AntiSniperAPIKeyHolder,
 )
 from prism.player import MISSING_WINSTREAKS, Winstreaks
-from prism.ratelimiting import RateLimiter
 from prism.ssl_errors import MissingLocalIssuerSSLError
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -40,8 +39,10 @@ class PlayerProvider(Protocol):
         uuid: str,
         *,
         user_id: str,
-        limiter: "RateLimiter",
     ) -> Mapping[str, object]: ...
+
+    @property
+    def seconds_until_unblocked(self) -> float: ...
 
 
 class OverlayController:
@@ -62,9 +63,6 @@ class OverlayController:
         self.api_key_invalid = False
         self.api_key_throttled = False
         self.missing_local_issuer_certificate = False
-        self.api_limiter = RateLimiter(
-            limit=API_REQUEST_LIMIT, window=API_REQUEST_WINDOW
-        )
 
         self.ready = False
         self.wants_shown: bool | None = None
@@ -113,7 +111,6 @@ class OverlayController:
             playerdata = self._player_provider.get_playerdata_for_uuid(
                 uuid=uuid,
                 user_id=self.settings.user_id,
-                limiter=self.api_limiter,
             )
         except MissingLocalIssuerSSLError:
             logger.exception("get_playerdata: missing local issuer cert")

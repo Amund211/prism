@@ -68,7 +68,7 @@ def run_overlay(
         )
         block_duration_seconds = max(
             antisniper_block_duration_seconds,
-            controller.api_limiter.block_duration_seconds,
+            controller._player_provider.seconds_until_unblocked,
         )
 
         if block_duration_seconds > 0:

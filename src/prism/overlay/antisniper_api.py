@@ -138,18 +138,23 @@ class StrangePlayerProvider:
         self._retry_limit = retry_limit
         self._initial_timeout = initial_timeout
         self._session = make_prism_requests_session()
+        self._limiter = RateLimiter(limit=120, window=60)
+
+    @property
+    def seconds_until_unblocked(self) -> float:
+        """Return the number of seconds until we are unblocked"""
+        return self._limiter.block_duration_seconds
 
     def _make_playerdata_request(
         self,
         *,
         url: str,
         user_id: str,
-        api_limiter: RateLimiter,
         last_try: bool,
     ) -> requests.Response:  # pragma: nocover
         try:
             # Uphold our prescribed rate-limits
-            with api_limiter:
+            with self._limiter:
                 response = self._session.get(url, headers={"X-User-Id": user_id})
         except SSLError as e:
             if is_missing_local_issuer_error(e):
@@ -183,7 +188,6 @@ class StrangePlayerProvider:
         uuid: str,
         *,
         user_id: str,
-        limiter: RateLimiter,
     ) -> Mapping[str, object]:  # pragma: nocover
         """Get data about the given player from the /player API endpoint"""
 
@@ -195,7 +199,6 @@ class StrangePlayerProvider:
                     self._make_playerdata_request,
                     url=url,
                     user_id=user_id,
-                    api_limiter=limiter,
                 ),
                 retry_limit=self._retry_limit,
                 initial_timeout=self._initial_timeout,
