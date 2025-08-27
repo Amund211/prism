@@ -61,7 +61,7 @@ def make_scenario_controller(*users: User) -> OverlayController:
         return user.uuid
 
     def get_playerdata(
-        uuid: str, user_id: str, antisniper_key_holder: Any, api_limiter: Any
+        uuid: str, user_id: str, api_limiter: Any
     ) -> Mapping[str, object]:
         user = uuid_table.get(uuid, None)
         if user is None or user.playerdata is None:
@@ -307,7 +307,7 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
         return my_uuid
 
     def get_playerdata(
-        uuid: str, user_id: str, antisniper_key_holder: Any, api_limiter: Any
+        uuid: str, user_id: str, api_limiter: Any
     ) -> Mapping[str, object]:
         assert uuid == my_uuid
         if clear:
@@ -356,7 +356,7 @@ def test_fetch_bedwars_stats_error_during_playerdata() -> None:
         return "uuid"
 
     def get_playerdata(
-        uuid: str, user_id: str, antisniper_key_holder: Any, api_limiter: Any
+        uuid: str, user_id: str, api_limiter: Any
     ) -> Mapping[str, object]:
         raise APIError("Test error")
 

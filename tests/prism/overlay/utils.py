@@ -325,7 +325,7 @@ class MockedPlayerProvider:
     def __init__(
         self,
         get_playerdata_for_uuid: Callable[
-            [str, str, "AntiSniperAPIKeyHolder | None", RateLimiter],
+            [str, str, RateLimiter],
             Mapping[str, object],
         ],
     ) -> None:
@@ -335,12 +335,9 @@ class MockedPlayerProvider:
         self,
         uuid: str,
         user_id: str,
-        antisniper_key_holder: "AntiSniperAPIKeyHolder | None",
         limiter: RateLimiter,
     ) -> Mapping[str, object]:
-        return self._get_playerdata_for_uuid(
-            uuid, user_id, antisniper_key_holder, limiter
-        )
+        return self._get_playerdata_for_uuid(uuid, user_id, limiter)
 
 
 def create_controller(
