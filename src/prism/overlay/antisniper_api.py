@@ -137,6 +137,7 @@ class StrangePlayerProvider:
     ) -> None:
         self._retry_limit = retry_limit
         self._initial_timeout = initial_timeout
+        self._session = make_prism_requests_session()
 
     def _make_playerdata_request(
         self,
@@ -149,7 +150,7 @@ class StrangePlayerProvider:
         try:
             # Uphold our prescribed rate-limits
             with api_limiter:
-                response = SESSION.get(url, headers={"X-User-Id": user_id})
+                response = self._session.get(url, headers={"X-User-Id": user_id})
         except SSLError as e:
             if is_missing_local_issuer_error(e):
                 # Short circuit out of get_playerdata
