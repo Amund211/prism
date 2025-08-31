@@ -153,6 +153,3 @@ class OverlayController:
         # TODO: The controller should handle errors raised by
         # self._get_estimated_winstreaks
         return self._get_estimated_winstreaks(uuid, self.antisniper_key_holder)
-
-    def store_settings(self) -> None:
-        self.settings.flush_to_disk()
