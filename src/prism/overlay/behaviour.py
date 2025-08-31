@@ -58,7 +58,7 @@ def set_nickname(
             # Add your new nick
             controller.settings.known_nicks[nick] = new_nick_value
 
-        controller.store_settings()
+        controller.settings.flush_to_disk()
 
     with controller.nick_database.mutex:
         # Delete your old nick if found
@@ -240,7 +240,7 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
 
     controller.settings.update_from(new_settings)
 
-    controller.store_settings()
+    controller.settings.flush_to_disk()
 
 
 def autodenick_teammate(controller: OverlayController) -> None:

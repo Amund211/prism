@@ -431,7 +431,7 @@ def test_flush_settings_from_controller() -> None:
 
     controller = create_controller(settings=settings)
 
-    controller.store_settings()
+    controller.settings.flush_to_disk()
 
     # File properly stored
     assert (
