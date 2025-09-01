@@ -321,7 +321,8 @@ class AntiSniperWinstreakProvider:
                 f"Checked too many offline players for {url}, retrying"
             )
 
-        if response.status_code == 429 and not last_try:
+        throttled = is_global_throttle_response(response) or response.status_code == 429
+        if throttled and not last_try:
             raise ExecutionError(
                 "Request to AntiSniper API failed due to ratelimit, retrying"
             )
