@@ -3,7 +3,7 @@ import queue
 import unittest.mock
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
-from typing import Any, cast
+from typing import cast
 
 import pytest
 
@@ -247,8 +247,9 @@ def test_get_and_cache_stats(
     assert user.nick is not None  # For typing
 
     def get_estimated_winstreaks(
-        uuid: str, antisniper_key_holder: Any
+        uuid: str, antisniper_api_key: str
     ) -> tuple[Winstreaks, bool]:
+        assert antisniper_api_key == "test_key"
         assert uuid == user.uuid
 
         if estimated_winstreaks:

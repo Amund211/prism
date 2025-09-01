@@ -5,6 +5,7 @@ import pytest
 from prism.overlay.antisniper_api import (
     STATS_ENDPOINT,
     AntiSniperAPIKeyHolder,
+    AntiSniperWinstreakProvider,
     StrangePlayerProvider,
     parse_estimated_winstreaks_response,
 )
@@ -119,4 +120,9 @@ def test_stats_endpoint() -> None:
 
 def test_strange_player_provider() -> None:
     provider = StrangePlayerProvider(retry_limit=3, initial_timeout=1.0)
+    assert provider.seconds_until_unblocked == 0.0
+
+
+def test_antisniper_winstreak_provider() -> None:
+    provider = AntiSniperWinstreakProvider(retry_limit=3, initial_timeout=1.0)
     assert provider.seconds_until_unblocked == 0.0

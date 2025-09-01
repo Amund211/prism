@@ -22,11 +22,6 @@ WINSTREAK_ENDPOINT = "https://api.antisniper.net/v2/player/winstreak"
 REQUEST_LIMIT, REQUEST_WINDOW = 360, 60  # Max requests per time window
 
 
-# Use a connection pool for the requests
-SESSION = make_prism_requests_session()
-SESSION.headers.update({"Reason": f"Prism overlay {VERSION_STRING}"})
-
-
 def is_global_throttle_response(response: requests.Response) -> bool:  # pragma: nocover
     """
     Return True if the response is a 500: throttle
@@ -233,8 +228,27 @@ class StrangePlayerProvider:
 
 
 class AntiSniperWinstreakProvider:
+    def __init__(
+        self,
+        *,
+        retry_limit: int,
+        initial_timeout: float,
+    ) -> None:
+        self._retry_limit = retry_limit
+        self._initial_timeout = initial_timeout
+
+        self._session = make_prism_requests_session()
+        self._session.headers.update({"Reason": f"Prism overlay {VERSION_STRING}"})
+
+        self._limiter = RateLimiter(limit=360, window=60)
+
+    @property
+    def seconds_until_unblocked(self) -> float:
+        """Return the number of seconds until we are unblocked"""
+        return self._limiter.block_duration_seconds
+
     def get_estimated_winstreaks_for_uuid(
-        self, uuid: str, *, antisniper_key_holder: AntiSniperAPIKeyHolder
+        self, uuid: str, *, antisniper_api_key: str
     ) -> tuple[Winstreaks, bool]:  # pragma: nocover
         """
         Get the estimated winstreaks of the given uuid
@@ -246,13 +260,13 @@ class AntiSniperWinstreakProvider:
                 functools.partial(
                     self._make_request,
                     url=(
-                        f"{WINSTREAK_ENDPOINT}?key={antisniper_key_holder.key}"
+                        f"{WINSTREAK_ENDPOINT}?key={antisniper_api_key}"
                         f"&player={uuid}"
                     ),
-                    key_holder=antisniper_key_holder,
+                    limiter=self._limiter,
                 ),
-                retry_limit=5,
-                initial_timeout=2,
+                retry_limit=self._retry_limit,
+                initial_timeout=self._initial_timeout,
             )
         except ExecutionError:
             logger.exception("Request to winstreaks endpoint reached max retries")
@@ -277,12 +291,12 @@ class AntiSniperWinstreakProvider:
         return parse_estimated_winstreaks_response(response_json)
 
     def _make_request(
-        self, *, url: str, key_holder: AntiSniperAPIKeyHolder, last_try: bool
+        self, *, url: str, limiter: RateLimiter, last_try: bool
     ) -> requests.Response:  # pragma: nocover
         try:
             # Uphold our prescribed rate-limits
-            with key_holder.limiter:
-                response = SESSION.get(url)
+            with limiter:
+                response = self._session.get(url)
         except RequestException as e:
             raise ExecutionError(
                 "Request to AntiSniper API failed due to an unknown error"
