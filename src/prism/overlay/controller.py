@@ -125,6 +125,7 @@ class OverlayController:
         except APIError as e:
             logger.error(f"Hypixel API error getting stats for {uuid=}", exc_info=e)
             return 0, ERROR_DURING_PROCESSING
+        # TODO: Remove api key errors once we move to flashlight provider
         except APIKeyError as e:
             logger.warning(f"Invalid API key getting stats for {uuid=}", exc_info=e)
             self.missing_local_issuer_certificate = False
