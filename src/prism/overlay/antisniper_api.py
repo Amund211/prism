@@ -26,7 +26,7 @@ def is_global_throttle_response(response: requests.Response) -> bool:  # pragma:
     """
     Return True if the response is a 500: throttle
 
-    This means that the Hypixel API key is being ratelimited
+    This is a condition that can occur on the AntiSniper API
     """
     # We ignore the http status code
 
