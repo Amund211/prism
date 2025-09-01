@@ -108,7 +108,6 @@ class OverlayController:
     def get_playerdata(
         self, uuid: str
     ) -> tuple[int, Mapping[str, object] | None | ProcessingError]:
-        # TODO: set api key flags
         try:
             playerdata = self._player_provider.get_playerdata_for_uuid(
                 uuid=uuid,
