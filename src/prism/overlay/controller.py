@@ -5,9 +5,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Protocol
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
-from prism.overlay.antisniper_api import (
-    AntiSniperAPIKeyHolder,
-)
+from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from prism.player import MISSING_WINSTREAKS, Winstreaks
 from prism.ssl_errors import MissingLocalIssuerSSLError
 
@@ -45,6 +43,15 @@ class PlayerProvider(Protocol):
     def seconds_until_unblocked(self) -> float: ...
 
 
+class WinstreakProvider(Protocol):
+    def get_estimated_winstreaks_for_uuid(
+        self,
+        uuid: str,
+        *,
+        antisniper_key_holder: AntiSniperAPIKeyHolder,
+    ) -> tuple[Winstreaks, bool]: ...
+
+
 class OverlayController:
     def __init__(
         self,
@@ -53,9 +60,7 @@ class OverlayController:
         nick_database: "NickDatabase",
         account_provider: AccountProvider,
         player_provider: PlayerProvider,
-        get_estimated_winstreaks: Callable[
-            [str, "AntiSniperAPIKeyHolder"], tuple[Winstreaks, bool]
-        ],
+        winstreak_provider: WinstreakProvider,
         get_time_ns: Callable[[], int],
     ) -> None:
         from prism.overlay.player_cache import PlayerCache
@@ -82,7 +87,7 @@ class OverlayController:
 
         self._account_provider = account_provider
         self._player_provider = player_provider
-        self._get_estimated_winstreaks = get_estimated_winstreaks
+        self._winstreak_provider = winstreak_provider
         self._get_time_ns = get_time_ns
 
     def get_uuid(self, username: str) -> str | None | ProcessingError:
@@ -150,6 +155,7 @@ class OverlayController:
         if not self.settings.use_antisniper_api or self.antisniper_key_holder is None:
             return MISSING_WINSTREAKS, False
 
-        # TODO: The controller should handle errors raised by
-        # self._get_estimated_winstreaks
-        return self._get_estimated_winstreaks(uuid, self.antisniper_key_holder)
+        # TODO: The controller should handle errors raised here
+        return self._winstreak_provider.get_estimated_winstreaks_for_uuid(
+            uuid, antisniper_key_holder=self.antisniper_key_holder
+        )
