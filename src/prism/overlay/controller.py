@@ -5,7 +5,6 @@ from enum import Enum
 from typing import TYPE_CHECKING, Protocol
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
-from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from prism.player import MISSING_WINSTREAKS, Winstreaks
 from prism.ssl_errors import MissingLocalIssuerSSLError
 
@@ -82,12 +81,6 @@ class OverlayController:
         self.redraw_event = threading.Event()
         self.update_presence_event = threading.Event()
         self.autowho_event = threading.Event()
-
-        self.antisniper_key_holder: AntiSniperAPIKeyHolder | None = (
-            AntiSniperAPIKeyHolder(settings.antisniper_api_key)
-            if settings.antisniper_api_key is not None
-            else None
-        )
 
         self._account_provider = account_provider
         self._player_provider = player_provider

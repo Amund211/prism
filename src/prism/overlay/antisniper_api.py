@@ -90,16 +90,6 @@ def is_checked_too_many_offline_players_response(
     return True
 
 
-class AntiSniperAPIKeyHolder:
-    """Class associating an api key with a RateLimiter instance"""
-
-    def __init__(
-        self, key: str, limit: int = REQUEST_LIMIT, window: float = REQUEST_WINDOW
-    ):
-        self.key = key
-        self.limiter = RateLimiter(limit=limit, window=window)
-
-
 class StrangePlayerProvider:
     def __init__(
         self,

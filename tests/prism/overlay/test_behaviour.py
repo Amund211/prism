@@ -475,7 +475,9 @@ def test_update_settings_everything_changed() -> None:
 
 def test_update_settings_clear_antisniper_key() -> None:
     controller = create_controller(
-        settings=make_settings(antisniper_api_key="my-api-key")
+        settings=make_settings(antisniper_api_key="my-api-key"),
+        antisniper_api_key_invalid=True,
+        antisniper_api_key_throttled=True,
     )
     controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
 
@@ -489,11 +491,16 @@ def test_update_settings_clear_antisniper_key() -> None:
     # Updated antisniper key -> should redraw
     assert controller.redraw_event.is_set()
 
-    assert controller.antisniper_key_holder is None
+    assert not controller.antisniper_api_key_invalid
+    assert not controller.antisniper_api_key_throttled
 
 
 def test_update_settings_set_antisniper_key() -> None:
-    controller = create_controller(settings=make_settings(antisniper_api_key=None))
+    controller = create_controller(
+        settings=make_settings(antisniper_api_key=None),
+        antisniper_api_key_invalid=True,
+        antisniper_api_key_throttled=True,
+    )
     controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
 
     new_settings = replace(
@@ -508,8 +515,8 @@ def test_update_settings_set_antisniper_key() -> None:
     # Updated antisniper key -> should redraw
     assert controller.redraw_event.is_set()
 
-    assert controller.antisniper_key_holder is not None
-    assert controller.antisniper_key_holder.key == "my-new-antisniper-api-key"
+    assert not controller.antisniper_api_key_invalid
+    assert not controller.antisniper_api_key_throttled
 
 
 @dataclass(frozen=True, slots=True)

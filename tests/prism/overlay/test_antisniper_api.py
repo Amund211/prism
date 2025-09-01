@@ -5,7 +5,6 @@ import pytest
 from prism.errors import APIError
 from prism.overlay.antisniper_api import (
     STATS_ENDPOINT,
-    AntiSniperAPIKeyHolder,
     AntiSniperWinstreakProvider,
     StrangePlayerProvider,
     parse_estimated_winstreaks_response,
@@ -120,10 +119,6 @@ def test_parse_estimated_winstreaks_response(
         winstreaks,
         winstreaks_accurate,
     )
-
-
-def test_antisniper_key_holder() -> None:
-    AntiSniperAPIKeyHolder(key="sdlfksjdflk", limit=10, window=1.5)
 
 
 def test_stats_endpoint() -> None:
