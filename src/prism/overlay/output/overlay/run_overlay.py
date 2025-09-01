@@ -55,7 +55,10 @@ def run_overlay(
         if controller.antisniper_api_key_invalid:
             info_cells.append(
                 InfoCellValue(
-                    text="Invalid API key. Get a new one from antisniper.net",
+                    text=(
+                        "Invalid AntiSniper API key. "
+                        "Get a new one from antisniper.net"
+                    ),
                     color="red" if time.monotonic() % 2 > 1 else "white",
                     url=None,
                 )
@@ -92,7 +95,7 @@ def run_overlay(
         if controller.antisniper_api_key_throttled:
             info_cells.append(
                 InfoCellValue(
-                    text="Hypixel ratelimit reached! Wait time ~1 min.",
+                    text="AntiSniper ratelimit reached! Wait time ~1 min.",
                     color="orange" if time.monotonic() % 2 > 1 else "white",
                     url=None,
                 )
