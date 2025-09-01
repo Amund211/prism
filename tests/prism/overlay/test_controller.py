@@ -1,7 +1,6 @@
 from collections.abc import Mapping
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
-from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from prism.overlay.controller import ERROR_DURING_PROCESSING
 from prism.player import MISSING_WINSTREAKS, Winstreaks
 from prism.ssl_errors import MissingLocalIssuerSSLError
@@ -194,11 +193,10 @@ def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection()
     custom_accurate = True
 
     def custom_get_estimated_winstreaks(
-        uuid: str, key_holder: AntiSniperAPIKeyHolder
+        uuid: str, antisniper_api_key: str
     ) -> tuple[Winstreaks, bool]:
         assert uuid == "test-uuid"
-        assert key_holder is not None
-        assert key_holder.key == "test-api-key"
+        assert antisniper_api_key == "test-api-key"
         return custom_winstreaks, custom_accurate
 
     controller = create_controller(

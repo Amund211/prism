@@ -48,8 +48,11 @@ class WinstreakProvider(Protocol):
         self,
         uuid: str,
         *,
-        antisniper_key_holder: AntiSniperAPIKeyHolder,
+        antisniper_api_key: str,
     ) -> tuple[Winstreaks, bool]: ...
+
+    @property
+    def seconds_until_unblocked(self) -> float: ...
 
 
 class OverlayController:
@@ -152,10 +155,13 @@ class OverlayController:
     def get_estimated_winstreaks(
         self, uuid: str
     ) -> tuple[Winstreaks, bool]:  # pragma: no cover
-        if not self.settings.use_antisniper_api or self.antisniper_key_holder is None:
+        if (
+            not self.settings.use_antisniper_api
+            or self.settings.antisniper_api_key is None
+        ):
             return MISSING_WINSTREAKS, False
 
         # TODO: The controller should handle errors raised here
         return self._winstreak_provider.get_estimated_winstreaks_for_uuid(
-            uuid, antisniper_key_holder=self.antisniper_key_holder
+            uuid, antisniper_api_key=self.settings.antisniper_api_key
         )

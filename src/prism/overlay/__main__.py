@@ -76,7 +76,7 @@ def main() -> None:  # pragma: nocover
 
     account_provider = MojangAccountProvider(retry_limit=5, initial_timeout=2)
     player_provider = StrangePlayerProvider(retry_limit=5, initial_timeout=2)
-    winstreak_provider = AntiSniperWinstreakProvider()
+    winstreak_provider = AntiSniperWinstreakProvider(retry_limit=5, initial_timeout=2)
 
     controller = OverlayController(
         state=OverlayState(),

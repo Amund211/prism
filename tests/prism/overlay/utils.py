@@ -1,7 +1,7 @@
 import io
 from collections.abc import Callable, Mapping, Set
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING, Any, Literal, TextIO, cast, overload
+from typing import Any, Literal, TextIO, cast, overload
 
 from prism.overlay.controller import (
     AccountProvider,
@@ -28,9 +28,6 @@ from prism.player import (
     UnknownPlayer,
     Winstreaks,
 )
-
-if TYPE_CHECKING:  # pragma: no cover
-    from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 
 # Username set by default in create_state
 OWN_USERNAME = "OwnUsername"
@@ -353,16 +350,22 @@ class MockedWinstreakProvider:
     def __init__(
         self,
         get_estimated_winstreaks_for_uuid: Callable[
-            [str, "AntiSniperAPIKeyHolder"],
+            [str, str],
             tuple[Winstreaks, bool],
         ],
+        seconds_until_unblocked: float = 0.0,
     ) -> None:
         self._get_estimated_winstreaks_for_uuid = get_estimated_winstreaks_for_uuid
+        self._seconds_until_unblocked = seconds_until_unblocked
 
     def get_estimated_winstreaks_for_uuid(
-        self, uuid: str, *, antisniper_key_holder: "AntiSniperAPIKeyHolder"
+        self, uuid: str, *, antisniper_api_key: str
     ) -> tuple[Winstreaks, bool]:
-        return self._get_estimated_winstreaks_for_uuid(uuid, antisniper_key_holder)
+        return self._get_estimated_winstreaks_for_uuid(uuid, antisniper_api_key)
+
+    @property
+    def seconds_until_unblocked(self) -> float:
+        return self._seconds_until_unblocked
 
 
 def create_controller(
