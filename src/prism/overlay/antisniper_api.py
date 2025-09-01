@@ -272,6 +272,20 @@ class AntiSniperWinstreakProvider:
             logger.exception("Request to winstreaks endpoint reached max retries")
             return MISSING_WINSTREAKS, False
 
+        if response.status_code == 403:
+            raise APIKeyError(
+                f"Request to Antisniper API failed with status code "
+                f"{response.status_code}. Assumed invalid API key. "
+                f"Response: {response.text}"
+            )
+
+        if is_global_throttle_response(response) or response.status_code == 429:
+            raise APIThrottleError(
+                f"Request to AntiSniper API failed with status code "
+                f"{response.status_code}. Assumed due to API key throttle. "
+                f"Response: {response.text}"
+            )
+
         if not response:
             logger.error(
                 f"Request to winstreak endpoint failed with status code "
