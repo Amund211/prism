@@ -118,16 +118,12 @@ def test_real_overlay_controller_get_playerdata() -> None:
     assert playerdata is None
 
     error = APIKeyError()
-    assert not controller.antisniper_api_key_invalid
     _, playerdata = controller.get_playerdata("uuid")
     assert playerdata is ERROR_DURING_PROCESSING
-    assert controller.antisniper_api_key_invalid
 
     error = APIThrottleError()
-    assert not controller.antisniper_api_key_throttled
     _, playerdata = controller.get_playerdata("uuid")
     assert playerdata is ERROR_DURING_PROCESSING
-    assert controller.antisniper_api_key_throttled
 
     error = MissingLocalIssuerSSLError()
     assert not controller.missing_local_issuer_certificate
@@ -141,8 +137,6 @@ def test_real_overlay_controller_get_playerdata() -> None:
     assert playerdata is returned_playerdata
     assert dataReceivedAtMs == 1234567890123456789 // 1_000_000
 
-    assert not controller.antisniper_api_key_invalid
-    assert not controller.antisniper_api_key_throttled
     assert not controller.missing_local_issuer_certificate
 
 

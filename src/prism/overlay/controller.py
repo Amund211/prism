@@ -127,8 +127,6 @@ class OverlayController:
             return 0, ERROR_DURING_PROCESSING
         except PlayerNotFoundError as e:
             logger.debug(f"Player not found on Hypixel: {uuid=}", exc_info=e)
-            self.antisniper_api_key_invalid = False
-            self.antisniper_api_key_throttled = False
             self.missing_local_issuer_certificate = False
             return 0, None
         except APIError as e:
@@ -136,20 +134,14 @@ class OverlayController:
             return 0, ERROR_DURING_PROCESSING
         except APIKeyError as e:
             logger.warning(f"Invalid API key getting stats for {uuid=}", exc_info=e)
-            self.antisniper_api_key_invalid = True
-            self.antisniper_api_key_throttled = False
             self.missing_local_issuer_certificate = False
             return 0, ERROR_DURING_PROCESSING
         except APIThrottleError as e:
             logger.warning(f"API key throttled getting stats for {uuid=}", exc_info=e)
-            self.antisniper_api_key_invalid = False
-            self.antisniper_api_key_throttled = True
             self.missing_local_issuer_certificate = False
             return 0, ERROR_DURING_PROCESSING
         else:
             dataReceivedAtMs = self._get_time_ns() // 1_000_000
-            self.antisniper_api_key_invalid = False
-            self.antisniper_api_key_throttled = False
             self.missing_local_issuer_certificate = False
             return dataReceivedAtMs, playerdata
 
