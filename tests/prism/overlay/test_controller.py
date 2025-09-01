@@ -17,29 +17,6 @@ from tests.prism.overlay.utils import (
 )
 
 
-def test_real_overlay_controller() -> None:
-    controller = create_controller(
-        settings=make_settings(
-            antisniper_api_key="antisniper_key",
-            use_antisniper_api=True,
-        ),
-    )
-
-    assert controller.antisniper_key_holder is not None
-    assert controller.antisniper_key_holder.key == "antisniper_key"
-
-
-def test_real_overlay_controller_no_antisniper_key() -> None:
-    controller = create_controller(
-        settings=make_settings(
-            antisniper_api_key=None,
-            use_antisniper_api=True,
-        ),
-    )
-
-    assert controller.antisniper_key_holder is None
-
-
 def test_real_overlay_controller_get_uuid() -> None:
     error: Exception | None = None
     returned_uuid: str = ""

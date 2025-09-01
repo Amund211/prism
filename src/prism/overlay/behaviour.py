@@ -2,7 +2,6 @@ import functools
 import logging
 import queue
 
-from prism.overlay.antisniper_api import AntiSniperAPIKeyHolder
 from prism.overlay.controller import ERROR_DURING_PROCESSING, OverlayController
 from prism.overlay.get_stats import get_bedwars_stats
 from prism.overlay.settings import SettingsDict
@@ -184,16 +183,6 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
     if antisniper_api_key_changed:
         controller.antisniper_api_key_throttled = False
         controller.antisniper_api_key_invalid = False
-
-        new_antisniper_key = new_settings["antisniper_api_key"]
-        if new_antisniper_key is None:
-            controller.antisniper_key_holder = None
-        elif controller.antisniper_key_holder is not None:
-            controller.antisniper_key_holder.key = new_antisniper_key
-        else:
-            controller.antisniper_key_holder = AntiSniperAPIKeyHolder(
-                new_antisniper_key
-            )
 
     # Update the player cache
     if potential_antisniper_updates:
