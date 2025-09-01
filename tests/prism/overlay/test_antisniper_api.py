@@ -2,6 +2,7 @@ from collections.abc import Mapping
 
 import pytest
 
+from prism.errors import APIError
 from prism.overlay.antisniper_api import (
     STATS_ENDPOINT,
     AntiSniperAPIKeyHolder,
@@ -52,18 +53,19 @@ REAL_WINSTREAK_RESPONSE = {
 
 
 parse_estimated_winstreaks_cases: tuple[
-    tuple[Mapping[str, object], Winstreaks, bool], ...
+    tuple[Mapping[str, object], Winstreaks, bool, type[Exception] | None], ...
 ] = (
-    ({}, MISSING_WINSTREAKS, False),
-    ({"success": False}, MISSING_WINSTREAKS, False),
-    ({"success": True}, MISSING_WINSTREAKS, False),
+    ({}, MISSING_WINSTREAKS, False, APIError),
+    ({"success": False}, MISSING_WINSTREAKS, False, APIError),
+    ({"success": True}, MISSING_WINSTREAKS, False, None),
     # Real response using a bogus name
-    ({"success": True, "data": None}, MISSING_WINSTREAKS, False),
-    ({"success": True, "overall_accurate": True}, MISSING_WINSTREAKS, True),
+    ({"success": True, "data": None}, MISSING_WINSTREAKS, False, None),
+    ({"success": True, "overall_accurate": True}, MISSING_WINSTREAKS, True, None),
     (
         {"overall_accurate": True, "overall_winstreak": 19},
         MISSING_WINSTREAKS,
         False,
+        APIError,
     ),
     # Passing cases
     (
@@ -74,33 +76,44 @@ parse_estimated_winstreaks_cases: tuple[
         },
         make_winstreaks(),
         True,
+        None,
     ),
     (
         {"success": True, "overall_accurate": True},
         make_winstreaks(),
         True,
+        None,
     ),
     (
         {"success": True, "overall_accurate": True, "overall_winstreak": 19},
         make_winstreaks(overall=19),
         True,
+        None,
     ),
     (
         REAL_WINSTREAK_RESPONSE,
         make_winstreaks(overall=10, solo=3, doubles=10, threes=15, fours=23),
         False,
+        None,
     ),
 )
 
 
 @pytest.mark.parametrize(
-    "response_json, winstreaks, winstreaks_accurate", parse_estimated_winstreaks_cases
+    "response_json, winstreaks, winstreaks_accurate, error",
+    parse_estimated_winstreaks_cases,
 )
 def test_parse_estimated_winstreaks_response(
     response_json: Mapping[str, object],
     winstreaks: Winstreaks,
     winstreaks_accurate: bool,
+    error: type[Exception] | None,
 ) -> None:
+    if error is not None:
+        with pytest.raises(error):
+            parse_estimated_winstreaks_response(response_json)
+        return
+
     # We now treat winstreak estimates from antisniper as inaccurate
     winstreaks_accurate = False
     assert parse_estimated_winstreaks_response(response_json) == (
