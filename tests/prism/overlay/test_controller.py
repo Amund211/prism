@@ -1,4 +1,7 @@
 from collections.abc import Mapping
+from dataclasses import dataclass
+
+import pytest
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
 from prism.overlay.controller import ERROR_DURING_PROCESSING
@@ -248,6 +251,129 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_key() -> None:
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
     assert winstreaks == MISSING_WINSTREAKS
     assert accurate is False
+
+
+@dataclass
+class Flags:
+    antisniper_api_key_invalid: bool = False
+    antisniper_api_key_throttled: bool = False
+    missing_local_issuer_certificate: bool = False
+
+
+@pytest.mark.parametrize(
+    "before_flags, error, result_flags",
+    [
+        (
+            Flags(
+                antisniper_api_key_invalid=False,
+                antisniper_api_key_throttled=True,
+                missing_local_issuer_certificate=True,
+            ),
+            APIKeyError(),
+            Flags(
+                antisniper_api_key_invalid=True,
+                antisniper_api_key_throttled=False,
+                missing_local_issuer_certificate=False,
+            ),
+        ),
+        (
+            Flags(
+                antisniper_api_key_invalid=True,
+                antisniper_api_key_throttled=False,
+                missing_local_issuer_certificate=True,
+            ),
+            APIThrottleError(),
+            Flags(
+                antisniper_api_key_invalid=False,
+                antisniper_api_key_throttled=True,
+                missing_local_issuer_certificate=False,
+            ),
+        ),
+        (
+            Flags(
+                antisniper_api_key_invalid=True,
+                antisniper_api_key_throttled=True,
+                missing_local_issuer_certificate=False,
+            ),
+            MissingLocalIssuerSSLError(),
+            Flags(
+                antisniper_api_key_invalid=True,
+                antisniper_api_key_throttled=True,
+                missing_local_issuer_certificate=True,
+            ),
+        ),
+        # API error does not touch the flags
+        (
+            Flags(
+                antisniper_api_key_invalid=True,
+                antisniper_api_key_throttled=True,
+                missing_local_issuer_certificate=True,
+            ),
+            APIError(),
+            Flags(
+                antisniper_api_key_invalid=True,
+                antisniper_api_key_throttled=True,
+                missing_local_issuer_certificate=True,
+            ),
+        ),
+        (
+            Flags(
+                antisniper_api_key_invalid=False,
+                antisniper_api_key_throttled=False,
+                missing_local_issuer_certificate=False,
+            ),
+            APIError(),
+            Flags(
+                antisniper_api_key_invalid=False,
+                antisniper_api_key_throttled=False,
+                missing_local_issuer_certificate=False,
+            ),
+        ),
+    ],
+)
+def test_real_overlay_controller_get_estimated_winstreaks_error_handling(
+    before_flags: Flags, error: Exception, result_flags: Flags
+) -> None:
+    """Test that OverlayController handles errors from get_estimated_winstreaks"""
+
+    def get_estimated_winstreaks(
+        uuid: str, antisniper_api_key: str
+    ) -> tuple[Winstreaks, bool]:
+        assert uuid == "test-uuid"
+        assert antisniper_api_key == "test-api-key"
+
+        raise error
+
+    controller = create_controller(
+        settings=make_settings(
+            antisniper_api_key="test-api-key",
+            use_antisniper_api=True,
+        ),
+        winstreak_provider=MockedWinstreakProvider(
+            get_estimated_winstreaks_for_uuid=get_estimated_winstreaks
+        ),
+    )
+
+    controller.antisniper_api_key_invalid = before_flags.antisniper_api_key_invalid
+    controller.antisniper_api_key_throttled = before_flags.antisniper_api_key_throttled
+    controller.missing_local_issuer_certificate = (
+        before_flags.missing_local_issuer_certificate
+    )
+
+    winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
+    assert winstreaks == MISSING_WINSTREAKS
+    assert accurate is False
+    assert (
+        controller.antisniper_api_key_invalid == result_flags.antisniper_api_key_invalid
+    )
+    assert (
+        controller.antisniper_api_key_throttled
+        == result_flags.antisniper_api_key_throttled
+    )
+    assert (
+        controller.missing_local_issuer_certificate
+        == result_flags.missing_local_issuer_certificate
+    )
 
 
 def test_real_overlay_controller_get_time_ns_dependency_injection() -> None:
