@@ -152,9 +152,7 @@ class OverlayController:
             self.missing_local_issuer_certificate = False
             return dataReceivedAtMs, playerdata
 
-    def get_estimated_winstreaks(
-        self, uuid: str
-    ) -> tuple[Winstreaks, bool]:  # pragma: no cover
+    def get_estimated_winstreaks(self, uuid: str) -> tuple[Winstreaks, bool]:
         if (
             not self.settings.use_antisniper_api
             or self.settings.antisniper_api_key is None
