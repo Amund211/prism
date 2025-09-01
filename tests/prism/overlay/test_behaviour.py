@@ -392,7 +392,9 @@ def test_update_settings_everything_changed() -> None:
     )
 
     controller = create_controller(
-        settings=settings, api_key_invalid=True, api_key_throttled=True
+        settings=settings,
+        antisniper_api_key_invalid=True,
+        antisniper_api_key_throttled=True,
     )
 
     # NOTE: Make sure everything specified here is different from its default value
@@ -467,8 +469,8 @@ def test_update_settings_everything_changed() -> None:
     # Lots of stuff changed, so we want to redraw
     assert controller.redraw_event.is_set()
 
-    assert not controller.api_key_invalid
-    assert not controller.api_key_throttled
+    assert not controller.antisniper_api_key_invalid
+    assert not controller.antisniper_api_key_throttled
 
 
 def test_update_settings_clear_antisniper_key() -> None:
@@ -1018,12 +1020,12 @@ def test_autodenick_teammate(
     (
         create_controller(state=create_state(in_queue=False)),
         create_controller(state=create_state(out_of_sync=True)),
-        create_controller(api_key_invalid=True),
-        create_controller(api_key_throttled=True),
+        create_controller(antisniper_api_key_invalid=True),
+        create_controller(antisniper_api_key_throttled=True),
         create_controller(
             state=create_state(in_queue=False, out_of_sync=True),
-            api_key_invalid=True,
-            api_key_throttled=True,
+            antisniper_api_key_invalid=True,
+            antisniper_api_key_throttled=True,
         ),
     ),
 )

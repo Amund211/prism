@@ -372,8 +372,8 @@ def create_controller(
     state: OverlayState | None = None,
     settings: Settings | None = None,
     wants_shown: bool | None = None,
-    api_key_invalid: bool = False,
-    api_key_throttled: bool = False,
+    antisniper_api_key_invalid: bool = False,
+    antisniper_api_key_throttled: bool = False,
     missing_local_issuer_certificate: bool = False,
     ready: bool = True,
     autowho_event_set: bool = False,
@@ -397,8 +397,8 @@ def create_controller(
     )
 
     controller.wants_shown = wants_shown
-    controller.api_key_invalid = api_key_invalid
-    controller.api_key_throttled = api_key_throttled
+    controller.antisniper_api_key_invalid = antisniper_api_key_invalid
+    controller.antisniper_api_key_throttled = antisniper_api_key_throttled
     controller.missing_local_issuer_certificate = missing_local_issuer_certificate
     controller.ready = ready
 
@@ -418,8 +418,13 @@ def create_controller(
 def assert_controllers_equal(
     controller1: OverlayController, controller2: OverlayController, /
 ) -> None:
-    assert controller1.api_key_invalid == controller2.api_key_invalid
-    assert controller1.api_key_throttled == controller2.api_key_throttled
+    assert (
+        controller1.antisniper_api_key_invalid == controller2.antisniper_api_key_invalid
+    )
+    assert (
+        controller1.antisniper_api_key_throttled
+        == controller2.antisniper_api_key_throttled
+    )
     assert (
         controller1.missing_local_issuer_certificate
         == controller2.missing_local_issuer_certificate

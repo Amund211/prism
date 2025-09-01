@@ -182,8 +182,8 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
 
     # Update the API key
     if antisniper_api_key_changed:
-        controller.api_key_throttled = False
-        controller.api_key_invalid = False
+        controller.antisniper_api_key_throttled = False
+        controller.antisniper_api_key_invalid = False
 
         new_antisniper_key = new_settings["antisniper_api_key"]
         if new_antisniper_key is None:
@@ -258,8 +258,8 @@ def autodenick_teammate(controller: OverlayController) -> None:
     state = controller.state
 
     if (
-        controller.api_key_invalid
-        or controller.api_key_throttled
+        controller.antisniper_api_key_invalid
+        or controller.antisniper_api_key_throttled
         or not state.in_queue
         or state.out_of_sync
     ):
