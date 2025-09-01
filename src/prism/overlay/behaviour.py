@@ -257,13 +257,8 @@ def autodenick_teammate(controller: OverlayController) -> None:
     # Store a persistent view to the current state
     state = controller.state
 
-    if (
-        controller.antisniper_api_key_invalid
-        or controller.antisniper_api_key_throttled
-        or not state.in_queue
-        or state.out_of_sync
-    ):
-        # We're not quite sure of the state of the lobby or the stats cache
+    if not state.in_queue or state.out_of_sync:
+        # We're not quite sure of the state of the lobby
         return
 
     # Teammates whose IGN is not present in the lobby
