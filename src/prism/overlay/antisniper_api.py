@@ -291,7 +291,11 @@ class AntiSniperWinstreakProvider:
                 f"Request to winstreak endpoint failed with status code "
                 f"{response.status_code} for {uuid=}. Response: {response.text}"
             )
-            return MISSING_WINSTREAKS, False
+            raise APIError(
+                f"Request to Antisniper API failed with status code "
+                f"{response.status_code} when getting winstreaks for player {uuid}. "
+                f"Response: {response.text}"
+            )
 
         try:
             response_json = response.json()
@@ -300,7 +304,7 @@ class AntiSniperWinstreakProvider:
                 "Failed parsing the response from the winstreak endpoint. "
                 f"Raw content: {response.text}"
             )
-            return MISSING_WINSTREAKS, False
+            raise APIError("Failed parsing the response from the winstreak endpoint. ")
 
         return parse_estimated_winstreaks_response(response_json)
 
@@ -336,7 +340,7 @@ def parse_estimated_winstreaks_response(
     """Parse the reponse from the winstreaks endpoint"""
     if not response_json.get("success", False):
         logger.error(f"Winstreak endpoint returned an error. Response: {response_json}")
-        return MISSING_WINSTREAKS, False
+        raise APIError("Winstreak endpoint returned an error.")
 
     # Getting the winstreaks
     winstreaks: dict[GamemodeName, int | None] = {}
