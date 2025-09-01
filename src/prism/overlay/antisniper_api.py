@@ -105,29 +105,6 @@ class AntiSniperAPIKeyHolder:
         self.limiter = RateLimiter(limit=limit, window=window)
 
 
-def _make_request(
-    *, url: str, key_holder: AntiSniperAPIKeyHolder, last_try: bool
-) -> requests.Response:  # pragma: nocover
-    try:
-        # Uphold our prescribed rate-limits
-        with key_holder.limiter:
-            response = SESSION.get(url)
-    except RequestException as e:
-        raise ExecutionError(
-            "Request to AntiSniper API failed due to an unknown error"
-        ) from e
-
-    if is_checked_too_many_offline_players_response(response):
-        raise ExecutionError(f"Checked too many offline players for {url}, retrying")
-
-    if response.status_code == 429 and not last_try:
-        raise ExecutionError(
-            "Request to AntiSniper API failed due to ratelimit, retrying"
-        )
-
-    return response
-
-
 class StrangePlayerProvider:
     def __init__(
         self,
@@ -255,45 +232,73 @@ class StrangePlayerProvider:
         return playerdata
 
 
-def get_estimated_winstreaks(
-    uuid: str, key_holder: AntiSniperAPIKeyHolder
-) -> tuple[Winstreaks, bool]:  # pragma: nocover
-    """
-    Get the estimated winstreaks of the given uuid
+class AntiSniperWinstreakProvider:
+    def get_estimated_winstreaks_for_uuid(
+        self, uuid: str, *, antisniper_key_holder: AntiSniperAPIKeyHolder
+    ) -> tuple[Winstreaks, bool]:  # pragma: nocover
+        """
+        Get the estimated winstreaks of the given uuid
 
-    https://api.antisniper.net/#tag/Player/paths/~1v2~1player~1winstreak/get
-    """
-    try:
-        response = execute_with_retry(
-            functools.partial(
-                _make_request,
-                url=f"{WINSTREAK_ENDPOINT}?key={key_holder.key}&player={uuid}",
-                key_holder=key_holder,
-            ),
-            retry_limit=5,
-            initial_timeout=2,
-        )
-    except ExecutionError:
-        logger.exception("Request to winstreaks endpoint reached max retries")
-        return MISSING_WINSTREAKS, False
+        https://api.antisniper.net/#tag/Player/paths/~1v2~1player~1winstreak/get
+        """
+        try:
+            response = execute_with_retry(
+                functools.partial(
+                    self._make_request,
+                    url=(
+                        f"{WINSTREAK_ENDPOINT}?key={antisniper_key_holder.key}"
+                        f"&player={uuid}"
+                    ),
+                    key_holder=antisniper_key_holder,
+                ),
+                retry_limit=5,
+                initial_timeout=2,
+            )
+        except ExecutionError:
+            logger.exception("Request to winstreaks endpoint reached max retries")
+            return MISSING_WINSTREAKS, False
 
-    if not response:
-        logger.error(
-            f"Request to winstreak endpoint failed with status code "
-            f"{response.status_code} for {uuid=}. Response: {response.text}"
-        )
-        return MISSING_WINSTREAKS, False
+        if not response:
+            logger.error(
+                f"Request to winstreak endpoint failed with status code "
+                f"{response.status_code} for {uuid=}. Response: {response.text}"
+            )
+            return MISSING_WINSTREAKS, False
 
-    try:
-        response_json = response.json()
-    except JSONDecodeError:
-        logger.error(
-            "Failed parsing the response from the winstreak endpoint. "
-            f"Raw content: {response.text}"
-        )
-        return MISSING_WINSTREAKS, False
+        try:
+            response_json = response.json()
+        except JSONDecodeError:
+            logger.error(
+                "Failed parsing the response from the winstreak endpoint. "
+                f"Raw content: {response.text}"
+            )
+            return MISSING_WINSTREAKS, False
 
-    return parse_estimated_winstreaks_response(response_json)
+        return parse_estimated_winstreaks_response(response_json)
+
+    def _make_request(
+        self, *, url: str, key_holder: AntiSniperAPIKeyHolder, last_try: bool
+    ) -> requests.Response:  # pragma: nocover
+        try:
+            # Uphold our prescribed rate-limits
+            with key_holder.limiter:
+                response = SESSION.get(url)
+        except RequestException as e:
+            raise ExecutionError(
+                "Request to AntiSniper API failed due to an unknown error"
+            ) from e
+
+        if is_checked_too_many_offline_players_response(response):
+            raise ExecutionError(
+                f"Checked too many offline players for {url}, retrying"
+            )
+
+        if response.status_code == 429 and not last_try:
+            raise ExecutionError(
+                "Request to AntiSniper API failed due to ratelimit, retrying"
+            )
+
+        return response
 
 
 def parse_estimated_winstreaks_response(

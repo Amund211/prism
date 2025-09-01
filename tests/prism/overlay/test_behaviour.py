@@ -36,6 +36,7 @@ from tests.prism.overlay.utils import (
     CUSTOM_RATING_CONFIG_COLLECTION_DICT,
     MockedAccountProvider,
     MockedPlayerProvider,
+    MockedWinstreakProvider,
     create_controller,
     create_state,
     make_player,
@@ -279,7 +280,9 @@ def test_get_and_cache_stats(
         account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
         player_provider=MockedPlayerProvider(get_playerdata_for_uuid=get_playerdata),
         get_time_ns=get_time_ns,
-        get_estimated_winstreaks=get_estimated_winstreaks,
+        winstreak_provider=MockedWinstreakProvider(
+            get_estimated_winstreaks_for_uuid=get_estimated_winstreaks
+        ),
         nick_database=NickDatabase([{user.nick: user.uuid}]),
         settings=make_settings(
             use_antisniper_api=True,  # Always enable antisniper API for testing

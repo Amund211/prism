@@ -3,7 +3,12 @@ from collections.abc import Callable, Mapping, Set
 from pathlib import Path, PurePath
 from typing import TYPE_CHECKING, Any, Literal, TextIO, cast, overload
 
-from prism.overlay.controller import AccountProvider, OverlayController, PlayerProvider
+from prism.overlay.controller import (
+    AccountProvider,
+    OverlayController,
+    PlayerProvider,
+    WinstreakProvider,
+)
 from prism.overlay.keybinds import Key
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.output.config import (
@@ -344,6 +349,22 @@ class MockedPlayerProvider:
         return self._seconds_until_unblocked
 
 
+class MockedWinstreakProvider:
+    def __init__(
+        self,
+        get_estimated_winstreaks_for_uuid: Callable[
+            [str, "AntiSniperAPIKeyHolder"],
+            tuple[Winstreaks, bool],
+        ],
+    ) -> None:
+        self._get_estimated_winstreaks_for_uuid = get_estimated_winstreaks_for_uuid
+
+    def get_estimated_winstreaks_for_uuid(
+        self, uuid: str, *, antisniper_key_holder: "AntiSniperAPIKeyHolder"
+    ) -> tuple[Winstreaks, bool]:
+        return self._get_estimated_winstreaks_for_uuid(uuid, antisniper_key_holder)
+
+
 def create_controller(
     state: OverlayState | None = None,
     settings: Settings | None = None,
@@ -359,9 +380,7 @@ def create_controller(
     nick_database: NickDatabase | None = None,
     account_provider: AccountProvider = MockedAccountProvider(assert_not_called),
     player_provider: PlayerProvider = MockedPlayerProvider(assert_not_called),
-    get_estimated_winstreaks: Callable[
-        [str, "AntiSniperAPIKeyHolder"], tuple[Winstreaks, bool]
-    ] = assert_not_called,
+    winstreak_provider: WinstreakProvider = MockedWinstreakProvider(assert_not_called),
     get_time_ns: Callable[[], int] = assert_not_called,
 ) -> OverlayController:
     controller = OverlayController(
@@ -370,7 +389,7 @@ def create_controller(
         nick_database=nick_database or NickDatabase([{}]),
         account_provider=account_provider,
         player_provider=player_provider,
-        get_estimated_winstreaks=get_estimated_winstreaks,
+        winstreak_provider=winstreak_provider,
         get_time_ns=get_time_ns,
     )
 

@@ -8,6 +8,7 @@ from prism.ssl_errors import MissingLocalIssuerSSLError
 from tests.prism.overlay.utils import (
     MockedAccountProvider,
     MockedPlayerProvider,
+    MockedWinstreakProvider,
     assert_not_called,
     create_controller,
     make_settings,
@@ -196,6 +197,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection()
         uuid: str, key_holder: AntiSniperAPIKeyHolder
     ) -> tuple[Winstreaks, bool]:
         assert uuid == "test-uuid"
+        assert key_holder is not None
         assert key_holder.key == "test-api-key"
         return custom_winstreaks, custom_accurate
 
@@ -204,7 +206,9 @@ def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection()
             antisniper_api_key="test-api-key",
             use_antisniper_api=True,
         ),
-        get_estimated_winstreaks=custom_get_estimated_winstreaks,
+        winstreak_provider=MockedWinstreakProvider(
+            get_estimated_winstreaks_for_uuid=custom_get_estimated_winstreaks,
+        ),
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
@@ -220,7 +224,9 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
             antisniper_api_key="test-api-key",
             use_antisniper_api=False,  # API is disabled
         ),
-        get_estimated_winstreaks=assert_not_called,
+        winstreak_provider=MockedWinstreakProvider(
+            get_estimated_winstreaks_for_uuid=assert_not_called,
+        ),
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
@@ -236,7 +242,9 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_key() -> None:
             antisniper_api_key=None,  # No API key
             use_antisniper_api=True,
         ),
-        get_estimated_winstreaks=assert_not_called,
+        winstreak_provider=MockedWinstreakProvider(
+            get_estimated_winstreaks_for_uuid=assert_not_called,
+        ),
     )
 
     winstreaks, accurate = controller.get_estimated_winstreaks("test-uuid")
