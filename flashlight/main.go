@@ -100,6 +100,8 @@ func main() {
 
 	getSessions := app.BuildGetSessions(playerRepo, updatePlayerInInterval)
 
+	findMilestoneAchievements := app.BuildFindMilestoneAchievements(playerRepo)
+
 	http.HandleFunc(
 		"GET /v1/playerdata",
 		ports.MakeGetPlayerDataHandler(
@@ -161,6 +163,20 @@ func main() {
 			getSessions,
 			allowedOrigins,
 			logger.With("port", "sessions"),
+			sentryMiddleware,
+		),
+	)
+
+	http.HandleFunc(
+		"OPTIONS /v1/prestiges/{uuid}",
+		ports.BuildCORSHandler(allowedOrigins),
+	)
+	http.HandleFunc(
+		"GET /v1/prestiges/{uuid}",
+		ports.MakeGetPrestigesHandler(
+			findMilestoneAchievements,
+			allowedOrigins,
+			logger.With("port", "prestiges"),
 			sentryMiddleware,
 		),
 	)

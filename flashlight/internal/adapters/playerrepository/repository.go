@@ -651,6 +651,162 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 	return computeSessions(stats, start, end), nil
 }
 
+func (p *PostgresPlayerRepository) FindMilestoneAchievements(ctx context.Context, playerUUID string, gamemode domain.Gamemode, stat domain.Stat, milestones []int64) ([]domain.MilestoneAchievement, error) {
+	if !strutils.UUIDIsNormalized(playerUUID) {
+		err := fmt.Errorf("uuid is not normalized")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": playerUUID,
+		})
+		return nil, err
+	}
+
+	// Initialize variables for dynamic SQL building
+	defaultValue := 0
+	selector := "player_data->"
+
+	// Handle gamemode
+	switch gamemode {
+	case domain.GamemodeOverall:
+		selector = selector + "'all'"
+	default:
+		err := fmt.Errorf("only overall gamemode is supported")
+		reporting.Report(ctx, err)
+		return nil, err
+	}
+
+	// Handle stat
+	switch stat {
+	case domain.StatExperience:
+		if gamemode != domain.GamemodeOverall {
+			err := fmt.Errorf("only overall gamemode is supported for stat experience")
+			reporting.Report(ctx, err)
+			return nil, err
+		}
+		selector = "player_data->'xp'"
+	default:
+		err := fmt.Errorf("only experience stat is supported")
+		reporting.Report(ctx, err)
+		return nil, err
+	}
+
+	if len(milestones) == 0 {
+		return []domain.MilestoneAchievement{}, nil
+	}
+
+	// Sort milestones in ascending order
+	sortedMilestones := make([]int64, len(milestones))
+	copy(sortedMilestones, milestones)
+	slices.Sort(sortedMilestones)
+
+	results := make([]domain.MilestoneAchievement, 0, len(milestones))
+
+	txx, err := p.db.BeginTxx(ctx, nil)
+	if err != nil {
+		err := fmt.Errorf("failed to start transaction: %w", err)
+		reporting.Report(ctx, err)
+		return nil, err
+	}
+	defer txx.Rollback()
+
+	_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
+	if err != nil {
+		err := fmt.Errorf("failed to set search path: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"schema": p.schema,
+		})
+		return nil, err
+	}
+
+	for i := 0; i < len(sortedMilestones); i++ {
+		milestone := sortedMilestones[i]
+
+		type dbStatWithValue struct {
+			ID                string    `db:"id"`
+			DataFormatVersion int       `db:"data_format_version"`
+			UUID              string    `db:"player_uuid"`
+			QueriedAt         time.Time `db:"queried_at"`
+			PlayerData        []byte    `db:"player_data"`
+			Value             int64     `db:"value"`
+		}
+
+		// Find first stats instance where value >= milestone
+		var statPIT dbStatWithValue
+		err = txx.GetContext(
+			ctx,
+			&statPIT,
+			fmt.Sprintf(`SELECT
+				id,
+				data_format_version,
+				player_uuid,
+				queried_at,
+				player_data,
+				COALESCE(%[1]s, $3) as value
+			FROM stats
+			WHERE
+				player_uuid = $1 AND
+				COALESCE(%[1]s, $3) >= $2
+			ORDER BY queried_at ASC
+			LIMIT 1`, selector),
+			playerUUID, milestone, defaultValue)
+
+		if errors.Is(err, sql.ErrNoRows) {
+			// Milestone not reached yet, if no values are found we can break
+			// since the highest value has been found
+			break
+		}
+		if err != nil {
+			err := fmt.Errorf("failed to find milestone achievement: %w", err)
+			reporting.Report(ctx, err, map[string]string{
+				"uuid":      playerUUID,
+				"milestone": fmt.Sprintf("%d", milestone),
+				"selector":  selector,
+				"default":   fmt.Sprintf("%d", defaultValue),
+				"stat":      string(stat),
+				"gamemode":  string(gamemode),
+			})
+			return nil, err
+		}
+
+		playerWithID, err := dbStatToPlayerPITWithID(dbStat{
+			ID:                statPIT.ID,
+			DataFormatVersion: statPIT.DataFormatVersion,
+			UUID:              statPIT.UUID,
+			QueriedAt:         statPIT.QueriedAt,
+			PlayerData:        statPIT.PlayerData,
+		})
+		if err != nil {
+			err := fmt.Errorf("failed to convert db stat to playerpit with id: %w", err)
+			reporting.Report(ctx, err, map[string]string{
+				"statID": statPIT.ID,
+			})
+			return nil, err
+		}
+
+		// Skip this milestone if the value we found is greater than the next one
+		for i+1 < len(sortedMilestones) && statPIT.Value >= sortedMilestones[i+1] {
+			i++
+		}
+
+		// The value is not larger than this milestone -> we found the achievement
+		results = append(results, domain.MilestoneAchievement{
+			Milestone: sortedMilestones[i],
+			After: &domain.MilestoneAchievementStats{
+				Player: playerWithID.PlayerPIT,
+				Value:  statPIT.Value,
+			},
+		})
+	}
+
+	err = txx.Commit()
+	if err != nil {
+		err := fmt.Errorf("failed to commit transaction: %w", err)
+		reporting.Report(ctx, err)
+		return nil, err
+	}
+
+	return results, nil
+}
+
 type StubPlayerRepository struct{}
 
 func (p *StubPlayerRepository) StorePlayer(ctx context.Context, player *domain.PlayerPIT) error {
@@ -663,6 +819,10 @@ func (p *StubPlayerRepository) GetHistory(ctx context.Context, playerUUID string
 
 func (p *StubPlayerRepository) GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]domain.Session, error) {
 	return []domain.Session{}, nil
+}
+
+func (p *StubPlayerRepository) FindMilestoneAchievements(ctx context.Context, playerUUID string, gamemode domain.Gamemode, stat domain.Stat, milestones []int64) ([]domain.MilestoneAchievement, error) {
+	return []domain.MilestoneAchievement{}, nil
 }
 
 func NewStubPlayerRepository() *StubPlayerRepository {
