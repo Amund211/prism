@@ -63,7 +63,7 @@ func TestGetPrestigesHandler(t *testing.T) {
 				{
 					Milestone: 100,
 					After: &domain.MilestoneAchievementStats{
-						Player: *domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, 1, 1, 12, 0, 0, 0, time.UTC)).WithExperience(487_550).Build(),
+						Player: domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, 1, 1, 12, 0, 0, 0, time.UTC)).WithExperience(487_550).Build(),
 						Value:  101,
 					},
 				},

@@ -20,8 +20,14 @@ func (pb *playerBuilder) WithExperience(exp float64) *playerBuilder {
 	return pb
 }
 
-func (pb *playerBuilder) Build() *domain.PlayerPIT {
-	return pb.player
+func (pb *playerBuilder) Build() domain.PlayerPIT {
+	return *pb.player
+}
+
+func (pb *playerBuilder) BuildPtr() *domain.PlayerPIT {
+	// Make a copy, so further mutations to the builder don't affect the returned player
+	player := pb.Build()
+	return &player
 }
 
 func NewPlayerBuilder(uuid string, queriedAt time.Time) *playerBuilder {
