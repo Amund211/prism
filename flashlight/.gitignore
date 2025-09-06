@@ -6,3 +6,4 @@ gha-creds-*.json
 
 # Binary outputs
 /flashlight
+/main
