@@ -11,6 +11,7 @@ import (
 
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/domaintest"
 	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/Amund211/flashlight/internal/strutils"
 	"github.com/stretchr/testify/require"
@@ -62,12 +63,8 @@ func TestGetPrestigesHandler(t *testing.T) {
 				{
 					Milestone: 100,
 					After: &domain.MilestoneAchievementStats{
-						Player: domain.PlayerPIT{
-							UUID:       playerUUID,
-							QueriedAt:  time.Date(2021, 1, 1, 12, 0, 0, 0, time.UTC),
-							Experience: 48_700, // Exactly 100 stars
-						},
-						Value: 100,
+						Player: *domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, 1, 1, 12, 0, 0, 0, time.UTC)).WithExperience(48_700).Build(),
+						Value:  100,
 					},
 				},
 			},
