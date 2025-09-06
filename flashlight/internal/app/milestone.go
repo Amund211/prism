@@ -15,62 +15,6 @@ type milestonePlayerRepository interface {
 
 type FindMilestoneAchievements func(ctx context.Context, playerUUID string, gamemode domain.Gamemode, stat domain.Stat, milestones []int64) ([]domain.MilestoneAchievement, error)
 
-const EXP_PER_PRESTIGE = (500 + 1000 + 2000 + 3500 + (5000 * 96))
-
-func starsToExperience(stars int) int64 {
-	prestiges := int64(stars / 100)
-	stars = stars % 100
-
-	exp := prestiges * EXP_PER_PRESTIGE
-	for star := 1; star <= stars; star++ {
-		expForStar := 5000
-		switch star {
-		case 1:
-			expForStar = 500
-		case 2:
-			expForStar = 1000
-		case 3:
-			expForStar = 2000
-		case 4:
-			expForStar = 3500
-		}
-
-		exp += int64(expForStar)
-
-	}
-
-	return exp
-}
-
-func experienceToStars(experience int64) int {
-	prestiges := int(experience / EXP_PER_PRESTIGE)
-	remainingExperience := int(experience % EXP_PER_PRESTIGE)
-
-	stars := prestiges * 100
-	for star := 1; star <= 100; star++ {
-		expForStar := 5000
-		switch star {
-		case 1:
-			expForStar = 500
-		case 2:
-			expForStar = 1000
-		case 3:
-			expForStar = 2000
-		case 4:
-			expForStar = 3500
-		}
-
-		if remainingExperience < expForStar {
-			break
-		}
-
-		remainingExperience -= expForStar
-		stars++
-	}
-
-	return stars
-}
-
 func BuildFindMilestoneAchievements(
 	repo milestonePlayerRepository,
 	getAndPersistPlayerWithCache GetAndPersistPlayerWithCache,
@@ -94,7 +38,7 @@ func BuildFindMilestoneAchievements(
 		if stat == domain.StatStars {
 			convertedMilestones = make([]int64, len(milestones))
 			for i, starMilestone := range milestones {
-				convertedMilestones[i] = starsToExperience(int(starMilestone))
+				convertedMilestones[i] = domain.StarsToExperience(int(starMilestone))
 			}
 			// Change stat to experience since that's what the repository supports
 			stat = domain.StatExperience
@@ -113,14 +57,14 @@ func BuildFindMilestoneAchievements(
 			convertedAchievements = make([]domain.MilestoneAchievement, len(achievements))
 			for i, achievement := range achievements {
 				convertedAchievements[i] = domain.MilestoneAchievement{
-					Milestone: int64(experienceToStars(achievement.Milestone)),
+					Milestone: int64(domain.ExperienceToStars(achievement.Milestone)),
 					After: func() *domain.MilestoneAchievementStats {
 						if achievement.After == nil {
 							return nil
 						}
 						return &domain.MilestoneAchievementStats{
 							Player: achievement.After.Player,
-							Value:  int64(experienceToStars(achievement.After.Value)),
+							Value:  int64(domain.ExperienceToStars(achievement.After.Value)),
 						}
 					}(),
 				}
