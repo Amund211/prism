@@ -108,7 +108,7 @@ func TestGetPrestigesHandler(t *testing.T) {
 
 		require.Equal(t, http.StatusBadRequest, w.Code)
 		require.Equal(t, "application/json", w.Header().Get("Content-Type"))
-		require.Contains(t, w.Body.String(), "Invalid UUID")
+		require.JSONEq(t, `{"success":false,"cause":"Invalid UUID"}`, w.Body.String())
 	})
 
 	t.Run("Missing UUID", func(t *testing.T) {
@@ -121,6 +121,6 @@ func TestGetPrestigesHandler(t *testing.T) {
 
 		require.Equal(t, http.StatusBadRequest, w.Code)
 		require.Equal(t, "application/json", w.Header().Get("Content-Type"))
-		require.Contains(t, w.Body.String(), "Invalid UUID")
+		require.JSONEq(t, `{"success":false,"cause":"Invalid UUID"}`, w.Body.String())
 	})
 }
