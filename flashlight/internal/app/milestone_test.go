@@ -1,10 +1,11 @@
-package app
+package app_test
 
 import (
 	"context"
 	"testing"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/domaintest"
 	"github.com/stretchr/testify/require"
@@ -63,7 +64,7 @@ func TestFindMilestoneAchievements(t *testing.T) {
 				},
 			},
 		}
-		findMilestones := BuildFindMilestoneAchievements(mockRepo, getAndPersistPlayerWithoutCache)
+		findMilestones := app.BuildFindMilestoneAchievements(mockRepo, getAndPersistPlayerWithoutCache)
 
 		achievements, err := findMilestones(ctx, playerUUID, domain.GamemodeOverall, domain.StatStars, starMilestones)
 		require.NoError(t, err)
@@ -112,7 +113,7 @@ func TestFindMilestoneAchievements(t *testing.T) {
 				},
 			},
 		}
-		findMilestones := BuildFindMilestoneAchievements(mockRepo, getAndPersistPlayerWithoutCache)
+		findMilestones := app.BuildFindMilestoneAchievements(mockRepo, getAndPersistPlayerWithoutCache)
 
 		achievements, err := findMilestones(ctx, playerUUID, domain.GamemodeOverall, domain.StatExperience, milestones)
 		require.NoError(t, err)
@@ -138,7 +139,7 @@ func TestFindMilestoneAchievements(t *testing.T) {
 
 	t.Run("invalid UUID", func(t *testing.T) {
 		mockRepo := &mockMilestoneRepository{}
-		findMilestones := BuildFindMilestoneAchievements(mockRepo, getAndPersistPlayerWithoutCache)
+		findMilestones := app.BuildFindMilestoneAchievements(mockRepo, getAndPersistPlayerWithoutCache)
 
 		_, err := findMilestones(ctx, "invalid-uuid", domain.GamemodeOverall, domain.StatStars, []int64{100})
 
