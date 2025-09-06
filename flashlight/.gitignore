@@ -3,3 +3,6 @@ cmd/.env
 c.out
 # Ignore generated credentials from google-github-actions/auth
 gha-creds-*.json
+
+# Binary outputs
+/flashlight
