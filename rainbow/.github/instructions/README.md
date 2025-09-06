@@ -9,8 +9,8 @@ Rainbow is a React-based web application that serves as the frontend interface f
 - Session tracking and history exploration
 - Player search and comparison tools
 
-**Repository Size**: ~30 source files in TypeScript/React  
-**Tech Stack**: React 19, TypeScript, Vite, Material-UI, TanStack Router/Query, Sentry  
+**Repository Size**: ~30 source files in TypeScript/React
+**Tech Stack**: React 19, TypeScript, Vite, Material-UI, TanStack Router/Query, Sentry
 **Target Runtime**: Web browsers (deployed as static site)
 
 ## Build System Requirements
@@ -74,9 +74,9 @@ This starts the server at http://localhost:5173/ with proxy to production backen
 
 ### Alternative Development Modes
 
-- `npm run dev` - Local development (requires local backend)
+- `npm run dev` - Local development (Never use this unless absolutely necessary. This will not show any data, and will not behave like the app does in production)
 - `npm run dev:staging` - Proxy to staging backend
-- `npm run dev:production` - Proxy to production backend (recommended)
+- `npm run dev:production` - Proxy to production backend (recommended) Always use dev:production when possible
 
 ## Build Commands Reference
 
@@ -242,7 +242,7 @@ When committing locally, these hooks run automatically:
 
 1. **Port 5173 in use**: Kill existing processes or use different port
 2. **Proxy errors**: Check network connectivity, use `dev:production` mode
-3. **Missing routes**: Run `npm run dev` to regenerate route tree
+3. **Missing routes**: Run `npm run build` to regenerate route tree
 
 ### Performance Notes
 
