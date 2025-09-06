@@ -100,7 +100,10 @@ func main() {
 
 	getSessions := app.BuildGetSessions(playerRepo, updatePlayerInInterval)
 
-	findMilestoneAchievements := app.BuildFindMilestoneAchievements(playerRepo)
+	findMilestoneAchievements := app.BuildFindMilestoneAchievements(
+		playerRepo,
+		getAndPersistPlayerWithCache,
+	)
 
 	http.HandleFunc(
 		"GET /v1/playerdata",

@@ -71,7 +71,10 @@ func experienceToStars(experience int64) int {
 	return stars
 }
 
-func BuildFindMilestoneAchievements(repo milestonePlayerRepository) FindMilestoneAchievements {
+func BuildFindMilestoneAchievements(
+	repo milestonePlayerRepository,
+	getAndPersistPlayerWithCache GetAndPersistPlayerWithCache,
+) FindMilestoneAchievements {
 	return func(ctx context.Context, playerUUID string, gamemode domain.Gamemode, stat domain.Stat, milestones []int64) ([]domain.MilestoneAchievement, error) {
 		if !strutils.UUIDIsNormalized(playerUUID) {
 			err := fmt.Errorf("UUID is not normalized")
@@ -80,6 +83,10 @@ func BuildFindMilestoneAchievements(repo milestonePlayerRepository) FindMileston
 			})
 			return nil, err
 		}
+
+		// Ensure the repository is updated with the latest data
+		// NOTE: GetAndPersistPlayerWithCache implementations handle their own error reporting
+		getAndPersistPlayerWithCache(ctx, playerUUID)
 
 		// Convert star milestones to experience milestones
 		var convertedMilestones []int64
