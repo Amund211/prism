@@ -13,6 +13,7 @@ import (
 
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/domaintest"
 	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/stretchr/testify/require"
 )
@@ -58,8 +59,16 @@ func TestMakeGetSessionsHandler(t *testing.T) {
 	endStr := "2023-01-31T23:59:59.999999999Z"
 	sessions := []domain.Session{
 		{
-			Start:       domain.PlayerPIT{UUID: uuid, Experience: 500, Overall: domain.GamemodeStatsPIT{FinalKills: 10}},
-			End:         domain.PlayerPIT{UUID: uuid, Experience: 1000, Overall: domain.GamemodeStatsPIT{FinalKills: 11}},
+			Start: domaintest.NewPlayerBuilder(uuid, start).
+				WithExperience(500).
+				WithOverallStats(
+					domaintest.NewStatsBuilder().WithFinalKills(10).Build(),
+				).Build(),
+			End: domaintest.NewPlayerBuilder(uuid, end).
+				WithExperience(1000).
+				WithOverallStats(
+					domaintest.NewStatsBuilder().WithFinalKills(11).Build(),
+				).Build(),
 			Consecutive: true,
 		},
 	}

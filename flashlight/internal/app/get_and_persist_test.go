@@ -9,6 +9,7 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/cache"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/domaintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -40,10 +41,11 @@ func (m *mockedPlayerProvider) GetPlayer(ctx context.Context, uuid string) (*dom
 }
 
 func TestGetAndPersistPlayer(t *testing.T) {
+	now := time.Now()
 	t.Run("stats are not created if they already exist", func(t *testing.T) {
 		provider := &mockedPlayerProvider{
 			t:      t,
-			player: &domain.PlayerPIT{UUID: UUID, Experience: 500, Overall: domain.GamemodeStatsPIT{FinalKills: 0}},
+			player: domaintest.NewPlayerBuilder(UUID, now).WithExperience(500).BuildPtr(),
 			err:    nil,
 		}
 		panicProvider := &panicPlayerProvider{t: t}

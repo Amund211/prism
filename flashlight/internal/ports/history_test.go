@@ -13,6 +13,7 @@ import (
 
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/domaintest"
 	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/stretchr/testify/require"
 )
@@ -59,7 +60,11 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 	endStr := "2023-01-31T23:59:59.999999999Z"
 	limit := 100
 	history := []domain.PlayerPIT{
-		{UUID: uuid, Experience: 500, Overall: domain.GamemodeStatsPIT{FinalKills: 10}},
+		domaintest.NewPlayerBuilder(uuid, start).
+			WithExperience(500).
+			WithOverallStats(
+				domaintest.NewStatsBuilder().WithFinalKills(10).Build(),
+			).Build(),
 	}
 	historyJSON, err := ports.HistoryToRainbowHistoryData(history)
 	require.NoError(t, err)

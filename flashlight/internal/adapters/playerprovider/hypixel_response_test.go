@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/domaintest"
 	"github.com/Amund211/flashlight/internal/strutils"
 
 	"github.com/stretchr/testify/require"
@@ -99,11 +100,7 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 					}
 				}`),
 				hypixelStatusCode: 200,
-				result: &domain.PlayerPIT{
-					QueriedAt:  now,
-					UUID:       "12345678-90ab-cdef-1234-567890abcdef",
-					Experience: 1087,
-				},
+				result:            domaintest.NewPlayerBuilder("12345678-90ab-cdef-1234-567890abcdef", now).WithExperience(1087).BuildPtr(),
 			},
 			{
 				name:      "float experience - scientific notation",
@@ -121,11 +118,7 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 					}
 				}`),
 				hypixelStatusCode: 200,
-				result: &domain.PlayerPIT{
-					QueriedAt:  later,
-					UUID:       "12345678-90ab-cdef-1234-567890abcdef",
-					Experience: 12227806,
-				},
+				result:            domaintest.NewPlayerBuilder("12345678-90ab-cdef-1234-567890abcdef", later).WithExperience(12_227_806).BuildPtr(),
 			},
 			{
 				name:               "not found",

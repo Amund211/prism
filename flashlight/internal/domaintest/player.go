@@ -10,6 +10,7 @@ type playerBuilder struct {
 	player *domain.PlayerPIT
 }
 
+// Utility method for setting only the GamesPlayed field in Overall stats
 func (pb *playerBuilder) WithGamesPlayed(gamesPlayed int) *playerBuilder {
 	pb.player.Overall.GamesPlayed = gamesPlayed
 	return pb
@@ -17,6 +18,11 @@ func (pb *playerBuilder) WithGamesPlayed(gamesPlayed int) *playerBuilder {
 
 func (pb *playerBuilder) WithExperience(exp float64) *playerBuilder {
 	pb.player.Experience = exp
+	return pb
+}
+
+func (pb *playerBuilder) WithOverallStats(stats domain.GamemodeStatsPIT) *playerBuilder {
+	pb.player.Overall = stats
 	return pb
 }
 
@@ -38,5 +44,29 @@ func NewPlayerBuilder(uuid string, queriedAt time.Time) *playerBuilder {
 	}
 	return &playerBuilder{
 		player: player,
+	}
+}
+
+type statsBuilder struct {
+	stats *domain.GamemodeStatsPIT
+}
+
+func (sb *statsBuilder) WithGamesPlayed(gamesPlayed int) *statsBuilder {
+	sb.stats.GamesPlayed = gamesPlayed
+	return sb
+}
+
+func (sb *statsBuilder) WithFinalKills(finalKills int) *statsBuilder {
+	sb.stats.FinalKills = finalKills
+	return sb
+}
+
+func (sb *statsBuilder) Build() domain.GamemodeStatsPIT {
+	return *sb.stats
+}
+
+func NewStatsBuilder() *statsBuilder {
+	return &statsBuilder{
+		stats: &domain.GamemodeStatsPIT{},
 	}
 }
