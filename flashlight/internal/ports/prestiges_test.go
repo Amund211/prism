@@ -12,6 +12,7 @@ import (
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/ports"
+	"github.com/Amund211/flashlight/internal/strutils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -51,7 +52,9 @@ func TestGetPrestigesHandler(t *testing.T) {
 	}
 
 	t.Run("Successful request", func(t *testing.T) {
-		playerUUID := "550e8400-e29b-41d4-a716-446655440000"
+		rawPlayerUUID := "550e8400e29b41d4a716446655440000"
+		playerUUID, err := strutils.NormalizeUUID(rawPlayerUUID)
+		require.NoError(t, err)
 
 		findMilestoneAchievements := makeFindMilestoneAchievements(
 			playerUUID,
@@ -73,7 +76,7 @@ func TestGetPrestigesHandler(t *testing.T) {
 
 		handler := ports.MakeGetPrestigesHandler(findMilestoneAchievements, allowedOrigins, logger, sentryMiddleware)
 
-		req := makeRequest(playerUUID)
+		req := makeRequest(rawPlayerUUID)
 		w := httptest.NewRecorder()
 
 		handler(w, req)
@@ -84,6 +87,7 @@ func TestGetPrestigesHandler(t *testing.T) {
 		require.JSONEq(t, `
 		{
 			"success": true,
+			"uuid": "550e8400-e29b-41d4-a716-446655440000",
 			"prestiges": [
 				{
 					"stars": 100,

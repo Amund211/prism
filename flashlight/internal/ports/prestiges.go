@@ -18,6 +18,7 @@ import (
 
 type prestigeResponse struct {
 	Success   bool                  `json:"success"`
+	UUID      string                `json:"uuid,omitempty"`
 	Prestiges []prestigeAchievement `json:"prestiges"`
 	Cause     string                `json:"cause,omitempty"`
 }
@@ -141,6 +142,7 @@ func MakeGetPrestigesHandler(
 
 		response := prestigeResponse{
 			Success:   true,
+			UUID:      uuid,
 			Prestiges: responseAchievements,
 		}
 
