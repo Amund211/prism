@@ -63,8 +63,8 @@ func TestGetPrestigesHandler(t *testing.T) {
 				{
 					Milestone: 100,
 					After: &domain.MilestoneAchievementStats{
-						Player: *domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, 1, 1, 12, 0, 0, 0, time.UTC)).WithExperience(48_700).Build(),
-						Value:  100,
+						Player: *domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, 1, 1, 12, 0, 0, 0, time.UTC)).WithExperience(487_550).Build(),
+						Value:  101,
 					},
 				},
 			},
@@ -89,9 +89,9 @@ func TestGetPrestigesHandler(t *testing.T) {
 				{
 					"stars": 100,
 					"first_seen": {
-						"experience": 48700,
+						"experience": 487550,
 						"queried_at": "2021-01-01T12:00:00Z",
-						"stars": 100
+						"stars": 101
 					}
 				}
 			]
