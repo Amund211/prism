@@ -4,7 +4,6 @@
     "version": "0.0.0",
     "type": "module",
     "scripts": {
-        "dev": "vite",
         "dev:staging": "vite --mode proxy-staging",
         "dev:production": "vite --mode proxy-production",
         "tsc": "tsc -p tsconfig.app.json",
