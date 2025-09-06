@@ -9,8 +9,10 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/domaintest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,16 +20,15 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	const UUID = "01234567-89ab-cdef-0123-456789abcdef"
 	target := fmt.Sprintf("/?uuid=%s", UUID)
 
+	now := time.Now()
+
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	sentryMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
 		return next
 	}
 
 	t.Run("success", func(t *testing.T) {
-		player := &domain.PlayerPIT{
-			UUID:       UUID,
-			Experience: 1000,
-		}
+		player := domaintest.NewPlayerBuilder(UUID, now).WithExperience(1000).BuildPtr()
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return player, nil
@@ -97,10 +98,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	})
 
 	t.Run("rate limit exceeded", func(t *testing.T) {
-		player := &domain.PlayerPIT{
-			UUID:       UUID,
-			Experience: 1000,
-		}
+		player := domaintest.NewPlayerBuilder(UUID, now).WithExperience(1000).BuildPtr()
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return player, nil

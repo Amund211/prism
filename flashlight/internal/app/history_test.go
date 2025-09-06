@@ -8,6 +8,7 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/domaintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -38,9 +39,8 @@ func newMockHistoryRepository(t *testing.T, history []domain.PlayerPIT, err erro
 func newGetAndPersistPlayerWithCacheForHistory(err error) app.GetAndPersistPlayerWithCache {
 	return func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 		// NOTE: We don't read the value in GetHistory, only the error
-		return &domain.PlayerPIT{
-			UUID: uuid,
-		}, err
+		player := domaintest.NewPlayerBuilder(uuid, time.Now()).BuildPtr()
+		return player, err
 	}
 }
 
@@ -92,15 +92,8 @@ func TestBuildGetHistory(t *testing.T) {
 			{
 				name: "non-empty history",
 				history: []domain.PlayerPIT{
-					// NOTE: Stub players
-					{
-						UUID:       uuid,
-						Experience: 500,
-					},
-					{
-						UUID:       uuid,
-						Experience: 501,
-					},
+					domaintest.NewPlayerBuilder(uuid, now).WithExperience(500).Build(),
+					domaintest.NewPlayerBuilder(uuid, now).WithExperience(501).Build(),
 				},
 			},
 		}
@@ -181,15 +174,8 @@ func TestBuildGetHistory(t *testing.T) {
 			{
 				name: "non-empty history",
 				history: []domain.PlayerPIT{
-					// NOTE: Stub players
-					{
-						UUID:       uuid,
-						Experience: 500,
-					},
-					{
-						UUID:       uuid,
-						Experience: 501,
-					},
+					domaintest.NewPlayerBuilder(uuid, now).WithExperience(500).Build(),
+					domaintest.NewPlayerBuilder(uuid, now).WithExperience(501).Build(),
 				},
 			},
 		}
@@ -236,15 +222,8 @@ func TestBuildGetHistory(t *testing.T) {
 		end := time.Date(2024, time.March, 31, 23, 59, 59, 999_999_999, time.UTC)
 
 		expectedHistory := []domain.PlayerPIT{
-			// NOTE: Stub players
-			{
-				UUID:       uuid,
-				Experience: 500,
-			},
-			{
-				UUID:       uuid,
-				Experience: 501,
-			},
+			domaintest.NewPlayerBuilder(uuid, now).WithExperience(500).Build(),
+			domaintest.NewPlayerBuilder(uuid, now).WithExperience(501).Build(),
 		}
 
 		updatePlayerInIntervalCalled := false

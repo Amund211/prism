@@ -8,6 +8,7 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/domaintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -38,9 +39,8 @@ func newMockSessionsRepository(t *testing.T, sessions []domain.Session, err erro
 func newGetAndPersistPlayerWithCacheForSessions(err error) app.GetAndPersistPlayerWithCache {
 	return func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 		// NOTE: We don't read the value in GetHistory, only the error
-		return &domain.PlayerPIT{
-			UUID: uuid,
-		}, err
+		player := domaintest.NewPlayerBuilder(uuid, time.Now()).BuildPtr()
+		return player, err
 	}
 }
 
@@ -93,15 +93,8 @@ func TestBuildGetSessions(t *testing.T) {
 				name: "non-empty sessions",
 				sessions: []domain.Session{
 					{
-						// NOTE: Stub players
-						Start: domain.PlayerPIT{
-							UUID:       uuid,
-							Experience: 500,
-						},
-						End: domain.PlayerPIT{
-							UUID:       uuid,
-							Experience: 501,
-						},
+						Start:       domaintest.NewPlayerBuilder(uuid, now).WithExperience(500).Build(),
+						End:         domaintest.NewPlayerBuilder(uuid, now).WithExperience(501).Build(),
 						Consecutive: true,
 					},
 				},
@@ -185,15 +178,8 @@ func TestBuildGetSessions(t *testing.T) {
 				name: "non-empty sessions",
 				sessions: []domain.Session{
 					{
-						// NOTE: Stub players
-						Start: domain.PlayerPIT{
-							UUID:       uuid,
-							Experience: 500,
-						},
-						End: domain.PlayerPIT{
-							UUID:       uuid,
-							Experience: 501,
-						},
+						Start:       domaintest.NewPlayerBuilder(uuid, now).WithExperience(500).Build(),
+						End:         domaintest.NewPlayerBuilder(uuid, now).WithExperience(501).Build(),
 						Consecutive: true,
 					},
 				},
@@ -243,15 +229,8 @@ func TestBuildGetSessions(t *testing.T) {
 
 		expectedSessions := []domain.Session{
 			{
-				// NOTE: Stub players
-				Start: domain.PlayerPIT{
-					UUID:       uuid,
-					Experience: 500,
-				},
-				End: domain.PlayerPIT{
-					UUID:       uuid,
-					Experience: 501,
-				},
+				Start:       domaintest.NewPlayerBuilder(uuid, now).WithExperience(500).Build(),
+				End:         domaintest.NewPlayerBuilder(uuid, now).WithExperience(501).Build(),
 				Consecutive: true,
 			},
 		}
