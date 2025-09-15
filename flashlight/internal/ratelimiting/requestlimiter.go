@@ -7,6 +7,39 @@ import (
 	"time"
 )
 
+type CancelableRequestLimiter interface {
+	LimitCancelable(ctx context.Context, maxOperationTime time.Duration, operation func() bool) bool
+}
+
+type composedRequestLimiter struct {
+	limiters []CancelableRequestLimiter
+}
+
+func NewComposedRequestLimiter(
+	limiters ...CancelableRequestLimiter,
+) *composedRequestLimiter {
+	return &composedRequestLimiter{
+		limiters: limiters,
+	}
+}
+
+func (l *composedRequestLimiter) Limit(ctx context.Context, maxOperationTime time.Duration, operation func()) bool {
+	limited := func() bool {
+		operation()
+		return true
+	}
+	for i := len(l.limiters) - 1; i >= 0; i-- {
+		limiter := l.limiters[i]
+		prevLimited := limited
+		limited = func() bool {
+			return limiter.LimitCancelable(ctx, maxOperationTime, func() bool {
+				return prevLimited()
+			})
+		}
+	}
+	return limited()
+}
+
 type windowLimitRequestLimiter struct {
 	limit     int
 	window    time.Duration

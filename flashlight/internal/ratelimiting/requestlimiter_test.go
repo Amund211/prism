@@ -2,6 +2,7 @@ package ratelimiting_test
 
 import (
 	"context"
+	"fmt"
 	"runtime"
 	"slices"
 	"sync"
@@ -575,5 +576,214 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 			require.True(t, ran)
 		})
 
+	})
+}
+
+type mockedCancelableRequestLimiter struct {
+	cancel               bool
+	wasCalled            bool
+	onCalled             func()
+	onOperationCompleted func(bool)
+}
+
+func (m *mockedCancelableRequestLimiter) LimitCancelable(ctx context.Context, maxOperationTime time.Duration, operation func() bool) bool {
+	m.wasCalled = true
+
+	if m.onCalled != nil {
+		m.onCalled()
+	}
+
+	if m.cancel {
+		return false
+	}
+
+	operationStatus := operation()
+
+	if m.onOperationCompleted != nil {
+		m.onOperationCompleted(operationStatus)
+	}
+
+	return operationStatus
+}
+
+func TestComposedRequestLimiter(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	t.Run("init", func(t *testing.T) {
+		t.Parallel()
+		l1 := ratelimiting.NewWindowLimitRequestLimiter(5, 10*time.Minute, time.Now, time.After)
+		l2 := ratelimiting.NewWindowLimitRequestLimiter(5, 10*time.Minute, time.Now, time.After)
+		l := ratelimiting.NewComposedRequestLimiter(l1, l2)
+		require.NotNil(t, l)
+	})
+
+	t.Run("limiters don't share state", func(t *testing.T) {
+		t.Parallel()
+		l1 := ratelimiting.NewWindowLimitRequestLimiter(1, 1*time.Hour, time.Now, time.After)
+		l2 := ratelimiting.NewWindowLimitRequestLimiter(1, 1*time.Hour, time.Now, time.After)
+		l3 := ratelimiting.NewWindowLimitRequestLimiter(1, 1*time.Hour, time.Now, time.After)
+		l4 := ratelimiting.NewWindowLimitRequestLimiter(1, 1*time.Hour, time.Now, time.After)
+
+		c1 := ratelimiting.NewComposedRequestLimiter(l1, l2)
+		c2 := ratelimiting.NewComposedRequestLimiter(l3, l4)
+		require.True(t, c1.Limit(ctx, 1*time.Second, func() {}))
+		require.True(t, c2.Limit(ctx, 1*time.Second, func() {}))
+	})
+
+	t.Run("all composed limiters are called in order", func(t *testing.T) {
+		t.Parallel()
+		calls := make([]int, 0, 3)
+		m1 := &mockedCancelableRequestLimiter{
+			onCalled: func() {
+				calls = append(calls, 1)
+			},
+		}
+		m2 := &mockedCancelableRequestLimiter{
+			onCalled: func() {
+				calls = append(calls, 2)
+			},
+		}
+		m3 := &mockedCancelableRequestLimiter{
+			onCalled: func() {
+				calls = append(calls, 3)
+			},
+		}
+
+		l := ratelimiting.NewComposedRequestLimiter(m1, m2, m3)
+		operationCalled := false
+		ran := l.Limit(ctx, 1*time.Second, func() { operationCalled = true })
+		require.True(t, ran)
+
+		require.True(t, operationCalled)
+
+		require.True(t, m1.wasCalled)
+		require.True(t, m2.wasCalled)
+		require.True(t, m3.wasCalled)
+
+		require.Equal(t, []int{1, 2, 3}, calls)
+	})
+
+	t.Run("limiters after the canceled one are not called", func(t *testing.T) {
+		t.Parallel()
+		cases := []struct {
+			m1Cancel        bool
+			m2Cancel        bool
+			m3Cancel        bool
+			operationCancel bool
+
+			expectedCalls []int
+		}{
+			{
+				m1Cancel:      false,
+				m2Cancel:      false,
+				m3Cancel:      false,
+				expectedCalls: []int{1, 2, 3, 4},
+			},
+			{
+				m1Cancel:      false,
+				m2Cancel:      false,
+				m3Cancel:      true,
+				expectedCalls: []int{1, 2, 3},
+			},
+			{
+				m1Cancel:      false,
+				m2Cancel:      true,
+				m3Cancel:      false,
+				expectedCalls: []int{1, 2},
+			},
+			{
+				m1Cancel:      false,
+				m2Cancel:      true,
+				m3Cancel:      true,
+				expectedCalls: []int{1, 2},
+			},
+			{
+				m1Cancel:      true,
+				m2Cancel:      false,
+				m3Cancel:      false,
+				expectedCalls: []int{1},
+			},
+			{
+				m1Cancel:      true,
+				m2Cancel:      true,
+				m3Cancel:      false,
+				expectedCalls: []int{1},
+			},
+			{
+				m1Cancel:      true,
+				m2Cancel:      false,
+				m3Cancel:      true,
+				expectedCalls: []int{1},
+			},
+			{
+				m1Cancel:      true,
+				m2Cancel:      true,
+				m3Cancel:      true,
+				expectedCalls: []int{1},
+			},
+		}
+
+		for _, c := range cases {
+			t.Run(
+				fmt.Sprintf(
+					"m1Cancel=%t,m2Cancel=%t,m3Cancel=%t",
+					c.m1Cancel, c.m2Cancel, c.m3Cancel,
+				),
+				func(t *testing.T) {
+					t.Parallel()
+					calls := make([]int, 0, 3)
+
+					m1 := &mockedCancelableRequestLimiter{
+						cancel: c.m1Cancel,
+						onCalled: func() {
+							calls = append(calls, 1)
+						},
+					}
+					m2 := &mockedCancelableRequestLimiter{
+						cancel: c.m2Cancel,
+						onCalled: func() {
+							calls = append(calls, 2)
+						},
+					}
+					m3 := &mockedCancelableRequestLimiter{
+						cancel: c.m3Cancel,
+						onCalled: func() {
+							calls = append(calls, 3)
+						},
+					}
+					l := ratelimiting.NewComposedRequestLimiter(m1, m2, m3)
+
+					ran := l.Limit(ctx, 1*time.Second, func() {
+						calls = append(calls, 4)
+					})
+					require.Equal(t, slices.Contains(c.expectedCalls, 4), ran)
+
+					require.Equal(t, c.expectedCalls, calls)
+				},
+			)
+		}
+	})
+
+	t.Run("any limiter canceling makes the whole operation cancel", func(t *testing.T) {
+		t.Parallel()
+
+		m1 := &mockedCancelableRequestLimiter{
+			cancel: false,
+			onOperationCompleted: func(ran bool) {
+				require.False(t, ran)
+			},
+		}
+		m2 := &mockedCancelableRequestLimiter{
+			cancel: true,
+			onOperationCompleted: func(ran bool) {
+				assert.False(t, true, "operation should not reach this limiter")
+			},
+		}
+		l := ratelimiting.NewComposedRequestLimiter(m1, m2)
+
+		ran := l.Limit(ctx, 1*time.Second, func() {
+			assert.False(t, true, "operation should not be called")
+		})
+		require.False(t, ran)
 	})
 }
