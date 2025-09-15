@@ -73,10 +73,21 @@ func (m *Mojang) getProfile(ctx context.Context, url string) (domain.Account, er
 		}
 
 		err := fmt.Errorf("failed to get identity from mojang response: %w", err)
-		reporting.Report(ctx, err, map[string]string{
+		extra := map[string]string{
 			"data":   string(data),
 			"status": strconv.Itoa(resp.StatusCode),
-		})
+		}
+		for header, values := range resp.Header {
+			switch len(values) {
+			case 0:
+				extra["header_"+header] = "<empty slice>"
+			case 1:
+				extra["header_"+header] = values[0]
+			default:
+				extra["header_"+header] = fmt.Sprintf("list: %v", values)
+			}
+		}
+		reporting.Report(ctx, err, extra)
 		return domain.Account{}, err
 	}
 
