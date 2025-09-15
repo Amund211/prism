@@ -57,7 +57,7 @@ func main() {
 
 	playerProvider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
 
-	accountProvider := accountprovider.NewMojang(httpClient, time.Now)
+	accountProvider := accountprovider.NewMojang(httpClient, time.Now, time.After)
 
 	sentryMiddleware, flush, err := reporting.NewSentryMiddlewareOrMock(config)
 	if err != nil {

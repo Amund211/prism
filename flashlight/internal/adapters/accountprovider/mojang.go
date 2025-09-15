@@ -12,22 +12,41 @@ import (
 
 	"github.com/Amund211/flashlight/internal/constants"
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
 )
+
+const getAccountMaxOperationTime = 2 * time.Second
 
 type HttpClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
+type RequestLimiter interface {
+	Limit(ctx context.Context, maxOperationTime time.Duration, operation func()) bool
+}
+
 type Mojang struct {
 	httpClient HttpClient
+	limiter    RequestLimiter
 	nowFunc    func() time.Time
 }
 
-func NewMojang(httpClient HttpClient, nowFunc func() time.Time) *Mojang {
+func NewMojang(httpClient HttpClient, nowFunc func() time.Time, afterFunc func(time.Duration) <-chan time.Time) *Mojang {
+	// https://minecraft.wiki/w/Mojang_API
+	baseLimiter := ratelimiting.NewWindowLimitRequestLimiter(600, 10*time.Minute, nowFunc, afterFunc)
+	// Found by trial and error
+	burstLimiter := ratelimiting.NewWindowLimitRequestLimiter(50, 8*time.Second, nowFunc, afterFunc)
+
+	limiter := ratelimiting.NewComposedRequestLimiter(
+		burstLimiter,
+		baseLimiter,
+	)
+
 	return &Mojang{
 		httpClient: httpClient,
+		limiter:    limiter,
 		nowFunc:    nowFunc,
 	}
 }
@@ -50,18 +69,29 @@ func (m *Mojang) getProfile(ctx context.Context, url string) (domain.Account, er
 
 	req.Header.Set("User-Agent", constants.USER_AGENT)
 
-	resp, err := m.httpClient.Do(req)
-	if err != nil {
-		err := fmt.Errorf("failed to send request: %w", err)
-		reporting.Report(ctx, err)
-		return domain.Account{}, err
+	var resp *http.Response
+	var data []byte
+	ran := m.limiter.Limit(ctx, getAccountMaxOperationTime, func() {
+		resp, err = m.httpClient.Do(req)
+		if err != nil {
+			err := fmt.Errorf("failed to send request: %w", err)
+			reporting.Report(ctx, err)
+			return
+		}
+
+		defer resp.Body.Close()
+		data, err = io.ReadAll(resp.Body)
+		if err != nil {
+			err := fmt.Errorf("failed to read response body: %w", err)
+			reporting.Report(ctx, err)
+			return
+		}
+	})
+	if !ran {
+		return domain.Account{}, fmt.Errorf("%w: too many requests to mojang API", domain.ErrTemporarilyUnavailable)
 	}
 
-	defer resp.Body.Close()
-	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		err := fmt.Errorf("failed to read response body: %w", err)
-		reporting.Report(ctx, err)
 		return domain.Account{}, err
 	}
 
