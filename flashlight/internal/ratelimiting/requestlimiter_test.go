@@ -258,6 +258,37 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 		}
 	})
 
+	t.Run("request always runs when there is no wait", func(t *testing.T) {
+		// The limiter should not stop any operations from running if there is no wait
+		// This applies even if the context deadline is shorter than the max operation time
+		t.Parallel()
+		start := time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC)
+		for _, timeout := range []time.Duration{
+			1 * time.Millisecond,
+			100 * time.Millisecond,
+			200 * time.Millisecond,
+			500 * time.Millisecond,
+			1 * time.Second,
+			2 * time.Second,
+			5 * time.Second,
+			10 * time.Second,
+		} {
+			t.Run(timeout.String(), func(t *testing.T) {
+				t.Parallel()
+				mocked := newMockedTime(t, start)
+				l := ratelimiting.NewWindowLimitRequestLimiter(2, 10*time.Second, mocked.Now, mocked.After)
+				maxOperationTime := 2 * time.Second
+
+				// Exhaust the limiter
+
+				ctx, close := newMockedContext(start.Add(timeout))
+				defer close()
+				ran := l.Limit(ctx, maxOperationTime, func() {})
+				require.True(t, ran)
+			})
+		}
+	})
+
 	t.Run("request with low timeout returns early with error", func(t *testing.T) {
 		t.Parallel()
 

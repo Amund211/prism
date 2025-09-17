@@ -103,6 +103,12 @@ func (l *windowLimitRequestLimiter) Limit(ctx context.Context, maxOperationTime 
 
 func (l *windowLimitRequestLimiter) LimitCancelable(ctx context.Context, maxOperationTime time.Duration, operation func() bool) bool {
 	return l.waitIf(ctx, func(ctx context.Context, wait time.Duration) bool {
+		if wait <= 0 {
+			// No wait needed, we can proceed
+			// The context may still be about to expire, but we can rather handle that error in the operation
+			return true
+		}
+
 		deadline, ok := ctx.Deadline()
 		if !ok {
 			// No deadline, we can proceed
