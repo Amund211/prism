@@ -2,12 +2,16 @@ package playerprovider
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"reflect"
+	"sync"
 	"testing"
+	"testing/synctest"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -24,6 +28,8 @@ type mockedHttpClient struct {
 	t           *testing.T
 	expectedURL string
 	response    *http.Response
+	statusCode  int
+	body        string
 	requestErr  error
 }
 
@@ -31,7 +37,14 @@ func (m *mockedHttpClient) Do(req *http.Request) (*http.Response, error) {
 	require.Equal(m.t, m.expectedURL, req.URL.String())
 	require.True(m.t, reflect.DeepEqual(expectedHeaders, req.Header), "Expected %v, got %v", expectedHeaders, req.Header)
 
-	return m.response, m.requestErr
+	if m.response != nil {
+		return m.response, m.requestErr
+	}
+
+	return &http.Response{
+		StatusCode: m.statusCode,
+		Body:       io.NopCloser(bytes.NewBufferString(m.body)),
+	}, m.requestErr
 }
 
 type cantRead struct{}
@@ -48,15 +61,19 @@ func newMockedHttpClient(t *testing.T, expectedURL string, statusCode int, body 
 	return &mockedHttpClient{
 		t:           t,
 		expectedURL: expectedURL,
-		response: &http.Response{
-			StatusCode: statusCode,
-			Body:       io.NopCloser(bytes.NewBufferString(body)),
-		},
-		requestErr: err,
+		statusCode:  statusCode,
+		body:        body,
+		requestErr:  err,
 	}
 }
 
 func TestGetPlayerData(t *testing.T) {
+	now := time.Now()
+
+	nowFunc := func() time.Time {
+		return now
+	}
+
 	t.Run("success", func(t *testing.T) {
 		httpClient := newMockedHttpClient(
 			t,
@@ -65,16 +82,14 @@ func TestGetPlayerData(t *testing.T) {
 			`{"success":true,"player":null}`,
 			nil,
 		)
-		hypixelAPI := NewHypixelAPI(httpClient, apiKey)
-
-		expectedQueriedAt := time.Now()
+		hypixelAPI := NewHypixelAPI(httpClient, nowFunc, time.After, apiKey)
 
 		data, statusCode, queriedAt, err := hypixelAPI.GetPlayerData(t.Context(), "uuid1234")
 
 		require.Nil(t, err)
 		require.Equal(t, 200, statusCode)
 		require.Equal(t, `{"success":true,"player":null}`, string(data))
-		require.WithinDuration(t, expectedQueriedAt, queriedAt, time.Second)
+		require.Equal(t, now, queriedAt)
 	})
 
 	t.Run("request error", func(t *testing.T) {
@@ -85,7 +100,7 @@ func TestGetPlayerData(t *testing.T) {
 			`{"success":true,"player":null}`,
 			assert.AnError,
 		)
-		hypixelAPI := NewHypixelAPI(httpClient, apiKey)
+		hypixelAPI := NewHypixelAPI(httpClient, nowFunc, time.After, apiKey)
 
 		_, _, _, err := hypixelAPI.GetPlayerData(t.Context(), "uuid123456")
 		require.ErrorIs(t, err, assert.AnError)
@@ -101,9 +116,66 @@ func TestGetPlayerData(t *testing.T) {
 			},
 			requestErr: nil,
 		}
-		hypixelAPI := NewHypixelAPI(httpClient, apiKey)
+		hypixelAPI := NewHypixelAPI(httpClient, nowFunc, time.After, apiKey)
 
 		_, _, _, err := hypixelAPI.GetPlayerData(t.Context(), "uuid")
 		require.ErrorIs(t, err, assert.AnError)
+	})
+
+	t.Run("rate limiting", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			start := time.Now()
+			httpClient := newMockedHttpClient(
+				t,
+				"https://api.hypixel.net/player?uuid=uuid1234",
+				200,
+				`{"success":true,"player":null}`,
+				nil,
+			)
+			hypixelAPI := NewHypixelAPI(httpClient, time.Now, time.After, apiKey)
+
+			wg := sync.WaitGroup{}
+
+			for range 600 {
+				wg.Go(func() {
+					data, statusCode, queriedAt, err := hypixelAPI.GetPlayerData(t.Context(), "uuid1234")
+					require.NoError(t, err)
+					require.Equal(t, 200, statusCode)
+					require.Equal(t, `{"success":true,"player":null}`, string(data))
+					require.Equal(t, start, queriedAt)
+				})
+			}
+			wg.Wait()
+
+			require.Equal(t, start, time.Now())
+
+			ctxWithDeadline, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+			defer cancel()
+			// Will have to wait for 5 minutes due to rate limiting -> should cancel
+			_, _, _, err := hypixelAPI.GetPlayerData(ctxWithDeadline, "uuid1234")
+			require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+
+			require.Equal(t, start, time.Now())
+
+			for range 600 {
+				wg.Go(func() {
+					data, statusCode, queriedAt, err := hypixelAPI.GetPlayerData(t.Context(), "uuid1234")
+					require.NoError(t, err)
+					require.Equal(t, 200, statusCode)
+					require.Equal(t, `{"success":true,"player":null}`, string(data))
+					require.Equal(t, start.Add(5*time.Minute), queriedAt)
+				})
+			}
+			wg.Wait()
+
+			require.Equal(t, start.Add(5*time.Minute), time.Now())
+
+			data, statusCode, queriedAt, err := hypixelAPI.GetPlayerData(t.Context(), "uuid1234")
+			require.NoError(t, err)
+			require.Equal(t, 200, statusCode)
+			require.Equal(t, `{"success":true,"player":null}`, string(data))
+			require.Equal(t, start.Add(10*time.Minute), queriedAt)
+		})
 	})
 }

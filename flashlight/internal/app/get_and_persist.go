@@ -19,7 +19,9 @@ type GetAndPersistPlayerWithCache func(ctx context.Context, uuid string) (*domai
 func getAndPersistPlayerWithoutCache(ctx context.Context, provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) (*domain.PlayerPIT, error) {
 	logger := logging.FromContext(ctx)
 
-	player, err := provider.GetPlayer(ctx, uuid)
+	getCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	player, err := provider.GetPlayer(getCtx, uuid)
 	if err != nil {
 		// NOTE: PlayerProvider implementations handle their own error reporting
 		return nil, fmt.Errorf("could not get player: %w", err)

@@ -54,7 +54,7 @@ func main() {
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
 	}
-	hypixelAPI, err := playerprovider.NewHypixelAPIOrMock(config, httpClient)
+	hypixelAPI, err := playerprovider.NewHypixelAPIOrMock(config, httpClient, time.Now, time.After)
 	if err != nil {
 		fail("Failed to initialize Hypixel API", "error", err.Error())
 	}
