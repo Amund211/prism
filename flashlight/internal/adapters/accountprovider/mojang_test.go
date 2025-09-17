@@ -1,7 +1,11 @@
 package accountprovider
 
 import (
+	"bytes"
+	"context"
 	"errors"
+	"io"
+	"net/http"
 	"testing"
 	"time"
 
@@ -113,4 +117,64 @@ func TestUUIDFromMojangResponse(t *testing.T) {
 			require.True(t, strutils.UUIDIsNormalized(account.UUID))
 		})
 	}
+}
+
+type mockedClient struct {
+	responseData []byte
+	statusCode   int
+	err          error
+}
+
+func (m *mockedClient) Do(req *http.Request) (*http.Response, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+
+	return &http.Response{
+		StatusCode: m.statusCode,
+		Body:       io.NopCloser(bytes.NewReader(m.responseData)),
+		Header:     make(http.Header),
+	}, nil
+}
+
+func TestMojang(t *testing.T) {
+	ctx := context.Background()
+
+	now := time.Date(2023, 10, 1, 12, 0, 0, 0, time.UTC)
+	mockedNow := func() time.Time {
+		return now
+	}
+
+	client := &mockedClient{
+		responseData: []byte(`{
+  "id" : "a937646bf11544c38dbf9ae4a65669a0",
+  "name" : "Skydeath"
+}`),
+		statusCode: 200,
+	}
+	provider := NewMojang(client, mockedNow, time.After)
+
+	account, err := provider.GetAccountByUUID(ctx, "a937646b-f115-44c3-8dbf-9ae4a65669a0")
+	require.NoError(t, err)
+	require.Equal(t, domain.Account{
+		UUID:      "a937646b-f115-44c3-8dbf-9ae4a65669a0",
+		Username:  "Skydeath",
+		QueriedAt: now,
+	}, account)
+
+	account, err = provider.GetAccountByUsername(ctx, "skydeath")
+	require.NoError(t, err)
+	require.Equal(t, domain.Account{
+		UUID:      "a937646b-f115-44c3-8dbf-9ae4a65669a0",
+		Username:  "Skydeath",
+		QueriedAt: now,
+	}, account)
+
+	client.err = assert.AnError
+
+	_, err = provider.GetAccountByUUID(ctx, "a937646b-f115-44c3-8dbf-9ae4a65669a0")
+	require.ErrorIs(t, err, assert.AnError)
+
+	_, err = provider.GetAccountByUsername(ctx, "skydeath")
+	require.ErrorIs(t, err, assert.AnError)
 }
