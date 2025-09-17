@@ -55,7 +55,9 @@ func buildGetAccountByUsernameWithoutCache(
 			}
 		}
 
-		providerAccount, err := provider.GetAccountByUsername(ctx, username)
+		getCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		providerAccount, err := provider.GetAccountByUsername(getCtx, username)
 		if errors.Is(err, domain.ErrUsernameNotFound) {
 			removeUsernameErr := repo.RemoveUsername(ctx, username)
 			if removeUsernameErr != nil {

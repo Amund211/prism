@@ -35,7 +35,9 @@ func buildGetAccountByUUIDWithoutCache(
 			return domain.Account{}, err
 		}
 
-		providerAccount, err := provider.GetAccountByUUID(ctx, uuid)
+		getCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		providerAccount, err := provider.GetAccountByUUID(getCtx, uuid)
 		if errors.Is(err, domain.ErrUsernameNotFound) {
 			return domain.Account{}, err
 		} else if err != nil {
