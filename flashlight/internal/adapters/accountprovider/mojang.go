@@ -17,7 +17,7 @@ import (
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
-const getAccountMinOperationTime = 2 * time.Second
+const getAccountMinOperationTime = 150 * time.Millisecond
 
 type HttpClient interface {
 	Do(req *http.Request) (*http.Response, error)
