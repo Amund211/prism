@@ -192,7 +192,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 
 		mocked := newMockedTime(t, start)
 		l := NewWindowLimitRequestLimiter(limit, window, mocked.Now, mocked.After)
-		maxOperationTime := 2 * time.Second // Does not matter since we don't have a deadline
+		minOperationTime := 500 * time.Millisecond // Does not matter since we don't have a deadline
 
 		var testCompleteWg sync.WaitGroup
 
@@ -205,7 +205,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				t.Helper()
 				defer testCompleteWg.Done()
 
-				ran := l.Limit(ctx, maxOperationTime, func() {
+				ran := l.Limit(ctx, minOperationTime, func() {
 					t.Helper()
 					require.Equal(t, expectedStart, mocked.Now())
 					mocked.sleep(operationTime)

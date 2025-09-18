@@ -17,14 +17,14 @@ import (
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
-const getAccountMaxOperationTime = 2 * time.Second
+const getAccountMinOperationTime = 2 * time.Second
 
 type HttpClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
 type RequestLimiter interface {
-	Limit(ctx context.Context, maxOperationTime time.Duration, operation func()) bool
+	Limit(ctx context.Context, minOperationTime time.Duration, operation func()) bool
 }
 
 type Mojang struct {
@@ -71,7 +71,7 @@ func (m *Mojang) getProfile(ctx context.Context, url string) (domain.Account, er
 
 	var resp *http.Response
 	var data []byte
-	ran := m.limiter.Limit(ctx, getAccountMaxOperationTime, func() {
+	ran := m.limiter.Limit(ctx, getAccountMinOperationTime, func() {
 		resp, err = m.httpClient.Do(req)
 		if err != nil {
 			err := fmt.Errorf("failed to send request: %w", err)

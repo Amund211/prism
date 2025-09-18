@@ -8,7 +8,7 @@ import (
 )
 
 type CancelableRequestLimiter interface {
-	LimitCancelable(ctx context.Context, maxOperationTime time.Duration, operation func() bool) bool
+	LimitCancelable(ctx context.Context, minOperationTime time.Duration, operation func() bool) bool
 }
 
 type composedRequestLimiter struct {
@@ -23,7 +23,7 @@ func NewComposedRequestLimiter(
 	}
 }
 
-func (l *composedRequestLimiter) Limit(ctx context.Context, maxOperationTime time.Duration, operation func()) bool {
+func (l *composedRequestLimiter) Limit(ctx context.Context, minOperationTime time.Duration, operation func()) bool {
 	limited := func() bool {
 		operation()
 		return true
@@ -32,7 +32,7 @@ func (l *composedRequestLimiter) Limit(ctx context.Context, maxOperationTime tim
 		limiter := l.limiters[i]
 		prevLimited := limited
 		limited = func() bool {
-			return limiter.LimitCancelable(ctx, maxOperationTime, func() bool {
+			return limiter.LimitCancelable(ctx, minOperationTime, func() bool {
 				return prevLimited()
 			})
 		}
@@ -94,14 +94,14 @@ func insertSortedOrder(arr []time.Time, t time.Time) []time.Time {
 	return slices.Insert(arr, i, t)
 }
 
-func (l *windowLimitRequestLimiter) Limit(ctx context.Context, maxOperationTime time.Duration, operation func()) bool {
-	return l.LimitCancelable(ctx, maxOperationTime, func() bool {
+func (l *windowLimitRequestLimiter) Limit(ctx context.Context, minOperationTime time.Duration, operation func()) bool {
+	return l.LimitCancelable(ctx, minOperationTime, func() bool {
 		operation()
 		return true
 	})
 }
 
-func (l *windowLimitRequestLimiter) LimitCancelable(ctx context.Context, maxOperationTime time.Duration, operation func() bool) bool {
+func (l *windowLimitRequestLimiter) LimitCancelable(ctx context.Context, minOperationTime time.Duration, operation func() bool) bool {
 	return l.waitIf(ctx, func(ctx context.Context, wait time.Duration) bool {
 		if wait <= 0 {
 			// No wait needed, we can proceed
@@ -115,9 +115,10 @@ func (l *windowLimitRequestLimiter) LimitCancelable(ctx context.Context, maxOper
 			return true
 		}
 
-		maxDuration := wait + maxOperationTime
+		minDuration := wait + minOperationTime
 		untilDeadline := deadline.Sub(l.nowFunc())
-		if maxDuration > untilDeadline {
+		if minDuration > untilDeadline {
+			// We don't have enough time to wait and then perform the operation - even in the best case
 			return false
 		}
 
