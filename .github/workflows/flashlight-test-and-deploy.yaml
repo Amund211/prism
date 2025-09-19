@@ -38,7 +38,7 @@ jobs:
         ports:
           - 5432:5432
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
@@ -92,7 +92,7 @@ jobs:
     # Only deploy the test instance if the tests pass
     needs: test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: GCP login
         uses: google-github-actions/auth@v2
@@ -108,7 +108,7 @@ jobs:
     name: Deploy cloud function
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: GCP login
         uses: google-github-actions/auth@v2
