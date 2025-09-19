@@ -133,21 +133,19 @@ export const Route = createFileRoute("/session/$uuid")({
         const { day, week, month } = timeIntervals;
         // TODO: Rate limiting
         Promise.all([
-            [day, week, month].map(({ start, end }) =>
-                Promise.all([
-                    queryClient.fetchQuery(
-                        getHistoryQueryOptions({ uuid, start, end, limit: 2 }),
-                    ),
-                    queryClient.fetchQuery(
-                        getHistoryQueryOptions({
-                            uuid,
-                            start,
-                            end,
-                            limit: 100,
-                        }),
-                    ),
-                ]),
-            ),
+            ...[day, week, month].flatMap(({ start, end }) => [
+                queryClient.fetchQuery(
+                    getHistoryQueryOptions({ uuid, start, end, limit: 2 }),
+                ),
+                queryClient.fetchQuery(
+                    getHistoryQueryOptions({
+                        uuid,
+                        start,
+                        end,
+                        limit: 100,
+                    }),
+                ),
+            ]),
             queryClient.fetchQuery(
                 getHistoryQueryOptions({
                     uuid,
