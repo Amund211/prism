@@ -401,9 +401,9 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
             onChange={(_, newValues) => {
                 setLoading(true);
                 Promise.allSettled(
-                    newValues.map((value) => {
+                    newValues.map(async (value) => {
                         if (value.type === "uuid") {
-                            return Promise.resolve(value.uuid);
+                            return value.uuid;
                         }
 
                         // Allow UUIDs to be entered directly
