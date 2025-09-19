@@ -1,0 +1,26 @@
+version: 2
+
+updates:
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
+
+  - package-ecosystem: 'gomod'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
+    groups:
+      # Group minor+patch updates together
+      # Leave major updates and security updates to their own PRs
+      minor-updates:
+        applies-to: 'version-updates'
+        update-types:
+          - 'patch'
+          - 'minor'
