@@ -47,10 +47,6 @@ jobs:
         python -m venv venv
         source ${{ env.ACTIVATE_PATH }}
 
-        # pip 25.1+ doesn't work with pip-compile
-        # https://github.com/jazzband/pip-tools/issues/2176
-        python -m pip install --upgrade 'pip<=25.0'
-
         pip_tools_version="$(grep '^pip-tools==' ${{ env.DEV_REQUIREMENTS }} | awk '{print $1}')"
         python -m pip install "$pip_tools_version"
 
