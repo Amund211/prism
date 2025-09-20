@@ -63,9 +63,7 @@ class LogfilePrompt:  # pragma: nocover
         self.selected_logfile_id_var = tk.IntVar(
             value=last_used_id if last_used_id is not None else -1
         )
-        self.selected_logfile_id_var.trace(
-            "w", self.on_logfile_id_var_change
-        )  # type: ignore [no-untyped-call]
+        self.selected_logfile_id_var.trace("w", self.on_logfile_id_var_change)
         self.rows: list[
             tuple[tk.Frame, tk.Button, tk.Label, tk.Label, tk.Radiobutton]
         ] = []
