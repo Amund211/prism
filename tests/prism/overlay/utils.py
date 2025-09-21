@@ -1,5 +1,5 @@
 import io
-from collections.abc import Callable, Mapping, Set
+from collections.abc import Callable, Set
 from pathlib import Path, PurePath
 from typing import Any, Literal, TextIO, cast, overload
 
@@ -175,6 +175,7 @@ def make_player(
     uuid: str = ...,
     lastLoginMs: int | None = ...,
     lastLogoutMs: int | None = ...,
+    dataReceivedAtMs: int = ...,
 ) -> KnownPlayer: ...
 
 
@@ -325,21 +326,21 @@ class MockedAccountProvider:
 class MockedPlayerProvider:
     def __init__(
         self,
-        get_playerdata_for_uuid: Callable[
+        get_player: Callable[
             [str, str],
-            Mapping[str, object],
+            KnownPlayer,
         ],
         seconds_until_unblocked: float = 0.0,
     ) -> None:
-        self._get_playerdata_for_uuid = get_playerdata_for_uuid
+        self._get_player = get_player
         self._seconds_until_unblocked = seconds_until_unblocked
 
-    def get_playerdata_for_uuid(
+    def get_player(
         self,
         uuid: str,
         user_id: str,
-    ) -> Mapping[str, object]:
-        return self._get_playerdata_for_uuid(uuid, user_id)
+    ) -> KnownPlayer:
+        return self._get_player(uuid, user_id)
 
     @property
     def seconds_until_unblocked(self) -> float:
@@ -384,7 +385,6 @@ def create_controller(
     account_provider: AccountProvider = MockedAccountProvider(assert_not_called),
     player_provider: PlayerProvider = MockedPlayerProvider(assert_not_called),
     winstreak_provider: WinstreakProvider = MockedWinstreakProvider(assert_not_called),
-    get_time_ns: Callable[[], int] = assert_not_called,
 ) -> OverlayController:
     controller = OverlayController(
         state=state or create_state(),
@@ -393,7 +393,6 @@ def create_controller(
         account_provider=account_provider,
         player_provider=player_provider,
         winstreak_provider=winstreak_provider,
-        get_time_ns=get_time_ns,
     )
 
     controller.wants_shown = wants_shown

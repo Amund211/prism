@@ -1,6 +1,6 @@
 import functools
 import logging
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from json import JSONDecodeError
 
 import requests
@@ -8,7 +8,8 @@ from requests.exceptions import RequestException, SSLError
 
 from prism import VERSION_STRING
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
-from prism.player import MISSING_WINSTREAKS, GamemodeName, Winstreaks
+from prism.hypixel import create_known_player, get_playerdata_field
+from prism.player import MISSING_WINSTREAKS, GamemodeName, KnownPlayer, Winstreaks
 from prism.ratelimiting import RateLimiter
 from prism.requests import make_prism_requests_session
 from prism.retry import ExecutionError, execute_with_retry
@@ -96,9 +97,11 @@ class StrangePlayerProvider:
         *,
         retry_limit: int,
         initial_timeout: float,
+        get_time_ns: Callable[[], int],
     ) -> None:
         self._retry_limit = retry_limit
         self._initial_timeout = initial_timeout
+        self._get_time_ns = get_time_ns
         self._session = make_prism_requests_session()
         self._limiter = RateLimiter(limit=120, window=60)
 
@@ -145,12 +148,12 @@ class StrangePlayerProvider:
 
         return response
 
-    def get_playerdata_for_uuid(
+    def get_player(
         self,
         uuid: str,
         *,
         user_id: str,
-    ) -> Mapping[str, object]:  # pragma: nocover
+    ) -> KnownPlayer:  # pragma: nocover
         """Get data about the given player from the /player API endpoint"""
 
         url = f"{STATS_ENDPOINT}?uuid={uuid}"
@@ -167,6 +170,8 @@ class StrangePlayerProvider:
             )
         except ExecutionError as e:
             raise APIError(f"Request to Hypixel API failed for {uuid=}.") from e
+
+        dataReceivedAtMs = self._get_time_ns() // 1_000_000
 
         if is_global_throttle_response(response) or response.status_code == 429:
             raise APIThrottleError(
@@ -214,7 +219,16 @@ class StrangePlayerProvider:
         if not isinstance(playerdata, dict):
             raise APIError(f"Invalid playerdata {playerdata=} {type(playerdata)=}")
 
-        return playerdata
+        username = get_playerdata_field(
+            playerdata, "displayname", str, "<missing name>"
+        )
+
+        return create_known_player(
+            dataReceivedAtMs=dataReceivedAtMs,
+            playerdata=playerdata,
+            username=username,
+            uuid=uuid,
+        )
 
 
 class AntiSniperWinstreakProvider:

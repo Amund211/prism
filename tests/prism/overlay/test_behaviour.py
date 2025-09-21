@@ -1,7 +1,6 @@
 import io
 import queue
 import unittest.mock
-from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from typing import cast
 
@@ -19,15 +18,9 @@ from prism.overlay.behaviour import (
 from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKeyDict
 from prism.overlay.nick_database import NickDatabase
-from prism.overlay.settings import (
-    NickValue,
-    Settings,
-    SettingsDict,
-    get_settings,
-)
-from prism.player import MISSING_WINSTREAKS, Winstreaks
+from prism.overlay.settings import NickValue, Settings, SettingsDict, get_settings
+from prism.player import MISSING_WINSTREAKS, KnownPlayer, Winstreaks
 from tests.prism.overlay import test_get_stats
-from tests.prism.overlay.test_get_stats import CURRENT_TIME_MS
 from tests.prism.overlay.test_settings import (
     DEFAULT_STATS_THREAD_COUNT,
     noop_update_settings,
@@ -219,30 +212,28 @@ def test_get_and_cache_stats(
     base_user = test_get_stats.users["NickedPlayer"]
 
     # For typing
-    assert base_user.playerdata is not None
+    assert base_user.player is not None
 
-    playerdata_without_winstreaks: Mapping[str, object] = {
-        **base_user.playerdata,
-        "stats": {"Bedwars": {"wins_bedwars": 40}},
-    }
-    playerdata_with_winstreaks: Mapping[str, object] = {
-        **base_user.playerdata,
-        "stats": {
-            "Bedwars": {
-                "wins_bedwars": 40,
-                "winstreak": 10,
-                "eight_one_winstreak": 10,
-                "eight_two_winstreak": 10,
-                "four_three_winstreak": 10,
-                "four_four_winstreak": 10,
-            }
-        },
-    }
+    player_without_winstreaks = replace(
+        base_user.player,
+        stats=replace(base_user.player.stats, wins=40),
+    )
+    player_with_winstreaks = replace(
+        base_user.player,
+        stats=replace(base_user.player.stats, wins=40),
+    ).update_winstreaks(
+        overall=10,
+        solo=10,
+        doubles=10,
+        threes=10,
+        fours=10,
+        winstreaks_accurate=True,
+    )
 
     user = (
-        replace(base_user, playerdata=playerdata_with_winstreaks)
+        replace(base_user, player=player_with_winstreaks)
         if winstreak_api_enabled
-        else replace(base_user, playerdata=playerdata_without_winstreaks)
+        else replace(base_user, player=player_without_winstreaks)
     )
     assert user.nick is not None  # For typing
 
@@ -269,18 +260,15 @@ def test_get_and_cache_stats(
         assert username == user.username
         return user.uuid
 
-    def get_playerdata(uuid: str, user_id: str) -> Mapping[str, object]:
+    def get_player(uuid: str, user_id: str) -> KnownPlayer:
         assert uuid == user.uuid
-        assert user.playerdata is not None
-        return user.playerdata
+        assert user.player is not None
 
-    def get_time_ns() -> int:
-        return CURRENT_TIME_MS * 1_000_000
+        return user.player
 
     controller = create_controller(
         account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
-        player_provider=MockedPlayerProvider(get_playerdata_for_uuid=get_playerdata),
-        get_time_ns=get_time_ns,
+        player_provider=MockedPlayerProvider(get_player=get_player),
         winstreak_provider=MockedWinstreakProvider(
             get_estimated_winstreaks_for_uuid=get_estimated_winstreaks
         ),

@@ -1,11 +1,10 @@
 import logging
 import threading
-from collections.abc import Callable, Mapping
 from enum import Enum
 from typing import TYPE_CHECKING, Protocol
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
-from prism.player import MISSING_WINSTREAKS, Winstreaks
+from prism.player import MISSING_WINSTREAKS, KnownPlayer, Winstreaks
 from prism.ssl_errors import MissingLocalIssuerSSLError
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -31,12 +30,12 @@ class AccountProvider(Protocol):
 
 
 class PlayerProvider(Protocol):
-    def get_playerdata_for_uuid(
+    def get_player(
         self,
         uuid: str,
         *,
         user_id: str,
-    ) -> Mapping[str, object]: ...
+    ) -> KnownPlayer: ...
 
     @property
     def seconds_until_unblocked(self) -> float: ...
@@ -63,7 +62,6 @@ class OverlayController:
         account_provider: AccountProvider,
         player_provider: PlayerProvider,
         winstreak_provider: WinstreakProvider,
-        get_time_ns: Callable[[], int],
     ) -> None:
         from prism.overlay.player_cache import PlayerCache
 
@@ -85,7 +83,6 @@ class OverlayController:
         self._account_provider = account_provider
         self._player_provider = player_provider
         self._winstreak_provider = winstreak_provider
-        self._get_time_ns = get_time_ns
 
     def get_uuid(self, username: str) -> str | None | ProcessingError:
         try:
@@ -105,38 +102,35 @@ class OverlayController:
             self.missing_local_issuer_certificate = False
             return uuid
 
-    def get_playerdata(
-        self, uuid: str
-    ) -> tuple[int, Mapping[str, object] | None | ProcessingError]:
+    def get_player(self, uuid: str) -> KnownPlayer | None | ProcessingError:
         try:
-            playerdata = self._player_provider.get_playerdata_for_uuid(
+            player = self._player_provider.get_player(
                 uuid=uuid,
                 user_id=self.settings.user_id,
             )
         except MissingLocalIssuerSSLError:
-            logger.exception("get_playerdata: missing local issuer cert")
+            logger.exception("get_player: missing local issuer cert")
             self.missing_local_issuer_certificate = True
-            return 0, ERROR_DURING_PROCESSING
+            return ERROR_DURING_PROCESSING
         except PlayerNotFoundError as e:
             logger.debug(f"Player not found on Hypixel: {uuid=}", exc_info=e)
             self.missing_local_issuer_certificate = False
-            return 0, None
+            return None
         except APIError as e:
             logger.error(f"Hypixel API error getting stats for {uuid=}", exc_info=e)
-            return 0, ERROR_DURING_PROCESSING
+            return ERROR_DURING_PROCESSING
         # TODO: Remove api key errors once we move to flashlight provider
         except APIKeyError as e:
             logger.warning(f"Invalid API key getting stats for {uuid=}", exc_info=e)
             self.missing_local_issuer_certificate = False
-            return 0, ERROR_DURING_PROCESSING
+            return ERROR_DURING_PROCESSING
         except APIThrottleError as e:
             logger.warning(f"API key throttled getting stats for {uuid=}", exc_info=e)
             self.missing_local_issuer_certificate = False
-            return 0, ERROR_DURING_PROCESSING
+            return ERROR_DURING_PROCESSING
         else:
-            dataReceivedAtMs = self._get_time_ns() // 1_000_000
             self.missing_local_issuer_certificate = False
-            return dataReceivedAtMs, playerdata
+            return player
 
     def get_estimated_winstreaks(self, uuid: str) -> tuple[Winstreaks, bool]:
         if (

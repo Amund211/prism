@@ -1,11 +1,10 @@
-from collections.abc import Mapping
 from dataclasses import dataclass
 
 import pytest
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
 from prism.overlay.controller import ERROR_DURING_PROCESSING
-from prism.player import MISSING_WINSTREAKS, Winstreaks
+from prism.player import MISSING_WINSTREAKS, KnownPlayer, Stats, Winstreaks
 from prism.ssl_errors import MissingLocalIssuerSSLError
 from tests.prism.overlay.utils import (
     MockedAccountProvider,
@@ -54,26 +53,42 @@ def test_real_overlay_controller_get_uuid() -> None:
     error = None
     returned_uuid = "uuid"
     uuid = controller.get_uuid("username")
-    assert uuid is returned_uuid
+    assert uuid == returned_uuid
 
     assert not controller.missing_local_issuer_certificate
 
 
-def test_real_overlay_controller_get_playerdata() -> None:
+def test_real_overlay_controller_get_player() -> None:
     error: Exception | None = None
-    returned_playerdata: Mapping[str, object] = {}
+    returned_player = KnownPlayer(
+        dataReceivedAtMs=1_234_567_890_123,
+        username="TestPlayer",
+        uuid="uuid",
+        stars=100.0,
+        stats=Stats(
+            index=1000.0,
+            fkdr=2.5,
+            kdr=1.5,
+            bblr=3.0,
+            wlr=2.0,
+            winstreak=5,
+            winstreak_accurate=True,
+            kills=100,
+            finals=200,
+            beds=150,
+            wins=80,
+        ),
+    )
 
-    def mock_get_playerdata(uuid: str, user_id: str) -> Mapping[str, object]:
+    def mock_get_player(uuid: str, user_id: str) -> KnownPlayer:
         assert uuid == "uuid"
         assert user_id == "1234"
 
         if error:
             raise error
 
-        return returned_playerdata
-
-    def mock_get_time_ns() -> int:
-        return 1234567890123456789
+        # Return the player with a literal timestamp
+        return returned_player
 
     controller = create_controller(
         settings=make_settings(
@@ -81,39 +96,32 @@ def test_real_overlay_controller_get_playerdata() -> None:
             use_antisniper_api=True,
             user_id="1234",
         ),
-        player_provider=MockedPlayerProvider(
-            get_playerdata_for_uuid=mock_get_playerdata
-        ),
-        get_time_ns=mock_get_time_ns,
+        player_provider=MockedPlayerProvider(get_player=mock_get_player),
     )
     error = APIError()
-    _, playerdata = controller.get_playerdata("uuid")
-    assert playerdata is ERROR_DURING_PROCESSING
+    player = controller.get_player("uuid")
+    assert player is ERROR_DURING_PROCESSING
 
     error = PlayerNotFoundError()
-    _, playerdata = controller.get_playerdata("uuid")
-    assert playerdata is None
+    player = controller.get_player("uuid")
+    assert player is None
 
     error = APIKeyError()
-    _, playerdata = controller.get_playerdata("uuid")
-    assert playerdata is ERROR_DURING_PROCESSING
+    player = controller.get_player("uuid")
+    assert player is ERROR_DURING_PROCESSING
 
     error = APIThrottleError()
-    _, playerdata = controller.get_playerdata("uuid")
-    assert playerdata is ERROR_DURING_PROCESSING
+    player = controller.get_player("uuid")
+    assert player is ERROR_DURING_PROCESSING
 
     error = MissingLocalIssuerSSLError()
     assert not controller.missing_local_issuer_certificate
-    _, playerdata = controller.get_playerdata("uuid")
-    assert playerdata is ERROR_DURING_PROCESSING
+    player = controller.get_player("uuid")
+    assert player is ERROR_DURING_PROCESSING
     assert controller.missing_local_issuer_certificate
 
     error = None
-    dataReceivedAtMs, playerdata = controller.get_playerdata("uuid")
-
-    assert playerdata is returned_playerdata
-    assert dataReceivedAtMs == 1234567890123456789 // 1_000_000
-
+    assert controller.get_player("uuid") == returned_player
     assert not controller.missing_local_issuer_certificate
 
 
@@ -133,29 +141,39 @@ def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
     assert result == custom_uuid
 
 
-def test_real_overlay_controller_get_playerdata_dependency_injection() -> None:
-    """Test that OverlayController uses injected get_playerdata function"""
-    custom_playerdata = {"custom": "data", "uuid": "test-uuid"}
+def test_real_overlay_controller_get_player_dependency_injection() -> None:
+    """Test that OverlayController uses injected get_player function"""
+    custom_player = KnownPlayer(
+        dataReceivedAtMs=9_876_543_210_987,
+        username="CustomPlayer",
+        uuid="test-uuid",
+        stars=200.0,
+        stats=Stats(
+            index=2000.0,
+            fkdr=3.0,
+            kdr=2.0,
+            bblr=4.0,
+            wlr=2.5,
+            winstreak=10,
+            winstreak_accurate=True,
+            kills=200,
+            finals=300,
+            beds=250,
+            wins=120,
+        ),
+    )
 
-    def custom_get_playerdata(uuid: str, user_id: str) -> Mapping[str, object]:
+    def custom_get_player(uuid: str, user_id: str) -> KnownPlayer:
         assert uuid == "test-uuid"
         assert user_id == "test-user-id"
-        return custom_playerdata
-
-    def custom_get_time_ns() -> int:
-        return 9876543210987654321
+        return custom_player
 
     controller = create_controller(
         settings=make_settings(user_id="test-user-id"),
-        player_provider=MockedPlayerProvider(
-            get_playerdata_for_uuid=custom_get_playerdata
-        ),
-        get_time_ns=custom_get_time_ns,
+        player_provider=MockedPlayerProvider(get_player=custom_get_player),
     )
 
-    timestamp, result = controller.get_playerdata("test-uuid")
-    assert result is custom_playerdata
-    assert timestamp == 9876543210987654321 // 1_000_000
+    assert controller.get_player("test-uuid") == custom_player
 
 
 def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection() -> (
@@ -345,30 +363,3 @@ def test_real_overlay_controller_get_estimated_winstreaks_error_handling(
         controller.missing_local_issuer_certificate
         == result_flags.missing_local_issuer_certificate
     )
-
-
-def test_real_overlay_controller_get_time_ns_dependency_injection() -> None:
-    """Test that OverlayController uses injected get_time_ns function"""
-    custom_time_ns = 1234567890123456789
-
-    def custom_get_time_ns() -> int:
-        return custom_time_ns
-
-    custom_playerdata = {"test": "data", "uuid": "test-uuid"}
-
-    def custom_get_playerdata(uuid: str, user_id: str) -> Mapping[str, object]:
-        assert uuid == "test-uuid"
-        assert user_id == "test-user-id"
-        return custom_playerdata
-
-    controller = create_controller(
-        settings=make_settings(user_id="test-user-id"),
-        player_provider=MockedPlayerProvider(
-            get_playerdata_for_uuid=custom_get_playerdata
-        ),
-        get_time_ns=custom_get_time_ns,
-    )
-
-    timestamp, result = controller.get_playerdata("test-uuid")
-    assert result is custom_playerdata
-    assert timestamp == custom_time_ns // 1_000_000  # Should use injected time function
