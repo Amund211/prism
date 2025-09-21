@@ -1,7 +1,6 @@
 import logging
 from dataclasses import replace
 
-from prism.hypixel import create_known_player, get_playerdata_field
 from prism.overlay.controller import ERROR_DURING_PROCESSING, OverlayController
 from prism.player import KnownPlayer, NickedPlayer, PendingPlayer, UnknownPlayer
 
@@ -33,6 +32,12 @@ def fetch_bedwars_stats(
 ) -> KnownPlayer | NickedPlayer | UnknownPlayer:
     """Fetches the bedwars stats for the given player"""
     uuid = controller.get_uuid(username)
+    if uuid is ERROR_DURING_PROCESSING:
+        # Error while getting uuid -> unknown player
+        logger.warning(
+            f"Error while getting uuid for '{username}' - returning UnknownPlayer"
+        )
+        return UnknownPlayer(username)
 
     # Look up in nick database if we got no match from Mojang
     nick: str | None = None
@@ -45,47 +50,34 @@ def fetch_bedwars_stats(
             denicked = True
             logger.debug(f"De-nicked {username} as {uuid}")
 
-    if uuid is ERROR_DURING_PROCESSING:
-        # Error while getting uuid -> unknown player
-        logger.warning(
-            f"Error while getting uuid for '{username}' - returning UnknownPlayer"
-        )
-        return UnknownPlayer(username)
-
     if uuid is None:
         # Could not find uuid or denick - assume nicked
         return NickedPlayer(nick=username)
 
-    dataReceivedAtMs, playerdata = controller.get_playerdata(uuid)
-
-    logger.debug(
-        f"Initial stats for {username} ({uuid}) {denicked=} {playerdata is None=}"
-    )
-
-    if (
-        not denicked
-        and playerdata is not None
-        and playerdata is not ERROR_DURING_PROCESSING
-    ):
-        # We think the player is not nicked, and have found their stats
-        displayname = get_playerdata_field(
-            playerdata, "displayname", str, "<missing name>"
+    player = controller.get_player(uuid)
+    if player is ERROR_DURING_PROCESSING:
+        logger.warning(
+            f"Error while getting player for '{uuid}' - returning UnknownPlayer"
         )
+        return UnknownPlayer(username)
 
-        if displayname.lower() != username.lower():
-            # ... but their displayname is incorrect - assume that the playerdata is
-            # outdated and that the player is actually nicked. Try denicking.
-            logger.error(
-                f"Mismatching displayname for {username=} {uuid=} {displayname=}. "
-                "Assuming the player is nicked and attempting denick."
-            )
-            playerdata = None
+    logger.debug(f"Initial stats for {username} ({uuid}) {denicked=} {player is None=}")
 
     if (
         not denicked
-        and playerdata is None
-        and playerdata is not ERROR_DURING_PROCESSING
+        and player is not None
+        and player.username.lower() != username.lower()
     ):
+        # We got a hit from Mojang for the username, but querying Hypixel we got a
+        # different name - assume that the player is outdated and that the player
+        # is actually nicked. Try denicking.
+        logger.error(
+            f"Mismatching player name for {username=} {uuid=} {player.username=}. "
+            "Assuming the player is nicked and attempting denick."
+        )
+        player = None
+
+    if not denicked and player is None:
         # The username may be an existing minecraft account that has not
         # logged on to Hypixel. Then we would get a hit from Mojang, but
         # no hit from Hypixel and the username is still a nickname.
@@ -94,29 +86,27 @@ def fetch_bedwars_stats(
             uuid = denick_result
             nick = username
             logger.debug(f"De-nicked {username} as {uuid} after hit from Mojang")
-            dataReceivedAtMs, playerdata = controller.get_playerdata(uuid)
-            logger.debug(f"Stats for nicked {nick} ({uuid}) {playerdata is None=}")
 
-    if playerdata is ERROR_DURING_PROCESSING:
-        logger.warning(
-            f"Error while getting uuid for '{username}' - returning UnknownPlayer"
-        )
-        return UnknownPlayer(username)
+            player = controller.get_player(uuid)
+            if player is ERROR_DURING_PROCESSING:  # pragma: no cover
+                logger.warning(
+                    f"Error while getting player for '{uuid}' - returning UnknownPlayer"
+                )
+                return UnknownPlayer(username)
 
-    if playerdata is None:
-        logger.debug("Got no playerdata - assuming player is nicked")
+            logger.debug(f"Stats for nicked {nick} ({uuid}) {player is None=}")
+
+    if player is None:
+        logger.debug("Got no player - assuming player is nicked")
         return NickedPlayer(nick=username)
 
     if nick is not None:
-        # Successfully de-nicked - update actual username
-        username = get_playerdata_field(
-            playerdata, "displayname", str, "<missing name>"
-        )
-        logger.debug(f"De-nicked {nick} as {username}")
+        # Successfully de-nicked - update the KnownPlayer with nick information
+        # Also update the username from the displayname if needed
+        logger.debug(f"De-nicked {nick} as {player.username}")
+        player = replace(player, nick=nick)
 
-    return create_known_player(
-        dataReceivedAtMs, playerdata, username=username, uuid=uuid, nick=nick
-    )
+    return player
 
 
 def get_bedwars_stats(

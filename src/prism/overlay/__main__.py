@@ -72,10 +72,15 @@ def main() -> None:  # pragma: nocover
         StrangePlayerProvider,
     )
     from prism.overlay.controller import OverlayController
-    from prism.overlay.process_loglines import process_loglines, prompt_and_read_logfile
+    from prism.overlay.process_loglines import (
+        process_loglines_to_overlay,
+        prompt_and_read_logfile,
+    )
 
     account_provider = MojangAccountProvider(retry_limit=5, initial_timeout=2)
-    player_provider = StrangePlayerProvider(retry_limit=5, initial_timeout=2)
+    player_provider = StrangePlayerProvider(
+        retry_limit=5, initial_timeout=2, get_time_ns=time.time_ns
+    )
     winstreak_provider = AntiSniperWinstreakProvider(retry_limit=5, initial_timeout=2)
 
     controller = OverlayController(
@@ -85,7 +90,6 @@ def main() -> None:  # pragma: nocover
         account_provider=account_provider,
         player_provider=player_provider,
         winstreak_provider=winstreak_provider,
-        get_time_ns=time.time_ns,
     )
 
     if options.test_ssl:
@@ -103,11 +107,10 @@ def main() -> None:  # pragma: nocover
 
     controller.ready = True
 
-    process_loglines(
+    process_loglines_to_overlay(
         controller=controller,
         loglines=loglines,
-        overlay=True,
-        console=options.output_to_console,
+        output_to_console=options.output_to_console,
     )
 
 
