@@ -14,9 +14,6 @@ if TYPE_CHECKING:  # pragma: no cover
 
 logger = logging.getLogger(__name__)
 
-API_REQUEST_LIMIT = 120
-API_REQUEST_WINDOW = 60
-
 
 class ProcessingError(Enum):
     token = 0
