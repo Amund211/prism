@@ -16,7 +16,7 @@ from tests.prism.overlay.utils import (
 )
 
 
-def test_real_overlay_controller_get_uuid() -> None:
+def test_overlay_controller_get_uuid() -> None:
     error: Exception | None = None
     returned_uuid: str = ""
 
@@ -58,7 +58,7 @@ def test_real_overlay_controller_get_uuid() -> None:
     assert not controller.missing_local_issuer_certificate
 
 
-def test_real_overlay_controller_get_player() -> None:
+def test_overlay_controller_get_player() -> None:
     error: Exception | None = None
     returned_player = KnownPlayer(
         dataReceivedAtMs=1_234_567_890_123,
@@ -125,60 +125,7 @@ def test_real_overlay_controller_get_player() -> None:
     assert not controller.missing_local_issuer_certificate
 
 
-def test_real_overlay_controller_get_uuid_dependency_injection() -> None:
-    """Test that OverlayController uses injected get_uuid function"""
-    custom_uuid = "custom-uuid-12345"
-
-    def custom_get_uuid(username: str) -> str:
-        assert username == "testuser"
-        return custom_uuid
-
-    controller = create_controller(
-        account_provider=MockedAccountProvider(get_uuid_for_username=custom_get_uuid)
-    )
-
-    result = controller.get_uuid("testuser")
-    assert result == custom_uuid
-
-
-def test_real_overlay_controller_get_player_dependency_injection() -> None:
-    """Test that OverlayController uses injected get_player function"""
-    custom_player = KnownPlayer(
-        dataReceivedAtMs=9_876_543_210_987,
-        username="CustomPlayer",
-        uuid="test-uuid",
-        stars=200.0,
-        stats=Stats(
-            index=2000.0,
-            fkdr=3.0,
-            kdr=2.0,
-            bblr=4.0,
-            wlr=2.5,
-            winstreak=10,
-            winstreak_accurate=True,
-            kills=200,
-            finals=300,
-            beds=250,
-            wins=120,
-        ),
-    )
-
-    def custom_get_player(uuid: str, user_id: str) -> KnownPlayer:
-        assert uuid == "test-uuid"
-        assert user_id == "test-user-id"
-        return custom_player
-
-    controller = create_controller(
-        settings=make_settings(user_id="test-user-id"),
-        player_provider=MockedPlayerProvider(get_player=custom_get_player),
-    )
-
-    assert controller.get_player("test-uuid") == custom_player
-
-
-def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection() -> (
-    None
-):
+def test_overlay_controller_get_estimated_winstreaks_success() -> None:
     """Test that OverlayController uses injected get_estimated_winstreaks
     function"""
     custom_winstreaks = Winstreaks(overall=5, solo=3, doubles=2, threes=1, fours=0)
@@ -206,7 +153,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_dependency_injection()
     assert accurate == custom_accurate
 
 
-def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
+def test_overlay_controller_get_estimated_winstreaks_no_api() -> None:
     """Test that OverlayController returns MISSING_WINSTREAKS when
     antisniper API is disabled"""
     controller = create_controller(
@@ -224,7 +171,7 @@ def test_real_overlay_controller_get_estimated_winstreaks_no_api() -> None:
     assert accurate is False
 
 
-def test_real_overlay_controller_get_estimated_winstreaks_no_key() -> None:
+def test_overlay_controller_get_estimated_winstreaks_no_key() -> None:
     """Test that OverlayController returns MISSING_WINSTREAKS when no API
     key is set"""
     controller = create_controller(
@@ -320,7 +267,7 @@ class Flags:
         ),
     ],
 )
-def test_real_overlay_controller_get_estimated_winstreaks_error_handling(
+def test_overlay_controller_get_estimated_winstreaks_error_handling(
     before_flags: Flags, error: Exception, result_flags: Flags
 ) -> None:
     """Test that OverlayController handles errors from get_estimated_winstreaks"""
