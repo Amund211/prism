@@ -72,7 +72,10 @@ def main() -> None:  # pragma: nocover
         StrangePlayerProvider,
     )
     from prism.overlay.controller import OverlayController
-    from prism.overlay.process_loglines import process_loglines, prompt_and_read_logfile
+    from prism.overlay.process_loglines import (
+        process_loglines_to_overlay,
+        prompt_and_read_logfile,
+    )
 
     account_provider = MojangAccountProvider(retry_limit=5, initial_timeout=2)
     player_provider = StrangePlayerProvider(
@@ -104,11 +107,10 @@ def main() -> None:  # pragma: nocover
 
     controller.ready = True
 
-    process_loglines(
+    process_loglines_to_overlay(
         controller=controller,
         loglines=loglines,
-        overlay=True,
-        console=options.output_to_console,
+        output_to_console=options.output_to_console,
     )
 
 
