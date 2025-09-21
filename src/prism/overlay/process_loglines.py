@@ -1,4 +1,3 @@
-import time
 from collections.abc import Iterable
 
 from prism.overlay.commandline import Options
@@ -35,33 +34,6 @@ def prompt_and_read_logfile(
     return watch_file_with_reopen(logfile_path, start_at=final_position, blocking=True)
 
 
-def process_loglines_to_stdout(
-    controller: OverlayController, loglines: Iterable[str]
-) -> None:  # pragma: nocover
-    """Process the state changes for each logline and redraw the screen if neccessary"""
-    get_stat_list = prepare_overlay(controller, loglines=loglines)
-
-    while True:
-        time.sleep(0.1)
-
-        sorted_stats = get_stat_list()
-
-        if sorted_stats is None:
-            continue
-
-        # Store a persistent view to the current state
-        state = controller.state
-
-        print_stats_table(
-            sorted_stats=sorted_stats,
-            party_members=state.party_members,
-            column_order=controller.settings.column_order,
-            rating_configs=controller.settings.rating_configs,
-            out_of_sync=state.out_of_sync,
-            clear_between_draws=CLEAR_BETWEEN_DRAWS,
-        )
-
-
 def process_loglines_to_overlay(
     controller: OverlayController, loglines: Iterable[str], output_to_console: bool
 ) -> None:  # pragma: nocover
@@ -91,24 +63,3 @@ def process_loglines_to_overlay(
             return sorted_stats
 
     run_overlay(controller, get_stat_list)
-
-
-def process_loglines(
-    controller: OverlayController,
-    loglines: Iterable[str],
-    overlay: bool,
-    console: bool,
-) -> None:  # pragma: nocover
-    """Use the overlay on an active logfile"""
-
-    assert overlay or console, "Need at least one output"
-
-    # Process the rest of the loglines as they come in
-    if not overlay:
-        process_loglines_to_stdout(controller, loglines=loglines)
-    else:
-        process_loglines_to_overlay(
-            controller,
-            loglines=loglines,
-            output_to_console=console,
-        )
