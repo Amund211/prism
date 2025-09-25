@@ -1435,7 +1435,7 @@ function RouteComponent() {
                     aria-label="Gamemode"
                     fullWidth
                     onChange={(event) => {
-                        const newGamemode = event.target.value as GamemodeKey;
+                        const newGamemode = event.target.value;
                         navigate({
                             search: (oldSearch) => ({
                                 ...oldSearch,
@@ -1466,7 +1466,7 @@ function RouteComponent() {
                     aria-label="Stat"
                     fullWidth
                     onChange={(event) => {
-                        const newStat = event.target.value as StatKey;
+                        const newStat = event.target.value;
                         navigate({
                             search: (oldSearch) => ({
                                 ...oldSearch,
