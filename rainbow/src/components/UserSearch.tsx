@@ -62,12 +62,12 @@ interface UserSearchOptions<Multiple extends boolean> {
         true,
         false
     >["isOptionEqualToValue"];
-    renderTags: AutocompleteProps<
+    renderValue: AutocompleteProps<
         SearchOption,
         Multiple,
         true,
         false
-    >["renderTags"];
+    >["renderValue"];
 }
 
 const useUserSearchOptions = <Multiple extends boolean = false>(
@@ -223,17 +223,21 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                     return false;
             }
         },
-        renderTags: (value, getTagProps) =>
-            value.map((option: SearchOption, index: number) => {
+        renderValue: (value, getItemProps) => {
+            if (!Array.isArray(value)) {
+                // Don't render tags on single select
+                return null;
+            }
+
+            return value.map((option: SearchOption, index: number) => {
                 if (option.type === "free-text") {
                     return null;
                 }
 
-                const { key, ...tagProps } = getTagProps({ index });
                 return (
                     <Chip
-                        key={key}
-                        {...tagProps}
+                        {...getItemProps({ index })}
+                        key={option.uuid}
                         label={
                             uuidToUsername[option.uuid] ?? (
                                 <Skeleton variant="text" width={60} />
@@ -252,7 +256,8 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                         }
                     />
                 );
-            }),
+            });
+        },
     };
 };
 
@@ -381,7 +386,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
         renderOption,
         getOptionLabel,
         isOptionEqualToValue,
-        renderTags,
+        renderValue,
     } = useUserSearchOptions<true>(uuids);
     const [loading, setLoading] = React.useState(false);
 
@@ -396,7 +401,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
             renderOption={renderOption}
             getOptionLabel={getOptionLabel}
             isOptionEqualToValue={isOptionEqualToValue}
-            renderTags={renderTags}
+            renderValue={renderValue}
             value={[...uuids.map((uuid) => ({ type: "uuid" as const, uuid }))]}
             onChange={(_, newValues) => {
                 setLoading(true);
