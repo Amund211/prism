@@ -1,0 +1,24 @@
+name: Go Dependency Submission
+on:
+  push:
+    branches:
+      - main
+
+# The API requires write permission on the repository to submit dependencies
+permissions:
+  contents: write
+
+jobs:
+  go-action-detection:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Submit Go dependencies to GitHub
+        uses: actions/go-dependency-submission@v2
+        with:
+          go-mod-path: 'go.mod'
+          # NOTE: Not specifying `go-build-target` to get all dependencies
