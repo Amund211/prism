@@ -1,5 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
-import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import superjson from "superjson";
 
 export const maxAge = 1000 * 60 * 60 * 24 * 21; // 21 days
@@ -12,7 +12,7 @@ export const queryClient = new QueryClient({
     },
 });
 
-export const persister = createSyncStoragePersister({
+export const persister = createAsyncStoragePersister({
     storage: localStorage,
     serialize: superjson.stringify,
     deserialize: superjson.parse,
