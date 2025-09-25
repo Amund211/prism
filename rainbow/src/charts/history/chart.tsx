@@ -416,11 +416,20 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
                 <Tooltip
                     // TODO: Nicer tooltip
                     content={({ active, payload }) => {
-                        if (!active || !payload?.length) {
+                        if (!active || !payload.length) {
                             return null;
                         }
 
-                        const value = payload[0].value;
+                        const item: unknown = payload[0];
+                        if (typeof item !== "object" || item === null) {
+                            return null;
+                        }
+
+                        if (!("value" in item)) {
+                            return null;
+                        }
+
+                        const value = item.value;
                         if (typeof value !== "number") {
                             return null;
                         }
