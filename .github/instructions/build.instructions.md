@@ -26,22 +26,17 @@ python add_version_to_icon.py
 # Creates pyinstaller/who_with_version.ico with version overlay
 ```
 
-2. **Build executable**:
+2. **Build executable** (Linux only):
 ```bash
 # First, get the current version from the source
 CURRENT_VERSION=$(python -c "from prism import VERSION_STRING; print(VERSION_STRING)")
 
-# Linux/Windows build (creates single executable)
+# Linux build
 pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who_with_version.ico --name "prism-${CURRENT_VERSION}" --additional-hooks-dir=pyinstaller
-
-# macOS build (creates app bundle directory to avoid security scans)
-pyinstaller prism_overlay.py --noconfirm --onedir --windowed --target-architecture universal2 --icon=pyinstaller/who_with_version.ico --name "prism-${CURRENT_VERSION}" --additional-hooks-dir=pyinstaller
 ```
 
 ## Build Artifacts
 - **Linux**: `dist/prism-${VERSION}` (executable binary)
-- **Windows**: `dist/prism-${VERSION}.exe` (executable binary)
-- **macOS**: `dist/prism-${VERSION}.app` (app bundle directory) → packaged as `.dmg`
 
 ## PyInstaller Configuration
 
@@ -55,8 +50,7 @@ pyinstaller prism_overlay.py --noconfirm --onedir --windowed --target-architectu
 - Process: Overlays version string on base icon using PIL
 
 ### Build Arguments Explained
-- `--onefile`: Creates single executable (vs directory) - used for Linux and Windows
-- `--onedir`: Creates directory with executable and dependencies - used for macOS to avoid repeated security scans
+- `--onefile`: Creates single executable (vs directory)
 - `--noconfirm`: Overwrites existing build without prompting
 - `--icon`: Sets application icon
 - `--additional-hooks-dir`: Uses custom hooks directory

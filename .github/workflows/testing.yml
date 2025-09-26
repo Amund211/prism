@@ -34,7 +34,7 @@ jobs:
         echo 'OS_NAME=windows' >> $GITHUB_ENV
         echo 'ACTIVATE_PATH=venv/Scripts/activate' >> $GITHUB_ENV
         echo 'RESULT_EXTENSION=.exe' >> $GITHUB_ENV
-        echo 'PYINSTALLER_ARGS=--hide-console=minimize-early' >> $GITHUB_ENV
+        echo 'PYINSTALLER_ARGS=--hide-console=minimize-early --onefile' >> $GITHUB_ENV
         echo 'INSTALL_CA_CERT=certutil.exe -addstore root local-ca.pem' >> $GITHUB_ENV
     - name: OS specific setup (linux)
       if: startswith(matrix.os, 'ubuntu')
@@ -42,7 +42,7 @@ jobs:
         echo 'OS_NAME=linux' >> $GITHUB_ENV
         echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
         echo 'RESULT_EXTENSION=' >> $GITHUB_ENV
-        echo 'PYINSTALLER_ARGS=' >> $GITHUB_ENV
+        echo 'PYINSTALLER_ARGS=--onefile' >> $GITHUB_ENV
         echo 'INSTALL_CA_CERT=sudo cp local-ca.pem /usr/local/share/ca-certificates/local-ca.crt; sudo update-ca-certificates' >> $GITHUB_ENV
     - name: OS specific setup (mac)
       if: startswith(matrix.os, 'macOS')
@@ -139,13 +139,7 @@ jobs:
       run: |
         source ${{ env.ACTIVATE_PATH }}
         python add_version_to_icon.py  # Create the icon file
-        if [ "${{ env.OS_NAME }}" = "mac" ]; then
-          # Use --onedir for macOS to prevent repeated security scans
-          pyinstaller prism_overlay.py --noconfirm --icon=pyinstaller/who_with_version.ico --name "${{ env.SIMPLE_NAME }}" --additional-hooks-dir=pyinstaller ${{ env.PYINSTALLER_ARGS }}
-        else
-          # Use --onefile for other platforms
-          pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who_with_version.ico --name "${{ env.SIMPLE_NAME }}" --additional-hooks-dir=pyinstaller ${{ env.PYINSTALLER_ARGS }}
-        fi
+        pyinstaller prism_overlay.py --noconfirm --icon=pyinstaller/who_with_version.ico --name "${{ env.SIMPLE_NAME }}" --additional-hooks-dir=pyinstaller ${{ env.PYINSTALLER_ARGS }}
 
     - name: Package app bundle to disk image (mac)
       if: env.OS_NAME == 'mac'
