@@ -53,7 +53,8 @@ jobs:
         echo 'RESULT_EXTENSION=.dmg' >> $GITHUB_ENV
         # Target universal2 so that the built binary can run on both intel and apple silicon
         # Pass --windowed to build a .app bundle
-        echo 'PYINSTALLER_ARGS=--target-architecture universal2 --windowed' >> $GITHUB_ENV
+        # Use --onedir instead of --onefile to avoid repeated security scans on startup
+        echo 'PYINSTALLER_ARGS=--target-architecture universal2 --windowed --onedir' >> $GITHUB_ENV
         echo 'INSTALL_CA_CERT=sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain local-ca.pem' >> $GITHUB_ENV
 
     - name: Select dependency files
@@ -134,11 +135,17 @@ jobs:
 
         python prism_overlay.py --test-ssl --settings=system_certs_settings.toml --logfile=latest.log ${{ env.TEE_STDERR }} | grep '^Got response: Hello world' >/dev/null 2>&1
 
-    - name: Build single file binary with pyinstaller
+    - name: Build binary with pyinstaller
       run: |
         source ${{ env.ACTIVATE_PATH }}
         python add_version_to_icon.py  # Create the icon file
-        pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who_with_version.ico --name "${{ env.SIMPLE_NAME }}" --additional-hooks-dir=pyinstaller ${{ env.PYINSTALLER_ARGS }}
+        if [ "${{ env.OS_NAME }}" = "mac" ]; then
+          # Use --onedir for macOS to prevent repeated security scans
+          pyinstaller prism_overlay.py --noconfirm --icon=pyinstaller/who_with_version.ico --name "${{ env.SIMPLE_NAME }}" --additional-hooks-dir=pyinstaller ${{ env.PYINSTALLER_ARGS }}
+        else
+          # Use --onefile for other platforms
+          pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who_with_version.ico --name "${{ env.SIMPLE_NAME }}" --additional-hooks-dir=pyinstaller ${{ env.PYINSTALLER_ARGS }}
+        fi
 
     - name: Package app bundle to disk image (mac)
       if: env.OS_NAME == 'mac'
