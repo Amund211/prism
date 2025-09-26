@@ -66,8 +66,8 @@
         "prettier": "^3.6.2",
         "typescript": "~5.9.2",
         "typescript-eslint": "^8.44.1",
-        "vite": "^6.3.6",
-        "vite-plugin-react-click-to-component": "^3.1.1"
+        "vite": "^7.1.7",
+        "vite-plugin-react-click-to-component": "^4.0.0"
     },
     "prettier": {
         "tabWidth": 4
