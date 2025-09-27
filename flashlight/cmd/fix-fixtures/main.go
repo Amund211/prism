@@ -20,8 +20,8 @@ const hypixelAPIResponsesDir = "./fixtures/hypixel_api_responses/"
 const expectedPlayersDir = "./internal/adapters/playerprovider/testdata/expected_players/"
 const expectedHypixelStyleResponsesDir = "./internal/ports/testdata/expected_hypixel_style_responses/"
 
-func getUUID(hypixelAPIResponse []byte) (string, error) {
-	parsedAPIResponse, err := playerprovider.ParseHypixelAPIResponse(context.Background(), hypixelAPIResponse)
+func getUUID(ctx context.Context, hypixelAPIResponse []byte) (string, error) {
+	parsedAPIResponse, err := playerprovider.ParseHypixelAPIResponse(ctx, hypixelAPIResponse)
 	if err != nil {
 		return "", fmt.Errorf("error parsing hypixel api response: %w", err)
 	}
@@ -67,6 +67,8 @@ func indentAndWrite(data []byte, filePath string) error {
 }
 
 func main() {
+	ctx := context.Background()
+
 	hypixelAPIResponseFiles, err := os.ReadDir(hypixelAPIResponsesDir)
 	if err != nil {
 		log.Fatalf("Error reading hypixel api responses directory: %s", err.Error())
@@ -92,12 +94,12 @@ func main() {
 		}
 
 		// Get player
-		uuid, err := getUUID(hypixelAPIResponse)
+		uuid, err := getUUID(ctx, hypixelAPIResponse)
 		if err != nil {
 			log.Printf("Error getting UUID from hypixel api response %s: %s", fileName, err.Error())
 			continue
 		}
-		player, err := playerprovider.HypixelAPIResponseToPlayerPIT(context.Background(), uuid, time.Now(), hypixelAPIResponse, 200)
+		player, err := playerprovider.HypixelAPIResponseToPlayerPIT(ctx, uuid, time.Now(), hypixelAPIResponse, 200)
 		if err != nil {
 			log.Printf("Error parsing hypixel api response %s: %s", fileName, err.Error())
 			continue
