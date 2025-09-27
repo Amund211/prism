@@ -2,9 +2,9 @@ package ratelimiting
 
 import (
 	"net/http"
-	"runtime"
 	"strings"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/stretchr/testify/require"
@@ -19,34 +19,33 @@ func (m *mockedRateLimiter) Consume(key string) bool {
 }
 
 func TestTokenBucketRateLimiter(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping test in short mode")
-	}
-	rateLimiter, stop := NewTokenBucketRateLimiter(RefillPerSecond(1), BurstSize(2))
-	defer stop()
+	t.Parallel()
+	synctest.Test(t, func(t *testing.T) {
+		rateLimiter, stop := NewTokenBucketRateLimiter(RefillPerSecond(1), BurstSize(2))
+		defer stop()
 
-	require.True(t, rateLimiter.Consume("user2"))
+		require.True(t, rateLimiter.Consume("user2"))
 
-	// Burst of 2
-	require.True(t, rateLimiter.Consume("user1"))
-	require.True(t, rateLimiter.Consume("user1"))
-	require.False(t, rateLimiter.Consume("user1"))
+		// Burst of 2
+		require.True(t, rateLimiter.Consume("user1"))
+		require.True(t, rateLimiter.Consume("user1"))
+		require.False(t, rateLimiter.Consume("user1"))
 
-	time.Sleep(1000 * time.Millisecond)
-	runtime.Gosched()
+		time.Sleep(1000 * time.Millisecond)
 
-	// Refill rate of 1
-	require.True(t, rateLimiter.Consume("user1"))
-	require.False(t, rateLimiter.Consume("user1"))
+		// Refill rate of 1
+		require.True(t, rateLimiter.Consume("user1"))
+		require.False(t, rateLimiter.Consume("user1"))
 
-	// Burst of 2 - even after refill
-	require.True(t, rateLimiter.Consume("user3"))
-	require.True(t, rateLimiter.Consume("user3"))
-	require.False(t, rateLimiter.Consume("user3"))
+		// Burst of 2 - even after refill
+		require.True(t, rateLimiter.Consume("user3"))
+		require.True(t, rateLimiter.Consume("user3"))
+		require.False(t, rateLimiter.Consume("user3"))
 
-	require.True(t, rateLimiter.Consume("user2"))
-	require.True(t, rateLimiter.Consume("user2"))
-	require.False(t, rateLimiter.Consume("user2"))
+		require.True(t, rateLimiter.Consume("user2"))
+		require.True(t, rateLimiter.Consume("user2"))
+		require.False(t, rateLimiter.Consume("user2"))
+	})
 }
 
 func TestIPKeyFunc(t *testing.T) {
