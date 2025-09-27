@@ -59,6 +59,9 @@ jobs:
       - name: Verify dependencies
         run: go mod verify
 
+      - name: Check for vulnerable dependencies
+        run: go tool govulncheck ./...
+
       - name: Create test database
         env:
           PGPASSWORD: postgres

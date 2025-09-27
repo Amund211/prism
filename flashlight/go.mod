@@ -1,6 +1,6 @@
 module github.com/Amund211/flashlight
 
-go 1.24.0
+go 1.24.6
 
 require (
 	github.com/getsentry/sentry-go v0.35.3
@@ -12,9 +12,12 @@ require (
 )
 
 require (
-	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	golang.org/x/mod v0.22.0 // indirect
+	golang.org/x/telemetry v0.0.0-20240522233618-39ace7a40ae7 // indirect
+	golang.org/x/tools v0.29.0 // indirect
+	golang.org/x/vuln v1.1.4 // indirect
 )
 
 require (
@@ -27,3 +30,5 @@ require (
 	golang.org/x/text v0.23.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+tool golang.org/x/vuln/cmd/govulncheck
