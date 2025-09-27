@@ -67,7 +67,7 @@ func (m *mockAccountRepositoryByUUID) StoreAccount(ctx context.Context, account 
 func TestBuildGetAccountByUUIDWithCache(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	now := time.Now()
 	nowFunc := func() time.Time {
 		return now

@@ -169,7 +169,7 @@ func TestWriteErrorResponse(t *testing.T) {
 	for _, testCase := range testCases {
 		w := httptest.NewRecorder()
 
-		returnedStatusCode := writeHypixelStyleErrorResponse(context.Background(), w, testCase.err)
+		returnedStatusCode := writeHypixelStyleErrorResponse(t.Context(), w, testCase.err)
 		result := w.Result()
 
 		require.True(t, reflect.DeepEqual(expectedHeaders, result.Header), "Expected %v, got %v", expectedHeaders, result.Header)

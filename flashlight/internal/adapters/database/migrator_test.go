@@ -1,7 +1,6 @@
 package database
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -20,7 +19,7 @@ func TestMigrator(t *testing.T) {
 	}
 
 	t.Run("migrate up and down", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		schemaName := "migrate_up_down"
 
 		db, err := NewPostgresDatabase(LOCAL_CONNECTION_STRING)

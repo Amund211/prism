@@ -1,7 +1,6 @@
 package ports_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path"
@@ -433,7 +432,7 @@ func TestPlayerToHypixelAPIResponse(t *testing.T) {
 				require.NoError(t, err)
 
 				// Find UUID
-				parsedAPIResponse, err := playerprovider.ParseHypixelAPIResponse(context.Background(), hypixelAPIResponse)
+				parsedAPIResponse, err := playerprovider.ParseHypixelAPIResponse(t.Context(), hypixelAPIResponse)
 				require.NoError(t, err)
 				uuid := "12345678-1234-1234-1234-12345678abcd"
 				if parsedAPIResponse.Player != nil && parsedAPIResponse.Player.UUID != nil {
@@ -442,7 +441,7 @@ func TestPlayerToHypixelAPIResponse(t *testing.T) {
 					uuid = normalizedUUID
 				}
 
-				player, err := playerprovider.HypixelAPIResponseToPlayerPIT(context.Background(), uuid, queriedAt, hypixelAPIResponse, 200)
+				player, err := playerprovider.HypixelAPIResponseToPlayerPIT(t.Context(), uuid, queriedAt, hypixelAPIResponse, 200)
 				require.NoError(t, err)
 
 				// Real test
@@ -460,7 +459,7 @@ func TestPlayerToHypixelAPIResponse(t *testing.T) {
 				// Test that minification is idempotent
 				t.Run("minified->minified", func(t *testing.T) {
 					t.Parallel()
-					playerFromMinified, err := playerprovider.HypixelAPIResponseToPlayerPIT(context.Background(), uuid, queriedAt, hypixelAPIResponse, 200)
+					playerFromMinified, err := playerprovider.HypixelAPIResponseToPlayerPIT(t.Context(), uuid, queriedAt, hypixelAPIResponse, 200)
 					require.NoError(t, err)
 					runPlayerToHypixelAPIResponseTest(t,
 						playerToHypixelAPIResponseTestCase{

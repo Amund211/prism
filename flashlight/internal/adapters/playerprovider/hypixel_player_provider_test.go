@@ -42,7 +42,7 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				err:        nil,
 			}
 			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
-			player, err := provider.GetPlayer(context.Background(), UUID)
+			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.NoError(t, err)
 
 			require.NotNil(t, player)
@@ -61,7 +61,7 @@ func TestHypixelPlayerProvider(t *testing.T) {
 			}
 
 			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
-			_, err := provider.GetPlayer(context.Background(), "0123456789abcdef0123456789abcdef")
+			_, err := provider.GetPlayer(t.Context(), "0123456789abcdef0123456789abcdef")
 			require.Error(t, err)
 		})
 
@@ -74,7 +74,7 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				err:        nil,
 			}
 			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
-			player, err := provider.GetPlayer(context.Background(), UUID)
+			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
 
@@ -92,7 +92,7 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				err:        nil,
 			}
 			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
-			player, err := provider.GetPlayer(context.Background(), UUID)
+			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
 
@@ -109,7 +109,7 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				err:        assert.AnError,
 			}
 			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
-			player, err := provider.GetPlayer(context.Background(), UUID)
+			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
 
@@ -129,7 +129,7 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				err:        nil,
 			}
 			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
-			player, err := provider.GetPlayer(context.Background(), UUID)
+			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
 
@@ -146,7 +146,7 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				err:        nil,
 			}
 			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
-			player, err := provider.GetPlayer(context.Background(), UUID)
+			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
 
@@ -163,7 +163,7 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				err:        nil,
 			}
 			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
-			player, err := provider.GetPlayer(context.Background(), UUID)
+			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
 
@@ -180,7 +180,7 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				err:        nil,
 			}
 			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
-			player, err := provider.GetPlayer(context.Background(), UUID)
+			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
 
@@ -197,7 +197,7 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				err:        nil,
 			}
 			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
-			player, err := provider.GetPlayer(context.Background(), UUID)
+			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
 
@@ -214,7 +214,7 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				err:        nil,
 			}
 			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
-			player, err := provider.GetPlayer(context.Background(), UUID)
+			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
 
@@ -231,7 +231,7 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				err:        nil,
 			}
 			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
-			player, err := provider.GetPlayer(context.Background(), UUID)
+			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
 

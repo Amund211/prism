@@ -120,7 +120,7 @@ func TestBuildGetHistory(t *testing.T) {
 							updatePlayerInInterval,
 						)
 
-						history, err := getHistory(context.Background(), uuid, timeCase.start, timeCase.end, 10)
+						history, err := getHistory(t.Context(), uuid, timeCase.start, timeCase.end, 10)
 						require.NoError(t, err)
 						require.Equal(t, historyCase.history, history)
 
@@ -202,7 +202,7 @@ func TestBuildGetHistory(t *testing.T) {
 							updatePlayerInInterval,
 						)
 
-						history, err := getHistory(context.Background(), uuid, timeCase.start, timeCase.end, 10)
+						history, err := getHistory(t.Context(), uuid, timeCase.start, timeCase.end, 10)
 						require.NoError(t, err)
 						require.Equal(t, historyCase.history, history)
 
@@ -241,7 +241,7 @@ func TestBuildGetHistory(t *testing.T) {
 			updatePlayerInInterval,
 		)
 
-		history, err := getHistory(context.Background(), uuid, start, end, 10)
+		history, err := getHistory(t.Context(), uuid, start, end, 10)
 		// Should not error even if updatePlayerInInterval fails
 		require.NoError(t, err)
 		require.Equal(t, expectedHistory, history)

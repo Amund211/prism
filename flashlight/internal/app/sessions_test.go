@@ -123,7 +123,7 @@ func TestBuildGetSessions(t *testing.T) {
 							updatePlayerInInterval,
 						)
 
-						sessions, err := getSessions(context.Background(), uuid, timeCase.start, timeCase.end)
+						sessions, err := getSessions(t.Context(), uuid, timeCase.start, timeCase.end)
 						require.NoError(t, err)
 						require.Equal(t, sessionsCase.sessions, sessions)
 
@@ -208,7 +208,7 @@ func TestBuildGetSessions(t *testing.T) {
 							updatePlayerInInterval,
 						)
 
-						sessions, err := getSessions(context.Background(), uuid, timeCase.start, timeCase.end)
+						sessions, err := getSessions(t.Context(), uuid, timeCase.start, timeCase.end)
 						require.NoError(t, err)
 						require.Equal(t, sessionsCase.sessions, sessions)
 
@@ -250,7 +250,7 @@ func TestBuildGetSessions(t *testing.T) {
 			updatePlayerInInterval,
 		)
 
-		sessions, err := getSessions(context.Background(), uuid, start, end)
+		sessions, err := getSessions(t.Context(), uuid, start, end)
 		// Should not error even if updatePlayerInInterval fails
 		require.NoError(t, err)
 		require.Equal(t, expectedSessions, sessions)

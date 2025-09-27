@@ -28,7 +28,7 @@ func (m *mockMilestoneRepository) FindMilestoneAchievements(ctx context.Context,
 }
 
 func TestFindMilestoneAchievements(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	playerUUID := domaintest.NewUUID(t)
 
 	getAndPersistPlayerWithoutCache := func(ctx context.Context, playerUUIDArg string) (*domain.PlayerPIT, error) {

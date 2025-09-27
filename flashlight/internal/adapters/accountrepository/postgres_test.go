@@ -1,7 +1,6 @@
 package accountrepository
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -45,7 +44,7 @@ func TestPostgres(t *testing.T) {
 		t.Skip("skipping db tests in short mode.")
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
 	require.NoError(t, err)
 

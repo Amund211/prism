@@ -2,7 +2,6 @@ package accountprovider
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -138,7 +137,7 @@ func (m *mockedClient) Do(req *http.Request) (*http.Response, error) {
 }
 
 func TestMojang(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	now := time.Date(2023, 10, 1, 12, 0, 0, 0, time.UTC)
 	mockedNow := func() time.Time {

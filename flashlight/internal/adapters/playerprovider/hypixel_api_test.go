@@ -2,7 +2,6 @@ package playerprovider
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"net/http"
 	"reflect"
@@ -70,7 +69,7 @@ func TestGetPlayerData(t *testing.T) {
 
 		expectedQueriedAt := time.Now()
 
-		data, statusCode, queriedAt, err := hypixelAPI.GetPlayerData(context.Background(), "uuid1234")
+		data, statusCode, queriedAt, err := hypixelAPI.GetPlayerData(t.Context(), "uuid1234")
 
 		require.Nil(t, err)
 		require.Equal(t, 200, statusCode)
@@ -88,7 +87,7 @@ func TestGetPlayerData(t *testing.T) {
 		)
 		hypixelAPI := NewHypixelAPI(httpClient, apiKey)
 
-		_, _, _, err := hypixelAPI.GetPlayerData(context.Background(), "uuid123456")
+		_, _, _, err := hypixelAPI.GetPlayerData(t.Context(), "uuid123456")
 		require.ErrorIs(t, err, assert.AnError)
 	})
 
@@ -104,7 +103,7 @@ func TestGetPlayerData(t *testing.T) {
 		}
 		hypixelAPI := NewHypixelAPI(httpClient, apiKey)
 
-		_, _, _, err := hypixelAPI.GetPlayerData(context.Background(), "uuid")
+		_, _, _, err := hypixelAPI.GetPlayerData(t.Context(), "uuid")
 		require.ErrorIs(t, err, assert.AnError)
 	})
 }

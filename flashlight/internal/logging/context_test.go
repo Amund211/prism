@@ -2,7 +2,6 @@ package logging_test
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"log/slog"
 	"testing"
@@ -67,7 +66,7 @@ func (w *jsonWriter) RequireEmpty() {
 }
 
 func TestFromContext(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	buf := &bytes.Buffer{}
 	logger := slog.New(slog.NewJSONHandler(buf, nil))
 	ctx = logging.AddToContext(ctx, logger)
@@ -77,7 +76,7 @@ func TestFromContext(t *testing.T) {
 }
 
 func TestAddMetaToContext(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	w := newWriter(t)
 	rootLogger := slog.New(slog.NewJSONHandler(w, nil)).With(slog.String("rootprop", "rootval"))
 	ctx = logging.AddToContext(ctx, rootLogger)

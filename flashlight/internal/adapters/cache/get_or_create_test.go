@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"testing"
@@ -72,7 +71,7 @@ func TestGetOrCreateSingle(t *testing.T) {
 		client := clients[0]
 		require.Equal(t, 0, client.server.currentTick)
 
-		data, err := GetOrCreate(context.Background(), client, "key1", createCallback(1))
+		data, err := GetOrCreate(t.Context(), client, "key1", createCallback(1))
 		require.Nil(t, err)
 		require.Equal(t, "data1", string(data))
 		require.Equal(t, 0, client.server.currentTick)
@@ -92,12 +91,12 @@ func TestGetOrCreateMultiple(t *testing.T) {
 
 	go func() {
 		client := clients[0]
-		data, err := GetOrCreate(context.Background(), client, "key1", createCallback(1))
+		data, err := GetOrCreate(t.Context(), client, "key1", createCallback(1))
 		require.Nil(t, err)
 		require.Equal(t, "data1", string(data))
 		require.Equal(t, 0, client.server.currentTick)
 
-		data, err = GetOrCreate(context.Background(), client, "key2", withWait(client, 2, createCallback(2)))
+		data, err = GetOrCreate(t.Context(), client, "key2", withWait(client, 2, createCallback(2)))
 		require.Nil(t, err)
 		require.Equal(t, "data2", string(data))
 		require.Equal(t, 2, client.server.currentTick)
@@ -108,12 +107,12 @@ func TestGetOrCreateMultiple(t *testing.T) {
 	go func() {
 		client := clients[1]
 		client.wait() // Wait for the first client to populate the cache
-		data, err := GetOrCreate(context.Background(), client, "key1", createUnreachable(t))
+		data, err := GetOrCreate(t.Context(), client, "key1", createUnreachable(t))
 		require.Nil(t, err)
 		require.Equal(t, "data1", string(data))
 		require.Equal(t, 1, client.server.currentTick)
 
-		data, err = GetOrCreate(context.Background(), client, "key2", createUnreachable(t))
+		data, err = GetOrCreate(t.Context(), client, "key2", createUnreachable(t))
 		require.Nil(t, err)
 		require.Equal(t, "data2", string(data))
 		// The fist client will insert this during the second tick
@@ -132,7 +131,7 @@ func TestGetOrCreateErrorRetries(t *testing.T) {
 
 	go func() {
 		client := clients[0]
-		_, err := GetOrCreate(context.Background(), client, "key1", withWait(client, 2, createErrorCallback(1)))
+		_, err := GetOrCreate(t.Context(), client, "key1", withWait(client, 2, createErrorCallback(1)))
 		require.NotNil(t, err)
 		require.Equal(t, 2, client.server.currentTick)
 
@@ -145,7 +144,7 @@ func TestGetOrCreateErrorRetries(t *testing.T) {
 
 		// This should wait for the first client to finish (not storing a result due to an error)
 		// then it should retry and get the result
-		data, err := GetOrCreate(context.Background(), client, "key1", withWait(client, 2, createCallback(1)))
+		data, err := GetOrCreate(t.Context(), client, "key1", withWait(client, 2, createCallback(1)))
 		require.Nil(t, err)
 		require.Equal(t, "data1", string(data))
 		require.True(t, client.server.currentTick == 4 || client.server.currentTick == 5)
@@ -174,11 +173,11 @@ func TestGetOrCreateCleansUpOnError(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			_, err := GetOrCreate(context.Background(), c.cache, "key1", createErrorCallback(10))
+			_, err := GetOrCreate(t.Context(), c.cache, "key1", createErrorCallback(10))
 			require.Error(t, err)
 
 			// The cache should be empty and allow us to create a new entry
-			data, err := GetOrCreate(context.Background(), c.cache, "key1", createCallback(1))
+			data, err := GetOrCreate(t.Context(), c.cache, "key1", createCallback(1))
 			require.Nil(t, err)
 			require.Equal(t, "data1", string(data))
 		})
@@ -187,7 +186,7 @@ func TestGetOrCreateCleansUpOnError(t *testing.T) {
 
 func TestGetOrCreateRealCache(t *testing.T) {
 	t.Run("requests are de-duplicated in highly concurrent environment", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		cache := NewTTLCache[Data](1 * time.Minute)
 
 		for testIndex := range 100 {

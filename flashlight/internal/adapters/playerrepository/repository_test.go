@@ -1,7 +1,6 @@
 package playerrepository
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -38,7 +37,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 		t.Skip("skipping db tests in short mode.")
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
 	require.NoError(t, err)
 
@@ -1134,7 +1133,7 @@ func TestFindMilestoneAchievements(t *testing.T) {
 		t.Skip("skipping database tests in short mode")
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
 	require.NoError(t, err)
 

@@ -1,7 +1,6 @@
 package playerprovider
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -35,7 +34,7 @@ var errAnyError = fmt.Errorf("any error")
 func runHypixelAPIResponseToPlayerTest(t *testing.T, test hypixelAPIResponseToPlayerTest) {
 	t.Helper()
 
-	player, err := HypixelAPIResponseToPlayerPIT(context.Background(), test.uuid, test.queriedAt, test.hypixelAPIResponse, test.hypixelStatusCode)
+	player, err := HypixelAPIResponseToPlayerPIT(t.Context(), test.uuid, test.queriedAt, test.hypixelAPIResponse, test.hypixelStatusCode)
 	if test.error != nil {
 		if errors.Is(test.error, errAnyError) {
 			// The test just expects there to be any error
@@ -246,7 +245,7 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 				require.NoError(t, err)
 
 				// Read UUID
-				parsedAPIResponse, err := ParseHypixelAPIResponse(context.Background(), hypixelAPIResponse)
+				parsedAPIResponse, err := ParseHypixelAPIResponse(t.Context(), hypixelAPIResponse)
 				require.NoError(t, err)
 				uuid := "12345678-1234-1234-1234-12345678abcd"
 				if parsedAPIResponse.Player != nil && parsedAPIResponse.Player.UUID != nil {

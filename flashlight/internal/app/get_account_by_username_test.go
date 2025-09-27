@@ -81,7 +81,7 @@ func (m *mockAccountRepositoryByUsername) StoreAccount(ctx context.Context, acco
 func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	now := time.Now()
 	nowFunc := func() time.Time {
 		return now

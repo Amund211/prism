@@ -51,10 +51,10 @@ func TestGetAndPersistPlayer(t *testing.T) {
 		panicProvider := &panicPlayerProvider{t: t}
 		cache := cache.NewBasicCache[*domain.PlayerPIT]()
 
-		_, err := BuildGetAndPersistPlayerWithCache(cache, provider, playerrepository.NewStubPlayerRepository())(context.Background(), UUID)
+		_, err := BuildGetAndPersistPlayerWithCache(cache, provider, playerrepository.NewStubPlayerRepository())(t.Context(), UUID)
 		require.NoError(t, err)
 
-		_, err = BuildGetAndPersistPlayerWithCache(cache, panicProvider, playerrepository.NewStubPlayerRepository())(context.Background(), UUID)
+		_, err = BuildGetAndPersistPlayerWithCache(cache, panicProvider, playerrepository.NewStubPlayerRepository())(t.Context(), UUID)
 		require.NoError(t, err)
 	})
 
@@ -70,7 +70,7 @@ func TestGetAndPersistPlayer(t *testing.T) {
 			}
 			cache := cache.NewBasicCache[*domain.PlayerPIT]()
 
-			_, err := BuildGetAndPersistPlayerWithCache(cache, provider, playerrepository.NewStubPlayerRepository())(context.Background(), "01234567-89ab-cdef-0123-456789abcdef")
+			_, err := BuildGetAndPersistPlayerWithCache(cache, provider, playerrepository.NewStubPlayerRepository())(t.Context(), "01234567-89ab-cdef-0123-456789abcdef")
 			require.ErrorIs(t, err, providerErr)
 		}
 	})
@@ -91,7 +91,7 @@ func TestGetAndPersistPlayer(t *testing.T) {
 		} {
 			t.Run(fmt.Sprintf("UUID: '%s'", uuid), func(t *testing.T) {
 				t.Parallel()
-				_, err := BuildGetAndPersistPlayerWithCache(cache, provider, playerrepository.NewStubPlayerRepository())(context.Background(), uuid)
+				_, err := BuildGetAndPersistPlayerWithCache(cache, provider, playerrepository.NewStubPlayerRepository())(t.Context(), uuid)
 				require.Error(t, err)
 			})
 		}
@@ -160,7 +160,7 @@ func TestUpdatePlayerInInterval(t *testing.T) {
 
 			updatePlayerInInterval := BuildUpdatePlayerInInterval(getAndPersist, func() time.Time { return tc.now })
 
-			err := updatePlayerInInterval(context.Background(), testUUID, tc.start, tc.end)
+			err := updatePlayerInInterval(t.Context(), testUUID, tc.start, tc.end)
 			require.NoError(t, err)
 
 			require.Equal(t, tc.shouldUpdate, updated)
@@ -186,7 +186,7 @@ func TestUpdatePlayerInInterval(t *testing.T) {
 
 		updatePlayerInInterval := BuildUpdatePlayerInInterval(getAndPersist, func() time.Time { return now })
 
-		err := updatePlayerInInterval(context.Background(), testUUID, start, end)
+		err := updatePlayerInInterval(t.Context(), testUUID, start, end)
 		require.ErrorIs(t, err, assert.AnError)
 
 		require.True(t, called)

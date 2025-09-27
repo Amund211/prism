@@ -2,7 +2,6 @@ package logging_test
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -101,6 +100,6 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 	})
 
 	t.Run("without middleware", func(t *testing.T) {
-		logging.FromContext(context.Background()).Info("don't crash when no logger in context")
+		logging.FromContext(t.Context()).Info("don't crash when no logger in context")
 	})
 }
