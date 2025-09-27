@@ -26,7 +26,7 @@ func newPostgresPlayerRepository(t *testing.T, db *sqlx.DB, schema string) *Post
 
 	migrator := database.NewDatabaseMigrator(db, logger)
 
-	err := migrator.Migrate(schema)
+	err := migrator.Migrate(t.Context(), schema)
 	require.NoError(t, err)
 
 	return NewPostgresPlayerRepository(db, schema)

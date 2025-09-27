@@ -30,8 +30,8 @@ func NewDatabaseMigrator(db *sqlx.DB, logger *slog.Logger) *migrator {
 	}
 }
 
-func (m *migrator) Migrate(schemaName string) error {
-	return m.migrate(context.Background(), schemaName)
+func (m *migrator) Migrate(ctx context.Context, schemaName string) error {
+	return m.migrate(ctx, schemaName)
 }
 
 func (m *migrator) migrate(ctx context.Context, schemaName string) error {

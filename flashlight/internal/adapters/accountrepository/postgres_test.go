@@ -26,7 +26,7 @@ func newPostgres(t *testing.T, db *sqlx.DB, schemaSuffix string) *Postgres {
 
 	migrator := database.NewDatabaseMigrator(db, logger)
 
-	err := migrator.Migrate(schema)
+	err := migrator.Migrate(t.Context(), schema)
 	require.NoError(t, err)
 
 	return NewPostgres(db, schema)

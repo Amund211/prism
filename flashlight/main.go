@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -29,6 +30,8 @@ const PROD_DOMAIN_SUFFIX = "prismoverlay.com"
 const STAGING_DOMAIN_SUFFIX = "rainbow-ctx.pages.dev"
 
 func main() {
+	ctx := context.Background()
+
 	instanceID := uuid.New().String()
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil)).With("instanceID", instanceID)
 
@@ -77,7 +80,7 @@ func main() {
 
 	repositorySchemaName := database.GetSchemaName(!config.IsProduction())
 
-	err = database.NewDatabaseMigrator(db, logger.With("component", "migrator")).Migrate(repositorySchemaName)
+	err = database.NewDatabaseMigrator(db, logger.With("component", "migrator")).Migrate(ctx, repositorySchemaName)
 	if err != nil {
 		fail("Failed to migrate database", "error", err.Error())
 	}
