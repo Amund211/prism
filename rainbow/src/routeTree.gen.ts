@@ -8,118 +8,50 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root.tsx'
+import { Route as SettingsRouteImport } from './routes/settings.tsx'
+import { Route as DownloadsRouteImport } from './routes/downloads.tsx'
+import { Route as AboutRouteImport } from './routes/about.tsx'
+import { Route as IndexRouteImport } from './routes/index.tsx'
+import { Route as SessionIndexRouteImport } from './routes/session/index.tsx'
+import { Route as SessionUuidRouteImport } from './routes/session/$uuid.tsx'
+import { Route as HistoryExploreRouteImport } from './routes/history.explore.tsx'
 
-import { Route as rootRoute } from './routes/__root.tsx'
-import { Route as SettingsImport } from './routes/settings.tsx'
-import { Route as DownloadsImport } from './routes/downloads.tsx'
-import { Route as AboutImport } from './routes/about.tsx'
-import { Route as IndexImport } from './routes/index.tsx'
-import { Route as SessionIndexImport } from './routes/session/index.tsx'
-import { Route as SessionUuidImport } from './routes/session/$uuid.tsx'
-import { Route as HistoryExploreImport } from './routes/history.explore.tsx'
-
-// Create/Update Routes
-
-const SettingsRoute = SettingsImport.update({
+const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const DownloadsRoute = DownloadsImport.update({
+const DownloadsRoute = DownloadsRouteImport.update({
   id: '/downloads',
   path: '/downloads',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AboutRoute = AboutImport.update({
+const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const IndexRoute = IndexImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const SessionIndexRoute = SessionIndexImport.update({
+const SessionIndexRoute = SessionIndexRouteImport.update({
   id: '/session/',
   path: '/session/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const SessionUuidRoute = SessionUuidImport.update({
+const SessionUuidRoute = SessionUuidRouteImport.update({
   id: '/session/$uuid',
   path: '/session/$uuid',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const HistoryExploreRoute = HistoryExploreImport.update({
+const HistoryExploreRoute = HistoryExploreRouteImport.update({
   id: '/history/explore',
   path: '/history/explore',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-// Populate the FileRoutesByPath interface
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutImport
-      parentRoute: typeof rootRoute
-    }
-    '/downloads': {
-      id: '/downloads'
-      path: '/downloads'
-      fullPath: '/downloads'
-      preLoaderRoute: typeof DownloadsImport
-      parentRoute: typeof rootRoute
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsImport
-      parentRoute: typeof rootRoute
-    }
-    '/history/explore': {
-      id: '/history/explore'
-      path: '/history/explore'
-      fullPath: '/history/explore'
-      preLoaderRoute: typeof HistoryExploreImport
-      parentRoute: typeof rootRoute
-    }
-    '/session/$uuid': {
-      id: '/session/$uuid'
-      path: '/session/$uuid'
-      fullPath: '/session/$uuid'
-      preLoaderRoute: typeof SessionUuidImport
-      parentRoute: typeof rootRoute
-    }
-    '/session/': {
-      id: '/session/'
-      path: '/session'
-      fullPath: '/session'
-      preLoaderRoute: typeof SessionIndexImport
-      parentRoute: typeof rootRoute
-    }
-  }
-}
-
-// Create and export the route tree
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -130,7 +62,6 @@ export interface FileRoutesByFullPath {
   '/session/$uuid': typeof SessionUuidRoute
   '/session': typeof SessionIndexRoute
 }
-
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
@@ -140,9 +71,8 @@ export interface FileRoutesByTo {
   '/session/$uuid': typeof SessionUuidRoute
   '/session': typeof SessionIndexRoute
 }
-
 export interface FileRoutesById {
-  __root__: typeof rootRoute
+  __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/downloads': typeof DownloadsRoute
@@ -151,7 +81,6 @@ export interface FileRoutesById {
   '/session/$uuid': typeof SessionUuidRoute
   '/session/': typeof SessionIndexRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
@@ -182,7 +111,6 @@ export interface FileRouteTypes {
     | '/session/'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
@@ -191,6 +119,60 @@ export interface RootRouteChildren {
   HistoryExploreRoute: typeof HistoryExploreRoute
   SessionUuidRoute: typeof SessionUuidRoute
   SessionIndexRoute: typeof SessionIndexRoute
+}
+
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/downloads': {
+      id: '/downloads'
+      path: '/downloads'
+      fullPath: '/downloads'
+      preLoaderRoute: typeof DownloadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/session/': {
+      id: '/session/'
+      path: '/session'
+      fullPath: '/session'
+      preLoaderRoute: typeof SessionIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/session/$uuid': {
+      id: '/session/$uuid'
+      path: '/session/$uuid'
+      fullPath: '/session/$uuid'
+      preLoaderRoute: typeof SessionUuidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history/explore': {
+      id: '/history/explore'
+      path: '/history/explore'
+      fullPath: '/history/explore'
+      preLoaderRoute: typeof HistoryExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+  }
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -202,47 +184,6 @@ const rootRouteChildren: RootRouteChildren = {
   SessionUuidRoute: SessionUuidRoute,
   SessionIndexRoute: SessionIndexRoute,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/",
-        "/about",
-        "/downloads",
-        "/settings",
-        "/history/explore",
-        "/session/$uuid",
-        "/session/"
-      ]
-    },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/about": {
-      "filePath": "about.tsx"
-    },
-    "/downloads": {
-      "filePath": "downloads.tsx"
-    },
-    "/settings": {
-      "filePath": "settings.tsx"
-    },
-    "/history/explore": {
-      "filePath": "history.explore.tsx"
-    },
-    "/session/$uuid": {
-      "filePath": "session/$uuid.tsx"
-    },
-    "/session/": {
-      "filePath": "session/index.tsx"
-    }
-  }
-}
-ROUTE_MANIFEST_END */
