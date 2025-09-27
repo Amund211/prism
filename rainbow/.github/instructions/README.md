@@ -17,13 +17,13 @@ Rainbow is a React-based web application that serves as the frontend interface f
 
 ### Node.js Version Requirement (CRITICAL)
 
-**Always use Node.js 22 or higher.** The test suite requires Node 22+ for the `--experimental-strip-types` flag.
+**Always use Node.js 24 or higher.**
 
-If Node.js version is below 22, install Node 22 first:
+If Node.js version is below 24, install Node 24 first:
 
 ```bash
-sudo n 22  # if 'n' is available
-node --version  # verify version is 22+
+sudo n 24  # if 'n' is available
+node --version  # verify version is 24+
 ```
 
 ### Development Environment Setup
@@ -86,7 +86,7 @@ This starts the server at http://localhost:5173/ with proxy to production backen
 | -------------------- | -------------------- | ---------------- | ----------------------------------------- |
 | `npm ci`             | Install dependencies | 30-60s           | Always run before other commands          |
 | `npm run lint:check` | Check code style     | 10-30s           | Must pass for CI                          |
-| `npm test`           | Run all tests        | 5-10s            | Requires Node 22+                         |
+| `npm test`           | Run all tests        | 5-10s            | Requires Node 24+                         |
 | `npm run build`      | Production build     | 2-3 minutes      | May show Sentry warnings (safe to ignore) |
 | `npm run tsc`        | Type checking only   | 10-20s           | Faster than full build                    |
 
@@ -119,14 +119,14 @@ npm run lint:fix           # Fix both prettier + eslint issues
     ```
     node: bad option: --experimental-strip-types
     ```
-    **Solution**: Upgrade to Node 22+ using `sudo n 22`
+    **Solution**: Upgrade to Node 24+ using `sudo n 24`
 
 ## Testing
 
 ### Running Tests
 
 ```bash
-npm test  # Requires Node.js 22+
+npm test  # Requires Node.js 24+
 ```
 
 Tests use Node.js built-in test runner with TypeScript support. All tests should pass in a clean repository.
@@ -209,7 +209,7 @@ import { queryClient } from "#queryClient.ts";
 ### GitHub Actions Workflow (.github/workflows/testing.yml)
 
 ```yaml
-1. Install Node.js 22
+1. Install Node.js 24
 2. Install dependencies (npm ci)
 3. Run linting (npm run lint:check)
 4. Run tests (npm test)
@@ -236,7 +236,7 @@ When committing locally, these hooks run automatically:
 1. **"command not found" errors**: Run `npm ci` first
 2. **TypeScript errors**: Run `npm run tsc` to see detailed errors
 3. **Linting failures**: Run `npm run lint:fix` to auto-fix issues
-4. **Test failures**: Check Node.js version is 22+
+4. **Test failures**: Check Node.js version is 24+
 
 ### Development Server Issues
 
