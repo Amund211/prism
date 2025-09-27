@@ -263,17 +263,35 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 		})
 	})
 
-	t.Run("request with high timeout waits", func(t *testing.T) {
+	t.Run("request conditionally runs based on context deadline", func(t *testing.T) {
 		t.Parallel()
-		for _, timeout := range []time.Duration{
-			12*time.Second + 1*time.Millisecond,
-			15 * time.Second,
-			20 * time.Second,
-			25 * time.Second,
-			30 * time.Second,
-			60 * time.Second,
-		} {
-			t.Run(timeout.String(), func(t *testing.T) {
+		cases := []struct {
+			timeout   time.Duration
+			shouldRun bool
+		}{
+			{1 * time.Second, false},
+			{2 * time.Second, false},
+			{3 * time.Second, false},
+			{4 * time.Second, false},
+			{5 * time.Second, false},
+			{6 * time.Second, false},
+			{7 * time.Second, false},
+			{8 * time.Second, false},
+			{9 * time.Second, false},
+			{10 * time.Second, false},
+			{11 * time.Second, false},
+			{11*time.Second + 999*time.Millisecond, false},
+
+			{12*time.Second + 1*time.Millisecond, true},
+			{15 * time.Second, true},
+			{20 * time.Second, true},
+			{25 * time.Second, true},
+			{30 * time.Second, true},
+			{60 * time.Second, true},
+		}
+
+		for _, c := range cases {
+			t.Run(c.timeout.String(), func(t *testing.T) {
 				t.Parallel()
 				synctest.Test(t, func(t *testing.T) {
 					start := time.Now()
@@ -288,14 +306,20 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 
 					require.Equal(t, start, time.Now())
 
-					ctx, close := context.WithTimeout(t.Context(), timeout)
+					ctx, close := context.WithTimeout(t.Context(), c.timeout)
 					defer close()
 					ran = l.Limit(ctx, minOperationTime, func() {
 						t.Helper()
+						require.True(t, c.shouldRun)
 						require.Equal(t, start.Add(10*time.Second), time.Now())
 					})
-					require.True(t, ran)
-					require.Equal(t, start.Add(10*time.Second), time.Now())
+
+					require.Equal(t, c.shouldRun, ran)
+					if c.shouldRun {
+						require.Equal(t, start.Add(10*time.Second), time.Now())
+					} else {
+						require.Equal(t, start, time.Now())
+					}
 				})
 			})
 		}
@@ -326,52 +350,6 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 					defer close()
 					ran := l.Limit(ctx, minOperationTime, func() {})
 					require.True(t, ran)
-
-					require.Equal(t, start, time.Now())
-				})
-			})
-		}
-	})
-
-	t.Run("request with low timeout returns early with error", func(t *testing.T) {
-		t.Parallel()
-
-		for _, timeout := range []time.Duration{
-			1 * time.Second,
-			2 * time.Second,
-			3 * time.Second,
-			4 * time.Second,
-			5 * time.Second,
-			6 * time.Second,
-			7 * time.Second,
-			8 * time.Second,
-			9 * time.Second,
-			10 * time.Second,
-			11 * time.Second,
-			11*time.Second + 999*time.Millisecond,
-		} {
-			t.Run(timeout.String(), func(t *testing.T) {
-				t.Parallel()
-				synctest.Test(t, func(t *testing.T) {
-					start := time.Now()
-
-					l := ratelimiting.NewWindowLimitRequestLimiter(2, 10*time.Second, time.Now, time.After)
-					minOperationTime := 2 * time.Second
-
-					// Exhaust the limiter
-					ran := l.Limit(ctx, minOperationTime, func() {})
-					require.True(t, ran)
-					ran = l.Limit(ctx, minOperationTime, func() {})
-					require.True(t, ran)
-
-					ctx, close := context.WithTimeout(t.Context(), timeout)
-					defer close()
-
-					ran = l.Limit(ctx, minOperationTime, func() {
-						t.Helper()
-						require.Fail(t, "operation should not be called")
-					})
-					require.False(t, ran)
 
 					require.Equal(t, start, time.Now())
 				})
