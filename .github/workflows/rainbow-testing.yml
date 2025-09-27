@@ -28,3 +28,12 @@ jobs:
                   # Upload source maps on every build
                   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
               run: npm run build
+
+            - name: Check route tree is up to date
+              run: |
+                  if ! git diff --exit-code src/routeTree.gen.ts; then
+                      echo "Error: The route tree file (src/routeTree.gen.ts) is not up to date."
+                      echo "Run 'npm run build' and commit the changes."
+                      exit 1
+                  fi
+                  echo "Route tree is up to date ✓"
