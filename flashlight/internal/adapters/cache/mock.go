@@ -118,7 +118,7 @@ func NewMockCacheServer[T any](numGoroutines int, maxTicks int) (*mockCacheServe
 	}
 
 	clients := make([]*mockCacheClient[T], numGoroutines)
-	for i := 0; i < numGoroutines; i++ {
+	for i := range numGoroutines {
 		clients[i] = &mockCacheClient[T]{
 			server:      server,
 			desiredTick: 0,

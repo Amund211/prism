@@ -324,7 +324,7 @@ func (p *PostgresPlayerRepository) GetHistory(ctx context.Context, playerUUID st
 	numberOfIntervals := limit / 2
 
 	intervalLength := timespan / time.Duration(numberOfIntervals)
-	for offset := 0; offset < numberOfIntervals; offset++ {
+	for offset := range numberOfIntervals {
 		intervalStart := start.Add(intervalLength * time.Duration(offset))
 		intervalEnd := start.Add(intervalLength * time.Duration(offset+1))
 

@@ -16,7 +16,7 @@ type Callback func() (Data, error)
 
 func withWait[T any](client *mockCacheClient[T], waits int, f Callback) Callback {
 	wrapped := func() (Data, error) {
-		for i := 0; i < waits; i++ {
+		for range waits {
 			client.wait()
 		}
 		return f()
@@ -48,11 +48,11 @@ func createUnreachable(t *testing.T) Callback {
 }
 
 func TestMockedCacheFinishes(t *testing.T) {
-	for clientCount := 0; clientCount < 10; clientCount++ {
+	for clientCount := range 10 {
 		server, clients := NewMockCacheServer[Data](clientCount, 100)
 		completedWg := sync.WaitGroup{}
 		completedWg.Add(clientCount)
-		for i := 0; i < clientCount; i++ {
+		for i := range clientCount {
 			i := i
 			go func() {
 				client := clients[i]
@@ -190,7 +190,7 @@ func TestGetOrCreateRealCache(t *testing.T) {
 		ctx := context.Background()
 		cache := NewTTLCache[Data](1 * time.Minute)
 
-		for testIndex := 0; testIndex < 100; testIndex++ {
+		for testIndex := range 100 {
 			t.Run(fmt.Sprintf("attempt #%d", testIndex), func(t *testing.T) {
 				t.Parallel()
 
@@ -201,7 +201,7 @@ func TestGetOrCreateRealCache(t *testing.T) {
 					return createResponse(1)
 				}
 
-				for callIndex := 0; callIndex < 10; callIndex++ {
+				for range 10 {
 					go func() {
 						data, err := GetOrCreate(ctx, cache, fmt.Sprintf("key%d", testIndex), monoStableCallback)
 						require.Nil(t, err)

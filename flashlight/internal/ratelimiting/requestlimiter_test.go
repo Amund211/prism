@@ -225,7 +225,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 			startedAt := make([]time.Time, 0)
 
 			// These requests should start immediately
-			for i := 0; i < requests; i++ {
+			for range requests {
 				wg.Go(func() {
 					t.Helper()
 
@@ -254,7 +254,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 			})
 
 			require.Len(t, startedAt, requests)
-			for i := 0; i < requests; i++ {
+			for i := range requests {
 				batch := i / 2
 				waitPerBatch := 10*time.Second + 1*time.Second
 				earliestStart := start.Add(time.Duration(batch) * waitPerBatch)

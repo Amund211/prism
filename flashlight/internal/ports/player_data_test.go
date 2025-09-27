@@ -105,7 +105,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 		}, logger, sentryMiddleware)
 
 		// Exhaust the rate limit
-		for i := 0; i < 200; i++ {
+		for range 200 {
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest(http.MethodGet, target, nil)
 			getPlayerDataHandler(w, req)
@@ -117,7 +117,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 			}
 		}
 
-		for i := 0; i < 30; i++ {
+		for range 30 {
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest(http.MethodGet, target, nil)
 			getPlayerDataHandler(w, req)

@@ -298,7 +298,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 
 			t.Run("when storing for many different players", func(t *testing.T) {
 				t.Parallel()
-				for i := 0; i < limit; i++ {
+				for i := range limit {
 					t1 := now.Add(time.Duration(i) * time.Minute)
 					uuid := domaintest.NewUUID(t)
 					player := domaintest.NewPlayerBuilder(uuid, t1).WithGamesPlayed(i).BuildPtr()
@@ -314,7 +314,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 				t1 := now
 				player := domaintest.NewPlayerBuilder(uuid, t1).WithGamesPlayed(1).BuildPtr()
 
-				for i := 0; i < limit; i++ {
+				for range limit {
 					err := p.StorePlayer(ctx, player)
 					require.NoError(t, err)
 					// Will only ever be stored once since the time is within one minute
@@ -388,7 +388,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			count := 24 * density
 			interval := 24 * time.Hour / time.Duration(count)
 			// Evenly distributed stats for 24 hours + 1 extra
-			for i := 0; i < count+1; i++ {
+			for i := range count + 1 {
 				players = append(
 					players,
 					domaintest.NewPlayerBuilder(player_uuid, janFirst21.Add(time.Duration(i)*interval)).WithGamesPlayed(i).BuildPtr(),
@@ -402,7 +402,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			history, err := p.GetHistory(ctx, player_uuid, janFirst21, janFirst21.Add(24*time.Hour), 48)
 			require.NoError(t, err)
 			expectedDistribution := []time.Time{}
-			for i := 0; i < 24; i++ {
+			for i := range 24 {
 				startOfHour := janFirst21.Add(time.Duration(i) * time.Hour)
 				expectedDistribution = append(expectedDistribution, startOfHour)
 				if i != 23 {

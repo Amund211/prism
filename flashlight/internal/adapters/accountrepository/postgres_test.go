@@ -571,7 +571,7 @@ func TestPostgres(t *testing.T) {
 			wg := &sync.WaitGroup{}
 			wg.Add(limit)
 
-			for i := 0; i < limit; i++ {
+			for i := range limit {
 				go func(i int) {
 					defer wg.Done()
 					t1 := now.Add(time.Duration(i) * time.Minute)
@@ -601,7 +601,7 @@ func TestPostgres(t *testing.T) {
 
 			t.Run("when storing for many different players", func(t *testing.T) {
 				t.Parallel()
-				for i := 0; i < limit; i++ {
+				for i := range limit {
 					t1 := now.Add(time.Duration(i) * time.Minute)
 					err := p.StoreAccount(ctx, domain.Account{
 						UUID:      makeUUID(i),
@@ -613,7 +613,7 @@ func TestPostgres(t *testing.T) {
 			})
 			t.Run("when storing for the same player at the same time", func(t *testing.T) {
 				t.Parallel()
-				for i := 0; i < limit; i++ {
+				for i := range limit {
 					t1 := now.Add(time.Duration(i) * time.Minute)
 					err := p.StoreAccount(ctx, domain.Account{
 						UUID:      makeUUID(4_192),
