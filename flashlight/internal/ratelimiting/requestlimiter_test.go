@@ -16,7 +16,6 @@ import (
 
 func TestWindowLimitRequestLimiter(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
 
 	t.Run("init", func(t *testing.T) {
 		t.Parallel()
@@ -28,6 +27,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
 			start := time.Now()
+			ctx := t.Context()
 
 			l1 := ratelimiting.NewWindowLimitRequestLimiter(1, 1*time.Hour, time.Now, time.After)
 			l2 := ratelimiting.NewWindowLimitRequestLimiter(1, 1*time.Hour, time.Now, time.After)
@@ -179,7 +179,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				synctest.Test(t, func(t *testing.T) {
 					start := time.Now()
 
-					ctx := context.Background()
+					ctx := t.Context()
 
 					l := ratelimiting.NewWindowLimitRequestLimiter(c.limit, c.window, time.Now, time.After)
 					minOperationTime := 500 * time.Millisecond // Does not matter since we don't have a deadline
@@ -215,6 +215,8 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
 			start := time.Now()
+			ctx := t.Context()
+
 			l := ratelimiting.NewWindowLimitRequestLimiter(2, 10*time.Second, time.Now, time.After)
 			minOperationTime := 500 * time.Millisecond // Doesn't matter since we don't have a deadline
 			operationTime := 1 * time.Second
@@ -295,6 +297,8 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				t.Parallel()
 				synctest.Test(t, func(t *testing.T) {
 					start := time.Now()
+					ctx := t.Context()
+
 					l := ratelimiting.NewWindowLimitRequestLimiter(2, 10*time.Second, time.Now, time.After)
 					minOperationTime := 2 * time.Second
 
@@ -366,6 +370,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 			t.Parallel()
 			synctest.Test(t, func(t *testing.T) {
 				start := time.Now()
+				ctx := t.Context()
 
 				requestsCompletedWg := sync.WaitGroup{}
 
@@ -386,7 +391,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				// Wait for the requests to start and occupy all slots
 				synctest.Wait()
 
-				ctx, cancel := context.WithCancel(context.Background())
+				ctx, cancel := context.WithCancel(t.Context())
 
 				requestCanceled := false
 				requestsCompletedWg.Go(func() {
@@ -422,6 +427,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 
 			synctest.Test(t, func(t *testing.T) {
 				start := time.Now()
+				ctx := t.Context()
 
 				l := ratelimiting.NewWindowLimitRequestLimiter(2, 10*time.Second, time.Now, time.After)
 				// Exhaust the limiter
@@ -467,6 +473,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 
 			synctest.Test(t, func(t *testing.T) {
 				start := time.Now()
+				ctx := t.Context()
 
 				requestsCompletedWg := sync.WaitGroup{}
 
@@ -517,6 +524,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 
 			synctest.Test(t, func(t *testing.T) {
 				start := time.Now()
+				ctx := t.Context()
 
 				l := ratelimiting.NewWindowLimitRequestLimiter(1, 10*time.Second, time.Now, time.After)
 
@@ -559,6 +567,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 
 			synctest.Test(t, func(t *testing.T) {
 				start := time.Now()
+				ctx := t.Context()
 
 				l := ratelimiting.NewWindowLimitRequestLimiter(2, 10*time.Second, time.Now, time.After)
 
@@ -626,7 +635,8 @@ func (m *mockedCancelableRequestLimiter) LimitCancelable(ctx context.Context, mi
 
 func TestComposedRequestLimiter(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
+
 	t.Run("init", func(t *testing.T) {
 		t.Parallel()
 		l1 := ratelimiting.NewWindowLimitRequestLimiter(5, 10*time.Minute, time.Now, time.After)
@@ -639,6 +649,7 @@ func TestComposedRequestLimiter(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
 			start := time.Now()
+			ctx := t.Context()
 
 			l1 := ratelimiting.NewWindowLimitRequestLimiter(1, 1*time.Hour, time.Now, time.After)
 			l2 := ratelimiting.NewWindowLimitRequestLimiter(1, 1*time.Hour, time.Now, time.After)
