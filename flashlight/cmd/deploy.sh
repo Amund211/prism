@@ -2,6 +2,8 @@
 
 set -eu
 
+docker_repository_url='northamerica-northeast2-docker.pkg.dev/prism-overlay/flashlight-dockerimages'
+
 function_name="${1:-}"
 
 case $function_name in
@@ -9,11 +11,13 @@ flashlight)
 	service_name='flashlight-cr'
 	sentry_dsn_key='flashlight-sentry-dsn'
 	environment='production'
+	image_name='flashlight'
 	;;
 flashlight-test)
 	service_name='flashlight-test-cr'
 	sentry_dsn_key='flashlight-test-sentry-dsn'
 	environment='staging'
+	image_name='flashlight-test'
 	;;
 *)
 	echo "Invalid/missing function name '$function_name'. Must be 'flashlight' or 'flashlight-test'" >&2
@@ -21,8 +25,14 @@ flashlight-test)
 	;;
 esac
 
+image="$docker_repository_url/$image_name:latest"
+
+docker build -t "$image" .
+
+docker push "$image"
+
 gcloud run deploy "$service_name" \
-	--source . \
+	--image "$image" \
 	--region=northamerica-northeast2 \
 	--max-instances=1 \
 	--min-instances=0 \

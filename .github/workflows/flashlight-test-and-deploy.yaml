@@ -103,6 +103,13 @@ jobs:
           project_id: 'prism-overlay'
           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
 
+      - name: Login to GAR
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: northamerica-northeast2-docker.pkg.dev
+          username: _json_key
+          password: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+
       - name: Deploy test instance
         run: ./cmd/deploy.sh flashlight-test
 
@@ -118,6 +125,13 @@ jobs:
         with:
           project_id: 'prism-overlay'
           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+
+      - name: Login to GAR
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: northamerica-northeast2-docker.pkg.dev
+          username: _json_key
+          password: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
 
       - name: Deploy production instance
         run: ./cmd/deploy.sh flashlight
