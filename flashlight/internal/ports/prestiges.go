@@ -40,18 +40,21 @@ func MakeGetPrestigesHandler(
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 ) http.HandlerFunc {
+	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+		ratelimiting.RefillPerSecond(4),
+		ratelimiting.BurstSize(240),
+	)
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		ratelimiting.NewTokenBucketRateLimiter(
-			ratelimiting.RefillPerSecond(4),
-			ratelimiting.BurstSize(240),
-		),
+		ipLimiter,
 		ratelimiting.IPKeyFunc,
 	)
+	userIDLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+		ratelimiting.RefillPerSecond(1),
+		ratelimiting.BurstSize(60),
+	)
 	userIDRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		ratelimiting.NewTokenBucketRateLimiter(
-			ratelimiting.RefillPerSecond(1),
-			ratelimiting.BurstSize(60),
-		),
+		// NOTE: Rate limiting based on user controlled value
+		userIDLimiter,
 		ratelimiting.UserIDKeyFunc,
 	)
 

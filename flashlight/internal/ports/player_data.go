@@ -21,19 +21,21 @@ func MakeGetPlayerDataHandler(
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 ) http.HandlerFunc {
+	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+		ratelimiting.RefillPerSecond(8),
+		ratelimiting.BurstSize(480),
+	)
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		ratelimiting.NewTokenBucketRateLimiter(
-			ratelimiting.RefillPerSecond(8),
-			ratelimiting.BurstSize(480),
-		),
+		ipLimiter,
 		ratelimiting.IPKeyFunc,
+	)
+	userIDLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+		ratelimiting.RefillPerSecond(2),
+		ratelimiting.BurstSize(120),
 	)
 	userIDRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		// NOTE: Rate limiting based on user controlled value
-		ratelimiting.NewTokenBucketRateLimiter(
-			ratelimiting.RefillPerSecond(2),
-			ratelimiting.BurstSize(120),
-		),
+		userIDLimiter,
 		ratelimiting.UserIDKeyFunc,
 	)
 

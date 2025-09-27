@@ -22,7 +22,8 @@ func TestTokenBucketRateLimiter(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping test in short mode")
 	}
-	rateLimiter := NewTokenBucketRateLimiter(RefillPerSecond(1), BurstSize(2))
+	rateLimiter, stop := NewTokenBucketRateLimiter(RefillPerSecond(1), BurstSize(2))
+	defer stop()
 
 	require.True(t, rateLimiter.Consume("user2"))
 

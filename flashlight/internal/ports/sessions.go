@@ -22,19 +22,21 @@ func MakeGetSessionsHandler(
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 ) http.HandlerFunc {
-	ipRatelimiter := ratelimiting.NewRequestBasedRateLimiter(
-		ratelimiting.NewTokenBucketRateLimiter(
-			ratelimiting.RefillPerSecond(4),
-			ratelimiting.BurstSize(80),
-		),
+	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+		ratelimiting.RefillPerSecond(4),
+		ratelimiting.BurstSize(80),
+	)
+	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
+		ipLimiter,
 		ratelimiting.IPKeyFunc,
+	)
+	userIDLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+		ratelimiting.RefillPerSecond(1),
+		ratelimiting.BurstSize(20),
 	)
 	userIDRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		// NOTE: Rate limiting based on user controlled value
-		ratelimiting.NewTokenBucketRateLimiter(
-			ratelimiting.RefillPerSecond(1),
-			ratelimiting.BurstSize(20),
-		),
+		userIDLimiter,
 		ratelimiting.UserIDKeyFunc,
 	)
 
@@ -56,7 +58,7 @@ func MakeGetSessionsHandler(
 		sentryMiddleware,
 		reporting.NewAddMetaMiddleware("sessions"),
 		BuildCORSMiddleware(allowedOrigins),
-		NewRateLimitMiddleware(ipRatelimiter, makeOnLimitExceeded(ipRatelimiter)),
+		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
 	)
 
