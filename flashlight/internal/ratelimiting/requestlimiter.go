@@ -58,15 +58,15 @@ func NewWindowLimitRequestLimiter(
 	afterFunc func(time.Duration) <-chan time.Time,
 ) *windowLimitRequestLimiter {
 	availableSlots := make(chan struct{}, limit)
-	for range limit {
-		availableSlots <- struct{}{}
-	}
+	finishedRequests := make([]time.Time, limit)
 
 	// No finished requests within the window -> no waiting for the first requests
-	finishedRequests := make([]time.Time, limit)
 	veryOldTime := nowFunc().Add(-window)
+
+	// Initialize the limiter with slots and finished requests outside the window
 	for i := range limit {
 		finishedRequests[i] = veryOldTime
+		availableSlots <- struct{}{}
 	}
 
 	return &windowLimitRequestLimiter{
