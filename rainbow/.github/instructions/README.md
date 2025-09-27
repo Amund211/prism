@@ -115,12 +115,6 @@ npm run lint:fix           # Fix both prettier + eslint issues
     Some chunks are larger than 500 kB after minification
     ```
 
-3. **Node Version Error**:
-    ```
-    node: bad option: --experimental-strip-types
-    ```
-    **Solution**: Upgrade to Node 24+ using `sudo n 24`
-
 ## Testing
 
 ### Running Tests
