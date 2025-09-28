@@ -68,7 +68,7 @@ jobs:
         run: psql -h localhost -U postgres -c 'CREATE DATABASE flashlight;'
 
       - name: Run tests
-        run: go test -v ./internal/...
+        run: go test ./...
 
       - name: Go build
         run: |
