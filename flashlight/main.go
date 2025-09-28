@@ -76,6 +76,13 @@ func main() {
 	if err != nil {
 		fail("Failed to initialize PostgresPlayerRepository", "error", err.Error())
 	}
+	if config.IsProduction() {
+		// Current cloud sql database has a connection limit of 25, and 3 reserved for superusers
+		db.DB.SetMaxOpenConns(16)
+	} else {
+		// Fewer connections in staging to prevent interfering with prod
+		db.DB.SetMaxOpenConns(2)
+	}
 	logger.Info("Initialized database connection")
 
 	repositorySchemaName := database.GetSchemaName(!config.IsProduction())
