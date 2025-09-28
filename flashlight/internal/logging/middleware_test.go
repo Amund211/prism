@@ -19,6 +19,8 @@ type StringAttr struct {
 }
 
 func TestRequestLoggerMiddleware(t *testing.T) {
+	t.Parallel()
+
 	run := func(request *http.Request, useMiddleware bool) []StringAttr {
 		t.Helper()
 

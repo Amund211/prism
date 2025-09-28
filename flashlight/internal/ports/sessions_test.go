@@ -19,6 +19,8 @@ import (
 )
 
 func TestMakeGetSessionsHandler(t *testing.T) {
+	t.Parallel()
+
 	allowedOrigins, err := ports.NewDomainSuffixes("example.com", "test.com")
 	require.NoError(t, err)
 

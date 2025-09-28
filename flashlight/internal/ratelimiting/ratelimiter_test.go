@@ -49,6 +49,8 @@ func TestTokenBucketRateLimiter(t *testing.T) {
 }
 
 func TestIPKeyFunc(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		remoteAddr string
 		key        string
@@ -68,6 +70,8 @@ func TestIPKeyFunc(t *testing.T) {
 }
 
 func TestUserIDKeyFunc(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		userID string
 		key    string
@@ -101,6 +105,8 @@ func TestUserIDKeyFunc(t *testing.T) {
 }
 
 func TestRequestBasedRateLimiter(t *testing.T) {
+	t.Parallel()
+
 	var expectedKey string
 	var allowed bool
 	rateLimiter := &mockedRateLimiter{

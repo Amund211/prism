@@ -11,6 +11,8 @@ const INVALID_CHARACTER = "invalid character in UUID"
 const BAD_LENGTH = "normalized UUID has incorrect length"
 
 func TestNormalizeUUID(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		input          string
 		expected       string

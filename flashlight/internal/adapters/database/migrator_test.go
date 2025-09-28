@@ -17,6 +17,7 @@ func TestMigrator(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping migrator tests in short mode.")
 	}
+	t.Parallel()
 
 	t.Run("migrate up and down", func(t *testing.T) {
 		t.Parallel()

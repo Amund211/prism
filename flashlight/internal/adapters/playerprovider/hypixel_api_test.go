@@ -68,6 +68,8 @@ func newMockedHttpClient(t *testing.T, expectedURL string, statusCode int, body 
 }
 
 func TestGetPlayerData(t *testing.T) {
+	t.Parallel()
+
 	now := time.Now()
 
 	nowFunc := func() time.Time {

@@ -9,6 +9,8 @@ import (
 )
 
 func TestStarsToExperience(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		stars      int
 		experience int64
@@ -33,6 +35,8 @@ func TestStarsToExperience(t *testing.T) {
 }
 
 func TestExperienceToStars(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		experience int64
 		stars      int

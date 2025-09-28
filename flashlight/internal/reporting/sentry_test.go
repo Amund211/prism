@@ -8,6 +8,8 @@ import (
 )
 
 func TestSanitizeError(t *testing.T) {
+	t.Parallel()
+
 	t.Run("connection reset by peer", func(t *testing.T) {
 		t.Parallel()
 

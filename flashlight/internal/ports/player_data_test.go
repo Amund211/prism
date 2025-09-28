@@ -17,6 +17,8 @@ import (
 )
 
 func TestMakeGetPlayerDataHandler(t *testing.T) {
+	t.Parallel()
+
 	const UUID = "01234567-89ab-cdef-0123-456789abcdef"
 	target := fmt.Sprintf("/?uuid=%s", UUID)
 
@@ -150,6 +152,8 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 }
 
 func TestWriteErrorResponse(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		err            error
 		expectedStatus int

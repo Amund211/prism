@@ -18,6 +18,8 @@ import (
 )
 
 func TestGetPrestigesHandler(t *testing.T) {
+	t.Parallel()
+
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	sentryMiddleware := func(next http.HandlerFunc) http.HandlerFunc { return next }
 	allowedOrigins, err := ports.NewDomainSuffixes("example.com", "test.com")

@@ -8,6 +8,8 @@ import (
 )
 
 func TestJSONStringsEqual(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name    string
 		a       []byte

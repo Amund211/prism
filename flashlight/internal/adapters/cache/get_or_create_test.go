@@ -47,6 +47,8 @@ func createUnreachable(t *testing.T) Callback {
 }
 
 func TestMockedCacheFinishes(t *testing.T) {
+	t.Parallel()
+
 	for clientCount := range 10 {
 		server, clients := NewMockCacheServer[Data](clientCount, 100)
 		completedWg := sync.WaitGroup{}
@@ -65,6 +67,8 @@ func TestMockedCacheFinishes(t *testing.T) {
 }
 
 func TestGetOrCreateSingle(t *testing.T) {
+	t.Parallel()
+
 	server, clients := NewMockCacheServer[Data](1, 10)
 
 	go func() {
@@ -87,6 +91,8 @@ func TestGetOrCreateSingle(t *testing.T) {
 }
 
 func TestGetOrCreateMultiple(t *testing.T) {
+	t.Parallel()
+
 	server, clients := NewMockCacheServer[Data](2, 10)
 
 	go func() {
@@ -127,6 +133,8 @@ func TestGetOrCreateMultiple(t *testing.T) {
 }
 
 func TestGetOrCreateErrorRetries(t *testing.T) {
+	t.Parallel()
+
 	server, clients := NewMockCacheServer[Data](2, 10)
 
 	go func() {
@@ -187,6 +195,8 @@ func TestGetOrCreateCleansUpOnError(t *testing.T) {
 }
 
 func TestGetOrCreateRealCache(t *testing.T) {
+	t.Parallel()
+
 	t.Run("requests are de-duplicated in highly concurrent environment", func(t *testing.T) {
 		t.Parallel()
 

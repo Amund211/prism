@@ -15,6 +15,8 @@ import (
 )
 
 func TestUUIDFromMojangResponse(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		response   []byte
@@ -139,6 +141,8 @@ func (m *mockedClient) Do(req *http.Request) (*http.Response, error) {
 }
 
 func TestMojang(t *testing.T) {
+	t.Parallel()
+
 	ctx := t.Context()
 
 	now := time.Date(2023, 10, 1, 12, 0, 0, 0, time.UTC)

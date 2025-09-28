@@ -36,6 +36,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping db tests in short mode.")
 	}
+	t.Parallel()
 
 	ctx := t.Context()
 	db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
@@ -1137,6 +1138,7 @@ func TestFindMilestoneAchievements(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping database tests in short mode")
 	}
+	t.Parallel()
 
 	ctx := t.Context()
 	db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)

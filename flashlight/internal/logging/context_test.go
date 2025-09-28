@@ -66,6 +66,8 @@ func (w *jsonWriter) RequireEmpty() {
 }
 
 func TestFromContext(t *testing.T) {
+	t.Parallel()
+
 	ctx := t.Context()
 	buf := &bytes.Buffer{}
 	logger := slog.New(slog.NewJSONHandler(buf, nil))
@@ -76,6 +78,8 @@ func TestFromContext(t *testing.T) {
 }
 
 func TestAddMetaToContext(t *testing.T) {
+	t.Parallel()
+
 	ctx := t.Context()
 	w := newWriter(t)
 	rootLogger := slog.New(slog.NewJSONHandler(w, nil)).With(slog.String("rootprop", "rootval"))

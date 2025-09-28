@@ -22,6 +22,8 @@ func (m *mockedRateLimiter) Consume(key string) bool {
 }
 
 func TestRateLimitMiddleware(t *testing.T) {
+	t.Parallel()
+
 	runTest := func(t *testing.T, allow bool) {
 		t.Helper()
 		handlerCalled := false
@@ -77,6 +79,8 @@ func TestRateLimitMiddleware(t *testing.T) {
 }
 
 func TestComposeMiddlewares(t *testing.T) {
+	t.Parallel()
+
 	t.Run("single middleware", func(t *testing.T) {
 		t.Parallel()
 

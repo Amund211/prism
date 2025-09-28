@@ -18,6 +18,8 @@ import (
 )
 
 func TestMakeGetAccountByUsernameHandler(t *testing.T) {
+	t.Parallel()
+
 	testLogger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	allowedOrigins, err := ports.NewDomainSuffixes("example.com", "test.com")
 	require.NoError(t, err)

@@ -30,6 +30,8 @@ func (m *mockedHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]by
 }
 
 func TestHypixelPlayerProvider(t *testing.T) {
+	t.Parallel()
+
 	now := time.Now()
 
 	t.Run("GetPlayer", func(t *testing.T) {

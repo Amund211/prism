@@ -36,14 +36,6 @@ func newMockHistoryRepository(t *testing.T, history []domain.PlayerPIT, err erro
 	}
 }
 
-func newGetAndPersistPlayerWithCacheForHistory(err error) app.GetAndPersistPlayerWithCache {
-	return func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
-		// NOTE: We don't read the value in GetHistory, only the error
-		player := domaintest.NewPlayerBuilder(uuid, time.Now()).BuildPtr()
-		return player, err
-	}
-}
-
 func TestBuildGetHistory(t *testing.T) {
 	t.Parallel()
 

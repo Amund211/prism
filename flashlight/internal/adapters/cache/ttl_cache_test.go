@@ -8,6 +8,8 @@ import (
 )
 
 func TestTTLCache(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Set and get", func(t *testing.T) {
 		t.Parallel()
 

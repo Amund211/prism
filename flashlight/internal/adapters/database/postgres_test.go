@@ -10,6 +10,8 @@ import (
 )
 
 func TestDB(t *testing.T) {
+	t.Parallel()
+
 	t.Run("db name", func(t *testing.T) {
 		t.Parallel()
 

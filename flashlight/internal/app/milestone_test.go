@@ -28,6 +28,8 @@ func (m *mockMilestoneRepository) FindMilestoneAchievements(ctx context.Context,
 }
 
 func TestFindMilestoneAchievements(t *testing.T) {
+	t.Parallel()
+
 	ctx := t.Context()
 	playerUUID := domaintest.NewUUID(t)
 

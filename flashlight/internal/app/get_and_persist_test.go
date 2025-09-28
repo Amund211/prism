@@ -41,6 +41,8 @@ func (m *mockedPlayerProvider) GetPlayer(ctx context.Context, uuid string) (*dom
 }
 
 func TestGetAndPersistPlayer(t *testing.T) {
+	t.Parallel()
+
 	now := time.Now()
 	t.Run("stats are not created if they already exist", func(t *testing.T) {
 		t.Parallel()
