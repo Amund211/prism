@@ -19,6 +19,8 @@ func TestMigrator(t *testing.T) {
 	}
 
 	t.Run("migrate up and down", func(t *testing.T) {
+		t.Parallel()
+
 		ctx := t.Context()
 		schemaName := "migrate_up_down"
 

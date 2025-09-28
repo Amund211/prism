@@ -53,6 +53,8 @@ func TestGetPrestigesHandler(t *testing.T) {
 	}
 
 	t.Run("Successful request", func(t *testing.T) {
+		t.Parallel()
+
 		rawPlayerUUID := "550e8400e29b41d4a716446655440000"
 		playerUUID, err := strutils.NormalizeUUID(rawPlayerUUID)
 		require.NoError(t, err)
@@ -99,6 +101,8 @@ func TestGetPrestigesHandler(t *testing.T) {
 	})
 
 	t.Run("Invalid UUID", func(t *testing.T) {
+		t.Parallel()
+
 		handler := ports.MakeGetPrestigesHandler(makeAssertNotCalled(t), allowedOrigins, logger, sentryMiddleware)
 
 		req := makeRequest("invalid-uuid")
@@ -112,6 +116,8 @@ func TestGetPrestigesHandler(t *testing.T) {
 	})
 
 	t.Run("Missing UUID", func(t *testing.T) {
+		t.Parallel()
+
 		handler := ports.MakeGetPrestigesHandler(makeAssertNotCalled(t), allowedOrigins, logger, sentryMiddleware)
 
 		req := httptest.NewRequest("GET", "/v1/prestiges", nil)

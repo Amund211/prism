@@ -28,6 +28,8 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+
 		player := domaintest.NewPlayerBuilder(UUID, now).WithExperience(1000).BuildPtr()
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
@@ -50,6 +52,8 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	})
 
 	t.Run("client error: invalid uuid", func(t *testing.T) {
+		t.Parallel()
+
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			t.Helper()
 			t.Fatal("should not be called")
@@ -68,6 +72,8 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	})
 
 	t.Run("player not found", func(t *testing.T) {
+		t.Parallel()
+
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return nil, fmt.Errorf("%w: couldn't find him", domain.ErrPlayerNotFound)
 		}, logger, sentryMiddleware)
@@ -83,6 +89,8 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	})
 
 	t.Run("provider temporarily unavailable", func(t *testing.T) {
+		t.Parallel()
+
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return nil, fmt.Errorf("error :^(: (%w)", domain.ErrTemporarilyUnavailable)
 		}, logger, sentryMiddleware)
@@ -98,6 +106,8 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	})
 
 	t.Run("rate limit exceeded", func(t *testing.T) {
+		t.Parallel()
+
 		player := domaintest.NewPlayerBuilder(UUID, now).WithExperience(1000).BuildPtr()
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {

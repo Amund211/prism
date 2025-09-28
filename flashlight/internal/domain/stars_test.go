@@ -24,6 +24,8 @@ func TestStarsToExperience(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%d stars", tt.stars), func(t *testing.T) {
+			t.Parallel()
+
 			result := domain.StarsToExperience(tt.stars)
 			require.Equal(t, tt.experience, result)
 		})
@@ -46,6 +48,8 @@ func TestExperienceToStars(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%d experience", tt.experience), func(t *testing.T) {
+			t.Parallel()
+
 			result := domain.ExperienceToStars(tt.experience)
 			require.Equal(t, tt.stars, result)
 		})

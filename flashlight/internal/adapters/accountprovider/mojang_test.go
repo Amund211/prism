@@ -101,6 +101,8 @@ func TestUUIDFromMojangResponse(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			account, err := accountFromMojangResponse(tc.statusCode, tc.response, tc.queriedAt)
 			if tc.err != nil {
 				if errors.Is(tc.err, assert.AnError) {

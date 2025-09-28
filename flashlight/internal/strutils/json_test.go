@@ -125,9 +125,13 @@ func TestJSONStringsEqual(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			runTest(t, tc.a, tc.b, tc.want, tc.wantErr)
 		})
 		t.Run(tc.name+" (reversed)", func(t *testing.T) {
+			t.Parallel()
+
 			runTest(t, tc.b, tc.a, tc.want, tc.wantErr)
 		})
 	}

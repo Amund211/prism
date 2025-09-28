@@ -49,6 +49,8 @@ func TestPlayerToHypixelAPIResponse(t *testing.T) {
 	}
 
 	t.Run("literal cases", func(t *testing.T) {
+		t.Parallel()
+
 		cases := []playerToHypixelAPIResponseTestCase{
 			{
 				name:   "no player",

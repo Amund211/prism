@@ -59,6 +59,8 @@ func TestIPKeyFunc(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.remoteAddr, func(t *testing.T) {
+			t.Parallel()
+
 			request := &http.Request{RemoteAddr: c.remoteAddr}
 			require.Equal(t, c.key, IPKeyFunc(request))
 		})
@@ -82,6 +84,8 @@ func TestUserIDKeyFunc(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.userID, func(t *testing.T) {
+			t.Parallel()
+
 			request := &http.Request{
 				Header: http.Header{"X-User-Id": []string{c.userID}},
 			}
@@ -89,6 +93,8 @@ func TestUserIDKeyFunc(t *testing.T) {
 		})
 	}
 	t.Run("missing", func(t *testing.T) {
+		t.Parallel()
+
 		request := &http.Request{}
 		require.Equal(t, "user-id: <missing>", UserIDKeyFunc(request))
 	})

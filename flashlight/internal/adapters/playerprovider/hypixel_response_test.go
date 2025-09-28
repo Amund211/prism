@@ -191,8 +191,9 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 		}
 
 		for _, test := range append(literalTests, cloudflareTests...) {
-			test := test
 			t.Run(test.name, func(t *testing.T) {
+				t.Parallel()
+
 				runHypixelAPIResponseToPlayerTest(t, test)
 			})
 		}

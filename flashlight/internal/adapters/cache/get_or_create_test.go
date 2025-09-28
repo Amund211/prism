@@ -173,6 +173,8 @@ func TestGetOrCreateCleansUpOnError(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := GetOrCreate(t.Context(), c.cache, "key1", createErrorCallback(10))
 			require.Error(t, err)
 
@@ -186,6 +188,8 @@ func TestGetOrCreateCleansUpOnError(t *testing.T) {
 
 func TestGetOrCreateRealCache(t *testing.T) {
 	t.Run("requests are de-duplicated in highly concurrent environment", func(t *testing.T) {
+		t.Parallel()
+
 		ctx := t.Context()
 		cache := NewTTLCache[Data](1 * time.Minute)
 

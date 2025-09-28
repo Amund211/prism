@@ -33,7 +33,11 @@ func TestHypixelPlayerProvider(t *testing.T) {
 	now := time.Now()
 
 	t.Run("GetPlayer", func(t *testing.T) {
+		t.Parallel()
+
 		t.Run("basic", func(t *testing.T) {
+			t.Parallel()
+
 			hypixelAPI := &mockedHypixelAPI{
 				t:          t,
 				data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef","stats":{"Bedwars":{"Experience":0}}}}`),
@@ -52,6 +56,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 		})
 
 		t.Run("only accepts normalized ids", func(t *testing.T) {
+			t.Parallel()
+
 			hypixelAPI := &mockedHypixelAPI{
 				t:          t,
 				data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef"}}`),
@@ -66,6 +72,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 		})
 
 		t.Run("player not found", func(t *testing.T) {
+			t.Parallel()
+
 			hypixelAPI := &mockedHypixelAPI{
 				t:          t,
 				data:       []byte(`{"success":true,"player":null}`),
@@ -83,6 +91,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 		})
 
 		t.Run("success=false from Hypixel", func(t *testing.T) {
+			t.Parallel()
+
 			hypixelAPI := &mockedHypixelAPI{
 				t: t,
 				// NOTE: Not real data
@@ -101,6 +111,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 		})
 
 		t.Run("error from hypixel", func(t *testing.T) {
+			t.Parallel()
+
 			hypixelAPI := &mockedHypixelAPI{
 				t:          t,
 				data:       []byte(``),
@@ -119,6 +131,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 		})
 
 		t.Run("html from hypixel", func(t *testing.T) {
+			t.Parallel()
+
 			// This can happen with gateway errors, giving us cloudflare html
 			// We now pass through gateway errors, so I've altered this test to return 200
 			hypixelAPI := &mockedHypixelAPI{
@@ -138,6 +152,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 		})
 
 		t.Run("invalid JSON from hypixel", func(t *testing.T) {
+			t.Parallel()
+
 			hypixelAPI := &mockedHypixelAPI{
 				t:          t,
 				data:       []byte(`something went wrong`),
@@ -155,6 +171,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 		})
 
 		t.Run("weird data format from hypixel", func(t *testing.T) {
+			t.Parallel()
+
 			hypixelAPI := &mockedHypixelAPI{
 				t:          t,
 				data:       []byte(`{"success":true,"player":{"uuid":"0123456789abcdef0123456789abcdef","stats":{"Bedwars":{"final_kills_bedwars":"string"}}}}`),
@@ -172,6 +190,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 		})
 
 		t.Run("403 from hypixel", func(t *testing.T) {
+			t.Parallel()
+
 			hypixelAPI := &mockedHypixelAPI{
 				t:          t,
 				data:       []byte(`{"success":false,"cause":"Invalid API key"}`),
@@ -189,6 +209,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 		})
 
 		t.Run("bad gateway from hypixel", func(t *testing.T) {
+			t.Parallel()
+
 			hypixelAPI := &mockedHypixelAPI{
 				t:          t,
 				data:       []byte(`<!DOCTYPE html>`),
@@ -206,6 +228,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 		})
 
 		t.Run("service unavailable from hypixel", func(t *testing.T) {
+			t.Parallel()
+
 			hypixelAPI := &mockedHypixelAPI{
 				t:          t,
 				data:       []byte(`<!DOCTYPE html>`),
@@ -223,6 +247,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 		})
 
 		t.Run("gateway timeout from hypixel", func(t *testing.T) {
+			t.Parallel()
+
 			hypixelAPI := &mockedHypixelAPI{
 				t:          t,
 				data:       []byte(`<!DOCTYPE html>`),

@@ -9,6 +9,8 @@ import (
 
 func TestTTLCache(t *testing.T) {
 	t.Run("Set and get", func(t *testing.T) {
+		t.Parallel()
+
 		cache := NewTTLCache[Data](1000 * time.Second)
 
 		cache.set("key", "data")
@@ -19,6 +21,8 @@ func TestTTLCache(t *testing.T) {
 	})
 
 	t.Run("getOrClaim claims when missing", func(t *testing.T) {
+		t.Parallel()
+
 		cache := NewTTLCache[Data](1000 * time.Second)
 
 		result := cache.getOrClaim("key")
@@ -30,6 +34,8 @@ func TestTTLCache(t *testing.T) {
 	})
 
 	t.Run("delete", func(t *testing.T) {
+		t.Parallel()
+
 		cache := NewTTLCache[Data](1000 * time.Second)
 		cache.set("key", "data")
 
@@ -40,6 +46,8 @@ func TestTTLCache(t *testing.T) {
 	})
 
 	t.Run("delete missing entry", func(t *testing.T) {
+		t.Parallel()
+
 		cache := NewTTLCache[Data](1000 * time.Second)
 
 		cache.delete("key")
@@ -49,6 +57,8 @@ func TestTTLCache(t *testing.T) {
 	})
 
 	t.Run("wait", func(t *testing.T) {
+		t.Parallel()
+
 		cache := NewTTLCache[Data](1000 * time.Second)
 		cache.wait()
 	})

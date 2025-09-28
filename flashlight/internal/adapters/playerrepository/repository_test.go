@@ -44,8 +44,9 @@ func TestPostgresPlayerRepository(t *testing.T) {
 	now := time.Now()
 
 	t.Run("StorePlayer", func(t *testing.T) {
-		SCHEMA_NAME := "store_stats"
 		t.Parallel()
+
+		SCHEMA_NAME := "store_stats"
 		p := newPostgresPlayerRepository(t, db, SCHEMA_NAME)
 
 		requireStored := func(t *testing.T, player *domain.PlayerPIT, targetCount int) {
@@ -492,6 +493,8 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			p := newPostgresPlayerRepository(t, db, "no_duplicates_returned")
 
 			t.Run("single stat stored", func(t *testing.T) {
+				t.Parallel()
+
 				start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
 				end := start.Add(24 * time.Hour)
 				for _, queriedAt := range []time.Time{
@@ -540,6 +543,8 @@ func TestPostgresPlayerRepository(t *testing.T) {
 
 				for limit := 2; limit < 10; limit++ {
 					t.Run(fmt.Sprintf("limit %d", limit), func(t *testing.T) {
+						t.Parallel()
+
 						player_uuid := domaintest.NewUUID(t)
 						players := []*domain.PlayerPIT{
 							domaintest.NewPlayerBuilder(player_uuid, start.Add(time.Minute)).WithGamesPlayed(1).BuildPtr(),
@@ -1157,6 +1162,8 @@ func TestFindMilestoneAchievements(t *testing.T) {
 	uuid := domaintest.NewUUID(t)
 
 	t.Run("GamemodeOverall and StatExperience", func(t *testing.T) {
+		t.Parallel()
+
 		tests := []struct {
 			name       string
 			players    []*domain.PlayerPIT

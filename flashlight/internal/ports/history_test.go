@@ -90,6 +90,8 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 	}
 
 	t.Run("successful history retrieval", func(t *testing.T) {
+		t.Parallel()
+
 		getHistoryFunc, called := makeGetHistory(t, uuid, start, end, limit, history, nil)
 		handler := makeGetHistoryHandler(getHistoryFunc)
 
@@ -105,6 +107,8 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 	})
 
 	t.Run("start time == end time", func(t *testing.T) {
+		t.Parallel()
+
 		start := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
 		startStr := "2023-01-01T00:00:00Z"
 		end := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -125,6 +129,8 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 	})
 
 	t.Run("invalid UUID format", func(t *testing.T) {
+		t.Parallel()
+
 		getHistoryFunc, called := makeGetHistory(t, uuid, start, end, limit, history, nil)
 		handler := makeGetHistoryHandler(getHistoryFunc)
 
@@ -139,6 +145,8 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 	})
 
 	t.Run("start time after end time", func(t *testing.T) {
+		t.Parallel()
+
 		getHistoryFunc, called := makeGetHistory(t, uuid, start, end, limit, history, nil)
 		handler := makeGetHistoryHandler(getHistoryFunc)
 

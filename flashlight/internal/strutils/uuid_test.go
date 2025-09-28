@@ -90,6 +90,8 @@ func TestNormalizeUUID(t *testing.T) {
 	for _, tc := range cases {
 		require.True(t, tc.expected != "" || tc.errorSubstring != "", "test case must expect a value or an error")
 		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
 			actual, err := strutils.NormalizeUUID(tc.input)
 
 			if tc.errorSubstring != "" {

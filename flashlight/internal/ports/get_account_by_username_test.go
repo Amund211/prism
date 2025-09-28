@@ -75,6 +75,8 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 	now := time.Now()
 
 	t.Run("successful get uuid", func(t *testing.T) {
+		t.Parallel()
+
 		getAccountByUsername, called := makeGetAccountByUsername(t, "someguy", domain.Account{
 			Username:  "SomeGuy",
 			UUID:      uuid,
@@ -104,6 +106,8 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 	})
 
 	t.Run("username does not exist", func(t *testing.T) {
+		t.Parallel()
+
 		getAccountByUsername, called := makeGetAccountByUsername(t, username, domain.Account{}, domain.ErrUsernameNotFound)
 		handler := makeGetAccountByUsernameHandler(getAccountByUsername)
 
@@ -128,6 +132,8 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 	})
 
 	t.Run("temporarily unavailable", func(t *testing.T) {
+		t.Parallel()
+
 		getAccountByUsername, called := makeGetAccountByUsername(t, username, domain.Account{}, domain.ErrTemporarilyUnavailable)
 		handler := makeGetAccountByUsernameHandler(getAccountByUsername)
 
@@ -152,6 +158,8 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 	})
 
 	t.Run("invalid username length", func(t *testing.T) {
+		t.Parallel()
+
 		getAccountByUsername, called := makeGetAccountByUsername(t, "", domain.Account{}, nil)
 		handler := makeGetAccountByUsernameHandler(getAccountByUsername)
 
@@ -176,6 +184,8 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 	})
 
 	t.Run("returns cors headers", func(t *testing.T) {
+		t.Parallel()
+
 		getAccountByUsername, called := makeGetAccountByUsername(t, username, domain.Account{
 			Username:  "SomeGuy",
 			UUID:      uuid,

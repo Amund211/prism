@@ -74,6 +74,8 @@ func TestMakeGetAccountByUUIDHandler(t *testing.T) {
 	now := time.Now()
 
 	t.Run("successful get by uuid", func(t *testing.T) {
+		t.Parallel()
+
 		getAccountByUUID, called := makeGetAccountByUUID(t, uuid, domain.Account{
 			Username:  "SomeGuy",
 			UUID:      uuid,
@@ -103,6 +105,8 @@ func TestMakeGetAccountByUUIDHandler(t *testing.T) {
 	})
 
 	t.Run("uuid is normalized", func(t *testing.T) {
+		t.Parallel()
+
 		getAccountByUUID, called := makeGetAccountByUUID(t, uuid, domain.Account{
 			Username:  "SomeGuy",
 			UUID:      uuid,
@@ -132,6 +136,8 @@ func TestMakeGetAccountByUUIDHandler(t *testing.T) {
 	})
 
 	t.Run("uuid does not exist", func(t *testing.T) {
+		t.Parallel()
+
 		getAccountByUUID, called := makeGetAccountByUUID(t, uuid, domain.Account{}, domain.ErrUsernameNotFound)
 		handler := makeGetAccountByUUIDHandler(getAccountByUUID)
 
@@ -156,6 +162,8 @@ func TestMakeGetAccountByUUIDHandler(t *testing.T) {
 	})
 
 	t.Run("temporarily unavailable", func(t *testing.T) {
+		t.Parallel()
+
 		getAccountByUUID, called := makeGetAccountByUUID(t, uuid, domain.Account{}, domain.ErrTemporarilyUnavailable)
 		handler := makeGetAccountByUUIDHandler(getAccountByUUID)
 
@@ -180,6 +188,8 @@ func TestMakeGetAccountByUUIDHandler(t *testing.T) {
 	})
 
 	t.Run("invalid uuid", func(t *testing.T) {
+		t.Parallel()
+
 		getAccountByUUID, called := makeGetAccountByUUID(t, uuid, domain.Account{}, domain.ErrTemporarilyUnavailable)
 		handler := makeGetAccountByUUIDHandler(getAccountByUUID)
 
@@ -204,6 +214,8 @@ func TestMakeGetAccountByUUIDHandler(t *testing.T) {
 	})
 
 	t.Run("returns cors headers", func(t *testing.T) {
+		t.Parallel()
+
 		getAccountByUUID, called := makeGetAccountByUUID(t, uuid, domain.Account{
 			Username:  "SomeGuy",
 			UUID:      uuid,

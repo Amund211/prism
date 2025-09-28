@@ -166,6 +166,8 @@ func TestCORS(t *testing.T) {
 	}
 
 	t.Run("BuildCORSMiddleware", func(t *testing.T) {
+		t.Parallel()
+
 		middleware := ports.BuildCORSMiddleware(allowedOrigins)
 
 		handler := middleware(
@@ -190,6 +192,8 @@ func TestCORS(t *testing.T) {
 	})
 
 	t.Run("BuildCORSHandler", func(t *testing.T) {
+		t.Parallel()
+
 		handler := ports.BuildCORSHandler(allowedOrigins)
 
 		for _, c := range cases {

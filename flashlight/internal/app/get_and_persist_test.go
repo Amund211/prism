@@ -43,6 +43,8 @@ func (m *mockedPlayerProvider) GetPlayer(ctx context.Context, uuid string) (*dom
 func TestGetAndPersistPlayer(t *testing.T) {
 	now := time.Now()
 	t.Run("stats are not created if they already exist", func(t *testing.T) {
+		t.Parallel()
+
 		provider := &mockedPlayerProvider{
 			t:      t,
 			player: domaintest.NewPlayerBuilder(UUID, now).WithExperience(500).BuildPtr(),
@@ -59,6 +61,8 @@ func TestGetAndPersistPlayer(t *testing.T) {
 	})
 
 	t.Run("provider errors are passed through", func(t *testing.T) {
+		t.Parallel()
+
 		for _, providerErr := range []error{
 			domain.ErrPlayerNotFound,
 			domain.ErrTemporarilyUnavailable,
@@ -76,6 +80,8 @@ func TestGetAndPersistPlayer(t *testing.T) {
 	})
 
 	t.Run("invalid uuids should not be passed to get and persist with cache", func(t *testing.T) {
+		t.Parallel()
+
 		provider := &panicPlayerProvider{t: t}
 		cache := cache.NewBasicCache[*domain.PlayerPIT]()
 
@@ -91,6 +97,7 @@ func TestGetAndPersistPlayer(t *testing.T) {
 		} {
 			t.Run(fmt.Sprintf("UUID: '%s'", uuid), func(t *testing.T) {
 				t.Parallel()
+
 				_, err := BuildGetAndPersistPlayerWithCache(cache, provider, playerrepository.NewStubPlayerRepository())(t.Context(), uuid)
 				require.Error(t, err)
 			})

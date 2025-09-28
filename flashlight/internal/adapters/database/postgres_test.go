@@ -11,6 +11,8 @@ import (
 
 func TestDB(t *testing.T) {
 	t.Run("db name", func(t *testing.T) {
+		t.Parallel()
+
 		require.Equal(t, "flashlight", DB_NAME)
 	})
 
@@ -19,15 +21,21 @@ func TestDB(t *testing.T) {
 	}
 
 	t.Run("NewPostgresDatabase", func(t *testing.T) {
+		t.Parallel()
+
 		db, err := NewPostgresDatabase(LOCAL_CONNECTION_STRING)
 		require.NoError(t, err)
 		require.NotNil(t, db)
 	})
 
 	t.Run("createDatabaseIfNotExists", func(t *testing.T) {
+		t.Parallel()
+
 		db, err := sqlx.Connect("postgres", LOCAL_CONNECTION_STRING)
 		require.NoError(t, err)
 		t.Run("already existing", func(t *testing.T) {
+			t.Parallel()
+
 			err := createDatabaseIfNotExists(db, "postgres")
 			require.NoError(t, err)
 
@@ -36,6 +44,8 @@ func TestDB(t *testing.T) {
 		})
 
 		t.Run("new database", func(t *testing.T) {
+			t.Parallel()
+
 			const characters = "abcdefghijklmnopqrstuvwxyz"
 			bytes := make([]byte, 10)
 			for i := range bytes {

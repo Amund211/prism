@@ -65,7 +65,11 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 	}
 
 	t.Run("with middleware", func(t *testing.T) {
+		t.Parallel()
+
 		t.Run("all props", func(t *testing.T) {
+			t.Parallel()
+
 			requestUrl, err := url.Parse("http://example.com/my-path?uuid=requested-uuid")
 			require.NoError(t, err)
 
@@ -84,6 +88,8 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 		})
 
 		t.Run("bad request", func(t *testing.T) {
+			t.Parallel()
+
 			requestUrl, err := url.Parse("http://example.com/my-other-path")
 			require.NoError(t, err)
 
@@ -100,6 +106,8 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 	})
 
 	t.Run("without middleware", func(t *testing.T) {
+		t.Parallel()
+
 		logging.FromContext(t.Context()).Info("don't crash when no logger in context")
 	})
 }
