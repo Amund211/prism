@@ -1,4 +1,4 @@
-name: Python dependencies
+name: Python dependencies (uv)
 
 permissions:
   contents: read
@@ -47,19 +47,18 @@ jobs:
         python -m venv venv
         source ${{ env.ACTIVATE_PATH }}
 
-        pip_tools_version="$(grep '^pip-tools==' ${{ env.DEV_REQUIREMENTS }} | awk '{print $1}')"
-        python -m pip install "$pip_tools_version"
+        python -m pip install uv
 
     - name: Ensure requirements are satisfied
       run: |
         source ${{ env.ACTIVATE_PATH }}
 
         echo ========================================
-        pip-compile --output-file ${{ env.REQUIREMENTS }} setup.cfg
+        uv pip compile setup.cfg --output-file ${{ env.REQUIREMENTS }} --generate-hashes
         echo ========================================
 
         echo ========================================
-        pip-compile --output-file ${{ env.DEV_REQUIREMENTS }} requirements/dev.in
+        uv pip compile requirements/dev.in --output-file ${{ env.DEV_REQUIREMENTS }} --generate-hashes
         echo ========================================
 
         cp "${{ env.REQUIREMENTS }}" "${{ env.REQUIREMENTS }}"_fixed
@@ -74,18 +73,18 @@ jobs:
           echo Pinned requirements valid
         fi
 
-    - name: Run pip-compile --upgrade
+    - name: Run uv pip compile --upgrade
       if: always()
       continue-on-error: true
       run: |
         source ${{ env.ACTIVATE_PATH }}
 
         echo ========================================
-        pip-compile --output-file ${{ env.REQUIREMENTS }} --upgrade setup.cfg
+        uv pip compile setup.cfg --output-file ${{ env.REQUIREMENTS }} --upgrade --generate-hashes
         echo ========================================
 
         echo ========================================
-        pip-compile --output-file ${{ env.DEV_REQUIREMENTS }} --upgrade requirements/dev.in
+        uv pip compile requirements/dev.in --output-file ${{ env.DEV_REQUIREMENTS }} --upgrade --generate-hashes
         echo ========================================
 
         if [ $(git diff requirements/ | wc -l) -gt 0 ]; then

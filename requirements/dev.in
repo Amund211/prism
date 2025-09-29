@@ -7,7 +7,7 @@ coverage
 flake8
 isort
 mypy>=0.991
-pip-tools
+uv
 pre-commit
 pyinstaller
 pytest

@@ -105,6 +105,6 @@ VERSION_STRING = "v1.9.1-dev"
 Update this file to change version in all build artifacts.
 
 ## Dependency Notes
-- **pip version**: CI pins to <=25.0 due to pip-tools compatibility
+- **uv version**: No specific version constraints needed (uv is backwards compatible)
 - **Platform differences**: Requirements files vary significantly between platforms
 - **SSL certificates**: Builds include system vs included certificate handling

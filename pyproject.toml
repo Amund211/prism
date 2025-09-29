@@ -30,6 +30,4 @@ exclude = [
   '^venv/$',
 ]
 
-[tool.pip-tools.compile]
-allow_unsafe = true
-generate_hashes = true
+
