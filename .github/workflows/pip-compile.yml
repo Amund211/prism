@@ -54,12 +54,19 @@ jobs:
       run: |
         source ${{ env.ACTIVATE_PATH }}
 
+        if [[ "${{ matrix.os }}" == macOS* ]]; then
+          # Use platform constraint for macOS universal2 10.9+
+          PIP_COMPILE_ARGS="--pip-args='--platform=macosx_10_9_universal2'"
+        else
+          PIP_COMPILE_ARGS=""
+        fi
+
         echo ========================================
-        pip-compile --output-file ${{ env.REQUIREMENTS }} setup.cfg
+        pip-compile --output-file ${{ env.REQUIREMENTS }} $PIP_COMPILE_ARGS setup.cfg
         echo ========================================
 
         echo ========================================
-        pip-compile --output-file ${{ env.DEV_REQUIREMENTS }} requirements/dev.in
+        pip-compile --output-file ${{ env.DEV_REQUIREMENTS }} $PIP_COMPILE_ARGS requirements/dev.in
         echo ========================================
 
         cp "${{ env.REQUIREMENTS }}" "${{ env.REQUIREMENTS }}"_fixed
@@ -80,12 +87,19 @@ jobs:
       run: |
         source ${{ env.ACTIVATE_PATH }}
 
+        if [[ "${{ matrix.os }}" == macOS* ]]; then
+          # Use platform constraint for macOS universal2 10.9+
+          PIP_COMPILE_ARGS="--pip-args='--platform=macosx_10_9_universal2'"
+        else
+          PIP_COMPILE_ARGS=""
+        fi
+
         echo ========================================
-        pip-compile --output-file ${{ env.REQUIREMENTS }} --upgrade setup.cfg
+        pip-compile --output-file ${{ env.REQUIREMENTS }} --upgrade $PIP_COMPILE_ARGS setup.cfg
         echo ========================================
 
         echo ========================================
-        pip-compile --output-file ${{ env.DEV_REQUIREMENTS }} --upgrade requirements/dev.in
+        pip-compile --output-file ${{ env.DEV_REQUIREMENTS }} --upgrade $PIP_COMPILE_ARGS requirements/dev.in
         echo ========================================
 
         if [ $(git diff requirements/ | wc -l) -gt 0 ]; then
