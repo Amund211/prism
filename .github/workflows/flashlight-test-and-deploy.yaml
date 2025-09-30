@@ -104,7 +104,7 @@ jobs:
           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
 
       - name: Login to GAR
-        uses: docker/login-action@v3.5.0
+        uses: docker/login-action@v3.6.0
         with:
           registry: northamerica-northeast2-docker.pkg.dev
           username: _json_key
@@ -127,7 +127,7 @@ jobs:
           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
 
       - name: Login to GAR
-        uses: docker/login-action@v3.5.0
+        uses: docker/login-action@v3.6.0
         with:
           registry: northamerica-northeast2-docker.pkg.dev
           username: _json_key
