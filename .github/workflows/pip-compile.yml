@@ -28,18 +28,21 @@ jobs:
         echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
         echo 'REQUIREMENTS=requirements/linux.txt' >> $GITHUB_ENV
         echo 'DEV_REQUIREMENTS=requirements/linux-dev.txt' >> $GITHUB_ENV
+        echo 'PIP_COMPILE_ARGS=' >> $GITHUB_ENV
     - name: Select dependency files (windows)
       if: startswith(matrix.os, 'windows')
       run: |
         echo 'ACTIVATE_PATH=venv/Scripts/activate' >> $GITHUB_ENV
         echo 'REQUIREMENTS=requirements/windows.txt' >> $GITHUB_ENV
         echo 'DEV_REQUIREMENTS=requirements/windows-dev.txt' >> $GITHUB_ENV
+        echo 'PIP_COMPILE_ARGS=' >> $GITHUB_ENV
     - name: Select dependency files (mac)
       if: startswith(matrix.os, 'macOS')
       run: |
         echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
         echo 'REQUIREMENTS=requirements/mac.txt' >> $GITHUB_ENV
         echo 'DEV_REQUIREMENTS=requirements/mac-dev.txt' >> $GITHUB_ENV
+        echo 'PIP_COMPILE_ARGS="--pip-args=--platform=macosx_10_9_universal2"' >> $GITHUB_ENV
 
     - name: Install dependencies
       run: |
@@ -55,11 +58,11 @@ jobs:
         source ${{ env.ACTIVATE_PATH }}
 
         echo ========================================
-        pip-compile --output-file ${{ env.REQUIREMENTS }} setup.cfg
+        pip-compile ${{ env.PIP_COMPILE_ARGS }} --output-file ${{ env.REQUIREMENTS }} setup.cfg
         echo ========================================
 
         echo ========================================
-        pip-compile --output-file ${{ env.DEV_REQUIREMENTS }} requirements/dev.in
+        pip-compile ${{ env.PIP_COMPILE_ARGS }} --output-file ${{ env.DEV_REQUIREMENTS }} requirements/dev.in
         echo ========================================
 
         cp "${{ env.REQUIREMENTS }}" "${{ env.REQUIREMENTS }}"_fixed
@@ -81,11 +84,11 @@ jobs:
         source ${{ env.ACTIVATE_PATH }}
 
         echo ========================================
-        pip-compile --output-file ${{ env.REQUIREMENTS }} --upgrade setup.cfg
+        pip-compile ${{ env.PIP_COMPILE_ARGS }} --output-file ${{ env.REQUIREMENTS }} --upgrade setup.cfg
         echo ========================================
 
         echo ========================================
-        pip-compile --output-file ${{ env.DEV_REQUIREMENTS }} --upgrade requirements/dev.in
+        pip-compile ${{ env.PIP_COMPILE_ARGS }} --output-file ${{ env.DEV_REQUIREMENTS }} --upgrade requirements/dev.in
         echo ========================================
 
         if [ $(git diff requirements/ | wc -l) -gt 0 ]; then
