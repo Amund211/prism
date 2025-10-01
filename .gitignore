@@ -1,9 +1,22 @@
 api_key
-.coverage
-*.spec
-**/__pycache__/
-venv/
-dist/
-build/
-src/*.egg-info/
+
+# Generated executable icon
 pyinstaller/who_with_version.ico
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Pyinstaller generated files
+*.spec
+
+# Coverage generated files
+.coverage
+
+# Virtual environments
+venv/
+.venv/

@@ -21,18 +21,16 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.13"
-        cache: 'pip'
-        cache-dependency-path: requirements/*.txt
 
-    - name: Python/tkinter version debug
-      run: |
-        python --version
-        python -c "import sys, tkinter;tcl = tkinter.Tcl();print(f\"{tkinter.TkVersion=}\n{tkinter.TclVersion=}\n{tcl.call('info', 'patchlevel')=}\n{sys.executable=}\n{tkinter.__file__=}\")"
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        prune-cache: false # Pruning the cache seems to hang :^(
+
     - name: OS specific setup (windows)
       if: startswith(matrix.os, 'windows')
       run: |
         echo 'OS_NAME=windows' >> $GITHUB_ENV
-        echo 'ACTIVATE_PATH=venv/Scripts/activate' >> $GITHUB_ENV
         echo 'RESULT_EXTENSION=.exe' >> $GITHUB_ENV
         echo 'PYINSTALLER_ARGS=--hide-console=minimize-early --onefile' >> $GITHUB_ENV
         echo 'INSTALL_CA_CERT=certutil.exe -addstore root local-ca.pem' >> $GITHUB_ENV
@@ -40,7 +38,6 @@ jobs:
       if: startswith(matrix.os, 'ubuntu')
       run: |
         echo 'OS_NAME=linux' >> $GITHUB_ENV
-        echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
         echo 'RESULT_EXTENSION=' >> $GITHUB_ENV
         echo 'PYINSTALLER_ARGS=--onefile' >> $GITHUB_ENV
         echo 'INSTALL_CA_CERT=sudo cp local-ca.pem /usr/local/share/ca-certificates/local-ca.crt; sudo update-ca-certificates' >> $GITHUB_ENV
@@ -48,7 +45,6 @@ jobs:
       if: startswith(matrix.os, 'macOS')
       run: |
         echo 'OS_NAME=mac' >> $GITHUB_ENV
-        echo 'ACTIVATE_PATH=venv/bin/activate' >> $GITHUB_ENV
         # Upload the built .dmg app-installer
         echo 'RESULT_EXTENSION=.dmg' >> $GITHUB_ENV
         # Target universal2 so that the built binary can run on both intel and apple silicon
@@ -57,36 +53,23 @@ jobs:
         echo 'PYINSTALLER_ARGS=--target-architecture universal2 --windowed --onedir' >> $GITHUB_ENV
         echo 'INSTALL_CA_CERT=sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain local-ca.pem' >> $GITHUB_ENV
 
-    - name: Select dependency files
-      run: |
-        echo "REQUIREMENTS=requirements/${{ env.OS_NAME }}.txt" >> $GITHUB_ENV
-        echo "DEV_REQUIREMENTS=requirements/${{ env.OS_NAME }}-dev.txt" >> $GITHUB_ENV
-
     - name: Install dependencies
       run: |
-        python -m ensurepip
-        python -m venv venv
-        source ${{ env.ACTIVATE_PATH }}
+        uv sync
 
-        python -m pip install --upgrade pip
-        python -m pip install -r ${{ env.REQUIREMENTS }} -r ${{ env.DEV_REQUIREMENTS }}
-        python -m pip install --no-deps -e .
-
-        VERSION_STRING="$(python -c 'from prism import VERSION_STRING; print(VERSION_STRING)')"
+        VERSION_STRING="$(uv run python -c 'from prism import VERSION_STRING; print(VERSION_STRING)')"
         echo "VERSION_STRING=$VERSION_STRING" >> $GITHUB_ENV
         echo "SIMPLE_NAME=prism-$VERSION_STRING" >> $GITHUB_ENV
         echo "BUILD_RESULT_NAME=prism-$VERSION_STRING-${{ env.OS_NAME }}${{ env.RESULT_EXTENSION }}" >> $GITHUB_ENV
 
     - name: Run typechecking
       run: |
-        source ${{ env.ACTIVATE_PATH }}
-        mypy --strict .
+        uv run mypy --strict .
 
     - name: Run tests
       run: |
-        source ${{ env.ACTIVATE_PATH }}
-        coverage run
-        coverage report
+        uv run coverage run
+        uv run coverage report
 
     - name: tee | stderr
       if: env.OS_NAME != 'windows'
@@ -95,8 +78,7 @@ jobs:
 
     - name: Test ssl system certs
       run: |
-        source ${{ env.ACTIVATE_PATH }}
-        certifi_ca_certs="$(python -m certifi)"
+        certifi_ca_certs="$(uv run python -m certifi)"
 
         (
           cd tests/system_certs
@@ -105,7 +87,7 @@ jobs:
           sh print.sh
 
           echo "Run local https server and ensure it's running" >&2
-          python server.py >/dev/null 2>&1 &
+          uv run server.py >/dev/null 2>&1 &
           sleep 1
 
           echo 'Ensure request succeeds with local ca' >&2
@@ -126,20 +108,19 @@ jobs:
         # Don't open the settings prompt
         echo 'autowho = true' >> included_certs_settings.toml
 
-        python prism_overlay.py --test-ssl --settings=included_certs_settings.toml --logfile=latest.log ${{ env.TEE_STDERR }} | grep '^Caught missing local issuer SSLError: ' >/dev/null 2>&1
+        uv run prism_overlay.py --test-ssl --settings=included_certs_settings.toml --logfile=latest.log ${{ env.TEE_STDERR }} | grep '^Caught missing local issuer SSLError: ' >/dev/null 2>&1
 
         echo 'Ensure request succeeds when using system certs' >&2
         echo 'use_included_certs = false' > system_certs_settings.toml
         # Don't open the settings prompt
         echo 'autowho = true' >> system_certs_settings.toml
 
-        python prism_overlay.py --test-ssl --settings=system_certs_settings.toml --logfile=latest.log ${{ env.TEE_STDERR }} | grep '^Got response: Hello world' >/dev/null 2>&1
+        uv run prism_overlay.py --test-ssl --settings=system_certs_settings.toml --logfile=latest.log ${{ env.TEE_STDERR }} | grep '^Got response: Hello world' >/dev/null 2>&1
 
     - name: Build binary with pyinstaller
       run: |
-        source ${{ env.ACTIVATE_PATH }}
-        python add_version_to_icon.py  # Create the icon file
-        pyinstaller prism_overlay.py --noconfirm --icon=pyinstaller/who_with_version.ico --name "${{ env.SIMPLE_NAME }}" --additional-hooks-dir=pyinstaller ${{ env.PYINSTALLER_ARGS }}
+        uv run add_version_to_icon.py  # Create the icon file
+        uv run pyinstaller prism_overlay.py --noconfirm --icon=pyinstaller/who_with_version.ico --name "${{ env.SIMPLE_NAME }}" --additional-hooks-dir=pyinstaller ${{ env.PYINSTALLER_ARGS }}
 
     - name: Package app bundle to disk image (mac)
       if: env.OS_NAME == 'mac'

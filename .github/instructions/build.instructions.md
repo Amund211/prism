@@ -22,17 +22,17 @@ Dependencies are already installed in your global environment. If you do need to
 
 1. **Create versioned icon** (REQUIRED first):
 ```bash
-python add_version_to_icon.py
+uv run python add_version_to_icon.py
 # Creates pyinstaller/who_with_version.ico with version overlay
 ```
 
 2. **Build executable** (Linux only):
 ```bash
 # First, get the current version from the source
-CURRENT_VERSION=$(python -c "from prism import VERSION_STRING; print(VERSION_STRING)")
+CURRENT_VERSION=$(uv run python -c "from prism import VERSION_STRING; print(VERSION_STRING)")
 
 # Linux build
-pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who_with_version.ico --name "prism-${CURRENT_VERSION}" --additional-hooks-dir=pyinstaller
+uv run pyinstaller prism_overlay.py --noconfirm --onefile --icon=pyinstaller/who_with_version.ico --name "prism-${CURRENT_VERSION}" --additional-hooks-dir=pyinstaller
 ```
 
 ## Build Artifacts

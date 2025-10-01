@@ -1,6 +1,55 @@
+[project]
+name = "prism"
+version = "0.1.0"
+description = "Utilities for checking stats on Hypixel"
+readme = "README.md"
+authors = [
+    { name = "Amund Eggen Svandal", email = "aesvandal@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "appdirs",
+    "cachetools",
+    "requests",
+    "tendo>=0.3.0",
+    "toml",
+    "truststore",
+    "pynput",
+    "pywin32; platform_system=='Windows'",
+]
+classifiers = [
+    "Programming Language :: Python :: 3"
+]
+license = "AGPL-3.0-only"
+license-files = ["LICEN[CS]E.*"]
+
+[project.urls]
+Homepage = "https://prismoverlay.com"
+Repository = "https://github.com/Amund211/prism"
+
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.8.22,<0.9.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "black>=25.9.0",
+    "coverage>=7.10.7",
+    "flake8>=7.3.0",
+    "isort>=6.0.1",
+    "mypy>=1.18.2",
+    "pillow>=11.3.0",
+    "pre-commit>=4.3.0",
+    "pyinstaller>=6.16.0",
+    "pytest>=8.4.2",
+    "types-appdirs>=1.4.3.5",
+    "types-cachetools>=6.2.0.20250827",
+    "types-pillow>=10.2.0.20240822",
+    "types-pyinstaller>=6.16.0.20250918",
+    "types-pynput>=1.8.1.20250809",
+    "types-requests>=2.32.4.20250913",
+    "types-toml>=0.10.8.20240310",
+]
 
 [tool.black]
 exclude = '''
@@ -11,14 +60,14 @@ exclude = '''
   | build
   | dist
   | venv
+  | .venv
 )/
 '''
-
 
 [tool.isort]
 profile = "black"
 known_first_party = "prism"
-skip = ".git,.mypy_cache,__pycache__,build,dist,venv"
+skip = ".git,.mypy_cache,__pycache__,build,dist,venv,.venv"
 
 [tool.mypy]
 exclude = [
@@ -28,8 +77,19 @@ exclude = [
   '^build/$',
   '^dist/$',
   '^venv/$',
+  '^.venv/$',
 ]
 
-[tool.pip-tools.compile]
-allow_unsafe = true
-generate_hashes = true
+[tool.coverage.run]
+source=['src/prism']
+command_line='-m pytest -r fEs'
+
+[tool.coverage.report]
+show_missing=true
+skip_covered=true
+fail_under=100
+omit=[
+  'src/prism/stats.py',
+  'src/prism/overlay/platform/windows.py',
+  'src/prism/discordrp/__init__.py',
+]
