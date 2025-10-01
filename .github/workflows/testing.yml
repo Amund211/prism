@@ -122,7 +122,7 @@ jobs:
         uv run add_version_to_icon.py  # Create the icon file
         uv run pyinstaller prism_overlay.py --noconfirm --icon=pyinstaller/who_with_version.ico --name "${{ env.SIMPLE_NAME }}" --additional-hooks-dir=pyinstaller ${{ env.PYINSTALLER_ARGS }}
 
-    - name: Package app bundle to disk image (mac)
+    - name: Prepare to package app bundle to disk image (mac)
       if: env.OS_NAME == 'mac'
       run: |
         brew install imagemagick
@@ -133,19 +133,34 @@ jobs:
         mkdir -p 'dist/app'
         mv "dist/${{ env.SIMPLE_NAME }}.app" "dist/app"
 
-        # Inspired by:
-        # https://www.pythonguis.com/tutorials/packaging-pyqt5-applications-pyinstaller-macos-dmg/
-        create-dmg \
-          --volname "Prism ${{ env.VERSION_STRING }} installer" \
-          --volicon 'pyinstaller/who_with_version.icns' \
-          --window-pos 200 120 \
-          --window-size 600 300 \
-          --icon-size 100 \
-          --icon "${{ env.SIMPLE_NAME }}.app" 175 120 \
-          --hide-extension "${{ env.SIMPLE_NAME }}.app" \
-          --app-drop-link 425 120 \
-          "${{ env.BUILD_RESULT_NAME }}" \
-          "dist/app/"
+    - name: Package app bundle to disk image (mac)
+      if: env.OS_NAME == 'mac'
+      run: |
+        # Workaround for https://github.com/actions/runner-images/issues/7522
+        max_retries=10
+        for i in $(seq 1 $max_retries); do
+          # Inspired by:
+          # https://www.pythonguis.com/tutorials/packaging-pyqt5-applications-pyinstaller-macos-dmg/
+          if create-dmg \
+            --volname "Prism ${{ env.VERSION_STRING }} installer" \
+            --volicon 'pyinstaller/who_with_version.icns' \
+            --window-pos 200 120 \
+            --window-size 600 300 \
+            --icon-size 100 \
+            --icon "${{ env.SIMPLE_NAME }}.app" 175 120 \
+            --hide-extension "${{ env.SIMPLE_NAME }}.app" \
+            --app-drop-link 425 120 \
+            "${{ env.BUILD_RESULT_NAME }}" \
+            "dist/app/"; then
+            # Success -> continue with next step
+            exit 0
+          fi
+
+          echo "create-dmg failed, retrying ($i/$max_retries)" >&2
+        done
+
+        echo "create-dmg failed $max_retries times in a row" >&2
+        exit 1
 
     - name: Store built binary (non-mac)
       if: env.OS_NAME != 'mac'
