@@ -459,17 +459,22 @@ def test_get_logfile(
     # Use a dead path so we don't accidentally write to disk somewhere
     cache_path = make_dead_path("logfile_cache.toml")
 
-    with unittest.mock.patch(
-        "prism.overlay.user_interaction.logfile_utils.create_active_logfiles",
-        create_active_logfiles,
-    ), unittest.mock.patch(
-        "prism.overlay.user_interaction.logfile_utils.write_logfile_cache"
-    ) as patched_write_logfile_cache, unittest.mock.patch(
-        "prism.overlay.user_interaction.logfile_utils.read_logfile_cache",
-        read_logfile_cache,
-    ), unittest.mock.patch(
-        "prism.overlay.user_interaction.logfile_utils.suggest_logfiles",
-        lambda: suggested_logfiles,
+    with (
+        unittest.mock.patch(
+            "prism.overlay.user_interaction.logfile_utils.create_active_logfiles",
+            create_active_logfiles,
+        ),
+        unittest.mock.patch(
+            "prism.overlay.user_interaction.logfile_utils.write_logfile_cache"
+        ) as patched_write_logfile_cache,
+        unittest.mock.patch(
+            "prism.overlay.user_interaction.logfile_utils.read_logfile_cache",
+            read_logfile_cache,
+        ),
+        unittest.mock.patch(
+            "prism.overlay.user_interaction.logfile_utils.suggest_logfiles",
+            lambda: suggested_logfiles,
+        ),
     ):
         logfile_path = get_logfile(
             update_cache=update_cache,

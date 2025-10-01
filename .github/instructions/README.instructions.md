@@ -64,19 +64,11 @@ flake8 .
 
 
 ### Dependency Management
-**IMPORTANT**: Dependencies are managed with pip-compile and are platform-specific.
+**IMPORTANT**: Dependencies are managed with uv and are platform-specific.
 
-- **Base dependencies**: Defined in `setup.cfg`
-- **Development dependencies**: Defined in `requirements/dev.in`
-- **Compiled requirements**: Platform-specific `.txt` files in `requirements/`
-
-To update dependencies:
-```bash
-# Recompile requirements (updates pinned versions)
-# Note: pip-tools is already installed in your environment
-pip-compile --output-file requirements/linux.txt setup.cfg
-pip-compile --output-file requirements/linux-dev.txt requirements/dev.in
-```
+- **Base dependencies**: Defined in `pyproject.toml`
+- **Development dependencies**: Defined in `pyproject.toml`
+- **Compiled requirements**: Defined in `uv.lock`
 
 ### Common Issues and Workarounds
 
@@ -126,7 +118,7 @@ tests/
 ```
 
 ### Build and CI/CD
-- **GitHub Actions**: `.github/workflows/` (linting.yml, testing.yml, pip-compile.yml)
+- **GitHub Actions**: `.github/workflows/` (linting.yml, testing.yml)
 - **PyInstaller**: `pyinstaller/` directory with hooks and icons
 - **Distribution**: Automated builds for Windows (.exe), macOS (.dmg), Linux (binary)
 

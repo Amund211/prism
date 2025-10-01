@@ -25,15 +25,19 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: "3.13"
-          cache: 'pip'
-          cache-dependency-path: requirements/*.txt
+          prune-cache: false # Pruning the cache seems to hang :^(
 
       - name: Install dependencies
         run: |
-          # Install dependencies in the global env, so copilot can access them easily
-          python -m ensurepip
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements/linux.txt -r requirements/linux-dev.txt
-          python -m pip install --no-deps -e .
+          uv sync
+          uv tool install black
+          uv tool install coverage
+          uv tool install flake8
+          uv tool install isort
+          uv tool install mypy
+          uv tool install pyinstaller
+          uv tool install pytest
