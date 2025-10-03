@@ -15,16 +15,28 @@ LOGFILE_RECENT_THRESHOLD_SECONDS = 60
 LOGFILE_REALLY_RECENT_THRESHOLD_SECONDS = 5
 
 
+def rglob(path: Path, pattern: str) -> tuple[Path, ...]:  # pragma: nocover
+    """Recursively glob for a pattern, returning an empty tuple on error"""
+    try:
+        return tuple(path.rglob(pattern))
+    except OSError:
+        logger.exception(f"Could not rglob {path} for {pattern}")
+        return ()
+
+
 def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
     system = platform.system()
     if system == "Linux":
-        lunar_client_base_dir = Path.home() / ".lunarclient" / "offline"
+        lunar_client_base_dir = Path.home() / ".lunarclient"
 
-        try:
-            lunar_client_logfiles = tuple(lunar_client_base_dir.rglob("latest.log"))
-        except OSError:
-            logger.exception(f"Could not rglob {lunar_client_base_dir}")
-            lunar_client_logfiles = ()
+        # New style
+        lunar_client_profiles_logfiles = rglob(
+            lunar_client_base_dir / "profiles", "latest.log"
+        )
+        # Old style
+        lunar_client_offline_logfiles = rglob(
+            lunar_client_base_dir / "offline", "latest.log"
+        )
 
         prism_launcher_base_dir = (
             Path.home() / ".local" / "share" / "PrismLauncher" / "instances"
@@ -49,7 +61,8 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
         vanilla_logfile = Path.home() / ".minecraft" / "logs" / "latest.log"
 
         return [
-            *lunar_client_logfiles,
+            *lunar_client_profiles_logfiles,
+            *lunar_client_offline_logfiles,
             *prism_launcher_logfiles,
             badlion_logfile,
             fml_logfile,
@@ -57,13 +70,16 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
             vanilla_logfile,
         ]
     elif system == "Darwin":
-        lunar_client_base_dir = Path.home() / ".lunarclient" / "offline"
+        lunar_client_base_dir = Path.home() / ".lunarclient"
 
-        try:
-            lunar_client_logfiles = tuple(lunar_client_base_dir.rglob("latest.log"))
-        except OSError:
-            logger.exception(f"Could not rglob {lunar_client_base_dir}")
-            lunar_client_logfiles = ()
+        # New style
+        lunar_client_profiles_logfiles = rglob(
+            lunar_client_base_dir / "profiles", "latest.log"
+        )
+        # Old style
+        lunar_client_offline_logfiles = rglob(
+            lunar_client_base_dir / "offline", "latest.log"
+        )
 
         prism_launcher_base_dir = (
             Path.home()
@@ -115,7 +131,8 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
         )
 
         return [
-            *lunar_client_logfiles,
+            *lunar_client_profiles_logfiles,
+            *lunar_client_offline_logfiles,
             *prism_launcher_logfiles,
             badlion_logfile,
             fml_logfile,
@@ -123,13 +140,16 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
             vanilla_logfile,
         ]
     elif system == "Windows":
-        lunar_client_base_dir = Path.home() / ".lunarclient" / "offline"
+        lunar_client_base_dir = Path.home() / ".lunarclient"
 
-        try:
-            lunar_client_logfiles = tuple(lunar_client_base_dir.rglob("latest.log"))
-        except OSError:
-            logger.exception(f"Could not rglob {lunar_client_base_dir}")
-            lunar_client_logfiles = ()
+        # New style
+        lunar_client_profiles_logfiles = rglob(
+            lunar_client_base_dir / "profiles", "latest.log"
+        )
+        # Old style
+        lunar_client_offline_logfiles = rglob(
+            lunar_client_base_dir / "offline", "latest.log"
+        )
 
         prism_launcher_base_dir = (
             Path.home() / "AppData" / "Roaming" / "PrismLauncher" / "instances"
@@ -166,7 +186,8 @@ def suggest_logfile_candidates() -> list[Path]:  # pragma: nocover
             Path.home() / "AppData" / "Roaming" / ".minecraft" / "logs" / "latest.log"
         )
         return [
-            *lunar_client_logfiles,
+            *lunar_client_profiles_logfiles,
+            *lunar_client_offline_logfiles,
             *prism_launcher_logfiles,
             badlion_logfile,
             fml_logfile,
