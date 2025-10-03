@@ -32,6 +32,24 @@ interface Download {
 const DOWNLOADS: Download[] = [
     {
         os: "Windows",
+        version: "1.10.0",
+        releasedAt: new Date("2025-10-03T23:21:09Z"),
+        link: "https://github.com/Amund211/prism/releases/download/v1.10.0/prism-v1.10.0-windows.exe",
+    },
+    {
+        os: "Mac OS",
+        version: "1.10.0",
+        releasedAt: new Date("2025-10-03T23:21:09Z"),
+        link: "https://github.com/Amund211/prism/releases/download/v1.10.0/prism-v1.10.0-mac.dmg",
+    },
+    {
+        os: "Linux",
+        version: "1.10.0",
+        releasedAt: new Date("2025-10-03T23:21:09Z"),
+        link: "https://github.com/Amund211/prism/releases/download/v1.10.0/prism-v1.10.0-linux",
+    },
+    {
+        os: "Windows",
         version: "1.9.0",
         releasedAt: new Date("2024-09-18T18:44:37Z"),
         link: "https://github.com/Amund211/prism/releases/download/v1.9.0/prism-v1.9.0-windows.exe",
