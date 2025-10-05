@@ -20,6 +20,7 @@ import (
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/flashlight/internal/telemetry"
 	"github.com/google/uuid"
 
 	_ "golang.org/x/crypto/x509roots/fallback" // Add fallback certs (for running in docker scratch image without ca-certificates)
@@ -45,6 +46,24 @@ func main() {
 		fail("Failed to load config", "error", err.Error())
 	}
 	logger.Info("Loaded config", "config", config.NonSensitiveString())
+
+	serviceName := "flashlight"
+	if config.IsStaging() {
+		serviceName = "flashlight-test"
+	} else if config.IsDevelopment() {
+		serviceName = "flashlight-dev"
+	}
+
+	otelShutdown, err := telemetry.SetupOTelSDK(ctx, serviceName)
+	if err != nil {
+		fail("Failed to initialize OpenTelemetry SDK", "error", err.Error())
+	}
+	defer func() {
+		err := otelShutdown(ctx)
+		if err != nil {
+			logger.Error("Failed to shutdown OpenTelemetry SDK", "error", err.Error())
+		}
+	}()
 
 	playerCache := cache.NewTTLCache[*domain.PlayerPIT](1 * time.Minute)
 

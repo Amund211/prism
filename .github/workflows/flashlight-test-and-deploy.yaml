@@ -88,12 +88,46 @@ jobs:
         run: |
           ./cmd/test-ip-rate-limit.sh
 
+  push-otel-collector-test:
+    if: github.event.pull_request.merged == false
+    name: Build and push OTel Collector for test instance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Login to GAR
+        uses: docker/login-action@v3.6.0
+        with:
+          registry: northamerica-northeast2-docker.pkg.dev
+          username: _json_key
+          password: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+
+      - name: Build and push test image
+        run: ./collector/build.sh build-and-push flashlight-test
+
+  push-otel-collector:
+    if: github.event.pull_request.merged == true
+    name: Build and push OTel Collector for production instance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Login to GAR
+        uses: docker/login-action@v3.6.0
+        with:
+          registry: northamerica-northeast2-docker.pkg.dev
+          username: _json_key
+          password: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+
+      - name: Build and push production image
+        run: ./collector/build.sh build-and-push flashlight
+
   deploy-test-instance:
     if: "github.event.pull_request.merged == false && !contains(github.event.pull_request.labels.*.name, 'skip-deployment')"
     name: Deploy test instance
     runs-on: ubuntu-latest
     # Only deploy the test instance if the tests pass
-    needs: test
+    needs: [test, push-otel-collector-test]
     steps:
       - uses: actions/checkout@v5
 
@@ -117,6 +151,7 @@ jobs:
     if: github.event.pull_request.merged == true
     name: Deploy cloud function
     runs-on: ubuntu-latest
+    needs: push-otel-collector
     steps:
       - uses: actions/checkout@v5
 

@@ -27,16 +27,23 @@ flashlight-test)
 	;;
 esac
 
+sidecar_image="$("$script_dir/../collector/build.sh" get-url "$function_name")"
+
 image="$docker_repository_url/$image_name:latest"
 
 docker build -t "$image" .
 
 docker push "$image"
 
+# NOTE: Since we're using a sidecar for telemetry collection, it is recommended to use an
+# always-allocated CPU
+# We're currently not doing this.
+# Ref: https://cloud.google.com/stackdriver/docs/instrumentation/choose-approach#run
 SERVICE_NAME="$service_name" \
 	SERVICE_IMAGE="$image" \
 	FLASHLIGHT_ENVIRONMENT="$environment" \
 	SENTRY_DSN_KEY="$sentry_dsn_key" \
+	COLLECTOR_IMAGE="$sidecar_image" \
 	envsubst <"$script_dir/service.tmpl.yaml" >"$script_dir/service.yaml"
 
 echo 'Deploying new service description:' >&2

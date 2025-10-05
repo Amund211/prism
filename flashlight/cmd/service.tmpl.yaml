@@ -10,6 +10,9 @@ spec:
   template:
     metadata:
       annotations:
+        # The guide makes the service dependent on the collector, but we skip that for faster cold starts
+        # Ref: https://cloud.google.com/run/docs/tutorials/custom-metrics-opentelemetry-sidecar
+        # run.googleapis.com/container-dependencies: '{"service":["collector"]}'
         autoscaling.knative.dev/minScale: "0"
         autoscaling.knative.dev/maxScale: "1"
         run.googleapis.com/cloudsql-instances: "prism-overlay:northamerica-northeast2:flashlight-postgres"
@@ -48,3 +51,9 @@ spec:
             secretKeyRef:
               name: "${SENTRY_DSN_KEY}"
               key: "latest"
+      - image: "${COLLECTOR_IMAGE}"
+        name: "collector"
+        startupProbe:
+          httpGet:
+            path: "/"
+            port: 13133
