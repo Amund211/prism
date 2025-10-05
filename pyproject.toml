@@ -51,6 +51,16 @@ dev = [
     "types-toml>=0.10.8.20240310",
 ]
 
+[tool.uv]
+# Require that the installed packages support both intel and apple silicon on macos.
+# NOTE: We actually want to enforce downloading universal2 wheels on macos when not
+#       using an sdist so that pyinstaller can correctly create a universal2 binary.
+#       This is not possible today. See e.g. https://github.com/astral-sh/uv/issues/13104
+required-environments = [
+  "sys_platform == 'darwin' and platform_machine == 'arm64'",
+  "sys_platform == 'darwin' and platform_machine == 'x86_64'",
+]
+
 [tool.black]
 exclude = '''
 /(
