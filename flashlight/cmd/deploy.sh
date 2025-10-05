@@ -2,6 +2,8 @@
 
 set -eu
 
+script_dir="$(dirname "$0")"
+
 docker_repository_url='northamerica-northeast2-docker.pkg.dev/prism-overlay/flashlight-dockerimages'
 
 function_name="${1:-}"
@@ -31,23 +33,16 @@ docker build -t "$image" .
 
 docker push "$image"
 
-gcloud run deploy "$service_name" \
-	--image "$image" \
-	--region=northamerica-northeast2 \
-	--max-instances=1 \
-	--min-instances=0 \
-	--timeout=30s \
-	--cpu=1 \
-	--memory=128Mi \
-	--allow-unauthenticated \
-	--concurrency 100 \
-	--set-cloudsql-instances prism-overlay:northamerica-northeast2:flashlight-postgres \
-	--set-secrets HYPIXEL_API_KEY=prism-hypixel-api-key:latest \
-	--set-secrets DB_PASSWORD=flashlight-db-password:latest \
-	--set-secrets "SENTRY_DSN=${sentry_dsn_key}:latest" \
-	--set-env-vars "FLASHLIGHT_ENVIRONMENT=${environment}" \
-	--set-env-vars 'DB_USERNAME=postgres' \
-	--set-env-vars 'CLOUDSQL_UNIX_SOCKET=/cloudsql/prism-overlay:northamerica-northeast2:flashlight-postgres'
+SERVICE_NAME="$service_name" \
+	SERVICE_IMAGE="$image" \
+	FLASHLIGHT_ENVIRONMENT="$environment" \
+	SENTRY_DSN_KEY="$sentry_dsn_key" \
+	envsubst <"$script_dir/service.tmpl.yaml" >"$script_dir/service.yaml"
+
+echo 'Deploying new service description:' >&2
+cat "$script_dir/service.yaml" >&2
+
+gcloud run services replace "$script_dir/service.yaml"
 
 # Verify that newly deployed function works
 echo 'Making request to new deployment' >&2

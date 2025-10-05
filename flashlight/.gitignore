@@ -4,6 +4,9 @@ c.out
 # Ignore generated credentials from google-github-actions/auth
 gha-creds-*.json
 
+# Generated service definition
+cmd/service.yaml
+
 # Binary outputs
 /flashlight
 /main
