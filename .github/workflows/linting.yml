@@ -15,8 +15,6 @@ jobs:
 
     - name: Install uv
       uses: astral-sh/setup-uv@v7
-      with:
-        prune-cache: false # Pruning the cache seems to hang :^(
 
     - name: Install dependencies
       run: |
