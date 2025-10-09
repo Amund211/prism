@@ -9,7 +9,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto/x509roots/fallback v0.0.0-20250916063316-ddb4e80c6ad3
-	golang.org/x/time v0.13.0
+	golang.org/x/time v0.14.0
 )
 
 require (
