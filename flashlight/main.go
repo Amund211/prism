@@ -22,6 +22,8 @@ import (
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/telemetry"
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 
 	_ "golang.org/x/crypto/x509roots/fallback" // Add fallback certs (for running in docker scratch image without ca-certificates)
 )
@@ -32,7 +34,6 @@ const STAGING_DOMAIN_SUFFIX = "rainbow-ctx.pages.dev"
 
 func main() {
 	ctx := context.Background()
-
 	instanceID := uuid.New().String()
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil)).With("instanceID", instanceID)
 
@@ -65,6 +66,15 @@ func main() {
 		}
 	}()
 
+	ctx, span := otel.Tracer("flashlight/main").Start(ctx, "startup")
+	defer span.End()
+
+	originalFail := fail
+	fail = func(msg string, args ...any) {
+		span.SetStatus(codes.Error, msg)
+		originalFail(msg, args...)
+	}
+
 	playerCache := cache.NewTTLCache[*domain.PlayerPIT](1 * time.Minute)
 
 	accountByUsernameCache := cache.NewTTLCache[domain.Account](24 * time.Hour)
@@ -79,7 +89,10 @@ func main() {
 	}
 	logger.Info("Initialized Hypixel API")
 
-	playerProvider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+	playerProvider, err := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+	if err != nil {
+		fail("Failed to initialize HypixelPlayerProvider", "error", err.Error())
+	}
 
 	accountProvider := accountprovider.NewMojang(httpClient, time.Now, time.After)
 
@@ -225,7 +238,10 @@ func main() {
 		),
 	)
 
+	span.SetStatus(codes.Ok, "Initialization complete")
+	span.End()
 	logger.Info("Init complete")
+
 	err = http.ListenAndServe(fmt.Sprintf(":%s", config.Port()), nil)
 	if errors.Is(err, http.ErrServerClosed) {
 		logger.Info("Server shutdown")

@@ -47,7 +47,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				queriedAt:  now,
 				err:        nil,
 			}
-			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			provider, err := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			require.NoError(t, err)
 			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.NoError(t, err)
 
@@ -68,8 +69,9 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				err:        nil,
 			}
 
-			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
-			_, err := provider.GetPlayer(t.Context(), "0123456789abcdef0123456789abcdef")
+			provider, err := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			require.NoError(t, err)
+			_, err = provider.GetPlayer(t.Context(), "0123456789abcdef0123456789abcdef")
 			require.Error(t, err)
 		})
 
@@ -83,7 +85,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				queriedAt:  time.Time{},
 				err:        nil,
 			}
-			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			provider, err := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			require.NoError(t, err)
 			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
@@ -103,7 +106,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				queriedAt:  time.Time{},
 				err:        nil,
 			}
-			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			provider, err := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			require.NoError(t, err)
 			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
@@ -122,7 +126,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				queriedAt:  time.Time{},
 				err:        assert.AnError,
 			}
-			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			provider, err := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			require.NoError(t, err)
 			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
@@ -144,7 +149,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				queriedAt:  time.Time{},
 				err:        nil,
 			}
-			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			provider, err := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			require.NoError(t, err)
 			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
@@ -163,7 +169,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				queriedAt:  time.Time{},
 				err:        nil,
 			}
-			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			provider, err := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			require.NoError(t, err)
 			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
@@ -182,7 +189,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				queriedAt:  now,
 				err:        nil,
 			}
-			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			provider, err := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			require.NoError(t, err)
 			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
@@ -201,7 +209,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				queriedAt:  now,
 				err:        nil,
 			}
-			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			provider, err := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			require.NoError(t, err)
 			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
@@ -220,7 +229,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				queriedAt:  now,
 				err:        nil,
 			}
-			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			provider, err := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			require.NoError(t, err)
 			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
@@ -239,7 +249,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				queriedAt:  now,
 				err:        nil,
 			}
-			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			provider, err := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			require.NoError(t, err)
 			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)
@@ -258,7 +269,8 @@ func TestHypixelPlayerProvider(t *testing.T) {
 				queriedAt:  now,
 				err:        nil,
 			}
-			provider := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			provider, err := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
+			require.NoError(t, err)
 			player, err := provider.GetPlayer(t.Context(), UUID)
 			require.Error(t, err)
 			require.Nil(t, player)

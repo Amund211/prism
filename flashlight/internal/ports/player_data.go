@@ -14,6 +14,7 @@ import (
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
+	"go.opentelemetry.io/otel"
 )
 
 func MakeGetPlayerDataHandler(
@@ -21,6 +22,8 @@ func MakeGetPlayerDataHandler(
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 ) http.HandlerFunc {
+	tracer := otel.Tracer("flashlight/ports/player_data_v1")
+
 	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(8),
 		ratelimiting.BurstSize(480),
@@ -64,6 +67,10 @@ func MakeGetPlayerDataHandler(
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
+
+		ctx, span := tracer.Start(ctx, "GetPlayerDataHandler")
+		defer span.End()
+
 		rawUUID := r.URL.Query().Get("uuid")
 		userID := r.Header.Get("X-User-Id")
 		ctx = reporting.SetUserIDInContext(ctx, userID)

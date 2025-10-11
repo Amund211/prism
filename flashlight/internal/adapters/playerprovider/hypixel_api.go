@@ -13,6 +13,10 @@ import (
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const getPlayerDataMinOperationTime = 100 * time.Millisecond
@@ -29,6 +33,21 @@ type HypixelAPI interface {
 	GetPlayerData(ctx context.Context, uuid string) ([]byte, int, time.Time, error)
 }
 
+type hypixelAPIMetricsCollection struct {
+	requestCount metric.Int64Counter
+}
+
+func setupHypixelAPIMetrics(meter metric.Meter) (hypixelAPIMetricsCollection, error) {
+	requestCount, err := meter.Int64Counter("playerprovider/hypixel_api/request_count")
+	if err != nil {
+		return hypixelAPIMetricsCollection{}, fmt.Errorf("failed to create metric: %w", err)
+	}
+
+	return hypixelAPIMetricsCollection{
+		requestCount: requestCount,
+	}, nil
+}
+
 type mockedHypixelAPI struct{}
 
 func (hypixelAPI *mockedHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, time.Time, error) {
@@ -40,9 +59,15 @@ type hypixelAPIImpl struct {
 	limiter    RequestLimiter
 	nowFunc    func() time.Time
 	apiKey     string
+
+	metrics hypixelAPIMetricsCollection
+	tracer  trace.Tracer
 }
 
 func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, time.Time, error) {
+	ctx, span := hypixelAPI.tracer.Start(ctx, "HypixelAPI.GetPlayerData")
+	defer span.End()
+
 	logger := logging.FromContext(ctx)
 	url := fmt.Sprintf("https://api.hypixel.net/player?uuid=%s", uuid)
 
@@ -61,24 +86,39 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 	var data []byte
 	var queriedAt time.Time
 	ran := hypixelAPI.limiter.Limit(ctx, getPlayerDataMinOperationTime, func() {
+		ctx, span := hypixelAPI.tracer.Start(ctx, "get_data")
+		defer span.End()
+
+		requestCtx, span := hypixelAPI.tracer.Start(ctx, "http.Request")
+		defer span.End()
+
 		resp, err = hypixelAPI.httpClient.Do(req)
 		if err != nil {
 			err := fmt.Errorf("failed to send request: %w", err)
 			logger.Error(err.Error())
-			reporting.Report(ctx, err)
+			reporting.Report(requestCtx, err)
 			return
 		}
+		span.End()
 
 		queriedAt = hypixelAPI.nowFunc()
+
+		readAllCtx, span := hypixelAPI.tracer.Start(ctx, "io.ReadAll")
+		defer span.End()
 
 		defer resp.Body.Close()
 		data, err = io.ReadAll(resp.Body)
 		if err != nil {
 			err := fmt.Errorf("failed to read response body: %w", err)
 			logger.Error(err.Error())
-			reporting.Report(ctx, err)
+			reporting.Report(readAllCtx, err)
 			return
 		}
+		span.End()
+
+		hypixelAPI.metrics.requestCount.Add(ctx, 1, metric.WithAttributes(
+			attribute.String("status_code", fmt.Sprintf("%d", resp.StatusCode)),
+		))
 	})
 	if !ran {
 		return []byte{}, -1, time.Time{}, fmt.Errorf("%w: too many requests to Hypixel API", domain.ErrTemporarilyUnavailable)
@@ -96,14 +136,27 @@ func NewHypixelAPI(
 	nowFunc func() time.Time,
 	afterFunc func(d time.Duration) <-chan time.Time,
 	apiKey string,
-) HypixelAPI {
+) (HypixelAPI, error) {
+	const name = "flashlight/playerprovider"
+
+	meter := otel.Meter(name)
+	tracer := otel.Tracer(name)
+
+	metrics, err := setupHypixelAPIMetrics(meter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set up metrics: %w", err)
+	}
+
 	limiter := ratelimiting.NewWindowLimitRequestLimiter(600, 5*time.Minute, nowFunc, afterFunc)
 	return hypixelAPIImpl{
 		httpClient: httpClient,
 		limiter:    limiter,
 		nowFunc:    nowFunc,
 		apiKey:     apiKey,
-	}
+
+		metrics: metrics,
+		tracer:  tracer,
+	}, nil
 }
 
 func NewHypixelAPIOrMock(
@@ -113,7 +166,11 @@ func NewHypixelAPIOrMock(
 	afterFunc func(d time.Duration) <-chan time.Time,
 ) (HypixelAPI, error) {
 	if config.HypixelAPIKey() != "" {
-		return NewHypixelAPI(httpClient, nowFunc, afterFunc, config.HypixelAPIKey()), nil
+		api, err := NewHypixelAPI(httpClient, nowFunc, afterFunc, config.HypixelAPIKey())
+		if err != nil {
+			return nil, fmt.Errorf("failed to create Hypixel API: %w", err)
+		}
+		return api, nil
 	}
 	if config.IsDevelopment() {
 		return &mockedHypixelAPI{}, nil

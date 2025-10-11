@@ -86,7 +86,8 @@ func TestGetPlayerData(t *testing.T) {
 			`{"success":true,"player":null}`,
 			nil,
 		)
-		hypixelAPI := NewHypixelAPI(httpClient, nowFunc, time.After, apiKey)
+		hypixelAPI, err := NewHypixelAPI(httpClient, nowFunc, time.After, apiKey)
+		require.NoError(t, err)
 
 		data, statusCode, queriedAt, err := hypixelAPI.GetPlayerData(t.Context(), "uuid1234")
 
@@ -106,9 +107,10 @@ func TestGetPlayerData(t *testing.T) {
 			`{"success":true,"player":null}`,
 			assert.AnError,
 		)
-		hypixelAPI := NewHypixelAPI(httpClient, nowFunc, time.After, apiKey)
+		hypixelAPI, err := NewHypixelAPI(httpClient, nowFunc, time.After, apiKey)
+		require.NoError(t, err)
 
-		_, _, _, err := hypixelAPI.GetPlayerData(t.Context(), "uuid123456")
+		_, _, _, err = hypixelAPI.GetPlayerData(t.Context(), "uuid123456")
 		require.ErrorIs(t, err, assert.AnError)
 	})
 
@@ -124,9 +126,10 @@ func TestGetPlayerData(t *testing.T) {
 			},
 			requestErr: nil,
 		}
-		hypixelAPI := NewHypixelAPI(httpClient, nowFunc, time.After, apiKey)
+		hypixelAPI, err := NewHypixelAPI(httpClient, nowFunc, time.After, apiKey)
+		require.NoError(t, err)
 
-		_, _, _, err := hypixelAPI.GetPlayerData(t.Context(), "uuid")
+		_, _, _, err = hypixelAPI.GetPlayerData(t.Context(), "uuid")
 		require.ErrorIs(t, err, assert.AnError)
 	})
 
@@ -141,7 +144,8 @@ func TestGetPlayerData(t *testing.T) {
 				`{"success":true,"player":null}`,
 				nil,
 			)
-			hypixelAPI := NewHypixelAPI(httpClient, time.Now, time.After, apiKey)
+			hypixelAPI, err := NewHypixelAPI(httpClient, time.Now, time.After, apiKey)
+			require.NoError(t, err)
 
 			wg := sync.WaitGroup{}
 
@@ -161,7 +165,7 @@ func TestGetPlayerData(t *testing.T) {
 			ctxWithDeadline, cancel := context.WithTimeout(t.Context(), 10*time.Second)
 			defer cancel()
 			// Will have to wait for 5 minutes due to rate limiting -> should cancel
-			_, _, _, err := hypixelAPI.GetPlayerData(ctxWithDeadline, "uuid1234")
+			_, _, _, err = hypixelAPI.GetPlayerData(ctxWithDeadline, "uuid1234")
 			require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
 
 			require.Equal(t, start, time.Now())
