@@ -22,6 +22,7 @@ import (
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/telemetry"
 	"github.com/google/uuid"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 
@@ -149,7 +150,15 @@ func main() {
 		getAndPersistPlayerWithCache,
 	)
 
-	http.HandleFunc(
+	mux := http.NewServeMux()
+
+	handleFunc := func(pattern string, handlerFunc http.HandlerFunc) {
+		innerHandler := otelhttp.WithRouteTag(pattern, handlerFunc)
+		outerHandler := otelhttp.NewHandler(innerHandler, pattern)
+		mux.Handle(pattern, outerHandler)
+	}
+
+	handleFunc(
 		"GET /v1/playerdata",
 		ports.MakeGetPlayerDataHandler(
 			getAndPersistPlayerWithCache,
@@ -158,11 +167,11 @@ func main() {
 		),
 	)
 
-	http.HandleFunc(
+	handleFunc(
 		"OPTIONS /v1/account/username/{username}",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
-	http.HandleFunc(
+	handleFunc(
 		"GET /v1/account/username/{username}",
 		ports.MakeGetAccountByUsernameHandler(
 			getAccountByUsernameWithCache,
@@ -172,11 +181,11 @@ func main() {
 		),
 	)
 
-	http.HandleFunc(
+	handleFunc(
 		"OPTIONS /v1/account/uuid/{uuid}",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
-	http.HandleFunc(
+	handleFunc(
 		"GET /v1/account/uuid/{uuid}",
 		ports.MakeGetAccountByUUIDHandler(
 			getAccountByUUIDWithCache,
@@ -186,11 +195,11 @@ func main() {
 		),
 	)
 
-	http.HandleFunc(
+	handleFunc(
 		"OPTIONS /v1/history",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
-	http.HandleFunc(
+	handleFunc(
 		"POST /v1/history",
 		ports.MakeGetHistoryHandler(
 			getHistory,
@@ -200,11 +209,11 @@ func main() {
 		),
 	)
 
-	http.HandleFunc(
+	handleFunc(
 		"OPTIONS /v1/sessions",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
-	http.HandleFunc(
+	handleFunc(
 		"POST /v1/sessions",
 		ports.MakeGetSessionsHandler(
 			getSessions,
@@ -214,11 +223,11 @@ func main() {
 		),
 	)
 
-	http.HandleFunc(
+	handleFunc(
 		"OPTIONS /v1/prestiges/{uuid}",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
-	http.HandleFunc(
+	handleFunc(
 		"GET /v1/prestiges/{uuid}",
 		ports.MakeGetPrestigesHandler(
 			findMilestoneAchievements,
@@ -229,7 +238,7 @@ func main() {
 	)
 
 	// TODO: Remove
-	http.HandleFunc(
+	handleFunc(
 		"GET /playerdata",
 		ports.MakeGetPlayerDataHandler(
 			getAndPersistPlayerWithCache,
@@ -238,11 +247,19 @@ func main() {
 		),
 	)
 
+	httpServer := &http.Server{
+		Addr:         fmt.Sprintf(":%s", config.Port()),
+		Handler:      mux,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
+
 	span.SetStatus(codes.Ok, "Initialization complete")
 	span.End()
 	logger.Info("Init complete")
 
-	err = http.ListenAndServe(fmt.Sprintf(":%s", config.Port()), nil)
+	err = httpServer.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
 		logger.Info("Server shutdown")
 	} else {
