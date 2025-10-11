@@ -26,7 +26,7 @@ type HttpClient interface {
 }
 
 type RequestLimiter interface {
-	Limit(ctx context.Context, minOperationTime time.Duration, operation func()) bool
+	Limit(ctx context.Context, minOperationTime time.Duration, operation func(ctx context.Context)) bool
 }
 
 type HypixelAPI interface {
@@ -85,7 +85,7 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 	var resp *http.Response
 	var data []byte
 	var queriedAt time.Time
-	ran := hypixelAPI.limiter.Limit(ctx, getPlayerDataMinOperationTime, func() {
+	ran := hypixelAPI.limiter.Limit(ctx, getPlayerDataMinOperationTime, func(ctx context.Context) {
 		ctx, span := hypixelAPI.tracer.Start(ctx, "get_data")
 		defer span.End()
 

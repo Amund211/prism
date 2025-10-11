@@ -34,10 +34,10 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 			l3 := ratelimiting.NewWindowLimitRequestLimiter(1, 1*time.Hour, time.Now, time.After)
 			l4 := ratelimiting.NewWindowLimitRequestLimiter(1, 1*time.Hour, time.Now, time.After)
 
-			require.True(t, l1.Limit(ctx, 1*time.Second, func() {}))
-			require.True(t, l2.Limit(ctx, 1*time.Second, func() {}))
-			require.True(t, l3.Limit(ctx, 1*time.Second, func() {}))
-			require.True(t, l4.Limit(ctx, 1*time.Second, func() {}))
+			require.True(t, l1.Limit(ctx, 1*time.Second, func(ctx context.Context) {}))
+			require.True(t, l2.Limit(ctx, 1*time.Second, func(ctx context.Context) {}))
+			require.True(t, l3.Limit(ctx, 1*time.Second, func(ctx context.Context) {}))
+			require.True(t, l4.Limit(ctx, 1*time.Second, func(ctx context.Context) {}))
 
 			// All operations should have run immediately
 			require.Equal(t, start, time.Now())
@@ -193,7 +193,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 
 							expectedEnd := start.Add(req.expectedStart + req.operationTime)
 
-							ran := l.Limit(ctx, minOperationTime, func() {
+							ran := l.Limit(ctx, minOperationTime, func(ctx context.Context) {
 								t.Helper()
 								require.Equal(t, start.Add(req.expectedStart), time.Now())
 								time.Sleep(req.operationTime)
@@ -231,7 +231,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				wg.Go(func() {
 					t.Helper()
 
-					ran := l.Limit(ctx, minOperationTime, func() {
+					ran := l.Limit(ctx, minOperationTime, func(ctx context.Context) {
 						t.Helper()
 
 						mutex.Lock()
@@ -303,16 +303,16 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 					minOperationTime := 2 * time.Second
 
 					// Exhaust the limiter
-					ran := l.Limit(ctx, minOperationTime, func() {})
+					ran := l.Limit(ctx, minOperationTime, func(ctx context.Context) {})
 					require.True(t, ran)
-					ran = l.Limit(ctx, minOperationTime, func() {})
+					ran = l.Limit(ctx, minOperationTime, func(ctx context.Context) {})
 					require.True(t, ran)
 
 					require.Equal(t, start, time.Now())
 
 					ctx, close := context.WithTimeout(t.Context(), c.timeout)
 					defer close()
-					ran = l.Limit(ctx, minOperationTime, func() {
+					ran = l.Limit(ctx, minOperationTime, func(ctx context.Context) {
 						t.Helper()
 						require.True(t, c.shouldRun)
 						require.Equal(t, start.Add(10*time.Second), time.Now())
@@ -352,7 +352,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 
 					ctx, close := context.WithTimeout(t.Context(), timeout)
 					defer close()
-					ran := l.Limit(ctx, minOperationTime, func() {})
+					ran := l.Limit(ctx, minOperationTime, func(ctx context.Context) {})
 					require.True(t, ran)
 
 					require.Equal(t, start, time.Now())
@@ -381,7 +381,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				// Consume all concurrency from the limiter
 				for range 2 {
 					requestsCompletedWg.Go(func() {
-						ran := l.Limit(ctx, minOperationTime, func() {
+						ran := l.Limit(ctx, minOperationTime, func(ctx context.Context) {
 							requestsWg.Wait()
 						})
 						require.True(t, ran)
@@ -395,7 +395,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 
 				requestCanceled := false
 				requestsCompletedWg.Go(func() {
-					ran := l.Limit(ctx, minOperationTime, func() {
+					ran := l.Limit(ctx, minOperationTime, func(ctx context.Context) {
 						t.Helper()
 						assert.False(t, true, "operation should not be called")
 					})
@@ -431,9 +431,9 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 
 				l := ratelimiting.NewWindowLimitRequestLimiter(2, 10*time.Second, time.Now, time.After)
 				// Exhaust the limiter
-				ran := l.Limit(ctx, minOperationTime, func() {})
+				ran := l.Limit(ctx, minOperationTime, func(ctx context.Context) {})
 				require.True(t, ran)
-				ran = l.Limit(ctx, minOperationTime, func() {})
+				ran = l.Limit(ctx, minOperationTime, func(ctx context.Context) {})
 				require.True(t, ran)
 
 				require.Equal(t, start, time.Now())
@@ -443,7 +443,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				limitReturned := false
 
 				go func() {
-					ran := l.Limit(ctx, minOperationTime, func() {
+					ran := l.Limit(ctx, minOperationTime, func(ctx context.Context) {
 						t.Helper()
 						assert.False(t, true, "operation should not be called")
 					})
@@ -484,7 +484,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				// Consume all concurrency from the limiter
 				for range 2 {
 					requestsCompletedWg.Go(func() {
-						ran := l.Limit(ctx, minOperationTime, func() {
+						ran := l.Limit(ctx, minOperationTime, func(ctx context.Context) {
 							<-requestsCanRun
 						})
 						require.True(t, ran)
@@ -500,7 +500,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				canceledRequestsWg := sync.WaitGroup{}
 				for range 100 {
 					canceledRequestsWg.Go(func() {
-						ran := l.Limit(ctx, minOperationTime, func() {
+						ran := l.Limit(ctx, minOperationTime, func(ctx context.Context) {
 							t.Helper()
 							assert.False(t, true, "operation should not be called")
 						})
@@ -529,14 +529,14 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				l := ratelimiting.NewWindowLimitRequestLimiter(1, 10*time.Second, time.Now, time.After)
 
 				// Exhaust the limiter
-				ran := l.Limit(ctx, minOperationTime, func() {})
+				ran := l.Limit(ctx, minOperationTime, func(ctx context.Context) {})
 				require.True(t, ran)
 				require.Equal(t, start, time.Now())
 
 				ctxWithCancel, cancel := context.WithCancel(context.Background())
 				limitReturned := false
 				go func() {
-					ran := l.Limit(ctxWithCancel, minOperationTime, func() {
+					ran := l.Limit(ctxWithCancel, minOperationTime, func(ctx context.Context) {
 						t.Helper()
 						assert.False(t, true, "operation should not be called")
 					})
@@ -555,7 +555,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				require.True(t, limitReturned)
 
 				// Since the request was canceled, we just have to wait for the original request to move outside the window
-				ran = l.Limit(ctx, minOperationTime, func() {})
+				ran = l.Limit(ctx, minOperationTime, func(ctx context.Context) {})
 				require.True(t, ran)
 
 				require.Equal(t, start.Add(10*time.Second), time.Now())
@@ -572,9 +572,9 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				l := ratelimiting.NewWindowLimitRequestLimiter(2, 10*time.Second, time.Now, time.After)
 
 				// Exhaust the limiter
-				ran := l.Limit(ctx, minOperationTime, func() {})
+				ran := l.Limit(ctx, minOperationTime, func(ctx context.Context) {})
 				require.True(t, ran)
-				ran = l.Limit(ctx, minOperationTime, func() {})
+				ran = l.Limit(ctx, minOperationTime, func(ctx context.Context) {})
 				require.True(t, ran)
 
 				// Move both requests just outside the window
@@ -583,7 +583,7 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				wg := sync.WaitGroup{}
 				for range 100 {
 					wg.Go(func() {
-						ran := l.LimitCancelable(ctx, minOperationTime, func() bool {
+						ran := l.LimitCancelable(ctx, minOperationTime, func(ctx context.Context) bool {
 							return false // Cancel the operation
 						})
 						require.False(t, ran)
@@ -592,9 +592,9 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				wg.Wait()
 
 				// Actually run two operations
-				ran = l.Limit(ctx, minOperationTime, func() {})
+				ran = l.Limit(ctx, minOperationTime, func(ctx context.Context) {})
 				require.True(t, ran)
-				ran = l.LimitCancelable(ctx, minOperationTime, func() bool {
+				ran = l.LimitCancelable(ctx, minOperationTime, func(ctx context.Context) bool {
 					return true
 				})
 				require.True(t, ran)
@@ -613,7 +613,7 @@ type mockedCancelableRequestLimiter struct {
 	onOperationCompleted func(bool)
 }
 
-func (m *mockedCancelableRequestLimiter) LimitCancelable(ctx context.Context, minOperationTime time.Duration, operation func() bool) bool {
+func (m *mockedCancelableRequestLimiter) LimitCancelable(ctx context.Context, minOperationTime time.Duration, operation func(ctx context.Context) bool) bool {
 	m.wasCalled = true
 
 	if m.onCalled != nil {
@@ -624,7 +624,7 @@ func (m *mockedCancelableRequestLimiter) LimitCancelable(ctx context.Context, mi
 		return false
 	}
 
-	operationStatus := operation()
+	operationStatus := operation(ctx)
 
 	if m.onOperationCompleted != nil {
 		m.onOperationCompleted(operationStatus)
@@ -658,8 +658,8 @@ func TestComposedRequestLimiter(t *testing.T) {
 
 			c1 := ratelimiting.NewComposedRequestLimiter(l1, l2)
 			c2 := ratelimiting.NewComposedRequestLimiter(l3, l4)
-			require.True(t, c1.Limit(ctx, 1*time.Second, func() {}))
-			require.True(t, c2.Limit(ctx, 1*time.Second, func() {}))
+			require.True(t, c1.Limit(ctx, 1*time.Second, func(ctx context.Context) {}))
+			require.True(t, c2.Limit(ctx, 1*time.Second, func(ctx context.Context) {}))
 
 			require.Equal(t, start, time.Now())
 		})
@@ -686,7 +686,7 @@ func TestComposedRequestLimiter(t *testing.T) {
 
 		l := ratelimiting.NewComposedRequestLimiter(m1, m2, m3)
 		operationCalled := false
-		ran := l.Limit(ctx, 1*time.Second, func() { operationCalled = true })
+		ran := l.Limit(ctx, 1*time.Second, func(ctx context.Context) { operationCalled = true })
 		require.True(t, ran)
 
 		require.True(t, operationCalled)
@@ -788,7 +788,7 @@ func TestComposedRequestLimiter(t *testing.T) {
 					}
 					l := ratelimiting.NewComposedRequestLimiter(m1, m2, m3)
 
-					ran := l.Limit(ctx, 1*time.Second, func() {
+					ran := l.Limit(ctx, 1*time.Second, func(ctx context.Context) {
 						calls = append(calls, 4)
 					})
 					require.Equal(t, slices.Contains(c.expectedCalls, 4), ran)
@@ -816,7 +816,7 @@ func TestComposedRequestLimiter(t *testing.T) {
 		}
 		l := ratelimiting.NewComposedRequestLimiter(m1, m2)
 
-		ran := l.Limit(ctx, 1*time.Second, func() {
+		ran := l.Limit(ctx, 1*time.Second, func(ctx context.Context) {
 			assert.False(t, true, "operation should not be called")
 		})
 		require.False(t, ran)

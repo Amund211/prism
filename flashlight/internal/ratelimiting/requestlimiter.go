@@ -13,7 +13,7 @@ import (
 )
 
 type CancelableRequestLimiter interface {
-	LimitCancelable(ctx context.Context, minOperationTime time.Duration, operation func() bool) bool
+	LimitCancelable(ctx context.Context, minOperationTime time.Duration, operation func(ctx context.Context) bool) bool
 }
 
 type composedRequestLimiter struct {
@@ -28,21 +28,21 @@ func NewComposedRequestLimiter(
 	}
 }
 
-func (l *composedRequestLimiter) Limit(ctx context.Context, minOperationTime time.Duration, operation func()) bool {
-	limited := func() bool {
-		operation()
+func (l *composedRequestLimiter) Limit(ctx context.Context, minOperationTime time.Duration, operation func(ctx context.Context)) bool {
+	limited := func(ctx context.Context) bool {
+		operation(ctx)
 		return true
 	}
 	for i := len(l.limiters) - 1; i >= 0; i-- {
 		limiter := l.limiters[i]
 		prevLimited := limited
-		limited = func() bool {
-			return limiter.LimitCancelable(ctx, minOperationTime, func() bool {
-				return prevLimited()
+		limited = func(ctx context.Context) bool {
+			return limiter.LimitCancelable(ctx, minOperationTime, func(ctx context.Context) bool {
+				return prevLimited(ctx)
 			})
 		}
 	}
-	return limited()
+	return limited(ctx)
 }
 
 type windowLimitRequestLimiter struct {
@@ -103,16 +103,16 @@ func insertSortedOrder(arr []time.Time, t time.Time) []time.Time {
 	return slices.Insert(arr, i, t)
 }
 
-func (l *windowLimitRequestLimiter) Limit(ctx context.Context, minOperationTime time.Duration, operation func()) bool {
+func (l *windowLimitRequestLimiter) Limit(ctx context.Context, minOperationTime time.Duration, operation func(ctx context.Context)) bool {
 	ctx, span := l.tracer.Start(ctx, "windowLimitRequestLimiter.Limit")
 	defer span.End()
-	return l.LimitCancelable(ctx, minOperationTime, func() bool {
-		operation()
+	return l.LimitCancelable(ctx, minOperationTime, func(ctx context.Context) bool {
+		operation(ctx)
 		return true
 	})
 }
 
-func (l *windowLimitRequestLimiter) LimitCancelable(ctx context.Context, minOperationTime time.Duration, operation func() bool) bool {
+func (l *windowLimitRequestLimiter) LimitCancelable(ctx context.Context, minOperationTime time.Duration, operation func(ctx context.Context) bool) bool {
 	return l.waitIf(ctx, func(ctx context.Context, wait time.Duration) bool {
 		if wait <= 0 {
 			// No wait needed, we can proceed
@@ -137,7 +137,7 @@ func (l *windowLimitRequestLimiter) LimitCancelable(ctx context.Context, minOper
 	}, operation)
 }
 
-func (l *windowLimitRequestLimiter) waitIf(ctx context.Context, shouldRun func(ctx context.Context, wait time.Duration) bool, operation func() bool) bool {
+func (l *windowLimitRequestLimiter) waitIf(ctx context.Context, shouldRun func(ctx context.Context, wait time.Duration) bool, operation func(ctx context.Context) bool) bool {
 	ctx, span := l.tracer.Start(ctx, "waitIf")
 	defer span.End()
 	// Make sure there is data in the request history
@@ -175,7 +175,7 @@ func (l *windowLimitRequestLimiter) waitIf(ctx context.Context, shouldRun func(c
 	}
 
 	// Perform the operation
-	ran := operation()
+	ran := operation(ctx)
 	if !ran {
 		span.SetStatus(codes.Error, "operation decided not to run")
 		return false
