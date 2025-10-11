@@ -17,6 +17,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const DATA_FORMAT_VERSION = 1
@@ -24,10 +26,18 @@ const DATA_FORMAT_VERSION = 1
 type PostgresPlayerRepository struct {
 	db     *sqlx.DB
 	schema string
+
+	tracer trace.Tracer
 }
 
 func NewPostgresPlayerRepository(db *sqlx.DB, schema string) *PostgresPlayerRepository {
-	return &PostgresPlayerRepository{db, schema}
+	tracer := otel.Tracer("flashlight/adapters/player_repository")
+	return &PostgresPlayerRepository{
+		db:     db,
+		schema: schema,
+
+		tracer: tracer,
+	}
 }
 
 type playerDataStorage struct {
@@ -158,6 +168,9 @@ func dbStatToPlayerPITWithID(dbStat dbStat) (*playerPITWithID, error) {
 }
 
 func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *domain.PlayerPIT) error {
+	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.StorePlayer")
+	defer span.End()
+
 	if player == nil {
 		err := fmt.Errorf("player is nil")
 		reporting.Report(ctx, err)
@@ -273,6 +286,9 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 }
 
 func (p *PostgresPlayerRepository) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error) {
+	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.GetHistory")
+	defer span.End()
+
 	if !strutils.UUIDIsNormalized(playerUUID) {
 		err := fmt.Errorf("uuid is not normalized")
 		reporting.Report(ctx, err, map[string]string{
@@ -541,6 +557,9 @@ func computeSessions(stats []playerPITWithID, start, end time.Time) []domain.Ses
 }
 
 func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]domain.Session, error) {
+	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.GetSessions")
+	defer span.End()
+
 	if !strutils.UUIDIsNormalized(playerUUID) {
 		err := fmt.Errorf("uuid is not normalized")
 		reporting.Report(ctx, err, map[string]string{
@@ -652,6 +671,9 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 }
 
 func (p *PostgresPlayerRepository) FindMilestoneAchievements(ctx context.Context, playerUUID string, gamemode domain.Gamemode, stat domain.Stat, milestones []int64) ([]domain.MilestoneAchievement, error) {
+	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.FindMilestoneAchievements")
+	defer span.End()
+
 	if !strutils.UUIDIsNormalized(playerUUID) {
 		err := fmt.Errorf("uuid is not normalized")
 		reporting.Report(ctx, err, map[string]string{
