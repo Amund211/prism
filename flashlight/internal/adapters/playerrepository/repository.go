@@ -31,7 +31,7 @@ func NewPostgresPlayerRepository(db *sqlx.DB, schema string) *PostgresPlayerRepo
 }
 
 type playerDataStorage struct {
-	Experience *float64         `json:"xp,omitempty"`
+	Experience *int64           `json:"xp,omitempty"`
 	Solo       statsDataStorage `json:"1"`
 	Doubles    statsDataStorage `json:"2"`
 	Threes     statsDataStorage `json:"3"`
@@ -85,10 +85,9 @@ func playerToDataStorage(player *domain.PlayerPIT) ([]byte, error) {
 		return []byte(`{}`), nil
 	}
 
-	var experience *float64
+	var experience *int64
 	if player.Experience != 500 {
-		experienceValue := float64(player.Experience)
-		experience = &experienceValue
+		experience = &player.Experience
 	}
 
 	data := playerDataStorage{
@@ -129,7 +128,7 @@ func dbStatToPlayerPITWithID(dbStat dbStat) (*playerPITWithID, error) {
 		return nil, fmt.Errorf("failed to unmarshal player data: %w", err)
 	}
 
-	experience := 500.0
+	var experience int64 = 500
 	if playerData.Experience != nil {
 		experience = *playerData.Experience
 	}
