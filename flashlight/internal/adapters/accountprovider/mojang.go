@@ -15,6 +15,8 @@ import (
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const getAccountMinOperationTime = 150 * time.Millisecond
@@ -31,6 +33,8 @@ type Mojang struct {
 	httpClient HttpClient
 	limiter    RequestLimiter
 	nowFunc    func() time.Time
+
+	tracer trace.Tracer
 }
 
 func NewMojang(httpClient HttpClient, nowFunc func() time.Time, afterFunc func(time.Duration) <-chan time.Time) *Mojang {
@@ -44,18 +48,28 @@ func NewMojang(httpClient HttpClient, nowFunc func() time.Time, afterFunc func(t
 		baseLimiter,
 	)
 
+	tracer := otel.Tracer("flashlight/accountprovider/mojangaccountprovider")
+
 	return &Mojang{
 		httpClient: httpClient,
 		limiter:    limiter,
 		nowFunc:    nowFunc,
+
+		tracer: tracer,
 	}
 }
 
 func (m *Mojang) GetAccountByUUID(ctx context.Context, uuid string) (domain.Account, error) {
+	ctx, span := m.tracer.Start(ctx, "Mojang.GetAccountByUUID")
+	defer span.End()
+
 	return m.getProfile(ctx, fmt.Sprintf("https://api.mojang.com/user/profile/%s", uuid))
 }
 
 func (m *Mojang) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
+	ctx, span := m.tracer.Start(ctx, "Mojang.GetAccountByUsername")
+	defer span.End()
+
 	return m.getProfile(ctx, fmt.Sprintf("https://api.mojang.com/users/profiles/minecraft/%s", username))
 }
 
@@ -72,6 +86,9 @@ func (m *Mojang) getProfile(ctx context.Context, url string) (domain.Account, er
 	var resp *http.Response
 	var data []byte
 	ran := m.limiter.Limit(ctx, getAccountMinOperationTime, func(ctx context.Context) {
+		ctx, span := m.tracer.Start(ctx, "MojangAPI.getProfile")
+		defer span.End()
+
 		resp, err = m.httpClient.Do(req)
 		if err != nil {
 			err := fmt.Errorf("failed to send request: %w", err)
