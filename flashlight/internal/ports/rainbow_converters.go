@@ -57,7 +57,7 @@ func playerToRainbowPlayerDataPIT(player *domain.PlayerPIT) rainbowPlayerDataPIT
 	return rainbowPlayerDataPIT{
 		UUID:       player.UUID,
 		QueriedAt:  player.QueriedAt,
-		Experience: player.Experience,
+		Experience: float64(player.Experience),
 		Solo:       gamemodeStatsPITToRainbowStatsPIT(&player.Solo),
 		Doubles:    gamemodeStatsPITToRainbowStatsPIT(&player.Doubles),
 		Threes:     gamemodeStatsPITToRainbowStatsPIT(&player.Threes),

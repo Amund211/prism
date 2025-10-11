@@ -204,14 +204,14 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 		lastLogout = &l
 	}
 
-	experience := 500.0
+	var experience int64 = 500
 	var solo, doubles, threes, fours, overall domain.GamemodeStatsPIT
 
 	if apiPlayer.Stats != nil && apiPlayer.Stats.Bedwars != nil {
 		bw := apiPlayer.Stats.Bedwars
 
 		if bw.Experience != nil {
-			experience = *bw.Experience
+			experience = int64(*bw.Experience)
 		}
 
 		solo = domain.GamemodeStatsPIT{

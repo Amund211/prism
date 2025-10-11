@@ -16,7 +16,7 @@ type PlayerPIT struct {
 	// TODO: Remove? -> Can be derived from checking gamesplayed == 0
 	MissingBedwarsStats bool
 
-	Experience float64
+	Experience int64
 	Solo       GamemodeStatsPIT
 	Doubles    GamemodeStatsPIT
 	Threes     GamemodeStatsPIT

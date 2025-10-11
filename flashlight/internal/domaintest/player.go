@@ -16,7 +16,7 @@ func (pb *playerBuilder) WithGamesPlayed(gamesPlayed int) *playerBuilder {
 	return pb
 }
 
-func (pb *playerBuilder) WithExperience(exp float64) *playerBuilder {
+func (pb *playerBuilder) WithExperience(exp int64) *playerBuilder {
 	pb.player.Experience = exp
 	return pb
 }

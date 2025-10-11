@@ -103,7 +103,7 @@ func playerToPrismPlayerDataResponse(player *domain.PlayerPIT) *hypixelAPIRespon
 	}
 
 	bedwarsStats := hypixelAPIBedwarsStats{
-		Experience: player.Experience,
+		Experience: float64(player.Experience),
 
 		Winstreak:   player.Overall.Winstreak,
 		GamesPlayed: player.Overall.GamesPlayed,

@@ -54,7 +54,7 @@ func TestHypixelPlayerProvider(t *testing.T) {
 
 			require.NotNil(t, player)
 			require.Equal(t, UUID, player.UUID)
-			require.Equal(t, 0.0, player.Experience) // Weird case - don't expect hypixel api to return `"Experience": 0`
+			require.Equal(t, int64(0), player.Experience) // Weird case - don't expect hypixel api to return `"Experience": 0`
 			require.Equal(t, 0, player.Overall.FinalKills)
 		})
 

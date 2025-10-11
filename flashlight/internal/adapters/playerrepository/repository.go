@@ -87,7 +87,8 @@ func playerToDataStorage(player *domain.PlayerPIT) ([]byte, error) {
 
 	var experience *float64
 	if player.Experience != 500 {
-		experience = &player.Experience
+		experienceValue := float64(player.Experience)
+		experience = &experienceValue
 	}
 
 	data := playerDataStorage{
@@ -143,7 +144,7 @@ func dbStatToPlayerPITWithID(dbStat dbStat) (*playerPITWithID, error) {
 		LastLogin:   nil,
 		LastLogout:  nil,
 
-		Experience: experience,
+		Experience: int64(experience),
 		Solo:       *gamemodeStatsPITFromDataStorage(&playerData.Solo),
 		Doubles:    *gamemodeStatsPITFromDataStorage(&playerData.Doubles),
 		Threes:     *gamemodeStatsPITFromDataStorage(&playerData.Threes),
@@ -444,7 +445,7 @@ func computeSessions(stats []playerPITWithID, start, end time.Time) []domain.Ses
 
 	sessions := []domain.Session{}
 
-	getProgressStats := func(stat playerPITWithID) (int, float64) {
+	getProgressStats := func(stat playerPITWithID) (int, int64) {
 		return stat.Overall.GamesPlayed, stat.Experience
 	}
 

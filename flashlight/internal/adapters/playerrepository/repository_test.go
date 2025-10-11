@@ -601,7 +601,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			type normalizedPlayerPIT struct {
 				queriedAtISO  string
 				uuid          string
-				experience    float64
+				experience    int64
 				gamesPlayed   int
 				soloWinstreak int
 			}
