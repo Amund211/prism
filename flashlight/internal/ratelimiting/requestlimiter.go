@@ -164,7 +164,7 @@ func (l *windowLimitRequestLimiter) waitIf(ctx context.Context, shouldRun func(c
 	}()
 
 	if wait := l.computeWait(oldestRequest); wait > 0 {
-		span.AddEvent("Waiting for old request to leave the window", trace.WithAttributes(attribute.Float64("wait_seconds", float64(wait.Seconds()))))
+		span.AddEvent("Waiting for old request to leave the window", trace.WithAttributes(attribute.Float64("wait_seconds", wait.Seconds())))
 		select {
 		case <-ctx.Done():
 			span.SetStatus(codes.Error, "context done while waiting")
