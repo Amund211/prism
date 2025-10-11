@@ -12,15 +12,26 @@ import (
 	"github.com/Amund211/flashlight/internal/strutils"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type Postgres struct {
 	db     *sqlx.DB
 	schema string
+
+	tracer trace.Tracer
 }
 
 func NewPostgres(db *sqlx.DB, schema string) *Postgres {
-	return &Postgres{db, schema}
+	tracer := otel.Tracer("flashlight/accountrepository/postgres")
+
+	return &Postgres{
+		db:     db,
+		schema: schema,
+
+		tracer: tracer,
+	}
 }
 
 type dbUsernamesEntry struct {
@@ -36,6 +47,9 @@ type dbUsernameQueriesEntry struct {
 }
 
 func (p *Postgres) StoreAccount(ctx context.Context, account domain.Account) error {
+	ctx, span := p.tracer.Start(ctx, "Postgres.StoreAccount")
+	defer span.End()
+
 	if !strutils.UUIDIsNormalized(account.UUID) {
 		err := fmt.Errorf("uuid is not normalized")
 		reporting.Report(ctx, err, map[string]string{
@@ -147,6 +161,9 @@ func (p *Postgres) StoreAccount(ctx context.Context, account domain.Account) err
 }
 
 func (p *Postgres) RemoveUsername(ctx context.Context, username string) error {
+	ctx, span := p.tracer.Start(ctx, "Postgres.RemoveUsername")
+	defer span.End()
+
 	_, err := p.db.ExecContext(ctx, fmt.Sprintf(`
 			DELETE FROM %s.usernames
 			WHERE lower(username) = lower($1)`,
@@ -166,6 +183,9 @@ func (p *Postgres) RemoveUsername(ctx context.Context, username string) error {
 }
 
 func (p *Postgres) GetAccountByUUID(ctx context.Context, uuid string) (domain.Account, error) {
+	ctx, span := p.tracer.Start(ctx, "Postgres.GetAccountByUUID")
+	defer span.End()
+
 	if !strutils.UUIDIsNormalized(uuid) {
 		err := fmt.Errorf("uuid is not normalized")
 		reporting.Report(ctx, err, map[string]string{
@@ -203,6 +223,9 @@ func (p *Postgres) GetAccountByUUID(ctx context.Context, uuid string) (domain.Ac
 }
 
 func (p *Postgres) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
+	ctx, span := p.tracer.Start(ctx, "Postgres.GetAccountByUsername")
+	defer span.End()
+
 	var entry dbUsernamesEntry
 	err := p.db.GetContext(ctx, &entry, fmt.Sprintf(`SELECT
 		player_uuid, username, queried_at
