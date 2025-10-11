@@ -24,7 +24,7 @@ type rainbowStatsPIT struct {
 type rainbowPlayerDataPIT struct {
 	UUID       string          `json:"uuid"`
 	QueriedAt  time.Time       `json:"queriedAt"`
-	Experience float64         `json:"experience"`
+	Experience int64           `json:"experience"`
 	Solo       rainbowStatsPIT `json:"solo"`
 	Doubles    rainbowStatsPIT `json:"doubles"`
 	Threes     rainbowStatsPIT `json:"threes"`
@@ -57,7 +57,7 @@ func playerToRainbowPlayerDataPIT(player *domain.PlayerPIT) rainbowPlayerDataPIT
 	return rainbowPlayerDataPIT{
 		UUID:       player.UUID,
 		QueriedAt:  player.QueriedAt,
-		Experience: float64(player.Experience),
+		Experience: player.Experience,
 		Solo:       gamemodeStatsPITToRainbowStatsPIT(&player.Solo),
 		Doubles:    gamemodeStatsPITToRainbowStatsPIT(&player.Doubles),
 		Threes:     gamemodeStatsPITToRainbowStatsPIT(&player.Threes),
