@@ -40,7 +40,7 @@ docker push "$image"
 # We're currently not doing this.
 # Ref: https://cloud.google.com/stackdriver/docs/instrumentation/choose-approach#run
 SERVICE_NAME="$service_name" \
-	SERVICE_IMAGE="$image" \
+	SERVICE_IMAGE="$(docker inspect --format='{{index .RepoDigests 0}}' "$image")" \
 	FLASHLIGHT_ENVIRONMENT="$environment" \
 	SENTRY_DSN_KEY="$sentry_dsn_key" \
 	COLLECTOR_IMAGE="$sidecar_image" \
