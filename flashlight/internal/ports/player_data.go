@@ -68,7 +68,7 @@ func MakeGetPlayerDataHandler(
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		ctx, span := tracer.Start(ctx, "GetPlayerDataHandler")
+		ctx, span := tracer.Start(ctx, "ports.GetPlayerDataHandler")
 		defer span.End()
 
 		rawUUID := r.URL.Query().Get("uuid")

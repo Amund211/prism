@@ -138,7 +138,7 @@ func (l *windowLimitRequestLimiter) LimitCancelable(ctx context.Context, minOper
 }
 
 func (l *windowLimitRequestLimiter) waitIf(ctx context.Context, shouldRun func(ctx context.Context, wait time.Duration) bool, operation func(ctx context.Context) bool) bool {
-	ctx, span := l.tracer.Start(ctx, "waitIf")
+	ctx, span := l.tracer.Start(ctx, "windowLimitRequestLimiter.waitIf")
 	defer span.End()
 	// Make sure there is data in the request history
 	select {

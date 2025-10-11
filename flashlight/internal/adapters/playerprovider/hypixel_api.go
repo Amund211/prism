@@ -86,10 +86,10 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 	var data []byte
 	var queriedAt time.Time
 	ran := hypixelAPI.limiter.Limit(ctx, getPlayerDataMinOperationTime, func(ctx context.Context) {
-		ctx, span := hypixelAPI.tracer.Start(ctx, "get_data")
+		ctx, span := hypixelAPI.tracer.Start(ctx, "HypixelAPI.get_data")
 		defer span.End()
 
-		requestCtx, span := hypixelAPI.tracer.Start(ctx, "http.Request")
+		requestCtx, span := hypixelAPI.tracer.Start(ctx, "HypixelAPI.make_request")
 		defer span.End()
 
 		resp, err = hypixelAPI.httpClient.Do(req)
@@ -103,7 +103,7 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 
 		queriedAt = hypixelAPI.nowFunc()
 
-		readAllCtx, span := hypixelAPI.tracer.Start(ctx, "io.ReadAll")
+		readAllCtx, span := hypixelAPI.tracer.Start(ctx, "HypixelAPI.read_response")
 		defer span.End()
 
 		defer resp.Body.Close()
