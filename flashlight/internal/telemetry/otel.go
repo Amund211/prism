@@ -6,11 +6,14 @@ import (
 	"fmt"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/sdk/trace"
 )
 
 // SetupOTelSDK bootstraps the OpenTelemetry pipeline.
@@ -36,26 +39,6 @@ func SetupOTelSDK(ctx context.Context, serviceName string) (func(context.Context
 		err = errors.Join(inErr, shutdown(ctx))
 	}
 
-	// Set up meter provider.
-	meterProvider, err := newMeterProvider(ctx, serviceName)
-	if err != nil {
-		handleErr(err)
-		return shutdown, err
-	}
-	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
-	otel.SetMeterProvider(meterProvider)
-
-	return shutdown, err
-}
-
-func newMeterProvider(ctx context.Context, serviceName string) (*metric.MeterProvider, error) {
-	metricExporter, err := otlpmetricgrpc.New(ctx,
-		otlpmetricgrpc.WithInsecure(),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create metric exporter: %w", err)
-	}
-
 	resource, err := resource.Merge(
 		resource.Default(),
 		resource.NewWithAttributes(
@@ -64,7 +47,67 @@ func newMeterProvider(ctx context.Context, serviceName string) (*metric.MeterPro
 		),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create resource: %w", err)
+		handleErr(fmt.Errorf("failed to create resource: %w", err))
+		return shutdown, err
+	}
+
+	// Set up propagator.
+	prop := newPropagator()
+	otel.SetTextMapPropagator(prop)
+
+	// Set up trace provider.
+	tracerProvider, err := newTracerProvider(ctx, resource)
+	if err != nil {
+		handleErr(fmt.Errorf("failed to create trace provider: %w", err))
+		return shutdown, err
+	}
+	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
+	otel.SetTracerProvider(tracerProvider)
+
+	// Set up meter provider.
+	meterProvider, err := newMeterProvider(ctx, resource)
+	if err != nil {
+		handleErr(fmt.Errorf("failed to create meter provider: %w", err))
+		return shutdown, err
+	}
+	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
+	otel.SetMeterProvider(meterProvider)
+
+	return shutdown, err
+}
+
+func newPropagator() propagation.TextMapPropagator {
+	// This is what autoprop returns by default.
+	// https://pkg.go.dev/go.opentelemetry.io/contrib/propagators/autoprop
+	return propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+	)
+}
+
+func newTracerProvider(ctx context.Context, resource *resource.Resource) (*trace.TracerProvider, error) {
+	traceExporter, err := otlptracegrpc.New(
+		ctx,
+		otlptracegrpc.WithInsecure(),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create trace exporter: %w", err)
+	}
+
+	tracerProvider := trace.NewTracerProvider(
+		trace.WithSampler(trace.ParentBased(trace.TraceIDRatioBased(1))),
+		trace.WithBatcher(traceExporter),
+		trace.WithResource(resource),
+	)
+	return tracerProvider, nil
+}
+
+func newMeterProvider(ctx context.Context, resource *resource.Resource) (*metric.MeterProvider, error) {
+	metricExporter, err := otlpmetricgrpc.New(ctx,
+		otlpmetricgrpc.WithInsecure(),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create metric exporter: %w", err)
 	}
 
 	meterProvider := metric.NewMeterProvider(

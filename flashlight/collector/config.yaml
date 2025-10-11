@@ -37,6 +37,7 @@ processors:
       action: insert
 
 exporters:
+  googlecloud: # For traces
   googlemanagedprometheus: # Note: this is intentionally left blank
 
 extensions:
@@ -46,6 +47,10 @@ extensions:
 service:
   extensions: [health_check]
   pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, memory_limiter, resourcedetection, resource]
+      exporters: [googlecloud]
     metrics:
       receivers: [otlp]
       processors: [batch, memory_limiter, resourcedetection, resource]
