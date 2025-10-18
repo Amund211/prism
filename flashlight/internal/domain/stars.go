@@ -29,7 +29,7 @@ func StarsToExperience(stars int) int64 {
 	return exp
 }
 
-func ExperienceToStars(experience int64) int {
+func ExperienceToStars(experience int64) float64 {
 	prestiges := int(experience / expPerPrestige)
 	remainingExperience := int(experience % expPerPrestige)
 
@@ -43,5 +43,6 @@ func ExperienceToStars(experience int64) int {
 		stars++
 	}
 
-	return stars
+	// Add partial progress toward the next star
+	return float64(stars) + float64(remainingExperience)/float64(expUntilNextStar(stars))
 }

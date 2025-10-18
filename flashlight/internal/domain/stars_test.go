@@ -39,23 +39,65 @@ func TestExperienceToStars(t *testing.T) {
 
 	tests := []struct {
 		experience int64
-		stars      int
+		stars      float64
 	}{
-		// Test cases yoinked from prism
-		{500, 1},
-		{3500, 3},
-		{87000, 20},
-		{2340000, 481},
-		{4870000, 1000},
-		{5312000, 1091},
+		// Test cases from prism repository
+		{
+			experience: 500,
+			stars:      1.0,
+		},
+		{
+			experience: 3648,
+			stars:      3 + 148.0/3500.0,
+		},
+		{
+			experience: 89025,
+			stars:      20 + 2025.0/5000.0,
+		},
+		{
+			// Synthetic
+			experience: 122986,
+			stars:      27.0 + 986.0/5000.0,
+		},
+		{
+			// Synthetic
+			experience: 954638,
+			stars:      196.0 + 638.0/5000.0,
+		},
+		{
+			// Synthetic
+			experience: 969078,
+			stars:      199.0 + 78.0/5000.,
+		},
+		{
+			// Synthetic
+			experience: 975611,
+			stars:      202.0 + 111.0/2000.,
+		},
+		{
+			// Synthetic
+			experience: 977587,
+			stars:      203.0 + 87.0/3500.,
+		},
+		{
+			experience: 2344717,
+			stars:      481 + 4717.0/5000.0,
+		},
+		{
+			experience: 4870331,
+			stars:      1000 + 331.0/500.0,
+		},
+		{
+			experience: 5316518,
+			stars:      1091 + 4518.0/5000.0,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%d experience", tt.experience), func(t *testing.T) {
 			t.Parallel()
 
-			result := domain.ExperienceToStars(tt.experience)
-			require.Equal(t, tt.stars, result)
+			require.Equal(t, tt.stars, domain.ExperienceToStars(tt.experience))
 		})
 	}
 }
