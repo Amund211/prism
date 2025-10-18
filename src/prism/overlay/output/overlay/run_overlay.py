@@ -6,7 +6,6 @@ from prism.overlay.controller import OverlayController
 from prism.overlay.output.cells import InfoCellValue
 from prism.overlay.output.overlay.stats_overlay import StatsOverlay
 from prism.overlay.output.overlay.utils import OverlayRowData, player_to_row
-from prism.overlay.threading import UpdateCheckerThread
 from prism.player import Player
 
 
@@ -20,9 +19,6 @@ def run_overlay(
     The parameter fetch_state_updates should check for new state updates and
     return a list of stats if the state changed.
     """
-
-    # Spawn thread to check for updates on GitHub
-    UpdateCheckerThread(one_shot=False, controller=controller).start()
 
     def get_new_data() -> tuple[bool, list[InfoCellValue], list[OverlayRowData] | None]:
         # Store a persistent view to the current state
