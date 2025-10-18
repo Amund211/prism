@@ -225,58 +225,60 @@ class MainContent:  # pragma: nocover
         # Update the info at the top of the overlay
         self.update_info(info_cells)
 
+        # If there was no new data, we're done
+        if new_rows is None:
+            return
+
         # Set the contents of the table if new data was provided
-        if new_rows is not None:
-            # Update the column order if there is a new one
-            # NOTE: We rely on a draw dispatch to honor the request to alter the
-            #       column order, so we need to make sure redraw_flag is set after
-            #       column_order is updated in settings.
-            self.update_column_order_from_settings()
 
-            self.set_length(len(new_rows))
+        # Update the column order if there is a new one
+        # NOTE: We rely on a draw dispatch to honor the request to alter the
+        #       column order, so we need to make sure redraw_flag is set after
+        #       column_order is updated in settings.
+        self.update_column_order_from_settings()
 
-            for i, (nickname, rated_stats) in enumerate(new_rows):
-                edit_button, cells = self.rows[i]
+        self.set_length(len(new_rows))
 
-                for cell, cell_value in zip(
-                    cells, pick_columns(rated_stats, self.column_order)
-                ):
-                    new_text = cell_value.text
+        for i, (nickname, rated_stats) in enumerate(new_rows):
+            edit_button, cells = self.rows[i]
 
-                    cell.text_widget.configure(state=tk.NORMAL)
-                    cell.text_widget.delete("1.0", tk.END)
-                    cell.text_widget.insert(tk.END, new_text)
+            for cell, cell_value in zip(
+                cells, pick_columns(rated_stats, self.column_order)
+            ):
+                new_text = cell_value.text
 
-                    # Delete old tags
-                    for tag in cell.text_widget.tag_names():
-                        cell.text_widget.tag_delete(tag)
+                cell.text_widget.configure(state=tk.NORMAL)
+                cell.text_widget.delete("1.0", tk.END)
+                cell.text_widget.insert(tk.END, new_text)
 
-                    tag_start = 0
-                    for i, color_section in enumerate(cell_value.color_sections):
-                        tag_name = f"tag{i}"
-                        tag_end = tag_start + color_section.length
+                # Delete old tags
+                for tag in cell.text_widget.tag_names():
+                    cell.text_widget.tag_delete(tag)
 
-                        cell.text_widget.tag_add(
-                            tag_name, f"1.{tag_start}", f"1.{tag_end}"
-                        )
-                        cell.text_widget.tag_config(
-                            tag_name, foreground=color_section.color
-                        )
+                tag_start = 0
+                for i, color_section in enumerate(cell_value.color_sections):
+                    tag_name = f"tag{i}"
+                    tag_end = tag_start + color_section.length
 
-                        tag_start = tag_end
-
-                    cell.text_widget.configure(
-                        fg=cell_value.color_sections[-1].color,
-                        state=tk.DISABLED,
-                        width=len(new_text),
+                    cell.text_widget.tag_add(tag_name, f"1.{tag_start}", f"1.{tag_end}")
+                    cell.text_widget.tag_config(
+                        tag_name, foreground=color_section.color
                     )
 
-                if nickname is None:
-                    edit_button.configure(state="disabled", command=lambda: None)
-                else:
-                    edit_button.configure(
-                        state="normal", command=self.make_set_nick_callback(nickname)
-                    )
+                    tag_start = tag_end
+
+                cell.text_widget.configure(
+                    fg=cell_value.color_sections[-1].color,
+                    state=tk.DISABLED,
+                    width=len(new_text),
+                )
+
+            if nickname is None:
+                edit_button.configure(state="disabled", command=lambda: None)
+            else:
+                edit_button.configure(
+                    state="normal", command=self.make_set_nick_callback(nickname)
+                )
 
     def make_set_nick_callback(self, nickname: str) -> Callable[[], None]:
         """Create a callback to pass as a command to open the set nick page"""
