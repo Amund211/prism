@@ -3,8 +3,10 @@ package domain_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/domaintest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -98,6 +100,38 @@ func TestExperienceToStars(t *testing.T) {
 			t.Parallel()
 
 			require.Equal(t, tt.stars, domain.ExperienceToStars(tt.experience))
+		})
+	}
+}
+
+func TestPlayerStars(t *testing.T) {
+	t.Parallel()
+
+	experiences := []int64{
+		500,
+		3648,
+		89025,
+		122986,
+		954638,
+		969078,
+		975611,
+		977587,
+		2344717,
+		4870331,
+		5316518,
+	}
+
+	queriedAt := time.Date(2024, time.January, 1, 12, 0, 0, 0, time.UTC)
+
+	for _, experience := range experiences {
+		t.Run(fmt.Sprintf("experience_%d", experience), func(t *testing.T) {
+			t.Parallel()
+
+			player := domaintest.NewPlayerBuilder(domaintest.NewUUID(t), queriedAt).
+				WithExperience(experience).
+				BuildPtr()
+
+			require.Equal(t, domain.ExperienceToStars(experience), player.Stars())
 		})
 	}
 }

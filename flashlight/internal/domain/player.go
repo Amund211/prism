@@ -36,3 +36,8 @@ type GamemodeStatsPIT struct {
 	Kills       int
 	Deaths      int
 }
+
+// Stars calculates the player's stars based on their experience
+func (p *PlayerPIT) Stars() float64 {
+	return ExperienceToStars(p.Experience)
+}
