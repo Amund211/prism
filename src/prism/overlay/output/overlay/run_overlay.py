@@ -1,30 +1,124 @@
+import logging
 import math
+import queue
 import time
-from collections.abc import Callable
+from collections.abc import Iterable
 
+from prism.overlay.behaviour import should_redraw
 from prism.overlay.controller import OverlayController
 from prism.overlay.output.cells import InfoCellValue
 from prism.overlay.output.overlay.stats_overlay import StatsOverlay
 from prism.overlay.output.overlay.utils import OverlayRowData, player_to_row
-from prism.player import Player
+from prism.overlay.rating import sort_players
+from prism.overlay.threading import start_threads
+from prism.player import KnownPlayer, Player
+
+logger = logging.getLogger(__name__)
+
+
+def get_stat_list(
+    controller: OverlayController,
+    completed_stats_queue: queue.Queue[str],
+    requested_stats_queue: queue.Queue[str],
+) -> list[Player] | None:
+    """
+    Get an updated list of stats of the players in the lobby. None if no updates
+    """
+    redraw = should_redraw(controller, completed_stats_queue=completed_stats_queue)
+
+    if not redraw:
+        return None
+
+    # Get the cached stats for the players in the lobby
+    players: list[Player] = []
+
+    # Store a persistent view to the current state
+    state = controller.state
+
+    displayed_players = (
+        state.alive_players
+        if controller.settings.hide_dead_players
+        else state.lobby_players
+    )
+
+    # Players who are present in the lobby twice - once nicked and once unnicked
+    duplicate_nicked_usernames = []
+
+    for player in displayed_players:
+        # Use the short term cache in queue to refresh stats between games
+        # When we are not in queue (in game) use the long term cache, as we don't
+        # want to refetch all the stats when someone gets final killed
+        cached_stats = controller.player_cache.get_cached_player(
+            player, long_term=not state.in_queue
+        )
+        if cached_stats is None:
+            # No query made for this player yet
+            # Start a query and note that a query has been started
+            cached_stats = controller.player_cache.set_player_pending(player)
+            logger.debug(f"Set player {player} to pending")
+            requested_stats_queue.put(player)
+        elif isinstance(cached_stats, KnownPlayer):
+            if (
+                cached_stats.nick is not None
+                and cached_stats.username in displayed_players
+            ):
+                duplicate_nicked_usernames.append(cached_stats.username)
+
+        players.append(cached_stats)
+
+    def should_remove(player: Player) -> bool:
+        """
+        Return True if the player is a duplicate, and is the unnicked version.
+
+        This version will have come from the party_members set.
+        """
+        if player.username not in duplicate_nicked_usernames:
+            return False
+
+        if isinstance(player, KnownPlayer):
+            return player.nick is None
+
+        return True
+
+    # Filter out duplicate nicks
+    players = [player for player in players if not should_remove(player)]
+
+    sorted_stats = sort_players(
+        players,
+        state.party_members,
+        controller.settings.sort_order,
+        controller.settings.sort_ascending,
+    )
+
+    return sorted_stats
 
 
 def run_overlay(
     controller: OverlayController,
-    fetch_state_updates: Callable[[], list[Player] | None],
+    loglines: Iterable[str],
 ) -> None:  # pragma: nocover
-    """
-    Run the overlay
+    """Run the overlay"""
+    # Usernames we want the stats of
+    requested_stats_queue = queue.Queue[str]()
+    # Usernames we have newly downloaded the stats of
+    completed_stats_queue = queue.Queue[str]()
 
-    The parameter fetch_state_updates should check for new state updates and
-    return a list of stats if the state changed.
-    """
+    start_threads(
+        controller,
+        loglines,
+        requested_stats_queue=requested_stats_queue,
+        completed_stats_queue=completed_stats_queue,
+    )
 
     def get_new_data() -> tuple[bool, list[InfoCellValue], list[OverlayRowData] | None]:
         # Store a persistent view to the current state
         state = controller.state
 
-        new_players = fetch_state_updates()
+        new_players = get_stat_list(
+            controller,
+            completed_stats_queue=completed_stats_queue,
+            requested_stats_queue=requested_stats_queue,
+        )
         new_rows = (
             [
                 player_to_row(player, controller.settings.rating_configs)

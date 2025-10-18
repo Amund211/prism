@@ -3,8 +3,8 @@ import queue
 import pytest
 
 from prism.overlay.controller import OverlayController
+from prism.overlay.output.overlay.run_overlay import get_stat_list
 from prism.overlay.player_cache import PlayerCache
-from prism.overlay.threading import get_stat_list
 from prism.player import KnownPlayer, PendingPlayer, Player
 from tests.prism.overlay.utils import (
     create_controller,
