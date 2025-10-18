@@ -1,5 +1,4 @@
 import math
-import threading
 import time
 from collections.abc import Callable
 
@@ -23,12 +22,7 @@ def run_overlay(
     """
 
     # Spawn thread to check for updates on GitHub
-    update_available_event = threading.Event()
-    UpdateCheckerThread(
-        one_shot=False,
-        update_available_event=update_available_event,
-        controller=controller,
-    ).start()
+    UpdateCheckerThread(one_shot=False, controller=controller).start()
 
     def get_new_data() -> tuple[bool, list[InfoCellValue], list[OverlayRowData] | None]:
         # Store a persistent view to the current state
@@ -101,7 +95,10 @@ def run_overlay(
                 )
             )
 
-        if controller.settings.check_for_updates and update_available_event.is_set():
+        if (
+            controller.settings.check_for_updates
+            and controller.update_available_event.is_set()
+        ):
             info_cells.append(
                 InfoCellValue(
                     text="New update available! Click here to download.",
@@ -125,7 +122,6 @@ def run_overlay(
         column_order=controller.settings.column_order,
         controller=controller,
         get_new_data=get_new_data,
-        update_available_event=update_available_event,
         poll_interval=100,
         start_hidden=False,
     )

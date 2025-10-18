@@ -1,6 +1,5 @@
 import logging
 import sys
-import threading
 import tkinter as tk
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Literal, assert_never
@@ -34,14 +33,12 @@ class StatsOverlay:  # pragma: nocover
         get_new_data: Callable[
             [], tuple[bool, list[InfoCellValue], list[OverlayRowData] | None]
         ],
-        update_available_event: threading.Event,
         poll_interval: int,
     ):
         """Set up content in an OverlayWindow"""
         self.controller = controller
         self.poll_interval = poll_interval
         self.get_new_data = get_new_data
-        self.update_available_event = update_available_event
 
         # Set should_show so the window remains in the desired state based on
         # start_hidden until a falling/rising edge in show from get_new_data
