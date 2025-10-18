@@ -4,18 +4,10 @@ from functools import lru_cache
 from typing import assert_never
 
 from prism.overlay.output.cells import CellValue, ColorSection, ColumnName
-from prism.overlay.output.color import GUIColor, MinecraftColor, TerminalColor
+from prism.overlay.output.color import GUIColor, MinecraftColor
 from prism.overlay.output.config import RatingConfig, RatingConfigCollection
 from prism.player import KnownPlayer, NickedPlayer, PendingPlayer, Player, UnknownPlayer
 from prism.utils import format_seconds_short, truncate_float
-
-TERMINAL_FORMATTINGS = (
-    TerminalColor.LIGHT_GRAY,
-    TerminalColor.LIGHT_WHITE,
-    TerminalColor.YELLOW,
-    TerminalColor.LIGHT_RED,
-    TerminalColor.LIGHT_RED + TerminalColor.BG_WHITE,
-)
 
 GUI_COLORS = (
     "gray60",
@@ -26,8 +18,6 @@ GUI_COLORS = (
 )
 
 AMT_COLORS = len(GUI_COLORS)
-
-assert len(TERMINAL_FORMATTINGS) == AMT_COLORS
 
 
 @dataclass(frozen=True, slots=True)
@@ -103,17 +93,11 @@ def render_based_on_level(
     rate_value = rate_value_ascending if sort_ascending else rate_value_descending
     if rate_by_level:
         rating = min(rate_value(value, levels), AMT_COLORS - 1)
-        terminal_formatting = TERMINAL_FORMATTINGS[rating]
         gui_color = GUI_COLORS[rating]
     else:
-        terminal_formatting = TERMINAL_FORMATTINGS[1]
         gui_color = GUI_COLORS[1]
 
-    return CellValue.monochrome(
-        text=text,
-        terminal_formatting=terminal_formatting,
-        gui_color=gui_color,
-    )
+    return CellValue.monochrome(text=text, gui_color=gui_color)
 
 
 def render_stars(
@@ -499,31 +483,22 @@ def render_stats(
     else:
         if isinstance(player, NickedPlayer):
             text = "nick"
-            terminal_formatting = TERMINAL_FORMATTINGS[-1]
             gui_color = GUI_COLORS[-1]
         elif isinstance(player, PendingPlayer):
             text = "-"
-            terminal_formatting = TERMINAL_FORMATTINGS[0]
             gui_color = GUI_COLORS[0]
         elif isinstance(player, UnknownPlayer):
             text = "error"
-            terminal_formatting = TERMINAL_FORMATTINGS[-1]
             gui_color = GUI_COLORS[-1]
         else:  # pragma: no coverage
             assert_never(player)
 
-        cell = CellValue.monochrome(
-            text, terminal_formatting=terminal_formatting, gui_color=gui_color
-        )
+        cell = CellValue.monochrome(text, gui_color=gui_color)
         stars_cell = index_cell = fkdr_cell = kdr_cell = bblr_cell = wlr_cell = cell
         winstreak_cell = kills_cell = finals_cell = beds_cell = wins_cell = cell
         sessiontime_cell = cell
 
-    username_cell = CellValue.monochrome(
-        username_str,
-        terminal_formatting=TerminalColor.LIGHT_WHITE,
-        gui_color=GUIColor.WHITE,
-    )
+    username_cell = CellValue.monochrome(username_str, gui_color=GUIColor.WHITE)
 
     return RenderedStats(
         username=username_cell,

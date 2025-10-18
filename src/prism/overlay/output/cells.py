@@ -84,15 +84,13 @@ class CellValue:
     """The string value and colors for a single cell in the overlay"""
 
     text: str
-    terminal_formatting: str
     color_sections: tuple[ColorSection, ...]
 
     @classmethod
-    def monochrome(cls, text: str, terminal_formatting: str, gui_color: str) -> Self:
+    def monochrome(cls, text: str, gui_color: str) -> Self:
         """Make a monochrome cell value"""
         return cls(
             text,
-            terminal_formatting=terminal_formatting,
             color_sections=(ColorSection(gui_color, -1),),
         )
 
