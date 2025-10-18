@@ -1495,13 +1495,9 @@ class SettingsPage:  # pragma: nocover
             (general_settings.check_for_updates, general_settings.include_patch_updates)
             != (old_check_for_updates, old_include_patch_updates)
             and general_settings.check_for_updates
-            and not self.overlay.update_available_event.is_set()
+            and not self.overlay.controller.update_available_event.is_set()
         ):
-            UpdateCheckerThread(
-                one_shot=True,
-                update_available_event=self.overlay.update_available_event,
-                controller=self.controller,
-            ).start()
+            UpdateCheckerThread(one_shot=True, controller=self.controller).start()
 
         # Go back to the main content
         self.overlay.switch_page("main")

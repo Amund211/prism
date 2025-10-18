@@ -380,6 +380,7 @@ def create_controller(
     autowho_event_set: bool = False,
     redraw_event_set: bool = False,
     update_presence_event_set: bool = False,
+    update_available_event_set: bool = False,
     player_cache: PlayerCache | None = None,
     nick_database: NickDatabase | None = None,
     account_provider: AccountProvider = MockedAccountProvider(assert_not_called),
@@ -407,6 +408,8 @@ def create_controller(
         controller.redraw_event.set()
     if update_presence_event_set:
         controller.update_presence_event.set()
+    if update_available_event_set:
+        controller.update_available_event.set()
 
     if player_cache is not None:
         controller.player_cache = player_cache
@@ -440,6 +443,10 @@ def assert_controllers_equal(
     assert (
         controller1.update_presence_event.is_set()
         == controller2.update_presence_event.is_set()
+    )
+    assert (
+        controller1.update_available_event.is_set()
+        == controller2.update_available_event.is_set()
     )
 
     assert controller1.player_cache._cache == controller2.player_cache._cache

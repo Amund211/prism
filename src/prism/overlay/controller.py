@@ -76,6 +76,7 @@ class OverlayController:
         self.redraw_event = threading.Event()
         self.update_presence_event = threading.Event()
         self.autowho_event = threading.Event()
+        self.update_available_event = threading.Event()
 
         self._account_provider = account_provider
         self._player_provider = player_provider

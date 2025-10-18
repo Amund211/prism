@@ -89,12 +89,10 @@ class UpdateCheckerThread(threading.Thread):  # pragma: nocover
     def __init__(
         self,
         one_shot: bool,
-        update_available_event: threading.Event,
         controller: OverlayController,
     ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.one_shot = one_shot
-        self.update_available_event = update_available_event
         self.controller = controller
 
     def run(self) -> None:
@@ -110,7 +108,7 @@ class UpdateCheckerThread(threading.Thread):  # pragma: nocover
                     )
                 ):
                     logger.info("UpdateChecker: update available!")
-                    self.update_available_event.set()
+                    self.controller.update_available_event.set()
                     # An update is available -> no need to check any more
                     return
                 else:
