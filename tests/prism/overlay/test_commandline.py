@@ -10,7 +10,6 @@ DEFAULT_SETTINGS = "some_settings_file.toml"
 def make_options(
     logfile: str | None = None,
     settings: str = DEFAULT_SETTINGS,
-    output_to_console: bool = True,
     loglevel: int = logging.INFO,
     test_ssl: bool = False,
     test: bool = False,
@@ -19,7 +18,6 @@ def make_options(
     return Options(
         logfile_path=resolve_path(logfile) if logfile is not None else None,
         settings_path=resolve_path(settings),
-        output_to_console=output_to_console,
         loglevel=loglevel,
         test_ssl=test_ssl,
         test=test,
@@ -29,8 +27,6 @@ def make_options(
 test_cases: tuple[tuple[str, Options], ...] = (
     # No options
     ("", make_options()),
-    # Output to console
-    ("-q", make_options(output_to_console=False)),
     # Logging verbosity
     ("--verbose", make_options(loglevel=logging.CRITICAL)),
     ("-v", make_options(loglevel=logging.CRITICAL)),
@@ -62,7 +58,6 @@ test_cases: tuple[tuple[str, Options], ...] = (
         make_options(
             "somelogfile",
             settings="s.toml",
-            output_to_console=False,
             loglevel=logging.DEBUG,
             test_ssl=True,
             test=True,

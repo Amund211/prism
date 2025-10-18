@@ -10,7 +10,6 @@ from pathlib import Path
 class Options:
     logfile_path: Path | None
     settings_path: Path
-    output_to_console: bool
     loglevel: int
     test_ssl: bool
     test: bool
@@ -99,7 +98,6 @@ def get_options(
     return Options(
         logfile_path=parsed.logfile,
         settings_path=parsed.settings,
-        output_to_console=not parsed.quiet,
         loglevel=loglevel,
         test_ssl=parsed.test_ssl,
         test=parsed.test,

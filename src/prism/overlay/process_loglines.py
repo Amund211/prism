@@ -5,12 +5,10 @@ from prism.overlay.controller import OverlayController
 from prism.overlay.directories import DEFAULT_LOGFILE_CACHE_PATH
 from prism.overlay.file_utils import watch_file_with_reopen
 from prism.overlay.output.overlay.run_overlay import run_overlay
-from prism.overlay.output.printing import print_stats_table
 from prism.overlay.process_event import fast_forward_state
 from prism.overlay.settings import Settings
 from prism.overlay.threading import prepare_overlay
 from prism.overlay.user_interaction.get_logfile import prompt_for_logfile_path
-from prism.player import Player
 
 CLEAR_BETWEEN_DRAWS = True
 
@@ -35,31 +33,9 @@ def prompt_and_read_logfile(
 
 
 def process_loglines_to_overlay(
-    controller: OverlayController, loglines: Iterable[str], output_to_console: bool
+    controller: OverlayController, loglines: Iterable[str]
 ) -> None:  # pragma: nocover
     """Process the state changes for each logline and output to an overlay"""
     get_stat_list = prepare_overlay(controller, loglines=loglines)
-
-    if output_to_console:
-        # Output to console every time we get a new stats list
-        original_get_stat_list = get_stat_list
-
-        def get_stat_list() -> list[Player] | None:
-            sorted_stats = original_get_stat_list()
-
-            if sorted_stats is not None:
-                # Store a persistent view to the current state
-                state = controller.state
-
-                print_stats_table(
-                    sorted_stats=sorted_stats,
-                    party_members=state.party_members,
-                    column_order=controller.settings.column_order,
-                    rating_configs=controller.settings.rating_configs,
-                    out_of_sync=state.out_of_sync,
-                    clear_between_draws=CLEAR_BETWEEN_DRAWS,
-                )
-
-            return sorted_stats
 
     run_overlay(controller, get_stat_list)

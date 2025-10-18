@@ -107,11 +107,7 @@ def main() -> None:  # pragma: nocover
 
     controller.ready = True
 
-    process_loglines_to_overlay(
-        controller=controller,
-        loglines=loglines,
-        output_to_console=options.output_to_console,
-    )
+    process_loglines_to_overlay(controller=controller, loglines=loglines)
 
 
 if __name__ == "__main__":  # pragma: nocover
