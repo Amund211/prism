@@ -291,6 +291,9 @@ def prepare_overlay(
 
     AutoWhoThread(controller=controller).start()
 
+    # Spawn thread to check for updates on GitHub
+    UpdateCheckerThread(one_shot=False, controller=controller).start()
+
     return lambda: get_stat_list(
         controller, completed_stats_queue, requested_stats_queue
     )
