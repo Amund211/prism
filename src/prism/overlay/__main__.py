@@ -76,7 +76,6 @@ def main() -> None:  # pragma: nocover
     from prism.overlay.process_loglines import (
         prompt_and_read_logfile,
     )
-    from prism.overlay.threading import prepare_overlay
 
     account_provider = MojangAccountProvider(retry_limit=5, initial_timeout=2)
     player_provider = StrangePlayerProvider(
@@ -108,9 +107,7 @@ def main() -> None:  # pragma: nocover
 
     controller.ready = True
 
-    get_stat_list = prepare_overlay(controller, loglines)
-
-    run_overlay(controller, get_stat_list)
+    run_overlay(controller, loglines)
 
 
 if __name__ == "__main__":  # pragma: nocover
