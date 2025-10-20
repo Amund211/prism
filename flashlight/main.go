@@ -15,6 +15,7 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/database"
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
+	"github.com/Amund211/flashlight/internal/adapters/tagprovider"
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/domain"
@@ -81,6 +82,8 @@ func main() {
 	accountByUsernameCache := cache.NewTTLCache[domain.Account](24 * time.Hour)
 	accountByUUIDCache := cache.NewTTLCache[domain.Account](1 * time.Minute) // Low TTL to quickly show name changes
 
+	tagsCache := cache.NewTTLCache[domain.Tags](1 * time.Minute)
+
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
 	}
@@ -96,6 +99,11 @@ func main() {
 	}
 
 	accountProvider := accountprovider.NewMojang(httpClient, time.Now, time.After)
+
+	tagProvider, err := tagprovider.NewUrchin(httpClient, time.Now, time.After)
+	if err != nil {
+		fail("Failed to initialize Urchin tag provider", "error", err.Error())
+	}
 
 	sentryMiddleware, flush, err := reporting.NewSentryMiddlewareOrMock(config)
 	if err != nil {
@@ -141,6 +149,8 @@ func main() {
 	getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(accountByUsernameCache, accountProvider, accountRepo, time.Now)
 	getAccountByUUIDWithCache := app.BuildGetAccountByUUIDWithCache(accountByUUIDCache, accountProvider, accountRepo, time.Now)
 
+	getTags := app.BuildGetTagsWithCache(tagsCache, tagProvider)
+
 	getHistory := app.BuildGetHistory(playerRepo, updatePlayerInInterval)
 
 	getSessions := app.BuildGetSessions(playerRepo, updatePlayerInInterval)
@@ -162,6 +172,7 @@ func main() {
 		"GET /v1/playerdata",
 		ports.MakeGetPlayerDataHandler(
 			getAndPersistPlayerWithCache,
+			getTags,
 			logger.With("port", "playerdata"),
 			sentryMiddleware,
 		),
@@ -242,6 +253,7 @@ func main() {
 		"GET /playerdata",
 		ports.MakeGetPlayerDataHandler(
 			getAndPersistPlayerWithCache,
+			getTags,
 			logger.With("port", "playerdata"),
 			sentryMiddleware,
 		),

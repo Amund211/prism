@@ -19,6 +19,7 @@ import (
 
 func MakeGetPlayerDataHandler(
 	getAndPersistPlayerWithCache app.GetAndPersistPlayerWithCache,
+	getTags app.GetTags,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 ) http.HandlerFunc {
@@ -106,6 +107,8 @@ func MakeGetPlayerDataHandler(
 				"uuid": uuid,
 			},
 		)
+
+		go getTags(ctx, uuid, nil)
 
 		player, err := getAndPersistPlayerWithCache(ctx, uuid)
 		if errors.Is(err, domain.ErrPlayerNotFound) {

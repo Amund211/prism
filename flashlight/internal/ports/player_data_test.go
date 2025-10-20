@@ -29,6 +29,10 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 		return next
 	}
 
+	getTags := func(ctx context.Context, uuid string, apiKey *string) (domain.Tags, error) {
+		return domain.Tags{}, nil
+	}
+
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
@@ -36,7 +40,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return player, nil
-		}, logger, sentryMiddleware)
+		}, getTags, logger, sentryMiddleware)
 
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, target, nil)
@@ -60,7 +64,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 			t.Helper()
 			t.Fatal("should not be called")
 			return nil, nil
-		}, logger, sentryMiddleware)
+		}, getTags, logger, sentryMiddleware)
 		w := httptest.NewRecorder()
 
 		req := httptest.NewRequest(http.MethodGet, "/?uuid=1234-1234-1234", nil)
@@ -78,7 +82,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return nil, fmt.Errorf("%w: couldn't find him", domain.ErrPlayerNotFound)
-		}, logger, sentryMiddleware)
+		}, getTags, logger, sentryMiddleware)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, target, nil)
 
@@ -95,7 +99,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return nil, fmt.Errorf("error :^(: (%w)", domain.ErrTemporarilyUnavailable)
-		}, logger, sentryMiddleware)
+		}, getTags, logger, sentryMiddleware)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, target, nil)
 
@@ -114,7 +118,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return player, nil
-		}, logger, sentryMiddleware)
+		}, getTags, logger, sentryMiddleware)
 
 		// Exhaust the rate limit
 		for range 200 {
