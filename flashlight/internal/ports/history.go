@@ -54,6 +54,7 @@ func MakeGetHistoryHandler(
 	}
 
 	middleware := ComposeMiddlewares(
+		buildMetricsMiddleware(),
 		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,
 		reporting.NewAddMetaMiddleware("history"),
