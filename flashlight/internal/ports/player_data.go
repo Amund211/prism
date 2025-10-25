@@ -59,7 +59,7 @@ func MakeGetPlayerDataHandler(
 	}
 
 	middleware := ComposeMiddlewares(
-		buildMetricsMiddleware(),
+		buildMetricsMiddleware("playerdata"),
 		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,
 		reporting.NewAddMetaMiddleware("playerdata"),

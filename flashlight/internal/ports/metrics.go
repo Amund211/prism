@@ -44,7 +44,7 @@ func init() {
 	}
 }
 
-func buildMetricsMiddleware() func(http.HandlerFunc) http.HandlerFunc {
+func buildMetricsMiddleware(handler string) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
@@ -65,7 +65,7 @@ func buildMetricsMiddleware() func(http.HandlerFunc) http.HandlerFunc {
 
 			attributes := []attribute.KeyValue{
 				attribute.String("method", r.Method),
-				attribute.String("path", r.URL.Path),
+				attribute.String("handler", handler),
 				attribute.String("user_agent", userAgent),
 				attribute.String("user_id", userId),
 			}

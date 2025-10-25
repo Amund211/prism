@@ -54,7 +54,7 @@ func MakeGetSessionsHandler(
 	}
 
 	middleware := ComposeMiddlewares(
-		buildMetricsMiddleware(),
+		buildMetricsMiddleware("sessions"),
 		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,
 		reporting.NewAddMetaMiddleware("sessions"),
