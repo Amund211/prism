@@ -21,22 +21,81 @@ func TestTagsFromUrchinResponse(t *testing.T) {
 		seen     urchinTagCollection
 	}{
 		{
-			name:     "sniper",
-			response: `{"uuid":"0123456789abcdef0123456789abcdef","tags":[{"type":"sniper","reason":"3q - scaff, ab, blink","added_by_id":null,"added_by_username":null,"added_on":"2025-10-10T06:56:37.998405"}]}`,
-			tags:     domain.Tags{}.AddSniping(domain.TagSeverityHigh).AddCheating(domain.TagSeverityMedium),
-			seen:     urchinTagCollection{sniper: true},
+			name: "sniper",
+			response: `{
+			  "uuid": "0123456789abcdef0123456789abcdef",
+			  "tags": [
+				{
+				  "type": "sniper",
+				  "reason": "3q - scaff, ab, blink",
+				  "added_by_id": null,
+				  "added_by_username": null,
+				  "added_on": "2025-10-10T06:56:37.998405"
+				}
+			  ]
+			}`,
+			tags: domain.Tags{}.AddSniping(domain.TagSeverityHigh).AddCheating(domain.TagSeverityMedium),
+			seen: urchinTagCollection{sniper: true},
 		},
 		{
-			name:     "confirmed cheater",
-			response: `{"uuid":"0123456789abcdef0123456789abcdef","tags":[{"type":"confirmed_cheater","reason":"myau and vape user","added_by_id":null,"added_by_username":null,"added_on":"2025-02-04T23:07:17.395263"}]}`,
-			tags:     domain.Tags{}.AddCheating(domain.TagSeverityHigh),
-			seen:     urchinTagCollection{confirmedCheater: true},
+			name: "confirmed cheater",
+			response: `{
+			  "uuid": "0123456789abcdef0123456789abcdef",
+			  "tags": [
+				{
+				  "type": "confirmed_cheater",
+				  "reason": "myau and vape user",
+				  "added_by_id": null,
+				  "added_by_username": null,
+				  "added_on": "2025-02-04T23:07:17.395263"
+				}
+			  ]
+			}`,
+			tags: domain.Tags{}.AddCheating(domain.TagSeverityHigh),
+			seen: urchinTagCollection{confirmedCheater: true},
 		},
 		{
-			name:     "no tags",
-			response: `{"uuid":"0123456789abcdef0123456789abcdef","tags":[]}`,
-			tags:     domain.Tags{},
-			seen:     urchinTagCollection{},
+			name: "blatant cheater",
+			response: `{
+			  "uuid": "0123456789abcdef0123456789abcdef",
+			  "tags": [
+				{
+				  "type": "blatant_cheater",
+				  "reason": "autblocking blinking nuking",
+				  "added_by_id": null,
+				  "added_by_username": null,
+				  "added_on": "2025-10-17T09:23:34.448962"
+				}
+			  ]
+			}`,
+			tags: domain.Tags{}.AddCheating(domain.TagSeverityHigh),
+			seen: urchinTagCollection{blatantCheater: true},
+		},
+		{
+			name: "closet cheater",
+			response: `{
+			  "uuid": "0123456789abcdef0123456789abcdef",
+			  "tags": [
+				{
+				  "type": "closet_cheater",
+				  "reason": "legit scaff and velo",
+				  "added_by_id": null,
+				  "added_by_username": null,
+				  "added_on": "2024-10-17T01:33:19.826840"
+				}
+			  ]
+			}`,
+			tags: domain.Tags{}.AddCheating(domain.TagSeverityMedium),
+			seen: urchinTagCollection{closetCheater: true},
+		},
+		{
+			name: "no tags",
+			response: `{
+			  "uuid": "0123456789abcdef0123456789abcdef",
+			  "tags": []
+			}`,
+			tags: domain.Tags{},
+			seen: urchinTagCollection{},
 		},
 	}
 
