@@ -33,6 +33,8 @@ func init() {
 		"ports/request_duration_seconds",
 		metric.WithDescription("Processing time for received requests"),
 		metric.WithUnit("s"),
+		// Using the default buckets, but divided by 1000 to keep the unit as s instead of ms.
+		metric.WithExplicitBucketBoundaries(0, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10),
 	)
 	if err != nil {
 		panic(fmt.Errorf("failed to create request duration metric: %w", err))
