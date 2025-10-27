@@ -4,11 +4,12 @@ import pytest
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
 from prism.overlay.controller import ERROR_DURING_PROCESSING
-from prism.player import MISSING_WINSTREAKS, KnownPlayer, Stats, Winstreaks
+from prism.player import MISSING_WINSTREAKS, KnownPlayer, Stats, Tags, Winstreaks
 from prism.ssl_errors import MissingLocalIssuerSSLError
 from tests.prism.overlay.utils import (
     MockedAccountProvider,
     MockedPlayerProvider,
+    MockedTagsProvider,
     MockedWinstreakProvider,
     assert_not_called,
     create_controller,
@@ -123,6 +124,35 @@ def test_overlay_controller_get_player() -> None:
     error = None
     assert controller.get_player("uuid") == returned_player
     assert not controller.missing_local_issuer_certificate
+
+
+def test_overlay_controller_get_tags() -> None:
+    error: Exception | None = None
+    returned_tags = Tags(sniping="medium", cheating="none")
+
+    def get_tags_mock(username: str, user_id: str, urchin_api_key: str | None) -> Tags:
+        assert username == "username"
+        assert user_id == "1234"
+        assert urchin_api_key is None
+        if error:
+            raise error
+
+        return returned_tags
+
+    controller = create_controller(
+        settings=make_settings(
+            user_id="1234",
+        ),
+        tags_provider=MockedTagsProvider(get_tags=get_tags_mock),
+    )
+
+    error = APIError()
+    uuid = controller.get_tags("username")
+    assert uuid is ERROR_DURING_PROCESSING
+
+    error = None
+    uuid = controller.get_tags("username")
+    assert uuid == returned_tags
 
 
 def test_overlay_controller_get_estimated_winstreaks_success() -> None:

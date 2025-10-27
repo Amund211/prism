@@ -7,6 +7,7 @@ from prism.overlay.controller import (
     AccountProvider,
     OverlayController,
     PlayerProvider,
+    TagsProvider,
     WinstreakProvider,
 )
 from prism.overlay.keybinds import Key
@@ -25,6 +26,7 @@ from prism.player import (
     PendingPlayer,
     Player,
     Stats,
+    Tags,
     UnknownPlayer,
     Winstreaks,
 )
@@ -369,6 +371,31 @@ class MockedWinstreakProvider:
         return self._seconds_until_unblocked
 
 
+class MockedTagsProvider:
+    def __init__(
+        self,
+        get_tags: Callable[
+            [str, str, str | None],
+            Tags,
+        ],
+        seconds_until_unblocked: float = 0.0,
+    ) -> None:
+        self._get_tags = get_tags
+        self._seconds_until_unblocked = seconds_until_unblocked
+
+    def get_tags(
+        self,
+        uuid: str,
+        user_id: str,
+        urchin_api_key: str | None = None,
+    ) -> Tags:
+        return self._get_tags(uuid, user_id, urchin_api_key)
+
+    @property
+    def seconds_until_unblocked(self) -> float:
+        return self._seconds_until_unblocked
+
+
 def create_controller(
     state: OverlayState | None = None,
     settings: Settings | None = None,
@@ -386,6 +413,7 @@ def create_controller(
     account_provider: AccountProvider = MockedAccountProvider(assert_not_called),
     player_provider: PlayerProvider = MockedPlayerProvider(assert_not_called),
     winstreak_provider: WinstreakProvider = MockedWinstreakProvider(assert_not_called),
+    tags_provider: TagsProvider = MockedTagsProvider(assert_not_called),
 ) -> OverlayController:
     controller = OverlayController(
         state=state or create_state(),
@@ -394,6 +422,7 @@ def create_controller(
         account_provider=account_provider,
         player_provider=player_provider,
         winstreak_provider=winstreak_provider,
+        tags_provider=tags_provider,
     )
 
     controller.wants_shown = wants_shown
