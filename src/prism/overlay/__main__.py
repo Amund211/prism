@@ -67,6 +67,7 @@ def main() -> None:  # pragma: nocover
     nick_database = NickDatabase.from_disk([], default_database=default_database)
 
     # Import late so we can patch ssl certs in requests
+    from prism.flashlight import FlashlightTagsProvider
     from prism.mojang import MojangAccountProvider
     from prism.overlay.antisniper_api import (
         StrangePlayerProvider,
@@ -82,6 +83,7 @@ def main() -> None:  # pragma: nocover
         retry_limit=5, initial_timeout=2, get_time_ns=time.time_ns
     )
     winstreak_provider = PlaceholderWinstreakProvider()
+    tags_provider = FlashlightTagsProvider(retry_limit=5, initial_timeout=2)
 
     controller = OverlayController(
         state=OverlayState(),
@@ -90,6 +92,7 @@ def main() -> None:  # pragma: nocover
         account_provider=account_provider,
         player_provider=player_provider,
         winstreak_provider=winstreak_provider,
+        tags_provider=tags_provider,
     )
 
     if options.test_ssl:
