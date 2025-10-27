@@ -4,7 +4,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Protocol
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
-from prism.player import MISSING_WINSTREAKS, KnownPlayer, Winstreaks
+from prism.player import MISSING_WINSTREAKS, KnownPlayer, Tags, Winstreaks
 from prism.ssl_errors import MissingLocalIssuerSSLError
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -50,6 +50,19 @@ class WinstreakProvider(Protocol):
     def seconds_until_unblocked(self) -> float: ...
 
 
+class TagsProvider(Protocol):
+    def get_tags(
+        self,
+        uuid: str,
+        *,
+        user_id: str,
+        urchin_api_key: str | None,
+    ) -> Tags: ...
+
+    @property
+    def seconds_until_unblocked(self) -> float: ...
+
+
 class OverlayController:
     def __init__(
         self,
@@ -59,6 +72,7 @@ class OverlayController:
         account_provider: AccountProvider,
         player_provider: PlayerProvider,
         winstreak_provider: WinstreakProvider,
+        tags_provider: TagsProvider,
     ) -> None:
         from prism.overlay.player_cache import PlayerCache
 
@@ -81,6 +95,7 @@ class OverlayController:
         self._account_provider = account_provider
         self._player_provider = player_provider
         self._winstreak_provider = winstreak_provider
+        self._tags_provider = tags_provider
 
     def get_uuid(self, username: str) -> str | None | ProcessingError:
         try:
@@ -174,3 +189,16 @@ class OverlayController:
             self.antisniper_api_key_throttled = False
             self.missing_local_issuer_certificate = False
             return winstreaks, accurate
+
+    def get_tags(self, uuid: str) -> Tags | ProcessingError:
+        try:
+            tags = self._tags_provider.get_tags(
+                uuid=uuid,
+                user_id=self.settings.user_id,
+                urchin_api_key=None,  # TODO: Implement urchin api key setting
+            )
+        except APIError as e:
+            logger.error(f"Error getting tags for {uuid=}", exc_info=e)
+            return ERROR_DURING_PROCESSING
+        else:
+            return tags

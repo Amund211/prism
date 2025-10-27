@@ -140,6 +140,22 @@ def get_and_cache_player(
             completed_queue.put(username)
             logger.debug(f"Updated missing winstreak for {username}")
 
+    # Get tags
+    if isinstance(player, KnownPlayer):
+        tags = controller.get_tags(player.uuid)
+        if tags is ERROR_DURING_PROCESSING:
+            logger.error(f"Error getting tags for {username}")
+        else:
+            for alias in player.aliases:
+                controller.player_cache.update_cached_player(
+                    alias,
+                    functools.partial(KnownPlayer.set_tags, tags=tags),
+                )
+
+            # Tell the main thread that we got the tags
+            completed_queue.put(username)
+            logger.debug(f"Set tags for {username}")
+
 
 def update_settings(new_settings: SettingsDict, controller: OverlayController) -> None:
     """

@@ -6,7 +6,7 @@ from typing import cast
 
 import pytest
 
-from prism.errors import PlayerNotFoundError
+from prism.errors import APIError, PlayerNotFoundError
 from prism.overlay.behaviour import (
     autodenick_teammate,
     bedwars_game_ended,
@@ -19,7 +19,7 @@ from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKeyDict
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.settings import NickValue, Settings, SettingsDict, get_settings
-from prism.player import MISSING_WINSTREAKS, KnownPlayer, Winstreaks
+from prism.player import MISSING_WINSTREAKS, KnownPlayer, Tags, Winstreaks
 from tests.prism.overlay import test_get_stats
 from tests.prism.overlay.test_settings import (
     DEFAULT_STATS_THREAD_COUNT,
@@ -29,6 +29,7 @@ from tests.prism.overlay.utils import (
     CUSTOM_RATING_CONFIG_COLLECTION_DICT,
     MockedAccountProvider,
     MockedPlayerProvider,
+    MockedTagsProvider,
     MockedWinstreakProvider,
     create_controller,
     create_state,
@@ -266,12 +267,22 @@ def test_get_and_cache_stats(
 
         return user.player
 
+    def get_tags(uuid: str, user_id: str, urchin_api_key: str | None) -> Tags:
+        assert uuid == user.uuid
+        assert urchin_api_key is None
+
+        return Tags(
+            cheating="none",
+            sniping="none",
+        )
+
     controller = create_controller(
         account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
         player_provider=MockedPlayerProvider(get_player=get_player),
         winstreak_provider=MockedWinstreakProvider(
             get_estimated_winstreaks_for_uuid=get_estimated_winstreaks
         ),
+        tags_provider=MockedTagsProvider(get_tags=get_tags),
         nick_database=NickDatabase([{user.nick: user.uuid}]),
         settings=make_settings(
             use_antisniper_api=True,  # Always enable antisniper API for testing
@@ -286,12 +297,71 @@ def test_get_and_cache_stats(
     # One update for getting the stats
     assert completed_queue.get_nowait() == user.nick
 
+    # One update for getting the tags
+    assert completed_queue.get_nowait() == user.nick
+
     # One update for getting estimated winstreaks - only when missing + gotten
     if not player_has_winstreaks and estimated_winstreaks_from_provider:
         assert completed_queue.get_nowait() == user.nick
     else:
         with pytest.raises(queue.Empty):
             completed_queue.get_nowait()
+
+
+def test_get_and_cache_stats_tags_error() -> None:
+    user = test_get_stats.users["NickedPlayer"]
+    assert user.nick is not None  # For typing
+
+    def get_estimated_winstreaks(
+        uuid: str, antisniper_api_key: str
+    ) -> tuple[Winstreaks, bool]:
+        assert uuid == user.uuid
+        return (MISSING_WINSTREAKS, False)
+
+    def get_uuid(username: str) -> str:
+        if username == user.nick:
+            raise PlayerNotFoundError
+
+        assert username == user.username
+        return user.uuid
+
+    def get_player(uuid: str, user_id: str) -> KnownPlayer:
+        assert uuid == user.uuid
+        assert user.player is not None
+
+        return user.player
+
+    def get_tags(uuid: str, user_id: str, urchin_api_key: str | None) -> Tags:
+        assert uuid == user.uuid
+        assert urchin_api_key is None
+
+        raise APIError("API failure")
+
+    controller = create_controller(
+        account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
+        player_provider=MockedPlayerProvider(get_player=get_player),
+        winstreak_provider=MockedWinstreakProvider(
+            get_estimated_winstreaks_for_uuid=get_estimated_winstreaks
+        ),
+        tags_provider=MockedTagsProvider(get_tags=get_tags),
+        nick_database=NickDatabase([{user.nick: user.uuid}]),
+        settings=make_settings(
+            use_antisniper_api=True,  # Always enable antisniper API for testing
+            antisniper_api_key="test_key",
+        ),
+    )
+
+    completed_queue = queue.Queue[str]()
+
+    get_and_cache_player(user.nick, completed_queue, controller)
+
+    # One update for getting the stats
+    assert completed_queue.get_nowait() == user.nick
+
+    # No update for winstreak
+    # No update since we failed getting tags
+    with pytest.raises(queue.Empty):
+        completed_queue.get_nowait()
 
 
 def test_update_settings_nothing() -> None:
