@@ -3,6 +3,16 @@ from typing import Literal, Self, TypedDict
 
 GamemodeName = Literal["overall", "solo", "doubles", "threes", "fours"]
 
+TagSeverity = Literal["none", "medium", "high"]
+
+
+@dataclass(frozen=True, slots=True)
+class Tags:
+    """Dataclass holding tags for a player"""
+
+    sniping: TagSeverity
+    cheating: TagSeverity
+
 
 class Winstreaks(TypedDict):
     """Dict holding winstreaks for each core gamemode"""
@@ -60,6 +70,8 @@ class KnownPlayer:
     lastLogoutMs: int | None = field(default=None)
     nick: str | None = field(default=None)
 
+    tags: Tags | None = field(default=None)
+
     @property
     def stats_unknown(self) -> bool:
         return False
@@ -106,6 +118,10 @@ class KnownPlayer:
                 winstreak=overall, winstreak_accurate=winstreaks_accurate
             ),
         )
+
+    def set_tags(self, tags: Tags) -> Self:
+        """Set the tags for a player"""
+        return replace(self, tags=tags)
 
 
 @dataclass(frozen=True, slots=True)
