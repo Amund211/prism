@@ -19,6 +19,7 @@ from prism.overlay.directories import (
 from prism.overlay.logging import setup_logging
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.not_parallel import ensure_not_parallel
+from prism.overlay.placeholder import PlaceholderWinstreakProvider
 from prism.overlay.settings import get_settings
 from prism.overlay.state import OverlayState
 from prism.overlay.thread_count import recommend_stats_thread_count
@@ -68,7 +69,6 @@ def main() -> None:  # pragma: nocover
     # Import late so we can patch ssl certs in requests
     from prism.mojang import MojangAccountProvider
     from prism.overlay.antisniper_api import (
-        AntiSniperWinstreakProvider,
         StrangePlayerProvider,
     )
     from prism.overlay.controller import OverlayController
@@ -81,7 +81,7 @@ def main() -> None:  # pragma: nocover
     player_provider = StrangePlayerProvider(
         retry_limit=5, initial_timeout=2, get_time_ns=time.time_ns
     )
-    winstreak_provider = AntiSniperWinstreakProvider(retry_limit=5, initial_timeout=2)
+    winstreak_provider = PlaceholderWinstreakProvider()
 
     controller = OverlayController(
         state=OverlayState(),

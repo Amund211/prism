@@ -1,15 +1,14 @@
 import functools
 import logging
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from json import JSONDecodeError
 
 import requests
 from requests.exceptions import RequestException, SSLError
 
-from prism import VERSION_STRING
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
 from prism.hypixel import create_known_player, get_playerdata_field
-from prism.player import MISSING_WINSTREAKS, GamemodeName, KnownPlayer, Winstreaks
+from prism.player import KnownPlayer
 from prism.ratelimiting import RateLimiter
 from prism.requests import make_prism_requests_session
 from prism.retry import ExecutionError, execute_with_retry
@@ -229,149 +228,3 @@ class StrangePlayerProvider:
             username=username,
             uuid=uuid,
         )
-
-
-class AntiSniperWinstreakProvider:
-    def __init__(
-        self,
-        *,
-        retry_limit: int,
-        initial_timeout: float,
-    ) -> None:
-        self._retry_limit = retry_limit
-        self._initial_timeout = initial_timeout
-
-        self._session = make_prism_requests_session()
-        self._session.headers.update({"Reason": f"Prism overlay {VERSION_STRING}"})
-
-        self._limiter = RateLimiter(limit=360, window=60)
-
-    @property
-    def seconds_until_unblocked(self) -> float:
-        """Return the number of seconds until we are unblocked"""
-        return self._limiter.block_duration_seconds
-
-    def get_estimated_winstreaks_for_uuid(
-        self, uuid: str, *, antisniper_api_key: str
-    ) -> tuple[Winstreaks, bool]:  # pragma: nocover
-        """
-        Get the estimated winstreaks of the given uuid
-
-        https://api.antisniper.net/#tag/Player/paths/~1v2~1player~1winstreak/get
-        """
-        try:
-            response = execute_with_retry(
-                functools.partial(
-                    self._make_request,
-                    url=(
-                        f"{WINSTREAK_ENDPOINT}?key={antisniper_api_key}"
-                        f"&player={uuid}"
-                    ),
-                    limiter=self._limiter,
-                ),
-                retry_limit=self._retry_limit,
-                initial_timeout=self._initial_timeout,
-            )
-        except ExecutionError:
-            logger.exception("Request to winstreaks endpoint reached max retries")
-            return MISSING_WINSTREAKS, False
-
-        if response.status_code == 403:
-            raise APIKeyError(
-                f"Request to Antisniper API failed with status code "
-                f"{response.status_code}. Assumed invalid API key. "
-                f"Response: {response.text}"
-            )
-
-        if is_global_throttle_response(response) or response.status_code == 429:
-            raise APIThrottleError(
-                f"Request to AntiSniper API failed with status code "
-                f"{response.status_code}. Assumed due to API key throttle. "
-                f"Response: {response.text}"
-            )
-
-        if not response:
-            logger.error(
-                f"Request to winstreak endpoint failed with status code "
-                f"{response.status_code} for {uuid=}. Response: {response.text}"
-            )
-            raise APIError(
-                f"Request to Antisniper API failed with status code "
-                f"{response.status_code} when getting winstreaks for player {uuid}. "
-                f"Response: {response.text}"
-            )
-
-        try:
-            response_json = response.json()
-        except JSONDecodeError:
-            logger.error(
-                "Failed parsing the response from the winstreak endpoint. "
-                f"Raw content: {response.text}"
-            )
-            raise APIError("Failed parsing the response from the winstreak endpoint. ")
-
-        return parse_estimated_winstreaks_response(response_json)
-
-    def _make_request(
-        self, *, url: str, limiter: RateLimiter, last_try: bool
-    ) -> requests.Response:  # pragma: nocover
-        try:
-            # Uphold our prescribed rate-limits
-            with limiter:
-                response = self._session.get(url)
-        except RequestException as e:
-            raise ExecutionError(
-                "Request to AntiSniper API failed due to an unknown error"
-            ) from e
-
-        if is_checked_too_many_offline_players_response(response):
-            raise ExecutionError(
-                f"Checked too many offline players for {url}, retrying"
-            )
-
-        throttled = is_global_throttle_response(response) or response.status_code == 429
-        if throttled and not last_try:
-            raise ExecutionError(
-                "Request to AntiSniper API failed due to ratelimit, retrying"
-            )
-
-        return response
-
-
-def parse_estimated_winstreaks_response(
-    response_json: Mapping[str, object],
-) -> tuple[Winstreaks, bool]:
-    """Parse the reponse from the winstreaks endpoint"""
-    if not response_json.get("success", False):
-        logger.error(f"Winstreak endpoint returned an error. Response: {response_json}")
-        raise APIError("Winstreak endpoint returned an error.")
-
-    # Getting the winstreaks
-    winstreaks: dict[GamemodeName, int | None] = {}
-
-    DATA_NAMES: dict[GamemodeName, str] = {
-        "overall": "overall",
-        "solo": "eight_one",
-        "doubles": "eight_two",
-        "threes": "four_three",
-        "fours": "four_four",
-    }
-
-    for gamemode, data_name in DATA_NAMES.items():
-        winstreak = response_json.get(f"{data_name}_winstreak", None)
-        if winstreak is not None and not isinstance(winstreak, int):
-            logger.error(f"Got wrong return type for {gamemode} winstreak {winstreak=}")
-            winstreak = None
-
-        winstreaks[gamemode] = winstreak
-
-    return (
-        Winstreaks(
-            overall=winstreaks["overall"],
-            solo=winstreaks["solo"],
-            doubles=winstreaks["doubles"],
-            threes=winstreaks["threes"],
-            fours=winstreaks["fours"],
-        ),
-        False,  # Don't trust winstreak estimates from antisniper
-    )
