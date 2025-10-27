@@ -5,7 +5,7 @@ import threading
 import time
 from collections.abc import Iterable
 
-from prism.overlay.behaviour import get_stats_and_winstreak
+from prism.overlay.behaviour import get_and_cache_player
 from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKey
 from prism.overlay.process_event import process_loglines
@@ -61,7 +61,7 @@ class GetStatsThread(threading.Thread):  # pragma: nocover
                 #       to make requests to compute session stats
                 state = self.controller.state
                 if username in state.lobby_players or username == state.own_username:
-                    get_stats_and_winstreak(
+                    get_and_cache_player(
                         username=username,
                         completed_queue=self.completed_queue,
                         controller=self.controller,

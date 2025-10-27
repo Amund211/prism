@@ -10,7 +10,7 @@ from prism.errors import PlayerNotFoundError
 from prism.overlay.behaviour import (
     autodenick_teammate,
     bedwars_game_ended,
-    get_stats_and_winstreak,
+    get_and_cache_player,
     set_nickname,
     should_redraw,
     update_settings,
@@ -204,10 +204,10 @@ def test_should_redraw(
     assert should_redraw(controller, completed_stats_queue) == result
 
 
-@pytest.mark.parametrize("winstreak_api_enabled", (True, False))
-@pytest.mark.parametrize("estimated_winstreaks", (True, False))
+@pytest.mark.parametrize("player_has_winstreaks", (True, False))
+@pytest.mark.parametrize("estimated_winstreaks_from_provider", (True, False))
 def test_get_and_cache_stats(
-    winstreak_api_enabled: bool, estimated_winstreaks: bool
+    player_has_winstreaks: bool, estimated_winstreaks_from_provider: bool
 ) -> None:
     base_user = test_get_stats.users["NickedPlayer"]
 
@@ -232,7 +232,7 @@ def test_get_and_cache_stats(
 
     user = (
         replace(base_user, player=player_with_winstreaks)
-        if winstreak_api_enabled
+        if player_has_winstreaks
         else replace(base_user, player=player_without_winstreaks)
     )
     assert user.nick is not None  # For typing
@@ -243,7 +243,7 @@ def test_get_and_cache_stats(
         assert antisniper_api_key == "test_key"
         assert uuid == user.uuid
 
-        if estimated_winstreaks:
+        if estimated_winstreaks_from_provider:
             return (
                 make_winstreaks(
                     overall=100, solo=100, doubles=100, threes=100, fours=100
@@ -281,13 +281,13 @@ def test_get_and_cache_stats(
 
     completed_queue = queue.Queue[str]()
 
-    get_stats_and_winstreak(user.nick, completed_queue, controller)
+    get_and_cache_player(user.nick, completed_queue, controller)
 
     # One update for getting the stats
     assert completed_queue.get_nowait() == user.nick
 
     # One update for getting estimated winstreaks - only when missing + gotten
-    if not winstreak_api_enabled and estimated_winstreaks:
+    if not player_has_winstreaks and estimated_winstreaks_from_provider:
         assert completed_queue.get_nowait() == user.nick
     else:
         with pytest.raises(queue.Empty):

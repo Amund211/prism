@@ -105,7 +105,7 @@ def should_redraw(
     return redraw
 
 
-def get_stats_and_winstreak(
+def get_and_cache_player(
     username: str, completed_queue: queue.Queue[str], controller: OverlayController
 ) -> None:
     """Get a username from the requests queue and cache their stats"""
@@ -117,6 +117,7 @@ def get_stats_and_winstreak(
 
     logger.debug(f"Finished gettings stats for {username}")
 
+    # Get estimated winstreak if missing
     if isinstance(player, KnownPlayer) and player.is_missing_winstreaks:
         (
             estimated_winstreaks,
