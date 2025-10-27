@@ -124,9 +124,8 @@ def get_and_cache_player(
             winstreaks_accurate,
         ) = controller.get_estimated_winstreaks(player.uuid)
 
-        if estimated_winstreaks is MISSING_WINSTREAKS:
-            logger.debug(f"Updating missing winstreak for {username} failed")
-        else:
+        if estimated_winstreaks is not MISSING_WINSTREAKS:
+            logger.debug(f"Got estimated winstreak for {username}")
             for alias in player.aliases:
                 controller.player_cache.update_cached_player(
                     alias,
