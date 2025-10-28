@@ -2,11 +2,7 @@ name: Test and Deploy CloudFunction
 
 on:
   pull_request:
-    types:
-      - opened
-      - reopened
-      - synchronize
-      - closed
+  push:
     branches:
       - main
 
@@ -23,7 +19,6 @@ jobs:
   test:
     name: Format, vet, test
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == false
     services:
       postgres:
         image: postgres
@@ -89,7 +84,6 @@ jobs:
           ./cmd/test-ip-rate-limit.sh
 
   push-otel-collector-test:
-    if: github.event.pull_request.merged == false
     name: Build and push OTel Collector for test instance
     runs-on: ubuntu-latest
     steps:
@@ -106,7 +100,7 @@ jobs:
         run: ./collector/build.sh build-and-push flashlight-test
 
   push-otel-collector:
-    if: github.event.pull_request.merged == true
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     name: Build and push OTel Collector for production instance
     runs-on: ubuntu-latest
     steps:
@@ -123,7 +117,6 @@ jobs:
         run: ./collector/build.sh build-and-push flashlight
 
   deploy-test-instance:
-    if: "github.event.pull_request.merged == false && !contains(github.event.pull_request.labels.*.name, 'skip-deployment')"
     name: Deploy test instance
     runs-on: ubuntu-latest
     # Only deploy the test instance if the tests pass
@@ -148,7 +141,7 @@ jobs:
         run: ./cmd/deploy.sh flashlight-test
 
   build-and-deploy:
-    if: github.event.pull_request.merged == true
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     name: Deploy cloud function
     runs-on: ubuntu-latest
     needs: push-otel-collector
