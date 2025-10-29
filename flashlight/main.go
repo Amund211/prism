@@ -179,6 +179,15 @@ func main() {
 	)
 
 	handleFunc(
+		"GET /v1/tags/{uuid}",
+		ports.MakeGetTagsHandler(
+			getTags,
+			logger.With("port", "tags"),
+			sentryMiddleware,
+		),
+	)
+
+	handleFunc(
 		"OPTIONS /v1/account/username/{username}",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
