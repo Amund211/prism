@@ -178,6 +178,7 @@ def make_player(
     lastLoginMs: int | None = ...,
     lastLogoutMs: int | None = ...,
     dataReceivedAtMs: int = ...,
+    tags: Tags | None = None,
 ) -> KnownPlayer: ...
 
 
@@ -200,6 +201,7 @@ def make_player(
     lastLoginMs: int | None = None,
     lastLogoutMs: int | None = None,
     dataReceivedAtMs: int = 1234567890,
+    tags: Tags | None = Tags(sniping="none", cheating="none"),
 ) -> Player:
     if variant == "player":
         return KnownPlayer(
@@ -223,6 +225,7 @@ def make_player(
             uuid=uuid,
             lastLoginMs=lastLoginMs,
             lastLogoutMs=lastLogoutMs,
+            tags=tags,
         )
     elif variant == "unknown":
         return UnknownPlayer(username)

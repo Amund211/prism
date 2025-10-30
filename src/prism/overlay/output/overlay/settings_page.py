@@ -743,9 +743,12 @@ class DisplaySection:  # pragma: nocover
         )
         sort_order_label.grid(row=0, column=0, sticky=tk.E)
 
+        sort_choices = tuple(
+            filter(lambda column: column != "tags", ALL_COLUMN_NAMES_ORDERED)
+        )
         self.sort_order_variable = tk.StringVar(value="")
         self.sort_order_menu = tk.OptionMenu(
-            self.frame, self.sort_order_variable, *ALL_COLUMN_NAMES_ORDERED
+            self.frame, self.sort_order_variable, *sort_choices
         )
         self.sort_order_menu.grid(row=0, column=1)
         parent.make_widgets_scrollable(sort_order_label, self.sort_order_menu)

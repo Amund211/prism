@@ -3,7 +3,7 @@ import operator
 from collections.abc import Set
 from typing import TYPE_CHECKING, Literal, assert_never
 
-from prism.player import KnownPlayer, Player
+from prism.player import KnownPlayer, Player, Tags
 
 if TYPE_CHECKING:  # pragma: no coverage
     from prism.overlay.output.cells import ColumnName
@@ -11,9 +11,26 @@ if TYPE_CHECKING:  # pragma: no coverage
 GamemodeName = Literal["overall", "solo", "doubles", "threes", "fours"]
 
 
+def rate_tags(tags: Tags) -> int:
+    """Convert Tags to a numeric rating for sorting purposes"""
+    # Uses magic weights picked to ensure the correct order (see test)
+    rating = 0
+    if tags.sniping == "high":
+        rating += 22
+    elif tags.sniping == "medium":
+        rating += 10
+
+    if tags.cheating == "high":
+        rating += 13
+    elif tags.cheating == "medium":
+        rating += 5
+
+    return rating
+
+
 def rate_player(
     player: Player, party_members: Set[str], column: "ColumnName", sort_ascending: bool
-) -> tuple[bool, bool, str | int | float]:
+) -> tuple[bool, bool, int, str | int | float]:
     """Used as a key function for sorting"""
     is_enemy = player.username not in party_members
 
@@ -23,7 +40,12 @@ def rate_player(
     #       If we added the username here we would get reverse alphabetical
     stat: int | float | None
 
+    tags_rating = 0
+
     if isinstance(player, KnownPlayer):
+        if player.tags is not None:
+            tags_rating = rate_tags(player.tags)
+
         if column == "username":
             stat = 0
         elif column == "stars":
@@ -50,6 +72,9 @@ def rate_player(
             stat = player.stats.winstreak
         elif column == "sessiontime":
             stat = player.sessiontime_seconds
+        elif column == "tags":  # pragma: no coverage
+            # NOTE: Should not be needed, and should be disabled in the UI
+            stat = tags_rating
         else:  # pragma: no coverage
             assert_never(column)
 
@@ -63,7 +88,7 @@ def rate_player(
         # Unknown players are always sorted last
         stat = 0 if column == "username" else float("-inf")
 
-    return (is_enemy, player.stats_unknown, stat)
+    return (is_enemy, player.stats_unknown, tags_rating, stat)
 
 
 def sort_players(

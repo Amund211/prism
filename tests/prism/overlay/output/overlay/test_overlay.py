@@ -18,6 +18,7 @@ from prism.player import (
     PendingPlayer,
     Player,
     Stats,
+    Tags,
     UnknownPlayer,
 )
 
@@ -76,6 +77,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=2,
                 wins=1,
             ),
+            tags=Tags(sniping="medium", cheating="high"),
         ),
         (
             None,
@@ -93,6 +95,14 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=CellValue.monochrome("2", rating0),
                 wins=CellValue.monochrome("1", rating0),
                 sessiontime=CellValue.monochrome("<1m", rating4),
+                tags=CellValue(
+                    text="C S",
+                    color_sections=(
+                        ColorSection(rating4, 1),  # Cheating: high
+                        ColorSection(GUI_COLORS[0], 1),  # Space
+                        ColorSection(rating3, 1),  # Sniping: medium
+                    ),
+                ),
             ),
         ),
     ),
@@ -118,6 +128,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=8_000,
                 wins=6_000,
             ),
+            tags=Tags(sniping="high", cheating="none"),
         ),
         (
             "the_amazing_nick",
@@ -135,6 +146,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=CellValue.monochrome("8000", rating2),
                 wins=CellValue.monochrome("6000", rating3),
                 sessiontime=CellValue.monochrome("-", rating4),
+                tags=CellValue(text="S", color_sections=(ColorSection(rating4, 1),)),
             ),
         ),
     ),
@@ -156,6 +168,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=CellValue.monochrome("nick", rating4),
                 wins=CellValue.monochrome("nick", rating4),
                 sessiontime=CellValue.monochrome("nick", rating4),
+                tags=CellValue.monochrome("nick", rating4),
             ),
         ),
     ),
@@ -177,6 +190,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=CellValue.monochrome("error", rating4),
                 wins=CellValue.monochrome("error", rating4),
                 sessiontime=CellValue.monochrome("error", rating4),
+                tags=CellValue.monochrome("error", rating4),
             ),
         ),
     ),
@@ -198,10 +212,11 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=CellValue.monochrome("-", rating0),
                 wins=CellValue.monochrome("-", rating0),
                 sessiontime=CellValue.monochrome("-", rating0),
+                tags=CellValue.monochrome("-", rating0),
             ),
         ),
     ),
-    # Missing winstreak and sessiontime
+    # Missing winstreak, sessiontime, and tags
     (
         KnownPlayer(
             dataReceivedAtMs=CURRENT_TIME_MS,
@@ -223,6 +238,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=12_000,
                 wins=15_000,
             ),
+            tags=None,  # Request failed or still in flight
         ),
         (
             None,
@@ -240,6 +256,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=CellValue.monochrome("12000", rating3),
                 wins=CellValue.monochrome("15000", rating4),
                 sessiontime=CellValue.monochrome("-", rating4),
+                tags=CellValue.monochrome("-", rating0),
             ),
         ),
     ),
@@ -265,6 +282,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=1900,
                 wins=2000,
             ),
+            tags=Tags(sniping="none", cheating="high"),
         ),
         (
             None,
@@ -282,6 +300,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=CellValue.monochrome("1900", rating0),
                 wins=CellValue.monochrome("2000", rating1),
                 sessiontime=CellValue.monochrome("-", rating4),
+                tags=CellValue(text="C", color_sections=(ColorSection(rating4, 1),)),
             ),
         ),
     ),
@@ -307,6 +326,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=3000,
                 wins=4000,
             ),
+            tags=Tags(sniping="none", cheating="none"),
         ),
         (
             None,
@@ -324,6 +344,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=CellValue.monochrome("3000", rating1),
                 wins=CellValue.monochrome("4000", rating2),
                 sessiontime=CellValue.monochrome("-", rating4),
+                tags=CellValue.monochrome("", rating0),
             ),
         ),
     ),
@@ -355,6 +376,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=CellValue.monochrome("0", rating0),
                 wins=CellValue.monochrome("0", rating0),
                 sessiontime=CellValue.monochrome("7m", rating3),
+                tags=CellValue.monochrome("-", rating0),
             ),
         ),
     ),
@@ -386,6 +408,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=CellValue.monochrome("0", rating0),
                 wins=CellValue.monochrome("0", rating0),
                 sessiontime=CellValue.monochrome("-", rating4),
+                tags=CellValue.monochrome("-", rating0),
             ),
         ),
     ),

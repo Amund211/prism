@@ -1,12 +1,20 @@
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from functools import lru_cache
-from typing import assert_never
+from typing import Literal, assert_never
 
 from prism.overlay.output.cells import CellValue, ColorSection, ColumnName
 from prism.overlay.output.color import GUIColor, MinecraftColor
 from prism.overlay.output.config import RatingConfig, RatingConfigCollection
-from prism.player import KnownPlayer, NickedPlayer, PendingPlayer, Player, UnknownPlayer
+from prism.player import (
+    KnownPlayer,
+    NickedPlayer,
+    PendingPlayer,
+    Player,
+    Tags,
+    TagSeverity,
+    UnknownPlayer,
+)
 from prism.utils import format_seconds_short, truncate_float
 
 GUI_COLORS = (
@@ -37,6 +45,8 @@ class RenderedStats:
     beds: CellValue
     wins: CellValue
     sessiontime: CellValue
+
+    tags: CellValue
 
 
 def truncate_float_or_int(value: float | int, decimals: int) -> str:
@@ -367,6 +377,50 @@ def render_stars(
     return replace(levels_rating, color_sections=color_sections)
 
 
+def tag_severity_to_color(severity: Literal["medium", "high"]) -> str:
+    if severity == "medium":
+        return GUI_COLORS[3]
+    elif severity == "high":
+        return GUI_COLORS[4]
+
+
+def render_tags(tags: Tags | None) -> CellValue:
+    if tags is None:
+        # Pending
+        return CellValue.monochrome(text="-", gui_color=GUI_COLORS[0])
+
+    def add_tag(
+        text: str,
+        color_sections: tuple[ColorSection, ...],
+        tag_char: str,
+        severity: TagSeverity,
+    ) -> tuple[str, tuple[ColorSection, ...]]:
+        if severity == "none":
+            return text, color_sections
+
+        if text != "":
+            # There is already a tag, add space separator
+            text += " "
+            color_sections += (ColorSection(GUI_COLORS[0], 1),)
+
+        return (
+            text + tag_char,
+            color_sections + (ColorSection(tag_severity_to_color(severity), 1),),
+        )
+
+    color_sections: tuple[ColorSection, ...] = ()
+    text = ""
+
+    text, color_sections = add_tag(text, color_sections, "C", tags.cheating)
+    text, color_sections = add_tag(text, color_sections, "S", tags.sniping)
+
+    if len(color_sections) == 0:
+        # The painter needs at least one color
+        return CellValue.monochrome(text="", gui_color=GUI_COLORS[0])
+
+    return CellValue(text=text, color_sections=color_sections)
+
+
 @lru_cache(maxsize=100)
 def render_stats(
     player: Player,
@@ -480,6 +534,7 @@ def render_stats(
             rating_configs.sessiontime.rate_by_level,
             rating_configs.sessiontime.sort_ascending,
         )
+        tags_cell = render_tags(player.tags)
     else:
         if isinstance(player, NickedPlayer):
             text = "nick"
@@ -496,7 +551,7 @@ def render_stats(
         cell = CellValue.monochrome(text, gui_color=gui_color)
         stars_cell = index_cell = fkdr_cell = kdr_cell = bblr_cell = wlr_cell = cell
         winstreak_cell = kills_cell = finals_cell = beds_cell = wins_cell = cell
-        sessiontime_cell = cell
+        sessiontime_cell = tags_cell = cell
 
     username_cell = CellValue.monochrome(username_str, gui_color=GUIColor.WHITE)
 
@@ -514,6 +569,7 @@ def render_stats(
         beds=beds_cell,
         wins=wins_cell,
         sessiontime=sessiontime_cell,
+        tags=tags_cell,
     )
 
 
