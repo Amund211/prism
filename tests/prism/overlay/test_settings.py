@@ -89,7 +89,15 @@ def make_settings_dict(
         "sort_order": value_or_default(sort_order, default="index"),
         "column_order": value_or_default(
             column_order,
-            default=("username", "stars", "fkdr", "kdr", "winstreak", "sessiontime"),
+            default=(
+                "username",
+                "stars",
+                "fkdr",
+                "kdr",
+                "winstreak",
+                "sessiontime",
+                "tags",
+            ),
         ),
         "rating_configs": value_or_default(
             rating_configs, default=DEFAULT_RATING_CONFIG_COLLECTION_DICT
