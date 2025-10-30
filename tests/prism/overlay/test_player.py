@@ -6,7 +6,7 @@ from prism.calc import bedwars_level_from_exp
 from prism.hypixel import create_known_player
 from prism.overlay.output.cells import ColumnName
 from prism.overlay.rating import sort_players
-from prism.player import KnownPlayer, Player, Stats, Winstreaks
+from prism.player import KnownPlayer, Player, Stats, Tags, Winstreaks
 from tests.prism.overlay.utils import make_player
 
 CURRENT_TIME_MS = 1234567890123
@@ -98,6 +98,31 @@ players: dict[str, Player] = {
         wins=3,
         lastLogoutMs=0,
         lastLoginMs=3000,
+    ),
+    "untagged_5_star": make_player(
+        username="untagged",
+        stars=5,
+        tags=None,
+    ),
+    "untagged_4_star": make_player(
+        username="untagged",
+        stars=4,
+        tags=None,
+    ),
+    "h_snipe_m_cheat": make_player(
+        username="h_snipe_m_cheat",
+        stars=3,
+        tags=Tags(sniping="high", cheating="medium"),
+    ),
+    "m_snipe_m_cheat": make_player(
+        username="m_snipe_m_cheat",
+        stars=2,
+        tags=Tags(sniping="medium", cheating="medium"),
+    ),
+    "m_snipe_h_cheat": make_player(
+        username="m_snipe_h_cheat",
+        stars=1,
+        tags=Tags(sniping="medium", cheating="high"),
     ),
 }
 
@@ -548,6 +573,32 @@ sort_test_cases: tuple[
             players["joshua"],
             players["nigel"],
             players["jonathan"],
+        ],
+    ),
+    (
+        [
+            players["untagged_5_star"],
+            players["untagged_4_star"],
+            players["h_snipe_m_cheat"],
+            players["m_snipe_m_cheat"],
+            players["m_snipe_h_cheat"],
+        ],
+        set(),
+        "stars",
+        [
+            players["h_snipe_m_cheat"],
+            players["m_snipe_h_cheat"],
+            players["m_snipe_m_cheat"],
+            players["untagged_5_star"],
+            players["untagged_4_star"],
+        ],
+        [
+            # Tags always sorted descending, so only the stars are ascending
+            players["h_snipe_m_cheat"],
+            players["m_snipe_h_cheat"],
+            players["m_snipe_m_cheat"],
+            players["untagged_4_star"],
+            players["untagged_5_star"],
         ],
     ),
 )
