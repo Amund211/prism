@@ -44,6 +44,7 @@ DEFAULT_COLUMN_ORDER: tuple[ColumnName, ...] = (
     "kdr",
     "winstreak",
     "sessiontime",
+    "tags",
 )
 
 COLUMN_NAMES: dict[ColumnName, str] = {
