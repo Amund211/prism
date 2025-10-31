@@ -158,7 +158,10 @@ func main() {
 		fail("Failed to initialize GetAccountByUUIDWithCache", "error", err.Error())
 	}
 
-	getTags := app.BuildGetTagsWithCache(tagsCache, tagProvider)
+	getTags, err := app.BuildGetTagsWithCache(tagsCache, tagProvider)
+	if err != nil {
+		fail("Failed to initialize GetTagsWithCache", "error", err.Error())
+	}
 
 	getHistory := app.BuildGetHistory(playerRepo, updatePlayerInInterval)
 
