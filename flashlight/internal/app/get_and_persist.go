@@ -74,11 +74,30 @@ func BuildGetAndPersistPlayerWithCache(
 		return nil, fmt.Errorf("failed to set up metrics: %w", err)
 	}
 
+	type trackingInfo struct {
+		cached       bool
+		success      bool
+		invalidInput bool
+	}
+
+	track := func(ctx context.Context, info trackingInfo) {
+		metrics.returnCount.Add(
+			ctx,
+			1,
+			metric.WithAttributes(
+				attribute.Bool("cached", info.cached),
+				attribute.Bool("success", info.success),
+				attribute.Bool("invalid_input", info.invalidInput),
+			),
+		)
+	}
+
 	return func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 		if !strutils.UUIDIsNormalized(uuid) {
 			logging.FromContext(ctx).Error("UUID is not normalized", "uuid", uuid)
 			err := fmt.Errorf("UUID is not normalized")
 			reporting.Report(ctx, err)
+			track(ctx, trackingInfo{success: false, invalidInput: true})
 			return nil, err
 		}
 
@@ -88,17 +107,11 @@ func BuildGetAndPersistPlayerWithCache(
 		if err != nil {
 			// NOTE: GetOrCreate only returns an error if create() fails.
 			// getAndPersistPlayerWithoutCache handles its own error reporting
+			track(ctx, trackingInfo{success: false})
 			return nil, fmt.Errorf("failed to cache.GetOrCreate player data: %w", err)
 		}
 
-		metrics.returnCount.Add(
-			ctx,
-			1,
-			metric.WithAttributes(
-				attribute.Bool("cached", !created),
-			),
-		)
-
+		track(ctx, trackingInfo{success: true, cached: !created})
 		return player, nil
 	}, nil
 }
