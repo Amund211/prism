@@ -95,7 +95,8 @@ func TestBuildGetAccountByUUIDWithCache(t *testing.T) {
 				QueriedAt: now,
 			},
 		}
-		getAccountByUUIDWithCache := app.BuildGetAccountByUUIDWithCache(c, provider, repo, nowFunc)
+		getAccountByUUIDWithCache, err := app.BuildGetAccountByUUIDWithCache(c, provider, repo, nowFunc)
+		require.NoError(t, err)
 
 		account, err := getAccountByUUIDWithCache(ctx, UUID)
 		require.NoError(t, err)
@@ -122,9 +123,10 @@ func TestBuildGetAccountByUUIDWithCache(t *testing.T) {
 		repo := &mockAccountRepositoryByUUID{
 			t: t,
 		}
-		getAccountByUUIDWithCache := app.BuildGetAccountByUUIDWithCache(c, provider, repo, nowFunc)
+		getAccountByUUIDWithCache, err := app.BuildGetAccountByUUIDWithCache(c, provider, repo, nowFunc)
+		require.NoError(t, err)
 
-		_, err := getAccountByUUIDWithCache(ctx, UUID)
+		_, err = getAccountByUUIDWithCache(ctx, UUID)
 		require.ErrorIs(t, err, domain.ErrUsernameNotFound)
 
 		require.True(t, provider.getAccountByUUIDCalled)
@@ -160,7 +162,8 @@ func TestBuildGetAccountByUUIDWithCache(t *testing.T) {
 						QueriedAt: now.Add(-repoAge),
 					},
 				}
-				getAccountByUUIDWithCache := app.BuildGetAccountByUUIDWithCache(c, provider, repo, nowFunc)
+				getAccountByUUIDWithCache, err := app.BuildGetAccountByUUIDWithCache(c, provider, repo, nowFunc)
+				require.NoError(t, err)
 
 				account, err := getAccountByUUIDWithCache(ctx, UUID)
 				require.NoError(t, err)
@@ -202,9 +205,10 @@ func TestBuildGetAccountByUUIDWithCache(t *testing.T) {
 						QueriedAt: now.Add(-repoAge),
 					},
 				}
-				getAccountByUUIDWithCache := app.BuildGetAccountByUUIDWithCache(c, provider, repo, nowFunc)
+				getAccountByUUIDWithCache, err := app.BuildGetAccountByUUIDWithCache(c, provider, repo, nowFunc)
+				require.NoError(t, err)
 
-				_, err := getAccountByUUIDWithCache(ctx, UUID)
+				_, err = getAccountByUUIDWithCache(ctx, UUID)
 				require.ErrorIs(t, err, assert.AnError)
 
 				require.True(t, repo.getAccountByUUIDCalled)
@@ -236,7 +240,8 @@ func TestBuildGetAccountByUUIDWithCache(t *testing.T) {
 				QueriedAt: now,
 			},
 		}
-		getAccountByUUIDWithCache := app.BuildGetAccountByUUIDWithCache(c, provider, repo, nowFunc)
+		getAccountByUUIDWithCache, err := app.BuildGetAccountByUUIDWithCache(c, provider, repo, nowFunc)
+		require.NoError(t, err)
 
 		account, err := getAccountByUUIDWithCache(ctx, UUID)
 		require.NoError(t, err)
@@ -252,7 +257,8 @@ func TestBuildGetAccountByUUIDWithCache(t *testing.T) {
 		repo = &mockAccountRepositoryByUUID{
 			t: t,
 		}
-		getAccountByUUIDWithCache = app.BuildGetAccountByUUIDWithCache(c, provider, repo, nowFunc)
+		getAccountByUUIDWithCache, err = app.BuildGetAccountByUUIDWithCache(c, provider, repo, nowFunc)
+		require.NoError(t, err)
 
 		account, err = getAccountByUUIDWithCache(ctx, UUID)
 		require.NoError(t, err)

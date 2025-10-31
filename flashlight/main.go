@@ -153,7 +153,10 @@ func main() {
 	if err != nil {
 		fail("Failed to initialize GetAccountByUsernameWithCache", "error", err.Error())
 	}
-	getAccountByUUIDWithCache := app.BuildGetAccountByUUIDWithCache(accountByUUIDCache, accountProvider, accountRepo, time.Now)
+	getAccountByUUIDWithCache, err := app.BuildGetAccountByUUIDWithCache(accountByUUIDCache, accountProvider, accountRepo, time.Now)
+	if err != nil {
+		fail("Failed to initialize GetAccountByUUIDWithCache", "error", err.Error())
+	}
 
 	getTags := app.BuildGetTagsWithCache(tagsCache, tagProvider)
 

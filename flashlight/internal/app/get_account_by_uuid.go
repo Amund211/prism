@@ -10,9 +10,34 @@ import (
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 )
 
 type GetAccountByUUID func(ctx context.Context, uuid string) (domain.Account, error)
+
+type getAccountByUUIDMetricsCollection struct {
+	requestCount metric.Int64Counter
+	returnCount  metric.Int64Counter
+}
+
+func setupGetAccountByUUIDMetrics(meter metric.Meter) (getAccountByUUIDMetricsCollection, error) {
+	requestCount, err := meter.Int64Counter("app/get_account_by_uuid/request_count")
+	if err != nil {
+		return getAccountByUUIDMetricsCollection{}, fmt.Errorf("failed to create request count metric: %w", err)
+	}
+
+	returnCount, err := meter.Int64Counter("app/get_account_by_uuid/return_count")
+	if err != nil {
+		return getAccountByUUIDMetricsCollection{}, fmt.Errorf("failed to create return count metric: %w", err)
+	}
+
+	return getAccountByUUIDMetricsCollection{
+		requestCount: requestCount,
+		returnCount:  returnCount,
+	}, nil
+}
 
 type accountProviderByUUID interface {
 	GetAccountByUUID(ctx context.Context, uuid string) (domain.Account, error)
@@ -27,18 +52,37 @@ func buildGetAccountByUUIDWithoutCache(
 	provider accountProviderByUUID,
 	repo accountRepositoryByUUID,
 	nowFunc func() time.Time,
+	metrics getAccountByUUIDMetricsCollection,
 ) func(ctx context.Context, uuid string) (domain.Account, error) {
-	return func(ctx context.Context, uuid string) (domain.Account, error) {
-		if !strutils.UUIDIsNormalized(uuid) {
-			err := fmt.Errorf("UUID is not normalized")
-			reporting.Report(ctx, err)
-			return domain.Account{}, err
-		}
+	type trackingInfo struct {
+		source         string
+		recovered      bool
+		providerFailed bool
+		failed         bool
+	}
 
+	track := func(ctx context.Context, info trackingInfo) {
+		if info.source == "" {
+			info.source = "unknown"
+		}
+		metrics.requestCount.Add(
+			ctx,
+			1,
+			metric.WithAttributes(
+				attribute.String("source", info.source),
+				attribute.Bool("recovered", info.recovered),
+				attribute.Bool("provider_failed", info.providerFailed),
+				attribute.Bool("failed", info.failed),
+			),
+		)
+	}
+
+	return func(ctx context.Context, uuid string) (domain.Account, error) {
 		getCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
 		providerAccount, err := provider.GetAccountByUUID(getCtx, uuid)
 		if errors.Is(err, domain.ErrUsernameNotFound) {
+			track(ctx, trackingInfo{source: "provider"})
 			return domain.Account{}, err
 		} else if err != nil {
 			// NOTE: accountProvider implementations handle their own error reporting
@@ -51,10 +95,12 @@ func buildGetAccountByUUIDWithoutCache(
 				// Getting the incorrect name is not critical
 				if repoAccountAge < 30*24*time.Hour {
 					// We have a valid, recent-ish account from the repository, return it
+					track(ctx, trackingInfo{source: "repository", providerFailed: true, recovered: true})
 					return repoAccount, nil
 				}
 
 			}
+			track(ctx, trackingInfo{providerFailed: true, failed: true})
 			return domain.Account{}, fmt.Errorf("could not get account for uuid: %w", err)
 		}
 
@@ -67,6 +113,7 @@ func buildGetAccountByUUIDWithoutCache(
 			// NOTE: This error is not critical, we can still return the account
 		}
 
+		track(ctx, trackingInfo{source: "provider"})
 		return providerAccount, nil
 	}
 }
@@ -76,19 +123,55 @@ func BuildGetAccountByUUIDWithCache(
 	provider accountProviderByUUID,
 	repo accountRepositoryByUUID,
 	nowFunc func() time.Time,
-) GetAccountByUUID {
-	getAccountByUUIDWithoutCache := buildGetAccountByUUIDWithoutCache(provider, repo, nowFunc)
+) (GetAccountByUUID, error) {
+	const name = "flashlight/app/get_account_by_uuid_with_cache"
+
+	meter := otel.Meter(name)
+
+	metrics, err := setupGetAccountByUUIDMetrics(meter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set up metrics: %w", err)
+	}
+
+	getAccountByUUIDWithoutCache := buildGetAccountByUUIDWithoutCache(provider, repo, nowFunc, metrics)
+
+	type trackingInfo struct {
+		cached       bool
+		success      bool
+		invalidInput bool
+	}
+
+	track := func(ctx context.Context, info trackingInfo) {
+		metrics.returnCount.Add(
+			ctx,
+			1,
+			metric.WithAttributes(
+				attribute.Bool("cached", info.cached),
+				attribute.Bool("success", info.success),
+				attribute.Bool("invalid_input", info.invalidInput),
+			),
+		)
+	}
 
 	return func(ctx context.Context, uuid string) (domain.Account, error) {
-		account, _, err := cache.GetOrCreate(ctx, accountByUUIDCache, uuid, func() (domain.Account, error) {
+		if !strutils.UUIDIsNormalized(uuid) {
+			err := fmt.Errorf("UUID is not normalized")
+			reporting.Report(ctx, err)
+			track(ctx, trackingInfo{success: false, invalidInput: true})
+			return domain.Account{}, err
+		}
+
+		account, created, err := cache.GetOrCreate(ctx, accountByUUIDCache, uuid, func() (domain.Account, error) {
 			return getAccountByUUIDWithoutCache(ctx, uuid)
 		})
 		if err != nil {
 			// NOTE: GetOrCreate only returns an error if create() fails.
 			// getAccountByUUIDWithoutCache handles its own error reporting
+			track(ctx, trackingInfo{success: false})
 			return domain.Account{}, fmt.Errorf("failed to cache.GetOrCreate account for uuid: %w", err)
 		}
 
+		track(ctx, trackingInfo{success: true, cached: !created})
 		return account, nil
-	}
+	}, nil
 }
