@@ -59,6 +59,7 @@ func buildGetAccountByUsernameWithoutCache(
 ) func(ctx context.Context, username string) (domain.Account, error) {
 	type trackingInfo struct {
 		source         string
+		found          bool
 		recovered      bool
 		providerFailed bool
 		failed         bool
@@ -73,6 +74,7 @@ func buildGetAccountByUsernameWithoutCache(
 			1,
 			metric.WithAttributes(
 				attribute.String("source", info.source),
+				attribute.Bool("found", info.found),
 				attribute.Bool("recovered", info.recovered),
 				attribute.Bool("provider_failed", info.providerFailed),
 				attribute.Bool("failed", info.failed),
@@ -99,7 +101,7 @@ func buildGetAccountByUsernameWithoutCache(
 					// We can still try to query the provider
 				} else {
 					// We have a valid, recent account from the repository, return it
-					track(ctx, trackingInfo{source: "repository"})
+					track(ctx, trackingInfo{source: "repository", found: true})
 					return repoAccount, nil
 				}
 			}
@@ -116,7 +118,7 @@ func buildGetAccountByUsernameWithoutCache(
 			}
 
 			// Pass through ErrUsernameNotFound to the caller
-			track(ctx, trackingInfo{source: "provider"})
+			track(ctx, trackingInfo{source: "provider", found: false})
 			return domain.Account{}, err
 		} else if err != nil {
 			// NOTE: accountProvider implementations handle their own error reporting
@@ -134,7 +136,12 @@ func buildGetAccountByUsernameWithoutCache(
 						})
 					} else {
 						// We have a valid, recent-ish account from the repository, return it
-						track(ctx, trackingInfo{source: "repository", providerFailed: true, recovered: true})
+						track(ctx, trackingInfo{
+							source:         "repository",
+							found:          true,
+							providerFailed: true,
+							recovered:      true,
+						})
 						return repoAccount, nil
 					}
 				}
@@ -162,7 +169,7 @@ func buildGetAccountByUsernameWithoutCache(
 			// NOTE: This error is not critical, we can still return the account
 		}
 
-		track(ctx, trackingInfo{source: "provider"})
+		track(ctx, trackingInfo{source: "provider", found: true})
 		return providerAccount, nil
 	}
 }
@@ -185,6 +192,7 @@ func BuildGetAccountByUsernameWithCache(
 	getAccountByUsernameWithoutCache := buildGetAccountByUsernameWithoutCache(provider, repo, nowFunc, metrics)
 
 	type trackingInfo struct {
+		found        bool
 		cached       bool
 		success      bool
 		invalidInput bool
@@ -195,6 +203,7 @@ func BuildGetAccountByUsernameWithCache(
 			ctx,
 			1,
 			metric.WithAttributes(
+				attribute.Bool("found", info.found),
 				attribute.Bool("cached", info.cached),
 				attribute.Bool("success", info.success),
 				attribute.Bool("invalid_input", info.invalidInput),
@@ -220,14 +229,17 @@ func BuildGetAccountByUsernameWithCache(
 		account, created, err := cache.GetOrCreate(ctx, accountByUsernameCache, cacheKey, func() (domain.Account, error) {
 			return getAccountByUsernameWithoutCache(ctx, username)
 		})
-		if err != nil {
+		if errors.Is(err, domain.ErrUsernameNotFound) {
+			track(ctx, trackingInfo{success: true, found: false})
+			return domain.Account{}, err
+		} else if err != nil {
 			// NOTE: GetOrCreate only returns an error if create() fails.
 			// getAccountByUsernameWithoutCache handles its own error reporting
 			track(ctx, trackingInfo{success: false})
 			return domain.Account{}, fmt.Errorf("failed to cache.GetOrCreate account for username: %w", err)
 		}
 
-		track(ctx, trackingInfo{success: true, cached: !created})
+		track(ctx, trackingInfo{success: true, found: true, cached: !created})
 		return account, nil
 	}, nil
 }
