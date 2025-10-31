@@ -7,7 +7,8 @@ import (
 	"github.com/Amund211/flashlight/internal/logging"
 )
 
-func GetOrCreate[T any](ctx context.Context, cache Cache[T], key string, create func() (T, error)) (T, error) {
+// Returns data, created, error
+func GetOrCreate[T any](ctx context.Context, cache Cache[T], key string, create func() (T, error)) (T, bool, error) {
 	logger := logging.FromContext(ctx)
 
 	// Clean up the cache if we claim an entry, but don't set it
@@ -31,19 +32,19 @@ func GetOrCreate[T any](ctx context.Context, cache Cache[T], key string, create 
 			data, err := create()
 			if err != nil {
 				var empty T
-				return empty, fmt.Errorf("failed to create cache entry: %w", err)
+				return empty, false, fmt.Errorf("failed to create cache entry: %w", err)
 			}
 
 			cache.set(key, data)
 			set = true
 
-			return data, nil
+			return data, true, nil
 		}
 
 		if result.valid {
 			// Cache hit
 			logger.Info("Getting player stats", "cache", "hit")
-			return result.data, nil
+			return result.data, false, nil
 		}
 
 		logger.Info("Waiting for cache")

@@ -80,7 +80,7 @@ func BuildGetAccountByUUIDWithCache(
 	getAccountByUUIDWithoutCache := buildGetAccountByUUIDWithoutCache(provider, repo, nowFunc)
 
 	return func(ctx context.Context, uuid string) (domain.Account, error) {
-		account, err := cache.GetOrCreate(ctx, accountByUUIDCache, uuid, func() (domain.Account, error) {
+		account, _, err := cache.GetOrCreate(ctx, accountByUUIDCache, uuid, func() (domain.Account, error) {
 			return getAccountByUUIDWithoutCache(ctx, uuid)
 		})
 		if err != nil {

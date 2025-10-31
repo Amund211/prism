@@ -134,7 +134,7 @@ func BuildGetAccountByUsernameWithCache(
 		// No two accounts can have the same username with case-insensitive comparison
 		cacheKey := strings.ToLower(username)
 
-		account, err := cache.GetOrCreate(ctx, accountByUsernameCache, cacheKey, func() (domain.Account, error) {
+		account, _, err := cache.GetOrCreate(ctx, accountByUsernameCache, cacheKey, func() (domain.Account, error) {
 			return getAccountByUsernameWithoutCache(ctx, username)
 		})
 		if err != nil {

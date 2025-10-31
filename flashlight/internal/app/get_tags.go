@@ -54,7 +54,7 @@ func BuildGetTagsWithCache(
 
 		key := fmt.Sprintf("uuid:%s|apiKeyHash:%s", uuid, apiKeyHash)
 
-		tags, err := cache.GetOrCreate(ctx, tagsByUUIDCache, key, func() (domain.Tags, error) {
+		tags, _, err := cache.GetOrCreate(ctx, tagsByUUIDCache, key, func() (domain.Tags, error) {
 			return getTagsWithoutCache(ctx, uuid, apiKey)
 		})
 		if err != nil {
