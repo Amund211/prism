@@ -203,25 +203,25 @@ func TestGetOrCreateRealCache(t *testing.T) {
 		ctx := t.Context()
 		cache := NewTTLCache[Data](1 * time.Minute)
 
+		wg := sync.WaitGroup{}
+
 		for testIndex := range 100 {
-			t.Run(fmt.Sprintf("attempt #%d", testIndex), func(t *testing.T) {
-				t.Parallel()
+			called := false
+			monoStableCallback := func() (Data, error) {
+				require.False(t, called, "Callback should only be called once")
+				called = true
+				return createResponse(1)
+			}
 
-				called := false
-				monoStableCallback := func() (Data, error) {
-					require.False(t, called, "Callback should only be called once")
-					called = true
-					return createResponse(1)
-				}
-
-				for range 10 {
-					go func() {
-						data, err := GetOrCreate(ctx, cache, fmt.Sprintf("key%d", testIndex), monoStableCallback)
-						require.Nil(t, err)
-						require.Equal(t, "data1", string(data))
-					}()
-				}
-			})
+			for range 10 {
+				wg.Go(func() {
+					data, err := GetOrCreate(ctx, cache, fmt.Sprintf("key%d", testIndex), monoStableCallback)
+					require.NoError(t, err)
+					require.Equal(t, "data1", string(data))
+				})
+			}
 		}
+
+		wg.Wait()
 	})
 }
