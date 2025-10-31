@@ -71,6 +71,7 @@ func BuildGetTagsWithCache(
 		cached       bool
 		success      bool
 		invalidInput bool
+		withAPIKey   bool
 	}
 
 	track := func(ctx context.Context, info trackingInfo) {
@@ -81,15 +82,18 @@ func BuildGetTagsWithCache(
 				attribute.Bool("cached", info.cached),
 				attribute.Bool("success", info.success),
 				attribute.Bool("invalid_input", info.invalidInput),
+				attribute.Bool("with_api_key", info.withAPIKey),
 			),
 		)
 	}
 
 	return func(ctx context.Context, uuid string, apiKey *string) (domain.Tags, error) {
+		withAPIKey := apiKey != nil
+
 		if !strutils.UUIDIsNormalized(uuid) {
 			err := fmt.Errorf("UUID is not normalized")
 			reporting.Report(ctx, err)
-			track(ctx, trackingInfo{success: false, invalidInput: true})
+			track(ctx, trackingInfo{success: false, invalidInput: true, withAPIKey: withAPIKey})
 			return domain.Tags{}, err
 		}
 
@@ -106,11 +110,11 @@ func BuildGetTagsWithCache(
 		if err != nil {
 			// NOTE: GetOrCreate only returns an error if create() fails.
 			// getTagsWithoutCache handles its own error reporting
-			track(ctx, trackingInfo{success: false})
+			track(ctx, trackingInfo{success: false, withAPIKey: withAPIKey})
 			return domain.Tags{}, fmt.Errorf("failed to cache.GetOrCreate tags for uuid: %w", err)
 		}
 
-		track(ctx, trackingInfo{success: true, cached: !created})
+		track(ctx, trackingInfo{success: true, cached: !created, withAPIKey: withAPIKey})
 		return tags, nil
 	}, nil
 }

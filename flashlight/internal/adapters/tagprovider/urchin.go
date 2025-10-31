@@ -160,6 +160,8 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 		return domain.Tags{}, err
 	}
 
+	withAPIKey := urchinAPIKey != nil
+
 	u.metrics.requestCount.Add(
 		ctx,
 		1,
@@ -174,6 +176,7 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 			attribute.Bool("tag_blatant_cheater", seen.blatantCheater),
 			attribute.Bool("tag_confirmed_cheater", seen.confirmedCheater),
 			attribute.Bool("tag_account", seen.account),
+			attribute.Bool("with_api_key", withAPIKey),
 		),
 	)
 	u.metrics.returnCount.Add(
@@ -182,6 +185,7 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 		metric.WithAttributes(
 			attribute.String("sniping_severity", tags.Sniping.String()),
 			attribute.String("cheating_severity", tags.Cheating.String()),
+			attribute.Bool("with_api_key", withAPIKey),
 		),
 	)
 
