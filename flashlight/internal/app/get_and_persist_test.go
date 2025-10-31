@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Amund211/flashlight/internal/adapters/cache"
+	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/domaintest"
@@ -44,6 +45,18 @@ func TestGetAndPersistPlayer(t *testing.T) {
 	t.Parallel()
 
 	now := time.Now()
+
+	mustBuildGetAndPersistPlayerWithCache := func(t *testing.T, cache cache.Cache[*domain.PlayerPIT], provider playerprovider.PlayerProvider) GetAndPersistPlayerWithCache {
+		t.Helper()
+
+		repo := playerrepository.NewStubPlayerRepository()
+
+		usecase, err := BuildGetAndPersistPlayerWithCache(cache, provider, repo)
+		require.NoError(t, err)
+
+		return usecase
+
+	}
 	t.Run("stats are not created if they already exist", func(t *testing.T) {
 		t.Parallel()
 
@@ -55,10 +68,10 @@ func TestGetAndPersistPlayer(t *testing.T) {
 		panicProvider := &panicPlayerProvider{t: t}
 		cache := cache.NewBasicCache[*domain.PlayerPIT]()
 
-		_, err := BuildGetAndPersistPlayerWithCache(cache, provider, playerrepository.NewStubPlayerRepository())(t.Context(), UUID)
+		_, err := mustBuildGetAndPersistPlayerWithCache(t, cache, provider)(t.Context(), UUID)
 		require.NoError(t, err)
 
-		_, err = BuildGetAndPersistPlayerWithCache(cache, panicProvider, playerrepository.NewStubPlayerRepository())(t.Context(), UUID)
+		_, err = mustBuildGetAndPersistPlayerWithCache(t, cache, panicProvider)(t.Context(), UUID)
 		require.NoError(t, err)
 	})
 
@@ -76,7 +89,7 @@ func TestGetAndPersistPlayer(t *testing.T) {
 			}
 			cache := cache.NewBasicCache[*domain.PlayerPIT]()
 
-			_, err := BuildGetAndPersistPlayerWithCache(cache, provider, playerrepository.NewStubPlayerRepository())(t.Context(), "01234567-89ab-cdef-0123-456789abcdef")
+			_, err := mustBuildGetAndPersistPlayerWithCache(t, cache, provider)(t.Context(), "01234567-89ab-cdef-0123-456789abcdef")
 			require.ErrorIs(t, err, providerErr)
 		}
 	})
@@ -100,7 +113,7 @@ func TestGetAndPersistPlayer(t *testing.T) {
 			t.Run(fmt.Sprintf("UUID: '%s'", uuid), func(t *testing.T) {
 				t.Parallel()
 
-				_, err := BuildGetAndPersistPlayerWithCache(cache, provider, playerrepository.NewStubPlayerRepository())(t.Context(), uuid)
+				_, err := mustBuildGetAndPersistPlayerWithCache(t, cache, provider)(t.Context(), uuid)
 				require.Error(t, err)
 			})
 		}

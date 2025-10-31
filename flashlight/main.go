@@ -143,7 +143,10 @@ func main() {
 		fail("Failed to initialize allowed origins", "error", err.Error())
 	}
 
-	getAndPersistPlayerWithCache := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, playerRepo)
+	getAndPersistPlayerWithCache, err := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, playerRepo)
+	if err != nil {
+		fail("Failed to initialize GetAndPersistPlayerWithCache", "error", err.Error())
+	}
 	updatePlayerInInterval := app.BuildUpdatePlayerInInterval(getAndPersistPlayerWithCache, time.Now)
 
 	getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(accountByUsernameCache, accountProvider, accountRepo, time.Now)

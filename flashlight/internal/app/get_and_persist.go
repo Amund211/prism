@@ -12,9 +12,27 @@ import (
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 )
 
 type GetAndPersistPlayerWithCache func(ctx context.Context, uuid string) (*domain.PlayerPIT, error)
+
+type getAndPersistPlayerMetricsCollection struct {
+	returnCount metric.Int64Counter
+}
+
+func setupGetAndPersistPlayerMetrics(meter metric.Meter) (getAndPersistPlayerMetricsCollection, error) {
+	returnCount, err := meter.Int64Counter("app/get_and_persist_player/return_count")
+	if err != nil {
+		return getAndPersistPlayerMetricsCollection{}, fmt.Errorf("failed to create return count metric: %w", err)
+	}
+
+	return getAndPersistPlayerMetricsCollection{
+		returnCount: returnCount,
+	}, nil
+}
 
 func getAndPersistPlayerWithoutCache(ctx context.Context, provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) (*domain.PlayerPIT, error) {
 	logger := logging.FromContext(ctx)
@@ -42,7 +60,20 @@ func getAndPersistPlayerWithoutCache(ctx context.Context, provider playerprovide
 	return player, nil
 }
 
-func BuildGetAndPersistPlayerWithCache(playerCache cache.Cache[*domain.PlayerPIT], provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository) GetAndPersistPlayerWithCache {
+func BuildGetAndPersistPlayerWithCache(
+	playerCache cache.Cache[*domain.PlayerPIT],
+	provider playerprovider.PlayerProvider,
+	repo playerrepository.PlayerRepository,
+) (GetAndPersistPlayerWithCache, error) {
+	const name = "flashlight/app/get_and_persist_player_with_cache"
+
+	meter := otel.Meter(name)
+
+	metrics, err := setupGetAndPersistPlayerMetrics(meter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set up metrics: %w", err)
+	}
+
 	return func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 		if !strutils.UUIDIsNormalized(uuid) {
 			logging.FromContext(ctx).Error("UUID is not normalized", "uuid", uuid)
@@ -51,7 +82,7 @@ func BuildGetAndPersistPlayerWithCache(playerCache cache.Cache[*domain.PlayerPIT
 			return nil, err
 		}
 
-		player, _, err := cache.GetOrCreate(ctx, playerCache, uuid, func() (*domain.PlayerPIT, error) {
+		player, created, err := cache.GetOrCreate(ctx, playerCache, uuid, func() (*domain.PlayerPIT, error) {
 			return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
 		})
 		if err != nil {
@@ -60,8 +91,16 @@ func BuildGetAndPersistPlayerWithCache(playerCache cache.Cache[*domain.PlayerPIT
 			return nil, fmt.Errorf("failed to cache.GetOrCreate player data: %w", err)
 		}
 
+		metrics.returnCount.Add(
+			ctx,
+			1,
+			metric.WithAttributes(
+				attribute.Bool("cached", !created),
+			),
+		)
+
 		return player, nil
-	}
+	}, nil
 }
 
 // Ensure that the player data is up to date in the repository in the given interval.
