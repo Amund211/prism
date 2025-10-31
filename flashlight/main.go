@@ -149,7 +149,10 @@ func main() {
 	}
 	updatePlayerInInterval := app.BuildUpdatePlayerInInterval(getAndPersistPlayerWithCache, time.Now)
 
-	getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(accountByUsernameCache, accountProvider, accountRepo, time.Now)
+	getAccountByUsernameWithCache, err := app.BuildGetAccountByUsernameWithCache(accountByUsernameCache, accountProvider, accountRepo, time.Now)
+	if err != nil {
+		fail("Failed to initialize GetAccountByUsernameWithCache", "error", err.Error())
+	}
 	getAccountByUUIDWithCache := app.BuildGetAccountByUUIDWithCache(accountByUUIDCache, accountProvider, accountRepo, time.Now)
 
 	getTags := app.BuildGetTagsWithCache(tagsCache, tagProvider)

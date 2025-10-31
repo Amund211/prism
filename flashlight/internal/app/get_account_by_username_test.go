@@ -112,7 +112,8 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 				QueriedAt: now,
 			},
 		}
-		getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+		getAccountByUsernameWithCache, err := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+		require.NoError(t, err)
 
 		account, err := getAccountByUsernameWithCache(ctx, "testuser")
 		require.NoError(t, err)
@@ -159,7 +160,8 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 						QueriedAt: now,
 					},
 				}
-				getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+				getAccountByUsernameWithCache, err := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+				require.NoError(t, err)
 
 				account, err := getAccountByUsernameWithCache(ctx, "testuser")
 				require.NoError(t, err)
@@ -213,7 +215,8 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 						QueriedAt: now,
 					},
 				}
-				getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+				getAccountByUsernameWithCache, err := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+				require.NoError(t, err)
 
 				account, err := getAccountByUsernameWithCache(ctx, "testuser")
 				require.NoError(t, err)
@@ -262,7 +265,8 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 						QueriedAt: now,
 					},
 				}
-				getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+				getAccountByUsernameWithCache, err := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+				require.NoError(t, err)
 
 				account, err := getAccountByUsernameWithCache(ctx, "testuser")
 				require.NoError(t, err)
@@ -300,9 +304,10 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 
 			removeUsernameUsername: "testuser",
 		}
-		getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+		getAccountByUsernameWithCache, err := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+		require.NoError(t, err)
 
-		_, err := getAccountByUsernameWithCache(ctx, "testuser")
+		_, err = getAccountByUsernameWithCache(ctx, "testuser")
 		require.ErrorIs(t, err, domain.ErrUsernameNotFound)
 
 		require.True(t, repo.getAccountByUsernameCalled)
@@ -338,7 +343,8 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 
 					removeUsernameUsername: "testuser",
 				}
-				getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+				getAccountByUsernameWithCache, err := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+				require.NoError(t, err)
 
 				account, err := getAccountByUsernameWithCache(ctx, "testuser")
 				require.NoError(t, err)
@@ -383,9 +389,10 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 
 					removeUsernameUsername: "testuser",
 				}
-				getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+				getAccountByUsernameWithCache, err := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+				require.NoError(t, err)
 
-				_, err := getAccountByUsernameWithCache(ctx, "testuser")
+				_, err = getAccountByUsernameWithCache(ctx, "testuser")
 				require.ErrorIs(t, err, assert.AnError)
 
 				require.True(t, repo.getAccountByUsernameCalled)
@@ -420,7 +427,8 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 				QueriedAt: now,
 			},
 		}
-		getAccountByUsernameWithCache := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+		getAccountByUsernameWithCache, err := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+		require.NoError(t, err)
 
 		account, err := getAccountByUsernameWithCache(ctx, "testuser")
 		require.NoError(t, err)
@@ -436,7 +444,8 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 		repo = &mockAccountRepositoryByUsername{
 			t: t,
 		}
-		getAccountByUsernameWithCache = app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+		getAccountByUsernameWithCache, err = app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+		require.NoError(t, err)
 
 		account, err = getAccountByUsernameWithCache(ctx, "testuser")
 		require.NoError(t, err)

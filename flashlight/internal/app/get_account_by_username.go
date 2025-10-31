@@ -12,9 +12,34 @@ import (
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 )
 
 type GetAccountByUsername func(ctx context.Context, username string) (domain.Account, error)
+
+type getAccountByUsernameMetricsCollection struct {
+	requestCount metric.Int64Counter
+	returnCount  metric.Int64Counter
+}
+
+func setupGetAccountByUsernameMetrics(meter metric.Meter) (getAccountByUsernameMetricsCollection, error) {
+	requestCount, err := meter.Int64Counter("app/get_account_by_username/request_count")
+	if err != nil {
+		return getAccountByUsernameMetricsCollection{}, fmt.Errorf("failed to create request count metric: %w", err)
+	}
+
+	returnCount, err := meter.Int64Counter("app/get_account_by_username/return_count")
+	if err != nil {
+		return getAccountByUsernameMetricsCollection{}, fmt.Errorf("failed to create return count metric: %w", err)
+	}
+
+	return getAccountByUsernameMetricsCollection{
+		requestCount: requestCount,
+		returnCount:  returnCount,
+	}, nil
+}
 
 type accountProviderByUsername interface {
 	GetAccountByUsername(ctx context.Context, username string) (domain.Account, error)
@@ -30,7 +55,31 @@ func buildGetAccountByUsernameWithoutCache(
 	provider accountProviderByUsername,
 	repo accountRepositoryByUsername,
 	nowFunc func() time.Time,
+	metrics getAccountByUsernameMetricsCollection,
 ) func(ctx context.Context, username string) (domain.Account, error) {
+	type trackingInfo struct {
+		source         string
+		recovered      bool
+		providerFailed bool
+		failed         bool
+	}
+
+	track := func(ctx context.Context, info trackingInfo) {
+		if info.source == "" {
+			info.source = "unknown"
+		}
+		metrics.requestCount.Add(
+			ctx,
+			1,
+			metric.WithAttributes(
+				attribute.String("source", info.source),
+				attribute.Bool("recovered", info.recovered),
+				attribute.Bool("provider_failed", info.providerFailed),
+				attribute.Bool("failed", info.failed),
+			),
+		)
+	}
+
 	return func(ctx context.Context, username string) (domain.Account, error) {
 		repoAccount, repoGetErr := repo.GetAccountByUsername(ctx, username)
 		if errors.Is(repoGetErr, domain.ErrUsernameNotFound) {
@@ -50,6 +99,7 @@ func buildGetAccountByUsernameWithoutCache(
 					// We can still try to query the provider
 				} else {
 					// We have a valid, recent account from the repository, return it
+					track(ctx, trackingInfo{source: "repository"})
 					return repoAccount, nil
 				}
 			}
@@ -66,6 +116,7 @@ func buildGetAccountByUsernameWithoutCache(
 			}
 
 			// Pass through ErrUsernameNotFound to the caller
+			track(ctx, trackingInfo{source: "provider"})
 			return domain.Account{}, err
 		} else if err != nil {
 			// NOTE: accountProvider implementations handle their own error reporting
@@ -83,11 +134,13 @@ func buildGetAccountByUsernameWithoutCache(
 						})
 					} else {
 						// We have a valid, recent-ish account from the repository, return it
+						track(ctx, trackingInfo{source: "repository", providerFailed: true, recovered: true})
 						return repoAccount, nil
 					}
 				}
-
 			}
+
+			track(ctx, trackingInfo{providerFailed: true, failed: true})
 			return domain.Account{}, fmt.Errorf("could not get account for username: %w", err)
 		}
 
@@ -96,6 +149,7 @@ func buildGetAccountByUsernameWithoutCache(
 			reporting.Report(ctx, err, map[string]string{
 				"uuid": providerAccount.UUID,
 			})
+			track(ctx, trackingInfo{providerFailed: true, failed: true})
 			return domain.Account{}, err
 		}
 
@@ -108,6 +162,7 @@ func buildGetAccountByUsernameWithoutCache(
 			// NOTE: This error is not critical, we can still return the account
 		}
 
+		track(ctx, trackingInfo{source: "provider"})
 		return providerAccount, nil
 	}
 }
@@ -117,8 +172,35 @@ func BuildGetAccountByUsernameWithCache(
 	provider accountProviderByUsername,
 	repo accountRepositoryByUsername,
 	nowFunc func() time.Time,
-) GetAccountByUsername {
-	getAccountByUsernameWithoutCache := buildGetAccountByUsernameWithoutCache(provider, repo, nowFunc)
+) (GetAccountByUsername, error) {
+	const name = "flashlight/app/get_account_by_username_with_cache"
+
+	meter := otel.Meter(name)
+
+	metrics, err := setupGetAccountByUsernameMetrics(meter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set up metrics: %w", err)
+	}
+
+	getAccountByUsernameWithoutCache := buildGetAccountByUsernameWithoutCache(provider, repo, nowFunc, metrics)
+
+	type trackingInfo struct {
+		cached       bool
+		success      bool
+		invalidInput bool
+	}
+
+	track := func(ctx context.Context, info trackingInfo) {
+		metrics.returnCount.Add(
+			ctx,
+			1,
+			metric.WithAttributes(
+				attribute.Bool("cached", info.cached),
+				attribute.Bool("success", info.success),
+				attribute.Bool("invalid_input", info.invalidInput),
+			),
+		)
+	}
 
 	return func(ctx context.Context, username string) (domain.Account, error) {
 		usernameLength := len(username)
@@ -128,21 +210,24 @@ func BuildGetAccountByUsernameWithCache(
 				"username": username,
 				"length":   strconv.Itoa(usernameLength),
 			})
+			track(ctx, trackingInfo{invalidInput: true})
 			return domain.Account{}, err
 		}
 
 		// No two accounts can have the same username with case-insensitive comparison
 		cacheKey := strings.ToLower(username)
 
-		account, _, err := cache.GetOrCreate(ctx, accountByUsernameCache, cacheKey, func() (domain.Account, error) {
+		account, created, err := cache.GetOrCreate(ctx, accountByUsernameCache, cacheKey, func() (domain.Account, error) {
 			return getAccountByUsernameWithoutCache(ctx, username)
 		})
 		if err != nil {
 			// NOTE: GetOrCreate only returns an error if create() fails.
 			// getAccountByUsernameWithoutCache handles its own error reporting
+			track(ctx, trackingInfo{success: false})
 			return domain.Account{}, fmt.Errorf("failed to cache.GetOrCreate account for username: %w", err)
 		}
 
+		track(ctx, trackingInfo{success: true, cached: !created})
 		return account, nil
-	}
+	}, nil
 }
