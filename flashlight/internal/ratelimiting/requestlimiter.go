@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/logging"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -114,12 +115,14 @@ func (l *windowLimitRequestLimiter) LimitCancelable(ctx context.Context, minOper
 		if wait <= 0 {
 			// No wait needed, we can proceed
 			// The context may still be about to expire, but we can rather handle that error in the operation
+			logging.FromContext(ctx).Info("No wait needed for rate limit, proceeding with operation", "wait", wait)
 			return true
 		}
 
 		deadline, ok := ctx.Deadline()
 		if !ok {
 			// No deadline, we can proceed
+			logging.FromContext(ctx).Info("No deadline in context, proceeding with operation", "wait", wait)
 			return true
 		}
 
@@ -127,9 +130,11 @@ func (l *windowLimitRequestLimiter) LimitCancelable(ctx context.Context, minOper
 		untilDeadline := deadline.Sub(l.nowFunc())
 		if minDuration > untilDeadline {
 			// We don't have enough time to wait and then perform the operation - even in the best case
+			logging.FromContext(ctx).Info("Not enough time to wait and perform operation within context deadline, aborting", "wait", wait, "minOperationTime", minOperationTime, "untilDeadline", untilDeadline)
 			return false
 		}
 
+		logging.FromContext(ctx).Info("Enough time to wait and perform operation within context deadline, proceeding", "wait", wait, "minOperationTime", minOperationTime, "untilDeadline", untilDeadline)
 		return true
 	}, operation)
 }
@@ -142,12 +147,15 @@ func (l *windowLimitRequestLimiter) waitIf(ctx context.Context, shouldRun func(c
 		defer func() {
 			l.availableSlots <- struct{}{}
 		}()
+		logging.FromContext(ctx).Info("Acquired available slot for operation")
 	case <-ctx.Done():
+		logging.FromContext(ctx).Info("Context done while waiting for available slot", "error", ctx.Err())
 		return false
 	}
 
 	oldestRequest, ok := l.grabOldestFinishedRequest(ctx, shouldRun)
 	if !ok {
+		logging.FromContext(ctx).Info("Decided not to run operation after checking oldest finished request")
 		return false
 	}
 	// Since we grabbed a request, we need to put one back when we return
@@ -158,10 +166,13 @@ func (l *windowLimitRequestLimiter) waitIf(ctx context.Context, shouldRun func(c
 
 	if wait := l.computeWait(oldestRequest); wait > 0 {
 		ctx, span := l.tracer.Start(ctx, "windowLimitRequestLimiter.wait")
+		logging.FromContext(ctx).Info("Waiting before performing operation", "wait", wait)
+
 		select {
 		case <-ctx.Done():
 			span.SetStatus(codes.Error, "context done while waiting")
 			span.End()
+			logging.FromContext(ctx).Info("Context done while waiting", "error", ctx.Err())
 			return false
 		case <-l.afterFunc(wait):
 			span.End()
@@ -171,10 +182,12 @@ func (l *windowLimitRequestLimiter) waitIf(ctx context.Context, shouldRun func(c
 	// Perform the operation
 	ran := operation(ctx)
 	if !ran {
+		logging.FromContext(ctx).Info("Operation decided not to run")
 		return false
 	}
 
 	requestToInsert = l.nowFunc()
+	logging.FromContext(ctx).Info("Operation completed, recording finished request", "finishedRequestTime", requestToInsert)
 	return true
 }
 
