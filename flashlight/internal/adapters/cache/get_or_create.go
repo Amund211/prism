@@ -9,8 +9,6 @@ import (
 
 // Returns data, created, error
 func GetOrCreate[T any](ctx context.Context, cache Cache[T], key string, create func() (T, error)) (T, bool, error) {
-	logger := logging.FromContext(ctx)
-
 	// Clean up the cache if we claim an entry, but don't set it
 	// This allows other callers to try again
 	claimed := false
@@ -27,7 +25,7 @@ func GetOrCreate[T any](ctx context.Context, cache Cache[T], key string, create 
 		if result.claimed {
 			claimed = true
 
-			logger.Info("Getting player stats", "cache", "miss")
+			logging.FromContext(ctx).Info("Getting player stats", "cache", "miss")
 
 			data, err := create()
 			if err != nil {
@@ -43,11 +41,11 @@ func GetOrCreate[T any](ctx context.Context, cache Cache[T], key string, create 
 
 		if result.valid {
 			// Cache hit
-			logger.Info("Getting player stats", "cache", "hit")
+			logging.FromContext(ctx).Info("Getting player stats", "cache", "hit")
 			return result.data, false, nil
 		}
 
-		logger.Info("Waiting for cache")
+		logging.FromContext(ctx).Info("Waiting for cache")
 		cache.wait()
 	}
 }

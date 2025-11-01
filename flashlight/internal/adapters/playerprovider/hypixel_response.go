@@ -90,12 +90,11 @@ type HypixelAPIBedwarsStats struct {
 }
 
 func ParseHypixelAPIResponse(ctx context.Context, data []byte) (*hypixelAPIResponse, error) {
-	logger := logging.FromContext(ctx)
 	response := new(hypixelAPIResponse)
 
 	err := json.Unmarshal(data, response)
 	if err != nil {
-		logger.Error("Failed to unmarshal player data", "error", err)
+		logging.FromContext(ctx).Error("Failed to unmarshal player data", "error", err)
 		return nil, err
 	}
 	return response, nil
@@ -127,8 +126,6 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 }
 
 func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt time.Time, playerData []byte, statusCode int) (*domain.PlayerPIT, error) {
-	logger := logging.FromContext(ctx)
-
 	if err := checkForHypixelError(ctx, statusCode, playerData); err != nil {
 		reporting.Report(
 			ctx,
@@ -138,7 +135,7 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 				"data":       string(playerData),
 			},
 		)
-		logger.Error(
+		logging.FromContext(ctx).Error(
 			"Got response from hypixel",
 			"status", "error",
 			"error", err.Error(),
@@ -149,7 +146,7 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 		return nil, err
 	}
 
-	logger.Info(
+	logging.FromContext(ctx).Info(
 		"Got response from hypixel",
 		"status", "success",
 		"statusCode", statusCode,
@@ -188,7 +185,7 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 	}
 
 	if parsedAPIResponse.Player == nil {
-		logger.Info("Player not found")
+		logging.FromContext(ctx).Info("Player not found")
 		return nil, domain.ErrPlayerNotFound
 	}
 

@@ -29,8 +29,6 @@ func BuildGetHistory(
 		start, end time.Time,
 		limit int,
 	) ([]domain.PlayerPIT, error) {
-		logger := logging.FromContext(ctx)
-
 		if !strutils.UUIDIsNormalized(uuid) {
 			err := fmt.Errorf("UUID is not normalized")
 			reporting.Report(ctx, err)
@@ -54,7 +52,7 @@ func BuildGetHistory(
 		err := updatePlayerInInterval(ctx, uuid, start, end)
 		if err != nil {
 			// NOTE: UpdatePlayerInInterval implementations handle their own error reporting
-			logger.Error("Failed to update player data in interval", "error", err)
+			logging.FromContext(ctx).Error("Failed to update player data in interval", "error", err)
 
 			// NOTE: We continue even though we failed to update player data
 			// We may still be able to get the history and fulfill the request

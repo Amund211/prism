@@ -46,7 +46,6 @@ func MakeGetPlayerDataHandler(
 	makeOnLimitExceeded := func(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			logger := logging.FromContext(ctx)
 
 			statusCode := http.StatusTooManyRequests
 
@@ -54,7 +53,7 @@ func MakeGetPlayerDataHandler(
 			w.WriteHeader(statusCode)
 			w.Write([]byte(`{"success":false,"cause":"Rate limit exceeded"}`))
 
-			logger.Info("Returning response", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
+			logging.FromContext(ctx).Info("Returning response", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
 		}
 	}
 
@@ -83,7 +82,6 @@ func MakeGetPlayerDataHandler(
 			slog.String("userId", userID),
 			slog.String("uuid", rawUUID),
 		)
-		logger := logging.FromContext(ctx)
 
 		ctx = reporting.AddExtrasToContext(ctx,
 			map[string]string{
@@ -99,7 +97,7 @@ func MakeGetPlayerDataHandler(
 			w.WriteHeader(statusCode)
 			w.Write([]byte(`{"success":false,"cause":"Invalid UUID"}`))
 
-			logger.Info("Returning response", "statusCode", statusCode, "reason", "invalid uuid")
+			logging.FromContext(ctx).Info("Returning response", "statusCode", statusCode, "reason", "invalid uuid")
 			return
 		}
 
@@ -115,16 +113,16 @@ func MakeGetPlayerDataHandler(
 		if errors.Is(err, domain.ErrPlayerNotFound) {
 			hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(nil)
 			if err != nil {
-				logger.Error("Failed to convert player to hypixel API response", "error", err)
+				logging.FromContext(ctx).Error("Failed to convert player to hypixel API response", "error", err)
 				err = fmt.Errorf("failed to convert player to hypixel API response: %w", err)
 				reporting.Report(ctx, err)
 				statusCode := writeHypixelStyleErrorResponse(ctx, w, err)
-				logger.Info("Returning response", "statusCode", statusCode, "reason", "error")
+				logging.FromContext(ctx).Info("Returning response", "statusCode", statusCode, "reason", "error")
 				return
 			}
 
 			statusCode := 404
-			logger.Info("Returning response", "statusCode", statusCode, "reason", "success")
+			logging.FromContext(ctx).Info("Returning response", "statusCode", statusCode, "reason", "success")
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(statusCode)
 			w.Write(hypixelAPIResponseData)
@@ -133,28 +131,28 @@ func MakeGetPlayerDataHandler(
 
 		if err != nil {
 			// NOTE: GetAndPersistPlayerWithCache implementations handle their own error reporting
-			logger.Error("Error getting player data", "error", err)
+			logging.FromContext(ctx).Error("Error getting player data", "error", err)
 			statusCode := writeHypixelStyleErrorResponse(ctx, w, err)
-			logger.Info("Returning response", "statusCode", statusCode, "reason", "error")
+			logging.FromContext(ctx).Info("Returning response", "statusCode", statusCode, "reason", "error")
 			return
 		}
 
 		hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(player)
 		if err != nil {
-			logger.Error("Failed to convert player to hypixel API response", "error", err)
+			logging.FromContext(ctx).Error("Failed to convert player to hypixel API response", "error", err)
 
 			err = fmt.Errorf("failed to convert player to hypixel API response: %w", err)
 			reporting.Report(ctx, err)
 
 			statusCode := writeHypixelStyleErrorResponse(ctx, w, err)
-			logger.Info("Returning response", "statusCode", statusCode, "reason", "error")
+			logging.FromContext(ctx).Info("Returning response", "statusCode", statusCode, "reason", "error")
 			return
 		}
 
-		logger.Info("Got minified player data", "contentLength", len(hypixelAPIResponseData), "statusCode", 200)
+		logging.FromContext(ctx).Info("Got minified player data", "contentLength", len(hypixelAPIResponseData), "statusCode", 200)
 
 		statusCode := 200
-		logger.Info("Returning response", "statusCode", statusCode, "reason", "success")
+		logging.FromContext(ctx).Info("Returning response", "statusCode", statusCode, "reason", "success")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
 		w.Write(hypixelAPIResponseData)

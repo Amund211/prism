@@ -35,8 +35,6 @@ func setupGetAndPersistPlayerMetrics(meter metric.Meter) (getAndPersistPlayerMet
 }
 
 func getAndPersistPlayerWithoutCache(ctx context.Context, provider playerprovider.PlayerProvider, repo playerrepository.PlayerRepository, uuid string) (*domain.PlayerPIT, error) {
-	logger := logging.FromContext(ctx)
-
 	getCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	player, err := provider.GetPlayer(getCtx, uuid)
@@ -52,7 +50,7 @@ func getAndPersistPlayerWithoutCache(ctx context.Context, provider playerprovide
 	err = repo.StorePlayer(storeCtx, player)
 	if err != nil {
 		// NOTE: PlayerRepository implementations handle their own error reporting
-		logger.Error("failed to store player", "error", err.Error())
+		logging.FromContext(ctx).Error("failed to store player", "error", err.Error())
 
 		// NOTE: We still return the player to fulfill the request even though storing failed
 	}

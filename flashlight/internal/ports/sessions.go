@@ -43,11 +43,10 @@ func MakeGetSessionsHandler(
 	makeOnLimitExceeded := func(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			logger := logging.FromContext(ctx)
 
 			statusCode := http.StatusTooManyRequests
 
-			logger.Info("Rate limit exceeded", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
+			logging.FromContext(ctx).Info("Rate limit exceeded", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
 
 			http.Error(w, "Rate limit exceeded", statusCode)
 		}
