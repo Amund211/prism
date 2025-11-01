@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -104,8 +103,6 @@ func insertSortedOrder(arr []time.Time, t time.Time) []time.Time {
 }
 
 func (l *windowLimitRequestLimiter) Limit(ctx context.Context, minOperationTime time.Duration, operation func(ctx context.Context)) bool {
-	ctx, span := l.tracer.Start(ctx, "windowLimitRequestLimiter.Limit")
-	defer span.End()
 	return l.LimitCancelable(ctx, minOperationTime, func(ctx context.Context) bool {
 		operation(ctx)
 		return true
@@ -138,18 +135,14 @@ func (l *windowLimitRequestLimiter) LimitCancelable(ctx context.Context, minOper
 }
 
 func (l *windowLimitRequestLimiter) waitIf(ctx context.Context, shouldRun func(ctx context.Context, wait time.Duration) bool, operation func(ctx context.Context) bool) bool {
-	ctx, span := l.tracer.Start(ctx, "windowLimitRequestLimiter.waitIf")
-	defer span.End()
 	// Make sure there is data in the request history
 	select {
 	case <-l.availableSlots:
-		span.AddEvent("Acquired slot")
 		// Make sure to return the slot when we are done
 		defer func() {
 			l.availableSlots <- struct{}{}
 		}()
 	case <-ctx.Done():
-		span.SetStatus(codes.Error, "context done while acquiring slot")
 		return false
 	}
 
@@ -164,24 +157,22 @@ func (l *windowLimitRequestLimiter) waitIf(ctx context.Context, shouldRun func(c
 	}()
 
 	if wait := l.computeWait(oldestRequest); wait > 0 {
-		span.AddEvent("Waiting for old request to leave the window", trace.WithAttributes(attribute.Float64("wait_seconds", wait.Seconds())))
+		ctx, span := l.tracer.Start(ctx, "windowLimitRequestLimiter.wait")
 		select {
 		case <-ctx.Done():
 			span.SetStatus(codes.Error, "context done while waiting")
+			span.End()
 			return false
 		case <-l.afterFunc(wait):
-			span.AddEvent("Done waiting")
+			span.End()
 		}
 	}
 
 	// Perform the operation
 	ran := operation(ctx)
 	if !ran {
-		span.SetStatus(codes.Error, "operation decided not to run")
 		return false
 	}
-
-	span.SetStatus(codes.Ok, "operation ran")
 
 	requestToInsert = l.nowFunc()
 	return true
