@@ -61,7 +61,7 @@ func MakeGetTagsHandler(
 
 			statusCode := http.StatusTooManyRequests
 
-			logging.FromContext(ctx).Info("Rate limit exceeded", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
+			logging.FromContext(ctx).InfoContext(ctx, "Rate limit exceeded", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
 
 			http.Error(w, "Rate limit exceeded", statusCode)
 		}
@@ -99,7 +99,7 @@ func MakeGetTagsHandler(
 		uuid, err := strutils.NormalizeUUID(rawUUID)
 		if err != nil {
 			statusCode := http.StatusBadRequest
-			logging.FromContext(ctx).Info("Invalid uuid. Returning error", "statusCode", statusCode, "reason", "invalid uuid")
+			logging.FromContext(ctx).InfoContext(ctx, "Invalid uuid. Returning error", "statusCode", statusCode, "reason", "invalid uuid")
 			http.Error(w, "Invalid uuid", statusCode)
 			return
 		}
@@ -113,18 +113,18 @@ func MakeGetTagsHandler(
 
 		tags, err := getTags(ctx, uuid, nil)
 		if errors.Is(err, domain.ErrTemporarilyUnavailable) {
-			logging.FromContext(ctx).Error("Tags temporarily unavailable", "error", err)
+			logging.FromContext(ctx).ErrorContext(ctx, "Tags temporarily unavailable", "error", err)
 			http.Error(w, "Temporarily unavailable", http.StatusServiceUnavailable)
 			return
 		} else if err != nil {
-			logging.FromContext(ctx).Error("Error getting tags", "error", err)
+			logging.FromContext(ctx).ErrorContext(ctx, "Error getting tags", "error", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
 		responseData, err := tagsToResponse(ctx, uuid, tags)
 		if err != nil {
-			logging.FromContext(ctx).Error("Failed to convert tags to response", "error", err)
+			logging.FromContext(ctx).ErrorContext(ctx, "Failed to convert tags to response", "error", err)
 
 			err = fmt.Errorf("failed to convert tags to response: %w", err)
 			reporting.Report(ctx, err)
@@ -136,7 +136,7 @@ func MakeGetTagsHandler(
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		if _, err = w.Write(responseData); err != nil {
-			logging.FromContext(ctx).Error("Failed to write response", "error", err)
+			logging.FromContext(ctx).ErrorContext(ctx, "Failed to write response", "error", err)
 			reporting.Report(ctx, fmt.Errorf("failed to write tags response: %w", err))
 
 			http.Error(w, "Internal server error", http.StatusInternalServerError)

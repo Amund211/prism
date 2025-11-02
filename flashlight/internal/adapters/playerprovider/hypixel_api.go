@@ -73,7 +73,7 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		err := fmt.Errorf("failed to create request: %w", err)
-		logging.FromContext(ctx).Error(err.Error())
+		logging.FromContext(ctx).ErrorContext(ctx, err.Error())
 		reporting.Report(ctx, err)
 		return []byte{}, -1, time.Time{}, err
 	}
@@ -94,7 +94,7 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 		resp, err = hypixelAPI.httpClient.Do(req)
 		if err != nil {
 			err := fmt.Errorf("failed to send request: %w", err)
-			logging.FromContext(ctx).Error(err.Error())
+			logging.FromContext(ctx).ErrorContext(ctx, err.Error())
 			reporting.Report(requestCtx, err)
 			return
 		}
@@ -109,7 +109,7 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 		data, err = io.ReadAll(resp.Body)
 		if err != nil {
 			err := fmt.Errorf("failed to read response body: %w", err)
-			logging.FromContext(ctx).Error(err.Error())
+			logging.FromContext(ctx).ErrorContext(ctx, err.Error())
 			reporting.Report(readAllCtx, err)
 			return
 		}

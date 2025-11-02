@@ -50,7 +50,7 @@ func getAndPersistPlayerWithoutCache(ctx context.Context, provider playerprovide
 	err = repo.StorePlayer(storeCtx, player)
 	if err != nil {
 		// NOTE: PlayerRepository implementations handle their own error reporting
-		logging.FromContext(ctx).Error("failed to store player", "error", err.Error())
+		logging.FromContext(ctx).ErrorContext(ctx, "failed to store player", "error", err.Error())
 
 		// NOTE: We still return the player to fulfill the request even though storing failed
 	}
@@ -92,7 +92,7 @@ func BuildGetAndPersistPlayerWithCache(
 
 	return func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 		if !strutils.UUIDIsNormalized(uuid) {
-			logging.FromContext(ctx).Error("UUID is not normalized", "uuid", uuid)
+			logging.FromContext(ctx).ErrorContext(ctx, "UUID is not normalized", "uuid", uuid)
 			err := fmt.Errorf("UUID is not normalized")
 			reporting.Report(ctx, err)
 			track(ctx, trackingInfo{success: false, invalidInput: true})

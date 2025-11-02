@@ -162,7 +162,7 @@ func MakeGetPrestigesHandler(
 			return
 		}
 
-		logging.FromContext(ctx).Info("Returning prestiges data", "achievements", len(achievements))
+		logging.FromContext(ctx).InfoContext(ctx, "Returning prestiges data", "achievements", len(achievements))
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)

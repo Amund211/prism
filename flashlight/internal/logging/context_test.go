@@ -87,7 +87,7 @@ func TestAddMetaToContext(t *testing.T) {
 
 	w.RequireEmpty()
 
-	rootLogger.Info("test")
+	rootLogger.InfoContext(ctx, "test")
 
 	entry, ok := w.PopWithoutTime()
 	require.True(t, ok)
@@ -102,7 +102,7 @@ func TestAddMetaToContext(t *testing.T) {
 
 	ctx = logging.AddMetaToContext(ctx, slog.String("testprop", "testval"))
 	l1Logger := logging.FromContext(ctx)
-	l1Logger.Info("test")
+	l1Logger.InfoContext(ctx, "test")
 	entry, ok = w.PopWithoutTime()
 	require.True(t, ok)
 	require.Equal(t, map[string]any{
@@ -115,7 +115,7 @@ func TestAddMetaToContext(t *testing.T) {
 
 	ctx = logging.AddMetaToContext(ctx, slog.String("testprop", "testval2"), slog.String("rootprop", "rootval2"))
 	l2Logger := logging.FromContext(ctx)
-	l2Logger.Info("test")
+	l2Logger.InfoContext(ctx, "test")
 	entry, ok = w.PopWithoutTime()
 	require.True(t, ok)
 	require.Equal(t, map[string]any{

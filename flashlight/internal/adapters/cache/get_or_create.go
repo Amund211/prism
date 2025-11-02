@@ -25,7 +25,7 @@ func GetOrCreate[T any](ctx context.Context, cache Cache[T], key string, create 
 		if result.claimed {
 			claimed = true
 
-			logging.FromContext(ctx).Info("Getting player stats", "cache", "miss")
+			logging.FromContext(ctx).InfoContext(ctx, "Getting player stats", "cache", "miss")
 
 			data, err := create()
 			if err != nil {
@@ -41,11 +41,11 @@ func GetOrCreate[T any](ctx context.Context, cache Cache[T], key string, create 
 
 		if result.valid {
 			// Cache hit
-			logging.FromContext(ctx).Info("Getting player stats", "cache", "hit")
+			logging.FromContext(ctx).InfoContext(ctx, "Getting player stats", "cache", "hit")
 			return result.data, false, nil
 		}
 
-		logging.FromContext(ctx).Info("Waiting for cache")
+		logging.FromContext(ctx).InfoContext(ctx, "Waiting for cache")
 		cache.wait()
 	}
 }

@@ -27,11 +27,12 @@ func sanitizeError(err string) string {
 func Report(ctx context.Context, err error, extras ...map[string]string) {
 	hub := sentry.GetHubFromContext(ctx)
 	if hub == nil {
-		logging.FromContext(ctx).Warn("Failed to get Sentry hub from context", "Error:", err, "Extras:", extras)
+		logging.FromContext(ctx).WarnContext(ctx, "Failed to get Sentry hub from context", "Error:", err, "Extras:", extras)
 		return
 	}
 
-	logging.FromContext(ctx).Error(
+	logging.FromContext(ctx).ErrorContext(
+		ctx,
 		"Reporting error to Sentry",
 		slog.String("error", err.Error()),
 		slog.Any("extras", extras),

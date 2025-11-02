@@ -46,7 +46,7 @@ func MakeGetSessionsHandler(
 
 			statusCode := http.StatusTooManyRequests
 
-			logging.FromContext(ctx).Info("Rate limit exceeded", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
+			logging.FromContext(ctx).InfoContext(ctx, "Rate limit exceeded", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
 
 			http.Error(w, "Rate limit exceeded", statusCode)
 		}
@@ -136,7 +136,7 @@ func MakeGetSessionsHandler(
 			return
 		}
 
-		logging.FromContext(ctx).Info("Returning sessions data")
+		logging.FromContext(ctx).InfoContext(ctx, "Returning sessions data")
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)

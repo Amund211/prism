@@ -35,7 +35,7 @@ func NewHypixelPlayerProvider(hypixelAPI HypixelAPI) (PlayerProvider, error) {
 
 func (h *hypixelPlayerProvider) GetPlayer(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 	if !strutils.UUIDIsNormalized(uuid) {
-		logging.FromContext(ctx).Error("UUID is not normalized", "uuid", uuid)
+		logging.FromContext(ctx).ErrorContext(ctx, "UUID is not normalized", "uuid", uuid)
 		err := fmt.Errorf("UUID is not normalized")
 		reporting.Report(ctx, err, map[string]string{
 			"uuid": uuid,

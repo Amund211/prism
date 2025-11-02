@@ -280,7 +280,7 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 		return err
 	}
 
-	logging.FromContext(ctx).Info("Stored stats", "dataFormatVersion", DATA_FORMAT_VERSION)
+	logging.FromContext(ctx).InfoContext(ctx, "Stored stats", "dataFormatVersion", DATA_FORMAT_VERSION)
 
 	return nil
 }

@@ -71,15 +71,15 @@ func (m *migrator) migrate(ctx context.Context, schemaName string) error {
 	}
 	defer migratorInstance.Close()
 
-	m.logger.Info("Starting migrations...")
+	m.logger.InfoContext(ctx, "Starting migrations...")
 	if err := migratorInstance.Up(); err != nil {
 		if errors.Is(err, migrate.ErrNoChange) {
-			m.logger.Info("No migrations to run.")
+			m.logger.InfoContext(ctx, "No migrations to run.")
 		} else {
 			return fmt.Errorf("migrate: failed to migrate: %w", err)
 		}
 	}
-	m.logger.Info("Migrations completed successfully.")
+	m.logger.InfoContext(ctx, "Migrations completed successfully.")
 
 	return nil
 }

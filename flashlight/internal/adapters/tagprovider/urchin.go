@@ -104,7 +104,7 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 
 	var resp *http.Response
 	var data []byte
-	logging.FromContext(ctx).Info("Context before Urchin HTTP GET", "ctx_error", ctx.Err())
+	logging.FromContext(ctx).InfoContext(ctx, "Context before Urchin HTTP GET", "ctx_error", ctx.Err())
 	ran := u.limiter.Limit(ctx, getTagsMinOperationTime, func(ctx context.Context) {
 		ctx, span := u.tracer.Start(ctx, "Urchin.httpget")
 		defer span.End()
@@ -126,7 +126,7 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 	})
 	if !ran {
 		reporting.Report(ctx, fmt.Errorf("too many requests to urchin API"))
-		logging.FromContext(ctx).Warn("Did not run Urchin.GetTags due to rate limiting", "ctx_error", ctx.Err())
+		logging.FromContext(ctx).WarnContext(ctx, "Did not run Urchin.GetTags due to rate limiting", "ctx_error", ctx.Err())
 		return domain.Tags{}, fmt.Errorf("%w: too many requests to urchin API", domain.ErrTemporarilyUnavailable)
 	}
 
@@ -135,7 +135,8 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 	}
 
 	// Temporary logging to find examples of different cases
-	logging.FromContext(ctx).Info(
+	logging.FromContext(ctx).InfoContext(
+		ctx,
 		"Got urchin response",
 		slog.String("uuid", uuid),
 		slog.String("data", string(data)),
@@ -240,7 +241,8 @@ func tagsFromUrchinResponse(ctx context.Context, statusCode int, data []byte) (d
 	}
 
 	// Temporary logging to find examples of different cases
-	logging.FromContext(ctx).Info(
+	logging.FromContext(ctx).InfoContext(
+		ctx,
 		"Parsed urchin response",
 		slog.Int("tag_count", len(response.Tags)),
 	)

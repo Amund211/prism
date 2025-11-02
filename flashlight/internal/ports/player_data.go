@@ -53,7 +53,7 @@ func MakeGetPlayerDataHandler(
 			w.WriteHeader(statusCode)
 			w.Write([]byte(`{"success":false,"cause":"Rate limit exceeded"}`))
 
-			logging.FromContext(ctx).Info("Returning response", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
+			logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
 		}
 	}
 
@@ -97,7 +97,7 @@ func MakeGetPlayerDataHandler(
 			w.WriteHeader(statusCode)
 			w.Write([]byte(`{"success":false,"cause":"Invalid UUID"}`))
 
-			logging.FromContext(ctx).Info("Returning response", "statusCode", statusCode, "reason", "invalid uuid")
+			logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "invalid uuid")
 			return
 		}
 
@@ -113,16 +113,16 @@ func MakeGetPlayerDataHandler(
 		if errors.Is(err, domain.ErrPlayerNotFound) {
 			hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(nil)
 			if err != nil {
-				logging.FromContext(ctx).Error("Failed to convert player to hypixel API response", "error", err)
+				logging.FromContext(ctx).ErrorContext(ctx, "Failed to convert player to hypixel API response", "error", err)
 				err = fmt.Errorf("failed to convert player to hypixel API response: %w", err)
 				reporting.Report(ctx, err)
 				statusCode := writeHypixelStyleErrorResponse(ctx, w, err)
-				logging.FromContext(ctx).Info("Returning response", "statusCode", statusCode, "reason", "error")
+				logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "error")
 				return
 			}
 
 			statusCode := 404
-			logging.FromContext(ctx).Info("Returning response", "statusCode", statusCode, "reason", "success")
+			logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "success")
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(statusCode)
 			w.Write(hypixelAPIResponseData)
@@ -131,28 +131,28 @@ func MakeGetPlayerDataHandler(
 
 		if err != nil {
 			// NOTE: GetAndPersistPlayerWithCache implementations handle their own error reporting
-			logging.FromContext(ctx).Error("Error getting player data", "error", err)
+			logging.FromContext(ctx).ErrorContext(ctx, "Error getting player data", "error", err)
 			statusCode := writeHypixelStyleErrorResponse(ctx, w, err)
-			logging.FromContext(ctx).Info("Returning response", "statusCode", statusCode, "reason", "error")
+			logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "error")
 			return
 		}
 
 		hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(player)
 		if err != nil {
-			logging.FromContext(ctx).Error("Failed to convert player to hypixel API response", "error", err)
+			logging.FromContext(ctx).ErrorContext(ctx, "Failed to convert player to hypixel API response", "error", err)
 
 			err = fmt.Errorf("failed to convert player to hypixel API response: %w", err)
 			reporting.Report(ctx, err)
 
 			statusCode := writeHypixelStyleErrorResponse(ctx, w, err)
-			logging.FromContext(ctx).Info("Returning response", "statusCode", statusCode, "reason", "error")
+			logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "error")
 			return
 		}
 
-		logging.FromContext(ctx).Info("Got minified player data", "contentLength", len(hypixelAPIResponseData), "statusCode", 200)
+		logging.FromContext(ctx).InfoContext(ctx, "Got minified player data", "contentLength", len(hypixelAPIResponseData), "statusCode", 200)
 
 		statusCode := 200
-		logging.FromContext(ctx).Info("Returning response", "statusCode", statusCode, "reason", "success")
+		logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "success")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
 		w.Write(hypixelAPIResponseData)
@@ -170,7 +170,7 @@ func writeHypixelStyleErrorResponse(ctx context.Context, w http.ResponseWriter, 
 	}
 	errorBytes, err := json.Marshal(errorResponse)
 	if err != nil {
-		logging.FromContext(ctx).Error("Failed to marshal error response", "error", err)
+		logging.FromContext(ctx).ErrorContext(ctx, "Failed to marshal error response", "error", err)
 		reporting.Report(ctx, fmt.Errorf("failed to marshal error response: %w", err), map[string]string{
 			"responseError": responseError.Error(),
 		})

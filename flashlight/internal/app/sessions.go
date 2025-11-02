@@ -41,7 +41,7 @@ func BuildGetSessions(
 		err := updatePlayerInInterval(ctx, uuid, start, end)
 		if err != nil {
 			// NOTE: UpdatePlayerInInterval implementations handle their own error reporting
-			logging.FromContext(ctx).Error("Failed to update player data in interval", "error", err)
+			logging.FromContext(ctx).ErrorContext(ctx, "Failed to update player data in interval", "error", err)
 
 			// NOTE: We continue even though we failed to update player data
 			// We may still be able to get the history and fulfill the request

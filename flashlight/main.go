@@ -44,7 +44,7 @@ func main() {
 	logger := slog.New(handler).With("instanceID", instanceID)
 
 	fail := func(msg string, args ...any) {
-		logger.Error(msg, args...)
+		logger.ErrorContext(ctx, msg, args...)
 		os.Exit(1)
 	}
 
@@ -52,7 +52,7 @@ func main() {
 	if err != nil {
 		fail("Failed to load config", "error", err.Error())
 	}
-	logger.Info("Loaded config", "config", config.NonSensitiveString())
+	logger.InfoContext(ctx, "Loaded config", "config", config.NonSensitiveString())
 
 	serviceName := "flashlight"
 	if config.IsStaging() {
@@ -68,7 +68,7 @@ func main() {
 	defer func() {
 		err := otelShutdown(ctx)
 		if err != nil {
-			logger.Error("Failed to shutdown OpenTelemetry SDK", "error", err.Error())
+			logger.ErrorContext(ctx, "Failed to shutdown OpenTelemetry SDK", "error", err.Error())
 		}
 	}()
 
@@ -95,7 +95,7 @@ func main() {
 	if err != nil {
 		fail("Failed to initialize Hypixel API", "error", err.Error())
 	}
-	logger.Info("Initialized Hypixel API")
+	logger.InfoContext(ctx, "Initialized Hypixel API")
 
 	playerProvider, err := playerprovider.NewHypixelPlayerProvider(hypixelAPI)
 	if err != nil {
@@ -114,9 +114,9 @@ func main() {
 		fail("Failed to initialize Sentry", "error", err.Error())
 	}
 	defer flush()
-	logger.Info("Initialized Sentry middleware")
+	logger.InfoContext(ctx, "Initialized Sentry middleware")
 
-	logger.Info("Initializing database connection")
+	logger.InfoContext(ctx, "Initializing database connection")
 	db, err := database.NewCloudsqlPostgresDatabase(config)
 	if err != nil {
 		fail("Failed to initialize PostgresPlayerRepository", "error", err.Error())
@@ -128,7 +128,7 @@ func main() {
 		// Fewer connections in staging to prevent interfering with prod
 		db.DB.SetMaxOpenConns(2)
 	}
-	logger.Info("Initialized database connection")
+	logger.InfoContext(ctx, "Initialized database connection")
 
 	repositorySchemaName := database.GetSchemaName(!config.IsProduction())
 
@@ -138,7 +138,7 @@ func main() {
 	}
 
 	playerRepo := playerrepository.NewPostgresPlayerRepository(db, repositorySchemaName)
-	logger.Info("Initialized PlayerRepository")
+	logger.InfoContext(ctx, "Initialized PlayerRepository")
 
 	accountRepo := accountrepository.NewPostgres(db, repositorySchemaName)
 
@@ -294,11 +294,11 @@ func main() {
 
 	span.SetStatus(codes.Ok, "Initialization complete")
 	span.End()
-	logger.Info("Init complete")
+	logger.InfoContext(ctx, "Init complete")
 
 	err = httpServer.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
-		logger.Info("Server shutdown")
+		logger.InfoContext(ctx, "Server shutdown")
 	} else {
 		fail("Server error", "error", err.Error())
 	}

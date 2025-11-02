@@ -46,7 +46,7 @@ func MakeGetHistoryHandler(
 
 			statusCode := http.StatusTooManyRequests
 
-			logging.FromContext(ctx).Info("Rate limit exceeded", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
+			logging.FromContext(ctx).InfoContext(ctx, "Rate limit exceeded", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
 
 			http.Error(w, "Rate limit exceeded", statusCode)
 		}
@@ -141,7 +141,7 @@ func MakeGetHistoryHandler(
 			return
 		}
 
-		logging.FromContext(ctx).Info("Returning history data")
+		logging.FromContext(ctx).InfoContext(ctx, "Returning history data")
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)

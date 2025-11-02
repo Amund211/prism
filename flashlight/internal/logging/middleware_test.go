@@ -28,7 +28,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 		middleware := logging.NewRequestLoggerMiddleware(slog.New(slog.NewJSONHandler(buf, nil)))
 
 		logRequest := func(w http.ResponseWriter, r *http.Request) {
-			logging.FromContext(r.Context()).Info("test")
+			logging.FromContext(r.Context()).InfoContext(r.Context(), "test")
 		}
 
 		handler := logRequest
@@ -110,6 +110,6 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 	t.Run("without middleware", func(t *testing.T) {
 		t.Parallel()
 
-		logging.FromContext(t.Context()).Info("don't crash when no logger in context")
+		logging.FromContext(t.Context()).InfoContext(t.Context(), "don't crash when no logger in context")
 	})
 }
