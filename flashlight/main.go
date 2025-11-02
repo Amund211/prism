@@ -19,6 +19,7 @@ import (
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/telemetry"
@@ -37,7 +38,10 @@ const STAGING_DOMAIN_SUFFIX = "rainbow-ctx.pages.dev"
 func main() {
 	ctx := context.Background()
 	instanceID := uuid.New().String()
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil)).With("instanceID", instanceID)
+
+	jsonHandler := slog.NewJSONHandler(os.Stdout, nil)
+	handler := logging.NewGoogleCloudTracingLogHandler(jsonHandler, "prism-overlay")
+	logger := slog.New(handler).With("instanceID", instanceID)
 
 	fail := func(msg string, args ...any) {
 		logger.Error(msg, args...)
