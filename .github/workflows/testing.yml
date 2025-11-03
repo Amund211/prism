@@ -166,7 +166,7 @@ jobs:
         mv "dist/${{ env.SIMPLE_NAME }}${{ env.RESULT_EXTENSION }}" "${{ env.BUILD_RESULT_NAME }}"
 
     - name: Upload built binary/app .dmg
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ env.SIMPLE_NAME }}-${{ matrix.os }}
         path: "${{ env.BUILD_RESULT_NAME }}"
