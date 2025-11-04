@@ -19,7 +19,7 @@ export const addExtrapolatedSessions = (
     sessions: Sessions,
     history: History | undefined,
 ): Sessions => {
-    if (!history || history.length !== 2) {
+    if (history?.length !== 2) {
         // If there is no history, we cannot extrapolate at the start or end
         // We could still extrapolate between sessions, but don't do that for now
         return sessions;
