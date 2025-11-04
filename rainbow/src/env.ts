@@ -1,15 +1,15 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-    VITE_FLASHLIGHT_URL: z.string().url(),
-    VITE_SENTRY_DSN: z.string().url().optional(),
+    VITE_FLASHLIGHT_URL: z.url(),
+    VITE_SENTRY_DSN: z.url().optional(),
 });
 
 const parse = (source: unknown) => {
     const env = envSchema.safeParse(source);
     if (!env.success) {
         // For better error messages when developing
-        throw new Error(`Failed to parse environment ${env.error.toString()}`);
+        throw new Error(`Failed to parse environment: ${env.error.message}`);
     }
     return env.data;
 };

@@ -1,5 +1,4 @@
 import { queryClient } from "#queryClient.ts";
-import { fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { getUsernameQueryOptions } from "#queries/username.ts";
 import { timeIntervalsFromDefinition } from "#intervals.ts";
@@ -79,32 +78,33 @@ import { normalizeUUID } from "#helpers/uuid.ts";
 import { captureException } from "@sentry/react";
 
 const sessionSearchSchema = z.object({
-    timeIntervalDefinition: fallback(
-        z.union([
+    timeIntervalDefinition: z
+        .union([
             z.object({
                 type: z.literal("contained"),
-                date: fallback(z.coerce.date().optional(), undefined),
+                date: z.coerce.date().optional().catch(undefined),
             }),
             z.object({
                 type: z.literal("until"),
-                date: fallback(z.coerce.date().optional(), undefined),
+                date: z.coerce.date().optional().catch(undefined),
             }),
-        ]),
-        { type: "contained" },
-    ),
-    trackingStart: fallback(z.coerce.date().optional(), undefined).transform(
-        (value) => {
+        ])
+        .catch({ type: "contained" }),
+    trackingStart: z.coerce
+        .date()
+        .optional()
+        .catch(undefined)
+        .transform((value) => {
             if (value === undefined) {
                 return new Date(1970, 0, 1);
             }
             return value;
-        },
-    ),
-    gamemode: fallback(z.enum(ALL_GAMEMODE_KEYS), "overall"),
-    stat: fallback(z.enum(ALL_STAT_KEYS), "fkdr"),
-    variantSelection: fallback(z.enum(["session", "overall", "both"]), "both"),
-    sessionTableMode: fallback(z.enum(["total", "rate"]), "total"),
-    showExtrapolatedSessions: fallback(z.boolean(), false),
+        }),
+    gamemode: z.enum(ALL_GAMEMODE_KEYS).catch("overall"),
+    stat: z.enum(ALL_STAT_KEYS).catch("fkdr"),
+    variantSelection: z.enum(["session", "overall", "both"]).catch("both"),
+    sessionTableMode: z.enum(["total", "rate"]).catch("total"),
+    showExtrapolatedSessions: z.boolean().catch(false),
 });
 
 export const Route = createFileRoute("/session/$uuid")({

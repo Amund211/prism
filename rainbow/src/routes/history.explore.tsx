@@ -1,7 +1,6 @@
 import { createFileRoute, createLink, Navigate } from "@tanstack/react-router";
 import { queryClient } from "#queryClient.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
-import { fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { getUsernameQueryOptions } from "#queries/username.ts";
 import { HistoryChart, HistoryChartTitle } from "#charts/history/chart.tsx";
@@ -60,18 +59,13 @@ defaultEnd.setHours(23, 59, 59, 999);
 
 const historyExploreSearchSchema = z.object({
     // TODO: Read "preferred user" from local storage or similar
-    uuids: fallback(z.array(z.string()).readonly(), []),
-    start: fallback(z.coerce.date(), defaultStart),
-    end: fallback(z.coerce.date(), defaultEnd),
-    limit: fallback(z.number().int().min(1).max(50), 50),
-    stats: fallback(z.enum(ALL_STAT_KEYS).array().readonly(), ["fkdr"]),
-    gamemodes: fallback(z.enum(ALL_GAMEMODE_KEYS).array().readonly(), [
-        "overall",
-    ]),
-    variantSelection: fallback(
-        z.enum(["session", "overall", "both"]),
-        "session",
-    ),
+    uuids: z.array(z.string()).readonly().catch([]),
+    start: z.coerce.date().catch(defaultStart),
+    end: z.coerce.date().catch(defaultEnd),
+    limit: z.number().int().min(1).max(50).catch(50),
+    stats: z.enum(ALL_STAT_KEYS).array().readonly().catch(["fkdr"]),
+    gamemodes: z.enum(ALL_GAMEMODE_KEYS).array().readonly().catch(["overall"]),
+    variantSelection: z.enum(["session", "overall", "both"]).catch("session"),
 });
 
 const normalizeUUIDsSkippingInvalid = (uuids: readonly string[]) => {
