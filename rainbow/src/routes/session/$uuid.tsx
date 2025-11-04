@@ -1,5 +1,4 @@
 import { queryClient } from "#queryClient.ts";
-import { z } from "zod";
 import { getUsernameQueryOptions } from "#queries/username.ts";
 import { timeIntervalsFromDefinition } from "#intervals.ts";
 import { HistoryChart, SimpleHistoryChart } from "#charts/history/chart.tsx";
@@ -76,36 +75,7 @@ import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { addExtrapolatedSessions } from "#helpers/session.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
 import { captureException } from "@sentry/react";
-
-const sessionSearchSchema = z.object({
-    timeIntervalDefinition: z
-        .union([
-            z.object({
-                type: z.literal("contained"),
-                date: z.coerce.date().optional().catch(undefined),
-            }),
-            z.object({
-                type: z.literal("until"),
-                date: z.coerce.date().optional().catch(undefined),
-            }),
-        ])
-        .catch({ type: "contained" }),
-    trackingStart: z.coerce
-        .date()
-        .optional()
-        .catch(undefined)
-        .transform((value) => {
-            if (value === undefined) {
-                return new Date(1970, 0, 1);
-            }
-            return value;
-        }),
-    gamemode: z.enum(ALL_GAMEMODE_KEYS).catch("overall"),
-    stat: z.enum(ALL_STAT_KEYS).catch("fkdr"),
-    variantSelection: z.enum(["session", "overall", "both"]).catch("both"),
-    sessionTableMode: z.enum(["total", "rate"]).catch("total"),
-    showExtrapolatedSessions: z.boolean().catch(false),
-});
+import { sessionSearchSchema } from "#schemas/sessionSearch.ts";
 
 export const Route = createFileRoute("/session/$uuid")({
     loaderDeps: ({ search: { timeIntervalDefinition, trackingStart } }) => {

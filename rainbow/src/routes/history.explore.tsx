@@ -1,7 +1,6 @@
 import { createFileRoute, createLink, Navigate } from "@tanstack/react-router";
 import { queryClient } from "#queryClient.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
-import { z } from "zod";
 import { getUsernameQueryOptions } from "#queries/username.ts";
 import { HistoryChart, HistoryChartTitle } from "#charts/history/chart.tsx";
 import { UserMultiSelect } from "#components/UserSearch.tsx";
@@ -51,22 +50,7 @@ import React from "react";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
 import { captureException } from "@sentry/react";
-
-const defaultStart = new Date();
-defaultStart.setHours(0, 0, 0, 0);
-const defaultEnd = new Date();
-defaultEnd.setHours(23, 59, 59, 999);
-
-const historyExploreSearchSchema = z.object({
-    // TODO: Read "preferred user" from local storage or similar
-    uuids: z.array(z.string()).readonly().catch([]),
-    start: z.coerce.date().catch(defaultStart),
-    end: z.coerce.date().catch(defaultEnd),
-    limit: z.number().int().min(1).max(50).catch(50),
-    stats: z.enum(ALL_STAT_KEYS).array().readonly().catch(["fkdr"]),
-    gamemodes: z.enum(ALL_GAMEMODE_KEYS).array().readonly().catch(["overall"]),
-    variantSelection: z.enum(["session", "overall", "both"]).catch("session"),
-});
+import { historyExploreSearchSchema } from "#schemas/historySearch.ts";
 
 const normalizeUUIDsSkippingInvalid = (uuids: readonly string[]) => {
     return uuids
