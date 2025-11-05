@@ -42,8 +42,6 @@ class WinstreakProvider(Protocol):
     def get_estimated_winstreaks_for_uuid(
         self,
         uuid: str,
-        *,
-        antisniper_api_key: str,
     ) -> tuple[Winstreaks, bool]: ...
 
     @property
@@ -61,9 +59,6 @@ class OverlayController:
         winstreak_provider: WinstreakProvider,
     ) -> None:
         from prism.overlay.player_cache import PlayerCache
-
-        self.antisniper_api_key_invalid = False
-        self.antisniper_api_key_throttled = False
 
         self.missing_local_issuer_certificate = False
 
@@ -131,46 +126,4 @@ class OverlayController:
             return player
 
     def get_estimated_winstreaks(self, uuid: str) -> tuple[Winstreaks, bool]:
-        if (
-            not self.settings.use_antisniper_api
-            or self.settings.antisniper_api_key is None
-        ):
-            return MISSING_WINSTREAKS, False
-
-        try:
-            winstreaks, accurate = (
-                self._winstreak_provider.get_estimated_winstreaks_for_uuid(
-                    uuid, antisniper_api_key=self.settings.antisniper_api_key
-                )
-            )
-        except MissingLocalIssuerSSLError:
-            logger.exception("get_estimated_winstreaks: missing local issuer cert")
-            self.missing_local_issuer_certificate = True
-            return MISSING_WINSTREAKS, False
-        except APIError as e:
-            logger.error(
-                f"Antisniper API error getting winstreaks for {uuid=}", exc_info=e
-            )
-            return MISSING_WINSTREAKS, False
-        except APIKeyError as e:
-            logger.warning(
-                f"Invalid Antisniper API key getting winstreaks for {uuid=}", exc_info=e
-            )
-            self.antisniper_api_key_invalid = True
-            self.antisniper_api_key_throttled = False
-            self.missing_local_issuer_certificate = False
-            return MISSING_WINSTREAKS, False
-        except APIThrottleError as e:
-            logger.warning(
-                f"Antisniper API key throttled getting winstreaks for {uuid=}",
-                exc_info=e,
-            )
-            self.antisniper_api_key_invalid = False
-            self.antisniper_api_key_throttled = True
-            self.missing_local_issuer_certificate = False
-            return MISSING_WINSTREAKS, False
-        else:
-            self.antisniper_api_key_invalid = False
-            self.antisniper_api_key_throttled = False
-            self.missing_local_issuer_certificate = False
-            return winstreaks, accurate
+        return MISSING_WINSTREAKS, False

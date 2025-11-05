@@ -68,9 +68,7 @@ def main() -> None:  # pragma: nocover
 
     # Import late so we can patch ssl certs in requests
     from prism.mojang import MojangAccountProvider
-    from prism.overlay.antisniper_api import (
-        StrangePlayerProvider,
-    )
+    from prism.overlay.antisniper_api import StrangePlayerProvider
     from prism.overlay.controller import OverlayController
     from prism.overlay.output.overlay.run_overlay import run_overlay
     from prism.overlay.process_loglines import (

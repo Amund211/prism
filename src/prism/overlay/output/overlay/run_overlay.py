@@ -1,7 +1,6 @@
 import logging
 import math
 import queue
-import time
 from collections.abc import Iterable
 
 from prism.overlay.behaviour import should_redraw
@@ -136,18 +135,6 @@ def run_overlay(
                 )
             )
 
-        if controller.antisniper_api_key_invalid:
-            info_cells.append(
-                InfoCellValue(
-                    text=(
-                        "Invalid AntiSniper API key. "
-                        "Get a new one from antisniper.net"
-                    ),
-                    color="red" if time.monotonic() % 2 > 1 else "white",
-                    url=None,
-                )
-            )
-
         block_duration_seconds = max(
             controller._winstreak_provider.seconds_until_unblocked,
             controller._player_provider.seconds_until_unblocked,
@@ -172,15 +159,6 @@ def run_overlay(
                         "in the settings menu and *RESTART* the overlay."
                     ),
                     color="red",
-                    url=None,
-                )
-            )
-
-        if controller.antisniper_api_key_throttled:
-            info_cells.append(
-                InfoCellValue(
-                    text="AntiSniper ratelimit reached! Wait time ~1 min.",
-                    color="orange" if time.monotonic() % 2 > 1 else "white",
                     url=None,
                 )
             )

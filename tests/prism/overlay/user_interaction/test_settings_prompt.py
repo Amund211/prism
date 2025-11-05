@@ -51,12 +51,10 @@ def alphanumeric_key(char: str) -> Key:
         ),
         (
             {
-                "antisniper_api_key": "123",
                 "chat_hotkey": alphanumeric_key("u").to_dict(),
                 "autowho_delay": 1.3,
             },
             make_settings(
-                antisniper_api_key="123",
                 chat_hotkey=alphanumeric_key("r"),
                 autowho_delay=1.3,
             ),
