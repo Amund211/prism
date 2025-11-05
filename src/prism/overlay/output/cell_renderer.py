@@ -418,7 +418,16 @@ def render_tags(tags: Tags | None) -> CellValue:
         # The painter needs at least one color
         return CellValue.monochrome(text="", gui_color=GUI_COLORS[0])
 
-    return CellValue(text=text, color_sections=color_sections)
+    # Build hover text with detailed tag information
+    hover_parts: list[str] = []
+    if tags.cheating != "none":
+        hover_parts.append(f"C: Cheating ({tags.cheating})")
+    if tags.sniping != "none":
+        hover_parts.append(f"S: Sniping ({tags.sniping})")
+
+    hover_text = "\n".join(hover_parts) if hover_parts else None
+
+    return CellValue(text=text, color_sections=color_sections, hover=hover_text)
 
 
 @lru_cache(maxsize=100)
