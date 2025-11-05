@@ -22,6 +22,52 @@ class Cell:
     text_widget: tk.Text
 
 
+class Tooltip:  # pragma: nocover
+    """Simple tooltip implementation for showing hover text"""
+
+    def __init__(self, widget: tk.Widget, text: str) -> None:
+        self.widget = widget
+        self.text = text
+        self.tooltip_window: tk.Toplevel | None = None
+        self.widget.bind("<Enter>", self.show_tooltip)
+        self.widget.bind("<Leave>", self.hide_tooltip)
+
+    def show_tooltip(self, event: "tk.Event[tk.Widget]") -> None:
+        """Show the tooltip window"""
+        if self.tooltip_window or not self.text:
+            return
+
+        x = self.widget.winfo_rootx() + 20
+        y = self.widget.winfo_rooty() + 20
+
+        self.tooltip_window = tk.Toplevel(self.widget)
+        self.tooltip_window.wm_overrideredirect(True)
+        self.tooltip_window.wm_geometry(f"+{x}+{y}")
+
+        label = tk.Label(
+            self.tooltip_window,
+            text=self.text,
+            justify=tk.LEFT,
+            background="lightyellow",
+            relief=tk.SOLID,
+            borderwidth=1,
+            font=("Consolas", 10),
+        )
+        label.pack()
+
+    def hide_tooltip(self, event: "tk.Event[tk.Widget]") -> None:
+        """Hide the tooltip window"""
+        if self.tooltip_window:
+            self.tooltip_window.destroy()
+            self.tooltip_window = None
+
+    def destroy(self) -> None:
+        """Clean up the tooltip"""
+        self.hide_tooltip(None)  # type: ignore[arg-type]
+        self.widget.unbind("<Enter>")
+        self.widget.unbind("<Leave>")
+
+
 OverlayRow = tuple[tk.Button, tuple[Cell, ...]]
 
 
@@ -43,6 +89,9 @@ class MainContent:  # pragma: nocover
 
         # Start with zero rows
         self.rows: list[OverlayRow] = []
+
+        # Store tooltips for each cell widget
+        self.tooltips: dict[tk.Text, Tooltip] = {}
 
         # Frame at the top to display info to the user
         self.info_frame = tk.Frame(self.frame, background="black")
@@ -151,6 +200,10 @@ class MainContent:  # pragma: nocover
         """Remove a row of cells from the table"""
         edit_button, cells = self.rows.pop()
         for cell in cells:
+            # Clean up tooltip if it exists
+            if cell.text_widget in self.tooltips:
+                self.tooltips[cell.text_widget].destroy()
+                del self.tooltips[cell.text_widget]
             cell.text_widget.destroy()
 
         edit_button.destroy()
@@ -272,6 +325,21 @@ class MainContent:  # pragma: nocover
                     state=tk.DISABLED,
                     width=len(new_text),
                 )
+
+                # Handle tooltip
+                if cell_value.hover:
+                    # Remove old tooltip if it exists
+                    if cell.text_widget in self.tooltips:
+                        self.tooltips[cell.text_widget].destroy()
+                    # Create new tooltip
+                    self.tooltips[cell.text_widget] = Tooltip(
+                        cell.text_widget, cell_value.hover
+                    )
+                else:
+                    # Remove tooltip if no hover text
+                    if cell.text_widget in self.tooltips:
+                        self.tooltips[cell.text_widget].destroy()
+                        del self.tooltips[cell.text_widget]
 
             if nickname is None:
                 edit_button.configure(state="disabled", command=lambda: None)

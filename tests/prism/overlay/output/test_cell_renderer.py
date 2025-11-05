@@ -573,3 +573,76 @@ def test_render_based_on_level_too_many_levels() -> None:
     assert render_based_on_level(
         "a", 100, (1, 2, 3, 4, 5, 6, 7, 8), True, sort_ascending=False
     ) == CellValue.monochrome("a", GUI_COLORS[4])
+
+
+def test_render_tags_none() -> None:
+    """Test render_tags with None (pending tags)"""
+    from prism.overlay.output.cell_renderer import render_tags
+
+    result = render_tags(None)
+    assert result.text == "-"
+    assert result.hover is None
+
+
+def test_render_tags_both_high() -> None:
+    """Test render_tags with both cheating and sniping high"""
+    from prism.overlay.output.cell_renderer import render_tags
+    from prism.player import Tags
+
+    tags = Tags(sniping="high", cheating="high")
+    result = render_tags(tags)
+    assert result.text == "C S"
+    assert result.hover == "C: Cheating (high)\nS: Sniping (high)"
+
+
+def test_render_tags_only_cheating() -> None:
+    """Test render_tags with only cheating tag"""
+    from prism.overlay.output.cell_renderer import render_tags
+    from prism.player import Tags
+
+    tags = Tags(sniping="none", cheating="medium")
+    result = render_tags(tags)
+    assert result.text == "C"
+    assert result.hover == "C: Cheating (medium)"
+
+
+def test_render_tags_only_sniping() -> None:
+    """Test render_tags with only sniping tag"""
+    from prism.overlay.output.cell_renderer import render_tags
+    from prism.player import Tags
+
+    tags = Tags(sniping="high", cheating="none")
+    result = render_tags(tags)
+    assert result.text == "S"
+    assert result.hover == "S: Sniping (high)"
+
+
+def test_render_tags_none_severity() -> None:
+    """Test render_tags with both tags having none severity"""
+    from prism.overlay.output.cell_renderer import render_tags
+    from prism.player import Tags
+
+    tags = Tags(sniping="none", cheating="none")
+    result = render_tags(tags)
+    assert result.text == ""
+    assert result.hover is None
+
+
+def test_cellvalue_with_hover() -> None:
+    """Test CellValue with hover text"""
+    cell = CellValue(
+        text="Test",
+        color_sections=(ColorSection("red", 4),),
+        hover="Hover text",
+    )
+    assert cell.text == "Test"
+    assert cell.hover == "Hover text"
+
+
+def test_cellvalue_monochrome_with_hover() -> None:
+    """Test CellValue.monochrome with hover text"""
+    cell = CellValue.monochrome("Test", "red", hover="Hover text")
+    assert cell.text == "Test"
+    assert cell.hover == "Hover text"
+    assert len(cell.color_sections) == 1
+    assert cell.color_sections[0].color == "red"

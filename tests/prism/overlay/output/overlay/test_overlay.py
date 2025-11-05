@@ -102,6 +102,7 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                         ColorSection(GUI_COLORS[0], 1),  # Space
                         ColorSection(rating3, 1),  # Sniping: medium
                     ),
+                    hover="C: Cheating (high)\nS: Sniping (medium)",
                 ),
             ),
         ),
@@ -146,7 +147,11 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=CellValue.monochrome("8000", rating2),
                 wins=CellValue.monochrome("6000", rating3),
                 sessiontime=CellValue.monochrome("-", rating4),
-                tags=CellValue(text="S", color_sections=(ColorSection(rating4, 1),)),
+                tags=CellValue(
+                    text="S",
+                    color_sections=(ColorSection(rating4, 1),),
+                    hover="S: Sniping (high)",
+                ),
             ),
         ),
     ),
@@ -300,7 +305,11 @@ test_cases: tuple[tuple[Player, OverlayRowData], ...] = (
                 beds=CellValue.monochrome("1900", rating0),
                 wins=CellValue.monochrome("2000", rating1),
                 sessiontime=CellValue.monochrome("-", rating4),
-                tags=CellValue(text="C", color_sections=(ColorSection(rating4, 1),)),
+                tags=CellValue(
+                    text="C",
+                    color_sections=(ColorSection(rating4, 1),),
+                    hover="C: Cheating (high)",
+                ),
             ),
         ),
     ),

@@ -89,13 +89,15 @@ class CellValue:
 
     text: str
     color_sections: tuple[ColorSection, ...]
+    hover: str | None = None
 
     @classmethod
-    def monochrome(cls, text: str, gui_color: str) -> Self:
+    def monochrome(cls, text: str, gui_color: str, hover: str | None = None) -> Self:
         """Make a monochrome cell value"""
         return cls(
             text,
             color_sections=(ColorSection(gui_color, -1),),
+            hover=hover,
         )
 
 
