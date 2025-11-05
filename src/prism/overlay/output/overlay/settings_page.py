@@ -66,6 +66,7 @@ class SupportSection:  # pragma: nocover
         parent.make_widgets_scrollable(discord_button)
 
 
+@dataclass(frozen=True, slots=True)
 class GeneralSettings:
     """Settings for the GeneralSettingSection"""
 

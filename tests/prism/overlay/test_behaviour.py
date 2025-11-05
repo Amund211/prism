@@ -240,7 +240,6 @@ def test_get_and_cache_stats(
     def get_estimated_winstreaks(
         uuid: str, antisniper_api_key: str
     ) -> tuple[Winstreaks, bool]:
-        assert antisniper_api_key == "test_key"
         assert uuid == user.uuid
 
         if estimated_winstreaks_from_provider:
@@ -273,10 +272,7 @@ def test_get_and_cache_stats(
             get_estimated_winstreaks_for_uuid=get_estimated_winstreaks
         ),
         nick_database=NickDatabase([{user.nick: user.uuid}]),
-        settings=make_settings(
-            use_antisniper_api=True,  # Always enable antisniper API for testing
-            antisniper_api_key="test_key",
-        ),
+        settings=make_settings(),
     )
 
     completed_queue = queue.Queue[str]()
@@ -375,22 +371,17 @@ def test_update_settings_everything_changed() -> None:
             "SuperbNick": {"uuid": "2", "comment": "2"},
             "AstoundingNick": {"uuid": "3", "comment": "3"},
         },
-        antisniper_api_key="my-api-key",
         write_settings_file_utf8=lambda: settings_file,
     )
 
     controller = create_controller(
         settings=settings,
-        antisniper_api_key_invalid=True,
-        antisniper_api_key_throttled=True,
     )
 
     # NOTE: Make sure everything specified here is different from its default value
     new_settings = SettingsDict(
         user_id="my-user-id",
         hypixel_api_key="my-new-hypixel-api-key",
-        antisniper_api_key="my-new-antisniper-api-key",
-        use_antisniper_api=True,
         sort_order="wlr",
         column_order=("username", "winstreak"),
         rating_configs=CUSTOM_RATING_CONFIG_COLLECTION_DICT,
@@ -456,55 +447,6 @@ def test_update_settings_everything_changed() -> None:
 
     # Lots of stuff changed, so we want to redraw
     assert controller.redraw_event.is_set()
-
-    assert not controller.antisniper_api_key_invalid
-    assert not controller.antisniper_api_key_throttled
-
-
-def test_update_settings_clear_antisniper_key() -> None:
-    controller = create_controller(
-        settings=make_settings(antisniper_api_key="my-api-key"),
-        antisniper_api_key_invalid=True,
-        antisniper_api_key_throttled=True,
-    )
-    controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
-
-    new_settings = replace(controller.settings, antisniper_api_key=None)
-
-    update_settings(new_settings.to_dict(), controller)
-
-    # Updated antisniper key -> should clear cache
-    assert controller.player_cache.clear_cache.call_count == 1
-
-    # Updated antisniper key -> should redraw
-    assert controller.redraw_event.is_set()
-
-    assert not controller.antisniper_api_key_invalid
-    assert not controller.antisniper_api_key_throttled
-
-
-def test_update_settings_set_antisniper_key() -> None:
-    controller = create_controller(
-        settings=make_settings(antisniper_api_key=None),
-        antisniper_api_key_invalid=True,
-        antisniper_api_key_throttled=True,
-    )
-    controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
-
-    new_settings = replace(
-        controller.settings, antisniper_api_key="my-new-antisniper-api-key"
-    )
-
-    update_settings(new_settings.to_dict(), controller)
-
-    # Updated antisniper key -> should clear cache
-    assert controller.player_cache.clear_cache.call_count == 1
-
-    # Updated antisniper key -> should redraw
-    assert controller.redraw_event.is_set()
-
-    assert not controller.antisniper_api_key_invalid
-    assert not controller.antisniper_api_key_throttled
 
 
 @dataclass(frozen=True, slots=True)
@@ -1015,12 +957,8 @@ def test_autodenick_teammate(
     (
         create_controller(state=create_state(in_queue=False)),
         create_controller(state=create_state(out_of_sync=True)),
-        create_controller(antisniper_api_key_invalid=True),
-        create_controller(antisniper_api_key_throttled=True),
         create_controller(
             state=create_state(in_queue=False, out_of_sync=True),
-            antisniper_api_key_invalid=True,
-            antisniper_api_key_throttled=True,
         ),
     ),
 )

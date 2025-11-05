@@ -355,9 +355,7 @@ class MockedWinstreakProvider:
         self._get_estimated_winstreaks_for_uuid = get_estimated_winstreaks_for_uuid
         self._seconds_until_unblocked = seconds_until_unblocked
 
-    def get_estimated_winstreaks_for_uuid(
-        self, uuid: str
-    ) -> tuple[Winstreaks, bool]:
+    def get_estimated_winstreaks_for_uuid(self, uuid: str) -> tuple[Winstreaks, bool]:
         return self._get_estimated_winstreaks_for_uuid(uuid)
 
     @property
