@@ -285,6 +285,7 @@ def make_winstreaks(
 def make_settings(
     antisniper_api_key: str | None = None,
     use_antisniper_api: bool | None = None,
+    urchin_api_key: str | None = None,
     user_id: str = "make-settings-default-user-id",
     known_nicks: dict[str, NickValue] | None = None,
     hide_dead_players: bool | None = None,
@@ -300,6 +301,7 @@ def make_settings(
                 "user_id": user_id,
                 "antisniper_api_key": antisniper_api_key,
                 "use_antisniper_api": use_antisniper_api,
+                "urchin_api_key": urchin_api_key,
                 "known_nicks": known_nicks or {},
                 "hide_dead_players": hide_dead_players,
                 "autowho": autowho,

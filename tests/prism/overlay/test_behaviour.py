@@ -461,6 +461,7 @@ def test_update_settings_everything_changed() -> None:
         hypixel_api_key="my-new-hypixel-api-key",
         antisniper_api_key="my-new-antisniper-api-key",
         use_antisniper_api=True,
+        urchin_api_key="my-new-urchin-api-key",
         sort_order="wlr",
         column_order=("username", "winstreak"),
         rating_configs=CUSTOM_RATING_CONFIG_COLLECTION_DICT,

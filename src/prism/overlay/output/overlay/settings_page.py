@@ -173,6 +173,87 @@ class AntisniperSection:  # pragma: nocover
 
 
 @dataclass(frozen=True, slots=True)
+class UrchinSettings:
+    """Settings for the UrchinSection"""
+
+    urchin_api_key: str | None
+
+
+class UrchinSection:  # pragma: nocover
+    def __init__(self, parent: "SettingsPage") -> None:
+        self.frame = parent.make_section("Urchin API")
+        self.frame.columnconfigure(0, weight=0)
+
+        info_label = tk.Label(
+            self.frame,
+            text=(
+                "Urchin API provides additional player information and tags. "
+                "Visit https://urchin.prismoverlay.com to get an API key."
+            ),
+            font=("Consolas", 10),
+            foreground="white",
+            background="black",
+        )
+        info_label.bind("<Configure>", lambda e: info_label.config(wraplength=400))
+        info_label.grid(row=0, columnspan=2)
+        parent.make_widgets_scrollable(info_label)
+
+        api_key_label = tk.Label(
+            self.frame,
+            text="API key: ",
+            font=("Consolas", 12),
+            foreground="white",
+            background="black",
+        )
+        api_key_label.grid(row=1, column=0, sticky=tk.E)
+
+        self.urchin_api_key_variable = tk.StringVar()
+        self.urchin_api_key_entry = tk.Entry(
+            self.frame, show="*", textvariable=self.urchin_api_key_variable
+        )
+
+        self.urchin_api_key_entry.grid(row=1, column=1, sticky=tk.W + tk.E)
+        self.frame.columnconfigure(1, weight=1)
+
+        show_button = tk.Button(
+            self.frame,
+            text="SHOW",
+            font=("Consolas", 10),
+            foreground="black",
+            background="gray",
+            activebackground="red",
+            command=lambda: self.urchin_api_key_entry.config(show=""),
+            relief="flat",
+            cursor="hand2",
+        )
+        show_button.grid(row=1, column=2, padx=(5, 0))
+
+        parent.make_widgets_scrollable(
+            api_key_label, self.urchin_api_key_entry, show_button
+        )
+
+    def set(self, settings: UrchinSettings) -> None:
+        """Set the state of this section"""
+        self.urchin_api_key_entry.config(show="*")
+        self.urchin_api_key_variable.set(settings.urchin_api_key or "")
+
+    def get(self) -> UrchinSettings:
+        """Get the state of this section"""
+        value = self.urchin_api_key_variable.get()
+        if ":" in value:
+            # Handle `Apikey: 12345678-1234-1234-1234-abcdefabcdef`
+            value = value[value.index(":") + 1 :]
+
+        value = value.strip()
+
+        key = value if len(value) > 3 else None
+
+        return UrchinSettings(
+            urchin_api_key=key,
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class GeneralSettings:
     """Settings for the GeneralSettingSection"""
 
@@ -1303,6 +1384,7 @@ class SettingsPage:  # pragma: nocover
         self.display_section = DisplaySection(self)
         self.column_section = ColumnSection(self)
         self.antisniper_section = AntisniperSection(self)
+        self.urchin_section = UrchinSection(self)
         self.discord_section = DiscordSection(self)
         self.performance_section = PerformanceSection(self)
         self.graphics_section = GraphicsSection(self)
@@ -1355,6 +1437,11 @@ class SettingsPage:  # pragma: nocover
                 AntisniperSettings(
                     use_antisniper_api=settings.use_antisniper_api,
                     antisniper_api_key=settings.antisniper_api_key,
+                )
+            )
+            self.urchin_section.set(
+                UrchinSettings(
+                    urchin_api_key=settings.urchin_api_key,
                 )
             )
             self.general_settings_section.set(
@@ -1422,6 +1509,7 @@ class SettingsPage:  # pragma: nocover
         hypixel_api_key = self.controller.settings.hypixel_api_key
 
         antisniper_settings = self.antisniper_section.get()
+        urchin_settings = self.urchin_section.get()
         general_settings = self.general_settings_section.get()
         autowho_settings = self.autowho_section.get()
 
@@ -1452,6 +1540,7 @@ class SettingsPage:  # pragma: nocover
             hypixel_api_key=hypixel_api_key,
             antisniper_api_key=antisniper_settings.antisniper_api_key,
             use_antisniper_api=antisniper_settings.use_antisniper_api,
+            urchin_api_key=urchin_settings.urchin_api_key,
             sort_order=display_settings.sort_order,
             column_order=column_settings.column_order,
             rating_configs=rating_configs.to_dict(),
