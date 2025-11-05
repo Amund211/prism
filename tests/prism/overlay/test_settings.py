@@ -52,8 +52,6 @@ def noop_update_settings(
 def make_settings_dict(
     user_id: str | None = None,
     hypixel_api_key: str | None = None,
-    antisniper_api_key: str | None = None,
-    use_antisniper_api: bool | None = None,
     sort_order: ColumnName | None = None,
     column_order: tuple[ColumnName, ...] | None = None,
     rating_configs: RatingConfigCollectionDict | None = None,
@@ -84,8 +82,6 @@ def make_settings_dict(
     return {
         "user_id": value_or_default(user_id, default=DEFAULT_USER_ID),
         "hypixel_api_key": value_or_default(hypixel_api_key, default=None),
-        "antisniper_api_key": value_or_default(antisniper_api_key, default=None),
-        "use_antisniper_api": value_or_default(use_antisniper_api, default=True),
         "sort_order": value_or_default(sort_order, default="index"),
         "column_order": value_or_default(
             column_order,

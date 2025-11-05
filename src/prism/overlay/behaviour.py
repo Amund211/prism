@@ -149,19 +149,6 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
     """
     logger.debug(f"Updating settings with {new_settings}")
 
-    antisniper_api_key_changed = (
-        new_settings["antisniper_api_key"] != controller.settings.antisniper_api_key
-    )
-
-    use_antisniper_api_changed = (
-        new_settings["use_antisniper_api"] != controller.settings.use_antisniper_api
-    )
-
-    # True if the stats could be affected by the settings update
-    potential_antisniper_updates = (
-        antisniper_api_key_changed or use_antisniper_api_changed
-    )
-
     # Known_nicks
     def uuid_changed(nickname: str) -> bool:
         """True if the uuid of the given nickname changed in new_settings"""
@@ -179,24 +166,14 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
         filter(uuid_changed, set.intersection(new_nicknames, old_nicknames))
     )
 
-    # Update the API key
-    if antisniper_api_key_changed:
-        controller.antisniper_api_key_throttled = False
-        controller.antisniper_api_key_invalid = False
+    # Refetch stats for nicknames that had a player assigned or unassigned
+    # for nickname in added_nicknames + removed_nicknames:
+    for nickname in set.union(added_nicknames, removed_nicknames):
+        controller.player_cache.uncache_player(nickname)
 
-    # Update the player cache
-    if potential_antisniper_updates:
-        logger.debug("Clearing whole player cache due to api key changes")
-        controller.player_cache.clear_cache()
-    else:
-        # Refetch stats for nicknames that had a player assigned or unassigned
-        # for nickname in added_nicknames + removed_nicknames:
-        for nickname in set.union(added_nicknames, removed_nicknames):
-            controller.player_cache.uncache_player(nickname)
-
-        # Refetch stats for nicknames that were assigned to a different player
-        for nickname in updated_nicknames:
-            controller.player_cache.uncache_player(nickname)
+    # Refetch stats for nicknames that were assigned to a different player
+    for nickname in updated_nicknames:
+        controller.player_cache.uncache_player(nickname)
 
     # Update default nick database
     # NOTE: Since the caller must acquire the settings lock, we have two locks here

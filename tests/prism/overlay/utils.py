@@ -278,8 +278,6 @@ def make_winstreaks(
 
 
 def make_settings(
-    antisniper_api_key: str | None = None,
-    use_antisniper_api: bool | None = None,
     user_id: str = "make-settings-default-user-id",
     known_nicks: dict[str, NickValue] | None = None,
     hide_dead_players: bool | None = None,
@@ -293,8 +291,6 @@ def make_settings(
         fill_missing_settings(
             {
                 "user_id": user_id,
-                "antisniper_api_key": antisniper_api_key,
-                "use_antisniper_api": use_antisniper_api,
                 "known_nicks": known_nicks or {},
                 "hide_dead_players": hide_dead_players,
                 "autowho": autowho,
@@ -351,7 +347,7 @@ class MockedWinstreakProvider:
     def __init__(
         self,
         get_estimated_winstreaks_for_uuid: Callable[
-            [str, str],
+            [str],
             tuple[Winstreaks, bool],
         ],
         seconds_until_unblocked: float = 0.0,
@@ -360,9 +356,9 @@ class MockedWinstreakProvider:
         self._seconds_until_unblocked = seconds_until_unblocked
 
     def get_estimated_winstreaks_for_uuid(
-        self, uuid: str, *, antisniper_api_key: str
+        self, uuid: str
     ) -> tuple[Winstreaks, bool]:
-        return self._get_estimated_winstreaks_for_uuid(uuid, antisniper_api_key)
+        return self._get_estimated_winstreaks_for_uuid(uuid)
 
     @property
     def seconds_until_unblocked(self) -> float:
@@ -373,8 +369,6 @@ def create_controller(
     state: OverlayState | None = None,
     settings: Settings | None = None,
     wants_shown: bool | None = None,
-    antisniper_api_key_invalid: bool = False,
-    antisniper_api_key_throttled: bool = False,
     missing_local_issuer_certificate: bool = False,
     ready: bool = True,
     autowho_event_set: bool = False,
@@ -397,8 +391,6 @@ def create_controller(
     )
 
     controller.wants_shown = wants_shown
-    controller.antisniper_api_key_invalid = antisniper_api_key_invalid
-    controller.antisniper_api_key_throttled = antisniper_api_key_throttled
     controller.missing_local_issuer_certificate = missing_local_issuer_certificate
     controller.ready = ready
 
@@ -420,13 +412,6 @@ def create_controller(
 def assert_controllers_equal(
     controller1: OverlayController, controller2: OverlayController, /
 ) -> None:
-    assert (
-        controller1.antisniper_api_key_invalid == controller2.antisniper_api_key_invalid
-    )
-    assert (
-        controller1.antisniper_api_key_throttled
-        == controller2.antisniper_api_key_throttled
-    )
     assert (
         controller1.missing_local_issuer_certificate
         == controller2.missing_local_issuer_certificate

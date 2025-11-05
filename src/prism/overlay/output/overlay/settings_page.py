@@ -66,113 +66,6 @@ class SupportSection:  # pragma: nocover
         parent.make_widgets_scrollable(discord_button)
 
 
-@dataclass(frozen=True, slots=True)
-class AntisniperSettings:
-    """Settings for the AntisniperSection"""
-
-    use_antisniper_api: bool
-    antisniper_api_key: str | None
-
-
-class AntisniperSection:  # pragma: nocover
-    def __init__(self, parent: "SettingsPage") -> None:
-        self.frame = parent.make_section("AntiSniper API")
-        self.frame.columnconfigure(0, weight=0)
-
-        info_label = tk.Label(
-            self.frame,
-            text=(
-                "Visit antisniper.net, join (and STAY in) the discord server and "
-                "follow the instructions on how to verify to get an API key."
-            ),
-            font=("Consolas", 10),
-            foreground="white",
-            background="black",
-        )
-        info_label.bind("<Configure>", lambda e: info_label.config(wraplength=400))
-        info_label.grid(row=0, columnspan=2)
-        parent.make_widgets_scrollable(info_label)
-
-        def set_interactivity(enabled: bool) -> None:
-            self.antisniper_api_key_entry.config(
-                state=tk.NORMAL if enabled else tk.DISABLED
-            )
-
-        use_antisniper_label = tk.Label(
-            self.frame,
-            text="AntiSniper WS estimates: ",
-            font=("Consolas", 12),
-            foreground="white",
-            background="black",
-        )
-        use_antisniper_label.grid(row=1, column=0, sticky=tk.E)
-
-        self.use_antisniper_api_toggle = ToggleButton(
-            self.frame, toggle_callback=set_interactivity
-        )
-        self.use_antisniper_api_toggle.button.grid(row=1, column=1)
-        parent.make_widgets_scrollable(
-            use_antisniper_label, self.use_antisniper_api_toggle.button
-        )
-
-        api_key_label = tk.Label(
-            self.frame,
-            text="API key: ",
-            font=("Consolas", 12),
-            foreground="white",
-            background="black",
-        )
-        api_key_label.grid(row=2, column=0, sticky=tk.E)
-
-        self.antisniper_api_key_variable = tk.StringVar()
-        self.antisniper_api_key_entry = tk.Entry(
-            self.frame, show="*", textvariable=self.antisniper_api_key_variable
-        )
-
-        self.antisniper_api_key_entry.grid(row=2, column=1, sticky=tk.W + tk.E)
-        self.frame.columnconfigure(1, weight=1)
-
-        show_button = tk.Button(
-            self.frame,
-            text="SHOW",
-            font=("Consolas", 10),
-            foreground="black",
-            background="gray",
-            activebackground="red",
-            command=lambda: self.antisniper_api_key_entry.config(show=""),
-            relief="flat",
-            cursor="hand2",
-        )
-        show_button.grid(row=2, column=2, padx=(5, 0))
-
-        parent.make_widgets_scrollable(
-            api_key_label, self.antisniper_api_key_entry, show_button
-        )
-
-    def set(self, settings: AntisniperSettings) -> None:
-        """Set the state of this section"""
-        self.use_antisniper_api_toggle.set(settings.use_antisniper_api)
-        self.antisniper_api_key_entry.config(show="*")
-        self.antisniper_api_key_variable.set(settings.antisniper_api_key or "")
-
-    def get(self) -> AntisniperSettings:
-        """Get the state of this section"""
-        value = self.antisniper_api_key_variable.get()
-        if ":" in value:
-            # Handle `Apikey: 12345678-1234-1234-1234-abcdefabcdef`
-            value = value[value.index(":") + 1 :]
-
-        value = value.strip()
-
-        key = value if len(value) > 3 else None
-
-        return AntisniperSettings(
-            use_antisniper_api=self.use_antisniper_api_toggle.enabled,
-            antisniper_api_key=key,
-        )
-
-
-@dataclass(frozen=True, slots=True)
 class GeneralSettings:
     """Settings for the GeneralSettingSection"""
 
@@ -1299,7 +1192,6 @@ class SettingsPage:  # pragma: nocover
         self.autowho_section = AutoWhoSection(self)
         self.display_section = DisplaySection(self)
         self.column_section = ColumnSection(self)
-        self.antisniper_section = AntisniperSection(self)
         self.discord_section = DiscordSection(self)
         self.performance_section = PerformanceSection(self)
         self.graphics_section = GraphicsSection(self)
@@ -1348,12 +1240,6 @@ class SettingsPage:  # pragma: nocover
         self.scrollable_settings_frame.scroll_to_top()
 
         with settings.mutex:
-            self.antisniper_section.set(
-                AntisniperSettings(
-                    use_antisniper_api=settings.use_antisniper_api,
-                    antisniper_api_key=settings.antisniper_api_key,
-                )
-            )
             self.general_settings_section.set(
                 GeneralSettings(
                     autodenick_teammates=settings.autodenick_teammates,
@@ -1418,7 +1304,6 @@ class SettingsPage:  # pragma: nocover
         user_id = self.controller.settings.user_id
         hypixel_api_key = self.controller.settings.hypixel_api_key
 
-        antisniper_settings = self.antisniper_section.get()
         general_settings = self.general_settings_section.get()
         autowho_settings = self.autowho_section.get()
 
@@ -1447,8 +1332,6 @@ class SettingsPage:  # pragma: nocover
         new_settings = SettingsDict(
             user_id=user_id,
             hypixel_api_key=hypixel_api_key,
-            antisniper_api_key=antisniper_settings.antisniper_api_key,
-            use_antisniper_api=antisniper_settings.use_antisniper_api,
             sort_order=display_settings.sort_order,
             column_order=column_settings.column_order,
             rating_configs=rating_configs.to_dict(),
