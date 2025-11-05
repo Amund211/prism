@@ -51,7 +51,6 @@ def alphanumeric_key(char: str) -> Key:
         ),
         (
             {
-                "antisniper_api_key": "123",
                 "chat_hotkey": alphanumeric_key("u").to_dict(),
                 "autowho_delay": 1.3,
             },
