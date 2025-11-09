@@ -313,6 +313,10 @@ export const UserSearch: React.FC<UserSearchProps> = ({
             getOptionLabel={getOptionLabel}
             isOptionEqualToValue={isOptionEqualToValue}
             onChange={(_, value) => {
+                // Types says value is never null, but production disagrees
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                if (!value) return;
+
                 if (value.type === "uuid") {
                     onSubmit(value.uuid);
                     return;
