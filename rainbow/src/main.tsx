@@ -30,6 +30,11 @@ if (!root) {
     throw new Error("Root element not found");
 }
 
+// Remove old query cache from localStorage
+// We now use IndexedDB via idb-keyval
+// TODO(2025-11-09): Remove this after a while
+localStorage.removeItem("REACT_QUERY_OFFLINE_CACHE");
+
 createRoot(root, {
     // Callback called when an error is thrown and not caught by an ErrorBoundary.
     onUncaughtError: reactErrorHandler((error, errorInfo) => {
