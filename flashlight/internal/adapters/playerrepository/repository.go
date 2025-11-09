@@ -579,7 +579,8 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 		})
 		return nil, err
 	}
-	if timespan >= 60*24*time.Hour {
+	// TODO: Revert to max 60 days (when no longer using this for "wrapped" page on website)
+	if timespan >= 400*24*time.Hour {
 		// TODO: Use known error
 		err := fmt.Errorf("timespan too long")
 		reporting.Report(ctx, err, map[string]string{
