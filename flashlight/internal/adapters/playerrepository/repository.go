@@ -579,17 +579,6 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 		})
 		return nil, err
 	}
-	// TODO: Revert to max 60 days (when no longer using this for "wrapped" page on website)
-	if timespan >= 400*24*time.Hour {
-		// TODO: Use known error
-		err := fmt.Errorf("timespan too long")
-		reporting.Report(ctx, err, map[string]string{
-			"start":    start.Format(time.RFC3339),
-			"end":      end.Format(time.RFC3339),
-			"timespan": timespan.String(),
-		})
-		return nil, err
-	}
 
 	// Add some padding on both sides to try to complete sessions that cross the interval borders
 	filterStart := start.Add(-24 * time.Hour)

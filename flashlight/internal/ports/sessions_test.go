@@ -165,4 +165,66 @@ func TestMakeGetSessionsHandler(t *testing.T) {
 		require.Contains(t, w.Body.String(), "Start time cannot be after end time")
 		require.False(t, *called)
 	})
+
+	t.Run("interval exactly 400 days", func(t *testing.T) {
+		t.Parallel()
+
+		start := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+		startStr := "2023-01-01T00:00:00Z"
+		end := start.Add(400 * 24 * time.Hour)
+		endStr := end.Format(time.RFC3339)
+
+		getSessionsFunc, called := makeGetSessions(t, uuid, start, end, sessions, nil)
+		handler := makeGetSessionsHandler(getSessionsFunc)
+
+		req := makeRequest(uuid, startStr, endStr)
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusBadRequest, w.Code)
+		require.Contains(t, w.Body.String(), "Time interval is too long")
+		require.False(t, *called)
+	})
+
+	t.Run("interval more than 400 days", func(t *testing.T) {
+		t.Parallel()
+
+		start := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+		startStr := "2023-01-01T00:00:00Z"
+		end := start.Add(401 * 24 * time.Hour)
+		endStr := end.Format(time.RFC3339)
+
+		getSessionsFunc, called := makeGetSessions(t, uuid, start, end, sessions, nil)
+		handler := makeGetSessionsHandler(getSessionsFunc)
+
+		req := makeRequest(uuid, startStr, endStr)
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusBadRequest, w.Code)
+		require.Contains(t, w.Body.String(), "Time interval is too long")
+		require.False(t, *called)
+	})
+
+	t.Run("interval just under 400 days", func(t *testing.T) {
+		t.Parallel()
+
+		start := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+		startStr := "2023-01-01T00:00:00Z"
+		end := start.Add(399*24*time.Hour + 23*time.Hour + 59*time.Minute + 59*time.Second)
+		endStr := end.Format(time.RFC3339)
+
+		getSessionsFunc, called := makeGetSessions(t, uuid, start, end, sessions, nil)
+		handler := makeGetSessionsHandler(getSessionsFunc)
+
+		req := makeRequest(uuid, startStr, endStr)
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusOK, w.Code)
+		require.True(t, *called)
+	})
 }

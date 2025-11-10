@@ -120,6 +120,14 @@ func MakeGetSessionsHandler(
 			return
 		}
 
+		// Validate interval length
+		timespan := request.End.Sub(request.Start)
+		// TODO: Revert to max 60 days (when no longer using this for "wrapped" page on website)
+		if timespan >= 400*24*time.Hour {
+			http.Error(w, "Time interval is too long", http.StatusBadRequest)
+			return
+		}
+
 		sessions, err := getSessions(ctx, uuid, request.Start, request.End)
 		if err != nil {
 			// NOTE: GetSessions implementations handle their own error reporting
