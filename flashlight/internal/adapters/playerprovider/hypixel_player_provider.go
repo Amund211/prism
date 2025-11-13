@@ -2,6 +2,7 @@ package playerprovider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Amund211/flashlight/internal/domain"
@@ -34,28 +35,49 @@ func NewHypixelPlayerProvider(hypixelAPI HypixelAPI) (PlayerProvider, error) {
 }
 
 func (h *hypixelPlayerProvider) GetPlayer(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
+	type trackingInfo struct {
+		success      bool
+		gotPlayer    bool
+		invalidInput bool
+	}
+
+	track := func(ctx context.Context, info trackingInfo) {
+		h.metrics.requestCount.Add(ctx, 1, metric.WithAttributes(
+			attribute.Bool("success", info.success),
+			attribute.Bool("got_player", info.gotPlayer),
+			attribute.Bool("invalid_input", info.invalidInput),
+		))
+	}
+
 	if !strutils.UUIDIsNormalized(uuid) {
 		logging.FromContext(ctx).ErrorContext(ctx, "UUID is not normalized", "uuid", uuid)
 		err := fmt.Errorf("UUID is not normalized")
 		reporting.Report(ctx, err, map[string]string{
 			"uuid": uuid,
 		})
+		track(ctx, trackingInfo{success: false, invalidInput: true})
 		return nil, err
 	}
 
 	playerData, statusCode, queriedAt, err := h.hypixelAPI.GetPlayerData(ctx, uuid)
 	if err != nil {
 		// NOTE: HypixelAPI implementations handle their own error reporting
+		track(ctx, trackingInfo{success: false})
 		return nil, fmt.Errorf("failed to get player data: %w", err)
 	}
 
 	player, err := HypixelAPIResponseToPlayerPIT(ctx, uuid, queriedAt, playerData, statusCode)
 	if err != nil {
 		// NOTE: HypixelAPIResponseToPlayerPIT handles its own error reporting
+		if errors.Is(err, domain.ErrPlayerNotFound) {
+			track(ctx, trackingInfo{success: true, gotPlayer: false})
+		} else {
+			track(ctx, trackingInfo{success: false})
+		}
 		return nil, fmt.Errorf("failed to convert hypixel api response to player: %w", err)
 	}
 
-	h.metrics.requestCount.Add(ctx, 1, metric.WithAttributes(attribute.Bool("got_player", player != nil)))
+	track(ctx, trackingInfo{success: true, gotPlayer: true})
 
 	return player, nil
 }
