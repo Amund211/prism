@@ -165,9 +165,25 @@ class MainContent:  # pragma: nocover
             for i in range(current_length - length):
                 self.pop_row()
 
-    def update_column_order_from_settings(self) -> None:
-        """Check for a new column order in settings and make new cells if necessary"""
+    def update_column_order(self, new_rows: list[OverlayRowData]) -> None:
+        """
+        Check for a new column order in settings and make new cells if necessary
+
+        NOTE: Adds the "tags" column if any rows have tags
+        """
         new_column_order = self.overlay.controller.settings.column_order
+
+        # Ensure the "tags" column is included if any rows have tags
+        if any(
+            not row[1].tags.is_pending
+            and not row[1].tags.is_error
+            and not row[1].tags.is_nicked
+            and not row[1].tags.is_empty
+            for row in new_rows
+        ):
+            if "tags" not in new_column_order:
+                new_column_order += ("tags",)
+
         if new_column_order == self.column_order:
             return
 
@@ -235,7 +251,7 @@ class MainContent:  # pragma: nocover
         # NOTE: We rely on a draw dispatch to honor the request to alter the
         #       column order, so we need to make sure redraw_flag is set after
         #       column_order is updated in settings.
-        self.update_column_order_from_settings()
+        self.update_column_order(new_rows)
 
         self.set_length(len(new_rows))
 
