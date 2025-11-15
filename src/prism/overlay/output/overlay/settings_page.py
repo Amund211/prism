@@ -228,9 +228,30 @@ class UrchinSection:  # pragma: nocover
         )
         show_button.grid(row=1, column=2, padx=(5, 0))
 
-        parent.make_widgets_scrollable(
-            api_key_label, self.urchin_api_key_entry, show_button
+        paste_button = tk.Button(
+            self.frame,
+            text="PASTE",
+            font=("Consolas", 10),
+            foreground="white",
+            background="black",
+            command=self._paste_from_clipboard,
+            relief="flat",
+            cursor="hand2",
         )
+        paste_button.grid(row=1, column=3, padx=(5, 0))
+
+        parent.make_widgets_scrollable(
+            api_key_label, self.urchin_api_key_entry, show_button, paste_button
+        )
+
+    def _paste_from_clipboard(self) -> None:
+        """Paste the API key from clipboard into the entry field"""
+        try:
+            clipboard_content = self.urchin_api_key_entry.clipboard_get()
+            self.urchin_api_key_variable.set(clipboard_content)
+        except tk.TclError:
+            # Clipboard is empty or contains non-text data
+            logger.debug("Failed to get clipboard content for urchin API key")
 
     def set(self, settings: UrchinSettings) -> None:
         """Set the state of this section"""
