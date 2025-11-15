@@ -230,4 +230,20 @@ func TestMakeGetTagsHandler(t *testing.T) {
 		require.Contains(t, w.Body.String(), "Internal server error")
 		require.True(t, *called)
 	})
+
+	t.Run("invalid api key", func(t *testing.T) {
+		t.Parallel()
+
+		getTagsFunc, called := makeGetTags(t, uuid, domain.Tags{}, domain.ErrInvalidAPIKey)
+		handler := makeGetTagsHandler(getTagsFunc)
+
+		req := makeRequest(uuid)
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+		require.Contains(t, w.Body.String(), "Invalid urchin API key. Fix it or remove the key.")
+		require.True(t, *called)
+	})
 }

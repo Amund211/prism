@@ -142,7 +142,7 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 		slog.String("data", string(data)),
 	)
 
-	tags, seen, err := tagsFromUrchinResponse(ctx, resp.StatusCode, data)
+	tags, seen, err := tagsFromUrchinResponse(ctx, resp.StatusCode, data, urchinAPIKey != nil)
 	if err != nil {
 		err := fmt.Errorf("failed to get tags from urchin response: %w", err)
 		extra := map[string]string{
@@ -230,7 +230,17 @@ type urchinTagCollection struct {
 	account          bool
 }
 
-func tagsFromUrchinResponse(ctx context.Context, statusCode int, data []byte) (domain.Tags, urchinTagCollection, error) {
+func tagsFromUrchinResponse(ctx context.Context, statusCode int, data []byte, usedAPIKey bool) (domain.Tags, urchinTagCollection, error) {
+	if usedAPIKey {
+		if statusCode == http.StatusUnauthorized || statusCode == http.StatusForbidden {
+			return domain.Tags{}, urchinTagCollection{}, fmt.Errorf("urchin API returned status code %d: %w", statusCode, domain.ErrInvalidAPIKey)
+		}
+
+		if len(data) < 100 && string(data) == `"Invalid Key"` {
+			return domain.Tags{}, urchinTagCollection{}, fmt.Errorf("urchin API returned 'Invalid Key': %w", domain.ErrInvalidAPIKey)
+		}
+	}
+
 	if statusCode != http.StatusOK {
 		return domain.Tags{}, urchinTagCollection{}, fmt.Errorf("urchin API returned status code %d", statusCode)
 	}

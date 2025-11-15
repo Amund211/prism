@@ -173,6 +173,90 @@ func TestUrchinTagsProvider(t *testing.T) {
 			_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
 			require.Error(t, err)
 		})
+
+		t.Run("Invalid api key response", func(t *testing.T) {
+			t.Parallel()
+
+			invalidKey := "1o23iu1o2i"
+
+			// NOTE: Real response from urchin when an invalid API key is used
+			httpClient := &mockedHttpClient{
+				t:           t,
+				expectedURL: urlForUUID(uuid) + "&key=" + invalidKey,
+				statusCode:  200,
+				body:        `"Invalid Key"`,
+				err:         nil,
+			}
+			urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
+			require.NoError(t, err)
+
+			_, err = urchinAPI.GetTags(t.Context(), uuid, &invalidKey)
+			require.ErrorIs(t, err, domain.ErrInvalidAPIKey)
+		})
+
+		t.Run("auth status code", func(t *testing.T) {
+			t.Parallel()
+			// NOTE: Synthetic test for 401/403 responses from urchin
+			for _, statusCode := range []int{http.StatusUnauthorized, http.StatusForbidden} {
+				t.Run(fmt.Sprintf("status code %d", statusCode), func(t *testing.T) {
+					t.Parallel()
+
+					invalidKey := "1o23iu1o2i"
+
+					httpClient := &mockedHttpClient{
+						t:           t,
+						expectedURL: urlForUUID(uuid) + "&key=" + invalidKey,
+						statusCode:  statusCode,
+						body:        ``,
+						err:         nil,
+					}
+					urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
+					require.NoError(t, err)
+
+					_, err = urchinAPI.GetTags(t.Context(), uuid, &invalidKey)
+					require.ErrorIs(t, err, domain.ErrInvalidAPIKey)
+				})
+			}
+		})
+
+		t.Run("Invalid api key response when not passing API key", func(t *testing.T) {
+			t.Parallel()
+
+			httpClient := &mockedHttpClient{
+				t:           t,
+				expectedURL: urlForUUID(uuid),
+				statusCode:  200,
+				body:        `"Invalid Key"`,
+				err:         nil,
+			}
+			urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
+			require.NoError(t, err)
+
+			_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
+			require.NotErrorIs(t, err, domain.ErrInvalidAPIKey)
+		})
+
+		t.Run("auth status code when not passing API key", func(t *testing.T) {
+			t.Parallel()
+			for _, statusCode := range []int{http.StatusUnauthorized, http.StatusForbidden} {
+				t.Run(fmt.Sprintf("status code %d", statusCode), func(t *testing.T) {
+					t.Parallel()
+
+					httpClient := &mockedHttpClient{
+						t:           t,
+						expectedURL: urlForUUID(uuid),
+						statusCode:  statusCode,
+						body:        ``,
+						err:         nil,
+					}
+					urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
+					require.NoError(t, err)
+
+					_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
+					require.NotErrorIs(t, err, domain.ErrInvalidAPIKey)
+				})
+			}
+		})
 	})
 
 	t.Run("body read error", func(t *testing.T) {

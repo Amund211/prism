@@ -122,6 +122,10 @@ func MakeGetTagsHandler(
 			logging.FromContext(ctx).ErrorContext(ctx, "Tags temporarily unavailable", "error", err)
 			http.Error(w, "Temporarily unavailable", http.StatusServiceUnavailable)
 			return
+		} else if errors.Is(err, domain.ErrInvalidAPIKey) {
+			logging.FromContext(ctx).ErrorContext(ctx, "Invalid urchin API key", "error", err)
+			http.Error(w, "Invalid urchin API key. Fix it or remove the key.", http.StatusUnauthorized)
+			return
 		} else if err != nil {
 			logging.FromContext(ctx).ErrorContext(ctx, "Error getting tags", "error", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)

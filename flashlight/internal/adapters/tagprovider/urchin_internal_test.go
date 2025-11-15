@@ -102,7 +102,7 @@ func TestTagsFromUrchinResponse(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			t.Parallel()
-			tags, seen, err := tagsFromUrchinResponse(ctx, 200, []byte(c.response))
+			tags, seen, err := tagsFromUrchinResponse(ctx, 200, []byte(c.response), false)
 			require.NoError(t, err)
 
 			require.Equal(t, c.tags, tags)

@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"time"
 
@@ -68,10 +69,11 @@ func BuildGetTagsWithCache(
 	getTagsWithoutCache := buildGetTagsWithoutCache(provider)
 
 	type trackingInfo struct {
-		cached       bool
-		success      bool
-		invalidInput bool
-		withAPIKey   bool
+		cached        bool
+		success       bool
+		invalidInput  bool
+		withAPIKey    bool
+		invalidAPIKey bool
 	}
 
 	track := func(ctx context.Context, info trackingInfo) {
@@ -83,6 +85,7 @@ func BuildGetTagsWithCache(
 				attribute.Bool("success", info.success),
 				attribute.Bool("invalid_input", info.invalidInput),
 				attribute.Bool("with_api_key", info.withAPIKey),
+				attribute.Bool("invalid_api_key", info.invalidAPIKey),
 			),
 		)
 	}
@@ -110,7 +113,11 @@ func BuildGetTagsWithCache(
 		if err != nil {
 			// NOTE: GetOrCreate only returns an error if create() fails.
 			// getTagsWithoutCache handles its own error reporting
-			track(ctx, trackingInfo{success: false, withAPIKey: withAPIKey})
+			track(ctx, trackingInfo{
+				success:       false,
+				withAPIKey:    withAPIKey,
+				invalidAPIKey: errors.Is(err, domain.ErrInvalidAPIKey),
+			})
 			return domain.Tags{}, fmt.Errorf("failed to cache.GetOrCreate tags for uuid: %w", err)
 		}
 
