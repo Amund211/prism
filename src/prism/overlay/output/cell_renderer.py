@@ -3,7 +3,13 @@ from dataclasses import dataclass, replace
 from functools import lru_cache
 from typing import Literal, assert_never
 
-from prism.overlay.output.cells import CellValue, ColorSection, ColumnName
+from prism.overlay.output.cells import (
+    AMT_COLORS,
+    GUI_COLORS,
+    CellValue,
+    ColorSection,
+    ColumnName,
+)
 from prism.overlay.output.color import GUIColor, MinecraftColor
 from prism.overlay.output.config import RatingConfig, RatingConfigCollection
 from prism.player import (
@@ -16,16 +22,6 @@ from prism.player import (
     UnknownPlayer,
 )
 from prism.utils import format_seconds_short, truncate_float
-
-GUI_COLORS = (
-    "gray60",
-    "snow",
-    "yellow",
-    "#FF8800",
-    "red",
-)
-
-AMT_COLORS = len(GUI_COLORS)
 
 
 @dataclass(frozen=True, slots=True)
