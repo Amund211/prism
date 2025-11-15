@@ -2,10 +2,9 @@ import pytest
 
 from prism.hypixel import create_known_player
 from prism.overlay.output.cell_renderer import (
-    GUI_COLORS,
     RenderedStats,
 )
-from prism.overlay.output.cells import CellValue, ColorSection
+from prism.overlay.output.cells import GUI_COLORS, CellValue, ColorSection
 from prism.overlay.output.color import MinecraftColor
 from prism.overlay.output.config import (
     RatingConfigCollection,
