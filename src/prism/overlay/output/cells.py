@@ -108,6 +108,26 @@ class CellValue:
             color_sections=(ColorSection(gui_color, -1),),
         )
 
+    @classmethod
+    def pending(cls) -> Self:
+        """Make a pending cell value"""
+        return cls.monochrome("-", GUI_COLORS[0])
+
+    @classmethod
+    def error(cls) -> Self:
+        """Make an error cell value"""
+        return cls.monochrome("error", GUI_COLORS[-1])
+
+    @classmethod
+    def nicked(cls) -> Self:
+        """Make a nicked cell value"""
+        return cls.monochrome("nick", GUI_COLORS[-1])
+
+    @classmethod
+    def empty(cls) -> Self:
+        """Make an empty cell value"""
+        return cls.monochrome("", GUI_COLORS[0])
+
 
 @dataclass(frozen=True, slots=True)
 class InfoCellValue:
