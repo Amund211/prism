@@ -243,8 +243,24 @@ class UrchinSection:  # pragma: nocover
         )
         paste_button.grid(row=1, column=3, padx=(5, 0))
 
+        clear_button = tk.Button(
+            self.frame,
+            text="X",
+            font=("Consolas", 10),
+            foreground="red",
+            background="black",
+            command=lambda: self.urchin_api_key_variable.set(""),
+            relief="flat",
+            cursor="hand2",
+        )
+        clear_button.grid(row=1, column=4, padx=(5, 0))
+
         parent.make_widgets_scrollable(
-            api_key_label, self.urchin_api_key_entry, show_button, paste_button
+            api_key_label,
+            self.urchin_api_key_entry,
+            show_button,
+            paste_button,
+            clear_button,
         )
 
     def _paste_from_clipboard(self) -> None:
