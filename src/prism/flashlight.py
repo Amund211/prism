@@ -60,7 +60,9 @@ class FlashlightTagsProvider:
                 "invalid urchin API key"
             )
 
-        if response.status_code == 429 or response.status_code == 503 and not last_try:
+        if (
+            response.status_code == 429 or response.status_code == 503
+        ) and not last_try:
             raise ExecutionError(
                 "Request to flashlight failed due to intermittent error, retrying"
             )
@@ -133,16 +135,15 @@ def parse_flashlight_tags(response_json: object) -> Tags:
     if not isinstance(tags_data, dict):
         raise APIError(f"Invalid tags data {tags_data=} {type(tags_data)=}")
 
-    cheating_severity = validate_tag_severity(tags_data.get("cheating", None))
+    raw_cheating_severity = tags_data.get("cheating", None)
+    cheating_severity = validate_tag_severity(raw_cheating_severity)
     if cheating_severity is None:
-        raise APIError(
-            f"Invalid cheating tag severity " f"{response_json.get('cheating', None)=}"
-        )
-    sniper_severity = validate_tag_severity(tags_data.get("sniping", None))
+        raise APIError(f"Invalid cheating tag severity " f"{raw_cheating_severity=}")
+
+    raw_sniper_severity = tags_data.get("sniping", None)
+    sniper_severity = validate_tag_severity(raw_sniper_severity)
     if sniper_severity is None:
-        raise APIError(
-            f"Invalid sniping tag severity " f"{response_json.get('sniping', None)=}"
-        )
+        raise APIError(f"Invalid sniping tag severity " f"{raw_sniper_severity=}")
 
     return Tags(
         cheating=cheating_severity,
