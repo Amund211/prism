@@ -27,6 +27,7 @@ from prism.overlay.settings import (
     get_settings,
     value_or_default,
 )
+from prism.utils import is_uuid
 from tests.prism.overlay.utils import (
     CUSTOM_RATING_CONFIG_COLLECTION,
     CUSTOM_RATING_CONFIG_COLLECTION_DICT,
@@ -82,6 +83,8 @@ def make_settings_dict(
     alpha_hundredths: int | None = None,
 ) -> SettingsDict:
     """Make a settings dict with default values if missing"""
+    assert urchin_api_key is None or is_uuid(urchin_api_key)
+
     return {
         "user_id": value_or_default(user_id, default=DEFAULT_USER_ID),
         "hypixel_api_key": value_or_default(hypixel_api_key, default=None),
@@ -146,7 +149,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             hypixel_api_key="my-key",
             antisniper_api_key="my-key",
             use_antisniper_api=True,
-            urchin_api_key="my-urchin-key",
+            urchin_api_key="01234567-89ab-cdef-0123-456789abcdef",
             sort_order="stars",
             column_order=("username", "winstreak", "stars"),
             rating_configs=DEFAULT_RATING_CONFIG_COLLECTION,
@@ -179,7 +182,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "hypixel_api_key": "my-key",
             "antisniper_api_key": "my-key",
             "use_antisniper_api": True,
-            "urchin_api_key": "my-urchin-key",
+            "urchin_api_key": "01234567-89ab-cdef-0123-456789abcdef",
             "sort_order": "stars",
             "column_order": ("username", "winstreak", "stars"),
             "rating_configs": DEFAULT_RATING_CONFIG_COLLECTION_DICT,
@@ -217,7 +220,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             hypixel_api_key=None,
             antisniper_api_key="my-other-key",
             use_antisniper_api=False,
-            urchin_api_key="my-urchin-key-2",
+            urchin_api_key=None,
             sort_order="fkdr",
             column_order=("username", "stars", "fkdr", "wlr", "winstreak"),
             rating_configs=CUSTOM_RATING_CONFIG_COLLECTION,
@@ -250,7 +253,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "hypixel_api_key": None,
             "antisniper_api_key": "my-other-key",
             "use_antisniper_api": False,
-            "urchin_api_key": "my-urchin-key-2",
+            "urchin_api_key": None,
             "sort_order": "fkdr",
             "column_order": ("username", "stars", "fkdr", "wlr", "winstreak"),
             "rating_configs": CUSTOM_RATING_CONFIG_COLLECTION_DICT,
@@ -490,7 +493,7 @@ fill_settings_test_cases: tuple[
             "user_id": "my-user-id-4",
             "antisniper_api_key": "my-key",
             "use_antisniper_api": False,
-            "urchin_api_key": "my-urchin-key",
+            "urchin_api_key": "12341234-1234-1234-1234-123412341234",
             "sort_order": "winstreak",
             "column_order": ("username", "stars", "fkdr", "wlr"),
             "rating_configs": CUSTOM_RATING_CONFIG_COLLECTION_DICT,
@@ -525,7 +528,7 @@ fill_settings_test_cases: tuple[
             user_id="my-user-id-4",
             antisniper_api_key="my-key",
             use_antisniper_api=False,
-            urchin_api_key="my-urchin-key",
+            urchin_api_key="12341234-1234-1234-1234-123412341234",
             sort_order="winstreak",
             column_order=("username", "stars", "fkdr", "wlr"),
             rating_configs=CUSTOM_RATING_CONFIG_COLLECTION_DICT,

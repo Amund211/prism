@@ -25,6 +25,7 @@ from prism.overlay.output.config import (
     RatingConfigCollectionDict,
     safe_read_rating_config_collection_dict,
 )
+from prism.utils import is_uuid
 
 PLACEHOLDER_API_KEY = "insert-your-key-here"
 
@@ -306,7 +307,7 @@ def fill_missing_settings(
     )
 
     urchin_api_key = incomplete_settings.get("urchin_api_key", None)
-    if not isinstance(urchin_api_key, str) or not api_key_is_valid(urchin_api_key):
+    if not isinstance(urchin_api_key, str) or not is_uuid(urchin_api_key):
         settings_updated |= urchin_api_key is not None
         urchin_api_key = None
 
