@@ -128,6 +128,26 @@ class CellValue:
         """Make an empty cell value"""
         return cls.monochrome("", GUI_COLORS[0])
 
+    @property
+    def is_pending(self) -> bool:
+        """Whether this cell value is a pending value"""
+        return self == CellValue.pending()
+
+    @property
+    def is_error(self) -> bool:
+        """Whether this cell value is an error value"""
+        return self == CellValue.error()
+
+    @property
+    def is_nicked(self) -> bool:
+        """Whether this cell value is a nicked value"""
+        return self == CellValue.nicked()
+
+    @property
+    def is_empty(self) -> bool:
+        """Whether this cell value is an empty value"""
+        return self == CellValue.empty()
+
 
 @dataclass(frozen=True, slots=True)
 class InfoCellValue:
