@@ -3,6 +3,7 @@ package tagprovider
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -143,7 +144,10 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 	)
 
 	tags, seen, err := tagsFromUrchinResponse(ctx, resp.StatusCode, data, urchinAPIKey != nil)
-	if err != nil {
+	if errors.Is(err, domain.ErrInvalidAPIKey) {
+		// Don't report, as it is a client error
+		return domain.Tags{}, err
+	} else if err != nil {
 		err := fmt.Errorf("failed to get tags from urchin response: %w", err)
 		extra := map[string]string{
 			"data":   string(data),
