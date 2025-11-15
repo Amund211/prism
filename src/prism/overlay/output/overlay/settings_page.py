@@ -41,6 +41,7 @@ from prism.overlay.output.overlay.utils import open_url
 from prism.overlay.settings import NickValue, Settings, SettingsDict
 from prism.overlay.thread_count import recommend_stats_thread_count
 from prism.overlay.threading import UpdateCheckerThread
+from prism.utils import is_uuid
 
 logger = logging.getLogger(__name__)
 
@@ -202,7 +203,7 @@ class UrchinSection:  # pragma: nocover
 
         api_key_label = tk.Label(
             self.frame,
-            text="API key: ",
+            text="API key/URL: ",
             font=("Consolas", 12),
             foreground="white",
             background="black",
@@ -253,26 +254,39 @@ class UrchinSection:  # pragma: nocover
 
         try:
             clipboard_content = self.urchin_api_key_entry.clipboard_get()
-            self.urchin_api_key_variable.set(clipboard_content)
         except tk.TclError:
             # Clipboard is empty or contains non-text data
-            logger.exception("Failed to get clipboard content for urchin API key")
+            logger.exception("Failed to get clipboard content for urchin API key/URL")
+        else:
+            potential_key = self._potential_key_from_raw_string(clipboard_content)
+            if is_uuid(potential_key):
+                self.urchin_api_key_variable.set(potential_key)
+            else:
+                self.urchin_api_key_variable.set("**INVALID KEY/URL**")
+                self.urchin_api_key_entry.config(show="")
 
     def set(self, settings: UrchinSettings) -> None:
         """Set the state of this section"""
         self.urchin_api_key_entry.config(show="*")
         self.urchin_api_key_variable.set(settings.urchin_api_key or "")
 
+    def _potential_key_from_raw_string(self, value: str) -> str:
+        value = value.strip().lower()
+
+        if "key=" in value:
+            # Handle:
+            # https://urchin.ws/cubelify?id={{id}}&name={{name}}&sources={{sources}}&key=01234567-89ab-cdef-0123-456789abcdef
+            value = value.split("key=")[-1]
+
+        return "".join(c for c in value if c in string.hexdigits + "-")
+
     def get(self) -> UrchinSettings:
         """Get the state of this section"""
         value = self.urchin_api_key_variable.get()
-        if ":" in value:
-            # Handle `Apikey: 12345678-1234-1234-1234-abcdefabcdef`
-            value = value[value.index(":") + 1 :]
 
-        value = value.strip()
+        value = self._potential_key_from_raw_string(value)
 
-        key = value if len(value) > 3 else None
+        key = value if is_uuid(value) else None
 
         return UrchinSettings(
             urchin_api_key=key,
