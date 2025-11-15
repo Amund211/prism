@@ -96,9 +96,11 @@ Additionally, feel free to submit issues or pull requests on GitHub.
 ## Description
 Prism is an open source stats overlay for Hypixel Bedwars (not associated).
 Prism will detect the players in your lobby as they join and when you type `/who`, and automatically show you their stats.
+The overlay uses the [Urchin API](https://urchin.ws) (not associated) to highlight known cheaters and snipers.
 The overlay can be extended with the [Antisniper API](https://antisniper.net) (not associated) to display estimated winstreaks.
 
 ## Qualities
+- Display known cheaters and snipers (using Urchin API)
 - Automatic party and lobby detection
 - Customizable stats table
 - Good players sorted to the top and highlighted in red
