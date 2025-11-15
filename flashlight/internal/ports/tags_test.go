@@ -11,6 +11,7 @@ import (
 
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/domaintest"
 	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/stretchr/testify/require"
 )
@@ -117,6 +118,44 @@ func TestMakeGetTagsHandler(t *testing.T) {
 		require.Equal(t, http.StatusOK, w.Code)
 		require.JSONEq(t, fmt.Sprintf(`{"uuid":"%s","tags":{"cheating":"high","sniping":"high"}}`, uuid), w.Body.String())
 		require.True(t, *called)
+		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
+	})
+
+	t.Run("urchin api key is passed through", func(t *testing.T) {
+		t.Parallel()
+
+		expectedUUID := domaintest.NewUUID(t)
+
+		urchinAPIKey := domaintest.NewUUID(t)
+
+		tags := domain.Tags{
+			Cheating: domain.TagSeverityMedium,
+			Sniping:  domain.TagSeverityHigh,
+		}
+
+		called := false
+		getTags := func(ctx context.Context, uuid string, apiKey *string) (domain.Tags, error) {
+			t.Helper()
+			require.Equal(t, expectedUUID, uuid)
+			require.NotNil(t, apiKey)
+			require.Equal(t, urchinAPIKey, *apiKey)
+
+			called = true
+
+			return tags, nil
+		}
+
+		handler := makeGetTagsHandler(getTags)
+
+		req := makeRequest(expectedUUID)
+		req.Header.Set("X-Urchin-Api-Key", urchinAPIKey)
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusOK, w.Code)
+		require.JSONEq(t, fmt.Sprintf(`{"uuid":"%s","tags":{"cheating":"medium","sniping":"high"}}`, expectedUUID), w.Body.String())
+		require.True(t, called)
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
 	})
 

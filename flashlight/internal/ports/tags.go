@@ -96,6 +96,12 @@ func MakeGetTagsHandler(
 			},
 		)
 
+		var urchinAPIKey *string
+		urchinAPIKeyHeader := r.Header.Get("X-Urchin-Api-Key")
+		if urchinAPIKeyHeader != "" {
+			urchinAPIKey = &urchinAPIKeyHeader
+		}
+
 		uuid, err := strutils.NormalizeUUID(rawUUID)
 		if err != nil {
 			statusCode := http.StatusBadRequest
@@ -111,7 +117,7 @@ func MakeGetTagsHandler(
 		)
 		ctx = logging.AddMetaToContext(ctx, slog.String("uuid", uuid))
 
-		tags, err := getTags(ctx, uuid, nil)
+		tags, err := getTags(ctx, uuid, urchinAPIKey)
 		if errors.Is(err, domain.ErrTemporarilyUnavailable) {
 			logging.FromContext(ctx).ErrorContext(ctx, "Tags temporarily unavailable", "error", err)
 			http.Error(w, "Temporarily unavailable", http.StatusServiceUnavailable)
