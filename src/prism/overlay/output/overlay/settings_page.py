@@ -41,6 +41,7 @@ from prism.overlay.output.overlay.utils import open_url
 from prism.overlay.settings import NickValue, Settings, SettingsDict
 from prism.overlay.thread_count import recommend_stats_thread_count
 from prism.overlay.threading import UpdateCheckerThread
+from prism.utils import is_uuid
 
 logger = logging.getLogger(__name__)
 
@@ -169,6 +170,126 @@ class AntisniperSection:  # pragma: nocover
         return AntisniperSettings(
             use_antisniper_api=self.use_antisniper_api_toggle.enabled,
             antisniper_api_key=key,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class UrchinSettings:
+    """Settings for the UrchinSection"""
+
+    urchin_api_key: str | None
+
+
+class UrchinSection:  # pragma: nocover
+    def __init__(self, parent: "SettingsPage") -> None:
+        self.frame = parent.make_section("Urchin API")
+        self.frame.columnconfigure(0, weight=0)
+
+        info_label = tk.Label(
+            self.frame,
+            text=(
+                "Prism uses the Urchin API to check if players are known cheaters or "
+                "snipers.\nThis works out of the box, but you can provide your own API "
+                "key to get access to your private tags.\n"
+                "Visit https://urchin.ws/ for more information."
+            ),
+            font=("Consolas", 10),
+            foreground="white",
+            background="black",
+        )
+        info_label.bind("<Configure>", lambda e: info_label.config(wraplength=400))
+        info_label.grid(row=0, columnspan=4)
+        parent.make_widgets_scrollable(info_label)
+
+        api_key_label = tk.Label(
+            self.frame,
+            text="API key/URL: ",
+            font=("Consolas", 12),
+            foreground="white",
+            background="black",
+        )
+        api_key_label.grid(row=1, column=0, sticky=tk.E)
+
+        self.urchin_api_key_variable = tk.StringVar()
+        self.urchin_api_key_entry = tk.Entry(
+            self.frame, show="*", textvariable=self.urchin_api_key_variable
+        )
+
+        self.urchin_api_key_entry.grid(row=1, column=1, sticky=tk.W + tk.E)
+        self.frame.columnconfigure(1, weight=1)
+
+        show_button = tk.Button(
+            self.frame,
+            text="SHOW",
+            font=("Consolas", 10),
+            foreground="black",
+            background="gray",
+            activebackground="red",
+            command=lambda: self.urchin_api_key_entry.config(show=""),
+            relief="flat",
+            cursor="hand2",
+        )
+        show_button.grid(row=1, column=2, padx=(5, 0))
+
+        paste_button = tk.Button(
+            self.frame,
+            text="PASTE",
+            font=("Consolas", 10),
+            foreground="white",
+            background="black",
+            command=self._paste_from_clipboard,
+            relief="flat",
+            cursor="hand2",
+        )
+        paste_button.grid(row=1, column=3, padx=(5, 0))
+
+        parent.make_widgets_scrollable(
+            api_key_label, self.urchin_api_key_entry, show_button, paste_button
+        )
+
+    def _paste_from_clipboard(self) -> None:
+        """Paste the API key from clipboard into the entry field"""
+        # Hide the key again in case it was shown
+        self.urchin_api_key_entry.config(show="*")
+
+        try:
+            clipboard_content = self.urchin_api_key_entry.clipboard_get()
+        except tk.TclError:
+            # Clipboard is empty or contains non-text data
+            logger.exception("Failed to get clipboard content for urchin API key/URL")
+        else:
+            potential_key = self._potential_key_from_raw_string(clipboard_content)
+            if is_uuid(potential_key):
+                self.urchin_api_key_variable.set(potential_key)
+            else:
+                self.urchin_api_key_variable.set("**INVALID KEY/URL**")
+                self.urchin_api_key_entry.config(show="")
+
+    def set(self, settings: UrchinSettings) -> None:
+        """Set the state of this section"""
+        self.urchin_api_key_entry.config(show="*")
+        self.urchin_api_key_variable.set(settings.urchin_api_key or "")
+
+    def _potential_key_from_raw_string(self, value: str) -> str:
+        value = value.strip().lower()
+
+        if "key=" in value:
+            # Handle:
+            # https://urchin.ws/cubelify?id={{id}}&name={{name}}&sources={{sources}}&key=01234567-89ab-cdef-0123-456789abcdef
+            value = value.split("key=")[-1]
+
+        return "".join(c for c in value if c in string.hexdigits + "-")
+
+    def get(self) -> UrchinSettings:
+        """Get the state of this section"""
+        value = self.urchin_api_key_variable.get()
+
+        value = self._potential_key_from_raw_string(value)
+
+        key = value if is_uuid(value) else None
+
+        return UrchinSettings(
+            urchin_api_key=key,
         )
 
 
@@ -1303,6 +1424,7 @@ class SettingsPage:  # pragma: nocover
         self.display_section = DisplaySection(self)
         self.column_section = ColumnSection(self)
         self.antisniper_section = AntisniperSection(self)
+        self.urchin_section = UrchinSection(self)
         self.discord_section = DiscordSection(self)
         self.performance_section = PerformanceSection(self)
         self.graphics_section = GraphicsSection(self)
@@ -1355,6 +1477,11 @@ class SettingsPage:  # pragma: nocover
                 AntisniperSettings(
                     use_antisniper_api=settings.use_antisniper_api,
                     antisniper_api_key=settings.antisniper_api_key,
+                )
+            )
+            self.urchin_section.set(
+                UrchinSettings(
+                    urchin_api_key=settings.urchin_api_key,
                 )
             )
             self.general_settings_section.set(
@@ -1422,6 +1549,7 @@ class SettingsPage:  # pragma: nocover
         hypixel_api_key = self.controller.settings.hypixel_api_key
 
         antisniper_settings = self.antisniper_section.get()
+        urchin_settings = self.urchin_section.get()
         general_settings = self.general_settings_section.get()
         autowho_settings = self.autowho_section.get()
 
@@ -1452,6 +1580,7 @@ class SettingsPage:  # pragma: nocover
             hypixel_api_key=hypixel_api_key,
             antisniper_api_key=antisniper_settings.antisniper_api_key,
             use_antisniper_api=antisniper_settings.use_antisniper_api,
+            urchin_api_key=urchin_settings.urchin_api_key,
             sort_order=display_settings.sort_order,
             column_order=column_settings.column_order,
             rating_configs=rating_configs.to_dict(),
