@@ -382,8 +382,7 @@ def tag_severity_to_color(severity: Literal["medium", "high"]) -> str:
 
 def render_tags(tags: Tags | None) -> CellValue:
     if tags is None:
-        # Pending
-        return CellValue.monochrome(text="-", gui_color=GUI_COLORS[0])
+        return CellValue.pending()
 
     def add_tag(
         text: str,
@@ -411,8 +410,7 @@ def render_tags(tags: Tags | None) -> CellValue:
     text, color_sections = add_tag(text, color_sections, "S", tags.sniping)
 
     if len(color_sections) == 0:
-        # The painter needs at least one color
-        return CellValue.monochrome(text="", gui_color=GUI_COLORS[0])
+        return CellValue.empty()
 
     return CellValue(text=text, color_sections=color_sections)
 
@@ -533,18 +531,14 @@ def render_stats(
         tags_cell = render_tags(player.tags)
     else:
         if isinstance(player, NickedPlayer):
-            text = "nick"
-            gui_color = GUI_COLORS[-1]
+            cell = CellValue.nicked()
         elif isinstance(player, PendingPlayer):
-            text = "-"
-            gui_color = GUI_COLORS[0]
+            cell = CellValue.pending()
         elif isinstance(player, UnknownPlayer):
-            text = "error"
-            gui_color = GUI_COLORS[-1]
+            cell = CellValue.error()
         else:  # pragma: no coverage
             assert_never(player)
 
-        cell = CellValue.monochrome(text, gui_color=gui_color)
         stars_cell = index_cell = fkdr_cell = kdr_cell = bblr_cell = wlr_cell = cell
         winstreak_cell = kills_cell = finals_cell = beds_cell = wins_cell = cell
         sessiontime_cell = tags_cell = cell
