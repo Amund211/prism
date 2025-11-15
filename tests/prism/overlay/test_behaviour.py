@@ -578,6 +578,40 @@ def test_update_settings_set_antisniper_key() -> None:
     assert not controller.antisniper_api_key_throttled
 
 
+def test_update_settings_clear_urchin_key() -> None:
+    controller = create_controller(
+        settings=make_settings(urchin_api_key="01234567-89ab-cdef-0123-456789abcdef"),
+        urchin_api_key_invalid=True,
+    )
+
+    new_settings = replace(controller.settings, urchin_api_key=None)
+
+    update_settings(new_settings.to_dict(), controller)
+
+    # Updated urchin key -> should redraw
+    assert controller.redraw_event.is_set()
+
+    assert not controller.urchin_api_key_invalid
+
+
+def test_update_settings_set_urchin_key() -> None:
+    controller = create_controller(
+        settings=make_settings(urchin_api_key=None),
+        urchin_api_key_invalid=True,
+    )
+
+    new_settings = replace(
+        controller.settings, urchin_api_key="01234567-89ab-cdef-0123-456789abcdef"
+    )
+
+    update_settings(new_settings.to_dict(), controller)
+
+    # Updated urchin key -> should redraw
+    assert controller.redraw_event.is_set()
+
+    assert not controller.urchin_api_key_invalid
+
+
 @dataclass(frozen=True, slots=True)
 class LobbyPlayer:
     username: str | None = None

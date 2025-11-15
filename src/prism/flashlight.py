@@ -6,7 +6,7 @@ from typing import Any
 import requests
 from requests.exceptions import RequestException
 
-from prism.errors import APIError
+from prism.errors import APIError, APIKeyError
 from prism.player import Tags, TagSeverity
 from prism.ratelimiting import RateLimiter
 from prism.requests import make_prism_requests_session
@@ -54,6 +54,12 @@ class FlashlightTagsProvider:
             raise ExecutionError(
                 "Request to flashlight failed due to an unknown error"
             ) from e
+
+        if response.status_code == 401:
+            raise APIKeyError(
+                "Request to flashlight failed with HTTP 401 Unauthorized - "
+                "invalid urchin API key"
+            )
 
         if response.status_code == 429 or response.status_code == 503 and not last_try:
             raise ExecutionError(

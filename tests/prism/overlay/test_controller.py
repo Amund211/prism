@@ -149,10 +149,17 @@ def test_overlay_controller_get_tags() -> None:
     error = APIError()
     uuid = controller.get_tags("username")
     assert uuid is ERROR_DURING_PROCESSING
+    assert not controller.urchin_api_key_invalid
+
+    error = APIKeyError()
+    uuid = controller.get_tags("username")
+    assert uuid is ERROR_DURING_PROCESSING
+    assert controller.urchin_api_key_invalid
 
     error = None
     uuid = controller.get_tags("username")
     assert uuid == returned_tags
+    assert not controller.urchin_api_key_invalid
 
 
 def test_overlay_controller_get_estimated_winstreaks_success() -> None:
@@ -340,3 +347,31 @@ def test_overlay_controller_get_estimated_winstreaks_error_handling(
         controller.missing_local_issuer_certificate
         == result_flags.missing_local_issuer_certificate
     )
+
+
+def test_overlay_controller_get_tags_with_invalid_key() -> None:
+    """Test that urchin API key is not passed when flag is set"""
+    returned_tags = Tags(sniping="medium", cheating="none")
+
+    def get_tags_mock(username: str, user_id: str, urchin_api_key: str | None) -> Tags:
+        assert username == "username"
+        assert user_id == "1234"
+        # Should be None because the flag is set
+        assert urchin_api_key is None
+
+        return returned_tags
+
+    controller = create_controller(
+        settings=make_settings(
+            user_id="1234",
+            urchin_api_key="test-urchin-key",
+        ),
+        tags_provider=MockedTagsProvider(get_tags=get_tags_mock),
+    )
+
+    # Set the flag to invalid
+    controller.urchin_api_key_invalid = True
+
+    # The key should not be passed to the provider
+    tags = controller.get_tags("username")
+    assert tags == returned_tags
