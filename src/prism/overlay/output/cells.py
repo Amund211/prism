@@ -1,6 +1,17 @@
 from dataclasses import dataclass
 from typing import Literal, Self, TypeGuard
 
+GUI_COLORS = (
+    "gray60",
+    "snow",
+    "yellow",
+    "#FF8800",
+    "red",
+)
+
+AMT_COLORS = len(GUI_COLORS)
+
+
 ColumnName = Literal[
     "username",
     "stars",

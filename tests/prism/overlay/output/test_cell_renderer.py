@@ -5,7 +5,6 @@ from dataclasses import replace
 import pytest
 
 from prism.overlay.output.cell_renderer import (
-    GUI_COLORS,
     RenderedStats,
     pick_columns,
     rate_value_ascending,
@@ -15,6 +14,7 @@ from prism.overlay.output.cell_renderer import (
 )
 from prism.overlay.output.cells import (
     ALL_COLUMN_NAMES_ORDERED,
+    GUI_COLORS,
     CellValue,
     ColorSection,
     ColumnName,
