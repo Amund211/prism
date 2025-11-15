@@ -173,6 +173,10 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
         new_settings["use_antisniper_api"] != controller.settings.use_antisniper_api
     )
 
+    urchin_api_key_changed = (
+        new_settings["urchin_api_key"] != controller.settings.urchin_api_key
+    )
+
     # True if the stats could be affected by the settings update
     potential_antisniper_updates = (
         antisniper_api_key_changed or use_antisniper_api_changed
@@ -199,6 +203,10 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
     if antisniper_api_key_changed:
         controller.antisniper_api_key_throttled = False
         controller.antisniper_api_key_invalid = False
+
+    # Update the Urchin API key
+    if urchin_api_key_changed:
+        controller.urchin_api_key_invalid = False
 
     # Update the player cache
     if potential_antisniper_updates:
