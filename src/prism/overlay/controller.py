@@ -205,13 +205,19 @@ class OverlayController:
             )
         except APIKeyError as e:
             logger.warning(
-                f"Invalid Urchin API key getting tags for {uuid=}", exc_info=e
+                f"Invalid Urchin API key getting tags for {uuid=}, "
+                f"passed_key={urchin_api_key is not None}",
+                exc_info=e,
             )
-            self.urchin_api_key_invalid = True
+            # Only mark as invalid if we actually passed a key
+            if urchin_api_key is not None:
+                self.urchin_api_key_invalid = True
             return ERROR_DURING_PROCESSING
         except APIError as e:
             logger.error(f"Error getting tags for {uuid=}", exc_info=e)
             return ERROR_DURING_PROCESSING
         else:
-            self.urchin_api_key_invalid = False
+            # Only clear the invalid flag if we successfully used an API key
+            if urchin_api_key is not None:
+                self.urchin_api_key_invalid = False
             return tags

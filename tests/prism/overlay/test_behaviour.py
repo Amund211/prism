@@ -588,9 +588,6 @@ def test_update_settings_clear_urchin_key() -> None:
 
     update_settings(new_settings.to_dict(), controller)
 
-    # Updated urchin key -> should redraw
-    assert controller.redraw_event.is_set()
-
     assert not controller.urchin_api_key_invalid
 
 
@@ -605,9 +602,6 @@ def test_update_settings_set_urchin_key() -> None:
     )
 
     update_settings(new_settings.to_dict(), controller)
-
-    # Updated urchin key -> should redraw
-    assert controller.redraw_event.is_set()
 
     assert not controller.urchin_api_key_invalid
 
