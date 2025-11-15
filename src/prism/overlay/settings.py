@@ -307,7 +307,7 @@ def fill_missing_settings(
 
     urchin_api_key = incomplete_settings.get("urchin_api_key", None)
     if not isinstance(urchin_api_key, str) or not api_key_is_valid(urchin_api_key):
-        settings_updated = True
+        settings_updated |= urchin_api_key is not None
         urchin_api_key = None
 
     sort_order: ColumnName | object = incomplete_settings.get("sort_order", None)

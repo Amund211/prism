@@ -917,6 +917,24 @@ fill_settings_test_cases: tuple[
         make_settings_dict(),
         True,
     ),
+    (
+        # No urchin api key
+        {"urchin_api_key": None},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # No urchin api key
+        {},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # Invalid data for urchin api key
+        {"urchin_api_key": {}},
+        make_settings_dict(),
+        True,
+    ),
 )
 
 

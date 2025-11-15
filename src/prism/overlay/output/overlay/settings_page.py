@@ -187,15 +187,17 @@ class UrchinSection:  # pragma: nocover
         info_label = tk.Label(
             self.frame,
             text=(
-                "Urchin API provides additional player information and tags. "
-                "Visit https://urchin.prismoverlay.com to get an API key."
+                "Prism uses the Urchin API to check if players are known cheaters or "
+                "snipers.\nThis works out of the box, but you can provide your own API "
+                "key to get access to your private tags.\n"
+                "Visit https://urchin.ws/ for more information."
             ),
             font=("Consolas", 10),
             foreground="white",
             background="black",
         )
         info_label.bind("<Configure>", lambda e: info_label.config(wraplength=400))
-        info_label.grid(row=0, columnspan=2)
+        info_label.grid(row=0, columnspan=4)
         parent.make_widgets_scrollable(info_label)
 
         api_key_label = tk.Label(
@@ -246,12 +248,15 @@ class UrchinSection:  # pragma: nocover
 
     def _paste_from_clipboard(self) -> None:
         """Paste the API key from clipboard into the entry field"""
+        # Hide the key again in case it was shown
+        self.urchin_api_key_entry.config(show="*")
+
         try:
             clipboard_content = self.urchin_api_key_entry.clipboard_get()
             self.urchin_api_key_variable.set(clipboard_content)
         except tk.TclError:
             # Clipboard is empty or contains non-text data
-            logger.debug("Failed to get clipboard content for urchin API key")
+            logger.exception("Failed to get clipboard content for urchin API key")
 
     def set(self, settings: UrchinSettings) -> None:
         """Set the state of this section"""
