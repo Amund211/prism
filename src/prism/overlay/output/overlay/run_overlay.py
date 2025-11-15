@@ -148,6 +148,18 @@ def run_overlay(
                 )
             )
 
+        if controller.urchin_api_key_invalid:
+            info_cells.append(
+                InfoCellValue(
+                    text=(
+                        "Invalid Urchin API key - using default\n"
+                        "Update or remove the key in the settings menu."
+                    ),
+                    color="red" if time.monotonic() % 2 > 1 else "white",
+                    url=None,
+                )
+            )
+
         block_duration_seconds = max(
             controller._winstreak_provider.seconds_until_unblocked,
             controller._player_provider.seconds_until_unblocked,

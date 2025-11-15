@@ -78,6 +78,7 @@ class OverlayController:
 
         self.antisniper_api_key_invalid = False
         self.antisniper_api_key_throttled = False
+        self.urchin_api_key_invalid = False
 
         self.missing_local_issuer_certificate = False
 
@@ -191,14 +192,32 @@ class OverlayController:
             return winstreaks, accurate
 
     def get_tags(self, uuid: str) -> Tags | ProcessingError:
+        # Don't pass the API key if it's invalid
+        urchin_api_key = (
+            None if self.urchin_api_key_invalid else self.settings.urchin_api_key
+        )
+
         try:
             tags = self._tags_provider.get_tags(
                 uuid=uuid,
                 user_id=self.settings.user_id,
-                urchin_api_key=self.settings.urchin_api_key,
+                urchin_api_key=urchin_api_key,
             )
+        except APIKeyError as e:
+            logger.warning(
+                f"Invalid Urchin API key getting tags for {uuid=}, "
+                f"passed_key={urchin_api_key is not None}",
+                exc_info=e,
+            )
+            # Only mark as invalid if we actually passed a key
+            if urchin_api_key is not None:
+                self.urchin_api_key_invalid = True
+            return ERROR_DURING_PROCESSING
         except APIError as e:
             logger.error(f"Error getting tags for {uuid=}", exc_info=e)
             return ERROR_DURING_PROCESSING
         else:
+            # Only clear the invalid flag if we successfully used an API key
+            if urchin_api_key is not None:
+                self.urchin_api_key_invalid = False
             return tags
