@@ -195,7 +195,7 @@ class OverlayController:
             tags = self._tags_provider.get_tags(
                 uuid=uuid,
                 user_id=self.settings.user_id,
-                urchin_api_key=None,  # TODO: Implement urchin api key setting
+                urchin_api_key=self.settings.urchin_api_key,
             )
         except APIError as e:
             logger.error(f"Error getting tags for {uuid=}", exc_info=e)

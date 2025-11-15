@@ -10,6 +10,7 @@ from prism.utils import (
     format_seconds,
     format_seconds_short,
     insort_right,
+    is_uuid,
     pluralize,
     read_key,
     truncate_float,
@@ -204,3 +205,18 @@ def test_format_seconds(seconds: float, text: str) -> None:
 )
 def test_format_seconds_short(seconds: float, decimals: int, text: str) -> None:
     assert format_seconds_short(seconds, decimals) == text
+
+
+@pytest.mark.parametrize(
+    "string, result",
+    (
+        ("01234567-89ab-cdef-0123-456789abcdef", True),
+        ("550e8400-e29b-41d4-a716-446655440000", True),
+        ("550e8400e29b41d4a716446655440000", True),  # Undashed
+        ("not-a-uuid", False),
+        ("12345678-1234-1234-1234-1234567890ab", True),
+        ("123456781234123412341234567890ab", True),  # Undashed
+    ),
+)
+def test_is_uuid(string: str, result: bool) -> None:
+    assert is_uuid(string) == result

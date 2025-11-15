@@ -1,4 +1,5 @@
 import math
+import uuid
 from collections import deque
 from enum import Enum, unique
 from pathlib import Path
@@ -42,6 +43,15 @@ def div(dividend: float, divisor: float) -> float:
     elif divisor == 0:
         return dividend
     return dividend / divisor
+
+
+def is_uuid(string: str) -> bool:
+    """Check if the given string is a valid UUID"""
+    try:
+        uuid.UUID(string)
+        return True
+    except ValueError:
+        return False
 
 
 Element = TypeVar("Element", bound=SupportsLT)
