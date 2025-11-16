@@ -45,8 +45,6 @@ class SettingsDict(TypedDict):
 
     user_id: str
     hypixel_api_key: str | None
-    antisniper_api_key: str | None
-    use_antisniper_api: bool
     urchin_api_key: str | None
     sort_order: ColumnName
     column_order: tuple[ColumnName, ...]
@@ -81,8 +79,6 @@ class Settings:
 
     user_id: str
     hypixel_api_key: str | None
-    antisniper_api_key: str | None
-    use_antisniper_api: bool
     urchin_api_key: str | None
     sort_order: ColumnName
     column_order: tuple[ColumnName, ...]
@@ -134,8 +130,6 @@ class Settings:
         return cls(
             user_id=source["user_id"],
             hypixel_api_key=source["hypixel_api_key"],
-            antisniper_api_key=source["antisniper_api_key"],
-            use_antisniper_api=source["use_antisniper_api"],
             urchin_api_key=source["urchin_api_key"],
             sort_order=source["sort_order"],
             column_order=source["column_order"],
@@ -169,8 +163,6 @@ class Settings:
         return {
             "user_id": self.user_id,
             "hypixel_api_key": self.hypixel_api_key,
-            "antisniper_api_key": self.antisniper_api_key,
-            "use_antisniper_api": self.use_antisniper_api,
             "urchin_api_key": self.urchin_api_key,
             "sort_order": self.sort_order,
             "column_order": self.column_order,
@@ -203,8 +195,6 @@ class Settings:
         """Update the settings from the settings dict"""
         self.user_id = new_settings["user_id"]
         self.hypixel_api_key = new_settings["hypixel_api_key"]
-        self.antisniper_api_key = new_settings["antisniper_api_key"]
-        self.use_antisniper_api = new_settings["use_antisniper_api"]
         self.urchin_api_key = new_settings["urchin_api_key"]
         self.sort_order = new_settings["sort_order"]
         self.column_order = new_settings["column_order"]
@@ -294,17 +284,6 @@ def fill_missing_settings(
     ):
         settings_updated = True
         hypixel_api_key = None
-
-    antisniper_api_key = incomplete_settings.get("antisniper_api_key", None)
-    if not isinstance(antisniper_api_key, str) or not api_key_is_valid(
-        antisniper_api_key
-    ):
-        settings_updated = True
-        antisniper_api_key = None
-
-    use_antisniper_api, settings_updated = get_boolean_setting(
-        incomplete_settings, "use_antisniper_api", settings_updated, default=True
-    )
 
     urchin_api_key = incomplete_settings.get("urchin_api_key", None)
     if not isinstance(urchin_api_key, str) or not is_uuid(urchin_api_key):
@@ -478,8 +457,6 @@ def fill_missing_settings(
     return {
         "user_id": user_id,
         "hypixel_api_key": hypixel_api_key,
-        "antisniper_api_key": antisniper_api_key,
-        "use_antisniper_api": use_antisniper_api,
         "urchin_api_key": urchin_api_key,
         "sort_order": sort_order,
         "column_order": column_order,

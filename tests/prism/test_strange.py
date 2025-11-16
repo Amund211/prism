@@ -1,9 +1,6 @@
-from prism.overlay.antisniper_api import (
-    STATS_ENDPOINT,
-    StrangePlayerProvider,
-)
 from prism.player import MISSING_WINSTREAKS
 from prism.requests import make_prism_requests_session
+from prism.strange import STATS_ENDPOINT, StrangePlayerProvider
 from tests.prism.overlay.utils import make_winstreaks
 
 assert MISSING_WINSTREAKS == make_winstreaks()

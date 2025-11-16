@@ -69,15 +69,13 @@ def main() -> None:  # pragma: nocover
     # Import late so we can patch ssl certs in requests
     from prism.flashlight.account import FlashlightAccountProvider
     from prism.flashlight.tags import FlashlightTagsProvider
-    from prism.overlay.antisniper_api import (
-        StrangePlayerProvider,
-    )
     from prism.overlay.controller import OverlayController
     from prism.overlay.output.overlay.run_overlay import run_overlay
     from prism.overlay.process_loglines import (
         prompt_and_read_logfile,
     )
     from prism.requests import make_prism_requests_session
+    from prism.strange import StrangePlayerProvider
 
     session = make_prism_requests_session()
 
@@ -87,6 +85,7 @@ def main() -> None:  # pragma: nocover
     player_provider = StrangePlayerProvider(
         retry_limit=5, initial_timeout=2, get_time_ns=time.time_ns, session=session
     )
+    # Use placeholder winstreak provider - no actual API integration
     winstreak_provider = PlaceholderWinstreakProvider()
     tags_provider = FlashlightTagsProvider(
         retry_limit=5, initial_timeout=2, session=session
