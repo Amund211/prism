@@ -4,7 +4,14 @@ import pytest
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
 from prism.overlay.controller import ERROR_DURING_PROCESSING
-from prism.player import MISSING_WINSTREAKS, KnownPlayer, Stats, Tags, Winstreaks
+from prism.player import (
+    MISSING_WINSTREAKS,
+    Account,
+    KnownPlayer,
+    Stats,
+    Tags,
+    Winstreaks,
+)
 from prism.ssl_errors import MissingLocalIssuerSSLError
 from tests.prism.overlay.utils import (
     MockedAccountProvider,
@@ -21,12 +28,12 @@ def test_overlay_controller_get_uuid() -> None:
     error: Exception | None = None
     returned_uuid: str = ""
 
-    def get_uuid_mock(username: str) -> str:
+    def get_account_by_username(username: str) -> Account:
         assert username == "username"
         if error:
             raise error
 
-        return returned_uuid
+        return Account(username="username", uuid=returned_uuid)
 
     controller = create_controller(
         settings=make_settings(
@@ -34,7 +41,9 @@ def test_overlay_controller_get_uuid() -> None:
             use_antisniper_api=True,
             user_id="1234",
         ),
-        account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid_mock),
+        account_provider=MockedAccountProvider(
+            get_account_by_username=get_account_by_username
+        ),
     )
 
     error = APIError()

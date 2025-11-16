@@ -19,7 +19,7 @@ from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKeyDict
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.settings import NickValue, Settings, SettingsDict, get_settings
-from prism.player import MISSING_WINSTREAKS, KnownPlayer, Tags, Winstreaks
+from prism.player import MISSING_WINSTREAKS, Account, KnownPlayer, Tags, Winstreaks
 from tests.prism.overlay import test_get_stats
 from tests.prism.overlay.test_settings import (
     DEFAULT_STATS_THREAD_COUNT,
@@ -67,7 +67,9 @@ def test_set_nickname(known_nicks: dict[str, str]) -> None:
 
     controller = create_controller(
         account_provider=MockedAccountProvider(
-            get_uuid_for_username=lambda username: UUID
+            get_account_by_username=lambda username: Account(
+                username=username, uuid=UUID
+            )
         ),
         settings=make_settings(write_settings_file_utf8=lambda: settings_file),
     )
@@ -136,14 +138,16 @@ def test_unset_nickname(known_nicks: dict[str, str], explicit: bool) -> None:
     """
     settings_file = no_close(io.StringIO())
 
-    def get_uuid(_: str) -> str:
+    def get_account_by_username(_: str) -> Account:
         if explicit:
-            return UUID
+            return Account(username=USERNAME, uuid=UUID)
 
         raise PlayerNotFoundError
 
     controller = create_controller(
-        account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
+        account_provider=MockedAccountProvider(
+            get_account_by_username=get_account_by_username
+        ),
         settings=make_settings(write_settings_file_utf8=lambda: settings_file),
     )
     controller.player_cache.uncache_player = unittest.mock.MagicMock()  # type: ignore
@@ -254,12 +258,12 @@ def test_get_and_cache_stats(
 
         return (MISSING_WINSTREAKS, False)
 
-    def get_uuid(username: str) -> str:
+    def get_account_by_username(username: str) -> Account:
         if username == user.nick:
             raise PlayerNotFoundError
 
         assert username == user.username
-        return user.uuid
+        return Account(username=user.username, uuid=user.uuid)
 
     def get_player(uuid: str, user_id: str) -> KnownPlayer:
         assert uuid == user.uuid
@@ -277,7 +281,9 @@ def test_get_and_cache_stats(
         )
 
     controller = create_controller(
-        account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
+        account_provider=MockedAccountProvider(
+            get_account_by_username=get_account_by_username
+        ),
         player_provider=MockedPlayerProvider(get_player=get_player),
         winstreak_provider=MockedWinstreakProvider(
             get_estimated_winstreaks_for_uuid=get_estimated_winstreaks
@@ -318,12 +324,12 @@ def test_get_and_cache_stats_tags_error() -> None:
         assert uuid == user.uuid
         return (MISSING_WINSTREAKS, False)
 
-    def get_uuid(username: str) -> str:
+    def get_account_by_username(username: str) -> Account:
         if username == user.nick:
             raise PlayerNotFoundError
 
         assert username == user.username
-        return user.uuid
+        return Account(username=user.username, uuid=user.uuid)
 
     def get_player(uuid: str, user_id: str) -> KnownPlayer:
         assert uuid == user.uuid
@@ -338,7 +344,9 @@ def test_get_and_cache_stats_tags_error() -> None:
         raise APIError("API failure")
 
     controller = create_controller(
-        account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
+        account_provider=MockedAccountProvider(
+            get_account_by_username=get_account_by_username
+        ),
         player_provider=MockedPlayerProvider(get_player=get_player),
         winstreak_provider=MockedWinstreakProvider(
             get_estimated_winstreaks_for_uuid=get_estimated_winstreaks
@@ -1052,8 +1060,8 @@ def test_autodenick_teammate(
     lobby_players = cast(set[str], {player.nick or player.username for player in lobby})
     assert all(isinstance(player, str) for player in lobby_players)
 
-    def get_uuid(username: str) -> str:
-        return f"uuid-for-{username}"
+    def get_account_by_username(username: str) -> Account:
+        return Account(username=username, uuid=f"uuid-for-{username}")
 
     controller = create_controller(
         state=create_state(
@@ -1062,7 +1070,9 @@ def test_autodenick_teammate(
             in_queue=True,
             out_of_sync=False,
         ),
-        account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
+        account_provider=MockedAccountProvider(
+            get_account_by_username=get_account_by_username
+        ),
     )
 
     # Update the controller state by setting cache and denicks
@@ -1091,7 +1101,7 @@ def test_autodenick_teammate(
                     variant="player",
                     username=player.username,
                     nick=player.nick,
-                    uuid=get_uuid(player.username),
+                    uuid=get_account_by_username(player.username).uuid,
                 ),
                 genus=0,
             )

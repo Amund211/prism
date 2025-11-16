@@ -4,7 +4,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Protocol
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
-from prism.player import MISSING_WINSTREAKS, KnownPlayer, Tags, Winstreaks
+from prism.player import MISSING_WINSTREAKS, Account, KnownPlayer, Tags, Winstreaks
 from prism.ssl_errors import MissingLocalIssuerSSLError
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -23,7 +23,12 @@ ERROR_DURING_PROCESSING = ProcessingError.token
 
 
 class AccountProvider(Protocol):
-    def get_uuid_for_username(self, username: str, /) -> str: ...
+    def get_account_by_username(
+        self,
+        username: str,
+        *,
+        user_id: str,
+    ) -> Account: ...
 
 
 class PlayerProvider(Protocol):
@@ -100,7 +105,9 @@ class OverlayController:
 
     def get_uuid(self, username: str) -> str | None | ProcessingError:
         try:
-            uuid = self._account_provider.get_uuid_for_username(username)
+            account = self._account_provider.get_account_by_username(
+                username, user_id=self.settings.user_id
+            )
         except PlayerNotFoundError:
             self.missing_local_issuer_certificate = False
             return None
@@ -114,7 +121,7 @@ class OverlayController:
             return ERROR_DURING_PROCESSING
         else:
             self.missing_local_issuer_certificate = False
-            return uuid
+            return account.uuid
 
     def get_player(self, uuid: str) -> KnownPlayer | None | ProcessingError:
         try:

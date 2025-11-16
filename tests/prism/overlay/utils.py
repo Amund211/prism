@@ -21,6 +21,7 @@ from prism.overlay.player_cache import PlayerCache
 from prism.overlay.settings import NickValue, Settings, fill_missing_settings
 from prism.overlay.state import OverlayState
 from prism.player import (
+    Account,
     KnownPlayer,
     NickedPlayer,
     PendingPlayer,
@@ -323,11 +324,11 @@ def assert_not_called(*args: Any, **kwargs: Any) -> Any:
 
 
 class MockedAccountProvider:
-    def __init__(self, get_uuid_for_username: Callable[[str], str]) -> None:
-        self._get_uuid_for_username = get_uuid_for_username
+    def __init__(self, get_account_by_username: Callable[[str], Account]) -> None:
+        self._get_account_by_username = get_account_by_username
 
-    def get_uuid_for_username(self, username: str, /) -> str:
-        return self._get_uuid_for_username(username)
+    def get_account_by_username(self, username: str, *, user_id: str) -> Account:
+        return self._get_account_by_username(username)
 
 
 class MockedPlayerProvider:
