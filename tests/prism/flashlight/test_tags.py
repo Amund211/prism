@@ -7,10 +7,13 @@ from prism.flashlight.tags import (
     validate_tag_severity,
 )
 from prism.player import Tags, TagSeverity
+from prism.requests import make_prism_requests_session
 
 
 def test_make_tags_provider() -> None:
-    provider = FlashlightTagsProvider(retry_limit=3, initial_timeout=1.0)
+    provider = FlashlightTagsProvider(
+        retry_limit=3, initial_timeout=1.0, session=make_prism_requests_session()
+    )
     assert provider.seconds_until_unblocked == 0.0
 
 

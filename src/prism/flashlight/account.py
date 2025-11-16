@@ -9,7 +9,6 @@ from prism.errors import APIError, PlayerNotFoundError
 from prism.flashlight.url import FLASHLIGHT_API_URL
 from prism.player import Account
 from prism.ratelimiting import RateLimiter
-from prism.requests import make_prism_requests_session
 from prism.retry import ExecutionError, execute_with_retry
 from prism.utils import is_uuid
 
@@ -20,12 +19,13 @@ class FlashlightAccountProvider:
     def __init__(
         self,
         *,
+        session: requests.Session,
         retry_limit: int,
         initial_timeout: float,
     ) -> None:
         self._retry_limit = retry_limit
         self._initial_timeout = initial_timeout
-        self._session = make_prism_requests_session()
+        self._session = session
         self._limiter = RateLimiter(limit=120, window=60)
 
     @property

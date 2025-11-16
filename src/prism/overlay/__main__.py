@@ -77,13 +77,20 @@ def main() -> None:  # pragma: nocover
     from prism.overlay.process_loglines import (
         prompt_and_read_logfile,
     )
+    from prism.requests import make_prism_requests_session
 
-    account_provider = FlashlightAccountProvider(retry_limit=5, initial_timeout=2)
+    session = make_prism_requests_session()
+
+    account_provider = FlashlightAccountProvider(
+        retry_limit=5, initial_timeout=2, session=session
+    )
     player_provider = StrangePlayerProvider(
         retry_limit=5, initial_timeout=2, get_time_ns=time.time_ns
     )
     winstreak_provider = PlaceholderWinstreakProvider()
-    tags_provider = FlashlightTagsProvider(retry_limit=5, initial_timeout=2)
+    tags_provider = FlashlightTagsProvider(
+        retry_limit=5, initial_timeout=2, session=session
+    )
 
     controller = OverlayController(
         state=OverlayState(),
