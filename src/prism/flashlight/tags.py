@@ -6,14 +6,13 @@ import requests
 from requests.exceptions import RequestException
 
 from prism.errors import APIError, APIKeyError
+from prism.flashlight.url import FLASHLIGHT_API_URL
 from prism.player import Tags, TagSeverity
 from prism.ratelimiting import RateLimiter
 from prism.requests import make_prism_requests_session
 from prism.retry import ExecutionError, execute_with_retry
 
 logger = logging.getLogger(__name__)
-
-FLASHLIGHT_API_URL = "https://flashlight.prismoverlay.com"
 
 
 class FlashlightTagsProvider:
