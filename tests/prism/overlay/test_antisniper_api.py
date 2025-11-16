@@ -10,7 +10,7 @@ assert MISSING_WINSTREAKS == make_winstreaks()
 
 def test_stats_endpoint() -> None:
     # Make sure we don't release a version using the test endpoint
-    assert STATS_ENDPOINT == "https://flashlight.recdep.no"
+    assert STATS_ENDPOINT == "https://flashlight.prismoverlay.com/v1/playerdata"
 
 
 def test_strange_player_provider() -> None:

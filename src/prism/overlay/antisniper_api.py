@@ -16,7 +16,7 @@ from prism.ssl_errors import MissingLocalIssuerSSLError, is_missing_local_issuer
 
 logger = logging.getLogger(__name__)
 
-STATS_ENDPOINT = "https://flashlight.recdep.no"
+STATS_ENDPOINT = "https://flashlight.prismoverlay.com/v1/playerdata"
 WINSTREAK_ENDPOINT = "https://api.antisniper.net/v2/player/winstreak"
 
 REQUEST_LIMIT, REQUEST_WINDOW = 360, 60  # Max requests per time window
