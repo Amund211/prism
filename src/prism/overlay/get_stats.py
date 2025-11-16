@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def denick(nick: str, controller: OverlayController) -> str | None:
-    """Try denicking via the antisniper API, fallback to dict"""
+    """Try denicking via the nick database"""
     uuid = controller.nick_database.get_default(nick)
 
     # Return if the user has specified a denick

@@ -242,10 +242,7 @@ def test_get_and_cache_stats(
     )
     assert user.nick is not None  # For typing
 
-    def get_estimated_winstreaks(
-        uuid: str, antisniper_api_key: str
-    ) -> tuple[Winstreaks, bool]:
-        assert antisniper_api_key == "test_key"
+    def get_estimated_winstreaks(uuid: str) -> tuple[Winstreaks, bool]:
         assert uuid == user.uuid
 
         if estimated_winstreaks_from_provider:
@@ -290,10 +287,6 @@ def test_get_and_cache_stats(
         ),
         tags_provider=MockedTagsProvider(get_tags=get_tags),
         nick_database=NickDatabase([{user.nick: user.uuid}]),
-        settings=make_settings(
-            use_antisniper_api=True,  # Always enable antisniper API for testing
-            antisniper_api_key="test_key",
-        ),
     )
 
     completed_queue = queue.Queue[str]()
@@ -318,9 +311,7 @@ def test_get_and_cache_stats_tags_error() -> None:
     user = test_get_stats.users["NickedPlayer"]
     assert user.nick is not None  # For typing
 
-    def get_estimated_winstreaks(
-        uuid: str, antisniper_api_key: str
-    ) -> tuple[Winstreaks, bool]:
+    def get_estimated_winstreaks(uuid: str) -> tuple[Winstreaks, bool]:
         assert uuid == user.uuid
         return (MISSING_WINSTREAKS, False)
 
@@ -353,10 +344,6 @@ def test_get_and_cache_stats_tags_error() -> None:
         ),
         tags_provider=MockedTagsProvider(get_tags=get_tags),
         nick_database=NickDatabase([{user.nick: user.uuid}]),
-        settings=make_settings(
-            use_antisniper_api=True,  # Always enable antisniper API for testing
-            antisniper_api_key="test_key",
-        ),
     )
 
     completed_queue = queue.Queue[str]()
@@ -453,22 +440,17 @@ def test_update_settings_everything_changed() -> None:
             "SuperbNick": {"uuid": "2", "comment": "2"},
             "AstoundingNick": {"uuid": "3", "comment": "3"},
         },
-        antisniper_api_key="my-api-key",
         write_settings_file_utf8=lambda: settings_file,
     )
 
     controller = create_controller(
         settings=settings,
-        antisniper_api_key_invalid=True,
-        antisniper_api_key_throttled=True,
     )
 
     # NOTE: Make sure everything specified here is different from its default value
     new_settings = SettingsDict(
         user_id="my-user-id",
         hypixel_api_key="my-new-hypixel-api-key",
-        antisniper_api_key="my-new-antisniper-api-key",
-        use_antisniper_api=True,
         urchin_api_key="01234567-89ab-cdef-0123-456789abcdef",
         sort_order="wlr",
         column_order=("username", "winstreak"),
@@ -528,62 +510,18 @@ def test_update_settings_everything_changed() -> None:
         "SuperbNick": "42",
     }
 
-    assert controller.player_cache.clear_cache.call_count == 1
+    # Nicknames changed, so individual players should be uncached
+    # (not whole cache cleared)
+    controller.player_cache.clear_cache.assert_not_called()
+    # AmazingNick updated (comment changed),
+    # SuperbNick updated (uuid changed), and AstoundingNick removed
+    assert controller.player_cache.uncache_player.call_count == 3
 
     # Discord rpc settings changed so we want to update it
     assert controller.update_presence_event.is_set()
 
     # Lots of stuff changed, so we want to redraw
     assert controller.redraw_event.is_set()
-
-    assert not controller.antisniper_api_key_invalid
-    assert not controller.antisniper_api_key_throttled
-
-
-def test_update_settings_clear_antisniper_key() -> None:
-    controller = create_controller(
-        settings=make_settings(antisniper_api_key="my-api-key"),
-        antisniper_api_key_invalid=True,
-        antisniper_api_key_throttled=True,
-    )
-    controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
-
-    new_settings = replace(controller.settings, antisniper_api_key=None)
-
-    update_settings(new_settings.to_dict(), controller)
-
-    # Updated antisniper key -> should clear cache
-    assert controller.player_cache.clear_cache.call_count == 1
-
-    # Updated antisniper key -> should redraw
-    assert controller.redraw_event.is_set()
-
-    assert not controller.antisniper_api_key_invalid
-    assert not controller.antisniper_api_key_throttled
-
-
-def test_update_settings_set_antisniper_key() -> None:
-    controller = create_controller(
-        settings=make_settings(antisniper_api_key=None),
-        antisniper_api_key_invalid=True,
-        antisniper_api_key_throttled=True,
-    )
-    controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
-
-    new_settings = replace(
-        controller.settings, antisniper_api_key="my-new-antisniper-api-key"
-    )
-
-    update_settings(new_settings.to_dict(), controller)
-
-    # Updated antisniper key -> should clear cache
-    assert controller.player_cache.clear_cache.call_count == 1
-
-    # Updated antisniper key -> should redraw
-    assert controller.redraw_event.is_set()
-
-    assert not controller.antisniper_api_key_invalid
-    assert not controller.antisniper_api_key_throttled
 
 
 def test_update_settings_clear_urchin_key() -> None:
@@ -1124,12 +1062,8 @@ def test_autodenick_teammate(
     (
         create_controller(state=create_state(in_queue=False)),
         create_controller(state=create_state(out_of_sync=True)),
-        create_controller(antisniper_api_key_invalid=True),
-        create_controller(antisniper_api_key_throttled=True),
         create_controller(
             state=create_state(in_queue=False, out_of_sync=True),
-            antisniper_api_key_invalid=True,
-            antisniper_api_key_throttled=True,
         ),
     ),
 )

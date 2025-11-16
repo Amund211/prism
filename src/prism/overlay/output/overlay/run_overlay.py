@@ -136,18 +136,6 @@ def run_overlay(
                 )
             )
 
-        if controller.antisniper_api_key_invalid:
-            info_cells.append(
-                InfoCellValue(
-                    text=(
-                        "Invalid AntiSniper API key. "
-                        "Get a new one from antisniper.net"
-                    ),
-                    color="red" if time.monotonic() % 2 > 1 else "white",
-                    url=None,
-                )
-            )
-
         if controller.urchin_api_key_invalid:
             info_cells.append(
                 InfoCellValue(
@@ -184,15 +172,6 @@ def run_overlay(
                         "in the settings menu and *RESTART* the overlay."
                     ),
                     color="red",
-                    url=None,
-                )
-            )
-
-        if controller.antisniper_api_key_throttled:
-            info_cells.append(
-                InfoCellValue(
-                    text="AntiSniper ratelimit reached! Wait time ~1 min.",
-                    color="orange" if time.monotonic() % 2 > 1 else "white",
                     url=None,
                 )
             )

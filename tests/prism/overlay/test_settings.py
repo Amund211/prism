@@ -17,7 +17,6 @@ from prism.overlay.keybinds import (
 from prism.overlay.output.cells import ColumnName
 from prism.overlay.output.config import RatingConfigCollectionDict
 from prism.overlay.settings import (
-    PLACEHOLDER_API_KEY,
     NickValue,
     Settings,
     SettingsDict,
@@ -53,8 +52,6 @@ def noop_update_settings(
 def make_settings_dict(
     user_id: str | None = None,
     hypixel_api_key: str | None = None,
-    antisniper_api_key: str | None = None,
-    use_antisniper_api: bool | None = None,
     urchin_api_key: str | None = None,
     sort_order: ColumnName | None = None,
     column_order: tuple[ColumnName, ...] | None = None,
@@ -88,8 +85,6 @@ def make_settings_dict(
     return {
         "user_id": value_or_default(user_id, default=DEFAULT_USER_ID),
         "hypixel_api_key": value_or_default(hypixel_api_key, default=None),
-        "antisniper_api_key": value_or_default(antisniper_api_key, default=None),
-        "use_antisniper_api": value_or_default(use_antisniper_api, default=True),
         "urchin_api_key": value_or_default(urchin_api_key, default=None),
         "sort_order": value_or_default(sort_order, default="index"),
         "column_order": value_or_default(
@@ -147,8 +142,6 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
         Settings(
             user_id="my-user-id",
             hypixel_api_key="my-key",
-            antisniper_api_key="my-key",
-            use_antisniper_api=True,
             urchin_api_key="01234567-89ab-cdef-0123-456789abcdef",
             sort_order="stars",
             column_order=("username", "winstreak", "stars"),
@@ -180,8 +173,6 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
         {
             "user_id": "my-user-id",
             "hypixel_api_key": "my-key",
-            "antisniper_api_key": "my-key",
-            "use_antisniper_api": True,
             "urchin_api_key": "01234567-89ab-cdef-0123-456789abcdef",
             "sort_order": "stars",
             "column_order": ("username", "winstreak", "stars"),
@@ -218,8 +209,6 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
         Settings(
             user_id="my-user-id-2",
             hypixel_api_key=None,
-            antisniper_api_key="my-other-key",
-            use_antisniper_api=False,
             urchin_api_key=None,
             sort_order="fkdr",
             column_order=("username", "stars", "fkdr", "wlr", "winstreak"),
@@ -251,8 +240,6 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
         {
             "user_id": "my-user-id-2",
             "hypixel_api_key": None,
-            "antisniper_api_key": "my-other-key",
-            "use_antisniper_api": False,
             "urchin_api_key": None,
             "sort_order": "fkdr",
             "column_order": ("username", "stars", "fkdr", "wlr", "winstreak"),
@@ -491,8 +478,6 @@ fill_settings_test_cases: tuple[
     (
         {
             "user_id": "my-user-id-4",
-            "antisniper_api_key": "my-key",
-            "use_antisniper_api": False,
             "urchin_api_key": "12341234-1234-1234-1234-123412341234",
             "sort_order": "winstreak",
             "column_order": ("username", "stars", "fkdr", "wlr"),
@@ -526,8 +511,6 @@ fill_settings_test_cases: tuple[
         },
         make_settings_dict(
             user_id="my-user-id-4",
-            antisniper_api_key="my-key",
-            use_antisniper_api=False,
             urchin_api_key="12341234-1234-1234-1234-123412341234",
             sort_order="winstreak",
             column_order=("username", "stars", "fkdr", "wlr"),
@@ -559,121 +542,63 @@ fill_settings_test_cases: tuple[
         ),
         False,
     ),
-    (
-        {"antisniper_api_key": "my-key"},
-        make_settings_dict(antisniper_api_key="my-key"),
-        True,
-    ),
-    (
-        {"antisniper_api_key": 1},
-        make_settings_dict(),
-        True,
-    ),
-    (
-        {"antisniper_api_key": None},
-        make_settings_dict(),
-        True,
-    ),
-    (
-        {
-            "antisniper_api_key": {},
-            "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
-        },
-        make_settings_dict(
-            known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}}
-        ),
-        True,
-    ),
-    (
-        {"antisniper_api_key": None},
-        make_settings_dict(),
-        True,
-    ),
-    (
-        {"antisniper_api_key": "my-key", "use_antisniper_api": True},
-        make_settings_dict(antisniper_api_key="my-key", use_antisniper_api=True),
-        True,
-    ),
-    # Placeholder key
-    (
-        {"antisniper_api_key": PLACEHOLDER_API_KEY},
-        make_settings_dict(),
-        True,
-    ),
-    # Key too short
-    (
-        {"antisniper_api_key": "k"},
-        make_settings_dict(),
-        True,
-    ),
-    (
-        {"antisniper_api_key": "k"},
-        make_settings_dict(),
-        True,
-    ),
     # No settings
     ({}, make_settings_dict(), True),
     # Corrupt data in known_nicks
     (
         {
-            "antisniper_api_key": "my-key",
             "known_nicks": {
                 # Key is not a string
                 1234: {"uuid": 123987, "comment": "Player1"}
             },
         },
-        make_settings_dict(antisniper_api_key="my-key"),
+        make_settings_dict(),
         True,
     ),
     (
         {
-            "antisniper_api_key": "my-key",
             "known_nicks": {
                 # Value is a string, not a dict
                 "AmazingNick": "uuid",
             },
         },
-        make_settings_dict(antisniper_api_key="my-key"),
+        make_settings_dict(),
         True,
     ),
     (
         {
-            "antisniper_api_key": "my-key",
             "known_nicks": {
                 # Incorrect type on uuid or comment
                 "AmazingNick": {"uuid": 123987, "comment": "Player1"}
             },
         },
-        make_settings_dict(antisniper_api_key="my-key"),
+        make_settings_dict(),
         True,
     ),
     (
         {
-            "antisniper_api_key": "my-key",
             "known_nicks": {
                 # Incorrect type on uuid or comment
                 "AmazingNick": {"uuid": "123987", "comment": 1234}
             },
         },
-        make_settings_dict(antisniper_api_key="my-key"),
+        make_settings_dict(),
         True,
     ),
     (
         {
-            "antisniper_api_key": "my-key",
             # Alpha hundredths out of range
             "alpha_hundredths": 1000,
         },
-        make_settings_dict(antisniper_api_key="my-key"),
+        make_settings_dict(),
         True,
     ),
     (
         {
-            "antisniper_api_key": "my-key",
             # Alpha hundredths out of range
             "alpha_hundredths": 5,
         },
-        make_settings_dict(antisniper_api_key="my-key"),
+        make_settings_dict(),
         True,
     ),
     (
@@ -989,7 +914,7 @@ def test_update_settings() -> None:
         settings.autowho = False
         settings.hide_dead_players = False
         settings.user_id = "new-user-id"
-        settings.antisniper_api_key = "updated-antisniper-key"
+
         return settings, True
 
     target_settings = Settings.from_dict(
@@ -997,7 +922,6 @@ def test_update_settings() -> None:
             autowho=False,
             hide_dead_players=False,
             user_id="new-user-id",
-            antisniper_api_key="updated-antisniper-key",
         ),
         write_settings_file_utf8=lambda: io.StringIO(),
     )
