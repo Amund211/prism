@@ -9,7 +9,6 @@ from prism.errors import APIError, APIKeyError
 from prism.flashlight.url import FLASHLIGHT_API_URL
 from prism.player import Tags, TagSeverity
 from prism.ratelimiting import RateLimiter
-from prism.requests import make_prism_requests_session
 from prism.retry import ExecutionError, execute_with_retry
 
 logger = logging.getLogger(__name__)
@@ -19,12 +18,13 @@ class FlashlightTagsProvider:
     def __init__(
         self,
         *,
+        session: requests.Session,
         retry_limit: int,
         initial_timeout: float,
     ) -> None:
         self._retry_limit = retry_limit
         self._initial_timeout = initial_timeout
-        self._session = make_prism_requests_session()
+        self._session = session
         self._limiter = RateLimiter(limit=120, window=60)
 
     @property
