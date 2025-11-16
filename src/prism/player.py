@@ -7,6 +7,14 @@ TagSeverity = Literal["none", "medium", "high"]
 
 
 @dataclass(frozen=True, slots=True)
+class Account:
+    """Dataclass holding basic account info for a player"""
+
+    uuid: str
+    username: str
+
+
+@dataclass(frozen=True, slots=True)
 class Tags:
     """Dataclass holding tags for a player"""
 
