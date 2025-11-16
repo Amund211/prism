@@ -1,7 +1,7 @@
 import pytest
 
 from prism.errors import APIError
-from prism.flashlight import (
+from prism.flashlight.tags import (
     FlashlightTagsProvider,
     parse_flashlight_tags,
     validate_tag_severity,

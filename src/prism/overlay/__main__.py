@@ -67,7 +67,7 @@ def main() -> None:  # pragma: nocover
     nick_database = NickDatabase.from_disk([], default_database=default_database)
 
     # Import late so we can patch ssl certs in requests
-    from prism.flashlight import FlashlightTagsProvider
+    from prism.flashlight.tags import FlashlightTagsProvider
     from prism.mojang import MojangAccountProvider
     from prism.overlay.antisniper_api import (
         StrangePlayerProvider,
