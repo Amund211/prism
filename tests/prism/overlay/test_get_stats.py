@@ -10,7 +10,7 @@ from prism.hypixel import create_known_player
 from prism.overlay.controller import OverlayController
 from prism.overlay.get_stats import denick, fetch_bedwars_stats, get_bedwars_stats
 from prism.overlay.nick_database import NickDatabase
-from prism.player import KnownPlayer, NickedPlayer, UnknownPlayer
+from prism.player import Account, KnownPlayer, NickedPlayer, UnknownPlayer
 from tests.prism.overlay.utils import (
     MockedAccountProvider,
     MockedPlayerProvider,
@@ -59,12 +59,12 @@ def make_scenario_controller(*users: User) -> OverlayController:
     uuid_table = {user.uuid: user for user in users}
     nick_table = {user.nick: user.uuid for user in users if user.nick is not None}
 
-    def get_uuid(username: str) -> str:
+    def get_account_by_username(username: str) -> Account:
         user = username_table.get(username, None)
         if user is None:
             raise PlayerNotFoundError("Player not found")
 
-        return user.uuid
+        return Account(uuid=user.uuid, username=user.username)
 
     def get_player(uuid: str, user_id: str) -> KnownPlayer:
         user = uuid_table.get(uuid, None)
@@ -74,7 +74,9 @@ def make_scenario_controller(*users: User) -> OverlayController:
         return user.player
 
     controller = create_controller(
-        account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
+        account_provider=MockedAccountProvider(
+            get_account_by_username=get_account_by_username
+        ),
         player_provider=MockedPlayerProvider(get_player=get_player),
         nick_database=NickDatabase([nick_table]),
     )
@@ -289,9 +291,9 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
         dataReceivedAtMs=1234567,
     )
 
-    def get_uuid(username: str) -> str:
+    def get_account_by_username(username: str) -> Account:
         assert username == my_username
-        return my_uuid
+        return Account(uuid=my_uuid, username=username)
 
     def get_player(uuid: str, user_id: str) -> KnownPlayer:
         assert uuid == my_uuid
@@ -302,7 +304,9 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
         return player
 
     controller = create_controller(
-        account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
+        account_provider=MockedAccountProvider(
+            get_account_by_username=get_account_by_username
+        ),
         player_provider=MockedPlayerProvider(get_player=get_player),
     )
 
@@ -316,25 +320,29 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
 
 
 def test_fetch_bedwars_stats_error_during_uuid() -> None:
-    def get_uuid(username: str) -> str:
+    def get_account_by_username(username: str) -> Account:
         raise APIError("Test error")
 
     controller = create_controller(
-        account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid)
+        account_provider=MockedAccountProvider(
+            get_account_by_username=get_account_by_username
+        )
     )
 
     assert fetch_bedwars_stats("someone", controller) == UnknownPlayer("someone")
 
 
 def test_fetch_bedwars_stats_error_during_playerdata() -> None:
-    def get_uuid(username: str) -> str:
-        return "uuid"
+    def get_account_by_username(username: str) -> Account:
+        return Account(username=username, uuid="uuid")
 
     def get_player(uuid: str, user_id: str) -> KnownPlayer:
         raise APIError("Test error")
 
     controller = create_controller(
-        account_provider=MockedAccountProvider(get_uuid_for_username=get_uuid),
+        account_provider=MockedAccountProvider(
+            get_account_by_username=get_account_by_username
+        ),
         player_provider=MockedPlayerProvider(get_player=get_player),
     )
 

@@ -67,8 +67,8 @@ def main() -> None:  # pragma: nocover
     nick_database = NickDatabase.from_disk([], default_database=default_database)
 
     # Import late so we can patch ssl certs in requests
+    from prism.flashlight.account import FlashlightAccountProvider
     from prism.flashlight.tags import FlashlightTagsProvider
-    from prism.mojang import MojangAccountProvider
     from prism.overlay.antisniper_api import (
         StrangePlayerProvider,
     )
@@ -78,7 +78,7 @@ def main() -> None:  # pragma: nocover
         prompt_and_read_logfile,
     )
 
-    account_provider = MojangAccountProvider(retry_limit=5, initial_timeout=2)
+    account_provider = FlashlightAccountProvider(retry_limit=5, initial_timeout=2)
     player_provider = StrangePlayerProvider(
         retry_limit=5, initial_timeout=2, get_time_ns=time.time_ns
     )
