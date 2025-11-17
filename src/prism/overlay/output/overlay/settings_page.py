@@ -1468,6 +1468,8 @@ class SettingsPage:  # pragma: nocover
         # TODO: Add section to edit known nicks
         with self.controller.settings.mutex:
             known_nicks = self.controller.settings.known_nicks.copy()
+            last_version = self.controller.settings.last_version
+            greatest_version = self.controller.settings.greatest_version
 
         # "Secret" settings, not editable in the GUI
         disable_overrideredirect = self.controller.settings.disable_overrideredirect
@@ -1506,6 +1508,8 @@ class SettingsPage:  # pragma: nocover
             disable_overrideredirect=disable_overrideredirect,
             hide_with_alpha=hide_with_alpha,
             alpha_hundredths=graphics_settings.alpha_hundredths,
+            last_version=last_version,
+            greatest_version=greatest_version,
         )
 
         with self.controller.settings.mutex:

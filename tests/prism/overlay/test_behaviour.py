@@ -6,6 +6,7 @@ from typing import cast
 
 import pytest
 
+from prism import VERSION_STRING
 from prism.errors import APIError, PlayerNotFoundError
 from prism.overlay.behaviour import (
     autodenick_teammate,
@@ -482,6 +483,10 @@ def test_update_settings_everything_changed() -> None:
         disable_overrideredirect=True,
         hide_with_alpha=True,
         alpha_hundredths=20,
+        # NOTE: Don't expect to update version info through update_settings
+        #       but testing this here regardless
+        last_version=VERSION_STRING,
+        greatest_version="v123.1.0",
     )
 
     controller.player_cache.clear_cache = unittest.mock.MagicMock()  # type: ignore
