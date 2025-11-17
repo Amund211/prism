@@ -111,8 +111,8 @@ class RPCThread(threading.Thread):  # pragma: no coverage
             update_presence = self.controller.update_presence_event.wait(timeout=15)
             self.time_since_game_end += 15
 
-            # Update presence when a game ends or every 5 minutes.
-            if not update_presence and self.time_since_game_end < 300:
+            # Update presence when a game ends
+            if not update_presence:
                 continue
 
             self.controller.update_presence_event.clear()
