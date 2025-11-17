@@ -85,7 +85,7 @@ def main() -> None:  # pragma: nocover
         retry_limit=5, initial_timeout=2, session=session
     )
     player_provider = StrangePlayerProvider(
-        retry_limit=5, initial_timeout=2, get_time_ns=time.time_ns
+        retry_limit=5, initial_timeout=2, get_time_ns=time.time_ns, session=session
     )
     winstreak_provider = PlaceholderWinstreakProvider()
     tags_provider = FlashlightTagsProvider(

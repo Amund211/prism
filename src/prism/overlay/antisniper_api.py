@@ -10,7 +10,6 @@ from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFound
 from prism.hypixel import create_known_player, get_playerdata_field
 from prism.player import KnownPlayer
 from prism.ratelimiting import RateLimiter
-from prism.requests import make_prism_requests_session
 from prism.retry import ExecutionError, execute_with_retry
 from prism.ssl_errors import MissingLocalIssuerSSLError, is_missing_local_issuer_error
 
@@ -94,6 +93,7 @@ class StrangePlayerProvider:
     def __init__(
         self,
         *,
+        session: requests.Session,
         retry_limit: int,
         initial_timeout: float,
         get_time_ns: Callable[[], int],
@@ -101,7 +101,7 @@ class StrangePlayerProvider:
         self._retry_limit = retry_limit
         self._initial_timeout = initial_timeout
         self._get_time_ns = get_time_ns
-        self._session = make_prism_requests_session()
+        self._session = session
         self._limiter = RateLimiter(limit=120, window=60)
 
     @property
