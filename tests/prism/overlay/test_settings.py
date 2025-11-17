@@ -7,6 +7,7 @@ from unittest import mock
 
 import pytest
 
+from prism import VERSION_STRING
 from prism.overlay.keybinds import (
     AlphanumericKey,
     AlphanumericKeyDict,
@@ -78,6 +79,8 @@ def make_settings_dict(
     disable_overrideredirect: bool | None = None,
     hide_with_alpha: bool | None = None,
     alpha_hundredths: int | None = None,
+    last_version: str | None = None,
+    greatest_version: str | None = None,
 ) -> SettingsDict:
     """Make a settings dict with default values if missing"""
     assert urchin_api_key is None or is_uuid(urchin_api_key)
@@ -132,6 +135,8 @@ def make_settings_dict(
         ),
         "hide_with_alpha": value_or_default(hide_with_alpha, default=False),
         "alpha_hundredths": value_or_default(alpha_hundredths, default=80),
+        "last_version": value_or_default(last_version, default=VERSION_STRING),
+        "greatest_version": value_or_default(greatest_version, default=VERSION_STRING),
     }
 
 
@@ -169,6 +174,8 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             hide_with_alpha=True,
             alpha_hundredths=80,
             write_settings_file_utf8=lambda: io.StringIO(),
+            last_version=VERSION_STRING,
+            greatest_version="v123.123.0",
         ),
         {
             "user_id": "my-user-id",
@@ -203,6 +210,8 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "disable_overrideredirect": True,
             "hide_with_alpha": True,
             "alpha_hundredths": 80,
+            "last_version": VERSION_STRING,
+            "greatest_version": "v123.123.0",
         },
     ),
     (
@@ -236,6 +245,8 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             hide_with_alpha=False,
             alpha_hundredths=30,
             write_settings_file_utf8=lambda: io.StringIO(),
+            last_version=VERSION_STRING,
+            greatest_version=VERSION_STRING,
         ),
         {
             "user_id": "my-user-id-2",
@@ -270,6 +281,8 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "disable_overrideredirect": False,
             "hide_with_alpha": False,
             "alpha_hundredths": 30,
+            "last_version": VERSION_STRING,
+            "greatest_version": VERSION_STRING,
         },
     ),
 )
@@ -508,6 +521,8 @@ fill_settings_test_cases: tuple[
             "disable_overrideredirect": True,
             "hide_with_alpha": True,
             "alpha_hundredths": 40,
+            "last_version": VERSION_STRING,
+            "greatest_version": "v123.123.0-dev",
         },
         make_settings_dict(
             user_id="my-user-id-4",
@@ -539,6 +554,8 @@ fill_settings_test_cases: tuple[
             disable_overrideredirect=True,
             hide_with_alpha=True,
             alpha_hundredths=40,
+            last_version=VERSION_STRING,
+            greatest_version="v123.123.0-dev",
         ),
         False,
     ),
@@ -861,6 +878,44 @@ fill_settings_test_cases: tuple[
         # Invalid data for urchin api key
         {"urchin_api_key": {}},
         make_settings_dict(),
+        True,
+    ),
+    (
+        # Defaults for version strings
+        {},
+        make_settings_dict(
+            last_version=VERSION_STRING, greatest_version=VERSION_STRING
+        ),
+        True,
+    ),
+    (
+        # basic version strings
+        {"last_version": "v1.2.3", "greatest_version": "v1.9.0"},
+        make_settings_dict(
+            last_version=VERSION_STRING, greatest_version=VERSION_STRING
+        ),
+        True,
+    ),
+    (
+        # Greatest version is respected
+        {"last_version": "v1.2.3", "greatest_version": "v123.123.0"},
+        make_settings_dict(last_version=VERSION_STRING, greatest_version="v123.123.0"),
+        True,
+    ),
+    (
+        # Greatest version is respected - with tag
+        {"last_version": "v1.2.3", "greatest_version": "v123.123.0-beta"},
+        make_settings_dict(
+            last_version=VERSION_STRING, greatest_version="v123.123.0-beta"
+        ),
+        True,
+    ),
+    (
+        # Invalid version strings
+        {"last_version": "invalid", "greatest_version": "alsoinvalid"},
+        make_settings_dict(
+            last_version=VERSION_STRING, greatest_version=VERSION_STRING
+        ),
         True,
     ),
 )

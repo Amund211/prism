@@ -7,6 +7,7 @@ from typing import Self, TextIO, TypedDict, TypeVar
 
 import toml
 
+from prism import VERSION_STRING
 from prism.overlay.keybinds import (
     AlphanumericKeyDict,
     Key,
@@ -25,6 +26,7 @@ from prism.overlay.output.config import (
     RatingConfigCollectionDict,
     safe_read_rating_config_collection_dict,
 )
+from prism.update_checker import CURRENT_VERSION_INFO, VersionInfo
 from prism.utils import is_uuid
 
 PLACEHOLDER_API_KEY = "insert-your-key-here"
@@ -71,6 +73,8 @@ class SettingsDict(TypedDict):
     disable_overrideredirect: bool
     hide_with_alpha: bool
     alpha_hundredths: int
+    last_version: str
+    greatest_version: str
 
 
 @dataclass
@@ -105,6 +109,8 @@ class Settings:
     disable_overrideredirect: bool
     hide_with_alpha: bool
     alpha_hundredths: int
+    last_version: str
+    greatest_version: str
 
     write_settings_file_utf8: Callable[[], TextIO] = field(compare=False, repr=False)
 
@@ -157,6 +163,8 @@ class Settings:
             hide_with_alpha=source["hide_with_alpha"],
             alpha_hundredths=source["alpha_hundredths"],
             write_settings_file_utf8=write_settings_file_utf8,
+            last_version=source["last_version"],
+            greatest_version=source["greatest_version"],
         )
 
     def to_dict(self) -> SettingsDict:
@@ -189,6 +197,8 @@ class Settings:
             "disable_overrideredirect": self.disable_overrideredirect,
             "hide_with_alpha": self.hide_with_alpha,
             "alpha_hundredths": self.alpha_hundredths,
+            "last_version": self.last_version,
+            "greatest_version": self.greatest_version,
         }
 
     def update_from(self, new_settings: SettingsDict) -> None:
@@ -223,6 +233,8 @@ class Settings:
         self.disable_overrideredirect = new_settings["disable_overrideredirect"]
         self.hide_with_alpha = new_settings["hide_with_alpha"]
         self.alpha_hundredths = new_settings["alpha_hundredths"]
+        self.last_version = new_settings["last_version"]
+        self.greatest_version = new_settings["greatest_version"]
 
     def flush_to_disk(self) -> None:
         # toml.load(path) uses encoding='utf-8'
@@ -272,6 +284,27 @@ def fill_missing_settings(
 ) -> tuple[SettingsDict, bool]:
     """Get settings from `incomplete_settings` and fill with defaults if missing"""
     settings_updated = False
+
+    last_version = incomplete_settings.get("last_version", None)
+    if last_version != VERSION_STRING:
+        settings_updated = True
+    last_version = VERSION_STRING
+
+    greatest_version = incomplete_settings.get("greatest_version", None)
+    if greatest_version is None or not isinstance(greatest_version, str):
+        settings_updated = True
+        greatest_version = VERSION_STRING
+    else:
+        # We have a current greatest version
+        greatest_version_info = VersionInfo.parse(greatest_version)
+        if greatest_version_info is None:
+            settings_updated = True
+            greatest_version = VERSION_STRING
+        elif greatest_version_info.update_available(
+            CURRENT_VERSION_INFO, ignore_patch_bumps=False
+        ):
+            settings_updated = True
+            greatest_version = VERSION_STRING
 
     user_id = incomplete_settings.get("user_id", None)
     if user_id is None or not isinstance(user_id, str):
@@ -483,6 +516,8 @@ def fill_missing_settings(
         "disable_overrideredirect": disable_overrideredirect,
         "hide_with_alpha": hide_with_alpha,
         "alpha_hundredths": alpha_hundredths,
+        "last_version": last_version,
+        "greatest_version": greatest_version,
     }, settings_updated
 
 

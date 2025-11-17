@@ -12,7 +12,7 @@ from prism import VERSION_STRING
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class VersionInfo:
     """
     Class storing the version info from a version string like v1.3.2-dev
@@ -77,6 +77,13 @@ class VersionInfo:
             return True
 
         return False
+
+
+# Ensure current version passes version parsing
+_current_version_info = VersionInfo.parse(VERSION_STRING)
+assert _current_version_info is not None, "Could not parse current version string"
+CURRENT_VERSION_INFO = _current_version_info
+del _current_version_info
 
 
 def update_available(ignore_patch_bumps: bool) -> bool:  # pragma: no cover
