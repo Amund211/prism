@@ -59,6 +59,10 @@ class FlashlightTagsProvider:
                 "invalid urchin API key"
             )
 
+        # 410 Gone -> Tags no longer supported
+        if response.status_code == 410:
+            raise APIError("Tags no longer supported")
+
         if (
             response.status_code == 429 or response.status_code == 503
         ) and not last_try:
