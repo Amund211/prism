@@ -125,13 +125,8 @@ class OverlayController:
                 uuid=uuid,
                 user_id=self.settings.user_id,
             )
-        except MissingLocalIssuerSSLError:
-            logger.exception("get_player: missing local issuer cert")
-            self.missing_local_issuer_certificate = True
-            return ERROR_DURING_PROCESSING
         except PlayerNotFoundError as e:
             logger.debug(f"Player not found on Hypixel: {uuid=}", exc_info=e)
-            self.missing_local_issuer_certificate = False
             return None
         except APIError as e:
             logger.error(f"Hypixel API error getting stats for {uuid=}", exc_info=e)
@@ -139,14 +134,11 @@ class OverlayController:
         # TODO: Remove api key errors once we move to flashlight provider
         except APIKeyError as e:
             logger.warning(f"Invalid API key getting stats for {uuid=}", exc_info=e)
-            self.missing_local_issuer_certificate = False
             return ERROR_DURING_PROCESSING
         except APIThrottleError as e:
             logger.warning(f"API key throttled getting stats for {uuid=}", exc_info=e)
-            self.missing_local_issuer_certificate = False
             return ERROR_DURING_PROCESSING
         else:
-            self.missing_local_issuer_certificate = False
             return player
 
     def get_estimated_winstreaks(self, uuid: str) -> tuple[Winstreaks, bool]:
