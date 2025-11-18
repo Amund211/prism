@@ -142,19 +142,38 @@ func TestUrchinTagsProvider(t *testing.T) {
 
 		t.Run("status code", func(t *testing.T) {
 			t.Parallel()
-			// NOTE: Synthetic test
-			httpClient := &mockedHttpClient{
-				t:           t,
-				expectedURL: urlForUUID(uuid),
-				statusCode:  500,
-				body:        `{"uuid":"0123456789abcdef0123456789abcdef","tags":[]}`,
-				err:         nil,
-			}
-			urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
-			require.NoError(t, err)
+			t.Run("500", func(t *testing.T) {
+				// Real response from urchin API (2025-11-18)
+				httpClient := &mockedHttpClient{
+					t:           t,
+					expectedURL: urlForUUID(uuid),
+					statusCode:  500,
+					body:        `error code: 500`,
+					err:         nil,
+				}
+				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
+				require.NoError(t, err)
 
-			_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
-			require.Error(t, err)
+				_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
+				// Since we have experienced these intermittently, we allow the client to retry
+				require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			})
+			t.Run("502", func(t *testing.T) {
+				// Real response from urchin API (2025-11-18)
+				httpClient := &mockedHttpClient{
+					t:           t,
+					expectedURL: urlForUUID(uuid),
+					statusCode:  502,
+					body:        `error code: 502`,
+					err:         nil,
+				}
+				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
+				require.NoError(t, err)
+
+				_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
+				// Since we have experienced these intermittently, we allow the client to retry
+				require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			})
 		})
 
 		t.Run("invalid json", func(t *testing.T) {

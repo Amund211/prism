@@ -245,6 +245,15 @@ func tagsFromUrchinResponse(ctx context.Context, statusCode int, data []byte, us
 		}
 	}
 
+	switch statusCode {
+	case http.StatusInternalServerError, http.StatusBadGateway:
+		return domain.Tags{}, urchinTagCollection{}, fmt.Errorf(
+			"urchin API returned status code %d: %w",
+			statusCode,
+			domain.ErrTemporarilyUnavailable,
+		)
+	}
+
 	if statusCode != http.StatusOK {
 		return domain.Tags{}, urchinTagCollection{}, fmt.Errorf("urchin API returned status code %d", statusCode)
 	}
