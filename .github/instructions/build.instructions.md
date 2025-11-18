@@ -69,7 +69,7 @@ GitHub Actions (`.github/workflows/testing.yml`) automatically:
 6. **Artifact upload**: Stores build results
 
 ### Build Matrix
-- **OS**: ubuntu-latest, windows-latest, macOS-13
+- **OS**: ubuntu-latest, windows-latest, macOS-15
 - **Python**: 3.13
 - **Architectures**: Native + Universal2 (macOS)
 
