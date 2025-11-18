@@ -129,6 +129,26 @@ def run_overlay(
         )
 
         info_cells = []
+
+        for notice in controller.flashlight_notices:
+            if not notice.active:
+                continue
+            info_cells.append(
+                InfoCellValue(
+                    text=notice.message,
+                    color=(
+                        "light blue"
+                        if notice.severity == "info"
+                        else (
+                            "orange"
+                            if notice.severity == "warning"
+                            else ("red" if time.monotonic() % 2 > 1 else "white")
+                        )
+                    ),
+                    url=notice.url,
+                )
+            )
+
         if state.out_of_sync:
             info_cells.append(
                 InfoCellValue(
