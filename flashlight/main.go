@@ -185,6 +185,14 @@ func main() {
 	}
 
 	handleFunc(
+		"GET /v1/prism-notices",
+		ports.MakePrismNoticesHandler(
+			logger.With("port", "prism-notices"),
+			sentryMiddleware,
+		),
+	)
+
+	handleFunc(
 		"GET /v1/playerdata",
 		ports.MakeGetPlayerDataHandler(
 			getAndPersistPlayerWithCache,
