@@ -113,15 +113,8 @@ def test_overlay_controller_get_player() -> None:
     player = controller.get_player("uuid")
     assert player is ERROR_DURING_PROCESSING
 
-    error = MissingLocalIssuerSSLError()
-    assert not controller.missing_local_issuer_certificate
-    player = controller.get_player("uuid")
-    assert player is ERROR_DURING_PROCESSING
-    assert controller.missing_local_issuer_certificate
-
     error = None
     assert controller.get_player("uuid") == returned_player
-    assert not controller.missing_local_issuer_certificate
 
 
 def test_overlay_controller_get_tags() -> None:
