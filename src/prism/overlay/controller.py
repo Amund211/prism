@@ -4,6 +4,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Protocol
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
+from prism.flashlight.notices import FlashlightNotice
 from prism.player import MISSING_WINSTREAKS, Account, KnownPlayer, Tags, Winstreaks
 from prism.ssl_errors import MissingLocalIssuerSSLError
 
@@ -93,6 +94,8 @@ class OverlayController:
         self.update_presence_event = threading.Event()
         self.autowho_event = threading.Event()
         self.update_available_event = threading.Event()
+
+        self.flashlight_notices: tuple[FlashlightNotice, ...] = ()
 
         self._account_provider = account_provider
         self._player_provider = player_provider

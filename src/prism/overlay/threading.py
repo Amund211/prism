@@ -5,6 +5,7 @@ import threading
 import time
 from collections.abc import Iterable
 
+from prism.flashlight.notices import get_flashlight_notices
 from prism.overlay.behaviour import get_and_cache_player
 from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKey
@@ -121,6 +122,22 @@ class UpdateCheckerThread(threading.Thread):  # pragma: nocover
             logger.exception("Exception caught in update checker thread. Exiting.")
 
 
+class NoticeCheckerThread(threading.Thread):  # pragma: nocover
+    """Check the flashlight API for any notices to show to the user"""
+
+    def __init__(
+        self,
+        controller: OverlayController,
+    ) -> None:
+        super().__init__(daemon=True)  # Don't block the process from exiting
+        self.controller = controller
+
+    def run(self) -> None:
+        """Fetch the notices and store them in the controller"""
+        notices = get_flashlight_notices(user_id=self.controller.settings.user_id)
+        self.controller.flashlight_notices = notices
+
+
 class AutoWhoThread(threading.Thread):  # pragma: nocover
     """Thread that types /who on request, unless cancelled"""
 
@@ -205,3 +222,8 @@ def start_threads(
 
     # Spawn thread to check for updates on GitHub
     UpdateCheckerThread(one_shot=False, controller=controller).start()
+
+    # Spawn thread to check for flashlight information
+    NoticeCheckerThread(
+        controller=controller,
+    ).start()
