@@ -58,9 +58,9 @@ func buildMetricsMiddleware(handler string) func(http.HandlerFunc) http.HandlerF
 			}
 
 			// NOTE: Potentially high cardinality label
-			userId := r.Header.Get("X-User-Id")
-			if userId == "" {
-				userId = "<missing>"
+			userID := r.Header.Get("X-User-Id")
+			if userID == "" {
+				userID = "<missing>"
 			}
 
 			next(w, r)
@@ -69,7 +69,7 @@ func buildMetricsMiddleware(handler string) func(http.HandlerFunc) http.HandlerF
 				attribute.String("method", r.Method),
 				attribute.String("handler", handler),
 				attribute.String("user_agent", userAgent),
-				attribute.String("user_id", userId),
+				attribute.String("user_id", userID),
 			}
 
 			attributesOption := metric.WithAttributes(attributes...)

@@ -78,9 +78,9 @@ func IPKeyFunc(r *http.Request) string {
 }
 
 func UserIDKeyFunc(r *http.Request) string {
-	userId := r.Header.Get("X-User-Id")
-	if userId == "" {
-		userId = "<missing>"
+	userID := r.Header.Get("X-User-Id")
+	if userID == "" {
+		userID = "<missing>"
 	}
-	return fmt.Sprintf("user-id: %.50s", userId)
+	return fmt.Sprintf("user-id: %.50s", userID)
 }
