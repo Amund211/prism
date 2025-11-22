@@ -530,8 +530,12 @@ func computeSessions(stats []playerPITWithID, start, end time.Time) []domain.Ses
 
 		lastEventfulGamesPlayed, lastEventfulExperience := getProgressStats(lastEventfulEntry)
 
-		// Games played decreased or increased by more than 1 -> not consecutive
-		if currentGamesPlayed < lastEventfulGamesPlayed || currentGamesPlayed > lastEventfulGamesPlayed+1 {
+		// Games played decreased or increased by more than 2 -> not consecutive
+		// NOTE: We allow an increase by 2 in case a player loses a game and that game finishes
+		//       during the next game. This would cause an increase of 2 when the stats are queried
+		//       at the end of the second game.
+		//       This could cause a jump of more than 2 as well, but that is less likely to happen
+		if currentGamesPlayed < lastEventfulGamesPlayed || currentGamesPlayed > lastEventfulGamesPlayed+2 {
 			consecutive = false
 		}
 
