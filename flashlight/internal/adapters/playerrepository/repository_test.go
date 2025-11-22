@@ -607,8 +607,9 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			}
 
 			type normalizedSession struct {
-				start normalizedPlayerPIT
-				end   normalizedPlayerPIT
+				start       normalizedPlayerPIT
+				end         normalizedPlayerPIT
+				consecutive bool
 			}
 
 			normalizePlayerData := func(player *domain.PlayerPIT) normalizedPlayerPIT {
@@ -626,22 +627,19 @@ func TestPostgresPlayerRepository(t *testing.T) {
 
 			}
 
-			expectedNormalized := make([]normalizedSession, len(expected))
-			for i, session := range expected {
-				expectedNormalized[i] = normalizedSession{
-					start: normalizePlayerData(&session.Start),
-					end:   normalizePlayerData(&session.End),
+			normalizeSessions := func(sessions []domain.Session) []normalizedSession {
+				normalized := make([]normalizedSession, len(sessions))
+				for i, session := range sessions {
+					normalized[i] = normalizedSession{
+						start:       normalizePlayerData(&session.Start),
+						end:         normalizePlayerData(&session.End),
+						consecutive: session.Consecutive,
+					}
 				}
+				return normalized
 			}
 
-			actualNormalized := make([]normalizedSession, len(actual))
-			for i, session := range actual {
-				actualNormalized[i] = normalizedSession{
-					start: normalizePlayerData(&session.Start),
-					end:   normalizePlayerData(&session.End),
-				}
-			}
-			require.Equal(t, expectedNormalized, actualNormalized)
+			require.Equal(t, normalizeSessions(expected), normalizeSessions(actual))
 		}
 
 		t.Run("random clusters", func(t *testing.T) {
