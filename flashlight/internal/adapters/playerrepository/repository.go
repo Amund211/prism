@@ -530,8 +530,8 @@ func computeSessions(stats []playerPITWithID, start, end time.Time) []domain.Ses
 
 		lastEventfulGamesPlayed, lastEventfulExperience := getProgressStats(lastEventfulEntry)
 
-		// Games played changed by more than 1
-		if lastEventfulGamesPlayed != currentGamesPlayed && lastEventfulGamesPlayed+1 != currentGamesPlayed {
+		// Games played decreased or increased by more than 1 -> not consecutive
+		if currentGamesPlayed < lastEventfulGamesPlayed || currentGamesPlayed > lastEventfulGamesPlayed+1 {
 			consecutive = false
 		}
 
