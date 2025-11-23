@@ -11,7 +11,6 @@ from prism.errors import APIError, PlayerNotFoundError
 from prism.overlay.behaviour import (
     autodenick_teammate,
     bedwars_game_ended,
-    enqueue_player_request,
     get_and_cache_player,
     get_cached_player_or_enqueue_request,
     set_nickname,
@@ -1138,24 +1137,6 @@ def test_bedwars_game_ended() -> None:
 
     # Redraw event NOT set
     assert not controller.redraw_event.is_set()
-
-
-def test_enqueue_player_request() -> None:
-    controller = create_controller()
-    username = "SomePlayer"
-
-    result = enqueue_player_request(controller, username)
-
-    assert (
-        result
-        == controller.player_cache.get_cached_player(username)
-        == PendingPlayer(username=username)
-    )
-
-    assert controller.requested_stats_queue.get_nowait() == username
-
-    with pytest.raises(queue.Empty):
-        controller.requested_stats_queue.get_nowait()
 
 
 def test_get_cached_player_or_enqueue_request(subtests: pytest.Subtests) -> None:

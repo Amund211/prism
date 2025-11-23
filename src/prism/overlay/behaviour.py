@@ -338,19 +338,6 @@ def bedwars_game_ended(controller: OverlayController) -> None:
     controller.update_presence_event.set()
 
 
-def enqueue_player_request(
-    controller: OverlayController, username: str
-) -> PendingPlayer:
-    """Enqueue a request for the player's stats and return a PendingPlayer"""
-    # We set the player to pending to let consumers know that a request is ongoing
-    # and that they don't need to enqueue another request for the same player.
-    pending_stats = controller.player_cache.set_player_pending(username)
-    logger.debug(f"Set player {username} to pending")
-    controller.requested_stats_queue.put(username)
-
-    return pending_stats
-
-
 def get_cached_player_or_enqueue_request(
     controller: OverlayController, username: str, long_term: bool = False
 ) -> Player:
@@ -364,4 +351,11 @@ def get_cached_player_or_enqueue_request(
         return cached_stats
 
     # We don't have cached stats - enqueue a request and return a PendingPlayer
-    return enqueue_player_request(controller, username)
+    # We set the player to pending to note that a request is in progress
+    # NOTE: Set player to pending before requesting to prevent setting the player
+    #       to pending after the request has been processed
+    pending_stats = controller.player_cache.set_player_pending(username)
+    logger.debug(f"Set player {username} to pending")
+    controller.requested_stats_queue.put(username)
+
+    return pending_stats
