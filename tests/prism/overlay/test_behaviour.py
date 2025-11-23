@@ -13,6 +13,7 @@ from prism.overlay.behaviour import (
     bedwars_game_ended,
     enqueue_player_request,
     get_and_cache_player,
+    get_cached_player_or_enqueue_request,
     set_nickname,
     should_redraw,
     update_settings,
@@ -1155,3 +1156,62 @@ def test_enqueue_player_request() -> None:
 
     with pytest.raises(queue.Empty):
         controller.requested_stats_queue.get_nowait()
+
+
+def test_get_cached_player_or_enqueue_request(subtests: pytest.Subtests) -> None:
+    username = "SomePlayer"
+
+    with subtests.test("Player not cached"):
+        controller = create_controller()
+
+        result = get_cached_player_or_enqueue_request(controller, username)
+
+        assert (
+            result
+            == controller.player_cache.get_cached_player(username)
+            == PendingPlayer(username=username)
+        )
+
+        # Should be requested
+        assert controller.requested_stats_queue.get_nowait() == username
+        with pytest.raises(queue.Empty):
+            controller.requested_stats_queue.get_nowait()
+
+    with subtests.test("Player already pending"):
+        controller = create_controller()
+        controller.player_cache.set_player_pending(username)
+
+        result = get_cached_player_or_enqueue_request(controller, username)
+
+        assert (
+            result
+            == controller.player_cache.get_cached_player(username)
+            == PendingPlayer(username=username)
+        )
+
+        # Should not be requested
+        with pytest.raises(queue.Empty):
+            controller.requested_stats_queue.get_nowait()
+
+    for cached_player in (
+        make_player(variant="player", username=username),
+        make_player(variant="unknown", username=username),
+        make_player(variant="nick", username=username),
+    ):
+        with subtests.test("Player already cached", cached_player=cached_player):
+            controller = create_controller()
+            controller.player_cache.set_cached_player(
+                username, cached_player, genus=controller.player_cache.current_genus
+            )
+
+            result = get_cached_player_or_enqueue_request(controller, username)
+
+            assert (
+                result
+                == controller.player_cache.get_cached_player(username)
+                == cached_player
+            )
+
+            # Should not be requested
+            with pytest.raises(queue.Empty):
+                controller.requested_stats_queue.get_nowait()

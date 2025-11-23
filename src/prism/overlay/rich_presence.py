@@ -7,7 +7,7 @@ from collections.abc import Mapping
 
 from prism import VERSION_STRING
 from prism.discordrp import Presence
-from prism.overlay.behaviour import enqueue_player_request
+from prism.overlay.behaviour import get_cached_player_or_enqueue_request
 from prism.overlay.controller import OverlayController
 from prism.player import KnownPlayer, NickedPlayer, Player
 
@@ -139,12 +139,7 @@ class RPCThread(threading.Thread):  # pragma: no coverage
                 )
                 return None
 
-            stats = self.controller.player_cache.get_cached_player(username)
-
-            if stats is None:
-                # Ask the stats thread to get this player
-                logger.debug(f"Requesting stats of {username} from rpc thread")
-                stats = enqueue_player_request(self.controller, username)
+            stats = get_cached_player_or_enqueue_request(self.controller, username)
 
             if isinstance(stats, KnownPlayer):
                 break

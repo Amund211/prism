@@ -5,7 +5,7 @@ import queue
 from prism.overlay.controller import ERROR_DURING_PROCESSING, OverlayController
 from prism.overlay.get_stats import get_bedwars_stats
 from prism.overlay.settings import SettingsDict
-from prism.player import MISSING_WINSTREAKS, KnownPlayer, PendingPlayer
+from prism.player import MISSING_WINSTREAKS, KnownPlayer, PendingPlayer, Player
 from prism.uuid import compare_uuids
 
 logger = logging.getLogger(__name__)
@@ -349,3 +349,19 @@ def enqueue_player_request(
     controller.requested_stats_queue.put(username)
 
     return pending_stats
+
+
+def get_cached_player_or_enqueue_request(
+    controller: OverlayController, username: str, long_term: bool = False
+) -> Player:
+    """Get the player from the cache, or enqueue a request if not cached"""
+    cached_stats = controller.player_cache.get_cached_player(
+        username, long_term=long_term
+    )
+
+    if cached_stats is not None:
+        # We have cached stats - return them
+        return cached_stats
+
+    # We don't have cached stats - enqueue a request and return a PendingPlayer
+    return enqueue_player_request(controller, username)
