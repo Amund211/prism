@@ -9,7 +9,10 @@ def test_cache_manipulation() -> None:
     assert player_cache.get_cached_player("somependingplayer", long_term=True) is None
 
     # Setting a player to pending
-    pending_player = player_cache.set_player_pending("somependingplayer")
+    pending_player, set_pending = player_cache.get_cached_player_or_set_pending(
+        "somependingplayer"
+    )
+    assert set_pending
     assert isinstance(pending_player, PendingPlayer)
     assert player_cache.get_cached_player("somependingplayer") is pending_player
     assert (
@@ -31,13 +34,16 @@ def test_cache_manipulation() -> None:
         is nicked_player
     )
 
-    # Setting a player to pending who is already known works, but issues a warning
-    pending_player = player_cache.set_player_pending("somenickedplayer")
-    assert isinstance(pending_player, PendingPlayer)
-    assert player_cache.get_cached_player("somenickedplayer") is pending_player
+    # Setting a player to pending who is already known just returns the existing player
+    somenickedplayer, set_pending = player_cache.get_cached_player_or_set_pending(
+        "somenickedplayer"
+    )
+    assert not set_pending
+    assert isinstance(somenickedplayer, NickedPlayer)
+    assert player_cache.get_cached_player("somenickedplayer") is somenickedplayer
     assert (
         player_cache.get_cached_player("somenickedplayer", long_term=True)
-        is pending_player
+        is somenickedplayer
     )
 
     # Updating a player
@@ -70,7 +76,10 @@ def test_cache_manipulation() -> None:
         assert player_cache.get_cached_player(ign) is None
         assert player_cache.get_cached_player(ign, long_term=True) is None
 
-    pending_player = player_cache.set_player_pending("somependingplayer")
+    pending_player, set_pending = player_cache.get_cached_player_or_set_pending(
+        "somependingplayer"
+    )
+    assert set_pending
 
     # Clearing only the short term cache
     player_cache.clear_cache(short_term_only=True)

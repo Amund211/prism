@@ -55,20 +55,6 @@ class PlayerCache:
 
             return pending_player, True
 
-    def set_player_pending(self, username: str) -> PendingPlayer:
-        """Note that this user is pending"""
-        pending_player = PendingPlayer(username)
-
-        cache_key = username.lower()
-
-        with self._mutex:
-            if cache_key in self._cache:
-                logger.error(f"Player {username} set to pending, but already exists")
-
-            self._cache[cache_key] = self._long_term_cache[cache_key] = pending_player
-
-        return pending_player
-
     def set_cached_player(
         self,
         username: str,
