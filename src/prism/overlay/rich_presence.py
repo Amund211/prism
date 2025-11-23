@@ -7,6 +7,7 @@ from collections.abc import Mapping
 
 from prism import VERSION_STRING
 from prism.discordrp import Presence
+from prism.overlay.behaviour import enqueue_player_request
 from prism.overlay.controller import OverlayController
 from prism.player import KnownPlayer, NickedPlayer, Player
 
@@ -141,13 +142,9 @@ class RPCThread(threading.Thread):  # pragma: no coverage
             stats = self.controller.player_cache.get_cached_player(username)
 
             if stats is None:
-                # There are no stats or pending request for stats for us
-                # Request that the users stats are downloaded
-                # NOTE: We could get interleaved here and overwrite actual stats, but
-                #       the outcome is just an unnecessary request, which is not too bad
-                stats = self.controller.player_cache.set_player_pending(username)
+                # Ask the stats thread to get this player
                 logger.debug(f"Requesting stats of {username} from rpc thread")
-                self.controller.requested_stats_queue.put(username)
+                stats = enqueue_player_request(self.controller, username)
 
             if isinstance(stats, KnownPlayer):
                 break

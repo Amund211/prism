@@ -11,6 +11,7 @@ from prism.errors import APIError, PlayerNotFoundError
 from prism.overlay.behaviour import (
     autodenick_teammate,
     bedwars_game_ended,
+    enqueue_player_request,
     get_and_cache_player,
     set_nickname,
     should_redraw,
@@ -20,7 +21,14 @@ from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKeyDict
 from prism.overlay.nick_database import NickDatabase
 from prism.overlay.settings import NickValue, Settings, SettingsDict, get_settings
-from prism.player import MISSING_WINSTREAKS, Account, KnownPlayer, Tags, Winstreaks
+from prism.player import (
+    MISSING_WINSTREAKS,
+    Account,
+    KnownPlayer,
+    PendingPlayer,
+    Tags,
+    Winstreaks,
+)
 from tests.prism.overlay import test_get_stats
 from tests.prism.overlay.test_settings import (
     DEFAULT_STATS_THREAD_COUNT,
@@ -1129,3 +1137,21 @@ def test_bedwars_game_ended() -> None:
 
     # Redraw event NOT set
     assert not controller.redraw_event.is_set()
+
+
+def test_enqueue_player_request() -> None:
+    controller = create_controller()
+    username = "SomePlayer"
+
+    result = enqueue_player_request(controller, username)
+
+    assert (
+        result
+        == controller.player_cache.get_cached_player(username)
+        == PendingPlayer(username=username)
+    )
+
+    assert controller.requested_stats_queue.get_nowait() == username
+
+    with pytest.raises(queue.Empty):
+        controller.requested_stats_queue.get_nowait()

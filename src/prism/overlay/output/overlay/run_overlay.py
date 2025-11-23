@@ -3,7 +3,7 @@ import math
 import time
 from collections.abc import Iterable
 
-from prism.overlay.behaviour import should_redraw
+from prism.overlay.behaviour import enqueue_player_request, should_redraw
 from prism.overlay.controller import OverlayController
 from prism.overlay.output.cells import InfoCellValue
 from prism.overlay.output.overlay.stats_overlay import StatsOverlay
@@ -47,11 +47,8 @@ def get_stat_list(controller: OverlayController) -> list[Player] | None:
             player, long_term=not state.in_queue
         )
         if cached_stats is None:
-            # No query made for this player yet
-            # Start a query and note that a query has been started
-            cached_stats = controller.player_cache.set_player_pending(player)
-            logger.debug(f"Set player {player} to pending")
-            controller.requested_stats_queue.put(player)
+            # Ask the stats thread to get this player
+            cached_stats = enqueue_player_request(controller, player)
         elif isinstance(cached_stats, KnownPlayer):
             if (
                 cached_stats.nick is not None
