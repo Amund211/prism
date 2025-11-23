@@ -3,7 +3,7 @@ import math
 import time
 from collections.abc import Iterable
 
-from prism.overlay.behaviour import enqueue_player_request, should_redraw
+from prism.overlay.behaviour import get_cached_player_or_enqueue_request, should_redraw
 from prism.overlay.controller import OverlayController
 from prism.overlay.output.cells import InfoCellValue
 from prism.overlay.output.overlay.stats_overlay import StatsOverlay
@@ -43,18 +43,18 @@ def get_stat_list(controller: OverlayController) -> list[Player] | None:
         # Use the short term cache in queue to refresh stats between games
         # When we are not in queue (in game) use the long term cache, as we don't
         # want to refetch all the stats when someone gets final killed
-        cached_stats = controller.player_cache.get_cached_player(
-            player, long_term=not state.in_queue
+        cached_stats = get_cached_player_or_enqueue_request(
+            controller, player, long_term=not state.in_queue
         )
-        if cached_stats is None:
-            # Ask the stats thread to get this player
-            cached_stats = enqueue_player_request(controller, player)
-        elif isinstance(cached_stats, KnownPlayer):
-            if (
-                cached_stats.nick is not None
-                and cached_stats.username in displayed_players
-            ):
-                duplicate_nicked_usernames.append(cached_stats.username)
+
+        if (
+            isinstance(cached_stats, KnownPlayer)
+            and cached_stats.nick is not None
+            and cached_stats.username in displayed_players
+        ):
+            # We requested a player by their nick, and got a known player back
+            # If their real username is also in the lobby, we have a duplicate
+            duplicate_nicked_usernames.append(cached_stats.username)
 
         players.append(cached_stats)
 
