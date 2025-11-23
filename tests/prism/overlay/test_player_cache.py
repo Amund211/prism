@@ -81,6 +81,44 @@ def test_cache_manipulation() -> None:
     )
 
 
+def test_get_cached_player_or_set_pending() -> None:
+    player_cache = PlayerCache()
+
+    # Cache hits
+    cool_nick = make_player("nick", "cool_nick")
+    player_cache.set_cached_player(
+        "cool_nick", cool_nick, genus=player_cache.current_genus
+    )
+    assert player_cache.get_cached_player_or_set_pending("cool_nick") == (
+        cool_nick,
+        False,
+    )
+
+    unknown = make_player("unknown", "unknown_player")
+    player_cache.set_cached_player(
+        "unknown_player", unknown, genus=player_cache.current_genus
+    )
+    assert player_cache.get_cached_player_or_set_pending("unknown_player") == (
+        unknown,
+        False,
+    )
+
+    known = make_player("player", "known_player")
+    player_cache.set_cached_player(
+        "known_player", known, genus=player_cache.current_genus
+    )
+    assert player_cache.get_cached_player_or_set_pending("known_player") == (
+        known,
+        False,
+    )
+
+    # Cache miss -> set to pending
+    assert player_cache.get_cached_player_or_set_pending("newplayer") == (
+        make_player("pending", "newplayer"),
+        True,
+    )
+
+
 def test_cache_genus() -> None:
     """
     Test the behaviour of the cache genus

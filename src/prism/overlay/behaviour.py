@@ -342,20 +342,16 @@ def get_cached_player_or_enqueue_request(
     controller: OverlayController, username: str, long_term: bool = False
 ) -> Player:
     """Get the player from the cache, or enqueue a request if not cached"""
-    cached_stats = controller.player_cache.get_cached_player(
-        username, long_term=long_term
+    cached_stats, set_pending = (
+        controller.player_cache.get_cached_player_or_set_pending(
+            username, long_term=long_term
+        )
     )
 
-    if cached_stats is not None:
-        # We have cached stats - return them
-        return cached_stats
+    if set_pending:
+        # The cache did not have the player, and set them to pending
+        # Enqueue a request for the player
+        logger.debug(f"Enqueuing stats request for {username}")
+        controller.requested_stats_queue.put(username)
 
-    # We don't have cached stats - enqueue a request and return a PendingPlayer
-    # We set the player to pending to note that a request is in progress
-    # NOTE: Set player to pending before requesting to prevent setting the player
-    #       to pending after the request has been processed
-    pending_stats = controller.player_cache.set_player_pending(username)
-    logger.debug(f"Set player {username} to pending")
-    controller.requested_stats_queue.put(username)
-
-    return pending_stats
+    return cached_stats

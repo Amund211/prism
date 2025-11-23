@@ -1,6 +1,7 @@
 import logging
 import threading
 from collections.abc import Callable
+from typing import Literal
 
 from cachetools import TTLCache
 
@@ -23,6 +24,36 @@ class PlayerCache:
 
         # TTLCache is not thread-safe so we use a mutex to synchronize threads
         self._mutex = threading.Lock()
+
+    def get_cached_player_or_set_pending(
+        self, username: str, *, long_term: bool = False
+    ) -> tuple[Player, Literal[False]] | tuple[PendingPlayer, Literal[True]]:
+        """
+        Get the cached player, or set them to pending if not cached
+
+        Returns a tuple of (player, was_set_pending)
+        """
+        cache_key = username.lower()
+
+        with self._mutex:
+            cached_player = (
+                self._cache.get(cache_key, None)
+                if not long_term
+                else self._long_term_cache.get(cache_key, None)
+            )
+            if cached_player is not None:
+                return cached_player, False
+
+            pending_player = PendingPlayer(username)
+
+            if cache_key in self._cache:  # pragma: no coverage  # unreachable
+                logger.error(f"Player {username} set to pending, but already exists")
+
+            self._cache[cache_key] = self._long_term_cache[cache_key] = pending_player
+
+            logger.debug(f"Player {username} not found in cache. Set to pending.")
+
+            return pending_player, True
 
     def set_player_pending(self, username: str) -> PendingPlayer:
         """Note that this user is pending"""
