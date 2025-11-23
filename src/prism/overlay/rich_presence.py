@@ -1,7 +1,6 @@
 """Thread that sends rich presence updates to discord"""
 
 import logging
-import queue
 import threading
 import time
 from collections.abc import Mapping
@@ -36,12 +35,9 @@ BASE_ASSETS = {
 class RPCThread(threading.Thread):  # pragma: no coverage
     """Thread that updates discord rich presence after every game"""
 
-    def __init__(
-        self, controller: OverlayController, requested_stats_queue: queue.Queue[str]
-    ) -> None:
+    def __init__(self, controller: OverlayController) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.controller = controller
-        self.requested_stats_queue = requested_stats_queue
         self.username: str | None = None
         self.initial_stats: KnownPlayer | None = None
         self.start_time = int(time.time())
@@ -151,7 +147,7 @@ class RPCThread(threading.Thread):  # pragma: no coverage
                 #       the outcome is just an unnecessary request, which is not too bad
                 stats = self.controller.player_cache.set_player_pending(username)
                 logger.debug(f"Requesting stats of {username} from rpc thread")
-                self.requested_stats_queue.put(username)
+                self.controller.requested_stats_queue.put(username)
 
             if isinstance(stats, KnownPlayer):
                 break

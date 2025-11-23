@@ -1,5 +1,3 @@
-import queue
-
 import pytest
 
 from prism.overlay.controller import OverlayController
@@ -12,9 +10,6 @@ from tests.prism.overlay.utils import (
     make_player,
     make_settings,
 )
-
-EMPTY_QUEUE = queue.Queue[str]()
-
 
 paul = make_player("player", "Paul")
 kynes = make_player("player", "Liet", nick="Kynes")
@@ -42,7 +37,7 @@ FULL_CACHE = make_player_cache(paul, kynes, liet, piter, leto)
 
 
 def test_get_stat_list_no_redraw() -> None:
-    assert get_stat_list(create_controller(), EMPTY_QUEUE, queue.Queue[str]()) is None
+    assert get_stat_list(create_controller()) is None
 
 
 @pytest.mark.parametrize(
@@ -203,9 +198,9 @@ def test_get_stat_list(
 ) -> None:
     controller.redraw_event.set()
 
-    requested_stats_queue = queue.Queue[str]()
-    assert get_stat_list(controller, EMPTY_QUEUE, requested_stats_queue) == result
+    assert get_stat_list(controller) == result
     requested_stats = set(
-        requested_stats_queue.get_nowait() for _ in range(requested_stats_queue.qsize())
+        controller.requested_stats_queue.get_nowait()
+        for _ in range(controller.requested_stats_queue.qsize())
     )
     assert requested_stats == expected_requested_stats
