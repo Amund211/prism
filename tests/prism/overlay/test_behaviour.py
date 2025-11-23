@@ -1029,7 +1029,10 @@ def test_autodenick_teammate(
     for player in lobby:
         if player.pending:
             assert player.username is not None
-            controller.player_cache.set_player_pending(player.username)
+            _, set_pending = controller.player_cache.get_cached_player_or_set_pending(
+                player.username
+            )
+            assert set_pending
         elif player.missing:
             # Stats missing completely
             pass
@@ -1160,7 +1163,10 @@ def test_get_cached_player_or_enqueue_request(subtests: pytest.Subtests) -> None
 
     with subtests.test("Player already pending"):
         controller = create_controller()
-        controller.player_cache.set_player_pending(username)
+        _, set_pending = controller.player_cache.get_cached_player_or_set_pending(
+            username
+        )
+        assert set_pending
 
         result = get_cached_player_or_enqueue_request(controller, username)
 

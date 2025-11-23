@@ -22,7 +22,8 @@ def make_player_cache(*players: Player) -> PlayerCache:
     cache = PlayerCache()
     for player in players:
         if isinstance(player, PendingPlayer):
-            cache.set_player_pending(player.username)
+            _, set_pending = cache.get_cached_player_or_set_pending(player.username)
+            assert set_pending
             continue
 
         username = player.username
