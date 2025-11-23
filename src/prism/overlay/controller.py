@@ -1,4 +1,5 @@
 import logging
+import queue
 import threading
 from enum import Enum
 from typing import TYPE_CHECKING, Protocol
@@ -94,6 +95,11 @@ class OverlayController:
         self.update_presence_event = threading.Event()
         self.autowho_event = threading.Event()
         self.update_available_event = threading.Event()
+
+        # Usernames we want the stats of
+        self.requested_stats_queue = queue.Queue[str]()
+        # Usernames we have newly downloaded the stats of
+        self.completed_stats_queue = queue.Queue[str]()
 
         self.flashlight_notices: tuple[FlashlightNotice, ...] = ()
 

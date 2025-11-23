@@ -78,9 +78,7 @@ def set_nickname(
     controller.redraw_event.set()
 
 
-def should_redraw(
-    controller: OverlayController, completed_stats_queue: queue.Queue[str]
-) -> bool:
+def should_redraw(controller: OverlayController) -> bool:
     """Check if any updates happened since last time that needs a redraw"""
     # Check if the state update thread has issued any redraws since last time
     redraw = controller.redraw_event.is_set()
@@ -88,11 +86,11 @@ def should_redraw(
     # Check if any of the stats downloaded since last render are still in the lobby
     while True:
         try:
-            username = completed_stats_queue.get_nowait()
+            username = controller.completed_stats_queue.get_nowait()
         except queue.Empty:
             break
         else:
-            completed_stats_queue.task_done()
+            controller.completed_stats_queue.task_done()
             if username in controller.state.lobby_players:
                 # We just received the stats of a player in the lobby
                 # Redraw the screen in case the stats weren't there last time

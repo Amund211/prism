@@ -1,5 +1,4 @@
 import logging
-import queue
 import sys
 import threading
 import time
@@ -41,20 +40,16 @@ class GetStatsThread(threading.Thread):  # pragma: nocover
 
     def __init__(
         self,
-        requests_queue: queue.Queue[str],
-        completed_queue: queue.Queue[str],
         controller: OverlayController,
     ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
-        self.requests_queue = requests_queue
-        self.completed_queue = completed_queue
         self.controller = controller
 
     def run(self) -> None:
         """Get requested stats from the queue and download them"""
         try:
             while True:
-                username = self.requests_queue.get()
+                username = self.controller.requested_stats_queue.get()
 
                 # Small optimization in case the player left or we switched lobbies
                 # between first seeing them and now getting to the request
@@ -64,7 +59,7 @@ class GetStatsThread(threading.Thread):  # pragma: nocover
                 if username in state.lobby_players or username == state.own_username:
                     get_and_cache_player(
                         username=username,
-                        completed_queue=self.completed_queue,
+                        completed_queue=self.controller.completed_stats_queue,
                         controller=self.controller,
                     )
                 else:
@@ -73,7 +68,7 @@ class GetStatsThread(threading.Thread):  # pragma: nocover
                     # issue another request, instead of waiting for this one.
                     self.controller.player_cache.uncache_player(username)
 
-                self.requests_queue.task_done()
+                self.controller.requested_stats_queue.task_done()
         except Exception:
             logger.exception("Exception caught in stats thread. Exiting.")
             # Since we spawn multiple stats threads at the start, we can afford some
@@ -196,10 +191,7 @@ class AutoWhoThread(threading.Thread):  # pragma: nocover
 
 
 def start_threads(
-    controller: OverlayController,
-    loglines: Iterable[str],
-    requested_stats_queue: queue.Queue[str],
-    completed_stats_queue: queue.Queue[str],
+    controller: OverlayController, loglines: Iterable[str]
 ) -> None:  # pragma: nocover
     """Spawn threads that perform the state updates and stats downloading"""
 
@@ -208,15 +200,9 @@ def start_threads(
 
     # Spawn threads for downloading stats
     for i in range(controller.settings.stats_thread_count):
-        GetStatsThread(
-            requests_queue=requested_stats_queue,
-            completed_queue=completed_stats_queue,
-            controller=controller,
-        ).start()
+        GetStatsThread(controller=controller).start()
 
-    RPCThread(
-        controller=controller, requested_stats_queue=requested_stats_queue
-    ).start()
+    RPCThread(controller=controller).start()
 
     AutoWhoThread(controller=controller).start()
 

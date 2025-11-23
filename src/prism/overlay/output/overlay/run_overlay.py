@@ -1,6 +1,5 @@
 import logging
 import math
-import queue
 import time
 from collections.abc import Iterable
 
@@ -16,15 +15,11 @@ from prism.player import KnownPlayer, Player
 logger = logging.getLogger(__name__)
 
 
-def get_stat_list(
-    controller: OverlayController,
-    completed_stats_queue: queue.Queue[str],
-    requested_stats_queue: queue.Queue[str],
-) -> list[Player] | None:
+def get_stat_list(controller: OverlayController) -> list[Player] | None:
     """
     Get an updated list of stats of the players in the lobby. None if no updates
     """
-    redraw = should_redraw(controller, completed_stats_queue=completed_stats_queue)
+    redraw = should_redraw(controller)
 
     if not redraw:
         return None
@@ -56,7 +51,7 @@ def get_stat_list(
             # Start a query and note that a query has been started
             cached_stats = controller.player_cache.set_player_pending(player)
             logger.debug(f"Set player {player} to pending")
-            requested_stats_queue.put(player)
+            controller.requested_stats_queue.put(player)
         elif isinstance(cached_stats, KnownPlayer):
             if (
                 cached_stats.nick is not None
@@ -98,27 +93,13 @@ def run_overlay(
     loglines: Iterable[str],
 ) -> None:  # pragma: nocover
     """Run the overlay"""
-    # Usernames we want the stats of
-    requested_stats_queue = queue.Queue[str]()
-    # Usernames we have newly downloaded the stats of
-    completed_stats_queue = queue.Queue[str]()
-
-    start_threads(
-        controller,
-        loglines,
-        requested_stats_queue=requested_stats_queue,
-        completed_stats_queue=completed_stats_queue,
-    )
+    start_threads(controller, loglines)
 
     def get_new_data() -> tuple[bool, list[InfoCellValue], list[OverlayRowData] | None]:
         # Store a persistent view to the current state
         state = controller.state
 
-        new_players = get_stat_list(
-            controller,
-            completed_stats_queue=completed_stats_queue,
-            requested_stats_queue=requested_stats_queue,
-        )
+        new_players = get_stat_list(controller)
         new_rows = (
             [
                 player_to_row(player, controller.settings.rating_configs)

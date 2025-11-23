@@ -203,11 +203,10 @@ def test_should_redraw(
     if redraw_event_set:
         controller.redraw_event.set()
 
-    completed_stats_queue = queue.Queue[str]()
     for username in completed_stats:
-        completed_stats_queue.put_nowait(username)
+        controller.completed_stats_queue.put_nowait(username)
 
-    assert should_redraw(controller, completed_stats_queue) == result
+    assert should_redraw(controller) == result
 
 
 @pytest.mark.parametrize("player_has_winstreaks", (True, False))
