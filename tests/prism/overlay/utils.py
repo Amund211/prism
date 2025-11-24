@@ -1,7 +1,8 @@
 import io
+import queue
 from collections.abc import Callable, Set
 from pathlib import Path, PurePath
-from typing import Any, Literal, TextIO, cast, overload
+from typing import Any, Iterable, Literal, TextIO, TypeVar, cast, overload
 
 from prism.overlay.controller import (
     AccountProvider,
@@ -407,6 +408,7 @@ def create_controller(
     redraw_event_set: bool = False,
     update_presence_event_set: bool = False,
     update_available_event_set: bool = False,
+    current_player_updates: Iterable[KnownPlayer] | None = None,
     player_cache: PlayerCache | None = None,
     nick_database: NickDatabase | None = None,
     account_provider: AccountProvider = MockedAccountProvider(assert_not_called),
@@ -441,11 +443,31 @@ def create_controller(
     if player_cache is not None:
         controller.player_cache = player_cache
 
+    if current_player_updates is not None:
+        for player in current_player_updates:
+            controller.current_player_updates_queue.put_nowait(player)
+
     return controller
 
 
+T = TypeVar("T")
+
+
+def get_queue_contents(queue: queue.Queue[T]) -> tuple[T, ...]:
+    contents = []
+    while not queue.empty():
+        contents.append(queue.get_nowait())
+    for item in contents:
+        queue.put_nowait(item)
+    return tuple(contents)
+
+
 def assert_controllers_equal(
-    controller1: OverlayController, controller2: OverlayController, /
+    controller1: OverlayController,
+    controller2: OverlayController,
+    /,
+    *,
+    ignore_player_cache: bool = False,
 ) -> None:
     assert controller1.urchin_api_key_invalid == controller2.urchin_api_key_invalid
     assert (
@@ -470,4 +492,9 @@ def assert_controllers_equal(
         == controller2.update_available_event.is_set()
     )
 
-    assert controller1.player_cache._cache == controller2.player_cache._cache
+    if not ignore_player_cache:
+        assert controller1.player_cache._cache == controller2.player_cache._cache
+
+    assert get_queue_contents(
+        controller1.current_player_updates_queue
+    ) == get_queue_contents(controller2.current_player_updates_queue)
