@@ -101,6 +101,9 @@ class OverlayController:
         # Usernames we have newly downloaded the stats of
         self.completed_stats_queue = queue.Queue[str]()
 
+        # Updates to the current player's stats
+        self.current_player_updates_queue = queue.Queue[KnownPlayer]()
+
         self.flashlight_notices: tuple[FlashlightNotice, ...] = ()
 
         self._account_provider = account_provider
