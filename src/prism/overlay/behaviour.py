@@ -221,7 +221,7 @@ def update_settings(new_settings: SettingsDict, controller: OverlayController) -
     )
 
     if discord_presence_settings_changed:
-        controller.update_presence_event.set()
+        controller.game_ended_event.set()
 
     # Redraw the overlay to reflect changes in the stats cache/nicknames
     controller.redraw_event.set()
@@ -335,7 +335,7 @@ def autodenick_teammate(controller: OverlayController) -> None:
 def bedwars_game_ended(controller: OverlayController) -> None:
     """Clear the stats cache and set the game ended event"""
     controller.player_cache.clear_cache(short_term_only=True)
-    controller.update_presence_event.set()
+    controller.game_ended_event.set()
 
 
 def get_cached_player_or_enqueue_request(

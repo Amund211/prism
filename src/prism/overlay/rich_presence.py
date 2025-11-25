@@ -105,14 +105,14 @@ class RPCThread(threading.Thread):  # pragma: no coverage
                 continue
 
             # Wait for a game to end
-            update_presence = self.controller.update_presence_event.wait(timeout=15)
+            update_presence = self.controller.game_ended_event.wait(timeout=15)
             self.time_since_game_end += 15
 
             # Update presence when a game ends
             if not update_presence:
                 continue
 
-            self.controller.update_presence_event.clear()
+            self.controller.game_ended_event.clear()
             self.time_since_game_end = 15
 
             # Wait a bit to let Hypixel update the stats in the API
@@ -164,7 +164,7 @@ class RPCThread(threading.Thread):  # pragma: no coverage
             logger.warning("Username changed. Cancelling tracking.")
             return
 
-        self.controller.update_presence_event.clear()
+        self.controller.game_ended_event.clear()
         self.time_since_game_end = 0
 
         self.update_session_presence()

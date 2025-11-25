@@ -503,14 +503,14 @@ process_event_test_cases_base: tuple[
             state=create_state(lobby_players={"a", "bunch", "of", "players"})
         ),
         EndBedwarsGameEvent(),
-        create_controller(update_presence_event_set=True),
+        create_controller(game_ended_event_set=True),
         True,
     ),
     (
         "bedwars game end clears autowho",
         create_controller(autowho_event_set=True),
         EndBedwarsGameEvent(),
-        create_controller(autowho_event_set=False, update_presence_event_set=True),
+        create_controller(autowho_event_set=False, game_ended_event_set=True),
         True,  # TODO: Could be False
     ),
     # Special cases
@@ -935,7 +935,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}ONLINE: Player1, Player2, Me, Player4, Player5, Player6, Player7, Player8, Player9, Player10, Player11, Player12",  # noqa: E501
         ),
         create_controller(
-            update_presence_event_set=True,
+            game_ended_event_set=True,
             autowho_event_set=True,
             state=create_state(
                 own_username="Me",
@@ -1131,7 +1131,7 @@ FAST_FORWARD_STATE_CASES: Final = (
         ),
         create_controller(
             state=create_state(in_queue=True, lobby_players={OWN_USERNAME}),
-            update_presence_event_set=True,
+            game_ended_event_set=True,
             wants_shown=None,
         ),
     ),
@@ -1261,7 +1261,7 @@ FAST_FORWARD_STATE_CASES: Final = (
         ),
         create_controller(
             state=create_state(),
-            update_presence_event_set=True,
+            game_ended_event_set=True,
         ),
     ),
     (
