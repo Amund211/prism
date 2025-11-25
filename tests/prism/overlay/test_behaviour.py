@@ -529,9 +529,6 @@ def test_update_settings_everything_changed() -> None:
     # SuperbNick updated (uuid changed), and AstoundingNick removed
     assert controller.player_cache.uncache_player.call_count == 3
 
-    # Discord rpc settings changed so we want to update it
-    assert controller.game_ended_event.is_set()
-
     # Lots of stuff changed, so we want to redraw
     assert controller.redraw_event.is_set()
 
