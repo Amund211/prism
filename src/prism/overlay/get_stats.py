@@ -109,7 +109,7 @@ def fetch_bedwars_stats(
     return player
 
 
-def get_bedwars_stats(
+def get_and_cache_stats(
     username: str,
     controller: OverlayController,
 ) -> KnownPlayer | NickedPlayer | UnknownPlayer:

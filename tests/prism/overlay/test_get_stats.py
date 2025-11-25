@@ -8,7 +8,7 @@ import pytest
 from prism.errors import APIError, PlayerNotFoundError
 from prism.hypixel import create_known_player
 from prism.overlay.controller import OverlayController
-from prism.overlay.get_stats import denick, fetch_bedwars_stats, get_bedwars_stats
+from prism.overlay.get_stats import denick, fetch_bedwars_stats, get_and_cache_stats
 from prism.overlay.nick_database import NickDatabase
 from prism.player import Account, KnownPlayer, NickedPlayer, UnknownPlayer
 from tests.prism.overlay.utils import (
@@ -247,7 +247,7 @@ def test_fetch_bedwars_stats_weird_nicked(
     assert fetch_bedwars_stats("CrazyNick", controller) == target
 
 
-def test_get_bedwars_stats() -> None:
+def test_get_and_cache_stats() -> None:
     controller = scenarios["nick"]
     user = users["NickedPlayer"]
 
@@ -260,27 +260,29 @@ def test_get_bedwars_stats() -> None:
 
     # Get the stats of the nicked player
     # Should get the stats and cache both the nicked and unnicked versions
-    assert get_bedwars_stats(username=user.nick, controller=controller) == nicked_player
+    assert (
+        get_and_cache_stats(username=user.nick, controller=controller) == nicked_player
+    )
 
     # Getting both the nicked and unnicked stats now should just go to cache
     with unittest.mock.patch(
         "prism.overlay.get_stats.fetch_bedwars_stats"
     ) as patched_fetch_stats:
         assert (
-            get_bedwars_stats(username=user.nick, controller=controller)
+            get_and_cache_stats(username=user.nick, controller=controller)
             == nicked_player
         )
         patched_fetch_stats.assert_not_called()
 
         assert (
-            get_bedwars_stats(username=user.username, controller=controller)
+            get_and_cache_stats(username=user.username, controller=controller)
             == unnicked_player
         )
         patched_fetch_stats.assert_not_called()
 
 
 @pytest.mark.parametrize("clear", (True, False))
-def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
+def test_get_and_cache_stats_cache_genus(clear: bool) -> None:
     my_username = "Player"
     my_uuid = "dead-beef"
 
@@ -311,7 +313,7 @@ def test_get_bedwars_stats_cache_genus(clear: bool) -> None:
     )
 
     # We always return the stats even if the cache did not accept it
-    assert get_bedwars_stats(username=my_username, controller=controller) == player
+    assert get_and_cache_stats(username=my_username, controller=controller) == player
 
     # If the cache was cleared (and the genus incremented) it should not be stored
     assert controller.player_cache.get_cached_player(my_username) == (

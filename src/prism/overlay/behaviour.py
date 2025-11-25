@@ -3,7 +3,7 @@ import logging
 import queue
 
 from prism.overlay.controller import ERROR_DURING_PROCESSING, OverlayController
-from prism.overlay.get_stats import get_bedwars_stats
+from prism.overlay.get_stats import get_and_cache_stats
 from prism.overlay.settings import SettingsDict
 from prism.player import MISSING_WINSTREAKS, KnownPlayer, PendingPlayer, Player
 from prism.uuid import compare_uuids
@@ -107,8 +107,7 @@ def get_and_cache_player(
     username: str, completed_queue: queue.Queue[str], controller: OverlayController
 ) -> None:
     """Get a username from the requests queue and cache their stats"""
-    # get_bedwars_stats sets the stats cache which will be read from later
-    player = get_bedwars_stats(username, controller)
+    player = get_and_cache_stats(username, controller)
 
     # Tell the main thread that we downloaded this user's stats
     completed_queue.put(username)
