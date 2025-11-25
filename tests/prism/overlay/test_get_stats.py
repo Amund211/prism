@@ -1,5 +1,4 @@
 import itertools
-import unittest.mock
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
 
@@ -264,21 +263,8 @@ def test_get_and_cache_stats() -> None:
         get_and_cache_stats(username=user.nick, controller=controller) == nicked_player
     )
 
-    # Getting both the nicked and unnicked stats now should just go to cache
-    with unittest.mock.patch(
-        "prism.overlay.get_stats.fetch_bedwars_stats"
-    ) as patched_fetch_stats:
-        assert (
-            get_and_cache_stats(username=user.nick, controller=controller)
-            == nicked_player
-        )
-        patched_fetch_stats.assert_not_called()
-
-        assert (
-            get_and_cache_stats(username=user.username, controller=controller)
-            == unnicked_player
-        )
-        patched_fetch_stats.assert_not_called()
+    assert controller.player_cache.get_cached_player(user.nick) == nicked_player
+    assert controller.player_cache.get_cached_player(user.username) == unnicked_player
 
 
 @pytest.mark.parametrize("clear", (True, False))

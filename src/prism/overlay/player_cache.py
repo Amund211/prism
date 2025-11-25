@@ -42,7 +42,10 @@ class PlayerCache:
                 else self._long_term_cache.get(cache_key, None)
             )
             if cached_player is not None:
+                logger.debug(f"Cache hit {username}")
                 return cached_player, False
+
+            logger.debug(f"Cache miss {username} -> setting to pending")
 
             pending_player = PendingPlayer(username)
 
@@ -50,8 +53,6 @@ class PlayerCache:
                 logger.error(f"Player {username} set to pending, but already exists")
 
             self._cache[cache_key] = self._long_term_cache[cache_key] = pending_player
-
-            logger.debug(f"Player {username} not found in cache. Set to pending.")
 
             return pending_player, True
 
