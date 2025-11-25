@@ -406,7 +406,7 @@ def create_controller(
     ready: bool = True,
     autowho_event_set: bool = False,
     redraw_event_set: bool = False,
-    update_presence_event_set: bool = False,
+    game_ended_event_set: bool = False,
     update_available_event_set: bool = False,
     current_player_updates: Iterable[KnownPlayer] | None = None,
     player_cache: PlayerCache | None = None,
@@ -435,8 +435,8 @@ def create_controller(
         controller.autowho_event.set()
     if redraw_event_set:
         controller.redraw_event.set()
-    if update_presence_event_set:
-        controller.update_presence_event.set()
+    if game_ended_event_set:
+        controller.game_ended_event.set()
     if update_available_event_set:
         controller.update_available_event.set()
 
@@ -484,8 +484,7 @@ def assert_controllers_equal(
     assert controller1.autowho_event.is_set() == controller2.autowho_event.is_set()
     assert controller1.redraw_event.is_set() == controller2.redraw_event.is_set()
     assert (
-        controller1.update_presence_event.is_set()
-        == controller2.update_presence_event.is_set()
+        controller1.game_ended_event.is_set() == controller2.game_ended_event.is_set()
     )
     assert (
         controller1.update_available_event.is_set()

@@ -53,7 +53,7 @@ class CurrentPlayerThread(threading.Thread):
 
         if result.name_changed:
             self.previous_player = None
-            self.controller.update_presence_event.clear()
+            self.controller.game_ended_event.clear()
             player = self.get_player(self.username)
             if player is None:
                 return
@@ -66,7 +66,7 @@ class CurrentPlayerThread(threading.Thread):
         if result.game_ended:
             self.sleep(5)  # Wait a bit to let Hypixel update the stats in the API
 
-            self.controller.update_presence_event.clear()
+            self.controller.game_ended_event.clear()
             player = self.get_player(self.username)
             if player is None:
                 return
@@ -115,7 +115,7 @@ class CurrentPlayerThread(threading.Thread):
             # Still no username
             return UsernameUpdate(None)
 
-        if self.controller.update_presence_event.wait(timeout=self.timeout):
+        if self.controller.game_ended_event.wait(timeout=self.timeout):
             # Game ended, update stats
             return UsernameUpdate(self.username, game_ended=True)
 

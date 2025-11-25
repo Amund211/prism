@@ -103,7 +103,7 @@ def test_regular_processing_order() -> None:
     assert sleep_calls == []
 
     # Simulate a game ending by changing the state
-    controller.update_presence_event.set()
+    controller.game_ended_event.set()
 
     # Update should trigger an update since a game ended
     thread.process_updates()
@@ -120,7 +120,7 @@ def test_regular_processing_order() -> None:
     )
 
     # Assert event cleared
-    assert not controller.update_presence_event.is_set()
+    assert not controller.game_ended_event.is_set()
 
     # Assert sleep was called with duration 5 (wait for Hypixel API update)
     # Player is already in cache from the sleep(5), so no additional sleep(1) needed
@@ -292,7 +292,7 @@ def test_get_player_returns_none_on_game_ended() -> None:
     controller.player_cache.clear_cache()
 
     # Simulate a game ending
-    controller.update_presence_event.set()
+    controller.game_ended_event.set()
 
     # Process should try to get player but fail after timeout
     thread.process_updates()
@@ -338,7 +338,7 @@ def test_game_ended_with_no_previous_player() -> None:
     thread.previous_player = None
 
     # Simulate a game ending
-    controller.update_presence_event.set()
+    controller.game_ended_event.set()
 
     sleep_calls.clear()
 
@@ -395,7 +395,7 @@ def test_game_ended_stats_unchanged_then_changed() -> None:
     sleep_calls.clear()
 
     # Simulate a game ending
-    controller.update_presence_event.set()
+    controller.game_ended_event.set()
 
     # Process should detect unchanged stats and retry
     thread.process_updates()
@@ -450,7 +450,7 @@ def test_game_ended_stats_unchanged_retry_fails() -> None:
     sleep_calls.clear()
 
     # Simulate a game ending
-    controller.update_presence_event.set()
+    controller.game_ended_event.set()
 
     # Process should detect unchanged stats, retry, and fail
     thread.process_updates()
