@@ -7,6 +7,7 @@ from collections.abc import Iterable
 from prism.flashlight.notices import get_flashlight_notices
 from prism.overlay.behaviour import get_and_cache_player
 from prism.overlay.controller import OverlayController
+from prism.overlay.current_player import CurrentPlayerThread
 from prism.overlay.keybinds import AlphanumericKey
 from prism.overlay.process_event import process_loglines
 from prism.overlay.rich_presence import RPCThread
@@ -201,6 +202,8 @@ def start_threads(
     # Spawn threads for downloading stats
     for i in range(controller.settings.stats_thread_count):
         GetStatsThread(controller=controller).start()
+
+    CurrentPlayerThread(controller=controller, sleep=time.sleep, timeout=15).start()
 
     RPCThread(controller=controller).start()
 
