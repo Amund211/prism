@@ -2,7 +2,7 @@ import logging
 from dataclasses import replace
 
 from prism.overlay.controller import ERROR_DURING_PROCESSING, OverlayController
-from prism.player import KnownPlayer, NickedPlayer, PendingPlayer, UnknownPlayer
+from prism.player import KnownPlayer, NickedPlayer, UnknownPlayer
 
 logger = logging.getLogger(__name__)
 
@@ -114,15 +114,6 @@ def get_and_cache_stats(
     controller: OverlayController,
 ) -> KnownPlayer | NickedPlayer | UnknownPlayer:
     """Get and cache the bedwars stats for the given player"""
-    cached_stats = controller.player_cache.get_cached_player(username)
-
-    if cached_stats is not None and not isinstance(cached_stats, PendingPlayer):
-        logger.debug(f"Cache hit {username}")
-
-        return cached_stats
-
-    logger.debug(f"Cache miss {username}")
-
     # NOTE: We store the genus before we make the request
     #       If the cache gets cleared between now and when the request finished,
     #       the genus will be incremented and this stats instance will not be cached.
