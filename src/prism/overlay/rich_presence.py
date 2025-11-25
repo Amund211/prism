@@ -1,15 +1,15 @@
 """Thread that sends rich presence updates to discord"""
 
 import logging
+import queue
 import threading
 import time
 from collections.abc import Mapping
 
 from prism import VERSION_STRING
 from prism.discordrp import Presence
-from prism.overlay.behaviour import get_cached_player_or_enqueue_request
 from prism.overlay.controller import OverlayController
-from prism.player import KnownPlayer, NickedPlayer, Player
+from prism.player import KnownPlayer
 
 CLIENT_ID = "1102365189845823569"
 
@@ -39,11 +39,31 @@ class RPCThread(threading.Thread):  # pragma: no coverage
     def __init__(self, controller: OverlayController) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.controller = controller
-        self.username: str | None = None
-        self.initial_stats: KnownPlayer | None = None
+        self.initial_player: KnownPlayer | None = None
+        self.current_player: KnownPlayer | None = None
         self.start_time = int(time.time())
         self.last_presence: Mapping[str, object] | None = None
-        self.time_since_game_end = 0
+
+        self.previous_presence_settings = self.presence_settings
+
+    @property
+    def presence_settings(self) -> tuple[bool, bool, bool, bool]:
+        return (
+            self.controller.settings.discord_rich_presence,
+            self.controller.settings.discord_show_username,
+            self.controller.settings.discord_show_session_stats,
+            self.controller.settings.discord_show_party,
+        )
+
+    def update_settings(self) -> bool:
+        """Update presence if settings have changed. Return True if so"""
+        previous_settings, current_settings = (
+            self.previous_presence_settings,
+            self.presence_settings,
+        )
+        self.previous_presence_settings = current_settings
+
+        return previous_settings != current_settings
 
     def connect(self) -> None:
         """
@@ -56,7 +76,7 @@ class RPCThread(threading.Thread):  # pragma: no coverage
                 time.sleep(15)
                 continue
 
-            logger.info("Attempting to connect to discord.")
+            logger.debug("Attempting to connect to discord.")
 
             try:
                 # TODO: Proper cleanup of the connection
@@ -88,121 +108,71 @@ class RPCThread(threading.Thread):  # pragma: no coverage
         self.connect()
 
         while True:
+            new_player = None
+            try:
+                new_player = self.controller.current_player_updates_queue.get(
+                    timeout=15
+                )
+            except queue.Empty:
+                # No updates. Continue with current_player = None
+                pass
+
             if not self.controller.settings.discord_rich_presence:
                 self.set_presence(None, reconnect_on_failure=False)  # Clear activity
-                time.sleep(15)
                 continue
 
-            new_username = self.controller.state.own_username
+            if new_player is None:
+                # No updates
 
-            if new_username != self.username and new_username is not None:
-                self.track(new_username)
-                time.sleep(15)
+                if self.update_settings() and self.current_player is not None:
+                    # Settings changed - update presence
+                    self.update_session_presence(self.current_player)
+
                 continue
 
-            if self.username is None:
-                time.sleep(15)
-                continue
+            if (
+                self.initial_player is None
+                or self.initial_player.username.lower() != new_player.username.lower()
+            ):
+                # We're switching to a new account
+                # (either from "no account" or from another account)
+                # Start tracking!
+                logger.info(f"Started tracking {new_player.username} in rpc thread")
+                self.start_time = int(time.time())
+                self.initial_player = new_player
 
-            # Wait for a game to end
-            update_presence = self.controller.game_ended_event.wait(timeout=15)
-            self.time_since_game_end += 15
-
-            # Update presence when a game ends
-            if not update_presence:
-                continue
-
-            self.controller.game_ended_event.clear()
-            self.time_since_game_end = 15
-
-            # Wait a bit to let Hypixel update the stats in the API
-            time.sleep(5)
-
-            self.update_session_presence()
+            self.current_player = new_player
+            # Update the presence with the new player
+            self.update_session_presence(new_player)
             time.sleep(15)
 
-    def get_stats(self, username: str) -> KnownPlayer | None:
-        """
-        Request and wait for the stats of the player
-
-        Return None if self.username != username
-        """
-        stats: Player | None = None
-
-        # Wait for the stats to become available
-        while True:
-            # Exit the loop if we are going to change usernames
-            new_username = self.controller.state.own_username
-            if new_username != username:
-                logger.warning(
-                    f"Username changed, not getting stats {new_username=} {username=}"
-                )
-                return None
-
-            stats = get_cached_player_or_enqueue_request(self.controller, username)
-
-            if isinstance(stats, KnownPlayer):
-                break
-
-            time.sleep(1)
-
-            if isinstance(stats, NickedPlayer):
-                # We can't get our own stats - probably API key error
-                # Wait a bit longer
-                logger.warning(f"Stats for {username} in rpc thread are nicked")
-                time.sleep(14)
-
-        return stats
-
-    def track(self, username: str) -> None:
-        logger.info(f"Started tracking {username} in rpc thread")
-        self.start_time = int(time.time())
-        self.username = username
-
-        self.initial_stats = self.get_stats(self.username)
-        if self.initial_stats is None:
-            logger.warning("Username changed. Cancelling tracking.")
+    def update_session_presence(self, player: KnownPlayer) -> None:
+        if self.initial_player is None:
+            logger.error(f"Missing initial stats {self.initial_player=}")
             return
 
-        self.controller.game_ended_event.clear()
-        self.time_since_game_end = 0
+        finals = player.stats.finals - self.initial_player.stats.finals
+        beds = player.stats.beds - self.initial_player.stats.beds
+        wins = player.stats.wins - self.initial_player.stats.wins
 
-        self.update_session_presence()
-
-    def update_session_presence(self) -> None:
-        if self.initial_stats is None or self.username is None:
-            logger.error(
-                f"Missing stats or username {self.initial_stats=} {self.username=}"
-            )
-            return
-
-        new_stats = self.get_stats(self.username)
-        if new_stats is None:
-            logger.warning("Username changed. Cancelling session presence update.")
-            return
-
-        finals = new_stats.stats.finals - self.initial_stats.stats.finals
-        beds = new_stats.stats.beds - self.initial_stats.stats.beds
-        wins = new_stats.stats.wins - self.initial_stats.stats.wins
-
-        party_members = sorted(self.controller.state.party_members - {self.username})
+        party_members = sorted(self.controller.state.party_members - {player.username})
 
         party_members_string = (
             f"With: {', '.join(party_members)}" if party_members else "Not in a party"
         )
         session_stats = f"Finals: {finals}, Beds: {beds}, Wins: {wins}"
 
-        if new_stats.stars < 1100:
+        if player.stars < 1100:
             star_icon = "✫"
-        elif new_stats.stars < 2100:
+        elif player.stars < 2100:
             star_icon = "✪"
-        elif new_stats.stars < 3100:
+        elif player.stars < 3100:
             star_icon = "❀"
         else:
             star_icon = "✥"
 
         if self.controller.settings.discord_show_username:
-            status = f"[{int(new_stats.stars)}{star_icon}] {self.username}"
+            status = f"[{int(player.stars)}{star_icon}] {player.username}"
         else:
             status = "Playing Bedwars"
 
