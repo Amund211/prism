@@ -20,6 +20,7 @@ import (
 func MakeGetPlayerDataHandler(
 	getAndPersistPlayerWithCache app.GetAndPersistPlayerWithCache,
 	getTags app.GetTags,
+	getAccountByUsername app.GetAccountByUsername,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 ) http.HandlerFunc {
@@ -135,6 +136,10 @@ func MakeGetPlayerDataHandler(
 			statusCode := writeHypixelStyleErrorResponse(ctx, w, err)
 			logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "error")
 			return
+		}
+
+		if player.Displayname != nil {
+			go getAccountByUsername(ctx, *player.Displayname)
 		}
 
 		hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(player)

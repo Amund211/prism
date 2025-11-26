@@ -33,6 +33,10 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 		return domain.Tags{}, nil
 	}
 
+	getAccountByUsername := func(ctx context.Context, username string) (domain.Account, error) {
+		return domain.Account{}, nil
+	}
+
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
@@ -40,7 +44,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return player, nil
-		}, getTags, logger, sentryMiddleware)
+		}, getTags, getAccountByUsername, logger, sentryMiddleware)
 
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, target, nil)
@@ -64,7 +68,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 			t.Helper()
 			t.Fatal("should not be called")
 			return nil, nil
-		}, getTags, logger, sentryMiddleware)
+		}, getTags, getAccountByUsername, logger, sentryMiddleware)
 		w := httptest.NewRecorder()
 
 		req := httptest.NewRequest(http.MethodGet, "/?uuid=1234-1234-1234", nil)
@@ -82,7 +86,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return nil, fmt.Errorf("%w: couldn't find him", domain.ErrPlayerNotFound)
-		}, getTags, logger, sentryMiddleware)
+		}, getTags, getAccountByUsername, logger, sentryMiddleware)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, target, nil)
 
@@ -99,7 +103,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return nil, fmt.Errorf("error :^(: (%w)", domain.ErrTemporarilyUnavailable)
-		}, getTags, logger, sentryMiddleware)
+		}, getTags, getAccountByUsername, logger, sentryMiddleware)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, target, nil)
 
@@ -118,7 +122,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return player, nil
-		}, getTags, logger, sentryMiddleware)
+		}, getTags, getAccountByUsername, logger, sentryMiddleware)
 
 		// Exhaust the rate limit
 		for range 200 {
@@ -152,6 +156,64 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 		}
 
 		require.Fail(t, "Rate limit not exceeded")
+	})
+
+	t.Run("getAccountByUsername is called when displayname is present", func(t *testing.T) {
+		t.Parallel()
+
+		displayname := "TestPlayer"
+		player := domaintest.NewPlayerBuilder(UUID, now).WithExperience(1000).BuildPtr()
+		player.Displayname = &displayname
+
+		accountByUsernameCalled := false
+		getAccountByUsernameTest := func(ctx context.Context, username string) (domain.Account, error) {
+			accountByUsernameCalled = true
+			require.Equal(t, displayname, username)
+			return domain.Account{}, nil
+		}
+
+		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
+			return player, nil
+		}, getTags, getAccountByUsernameTest, logger, sentryMiddleware)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, target, nil)
+		getPlayerDataHandler(w, req)
+
+		resp := w.Result()
+		require.Equal(t, 200, resp.StatusCode)
+
+		// Give the goroutine a moment to execute
+		time.Sleep(100 * time.Millisecond)
+		require.True(t, accountByUsernameCalled, "getAccountByUsername should have been called")
+	})
+
+	t.Run("getAccountByUsername is not called when displayname is nil", func(t *testing.T) {
+		t.Parallel()
+
+		player := domaintest.NewPlayerBuilder(UUID, now).WithExperience(1000).BuildPtr()
+		// Displayname is nil by default
+
+		accountByUsernameCalled := false
+		getAccountByUsernameTest := func(ctx context.Context, username string) (domain.Account, error) {
+			accountByUsernameCalled = true
+			return domain.Account{}, nil
+		}
+
+		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
+			return player, nil
+		}, getTags, getAccountByUsernameTest, logger, sentryMiddleware)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, target, nil)
+		getPlayerDataHandler(w, req)
+
+		resp := w.Result()
+		require.Equal(t, 200, resp.StatusCode)
+
+		// Give the goroutine a moment if it were to execute
+		time.Sleep(100 * time.Millisecond)
+		require.False(t, accountByUsernameCalled, "getAccountByUsername should not have been called when displayname is nil")
 	})
 }
 

@@ -197,6 +197,7 @@ func main() {
 		ports.MakeGetPlayerDataHandler(
 			getAndPersistPlayerWithCache,
 			getTags,
+			getAccountByUsernameWithCache,
 			logger.With("port", "playerdata"),
 			sentryMiddleware,
 		),
@@ -287,6 +288,7 @@ func main() {
 		ports.MakeGetPlayerDataHandler(
 			getAndPersistPlayerWithCache,
 			getTags,
+			getAccountByUsernameWithCache,
 			logger.With("port", "playerdata"),
 			sentryMiddleware,
 		),
