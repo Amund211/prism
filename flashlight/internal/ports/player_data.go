@@ -139,7 +139,7 @@ func MakeGetPlayerDataHandler(
 		}
 
 		if player.Displayname != nil {
-			go getAccountByUsername(ctx, *player.Displayname)
+			go getAccountByUsername(context.WithoutCancel(ctx), *player.Displayname)
 		}
 
 		hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(player)
