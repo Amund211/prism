@@ -29,6 +29,7 @@ interface Download {
     link: string;
 }
 
+// Sourced from: https://github.com/Amund211/prism/releases
 const DOWNLOADS: Download[] = [
     {
         os: "Windows",
