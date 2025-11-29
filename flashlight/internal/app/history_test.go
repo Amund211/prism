@@ -39,12 +39,12 @@ func newMockHistoryRepository(t *testing.T, history []domain.PlayerPIT, err erro
 func TestBuildGetHistory(t *testing.T) {
 	t.Parallel()
 
-	now := time.Now()
+	now := time.Now().Truncate(time.Millisecond)
 
-	t.Run("now within range", func(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
-		uuid := "12345678-1234-1234-1234-123456789012"
+		uuid := domaintest.NewUUID(t)
 
 		timeCases := []struct {
 			name  string
@@ -71,68 +71,6 @@ func TestBuildGetHistory(t *testing.T) {
 				start: now.Add(-24 * time.Hour),
 				end:   now.Add(24 * time.Hour),
 			},
-		}
-
-		historyCases := []struct {
-			name    string
-			history []domain.PlayerPIT
-		}{
-			{
-				name:    "empty history",
-				history: []domain.PlayerPIT{},
-			},
-			{
-				name: "non-empty history",
-				history: []domain.PlayerPIT{
-					domaintest.NewPlayerBuilder(uuid, now).WithExperience(500).Build(),
-					domaintest.NewPlayerBuilder(uuid, now).WithExperience(501).Build(),
-				},
-			},
-		}
-
-		for _, timeCase := range timeCases {
-			t.Run(timeCase.name, func(t *testing.T) {
-				t.Parallel()
-				for _, historyCase := range historyCases {
-					t.Run(historyCase.name, func(t *testing.T) {
-						t.Parallel()
-
-						updatePlayerInIntervalCalled := false
-						updatePlayerInInterval := func(ctx context.Context, updateUUID string, start, end time.Time) error {
-							t.Helper()
-							require.Equal(t, uuid, updateUUID)
-							require.WithinDuration(t, timeCase.start, start, 0)
-							require.WithinDuration(t, timeCase.end, end, 0)
-							updatePlayerInIntervalCalled = true
-							return nil
-						}
-
-						getHistory := app.BuildGetHistory(
-							newMockHistoryRepository(t, historyCase.history, nil),
-							updatePlayerInInterval,
-						)
-
-						history, err := getHistory(t.Context(), uuid, timeCase.start, timeCase.end, 10)
-						require.NoError(t, err)
-						require.Equal(t, historyCase.history, history)
-
-						require.True(t, updatePlayerInIntervalCalled)
-					})
-				}
-			})
-		}
-	})
-
-	t.Run("now outside range", func(t *testing.T) {
-		t.Parallel()
-
-		uuid := "12345678-1234-1234-1234-123456789012"
-
-		timeCases := []struct {
-			name  string
-			start time.Time
-			end   time.Time
-		}{
 			{
 				name:  "-2hr, -1hr",
 				start: now.Add(-2 * time.Hour),

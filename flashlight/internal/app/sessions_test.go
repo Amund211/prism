@@ -41,7 +41,7 @@ func TestBuildGetSessions(t *testing.T) {
 
 	now := time.Now()
 
-	t.Run("now within range", func(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
 		uuid := "12345678-1234-1234-1234-123456789012"
@@ -71,71 +71,6 @@ func TestBuildGetSessions(t *testing.T) {
 				start: now.Add(-24 * time.Hour),
 				end:   now.Add(24 * time.Hour),
 			},
-		}
-
-		sessionsCases := []struct {
-			name     string
-			sessions []domain.Session
-		}{
-			{
-				name:     "empty sessions",
-				sessions: []domain.Session{},
-			},
-			{
-				name: "non-empty sessions",
-				sessions: []domain.Session{
-					{
-						Start:       domaintest.NewPlayerBuilder(uuid, now).WithExperience(500).Build(),
-						End:         domaintest.NewPlayerBuilder(uuid, now).WithExperience(501).Build(),
-						Consecutive: true,
-					},
-				},
-			},
-		}
-
-		for _, timeCase := range timeCases {
-			t.Run(timeCase.name, func(t *testing.T) {
-				t.Parallel()
-				for _, sessionsCase := range sessionsCases {
-					t.Run(sessionsCase.name, func(t *testing.T) {
-						t.Parallel()
-
-						updatePlayerInIntervalCalled := false
-						updatePlayerInInterval := func(ctx context.Context, updateUUID string, start, end time.Time) error {
-							t.Helper()
-							require.Equal(t, uuid, updateUUID)
-							require.WithinDuration(t, timeCase.start, start, 0)
-							require.WithinDuration(t, timeCase.end, end, 0)
-							updatePlayerInIntervalCalled = true
-							return nil
-						}
-
-						getSessions := app.BuildGetSessions(
-							newMockSessionsRepository(t, sessionsCase.sessions, nil),
-							updatePlayerInInterval,
-						)
-
-						sessions, err := getSessions(t.Context(), uuid, timeCase.start, timeCase.end)
-						require.NoError(t, err)
-						require.Equal(t, sessionsCase.sessions, sessions)
-
-						require.True(t, updatePlayerInIntervalCalled)
-					})
-				}
-			})
-		}
-	})
-
-	t.Run("now outside range", func(t *testing.T) {
-		t.Parallel()
-
-		uuid := "12345678-1234-1234-1234-123456789012"
-
-		timeCases := []struct {
-			name  string
-			start time.Time
-			end   time.Time
-		}{
 			{
 				name:  "-2hr, -1hr",
 				start: now.Add(-2 * time.Hour),
