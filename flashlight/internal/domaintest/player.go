@@ -1,9 +1,11 @@
 package domaintest
 
 import (
+	"testing"
 	"time"
 
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/stretchr/testify/require"
 )
 
 type playerBuilder struct {
@@ -74,4 +76,25 @@ func NewStatsBuilder() *statsBuilder {
 	return &statsBuilder{
 		stats: &domain.GamemodeStatsPIT{},
 	}
+}
+
+func RequireEqualStats(t *testing.T, expected, actual domain.GamemodeStatsPIT) {
+	t.Helper()
+
+	if expected.Winstreak == nil {
+		require.Nil(t, actual.Winstreak)
+	} else {
+		require.NotNil(t, actual.Winstreak)
+		require.Equal(t, *expected.Winstreak, *actual.Winstreak)
+	}
+
+	require.Equal(t, expected.GamesPlayed, actual.GamesPlayed)
+	require.Equal(t, expected.Wins, actual.Wins)
+	require.Equal(t, expected.Losses, actual.Losses)
+	require.Equal(t, expected.BedsBroken, actual.BedsBroken)
+	require.Equal(t, expected.BedsLost, actual.BedsLost)
+	require.Equal(t, expected.FinalKills, actual.FinalKills)
+	require.Equal(t, expected.FinalDeaths, actual.FinalDeaths)
+	require.Equal(t, expected.Kills, actual.Kills)
+	require.Equal(t, expected.Deaths, actual.Deaths)
 }

@@ -20,6 +20,10 @@ import (
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
+func ptr[T any](v T) *T {
+	return &v
+}
+
 func newPostgresPlayerRepository(t *testing.T, db *sqlx.DB, schema string) *PostgresPlayerRepository {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
@@ -380,6 +384,183 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			err = p.StorePlayer(ctx, player)
 			require.Error(t, err)
 			require.Contains(t, err.Error(), "already has a DBID")
+		})
+	})
+
+	t.Run("GetPlayerPITs", func(t *testing.T) {
+		t.Parallel()
+		p := newPostgresPlayerRepository(t, db, "get_player_pits_tests")
+
+		now := time.Now().Truncate(time.Millisecond)
+
+		storePlayers := func(t *testing.T, p PlayerRepository, players ...*domain.PlayerPIT) {
+			t.Helper()
+			for _, player := range players {
+				err := p.StorePlayer(ctx, player)
+				require.NoError(t, err)
+			}
+		}
+
+		t.Run("fetches stored players within given interval", func(t *testing.T) {
+			t.Parallel()
+
+			playerUUID := domaintest.NewUUID(t)
+
+			p1 := domaintest.NewPlayerBuilder(playerUUID, now.Add(-2*time.Hour)).WithGamesPlayed(1).BuildPtr()
+			p2 := domaintest.NewPlayerBuilder(playerUUID, now).WithGamesPlayed(2).BuildPtr()
+			p3 := domaintest.NewPlayerBuilder(playerUUID, now.Add(2*time.Minute)).WithGamesPlayed(3).BuildPtr()
+			p4 := domaintest.NewPlayerBuilder(playerUUID, now.Add(2*time.Hour)).WithGamesPlayed(4).BuildPtr()
+
+			storePlayers(t, p, p1, p2, p3, p4)
+
+			players, err := p.GetPlayerPITs(ctx, playerUUID, now, now.Add(1*time.Hour))
+			require.NoError(t, err)
+
+			require.Len(t, players, 2)
+			r1 := players[0]
+			require.Equal(t, p2.UUID, r1.UUID)
+			require.WithinDuration(t, p2.QueriedAt, r1.QueriedAt, 0)
+			requireValidDBID(t, r1.DBID)
+
+			r2 := players[1]
+			require.Equal(t, p3.UUID, r2.UUID)
+			require.WithinDuration(t, p3.QueriedAt, r2.QueriedAt, 0)
+			requireValidDBID(t, r2.DBID)
+		})
+
+		t.Run("fetches all player data", func(t *testing.T) {
+			t.Parallel()
+
+			playerUUID := domaintest.NewUUID(t)
+
+			timePtr := func(timeStr string) *time.Time {
+				t.Helper()
+				timeTime, err := time.Parse(time.RFC3339, timeStr)
+				require.NoError(t, err)
+				return &timeTime
+			}
+
+			player := &domain.PlayerPIT{
+				QueriedAt: now,
+
+				UUID: playerUUID,
+
+				Displayname: ptr("somename"),
+				LastLogin:   timePtr("2023-01-01T00:00:00Z"),
+				LastLogout:  timePtr("2023-01-02T00:00:00Z"),
+
+				MissingBedwarsStats: false,
+
+				Experience: 1_087_000,
+				Solo: domain.GamemodeStatsPIT{
+					Winstreak:   ptr(0),
+					GamesPlayed: 1,
+					Wins:        2,
+					Losses:      3,
+					BedsBroken:  3,
+					BedsLost:    4,
+					FinalKills:  6,
+					FinalDeaths: 7,
+					Kills:       8,
+					Deaths:      9,
+				},
+				Doubles: domain.GamemodeStatsPIT{
+					Winstreak:   ptr(100),
+					GamesPlayed: 101,
+					Wins:        102,
+					Losses:      103,
+					BedsBroken:  104,
+					BedsLost:    105,
+					FinalKills:  106,
+					FinalDeaths: 107,
+					Kills:       108,
+					Deaths:      109,
+				},
+				Threes: domain.GamemodeStatsPIT{
+					Winstreak:   nil,
+					GamesPlayed: 201,
+					Wins:        202,
+					Losses:      203,
+					BedsBroken:  204,
+					BedsLost:    205,
+					FinalKills:  206,
+					FinalDeaths: 207,
+					Kills:       208,
+					Deaths:      209,
+				},
+				Fours: domain.GamemodeStatsPIT{
+					Winstreak:   nil,
+					GamesPlayed: 301,
+					Wins:        302,
+					Losses:      303,
+					BedsBroken:  304,
+					BedsLost:    305,
+					FinalKills:  306,
+					FinalDeaths: 307,
+					Kills:       308,
+					Deaths:      309,
+				},
+				Overall: domain.GamemodeStatsPIT{
+					Winstreak:   nil,
+					GamesPlayed: 401,
+					Wins:        402,
+					Losses:      403,
+					BedsBroken:  404,
+					BedsLost:    405,
+					FinalKills:  406,
+					FinalDeaths: 407,
+					Kills:       408,
+					Deaths:      409,
+				},
+			}
+
+			storePlayers(t, p, player)
+
+			players, err := p.GetPlayerPITs(ctx, playerUUID, now, now.Add(1*time.Hour))
+			require.NoError(t, err)
+
+			require.Len(t, players, 1)
+			result := players[0]
+			require.Equal(t, player.UUID, result.UUID)
+			require.WithinDuration(t, player.QueriedAt, result.QueriedAt, 0)
+			requireValidDBID(t, result.DBID)
+			require.Equal(t, player.Experience, result.Experience)
+			domaintest.RequireEqualStats(t, player.Solo, result.Solo)
+			domaintest.RequireEqualStats(t, player.Doubles, result.Doubles)
+			domaintest.RequireEqualStats(t, player.Threes, result.Threes)
+			domaintest.RequireEqualStats(t, player.Fours, result.Fours)
+			domaintest.RequireEqualStats(t, player.Overall, result.Overall)
+
+			// Not stored to postgres
+			require.Empty(t, result.Displayname)
+			require.Empty(t, result.LastLogin)
+			require.Empty(t, result.LastLogout)
+		})
+
+		t.Run("fetches unlimited players", func(t *testing.T) {
+			t.Parallel()
+			count := 1_000
+
+			playerUUID := domaintest.NewUUID(t)
+
+			toStore := make([]*domain.PlayerPIT, count)
+			for i := range count {
+				toStore[i] = domaintest.NewPlayerBuilder(playerUUID, now.Add(time.Duration(i)*time.Minute)).WithGamesPlayed(i).BuildPtr()
+			}
+
+			storePlayers(t, p, toStore...)
+
+			players, err := p.GetPlayerPITs(ctx, playerUUID, now, now.Add(time.Duration(count-1)*time.Minute))
+			require.NoError(t, err)
+
+			require.Len(t, players, count)
+
+			for i := range count {
+				require.Equal(t, toStore[i].UUID, players[i].UUID)
+				require.Equal(t, toStore[i].Overall.GamesPlayed, players[i].Overall.GamesPlayed)
+				require.WithinDuration(t, toStore[i].QueriedAt, players[i].QueriedAt, 0)
+				requireValidDBID(t, players[i].DBID)
+			}
 		})
 	})
 
