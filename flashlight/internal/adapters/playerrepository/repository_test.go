@@ -367,6 +367,20 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			requireValidDBID(t, &dbID)
 		})
 
+		t.Run("cannot store player with existing DBID", func(t *testing.T) {
+			t.Parallel()
+
+			uuidv7, err := uuid.NewV7()
+			require.NoError(t, err)
+
+			dbID := uuidv7.String()
+			playerUUID := domaintest.NewUUID(t)
+			player := domaintest.NewPlayerBuilder(playerUUID, now).WithDBID(&dbID).BuildPtr()
+
+			err = p.StorePlayer(ctx, player)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), "already has a DBID")
+		})
 	})
 
 	t.Run("GetHistory", func(t *testing.T) {
