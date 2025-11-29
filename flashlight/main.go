@@ -169,7 +169,7 @@ func main() {
 
 	getHistory := app.BuildGetHistory(playerRepo, updatePlayerInInterval)
 
-	getSessions := app.BuildGetSessions(playerRepo, updatePlayerInInterval)
+	getPlayerPITs := app.BuildGetPlayerPITs(playerRepo, updatePlayerInInterval)
 
 	findMilestoneAchievements := app.BuildFindMilestoneAchievements(
 		playerRepo,
@@ -261,7 +261,7 @@ func main() {
 	handleFunc(
 		"POST /v1/sessions",
 		ports.MakeGetSessionsHandler(
-			getSessions,
+			getPlayerPITs,
 			allowedOrigins,
 			logger.With("port", "sessions"),
 			sentryMiddleware,

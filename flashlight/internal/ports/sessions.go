@@ -17,7 +17,7 @@ import (
 )
 
 func MakeGetSessionsHandler(
-	getSessions app.GetSessions,
+	getPlayerPITs app.GetPlayerPITs,
 	allowedOrigins *DomainSuffixes,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
@@ -128,12 +128,18 @@ func MakeGetSessionsHandler(
 			return
 		}
 
-		sessions, err := getSessions(ctx, uuid, request.Start, request.End)
+		// Add some padding on both sides to try to complete sessions that cross the interval borders
+		filterStart := request.Start.Add(-24 * time.Hour)
+		filterEnd := request.End.Add(24 * time.Hour)
+
+		stats, err := getPlayerPITs(ctx, uuid, filterStart, filterEnd)
 		if err != nil {
-			// NOTE: GetSessions implementations handle their own error reporting
-			http.Error(w, "Failed to get sessions", http.StatusInternalServerError)
+			// NOTE: GetPlayerPITs implementations handle their own error reporting
+			http.Error(w, "Failed to get player data", http.StatusInternalServerError)
 			return
 		}
+
+		sessions := app.ComputeSessions(ctx, stats, request.Start, request.End)
 
 		marshalled, err := SessionsToRainbowSessionsData(sessions)
 		if err != nil {
