@@ -448,6 +448,11 @@ func (p *PostgresPlayerRepository) GetHistory(ctx context.Context, playerUUID st
 
 // NOTE: All domain.PlayerPIT entries must for the same player
 func computeSessions(stats []domain.PlayerPIT, start, end time.Time) []domain.Session {
+	if len(stats) <= 1 {
+		// Need at least a start and end to create a session
+		return []domain.Session{}
+	}
+
 	slices.SortStableFunc(stats, func(a, b domain.PlayerPIT) int {
 		if a.QueriedAt.Before(b.QueriedAt) {
 			return -1
@@ -560,8 +565,8 @@ func computeSessions(stats []domain.PlayerPIT, start, end time.Time) []domain.Se
 	return sessions
 }
 
-func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]domain.Session, error) {
-	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.GetSessions")
+func (p *PostgresPlayerRepository) GetPlayerPITs(ctx context.Context, playerUUID string, start, end time.Time) ([]domain.PlayerPIT, error) {
+	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.GetPlayerPITs")
 	defer span.End()
 
 	if !strutils.UUIDIsNormalized(playerUUID) {
@@ -574,7 +579,6 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 
 	timespan := end.Sub(start)
 	if timespan <= 0 {
-		// TODO: Use known error
 		err := fmt.Errorf("end time must be after start time")
 		reporting.Report(ctx, err, map[string]string{
 			"start":    start.Format(time.RFC3339),
@@ -584,12 +588,7 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 		return nil, err
 	}
 
-	// Add some padding on both sides to try to complete sessions that cross the interval borders
-	filterStart := start.Add(-24 * time.Hour)
-	filterEnd := end.Add(24 * time.Hour)
-
 	dbStats := []dbStat{}
-
 	// NOTE: Using a connection without a transaction as the ids are time-sortable, and we're using them as a cursor (not offset/limit)
 	conn, err := p.db.Connx(ctx)
 	if err != nil {
@@ -625,14 +624,14 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 				queried_at <= $4
 			order by id asc
 			limit 100`,
-			lastID, playerUUID, filterStart, filterEnd)
+			lastID, playerUUID, start, end)
 		if err != nil {
 			err := fmt.Errorf("failed to select batch of stats: %w", err)
 			reporting.Report(ctx, err, map[string]string{
-				"uuid":        playerUUID,
-				"filterStart": filterStart.Format(time.RFC3339),
-				"filterEnd":   filterEnd.Format(time.RFC3339),
-				"lastID":      lastID,
+				"uuid":   playerUUID,
+				"start":  start.Format(time.RFC3339),
+				"end":    end.Format(time.RFC3339),
+				"lastID": lastID,
 			})
 			return nil, err
 		}
@@ -641,11 +640,6 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 		}
 		dbStats = append(dbStats, batch...)
 		lastID = batch[len(batch)-1].ID
-	}
-
-	if len(dbStats) <= 1 {
-		// Need at least a start and an end to create a session
-		return []domain.Session{}, nil
 	}
 
 	stats := make([]domain.PlayerPIT, 0, len(dbStats))
@@ -659,6 +653,42 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 			return nil, err
 		}
 		stats = append(stats, *player)
+	}
+
+	return stats, nil
+}
+
+func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID string, start, end time.Time) ([]domain.Session, error) {
+	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.GetSessions")
+	defer span.End()
+
+	if !strutils.UUIDIsNormalized(playerUUID) {
+		err := fmt.Errorf("uuid is not normalized")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": playerUUID,
+		})
+		return nil, err
+	}
+
+	timespan := end.Sub(start)
+	if timespan <= 0 {
+		err := fmt.Errorf("end time must be after start time")
+		reporting.Report(ctx, err, map[string]string{
+			"start":    start.Format(time.RFC3339),
+			"end":      end.Format(time.RFC3339),
+			"timespan": timespan.String(),
+		})
+		return nil, err
+	}
+
+	// Add some padding on both sides to try to complete sessions that cross the interval borders
+	filterStart := start.Add(-24 * time.Hour)
+	filterEnd := end.Add(24 * time.Hour)
+
+	stats, err := p.GetPlayerPITs(ctx, playerUUID, filterStart, filterEnd)
+	if err != nil {
+		// NOTE: GetPlayerPITs handles its own error reporting
+		return nil, fmt.Errorf("failed to get player pits: %w", err)
 	}
 
 	return computeSessions(stats, start, end), nil
