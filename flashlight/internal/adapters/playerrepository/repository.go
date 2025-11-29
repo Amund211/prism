@@ -434,7 +434,7 @@ func (p *PostgresPlayerRepository) GetHistory(ctx context.Context, playerUUID st
 	for _, dbStat := range dbStats {
 		player, err := dbStatToPlayerPIT(dbStat)
 		if err != nil {
-			err := fmt.Errorf("failed to convert db stat to playerpit with id: %w", err)
+			err := fmt.Errorf("failed to convert db stat to playerpit: %w", err)
 			reporting.Report(ctx, err, map[string]string{
 				"statID": dbStat.ID,
 			})
@@ -646,7 +646,7 @@ func (p *PostgresPlayerRepository) GetPlayerPITs(ctx context.Context, playerUUID
 	for _, dbStat := range dbStats {
 		player, err := dbStatToPlayerPIT(dbStat)
 		if err != nil {
-			err := fmt.Errorf("failed to convert db stat to playerpit with id: %w", err)
+			err := fmt.Errorf("failed to convert db stat to playerpit: %w", err)
 			reporting.Report(ctx, err, map[string]string{
 				"statID": dbStat.ID,
 			})
@@ -821,7 +821,7 @@ func (p *PostgresPlayerRepository) FindMilestoneAchievements(ctx context.Context
 			PlayerData:        statPIT.PlayerData,
 		})
 		if err != nil {
-			err := fmt.Errorf("failed to convert db stat to playerpit with id: %w", err)
+			err := fmt.Errorf("failed to convert db stat to playerpit: %w", err)
 			reporting.Report(ctx, err, map[string]string{
 				"statID": statPIT.ID,
 			})

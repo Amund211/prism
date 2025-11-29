@@ -74,6 +74,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			defer txx.Rollback()
 
 			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(SCHEMA_NAME)))
+			require.NoError(t, err)
 
 			row := txx.QueryRowx("SELECT COUNT(*) FROM stats WHERE player_uuid = $1 AND player_data = $2 AND queried_at = $3", normalizedUUID, playerData, player.QueriedAt)
 			require.NoError(t, row.Err())
@@ -247,7 +248,10 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			txx, err := db.Beginx()
 			require.NoError(t, err)
 			defer txx.Rollback()
+
 			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(SCHEMA_NAME)))
+			require.NoError(t, err)
+
 			_, err = txx.ExecContext(
 				ctx,
 				`INSERT INTO stats
@@ -350,8 +354,9 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			defer txx.Rollback()
 
 			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(SCHEMA_NAME)))
+			require.NoError(t, err)
 
-			// Only one row for this player should exists
+			// Only one row for this player should exist
 			var dbID string
 			row := txx.GetContext(ctx, &dbID, "SELECT id FROM stats WHERE player_uuid = $1", playerUUID)
 			require.NoError(t, row)
