@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,6 +32,15 @@ func (pb *playerBuilder) WithOverallStats(stats domain.GamemodeStatsPIT) *player
 func (pb *playerBuilder) WithDBID(dbID *string) *playerBuilder {
 	pb.player.DBID = dbID
 	return pb
+}
+
+func (pb *playerBuilder) FromDB() *playerBuilder {
+	uuidv7, err := uuid.NewV7()
+	if err != nil {
+		panic("failed to generate UUIDv7 for player DBID")
+	}
+	dbID := uuidv7.String()
+	return pb.WithDBID(&dbID)
 }
 
 func (pb *playerBuilder) Build() domain.PlayerPIT {
