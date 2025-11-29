@@ -70,11 +70,6 @@ type dbStat struct {
 	PlayerData        []byte    `db:"player_data"`
 }
 
-type playerPITWithID struct {
-	domain.PlayerPIT
-	ID string
-}
-
 func gamemodeStatsToDataStorage(stats *domain.GamemodeStatsPIT) statsDataStorage {
 	return statsDataStorage{
 		Winstreak:   stats.Winstreak,
@@ -131,7 +126,7 @@ func gamemodeStatsPITFromDataStorage(data *statsDataStorage) *domain.GamemodeSta
 	}
 }
 
-func dbStatToPlayerPITWithID(dbStat dbStat) (*playerPITWithID, error) {
+func dbStatToPlayerPIT(dbStat dbStat) (*domain.PlayerPIT, error) {
 	var playerData playerDataStorage
 	err := json.Unmarshal(dbStat.PlayerData, &playerData)
 	if err != nil {
@@ -143,7 +138,7 @@ func dbStatToPlayerPITWithID(dbStat dbStat) (*playerPITWithID, error) {
 		experience = *playerData.Experience
 	}
 
-	playerPIT := domain.PlayerPIT{
+	return &domain.PlayerPIT{
 		DBID: &dbStat.ID,
 
 		QueriedAt: dbStat.QueriedAt,
@@ -161,11 +156,6 @@ func dbStatToPlayerPITWithID(dbStat dbStat) (*playerPITWithID, error) {
 		Threes:     *gamemodeStatsPITFromDataStorage(&playerData.Threes),
 		Fours:      *gamemodeStatsPITFromDataStorage(&playerData.Fours),
 		Overall:    *gamemodeStatsPITFromDataStorage(&playerData.Overall),
-	}
-
-	return &playerPITWithID{
-		ID:        dbStat.ID,
-		PlayerPIT: playerPIT,
 	}, nil
 }
 
@@ -442,7 +432,7 @@ func (p *PostgresPlayerRepository) GetHistory(ctx context.Context, playerUUID st
 
 	result := make([]domain.PlayerPIT, 0, len(dbStats))
 	for _, dbStat := range dbStats {
-		playerWithID, err := dbStatToPlayerPITWithID(dbStat)
+		player, err := dbStatToPlayerPIT(dbStat)
 		if err != nil {
 			err := fmt.Errorf("failed to convert db stat to playerpit with id: %w", err)
 			reporting.Report(ctx, err, map[string]string{
@@ -450,15 +440,15 @@ func (p *PostgresPlayerRepository) GetHistory(ctx context.Context, playerUUID st
 			})
 			return nil, err
 		}
-		result = append(result, playerWithID.PlayerPIT)
+		result = append(result, *player)
 	}
 
 	return result, nil
 }
 
 // NOTE: All domain.PlayerPIT entries must for the same player
-func computeSessions(stats []playerPITWithID, start, end time.Time) []domain.Session {
-	slices.SortStableFunc(stats, func(a, b playerPITWithID) int {
+func computeSessions(stats []domain.PlayerPIT, start, end time.Time) []domain.Session {
+	slices.SortStableFunc(stats, func(a, b domain.PlayerPIT) int {
 		if a.QueriedAt.Before(b.QueriedAt) {
 			return -1
 		}
@@ -470,12 +460,12 @@ func computeSessions(stats []playerPITWithID, start, end time.Time) []domain.Ses
 
 	sessions := []domain.Session{}
 
-	getProgressStats := func(stat playerPITWithID) (int, int64) {
+	getProgressStats := func(stat *domain.PlayerPIT) (int, int64) {
 		return stat.Overall.GamesPlayed, stat.Experience
 	}
 
-	includeSession := func(sessionStart, lastEventfulEntry playerPITWithID) bool {
-		if sessionStart.ID == lastEventfulEntry.ID {
+	includeSession := func(sessionStart, lastEventfulEntry *domain.PlayerPIT) bool {
+		if sessionStart.DBID == lastEventfulEntry.DBID {
 			// Session starts and ends with the same entry -> not a session
 			return false
 		}
@@ -505,9 +495,9 @@ func computeSessions(stats []playerPITWithID, start, end time.Time) []domain.Ses
 			panic("lastEventfulIndex is -1")
 		}
 
-		stat := stats[i]
-		sessionStart := stats[sessionStartIndex]
-		lastEventfulEntry := stats[lastEventfulIndex]
+		stat := &stats[i]
+		sessionStart := &stats[sessionStartIndex]
+		lastEventfulEntry := &stats[lastEventfulIndex]
 
 		// If no activity since session start, move session start to this
 		startGamesPlayed, startExperience := getProgressStats(sessionStart)
@@ -522,8 +512,8 @@ func computeSessions(stats []playerPITWithID, start, end time.Time) []domain.Ses
 		if stat.QueriedAt.Sub(lastEventfulEntry.QueriedAt) > 60*time.Minute {
 			if includeSession(sessionStart, lastEventfulEntry) {
 				sessions = append(sessions, domain.Session{
-					Start:       sessionStart.PlayerPIT,
-					End:         lastEventfulEntry.PlayerPIT,
+					Start:       *sessionStart,
+					End:         *lastEventfulEntry,
 					Consecutive: consecutive,
 				})
 			}
@@ -556,13 +546,13 @@ func computeSessions(stats []playerPITWithID, start, end time.Time) []domain.Ses
 	}
 
 	// Add the last session if it was not added by the loop due to inactivity
-	sessionStart := stats[sessionStartIndex]
-	lastEventfulEntry := stats[lastEventfulIndex]
+	sessionStart := &stats[sessionStartIndex]
+	lastEventfulEntry := &stats[lastEventfulIndex]
 
 	if includeSession(sessionStart, lastEventfulEntry) {
 		sessions = append(sessions, domain.Session{
-			Start:       sessionStart.PlayerPIT,
-			End:         lastEventfulEntry.PlayerPIT,
+			Start:       *sessionStart,
+			End:         *lastEventfulEntry,
 			Consecutive: consecutive,
 		})
 	}
@@ -658,9 +648,9 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 		return []domain.Session{}, nil
 	}
 
-	stats := make([]playerPITWithID, 0, len(dbStats))
+	stats := make([]domain.PlayerPIT, 0, len(dbStats))
 	for _, dbStat := range dbStats {
-		playerWithID, err := dbStatToPlayerPITWithID(dbStat)
+		player, err := dbStatToPlayerPIT(dbStat)
 		if err != nil {
 			err := fmt.Errorf("failed to convert db stat to playerpit with id: %w", err)
 			reporting.Report(ctx, err, map[string]string{
@@ -668,7 +658,7 @@ func (p *PostgresPlayerRepository) GetSessions(ctx context.Context, playerUUID s
 			})
 			return nil, err
 		}
-		stats = append(stats, *playerWithID)
+		stats = append(stats, *player)
 	}
 
 	return computeSessions(stats, start, end), nil
@@ -793,7 +783,7 @@ func (p *PostgresPlayerRepository) FindMilestoneAchievements(ctx context.Context
 			return nil, err
 		}
 
-		playerWithID, err := dbStatToPlayerPITWithID(dbStat{
+		player, err := dbStatToPlayerPIT(dbStat{
 			ID:                statPIT.ID,
 			DataFormatVersion: statPIT.DataFormatVersion,
 			UUID:              statPIT.UUID,
@@ -817,7 +807,7 @@ func (p *PostgresPlayerRepository) FindMilestoneAchievements(ctx context.Context
 		results = append(results, domain.MilestoneAchievement{
 			Milestone: sortedMilestones[i],
 			After: &domain.MilestoneAchievementStats{
-				Player: playerWithID.PlayerPIT,
+				Player: *player,
 				Value:  statPIT.Value,
 			},
 		})
