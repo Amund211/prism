@@ -470,8 +470,10 @@ func computeSessions(stats []domain.PlayerPIT, start, end time.Time) []domain.Se
 	}
 
 	includeSession := func(sessionStart, lastEventfulEntry *domain.PlayerPIT) bool {
-		if sessionStart.DBID == lastEventfulEntry.DBID {
+		if sessionStart == lastEventfulEntry {
 			// Session starts and ends with the same entry -> not a session
+			// NOTE: Using raw pointer comparison here, so we need to make sure we don't
+			//       make any copies of the entries
 			return false
 		}
 
