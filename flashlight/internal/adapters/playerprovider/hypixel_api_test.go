@@ -81,7 +81,7 @@ func TestGetPlayerData(t *testing.T) {
 
 		httpClient := newMockedHttpClient(
 			t,
-			"https://api.hypixel.net/player?uuid=uuid1234",
+			"https://api.hypixel.net/v2/player?uuid=uuid1234",
 			200,
 			`{"success":true,"player":null}`,
 			nil,
@@ -102,7 +102,7 @@ func TestGetPlayerData(t *testing.T) {
 
 		httpClient := newMockedHttpClient(
 			t,
-			"https://api.hypixel.net/player?uuid=uuid123456",
+			"https://api.hypixel.net/v2/player?uuid=uuid123456",
 			200,
 			`{"success":true,"player":null}`,
 			assert.AnError,
@@ -119,7 +119,7 @@ func TestGetPlayerData(t *testing.T) {
 
 		httpClient := &mockedHttpClient{
 			t:           t,
-			expectedURL: "https://api.hypixel.net/player?uuid=uuid",
+			expectedURL: "https://api.hypixel.net/v2/player?uuid=uuid",
 			response: &http.Response{
 				StatusCode: 200,
 				Body:       cantRead{},
@@ -139,7 +139,7 @@ func TestGetPlayerData(t *testing.T) {
 			start := time.Now()
 			httpClient := newMockedHttpClient(
 				t,
-				"https://api.hypixel.net/player?uuid=uuid1234",
+				"https://api.hypixel.net/v2/player?uuid=uuid1234",
 				200,
 				`{"success":true,"player":null}`,
 				nil,

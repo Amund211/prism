@@ -68,7 +68,7 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 	ctx, span := hypixelAPI.tracer.Start(ctx, "HypixelAPI.GetPlayerData")
 	defer span.End()
 
-	url := fmt.Sprintf("https://api.hypixel.net/player?uuid=%s", uuid)
+	url := fmt.Sprintf("https://api.hypixel.net/v2/player?uuid=%s", uuid)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

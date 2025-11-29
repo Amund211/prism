@@ -82,7 +82,7 @@ func main() {
 		player = mojangResponse.Id
 	}
 
-	hypixelUrl := fmt.Sprintf("https://api.hypixel.net/player?uuid=%s", player)
+	hypixelUrl := fmt.Sprintf("https://api.hypixel.net/v2/player?uuid=%s", player)
 	data, statusCode, err := makeRequest(httpClient, hypixelUrl, hypixelAPIKey)
 	if err != nil {
 		log.Fatalf("Failed making request to Hypixel API: %v", err)
