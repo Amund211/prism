@@ -280,6 +280,8 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 	}
 
 	return &domain.PlayerPIT{
+		DBID: nil, // This does not come from our db, so it doesn't have an ID there yet
+
 		QueriedAt: queriedAt,
 
 		UUID: uuid,

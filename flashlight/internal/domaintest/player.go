@@ -26,6 +26,11 @@ func (pb *playerBuilder) WithOverallStats(stats domain.GamemodeStatsPIT) *player
 	return pb
 }
 
+func (pb *playerBuilder) WithDBID(dbID *string) *playerBuilder {
+	pb.player.DBID = dbID
+	return pb
+}
+
 func (pb *playerBuilder) Build() domain.PlayerPIT {
 	return *pb.player
 }

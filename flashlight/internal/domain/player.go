@@ -5,6 +5,8 @@ import (
 )
 
 type PlayerPIT struct {
+	DBID *string
+
 	QueriedAt time.Time
 
 	UUID string

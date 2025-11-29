@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
@@ -37,6 +38,15 @@ func TestPostgresPlayerRepository(t *testing.T) {
 		t.Skip("skipping db tests in short mode.")
 	}
 	t.Parallel()
+
+	requireValidDBID := func(t *testing.T, id *string) {
+		t.Helper()
+		require.NotNil(t, id)
+		parsed, err := uuid.Parse(*id)
+		require.NoError(t, err)
+
+		require.Equal(t, uuid.Version(7), parsed.Version())
+	}
 
 	ctx := t.Context()
 	db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
@@ -98,8 +108,8 @@ func TestPostgresPlayerRepository(t *testing.T) {
 		t.Run("store empty object", func(t *testing.T) {
 			t.Parallel()
 
-			uuid := domaintest.NewUUID(t)
-			player := domaintest.NewPlayerBuilder(uuid, now).WithGamesPlayed(0).BuildPtr()
+			playerUUID := domaintest.NewUUID(t)
+			player := domaintest.NewPlayerBuilder(playerUUID, now).WithGamesPlayed(0).BuildPtr()
 
 			requireNotStored(t, player)
 			err := p.StorePlayer(ctx, player)
@@ -301,8 +311,8 @@ func TestPostgresPlayerRepository(t *testing.T) {
 				t.Parallel()
 				for i := range limit {
 					t1 := now.Add(time.Duration(i) * time.Minute)
-					uuid := domaintest.NewUUID(t)
-					player := domaintest.NewPlayerBuilder(uuid, t1).WithGamesPlayed(i).BuildPtr()
+					playerUUID := domaintest.NewUUID(t)
+					player := domaintest.NewPlayerBuilder(playerUUID, t1).WithGamesPlayed(i).BuildPtr()
 
 					err := p.StorePlayer(ctx, player)
 					require.NoError(t, err)
@@ -311,9 +321,9 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			})
 			t.Run("when storing for the same player at the same time", func(t *testing.T) {
 				t.Parallel()
-				uuid := domaintest.NewUUID(t)
+				playerUUID := domaintest.NewUUID(t)
 				t1 := now
-				player := domaintest.NewPlayerBuilder(uuid, t1).WithGamesPlayed(1).BuildPtr()
+				player := domaintest.NewPlayerBuilder(playerUUID, t1).WithGamesPlayed(1).BuildPtr()
 
 				for range limit {
 					err := p.StorePlayer(ctx, player)
@@ -323,6 +333,35 @@ func TestPostgresPlayerRepository(t *testing.T) {
 				}
 			})
 		})
+
+		t.Run("store creates uuidv7 as db id", func(t *testing.T) {
+			t.Parallel()
+
+			playerUUID := domaintest.NewUUID(t)
+			player := domaintest.NewPlayerBuilder(playerUUID, now).WithGamesPlayed(11).BuildPtr()
+
+			requireNotStored(t, player)
+			err := p.StorePlayer(ctx, player)
+			require.NoError(t, err)
+			requireStoredOnce(t, player)
+
+			txx, err := db.Beginx()
+			require.NoError(t, err)
+			defer txx.Rollback()
+
+			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(SCHEMA_NAME)))
+
+			// Only one row for this player should exists
+			var dbID string
+			row := txx.GetContext(ctx, &dbID, "SELECT id FROM stats WHERE player_uuid = $1", playerUUID)
+			require.NoError(t, row)
+
+			err = txx.Commit()
+			require.NoError(t, err)
+
+			requireValidDBID(t, &dbID)
+		})
+
 	})
 
 	t.Run("GetHistory", func(t *testing.T) {
@@ -572,6 +611,38 @@ func TestPostgresPlayerRepository(t *testing.T) {
 						}
 					})
 				}
+			})
+
+			t.Run("db ids returned", func(t *testing.T) {
+				t.Parallel()
+				start := time.Date(2023, time.September, 16, 15, 41, 31, 987_000_000, time.FixedZone("UTC", 3600*7))
+				end := start.Add(24 * time.Hour)
+
+				player_uuid := domaintest.NewUUID(t)
+				players := []*domain.PlayerPIT{
+					domaintest.NewPlayerBuilder(player_uuid, start.Add(time.Minute)).WithGamesPlayed(1).BuildPtr(),
+					domaintest.NewPlayerBuilder(player_uuid, end.Add(-1*time.Minute)).WithGamesPlayed(0).BuildPtr(),
+				}
+
+				storePlayer(t, p, players...)
+
+				history, err := p.GetHistory(ctx, player_uuid, start, end, 50)
+				require.NoError(t, err)
+
+				require.Len(t, history, 2)
+
+				firstDBID := history[0].DBID
+				requireValidDBID(t, firstDBID)
+				secondDBID := history[1].DBID
+				requireValidDBID(t, secondDBID)
+
+				// DB ids should be stable
+				history, err = p.GetHistory(ctx, player_uuid, start, end, 50)
+				require.NoError(t, err)
+				require.Len(t, history, 2)
+
+				require.Equal(t, *firstDBID, *history[0].DBID)
+				require.Equal(t, *secondDBID, *history[1].DBID)
 			})
 		})
 	})
@@ -1159,232 +1230,257 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			requireEqualSessions(t, expectedSessions, sessions)
 		})
 
+		t.Run("returns db ids", func(t *testing.T) {
+			t.Parallel()
+			p := newPostgresPlayerRepository(t, db, "returns_db_ids")
+			player_uuid := domaintest.NewUUID(t)
+			start := time.Date(2026, time.February, 16, 4, 13, 34, 987_654_321, time.FixedZone("UTC", 3600*-11))
+
+			players := make([]*domain.PlayerPIT, 2)
+			players[0] = domaintest.NewPlayerBuilder(player_uuid, start.Add(1*time.Minute)).WithGamesPlayed(16).WithExperience(9_200).BuildPtr()
+			players[1] = domaintest.NewPlayerBuilder(player_uuid, start.Add(2*time.Minute)).WithGamesPlayed(17).WithExperience(10_200).BuildPtr()
+
+			playerData := storePlayer(t, p, players...)
+
+			sessions, err := p.GetSessions(ctx, player_uuid, start, start.Add(24*time.Hour))
+			require.NoError(t, err)
+
+			expectedSessions := []domain.Session{
+				{
+					Start:       *playerData[0],
+					End:         *playerData[1],
+					Consecutive: true,
+				},
+			}
+			requireEqualSessions(t, expectedSessions, sessions)
+
+			requireValidDBID(t, sessions[0].Start.DBID)
+			requireValidDBID(t, sessions[0].End.DBID)
+		})
 	})
-}
 
-func TestFindMilestoneAchievements(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping database tests in short mode")
-	}
-	t.Parallel()
-
-	ctx := t.Context()
-	db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
-	require.NoError(t, err)
-
-	storePlayers := func(t *testing.T, p PlayerRepository, players ...*domain.PlayerPIT) []*domain.PlayerPIT {
-		t.Helper()
-		playerData := make([]*domain.PlayerPIT, len(players))
-		for i, player := range players {
-			err := p.StorePlayer(ctx, player)
-			require.NoError(t, err)
-
-			// Assert creation succeeded
-			history, err := p.GetHistory(ctx, player.UUID, player.QueriedAt, player.QueriedAt.Add(1*time.Microsecond), 2)
-			require.NoError(t, err)
-			require.Len(t, history, 1)
-
-			playerData[i] = &history[0]
-		}
-		return playerData
-	}
-
-	uuid := domaintest.NewUUID(t)
-
-	t.Run("GamemodeOverall and StatExperience", func(t *testing.T) {
+	t.Run("FindMilestoneAchievements", func(t *testing.T) {
 		t.Parallel()
 
-		tests := []struct {
-			name       string
-			players    []*domain.PlayerPIT
-			milestones []int64
-			expected   []domain.MilestoneAchievement
-		}{
-			{
-				name: "Single milestone reached",
-				players: []*domain.PlayerPIT{
-					domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 1, 12, 0, 0, 0, time.UTC)).WithExperience(500).BuildPtr(),
-					domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(1000).BuildPtr(),
-					domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 3, 12, 0, 0, 0, time.UTC)).WithExperience(1500).BuildPtr(),
-				},
-				milestones: []int64{1200},
-				expected: []domain.MilestoneAchievement{
-					{
-						Milestone: 1200,
-						After: &domain.MilestoneAchievementStats{
-							Player: domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 3, 12, 0, 0, 0, time.UTC)).WithExperience(1500).Build(),
-							Value:  1500,
-						},
-					},
-				},
-			},
-			{
-				name: "Multiple milestones reached",
-				players: []*domain.PlayerPIT{
-					domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 1, 12, 0, 0, 0, time.UTC)).WithExperience(500).BuildPtr(),
-					domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(1000).BuildPtr(),
-					domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 3, 12, 0, 0, 0, time.UTC)).WithExperience(2000).BuildPtr(),
-					domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 4, 12, 0, 0, 0, time.UTC)).WithExperience(3000).BuildPtr(),
-				},
-				milestones: []int64{800, 1500, 2500},
-				expected: []domain.MilestoneAchievement{
-					{
-						Milestone: 800,
-						After: &domain.MilestoneAchievementStats{
-							Player: domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(1000).Build(),
-							Value:  1000,
-						},
-					},
-					{
-						Milestone: 1500,
-						After: &domain.MilestoneAchievementStats{
-							Player: domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 3, 12, 0, 0, 0, time.UTC)).WithExperience(2000).Build(),
-							Value:  2000,
-						},
-					},
-					{
-						Milestone: 2500,
-						After: &domain.MilestoneAchievementStats{
-							Player: domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 4, 12, 0, 0, 0, time.UTC)).WithExperience(3000).Build(),
-							Value:  3000,
-						},
-					},
-				},
-			},
-			{
-				name: "No milestones reached",
-				players: []*domain.PlayerPIT{
-					domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 1, 12, 0, 0, 0, time.UTC)).WithExperience(500).BuildPtr(),
-					domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(600).BuildPtr(),
-				},
-				milestones: []int64{1000, 2000},
-				expected:   []domain.MilestoneAchievement{},
-			},
-			{
-				name: "Milestones skipped",
-				players: []*domain.PlayerPIT{
-					domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 1, 12, 0, 0, 0, time.UTC)).WithExperience(500).BuildPtr(),
-					domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(10_000).BuildPtr(),
-					domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 3, 12, 0, 0, 0, time.UTC)).WithExperience(11_000).BuildPtr(),
-				},
-				milestones: []int64{1_000, 5_000, 8_000, 12_000},
-				expected: []domain.MilestoneAchievement{
-					{
-						Milestone: 8_000,
-						After: &domain.MilestoneAchievementStats{
-							Player: domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(10_000).Build(),
-							Value:  10_000,
-						},
-					},
-				},
-			},
-			{
-				name: "Milestones skipped - final reached",
-				players: []*domain.PlayerPIT{
-					domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 1, 12, 0, 0, 0, time.UTC)).WithExperience(500).BuildPtr(),
-					domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(100_000).BuildPtr(),
-					domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 3, 12, 0, 0, 0, time.UTC)).WithExperience(200_000).BuildPtr(),
-				},
-				milestones: []int64{1_000, 5_000, 8_000, 12_000},
-				expected: []domain.MilestoneAchievement{
-					{
-						Milestone: 12_000,
-						After: &domain.MilestoneAchievementStats{
-							Player: domaintest.NewPlayerBuilder(uuid, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(100_000).Build(),
-							Value:  100_000,
-						},
-					},
-				},
-			},
-			{
-				name: "Multiple sets of milestones skipped",
-				players: []*domain.PlayerPIT{
-					domaintest.NewPlayerBuilder(uuid, time.Date(2025, time.March, 1, 19, 0, 0, 0, time.UTC)).WithExperience(1_000).BuildPtr(),
-					domaintest.NewPlayerBuilder(uuid, time.Date(2025, time.March, 2, 19, 0, 0, 0, time.UTC)).WithExperience(6_001).BuildPtr(),
-				},
-				milestones: []int64{500, 600, 700, 800, 900, 1_000, 2_000, 3_000, 4_000, 5_000, 6_000, 7_000, 8_000, 9_000, 10_000},
-				expected: []domain.MilestoneAchievement{
-					{
-						Milestone: 1_000,
-						After: &domain.MilestoneAchievementStats{
-							Player: domaintest.NewPlayerBuilder(uuid, time.Date(2025, time.March, 1, 19, 0, 0, 0, time.UTC)).WithExperience(1_000).Build(),
-							Value:  1_000,
-						},
-					},
-					{
-						Milestone: 6_000,
-						After: &domain.MilestoneAchievementStats{
-							Player: domaintest.NewPlayerBuilder(uuid, time.Date(2025, time.March, 2, 19, 0, 0, 0, time.UTC)).WithExperience(6_001).Build(),
-							Value:  6_001,
-						},
-					},
-				},
-			},
-		}
-
-		for _, tt := range tests {
-			t.Run(tt.name, func(t *testing.T) {
-				t.Parallel()
-				p := newPostgresPlayerRepository(t, db, fmt.Sprintf("find_milestone_%s", strings.ReplaceAll(tt.name, " ", "_")))
-
-				storePlayers(t, p, tt.players...)
-
-				achievements, err := p.FindMilestoneAchievements(ctx, uuid, domain.GamemodeOverall, domain.StatExperience, tt.milestones)
+		storePlayers := func(t *testing.T, p PlayerRepository, players ...*domain.PlayerPIT) []*domain.PlayerPIT {
+			t.Helper()
+			playerData := make([]*domain.PlayerPIT, len(players))
+			for i, player := range players {
+				err := p.StorePlayer(ctx, player)
 				require.NoError(t, err)
 
-				for _, achievement := range achievements {
-					if achievement.After == nil {
-						continue
+				// Assert creation succeeded
+				history, err := p.GetHistory(ctx, player.UUID, player.QueriedAt, player.QueriedAt.Add(1*time.Microsecond), 2)
+				require.NoError(t, err)
+				require.Len(t, history, 1)
+
+				playerData[i] = &history[0]
+			}
+			return playerData
+		}
+
+		playerUUID := domaintest.NewUUID(t)
+
+		t.Run("GamemodeOverall and StatExperience", func(t *testing.T) {
+			t.Parallel()
+
+			tests := []struct {
+				name       string
+				players    []*domain.PlayerPIT
+				milestones []int64
+				expected   []domain.MilestoneAchievement
+			}{
+				{
+					name: "Single milestone reached",
+					players: []*domain.PlayerPIT{
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 1, 12, 0, 0, 0, time.UTC)).WithExperience(500).BuildPtr(),
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(1000).BuildPtr(),
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 3, 12, 0, 0, 0, time.UTC)).WithExperience(1500).BuildPtr(),
+					},
+					milestones: []int64{1200},
+					expected: []domain.MilestoneAchievement{
+						{
+							Milestone: 1200,
+							After: &domain.MilestoneAchievementStats{
+								Player: domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 3, 12, 0, 0, 0, time.UTC)).WithExperience(1500).Build(),
+								Value:  1500,
+							},
+						},
+					},
+				},
+				{
+					name: "Multiple milestones reached",
+					players: []*domain.PlayerPIT{
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 1, 12, 0, 0, 0, time.UTC)).WithExperience(500).BuildPtr(),
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(1000).BuildPtr(),
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 3, 12, 0, 0, 0, time.UTC)).WithExperience(2000).BuildPtr(),
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 4, 12, 0, 0, 0, time.UTC)).WithExperience(3000).BuildPtr(),
+					},
+					milestones: []int64{800, 1500, 2500},
+					expected: []domain.MilestoneAchievement{
+						{
+							Milestone: 800,
+							After: &domain.MilestoneAchievementStats{
+								Player: domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(1000).Build(),
+								Value:  1000,
+							},
+						},
+						{
+							Milestone: 1500,
+							After: &domain.MilestoneAchievementStats{
+								Player: domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 3, 12, 0, 0, 0, time.UTC)).WithExperience(2000).Build(),
+								Value:  2000,
+							},
+						},
+						{
+							Milestone: 2500,
+							After: &domain.MilestoneAchievementStats{
+								Player: domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 4, 12, 0, 0, 0, time.UTC)).WithExperience(3000).Build(),
+								Value:  3000,
+							},
+						},
+					},
+				},
+				{
+					name: "No milestones reached",
+					players: []*domain.PlayerPIT{
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 1, 12, 0, 0, 0, time.UTC)).WithExperience(500).BuildPtr(),
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(600).BuildPtr(),
+					},
+					milestones: []int64{1000, 2000},
+					expected:   []domain.MilestoneAchievement{},
+				},
+				{
+					name: "Milestones skipped",
+					players: []*domain.PlayerPIT{
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 1, 12, 0, 0, 0, time.UTC)).WithExperience(500).BuildPtr(),
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(10_000).BuildPtr(),
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 3, 12, 0, 0, 0, time.UTC)).WithExperience(11_000).BuildPtr(),
+					},
+					milestones: []int64{1_000, 5_000, 8_000, 12_000},
+					expected: []domain.MilestoneAchievement{
+						{
+							Milestone: 8_000,
+							After: &domain.MilestoneAchievementStats{
+								Player: domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(10_000).Build(),
+								Value:  10_000,
+							},
+						},
+					},
+				},
+				{
+					name: "Milestones skipped - final reached",
+					players: []*domain.PlayerPIT{
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 1, 12, 0, 0, 0, time.UTC)).WithExperience(500).BuildPtr(),
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(100_000).BuildPtr(),
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 3, 12, 0, 0, 0, time.UTC)).WithExperience(200_000).BuildPtr(),
+					},
+					milestones: []int64{1_000, 5_000, 8_000, 12_000},
+					expected: []domain.MilestoneAchievement{
+						{
+							Milestone: 12_000,
+							After: &domain.MilestoneAchievementStats{
+								Player: domaintest.NewPlayerBuilder(playerUUID, time.Date(2021, time.January, 2, 12, 0, 0, 0, time.UTC)).WithExperience(100_000).Build(),
+								Value:  100_000,
+							},
+						},
+					},
+				},
+				{
+					name: "Multiple sets of milestones skipped",
+					players: []*domain.PlayerPIT{
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2025, time.March, 1, 19, 0, 0, 0, time.UTC)).WithExperience(1_000).BuildPtr(),
+						domaintest.NewPlayerBuilder(playerUUID, time.Date(2025, time.March, 2, 19, 0, 0, 0, time.UTC)).WithExperience(6_001).BuildPtr(),
+					},
+					milestones: []int64{500, 600, 700, 800, 900, 1_000, 2_000, 3_000, 4_000, 5_000, 6_000, 7_000, 8_000, 9_000, 10_000},
+					expected: []domain.MilestoneAchievement{
+						{
+							Milestone: 1_000,
+							After: &domain.MilestoneAchievementStats{
+								Player: domaintest.NewPlayerBuilder(playerUUID, time.Date(2025, time.March, 1, 19, 0, 0, 0, time.UTC)).WithExperience(1_000).Build(),
+								Value:  1_000,
+							},
+						},
+						{
+							Milestone: 6_000,
+							After: &domain.MilestoneAchievementStats{
+								Player: domaintest.NewPlayerBuilder(playerUUID, time.Date(2025, time.March, 2, 19, 0, 0, 0, time.UTC)).WithExperience(6_001).Build(),
+								Value:  6_001,
+							},
+						},
+					},
+				},
+			}
+
+			for _, tt := range tests {
+				t.Run(tt.name, func(t *testing.T) {
+					t.Parallel()
+					p := newPostgresPlayerRepository(t, db, fmt.Sprintf("find_milestone_%s", strings.ReplaceAll(tt.name, " ", "_")))
+
+					storePlayers(t, p, tt.players...)
+
+					achievements, err := p.FindMilestoneAchievements(ctx, playerUUID, domain.GamemodeOverall, domain.StatExperience, tt.milestones)
+					require.NoError(t, err)
+
+					for _, achievement := range achievements {
+						if achievement.After == nil {
+							continue
+						}
+						// Ensure UTC for comparison
+						achievement.After.Player.QueriedAt = achievement.After.Player.QueriedAt.UTC()
+
+						// Drop db id for comparison
+						requireValidDBID(t, achievement.After.Player.DBID)
+						achievement.After.Player.DBID = nil
 					}
-					// Ensure UTC for comparison
-					achievement.After.Player.QueriedAt = achievement.After.Player.QueriedAt.UTC()
-				}
 
-				achievementsJSON, err := json.MarshalIndent(achievements, "", "  ")
-				require.NoError(t, err)
-				expectedJSON, err := json.MarshalIndent(tt.expected, "", "  ")
-				require.NoError(t, err)
-				require.JSONEq(t, string(expectedJSON), string(achievementsJSON))
-			})
-		}
-	})
+					// Lazy json compare
+					achievementsJSON, err := json.MarshalIndent(achievements, "", "  ")
+					require.NoError(t, err)
+					expectedJSON, err := json.MarshalIndent(tt.expected, "", "  ")
+					require.NoError(t, err)
+					require.JSONEq(t, string(expectedJSON), string(achievementsJSON))
+				})
+			}
+		})
 
-	t.Run("Unsupported gamemode", func(t *testing.T) {
-		t.Parallel()
-		p := newPostgresPlayerRepository(t, db, "find_milestone_unsupported_gamemode")
-		playerUUID := domaintest.NewUUID(t)
+		t.Run("Unsupported gamemode", func(t *testing.T) {
+			t.Parallel()
+			p := newPostgresPlayerRepository(t, db, "find_milestone_unsupported_gamemode")
+			playerUUID := domaintest.NewUUID(t)
 
-		_, err := p.FindMilestoneAchievements(ctx, playerUUID, domain.Gamemode("UNSUPPORTED"), domain.StatExperience, []int64{1000})
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "only overall gamemode is supported")
-	})
+			_, err := p.FindMilestoneAchievements(ctx, playerUUID, domain.Gamemode("UNSUPPORTED"), domain.StatExperience, []int64{1000})
+			require.Error(t, err)
+			require.Contains(t, err.Error(), "only overall gamemode is supported")
+		})
 
-	t.Run("Unsupported stat", func(t *testing.T) {
-		t.Parallel()
-		p := newPostgresPlayerRepository(t, db, "find_milestone_unsupported_stat")
-		playerUUID := domaintest.NewUUID(t)
+		t.Run("Unsupported stat", func(t *testing.T) {
+			t.Parallel()
+			p := newPostgresPlayerRepository(t, db, "find_milestone_unsupported_stat")
+			playerUUID := domaintest.NewUUID(t)
 
-		_, err := p.FindMilestoneAchievements(ctx, playerUUID, domain.GamemodeOverall, domain.Stat("UNSUPPORTED"), []int64{1000})
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "only experience stat is supported")
-	})
+			_, err := p.FindMilestoneAchievements(ctx, playerUUID, domain.GamemodeOverall, domain.Stat("UNSUPPORTED"), []int64{1000})
+			require.Error(t, err)
+			require.Contains(t, err.Error(), "only experience stat is supported")
+		})
 
-	t.Run("Empty milestones", func(t *testing.T) {
-		t.Parallel()
-		p := newPostgresPlayerRepository(t, db, "find_milestone_empty")
-		playerUUID := domaintest.NewUUID(t)
+		t.Run("Empty milestones", func(t *testing.T) {
+			t.Parallel()
+			p := newPostgresPlayerRepository(t, db, "find_milestone_empty")
+			playerUUID := domaintest.NewUUID(t)
 
-		achievements, err := p.FindMilestoneAchievements(ctx, playerUUID, domain.GamemodeOverall, domain.StatExperience, []int64{})
-		require.NoError(t, err)
-		require.Empty(t, achievements)
-	})
+			achievements, err := p.FindMilestoneAchievements(ctx, playerUUID, domain.GamemodeOverall, domain.StatExperience, []int64{})
+			require.NoError(t, err)
+			require.Empty(t, achievements)
+		})
 
-	t.Run("Invalid UUID", func(t *testing.T) {
-		t.Parallel()
-		p := newPostgresPlayerRepository(t, db, "find_milestone_invalid_uuid")
+		t.Run("Invalid UUID", func(t *testing.T) {
+			t.Parallel()
+			p := newPostgresPlayerRepository(t, db, "find_milestone_invalid_uuid")
 
-		_, err := p.FindMilestoneAchievements(ctx, "invalid-uuid", domain.GamemodeOverall, domain.StatExperience, []int64{1000})
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "uuid is not normalized")
+			_, err := p.FindMilestoneAchievements(ctx, "invalid-uuid", domain.GamemodeOverall, domain.StatExperience, []int64{1000})
+			require.Error(t, err)
+			require.Contains(t, err.Error(), "uuid is not normalized")
+		})
 	})
 }

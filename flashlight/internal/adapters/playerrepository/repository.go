@@ -144,6 +144,8 @@ func dbStatToPlayerPITWithID(dbStat dbStat) (*playerPITWithID, error) {
 	}
 
 	playerPIT := domain.PlayerPIT{
+		DBID: &dbStat.ID,
+
 		QueriedAt: dbStat.QueriedAt,
 
 		UUID: dbStat.UUID,
@@ -174,6 +176,14 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 	if player == nil {
 		err := fmt.Errorf("player is nil")
 		reporting.Report(ctx, err)
+		return err
+	}
+
+	if player.DBID != nil {
+		err := fmt.Errorf("player already has a DBID")
+		reporting.Report(ctx, err, map[string]string{
+			"dbID": *player.DBID,
+		})
 		return err
 	}
 
