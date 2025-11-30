@@ -1,5 +1,9 @@
 import test from "node:test";
-import { newUserId, validateUserId } from "./userId.ts";
+import {
+    LOCAL_DEVELOPMENT_USER_ID,
+    newUserId,
+    validateUserId,
+} from "./userId.ts";
 import assert from "node:assert";
 import { isNormalizedUUID } from "./uuid.ts";
 
@@ -109,6 +113,22 @@ await test("newUserId", async (t) => {
             },
         );
     });
+
+    await t.test("in development mode", () => {
+        // We use import.meta.env.DEV to return this from newUserId(), so we can't test
+        // in node. Instead we just do some basic checks on the exported constant.
+        assert.ok(
+            validateUserId(LOCAL_DEVELOPMENT_USER_ID),
+            "Development user ID should be valid",
+        );
+
+        assert.ok(
+            LOCAL_DEVELOPMENT_USER_ID.startsWith("rnb_"),
+            "Development user ID should start with 'rnb_'",
+        );
+
+        assert.strictEqual(LOCAL_DEVELOPMENT_USER_ID, "rnb_local_development");
+    });
 });
 
 await test("validateUserId", async (t) => {
@@ -119,6 +139,14 @@ await test("validateUserId", async (t) => {
         },
         {
             input: "rnb_custom_suffix",
+            expected: true,
+        },
+        {
+            input: "rnb_local_development",
+            expected: true,
+        },
+        {
+            input: LOCAL_DEVELOPMENT_USER_ID,
             expected: true,
         },
         {
