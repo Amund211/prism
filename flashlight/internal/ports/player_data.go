@@ -19,8 +19,6 @@ import (
 
 func MakeGetPlayerDataHandler(
 	getAndPersistPlayerWithCache app.GetAndPersistPlayerWithCache,
-	getTags app.GetTags,
-	getAccountByUsername app.GetAccountByUsername,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 ) http.HandlerFunc {
@@ -108,8 +106,6 @@ func MakeGetPlayerDataHandler(
 			},
 		)
 
-		go getTags(ctx, uuid, nil)
-
 		player, err := getAndPersistPlayerWithCache(ctx, uuid)
 		if errors.Is(err, domain.ErrPlayerNotFound) {
 			hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(nil)
@@ -136,10 +132,6 @@ func MakeGetPlayerDataHandler(
 			statusCode := writeHypixelStyleErrorResponse(ctx, w, err)
 			logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "error")
 			return
-		}
-
-		if player.Displayname != nil {
-			go getAccountByUsername(context.WithoutCancel(ctx), *player.Displayname)
 		}
 
 		hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(player)

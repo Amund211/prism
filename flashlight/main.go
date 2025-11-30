@@ -196,8 +196,6 @@ func main() {
 		"GET /v1/playerdata",
 		ports.MakeGetPlayerDataHandler(
 			getAndPersistPlayerWithCache,
-			getTags,
-			getAccountByUsernameWithCache,
 			logger.With("port", "playerdata"),
 			sentryMiddleware,
 		),
@@ -287,8 +285,6 @@ func main() {
 		"GET /playerdata",
 		ports.MakeGetPlayerDataHandler(
 			getAndPersistPlayerWithCache,
-			getTags,
-			getAccountByUsernameWithCache,
 			logger.With("port", "playerdata"),
 			sentryMiddleware,
 		),
