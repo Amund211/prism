@@ -1,6 +1,6 @@
 module github.com/Amund211/flashlight
 
-go 1.25
+go 1.25.5
 
 require (
 	github.com/getsentry/sentry-go v0.39.0
