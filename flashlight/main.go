@@ -280,6 +280,20 @@ func main() {
 		),
 	)
 
+	handleFunc(
+		"OPTIONS /v1/wrapped/{uuid}/{year}",
+		ports.BuildCORSHandler(allowedOrigins),
+	)
+	handleFunc(
+		"GET /v1/wrapped/{uuid}/{year}",
+		ports.MakeGetWrappedHandler(
+			getPlayerPITs,
+			allowedOrigins,
+			logger.With("port", "wrapped"),
+			sentryMiddleware,
+		),
+	)
+
 	// TODO: Remove
 	handleFunc(
 		"GET /playerdata",
