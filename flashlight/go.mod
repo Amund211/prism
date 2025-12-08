@@ -4,7 +4,7 @@ go 1.25.5
 
 require (
 	github.com/getsentry/sentry-go v0.40.0
-	github.com/golang-migrate/migrate/v4 v4.19.0
+	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/jellydator/ttlcache/v3 v3.4.0
 	github.com/lib/pq v1.10.9
 	github.com/stretchr/testify v1.11.1
@@ -26,15 +26,13 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2 // indirect
-	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.38.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.7.1 // indirect
-	golang.org/x/mod v0.26.0 // indirect
-	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/telemetry v0.0.0-20250710130107-8d8967aff50b // indirect
-	golang.org/x/tools v0.35.0 // indirect
+	golang.org/x/mod v0.29.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/telemetry v0.0.0-20251008203120-078029d740a8 // indirect
+	golang.org/x/tools v0.38.0 // indirect
 	golang.org/x/tools/go/packages/packagestest v0.1.1-deprecated // indirect
 	golang.org/x/vuln v1.1.4 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250825161204-c5933d9347a5 // indirect
@@ -44,13 +42,13 @@ require (
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0
-	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
