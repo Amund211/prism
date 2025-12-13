@@ -9,7 +9,7 @@ import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { captureException, captureMessage } from "@sentry/react";
 import { getOrSetUserId } from "#helpers/userId.ts";
 
-interface APISession {
+export interface APISession {
     start: APIPlayerDataPIT;
     end: APIPlayerDataPIT;
     consecutive: boolean;
