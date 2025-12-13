@@ -25,6 +25,16 @@ export interface Session {
 }
 export type Sessions = readonly Session[];
 
+export const apiToSession = (
+    apiSession: APISession,
+    extrapolated = false,
+): Session => ({
+    start: apiToPlayerDataPIT(apiSession.start),
+    end: apiToPlayerDataPIT(apiSession.end),
+    consecutive: apiSession.consecutive,
+    extrapolated,
+});
+
 interface SessionsQueryOptions {
     uuid: string;
     start: Date;
@@ -157,14 +167,9 @@ export const getSessionsQueryOptions = ({
                     throw error;
                 })) as APISessions;
 
-            return apiSessions.map((apiSession) => {
-                return {
-                    start: apiToPlayerDataPIT(apiSession.start),
-                    end: apiToPlayerDataPIT(apiSession.end),
-                    consecutive: apiSession.consecutive,
-                    extrapolated: false,
-                };
-            });
+            return apiSessions.map((apiSession) =>
+                apiToSession(apiSession, false),
+            );
         },
     });
 };
