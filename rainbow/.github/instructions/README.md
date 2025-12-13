@@ -270,8 +270,8 @@ When committing locally, these hooks run automatically:
 2. **Lint**: `npm run lint:check` (must pass)
 3. **Test**: `npm test` (all tests must pass)
 4. **Build**: `npm run build` (should complete successfully)
-5. **Manual verification**: Start dev server and test affected functionality
-6. **Screenshot**: Take screenshots of any UI changes
+5. **Manual verification**: Start dev server and test affected functionality. The player with UUID 6bc1dd0f-f351-4c3d-b6cc-262e55b6e7aa usually has good data coverage for testing functionality.
+6. **Screenshot**: Take screenshots of any UI changes - inspect the screenshot to see if it contains the expected result. If the screenshot shows a loading screen, or is otherwise blank, wait until the page loads to take a new screenshot, or fix the issue preventing it from loading.
 
 ### Before Submitting PR
 
