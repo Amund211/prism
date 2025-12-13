@@ -59,11 +59,11 @@ const Thanks = () => {
                     </ListItemIcon>
                     <ListItemText>
                         <a
-                            href="https://crafatar.com"
+                            href="https://mineatar.io/"
                             target="_blank"
                             rel="noreferrer"
                         >
-                            Crafatar
+                            Mineatar
                         </a>{" "}
                         for providing avatars.
                     </ListItemText>

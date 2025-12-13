@@ -38,7 +38,6 @@ import {
     Warning,
 } from "@mui/icons-material";
 import {
-    Avatar,
     Box,
     Card,
     CardContent,
@@ -76,6 +75,7 @@ import { addExtrapolatedSessions } from "#helpers/session.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
 import { captureException } from "@sentry/react";
 import { sessionSearchSchema } from "#schemas/sessionSearch.ts";
+import { PlayerHead } from "#components/player.tsx";
 
 export const Route = createFileRoute("/session/$uuid")({
     loaderDeps: ({ search: { timeIntervalDefinition, trackingStart } }) => {
@@ -1356,14 +1356,11 @@ function RouteComponent() {
                 alignItems="center"
                 justifyContent="space-between"
             >
-                {/*TODO: Profile picture*/}
-
                 <Stack direction="row" alignItems="center" gap={1}>
-                    <Avatar
-                        key={uuid}
-                        alt={`Profile picture for ${username ?? "unknown"}`}
-                        src={`https://crafatar.com/avatars/${uuid}?overlay`}
-                        variant="square"
+                    <PlayerHead
+                        uuid={uuid}
+                        username={username}
+                        variant="face"
                     />
                     {username === undefined ? (
                         <Stack direction="row" alignItems="center">

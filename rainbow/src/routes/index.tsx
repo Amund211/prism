@@ -1,11 +1,12 @@
 import { createFileRoute, createLink } from "@tanstack/react-router";
-import { Avatar, Button, IconButton, Stack, Typography } from "@mui/material";
+import { Button, IconButton, Stack, Typography } from "@mui/material";
 import { UserSearch } from "#components/UserSearch.tsx";
 import { useUUIDToUsername } from "#queries/username.ts";
 import { Delete } from "@mui/icons-material";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
 import { captureException } from "@sentry/react";
+import { PlayerHead } from "#components/player.tsx";
 
 const RouterLinkButton = createLink(Button);
 
@@ -94,9 +95,10 @@ function RouteComponent() {
                             }}
                         >
                             <Stack alignItems="center" gap={1}>
-                                <Avatar
-                                    src={`https://crafatar.com/renders/head/${uuid}?overlay`}
-                                    alt={`Player head of ${uuidToUsername[uuid] ?? "unknown"}`}
+                                <PlayerHead
+                                    uuid={uuid}
+                                    username={uuidToUsername[uuid]}
+                                    variant="cube"
                                 />
                                 <Typography variant="body2">
                                     {uuidToUsername[uuid]}
