@@ -206,6 +206,10 @@ const renderDay = (day: Day): string => {
     });
 };
 
+const reducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+).matches;
+
 const ConfettiEffect: React.FC = () => {
     const [confetti, setConfetti] = React.useState<
         {
@@ -239,6 +243,8 @@ const ConfettiEffect: React.FC = () => {
             clearTimeout(timer);
         };
     }, []);
+
+    if (reducedMotion) return null;
 
     if (!showConfetti) return null;
 
