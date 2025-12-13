@@ -70,36 +70,48 @@ const findBaseline = (
     return null;
 };
 
-export const computeStat = (
+export function computeStat(
+    playerData: PlayerDataPIT,
+    gamemode: GamemodeKey,
+    stat: Exclude<StatKey, "winstreak">,
+    variant: VariantKey,
+    history: History,
+): number;
+export function computeStat(
     playerData: PlayerDataPIT,
     gamemode: GamemodeKey,
     stat: StatKey,
     variant: VariantKey,
     history: History,
-): number | null => {
+): number | null;
+export function computeStat(
+    playerData: PlayerDataPIT,
+    gamemode: GamemodeKey,
+    stat: StatKey,
+    variant: VariantKey,
+    history: History,
+): number | null {
     if (variant === "overall") {
         return getStat(playerData, gamemode, stat);
     }
 
     switch (stat) {
         case "fkdr": {
-            const finalKills =
-                computeStat(
-                    playerData,
-                    gamemode,
-                    "finalKills",
-                    variant,
-                    history,
-                ) ?? 0;
+            const finalKills = computeStat(
+                playerData,
+                gamemode,
+                "finalKills",
+                variant,
+                history,
+            );
 
-            const finalDeaths =
-                computeStat(
-                    playerData,
-                    gamemode,
-                    "finalDeaths",
-                    variant,
-                    history,
-                ) ?? 0;
+            const finalDeaths = computeStat(
+                playerData,
+                gamemode,
+                "finalDeaths",
+                variant,
+                history,
+            );
 
             if (finalDeaths === 0) {
                 return finalKills;
@@ -108,12 +120,20 @@ export const computeStat = (
             }
         }
         case "kdr": {
-            const kills =
-                computeStat(playerData, gamemode, "kills", variant, history) ??
-                0;
-            const deaths =
-                computeStat(playerData, gamemode, "deaths", variant, history) ??
-                0;
+            const kills = computeStat(
+                playerData,
+                gamemode,
+                "kills",
+                variant,
+                history,
+            );
+            const deaths = computeStat(
+                playerData,
+                gamemode,
+                "deaths",
+                variant,
+                history,
+            );
 
             if (deaths === 0) {
                 return kills;
@@ -122,12 +142,20 @@ export const computeStat = (
             }
         }
         case "index": {
-            const fkdr =
-                computeStat(playerData, gamemode, "fkdr", variant, history) ??
-                0;
-            const stars =
-                computeStat(playerData, gamemode, "stars", variant, history) ??
-                0;
+            const fkdr = computeStat(
+                playerData,
+                gamemode,
+                "fkdr",
+                variant,
+                history,
+            );
+            const stars = computeStat(
+                playerData,
+                gamemode,
+                "stars",
+                variant,
+                history,
+            );
             return fkdr ** 2 * stars;
         }
         default: {
@@ -139,4 +167,4 @@ export const computeStat = (
             return value - baseline;
         }
     }
-};
+}
