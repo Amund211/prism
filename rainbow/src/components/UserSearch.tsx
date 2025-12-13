@@ -234,14 +234,14 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                     return null;
                 }
 
+                const username = uuidToUsername[option.uuid];
+
                 return (
                     <Chip
                         {...getItemProps({ index })}
                         key={option.uuid}
                         label={
-                            uuidToUsername[option.uuid] ?? (
-                                <Skeleton variant="text" width={60} />
-                            )
+                            username ?? <Skeleton variant="text" width={60} />
                         }
                         variant="outlined"
                         color="primary"
@@ -251,7 +251,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                                     backgroundColor: "rgba(0, 0, 0, 0)",
                                 }}
                                 src={`https://crafatar.com/renders/head/${option.uuid}?overlay`}
-                                alt={`Player head of ${uuidToUsername[option.uuid] ?? "unknown"}`}
+                                alt={`Player head of ${username ?? "unknown"}`}
                             />
                         }
                     />
