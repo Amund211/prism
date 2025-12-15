@@ -1464,6 +1464,23 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
                     uuid={uuid}
                     year={year}
                 />
+                {wrappedData.totalSessions === 0 ? (
+                    <Alert severity="info" icon={<Info />}>
+                        <Typography variant="body2">
+                            This player didn&apos;t record any sessions with the
+                            Prism Overlay in {year.toString()}. Showing overall
+                            year statistics instead. Download it to start
+                            tracking your stats!
+                        </Typography>
+                    </Alert>
+                ) : (
+                    <LowSessionCoverageAlert
+                        coveragePercentage={
+                            wrappedData.sessionStats?.sessionCoverage
+                                .gamesPlayedPercentage
+                        }
+                    />
+                )}
                 <SessionOverview wrappedData={wrappedData} />
 
                 <Grid container spacing={2}>
@@ -1558,6 +1575,47 @@ const SessionCoverage: React.FC<SessionCoverageProps> = ({ wrappedData }) => {
     );
 };
 
+function NoSessionsAlert({ year }: { year: number }) {
+    return (
+        <Alert severity="info" icon={<Info />}>
+            <Typography variant="body2">
+                This player didn&apos;t record any sessions with the Prism
+                Overlay in {year.toString()}. Showing overall year statistics
+                instead. Download it{" "}
+                {
+                    <Link to="/downloads" target="_blank">
+                        here
+                    </Link>
+                }{" "}
+                to start tracking your stats!
+            </Typography>
+        </Alert>
+    );
+}
+
+function LowSessionCoverageAlert({
+    coveragePercentage,
+}: {
+    coveragePercentage: number | undefined;
+}) {
+    const lowCoverage =
+        coveragePercentage === undefined || coveragePercentage < 50;
+
+    if (!lowCoverage) return null;
+
+    return (
+        <Alert severity="warning" icon={<Warning />}>
+            <Typography variant="body2">
+                Session coverage is low (
+                {coveragePercentage?.toLocaleString(undefined, {
+                    maximumFractionDigits: 1,
+                }) ?? "0.0"}
+                % of games in sessions). Session statistics may be inaccurate.
+            </Typography>
+        </Alert>
+    );
+}
+
 interface WrappedStatsContentProps {
     wrappedData?:
         | WrappedData
@@ -1629,44 +1687,20 @@ function WrappedStatsContent({
     if (wrappedData.totalSessions === 0) {
         return (
             <>
-                <Alert severity="info" icon={<Info />}>
-                    <Typography variant="body2">
-                        This player didn&apos;t record any sessions with the
-                        Prism Overlay in {wrappedData.year.toString()}. Showing
-                        overall year statistics instead. Download it{" "}
-                        {
-                            <Link to="/downloads" target="_blank">
-                                here
-                            </Link>
-                        }{" "}
-                        to start tracking your stats!
-                    </Typography>
-                </Alert>
-
+                <NoSessionsAlert year={wrappedData.year} />
                 {yearStatsCard}
             </>
         );
     }
 
-    const lowCoverage =
-        wrappedData.sessionStats?.sessionCoverage !== undefined &&
-        wrappedData.sessionStats.sessionCoverage.gamesPlayedPercentage < 50;
-
     return (
         <>
-            {lowCoverage && (
-                <Alert severity="warning" icon={<Warning />}>
-                    <Typography variant="body2">
-                        Session coverage is low (
-                        {wrappedData.sessionStats?.sessionCoverage.gamesPlayedPercentage.toLocaleString(
-                            undefined,
-                            { maximumFractionDigits: 1 },
-                        ) ?? "0.0"}
-                        % of games in sessions). Session statistics may be
-                        inaccurate.
-                    </Typography>
-                </Alert>
-            )}
+            <LowSessionCoverageAlert
+                coveragePercentage={
+                    wrappedData.sessionStats?.sessionCoverage
+                        .gamesPlayedPercentage
+                }
+            />
 
             <SessionOverview wrappedData={wrappedData} />
 
