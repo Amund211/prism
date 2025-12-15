@@ -38,6 +38,7 @@
         "@tanstack/react-router": "^1.139.12",
         "babel-plugin-react-compiler": "^19.1.0-rc.3",
         "dayjs": "^1.11.19",
+        "html-to-image": "^1.11.13",
         "idb-keyval": "^6.2.2",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",

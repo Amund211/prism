@@ -6,6 +6,7 @@ import { useUUIDToUsername } from "#queries/username.ts";
 import { computeStat } from "#stats/index.ts";
 import {
     Box,
+    Button,
     Card,
     CardContent,
     Chip,
@@ -19,6 +20,8 @@ import {
     Typography,
     Zoom,
     Alert,
+    ThemeProvider,
+    createTheme,
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
@@ -45,9 +48,11 @@ import {
     Info,
     Error,
     PieChart,
+    Download,
 } from "@mui/icons-material";
 import type { StatKey } from "#stats/keys.ts";
 import { PlayerHead } from "#components/player.tsx";
+import { ExportImageMount } from "#helpers/exportImage.tsx";
 
 const getDefaultTimeZone = (): string => {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -142,8 +147,8 @@ const StatCard: React.FC<StatCardProps> = ({
                             textAlign="center"
                             sx={{
                                 background: `linear-gradient(45deg, ${color}, ${color}dd)`,
-                                WebkitBackgroundClip: "text",
-                                WebkitTextFillColor: "transparent",
+                                backgroundClip: "text",
+                                textFillColor: "transparent",
                             }}
                         >
                             {value}
@@ -1486,6 +1491,83 @@ const FlawlessSessions: React.FC<FlawlessSessionsProps> = ({ wrappedData }) => {
     );
 };
 
+interface ExportStatsCardProps {
+    uuid: string;
+    year: number;
+    wrappedData: WrappedData & {
+        yearStats: NonNullable<WrappedData["yearStats"]>;
+    };
+}
+
+const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
+    uuid,
+    year,
+    wrappedData,
+}) => {
+    return (
+        <ThemeProvider
+            theme={() =>
+                createTheme({
+                    // Force theme and breakpoints for predictable rendering
+                    palette: { mode: "dark" },
+                    breakpoints: {
+                        values: {
+                            xs: 0,
+                            sm: 0,
+                            md: 0,
+                            lg: 0,
+                            xl: 1,
+                        },
+                    },
+                })
+            }
+        >
+            <Stack
+                width="1600px"
+                padding={4}
+                gap={3}
+                sx={{
+                    background: (theme) => theme.palette.background.default,
+
+                    // Never wrap whitespace, as that causes all typography to wrap their last word
+                    // https://github.com/bubkoo/html-to-image/issues/132
+                    whiteSpace: "nowrap",
+                }}
+            >
+                <WrappedHeader
+                    wrappedData={wrappedData}
+                    uuid={uuid}
+                    year={year}
+                />
+                <SessionOverview wrappedData={wrappedData} />
+
+                <SessionCoverage wrappedData={wrappedData} />
+
+                <YearStatsCards wrappedData={wrappedData} />
+
+                <AverageSessionStats wrappedData={wrappedData} />
+
+                <FlawlessSessions wrappedData={wrappedData} />
+                <Typography
+                    variant="h6"
+                    textAlign="center"
+                    sx={{ color: "rgba(255, 255, 255, 0.9)" }}
+                >
+                    🎮 See more details and create your own at{" "}
+                    <Typography
+                        component="span"
+                        variant="h6"
+                        fontWeight="bold"
+                        sx={{ color: "white" }}
+                    >
+                        prismoverlay.com/wrapped
+                    </Typography>
+                </Typography>
+            </Stack>
+        </ThemeProvider>
+    );
+};
+
 interface SessionCoverageProps {
     wrappedData: WrappedData;
 }
@@ -1692,6 +1774,97 @@ function WrappedStatsContent({
     );
 }
 
+interface WrappedHeaderProps {
+    wrappedData?:
+        | WrappedData
+        | (WrappedData & { yearStats: NonNullable<WrappedData["yearStats"]> });
+    uuid: string;
+    year: number;
+}
+
+function WrappedHeader({ wrappedData, uuid, year }: WrappedHeaderProps) {
+    const username = useUUIDToUsername([uuid])[uuid];
+    return (
+        <Stack
+            direction="row"
+            gap={2}
+            alignItems="center"
+            justifyContent="center"
+        >
+            <PlayerHead
+                uuid={uuid}
+                username={username}
+                variant="face"
+                width={80}
+            />
+            <Stack alignItems="center">
+                <Typography
+                    variant="h3"
+                    fontWeight="bold"
+                    textAlign="center"
+                    sx={{
+                        background:
+                            "linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1)",
+                        backgroundClip: "text",
+                        textFillColor: "transparent",
+                    }}
+                    id="wrapped-header-title" // Needed for some manual tweaking in export
+                >
+                    {username
+                        ? `${username}'s ${year.toString()} Wrapped`
+                        : `${year.toString()} Wrapped  `}
+                </Typography>
+                <Stack direction="row" alignItems="center" gap={1}>
+                    <Typography variant="subtitle1" color="textSecondary">
+                        A year of Bed Wars achievements
+                    </Typography>
+                    <Tooltip
+                        title={
+                            wrappedData?.yearStats
+                                ? `Based on stats from ${wrappedData.yearStats.start.queriedAt.toLocaleDateString(
+                                      undefined,
+                                      {
+                                          month: "short",
+                                          day: "numeric",
+                                          year: "numeric",
+                                      },
+                                  )} → ${wrappedData.yearStats.end.queriedAt.toLocaleDateString(
+                                      undefined,
+                                      {
+                                          month: "short",
+                                          day: "numeric",
+                                          year: "numeric",
+                                      },
+                                  )}.`
+                                : undefined
+                        }
+                    >
+                        <CalendarMonth
+                            color={wrappedData?.yearStats ? "info" : "disabled"}
+                        />
+                    </Tooltip>
+                    {wrappedData?.yearStats &&
+                        wrappedData.yearStats.end.queriedAt.getTime() -
+                            wrappedData.yearStats.start.queriedAt.getTime() <
+                            1000 * 60 * 60 * 24 * 30 * 8 && (
+                            <Tooltip
+                                title={`The data for this year covers only ~${(
+                                    (wrappedData.yearStats.end.queriedAt.getTime() -
+                                        wrappedData.yearStats.start.queriedAt.getTime()) /
+                                    (1000 * 60 * 60 * 24 * 30)
+                                ).toLocaleString(undefined, {
+                                    maximumFractionDigits: 1,
+                                })} month(s). Statistics may not accurately reflect the entire year.`}
+                            >
+                                <Warning color="warning" />
+                            </Tooltip>
+                        )}
+                </Stack>
+            </Stack>
+        </Stack>
+    );
+}
+
 function RouteComponent() {
     const { uuid: rawUUID } = Route.useParams();
     const uuid = normalizeUUID(rawUUID);
@@ -1709,6 +1882,11 @@ function RouteComponent() {
             timezone: getDefaultTimeZone(),
         }),
     );
+
+    // Export functionality
+    const [exportApi, setExportApi] = React.useState<{
+        download: () => Promise<void>;
+    } | null>(null);
 
     // Register visits for player on page load
     const [initialUUID] = React.useState(uuid);
@@ -1765,101 +1943,60 @@ function RouteComponent() {
                         });
                     }}
                 />
-                <Fade in timeout={1000}>
-                    <Box>
-                        <Stack
-                            direction="row"
-                            gap={2}
-                            alignItems="center"
-                            justifyContent="center"
-                        >
-                            <PlayerHead
-                                uuid={uuid}
-                                username={username}
-                                variant="face"
-                                width={80}
-                            />
-                            <Stack alignItems="center">
-                                <Typography
-                                    variant="h3"
-                                    fontWeight="bold"
-                                    textAlign="center"
-                                    sx={{
-                                        background:
-                                            "linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1)",
-                                        WebkitBackgroundClip: "text",
-                                        WebkitTextFillColor: "transparent",
-                                    }}
-                                >
-                                    {username
-                                        ? `${username}'s ${year.toString()} Wrapped`
-                                        : `${year.toString()} Wrapped`}
-                                </Typography>
-                                <Stack
-                                    direction="row"
-                                    alignItems="center"
-                                    gap={1}
-                                >
-                                    <Typography
-                                        variant="subtitle1"
-                                        color="textSecondary"
-                                    >
-                                        A year of Bed Wars achievements
-                                    </Typography>
-                                    <Tooltip
-                                        title={
-                                            wrappedData?.yearStats
-                                                ? `Based on stats from ${wrappedData.yearStats.start.queriedAt.toLocaleDateString(
-                                                      undefined,
-                                                      {
-                                                          month: "short",
-                                                          day: "numeric",
-                                                          year: "numeric",
-                                                      },
-                                                  )} → ${wrappedData.yearStats.end.queriedAt.toLocaleDateString(
-                                                      undefined,
-                                                      {
-                                                          month: "short",
-                                                          day: "numeric",
-                                                          year: "numeric",
-                                                      },
-                                                  )}.`
-                                                : undefined
-                                        }
-                                    >
-                                        <CalendarMonth
-                                            color={
-                                                wrappedData?.yearStats
-                                                    ? "info"
-                                                    : "disabled"
-                                            }
-                                        />
-                                    </Tooltip>
-                                    {wrappedData?.yearStats &&
-                                        wrappedData.yearStats.end.queriedAt.getTime() -
-                                            wrappedData.yearStats.start.queriedAt.getTime() <
-                                            1000 * 60 * 60 * 24 * 30 * 8 && (
-                                            <Tooltip
-                                                title={`The data for this year covers only ~${(
-                                                    (wrappedData.yearStats.end.queriedAt.getTime() -
-                                                        wrappedData.yearStats.start.queriedAt.getTime()) /
-                                                    (1000 * 60 * 60 * 24 * 30)
-                                                ).toLocaleString(undefined, {
-                                                    maximumFractionDigits: 1,
-                                                })} month(s). Statistics may not accurately reflect the entire year.`}
-                                            >
-                                                <Warning color="warning" />
-                                            </Tooltip>
-                                        )}
-                                </Stack>
-                            </Stack>
-                        </Stack>
-                    </Box>
-                </Fade>
+                <WrappedHeader
+                    wrappedData={wrappedData}
+                    uuid={uuid}
+                    year={year}
+                />
+                {wrappedData?.yearStats && uuid && (
+                    <Fade in timeout={1200}>
+                        <Box sx={{ display: "flex", justifyContent: "center" }}>
+                            <Button
+                                variant="contained"
+                                startIcon={<Download />}
+                                onClick={() => {
+                                    void exportApi?.download();
+                                }}
+                                disabled={!exportApi}
+                                size="large"
+                            >
+                                Export Summary
+                            </Button>
+                        </Box>
+                    </Fade>
+                )}
                 <WrappedStatsContent
                     wrappedData={wrappedData}
                     isLoading={isLoading}
                 />
+                {wrappedData?.yearStats && username && (
+                    <ExportImageMount
+                        onReady={(api) => {
+                            setExportApi(api);
+                        }}
+                        onCapture={(node) => {
+                            // Crazy hack: Add some dots to give it some more space as it gets clipped by default
+                            // Likely due to font-rendering differences between browser and canvas
+                            // https://github.com/bubkoo/html-to-image/issues/132
+                            const header = node.querySelector(
+                                "#wrapped-header-title",
+                            );
+                            const suffix = " . . ";
+                            if (header && !header.textContent.endsWith(suffix))
+                                header.textContent += suffix;
+                        }}
+                        filename={`${username}-${year.toString()}-wrapped.png`}
+                    >
+                        <ExportStatsCard
+                            uuid={uuid}
+                            year={year}
+                            wrappedData={{
+                                ...wrappedData,
+                                yearStats: wrappedData.yearStats,
+                            }}
+                        />
+                    </ExportImageMount>
+                )}
                 {wrappedData?.year !== undefined && wrappedData.yearStats && (
                     <Fade in timeout={2000}>
                         <Card
