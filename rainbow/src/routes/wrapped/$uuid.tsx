@@ -1782,6 +1782,24 @@ interface WrappedHeaderProps {
 
 function WrappedHeader({ wrappedData, uuid, year }: WrappedHeaderProps) {
     const username = useUUIDToUsername([uuid])[uuid];
+    const dateRangeString = wrappedData?.yearStats
+        ? `Based on stats from ${wrappedData.yearStats.start.queriedAt.toLocaleDateString(
+              undefined,
+              {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+              },
+          )} → ${wrappedData.yearStats.end.queriedAt.toLocaleDateString(
+              undefined,
+              {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+              },
+          )}.`
+        : undefined;
+
     return (
         <Stack
             direction="row"
@@ -1812,35 +1830,10 @@ function WrappedHeader({ wrappedData, uuid, year }: WrappedHeaderProps) {
                         ? `${username}'s ${year.toString()} Wrapped`
                         : `${year.toString()} Wrapped  `}
                 </Typography>
+                <Typography variant="subtitle1" color="textSecondary">
+                    A year of Bed Wars achievements
+                </Typography>
                 <Stack direction="row" alignItems="center" gap={1}>
-                    <Typography variant="subtitle1" color="textSecondary">
-                        A year of Bed Wars achievements
-                    </Typography>
-                    <Tooltip
-                        title={
-                            wrappedData?.yearStats
-                                ? `Based on stats from ${wrappedData.yearStats.start.queriedAt.toLocaleDateString(
-                                      undefined,
-                                      {
-                                          month: "short",
-                                          day: "numeric",
-                                          year: "numeric",
-                                      },
-                                  )} → ${wrappedData.yearStats.end.queriedAt.toLocaleDateString(
-                                      undefined,
-                                      {
-                                          month: "short",
-                                          day: "numeric",
-                                          year: "numeric",
-                                      },
-                                  )}.`
-                                : undefined
-                        }
-                    >
-                        <CalendarMonth
-                            color={wrappedData?.yearStats ? "info" : "disabled"}
-                        />
-                    </Tooltip>
                     {wrappedData?.yearStats &&
                         wrappedData.yearStats.end.queriedAt.getTime() -
                             wrappedData.yearStats.start.queriedAt.getTime() <
@@ -1857,6 +1850,11 @@ function WrappedHeader({ wrappedData, uuid, year }: WrappedHeaderProps) {
                                 <Warning color="warning" />
                             </Tooltip>
                         )}
+                    {dateRangeString && (
+                        <Typography variant="caption" color="textSecondary">
+                            {dateRangeString}
+                        </Typography>
+                    )}
                 </Stack>
             </Stack>
         </Stack>
