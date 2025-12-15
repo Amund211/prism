@@ -804,7 +804,7 @@ const AverageSessionStats: React.FC<AverageSessionStatsProps> = ({
     if (!sessionStats?.averages) return null;
 
     return (
-        <Card variant="outlined">
+        <Card variant="outlined" sx={{ height: "100%" }}>
             <CardContent>
                 <Stack gap={2}>
                     <Stack direction="row" alignItems="center" gap={1}>
@@ -1670,11 +1670,16 @@ function WrappedStatsContent({
 
             <SessionOverview wrappedData={wrappedData} />
 
-            <SessionCoverage wrappedData={wrappedData} />
+            <Grid container spacing={2}>
+                <Grid size={{ xs: 12, lg: 6 }}>
+                    <SessionCoverage wrappedData={wrappedData} />
+                </Grid>
+                <Grid size={{ xs: 12, lg: 6 }}>
+                    <AverageSessionStats wrappedData={wrappedData} />
+                </Grid>
+            </Grid>
 
             {yearStatsCard}
-
-            <AverageSessionStats wrappedData={wrappedData} />
 
             <BestSessions wrappedData={wrappedData} />
 
