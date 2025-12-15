@@ -1252,7 +1252,7 @@ const FavoritePlayTimes: React.FC<FavoritePlayTimesProps> = ({
                             color="textSecondary"
                             sx={{ mb: 1, display: "block" }}
                         >
-                            Playtime heatmap: when you play during the week
+                            Playtime heatmap across the week
                         </Typography>
                         <Box
                             sx={{
