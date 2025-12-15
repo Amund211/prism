@@ -1492,9 +1492,55 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
                     </Grid>
                 </Grid>
 
-                <YearStatsCards wrappedData={wrappedData} />
+                {wrappedData.sessionStats && (
+                    <Grid container spacing={2}>
+                        <Grid size={{ xs: 4 }}>
+                            <BestSessionCard
+                                title="Highest FKDR"
+                                icon={<TrendingUp />}
+                                session={
+                                    wrappedData.sessionStats.bestSessions
+                                        .highestFKDR
+                                }
+                                statLabel="FKDR"
+                                statType="fkdr"
+                                color="#667eea"
+                            />
+                        </Grid>
+                        <Grid size={{ xs: 4 }}>
+                            <BestSessionCard
+                                title="Most Final Kills"
+                                icon={<Whatshot />}
+                                session={
+                                    wrappedData.sessionStats.bestSessions
+                                        .mostFinalKills
+                                }
+                                statLabel="Final Kills"
+                                statType="finals"
+                                color="#FFD93D"
+                            />
+                        </Grid>
+                        <Grid size={{ xs: 4 }}>
+                            <BestSessionCard
+                                title="Longest Session"
+                                icon={<Timer />}
+                                session={
+                                    wrappedData.sessionStats.bestSessions
+                                        .longestSession
+                                }
+                                statLabel="hours"
+                                statType="duration"
+                                color="#A8E6CF"
+                                showDuration={false}
+                            />
+                        </Grid>
+                    </Grid>
+                )}
 
                 <FlawlessSessions wrappedData={wrappedData} />
+
+                <YearStatsCards wrappedData={wrappedData} />
+
                 <Typography
                     variant="h6"
                     textAlign="center"
