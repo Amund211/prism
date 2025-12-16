@@ -1667,6 +1667,8 @@ function LowSessionCoverageAlert({
                     maximumFractionDigits: 1,
                 }) ?? "0.0"}
                 % of games in sessions). Session statistics may be inaccurate.
+                Ensure you have &ldquo;Online game stats&rdquo; enabled on
+                Hypixel while using Prism overlay.
             </Typography>
         </Alert>
     );
