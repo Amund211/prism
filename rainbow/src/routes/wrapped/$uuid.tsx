@@ -389,6 +389,12 @@ const BestSessionCard: React.FC<BestSessionCardProps> = ({
                         <Typography variant="h6" fontWeight="bold">
                             {title}
                         </Typography>
+                        {(statType === "winsPerHour" ||
+                            statType === "finalsPerHour") && (
+                            <Tooltip title="Only considers sessions longer than 30 minutes">
+                                <Info color="action" fontSize="small" />
+                            </Tooltip>
+                        )}
                     </Stack>
                     <Typography
                         variant="body2"
