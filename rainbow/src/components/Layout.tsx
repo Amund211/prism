@@ -171,20 +171,39 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                 </ListItemIcon>
                                 <ListItemText primary="History explorer" />
                             </RouterMenuItem>
-                            <RouterMenuItem
-                                to="/wrapped"
-                                selected={location.pathname.startsWith(
-                                    "/wrapped",
-                                )}
-                                onClick={handleCloseMenu}
-                            >
-                                <ListItemIcon>
-                                    <Redeem />
-                                </ListItemIcon>
-                                <ListItemText
-                                    primary={`Wrapped ${getWrappedYear().toString()}`}
-                                />
-                            </RouterMenuItem>
+                            {currentUser ? (
+                                <RouterMenuItem
+                                    to="/wrapped/$uuid"
+                                    selected={location.pathname.startsWith(
+                                        "/wrapped",
+                                    )}
+                                    params={{ uuid: currentUser }}
+                                    search={{ year: getWrappedYear() }}
+                                    onClick={handleCloseMenu}
+                                >
+                                    <ListItemIcon>
+                                        <Redeem />
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary={`Wrapped ${getWrappedYear().toString()}`}
+                                    />
+                                </RouterMenuItem>
+                            ) : (
+                                <RouterMenuItem
+                                    to="/wrapped"
+                                    selected={location.pathname.startsWith(
+                                        "/wrapped",
+                                    )}
+                                    onClick={handleCloseMenu}
+                                >
+                                    <ListItemIcon>
+                                        <Redeem />
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary={`Wrapped ${getWrappedYear().toString()}`}
+                                    />
+                                </RouterMenuItem>
+                            )}
                             <RouterMenuItem
                                 selected={location.pathname === "/downloads"}
                                 to="/downloads"
@@ -317,19 +336,37 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                             </RouterLinkItemButton>
                         </ListItem>
                         <ListItem disablePadding>
-                            <RouterLinkItemButton
-                                selected={location.pathname.startsWith(
-                                    "/wrapped",
-                                )}
-                                to="/wrapped"
-                            >
-                                <ListItemIcon>
-                                    <Redeem />
-                                </ListItemIcon>
-                                <ListItemText
-                                    primary={`Wrapped ${getWrappedYear().toString()}`}
-                                />
-                            </RouterLinkItemButton>
+                            {currentUser ? (
+                                <RouterLinkItemButton
+                                    selected={location.pathname.startsWith(
+                                        "/wrapped",
+                                    )}
+                                    to="/wrapped/$uuid"
+                                    params={{ uuid: currentUser }}
+                                    search={{ year: getWrappedYear() }}
+                                >
+                                    <ListItemIcon>
+                                        <Redeem />
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary={`Wrapped ${getWrappedYear().toString()}`}
+                                    />
+                                </RouterLinkItemButton>
+                            ) : (
+                                <RouterLinkItemButton
+                                    selected={location.pathname.startsWith(
+                                        "/wrapped",
+                                    )}
+                                    to="/wrapped"
+                                >
+                                    <ListItemIcon>
+                                        <Redeem />
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary={`Wrapped ${getWrappedYear().toString()}`}
+                                    />
+                                </RouterLinkItemButton>
+                            )}
                         </ListItem>
                         <ListItem disablePadding>
                             <RouterLinkItemButton
