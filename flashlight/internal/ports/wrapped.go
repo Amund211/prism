@@ -437,9 +437,7 @@ func maxSession[T cmp.Ordered](sessions []domain.Session, getValue func(*domain.
 
 // Assumes at least one session exists
 func computeBestSessions(ctx context.Context, sessions []domain.Session) bestSessionsStats {
-	minSessionDuration := 15 * time.Minute
-	minWins := 2
-	minFinals := 10
+	minSessionDuration := 30 * time.Minute
 
 	bestKills := maxSession(sessions, func(s *domain.Session) int {
 		return s.End.Overall.Kills - s.Start.Overall.Kills
@@ -471,8 +469,7 @@ func computeBestSessions(ctx context.Context, sessions []domain.Session) bestSes
 		return float64(wins) / durationHours
 	}, func(s *domain.Session) bool {
 		duration := s.End.QueriedAt.Sub(s.Start.QueriedAt)
-		wins := s.End.Overall.Wins - s.Start.Overall.Wins
-		return duration >= minSessionDuration && wins >= minWins
+		return duration >= minSessionDuration
 	})
 	bestFinalsPerHour := maxSession(sessions, func(s *domain.Session) float64 {
 		duration := s.End.QueriedAt.Sub(s.Start.QueriedAt)
@@ -481,8 +478,7 @@ func computeBestSessions(ctx context.Context, sessions []domain.Session) bestSes
 		return float64(finals) / durationHours
 	}, func(s *domain.Session) bool {
 		duration := s.End.QueriedAt.Sub(s.Start.QueriedAt)
-		finals := s.End.Overall.FinalKills - s.Start.Overall.FinalKills
-		return duration >= minSessionDuration && finals >= minFinals
+		return duration >= minSessionDuration
 	})
 
 	return bestSessionsStats{
