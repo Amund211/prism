@@ -1433,21 +1433,19 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
 }) => {
     return (
         <ThemeProvider
-            theme={() =>
-                createTheme({
-                    // Force theme and breakpoints for predictable rendering
-                    palette: { mode: "dark" },
-                    breakpoints: {
-                        values: {
-                            xs: 0,
-                            sm: 0,
-                            md: 0,
-                            lg: 0,
-                            xl: 1,
-                        },
+            theme={createTheme({
+                // Force theme and breakpoints for predictable rendering
+                palette: { mode: "dark" },
+                breakpoints: {
+                    values: {
+                        xs: 0,
+                        sm: 0,
+                        md: 0,
+                        lg: 0,
+                        xl: 1,
                     },
-                })
-            }
+                },
+            })}
         >
             <Stack
                 width="1600px"
