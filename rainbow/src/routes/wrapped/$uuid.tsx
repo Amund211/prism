@@ -470,7 +470,11 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                     <Grid container spacing={2}>
                         <Grid size={{ xs: 6, sm: 3 }}>
                             <Stack alignItems="center">
-                                <Typography variant="h4" color="primary">
+                                <Typography
+                                    variant="h4"
+                                    color="primary"
+                                    textAlign="center"
+                                >
                                     {wrappedData.totalSessions.toLocaleString()}
                                 </Typography>
                                 <Typography
@@ -487,6 +491,7 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                                     <Typography
                                         variant="h4"
                                         color="warning.main"
+                                        textAlign="center"
                                     >
                                         {wrappedData.nonConsecutiveSessions.toLocaleString()}
                                     </Typography>
@@ -508,7 +513,11 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                         </Grid>
                         <Grid size={{ xs: 6, sm: 3 }}>
                             <Stack alignItems="center">
-                                <Typography variant="h4" color="success.main">
+                                <Typography
+                                    variant="h4"
+                                    color="success.main"
+                                    textAlign="center"
+                                >
                                     {formatHours(
                                         sessionStats.sessionLengths.totalHours,
                                     )}
@@ -523,7 +532,11 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                         </Grid>
                         <Grid size={{ xs: 6, sm: 3 }}>
                             <Stack alignItems="center">
-                                <Typography variant="h4" color="info.main">
+                                <Typography
+                                    variant="h4"
+                                    color="info.main"
+                                    textAlign="center"
+                                >
                                     {formatHours(
                                         sessionStats.sessionLengths
                                             .averageHours,
