@@ -90,8 +90,6 @@ interface ExportImageMountProps {
     children: React.ReactNode;
     /** Optional: expose a ref callback so caller can trigger export */
     onReady?: (api: { download: () => Promise<void> }) => void;
-    /** Optional: callback before a capture is done */
-    onCapture?: (node: HTMLDivElement) => void;
     filename?: string;
 }
 
@@ -102,7 +100,6 @@ interface ExportImageMountProps {
 export function ExportImageMount({
     children,
     onReady,
-    onCapture,
     filename,
 }: ExportImageMountProps) {
     const host = useOffscreenHost();
@@ -112,7 +109,6 @@ export function ExportImageMount({
         const node = captureRef.current;
         if (!node) return;
 
-        onCapture?.(node);
         await waitForLayoutSettlement();
         await waitForFonts();
         await waitForImages(node);
@@ -125,7 +121,7 @@ export function ExportImageMount({
         });
 
         downloadDataUrl(dataUrl, filename ?? "export.png");
-    }, [filename, onCapture]);
+    }, [filename]);
 
     useEffect(() => {
         if (onReady) {
