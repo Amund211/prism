@@ -560,9 +560,7 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                             return (
                                 <Grid
                                     size={{
-                                        xs: 3,
-                                        sm: 2,
-                                        md: 1,
+                                        xs: 1,
                                     }}
                                     key={month}
                                 >
@@ -618,9 +616,7 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                                 return (
                                     <Grid
                                         size={{
-                                            xs: 3,
-                                            sm: 2,
-                                            md: 1,
+                                            xs: 1,
                                         }}
                                         key={`bar-${month}`}
                                     >
@@ -900,7 +896,7 @@ const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
             </Typography>
 
             <Grid container spacing={2}>
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 6, md: 4 }}>
                     <BestSessionCard
                         title="Highest FKDR"
                         icon={<TrendingUp />}
@@ -910,7 +906,7 @@ const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
                         color="#667eea"
                     />
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 6, md: 4 }}>
                     <BestSessionCard
                         title="Most Kills"
                         icon={<LocalFireDepartment />}
@@ -920,7 +916,7 @@ const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
                         color="#f093fb"
                     />
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 6, md: 4 }}>
                     <BestSessionCard
                         title="Most Final Kills"
                         icon={<Whatshot />}
@@ -930,7 +926,7 @@ const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
                         color="#FFD93D"
                     />
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 6, md: 4 }}>
                     <BestSessionCard
                         title="Most Wins"
                         icon={<EmojiEventsOutlined />}
@@ -940,7 +936,7 @@ const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
                         color="#4ECDC4"
                     />
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 6, md: 4 }}>
                     <BestSessionCard
                         title="Longest Session"
                         icon={<Timer />}
@@ -951,7 +947,7 @@ const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
                         showDuration={false}
                     />
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 6, md: 4 }}>
                     <BestSessionCard
                         title="Most Wins/Hour"
                         icon={<TrendingUp />}
@@ -961,7 +957,7 @@ const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
                         color="#95E1D3"
                     />
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 6, md: 4 }}>
                     <BestSessionCard
                         title="Most Finals/Hour"
                         icon={<Whatshot />}
