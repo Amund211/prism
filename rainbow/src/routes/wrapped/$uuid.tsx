@@ -1825,6 +1825,7 @@ function WrappedHeader({ wrappedData, uuid, year }: WrappedHeaderProps) {
             gap={2}
             alignItems="center"
             justifyContent="center"
+            flexWrap="wrap"
         >
             <PlayerHead
                 uuid={uuid}
@@ -1845,9 +1846,9 @@ function WrappedHeader({ wrappedData, uuid, year }: WrappedHeaderProps) {
                     }}
                     id="wrapped-header-title" // Needed for some manual tweaking in export
                 >
-                    {username
-                        ? `${username}'s ${year.toString()} Wrapped`
-                        : `${year.toString()} Wrapped  `}
+                    {username ? `${username}'s` : null}
+                    <br />
+                    {`${year.toString()} Wrapped`}
                 </Typography>
                 <Typography variant="subtitle1" color="textSecondary">
                     A year of Bed Wars achievements
