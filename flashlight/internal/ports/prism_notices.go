@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
@@ -101,7 +102,7 @@ func MakePrismNoticesHandler(
 			},
 		)
 
-		notices, err := noticesForCall(ctx, userIDType(userID), prismVersionType(prismVersion))
+		notices, err := noticesForCall(ctx, userIDType(userID), prismVersionType(prismVersion), time.Now())
 		if err != nil {
 			logging.FromContext(ctx).ErrorContext(ctx, "Failed to get notices for call", "error", err)
 
@@ -135,8 +136,24 @@ func MakePrismNoticesHandler(
 	return middleware(handler)
 }
 
-func noticesForCall(ctx context.Context, userID userIDType, prismVersion prismVersionType) ([]prismNotice, error) {
+func noticesForCall(ctx context.Context, userID userIDType, prismVersion prismVersionType, now time.Time) ([]prismNotice, error) {
 	notices := []prismNotice{}
+
+	now = now.UTC()
+
+	if now.Month() == time.December || now.Month() == time.January {
+		duration := 60.0
+		year := now.Year()
+		if now.Month() == time.January {
+			year = year - 1
+		}
+		notices = append(notices, prismNotice{
+			Message:         fmt.Sprintf("Click here to view your Prism Wrapped %d", year),
+			URL:             "https://prismoverlay.com/wrapped",
+			Severity:        noticeSeverityInfo,
+			DurationSeconds: &duration,
+		})
+	}
 
 	return notices, nil
 }
