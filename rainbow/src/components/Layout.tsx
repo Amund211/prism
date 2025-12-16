@@ -4,6 +4,7 @@ import {
     Info,
     Menu as MenuIcon,
     MenuOpen,
+    Redeem,
     Settings,
     TrendingUp,
 } from "@mui/icons-material";
@@ -30,6 +31,7 @@ import React from "react";
 import { DarkModeSwitch } from "./DarkModeSwitch.tsx";
 import { endOfMonth, startOfMonth } from "#intervals.ts";
 import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
+import { getWrappedYear } from "#helpers/wrapped.ts";
 
 const RouterLinkItemButton = createLink(ListItemButton);
 const RouterMenuItem = createLink(MenuItem);
@@ -170,6 +172,20 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                 <ListItemText primary="History explorer" />
                             </RouterMenuItem>
                             <RouterMenuItem
+                                to="/wrapped"
+                                selected={location.pathname.startsWith(
+                                    "/wrapped",
+                                )}
+                                onClick={handleCloseMenu}
+                            >
+                                <ListItemIcon>
+                                    <Redeem />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary={`Wrapped ${getWrappedYear().toString()}`}
+                                />
+                            </RouterMenuItem>
+                            <RouterMenuItem
                                 selected={location.pathname === "/downloads"}
                                 to="/downloads"
                                 onClick={handleCloseMenu}
@@ -298,6 +314,21 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                     <CalendarMonth />
                                 </ListItemIcon>
                                 <ListItemText primary="History explorer" />
+                            </RouterLinkItemButton>
+                        </ListItem>
+                        <ListItem disablePadding>
+                            <RouterLinkItemButton
+                                selected={location.pathname.startsWith(
+                                    "/wrapped",
+                                )}
+                                to="/wrapped"
+                            >
+                                <ListItemIcon>
+                                    <Redeem />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary={`Wrapped ${getWrappedYear().toString()}`}
+                                />
                             </RouterLinkItemButton>
                         </ListItem>
                         <ListItem disablePadding>
