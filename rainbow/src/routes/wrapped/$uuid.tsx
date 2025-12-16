@@ -581,6 +581,13 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                                                 {month}
                                             </Typography>
                                             <Chip
+                                                slotProps={{
+                                                    label: {
+                                                        sx: {
+                                                            overflow: "visible",
+                                                        },
+                                                    },
+                                                }}
                                                 label={count.toLocaleString()}
                                                 size="small"
                                                 color={
