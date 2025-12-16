@@ -1418,6 +1418,16 @@ const FlawlessSessions: React.FC<FlawlessSessionsProps> = ({ wrappedData }) => {
     );
 };
 
+const addSuffixToHeader = (node: HTMLDivElement) => {
+    // Crazy hack: Add some dots to give it some more space as it gets clipped by default
+    // Likely due to font-rendering differences between browser and canvas
+    // https://github.com/bubkoo/html-to-image/issues/132
+    const header = node.querySelector("#wrapped-header-title");
+    const suffix = " . . ";
+    if (header && !header.textContent.endsWith(suffix))
+        header.textContent += suffix;
+};
+
 interface ExportStatsCardProps {
     uuid: string;
     year: number;
@@ -1968,17 +1978,7 @@ function RouteComponent() {
                         onReady={(api) => {
                             setExportApi(api);
                         }}
-                        onCapture={(node) => {
-                            // Crazy hack: Add some dots to give it some more space as it gets clipped by default
-                            // Likely due to font-rendering differences between browser and canvas
-                            // https://github.com/bubkoo/html-to-image/issues/132
-                            const header = node.querySelector(
-                                "#wrapped-header-title",
-                            );
-                            const suffix = " . . ";
-                            if (header && !header.textContent.endsWith(suffix))
-                                header.textContent += suffix;
-                        }}
+                        onCapture={addSuffixToHeader}
                         filename={`${username}-${year.toString()}-wrapped.png`}
                     >
                         <ExportStatsCard
