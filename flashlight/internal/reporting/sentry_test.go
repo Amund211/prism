@@ -102,4 +102,51 @@ func TestSanitizeError(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("multiple sanitizations", func(t *testing.T) {
+		t.Parallel()
+
+		cases := []struct {
+			error string
+			want  string
+		}{
+			{
+				// Real error - double sanitization
+				error: `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/user123": read tcp [fddf:1111:ffff:dddd::c123]:34567->[1234:1b3:51:1::27]:443: read: connection reset by peer`,
+				want:  `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/<username>": read tcp <host>-><host>: read: connection reset by peer`,
+			},
+		}
+
+		for _, tc := range cases {
+			t.Run(tc.error, func(t *testing.T) {
+				t.Parallel()
+
+				require.Equal(t, tc.want, sanitizeError(tc.error))
+			})
+		}
+	})
+
+	t.Run("should not sanitize", func(t *testing.T) {
+		t.Parallel()
+
+		errors := []string{
+			`failed to get identity from mojang response: temporarily unavailable: mojang API returned status code 503`, // Real error
+			`failed to get identity from mojang response: temporarily unavailable: mojang API returned status code 504`, // Real error
+			`failed to get identity from mojang response: temporarily unavailable: mojang API returned status code 429`, // Real error
+			`Hypixel API returned unsupported status code: 403`,                                                         // Real error
+			`Hypixel returned status code 500 (Internal Server Error) (temporarily unavailable)`,                        // Real error
+			`failed to get tags from urchin response: urchin API returned status code 502: temporarily unavailable`,     // Real error
+			`failed to set search path: context deadline exceeded`,                                                      // Real error
+			`failed to query last player data: context deadline exceeded`,                                               // Real error
+			`failed to commit transaction: sql: transaction has already been committed or rolled back`,                  // Real error
+		}
+
+		for _, error := range errors {
+			t.Run(error, func(t *testing.T) {
+				t.Parallel()
+
+				require.Equal(t, error, sanitizeError(error))
+			})
+		}
+	})
 }
