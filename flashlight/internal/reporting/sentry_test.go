@@ -61,4 +61,45 @@ func TestSanitizeError(t *testing.T) {
 			})
 		}
 	})
+	t.Run("username requests", func(t *testing.T) {
+		t.Parallel()
+
+		cases := []struct {
+			error string
+			want  string
+		}{
+			{
+				// Real error
+				error: `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/ZteelyX": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`,
+				want:  `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/<username>": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`,
+			},
+			{
+				// Real error
+				error: `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/MrMocchi": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`,
+				want:  `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/<username>": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`,
+			},
+			{
+				// Constructed - no match
+				error: `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/player with spaces": failed`,
+				want:  `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/player with spaces": failed`,
+			},
+			{
+				// Constructed - don't match eagerly
+				error: `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/someplayer": failed due to "some sort of error"`,
+				want:  `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/<username>": failed due to "some sort of error"`,
+			},
+			{
+				// Constructed - don't match eagerly
+				error: `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/someplayer":"someextraerrorhere"`,
+				want:  `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/<username>":"someextraerrorhere"`,
+			},
+		}
+		for _, tc := range cases {
+			t.Run(tc.error, func(t *testing.T) {
+				t.Parallel()
+
+				require.Equal(t, tc.want, sanitizeError(tc.error))
+			})
+		}
+	})
 }

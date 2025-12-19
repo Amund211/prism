@@ -17,10 +17,12 @@ import (
 
 var uuidRx = regexp.MustCompile(`[0-9a-f]{8}-?([0-9a-f]{4}-?){3}[0-9a-f]{12}`)
 var hostRx = regexp.MustCompile(`\[:{0,2}([0-9a-f]{0,4}:?){1,8}\]:\d+`)
+var usernameRequestRx = regexp.MustCompile(`("https://api\.mojang\.com/users/profiles/minecraft/)[^\s]+?"`)
 
 func sanitizeError(err string) string {
 	err = uuidRx.ReplaceAllString(err, "<uuid>")
 	err = hostRx.ReplaceAllString(err, "<host>")
+	err = usernameRequestRx.ReplaceAllString(err, `$1<username>"`)
 	return err
 }
 
