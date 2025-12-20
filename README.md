@@ -137,12 +137,12 @@ See [this PR](https://github.com/Amund211/prism/pull/1).
 ## Safety
 Being open source, anyone can look at the source code for Prism to see that nothing nefarious is happening.
 The released binaries are created using `pyinstaller` in GitHub Actions from a clean clone of the repository.
-If you do not trust the released binary you can clone the project and run it from source by installing the dependencies and running `python3 prism_overlay.py` from the project root.
+If you do not trust the released binary you can clone the project and run it from source by installing the dependencies and running `uv run prism_overlay.py` from the project root.
 See [running the overlay from source](#running-the-overlay-from-source) for more info.
 
 ## Running the overlay from source
 Note: make sure you have a recent version of Python installed.
-The overlay currently depends on version `>=3.12`.
+The overlay currently depends on version `>=3.13`.
 
 To run the project from source, perform the following steps:
 
@@ -151,44 +151,15 @@ To run the project from source, perform the following steps:
 git clone https://github.com/Amund211/prism
 ```
 
-### Create and activate a virtual environment (optional)
-Use a virtual environment to isolate this project from your system python install.
-You have to activate the virtual environment each time you want to run the overlay.
-Check [the docs](https://docs.python.org/3/library/venv.html#how-venvs-work) if you are having trouble activating the virtual environment.
-
-```bash
-python3 -m venv venv  # Create the virtual environment
-
-# How to activate the venv depends on your OS and shell.
-# Run one of the following
-source venv/bin/activate      # linux/mac + posix sh
-
-source venv\Scripts\activate  # windows + posix sh
-venv\Scripts\activate.bat     # windows + cmd
-venv\Scripts\activate.ps1     # windows + powershell
-```
-
-### Install the dependencies
-First, install the dependencies by running *one* of the following commands depending on your operating system
-```bash
-# You can omit the -dev requirements if you are not going to be doing development
-pip3 install -r requirements/windows.txt -r requirements/windows-dev.txt
-
-pip3 install -r requirements/mac.txt -r requirements/mac-dev.txt
-
-pip3 install -r requirements/linux.txt -r requirements/linux-dev.txt
-```
-
-Then, install the overlay:
-```bash
-pip3 install -e .
-```
+### Install uv
+This project uses uv as a package manager.
+Install it by following the [official instructions](https://docs.astral.sh/uv/getting-started/installation/).
 
 ### Run the overlay
 ```bash
-python3 prism_overlay.py
+uv run prism_overlay.py
 ```
-Run `python3 prism_overlay.py --help` to get info about the accepted command line arguments.
+Run `uv run prism_overlay.py --help` to get info about the accepted command line arguments.
 
 ## Creator info
 IGN: `Skydeath` \
