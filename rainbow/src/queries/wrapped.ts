@@ -35,8 +35,8 @@ interface APISessionStats {
         mostFinalKills: APISession;
         mostWins: APISession;
         longestSession: APISession;
-        mostWinsPerHour: APISession;
-        mostFinalsPerHour: APISession;
+        mostWinsPerHour?: APISession;
+        mostFinalsPerHour?: APISession;
     };
     averages: {
         sessionLengthHours: number;
@@ -84,8 +84,8 @@ interface SessionStats {
         mostFinalKills: Session;
         mostWins: Session;
         longestSession: Session;
-        mostWinsPerHour: Session;
-        mostFinalsPerHour: Session;
+        mostWinsPerHour?: Session;
+        mostFinalsPerHour?: Session;
     };
     averages: {
         sessionLengthHours: number;
@@ -302,14 +302,20 @@ export const getWrappedQueryOptions = ({
                                   apiData.sessionStats.bestSessions
                                       .longestSession,
                               ),
-                              mostWinsPerHour: apiToSession(
-                                  apiData.sessionStats.bestSessions
-                                      .mostWinsPerHour,
-                              ),
-                              mostFinalsPerHour: apiToSession(
-                                  apiData.sessionStats.bestSessions
-                                      .mostFinalsPerHour,
-                              ),
+                              mostWinsPerHour: apiData.sessionStats.bestSessions
+                                  .mostWinsPerHour
+                                  ? apiToSession(
+                                        apiData.sessionStats.bestSessions
+                                            .mostWinsPerHour,
+                                    )
+                                  : undefined,
+                              mostFinalsPerHour: apiData.sessionStats
+                                  .bestSessions.mostFinalsPerHour
+                                  ? apiToSession(
+                                        apiData.sessionStats.bestSessions
+                                            .mostFinalsPerHour,
+                                    )
+                                  : undefined,
                           },
                       }
                     : undefined,
