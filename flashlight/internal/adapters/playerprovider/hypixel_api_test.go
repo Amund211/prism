@@ -133,6 +133,38 @@ func TestGetPlayerData(t *testing.T) {
 		require.ErrorIs(t, err, assert.AnError)
 	})
 
+	t.Run("rate limit headers", func(t *testing.T) {
+		t.Parallel()
+
+		headers := http.Header{}
+		headers.Set("RateLimit-Limit", "120")
+		headers.Set("RateLimit-Remaining", "100")
+
+		httpClient := &mockedHttpClient{
+			t:           t,
+			expectedURL: "https://api.hypixel.net/v2/player?uuid=uuid5678",
+			response: &http.Response{
+				StatusCode: 200,
+				Header:     headers,
+				Body:       io.NopCloser(bytes.NewBufferString(`{"success":true,"player":null}`)),
+			},
+			requestErr: nil,
+		}
+		hypixelAPI, err := NewHypixelAPI(httpClient, nowFunc, time.After, apiKey)
+		require.NoError(t, err)
+
+		data, statusCode, queriedAt, err := hypixelAPI.GetPlayerData(t.Context(), "uuid5678")
+
+		require.Nil(t, err)
+		require.Equal(t, 200, statusCode)
+		require.Equal(t, `{"success":true,"player":null}`, string(data))
+		require.Equal(t, now, queriedAt)
+
+		// Note: We cannot directly verify that the metrics were recorded because the metrics
+		// are recorded to the OpenTelemetry meter and we don't have a way to read them back
+		// in tests. The test verifies that the code runs without errors when headers are present.
+	})
+
 	t.Run("rate limiting", func(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
