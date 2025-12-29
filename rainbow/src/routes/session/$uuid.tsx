@@ -1139,7 +1139,6 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
     if (trackingHistory === undefined || trackingHistory.length === 0) {
         return noDataComponent;
     }
-    const currentStats = trackingHistory[trackingHistory.length - 1];
 
     const currentDate = trackingInterval.end;
     const now = new Date();
@@ -1153,7 +1152,6 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
     const progression = computeStatProgression(
         trackingHistory,
         trackingInterval.end,
-        currentStats,
         stat,
         gamemode,
     );

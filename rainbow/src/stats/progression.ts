@@ -1,6 +1,5 @@
 import { type TimeInterval } from "#intervals.ts";
 import { type History } from "#queries/history.ts";
-import { type PlayerDataPIT } from "#queries/playerdata.ts";
 import { getStat } from "./index.ts";
 import { type GamemodeKey, type StatKey } from "./keys.ts";
 import { PRESTIGE_EXP } from "./stars.ts";
@@ -30,13 +29,13 @@ export type StatProgression =
 const computeQuotientProgression = (
     trackingHistory: History,
     trackingEnd: Date,
-    currentStats: PlayerDataPIT,
     stat: QuotientProgression["stat"],
     dividendStat: Exclude<StatKey, "winstreak">,
     divisorStat: Exclude<StatKey, "winstreak">,
     gamemode: GamemodeKey,
 ): QuotientProgression | { error: true; reason: string } => {
     const [start, end] = trackingHistory;
+    const currentStats = end;
     const startDate = start.queriedAt;
     const endDate = trackingEnd;
     const daysElapsed =
@@ -70,7 +69,6 @@ const computeQuotientProgression = (
         const dividendProgression = computeStatProgression(
             trackingHistory,
             trackingEnd,
-            currentStats,
             dividendStat,
             gamemode,
         );
@@ -192,7 +190,6 @@ export const ERR_TRACKING_STARTED = "Tracking started!";
 export const computeStatProgression = (
     trackingHistory: History | undefined,
     trackingEnd: Date,
-    currentStats: PlayerDataPIT | undefined,
     stat: StatKey,
     gamemode: GamemodeKey,
 ): StatProgression | { error: true; reason: string } => {
@@ -208,11 +205,8 @@ export const computeStatProgression = (
         return { error: true, reason: "Expected at most 2 data points" };
     }
 
-    if (currentStats === undefined) {
-        return { error: true, reason: "No current stats" };
-    }
-
     const [start, end] = trackingHistory;
+    const currentStats = end;
     const startDate = start.queriedAt;
     const endDate = trackingEnd;
     const daysElapsed =
@@ -248,7 +242,6 @@ export const computeStatProgression = (
             return computeQuotientProgression(
                 trackingHistory,
                 trackingEnd,
-                currentStats,
                 stat,
                 "finalKills",
                 "finalDeaths",
@@ -258,7 +251,6 @@ export const computeStatProgression = (
             return computeQuotientProgression(
                 trackingHistory,
                 trackingEnd,
-                currentStats,
                 stat,
                 "kills",
                 "deaths",
