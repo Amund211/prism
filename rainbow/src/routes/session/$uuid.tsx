@@ -907,15 +907,15 @@ const ProgressionValueAndMilestone: React.FC<
     ProgressionValueAndMilestoneProps
 > = ({ progression }) => {
     const renderValues = (
-        currentValue: number,
+        endValue: number,
         nextMilestoneValue: number,
         renderValue: (value: number) => React.ReactNode,
         badStat: boolean,
     ) => {
         const direction =
-            nextMilestoneValue > currentValue
+            nextMilestoneValue > endValue
                 ? "up"
-                : nextMilestoneValue < currentValue
+                : nextMilestoneValue < endValue
                   ? "down"
                   : "flat";
 
@@ -928,7 +928,7 @@ const ProgressionValueAndMilestone: React.FC<
 
         return (
             <Stack direction="row" gap={0.5} alignItems="center">
-                {renderValue(currentValue)}
+                {renderValue(endValue)}
                 {direction === "up" ? (
                     <TrendingUp color={color} fontSize="medium" />
                 ) : direction === "down" ? (
@@ -944,7 +944,7 @@ const ProgressionValueAndMilestone: React.FC<
         case "stars":
             // TODO: Format based on prestige colors
             return renderValues(
-                progression.currentValue,
+                progression.endValue,
                 progression.nextMilestoneValue,
                 (value) => (
                     <Typography variant="body1">
@@ -958,7 +958,7 @@ const ProgressionValueAndMilestone: React.FC<
         case "fkdr":
         case "kdr":
             return renderValues(
-                progression.currentValue,
+                progression.endValue,
                 progression.nextMilestoneValue,
                 (value) => (
                     <Typography variant="body1">
@@ -978,7 +978,7 @@ const ProgressionValueAndMilestone: React.FC<
         case "finalKills":
         case "kills":
             return renderValues(
-                progression.currentValue,
+                progression.endValue,
                 progression.nextMilestoneValue,
                 (value) => (
                     <Typography variant="body1">
@@ -992,7 +992,7 @@ const ProgressionValueAndMilestone: React.FC<
         case "finalDeaths":
         case "deaths":
             return renderValues(
-                progression.currentValue,
+                progression.endValue,
                 progression.nextMilestoneValue,
                 (value) => (
                     <Typography variant="body1">

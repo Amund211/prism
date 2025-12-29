@@ -7,7 +7,7 @@ import { PRESTIGE_EXP } from "./stars.ts";
 interface BaseStatProgression {
     trackingDataTimeInterval: TimeInterval;
     stat: StatKey;
-    currentValue: number;
+    endValue: number;
     nextMilestoneValue: number;
     daysUntilMilestone: number;
     progressPerDay: number;
@@ -100,7 +100,7 @@ const computeQuotientProgression = (
         return {
             stat,
             trackingDataTimeInterval: { start: startDate, end: endDate },
-            currentValue: endQuotient,
+            endValue: endQuotient,
             nextMilestoneValue,
             daysUntilMilestone: Infinity,
             // NOTE: Progres per day changes over time
@@ -144,7 +144,7 @@ const computeQuotientProgression = (
         return {
             stat,
             trackingDataTimeInterval: { start: startDate, end: endDate },
-            currentValue: endQuotient,
+            endValue: endQuotient,
             nextMilestoneValue,
             daysUntilMilestone: Infinity,
             // NOTE: Progres per day changes over time
@@ -165,7 +165,7 @@ const computeQuotientProgression = (
     return {
         stat,
         trackingDataTimeInterval: { start: startDate, end: endDate },
-        currentValue: endQuotient,
+        endValue: endQuotient,
         nextMilestoneValue,
         daysUntilMilestone,
         // NOTE: Progres per day changes over time
@@ -222,7 +222,7 @@ export const computeStatProgression = (
             return {
                 stat,
                 trackingDataTimeInterval: { start: startDate, end: endDate },
-                currentValue: endStars,
+                endValue: endStars,
                 nextMilestoneValue: nextPrestige * 100,
                 daysUntilMilestone: daysToNextPrestige,
                 progressPerDay: starsPerDay,
@@ -291,7 +291,7 @@ export const computeStatProgression = (
             return {
                 stat,
                 trackingDataTimeInterval: { start: startDate, end: endDate },
-                currentValue: endValue,
+                endValue,
                 nextMilestoneValue,
                 daysUntilMilestone,
                 progressPerDay: increasePerDay,
