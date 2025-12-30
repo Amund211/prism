@@ -125,7 +125,7 @@ func MakeGetHistoryHandler(
 			return
 		}
 
-		if request.Limit < 2 || request.Limit > 1000 {
+		if request.Limit < 2 || request.Limit > 100 {
 			http.Error(w, "invalid limit", http.StatusBadRequest)
 			return
 		}

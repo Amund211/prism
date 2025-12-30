@@ -106,6 +106,28 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 		require.NoError(t, err)
 		require.JSONEq(t, string(historyJSON), w.Body.String())
 		require.True(t, *called)
+
+		t.Run("different limits", func(t *testing.T) {
+			t.Parallel()
+			for _, testLimit := range []int{2, 10, 50, 100} {
+				t.Run(fmt.Sprintf("limit=%d", testLimit), func(t *testing.T) {
+					t.Parallel()
+
+					getHistoryFunc, called := makeGetHistory(t, uuid, start, end, testLimit, history, nil)
+					handler := makeGetHistoryHandler(getHistoryFunc)
+
+					req := makeRequest(uuid, startStr, endStr, testLimit)
+					w := httptest.NewRecorder()
+
+					handler.ServeHTTP(w, req)
+
+					require.Equal(t, http.StatusOK, w.Code)
+					require.NoError(t, err)
+					require.JSONEq(t, string(historyJSON), w.Body.String())
+					require.True(t, *called)
+				})
+			}
+		})
 	})
 
 	t.Run("start time == end time", func(t *testing.T) {
@@ -164,7 +186,7 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 
 	t.Run("invalid limits", func(t *testing.T) {
 		t.Parallel()
-		for _, invalidLimit := range []int{-1, 0, 1, 1001} {
+		for _, invalidLimit := range []int{-1, 0, 1, 101, 1001} {
 			t.Run(fmt.Sprintf("limit=%d", invalidLimit), func(t *testing.T) {
 				t.Parallel()
 
