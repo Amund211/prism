@@ -684,17 +684,11 @@ await test("computeStatProgression - quotient stats", async (t) => {
                         async (t) => {
                             // NOTE: Milestones are kind of awkward for high quotients
                             const cases = [
-                                /*
-                                 * TODO: FIXME: This case incorrectly trends downward because
-                                 * the session quotient is "too low". This does not matter as we
-                                 * are doing linear progression due to the constant divisor, and
-                                 * we should always be trending upwards
                                 {
                                     divisor: 1,
                                     goal: 201, // 200 -> 201
                                     daysToReach: 0.1, // 1 dividend => 1/10 days
                                 },
-                                */
                                 {
                                     divisor: 5,
                                     goal: 41, // 40 -> 41

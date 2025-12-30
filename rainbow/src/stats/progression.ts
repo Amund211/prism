@@ -80,10 +80,15 @@ const computeQuotientProgression = (
         };
     }
 
+    const infiniteSessionQuotient = sessionDivisor === 0 && sessionDividend > 0;
     const noSessionProgress = sessionDividend === 0 && sessionDivisor === 0;
     // Trend upwards if the session quotient is greater than the end quotient
     // OR: if no progress was made during the tracking session -> just need somewhere to trend
-    const trendingUpward = sessionQuotient >= endQuotient || noSessionProgress;
+    // OR: if the session quotient is infinite
+    const trendingUpward =
+        sessionQuotient >= endQuotient ||
+        noSessionProgress ||
+        infiniteSessionQuotient;
 
     // TODO: Smaller steps for smaller quotients
     const nextMilestoneValue = trendingUpward
@@ -91,8 +96,8 @@ const computeQuotientProgression = (
         : Math.ceil(endQuotient) - 1;
 
     if (
-        // Will make no progress since the quotients are equal
-        sessionQuotient === endQuotient ||
+        // Will make no progress since the quotients are equal (as long as the session quotient is not infinite)
+        (sessionQuotient === endQuotient && !infiniteSessionQuotient) ||
         // No progress is being made on the divisor or the dividend -> No progress on the quotient
         noSessionProgress
     ) {
@@ -128,7 +133,7 @@ const computeQuotientProgression = (
 
     if (
         trendingUpward
-            ? nextMilestoneValue >= sessionQuotient
+            ? nextMilestoneValue >= sessionQuotient && !infiniteSessionQuotient
             : nextMilestoneValue <= sessionQuotient
     ) {
         // If the milestone is out of reach given the session quotient:
