@@ -125,6 +125,11 @@ func MakeGetHistoryHandler(
 			return
 		}
 
+		if request.Limit < 2 || request.Limit > 1000 {
+			http.Error(w, "invalid limit", http.StatusBadRequest)
+			return
+		}
+
 		history, err := getHistory(ctx, uuid, request.Start, request.End, request.Limit)
 		if err != nil {
 			// NOTE: GetHistory implementations handle their own error reporting

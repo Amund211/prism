@@ -161,4 +161,25 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 		require.Contains(t, w.Body.String(), "Start time cannot be after end time")
 		require.False(t, *called)
 	})
+
+	t.Run("invalid limits", func(t *testing.T) {
+		t.Parallel()
+		for _, invalidLimit := range []int{-1, 0, 1, 1001} {
+			t.Run(fmt.Sprintf("limit=%d", invalidLimit), func(t *testing.T) {
+				t.Parallel()
+
+				getHistoryFunc, called := makeGetHistory(t, uuid, start, end, invalidLimit, history, nil)
+				handler := makeGetHistoryHandler(getHistoryFunc)
+
+				req := makeRequest(uuid, startStr, endStr, invalidLimit)
+				w := httptest.NewRecorder()
+
+				handler.ServeHTTP(w, req)
+
+				require.Equal(t, http.StatusBadRequest, w.Code)
+				require.Contains(t, w.Body.String(), "invalid limit")
+				require.False(t, *called)
+			})
+		}
+	})
 }
