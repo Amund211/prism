@@ -3,11 +3,18 @@ import assert from "node:assert";
 import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
 import { sessionSearchSchema } from "./sessionSearch.ts";
 
-const defaultTrackingStart = new Date(1970, 0, 1);
+// Helper to get the expected default tracking start (start of day 1 year ago)
+const getDefaultTrackingStart = () => {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() - 1);
+    date.setHours(0, 0, 0, 0);
+    return date;
+};
 
 await test("sessionSearchSchema validation", async (t) => {
     await t.test("no params -> all defaults", () => {
         const result = sessionSearchSchema.parse({});
+        const expectedDefault = getDefaultTrackingStart();
         assert.deepStrictEqual(result, {
             gamemode: "overall",
             stat: "fkdr",
@@ -17,7 +24,7 @@ await test("sessionSearchSchema validation", async (t) => {
             timeIntervalDefinition: {
                 type: "contained",
             },
-            trackingStart: defaultTrackingStart,
+            trackingStart: expectedDefault,
         });
     });
 
@@ -102,8 +109,45 @@ await test("sessionSearchSchema validation", async (t) => {
         const result = sessionSearchSchema.parse({
             trackingStart: "invalid",
         });
-        assert.deepStrictEqual(result.trackingStart, defaultTrackingStart);
+        const expectedDefault = getDefaultTrackingStart();
+        assert.deepStrictEqual(result.trackingStart, expectedDefault);
     });
+
+    await t.test(
+        "default trackingStart is 1 year ago from now (same date)",
+        () => {
+            const result = sessionSearchSchema.parse({});
+            const now = new Date();
+            const expectedDate = new Date();
+            expectedDate.setFullYear(expectedDate.getFullYear() - 1);
+            expectedDate.setHours(0, 0, 0, 0);
+
+            // Verify the year is exactly 1 year less
+            assert.strictEqual(
+                result.trackingStart.getFullYear(),
+                now.getFullYear() - 1,
+            );
+
+            // Verify the month and day are the same
+            // NOTE: This test will fail on leap years when run on Feb 29
+            // because setFullYear on Feb 29 of a leap year going back to a non-leap year
+            // will result in March 1 instead of Feb 28
+            assert.strictEqual(
+                result.trackingStart.getMonth(),
+                expectedDate.getMonth(),
+            );
+            assert.strictEqual(
+                result.trackingStart.getDate(),
+                expectedDate.getDate(),
+            );
+
+            // Also verify it's at the start of the day (midnight)
+            assert.strictEqual(result.trackingStart.getHours(), 0);
+            assert.strictEqual(result.trackingStart.getMinutes(), 0);
+            assert.strictEqual(result.trackingStart.getSeconds(), 0);
+            assert.strictEqual(result.trackingStart.getMilliseconds(), 0);
+        },
+    );
 
     await t.test("date coercion understands simple date strings", () => {
         // NOTE: These should be UTC dates with timezone in production
@@ -210,6 +254,7 @@ await test("sessionSearchSchema validation", async (t) => {
             sessionTableMode: "rate",
             showExtrapolatedSessions: "invalid",
         });
+        const expectedDefault = getDefaultTrackingStart();
         assert.strictEqual(result.gamemode, "overall"); // fallback
         assert.strictEqual(result.stat, "wins"); // valid
         assert.strictEqual(result.variantSelection, "both"); // fallback
@@ -225,7 +270,7 @@ await test("sessionSearchSchema validation", async (t) => {
                 // fallback
                 type: "contained",
             },
-            trackingStart: defaultTrackingStart, // fallback
+            trackingStart: expectedDefault, // fallback
         });
     });
 });
