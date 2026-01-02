@@ -26,7 +26,12 @@ import {
     Toolbar,
     Typography,
 } from "@mui/material";
-import { createLink, Link, useLocation } from "@tanstack/react-router";
+import {
+    createLink,
+    Link,
+    useLocation,
+    useRouterState,
+} from "@tanstack/react-router";
 import React from "react";
 import { DarkModeSwitch } from "./DarkModeSwitch.tsx";
 import { endOfMonth, startOfMonth } from "#intervals.ts";
@@ -37,6 +42,43 @@ const RouterLinkItemButton = createLink(ListItemButton);
 const RouterMenuItem = createLink(MenuItem);
 
 const APP_BAR_HEIGHT_PX = "64px";
+
+/**
+ * Get the UUID of the currently shown player based on the current route.
+ * Returns the UUID from route params for session/wrapped pages,
+ * or the first UUID from the history explorer.
+ * Returns null if not viewing a player-specific page.
+ */
+function useShownPlayer(): string | null {
+    const routerState = useRouterState();
+
+    if (routerState.matches.length === 0) {
+        return null;
+    }
+
+    const currentMatch = routerState.matches[routerState.matches.length - 1];
+
+    switch (currentMatch.routeId) {
+        case "/session/$uuid":
+        case "/wrapped/$uuid":
+            return currentMatch.params.uuid;
+        case "/history/explore": {
+            const uuids = currentMatch.search.uuids;
+            return uuids.length > 0 ? uuids[0] : null;
+        }
+        case "__root__":
+        case "/":
+        case "/about":
+        case "/downloads":
+        case "/settings":
+        case "/session/":
+        case "/wrapped/":
+            return null;
+        default:
+            currentMatch satisfies never;
+            return null; // Unreachable
+    }
+}
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({
     children,
@@ -52,6 +94,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
     };
 
     const { currentUser } = useCurrentUser();
+    const shownPlayer = useShownPlayer();
+    const playerToNavigate = shownPlayer ?? currentUser;
 
     const now = new Date();
 
@@ -112,13 +156,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                             anchorEl={anchorEl}
                             onClose={handleCloseMenu}
                         >
-                            {currentUser ? (
+                            {playerToNavigate ? (
                                 <RouterMenuItem
                                     to="/session/$uuid"
                                     selected={location.pathname.startsWith(
                                         "/session",
                                     )}
-                                    params={{ uuid: currentUser }}
+                                    params={{ uuid: playerToNavigate }}
                                     search={{
                                         timeIntervalDefinition: {
                                             type: "contained",
@@ -156,7 +200,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                     location.pathname === "/history/explore"
                                 }
                                 search={{
-                                    uuids: currentUser ? [currentUser] : [],
+                                    uuids: playerToNavigate
+                                        ? [playerToNavigate]
+                                        : [],
                                     start: startOfMonth(now),
                                     end: endOfMonth(now),
                                     limit: 100,
@@ -171,13 +217,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                 </ListItemIcon>
                                 <ListItemText primary="History explorer" />
                             </RouterMenuItem>
-                            {currentUser ? (
+                            {playerToNavigate ? (
                                 <RouterMenuItem
                                     to="/wrapped/$uuid"
                                     selected={location.pathname.startsWith(
                                         "/wrapped",
                                     )}
-                                    params={{ uuid: currentUser }}
+                                    params={{ uuid: playerToNavigate }}
                                     search={{ year: getWrappedYear() }}
                                     onClick={handleCloseMenu}
                                 >
@@ -276,13 +322,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                 <Stack height="100%" overflow="auto">
                     <List dense component="menu">
                         <ListItem disablePadding>
-                            {currentUser ? (
+                            {playerToNavigate ? (
                                 <RouterLinkItemButton
                                     selected={location.pathname.startsWith(
                                         "/session",
                                     )}
                                     to="/session/$uuid"
-                                    params={{ uuid: currentUser }}
+                                    params={{ uuid: playerToNavigate }}
                                     search={{
                                         timeIntervalDefinition: {
                                             type: "contained",
@@ -320,7 +366,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                                 }
                                 to="/history/explore"
                                 search={{
-                                    uuids: currentUser ? [currentUser] : [],
+                                    uuids: playerToNavigate
+                                        ? [playerToNavigate]
+                                        : [],
                                     start: startOfMonth(now),
                                     end: endOfMonth(now),
                                     limit: 100,
@@ -336,13 +384,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                             </RouterLinkItemButton>
                         </ListItem>
                         <ListItem disablePadding>
-                            {currentUser ? (
+                            {playerToNavigate ? (
                                 <RouterLinkItemButton
                                     selected={location.pathname.startsWith(
                                         "/wrapped",
                                     )}
                                     to="/wrapped/$uuid"
-                                    params={{ uuid: currentUser }}
+                                    params={{ uuid: playerToNavigate }}
                                     search={{ year: getWrappedYear() }}
                                 >
                                     <ListItemIcon>
