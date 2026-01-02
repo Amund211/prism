@@ -2,8 +2,8 @@
 
 import logging
 import threading
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 from prism.overlay.behaviour import get_cached_player_or_enqueue_request
 from prism.overlay.controller import OverlayController

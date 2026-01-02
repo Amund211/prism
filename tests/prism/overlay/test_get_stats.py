@@ -47,9 +47,9 @@ def make_user(username: str, player: bool, nick: str | None = None) -> User:
 
 
 def make_scenario_controller(*users: User) -> OverlayController:
-    usernames = set(user.username for user in users)
-    uuids = set(user.uuid for user in users)
-    nicks = set(user.nick for user in users)
+    usernames = {user.username for user in users}
+    uuids = {user.uuid for user in users}
+    nicks = {user.nick for user in users}
     assert (
         len(usernames) == len(nicks) == len(uuids) == len(users)
     ), "Usernames, nicks, and uuids must be unique"
@@ -137,11 +137,11 @@ fetch_bedwars_stats_cases: tuple[
 )
 
 assert set(scenarios).issuperset(
-    set(test_case[0] for test_case in fetch_bedwars_stats_cases)
+    {test_case[0] for test_case in fetch_bedwars_stats_cases}
 ), "Only scenario names from `scenarios` can be used"
 
 assert set(scenarios).issubset(
-    set(test_case[0] for test_case in fetch_bedwars_stats_cases)
+    {test_case[0] for test_case in fetch_bedwars_stats_cases}
 ), "All scenarios must be used"
 
 

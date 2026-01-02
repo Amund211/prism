@@ -200,8 +200,8 @@ def test_get_stat_list(
     controller.redraw_event.set()
 
     assert get_stat_list(controller) == result
-    requested_stats = set(
+    requested_stats = {
         controller.requested_stats_queue.get_nowait()
         for _ in range(controller.requested_stats_queue.qsize())
-    )
+    }
     assert requested_stats == expected_requested_stats

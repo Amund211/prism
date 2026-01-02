@@ -380,7 +380,7 @@ def test_read_missing_settings_file(tmp_path: Path) -> None:
         return_value=FakeUUID(hex=DEFAULT_USER_ID),
     ):
         assert get_settings(
-            read_settings_file_utf8=lambda: open(empty_path, "r", encoding="utf-8"),
+            read_settings_file_utf8=lambda: open(empty_path, encoding="utf-8"),
             write_settings_file_utf8=lambda: open(empty_path, "w", encoding="utf-8"),
             default_stats_thread_count=DEFAULT_STATS_THREAD_COUNT,
             update_settings=noop_update_settings,
@@ -392,7 +392,7 @@ def test_read_missing_settings_file(tmp_path: Path) -> None:
 def test_read_settings_file_error() -> None:
     # Assert that get_settings doesn't fail when reading the file fails
     def read_settings_file_utf8() -> TextIO:
-        raise IOError("Failed to read file")
+        raise OSError("Failed to read file")
 
     write_settings_called = False
 

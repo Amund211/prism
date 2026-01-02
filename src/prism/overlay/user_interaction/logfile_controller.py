@@ -1,7 +1,8 @@
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Self
+from typing import Self
 
 from prism.overlay.user_interaction.logfile_utils import (
     ActiveLogfile,

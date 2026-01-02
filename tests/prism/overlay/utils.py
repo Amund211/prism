@@ -1,8 +1,8 @@
 import io
 import queue
-from collections.abc import Callable, Set
+from collections.abc import Callable, Iterable, Set
 from pathlib import Path, PurePath
-from typing import Any, Iterable, Literal, TextIO, TypeVar, cast, overload
+from typing import Any, Literal, TextIO, TypeVar, cast, overload
 
 from prism.overlay.controller import (
     AccountProvider,

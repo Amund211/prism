@@ -1,8 +1,9 @@
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from json import JSONDecodeError
-from typing import Any, Callable, Literal
+from typing import Any, Literal
 
 import requests
 from requests.exceptions import RequestException
