@@ -1,11 +1,11 @@
 import datetime
 import os
 import threading
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import PurePath
 from types import TracebackType
-from typing import Any, Iterable, Self, TextIO
+from typing import Any, Self, TextIO
 
 real_fspath = os.fspath
 real_stat = os.stat

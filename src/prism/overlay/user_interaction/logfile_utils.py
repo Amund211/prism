@@ -1,9 +1,10 @@
 import logging
 import platform
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Self
+from typing import Self
 
 import toml
 

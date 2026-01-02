@@ -1,6 +1,6 @@
 import logging
+from collections.abc import Iterable
 from dataclasses import replace
-from typing import Iterable
 
 from prism.overlay.behaviour import bedwars_game_ended, set_nickname
 from prism.overlay.controller import OverlayController
