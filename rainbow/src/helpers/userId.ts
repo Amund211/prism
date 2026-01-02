@@ -74,17 +74,15 @@ const randomId = (): string => {
 };
 
 export const newUserId = (): string => {
-    // In local development, return a hardcoded user ID
-    // Need the optional chain to not crash when running tests in node
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (import.meta.env?.DEV) {
-        return LOCAL_DEVELOPMENT_USER_ID;
-    }
-
     const uuid = randomId();
     return `${RAINBOW_USER_ID_PREFIX}${uuid}`;
 };
 
 export function getOrSetUserId(): string {
+    // In local development, return a hardcoded user ID
+    if (import.meta.env.DEV) {
+        return LOCAL_DEVELOPMENT_USER_ID;
+    }
+
     return getUserId() ?? setUserId(newUserId());
 }

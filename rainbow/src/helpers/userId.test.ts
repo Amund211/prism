@@ -113,9 +113,11 @@ await test("newUserId", async (t) => {
             },
         );
     });
+});
 
+await test("getOrSetUserId", async (t) => {
     await t.test("in development mode", () => {
-        // We use import.meta.env.DEV to return this from newUserId(), so we can't test
+        // We use import.meta.env.DEV to return this from getOrSetUserId(), so we can't test
         // in node. Instead we just do some basic checks on the exported constant.
         assert.ok(
             validateUserId(LOCAL_DEVELOPMENT_USER_ID),
