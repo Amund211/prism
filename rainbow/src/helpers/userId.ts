@@ -5,6 +5,7 @@ const USER_ID_LOCAL_STORAGE_KEY = "rainbow_user_id";
 const RAINBOW_USER_ID_PREFIX = "rnb_";
 
 export const LOCAL_DEVELOPMENT_USER_ID = `${RAINBOW_USER_ID_PREFIX}local_development`;
+export const STAGING_USER_ID = `${RAINBOW_USER_ID_PREFIX}staging`;
 
 export const validateUserId = (userId: string | null): userId is string => {
     if (userId === null) {
@@ -82,6 +83,13 @@ export function getOrSetUserId(): string {
     // In local development, return a hardcoded user ID
     if (import.meta.env.DEV) {
         return LOCAL_DEVELOPMENT_USER_ID;
+    }
+
+    // In staging environment, return a hardcoded user ID
+    // This is to avoid polluting analytics with test users, as every new
+    // staging deployment gets a new subdomain, and a new local storage (hence new user ID)
+    if (window.location.hostname.endsWith(".rainbow-ctx.pages.dev")) {
+        return STAGING_USER_ID;
     }
 
     return getUserId() ?? setUserId(newUserId());

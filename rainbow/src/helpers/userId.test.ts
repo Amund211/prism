@@ -2,6 +2,7 @@ import test from "node:test";
 import {
     LOCAL_DEVELOPMENT_USER_ID,
     newUserId,
+    STAGING_USER_ID,
     validateUserId,
 } from "./userId.ts";
 import assert from "node:assert";
@@ -130,6 +131,22 @@ await test("getOrSetUserId", async (t) => {
         );
 
         assert.strictEqual(LOCAL_DEVELOPMENT_USER_ID, "rnb_local_development");
+    });
+
+    await t.test("in staging", () => {
+        // We use the current hostname to return this from getOrSetUserId(), so we don't test
+        // this here. Instead we just do some basic checks on the exported constant.
+        assert.ok(
+            validateUserId(STAGING_USER_ID),
+            "Staging user ID should be valid",
+        );
+
+        assert.ok(
+            STAGING_USER_ID.startsWith("rnb_"),
+            "Staging user ID should start with 'rnb_'",
+        );
+
+        assert.strictEqual(STAGING_USER_ID, "rnb_staging");
     });
 });
 
