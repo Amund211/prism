@@ -26,21 +26,21 @@ jobs:
       uses: astral-sh/setup-uv@v7
 
     - name: OS specific setup (windows)
-      if: startswith(matrix.os, 'windows')
+      if: startsWith(matrix.os, 'windows')
       run: |
         echo 'OS_NAME=windows' >> $GITHUB_ENV
         echo 'RESULT_EXTENSION=.exe' >> $GITHUB_ENV
         echo 'PYINSTALLER_ARGS=--hide-console=minimize-early --onefile' >> $GITHUB_ENV
         echo 'INSTALL_CA_CERT=certutil.exe -addstore root local-ca.pem' >> $GITHUB_ENV
     - name: OS specific setup (linux)
-      if: startswith(matrix.os, 'ubuntu')
+      if: startsWith(matrix.os, 'ubuntu')
       run: |
         echo 'OS_NAME=linux' >> $GITHUB_ENV
         echo 'RESULT_EXTENSION=' >> $GITHUB_ENV
         echo 'PYINSTALLER_ARGS=--onefile' >> $GITHUB_ENV
         echo 'INSTALL_CA_CERT=sudo cp local-ca.pem /usr/local/share/ca-certificates/local-ca.crt; sudo update-ca-certificates' >> $GITHUB_ENV
     - name: OS specific setup (mac)
-      if: startswith(matrix.os, 'macOS')
+      if: startsWith(matrix.os, 'macOS')
       run: |
         echo 'OS_NAME=mac' >> $GITHUB_ENV
         # Upload the built .dmg app-installer
