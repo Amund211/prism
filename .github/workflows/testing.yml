@@ -2,6 +2,7 @@ name: Python testing
 
 permissions:
   contents: read
+  id-token: write  # needed for Azure OIDC login
 
 on: [push, workflow_dispatch]
 
@@ -26,21 +27,21 @@ jobs:
       uses: astral-sh/setup-uv@v7
 
     - name: OS specific setup (windows)
-      if: startswith(matrix.os, 'windows')
+      if: startsWith(matrix.os, 'windows')
       run: |
         echo 'OS_NAME=windows' >> $GITHUB_ENV
         echo 'RESULT_EXTENSION=.exe' >> $GITHUB_ENV
         echo 'PYINSTALLER_ARGS=--hide-console=minimize-early --onefile' >> $GITHUB_ENV
         echo 'INSTALL_CA_CERT=certutil.exe -addstore root local-ca.pem' >> $GITHUB_ENV
     - name: OS specific setup (linux)
-      if: startswith(matrix.os, 'ubuntu')
+      if: startsWith(matrix.os, 'ubuntu')
       run: |
         echo 'OS_NAME=linux' >> $GITHUB_ENV
         echo 'RESULT_EXTENSION=' >> $GITHUB_ENV
         echo 'PYINSTALLER_ARGS=--onefile' >> $GITHUB_ENV
         echo 'INSTALL_CA_CERT=sudo cp local-ca.pem /usr/local/share/ca-certificates/local-ca.crt; sudo update-ca-certificates' >> $GITHUB_ENV
     - name: OS specific setup (mac)
-      if: startswith(matrix.os, 'macOS')
+      if: startsWith(matrix.os, 'macOS')
       run: |
         echo 'OS_NAME=mac' >> $GITHUB_ENV
         # Upload the built .dmg app-installer
@@ -164,6 +165,31 @@ jobs:
       if: env.OS_NAME != 'mac'
       run: |
         mv "dist/${{ env.SIMPLE_NAME }}${{ env.RESULT_EXTENSION }}" "${{ env.BUILD_RESULT_NAME }}"
+
+    # -------------------------
+    # Windows signing (.exe) only
+    # -------------------------
+    - name: Azure login (windows)
+      if: env.OS_NAME == 'windows'
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Sign Windows EXE (windows)
+      if: env.OS_NAME == 'windows'
+      uses: Azure/trusted-signing-action@v0
+      with:
+        endpoint: ${{ secrets.AZURE_CODESIGNING_ENDPOINT }}
+        trusted-signing-account-name: ${{ secrets.AZURE_CODESIGNING_ACCOUNT_NAME }}
+        certificate-profile-name: ${{ secrets.AZURE_CODESIGNING_CERT_PROFILE_NAME }}
+        files: ${{ env.BUILD_RESULT_NAME }}
+        file-digest: SHA256
+        timestamp-rfc3161: http://timestamp.acs.microsoft.com
+        timestamp-digest: SHA256
+        description: Prism
+        description-url: https://github.com/Amund211/prism
 
     - name: Upload built binary/app .dmg
       uses: actions/upload-artifact@v6
