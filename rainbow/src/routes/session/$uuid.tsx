@@ -1030,8 +1030,11 @@ const ProgressionCaption: React.FC<ProgressionCaptionProps> = ({ progression }) 
             );
         }
         case "index": {
-            // TODO
-            return <Typography variant="caption">TODO</Typography>;
+            return (
+                <Typography variant="caption">
+                    {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("index")}/day (${progression.sessionFkdr.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} long-time ${getShortStatLabel("fkdr")}, ${progression.starsPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("stars")}/day, ${progression.finalKillsPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("finalKills")}/day, ${progression.finalDeathsPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("finalDeaths")}/day)`}
+                </Typography>
+            );
         }
         case "experience":
         case "winstreak":
@@ -1225,7 +1228,7 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
                                       dateStyle: "medium",
                                   },
                               )} (${daysUntilMilestoneFromNow >= 0 ? "in " : ""}${formatDays(Math.abs(daysUntilMilestoneFromNow))}${daysUntilMilestoneFromNow < 0 ? " ago" : ""})`
-                            : `Expected to reach: Never (long-time ${getShortStatLabel(stat)} too ${progression.trendingUpward ? "low" : "high"})`}
+                            : `Expected to reach: Never (long-time ${getShortStatLabel(stat === "index" ? "fkdr" : stat)} too ${progression.trendingUpward ? "low" : "high"})`}
                     </Typography>
 
                     <Stack
