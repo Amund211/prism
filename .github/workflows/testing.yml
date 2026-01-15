@@ -71,7 +71,7 @@ jobs:
 
       - name: tee | stderr
         if: env.OS_NAME != 'windows'
-        run:
+        run: |
           echo 'TEE_STDERR=| tee /dev/stderr' >> $GITHUB_ENV
 
       - name: Test ssl system certs
