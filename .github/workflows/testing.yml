@@ -2,6 +2,7 @@ name: Python testing
 
 permissions:
   contents: read
+  id-token: write  # Required for Azure OIDC authentication
 
 on: [push, workflow_dispatch]
 
@@ -164,6 +165,34 @@ jobs:
         if: env.OS_NAME != 'mac'
         run: |
           mv "dist/${{ env.SIMPLE_NAME }}${{ env.RESULT_EXTENSION }}" "${{ env.BUILD_RESULT_NAME }}"
+
+      - name: Azure login (windows)
+        if: env.OS_NAME == 'windows'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign Windows EXE (windows)
+        if: env.OS_NAME == 'windows'
+        uses: Azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ secrets.AZURE_CODESIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ secrets.AZURE_CODESIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ secrets.AZURE_CODESIGNING_CERT_PROFILE_NAME }}
+          files: ${{ env.BUILD_RESULT_NAME }}
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+          description: Prism
+          description-url: https://github.com/Amund211/prism
+
+      - name: Verify Windows EXE signature (windows)
+        if: env.OS_NAME == 'windows'
+        shell: pwsh
+        run: |
+          signtool verify /pa /tw /v "${{ env.BUILD_RESULT_NAME }}"
 
       - name: Upload built binary/app .dmg
         uses: actions/upload-artifact@v6
