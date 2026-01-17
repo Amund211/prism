@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/Amund211/flashlight/internal/logging"
@@ -136,10 +137,30 @@ func MakePrismNoticesHandler(
 	return middleware(handler)
 }
 
+var unicodeReplacementCharacterUsers = []string{
+	"b1b6ead3b357467298c0a186a891940f",
+	"e104fb8b4b8a4a40ba70334e8239c0e1",
+	"3eedaf7ed5964d8981835b8f0de2c9d4",
+	"bb683d98dc634a5783be9a4895ab75af",
+	"a55dfa5ddaa7426b87f2a5dbc3ad5254",
+}
+
 func noticesForCall(ctx context.Context, userID userIDType, prismVersion prismVersionType, now time.Time) ([]prismNotice, error) {
 	notices := []prismNotice{}
 
 	now = now.UTC()
+
+	if slices.Contains(unicodeReplacementCharacterUsers, string(userID)) {
+		// These users sometimes include a unicode replacement character at the end of
+		// usernames sent to the account endpoint, causing issues.
+		// https://prism-overlay.sentry.io/issues/7078120764/?project=4506886744768512
+		logging.FromContext(ctx).InfoContext(ctx, "Adding critical notice for user with known unicode replacement character issue", "userID", userID)
+		notices = append(notices, prismNotice{
+			Message:  "We've detected a potential issue with your Prism client.\nPlease click here to create a ticket in the discord server",
+			URL:      "https://discord.gg/NGpRrdh6Fx",
+			Severity: noticeSeverityWarning,
+		})
+	}
 
 	if now.Month() == time.December || now.Month() == time.January {
 		duration := 60.0
