@@ -1,6 +1,7 @@
 package ports_test
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log/slog"
@@ -10,6 +11,7 @@ import (
 	"testing/synctest"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/domaintest"
 	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/stretchr/testify/require"
@@ -99,7 +101,10 @@ func TestPrismNoticesHandler(t *testing.T) {
 	}
 
 	// NOTE: Need to make the handler outside, since we create TTL caches inside the handler.
-	handler := ports.MakePrismNoticesHandler(testLogger, noopMiddleware)
+	stubRegisterUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+		return domain.User{}, nil
+	}
+	handler := ports.MakePrismNoticesHandler(stubRegisterUserVisit, testLogger, noopMiddleware)
 
 	for _, tc := range cases {
 		name := fmt.Sprintf("version='%s' userID='%s', time='%s'", tc.prismVersion, tc.userID, tc.time.Format(time.RFC3339))

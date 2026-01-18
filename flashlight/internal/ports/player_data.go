@@ -19,6 +19,7 @@ import (
 
 func MakeGetPlayerDataHandler(
 	getAndPersistPlayerWithCache app.GetAndPersistPlayerWithCache,
+	registerUserVisit app.RegisterUserVisit,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 ) http.HandlerFunc {
@@ -63,6 +64,7 @@ func MakeGetPlayerDataHandler(
 		reporting.NewAddMetaMiddleware("playerdata"),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
+		app.BuildRegisterUserVisitMiddleware(registerUserVisit),
 	)
 
 	handler := func(w http.ResponseWriter, r *http.Request) {

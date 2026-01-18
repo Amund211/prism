@@ -16,6 +16,7 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/adapters/tagprovider"
+	"github.com/Amund211/flashlight/internal/adapters/userrepository"
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/domain"
@@ -142,6 +143,9 @@ func main() {
 
 	accountRepo := accountrepository.NewPostgres(db, repositorySchemaName)
 
+	userRepo := userrepository.NewPostgres(db, repositorySchemaName, time.Now)
+	logger.InfoContext(ctx, "Initialized UserRepository")
+
 	allowedOrigins, err := ports.NewDomainSuffixes(PROD_DOMAIN_SUFFIX, STAGING_DOMAIN_SUFFIX)
 	if err != nil {
 		fail("Failed to initialize allowed origins", "error", err.Error())
@@ -176,6 +180,8 @@ func main() {
 		getAndPersistPlayerWithCache,
 	)
 
+	registerUserVisit := app.BuildRegisterUserVisit(userRepo)
+
 	mux := http.NewServeMux()
 
 	handleFunc := func(pattern string, handlerFunc http.HandlerFunc) {
@@ -187,6 +193,7 @@ func main() {
 	handleFunc(
 		"GET /v1/prism-notices",
 		ports.MakePrismNoticesHandler(
+			registerUserVisit,
 			logger.With("port", "prism-notices"),
 			sentryMiddleware,
 		),
@@ -196,6 +203,7 @@ func main() {
 		"GET /v1/playerdata",
 		ports.MakeGetPlayerDataHandler(
 			getAndPersistPlayerWithCache,
+			registerUserVisit,
 			logger.With("port", "playerdata"),
 			sentryMiddleware,
 		),
@@ -205,6 +213,7 @@ func main() {
 		"GET /v1/tags/{uuid}",
 		ports.MakeGetTagsHandler(
 			getTags,
+			registerUserVisit,
 			logger.With("port", "tags"),
 			sentryMiddleware,
 		),
@@ -218,6 +227,7 @@ func main() {
 		"GET /v1/account/username/{username}",
 		ports.MakeGetAccountByUsernameHandler(
 			getAccountByUsernameWithCache,
+			registerUserVisit,
 			allowedOrigins,
 			logger.With("port", "getaccountbyusername"),
 			sentryMiddleware,
@@ -232,6 +242,7 @@ func main() {
 		"GET /v1/account/uuid/{uuid}",
 		ports.MakeGetAccountByUUIDHandler(
 			getAccountByUUIDWithCache,
+			registerUserVisit,
 			allowedOrigins,
 			logger.With("port", "getaccountbyuuid"),
 			sentryMiddleware,
@@ -246,6 +257,7 @@ func main() {
 		"POST /v1/history",
 		ports.MakeGetHistoryHandler(
 			getHistory,
+			registerUserVisit,
 			allowedOrigins,
 			logger.With("port", "history"),
 			sentryMiddleware,
@@ -260,6 +272,7 @@ func main() {
 		"POST /v1/sessions",
 		ports.MakeGetSessionsHandler(
 			getPlayerPITs,
+			registerUserVisit,
 			allowedOrigins,
 			logger.With("port", "sessions"),
 			sentryMiddleware,
@@ -274,6 +287,7 @@ func main() {
 		"GET /v1/prestiges/{uuid}",
 		ports.MakeGetPrestigesHandler(
 			findMilestoneAchievements,
+			registerUserVisit,
 			allowedOrigins,
 			logger.With("port", "prestiges"),
 			sentryMiddleware,
@@ -288,6 +302,7 @@ func main() {
 		"GET /v1/wrapped/{uuid}/{year}",
 		ports.MakeGetWrappedHandler(
 			getPlayerPITs,
+			registerUserVisit,
 			allowedOrigins,
 			logger.With("port", "wrapped"),
 			sentryMiddleware,
@@ -299,6 +314,7 @@ func main() {
 		"GET /playerdata",
 		ports.MakeGetPlayerDataHandler(
 			getAndPersistPlayerWithCache,
+			registerUserVisit,
 			logger.With("port", "playerdata"),
 			sentryMiddleware,
 		),

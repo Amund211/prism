@@ -75,7 +75,11 @@ func TestGetPrestigesHandler(t *testing.T) {
 			nil,
 		)
 
-		handler := ports.MakeGetPrestigesHandler(findMilestoneAchievements, allowedOrigins, logger, sentryMiddleware)
+		stubRegisterUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+			return domain.User{}, nil
+		}
+
+		handler := ports.MakeGetPrestigesHandler(findMilestoneAchievements, stubRegisterUserVisit, allowedOrigins, logger, sentryMiddleware)
 
 		req := makeRequest(rawPlayerUUID)
 		w := httptest.NewRecorder()
@@ -105,7 +109,11 @@ func TestGetPrestigesHandler(t *testing.T) {
 	t.Run("Invalid UUID", func(t *testing.T) {
 		t.Parallel()
 
-		handler := ports.MakeGetPrestigesHandler(makeAssertNotCalled(t), allowedOrigins, logger, sentryMiddleware)
+		stubRegisterUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+			return domain.User{}, nil
+		}
+
+		handler := ports.MakeGetPrestigesHandler(makeAssertNotCalled(t), stubRegisterUserVisit, allowedOrigins, logger, sentryMiddleware)
 
 		req := makeRequest("invalid-uuid")
 		w := httptest.NewRecorder()
@@ -120,7 +128,11 @@ func TestGetPrestigesHandler(t *testing.T) {
 	t.Run("Missing UUID", func(t *testing.T) {
 		t.Parallel()
 
-		handler := ports.MakeGetPrestigesHandler(makeAssertNotCalled(t), allowedOrigins, logger, sentryMiddleware)
+		stubRegisterUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+			return domain.User{}, nil
+		}
+
+		handler := ports.MakeGetPrestigesHandler(makeAssertNotCalled(t), stubRegisterUserVisit, allowedOrigins, logger, sentryMiddleware)
 
 		req := httptest.NewRequest("GET", "/v1/prestiges", nil)
 		w := httptest.NewRecorder()

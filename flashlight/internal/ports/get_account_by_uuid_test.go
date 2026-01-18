@@ -42,8 +42,12 @@ func TestMakeGetAccountByUUIDHandler(t *testing.T) {
 	}
 
 	makeGetAccountByUUIDHandler := func(getAccountByUUID app.GetAccountByUUID) http.HandlerFunc {
+		stubRegisterUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+			return domain.User{}, nil
+		}
 		return ports.MakeGetAccountByUUIDHandler(
 			getAccountByUUID,
+			stubRegisterUserVisit,
 			allowedOrigins,
 			testLogger,
 			noopMiddleware,
