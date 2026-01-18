@@ -3,6 +3,7 @@ import { env } from "#env.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
 import { addKnownAliasWithoutRerendering } from "#contexts/KnownAliases/helpers.ts";
 import { captureException, captureMessage } from "@sentry/react";
+import { getOrSetUserId } from "#helpers/userId.ts";
 
 export const getUUIDQueryOptions = (
     username: string,
@@ -16,6 +17,11 @@ export const getUUIDQueryOptions = (
         queryFn: async (): Promise<{ uuid: string; username: string }> => {
             const response = await fetch(
                 `${env.VITE_FLASHLIGHT_URL}/v1/account/username/${username}`,
+                {
+                    headers: {
+                        "X-User-Id": getOrSetUserId(),
+                    },
+                },
             ).catch((error: unknown) => {
                 captureException(error, {
                     extra: {
