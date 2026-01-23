@@ -20,31 +20,53 @@ func (m *mockedRateLimiter) Consume(key string) bool {
 
 func TestTokenBucketRateLimiter(t *testing.T) {
 	t.Parallel()
-	synctest.Test(t, func(t *testing.T) {
-		rateLimiter, stop := NewTokenBucketRateLimiter(RefillPerSecond(1), BurstSize(2))
-		defer stop()
+	t.Run("basic", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			rateLimiter, stop := NewTokenBucketRateLimiter(RefillPerSecond(1), BurstSize(2))
+			defer stop()
 
-		require.True(t, rateLimiter.Consume("user2"))
+			require.True(t, rateLimiter.Consume("user2"))
 
-		// Burst of 2
-		require.True(t, rateLimiter.Consume("user1"))
-		require.True(t, rateLimiter.Consume("user1"))
-		require.False(t, rateLimiter.Consume("user1"))
+			// Burst of 2
+			require.True(t, rateLimiter.Consume("user1"))
+			require.True(t, rateLimiter.Consume("user1"))
+			require.False(t, rateLimiter.Consume("user1"))
 
-		time.Sleep(1000 * time.Millisecond)
+			time.Sleep(1000 * time.Millisecond)
 
-		// Refill rate of 1
-		require.True(t, rateLimiter.Consume("user1"))
-		require.False(t, rateLimiter.Consume("user1"))
+			// Refill rate of 1
+			require.True(t, rateLimiter.Consume("user1"))
+			require.False(t, rateLimiter.Consume("user1"))
 
-		// Burst of 2 - even after refill
-		require.True(t, rateLimiter.Consume("user3"))
-		require.True(t, rateLimiter.Consume("user3"))
-		require.False(t, rateLimiter.Consume("user3"))
+			// Burst of 2 - even after refill
+			require.True(t, rateLimiter.Consume("user3"))
+			require.True(t, rateLimiter.Consume("user3"))
+			require.False(t, rateLimiter.Consume("user3"))
 
-		require.True(t, rateLimiter.Consume("user2"))
-		require.True(t, rateLimiter.Consume("user2"))
-		require.False(t, rateLimiter.Consume("user2"))
+			require.True(t, rateLimiter.Consume("user2"))
+			require.True(t, rateLimiter.Consume("user2"))
+			require.False(t, rateLimiter.Consume("user2"))
+		})
+	})
+
+	t.Run("fractional refill", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			rateLimiter, stop := NewTokenBucketRateLimiter(RefillPerSecond(0.1), BurstSize(1))
+			defer stop()
+
+			require.True(t, rateLimiter.Consume("user1"))
+			require.False(t, rateLimiter.Consume("user1"))
+
+			for range 9 {
+				time.Sleep(1000 * time.Millisecond)
+				require.False(t, rateLimiter.Consume("user1"))
+			}
+
+			time.Sleep(1000 * time.Millisecond)
+			require.True(t, rateLimiter.Consume("user1"))
+		})
 	})
 }
 
