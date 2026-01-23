@@ -74,19 +74,47 @@ func TestIPKeyFunc(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		remoteAddr string
-		key        string
+		remoteAddr    string
+		xForwardedFor string
+		key           string
 	}{
-		{"123.123.123.123", "ip: 123.123.123.123"},
-		// Port is stripped
-		{"127.0.0.1:52123", "ip: 127.0.0.1"},
+		{
+			remoteAddr:    "169.254.169.126:58418",
+			xForwardedFor: "12.12.123.123,34.111.7.239",
+			key:           "ip: 12.12.123.123",
+		},
+		{
+			// Attempt to inject invalid IP via X-Forwarded-For
+			// https://docs.cloud.google.com/load-balancing/docs/https#x-forwarded-for_header
+			// If the incoming request already includes an X-Forwarded-For header, the load balancer appends its values to the existing header:
+			// X-Forwarded-For: <existing-value>,<client-ip>,<load-balancer-ip>
+			remoteAddr:    "169.254.169.126:58418",
+			xForwardedFor: "127.0.0.1,12.12.123.123,34.111.7.239",
+			key:           "ip: 12.12.123.123",
+		},
+		{
+			// Fallback to RemoteAddr
+			remoteAddr: "123.123.123.123",
+			key:        "ip: 123.123.123.123",
+		},
+		{
+			// Fallback to RemoteAddr
+			// Port is stripped
+			remoteAddr: "127.0.0.1:52123",
+			key:        "ip: 127.0.0.1",
+		},
 	}
 	for _, c := range cases {
 		t.Run(c.remoteAddr, func(t *testing.T) {
 			t.Parallel()
 
-			request := &http.Request{RemoteAddr: c.remoteAddr}
-			require.Equal(t, c.key, IPKeyFunc(request))
+			req, err := http.NewRequest("GET", "/", nil)
+			require.NoError(t, err)
+			req.RemoteAddr = c.remoteAddr
+			if c.xForwardedFor != "" {
+				req.Header.Add("X-Forwarded-For", c.xForwardedFor)
+			}
+			require.Equal(t, c.key, IPKeyFunc(req))
 		})
 	}
 }
@@ -140,18 +168,43 @@ func TestRequestBasedRateLimiter(t *testing.T) {
 	}
 	requestRateLimiter := NewRequestBasedRateLimiter(rateLimiter, IPKeyFunc)
 
-	expectedKey = "ip: 1.1.1.1"
+	expectedKey = "ip: 1.1.1.100"
 	allowed = true
-	require.True(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
-	require.True(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
+	require.True(t, requestRateLimiter.Consume(&http.Request{
+		RemoteAddr: "1.1.1.1",
+		Header: http.Header{
+			"X-Forwarded-For": []string{"1.1.1.100,34.111.7.239"},
+		},
+	}))
+	require.True(t, requestRateLimiter.Consume(&http.Request{
+		RemoteAddr: "1.1.1.1",
+		Header: http.Header{
+			"X-Forwarded-For": []string{"1.1.1.100,34.111.7.239"},
+		},
+	}))
 	allowed = false
-	require.False(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
+	require.False(t, requestRateLimiter.Consume(&http.Request{
+		RemoteAddr: "1.1.1.1",
+		Header: http.Header{
+			"X-Forwarded-For": []string{"1.1.1.100,34.111.7.239"},
+		},
+	}))
 
-	expectedKey = "ip: 2.1.1.1"
+	expectedKey = "ip: 2.1.1.100"
 	allowed = true
-	require.True(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "2.1.1.1"}))
+	require.True(t, requestRateLimiter.Consume(&http.Request{
+		RemoteAddr: "2.1.1.1",
+		Header: http.Header{
+			"X-Forwarded-For": []string{"2.1.1.100,34.111.7.239"},
+		},
+	}))
 
-	expectedKey = "ip: 1.1.1.1"
+	expectedKey = "ip: 1.1.1.100"
 	allowed = false
-	require.False(t, requestRateLimiter.Consume(&http.Request{RemoteAddr: "1.1.1.1"}))
+	require.False(t, requestRateLimiter.Consume(&http.Request{
+		RemoteAddr: "1.1.1.1",
+		Header: http.Header{
+			"X-Forwarded-For": []string{"1.1.1.100,34.111.7.239"},
+		},
+	}))
 }

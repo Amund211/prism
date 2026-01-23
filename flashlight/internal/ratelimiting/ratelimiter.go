@@ -2,10 +2,13 @@ package ratelimiting
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/jellydator/ttlcache/v3"
 	"golang.org/x/time/rate"
 )
@@ -67,14 +70,84 @@ func NewRequestBasedRateLimiter(limiter RateLimiter, keyFunc func(r *http.Reques
 }
 
 func IPKeyFunc(r *http.Request) string {
-	withoutPort := r.RemoteAddr
+	ctx := r.Context()
 
-	portIndex := strings.IndexByte(r.RemoteAddr, ':')
-	if portIndex != -1 {
-		withoutPort = r.RemoteAddr[:portIndex]
+	xff := r.Header.Get("X-Forwarded-For")
+	if xff == "" {
+		logging.FromContext(ctx).WarnContext(ctx, "X-Forwarded-For header missing; using RemoteAddr")
+		reporting.Report(
+			ctx,
+			fmt.Errorf("X-Forwarded-For header missing; using RemoteAddr"),
+			map[string]string{
+				"headerXForwardedFor": xff,
+				"remoteAddr":          r.RemoteAddr,
+				"method":              r.Method,
+				"userAgent":           r.UserAgent(),
+				"url":                 r.URL.String(),
+			},
+		)
+		withoutPort := r.RemoteAddr
+
+		portIndex := strings.IndexByte(r.RemoteAddr, ':')
+		if portIndex != -1 {
+			withoutPort = r.RemoteAddr[:portIndex]
+		}
+
+		return fmt.Sprintf("ip: %s", withoutPort)
 	}
 
-	return fmt.Sprintf("ip: %s", withoutPort)
+	// Split the header value by comma
+	ips := strings.Split(xff, ",")
+	clientIP := ""
+	if len(ips) > 2 {
+		// https://docs.cloud.google.com/load-balancing/docs/https#x-forwarded-for_header
+		// If the incoming request already includes an X-Forwarded-For header, the load balancer appends its values to the existing header:
+		// X-Forwarded-For: <existing-value>,<client-ip>,<load-balancer-ip>
+		clientIP = ips[len(ips)-2]
+	} else {
+		clientIP = ips[0]
+	}
+
+	clientIP = strings.TrimSpace(clientIP)
+
+	if clientIP == "" {
+		logging.FromContext(ctx).WarnContext(ctx, "Failed to parse X-Forwarded-For header")
+		reporting.Report(
+			ctx,
+			fmt.Errorf("failed to extract client IP from X-Forwarded-For header"),
+			map[string]string{
+				"headerXForwardedFor": xff,
+				"remoteAddr":          r.RemoteAddr,
+				"method":              r.Method,
+				"userAgent":           r.UserAgent(),
+				"url":                 r.URL.String(),
+			},
+		)
+	}
+
+	validatedIP := ""
+
+	parsed := net.ParseIP(clientIP)
+	if parsed == nil {
+		logging.FromContext(ctx).WarnContext(ctx, "Failed to parse client IP from X-Forwarded-For header", "clientIP", clientIP)
+		reporting.Report(
+			ctx,
+			fmt.Errorf("failed to parse client IP from X-Forwarded-For header"),
+			map[string]string{
+				"clientIP":            clientIP,
+				"headerXForwardedFor": xff,
+				"remoteAddr":          r.RemoteAddr,
+				"method":              r.Method,
+				"userAgent":           r.UserAgent(),
+				"url":                 r.URL.String(),
+			},
+		)
+		validatedIP = "<invalid>"
+	} else {
+		validatedIP = parsed.String()
+	}
+
+	return fmt.Sprintf("ip: %s", validatedIP)
 }
 
 func UserIDKeyFunc(r *http.Request) string {

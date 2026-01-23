@@ -31,7 +31,7 @@ func TestRateLimitMiddleware(t *testing.T) {
 		rateLimiter := &mockedRateLimiter{
 			t:           t,
 			allow:       allow,
-			expectedKey: "ip: 127.0.0.1",
+			expectedKey: "ip: 12.12.123.123",
 		}
 		ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 			rateLimiter, ratelimiting.IPKeyFunc,
@@ -52,7 +52,12 @@ func TestRateLimitMiddleware(t *testing.T) {
 			},
 		)
 
-		handler(w, &http.Request{RemoteAddr: "127.0.0.1"})
+		req, err := http.NewRequest("GET", "http://example.com/test", nil)
+		require.NoError(t, err)
+		req.RemoteAddr = "169.254.169.126:58418"
+		req.Header.Set("X-Forwarded-For", "12.12.123.123,34.111.7.239")
+
+		handler(w, req)
 
 		if allow {
 			require.True(t, handlerCalled, "Expected handler to be called")
