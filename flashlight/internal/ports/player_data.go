@@ -33,6 +33,14 @@ func MakeGetPlayerDataHandler(
 		ipLimiter,
 		ratelimiting.IPKeyFunc,
 	)
+	ipLimiterLong, _ := ratelimiting.NewTokenBucketRateLimiter(
+		ratelimiting.RefillPerSecond(0.1),
+		ratelimiting.BurstSize(200),
+	)
+	ipRateLimiterLong := ratelimiting.NewRequestBasedRateLimiter(
+		ipLimiterLong,
+		ratelimiting.IPKeyFunc,
+	)
 	userIDLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(2),
 		ratelimiting.BurstSize(120),
@@ -63,6 +71,7 @@ func MakeGetPlayerDataHandler(
 		sentryMiddleware,
 		reporting.NewAddMetaMiddleware("playerdata"),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
+		NewRateLimitMiddleware(ipRateLimiterLong, makeOnLimitExceeded(ipRateLimiterLong)),
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
 		app.BuildRegisterUserVisitMiddleware(registerUserVisit),
 	)
