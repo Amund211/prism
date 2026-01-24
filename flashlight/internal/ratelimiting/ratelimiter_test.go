@@ -79,33 +79,95 @@ func TestIPKeyFunc(t *testing.T) {
 		key           string
 	}{
 		{
+			// Connecting through GCP load balancer
 			remoteAddr:    "169.254.169.126:58418",
 			xForwardedFor: "12.12.123.123,34.111.7.239",
 			key:           "ip: 12.12.123.123",
 		},
 		{
+			// Connecting through GCP load balancer
 			// Attempt to inject invalid IP via X-Forwarded-For
 			// https://docs.cloud.google.com/load-balancing/docs/https#x-forwarded-for_header
-			// If the incoming request already includes an X-Forwarded-For header, the load balancer appends its values to the existing header:
-			// X-Forwarded-For: <existing-value>,<client-ip>,<load-balancer-ip>
-			remoteAddr:    "169.254.169.126:58418",
-			xForwardedFor: "127.0.0.1,12.12.123.123,34.111.7.239",
-			key:           "ip: 12.12.123.123",
+			// > If the incoming request already includes an X-Forwarded-For header, the load balancer appends its values to the existing header:
+			// > X-Forwarded-For: <existing-value>,<client-ip>,<load-balancer-ip>
+			// Client sends X-Forwarded-For: 127.0.0.1
+			// We receive:
+			remoteAddr:    "169.254.169.126:44548",
+			xForwardedFor: "127.0.0.1,12.123.123.1,34.111.7.239",
+			key:           "ip: 12.123.123.1",
 		},
 		{
-			// Fallback to RemoteAddr
+			// Connecting through GCP load balancer
+			// Attempt to inject invalid IP via X-Forwarded-For
+			// Client sends X-Forwarded-For: 127.0.0.1,123.123.123.123
+			// We receive:
+			remoteAddr:    "169.254.169.126:54138",
+			xForwardedFor: "127.0.0.1,123.123.123.123,12.123.123.1,34.111.7.239",
+			key:           "ip: 12.123.123.1",
+		},
+		{
+			// Connecting directly to the cloud run service (run.app)
+			remoteAddr:    "169.254.169.126:10910",
+			xForwardedFor: "1111:111:1111:1111:1111:1111:1111:1111",
+			key:           "ip: 1111:111:1111:1111:1111:1111:1111:1111",
+		},
+		{
+			// Connecting directly to the cloud run service (run.app)
+			// Attempt to inject invalid IP via X-Forwarded-For
+			// Client sends X-Forwarded-For: 127.0.0.1
+			// We receive:
+			remoteAddr:    "169.254.169.126:15050",
+			xForwardedFor: "127.0.0.1,1111:111:1111:1111:1111:1111:1111:1111",
+			key:           "ip: 1111:111:1111:1111:1111:1111:1111:1111",
+		},
+		{
+			// Connecting directly to the cloud run service (run.app)
+			// Attempt to inject invalid IP via X-Forwarded-For
+			// Client sends X-Forwarded-For: 127.0.0.1,123.123.123.123
+			// We receive:
+			remoteAddr:    "169.254.169.126:3122",
+			xForwardedFor: "127.0.0.1,123.123.123.123,1111:111:1111:1111:1111:1111:1111:1111",
+			key:           "ip: 1111:111:1111:1111:1111:1111:1111:1111",
+		},
+		{
+			// NOTE: Constructed case - not seen in production
+			// No X-Forwarded-For header
 			remoteAddr: "123.123.123.123",
-			key:        "ip: 123.123.123.123",
+			key:        "ip: <missing>",
 		},
 		{
-			// Fallback to RemoteAddr
-			// Port is stripped
-			remoteAddr: "127.0.0.1:52123",
-			key:        "ip: 127.0.0.1",
+			// NOTE: Constructed case - not seen in production
+			// Invalid client ip in xff
+			xForwardedFor: "invalid-ip",
+			key:           "ip: <invalid>",
+		},
+		{
+			// NOTE: Constructed case - not seen in production
+			// Invalid client ip in xff
+			xForwardedFor: "127.0.0.1,invalid-ip",
+			key:           "ip: <invalid>",
+		},
+		{
+			// NOTE: Constructed case - not seen in production
+			// Invalid client ip in xff
+			xForwardedFor: "invalid-ip,34.111.7.239",
+			key:           "ip: <invalid>",
+		},
+		{
+			// NOTE: Constructed case - not seen in production
+			// Invalid client ip in xff
+			xForwardedFor: "127.0.0.1,invalid-ip,34.111.7.239",
+			key:           "ip: <invalid>",
+		},
+		{
+			// NOTE: Constructed case - not seen in production
+			// No client ip after removing load balancer ip
+			xForwardedFor: "34.111.7.239",
+			key:           "ip: <missing>",
 		},
 	}
 	for _, c := range cases {
-		t.Run(c.remoteAddr, func(t *testing.T) {
+		t.Run(c.xForwardedFor, func(t *testing.T) {
 			t.Parallel()
 
 			req, err := http.NewRequest("GET", "/", nil)
