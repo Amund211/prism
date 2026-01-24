@@ -7,7 +7,10 @@ assert MISSING_WINSTREAKS == make_winstreaks()
 
 
 def test_stats_endpoint() -> None:
-    # Make sure we don't release a version using the test endpoint
+    # Make sure we're using the correct endpoint on release
+    # NOTE: The flashlight API does **not** allow third-party access.
+    #       Do not send any requests to any endpoints without explicit permission.
+    #       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
     assert STATS_ENDPOINT == "https://flashlight.prismoverlay.com/v1/playerdata"
 
 
