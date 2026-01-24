@@ -16,6 +16,9 @@ export const getUUIDQueryOptions = (
         queryKey: ["uuid", username],
         queryFn: async (): Promise<{ uuid: string; username: string }> => {
             const response = await fetch(
+                // NOTE: The flashlight API does **not** allow third-party access.
+                //       Do not send any requests to any endpoints without explicit permission.
+                //       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
                 `${env.VITE_FLASHLIGHT_URL}/v1/account/username/${username}`,
                 {
                     headers: {

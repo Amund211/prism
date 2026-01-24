@@ -57,6 +57,9 @@ export default defineConfig(({ mode }) => {
                 open: true,
                 proxy: {
                     "/flashlight": {
+                        // NOTE: The flashlight API does **not** allow third-party access.
+                        //       Do not send any requests to any endpoints without explicit permission.
+                        //       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
                         target:
                             mode === "proxy-production"
                                 ? "https://flashlight-cr-184945651621.northamerica-northeast2.run.app"
