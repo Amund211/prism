@@ -5,7 +5,7 @@
 **Project Summary**: Prism is an open-source Python desktop application that provides a real-time stats overlay for Hypixel Bedwars players. It automatically detects players in lobbies and displays their statistics in a customizable overlay window.
 
 **Repository Size**: ~61 Python source files, ~20 test files, medium-sized project (~500KB)
-**Primary Language**: Python 3.12+ (currently using 3.13)
+**Primary Language**: Python 3.14+
 **Application Type**: Desktop GUI application (tkinter-based overlay)
 **Target Platforms**: Windows, macOS, Linux with platform-specific builds
 **Key Technologies**: tkinter (GUI), pynput (input handling), requests (HTTP), pyinstaller (packaging)
@@ -13,7 +13,7 @@
 ## Build Instructions and Development Setup
 
 ### Prerequisites for Coding Agents
-- **Python Version**: Requires Python 3.12 or higher (project currently uses 3.13)
+- **Python Version**: Requires Python 3.14 or higher
 - **Dependencies**: All required dependencies are already installed in your global environment
 - **Package**: The prism package is already installed in development mode in your global environment
 - **Virtual Environment**: **CRITICAL - DO NOT USE** virtual environments. Dependencies and package are pre-installed globally.

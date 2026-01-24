@@ -155,7 +155,7 @@ find . -name "*.pyc" -delete
 
 ### CI/CD Debug
 - **GitHub Actions logs**: Check exact commands used in workflows
-- **Local reproduction**: Use exact Python 3.13 and dependencies
+- **Local reproduction**: Use exact Python 3.14 and dependencies
 - **Platform differences**: Requirements files differ significantly
 
 ## Files to NEVER Modify

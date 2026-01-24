@@ -70,7 +70,7 @@ GitHub Actions (`.github/workflows/testing.yml`) automatically:
 
 ### Build Matrix
 - **OS**: ubuntu-latest, windows-latest, macOS-15
-- **Python**: 3.13
+- **Python**: 3.14
 - **Architectures**: Native + Universal2 (macOS)
 
 ## Build Timing
