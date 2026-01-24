@@ -67,6 +67,9 @@ class FlashlightAccountProvider:
         user_id: str,
     ) -> Account:  # pragma: nocover
         """Get the account information for the given username from flashlight"""
+        # NOTE: The flashlight API does **not** allow third-party access.
+        #       Do not send any requests to any endpoints without explicit permission.
+        #       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
         url = f"{FLASHLIGHT_API_URL}/v1/account/username/{username}"
 
         try:

@@ -14,6 +14,9 @@ from prism.retry import ExecutionError, execute_with_retry
 
 logger = logging.getLogger(__name__)
 
+# NOTE: The flashlight API does **not** allow third-party access.
+#       Do not send any requests to any endpoints without explicit permission.
+#       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
 STATS_ENDPOINT = "https://flashlight.prismoverlay.com/v1/playerdata"
 
 REQUEST_LIMIT, REQUEST_WINDOW = 360, 60  # Max requests per time window
