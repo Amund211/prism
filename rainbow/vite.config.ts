@@ -62,8 +62,8 @@ export default defineConfig(({ mode }) => {
                         //       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
                         target:
                             mode === "proxy-production"
-                                ? "https://flashlight-cr-184945651621.northamerica-northeast2.run.app"
-                                : "https://flashlight-test-cr-184945651621.northamerica-northeast2.run.app",
+                                ? "https://flashlight.prismoverlay.com"
+                                : "https://flashlight-test.prismoverlay.com",
                         changeOrigin: true,
                         cookieDomainRewrite: {
                             "*": "localhost",
