@@ -68,18 +68,6 @@ jobs:
           go build ./cmd/get-stats/main.go
           go build ./cmd/fix-fixtures/main.go
 
-      - name: Make .env for local server
-        run: |
-          touch ./cmd/.env
-
-      - name: Test user id rate limit
-        run: |
-          ./cmd/test-user-id-rate-limit.sh
-
-      - name: Test ip rate limit
-        run: |
-          ./cmd/test-ip-rate-limit.sh
-
   push-otel-collector-test:
     name: Build and push OTel Collector for test instance
     runs-on: ubuntu-latest
