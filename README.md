@@ -142,7 +142,7 @@ See [running the overlay from source](#running-the-overlay-from-source) for more
 
 ## Running the overlay from source
 Note: make sure you have a recent version of Python installed.
-The overlay currently depends on version `>=3.13`.
+The overlay currently depends on version `>=3.14`.
 
 To run the project from source, perform the following steps:
 

@@ -70,7 +70,7 @@ GitHub Actions runs tests on:
 - Windows Latest  
 - macOS 13
 
-With Python 3.13 across all platforms.
+With Python 3.14 across all platforms.
 
 ## Debugging Test Failures
 ```bash
