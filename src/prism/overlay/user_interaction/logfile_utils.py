@@ -242,7 +242,7 @@ def safe_resolve_existing_path(path: Path | str) -> Path | None:
 
     try:
         return path.resolve(strict=True)
-    except (OSError, RuntimeError):
+    except OSError, RuntimeError:
         # File not found, loop in resolution or other error
         return None
 
