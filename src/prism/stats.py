@@ -177,7 +177,7 @@ def get_and_display(username: str) -> None:
         uuid = ACCOUNT_PROVIDER.get_account_by_username(
             username, user_id="get_stats_script"
         ).uuid
-    except (APIError, PlayerNotFoundError):
+    except APIError, PlayerNotFoundError:
         uuid = None
 
     if uuid is None:
