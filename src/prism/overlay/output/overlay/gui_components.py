@@ -65,7 +65,7 @@ class ToggleButton:  # pragma: nocover
     @property
     def enabled(self) -> bool:
         """Return the state of the toggle button"""
-        return self.button.config("bg")[-1] == self.enabled_config["bg"]  # type:ignore
+        return self.button.config("bg")[-1] == self.enabled_config["bg"]  # type: ignore
 
     def toggle(self) -> None:
         """Toggle the state of the button"""
