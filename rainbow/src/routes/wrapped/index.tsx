@@ -24,7 +24,7 @@ function RouteComponent() {
                 onSubmit={(uuid) => {
                     visitPlayer(uuid);
                     navigate({
-                        from: "/wrapped",
+                        from: "/wrapped/",
                         to: "/wrapped/$uuid",
                         params: { uuid },
                         search: {

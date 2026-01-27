@@ -73,8 +73,8 @@ export interface FileRoutesByFullPath {
   '/history/explore': typeof HistoryExploreRoute
   '/session/$uuid': typeof SessionUuidRoute
   '/wrapped/$uuid': typeof WrappedUuidRoute
-  '/session': typeof SessionIndexRoute
-  '/wrapped': typeof WrappedIndexRoute
+  '/session/': typeof SessionIndexRoute
+  '/wrapped/': typeof WrappedIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -109,8 +109,8 @@ export interface FileRouteTypes {
     | '/history/explore'
     | '/session/$uuid'
     | '/wrapped/$uuid'
-    | '/session'
-    | '/wrapped'
+    | '/session/'
+    | '/wrapped/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -180,14 +180,14 @@ declare module '@tanstack/react-router' {
     '/wrapped/': {
       id: '/wrapped/'
       path: '/wrapped'
-      fullPath: '/wrapped'
+      fullPath: '/wrapped/'
       preLoaderRoute: typeof WrappedIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/session/': {
       id: '/session/'
       path: '/session'
-      fullPath: '/session'
+      fullPath: '/session/'
       preLoaderRoute: typeof SessionIndexRouteImport
       parentRoute: typeof rootRouteImport
     }

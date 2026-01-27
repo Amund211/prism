@@ -23,7 +23,7 @@ function RouteComponent() {
                 onSubmit={(uuid) => {
                     visitPlayer(uuid);
                     navigate({
-                        from: "/session",
+                        from: "/session/",
                         to: "/session/$uuid",
                         params: { uuid },
                         search: {
