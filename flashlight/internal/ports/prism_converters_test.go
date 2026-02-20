@@ -18,10 +18,6 @@ import (
 const hypixelAPIResponsesDir = "../../fixtures/hypixel_api_responses/"
 const expectedMinifiedDataDir = "testdata/expected_hypixel_style_responses/"
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 type playerToHypixelAPIResponseTestCase struct {
 	name   string
 	player *domain.PlayerPIT
@@ -64,7 +60,7 @@ func TestPlayerToHypixelAPIResponse(t *testing.T) {
 
 					UUID: "12345678-90ab-cdef-1234-567890abcdef",
 
-					Displayname: ptr("TestPlayer"),
+					Displayname: new("TestPlayer"),
 					LastLogin:   timePtr("2023-01-01T00:00:00Z"),
 					LastLogout:  timePtr("2023-01-01T10:00:00Z"),
 
@@ -72,7 +68,7 @@ func TestPlayerToHypixelAPIResponse(t *testing.T) {
 
 					Experience: 1_087_000,
 					Solo: domain.GamemodeStatsPIT{
-						Winstreak:   ptr(0),
+						Winstreak:   new(0),
 						GamesPlayed: 1,
 						Wins:        2,
 						Losses:      3,
@@ -84,7 +80,7 @@ func TestPlayerToHypixelAPIResponse(t *testing.T) {
 						Deaths:      9,
 					},
 					Doubles: domain.GamemodeStatsPIT{
-						Winstreak:   ptr(100),
+						Winstreak:   new(100),
 						GamesPlayed: 101,
 						Wins:        102,
 						Losses:      103,
@@ -96,7 +92,7 @@ func TestPlayerToHypixelAPIResponse(t *testing.T) {
 						Deaths:      109,
 					},
 					Threes: domain.GamemodeStatsPIT{
-						Winstreak:   ptr(20),
+						Winstreak:   new(20),
 						GamesPlayed: 201,
 						Wins:        202,
 						Losses:      203,
@@ -108,7 +104,7 @@ func TestPlayerToHypixelAPIResponse(t *testing.T) {
 						Deaths:      209,
 					},
 					Fours: domain.GamemodeStatsPIT{
-						Winstreak:   ptr(300),
+						Winstreak:   new(300),
 						GamesPlayed: 301,
 						Wins:        302,
 						Losses:      303,
@@ -120,7 +116,7 @@ func TestPlayerToHypixelAPIResponse(t *testing.T) {
 						Deaths:      309,
 					},
 					Overall: domain.GamemodeStatsPIT{
-						Winstreak:   ptr(400),
+						Winstreak:   new(400),
 						GamesPlayed: 401,
 						Wins:        402,
 						Losses:      403,
@@ -204,7 +200,7 @@ func TestPlayerToHypixelAPIResponse(t *testing.T) {
 
 					UUID: "12345678-90ab-cdef-1234-567890abcdef",
 
-					Displayname: ptr("Player2"),
+					Displayname: new("Player2"),
 					LastLogin:   timePtr("2024-05-09T12:14:29Z"),
 					LastLogout:  timePtr("2024-05-09T13:28:10Z"),
 
@@ -259,7 +255,7 @@ func TestPlayerToHypixelAPIResponse(t *testing.T) {
 
 					UUID: "12345678-90ab-cdef-1234-567890abcdef",
 
-					Displayname: ptr("disabledapis"),
+					Displayname: new("disabledapis"),
 					LastLogin:   nil,
 					LastLogout:  nil,
 

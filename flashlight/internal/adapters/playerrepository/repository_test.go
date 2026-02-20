@@ -20,10 +20,6 @@ import (
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 func newPostgresPlayerRepository(t *testing.T, db *sqlx.DB, schema string) *PostgresPlayerRepository {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
@@ -445,7 +441,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 
 				UUID: playerUUID,
 
-				Displayname: ptr("somename"),
+				Displayname: new("somename"),
 				LastLogin:   timePtr("2023-01-01T00:00:00Z"),
 				LastLogout:  timePtr("2023-01-02T00:00:00Z"),
 
@@ -453,7 +449,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 
 				Experience: 1_087_000,
 				Solo: domain.GamemodeStatsPIT{
-					Winstreak:   ptr(0),
+					Winstreak:   new(0),
 					GamesPlayed: 1,
 					Wins:        2,
 					Losses:      3,
@@ -465,7 +461,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 					Deaths:      9,
 				},
 				Doubles: domain.GamemodeStatsPIT{
-					Winstreak:   ptr(100),
+					Winstreak:   new(100),
 					GamesPlayed: 101,
 					Wins:        102,
 					Losses:      103,
