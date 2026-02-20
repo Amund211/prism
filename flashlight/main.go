@@ -185,9 +185,8 @@ func main() {
 	mux := http.NewServeMux()
 
 	handleFunc := func(pattern string, handlerFunc http.HandlerFunc) {
-		innerHandler := otelhttp.WithRouteTag(pattern, handlerFunc)
-		outerHandler := otelhttp.NewHandler(innerHandler, pattern)
-		mux.Handle(pattern, outerHandler)
+		handler := otelhttp.NewHandler(handlerFunc, pattern)
+		mux.Handle(pattern, handler)
 	}
 
 	handleFunc(

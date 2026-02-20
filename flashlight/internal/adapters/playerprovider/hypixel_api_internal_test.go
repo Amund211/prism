@@ -115,6 +115,10 @@ func (g *mockGauge) Record(ctx context.Context, value int64, options ...metric.R
 	}
 }
 
+func (g *mockGauge) Enabled(context.Context) bool {
+	return true
+}
+
 // mockCounter tracks Int64Counter recordings
 type mockCounter struct {
 	embedded.Int64Counter
@@ -135,6 +139,10 @@ func (c *mockCounter) Add(ctx context.Context, value int64, options ...metric.Ad
 	for iter.Next() {
 		c.attributes = append(c.attributes, iter.Attribute())
 	}
+}
+
+func (c *mockCounter) Enabled(context.Context) bool {
+	return true
 }
 
 // mockRequestLimiter is a simple limiter that always allows requests
