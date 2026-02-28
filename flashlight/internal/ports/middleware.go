@@ -43,10 +43,7 @@ func BuildRegisterUserVisitMiddleware(registerUserVisit app.RegisterUserVisit) f
 				)
 				defer cancel()
 
-				userID := r.Header.Get("X-User-Id")
-				if userID == "" {
-					userID = "<missing>"
-				}
+				userID := GetUserID(r)
 
 				_, _ = registerUserVisit(ctx, userID)
 			}()
