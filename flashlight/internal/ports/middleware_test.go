@@ -34,7 +34,7 @@ func TestRateLimitMiddleware(t *testing.T) {
 			expectedKey: "ip: 12.12.123.123",
 		}
 		ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-			rateLimiter, ratelimiting.IPKeyFunc,
+			rateLimiter, IPKeyFunc,
 		)
 
 		w := httptest.NewRecorder()

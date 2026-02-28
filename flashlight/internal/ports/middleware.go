@@ -1,10 +1,19 @@
 package ports
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 )
+
+func IPKeyFunc(r *http.Request) string {
+	return fmt.Sprintf("ip: %s", GetIP(r))
+}
+
+func UserIDKeyFunc(r *http.Request) string {
+	return fmt.Sprintf("user-id: %s", GetUserID(r))
+}
 
 func NewRateLimitMiddleware(rateLimiter ratelimiting.RequestRateLimiter, onLimitExceeded http.HandlerFunc) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {

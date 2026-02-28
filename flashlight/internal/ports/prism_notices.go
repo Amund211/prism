@@ -48,7 +48,7 @@ func MakePrismNoticesHandler(
 	)
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		ipLimiter,
-		ratelimiting.IPKeyFunc,
+		IPKeyFunc,
 	)
 	userIDLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(2),
@@ -57,7 +57,7 @@ func MakePrismNoticesHandler(
 	userIDRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		// NOTE: Rate limiting based on user controlled value
 		userIDLimiter,
-		ratelimiting.UserIDKeyFunc,
+		UserIDKeyFunc,
 	)
 
 	makeOnLimitExceeded := func(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {

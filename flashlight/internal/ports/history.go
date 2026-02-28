@@ -29,7 +29,7 @@ func MakeGetHistoryHandler(
 	)
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		ipLimiter,
-		ratelimiting.IPKeyFunc,
+		IPKeyFunc,
 	)
 	userIDLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(1),
@@ -38,7 +38,7 @@ func MakeGetHistoryHandler(
 	userIDRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		// NOTE: Rate limiting based on user controlled value
 		userIDLimiter,
-		ratelimiting.UserIDKeyFunc,
+		UserIDKeyFunc,
 	)
 
 	makeOnLimitExceeded := func(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {
