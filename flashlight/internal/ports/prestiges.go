@@ -82,11 +82,8 @@ func MakeGetPrestigesHandler(
 		ctx := r.Context()
 
 		rawUUID := r.PathValue("uuid")
-		userID := r.Header.Get("X-User-Id")
+		userID := GetUserID(r)
 		ctx = reporting.SetUserIDInContext(ctx, userID)
-		if userID == "" {
-			userID = "<missing>"
-		}
 		ctx = logging.AddMetaToContext(ctx,
 			slog.String("userId", userID),
 			slog.String("uuid", rawUUID),

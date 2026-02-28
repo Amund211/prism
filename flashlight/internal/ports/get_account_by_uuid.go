@@ -78,11 +78,8 @@ func MakeGetAccountByUUIDHandler(
 			w.Write(response)
 		}
 
-		userID := r.Header.Get("X-User-Id")
+		userID := GetUserID(r)
 		ctx = reporting.SetUserIDInContext(ctx, userID)
-		if userID == "" {
-			userID = "<missing>"
-		}
 
 		uuid, err := strutils.NormalizeUUID(rawUUID)
 		if err != nil {

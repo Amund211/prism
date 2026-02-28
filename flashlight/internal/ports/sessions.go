@@ -67,10 +67,7 @@ func MakeGetSessionsHandler(
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		userID := r.Header.Get("X-User-Id")
-		if userID == "" {
-			userID = "<missing>"
-		}
+		userID := GetUserID(r)
 		ctx = reporting.SetUserIDInContext(ctx, userID)
 		ctx = logging.AddMetaToContext(ctx, slog.String("userId", userID))
 

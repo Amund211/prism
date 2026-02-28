@@ -85,11 +85,8 @@ func MakeGetAccountByUsernameHandler(
 			w.Write(response)
 		}
 
-		userID := r.Header.Get("X-User-Id")
+		userID := GetUserID(r)
 		ctx = reporting.SetUserIDInContext(ctx, userID)
-		if userID == "" {
-			userID = "<missing>"
-		}
 		ctx = logging.AddMetaToContext(ctx,
 			slog.String("userId", userID),
 			slog.String("username", username),

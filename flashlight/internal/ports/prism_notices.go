@@ -85,10 +85,7 @@ func MakePrismNoticesHandler(
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		userID := r.Header.Get("X-User-Id")
-		if userID == "" {
-			userID = "<missing>"
-		}
+		userID := GetUserID(r)
 
 		prismVersion := r.Header.Get("X-Prism-Version")
 		if prismVersion == "" {
