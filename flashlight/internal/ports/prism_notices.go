@@ -79,7 +79,7 @@ func MakePrismNoticesHandler(
 		reporting.NewAddMetaMiddleware("prism-notices"),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
-		app.BuildRegisterUserVisitMiddleware(registerUserVisit),
+		BuildRegisterUserVisitMiddleware(registerUserVisit),
 	)
 
 	handler := func(w http.ResponseWriter, r *http.Request) {

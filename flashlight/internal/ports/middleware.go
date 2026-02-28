@@ -1,9 +1,12 @@
 package ports
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 )
 
@@ -22,6 +25,31 @@ func NewRateLimitMiddleware(rateLimiter ratelimiting.RequestRateLimiter, onLimit
 				onLimitExceeded(w, r)
 				return
 			}
+
+			next(w, r)
+		}
+	}
+}
+
+func BuildRegisterUserVisitMiddleware(registerUserVisit app.RegisterUserVisit) func(http.HandlerFunc) http.HandlerFunc {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			go func() {
+				// NOTE: Since we're doing this in a goroutine, we want a context
+				//       that won't get cancelled when the request ends
+				ctx, cancel := context.WithTimeout(
+					context.WithoutCancel(r.Context()),
+					1*time.Second,
+				)
+				defer cancel()
+
+				userID := r.Header.Get("X-User-Id")
+				if userID == "" {
+					userID = "<missing>"
+				}
+
+				_, _ = registerUserVisit(ctx, userID)
+			}()
 
 			next(w, r)
 		}
