@@ -37,6 +37,7 @@ func MakeGetTagsHandler(
 	registerUserVisit app.RegisterUserVisit,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
+	blocklistConfig BlocklistConfig,
 ) http.HandlerFunc {
 	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(8),
@@ -69,6 +70,7 @@ func MakeGetTagsHandler(
 	}
 
 	middleware := ComposeMiddlewares(
+		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("tags"),
 		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,

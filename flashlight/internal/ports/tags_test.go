@@ -48,6 +48,7 @@ func TestMakeGetTagsHandler(t *testing.T) {
 			stubRegisterUserVisit,
 			testLogger,
 			noopMiddleware,
+			emptyBlocklistConfig,
 		)
 	}
 

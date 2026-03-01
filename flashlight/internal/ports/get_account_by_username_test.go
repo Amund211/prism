@@ -51,6 +51,7 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 			allowedOrigins,
 			testLogger,
 			noopMiddleware,
+			emptyBlocklistConfig,
 		)
 	}
 

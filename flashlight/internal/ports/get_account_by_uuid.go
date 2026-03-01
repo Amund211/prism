@@ -21,6 +21,7 @@ func MakeGetAccountByUUIDHandler(
 	allowedOrigins *DomainSuffixes,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
+	blocklistConfig BlocklistConfig,
 ) http.HandlerFunc {
 	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(8),
@@ -49,6 +50,7 @@ func MakeGetAccountByUUIDHandler(
 	}
 
 	middleware := ComposeMiddlewares(
+		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("get_account_by_uuid"),
 		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,

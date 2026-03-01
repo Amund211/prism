@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/Amund211/flashlight/internal/config"
@@ -15,10 +16,10 @@ const (
 	development environment = "development"
 )
 
-var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY"}
+var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY", "BLOCKED_IPS", "BLOCKED_USER_AGENTS", "BLOCKED_USER_IDS"}
 
 func TestGetConfig(t *testing.T) {
-	compareConfig := func(socketPath, username, password, sentryDSN, hypixelAPIKey string, env environment, conf config.Config) {
+	compareConfig := func(socketPath, username, password, sentryDSN, hypixelAPIKey string, blockedIPs, blockedUserAgents, blockedUserIDs []string, env environment, conf config.Config) {
 		t.Helper()
 		require.Equal(t, socketPath, conf.CloudSQLUnixSocketPath())
 		require.Equal(t, username, conf.DBUsername())
@@ -42,7 +43,7 @@ func TestGetConfig(t *testing.T) {
 
 			conf, err := config.ConfigFromEnv()
 			require.NoError(t, err)
-			compareConfig("", "", "", "", "", development, conf)
+			compareConfig("", "", "", "", "", []string{}, []string{}, []string{}, development, conf)
 		})
 	})
 
@@ -57,7 +58,7 @@ func TestGetConfig(t *testing.T) {
 
 				conf, err := config.ConfigFromEnv()
 				require.NoError(t, err)
-				compareConfig("CLOUDSQL_UNIX_SOCKET", "DB_USERNAME", "DB_PASSWORD", "SENTRY_DSN", "HYPIXEL_API_KEY", env, conf)
+				compareConfig("CLOUDSQL_UNIX_SOCKET", "DB_USERNAME", "DB_PASSWORD", "SENTRY_DSN", "HYPIXEL_API_KEY", []string{"BLOCKED_IPS"}, []string{"BLOCKED_USER_AGENTS"}, []string{"BLOCKED_USER_IDS"}, env, conf)
 			})
 		}
 
@@ -85,7 +86,10 @@ func TestGetConfig(t *testing.T) {
 
 				for _, variable := range allVariablesExceptEnv {
 					t.Run(variable, func(t *testing.T) {
-						t.Setenv(variable, "")
+						os.Unsetenv(variable)
+						t.Cleanup(func() {
+							t.Setenv(variable, "placeholder_value")
+						})
 
 						_, err := config.ConfigFromEnv()
 						require.ErrorIs(t, err, config.ErrMissingRequiredValue)
@@ -101,6 +105,50 @@ func TestGetConfig(t *testing.T) {
 				t.Setenv("FLASHLIGHT_ENVIRONMENT", "")
 				_, err := config.ConfigFromEnv()
 				require.ErrorIs(t, err, config.ErrInvalidValue)
+			})
+		}
+	})
+
+	t.Run("blocked IPs, user agents, and user ids are parsed correctly", func(t *testing.T) {
+		// Set all variables
+		for _, variable := range allVariablesExceptEnv {
+			t.Setenv(variable, "placeholder_value")
+		}
+
+		cases := []struct {
+			envValue     string
+			expectedList []string
+		}{
+			{
+				envValue:     "",
+				expectedList: []string{},
+			},
+			{
+				envValue:     "singlevalue",
+				expectedList: []string{"singlevalue"},
+			},
+			{
+				envValue:     "value1,value2,value3",
+				expectedList: []string{"value1", "value2", "value3"},
+			},
+			{
+				envValue:     "value1, value2 , value3 ",
+				expectedList: []string{"value1", "value2", "value3"},
+			},
+		}
+
+		for _, c := range cases {
+			t.Run(c.envValue, func(t *testing.T) {
+				t.Setenv("FLASHLIGHT_ENVIRONMENT", string(production))
+				t.Setenv("BLOCKED_IPS", c.envValue)
+				t.Setenv("BLOCKED_USER_AGENTS", c.envValue)
+				t.Setenv("BLOCKED_USER_IDS", c.envValue)
+
+				conf, err := config.ConfigFromEnv()
+				require.NoError(t, err)
+				require.Equal(t, c.expectedList, conf.BlockedIPs())
+				require.Equal(t, c.expectedList, conf.BlockedUserAgents())
+				require.Equal(t, c.expectedList, conf.BlockedUserIDs())
 			})
 		}
 	})

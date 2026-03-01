@@ -56,6 +56,7 @@ func TestMakeGetSessionsHandler(t *testing.T) {
 			allowedOrigins,
 			testLogger,
 			noopMiddleware,
+			emptyBlocklistConfig,
 		)
 	}
 

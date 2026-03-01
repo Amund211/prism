@@ -56,6 +56,7 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 			allowedOrigins,
 			testLogger,
 			noopMiddleware,
+			emptyBlocklistConfig,
 		)
 	}
 

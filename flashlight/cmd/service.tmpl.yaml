@@ -51,6 +51,21 @@ spec:
             secretKeyRef:
               name: "${SENTRY_DSN_KEY}"
               key: "latest"
+        - name: "BLOCKED_IPS"
+          valueFrom:
+            secretKeyRef:
+              name: "prism-blocked-ips"
+              key: "latest"
+        - name: "BLOCKED_USER_AGENTS"
+          valueFrom:
+            secretKeyRef:
+              name: "prism-blocked-user-agents"
+              key: "latest"
+        - name: "BLOCKED_USER_IDS"
+          valueFrom:
+            secretKeyRef:
+              name: "prism-blocked-user-ids"
+              key: "latest"
       - image: "${COLLECTOR_IMAGE}"
         name: "collector"
         startupProbe:

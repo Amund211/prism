@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 )
 
 var ErrMissingRequiredValue = errors.New("missing required value")
@@ -25,6 +26,9 @@ type Config struct {
 	hypixelAPIKey          string
 	port                   string
 	env                    environment
+	blockedIPs             []string
+	blockedUserAgents      []string
+	blockedUserIDs         []string
 }
 
 func (c *Config) CloudSQLUnixSocketPath() string {
@@ -63,6 +67,18 @@ func (c *Config) IsDevelopment() bool {
 	return c.env == development
 }
 
+func (c *Config) BlockedIPs() []string {
+	return c.blockedIPs
+}
+
+func (c *Config) BlockedUserAgents() []string {
+	return c.blockedUserAgents
+}
+
+func (c *Config) BlockedUserIDs() []string {
+	return c.blockedUserIDs
+}
+
 // Return a string representation suitable for logging etc
 func (c *Config) NonSensitiveString() string {
 	return fmt.Sprintf("Config{env: %s, port: %s ...}", string(c.env), c.port)
@@ -91,6 +107,8 @@ func ConfigFromEnv() (Config, error) {
 	if string(env) == "" {
 		panic("logic error: env is empty")
 	}
+
+	requireEnv := env == production || env == staging
 
 	cloudSQLUnixSocketPath := os.Getenv("CLOUDSQL_UNIX_SOCKET")
 	dbPassword := os.Getenv("DB_PASSWORD")
@@ -122,6 +140,19 @@ func ConfigFromEnv() (Config, error) {
 		}
 	}
 
+	blockedIPs, ok := lookupCommaSeparatedEnv("BLOCKED_IPS")
+	if requireEnv && !ok {
+		return missingKey("BLOCKED_IPS")
+	}
+	blockedUserAgents, ok := lookupCommaSeparatedEnv("BLOCKED_USER_AGENTS")
+	if requireEnv && !ok {
+		return missingKey("BLOCKED_USER_AGENTS")
+	}
+	blockedUserIDs, ok := lookupCommaSeparatedEnv("BLOCKED_USER_IDS")
+	if requireEnv && !ok {
+		return missingKey("BLOCKED_USER_IDS")
+	}
+
 	return Config{
 		cloudSQLUnixSocketPath: cloudSQLUnixSocketPath,
 		dBPassword:             dbPassword,
@@ -130,5 +161,26 @@ func ConfigFromEnv() (Config, error) {
 		hypixelAPIKey:          hypixelAPIKey,
 		port:                   port,
 		env:                    env,
+		blockedIPs:             blockedIPs,
+		blockedUserAgents:      blockedUserAgents,
+		blockedUserIDs:         blockedUserIDs,
 	}, nil
+}
+
+func lookupCommaSeparatedEnv(key string) ([]string, bool) {
+	value, ok := os.LookupEnv(key)
+	if !ok {
+		return []string{}, false
+	}
+
+	if value == "" {
+		return []string{}, true
+	}
+
+	parts := strings.Split(value, ",")
+	for i := range parts {
+		parts[i] = strings.TrimSpace(parts[i])
+	}
+
+	return parts, true
 }

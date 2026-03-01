@@ -40,6 +40,7 @@ func MakeGetPrestigesHandler(
 	allowedOrigins *DomainSuffixes,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
+	blocklistConfig BlocklistConfig,
 ) http.HandlerFunc {
 	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(4),
@@ -68,6 +69,7 @@ func MakeGetPrestigesHandler(
 	}
 
 	middleware := ComposeMiddlewares(
+		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("prestiges"),
 		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,

@@ -41,6 +41,7 @@ func MakePrismNoticesHandler(
 	registerUserVisit app.RegisterUserVisit,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
+	blocklistConfig BlocklistConfig,
 ) http.HandlerFunc {
 	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(8),
@@ -73,6 +74,7 @@ func MakePrismNoticesHandler(
 	}
 
 	middleware := ComposeMiddlewares(
+		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("prism-notices"),
 		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,

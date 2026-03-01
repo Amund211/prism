@@ -51,6 +51,7 @@ func TestMakeGetWrappedHandler(t *testing.T) {
 			allowedOrigins,
 			testLogger,
 			noopMiddleware,
+			emptyBlocklistConfig,
 		)
 	}
 

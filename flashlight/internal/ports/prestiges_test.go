@@ -79,7 +79,7 @@ func TestGetPrestigesHandler(t *testing.T) {
 			return domain.User{}, nil
 		}
 
-		handler := ports.MakeGetPrestigesHandler(findMilestoneAchievements, stubRegisterUserVisit, allowedOrigins, logger, sentryMiddleware)
+		handler := ports.MakeGetPrestigesHandler(findMilestoneAchievements, stubRegisterUserVisit, allowedOrigins, logger, sentryMiddleware, emptyBlocklistConfig)
 
 		req := makeRequest(rawPlayerUUID)
 		w := httptest.NewRecorder()
@@ -113,7 +113,7 @@ func TestGetPrestigesHandler(t *testing.T) {
 			return domain.User{}, nil
 		}
 
-		handler := ports.MakeGetPrestigesHandler(makeAssertNotCalled(t), stubRegisterUserVisit, allowedOrigins, logger, sentryMiddleware)
+		handler := ports.MakeGetPrestigesHandler(makeAssertNotCalled(t), stubRegisterUserVisit, allowedOrigins, logger, sentryMiddleware, emptyBlocklistConfig)
 
 		req := makeRequest("invalid-uuid")
 		w := httptest.NewRecorder()
@@ -132,7 +132,7 @@ func TestGetPrestigesHandler(t *testing.T) {
 			return domain.User{}, nil
 		}
 
-		handler := ports.MakeGetPrestigesHandler(makeAssertNotCalled(t), stubRegisterUserVisit, allowedOrigins, logger, sentryMiddleware)
+		handler := ports.MakeGetPrestigesHandler(makeAssertNotCalled(t), stubRegisterUserVisit, allowedOrigins, logger, sentryMiddleware, emptyBlocklistConfig)
 
 		req := httptest.NewRequest("GET", "/v1/prestiges", nil)
 		w := httptest.NewRecorder()

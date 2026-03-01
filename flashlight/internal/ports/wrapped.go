@@ -179,6 +179,7 @@ func MakeGetWrappedHandler(
 	allowedOrigins *DomainSuffixes,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
+	blocklistConfig BlocklistConfig,
 ) http.HandlerFunc {
 	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(4),
@@ -207,6 +208,7 @@ func MakeGetWrappedHandler(
 	}
 
 	middleware := ComposeMiddlewares(
+		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("wrapped"),
 		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,

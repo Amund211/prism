@@ -22,6 +22,7 @@ func MakeGetSessionsHandler(
 	allowedOrigins *DomainSuffixes,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
+	blocklistConfig BlocklistConfig,
 ) http.HandlerFunc {
 	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(4),
@@ -54,6 +55,7 @@ func MakeGetSessionsHandler(
 	}
 
 	middleware := ComposeMiddlewares(
+		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("sessions"),
 		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,

@@ -28,6 +28,7 @@ func MakeGetAccountByUsernameHandler(
 	allowedOrigins *DomainSuffixes,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
+	blocklistConfig BlocklistConfig,
 ) http.HandlerFunc {
 	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(8),
@@ -56,6 +57,7 @@ func MakeGetAccountByUsernameHandler(
 	}
 
 	middleware := ComposeMiddlewares(
+		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("get_account_by_username"),
 		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,

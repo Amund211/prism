@@ -2,6 +2,7 @@ package ports
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -250,6 +251,157 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 		wg.Wait()
 		require.Equal(t, "<missing>", registeredUserID)
 	})
+}
+
+func TestBuildBlocklistMiddleware(t *testing.T) {
+	t.Parallel()
+
+	makeHandler := func() (http.HandlerFunc, *bool) {
+		called := false
+		return func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			w.WriteHeader(http.StatusOK)
+		}, &called
+	}
+
+	cases := []struct {
+		name      string
+		config    BlocklistConfig
+		ip        string
+		userAgent string
+		userID    string
+		blocked   bool
+	}{
+		{
+			name:      "empty config",
+			config:    BlocklistConfig{},
+			ip:        "1.1.1.1",
+			userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+			userID:    "user1",
+			blocked:   false,
+		},
+		{
+			name: "blocking different ips,uas,users",
+			config: BlocklistConfig{
+				IPs: []string{
+					"1.2.2.2",
+					"2.2.2.2",
+					"3.2.2.2",
+					"4.2.2.2",
+				},
+				UserAgents: []string{
+					"BadBot/1.0",
+					"EvilScraper/2.0",
+				},
+				UserIDs: []string{
+					"bad-user-123",
+					"evil-user-456",
+				},
+			},
+			ip:        "1.1.1.1",
+			userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+			userID:    "user1",
+			blocked:   false,
+		},
+		{
+			name: "blocked by ip",
+			config: BlocklistConfig{
+				IPs: []string{
+					"1.2.2.2",
+					"2.2.2.2",
+					"3.2.2.2",
+					"4.2.2.2",
+				},
+				UserAgents: []string{
+					"BadBot/1.0",
+					"EvilScraper/2.0",
+				},
+				UserIDs: []string{
+					"bad-user-123",
+					"evil-user-456",
+				},
+			},
+			ip:        "1.2.2.2",
+			userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+			userID:    "user1",
+			blocked:   true,
+		},
+		{
+			name: "blocked by user agent",
+			config: BlocklistConfig{
+				IPs: []string{
+					"1.2.2.2",
+					"2.2.2.2",
+					"3.2.2.2",
+					"4.2.2.2",
+				},
+				UserAgents: []string{
+					"BadBot/1.0",
+					"EvilScraper/2.0",
+				},
+				UserIDs: []string{
+					"bad-user-123",
+					"evil-user-456",
+				},
+			},
+			ip:        "1.1.1.1",
+			userAgent: "BadBot/1.0",
+			userID:    "user1",
+			blocked:   true,
+		},
+		{
+			name: "blocked by user ID",
+			config: BlocklistConfig{
+				IPs: []string{
+					"1.2.2.2",
+					"2.2.2.2",
+					"3.2.2.2",
+					"4.2.2.2",
+				},
+				UserAgents: []string{
+					"BadBot/1.0",
+					"EvilScraper/2.0",
+				},
+				UserIDs: []string{
+					"bad-user-123",
+					"evil-user-456",
+				},
+			},
+			ip:        "1.1.1.1",
+			userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+			userID:    "bad-user-123",
+			blocked:   true,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			middleware := BuildBlocklistMiddleware(tc.config)
+
+			inner, innerCalled := makeHandler()
+
+			handler := middleware(inner)
+
+			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			req.Header.Set("X-Forwarded-For", fmt.Sprintf("%s,34.111.7.239", tc.ip))
+			require.Equal(t, tc.ip, GetIP(req), "XFF set incorrectly for IP")
+
+			req.Header.Set("User-Agent", tc.userAgent)
+			req.Header.Set("X-User-Id", tc.userID)
+			w := httptest.NewRecorder()
+
+			handler(w, req)
+
+			if tc.blocked {
+				require.False(t, *innerCalled)
+				require.Equal(t, http.StatusBadRequest, w.Code)
+			} else {
+				require.True(t, *innerCalled)
+				require.Equal(t, http.StatusOK, w.Code)
+			}
+		})
+	}
 }
 
 func TestComposeMiddlewares(t *testing.T) {

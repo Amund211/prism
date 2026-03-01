@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/Amund211/flashlight/internal/app"
@@ -48,6 +49,26 @@ func BuildRegisterUserVisitMiddleware(registerUserVisit app.RegisterUserVisit) f
 				_, _ = registerUserVisit(ctx, userID)
 			}()
 
+			next(w, r)
+		}
+	}
+}
+
+type BlocklistConfig struct {
+	IPs        []string
+	UserAgents []string
+	UserIDs    []string
+}
+
+func BuildBlocklistMiddleware(config BlocklistConfig) func(http.HandlerFunc) http.HandlerFunc {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			if slices.Contains(config.IPs, GetIP(r)) ||
+				slices.Contains(config.UserAgents, r.UserAgent()) ||
+				slices.Contains(config.UserIDs, GetUserID(r)) {
+				http.Error(w, `{"success": false, "detail": "This API does not allow third-party use. Reach out on the Prism discord if you have questions :^) (https://discord.gg/k4FGUnEHYg)"}`, http.StatusBadRequest)
+				return
+			}
 			next(w, r)
 		}
 	}

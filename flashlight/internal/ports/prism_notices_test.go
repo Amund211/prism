@@ -104,7 +104,7 @@ func TestPrismNoticesHandler(t *testing.T) {
 	stubRegisterUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
 		return domain.User{}, nil
 	}
-	handler := ports.MakePrismNoticesHandler(stubRegisterUserVisit, testLogger, noopMiddleware)
+	handler := ports.MakePrismNoticesHandler(stubRegisterUserVisit, testLogger, noopMiddleware, emptyBlocklistConfig)
 
 	for _, tc := range cases {
 		name := fmt.Sprintf("version='%s' userID='%s', time='%s'", tc.prismVersion, tc.userID, tc.time.Format(time.RFC3339))

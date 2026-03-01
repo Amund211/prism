@@ -17,6 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var emptyBlocklistConfig = ports.BlocklistConfig{}
+
 func TestMakeGetAccountByUUIDHandler(t *testing.T) {
 	t.Parallel()
 
@@ -51,6 +53,7 @@ func TestMakeGetAccountByUUIDHandler(t *testing.T) {
 			allowedOrigins,
 			testLogger,
 			noopMiddleware,
+			emptyBlocklistConfig,
 		)
 	}
 

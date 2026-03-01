@@ -62,6 +62,12 @@ func main() {
 		serviceName = "flashlight-dev"
 	}
 
+	blocklistConfig := ports.BlocklistConfig{
+		IPs:        config.BlockedIPs(),
+		UserAgents: config.BlockedUserAgents(),
+		UserIDs:    config.BlockedUserIDs(),
+	}
+
 	otelShutdown, err := telemetry.SetupOTelSDK(ctx, serviceName)
 	if err != nil {
 		fail("Failed to initialize OpenTelemetry SDK", "error", err.Error())
@@ -195,6 +201,7 @@ func main() {
 			registerUserVisit,
 			logger.With("port", "prism-notices"),
 			sentryMiddleware,
+			blocklistConfig,
 		),
 	)
 
@@ -205,6 +212,7 @@ func main() {
 			registerUserVisit,
 			logger.With("port", "playerdata"),
 			sentryMiddleware,
+			blocklistConfig,
 		),
 	)
 
@@ -215,6 +223,7 @@ func main() {
 			registerUserVisit,
 			logger.With("port", "tags"),
 			sentryMiddleware,
+			blocklistConfig,
 		),
 	)
 
@@ -230,6 +239,7 @@ func main() {
 			allowedOrigins,
 			logger.With("port", "getaccountbyusername"),
 			sentryMiddleware,
+			blocklistConfig,
 		),
 	)
 
@@ -245,6 +255,7 @@ func main() {
 			allowedOrigins,
 			logger.With("port", "getaccountbyuuid"),
 			sentryMiddleware,
+			blocklistConfig,
 		),
 	)
 
@@ -260,6 +271,7 @@ func main() {
 			allowedOrigins,
 			logger.With("port", "history"),
 			sentryMiddleware,
+			blocklistConfig,
 		),
 	)
 
@@ -275,6 +287,7 @@ func main() {
 			allowedOrigins,
 			logger.With("port", "sessions"),
 			sentryMiddleware,
+			blocklistConfig,
 		),
 	)
 
@@ -290,6 +303,7 @@ func main() {
 			allowedOrigins,
 			logger.With("port", "prestiges"),
 			sentryMiddleware,
+			blocklistConfig,
 		),
 	)
 
@@ -305,6 +319,7 @@ func main() {
 			allowedOrigins,
 			logger.With("port", "wrapped"),
 			sentryMiddleware,
+			blocklistConfig,
 		),
 	)
 
@@ -316,6 +331,7 @@ func main() {
 			registerUserVisit,
 			logger.With("port", "playerdata"),
 			sentryMiddleware,
+			blocklistConfig,
 		),
 	)
 
