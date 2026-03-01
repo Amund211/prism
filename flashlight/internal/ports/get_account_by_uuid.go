@@ -50,10 +50,10 @@ func MakeGetAccountByUUIDHandler(
 	}
 
 	middleware := ComposeMiddlewares(
-		BuildBlocklistMiddleware(blocklistConfig),
-		buildMetricsMiddleware("get_account_by_uuid"),
 		logging.NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,
+		BuildBlocklistMiddleware(blocklistConfig),
+		buildMetricsMiddleware("get_account_by_uuid"),
 		reporting.NewAddMetaMiddleware("get_account_by_uuid"),
 		BuildCORSMiddleware(allowedOrigins),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),

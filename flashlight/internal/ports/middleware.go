@@ -3,12 +3,16 @@ package ports
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"slices"
 	"time"
 
 	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 )
 
 func IPKeyFunc(r *http.Request) string {
@@ -63,9 +67,34 @@ type BlocklistConfig struct {
 func BuildBlocklistMiddleware(config BlocklistConfig) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			if slices.Contains(config.IPs, GetIP(r)) ||
-				slices.Contains(config.UserAgents, r.UserAgent()) ||
-				slices.Contains(config.UserIDs, GetUserID(r)) {
+			ctx := r.Context()
+			ip := GetIP(r)
+			userAgent := r.UserAgent()
+			userID := GetUserID(r)
+
+			badIP := slices.Contains(config.IPs, ip)
+			badUserAgent := slices.Contains(config.UserAgents, userAgent)
+			badUserID := slices.Contains(config.UserIDs, userID)
+
+			if badIP || badUserAgent || badUserID {
+				// Log the blocked request with details
+				logging.FromContext(ctx).InfoContext(ctx, "Blocked request",
+					slog.String("ip", ip),
+					slog.String("userAgent", userAgent),
+					slog.String("userId", userID),
+					slog.Bool("badIp", badIP),
+					slog.Bool("badUserAgent", badUserAgent),
+					slog.Bool("badUserId", badUserID),
+				)
+
+				// Record metric with blocking dimensions as labels
+				attributes := []attribute.KeyValue{
+					attribute.Bool("bad_ip", badIP),
+					attribute.Bool("bad_user_agent", badUserAgent),
+					attribute.Bool("bad_user_id", badUserID),
+				}
+				metrics.blockedRequestCount.Add(ctx, 1, metric.WithAttributes(attributes...))
+
 				http.Error(w, `{"success": false, "detail": "This API does not allow third-party use. Reach out on the Prism discord if you have questions :^) (https://discord.gg/k4FGUnEHYg)"}`, http.StatusBadRequest)
 				return
 			}
