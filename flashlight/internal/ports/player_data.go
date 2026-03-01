@@ -32,7 +32,7 @@ func MakeGetPlayerDataHandler(
 	)
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		ipLimiter,
-		IPKeyFunc,
+		IPHashKeyFunc,
 	)
 	ipLimiterLong, _ := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(0.1),
@@ -40,7 +40,7 @@ func MakeGetPlayerDataHandler(
 	)
 	ipRateLimiterLong := ratelimiting.NewRequestBasedRateLimiter(
 		ipLimiterLong,
-		IPKeyFunc,
+		IPHashKeyFunc,
 	)
 	userIDLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(2),

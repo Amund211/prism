@@ -15,8 +15,8 @@ import (
 	"go.opentelemetry.io/otel/metric"
 )
 
-func IPKeyFunc(r *http.Request) string {
-	return fmt.Sprintf("ip: %s", GetIP(r))
+func IPHashKeyFunc(r *http.Request) string {
+	return fmt.Sprintf("ip: %s", GetIPHash(r))
 }
 
 func UserIDKeyFunc(r *http.Request) string {
@@ -65,21 +65,27 @@ type BlocklistConfig struct {
 }
 
 func BuildBlocklistMiddleware(config BlocklistConfig) func(http.HandlerFunc) http.HandlerFunc {
+	// Pre-hash the IPs from the config so we can compare them with the hashed IP from the request
+	hashedIPs := make([]string, len(config.IPs))
+	for i, ip := range config.IPs {
+		hashedIPs[i] = HashIP(ip)
+	}
+
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			ip := GetIP(r)
+			ipHash := GetIPHash(r)
 			userAgent := r.UserAgent()
 			userID := GetUserID(r)
 
-			badIP := slices.Contains(config.IPs, ip)
+			badIP := slices.Contains(hashedIPs, ipHash)
 			badUserAgent := slices.Contains(config.UserAgents, userAgent)
 			badUserID := slices.Contains(config.UserIDs, userID)
 
 			if badIP || badUserAgent || badUserID {
 				// Log the blocked request with details
 				logging.FromContext(ctx).InfoContext(ctx, "Blocked request",
-					slog.String("ip", ip),
+					slog.String("ipHash", ipHash),
 					slog.String("userAgent", userAgent),
 					slog.String("userId", userID),
 					slog.Bool("badIp", badIP),

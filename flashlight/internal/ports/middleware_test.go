@@ -36,10 +36,10 @@ func TestRateLimitMiddleware(t *testing.T) {
 		rateLimiter := &mockedRateLimiter{
 			t:           t,
 			allow:       allow,
-			expectedKey: "ip: 12.12.123.123",
+			expectedKey: fmt.Sprintf("ip: %s", HashIP("12.12.123.123")),
 		}
 		ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-			rateLimiter, IPKeyFunc,
+			rateLimiter, IPHashKeyFunc,
 		)
 
 		w := httptest.NewRecorder()

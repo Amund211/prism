@@ -1,6 +1,7 @@
 package ports_test
 
 import (
+	"encoding/hex"
 	"net/http"
 	"testing"
 
@@ -115,6 +116,73 @@ func TestGetIP(t *testing.T) {
 				req.Header.Add("X-Forwarded-For", c.xForwardedFor)
 			}
 			require.Equal(t, c.ip, ports.GetIP(req))
+		})
+	}
+}
+
+func TestGetIPHash(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name          string
+		remoteAddr    string
+		xForwardedFor string
+		expectedIP    string
+		expectedHash  string
+	}{
+		{
+			name:          "valid IP through GCP load balancer",
+			remoteAddr:    "169.254.169.126:58418",
+			xForwardedFor: "12.12.123.123,34.111.7.239",
+			expectedIP:    "12.12.123.123",
+			expectedHash:  "d41e06ebd38060ce31e76914ca59460fe105a24afcb8d95e23f55ae96a1b975b",
+		},
+		{
+			name:          "valid IPv6 address",
+			remoteAddr:    "169.254.169.126:10910",
+			xForwardedFor: "1111:111:1111:1111:1111:1111:1111:1111",
+			expectedIP:    "1111:111:1111:1111:1111:1111:1111:1111",
+			expectedHash:  "a985589851594403e0087a0b6d1eca667550fca64e7c41a58bee08b3f973d161",
+		},
+		{
+			name:         "missing X-Forwarded-For header",
+			remoteAddr:   "123.123.123.123",
+			expectedIP:   "<missing>",
+			expectedHash: "769b8995b8bf4407c89e906d67601a46266d34922a63ab1754440eecb0657aab",
+		},
+		{
+			name:          "invalid client IP",
+			xForwardedFor: "invalid-ip",
+			expectedIP:    "<invalid>",
+			expectedHash:  "4253d86ac6a32c8a07df39bc28a231eca200747e18f10b18a7dcae29cd5c3e54",
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			req, err := http.NewRequest("GET", "/", nil)
+			require.NoError(t, err)
+			req.RemoteAddr = c.remoteAddr
+			if c.xForwardedFor != "" {
+				req.Header.Add("X-Forwarded-For", c.xForwardedFor)
+			}
+
+			// Sanity check that expectedHash matches ports.HashIP(expectedIP)
+			require.Equal(t, c.expectedHash, ports.HashIP(c.expectedIP))
+
+			hash := ports.GetIPHash(req)
+
+			// Verify it's a valid hex string
+			require.Len(t, hash, 64, "SHA256 hash should be 64 hex characters")
+			_, err = hex.DecodeString(hash)
+			require.NoError(t, err, "Hash should be valid hex")
+
+			// Verify hash is consistent with the IP
+			ip := ports.GetIP(req)
+			require.Equal(t, c.expectedIP, ip)
+			require.Equal(t, c.expectedHash, hash)
 		})
 	}
 }

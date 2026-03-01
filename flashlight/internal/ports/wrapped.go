@@ -187,7 +187,7 @@ func MakeGetWrappedHandler(
 	)
 	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 		ipLimiter,
-		IPKeyFunc,
+		IPHashKeyFunc,
 	)
 	userIDLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(1),
