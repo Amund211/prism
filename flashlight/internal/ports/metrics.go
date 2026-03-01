@@ -11,9 +11,10 @@ import (
 )
 
 type portsMetricsCollection struct {
-	requestCount        metric.Int64Counter
-	requestDuration     metric.Float64Histogram
-	blockedRequestCount metric.Int64Counter
+	requestCount            metric.Int64Counter
+	requestDuration         metric.Float64Histogram
+	blockedRequestCount     metric.Int64Counter
+	ratelimitedRequestCount metric.Int64Counter
 }
 
 var metrics portsMetricsCollection
@@ -49,10 +50,19 @@ func init() {
 		panic(fmt.Errorf("failed to create blocked request count metric: %w", err))
 	}
 
+	ratelimitedRequestCount, err := meter.Int64Counter(
+		"ports/ratelimited_request_count",
+		metric.WithDescription("Total number of ratelimited requests"),
+	)
+	if err != nil {
+		panic(fmt.Errorf("failed to create ratelimited request count metric: %w", err))
+	}
+
 	metrics = portsMetricsCollection{
-		requestCount:        requestCount,
-		requestDuration:     requestDuration,
-		blockedRequestCount: blockedRequestCount,
+		requestCount:            requestCount,
+		requestDuration:         requestDuration,
+		blockedRequestCount:     blockedRequestCount,
+		ratelimitedRequestCount: ratelimitedRequestCount,
 	}
 }
 
