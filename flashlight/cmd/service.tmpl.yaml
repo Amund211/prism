@@ -66,6 +66,11 @@ spec:
             secretKeyRef:
               name: "prism-blocked-user-ids"
               key: "latest"
+        - name: "BLOCKED_IPS_SHA256_HEX"
+          valueFrom:
+            secretKeyRef:
+              name: "prism-blocked-ips-sha256-hex"
+              key: "latest"
       - image: "${COLLECTOR_IMAGE}"
         name: "collector"
         startupProbe:

@@ -378,6 +378,32 @@ func TestBuildBlocklistMiddleware(t *testing.T) {
 			userID:    "bad-user-123",
 			blocked:   true,
 		},
+		{
+			name: "blocked by pre-hashed IP",
+			config: BlocklistConfig{
+				SHA256HexIPs: []string{
+					HashIP("5.5.5.5"),
+					HashIP("6.6.6.6"),
+				},
+			},
+			ip:        "5.5.5.5",
+			userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+			userID:    "user1",
+			blocked:   true,
+		},
+		{
+			name: "not blocked when pre-hashed IP doesn't match",
+			config: BlocklistConfig{
+				SHA256HexIPs: []string{
+					HashIP("5.5.5.5"),
+					HashIP("6.6.6.6"),
+				},
+			},
+			ip:        "7.7.7.7",
+			userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+			userID:    "user1",
+			blocked:   false,
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

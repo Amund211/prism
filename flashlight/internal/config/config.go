@@ -29,6 +29,7 @@ type Config struct {
 	blockedIPs             []string
 	blockedUserAgents      []string
 	blockedUserIDs         []string
+	blockedIPsSHA256Hex    []string
 }
 
 func (c *Config) CloudSQLUnixSocketPath() string {
@@ -77,6 +78,10 @@ func (c *Config) BlockedUserAgents() []string {
 
 func (c *Config) BlockedUserIDs() []string {
 	return c.blockedUserIDs
+}
+
+func (c *Config) BlockedIPsSHA256Hex() []string {
+	return c.blockedIPsSHA256Hex
 }
 
 // Return a string representation suitable for logging etc
@@ -152,6 +157,10 @@ func ConfigFromEnv() (Config, error) {
 	if requireEnv && !ok {
 		return missingKey("BLOCKED_USER_IDS")
 	}
+	blockedIPsSHA256Hex, ok := lookupNewlineDelimitedEnv("BLOCKED_IPS_SHA256_HEX")
+	if requireEnv && !ok {
+		return missingKey("BLOCKED_IPS_SHA256_HEX")
+	}
 
 	return Config{
 		cloudSQLUnixSocketPath: cloudSQLUnixSocketPath,
@@ -164,6 +173,7 @@ func ConfigFromEnv() (Config, error) {
 		blockedIPs:             blockedIPs,
 		blockedUserAgents:      blockedUserAgents,
 		blockedUserIDs:         blockedUserIDs,
+		blockedIPsSHA256Hex:    blockedIPsSHA256Hex,
 	}, nil
 }
 

@@ -103,17 +103,20 @@ func BuildRegisterUserVisitMiddleware(registerUserVisit app.RegisterUserVisit) f
 }
 
 type BlocklistConfig struct {
-	IPs        []string
-	UserAgents []string
-	UserIDs    []string
+	IPs          []string
+	UserAgents   []string
+	UserIDs      []string
+	SHA256HexIPs []string
 }
 
 func BuildBlocklistMiddleware(config BlocklistConfig) func(http.HandlerFunc) http.HandlerFunc {
 	// Pre-hash the IPs from the config so we can compare them with the hashed IP from the request
-	hashedIPs := make([]string, len(config.IPs))
+	hashedIPs := make([]string, len(config.IPs)+len(config.SHA256HexIPs))
 	for i, ip := range config.IPs {
 		hashedIPs[i] = HashIP(ip)
 	}
+	// Add the pre-hashed IPs to the same list
+	copy(hashedIPs[len(config.IPs):], config.SHA256HexIPs)
 
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
