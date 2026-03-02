@@ -128,11 +128,15 @@ func TestGetConfig(t *testing.T) {
 				expectedList: []string{"singlevalue"},
 			},
 			{
-				envValue:     "value1,value2,value3",
+				envValue: `value1
+value2
+value3`,
 				expectedList: []string{"value1", "value2", "value3"},
 			},
 			{
-				envValue:     "value1, value2 , value3 ",
+				envValue: `value1
+ value2 
+ value3 `,
 				expectedList: []string{"value1", "value2", "value3"},
 			},
 		}

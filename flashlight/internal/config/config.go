@@ -140,15 +140,15 @@ func ConfigFromEnv() (Config, error) {
 		}
 	}
 
-	blockedIPs, ok := lookupCommaSeparatedEnv("BLOCKED_IPS")
+	blockedIPs, ok := lookupNewlineDelimitedEnv("BLOCKED_IPS")
 	if requireEnv && !ok {
 		return missingKey("BLOCKED_IPS")
 	}
-	blockedUserAgents, ok := lookupCommaSeparatedEnv("BLOCKED_USER_AGENTS")
+	blockedUserAgents, ok := lookupNewlineDelimitedEnv("BLOCKED_USER_AGENTS")
 	if requireEnv && !ok {
 		return missingKey("BLOCKED_USER_AGENTS")
 	}
-	blockedUserIDs, ok := lookupCommaSeparatedEnv("BLOCKED_USER_IDS")
+	blockedUserIDs, ok := lookupNewlineDelimitedEnv("BLOCKED_USER_IDS")
 	if requireEnv && !ok {
 		return missingKey("BLOCKED_USER_IDS")
 	}
@@ -167,7 +167,7 @@ func ConfigFromEnv() (Config, error) {
 	}, nil
 }
 
-func lookupCommaSeparatedEnv(key string) ([]string, bool) {
+func lookupNewlineDelimitedEnv(key string) ([]string, bool) {
 	value, ok := os.LookupEnv(key)
 	if !ok {
 		return []string{}, false
@@ -177,7 +177,7 @@ func lookupCommaSeparatedEnv(key string) ([]string, bool) {
 		return []string{}, true
 	}
 
-	parts := strings.Split(value, ",")
+	parts := strings.Split(value, "\n")
 	for i := range parts {
 		parts[i] = strings.TrimSpace(parts[i])
 	}
