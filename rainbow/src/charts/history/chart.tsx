@@ -16,7 +16,7 @@ import {
     type StatKey,
     type VariantKey,
 } from "#stats/keys.ts";
-import React from "react";
+import React, { type ReactNode } from "react";
 import { generateChartData } from "./data.ts";
 import { makeDataKey } from "./dataKeys.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
@@ -29,6 +29,7 @@ import {
 } from "#stats/labels.ts";
 import { Typography, useTheme } from "@mui/material";
 import { useSynchronizeCharts } from "#contexts/ChartSynchronizer/hooks.ts";
+import { useAssume } from "#hooks/useAssumption.ts";
 
 interface HistoryChartProps {
     start: Date;
@@ -221,6 +222,8 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
 
     const uuidToUsername = useUUIDToUsername(uuids);
 
+    const assume = useAssume();
+
     if (uuids.length === 0) {
         return <div>Select at least one user</div>;
     }
@@ -287,8 +290,20 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                 />
                 <Legend />
                 <Tooltip
-                    labelFormatter={(time: number) => {
-                        return renderTimeFull(time);
+                    labelFormatter={(label: ReactNode) => {
+                        if (typeof label === "number") {
+                            return renderTimeFull(label);
+                        } else {
+                            assume(
+                                false,
+                                "Tooltip label is not a number",
+                                () => ({
+                                    time: label,
+                                    timeTypeof: typeof label,
+                                }),
+                            );
+                            return label;
+                        }
                     }}
                     contentStyle={{
                         backgroundColor: theme.palette.background.paper,
