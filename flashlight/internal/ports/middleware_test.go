@@ -561,12 +561,14 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 				foundBase++
 			} else if key == "correlationID" {
 				foundBase++
+			} else if key == "ipHash" {
+				foundBase++
 			} else {
 				attrs = append(attrs, StringAttr{Key: key, Value: value.(string)})
 			}
 		}
 
-		require.Equal(t, 4, foundBase)
+		require.Equal(t, 5, foundBase)
 
 		return attrs
 	}
