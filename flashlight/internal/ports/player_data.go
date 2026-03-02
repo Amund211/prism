@@ -67,7 +67,7 @@ func MakeGetPlayerDataHandler(
 	}
 
 	middleware := ComposeMiddlewares(
-		logging.NewRequestLoggerMiddleware(rootLogger),
+		NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("playerdata"),

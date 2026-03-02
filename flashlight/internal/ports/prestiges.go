@@ -69,7 +69,7 @@ func MakeGetPrestigesHandler(
 	}
 
 	middleware := ComposeMiddlewares(
-		logging.NewRequestLoggerMiddleware(rootLogger),
+		NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("prestiges"),

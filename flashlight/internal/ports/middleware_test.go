@@ -1,14 +1,19 @@
 package ports
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"sync"
 	"testing"
 
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -510,5 +515,106 @@ func TestComposeMiddlewares(t *testing.T) {
 		require.Equal(t, "post", stage1)
 		require.Equal(t, "post", stage2)
 		require.Equal(t, "post", stage3)
+	})
+}
+
+type StringAttr struct {
+	Key   string
+	Value string
+}
+
+func TestRequestLoggerMiddleware(t *testing.T) {
+	t.Parallel()
+
+	run := func(request *http.Request, useMiddleware bool) []StringAttr {
+		t.Helper()
+
+		buf := &bytes.Buffer{}
+		middleware := NewRequestLoggerMiddleware(slog.New(slog.NewJSONHandler(buf, nil)))
+
+		logRequest := func(w http.ResponseWriter, r *http.Request) {
+			logging.FromContext(r.Context()).InfoContext(r.Context(), "test")
+		}
+
+		handler := logRequest
+		if useMiddleware {
+			handler = middleware(logRequest)
+		}
+
+		w := httptest.NewRecorder()
+		handler(w, request)
+
+		var logEntry map[string]interface{}
+		err := json.Unmarshal(buf.Bytes(), &logEntry)
+		require.NoError(t, err)
+		attrs := make([]StringAttr, 0)
+
+		foundBase := 0
+		for key, value := range logEntry {
+			if key == "msg" {
+				require.Equal(t, "test", value)
+				foundBase++
+			} else if key == "level" {
+				require.Equal(t, "INFO", value)
+				foundBase++
+			} else if key == "time" {
+				foundBase++
+			} else if key == "correlationID" {
+				foundBase++
+			} else {
+				attrs = append(attrs, StringAttr{Key: key, Value: value.(string)})
+			}
+		}
+
+		require.Equal(t, 4, foundBase)
+
+		return attrs
+	}
+
+	t.Run("with middleware", func(t *testing.T) {
+		t.Parallel()
+
+		t.Run("all props", func(t *testing.T) {
+			t.Parallel()
+
+			requestUrl, err := url.Parse("http://example.com/my-path?uuid=requested-uuid")
+			require.NoError(t, err)
+
+			attrs := run(&http.Request{
+				URL:    requestUrl,
+				Method: "GET",
+				Header: http.Header{
+					"User-Agent": []string{"user-agent/1.0"},
+				},
+			}, true)
+
+			require.ElementsMatch(t, []StringAttr{
+				{Key: "userAgent", Value: "user-agent/1.0"},
+				{Key: "methodPath", Value: "GET /my-path"},
+			}, attrs)
+		})
+
+		t.Run("bad request", func(t *testing.T) {
+			t.Parallel()
+
+			requestUrl, err := url.Parse("http://example.com/my-other-path")
+			require.NoError(t, err)
+
+			attrs := run(&http.Request{
+				URL:    requestUrl,
+				Method: "POST",
+			}, true)
+
+			require.ElementsMatch(t, []StringAttr{
+				{Key: "userAgent", Value: "<missing>"},
+				{Key: "methodPath", Value: "POST /my-other-path"},
+			}, attrs)
+		})
+	})
+
+	t.Run("without middleware", func(t *testing.T) {
+		t.Parallel()
+
+		logging.FromContext(t.Context()).InfoContext(t.Context(), "don't crash when no logger in context")
 	})
 }

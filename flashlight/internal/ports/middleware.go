@@ -11,9 +11,32 @@ import (
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 )
+
+func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc) http.HandlerFunc {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			correlationID := uuid.New().String()
+
+			userAgent := r.UserAgent()
+			if userAgent == "" {
+				userAgent = "<missing>"
+			}
+
+			requestLogger := logger.With(
+				slog.String("correlationID", correlationID),
+				slog.String("userAgent", userAgent),
+				slog.String("methodPath", fmt.Sprintf("%s %s", r.Method, r.URL.Path)),
+			)
+
+			next(w, r.WithContext(logging.AddToContext(ctx, requestLogger)))
+		}
+	}
+}
 
 func IPHashKeyFunc(r *http.Request) string {
 	return fmt.Sprintf("ip: %s", GetIPHash(r))
