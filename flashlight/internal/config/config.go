@@ -189,6 +189,10 @@ func lookupNewlineDelimitedEnv(key string) ([]string, bool) {
 
 	parts := strings.Split(value, "\n")
 	for i := range parts {
+		// Strip comment (everything from the first # onwards)
+		if hashIndex := strings.Index(parts[i], "#"); hashIndex != -1 {
+			parts[i] = parts[i][:hashIndex]
+		}
 		parts[i] = strings.TrimSpace(parts[i])
 	}
 
