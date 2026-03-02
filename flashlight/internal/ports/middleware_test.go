@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"slices"
 	"sync"
 	"testing"
 
@@ -523,6 +524,8 @@ type StringAttr struct {
 	Value string
 }
 
+var ignoredAttrs = []string{"ip"}
+
 func TestRequestLoggerMiddleware(t *testing.T) {
 	t.Parallel()
 
@@ -563,6 +566,8 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 				foundBase++
 			} else if key == "ipHash" {
 				foundBase++
+			} else if slices.Contains(ignoredAttrs, key) {
+				continue
 			} else {
 				attrs = append(attrs, StringAttr{Key: key, Value: value.(string)})
 			}

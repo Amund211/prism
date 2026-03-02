@@ -30,6 +30,7 @@ func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc)
 			requestLogger := logger.With(
 				slog.String("correlationID", correlationID),
 				slog.String("ipHash", GetIPHash(r)),
+				slog.String("ip", GetIP(r)),
 				slog.String("userAgent", userAgent),
 				slog.String("methodPath", fmt.Sprintf("%s %s", r.Method, r.URL.Path)),
 			)
