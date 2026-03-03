@@ -178,7 +178,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 		})
 	})
 
-	t.Run("registerUserVisit gets called with user ID from header", func(t *testing.T) {
+	t.Run("registerUserVisit gets called with low cardinality user ID from header", func(t *testing.T) {
 		t.Parallel()
 
 		var wg sync.WaitGroup
@@ -202,7 +202,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 		handler(w, req)
 
 		wg.Wait()
-		require.Equal(t, "test-user-123", registeredUserID)
+		require.Equal(t, "<short-user-id>", registeredUserID)
 	})
 
 	t.Run("registerUserVisit gets called with <missing> when no user ID header", func(t *testing.T) {

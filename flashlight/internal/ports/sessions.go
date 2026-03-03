@@ -70,8 +70,8 @@ func MakeGetSessionsHandler(
 		ctx := r.Context()
 
 		userID := GetUserID(r)
-		ctx = reporting.SetUserIDInContext(ctx, userID)
-		ctx = logging.AddMetaToContext(ctx, slog.String("userId", userID))
+		ctx = reporting.SetUserIDInContext(ctx, userID.String())
+		ctx = logging.AddMetaToContext(ctx, slog.String("userId", userID.String()))
 
 		defer r.Body.Close()
 		body, err := io.ReadAll(r.Body)

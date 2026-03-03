@@ -88,9 +88,9 @@ func MakeGetAccountByUsernameHandler(
 		}
 
 		userID := GetUserID(r)
-		ctx = reporting.SetUserIDInContext(ctx, userID)
+		ctx = reporting.SetUserIDInContext(ctx, userID.String())
 		ctx = logging.AddMetaToContext(ctx,
-			slog.String("userId", userID),
+			slog.String("userId", userID.String()),
 			slog.String("username", username),
 		)
 		ctx = reporting.AddExtrasToContext(ctx,

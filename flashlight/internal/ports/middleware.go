@@ -44,7 +44,7 @@ func IPHashKeyFunc(r *http.Request) string {
 }
 
 func UserIDKeyFunc(r *http.Request) string {
-	return fmt.Sprintf("user-id: %s", GetUserID(r))
+	return fmt.Sprintf("user-id: %s", GetUserID(r).String())
 }
 
 func NewRateLimitMiddleware(rateLimiter ratelimiting.RequestRateLimiter, onLimitExceeded http.HandlerFunc) func(http.HandlerFunc) http.HandlerFunc {
@@ -62,7 +62,7 @@ func NewRateLimitMiddleware(rateLimiter ratelimiting.RequestRateLimiter, onLimit
 				logging.FromContext(ctx).InfoContext(ctx, "Rate limit exceeded",
 					slog.String("ipHash", ipHash),
 					slog.String("userAgent", userAgent),
-					slog.String("userId", userID),
+					slog.String("userId", userID.String()),
 				)
 
 				attributes := []attribute.KeyValue{
@@ -93,7 +93,7 @@ func BuildRegisterUserVisitMiddleware(registerUserVisit app.RegisterUserVisit) f
 
 				userID := GetUserID(r)
 
-				_, _ = registerUserVisit(ctx, userID)
+				_, _ = registerUserVisit(ctx, userID.LowCardinalityString())
 			}()
 
 			next(w, r)
@@ -126,14 +126,14 @@ func BuildBlocklistMiddleware(config BlocklistConfig) func(http.HandlerFunc) htt
 
 			badIP := slices.Contains(hashedIPs, ipHash)
 			badUserAgent := slices.Contains(config.UserAgents, userAgent)
-			badUserID := slices.Contains(config.UserIDs, userID)
+			badUserID := slices.Contains(config.UserIDs, userID.String())
 
 			if badIP || badUserAgent || badUserID {
 				// Log the blocked request with details
 				logging.FromContext(ctx).InfoContext(ctx, "Blocked request",
 					slog.String("ipHash", ipHash),
 					slog.String("userAgent", userAgent),
-					slog.String("userId", userID),
+					slog.String("userId", userID.String()),
 					slog.Bool("badIp", badIP),
 					slog.Bool("badUserAgent", badUserAgent),
 					slog.Bool("badUserId", badUserID),

@@ -86,7 +86,7 @@ func buildMetricsMiddleware(handler string) func(http.HandlerFunc) http.HandlerF
 				attribute.String("method", r.Method),
 				attribute.String("handler", handler),
 				attribute.String("user_agent", userAgent),
-				attribute.String("user_id", userID),
+				attribute.String("user_id", userID.LowCardinalityString()),
 			}
 
 			attributesOption := metric.WithAttributes(attributes...)

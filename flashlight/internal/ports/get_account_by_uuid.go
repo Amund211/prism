@@ -81,7 +81,7 @@ func MakeGetAccountByUUIDHandler(
 		}
 
 		userID := GetUserID(r)
-		ctx = reporting.SetUserIDInContext(ctx, userID)
+		ctx = reporting.SetUserIDInContext(ctx, userID.String())
 
 		uuid, err := strutils.NormalizeUUID(rawUUID)
 		if err != nil {
@@ -90,7 +90,7 @@ func MakeGetAccountByUUIDHandler(
 		}
 
 		ctx = logging.AddMetaToContext(ctx,
-			slog.String("userId", userID),
+			slog.String("userId", userID.String()),
 			slog.String("uuid", uuid),
 		)
 		ctx = reporting.AddExtrasToContext(ctx,
