@@ -37,7 +37,7 @@ func addMetaToContext(ctx context.Context, meta ReportingMeta) context.Context {
 	return context.WithValue(ctx, reportingMetaContextKey{}, meta)
 }
 
-func setStartedAtInContext(ctx context.Context, startedAt time.Time) context.Context {
+func SetStartedAtInContext(ctx context.Context, startedAt time.Time) context.Context {
 	meta := MetaFromContext(ctx)
 	meta.startedAt = startedAt
 

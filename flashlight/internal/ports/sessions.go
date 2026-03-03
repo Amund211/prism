@@ -59,7 +59,7 @@ func MakeGetSessionsHandler(
 		sentryMiddleware,
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("sessions"),
-		reporting.NewAddMetaMiddleware("sessions"),
+		NewReportingMetaMiddleware("sessions"),
 		BuildCORSMiddleware(allowedOrigins),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),

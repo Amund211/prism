@@ -61,7 +61,7 @@ func MakeGetAccountByUsernameHandler(
 		sentryMiddleware,
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("get_account_by_username"),
-		reporting.NewAddMetaMiddleware("get_account_by_username"),
+		NewReportingMetaMiddleware("get_account_by_username"),
 		BuildCORSMiddleware(allowedOrigins),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),

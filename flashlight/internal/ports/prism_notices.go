@@ -78,7 +78,7 @@ func MakePrismNoticesHandler(
 		sentryMiddleware,
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("prism-notices"),
-		reporting.NewAddMetaMiddleware("prism-notices"),
+		NewReportingMetaMiddleware("prism-notices"),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
 		BuildRegisterUserVisitMiddleware(registerUserVisit),

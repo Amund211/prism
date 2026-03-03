@@ -54,7 +54,7 @@ func MakeGetAccountByUUIDHandler(
 		sentryMiddleware,
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("get_account_by_uuid"),
-		reporting.NewAddMetaMiddleware("get_account_by_uuid"),
+		NewReportingMetaMiddleware("get_account_by_uuid"),
 		BuildCORSMiddleware(allowedOrigins),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),

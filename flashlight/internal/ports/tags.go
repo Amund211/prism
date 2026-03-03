@@ -74,7 +74,7 @@ func MakeGetTagsHandler(
 		sentryMiddleware,
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("tags"),
-		reporting.NewAddMetaMiddleware("tags"),
+		NewReportingMetaMiddleware("tags"),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
 		BuildRegisterUserVisitMiddleware(registerUserVisit),

@@ -212,7 +212,7 @@ func MakeGetWrappedHandler(
 		sentryMiddleware,
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("wrapped"),
-		reporting.NewAddMetaMiddleware("wrapped"),
+		NewReportingMetaMiddleware("wrapped"),
 		BuildCORSMiddleware(allowedOrigins),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),

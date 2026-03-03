@@ -11,6 +11,7 @@ import (
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
+	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -155,6 +156,32 @@ func BuildBlocklistMiddleware(config BlocklistConfig) func(http.HandlerFunc) htt
 				return
 			}
 			next(w, r)
+		}
+	}
+}
+
+func NewReportingMetaMiddleware(port string) func(http.HandlerFunc) http.HandlerFunc {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			userAgent := r.UserAgent()
+			if userAgent == "" {
+				userAgent = "<missing>"
+			}
+			methodPath := fmt.Sprintf("%s %s", r.Method, r.URL.Path)
+
+			ctx = reporting.AddTagsToContext(ctx,
+				map[string]string{
+					"port":       port,
+					"userAgent":  userAgent,
+					"methodPath": methodPath,
+				},
+			)
+
+			ctx = reporting.SetStartedAtInContext(ctx, time.Now())
+
+			next(w, r.WithContext(ctx))
 		}
 	}
 }

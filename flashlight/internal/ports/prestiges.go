@@ -73,7 +73,7 @@ func MakeGetPrestigesHandler(
 		sentryMiddleware,
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("prestiges"),
-		reporting.NewAddMetaMiddleware("prestiges"),
+		NewReportingMetaMiddleware("prestiges"),
 		BuildCORSMiddleware(allowedOrigins),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
