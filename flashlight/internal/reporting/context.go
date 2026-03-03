@@ -70,3 +70,7 @@ func SetUserIDInContext(ctx context.Context, userID string) context.Context {
 
 	return addMetaToContext(ctx, meta)
 }
+
+func GetUserIDFromContext(ctx context.Context) string {
+	return MetaFromContext(ctx).userID
+}

@@ -16,6 +16,7 @@ import (
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
+	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -678,4 +679,49 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 
 		logging.FromContext(t.Context()).InfoContext(t.Context(), "don't crash when no logger in context")
 	})
+}
+
+func TestNewReportingMetaMiddleware(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name           string
+		userIDHeader   string
+		expectedUserID string
+	}{
+		{
+			name:           "with user ID header",
+			userIDHeader:   "this-is-a-long-enough-user-id",
+			expectedUserID: "this-is-a-long-enough-user-id",
+		},
+		{
+			name:           "without user ID header",
+			userIDHeader:   "",
+			expectedUserID: "<missing>",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			middleware := NewReportingMetaMiddleware("test-port")
+
+			var gotUserID string
+			handler := middleware(func(w http.ResponseWriter, r *http.Request) {
+				gotUserID = reporting.GetUserIDFromContext(r.Context())
+				w.WriteHeader(http.StatusOK)
+			})
+
+			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			if tc.userIDHeader != "" {
+				req.Header.Set("X-User-Id", tc.userIDHeader)
+			}
+			w := httptest.NewRecorder()
+
+			handler(w, req)
+
+			require.Equal(t, tc.expectedUserID, gotUserID)
+		})
+	}
 }

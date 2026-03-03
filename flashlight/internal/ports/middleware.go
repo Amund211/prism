@@ -180,6 +180,7 @@ func NewReportingMetaMiddleware(port string) func(http.HandlerFunc) http.Handler
 			)
 
 			ctx = reporting.SetStartedAtInContext(ctx, time.Now())
+			ctx = reporting.SetUserIDInContext(ctx, GetUserID(r).String())
 
 			next(w, r.WithContext(ctx))
 		}
