@@ -68,6 +68,12 @@ func main() {
 		UserIDs:      config.BlockedUserIDs(),
 		SHA256HexIPs: config.BlockedIPsSHA256Hex(),
 	}
+	logger.InfoContext(ctx, "Initialized blocklist config",
+		"amtIPs", len(blocklistConfig.IPs),
+		"amtUserAgents", len(blocklistConfig.UserAgents),
+		"amtUserIDs", len(blocklistConfig.UserIDs),
+		"amtIPHashes", len(blocklistConfig.SHA256HexIPs),
+	)
 
 	otelShutdown, err := telemetry.SetupOTelSDK(ctx, serviceName)
 	if err != nil {
