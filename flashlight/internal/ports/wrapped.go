@@ -224,10 +224,7 @@ func MakeGetWrappedHandler(
 
 		rawUUID := r.PathValue("uuid")
 		rawYear := r.PathValue("year")
-		userID := GetUserID(r)
-		ctx = reporting.SetUserIDInContext(ctx, userID.String())
 		ctx = logging.AddMetaToContext(ctx,
-			slog.String("userId", userID.String()),
 			slog.String("uuid", rawUUID),
 			slog.String("year", rawYear),
 		)

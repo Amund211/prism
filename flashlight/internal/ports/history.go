@@ -69,10 +69,6 @@ func MakeGetHistoryHandler(
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		userID := GetUserID(r)
-		ctx = reporting.SetUserIDInContext(ctx, userID.String())
-		ctx = logging.AddMetaToContext(ctx, slog.String("userId", userID.String()))
-
 		defer r.Body.Close()
 		body, err := io.ReadAll(r.Body)
 		if err != nil {

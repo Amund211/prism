@@ -85,10 +85,7 @@ func MakeGetTagsHandler(
 
 		rawUUID := r.PathValue("uuid")
 
-		userID := GetUserID(r)
-		ctx = reporting.SetUserIDInContext(ctx, userID.String())
 		ctx = logging.AddMetaToContext(ctx,
-			slog.String("userId", userID.String()),
 			slog.String("rawUUID", rawUUID),
 		)
 		ctx = reporting.AddExtrasToContext(ctx,

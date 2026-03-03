@@ -80,9 +80,6 @@ func MakeGetAccountByUUIDHandler(
 			w.Write(response)
 		}
 
-		userID := GetUserID(r)
-		ctx = reporting.SetUserIDInContext(ctx, userID.String())
-
 		uuid, err := strutils.NormalizeUUID(rawUUID)
 		if err != nil {
 			handleError(ctx, "invalid uuid", http.StatusBadRequest)
@@ -90,7 +87,6 @@ func MakeGetAccountByUUIDHandler(
 		}
 
 		ctx = logging.AddMetaToContext(ctx,
-			slog.String("userId", userID.String()),
 			slog.String("uuid", uuid),
 		)
 		ctx = reporting.AddExtrasToContext(ctx,
