@@ -27,11 +27,15 @@ func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc)
 				userAgent = "<missing>"
 			}
 
+			userID := GetUserID(r)
+
 			requestLogger := logger.With(
 				slog.String("correlationID", correlationID),
 				slog.String("ipHash", GetIPHash(r)),
 				slog.String("userAgent", userAgent),
 				slog.String("methodPath", fmt.Sprintf("%s %s", r.Method, r.URL.Path)),
+				slog.String("userId", userID.String()),
+				slog.String("lowCardinalityUserId", userID.LowCardinalityString()),
 			)
 
 			next(w, r.WithContext(logging.AddToContext(ctx, requestLogger)))

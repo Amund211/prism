@@ -618,12 +618,38 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 				Method: "GET",
 				Header: http.Header{
 					"User-Agent": []string{"user-agent/1.0"},
+					"X-User-Id":  []string{"this-is-a-long-enough-user-id"},
 				},
 			}, true)
 
 			require.ElementsMatch(t, []StringAttr{
 				{Key: "userAgent", Value: "user-agent/1.0"},
 				{Key: "methodPath", Value: "GET /my-path"},
+				{Key: "userId", Value: "this-is-a-long-enough-user-id"},
+				{Key: "lowCardinalityUserId", Value: "this-is-a-long-enough-user-id"},
+			}, attrs)
+		})
+
+		t.Run("short user id", func(t *testing.T) {
+			t.Parallel()
+
+			requestUrl, err := url.Parse("http://example.com/my-path")
+			require.NoError(t, err)
+
+			attrs := run(&http.Request{
+				URL:    requestUrl,
+				Method: "GET",
+				Header: http.Header{
+					"User-Agent": []string{"user-agent/1.0"},
+					"X-User-Id":  []string{"short"},
+				},
+			}, true)
+
+			require.ElementsMatch(t, []StringAttr{
+				{Key: "userAgent", Value: "user-agent/1.0"},
+				{Key: "methodPath", Value: "GET /my-path"},
+				{Key: "userId", Value: "short"},
+				{Key: "lowCardinalityUserId", Value: "<short-user-id>"},
 			}, attrs)
 		})
 
@@ -641,6 +667,8 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 			require.ElementsMatch(t, []StringAttr{
 				{Key: "userAgent", Value: "<missing>"},
 				{Key: "methodPath", Value: "POST /my-other-path"},
+				{Key: "userId", Value: "<missing>"},
+				{Key: "lowCardinalityUserId", Value: "<missing>"},
 			}, attrs)
 		})
 	})
