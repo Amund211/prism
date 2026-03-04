@@ -47,7 +47,7 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 	}
 
 	makeGetHistoryHandler := func(getHistory app.GetHistory) http.HandlerFunc {
-		stubRegisterUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+		stubRegisterUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 			return domain.User{}, nil
 		}
 		return ports.MakeGetHistoryHandler(

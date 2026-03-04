@@ -31,13 +31,15 @@ func NewPostgres(db *sqlx.DB, schema string, nowFunc func() time.Time) *Postgres
 }
 
 type dbUser struct {
-	UserID      string    `db:"user_id"`
-	FirstSeenAt time.Time `db:"first_seen_at"`
-	LastSeenAt  time.Time `db:"last_seen_at"`
-	SeenCount   int64     `db:"seen_count"`
+	UserID        string    `db:"user_id"`
+	FirstSeenAt   time.Time `db:"first_seen_at"`
+	LastSeenAt    time.Time `db:"last_seen_at"`
+	LastIPHash    string    `db:"last_ip_hash"`
+	LastUserAgent string    `db:"last_user_agent"`
+	SeenCount     int64     `db:"seen_count"`
 }
 
-func (p *Postgres) RegisterVisit(ctx context.Context, userID string) (domain.User, error) {
+func (p *Postgres) RegisterVisit(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 	ctx, span := p.tracer.Start(ctx, "Postgres.RegisterVisit")
 	defer span.End()
 
@@ -53,16 +55,20 @@ func (p *Postgres) RegisterVisit(ctx context.Context, userID string) (domain.Use
 	err := p.db.QueryRowxContext(
 		ctx,
 		fmt.Sprintf(`INSERT INTO %s.users
-		(user_id, first_seen_at, last_seen_at, seen_count)
-		VALUES ($1, $2, $2, 1)
+		(user_id, first_seen_at, last_seen_at, last_ip_hash, last_user_agent, seen_count)
+		VALUES ($1, $2, $2, $3, $4, 1)
 		ON CONFLICT (user_id)
 		DO UPDATE SET
 			last_seen_at = EXCLUDED.last_seen_at,
+			last_ip_hash = EXCLUDED.last_ip_hash,
+			last_user_agent = EXCLUDED.last_user_agent,
 			seen_count = users.seen_count + 1
-		RETURNING user_id, first_seen_at, last_seen_at, seen_count`,
+		RETURNING user_id, first_seen_at, last_seen_at, last_ip_hash, last_user_agent, seen_count`,
 			pq.QuoteIdentifier(p.schema)),
 		userID,
 		now,
+		ipHash,
+		userAgent,
 	).StructScan(&user)
 	if err != nil {
 		err := fmt.Errorf("failed to insert or update user: %w", err)
@@ -73,9 +79,11 @@ func (p *Postgres) RegisterVisit(ctx context.Context, userID string) (domain.Use
 	}
 
 	return domain.User{
-		UserID:      user.UserID,
-		FirstSeenAt: user.FirstSeenAt,
-		LastSeenAt:  user.LastSeenAt,
-		SeenCount:   user.SeenCount,
+		UserID:        user.UserID,
+		FirstSeenAt:   user.FirstSeenAt,
+		LastSeenAt:    user.LastSeenAt,
+		LastIPHash:    user.LastIPHash,
+		LastUserAgent: user.LastUserAgent,
+		SeenCount:     user.SeenCount,
 	}, nil
 }

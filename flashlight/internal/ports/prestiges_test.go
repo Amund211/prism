@@ -75,7 +75,7 @@ func TestGetPrestigesHandler(t *testing.T) {
 			nil,
 		)
 
-		stubRegisterUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+		stubRegisterUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 			return domain.User{}, nil
 		}
 
@@ -109,7 +109,7 @@ func TestGetPrestigesHandler(t *testing.T) {
 	t.Run("Invalid UUID", func(t *testing.T) {
 		t.Parallel()
 
-		stubRegisterUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+		stubRegisterUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 			return domain.User{}, nil
 		}
 
@@ -128,7 +128,7 @@ func TestGetPrestigesHandler(t *testing.T) {
 	t.Run("Missing UUID", func(t *testing.T) {
 		t.Parallel()
 
-		stubRegisterUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+		stubRegisterUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 			return domain.User{}, nil
 		}
 

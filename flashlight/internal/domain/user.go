@@ -5,8 +5,10 @@ import (
 )
 
 type User struct {
-	UserID      string
-	FirstSeenAt time.Time
-	LastSeenAt  time.Time
-	SeenCount   int64
+	UserID        string
+	FirstSeenAt   time.Time
+	LastSeenAt    time.Time
+	LastIPHash    string
+	LastUserAgent string
+	SeenCount     int64
 }

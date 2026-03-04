@@ -42,7 +42,7 @@ func TestMakeGetWrappedHandler(t *testing.T) {
 	}
 
 	makeGetWrappedHandler := func(getPlayerPITs app.GetPlayerPITs) http.HandlerFunc {
-		stubRegisterUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+		stubRegisterUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 			return domain.User{}, nil
 		}
 		return ports.MakeGetWrappedHandler(

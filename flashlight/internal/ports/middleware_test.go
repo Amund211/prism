@@ -109,7 +109,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 	t.Run("next handler gets called properly", func(t *testing.T) {
 		t.Parallel()
 
-		registerUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+		registerUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 			return domain.User{}, nil
 		}
 		middleware := BuildRegisterUserVisitMiddleware(registerUserVisit)
@@ -159,7 +159,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 		})
 
 		t.Run("if registerUserVisit errors", func(t *testing.T) {
-			registerUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+			registerUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 				return domain.User{}, assert.AnError
 			}
 			middleware := BuildRegisterUserVisitMiddleware(registerUserVisit)
@@ -186,7 +186,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 		wg.Add(1)
 
 		var registeredUserID string
-		registerUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+		registerUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 			defer wg.Done()
 			registeredUserID = userID
 			return domain.User{}, nil
@@ -213,7 +213,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 		wg.Add(1)
 
 		var registeredUserID string
-		registerUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+		registerUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 			defer wg.Done()
 			registeredUserID = userID
 			return domain.User{}, nil
@@ -239,7 +239,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 		wg.Add(1)
 
 		var registeredUserID string
-		registerUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+		registerUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 			defer wg.Done()
 			registeredUserID = userID
 			return domain.User{}, nil
@@ -257,6 +257,60 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 
 		wg.Wait()
 		require.Equal(t, "<missing>", registeredUserID)
+	})
+
+	t.Run("registerUserVisit gets called with ip hash from request", func(t *testing.T) {
+		t.Parallel()
+
+		var wg sync.WaitGroup
+		wg.Add(1)
+
+		var registeredIPHash string
+		registerUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
+			defer wg.Done()
+			registeredIPHash = ipHash
+			return domain.User{}, nil
+		}
+		middleware := BuildRegisterUserVisitMiddleware(registerUserVisit)
+
+		inner, _ := makeHandler()
+		handler := middleware(inner)
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req.Header.Set("X-Forwarded-For", "12.12.123.123,34.111.7.239")
+		w := httptest.NewRecorder()
+
+		handler(w, req)
+
+		wg.Wait()
+		require.Equal(t, HashIP("12.12.123.123"), registeredIPHash)
+	})
+
+	t.Run("registerUserVisit gets called with user agent from request", func(t *testing.T) {
+		t.Parallel()
+
+		var wg sync.WaitGroup
+		wg.Add(1)
+
+		var registeredUserAgent string
+		registerUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
+			defer wg.Done()
+			registeredUserAgent = userAgent
+			return domain.User{}, nil
+		}
+		middleware := BuildRegisterUserVisitMiddleware(registerUserVisit)
+
+		inner, _ := makeHandler()
+		handler := middleware(inner)
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req.Header.Set("User-Agent", "TestBot/1.0")
+		w := httptest.NewRecorder()
+
+		handler(w, req)
+
+		wg.Wait()
+		require.Equal(t, "TestBot/1.0", registeredUserAgent)
 	})
 }
 

@@ -101,7 +101,7 @@ func TestPrismNoticesHandler(t *testing.T) {
 	}
 
 	// NOTE: Need to make the handler outside, since we create TTL caches inside the handler.
-	stubRegisterUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+	stubRegisterUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 		return domain.User{}, nil
 	}
 	handler := ports.MakePrismNoticesHandler(stubRegisterUserVisit, testLogger, noopMiddleware, emptyBlocklistConfig)

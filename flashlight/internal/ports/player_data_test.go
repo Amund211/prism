@@ -30,7 +30,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	sentryMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
 		return next
 	}
-	stubRegisterUserVisit := func(ctx context.Context, userID string) (domain.User, error) {
+	stubRegisterUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 		return domain.User{}, nil
 	}
 
