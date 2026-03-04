@@ -3,7 +3,7 @@ module github.com/Amund211/flashlight
 go 1.26.0
 
 require (
-	github.com/getsentry/sentry-go v0.42.0
+	github.com/getsentry/sentry-go v0.43.0
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/jellydator/ttlcache/v3 v3.4.0
 	github.com/lib/pq v1.11.2
