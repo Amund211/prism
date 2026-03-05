@@ -43,7 +43,7 @@ func TestRateLimitMiddleware(t *testing.T) {
 		rateLimiter := &mockedRateLimiter{
 			t:           t,
 			allow:       allow,
-			expectedKey: fmt.Sprintf("ip: %s", HashIP("12.12.123.123")),
+			expectedKey: fmt.Sprintf("ip: %s", IP("12.12.123.123").Hash()),
 		}
 		ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
 			rateLimiter, IPHashKeyFunc,
@@ -283,7 +283,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 		handler(w, req)
 
 		wg.Wait()
-		require.Equal(t, HashIP("12.12.123.123"), registeredIPHash)
+		require.Equal(t, IP("12.12.123.123").Hash(), registeredIPHash)
 	})
 
 	t.Run("registerUserVisit gets called with user agent from request", func(t *testing.T) {
@@ -437,8 +437,8 @@ func TestBuildBlocklistMiddleware(t *testing.T) {
 			name: "blocked by pre-hashed IP",
 			config: BlocklistConfig{
 				SHA256HexIPs: []string{
-					HashIP("5.5.5.5"),
-					HashIP("6.6.6.6"),
+					IP("5.5.5.5").Hash(),
+					IP("6.6.6.6").Hash(),
 				},
 			},
 			ip:        "5.5.5.5",
@@ -450,8 +450,8 @@ func TestBuildBlocklistMiddleware(t *testing.T) {
 			name: "not blocked when pre-hashed IP doesn't match",
 			config: BlocklistConfig{
 				SHA256HexIPs: []string{
-					HashIP("5.5.5.5"),
-					HashIP("6.6.6.6"),
+					IP("5.5.5.5").Hash(),
+					IP("6.6.6.6").Hash(),
 				},
 			},
 			ip:        "7.7.7.7",
@@ -472,7 +472,7 @@ func TestBuildBlocklistMiddleware(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, "/test", nil)
 			req.Header.Set("X-Forwarded-For", fmt.Sprintf("%s,34.111.7.239", tc.ip))
-			require.Equal(t, tc.ip, GetIP(req), "XFF set incorrectly for IP")
+			require.Equal(t, tc.ip, GetIP(req).String(), "XFF set incorrectly for IP")
 
 			req.Header.Set("User-Agent", tc.userAgent)
 			req.Header.Set("X-User-Id", tc.userID)

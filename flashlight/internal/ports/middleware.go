@@ -29,7 +29,7 @@ func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc)
 
 			requestLogger := logger.With(
 				slog.String("correlationID", correlationID),
-				slog.String("ipHash", GetIPHash(r)),
+				slog.String("ipHash", GetIP(r).Hash()),
 				slog.String("userAgent", userAgent),
 				slog.String("methodPath", fmt.Sprintf("%s %s", r.Method, r.URL.Path)),
 				slog.String("userId", userID.String()),
@@ -42,7 +42,7 @@ func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc)
 }
 
 func IPHashKeyFunc(r *http.Request) string {
-	return fmt.Sprintf("ip: %s", GetIPHash(r))
+	return fmt.Sprintf("ip: %s", GetIP(r).Hash())
 }
 
 func UserIDKeyFunc(r *http.Request) string {
@@ -56,7 +56,7 @@ func NewRateLimitMiddleware(rateLimiter ratelimiting.RequestRateLimiter, onLimit
 				ctx := r.Context()
 				userAgent := r.UserAgent()
 				userID := GetUserID(r)
-				ipHash := GetIPHash(r)
+				ipHash := GetIP(r).Hash()
 
 				logging.FromContext(ctx).InfoContext(ctx, "Rate limit exceeded",
 					slog.String("ipHash", ipHash),
@@ -91,7 +91,7 @@ func BuildRegisterUserVisitMiddleware(registerUserVisit app.RegisterUserVisit) f
 				defer cancel()
 
 				userID := GetUserID(r)
-				ipHash := GetIPHash(r)
+				ipHash := GetIP(r).Hash()
 				userAgent := r.UserAgent()
 
 				_, _ = registerUserVisit(ctx, userID.LowCardinalityString(), ipHash, userAgent)
@@ -113,7 +113,7 @@ func BuildBlocklistMiddleware(config BlocklistConfig) func(http.HandlerFunc) htt
 	// Pre-hash the IPs from the config so we can compare them with the hashed IP from the request
 	hashedIPs := make([]string, len(config.IPs)+len(config.SHA256HexIPs))
 	for i, ip := range config.IPs {
-		hashedIPs[i] = HashIP(ip)
+		hashedIPs[i] = IP(ip).Hash()
 	}
 	// Add the pre-hashed IPs to the same list
 	copy(hashedIPs[len(config.IPs):], config.SHA256HexIPs)
@@ -121,7 +121,7 @@ func BuildBlocklistMiddleware(config BlocklistConfig) func(http.HandlerFunc) htt
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			ipHash := GetIPHash(r)
+			ipHash := GetIP(r).Hash()
 			userAgent := r.UserAgent()
 			userID := GetUserID(r)
 
