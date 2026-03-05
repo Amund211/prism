@@ -720,7 +720,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 			}, true)
 
 			require.ElementsMatch(t, []StringAttr{
-				{Key: "userAgent", Value: "<missing>"},
+				{Key: "userAgent", Value: ""},
 				{Key: "methodPath", Value: "POST /my-other-path"},
 				{Key: "userId", Value: "<missing>"},
 				{Key: "lowCardinalityUserId", Value: "<missing>"},

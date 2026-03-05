@@ -24,9 +24,6 @@ func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc)
 			correlationID := uuid.New().String()
 
 			userAgent := r.UserAgent()
-			if userAgent == "" {
-				userAgent = "<missing>"
-			}
 
 			userID := GetUserID(r)
 
@@ -58,9 +55,6 @@ func NewRateLimitMiddleware(rateLimiter ratelimiting.RequestRateLimiter, onLimit
 			if !rateLimiter.Consume(r) {
 				ctx := r.Context()
 				userAgent := r.UserAgent()
-				if userAgent == "" {
-					userAgent = "<missing>"
-				}
 				userID := GetUserID(r)
 				ipHash := GetIPHash(r)
 
@@ -168,9 +162,6 @@ func NewReportingMetaMiddleware(port string) func(http.HandlerFunc) http.Handler
 			ctx := r.Context()
 
 			userAgent := r.UserAgent()
-			if userAgent == "" {
-				userAgent = "<missing>"
-			}
 			methodPath := fmt.Sprintf("%s %s", r.Method, r.URL.Path)
 
 			ctx = reporting.AddTagsToContext(ctx,

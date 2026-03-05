@@ -73,9 +73,6 @@ func buildMetricsMiddleware(handler string) func(http.HandlerFunc) http.HandlerF
 			ctx := r.Context()
 
 			userAgent := r.UserAgent()
-			if userAgent == "" {
-				userAgent = "<missing>"
-			}
 
 			// NOTE: Potentially high cardinality label
 			userID := GetUserID(r)
