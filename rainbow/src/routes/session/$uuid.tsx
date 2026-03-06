@@ -75,6 +75,7 @@ import { addExtrapolatedSessions } from "#helpers/session.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
 import { captureException } from "@sentry/react";
 import { sessionSearchSchema } from "#schemas/sessionSearch.ts";
+import { useAssume } from "#hooks/useAssumption.ts";
 import { PlayerHead } from "#components/player.tsx";
 
 export const Route = createFileRoute("/session/$uuid")({
@@ -196,6 +197,7 @@ const Sessions: React.FC<SessionsProps> = ({
     showExtrapolatedSessions,
 }) => {
     const navigate = useNavigate();
+    const assume = useAssume();
 
     const { data: history } = useQuery(
         getHistoryQueryOptions({
@@ -453,8 +455,22 @@ const Sessions: React.FC<SessionsProps> = ({
                                             60;
 
                                         if (durationHours <= 0) {
-                                            // This should not happen
-                                            // TODO: Report error
+                                            assume(
+                                                false,
+                                                "Session duration is non-positive",
+                                                () => ({
+                                                    durationHours,
+                                                    sessionStart:
+                                                        session.start.queriedAt,
+                                                    sessionEnd:
+                                                        session.end.queriedAt,
+                                                    uuid,
+                                                    start,
+                                                    end,
+                                                    gamemode,
+                                                    stat,
+                                                }),
+                                            );
                                             return null;
                                         }
 
