@@ -147,6 +147,9 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 	if errors.Is(err, domain.ErrInvalidAPIKey) {
 		// Don't report, as it is a client error
 		return domain.Tags{}, err
+	} else if errors.Is(err, domain.ErrTemporarilyUnavailable) {
+		// Don't report to sentry
+		return domain.Tags{}, fmt.Errorf("failed to get tags from urchin response: %w", err)
 	} else if err != nil {
 		err := fmt.Errorf("failed to get tags from urchin response: %w", err)
 		extra := map[string]string{
