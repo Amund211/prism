@@ -2,6 +2,7 @@ package tagprovider_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -223,6 +224,42 @@ func TestUrchinTagsProvider(t *testing.T) {
 				_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
 				require.Error(t, err)
 				require.NotErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			})
+		})
+
+		t.Run("http client errors", func(t *testing.T) {
+			t.Parallel()
+			t.Run("timeout while awaiting headers", func(t *testing.T) {
+				t.Parallel()
+				httpClient := &mockedHttpClient{
+					t:           t,
+					expectedURL: urlForUUID(uuid),
+					// Raw error string copied from sentry
+					// NOTE: Error type is probably completely incorrect, but the text content
+					//       (like from .Error()) should be correct
+					err: errors.New(`Get "https://urchin.ws/player/01234567-89ab-cdef-0123-456789abcdef?sources=MANUAL": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`),
+				}
+				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
+				require.NoError(t, err)
+
+				_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
+				require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			})
+			t.Run("connection reset by peer", func(t *testing.T) {
+				t.Parallel()
+				httpClient := &mockedHttpClient{
+					t:           t,
+					expectedURL: urlForUUID(uuid),
+					// Raw error string copied from sentry
+					// NOTE: Error type is probably completely incorrect, but the text content
+					//       (like from .Error()) should be correct
+					err: errors.New(`Get "https://urchin.ws/player/01234567-89ab-cdef-0123-456789abcdef?sources=MANUAL": read tcp [ffff:ffff:ffff:ffff::ffff]:12345->[bbbb:bbbb:bbb:bbbb:bbbb:bbbb:bbbb:bbbb]:443: read: connection reset by peer`),
+				}
+				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
+				require.NoError(t, err)
+
+				_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
+				require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
 			})
 		})
 

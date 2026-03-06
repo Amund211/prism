@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Amund211/flashlight/internal/constants"
@@ -112,6 +113,19 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 
 		resp, err = u.httpClient.Do(req)
 		if err != nil {
+			errString := err.Error()
+			if strings.HasSuffix(errString, "read: connection reset by peer") ||
+				strings.HasSuffix(errString, "context deadline exceeded (Client.Timeout exceeded while awaiting headers)") {
+				// Wrap with temporarily unavailable and set the err from the outside scope
+				// This gets handled outside the limiter call.
+				err = fmt.Errorf(
+					"%w: failed to send request: %w",
+					domain.ErrTemporarilyUnavailable,
+					err,
+				)
+				// Don't report to sentry, as we get a bit of spam here
+				return
+			}
 			err = fmt.Errorf("failed to send request: %w", err)
 			reporting.Report(ctx, err)
 			return
