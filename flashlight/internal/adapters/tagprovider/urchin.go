@@ -112,7 +112,7 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 
 		resp, err = u.httpClient.Do(req)
 		if err != nil {
-			err := fmt.Errorf("failed to send request: %w", err)
+			err = fmt.Errorf("failed to send request: %w", err)
 			reporting.Report(ctx, err)
 			return
 		}
@@ -120,7 +120,7 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 		defer resp.Body.Close()
 		data, err = io.ReadAll(resp.Body)
 		if err != nil {
-			err := fmt.Errorf("failed to read response body: %w", err)
+			err = fmt.Errorf("failed to read response body: %w", err)
 			reporting.Report(ctx, err)
 			return
 		}
