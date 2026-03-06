@@ -142,6 +142,22 @@ func TestUrchinTagsProvider(t *testing.T) {
 
 		t.Run("status code", func(t *testing.T) {
 			t.Parallel()
+			t.Run("429", func(t *testing.T) {
+				// Real response from urchin API (2026-03-06)
+				httpClient := &mockedHttpClient{
+					t:           t,
+					expectedURL: urlForUUID(uuid),
+					statusCode:  429,
+					body:        `{"detail":"Rate limit exceeded! Please wait a few minutes before making more requests."}`,
+					err:         nil,
+				}
+				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
+				require.NoError(t, err)
+
+				_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
+				// Since we have experienced these intermittently, we allow the client to retry
+				require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			})
 			t.Run("500", func(t *testing.T) {
 				// Real response from urchin API (2025-11-18)
 				httpClient := &mockedHttpClient{
@@ -165,6 +181,22 @@ func TestUrchinTagsProvider(t *testing.T) {
 					expectedURL: urlForUUID(uuid),
 					statusCode:  502,
 					body:        `error code: 502`,
+					err:         nil,
+				}
+				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
+				require.NoError(t, err)
+
+				_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
+				// Since we have experienced these intermittently, we allow the client to retry
+				require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			})
+			t.Run("525", func(t *testing.T) {
+				// Real response from urchin API (2026-03-06)
+				httpClient := &mockedHttpClient{
+					t:           t,
+					expectedURL: urlForUUID(uuid),
+					statusCode:  525,
+					body:        ``, // Sentry event had no data for this response
 					err:         nil,
 				}
 				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
