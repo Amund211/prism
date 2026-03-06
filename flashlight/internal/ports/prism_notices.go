@@ -140,6 +140,13 @@ func MakePrismNoticesHandler(
 var unicodeReplacementCharacterUsers = []string{
 	"b1b6ead3b357467298c0a186a891940f",
 	"e104fb8b4b8a4a40ba70334e8239c0e1",
+	"b3c71ddfb808414d80e932110dae5716",
+	"9c90ae7b927347a787ddb9c9e85cca16",
+	"a3ec8094a2bb427f81c11faadb33c2ba",
+	"ea2aa5221a614dc1a502f01e33f4ceaa",
+	"47e7859bb33246ef8494fb81a9ac4e01",
+	"426d836cdc7740bd9ff887d1d8a358f3",
+
 	"3eedaf7ed5964d8981835b8f0de2c9d4",
 	"bb683d98dc634a5783be9a4895ab75af",
 	"a55dfa5ddaa7426b87f2a5dbc3ad5254",
@@ -154,11 +161,13 @@ func noticesForCall(ctx context.Context, userID userIDType, prismVersion prismVe
 		// These users sometimes include a unicode replacement character at the end of
 		// usernames sent to the account endpoint, causing issues.
 		// https://prism-overlay.sentry.io/issues/7078120764/?project=4506886744768512
+		duration := 120.0
 		logging.FromContext(ctx).InfoContext(ctx, "Adding critical notice for user with known unicode replacement character issue", "userID", userID)
 		notices = append(notices, prismNotice{
-			Message:  "We've detected a potential issue with your Prism client.\nPlease click here to create a ticket in the discord server",
-			URL:      "https://discord.gg/NGpRrdh6Fx",
-			Severity: noticeSeverityWarning,
+			Message:         "We've detected a potential issue with your Prism client.\nPlease click here to create a ticket in the discord server",
+			URL:             "https://discord.gg/NGpRrdh6Fx",
+			Severity:        noticeSeverityWarning,
+			DurationSeconds: &duration,
 		})
 	}
 
