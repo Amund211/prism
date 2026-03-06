@@ -174,6 +174,22 @@ func TestUrchinTagsProvider(t *testing.T) {
 				// Since we have experienced these intermittently, we allow the client to retry
 				require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
 			})
+			t.Run("unexpected status code", func(t *testing.T) {
+				// Made up response to test status codes we don't handle
+				httpClient := &mockedHttpClient{
+					t:           t,
+					expectedURL: urlForUUID(uuid),
+					statusCode:  418,
+					body:        `:^)`,
+					err:         nil,
+				}
+				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
+				require.NoError(t, err)
+
+				_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
+				require.Error(t, err)
+				require.NotErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			})
 		})
 
 		t.Run("invalid json", func(t *testing.T) {
