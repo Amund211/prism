@@ -44,13 +44,15 @@ func (m *mockedHttpClient) Do(req *http.Request) (*http.Response, error) {
 	}, m.err
 }
 
-type cantRead struct{}
-
-func (c cantRead) Read(p []byte) (n int, err error) {
-	return 0, assert.AnError
+type cantRead struct {
+	err error
 }
 
-func (c cantRead) Close() error {
+func (c *cantRead) Read(p []byte) (n int, err error) {
+	return 0, c.err
+}
+
+func (c *cantRead) Close() error {
 	return nil
 }
 
@@ -334,7 +336,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 			expectedURL: urlForUUID(uuid),
 			response: &http.Response{
 				StatusCode: 200,
-				Body:       cantRead{},
+				Body:       &cantRead{err: assert.AnError},
 			},
 			err: nil,
 		}
