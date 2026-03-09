@@ -1,12 +1,11 @@
-import test from "node:test";
-import assert from "node:assert";
+import { test, expect, describe } from "vitest";
 import {
     parseStoredAliases,
     stringifyKnownAliases,
     type KnownAliases,
 } from "./helpers.ts";
 
-await test("parse + stringify round trip", async (t) => {
+describe("parse + stringify round trip", () => {
     const cases: { name: string; aliases: KnownAliases }[] = [
         {
             name: "empty",
@@ -80,11 +79,10 @@ await test("parse + stringify round trip", async (t) => {
     ];
 
     for (const c of cases) {
-        await t.test(c.name, () => {
-            assert.deepStrictEqual(
+        test(c.name, () => {
+            expect(
                 parseStoredAliases(stringifyKnownAliases(c.aliases)),
-                c.aliases,
-            );
+            ).toStrictEqual(c.aliases);
         });
     }
 });

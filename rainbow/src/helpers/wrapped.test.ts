@@ -1,8 +1,7 @@
-import test from "node:test";
-import assert from "node:assert";
+import { describe, test, expect } from "vitest";
 import { computeWrappedYear } from "./wrapped.ts";
 
-await test("computeWrappedYear", async (t) => {
+describe("computeWrappedYear", () => {
     const cases = [
         { date: new Date("2025-01-01"), expected: 2024 },
         { date: new Date("2025-05-01"), expected: 2024 },
@@ -19,9 +18,9 @@ await test("computeWrappedYear", async (t) => {
         { date: new Date("2026-12-01"), expected: 2026 },
     ];
     for (const { date, expected } of cases) {
-        await t.test(`date: ${date.toISOString()}`, () => {
+        test(`date: ${date.toISOString()}`, () => {
             const result = computeWrappedYear(date);
-            assert.strictEqual(result, expected);
+            expect(result).toBe(expected);
         });
     }
 });

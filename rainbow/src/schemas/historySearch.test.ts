@@ -1,5 +1,4 @@
-import test from "node:test";
-import assert from "node:assert";
+import { test, expect, describe } from "vitest";
 import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
 import { historyExploreSearchSchema } from "./historySearch.ts";
 
@@ -8,10 +7,10 @@ defaultStart.setHours(0, 0, 0, 0);
 const defaultEnd = new Date();
 defaultEnd.setHours(23, 59, 59, 999);
 
-await test("historyExploreSearchSchema validation", async (t) => {
-    await t.test("no params -> all defaults", () => {
+describe("historyExploreSearchSchema validation", () => {
+    test("no params -> all defaults", () => {
         const result = historyExploreSearchSchema.parse({});
-        assert.deepStrictEqual(result, {
+        expect(result).toStrictEqual({
             uuids: [],
             start: defaultStart,
             end: defaultEnd,
@@ -22,7 +21,7 @@ await test("historyExploreSearchSchema validation", async (t) => {
         });
     });
 
-    await t.test("valid custom values", () => {
+    test("valid custom values", () => {
         const result = historyExploreSearchSchema.parse({
             uuids: ["069a79f4-44e5-4726-a5be-fca90e000bdf"],
             start: "2025-11-10T23:00:00.000Z",
@@ -32,7 +31,7 @@ await test("historyExploreSearchSchema validation", async (t) => {
             gamemodes: ["solo", "doubles"],
             variantSelection: "overall",
         });
-        assert.deepStrictEqual(result, {
+        expect(result).toStrictEqual({
             uuids: ["069a79f4-44e5-4726-a5be-fca90e000bdf"],
             start: new Date("2025-11-10T23:00:00.000Z"),
             end: new Date("2025-11-19T22:59:59.999Z"),
@@ -43,115 +42,109 @@ await test("historyExploreSearchSchema validation", async (t) => {
         });
     });
 
-    await t.test("invalid uuids -> fallback to empty array", () => {
+    test("invalid uuids -> fallback to empty array", () => {
         const result = historyExploreSearchSchema.parse({
             uuids: "not-an-array",
         });
-        assert.deepStrictEqual(result.uuids, []);
+        expect(result.uuids).toStrictEqual([]);
     });
 
-    await t.test("invalid start date -> fallback to default", () => {
+    test("invalid start date -> fallback to default", () => {
         const result = historyExploreSearchSchema.parse({
             start: "invalid-date",
         });
         // Was struggling with equality on the dates here. Converting to time
-        assert.strictEqual(result.start.getTime(), defaultStart.getTime());
+        expect(result.start.getTime()).toBe(defaultStart.getTime());
     });
 
-    await t.test("invalid end date -> fallback to default", () => {
+    test("invalid end date -> fallback to default", () => {
         const result = historyExploreSearchSchema.parse({
             end: "invalid-date",
         });
         // Was struggling with equality on the dates here. Converting to time
-        assert.strictEqual(result.end.getTime(), defaultEnd.getTime());
+        expect(result.end.getTime()).toBe(defaultEnd.getTime());
     });
 
-    await t.test("invalid limit -> fallback to default", () => {
+    test("invalid limit -> fallback to default", () => {
         const result = historyExploreSearchSchema.parse({
             limit: "invalid",
         });
-        assert.strictEqual(result.limit, 50);
+        expect(result.limit).toBe(50);
     });
 
-    await t.test("limit too low -> fallback to default", () => {
+    test("limit too low -> fallback to default", () => {
         const result = historyExploreSearchSchema.parse({
             limit: 0,
         });
-        assert.strictEqual(result.limit, 50);
+        expect(result.limit).toBe(50);
     });
 
-    await t.test("limit too high -> fallback to default", () => {
+    test("limit too high -> fallback to default", () => {
         const result = historyExploreSearchSchema.parse({
             limit: 100,
         });
-        assert.strictEqual(result.limit, 50);
+        expect(result.limit).toBe(50);
     });
 
-    await t.test("limit within range", () => {
+    test("limit within range", () => {
         const result = historyExploreSearchSchema.parse({
             limit: 25,
         });
-        assert.strictEqual(result.limit, 25);
+        expect(result.limit).toBe(25);
     });
 
-    await t.test("invalid stats -> fallback to default", () => {
+    test("invalid stats -> fallback to default", () => {
         const result = historyExploreSearchSchema.parse({
             stats: "invalid",
         });
-        assert.deepStrictEqual(result.stats, ["fkdr"]);
+        expect(result.stats).toStrictEqual(["fkdr"]);
     });
 
-    await t.test(
-        "stats array with invalid values -> fallback to default",
-        () => {
-            const result = historyExploreSearchSchema.parse({
-                stats: ["invalid1", "invalid2"],
-            });
-            assert.deepStrictEqual(result.stats, ["fkdr"]);
-        },
-    );
+    test("stats array with invalid values -> fallback to default", () => {
+        const result = historyExploreSearchSchema.parse({
+            stats: ["invalid1", "invalid2"],
+        });
+        expect(result.stats).toStrictEqual(["fkdr"]);
+    });
 
-    await t.test("invalid gamemodes -> fallback to default", () => {
+    test("invalid gamemodes -> fallback to default", () => {
         const result = historyExploreSearchSchema.parse({
             gamemodes: "invalid",
         });
-        assert.deepStrictEqual(result.gamemodes, ["overall"]);
+        expect(result.gamemodes).toStrictEqual(["overall"]);
     });
 
-    await t.test(
-        "gamemodes array with invalid values -> fallback to default",
-        () => {
-            const result = historyExploreSearchSchema.parse({
-                gamemodes: ["invalid1", "invalid2"],
-            });
-            assert.deepStrictEqual(result.gamemodes, ["overall"]);
-        },
-    );
+    test("gamemodes array with invalid values -> fallback to default", () => {
+        const result = historyExploreSearchSchema.parse({
+            gamemodes: ["invalid1", "invalid2"],
+        });
+        expect(result.gamemodes).toStrictEqual(["overall"]);
+    });
 
-    await t.test("invalid variantSelection -> fallback to default", () => {
+    test("invalid variantSelection -> fallback to default", () => {
         const result = historyExploreSearchSchema.parse({
             variantSelection: "invalid",
         });
-        assert.strictEqual(result.variantSelection, "session");
+        expect(result.variantSelection).toBe("session");
     });
 
-    await t.test("date coercion understands simple date strings", () => {
+    test("date coercion understands simple date strings", () => {
         // NOTE: These should be UTC dates with timezone in production
         const result = historyExploreSearchSchema.parse({
             start: "2024-03-15",
             end: "2024-03-20",
         });
 
-        assert.strictEqual(result.start.getFullYear(), 2024);
-        assert.strictEqual(result.start.getMonth(), 2);
-        assert.strictEqual(result.start.getDate(), 15);
+        expect(result.start.getFullYear()).toBe(2024);
+        expect(result.start.getMonth()).toBe(2);
+        expect(result.start.getDate()).toBe(15);
 
-        assert.strictEqual(result.end.getFullYear(), 2024);
-        assert.strictEqual(result.end.getMonth(), 2);
-        assert.strictEqual(result.end.getDate(), 20);
+        expect(result.end.getFullYear()).toBe(2024);
+        expect(result.end.getMonth()).toBe(2);
+        expect(result.end.getDate()).toBe(20);
     });
 
-    await t.test("date coercion understands timestamps", () => {
+    test("date coercion understands timestamps", () => {
         // NOTE: Don't expect this to be used
         const startTimestamp = new Date(2024, 5, 10).getTime();
         const endTimestamp = new Date(2024, 5, 20).getTime();
@@ -160,16 +153,16 @@ await test("historyExploreSearchSchema validation", async (t) => {
             end: endTimestamp,
         });
 
-        assert.strictEqual(result.start.getFullYear(), 2024);
-        assert.strictEqual(result.start.getMonth(), 5);
-        assert.strictEqual(result.start.getDate(), 10);
+        expect(result.start.getFullYear()).toBe(2024);
+        expect(result.start.getMonth()).toBe(5);
+        expect(result.start.getDate()).toBe(10);
 
-        assert.strictEqual(result.end.getFullYear(), 2024);
-        assert.strictEqual(result.end.getMonth(), 5);
-        assert.strictEqual(result.end.getDate(), 20);
+        expect(result.end.getFullYear()).toBe(2024);
+        expect(result.end.getMonth()).toBe(5);
+        expect(result.end.getDate()).toBe(20);
     });
 
-    await t.test("multiple UUIDs", () => {
+    test("multiple UUIDs", () => {
         const uuids = [
             "069a79f4-44e5-4726-a5be-fca90e000bdf",
             "12345678-1234-1234-1234-123456789012",
@@ -177,24 +170,24 @@ await test("historyExploreSearchSchema validation", async (t) => {
         const result = historyExploreSearchSchema.parse({
             uuids,
         });
-        assert.deepStrictEqual(result.uuids, uuids);
+        expect(result.uuids).toStrictEqual(uuids);
     });
 
-    await t.test("all valid stat values", () => {
+    test("all valid stat values", () => {
         const result = historyExploreSearchSchema.parse({
             stats: [...ALL_STAT_KEYS],
         });
-        assert.deepStrictEqual(result.stats, [...ALL_STAT_KEYS]);
+        expect(result.stats).toStrictEqual([...ALL_STAT_KEYS]);
     });
 
-    await t.test("all valid gamemode values", () => {
+    test("all valid gamemode values", () => {
         const result = historyExploreSearchSchema.parse({
             gamemodes: [...ALL_GAMEMODE_KEYS],
         });
-        assert.deepStrictEqual(result.gamemodes, [...ALL_GAMEMODE_KEYS]);
+        expect(result.gamemodes).toStrictEqual([...ALL_GAMEMODE_KEYS]);
     });
 
-    await t.test("mixed valid and invalid params", () => {
+    test("mixed valid and invalid params", () => {
         const result = historyExploreSearchSchema.parse({
             uuids: ["069a79f4-44e5-4726-a5be-fca90e000bdf"],
             start: "invalid-date",
@@ -204,7 +197,7 @@ await test("historyExploreSearchSchema validation", async (t) => {
             gamemodes: "invalid",
             variantSelection: "both",
         });
-        assert.deepStrictEqual(result, {
+        expect(result).toStrictEqual({
             uuids: ["069a79f4-44e5-4726-a5be-fca90e000bdf"], // Valid
             start: defaultStart, // Invalid, fallback to default
             end: new Date("2024-12-31"), // Valid
@@ -215,23 +208,23 @@ await test("historyExploreSearchSchema validation", async (t) => {
         });
     });
 
-    await t.test("empty arrays are valid", () => {
+    test("empty arrays are valid", () => {
         const result = historyExploreSearchSchema.parse({
             uuids: [],
             stats: [],
             gamemodes: [],
         });
-        assert.deepStrictEqual(result.uuids, []);
-        assert.deepStrictEqual(result.stats, []);
-        assert.deepStrictEqual(result.gamemodes, []);
+        expect(result.uuids).toStrictEqual([]);
+        expect(result.stats).toStrictEqual([]);
+        expect(result.gamemodes).toStrictEqual([]);
     });
 
-    await t.test("all three variantSelection values", () => {
+    test("all three variantSelection values", () => {
         for (const variant of ["session", "overall", "both"] as const) {
             const result = historyExploreSearchSchema.parse({
                 variantSelection: variant,
             });
-            assert.strictEqual(result.variantSelection, variant);
+            expect(result.variantSelection).toBe(variant);
         }
     });
 });

@@ -1,8 +1,7 @@
-import test from "node:test";
+import { test, expect, describe } from "vitest";
 import { clusterChartData } from "./data.ts";
-import assert from "node:assert";
 
-await test("clusterChartData", async (t) => {
+describe("clusterChartData", () => {
     const now = new Date(2024, 1, 1, 0, 0, 0, 0).getTime();
 
     const second = 1000;
@@ -149,12 +148,12 @@ await test("clusterChartData", async (t) => {
     ] as const;
 
     for (const { name, input, output } of cases) {
-        await t.test(name, () => {
+        test(name, () => {
             const result = clusterChartData(
                 input.map((queriedAt) => ({ queriedAt })),
             ).map((entry) => entry.queriedAt);
 
-            assert.deepStrictEqual(result, output, `input ${input.toString()}`);
+            expect(result).toStrictEqual(output);
         });
     }
 });

@@ -1,5 +1,4 @@
-import test from "node:test";
-import assert from "node:assert";
+import { test, expect, describe } from "vitest";
 import {
     computeStatProgression,
     ERR_NO_DATA,
@@ -149,7 +148,7 @@ class PlayerDataBuilder {
     }
 }
 
-await test("computeStatProgression - error cases", async (t) => {
+describe("computeStatProgression - error cases", () => {
     const startDate = new Date("2024-01-01T00:00:00Z");
     const endDate = new Date("2024-01-02T00:00:00Z");
 
@@ -213,14 +212,14 @@ await test("computeStatProgression - error cases", async (t) => {
     ];
 
     for (const c of cases) {
-        await t.test(`should return error for ${c.name}`, () => {
+        test(`should return error for ${c.name}`, () => {
             const result = computeStatProgression(
                 c.history,
                 endDate,
                 "wins",
                 "overall",
             );
-            assert.deepStrictEqual(result, {
+            expect(result).toStrictEqual({
                 error: true,
                 reason: c.reason,
             });
@@ -228,7 +227,7 @@ await test("computeStatProgression - error cases", async (t) => {
     }
 });
 
-await test("computeStatProgression - linear gamemode stats", async (t) => {
+describe("computeStatProgression - linear gamemode stats", () => {
     // Stats that are linear (not fkdr) and gamemode-specific (not stars)
     const linearGamemodeStats = [
         "gamesPlayed",
@@ -245,10 +244,10 @@ await test("computeStatProgression - linear gamemode stats", async (t) => {
     const gamemodes = ALL_GAMEMODE_KEYS;
 
     for (const gamemode of gamemodes) {
-        await t.test(`gamemode: ${gamemode}`, async (t) => {
+        describe(`gamemode: ${gamemode}`, () => {
             for (const stat of linearGamemodeStats) {
-                await t.test(`stat: ${stat}`, async (t) => {
-                    await t.test("basic - steady progress", () => {
+                describe(`stat: ${stat}`, () => {
+                    test("basic - steady progress", () => {
                         const startDate = new Date("2024-01-01T00:00:00Z");
                         const endDate = new Date("2024-01-11T00:00:00Z"); // 10 days
                         const startBuilder = new PlayerDataBuilder(
@@ -281,12 +280,12 @@ await test("computeStatProgression - linear gamemode stats", async (t) => {
                         );
 
                         if (result.error) {
-                            assert.fail(
+                            expect.unreachable(
                                 `Expected success but got error: ${result.reason}`,
                             );
                         }
 
-                        assert.deepStrictEqual(result, {
+                        expect(result).toStrictEqual({
                             stat,
                             endValue: 200,
                             progressPerDay: 10,
@@ -300,7 +299,7 @@ await test("computeStatProgression - linear gamemode stats", async (t) => {
                         });
                     });
 
-                    await t.test("edge case - zero starting value", () => {
+                    test("edge case - zero starting value", () => {
                         const startDate = new Date("2024-01-01T00:00:00Z");
                         const endDate = new Date("2024-01-06T00:00:00Z");
                         const startBuilder = new PlayerDataBuilder(
@@ -333,12 +332,12 @@ await test("computeStatProgression - linear gamemode stats", async (t) => {
                         );
 
                         if (result.error) {
-                            assert.fail(
+                            expect.unreachable(
                                 `Expected success but got error: ${result.reason}`,
                             );
                         }
 
-                        assert.deepStrictEqual(result, {
+                        expect(result).toStrictEqual({
                             stat,
                             endValue: 100,
                             progressPerDay: 20,
@@ -352,7 +351,7 @@ await test("computeStatProgression - linear gamemode stats", async (t) => {
                         });
                     });
 
-                    await t.test("edge case - large values", () => {
+                    test("edge case - large values", () => {
                         const startDate = new Date("2025-01-01T00:00:00Z");
                         const endDate = new Date("2025-01-21T00:00:00Z");
                         const startBuilder = new PlayerDataBuilder(
@@ -385,12 +384,12 @@ await test("computeStatProgression - linear gamemode stats", async (t) => {
                         );
 
                         if (result.error) {
-                            assert.fail(
+                            expect.unreachable(
                                 `Expected success but got error: ${result.reason}`,
                             );
                         }
 
-                        assert.deepStrictEqual(result, {
+                        expect(result).toStrictEqual({
                             stat,
                             endValue: 110000,
                             progressPerDay: 500,
@@ -404,7 +403,7 @@ await test("computeStatProgression - linear gamemode stats", async (t) => {
                         });
                     });
 
-                    await t.test("edge case - late tracking end", () => {
+                    test("edge case - late tracking end", () => {
                         // The tracking interval usually contains the whole current day
                         // This means we will in general always get a trackingEndDate after endDate
                         // In cases where the Hypixel API is down, this effect can be exacerbated as
@@ -446,12 +445,12 @@ await test("computeStatProgression - linear gamemode stats", async (t) => {
                         );
 
                         if (result.error) {
-                            assert.fail(
+                            expect.unreachable(
                                 `Expected success but got error: ${result.reason}`,
                             );
                         }
 
-                        assert.deepStrictEqual(result, {
+                        expect(result).toStrictEqual({
                             stat,
                             endValue: 200,
                             progressPerDay: 10,
@@ -471,7 +470,7 @@ await test("computeStatProgression - linear gamemode stats", async (t) => {
     }
 });
 
-await test("computeStatProgression - quotient stats", async (t) => {
+describe("computeStatProgression - quotient stats", () => {
     const quotientStats = ["fkdr", "kdr"] as const;
     const gamemodes = ALL_GAMEMODE_KEYS;
 
@@ -496,13 +495,13 @@ await test("computeStatProgression - quotient stats", async (t) => {
     };
 
     for (const gamemode of gamemodes) {
-        await t.test(`gamemode: ${gamemode}`, async (t) => {
+        describe(`gamemode: ${gamemode}`, () => {
             for (const stat of quotientStats) {
                 const dividendStat = getDividendStat(stat);
                 const divisorStat = getDivisorStat(stat);
 
-                await t.test(`stat: ${stat}`, async (t) => {
-                    await t.test("basic - improving quotient", () => {
+                describe(`stat: ${stat}`, () => {
+                    test("basic - improving quotient", () => {
                         const startDate = new Date("2024-01-01T00:00:00Z");
                         const endDate = new Date("2024-01-11T00:00:00Z"); // 10 days
                         const startBuilder = new StatsBuilder();
@@ -537,12 +536,12 @@ await test("computeStatProgression - quotient stats", async (t) => {
                         );
 
                         if (result.error) {
-                            assert.fail(
+                            expect.unreachable(
                                 `Expected success but got error: ${result.reason}`,
                             );
                         }
 
-                        assert.deepStrictEqual(result, {
+                        expect(result).toStrictEqual({
                             stat,
                             endValue: 200 / 75,
                             sessionQuotient: 100 / 25,
@@ -563,7 +562,7 @@ await test("computeStatProgression - quotient stats", async (t) => {
                         });
                     });
 
-                    await t.test("basic - declining quotient", () => {
+                    test("basic - declining quotient", () => {
                         const startDate = new Date("2024-01-01T00:00:00Z");
                         const endDate = new Date("2024-01-11T00:00:00Z");
                         const startBuilder = new StatsBuilder();
@@ -598,12 +597,12 @@ await test("computeStatProgression - quotient stats", async (t) => {
                         );
 
                         if (result.error) {
-                            assert.fail(
+                            expect.unreachable(
                                 `Expected success but got error: ${result.reason}`,
                             );
                         }
 
-                        assert.deepStrictEqual(result, {
+                        expect(result).toStrictEqual({
                             stat,
                             endValue: 150 / 125,
                             sessionQuotient: 50 / 75,
@@ -621,7 +620,7 @@ await test("computeStatProgression - quotient stats", async (t) => {
                         });
                     });
 
-                    await t.test("edge case - zero divisor overall", () => {
+                    test("edge case - zero divisor overall", () => {
                         // With a zero divisor overall, the quotient is defined as just the dividend
                         // This means that this is equivalent to a linear stat progression on the dividend stat
                         const startDate = new Date("2024-01-01T00:00:00Z");
@@ -657,12 +656,12 @@ await test("computeStatProgression - quotient stats", async (t) => {
                         );
 
                         if (result.error) {
-                            assert.fail(
+                            expect.unreachable(
                                 `Expected success but got error: ${result.reason}`,
                             );
                         }
 
-                        assert.deepStrictEqual(result, {
+                        expect(result).toStrictEqual({
                             stat,
                             endValue: 200,
                             sessionQuotient: 100, // Quotient is just dividend when divisor is zero
@@ -679,374 +678,333 @@ await test("computeStatProgression - quotient stats", async (t) => {
                         });
                     });
 
-                    await t.test(
-                        "edge case - zero session divisor",
-                        async (t) => {
-                            // NOTE: Milestones are kind of awkward for high quotients
-                            const cases = [
-                                {
-                                    divisor: 1,
-                                    goal: 201, // 200 -> 201
-                                    daysToReach: 0.1, // 1 dividend => 1/10 days
-                                },
-                                {
-                                    divisor: 5,
-                                    goal: 41, // 40 -> 41
-                                    daysToReach: 0.5, // 5 dividend => 5/10 days
-                                },
-                                {
-                                    divisor: 10,
-                                    goal: 21, // 20 -> 21
-                                    daysToReach: 1, // 10 dividend => 10/10 days
-                                },
-                                {
-                                    divisor: 100,
-                                    goal: 3, // 2 -> 3
-                                    daysToReach: 10, // 100 dividend => 100/10 days
-                                },
-                            ];
-                            for (const {
-                                divisor,
-                                goal,
-                                daysToReach,
-                            } of cases) {
-                                await t.test(
-                                    `divisor constant at ${divisor.toString()}`,
-                                    () => {
-                                        // The player did not gain any divisor during the tracking interval
-                                        // The quotient will grow linearly with the dividend, divided by the constant divisor
-                                        const startDate = new Date(
-                                            "2024-01-01T00:00:00Z",
-                                        );
-                                        const endDate = new Date(
-                                            "2024-01-11T00:00:00Z",
-                                        );
-                                        const startBuilder = new StatsBuilder();
-                                        const endBuilder = new StatsBuilder();
+                    describe("edge case - zero session divisor", () => {
+                        // NOTE: Milestones are kind of awkward for high quotients
+                        const cases = [
+                            {
+                                divisor: 1,
+                                goal: 201, // 200 -> 201
+                                daysToReach: 0.1, // 1 dividend => 1/10 days
+                            },
+                            {
+                                divisor: 5,
+                                goal: 41, // 40 -> 41
+                                daysToReach: 0.5, // 5 dividend => 5/10 days
+                            },
+                            {
+                                divisor: 10,
+                                goal: 21, // 20 -> 21
+                                daysToReach: 1, // 10 dividend => 10/10 days
+                            },
+                            {
+                                divisor: 100,
+                                goal: 3, // 2 -> 3
+                                daysToReach: 10, // 100 dividend => 100/10 days
+                            },
+                        ];
+                        for (const { divisor, goal, daysToReach } of cases) {
+                            test(`divisor constant at ${divisor.toString()}`, () => {
+                                // The player did not gain any divisor during the tracking interval
+                                // The quotient will grow linearly with the dividend, divided by the constant divisor
+                                const startDate = new Date(
+                                    "2024-01-01T00:00:00Z",
+                                );
+                                const endDate = new Date(
+                                    "2024-01-11T00:00:00Z",
+                                );
+                                const startBuilder = new StatsBuilder();
+                                const endBuilder = new StatsBuilder();
 
-                                        startBuilder
-                                            .withStat(dividendStat, 100)
-                                            .withStat(divisorStat, divisor);
-                                        endBuilder
-                                            .withStat(dividendStat, 200)
-                                            .withStat(divisorStat, divisor);
+                                startBuilder
+                                    .withStat(dividendStat, 100)
+                                    .withStat(divisorStat, divisor);
+                                endBuilder
+                                    .withStat(dividendStat, 200)
+                                    .withStat(divisorStat, divisor);
 
-                                        const history: History = [
-                                            new PlayerDataBuilder(
-                                                TEST_UUID,
-                                                startDate,
-                                            )
-                                                .withGamemodeStats(
-                                                    gamemode,
-                                                    startBuilder.build(),
-                                                )
-                                                .build(),
-                                            new PlayerDataBuilder(
-                                                TEST_UUID,
-                                                endDate,
-                                            )
-                                                .withGamemodeStats(
-                                                    gamemode,
-                                                    endBuilder.build(),
-                                                )
-                                                .build(),
-                                        ];
-
-                                        const result = computeStatProgression(
-                                            history,
-                                            endDate,
-                                            stat,
+                                const history: History = [
+                                    new PlayerDataBuilder(TEST_UUID, startDate)
+                                        .withGamemodeStats(
                                             gamemode,
-                                        );
+                                            startBuilder.build(),
+                                        )
+                                        .build(),
+                                    new PlayerDataBuilder(TEST_UUID, endDate)
+                                        .withGamemodeStats(
+                                            gamemode,
+                                            endBuilder.build(),
+                                        )
+                                        .build(),
+                                ];
 
-                                        if (result.error) {
-                                            assert.fail(
-                                                `Expected success but got error: ${result.reason}`,
-                                            );
-                                        }
+                                const result = computeStatProgression(
+                                    history,
+                                    endDate,
+                                    stat,
+                                    gamemode,
+                                );
 
-                                        assert.deepStrictEqual(result, {
-                                            stat,
-                                            endValue: 200 / divisor,
-                                            sessionQuotient: 100, // Quotient is just dividend when divisor is 0
-                                            // (goal - current) / days to reach
-                                            progressPerDay:
-                                                (goal - 200 / divisor) /
-                                                daysToReach,
-                                            dividendPerDay: 10,
-                                            divisorPerDay: 0,
-                                            nextMilestoneValue: goal,
-                                            daysUntilMilestone: daysToReach,
-                                            trendingUpward: true,
-                                            trackingDataTimeInterval: {
-                                                start: startDate,
-                                                end: endDate,
-                                            },
-                                        });
+                                if (result.error) {
+                                    expect.unreachable(
+                                        `Expected success but got error: ${result.reason}`,
+                                    );
+                                }
+
+                                expect(result).toStrictEqual({
+                                    stat,
+                                    endValue: 200 / divisor,
+                                    sessionQuotient: 100, // Quotient is just dividend when divisor is 0
+                                    // (goal - current) / days to reach
+                                    progressPerDay:
+                                        (goal - 200 / divisor) / daysToReach,
+                                    dividendPerDay: 10,
+                                    divisorPerDay: 0,
+                                    nextMilestoneValue: goal,
+                                    daysUntilMilestone: daysToReach,
+                                    trendingUpward: true,
+                                    trackingDataTimeInterval: {
+                                        start: startDate,
+                                        end: endDate,
                                     },
-                                );
-                            }
-                        },
-                    );
-
-                    await t.test(
-                        "edge case - goal quotient equal to session quotient (up)",
-                        () => {
-                            const startDate = new Date("2024-01-01T00:00:00Z");
-                            const endDate = new Date("2024-01-11T00:00:00Z");
-                            const startBuilder = new StatsBuilder();
-                            const endBuilder = new StatsBuilder();
-
-                            startBuilder
-                                .withStat(dividendStat, 0)
-                                .withStat(divisorStat, 5);
-                            endBuilder
-                                .withStat(dividendStat, 10)
-                                .withStat(divisorStat, 10);
-
-                            const history: History = [
-                                new PlayerDataBuilder(TEST_UUID, startDate)
-                                    .withGamemodeStats(
-                                        gamemode,
-                                        startBuilder.build(),
-                                    )
-                                    .build(),
-                                new PlayerDataBuilder(TEST_UUID, endDate)
-                                    .withGamemodeStats(
-                                        gamemode,
-                                        endBuilder.build(),
-                                    )
-                                    .build(),
-                            ];
-
-                            const result = computeStatProgression(
-                                history,
-                                endDate,
-                                stat,
-                                gamemode,
-                            );
-
-                            if (result.error) {
-                                assert.fail(
-                                    `Expected success but got error: ${result.reason}`,
-                                );
-                            }
-
-                            assert.deepStrictEqual(result, {
-                                stat,
-                                endValue: 1,
-                                sessionQuotient: 2,
-                                progressPerDay: 0,
-                                dividendPerDay: 1,
-                                divisorPerDay: 0.5,
-                                nextMilestoneValue: 2,
-                                daysUntilMilestone: Infinity,
-                                trendingUpward: true,
-                                trackingDataTimeInterval: {
-                                    start: startDate,
-                                    end: endDate,
-                                },
+                                });
                             });
-                        },
-                    );
+                        }
+                    });
 
-                    await t.test(
-                        "edge case - goal quotient equal to session quotient (down)",
-                        () => {
-                            const startDate = new Date("2024-01-01T00:00:00Z");
-                            const endDate = new Date("2024-01-11T00:00:00Z");
-                            const startBuilder = new StatsBuilder();
-                            const endBuilder = new StatsBuilder();
+                    test("edge case - goal quotient equal to session quotient (up)", () => {
+                        const startDate = new Date("2024-01-01T00:00:00Z");
+                        const endDate = new Date("2024-01-11T00:00:00Z");
+                        const startBuilder = new StatsBuilder();
+                        const endBuilder = new StatsBuilder();
 
-                            startBuilder
-                                .withStat(dividendStat, 5)
-                                .withStat(divisorStat, 0);
-                            endBuilder
-                                .withStat(dividendStat, 10)
-                                .withStat(divisorStat, 5);
+                        startBuilder
+                            .withStat(dividendStat, 0)
+                            .withStat(divisorStat, 5);
+                        endBuilder
+                            .withStat(dividendStat, 10)
+                            .withStat(divisorStat, 10);
 
-                            const history: History = [
-                                new PlayerDataBuilder(TEST_UUID, startDate)
-                                    .withGamemodeStats(
-                                        gamemode,
-                                        startBuilder.build(),
-                                    )
-                                    .build(),
-                                new PlayerDataBuilder(TEST_UUID, endDate)
-                                    .withGamemodeStats(
-                                        gamemode,
-                                        endBuilder.build(),
-                                    )
-                                    .build(),
-                            ];
+                        const history: History = [
+                            new PlayerDataBuilder(TEST_UUID, startDate)
+                                .withGamemodeStats(
+                                    gamemode,
+                                    startBuilder.build(),
+                                )
+                                .build(),
+                            new PlayerDataBuilder(TEST_UUID, endDate)
+                                .withGamemodeStats(gamemode, endBuilder.build())
+                                .build(),
+                        ];
 
-                            const result = computeStatProgression(
-                                history,
-                                endDate,
-                                stat,
-                                gamemode,
+                        const result = computeStatProgression(
+                            history,
+                            endDate,
+                            stat,
+                            gamemode,
+                        );
+
+                        if (result.error) {
+                            expect.unreachable(
+                                `Expected success but got error: ${result.reason}`,
                             );
+                        }
 
-                            if (result.error) {
-                                assert.fail(
-                                    `Expected success but got error: ${result.reason}`,
-                                );
-                            }
+                        expect(result).toStrictEqual({
+                            stat,
+                            endValue: 1,
+                            sessionQuotient: 2,
+                            progressPerDay: 0,
+                            dividendPerDay: 1,
+                            divisorPerDay: 0.5,
+                            nextMilestoneValue: 2,
+                            daysUntilMilestone: Infinity,
+                            trendingUpward: true,
+                            trackingDataTimeInterval: {
+                                start: startDate,
+                                end: endDate,
+                            },
+                        });
+                    });
 
-                            assert.deepStrictEqual(result, {
-                                stat,
-                                endValue: 2,
-                                sessionQuotient: 1,
-                                progressPerDay: 0,
-                                dividendPerDay: 0.5,
-                                divisorPerDay: 0.5,
-                                nextMilestoneValue: 1,
-                                daysUntilMilestone: Infinity,
-                                trendingUpward: false,
-                                trackingDataTimeInterval: {
-                                    start: startDate,
-                                    end: endDate,
-                                },
-                            });
-                        },
-                    );
+                    test("edge case - goal quotient equal to session quotient (down)", () => {
+                        const startDate = new Date("2024-01-01T00:00:00Z");
+                        const endDate = new Date("2024-01-11T00:00:00Z");
+                        const startBuilder = new StatsBuilder();
+                        const endBuilder = new StatsBuilder();
 
-                    await t.test(
-                        "edge case - goal quotient higher than session quotient (up)",
-                        () => {
-                            const startDate = new Date("2024-01-01T00:00:00Z");
-                            const endDate = new Date("2024-01-11T00:00:00Z");
-                            const startBuilder = new StatsBuilder();
-                            const endBuilder = new StatsBuilder();
+                        startBuilder
+                            .withStat(dividendStat, 5)
+                            .withStat(divisorStat, 0);
+                        endBuilder
+                            .withStat(dividendStat, 10)
+                            .withStat(divisorStat, 5);
 
-                            startBuilder
-                                .withStat(dividendStat, 1)
-                                .withStat(divisorStat, 5);
-                            endBuilder
-                                .withStat(dividendStat, 10)
-                                .withStat(divisorStat, 10);
+                        const history: History = [
+                            new PlayerDataBuilder(TEST_UUID, startDate)
+                                .withGamemodeStats(
+                                    gamemode,
+                                    startBuilder.build(),
+                                )
+                                .build(),
+                            new PlayerDataBuilder(TEST_UUID, endDate)
+                                .withGamemodeStats(gamemode, endBuilder.build())
+                                .build(),
+                        ];
 
-                            const history: History = [
-                                new PlayerDataBuilder(TEST_UUID, startDate)
-                                    .withGamemodeStats(
-                                        gamemode,
-                                        startBuilder.build(),
-                                    )
-                                    .build(),
-                                new PlayerDataBuilder(TEST_UUID, endDate)
-                                    .withGamemodeStats(
-                                        gamemode,
-                                        endBuilder.build(),
-                                    )
-                                    .build(),
-                            ];
+                        const result = computeStatProgression(
+                            history,
+                            endDate,
+                            stat,
+                            gamemode,
+                        );
 
-                            const result = computeStatProgression(
-                                history,
-                                endDate,
-                                stat,
-                                gamemode,
+                        if (result.error) {
+                            expect.unreachable(
+                                `Expected success but got error: ${result.reason}`,
                             );
+                        }
 
-                            if (result.error) {
-                                assert.fail(
-                                    `Expected success but got error: ${result.reason}`,
-                                );
-                            }
+                        expect(result).toStrictEqual({
+                            stat,
+                            endValue: 2,
+                            sessionQuotient: 1,
+                            progressPerDay: 0,
+                            dividendPerDay: 0.5,
+                            divisorPerDay: 0.5,
+                            nextMilestoneValue: 1,
+                            daysUntilMilestone: Infinity,
+                            trendingUpward: false,
+                            trackingDataTimeInterval: {
+                                start: startDate,
+                                end: endDate,
+                            },
+                        });
+                    });
 
-                            assert.deepStrictEqual(result, {
-                                stat,
-                                endValue: 1,
-                                sessionQuotient: 9 / 5,
-                                progressPerDay: 0,
-                                dividendPerDay: 0.9,
-                                divisorPerDay: 0.5,
-                                nextMilestoneValue: 2,
-                                daysUntilMilestone: Infinity,
-                                trendingUpward: true,
-                                trackingDataTimeInterval: {
-                                    start: startDate,
-                                    end: endDate,
-                                },
-                            });
-                        },
-                    );
+                    test("edge case - goal quotient higher than session quotient (up)", () => {
+                        const startDate = new Date("2024-01-01T00:00:00Z");
+                        const endDate = new Date("2024-01-11T00:00:00Z");
+                        const startBuilder = new StatsBuilder();
+                        const endBuilder = new StatsBuilder();
 
-                    await t.test(
-                        "edge case - goal quotient lower than session quotient (down)",
-                        () => {
-                            const startDate = new Date("2024-01-01T00:00:00Z");
-                            const endDate = new Date("2024-01-11T00:00:00Z");
-                            const startBuilder = new StatsBuilder();
-                            const endBuilder = new StatsBuilder();
+                        startBuilder
+                            .withStat(dividendStat, 1)
+                            .withStat(divisorStat, 5);
+                        endBuilder
+                            .withStat(dividendStat, 10)
+                            .withStat(divisorStat, 10);
 
-                            startBuilder
-                                .withStat(dividendStat, 4)
-                                .withStat(divisorStat, 0);
-                            endBuilder
-                                .withStat(dividendStat, 10)
-                                .withStat(divisorStat, 5);
+                        const history: History = [
+                            new PlayerDataBuilder(TEST_UUID, startDate)
+                                .withGamemodeStats(
+                                    gamemode,
+                                    startBuilder.build(),
+                                )
+                                .build(),
+                            new PlayerDataBuilder(TEST_UUID, endDate)
+                                .withGamemodeStats(gamemode, endBuilder.build())
+                                .build(),
+                        ];
 
-                            const history: History = [
-                                new PlayerDataBuilder(TEST_UUID, startDate)
-                                    .withGamemodeStats(
-                                        gamemode,
-                                        startBuilder.build(),
-                                    )
-                                    .build(),
-                                new PlayerDataBuilder(TEST_UUID, endDate)
-                                    .withGamemodeStats(
-                                        gamemode,
-                                        endBuilder.build(),
-                                    )
-                                    .build(),
-                            ];
+                        const result = computeStatProgression(
+                            history,
+                            endDate,
+                            stat,
+                            gamemode,
+                        );
 
-                            const result = computeStatProgression(
-                                history,
-                                endDate,
-                                stat,
-                                gamemode,
+                        if (result.error) {
+                            expect.unreachable(
+                                `Expected success but got error: ${result.reason}`,
                             );
+                        }
 
-                            if (result.error) {
-                                assert.fail(
-                                    `Expected success but got error: ${result.reason}`,
-                                );
-                            }
+                        expect(result).toStrictEqual({
+                            stat,
+                            endValue: 1,
+                            sessionQuotient: 9 / 5,
+                            progressPerDay: 0,
+                            dividendPerDay: 0.9,
+                            divisorPerDay: 0.5,
+                            nextMilestoneValue: 2,
+                            daysUntilMilestone: Infinity,
+                            trendingUpward: true,
+                            trackingDataTimeInterval: {
+                                start: startDate,
+                                end: endDate,
+                            },
+                        });
+                    });
 
-                            assert.deepStrictEqual(result, {
-                                stat,
-                                endValue: 2,
-                                sessionQuotient: 1.2,
-                                progressPerDay: 0,
-                                dividendPerDay: 0.6,
-                                divisorPerDay: 0.5,
-                                nextMilestoneValue: 1,
-                                daysUntilMilestone: Infinity,
-                                trendingUpward: false,
-                                trackingDataTimeInterval: {
-                                    start: startDate,
-                                    end: endDate,
-                                },
-                            });
-                        },
-                    );
+                    test("edge case - goal quotient lower than session quotient (down)", () => {
+                        const startDate = new Date("2024-01-01T00:00:00Z");
+                        const endDate = new Date("2024-01-11T00:00:00Z");
+                        const startBuilder = new StatsBuilder();
+                        const endBuilder = new StatsBuilder();
+
+                        startBuilder
+                            .withStat(dividendStat, 4)
+                            .withStat(divisorStat, 0);
+                        endBuilder
+                            .withStat(dividendStat, 10)
+                            .withStat(divisorStat, 5);
+
+                        const history: History = [
+                            new PlayerDataBuilder(TEST_UUID, startDate)
+                                .withGamemodeStats(
+                                    gamemode,
+                                    startBuilder.build(),
+                                )
+                                .build(),
+                            new PlayerDataBuilder(TEST_UUID, endDate)
+                                .withGamemodeStats(gamemode, endBuilder.build())
+                                .build(),
+                        ];
+
+                        const result = computeStatProgression(
+                            history,
+                            endDate,
+                            stat,
+                            gamemode,
+                        );
+
+                        if (result.error) {
+                            expect.unreachable(
+                                `Expected success but got error: ${result.reason}`,
+                            );
+                        }
+
+                        expect(result).toStrictEqual({
+                            stat,
+                            endValue: 2,
+                            sessionQuotient: 1.2,
+                            progressPerDay: 0,
+                            dividendPerDay: 0.6,
+                            divisorPerDay: 0.5,
+                            nextMilestoneValue: 1,
+                            daysUntilMilestone: Infinity,
+                            trendingUpward: false,
+                            trackingDataTimeInterval: {
+                                start: startDate,
+                                end: endDate,
+                            },
+                        });
+                    });
                 });
             }
         });
     }
 });
 
-await test("computeStatProgression - stars/experience stat", async (t) => {
+describe("computeStatProgression - stars/experience stat", () => {
     const gamemodes = ALL_GAMEMODE_KEYS;
 
     // Note: stars+experience are overall stats, but we test it across
     // all gamemodes to verify the API correctly handles
     // overall stats when queried with gamemode-specific keys
     for (const gamemode of gamemodes) {
-        await t.test(`gamemode: ${gamemode}`, async (t) => {
-            await t.test("basic - steady exp gain", async (t) => {
+        describe(`gamemode: ${gamemode}`, () => {
+            describe("basic - steady exp gain", () => {
                 const startDate = new Date("2024-01-01T00:00:00Z");
                 const endDate = new Date("2024-01-11T00:00:00Z"); // 10 days
                 // Start at 500 exp (1 star), gain 5000 exp in 10 days
@@ -1059,7 +1017,7 @@ await test("computeStatProgression - stars/experience stat", async (t) => {
                         .build(),
                 ];
 
-                await t.test("stars", () => {
+                test("stars", () => {
                     const result = computeStatProgression(
                         history,
                         endDate,
@@ -1068,7 +1026,7 @@ await test("computeStatProgression - stars/experience stat", async (t) => {
                     );
 
                     if (result.error) {
-                        assert.fail(
+                        expect.unreachable(
                             `Expected success but got error: ${result.reason}`,
                         );
                     }
@@ -1079,7 +1037,7 @@ await test("computeStatProgression - stars/experience stat", async (t) => {
                         ...resultWithoutTrickyFloats
                     } = result;
 
-                    assert.deepStrictEqual(resultWithoutTrickyFloats, {
+                    expect(resultWithoutTrickyFloats).toStrictEqual({
                         stat: "stars",
                         endValue: 4,
                         nextMilestoneValue: 100,
@@ -1092,21 +1050,17 @@ await test("computeStatProgression - stars/experience stat", async (t) => {
 
                     // (exp gained / avg exp per star) / days
                     const expectedStarsPerDay = 6_500 / 4_870 / 10;
-                    assert.ok(
-                        Math.abs(progressPerDay - expectedStarsPerDay) < 1e-6,
-                    );
+                    expect(progressPerDay).toBeCloseTo(expectedStarsPerDay);
 
                     // Exp remaining until 100 stars / (exp per day)
                     const expectedDaysUntilMilestone =
                         (487_000 - 7_000) / (6_500 / 10);
-                    assert.ok(
-                        Math.abs(
-                            daysUntilMilestone - expectedDaysUntilMilestone,
-                        ) < 1e-6,
+                    expect(daysUntilMilestone).toBeCloseTo(
+                        expectedDaysUntilMilestone,
                     );
                 });
 
-                await t.test("experience", () => {
+                test("experience", () => {
                     const result = computeStatProgression(
                         history,
                         endDate,
@@ -1115,12 +1069,12 @@ await test("computeStatProgression - stars/experience stat", async (t) => {
                     );
 
                     if (result.error) {
-                        assert.fail(
+                        expect.unreachable(
                             `Expected success but got error: ${result.reason}`,
                         );
                     }
 
-                    assert.deepStrictEqual(result, {
+                    expect(result).toStrictEqual({
                         stat: "experience",
                         endValue: 7_000,
                         progressPerDay: 650,

@@ -1,5 +1,4 @@
-import test from "node:test";
-import assert from "node:assert";
+import { test, expect, describe } from "vitest";
 
 import {
     endOfDay,
@@ -11,8 +10,8 @@ import {
     timeIntervalsFromDefinition,
 } from "#intervals.ts";
 
-await test("getTimeIntervals", async (t) => {
-    await t.test("contained", async (t) => {
+describe("getTimeIntervals", () => {
+    describe("contained", () => {
         const cases = [
             {
                 date: new Date(2024, 1, 14, 17, 15, 0),
@@ -50,49 +49,37 @@ await test("getTimeIntervals", async (t) => {
             },
         ];
         for (const { date, expected } of cases) {
-            await t.test(date.toISOString(), () => {
+            test(date.toISOString(), () => {
                 const { day, week, month } = timeIntervalsFromDefinition({
                     type: "contained",
                     date,
                 });
 
-                assert.strictEqual(
-                    day.start.toISOString(),
+                expect(day.start.toISOString(), "day start").toBe(
                     expected.day.start.toISOString(),
-                    "day start",
                 );
-                assert.strictEqual(
-                    day.end.toISOString(),
+                expect(day.end.toISOString(), "day end").toBe(
                     expected.day.end.toISOString(),
-                    "day end",
                 );
 
-                assert.strictEqual(
-                    week.start.toISOString(),
+                expect(week.start.toISOString(), "week start").toBe(
                     expected.week.start.toISOString(),
-                    "week start",
                 );
-                assert.strictEqual(
-                    week.end.toISOString(),
+                expect(week.end.toISOString(), "week end").toBe(
                     expected.week.end.toISOString(),
-                    "week end",
                 );
 
-                assert.strictEqual(
-                    month.start.toISOString(),
+                expect(month.start.toISOString(), "month start").toBe(
                     expected.month.start.toISOString(),
-                    "month start",
                 );
-                assert.strictEqual(
-                    month.end.toISOString(),
+                expect(month.end.toISOString(), "month end").toBe(
                     expected.month.end.toISOString(),
-                    "month end",
                 );
             });
         }
     });
 
-    await t.test("until", () => {
+    test("until", () => {
         const { day, week, month } = timeIntervalsFromDefinition({
             type: "until",
             date: new Date(2024, 1, 14, 17, 15, 0),
@@ -101,28 +88,25 @@ await test("getTimeIntervals", async (t) => {
         // With last x days, all intervals stop at the end of the current date
         const end = new Date(2024, 1, 14, 23, 59, 59, 999);
 
-        assert.strictEqual(
-            day.start.toISOString(),
+        expect(day.start.toISOString()).toBe(
             new Date(2024, 1, 14, 0, 0, 0, 0).toISOString(),
         );
-        assert.strictEqual(day.end.toISOString(), end.toISOString());
+        expect(day.end.toISOString()).toBe(end.toISOString());
 
-        assert.strictEqual(
-            week.start.toISOString(),
+        expect(week.start.toISOString()).toBe(
             new Date(2024, 1, 8, 0, 0, 0, 0).toISOString(),
         );
-        assert.strictEqual(week.end.toISOString(), end.toISOString());
+        expect(week.end.toISOString()).toBe(end.toISOString());
 
-        assert.strictEqual(
-            month.start.toISOString(),
+        expect(month.start.toISOString()).toBe(
             new Date(2024, 0, 16, 0, 0, 0, 0).toISOString(),
         );
-        assert.strictEqual(month.end.toISOString(), end.toISOString());
+        expect(month.end.toISOString()).toBe(end.toISOString());
     });
 });
 
-await test("time helpers", async (t) => {
-    await t.test("endOfDay", async (t) => {
+describe("time helpers", () => {
+    describe("endOfDay", () => {
         const cases = [
             {
                 date: new Date(2024, 1, 14, 0, 0, 0),
@@ -146,16 +130,15 @@ await test("time helpers", async (t) => {
             },
         ];
         for (const { date, expected } of cases) {
-            await t.test(date.toISOString(), () => {
-                assert.strictEqual(
-                    endOfDay(date).toISOString(),
+            test(date.toISOString(), () => {
+                expect(endOfDay(date).toISOString()).toBe(
                     expected.toISOString(),
                 );
             });
         }
     });
 
-    await t.test("endOfWeek", async (t) => {
+    describe("endOfWeek", () => {
         const cases = [
             ...new Array(7).fill(null).map((_, i) => ({
                 // All days in the week point to the same end of last week
@@ -169,16 +152,15 @@ await test("time helpers", async (t) => {
             })),
         ];
         for (const { date, expected } of cases) {
-            await t.test(date.toISOString(), () => {
-                assert.strictEqual(
-                    endOfWeek(date).toISOString(),
+            test(date.toISOString(), () => {
+                expect(endOfWeek(date).toISOString()).toBe(
                     expected.toISOString(),
                 );
             });
         }
     });
 
-    await t.test("endOfMonth", async (t) => {
+    describe("endOfMonth", () => {
         const cases = [
             {
                 date: new Date(2024, 0, 1, 0, 0, 0),
@@ -214,16 +196,15 @@ await test("time helpers", async (t) => {
             },
         ];
         for (const { date, expected } of cases) {
-            await t.test(date.toISOString(), () => {
-                assert.strictEqual(
-                    endOfMonth(date).toISOString(),
+            test(date.toISOString(), () => {
+                expect(endOfMonth(date).toISOString()).toBe(
                     expected.toISOString(),
                 );
             });
         }
     });
 
-    await t.test("endOfLastDay", async (t) => {
+    describe("endOfLastDay", () => {
         const cases = [
             {
                 date: new Date(2024, 1, 14, 0, 0, 0),
@@ -247,16 +228,15 @@ await test("time helpers", async (t) => {
             },
         ];
         for (const { date, expected } of cases) {
-            await t.test(date.toISOString(), () => {
-                assert.strictEqual(
-                    endOfLastDay(date).toISOString(),
+            test(date.toISOString(), () => {
+                expect(endOfLastDay(date).toISOString()).toBe(
                     expected.toISOString(),
                 );
             });
         }
     });
 
-    await t.test("endOfLastWeek", async (t) => {
+    describe("endOfLastWeek", () => {
         const cases = [
             ...new Array(7).fill(null).map((_, i) => ({
                 // All days in the week point to the same end of last week
@@ -270,16 +250,15 @@ await test("time helpers", async (t) => {
             })),
         ];
         for (const { date, expected } of cases) {
-            await t.test(date.toISOString(), () => {
-                assert.strictEqual(
-                    endOfLastWeek(date).toISOString(),
+            test(date.toISOString(), () => {
+                expect(endOfLastWeek(date).toISOString()).toBe(
                     expected.toISOString(),
                 );
             });
         }
     });
 
-    await t.test("endOfLastMonth", async (t) => {
+    describe("endOfLastMonth", () => {
         const cases = [
             {
                 date: new Date(2024, 1, 1, 0, 0, 0),
@@ -311,9 +290,8 @@ await test("time helpers", async (t) => {
             },
         ];
         for (const { date, expected } of cases) {
-            await t.test(date.toISOString(), () => {
-                assert.strictEqual(
-                    endOfLastMonth(date).toISOString(),
+            test(date.toISOString(), () => {
+                expect(endOfLastMonth(date).toISOString()).toBe(
                     expected.toISOString(),
                 );
             });

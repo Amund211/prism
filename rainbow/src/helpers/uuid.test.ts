@@ -1,8 +1,7 @@
-import test from "node:test";
+import { test, expect, describe } from "vitest";
 import { normalizeUUID } from "./uuid.ts";
-import assert from "node:assert";
 
-await test("normalizeUUID", async (t) => {
+describe("normalizeUUID", () => {
     const cases = [
         {
             // Regular dashed UUID
@@ -57,9 +56,9 @@ await test("normalizeUUID", async (t) => {
     ];
 
     for (const tc of cases) {
-        await t.test(tc.input, () => {
+        test(tc.input, () => {
             const result = normalizeUUID(tc.input);
-            assert.strictEqual(result, tc.expected, `input ${tc.input}`);
+            expect(result).toBe(tc.expected);
         });
     }
 });

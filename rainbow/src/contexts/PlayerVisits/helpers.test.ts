@@ -1,12 +1,11 @@
-import test from "node:test";
-import assert from "node:assert";
+import { test, expect, describe } from "vitest";
 import {
     parseStoredPlayerVisits,
     stringifyPlayerVisits,
     type PlayerVisits,
 } from "./helpers.ts";
 
-await test("parse + stringify round trip", async (t) => {
+describe("parse + stringify round trip", () => {
     const cases: { name: string; visits: PlayerVisits }[] = [
         {
             name: "empty",
@@ -41,11 +40,10 @@ await test("parse + stringify round trip", async (t) => {
     ];
 
     for (const c of cases) {
-        await t.test(c.name, () => {
-            assert.deepStrictEqual(
+        test(c.name, () => {
+            expect(
                 parseStoredPlayerVisits(stringifyPlayerVisits(c.visits)),
-                c.visits,
-            );
+            ).toStrictEqual(c.visits);
         });
     }
 });

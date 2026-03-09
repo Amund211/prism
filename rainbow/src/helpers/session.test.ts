@@ -1,5 +1,4 @@
-import test from "node:test";
-import assert from "node:assert";
+import { test, expect, describe } from "vitest";
 import { addExtrapolatedSessions } from "./session.ts";
 import type { PlayerDataPIT, StatsPIT } from "#queries/playerdata.ts";
 import { randomUUID } from "node:crypto";
@@ -32,7 +31,7 @@ const makePlayerDataPIT = (
     fours: makeStatsPIT(gamesPlayed),
 });
 
-await test("addExtrapolatedSessions", async (t) => {
+describe("addExtrapolatedSessions", () => {
     const cases = [
         {
             name: "No sessions no history",
@@ -307,9 +306,9 @@ await test("addExtrapolatedSessions", async (t) => {
     ];
 
     for (const tc of cases) {
-        await t.test(tc.name, () => {
+        test(tc.name, () => {
             const result = addExtrapolatedSessions(tc.input, tc.history);
-            assert.deepStrictEqual(result, tc.expected);
+            expect(result).toStrictEqual(tc.expected);
         });
     }
 });

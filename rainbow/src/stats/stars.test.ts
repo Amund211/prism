@@ -1,8 +1,7 @@
-import test from "node:test";
+import { test, expect, describe } from "vitest";
 import { bedwarsLevelFromExp } from "./stars.ts";
-import assert from "node:assert";
 
-await test("bedwarsLevelFromExp", async (t) => {
+describe("bedwarsLevelFromExp", () => {
     const cases: { exp: number; stars: number; decimalPrecision: boolean }[] = [
         { exp: 500, stars: 1.0, decimalPrecision: true },
         { exp: 3648, stars: 3 + 148 / 3500, decimalPrecision: true },
@@ -18,21 +17,13 @@ await test("bedwarsLevelFromExp", async (t) => {
     ];
 
     for (const { exp, stars, decimalPrecision } of cases) {
-        await t.test(exp.toString(), () => {
+        test(exp.toString(), () => {
             const calculatedStar = bedwarsLevelFromExp(exp);
 
             if (decimalPrecision) {
-                assert.strictEqual(
-                    calculatedStar,
-                    stars,
-                    `exp ${exp.toString()} -> ${stars.toString()}`,
-                );
+                expect(calculatedStar).toBe(stars);
             } else {
-                assert.strictEqual(
-                    Math.floor(calculatedStar),
-                    stars,
-                    `exp ${exp.toString()} -> ${stars.toString()}`,
-                );
+                expect(Math.floor(calculatedStar)).toBe(stars);
             }
         });
     }
