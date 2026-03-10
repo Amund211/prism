@@ -2,9 +2,6 @@ name: Check for vulnerable dependencies
 
 on:
   pull_request:
-  push:
-    branches:
-      - main
   schedule:
     # Run every day at 4:40 UTC
     - cron: '40 4 * * *'
