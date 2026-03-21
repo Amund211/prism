@@ -139,7 +139,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
         },
         renderOption: (props, option) => {
             // Render as "Search for {text}"
-            const { key, ...optionProps } = props; // eslint-disable-line @typescript-eslint/no-unsafe-assignment
+            const { key, ...optionProps } = props;
             switch (option.type) {
                 case "free-text": {
                     // If text is UUID -> render as regular user option
@@ -147,7 +147,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                     if (valueAsNormalizedUUID) {
                         return (
                             <UserOption
-                                key={key} // eslint-disable-line @typescript-eslint/no-unsafe-assignment
+                                key={key}
                                 uuid={valueAsNormalizedUUID}
                                 optionProps={optionProps}
                             />
@@ -157,7 +157,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                     return (
                         <Stack
                             component="li"
-                            key={key} // eslint-disable-line @typescript-eslint/no-unsafe-assignment
+                            key={key}
                             direction="row"
                             gap={2}
                             alignItems="center"
@@ -176,7 +176,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                 case "uuid":
                     return (
                         <UserOption
-                            key={key} // eslint-disable-line @typescript-eslint/no-unsafe-assignment
+                            key={key}
                             uuid={option.uuid}
                             optionProps={optionProps}
                         />
