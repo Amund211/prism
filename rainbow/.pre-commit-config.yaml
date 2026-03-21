@@ -25,7 +25,7 @@ repos:
             pass_filenames: false
           - id: test
             name: Test
-            entry: npm test
+            entry: npm run 'test:unit'
             language: system
             pass_filenames: false
           - id: typecheck
