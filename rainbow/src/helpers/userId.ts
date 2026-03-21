@@ -5,7 +5,7 @@ const USER_ID_LOCAL_STORAGE_KEY = "rainbow_user_id";
 const RAINBOW_USER_ID_PREFIX = "rnb_";
 
 export const LOCAL_DEVELOPMENT_USER_ID = `${RAINBOW_USER_ID_PREFIX}local_development`;
-export const STAGING_USER_ID = `${RAINBOW_USER_ID_PREFIX}staging`;
+export const STAGING_USER_ID = `${RAINBOW_USER_ID_PREFIX}staging_development`;
 
 export const validateUserId = (userId: string | null): userId is string => {
     if (userId === null) {

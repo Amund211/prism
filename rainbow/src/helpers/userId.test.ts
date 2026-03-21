@@ -146,7 +146,7 @@ await test("getOrSetUserId", async (t) => {
             "Staging user ID should start with 'rnb_'",
         );
 
-        assert.strictEqual(STAGING_USER_ID, "rnb_staging");
+        assert.strictEqual(STAGING_USER_ID, "rnb_staging_development");
     });
 });
 
