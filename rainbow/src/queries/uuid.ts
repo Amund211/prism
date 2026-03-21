@@ -1,18 +1,13 @@
 import { queryOptions } from "@tanstack/react-query";
 import { env } from "#env.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
-import { addKnownAliasWithoutRerendering } from "#contexts/KnownAliases/helpers.ts";
+import { addKnownAliasAndPersist } from "#contexts/KnownAliases/helpers.ts";
 import { captureException, captureMessage } from "@sentry/react";
 import { getOrSetUserId } from "#helpers/userId.ts";
 
-export const getUUIDQueryOptions = (
-    username: string,
-    addKnownAlias?: (alias: { uuid: string; username: string }) => void,
-) =>
+export const getUUIDQueryOptions = (username: string) =>
     queryOptions({
         staleTime: 1000 * 60 * 60 * 24 * 21,
-        // The query does not depend on our addKnownAlias side-effect
-        // eslint-disable-next-line @tanstack/query/exhaustive-deps
         queryKey: ["uuid", username],
         queryFn: async (): Promise<{ uuid: string; username: string }> => {
             const response = await fetch(
@@ -150,11 +145,7 @@ export const getUUIDQueryOptions = (
                 );
             }
 
-            if (addKnownAlias) {
-                addKnownAlias({ uuid, username });
-            } else {
-                addKnownAliasWithoutRerendering({ uuid, username });
-            }
+            addKnownAliasAndPersist({ uuid, username });
 
             return { username, uuid };
         },

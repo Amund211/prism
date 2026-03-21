@@ -288,7 +288,6 @@ export const UserSearch: React.FC<UserSearchProps> = ({
     size = "small",
 }) => {
     const queryClient = useQueryClient();
-    const { addKnownAlias } = useKnownAliases();
     const {
         uuids,
         filterOptions,
@@ -330,7 +329,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
 
                 setLoading(true);
                 queryClient
-                    .fetchQuery(getUUIDQueryOptions(value.text, addKnownAlias))
+                    .fetchQuery(getUUIDQueryOptions(value.text))
                     .then(({ uuid }) => {
                         onSubmit(uuid);
                     })
@@ -382,7 +381,6 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
     size = "small",
 }) => {
     const queryClient = useQueryClient();
-    const { addKnownAlias } = useKnownAliases();
     const {
         uuids: allUUIDs,
         filterOptions,
@@ -421,9 +419,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                         }
 
                         return queryClient
-                            .fetchQuery(
-                                getUUIDQueryOptions(value.text, addKnownAlias),
-                            )
+                            .fetchQuery(getUUIDQueryOptions(value.text))
                             .then(({ uuid }) => {
                                 return uuid;
                             })

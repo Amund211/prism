@@ -1,35 +1,26 @@
 import React from "react";
 import { CurrentUserContext } from "./context.ts";
-import { persistCurrentUser, usePersistedCurrentUser } from "./helpers.ts";
+import { parseStoredUUID, localStorageKey } from "./helpers.ts";
+import { useLocalStorage } from "#hooks/useLocalStorage.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 
 export const CurrentUserProvider: React.FC<{
     children: React.ReactNode;
 }> = ({ children }) => {
-    const persistedCurrentUser = usePersistedCurrentUser();
-    const [currentUser, setCurrentUser] = React.useState(persistedCurrentUser);
+    const [storedCurrentUser, setStoredCurrentUser] =
+        useLocalStorage(localStorageKey);
+    const currentUser = parseStoredUUID(storedCurrentUser);
 
-    // Update the state on this page when the persisted value has changed in another tab
-    React.useEffect(() => {
-        setCurrentUser(persistedCurrentUser);
-    }, [persistedCurrentUser]);
-
-    const setCurrentUserAndPersist = (newUUID: string | null) => {
+    const setCurrentUser = (newUUID: string | null) => {
         if (newUUID !== null && !isNormalizedUUID(newUUID)) {
             throw new Error(`UUID not normalized: ${newUUID}`);
         }
 
-        persistCurrentUser(newUUID);
-        setCurrentUser(newUUID);
+        setStoredCurrentUser(newUUID);
     };
 
     return (
-        <CurrentUserContext.Provider
-            value={{
-                currentUser,
-                setCurrentUser: setCurrentUserAndPersist,
-            }}
-        >
+        <CurrentUserContext.Provider value={{ currentUser, setCurrentUser }}>
             {children}
         </CurrentUserContext.Provider>
     );

@@ -1,7 +1,6 @@
 import { isNormalizedUUID } from "#helpers/uuid.ts";
-import { useLocalStorage } from "#hooks/useLocalStorage.ts";
 
-const localStorageKey = "playerVisits";
+export const localStorageKey = "playerVisits";
 
 const loadedAt = new Date();
 
@@ -10,9 +9,30 @@ interface PlayerInfo {
     lastVisited: Date;
 }
 
-type PlayerVisits = Record<string, PlayerInfo | undefined>;
+export type PlayerVisits = Record<string, PlayerInfo | undefined>;
 
-const parseStoredInfo = (stored: string | null): PlayerVisits => {
+export const stringifyPlayerVisits = (visits: PlayerVisits): string => {
+    const toStore: Record<
+        string,
+        { visitedCount: number; lastVisited: string }
+    > = {};
+
+    for (const [uuid, info] of Object.entries(visits)) {
+        if (info === undefined) {
+            continue;
+        }
+        toStore[uuid] = {
+            visitedCount: info.visitedCount,
+            lastVisited: info.lastVisited.toISOString(),
+        };
+    }
+
+    return JSON.stringify(toStore);
+};
+
+export const parseStoredPlayerVisits = (
+    stored: string | null,
+): PlayerVisits => {
     if (stored === null) {
         return {};
     }
@@ -28,7 +48,7 @@ const parseStoredInfo = (stored: string | null): PlayerVisits => {
         return {};
     }
 
-    const storedInfo: PlayerVisits = {};
+    const playerVisits: PlayerVisits = {};
     for (const uuid in rawParsed) {
         if (!isNormalizedUUID(uuid)) {
             continue;
@@ -57,10 +77,10 @@ const parseStoredInfo = (stored: string | null): PlayerVisits => {
             continue;
         }
 
-        storedInfo[uuid] = { lastVisited, visitedCount: value.visitedCount };
+        playerVisits[uuid] = { lastVisited, visitedCount: value.visitedCount };
     }
 
-    return storedInfo;
+    return playerVisits;
 };
 
 const lastVisitedWeight = (lastVisited: Date): number => {
@@ -122,14 +142,4 @@ export const visitPlayer = (visits: PlayerVisits, uuid: string) => {
             lastVisited: new Date(),
         },
     };
-};
-
-export const persistPlayerVisits = (visits: PlayerVisits) => {
-    localStorage.setItem(localStorageKey, JSON.stringify(visits));
-};
-
-export const usePersistedPlayerVisits = (): PlayerVisits => {
-    const stored = useLocalStorage(localStorageKey);
-
-    return parseStoredInfo(stored);
 };

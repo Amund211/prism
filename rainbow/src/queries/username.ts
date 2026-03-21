@@ -1,19 +1,13 @@
 import { queryOptions, useQueries } from "@tanstack/react-query";
 import { env } from "#env.ts";
-import { addKnownAliasWithoutRerendering } from "#contexts/KnownAliases/helpers.ts";
-import { useKnownAliases } from "#contexts/KnownAliases/hooks.ts";
+import { addKnownAliasAndPersist } from "#contexts/KnownAliases/helpers.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { captureException, captureMessage } from "@sentry/react";
 import { getOrSetUserId } from "#helpers/userId.ts";
 
-export const getUsernameQueryOptions = (
-    uuid: string,
-    addKnownAlias?: (alias: { uuid: string; username: string }) => void,
-) =>
+export const getUsernameQueryOptions = (uuid: string) =>
     queryOptions({
         staleTime: 1000 * 60 * 60,
-        // The query does not depend on our addKnownAlias side-effect
-        // eslint-disable-next-line @tanstack/query/exhaustive-deps
         queryKey: ["username", uuid],
         queryFn: async (): Promise<{ uuid: string; username: string }> => {
             if (!isNormalizedUUID(uuid)) {
@@ -143,25 +137,18 @@ export const getUsernameQueryOptions = (
                 );
             }
 
-            if (addKnownAlias) {
-                addKnownAlias({ uuid, username: data.username });
-            } else {
-                addKnownAliasWithoutRerendering({
-                    uuid,
-                    username: data.username,
-                });
-            }
+            addKnownAliasAndPersist({
+                uuid,
+                username: data.username,
+            });
 
             return { uuid, username: data.username };
         },
     });
 
 export const useUUIDToUsername = (uuids: readonly string[]) => {
-    const { addKnownAlias } = useKnownAliases();
     const usernameQueries = useQueries({
-        queries: uuids.map((uuid) =>
-            getUsernameQueryOptions(uuid, addKnownAlias),
-        ),
+        queries: uuids.map((uuid) => getUsernameQueryOptions(uuid)),
     });
 
     const result: Record<string, string | undefined> = {};

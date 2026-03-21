@@ -2,24 +2,20 @@ import React from "react";
 import { KnownAliasesContext } from "./context.ts";
 import {
     addKnownAlias,
-    persistKnownAliases,
+    parseStoredAliases,
     presentRecentKnownAliases,
-    usePersistedKnownAliases,
+    localStorageKey,
+    stringifyKnownAliases,
 } from "./helpers.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
+import { useLocalStorage } from "#hooks/useLocalStorage.ts";
 
 export const KnownAliasesProvider: React.FC<{
     children: React.ReactNode;
 }> = ({ children }) => {
-    const persistedKnownAliases = usePersistedKnownAliases();
-    const [knownAliases, setKnownAliases] = React.useState(
-        persistedKnownAliases,
-    );
-
-    // Update the state on this page when the persisted value has changed in another tab
-    React.useEffect(() => {
-        setKnownAliases(persistedKnownAliases);
-    }, [persistedKnownAliases]);
+    const [storedKnownAliases, setStoredKnownAliases] =
+        useLocalStorage(localStorageKey);
+    const knownAliases = parseStoredAliases(storedKnownAliases);
 
     const addKnownAliasAndPersist = (alias: {
         uuid: string;
@@ -30,8 +26,7 @@ export const KnownAliasesProvider: React.FC<{
         }
 
         const newAliases = addKnownAlias(knownAliases, alias);
-        setKnownAliases(newAliases);
-        persistKnownAliases(newAliases);
+        setStoredKnownAliases(stringifyKnownAliases(newAliases));
     };
 
     return (

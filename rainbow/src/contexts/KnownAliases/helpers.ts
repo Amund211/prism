@@ -1,7 +1,7 @@
 import { isNormalizedUUID } from "#helpers/uuid.ts";
-import { useLocalStorage } from "#hooks/useLocalStorage.ts";
+import { makeLocalStorageWrite } from "#hooks/useLocalStorage.ts";
 
-const localStorageKey = "knownAliases";
+export const localStorageKey = "knownAliases";
 
 const loadedAt = new Date();
 
@@ -10,9 +10,28 @@ interface AliasInfo {
     lastResolved: Date;
 }
 
-type KnownAliases = Record<string, AliasInfo[] | undefined>;
+export type KnownAliases = Record<string, AliasInfo[] | undefined>;
 
-const parseStoredAliases = (stored: string | null): KnownAliases => {
+export const stringifyKnownAliases = (aliases: KnownAliases): string => {
+    const toStore: Record<
+        string,
+        { username: string; lastResolved: string }[]
+    > = {};
+
+    for (const [uuid, aliasInfos] of Object.entries(aliases)) {
+        if (aliasInfos === undefined) {
+            continue;
+        }
+        toStore[uuid] = aliasInfos.map((info) => ({
+            username: info.username,
+            lastResolved: info.lastResolved.toISOString(),
+        }));
+    }
+
+    return JSON.stringify(toStore);
+};
+
+export const parseStoredAliases = (stored: string | null): KnownAliases => {
     if (stored === null) {
         return {};
     }
@@ -103,16 +122,15 @@ export const addKnownAlias = (
     };
 };
 
-export const persistKnownAliases = (aliases: KnownAliases): void => {
-    localStorage.setItem(localStorageKey, JSON.stringify(aliases));
-};
-
-export const addKnownAliasWithoutRerendering = (alias: {
+const writeToLocalStorage = makeLocalStorageWrite(localStorageKey);
+export const addKnownAliasAndPersist = (alias: {
     uuid: string;
     username: string;
 }): void => {
     const aliases = parseStoredAliases(localStorage.getItem(localStorageKey));
-    persistKnownAliases(addKnownAlias(aliases, alias));
+    const newAliases = addKnownAlias(aliases, alias);
+    const stringified = stringifyKnownAliases(newAliases);
+    writeToLocalStorage(stringified);
 };
 
 // Convert known aliases to a map uuid -> username[] while filtering out old aliases
@@ -132,9 +150,4 @@ export const presentRecentKnownAliases = (
                 .map((info) => info.username) ?? [],
         ]),
     );
-};
-
-export const usePersistedKnownAliases = (): KnownAliases => {
-    const stored = useLocalStorage(localStorageKey);
-    return parseStoredAliases(stored);
 };

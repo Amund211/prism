@@ -2,25 +2,21 @@ import React from "react";
 import { PlayerVisitsContext } from "./context.ts";
 import {
     orderPlayers,
-    persistPlayerVisits,
+    parseStoredPlayerVisits,
     removePlayerVisits,
-    usePersistedPlayerVisits,
     visitPlayer,
+    localStorageKey,
+    stringifyPlayerVisits,
 } from "./helpers.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
+import { useLocalStorage } from "#hooks/useLocalStorage.ts";
 
 export const PlayerVisitsProvider: React.FC<{
     children: React.ReactNode;
 }> = ({ children }) => {
-    const persistedPlayerVisits = usePersistedPlayerVisits();
-    const [playerVisits, setPlayerVisits] = React.useState(
-        persistedPlayerVisits,
-    );
-
-    // Update the state on this page when the persisted value has changed in another tab
-    React.useEffect(() => {
-        setPlayerVisits(persistedPlayerVisits);
-    }, [persistedPlayerVisits]);
+    const [storedPlayerVisits, setStoredPlayerVisits] =
+        useLocalStorage(localStorageKey);
+    const playerVisits = parseStoredPlayerVisits(storedPlayerVisits);
 
     const visitPlayerAndPersist = (uuid: string) => {
         if (!isNormalizedUUID(uuid)) {
@@ -28,8 +24,7 @@ export const PlayerVisitsProvider: React.FC<{
         }
 
         const newVisits = visitPlayer(playerVisits, uuid);
-        setPlayerVisits(newVisits);
-        persistPlayerVisits(newVisits);
+        setStoredPlayerVisits(stringifyPlayerVisits(newVisits));
     };
 
     const removePlayerVisitsAndPersist = (uuid: string) => {
@@ -38,8 +33,7 @@ export const PlayerVisitsProvider: React.FC<{
         }
 
         const newVisits = removePlayerVisits(playerVisits, uuid);
-        setPlayerVisits(newVisits);
-        persistPlayerVisits(newVisits);
+        setStoredPlayerVisits(stringifyPlayerVisits(newVisits));
     };
 
     const favoriteUUIDs = orderPlayers(playerVisits);
