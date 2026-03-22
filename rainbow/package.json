@@ -15,7 +15,7 @@
         "eslint:check": "eslint --cache .",
         "eslint:write": "eslint --cache --fix .",
         "lint:check": "run-p eslint:check prettier:check",
-        "lint:fix": "run-p eslint:write prettier:write",
+        "lint:fix": "run-s prettier:write eslint:write",
         "test": "vitest run",
         "test:unit": "vitest run --project unit",
         "test:ui": "vitest run --project ui --browser.headless",
