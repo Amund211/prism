@@ -12,10 +12,7 @@ interface PlayerInfo {
 export type PlayerVisits = Record<string, PlayerInfo | undefined>;
 
 export const stringifyPlayerVisits = (visits: PlayerVisits): string => {
-    const toStore: Record<
-        string,
-        { visitedCount: number; lastVisited: string }
-    > = {};
+    const toStore: Record<string, { visitedCount: number; lastVisited: string }> = {};
 
     for (const [uuid, info] of Object.entries(visits)) {
         if (info === undefined) {
@@ -30,9 +27,7 @@ export const stringifyPlayerVisits = (visits: PlayerVisits): string => {
     return JSON.stringify(toStore);
 };
 
-export const parseStoredPlayerVisits = (
-    stored: string | null,
-): PlayerVisits => {
+export const parseStoredPlayerVisits = (stored: string | null): PlayerVisits => {
     if (stored === null) {
         return {};
     }
@@ -59,10 +54,7 @@ export const parseStoredPlayerVisits = (
             continue;
         }
 
-        if (
-            !("lastVisited" in value) ||
-            typeof value.lastVisited !== "string"
-        ) {
+        if (!("lastVisited" in value) || typeof value.lastVisited !== "string") {
             continue;
         }
         const lastVisited = new Date(value.lastVisited);
@@ -70,10 +62,7 @@ export const parseStoredPlayerVisits = (
             continue;
         }
 
-        if (
-            !("visitedCount" in value) ||
-            typeof value.visitedCount !== "number"
-        ) {
+        if (!("visitedCount" in value) || typeof value.visitedCount !== "number") {
             continue;
         }
 

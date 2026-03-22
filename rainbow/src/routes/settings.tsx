@@ -17,12 +17,7 @@ function RouteComponent() {
                 content="Change your settings for the Prism Overlay stats website. Set a default player to view your stats."
             />
             <link rel="canonical" href="https://prismoverlay.com/settings" />
-            <Stack
-                component="label"
-                direction="row"
-                gap={2}
-                alignItems="center"
-            >
+            <Stack component="label" direction="row" gap={2} alignItems="center">
                 <Typography variant="h6">Default player</Typography>
                 <Tooltip title="Your default player for the Prism Overlay website. Typically your own main account. You can still view the stats of other players.">
                     <InfoOutlined />

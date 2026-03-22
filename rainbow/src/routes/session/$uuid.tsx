@@ -162,12 +162,9 @@ const renderDuration = (end: Date, start: Date) => {
     ).toLocaleString();
 
     // Align the hours with the other rows if this row has hours
-    const paddedMinutes =
-        minutes.length === 1 && hours ? `0${minutes}` : minutes;
+    const paddedMinutes = minutes.length === 1 && hours ? `0${minutes}` : minutes;
 
-    return hours
-        ? `${hours.toLocaleString()}h ${paddedMinutes}m`
-        : `${paddedMinutes}m`;
+    return hours ? `${hours.toLocaleString()}h ${paddedMinutes}m` : `${paddedMinutes}m`;
 };
 
 const isLinearStat = (stat: StatKey) => {
@@ -300,9 +297,7 @@ const Sessions: React.FC<SessionsProps> = ({
                         <Tooltip title="The player has no recorded sessions with the Prism overlay in the given time interval. They have either not played, or played without using the Prism Overlay.">
                             <Info color="error" fontSize="small" />
                         </Tooltip>
-                        <Typography variant="body2">
-                            No sessions found
-                        </Typography>
+                        <Typography variant="body2">No sessions found</Typography>
                     </Stack>
                 </CardContent>
             </Card>
@@ -314,14 +309,10 @@ const Sessions: React.FC<SessionsProps> = ({
     const statAlreadyIncluded = (stat: StatKey) =>
         ["gamesPlayed", "wins"].includes(stat);
 
-    const hasExtrapolatedSessions = allSessions.some(
-        (session) => session.extrapolated,
-    );
+    const hasExtrapolatedSessions = allSessions.some((session) => session.extrapolated);
     const willShowExtrapolatedSessions =
         hasExtrapolatedSessions && showExtrapolatedSessions;
-    const hasNonConsecutiveSessions = sessions.some(
-        (session) => !session.consecutive,
-    );
+    const hasNonConsecutiveSessions = sessions.some((session) => !session.consecutive);
 
     return (
         <Card
@@ -342,8 +333,7 @@ const Sessions: React.FC<SessionsProps> = ({
                                                 to: "/session/$uuid",
                                                 search: (oldSearch) => ({
                                                     ...oldSearch,
-                                                    showExtrapolatedSessions:
-                                                        checked,
+                                                    showExtrapolatedSessions: checked,
                                                 }),
                                             }).catch((error: unknown) => {
                                                 captureException(error, {
@@ -362,11 +352,7 @@ const Sessions: React.FC<SessionsProps> = ({
                                     />
                                 }
                                 label={
-                                    <Stack
-                                        direction="row"
-                                        gap={1}
-                                        alignItems="center"
-                                    >
+                                    <Stack direction="row" gap={1} alignItems="center">
                                         <Typography
                                             variant="body2"
                                             color="textSecondary"
@@ -428,15 +414,10 @@ const Sessions: React.FC<SessionsProps> = ({
                                     {getRelatedStats(stat)
                                         .filter(
                                             (relatedStat) =>
-                                                !statAlreadyIncluded(
-                                                    relatedStat,
-                                                ),
+                                                !statAlreadyIncluded(relatedStat),
                                         )
                                         .map((relatedStat) => (
-                                            <TableCell
-                                                align="right"
-                                                key={relatedStat}
-                                            >
+                                            <TableCell align="right" key={relatedStat}>
                                                 <Typography variant="subtitle2">
                                                     {`${getShortStatLabel(relatedStat, true)}${isLinearStat(relatedStat) ? labelSuffix : ""}`}
                                                 </Typography>
@@ -462,8 +443,7 @@ const Sessions: React.FC<SessionsProps> = ({
                                                     durationHours,
                                                     sessionStart:
                                                         session.start.queriedAt,
-                                                    sessionEnd:
-                                                        session.end.queriedAt,
+                                                    sessionEnd: session.end.queriedAt,
                                                     uuid,
                                                     start,
                                                     end,
@@ -569,10 +549,8 @@ const Sessions: React.FC<SessionsProps> = ({
                                                             ? "< "
                                                             : undefined}
                                                         {renderDuration(
-                                                            session.end
-                                                                .queriedAt,
-                                                            session.start
-                                                                .queriedAt,
+                                                            session.end.queriedAt,
+                                                            session.start.queriedAt,
                                                         )}
                                                     </Typography>
                                                 </TableCell>
@@ -581,9 +559,7 @@ const Sessions: React.FC<SessionsProps> = ({
                                                         variant="body1"
                                                         color={textColor}
                                                     >
-                                                        {renderStat(
-                                                            "gamesPlayed",
-                                                        )}
+                                                        {renderStat("gamesPlayed")}
                                                     </Typography>
                                                 </TableCell>
                                                 <TableCell align="right">
@@ -618,9 +594,7 @@ const Sessions: React.FC<SessionsProps> = ({
                                                         >
                                                             <Typography
                                                                 variant="body1"
-                                                                color={
-                                                                    textColor
-                                                                }
+                                                                color={textColor}
                                                             >
                                                                 {renderStat(
                                                                     relatedStat,
@@ -715,14 +689,8 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                                         gap={0.5}
                                         alignItems="center"
                                     >
-                                        <Typography
-                                            variant="caption"
-                                            color={undefined}
-                                        >
-                                            <Skeleton
-                                                variant="text"
-                                                width={30}
-                                            />
+                                        <Typography variant="caption" color={undefined}>
+                                            <Skeleton variant="text" width={30} />
                                         </Typography>
                                         <TrendingFlat
                                             color={undefined}
@@ -760,17 +728,11 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                     <Stack gap={1} justifyContent="space-between" height="100%">
                         {cardTitle}
                         <Stack>
-                            <Stack
-                                direction="row"
-                                gap={0.5}
-                                alignItems="center"
-                            >
+                            <Stack direction="row" gap={0.5} alignItems="center">
                                 <Tooltip title="The player has not recorded any stats with the Prism Overlay in the given time interval. They have either not played, or played without using the Prism Overlay.">
                                     <Info color="error" fontSize="small" />
                                 </Tooltip>
-                                <Typography variant="body1">
-                                    No data found
-                                </Typography>
+                                <Typography variant="body1">No data found</Typography>
                             </Stack>
                             <SimpleHistoryChart
                                 start={timeInterval.start}
@@ -844,9 +806,7 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
 
     return (
         <Card variant="outlined" sx={{ height: "100%", flexGrow: 1 }}>
-            <CardContent
-                sx={{ height: "100%", padding: 2, "&:last-child": { pb: 2 } }}
-            >
+            <CardContent sx={{ height: "100%", padding: 2, "&:last-child": { pb: 2 } }}>
                 <Stack gap={1} justifyContent="space-between" height="100%">
                     {cardTitle}
                     <Stack>
@@ -868,15 +828,8 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                                     ...longFormat,
                                 })}`}
                             >
-                                <Stack
-                                    direction="row"
-                                    gap={0.5}
-                                    alignItems="center"
-                                >
-                                    <Typography
-                                        variant="caption"
-                                        color={trendColor}
-                                    >
+                                <Stack direction="row" gap={0.5} alignItems="center">
+                                    <Typography variant="caption" color={trendColor}>
                                         {diff.toLocaleString(undefined, {
                                             signDisplay: "always",
                                             ...shortFormat,
@@ -921,9 +874,9 @@ interface ProgressionValueAndMilestoneProps {
     progression: StatProgression;
 }
 
-const ProgressionValueAndMilestone: React.FC<
-    ProgressionValueAndMilestoneProps
-> = ({ progression }) => {
+const ProgressionValueAndMilestone: React.FC<ProgressionValueAndMilestoneProps> = ({
+    progression,
+}) => {
     const renderValues = (
         endValue: number,
         nextMilestoneValue: number,
@@ -999,9 +952,7 @@ const ProgressionValueAndMilestone: React.FC<
                 progression.endValue,
                 progression.nextMilestoneValue,
                 (value) => (
-                    <Typography variant="body1">
-                        {value.toLocaleString()}
-                    </Typography>
+                    <Typography variant="body1">{value.toLocaleString()}</Typography>
                 ),
                 false,
             );
@@ -1013,9 +964,7 @@ const ProgressionValueAndMilestone: React.FC<
                 progression.endValue,
                 progression.nextMilestoneValue,
                 (value) => (
-                    <Typography variant="body1">
-                        {value.toLocaleString()}
-                    </Typography>
+                    <Typography variant="body1">{value.toLocaleString()}</Typography>
                 ),
                 true,
             );
@@ -1028,9 +977,7 @@ interface ProgressionCaptionProps {
     progression: StatProgression;
 }
 
-const ProgressionCaption: React.FC<ProgressionCaptionProps> = ({
-    progression,
-}) => {
+const ProgressionCaption: React.FC<ProgressionCaptionProps> = ({ progression }) => {
     switch (progression.stat) {
         case "stars":
             return (
@@ -1183,12 +1130,7 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
                             <Typography variant="subtitle2">
                                 {`${getGamemodeLabel(gamemode, true)} ${getFullStatLabel(stat)} milestone progress`}
                             </Typography>
-                            <Stack
-                                pt={1}
-                                gap={1}
-                                direction="row"
-                                alignItems="center"
-                            >
+                            <Stack pt={1} gap={1} direction="row" alignItems="center">
                                 <Tooltip title="The player's stats have been recorded by the Prism Overlay. Come back later to see their updated stat progression.">
                                     <Info color="info" fontSize="small" />
                                 </Tooltip>
@@ -1211,9 +1153,7 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
                     </Typography>
                     <Stack pt={1} gap={1} direction="row" alignItems="center">
                         <Info color="error" fontSize="small" />
-                        <Typography variant="body2">
-                            {progression.reason}
-                        </Typography>
+                        <Typography variant="body2">{progression.reason}</Typography>
                     </Stack>
                 </CardContent>
             </Card>
@@ -1221,13 +1161,11 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
     }
 
     const projectedMilestoneDate = new Date(
-        referenceDate.getTime() +
-            progression.daysUntilMilestone * 24 * 60 * 60 * 1000,
+        referenceDate.getTime() + progression.daysUntilMilestone * 24 * 60 * 60 * 1000,
     );
 
     const daysUntilMilestoneFromNow =
-        (projectedMilestoneDate.getTime() - now.getTime()) /
-        (1000 * 60 * 60 * 24);
+        (projectedMilestoneDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
 
     return (
         <Card variant="outlined" sx={{ height: "100%" }}>
@@ -1343,10 +1281,7 @@ function RouteComponent() {
                 name="description"
                 content={`View ${username ?? "a player"}'s session stats, including daily, weekly, and monthly stats, as well as a progression towards stat milestones, and individual session breakdowns.`}
             />
-            <link
-                rel="canonical"
-                href={`https://prismoverlay.com/session/${uuid}`}
-            />
+            <link rel="canonical" href={`https://prismoverlay.com/session/${uuid}`} />
             <UserSearch
                 onSubmit={(uuid) => {
                     visitPlayer(uuid);
@@ -1373,17 +1308,11 @@ function RouteComponent() {
                 justifyContent="space-between"
             >
                 <Stack direction="row" alignItems="center" gap={1}>
-                    <PlayerHead
-                        uuid={uuid}
-                        username={username}
-                        variant="face"
-                    />
+                    <PlayerHead uuid={uuid} username={username} variant="face" />
                     {username === undefined ? (
                         <Stack direction="row" alignItems="center">
                             <Skeleton variant="rounded" width={60} />
-                            <Typography variant="h6">
-                                {"'s session stats"}
-                            </Typography>
+                            <Typography variant="h6">{"'s session stats"}</Typography>
                         </Stack>
                     ) : (
                         <Typography variant="h6">{`${username}'s session stats`}</Typography>
@@ -1455,9 +1384,7 @@ function RouteComponent() {
                                 ...oldSearch,
                                 stat: newStat,
                                 variantSelection:
-                                    statsWhereSessionIsCloseToAllTime.includes(
-                                        newStat,
-                                    )
+                                    statsWhereSessionIsCloseToAllTime.includes(newStat)
                                         ? "both"
                                         : "session",
                             }),
@@ -1540,10 +1467,7 @@ function RouteComponent() {
                             <Stack direction="row" gap={1} alignItems="center">
                                 {username === undefined ? (
                                     <Stack direction="row" alignItems="center">
-                                        <Skeleton
-                                            variant="rounded"
-                                            width={100}
-                                        />
+                                        <Skeleton variant="rounded" width={100} />
                                         <Typography variant="subtitle2">
                                             {`'s ${getFullStatLabel(stat)}`}
                                         </Typography>

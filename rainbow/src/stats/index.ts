@@ -120,13 +120,7 @@ export function computeStat(
             }
         }
         case "kdr": {
-            const kills = computeStat(
-                playerData,
-                gamemode,
-                "kills",
-                variant,
-                history,
-            );
+            const kills = computeStat(playerData, gamemode, "kills", variant, history);
             const deaths = computeStat(
                 playerData,
                 gamemode,
@@ -142,20 +136,8 @@ export function computeStat(
             }
         }
         case "index": {
-            const fkdr = computeStat(
-                playerData,
-                gamemode,
-                "fkdr",
-                variant,
-                history,
-            );
-            const stars = computeStat(
-                playerData,
-                gamemode,
-                "stars",
-                variant,
-                history,
-            );
+            const fkdr = computeStat(playerData, gamemode, "fkdr", variant, history);
+            const stars = computeStat(playerData, gamemode, "stars", variant, history);
             return fkdr ** 2 * stars;
         }
         default: {

@@ -1,9 +1,5 @@
 import { type History } from "#queries/history.ts";
-import {
-    ALL_GAMEMODE_KEYS,
-    ALL_STAT_KEYS,
-    ALL_VARIANT_KEYS,
-} from "#stats/keys.ts";
+import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS, ALL_VARIANT_KEYS } from "#stats/keys.ts";
 import { type DataKey, makeDataKey } from "./dataKeys.ts";
 import { computeStat } from "#stats/index.ts";
 
@@ -50,8 +46,7 @@ export const clusterChartData = (chartData: ChartData): ChartData => {
         return [];
     }
 
-    const timeSpan =
-        chartData[chartData.length - 1].queriedAt - chartData[0].queriedAt;
+    const timeSpan = chartData[chartData.length - 1].queriedAt - chartData[0].queriedAt;
     // Cluster entries that are closer than 1% of the time span or 1 minute
     const threshold = Math.max(timeSpan / 100, 1000 * 60);
 
@@ -61,8 +56,7 @@ export const clusterChartData = (chartData: ChartData): ChartData => {
         let entriesToCluster = 1; // Number of entries to cluster, including this one
         while (
             i - entriesToCluster >= 0 &&
-            entry.queriedAt - chartData[i - entriesToCluster].queriedAt <=
-                threshold
+            entry.queriedAt - chartData[i - entriesToCluster].queriedAt <= threshold
         ) {
             entriesToCluster++;
         }

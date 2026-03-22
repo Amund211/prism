@@ -63,12 +63,7 @@ interface UserSearchOptions<Multiple extends boolean> {
         true,
         false
     >["isOptionEqualToValue"];
-    renderValue: AutocompleteProps<
-        SearchOption,
-        Multiple,
-        true,
-        false
-    >["renderValue"];
+    renderValue: AutocompleteProps<SearchOption, Multiple, true, false>["renderValue"];
 }
 
 const useUserSearchOptions = <Multiple extends boolean = false>(
@@ -114,9 +109,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                 namesForOptions
                     .filter(({ names }) => {
                         return names.some((name) =>
-                            name
-                                .toLowerCase()
-                                .includes(inputValue.toLowerCase()),
+                            name.toLowerCase().includes(inputValue.toLowerCase()),
                         );
                     })
                     .map(({ option }) => {
@@ -241,9 +234,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                     <Chip
                         {...getItemProps({ index })}
                         key={option.uuid}
-                        label={
-                            username ?? <Skeleton variant="text" width={60} />
-                        }
+                        label={username ?? <Skeleton variant="text" width={60} />}
                         variant="outlined"
                         color="primary"
                         avatar={
@@ -288,13 +279,8 @@ export const UserSearch: React.FC<UserSearchProps> = ({
     size = "small",
 }) => {
     const queryClient = useQueryClient();
-    const {
-        uuids,
-        filterOptions,
-        renderOption,
-        getOptionLabel,
-        isOptionEqualToValue,
-    } = useUserSearchOptions();
+    const { uuids, filterOptions, renderOption, getOptionLabel, isOptionEqualToValue } =
+        useUserSearchOptions();
     const [loading, setLoading] = React.useState(false);
 
     return (
@@ -424,10 +410,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                                 return uuid;
                             })
                             .catch((error: unknown) => {
-                                console.error(
-                                    "Failed to fetch username",
-                                    error,
-                                );
+                                console.error("Failed to fetch username", error);
                                 throw error;
                             });
                     }),
@@ -435,17 +418,12 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                     .then((results) => {
                         onSubmit(
                             results
-                                .filter(
-                                    (result) => result.status === "fulfilled",
-                                )
+                                .filter((result) => result.status === "fulfilled")
                                 .map((result) => result.value),
                         );
                     })
                     .catch((error: unknown) => {
-                        console.error(
-                            "Failed to settle all uuid promises",
-                            error,
-                        );
+                        console.error("Failed to settle all uuid promises", error);
                     })
                     .finally(() => {
                         setLoading(false);

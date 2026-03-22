@@ -49,12 +49,9 @@ const computeQuotientProgression = (
     const sessionDivisor = endDivisor - startDivisor;
 
     const sessionQuotient =
-        sessionDivisor === 0
-            ? sessionDividend
-            : sessionDividend / sessionDivisor;
+        sessionDivisor === 0 ? sessionDividend : sessionDividend / sessionDivisor;
 
-    const endQuotient =
-        endDivisor === 0 ? endDividend : endDividend / endDivisor;
+    const endQuotient = endDivisor === 0 ? endDividend : endDividend / endDivisor;
 
     const dividendPerDay = sessionDividend / daysElapsed;
     const divisorPerDay = sessionDivisor / daysElapsed;
@@ -86,9 +83,7 @@ const computeQuotientProgression = (
     // OR: if no progress was made during the tracking session -> just need somewhere to trend
     // OR: if the session quotient is infinite
     const trendingUpward =
-        sessionQuotient >= endQuotient ||
-        noSessionProgress ||
-        infiniteSessionQuotient;
+        sessionQuotient >= endQuotient || noSessionProgress || infiniteSessionQuotient;
 
     // TODO: Smaller steps for smaller quotients
     const nextMilestoneValue = trendingUpward
@@ -290,8 +285,7 @@ export const computeStatProgression = (
             const nextMilestoneValue =
                 (Math.floor(endValue / endMagnitude) + 1) * endMagnitude;
 
-            const daysUntilMilestone =
-                (nextMilestoneValue - endValue) / increasePerDay;
+            const daysUntilMilestone = (nextMilestoneValue - endValue) / increasePerDay;
 
             return {
                 stat,

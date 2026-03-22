@@ -34,9 +34,7 @@ describe("Home page", () => {
 
         await expect
             .poll(() => {
-                return document.querySelector(
-                    'link[href="https://prismoverlay.com"]',
-                );
+                return document.querySelector('link[href="https://prismoverlay.com"]');
             })
             .toBeInTheDocument();
     });

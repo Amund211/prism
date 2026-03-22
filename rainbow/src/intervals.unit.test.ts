@@ -131,9 +131,7 @@ describe("time helpers", () => {
         ];
         for (const { date, expected } of cases) {
             test(date.toISOString(), () => {
-                expect(endOfDay(date).toISOString()).toBe(
-                    expected.toISOString(),
-                );
+                expect(endOfDay(date).toISOString()).toBe(expected.toISOString());
             });
         }
     });
@@ -153,9 +151,7 @@ describe("time helpers", () => {
         ];
         for (const { date, expected } of cases) {
             test(date.toISOString(), () => {
-                expect(endOfWeek(date).toISOString()).toBe(
-                    expected.toISOString(),
-                );
+                expect(endOfWeek(date).toISOString()).toBe(expected.toISOString());
             });
         }
     });
@@ -197,9 +193,7 @@ describe("time helpers", () => {
         ];
         for (const { date, expected } of cases) {
             test(date.toISOString(), () => {
-                expect(endOfMonth(date).toISOString()).toBe(
-                    expected.toISOString(),
-                );
+                expect(endOfMonth(date).toISOString()).toBe(expected.toISOString());
             });
         }
     });
@@ -229,9 +223,7 @@ describe("time helpers", () => {
         ];
         for (const { date, expected } of cases) {
             test(date.toISOString(), () => {
-                expect(endOfLastDay(date).toISOString()).toBe(
-                    expected.toISOString(),
-                );
+                expect(endOfLastDay(date).toISOString()).toBe(expected.toISOString());
             });
         }
     });
@@ -251,9 +243,7 @@ describe("time helpers", () => {
         ];
         for (const { date, expected } of cases) {
             test(date.toISOString(), () => {
-                expect(endOfLastWeek(date).toISOString()).toBe(
-                    expected.toISOString(),
-                );
+                expect(endOfLastWeek(date).toISOString()).toBe(expected.toISOString());
             });
         }
     });
@@ -291,9 +281,7 @@ describe("time helpers", () => {
         ];
         for (const { date, expected } of cases) {
             test(date.toISOString(), () => {
-                expect(endOfLastMonth(date).toISOString()).toBe(
-                    expected.toISOString(),
-                );
+                expect(endOfLastMonth(date).toISOString()).toBe(expected.toISOString());
             });
         }
     });

@@ -7,8 +7,7 @@ import { isNormalizedUUID } from "#helpers/uuid.ts";
 export const CurrentUserProvider: React.FC<{
     children: React.ReactNode;
 }> = ({ children }) => {
-    const [storedCurrentUser, setStoredCurrentUser] =
-        useLocalStorage(localStorageKey);
+    const [storedCurrentUser, setStoredCurrentUser] = useLocalStorage(localStorageKey);
     const currentUser = parseStoredUUID(storedCurrentUser);
 
     const setCurrentUser = (newUUID: string | null) => {

@@ -58,38 +58,35 @@ export const getUUIDQueryOptions = (username: string) =>
                 );
             }
 
-            const data: unknown = await response
-                .json()
-                .catch((error: unknown) => {
-                    response
-                        .text()
-                        .then((text) => {
-                            captureException(error, {
-                                extra: {
-                                    message:
-                                        "Failed to get uuid: failed to parse json",
-                                    username,
-                                    text,
-                                },
-                            });
-                        })
-                        .catch((textError: unknown) => {
-                            captureException(textError, {
-                                tags: {
-                                    status: response.status,
-                                    statusText: response.statusText,
-                                },
-                                extra: {
-                                    message:
-                                        "Failed to get uuid: failed to read response text when handling json parse error",
-                                    username,
-                                    jsonParseError: error,
-                                },
-                            });
-                            throw textError;
+            const data: unknown = await response.json().catch((error: unknown) => {
+                response
+                    .text()
+                    .then((text) => {
+                        captureException(error, {
+                            extra: {
+                                message: "Failed to get uuid: failed to parse json",
+                                username,
+                                text,
+                            },
                         });
-                    throw error;
-                });
+                    })
+                    .catch((textError: unknown) => {
+                        captureException(textError, {
+                            tags: {
+                                status: response.status,
+                                statusText: response.statusText,
+                            },
+                            extra: {
+                                message:
+                                    "Failed to get uuid: failed to read response text when handling json parse error",
+                                username,
+                                jsonParseError: error,
+                            },
+                        });
+                        throw textError;
+                    });
+                throw error;
+            });
 
             if (typeof data !== "object" || data === null) {
                 captureMessage("Failed to get uuid: invalid response", {
@@ -109,24 +106,17 @@ export const getUUIDQueryOptions = (username: string) =>
                         username,
                     },
                 });
-                throw new Error(
-                    "No uuid in response from minecraft services api",
-                );
+                throw new Error("No uuid in response from minecraft services api");
             }
             if (typeof data.uuid !== "string") {
-                captureMessage(
-                    "Failed to get uuid: uuid is not a string in response",
-                    {
-                        level: "error",
-                        extra: {
-                            data,
-                            username,
-                        },
+                captureMessage("Failed to get uuid: uuid is not a string in response", {
+                    level: "error",
+                    extra: {
+                        data,
+                        username,
                     },
-                );
-                throw new Error(
-                    "Invalid uuid in response from minecraft services api",
-                );
+                });
+                throw new Error("Invalid uuid in response from minecraft services api");
             }
 
             const rawUUID = data.uuid;

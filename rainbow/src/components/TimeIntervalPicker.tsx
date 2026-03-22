@@ -51,8 +51,7 @@ export const TimeIntervalPicker: React.FC<TimeIntervalPickerProps> = ({
                 break;
             }
             shortIntervalDescription = "Last X days";
-            longIntervalDescription =
-                "Show the stats for the last 1, 7, or 30 days";
+            longIntervalDescription = "Show the stats for the last 1, 7, or 30 days";
             break;
         default:
             intervalDefinition.type satisfies never;

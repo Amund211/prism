@@ -28,12 +28,7 @@ describe("clusterChartData", () => {
         {
             name: "times within 1%",
             input: [now - 2 * hour, now, now + 10 * minute, now + day],
-            output: [
-                now - 2 * hour,
-                now + 10 * minute,
-                now + 10 * minute,
-                now + day,
-            ],
+            output: [now - 2 * hour, now + 10 * minute, now + 10 * minute, now + day],
         },
         {
             name: "times within 1m",

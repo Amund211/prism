@@ -37,10 +37,7 @@ class StatsBuilder {
         value: number,
     ): this;
     withStat(
-        stat: Exclude<
-            StatKey,
-            "fkdr" | "kdr" | "index" | "stars" | "experience"
-        >,
+        stat: Exclude<StatKey, "fkdr" | "kdr" | "index" | "stars" | "experience">,
         value: number | null,
     ): this {
         switch (stat) {
@@ -191,10 +188,7 @@ describe("computeStatProgression - error cases", () => {
                         new StatsBuilder().withStat("wins", 100).build(),
                     )
                     .build(),
-                new PlayerDataBuilder(
-                    TEST_UUID,
-                    new Date("2024-01-01T12:00:00Z"),
-                )
+                new PlayerDataBuilder(TEST_UUID, new Date("2024-01-01T12:00:00Z"))
                     .withGamemodeStats(
                         "overall",
                         new StatsBuilder().withStat("wins", 150).build(),
@@ -254,10 +248,7 @@ describe("computeStatProgression - linear gamemode stats", () => {
                             TEST_UUID,
                             startDate,
                         );
-                        const endBuilder = new PlayerDataBuilder(
-                            TEST_UUID,
-                            endDate,
-                        );
+                        const endBuilder = new PlayerDataBuilder(TEST_UUID, endDate);
                         startBuilder.withGamemodeStats(
                             gamemode,
                             new StatsBuilder().withStat(stat, 100).build(),
@@ -306,10 +297,7 @@ describe("computeStatProgression - linear gamemode stats", () => {
                             TEST_UUID,
                             startDate,
                         );
-                        const endBuilder = new PlayerDataBuilder(
-                            TEST_UUID,
-                            endDate,
-                        );
+                        const endBuilder = new PlayerDataBuilder(TEST_UUID, endDate);
                         startBuilder.withGamemodeStats(
                             gamemode,
                             new StatsBuilder().withStat(stat, 0).build(),
@@ -358,10 +346,7 @@ describe("computeStatProgression - linear gamemode stats", () => {
                             TEST_UUID,
                             startDate,
                         );
-                        const endBuilder = new PlayerDataBuilder(
-                            TEST_UUID,
-                            endDate,
-                        );
+                        const endBuilder = new PlayerDataBuilder(TEST_UUID, endDate);
                         startBuilder.withGamemodeStats(
                             gamemode,
                             new StatsBuilder().withStat(stat, 100000).build(),
@@ -412,17 +397,12 @@ describe("computeStatProgression - linear gamemode stats", () => {
                         // This can lead to e.g. predicted milestone dates being earlier than trackingEndDate
                         const startDate = new Date("2025-01-01T00:00:00Z");
                         const endDate = new Date("2025-01-06T00:00:00Z");
-                        const trackingEndDate = new Date(
-                            "2025-01-11T00:00:00Z",
-                        );
+                        const trackingEndDate = new Date("2025-01-11T00:00:00Z");
                         const startBuilder = new PlayerDataBuilder(
                             TEST_UUID,
                             startDate,
                         );
-                        const endBuilder = new PlayerDataBuilder(
-                            TEST_UUID,
-                            endDate,
-                        );
+                        const endBuilder = new PlayerDataBuilder(TEST_UUID, endDate);
                         startBuilder.withGamemodeStats(
                             gamemode,
                             new StatsBuilder().withStat(stat, 100).build(),
@@ -518,10 +498,7 @@ describe("computeStatProgression - quotient stats", () => {
 
                         const history: History = [
                             new PlayerDataBuilder(TEST_UUID, startDate)
-                                .withGamemodeStats(
-                                    gamemode,
-                                    startBuilder.build(),
-                                )
+                                .withGamemodeStats(gamemode, startBuilder.build())
                                 .build(),
                             new PlayerDataBuilder(TEST_UUID, endDate)
                                 .withGamemodeStats(gamemode, endBuilder.build())
@@ -579,10 +556,7 @@ describe("computeStatProgression - quotient stats", () => {
 
                         const history: History = [
                             new PlayerDataBuilder(TEST_UUID, startDate)
-                                .withGamemodeStats(
-                                    gamemode,
-                                    startBuilder.build(),
-                                )
+                                .withGamemodeStats(gamemode, startBuilder.build())
                                 .build(),
                             new PlayerDataBuilder(TEST_UUID, endDate)
                                 .withGamemodeStats(gamemode, endBuilder.build())
@@ -632,16 +606,11 @@ describe("computeStatProgression - quotient stats", () => {
                         startBuilder
                             .withStat(dividendStat, 100)
                             .withStat(divisorStat, 0);
-                        endBuilder
-                            .withStat(dividendStat, 200)
-                            .withStat(divisorStat, 0);
+                        endBuilder.withStat(dividendStat, 200).withStat(divisorStat, 0);
 
                         const history: History = [
                             new PlayerDataBuilder(TEST_UUID, startDate)
-                                .withGamemodeStats(
-                                    gamemode,
-                                    startBuilder.build(),
-                                )
+                                .withGamemodeStats(gamemode, startBuilder.build())
                                 .build(),
                             new PlayerDataBuilder(TEST_UUID, endDate)
                                 .withGamemodeStats(gamemode, endBuilder.build())
@@ -706,12 +675,8 @@ describe("computeStatProgression - quotient stats", () => {
                             test(`divisor constant at ${divisor.toString()}`, () => {
                                 // The player did not gain any divisor during the tracking interval
                                 // The quotient will grow linearly with the dividend, divided by the constant divisor
-                                const startDate = new Date(
-                                    "2024-01-01T00:00:00Z",
-                                );
-                                const endDate = new Date(
-                                    "2024-01-11T00:00:00Z",
-                                );
+                                const startDate = new Date("2024-01-01T00:00:00Z");
+                                const endDate = new Date("2024-01-11T00:00:00Z");
                                 const startBuilder = new StatsBuilder();
                                 const endBuilder = new StatsBuilder();
 
@@ -730,10 +695,7 @@ describe("computeStatProgression - quotient stats", () => {
                                         )
                                         .build(),
                                     new PlayerDataBuilder(TEST_UUID, endDate)
-                                        .withGamemodeStats(
-                                            gamemode,
-                                            endBuilder.build(),
-                                        )
+                                        .withGamemodeStats(gamemode, endBuilder.build())
                                         .build(),
                                 ];
 
@@ -777,19 +739,12 @@ describe("computeStatProgression - quotient stats", () => {
                         const startBuilder = new StatsBuilder();
                         const endBuilder = new StatsBuilder();
 
-                        startBuilder
-                            .withStat(dividendStat, 0)
-                            .withStat(divisorStat, 5);
-                        endBuilder
-                            .withStat(dividendStat, 10)
-                            .withStat(divisorStat, 10);
+                        startBuilder.withStat(dividendStat, 0).withStat(divisorStat, 5);
+                        endBuilder.withStat(dividendStat, 10).withStat(divisorStat, 10);
 
                         const history: History = [
                             new PlayerDataBuilder(TEST_UUID, startDate)
-                                .withGamemodeStats(
-                                    gamemode,
-                                    startBuilder.build(),
-                                )
+                                .withGamemodeStats(gamemode, startBuilder.build())
                                 .build(),
                             new PlayerDataBuilder(TEST_UUID, endDate)
                                 .withGamemodeStats(gamemode, endBuilder.build())
@@ -832,19 +787,12 @@ describe("computeStatProgression - quotient stats", () => {
                         const startBuilder = new StatsBuilder();
                         const endBuilder = new StatsBuilder();
 
-                        startBuilder
-                            .withStat(dividendStat, 5)
-                            .withStat(divisorStat, 0);
-                        endBuilder
-                            .withStat(dividendStat, 10)
-                            .withStat(divisorStat, 5);
+                        startBuilder.withStat(dividendStat, 5).withStat(divisorStat, 0);
+                        endBuilder.withStat(dividendStat, 10).withStat(divisorStat, 5);
 
                         const history: History = [
                             new PlayerDataBuilder(TEST_UUID, startDate)
-                                .withGamemodeStats(
-                                    gamemode,
-                                    startBuilder.build(),
-                                )
+                                .withGamemodeStats(gamemode, startBuilder.build())
                                 .build(),
                             new PlayerDataBuilder(TEST_UUID, endDate)
                                 .withGamemodeStats(gamemode, endBuilder.build())
@@ -887,19 +835,12 @@ describe("computeStatProgression - quotient stats", () => {
                         const startBuilder = new StatsBuilder();
                         const endBuilder = new StatsBuilder();
 
-                        startBuilder
-                            .withStat(dividendStat, 1)
-                            .withStat(divisorStat, 5);
-                        endBuilder
-                            .withStat(dividendStat, 10)
-                            .withStat(divisorStat, 10);
+                        startBuilder.withStat(dividendStat, 1).withStat(divisorStat, 5);
+                        endBuilder.withStat(dividendStat, 10).withStat(divisorStat, 10);
 
                         const history: History = [
                             new PlayerDataBuilder(TEST_UUID, startDate)
-                                .withGamemodeStats(
-                                    gamemode,
-                                    startBuilder.build(),
-                                )
+                                .withGamemodeStats(gamemode, startBuilder.build())
                                 .build(),
                             new PlayerDataBuilder(TEST_UUID, endDate)
                                 .withGamemodeStats(gamemode, endBuilder.build())
@@ -942,19 +883,12 @@ describe("computeStatProgression - quotient stats", () => {
                         const startBuilder = new StatsBuilder();
                         const endBuilder = new StatsBuilder();
 
-                        startBuilder
-                            .withStat(dividendStat, 4)
-                            .withStat(divisorStat, 0);
-                        endBuilder
-                            .withStat(dividendStat, 10)
-                            .withStat(divisorStat, 5);
+                        startBuilder.withStat(dividendStat, 4).withStat(divisorStat, 0);
+                        endBuilder.withStat(dividendStat, 10).withStat(divisorStat, 5);
 
                         const history: History = [
                             new PlayerDataBuilder(TEST_UUID, startDate)
-                                .withGamemodeStats(
-                                    gamemode,
-                                    startBuilder.build(),
-                                )
+                                .withGamemodeStats(gamemode, startBuilder.build())
                                 .build(),
                             new PlayerDataBuilder(TEST_UUID, endDate)
                                 .withGamemodeStats(gamemode, endBuilder.build())
@@ -1053,11 +987,8 @@ describe("computeStatProgression - stars/experience stat", () => {
                     expect(progressPerDay).toBeCloseTo(expectedStarsPerDay);
 
                     // Exp remaining until 100 stars / (exp per day)
-                    const expectedDaysUntilMilestone =
-                        (487_000 - 7_000) / (6_500 / 10);
-                    expect(daysUntilMilestone).toBeCloseTo(
-                        expectedDaysUntilMilestone,
-                    );
+                    const expectedDaysUntilMilestone = (487_000 - 7_000) / (6_500 / 10);
+                    expect(daysUntilMilestone).toBeCloseTo(expectedDaysUntilMilestone);
                 });
 
                 test("experience", () => {

@@ -25,9 +25,7 @@ describe("newUserId", () => {
     test("should generate a new user ID that passes validation", () => {
         for (let i = 0; i < 10; i++) {
             const userId = newUserId();
-            expect(validateUserId(userId), "User ID should be valid").toBe(
-                true,
-            );
+            expect(validateUserId(userId), "User ID should be valid").toBe(true);
         }
     });
 
@@ -37,14 +35,11 @@ describe("newUserId", () => {
             originalRandomUUID = crypto.randomUUID.bind(crypto);
 
             // Simulate an environment without crypto.randomUUID
-            crypto.randomUUID =
-                undefined as unknown as typeof crypto.randomUUID;
+            crypto.randomUUID = undefined as unknown as typeof crypto.randomUUID;
         });
         afterAll(() => {
             if (originalRandomUUID === undefined) {
-                throw new Error(
-                    "crypto.randomUUID should be restored after the test",
-                );
+                throw new Error("crypto.randomUUID should be restored after the test");
             }
             crypto.randomUUID = originalRandomUUID;
         });
@@ -52,9 +47,7 @@ describe("newUserId", () => {
         test("should generate a new user ID like rnb_<random-string>", () => {
             for (let i = 0; i < 10; i++) {
                 const userId = newUserId();
-                expect(userId, "User ID should start with 'rnb_'").toMatch(
-                    /^rnb_/,
-                );
+                expect(userId, "User ID should start with 'rnb_'").toMatch(/^rnb_/);
 
                 const suffix = userId.slice(4);
 
@@ -80,9 +73,7 @@ describe("newUserId", () => {
         test("should generate a new user ID that passes validation", () => {
             for (let i = 0; i < 10; i++) {
                 const userId = newUserId();
-                expect(validateUserId(userId), "User ID should be valid").toBe(
-                    true,
-                );
+                expect(validateUserId(userId), "User ID should be valid").toBe(true);
             }
         });
     });
@@ -108,15 +99,13 @@ describe("getOrSetUserId", () => {
     test("in staging", () => {
         // We use the current hostname to return this from getOrSetUserId(), so we don't test
         // this here. Instead we just do some basic checks on the exported constant.
-        expect(
-            validateUserId(STAGING_USER_ID),
-            "Staging user ID should be valid",
-        ).toBe(true);
+        expect(validateUserId(STAGING_USER_ID), "Staging user ID should be valid").toBe(
+            true,
+        );
 
-        expect(
-            STAGING_USER_ID,
-            "Staging user ID should start with 'rnb_'",
-        ).toMatch(/^rnb_/);
+        expect(STAGING_USER_ID, "Staging user ID should start with 'rnb_'").toMatch(
+            /^rnb_/,
+        );
 
         expect(STAGING_USER_ID).toBe("rnb_staging_development");
     });

@@ -194,9 +194,7 @@ const renderDay = (day: Day): string => {
     });
 };
 
-const reducedMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-).matches;
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const ConfettiEffect: React.FC = () => {
     const [confetti, setConfetti] = React.useState<
@@ -315,42 +313,18 @@ const BestSessionCard: React.FC<BestSessionCardProps> = ({
     const { start, end } = session;
     const history = [start];
 
-    const gamesPlayed = computeStat(
-        end,
-        "overall",
-        "gamesPlayed",
-        "session",
-        history,
-    );
+    const gamesPlayed = computeStat(end, "overall", "gamesPlayed", "session", history);
     const wins = computeStat(end, "overall", "wins", "session", history);
-    const finalKills = computeStat(
-        end,
-        "overall",
-        "finalKills",
-        "session",
-        history,
-    );
+    const finalKills = computeStat(end, "overall", "finalKills", "session", history);
 
     // Calculate the display value based on stat type
     let displayValue: number;
     switch (statType) {
         case "fkdr":
-            displayValue = computeStat(
-                end,
-                "overall",
-                "fkdr",
-                "session",
-                history,
-            );
+            displayValue = computeStat(end, "overall", "fkdr", "session", history);
             break;
         case "kills":
-            displayValue = computeStat(
-                end,
-                "overall",
-                "kills",
-                "session",
-                history,
-            );
+            displayValue = computeStat(end, "overall", "kills", "session", history);
             break;
         case "finals":
             displayValue = finalKills;
@@ -407,11 +381,7 @@ const BestSessionCard: React.FC<BestSessionCardProps> = ({
                             year: "numeric",
                         })}
                     </Typography>
-                    <Typography
-                        variant="h4"
-                        textAlign="center"
-                        fontWeight="bold"
-                    >
+                    <Typography variant="h4" textAlign="center" fontWeight="bold">
                         {displayValue.toLocaleString(undefined, {
                             maximumFractionDigits: 2,
                         })}{" "}
@@ -477,10 +447,7 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                                 >
                                     {wrappedData.totalSessions.toLocaleString()}
                                 </Typography>
-                                <Typography
-                                    variant="caption"
-                                    color="textSecondary"
-                                >
+                                <Typography variant="caption" color="textSecondary">
                                     Total Sessions
                                 </Typography>
                             </Stack>
@@ -522,10 +489,7 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                                         sessionStats.sessionLengths.totalHours,
                                     )}
                                 </Typography>
-                                <Typography
-                                    variant="caption"
-                                    color="textSecondary"
-                                >
+                                <Typography variant="caption" color="textSecondary">
                                     Total Time
                                 </Typography>
                             </Stack>
@@ -538,14 +502,10 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                                     textAlign="center"
                                 >
                                     {formatHours(
-                                        sessionStats.sessionLengths
-                                            .averageHours,
+                                        sessionStats.sessionLengths.averageHours,
                                     )}
                                 </Typography>
-                                <Typography
-                                    variant="caption"
-                                    color="textSecondary"
-                                >
+                                <Typography variant="caption" color="textSecondary">
                                     Avg. Session
                                 </Typography>
                             </Stack>
@@ -554,9 +514,7 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
 
                     <Divider />
 
-                    <Typography variant="subtitle2">
-                        Sessions per Month
-                    </Typography>
+                    <Typography variant="subtitle2">Sessions per Month</Typography>
                     <Grid container spacing={1}>
                         {[
                             "Jan",
@@ -573,9 +531,8 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                             "Dec",
                         ].map((month, index) => {
                             const count =
-                                sessionStats.sessionsPerMonth[
-                                    (index + 1).toString()
-                                ] ?? 0;
+                                sessionStats.sessionsPerMonth[(index + 1).toString()] ??
+                                0;
                             return (
                                 <Grid
                                     size={{
@@ -604,9 +561,7 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                                                 label={count.toLocaleString()}
                                                 size="small"
                                                 color={
-                                                    count > 0
-                                                        ? "primary"
-                                                        : "default"
+                                                    count > 0 ? "primary" : "default"
                                                 }
                                             />
                                         </Stack>
@@ -666,12 +621,9 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                                                             count > 0
                                                                 ? "primary.main"
                                                                 : "action.disabled",
-                                                        borderRadius:
-                                                            "4px 4px 0 0",
+                                                        borderRadius: "4px 4px 0 0",
                                                         minHeight:
-                                                            count > 0
-                                                                ? "4px"
-                                                                : "2px",
+                                                            count > 0 ? "4px" : "2px",
                                                     }}
                                                 />
                                             </Box>
@@ -694,25 +646,13 @@ interface YearStatsCardsProps {
 }
 
 const YearStatsCards: React.FC<YearStatsCardsProps> = ({ wrappedData }) => {
-    const getOverallSessionStats = (
-        stat: Exclude<StatKey, "winstreak">,
-    ): number => {
-        return computeStat(
-            wrappedData.yearStats.end,
-            "overall",
-            stat,
-            "session",
-            [wrappedData.yearStats.start],
-        );
+    const getOverallSessionStats = (stat: Exclude<StatKey, "winstreak">): number => {
+        return computeStat(wrappedData.yearStats.end, "overall", stat, "session", [
+            wrappedData.yearStats.start,
+        ]);
     };
     const getCurrentStats = (stat: Exclude<StatKey, "winstreak">): number => {
-        return computeStat(
-            wrappedData.yearStats.end,
-            "overall",
-            stat,
-            "overall",
-            [],
-        );
+        return computeStat(wrappedData.yearStats.end, "overall", stat, "overall", []);
     };
 
     const totalGames = getOverallSessionStats("gamesPlayed");
@@ -819,9 +759,7 @@ interface AverageSessionStatsProps {
     wrappedData: WrappedData;
 }
 
-const AverageSessionStats: React.FC<AverageSessionStatsProps> = ({
-    wrappedData,
-}) => {
+const AverageSessionStats: React.FC<AverageSessionStatsProps> = ({ wrappedData }) => {
     const sessionStats = wrappedData.sessionStats;
     if (!sessionStats?.averages) return null;
 
@@ -831,9 +769,7 @@ const AverageSessionStats: React.FC<AverageSessionStatsProps> = ({
                 <Stack gap={2}>
                     <Stack direction="row" alignItems="center" gap={1}>
                         <ShowChart color="action" />
-                        <Typography variant="h6">
-                            Average Session Stats
-                        </Typography>
+                        <Typography variant="h6">Average Session Stats</Typography>
                     </Stack>
                     <Grid container spacing={2}>
                         <Grid size={{ xs: 6, sm: 3 }}>
@@ -844,10 +780,7 @@ const AverageSessionStats: React.FC<AverageSessionStatsProps> = ({
                                         { maximumFractionDigits: 1 },
                                     )}
                                 </Typography>
-                                <Typography
-                                    variant="caption"
-                                    color="textSecondary"
-                                >
+                                <Typography variant="caption" color="textSecondary">
                                     Games/Session
                                 </Typography>
                             </Stack>
@@ -860,10 +793,7 @@ const AverageSessionStats: React.FC<AverageSessionStatsProps> = ({
                                         { maximumFractionDigits: 1 },
                                     )}
                                 </Typography>
-                                <Typography
-                                    variant="caption"
-                                    color="textSecondary"
-                                >
+                                <Typography variant="caption" color="textSecondary">
                                     Wins/Session
                                 </Typography>
                             </Stack>
@@ -876,10 +806,7 @@ const AverageSessionStats: React.FC<AverageSessionStatsProps> = ({
                                         { maximumFractionDigits: 1 },
                                     )}
                                 </Typography>
-                                <Typography
-                                    variant="caption"
-                                    color="textSecondary"
-                                >
+                                <Typography variant="caption" color="textSecondary">
                                     Finals/Session
                                 </Typography>
                             </Stack>
@@ -888,14 +815,10 @@ const AverageSessionStats: React.FC<AverageSessionStatsProps> = ({
                             <Stack alignItems="center">
                                 <Typography variant="h5" color="info.main">
                                     {formatHours(
-                                        sessionStats.averages
-                                            .sessionLengthHours,
+                                        sessionStats.averages.sessionLengthHours,
                                     )}
                                 </Typography>
-                                <Typography
-                                    variant="caption"
-                                    color="textSecondary"
-                                >
+                                <Typography variant="caption" color="textSecondary">
                                     Avg Length
                                 </Typography>
                             </Stack>
@@ -1024,8 +947,7 @@ const Streaks: React.FC<StreaksProps> = ({ wrappedData }) => {
                                 </Typography>
                                 <Divider />
                                 {modes.map((mode) => {
-                                    const streak =
-                                        sessionStats.winstreaks[mode];
+                                    const streak = sessionStats.winstreaks[mode];
 
                                     return (
                                         <Stack
@@ -1055,13 +977,10 @@ const Streaks: React.FC<StreaksProps> = ({ wrappedData }) => {
                                                 >
                                                     {new Date(
                                                         streak.when,
-                                                    ).toLocaleDateString(
-                                                        undefined,
-                                                        {
-                                                            month: "short",
-                                                            day: "numeric",
-                                                        },
-                                                    )}
+                                                    ).toLocaleDateString(undefined, {
+                                                        month: "short",
+                                                        day: "numeric",
+                                                    })}
                                                 </Typography>
                                             </Stack>
                                         </Stack>
@@ -1091,8 +1010,7 @@ const Streaks: React.FC<StreaksProps> = ({ wrappedData }) => {
                                 </Stack>
                                 <Divider />
                                 {modes.map((mode) => {
-                                    const streak =
-                                        sessionStats.finalKillStreaks[mode];
+                                    const streak = sessionStats.finalKillStreaks[mode];
                                     return (
                                         <Stack
                                             key={mode}
@@ -1121,13 +1039,10 @@ const Streaks: React.FC<StreaksProps> = ({ wrappedData }) => {
                                                 >
                                                     {new Date(
                                                         streak.when,
-                                                    ).toLocaleDateString(
-                                                        undefined,
-                                                        {
-                                                            month: "short",
-                                                            day: "numeric",
-                                                        },
-                                                    )}
+                                                    ).toLocaleDateString(undefined, {
+                                                        month: "short",
+                                                        day: "numeric",
+                                                    })}
                                                 </Typography>
                                             </Stack>
                                         </Stack>
@@ -1146,9 +1061,7 @@ interface FavoritePlayTimesProps {
     wrappedData: WrappedData;
 }
 
-const FavoritePlayTimes: React.FC<FavoritePlayTimesProps> = ({
-    wrappedData,
-}) => {
+const FavoritePlayTimes: React.FC<FavoritePlayTimesProps> = ({ wrappedData }) => {
     const sessionStats = wrappedData.sessionStats;
     if (!sessionStats?.playtimeDistribution) return null;
 
@@ -1196,8 +1109,7 @@ const FavoritePlayTimes: React.FC<FavoritePlayTimesProps> = ({
                             }}
                         >
                             {hourlyDistribution.map((hours, hour) => {
-                                const heightPercent =
-                                    (hours / maxHourlyValue) * 100;
+                                const heightPercent = (hours / maxHourlyValue) * 100;
 
                                 return (
                                     <Tooltip
@@ -1224,9 +1136,7 @@ const FavoritePlayTimes: React.FC<FavoritePlayTimesProps> = ({
                                                             : "action.disabled",
                                                     borderRadius: "2px 2px 0 0",
                                                     minHeight:
-                                                        hours > 0
-                                                            ? "4px"
-                                                            : "2px",
+                                                        hours > 0 ? "4px" : "2px",
                                                     transition: "all 0.3s ease",
                                                     "&:hover": {
                                                         opacity: 0.8,
@@ -1338,10 +1248,8 @@ const FavoritePlayTimes: React.FC<FavoritePlayTimesProps> = ({
                                                             sx={{
                                                                 flex: 1,
                                                                 height: 20,
-                                                                bgcolor:
-                                                                    "primary.main",
-                                                                opacity:
-                                                                    opacity,
+                                                                bgcolor: "primary.main",
+                                                                opacity: opacity,
                                                                 borderRadius: 0.5,
                                                                 transition:
                                                                     "all 0.2s ease",
@@ -1406,8 +1314,7 @@ const FlawlessSessions: React.FC<FlawlessSessionsProps> = ({ wrappedData }) => {
         <Card
             variant="outlined"
             sx={{
-                background:
-                    "linear-gradient(135deg, #FFD70022 0%, #FFD70011 100%)",
+                background: "linear-gradient(135deg, #FFD70022 0%, #FFD70011 100%)",
                 border: "2px solid #FFD700",
             }}
         >
@@ -1485,18 +1392,14 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
                     },
                 }}
             >
-                <WrappedHeader
-                    wrappedData={wrappedData}
-                    uuid={uuid}
-                    year={year}
-                />
+                <WrappedHeader wrappedData={wrappedData} uuid={uuid} year={year} />
                 {wrappedData.totalSessions === 0 ? (
                     <Alert severity="info" icon={<Info />}>
                         <Typography variant="body2">
-                            This player didn&apos;t record any sessions with the
-                            Prism Overlay in {year.toString()}. Showing overall
-                            year statistics instead. Download it to start
-                            tracking your stats!
+                            This player didn&apos;t record any sessions with the Prism
+                            Overlay in {year.toString()}. Showing overall year
+                            statistics instead. Download it to start tracking your
+                            stats!
                         </Typography>
                     </Alert>
                 ) : (
@@ -1525,8 +1428,7 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
                                 title="Highest FKDR"
                                 icon={<TrendingUp />}
                                 session={
-                                    wrappedData.sessionStats.bestSessions
-                                        .highestFKDR
+                                    wrappedData.sessionStats.bestSessions.highestFKDR
                                 }
                                 statLabel="FKDR"
                                 statType="fkdr"
@@ -1538,8 +1440,7 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
                                 title="Most Final Kills"
                                 icon={<Whatshot />}
                                 session={
-                                    wrappedData.sessionStats.bestSessions
-                                        .mostFinalKills
+                                    wrappedData.sessionStats.bestSessions.mostFinalKills
                                 }
                                 statLabel="Final Kills"
                                 statType="finals"
@@ -1551,8 +1452,7 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
                                 title="Longest Session"
                                 icon={<Timer />}
                                 session={
-                                    wrappedData.sessionStats.bestSessions
-                                        .longestSession
+                                    wrappedData.sessionStats.bestSessions.longestSession
                                 }
                                 statLabel="hours"
                                 statType="duration"
@@ -1626,8 +1526,7 @@ const SessionCoverage: React.FC<SessionCoverageProps> = ({ wrappedData }) => {
                             <Stack alignItems="center">
                                 <Typography variant="h4" color="success.main">
                                     {formatHours(
-                                        sessionStats.sessionCoverage
-                                            .adjustedTotalHours,
+                                        sessionStats.sessionCoverage.adjustedTotalHours,
                                     )}
                                 </Typography>
                                 <Typography
@@ -1635,8 +1534,8 @@ const SessionCoverage: React.FC<SessionCoverageProps> = ({ wrappedData }) => {
                                     color="textSecondary"
                                     textAlign="center"
                                 >
-                                    adjusted total playtime (accounting for
-                                    games not in sessions)
+                                    adjusted total playtime (accounting for games not in
+                                    sessions)
                                 </Typography>
                             </Stack>
                         </Grid>
@@ -1651,9 +1550,8 @@ function NoSessionsAlert({ year }: { year: number }) {
     return (
         <Alert severity="info" icon={<Info />}>
             <Typography variant="body2">
-                This player didn&apos;t record any sessions with the Prism
-                Overlay in {year.toString()}. Showing overall year statistics
-                instead. Download it{" "}
+                This player didn&apos;t record any sessions with the Prism Overlay in{" "}
+                {year.toString()}. Showing overall year statistics instead. Download it{" "}
                 {
                     <Link to="/downloads" target="_blank">
                         here
@@ -1670,8 +1568,7 @@ function LowSessionCoverageAlert({
 }: {
     coveragePercentage: number | undefined;
 }) {
-    const lowCoverage =
-        coveragePercentage === undefined || coveragePercentage < 50;
+    const lowCoverage = coveragePercentage === undefined || coveragePercentage < 50;
 
     if (!lowCoverage) return null;
 
@@ -1682,9 +1579,9 @@ function LowSessionCoverageAlert({
                 {coveragePercentage?.toLocaleString(undefined, {
                     maximumFractionDigits: 1,
                 }) ?? "0.0"}
-                % of games in sessions). Session statistics may be inaccurate.
-                Ensure you have &ldquo;Online game stats&rdquo; enabled on
-                Hypixel while using Prism overlay.
+                % of games in sessions). Session statistics may be inaccurate. Ensure
+                you have &ldquo;Online game stats&rdquo; enabled on Hypixel while using
+                Prism overlay.
             </Typography>
         </Alert>
     );
@@ -1697,10 +1594,7 @@ interface WrappedStatsContentProps {
     isLoading: boolean;
 }
 
-function WrappedStatsContent({
-    wrappedData,
-    isLoading,
-}: WrappedStatsContentProps) {
+function WrappedStatsContent({ wrappedData, isLoading }: WrappedStatsContentProps) {
     if (isLoading) {
         return (
             <Card variant="outlined">
@@ -1726,8 +1620,7 @@ function WrappedStatsContent({
                 >
                     <Error color="error" />
                     <Typography variant="h6" textAlign="center">
-                        Failed loading your year in review. Please try again
-                        later.
+                        Failed loading your year in review. Please try again later.
                     </Typography>
                 </CardContent>
             </Card>
@@ -1738,8 +1631,8 @@ function WrappedStatsContent({
         return (
             <Alert severity="info" icon={<Info />}>
                 <Typography variant="body2">
-                    This player didn&apos;t record any stats with the Prism
-                    Overlay in {wrappedData.year.toString()}. Download it{" "}
+                    This player didn&apos;t record any stats with the Prism Overlay in{" "}
+                    {wrappedData.year.toString()}. Download it{" "}
                     {
                         <Link to="/downloads" target="_blank">
                             here
@@ -1771,8 +1664,7 @@ function WrappedStatsContent({
         <>
             <LowSessionCoverageAlert
                 coveragePercentage={
-                    wrappedData.sessionStats?.sessionCoverage
-                        .gamesPlayedPercentage
+                    wrappedData.sessionStats?.sessionCoverage.gamesPlayedPercentage
                 }
             />
 
@@ -1818,14 +1710,11 @@ function WrappedHeader({ wrappedData, uuid, year }: WrappedHeaderProps) {
                   day: "numeric",
                   year: "numeric",
               },
-          )} → ${wrappedData.yearStats.end.queriedAt.toLocaleDateString(
-              undefined,
-              {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-              },
-          )}.`
+          )} → ${wrappedData.yearStats.end.queriedAt.toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+          })}.`
         : undefined;
 
     return (
@@ -1836,20 +1725,14 @@ function WrappedHeader({ wrappedData, uuid, year }: WrappedHeaderProps) {
             justifyContent="center"
             flexWrap="wrap"
         >
-            <PlayerHead
-                uuid={uuid}
-                username={username}
-                variant="face"
-                width={80}
-            />
+            <PlayerHead uuid={uuid} username={username} variant="face" width={80} />
             <Stack alignItems="center">
                 <Typography
                     variant="h3"
                     fontWeight="bold"
                     textAlign="center"
                     sx={{
-                        background:
-                            "linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1)",
+                        background: "linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1)",
                         backgroundClip: "text",
                         textFillColor: "transparent",
                     }}
@@ -1968,11 +1851,7 @@ function RouteComponent() {
                         });
                     }}
                 />
-                <WrappedHeader
-                    wrappedData={wrappedData}
-                    uuid={uuid}
-                    year={year}
-                />
+                <WrappedHeader wrappedData={wrappedData} uuid={uuid} year={year} />
                 {wrappedData?.yearStats && uuid && (
                     <Box sx={{ display: "flex", justifyContent: "center" }}>
                         <Button
@@ -1988,10 +1867,7 @@ function RouteComponent() {
                         </Button>
                     </Box>
                 )}
-                <WrappedStatsContent
-                    wrappedData={wrappedData}
-                    isLoading={isLoading}
-                />
+                <WrappedStatsContent wrappedData={wrappedData} isLoading={isLoading} />
                 {wrappedData?.yearStats && username && (
                     <ExportImageMount
                         onReady={(api) => {
@@ -2032,9 +1908,8 @@ function RouteComponent() {
                                 textAlign="center"
                                 color="textSecondary"
                             >
-                                Thank you for an amazing{" "}
-                                {wrappedData.year.toString()}! Here&apos;s to
-                                even more victories in the next year.
+                                Thank you for an amazing {wrappedData.year.toString()}!
+                                Here&apos;s to even more victories in the next year.
                             </Typography>
                         </CardContent>
                     </Card>

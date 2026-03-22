@@ -50,10 +50,7 @@ const fallbackRandomId = (): string => {
 };
 
 const randomId = (): string => {
-    if (
-        typeof crypto === "undefined" ||
-        typeof crypto.randomUUID !== "function"
-    ) {
+    if (typeof crypto === "undefined" || typeof crypto.randomUUID !== "function") {
         // Fallback for environments without crypto.randomUUID
         captureMessage(
             "crypto.randomUUID is not available, using fallback random ID generation.",
@@ -61,9 +58,7 @@ const randomId = (): string => {
                 level: "info",
                 tags: {
                     missingCrypto: String(typeof crypto === "undefined"),
-                    missingRandomUUID: String(
-                        typeof crypto.randomUUID !== "function",
-                    ),
+                    missingRandomUUID: String(typeof crypto.randomUUID !== "function"),
                 },
             },
         );

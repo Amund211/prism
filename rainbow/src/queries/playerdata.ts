@@ -46,9 +46,7 @@ export interface PlayerDataPIT {
     overall: StatsPIT;
 }
 
-export const apiToPlayerDataPIT = (
-    apiPlayerData: APIPlayerDataPIT,
-): PlayerDataPIT => ({
+export const apiToPlayerDataPIT = (apiPlayerData: APIPlayerDataPIT): PlayerDataPIT => ({
     uuid: apiPlayerData.uuid,
     queriedAt: new Date(apiPlayerData.queriedAt),
     experience: apiPlayerData.experience,

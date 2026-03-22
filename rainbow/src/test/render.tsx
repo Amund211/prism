@@ -25,8 +25,6 @@ export async function renderAppRoute(initialEntry: string) {
 
     window.history.pushState({}, "", initialEntry);
 
-    const screen = await render(
-        <App router={router} queryClient={queryClient} />,
-    );
+    const screen = await render(<App router={router} queryClient={queryClient} />);
     return { screen, queryClient, router };
 }

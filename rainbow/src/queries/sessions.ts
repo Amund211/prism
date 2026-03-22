@@ -40,11 +40,7 @@ interface SessionsQueryOptions {
     start: Date;
     end: Date;
 }
-export const getSessionsQueryOptions = ({
-    uuid,
-    start,
-    end,
-}: SessionsQueryOptions) => {
+export const getSessionsQueryOptions = ({ uuid, start, end }: SessionsQueryOptions) => {
     const currentTime = new Date().getTime();
     const currentTimeIsInWindow =
         currentTime >= start.getTime() && currentTime <= end.getTime();
@@ -57,17 +53,14 @@ export const getSessionsQueryOptions = ({
         queryKey: ["sessions", uuid, startISOString, endISOString],
         queryFn: async (): Promise<Sessions> => {
             if (!isNormalizedUUID(uuid)) {
-                captureMessage(
-                    "Failed to get sessions: uuid is not normalized",
-                    {
-                        level: "error",
-                        extra: {
-                            uuid,
-                            start: startISOString,
-                            end: endISOString,
-                        },
+                captureMessage("Failed to get sessions: uuid is not normalized", {
+                    level: "error",
+                    extra: {
+                        uuid,
+                        start: startISOString,
+                        end: endISOString,
                     },
-                );
+                });
                 throw new Error(`UUID not normalized: ${uuid}`);
             }
 
@@ -138,41 +131,36 @@ export const getSessionsQueryOptions = ({
                 );
             }
 
-            const apiSessions = (await response
-                .json()
-                .catch((error: unknown) => {
-                    response
-                        .text()
-                        .then((text) => {
-                            captureException(error, {
-                                extra: {
-                                    message:
-                                        "Failed to get sessions: failed to parse json",
-                                    uuid,
-                                    start: startISOString,
-                                    end: endISOString,
-                                    text,
-                                },
-                            });
-                        })
-                        .catch((textError: unknown) => {
-                            captureException(textError, {
-                                extra: {
-                                    message:
-                                        "Failed to get sessions: failed to read response text when handling response error",
-                                    uuid,
-                                    start: startISOString,
-                                    end: endISOString,
-                                    jsonParseError: error,
-                                },
-                            });
+            const apiSessions = (await response.json().catch((error: unknown) => {
+                response
+                    .text()
+                    .then((text) => {
+                        captureException(error, {
+                            extra: {
+                                message: "Failed to get sessions: failed to parse json",
+                                uuid,
+                                start: startISOString,
+                                end: endISOString,
+                                text,
+                            },
                         });
-                    throw error;
-                })) as APISessions;
+                    })
+                    .catch((textError: unknown) => {
+                        captureException(textError, {
+                            extra: {
+                                message:
+                                    "Failed to get sessions: failed to read response text when handling response error",
+                                uuid,
+                                start: startISOString,
+                                end: endISOString,
+                                jsonParseError: error,
+                            },
+                        });
+                    });
+                throw error;
+            })) as APISessions;
 
-            return apiSessions.map((apiSession) =>
-                apiToSession(apiSession, false),
-            );
+            return apiSessions.map((apiSession) => apiToSession(apiSession, false));
         },
     });
 };

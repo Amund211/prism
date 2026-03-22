@@ -11,15 +11,12 @@ export const getUsernameQueryOptions = (uuid: string) =>
         queryKey: ["username", uuid],
         queryFn: async (): Promise<{ uuid: string; username: string }> => {
             if (!isNormalizedUUID(uuid)) {
-                captureMessage(
-                    "Failed to get username: uuid is not normalized",
-                    {
-                        level: "error",
-                        extra: {
-                            uuid,
-                        },
+                captureMessage("Failed to get username: uuid is not normalized", {
+                    level: "error",
+                    extra: {
+                        uuid,
                     },
-                );
+                });
                 throw new Error(`UUID not normalized: ${uuid}`);
             }
 
@@ -72,32 +69,29 @@ export const getUsernameQueryOptions = (uuid: string) =>
                 );
             }
 
-            const data: unknown = await response
-                .json()
-                .catch((error: unknown) => {
-                    response
-                        .text()
-                        .then((text) => {
-                            captureException(error, {
-                                extra: {
-                                    message:
-                                        "Failed to get username: failed to parse json",
-                                    uuid,
-                                    text,
-                                },
-                            });
-                        })
-                        .catch((textError: unknown) => {
-                            captureException(textError, {
-                                extra: {
-                                    message:
-                                        "Failed to get username: failed to read response text when handling response error",
-                                    uuid,
-                                    jsonParseError: error,
-                                },
-                            });
+            const data: unknown = await response.json().catch((error: unknown) => {
+                response
+                    .text()
+                    .then((text) => {
+                        captureException(error, {
+                            extra: {
+                                message: "Failed to get username: failed to parse json",
+                                uuid,
+                                text,
+                            },
                         });
-                });
+                    })
+                    .catch((textError: unknown) => {
+                        captureException(textError, {
+                            extra: {
+                                message:
+                                    "Failed to get username: failed to read response text when handling response error",
+                                uuid,
+                                jsonParseError: error,
+                            },
+                        });
+                    });
+            });
             if (typeof data !== "object" || data === null) {
                 captureMessage("Failed to get username: invalid response", {
                     level: "error",
@@ -109,32 +103,24 @@ export const getUsernameQueryOptions = (uuid: string) =>
                 throw new Error("Invalid response from flashlight api");
             }
             if (!("username" in data)) {
-                captureMessage(
-                    "Failed to get username: no username in response",
-                    {
-                        level: "error",
-                        extra: {
-                            uuid,
-                            data,
-                        },
+                captureMessage("Failed to get username: no username in response", {
+                    level: "error",
+                    extra: {
+                        uuid,
+                        data,
                     },
-                );
+                });
                 throw new Error("No username in response from flashlight api");
             }
             if (typeof data.username !== "string") {
-                captureMessage(
-                    "Failed to get username: username is not a string",
-                    {
-                        level: "error",
-                        extra: {
-                            uuid,
-                            data,
-                        },
+                captureMessage("Failed to get username: username is not a string", {
+                    level: "error",
+                    extra: {
+                        uuid,
+                        data,
                     },
-                );
-                throw new Error(
-                    "Invalid username in response from flashlight api",
-                );
+                });
+                throw new Error("Invalid username in response from flashlight api");
             }
 
             addKnownAliasAndPersist({

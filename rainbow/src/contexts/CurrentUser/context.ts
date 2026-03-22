@@ -5,5 +5,6 @@ export interface CurrentUserContextValue {
     setCurrentUser: (u: string | null) => void;
 }
 
-export const CurrentUserContext =
-    React.createContext<CurrentUserContextValue | null>(null);
+export const CurrentUserContext = React.createContext<CurrentUserContextValue | null>(
+    null,
+);

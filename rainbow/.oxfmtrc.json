@@ -1,7 +1,7 @@
 {
     "$schema": "./node_modules/oxfmt/configuration_schema.json",
     "tabWidth": 4,
-    "printWidth": 80,
+    "printWidth": 88,
     "sortPackageJson": true,
     "ignorePatterns": ["src/routeTree.gen.ts", "coverage"]
 }

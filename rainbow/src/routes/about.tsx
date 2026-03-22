@@ -58,11 +58,7 @@ const Thanks = () => {
                         <AccountCircle />
                     </ListItemIcon>
                     <ListItemText>
-                        <a
-                            href="https://mineatar.io/"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
+                        <a href="https://mineatar.io/" target="_blank" rel="noreferrer">
                             Mineatar
                         </a>{" "}
                         for providing avatars.
@@ -78,8 +74,8 @@ const Disclaimer = () => {
         <Stack>
             <Typography variant="h6">Disclaimer</Typography>
             <Typography variant="body1">
-                Prism Overlay is not associated with or endorsed by Mojang
-                Studios or The Hypixel Network.
+                Prism Overlay is not associated with or endorsed by Mojang Studios or
+                The Hypixel Network.
             </Typography>
         </Stack>
     );
@@ -91,8 +87,7 @@ const HypixelAPIPolicy = () => {
             <Typography variant="h6">Hypixel API Policy</Typography>
             <Stack gap={1}>
                 <Typography variant="body1">
-                    The Prism Overlay project strives to stay within the bounds
-                    of the{" "}
+                    The Prism Overlay project strives to stay within the bounds of the{" "}
                     <a
                         href="https://developer.hypixel.net/policies/"
                         target="_blank"
@@ -100,11 +95,10 @@ const HypixelAPIPolicy = () => {
                     >
                         Hypixel API policy
                     </a>
-                    . Prism Overlay does <strong>not</strong> do automatic
-                    polling of player stats. When users check their stats on the
-                    website, the stats are persisted to a database and the
-                    persisted copies of the stats are the basis for the tracking
-                    shown on the website.
+                    . Prism Overlay does <strong>not</strong> do automatic polling of
+                    player stats. When users check their stats on the website, the stats
+                    are persisted to a database and the persisted copies of the stats
+                    are the basis for the tracking shown on the website.
                 </Typography>
                 <Typography variant="body1">
                     Created by Skydeath (a937646b-f115-44c3-8dbf-9ae4a65669a0)
@@ -119,11 +113,10 @@ const Privacy = () => {
         <Stack>
             <Typography variant="h6">Privacy</Typography>
             <Typography variant="body1">
-                Prism Overlay does not collect any personal data. Player stats
-                fetched by the overlay and the website are stored to enable the
-                tracking functionality on the website. If you don&apos;t want
-                your statistics available on the website, please create a ticket
-                on{" "}
+                Prism Overlay does not collect any personal data. Player stats fetched
+                by the overlay and the website are stored to enable the tracking
+                functionality on the website. If you don&apos;t want your statistics
+                available on the website, please create a ticket on{" "}
                 <a
                     href="https://discord.gg/k4FGUnEHYg"
                     target="_blank"

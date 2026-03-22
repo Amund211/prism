@@ -10,11 +10,7 @@ import {
     type GamemodeKey,
     type StatKey,
 } from "#stats/keys.ts";
-import {
-    getFullStatLabel,
-    getGamemodeLabel,
-    getVariantLabel,
-} from "#stats/labels.ts";
+import { getFullStatLabel, getGamemodeLabel, getVariantLabel } from "#stats/labels.ts";
 import { DateTimePicker } from "@mui/x-date-pickers";
 import {
     Chip,
@@ -53,9 +49,7 @@ import { captureException } from "@sentry/react";
 import { historyExploreSearchSchema } from "#schemas/historySearch.ts";
 
 const normalizeUUIDsSkippingInvalid = (uuids: readonly string[]) => {
-    return uuids
-        .map((uuid) => normalizeUUID(uuid))
-        .filter((uuid) => uuid !== null);
+    return uuids.map((uuid) => normalizeUUID(uuid)).filter((uuid) => uuid !== null);
 };
 
 export const Route = createFileRoute("/history/explore")({
@@ -219,8 +213,7 @@ function Index() {
           } to enable showing in session page.`;
 
     const endOfToday = endOfDay(now);
-    const sessionPageEndDate =
-        end.getTime() > endOfToday.getTime() ? endOfToday : end;
+    const sessionPageEndDate = end.getTime() > endOfToday.getTime() ? endOfToday : end;
 
     return (
         <Stack gap={1} height="100%">
@@ -228,17 +221,12 @@ function Index() {
                 name="description"
                 content="Compare the stats of multiple players in Hypixel Bedwars. See how you stack up against your friends and rivals. Chart any combination of statistic (FKDR, wins, final kills, and more), players, gamemodes, and session/overall stats."
             />
-            <link
-                rel="canonical"
-                href="https://prismoverlay.com/history/explore"
-            />
+            <link rel="canonical" href="https://prismoverlay.com/history/explore" />
             <UserMultiSelect
                 uuids={uuids}
                 onSubmit={(newUUIDs) => {
                     // Visit all newly added players
-                    const addedUUIDs = newUUIDs.filter(
-                        (uuid) => !uuids.includes(uuid),
-                    );
+                    const addedUUIDs = newUUIDs.filter((uuid) => !uuids.includes(uuid));
                     addedUUIDs.forEach((uuid) => {
                         visitPlayer(uuid);
                     });
@@ -271,8 +259,7 @@ function Index() {
                     multiple
                     fullWidth
                     onChange={(event) => {
-                        const newGamemodes = event.target
-                            .value as GamemodeKey[];
+                        const newGamemodes = event.target.value as GamemodeKey[];
                         navigate({
                             search: (oldSearch) => ({
                                 ...oldSearch,
@@ -340,8 +327,7 @@ function Index() {
                 <Stack direction="row" gap={1} flexWrap="wrap">
                     {timeFilterOptions.map((option) => {
                         const selected =
-                            option.start.toISOString() ===
-                                start.toISOString() &&
+                            option.start.toISOString() === start.toISOString() &&
                             option.end.toISOString() === end.toISOString();
                         return (
                             <RouterLinkChip
@@ -383,8 +369,7 @@ function Index() {
                                         param: "start",
                                     },
                                     extra: {
-                                        message:
-                                            "Failed to update search params",
+                                        message: "Failed to update search params",
                                         start: newDate.toDate(),
                                     },
                                 });
@@ -409,8 +394,7 @@ function Index() {
                                         param: "end",
                                     },
                                     extra: {
-                                        message:
-                                            "Failed to update search params",
+                                        message: "Failed to update search params",
                                         end: newDate.toDate(),
                                     },
                                 });

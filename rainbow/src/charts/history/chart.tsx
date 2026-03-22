@@ -11,22 +11,14 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
-import {
-    type GamemodeKey,
-    type StatKey,
-    type VariantKey,
-} from "#stats/keys.ts";
+import { type GamemodeKey, type StatKey, type VariantKey } from "#stats/keys.ts";
 import React, { type ReactNode } from "react";
 import { generateChartData } from "./data.ts";
 import { makeDataKey } from "./dataKeys.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { getHistoryQueryOptions } from "#queries/history.ts";
-import {
-    getFullStatLabel,
-    getGamemodeLabel,
-    getVariantLabel,
-} from "#stats/labels.ts";
+import { getFullStatLabel, getGamemodeLabel, getVariantLabel } from "#stats/labels.ts";
 import { Typography, useTheme } from "@mui/material";
 import { useSynchronizeCharts } from "#contexts/ChartSynchronizer/hooks.ts";
 import { useAssume } from "#hooks/useAssumption.ts";
@@ -48,10 +40,8 @@ const getSmallestTimeDenomination = (
     endDate: Date,
 ): TimeDenomination => {
     const differentYear = startDate.getFullYear() !== endDate.getFullYear();
-    const differentMonth =
-        startDate.getMonth() !== endDate.getMonth() || differentYear;
-    const differentDay =
-        startDate.getDate() !== endDate.getDate() || differentMonth;
+    const differentMonth = startDate.getMonth() !== endDate.getMonth() || differentYear;
+    const differentDay = startDate.getDate() !== endDate.getDate() || differentMonth;
 
     if (differentYear) {
         return "year";
@@ -86,8 +76,7 @@ const contextAwareStatDisplayName = (
     const gamemodeShown =
         gamemode.shown &&
         gamemode.value !== "overall" &&
-        (!stat.shown ||
-            (stat.value !== "stars" && stat.value !== "experience"));
+        (!stat.shown || (stat.value !== "stars" && stat.value !== "experience"));
 
     let displayName = "";
     if (uuid.shown) {
@@ -294,14 +283,10 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                         if (typeof label === "number") {
                             return renderTimeFull(label);
                         } else {
-                            assume(
-                                false,
-                                "Tooltip label is not a number",
-                                () => ({
-                                    time: label,
-                                    timeTypeof: typeof label,
-                                }),
-                            );
+                            assume(false, "Tooltip label is not a number", () => ({
+                                time: label,
+                                timeTypeof: typeof label,
+                            }));
                             return label;
                         }
                     }}
@@ -377,12 +362,7 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
                     scale="linear"
                     dataKey="queriedAt"
                 />
-                <YAxis
-                    type="number"
-                    domain={[0, yMax ?? "auto"]}
-                    hide
-                    scale="linear"
-                />
+                <YAxis type="number" domain={[0, yMax ?? "auto"]} hide scale="linear" />
 
                 {/* Chart outline */}
                 <ReferenceArea
@@ -489,8 +469,7 @@ const getLineStyle = (index: number) => {
     // TODO: Make linestyles more deterministic (hash of datakey/one color per player/...)
     return {
         stroke: STROKES[index % STROKES.length],
-        strokeDasharray:
-            DASHES[Math.floor(index / STROKES.length) % DASHES.length],
+        strokeDasharray: DASHES[Math.floor(index / STROKES.length) % DASHES.length],
     } as const;
 };
 

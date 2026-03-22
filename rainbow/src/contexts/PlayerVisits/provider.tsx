@@ -38,14 +38,9 @@ export const PlayerVisitsProvider: React.FC<{
 
     const favoriteUUIDs = orderPlayers(playerVisits);
 
-    const orderUUIDsByScore = (
-        uuids: string[],
-        currentUser?: string,
-    ): string[] => {
+    const orderUUIDsByScore = (uuids: string[], currentUser?: string): string[] => {
         if (uuids.some((uuid) => !isNormalizedUUID(uuid))) {
-            throw new Error(
-                `Some UUIDs are not normalized: ${uuids.join(", ")}`,
-            );
+            throw new Error(`Some UUIDs are not normalized: ${uuids.join(", ")}`);
         }
 
         return [...uuids].sort((a, b) => {

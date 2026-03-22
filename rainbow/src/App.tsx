@@ -1,10 +1,6 @@
 import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
-import {
-    maxAge,
-    persister,
-    queryClient as appQueryClient,
-} from "#queryClient.ts";
+import { maxAge, persister, queryClient as appQueryClient } from "#queryClient.ts";
 import { routeTree } from "./routeTree.gen.ts";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { LocalizationProvider } from "@mui/x-date-pickers";

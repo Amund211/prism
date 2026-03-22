@@ -13,10 +13,7 @@ interface AliasInfo {
 export type KnownAliases = Record<string, AliasInfo[] | undefined>;
 
 export const stringifyKnownAliases = (aliases: KnownAliases): string => {
-    const toStore: Record<
-        string,
-        { username: string; lastResolved: string }[]
-    > = {};
+    const toStore: Record<string, { username: string; lastResolved: string }[]> = {};
 
     for (const [uuid, aliasInfos] of Object.entries(aliases)) {
         if (aliasInfos === undefined) {
@@ -110,9 +107,7 @@ export const addKnownAlias = (
         ...aliases,
         [alias.uuid]: [
             ...oldPlayerAliases.filter(
-                (info) =>
-                    info.username.toLowerCase() !==
-                    alias.username.toLowerCase(),
+                (info) => info.username.toLowerCase() !== alias.username.toLowerCase(),
             ),
             {
                 username: alias.username,

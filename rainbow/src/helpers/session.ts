@@ -8,8 +8,7 @@ const statsConsecutive = (a: PlayerDataPIT, b: PlayerDataPIT): boolean => {
 
 const differentStats = (a: PlayerDataPIT, b: PlayerDataPIT): boolean => {
     return (
-        a.overall.gamesPlayed !== b.overall.gamesPlayed ||
-        a.experience !== b.experience
+        a.overall.gamesPlayed !== b.overall.gamesPlayed || a.experience !== b.experience
     );
 };
 
@@ -45,19 +44,13 @@ export const addExtrapolatedSessions = (
     const firstSessionStart = sessions[0].start;
     const lastSessionEnd = sessions[sessions.length - 1].end;
 
-    const startNonFlashlightSession = differentStats(
-        historyStart,
-        firstSessionStart,
-    )
+    const startNonFlashlightSession = differentStats(historyStart, firstSessionStart)
         ? [
               {
                   start: historyStart,
                   end: firstSessionStart,
                   extrapolated: true,
-                  consecutive: statsConsecutive(
-                      historyStart,
-                      firstSessionStart,
-                  ),
+                  consecutive: statsConsecutive(historyStart, firstSessionStart),
               },
           ]
         : [];
@@ -84,10 +77,7 @@ export const addExtrapolatedSessions = (
                 start: previousSession.end,
                 end: nextSession.start,
                 extrapolated: true,
-                consecutive: statsConsecutive(
-                    previousSession.end,
-                    nextSession.start,
-                ),
+                consecutive: statsConsecutive(previousSession.end, nextSession.start),
             });
         }
     }

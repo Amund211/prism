@@ -9,9 +9,7 @@ export const useSynchronizeCharts = (
 ):
     | { yMax: number | undefined; synchronized: true }
     | { yMax?: undefined; synchronized: false } => {
-    const { synchronized, yMax, onYMaxChange } = React.use(
-        ChartSynchronizerContext,
-    );
+    const { synchronized, yMax, onYMaxChange } = React.use(ChartSynchronizerContext);
     const dataMax = chartData.reduce((max, data) => {
         return Math.max(max, data[dataKey] ?? 0);
     }, 0);

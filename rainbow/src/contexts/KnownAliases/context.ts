@@ -5,5 +5,6 @@ export interface KnownAliasesContextValue {
     addKnownAlias: (alias: { uuid: string; username: string }) => void;
 }
 
-export const KnownAliasesContext =
-    React.createContext<KnownAliasesContextValue | null>(null);
+export const KnownAliasesContext = React.createContext<KnownAliasesContextValue | null>(
+    null,
+);

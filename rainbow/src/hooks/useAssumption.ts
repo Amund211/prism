@@ -27,9 +27,7 @@ export function useAssume() {
         });
 
         if (import.meta.env.DEV) {
-            alert(
-                `Assumption failed: ${message}\n\n${JSON.stringify(meta, null, 2)}`,
-            );
+            alert(`Assumption failed: ${message}\n\n${JSON.stringify(meta, null, 2)}`);
         }
 
         assumptions.current[message] = true;

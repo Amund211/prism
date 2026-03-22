@@ -23,10 +23,7 @@ export const GAMEMODE_STAT_KEYS = [
 ] as const;
 export type GamemodeStatKey = (typeof GAMEMODE_STAT_KEYS)[number];
 
-export const ALL_STAT_KEYS = [
-    ...OVERALL_STAT_KEYS,
-    ...GAMEMODE_STAT_KEYS,
-] as const;
+export const ALL_STAT_KEYS = [...OVERALL_STAT_KEYS, ...GAMEMODE_STAT_KEYS] as const;
 export type StatKey = (typeof ALL_STAT_KEYS)[number];
 
 export const ALL_GAMEMODE_KEYS = [

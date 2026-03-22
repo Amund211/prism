@@ -261,8 +261,8 @@ function RouteComponent() {
             <link rel="canonical" href="https://prismoverlay.com/downloads" />
             <Stack gap={1} alignItems="center">
                 <Typography variant="body1">
-                    Get started with real-time statistics and automated stat
-                    tracking by downloading the Prism Overlay.
+                    Get started with real-time statistics and automated stat tracking by
+                    downloading the Prism Overlay.
                 </Typography>
                 <LatestDownload />
             </Stack>
@@ -275,9 +275,7 @@ function RouteComponent() {
                             <TableHead>
                                 <TableRow>
                                     <TableCell>
-                                        <Typography variant="h6">
-                                            Version
-                                        </Typography>
+                                        <Typography variant="h6">Version</Typography>
                                     </TableCell>
                                     <TableCell>
                                         <Typography variant="h6">
@@ -297,20 +295,14 @@ function RouteComponent() {
                                         <TableCell>
                                             <a href={download.link} download>
                                                 <Typography variant="body1">
-                                                    Prism overlay v
-                                                    {download.version}
+                                                    Prism overlay v{download.version}
                                                 </Typography>
                                             </a>
                                         </TableCell>
                                         <TableCell>
                                             <Stack direction="row" gap={1}>
-                                                <OSLogoAttribution
-                                                    os={download.os}
-                                                />
-                                                <OSLogo
-                                                    os={download.os}
-                                                    height={20}
-                                                />
+                                                <OSLogoAttribution os={download.os} />
+                                                <OSLogo os={download.os} height={20} />
                                                 <Typography variant="body1">
                                                     {osLabel(download.os)}
                                                 </Typography>
@@ -337,17 +329,17 @@ function RouteComponent() {
             </Stack>
             <Stack gap={1} alignItems="left">
                 <Typography variant="caption" id="windows-logo">
-                    [1] Windows and the Windows logo are registered trademarks
-                    of the Microsoft Corporation.
+                    [1] Windows and the Windows logo are registered trademarks of the
+                    Microsoft Corporation.
                 </Typography>
                 <Typography variant="caption" id="mac-logo">
                     [2] macOS and the Apple logo are trademarks of Apple Inc.,
                     registered in the U.S. and other countries and regions.
                 </Typography>
                 <Typography variant="caption" id="linux-logo">
-                    [3] Linux is the registered trademark of Linus Torvalds in
-                    the U.S. and other countries. Tux is the copyright of Larry
-                    Ewing lewing@isc.tamu.edu.
+                    [3] Linux is the registered trademark of Linus Torvalds in the U.S.
+                    and other countries. Tux is the copyright of Larry Ewing
+                    lewing@isc.tamu.edu.
                 </Typography>
             </Stack>
         </Stack>
@@ -366,8 +358,8 @@ const AutoWhoVideo = () => {
                 />
             </Stack>
             <Typography variant="caption" id="auto-who-video-description">
-                The Prism Overlay automatically typing /who to show all players
-                and displaying their stats.
+                The Prism Overlay automatically typing /who to show all players and
+                displaying their stats.
             </Typography>
         </Stack>
     );

@@ -167,17 +167,14 @@ export const getWrappedQueryOptions = ({
         queryKey: ["wrapped", uuid, year, timezone],
         queryFn: async (): Promise<WrappedData> => {
             if (!isNormalizedUUID(uuid)) {
-                captureMessage(
-                    "Failed to get wrapped: uuid is not normalized",
-                    {
-                        level: "error",
-                        extra: {
-                            uuid,
-                            year,
-                            timezone,
-                        },
+                captureMessage("Failed to get wrapped: uuid is not normalized", {
+                    level: "error",
+                    extra: {
+                        uuid,
+                        year,
+                        timezone,
                     },
-                );
+                });
                 throw new Error(`UUID not normalized: ${uuid}`);
             }
 
@@ -246,8 +243,7 @@ export const getWrappedQueryOptions = ({
                     .then((text) => {
                         captureException(error, {
                             extra: {
-                                message:
-                                    "Failed to get wrapped: failed to parse json",
+                                message: "Failed to get wrapped: failed to parse json",
                                 uuid,
                                 year,
                                 timezone,
@@ -295,15 +291,13 @@ export const getWrappedQueryOptions = ({
                                   apiData.sessionStats.bestSessions.mostKills,
                               ),
                               mostFinalKills: apiToSession(
-                                  apiData.sessionStats.bestSessions
-                                      .mostFinalKills,
+                                  apiData.sessionStats.bestSessions.mostFinalKills,
                               ),
                               mostWins: apiToSession(
                                   apiData.sessionStats.bestSessions.mostWins,
                               ),
                               longestSession: apiToSession(
-                                  apiData.sessionStats.bestSessions
-                                      .longestSession,
+                                  apiData.sessionStats.bestSessions.longestSession,
                               ),
                               mostWinsPerHour: apiData.sessionStats.bestSessions
                                   .mostWinsPerHour
@@ -312,8 +306,8 @@ export const getWrappedQueryOptions = ({
                                             .mostWinsPerHour,
                                     )
                                   : undefined,
-                              mostFinalsPerHour: apiData.sessionStats
-                                  .bestSessions.mostFinalsPerHour
+                              mostFinalsPerHour: apiData.sessionStats.bestSessions
+                                  .mostFinalsPerHour
                                   ? apiToSession(
                                         apiData.sessionStats.bestSessions
                                             .mostFinalsPerHour,

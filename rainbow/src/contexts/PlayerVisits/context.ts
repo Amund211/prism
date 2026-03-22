@@ -7,5 +7,6 @@ export interface PlayerVisitsContextValue {
     removePlayerVisits: (uuid: string) => void;
 }
 
-export const PlayerVisitsContext =
-    React.createContext<PlayerVisitsContextValue | null>(null);
+export const PlayerVisitsContext = React.createContext<PlayerVisitsContextValue | null>(
+    null,
+);

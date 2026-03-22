@@ -17,10 +17,7 @@ export const KnownAliasesProvider: React.FC<{
         useLocalStorage(localStorageKey);
     const knownAliases = parseStoredAliases(storedKnownAliases);
 
-    const addKnownAliasAndPersist = (alias: {
-        uuid: string;
-        username: string;
-    }) => {
+    const addKnownAliasAndPersist = (alias: { uuid: string; username: string }) => {
         if (!isNormalizedUUID(alias.uuid)) {
             throw new Error(`UUID not normalized: ${alias.uuid}`);
         }

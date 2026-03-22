@@ -37,18 +37,15 @@ export const getHistoryQueryOptions = ({
         queryKey: ["history", uuid, startISOString, endISOString, limit],
         queryFn: async (): Promise<History> => {
             if (!isNormalizedUUID(uuid)) {
-                captureMessage(
-                    "Failed to get history: uuid is not normalized",
-                    {
-                        level: "error",
-                        extra: {
-                            uuid,
-                            start: startISOString,
-                            end: endISOString,
-                            limit,
-                        },
+                captureMessage("Failed to get history: uuid is not normalized", {
+                    level: "error",
+                    extra: {
+                        uuid,
+                        start: startISOString,
+                        end: endISOString,
+                        limit,
                     },
-                );
+                });
                 throw new Error(`UUID not normalized: ${uuid}`);
             }
 
@@ -118,39 +115,36 @@ export const getHistoryQueryOptions = ({
                 );
             }
 
-            const apiHistory = (await response
-                .json()
-                .catch((error: unknown) => {
-                    response
-                        .text()
-                        .then((text) => {
-                            captureException(error, {
-                                extra: {
-                                    message:
-                                        "Failed to get history: failed to parse json",
-                                    uuid,
-                                    start: startISOString,
-                                    end: endISOString,
-                                    limit,
-                                    text,
-                                },
-                            });
-                        })
-                        .catch((textError: unknown) => {
-                            captureException(textError, {
-                                extra: {
-                                    message:
-                                        "Failed to get history: failed to get response text while handling json parse error",
-                                    uuid,
-                                    start: startISOString,
-                                    end: endISOString,
-                                    limit,
-                                    jsonParseError: error,
-                                },
-                            });
+            const apiHistory = (await response.json().catch((error: unknown) => {
+                response
+                    .text()
+                    .then((text) => {
+                        captureException(error, {
+                            extra: {
+                                message: "Failed to get history: failed to parse json",
+                                uuid,
+                                start: startISOString,
+                                end: endISOString,
+                                limit,
+                                text,
+                            },
                         });
-                    throw error;
-                })) as APIHistory;
+                    })
+                    .catch((textError: unknown) => {
+                        captureException(textError, {
+                            extra: {
+                                message:
+                                    "Failed to get history: failed to get response text while handling json parse error",
+                                uuid,
+                                start: startISOString,
+                                end: endISOString,
+                                limit,
+                                jsonParseError: error,
+                            },
+                        });
+                    });
+                throw error;
+            })) as APIHistory;
 
             return apiHistory.map(apiToPlayerDataPIT);
         },

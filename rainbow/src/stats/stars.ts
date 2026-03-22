@@ -8,10 +8,7 @@ const LEVEL_COST = 5000;
 const EASY_LEVEL_COSTS = { 1: 500, 2: 1000, 3: 2000, 4: 3500 };
 
 // The exp required to level up past the easy levels
-const EASY_EXP = Object.values(EASY_LEVEL_COSTS).reduce(
-    (acc, cost) => acc + cost,
-    0,
-);
+const EASY_EXP = Object.values(EASY_LEVEL_COSTS).reduce((acc, cost) => acc + cost, 0);
 
 // The amount of easy levels
 const EASY_LEVELS = Object.keys(EASY_LEVEL_COSTS).length;
@@ -49,8 +46,7 @@ export const bedwarsLevelFromExp = (exp: number): number => {
     // The cost of the next level, fallback to LEVEL_COST if it is not an easy level
     let nextLevelCost = LEVEL_COST;
     if (nextLevel in EASY_LEVEL_COSTS) {
-        nextLevelCost =
-            EASY_LEVEL_COSTS[nextLevel as keyof typeof EASY_LEVEL_COSTS];
+        nextLevelCost = EASY_LEVEL_COSTS[nextLevel as keyof typeof EASY_LEVEL_COSTS];
     }
 
     return levels + exp / nextLevelCost;

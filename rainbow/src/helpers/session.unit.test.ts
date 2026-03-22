@@ -17,10 +17,7 @@ const makeStatsPIT = (gamesPlayed: number): StatsPIT => ({
     bedsBroken: 0,
     bedsLost: 0,
 });
-const makePlayerDataPIT = (
-    gamesPlayed: number,
-    experience: number,
-): PlayerDataPIT => ({
+const makePlayerDataPIT = (gamesPlayed: number, experience: number): PlayerDataPIT => ({
     uuid: playerUUID,
     queriedAt: new Date(1_700_000_000_000 + gamesPlayed * 60_000),
     experience,
@@ -103,10 +100,7 @@ describe("addExtrapolatedSessions", () => {
         {
             name: "no sessions",
             input: [],
-            history: [
-                makePlayerDataPIT(10, 11_000),
-                makePlayerDataPIT(12, 12_000),
-            ],
+            history: [makePlayerDataPIT(10, 11_000), makePlayerDataPIT(12, 12_000)],
             expected: [
                 {
                     start: makePlayerDataPIT(10, 11_000),
@@ -126,10 +120,7 @@ describe("addExtrapolatedSessions", () => {
                     consecutive: false,
                 },
             ],
-            history: [
-                makePlayerDataPIT(10, 11_000),
-                makePlayerDataPIT(12, 12_000),
-            ],
+            history: [makePlayerDataPIT(10, 11_000), makePlayerDataPIT(12, 12_000)],
             expected: [
                 {
                     start: makePlayerDataPIT(10, 11_000),
@@ -149,10 +140,7 @@ describe("addExtrapolatedSessions", () => {
                     consecutive: true,
                 },
             ],
-            history: [
-                makePlayerDataPIT(8, 9_000),
-                makePlayerDataPIT(11, 12_000),
-            ],
+            history: [makePlayerDataPIT(8, 9_000), makePlayerDataPIT(11, 12_000)],
             expected: [
                 {
                     start: makePlayerDataPIT(8, 9_000),
@@ -178,10 +166,7 @@ describe("addExtrapolatedSessions", () => {
                     consecutive: true,
                 },
             ],
-            history: [
-                makePlayerDataPIT(10, 11_000),
-                makePlayerDataPIT(16, 21_000),
-            ],
+            history: [makePlayerDataPIT(10, 11_000), makePlayerDataPIT(16, 21_000)],
             expected: [
                 {
                     start: makePlayerDataPIT(10, 11_000),
@@ -207,10 +192,7 @@ describe("addExtrapolatedSessions", () => {
                     consecutive: true,
                 },
             ],
-            history: [
-                makePlayerDataPIT(8, 9_000),
-                makePlayerDataPIT(16, 21_000),
-            ],
+            history: [makePlayerDataPIT(8, 9_000), makePlayerDataPIT(16, 21_000)],
             expected: [
                 {
                     start: makePlayerDataPIT(8, 9_000),
@@ -254,10 +236,7 @@ describe("addExtrapolatedSessions", () => {
                     consecutive: true,
                 },
             ],
-            history: [
-                makePlayerDataPIT(8, 9_000),
-                makePlayerDataPIT(16, 21_000),
-            ],
+            history: [makePlayerDataPIT(8, 9_000), makePlayerDataPIT(16, 21_000)],
             expected: [
                 {
                     start: makePlayerDataPIT(8, 9_000),

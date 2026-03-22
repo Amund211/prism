@@ -80,9 +80,9 @@ describe("parse + stringify round trip", () => {
 
     for (const c of cases) {
         test(c.name, () => {
-            expect(
-                parseStoredAliases(stringifyKnownAliases(c.aliases)),
-            ).toStrictEqual(c.aliases);
+            expect(parseStoredAliases(stringifyKnownAliases(c.aliases))).toStrictEqual(
+                c.aliases,
+            );
         });
     }
 });

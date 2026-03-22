@@ -29,20 +29,13 @@ export const getFullStatLabel = (stat: StatKey, capitalize = false): string => {
         case "kdr":
             return capitalize ? "Kill/death ratio" : "kill/death ratio";
         case "fkdr":
-            return capitalize
-                ? "Final kill/death ratio"
-                : "final kill/death ratio";
+            return capitalize ? "Final kill/death ratio" : "final kill/death ratio";
         case "index":
-            return capitalize
-                ? "Index (FKDR^2 * Stars)"
-                : "index (FKDR^2 * stars)";
+            return capitalize ? "Index (FKDR^2 * Stars)" : "index (FKDR^2 * stars)";
     }
 };
 
-export const getShortStatLabel = (
-    stat: StatKey,
-    capitalize = false,
-): string => {
+export const getShortStatLabel = (stat: StatKey, capitalize = false): string => {
     switch (stat) {
         case "experience":
             return capitalize ? "EXP" : "EXP";
@@ -77,10 +70,7 @@ export const getShortStatLabel = (
     }
 };
 
-export const getGamemodeLabel = (
-    gamemode: GamemodeKey,
-    capitalize = false,
-): string => {
+export const getGamemodeLabel = (gamemode: GamemodeKey, capitalize = false): string => {
     switch (gamemode) {
         case "overall":
             return capitalize ? "Total" : "total";
@@ -95,10 +85,7 @@ export const getGamemodeLabel = (
     }
 };
 
-export const getVariantLabel = (
-    variant: VariantKey,
-    capitalize = false,
-): string => {
+export const getVariantLabel = (variant: VariantKey, capitalize = false): string => {
     switch (variant) {
         case "session":
             // TODO: Show daily/weekly/etc?
