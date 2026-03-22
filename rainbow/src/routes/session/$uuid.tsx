@@ -502,7 +502,9 @@ const Sessions: React.FC<SessionsProps> = ({
                                                 return formattedNumber;
                                             }
 
-                                            return value.toLocaleString(/*TODO: format based on stat type*/);
+                                            return value.toLocaleString(
+                                                /*TODO: format based on stat type*/
+                                            );
                                         };
 
                                         const textColor: TypographyOwnProps["color"] =
