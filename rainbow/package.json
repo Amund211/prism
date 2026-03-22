@@ -1,8 +1,11 @@
 {
     "name": "rainbow",
-    "private": true,
     "version": "0.0.0",
+    "private": true,
     "type": "module",
+    "imports": {
+        "#*": "./src/*"
+    },
     "scripts": {
         "dev:staging": "vite --mode proxy-staging",
         "dev:production": "vite --mode proxy-production",
@@ -26,9 +29,6 @@
         "preview": "vite preview",
         "knip": "knip",
         "knip:fix": "knip --fix"
-    },
-    "imports": {
-        "#*": "./src/*"
     },
     "dependencies": {
         "@emotion/react": "^11.14.0",
