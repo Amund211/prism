@@ -3,6 +3,7 @@ import { USERS } from "#mocks/data.ts";
 import { mswTest } from "#test/msw-test.ts";
 import { stringifyPlayerVisits } from "#contexts/PlayerVisits/helpers.ts";
 import { renderAppRoute } from "#test/render.tsx";
+import { userEvent } from "vitest/browser";
 
 /**
  * Render the real app route tree navigated to a specific URL.
@@ -13,7 +14,9 @@ describe("Home page", () => {
     mswTest("renders player search input", async () => {
         const { screen } = await renderAppRoute("/");
 
-        await expect.element(screen.getByRole("combobox")).toBeInTheDocument();
+        await expect
+            .element(screen.getByRole("combobox", { name: "Search players" }))
+            .toBeInTheDocument();
     });
 
     mswTest("contains meta description about Prism Overlay", async () => {
@@ -35,6 +38,30 @@ describe("Home page", () => {
                     'link[href="https://prismoverlay.com"]',
                 );
             })
+            .toBeInTheDocument();
+    });
+
+    mswTest("search brings you to session page", async () => {
+        const { screen } = await renderAppRoute("/");
+
+        const searchInput = screen.getByRole("combobox", {
+            name: "Search players",
+        });
+        await expect.element(searchInput).toBeInTheDocument();
+
+        await searchInput.fill(USERS.player1.username);
+        await userEvent.keyboard("{Enter}");
+
+        await expect
+            .poll(() => window.location.pathname)
+            .toBe(`/session/${USERS.player1.uuid}`);
+
+        await expect
+            .element(
+                screen.getByRole("heading", {
+                    name: `${USERS.player1.username}'s session stats`,
+                }),
+            )
             .toBeInTheDocument();
     });
 

@@ -1,6 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
-import { findUserByUUID } from "./data.ts";
+import { findUserByUsername, findUserByUUID } from "./data.ts";
 
 const flashlightEndpoint = (endpoint: string) => {
     if (endpoint.startsWith("/")) {
@@ -31,6 +31,30 @@ export const handlers = [
                 {
                     success: false,
                     uuid,
+                    cause: "not found",
+                },
+                { status: 404 },
+            );
+        }
+
+        return HttpResponse.json({
+            success: true,
+            username: user.username,
+            uuid: user.uuid,
+        });
+    }),
+    http.get(flashlightEndpoint("v1/account/username/:username"), (req) => {
+        const username = req.params.username;
+        if (typeof username !== "string" || username.length === 0) {
+            throw new Error("Invalid username parameter");
+        }
+
+        const user = findUserByUsername(username);
+        if (user === null) {
+            return HttpResponse.json(
+                {
+                    success: false,
+                    username,
                     cause: "not found",
                 },
                 { status: 404 },

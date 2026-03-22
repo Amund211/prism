@@ -41,3 +41,12 @@ export const findUserByUUID = (uuid: string): User | null => {
     }
     return null;
 };
+
+export const findUserByUsername = (username: string): User | null => {
+    for (const user of Object.values(USERS)) {
+        if (user.username.toLowerCase() === username.toLowerCase()) {
+            return user;
+        }
+    }
+    return null;
+};
