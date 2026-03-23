@@ -1798,6 +1798,12 @@ function RouteComponent() {
     const [exportApi, setExportApi] = React.useState<{
         download: () => Promise<void>;
     } | null>(null);
+    const handleExportReady = React.useCallback(
+        (api: { download: () => Promise<void> }) => {
+            setExportApi(api);
+        },
+        [],
+    );
 
     // Register visits for player on page load
     const [initialUUID] = React.useState(uuid);
@@ -1873,9 +1879,7 @@ function RouteComponent() {
                 <WrappedStatsContent wrappedData={wrappedData} isLoading={isLoading} />
                 {wrappedData?.yearStats && username && (
                     <ExportImageMount
-                        onReady={(api) => {
-                            setExportApi(api);
-                        }}
+                        onReady={handleExportReady}
                         filename={`${username}-${year.toString()}-wrapped.png`}
                     >
                         <ExportStatsCard
