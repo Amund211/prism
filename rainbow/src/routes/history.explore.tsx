@@ -1,6 +1,6 @@
 import { createFileRoute, createLink, Navigate } from "@tanstack/react-router";
 import { getHistoryQueryOptions } from "#queries/history.ts";
-import { getUsernameQueryOptions } from "#queries/username.ts";
+import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
 import { HistoryChart, HistoryChartTitle } from "#charts/history/chart.tsx";
 import { UserMultiSelect } from "#components/UserSearch.tsx";
 import {
@@ -107,6 +107,7 @@ function Index() {
     const uuids = normalizeUUIDsSkippingInvalid(rawUUIDs);
     const navigate = Route.useNavigate();
     const { visitPlayer } = usePlayerVisits();
+    const uuidToUsername = useUUIDToUsername(uuids);
 
     // Register visits for all players on page load
     const [initialUUIDs] = React.useState(uuids);
@@ -216,14 +217,25 @@ function Index() {
 
     const endOfToday = endOfDay(now);
     const sessionPageEndDate = end.getTime() > endOfToday.getTime() ? endOfToday : end;
+    const sortedUUIDs = uuids.toSorted();
+    const sortedPlayerNames = sortedUUIDs
+        .map((uuid) => uuidToUsername[uuid])
+        .filter((name) => name !== undefined);
+    const descriptionSuffix =
+        " See how you stack up against your friends and rivals. Chart any combination of statistic (FKDR, wins, final kills, and more), players, gamemodes, and session/overall stats.";
+    const description =
+        sortedPlayerNames.length === 0
+            ? `Compare the stats of multiple players in Hypixel Bedwars.${descriptionSuffix}`
+            : `Compare the stats of ${sortedPlayerNames.join(", ")} in Hypixel Bedwars.${descriptionSuffix}`;
+    const canonicalHref =
+        sortedUUIDs.length === 0
+            ? "https://prismoverlay.com/history/explore"
+            : `https://prismoverlay.com/history/explore?uuids=${encodeURIComponent(JSON.stringify(sortedUUIDs))}`;
 
     return (
         <Stack gap={1} height="100%">
-            <meta
-                name="description"
-                content="Compare the stats of multiple players in Hypixel Bedwars. See how you stack up against your friends and rivals. Chart any combination of statistic (FKDR, wins, final kills, and more), players, gamemodes, and session/overall stats."
-            />
-            <link rel="canonical" href="https://prismoverlay.com/history/explore" />
+            <meta name="description" content={description} />
+            <link rel="canonical" href={canonicalHref} />
             <UserMultiSelect
                 uuids={uuids}
                 onSubmit={(newUUIDs) => {

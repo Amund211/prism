@@ -184,10 +184,36 @@ describe("History Explore page", () => {
         await expect
             .poll(() => {
                 return document.querySelector(
-                    'link[href="https://prismoverlay.com/history/explore"]',
+                    `link[href="https://prismoverlay.com/history/explore?uuids=${encodeURIComponent(JSON.stringify([USERS.player1.uuid]))}"]`,
                 );
             })
             .toBeInTheDocument();
+    });
+
+    describe("canonical link sorts uuids", () => {
+        for (const uuids of [
+            [USERS.player1.uuid, USERS.player2.uuid],
+            [USERS.player2.uuid, USERS.player1.uuid],
+        ]) {
+            mswTest(`uuids=${uuids.join(", ")}`, async () => {
+                const url = `/history/explore?uuids=${encodeURIComponent(JSON.stringify(uuids))}`;
+
+                await renderAppRoute(url);
+
+                await expect
+                    .poll(() => {
+                        return document.querySelector(
+                            `link[href="https://prismoverlay.com/history/explore?uuids=${encodeURIComponent(
+                                JSON.stringify([
+                                    USERS.player1.uuid,
+                                    USERS.player2.uuid,
+                                ]),
+                            )}"]`,
+                        );
+                    })
+                    .toBeInTheDocument();
+            });
+        }
     });
 
     mswTest("Today chip is highlighted when date range matches today", async () => {
