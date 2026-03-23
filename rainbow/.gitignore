@@ -28,5 +28,7 @@ dist-ssr
 # Sentry Config File
 .env.sentry-build-plugin
 
-# vitest coverage
+# vitest artifacts
 /coverage
+/.vitest-attachments
+**/__screenshots__
