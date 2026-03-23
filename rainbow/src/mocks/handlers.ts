@@ -1,6 +1,14 @@
 import { http, HttpResponse } from "msw";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
-import { findUserByUsername, findUserByUUID } from "./data.ts";
+import type { APIPlayerDataPIT } from "#queries/playerdata.ts";
+import type { APISession } from "#queries/sessions.ts";
+import {
+    findUserByUsername,
+    findUserByUUID,
+    makePlayerDataPIT,
+    makeSession,
+    makeWrappedResponse,
+} from "./data.ts";
 
 const flashlightEndpoint = (endpoint: string) => {
     if (endpoint.startsWith("/")) {
@@ -67,7 +75,70 @@ export const handlers = [
             uuid: user.uuid,
         });
     }),
-    http.get("https://api.mineatar.io/head/:uuid", (req) => {
+    http.post(flashlightEndpoint("v1/history"), async ({ request }) => {
+        const body = (await request.json()) as {
+            uuid: string;
+            start: string;
+            end: string;
+            limit: number;
+        };
+        validateUUID(body.uuid);
+
+        const startDate = new Date(body.start);
+        const endDate = new Date(body.end);
+
+        if (body.limit <= 2) {
+            // For limit=2: return start and end only
+            const history: APIPlayerDataPIT[] = [
+                makePlayerDataPIT(body.uuid, startDate.toISOString(), 1),
+                makePlayerDataPIT(body.uuid, endDate.toISOString(), 3),
+            ].slice(0, body.limit);
+            return HttpResponse.json(history);
+        }
+
+        const midDate = new Date((startDate.getTime() + endDate.getTime()) / 2);
+
+        const history: APIPlayerDataPIT[] = [
+            makePlayerDataPIT(body.uuid, startDate.toISOString(), 1),
+            makePlayerDataPIT(body.uuid, midDate.toISOString(), 2),
+            makePlayerDataPIT(body.uuid, endDate.toISOString(), 3),
+        ].slice(0, body.limit);
+
+        return HttpResponse.json(history);
+    }),
+    http.post(flashlightEndpoint("v1/sessions"), async ({ request }) => {
+        const body = (await request.json()) as {
+            uuid: string;
+            start: string;
+            end: string;
+        };
+        validateUUID(body.uuid);
+
+        const startDate = new Date(body.start);
+        const endDate = new Date(body.end);
+        const midDate = new Date((startDate.getTime() + endDate.getTime()) / 2);
+
+        const sessions: APISession[] = [
+            makeSession(body.uuid, startDate.toISOString(), midDate.toISOString()),
+            makeSession(body.uuid, midDate.toISOString(), endDate.toISOString()),
+        ];
+
+        return HttpResponse.json(sessions);
+    }),
+    http.get(flashlightEndpoint("v1/wrapped/:uuid/:year"), (req) => {
+        const uuid = validateUUID(req.params.uuid);
+        const yearParam = req.params.year;
+        if (typeof yearParam !== "string") {
+            throw new Error("Invalid year parameter");
+        }
+        const year = parseInt(yearParam, 10);
+        if (!Number.isFinite(year) || year < 2000 || year > 3000) {
+            throw new Error("Invalid year parameter");
+        }
+
+        return HttpResponse.json(makeWrappedResponse(uuid, year));
+    }),
+    http.get("https://api.mineatar.io/:variant/:uuid", (req) => {
         validateUUID(req.params.uuid);
 
         // Placeholder image
