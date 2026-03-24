@@ -7,7 +7,7 @@ export const mswTest = testBase.extend({
         // eslint-disable-next-line no-empty-pattern
         async ({}, use) => {
             // Start the worker before the test.
-            await worker.start({ onUnhandledRequest: "error" });
+            await worker.start({ onUnhandledRequest: "error", quiet: true });
 
             // Expose the worker object on the test's context.
             await use(worker);
