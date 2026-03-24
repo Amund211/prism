@@ -20,6 +20,7 @@ function useOffscreenHost() {
             pointerEvents: "none",
             zIndex: "-1",
         });
+        host.setAttribute("aria-hidden", "true");
         document.body.appendChild(host);
         return () => void document.body.removeChild(host);
     }, [host]);
