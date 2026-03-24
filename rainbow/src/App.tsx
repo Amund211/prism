@@ -1,23 +1,17 @@
 import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
-import { RouterProvider, createRouter } from "@tanstack/react-router";
-import { maxAge, persister, queryClient as appQueryClient } from "#queryClient.ts";
-import { routeTree } from "./routeTree.gen.ts";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { RouterProvider } from "@tanstack/react-router";
+import { maxAge } from "#queryClient.ts";
+import {
+    PersistQueryClientProvider,
+    type Persister,
+} from "@tanstack/react-query-persist-client";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { CurrentUserProvider } from "#contexts/CurrentUser/provider.tsx";
 import { PlayerVisitsProvider } from "#contexts/PlayerVisits/provider.tsx";
 import { KnownAliasesProvider } from "#contexts/KnownAliases/provider.tsx";
-
-// Create a new router instance
-const appRouter = createRouter({ routeTree, defaultPreload: "intent" });
-
-// Register the router instance for type safety
-declare module "@tanstack/react-router" {
-    interface Register {
-        router: typeof appRouter;
-    }
-}
+import type { AppRouter } from "#createRouter.ts";
+import type { QueryClient } from "@tanstack/react-query";
 
 const theme = createTheme({
     colorSchemes: {
@@ -26,11 +20,12 @@ const theme = createTheme({
 });
 
 interface AppProps {
-    router?: typeof appRouter;
-    queryClient?: typeof appQueryClient;
+    router: AppRouter;
+    queryClient: QueryClient;
+    persister: Persister;
 }
 
-function App({ router = appRouter, queryClient = appQueryClient }: AppProps) {
+function App({ router, queryClient, persister }: AppProps) {
     return (
         <PersistQueryClientProvider
             client={queryClient}

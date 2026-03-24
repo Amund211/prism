@@ -1,5 +1,6 @@
 import { Layout } from "#components/Layout.tsx";
-import { createRootRoute, Outlet } from "@tanstack/react-router";
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import type { RouterContext } from "#routerContext.ts";
 import React, { Suspense } from "react";
 
 const TanStackRouterDevtools = import.meta.env.PROD
@@ -34,6 +35,6 @@ const RouteComponent: React.FC = () => {
     );
 };
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<RouterContext>()({
     component: RouteComponent,
 });

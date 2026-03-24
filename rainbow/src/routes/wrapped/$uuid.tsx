@@ -1,4 +1,3 @@
-import { queryClient } from "#queryClient.ts";
 import { getUsernameQueryOptions } from "#queries/username.ts";
 import { getWrappedQueryOptions, type WrappedData } from "#queries/wrapped.ts";
 import { type Session } from "#queries/sessions.ts";
@@ -59,7 +58,11 @@ export const Route = createFileRoute("/wrapped/$uuid")({
     loaderDeps: ({ search: { year } }) => {
         return { year };
     },
-    loader: ({ params: { uuid: rawUUID }, deps: { year } }) => {
+    loader: ({
+        params: { uuid: rawUUID },
+        deps: { year },
+        context: { queryClient },
+    }) => {
         const uuid = normalizeUUID(rawUUID);
         if (!uuid) return;
 

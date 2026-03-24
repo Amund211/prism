@@ -7,17 +7,19 @@ import { QueryClient } from "@tanstack/react-query";
 
 export const maxAge = 1000 * 60 * 60 * 24 * 21; // 21 days
 
-export const queryClient = new QueryClient({
-    defaultOptions: {
-        queries: {
-            gcTime: maxAge,
+export function createQueryClient() {
+    return new QueryClient({
+        defaultOptions: {
+            queries: {
+                gcTime: maxAge,
+            },
         },
-    },
-});
+    });
+}
 
 // From: https://tanstack.com/query/latest/docs/framework/react/plugins/persistQueryClient
 // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
-function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery") {
+export function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery") {
     return {
         persistClient: async (client: PersistedClient) => {
             await set(idbValidKey, client);
@@ -30,5 +32,3 @@ function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery") {
         },
     } satisfies Persister;
 }
-
-export const persister = createIDBPersister();

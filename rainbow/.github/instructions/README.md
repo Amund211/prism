@@ -186,7 +186,7 @@ The project uses `#` as an import alias for the `src/` directory:
 
 ```typescript
 import { AppLayout } from "#components/Layouts";
-import { queryClient } from "#queryClient.ts";
+import { createQueryClient } from "#queryClient.ts";
 ```
 
 ### Environment Configuration

@@ -1,8 +1,8 @@
 import { render } from "vitest-browser-react";
 
-import { createRouter } from "@tanstack/react-router";
 import { QueryClient } from "@tanstack/react-query";
-import { routeTree } from "../routeTree.gen.ts";
+import { createAppRouter } from "#createRouter.ts";
+import { noopPersister } from "#test/persister.ts";
 import App from "#App.tsx";
 
 function createQueryClient() {
@@ -18,13 +18,12 @@ function createQueryClient() {
  */
 export async function renderAppRoute(initialEntry: string) {
     const queryClient = createQueryClient();
-
-    // Create a new isolated router tied to the browser history
-    // NOTE: Not sure if this matters, or if we could just use the real router
-    const router = createRouter({ routeTree });
+    const router = createAppRouter(queryClient);
 
     window.history.pushState({}, "", initialEntry);
 
-    const screen = await render(<App router={router} queryClient={queryClient} />);
+    const screen = await render(
+        <App router={router} queryClient={queryClient} persister={noopPersister} />,
+    );
     return { screen, queryClient, router };
 }

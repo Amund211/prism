@@ -19,7 +19,13 @@ setUser({
     id: userId,
 });
 
+import { createQueryClient, createIDBPersister } from "#queryClient.ts";
+import { createAppRouter } from "#createRouter.ts";
 import App from "./App.tsx";
+
+const queryClient = createQueryClient();
+const persister = createIDBPersister();
+const router = createAppRouter(queryClient);
 
 const root = document.getElementById("root");
 
@@ -46,6 +52,6 @@ createRoot(root, {
     onRecoverableError: reactErrorHandler(),
 }).render(
     <StrictMode>
-        <App />
+        <App router={router} queryClient={queryClient} persister={persister} />
     </StrictMode>,
 );

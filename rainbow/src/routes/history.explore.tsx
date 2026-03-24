@@ -1,5 +1,4 @@
 import { createFileRoute, createLink, Navigate } from "@tanstack/react-router";
-import { queryClient } from "#queryClient.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import { getUsernameQueryOptions } from "#queries/username.ts";
 import { HistoryChart, HistoryChartTitle } from "#charts/history/chart.tsx";
@@ -60,7 +59,10 @@ export const Route = createFileRoute("/history/explore")({
         limit,
     }),
 
-    loader: ({ deps: { uuids: rawUUIDs, start, end, limit } }) => {
+    loader: ({
+        deps: { uuids: rawUUIDs, start, end, limit },
+        context: { queryClient },
+    }) => {
         const uuids = normalizeUUIDsSkippingInvalid(rawUUIDs);
         // TODO: Rate limiting
         Promise.all([
