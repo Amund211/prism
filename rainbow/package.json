@@ -22,6 +22,8 @@
         "test": "vitest run",
         "test:unit": "vitest run --project unit",
         "test:ui": "vitest run --project ui --browser.headless",
+        "test:ui:chromium": "vitest run --project ui --browser.headless --browser=chromium",
+        "test:ui:webkit": "vitest run --project ui --browser.headless --browser=webkit",
         "test:watch": "vitest",
         "test:watch:unit": "vitest --project unit",
         "test:watch:ui": "vitest --project ui",

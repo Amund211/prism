@@ -10,7 +10,7 @@ on:
     pull_request:
 
 jobs:
-    test:
+    lint-and-build:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v6
@@ -27,11 +27,8 @@ jobs:
             - name: Lint
               run: npm run lint:check
 
-            - name: Install Playwright Browsers
-              run: npx playwright install --with-deps
-
-            - name: Test
-              run: npm test
+            - name: Unit tests
+              run: npm run test:unit
 
             - name: Build
               env:
@@ -47,3 +44,28 @@ jobs:
                       exit 1
                   fi
                   echo "Route tree is up to date ✓"
+
+    ui-tests:
+        runs-on: ubuntu-latest
+        container:
+            # https://mcr.microsoft.com/en-us/artifact/mar/playwright/tags
+            image: mcr.microsoft.com/playwright:v1.58.2-noble
+            options: --ipc=host
+        strategy:
+            matrix:
+                browser: [chromium, webkit]
+            fail-fast: false
+        steps:
+            - uses: actions/checkout@v6
+            - name: Set up Node
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: npm
+                  cache-dependency-path: package-lock.json
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Test
+              run: npm run test:ui:${{ matrix.browser }}
