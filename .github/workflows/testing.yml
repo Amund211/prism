@@ -11,7 +11,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-15]
+        include:
+          - os: windows-latest
+            OS_NAME: windows
+            RESULT_EXTENSION: .exe
+            PYINSTALLER_ARGS: --hide-console=minimize-early --onefile
+            INSTALL_CA_CERT: certutil.exe -addstore root local-ca.pem
+          - os: ubuntu-latest
+            OS_NAME: linux
+            RESULT_EXTENSION: ""
+            PYINSTALLER_ARGS: --onefile
+            INSTALL_CA_CERT: sudo cp local-ca.pem /usr/local/share/ca-certificates/local-ca.crt; sudo update-ca-certificates
+          - os: macOS-15
+            OS_NAME: mac
+            # Upload the built .dmg app-installer
+            RESULT_EXTENSION: .dmg
+            # Target universal2 so that the built binary can run on both intel and apple silicon
+            # Pass --windowed to build a .app bundle
+            # Use --onedir instead of --onefile to avoid repeated security scans on startup
+            PYINSTALLER_ARGS: --target-architecture universal2 --windowed --onedir
+            INSTALL_CA_CERT: sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain local-ca.pem
     defaults:
       run:
         shell: bash  # For `source`
@@ -21,36 +40,8 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version-file: .python-version
-
       - name: Install uv
         uses: astral-sh/setup-uv@v7
-
-      - name: OS specific setup (windows)
-        if: startsWith(matrix.os, 'windows')
-        run: |
-          echo 'OS_NAME=windows' >> $GITHUB_ENV
-          echo 'RESULT_EXTENSION=.exe' >> $GITHUB_ENV
-          echo 'PYINSTALLER_ARGS=--hide-console=minimize-early --onefile' >> $GITHUB_ENV
-          echo 'INSTALL_CA_CERT=certutil.exe -addstore root local-ca.pem' >> $GITHUB_ENV
-      - name: OS specific setup (linux)
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          echo 'OS_NAME=linux' >> $GITHUB_ENV
-          echo 'RESULT_EXTENSION=' >> $GITHUB_ENV
-          echo 'PYINSTALLER_ARGS=--onefile' >> $GITHUB_ENV
-          echo 'INSTALL_CA_CERT=sudo cp local-ca.pem /usr/local/share/ca-certificates/local-ca.crt; sudo update-ca-certificates' >> $GITHUB_ENV
-      - name: OS specific setup (mac)
-        if: startsWith(matrix.os, 'macOS')
-        run: |
-          echo 'OS_NAME=mac' >> $GITHUB_ENV
-          # Upload the built .dmg app-installer
-          echo 'RESULT_EXTENSION=.dmg' >> $GITHUB_ENV
-          # Target universal2 so that the built binary can run on both intel and apple silicon
-          # Pass --windowed to build a .app bundle
-          # Use --onedir instead of --onefile to avoid repeated security scans on startup
-          echo 'PYINSTALLER_ARGS=--target-architecture universal2 --windowed --onedir' >> $GITHUB_ENV
-          echo 'INSTALL_CA_CERT=sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain local-ca.pem' >> $GITHUB_ENV
-
       - name: Install dependencies
         run: |
           uv sync
@@ -58,7 +49,7 @@ jobs:
           VERSION_STRING="$(uv run python -c 'from prism import VERSION_STRING; print(VERSION_STRING)')"
           echo "VERSION_STRING=$VERSION_STRING" >> $GITHUB_ENV
           echo "SIMPLE_NAME=prism-$VERSION_STRING" >> $GITHUB_ENV
-          echo "BUILD_RESULT_NAME=prism-$VERSION_STRING-${{ env.OS_NAME }}${{ env.RESULT_EXTENSION }}" >> $GITHUB_ENV
+          echo "BUILD_RESULT_NAME=prism-$VERSION_STRING-${{ matrix.OS_NAME }}${{ matrix.RESULT_EXTENSION }}" >> $GITHUB_ENV
 
       - name: Run typechecking
         run: |
@@ -70,7 +61,7 @@ jobs:
           uv run coverage report
 
       - name: tee | stderr
-        if: env.OS_NAME != 'windows'
+        if: matrix.OS_NAME != 'windows'
         run: |
           echo 'TEE_STDERR=| tee /dev/stderr' >> $GITHUB_ENV
 
@@ -95,7 +86,7 @@ jobs:
             ! curl --ssl-no-revoke --fail https://localhost:12345 --cacert "$certifi_ca_certs" 2>&1 ${{ env.TEE_STDERR }} | grep 'SSL certificate problem' >/dev/null 2>&1
 
             echo 'Install certs' >&2
-            ${{ env.INSTALL_CA_CERT }}
+            ${{ matrix.INSTALL_CA_CERT }}
           )
 
           # Create placeholder logfile
@@ -118,10 +109,10 @@ jobs:
       - name: Build binary with pyinstaller
         run: |
           uv run add_version_to_icon.py  # Create the icon file
-          uv run pyinstaller prism_overlay.py --noconfirm --icon=pyinstaller/who_with_version.ico --name "${{ env.SIMPLE_NAME }}" --additional-hooks-dir=pyinstaller ${{ env.PYINSTALLER_ARGS }}
+          uv run pyinstaller prism_overlay.py --noconfirm --icon=pyinstaller/who_with_version.ico --name "${{ env.SIMPLE_NAME }}" --additional-hooks-dir=pyinstaller ${{ matrix.PYINSTALLER_ARGS }}
 
       - name: Prepare to package app bundle to disk image (mac)
-        if: env.OS_NAME == 'mac'
+        if: matrix.OS_NAME == 'mac'
         run: |
           brew install imagemagick
           magick pyinstaller/who_with_version.ico pyinstaller/who_with_version.icns
@@ -132,7 +123,7 @@ jobs:
           mv "dist/${{ env.SIMPLE_NAME }}.app" "dist/app"
 
       - name: Package app bundle to disk image (mac)
-        if: env.OS_NAME == 'mac'
+        if: matrix.OS_NAME == 'mac'
         run: |
           # Workaround for https://github.com/actions/runner-images/issues/7522
           max_retries=10
@@ -161,9 +152,9 @@ jobs:
           exit 1
 
       - name: Store built binary (non-mac)
-        if: env.OS_NAME != 'mac'
+        if: matrix.OS_NAME != 'mac'
         run: |
-          mv "dist/${{ env.SIMPLE_NAME }}${{ env.RESULT_EXTENSION }}" "${{ env.BUILD_RESULT_NAME }}"
+          mv "dist/${{ env.SIMPLE_NAME }}${{ matrix.RESULT_EXTENSION }}" "${{ env.BUILD_RESULT_NAME }}"
 
       - name: Upload built binary/app .dmg
         uses: actions/upload-artifact@v7
