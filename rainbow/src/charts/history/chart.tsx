@@ -6,7 +6,6 @@ import {
     Line,
     LineChart,
     ReferenceArea,
-    ResponsiveContainer,
     Tooltip,
     XAxis,
     YAxis,
@@ -241,62 +240,64 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
     const mutableChartData = [...chartData];
 
     return (
-        <ResponsiveContainer minHeight={300} minWidth={100}>
-            <LineChart
-                data={mutableChartData}
-                syncId="history-chart"
-                syncMethod="value"
-            >
-                <XAxis
-                    type="number"
-                    domain={[start.getTime(), end.getTime()]}
-                    scale="linear"
-                    dataKey="queriedAt"
-                    tickFormatter={(time: number) => {
-                        return renderTimeShort(time, smallestTimeDenomination);
-                    }}
-                    ticks={new Array(10).fill(0).map((_, i) => {
-                        const startTime = start.getTime();
-                        const endTime = end.getTime();
-                        return startTime + ((endTime - startTime) / 9) * i;
-                    })}
-                />
-                <YAxis />
-                <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-                {renderLines({
-                    uuids,
-                    gamemodes,
-                    stats,
-                    variants,
-                    uuidToUsername,
+        <LineChart
+            data={mutableChartData}
+            responsive
+            width="100%"
+            height="100%"
+            style={{ minHeight: 300, minWidth: 100 }}
+            syncId="history-chart"
+            syncMethod="value"
+        >
+            <XAxis
+                type="number"
+                domain={[start.getTime(), end.getTime()]}
+                scale="linear"
+                dataKey="queriedAt"
+                tickFormatter={(time: number) => {
+                    return renderTimeShort(time, smallestTimeDenomination);
+                }}
+                ticks={new Array(10).fill(0).map((_, i) => {
+                    const startTime = start.getTime();
+                    const endTime = end.getTime();
+                    return startTime + ((endTime - startTime) / 9) * i;
                 })}
-                {/* Future marker */}
-                <ReferenceArea
-                    x1={currentDate.getTime()}
-                    x2={end.getTime()}
-                    stroke="#efefef"
-                    fill="#e0e0e0"
-                />
-                <Legend />
-                <Tooltip
-                    labelFormatter={(label: ReactNode) => {
-                        if (typeof label === "number") {
-                            return renderTimeFull(label);
-                        } else {
-                            assume(false, "Tooltip label is not a number", () => ({
-                                time: label,
-                                timeTypeof: typeof label,
-                            }));
-                            return label;
-                        }
-                    }}
-                    contentStyle={{
-                        backgroundColor: theme.palette.background.paper,
-                    }}
-                    itemStyle={{ color: theme.palette.text.primary }}
-                />
-            </LineChart>
-        </ResponsiveContainer>
+            />
+            <YAxis />
+            <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
+            {renderLines({
+                uuids,
+                gamemodes,
+                stats,
+                variants,
+                uuidToUsername,
+            })}
+            {/* Future marker */}
+            <ReferenceArea
+                x1={currentDate.getTime()}
+                x2={end.getTime()}
+                stroke="#efefef"
+                fill="#e0e0e0"
+            />
+            <Legend />
+            <Tooltip
+                labelFormatter={(label: ReactNode) => {
+                    if (typeof label === "number") {
+                        return renderTimeFull(label);
+                    } else {
+                        assume(false, "Tooltip label is not a number", () => ({
+                            time: label,
+                            timeTypeof: typeof label,
+                        }));
+                        return label;
+                    }
+                }}
+                contentStyle={{
+                    backgroundColor: theme.palette.background.paper,
+                }}
+                itemStyle={{ color: theme.palette.text.primary }}
+            />
+        </LineChart>
     );
 };
 
@@ -349,96 +350,98 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
     const { yMax } = useSynchronizeCharts(chartData, dataKey);
 
     return (
-        <ResponsiveContainer minHeight={50} maxHeight={50} minWidth={100}>
-            <AreaChart
-                data={mutableChartData}
-                syncId="history-chart"
-                syncMethod="value"
-            >
-                <XAxis
-                    type="number"
-                    domain={[start.getTime(), end.getTime()]}
-                    hide
-                    scale="linear"
-                    dataKey="queriedAt"
-                />
-                <YAxis type="number" domain={[0, yMax ?? "auto"]} hide scale="linear" />
+        <AreaChart
+            data={mutableChartData}
+            responsive
+            width="100%"
+            height={50}
+            style={{ minWidth: 100 }}
+            syncId="history-chart"
+            syncMethod="value"
+        >
+            <XAxis
+                type="number"
+                domain={[start.getTime(), end.getTime()]}
+                hide
+                scale="linear"
+                dataKey="queriedAt"
+            />
+            <YAxis type="number" domain={[0, yMax ?? "auto"]} hide scale="linear" />
 
-                {/* Chart outline */}
-                <ReferenceArea
-                    x1={start.getTime()}
-                    x2={end.getTime()}
-                    stroke="#efefef"
-                    fillOpacity={0}
-                />
-                {/* Chart data */}
-                <Area
-                    key={dataKey}
-                    name={contextAwareStatDisplayName(
-                        {
-                            // TODO: Display error state if missing uuid
-                            value: uuidToUsername[uuid] ?? "",
-                            shown: false,
-                        },
-                        {
-                            value: stat,
-                            shown: true,
-                        },
-                        {
-                            value: gamemode,
-                            shown: true,
-                        },
-                        {
-                            value: variant,
-                            shown: true,
-                        },
-                    )}
-                    type="monotone"
-                    dataKey={dataKey}
-                    stroke={theme.palette.primary.main}
-                    fill={theme.palette.primary.main}
-                    dot={false}
-                    connectNulls
-                />
-                {/* Future marker */}
-                <ReferenceArea
-                    x1={currentDate.getTime()}
-                    x2={end.getTime()}
-                    stroke="#efefef"
-                    fill="#e0e0e0"
-                />
+            {/* Chart outline */}
+            <ReferenceArea
+                x1={start.getTime()}
+                x2={end.getTime()}
+                stroke="#efefef"
+                fillOpacity={0}
+            />
+            {/* Chart data */}
+            <Area
+                key={dataKey}
+                name={contextAwareStatDisplayName(
+                    {
+                        // TODO: Display error state if missing uuid
+                        value: uuidToUsername[uuid] ?? "",
+                        shown: false,
+                    },
+                    {
+                        value: stat,
+                        shown: true,
+                    },
+                    {
+                        value: gamemode,
+                        shown: true,
+                    },
+                    {
+                        value: variant,
+                        shown: true,
+                    },
+                )}
+                type="monotone"
+                dataKey={dataKey}
+                stroke={theme.palette.primary.main}
+                fill={theme.palette.primary.main}
+                dot={false}
+                connectNulls
+            />
+            {/* Future marker */}
+            <ReferenceArea
+                x1={currentDate.getTime()}
+                x2={end.getTime()}
+                stroke="#efefef"
+                fill="#e0e0e0"
+            />
 
-                <Tooltip
-                    // TODO: Nicer tooltip
-                    content={({ active, payload }) => {
-                        if (!active || !payload.length) {
-                            return null;
-                        }
+            <Tooltip
+                // TODO: Nicer tooltip
+                content={({ active, payload }) => {
+                    if (!active || !payload.length) {
+                        return null;
+                    }
 
-                        const item: unknown = payload[0];
-                        if (typeof item !== "object" || item === null) {
-                            return null;
-                        }
+                    const item: unknown = payload[0];
+                    if (typeof item !== "object" || item === null) {
+                        return null;
+                    }
 
-                        if (!("value" in item)) {
-                            return null;
-                        }
+                    if (!("value" in item)) {
+                        return null;
+                    }
 
-                        const value = item.value;
-                        if (typeof value !== "number") {
-                            return null;
-                        }
+                    const value = item.value;
+                    if (typeof value !== "number") {
+                        return null;
+                    }
 
-                        // TODO: Better number formatting
-                        return value.toLocaleString();
-                    }}
-                    contentStyle={{
-                        backgroundColor: theme.palette.background.paper,
-                    }}
-                    itemStyle={{ color: theme.palette.text.primary }}
-                />
-            </AreaChart>
-        </ResponsiveContainer>
+                    // TODO: Better number formatting
+                    return value.toLocaleString();
+                }}
+                contentStyle={{
+                    backgroundColor: theme.palette.background.paper,
+                }}
+                itemStyle={{ color: theme.palette.text.primary }}
+            />
+        </AreaChart>
     );
 };
 
