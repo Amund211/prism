@@ -33,6 +33,14 @@ export default defineConfig({
                     name: "ui",
                     include: ["src/**/*.ui.test.tsx"],
                     setupFiles: ["./src/test/setup.ts"],
+
+                    // CI machines are slower and require higher timeouts
+                    testTimeout: 60_000,
+                    expect: {
+                        poll: {
+                            timeout: 10_000,
+                        },
+                    },
                     browser: {
                         enabled: true,
                         provider: playwright(),
@@ -40,6 +48,7 @@ export default defineConfig({
                         instances: USE_LOCAL_BROWSER
                             ? [
                                   { browser: "chromium" },
+                                  // { browser: "webkit" },
                                   // { browser: "firefox" },
                                   /*
                                   {
@@ -66,8 +75,10 @@ export default defineConfig({
                               ]
                             : [
                                   { browser: "chromium" },
-                                  { browser: "firefox" },
                                   { browser: "webkit" },
+                                  // Firefox does not seem to work well with msw
+                                  // https://mswjs.io/docs/limitations/
+                                  // { browser: "firefox" },
                               ],
                     },
                 },
