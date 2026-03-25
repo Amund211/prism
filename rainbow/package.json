@@ -19,7 +19,7 @@
         "eslint:write": "eslint --cache --fix .",
         "lint:check": "run-p eslint:check oxfmt:check",
         "lint:fix": "run-s oxfmt:write eslint:write",
-        "test": "vitest run",
+        "test": "vitest run --browser.headless",
         "test:unit": "vitest run --project unit",
         "test:ui": "vitest run --project ui --browser.headless",
         "test:ui:chromium": "vitest run --project ui --browser.headless --browser=chromium",
