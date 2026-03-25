@@ -49,7 +49,7 @@ jobs:
           VERSION_STRING="$(uv run python -c 'from prism import VERSION_STRING; print(VERSION_STRING)')"
           echo "VERSION_STRING=$VERSION_STRING" >> $GITHUB_ENV
           echo "SIMPLE_NAME=prism-$VERSION_STRING" >> $GITHUB_ENV
-          echo "BUILD_RESULT_NAME=prism-$VERSION_STRING-${{ matrix.OS_NAME }}${{ matrix.RESULT_EXTENSION }}" >> $GITHUB_ENV
+          echo "BUILD_RESULT_NAME=prism-$VERSION_STRING-${{ matrix.OS_NAME }}${{ matrix.RESULT_EXTENSION }}" >> $GITHUB_ENV
 
       - name: Run typechecking
         run: |
