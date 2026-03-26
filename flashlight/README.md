@@ -5,7 +5,7 @@
 Flashlight is a proxy to the Hypixel API (not associated) built as the backend for the [prism overlay](https://github.com/Amund211/prism).
 Prism is an open source stats overlay for Hypixel Bedwars.
 
-Flashlight is a Google Cloud function.
+Flashlight is a Google Cloud Cloud Run instance.
 The version of flashlight hosted by me on Google Cloud is solely intended to be the backend for prism and does not support third party traffic, which is required by the Hypixel API ToS.
 Flashlight the software project, however, is permissively licensed, and contributions, changes, use, and re-use are encouraged!
 
