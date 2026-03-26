@@ -36,7 +36,29 @@ func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc)
 				slog.String("lowCardinalityUserId", userID.LowCardinalityString()),
 			)
 
-			next(w, r.WithContext(logging.AddToContext(ctx, requestLogger)))
+			start := time.Now()
+			ctx = logging.AddToContext(ctx, requestLogger)
+
+			logging.FromContext(ctx).InfoContext(ctx, "Handling request")
+			defer func() {
+				if err := recover(); err != nil {
+					logging.FromContext(ctx).ErrorContext(
+						ctx,
+						"Panic occurred while handling request",
+						slog.Any("error", err),
+						slog.Duration("duration", time.Since(start)),
+					)
+					panic(err)
+				}
+
+				logging.FromContext(ctx).InfoContext(
+					ctx,
+					"Finished handling request",
+					slog.Duration("duration", time.Since(start)),
+				)
+			}()
+
+			next(w, r.WithContext(ctx))
 		}
 	}
 }

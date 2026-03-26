@@ -610,7 +610,7 @@ var ignoredAttrs = []string{"ip"}
 func TestRequestLoggerMiddleware(t *testing.T) {
 	t.Parallel()
 
-	run := func(request *http.Request, useMiddleware bool) []StringAttr {
+	run := func(request *http.Request) []StringAttr {
 		t.Helper()
 
 		buf := &bytes.Buffer{}
@@ -620,16 +620,28 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 			logging.FromContext(r.Context()).InfoContext(r.Context(), "test")
 		}
 
-		handler := logRequest
-		if useMiddleware {
-			handler = middleware(logRequest)
-		}
+		handler := middleware(logRequest)
 
 		w := httptest.NewRecorder()
 		handler(w, request)
 
+		lines := bytes.Split(buf.Bytes(), []byte{'\n'})
+		require.Len(t, lines, 4) // Started + done + our log (+ last newline)
+
+		var startedEntry map[string]interface{}
+		err := json.Unmarshal(lines[0], &startedEntry)
+		require.NoError(t, err)
+		require.Equal(t, "Handling request", startedEntry["msg"])
+
+		var endedEntry map[string]interface{}
+		err = json.Unmarshal(lines[2], &endedEntry)
+		require.NoError(t, err)
+		require.Equal(t, "Finished handling request", endedEntry["msg"])
+
+		require.Empty(t, lines[3])
+
 		var logEntry map[string]interface{}
-		err := json.Unmarshal(buf.Bytes(), &logEntry)
+		err = json.Unmarshal(lines[1], &logEntry)
 		require.NoError(t, err)
 		attrs := make([]StringAttr, 0)
 
@@ -675,7 +687,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 					"User-Agent": []string{"user-agent/1.0"},
 					"X-User-Id":  []string{"this-is-a-long-enough-user-id"},
 				},
-			}, true)
+			})
 
 			require.ElementsMatch(t, []StringAttr{
 				{Key: "userAgent", Value: "user-agent/1.0"},
@@ -698,7 +710,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 					"User-Agent": []string{"user-agent/1.0"},
 					"X-User-Id":  []string{"short"},
 				},
-			}, true)
+			})
 
 			require.ElementsMatch(t, []StringAttr{
 				{Key: "userAgent", Value: "user-agent/1.0"},
@@ -717,7 +729,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 			attrs := run(&http.Request{
 				URL:    requestUrl,
 				Method: "POST",
-			}, true)
+			})
 
 			require.ElementsMatch(t, []StringAttr{
 				{Key: "userAgent", Value: ""},
