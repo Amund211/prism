@@ -307,7 +307,7 @@ def fill_missing_settings(
             greatest_version = VERSION_STRING
 
     user_id = incomplete_settings.get("user_id", None)
-    if user_id is None or not isinstance(user_id, str):
+    if not isinstance(user_id, str) or len(user_id) < 3:
         settings_updated = True
         user_id = uuid.uuid4().hex
 
