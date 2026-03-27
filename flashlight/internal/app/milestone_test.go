@@ -33,9 +33,12 @@ func TestFindMilestoneAchievements(t *testing.T) {
 	ctx := t.Context()
 	playerUUID := domaintest.NewUUID(t)
 
-	getAndPersistPlayerWithoutCache := func(ctx context.Context, playerUUIDArg string) (*domain.PlayerPIT, error) {
-		require.Equal(t, playerUUID, playerUUIDArg)
-		return nil, nil
+	getAndPersistPlayerWithoutCache := func(t *testing.T) func(ctx context.Context, playerUUIDArg string) (*domain.PlayerPIT, error) {
+		return func(ctx context.Context, playerUUIDArg string) (*domain.PlayerPIT, error) {
+			t.Helper()
+			require.Equal(t, playerUUID, playerUUIDArg)
+			return nil, nil
+		}
 	}
 
 	t.Run("stars converted to experience", func(t *testing.T) {
@@ -68,7 +71,7 @@ func TestFindMilestoneAchievements(t *testing.T) {
 				},
 			},
 		}
-		findMilestones := app.BuildFindMilestoneAchievements(mockRepo, getAndPersistPlayerWithoutCache)
+		findMilestones := app.BuildFindMilestoneAchievements(mockRepo, getAndPersistPlayerWithoutCache(t))
 
 		achievements, err := findMilestones(ctx, playerUUID, domain.GamemodeOverall, domain.StatStars, starMilestones)
 		require.NoError(t, err)
@@ -119,7 +122,7 @@ func TestFindMilestoneAchievements(t *testing.T) {
 				},
 			},
 		}
-		findMilestones := app.BuildFindMilestoneAchievements(mockRepo, getAndPersistPlayerWithoutCache)
+		findMilestones := app.BuildFindMilestoneAchievements(mockRepo, getAndPersistPlayerWithoutCache(t))
 
 		achievements, err := findMilestones(ctx, playerUUID, domain.GamemodeOverall, domain.StatExperience, milestones)
 		require.NoError(t, err)
@@ -147,7 +150,7 @@ func TestFindMilestoneAchievements(t *testing.T) {
 		t.Parallel()
 
 		mockRepo := &mockMilestoneRepository{}
-		findMilestones := app.BuildFindMilestoneAchievements(mockRepo, getAndPersistPlayerWithoutCache)
+		findMilestones := app.BuildFindMilestoneAchievements(mockRepo, getAndPersistPlayerWithoutCache(t))
 
 		_, err := findMilestones(ctx, "invalid-uuid", domain.GamemodeOverall, domain.StatStars, []int64{100})
 

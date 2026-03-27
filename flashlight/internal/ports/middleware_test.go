@@ -610,7 +610,7 @@ var ignoredAttrs = []string{"ip"}
 func TestRequestLoggerMiddleware(t *testing.T) {
 	t.Parallel()
 
-	run := func(request *http.Request) []StringAttr {
+	run := func(t *testing.T, request *http.Request) []StringAttr {
 		t.Helper()
 
 		buf := &bytes.Buffer{}
@@ -680,7 +680,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 			requestUrl, err := url.Parse("http://example.com/my-path?uuid=requested-uuid")
 			require.NoError(t, err)
 
-			attrs := run(&http.Request{
+			attrs := run(t, &http.Request{
 				URL:    requestUrl,
 				Method: "GET",
 				Header: http.Header{
@@ -703,7 +703,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 			requestUrl, err := url.Parse("http://example.com/my-path")
 			require.NoError(t, err)
 
-			attrs := run(&http.Request{
+			attrs := run(t, &http.Request{
 				URL:    requestUrl,
 				Method: "GET",
 				Header: http.Header{
@@ -726,7 +726,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 			requestUrl, err := url.Parse("http://example.com/my-other-path")
 			require.NoError(t, err)
 
-			attrs := run(&http.Request{
+			attrs := run(t, &http.Request{
 				URL:    requestUrl,
 				Method: "POST",
 			})
