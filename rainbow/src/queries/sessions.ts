@@ -64,6 +64,10 @@ export const getSessionsQueryOptions = ({ uuid, start, end }: SessionsQueryOptio
                 throw new Error(`UUID not normalized: ${uuid}`);
             }
 
+            // NOTE: Work around exhaustive deps lint rule
+            const start = new Date(startISOString);
+            const end = new Date(endISOString);
+
             if (start.getTime() > end.getTime()) {
                 return [];
             }

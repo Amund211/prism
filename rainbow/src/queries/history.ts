@@ -49,6 +49,10 @@ export const getHistoryQueryOptions = ({
                 throw new Error(`UUID not normalized: ${uuid}`);
             }
 
+            // NOTE: Work around exhaustive deps lint rule
+            const start = new Date(startISOString);
+            const end = new Date(endISOString);
+
             if (start.getTime() > end.getTime()) {
                 return [];
             }
