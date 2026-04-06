@@ -75,7 +75,7 @@ func buildMetricsMiddleware(handler string) func(http.HandlerFunc) http.HandlerF
 			userAgent := r.UserAgent()
 
 			// NOTE: Potentially high cardinality label
-			userID := GetUserID(r)
+			ipHash := GetIP(r).Hash()
 
 			next(w, r)
 
@@ -83,7 +83,7 @@ func buildMetricsMiddleware(handler string) func(http.HandlerFunc) http.HandlerF
 				attribute.String("method", r.Method),
 				attribute.String("handler", handler),
 				attribute.String("user_agent", userAgent),
-				attribute.String("user_id", userID.LowCardinalityString()),
+				attribute.String("ip_hash", ipHash),
 			}
 
 			attributesOption := metric.WithAttributes(attributes...)
