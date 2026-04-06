@@ -43,24 +43,33 @@ func Report(ctx context.Context, err error, extras ...map[string]string) {
 	hub.WithScope(func(scope *sentry.Scope) {
 		meta := MetaFromContext(ctx)
 		scope.SetTags(meta.tags)
+
+		scope.SetContext("timing", map[string]interface{}{
+			"secondsSinceStart": time.Since(meta.startedAt).Seconds(),
+		})
+
+		metaExtras := make(map[string]interface{})
 		for key, value := range meta.extras {
-			scope.SetExtra(key, value)
+			metaExtras[key] = value
 		}
+		scope.SetContext("from_context", metaExtras)
+
 		if meta.userID != "" {
 			scope.SetUser(sentry.User{
 				ID: meta.userID,
 			})
 		}
-		scope.SetExtra("secondsSinceStart", time.Since(meta.startedAt).Seconds())
 
+		eventExtras := make(map[string]interface{})
 		for _, extra := range extras {
 			if extra == nil {
 				continue
 			}
 			for key, value := range extra {
-				scope.SetExtra(key, value)
+				eventExtras[key] = value
 			}
 		}
+		scope.SetContext("from_event", eventExtras)
 
 		if err == nil {
 			err = errors.New("No error provided")
