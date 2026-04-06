@@ -95,7 +95,7 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 		url += fmt.Sprintf("&key=%s", *urchinAPIKey)
 	}
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		err := fmt.Errorf("failed to create request: %w", err)
 		reporting.Report(ctx, err)
