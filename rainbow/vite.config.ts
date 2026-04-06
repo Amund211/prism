@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import babel from "@rolldown/plugin-babel";
+import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { reactClickToComponent } from "vite-plugin-react-click-to-component";
 import path from "node:path";
 import tanstackRouter from "@tanstack/router-plugin/vite";
@@ -16,10 +17,9 @@ export default defineConfig(({ mode }) => {
                 addExtensions: true,
                 autoCodeSplitting: true,
             }),
-            react({
-                babel: {
-                    plugins: ["babel-plugin-react-compiler"],
-                },
+            react(),
+            babel({
+                presets: [reactCompilerPreset()],
             }),
             (mode === "development" ||
                 mode === "proxy-staging" ||
