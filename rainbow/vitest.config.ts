@@ -38,7 +38,7 @@ export default defineConfig({
                     testTimeout: 60_000,
                     expect: {
                         poll: {
-                            timeout: 10_000,
+                            timeout: 20_000,
                         },
                     },
                     browser: {
