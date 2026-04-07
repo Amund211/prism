@@ -15,16 +15,16 @@ repos:
       hooks:
           - id: lint
             name: lint
-            entry: npm run "lint:fix"
+            entry: pnpm run "lint:fix"
             language: system
             pass_filenames: false
           - id: test
             name: Test
-            entry: npm run 'test:unit'
+            entry: pnpm run 'test:unit'
             language: system
             pass_filenames: false
           - id: typecheck
             name: Check types
-            entry: npm run tsc
+            entry: pnpm run tsc
             language: system
             pass_filenames: false

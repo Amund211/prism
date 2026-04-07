@@ -33,31 +33,31 @@ node --version  # verify version is 24+
 1. **Install dependencies** (always run first):
 
 ```bash
-npm ci
+pnpm install --frozen-lockfile
 ```
 
 2. **Type checking** (verify TypeScript compiles):
 
 ```bash
-npm run tsc
+pnpm run tsc
 ```
 
 3. **Linting** (verify code style):
 
 ```bash
-npm run lint:check
+pnpm run lint:check
 ```
 
 4. **Testing** (verify functionality):
 
 ```bash
-npm test
+pnpm test
 ```
 
 5. **Build** (verify production build):
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 ### Development Server
@@ -65,7 +65,7 @@ npm run build
 **Always use production proxy mode for development work:**
 
 ```bash
-npm run dev:production
+pnpm run dev:production
 ```
 
 This starts the server at http://localhost:5173/ with proxy to production backend.
@@ -74,31 +74,31 @@ This starts the server at http://localhost:5173/ with proxy to production backen
 
 ### Alternative Development Modes
 
-- `npm run dev` - Local development (Never use this unless absolutely necessary. This will not show any data, and will not behave like the app does in production)
-- `npm run dev:staging` - Proxy to staging backend
-- `npm run dev:production` - Proxy to production backend (recommended) Always use dev:production when possible
+- `pnpm run dev` - Local development (Never use this unless absolutely necessary. This will not show any data, and will not behave like the app does in production)
+- `pnpm run dev:staging` - Proxy to staging backend
+- `pnpm run dev:production` - Proxy to production backend (recommended) Always use dev:production when possible
 
 ## Build Commands Reference
 
 ### Core Commands (Use These Regularly)
 
-| Command              | Purpose              | Typical Duration | Critical Notes                            |
-| -------------------- | -------------------- | ---------------- | ----------------------------------------- |
-| `npm ci`             | Install dependencies | 30-60s           | Always run before other commands          |
-| `npm run lint:check` | Check code style     | 10-30s           | Must pass for CI                          |
-| `npm test`           | Run all tests        | 5-10s            | Requires Node 24+                         |
-| `npm run build`      | Production build     | 2-3 minutes      | May show Sentry warnings (safe to ignore) |
-| `npm run tsc`        | Type checking only   | 10-20s           | Faster than full build                    |
+| Command                          | Purpose              | Typical Duration | Critical Notes                            |
+| -------------------------------- | -------------------- | ---------------- | ----------------------------------------- |
+| `pnpm install --frozen-lockfile` | Install dependencies | 30-60s           | Always run before other commands          |
+| `pnpm run lint:check`            | Check code style     | 10-30s           | Must pass for CI                          |
+| `pnpm test`                      | Run all tests        | 5-10s            | Requires Node 24+                         |
+| `pnpm run build`                 | Production build     | 2-3 minutes      | May show Sentry warnings (safe to ignore) |
+| `pnpm run tsc`                   | Type checking only   | 10-20s           | Faster than full build                    |
 
 ### Linting and Formatting
 
 ```bash
-npm run prettier:check     # Check formatting
-npm run prettier:write     # Fix formatting
-npm run eslint:check       # Check ESLint rules
-npm run eslint:write       # Fix ESLint issues
-npm run lint:check         # Run both prettier + eslint check
-npm run lint:fix           # Fix both prettier + eslint issues
+pnpm run prettier:check     # Check formatting
+pnpm run prettier:write     # Fix formatting
+pnpm run eslint:check       # Check ESLint rules
+pnpm run eslint:write       # Fix ESLint issues
+pnpm run lint:check         # Run both prettier + eslint check
+pnpm run lint:fix           # Fix both prettier + eslint issues
 ```
 
 ### Known Build Issues and Workarounds
@@ -120,7 +120,7 @@ npm run lint:fix           # Fix both prettier + eslint issues
 ### Running Tests
 
 ```bash
-npm test  # Requires Node.js 24+
+pnpm test  # Requires Node.js 24+
 ```
 
 Tests use Node.js built-in test runner with TypeScript support. All tests should pass in a clean repository.
@@ -204,10 +204,10 @@ import { createQueryClient } from "#queryClient.ts";
 
 ```yaml
 1. Install Node.js 24
-2. Install dependencies (npm ci)
-3. Run linting (npm run lint:check)
-4. Run tests (npm test)
-5. Build production (npm run build)
+2. Install dependencies (pnpm install --frozen-lockfile)
+3. Run linting (pnpm run lint:check)
+4. Run tests (pnpm test)
+5. Build production (pnpm run build)
 ```
 
 **All steps must pass for CI to succeed.**
@@ -227,20 +227,20 @@ When committing locally, these hooks run automatically:
 
 ### Build Failures
 
-1. **"command not found" errors**: Run `npm ci` first
-2. **TypeScript errors**: Run `npm run tsc` to see detailed errors
-3. **Linting failures**: Run `npm run lint:fix` to auto-fix issues
+1. **"command not found" errors**: Run `pnpm install --frozen-lockfile` first
+2. **TypeScript errors**: Run `pnpm run tsc` to see detailed errors
+3. **Linting failures**: Run `pnpm run lint:fix` to auto-fix issues
 4. **Test failures**: Check Node.js version is 24+
 
 ### Development Server Issues
 
 1. **Port 5173 in use**: Kill existing processes or use different port
 2. **Proxy errors**: Check network connectivity, use `dev:production` mode
-3. **Missing routes**: Run `npm run build` to regenerate route tree
+3. **Missing routes**: Run `pnpm run build` to regenerate route tree
 
 ### Performance Notes
 
-- Initial `npm ci` may take 1-2 minutes
+- Initial `pnpm install --frozen-lockfile` may take 1-2 minutes
 - Build process takes 2-3 minutes (normal)
 - Dev server starts in 5-10 seconds
 - Hot reload is very fast (< 1 second)
@@ -266,10 +266,10 @@ When committing locally, these hooks run automatically:
 
 ### After Making Code Changes (Always Do This)
 
-1. **Type check**: `npm run tsc` (must pass)
-2. **Lint**: `npm run lint:check` (must pass)
-3. **Test**: `npm test` (all tests must pass)
-4. **Build**: `npm run build` (should complete successfully)
+1. **Type check**: `pnpm run tsc` (must pass)
+2. **Lint**: `pnpm run lint:check` (must pass)
+3. **Test**: `pnpm test` (all tests must pass)
+4. **Build**: `pnpm run build` (should complete successfully)
 5. **Manual verification**: Start dev server and test affected functionality. The player with UUID 6bc1dd0f-f351-4c3d-b6cc-262e55b6e7aa usually has good data coverage for testing functionality.
 6. **Screenshot**: Take screenshots of any UI changes - inspect the screenshot to see if it contains the expected result. If the screenshot shows a loading screen, or is otherwise blank, wait until the page loads to take a new screenshot, or fix the issue preventing it from loading.
 

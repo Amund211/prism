@@ -14,33 +14,34 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v6
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
             - name: Set up Node
               uses: actions/setup-node@v6
               with:
                   node-version: 24
-                  cache: npm
-                  cache-dependency-path: package-lock.json
+                  cache: pnpm
 
             - name: Install dependencies
-              run: npm ci
+              run: pnpm install --frozen-lockfile
 
             - name: Lint
-              run: npm run lint:check
+              run: pnpm run lint:check
 
             - name: Unit tests
-              run: npm run test:unit
+              run: pnpm run test:unit
 
             - name: Build
               env:
                   # Upload source maps on every build
                   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-              run: npm run build
+              run: pnpm run build
 
             - name: Check route tree is up to date
               run: |
                   if ! git diff --exit-code src/routeTree.gen.ts; then
                       echo "Error: The route tree file (src/routeTree.gen.ts) is not up to date."
-                      echo "Run 'npm run build' and commit the changes."
+                      echo "Run 'pnpm run build' and commit the changes."
                       exit 1
                   fi
                   echo "Route tree is up to date ✓"
@@ -57,15 +58,16 @@ jobs:
             fail-fast: false
         steps:
             - uses: actions/checkout@v6
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
             - name: Set up Node
               uses: actions/setup-node@v6
               with:
                   node-version: 24
-                  cache: npm
-                  cache-dependency-path: package-lock.json
+                  cache: pnpm
 
             - name: Install dependencies
-              run: npm ci
+              run: pnpm install --frozen-lockfile
 
             - name: Test
-              run: npm run test:ui:${{ matrix.browser }}
+              run: pnpm run test:ui:${{ matrix.browser }}

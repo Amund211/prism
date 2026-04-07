@@ -1,0 +1,9 @@
+allowBuilds:
+    "@sentry/cli": true
+    esbuild: true
+    fsevents: true
+    msw: true
+
+blockExoticSubdeps: true
+
+minimumReleaseAge: 10080
