@@ -46,7 +46,7 @@ dev = [
     "types-cachetools>=6.2.0.20250827",
     "types-pillow>=10.2.0.20240822",
     "types-pyinstaller>=6.16.0.20250918",
-    "types-pynput>=1.8.1.20250809",
+    "types-pynput>=1.8.1.20260408",
     "types-requests>=2.32.4.20250913",
     "types-toml>=0.10.8.20240310",
 ]
