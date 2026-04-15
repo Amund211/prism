@@ -7,7 +7,7 @@ required-markers = [
 ]
 
 [options]
-exclude-newer = "2026-04-08T07:25:38.844503658Z"
+exclude-newer = "2026-04-08T07:33:21.923894141Z"
 exclude-newer-span = "P1W"
 
 [[package]]
@@ -494,7 +494,7 @@ dev = [
     { name = "types-cachetools", specifier = ">=6.2.0.20250827" },
     { name = "types-pillow", specifier = ">=10.2.0.20240822" },
     { name = "types-pyinstaller", specifier = ">=6.16.0.20250918" },
-    { name = "types-pynput", specifier = ">=1.8.1.20250809" },
+    { name = "types-pynput", specifier = ">=1.8.1.20260408" },
     { name = "types-requests", specifier = ">=2.32.4.20250913" },
     { name = "types-toml", specifier = ">=0.10.8.20240310" },
 ]
@@ -844,11 +844,11 @@ wheels = [
 
 [[package]]
 name = "types-pynput"
-version = "1.8.1.20260402"
+version = "1.8.1.20260408"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/10/1f/9c94b1e351384c16711b7063918f983a38b583d4b7c31d72947fa994eb75/types_pynput-1.8.1.20260402.tar.gz", hash = "sha256:9db580c3f9762a01c4a2232e76a970faba5d0c5f18b6f5cf4cb5810cf4eec2d5", size = 11862, upload-time = "2026-04-02T04:18:21.052Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/75/1e/4016c6427ad1ded99486787223bec59dd068d19e47c9de1b5015658ccce8/types_pynput-1.8.1.20260408.tar.gz", hash = "sha256:25ac9ab16c2cd23d9a8eea80dc46a1a733291fdaa0b6cbd24c21b0f28944b73e", size = 11880, upload-time = "2026-04-08T04:29:46.845Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/71/cf/13fc3136670efe1b7f8883048ed0b0afab5f15aa9597d2566c9a724e9e7f/types_pynput-1.8.1.20260402-py3-none-any.whl", hash = "sha256:3d5f406a69a35936029dee99af56c7629fed22c3b07bfd12b04fdf6278eae5cc", size = 12229, upload-time = "2026-04-02T04:18:20.239Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/0d/73a9f81494639fdf7f5d3ce0168ff96bfd38f8ecaa53fac084f5e5055853/types_pynput-1.8.1.20260408-py3-none-any.whl", hash = "sha256:1c581052b88be85e45b71bd5e8cbcfdfb613a2b45d583af367da3f6a89745c36", size = 12228, upload-time = "2026-04-08T04:29:46.014Z" },
 ]
 
 [[package]]
