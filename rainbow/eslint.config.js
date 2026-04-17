@@ -17,10 +17,6 @@ export default tseslint.config(
             ...tseslint.configs.stylisticTypeChecked,
         ],
         files: ["**/*.{ts,tsx}"],
-        languageOptions: {
-            ecmaVersion: 2020,
-            globals: globals.browser,
-        },
         plugins: {
             "react-hooks": reactHooks,
             "react-refresh": reactRefresh,
@@ -41,6 +37,8 @@ export default tseslint.config(
             "@typescript-eslint/no-deprecated": "warn",
         },
         languageOptions: {
+            ecmaVersion: 2020,
+            globals: globals.browser,
             parserOptions: {
                 project: ["./tsconfig.node.json", "./tsconfig.app.json"],
                 tsconfigRootDir: import.meta.dirname,
