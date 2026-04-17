@@ -389,7 +389,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
             getOptionLabel={getOptionLabel}
             isOptionEqualToValue={isOptionEqualToValue}
             renderValue={renderValue}
-            value={[...uuids.map((uuid) => ({ type: "uuid" as const, uuid }))]}
+            value={uuids.map((uuid) => ({ type: "uuid" as const, uuid }))}
             onChange={(_, newValues) => {
                 setLoading(true);
                 Promise.allSettled(
