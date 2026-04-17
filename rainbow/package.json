@@ -9,8 +9,8 @@
     "scripts": {
         "dev:staging": "vite --mode proxy-staging",
         "dev:production": "vite --mode proxy-production",
-        "tsc": "tsc -p tsconfig.app.json",
-        "tsc:watch": "tsc -w -p tsconfig.app.json",
+        "tsc": "tsgo -p tsconfig.app.json",
+        "tsc:watch": "tsgo -w -p tsconfig.app.json",
         "vite:build": "vite build",
         "build": "run-p tsc vite:build",
         "oxfmt:check": "oxfmt --check",
@@ -63,6 +63,7 @@
         "@types/node": "^24.12.0",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
+        "@typescript/native-preview": "7.0.0-dev.20260410.1",
         "@vitejs/plugin-react": "^6.0.1",
         "@vitest/browser-playwright": "^4.1.2",
         "@vitest/coverage-v8": "^4.1.2",
