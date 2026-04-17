@@ -93,12 +93,12 @@ This starts the server at http://localhost:5173/ with proxy to production backen
 ### Linting and Formatting
 
 ```bash
-pnpm run prettier:check     # Check formatting
-pnpm run prettier:write     # Fix formatting
+pnpm run oxfmt:check     # Check formatting
+pnpm run oxfmt:write     # Fix formatting
 pnpm run oxlint:check       # Check oxlint rules
 pnpm run oxlint:write       # Fix oxlint issues
-pnpm run lint:check         # Run both prettier + oxlint check
-pnpm run lint:fix           # Fix both prettier + oxlint issues
+pnpm run lint:check         # Run both oxfmt + oxlint check
+pnpm run lint:fix           # Fix both oxfmt + oxlint issues
 ```
 
 ### Known Build Issues and Workarounds
@@ -216,7 +216,7 @@ import { createQueryClient } from "#queryClient.ts";
 
 When committing locally, these hooks run automatically:
 
-- Prettier formatting
+- Oxfmt formatting
 - Oxlint linting
 - TypeScript type checking
 - Full test suite
@@ -259,7 +259,7 @@ When committing locally, these hooks run automatically:
 
 - **Vite** for build tooling and dev server
 - **TypeScript** with strict configuration
-- **Oxlint + Prettier** for code quality
+- **Oxlint + Oxfmt** for code quality
 - **Node.js built-in test runner** for testing
 
 ## Validation Steps for Changes
