@@ -55,7 +55,7 @@ const getSmallestTimeDenomination = (
 };
 
 // string overrides all of these string unions, but we keep them here to be explicit about our intentions
-// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+// oxlint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 interface KeyConfig<T extends StatKey | GamemodeKey | VariantKey | string> {
     value: T;
     shown: boolean;
