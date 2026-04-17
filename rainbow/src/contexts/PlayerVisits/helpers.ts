@@ -113,7 +113,6 @@ export const removePlayerVisits = (visits: PlayerVisits, uuid: string) => {
         throw new Error(`UUID not normalized: ${uuid}`);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { [uuid]: _, ...newVisits } = visits;
     return newVisits;
 };

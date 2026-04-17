@@ -49,7 +49,6 @@ async function waitForImages(root: HTMLElement) {
             const imgWithDecode = img as HTMLImageElement & {
                 decode?: () => Promise<void>;
             };
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             if (imgWithDecode.decode) {
                 return imgWithDecode.decode();
             }

@@ -95,10 +95,10 @@ This starts the server at http://localhost:5173/ with proxy to production backen
 ```bash
 pnpm run prettier:check     # Check formatting
 pnpm run prettier:write     # Fix formatting
-pnpm run eslint:check       # Check ESLint rules
-pnpm run eslint:write       # Fix ESLint issues
-pnpm run lint:check         # Run both prettier + eslint check
-pnpm run lint:fix           # Fix both prettier + eslint issues
+pnpm run oxlint:check       # Check oxlint rules
+pnpm run oxlint:write       # Fix oxlint issues
+pnpm run lint:check         # Run both prettier + oxlint check
+pnpm run lint:fix           # Fix both prettier + oxlint issues
 ```
 
 ### Known Build Issues and Workarounds
@@ -152,7 +152,7 @@ src/
 /
 ├── package.json           # Dependencies and scripts
 ├── vite.config.ts         # Build configuration + proxies
-├── eslint.config.js       # Linting rules (strict TypeScript)
+├── .oxlintrc.json         # Linting rules (strict TypeScript)
 ├── tsconfig.json         # TypeScript configuration
 ├── tsconfig.app.json     # App-specific TypeScript config
 └── .pre-commit-config.yaml # Git hooks configuration
@@ -217,7 +217,7 @@ import { createQueryClient } from "#queryClient.ts";
 When committing locally, these hooks run automatically:
 
 - Prettier formatting
-- ESLint linting
+- Oxlint linting
 - TypeScript type checking
 - Full test suite
 
@@ -259,7 +259,7 @@ When committing locally, these hooks run automatically:
 
 - **Vite** for build tooling and dev server
 - **TypeScript** with strict configuration
-- **ESLint + Prettier** for code quality
+- **Oxlint + Prettier** for code quality
 - **Node.js built-in test runner** for testing
 
 ## Validation Steps for Changes
