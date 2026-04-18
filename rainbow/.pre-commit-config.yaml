@@ -11,13 +11,20 @@ repos:
           - id: check-merge-conflict
           - id: check-added-large-files
 
+    - repo: https://github.com/oxc-project/mirrors-oxlint
+      rev: v1.60.0
+      hooks:
+          - id: oxlint
+            verbose: true
+
+    - repo: https://github.com/oxc-project/mirrors-oxfmt
+      rev: v0.45.0
+      hooks:
+          - id: oxfmt
+            verbose: true
+
     - repo: local
       hooks:
-          - id: lint
-            name: lint
-            entry: pnpm run "lint:fix"
-            language: system
-            pass_filenames: false
           - id: test
             name: Test
             entry: pnpm run 'test:unit'
