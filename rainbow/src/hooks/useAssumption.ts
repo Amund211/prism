@@ -27,6 +27,7 @@ export function useAssume() {
         });
 
         if (import.meta.env.DEV) {
+            // oxlint-disable-next-line eslint/no-alert
             alert(`Assumption failed: ${message}\n\n${JSON.stringify(meta, null, 2)}`);
         }
 

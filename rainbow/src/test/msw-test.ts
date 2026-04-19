@@ -4,7 +4,7 @@ import { worker } from "#mocks/worker.ts";
 
 export const mswTest = testBase.extend({
     worker: [
-        // oxlint-disable-next-line no-empty-pattern
+        // oxlint-disable-next-line no-empty-pattern, react/rules-of-hooks
         async ({}, use) => {
             // Start the worker before the test.
             await worker.start({ onUnhandledRequest: "error", quiet: true });

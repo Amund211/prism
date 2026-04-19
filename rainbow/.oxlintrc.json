@@ -5,8 +5,10 @@
         "unicorn",
         "oxc",
         "react",
-        "react-perf",
         "jsx-a11y",
+        "import",
+        "vitest",
+        "node",
         "promise"
     ],
     "jsPlugins": [
@@ -18,7 +20,12 @@
     ],
     "ignorePatterns": ["src/routeTree.gen.ts"],
     "categories": {
-        "correctness": "error"
+        "correctness": "error",
+        "pedantic": "error",
+        "perf": "error",
+        "restriction": "error",
+        "style": "error",
+        "suspicious": "error"
     },
     "options": {
         "typeAware": true,
@@ -26,7 +33,147 @@
         "reportUnusedDisableDirectives": "error"
     },
     "rules": {
+        "typescript/consistent-return": "off",
+        "eslint/array-callback-return": "off",
+        "unicorn/no-array-callback-reference": "off",
+        "promise/always-return": "off",
+        "typescript/no-unsafe-type-assertion": "off",
+        "react/react-in-jsx-scope": "off",
+        "unicorn/consistent-function-scoping": "off",
+        "unicorn/prefer-set-has": "off",
+        "eslint/no-warning-comments": "off",
+        "eslint/max-lines-per-function": "off",
+        "eslint/no-inline-comments": "off",
+        "eslint/max-lines": "off",
+        "eslint/max-classes-per-file": "off",
+        "oxc/no-optional-chaining": "off",
+        "oxc/no-rest-spread-properties": "off",
+        "eslint/no-undefined": "off",
+        "oxc/no-async-await": "off",
+        "react/no-multi-comp": "off",
+        "eslint/default-case": "off",
+        "eslint/complexity": "off",
+        "eslint/no-void": "off",
+        "import/no-named-export": "off",
+        "import/group-exports": "off",
+        "import/exports-last": "off",
+        "import/prefer-default-export": "off",
+        "import/max-dependencies": "off",
+        "eslint/no-magic-numbers": "off",
+        "eslint/sort-keys": "off",
+        "react/jsx-max-depth": "off",
+        "eslint/no-ternary": "off",
+        "eslint/arrow-body-style": "off",
+        "unicorn/no-null": "off",
+        "eslint/id-length": "off",
+        "eslint/max-statements": "off",
+        "eslint/capitalized-comments": "off",
+        "unicorn/no-zero-fractions": "off",
+        "eslint/no-continue": "off",
+        "eslint/max-params": "off",
+        "unicorn/prefer-ternary": "off",
+        "eslint/init-declarations": "off",
+
+        // TODO: Re-enable
         "unicorn/no-new-array": "off",
+        "eslint/no-shadow": "off",
+        "unicorn/no-array-sort": "off",
+        "unicorn/no-array-reverse": "off",
+        "unicorn/prefer-add-event-listener": "off",
+        "react/jsx-no-constructed-context-values": "off",
+        "react/no-array-index-key": "off",
+        "typescript/strict-boolean-expressions": "off",
+        "typescript/switch-exhaustiveness-check": "off",
+        "typescript/return-await": "off",
+        "unicorn/explicit-length-check": "off",
+        "eslint/eqeqeq": "off",
+        "eslint/no-negated-condition": "off",
+        "unicorn/no-immediate-mutation": "off",
+        "unicorn/prefer-query-selector": "off",
+        "unicorn/prefer-code-point": "off",
+        "unicorn/no-useless-undefined": "off",
+        "eslint/no-else-return": "off",
+        "unicorn/require-number-to-fixed-digits-argument": "off",
+        "eslint/require-await": "off",
+        "unicorn/prefer-date-now": "off",
+        "unicorn/prefer-string-replace-all": "off",
+        "unicorn/prefer-top-level-await": "off",
+        "unicorn/prefer-at": "off",
+        "unicorn/prefer-dom-node-append": "off",
+        "unicorn/prefer-dom-node-remove": "off",
+        "typescript/promise-function-async": "off",
+        "unicorn/prefer-number-properties": "off",
+        "typescript/explicit-module-boundary-types": "off",
+        "typescript/explicit-function-return-type": "off",
+        "eslint/no-console": "off",
+        "typescript/no-import-type-side-effects": "off",
+        "eslint/no-use-before-define": "off",
+        "eslint/no-plusplus": "off",
+        "unicorn/no-array-reduce": "off",
+        "eslint/no-eq-null": "off",
+        "unicorn/no-array-for-each": "off",
+        "promise/catch-or-return": "off",
+        "eslint/no-param-reassign": "off",
+        "vitest/require-test-timeout": "off",
+        "vitest/no-importing-vitest-globals": "off",
+        "vitest/prefer-describe-function-title": "off",
+        "vitest/prefer-to-be-truthy": "off",
+        "vitest/prefer-to-be-falsy": "off",
+        "import/consistent-type-specifier-style": "off",
+        // Disable in main.tsx?
+        "import/no-unassigned-import": "off",
+        "import/first": "off",
+        // **********
+        "import/no-default-export": "off",
+        "import/no-duplicates": "off",
+        "import/unambiguous": "off",
+        "import/no-namespace": "off",
+        "import/no-named-as-default": "off",
+        "eslint/sort-imports": "off",
+        "unicorn/switch-case-braces": "off",
+        "unicorn/prefer-global-this": "off",
+        "promise/prefer-await-to-then": "off",
+        "unicorn/numeric-separators-style": "off",
+        // TODO: Decide on function style and fix or disable rule
+        "eslint/func-style": "off",
+        "unicorn/prefer-spread": "off",
+        "promise/prefer-await-to-callbacks": "off",
+        // TODO: Decide on filename case and fix or disable rule
+        "unicorn/filename-case": "off",
+        "eslint/prefer-destructuring": "off",
+        "typescript/consistent-type-imports": "off",
+        // NOTE: Weird behavior in src/charts/history/data.unit.test.ts
+        "eslint/no-implicit-coercion": "off",
+        "react/jsx-props-no-spreading": "off",
+        "unicorn/no-nested-ternary": "off",
+        "eslint/no-nested-ternary": "off",
+        // NOTE: We have a few cases where we don't use the setter - either ignore it for them, or find a different solution
+        "react/hook-use-state": "off",
+        "promise/no-nesting": "off",
+        "react/jsx-curly-brace-presence": "off",
+        "eslint/object-shorthand": "off",
+        "promise/avoid-new": "off",
+        "eslint/no-duplicate-imports": "off",
+        "eslint/new-cap": "off",
+        "typescript/prefer-readonly": "off",
+        "eslint/prefer-exponentiation-operator": "off",
+
+        // Jest rules got enabled with vitest for some reason
+        "jest/require-hook": "off",
+        "jest/require-top-level-describe": "off",
+        "jest/no-hooks": "off",
+        "jest/no-export": "off",
+        "jest/no-disabled-tests": "off",
+        "jest/expect-expect": "off",
+
+        "react/jsx-filename-extension": [
+            "error",
+            {
+                // "allow": "as-needed",
+                "extensions": ["tsx"]
+            }
+        ],
+        "eslint/curly": ["error", "multi-line", "consistent"],
 
         "@tanstack/query/exhaustive-deps": "error",
         "@tanstack/query/no-rest-destructuring": "error",
@@ -55,5 +202,27 @@
     },
     "env": {
         "builtin": true
-    }
+    },
+    "overrides": [
+        {
+            "files": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/mocks/**"],
+            "rules": {
+                "unicorn/prefer-type-error": "off"
+            }
+        },
+        {
+            "files": ["src/**/*.unit.test.ts"],
+            "rules": {
+                "import/no-nodejs-modules": "off"
+            }
+        },
+        {
+            "files": ["vite.config.ts", "vitest.config.ts"],
+            "rules": {
+                "import/no-default-export": "off",
+                "import/no-nodejs-modules": "off",
+                "node/no-process-env": "off"
+            }
+        }
+    ]
 }
