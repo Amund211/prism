@@ -33,8 +33,7 @@ function setUserId(userId: string): string {
 }
 
 const randomHexString = (length: number): string => {
-    return new Array(length)
-        .fill(null)
+    return Array.from({ length })
         .map(() => {
             const randomHex = Math.floor(Math.random() * 16).toString(16);
             return randomHex;
@@ -43,8 +42,7 @@ const randomHexString = (length: number): string => {
 };
 
 const fallbackRandomId = (): string => {
-    return new Array(4)
-        .fill(null)
+    return Array.from({ length: 4 })
         .map(() => randomHexString(12))
         .join("-");
 };

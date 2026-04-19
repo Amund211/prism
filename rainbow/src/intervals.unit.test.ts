@@ -138,12 +138,12 @@ describe("time helpers", () => {
 
     describe("endOfWeek", () => {
         const cases = [
-            ...new Array(7).fill(null).map((_, i) => ({
+            ...Array.from({ length: 7 }).map((_, i) => ({
                 // All days in the week point to the same end of last week
                 date: new Date(2024, 1, 12 + i, 17, 15, 0),
                 expected: new Date(2024, 1, 18, 23, 59, 59, 999),
             })),
-            ...new Array(7).fill(null).map((_, i) => ({
+            ...Array.from({ length: 7 }).map((_, i) => ({
                 // All days in the week point to the same end of last week
                 date: new Date(2024, 0, 1 + i, 0, 0, 0),
                 expected: new Date(2024, 0, 7, 23, 59, 59, 999),
@@ -230,12 +230,12 @@ describe("time helpers", () => {
 
     describe("endOfLastWeek", () => {
         const cases = [
-            ...new Array(7).fill(null).map((_, i) => ({
+            ...Array.from({ length: 7 }).map((_, i) => ({
                 // All days in the week point to the same end of last week
                 date: new Date(2024, 1, 12 + i, 17, 15, 0),
                 expected: new Date(2024, 1, 11, 23, 59, 59, 999),
             })),
-            ...new Array(7).fill(null).map((_, i) => ({
+            ...Array.from({ length: 7 }).map((_, i) => ({
                 // All days in the week point to the same end of last week
                 date: new Date(2024, 0, 1 + i, 0, 0, 0),
                 expected: new Date(2023, 11, 31, 23, 59, 59, 999),

@@ -257,7 +257,7 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                 tickFormatter={(time: number) => {
                     return renderTimeShort(time, smallestTimeDenomination);
                 }}
-                ticks={new Array(10).fill(0).map((_, i) => {
+                ticks={Array.from({ length: 10 }).map((_, i) => {
                     const startTime = start.getTime();
                     const endTime = end.getTime();
                     return startTime + ((endTime - startTime) / 9) * i;
