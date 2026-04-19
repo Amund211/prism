@@ -25,7 +25,7 @@ export function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery") {
             await set(idbValidKey, client);
         },
         restoreClient: async () => {
-            return await get<PersistedClient>(idbValidKey);
+            return get<PersistedClient>(idbValidKey);
         },
         removeClient: async () => {
             await del(idbValidKey);
