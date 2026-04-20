@@ -547,7 +547,7 @@ describe("Wrapped detail page", () => {
     );
 
     mswTest("non-normalized UUID redirects to normalized version", async () => {
-        const undashed = USERS.player1.uuid.replace(/-/g, "");
+        const undashed = USERS.player1.uuid.replaceAll("-", "");
         await renderAppRoute(`/wrapped/${undashed}?year=${year.toString()}`);
 
         await expect

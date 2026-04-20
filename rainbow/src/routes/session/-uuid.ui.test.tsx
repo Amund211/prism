@@ -544,7 +544,7 @@ describe("Session detail page", () => {
     });
 
     mswTest("non-normalized UUID redirects to normalized version", async () => {
-        const undashed = USERS.player1.uuid.replace(/-/g, "");
+        const undashed = USERS.player1.uuid.replaceAll("-", "");
         await renderAppRoute(
             `/session/${undashed}?gamemode=overall&stat=fkdr&timeIntervalDefinition=${encodeURIComponent(JSON.stringify({ type: "contained" }))}&variantSelection=both&sessionTableMode=total&showExtrapolatedSessions=false`,
         );

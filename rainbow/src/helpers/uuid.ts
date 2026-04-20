@@ -1,5 +1,5 @@
 export const normalizeUUID = (uuid: string): string | null => {
-    const cleaned = uuid.replace(/[^\da-fA-F]/g, "").toLowerCase();
+    const cleaned = uuid.replaceAll(/[^\da-fA-F]/g, "").toLowerCase();
 
     if (cleaned.length !== 32) {
         return null;
