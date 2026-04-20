@@ -523,9 +523,7 @@ const Sessions: React.FC<SessionsProps> = ({
                                                         )}
                                                         {!session.consecutive &&
                                                             !session.extrapolated && (
-                                                                <Tooltip
-                                                                    title={`The Prism Overlay has not recorded the result of every game during this time. This may be due to the player not using the Prism Overlay or having disabled "Online Game Stats" in their Hypixel settings; therefore the duration may be incorrect, and the session may include stats from multiple sessions.`}
-                                                                >
+                                                                <Tooltip title='The Prism Overlay has not recorded the result of every game during this time. This may be due to the player not using the Prism Overlay or having disabled "Online Game Stats" in their Hypixel settings; therefore the duration may be incorrect, and the session may include stats from multiple sessions.'>
                                                                     <Warning
                                                                         color="warning"
                                                                         fontSize="small"
@@ -1355,7 +1353,7 @@ function RouteComponent() {
                     {username === undefined ? (
                         <Stack direction="row" alignItems="center">
                             <Skeleton variant="rounded" width={60} />
-                            <Typography variant="h6">{"'s session stats"}</Typography>
+                            <Typography variant="h6">&apos;s session stats</Typography>
                         </Stack>
                     ) : (
                         <Typography variant="h6">{`${username}'s session stats`}</Typography>

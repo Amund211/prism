@@ -1577,11 +1577,9 @@ function NoSessionsAlert({ year }: { year: number }) {
             <Typography variant="body2">
                 This player didn&apos;t record any sessions with the Prism Overlay in{" "}
                 {year.toString()}. Showing overall year statistics instead. Download it{" "}
-                {
-                    <Link to="/downloads" target="_blank">
-                        here
-                    </Link>
-                }{" "}
+                <Link to="/downloads" target="_blank">
+                    here
+                </Link>{" "}
                 to start tracking your stats!
             </Typography>
         </Alert>
@@ -1658,11 +1656,9 @@ function WrappedStatsContent({ wrappedData, isLoading }: WrappedStatsContentProp
                 <Typography variant="body2">
                     This player didn&apos;t record any stats with the Prism Overlay in{" "}
                     {wrappedData.year.toString()}. Download it{" "}
-                    {
-                        <Link to="/downloads" target="_blank">
-                            here
-                        </Link>
-                    }{" "}
+                    <Link to="/downloads" target="_blank">
+                        here
+                    </Link>{" "}
                     to start tracking your stats!
                 </Typography>
             </Alert>
