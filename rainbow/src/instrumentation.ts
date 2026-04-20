@@ -1,3 +1,4 @@
+// oxlint-disable-next-line import/no-namespace
 import * as Sentry from "@sentry/react";
 
 import { env } from "#env.ts";
