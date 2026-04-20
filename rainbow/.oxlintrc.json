@@ -75,7 +75,6 @@
         "eslint/init-declarations": "off",
 
         // TODO: Re-enable
-        "typescript/switch-exhaustiveness-check": "off",
 
         "unicorn/explicit-length-check": "off",
         "eslint/eqeqeq": "off",

@@ -20,6 +20,7 @@ export function getStat(
 ): number | null {
     const selectedGamemode = playerData[gamemode];
 
+    // oxlint-disable-next-line typescript/switch-exhaustiveness-check
     switch (stat) {
         case "experience":
             return playerData.experience;
@@ -95,6 +96,7 @@ export function computeStat(
         return getStat(playerData, gamemode, stat);
     }
 
+    // oxlint-disable-next-line typescript/switch-exhaustiveness-check
     switch (stat) {
         case "fkdr": {
             const finalKills = computeStat(
