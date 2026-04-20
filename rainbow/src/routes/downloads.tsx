@@ -141,10 +141,6 @@ const DOWNLOADS: Download[] = [
     },
 ];
 
-export const Route = createFileRoute("/downloads")({
-    component: RouteComponent,
-});
-
 const getOS = (): OS | "Unknown" => {
     const a = UAParser(navigator.userAgent);
     // Based on https://github.com/faisalman/ua-parser-js/blob/b9a710978e88ff1d5480886c2552efaccdad78ae/src/enums/ua-parser-enums.js
@@ -252,6 +248,82 @@ const osLabel = (os: OS) => {
     }
 };
 
+const AutoWhoVideo = () => {
+    return (
+        <Stack gap={1} alignItems="center">
+            <Stack maxWidth="calc(min(100vw, 800px))" width="100%">
+                <img
+                    alt="Video of a bedwars game starting, with the Prism Overlay in the top left corner. When the game starts, the overlay automatically types '/who' to show all players."
+                    src={autoWhoURL}
+                    width="100%"
+                    aria-describedby="auto-who-video-description"
+                />
+            </Stack>
+            <Typography variant="caption" id="auto-who-video-description">
+                The Prism Overlay automatically typing /who to show all players and
+                displaying their stats.
+            </Typography>
+        </Stack>
+    );
+};
+
+const LatestDownloadWindows = () => {
+    const download = DOWNLOADS.find((d) => d.os === "Windows");
+    if (!download) return null;
+
+    return (
+        <Stack alignItems="center">
+            <a href={download.link} download>
+                <img src={downloadWindowsURL} alt="Download for Windows" />
+            </a>
+            <OSLogoAttribution os="Windows" />
+        </Stack>
+    );
+};
+
+const LatestDownloadMac = () => {
+    const download = DOWNLOADS.find((d) => d.os === "Mac OS");
+    if (!download) return null;
+
+    return (
+        <Stack alignItems="center">
+            <a href={download.link} download>
+                <img src={downloadMacURL} alt="Download for Mac" />
+            </a>
+            <OSLogoAttribution os="Mac OS" />
+        </Stack>
+    );
+};
+
+const LatestDownloadLinux = () => {
+    const download = DOWNLOADS.find((d) => d.os === "Linux");
+    if (!download) return null;
+
+    return (
+        <Stack alignItems="center">
+            <a href={download.link} download>
+                <img src={downloadLinuxURL} alt="Download for Linux" />
+            </a>
+            <OSLogoAttribution os="Linux" />
+        </Stack>
+    );
+};
+
+const LatestDownload = () => {
+    switch (getOS()) {
+        case "Windows":
+            return <LatestDownloadWindows />;
+        case "Mac OS":
+            return <LatestDownloadMac />;
+        case "Linux":
+            return <LatestDownloadLinux />;
+        case "Unknown":
+            return null;
+        default:
+            return null;
+    }
+};
+
 function RouteComponent() {
     return (
         <Stack gap={5}>
@@ -349,78 +421,6 @@ function RouteComponent() {
     );
 }
 
-const AutoWhoVideo = () => {
-    return (
-        <Stack gap={1} alignItems="center">
-            <Stack maxWidth="calc(min(100vw, 800px))" width="100%">
-                <img
-                    alt="Video of a bedwars game starting, with the Prism Overlay in the top left corner. When the game starts, the overlay automatically types '/who' to show all players."
-                    src={autoWhoURL}
-                    width="100%"
-                    aria-describedby="auto-who-video-description"
-                />
-            </Stack>
-            <Typography variant="caption" id="auto-who-video-description">
-                The Prism Overlay automatically typing /who to show all players and
-                displaying their stats.
-            </Typography>
-        </Stack>
-    );
-};
-
-const LatestDownload = () => {
-    switch (getOS()) {
-        case "Windows":
-            return <LatestDownloadWindows />;
-        case "Mac OS":
-            return <LatestDownloadMac />;
-        case "Linux":
-            return <LatestDownloadLinux />;
-        case "Unknown":
-            return null;
-        default:
-            return null;
-    }
-};
-
-const LatestDownloadWindows = () => {
-    const download = DOWNLOADS.find((d) => d.os === "Windows");
-    if (!download) return null;
-
-    return (
-        <Stack alignItems="center">
-            <a href={download.link} download>
-                <img src={downloadWindowsURL} alt="Download for Windows" />
-            </a>
-            <OSLogoAttribution os="Windows" />
-        </Stack>
-    );
-};
-
-const LatestDownloadMac = () => {
-    const download = DOWNLOADS.find((d) => d.os === "Mac OS");
-    if (!download) return null;
-
-    return (
-        <Stack alignItems="center">
-            <a href={download.link} download>
-                <img src={downloadMacURL} alt="Download for Mac" />
-            </a>
-            <OSLogoAttribution os="Mac OS" />
-        </Stack>
-    );
-};
-
-const LatestDownloadLinux = () => {
-    const download = DOWNLOADS.find((d) => d.os === "Linux");
-    if (!download) return null;
-
-    return (
-        <Stack alignItems="center">
-            <a href={download.link} download>
-                <img src={downloadLinuxURL} alt="Download for Linux" />
-            </a>
-            <OSLogoAttribution os="Linux" />
-        </Stack>
-    );
-};
+export const Route = createFileRoute("/downloads")({
+    component: RouteComponent,
+});

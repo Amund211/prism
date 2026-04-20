@@ -138,6 +138,7 @@ export const Route = createFileRoute("/session/$uuid")({
         });
     },
     validateSearch: sessionSearchSchema,
+    // oxlint-disable-next-line eslint/no-use-before-define
     component: RouteComponent,
 });
 

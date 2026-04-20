@@ -58,6 +58,7 @@ const computeQuotientProgression = (
 
     if (endDivisor === 0 && sessionDivisor === 0) {
         // Have "infinite" ratio at the end -> ratio is computed as just dividend
+        // oxlint-disable-next-line eslint/no-use-before-define
         const dividendProgression = computeStatProgression(
             trackingHistory,
             trackingEnd,

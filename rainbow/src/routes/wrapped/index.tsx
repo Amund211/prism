@@ -6,6 +6,7 @@ import { captureException } from "@sentry/react";
 import { getWrappedYear } from "#helpers/wrapped.ts";
 
 export const Route = createFileRoute("/wrapped/")({
+    // oxlint-disable-next-line eslint/no-use-before-define
     component: RouteComponent,
 });
 

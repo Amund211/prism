@@ -4,10 +4,6 @@ import { InfoOutlined } from "@mui/icons-material";
 import { Stack, Tooltip, Typography } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/settings")({
-    component: RouteComponent,
-});
-
 function RouteComponent() {
     const { currentUser, setCurrentUser } = useCurrentUser();
     return (
@@ -35,3 +31,7 @@ function RouteComponent() {
         </Stack>
     );
 }
+
+export const Route = createFileRoute("/settings")({
+    component: RouteComponent,
+});

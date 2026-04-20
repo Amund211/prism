@@ -5,6 +5,7 @@ import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { captureException } from "@sentry/react";
 
 export const Route = createFileRoute("/session/")({
+    // oxlint-disable-next-line eslint/no-use-before-define
     component: RouteComponent,
 });
 

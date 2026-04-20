@@ -1,8 +1,3 @@
-// Get the currently active "wrapped" year based on the current date.
-export const getWrappedYear = () => {
-    return computeWrappedYear(new Date());
-};
-
 export const computeWrappedYear = (date: Date): number => {
     const year = date.getFullYear();
 
@@ -13,4 +8,9 @@ export const computeWrappedYear = (date: Date): number => {
 
     // Otherwise, return the previous year
     return year - 1;
+};
+
+// Get the currently active "wrapped" year based on the current date.
+export const getWrappedYear = () => {
+    return computeWrappedYear(new Date());
 };

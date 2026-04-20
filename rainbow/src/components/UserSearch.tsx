@@ -139,6 +139,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                     const valueAsNormalizedUUID = normalizeUUID(option.text);
                     if (valueAsNormalizedUUID !== null) {
                         return (
+                            // oxlint-disable-next-line eslint/no-use-before-define
                             <UserOption
                                 key={key}
                                 uuid={valueAsNormalizedUUID}
@@ -168,6 +169,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                 }
                 case "uuid":
                     return (
+                        // oxlint-disable-next-line eslint/no-use-before-define
                         <UserOption
                             key={key}
                             uuid={option.uuid}

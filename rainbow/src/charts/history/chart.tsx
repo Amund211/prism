@@ -265,13 +265,16 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
             />
             <YAxis />
             <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-            {renderLines({
-                uuids,
-                gamemodes,
-                stats,
-                variants,
-                uuidToUsername,
-            })}
+            {
+                // oxlint-disable-next-line eslint/no-use-before-define
+                renderLines({
+                    uuids,
+                    gamemodes,
+                    stats,
+                    variants,
+                    uuidToUsername,
+                })
+            }
             {/* Future marker */}
             <ReferenceArea
                 x1={currentDate.getTime()}

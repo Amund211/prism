@@ -9,27 +9,6 @@ import {
 } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/about")({
-    component: RouteComponent,
-});
-
-function RouteComponent() {
-    return (
-        <Stack gap={3}>
-            <meta
-                name="description"
-                content="Learn more about the Prism Overlay, a tool for Hypixel Bedwars that shows the stats of all players in your game and automatically tracks your progress. Use it to view your session stats and compare your stats with other players."
-            />
-            <link rel="canonical" href="https://prismoverlay.com/about" />
-            <Discord />
-            <Thanks />
-            <Disclaimer />
-            <HypixelAPIPolicy />
-            <Privacy />
-        </Stack>
-    );
-}
-
 const Discord = () => {
     return (
         <Stack>
@@ -129,3 +108,24 @@ const Privacy = () => {
         </Stack>
     );
 };
+
+function RouteComponent() {
+    return (
+        <Stack gap={3}>
+            <meta
+                name="description"
+                content="Learn more about the Prism Overlay, a tool for Hypixel Bedwars that shows the stats of all players in your game and automatically tracks your progress. Use it to view your session stats and compare your stats with other players."
+            />
+            <link rel="canonical" href="https://prismoverlay.com/about" />
+            <Discord />
+            <Thanks />
+            <Disclaimer />
+            <HypixelAPIPolicy />
+            <Privacy />
+        </Stack>
+    );
+}
+
+export const Route = createFileRoute("/about")({
+    component: RouteComponent,
+});

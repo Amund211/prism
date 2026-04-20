@@ -83,7 +83,6 @@
 
         // TODO: Re-enable
 
-        "eslint/no-use-before-define": "off",
         "eslint/no-plusplus": "off",
         "unicorn/no-array-reduce": "off",
         "eslint/no-eq-null": "off",

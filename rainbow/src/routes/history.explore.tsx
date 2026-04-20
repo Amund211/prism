@@ -89,6 +89,7 @@ export const Route = createFileRoute("/history/explore")({
         });
     },
     validateSearch: historyExploreSearchSchema,
+    // oxlint-disable-next-line eslint/no-use-before-define
     component: Index,
 });
 

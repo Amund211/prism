@@ -86,6 +86,7 @@ export const Route = createFileRoute("/wrapped/$uuid")({
         });
     },
     validateSearch: wrappedSearchSchema,
+    // oxlint-disable-next-line eslint/no-use-before-define
     component: RouteComponent,
 });
 
@@ -1401,6 +1402,7 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
                     },
                 }}
             >
+                {/* oxlint-disable-next-line eslint/no-use-before-define */}
                 <WrappedHeader wrappedData={wrappedData} uuid={uuid} year={year} />
                 {wrappedData.totalSessions === 0 ? (
                     <Alert severity="info" icon={<Info />}>
@@ -1412,6 +1414,7 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
                         </Typography>
                     </Alert>
                 ) : (
+                    // oxlint-disable-next-line eslint/no-use-before-define
                     <LowSessionCoverageAlert
                         coveragePercentage={
                             wrappedData.sessionStats?.sessionCoverage
@@ -1423,6 +1426,7 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
 
                 <Grid container spacing={2}>
                     <Grid size={{ xs: 6 }}>
+                        {/* oxlint-disable-next-line eslint/no-use-before-define */}
                         <SessionCoverage wrappedData={wrappedData} />
                     </Grid>
                     <Grid size={{ xs: 6 }}>

@@ -11,6 +11,7 @@ import { PlayerHead } from "#components/player.tsx";
 const RouterLinkButton = createLink(Button);
 
 export const Route = createFileRoute("/")({
+    // oxlint-disable-next-line eslint/no-use-before-define
     component: RouteComponent,
 });
 
