@@ -144,6 +144,7 @@ export const handlers = [
         // Placeholder image
         const pngData =
             "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAAXNSR0IB2cksfwAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+oDFRAONPh9NXIAAABDSURBVCjPY6xn+M9ACmBiIBHQU0MjQ0MjQwOmCjRxkm1gpGMoNTIw4lKELMWESwKXIEIDxDNY9SD7E93TJGsYimkJAA3UEZ+W43wuAAAAAElFTkSuQmCC";
+        // oxlint-disable-next-line unicorn/prefer-code-point -- atob produces single-byte chars (0-255), charCodeAt is semantically correct for byte extraction
         const buffer = Uint8Array.from(atob(pngData), (c) => c.charCodeAt(0));
 
         return HttpResponse.arrayBuffer(buffer.buffer, {
