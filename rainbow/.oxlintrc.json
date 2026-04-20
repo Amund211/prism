@@ -84,6 +84,7 @@
         "vitest/no-importing-vitest-globals": "off",
         "vitest/prefer-to-be-truthy": "off",
         "vitest/prefer-to-be-falsy": "off",
+        "eslint/sort-imports": "off",
 
         // TODO: Re-enable
 
@@ -91,7 +92,6 @@
         "import/no-unassigned-import": "off",
         "import/first": "off",
         // **********
-        "eslint/sort-imports": "off",
         // TODO: Decide on function style and fix or disable rule
         "eslint/func-style": "off",
         // TODO: Decide on filename case and fix or disable rule
