@@ -43,6 +43,7 @@ localStorage.removeItem("REACT_QUERY_OFFLINE_CACHE");
 
 createRoot(root, {
     // Callback called when an error is thrown and not caught by an ErrorBoundary.
+    // oxlint-disable-next-line promise/prefer-await-to-callbacks
     onUncaughtError: reactErrorHandler((error, errorInfo) => {
         console.warn("Uncaught error", error, errorInfo.componentStack);
     }),
