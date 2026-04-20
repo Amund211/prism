@@ -42,6 +42,7 @@ export const addExtrapolatedSessions = (
     }
 
     const firstSessionStart = sessions[0].start;
+    // oxlint-disable-next-line unicorn/prefer-at
     const lastSessionEnd = sessions[sessions.length - 1].end;
 
     const startNonFlashlightSession = differentStats(historyStart, firstSessionStart)
@@ -83,6 +84,7 @@ export const addExtrapolatedSessions = (
     }
 
     if (sessions.length > 0) {
+        // oxlint-disable-next-line unicorn/prefer-at
         sessionsWithExtrapolated.push(sessions[sessions.length - 1]);
     }
 

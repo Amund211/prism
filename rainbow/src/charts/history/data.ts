@@ -46,6 +46,7 @@ export const clusterChartData = (chartData: ChartData): ChartData => {
         return [];
     }
 
+    // oxlint-disable-next-line unicorn/prefer-at
     const timeSpan = chartData[chartData.length - 1].queriedAt - chartData[0].queriedAt;
     // Cluster entries that are closer than 1% of the time span or 1 minute
     const threshold = Math.max(timeSpan / 100, 1000 * 60);
@@ -91,6 +92,7 @@ export const generateChartData = (histories: readonly History[]): ChartData => {
     // Merge duplicate queriedAt values
     const mergedChartData: MutableChartData = [clusteredChartData[0]];
     for (const entry of clusteredChartData) {
+        // oxlint-disable-next-line unicorn/prefer-at
         const lastEntry = mergedChartData[mergedChartData.length - 1];
         if (lastEntry.queriedAt === entry.queriedAt) {
             mergedChartData[mergedChartData.length - 1] = {

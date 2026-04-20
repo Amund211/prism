@@ -27,7 +27,7 @@ function RouteComponent() {
                 placeholder="Set default player"
                 uuids={currentUser !== null ? [currentUser] : []}
                 onSubmit={(uuids) => {
-                    const newDefault = uuids[uuids.length - 1] ?? null;
+                    const newDefault = uuids.at(-1) ?? null;
 
                     setCurrentUser(newDefault);
                 }}

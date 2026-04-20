@@ -51,6 +51,7 @@ function useShownPlayer(): string | null {
         return null;
     }
 
+    // oxlint-disable-next-line unicorn/prefer-at
     const currentMatch = routerState.matches[routerState.matches.length - 1];
 
     switch (currentMatch.routeId) {

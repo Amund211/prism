@@ -206,7 +206,7 @@ function Index() {
             badSelectionCountString = `${badSelectionCount[0]} and ${badSelectionCount[1]}`;
             break;
         default:
-            badSelectionCountString = `${badSelectionCount.slice(0, -1).join(", ")}, and ${badSelectionCount[badSelectionCount.length - 1]}`;
+            badSelectionCountString = `${badSelectionCount.slice(0, -1).join(", ")}, and ${badSelectionCount.at(-1)}`;
     }
 
     const goToSessionPageTooltip = canGoToSessionPage
