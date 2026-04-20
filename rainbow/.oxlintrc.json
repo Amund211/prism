@@ -79,19 +79,16 @@
         "eslint/init-declarations": "off",
         "typescript/explicit-module-boundary-types": "off",
         "typescript/explicit-function-return-type": "off",
-
         "vitest/no-importing-vitest-globals": "off",
         "vitest/prefer-to-be-truthy": "off",
         "vitest/prefer-to-be-falsy": "off",
         "eslint/sort-imports": "off",
 
-        // TODO: Re-enable
-
         // TODO: Decide on function style and fix or disable rule
         "eslint/func-style": "off",
         // TODO: Decide on filename case and fix or disable rule
         "unicorn/filename-case": "off",
-        // NOTE: Weird behavior in src/charts/history/data.unit.test.ts
+        // TODO: Enable. NOTE: Weird behavior in src/charts/history/data.unit.test.ts
         "eslint/no-implicit-coercion": "off",
 
         // Jest rules got enabled with vitest for some reason
