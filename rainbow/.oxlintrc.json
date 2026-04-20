@@ -102,7 +102,7 @@
         "react/jsx-filename-extension": [
             "error",
             {
-                // "allow": "as-needed",
+                "allow": "as-needed",
                 "extensions": ["tsx"]
             }
         ],
@@ -150,6 +150,13 @@
         {
             "files": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/mocks/**"],
             "rules": {
+                "react/jsx-filename-extension": [
+                    "error",
+                    {
+                        "allow": "always",
+                        "extensions": ["tsx"]
+                    }
+                ],
                 "unicorn/prefer-type-error": "off"
             }
         },
