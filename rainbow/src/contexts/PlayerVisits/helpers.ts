@@ -102,7 +102,7 @@ export const orderPlayers = (players: PlayerVisits): string[] => {
             return [uuid, info] as const;
         })
         .filter((entry) => entry !== null)
-        .sort((a, b) => {
+        .toSorted((a, b) => {
             return computeScore(b[1]) - computeScore(a[1]);
         })
         .map(([uuid]) => uuid);

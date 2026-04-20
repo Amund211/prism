@@ -43,7 +43,7 @@ export const PlayerVisitsProvider: React.FC<{
             throw new Error(`Some UUIDs are not normalized: ${uuids.join(", ")}`);
         }
 
-        return [...uuids].sort((a, b) => {
+        return [...uuids].toSorted((a, b) => {
             // If provided with a current user, sort them to the top
             if (currentUser !== undefined) {
                 if (a === currentUser) return -1;

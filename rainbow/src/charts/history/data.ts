@@ -77,7 +77,7 @@ export const clusterChartData = (chartData: ChartData): ChartData => {
 export const generateChartData = (histories: readonly History[]): ChartData => {
     const chartData = histories
         .flatMap(generateChartDataFromSingleHistory)
-        .sort((a, b) => a.queriedAt - b.queriedAt);
+        .toSorted((a, b) => a.queriedAt - b.queriedAt);
 
     if (chartData.length === 0) {
         return [];
