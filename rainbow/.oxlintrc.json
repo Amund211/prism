@@ -66,6 +66,7 @@
         "eslint/sort-keys": "off",
         "react/jsx-max-depth": "off",
         "eslint/no-ternary": "off",
+        "eslint/no-plusplus": "off",
         "eslint/arrow-body-style": "off",
         "unicorn/no-null": "off",
         "eslint/id-length": "off",
@@ -83,7 +84,6 @@
 
         // TODO: Re-enable
 
-        "eslint/no-plusplus": "off",
         "unicorn/no-array-reduce": "off",
         "eslint/no-eq-null": "off",
         "unicorn/no-array-for-each": "off",
