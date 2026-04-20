@@ -1,4 +1,4 @@
-import { getUsernameQueryOptions } from "#queries/username.ts";
+import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
 import { timeIntervalsFromDefinition } from "#intervals.ts";
 import { HistoryChart, SimpleHistoryChart } from "#charts/history/chart.tsx";
 import { TimeIntervalPicker } from "#components/TimeIntervalPicker.tsx";
@@ -8,7 +8,6 @@ import type { TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import { getSessionsQueryOptions } from "#queries/sessions.ts";
 import type { Sessions } from "#queries/sessions.ts";
-import { useUUIDToUsername } from "#queries/username.ts";
 import { computeStat } from "#stats/index.ts";
 import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
 import type { GamemodeKey, StatKey } from "#stats/keys.ts";

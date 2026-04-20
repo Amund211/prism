@@ -1,8 +1,7 @@
-import { getUsernameQueryOptions } from "#queries/username.ts";
+import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
 import { getWrappedQueryOptions } from "#queries/wrapped.ts";
 import type { WrappedData } from "#queries/wrapped.ts";
 import type { Session } from "#queries/sessions.ts";
-import { useUUIDToUsername } from "#queries/username.ts";
 import { computeStat } from "#stats/index.ts";
 import {
     Box,

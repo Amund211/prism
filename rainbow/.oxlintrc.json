@@ -91,7 +91,6 @@
         "import/no-unassigned-import": "off",
         "import/first": "off",
         // **********
-        "import/no-duplicates": "off",
         "import/unambiguous": "off",
         "import/no-namespace": "off",
         "import/no-named-as-default": "off",
