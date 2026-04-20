@@ -69,10 +69,11 @@ export const getUsernameQueryOptions = (uuid: string) =>
                 );
             }
 
-            const data: unknown = await response.json().catch((error: unknown) => {
-                response
-                    .text()
-                    .then((text) => {
+            const data: unknown = await response
+                .json()
+                .catch(async (error: unknown) => {
+                    try {
+                        const text = await response.text();
                         captureException(error, {
                             extra: {
                                 message: "Failed to get username: failed to parse json",
@@ -80,8 +81,7 @@ export const getUsernameQueryOptions = (uuid: string) =>
                                 text,
                             },
                         });
-                    })
-                    .catch((textError: unknown) => {
+                    } catch (textError: unknown) {
                         captureException(textError, {
                             extra: {
                                 message:
@@ -90,8 +90,8 @@ export const getUsernameQueryOptions = (uuid: string) =>
                                 jsonParseError: error,
                             },
                         });
-                    });
-            });
+                    }
+                });
             if (typeof data !== "object" || data === null) {
                 captureMessage("Failed to get username: invalid response", {
                     level: "error",

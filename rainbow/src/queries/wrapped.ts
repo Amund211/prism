@@ -235,32 +235,30 @@ export const getWrappedQueryOptions = ({
                 );
             }
 
-            const apiData = (await response.json().catch((error: unknown) => {
-                response
-                    .text()
-                    .then((text) => {
-                        captureException(error, {
-                            extra: {
-                                message: "Failed to get wrapped: failed to parse json",
-                                uuid,
-                                year,
-                                timezone,
-                                text,
-                            },
-                        });
-                    })
-                    .catch((textError: unknown) => {
-                        captureException(textError, {
-                            extra: {
-                                message:
-                                    "Failed to get wrapped: failed to read response text when handling response error",
-                                uuid,
-                                year,
-                                timezone,
-                                jsonParseError: error,
-                            },
-                        });
+            const apiData = (await response.json().catch(async (error: unknown) => {
+                try {
+                    const text = await response.text();
+                    captureException(error, {
+                        extra: {
+                            message: "Failed to get wrapped: failed to parse json",
+                            uuid,
+                            year,
+                            timezone,
+                            text,
+                        },
                     });
+                } catch (textError: unknown) {
+                    captureException(textError, {
+                        extra: {
+                            message:
+                                "Failed to get wrapped: failed to read response text when handling response error",
+                            uuid,
+                            year,
+                            timezone,
+                            jsonParseError: error,
+                        },
+                    });
+                }
                 throw error;
             })) as APIWrappedData;
 

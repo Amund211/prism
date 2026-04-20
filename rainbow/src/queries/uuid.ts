@@ -58,10 +58,11 @@ export const getUUIDQueryOptions = (username: string) =>
                 );
             }
 
-            const data: unknown = await response.json().catch((error: unknown) => {
-                response
-                    .text()
-                    .then((text) => {
+            const data: unknown = await response
+                .json()
+                .catch(async (error: unknown) => {
+                    try {
+                        const text = await response.text();
                         captureException(error, {
                             extra: {
                                 message: "Failed to get uuid: failed to parse json",
@@ -69,8 +70,7 @@ export const getUUIDQueryOptions = (username: string) =>
                                 text,
                             },
                         });
-                    })
-                    .catch((textError: unknown) => {
+                    } catch (textError: unknown) {
                         captureException(textError, {
                             tags: {
                                 status: response.status,
@@ -84,9 +84,9 @@ export const getUUIDQueryOptions = (username: string) =>
                             },
                         });
                         throw textError;
-                    });
-                throw error;
-            });
+                    }
+                    throw error;
+                });
 
             if (typeof data !== "object" || data === null) {
                 captureMessage("Failed to get uuid: invalid response", {

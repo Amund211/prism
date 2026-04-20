@@ -118,34 +118,32 @@ export const getHistoryQueryOptions = ({
                 );
             }
 
-            const apiHistory = (await response.json().catch((error: unknown) => {
-                response
-                    .text()
-                    .then((text) => {
-                        captureException(error, {
-                            extra: {
-                                message: "Failed to get history: failed to parse json",
-                                uuid,
-                                start: startISOString,
-                                end: endISOString,
-                                limit,
-                                text,
-                            },
-                        });
-                    })
-                    .catch((textError: unknown) => {
-                        captureException(textError, {
-                            extra: {
-                                message:
-                                    "Failed to get history: failed to get response text while handling json parse error",
-                                uuid,
-                                start: startISOString,
-                                end: endISOString,
-                                limit,
-                                jsonParseError: error,
-                            },
-                        });
+            const apiHistory = (await response.json().catch(async (error: unknown) => {
+                try {
+                    const text = await response.text();
+                    captureException(error, {
+                        extra: {
+                            message: "Failed to get history: failed to parse json",
+                            uuid,
+                            start: startISOString,
+                            end: endISOString,
+                            limit,
+                            text,
+                        },
                     });
+                } catch (textError: unknown) {
+                    captureException(textError, {
+                        extra: {
+                            message:
+                                "Failed to get history: failed to get response text while handling json parse error",
+                            uuid,
+                            start: startISOString,
+                            end: endISOString,
+                            limit,
+                            jsonParseError: error,
+                        },
+                    });
+                }
                 throw error;
             })) as APIHistory;
 

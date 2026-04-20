@@ -134,32 +134,30 @@ export const getSessionsQueryOptions = ({ uuid, start, end }: SessionsQueryOptio
                 );
             }
 
-            const apiSessions = (await response.json().catch((error: unknown) => {
-                response
-                    .text()
-                    .then((text) => {
-                        captureException(error, {
-                            extra: {
-                                message: "Failed to get sessions: failed to parse json",
-                                uuid,
-                                start: startISOString,
-                                end: endISOString,
-                                text,
-                            },
-                        });
-                    })
-                    .catch((textError: unknown) => {
-                        captureException(textError, {
-                            extra: {
-                                message:
-                                    "Failed to get sessions: failed to read response text when handling response error",
-                                uuid,
-                                start: startISOString,
-                                end: endISOString,
-                                jsonParseError: error,
-                            },
-                        });
+            const apiSessions = (await response.json().catch(async (error: unknown) => {
+                try {
+                    const text = await response.text();
+                    captureException(error, {
+                        extra: {
+                            message: "Failed to get sessions: failed to parse json",
+                            uuid,
+                            start: startISOString,
+                            end: endISOString,
+                            text,
+                        },
                     });
+                } catch (textError: unknown) {
+                    captureException(textError, {
+                        extra: {
+                            message:
+                                "Failed to get sessions: failed to read response text when handling response error",
+                            uuid,
+                            start: startISOString,
+                            end: endISOString,
+                            jsonParseError: error,
+                        },
+                    });
+                }
                 throw error;
             })) as APISessions;
 
