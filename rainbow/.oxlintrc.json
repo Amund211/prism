@@ -82,11 +82,11 @@
 
         "eslint/no-console": ["error", { "allow": ["warn", "error"] }],
         "vitest/no-importing-vitest-globals": "off",
+        "vitest/prefer-to-be-truthy": "off",
+        "vitest/prefer-to-be-falsy": "off",
 
         // TODO: Re-enable
 
-        "vitest/prefer-to-be-truthy": "off",
-        "vitest/prefer-to-be-falsy": "off",
         "import/consistent-type-specifier-style": "off",
         // Disable in main.tsx?
         "import/no-unassigned-import": "off",
