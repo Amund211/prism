@@ -18,7 +18,7 @@
             "specifier": "eslint-plugin-react-hooks"
         }
     ],
-    "ignorePatterns": ["src/routeTree.gen.ts"],
+    "ignorePatterns": ["src/routeTree.gen.ts", "src/vite-env.d.ts"],
     "categories": {
         "correctness": "error",
         "pedantic": "error",
@@ -91,7 +91,6 @@
         "import/no-unassigned-import": "off",
         "import/first": "off",
         // **********
-        "import/unambiguous": "off",
         "import/no-namespace": "off",
         "import/no-named-as-default": "off",
         "eslint/sort-imports": "off",
