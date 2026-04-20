@@ -1,4 +1,4 @@
-import { type GamemodeKey, type StatKey, type VariantKey } from "./keys.ts";
+import type { GamemodeKey, StatKey, VariantKey } from "./keys.ts";
 
 export const getFullStatLabel = (stat: StatKey, capitalize = false): string => {
     switch (stat) {

@@ -1,4 +1,4 @@
-import { type History } from "#queries/history.ts";
+import type { History } from "#queries/history.ts";
 import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS, ALL_VARIANT_KEYS } from "#stats/keys.ts";
 import { type DataKey, makeDataKey } from "./dataKeys.ts";
 import { computeStat } from "#stats/index.ts";

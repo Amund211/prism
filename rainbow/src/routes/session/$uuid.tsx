@@ -4,7 +4,7 @@ import { HistoryChart, SimpleHistoryChart } from "#charts/history/chart.tsx";
 import { TimeIntervalPicker } from "#components/TimeIntervalPicker.tsx";
 import { UserSearch } from "#components/UserSearch.tsx";
 import { ChartSynchronizerProvider } from "#contexts/ChartSynchronizer/provider.tsx";
-import { type TimeInterval } from "#intervals.ts";
+import type { TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import { getSessionsQueryOptions, type Sessions } from "#queries/sessions.ts";
 import { useUUIDToUsername } from "#queries/username.ts";

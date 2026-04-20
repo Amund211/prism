@@ -10,7 +10,7 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
-import { type GamemodeKey, type StatKey, type VariantKey } from "#stats/keys.ts";
+import type { GamemodeKey, StatKey, VariantKey } from "#stats/keys.ts";
 import React, { type ReactNode } from "react";
 import { generateChartData } from "./data.ts";
 import { makeDataKey } from "./dataKeys.ts";

@@ -1,9 +1,9 @@
-import {
-    type GamemodeKey,
-    type GamemodeStatKey,
-    type OverallStatKey,
-    type StatKey,
-    type VariantKey,
+import type {
+    GamemodeKey,
+    GamemodeStatKey,
+    OverallStatKey,
+    StatKey,
+    VariantKey,
 } from "#stats/keys.ts";
 
 type UUID = string;

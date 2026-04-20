@@ -4,8 +4,8 @@ import {
     ERR_NO_DATA,
     ERR_TRACKING_STARTED,
 } from "./progression.ts";
-import { type PlayerDataPIT, type StatsPIT } from "#queries/playerdata.ts";
-import { type History } from "#queries/history.ts";
+import type { PlayerDataPIT, StatsPIT } from "#queries/playerdata.ts";
+import type { History } from "#queries/history.ts";
 import { ALL_GAMEMODE_KEYS, type GamemodeKey, type StatKey } from "./keys.ts";
 
 const TEST_UUID = "0123e456-7890-1234-5678-90abcdef1234";

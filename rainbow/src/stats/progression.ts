@@ -1,7 +1,7 @@
-import { type TimeInterval } from "#intervals.ts";
-import { type History } from "#queries/history.ts";
+import type { TimeInterval } from "#intervals.ts";
+import type { History } from "#queries/history.ts";
 import { getStat } from "./index.ts";
-import { type GamemodeKey, type StatKey } from "./keys.ts";
+import type { GamemodeKey, StatKey } from "./keys.ts";
 import { PRESTIGE_EXP } from "./stars.ts";
 
 interface BaseStatProgression {
