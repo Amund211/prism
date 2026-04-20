@@ -15,7 +15,7 @@ export const PlayerHead: React.FC<PlayerHeadProps> = ({
 }) => {
     // Cubes at max scale are 886x1024, faces are square
     const aspectRatio = variant === "cube" ? 886 / 1024 : 1;
-    const scale = (width / 4).toFixed();
+    const scale = (width / 4).toFixed(0);
 
     const link =
         variant === "cube"
