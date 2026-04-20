@@ -157,6 +157,7 @@
                         "extensions": ["tsx"]
                     }
                 ],
+                "vitest/require-test-timeout": "off",
                 "unicorn/prefer-type-error": "off"
             }
         },
@@ -164,12 +165,6 @@
             "files": ["src/**/*.unit.test.ts"],
             "rules": {
                 "import/no-nodejs-modules": "off"
-            }
-        },
-        {
-            "files": ["src/**/*.test.ts", "src/**/*.test.tsx"],
-            "rules": {
-                "vitest/require-test-timeout": "off"
             }
         },
         {
