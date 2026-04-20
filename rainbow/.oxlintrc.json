@@ -106,7 +106,6 @@
             "error",
             { "includeExports": false, "allowSeparateTypeImports": true }
         ],
-        "typescript/prefer-readonly": "off",
         "eslint/prefer-exponentiation-operator": "off",
 
         // Jest rules got enabled with vitest for some reason

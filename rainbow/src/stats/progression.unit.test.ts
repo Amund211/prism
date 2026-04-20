@@ -12,7 +12,7 @@ import type { GamemodeKey, StatKey } from "./keys.ts";
 const TEST_UUID = "0123e456-7890-1234-5678-90abcdef1234";
 
 class StatsBuilder {
-    private stats: StatsPIT;
+    private readonly stats: StatsPIT;
 
     constructor() {
         this.stats = {
