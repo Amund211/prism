@@ -427,6 +427,7 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
                         return null;
                     }
 
+                    // oxlint-disable-next-line eslint/prefer-destructuring
                     const item: unknown = payload[0];
                     if (typeof item !== "object" || item === null) {
                         return null;
@@ -436,7 +437,7 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
                         return null;
                     }
 
-                    const value = item.value;
+                    const { value } = item;
                     if (typeof value !== "number") {
                         return null;
                     }

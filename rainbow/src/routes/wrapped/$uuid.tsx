@@ -435,7 +435,7 @@ interface SessionOverviewProps {
 }
 
 const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
-    const sessionStats = wrappedData.sessionStats;
+    const { sessionStats } = wrappedData;
     if (!sessionStats) {
         return null;
     }
@@ -776,7 +776,7 @@ interface AverageSessionStatsProps {
 }
 
 const AverageSessionStats: React.FC<AverageSessionStatsProps> = ({ wrappedData }) => {
-    const sessionStats = wrappedData.sessionStats;
+    const { sessionStats } = wrappedData;
     if (!sessionStats?.averages) return null;
 
     return (
@@ -851,7 +851,7 @@ interface BestSessionsProps {
 }
 
 const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
-    const sessionStats = wrappedData.sessionStats;
+    const { sessionStats } = wrappedData;
     if (!sessionStats?.bestSessions) return null;
 
     return (
@@ -942,7 +942,7 @@ interface StreaksProps {
 }
 
 const Streaks: React.FC<StreaksProps> = ({ wrappedData }) => {
-    const sessionStats = wrappedData.sessionStats;
+    const { sessionStats } = wrappedData;
     if (!sessionStats) return null;
 
     const modes = ["overall", "solo", "doubles", "threes", "fours"] as const;
@@ -1078,7 +1078,7 @@ interface FavoritePlayTimesProps {
 }
 
 const FavoritePlayTimes: React.FC<FavoritePlayTimesProps> = ({ wrappedData }) => {
-    const sessionStats = wrappedData.sessionStats;
+    const { sessionStats } = wrappedData;
     if (!sessionStats?.playtimeDistribution) return null;
 
     const { hourlyDistribution, dayHourDistribution } =
@@ -1329,7 +1329,7 @@ interface FlawlessSessionsProps {
 }
 
 const FlawlessSessions: React.FC<FlawlessSessionsProps> = ({ wrappedData }) => {
-    const sessionStats = wrappedData.sessionStats;
+    const { sessionStats } = wrappedData;
     if (!sessionStats?.flawlessSessions) return null;
 
     return (
@@ -1517,7 +1517,7 @@ interface SessionCoverageProps {
 }
 
 const SessionCoverage: React.FC<SessionCoverageProps> = ({ wrappedData }) => {
-    const sessionStats = wrappedData.sessionStats;
+    const { sessionStats } = wrappedData;
     if (!sessionStats?.sessionCoverage) return null;
 
     return (

@@ -204,6 +204,7 @@ function Index() {
             break;
         }
         case 1: {
+            // oxlint-disable-next-line eslint/prefer-destructuring
             badSelectionCountString = badSelectionCount[0];
             break;
         }

@@ -52,7 +52,7 @@ export const handlers = [
         });
     }),
     http.get(flashlightEndpoint("v1/account/username/:username"), (req) => {
-        const username = req.params.username;
+        const { username } = req.params;
         if (typeof username !== "string" || username.length === 0) {
             throw new Error("Invalid username parameter");
         }

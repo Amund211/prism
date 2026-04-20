@@ -96,7 +96,6 @@
         "eslint/func-style": "off",
         // TODO: Decide on filename case and fix or disable rule
         "unicorn/filename-case": "off",
-        "eslint/prefer-destructuring": "off",
         "typescript/consistent-type-imports": "off",
         // NOTE: Weird behavior in src/charts/history/data.unit.test.ts
         "eslint/no-implicit-coercion": "off",

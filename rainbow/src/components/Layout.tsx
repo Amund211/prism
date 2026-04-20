@@ -60,7 +60,7 @@ function useShownPlayer(): string | null {
             return currentMatch.params.uuid;
         }
         case "/history/explore": {
-            const uuids = currentMatch.search.uuids;
+            const { uuids } = currentMatch.search;
             return uuids.length > 0 ? uuids[0] : null;
         }
         case "__root__":

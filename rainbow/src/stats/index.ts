@@ -32,16 +32,14 @@ export function getStat(
             return bedwarsLevelFromExp(playerData.experience);
         }
         case "fkdr": {
-            const finalKills = selectedGamemode.finalKills;
-            const finalDeaths = selectedGamemode.finalDeaths;
+            const { finalKills, finalDeaths } = selectedGamemode;
             if (finalDeaths === 0) {
                 return finalKills;
             }
             return finalKills / finalDeaths;
         }
         case "kdr": {
-            const kills = selectedGamemode.kills;
-            const deaths = selectedGamemode.deaths;
+            const { kills, deaths } = selectedGamemode;
             if (deaths === 0) {
                 return kills;
             }
