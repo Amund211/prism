@@ -49,6 +49,7 @@
         "oxc/no-optional-chaining": "off",
         "oxc/no-rest-spread-properties": "off",
         "eslint/no-undefined": "off",
+        "eslint/no-negated-condition": "off",
         "oxc/no-async-await": "off",
         "react/no-multi-comp": "off",
         "eslint/default-case": "off",
@@ -76,7 +77,6 @@
 
         // TODO: Re-enable
 
-        "eslint/no-negated-condition": "off",
         "unicorn/no-immediate-mutation": "off",
         "unicorn/prefer-query-selector": "off",
         "unicorn/prefer-code-point": "off",

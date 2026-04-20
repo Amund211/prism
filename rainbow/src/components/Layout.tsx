@@ -187,7 +187,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                 to="/history/explore"
                                 selected={location.pathname === "/history/explore"}
                                 search={{
-                                    uuids: playerToNavigate !== null ? [playerToNavigate] : [],
+                                    uuids:
+                                        playerToNavigate !== null
+                                            ? [playerToNavigate]
+                                            : [],
                                     start: startOfMonth(now),
                                     end: endOfMonth(now),
                                     limit: 100,
@@ -341,7 +344,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                 selected={location.pathname === "/history/explore"}
                                 to="/history/explore"
                                 search={{
-                                    uuids: playerToNavigate !== null ? [playerToNavigate] : [],
+                                    uuids:
+                                        playerToNavigate !== null
+                                            ? [playerToNavigate]
+                                            : [],
                                     start: startOfMonth(now),
                                     end: endOfMonth(now),
                                     limit: 100,

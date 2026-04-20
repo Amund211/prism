@@ -20,10 +20,10 @@ function RouteComponent() {
     const { favoriteUUIDs, removePlayerVisits } = usePlayerVisits();
     const favorites =
         currentUser !== null
-            ? [currentUser, ...favoriteUUIDs.filter((uuid) => uuid !== currentUser)].slice(
-                  0,
-                  5,
-              )
+            ? [
+                  currentUser,
+                  ...favoriteUUIDs.filter((uuid) => uuid !== currentUser),
+              ].slice(0, 5)
             : favoriteUUIDs.slice(0, 5);
     const uuidToUsername = useUUIDToUsername(favorites);
 
