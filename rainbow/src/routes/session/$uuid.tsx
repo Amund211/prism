@@ -173,7 +173,6 @@ const isLinearStat = (stat: StatKey) => {
 };
 
 const getRelatedStats = (stat: StatKey): StatKey[] => {
-    // oxlint-disable-next-line typescript/switch-exhaustiveness-check
     switch (stat) {
         case "fkdr": {
             return ["finalKills", "finalDeaths"];

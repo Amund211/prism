@@ -146,7 +146,6 @@ const getOS = (): OS | "Unknown" => {
     // oxlint-disable-next-line eslint/new-cap
     const a = UAParser(navigator.userAgent);
     // Based on https://github.com/faisalman/ua-parser-js/blob/b9a710978e88ff1d5480886c2552efaccdad78ae/src/enums/ua-parser-enums.js
-    // oxlint-disable-next-line typescript/switch-exhaustiveness-check
     switch (a.os.name?.toLowerCase()) {
         case "linux":
         case "arch":

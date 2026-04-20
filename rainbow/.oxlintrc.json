@@ -123,6 +123,12 @@
             }
         ],
         "eslint/curly": ["error", "multi-line", "consistent"],
+        "typescript/switch-exhaustiveness-check": [
+            "error",
+            {
+                "considerDefaultExhaustiveForUnions": true
+            }
+        ],
 
         "@tanstack/query/exhaustive-deps": "error",
         "@tanstack/query/no-rest-destructuring": "error",
