@@ -78,7 +78,6 @@
 
         // TODO: Re-enable
 
-        "eslint/no-else-return": "off",
         "unicorn/require-number-to-fixed-digits-argument": "off",
         "eslint/require-await": "off",
         "unicorn/prefer-date-now": "off",

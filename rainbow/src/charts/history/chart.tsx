@@ -284,13 +284,12 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                 labelFormatter={(label: ReactNode) => {
                     if (typeof label === "number") {
                         return renderTimeFull(label);
-                    } else {
-                        assume(false, "Tooltip label is not a number", () => ({
-                            time: label,
-                            timeTypeof: typeof label,
-                        }));
-                        return label;
                     }
+                    assume(false, "Tooltip label is not a number", () => ({
+                        time: label,
+                        timeTypeof: typeof label,
+                    }));
+                    return label;
                 }}
                 contentStyle={{
                     backgroundColor: theme.palette.background.paper,

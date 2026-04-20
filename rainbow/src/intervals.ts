@@ -124,13 +124,12 @@ export const timeIntervalsFromDefinition = (
                 end: endOfMonth(now),
             },
         };
-    } else {
-        const end = endOfDay(definition.date);
-
-        return {
-            day: { start: daysBefore(end, 1), end },
-            week: { start: daysBefore(end, 7), end },
-            month: { start: daysBefore(end, 30), end },
-        };
     }
+    const end = endOfDay(definition.date);
+
+    return {
+        day: { start: daysBefore(end, 1), end },
+        week: { start: daysBefore(end, 7), end },
+        month: { start: daysBefore(end, 30), end },
+    };
 };

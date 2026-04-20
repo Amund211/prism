@@ -33,18 +33,16 @@ export function getStat(
             const finalDeaths = selectedGamemode.finalDeaths;
             if (finalDeaths === 0) {
                 return finalKills;
-            } else {
-                return finalKills / finalDeaths;
             }
+            return finalKills / finalDeaths;
         }
         case "kdr": {
             const kills = selectedGamemode.kills;
             const deaths = selectedGamemode.deaths;
             if (deaths === 0) {
                 return kills;
-            } else {
-                return kills / deaths;
             }
+            return kills / deaths;
         }
         case "index": {
             const fkdr = getStat(playerData, gamemode, "fkdr");
@@ -117,9 +115,8 @@ export function computeStat(
 
             if (finalDeaths === 0) {
                 return finalKills;
-            } else {
-                return finalKills / finalDeaths;
             }
+            return finalKills / finalDeaths;
         }
         case "kdr": {
             const kills = computeStat(playerData, gamemode, "kills", variant, history);
@@ -133,9 +130,8 @@ export function computeStat(
 
             if (deaths === 0) {
                 return kills;
-            } else {
-                return kills / deaths;
             }
+            return kills / deaths;
         }
         case "index": {
             const fkdr = computeStat(playerData, gamemode, "fkdr", variant, history);
