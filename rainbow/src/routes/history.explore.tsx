@@ -113,13 +113,13 @@ function Index() {
     const uuidToUsername = useUUIDToUsername(uuids);
 
     // Register visits for all players on page load
-    const [initialUUIDs] = React.useState(uuids);
-    const [initialVisitPlayer] = React.useState(() => visitPlayer);
+    const initialUUIDsRef = React.useRef(uuids);
+    const initialVisitPlayerRef = React.useRef(visitPlayer);
     React.useEffect(() => {
-        for (const uuid of initialUUIDs) {
-            initialVisitPlayer(uuid);
+        for (const uuid of initialUUIDsRef.current) {
+            initialVisitPlayerRef.current(uuid);
         }
-    }, [initialVisitPlayer, initialUUIDs]);
+    }, []);
 
     if (JSON.stringify(uuids) !== JSON.stringify(rawUUIDs)) {
         // Redirect to the normalized UUIDs

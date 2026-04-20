@@ -1270,12 +1270,12 @@ function RouteComponent() {
     const { visitPlayer } = usePlayerVisits();
 
     // Register visits for player on page load
-    const [initialUUID] = React.useState(uuid);
-    const [initialVisitPlayer] = React.useState(() => visitPlayer);
+    const initialUUIDRef = React.useRef(uuid);
+    const initialVisitPlayerRef = React.useRef(visitPlayer);
     React.useEffect(() => {
-        if (initialUUID === null) return;
-        initialVisitPlayer(initialUUID);
-    }, [initialVisitPlayer, initialUUID]);
+        if (initialUUIDRef.current === null) return;
+        initialVisitPlayerRef.current(initialUUIDRef.current);
+    }, []);
 
     if (uuid === null) {
         return <Navigate to="/session" replace />;

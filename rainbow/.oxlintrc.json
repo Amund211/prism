@@ -93,8 +93,6 @@
         "unicorn/filename-case": "off",
         // NOTE: Weird behavior in src/charts/history/data.unit.test.ts
         "eslint/no-implicit-coercion": "off",
-        // NOTE: We have a few cases where we don't use the setter - either ignore it for them, or find a different solution
-        "react/hook-use-state": "off",
 
         // Jest rules got enabled with vitest for some reason
         "jest/require-hook": "off",
