@@ -66,11 +66,13 @@ export const Route = createFileRoute("/history/explore")({
         const uuids = normalizeUUIDsSkippingInvalid(rawUUIDs);
         // TODO: Rate limiting
         Promise.all([
+            // oxlint-disable-next-line typescript/promise-function-async
             ...uuids.map((uuid) =>
                 queryClient.fetchQuery(
                     getHistoryQueryOptions({ uuid, start, end, limit }),
                 ),
             ),
+            // oxlint-disable-next-line typescript/promise-function-async
             ...uuids.map((uuid) =>
                 queryClient.fetchQuery(getUsernameQueryOptions(uuid)),
             ),

@@ -55,6 +55,7 @@ async function waitForImages(root: HTMLElement) {
     );
     // img.decode() may not be available in all browsers
     await Promise.allSettled(
+        // oxlint-disable-next-line typescript/promise-function-async
         imgs.map((img) => {
             const imgWithDecode = img as HTMLImageElement & {
                 decode?: () => Promise<void>;

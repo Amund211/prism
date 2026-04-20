@@ -79,7 +79,6 @@
 
         // TODO: Re-enable
 
-        "typescript/promise-function-async": "off",
         "unicorn/prefer-number-properties": "off",
         "typescript/explicit-module-boundary-types": "off",
         "typescript/explicit-function-return-type": "off",

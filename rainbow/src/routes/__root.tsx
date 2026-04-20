@@ -5,7 +5,8 @@ import React, { Suspense } from "react";
 
 const TanStackRouterDevtools = import.meta.env.PROD
     ? () => null // Render nothing in production
-    : React.lazy(() =>
+    : // oxlint-disable-next-line typescript/promise-function-async
+      React.lazy(() =>
           // Lazy load in development
           import("@tanstack/react-router-devtools").then((res) => ({
               default: res.TanStackRouterDevtools,
@@ -14,7 +15,8 @@ const TanStackRouterDevtools = import.meta.env.PROD
 
 const ReactQueryDevtools = import.meta.env.PROD
     ? () => null // Render nothing in production
-    : React.lazy(() =>
+    : // oxlint-disable-next-line typescript/promise-function-async
+      React.lazy(() =>
           // Lazy load in development
           import("@tanstack/react-query-devtools").then((res) => ({
               default: res.ReactQueryDevtools,

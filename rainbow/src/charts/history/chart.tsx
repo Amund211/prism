@@ -281,6 +281,7 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
             />
             <Legend />
             <Tooltip
+                // oxlint-disable-next-line typescript/promise-function-async
                 labelFormatter={(label: ReactNode) => {
                     if (typeof label === "number") {
                         return renderTimeFull(label);
