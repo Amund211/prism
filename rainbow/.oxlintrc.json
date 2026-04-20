@@ -85,7 +85,6 @@
 
         // TODO: Re-enable
 
-        "vitest/prefer-describe-function-title": "off",
         "vitest/prefer-to-be-truthy": "off",
         "vitest/prefer-to-be-falsy": "off",
         "import/consistent-type-specifier-style": "off",

@@ -1,7 +1,7 @@
 import { test, expect, describe } from "vitest";
 import { clusterChartData } from "./data.ts";
 
-describe("clusterChartData", () => {
+describe(clusterChartData, () => {
     const now = new Date(2024, 1, 1, 0, 0, 0, 0).getTime();
 
     const second = 1000;

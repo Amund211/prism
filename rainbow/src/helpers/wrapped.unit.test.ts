@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest";
 import { computeWrappedYear } from "./wrapped.ts";
 
-describe("computeWrappedYear", () => {
+describe(computeWrappedYear, () => {
     const cases = [
         { date: new Date("2025-01-01"), expected: 2024 },
         { date: new Date("2025-05-01"), expected: 2024 },

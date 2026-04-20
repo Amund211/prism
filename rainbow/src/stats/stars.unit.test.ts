@@ -1,7 +1,7 @@
 import { test, expect, describe } from "vitest";
 import { bedwarsLevelFromExp } from "./stars.ts";
 
-describe("bedwarsLevelFromExp", () => {
+describe(bedwarsLevelFromExp, () => {
     const cases: { exp: number; stars: number; decimalPrecision: boolean }[] = [
         { exp: 500, stars: 1.0, decimalPrecision: true },
         { exp: 3648, stars: 3 + 148 / 3500, decimalPrecision: true },

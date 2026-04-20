@@ -1,7 +1,7 @@
 import { test, expect, describe } from "vitest";
 import { normalizeUUID } from "./uuid.ts";
 
-describe("normalizeUUID", () => {
+describe(normalizeUUID, () => {
     const cases = [
         {
             // Regular dashed UUID

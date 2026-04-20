@@ -7,7 +7,7 @@ import {
 } from "./userId.ts";
 import { isNormalizedUUID } from "./uuid.ts";
 
-describe("newUserId", () => {
+describe(newUserId, () => {
     test("should generate a new user ID like rnb_<uuid-v4>", () => {
         for (let i = 0; i < 10; i++) {
             const userId = newUserId();
@@ -111,7 +111,7 @@ describe("getOrSetUserId", () => {
     });
 });
 
-describe("validateUserId", () => {
+describe(validateUserId, () => {
     const cases = [
         {
             input: "rnb_4a6113bb-5f94-4bc6-9e71-fc94e90c1fb2",

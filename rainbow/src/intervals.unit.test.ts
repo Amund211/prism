@@ -106,7 +106,7 @@ describe("getTimeIntervals", () => {
 });
 
 describe("time helpers", () => {
-    describe("endOfDay", () => {
+    describe(endOfDay, () => {
         const cases = [
             {
                 date: new Date(2024, 1, 14, 0, 0, 0),
@@ -136,7 +136,7 @@ describe("time helpers", () => {
         }
     });
 
-    describe("endOfWeek", () => {
+    describe(endOfWeek, () => {
         const cases = [
             ...Array.from({ length: 7 }).map((_, i) => ({
                 // All days in the week point to the same end of last week
@@ -156,7 +156,7 @@ describe("time helpers", () => {
         }
     });
 
-    describe("endOfMonth", () => {
+    describe(endOfMonth, () => {
         const cases = [
             {
                 date: new Date(2024, 0, 1, 0, 0, 0),
@@ -198,7 +198,7 @@ describe("time helpers", () => {
         }
     });
 
-    describe("endOfLastDay", () => {
+    describe(endOfLastDay, () => {
         const cases = [
             {
                 date: new Date(2024, 1, 14, 0, 0, 0),
@@ -228,7 +228,7 @@ describe("time helpers", () => {
         }
     });
 
-    describe("endOfLastWeek", () => {
+    describe(endOfLastWeek, () => {
         const cases = [
             ...Array.from({ length: 7 }).map((_, i) => ({
                 // All days in the week point to the same end of last week
@@ -248,7 +248,7 @@ describe("time helpers", () => {
         }
     });
 
-    describe("endOfLastMonth", () => {
+    describe(endOfLastMonth, () => {
         const cases = [
             {
                 date: new Date(2024, 1, 1, 0, 0, 0),

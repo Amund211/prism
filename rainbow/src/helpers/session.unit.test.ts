@@ -28,7 +28,7 @@ const makePlayerDataPIT = (gamesPlayed: number, experience: number): PlayerDataP
     fours: makeStatsPIT(gamesPlayed),
 });
 
-describe("addExtrapolatedSessions", () => {
+describe(addExtrapolatedSessions, () => {
     const cases = [
         {
             name: "No sessions no history",
