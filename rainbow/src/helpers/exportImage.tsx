@@ -22,7 +22,9 @@ function useOffscreenHost() {
         });
         host.setAttribute("aria-hidden", "true");
         document.body.append(host);
-        return () => void document.body.removeChild(host);
+        return () => {
+            host.remove();
+        };
     }, [host]);
     return host;
 }
