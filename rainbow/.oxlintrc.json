@@ -76,11 +76,11 @@
         "eslint/max-params": "off",
         "unicorn/prefer-ternary": "off",
         "eslint/init-declarations": "off",
+        "typescript/explicit-module-boundary-types": "off",
+        "typescript/explicit-function-return-type": "off",
 
         // TODO: Re-enable
 
-        "typescript/explicit-module-boundary-types": "off",
-        "typescript/explicit-function-return-type": "off",
         "eslint/no-console": "off",
         "typescript/no-import-type-side-effects": "off",
         "eslint/no-use-before-define": "off",
