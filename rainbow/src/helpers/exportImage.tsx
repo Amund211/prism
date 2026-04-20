@@ -31,7 +31,7 @@ function useOffscreenHost() {
 
 /** Wait for <img> in a subtree to finish loading/decoding */
 async function waitForImages(root: HTMLElement) {
-    const imgs = Array.from(root.querySelectorAll("img"));
+    const imgs = [...root.querySelectorAll("img")];
     await Promise.all(
         imgs.map(async (img) => {
             if (img.complete && img.naturalWidth > 0) return;

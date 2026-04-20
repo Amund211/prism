@@ -43,9 +43,7 @@ describe("Settings page", () => {
         await expect
             .poll(() => {
                 const chips = document.querySelectorAll(".MuiChip-root");
-                return Array.from(chips).some(
-                    (c) => c.textContent === USERS.player1.username,
-                );
+                return [...chips].some((c) => c.textContent === USERS.player1.username);
             })
             .toBe(true);
 
@@ -83,7 +81,7 @@ describe("Settings page", () => {
             await expect
                 .poll(() => {
                     const chips = document.querySelectorAll(".MuiChip-root");
-                    return Array.from(chips).some(
+                    return [...chips].some(
                         (c) => c.textContent === USERS.player1.username,
                     );
                 })
@@ -139,9 +137,7 @@ describe("Settings page", () => {
         await expect
             .poll(() => {
                 const chips = document.querySelectorAll(".MuiChip-root");
-                return Array.from(chips).some(
-                    (c) => c.textContent === USERS.player1.username,
-                );
+                return [...chips].some((c) => c.textContent === USERS.player1.username);
             })
             .toBe(true);
     });
@@ -155,9 +151,7 @@ describe("Settings page", () => {
         await expect
             .poll(() => {
                 const chips = document.querySelectorAll(".MuiChip-root");
-                return Array.from(chips).some(
-                    (c) => c.textContent === USERS.player1.username,
-                );
+                return [...chips].some((c) => c.textContent === USERS.player1.username);
             })
             .toBe(true);
 
@@ -193,9 +187,7 @@ describe("Settings page", () => {
         await expect
             .poll(() => {
                 const chips = document.querySelectorAll(".MuiChip-root");
-                return Array.from(chips).some(
-                    (c) => c.textContent === USERS.player1.username,
-                );
+                return [...chips].some((c) => c.textContent === USERS.player1.username);
             })
             .toBe(true);
     });

@@ -139,7 +139,7 @@ describe("Downloads page", () => {
                 const links = document.querySelectorAll(
                     'a[href*="github.com/Amund211/prism/releases"]',
                 );
-                return Array.from(links).every((link) => link.hasAttribute("download"));
+                return [...links].every((link) => link.hasAttribute("download"));
             })
             .toBe(true);
     });

@@ -77,9 +77,7 @@ describe("Session detail page", () => {
         await expect
             .poll(() => {
                 const elements = document.querySelectorAll('[class*="MuiTypography"]');
-                return Array.from(elements).some((el) =>
-                    el.textContent.startsWith("Daily"),
-                );
+                return [...elements].some((el) => el.textContent.startsWith("Daily"));
             })
             .toBe(true);
     });
@@ -90,9 +88,7 @@ describe("Session detail page", () => {
         await expect
             .poll(() => {
                 const elements = document.querySelectorAll('[class*="MuiTypography"]');
-                return Array.from(elements).some((el) =>
-                    el.textContent.startsWith("Weekly"),
-                );
+                return [...elements].some((el) => el.textContent.startsWith("Weekly"));
             })
             .toBe(true);
     });
@@ -103,9 +99,7 @@ describe("Session detail page", () => {
         await expect
             .poll(() => {
                 const elements = document.querySelectorAll('[class*="MuiTypography"]');
-                return Array.from(elements).some((el) =>
-                    el.textContent.startsWith("Monthly"),
-                );
+                return [...elements].some((el) => el.textContent.startsWith("Monthly"));
             })
             .toBe(true);
     });
@@ -184,7 +178,7 @@ describe("Session detail page", () => {
             .poll(() => {
                 const cells = document.querySelectorAll("td");
                 // Check that there are table data cells with numeric content
-                return Array.from(cells).some((cell) => {
+                return [...cells].some((cell) => {
                     const text = cell.textContent.trim();
                     return /^\d/.test(text) && text.length > 0;
                 });
@@ -562,7 +556,7 @@ describe("Session detail page", () => {
             .poll(() => {
                 const cells = document.querySelectorAll("td");
                 // Duration format contains "m" for minutes or "h" for hours
-                return Array.from(cells).some((cell) => {
+                return [...cells].some((cell) => {
                     const text = cell.textContent.trim();
                     return /\d+m/.test(text);
                 });

@@ -94,7 +94,6 @@
         "eslint/sort-imports": "off",
         // TODO: Decide on function style and fix or disable rule
         "eslint/func-style": "off",
-        "unicorn/prefer-spread": "off",
         "promise/prefer-await-to-callbacks": "off",
         // TODO: Decide on filename case and fix or disable rule
         "unicorn/filename-case": "off",

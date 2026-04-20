@@ -72,7 +72,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
     const { knownAliases } = useKnownAliases();
     const uuids = Object.keys(knownAliases);
     const uuidToUsername = useUUIDToUsername([
-        ...new Set(uuids.concat(additionalUUIDs ?? [])),
+        ...new Set([...uuids, ...(additionalUUIDs ?? [])]),
     ]);
     const { orderUUIDsByScore } = usePlayerVisits();
     const { currentUser } = useCurrentUser();
@@ -125,11 +125,12 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                 (uuid) => uuidToOption[uuid],
             );
 
-            return orderedOptions.concat(
-                inputValue.trim()
-                    ? [{ type: "free-text", text: inputValue.trim() }]
-                    : [],
-            );
+            return [
+                ...orderedOptions,
+                ...(inputValue.trim()
+                    ? [{ type: "free-text" as const, text: inputValue.trim() }]
+                    : []),
+            ];
         },
         renderOption: (props, option) => {
             // Render as "Search for {text}"

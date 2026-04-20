@@ -212,7 +212,7 @@ describe("Wrapped detail page", () => {
         await expect
             .poll(() => {
                 const elements = document.querySelectorAll('[class*="MuiTypography"]');
-                return Array.from(elements).some((el) =>
+                return [...elements].some((el) =>
                     el.textContent.includes("What a Year!"),
                 );
             })

@@ -112,9 +112,7 @@ describe("Layout - Desktop navigation", () => {
                 const aboutLinks = document.querySelectorAll(
                     '[data-status="active"], [aria-current="page"]',
                 );
-                return Array.from(aboutLinks).some((el) =>
-                    el.textContent.includes("About"),
-                );
+                return [...aboutLinks].some((el) => el.textContent.includes("About"));
             })
             .toBe(true);
     });
@@ -288,9 +286,7 @@ describe("Layout - active route highlighting updates on navigation", () => {
                 const activeLinks = document.querySelectorAll(
                     '[data-status="active"], [aria-current="page"]',
                 );
-                return Array.from(activeLinks).some((el) =>
-                    el.textContent.includes("About"),
-                );
+                return [...activeLinks].some((el) => el.textContent.includes("About"));
             })
             .toBe(true);
 
@@ -305,7 +301,7 @@ describe("Layout - active route highlighting updates on navigation", () => {
                 const activeLinks = document.querySelectorAll(
                     '[data-status="active"], [aria-current="page"]',
                 );
-                return Array.from(activeLinks).some((el) =>
+                return [...activeLinks].some((el) =>
                     el.textContent.includes("Downloads"),
                 );
             })
@@ -325,7 +321,7 @@ describe("Layout - sidebar navigation links include current user", () => {
                 const links = document.querySelectorAll(
                     `a[href*="${USERS.player1.uuid}"]`,
                 );
-                return Array.from(links).some((link) =>
+                return [...links].some((link) =>
                     link.textContent.includes("Session stats"),
                 );
             })
@@ -342,9 +338,7 @@ describe("Layout - sidebar navigation links include current user", () => {
                 const links = document.querySelectorAll(
                     `a[href*="${USERS.player1.uuid}"]`,
                 );
-                return Array.from(links).some((link) =>
-                    link.textContent.includes("Wrapped"),
-                );
+                return [...links].some((link) => link.textContent.includes("Wrapped"));
             })
             .toBe(true);
     });
@@ -359,7 +353,7 @@ describe("Layout - sidebar navigation links include current user", () => {
                 const links = document.querySelectorAll(
                     `a[href*="${USERS.player1.uuid}"]`,
                 );
-                return Array.from(links).some((link) =>
+                return [...links].some((link) =>
                     link.textContent.includes("History explorer"),
                 );
             })
@@ -380,7 +374,7 @@ describe("Layout - mobile navigation links include current user", () => {
         await expect
             .poll(() => {
                 const menuItems = document.querySelectorAll('[role="menuitem"]');
-                return Array.from(menuItems).some(
+                return [...menuItems].some(
                     (item) =>
                         item.textContent.includes("Session stats") &&
                         item.getAttribute("href")?.includes(USERS.player1.uuid) ===

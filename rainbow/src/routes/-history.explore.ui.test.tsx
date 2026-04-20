@@ -95,9 +95,7 @@ describe("History Explore page", () => {
         await expect
             .poll(() => {
                 const chips = document.querySelectorAll(".MuiChip-label");
-                return Array.from(chips).some(
-                    (c) => c.textContent === USERS.player1.username,
-                );
+                return [...chips].some((c) => c.textContent === USERS.player1.username);
             })
             .toBe(true);
 
@@ -110,7 +108,7 @@ describe("History Explore page", () => {
         await expect
             .poll(() => {
                 const chips = document.querySelectorAll(".MuiChip-label");
-                const texts = Array.from(chips).map((c) => c.textContent);
+                const texts = [...chips].map((c) => c.textContent);
                 return (
                     texts.includes(USERS.player1.username) &&
                     texts.includes(USERS.player2.username)
@@ -141,7 +139,7 @@ describe("History Explore page", () => {
         await expect
             .poll(() => {
                 const chips = document.querySelectorAll(".MuiChip-label");
-                const texts = Array.from(chips).map((c) => c.textContent);
+                const texts = [...chips].map((c) => c.textContent);
                 return (
                     !texts.includes(USERS.player1.username) &&
                     texts.includes(USERS.player2.username)
@@ -159,7 +157,7 @@ describe("History Explore page", () => {
         await expect
             .poll(() => {
                 const chips = document.querySelectorAll(".MuiChip-label");
-                const texts = Array.from(chips).map((c) => c.textContent);
+                const texts = [...chips].map((c) => c.textContent);
                 return (
                     texts.includes(USERS.player1.username) &&
                     texts.includes(USERS.player2.username)
