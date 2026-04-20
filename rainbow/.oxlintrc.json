@@ -91,7 +91,6 @@
         "import/no-unassigned-import": "off",
         "import/first": "off",
         // **********
-        "import/no-named-as-default": "off",
         "eslint/sort-imports": "off",
         "unicorn/switch-case-braces": "off",
         "unicorn/prefer-global-this": "off",

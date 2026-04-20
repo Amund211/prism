@@ -3,7 +3,7 @@ import babel from "@rolldown/plugin-babel";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { reactClickToComponent } from "vite-plugin-react-click-to-component";
 import path from "node:path";
-import tanstackRouter from "@tanstack/router-plugin/vite";
+import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 
 // https://vite.dev/config/
