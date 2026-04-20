@@ -80,7 +80,6 @@
         "typescript/explicit-module-boundary-types": "off",
         "typescript/explicit-function-return-type": "off",
 
-        "eslint/no-console": ["error", { "allow": ["warn", "error"] }],
         "vitest/no-importing-vitest-globals": "off",
         "vitest/prefer-to-be-truthy": "off",
         "vitest/prefer-to-be-falsy": "off",
@@ -96,12 +95,6 @@
         "eslint/no-implicit-coercion": "off",
         // NOTE: We have a few cases where we don't use the setter - either ignore it for them, or find a different solution
         "react/hook-use-state": "off",
-        // NOTE: `allowSeparateTypeImports` is required because our `import/consistent-type-specifier-style`
-        //        and `verbatimModuleSyntax` config combination requires separate `import type` statements.
-        "eslint/no-duplicate-imports": [
-            "error",
-            { "includeExports": false, "allowSeparateTypeImports": true }
-        ],
 
         // Jest rules got enabled with vitest for some reason
         "jest/require-hook": "off",
@@ -125,6 +118,11 @@
                 "considerDefaultExhaustiveForUnions": true
             }
         ],
+        "eslint/no-duplicate-imports": [
+            "error",
+            { "includeExports": false, "allowSeparateTypeImports": true }
+        ],
+        "eslint/no-console": ["error", { "allow": ["warn", "error"] }],
 
         "@tanstack/query/exhaustive-deps": "error",
         "@tanstack/query/no-rest-destructuring": "error",
