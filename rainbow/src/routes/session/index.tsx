@@ -23,29 +23,33 @@ function RouteComponent() {
             <UserSearch
                 onSubmit={(uuid) => {
                     visitPlayer(uuid);
-                    navigate({
-                        from: "/session/",
-                        to: "/session/$uuid",
-                        params: { uuid },
-                        search: {
-                            gamemode: "overall",
-                            stat: "fkdr",
-                            timeIntervalDefinition: { type: "contained" },
-                            variantSelection: "both",
-                            sessionTableMode: "total",
-                            showExtrapolatedSessions: false,
-                        },
-                    }).catch((error: unknown) => {
-                        captureException(error, {
-                            tags: {
-                                param: "uuid",
-                            },
-                            extra: {
-                                message: "Failed to update search params",
-                                uuid,
-                            },
-                        });
-                    });
+                    void (async () => {
+                        try {
+                            await navigate({
+                                from: "/session/",
+                                to: "/session/$uuid",
+                                params: { uuid },
+                                search: {
+                                    gamemode: "overall",
+                                    stat: "fkdr",
+                                    timeIntervalDefinition: { type: "contained" },
+                                    variantSelection: "both",
+                                    sessionTableMode: "total",
+                                    showExtrapolatedSessions: false,
+                                },
+                            });
+                        } catch (error: unknown) {
+                            captureException(error, {
+                                tags: {
+                                    param: "uuid",
+                                },
+                                extra: {
+                                    message: "Failed to update search params",
+                                    uuid,
+                                },
+                            });
+                        }
+                    })();
                 }}
             />
         </Stack>

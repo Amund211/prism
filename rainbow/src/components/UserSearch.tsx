@@ -322,18 +322,18 @@ export const UserSearch: React.FC<UserSearchProps> = ({
                 }
 
                 setLoading(true);
-                // oxlint-disable-next-line promise/catch-or-return
-                queryClient
-                    .fetchQuery(getUUIDQueryOptions(value.text))
-                    .then(({ uuid }) => {
+                void (async () => {
+                    try {
+                        const { uuid } = await queryClient.fetchQuery(
+                            getUUIDQueryOptions(value.text),
+                        );
                         onSubmit(uuid);
-                    })
-                    .catch((error: unknown) => {
+                    } catch (error: unknown) {
                         console.error("Failed to fetch username", error);
-                    })
-                    .finally(() => {
+                    } finally {
                         setLoading(false);
-                    });
+                    }
+                })();
             }}
             renderInput={(params) => {
                 return (
@@ -401,43 +401,42 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
             value={uuids.map((uuid) => ({ type: "uuid" as const, uuid }))}
             onChange={(_, newValues) => {
                 setLoading(true);
-                // oxlint-disable-next-line promise/catch-or-return
-                Promise.allSettled(
-                    newValues.map(async (value) => {
-                        if (value.type === "uuid") {
-                            return value.uuid;
-                        }
+                void (async () => {
+                    try {
+                        const results = await Promise.allSettled(
+                            newValues.map(async (value) => {
+                                if (value.type === "uuid") {
+                                    return value.uuid;
+                                }
 
-                        // Allow UUIDs to be entered directly
-                        const valueAsNormalizedUUID = normalizeUUID(value.text);
-                        if (valueAsNormalizedUUID !== null) {
-                            return valueAsNormalizedUUID;
-                        }
+                                // Allow UUIDs to be entered directly
+                                const valueAsNormalizedUUID = normalizeUUID(value.text);
+                                if (valueAsNormalizedUUID !== null) {
+                                    return valueAsNormalizedUUID;
+                                }
 
-                        return queryClient
-                            .fetchQuery(getUUIDQueryOptions(value.text))
-                            .then(({ uuid }) => {
-                                return uuid;
-                            })
-                            .catch((error: unknown) => {
-                                console.error("Failed to fetch username", error);
-                                throw error;
-                            });
-                    }),
-                )
-                    .then((results) => {
+                                try {
+                                    const { uuid } = await queryClient.fetchQuery(
+                                        getUUIDQueryOptions(value.text),
+                                    );
+                                    return uuid;
+                                } catch (error: unknown) {
+                                    console.error("Failed to fetch username", error);
+                                    throw error;
+                                }
+                            }),
+                        );
                         onSubmit(
                             results
                                 .filter((result) => result.status === "fulfilled")
                                 .map((result) => result.value),
                         );
-                    })
-                    .catch((error: unknown) => {
+                    } catch (error: unknown) {
                         console.error("Failed to settle all uuid promises", error);
-                    })
-                    .finally(() => {
+                    } finally {
                         setLoading(false);
-                    });
+                    }
+                })();
             }}
             renderInput={(params) => {
                 return (

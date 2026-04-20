@@ -61,28 +61,32 @@ export const Route = createFileRoute("/history/explore")({
     }) => {
         const uuids = normalizeUUIDsSkippingInvalid(rawUUIDs);
         // TODO: Rate limiting
-        Promise.all([
-            // oxlint-disable-next-line typescript/promise-function-async
-            ...uuids.map((uuid) =>
-                queryClient.fetchQuery(
-                    getHistoryQueryOptions({ uuid, start, end, limit }),
-                ),
-            ),
-            // oxlint-disable-next-line typescript/promise-function-async
-            ...uuids.map((uuid) =>
-                queryClient.fetchQuery(getUsernameQueryOptions(uuid)),
-            ),
-        ]).catch((error: unknown) => {
-            captureException(error, {
-                extra: {
-                    uuids: rawUUIDs,
-                    start,
-                    end,
-                    limit,
-                    message: "Failed to fetch history + username data",
-                },
-            });
-        });
+        void (async () => {
+            try {
+                await Promise.all([
+                    // oxlint-disable-next-line typescript/promise-function-async
+                    ...uuids.map((uuid) =>
+                        queryClient.fetchQuery(
+                            getHistoryQueryOptions({ uuid, start, end, limit }),
+                        ),
+                    ),
+                    // oxlint-disable-next-line typescript/promise-function-async
+                    ...uuids.map((uuid) =>
+                        queryClient.fetchQuery(getUsernameQueryOptions(uuid)),
+                    ),
+                ]);
+            } catch (error: unknown) {
+                captureException(error, {
+                    extra: {
+                        uuids: rawUUIDs,
+                        start,
+                        end,
+                        limit,
+                        message: "Failed to fetch history + username data",
+                    },
+                });
+            }
+        })();
     },
     validateSearch: historyExploreSearchSchema,
     // oxlint-disable-next-line eslint/no-use-before-define
@@ -248,24 +252,28 @@ function Index() {
                         visitPlayer(uuid);
                     }
 
-                    navigate({
-                        search: (oldSearch) => {
-                            return {
-                                ...oldSearch,
-                                uuids: newUUIDs,
-                            };
-                        },
-                    }).catch((error: unknown) => {
-                        captureException(error, {
-                            tags: {
-                                param: "uuids",
-                            },
-                            extra: {
-                                message: "Failed to update search params",
-                                uuids: newUUIDs,
-                            },
-                        });
-                    });
+                    void (async () => {
+                        try {
+                            await navigate({
+                                search: (oldSearch) => {
+                                    return {
+                                        ...oldSearch,
+                                        uuids: newUUIDs,
+                                    };
+                                },
+                            });
+                        } catch (error: unknown) {
+                            captureException(error, {
+                                tags: {
+                                    param: "uuids",
+                                },
+                                extra: {
+                                    message: "Failed to update search params",
+                                    uuids: newUUIDs,
+                                },
+                            });
+                        }
+                    })();
                 }}
             />
             <Stack direction="row" gap={1}>
@@ -277,22 +285,26 @@ function Index() {
                     fullWidth
                     onChange={(event) => {
                         const newGamemodes = event.target.value as GamemodeKey[];
-                        navigate({
-                            search: (oldSearch) => ({
-                                ...oldSearch,
-                                gamemodes: newGamemodes,
-                            }),
-                        }).catch((error: unknown) => {
-                            captureException(error, {
-                                tags: {
-                                    param: "gamemodes",
-                                },
-                                extra: {
-                                    message: "Failed to update search params",
-                                    gamemodes: newGamemodes,
-                                },
-                            });
-                        });
+                        void (async () => {
+                            try {
+                                await navigate({
+                                    search: (oldSearch) => ({
+                                        ...oldSearch,
+                                        gamemodes: newGamemodes,
+                                    }),
+                                });
+                            } catch (error: unknown) {
+                                captureException(error, {
+                                    tags: {
+                                        param: "gamemodes",
+                                    },
+                                    extra: {
+                                        message: "Failed to update search params",
+                                        gamemodes: newGamemodes,
+                                    },
+                                });
+                            }
+                        })();
                     }}
                 >
                     {ALL_GAMEMODE_KEYS.map((gamemode) => (
@@ -309,22 +321,26 @@ function Index() {
                     fullWidth
                     onChange={(event) => {
                         const newStats = event.target.value as StatKey[];
-                        navigate({
-                            search: (oldSearch) => ({
-                                ...oldSearch,
-                                stats: newStats,
-                            }),
-                        }).catch((error: unknown) => {
-                            captureException(error, {
-                                tags: {
-                                    param: "stats",
-                                },
-                                extra: {
-                                    message: "Failed to update search params",
-                                    stats: newStats,
-                                },
-                            });
-                        });
+                        void (async () => {
+                            try {
+                                await navigate({
+                                    search: (oldSearch) => ({
+                                        ...oldSearch,
+                                        stats: newStats,
+                                    }),
+                                });
+                            } catch (error: unknown) {
+                                captureException(error, {
+                                    tags: {
+                                        param: "stats",
+                                    },
+                                    extra: {
+                                        message: "Failed to update search params",
+                                        stats: newStats,
+                                    },
+                                });
+                            }
+                        })();
                     }}
                 >
                     {ALL_STAT_KEYS.map((stat) => (
@@ -375,22 +391,26 @@ function Index() {
                             if (newDate === null) {
                                 return;
                             }
-                            navigate({
-                                search: (oldSearch) => ({
-                                    ...oldSearch,
-                                    start: newDate.toDate(),
-                                }),
-                            }).catch((error: unknown) => {
-                                captureException(error, {
-                                    tags: {
-                                        param: "start",
-                                    },
-                                    extra: {
-                                        message: "Failed to update search params",
-                                        start: newDate.toDate(),
-                                    },
-                                });
-                            });
+                            void (async () => {
+                                try {
+                                    await navigate({
+                                        search: (oldSearch) => ({
+                                            ...oldSearch,
+                                            start: newDate.toDate(),
+                                        }),
+                                    });
+                                } catch (error: unknown) {
+                                    captureException(error, {
+                                        tags: {
+                                            param: "start",
+                                        },
+                                        extra: {
+                                            message: "Failed to update search params",
+                                            start: newDate.toDate(),
+                                        },
+                                    });
+                                }
+                            })();
                         }}
                     />
                     <DateTimePicker
@@ -400,22 +420,26 @@ function Index() {
                             if (newDate === null) {
                                 return;
                             }
-                            navigate({
-                                search: (oldSearch) => ({
-                                    ...oldSearch,
-                                    end: newDate.toDate(),
-                                }),
-                            }).catch((error: unknown) => {
-                                captureException(error, {
-                                    tags: {
-                                        param: "end",
-                                    },
-                                    extra: {
-                                        message: "Failed to update search params",
-                                        end: newDate.toDate(),
-                                    },
-                                });
-                            });
+                            void (async () => {
+                                try {
+                                    await navigate({
+                                        search: (oldSearch) => ({
+                                            ...oldSearch,
+                                            end: newDate.toDate(),
+                                        }),
+                                    });
+                                } catch (error: unknown) {
+                                    captureException(error, {
+                                        tags: {
+                                            param: "end",
+                                        },
+                                        extra: {
+                                            message: "Failed to update search params",
+                                            end: newDate.toDate(),
+                                        },
+                                    });
+                                }
+                            })();
                         }}
                     />
                 </Stack>

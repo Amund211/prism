@@ -8,6 +8,7 @@ const TanStackRouterDevtools = import.meta.env.PROD
     : // oxlint-disable-next-line typescript/promise-function-async
       React.lazy(() =>
           // Lazy load in development
+          // oxlint-disable-next-line promise/prefer-await-to-then
           import("@tanstack/react-router-devtools").then((res) => ({
               default: res.TanStackRouterDevtools,
           })),
@@ -18,6 +19,7 @@ const ReactQueryDevtools = import.meta.env.PROD
     : // oxlint-disable-next-line typescript/promise-function-async
       React.lazy(() =>
           // Lazy load in development
+          // oxlint-disable-next-line promise/prefer-await-to-then
           import("@tanstack/react-query-devtools").then((res) => ({
               default: res.ReactQueryDevtools,
           })),

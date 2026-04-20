@@ -43,28 +43,32 @@ function RouteComponent() {
             <link rel="canonical" href="https://prismoverlay.com" />
             <UserSearch
                 onSubmit={(uuid) => {
-                    navigate({
-                        to: "/session/$uuid",
-                        params: { uuid },
-                        search: {
-                            gamemode: "overall",
-                            stat: "fkdr",
-                            timeIntervalDefinition: { type: "contained" },
-                            variantSelection: "both",
-                            sessionTableMode: "total",
-                            showExtrapolatedSessions: false,
-                        },
-                    }).catch((error: unknown) => {
-                        captureException(error, {
-                            tags: {
-                                param: "gamemode",
-                            },
-                            extra: {
-                                message: "Failed to update search params",
-                                gamemode: "overall",
-                            },
-                        });
-                    });
+                    void (async () => {
+                        try {
+                            await navigate({
+                                to: "/session/$uuid",
+                                params: { uuid },
+                                search: {
+                                    gamemode: "overall",
+                                    stat: "fkdr",
+                                    timeIntervalDefinition: { type: "contained" },
+                                    variantSelection: "both",
+                                    sessionTableMode: "total",
+                                    showExtrapolatedSessions: false,
+                                },
+                            });
+                        } catch (error: unknown) {
+                            captureException(error, {
+                                tags: {
+                                    param: "gamemode",
+                                },
+                                extra: {
+                                    message: "Failed to update search params",
+                                    gamemode: "overall",
+                                },
+                            });
+                        }
+                    })();
                 }}
                 size="medium"
             />

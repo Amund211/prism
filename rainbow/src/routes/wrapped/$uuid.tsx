@@ -67,24 +67,28 @@ export const Route = createFileRoute("/wrapped/$uuid")({
         const uuid = normalizeUUID(rawUUID);
         if (uuid === null) return;
 
-        Promise.all([
-            queryClient.fetchQuery(
-                getWrappedQueryOptions({
-                    uuid,
-                    year,
-                    timezone: getDefaultTimeZone(),
-                }),
-            ),
-            queryClient.fetchQuery(getUsernameQueryOptions(uuid)),
-        ]).catch((error: unknown) => {
-            captureException(error, {
-                extra: {
-                    uuid,
-                    year,
-                    message: "Failed to fetch wrapped + username data",
-                },
-            });
-        });
+        void (async () => {
+            try {
+                await Promise.all([
+                    queryClient.fetchQuery(
+                        getWrappedQueryOptions({
+                            uuid,
+                            year,
+                            timezone: getDefaultTimeZone(),
+                        }),
+                    ),
+                    queryClient.fetchQuery(getUsernameQueryOptions(uuid)),
+                ]);
+            } catch (error: unknown) {
+                captureException(error, {
+                    extra: {
+                        uuid,
+                        year,
+                        message: "Failed to fetch wrapped + username data",
+                    },
+                });
+            }
+        })();
     },
     validateSearch: wrappedSearchSchema,
     // oxlint-disable-next-line eslint/no-use-before-define
@@ -1862,20 +1866,24 @@ function RouteComponent() {
                 <UserSearch
                     onSubmit={(newUUID) => {
                         visitPlayer(newUUID);
-                        navigate({
-                            params: { uuid: newUUID },
-                            search: (oldSearch) => oldSearch,
-                        }).catch((error: unknown) => {
-                            captureException(error, {
-                                tags: {
-                                    param: "uuid",
-                                },
-                                extra: {
-                                    message: "Failed to update search params",
-                                    uuid: newUUID,
-                                },
-                            });
-                        });
+                        void (async () => {
+                            try {
+                                await navigate({
+                                    params: { uuid: newUUID },
+                                    search: (oldSearch) => oldSearch,
+                                });
+                            } catch (error: unknown) {
+                                captureException(error, {
+                                    tags: {
+                                        param: "uuid",
+                                    },
+                                    extra: {
+                                        message: "Failed to update search params",
+                                        uuid: newUUID,
+                                    },
+                                });
+                            }
+                        })();
                     }}
                 />
                 <WrappedHeader wrappedData={wrappedData} uuid={uuid} year={year} />

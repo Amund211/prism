@@ -99,39 +99,43 @@ export const Route = createFileRoute("/session/$uuid")({
 
         const { day, week, month } = timeIntervals;
         // TODO: Rate limiting
-        Promise.all([
-            ...[day, week, month].flatMap(({ start, end }) => [
-                queryClient.fetchQuery(
-                    getHistoryQueryOptions({ uuid, start, end, limit: 2 }),
-                ),
-                queryClient.fetchQuery(
-                    getHistoryQueryOptions({
+        void (async () => {
+            try {
+                await Promise.all([
+                    ...[day, week, month].flatMap(({ start, end }) => [
+                        queryClient.fetchQuery(
+                            getHistoryQueryOptions({ uuid, start, end, limit: 2 }),
+                        ),
+                        queryClient.fetchQuery(
+                            getHistoryQueryOptions({
+                                uuid,
+                                start,
+                                end,
+                                limit: 100,
+                            }),
+                        ),
+                    ]),
+                    queryClient.fetchQuery(
+                        getHistoryQueryOptions({
+                            uuid,
+                            ...trackingInterval,
+                            limit: 2,
+                        }),
+                    ),
+                    queryClient.fetchQuery(getUsernameQueryOptions(uuid)),
+                ]);
+            } catch (error: unknown) {
+                captureException(error, {
+                    extra: {
                         uuid,
-                        start,
-                        end,
-                        limit: 100,
-                    }),
-                ),
-            ]),
-            queryClient.fetchQuery(
-                getHistoryQueryOptions({
-                    uuid,
-                    ...trackingInterval,
-                    limit: 2,
-                }),
-            ),
-            queryClient.fetchQuery(getUsernameQueryOptions(uuid)),
-        ]).catch((error: unknown) => {
-            captureException(error, {
-                extra: {
-                    uuid,
-                    trackingInterval,
-                    timeIntervals,
-                    message:
-                        "Failed to fetch history + tracking history + username data",
-                },
-            });
-        });
+                        trackingInterval,
+                        timeIntervals,
+                        message:
+                            "Failed to fetch history + tracking history + username data",
+                    },
+                });
+            }
+        })();
     },
     validateSearch: sessionSearchSchema,
     // oxlint-disable-next-line eslint/no-use-before-define
@@ -330,26 +334,31 @@ const Sessions: React.FC<SessionsProps> = ({
                                     <Switch
                                         checked={showExtrapolatedSessions}
                                         onChange={(_, checked) => {
-                                            navigate({
-                                                from: "/session/$uuid",
-                                                to: "/session/$uuid",
-                                                search: (oldSearch) => ({
-                                                    ...oldSearch,
-                                                    showExtrapolatedSessions: checked,
-                                                }),
-                                            }).catch((error: unknown) => {
-                                                captureException(error, {
-                                                    tags: {
-                                                        param: "showExtrapolatedSessions",
-                                                    },
-                                                    extra: {
-                                                        message:
-                                                            "Failed to update search params",
-                                                        showExtrapolatedSessions:
-                                                            checked,
-                                                    },
-                                                });
-                                            });
+                                            void (async () => {
+                                                try {
+                                                    await navigate({
+                                                        from: "/session/$uuid",
+                                                        to: "/session/$uuid",
+                                                        search: (oldSearch) => ({
+                                                            ...oldSearch,
+                                                            showExtrapolatedSessions:
+                                                                checked,
+                                                        }),
+                                                    });
+                                                } catch (error: unknown) {
+                                                    captureException(error, {
+                                                        tags: {
+                                                            param: "showExtrapolatedSessions",
+                                                        },
+                                                        extra: {
+                                                            message:
+                                                                "Failed to update search params",
+                                                            showExtrapolatedSessions:
+                                                                checked,
+                                                        },
+                                                    });
+                                                }
+                                            })();
                                         }}
                                     />
                                 }
@@ -1300,20 +1309,24 @@ function RouteComponent() {
             <UserSearch
                 onSubmit={(newUUID) => {
                     visitPlayer(newUUID);
-                    navigate({
-                        params: { uuid: newUUID },
-                        search: (oldSearch) => oldSearch,
-                    }).catch((error: unknown) => {
-                        captureException(error, {
-                            tags: {
-                                param: "uuid",
-                            },
-                            extra: {
-                                message: "Failed to update search params",
-                                uuid: newUUID,
-                            },
-                        });
-                    });
+                    void (async () => {
+                        try {
+                            await navigate({
+                                params: { uuid: newUUID },
+                                search: (oldSearch) => oldSearch,
+                            });
+                        } catch (error: unknown) {
+                            captureException(error, {
+                                tags: {
+                                    param: "uuid",
+                                },
+                                extra: {
+                                    message: "Failed to update search params",
+                                    uuid: newUUID,
+                                },
+                            });
+                        }
+                    })();
                 }}
             />
             <Stack
@@ -1336,22 +1349,26 @@ function RouteComponent() {
                 <TimeIntervalPicker
                     intervalDefinition={timeIntervalDefinition}
                     onIntervalChange={(newInterval) => {
-                        navigate({
-                            search: (oldSearch) => ({
-                                ...oldSearch,
-                                timeIntervalDefinition: newInterval,
-                            }),
-                        }).catch((error: unknown) => {
-                            captureException(error, {
-                                tags: {
-                                    param: "timeIntervalDefinition",
-                                },
-                                extra: {
-                                    message: "Failed to update search params",
-                                    timeIntervalDefinition: newInterval,
-                                },
-                            });
-                        });
+                        void (async () => {
+                            try {
+                                await navigate({
+                                    search: (oldSearch) => ({
+                                        ...oldSearch,
+                                        timeIntervalDefinition: newInterval,
+                                    }),
+                                });
+                            } catch (error: unknown) {
+                                captureException(error, {
+                                    tags: {
+                                        param: "timeIntervalDefinition",
+                                    },
+                                    extra: {
+                                        message: "Failed to update search params",
+                                        timeIntervalDefinition: newInterval,
+                                    },
+                                });
+                            }
+                        })();
                     }}
                 />
             </Stack>
@@ -1363,22 +1380,26 @@ function RouteComponent() {
                     fullWidth
                     onChange={(event) => {
                         const newGamemode = event.target.value;
-                        navigate({
-                            search: (oldSearch) => ({
-                                ...oldSearch,
-                                gamemode: newGamemode,
-                            }),
-                        }).catch((error: unknown) => {
-                            captureException(error, {
-                                tags: {
-                                    param: "gamemode",
-                                },
-                                extra: {
-                                    message: "Failed to update search params",
-                                    gamemode: newGamemode,
-                                },
-                            });
-                        });
+                        void (async () => {
+                            try {
+                                await navigate({
+                                    search: (oldSearch) => ({
+                                        ...oldSearch,
+                                        gamemode: newGamemode,
+                                    }),
+                                });
+                            } catch (error: unknown) {
+                                captureException(error, {
+                                    tags: {
+                                        param: "gamemode",
+                                    },
+                                    extra: {
+                                        message: "Failed to update search params",
+                                        gamemode: newGamemode,
+                                    },
+                                });
+                            }
+                        })();
                     }}
                 >
                     {ALL_GAMEMODE_KEYS.map((gamemodeKey) => (
@@ -1394,26 +1415,32 @@ function RouteComponent() {
                     fullWidth
                     onChange={(event) => {
                         const newStat = event.target.value;
-                        navigate({
-                            search: (oldSearch) => ({
-                                ...oldSearch,
-                                stat: newStat,
-                                variantSelection:
-                                    statsWhereSessionIsCloseToAllTime.includes(newStat)
-                                        ? "both"
-                                        : "session",
-                            }),
-                        }).catch((error: unknown) => {
-                            captureException(error, {
-                                tags: {
-                                    param: "stat",
-                                },
-                                extra: {
-                                    message: "Failed to update search params",
-                                    stat: newStat,
-                                },
-                            });
-                        });
+                        void (async () => {
+                            try {
+                                await navigate({
+                                    search: (oldSearch) => ({
+                                        ...oldSearch,
+                                        stat: newStat,
+                                        variantSelection:
+                                            statsWhereSessionIsCloseToAllTime.includes(
+                                                newStat,
+                                            )
+                                                ? "both"
+                                                : "session",
+                                    }),
+                                });
+                            } catch (error: unknown) {
+                                captureException(error, {
+                                    tags: {
+                                        param: "stat",
+                                    },
+                                    extra: {
+                                        message: "Failed to update search params",
+                                        stat: newStat,
+                                    },
+                                });
+                            }
+                        })();
                     }}
                 >
                     {ALL_STAT_KEYS.map((statKey) => (

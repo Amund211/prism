@@ -92,7 +92,6 @@
         "import/first": "off",
         // **********
         "eslint/sort-imports": "off",
-        "promise/prefer-await-to-then": "off",
         "unicorn/numeric-separators-style": "off",
         // TODO: Decide on function style and fix or disable rule
         "eslint/func-style": "off",
@@ -194,6 +193,7 @@
             "files": ["src/schemas/**/*.ts"],
             "rules": {
                 // The rule incorrectly flags zod's catch method
+                "promise/prefer-await-to-then": "off",
                 "unicorn/prefer-top-level-await": "off"
             }
         }
