@@ -50,6 +50,7 @@
         "oxc/no-rest-spread-properties": "off",
         "eslint/no-undefined": "off",
         "eslint/no-negated-condition": "off",
+        "unicorn/no-useless-undefined": "off",
         "oxc/no-async-await": "off",
         "react/no-multi-comp": "off",
         "eslint/default-case": "off",
@@ -77,7 +78,6 @@
 
         // TODO: Re-enable
 
-        "unicorn/no-useless-undefined": "off",
         "eslint/no-else-return": "off",
         "unicorn/require-number-to-fixed-digits-argument": "off",
         "eslint/require-await": "off",
