@@ -51,7 +51,7 @@ describe("Home page", () => {
         await userEvent.keyboard("{Enter}");
 
         await expect
-            .poll(() => window.location.pathname)
+            .poll(() => globalThis.location.pathname)
             .toBe(`/session/${USERS.player1.uuid}`);
 
         await expect
@@ -73,10 +73,10 @@ describe("Home page", () => {
         await userEvent.keyboard("{Enter}");
 
         await expect
-            .poll(() => window.location.pathname)
+            .poll(() => globalThis.location.pathname)
             .toBe(`/session/${USERS.player1.uuid}`);
 
-        const search = new URLSearchParams(window.location.search);
+        const search = new URLSearchParams(globalThis.location.search);
         expect(search.get("gamemode")).toBe("overall");
         expect(search.get("stat")).toBe("fkdr");
         expect(search.get("variantSelection")).toBe("both");
@@ -94,7 +94,7 @@ describe("Home page", () => {
         await userEvent.keyboard("{Enter}");
 
         await expect
-            .poll(() => window.location.pathname)
+            .poll(() => globalThis.location.pathname)
             .toBe(`/session/${USERS.player1.uuid}`);
 
         // Player visit should be recorded in localStorage
@@ -220,10 +220,10 @@ describe("Home page", () => {
             await favorite.click();
 
             await expect
-                .poll(() => window.location.pathname)
+                .poll(() => globalThis.location.pathname)
                 .toBe(`/session/${USERS.player1.uuid}`);
 
-            const search = new URLSearchParams(window.location.search);
+            const search = new URLSearchParams(globalThis.location.search);
             expect(search.get("gamemode")).toBe("overall");
             expect(search.get("stat")).toBe("fkdr");
             expect(search.get("timeIntervalDefinition")).toBe(

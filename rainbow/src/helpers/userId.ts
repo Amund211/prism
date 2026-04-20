@@ -81,7 +81,7 @@ export function getOrSetUserId(): string {
     // In staging environment, return a hardcoded user ID
     // This is to avoid polluting analytics with test users, as every new
     // staging deployment gets a new subdomain, and a new local storage (hence new user ID)
-    if (window.location.hostname.endsWith(".rainbow-ctx.pages.dev")) {
+    if (globalThis.location.hostname.endsWith(".rainbow-ctx.pages.dev")) {
         return STAGING_USER_ID;
     }
 

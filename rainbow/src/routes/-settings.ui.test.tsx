@@ -173,7 +173,7 @@ describe("Settings page", () => {
             })
             .toBe(true);
 
-        await expect.poll(() => window.location.pathname).toBe("/about");
+        await expect.poll(() => globalThis.location.pathname).toBe("/about");
 
         // Navigate back to settings
         await expect
@@ -187,7 +187,7 @@ describe("Settings page", () => {
             })
             .toBe(true);
 
-        await expect.poll(() => window.location.pathname).toBe("/settings");
+        await expect.poll(() => globalThis.location.pathname).toBe("/settings");
 
         // Player should still be set
         await expect

@@ -238,7 +238,7 @@ describe("Wrapped detail page", () => {
     mswTest("redirects to /wrapped for invalid UUID", async () => {
         await renderAppRoute(`/wrapped/not-a-valid-uuid?year=${year.toString()}`);
 
-        await expect.poll(() => window.location.pathname).toBe("/wrapped");
+        await expect.poll(() => globalThis.location.pathname).toBe("/wrapped");
     });
 
     mswTest("renders stars gained stat card", async () => {
@@ -261,7 +261,7 @@ describe("Wrapped detail page", () => {
         await userEvent.keyboard("{Enter}");
 
         await expect
-            .poll(() => window.location.pathname)
+            .poll(() => globalThis.location.pathname)
             .toBe(`/wrapped/${USERS.player2.uuid}`);
     });
 
@@ -557,7 +557,7 @@ describe("Wrapped detail page", () => {
         await renderAppRoute(`/wrapped/${undashed}?year=${year.toString()}`);
 
         await expect
-            .poll(() => window.location.pathname)
+            .poll(() => globalThis.location.pathname)
             .toBe(`/wrapped/${USERS.player1.uuid}`);
     });
 

@@ -40,6 +40,6 @@ describe("Not found page", () => {
 
         await screen.getByText("About").first().click();
 
-        await expect.poll(() => window.location.pathname).toBe("/about");
+        await expect.poll(() => globalThis.location.pathname).toBe("/about");
     });
 });

@@ -66,7 +66,7 @@ describe("Session search page", () => {
         await userEvent.keyboard("{Enter}");
 
         await expect
-            .poll(() => window.location.pathname)
+            .poll(() => globalThis.location.pathname)
             .toBe(`/session/${USERS.player1.uuid}`);
     });
 
@@ -82,7 +82,7 @@ describe("Session search page", () => {
         await userEvent.keyboard("{Enter}");
 
         await expect
-            .poll(() => window.location.pathname)
+            .poll(() => globalThis.location.pathname)
             .toBe(`/session/${USERS.player1.uuid}`);
     });
 
@@ -96,10 +96,10 @@ describe("Session search page", () => {
         await userEvent.keyboard("{Enter}");
 
         await expect
-            .poll(() => window.location.pathname)
+            .poll(() => globalThis.location.pathname)
             .toBe(`/session/${USERS.player1.uuid}`);
 
-        const search = new URLSearchParams(window.location.search);
+        const search = new URLSearchParams(globalThis.location.search);
         expect(search.get("gamemode")).toBe("overall");
         expect(search.get("stat")).toBe("fkdr");
         expect(search.get("sessionTableMode")).toBe("total");

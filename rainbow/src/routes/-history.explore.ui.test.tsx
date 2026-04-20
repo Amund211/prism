@@ -334,7 +334,7 @@ describe("History Explore page", () => {
         button?.click();
 
         await expect
-            .poll(() => window.location.pathname)
+            .poll(() => globalThis.location.pathname)
             .toBe(`/session/${USERS.player1.uuid}`);
     });
 
@@ -358,11 +358,11 @@ describe("History Explore page", () => {
         button?.click();
 
         await expect
-            .poll(() => window.location.pathname)
+            .poll(() => globalThis.location.pathname)
             .toBe(`/session/${USERS.player1.uuid}`);
 
         // Check that the stat and gamemode are carried over
-        const search = new URLSearchParams(window.location.search);
+        const search = new URLSearchParams(globalThis.location.search);
         expect(search.get("stat")).toBe("fkdr");
         expect(search.get("gamemode")).toBe("overall");
     });
@@ -408,7 +408,7 @@ describe("History Explore page", () => {
 
         await expect
             .poll(() =>
-                new URLSearchParams(window.location.search).get("variantSelection"),
+                new URLSearchParams(globalThis.location.search).get("variantSelection"),
             )
             .toBe("session");
     });
@@ -484,7 +484,7 @@ describe("History Explore page", () => {
 
         await expect
             .poll(() => {
-                const params = new URLSearchParams(window.location.search);
+                const params = new URLSearchParams(globalThis.location.search);
                 const gamemodes = params.get("gamemodes");
                 return gamemodes?.includes("solo") ?? false;
             })
@@ -506,7 +506,7 @@ describe("History Explore page", () => {
 
         await expect
             .poll(() => {
-                const params = new URLSearchParams(window.location.search);
+                const params = new URLSearchParams(globalThis.location.search);
                 const stats = params.get("stats");
                 return stats?.includes("wins") ?? false;
             })

@@ -36,12 +36,12 @@ const makeSubscribe = (key: string) => {
         // Listen to our custom event that we dispatch on write to localstorage to get
         // immediate updates in the same tab.
         // Listen to the storage event to get updates from other tabs.
-        window.addEventListener(EVENT_NAME, customEventListener);
-        window.addEventListener("storage", storageListener);
+        globalThis.addEventListener(EVENT_NAME, customEventListener);
+        globalThis.addEventListener("storage", storageListener);
 
         return () => {
-            window.removeEventListener(EVENT_NAME, customEventListener);
-            window.removeEventListener("storage", storageListener);
+            globalThis.removeEventListener(EVENT_NAME, customEventListener);
+            globalThis.removeEventListener("storage", storageListener);
         };
     };
 };
@@ -64,7 +64,7 @@ export const makeLocalStorageWrite = (key: string) => {
             localStorage.setItem(key, value);
         }
 
-        window.dispatchEvent(
+        globalThis.dispatchEvent(
             new CustomEvent<UseLocalStorageWriteEventPayload>(EVENT_NAME, {
                 detail: { key, value },
             }),

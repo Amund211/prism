@@ -26,7 +26,7 @@ describe("Layout - Desktop navigation", () => {
 
         await screen.getByText("Session stats").click();
 
-        await expect.poll(() => window.location.pathname).toMatch(/^\/session/);
+        await expect.poll(() => globalThis.location.pathname).toMatch(/^\/session/);
     });
 
     mswTest("clicking History explorer navigates", async () => {
@@ -35,7 +35,7 @@ describe("Layout - Desktop navigation", () => {
 
         await screen.getByText("History explorer").click();
 
-        await expect.poll(() => window.location.pathname).toBe("/history/explore");
+        await expect.poll(() => globalThis.location.pathname).toBe("/history/explore");
     });
 
     mswTest("clicking Wrapped navigates", async () => {
@@ -47,7 +47,7 @@ describe("Layout - Desktop navigation", () => {
             .first()
             .click();
 
-        await expect.poll(() => window.location.pathname).toMatch(/^\/wrapped/);
+        await expect.poll(() => globalThis.location.pathname).toMatch(/^\/wrapped/);
     });
 
     mswTest("clicking Downloads navigates", async () => {
@@ -56,7 +56,7 @@ describe("Layout - Desktop navigation", () => {
 
         await screen.getByText("Downloads").first().click();
 
-        await expect.poll(() => window.location.pathname).toBe("/downloads");
+        await expect.poll(() => globalThis.location.pathname).toBe("/downloads");
     });
 
     mswTest("clicking Settings navigates", async () => {
@@ -65,7 +65,7 @@ describe("Layout - Desktop navigation", () => {
 
         await screen.getByText("Settings").first().click();
 
-        await expect.poll(() => window.location.pathname).toBe("/settings");
+        await expect.poll(() => globalThis.location.pathname).toBe("/settings");
     });
 
     mswTest("clicking About navigates", async () => {
@@ -74,7 +74,7 @@ describe("Layout - Desktop navigation", () => {
 
         await screen.getByText("About").first().click();
 
-        await expect.poll(() => window.location.pathname).toBe("/about");
+        await expect.poll(() => globalThis.location.pathname).toBe("/about");
     });
 
     mswTest("logo navigates home", async () => {
@@ -99,7 +99,7 @@ describe("Layout - Desktop navigation", () => {
             })
             .toBe(true);
 
-        await expect.poll(() => window.location.pathname).toBe("/");
+        await expect.poll(() => globalThis.location.pathname).toBe("/");
     });
 
     mswTest("active route is highlighted", async () => {
@@ -175,7 +175,7 @@ describe("Layout - Mobile navigation", () => {
         await openBurgerMenu(screen);
         await screen.getByRole("menuitem", { name: "Session stats" }).click();
 
-        await expect.poll(() => window.location.pathname).toMatch(/^\/session/);
+        await expect.poll(() => globalThis.location.pathname).toMatch(/^\/session/);
     });
 
     mswTest("clicking History explorer navigates", async () => {
@@ -185,7 +185,7 @@ describe("Layout - Mobile navigation", () => {
         await openBurgerMenu(screen);
         await screen.getByRole("menuitem", { name: "History explorer" }).click();
 
-        await expect.poll(() => window.location.pathname).toBe("/history/explore");
+        await expect.poll(() => globalThis.location.pathname).toBe("/history/explore");
     });
 
     mswTest("clicking Wrapped navigates", async () => {
@@ -199,7 +199,7 @@ describe("Layout - Mobile navigation", () => {
             })
             .click();
 
-        await expect.poll(() => window.location.pathname).toMatch(/^\/wrapped/);
+        await expect.poll(() => globalThis.location.pathname).toMatch(/^\/wrapped/);
     });
 
     mswTest("clicking Downloads navigates", async () => {
@@ -209,7 +209,7 @@ describe("Layout - Mobile navigation", () => {
         await openBurgerMenu(screen);
         await screen.getByRole("menuitem", { name: "Downloads" }).click();
 
-        await expect.poll(() => window.location.pathname).toBe("/downloads");
+        await expect.poll(() => globalThis.location.pathname).toBe("/downloads");
     });
 
     mswTest("clicking Settings navigates", async () => {
@@ -219,7 +219,7 @@ describe("Layout - Mobile navigation", () => {
         await openBurgerMenu(screen);
         await screen.getByRole("menuitem", { name: "Settings" }).click();
 
-        await expect.poll(() => window.location.pathname).toBe("/settings");
+        await expect.poll(() => globalThis.location.pathname).toBe("/settings");
     });
 
     mswTest("clicking About navigates", async () => {
@@ -229,7 +229,7 @@ describe("Layout - Mobile navigation", () => {
         await openBurgerMenu(screen);
         await screen.getByRole("menuitem", { name: "About" }).click();
 
-        await expect.poll(() => window.location.pathname).toBe("/about");
+        await expect.poll(() => globalThis.location.pathname).toBe("/about");
     });
 
     mswTest("logo navigates home", async () => {
@@ -253,7 +253,7 @@ describe("Layout - Mobile navigation", () => {
             })
             .toBe(true);
 
-        await expect.poll(() => window.location.pathname).toBe("/");
+        await expect.poll(() => globalThis.location.pathname).toBe("/");
     });
 
     mswTest("menu closes after clicking a link", async () => {
@@ -297,7 +297,7 @@ describe("Layout - active route highlighting updates on navigation", () => {
         // Navigate to Downloads
         await screen.getByText("Downloads").first().click();
 
-        await expect.poll(() => window.location.pathname).toBe("/downloads");
+        await expect.poll(() => globalThis.location.pathname).toBe("/downloads");
 
         // Downloads should now be highlighted, About should not be
         await expect

@@ -167,7 +167,7 @@ describe("Session detail page", () => {
             // URL should update to "until" type
             await expect
                 .poll(() => {
-                    const params = new URLSearchParams(window.location.search);
+                    const params = new URLSearchParams(globalThis.location.search);
                     const tid = params.get("timeIntervalDefinition");
                     return tid?.includes("until") ?? false;
                 })
@@ -223,7 +223,7 @@ describe("Session detail page", () => {
             "/session/not-a-valid-uuid?gamemode=overall&stat=fkdr&timeIntervalDefinition=%7B%22type%22%3A%22contained%22%7D&variantSelection=both&sessionTableMode=total&showExtrapolatedSessions=false",
         );
 
-        await expect.poll(() => window.location.pathname).toBe("/session");
+        await expect.poll(() => globalThis.location.pathname).toBe("/session");
     });
 
     mswTest(
@@ -255,7 +255,7 @@ describe("Session detail page", () => {
         await userEvent.keyboard("{Enter}");
 
         await expect
-            .poll(() => window.location.pathname)
+            .poll(() => globalThis.location.pathname)
             .toBe(`/session/${USERS.player2.uuid}`);
     });
 
@@ -273,7 +273,7 @@ describe("Session detail page", () => {
             await userEvent.keyboard("{Enter}");
 
             await expect
-                .poll(() => window.location.pathname)
+                .poll(() => globalThis.location.pathname)
                 .toBe(`/session/${USERS.player2.uuid}`);
 
             await expect
@@ -319,7 +319,7 @@ describe("Session detail page", () => {
         await screen.getByRole("option", { name: "Kills", exact: true }).click();
 
         await expect
-            .poll(() => new URLSearchParams(window.location.search).get("stat"))
+            .poll(() => new URLSearchParams(globalThis.location.search).get("stat"))
             .toBe("kills");
     });
 
@@ -334,7 +334,7 @@ describe("Session detail page", () => {
         await screen.getByRole("option", { name: "Solo" }).click();
 
         await expect
-            .poll(() => new URLSearchParams(window.location.search).get("gamemode"))
+            .poll(() => new URLSearchParams(globalThis.location.search).get("gamemode"))
             .toBe("solo");
     });
 
@@ -361,7 +361,7 @@ describe("Session detail page", () => {
         // Initially in "total" mode
         await expect
             .poll(() =>
-                new URLSearchParams(window.location.search).get("sessionTableMode"),
+                new URLSearchParams(globalThis.location.search).get("sessionTableMode"),
             )
             .toBe("total");
 
@@ -370,7 +370,7 @@ describe("Session detail page", () => {
 
         await expect
             .poll(() =>
-                new URLSearchParams(window.location.search).get("sessionTableMode"),
+                new URLSearchParams(globalThis.location.search).get("sessionTableMode"),
             )
             .toBe("rate");
     });
@@ -381,7 +381,7 @@ describe("Session detail page", () => {
         // Initially "both"
         await expect
             .poll(() =>
-                new URLSearchParams(window.location.search).get("variantSelection"),
+                new URLSearchParams(globalThis.location.search).get("variantSelection"),
             )
             .toBe("both");
 
@@ -405,7 +405,7 @@ describe("Session detail page", () => {
 
         await expect
             .poll(() =>
-                new URLSearchParams(window.location.search).get("variantSelection"),
+                new URLSearchParams(globalThis.location.search).get("variantSelection"),
             )
             .toBe("session");
     });
@@ -463,7 +463,7 @@ describe("Session detail page", () => {
 
         await expect
             .poll(() =>
-                new URLSearchParams(window.location.search).get(
+                new URLSearchParams(globalThis.location.search).get(
                     "showExtrapolatedSessions",
                 ),
             )
@@ -550,7 +550,7 @@ describe("Session detail page", () => {
         );
 
         await expect
-            .poll(() => window.location.pathname)
+            .poll(() => globalThis.location.pathname)
             .toBe(`/session/${USERS.player1.uuid}`);
     });
 

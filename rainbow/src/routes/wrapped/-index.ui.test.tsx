@@ -67,7 +67,7 @@ describe("Wrapped search page", () => {
         await userEvent.keyboard("{Enter}");
 
         await expect
-            .poll(() => window.location.pathname)
+            .poll(() => globalThis.location.pathname)
             .toBe(`/wrapped/${USERS.player1.uuid}`);
     });
 
@@ -81,10 +81,10 @@ describe("Wrapped search page", () => {
         await userEvent.keyboard("{Enter}");
 
         await expect
-            .poll(() => window.location.pathname)
+            .poll(() => globalThis.location.pathname)
             .toBe(`/wrapped/${USERS.player1.uuid}`);
 
-        const search = new URLSearchParams(window.location.search);
+        const search = new URLSearchParams(globalThis.location.search);
         expect(search.get("year")).toBe(getWrappedYear().toString());
     });
 });
