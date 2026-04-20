@@ -89,7 +89,7 @@ export const makePlayerDataPIT = (
 ): APIPlayerDataPIT => ({
     uuid,
     queriedAt,
-    experience: 500000 * multiplier,
+    experience: 500_000 * multiplier,
     solo: makeStatsPIT(multiplier),
     doubles: makeStatsPIT(multiplier),
     threes: makeStatsPIT(multiplier),

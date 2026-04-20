@@ -140,10 +140,10 @@ describe(addExtrapolatedSessions, () => {
                     consecutive: true,
                 },
             ],
-            history: [makePlayerDataPIT(8, 9_000), makePlayerDataPIT(11, 12_000)],
+            history: [makePlayerDataPIT(8, 9000), makePlayerDataPIT(11, 12_000)],
             expected: [
                 {
-                    start: makePlayerDataPIT(8, 9_000),
+                    start: makePlayerDataPIT(8, 9000),
                     end: makePlayerDataPIT(10, 11_000),
                     extrapolated: true,
                     consecutive: false,
@@ -192,10 +192,10 @@ describe(addExtrapolatedSessions, () => {
                     consecutive: true,
                 },
             ],
-            history: [makePlayerDataPIT(8, 9_000), makePlayerDataPIT(16, 21_000)],
+            history: [makePlayerDataPIT(8, 9000), makePlayerDataPIT(16, 21_000)],
             expected: [
                 {
-                    start: makePlayerDataPIT(8, 9_000),
+                    start: makePlayerDataPIT(8, 9000),
                     end: makePlayerDataPIT(10, 11_000),
                     extrapolated: true,
                     consecutive: false,
@@ -236,10 +236,10 @@ describe(addExtrapolatedSessions, () => {
                     consecutive: true,
                 },
             ],
-            history: [makePlayerDataPIT(8, 9_000), makePlayerDataPIT(16, 21_000)],
+            history: [makePlayerDataPIT(8, 9000), makePlayerDataPIT(16, 21_000)],
             expected: [
                 {
-                    start: makePlayerDataPIT(8, 9_000),
+                    start: makePlayerDataPIT(8, 9000),
                     end: makePlayerDataPIT(10, 11_000),
                     extrapolated: true,
                     consecutive: false,

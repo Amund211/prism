@@ -366,7 +366,7 @@ describe("Wrapped detail page", () => {
                                 start: {
                                     uuid,
                                     queriedAt: startTime,
-                                    experience: 500000,
+                                    experience: 500_000,
                                     solo: {
                                         winstreak: 3,
                                         gamesPlayed: 100,
@@ -431,7 +431,7 @@ describe("Wrapped detail page", () => {
                                 end: {
                                     uuid,
                                     queriedAt: endTime,
-                                    experience: 1500000,
+                                    experience: 1_500_000,
                                     solo: {
                                         winstreak: 9,
                                         gamesPlayed: 300,

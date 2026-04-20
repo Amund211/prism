@@ -360,11 +360,11 @@ describe("computeStatProgression - linear gamemode stats", () => {
                         const endBuilder = new PlayerDataBuilder(TEST_UUID, endDate);
                         startBuilder.withGamemodeStats(
                             gamemode,
-                            new StatsBuilder().withStat(stat, 100000).build(),
+                            new StatsBuilder().withStat(stat, 100_000).build(),
                         );
                         endBuilder.withGamemodeStats(
                             gamemode,
-                            new StatsBuilder().withStat(stat, 110000).build(),
+                            new StatsBuilder().withStat(stat, 110_000).build(),
                         );
 
                         const history: History = [
@@ -387,9 +387,9 @@ describe("computeStatProgression - linear gamemode stats", () => {
 
                         expect(result).toStrictEqual({
                             stat,
-                            endValue: 110000,
+                            endValue: 110_000,
                             progressPerDay: 500,
-                            nextMilestoneValue: 200000,
+                            nextMilestoneValue: 200_000,
                             daysUntilMilestone: 180,
                             trendingUpward: true,
                             trackingDataTimeInterval: {
@@ -998,11 +998,11 @@ describe("computeStatProgression - stars/experience stat", () => {
                     });
 
                     // (exp gained / avg exp per star) / days
-                    const expectedStarsPerDay = 6_500 / 4_870 / 10;
+                    const expectedStarsPerDay = 6500 / 4870 / 10;
                     expect(progressPerDay).toBeCloseTo(expectedStarsPerDay);
 
                     // Exp remaining until 100 stars / (exp per day)
-                    const expectedDaysUntilMilestone = (487_000 - 7_000) / (6_500 / 10);
+                    const expectedDaysUntilMilestone = (487_000 - 7000) / (6500 / 10);
                     expect(daysUntilMilestone).toBeCloseTo(expectedDaysUntilMilestone);
                 });
 
@@ -1022,9 +1022,9 @@ describe("computeStatProgression - stars/experience stat", () => {
 
                     expect(result).toStrictEqual({
                         stat: "experience",
-                        endValue: 7_000,
+                        endValue: 7000,
                         progressPerDay: 650,
-                        nextMilestoneValue: 8_000,
+                        nextMilestoneValue: 8000,
                         daysUntilMilestone: 1000 / 650,
                         trendingUpward: true,
                         trackingDataTimeInterval: {

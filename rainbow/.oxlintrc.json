@@ -92,7 +92,6 @@
         "import/first": "off",
         // **********
         "eslint/sort-imports": "off",
-        "unicorn/numeric-separators-style": "off",
         // TODO: Decide on function style and fix or disable rule
         "eslint/func-style": "off",
         "unicorn/prefer-spread": "off",

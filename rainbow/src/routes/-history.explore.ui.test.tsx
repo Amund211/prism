@@ -7,7 +7,7 @@ import { userEvent } from "vitest/browser";
 import { startOfDay, endOfDay } from "#intervals.ts";
 
 describe("History Explore page", () => {
-    const historyUrl = `/history/explore?uuids=${encodeURIComponent(JSON.stringify([USERS.player1.uuid]))}&gamemodes=${encodeURIComponent(JSON.stringify(["overall"]))}&stats=${encodeURIComponent(JSON.stringify(["fkdr"]))}&variantSelection=both&start=${encodeURIComponent(new Date(Date.now() - 86400000).toISOString())}&end=${encodeURIComponent(new Date().toISOString())}&limit=100`;
+    const historyUrl = `/history/explore?uuids=${encodeURIComponent(JSON.stringify([USERS.player1.uuid]))}&gamemodes=${encodeURIComponent(JSON.stringify(["overall"]))}&stats=${encodeURIComponent(JSON.stringify(["fkdr"]))}&variantSelection=both&start=${encodeURIComponent(new Date(Date.now() - 86_400_000).toISOString())}&end=${encodeURIComponent(new Date().toISOString())}&limit=100`;
 
     mswTest("renders time filter chips", async () => {
         const { screen } = await renderAppRoute(historyUrl);
@@ -151,7 +151,7 @@ describe("History Explore page", () => {
     });
 
     mswTest("renders multiple user chips when multiple UUIDs provided", async () => {
-        const multiUserUrl = `/history/explore?uuids=${encodeURIComponent(JSON.stringify([USERS.player1.uuid, USERS.player2.uuid]))}&gamemodes=${encodeURIComponent(JSON.stringify(["overall"]))}&stats=${encodeURIComponent(JSON.stringify(["fkdr"]))}&variantSelection=both&start=${encodeURIComponent(new Date(Date.now() - 86400000).toISOString())}&end=${encodeURIComponent(new Date().toISOString())}&limit=100`;
+        const multiUserUrl = `/history/explore?uuids=${encodeURIComponent(JSON.stringify([USERS.player1.uuid, USERS.player2.uuid]))}&gamemodes=${encodeURIComponent(JSON.stringify(["overall"]))}&stats=${encodeURIComponent(JSON.stringify(["fkdr"]))}&variantSelection=both&start=${encodeURIComponent(new Date(Date.now() - 86_400_000).toISOString())}&end=${encodeURIComponent(new Date().toISOString())}&limit=100`;
 
         await renderAppRoute(multiUserUrl);
 
@@ -239,7 +239,7 @@ describe("History Explore page", () => {
     mswTest(
         "session page button is disabled when multiple users selected",
         async () => {
-            const multiUserUrl = `/history/explore?uuids=${encodeURIComponent(JSON.stringify([USERS.player1.uuid, USERS.player2.uuid]))}&gamemodes=${encodeURIComponent(JSON.stringify(["overall"]))}&stats=${encodeURIComponent(JSON.stringify(["fkdr"]))}&variantSelection=both&start=${encodeURIComponent(new Date(Date.now() - 86400000).toISOString())}&end=${encodeURIComponent(new Date().toISOString())}&limit=100`;
+            const multiUserUrl = `/history/explore?uuids=${encodeURIComponent(JSON.stringify([USERS.player1.uuid, USERS.player2.uuid]))}&gamemodes=${encodeURIComponent(JSON.stringify(["overall"]))}&stats=${encodeURIComponent(JSON.stringify(["fkdr"]))}&variantSelection=both&start=${encodeURIComponent(new Date(Date.now() - 86_400_000).toISOString())}&end=${encodeURIComponent(new Date().toISOString())}&limit=100`;
 
             await renderAppRoute(multiUserUrl);
 
@@ -292,7 +292,7 @@ describe("History Explore page", () => {
 
     mswTest("clicking Today chip highlights it as active", async () => {
         // Use a date range that doesn't match "Today" so the chip starts unhighlighted
-        const pastUrl = `/history/explore?uuids=${encodeURIComponent(JSON.stringify([USERS.player1.uuid]))}&gamemodes=${encodeURIComponent(JSON.stringify(["overall"]))}&stats=${encodeURIComponent(JSON.stringify(["fkdr"]))}&variantSelection=both&start=${encodeURIComponent(new Date(Date.now() - 7 * 86400000).toISOString())}&end=${encodeURIComponent(new Date(Date.now() - 6 * 86400000).toISOString())}&limit=100`;
+        const pastUrl = `/history/explore?uuids=${encodeURIComponent(JSON.stringify([USERS.player1.uuid]))}&gamemodes=${encodeURIComponent(JSON.stringify(["overall"]))}&stats=${encodeURIComponent(JSON.stringify(["fkdr"]))}&variantSelection=both&start=${encodeURIComponent(new Date(Date.now() - 7 * 86_400_000).toISOString())}&end=${encodeURIComponent(new Date(Date.now() - 6 * 86_400_000).toISOString())}&limit=100`;
 
         const { screen } = await renderAppRoute(pastUrl);
 
@@ -457,7 +457,7 @@ describe("History Explore page", () => {
     );
 
     mswTest("page renders controls when no players are in URL", async () => {
-        const emptyPlayersUrl = `/history/explore?uuids=${encodeURIComponent(JSON.stringify([]))}&gamemodes=${encodeURIComponent(JSON.stringify(["overall"]))}&stats=${encodeURIComponent(JSON.stringify(["fkdr"]))}&variantSelection=both&start=${encodeURIComponent(new Date(Date.now() - 86400000).toISOString())}&end=${encodeURIComponent(new Date().toISOString())}&limit=100`;
+        const emptyPlayersUrl = `/history/explore?uuids=${encodeURIComponent(JSON.stringify([]))}&gamemodes=${encodeURIComponent(JSON.stringify(["overall"]))}&stats=${encodeURIComponent(JSON.stringify(["fkdr"]))}&variantSelection=both&start=${encodeURIComponent(new Date(Date.now() - 86_400_000).toISOString())}&end=${encodeURIComponent(new Date().toISOString())}&limit=100`;
 
         const { screen } = await renderAppRoute(emptyPlayersUrl);
 
@@ -514,7 +514,7 @@ describe("History Explore page", () => {
     });
 
     mswTest("multiple gamemodes render correctly", async () => {
-        const multiGamemodeUrl = `/history/explore?uuids=${encodeURIComponent(JSON.stringify([USERS.player1.uuid]))}&gamemodes=${encodeURIComponent(JSON.stringify(["overall", "solo"]))}&stats=${encodeURIComponent(JSON.stringify(["fkdr"]))}&variantSelection=both&start=${encodeURIComponent(new Date(Date.now() - 86400000).toISOString())}&end=${encodeURIComponent(new Date().toISOString())}&limit=100`;
+        const multiGamemodeUrl = `/history/explore?uuids=${encodeURIComponent(JSON.stringify([USERS.player1.uuid]))}&gamemodes=${encodeURIComponent(JSON.stringify(["overall", "solo"]))}&stats=${encodeURIComponent(JSON.stringify(["fkdr"]))}&variantSelection=both&start=${encodeURIComponent(new Date(Date.now() - 86_400_000).toISOString())}&end=${encodeURIComponent(new Date().toISOString())}&limit=100`;
 
         await renderAppRoute(multiGamemodeUrl);
 
@@ -528,7 +528,7 @@ describe("History Explore page", () => {
 
     mswTest("chart title updates when multiple stats selected", async () => {
         // URL with two stats
-        const multiStatUrl = `/history/explore?uuids=${encodeURIComponent(JSON.stringify([USERS.player1.uuid]))}&gamemodes=${encodeURIComponent(JSON.stringify(["overall"]))}&stats=${encodeURIComponent(JSON.stringify(["fkdr", "wins"]))}&variantSelection=both&start=${encodeURIComponent(new Date(Date.now() - 86400000).toISOString())}&end=${encodeURIComponent(new Date().toISOString())}&limit=100`;
+        const multiStatUrl = `/history/explore?uuids=${encodeURIComponent(JSON.stringify([USERS.player1.uuid]))}&gamemodes=${encodeURIComponent(JSON.stringify(["overall"]))}&stats=${encodeURIComponent(JSON.stringify(["fkdr", "wins"]))}&variantSelection=both&start=${encodeURIComponent(new Date(Date.now() - 86_400_000).toISOString())}&end=${encodeURIComponent(new Date().toISOString())}&limit=100`;
 
         const { screen } = await renderAppRoute(multiStatUrl);
 

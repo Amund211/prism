@@ -296,7 +296,7 @@ describe("Home page", () => {
                     },
                     [USERS.player1.uuid]: {
                         visitedCount: 1,
-                        lastVisited: new Date(Date.now() - 100000),
+                        lastVisited: new Date(Date.now() - 100_000),
                     },
                 };
             localStorage.setItem("playerVisits", stringifyPlayerVisits(visits));
