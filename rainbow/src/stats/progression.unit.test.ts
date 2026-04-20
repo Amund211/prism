@@ -42,45 +42,55 @@ class StatsBuilder {
         value: number | null,
     ): this {
         switch (stat) {
-            case "gamesPlayed":
+            case "gamesPlayed": {
                 if (value === null) throw new Error(`${stat} cannot be null`);
                 this.stats.gamesPlayed = value;
                 break;
-            case "wins":
+            }
+            case "wins": {
                 if (value === null) throw new Error(`${stat} cannot be null`);
                 this.stats.wins = value;
                 break;
-            case "losses":
+            }
+            case "losses": {
                 if (value === null) throw new Error(`${stat} cannot be null`);
                 this.stats.losses = value;
                 break;
-            case "bedsBroken":
+            }
+            case "bedsBroken": {
                 if (value === null) throw new Error(`${stat} cannot be null`);
                 this.stats.bedsBroken = value;
                 break;
-            case "bedsLost":
+            }
+            case "bedsLost": {
                 if (value === null) throw new Error(`${stat} cannot be null`);
                 this.stats.bedsLost = value;
                 break;
-            case "finalKills":
+            }
+            case "finalKills": {
                 if (value === null) throw new Error(`${stat} cannot be null`);
                 this.stats.finalKills = value;
                 break;
-            case "finalDeaths":
+            }
+            case "finalDeaths": {
                 if (value === null) throw new Error(`${stat} cannot be null`);
                 this.stats.finalDeaths = value;
                 break;
-            case "kills":
+            }
+            case "kills": {
                 if (value === null) throw new Error(`${stat} cannot be null`);
                 this.stats.kills = value;
                 break;
-            case "deaths":
+            }
+            case "deaths": {
                 if (value === null) throw new Error(`${stat} cannot be null`);
                 this.stats.deaths = value;
                 break;
-            case "winstreak":
+            }
+            case "winstreak": {
                 this.stats.winstreak = value;
                 break;
+            }
             default: {
                 stat satisfies never;
             }
@@ -459,19 +469,23 @@ describe("computeStatProgression - quotient stats", () => {
 
     const getDividendStat = (stat: QuotientStatKey) => {
         switch (stat) {
-            case "fkdr":
+            case "fkdr": {
                 return "finalKills";
-            case "kdr":
+            }
+            case "kdr": {
                 return "kills";
+            }
         }
     };
 
     const getDivisorStat = (stat: QuotientStatKey) => {
         switch (stat) {
-            case "fkdr":
+            case "fkdr": {
                 return "finalDeaths";
-            case "kdr":
+            }
+            case "kdr": {
                 return "deaths";
+            }
         }
     };
 

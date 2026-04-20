@@ -2,95 +2,132 @@ import type { GamemodeKey, StatKey, VariantKey } from "./keys.ts";
 
 export const getFullStatLabel = (stat: StatKey, capitalize = false): string => {
     switch (stat) {
-        case "experience":
+        case "experience": {
             return capitalize ? "Experience" : "experience";
-        case "stars":
+        }
+        case "stars": {
             return capitalize ? "Stars" : "stars";
-        case "kills":
+        }
+        case "kills": {
             return capitalize ? "Kills" : "kills";
-        case "deaths":
+        }
+        case "deaths": {
             return capitalize ? "Deaths" : "deaths";
-        case "finalKills":
+        }
+        case "finalKills": {
             return capitalize ? "Final kills" : "final kills";
-        case "finalDeaths":
+        }
+        case "finalDeaths": {
             return capitalize ? "Final deaths" : "final deaths";
-        case "bedsBroken":
+        }
+        case "bedsBroken": {
             return capitalize ? "Beds broken" : "beds broken";
-        case "bedsLost":
+        }
+        case "bedsLost": {
             return capitalize ? "Beds lost" : "beds lost";
-        case "winstreak":
+        }
+        case "winstreak": {
             return capitalize ? "Winstreak" : "winstreak";
-        case "wins":
+        }
+        case "wins": {
             return capitalize ? "Wins" : "wins";
-        case "losses":
+        }
+        case "losses": {
             return capitalize ? "Losses" : "losses";
-        case "gamesPlayed":
+        }
+        case "gamesPlayed": {
             return capitalize ? "Games played" : "games played";
-        case "kdr":
+        }
+        case "kdr": {
             return capitalize ? "Kill/death ratio" : "kill/death ratio";
-        case "fkdr":
+        }
+        case "fkdr": {
             return capitalize ? "Final kill/death ratio" : "final kill/death ratio";
-        case "index":
+        }
+        case "index": {
             return capitalize ? "Index (FKDR^2 * Stars)" : "index (FKDR^2 * stars)";
+        }
     }
 };
 
 export const getShortStatLabel = (stat: StatKey, capitalize = false): string => {
     switch (stat) {
-        case "experience":
+        case "experience": {
             return capitalize ? "EXP" : "EXP";
-        case "stars":
+        }
+        case "stars": {
             return capitalize ? "Stars" : "stars";
-        case "kills":
+        }
+        case "kills": {
             return capitalize ? "Kills" : "kills";
-        case "deaths":
+        }
+        case "deaths": {
             return capitalize ? "Deaths" : "deaths";
-        case "finalKills":
+        }
+        case "finalKills": {
             return capitalize ? "Finals" : "finals";
-        case "finalDeaths":
+        }
+        case "finalDeaths": {
             return capitalize ? "Final deaths" : "final deaths";
-        case "bedsBroken":
+        }
+        case "bedsBroken": {
             return capitalize ? "Beds" : "beds";
-        case "bedsLost":
+        }
+        case "bedsLost": {
             return capitalize ? "Beds lost" : "beds lost";
-        case "winstreak":
+        }
+        case "winstreak": {
             return capitalize ? "WS" : "WS";
-        case "wins":
+        }
+        case "wins": {
             return capitalize ? "Wins" : "wins";
-        case "losses":
+        }
+        case "losses": {
             return capitalize ? "Losses" : "losses";
-        case "gamesPlayed":
+        }
+        case "gamesPlayed": {
             return capitalize ? "Games" : "games";
-        case "kdr":
+        }
+        case "kdr": {
             return capitalize ? "KDR" : "KDR";
-        case "fkdr":
+        }
+        case "fkdr": {
             return capitalize ? "FKDR" : "FKDR";
-        case "index":
+        }
+        case "index": {
             return capitalize ? "Index" : "index";
+        }
     }
 };
 
 export const getGamemodeLabel = (gamemode: GamemodeKey, capitalize = false): string => {
     switch (gamemode) {
-        case "overall":
+        case "overall": {
             return capitalize ? "Total" : "total";
-        case "solo":
+        }
+        case "solo": {
             return capitalize ? "Solo" : "solo";
-        case "doubles":
+        }
+        case "doubles": {
             return capitalize ? "Doubles" : "doubles";
-        case "threes":
+        }
+        case "threes": {
             return capitalize ? "Threes" : "threes";
-        case "fours":
+        }
+        case "fours": {
             return capitalize ? "Fours" : "fours";
+        }
     }
 };
 
 export const getVariantLabel = (variant: VariantKey, capitalize = false): string => {
     switch (variant) {
-        case "session":
+        case "session": {
             // TODO: Show daily/weekly/etc?
             return capitalize ? "Session" : "session";
-        case "overall":
+        }
+        case "overall": {
             return capitalize ? "All time" : "all time";
+        }
     }
 };

@@ -22,12 +22,15 @@ export function getStat(
 
     // oxlint-disable-next-line typescript/switch-exhaustiveness-check
     switch (stat) {
-        case "experience":
+        case "experience": {
             return playerData.experience;
-        case "winstreak":
+        }
+        case "winstreak": {
             return selectedGamemode.winstreak;
-        case "stars":
+        }
+        case "stars": {
             return bedwarsLevelFromExp(playerData.experience);
+        }
         case "fkdr": {
             const finalKills = selectedGamemode.finalKills;
             const finalDeaths = selectedGamemode.finalDeaths;
@@ -49,9 +52,10 @@ export function getStat(
             const stars = getStat(playerData, gamemode, "stars");
             return fkdr ** 2 * stars;
         }
-        default:
+        default: {
             // I believe all stats default to 0 if they are not present
             return playerData[gamemode][stat];
+        }
     }
 }
 

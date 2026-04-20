@@ -230,7 +230,7 @@ export const computeStatProgression = (
                 trendingUpward: true,
             };
         }
-        case "fkdr":
+        case "fkdr": {
             return computeQuotientProgression(
                 trackingHistory,
                 trackingEnd,
@@ -239,7 +239,8 @@ export const computeStatProgression = (
                 "finalDeaths",
                 gamemode,
             );
-        case "kdr":
+        }
+        case "kdr": {
             return computeQuotientProgression(
                 trackingHistory,
                 trackingEnd,
@@ -248,7 +249,8 @@ export const computeStatProgression = (
                 "deaths",
                 gamemode,
             );
-        case "index":
+        }
+        case "index": {
             // TODO
             // Potential strategy:
             // Compute progression on experience, finals, final deaths
@@ -257,6 +259,7 @@ export const computeStatProgression = (
             // Potentially erroring if something goes wrong
             // NOTE: index(t) is not necessarily monotonic, so there can be multiple intersections
             return { error: true, reason: "Not implemented" };
+        }
         case "experience":
         case "gamesPlayed":
         case "wins":
@@ -299,10 +302,12 @@ export const computeStatProgression = (
             };
         }
 
-        case "winstreak":
+        case "winstreak": {
             return { error: true, reason: "Not implemented" };
-        default:
+        }
+        default: {
             stat satisfies never;
+        }
     }
 
     return { error: true, reason: "Unknown stat" };

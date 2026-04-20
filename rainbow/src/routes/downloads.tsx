@@ -156,30 +156,36 @@ const getOS = (): OS | "Unknown" => {
         case "manjaro":
         case "raspbian":
         case "ubuntu":
-        case "xubuntu":
+        case "xubuntu": {
             return "Linux";
-        case "windows":
+        }
+        case "windows": {
             return "Windows";
-        case "macos":
+        }
+        case "macos": {
             return "Mac OS";
-        default:
+        }
+        default: {
             return "Unknown";
+        }
     }
 };
 
 const getOSLogoImage = (os: OS, colorScheme: "light" | "dark") => {
     switch (os) {
-        case "Linux":
+        case "Linux": {
             return {
                 url: tuxURL,
                 aspectRatio: 1,
             };
-        case "Windows":
+        }
+        case "Windows": {
             return {
                 url: windowsLogoURL,
                 aspectRatio: 1,
             };
-        case "Mac OS":
+        }
+        case "Mac OS": {
             if (colorScheme === "dark") {
                 return {
                     url: macLogoGreyURL,
@@ -190,6 +196,7 @@ const getOSLogoImage = (os: OS, colorScheme: "light" | "dark") => {
                 url: macLogoURL,
                 aspectRatio: 814 / 1000,
             };
+        }
     }
 };
 
@@ -211,22 +218,28 @@ const OSLogo = ({ os, height }: { os: OS; height: number }) => {
 const OSLogoAttribution = ({ os }: { os: OS }) => {
     const getAttributionId = (osKey: OS) => {
         switch (osKey) {
-            case "Windows":
+            case "Windows": {
                 return "windows-logo";
-            case "Mac OS":
+            }
+            case "Mac OS": {
                 return "mac-logo";
-            case "Linux":
+            }
+            case "Linux": {
                 return "linux-logo";
+            }
         }
     };
     const getAttributionText = (osKey: OS) => {
         switch (osKey) {
-            case "Windows":
+            case "Windows": {
                 return "[1]";
-            case "Mac OS":
+            }
+            case "Mac OS": {
                 return "[2]";
-            case "Linux":
+            }
+            case "Linux": {
                 return "[3]";
+            }
         }
     };
 
@@ -239,12 +252,15 @@ const OSLogoAttribution = ({ os }: { os: OS }) => {
 
 const osLabel = (os: OS) => {
     switch (os) {
-        case "Linux":
+        case "Linux": {
             return "Linux";
-        case "Windows":
+        }
+        case "Windows": {
             return "Windows";
-        case "Mac OS":
+        }
+        case "Mac OS": {
             return "Mac OS";
+        }
     }
 };
 
@@ -311,16 +327,21 @@ const LatestDownloadLinux = () => {
 
 const LatestDownload = () => {
     switch (getOS()) {
-        case "Windows":
+        case "Windows": {
             return <LatestDownloadWindows />;
-        case "Mac OS":
+        }
+        case "Mac OS": {
             return <LatestDownloadMac />;
-        case "Linux":
+        }
+        case "Linux": {
             return <LatestDownloadLinux />;
-        case "Unknown":
+        }
+        case "Unknown": {
             return null;
-        default:
+        }
+        default: {
             return null;
+        }
     }
 };
 

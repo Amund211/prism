@@ -196,16 +196,20 @@ function Index() {
 
     let badSelectionCountString = "";
     switch (badSelectionCount.length) {
-        case 0:
+        case 0: {
             break;
-        case 1:
+        }
+        case 1: {
             badSelectionCountString = badSelectionCount[0];
             break;
-        case 2:
+        }
+        case 2: {
             badSelectionCountString = `${badSelectionCount[0]} and ${badSelectionCount[1]}`;
             break;
-        default:
+        }
+        default: {
             badSelectionCountString = `${badSelectionCount.slice(0, -1).join(", ")}, and ${badSelectionCount.at(-1)}`;
+        }
     }
 
     const goToSessionPageTooltip = canGoToSessionPage

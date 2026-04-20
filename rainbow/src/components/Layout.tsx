@@ -56,8 +56,9 @@ function useShownPlayer(): string | null {
 
     switch (currentMatch.routeId) {
         case "/session/$uuid":
-        case "/wrapped/$uuid":
+        case "/wrapped/$uuid": {
             return currentMatch.params.uuid;
+        }
         case "/history/explore": {
             const uuids = currentMatch.search.uuids;
             return uuids.length > 0 ? uuids[0] : null;
@@ -68,11 +69,13 @@ function useShownPlayer(): string | null {
         case "/downloads":
         case "/settings":
         case "/session/":
-        case "/wrapped/":
+        case "/wrapped/": {
             return null;
-        default:
+        }
+        default: {
             currentMatch satisfies never;
-            return null; // Unreachable
+            return null;
+        } // Unreachable
     }
 }
 

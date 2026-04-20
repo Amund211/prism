@@ -82,9 +82,10 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
         filterOptions: (options, { inputValue }) => {
             const namesForOptions = options.map((option) => {
                 switch (option.type) {
-                    case "free-text":
+                    case "free-text": {
                         // The names can be anything here as long as it won't get filtered out
                         return { names: [option.text], option: option };
+                    }
                     case "uuid": {
                         const name = uuidToUsername[option.uuid];
                         const names = knownAliases[option.uuid] ?? [];
@@ -167,7 +168,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                         </Stack>
                     );
                 }
-                case "uuid":
+                case "uuid": {
                     return (
                         // oxlint-disable-next-line eslint/no-use-before-define
                         <UserOption
@@ -176,20 +177,25 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                             optionProps={optionProps}
                         />
                     );
-                default:
+                }
+                default: {
                     option satisfies never;
+                }
             }
             option satisfies never;
         },
         getOptionLabel: (option) => {
             switch (option.type) {
-                case "uuid":
+                case "uuid": {
                     return uuidToUsername[option.uuid] ?? option.uuid;
-                case "free-text":
+                }
+                case "free-text": {
                     return uuidToUsername[option.text] ?? option.text;
-                default:
+                }
+                default: {
                     option satisfies never;
                     return "";
+                }
             }
         },
         isOptionEqualToValue: (option, value) => {
@@ -199,8 +205,9 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
             }
 
             switch (value.type) {
-                case "uuid":
+                case "uuid": {
                     return option.uuid === value.uuid;
+                }
                 case "free-text": {
                     // If the value of the submitted free-text was a uuid -> compare it with the option's uuid
                     const valueAsNormalizedUUID = normalizeUUID(value.text);
@@ -214,9 +221,10 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                         value.text.toLowerCase()
                     );
                 }
-                default:
+                default: {
                     value satisfies never;
                     return false;
+                }
             }
         },
         renderValue: (value, getItemProps) => {

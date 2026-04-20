@@ -171,14 +171,18 @@ const isLinearStat = (stat: StatKey) => {
 const getRelatedStats = (stat: StatKey): StatKey[] => {
     // oxlint-disable-next-line typescript/switch-exhaustiveness-check
     switch (stat) {
-        case "fkdr":
+        case "fkdr": {
             return ["finalKills", "finalDeaths"];
-        case "kdr":
+        }
+        case "kdr": {
             return ["kills", "deaths"];
-        case "index":
+        }
+        case "index": {
             return ["finalKills", "finalDeaths", "stars"];
-        default:
+        }
+        default: {
             return [];
+        }
     }
 };
 
@@ -910,7 +914,7 @@ const ProgressionValueAndMilestone: React.FC<ProgressionValueAndMilestoneProps> 
         );
     };
     switch (progression.stat) {
-        case "stars":
+        case "stars": {
             // TODO: Format based on prestige colors
             return renderValues(
                 progression.endValue,
@@ -924,8 +928,9 @@ const ProgressionValueAndMilestone: React.FC<ProgressionValueAndMilestoneProps> 
                 ),
                 false,
             );
+        }
         case "fkdr":
-        case "kdr":
+        case "kdr": {
             return renderValues(
                 progression.endValue,
                 progression.nextMilestoneValue,
@@ -938,6 +943,7 @@ const ProgressionValueAndMilestone: React.FC<ProgressionValueAndMilestoneProps> 
                 ),
                 false,
             );
+        }
         case "index":
         case "experience":
         case "winstreak":
@@ -945,7 +951,7 @@ const ProgressionValueAndMilestone: React.FC<ProgressionValueAndMilestoneProps> 
         case "wins":
         case "bedsBroken":
         case "finalKills":
-        case "kills":
+        case "kills": {
             return renderValues(
                 progression.endValue,
                 progression.nextMilestoneValue,
@@ -954,10 +960,11 @@ const ProgressionValueAndMilestone: React.FC<ProgressionValueAndMilestoneProps> 
                 ),
                 false,
             );
+        }
         case "losses":
         case "bedsLost":
         case "finalDeaths":
-        case "deaths":
+        case "deaths": {
             return renderValues(
                 progression.endValue,
                 progression.nextMilestoneValue,
@@ -966,8 +973,10 @@ const ProgressionValueAndMilestone: React.FC<ProgressionValueAndMilestoneProps> 
                 ),
                 true,
             );
-        default:
+        }
+        default: {
             progression satisfies never;
+        }
     }
 };
 
@@ -977,28 +986,32 @@ interface ProgressionCaptionProps {
 
 const ProgressionCaption: React.FC<ProgressionCaptionProps> = ({ progression }) => {
     switch (progression.stat) {
-        case "stars":
+        case "stars": {
             return (
                 <Typography variant="caption">
                     {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel(progression.stat)}/day`}
                 </Typography>
             );
+        }
         // TODO: Join all quotient cases by returning the dividend and divisor stat names
-        case "fkdr":
+        case "fkdr": {
             return (
                 <Typography variant="caption">
                     {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day (${progression.sessionQuotient.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} long-time ${getShortStatLabel("fkdr")}, ${progression.dividendPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("finalKills")}/day, ${progression.divisorPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("finalDeaths")}/day)`}
                 </Typography>
             );
-        case "kdr":
+        }
+        case "kdr": {
             return (
                 <Typography variant="caption">
                     {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day (${progression.sessionQuotient.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} long-time ${getShortStatLabel("kdr")}, ${progression.dividendPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("kills")}/day, ${progression.divisorPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("deaths")}/day)`}
                 </Typography>
             );
-        case "index":
+        }
+        case "index": {
             // TODO
             return <Typography variant="caption">TODO</Typography>;
+        }
         case "experience":
         case "winstreak":
         case "gamesPlayed":
@@ -1009,14 +1022,16 @@ const ProgressionCaption: React.FC<ProgressionCaptionProps> = ({ progression }) 
         case "finalKills":
         case "finalDeaths":
         case "kills":
-        case "deaths":
+        case "deaths": {
             return (
                 <Typography variant="caption">
                     {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel(progression.stat)}/day`}
                 </Typography>
             );
-        default:
+        }
+        default: {
             progression satisfies never;
+        }
     }
 };
 
@@ -1121,7 +1136,7 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
 
     if (progression.error) {
         switch (progression.reason) {
-            case ERR_TRACKING_STARTED:
+            case ERR_TRACKING_STARTED: {
                 return (
                     <Card variant="outlined" sx={{ height: "100%" }}>
                         <CardContent>
@@ -1139,8 +1154,10 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
                         </CardContent>
                     </Card>
                 );
-            case ERR_NO_DATA:
+            }
+            case ERR_NO_DATA: {
                 return noDataComponent;
+            }
         }
 
         return (

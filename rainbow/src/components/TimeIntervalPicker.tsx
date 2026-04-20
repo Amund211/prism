@@ -30,7 +30,7 @@ export const TimeIntervalPicker: React.FC<TimeIntervalPickerProps> = ({
     let shortIntervalDescription = "Unknown interval";
     let longIntervalDescription = "Unknown interval";
     switch (intervalDefinition.type) {
-        case "contained":
+        case "contained": {
             if (formattedDate !== undefined) {
                 shortIntervalDescription = `Current interval at ${formattedDate}`;
                 longIntervalDescription = `Show the stats for the current day, week, or month, as they would have appeared at ${formattedDate}.`;
@@ -40,7 +40,8 @@ export const TimeIntervalPicker: React.FC<TimeIntervalPickerProps> = ({
             longIntervalDescription =
                 "Show the stats for the current day, week, or month.";
             break;
-        case "until":
+        }
+        case "until": {
             if (formattedDate !== undefined) {
                 shortIntervalDescription = `Last X days at ${formattedDate}`;
                 longIntervalDescription = `Show the stats for the last 1, 7, or 30 days, as they would have appeared at ${formattedDate}.`;
@@ -49,8 +50,10 @@ export const TimeIntervalPicker: React.FC<TimeIntervalPickerProps> = ({
             shortIntervalDescription = "Last X days";
             longIntervalDescription = "Show the stats for the last 1, 7, or 30 days";
             break;
-        default:
+        }
+        default: {
             intervalDefinition.type satisfies never;
+        }
     }
 
     return (

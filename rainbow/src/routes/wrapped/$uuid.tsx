@@ -325,27 +325,34 @@ const BestSessionCard: React.FC<BestSessionCardProps> = ({
     // Calculate the display value based on stat type
     let displayValue: number;
     switch (statType) {
-        case "fkdr":
+        case "fkdr": {
             displayValue = computeStat(end, "overall", "fkdr", "session", history);
             break;
-        case "kills":
+        }
+        case "kills": {
             displayValue = computeStat(end, "overall", "kills", "session", history);
             break;
-        case "finals":
+        }
+        case "finals": {
             displayValue = finalKills;
             break;
-        case "wins":
+        }
+        case "wins": {
             displayValue = wins;
             break;
-        case "duration":
+        }
+        case "duration": {
             displayValue = durationHours;
             break;
-        case "winsPerHour":
+        }
+        case "winsPerHour": {
             displayValue = durationHours > 0 ? wins / durationHours : 0;
             break;
-        case "finalsPerHour":
+        }
+        case "finalsPerHour": {
             displayValue = durationHours > 0 ? finalKills / durationHours : 0;
             break;
+        }
     }
 
     return (

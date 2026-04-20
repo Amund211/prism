@@ -112,26 +112,30 @@ const renderTimeShort = (
 ): string => {
     const date = new Date(time);
     switch (smallestTimeDenomination) {
-        case "year":
+        case "year": {
             return date.toLocaleString(undefined, {
                 dateStyle: "medium",
             });
-        case "month":
+        }
+        case "month": {
             return date.toLocaleString(undefined, {
                 month: "short",
                 day: "numeric",
             });
-        case "day":
+        }
+        case "day": {
             return date.toLocaleString(undefined, {
                 month: "short",
                 day: "numeric",
             });
-        case "hour":
+        }
+        case "hour": {
             return date.toLocaleString(undefined, {
                 hour: "numeric",
                 minute: "numeric",
                 second: "numeric",
             });
+        }
     }
 };
 
