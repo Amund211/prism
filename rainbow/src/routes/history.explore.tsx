@@ -130,7 +130,7 @@ function Index() {
                 replace
                 search={(oldSearch) => ({
                     ...oldSearch,
-                    uuids: uuids,
+                    uuids,
                 })}
             />
         );

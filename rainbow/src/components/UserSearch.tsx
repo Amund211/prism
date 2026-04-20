@@ -84,7 +84,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                 switch (option.type) {
                     case "free-text": {
                         // The names can be anything here as long as it won't get filtered out
-                        return { names: [option.text], option: option };
+                        return { names: [option.text], option };
                     }
                     case "uuid": {
                         const name = uuidToUsername[option.uuid];

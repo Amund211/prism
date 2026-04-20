@@ -27,7 +27,7 @@ export const PlayerHead: React.FC<PlayerHeadProps> = ({
             src={link}
             alt={`${username ?? "unknown"}'s player head`}
             variant="rounded"
-            sx={{ width: width, height: width / aspectRatio }}
+            sx={{ width, height: width / aspectRatio }}
         />
     );
 };

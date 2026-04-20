@@ -1269,7 +1269,7 @@ const FavoritePlayTimes: React.FC<FavoritePlayTimesProps> = ({ wrappedData }) =>
                                                                 flex: 1,
                                                                 height: 20,
                                                                 bgcolor: "primary.main",
-                                                                opacity: opacity,
+                                                                opacity,
                                                                 borderRadius: 0.5,
                                                                 transition:
                                                                     "all 0.2s ease",
