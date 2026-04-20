@@ -365,6 +365,7 @@ function Index() {
                             option.end.toISOString() === end.toISOString();
                         return (
                             <RouterLinkChip
+                                // oxlint-disable-next-line react/jsx-props-no-spreading
                                 {
                                     /* This seems to work, but TS won't let me. Guessing it is the chip + link props colliding a bit */
                                     ...{ component: "a" }

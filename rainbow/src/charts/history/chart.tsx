@@ -529,6 +529,7 @@ const renderLines = ({
                             type="monotone"
                             dataKey={dataKey}
                             connectNulls
+                            // oxlint-disable-next-line react/jsx-props-no-spreading
                             {...getLineStyle(index++)}
                         />
                     );
@@ -565,6 +566,7 @@ const renderLines = ({
                             )}
                             type="monotone"
                             dataKey={dataKey}
+                            // oxlint-disable-next-line react/jsx-props-no-spreading
                             {...getLineStyle(index++)}
                             connectNulls
                         />

@@ -98,7 +98,6 @@
         "unicorn/filename-case": "off",
         // NOTE: Weird behavior in src/charts/history/data.unit.test.ts
         "eslint/no-implicit-coercion": "off",
-        "react/jsx-props-no-spreading": "off",
         "unicorn/no-nested-ternary": "off",
         "eslint/no-nested-ternary": "off",
         // NOTE: We have a few cases where we don't use the setter - either ignore it for them, or find a different solution

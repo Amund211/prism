@@ -157,6 +157,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                             direction="row"
                             gap={2}
                             alignItems="center"
+                            // oxlint-disable-next-line react/jsx-props-no-spreading
                             {...optionProps}
                         >
                             {/* HACK: Use an avatar to get the same layout as the UserOption*/}
@@ -243,6 +244,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
 
                 return (
                     <Chip
+                        // oxlint-disable-next-line react/jsx-props-no-spreading
                         {...getItemProps({ index })}
                         key={option.uuid}
                         label={username ?? <Skeleton variant="text" width={60} />}
@@ -276,6 +278,7 @@ const UserOption: React.FC<{
             direction="row"
             gap={2}
             alignItems="center"
+            // oxlint-disable-next-line react/jsx-props-no-spreading
             {...optionProps}
         >
             <PlayerHead uuid={uuid} username={username} variant="cube" />
@@ -339,6 +342,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
             renderInput={(params) => {
                 return (
                     <TextField
+                        // oxlint-disable-next-line react/jsx-props-no-spreading
                         {...params}
                         placeholder={placeholder}
                         slotProps={{
@@ -442,6 +446,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
             renderInput={(params) => {
                 return (
                     <TextField
+                        // oxlint-disable-next-line react/jsx-props-no-spreading
                         {...params}
                         placeholder={placeholder}
                         slotProps={{
