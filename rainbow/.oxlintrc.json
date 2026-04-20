@@ -75,7 +75,6 @@
         "eslint/init-declarations": "off",
 
         // TODO: Re-enable
-        "unicorn/no-array-reverse": "off",
         "unicorn/prefer-add-event-listener": "off",
         "react/jsx-no-constructed-context-values": "off",
         "react/no-array-index-key": "off",

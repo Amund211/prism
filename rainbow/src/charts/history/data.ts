@@ -71,7 +71,7 @@ export const clusterChartData = (chartData: ChartData): ChartData => {
         i -= entriesToCluster - 1;
     }
 
-    return clusteredChartData.reverse();
+    return clusteredChartData.toReversed();
 };
 
 export const generateChartData = (histories: readonly History[]): ChartData => {

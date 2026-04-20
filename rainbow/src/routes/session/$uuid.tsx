@@ -605,7 +605,7 @@ const Sessions: React.FC<SessionsProps> = ({
                                             </TableRow>
                                         );
                                     })
-                                    .reverse()}
+                                    .toReversed()}
                             </TableBody>
                         </Table>
                     </TableContainer>
