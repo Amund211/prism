@@ -790,7 +790,14 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
         return `Hypixel API disabled for ${getFullStatLabel(stat)}.`;
     }
 
-    const trendDirection = diff === 0 ? "flat" : diff > 0 ? "up" : "down";
+    let trendDirection: "flat" | "up" | "down";
+    if (diff === 0) {
+        trendDirection = "flat";
+    } else if (diff > 0) {
+        trendDirection = "up";
+    } else {
+        trendDirection = "down";
+    }
 
     const badStats: StatKey[] = ["deaths", "finalDeaths", "bedsLost", "losses"];
     // Intentionally not including "index" as the number is usually so large that we don't want decmials. TODO: Could be fixed by better conditional decimal rendering for large numbers.
@@ -808,12 +815,14 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
         maximumFractionDigits: longPrecision,
     };
 
-    const trendColor: SvgIconOwnProps["color"] =
-        trendDirection === "flat"
-            ? undefined
-            : (trendDirection === "up") === badStats.includes(stat)
-              ? "error"
-              : "success";
+    let trendColor: SvgIconOwnProps["color"];
+    if (trendDirection === "flat") {
+        trendColor = undefined;
+    } else if ((trendDirection === "up") === badStats.includes(stat)) {
+        trendColor = "error";
+    } else {
+        trendColor = "success";
+    }
 
     return (
         <Card variant="outlined" sx={{ height: "100%", flexGrow: 1 }}>
@@ -846,17 +855,19 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                                             ...shortFormat,
                                         })}
                                     </Typography>
-                                    {diff > 0 ? (
+                                    {diff > 0 && (
                                         <TrendingUp
                                             color={trendColor}
                                             fontSize="small"
                                         />
-                                    ) : diff < 0 ? (
+                                    )}
+                                    {diff < 0 && (
                                         <TrendingDown
                                             color={trendColor}
                                             fontSize="small"
                                         />
-                                    ) : (
+                                    )}
+                                    {diff === 0 && (
                                         <TrendingFlat
                                             color={trendColor}
                                             fontSize="small"
@@ -894,28 +905,32 @@ const ProgressionValueAndMilestone: React.FC<ProgressionValueAndMilestoneProps> 
         renderValue: (value: number) => React.ReactNode,
         badStat: boolean,
     ) => {
-        const direction =
-            nextMilestoneValue > endValue
-                ? "up"
-                : nextMilestoneValue < endValue
-                  ? "down"
-                  : "flat";
+        let direction: "up" | "down" | "flat";
+        if (nextMilestoneValue > endValue) {
+            direction = "up";
+        } else if (nextMilestoneValue < endValue) {
+            direction = "down";
+        } else {
+            direction = "flat";
+        }
 
-        const color: SvgIconOwnProps["color"] =
-            direction === "flat"
-                ? undefined
-                : (direction === "up") === badStat
-                  ? "error"
-                  : "success";
+        let color: SvgIconOwnProps["color"];
+        if (direction === "flat") {
+            color = undefined;
+        } else if ((direction === "up") === badStat) {
+            color = "error";
+        } else {
+            color = "success";
+        }
 
         return (
             <Stack direction="row" gap={0.5} alignItems="center">
                 {renderValue(endValue)}
-                {direction === "up" ? (
-                    <TrendingUp color={color} fontSize="medium" />
-                ) : direction === "down" ? (
+                {direction === "up" && <TrendingUp color={color} fontSize="medium" />}
+                {direction === "down" && (
                     <TrendingDown color={color} fontSize="medium" />
-                ) : (
+                )}
+                {direction === "flat" && (
                     <TrendingFlat color={color} fontSize="medium" />
                 )}
                 {renderValue(nextMilestoneValue)}
