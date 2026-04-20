@@ -18,55 +18,72 @@ export const PlayerVisitsProvider: React.FC<{
         useLocalStorage(localStorageKey);
     const playerVisits = parseStoredPlayerVisits(storedPlayerVisits);
 
-    const visitPlayerAndPersist = (uuid: string) => {
-        if (!isNormalizedUUID(uuid)) {
-            throw new Error(`UUID not normalized: ${uuid}`);
-        }
+    const visitPlayerAndPersist = React.useCallback(
+        (uuid: string) => {
+            if (!isNormalizedUUID(uuid)) {
+                throw new Error(`UUID not normalized: ${uuid}`);
+            }
 
-        const newVisits = visitPlayer(playerVisits, uuid);
-        setStoredPlayerVisits(stringifyPlayerVisits(newVisits));
-    };
+            const newVisits = visitPlayer(playerVisits, uuid);
+            setStoredPlayerVisits(stringifyPlayerVisits(newVisits));
+        },
+        [playerVisits, setStoredPlayerVisits],
+    );
 
-    const removePlayerVisitsAndPersist = (uuid: string) => {
-        if (!isNormalizedUUID(uuid)) {
-            throw new Error(`UUID not normalized: ${uuid}`);
-        }
+    const removePlayerVisitsAndPersist = React.useCallback(
+        (uuid: string) => {
+            if (!isNormalizedUUID(uuid)) {
+                throw new Error(`UUID not normalized: ${uuid}`);
+            }
 
-        const newVisits = removePlayerVisits(playerVisits, uuid);
-        setStoredPlayerVisits(stringifyPlayerVisits(newVisits));
-    };
+            const newVisits = removePlayerVisits(playerVisits, uuid);
+            setStoredPlayerVisits(stringifyPlayerVisits(newVisits));
+        },
+        [playerVisits, setStoredPlayerVisits],
+    );
 
     const favoriteUUIDs = orderPlayers(playerVisits);
 
-    const orderUUIDsByScore = (uuids: string[], currentUser?: string): string[] => {
-        if (uuids.some((uuid) => !isNormalizedUUID(uuid))) {
-            throw new Error(`Some UUIDs are not normalized: ${uuids.join(", ")}`);
-        }
-
-        return [...uuids].toSorted((a, b) => {
-            // If provided with a current user, sort them to the top
-            if (currentUser !== undefined) {
-                if (a === currentUser) return -1;
-                if (b === currentUser) return 1;
+    const orderUUIDsByScore = React.useCallback(
+        (uuids: string[], currentUser?: string): string[] => {
+            if (uuids.some((uuid) => !isNormalizedUUID(uuid))) {
+                throw new Error(`Some UUIDs are not normalized: ${uuids.join(", ")}`);
             }
 
-            const aIndex = favoriteUUIDs.indexOf(a);
-            const bIndex = favoriteUUIDs.indexOf(b);
-            if (aIndex === -1) return 1;
-            if (bIndex === -1) return -1;
-            return aIndex - bIndex;
-        });
-    };
+            return [...uuids].toSorted((a, b) => {
+                // If provided with a current user, sort them to the top
+                if (currentUser !== undefined) {
+                    if (a === currentUser) return -1;
+                    if (b === currentUser) return 1;
+                }
+
+                const aIndex = favoriteUUIDs.indexOf(a);
+                const bIndex = favoriteUUIDs.indexOf(b);
+                if (aIndex === -1) return 1;
+                if (bIndex === -1) return -1;
+                return aIndex - bIndex;
+            });
+        },
+        [favoriteUUIDs],
+    );
+
+    const value = React.useMemo(
+        () => ({
+            favoriteUUIDs,
+            orderUUIDsByScore,
+            visitPlayer: visitPlayerAndPersist,
+            removePlayerVisits: removePlayerVisitsAndPersist,
+        }),
+        [
+            favoriteUUIDs,
+            orderUUIDsByScore,
+            visitPlayerAndPersist,
+            removePlayerVisitsAndPersist,
+        ],
+    );
 
     return (
-        <PlayerVisitsContext.Provider
-            value={{
-                favoriteUUIDs,
-                orderUUIDsByScore,
-                visitPlayer: visitPlayerAndPersist,
-                removePlayerVisits: removePlayerVisitsAndPersist,
-            }}
-        >
+        <PlayerVisitsContext.Provider value={value}>
             {children}
         </PlayerVisitsContext.Provider>
     );

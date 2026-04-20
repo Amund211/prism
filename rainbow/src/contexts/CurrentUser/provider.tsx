@@ -10,16 +10,24 @@ export const CurrentUserProvider: React.FC<{
     const [storedCurrentUser, setStoredCurrentUser] = useLocalStorage(localStorageKey);
     const currentUser = parseStoredUUID(storedCurrentUser);
 
-    const setCurrentUser = (newUUID: string | null) => {
-        if (newUUID !== null && !isNormalizedUUID(newUUID)) {
-            throw new Error(`UUID not normalized: ${newUUID}`);
-        }
+    const setCurrentUser = React.useCallback(
+        (newUUID: string | null) => {
+            if (newUUID !== null && !isNormalizedUUID(newUUID)) {
+                throw new Error(`UUID not normalized: ${newUUID}`);
+            }
 
-        setStoredCurrentUser(newUUID);
-    };
+            setStoredCurrentUser(newUUID);
+        },
+        [setStoredCurrentUser],
+    );
+
+    const value = React.useMemo(
+        () => ({ currentUser, setCurrentUser }),
+        [currentUser, setCurrentUser],
+    );
 
     return (
-        <CurrentUserContext.Provider value={{ currentUser, setCurrentUser }}>
+        <CurrentUserContext.Provider value={value}>
             {children}
         </CurrentUserContext.Provider>
     );

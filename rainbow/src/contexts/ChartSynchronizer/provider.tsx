@@ -20,14 +20,18 @@ export const ChartSynchronizerProvider: React.FC<{
     // The chart looks a bit silly if the domain is [0, 0], so we set the max to 1 so it displays at the bottom
     const yMaxWithShiftedZero = yMax === 0 ? 1 : yMax;
 
-    return (
-        <ChartSynchronizerContext.Provider
-            value={{
+    const value = React.useMemo(
+        () =>
+            ({
                 yMax: yMaxWithShiftedZero,
                 onYMaxChange,
                 synchronized: true,
-            }}
-        >
+            }) as const,
+        [yMaxWithShiftedZero, onYMaxChange],
+    );
+
+    return (
+        <ChartSynchronizerContext.Provider value={value}>
             {children}
         </ChartSynchronizerContext.Provider>
     );

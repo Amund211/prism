@@ -17,22 +17,28 @@ export const KnownAliasesProvider: React.FC<{
         useLocalStorage(localStorageKey);
     const knownAliases = parseStoredAliases(storedKnownAliases);
 
-    const addKnownAliasAndPersist = (alias: { uuid: string; username: string }) => {
-        if (!isNormalizedUUID(alias.uuid)) {
-            throw new Error(`UUID not normalized: ${alias.uuid}`);
-        }
+    const addKnownAliasAndPersist = React.useCallback(
+        (alias: { uuid: string; username: string }) => {
+            if (!isNormalizedUUID(alias.uuid)) {
+                throw new Error(`UUID not normalized: ${alias.uuid}`);
+            }
 
-        const newAliases = addKnownAlias(knownAliases, alias);
-        setStoredKnownAliases(stringifyKnownAliases(newAliases));
-    };
+            const newAliases = addKnownAlias(knownAliases, alias);
+            setStoredKnownAliases(stringifyKnownAliases(newAliases));
+        },
+        [knownAliases, setStoredKnownAliases],
+    );
+
+    const value = React.useMemo(
+        () => ({
+            knownAliases: presentRecentKnownAliases(knownAliases),
+            addKnownAlias: addKnownAliasAndPersist,
+        }),
+        [knownAliases, addKnownAliasAndPersist],
+    );
 
     return (
-        <KnownAliasesContext.Provider
-            value={{
-                knownAliases: presentRecentKnownAliases(knownAliases),
-                addKnownAlias: addKnownAliasAndPersist,
-            }}
-        >
+        <KnownAliasesContext.Provider value={value}>
             {children}
         </KnownAliasesContext.Provider>
     );
