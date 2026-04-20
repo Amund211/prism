@@ -1,5 +1,6 @@
 import { describe, expect } from "vitest";
 import { http, HttpResponse } from "msw";
+import type { SetupWorker } from "msw/browser";
 import { USERS, makeWrappedResponse } from "#mocks/data.ts";
 import { mswTest } from "#test/msw-test.ts";
 import { renderAppRoute } from "#test/render.tsx";
@@ -123,7 +124,7 @@ describe("Wrapped detail page", () => {
 
     mswTest(
         "shows error state when wrapped API fails",
-        async ({ worker }: { worker: import("msw/browser").SetupWorker }) => {
+        async ({ worker }: { worker: SetupWorker }) => {
             worker.use(
                 http.get(
                     "http://localhost:5173/flashlight/v1/wrapped/:uuid/:year",
@@ -311,7 +312,7 @@ describe("Wrapped detail page", () => {
 
     mswTest(
         "no yearStats shows download prompt",
-        async ({ worker }: { worker: import("msw/browser").SetupWorker }) => {
+        async ({ worker }: { worker: SetupWorker }) => {
             worker.use(
                 http.get(
                     "http://localhost:5173/flashlight/v1/wrapped/:uuid/:year",
@@ -343,7 +344,7 @@ describe("Wrapped detail page", () => {
 
     mswTest(
         "zero sessions shows NoSessionsAlert with year stats",
-        async ({ worker }: { worker: import("msw/browser").SetupWorker }) => {
+        async ({ worker }: { worker: SetupWorker }) => {
             worker.use(
                 http.get(
                     "http://localhost:5173/flashlight/v1/wrapped/:uuid/:year",
@@ -522,7 +523,7 @@ describe("Wrapped detail page", () => {
 
     mswTest(
         "low session coverage shows warning alert",
-        async ({ worker }: { worker: import("msw/browser").SetupWorker }) => {
+        async ({ worker }: { worker: SetupWorker }) => {
             worker.use(
                 http.get(
                     "http://localhost:5173/flashlight/v1/wrapped/:uuid/:year",

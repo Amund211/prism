@@ -1,5 +1,6 @@
 import { describe, expect } from "vitest";
 import { http, HttpResponse } from "msw";
+import type { SetupWorker } from "msw/browser";
 import { USERS } from "#mocks/data.ts";
 import { mswTest } from "#test/msw-test.ts";
 import { renderAppRoute } from "#test/render.tsx";
@@ -271,7 +272,7 @@ describe("History Explore page", () => {
 
     mswTest(
         "page renders without crashing when history API returns empty",
-        async ({ worker }: { worker: import("msw/browser").SetupWorker }) => {
+        async ({ worker }: { worker: SetupWorker }) => {
             worker.use(
                 http.post("http://localhost:5173/flashlight/v1/history", () => {
                     return HttpResponse.json([]);
@@ -434,7 +435,7 @@ describe("History Explore page", () => {
 
     mswTest(
         "page renders controls when history API returns 500",
-        async ({ worker }: { worker: import("msw/browser").SetupWorker }) => {
+        async ({ worker }: { worker: SetupWorker }) => {
             worker.use(
                 http.post("http://localhost:5173/flashlight/v1/history", () => {
                     return HttpResponse.json({ success: false }, { status: 500 });

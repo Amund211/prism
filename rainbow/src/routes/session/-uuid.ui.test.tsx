@@ -1,6 +1,7 @@
 import { describe, expect } from "vitest";
 import { userEvent } from "vitest/browser";
 import { http, HttpResponse } from "msw";
+import type { SetupWorker } from "msw/browser";
 import { USERS } from "#mocks/data.ts";
 import { mswTest } from "#test/msw-test.ts";
 import { renderAppRoute } from "#test/render.tsx";
@@ -222,7 +223,7 @@ describe("Session detail page", () => {
 
     mswTest(
         "shows no sessions found when sessions API returns empty",
-        async ({ worker }: { worker: import("msw/browser").SetupWorker }) => {
+        async ({ worker }: { worker: SetupWorker }) => {
             worker.use(
                 http.post("http://localhost:5173/flashlight/v1/sessions", () => {
                     return HttpResponse.json([]);
@@ -334,7 +335,7 @@ describe("Session detail page", () => {
 
     mswTest(
         "shows no data found when history API returns empty",
-        async ({ worker }: { worker: import("msw/browser").SetupWorker }) => {
+        async ({ worker }: { worker: SetupWorker }) => {
             worker.use(
                 http.post("http://localhost:5173/flashlight/v1/history", () => {
                     return HttpResponse.json([]);
@@ -466,7 +467,7 @@ describe("Session detail page", () => {
 
     mswTest(
         "partial failure: sessions API fails but page still renders with history",
-        async ({ worker }: { worker: import("msw/browser").SetupWorker }) => {
+        async ({ worker }: { worker: SetupWorker }) => {
             worker.use(
                 http.post("http://localhost:5173/flashlight/v1/sessions", () => {
                     return HttpResponse.json({ success: false }, { status: 500 });
@@ -494,7 +495,7 @@ describe("Session detail page", () => {
 
     mswTest(
         "shows no data found when all APIs return errors",
-        async ({ worker }: { worker: import("msw/browser").SetupWorker }) => {
+        async ({ worker }: { worker: SetupWorker }) => {
             worker.use(
                 http.post("http://localhost:5173/flashlight/v1/history", () => {
                     return HttpResponse.json({ success: false }, { status: 500 });
@@ -582,7 +583,7 @@ describe("Session detail page", () => {
 
     mswTest(
         "page renders controls when username API returns 404",
-        async ({ worker }: { worker: import("msw/browser").SetupWorker }) => {
+        async ({ worker }: { worker: SetupWorker }) => {
             worker.use(
                 http.get(
                     "http://localhost:5173/flashlight/v1/account/uuid/:uuid",
