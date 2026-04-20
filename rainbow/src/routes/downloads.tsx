@@ -290,8 +290,10 @@ function RouteComponent() {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {DOWNLOADS.map((download, i) => (
-                                    <TableRow key={i}>
+                                {DOWNLOADS.map((download) => (
+                                    <TableRow
+                                        key={`${download.os}-${download.version}`}
+                                    >
                                         <TableCell>
                                             <a href={download.link} download>
                                                 <Typography variant="body1">

@@ -1116,6 +1116,7 @@ const FavoritePlayTimes: React.FC<FavoritePlayTimesProps> = ({ wrappedData }) =>
 
                                 return (
                                     <Tooltip
+                                        // oxlint-disable-next-line react/no-array-index-key
                                         key={hour}
                                         title={`${renderHour(hour)}:00 - ${renderHour((hour + 1) % 24)}:00: ${formatHours(hours)}`}
                                     >
@@ -1163,6 +1164,7 @@ const FavoritePlayTimes: React.FC<FavoritePlayTimesProps> = ({ wrappedData }) =>
                             {Array.from({ length: 24 }).map((_, hour) =>
                                 hour % 6 === 0 ? (
                                     <Typography
+                                        // oxlint-disable-next-line react/no-array-index-key
                                         key={hour}
                                         variant="caption"
                                         sx={{
@@ -1174,6 +1176,7 @@ const FavoritePlayTimes: React.FC<FavoritePlayTimesProps> = ({ wrappedData }) =>
                                         {renderHour(hour)}
                                     </Typography>
                                 ) : (
+                                    // oxlint-disable-next-line react/no-array-index-key
                                     <Box key={hour} sx={{ flex: 1 }} />
                                 ),
                             )}
@@ -1244,6 +1247,7 @@ const FavoritePlayTimes: React.FC<FavoritePlayTimesProps> = ({ wrappedData }) =>
 
                                                 return (
                                                     <Tooltip
+                                                        // oxlint-disable-next-line react/no-array-index-key
                                                         key={hour}
                                                         title={`${renderDay(day)} ${renderHour(hour)}:00 - ${renderHour((hour + 1) % 24)}:00: ${formatHours(hours)}`}
                                                     >
@@ -1282,6 +1286,7 @@ const FavoritePlayTimes: React.FC<FavoritePlayTimesProps> = ({ wrappedData }) =>
                                 {Array.from({ length: 24 }).map((_, hour) =>
                                     hour % 6 === 0 ? (
                                         <Typography
+                                            // oxlint-disable-next-line react/no-array-index-key
                                             key={hour}
                                             variant="caption"
                                             sx={{
@@ -1293,6 +1298,7 @@ const FavoritePlayTimes: React.FC<FavoritePlayTimesProps> = ({ wrappedData }) =>
                                             {renderHour(hour)}
                                         </Typography>
                                     ) : (
+                                        // oxlint-disable-next-line react/no-array-index-key
                                         <Box key={hour} sx={{ flex: 1 }} />
                                     ),
                                 )}
