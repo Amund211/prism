@@ -81,10 +81,10 @@
         "typescript/explicit-function-return-type": "off",
 
         "eslint/no-console": ["error", { "allow": ["warn", "error"] }],
+        "vitest/no-importing-vitest-globals": "off",
 
         // TODO: Re-enable
 
-        "vitest/no-importing-vitest-globals": "off",
         "vitest/prefer-describe-function-title": "off",
         "vitest/prefer-to-be-truthy": "off",
         "vitest/prefer-to-be-falsy": "off",
