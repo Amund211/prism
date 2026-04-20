@@ -10,9 +10,10 @@ export const useSynchronizeCharts = (
     | { yMax: number | undefined; synchronized: true }
     | { yMax?: undefined; synchronized: false } => {
     const { synchronized, yMax, onYMaxChange } = React.use(ChartSynchronizerContext);
-    const dataMax = chartData.reduce((max, data) => {
-        return Math.max(max, data[dataKey] ?? 0);
-    }, 0);
+    let dataMax = 0;
+    for (const data of chartData) {
+        dataMax = Math.max(dataMax, data[dataKey] ?? 0);
+    }
 
     React.useEffect(() => {
         // Make sure to call this in an effect so we don't get set the state of a parent during render
