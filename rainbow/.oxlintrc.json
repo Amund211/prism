@@ -84,7 +84,6 @@
 
         // TODO: Re-enable
 
-        "vitest/require-test-timeout": "off",
         "vitest/no-importing-vitest-globals": "off",
         "vitest/prefer-describe-function-title": "off",
         "vitest/prefer-to-be-truthy": "off",
@@ -184,6 +183,12 @@
             "files": ["src/**/*.unit.test.ts"],
             "rules": {
                 "import/no-nodejs-modules": "off"
+            }
+        },
+        {
+            "files": ["src/**/*.test.ts", "src/**/*.test.tsx"],
+            "rules": {
+                "vitest/require-test-timeout": "off"
             }
         },
         {
