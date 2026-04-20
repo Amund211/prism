@@ -99,7 +99,7 @@ export const Route = createFileRoute("/session/$uuid")({
         context: { queryClient },
     }) => {
         const uuid = normalizeUUID(rawUUID);
-        if (!uuid) return;
+        if (uuid === null) return;
 
         const { day, week, month } = timeIntervals;
         // TODO: Rate limiting
@@ -1229,19 +1229,19 @@ function RouteComponent() {
         trackingInterval,
     } = Route.useLoaderDeps();
     const navigate = Route.useNavigate();
-    const uuidToUsername = useUUIDToUsername(uuid ? [uuid] : []);
-    const username = uuid ? uuidToUsername[uuid] : undefined;
+    const uuidToUsername = useUUIDToUsername(uuid !== null ? [uuid] : []);
+    const username = uuid !== null ? uuidToUsername[uuid] : undefined;
     const { visitPlayer } = usePlayerVisits();
 
     // Register visits for player on page load
     const [initialUUID] = React.useState(uuid);
     const [initialVisitPlayer] = React.useState(() => visitPlayer);
     React.useEffect(() => {
-        if (!initialUUID) return;
+        if (initialUUID === null) return;
         initialVisitPlayer(initialUUID);
     }, [initialVisitPlayer, initialUUID]);
 
-    if (!uuid) {
+    if (uuid === null) {
         return <Navigate to="/session" replace />;
     }
 

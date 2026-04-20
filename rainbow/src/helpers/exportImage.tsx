@@ -57,7 +57,7 @@ async function waitForImages(root: HTMLElement) {
             const imgWithDecode = img as HTMLImageElement & {
                 decode?: () => Promise<void>;
             };
-            if (imgWithDecode.decode) {
+            if (imgWithDecode.decode !== undefined) {
                 return imgWithDecode.decode();
             }
             return Promise.resolve();

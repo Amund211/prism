@@ -18,12 +18,13 @@ function RouteComponent() {
     const navigate = Route.useNavigate();
     const { currentUser } = useCurrentUser();
     const { favoriteUUIDs, removePlayerVisits } = usePlayerVisits();
-    const favorites = currentUser
-        ? [currentUser, ...favoriteUUIDs.filter((uuid) => uuid !== currentUser)].slice(
-              0,
-              5,
-          )
-        : favoriteUUIDs.slice(0, 5);
+    const favorites =
+        currentUser !== null
+            ? [currentUser, ...favoriteUUIDs.filter((uuid) => uuid !== currentUser)].slice(
+                  0,
+                  5,
+              )
+            : favoriteUUIDs.slice(0, 5);
     const uuidToUsername = useUUIDToUsername(favorites);
 
     return (

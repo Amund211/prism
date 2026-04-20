@@ -3,7 +3,7 @@ import path from "node:path";
 import react from "@vitejs/plugin-react";
 import { playwright } from "@vitest/browser-playwright";
 
-const IS_CI = !!process.env.CI;
+const IS_CI = process.env.CI !== undefined && process.env.CI !== "";
 
 const USE_LOCAL_BROWSER = !IS_CI;
 

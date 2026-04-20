@@ -64,7 +64,7 @@ export const Route = createFileRoute("/wrapped/$uuid")({
         context: { queryClient },
     }) => {
         const uuid = normalizeUUID(rawUUID);
-        if (!uuid) return;
+        if (uuid === null) return;
 
         Promise.all([
             queryClient.fetchQuery(
@@ -140,7 +140,7 @@ const StatCard: React.FC<StatCardProps> = ({
                     >
                         {value}
                     </Typography>
-                    {subtitle && (
+                    {subtitle !== undefined && subtitle !== "" && (
                         <Typography
                             variant="caption"
                             color="textSecondary"
@@ -1747,7 +1747,7 @@ function WrappedHeader({ wrappedData, uuid, year }: WrappedHeaderProps) {
                     }}
                     id="wrapped-header-title" // Needed for some manual tweaking in export
                 >
-                    {username ? `${username}'s` : null}
+                    {username !== undefined ? `${username}'s` : null}
                     <br />
                     {`${year.toString()} Wrapped`}
                 </Typography>
@@ -1771,7 +1771,7 @@ function WrappedHeader({ wrappedData, uuid, year }: WrappedHeaderProps) {
                                 <Warning color="warning" />
                             </Tooltip>
                         )}
-                    {dateRangeString && (
+                    {dateRangeString !== undefined && (
                         <Typography variant="caption" color="textSecondary">
                             {dateRangeString}
                         </Typography>
@@ -1788,8 +1788,8 @@ function RouteComponent() {
     const { year } = Route.useLoaderDeps();
 
     const navigate = Route.useNavigate();
-    const uuidToUsername = useUUIDToUsername(uuid ? [uuid] : []);
-    const username = uuid ? uuidToUsername[uuid] : undefined;
+    const uuidToUsername = useUUIDToUsername(uuid !== null ? [uuid] : []);
+    const username = uuid !== null ? uuidToUsername[uuid] : undefined;
     const { visitPlayer } = usePlayerVisits();
 
     const { data: wrappedData, isLoading } = useQuery(
@@ -1815,11 +1815,11 @@ function RouteComponent() {
     const [initialUUID] = React.useState(uuid);
     const [initialVisitPlayer] = React.useState(() => visitPlayer);
     React.useEffect(() => {
-        if (!initialUUID) return;
+        if (initialUUID === null) return;
         initialVisitPlayer(initialUUID);
     }, [initialVisitPlayer, initialUUID]);
 
-    if (!uuid) {
+    if (uuid === null) {
         return <Navigate to="/wrapped" replace />;
     }
 
@@ -1883,7 +1883,7 @@ function RouteComponent() {
                     </Box>
                 )}
                 <WrappedStatsContent wrappedData={wrappedData} isLoading={isLoading} />
-                {wrappedData?.yearStats && username && (
+                {wrappedData?.yearStats && username !== undefined && (
                     <ExportImageMount
                         onReady={handleExportReady}
                         filename={`${username}-${year.toString()}-wrapped.png`}

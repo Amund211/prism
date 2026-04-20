@@ -121,7 +121,7 @@ export const getUUIDQueryOptions = (username: string) =>
 
             const rawUUID = data.uuid;
             const uuid = normalizeUUID(rawUUID);
-            if (!uuid) {
+            if (uuid === null) {
                 captureMessage("Failed to get uuid: failed to normalize uuid", {
                     level: "error",
                     extra: {

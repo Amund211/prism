@@ -149,7 +149,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                             anchorEl={anchorEl}
                             onClose={handleCloseMenu}
                         >
-                            {playerToNavigate ? (
+                            {playerToNavigate !== null ? (
                                 <RouterMenuItem
                                     to="/session/$uuid"
                                     selected={location.pathname.startsWith("/session")}
@@ -187,7 +187,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                 to="/history/explore"
                                 selected={location.pathname === "/history/explore"}
                                 search={{
-                                    uuids: playerToNavigate ? [playerToNavigate] : [],
+                                    uuids: playerToNavigate !== null ? [playerToNavigate] : [],
                                     start: startOfMonth(now),
                                     end: endOfMonth(now),
                                     limit: 100,
@@ -202,7 +202,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                 </ListItemIcon>
                                 <ListItemText primary="History explorer" />
                             </RouterMenuItem>
-                            {playerToNavigate ? (
+                            {playerToNavigate !== null ? (
                                 <RouterMenuItem
                                     to="/wrapped/$uuid"
                                     selected={location.pathname.startsWith("/wrapped")}
@@ -303,7 +303,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 <Stack height="100%" overflow="auto">
                     <List dense component="menu">
                         <ListItem disablePadding>
-                            {playerToNavigate ? (
+                            {playerToNavigate !== null ? (
                                 <RouterLinkItemButton
                                     selected={location.pathname.startsWith("/session")}
                                     to="/session/$uuid"
@@ -341,7 +341,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                 selected={location.pathname === "/history/explore"}
                                 to="/history/explore"
                                 search={{
-                                    uuids: playerToNavigate ? [playerToNavigate] : [],
+                                    uuids: playerToNavigate !== null ? [playerToNavigate] : [],
                                     start: startOfMonth(now),
                                     end: endOfMonth(now),
                                     limit: 100,
@@ -357,7 +357,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                             </RouterLinkItemButton>
                         </ListItem>
                         <ListItem disablePadding>
-                            {playerToNavigate ? (
+                            {playerToNavigate !== null ? (
                                 <RouterLinkItemButton
                                     selected={location.pathname.startsWith("/wrapped")}
                                     to="/wrapped/$uuid"

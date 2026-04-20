@@ -88,7 +88,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                     case "uuid": {
                         const name = uuidToUsername[option.uuid];
                         const names = knownAliases[option.uuid] ?? [];
-                        if (!name) {
+                        if (name === undefined) {
                             return {
                                 names,
                                 option,
@@ -137,7 +137,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                 case "free-text": {
                     // If text is UUID -> render as regular user option
                     const valueAsNormalizedUUID = normalizeUUID(option.text);
-                    if (valueAsNormalizedUUID) {
+                    if (valueAsNormalizedUUID !== null) {
                         return (
                             <UserOption
                                 key={key}
@@ -202,7 +202,7 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
                 case "free-text": {
                     // If the value of the submitted free-text was a uuid -> compare it with the option's uuid
                     const valueAsNormalizedUUID = normalizeUUID(value.text);
-                    if (valueAsNormalizedUUID) {
+                    if (valueAsNormalizedUUID !== null) {
                         return option.uuid === valueAsNormalizedUUID;
                     }
 
@@ -297,7 +297,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
             getOptionLabel={getOptionLabel}
             isOptionEqualToValue={isOptionEqualToValue}
             onChange={(_, value) => {
-                if (!value) return;
+                if (value === null) return;
 
                 if (value.type === "uuid") {
                     onSubmit(value.uuid);
@@ -306,7 +306,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
 
                 // Allow UUIDs to be entered directly
                 const valueAsNormalizedUUID = normalizeUUID(value.text);
-                if (valueAsNormalizedUUID) {
+                if (valueAsNormalizedUUID !== null) {
                     onSubmit(valueAsNormalizedUUID);
                     return;
                 }
@@ -398,7 +398,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
 
                         // Allow UUIDs to be entered directly
                         const valueAsNormalizedUUID = normalizeUUID(value.text);
-                        if (valueAsNormalizedUUID) {
+                        if (valueAsNormalizedUUID !== null) {
                             return valueAsNormalizedUUID;
                         }
 

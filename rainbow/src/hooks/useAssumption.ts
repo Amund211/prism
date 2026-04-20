@@ -14,7 +14,7 @@ export function useAssume() {
             return;
         }
 
-        if (assumptions.current[message]) {
+        if (assumptions.current[message] === true) {
             // We've already reported this assumption failure
             return;
         }

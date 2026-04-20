@@ -25,7 +25,7 @@ function RouteComponent() {
             </Stack>
             <UserMultiSelect
                 placeholder="Set default player"
-                uuids={currentUser ? [currentUser] : []}
+                uuids={currentUser !== null ? [currentUser] : []}
                 onSubmit={(uuids) => {
                     const newDefault = uuids[uuids.length - 1] ?? null;
 
