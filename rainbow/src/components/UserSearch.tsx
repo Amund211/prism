@@ -314,6 +314,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
                 }
 
                 setLoading(true);
+                // oxlint-disable-next-line promise/catch-or-return
                 queryClient
                     .fetchQuery(getUUIDQueryOptions(value.text))
                     .then(({ uuid }) => {
@@ -392,6 +393,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
             value={uuids.map((uuid) => ({ type: "uuid" as const, uuid }))}
             onChange={(_, newValues) => {
                 setLoading(true);
+                // oxlint-disable-next-line promise/catch-or-return
                 Promise.allSettled(
                     newValues.map(async (value) => {
                         if (value.type === "uuid") {

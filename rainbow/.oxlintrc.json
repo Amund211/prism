@@ -84,7 +84,6 @@
 
         // TODO: Re-enable
 
-        "promise/catch-or-return": "off",
         "eslint/no-param-reassign": "off",
         "vitest/require-test-timeout": "off",
         "vitest/no-importing-vitest-globals": "off",
