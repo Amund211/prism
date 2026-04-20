@@ -780,7 +780,7 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
         return `Hypixel API disabled for ${getFullStatLabel(stat)}.`;
     }
 
-    const trendDirection = diff == 0 ? "flat" : diff > 0 ? "up" : "down";
+    const trendDirection = diff === 0 ? "flat" : diff > 0 ? "up" : "down";
 
     const badStats: StatKey[] = ["deaths", "finalDeaths", "bedsLost", "losses"];
     // Intentionally not including "index" as the number is usually so large that we don't want decmials. TODO: Could be fixed by better conditional decimal rendering for large numbers.

@@ -76,7 +76,6 @@
 
         // TODO: Re-enable
 
-        "eslint/eqeqeq": "off",
         "eslint/no-negated-condition": "off",
         "unicorn/no-immediate-mutation": "off",
         "unicorn/prefer-query-selector": "off",

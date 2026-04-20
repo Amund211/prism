@@ -28,7 +28,7 @@ const makeSubscribe = (key: string) => {
         const storageListener = (e: StorageEvent) => {
             // `key` is `null` on clear -> process it
             // https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event#event_properties
-            if (e.key !== key && e.key != null) return;
+            if (e.key !== key && e.key !== null) return;
 
             onStoreChange();
         };
