@@ -1,6 +1,23 @@
 version: 2
 
 updates:
+    - package-ecosystem: "pre-commit"
+      directory: "/"
+      schedule:
+          interval: "weekly"
+      cooldown:
+          default-days: 7
+      commit-message:
+          prefix: "chore"
+          include: "scope"
+      groups:
+          # Group minor+patch updates together; major & security stay separate
+          pre-commit-minor:
+              applies-to: "version-updates"
+              update-types:
+                  - "patch"
+                  - "minor"
+
     - package-ecosystem: "github-actions"
       directory: "/"
       schedule:
