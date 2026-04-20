@@ -79,7 +79,6 @@
 
         // TODO: Re-enable
 
-        "unicorn/prefer-dom-node-append": "off",
         "unicorn/prefer-dom-node-remove": "off",
         "typescript/promise-function-async": "off",
         "unicorn/prefer-number-properties": "off",
