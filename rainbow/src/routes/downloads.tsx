@@ -212,8 +212,8 @@ const OSLogo = ({ os, height }: { os: OS; height: number }) => {
 };
 
 const OSLogoAttribution = ({ os }: { os: OS }) => {
-    const getAttributionId = (os: OS) => {
-        switch (os) {
+    const getAttributionId = (osKey: OS) => {
+        switch (osKey) {
             case "Windows":
                 return "windows-logo";
             case "Mac OS":
@@ -222,8 +222,8 @@ const OSLogoAttribution = ({ os }: { os: OS }) => {
                 return "linux-logo";
         }
     };
-    const getAttributionText = (os: OS) => {
-        switch (os) {
+    const getAttributionText = (osKey: OS) => {
+        switch (osKey) {
             case "Windows":
                 return "[1]";
             case "Mac OS":

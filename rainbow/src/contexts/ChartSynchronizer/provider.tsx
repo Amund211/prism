@@ -7,8 +7,8 @@ export const ChartSynchronizerProvider: React.FC<{
 }> = ({ children, queryKey }) => {
     const [yMax, setYMax] = React.useState<number | undefined>(undefined);
 
-    const onYMaxChange = React.useCallback((yMax: number) => {
-        setYMax((oldYMax) => Math.max(oldYMax ?? 0, yMax));
+    const onYMaxChange = React.useCallback((newYMax: number) => {
+        setYMax((oldYMax) => Math.max(oldYMax ?? 0, newYMax));
     }, []);
 
     const [previousQueryKey, setPreviousQueryKey] = React.useState<string>();

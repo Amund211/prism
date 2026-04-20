@@ -133,9 +133,9 @@ export const presentRecentKnownAliases = (
     aliases: KnownAliases,
 ): Record<string, string[] | undefined> => {
     return Object.fromEntries(
-        Object.entries(aliases).map(([uuid, aliases]) => [
+        Object.entries(aliases).map(([uuid, uuidAliases]) => [
             uuid,
-            aliases
+            uuidAliases
                 ?.filter(
                     (info) =>
                         // Only allow aliases that have been resolved in the last year

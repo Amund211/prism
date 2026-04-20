@@ -1842,10 +1842,10 @@ function RouteComponent() {
                     href={`https://prismoverlay.com/wrapped/${uuid}`}
                 />
                 <UserSearch
-                    onSubmit={(uuid) => {
-                        visitPlayer(uuid);
+                    onSubmit={(newUUID) => {
+                        visitPlayer(newUUID);
                         navigate({
-                            params: { uuid },
+                            params: { uuid: newUUID },
                             search: (oldSearch) => oldSearch,
                         }).catch((error: unknown) => {
                             captureException(error, {
@@ -1854,7 +1854,7 @@ function RouteComponent() {
                                 },
                                 extra: {
                                     message: "Failed to update search params",
-                                    uuid,
+                                    uuid: newUUID,
                                 },
                             });
                         });

@@ -75,7 +75,6 @@
         "eslint/init-declarations": "off",
 
         // TODO: Re-enable
-        "eslint/no-shadow": "off",
         "unicorn/no-array-sort": "off",
         "unicorn/no-array-reverse": "off",
         "unicorn/prefer-add-event-listener": "off",

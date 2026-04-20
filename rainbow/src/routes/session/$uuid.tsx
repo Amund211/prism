@@ -306,8 +306,8 @@ const Sessions: React.FC<SessionsProps> = ({
 
     const labelSuffix = tableMode === "rate" ? "/hour" : "";
 
-    const statAlreadyIncluded = (stat: StatKey) =>
-        ["gamesPlayed", "wins"].includes(stat);
+    const statAlreadyIncluded = (statKey: StatKey) =>
+        ["gamesPlayed", "wins"].includes(statKey);
 
     const hasExtrapolatedSessions = allSessions.some((session) => session.extrapolated);
     const willShowExtrapolatedSessions =
@@ -454,11 +454,11 @@ const Sessions: React.FC<SessionsProps> = ({
                                             return null;
                                         }
 
-                                        const renderStat = (stat: StatKey) => {
+                                        const renderStat = (statKey: StatKey) => {
                                             const value = computeStat(
                                                 session.end,
                                                 gamemode,
-                                                stat,
+                                                statKey,
                                                 "session",
                                                 [session.start, session.end],
                                             );
@@ -468,7 +468,7 @@ const Sessions: React.FC<SessionsProps> = ({
 
                                             if (
                                                 tableMode === "rate" &&
-                                                isLinearStat(stat)
+                                                isLinearStat(statKey)
                                             ) {
                                                 const formattedNumber = (
                                                     value / durationHours
@@ -1283,10 +1283,10 @@ function RouteComponent() {
             />
             <link rel="canonical" href={`https://prismoverlay.com/session/${uuid}`} />
             <UserSearch
-                onSubmit={(uuid) => {
-                    visitPlayer(uuid);
+                onSubmit={(newUUID) => {
+                    visitPlayer(newUUID);
                     navigate({
-                        params: { uuid },
+                        params: { uuid: newUUID },
                         search: (oldSearch) => oldSearch,
                     }).catch((error: unknown) => {
                         captureException(error, {
@@ -1295,7 +1295,7 @@ function RouteComponent() {
                             },
                             extra: {
                                 message: "Failed to update search params",
-                                uuid,
+                                uuid: newUUID,
                             },
                         });
                     });
@@ -1366,9 +1366,9 @@ function RouteComponent() {
                         });
                     }}
                 >
-                    {ALL_GAMEMODE_KEYS.map((gamemode) => (
-                        <MenuItem key={gamemode} value={gamemode}>
-                            {getGamemodeLabel(gamemode, true)}
+                    {ALL_GAMEMODE_KEYS.map((gamemodeKey) => (
+                        <MenuItem key={gamemodeKey} value={gamemodeKey}>
+                            {getGamemodeLabel(gamemodeKey, true)}
                         </MenuItem>
                     ))}
                 </Select>
@@ -1401,9 +1401,9 @@ function RouteComponent() {
                         });
                     }}
                 >
-                    {ALL_STAT_KEYS.map((stat) => (
-                        <MenuItem key={stat} value={stat}>
-                            {getFullStatLabel(stat, true)}
+                    {ALL_STAT_KEYS.map((statKey) => (
+                        <MenuItem key={statKey} value={statKey}>
+                            {getFullStatLabel(statKey, true)}
                         </MenuItem>
                     ))}
                 </Select>

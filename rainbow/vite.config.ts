@@ -68,7 +68,7 @@ export default defineConfig(({ mode }) => {
                         cookieDomainRewrite: {
                             "*": "localhost",
                         },
-                        rewrite: (path) => path.replace(/^\/flashlight\//, "/"),
+                        rewrite: (urlPath) => urlPath.replace(/^\/flashlight\//, "/"),
                     },
                 },
             },

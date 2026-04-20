@@ -50,7 +50,9 @@ export const getHistoryQueryOptions = ({
             }
 
             // NOTE: Work around exhaustive deps lint rule
+            // oxlint-disable-next-line eslint/no-shadow
             const start = new Date(startISOString);
+            // oxlint-disable-next-line eslint/no-shadow
             const end = new Date(endISOString);
 
             if (start.getTime() > end.getTime()) {
