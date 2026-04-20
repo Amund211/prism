@@ -415,7 +415,7 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
             <Tooltip
                 // TODO: Nicer tooltip
                 content={({ active, payload }) => {
-                    if (!active || !payload.length) {
+                    if (!active || payload.length === 0) {
                         return null;
                     }
 
