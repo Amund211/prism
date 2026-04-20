@@ -34,12 +34,20 @@ async function waitForImages(root: HTMLElement) {
         imgs.map(async (img) => {
             if (img.complete && img.naturalWidth > 0) return;
             await new Promise<void>((resolve, reject) => {
-                img.onload = () => {
-                    resolve();
-                };
-                img.onerror = () => {
-                    reject(new Error(`Image failed: ${img.src}`));
-                };
+                img.addEventListener(
+                    "load",
+                    () => {
+                        resolve();
+                    },
+                    { once: true },
+                );
+                img.addEventListener(
+                    "error",
+                    () => {
+                        reject(new Error(`Image failed: ${img.src}`));
+                    },
+                    { once: true },
+                );
             });
         }),
     );
