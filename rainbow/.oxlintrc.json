@@ -100,7 +100,6 @@
         "eslint/no-implicit-coercion": "off",
         // NOTE: We have a few cases where we don't use the setter - either ignore it for them, or find a different solution
         "react/hook-use-state": "off",
-        "promise/avoid-new": "off",
         "eslint/no-duplicate-imports": "off",
         "eslint/new-cap": "off",
         "typescript/prefer-readonly": "off",

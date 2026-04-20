@@ -35,6 +35,7 @@ async function waitForImages(root: HTMLElement) {
     await Promise.all(
         imgs.map(async (img) => {
             if (img.complete && img.naturalWidth > 0) return;
+            // oxlint-disable-next-line promise/avoid-new
             await new Promise<void>((resolve, reject) => {
                 img.addEventListener(
                     "load",
@@ -85,11 +86,13 @@ function downloadDataUrl(dataUrl: string, filename: string) {
 
 /** Wait for React commit and layout to settle before capturing */
 async function waitForLayoutSettlement() {
+    // oxlint-disable-next-line promise/avoid-new
     await new Promise((resolve) => {
         requestAnimationFrame(() => {
             resolve(null);
         });
     });
+    // oxlint-disable-next-line promise/avoid-new
     await new Promise((resolve) => {
         requestAnimationFrame(() => {
             resolve(null);
