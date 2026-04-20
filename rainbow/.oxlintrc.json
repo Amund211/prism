@@ -84,7 +84,6 @@
 
         // TODO: Re-enable
 
-        "eslint/no-eq-null": "off",
         "unicorn/no-array-for-each": "off",
         "promise/catch-or-return": "off",
         "eslint/no-param-reassign": "off",
