@@ -117,7 +117,6 @@
             "error",
             { "includeExports": false, "allowSeparateTypeImports": true }
         ],
-        "eslint/no-console": ["error", { "allow": ["warn", "error"] }],
 
         "@tanstack/query/exhaustive-deps": "error",
         "@tanstack/query/no-rest-destructuring": "error",

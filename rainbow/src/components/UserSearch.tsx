@@ -333,6 +333,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
                         );
                         onSubmit(uuid);
                     } catch (error: unknown) {
+                        // oxlint-disable-next-line eslint/no-console
                         console.error("Failed to fetch username", error);
                     } finally {
                         setLoading(false);
@@ -426,6 +427,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                                     );
                                     return uuid;
                                 } catch (error: unknown) {
+                                    // oxlint-disable-next-line eslint/no-console
                                     console.error("Failed to fetch username", error);
                                     throw error;
                                 }
@@ -437,6 +439,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                                 .map((result) => result.value),
                         );
                     } catch (error: unknown) {
+                        // oxlint-disable-next-line eslint/no-console
                         console.error("Failed to settle all uuid promises", error);
                     } finally {
                         setLoading(false);

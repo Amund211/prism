@@ -48,6 +48,7 @@ createRoot(root, {
     // Callback called when an error is thrown and not caught by an ErrorBoundary.
     // oxlint-disable-next-line promise/prefer-await-to-callbacks
     onUncaughtError: reactErrorHandler((error, errorInfo) => {
+        // oxlint-disable-next-line eslint/no-console
         console.warn("Uncaught error", error, errorInfo.componentStack);
     }),
     // Callback called when React catches an error in an ErrorBoundary.
