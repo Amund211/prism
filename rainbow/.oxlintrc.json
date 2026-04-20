@@ -52,6 +52,7 @@
         "eslint/no-negated-condition": "off",
         "unicorn/no-useless-undefined": "off",
         "oxc/no-async-await": "off",
+        "eslint/require-await": "off",
         "react/no-multi-comp": "off",
         "eslint/default-case": "off",
         "eslint/complexity": "off",
@@ -78,7 +79,6 @@
 
         // TODO: Re-enable
 
-        "eslint/require-await": "off",
         "unicorn/prefer-date-now": "off",
         "unicorn/prefer-string-replace-all": "off",
         "unicorn/prefer-top-level-await": "off",
