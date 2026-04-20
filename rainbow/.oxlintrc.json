@@ -106,7 +106,6 @@
             "error",
             { "includeExports": false, "allowSeparateTypeImports": true }
         ],
-        "eslint/new-cap": "off",
         "typescript/prefer-readonly": "off",
         "eslint/prefer-exponentiation-operator": "off",
 

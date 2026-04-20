@@ -52,7 +52,7 @@ import { PlayerHead } from "#components/player.tsx";
 import { ExportImageMount } from "#helpers/exportImage.tsx";
 
 const getDefaultTimeZone = (): string => {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return new Intl.DateTimeFormat().resolvedOptions().timeZone;
 };
 
 export const Route = createFileRoute("/wrapped/$uuid")({
