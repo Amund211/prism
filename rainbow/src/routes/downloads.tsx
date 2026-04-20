@@ -201,7 +201,7 @@ const getOSLogoImage = (os: OS, colorScheme: "light" | "dark") => {
     }
 };
 
-const OSLogo = ({ os, height }: { os: OS; height: number }) => {
+const OSLogo = ({ os, height }: { readonly os: OS; readonly height: number }) => {
     const { mode, systemMode } = useColorScheme();
     const activeMode = mode === "system" ? systemMode : mode;
     const image = getOSLogoImage(os, activeMode ?? "light");
@@ -216,7 +216,7 @@ const OSLogo = ({ os, height }: { os: OS; height: number }) => {
     );
 };
 
-const OSLogoAttribution = ({ os }: { os: OS }) => {
+const OSLogoAttribution = ({ os }: { readonly os: OS }) => {
     const getAttributionId = (osKey: OS) => {
         switch (osKey) {
             case "Windows": {

@@ -4,17 +4,20 @@ import { makeDataKey } from "./dataKeys.ts";
 import type { DataKey } from "./dataKeys.ts";
 import { computeStat } from "#stats/index.ts";
 
-type ChartDataEntry = Record<DataKey, number | undefined | null> & {
+type MutableChartDataEntry = Record<DataKey, number | undefined | null> & {
     queriedAt: number;
 };
+type ChartDataEntry = Readonly<Record<DataKey, number | undefined | null>> & {
+    readonly queriedAt: number;
+};
 
-type MutableChartData = ChartDataEntry[];
+type MutableChartData = MutableChartDataEntry[];
 export type ChartData = readonly ChartDataEntry[];
 
 const generateChartDataFromSingleHistory = (history: History): ChartData => {
     const data: MutableChartData = [];
     for (const playerData of history) {
-        const entry: ChartDataEntry = {
+        const entry: MutableChartDataEntry = {
             queriedAt: playerData.queriedAt.getTime(),
         };
         for (const variant of ALL_VARIANT_KEYS) {

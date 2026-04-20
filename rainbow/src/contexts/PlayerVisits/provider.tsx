@@ -45,7 +45,7 @@ export const PlayerVisitsProvider: React.FC<{
     const favoriteUUIDs = orderPlayers(playerVisits);
 
     const orderUUIDsByScore = React.useCallback(
-        (uuids: string[], currentUser?: string): string[] => {
+        (uuids: readonly string[], currentUser?: string): string[] => {
             if (uuids.some((uuid) => !isNormalizedUUID(uuid))) {
                 throw new Error(`Some UUIDs are not normalized: ${uuids.join(", ")}`);
             }

@@ -117,6 +117,59 @@
             "error",
             { "includeExports": false, "allowSeparateTypeImports": true }
         ],
+        "typescript/prefer-readonly-parameter-types": [
+            "error",
+            {
+                "ignoreInferredTypes": true,
+                "allow": [
+                    {
+                        "from": "lib",
+                        "name": [
+                            "Date",
+                            "HTMLElement",
+                            "CustomEvent",
+                            "StorageEvent",
+                            "IDBValidKey"
+                        ]
+                    },
+                    {
+                        "from": "package",
+                        "package": "react",
+                        "name": ["MouseEvent", "ReactNode"]
+                    },
+                    {
+                        "from": "package",
+                        "package": "msw",
+                        "name": "SetupWorker"
+                    },
+                    {
+                        "from": "package",
+                        "package": "@tanstack/query-core",
+                        "name": "QueryClient"
+                    },
+                    {
+                        "from": "package",
+                        "package": "@tanstack/query-persist-client-core",
+                        "name": ["PersistedClient", "Persister"]
+                    },
+                    {
+                        "from": "package",
+                        "package": "vitest-browser-react",
+                        "name": "RenderResult"
+                    },
+                    {
+                        "from": "file",
+                        "name": "AppRouter",
+                        "path": "src/createRouter.ts"
+                    },
+                    {
+                        "from": "package",
+                        "package": "@tanstack/router-core",
+                        "name": ["Router", "RouterCore"]
+                    }
+                ]
+            }
+        ],
 
         "@tanstack/query/exhaustive-deps": "error",
         "@tanstack/query/no-rest-destructuring": "error",

@@ -18,7 +18,7 @@ export const KnownAliasesProvider: React.FC<{
     const knownAliases = parseStoredAliases(storedKnownAliases);
 
     const addKnownAliasAndPersist = React.useCallback(
-        (alias: { uuid: string; username: string }) => {
+        (alias: { readonly uuid: string; readonly username: string }) => {
             if (!isNormalizedUUID(alias.uuid)) {
                 throw new Error(`UUID not normalized: ${alias.uuid}`);
             }

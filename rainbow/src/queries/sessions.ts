@@ -7,18 +7,18 @@ import { captureException, captureMessage } from "@sentry/react";
 import { getOrSetUserId } from "#helpers/userId.ts";
 
 export interface APISession {
-    start: APIPlayerDataPIT;
-    end: APIPlayerDataPIT;
-    consecutive: boolean;
+    readonly start: APIPlayerDataPIT;
+    readonly end: APIPlayerDataPIT;
+    readonly consecutive: boolean;
 }
 
 type APISessions = readonly APISession[];
 
 export interface Session {
-    start: PlayerDataPIT;
-    end: PlayerDataPIT;
-    extrapolated: boolean;
-    consecutive: boolean;
+    readonly start: PlayerDataPIT;
+    readonly end: PlayerDataPIT;
+    readonly extrapolated: boolean;
+    readonly consecutive: boolean;
 }
 export type Sessions = readonly Session[];
 
@@ -33,9 +33,9 @@ export const apiToSession = (
 });
 
 interface SessionsQueryOptions {
-    uuid: string;
-    start: Date;
-    end: Date;
+    readonly uuid: string;
+    readonly start: Date;
+    readonly end: Date;
 }
 export const getSessionsQueryOptions = ({ uuid, start, end }: SessionsQueryOptions) => {
     const currentTime = Date.now();

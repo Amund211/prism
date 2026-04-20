@@ -124,7 +124,7 @@ describe("Wrapped detail page", () => {
 
     mswTest(
         "shows error state when wrapped API fails",
-        async ({ worker }: { worker: SetupWorker }) => {
+        async ({ worker }: { readonly worker: SetupWorker }) => {
             worker.use(
                 http.get(
                     "http://localhost:5173/flashlight/v1/wrapped/:uuid/:year",
@@ -312,7 +312,7 @@ describe("Wrapped detail page", () => {
 
     mswTest(
         "no yearStats shows download prompt",
-        async ({ worker }: { worker: SetupWorker }) => {
+        async ({ worker }: { readonly worker: SetupWorker }) => {
             worker.use(
                 http.get(
                     "http://localhost:5173/flashlight/v1/wrapped/:uuid/:year",
@@ -344,7 +344,7 @@ describe("Wrapped detail page", () => {
 
     mswTest(
         "zero sessions shows NoSessionsAlert with year stats",
-        async ({ worker }: { worker: SetupWorker }) => {
+        async ({ worker }: { readonly worker: SetupWorker }) => {
             worker.use(
                 http.get(
                     "http://localhost:5173/flashlight/v1/wrapped/:uuid/:year",
@@ -523,7 +523,7 @@ describe("Wrapped detail page", () => {
 
     mswTest(
         "low session coverage shows warning alert",
-        async ({ worker }: { worker: SetupWorker }) => {
+        async ({ worker }: { readonly worker: SetupWorker }) => {
             worker.use(
                 http.get(
                     "http://localhost:5173/flashlight/v1/wrapped/:uuid/:year",

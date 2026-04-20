@@ -58,8 +58,8 @@ const getSmallestTimeDenomination = (
 // string overrides all of these string unions, but we keep them here to be explicit about our intentions
 // oxlint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 interface KeyConfig<T extends StatKey | GamemodeKey | VariantKey | string> {
-    value: T;
-    shown: boolean;
+    readonly value: T;
+    readonly shown: boolean;
 }
 
 const contextAwareStatDisplayName = (
@@ -455,11 +455,11 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
 };
 
 interface LinesProps {
-    uuids: readonly string[];
-    gamemodes: readonly GamemodeKey[];
-    stats: readonly StatKey[];
-    variants: readonly VariantKey[];
-    uuidToUsername: Record<string, string | undefined>;
+    readonly uuids: readonly string[];
+    readonly gamemodes: readonly GamemodeKey[];
+    readonly stats: readonly StatKey[];
+    readonly variants: readonly VariantKey[];
+    readonly uuidToUsername: Readonly<Record<string, string | undefined>>;
 }
 
 const STROKES = [

@@ -9,147 +9,147 @@ import { apiToSession } from "./sessions.ts";
 import type { APISession, Session } from "./sessions.ts";
 
 interface StreakInfo {
-    highest: number;
-    when: string;
+    readonly highest: number;
+    readonly when: string;
 }
 
 interface PlaytimeDistribution {
-    hourlyDistribution: number[]; // 24 elements for UTC hours 0-23
-    dayHourDistribution: Record<string, number[]>; // Weekday name -> 24 elements for UTC hours
+    readonly hourlyDistribution: readonly number[]; // 24 elements for UTC hours 0-23
+    readonly dayHourDistribution: Readonly<Record<string, readonly number[]>>; // Weekday name -> 24 elements for UTC hours
 }
 
 // API Session statistics - as returned from API before conversion
 interface APISessionStats {
-    sessionLengths: {
-        totalHours: number;
-        longestHours: number;
-        shortestHours: number;
-        averageHours: number;
+    readonly sessionLengths: {
+        readonly totalHours: number;
+        readonly longestHours: number;
+        readonly shortestHours: number;
+        readonly averageHours: number;
     };
-    sessionsPerMonth: Record<string, number>;
-    bestSessions: {
-        highestFKDR: APISession;
-        mostKills: APISession;
-        mostFinalKills: APISession;
-        mostWins: APISession;
-        longestSession: APISession;
-        mostWinsPerHour?: APISession;
-        mostFinalsPerHour?: APISession;
+    readonly sessionsPerMonth: Readonly<Record<string, number>>;
+    readonly bestSessions: {
+        readonly highestFKDR: APISession;
+        readonly mostKills: APISession;
+        readonly mostFinalKills: APISession;
+        readonly mostWins: APISession;
+        readonly longestSession: APISession;
+        readonly mostWinsPerHour?: APISession;
+        readonly mostFinalsPerHour?: APISession;
     };
-    averages: {
-        sessionLengthHours: number;
-        gamesPlayed: number;
-        wins: number;
-        finalKills: number;
+    readonly averages: {
+        readonly sessionLengthHours: number;
+        readonly gamesPlayed: number;
+        readonly wins: number;
+        readonly finalKills: number;
     };
-    winstreaks: {
-        overall: StreakInfo;
-        solo: StreakInfo;
-        doubles: StreakInfo;
-        threes: StreakInfo;
-        fours: StreakInfo;
+    readonly winstreaks: {
+        readonly overall: StreakInfo;
+        readonly solo: StreakInfo;
+        readonly doubles: StreakInfo;
+        readonly threes: StreakInfo;
+        readonly fours: StreakInfo;
     };
-    finalKillStreaks: {
-        overall: StreakInfo;
-        solo: StreakInfo;
-        doubles: StreakInfo;
-        threes: StreakInfo;
-        fours: StreakInfo;
+    readonly finalKillStreaks: {
+        readonly overall: StreakInfo;
+        readonly solo: StreakInfo;
+        readonly doubles: StreakInfo;
+        readonly threes: StreakInfo;
+        readonly fours: StreakInfo;
     };
-    sessionCoverage: {
-        gamesPlayedPercentage: number;
-        adjustedTotalHours: number;
+    readonly sessionCoverage: {
+        readonly gamesPlayedPercentage: number;
+        readonly adjustedTotalHours: number;
     };
-    flawlessSessions: {
-        count: number;
-        percentage: number;
+    readonly flawlessSessions: {
+        readonly count: number;
+        readonly percentage: number;
     };
-    playtimeDistribution: PlaytimeDistribution;
+    readonly playtimeDistribution: PlaytimeDistribution;
 }
 
 // Session statistics - only present when there is at least one consecutive session
 interface SessionStats {
-    sessionLengths: {
-        totalHours: number;
-        longestHours: number;
-        shortestHours: number;
-        averageHours: number;
+    readonly sessionLengths: {
+        readonly totalHours: number;
+        readonly longestHours: number;
+        readonly shortestHours: number;
+        readonly averageHours: number;
     };
-    sessionsPerMonth: Record<string, number>;
-    bestSessions: {
-        highestFKDR: Session;
-        mostKills: Session;
-        mostFinalKills: Session;
-        mostWins: Session;
-        longestSession: Session;
-        mostWinsPerHour?: Session;
-        mostFinalsPerHour?: Session;
+    readonly sessionsPerMonth: Readonly<Record<string, number>>;
+    readonly bestSessions: {
+        readonly highestFKDR: Session;
+        readonly mostKills: Session;
+        readonly mostFinalKills: Session;
+        readonly mostWins: Session;
+        readonly longestSession: Session;
+        readonly mostWinsPerHour?: Session;
+        readonly mostFinalsPerHour?: Session;
     };
-    averages: {
-        sessionLengthHours: number;
-        gamesPlayed: number;
-        wins: number;
-        finalKills: number;
+    readonly averages: {
+        readonly sessionLengthHours: number;
+        readonly gamesPlayed: number;
+        readonly wins: number;
+        readonly finalKills: number;
     };
-    winstreaks: {
-        overall: StreakInfo;
-        solo: StreakInfo;
-        doubles: StreakInfo;
-        threes: StreakInfo;
-        fours: StreakInfo;
+    readonly winstreaks: {
+        readonly overall: StreakInfo;
+        readonly solo: StreakInfo;
+        readonly doubles: StreakInfo;
+        readonly threes: StreakInfo;
+        readonly fours: StreakInfo;
     };
-    finalKillStreaks: {
-        overall: StreakInfo;
-        solo: StreakInfo;
-        doubles: StreakInfo;
-        threes: StreakInfo;
-        fours: StreakInfo;
+    readonly finalKillStreaks: {
+        readonly overall: StreakInfo;
+        readonly solo: StreakInfo;
+        readonly doubles: StreakInfo;
+        readonly threes: StreakInfo;
+        readonly fours: StreakInfo;
     };
-    sessionCoverage: {
-        gamesPlayedPercentage: number;
-        adjustedTotalHours: number;
+    readonly sessionCoverage: {
+        readonly gamesPlayedPercentage: number;
+        readonly adjustedTotalHours: number;
     };
-    flawlessSessions: {
-        count: number;
-        percentage: number;
+    readonly flawlessSessions: {
+        readonly count: number;
+        readonly percentage: number;
     };
-    playtimeDistribution: PlaytimeDistribution;
+    readonly playtimeDistribution: PlaytimeDistribution;
 }
 
 // API response structure (before conversion)
 interface APIWrappedData {
-    success: boolean;
-    uuid: string;
-    year: number;
-    totalSessions: number;
-    nonConsecutiveSessions: number;
-    yearStats?: {
-        start: APIPlayerDataPIT;
-        end: APIPlayerDataPIT;
+    readonly success: boolean;
+    readonly uuid: string;
+    readonly year: number;
+    readonly totalSessions: number;
+    readonly nonConsecutiveSessions: number;
+    readonly yearStats?: {
+        readonly start: APIPlayerDataPIT;
+        readonly end: APIPlayerDataPIT;
     };
-    sessionStats?: APISessionStats;
-    cause?: string;
+    readonly sessionStats?: APISessionStats;
+    readonly cause?: string;
 }
 
 export interface WrappedData {
-    success: boolean;
-    uuid: string;
-    year: number;
-    totalSessions: number;
-    nonConsecutiveSessions: number;
-    yearStats?: {
-        start: PlayerDataPIT;
-        end: PlayerDataPIT;
+    readonly success: boolean;
+    readonly uuid: string;
+    readonly year: number;
+    readonly totalSessions: number;
+    readonly nonConsecutiveSessions: number;
+    readonly yearStats?: {
+        readonly start: PlayerDataPIT;
+        readonly end: PlayerDataPIT;
     };
     // Session stats are nested and only present when there's at least one consecutive session
-    sessionStats?: SessionStats;
-    cause?: string;
+    readonly sessionStats?: SessionStats;
+    readonly cause?: string;
 }
 
 interface WrappedQueryOptions {
-    uuid: string;
-    year: number;
-    timezone: string; // IANA timezone (e.g., "Europe/Oslo", "America/New_York")
+    readonly uuid: string;
+    readonly year: number;
+    readonly timezone: string; // IANA timezone (e.g., "Europe/Oslo", "America/New_York")
 }
 
 export const getWrappedQueryOptions = ({

@@ -101,10 +101,10 @@ async function waitForLayoutSettlement() {
 }
 
 interface ExportImageMountProps {
-    children: React.ReactNode;
+    readonly children: React.ReactNode;
     /** Optional: expose a ref callback so caller can trigger export */
-    onReady?: (api: { download: () => Promise<void> }) => void;
-    filename?: string;
+    readonly onReady?: (api: { readonly download: () => Promise<void> }) => void;
+    readonly filename?: string;
 }
 
 /**

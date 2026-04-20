@@ -1571,7 +1571,7 @@ const SessionCoverage: React.FC<SessionCoverageProps> = ({ wrappedData }) => {
     );
 };
 
-function NoSessionsAlert({ year }: { year: number }) {
+function NoSessionsAlert({ year }: { readonly year: number }) {
     return (
         <Alert severity="info" icon={<Info />}>
             <Typography variant="body2">
@@ -1589,7 +1589,7 @@ function NoSessionsAlert({ year }: { year: number }) {
 function LowSessionCoverageAlert({
     coveragePercentage,
 }: {
-    coveragePercentage: number | undefined;
+    readonly coveragePercentage: number | undefined;
 }) {
     const lowCoverage = coveragePercentage === undefined || coveragePercentage < 50;
 
@@ -1611,10 +1611,10 @@ function LowSessionCoverageAlert({
 }
 
 interface WrappedStatsContentProps {
-    wrappedData?:
+    readonly wrappedData?:
         | WrappedData
-        | (WrappedData & { yearStats: NonNullable<WrappedData["yearStats"]> });
-    isLoading: boolean;
+        | (WrappedData & { readonly yearStats: NonNullable<WrappedData["yearStats"]> });
+    readonly isLoading: boolean;
 }
 
 function WrappedStatsContent({ wrappedData, isLoading }: WrappedStatsContentProps) {
@@ -1714,11 +1714,11 @@ function WrappedStatsContent({ wrappedData, isLoading }: WrappedStatsContentProp
 }
 
 interface WrappedHeaderProps {
-    wrappedData?:
+    readonly wrappedData?:
         | WrappedData
-        | (WrappedData & { yearStats: NonNullable<WrappedData["yearStats"]> });
-    uuid: string;
-    year: number;
+        | (WrappedData & { readonly yearStats: NonNullable<WrappedData["yearStats"]> });
+    readonly uuid: string;
+    readonly year: number;
 }
 
 function WrappedHeader({ wrappedData, uuid, year }: WrappedHeaderProps) {
@@ -1817,7 +1817,7 @@ function RouteComponent() {
         download: () => Promise<void>;
     } | null>(null);
     const handleExportReady = React.useCallback(
-        (api: { download: () => Promise<void> }) => {
+        (api: { readonly download: () => Promise<void> }) => {
             setExportApi(api);
         },
         [],

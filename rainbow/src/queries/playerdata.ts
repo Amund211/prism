@@ -1,49 +1,49 @@
 interface APIStatsPIT {
-    winstreak: number | null;
-    gamesPlayed: number;
-    wins: number;
-    losses: number;
-    bedsBroken: number;
-    bedsLost: number;
-    finalKills: number;
-    finalDeaths: number;
-    kills: number;
-    deaths: number;
+    readonly winstreak: number | null;
+    readonly gamesPlayed: number;
+    readonly wins: number;
+    readonly losses: number;
+    readonly bedsBroken: number;
+    readonly bedsLost: number;
+    readonly finalKills: number;
+    readonly finalDeaths: number;
+    readonly kills: number;
+    readonly deaths: number;
 }
 
 export interface APIPlayerDataPIT {
-    uuid: string;
-    queriedAt: string;
-    experience: number;
-    solo: APIStatsPIT;
-    doubles: APIStatsPIT;
-    threes: APIStatsPIT;
-    fours: APIStatsPIT;
-    overall: APIStatsPIT;
+    readonly uuid: string;
+    readonly queriedAt: string;
+    readonly experience: number;
+    readonly solo: APIStatsPIT;
+    readonly doubles: APIStatsPIT;
+    readonly threes: APIStatsPIT;
+    readonly fours: APIStatsPIT;
+    readonly overall: APIStatsPIT;
 }
 
 export interface StatsPIT {
-    winstreak: number | null;
-    gamesPlayed: number;
-    wins: number;
-    losses: number;
-    bedsBroken: number;
-    bedsLost: number;
-    finalKills: number;
-    finalDeaths: number;
-    kills: number;
-    deaths: number;
+    readonly winstreak: number | null;
+    readonly gamesPlayed: number;
+    readonly wins: number;
+    readonly losses: number;
+    readonly bedsBroken: number;
+    readonly bedsLost: number;
+    readonly finalKills: number;
+    readonly finalDeaths: number;
+    readonly kills: number;
+    readonly deaths: number;
 }
 
 export interface PlayerDataPIT {
-    uuid: string;
-    queriedAt: Date;
-    experience: number;
-    solo: StatsPIT;
-    doubles: StatsPIT;
-    threes: StatsPIT;
-    fours: StatsPIT;
-    overall: StatsPIT;
+    readonly uuid: string;
+    readonly queriedAt: Date;
+    readonly experience: number;
+    readonly solo: StatsPIT;
+    readonly doubles: StatsPIT;
+    readonly threes: StatsPIT;
+    readonly fours: StatsPIT;
+    readonly overall: StatsPIT;
 }
 
 export const apiToPlayerDataPIT = (apiPlayerData: APIPlayerDataPIT): PlayerDataPIT => ({

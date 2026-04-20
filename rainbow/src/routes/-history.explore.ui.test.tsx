@@ -272,7 +272,7 @@ describe("History Explore page", () => {
 
     mswTest(
         "page renders without crashing when history API returns empty",
-        async ({ worker }: { worker: SetupWorker }) => {
+        async ({ worker }: { readonly worker: SetupWorker }) => {
             worker.use(
                 http.post("http://localhost:5173/flashlight/v1/history", () => {
                     return HttpResponse.json([]);
@@ -435,7 +435,7 @@ describe("History Explore page", () => {
 
     mswTest(
         "page renders controls when history API returns 500",
-        async ({ worker }: { worker: SetupWorker }) => {
+        async ({ worker }: { readonly worker: SetupWorker }) => {
             worker.use(
                 http.post("http://localhost:5173/flashlight/v1/history", () => {
                     return HttpResponse.json({ success: false }, { status: 500 });

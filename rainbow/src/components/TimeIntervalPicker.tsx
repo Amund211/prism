@@ -5,8 +5,8 @@ import { Button, Menu, MenuItem, Tooltip, Typography } from "@mui/material";
 import React from "react";
 
 interface TimeIntervalPickerProps {
-    intervalDefinition: TimeIntervalDefinition;
-    onIntervalChange: (intervalDefinition: TimeIntervalDefinition) => void;
+    readonly intervalDefinition: TimeIntervalDefinition;
+    readonly onIntervalChange: (intervalDefinition: TimeIntervalDefinition) => void;
 }
 
 export const TimeIntervalPicker: React.FC<TimeIntervalPickerProps> = ({

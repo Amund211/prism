@@ -89,24 +89,24 @@ const daysBefore = (date: Date, days: number) => {
 };
 
 export interface TimeIntervalDefinition {
-    type: "contained" | "until";
+    readonly type: "contained" | "until";
     // If missing -> today's date
-    date?: Date;
+    readonly date?: Date;
 }
 
 export interface TimeInterval {
-    start: Date;
-    end: Date;
+    readonly start: Date;
+    readonly end: Date;
 }
 
 interface TimeIntervals {
-    day: TimeInterval;
-    week: TimeInterval;
-    month: TimeInterval;
+    readonly day: TimeInterval;
+    readonly week: TimeInterval;
+    readonly month: TimeInterval;
 }
 
 export const timeIntervalsFromDefinition = (
-    definition: TimeIntervalDefinition & { date: Date },
+    definition: TimeIntervalDefinition & { readonly date: Date },
 ): TimeIntervals => {
     if (definition.type === "contained") {
         const now = definition.date;

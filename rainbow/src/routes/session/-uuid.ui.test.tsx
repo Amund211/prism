@@ -223,7 +223,7 @@ describe("Session detail page", () => {
 
     mswTest(
         "shows no sessions found when sessions API returns empty",
-        async ({ worker }: { worker: SetupWorker }) => {
+        async ({ worker }: { readonly worker: SetupWorker }) => {
             worker.use(
                 http.post("http://localhost:5173/flashlight/v1/sessions", () => {
                     return HttpResponse.json([]);
@@ -335,7 +335,7 @@ describe("Session detail page", () => {
 
     mswTest(
         "shows no data found when history API returns empty",
-        async ({ worker }: { worker: SetupWorker }) => {
+        async ({ worker }: { readonly worker: SetupWorker }) => {
             worker.use(
                 http.post("http://localhost:5173/flashlight/v1/history", () => {
                     return HttpResponse.json([]);
@@ -467,7 +467,7 @@ describe("Session detail page", () => {
 
     mswTest(
         "partial failure: sessions API fails but page still renders with history",
-        async ({ worker }: { worker: SetupWorker }) => {
+        async ({ worker }: { readonly worker: SetupWorker }) => {
             worker.use(
                 http.post("http://localhost:5173/flashlight/v1/sessions", () => {
                     return HttpResponse.json({ success: false }, { status: 500 });
@@ -495,7 +495,7 @@ describe("Session detail page", () => {
 
     mswTest(
         "shows no data found when all APIs return errors",
-        async ({ worker }: { worker: SetupWorker }) => {
+        async ({ worker }: { readonly worker: SetupWorker }) => {
             worker.use(
                 http.post("http://localhost:5173/flashlight/v1/history", () => {
                     return HttpResponse.json({ success: false }, { status: 500 });
@@ -583,7 +583,7 @@ describe("Session detail page", () => {
 
     mswTest(
         "page renders controls when username API returns 404",
-        async ({ worker }: { worker: SetupWorker }) => {
+        async ({ worker }: { readonly worker: SetupWorker }) => {
             worker.use(
                 http.get(
                     "http://localhost:5173/flashlight/v1/account/uuid/:uuid",

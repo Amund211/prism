@@ -11,8 +11,10 @@ import type { GamemodeKey, StatKey } from "./keys.ts";
 
 const TEST_UUID = "0123e456-7890-1234-5678-90abcdef1234";
 
+type Mutable<T> = { -readonly [K in keyof T]: T[K] };
+
 class StatsBuilder {
-    private readonly stats: StatsPIT;
+    private readonly stats: Mutable<StatsPIT>;
 
     constructor() {
         this.stats = {
@@ -105,7 +107,7 @@ class StatsBuilder {
 }
 
 class PlayerDataBuilder {
-    private player: PlayerDataPIT;
+    private player: Mutable<PlayerDataPIT>;
 
     constructor(uuid: string, queriedAt: Date) {
         const emptyStats: StatsPIT = {

@@ -29,12 +29,12 @@ interface UserSearchProps {
 
 type SearchOption =
     | {
-          type: "uuid";
-          uuid: string;
+          readonly type: "uuid";
+          readonly uuid: string;
       }
     | {
-          type: "free-text";
-          text: string;
+          readonly type: "free-text";
+          readonly text: string;
       };
 
 interface UserSearchOptions<Multiple extends boolean> {
@@ -369,10 +369,10 @@ export const UserSearch: React.FC<UserSearchProps> = ({
 };
 
 interface UserMultiSelectProps {
-    uuids: readonly string[];
-    onSubmit: (uuids: string[]) => void;
-    placeholder?: string;
-    size?: "small" | "medium";
+    readonly uuids: readonly string[];
+    readonly onSubmit: (uuids: readonly string[]) => void;
+    readonly placeholder?: string;
+    readonly size?: "small" | "medium";
 }
 
 export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({

@@ -5,11 +5,11 @@ export const localStorageKey = "playerVisits";
 const loadedAt = new Date();
 
 interface PlayerInfo {
-    visitedCount: number;
-    lastVisited: Date;
+    readonly visitedCount: number;
+    readonly lastVisited: Date;
 }
 
-export type PlayerVisits = Record<string, PlayerInfo | undefined>;
+export type PlayerVisits = Readonly<Record<string, PlayerInfo | undefined>>;
 
 export const stringifyPlayerVisits = (visits: PlayerVisits): string => {
     const toStore: Record<string, { visitedCount: number; lastVisited: string }> = {};
@@ -43,7 +43,7 @@ export const parseStoredPlayerVisits = (stored: string | null): PlayerVisits => 
         return {};
     }
 
-    const playerVisits: PlayerVisits = {};
+    const playerVisits: Record<string, PlayerInfo | undefined> = {};
     for (const uuid in rawParsed) {
         if (!isNormalizedUUID(uuid)) {
             continue;

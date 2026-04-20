@@ -18,9 +18,9 @@ const theme = createTheme({
 });
 
 interface AppProps {
-    router: AppRouter;
-    queryClient: QueryClient;
-    persister: Persister;
+    readonly router: AppRouter;
+    readonly queryClient: QueryClient;
+    readonly persister: Persister;
 }
 
 export function App({ router, queryClient, persister }: AppProps) {

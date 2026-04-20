@@ -64,7 +64,6 @@ import {
     useNavigate,
 } from "@tanstack/react-router";
 import React from "react";
-import type { JSX } from "react";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { addExtrapolatedSessions } from "#helpers/session.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
@@ -218,7 +217,7 @@ const Sessions: React.FC<SessionsProps> = ({
         }),
     );
 
-    const renderHeader = (showExtrapolatedToggle?: JSX.Element) => (
+    const renderHeader = (showExtrapolatedToggle?: React.ReactNode) => (
         <Stack
             direction="row"
             gap={1}

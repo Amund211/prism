@@ -6,11 +6,11 @@ export const localStorageKey = "knownAliases";
 const loadedAt = new Date();
 
 interface AliasInfo {
-    username: string;
-    lastResolved: Date;
+    readonly username: string;
+    readonly lastResolved: Date;
 }
 
-export type KnownAliases = Record<string, AliasInfo[] | undefined>;
+export type KnownAliases = Readonly<Record<string, readonly AliasInfo[] | undefined>>;
 
 export const stringifyKnownAliases = (aliases: KnownAliases): string => {
     const toStore: Record<string, { username: string; lastResolved: string }[]> = {};
@@ -44,7 +44,7 @@ export const parseStoredAliases = (stored: string | null): KnownAliases => {
         return {};
     }
 
-    const storedAliases: KnownAliases = {};
+    const storedAliases: Record<string, readonly AliasInfo[] | undefined> = {};
     for (const uuid in rawParsed) {
         if (!isNormalizedUUID(uuid)) {
             continue;
@@ -96,7 +96,7 @@ export const parseStoredAliases = (stored: string | null): KnownAliases => {
 
 export const addKnownAlias = (
     aliases: KnownAliases,
-    alias: { uuid: string; username: string },
+    alias: { readonly uuid: string; readonly username: string },
 ) => {
     if (!isNormalizedUUID(alias.uuid)) {
         throw new Error(`UUID not normalized: ${alias.uuid}`);
@@ -119,8 +119,8 @@ export const addKnownAlias = (
 
 const writeToLocalStorage = makeLocalStorageWrite(localStorageKey);
 export const addKnownAliasAndPersist = (alias: {
-    uuid: string;
-    username: string;
+    readonly uuid: string;
+    readonly username: string;
 }): void => {
     const aliases = parseStoredAliases(localStorage.getItem(localStorageKey));
     const newAliases = addKnownAlias(aliases, alias);

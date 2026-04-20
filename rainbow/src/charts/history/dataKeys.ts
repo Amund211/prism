@@ -9,10 +9,10 @@ import type {
 type UUID = string;
 
 interface DataKeyInput {
-    uuid: UUID;
-    variant: VariantKey;
-    gamemode: GamemodeKey;
-    stat: StatKey;
+    readonly uuid: UUID;
+    readonly variant: VariantKey;
+    readonly gamemode: GamemodeKey;
+    readonly stat: StatKey;
 }
 
 export type DataKey =
