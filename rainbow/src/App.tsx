@@ -23,7 +23,7 @@ interface AppProps {
     persister: Persister;
 }
 
-function App({ router, queryClient, persister }: AppProps) {
+export function App({ router, queryClient, persister }: AppProps) {
     return (
         <PersistQueryClientProvider
             client={queryClient}
@@ -48,5 +48,3 @@ function App({ router, queryClient, persister }: AppProps) {
         </PersistQueryClientProvider>
     );
 }
-
-export default App;

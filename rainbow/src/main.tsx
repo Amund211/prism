@@ -21,7 +21,7 @@ setUser({
 
 import { createQueryClient, createIDBPersister } from "#queryClient.ts";
 import { createAppRouter } from "#createRouter.ts";
-import App from "./App.tsx";
+import { App } from "./App.tsx";
 
 const queryClient = createQueryClient();
 const persister = createIDBPersister();
