@@ -1,6 +1,7 @@
 import type { History } from "#queries/history.ts";
 import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS, ALL_VARIANT_KEYS } from "#stats/keys.ts";
-import { type DataKey, makeDataKey } from "./dataKeys.ts";
+import { makeDataKey } from "./dataKeys.ts";
+import type { DataKey } from "./dataKeys.ts";
 import { computeStat } from "#stats/index.ts";
 
 type ChartDataEntry = Record<DataKey, number | undefined | null> & {

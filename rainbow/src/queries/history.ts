@@ -1,10 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { env } from "#env.ts";
-import {
-    apiToPlayerDataPIT,
-    type APIPlayerDataPIT,
-    type PlayerDataPIT,
-} from "./playerdata.ts";
+import { apiToPlayerDataPIT } from "./playerdata.ts";
+import type { APIPlayerDataPIT, PlayerDataPIT } from "./playerdata.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { captureException, captureMessage } from "@sentry/react";
 import { getOrSetUserId } from "#helpers/userId.ts";

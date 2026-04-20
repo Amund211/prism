@@ -6,15 +6,12 @@ import { UserSearch } from "#components/UserSearch.tsx";
 import { ChartSynchronizerProvider } from "#contexts/ChartSynchronizer/provider.tsx";
 import type { TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
-import { getSessionsQueryOptions, type Sessions } from "#queries/sessions.ts";
+import { getSessionsQueryOptions } from "#queries/sessions.ts";
+import type { Sessions } from "#queries/sessions.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
 import { computeStat } from "#stats/index.ts";
-import {
-    ALL_GAMEMODE_KEYS,
-    ALL_STAT_KEYS,
-    type GamemodeKey,
-    type StatKey,
-} from "#stats/keys.ts";
+import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
+import type { GamemodeKey, StatKey } from "#stats/keys.ts";
 import {
     getFullStatLabel,
     getGamemodeLabel,
@@ -25,8 +22,8 @@ import {
     computeStatProgression,
     ERR_NO_DATA,
     ERR_TRACKING_STARTED,
-    type StatProgression,
 } from "#stats/progression.ts";
+import type { StatProgression } from "#stats/progression.ts";
 import {
     Info,
     TrendingDown,
@@ -47,7 +44,6 @@ import {
     Select,
     Skeleton,
     Stack,
-    type SvgIconOwnProps,
     Switch,
     Table,
     TableBody,
@@ -59,8 +55,8 @@ import {
     ToggleButtonGroup,
     Tooltip,
     Typography,
-    type TypographyOwnProps,
 } from "@mui/material";
+import type { SvgIconOwnProps, TypographyOwnProps } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import {
     createFileRoute,
@@ -68,7 +64,8 @@ import {
     Navigate,
     useNavigate,
 } from "@tanstack/react-router";
-import React, { type JSX } from "react";
+import React from "react";
+import type { JSX } from "react";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { addExtrapolatedSessions } from "#helpers/session.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";

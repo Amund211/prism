@@ -6,7 +6,8 @@ import {
 } from "./progression.ts";
 import type { PlayerDataPIT, StatsPIT } from "#queries/playerdata.ts";
 import type { History } from "#queries/history.ts";
-import { ALL_GAMEMODE_KEYS, type GamemodeKey, type StatKey } from "./keys.ts";
+import { ALL_GAMEMODE_KEYS } from "./keys.ts";
+import type { GamemodeKey, StatKey } from "./keys.ts";
 
 const TEST_UUID = "0123e456-7890-1234-5678-90abcdef1234";
 

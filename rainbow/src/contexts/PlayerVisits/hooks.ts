@@ -1,5 +1,6 @@
 import React from "react";
-import { PlayerVisitsContext, type PlayerVisitsContextValue } from "./context.ts";
+import { PlayerVisitsContext } from "./context.ts";
+import type { PlayerVisitsContextValue } from "./context.ts";
 
 export const usePlayerVisits = (): PlayerVisitsContextValue => {
     const value = React.use(PlayerVisitsContext);

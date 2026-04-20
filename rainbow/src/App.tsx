@@ -1,10 +1,8 @@
 import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
 import { RouterProvider } from "@tanstack/react-router";
 import { maxAge } from "#queryClient.ts";
-import {
-    PersistQueryClientProvider,
-    type Persister,
-} from "@tanstack/react-query-persist-client";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import type { Persister } from "@tanstack/react-query-persist-client";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { CurrentUserProvider } from "#contexts/CurrentUser/provider.tsx";

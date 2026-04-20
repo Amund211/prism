@@ -3,12 +3,10 @@ import { env } from "#env.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { captureException, captureMessage } from "@sentry/react";
 import { getOrSetUserId } from "#helpers/userId.ts";
-import {
-    apiToPlayerDataPIT,
-    type APIPlayerDataPIT,
-    type PlayerDataPIT,
-} from "./playerdata.ts";
-import { apiToSession, type APISession, type Session } from "./sessions.ts";
+import { apiToPlayerDataPIT } from "./playerdata.ts";
+import type { APIPlayerDataPIT, PlayerDataPIT } from "./playerdata.ts";
+import { apiToSession } from "./sessions.ts";
+import type { APISession, Session } from "./sessions.ts";
 
 interface StreakInfo {
     highest: number;

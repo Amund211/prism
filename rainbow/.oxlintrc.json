@@ -87,7 +87,6 @@
 
         // TODO: Re-enable
 
-        "import/consistent-type-specifier-style": "off",
         // Disable in main.tsx?
         "import/no-unassigned-import": "off",
         "import/first": "off",

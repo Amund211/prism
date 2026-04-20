@@ -3,12 +3,8 @@ import { getHistoryQueryOptions } from "#queries/history.ts";
 import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
 import { HistoryChart, HistoryChartTitle } from "#charts/history/chart.tsx";
 import { UserMultiSelect } from "#components/UserSearch.tsx";
-import {
-    ALL_GAMEMODE_KEYS,
-    ALL_STAT_KEYS,
-    type GamemodeKey,
-    type StatKey,
-} from "#stats/keys.ts";
+import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
+import type { GamemodeKey, StatKey } from "#stats/keys.ts";
 import { getFullStatLabel, getGamemodeLabel, getVariantLabel } from "#stats/labels.ts";
 import { DateTimePicker } from "@mui/x-date-pickers";
 import {

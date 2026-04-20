@@ -1,5 +1,6 @@
 import { getUsernameQueryOptions } from "#queries/username.ts";
-import { getWrappedQueryOptions, type WrappedData } from "#queries/wrapped.ts";
+import { getWrappedQueryOptions } from "#queries/wrapped.ts";
+import type { WrappedData } from "#queries/wrapped.ts";
 import type { Session } from "#queries/sessions.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
 import { computeStat } from "#stats/index.ts";
@@ -21,7 +22,8 @@ import {
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
-import React, { type JSX } from "react";
+import React from "react";
+import type { JSX } from "react";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
 import { captureException } from "@sentry/react";

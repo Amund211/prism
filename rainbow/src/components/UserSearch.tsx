@@ -4,7 +4,6 @@ import { useUUIDToUsername } from "#queries/username.ts";
 import { Search } from "@mui/icons-material";
 import {
     Autocomplete,
-    type AutocompleteProps,
     Avatar,
     Chip,
     CircularProgress,
@@ -14,6 +13,7 @@ import {
     TextField,
     Typography,
 } from "@mui/material";
+import type { AutocompleteProps } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";

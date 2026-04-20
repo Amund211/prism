@@ -11,7 +11,8 @@ import {
     YAxis,
 } from "recharts";
 import type { GamemodeKey, StatKey, VariantKey } from "#stats/keys.ts";
-import React, { type ReactNode } from "react";
+import React from "react";
+import type { ReactNode } from "react";
 import { generateChartData } from "./data.ts";
 import { makeDataKey } from "./dataKeys.ts";
 import { useUUIDToUsername } from "#queries/username.ts";

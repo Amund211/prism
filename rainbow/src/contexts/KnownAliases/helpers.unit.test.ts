@@ -1,9 +1,6 @@
 import { test, expect, describe } from "vitest";
-import {
-    parseStoredAliases,
-    stringifyKnownAliases,
-    type KnownAliases,
-} from "./helpers.ts";
+import { parseStoredAliases, stringifyKnownAliases } from "./helpers.ts";
+import type { KnownAliases } from "./helpers.ts";
 
 describe("parse + stringify round trip", () => {
     const cases: { name: string; aliases: KnownAliases }[] = [

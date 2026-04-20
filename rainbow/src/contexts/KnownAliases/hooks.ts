@@ -1,5 +1,6 @@
 import React from "react";
-import { KnownAliasesContext, type KnownAliasesContextValue } from "./context.ts";
+import { KnownAliasesContext } from "./context.ts";
+import type { KnownAliasesContextValue } from "./context.ts";
 
 export const useKnownAliases = (): KnownAliasesContextValue => {
     const value = React.use(KnownAliasesContext);
