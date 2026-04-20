@@ -46,6 +46,9 @@ jobs:
                   fi
                   echo "Route tree is up to date ✓"
 
+            - name: Check node types
+              run: pnpm run tsc:node
+
     ui-tests:
         runs-on: ubuntu-latest
         container:

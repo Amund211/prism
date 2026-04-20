@@ -11,6 +11,7 @@
         "dev:production": "vite --mode proxy-production",
         "tsc": "tsgo -p tsconfig.app.json",
         "tsc:watch": "tsgo -w -p tsconfig.app.json",
+        "tsc:node": "tsgo -p tsconfig.node.json",
         "vite:build": "vite build",
         "build": "run-p tsc vite:build",
         "oxfmt:check": "oxfmt --check",
