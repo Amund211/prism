@@ -138,10 +138,10 @@ export const useUUIDToUsername = (uuids: readonly string[]) => {
     });
 
     const result: Record<string, string | undefined> = {};
-    usernameQueries.forEach((query) => {
+    for (const query of usernameQueries) {
         if (query.status === "success") {
             result[query.data.uuid] = query.data.username;
         }
-    });
+    }
     return result;
 };

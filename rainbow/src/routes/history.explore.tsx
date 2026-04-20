@@ -116,9 +116,9 @@ function Index() {
     const [initialUUIDs] = React.useState(uuids);
     const [initialVisitPlayer] = React.useState(() => visitPlayer);
     React.useEffect(() => {
-        initialUUIDs.forEach((uuid) => {
+        for (const uuid of initialUUIDs) {
             initialVisitPlayer(uuid);
-        });
+        }
     }, [initialVisitPlayer, initialUUIDs]);
 
     if (JSON.stringify(uuids) !== JSON.stringify(rawUUIDs)) {
@@ -244,9 +244,9 @@ function Index() {
                 onSubmit={(newUUIDs) => {
                     // Visit all newly added players
                     const addedUUIDs = newUUIDs.filter((uuid) => !uuids.includes(uuid));
-                    addedUUIDs.forEach((uuid) => {
+                    for (const uuid of addedUUIDs) {
                         visitPlayer(uuid);
-                    });
+                    }
 
                     navigate({
                         search: (oldSearch) => {
