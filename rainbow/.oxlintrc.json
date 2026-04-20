@@ -106,7 +106,6 @@
             "error",
             { "includeExports": false, "allowSeparateTypeImports": true }
         ],
-        "eslint/prefer-exponentiation-operator": "off",
 
         // Jest rules got enabled with vitest for some reason
         "jest/require-hook": "off",

@@ -283,7 +283,7 @@ export const computeStatProgression = (
                 };
             }
 
-            const endMagnitude = Math.pow(10, Math.floor(Math.log10(endValue)));
+            const endMagnitude = 10 ** Math.floor(Math.log10(endValue));
             // TODO: More meaningful milestones (e.g. 100, 250, 500, 1000, 2500, 5000, 10000, 20000, 30000, ...)
             // TODO: Pick your own milestone
             const nextMilestoneValue =
