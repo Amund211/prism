@@ -24,22 +24,23 @@ export const PRESTIGE_EXP = EASY_EXP + (100 - EASY_LEVELS) * LEVEL_COST;
  * NOTE: Translated from the python implementation in Prism
  */
 export const bedwarsLevelFromExp = (exp: number): number => {
-    let levels = Math.floor(exp / PRESTIGE_EXP) * LEVELS_PER_PRESTIGE;
-    exp %= PRESTIGE_EXP;
+    let remainingExp = exp;
+    let levels = Math.floor(remainingExp / PRESTIGE_EXP) * LEVELS_PER_PRESTIGE;
+    remainingExp %= PRESTIGE_EXP;
 
     // The first few levels have different costs
     for (let i = 1; i <= EASY_LEVELS; i++) {
         const cost = EASY_LEVEL_COSTS[i as keyof typeof EASY_LEVEL_COSTS];
-        if (exp >= cost) {
+        if (remainingExp >= cost) {
             levels += 1;
-            exp -= cost;
+            remainingExp -= cost;
         } else {
             // We can't afford the next level, so we have found the level we are at
             break;
         }
     }
-    levels += Math.floor(exp / LEVEL_COST);
-    exp %= LEVEL_COST;
+    levels += Math.floor(remainingExp / LEVEL_COST);
+    remainingExp %= LEVEL_COST;
 
     const nextLevel = (levels + 1) % LEVELS_PER_PRESTIGE;
 
@@ -49,5 +50,5 @@ export const bedwarsLevelFromExp = (exp: number): number => {
         nextLevelCost = EASY_LEVEL_COSTS[nextLevel as keyof typeof EASY_LEVEL_COSTS];
     }
 
-    return levels + exp / nextLevelCost;
+    return levels + remainingExp / nextLevelCost;
 };
