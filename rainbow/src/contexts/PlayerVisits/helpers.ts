@@ -58,7 +58,7 @@ export const parseStoredPlayerVisits = (stored: string | null): PlayerVisits => 
             continue;
         }
         const lastVisited = new Date(value.lastVisited);
-        if (isNaN(lastVisited.getTime())) {
+        if (Number.isNaN(lastVisited.getTime())) {
             continue;
         }
 

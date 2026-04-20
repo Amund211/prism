@@ -349,7 +349,10 @@ describe("Wrapped detail page", () => {
                     "http://localhost:5173/flashlight/v1/wrapped/:uuid/:year",
                     (req) => {
                         const uuid = req.params.uuid as string;
-                        const yearParam = parseInt(req.params.year as string, 10);
+                        const yearParam = Number.parseInt(
+                            req.params.year as string,
+                            10,
+                        );
                         const startTime = `${yearParam.toString()}-01-01T00:00:00.000Z`;
                         const endTime = `${yearParam.toString()}-12-31T23:59:59.999Z`;
 
@@ -525,7 +528,10 @@ describe("Wrapped detail page", () => {
                     "http://localhost:5173/flashlight/v1/wrapped/:uuid/:year",
                     (req) => {
                         const uuid = req.params.uuid as string;
-                        const yearParam = parseInt(req.params.year as string, 10);
+                        const yearParam = Number.parseInt(
+                            req.params.year as string,
+                            10,
+                        );
                         const response = makeWrappedResponse(uuid, yearParam);
                         // Set coverage to below 50%
                         response.sessionStats.sessionCoverage.gamesPlayedPercentage = 0.2;

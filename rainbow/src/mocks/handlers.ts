@@ -131,7 +131,7 @@ export const handlers = [
         if (typeof yearParam !== "string") {
             throw new Error("Invalid year parameter");
         }
-        const year = parseInt(yearParam, 10);
+        const year = Number.parseInt(yearParam, 10);
         if (!Number.isFinite(year) || year < 2000 || year > 3000) {
             throw new Error("Invalid year parameter");
         }

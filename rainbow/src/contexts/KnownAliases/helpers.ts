@@ -72,7 +72,7 @@ export const parseStoredAliases = (stored: string | null): KnownAliases => {
                     return null;
                 }
                 const lastResolved = new Date(rawAlias.lastResolved);
-                if (isNaN(lastResolved.getTime())) {
+                if (Number.isNaN(lastResolved.getTime())) {
                     return null;
                 }
 
