@@ -289,15 +289,16 @@ describe("Home page", () => {
 
             // Set player2 as visited first, then set player1 as currentUser
             const visits: Record<string, { visitedCount: number; lastVisited: Date }> =
-                {};
-            visits[USERS.player2.uuid] = {
-                visitedCount: 5,
-                lastVisited: new Date(),
-            };
-            visits[USERS.player1.uuid] = {
-                visitedCount: 1,
-                lastVisited: new Date(Date.now() - 100000),
-            };
+                {
+                    [USERS.player2.uuid]: {
+                        visitedCount: 5,
+                        lastVisited: new Date(),
+                    },
+                    [USERS.player1.uuid]: {
+                        visitedCount: 1,
+                        lastVisited: new Date(Date.now() - 100000),
+                    },
+                };
             localStorage.setItem("playerVisits", stringifyPlayerVisits(visits));
             localStorage.setItem("currentUser", USERS.player1.uuid);
 
