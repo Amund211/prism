@@ -79,9 +79,10 @@
         "typescript/explicit-module-boundary-types": "off",
         "typescript/explicit-function-return-type": "off",
 
+        "eslint/no-console": ["error", { "allow": ["warn", "error"] }],
+
         // TODO: Re-enable
 
-        "eslint/no-console": "off",
         "typescript/no-import-type-side-effects": "off",
         "eslint/no-use-before-define": "off",
         "eslint/no-plusplus": "off",
