@@ -41,7 +41,7 @@ interface SessionsQueryOptions {
     end: Date;
 }
 export const getSessionsQueryOptions = ({ uuid, start, end }: SessionsQueryOptions) => {
-    const currentTime = new Date().getTime();
+    const currentTime = Date.now();
     const currentTimeIsInWindow =
         currentTime >= start.getTime() && currentTime <= end.getTime();
 

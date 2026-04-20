@@ -25,7 +25,7 @@ export const getHistoryQueryOptions = ({
     end,
     limit,
 }: HistoryQueryOptions) => {
-    const currentTime = new Date().getTime();
+    const currentTime = Date.now();
     const currentTimeIsInWindow =
         currentTime >= start.getTime() && currentTime <= end.getTime();
 
