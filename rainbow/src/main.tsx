@@ -1,3 +1,6 @@
+// oxlint-disable import/no-unassigned-import
+// oxlint-disable import/first
+
 import "#instrumentation.ts"; // Set up Sentry
 
 import { StrictMode } from "react";

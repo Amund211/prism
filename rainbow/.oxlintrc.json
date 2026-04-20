@@ -88,10 +88,6 @@
 
         // TODO: Re-enable
 
-        // Disable in main.tsx?
-        "import/no-unassigned-import": "off",
-        "import/first": "off",
-        // **********
         // TODO: Decide on function style and fix or disable rule
         "eslint/func-style": "off",
         // TODO: Decide on filename case and fix or disable rule
