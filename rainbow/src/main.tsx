@@ -27,7 +27,7 @@ const queryClient = createQueryClient();
 const persister = createIDBPersister();
 const router = createAppRouter(queryClient);
 
-const root = document.getElementById("root");
+const root = document.querySelector("#root");
 
 if (!root) {
     captureMessage("Root element not found", {

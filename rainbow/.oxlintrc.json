@@ -77,7 +77,6 @@
 
         // TODO: Re-enable
 
-        "unicorn/prefer-query-selector": "off",
         "unicorn/prefer-code-point": "off",
         "unicorn/no-useless-undefined": "off",
         "eslint/no-else-return": "off",
