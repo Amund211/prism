@@ -1,8 +1,9 @@
-import { endOfLastDay, endOfLastMonth, endOfLastWeek } from "#intervals.ts";
-import type { TimeIntervalDefinition } from "#intervals.ts";
 import { CalendarMonth } from "@mui/icons-material";
 import { Button, Menu, MenuItem, Tooltip, Typography } from "@mui/material";
 import React from "react";
+
+import { endOfLastDay, endOfLastMonth, endOfLastWeek } from "#intervals.ts";
+import type { TimeIntervalDefinition } from "#intervals.ts";
 
 interface TimeIntervalPickerProps {
     readonly intervalDefinition: TimeIntervalDefinition;

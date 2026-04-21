@@ -1,4 +1,5 @@
 import { test, expect, describe } from "vitest";
+
 import { normalizeUUID } from "./uuid.ts";
 
 describe(normalizeUUID, () => {

@@ -3,5 +3,16 @@
     "tabWidth": 4,
     "printWidth": 88,
     "sortPackageJson": true,
+    "sortImports": {
+        "internalPattern": ["~/", "@/", "#"],
+        "groups": [
+            "builtin",
+            "external",
+            ["internal", "subpath"],
+            ["parent", "sibling", "index"],
+            "style",
+            "unknown"
+        ]
+    },
     "ignorePatterns": ["src/routeTree.gen.ts", "coverage"]
 }

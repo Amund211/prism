@@ -1,4 +1,8 @@
 import React from "react";
+
+import { isNormalizedUUID } from "#helpers/uuid.ts";
+import { useLocalStorage } from "#hooks/useLocalStorage.ts";
+
 import { KnownAliasesContext } from "./context.ts";
 import {
     addKnownAlias,
@@ -7,8 +11,6 @@ import {
     localStorageKey,
     stringifyKnownAliases,
 } from "./helpers.ts";
-import { isNormalizedUUID } from "#helpers/uuid.ts";
-import { useLocalStorage } from "#hooks/useLocalStorage.ts";
 
 export const KnownAliasesProvider: React.FC<{
     children: React.ReactNode;

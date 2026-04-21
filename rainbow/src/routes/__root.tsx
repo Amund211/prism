@@ -1,7 +1,8 @@
-import { Layout } from "#components/Layout.tsx";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
-import type { RouterContext } from "#routerContext.ts";
 import React, { Suspense } from "react";
+
+import { Layout } from "#components/Layout.tsx";
+import type { RouterContext } from "#routerContext.ts";
 
 const TanStackRouterDevtools = import.meta.env.PROD
     ? () => null // Render nothing in production

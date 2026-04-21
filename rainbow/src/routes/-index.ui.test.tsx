@@ -1,9 +1,10 @@
 import { describe, expect } from "vitest";
+import { userEvent, page } from "vitest/browser";
+
+import { stringifyPlayerVisits } from "#contexts/PlayerVisits/helpers.ts";
 import { USERS } from "#mocks/data.ts";
 import { mswTest } from "#test/msw-test.ts";
-import { stringifyPlayerVisits } from "#contexts/PlayerVisits/helpers.ts";
 import { renderAppRoute } from "#test/render.tsx";
-import { userEvent, page } from "vitest/browser";
 
 /**
  * Render the real app route tree navigated to a specific URL.

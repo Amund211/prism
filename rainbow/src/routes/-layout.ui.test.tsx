@@ -1,9 +1,10 @@
 import { describe, expect } from "vitest";
+import { page } from "vitest/browser";
+
+import { getWrappedYear } from "#helpers/wrapped.ts";
 import { USERS } from "#mocks/data.ts";
 import { mswTest } from "#test/msw-test.ts";
 import { renderAppRoute } from "#test/render.tsx";
-import { page } from "vitest/browser";
-import { getWrappedYear } from "#helpers/wrapped.ts";
 
 describe("Layout - Desktop navigation", () => {
     mswTest("renders all route links in sidebar", async () => {

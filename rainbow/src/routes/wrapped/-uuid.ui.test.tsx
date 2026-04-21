@@ -1,11 +1,12 @@
-import { describe, expect } from "vitest";
 import { http, HttpResponse } from "msw";
 import type { SetupWorker } from "msw/browser";
+import { describe, expect } from "vitest";
+import { userEvent } from "vitest/browser";
+
+import { getWrappedYear } from "#helpers/wrapped.ts";
 import { USERS, makeWrappedResponse } from "#mocks/data.ts";
 import { mswTest } from "#test/msw-test.ts";
 import { renderAppRoute } from "#test/render.tsx";
-import { getWrappedYear } from "#helpers/wrapped.ts";
-import { userEvent } from "vitest/browser";
 
 describe("Wrapped detail page", () => {
     const year = getWrappedYear();

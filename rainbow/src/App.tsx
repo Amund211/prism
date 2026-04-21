@@ -1,15 +1,16 @@
 import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
-import { RouterProvider } from "@tanstack/react-router";
-import { maxAge } from "#queryClient.ts";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import type { Persister } from "@tanstack/react-query-persist-client";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { CurrentUserProvider } from "#contexts/CurrentUser/provider.tsx";
-import { PlayerVisitsProvider } from "#contexts/PlayerVisits/provider.tsx";
-import { KnownAliasesProvider } from "#contexts/KnownAliases/provider.tsx";
-import type { AppRouter } from "#createRouter.ts";
 import type { QueryClient } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import type { Persister } from "@tanstack/react-query-persist-client";
+import { RouterProvider } from "@tanstack/react-router";
+
+import { CurrentUserProvider } from "#contexts/CurrentUser/provider.tsx";
+import { KnownAliasesProvider } from "#contexts/KnownAliases/provider.tsx";
+import { PlayerVisitsProvider } from "#contexts/PlayerVisits/provider.tsx";
+import type { AppRouter } from "#createRouter.ts";
+import { maxAge } from "#queryClient.ts";
 
 const theme = createTheme({
     colorSchemes: {

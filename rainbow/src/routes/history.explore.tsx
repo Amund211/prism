@@ -1,12 +1,4 @@
-import { createFileRoute, createLink, Navigate } from "@tanstack/react-router";
-import { getHistoryQueryOptions } from "#queries/history.ts";
-import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
-import { HistoryChart, HistoryChartTitle } from "#charts/history/chart.tsx";
-import { UserMultiSelect } from "#components/UserSearch.tsx";
-import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
-import type { GamemodeKey, StatKey } from "#stats/keys.ts";
-import { getFullStatLabel, getGamemodeLabel, getVariantLabel } from "#stats/labels.ts";
-import { DateTimePicker } from "@mui/x-date-pickers";
+import { QueryStats } from "@mui/icons-material";
 import {
     Chip,
     IconButton,
@@ -17,7 +9,16 @@ import {
     ToggleButtonGroup,
     Tooltip,
 } from "@mui/material";
+import { DateTimePicker } from "@mui/x-date-pickers";
+import { captureException } from "@sentry/react";
+import { createFileRoute, createLink, Navigate } from "@tanstack/react-router";
 import dayjs from "dayjs";
+import React from "react";
+
+import { HistoryChart, HistoryChartTitle } from "#charts/history/chart.tsx";
+import { UserMultiSelect } from "#components/UserSearch.tsx";
+import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
+import { normalizeUUID } from "#helpers/uuid.ts";
 import {
     endOfDay,
     endOfLastDay,
@@ -36,12 +37,12 @@ import {
     startOfWeek,
     startOfYear,
 } from "#intervals.ts";
-import { QueryStats } from "@mui/icons-material";
-import React from "react";
-import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
-import { normalizeUUID } from "#helpers/uuid.ts";
-import { captureException } from "@sentry/react";
+import { getHistoryQueryOptions } from "#queries/history.ts";
+import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
 import { historyExploreSearchSchema } from "#schemas/historySearch.ts";
+import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
+import type { GamemodeKey, StatKey } from "#stats/keys.ts";
+import { getFullStatLabel, getGamemodeLabel, getVariantLabel } from "#stats/labels.ts";
 
 const normalizeUUIDsSkippingInvalid = (uuids: readonly string[]) => {
     return uuids.map((uuid) => normalizeUUID(uuid)).filter((uuid) => uuid !== null);

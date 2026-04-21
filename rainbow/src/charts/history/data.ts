@@ -1,8 +1,9 @@
 import type { History } from "#queries/history.ts";
+import { computeStat } from "#stats/index.ts";
 import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS, ALL_VARIANT_KEYS } from "#stats/keys.ts";
+
 import { makeDataKey } from "./dataKeys.ts";
 import type { DataKey } from "./dataKeys.ts";
-import { computeStat } from "#stats/index.ts";
 
 type MutableChartDataEntry = Record<DataKey, number | undefined | null> & {
     queriedAt: number;

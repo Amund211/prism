@@ -1,4 +1,8 @@
 import React from "react";
+
+import { isNormalizedUUID } from "#helpers/uuid.ts";
+import { useLocalStorage } from "#hooks/useLocalStorage.ts";
+
 import { PlayerVisitsContext } from "./context.ts";
 import {
     orderPlayers,
@@ -8,8 +12,6 @@ import {
     localStorageKey,
     stringifyPlayerVisits,
 } from "./helpers.ts";
-import { isNormalizedUUID } from "#helpers/uuid.ts";
-import { useLocalStorage } from "#hooks/useLocalStorage.ts";
 
 export const PlayerVisitsProvider: React.FC<{
     children: React.ReactNode;

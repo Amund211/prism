@@ -1,12 +1,13 @@
-import { createFileRoute, createLink } from "@tanstack/react-router";
-import { Button, IconButton, Stack, Typography } from "@mui/material";
-import { UserSearch } from "#components/UserSearch.tsx";
-import { useUUIDToUsername } from "#queries/username.ts";
 import { Delete } from "@mui/icons-material";
-import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
-import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
+import { Button, IconButton, Stack, Typography } from "@mui/material";
 import { captureException } from "@sentry/react";
+import { createFileRoute, createLink } from "@tanstack/react-router";
+
 import { PlayerHead } from "#components/player.tsx";
+import { UserSearch } from "#components/UserSearch.tsx";
+import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
+import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
+import { useUUIDToUsername } from "#queries/username.ts";
 
 const RouterLinkButton = createLink(Button);
 

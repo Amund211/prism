@@ -1,6 +1,8 @@
 import { test, expect, describe } from "vitest";
-import { wrappedSearchSchema } from "./wrappedSearch.ts";
+
 import { getWrappedYear } from "#helpers/wrapped.ts";
+
+import { wrappedSearchSchema } from "./wrappedSearch.ts";
 
 describe("wrappedSearchSchema validation", () => {
     test("no params -> all defaults", () => {

@@ -1,8 +1,9 @@
-import { UserSearch } from "#components/UserSearch.tsx";
 import { Stack } from "@mui/material";
-import { createFileRoute } from "@tanstack/react-router";
-import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { captureException } from "@sentry/react";
+import { createFileRoute } from "@tanstack/react-router";
+
+import { UserSearch } from "#components/UserSearch.tsx";
+import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { getWrappedYear } from "#helpers/wrapped.ts";
 
 export const Route = createFileRoute("/wrapped/")({

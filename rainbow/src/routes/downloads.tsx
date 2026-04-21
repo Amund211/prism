@@ -1,5 +1,3 @@
-import { UAParser } from "ua-parser-js";
-import { createFileRoute } from "@tanstack/react-router";
 import {
     Stack,
     Table,
@@ -11,14 +9,17 @@ import {
     Typography,
     useColorScheme,
 } from "@mui/material";
-import downloadWindowsURL from "#media/download_windows.png";
-import downloadMacURL from "#media/download_mac.png";
+import { createFileRoute } from "@tanstack/react-router";
+import { UAParser } from "ua-parser-js";
+
+import autoWhoURL from "#media/autowho.webp";
 import downloadLinuxURL from "#media/download_linux.png";
-import tuxURL from "#media/tux.svg";
-import windowsLogoURL from "#media/windows_logo.svg";
+import downloadMacURL from "#media/download_mac.png";
+import downloadWindowsURL from "#media/download_windows.png";
 import macLogoURL from "#media/mac_logo.svg";
 import macLogoGreyURL from "#media/mac_logo_grey.svg";
-import autoWhoURL from "#media/autowho.webp";
+import tuxURL from "#media/tux.svg";
+import windowsLogoURL from "#media/windows_logo.svg";
 
 type OS = "Linux" | "Windows" | "Mac OS";
 

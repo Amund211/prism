@@ -28,10 +28,12 @@ import {
 } from "@mui/material";
 import { createLink, Link, useLocation, useRouterState } from "@tanstack/react-router";
 import React from "react";
-import { DarkModeSwitch } from "./DarkModeSwitch.tsx";
-import { endOfMonth, startOfMonth } from "#intervals.ts";
+
 import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
 import { getWrappedYear } from "#helpers/wrapped.ts";
+import { endOfMonth, startOfMonth } from "#intervals.ts";
+
+import { DarkModeSwitch } from "./DarkModeSwitch.tsx";
 
 const RouterLinkItemButton = createLink(ListItemButton);
 const RouterMenuItem = createLink(MenuItem);

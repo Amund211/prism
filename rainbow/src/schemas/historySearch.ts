@@ -1,5 +1,6 @@
-import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
 import { z } from "zod";
+
+import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
 
 const defaultStart = new Date();
 defaultStart.setHours(0, 0, 0, 0);

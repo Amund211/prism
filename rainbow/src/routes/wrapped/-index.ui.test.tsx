@@ -1,9 +1,10 @@
 import { describe, expect } from "vitest";
+import { userEvent } from "vitest/browser";
+
+import { getWrappedYear } from "#helpers/wrapped.ts";
 import { USERS } from "#mocks/data.ts";
 import { mswTest } from "#test/msw-test.ts";
 import { renderAppRoute } from "#test/render.tsx";
-import { userEvent } from "vitest/browser";
-import { getWrappedYear } from "#helpers/wrapped.ts";
 
 describe("Wrapped search page", () => {
     mswTest("renders player search input", async () => {

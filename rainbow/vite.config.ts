@@ -1,10 +1,11 @@
-import { defineConfig } from "vite";
-import babel from "@rolldown/plugin-babel";
-import react, { reactCompilerPreset } from "@vitejs/plugin-react";
-import { reactClickToComponent } from "vite-plugin-react-click-to-component";
 import path from "node:path";
-import { tanstackRouter } from "@tanstack/router-plugin/vite";
+
+import babel from "@rolldown/plugin-babel";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
+import { tanstackRouter } from "@tanstack/router-plugin/vite";
+import react, { reactCompilerPreset } from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+import { reactClickToComponent } from "vite-plugin-react-click-to-component";
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {

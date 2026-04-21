@@ -1,4 +1,5 @@
 import { test, expect, describe } from "vitest";
+
 import { bedwarsLevelFromExp } from "./stars.ts";
 
 describe(bedwarsLevelFromExp, () => {

@@ -1,3 +1,7 @@
+import { Typography, useTheme } from "@mui/material";
+import { useQueries, useQuery } from "@tanstack/react-query";
+import React from "react";
+import type { ReactNode } from "react";
 import {
     Area,
     AreaChart,
@@ -10,18 +14,16 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
-import type { GamemodeKey, StatKey, VariantKey } from "#stats/keys.ts";
-import React from "react";
-import type { ReactNode } from "react";
-import { generateChartData } from "./data.ts";
-import { makeDataKey } from "./dataKeys.ts";
-import { useUUIDToUsername } from "#queries/username.ts";
-import { useQueries, useQuery } from "@tanstack/react-query";
-import { getHistoryQueryOptions } from "#queries/history.ts";
-import { getFullStatLabel, getGamemodeLabel, getVariantLabel } from "#stats/labels.ts";
-import { Typography, useTheme } from "@mui/material";
+
 import { useSynchronizeCharts } from "#contexts/ChartSynchronizer/hooks.ts";
 import { useAssume } from "#hooks/useAssumption.ts";
+import { getHistoryQueryOptions } from "#queries/history.ts";
+import { useUUIDToUsername } from "#queries/username.ts";
+import type { GamemodeKey, StatKey, VariantKey } from "#stats/keys.ts";
+import { getFullStatLabel, getGamemodeLabel, getVariantLabel } from "#stats/labels.ts";
+
+import { generateChartData } from "./data.ts";
+import { makeDataKey } from "./dataKeys.ts";
 
 interface HistoryChartProps {
     start: Date;

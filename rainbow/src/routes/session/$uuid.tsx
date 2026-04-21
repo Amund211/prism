@@ -1,28 +1,3 @@
-import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
-import { timeIntervalsFromDefinition } from "#intervals.ts";
-import { HistoryChart, SimpleHistoryChart } from "#charts/history/chart.tsx";
-import { TimeIntervalPicker } from "#components/TimeIntervalPicker.tsx";
-import { UserSearch } from "#components/UserSearch.tsx";
-import { ChartSynchronizerProvider } from "#contexts/ChartSynchronizer/provider.tsx";
-import type { TimeInterval } from "#intervals.ts";
-import { getHistoryQueryOptions } from "#queries/history.ts";
-import { getSessionsQueryOptions } from "#queries/sessions.ts";
-import type { Sessions } from "#queries/sessions.ts";
-import { computeStat } from "#stats/index.ts";
-import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
-import type { GamemodeKey, StatKey } from "#stats/keys.ts";
-import {
-    getFullStatLabel,
-    getGamemodeLabel,
-    getShortStatLabel,
-    getVariantLabel,
-} from "#stats/labels.ts";
-import {
-    computeStatProgression,
-    ERR_NO_DATA,
-    ERR_TRACKING_STARTED,
-} from "#stats/progression.ts";
-import type { StatProgression } from "#stats/progression.ts";
 import {
     Info,
     TrendingDown,
@@ -56,6 +31,7 @@ import {
     Typography,
 } from "@mui/material";
 import type { SvgIconOwnProps, TypographyOwnProps } from "@mui/material";
+import { captureException } from "@sentry/react";
 import { useQuery } from "@tanstack/react-query";
 import {
     createFileRoute,
@@ -64,13 +40,38 @@ import {
     useNavigate,
 } from "@tanstack/react-router";
 import React from "react";
+
+import { HistoryChart, SimpleHistoryChart } from "#charts/history/chart.tsx";
+import { PlayerHead } from "#components/player.tsx";
+import { TimeIntervalPicker } from "#components/TimeIntervalPicker.tsx";
+import { UserSearch } from "#components/UserSearch.tsx";
+import { ChartSynchronizerProvider } from "#contexts/ChartSynchronizer/provider.tsx";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { addExtrapolatedSessions } from "#helpers/session.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
-import { captureException } from "@sentry/react";
-import { sessionSearchSchema } from "#schemas/sessionSearch.ts";
 import { useAssume } from "#hooks/useAssumption.ts";
-import { PlayerHead } from "#components/player.tsx";
+import { timeIntervalsFromDefinition } from "#intervals.ts";
+import type { TimeInterval } from "#intervals.ts";
+import { getHistoryQueryOptions } from "#queries/history.ts";
+import { getSessionsQueryOptions } from "#queries/sessions.ts";
+import type { Sessions } from "#queries/sessions.ts";
+import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
+import { sessionSearchSchema } from "#schemas/sessionSearch.ts";
+import { computeStat } from "#stats/index.ts";
+import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
+import type { GamemodeKey, StatKey } from "#stats/keys.ts";
+import {
+    getFullStatLabel,
+    getGamemodeLabel,
+    getShortStatLabel,
+    getVariantLabel,
+} from "#stats/labels.ts";
+import {
+    computeStatProgression,
+    ERR_NO_DATA,
+    ERR_TRACKING_STARTED,
+} from "#stats/progression.ts";
+import type { StatProgression } from "#stats/progression.ts";
 
 export const Route = createFileRoute("/session/$uuid")({
     loaderDeps: ({ search: { timeIntervalDefinition, trackingStart } }) => {

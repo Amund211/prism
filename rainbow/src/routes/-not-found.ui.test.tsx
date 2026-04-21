@@ -1,7 +1,8 @@
 import { describe, expect } from "vitest";
+import { page } from "vitest/browser";
+
 import { mswTest } from "#test/msw-test.ts";
 import { renderAppRoute } from "#test/render.tsx";
-import { page } from "vitest/browser";
 
 describe("Not found page", () => {
     mswTest("navigating to invalid route does not crash the app", async () => {

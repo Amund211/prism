@@ -1,9 +1,10 @@
-import { queryOptions } from "@tanstack/react-query";
-import { env } from "#env.ts";
-import { normalizeUUID } from "#helpers/uuid.ts";
-import { addKnownAliasAndPersist } from "#contexts/KnownAliases/helpers.ts";
 import { captureException, captureMessage } from "@sentry/react";
+import { queryOptions } from "@tanstack/react-query";
+
+import { addKnownAliasAndPersist } from "#contexts/KnownAliases/helpers.ts";
+import { env } from "#env.ts";
 import { getOrSetUserId } from "#helpers/userId.ts";
+import { normalizeUUID } from "#helpers/uuid.ts";
 
 export const getUUIDQueryOptions = (username: string) =>
     queryOptions({

@@ -1,4 +1,5 @@
 import { describe, test, expect } from "vitest";
+
 import { computeWrappedYear } from "./wrapped.ts";
 
 describe(computeWrappedYear, () => {

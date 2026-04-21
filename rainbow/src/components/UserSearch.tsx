@@ -1,6 +1,3 @@
-import { getUUIDQueryOptions } from "#queries/uuid.ts";
-import { normalizeUUID } from "#helpers/uuid.ts";
-import { useUUIDToUsername } from "#queries/username.ts";
 import { Search } from "@mui/icons-material";
 import {
     Autocomplete,
@@ -16,9 +13,14 @@ import {
 import type { AutocompleteProps } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
 import React from "react";
-import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
-import { useKnownAliases } from "#contexts/KnownAliases/hooks.ts";
+
 import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
+import { useKnownAliases } from "#contexts/KnownAliases/hooks.ts";
+import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
+import { normalizeUUID } from "#helpers/uuid.ts";
+import { useUUIDToUsername } from "#queries/username.ts";
+import { getUUIDQueryOptions } from "#queries/uuid.ts";
+
 import { PlayerHead } from "./player.tsx";
 
 interface UserSearchProps {

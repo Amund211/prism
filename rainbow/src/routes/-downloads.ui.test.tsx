@@ -1,4 +1,5 @@
 import { describe, expect } from "vitest";
+
 import { mswTest } from "#test/msw-test.ts";
 import { renderAppRoute } from "#test/render.tsx";
 

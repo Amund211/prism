@@ -1,7 +1,10 @@
-import { test, expect, describe } from "vitest";
-import { addExtrapolatedSessions } from "./session.ts";
-import type { PlayerDataPIT, StatsPIT } from "#queries/playerdata.ts";
 import { randomUUID } from "node:crypto";
+
+import { test, expect, describe } from "vitest";
+
+import type { PlayerDataPIT, StatsPIT } from "#queries/playerdata.ts";
+
+import { addExtrapolatedSessions } from "./session.ts";
 
 const playerUUID = randomUUID();
 

@@ -1,33 +1,3 @@
-import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
-import { getWrappedQueryOptions } from "#queries/wrapped.ts";
-import type { WrappedData } from "#queries/wrapped.ts";
-import type { Session } from "#queries/sessions.ts";
-import { computeStat } from "#stats/index.ts";
-import {
-    Box,
-    Button,
-    Card,
-    CardContent,
-    Chip,
-    Divider,
-    Grid,
-    LinearProgress,
-    Stack,
-    Tooltip,
-    Typography,
-    Alert,
-    ThemeProvider,
-    createTheme,
-} from "@mui/material";
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
-import React from "react";
-import type { JSX } from "react";
-import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
-import { normalizeUUID } from "#helpers/uuid.ts";
-import { captureException } from "@sentry/react";
-import { wrappedSearchSchema } from "#schemas/wrappedSearch.ts";
-import { UserSearch } from "#components/UserSearch.tsx";
 import {
     EmojiEvents,
     Star,
@@ -47,9 +17,40 @@ import {
     PieChart,
     Download,
 } from "@mui/icons-material";
-import type { StatKey } from "#stats/keys.ts";
+import {
+    Box,
+    Button,
+    Card,
+    CardContent,
+    Chip,
+    Divider,
+    Grid,
+    LinearProgress,
+    Stack,
+    Tooltip,
+    Typography,
+    Alert,
+    ThemeProvider,
+    createTheme,
+} from "@mui/material";
+import { captureException } from "@sentry/react";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
+import React from "react";
+import type { JSX } from "react";
+
 import { PlayerHead } from "#components/player.tsx";
+import { UserSearch } from "#components/UserSearch.tsx";
+import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { ExportImageMount } from "#helpers/exportImage.tsx";
+import { normalizeUUID } from "#helpers/uuid.ts";
+import type { Session } from "#queries/sessions.ts";
+import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
+import { getWrappedQueryOptions } from "#queries/wrapped.ts";
+import type { WrappedData } from "#queries/wrapped.ts";
+import { wrappedSearchSchema } from "#schemas/wrappedSearch.ts";
+import { computeStat } from "#stats/index.ts";
+import type { StatKey } from "#stats/keys.ts";
 
 const getDefaultTimeZone = (): string => {
     return new Intl.DateTimeFormat().resolvedOptions().timeZone;

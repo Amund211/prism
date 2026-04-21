@@ -1,11 +1,12 @@
-import { describe, expect } from "vitest";
 import { http, HttpResponse } from "msw";
 import type { SetupWorker } from "msw/browser";
+import { describe, expect } from "vitest";
+import { userEvent } from "vitest/browser";
+
+import { startOfDay, endOfDay } from "#intervals.ts";
 import { USERS } from "#mocks/data.ts";
 import { mswTest } from "#test/msw-test.ts";
 import { renderAppRoute } from "#test/render.tsx";
-import { userEvent } from "vitest/browser";
-import { startOfDay, endOfDay } from "#intervals.ts";
 
 describe("History Explore page", () => {
     const historyUrl = `/history/explore?uuids=${encodeURIComponent(JSON.stringify([USERS.player1.uuid]))}&gamemodes=${encodeURIComponent(JSON.stringify(["overall"]))}&stats=${encodeURIComponent(JSON.stringify(["fkdr"]))}&variantSelection=both&start=${encodeURIComponent(new Date(Date.now() - 86_400_000).toISOString())}&end=${encodeURIComponent(new Date().toISOString())}&limit=100`;

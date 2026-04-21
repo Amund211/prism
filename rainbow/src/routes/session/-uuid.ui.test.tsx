@@ -1,7 +1,8 @@
-import { describe, expect } from "vitest";
-import { userEvent } from "vitest/browser";
 import { http, HttpResponse } from "msw";
 import type { SetupWorker } from "msw/browser";
+import { describe, expect } from "vitest";
+import { userEvent } from "vitest/browser";
+
 import { USERS } from "#mocks/data.ts";
 import { mswTest } from "#test/msw-test.ts";
 import { renderAppRoute } from "#test/render.tsx";

@@ -1,8 +1,10 @@
 import React from "react";
+
+import { isNormalizedUUID } from "#helpers/uuid.ts";
+import { useLocalStorage } from "#hooks/useLocalStorage.ts";
+
 import { CurrentUserContext } from "./context.ts";
 import { parseStoredUUID, localStorageKey } from "./helpers.ts";
-import { useLocalStorage } from "#hooks/useLocalStorage.ts";
-import { isNormalizedUUID } from "#helpers/uuid.ts";
 
 export const CurrentUserProvider: React.FC<{
     children: React.ReactNode;

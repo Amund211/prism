@@ -1,9 +1,9 @@
+import { QueryClient } from "@tanstack/react-query";
 import { render } from "vitest-browser-react";
 
-import { QueryClient } from "@tanstack/react-query";
+import { App } from "#App.tsx";
 import { createAppRouter } from "#createRouter.ts";
 import { noopPersister } from "#test/persister.ts";
-import { App } from "#App.tsx";
 
 function createQueryClient() {
     return new QueryClient({

@@ -1,8 +1,9 @@
 import { describe, expect } from "vitest";
+import { userEvent } from "vitest/browser";
+
 import { USERS } from "#mocks/data.ts";
 import { mswTest } from "#test/msw-test.ts";
 import { renderAppRoute } from "#test/render.tsx";
-import { userEvent } from "vitest/browser";
 
 describe("Session search page", () => {
     mswTest("renders player search input", async () => {

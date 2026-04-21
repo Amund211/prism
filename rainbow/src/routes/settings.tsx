@@ -1,8 +1,9 @@
-import { UserMultiSelect } from "#components/UserSearch.tsx";
-import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
 import { InfoOutlined } from "@mui/icons-material";
 import { Stack, Tooltip, Typography } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
+
+import { UserMultiSelect } from "#components/UserSearch.tsx";
+import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
 
 function RouteComponent() {
     const { currentUser, setCurrentUser } = useCurrentUser();

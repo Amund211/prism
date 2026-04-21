@@ -1,6 +1,6 @@
+import { toPng } from "html-to-image";
 import React, { useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
-import { toPng } from "html-to-image";
 
 /**
  * Offscreen host:

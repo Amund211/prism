@@ -2,17 +2,14 @@
 // oxlint-disable import/first
 
 import "#instrumentation.ts"; // Set up Sentry
-
+import { captureMessage, reactErrorHandler, setUser } from "@sentry/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-
-import { captureMessage, reactErrorHandler, setUser } from "@sentry/react";
 
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
-
 import { getOrSetUserId } from "#helpers/userId.ts";
 
 const userId = getOrSetUserId(); // Ensure a user ID is set
@@ -22,8 +19,9 @@ setUser({
     id: userId,
 });
 
-import { createQueryClient, createIDBPersister } from "#queryClient.ts";
 import { createAppRouter } from "#createRouter.ts";
+import { createQueryClient, createIDBPersister } from "#queryClient.ts";
+
 import { App } from "./App.tsx";
 
 const queryClient = createQueryClient();
