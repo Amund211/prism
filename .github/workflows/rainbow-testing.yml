@@ -73,4 +73,5 @@ jobs:
               run: pnpm install --frozen-lockfile
 
             - name: Test
+              timeout-minutes: 10
               run: pnpm run test:ui:${{ matrix.browser }}
