@@ -15,9 +15,6 @@ export const mswTest = testBase.extend({
             // Remove any request handlers added in individual test cases.
             // This prevents them from affecting unrelated tests.
             worker.resetHandlers();
-
-            // Stop the worker after the test.
-            worker.stop();
         },
         {
             auto: true,
