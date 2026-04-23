@@ -58,6 +58,7 @@ jobs:
         strategy:
             matrix:
                 browser: [chromium, webkit]
+                shard: [1, 2, 3]
             fail-fast: false
         steps:
             - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -74,4 +75,4 @@ jobs:
 
             - name: Test
               timeout-minutes: 10
-              run: pnpm run test:ui:${{ matrix.browser }}
+              run: pnpm run test:ui:${{ matrix.browser }} --shard=${{ matrix.shard }}/3
