@@ -30,3 +30,6 @@ dist-ssr
 /coverage
 /.vitest-attachments
 **/__screenshots__
+
+# Claude config
+/.claude/*
