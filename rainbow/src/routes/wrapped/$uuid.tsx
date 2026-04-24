@@ -206,30 +206,17 @@ const renderDay = (day: Day): string => {
 
 const reducedMotion = globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const ConfettiEffect: React.FC = () => {
-    const [confetti, setConfetti] = React.useState<
-        {
-            id: number;
-            left: number;
-            delay: number;
-            duration: number;
-            hue: number;
-            rotation: number;
-        }[]
-    >([]);
-    const [showConfetti, setShowConfetti] = React.useState(true);
+const confettiPieces = Array.from({ length: 50 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    delay: Math.random() * 2,
+    duration: 3 + Math.random() * 2,
+    hue: Math.random() * 360,
+    rotation: 360 + Math.random() * 360,
+}));
 
-    React.useEffect(() => {
-        const pieces = Array.from({ length: 50 }, (_, i) => ({
-            id: i,
-            left: Math.random() * 100,
-            delay: Math.random() * 2,
-            duration: 3 + Math.random() * 2,
-            hue: Math.random() * 360,
-            rotation: 360 + Math.random() * 360,
-        }));
-        setConfetti(pieces);
-    }, []);
+const ConfettiEffect: React.FC = () => {
+    const [showConfetti, setShowConfetti] = React.useState(true);
 
     React.useEffect(() => {
         const timer = setTimeout(() => {
@@ -257,7 +244,7 @@ const ConfettiEffect: React.FC = () => {
                 overflow: "hidden",
             }}
         >
-            {confetti.map((piece) => (
+            {confettiPieces.map((piece) => (
                 <Box
                     key={piece.id}
                     sx={{
