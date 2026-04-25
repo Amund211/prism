@@ -59,7 +59,7 @@ func TestMakeGetWrappedHandler(t *testing.T) {
 	uuid := "01234567-89ab-cdef-0123-456789abcdef"
 
 	makeRequest := func(uuid string, year string) *http.Request {
-		req := httptest.NewRequest("GET", "/wrapped/"+uuid+"/"+year, nil)
+		req := httptest.NewRequestWithContext(t.Context(), "GET", "/wrapped/"+uuid+"/"+year, nil)
 		req.SetPathValue("uuid", uuid)
 		req.SetPathValue("year", year)
 		return req

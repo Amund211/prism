@@ -76,7 +76,7 @@ func TestMakeGetAccountByUUIDHandler(t *testing.T) {
 	}
 
 	makeRequest := func(uuid string) *http.Request {
-		req := httptest.NewRequest("GET", fmt.Sprintf("/v1/account/uuid/%s", uuid), nil)
+		req := httptest.NewRequestWithContext(t.Context(), "GET", fmt.Sprintf("/v1/account/uuid/%s", uuid), nil)
 		req.SetPathValue("uuid", uuid)
 		return req
 	}

@@ -132,7 +132,7 @@ func TestCORS(t *testing.T) {
 	}
 
 	runCORSTest := func(t *testing.T, handler http.HandlerFunc, method string, c originRule, handlerStatusCode int, handlerBody []byte) {
-		req := httptest.NewRequest(method, "https://api-url.com", nil)
+		req := httptest.NewRequestWithContext(t.Context(), method, "https://api-url.com", nil)
 		req.Header.Set("Origin", c.origin)
 		w := httptest.NewRecorder()
 

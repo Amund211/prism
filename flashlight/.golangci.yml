@@ -16,6 +16,7 @@ linters:
     - errorlint
     - spancheck
     - nilerr
+    - noctx
     - copyloopvar
     - intrange
 

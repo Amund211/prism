@@ -110,7 +110,7 @@ func TestGetIP(t *testing.T) {
 		t.Run(c.xForwardedFor, func(t *testing.T) {
 			t.Parallel()
 
-			req, err := http.NewRequest("GET", "/", nil)
+			req, err := http.NewRequestWithContext(t.Context(), "GET", "/", nil)
 			require.NoError(t, err)
 			req.RemoteAddr = c.remoteAddr
 			if c.xForwardedFor != "" {
@@ -163,7 +163,7 @@ func TestGetIP_Hash(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			t.Parallel()
 
-			req, err := http.NewRequest("GET", "/", nil)
+			req, err := http.NewRequestWithContext(t.Context(), "GET", "/", nil)
 			require.NoError(t, err)
 			req.RemoteAddr = c.remoteAddr
 			if c.xForwardedFor != "" {

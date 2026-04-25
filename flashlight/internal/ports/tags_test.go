@@ -56,7 +56,7 @@ func TestMakeGetTagsHandler(t *testing.T) {
 	uuid := "01234567-89ab-cdef-0123-456789abcdef"
 
 	makeRequest := func(uuid string) *http.Request {
-		req := httptest.NewRequest("GET", "/v1/tags/"+uuid, nil)
+		req := httptest.NewRequestWithContext(t.Context(), "GET", "/v1/tags/"+uuid, nil)
 		req.SetPathValue("uuid", uuid)
 		return req
 	}

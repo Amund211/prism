@@ -108,7 +108,7 @@ func TestMakeGetSessionsHandler(t *testing.T) {
 				),
 			),
 		)
-		return httptest.NewRequest("GET", "/sessions", body)
+		return httptest.NewRequestWithContext(t.Context(), "GET", "/sessions", body)
 
 	}
 

@@ -75,7 +75,7 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 	}
 
 	makeRequest := func(username string) *http.Request {
-		req := httptest.NewRequest("GET", fmt.Sprintf("/v1/uuid/%s", username), nil)
+		req := httptest.NewRequestWithContext(t.Context(), "GET", fmt.Sprintf("/v1/uuid/%s", username), nil)
 		req.SetPathValue("username", username)
 		return req
 	}

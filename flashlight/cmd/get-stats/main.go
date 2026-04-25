@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,8 +15,8 @@ type MojangResponse struct {
 	Name string `json:"name"`
 }
 
-func makeRequest(httpClient *http.Client, url string, apiKey string) ([]byte, int, error) {
-	req, err := http.NewRequest("GET", url, nil)
+func makeRequest(ctx context.Context, httpClient *http.Client, url string, apiKey string) ([]byte, int, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		log.Println(err)
 		return []byte{}, -1, fmt.Errorf("constructing request: %w", err)
@@ -59,11 +60,12 @@ func main() {
 	}
 
 	httpClient := &http.Client{}
+	ctx := context.Background()
 
 	if len(player) < 20 {
 		// Player name -> ask mojang for uuid
 		mojangUrl := fmt.Sprintf("https://api.mojang.com/users/profiles/minecraft/%s", player)
-		data, statusCode, err := makeRequest(httpClient, mojangUrl, "")
+		data, statusCode, err := makeRequest(ctx, httpClient, mojangUrl, "")
 
 		if err != nil {
 			log.Fatalf("Failed making request to Mojang API: %v", err)
@@ -83,7 +85,7 @@ func main() {
 	}
 
 	hypixelUrl := fmt.Sprintf("https://api.hypixel.net/v2/player?uuid=%s", player)
-	data, statusCode, err := makeRequest(httpClient, hypixelUrl, hypixelAPIKey)
+	data, statusCode, err := makeRequest(ctx, httpClient, hypixelUrl, hypixelAPIKey)
 	if err != nil {
 		log.Fatalf("Failed making request to Hypixel API: %v", err)
 	}

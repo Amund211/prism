@@ -45,7 +45,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 		}, stubRegisterUserVisit, logger, sentryMiddleware, emptyBlocklistConfig)
 
 		w := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, target, nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
 		getPlayerDataHandler(w, req)
 
 		resp := w.Result()
@@ -69,7 +69,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 		}, stubRegisterUserVisit, logger, sentryMiddleware, emptyBlocklistConfig)
 		w := httptest.NewRecorder()
 
-		req := httptest.NewRequest(http.MethodGet, "/?uuid=1234-1234-1234", nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/?uuid=1234-1234-1234", nil)
 
 		getPlayerDataHandler(w, req)
 
@@ -86,7 +86,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 			return nil, fmt.Errorf("%w: couldn't find him", domain.ErrPlayerNotFound)
 		}, stubRegisterUserVisit, logger, sentryMiddleware, emptyBlocklistConfig)
 		w := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, target, nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
 
 		getPlayerDataHandler(w, req)
 
@@ -103,7 +103,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 			return nil, fmt.Errorf("error :^(: (%w)", domain.ErrTemporarilyUnavailable)
 		}, stubRegisterUserVisit, logger, sentryMiddleware, emptyBlocklistConfig)
 		w := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, target, nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
 
 		getPlayerDataHandler(w, req)
 
@@ -125,7 +125,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 		// Exhaust the rate limit
 		for range 200 {
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodGet, target, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
 			getPlayerDataHandler(w, req)
 
 			resp := w.Result()
@@ -137,7 +137,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		for range 30 {
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodGet, target, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
 			getPlayerDataHandler(w, req)
 
 			resp := w.Result()

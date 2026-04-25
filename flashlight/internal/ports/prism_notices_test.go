@@ -114,7 +114,7 @@ func TestPrismNoticesHandler(t *testing.T) {
 			synctest.Test(t, func(t *testing.T) {
 				time.Sleep(time.Until(tc.time))
 
-				req := httptest.NewRequest("GET", "/v1/prism-notices", nil)
+				req := httptest.NewRequestWithContext(t.Context(), "GET", "/v1/prism-notices", nil)
 				req.Header.Set("X-User-Id", tc.userID)
 				req.Header.Set("X-Prism-Version", tc.prismVersion)
 

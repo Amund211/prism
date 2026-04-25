@@ -50,7 +50,7 @@ func TestGetPrestigesHandler(t *testing.T) {
 	}
 
 	makeRequest := func(uuid string) *http.Request {
-		req := httptest.NewRequest("GET", "/v1/prestiges/"+uuid, nil)
+		req := httptest.NewRequestWithContext(t.Context(), "GET", "/v1/prestiges/"+uuid, nil)
 		req.SetPathValue("uuid", uuid)
 		return req
 	}
@@ -135,7 +135,7 @@ func TestGetPrestigesHandler(t *testing.T) {
 
 		handler := ports.MakeGetPrestigesHandler(makeAssertNotCalled(t), stubRegisterUserVisit, allowedOrigins, logger, sentryMiddleware, emptyBlocklistConfig)
 
-		req := httptest.NewRequest("GET", "/v1/prestiges", nil)
+		req := httptest.NewRequestWithContext(t.Context(), "GET", "/v1/prestiges", nil)
 		w := httptest.NewRecorder()
 
 		handler(w, req)

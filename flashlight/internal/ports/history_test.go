@@ -93,7 +93,7 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 				),
 			),
 		)
-		return httptest.NewRequest("GET", "/history", body)
+		return httptest.NewRequestWithContext(t.Context(), "GET", "/history", body)
 
 	}
 

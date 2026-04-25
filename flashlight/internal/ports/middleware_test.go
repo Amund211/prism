@@ -65,7 +65,7 @@ func TestRateLimitMiddleware(t *testing.T) {
 			},
 		)
 
-		req, err := http.NewRequest("GET", "http://example.com/test", nil)
+		req, err := http.NewRequestWithContext(t.Context(), "GET", "http://example.com/test", nil)
 		require.NoError(t, err)
 		req.RemoteAddr = "169.254.169.126:58418"
 		req.Header.Set("X-Forwarded-For", "12.12.123.123,34.111.7.239")
@@ -120,7 +120,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 
 			handler := middleware(inner)
 
-			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 			req.Header.Set("X-User-Id", "test-user")
 			w := httptest.NewRecorder()
 
@@ -135,7 +135,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 
 			handler := middleware(inner)
 
-			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 			w := httptest.NewRecorder()
 
 			handler(w, req)
@@ -149,7 +149,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 
 			handler := middleware(inner)
 
-			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 			req.Header.Set("X-User-Id", "test-user;`DROP TABLES;--      sdlfkjsdlkfj  ---; ^&^%$#@!")
 			w := httptest.NewRecorder()
 
@@ -169,7 +169,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 
 			handler := middleware(inner)
 
-			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 			req.Header.Set("X-User-Id", "test-user")
 			w := httptest.NewRecorder()
 
@@ -197,7 +197,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 		inner, _ := makeHandler()
 		handler := middleware(inner)
 
-		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 		req.Header.Set("X-User-Id", "test-user-123")
 		w := httptest.NewRecorder()
 
@@ -224,7 +224,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 		inner, _ := makeHandler()
 		handler := middleware(inner)
 
-		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 		w := httptest.NewRecorder()
 
 		handler(w, req)
@@ -250,7 +250,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 		inner, _ := makeHandler()
 		handler := middleware(inner)
 
-		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 		req.Header.Set("X-User-Id", "")
 		w := httptest.NewRecorder()
 
@@ -277,7 +277,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 		inner, _ := makeHandler()
 		handler := middleware(inner)
 
-		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 		req.Header.Set("X-Forwarded-For", "12.12.123.123,34.111.7.239")
 		w := httptest.NewRecorder()
 
@@ -304,7 +304,7 @@ func TestBuildRegisterUserVisitMiddleware(t *testing.T) {
 		inner, _ := makeHandler()
 		handler := middleware(inner)
 
-		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 		req.Header.Set("User-Agent", "TestBot/1.0")
 		w := httptest.NewRecorder()
 
@@ -471,7 +471,7 @@ func TestBuildBlocklistMiddleware(t *testing.T) {
 
 			handler := middleware(inner)
 
-			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 			req.Header.Set("X-Forwarded-For", fmt.Sprintf("%s,34.111.7.239", tc.ip))
 			require.Equal(t, tc.ip, GetIP(req).String(), "XFF set incorrectly for IP")
 
@@ -780,7 +780,7 @@ func TestNewReportingMetaMiddleware(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 			})
 
-			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 			if tc.userIDHeader != "" {
 				req.Header.Set("X-User-Id", tc.userIDHeader)
 			}
