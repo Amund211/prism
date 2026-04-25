@@ -87,12 +87,13 @@ func TestGetConfig(t *testing.T) {
 
 				for _, variable := range allVariablesExceptEnv {
 					t.Run(variable, func(t *testing.T) {
-						os.Unsetenv(variable)
+						err := os.Unsetenv(variable)
+						require.NoError(t, err)
 						t.Cleanup(func() {
 							t.Setenv(variable, "placeholder_value")
 						})
 
-						_, err := config.ConfigFromEnv()
+						_, err = config.ConfigFromEnv()
 						require.ErrorIs(t, err, config.ErrMissingRequiredValue)
 					})
 				}

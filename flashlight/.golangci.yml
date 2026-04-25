@@ -8,8 +8,24 @@ linters:
   enable:
     - govet
     - staticcheck
+    - errcheck
     - copyloopvar
     - intrange
+
+  settings:
+    errcheck:
+      exclude-functions:
+        # Idiomatic `defer tx.Rollback()` — Commit() is the source of truth.
+        # sqlx.Tx embeds *sql.Tx, so method promotion attributes Rollback to *sql.Tx.
+        - (*database/sql.Tx).Rollback
+        # TODO: Consider re-enabling this
+        - (net/http.ResponseWriter).Write
+        # TODO: Consider re-enabling these
+        - (io.Closer).Close
+        - (*database/sql.Conn).Close
+        - (*database/sql.DB).Close
+        - (github.com/golang-migrate/migrate/v4/source.Driver).Close
+        - (*github.com/golang-migrate/migrate/v4.Migrate).Close
 
 formatters:
   enable:
