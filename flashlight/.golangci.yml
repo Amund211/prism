@@ -8,6 +8,7 @@ linters:
   enable:
     - govet
     - copyloopvar
+    - intrange
 
 formatters:
   enable:
