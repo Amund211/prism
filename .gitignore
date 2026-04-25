@@ -20,3 +20,6 @@ wheels/
 # Virtual environments
 venv/
 .venv/
+
+# Claude config
+/.claude/*
