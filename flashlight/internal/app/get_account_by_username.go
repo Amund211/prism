@@ -113,7 +113,7 @@ func buildGetAccountByUsernameWithoutCache(
 		providerAccount, err := provider.GetAccountByUsername(getCtx, username)
 		if errors.Is(err, domain.ErrUsernameNotFound) {
 			removeUsernameErr := repo.RemoveUsername(ctx, username)
-			if removeUsernameErr != nil {
+			if removeUsernameErr != nil { //nolint:staticcheck // SA9003: intentionally empty
 				// NOTE: accountRepository implementations handle their own error reporting
 				// Still fall through to return the ErrUsernameNotFound
 			}
@@ -166,7 +166,7 @@ func buildGetAccountByUsernameWithoutCache(
 			Username:  providerAccount.Username,
 			QueriedAt: providerAccount.QueriedAt,
 		})
-		if err != nil {
+		if err != nil { //nolint:staticcheck // SA9003: intentionally empty
 			// NOTE: This error is not critical, we can still return the account
 		}
 

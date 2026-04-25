@@ -73,7 +73,7 @@ func Report(ctx context.Context, err error, extras ...map[string]string) {
 		scope.SetContext("from_event", eventExtras)
 
 		if err == nil {
-			err = errors.New("No error provided")
+			err = errors.New("no error provided")
 		}
 
 		scope.SetFingerprint([]string{"{{ default }}", sanitizeError(err.Error())})
@@ -120,5 +120,5 @@ func NewSentryMiddlewareOrMock(config config.Config) (func(http.HandlerFunc) htt
 		return middleware, flush, nil
 	}
 
-	return nil, nil, fmt.Errorf("Missing Sentry DSN in non-development environment")
+	return nil, nil, fmt.Errorf("missing Sentry DSN in non-development environment")
 }

@@ -117,7 +117,7 @@ func buildGetAccountByUUIDWithoutCache(
 			Username:  providerAccount.Username,
 			QueriedAt: providerAccount.QueriedAt,
 		})
-		if err != nil {
+		if err != nil { //nolint:staticcheck // SA9003: intentionally empty
 			// NOTE: This error is not critical, we can still return the account
 		}
 

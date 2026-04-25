@@ -138,10 +138,10 @@ func main() {
 	}
 	if config.IsProduction() {
 		// Current cloud sql database has a connection limit of 25, and 3 reserved for superusers
-		db.DB.SetMaxOpenConns(16)
+		db.SetMaxOpenConns(16)
 	} else {
 		// Fewer connections in staging to prevent interfering with prod
-		db.DB.SetMaxOpenConns(2)
+		db.SetMaxOpenConns(2)
 	}
 	logger.InfoContext(ctx, "Initialized database connection")
 

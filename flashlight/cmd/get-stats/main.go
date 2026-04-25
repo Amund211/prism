@@ -18,7 +18,7 @@ func makeRequest(httpClient *http.Client, url string, apiKey string) ([]byte, in
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Println(err)
-		return []byte{}, -1, fmt.Errorf("Constructing request: %w", err)
+		return []byte{}, -1, fmt.Errorf("constructing request: %w", err)
 	}
 
 	if apiKey != "" {
@@ -28,7 +28,7 @@ func makeRequest(httpClient *http.Client, url string, apiKey string) ([]byte, in
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		log.Println(err)
-		return []byte{}, -1, fmt.Errorf("Making request: %w", err)
+		return []byte{}, -1, fmt.Errorf("making request: %w", err)
 	}
 
 	defer resp.Body.Close()

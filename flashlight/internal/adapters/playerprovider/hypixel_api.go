@@ -230,5 +230,5 @@ func NewHypixelAPIOrMock(
 	if config.IsDevelopment() {
 		return &mockedHypixelAPI{}, nil
 	}
-	return nil, fmt.Errorf("Missing Hypixel API key in non-development environment")
+	return nil, fmt.Errorf("missing Hypixel API key in non-development environment")
 }

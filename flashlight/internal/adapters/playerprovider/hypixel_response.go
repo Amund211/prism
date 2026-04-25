@@ -105,21 +105,21 @@ func checkForHypixelError(ctx context.Context, statusCode int, playerData []byte
 	if statusCode == 200 {
 		// Check for HTML response
 		if len(playerData) > 0 && playerData[0] == '<' {
-			return fmt.Errorf("Hypixel API returned HTML (%w)", domain.ErrTemporarilyUnavailable)
+			return fmt.Errorf("hypixel API returned HTML (%w)", domain.ErrTemporarilyUnavailable)
 		}
 
 		return nil
 	}
 
 	// Error for unknown status code
-	err := fmt.Errorf("Hypixel API returned unsupported status code: %d", statusCode)
+	err := fmt.Errorf("hypixel API returned unsupported status code: %d", statusCode)
 
 	// Errors for known status codes
 	switch statusCode {
 	case 429:
-		err = fmt.Errorf("Hypixel ratelimit exceeded (%w)", domain.ErrTemporarilyUnavailable)
+		err = fmt.Errorf("hypixel ratelimit exceeded (%w)", domain.ErrTemporarilyUnavailable)
 	case 500, 502, 503, 504, 520, 521, 522, 523, 524, 525, 526, 527, 530:
-		err = fmt.Errorf("Hypixel returned status code %d (%s) (%w)", statusCode, http.StatusText(statusCode), domain.ErrTemporarilyUnavailable)
+		err = fmt.Errorf("hypixel returned status code %d (%s) (%w)", statusCode, http.StatusText(statusCode), domain.ErrTemporarilyUnavailable)
 	}
 
 	return err

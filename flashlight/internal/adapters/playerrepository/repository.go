@@ -490,7 +490,7 @@ func (p *PostgresPlayerRepository) GetPlayerPITs(ctx context.Context, playerUUID
 	}
 
 	lastID := "00000000-0000-0000-0000-000000000000" // Initial cursor
-	for true {
+	for {
 		batch := make([]dbStat, 0, 100)
 		// TODO: Index on (id, player_uuid, queried_at)?
 		err = conn.SelectContext(
@@ -559,7 +559,7 @@ func (p *PostgresPlayerRepository) FindMilestoneAchievements(ctx context.Context
 	// Handle gamemode
 	switch gamemode {
 	case domain.GamemodeOverall:
-		selector = selector + "'all'"
+		selector = selector + "'all'" // nolint:staticcheck // Left for future implementation
 	default:
 		err := fmt.Errorf("only overall gamemode is supported")
 		reporting.Report(ctx, err)
