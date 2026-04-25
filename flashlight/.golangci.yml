@@ -18,6 +18,7 @@ linters:
     - nilerr
     - noctx
     - revive
+    - misspell
     - copyloopvar
     - intrange
 
