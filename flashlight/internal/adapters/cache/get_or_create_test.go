@@ -54,7 +54,6 @@ func TestMockedCacheFinishes(t *testing.T) {
 		completedWg := sync.WaitGroup{}
 		completedWg.Add(clientCount)
 		for i := range clientCount {
-			i := i
 			go func() {
 				client := clients[i]
 				client.waitUntilDone()
