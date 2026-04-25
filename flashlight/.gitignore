@@ -10,3 +10,6 @@ cmd/service.yaml
 # Binary outputs
 /flashlight
 /main
+
+# Claude config
+/.claude/*
