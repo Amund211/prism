@@ -559,7 +559,7 @@ func (p *PostgresPlayerRepository) FindMilestoneAchievements(ctx context.Context
 	// Handle gamemode
 	switch gamemode {
 	case domain.GamemodeOverall:
-		selector = selector + "'all'" // nolint:staticcheck // Left for future implementation
+		selector = selector + "'all'" // nolint:staticcheck,ineffassign // Left for future implementation
 	default:
 		err := fmt.Errorf("only overall gamemode is supported")
 		reporting.Report(ctx, err)
