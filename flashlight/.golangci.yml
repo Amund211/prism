@@ -12,6 +12,7 @@ linters:
     - ineffassign
     - bodyclose
     - sqlclosecheck
+    - rowserrcheck
     - copyloopvar
     - intrange
 
