@@ -134,7 +134,7 @@ func MakeGetPrestigesHandler(
 						return nil
 					}
 					return &prestigeAchievementStats{
-						Experience: int64(achievement.After.Player.Experience),
+						Experience: achievement.After.Player.Experience,
 						Stars:      int(achievement.After.Value),
 						QueriedAt:  achievement.After.Player.QueriedAt,
 					}

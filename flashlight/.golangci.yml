@@ -19,6 +19,7 @@ linters:
     - noctx
     - revive
     - misspell
+    - unconvert
     - copyloopvar
     - intrange
 

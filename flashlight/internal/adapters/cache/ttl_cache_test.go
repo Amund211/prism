@@ -19,7 +19,7 @@ func TestTTLCache(t *testing.T) {
 
 		result := cache.getOrClaim("key")
 		require.False(t, result.claimed, "Expected entry to exist")
-		require.Equal(t, "data", string(result.data))
+		require.Equal(t, "data", result.data)
 	})
 
 	t.Run("getOrClaim claims when missing", func(t *testing.T) {

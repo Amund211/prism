@@ -77,7 +77,7 @@ func TestGetOrCreateSingle(t *testing.T) {
 		data, created, err := GetOrCreate(t.Context(), client, "key1", createCallback(1))
 		require.Nil(t, err)
 		require.True(t, created)
-		require.Equal(t, "data1", string(data))
+		require.Equal(t, "data1", data)
 		require.Equal(t, 0, client.server.currentTick)
 
 		client.wait()
@@ -100,13 +100,13 @@ func TestGetOrCreateMultiple(t *testing.T) {
 		data, created, err := GetOrCreate(t.Context(), client, "key1", createCallback(1))
 		require.Nil(t, err)
 		require.True(t, created)
-		require.Equal(t, "data1", string(data))
+		require.Equal(t, "data1", data)
 		require.Equal(t, 0, client.server.currentTick)
 
 		data, created, err = GetOrCreate(t.Context(), client, "key2", withWait(client, 2, createCallback(2)))
 		require.Nil(t, err)
 		require.True(t, created)
-		require.Equal(t, "data2", string(data))
+		require.Equal(t, "data2", data)
 		require.Equal(t, 2, client.server.currentTick)
 
 		client.waitUntilDone()
@@ -118,13 +118,13 @@ func TestGetOrCreateMultiple(t *testing.T) {
 		data, created, err := GetOrCreate(t.Context(), client, "key1", createUnreachable(t))
 		require.Nil(t, err)
 		require.False(t, created)
-		require.Equal(t, "data1", string(data))
+		require.Equal(t, "data1", data)
 		require.Equal(t, 1, client.server.currentTick)
 
 		data, created, err = GetOrCreate(t.Context(), client, "key2", createUnreachable(t))
 		require.Nil(t, err)
 		require.False(t, created)
-		require.Equal(t, "data2", string(data))
+		require.Equal(t, "data2", data)
 		// The fist client will insert this during the second tick
 		// If our second tick processes after the first client's we will get it in the second tick
 		// If our second tick processes before the first client's we will get it in the third tick
@@ -159,7 +159,7 @@ func TestGetOrCreateErrorRetries(t *testing.T) {
 		data, created, err := GetOrCreate(t.Context(), client, "key1", withWait(client, 2, createCallback(1)))
 		require.Nil(t, err)
 		require.True(t, created)
-		require.Equal(t, "data1", string(data))
+		require.Equal(t, "data1", data)
 		require.True(t, client.server.currentTick == 4 || client.server.currentTick == 5)
 
 		client.waitUntilDone()
@@ -195,7 +195,7 @@ func TestGetOrCreateCleansUpOnError(t *testing.T) {
 			data, created, err := GetOrCreate(t.Context(), c.cache, "key1", createCallback(1))
 			require.Nil(t, err)
 			require.True(t, created)
-			require.Equal(t, "data1", string(data))
+			require.Equal(t, "data1", data)
 		})
 	}
 }
@@ -224,7 +224,7 @@ func TestGetOrCreateRealCache(t *testing.T) {
 					data, _, err := GetOrCreate(ctx, cache, fmt.Sprintf("key%d", testIndex), monoStableCallback)
 					require.NoError(t, err)
 					// NOTE: We can't say anything about created here, as only one caller will create the entry
-					require.Equal(t, "data1", string(data))
+					require.Equal(t, "data1", data)
 				})
 			}
 		}

@@ -151,7 +151,7 @@ func dbStatToPlayerPIT(dbStat dbStat) (*domain.PlayerPIT, error) {
 		LastLogin:   nil,
 		LastLogout:  nil,
 
-		Experience: int64(experience),
+		Experience: experience,
 		Solo:       *gamemodeStatsPITFromDataStorage(&playerData.Solo),
 		Doubles:    *gamemodeStatsPITFromDataStorage(&playerData.Doubles),
 		Threes:     *gamemodeStatsPITFromDataStorage(&playerData.Threes),

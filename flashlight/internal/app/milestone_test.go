@@ -60,15 +60,15 @@ func TestFindMilestoneAchievements(t *testing.T) {
 			achievements: []domain.MilestoneAchievement{
 				{
 					Milestone: expMilestones[0],
-					After:     &domain.MilestoneAchievementStats{Player: p1, Value: int64(p1.Experience)},
+					After:     &domain.MilestoneAchievementStats{Player: p1, Value: p1.Experience},
 				},
 				{
 					Milestone: expMilestones[1],
-					After:     &domain.MilestoneAchievementStats{Player: p2, Value: int64(p2.Experience)},
+					After:     &domain.MilestoneAchievementStats{Player: p2, Value: p2.Experience},
 				},
 				{
 					Milestone: expMilestones[2],
-					After:     &domain.MilestoneAchievementStats{Player: p3, Value: int64(p3.Experience)},
+					After:     &domain.MilestoneAchievementStats{Player: p3, Value: p3.Experience},
 				},
 			},
 		}
