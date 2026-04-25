@@ -15,7 +15,7 @@ func TestDB(t *testing.T) {
 	t.Run("db name", func(t *testing.T) {
 		t.Parallel()
 
-		require.Equal(t, "flashlight", DB_NAME)
+		require.Equal(t, "flashlight", DBName)
 	})
 
 	if testing.Short() {
@@ -25,7 +25,7 @@ func TestDB(t *testing.T) {
 	t.Run("NewPostgresDatabase", func(t *testing.T) {
 		t.Parallel()
 
-		db, err := NewPostgresDatabase(LOCAL_CONNECTION_STRING)
+		db, err := NewPostgresDatabase(LocalConnectionString)
 		require.NoError(t, err)
 		require.NotNil(t, db)
 	})
@@ -33,7 +33,7 @@ func TestDB(t *testing.T) {
 	t.Run("createDatabaseIfNotExists", func(t *testing.T) {
 		t.Parallel()
 
-		db, err := sqlx.Connect("postgres", LOCAL_CONNECTION_STRING)
+		db, err := sqlx.Connect("postgres", LocalConnectionString)
 		require.NoError(t, err)
 		t.Run("already existing", func(t *testing.T) {
 			t.Parallel()
@@ -41,7 +41,7 @@ func TestDB(t *testing.T) {
 			err := createDatabaseIfNotExists(db, "postgres")
 			require.NoError(t, err)
 
-			err = createDatabaseIfNotExists(db, DB_NAME)
+			err = createDatabaseIfNotExists(db, DBName)
 			require.NoError(t, err)
 		})
 

@@ -18,7 +18,7 @@ import (
 	"github.com/Amund211/flashlight/internal/domaintest"
 )
 
-type mockedHttpClient struct {
+type mockedHTTPClient struct {
 	t           *testing.T
 	expectedURL string
 	response    *http.Response
@@ -27,7 +27,7 @@ type mockedHttpClient struct {
 	err         error
 }
 
-func (m *mockedHttpClient) Do(req *http.Request) (*http.Response, error) {
+func (m *mockedHTTPClient) Do(req *http.Request) (*http.Response, error) {
 	expectedHeaders := http.Header{
 		// NOTE: go's http.Header automatically camelcases the keys
 		"User-Agent": {"flashlight/0.1.0 (+https://github.com/Amund211/flashlight)"},
@@ -78,7 +78,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 
 		t.Run("empty tags", func(t *testing.T) {
 			t.Parallel()
-			httpClient := &mockedHttpClient{
+			httpClient := &mockedHTTPClient{
 				t:           t,
 				expectedURL: urlForUUID(uuid),
 				statusCode:  200,
@@ -99,7 +99,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 
 			uuid := domaintest.NewUUID(t)
 
-			httpClient := &mockedHttpClient{
+			httpClient := &mockedHTTPClient{
 				t:           t,
 				expectedURL: urlForUUID(uuid),
 				statusCode:  200,
@@ -123,7 +123,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 
 		t.Run("custom api key", func(t *testing.T) {
 			t.Parallel()
-			httpClient := &mockedHttpClient{
+			httpClient := &mockedHTTPClient{
 				t:           t,
 				expectedURL: urlForUUID(uuid) + "&key=my-custom-key",
 				statusCode:  200,
@@ -148,7 +148,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 			t.Parallel()
 			t.Run("429", func(t *testing.T) {
 				// Real response from urchin API (2026-03-06)
-				httpClient := &mockedHttpClient{
+				httpClient := &mockedHTTPClient{
 					t:           t,
 					expectedURL: urlForUUID(uuid),
 					statusCode:  429,
@@ -164,7 +164,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 			})
 			t.Run("500", func(t *testing.T) {
 				// Real response from urchin API (2025-11-18)
-				httpClient := &mockedHttpClient{
+				httpClient := &mockedHTTPClient{
 					t:           t,
 					expectedURL: urlForUUID(uuid),
 					statusCode:  500,
@@ -180,7 +180,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 			})
 			t.Run("502", func(t *testing.T) {
 				// Real response from urchin API (2025-11-18)
-				httpClient := &mockedHttpClient{
+				httpClient := &mockedHTTPClient{
 					t:           t,
 					expectedURL: urlForUUID(uuid),
 					statusCode:  502,
@@ -196,7 +196,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 			})
 			t.Run("525", func(t *testing.T) {
 				// Real response from urchin API (2026-03-06)
-				httpClient := &mockedHttpClient{
+				httpClient := &mockedHTTPClient{
 					t:           t,
 					expectedURL: urlForUUID(uuid),
 					statusCode:  525,
@@ -212,7 +212,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 			})
 			t.Run("unexpected status code", func(t *testing.T) {
 				// Made up response to test status codes we don't handle
-				httpClient := &mockedHttpClient{
+				httpClient := &mockedHTTPClient{
 					t:           t,
 					expectedURL: urlForUUID(uuid),
 					statusCode:  418,
@@ -232,7 +232,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 			t.Parallel()
 			t.Run("timeout while awaiting headers", func(t *testing.T) {
 				t.Parallel()
-				httpClient := &mockedHttpClient{
+				httpClient := &mockedHTTPClient{
 					t:           t,
 					expectedURL: urlForUUID(uuid),
 					// Raw error string copied from sentry
@@ -248,7 +248,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 			})
 			t.Run("connection reset by peer", func(t *testing.T) {
 				t.Parallel()
-				httpClient := &mockedHttpClient{
+				httpClient := &mockedHTTPClient{
 					t:           t,
 					expectedURL: urlForUUID(uuid),
 					// Raw error string copied from sentry
@@ -267,7 +267,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 		t.Run("invalid json", func(t *testing.T) {
 			t.Parallel()
 			// NOTE: Synthetic test
-			httpClient := &mockedHttpClient{
+			httpClient := &mockedHTTPClient{
 				t:           t,
 				expectedURL: urlForUUID(uuid),
 				statusCode:  200,
@@ -287,7 +287,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 			invalidKey := "1o23iu1o2i"
 
 			// NOTE: Real response from urchin when an invalid API key is used
-			httpClient := &mockedHttpClient{
+			httpClient := &mockedHTTPClient{
 				t:           t,
 				expectedURL: urlForUUID(uuid) + "&key=" + invalidKey,
 				statusCode:  200,
@@ -310,7 +310,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 
 					invalidKey := "1o23iu1o2i"
 
-					httpClient := &mockedHttpClient{
+					httpClient := &mockedHTTPClient{
 						t:           t,
 						expectedURL: urlForUUID(uuid) + "&key=" + invalidKey,
 						statusCode:  statusCode,
@@ -329,7 +329,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 		t.Run("Invalid api key response when not passing API key", func(t *testing.T) {
 			t.Parallel()
 
-			httpClient := &mockedHttpClient{
+			httpClient := &mockedHTTPClient{
 				t:           t,
 				expectedURL: urlForUUID(uuid),
 				statusCode:  200,
@@ -349,7 +349,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 				t.Run(fmt.Sprintf("status code %d", statusCode), func(t *testing.T) {
 					t.Parallel()
 
-					httpClient := &mockedHttpClient{
+					httpClient := &mockedHTTPClient{
 						t:           t,
 						expectedURL: urlForUUID(uuid),
 						statusCode:  statusCode,
@@ -369,7 +369,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 	t.Run("body read error", func(t *testing.T) {
 		t.Parallel()
 
-		httpClient := &mockedHttpClient{
+		httpClient := &mockedHTTPClient{
 			t:           t,
 			expectedURL: urlForUUID(uuid),
 			response: &http.Response{

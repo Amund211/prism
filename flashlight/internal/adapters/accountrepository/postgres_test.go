@@ -46,7 +46,7 @@ func TestPostgres(t *testing.T) {
 	t.Parallel()
 
 	ctx := t.Context()
-	db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
+	db, err := database.NewPostgresDatabase(database.LocalConnectionString)
 	require.NoError(t, err)
 
 	now := time.Now()

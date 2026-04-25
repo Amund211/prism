@@ -11,7 +11,7 @@ import (
 )
 
 type MojangResponse struct {
-	Id   string `json:"id"`
+	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
@@ -64,8 +64,8 @@ func main() {
 
 	if len(player) < 20 {
 		// Player name -> ask mojang for uuid
-		mojangUrl := fmt.Sprintf("https://api.mojang.com/users/profiles/minecraft/%s", player)
-		data, statusCode, err := makeRequest(ctx, httpClient, mojangUrl, "")
+		mojangURL := fmt.Sprintf("https://api.mojang.com/users/profiles/minecraft/%s", player)
+		data, statusCode, err := makeRequest(ctx, httpClient, mojangURL, "")
 
 		if err != nil {
 			log.Fatalf("Failed making request to Mojang API: %v", err)
@@ -81,11 +81,11 @@ func main() {
 			log.Fatalf("Failed parsing Mojang response: %v", err)
 		}
 
-		player = mojangResponse.Id
+		player = mojangResponse.ID
 	}
 
-	hypixelUrl := fmt.Sprintf("https://api.hypixel.net/v2/player?uuid=%s", player)
-	data, statusCode, err := makeRequest(ctx, httpClient, hypixelUrl, hypixelAPIKey)
+	hypixelURL := fmt.Sprintf("https://api.hypixel.net/v2/player?uuid=%s", player)
+	data, statusCode, err := makeRequest(ctx, httpClient, hypixelURL, hypixelAPIKey)
 	if err != nil {
 		log.Fatalf("Failed making request to Hypixel API: %v", err)
 	}

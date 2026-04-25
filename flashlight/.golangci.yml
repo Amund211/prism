@@ -17,10 +17,35 @@ linters:
     - spancheck
     - nilerr
     - noctx
+    - revive
     - copyloopvar
     - intrange
 
   settings:
+    revive:
+      rules:
+        # Bug-catching rules we keep enabled
+        - name: var-naming
+        - name: redefines-builtin-id
+        # Default rules we explicitly disable:
+        # exported: requires doc comments on every exported identifier — high churn
+        - name: exported
+          disabled: true
+        # package-comments: requires `// Package x ...` on every package — high churn
+        - name: package-comments
+          disabled: true
+        # unused-parameter: most flags are interface implementations where the
+        # named param is for documentation; renaming to `_` hurts readability.
+        - name: unused-parameter
+          disabled: true
+        # empty-block: overlaps with staticcheck SA9003; we already handle those
+        # cases with explicit annotations.
+        - name: empty-block
+          disabled: true
+        # unexported-return: flags intentional Go opacity patterns
+        # (NewX returning *unexportedType to keep the type opaque).
+        - name: unexported-return
+          disabled: true
     errcheck:
       exclude-functions:
         # Idiomatic `defer tx.Rollback()` — Commit() is the source of truth.

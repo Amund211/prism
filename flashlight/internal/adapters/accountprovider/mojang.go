@@ -22,7 +22,7 @@ import (
 
 const getAccountMinOperationTime = 150 * time.Millisecond
 
-type HttpClient interface {
+type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
@@ -31,14 +31,14 @@ type RequestLimiter interface {
 }
 
 type Mojang struct {
-	httpClient HttpClient
+	httpClient HTTPClient
 	limiter    RequestLimiter
 	nowFunc    func() time.Time
 
 	tracer trace.Tracer
 }
 
-func NewMojang(httpClient HttpClient, nowFunc func() time.Time, afterFunc func(time.Duration) <-chan time.Time) *Mojang {
+func NewMojang(httpClient HTTPClient, nowFunc func() time.Time, afterFunc func(time.Duration) <-chan time.Time) *Mojang {
 	// https://minecraft.wiki/w/Mojang_API
 	baseLimiter := ratelimiting.NewWindowLimitRequestLimiter(600, 10*time.Minute, nowFunc, afterFunc)
 	// Found by trial and error
@@ -82,7 +82,7 @@ func (m *Mojang) getProfile(ctx context.Context, url string) (domain.Account, er
 		return domain.Account{}, err
 	}
 
-	req.Header.Set("User-Agent", constants.USER_AGENT)
+	req.Header.Set("User-Agent", constants.UserAgent)
 
 	var resp *http.Response
 	var data []byte

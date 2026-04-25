@@ -12,8 +12,8 @@ import (
 	"github.com/Amund211/flashlight/internal/ports"
 )
 
-const PROD_DOMAIN_SUFFIX = "prismoverlay.com"
-const STAGING_DOMAIN_SUFFIX = "rainbow-ctx.pages.dev"
+const prodDomainSuffix = "prismoverlay.com"
+const stagingDomainSuffix = "rainbow-ctx.pages.dev"
 
 type originRule struct {
 	origin  string
@@ -23,8 +23,8 @@ type originRule struct {
 func TestCORS(t *testing.T) {
 	t.Parallel()
 	allowedOrigins, err := ports.NewDomainSuffixes(
-		PROD_DOMAIN_SUFFIX,
-		STAGING_DOMAIN_SUFFIX,
+		prodDomainSuffix,
+		stagingDomainSuffix,
 	)
 	require.NoError(t, err)
 

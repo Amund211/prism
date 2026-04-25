@@ -8,8 +8,8 @@ import (
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
-const INVALID_CHARACTER = "invalid character in UUID"
-const BAD_LENGTH = "normalized UUID has incorrect length"
+const invalidCharacter = "invalid character in UUID"
+const badLength = "normalized UUID has incorrect length"
 
 func TestNormalizeUUID(t *testing.T) {
 	t.Parallel()
@@ -61,21 +61,21 @@ func TestNormalizeUUID(t *testing.T) {
 		},
 		{
 			input:          "0123456789ABCDEF0123456789abcdex",
-			errorSubstring: INVALID_CHARACTER,
+			errorSubstring: invalidCharacter,
 		},
 		{
 			input:          "0123456789xBCDEF0123456789abcdef",
-			errorSubstring: INVALID_CHARACTER,
+			errorSubstring: invalidCharacter,
 		},
 		{
 			// Too long
 			input:          "01234567-89ab-cdef-0123-456789abcdef-0",
-			errorSubstring: BAD_LENGTH,
+			errorSubstring: badLength,
 		},
 		{
 			// Too short
 			input:          "01234567-89ab-cdef-0123-456789abcde",
-			errorSubstring: BAD_LENGTH,
+			errorSubstring: badLength,
 		},
 	}
 
@@ -86,7 +86,7 @@ func TestNormalizeUUID(t *testing.T) {
 			errorSubstring string
 		}{
 			input:          string(input),
-			errorSubstring: INVALID_CHARACTER,
+			errorSubstring: invalidCharacter,
 		})
 	}
 

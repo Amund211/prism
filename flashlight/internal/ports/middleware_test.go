@@ -678,11 +678,11 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 		t.Run("all props", func(t *testing.T) {
 			t.Parallel()
 
-			requestUrl, err := url.Parse("http://example.com/my-path?uuid=requested-uuid")
+			requestURL, err := url.Parse("http://example.com/my-path?uuid=requested-uuid")
 			require.NoError(t, err)
 
 			attrs := run(t, &http.Request{
-				URL:    requestUrl,
+				URL:    requestURL,
 				Method: "GET",
 				Header: http.Header{
 					"User-Agent": []string{"user-agent/1.0"},
@@ -701,11 +701,11 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 		t.Run("short user id", func(t *testing.T) {
 			t.Parallel()
 
-			requestUrl, err := url.Parse("http://example.com/my-path")
+			requestURL, err := url.Parse("http://example.com/my-path")
 			require.NoError(t, err)
 
 			attrs := run(t, &http.Request{
-				URL:    requestUrl,
+				URL:    requestURL,
 				Method: "GET",
 				Header: http.Header{
 					"User-Agent": []string{"user-agent/1.0"},
@@ -724,11 +724,11 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 		t.Run("bad request", func(t *testing.T) {
 			t.Parallel()
 
-			requestUrl, err := url.Parse("http://example.com/my-other-path")
+			requestURL, err := url.Parse("http://example.com/my-other-path")
 			require.NoError(t, err)
 
 			attrs := run(t, &http.Request{
-				URL:    requestUrl,
+				URL:    requestURL,
 				Method: "POST",
 			})
 

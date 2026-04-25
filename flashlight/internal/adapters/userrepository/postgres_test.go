@@ -98,7 +98,7 @@ func TestPostgresRegisterVisit(t *testing.T) {
 		t.Parallel()
 		ctx := t.Context()
 
-		db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
+		db, err := database.NewPostgresDatabase(database.LocalConnectionString)
 		require.NoError(t, err)
 		defer db.Close()
 
@@ -141,7 +141,7 @@ func TestPostgresRegisterVisit(t *testing.T) {
 		t.Parallel()
 		ctx := t.Context()
 
-		db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
+		db, err := database.NewPostgresDatabase(database.LocalConnectionString)
 		require.NoError(t, err)
 		defer db.Close()
 
@@ -193,7 +193,7 @@ func TestPostgresRegisterVisit(t *testing.T) {
 		t.Parallel()
 		ctx := t.Context()
 
-		db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
+		db, err := database.NewPostgresDatabase(database.LocalConnectionString)
 		require.NoError(t, err)
 		defer db.Close()
 
@@ -241,7 +241,7 @@ func TestPostgresRegisterVisit(t *testing.T) {
 		t.Parallel()
 		ctx := t.Context()
 
-		db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
+		db, err := database.NewPostgresDatabase(database.LocalConnectionString)
 		require.NoError(t, err)
 		defer db.Close()
 
@@ -318,7 +318,7 @@ func TestPostgresRegisterVisit(t *testing.T) {
 		t.Parallel()
 		ctx := t.Context()
 
-		db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
+		db, err := database.NewPostgresDatabase(database.LocalConnectionString)
 		require.NoError(t, err)
 		defer db.Close()
 
@@ -336,7 +336,7 @@ func TestPostgresRegisterVisit(t *testing.T) {
 	t.Run("new user has no entry", func(t *testing.T) {
 		t.Parallel()
 
-		db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
+		db, err := database.NewPostgresDatabase(database.LocalConnectionString)
 		require.NoError(t, err)
 		defer db.Close()
 
@@ -354,7 +354,7 @@ func TestPostgresRegisterVisit(t *testing.T) {
 		t.Parallel()
 		ctx := t.Context()
 
-		db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
+		db, err := database.NewPostgresDatabase(database.LocalConnectionString)
 		require.NoError(t, err)
 		defer db.Close()
 

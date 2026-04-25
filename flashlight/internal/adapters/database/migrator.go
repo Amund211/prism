@@ -58,7 +58,7 @@ func (m *migrator) migrate(ctx context.Context, schemaName string) error {
 	defer migrationSource.Close()
 
 	dbDriver, err := postgres.WithConnection(ctx, conn, &postgres.Config{
-		DatabaseName: DB_NAME,
+		DatabaseName: DBName,
 		SchemaName:   schemaName,
 	})
 	if err != nil {

@@ -8,7 +8,7 @@ func GetCloudSQLConnectionString(dbUsername, dbPassword, unixSocketPath string) 
 		"user=%s password=%s database=%s host=%s",
 		dbUsername,
 		dbPassword,
-		DB_NAME,
+		DBName,
 		unixSocketPath,
 	)
 }

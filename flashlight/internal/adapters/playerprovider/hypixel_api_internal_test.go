@@ -171,7 +171,7 @@ func TestGetPlayerDataRateLimitHeaders(t *testing.T) {
 		headers.Set("RateLimit-Limit", "120")
 		headers.Set("RateLimit-Remaining", "100")
 
-		httpClient := &mockedHttpClient{
+		httpClient := &mockedHTTPClient{
 			t:           t,
 			expectedURL: "https://api.hypixel.net/v2/player?uuid=test-uuid-1",
 			response: &http.Response{
@@ -224,7 +224,7 @@ func TestGetPlayerDataRateLimitHeaders(t *testing.T) {
 		headers := http.Header{}
 		headers.Set("RateLimit-Limit", "120")
 
-		httpClient := &mockedHttpClient{
+		httpClient := &mockedHTTPClient{
 			t:           t,
 			expectedURL: "https://api.hypixel.net/v2/player?uuid=test-uuid-2",
 			response: &http.Response{
@@ -275,7 +275,7 @@ func TestGetPlayerDataRateLimitHeaders(t *testing.T) {
 		headers := http.Header{}
 		headers.Set("RateLimit-Remaining", "100")
 
-		httpClient := &mockedHttpClient{
+		httpClient := &mockedHTTPClient{
 			t:           t,
 			expectedURL: "https://api.hypixel.net/v2/player?uuid=test-uuid-3",
 			response: &http.Response{
@@ -325,7 +325,7 @@ func TestGetPlayerDataRateLimitHeaders(t *testing.T) {
 
 		headers := http.Header{}
 
-		httpClient := &mockedHttpClient{
+		httpClient := &mockedHTTPClient{
 			t:           t,
 			expectedURL: "https://api.hypixel.net/v2/player?uuid=test-uuid-4",
 			response: &http.Response{
@@ -376,7 +376,7 @@ func TestGetPlayerDataRateLimitHeaders(t *testing.T) {
 		headers.Set("RateLimit-Limit", "invalid")
 		headers.Set("RateLimit-Remaining", "100")
 
-		httpClient := &mockedHttpClient{
+		httpClient := &mockedHTTPClient{
 			t:           t,
 			expectedURL: "https://api.hypixel.net/v2/player?uuid=test-uuid-5",
 			response: &http.Response{
@@ -429,7 +429,7 @@ func TestGetPlayerDataRateLimitHeaders(t *testing.T) {
 		headers.Set("RateLimit-Limit", "120")
 		headers.Set("RateLimit-Remaining", "not-a-number")
 
-		httpClient := &mockedHttpClient{
+		httpClient := &mockedHTTPClient{
 			t:           t,
 			expectedURL: "https://api.hypixel.net/v2/player?uuid=test-uuid-6",
 			response: &http.Response{
@@ -482,7 +482,7 @@ func TestGetPlayerDataRateLimitHeaders(t *testing.T) {
 		headers.Set("RateLimit-Limit", "abc")
 		headers.Set("RateLimit-Remaining", "xyz")
 
-		httpClient := &mockedHttpClient{
+		httpClient := &mockedHTTPClient{
 			t:           t,
 			expectedURL: "https://api.hypixel.net/v2/player?uuid=test-uuid-7",
 			response: &http.Response{
@@ -534,7 +534,7 @@ func TestGetPlayerDataRateLimitHeaders(t *testing.T) {
 		headers.Set("RateLimit-Limit", "-10")
 		headers.Set("RateLimit-Remaining", "-5")
 
-		httpClient := &mockedHttpClient{
+		httpClient := &mockedHTTPClient{
 			t:           t,
 			expectedURL: "https://api.hypixel.net/v2/player?uuid=test-uuid-8",
 			response: &http.Response{
@@ -589,7 +589,7 @@ func TestGetPlayerDataRateLimitHeaders(t *testing.T) {
 		headers.Set("RateLimit-Limit", "0")
 		headers.Set("RateLimit-Remaining", "0")
 
-		httpClient := &mockedHttpClient{
+		httpClient := &mockedHTTPClient{
 			t:           t,
 			expectedURL: "https://api.hypixel.net/v2/player?uuid=test-uuid-9",
 			response: &http.Response{
@@ -643,7 +643,7 @@ func TestGetPlayerDataRateLimitHeaders(t *testing.T) {
 		headers.Set("RateLimit-Limit", "9223372036854775807") // max int64
 		headers.Set("RateLimit-Remaining", "9223372036854775806")
 
-		httpClient := &mockedHttpClient{
+		httpClient := &mockedHTTPClient{
 			t:           t,
 			expectedURL: "https://api.hypixel.net/v2/player?uuid=test-uuid-10",
 			response: &http.Response{

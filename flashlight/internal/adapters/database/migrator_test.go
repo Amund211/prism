@@ -25,7 +25,7 @@ func TestMigrator(t *testing.T) {
 		ctx := t.Context()
 		schemaName := "migrate_up_down"
 
-		db, err := NewPostgresDatabase(LOCAL_CONNECTION_STRING)
+		db, err := NewPostgresDatabase(LocalConnectionString)
 		require.NoError(t, err)
 
 		db.MustExec(fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", pq.QuoteIdentifier(schemaName)))
@@ -48,7 +48,7 @@ func TestMigrator(t *testing.T) {
 		defer migrationSource.Close()
 
 		dbDriver, err := postgres.WithConnection(ctx, conn, &postgres.Config{
-			DatabaseName: DB_NAME,
+			DatabaseName: DBName,
 			SchemaName:   schemaName,
 		})
 		require.NoError(t, err)

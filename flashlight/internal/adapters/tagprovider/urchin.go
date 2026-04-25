@@ -26,7 +26,7 @@ import (
 
 const getTagsMinOperationTime = 150 * time.Millisecond
 
-type HttpClient interface {
+type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
@@ -57,14 +57,14 @@ func setupUrchinAPIMetrics(meter metric.Meter) (urchinAPIMetricsCollection, erro
 }
 
 type urchin struct {
-	httpClient HttpClient
+	httpClient HTTPClient
 	limiter    RequestLimiter
 
 	metrics urchinAPIMetricsCollection
 	tracer  trace.Tracer
 }
 
-func NewUrchin(httpClient HttpClient, nowFunc func() time.Time, afterFunc func(time.Duration) <-chan time.Time) (*urchin, error) {
+func NewUrchin(httpClient HTTPClient, nowFunc func() time.Time, afterFunc func(time.Duration) <-chan time.Time) (*urchin, error) {
 	const name = "flashlight/tagprovider/urchin"
 
 	meter := otel.Meter(name)
@@ -103,7 +103,7 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 		return domain.Tags{}, err
 	}
 
-	req.Header.Set("User-Agent", constants.USER_AGENT)
+	req.Header.Set("User-Agent", constants.UserAgent)
 
 	var resp *http.Response
 	var data []byte

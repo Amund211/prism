@@ -22,7 +22,7 @@ import (
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
-const DATA_FORMAT_VERSION = 1
+const dataFormatVersion = 1
 
 type PostgresPlayerRepository struct {
 	db     *sqlx.DB
@@ -233,7 +233,7 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 		player.QueriedAt.Add(-1*time.Hour),
 	).Scan(&lastDataFormatVersion, &lastPlayerData)
 	if err == nil {
-		if lastDataFormatVersion == DATA_FORMAT_VERSION {
+		if lastDataFormatVersion == dataFormatVersion {
 			// Found recent stats with the same data format version -> compare
 			equal, err := strutils.JSONStringsEqual(playerData, lastPlayerData)
 			if err != nil {
@@ -266,7 +266,7 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 		player.UUID,
 		playerData,
 		player.QueriedAt,
-		DATA_FORMAT_VERSION,
+		dataFormatVersion,
 	)
 	if err != nil {
 		err := fmt.Errorf("failed to insert new stats: %w", err)
@@ -281,7 +281,7 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 		return err
 	}
 
-	logging.FromContext(ctx).InfoContext(ctx, "Stored stats", "dataFormatVersion", DATA_FORMAT_VERSION)
+	logging.FromContext(ctx).InfoContext(ctx, "Stored stats", "dataFormatVersion", dataFormatVersion)
 
 	return nil
 }

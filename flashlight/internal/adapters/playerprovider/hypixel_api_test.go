@@ -25,7 +25,7 @@ var expectedHeaders = http.Header{
 	"Api-Key":    {apiKey},
 }
 
-type mockedHttpClient struct {
+type mockedHTTPClient struct {
 	t           *testing.T
 	expectedURL string
 	response    *http.Response
@@ -34,7 +34,7 @@ type mockedHttpClient struct {
 	requestErr  error
 }
 
-func (m *mockedHttpClient) Do(req *http.Request) (*http.Response, error) {
+func (m *mockedHTTPClient) Do(req *http.Request) (*http.Response, error) {
 	require.Equal(m.t, m.expectedURL, req.URL.String())
 	require.True(m.t, reflect.DeepEqual(expectedHeaders, req.Header), "Expected %v, got %v", expectedHeaders, req.Header)
 
@@ -58,8 +58,8 @@ func (c cantRead) Close() error {
 	return nil
 }
 
-func newMockedHttpClient(t *testing.T, expectedURL string, statusCode int, body string, err error) *mockedHttpClient {
-	return &mockedHttpClient{
+func newMockedHTTPClient(t *testing.T, expectedURL string, statusCode int, body string, err error) *mockedHTTPClient {
+	return &mockedHTTPClient{
 		t:           t,
 		expectedURL: expectedURL,
 		statusCode:  statusCode,
@@ -80,7 +80,7 @@ func TestGetPlayerData(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
-		httpClient := newMockedHttpClient(
+		httpClient := newMockedHTTPClient(
 			t,
 			"https://api.hypixel.net/v2/player?uuid=uuid1234",
 			200,
@@ -101,7 +101,7 @@ func TestGetPlayerData(t *testing.T) {
 	t.Run("request error", func(t *testing.T) {
 		t.Parallel()
 
-		httpClient := newMockedHttpClient(
+		httpClient := newMockedHTTPClient(
 			t,
 			"https://api.hypixel.net/v2/player?uuid=uuid123456",
 			200,
@@ -118,7 +118,7 @@ func TestGetPlayerData(t *testing.T) {
 	t.Run("body read error", func(t *testing.T) {
 		t.Parallel()
 
-		httpClient := &mockedHttpClient{
+		httpClient := &mockedHTTPClient{
 			t:           t,
 			expectedURL: "https://api.hypixel.net/v2/player?uuid=uuid",
 			response: &http.Response{
@@ -141,7 +141,7 @@ func TestGetPlayerData(t *testing.T) {
 		headers.Set("RateLimit-Limit", "120")
 		headers.Set("RateLimit-Remaining", "100")
 
-		httpClient := &mockedHttpClient{
+		httpClient := &mockedHTTPClient{
 			t:           t,
 			expectedURL: "https://api.hypixel.net/v2/player?uuid=uuid5678",
 			response: &http.Response{
@@ -170,7 +170,7 @@ func TestGetPlayerData(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
 			start := time.Now()
-			httpClient := newMockedHttpClient(
+			httpClient := newMockedHTTPClient(
 				t,
 				"https://api.hypixel.net/v2/player?uuid=uuid1234",
 				200,

@@ -311,8 +311,8 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 
 					require.Equal(t, start, time.Now())
 
-					ctx, close := context.WithTimeout(t.Context(), c.timeout)
-					defer close()
+					ctx, cancel := context.WithTimeout(t.Context(), c.timeout)
+					defer cancel()
 					ran = l.Limit(ctx, minOperationTime, func(ctx context.Context) {
 						t.Helper()
 						require.True(t, c.shouldRun)
@@ -351,8 +351,8 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 					l := ratelimiting.NewWindowLimitRequestLimiter(2, 10*time.Second, time.Now, time.After)
 					minOperationTime := 2 * time.Second
 
-					ctx, close := context.WithTimeout(t.Context(), timeout)
-					defer close()
+					ctx, cancel := context.WithTimeout(t.Context(), timeout)
+					defer cancel()
 					ran := l.Limit(ctx, minOperationTime, func(ctx context.Context) {})
 					require.True(t, ran)
 

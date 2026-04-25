@@ -23,7 +23,7 @@ import (
 
 const getPlayerDataMinOperationTime = 100 * time.Millisecond
 
-type HttpClient interface {
+type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
@@ -81,7 +81,7 @@ func (hypixelAPI *mockedHypixelAPI) GetPlayerData(ctx context.Context, uuid stri
 }
 
 type hypixelAPIImpl struct {
-	httpClient HttpClient
+	httpClient HTTPClient
 	limiter    RequestLimiter
 	nowFunc    func() time.Time
 	apiKey     string
@@ -104,7 +104,7 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 		return []byte{}, -1, time.Time{}, err
 	}
 
-	req.Header.Set("User-Agent", constants.USER_AGENT)
+	req.Header.Set("User-Agent", constants.UserAgent)
 	req.Header.Set("API-Key", hypixelAPI.apiKey)
 
 	var resp *http.Response
@@ -187,7 +187,7 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 }
 
 func NewHypixelAPI(
-	httpClient HttpClient,
+	httpClient HTTPClient,
 	nowFunc func() time.Time,
 	afterFunc func(d time.Duration) <-chan time.Time,
 	apiKey string,
@@ -216,7 +216,7 @@ func NewHypixelAPI(
 
 func NewHypixelAPIOrMock(
 	config config.Config,
-	httpClient HttpClient,
+	httpClient HTTPClient,
 	nowFunc func() time.Time,
 	afterFunc func(d time.Duration) <-chan time.Time,
 ) (HypixelAPI, error) {

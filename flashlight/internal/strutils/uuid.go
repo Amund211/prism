@@ -6,13 +6,13 @@ import (
 	"unicode"
 )
 
-const VALID_HEX_DIGITS = "0123456789abcdefABCDEF"
+const validHexDigits = "0123456789abcdefABCDEF"
 
-const DASHED_UUID_LENGTH = 36
+const dashedUUIDLength = 36
 
 // Converts the input string to a dashed, lowercase UUID string
 func NormalizeUUID(uuid string) (string, error) {
-	normalized := stringBuilderWithCapacity(DASHED_UUID_LENGTH)
+	normalized := stringBuilderWithCapacity(dashedUUIDLength)
 
 	for _, char := range uuid {
 		normLen := normalized.Len()
@@ -25,7 +25,7 @@ func NormalizeUUID(uuid string) (string, error) {
 		}
 		if char == '-' {
 			continue
-		} else if strings.ContainsRune(VALID_HEX_DIGITS, char) {
+		} else if strings.ContainsRune(validHexDigits, char) {
 			_, err := normalized.WriteRune(unicode.ToLower(char))
 			if err != nil {
 				return "", fmt.Errorf("failed writing to stringbuilder: %w", err)
@@ -34,7 +34,7 @@ func NormalizeUUID(uuid string) (string, error) {
 			return "", fmt.Errorf("invalid character in UUID. input: '%s'", uuid)
 		}
 	}
-	if normalized.Len() != DASHED_UUID_LENGTH {
+	if normalized.Len() != dashedUUIDLength {
 		return "", fmt.Errorf("normalized UUID has incorrect length. input: '%s'", uuid)
 	}
 	return normalized.String(), nil
@@ -48,10 +48,10 @@ func UUIDIsNormalized(uuid string) bool {
 	return normalizedUUID == uuid
 }
 
-func stringBuilderWithCapacity(cap int) *strings.Builder {
+func stringBuilderWithCapacity(capacity int) *strings.Builder {
 	var sb strings.Builder
 
-	missingCap := cap - sb.Cap()
+	missingCap := capacity - sb.Cap()
 
 	if missingCap > 0 {
 		sb.Grow(missingCap)

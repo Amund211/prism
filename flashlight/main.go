@@ -34,8 +34,8 @@ import (
 )
 
 // TODO: Put in config
-const PROD_DOMAIN_SUFFIX = "prismoverlay.com"
-const STAGING_DOMAIN_SUFFIX = "rainbow-ctx.pages.dev"
+const prodDomainSuffix = "prismoverlay.com"
+const stagingDomainSuffix = "rainbow-ctx.pages.dev"
 
 func main() {
 	ctx := context.Background()
@@ -160,7 +160,7 @@ func main() {
 	userRepo := userrepository.NewPostgres(db, repositorySchemaName, time.Now)
 	logger.InfoContext(ctx, "Initialized UserRepository")
 
-	allowedOrigins, err := ports.NewDomainSuffixes(PROD_DOMAIN_SUFFIX, STAGING_DOMAIN_SUFFIX)
+	allowedOrigins, err := ports.NewDomainSuffixes(prodDomainSuffix, stagingDomainSuffix)
 	if err != nil {
 		fail("Failed to initialize allowed origins", "error", err.Error())
 	}

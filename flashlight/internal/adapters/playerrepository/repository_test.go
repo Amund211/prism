@@ -49,7 +49,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 	}
 
 	ctx := t.Context()
-	db, err := database.NewPostgresDatabase(database.LOCAL_CONNECTION_STRING)
+	db, err := database.NewPostgresDatabase(database.LocalConnectionString)
 	require.NoError(t, err)
 
 	now := time.Now()
@@ -57,8 +57,8 @@ func TestPostgresPlayerRepository(t *testing.T) {
 	t.Run("StorePlayer", func(t *testing.T) {
 		t.Parallel()
 
-		SCHEMA_NAME := "store_stats"
-		p := newPostgresPlayerRepository(t, db, SCHEMA_NAME)
+		schemaName := "store_stats"
+		p := newPostgresPlayerRepository(t, db, schemaName)
 
 		requireStored := func(t *testing.T, player *domain.PlayerPIT, targetCount int) {
 			t.Helper()
@@ -73,7 +73,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			require.NoError(t, err)
 			defer txx.Rollback()
 
-			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(SCHEMA_NAME)))
+			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(schemaName)))
 			require.NoError(t, err)
 
 			row := txx.QueryRowx("SELECT COUNT(*) FROM stats WHERE player_uuid = $1 AND player_data = $2 AND queried_at = $3", normalizedUUID, playerData, player.QueriedAt)
@@ -249,7 +249,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			require.NoError(t, err)
 			defer txx.Rollback()
 
-			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(SCHEMA_NAME)))
+			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(schemaName)))
 			require.NoError(t, err)
 
 			_, err = txx.ExecContext(
@@ -353,7 +353,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			require.NoError(t, err)
 			defer txx.Rollback()
 
-			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(SCHEMA_NAME)))
+			_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(schemaName)))
 			require.NoError(t, err)
 
 			// Only one row for this player should exist

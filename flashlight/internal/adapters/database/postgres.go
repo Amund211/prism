@@ -9,18 +9,18 @@ import (
 	"github.com/Amund211/flashlight/internal/config"
 )
 
-const DB_NAME = "flashlight"
+const DBName = "flashlight"
 
-const LOCAL_CONNECTION_STRING = "user=postgres password=postgres dbname=flashlight sslmode=disable"
+const LocalConnectionString = "user=postgres password=postgres dbname=flashlight sslmode=disable"
 
-const MAIN_SCHEMA = "flashlight"
-const TESTING_SCHEMA = "flashlight_test"
+const MainSchema = "flashlight"
+const TestingSchema = "flashlight_test"
 
 func GetSchemaName(isTesting bool) string {
 	if isTesting {
-		return TESTING_SCHEMA
+		return TestingSchema
 	}
-	return MAIN_SCHEMA
+	return MainSchema
 }
 
 func NewPostgresDatabase(connectionString string) (*sqlx.DB, error) {
@@ -29,7 +29,7 @@ func NewPostgresDatabase(connectionString string) (*sqlx.DB, error) {
 		return nil, fmt.Errorf("failed to connect to db: %w", err)
 	}
 
-	err = createDatabaseIfNotExists(db, DB_NAME)
+	err = createDatabaseIfNotExists(db, DBName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create database: %w", err)
 	}
@@ -40,7 +40,7 @@ func NewPostgresDatabase(connectionString string) (*sqlx.DB, error) {
 func NewCloudsqlPostgresDatabase(conf config.Config) (*sqlx.DB, error) {
 	var connectionString string
 	if conf.IsDevelopment() {
-		connectionString = LOCAL_CONNECTION_STRING
+		connectionString = LocalConnectionString
 	} else {
 		connectionString = GetCloudSQLConnectionString(conf.DBUsername(), conf.DBPassword(), conf.CloudSQLUnixSocketPath())
 	}
