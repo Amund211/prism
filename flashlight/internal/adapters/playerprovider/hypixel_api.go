@@ -117,7 +117,7 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 		requestCtx, span := hypixelAPI.tracer.Start(ctx, "HypixelAPI.make_request")
 		defer span.End()
 
-		resp, err = hypixelAPI.httpClient.Do(req)
+		resp, err = hypixelAPI.httpClient.Do(req) // nolint:bodyclose // Closed via deferred Close inside this closure
 		if err != nil {
 			err := fmt.Errorf("failed to send request: %w", err)
 			logging.FromContext(ctx).ErrorContext(ctx, err.Error())

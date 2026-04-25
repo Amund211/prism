@@ -90,7 +90,7 @@ func (m *Mojang) getProfile(ctx context.Context, url string) (domain.Account, er
 		ctx, span := m.tracer.Start(ctx, "MojangAPI.getProfile")
 		defer span.End()
 
-		resp, err = m.httpClient.Do(req)
+		resp, err = m.httpClient.Do(req) // nolint:bodyclose // Closed via deferred Close inside this closure
 		if err != nil {
 			err := fmt.Errorf("failed to send request: %w", err)
 			reporting.Report(ctx, err)

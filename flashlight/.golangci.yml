@@ -10,6 +10,7 @@ linters:
     - staticcheck
     - errcheck
     - ineffassign
+    - bodyclose
     - copyloopvar
     - intrange
 

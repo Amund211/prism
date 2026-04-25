@@ -112,7 +112,7 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 		ctx, span := u.tracer.Start(ctx, "Urchin.httpget")
 		defer span.End()
 
-		resp, err = u.httpClient.Do(req)
+		resp, err = u.httpClient.Do(req) // nolint:bodyclose // Closed via deferred Close inside this closure
 		if err != nil {
 			errString := err.Error()
 			if strings.HasSuffix(errString, "read: connection reset by peer") ||
