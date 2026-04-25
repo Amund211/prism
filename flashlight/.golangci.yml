@@ -15,6 +15,7 @@ linters:
     - rowserrcheck
     - errorlint
     - spancheck
+    - nilerr
     - copyloopvar
     - intrange
 
