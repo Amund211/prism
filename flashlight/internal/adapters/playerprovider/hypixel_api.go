@@ -96,7 +96,7 @@ func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string)
 
 	url := fmt.Sprintf("https://api.hypixel.net/v2/player?uuid=%s", uuid)
 
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, http.NoBody)
 	if err != nil {
 		err := fmt.Errorf("failed to create request: %w", err)
 		logging.FromContext(ctx).ErrorContext(ctx, err.Error())

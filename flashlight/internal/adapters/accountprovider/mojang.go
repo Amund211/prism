@@ -75,7 +75,7 @@ func (m *Mojang) GetAccountByUsername(ctx context.Context, username string) (dom
 }
 
 func (m *Mojang) getProfile(ctx context.Context, url string) (domain.Account, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, http.NoBody)
 	if err != nil {
 		err := fmt.Errorf("failed to create request: %w", err)
 		reporting.Report(ctx, err)

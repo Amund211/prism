@@ -16,7 +16,7 @@ type MojangResponse struct {
 }
 
 func makeRequest(ctx context.Context, httpClient *http.Client, url string, apiKey string) ([]byte, int, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, http.NoBody)
 	if err != nil {
 		log.Println(err)
 		return []byte{}, -1, fmt.Errorf("constructing request: %w", err)

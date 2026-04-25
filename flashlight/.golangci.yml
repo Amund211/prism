@@ -20,10 +20,17 @@ linters:
     - revive
     - misspell
     - unconvert
+    - gocritic
     - copyloopvar
     - intrange
 
   settings:
+    gocritic:
+      # Scope gocritic to a single check to avoid the ~50 default checks
+      # that would create lots of noise.
+      disable-all: true
+      enabled-checks:
+        - httpNoBody
     revive:
       rules:
         # Bug-catching rules we keep enabled

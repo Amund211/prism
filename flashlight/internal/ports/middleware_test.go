@@ -65,7 +65,7 @@ func TestRateLimitMiddleware(t *testing.T) {
 			},
 		)
 
-		req, err := http.NewRequestWithContext(t.Context(), "GET", "http://example.com/test", nil)
+		req, err := http.NewRequestWithContext(t.Context(), "GET", "http://example.com/test", http.NoBody)
 		require.NoError(t, err)
 		req.RemoteAddr = "169.254.169.126:58418"
 		req.Header.Set("X-Forwarded-For", "12.12.123.123,34.111.7.239")
