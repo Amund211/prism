@@ -13,6 +13,7 @@ linters:
     - bodyclose
     - sqlclosecheck
     - rowserrcheck
+    - errorlint
     - copyloopvar
     - intrange
 
