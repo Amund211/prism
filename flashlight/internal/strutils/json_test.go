@@ -3,8 +3,9 @@ package strutils_test
 import (
 	"testing"
 
-	"github.com/Amund211/flashlight/internal/strutils"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/strutils"
 )
 
 func TestJSONStringsEqual(t *testing.T) {

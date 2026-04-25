@@ -6,10 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/logging"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
+
+	"github.com/Amund211/flashlight/internal/logging"
 )
 
 type CancelableRequestLimiter interface {

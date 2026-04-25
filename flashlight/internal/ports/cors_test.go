@@ -7,8 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/ports"
 )
 
 const PROD_DOMAIN_SUFFIX = "prismoverlay.com"

@@ -8,10 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/strutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/strutils"
 )
 
 func TestUUIDFromMojangResponse(t *testing.T) {

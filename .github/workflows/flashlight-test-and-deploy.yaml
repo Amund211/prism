@@ -43,13 +43,8 @@ jobs:
           go mod tidy
           git diff --quiet
 
-      - name: Verify formatting
-        run: |
-          go fmt ./...
-          git diff --quiet
-
-      - name: Vet code
-        run: go vet ./...
+      - name: Lint
+        run: go tool golangci-lint run
 
       - name: Verify dependencies
         run: go mod verify

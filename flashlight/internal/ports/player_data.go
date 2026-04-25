@@ -8,13 +8,14 @@ import (
 	"log/slog"
 	"net/http"
 
+	"go.opentelemetry.io/otel"
+
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
-	"go.opentelemetry.io/otel"
 )
 
 func MakeGetPlayerDataHandler(

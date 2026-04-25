@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/domain"
 )
 
 type playerBuilder struct {

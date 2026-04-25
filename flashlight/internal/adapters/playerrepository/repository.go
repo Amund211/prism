@@ -10,15 +10,16 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/reporting"
-	"github.com/Amund211/flashlight/internal/strutils"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
+
+	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/flashlight/internal/strutils"
 )
 
 const DATA_FORMAT_VERSION = 1

@@ -9,6 +9,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
+
 	"github.com/Amund211/flashlight/internal/adapters/accountprovider"
 	"github.com/Amund211/flashlight/internal/adapters/accountrepository"
 	"github.com/Amund211/flashlight/internal/adapters/cache"
@@ -24,10 +29,6 @@ import (
 	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/telemetry"
-	"github.com/google/uuid"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/codes"
 
 	_ "golang.org/x/crypto/x509roots/fallback" // Add fallback certs (for running in docker scratch image without ca-certificates)
 )

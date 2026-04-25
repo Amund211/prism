@@ -7,8 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/logging"
 )
 
 func newWriter(t *testing.T) *jsonWriter {

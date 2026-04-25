@@ -4,8 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Amund211/flashlight/internal/config"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/config"
 )
 
 type environment string

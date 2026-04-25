@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/domain"
 )
 
 func TestTagsFromUrchinResponse(t *testing.T) {

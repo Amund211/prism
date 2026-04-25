@@ -3,9 +3,10 @@ package database
 import (
 	"fmt"
 
-	"github.com/Amund211/flashlight/internal/config"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+
+	"github.com/Amund211/flashlight/internal/config"
 )
 
 const DB_NAME = "flashlight"

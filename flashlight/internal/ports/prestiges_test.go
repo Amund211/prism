@@ -9,12 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/domaintest"
 	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/Amund211/flashlight/internal/strutils"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGetPrestigesHandler(t *testing.T) {

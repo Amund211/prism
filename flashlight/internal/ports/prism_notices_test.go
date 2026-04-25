@@ -11,10 +11,11 @@ import (
 	"testing/synctest"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/domaintest"
 	"github.com/Amund211/flashlight/internal/ports"
-	"github.com/stretchr/testify/require"
 )
 
 func TestPrismNoticesHandler(t *testing.T) {

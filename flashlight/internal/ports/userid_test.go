@@ -5,8 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/ports"
 )
 
 func TestGetUserID(t *testing.T) {

@@ -11,9 +11,10 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/domain"
 )
 
 const apiKey = "key"
