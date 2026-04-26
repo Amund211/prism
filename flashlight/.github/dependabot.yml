@@ -30,13 +30,22 @@ updates:
       include: 'scope'
 
   - package-ecosystem: 'docker'
-    directories:
-      - '/'
-      - '/collector'
+    directory: '/'
     schedule:
       interval: 'weekly'
     cooldown:
       default-days: 7
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
+
+  - package-ecosystem: 'docker'
+    directory: '/collector'
+    schedule:
+      interval: 'weekly'
+    # cooldown is omitted: it crashes the whole docker job when a candidate
+    # tag points to a multi-arch image index (404 on the blob HEAD during
+    # apply_cooldown). See dependabot/dependabot-core#14044.
     commit-message:
       prefix: 'chore'
       include: 'scope'
