@@ -1,10 +1,10 @@
 import logging
 import tkinter as tk
-from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from prism.overlay.output.cell_renderer import pick_columns
 from prism.overlay.output.cells import ColumnName, InfoCellValue
+from prism.overlay.output.overlay.info_strip import InfoStrip
 from prism.overlay.output.overlay.stats_table import StatsTable
 from prism.overlay.output.overlay.stats_table_controller import (
     GUIRow,
@@ -31,60 +31,13 @@ class MainContent:  # pragma: nocover
 
         self.frame = tk.Frame(parent, background="black")
 
-        # Frame at the top to display info to the user
-        self.info_frame = tk.Frame(self.frame, background="black")
-        self.info_frame.pack(side=tk.TOP, expand=True, fill=tk.X)
+        self.info_strip = InfoStrip(parent=self.frame, on_link_click=open_url)
 
-        self.info_labels: dict[InfoCellValue, tk.Label] = {}
-
-        def shrink_info_when_empty(event: "tk.Event[tk.Frame]") -> None:
-            """Manually shrink the info frame when it becomes empty"""
-            if not self.info_frame.children:
-                self.info_frame.configure(height=1)
-
-        self.info_frame.bind("<Expose>", shrink_info_when_empty)
-
-        # The reusable stats-table widget
         self.stats_table = StatsTable(
             parent=self.frame,
             on_edit_click=self._on_edit_click,
             column_order=column_order,
         )
-
-    def update_info(self, info_cells: list[InfoCellValue]) -> None:
-        """Update the list of info cells at the top of the overlay"""
-        to_remove = set(self.info_labels.keys()) - set(info_cells)
-        to_add = set(info_cells) - set(self.info_labels.keys())
-
-        # Remove old labels
-        for cell in to_remove:
-            label = self.info_labels.pop(cell)
-            label.destroy()
-
-        # Add new labels
-        for cell in to_add:
-            label = tk.Label(
-                self.info_frame,
-                text=cell.text,
-                font=("Consolas", 14),
-                fg=cell.color,  # Color set on each update
-                bg="black",
-            )
-
-            if cell.url is not None:
-                label.config(cursor="hand2")
-                label.bind("<Button-1>", self._make_link_click_handler(cell.url))
-
-            label.pack(side=tk.TOP)
-            self.info_labels[cell] = label
-
-    def _make_link_click_handler(
-        self, url: str
-    ) -> Callable[["tk.Event[tk.Label]"], None]:
-        def handler(event: "tk.Event[tk.Label]") -> None:
-            open_url(url)
-
-        return handler
 
     def update_content(
         self,
@@ -92,7 +45,7 @@ class MainContent:  # pragma: nocover
         new_rows: list[OverlayRowData] | None,
     ) -> None:
         """Display the new data"""
-        self.update_info(info_cells)
+        self.info_strip.tick(tuple(info_cells))
 
         if new_rows is None:
             return
