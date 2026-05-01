@@ -38,6 +38,7 @@ describe(newUserId, () => {
             // Simulate an environment without crypto.randomUUID
             crypto.randomUUID = undefined as unknown as typeof crypto.randomUUID;
         });
+
         afterAll(() => {
             if (originalRandomUUID === undefined) {
                 throw new Error("crypto.randomUUID should be restored after the test");
@@ -58,15 +59,15 @@ describe(newUserId, () => {
                 ).toMatch(/^([a-f0-9-]+-){3}([a-f0-9-]+)$/);
 
                 expect(
-                    suffix.split("-").length,
+                    suffix.split("-"),
                     "User ID suffix should consist of 4 parts",
-                ).toBe(4);
+                ).toHaveLength(4);
 
                 for (const part of suffix.split("-")) {
                     expect(
-                        part.length,
+                        part,
                         "Each part of the user ID suffix should be 12 characters long",
-                    ).toBe(12);
+                    ).toHaveLength(12);
                 }
             }
         });

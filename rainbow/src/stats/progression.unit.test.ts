@@ -20,7 +20,7 @@ type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 class StatsBuilder {
     private readonly stats: Mutable<StatsPIT>;
 
-    constructor() {
+    public constructor() {
         this.stats = {
             winstreak: null,
             gamesPlayed: 0,
@@ -35,15 +35,15 @@ class StatsBuilder {
         };
     }
 
-    withStat(stat: "winstreak", value: number | null): this;
-    withStat(
+    public withStat(stat: "winstreak", value: number | null): this;
+    public withStat(
         stat: Exclude<
             StatKey,
             "winstreak" | "fkdr" | "kdr" | "index" | "stars" | "experience"
         >,
         value: number,
     ): this;
-    withStat(
+    public withStat(
         stat: Exclude<StatKey, "fkdr" | "kdr" | "index" | "stars" | "experience">,
         value: number | null,
     ): this {
@@ -104,7 +104,7 @@ class StatsBuilder {
         return this;
     }
 
-    build(): StatsPIT {
+    public build(): StatsPIT {
         // Return a copy to prevent mutation
         return { ...this.stats };
     }
@@ -113,7 +113,7 @@ class StatsBuilder {
 class PlayerDataBuilder {
     private player: Mutable<PlayerDataPIT>;
 
-    constructor(uuid: string, queriedAt: Date) {
+    public constructor(uuid: string, queriedAt: Date) {
         const emptyStats: StatsPIT = {
             winstreak: null,
             gamesPlayed: 0,
@@ -139,17 +139,17 @@ class PlayerDataBuilder {
         };
     }
 
-    withExperience(experience: number): this {
+    public withExperience(experience: number): this {
         this.player.experience = experience;
         return this;
     }
 
-    withGamemodeStats(gamemode: GamemodeKey, stats: StatsPIT): this {
+    public withGamemodeStats(gamemode: GamemodeKey, stats: StatsPIT): this {
         this.player[gamemode] = { ...stats };
         return this;
     }
 
-    build(): PlayerDataPIT {
+    public build(): PlayerDataPIT {
         // Return a copy to prevent mutation
         return {
             ...this.player,

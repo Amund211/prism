@@ -197,7 +197,7 @@ describe("sessionSearchSchema validation", () => {
             },
         });
         expect(result.timeIntervalDefinition.type).toBe("contained");
-        expect(result.timeIntervalDefinition.date).toBe(undefined);
+        expect(result.timeIntervalDefinition.date).toBeUndefined();
     });
 
     test("timeIntervalDefinition until with invalid date -> fallback to undefined", () => {
@@ -208,7 +208,7 @@ describe("sessionSearchSchema validation", () => {
             },
         });
         expect(result.timeIntervalDefinition.type).toBe("until");
-        expect(result.timeIntervalDefinition.date).toBe(undefined);
+        expect(result.timeIntervalDefinition.date).toBeUndefined();
     });
 
     test("all valid gamemode values", () => {

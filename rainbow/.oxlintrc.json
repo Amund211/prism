@@ -98,6 +98,17 @@
         "jest/no-export": "off",
         "jest/no-disabled-tests": "off",
         "jest/expect-expect": "off",
+        "jest/no-standalone-expect": "off",
+        "jest/consistent-test-it": "off",
+        "jest/valid-title": "off",
+        "jest/no-conditional-in-test": "off",
+        "jest/no-conditional-expect": "off",
+        "jest/valid-expect": "off",
+        "jest/prefer-each": "off",
+        "jest/prefer-lowercase-title": "off",
+        "jest/max-expects": "off",
+        "jest/prefer-ending-with-an-expect": "off",
+        "jest/max-nested-describe": "off",
 
         "react/jsx-filename-extension": [
             "error",

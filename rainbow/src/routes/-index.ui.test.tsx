@@ -281,7 +281,7 @@ describe("Home page", () => {
                 await expect.element(deleteButtonIcon).not.toBeInTheDocument();
 
                 const stored = localStorage.getItem("playerVisits");
-                expect(stored).toStrictEqual("{}");
+                expect(stored).toBe("{}");
             },
         );
 

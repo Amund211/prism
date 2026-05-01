@@ -12,13 +12,13 @@ repos:
           - id: check-added-large-files
 
     - repo: https://github.com/oxc-project/mirrors-oxlint
-      rev: v1.60.0
+      rev: v1.61.0
       hooks:
           - id: oxlint
             verbose: false
 
     - repo: https://github.com/oxc-project/mirrors-oxfmt
-      rev: v0.45.0
+      rev: v0.46.0
       hooks:
           - id: oxfmt
             verbose: false
