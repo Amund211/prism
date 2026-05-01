@@ -1,12 +1,15 @@
 import logging
-import platform
 import tkinter as tk
 from collections.abc import Callable
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 from prism.overlay.output.cell_renderer import pick_columns
-from prism.overlay.output.cells import COLUMN_NAMES, ColumnName, InfoCellValue
+from prism.overlay.output.cells import ColumnName, InfoCellValue
+from prism.overlay.output.overlay.stats_table import StatsTable
+from prism.overlay.output.overlay.stats_table_controller import (
+    GUIRow,
+    maybe_add_tags_column,
+)
 from prism.overlay.output.overlay.utils import OverlayRowData, open_url
 
 if TYPE_CHECKING:  # pragma: nocover
@@ -15,18 +18,8 @@ if TYPE_CHECKING:  # pragma: nocover
 logger = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True, slots=True)
-class Cell:
-    """A cell in the window described by one text widget"""
-
-    text_widget: tk.Text
-
-
-OverlayRow = tuple[tk.Button, tuple[Cell, ...]]
-
-
 class MainContent:  # pragma: nocover
-    """Main content for the overlay"""
+    """Main content for the overlay: info-cell strip on top of the stats table."""
 
     def __init__(
         self,
@@ -34,15 +27,9 @@ class MainContent:  # pragma: nocover
         overlay: "StatsOverlay",
         column_order: tuple[ColumnName, ...],
     ) -> None:
-        # Column config
-        """Set up a frame containing the main content for the overlay"""
         self.overlay = overlay
-        self.column_order = column_order
 
         self.frame = tk.Frame(parent, background="black")
-
-        # Start with zero rows
-        self.rows: list[OverlayRow] = []
 
         # Frame at the top to display info to the user
         self.info_frame = tk.Frame(self.frame, background="black")
@@ -57,145 +44,12 @@ class MainContent:  # pragma: nocover
 
         self.info_frame.bind("<Expose>", shrink_info_when_empty)
 
-        # A frame for the stats table
-        self.table_frame = tk.Frame(self.frame, background="black")
-        self.table_frame.pack(side=tk.TOP)
-        self.table_frame.grid_columnconfigure(0, pad=4)
-
-        self.header_labels: tuple[tk.Label, ...] = ()
-        self.update_header_labels()
-
-    def update_header_labels(self) -> None:
-        """Set up header labels"""
-        for label in self.header_labels:
-            label.destroy()
-
-        labels: list[tk.Label] = []
-        for column_index, column_name in enumerate(self.column_order):
-            left_justified = column_name == "username"
-            header_label = tk.Label(
-                self.table_frame,
-                text=(str.ljust if left_justified else str.rjust)(
-                    COLUMN_NAMES[column_name], 7
-                ),
-                font=("Consolas", 14),
-                fg="snow",
-                bg="black",
-            )
-            header_label.grid(
-                row=1,
-                column=column_index + 1,
-                sticky="w" if left_justified else "e",
-            )
-            labels.append(header_label)
-
-        self.header_labels = tuple(labels)
-
-    def create_cell(self, row: int, column: int, sticky: Literal["w", "e"]) -> Cell:
-        """Create a cell in the table"""
-        text_widget = tk.Text(
-            self.table_frame,
-            font=("Consolas", 14),
-            fg="gray60",  # Color set on each update
-            bg="black",
-            width=1,  # Width set on each update
-            undo=False,
-            cursor="arrow",
-            height=1,
-            wrap="none",
-            background="black",
-            relief=tk.FLAT,
-            borderwidth=0,
-            highlightthickness=0,
+        # The reusable stats-table widget
+        self.stats_table = StatsTable(
+            parent=self.frame,
+            on_edit_click=self._on_edit_click,
+            column_order=column_order,
         )
-        text_widget.grid(row=row, column=column, sticky=sticky)
-
-        return Cell(text_widget)
-
-    def append_row(self) -> None:
-        """Add a row of cells to the table"""
-        row_index = len(self.rows) + 2
-
-        self.table_frame.grid_rowconfigure(row_index, pad=4)
-
-        cells = tuple(
-            self.create_cell(
-                row=row_index,
-                column=column_index + 1,
-                sticky="w" if column_name == "username" else "e",
-            )
-            for column_index, column_name in enumerate(self.column_order)
-        )
-
-        edit_button = tk.Button(
-            self.table_frame,
-            text="✎",
-            font=("Consolas", 14 if platform.system() == "Linux" else 12),
-            foreground="white",
-            disabledforeground="black",
-            background="black",
-            highlightthickness=0,
-            borderwidth=0,
-            cursor="hand2",
-            padx=2,
-            pady=0,
-            state="disabled",
-            command=lambda: None,
-            relief="flat",
-        )
-        edit_button.grid(row=row_index, column=0)
-
-        self.rows.append((edit_button, cells))
-
-    def pop_row(self) -> None:
-        """Remove a row of cells from the table"""
-        edit_button, cells = self.rows.pop()
-        for cell in cells:
-            cell.text_widget.destroy()
-
-        edit_button.destroy()
-
-    def set_length(self, length: int) -> None:
-        """Add or remove table rows to give the desired length"""
-        current_length = len(self.rows)
-        if length > current_length:
-            for i in range(length - current_length):
-                self.append_row()
-        elif length < current_length:
-            for i in range(current_length - length):
-                self.pop_row()
-
-    def update_column_order(self, new_rows: list[OverlayRowData]) -> None:
-        """
-        Check for a new column order in settings and make new cells if necessary
-
-        NOTE: Adds the "tags" column if any rows have tags
-        """
-        new_column_order = self.overlay.controller.settings.column_order
-
-        # Ensure the "tags" column is included if any rows have tags
-        if any(
-            not row[1].tags.is_pending
-            and not row[1].tags.is_error
-            and not row[1].tags.is_nicked
-            and not row[1].tags.is_empty
-            for row in new_rows
-        ):
-            if "tags" not in new_column_order:
-                new_column_order += ("tags",)
-
-        if new_column_order == self.column_order:
-            return
-
-        self.column_order = new_column_order
-
-        # Update the header
-        self.update_header_labels()
-
-        # Force recreate all the rows with the new column order
-        current_length = len(self.rows)
-        self.set_length(0)
-        self.set_length(current_length)
 
     def update_info(self, info_cells: list[InfoCellValue]) -> None:
         """Update the list of info cells at the top of the overlay"""
@@ -238,69 +92,26 @@ class MainContent:  # pragma: nocover
         new_rows: list[OverlayRowData] | None,
     ) -> None:
         """Display the new data"""
-        # Update the info at the top of the overlay
         self.update_info(info_cells)
 
-        # If there was no new data, we're done
         if new_rows is None:
             return
 
-        # Set the contents of the table if new data was provided
+        rows_tuple = tuple(new_rows)
+        column_order = maybe_add_tags_column(
+            self.overlay.controller.settings.column_order, rows_tuple
+        )
 
-        # Update the column order if there is a new one
-        # NOTE: We rely on a draw dispatch to honor the request to alter the
-        #       column order, so we need to make sure redraw_flag is set after
-        #       column_order is updated in settings.
-        self.update_column_order(new_rows)
+        gui_rows = tuple(
+            GUIRow(
+                cells=pick_columns(rated_stats, column_order),
+                nickname=nickname,
+            )
+            for nickname, rated_stats in rows_tuple
+        )
 
-        self.set_length(len(new_rows))
+        self.stats_table.tick(gui_rows, column_order)
 
-        for i, (nickname, rated_stats) in enumerate(new_rows):
-            edit_button, cells = self.rows[i]
-
-            for cell, cell_value in zip(
-                cells, pick_columns(rated_stats, self.column_order)
-            ):
-                new_text = cell_value.text
-
-                cell.text_widget.configure(state=tk.NORMAL)
-                cell.text_widget.delete("1.0", tk.END)
-                cell.text_widget.insert(tk.END, new_text)
-
-                # Delete old tags
-                for tag in cell.text_widget.tag_names():
-                    cell.text_widget.tag_delete(tag)
-
-                tag_start = 0
-                for i, color_section in enumerate(cell_value.color_sections):
-                    tag_name = f"tag{i}"
-                    tag_end = tag_start + color_section.length
-
-                    cell.text_widget.tag_add(tag_name, f"1.{tag_start}", f"1.{tag_end}")
-                    cell.text_widget.tag_config(
-                        tag_name, foreground=color_section.color
-                    )
-
-                    tag_start = tag_end
-
-                cell.text_widget.configure(
-                    fg=cell_value.color_sections[-1].color,
-                    state=tk.DISABLED,
-                    width=len(new_text),
-                )
-
-            if nickname is None:
-                edit_button.configure(state="disabled", command=lambda: None)
-            else:
-                edit_button.configure(
-                    state="normal", command=self.make_set_nick_callback(nickname)
-                )
-
-    def make_set_nick_callback(self, nickname: str) -> Callable[[], None]:
-        """Create a callback to pass as a command to open the set nick page"""
-
-        def command(self: "MainContent" = self) -> None:
-            self.overlay.set_nickname_page.set_content(nickname)
-            self.overlay.switch_page("set_nickname")
-
-        return command
+    def _on_edit_click(self, nickname: str) -> None:
+        self.overlay.set_nickname_page.set_content(nickname)
+        self.overlay.switch_page("set_nickname")
