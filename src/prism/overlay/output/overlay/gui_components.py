@@ -260,12 +260,18 @@ class OrderedMultiSelect:  # pragma: no coverage
     """Make an ordered selection of multiple items"""
 
     def __init__(
-        self, parent: tk.Frame, items: tuple[str, ...], *, reset_items: tuple[str, ...]
+        self,
+        parent: tk.Frame,
+        items: tuple[str, ...],
+        *,
+        reset_items: tuple[str, ...],
+        on_change: Callable[[], None] = lambda: None,
     ) -> None:
         self.frame = tk.Frame(parent, bg="black")
 
         self.picked_up_index: int | None = None
         self.items = items
+        self.on_change = on_change
 
         self.listbox = tk.Listbox(
             self.frame,
@@ -344,6 +350,8 @@ class OrderedMultiSelect:  # pragma: no coverage
                 return
             self.listbox.delete(i)
 
+        self.on_change()
+
     def _pick_up_item(self, event: "tk.Event[tk.Listbox]") -> None:
         """Pick up the list item under the cursor"""
         self.picked_up_index = self._nearest(event.y)
@@ -367,6 +375,8 @@ class OrderedMultiSelect:  # pragma: no coverage
         self.listbox.insert(new_index, picked_up_item)
         self.picked_up_index = new_index
 
+        self.on_change()
+
     def set_selection(self, selection: tuple[str, ...]) -> None:
         """Set the current selection in the listbox"""
         # Update the listbox
@@ -377,6 +387,8 @@ class OrderedMultiSelect:  # pragma: no coverage
         # Update the toggles
         for item, toggle in self.toggles.items():
             toggle.set(item in selection, disable_toggle_callback=True)
+
+        self.on_change()
 
     def get_selection(self) -> tuple[str, ...]:
         """Get the current selection in the listbox"""
