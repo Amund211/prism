@@ -3,6 +3,7 @@ import logging
 import string
 import sys
 import tkinter as tk
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -37,10 +38,12 @@ from prism.overlay.output.overlay.gui_components import (
     ScrollableFrame,
     ToggleButton,
 )
+from prism.overlay.output.overlay.stats_table_preview import StatsTablePreview
 from prism.overlay.output.overlay.utils import open_url
 from prism.overlay.settings import NickValue, Settings, SettingsDict
 from prism.overlay.thread_count import recommend_stats_thread_count
 from prism.overlay.threading import UpdateCheckerThread
+from prism.player import KnownPlayer, Player
 from prism.utils import is_uuid
 
 logger = logging.getLogger(__name__)
@@ -759,7 +762,11 @@ class DisplaySettings:
 
 
 class DisplaySection:  # pragma: nocover
-    def __init__(self, parent: "SettingsPage") -> None:
+    def __init__(
+        self,
+        parent: "SettingsPage",
+        trace_for_preview: Callable[[tk.Variable], None],
+    ) -> None:
         self.frame = parent.make_section(
             "Display Settings", "Customize the stats table display"
         )
@@ -778,6 +785,7 @@ class DisplaySection:  # pragma: nocover
             filter(lambda column: column != "tags", ALL_COLUMN_NAMES_ORDERED)
         )
         self.sort_order_variable = tk.StringVar(value="")
+        trace_for_preview(self.sort_order_variable)
         self.sort_order_menu = tk.OptionMenu(
             self.frame, self.sort_order_variable, *sort_choices
         )
@@ -876,13 +884,20 @@ class ColumnSettings:
 
 
 class ColumnSection:  # pragma: nocover
-    def __init__(self, parent: "SettingsPage") -> None:
+    def __init__(
+        self,
+        parent: "SettingsPage",
+        on_change: Callable[[], None],
+    ) -> None:
         self.frame = parent.make_section(
             "Column Settings", "Select which columns to show and their order"
         )
 
         self.column_order_selection = OrderedMultiSelect(
-            self.frame, ALL_COLUMN_NAMES_ORDERED, reset_items=DEFAULT_COLUMN_ORDER
+            self.frame,
+            ALL_COLUMN_NAMES_ORDERED,
+            reset_items=DEFAULT_COLUMN_ORDER,
+            on_change=on_change,
         )
         self.column_order_selection.frame.pack(side=tk.TOP, fill=tk.BOTH)
 
@@ -976,7 +991,12 @@ class RatingConfigEditor:  # pragma: nocover
     """Component to edit one rating config"""
 
     def __init__(
-        self, parent: "StatsSetting", name: str, default: RatingConfig
+        self,
+        parent: "StatsSetting",
+        name: str,
+        default: RatingConfig,
+        trace_for_preview: Callable[[tk.Variable], None],
+        on_change: Callable[[], None],
     ) -> None:
         self.frame = parent.make_rating_config_section()
         self.default = default
@@ -1025,8 +1045,12 @@ class RatingConfigEditor:  # pragma: nocover
         )
         color_by_level_label.grid(row=0, column=0, sticky=tk.E)
 
+        def on_rate_by_level_toggled(enabled: bool) -> None:
+            self._set_component_state()
+            on_change()
+
         self.rate_by_level_toggle = ToggleButton(
-            first_frame, toggle_callback=lambda enabled: self._set_component_state()
+            first_frame, toggle_callback=on_rate_by_level_toggled
         )
         self.rate_by_level_toggle.button.grid(row=0, column=1, sticky=tk.W)
         parent.parent.make_widgets_scrollable(
@@ -1042,7 +1066,15 @@ class RatingConfigEditor:  # pragma: nocover
         )
         decimals_label.grid(row=0, column=2, sticky=tk.E)
 
-        self.decimals_spinbox = tk.Spinbox(first_frame, from_=0, to=6, width=2)
+        self.decimals_variable = tk.StringVar(value=str(default.decimals))
+        trace_for_preview(self.decimals_variable)
+        self.decimals_spinbox = tk.Spinbox(
+            first_frame,
+            from_=0,
+            to=6,
+            width=2,
+            textvariable=self.decimals_variable,
+        )
         self.decimals_spinbox.grid(row=0, column=3, sticky=tk.W)
         parent.parent.make_widgets_scrollable(decimals_label, self.decimals_spinbox)
 
@@ -1055,9 +1087,13 @@ class RatingConfigEditor:  # pragma: nocover
         )
         sort_ascending_label.grid(row=1, column=0, sticky=tk.E)
 
+        def on_sort_descending_toggled(enabled: bool) -> None:
+            self._set_component_state(flip_levels=True)
+            on_change()
+
         self.sort_descending_toggle = ToggleButton(
             first_frame,
-            toggle_callback=lambda enabled: self._set_component_state(flip_levels=True),
+            toggle_callback=on_sort_descending_toggled,
             enabled_config={"text": "Descending"},
             disabled_config={
                 "text": "Ascending ",
@@ -1081,6 +1117,8 @@ class RatingConfigEditor:  # pragma: nocover
         parent.parent.make_widgets_scrollable(levels_label)
 
         self.level_entry_variables = [tk.StringVar() for i in range(4)]
+        for level_var in self.level_entry_variables:
+            trace_for_preview(level_var)
         self.level_entries = [
             tk.Entry(levels_frame, textvariable=level_entry_variable, width=10)
             for i, level_entry_variable in enumerate(self.level_entry_variables)
@@ -1143,8 +1181,7 @@ class RatingConfigEditor:  # pragma: nocover
         self.rate_by_level_toggle.set(
             rating_config.rate_by_level, disable_toggle_callback=True
         )
-        self.decimals_spinbox.delete(0)
-        self.decimals_spinbox.insert(0, str(rating_config.decimals))
+        self.decimals_variable.set(str(rating_config.decimals))
         self.sort_descending_toggle.set(
             not rating_config.sort_ascending, disable_toggle_callback=True
         )
@@ -1190,7 +1227,7 @@ class RatingConfigEditor:  # pragma: nocover
 
     def get(self) -> RatingConfig:
         """Get the state of this section"""
-        raw_decimals = self.decimals_spinbox.get()
+        raw_decimals = self.decimals_variable.get()
         try:
             decimals = int(raw_decimals)
         except ValueError:
@@ -1209,27 +1246,37 @@ class RatingConfigEditor:  # pragma: nocover
 
 
 class StatsSetting:  # pragma: nocover
-    def __init__(self, parent: "SettingsPage") -> None:
+    def __init__(
+        self,
+        parent: "SettingsPage",
+        trace_for_preview: Callable[[tk.Variable], None],
+        on_change: Callable[[], None],
+    ) -> None:
         self.parent = parent
         self.frame = parent.make_section("Stats Settings")
         self.frame.columnconfigure(0, weight=0)
 
-        self.sessiontime_editor = RatingConfigEditor(
-            self, "sessiontime", DEFAULT_SESSIONTIME_CONFIG
-        )
-        self.stars_editor = RatingConfigEditor(self, "stars", DEFAULT_STARS_CONFIG)
-        self.index_editor = RatingConfigEditor(self, "index", DEFAULT_INDEX_CONFIG)
-        self.fkdr_editor = RatingConfigEditor(self, "fkdr", DEFAULT_FKDR_CONFIG)
-        self.kdr_editor = RatingConfigEditor(self, "kdr", DEFAULT_KDR_CONFIG)
-        self.bblr_editor = RatingConfigEditor(self, "bblr", DEFAULT_BBLR_CONFIG)
-        self.wlr_editor = RatingConfigEditor(self, "wlr", DEFAULT_WLR_CONFIG)
-        self.winstreak_editor = RatingConfigEditor(
-            self, "winstreak", DEFAULT_WINSTREAK_CONFIG
-        )
-        self.kills_editor = RatingConfigEditor(self, "kills", DEFAULT_KILLS_CONFIG)
-        self.finals_editor = RatingConfigEditor(self, "finals", DEFAULT_FINALS_CONFIG)
-        self.beds_editor = RatingConfigEditor(self, "beds", DEFAULT_BEDS_CONFIG)
-        self.wins_editor = RatingConfigEditor(self, "wins", DEFAULT_WINS_CONFIG)
+        def make_editor(name: str, default: RatingConfig) -> RatingConfigEditor:
+            return RatingConfigEditor(
+                self,
+                name,
+                default,
+                trace_for_preview=trace_for_preview,
+                on_change=on_change,
+            )
+
+        self.sessiontime_editor = make_editor("sessiontime", DEFAULT_SESSIONTIME_CONFIG)
+        self.stars_editor = make_editor("stars", DEFAULT_STARS_CONFIG)
+        self.index_editor = make_editor("index", DEFAULT_INDEX_CONFIG)
+        self.fkdr_editor = make_editor("fkdr", DEFAULT_FKDR_CONFIG)
+        self.kdr_editor = make_editor("kdr", DEFAULT_KDR_CONFIG)
+        self.bblr_editor = make_editor("bblr", DEFAULT_BBLR_CONFIG)
+        self.wlr_editor = make_editor("wlr", DEFAULT_WLR_CONFIG)
+        self.winstreak_editor = make_editor("winstreak", DEFAULT_WINSTREAK_CONFIG)
+        self.kills_editor = make_editor("kills", DEFAULT_KILLS_CONFIG)
+        self.finals_editor = make_editor("finals", DEFAULT_FINALS_CONFIG)
+        self.beds_editor = make_editor("beds", DEFAULT_BEDS_CONFIG)
+        self.wins_editor = make_editor("wins", DEFAULT_WINS_CONFIG)
 
     def make_rating_config_section(self) -> tk.Frame:
         config_section_frame = tk.Frame(
@@ -1283,6 +1330,10 @@ class SettingsPage:  # pragma: nocover
         controller: OverlayController,
     ) -> None:
         """Set up a frame containing the settings page for the overlay"""
+        # Gates preview refreshes. Off during widget construction (var traces
+        # fire before all sections exist) and during set_content
+        self._preview_active = False
+
         self.frame = tk.Frame(parent, background="black")
 
         self.overlay = overlay
@@ -1322,22 +1373,70 @@ class SettingsPage:  # pragma: nocover
 
         # A frame for the settings
         settings_frame_wrapper = tk.Frame(self.frame, background="black")
-        settings_frame_wrapper.pack(side=tk.TOP, fill=tk.BOTH)
         self.scrollable_settings_frame = ScrollableFrame(
             settings_frame_wrapper, max_height=600
         )
         self.scrollable_settings_frame.container_frame.pack(side=tk.TOP, fill=tk.BOTH)
 
+        self.preview = StatsTablePreview(
+            parent=self.frame,
+            get_rating_configs=lambda: self.stats_section.get(),
+            get_column_order=lambda: self.column_section.get().column_order,
+            get_sort_order=lambda: self.display_section.get(
+                fallback_sort_order="fkdr"
+            ).sort_order,
+            get_current_player=self._get_current_player_for_preview,
+        )
+        self.preview.frame.pack(side=tk.RIGHT, fill=tk.Y, padx=(5, 0))
+
         SupportSection(self)
         self.general_settings_section = GeneralSettingSection(self)
         self.autowho_section = AutoWhoSection(self)
-        self.display_section = DisplaySection(self)
-        self.column_section = ColumnSection(self)
+        self.display_section = DisplaySection(
+            self, trace_for_preview=self._trace_for_preview
+        )
+        self.column_section = ColumnSection(self, on_change=self._refresh_preview)
         self.urchin_section = UrchinSection(self)
         self.discord_section = DiscordSection(self)
         self.performance_section = PerformanceSection(self)
         self.graphics_section = GraphicsSection(self)
-        self.stats_section = StatsSetting(self)
+        self.stats_section = StatsSetting(
+            self,
+            trace_for_preview=self._trace_for_preview,
+            on_change=self._refresh_preview,
+        )
+
+        settings_frame_wrapper.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+        self._preview_active = True
+
+    def _trace_for_preview(self, var: tk.Variable) -> None:
+        """Attach a write-trace that refreshes the preview when `var` changes."""
+        var.trace_add("write", lambda *_: self._refresh_preview())
+
+    def _refresh_preview(self) -> None:
+        """Re-render the preview from the current in-progress settings."""
+        if not self._preview_active:
+            return
+        self.preview.refresh()
+
+    def _get_current_player_for_preview(self) -> Player | None:
+        """Look up the current player in the long-term cache, no fetch.
+
+        Returns None if the user hasn't been identified yet (no game played
+        in this session), if the cache misses, or if the cached entry isn't
+        a KnownPlayer (a Pending/Nicked/Unknown entry would render as a
+        single placeholder cell row, which adds noise without showing stats).
+        """
+        username = self.controller.state.own_username
+        if username is None:
+            return None
+        cached = self.controller.player_cache.get_cached_player(
+            username, long_term=True
+        )
+        if not isinstance(cached, KnownPlayer):
+            return None
+        return cached
 
     def make_widgets_scrollable(self, *widgets: tk.Widget) -> None:
         """Make the given widgets scroll the settings page"""
@@ -1381,6 +1480,14 @@ class SettingsPage:  # pragma: nocover
         """Set the content of the page to the values from `settings`"""
         self.scrollable_settings_frame.scroll_to_top()
 
+        self._preview_active = False
+        try:
+            self._apply_settings(settings)
+        finally:
+            self._preview_active = True
+        self._refresh_preview()
+
+    def _apply_settings(self, settings: Settings) -> None:
         with settings.mutex:
             self.urchin_section.set(
                 UrchinSettings(
