@@ -174,18 +174,6 @@ def run_overlay(
                 )
             )
 
-        if (
-            controller.settings.check_for_updates
-            and controller.update_available_event.is_set()
-        ):
-            info_cells.append(
-                InfoCellValue(
-                    text="New update available! Click here to download.",
-                    color="light green",
-                    url="https://github.com/Amund211/prism/releases/latest/",
-                )
-            )
-
         # Store a copy to avoid TOCTOU
         controller_wants_shown = controller.wants_shown
         if controller_wants_shown is not None:

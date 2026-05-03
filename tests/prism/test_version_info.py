@@ -1,7 +1,7 @@
 import string
 
 from prism import USER_AGENT, VERSION_STRING
-from prism.update_checker import VersionInfo
+from prism.version import VersionInfo
 
 
 def test_version_string() -> None:

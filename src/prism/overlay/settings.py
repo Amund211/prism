@@ -26,8 +26,8 @@ from prism.overlay.output.config import (
     RatingConfigCollectionDict,
     safe_read_rating_config_collection_dict,
 )
-from prism.update_checker import CURRENT_VERSION_INFO, VersionInfo
 from prism.utils import is_uuid
+from prism.version import CURRENT_VERSION_INFO, VersionInfo
 
 PLACEHOLDER_API_KEY = "insert-your-key-here"
 
