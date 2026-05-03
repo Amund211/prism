@@ -2,6 +2,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal, Self, TypedDict
 
+from prism.overlay.output.cells import ColumnName
+
 
 class RatingConfigDict(TypedDict):
     """Dict representing a RatingConfig"""
@@ -324,3 +326,9 @@ class RatingConfigCollection:
             "wins": self.wins.to_dict(),
             "sessiontime": self.sessiontime.to_dict(),
         }
+
+    def sort_ascending_for(self, column: ColumnName) -> bool:
+        """Return True if sorting on `column` should be ascending."""
+        if column == "username" or column == "tags":
+            return False
+        return self.to_dict()[column]["sort_ascending"]
