@@ -42,7 +42,6 @@ from prism.overlay.output.overlay.stats_table_preview import StatsTablePreview
 from prism.overlay.output.overlay.utils import open_url
 from prism.overlay.settings import NickValue, Settings, SettingsDict
 from prism.overlay.thread_count import recommend_stats_thread_count
-from prism.overlay.threading import UpdateCheckerThread
 from prism.player import KnownPlayer, Player
 from prism.utils import is_uuid
 
@@ -1550,9 +1549,6 @@ class SettingsPage:  # pragma: nocover
 
     def on_save(self) -> None:
         """Handle the user saving their settings"""
-        # Store old value to check for rising edge
-        old_check_for_updates = self.controller.settings.check_for_updates
-        old_include_patch_updates = self.controller.settings.include_patch_updates
         old_show_on_tab_keybind = self.controller.settings.show_on_tab_keybind
 
         user_id = self.controller.settings.user_id
@@ -1631,16 +1627,6 @@ class SettingsPage:  # pragma: nocover
             )
         else:
             self.overlay.stop_tab_listener()
-
-        # Check for updates if our related settings changed, but only if we have checks
-        # enabled and if we don't already know that there is an update available
-        if (
-            (general_settings.check_for_updates, general_settings.include_patch_updates)
-            != (old_check_for_updates, old_include_patch_updates)
-            and general_settings.check_for_updates
-            and not self.overlay.controller.update_available_event.is_set()
-        ):
-            UpdateCheckerThread(one_shot=True, controller=self.controller).start()
 
         # Go back to the main content
         self.overlay.switch_page("main")

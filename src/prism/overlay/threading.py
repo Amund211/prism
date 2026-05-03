@@ -11,7 +11,6 @@ from prism.overlay.current_player import CurrentPlayerThread
 from prism.overlay.keybinds import AlphanumericKey
 from prism.overlay.process_event import process_loglines
 from prism.overlay.rich_presence import RPCThread
-from prism.update_checker import update_available
 
 logger = logging.getLogger(__name__)
 
@@ -74,48 +73,6 @@ class GetStatsThread(threading.Thread):  # pragma: nocover
             logger.exception("Exception caught in stats thread. Exiting.")
             # Since we spawn multiple stats threads at the start, we can afford some
             # casualties without the overlay completely breaking
-
-
-class UpdateCheckerThread(threading.Thread):  # pragma: nocover
-    """Thread that checks for updates on GitHub once a day"""
-
-    PERIOD_SECONDS = 24 * 60 * 60
-
-    def __init__(
-        self,
-        one_shot: bool,
-        controller: OverlayController,
-    ) -> None:
-        super().__init__(daemon=True)  # Don't block the process from exiting
-        self.one_shot = one_shot
-        self.controller = controller
-
-    def run(self) -> None:
-        """Run update_available and set the event accordingly"""
-        try:
-            while True:
-                logger.info("UpdateChecker: checking for updates.")
-                if not self.controller.settings.check_for_updates:
-                    logger.info("UpdateChecker: disabled by settings.")
-                elif update_available(
-                    ignore_patch_bumps=(
-                        not self.controller.settings.include_patch_updates
-                    )
-                ):
-                    logger.info("UpdateChecker: update available!")
-                    self.controller.update_available_event.set()
-                    # An update is available -> no need to check any more
-                    return
-                else:
-                    logger.info("UpdateChecker: no update available.")
-
-                if self.one_shot:
-                    logger.info("UpdateChecker: exiting oneshot thread.")
-                    return
-
-                time.sleep(self.PERIOD_SECONDS)
-        except Exception:
-            logger.exception("Exception caught in update checker thread. Exiting.")
 
 
 class NoticeCheckerThread(threading.Thread):  # pragma: nocover
@@ -208,9 +165,6 @@ def start_threads(
     RPCThread(controller=controller).start()
 
     AutoWhoThread(controller=controller).start()
-
-    # Spawn thread to check for updates on GitHub
-    UpdateCheckerThread(one_shot=False, controller=controller).start()
 
     # Spawn thread to check for flashlight information
     NoticeCheckerThread(

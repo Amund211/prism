@@ -94,7 +94,6 @@ class OverlayController:
         self.redraw_event = threading.Event()
         self.game_ended_event = threading.Event()
         self.autowho_event = threading.Event()
-        self.update_available_event = threading.Event()
 
         # Usernames we want the stats of
         self.requested_stats_queue = queue.Queue[str]()
