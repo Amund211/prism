@@ -121,13 +121,7 @@ class Settings:
     @property
     def sort_ascending(self) -> bool:
         """Return True if the sort order is ascending for the current sort column"""
-        sort_order = self.sort_order  # The column we sort on
-        if sort_order == "username" or sort_order == "tags":
-            return False
-
-        config = self.rating_configs.to_dict()[sort_order]
-
-        return config["sort_ascending"]
+        return self.rating_configs.sort_ascending_for(self.sort_order)
 
     @classmethod
     def from_dict(
