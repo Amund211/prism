@@ -4,7 +4,7 @@ import threading
 import time
 from collections.abc import Iterable
 
-from prism.flashlight.notices import get_flashlight_notices
+from prism.flashlight.notices import IncludeVersionUpdates, get_flashlight_notices
 from prism.overlay.behaviour import get_and_cache_player
 from prism.overlay.controller import OverlayController
 from prism.overlay.current_player import CurrentPlayerThread
@@ -87,7 +87,19 @@ class NoticeCheckerThread(threading.Thread):  # pragma: nocover
 
     def run(self) -> None:
         """Fetch the notices and store them in the controller"""
-        notices = get_flashlight_notices(user_id=self.controller.settings.user_id)
+        settings = self.controller.settings
+        include_version_updates: IncludeVersionUpdates
+        if not settings.check_for_updates:
+            include_version_updates = "none"
+        elif settings.include_patch_updates:
+            include_version_updates = "all"
+        else:
+            include_version_updates = "minor"
+
+        notices = get_flashlight_notices(
+            user_id=settings.user_id,
+            include_version_updates=include_version_updates,
+        )
         self.controller.flashlight_notices = notices
 
 

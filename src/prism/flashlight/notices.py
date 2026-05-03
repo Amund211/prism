@@ -15,6 +15,7 @@ from prism.requests import make_prism_requests_session
 logger = logging.getLogger(__name__)
 
 Severity = Literal["info", "warning", "critical"]
+IncludeVersionUpdates = Literal["none", "minor", "all"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -64,6 +65,7 @@ def _make_flashlight_notices_request(
     session: requests.Session,
     *,
     user_id: str,
+    include_version_updates: IncludeVersionUpdates,
 ) -> Any | None:  # pragma: nocover
     headers = {
         "X-User-Id": user_id,
@@ -75,7 +77,10 @@ def _make_flashlight_notices_request(
         #       Do not send any requests to any endpoints without explicit permission.
         #       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
         response = session.get(
-            f"{FLASHLIGHT_API_URL}/v1/prism-notices", headers=headers, timeout=30
+            f"{FLASHLIGHT_API_URL}/v1/prism-notices",
+            headers=headers,
+            params={"includeVersionUpdates": include_version_updates},
+            timeout=30,
         )
     except RequestException:
         logger.exception("Failed to request flashlight notices")
@@ -166,6 +171,7 @@ def _parse_flashlight_notices(
 def get_flashlight_notices(
     *,
     user_id: str,
+    include_version_updates: IncludeVersionUpdates,
 ) -> tuple[FlashlightNotice, ...]:  # pragma: nocover
     """Get flashlight prism notices for the user"""
     session = make_prism_requests_session()  # TODO: reuse shared session
@@ -173,6 +179,7 @@ def get_flashlight_notices(
     response_json = _make_flashlight_notices_request(
         session=session,
         user_id=user_id,
+        include_version_updates=include_version_updates,
     )
 
     if response_json is None:
