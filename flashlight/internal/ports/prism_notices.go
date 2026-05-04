@@ -203,10 +203,12 @@ func versionUpdateNotices(ctx context.Context, prismVersion prismVersionType, in
 	}
 
 	logging.FromContext(ctx).InfoContext(ctx, "Adding prism update notice", "prismVersion", string(prismVersion), "latest", latestPrism)
+	duration := 60.0
 	return []prismNotice{{
-		Message:  "New update available! Click here to download.",
-		URL:      latestPrismReleaseURL,
-		Severity: noticeSeverityUpdate,
+		Message:         "New update available! Click here to download.",
+		URL:             latestPrismReleaseURL,
+		Severity:        noticeSeverityUpdate,
+		DurationSeconds: &duration,
 	}}
 }
 
