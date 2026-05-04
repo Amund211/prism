@@ -20,6 +20,7 @@ type severity string
 
 const (
 	noticeSeverityInfo     severity = "info"
+	noticeSeverityUpdate   severity = "update"
 	noticeSeverityWarning  severity = "warning"
 	noticeSeverityCritical severity = "critical"
 )
@@ -205,7 +206,7 @@ func versionUpdateNotices(ctx context.Context, prismVersion prismVersionType, in
 	return []prismNotice{{
 		Message:  "New update available! Click here to download.",
 		URL:      latestPrismReleaseURL,
-		Severity: noticeSeverityInfo,
+		Severity: noticeSeverityUpdate,
 	}}
 }
 
