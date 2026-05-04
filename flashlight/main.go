@@ -196,6 +196,8 @@ func main() {
 
 	registerUserVisit := app.BuildRegisterUserVisit(userRepo)
 
+	getPrismNotices := app.BuildGetPrismNotices(time.Now)
+
 	mux := http.NewServeMux()
 
 	handleFunc := func(pattern string, handlerFunc http.HandlerFunc) {
@@ -206,6 +208,7 @@ func main() {
 	handleFunc(
 		"GET /v1/prism-notices",
 		ports.MakePrismNoticesHandler(
+			getPrismNotices,
 			registerUserVisit,
 			logger.With("port", "prism-notices"),
 			sentryMiddleware,
