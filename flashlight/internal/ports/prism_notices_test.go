@@ -2,7 +2,6 @@ package ports_test
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -24,30 +23,36 @@ func TestPrismNoticesHandler(t *testing.T) {
 	defaultTime := time.Date(2024, time.June, 1, 0, 0, 0, 0, time.UTC)
 
 	cases := []struct {
-		userID       string
-		prismVersion string
-		time         time.Time
-		responseJSON string
+		name                  string
+		userID                string
+		prismVersion          string
+		includeVersionUpdates string
+		time                  time.Time
+		responseJSON          string
 	}{
 		{
+			name:         "empty headers",
 			userID:       "",
 			prismVersion: "",
 			responseJSON: `{"notices":[]}`,
 			time:         defaultTime,
 		},
 		{
+			name:         "v1.10.1-dev outside wrapped window",
 			userID:       domaintest.NewUUID(t),
 			prismVersion: "v1.10.1-dev",
 			responseJSON: `{"notices":[]}`,
 			time:         defaultTime,
 		},
 		{
+			name:         "v1.11.0 outside wrapped window",
 			userID:       domaintest.NewUUID(t),
 			prismVersion: "v1.11.0",
 			responseJSON: `{"notices":[]}`,
 			time:         defaultTime,
 		},
 		{
+			name:         "wrapped notice surfaced at start of December",
 			userID:       domaintest.NewUUID(t),
 			prismVersion: "v1.11.0",
 			responseJSON: `{"notices":[
@@ -61,6 +66,7 @@ func TestPrismNoticesHandler(t *testing.T) {
 			time: time.Date(2025, time.December, 1, 0, 0, 0, 0, time.UTC),
 		},
 		{
+			name:         "wrapped notice surfaced on Christmas Eve",
 			userID:       domaintest.NewUUID(t),
 			prismVersion: "v1.11.0",
 			responseJSON: `{"notices":[
@@ -74,6 +80,7 @@ func TestPrismNoticesHandler(t *testing.T) {
 			time: time.Date(2025, time.December, 24, 0, 0, 0, 0, time.UTC),
 		},
 		{
+			name:         "wrapped notice surfaced on last day of January",
 			userID:       domaintest.NewUUID(t),
 			prismVersion: "v1.11.0",
 			responseJSON: `{"notices":[
@@ -87,10 +94,20 @@ func TestPrismNoticesHandler(t *testing.T) {
 			time: time.Date(2026, time.January, 31, 23, 59, 59, 0, time.UTC),
 		},
 		{
+			name:         "wrapped window closed in February",
 			userID:       domaintest.NewUUID(t),
 			prismVersion: "v1.11.0",
 			responseJSON: `{"notices":[]}`,
 			time:         time.Date(2026, time.February, 1, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			name:         "v1.11.0 (still has local checker)",
+			userID:       domaintest.NewUUID(t),
+			prismVersion: "v1.11.0",
+			// v1.11.0 does not send the includeVersionUpdates query param
+			includeVersionUpdates: "",
+			responseJSON:          `{"notices":[]}`,
+			time:                  defaultTime,
 		},
 	}
 
@@ -108,13 +125,16 @@ func TestPrismNoticesHandler(t *testing.T) {
 	handler := ports.MakePrismNoticesHandler(stubRegisterUserVisit, testLogger, noopMiddleware, emptyBlocklistConfig)
 
 	for _, tc := range cases {
-		name := fmt.Sprintf("version='%s' userID='%s', time='%s'", tc.prismVersion, tc.userID, tc.time.Format(time.RFC3339))
-		t.Run(name, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			synctest.Test(t, func(t *testing.T) {
 				time.Sleep(time.Until(tc.time))
 
-				req := httptest.NewRequestWithContext(t.Context(), "GET", "/v1/prism-notices", nil)
+				url := "/v1/prism-notices"
+				if tc.includeVersionUpdates != "" {
+					url += "?includeVersionUpdates=" + tc.includeVersionUpdates
+				}
+				req := httptest.NewRequestWithContext(t.Context(), "GET", url, nil)
 				req.Header.Set("X-User-Id", tc.userID)
 				req.Header.Set("X-Prism-Version", tc.prismVersion)
 

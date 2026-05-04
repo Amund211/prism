@@ -13,6 +13,7 @@ import (
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/flashlight/internal/version"
 )
 
 type severity string
@@ -22,6 +23,21 @@ const (
 	noticeSeverityWarning  severity = "warning"
 	noticeSeverityCritical severity = "critical"
 )
+
+// latestPrism is the most recent released prism version. Bump this when
+// cutting a new prism release; clients running an older version will be told
+// (via the prism-notices endpoint) that an update is available.
+var latestPrism = version.MustParse("v1.11.0")
+
+// firstPrismVersionWithoutLocalChecker is the first prism release that does
+// not include the in-process GitHub update checker — those clients rely on
+// flashlight to surface update notices. Older clients still poll GitHub
+// themselves, so flashlight must not duplicate the notice for them.
+var firstPrismVersionWithoutLocalChecker = version.MustParse("v1.12.0")
+
+// latestPrismReleaseURL is the link clients are sent to when an update notice
+// is shown.
+const latestPrismReleaseURL = "https://github.com/Amund211/prism/releases/latest/"
 
 type prismNotice struct {
 	Message         string   `json:"message"`
@@ -94,16 +110,20 @@ func MakePrismNoticesHandler(
 			prismVersion = "<missing>"
 		}
 
+		includeVersionUpdates := r.URL.Query().Get("includeVersionUpdates")
+
 		ctx = logging.AddMetaToContext(ctx,
 			slog.String("prismVersion", prismVersion),
+			slog.String("includeVersionUpdates", includeVersionUpdates),
 		)
 		ctx = reporting.AddExtrasToContext(ctx,
 			map[string]string{
-				"prismVersion": prismVersion,
+				"prismVersion":          prismVersion,
+				"includeVersionUpdates": includeVersionUpdates,
 			},
 		)
 
-		notices, err := noticesForCall(ctx, userIDType(userID), prismVersionType(prismVersion), time.Now())
+		notices, err := noticesForCall(ctx, userIDType(userID), prismVersionType(prismVersion), includeVersionUpdates, time.Now())
 		if err != nil {
 			logging.FromContext(ctx).ErrorContext(ctx, "Failed to get notices for call", "error", err)
 
@@ -152,10 +172,49 @@ var unicodeReplacementCharacterUsers = []string{
 	"a55dfa5ddaa7426b87f2a5dbc3ad5254",
 }
 
-func noticesForCall(ctx context.Context, userID userIDType, prismVersion prismVersionType, now time.Time) ([]prismNotice, error) {
+func versionUpdateNotices(ctx context.Context, prismVersion prismVersionType, includeVersionUpdates string) []prismNotice {
+	var includePatchUpdates bool
+	switch includeVersionUpdates {
+	case "none":
+		return nil
+	case "minor":
+		includePatchUpdates = false
+	case "all":
+		includePatchUpdates = true
+	default:
+		logging.FromContext(ctx).WarnContext(ctx, "Unrecognized includeVersionUpdates value, defaulting to all", "includeVersionUpdates", includeVersionUpdates)
+		includePatchUpdates = true
+	}
+
+	current, err := version.Parse(string(prismVersion))
+	if err != nil {
+		logging.FromContext(ctx).WarnContext(ctx, "Failed to parse prism version", "error", err, "prismVersion", string(prismVersion))
+		return nil
+	}
+
+	if !current.IsAtLeast(firstPrismVersionWithoutLocalChecker) {
+		// This client still has its own GitHub update checker.
+		return nil
+	}
+
+	if !current.UpdateAvailable(latestPrism, !includePatchUpdates) {
+		return nil
+	}
+
+	logging.FromContext(ctx).InfoContext(ctx, "Adding prism update notice", "prismVersion", string(prismVersion), "latest", latestPrism)
+	return []prismNotice{{
+		Message:  "New update available! Click here to download.",
+		URL:      latestPrismReleaseURL,
+		Severity: noticeSeverityInfo,
+	}}
+}
+
+func noticesForCall(ctx context.Context, userID userIDType, prismVersion prismVersionType, includeVersionUpdates string, now time.Time) ([]prismNotice, error) {
 	notices := []prismNotice{}
 
 	now = now.UTC()
+
+	notices = append(notices, versionUpdateNotices(ctx, prismVersion, includeVersionUpdates)...)
 
 	if slices.Contains(unicodeReplacementCharacterUsers, string(userID)) {
 		// These users sometimes include a unicode replacement character at the end of
