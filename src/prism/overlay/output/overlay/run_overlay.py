@@ -111,6 +111,11 @@ def run_overlay(
         for notice in controller.flashlight_notices:
             if not notice.active:
                 continue
+            if (
+                notice.severity == "update"
+                and not controller.settings.check_for_updates
+            ):
+                continue
             if notice.severity == "info":
                 color = "light blue"
             elif notice.severity == "update":
