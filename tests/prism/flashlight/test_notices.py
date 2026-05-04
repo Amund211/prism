@@ -94,6 +94,28 @@ def mock_get_time_seconds() -> float:
             ),
         ),
         (
+            # Real prism-notices response from flashlight for an outdated client
+            {
+                "notices": [
+                    {
+                        "message": "New update available! Click here to download.",
+                        "url": "https://github.com/Amund211/prism/releases/latest/",
+                        "severity": "update",
+                        "duration_seconds": 60,
+                    },
+                ],
+            },
+            (
+                FlashlightNotice(
+                    message="New update available! Click here to download.",
+                    severity="update",
+                    url="https://github.com/Amund211/prism/releases/latest/",
+                    created_at_seconds=CURRENT_TIME_SECONDS,
+                    duration_seconds=60,
+                ),
+            ),
+        ),
+        (
             {
                 "notices": [
                     {"message": "Valid info", "severity": "info"},

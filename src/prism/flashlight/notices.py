@@ -14,7 +14,7 @@ from prism.requests import make_prism_requests_session
 
 logger = logging.getLogger(__name__)
 
-Severity = Literal["info", "warning", "critical"]
+Severity = Literal["info", "update", "warning", "critical"]
 IncludeVersionUpdates = Literal["none", "minor", "all"]
 
 
@@ -123,7 +123,7 @@ def _parse_flashlight_notice(
         return None
 
     raw_severity = item.get("severity", None)
-    if raw_severity not in ("info", "warning", "critical"):
+    if raw_severity not in ("info", "update", "warning", "critical"):
         logger.error(f"Invalid flashlight notice severity: {raw_severity=}")
         return None
 
