@@ -111,18 +111,18 @@ def run_overlay(
         for notice in controller.flashlight_notices:
             if not notice.active:
                 continue
+            if notice.severity == "info":
+                color = "light blue"
+            elif notice.severity == "update":
+                color = "light green"
+            elif notice.severity == "warning":
+                color = "orange"
+            else:
+                color = "red" if time.monotonic() % 2 > 1 else "white"
             info_cells.append(
                 InfoCellValue(
                     text=notice.message,
-                    color=(
-                        "light blue"
-                        if notice.severity == "info"
-                        else (
-                            "orange"
-                            if notice.severity == "warning"
-                            else ("red" if time.monotonic() % 2 > 1 else "white")
-                        )
-                    ),
+                    color=color,
                     url=notice.url,
                 )
             )
