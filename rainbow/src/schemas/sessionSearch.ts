@@ -15,7 +15,8 @@ export const sessionSearchSchema = z.object({
                 date: z.coerce.date().optional().catch(undefined),
             }),
         ])
-        .catch({ type: "contained" }),
+        .catch({ type: "contained" })
+        .default({ type: "contained" }),
     trackingStart: z.coerce
         .date()
         .optional()
@@ -29,9 +30,12 @@ export const sessionSearchSchema = z.object({
             }
             return value;
         }),
-    gamemode: z.enum(ALL_GAMEMODE_KEYS).catch("overall"),
-    stat: z.enum(ALL_STAT_KEYS).catch("fkdr"),
-    variantSelection: z.enum(["session", "overall", "both"]).catch("both"),
-    sessionTableMode: z.enum(["total", "rate"]).catch("total"),
-    showExtrapolatedSessions: z.boolean().catch(false),
+    gamemode: z.enum(ALL_GAMEMODE_KEYS).catch("overall").default("overall"),
+    stat: z.enum(ALL_STAT_KEYS).catch("fkdr").default("fkdr"),
+    variantSelection: z
+        .enum(["session", "overall", "both"])
+        .catch("both")
+        .default("both"),
+    sessionTableMode: z.enum(["total", "rate"]).catch("total").default("total"),
+    showExtrapolatedSessions: z.boolean().catch(false).default(false),
 });

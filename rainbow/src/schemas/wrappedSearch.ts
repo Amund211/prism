@@ -10,5 +10,6 @@ export const wrappedSearchSchema = z.object({
         .int()
         .min(2025) // First full year with flashlight data from prism (started December 2024)
         .max(currentWrappedYear)
-        .catch(currentWrappedYear),
+        .catch(currentWrappedYear)
+        .default(currentWrappedYear),
 });

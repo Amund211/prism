@@ -9,11 +9,19 @@ defaultEnd.setHours(23, 59, 59, 999);
 
 export const historyExploreSearchSchema = z.object({
     // TODO: Read "preferred user" from local storage or similar
-    uuids: z.array(z.string()).readonly().catch([]),
-    start: z.coerce.date().catch(defaultStart),
-    end: z.coerce.date().catch(defaultEnd),
-    limit: z.number().int().min(1).max(50).catch(50),
-    stats: z.enum(ALL_STAT_KEYS).array().readonly().catch(["fkdr"]),
-    gamemodes: z.enum(ALL_GAMEMODE_KEYS).array().readonly().catch(["overall"]),
-    variantSelection: z.enum(["session", "overall", "both"]).catch("session"),
+    uuids: z.array(z.string()).readonly().catch([]).default([]),
+    start: z.coerce.date().catch(defaultStart).default(defaultStart),
+    end: z.coerce.date().catch(defaultEnd).default(defaultEnd),
+    limit: z.number().int().min(1).max(50).catch(50).default(50),
+    stats: z.enum(ALL_STAT_KEYS).array().readonly().catch(["fkdr"]).default(["fkdr"]),
+    gamemodes: z
+        .enum(ALL_GAMEMODE_KEYS)
+        .array()
+        .readonly()
+        .catch(["overall"])
+        .default(["overall"]),
+    variantSelection: z
+        .enum(["session", "overall", "both"])
+        .catch("session")
+        .default("session"),
 });
