@@ -116,7 +116,8 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 		resp, err = u.httpClient.Do(req) // nolint:bodyclose // Closed via deferred Close inside this closure
 		if err != nil {
 			errString := err.Error()
-			if strings.HasSuffix(errString, "read: connection reset by peer") ||
+			if errors.Is(err, context.DeadlineExceeded) ||
+				strings.HasSuffix(errString, "read: connection reset by peer") ||
 				strings.HasSuffix(errString, "context deadline exceeded (Client.Timeout exceeded while awaiting headers)") {
 				// Wrap with temporarily unavailable and set the err from the outside scope
 				// This gets handled outside the limiter call.

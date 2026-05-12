@@ -2,10 +2,12 @@ package tagprovider_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"reflect"
 	"testing"
 	"time"
@@ -239,6 +241,26 @@ func TestUrchinTagsProvider(t *testing.T) {
 					// NOTE: Error type is probably completely incorrect, but the text content
 					//       (like from .Error()) should be correct
 					err: errors.New(`Get "https://urchin.ws/player/01234567-89ab-cdef-0123-456789abcdef?sources=MANUAL": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`),
+				}
+				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
+				require.NoError(t, err)
+
+				_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
+				require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			})
+			t.Run("context deadline exceeded", func(t *testing.T) {
+				t.Parallel()
+				// Newer net/http surfaces a context-deadline timeout without the
+				// "Client.Timeout exceeded while awaiting headers" suffix; the wrapped
+				// error is detectable via errors.Is(err, context.DeadlineExceeded).
+				httpClient := &mockedHTTPClient{
+					t:           t,
+					expectedURL: urlForUUID(uuid),
+					err: &url.Error{
+						Op:  "Get",
+						URL: urlForUUID(uuid),
+						Err: context.DeadlineExceeded,
+					},
 				}
 				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
 				require.NoError(t, err)
