@@ -100,6 +100,25 @@ func TestUUIDFromMojangResponse(t *testing.T) {
 			statusCode: 200,
 			err:        assert.AnError,
 		},
+		{
+			name: "400 with error and errorMessage",
+			response: []byte(`{
+  "path" : "/users/profiles/minecraft/§ko01Y",
+  "error" : "CONSTRAINT_VIOLATION",
+  "errorMessage" : "getProfileName.name: Invalid profile name"
+}`),
+			statusCode: 400,
+			err:        assert.AnError,
+		},
+		{
+			name: "200 with errorMessage only",
+			response: []byte(`{
+  "path" : "/users/profiles/minecraft/whatever",
+  "errorMessage" : "something went wrong"
+}`),
+			statusCode: 200,
+			err:        assert.AnError,
+		},
 	}
 
 	for _, tc := range tests {
@@ -121,6 +140,20 @@ func TestUUIDFromMojangResponse(t *testing.T) {
 			require.True(t, strutils.UUIDIsNormalized(account.UUID))
 		})
 	}
+}
+
+func TestAccountFromMojangResponseSurfacesErrorMessage(t *testing.T) {
+	t.Parallel()
+
+	_, err := accountFromMojangResponse(400, []byte(`{
+  "path" : "/users/profiles/minecraft/§ko01Y",
+  "error" : "CONSTRAINT_VIOLATION",
+  "errorMessage" : "getProfileName.name: Invalid profile name"
+}`), time.Now())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "CONSTRAINT_VIOLATION")
+	require.Contains(t, err.Error(), "Invalid profile name")
+	require.NotContains(t, err.Error(), "failed to normalize UUID")
 }
 
 type mockedClient struct {

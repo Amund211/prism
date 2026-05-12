@@ -143,8 +143,10 @@ func (m *Mojang) getProfile(ctx context.Context, url string) (domain.Account, er
 }
 
 type mojangResponse struct {
-	UUID     string `json:"id"`
-	Username string `json:"name"`
+	UUID         string `json:"id"`
+	Username     string `json:"name"`
+	Error        string `json:"error"`
+	ErrorMessage string `json:"errorMessage"`
 }
 
 func accountFromMojangResponse(statusCode int, data []byte, queriedAt time.Time) (domain.Account, error) {
@@ -164,6 +166,10 @@ func accountFromMojangResponse(statusCode int, data []byte, queriedAt time.Time)
 	var response mojangResponse
 	if err := json.Unmarshal(data, &response); err != nil {
 		return domain.Account{}, fmt.Errorf("failed to parse mojang response: %w", err)
+	}
+
+	if response.Error != "" || response.ErrorMessage != "" {
+		return domain.Account{}, fmt.Errorf("mojang API returned error response (status %d): error=%q errorMessage=%q", statusCode, response.Error, response.ErrorMessage)
 	}
 
 	uuid, err := strutils.NormalizeUUID(response.UUID)
