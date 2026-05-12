@@ -9,6 +9,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -26,6 +27,14 @@ import (
 )
 
 const getTagsMinOperationTime = 150 * time.Millisecond
+
+// urchinKeyRx matches the `key=<value>` query param so the value can be
+// redacted from error messages before logging or reporting.
+var urchinKeyRx = regexp.MustCompile(`key=[^&"\s]+`)
+
+func scrubURLKey(s string) string {
+	return urchinKeyRx.ReplaceAllString(s, "key=<redacted>")
+}
 
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
@@ -122,14 +131,14 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 				// Wrap with temporarily unavailable and set the err from the outside scope
 				// This gets handled outside the limiter call.
 				err = fmt.Errorf(
-					"%w: failed to send request: %w",
+					"%w: failed to send request: %s",
 					domain.ErrTemporarilyUnavailable,
-					err,
+					scrubURLKey(errString),
 				)
 				// Don't report to sentry, as we get a bit of spam here
 				return
 			}
-			err = fmt.Errorf("failed to send request: %w", err)
+			err = fmt.Errorf("failed to send request: %s", scrubURLKey(errString))
 			reporting.Report(ctx, err)
 			return
 		}

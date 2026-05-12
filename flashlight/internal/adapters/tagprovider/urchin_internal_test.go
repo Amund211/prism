@@ -9,6 +9,39 @@ import (
 	"github.com/Amund211/flashlight/internal/domain"
 )
 
+func TestScrubURLKey(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{
+			name: "key in url query",
+			in:   `failed to send request: Get "https://urchin.ws/player/01234567-89ab-cdef-0123-456789abcdef?sources=MANUAL&key=super-secret-key": context deadline exceeded`,
+			want: `failed to send request: Get "https://urchin.ws/player/01234567-89ab-cdef-0123-456789abcdef?sources=MANUAL&key=<redacted>": context deadline exceeded`,
+		},
+		{
+			name: "no key",
+			in:   `failed to send request: Get "https://urchin.ws/player/01234567-89ab-cdef-0123-456789abcdef?sources=MANUAL": context deadline exceeded`,
+			want: `failed to send request: Get "https://urchin.ws/player/01234567-89ab-cdef-0123-456789abcdef?sources=MANUAL": context deadline exceeded`,
+		},
+		{
+			name: "key as only query param",
+			in:   `something key=hunter2 something else`,
+			want: `something key=<redacted> something else`,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+			require.Equal(t, c.want, scrubURLKey(c.in))
+		})
+	}
+}
+
 func TestTagsFromUrchinResponse(t *testing.T) {
 	t.Parallel()
 
