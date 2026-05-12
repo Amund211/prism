@@ -20,4 +20,18 @@ describe("wrappedSearchSchema validation", () => {
             year: 2025,
         });
     });
+
+    test("invalid year -> fallback to default", () => {
+        const result = wrappedSearchSchema.parse({
+            year: "not-a-number",
+        });
+        expect(result.year).toBe(getWrappedYear());
+    });
+
+    test("year out of range -> fallback to default", () => {
+        const result = wrappedSearchSchema.parse({
+            year: 1999,
+        });
+        expect(result.year).toBe(getWrappedYear());
+    });
 });
