@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
@@ -100,6 +101,12 @@ func MakeGetAccountByUsernameHandler(
 		if usernameLength == 0 || usernameLength > 100 {
 			username = "<invalid>"
 			handleError(ctx, "invalid username length", http.StatusBadRequest)
+			return
+		}
+
+		if strings.ContainsAny(username, "§�") {
+			logging.FromContext(ctx).WarnContext(ctx, "Rejecting username with disallowed character")
+			handleError(ctx, "invalid username", http.StatusBadRequest)
 			return
 		}
 

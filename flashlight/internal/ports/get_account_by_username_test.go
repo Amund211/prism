@@ -191,6 +191,54 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
 	})
 
+	t.Run("rejects username with section sign", func(t *testing.T) {
+		t.Parallel()
+
+		getAccountByUsername, called := makeGetAccountByUsername(t, "", domain.Account{}, nil)
+		handler := makeGetAccountByUsernameHandler(getAccountByUsername)
+
+		req := makeRequest("§ko01Y")
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusBadRequest, w.Code)
+		body := w.Body.String()
+		parsed := parseResponse(t, body)
+		require.NotNil(t, parsed.Success)
+		require.False(t, *parsed.Success)
+		require.Nil(t, parsed.UUID)
+		require.NotNil(t, parsed.Cause)
+		require.Contains(t, *parsed.Cause, "invalid username")
+
+		require.False(t, *called)
+		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
+	})
+
+	t.Run("rejects username with unicode replacement char", func(t *testing.T) {
+		t.Parallel()
+
+		getAccountByUsername, called := makeGetAccountByUsername(t, "", domain.Account{}, nil)
+		handler := makeGetAccountByUsernameHandler(getAccountByUsername)
+
+		req := makeRequest("foo�bar")
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusBadRequest, w.Code)
+		body := w.Body.String()
+		parsed := parseResponse(t, body)
+		require.NotNil(t, parsed.Success)
+		require.False(t, *parsed.Success)
+		require.Nil(t, parsed.UUID)
+		require.NotNil(t, parsed.Cause)
+		require.Contains(t, *parsed.Cause, "invalid username")
+
+		require.False(t, *called)
+		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
+	})
+
 	t.Run("returns cors headers", func(t *testing.T) {
 		t.Parallel()
 
