@@ -1,6 +1,7 @@
 package tagprovider
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -283,6 +284,15 @@ func tagsFromUrchinResponse(ctx context.Context, statusCode int, data []byte, us
 
 	var response urchinResponse
 	if err := json.Unmarshal(data, &response); err != nil {
+		if bytes.HasPrefix(data, []byte(`"Invalid source(s)`)) {
+			// Urchin returns a bare JSON string `"Invalid source(s) ..."` in some
+			// cases. Treat as transient instead of reporting a noisy
+			// "cannot unmarshal string into ...urchinResponse" parse error to Sentry.
+			return domain.Tags{}, urchinTagCollection{}, fmt.Errorf(
+				"%w: urchin API returned 'Invalid source(s)' response",
+				domain.ErrTemporarilyUnavailable,
+			)
+		}
 		return domain.Tags{}, urchinTagCollection{}, fmt.Errorf("failed to parse urchin response: %w", err)
 	}
 

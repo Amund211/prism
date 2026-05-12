@@ -279,6 +279,26 @@ func TestUrchinTagsProvider(t *testing.T) {
 
 			_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
 			require.Error(t, err)
+			require.NotErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+		})
+
+		t.Run("invalid sources response", func(t *testing.T) {
+			t.Parallel()
+			// Urchin sometimes returns `"Invalid source(s) ..."` as a bare JSON string,
+			// which would otherwise surface in Sentry as a noisy
+			// "cannot unmarshal string into ...urchinResponse" parse error.
+			httpClient := &mockedHTTPClient{
+				t:           t,
+				expectedURL: urlForUUID(uuid),
+				statusCode:  200,
+				body:        `"Invalid source(s) provided: {{sources}} must be one of: PARTY_INVITES, MANUAL, CHAT, GAME, CHAT_MENTIONS, PARTY, ME"`,
+				err:         nil,
+			}
+			urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After)
+			require.NoError(t, err)
+
+			_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
+			require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
 		})
 
 		t.Run("Invalid api key response", func(t *testing.T) {
