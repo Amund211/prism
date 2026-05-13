@@ -56,11 +56,11 @@ wheels = [
 
 [[package]]
 name = "cachetools"
-version = "7.0.6"
+version = "7.1.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/76/7b/1755ed2c6bfabd1d98b37ae73152f8dcf94aa40fee119d163c19ed484704/cachetools-7.0.6.tar.gz", hash = "sha256:e5d524d36d65703a87243a26ff08ad84f73352adbeafb1cde81e207b456aaf24", size = 37526, upload-time = "2026-04-20T19:02:23.289Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ff/e2/85f227594656000ff4d8adadae91a21f536d4a84c6c716a86bd6685874be/cachetools-7.1.1.tar.gz", hash = "sha256:27bdf856d68fd3c71c26c01b5edc312124ed427524d1ddb31aa2b7746fe20d4b", size = 40202, upload-time = "2026-05-03T20:00:29.391Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fe/c4/cf76242a5da1410917107ff14551764aa405a5fd10cd10cf9a5ca8fa77f4/cachetools-7.0.6-py3-none-any.whl", hash = "sha256:4e94956cfdd3086f12042cdd29318f5ced3893014f7d0d059bf3ead3f85b7f8b", size = 13976, upload-time = "2026-04-20T19:02:21.187Z" },
+    { url = "https://files.pythonhosted.org/packages/bf/0f/f897abe4ea0a8c408ae65c8c83bffab4936ad65d6032d4fb4cd35bbdc3ee/cachetools-7.1.1-py3-none-any.whl", hash = "sha256:0335cd7a0952d2b22327441fb0628139e234c565559eeb91a8a4ac7551c5353d", size = 16775, upload-time = "2026-05-03T20:00:27.857Z" },
 ]
 
 [[package]]
@@ -497,7 +497,7 @@ dev = [
     { name = "types-appdirs", specifier = ">=1.4.3.5" },
     { name = "types-cachetools", specifier = ">=6.2.0.20260408" },
     { name = "types-pillow", specifier = ">=10.2.0.20240822" },
-    { name = "types-pyinstaller", specifier = ">=6.19.0.20260408" },
+    { name = "types-pyinstaller", specifier = ">=6.20.0.20260503" },
     { name = "types-pynput", specifier = ">=1.8.1.20260408" },
     { name = "types-requests", specifier = ">=2.33.0.20260408" },
     { name = "types-toml", specifier = ">=0.10.8.20260408" },
@@ -839,11 +839,11 @@ wheels = [
 
 [[package]]
 name = "types-pyinstaller"
-version = "6.19.0.20260408"
+version = "6.20.0.20260503"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/b0/43/68d108321f4c74b821894eb59728d2fa7c6dbc97338aff03f66d3e530f25/types_pyinstaller-6.19.0.20260408.tar.gz", hash = "sha256:1fcaa74dd3d70a7b17740bd2b7b5a79283524444770357afb9a075dc854778d6", size = 19999, upload-time = "2026-04-08T04:32:24.104Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3d/20/2fc82d771a10ed60a854285a1fe6999315ab8830f6bffab85db20f8462be/types_pyinstaller-6.20.0.20260503.tar.gz", hash = "sha256:771787e16f4bf4ffd420a1d34628e4e4b06a11e90ef43a7efdd5f017ba8a7d7e", size = 20030, upload-time = "2026-05-03T05:19:57.775Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d1/f6/f82185e98a5a69e88e49cddd891a27ef3de6566754f3f6617a27067af71c/types_pyinstaller-6.19.0.20260408-py3-none-any.whl", hash = "sha256:3b15a003d2f0a726c86f5dbef27c9435dcdf17fff4faf80eb31ac3346962441f", size = 22078, upload-time = "2026-04-08T04:32:23.239Z" },
+    { url = "https://files.pythonhosted.org/packages/7b/be/f20e87a20dbe1e5adb3aef6cfa905a225a749f28cc169ff1856ac2a9039c/types_pyinstaller-6.20.0.20260503-py3-none-any.whl", hash = "sha256:f776978098348f8dbafc4e6764ae24dd7d47b44416e9f750d0effd0fd41906f5", size = 22082, upload-time = "2026-05-03T05:19:56.5Z" },
 ]
 
 [[package]]
