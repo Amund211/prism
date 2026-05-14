@@ -1,0 +1,11 @@
+# Whitelist: ignore everything, then re-include only what we need.
+**
+
+!/go.mod
+!/go.sum
+
+!/main.go
+!/internal/**/*.go
+**/*_test.go
+
+!/internal/adapters/database/migrations/*.sql
