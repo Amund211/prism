@@ -43,8 +43,10 @@ jobs:
           go mod tidy
           git diff --quiet
 
+      # No `version:` input — the action auto-detects from go.mod's require
+      # directive (same version `go tool golangci-lint` resolves to).
       - name: Lint
-        run: go tool golangci-lint run
+        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
 
       - name: Verify dependencies
         run: go mod verify
