@@ -1,16 +1,38 @@
 import logging
+from dataclasses import dataclass
 from pathlib import Path
 
 from appdirs import AppDirs
 
-dirs = AppDirs(appname="prism_overlay")
 
-CACHE_DIR = Path(dirs.user_cache_dir)
-LOGDIR = Path(dirs.user_log_dir)
+@dataclass(frozen=True, slots=True)
+class PrismDirs:
+    cache_dir: Path
+    log_dir: Path
+    config_dir: Path
+    settings_path: Path
+    logfile_cache_path: Path
 
-CONFIG_DIR = Path(dirs.user_config_dir)
-DEFAULT_SETTINGS_PATH = CONFIG_DIR / "settings.toml"
-DEFAULT_LOGFILE_CACHE_PATH = CONFIG_DIR / "known_logfiles.toml"
+
+def get_dirs() -> PrismDirs:
+    app_dirs = AppDirs(appname="prism_overlay")
+    config_dir = Path(app_dirs.user_config_dir)
+    return PrismDirs(
+        cache_dir=Path(app_dirs.user_cache_dir),
+        log_dir=Path(app_dirs.user_log_dir),
+        config_dir=config_dir,
+        settings_path=config_dir / "settings.toml",
+        logfile_cache_path=config_dir / "known_logfiles.toml",
+    )
+
+
+dirs = get_dirs()
+
+CACHE_DIR = dirs.cache_dir
+LOGDIR = dirs.log_dir
+CONFIG_DIR = dirs.config_dir
+DEFAULT_SETTINGS_PATH = dirs.settings_path
+DEFAULT_LOGFILE_CACHE_PATH = dirs.logfile_cache_path
 
 logger = logging.getLogger(__name__)
 
