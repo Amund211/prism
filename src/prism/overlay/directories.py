@@ -1,8 +1,9 @@
 import logging
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from appdirs import AppDirs
+from platformdirs import PlatformDirs
 
 
 @dataclass(frozen=True, slots=True)
@@ -15,11 +16,15 @@ class PrismDirs:
 
 
 def get_dirs() -> PrismDirs:
-    app_dirs = AppDirs(appname="prism_overlay")
-    config_dir = Path(app_dirs.user_config_dir)
+    pd = PlatformDirs(appname="prism_overlay")
+    cache_dir = Path(pd.user_cache_dir)
+    config_dir = Path(pd.user_config_dir)
+    # Linux: keep logs under the cache dir. platformdirs' user_log_dir lives
+    # under $XDG_STATE_HOME, but existing prism installs have logs in cache.
+    log_dir = cache_dir / "log" if sys.platform == "linux" else Path(pd.user_log_dir)
     return PrismDirs(
-        cache_dir=Path(app_dirs.user_cache_dir),
-        log_dir=Path(app_dirs.user_log_dir),
+        cache_dir=cache_dir,
+        log_dir=log_dir,
         config_dir=config_dir,
         settings_path=config_dir / "settings.toml",
         logfile_cache_path=config_dir / "known_logfiles.toml",
