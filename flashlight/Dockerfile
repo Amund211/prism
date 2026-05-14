@@ -9,17 +9,11 @@ RUN go mod download
 COPY main.go ./
 COPY internal/ ./internal/
 
-# Disable cgo and use the builtin network stack to get a statically linked binary
-#   https://blog.wollomatic.de/posts/2025-01-28-go-tls-certificates/
-# Use -tags timetzdata to include timezone data in the binary since it isn't installed in the container
-#   https://pkg.go.dev/time#LoadLocation
-#   https://pkg.go.dev/time/tzdata
-RUN CGO_ENABLED=0 GOOS=linux go build -tags=netgo,timetzdata -o /flashlight main.go
+# Statically linked binary; ca-certificates and tzdata come from the distroless base image.
+RUN CGO_ENABLED=0 GOOS=linux go build -o /flashlight main.go
 
-FROM scratch
+FROM gcr.io/distroless/static-debian12:nonroot@sha256:a9329520abc449e3b14d5bc3a6ffae065bdde0f02667fa10880c49b35c109fd1
 
 COPY --from=build /flashlight /flashlight
-
-USER 1001:1001
 
 ENTRYPOINT ["/flashlight"]

@@ -29,8 +29,6 @@ import (
 	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/telemetry"
-
-	_ "golang.org/x/crypto/x509roots/fallback" // Add fallback certs (for running in docker scratch image without ca-certificates)
 )
 
 // TODO: Put in config
