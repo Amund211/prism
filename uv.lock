@@ -453,7 +453,6 @@ dev = [
     { name = "pre-commit" },
     { name = "pyinstaller" },
     { name = "pytest" },
-    { name = "types-cachetools" },
     { name = "types-pillow" },
     { name = "types-pyinstaller" },
     { name = "types-pynput" },
@@ -484,7 +483,6 @@ dev = [
     { name = "pre-commit", specifier = ">=4.6.0" },
     { name = "pyinstaller", specifier = ">=6.20.0" },
     { name = "pytest", specifier = ">=9.0.3" },
-    { name = "types-cachetools", specifier = ">=6.2.0.20260408" },
     { name = "types-pillow", specifier = ">=10.2.0.20240822" },
     { name = "types-pyinstaller", specifier = ">=6.20.0.20260503" },
     { name = "types-pynput", specifier = ">=1.8.1.20260408" },
@@ -797,15 +795,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/53/a3/1585216310e344e8102c22482f6060c7a6ea0322b63e026372e6dcefcfd6/truststore-0.10.4.tar.gz", hash = "sha256:9d91bd436463ad5e4ee4aba766628dd6cd7010cf3e2461756b3303710eebc301", size = 26169, upload-time = "2025-08-12T18:49:02.73Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/19/97/56608b2249fe206a67cd573bc93cd9896e1efb9e98bce9c163bcdc704b88/truststore-0.10.4-py3-none-any.whl", hash = "sha256:adaeaecf1cbb5f4de3b1959b42d41f6fab57b2b1666adb59e89cb0b53361d981", size = 18660, upload-time = "2025-08-12T18:49:01.46Z" },
-]
-
-[[package]]
-name = "types-cachetools"
-version = "6.2.0.20260408"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ec/61/475b0e8f4a92e5e33affcc6f4e6344c6dee540824021d22f695ea170da63/types_cachetools-6.2.0.20260408.tar.gz", hash = "sha256:0d8ae2dd5ba0b4cfe6a55c34396dd0415f1be07d0033d84781cdc4ed9c2ebc6b", size = 9854, upload-time = "2026-04-08T04:31:49.665Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/bb/7d/579f50f4f004ee93c7d1baa95339591cac1fe02f4e3fb8fc0f900ee4a80f/types_cachetools-6.2.0.20260408-py3-none-any.whl", hash = "sha256:470e0b274737feae74beed3d764885bf4664002ecc393fba3778846b13ce92cb", size = 9350, upload-time = "2026-04-08T04:31:48.826Z" },
 ]
 
 [[package]]

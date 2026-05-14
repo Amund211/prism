@@ -16,11 +16,13 @@ class PlayerCache:
         self.current_genus = 0
 
         # Entries cached for 10mins, so they expire if they are not cleared by game end
-        self._cache = TTLCache[str, Player](maxsize=512, ttl=10 * 60)
+        self._cache: TTLCache[str, Player] = TTLCache(maxsize=512, ttl=10 * 60)
 
         # Optional long term cache accessed with kwarg long_term=True
         # Can be used to prevent refetching during a game (while stats don't change)
-        self._long_term_cache = TTLCache[str, Player](maxsize=512, ttl=60 * 60)
+        self._long_term_cache: TTLCache[str, Player] = TTLCache(
+            maxsize=512, ttl=60 * 60
+        )
 
         # TTLCache is not thread-safe so we use a mutex to synchronize threads
         self._mutex = threading.Lock()
