@@ -71,6 +71,8 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      - uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+
       - name: Login to GAR
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
@@ -78,8 +80,20 @@ jobs:
           username: _json_key
           password: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
 
+      - name: Resolve image tag
+        id: tag
+        run: echo "image=$(./collector/build.sh get-url flashlight-test)" >> "$GITHUB_OUTPUT"
+
       - name: Build and push test image
-        run: ./collector/build.sh build-and-push flashlight-test
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+        with:
+          context: ./collector
+          push: true
+          tags: ${{ steps.tag.outputs.image }}
+          # Test and prod images share a cache scope — they're built from the
+          # same Dockerfile and config.yaml, so layers are byte-identical.
+          cache-from: type=gha,scope=otel-collector
+          cache-to: type=gha,mode=max,scope=otel-collector
 
   push-otel-collector:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
@@ -88,6 +102,8 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      - uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+
       - name: Login to GAR
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
@@ -95,8 +111,18 @@ jobs:
           username: _json_key
           password: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
 
+      - name: Resolve image tag
+        id: tag
+        run: echo "image=$(./collector/build.sh get-url flashlight)" >> "$GITHUB_OUTPUT"
+
       - name: Build and push production image
-        run: ./collector/build.sh build-and-push flashlight
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+        with:
+          context: ./collector
+          push: true
+          tags: ${{ steps.tag.outputs.image }}
+          cache-from: type=gha,scope=otel-collector
+          cache-to: type=gha,mode=max,scope=otel-collector
 
   deploy-test-instance:
     name: Deploy test instance

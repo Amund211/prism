@@ -28,14 +28,8 @@ get-url)
 
     exit 0
     ;;
-build-and-push)
-    docker build -t "$image" "$(dirname "$0")"
-    docker push "$image"
-
-    exit 0
-    ;;
 *)
-    echo "Invalid/missing action '$action'. Must be 'get-url' or 'build-and-push'" >&2
+    echo "Invalid/missing action '$action'. Must be 'get-url'" >&2
     exit 1
     ;;
 esac
