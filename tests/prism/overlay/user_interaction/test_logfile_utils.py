@@ -1,3 +1,4 @@
+import tomllib
 import unittest.mock
 from collections.abc import Mapping
 from dataclasses import replace
@@ -5,7 +6,7 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-import toml
+import tomli_w
 
 from prism.overlay.user_interaction.logfile_utils import (
     ActiveLogfile,
@@ -245,8 +246,8 @@ def test_read_logfile_cache(
     monkeypatch.chdir(tmp_path)
     logfile_cache_path = tmp_path / "logfile_cache.toml"
 
-    with logfile_cache_path.open("w") as f:
-        toml.dump(cache_content, f)
+    with logfile_cache_path.open("wb") as f:
+        tomli_w.dump(cache_content, f)
 
     for filename in ("1", "2", "3"):
         with (tmp_path / filename).open("w") as f:
@@ -317,8 +318,8 @@ def test_write_logfile_cache(
     logfile_cache_path = tmp_path / "logfile_cache.toml"
 
     write_logfile_cache(logfile_cache_path, cache)
-    with logfile_cache_path.open("r") as f:
-        assert toml.load(f) == cache_content
+    with logfile_cache_path.open("rb") as f:
+        assert tomllib.load(f) == cache_content
 
 
 NOT_USED = cast(LogfileCache, None)

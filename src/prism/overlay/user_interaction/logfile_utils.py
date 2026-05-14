@@ -1,12 +1,13 @@
 import logging
 import platform
 import time
+import tomllib
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Self
 
-import toml
+import tomli_w
 
 logger = logging.getLogger(__name__)
 
@@ -337,7 +338,8 @@ def read_logfile_cache(logfile_cache_path: Path) -> tuple[LogfileCache, bool]:
     logfile_cache_updated = False
 
     try:
-        logfile_cache = toml.load(logfile_cache_path)
+        with logfile_cache_path.open("rb") as f:
+            logfile_cache = tomllib.load(f)
     except Exception:
         logger.exception("failed loading logfile cache")
         logfile_cache = {}
@@ -408,10 +410,12 @@ def write_logfile_cache(logfile_cache_path: Path, cache: LogfileCache) -> None:
         and 0 <= cache.last_used_index < len(known_logfiles)
         else None
     )
-    with logfile_cache_path.open("w") as cache_file:
-        toml.dump(
-            {"known_logfiles": known_logfiles, "last_used": last_used}, cache_file
-        )
+    # TOML has no null type, so only include last_used when present.
+    cache_data: dict[str, object] = {"known_logfiles": known_logfiles}
+    if last_used is not None:
+        cache_data["last_used"] = last_used
+    with logfile_cache_path.open("wb") as cache_file:
+        tomli_w.dump(cache_data, cache_file)
 
 
 def get_logfile(
