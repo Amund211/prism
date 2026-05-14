@@ -30,8 +30,8 @@ jobs:
 
       - name: Check golangci-lint version matches pre-commit config
         run: |
-          GOMOD_VERSION=$(go tool golangci-lint --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
-          PRECOMMIT_VERSION=$(grep -A1 'golangci/golangci-lint' .pre-commit-config.yaml | grep 'rev:' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          GOMOD_VERSION=$(go list -m -f '{{.Version}}' github.com/golangci/golangci-lint/v2)
+          PRECOMMIT_VERSION=$(grep -A1 'golangci/golangci-lint' .pre-commit-config.yaml | grep 'rev:' | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
           echo "golangci-lint version in go.mod: $GOMOD_VERSION"
           echo "golangci-lint version in .pre-commit-config.yaml: $PRECOMMIT_VERSION"
           if [ "$GOMOD_VERSION" != "$PRECOMMIT_VERSION" ]; then
