@@ -42,7 +42,6 @@ dev = [
     "pre-commit>=4.6.0",
     "pyinstaller>=6.20.0",
     "pytest>=9.0.3",
-    "types-cachetools>=6.2.0.20260408",
     "types-pillow>=10.2.0.20240822",
     "types-pyinstaller>=6.20.0.20260503",
     "types-pynput>=1.8.1.20260408",
