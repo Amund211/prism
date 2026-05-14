@@ -24,15 +24,6 @@ wheels = [
 ]
 
 [[package]]
-name = "appdirs"
-version = "1.4.4"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d7/d8/05696357e0311f5b5c316d7b95f46c669dd9c15aaeecbb48c7d0aeb88c40/appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41", size = 13470, upload-time = "2020-05-11T07:59:51.037Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/3b/00/2344469e2084fb287c2e0b57b72910309874c3245463acd6cf5e3db69324/appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128", size = 9566, upload-time = "2020-05-11T07:59:49.499Z" },
-]
-
-[[package]]
 name = "black"
 version = "26.3.1"
 source = { registry = "https://pypi.org/simple" }
@@ -441,8 +432,8 @@ name = "prism"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "appdirs" },
     { name = "cachetools" },
+    { name = "platformdirs" },
     { name = "pynput" },
     { name = "pywin32", marker = "sys_platform == 'win32'" },
     { name = "requests" },
@@ -462,7 +453,6 @@ dev = [
     { name = "pre-commit" },
     { name = "pyinstaller" },
     { name = "pytest" },
-    { name = "types-appdirs" },
     { name = "types-cachetools" },
     { name = "types-pillow" },
     { name = "types-pyinstaller" },
@@ -473,8 +463,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "appdirs" },
     { name = "cachetools" },
+    { name = "platformdirs" },
     { name = "pynput" },
     { name = "pywin32", marker = "sys_platform == 'win32'" },
     { name = "requests" },
@@ -494,7 +484,6 @@ dev = [
     { name = "pre-commit", specifier = ">=4.6.0" },
     { name = "pyinstaller", specifier = ">=6.20.0" },
     { name = "pytest", specifier = ">=9.0.3" },
-    { name = "types-appdirs", specifier = ">=1.4.3.5" },
     { name = "types-cachetools", specifier = ">=6.2.0.20260408" },
     { name = "types-pillow", specifier = ">=10.2.0.20240822" },
     { name = "types-pyinstaller", specifier = ">=6.20.0.20260503" },
@@ -808,15 +797,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/53/a3/1585216310e344e8102c22482f6060c7a6ea0322b63e026372e6dcefcfd6/truststore-0.10.4.tar.gz", hash = "sha256:9d91bd436463ad5e4ee4aba766628dd6cd7010cf3e2461756b3303710eebc301", size = 26169, upload-time = "2025-08-12T18:49:02.73Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/19/97/56608b2249fe206a67cd573bc93cd9896e1efb9e98bce9c163bcdc704b88/truststore-0.10.4-py3-none-any.whl", hash = "sha256:adaeaecf1cbb5f4de3b1959b42d41f6fab57b2b1666adb59e89cb0b53361d981", size = 18660, upload-time = "2025-08-12T18:49:01.46Z" },
-]
-
-[[package]]
-name = "types-appdirs"
-version = "1.4.3.5"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/fe/dc/600964f9ee98f4afdb69be74cd8e1ca566635a76ada9af0046e44a778fbb/types-appdirs-1.4.3.5.tar.gz", hash = "sha256:83268da64585361bfa291f8f506a209276212a0497bd37f0512a939b3d69ff14", size = 2866, upload-time = "2023-03-14T15:21:34.849Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/cf/07/41f5b9b11f11855eb67760ed680330e0ce9136a44b51c24dd52edb1c4eb1/types_appdirs-1.4.3.5-py3-none-any.whl", hash = "sha256:337c750e423c40911d389359b4edabe5bbc2cdd5cd0bd0518b71d2839646273b", size = 2667, upload-time = "2023-03-14T15:21:32.431Z" },
 ]
 
 [[package]]
