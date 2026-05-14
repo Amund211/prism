@@ -433,11 +433,11 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "cachetools" },
+    { name = "filelock" },
     { name = "platformdirs" },
     { name = "pynput" },
     { name = "pywin32", marker = "sys_platform == 'win32'" },
     { name = "requests" },
-    { name = "tendo" },
     { name = "toml" },
     { name = "truststore" },
 ]
@@ -463,11 +463,11 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "cachetools" },
+    { name = "filelock" },
     { name = "platformdirs" },
     { name = "pynput" },
     { name = "pywin32", marker = "sys_platform == 'win32'" },
     { name = "requests" },
-    { name = "tendo", specifier = ">=0.3.0" },
     { name = "toml" },
     { name = "truststore" },
 ]
@@ -765,18 +765,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031, upload-time = "2024-12-04T17:35:28.174Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
-]
-
-[[package]]
-name = "tendo"
-version = "0.3.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "six" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/b9/a1/714b2bee108ccfdc160d74ca81459feb8d08753921200637f890eab79545/tendo-0.3.0.tar.gz", hash = "sha256:68392d686eb6ece71c14ff0fe24340e83c4362525c8b26f144c84f3122ae9e77", size = 34368, upload-time = "2022-10-09T20:02:38.899Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ce/3f/761077d55732b0b1a673b15d4fdaa947a7c1eb5c9a23b7142df557019823/tendo-0.3.0-py3-none-any.whl", hash = "sha256:026b70b355ea4c9da7c2123fa2d5c280c8983c1b34e329ff49260e2e78b93be7", size = 25344, upload-time = "2022-10-09T20:02:36.374Z" },
 ]
 
 [[package]]

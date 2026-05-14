@@ -10,8 +10,8 @@ requires-python = ">=3.14"
 dependencies = [
     "platformdirs",
     "cachetools",
+    "filelock",
     "requests",
-    "tendo>=0.3.0",
     "toml",
     "truststore",
     "pynput",
