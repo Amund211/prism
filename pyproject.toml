@@ -12,7 +12,7 @@ dependencies = [
     "cachetools",
     "requests",
     "tendo>=0.3.0",
-    "toml",
+    "tomli-w",
     "truststore",
     "pynput",
     "pywin32; platform_system=='Windows'",
@@ -46,7 +46,6 @@ dev = [
     "types-pyinstaller>=6.20.0.20260503",
     "types-pynput>=1.8.1.20260408",
     "types-requests>=2.33.0.20260503",
-    "types-toml>=0.10.8.20260408",
 ]
 
 [tool.uv]

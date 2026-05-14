@@ -1,11 +1,12 @@
 import logging
 import threading
+import tomllib
 import uuid
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Self, TextIO, TypedDict, TypeVar
 
-import toml
+import tomli_w
 
 from prism import VERSION_STRING
 from prism.overlay.keybinds import (
@@ -231,10 +232,21 @@ class Settings:
         self.greatest_version = new_settings["greatest_version"]
 
     def flush_to_disk(self) -> None:
-        # toml.load(path) uses encoding='utf-8'
+        # TOML has no null type, so recursively omit keys with None values;
+        # the readers handle missing keys (e.g. SpecialKeyDict.vk, optional
+        # api keys) by falling back to defaults.
         with self.write_settings_file_utf8() as f:
-            toml.dump(self.to_dict(), f)
+            f.write(tomli_w.dumps(_drop_none(self.to_dict())))
         logger.info(f"Wrote settings to disk: {self}")
+
+
+def _drop_none(data: Mapping[str, object]) -> dict[str, object]:
+    """Recursively drop keys whose value is None (TOML has no null type)."""
+    return {
+        k: _drop_none(v) if isinstance(v, Mapping) else v
+        for k, v in data.items()
+        if v is not None
+    }
 
 
 # Generic type for value_or_default
@@ -253,7 +265,7 @@ def api_key_is_valid(key: str) -> bool:
 
 def read_settings(read_file: Callable[[], TextIO]) -> Mapping[str, object]:
     with read_file() as f:
-        return toml.load(f)
+        return tomllib.loads(f.read())
 
 
 def get_boolean_setting(
