@@ -72,16 +72,12 @@ func TestMakeGetSessionsHandler(t *testing.T) {
 	stats := []domain.PlayerPIT{
 		domaintest.NewPlayerBuilder(uuid, start).
 			WithExperience(500).
-			WithGamesPlayed(10).
-			WithOverallStats(
-				domaintest.NewStatsBuilder().WithGamesPlayed(10).WithFinalKills(10).Build(),
-			).FromDB().Build(),
+			FromDB().
+			Fours().WithGamesPlayed(10).WithFinalKills(10).Build(),
 		domaintest.NewPlayerBuilder(uuid, end).
 			WithExperience(1000).
-			WithGamesPlayed(11).
-			WithOverallStats(
-				domaintest.NewStatsBuilder().WithGamesPlayed(11).WithFinalKills(11).Build(),
-			).FromDB().Build(),
+			FromDB().
+			Fours().WithGamesPlayed(11).WithFinalKills(11).Build(),
 	}
 
 	// Expected sessions computed from stats

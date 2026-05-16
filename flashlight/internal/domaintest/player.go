@@ -11,22 +11,18 @@ import (
 )
 
 type playerBuilder struct {
-	player *domain.PlayerPIT
+	player                       *domain.PlayerPIT
+	solo, doubles, threes, fours *statsBuilder
+	overallWinstreak             *int
 }
 
-// Utility method for setting only the GamesPlayed field in Overall stats
-func (pb *playerBuilder) WithGamesPlayed(gamesPlayed int) *playerBuilder {
-	pb.player.Overall.GamesPlayed = gamesPlayed
-	return pb
-}
+func (pb *playerBuilder) Solo() *statsBuilder    { return pb.solo }
+func (pb *playerBuilder) Doubles() *statsBuilder { return pb.doubles }
+func (pb *playerBuilder) Threes() *statsBuilder  { return pb.threes }
+func (pb *playerBuilder) Fours() *statsBuilder   { return pb.fours }
 
 func (pb *playerBuilder) WithExperience(exp int64) *playerBuilder {
 	pb.player.Experience = exp
-	return pb
-}
-
-func (pb *playerBuilder) WithOverallStats(stats domain.GamemodeStatsPIT) *playerBuilder {
-	pb.player.Overall = stats
 	return pb
 }
 
@@ -44,8 +40,45 @@ func (pb *playerBuilder) FromDB() *playerBuilder {
 	return pb.WithDBID(&dbID)
 }
 
+func (pb *playerBuilder) WithOverallWinstreak(winstreak int) *playerBuilder {
+	pb.overallWinstreak = &winstreak
+	return pb
+}
+
 func (pb *playerBuilder) Build() domain.PlayerPIT {
-	return *pb.player
+	player := *pb.player
+
+	winstreakAPIEnabled := pb.solo.stats.Winstreak != nil ||
+		pb.doubles.stats.Winstreak != nil ||
+		pb.threes.stats.Winstreak != nil ||
+		pb.fours.stats.Winstreak != nil ||
+		pb.overallWinstreak != nil
+
+	if winstreakAPIEnabled {
+		// Winstreak API enablement is all or nothing.
+		// If one gamemode had a winstreak, but another didn't, that gamemode
+		// actually had winstreak 0.
+		if player.Solo.Winstreak == nil {
+			player.Solo.Winstreak = new(0)
+		}
+		if player.Doubles.Winstreak == nil {
+			player.Doubles.Winstreak = new(0)
+		}
+		if player.Threes.Winstreak == nil {
+			player.Threes.Winstreak = new(0)
+		}
+		if player.Fours.Winstreak == nil {
+			player.Fours.Winstreak = new(0)
+		}
+	}
+
+	player.Overall = computeOverallStats(player.Solo, player.Doubles, player.Threes, player.Fours)
+
+	if pb.overallWinstreak != nil {
+		player.Overall.Winstreak = pb.overallWinstreak
+	}
+
+	return player
 }
 
 func (pb *playerBuilder) BuildPtr() *domain.PlayerPIT {
@@ -54,19 +87,58 @@ func (pb *playerBuilder) BuildPtr() *domain.PlayerPIT {
 	return &player
 }
 
+func computeOverallStats(modes ...domain.GamemodeStatsPIT) domain.GamemodeStatsPIT {
+	var overall domain.GamemodeStatsPIT
+
+	for _, m := range modes {
+		overall.GamesPlayed += m.GamesPlayed
+		overall.Wins += m.Wins
+		overall.Losses += m.Losses
+		overall.BedsBroken += m.BedsBroken
+		overall.BedsLost += m.BedsLost
+		overall.FinalKills += m.FinalKills
+		overall.FinalDeaths += m.FinalDeaths
+		overall.Kills += m.Kills
+		overall.Deaths += m.Deaths
+		if m.Winstreak != nil {
+			// Overall winstreak is not uniquely determined by gamemode winstreaks
+			// The set of possible values are
+			//     [min(gamemode winstreaks), sum(gamemode winstreaks)]
+			// Doing min here.
+			if overall.Winstreak == nil || *m.Winstreak < *overall.Winstreak {
+				overall.Winstreak = m.Winstreak
+			}
+		}
+	}
+
+	return overall
+}
+
 func NewPlayerBuilder(uuid string, queriedAt time.Time) *playerBuilder {
 	player := &domain.PlayerPIT{
 		QueriedAt:  queriedAt,
 		UUID:       uuid,
 		Experience: 500,
 	}
-	return &playerBuilder{
-		player: player,
-	}
+	pb := &playerBuilder{player: player}
+	pb.solo = &statsBuilder{stats: &player.Solo, parent: pb}
+	pb.doubles = &statsBuilder{stats: &player.Doubles, parent: pb}
+	pb.threes = &statsBuilder{stats: &player.Threes, parent: pb}
+	pb.fours = &statsBuilder{stats: &player.Fours, parent: pb}
+	return pb
 }
 
+// statsBuilder mutates a single gamemode's stats on its parent
+// playerBuilder. Build/BuildPtr delegate to the parent so chains like
+// NewPlayerBuilder(...).Fours().WithGamesPlayed(10).Build() work inline.
 type statsBuilder struct {
-	stats *domain.GamemodeStatsPIT
+	stats  *domain.GamemodeStatsPIT
+	parent *playerBuilder
+}
+
+func (sb *statsBuilder) WithWinstreak(winstreak int) *statsBuilder {
+	sb.stats.Winstreak = &winstreak
+	return sb
 }
 
 func (sb *statsBuilder) WithGamesPlayed(gamesPlayed int) *statsBuilder {
@@ -81,6 +153,16 @@ func (sb *statsBuilder) WithWins(wins int) *statsBuilder {
 
 func (sb *statsBuilder) WithLosses(losses int) *statsBuilder {
 	sb.stats.Losses = losses
+	return sb
+}
+
+func (sb *statsBuilder) WithBedsBroken(bedsBroken int) *statsBuilder {
+	sb.stats.BedsBroken = bedsBroken
+	return sb
+}
+
+func (sb *statsBuilder) WithBedsLost(bedsLost int) *statsBuilder {
+	sb.stats.BedsLost = bedsLost
 	return sb
 }
 
@@ -104,15 +186,15 @@ func (sb *statsBuilder) WithDeaths(deaths int) *statsBuilder {
 	return sb
 }
 
-func (sb *statsBuilder) Build() domain.GamemodeStatsPIT {
-	return *sb.stats
-}
+// Navigation to other gamemodes on the parent player, so chains like
+// Fours().WithGamesPlayed(10).Threes().WithFinalKills(5).Build() flow inline.
+func (sb *statsBuilder) Solo() *statsBuilder    { return sb.parent.solo }
+func (sb *statsBuilder) Doubles() *statsBuilder { return sb.parent.doubles }
+func (sb *statsBuilder) Threes() *statsBuilder  { return sb.parent.threes }
+func (sb *statsBuilder) Fours() *statsBuilder   { return sb.parent.fours }
 
-func NewStatsBuilder() *statsBuilder {
-	return &statsBuilder{
-		stats: &domain.GamemodeStatsPIT{},
-	}
-}
+func (sb *statsBuilder) Build() domain.PlayerPIT     { return sb.parent.Build() }
+func (sb *statsBuilder) BuildPtr() *domain.PlayerPIT { return sb.parent.BuildPtr() }
 
 func RequireEqualStats(t *testing.T, expected, actual domain.GamemodeStatsPIT) {
 	t.Helper()

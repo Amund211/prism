@@ -70,9 +70,7 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 	history := []domain.PlayerPIT{
 		domaintest.NewPlayerBuilder(uuid, start).
 			WithExperience(500).
-			WithOverallStats(
-				domaintest.NewStatsBuilder().WithFinalKills(10).Build(),
-			).Build(),
+			Fours().WithFinalKills(10).Build(),
 	}
 	historyJSON, err := ports.HistoryToRainbowHistoryData(history)
 	require.NoError(t, err)
