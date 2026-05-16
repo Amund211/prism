@@ -53,6 +53,7 @@ func TestMakeGetSessionsHandler(t *testing.T) {
 		}
 		return ports.MakeGetSessionsHandler(
 			getPlayerPITs,
+			app.BuildComputeSessions(),
 			stubRegisterUserVisit,
 			allowedOrigins,
 			testLogger,

@@ -187,6 +187,8 @@ func main() {
 
 	getPlayerPITs := app.BuildGetPlayerPITs(playerRepo, updatePlayerInInterval)
 
+	computeSessions := app.BuildComputeSessions()
+
 	findMilestoneAchievements := app.BuildFindMilestoneAchievements(
 		playerRepo,
 		getAndPersistPlayerWithCache,
@@ -292,6 +294,7 @@ func main() {
 		"POST /v1/sessions",
 		ports.MakeGetSessionsHandler(
 			getPlayerPITs,
+			computeSessions,
 			registerUserVisit,
 			allowedOrigins,
 			logger.With("port", "sessions"),
@@ -324,6 +327,7 @@ func main() {
 		"GET /v1/wrapped/{uuid}/{year}",
 		ports.MakeGetWrappedHandler(
 			getPlayerPITs,
+			computeSessions,
 			registerUserVisit,
 			allowedOrigins,
 			logger.With("port", "wrapped"),

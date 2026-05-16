@@ -175,6 +175,7 @@ type playtimeDistributionStats struct {
 
 func MakeGetWrappedHandler(
 	getPlayerPITs app.GetPlayerPITs,
+	computeSessions app.ComputeSessions,
 	registerUserVisit app.RegisterUserVisit,
 	allowedOrigins *DomainSuffixes,
 	rootLogger *slog.Logger,
@@ -293,7 +294,7 @@ func MakeGetWrappedHandler(
 			return
 		}
 
-		wrappedData := computeWrappedStats(ctx, playerPITs, year, location)
+		wrappedData := computeWrappedStats(ctx, computeSessions, playerPITs, year, location)
 		wrappedData.Success = true
 		wrappedData.UUID = uuid
 
@@ -317,10 +318,10 @@ func MakeGetWrappedHandler(
 	return middleware(handler)
 }
 
-func computeWrappedStats(ctx context.Context, playerPITs []domain.PlayerPIT, year int, location *time.Location) wrappedResponse {
+func computeWrappedStats(ctx context.Context, computeSessions app.ComputeSessions, playerPITs []domain.PlayerPIT, year int, location *time.Location) wrappedResponse {
 	yearStart := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
 	yearEnd := time.Date(year+1, 1, 1, 0, 0, 0, 0, time.UTC).Add(-time.Nanosecond)
-	sessions := app.ComputeSessions(ctx, playerPITs, yearStart, yearEnd)
+	sessions := computeSessions(ctx, playerPITs, yearStart, yearEnd)
 
 	// Filter to consecutive sessions only
 	consecutiveSessions := make([]domain.Session, 0, len(sessions))

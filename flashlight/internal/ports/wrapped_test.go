@@ -48,6 +48,7 @@ func TestMakeGetWrappedHandler(t *testing.T) {
 		}
 		return ports.MakeGetWrappedHandler(
 			getPlayerPITs,
+			app.BuildComputeSessions(),
 			stubRegisterUserVisit,
 			allowedOrigins,
 			testLogger,

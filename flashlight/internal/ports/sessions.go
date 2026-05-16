@@ -18,6 +18,7 @@ import (
 
 func MakeGetSessionsHandler(
 	getPlayerPITs app.GetPlayerPITs,
+	computeSessions app.ComputeSessions,
 	registerUserVisit app.RegisterUserVisit,
 	allowedOrigins *DomainSuffixes,
 	rootLogger *slog.Logger,
@@ -136,7 +137,7 @@ func MakeGetSessionsHandler(
 			return
 		}
 
-		sessions := app.ComputeSessions(ctx, stats, request.Start, request.End)
+		sessions := computeSessions(ctx, stats, request.Start, request.End)
 
 		marshalled, err := SessionsToRainbowSessionsData(sessions)
 		if err != nil {
