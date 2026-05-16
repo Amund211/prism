@@ -10,6 +10,8 @@ import (
 	"github.com/Amund211/flashlight/internal/reporting"
 )
 
+const sessionInactivityThreshold = 60 * time.Minute
+
 type ComputeSessions = func(
 	ctx context.Context,
 	stats []domain.PlayerPIT,
@@ -17,7 +19,7 @@ type ComputeSessions = func(
 ) []domain.Session
 
 // NOTE: All domain.PlayerPIT entries must be for the same player
-func BuildComputeSessions() ComputeSessions {
+func BuildComputeSessions(nowFunc func() time.Time) ComputeSessions {
 	return func(ctx context.Context, stats []domain.PlayerPIT, start, end time.Time) []domain.Session {
 		if len(stats) <= 1 {
 			// Need at least a start and end to create a session
@@ -92,8 +94,8 @@ func BuildComputeSessions() ComputeSessions {
 				continue
 			}
 
-			// If more than 60 minutes since last activity, end session
-			if stat.QueriedAt.Sub(lastEventfulEntry.QueriedAt) > 60*time.Minute {
+			// If more than the inactivity threshold since last activity, end session
+			if stat.QueriedAt.Sub(lastEventfulEntry.QueriedAt) > sessionInactivityThreshold {
 				if includeSession(sessionStart, lastEventfulEntry) {
 					sessions = append(sessions, domain.Session{
 						Start:       *sessionStart,
@@ -139,6 +141,16 @@ func BuildComputeSessions() ComputeSessions {
 				End:         *lastEventfulEntry,
 				Consecutive: consecutive,
 			})
+		}
+
+		if len(sessions) > 0 {
+			now := nowFunc()
+			last := &sessions[len(sessions)-1]
+			if !now.Before(last.Start.QueriedAt) && !now.After(last.End.QueriedAt.Add(sessionInactivityThreshold)) {
+				// A stat increase at `now` could extend the session, so we mark
+				// it as ongoing.
+				last.Ongoing = true
+			}
 		}
 
 		return sessions

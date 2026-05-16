@@ -187,7 +187,7 @@ func main() {
 
 	getPlayerPITs := app.BuildGetPlayerPITs(playerRepo, updatePlayerInInterval)
 
-	computeSessions := app.BuildComputeSessions()
+	computeSessions := app.BuildComputeSessions(time.Now)
 
 	findMilestoneAchievements := app.BuildFindMilestoneAchievements(
 		playerRepo,

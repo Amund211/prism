@@ -15,6 +15,12 @@ import (
 func TestComputeSessions(t *testing.T) {
 	t.Parallel()
 
+	// nowFarFuture is used by tests that don't care about the Ongoing field —
+	// it pushes `now` so far past every session that nothing is ever ongoing.
+	nowFarFuture := func() time.Time {
+		return time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC)
+	}
+
 	requireEqualSessions := func(t *testing.T, expected, actual []domain.Session) {
 		t.Helper()
 
@@ -30,6 +36,7 @@ func TestComputeSessions(t *testing.T) {
 			start       normalizedPlayerPIT
 			end         normalizedPlayerPIT
 			consecutive bool
+			ongoing     bool
 		}
 
 		normalizePlayerData := func(player *domain.PlayerPIT) normalizedPlayerPIT {
@@ -54,6 +61,7 @@ func TestComputeSessions(t *testing.T) {
 					start:       normalizePlayerData(&session.Start),
 					end:         normalizePlayerData(&session.End),
 					consecutive: session.Consecutive,
+					ongoing:     session.Ongoing,
 				}
 			}
 			return normalized
@@ -65,7 +73,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("random clusters", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		playerUUID := domaintest.NewUUID(t)
 		start := time.Date(2022, time.February, 14, 0, 0, 0, 0, time.FixedZone("UTC", 3600*1))
 
@@ -126,7 +134,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("Single stat", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		playerUUID := domaintest.NewUUID(t)
 		start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
 
@@ -141,7 +149,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("Single stat at the start", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		playerUUID := domaintest.NewUUID(t)
 		start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
 
@@ -166,7 +174,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("Single stat at the end", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		playerUUID := domaintest.NewUUID(t)
 		start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*8))
 
@@ -191,7 +199,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("Single stat at start and end", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		playerUUID := domaintest.NewUUID(t)
 		start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*2))
 
@@ -218,7 +226,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("No stats", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*10))
 
 		players := make([]domain.PlayerPIT, 0)
@@ -231,7 +239,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("inactivity between sessions", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		playerUUID := domaintest.NewUUID(t)
 		start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*2))
 
@@ -270,7 +278,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("1 hr inactivity between sessions", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		playerUUID := domaintest.NewUUID(t)
 		start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*2))
 
@@ -302,7 +310,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("sessions before and after", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		playerUUID := domaintest.NewUUID(t)
 		start := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC", -3600*2))
 
@@ -328,7 +336,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("only xp change", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		playerUUID := domaintest.NewUUID(t)
 		start := time.Date(2024, time.March, 24, 17, 37, 14, 987_654_321, time.FixedZone("UTC", 3600*9))
 
@@ -360,7 +368,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("only games played change", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		playerUUID := domaintest.NewUUID(t)
 		start := time.Date(2024, time.August, 2, 1, 47, 34, 987_654_321, time.FixedZone("UTC", 3600*3))
 
@@ -392,7 +400,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("gaps in sessions", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		playerUUID := domaintest.NewUUID(t)
 		start := time.Date(2022, time.November, 2, 13, 47, 34, 987_654_321, time.FixedZone("UTC", 3600*3))
 
@@ -444,7 +452,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("end", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		playerUUID := domaintest.NewUUID(t)
 		start := time.Date(2025, time.December, 9, 14, 13, 34, 987_654_321, time.FixedZone("UTC", 3600*0))
 
@@ -468,7 +476,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("mostly consecutive", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		playerUUID := domaintest.NewUUID(t)
 		start := time.Date(2025, time.February, 7, 4, 13, 34, 987_654_321, time.FixedZone("UTC", 3600*-10))
 
@@ -495,7 +503,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("short pauses", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		playerUUID := domaintest.NewUUID(t)
 		start := time.Date(2025, time.December, 1, 7, 13, 34, 987_654_321, time.FixedZone("UTC", 3600*7))
 
@@ -522,7 +530,7 @@ func TestComputeSessions(t *testing.T) {
 	t.Run("2 gap -> still consecutive", func(t *testing.T) {
 		ctx := context.Background()
 		t.Parallel()
-		computeSessions := app.BuildComputeSessions()
+		computeSessions := app.BuildComputeSessions(nowFarFuture)
 		playerUUID := domaintest.NewUUID(t)
 		start := time.Date(2025, time.February, 7, 4, 13, 34, 987_654_321, time.FixedZone("UTC", 3600*-10))
 
@@ -544,5 +552,191 @@ func TestComputeSessions(t *testing.T) {
 			},
 		}
 		requireEqualSessions(t, expectedSessions, sessions)
+	})
+
+	t.Run("ongoing across stat additions", func(t *testing.T) {
+		ctx := context.Background()
+		t.Parallel()
+		playerUUID := domaintest.NewUUID(t)
+		refTime := time.Date(2025, time.January, 15, 11, 50, 0, 0, time.UTC)
+
+		// 11:50, 10 games played
+		statA := domaintest.NewPlayerBuilder(playerUUID, refTime).
+			WithGamesPlayed(10).
+			WithExperience(1_000).
+			FromDB().
+			Build()
+		// 12:00, +1 game
+		statB := domaintest.NewPlayerBuilder(playerUUID, refTime.Add(10*time.Minute)).
+			WithGamesPlayed(11).
+			WithExperience(1_300).
+			FromDB().
+			Build()
+		// 12:10, identical to statB so it doesn't extend the session
+		statC := domaintest.NewPlayerBuilder(playerUUID, refTime.Add(20*time.Minute)).
+			WithGamesPlayed(11).
+			WithExperience(1_300).
+			FromDB().
+			Build()
+		// 13:05, +1 game — starts a new session
+		statD := domaintest.NewPlayerBuilder(playerUUID, refTime.Add(75*time.Minute)).
+			WithGamesPlayed(12).
+			WithExperience(1_700).
+			FromDB().
+			Build()
+
+		intervalStart := refTime.Add(-12 * time.Hour)
+		intervalEnd := refTime.Add(12 * time.Hour)
+
+		firstSession := domain.Session{Start: statA, End: statB, Consecutive: true}
+		firstSessionOngoing := domain.Session{Start: statA, End: statB, Consecutive: true, Ongoing: true}
+		secondSession := domain.Session{Start: statC, End: statD, Consecutive: true}
+		secondSessionOngoing := domain.Session{Start: statC, End: statD, Consecutive: true, Ongoing: true}
+
+		cases := []struct {
+			name         string
+			stats        []domain.PlayerPIT
+			now          time.Time
+			wantSessions []domain.Session
+		}{
+			{
+				name:         "stats up to 12:00, now=12:01 -> ongoing",
+				stats:        []domain.PlayerPIT{statA, statB},
+				now:          refTime.Add(11 * time.Minute),
+				wantSessions: []domain.Session{firstSessionOngoing},
+			},
+			{
+				name:         "stats up to 12:00, now=12:09 -> ongoing",
+				stats:        []domain.PlayerPIT{statA, statB},
+				now:          refTime.Add(19 * time.Minute),
+				wantSessions: []domain.Session{firstSessionOngoing},
+			},
+			{
+				name:         "12:10 stat does not extend, now=12:10 -> ongoing",
+				stats:        []domain.PlayerPIT{statA, statB, statC},
+				now:          refTime.Add(20 * time.Minute),
+				wantSessions: []domain.Session{firstSessionOngoing},
+			},
+			{
+				name:         "12:10 stat does not extend, now=12:30 -> ongoing",
+				stats:        []domain.PlayerPIT{statA, statB, statC},
+				now:          refTime.Add(40 * time.Minute),
+				wantSessions: []domain.Session{firstSessionOngoing},
+			},
+			{
+				name:         "12:10 stat does not extend, now=12:59 -> ongoing",
+				stats:        []domain.PlayerPIT{statA, statB, statC},
+				now:          refTime.Add(69 * time.Minute),
+				wantSessions: []domain.Session{firstSessionOngoing},
+			},
+			{
+				name:         "12:10 stat does not extend, now=13:01 -> not ongoing",
+				stats:        []domain.PlayerPIT{statA, statB, statC},
+				now:          refTime.Add(71 * time.Minute),
+				wantSessions: []domain.Session{firstSession},
+			},
+			{
+				name:         "12:10 stat does not extend, now=13:04 -> not ongoing",
+				stats:        []domain.PlayerPIT{statA, statB, statC},
+				now:          refTime.Add(74 * time.Minute),
+				wantSessions: []domain.Session{firstSession},
+			},
+			{
+				name:         "13:05 starts second session, now=13:05 -> only second ongoing",
+				stats:        []domain.PlayerPIT{statA, statB, statC, statD},
+				now:          refTime.Add(75 * time.Minute),
+				wantSessions: []domain.Session{firstSession, secondSessionOngoing},
+			},
+			{
+				name:         "13:05 starts second session, now=13:30 -> only second ongoing",
+				stats:        []domain.PlayerPIT{statA, statB, statC, statD},
+				now:          refTime.Add(100 * time.Minute),
+				wantSessions: []domain.Session{firstSession, secondSessionOngoing},
+			},
+			{
+				name:         "13:05 starts second session, now=14:04 -> only second ongoing",
+				stats:        []domain.PlayerPIT{statA, statB, statC, statD},
+				now:          refTime.Add(134 * time.Minute),
+				wantSessions: []domain.Session{firstSession, secondSessionOngoing},
+			},
+			{
+				name:         "13:05 starts second session, now=14:06 -> neither ongoing",
+				stats:        []domain.PlayerPIT{statA, statB, statC, statD},
+				now:          refTime.Add(136 * time.Minute),
+				wantSessions: []domain.Session{firstSession, secondSession},
+			},
+		}
+
+		for _, c := range cases {
+			t.Run(c.name, func(t *testing.T) {
+				t.Parallel()
+				nowFunc := func() time.Time { return c.now }
+				computeSessions := app.BuildComputeSessions(nowFunc)
+				got := computeSessions(ctx, c.stats, intervalStart, intervalEnd)
+				requireEqualSessions(t, c.wantSessions, got)
+			})
+		}
+	})
+
+	// These tests cover edge cases that shouldn't happen, where the "now" time is
+	// earlier than timestamps we have stored in the DB.
+	t.Run("continuity errors", func(t *testing.T) {
+		t.Run("now inside last session is ongoing", func(t *testing.T) {
+			ctx := context.Background()
+			t.Parallel()
+			playerUUID := domaintest.NewUUID(t)
+			start := time.Date(2025, time.March, 4, 11, 50, 0, 0, time.UTC)
+
+			stats := []domain.PlayerPIT{
+				domaintest.NewPlayerBuilder(playerUUID, start).
+					WithGamesPlayed(10).
+					WithExperience(1_000).
+					FromDB().
+					Build(),
+				domaintest.NewPlayerBuilder(playerUUID, start.Add(10*time.Minute)).
+					WithGamesPlayed(11).
+					WithExperience(1_300).
+					FromDB().
+					Build(),
+			}
+			// now lands strictly between session.Start and session.End
+			nowFunc := func() time.Time { return start.Add(5 * time.Minute) }
+			computeSessions := app.BuildComputeSessions(nowFunc)
+
+			sessions := computeSessions(ctx, stats, start.Add(-12*time.Hour), start.Add(12*time.Hour))
+
+			requireEqualSessions(t, []domain.Session{
+				{Start: stats[0], End: stats[1], Consecutive: true, Ongoing: true},
+			}, sessions)
+		})
+
+		t.Run("now before last session is not ongoing", func(t *testing.T) {
+			ctx := context.Background()
+			t.Parallel()
+			playerUUID := domaintest.NewUUID(t)
+			start := time.Date(2025, time.April, 1, 11, 50, 0, 0, time.UTC)
+
+			stats := []domain.PlayerPIT{
+				domaintest.NewPlayerBuilder(playerUUID, start).
+					WithGamesPlayed(10).
+					WithExperience(1_000).
+					FromDB().
+					Build(),
+				domaintest.NewPlayerBuilder(playerUUID, start.Add(10*time.Minute)).
+					WithGamesPlayed(11).
+					WithExperience(1_300).
+					FromDB().
+					Build(),
+			}
+			// now is before the session starts
+			nowFunc := func() time.Time { return start.Add(-1 * time.Minute) }
+			computeSessions := app.BuildComputeSessions(nowFunc)
+
+			sessions := computeSessions(ctx, stats, start.Add(-12*time.Hour), start.Add(12*time.Hour))
+
+			requireEqualSessions(t, []domain.Session{
+				{Start: stats[0], End: stats[1], Consecutive: true},
+			}, sessions)
+		})
 	})
 }
