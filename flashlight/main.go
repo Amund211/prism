@@ -117,7 +117,7 @@ func main() {
 
 	accountProvider := accountprovider.NewMojang(httpClient, time.Now, time.After)
 
-	tagProvider, err := tagprovider.NewUrchin(httpClient, time.Now, time.After)
+	tagProvider, err := tagprovider.NewUrchin(httpClient, time.Now, time.After, config.UrchinAPIKey())
 	if err != nil {
 		fail("Failed to initialize Urchin tag provider", "error", err.Error())
 	}

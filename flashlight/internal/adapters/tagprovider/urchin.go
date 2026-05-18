@@ -67,14 +67,19 @@ func setupUrchinAPIMetrics(meter metric.Meter) (urchinAPIMetricsCollection, erro
 }
 
 type urchin struct {
-	httpClient HTTPClient
-	limiter    RequestLimiter
+	httpClient    HTTPClient
+	limiter       RequestLimiter
+	defaultAPIKey string
 
 	metrics urchinAPIMetricsCollection
 	tracer  trace.Tracer
 }
 
-func NewUrchin(httpClient HTTPClient, nowFunc func() time.Time, afterFunc func(time.Duration) <-chan time.Time) (*urchin, error) {
+func NewUrchin(httpClient HTTPClient, nowFunc func() time.Time, afterFunc func(time.Duration) <-chan time.Time, defaultAPIKey string) (*urchin, error) {
+	if defaultAPIKey == "" {
+		return nil, fmt.Errorf("urchin default API key is required")
+	}
+
 	const name = "flashlight/tagprovider/urchin"
 
 	meter := otel.Meter(name)
@@ -89,8 +94,9 @@ func NewUrchin(httpClient HTTPClient, nowFunc func() time.Time, afterFunc func(t
 	limiter := ratelimiting.NewWindowLimitRequestLimiter(600, 5*time.Minute, nowFunc, afterFunc)
 
 	return &urchin{
-		httpClient: httpClient,
-		limiter:    limiter,
+		httpClient:    httpClient,
+		limiter:       limiter,
+		defaultAPIKey: defaultAPIKey,
 
 		metrics: metrics,
 		tracer:  tracer,
@@ -101,10 +107,14 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 	ctx, span := u.tracer.Start(ctx, "Urchin.GetTags")
 	defer span.End()
 
-	url := fmt.Sprintf("https://urchin.ws/player/%s?sources=MANUAL", uuid)
-	if urchinAPIKey != nil {
-		url += fmt.Sprintf("&key=%s", *urchinAPIKey)
+	callerSuppliedKey := urchinAPIKey != nil
+
+	effectiveAPIKey := u.defaultAPIKey
+	if callerSuppliedKey {
+		effectiveAPIKey = *urchinAPIKey
 	}
+
+	url := fmt.Sprintf("https://urchin.ws/player/%s?sources=MANUAL&key=%s", uuid, effectiveAPIKey)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, http.NoBody)
 	if err != nil {
@@ -169,7 +179,7 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 		slog.String("data", string(data)),
 	)
 
-	tags, seen, err := tagsFromUrchinResponse(ctx, resp.StatusCode, data, urchinAPIKey != nil)
+	tags, seen, err := tagsFromUrchinResponse(ctx, resp.StatusCode, data, callerSuppliedKey)
 	if errors.Is(err, domain.ErrInvalidAPIKey) {
 		// Don't report, as it is a client error
 		return domain.Tags{}, err
@@ -196,7 +206,7 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 		return domain.Tags{}, err
 	}
 
-	withAPIKey := urchinAPIKey != nil
+	withAPIKey := callerSuppliedKey
 
 	u.metrics.requestCount.Add(
 		ctx,

@@ -17,16 +17,17 @@ const (
 	development environment = "development"
 )
 
-var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY", "BLOCKED_IPS", "BLOCKED_USER_AGENTS", "BLOCKED_USER_IDS", "BLOCKED_IPS_SHA256_HEX"}
+var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "BLOCKED_IPS", "BLOCKED_USER_AGENTS", "BLOCKED_USER_IDS", "BLOCKED_IPS_SHA256_HEX"}
 
 func TestGetConfig(t *testing.T) {
-	compareConfig := func(t *testing.T, socketPath, username, password, sentryDSN, hypixelAPIKey string, blockedIPs, blockedUserAgents, blockedUserIDs, blockedIPsSHA256Hex []string, env environment, conf config.Config) {
+	compareConfig := func(t *testing.T, socketPath, username, password, sentryDSN, hypixelAPIKey, urchinAPIKey string, blockedIPs, blockedUserAgents, blockedUserIDs, blockedIPsSHA256Hex []string, env environment, conf config.Config) {
 		t.Helper()
 		require.Equal(t, socketPath, conf.CloudSQLUnixSocketPath())
 		require.Equal(t, username, conf.DBUsername())
 		require.Equal(t, password, conf.DBPassword())
 		require.Equal(t, sentryDSN, conf.SentryDSN())
 		require.Equal(t, hypixelAPIKey, conf.HypixelAPIKey())
+		require.Equal(t, urchinAPIKey, conf.UrchinAPIKey())
 		require.Equal(t, env == production, conf.IsProduction())
 		require.Equal(t, env == staging, conf.IsStaging())
 		require.Equal(t, env == development, conf.IsDevelopment())
@@ -44,7 +45,7 @@ func TestGetConfig(t *testing.T) {
 
 			conf, err := config.ConfigFromEnv()
 			require.NoError(t, err)
-			compareConfig(t, "", "", "", "", "", []string{}, []string{}, []string{}, []string{}, development, conf)
+			compareConfig(t, "", "", "", "", "", "", []string{}, []string{}, []string{}, []string{}, development, conf)
 		})
 	})
 
@@ -59,7 +60,7 @@ func TestGetConfig(t *testing.T) {
 
 				conf, err := config.ConfigFromEnv()
 				require.NoError(t, err)
-				compareConfig(t, "CLOUDSQL_UNIX_SOCKET", "DB_USERNAME", "DB_PASSWORD", "SENTRY_DSN", "HYPIXEL_API_KEY", []string{"BLOCKED_IPS"}, []string{"BLOCKED_USER_AGENTS"}, []string{"BLOCKED_USER_IDS"}, []string{"BLOCKED_IPS_SHA256_HEX"}, env, conf)
+				compareConfig(t, "CLOUDSQL_UNIX_SOCKET", "DB_USERNAME", "DB_PASSWORD", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", []string{"BLOCKED_IPS"}, []string{"BLOCKED_USER_AGENTS"}, []string{"BLOCKED_USER_IDS"}, []string{"BLOCKED_IPS_SHA256_HEX"}, env, conf)
 			})
 		}
 
@@ -68,7 +69,7 @@ func TestGetConfig(t *testing.T) {
 			conf, err := config.ConfigFromEnv()
 			require.NoError(t, err)
 
-			for _, sensitive := range []string{"DB_PASSWORD", "HYPIXEL_API_KEY", "SENTRY_DSN"} {
+			for _, sensitive := range []string{"DB_PASSWORD", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "SENTRY_DSN"} {
 				require.NotContains(t, conf.NonSensitiveString(), sensitive)
 			}
 		})

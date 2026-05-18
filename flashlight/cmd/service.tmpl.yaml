@@ -41,6 +41,11 @@ spec:
             secretKeyRef:
               name: "prism-hypixel-api-key"
               key: "latest"
+        - name: "URCHIN_API_KEY"
+          valueFrom:
+            secretKeyRef:
+              name: "prism-urchin-api-key"
+              key: "latest"
         - name: "DB_PASSWORD"
           valueFrom:
             secretKeyRef:

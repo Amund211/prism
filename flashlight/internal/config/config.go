@@ -24,6 +24,7 @@ type Config struct {
 	dBUsername             string
 	sentryDSN              string
 	hypixelAPIKey          string
+	urchinAPIKey           string
 	port                   string
 	env                    environment
 	blockedIPs             []string
@@ -50,6 +51,10 @@ func (c *Config) SentryDSN() string {
 
 func (c *Config) HypixelAPIKey() string {
 	return c.hypixelAPIKey
+}
+
+func (c *Config) UrchinAPIKey() string {
+	return c.urchinAPIKey
 }
 
 func (c *Config) Port() string {
@@ -120,6 +125,7 @@ func ConfigFromEnv() (Config, error) {
 	dbUsername := os.Getenv("DB_USERNAME")
 	sentryDSN := os.Getenv("SENTRY_DSN")
 	hypixelAPIKey := os.Getenv("HYPIXEL_API_KEY")
+	urchinAPIKey := os.Getenv("URCHIN_API_KEY")
 
 	port := "8080"
 	rawPort, ok := os.LookupEnv("PORT")
@@ -142,6 +148,9 @@ func ConfigFromEnv() (Config, error) {
 		}
 		if hypixelAPIKey == "" {
 			return missingKey("HYPIXEL_API_KEY")
+		}
+		if urchinAPIKey == "" {
+			return missingKey("URCHIN_API_KEY")
 		}
 	}
 
@@ -168,6 +177,7 @@ func ConfigFromEnv() (Config, error) {
 		dBUsername:             dbUsername,
 		sentryDSN:              sentryDSN,
 		hypixelAPIKey:          hypixelAPIKey,
+		urchinAPIKey:           urchinAPIKey,
 		port:                   port,
 		env:                    env,
 		blockedIPs:             blockedIPs,
