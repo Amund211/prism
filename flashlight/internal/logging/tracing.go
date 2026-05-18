@@ -25,6 +25,18 @@ func (h *googleCloudTracingLogHandler) Enabled(ctx context.Context, level slog.L
 }
 
 func (h *googleCloudTracingLogHandler) Handle(ctx context.Context, r slog.Record) error {
+	// Surface the message and level under the field names Google Cloud
+	// Logging expects (message, severity) while keeping slog's defaults
+	// (msg, level) so existing log queries keep working.
+	// https://cloud.google.com/logging/docs/structured-logging
+	// TODO: once nothing depends on `msg`/`level`, drop this and build the
+	// base handler with slog.NewJSONHandler + HandlerOptions.ReplaceAttr to
+	// rename the keys instead of duplicating them.
+	r.AddAttrs(
+		slog.String("message", r.Message),
+		slog.String("severity", gcpSeverity(r.Level)),
+	)
+
 	if sc := trace.SpanContextFromContext(ctx); sc.IsValid() {
 		// Associate the logs in google cloud with the active trace/span.
 		// https://docs.cloud.google.com/logging/docs/agent/logging/configuration#special-fields
@@ -36,6 +48,19 @@ func (h *googleCloudTracingLogHandler) Handle(ctx context.Context, r slog.Record
 		)
 	}
 	return h.base.Handle(ctx, r)
+}
+
+func gcpSeverity(l slog.Level) string {
+	switch {
+	case l >= slog.LevelError:
+		return "ERROR"
+	case l >= slog.LevelWarn:
+		return "WARNING"
+	case l >= slog.LevelInfo:
+		return "INFO"
+	default:
+		return "DEBUG"
+	}
 }
 
 func (h *googleCloudTracingLogHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
