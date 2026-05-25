@@ -63,7 +63,7 @@ func TestGetAndPersistPlayer(t *testing.T) {
 
 		provider := &mockedPlayerProvider{
 			t:      t,
-			player: domaintest.NewPlayerBuilder(UUID, now).WithExperience(500).BuildPtr(),
+			player: domaintest.NewPlayerBuilder(UUID).WithExperience(500).BuildPtr(now),
 			err:    nil,
 		}
 		panicProvider := &panicPlayerProvider{t: t}

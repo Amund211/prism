@@ -99,7 +99,7 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 					}
 				}`),
 				hypixelStatusCode: 200,
-				result:            domaintest.NewPlayerBuilder("12345678-90ab-cdef-1234-567890abcdef", now).WithExperience(1087).BuildPtr(),
+				result:            domaintest.NewPlayerBuilder("12345678-90ab-cdef-1234-567890abcdef").WithExperience(1087).BuildPtr(now),
 			},
 			{
 				name:      "float experience - scientific notation",
@@ -117,7 +117,7 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 					}
 				}`),
 				hypixelStatusCode: 200,
-				result:            domaintest.NewPlayerBuilder("12345678-90ab-cdef-1234-567890abcdef", later).WithExperience(12_227_806).BuildPtr(),
+				result:            domaintest.NewPlayerBuilder("12345678-90ab-cdef-1234-567890abcdef").WithExperience(12_227_806).BuildPtr(later),
 			},
 			{
 				name:               "not found",

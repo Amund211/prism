@@ -68,9 +68,9 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 	endStr := "2023-01-31T23:59:59.999999999Z"
 	limit := 100
 	history := []domain.PlayerPIT{
-		domaintest.NewPlayerBuilder(uuid, start).
+		domaintest.NewPlayerBuilder(uuid).
 			WithExperience(500).
-			Fours().WithFinalKills(10).Build(),
+			Fours().WithFinalKills(10).Build(start),
 	}
 	historyJSON, err := ports.HistoryToRainbowHistoryData(history)
 	require.NoError(t, err)

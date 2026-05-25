@@ -50,8 +50,9 @@ func (pb *playerBuilder) WithOverallWinstreak(winstreak int) *playerBuilder {
 	return pb
 }
 
-func (pb *playerBuilder) Build() domain.PlayerPIT {
+func (pb *playerBuilder) Build(queriedAt time.Time) domain.PlayerPIT {
 	player := *pb.player
+	player.QueriedAt = queriedAt
 
 	// Clone every pointer field so later builder mutations can't reach
 	// already-built players through shared pointers.
@@ -145,9 +146,9 @@ func clonePtr[T any](p *T) *T {
 	return &v
 }
 
-func (pb *playerBuilder) BuildPtr() *domain.PlayerPIT {
+func (pb *playerBuilder) BuildPtr(queriedAt time.Time) *domain.PlayerPIT {
 	// Make a copy, so further mutations to the builder don't affect the returned player
-	player := pb.Build()
+	player := pb.Build(queriedAt)
 	return &player
 }
 
@@ -170,9 +171,8 @@ func computeOverallStats(modes ...domain.GamemodeStatsPIT) domain.GamemodeStatsP
 	return overall
 }
 
-func NewPlayerBuilder(uuid string, queriedAt time.Time) *playerBuilder {
+func NewPlayerBuilder(uuid string) *playerBuilder {
 	player := &domain.PlayerPIT{
-		QueriedAt:  queriedAt,
 		UUID:       uuid,
 		Experience: 500,
 	}

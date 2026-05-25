@@ -105,8 +105,8 @@ func TestBuildGetHistory(t *testing.T) {
 			{
 				name: "non-empty history",
 				history: []domain.PlayerPIT{
-					domaintest.NewPlayerBuilder(uuid, now).WithExperience(500).Build(),
-					domaintest.NewPlayerBuilder(uuid, now).WithExperience(501).Build(),
+					domaintest.NewPlayerBuilder(uuid).WithExperience(500).Build(now),
+					domaintest.NewPlayerBuilder(uuid).WithExperience(501).Build(now),
 				},
 			},
 		}
@@ -153,8 +153,8 @@ func TestBuildGetHistory(t *testing.T) {
 		end := time.Date(2024, time.March, 31, 23, 59, 59, 999_999_999, time.UTC)
 
 		expectedHistory := []domain.PlayerPIT{
-			domaintest.NewPlayerBuilder(uuid, now).WithExperience(500).Build(),
-			domaintest.NewPlayerBuilder(uuid, now).WithExperience(501).Build(),
+			domaintest.NewPlayerBuilder(uuid).WithExperience(500).Build(now),
+			domaintest.NewPlayerBuilder(uuid).WithExperience(501).Build(now),
 		}
 
 		updatePlayerInIntervalCalled := false

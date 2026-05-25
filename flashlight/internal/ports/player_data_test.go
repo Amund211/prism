@@ -38,7 +38,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
-		player := domaintest.NewPlayerBuilder(UUID, now).WithExperience(1000).BuildPtr()
+		player := domaintest.NewPlayerBuilder(UUID).WithExperience(1000).BuildPtr(now)
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return player, nil
@@ -116,7 +116,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	t.Run("rate limit exceeded", func(t *testing.T) {
 		t.Parallel()
 
-		player := domaintest.NewPlayerBuilder(UUID, now).WithExperience(1000).BuildPtr()
+		player := domaintest.NewPlayerBuilder(UUID).WithExperience(1000).BuildPtr(now)
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return player, nil

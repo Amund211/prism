@@ -103,9 +103,9 @@ func TestBuildGetPlayerPITs(t *testing.T) {
 			{
 				name: "data",
 				playerPITs: []domain.PlayerPIT{
-					domaintest.NewPlayerBuilder(uuid, now).FromDB().WithExperience(500).Build(),
-					domaintest.NewPlayerBuilder(uuid, now.Add(1*time.Minute)).FromDB().WithExperience(501).Build(),
-					domaintest.NewPlayerBuilder(uuid, now.Add(2*time.Minute)).FromDB().WithExperience(502).Build(),
+					domaintest.NewPlayerBuilder(uuid).FromDB().WithExperience(500).Build(now),
+					domaintest.NewPlayerBuilder(uuid).FromDB().WithExperience(501).Build(now.Add(1 * time.Minute)),
+					domaintest.NewPlayerBuilder(uuid).FromDB().WithExperience(502).Build(now.Add(2 * time.Minute)),
 				},
 			},
 		}
@@ -152,8 +152,8 @@ func TestBuildGetPlayerPITs(t *testing.T) {
 		end := time.Date(2024, time.March, 31, 23, 59, 59, 999_999_999, time.UTC)
 
 		expectedPlayerPITs := []domain.PlayerPIT{
-			domaintest.NewPlayerBuilder(uuid, now).FromDB().WithExperience(500).Build(),
-			domaintest.NewPlayerBuilder(uuid, now).FromDB().WithExperience(501).Build(),
+			domaintest.NewPlayerBuilder(uuid).FromDB().WithExperience(500).Build(now),
+			domaintest.NewPlayerBuilder(uuid).FromDB().WithExperience(501).Build(now),
 		}
 
 		updatePlayerInIntervalCalled := false

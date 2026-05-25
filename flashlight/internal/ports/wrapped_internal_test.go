@@ -25,8 +25,8 @@ func TestComputeSessionLengths(t *testing.T) {
 			name: "single session",
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)).Build(),
-					End:   domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)),
+					End:   domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
 				},
 			},
 			want: sessionLengthStats{
@@ -40,16 +40,16 @@ func TestComputeSessionLengths(t *testing.T) {
 			name: "multiple sessions",
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)).Build(),
-					End:   domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)),
+					End:   domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
 				},
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 2, 14, 0, 0, 0, time.UTC)).Build(),
-					End:   domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 2, 18, 0, 0, 0, time.UTC)).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2023, time.January, 2, 14, 0, 0, 0, time.UTC)),
+					End:   domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2023, time.January, 2, 18, 0, 0, 0, time.UTC)),
 				},
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 3, 9, 0, 0, 0, time.UTC)).Build(),
-					End:   domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 3, 10, 0, 0, 0, time.UTC)).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2023, time.January, 3, 9, 0, 0, 0, time.UTC)),
+					End:   domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2023, time.January, 3, 10, 0, 0, 0, time.UTC)),
 				},
 			},
 			want: sessionLengthStats{
@@ -86,40 +86,40 @@ func TestComputeSessionsPerMonth(t *testing.T) {
 			year: 2023,
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2022, time.December, 31, 10, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(1).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(0).Build(time.Date(2022, time.December, 31, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(1).Build(time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)),
 				},
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 15, 10, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 15, 11, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(1).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(0).Build(time.Date(2023, time.January, 15, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(1).Build(time.Date(2023, time.January, 15, 11, 0, 0, 0, time.UTC)),
 				},
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 20, 10, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(1).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 20, 11, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(2).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(1).Build(time.Date(2023, time.January, 20, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(2).Build(time.Date(2023, time.January, 20, 11, 0, 0, 0, time.UTC)),
 				},
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.March, 10, 10, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(2).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.March, 10, 11, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(3).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(2).Build(time.Date(2023, time.March, 10, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(3).Build(time.Date(2023, time.March, 10, 11, 0, 0, 0, time.UTC)),
 				},
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.December, 25, 10, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(3).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.December, 25, 11, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(4).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(3).Build(time.Date(2023, time.December, 25, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(4).Build(time.Date(2023, time.December, 25, 11, 0, 0, 0, time.UTC)),
 				},
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.December, 31, 10, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2024, time.January, 1, 11, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(1).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(0).Build(time.Date(2023, time.December, 31, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(1).Build(time.Date(2024, time.January, 1, 11, 0, 0, 0, time.UTC)),
 				},
 			},
 			want: sessionsPerMonth{
@@ -154,16 +154,16 @@ func TestComputeFlawlessSessions(t *testing.T) {
 			name: "no flawless sessions - has losses or final deaths",
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, start).
-						Fours().WithLosses(0).WithFinalDeaths(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, start.Add(time.Hour)).
-						Fours().WithLosses(1).WithFinalDeaths(0).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(0).WithFinalDeaths(0).Build(start),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(1).WithFinalDeaths(0).Build(start.Add(time.Hour)),
 				},
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, start.Add(2*time.Hour)).
-						Fours().WithLosses(1).WithFinalDeaths(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, start.Add(3*time.Hour)).
-						Fours().WithLosses(1).WithFinalDeaths(1).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(1).WithFinalDeaths(0).Build(start.Add(2 * time.Hour)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(1).WithFinalDeaths(1).Build(start.Add(3 * time.Hour)),
 				},
 			},
 			want: flawlessSessionStats{
@@ -175,16 +175,16 @@ func TestComputeFlawlessSessions(t *testing.T) {
 			name: "all flawless sessions",
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, start).
-						Fours().WithLosses(0).WithFinalDeaths(0).WithWins(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, start.Add(time.Hour)).
-						Fours().WithLosses(0).WithFinalDeaths(0).WithWins(5).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(0).WithFinalDeaths(0).WithWins(0).Build(start),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(0).WithFinalDeaths(0).WithWins(5).Build(start.Add(time.Hour)),
 				},
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, start.Add(2*time.Hour)).
-						Fours().WithLosses(0).WithFinalDeaths(0).WithWins(5).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, start.Add(3*time.Hour)).
-						Fours().WithLosses(0).WithFinalDeaths(0).WithWins(10).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(0).WithFinalDeaths(0).WithWins(5).Build(start.Add(2 * time.Hour)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(0).WithFinalDeaths(0).WithWins(10).Build(start.Add(3 * time.Hour)),
 				},
 			},
 			want: flawlessSessionStats{
@@ -196,28 +196,28 @@ func TestComputeFlawlessSessions(t *testing.T) {
 			name: "mixed sessions - 2 flawless out of 4",
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, start).
-						Fours().WithLosses(0).WithFinalDeaths(0).WithWins(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, start.Add(time.Hour)).
-						Fours().WithLosses(0).WithFinalDeaths(0).WithWins(2).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(0).WithFinalDeaths(0).WithWins(0).Build(start),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(0).WithFinalDeaths(0).WithWins(2).Build(start.Add(time.Hour)),
 				},
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, start.Add(2*time.Hour)).
-						Fours().WithLosses(0).WithFinalDeaths(0).WithWins(2).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, start.Add(3*time.Hour)).
-						Fours().WithLosses(1).WithFinalDeaths(0).WithWins(2).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(0).WithFinalDeaths(0).WithWins(2).Build(start.Add(2 * time.Hour)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(1).WithFinalDeaths(0).WithWins(2).Build(start.Add(3 * time.Hour)),
 				},
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, start.Add(4*time.Hour)).
-						Fours().WithLosses(1).WithFinalDeaths(0).WithWins(2).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, start.Add(5*time.Hour)).
-						Fours().WithLosses(1).WithFinalDeaths(0).WithWins(5).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(1).WithFinalDeaths(0).WithWins(2).Build(start.Add(4 * time.Hour)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(1).WithFinalDeaths(0).WithWins(5).Build(start.Add(5 * time.Hour)),
 				},
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, start.Add(6*time.Hour)).
-						Fours().WithLosses(1).WithFinalDeaths(0).WithWins(5).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, start.Add(7*time.Hour)).
-						Fours().WithLosses(1).WithFinalDeaths(1).WithWins(5).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(1).WithFinalDeaths(0).WithWins(5).Build(start.Add(6 * time.Hour)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithLosses(1).WithFinalDeaths(1).WithWins(5).Build(start.Add(7 * time.Hour)),
 				},
 			},
 			want: flawlessSessionStats{
@@ -249,10 +249,10 @@ func TestComputeAverages(t *testing.T) {
 			name: "single session",
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(0).WithWins(0).WithFinalKills(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(10).WithWins(5).WithFinalKills(20).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(0).WithWins(0).WithFinalKills(0).Build(time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(10).WithWins(5).WithFinalKills(20).Build(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
 				},
 			},
 			want: &averageStats{
@@ -266,16 +266,16 @@ func TestComputeAverages(t *testing.T) {
 			name: "multiple sessions",
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(0).WithWins(0).WithFinalKills(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(10).WithWins(5).WithFinalKills(20).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(0).WithWins(0).WithFinalKills(0).Build(time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(10).WithWins(5).WithFinalKills(20).Build(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
 				},
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 2, 14, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(10).WithWins(5).WithFinalKills(20).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 2, 18, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(30).WithWins(15).WithFinalKills(60).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(10).WithWins(5).WithFinalKills(20).Build(time.Date(2023, time.January, 2, 14, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(30).WithWins(15).WithFinalKills(60).Build(time.Date(2023, time.January, 2, 18, 0, 0, 0, time.UTC)),
 				},
 			},
 			want: &averageStats{
@@ -319,7 +319,7 @@ func TestComputeYearBoundaryStats(t *testing.T) {
 		{
 			name: "single PIT in year",
 			playerPITs: []domain.PlayerPIT{
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.June, 15, 12, 0, 0, 0, time.UTC)).Build(),
+				domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2023, time.June, 15, 12, 0, 0, 0, time.UTC)),
 			},
 			year:      2023,
 			wantStart: timePtr(time.Date(2023, time.June, 15, 12, 0, 0, 0, time.UTC)),
@@ -328,9 +328,9 @@ func TestComputeYearBoundaryStats(t *testing.T) {
 		{
 			name: "multiple PITs in year",
 			playerPITs: []domain.PlayerPIT{
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.June, 15, 12, 0, 0, 0, time.UTC)).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.December, 31, 23, 59, 59, 0, time.UTC)).Build(),
+				domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2023, time.June, 15, 12, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2023, time.December, 31, 23, 59, 59, 0, time.UTC)),
 			},
 			year:      2023,
 			wantStart: timePtr(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
@@ -339,8 +339,8 @@ func TestComputeYearBoundaryStats(t *testing.T) {
 		{
 			name: "PITs outside year",
 			playerPITs: []domain.PlayerPIT{
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2022, time.December, 31, 23, 59, 59, 0, time.UTC)).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC)).Build(),
+				domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2022, time.December, 31, 23, 59, 59, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC)),
 			},
 			year:      2023,
 			wantStart: nil,
@@ -349,9 +349,9 @@ func TestComputeYearBoundaryStats(t *testing.T) {
 		{
 			name: "weird order - unrealistic",
 			playerPITs: []domain.PlayerPIT{
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.June, 15, 12, 0, 0, 0, time.UTC)).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.December, 31, 23, 59, 59, 0, time.UTC)).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)).Build(),
+				domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2023, time.June, 15, 12, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2023, time.December, 31, 23, 59, 59, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).Build(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
 			},
 			year:      2023,
 			wantStart: timePtr(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
@@ -391,17 +391,17 @@ func TestComputeCoverage(t *testing.T) {
 		{
 			name: "100% coverage",
 			boundaryStats: &yearBoundaryStats{
-				Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)).
-					Fours().WithGamesPlayed(0).BuildPtr(),
-				End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.December, 31, 23, 59, 59, 0, time.UTC)).
-					Fours().WithGamesPlayed(100).BuildPtr(),
+				Start: domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithGamesPlayed(0).BuildPtr(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
+				End: domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithGamesPlayed(100).BuildPtr(time.Date(2023, time.December, 31, 23, 59, 59, 0, time.UTC)),
 			},
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.June, 1, 10, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.June, 1, 12, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(100).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(0).Build(time.Date(2023, time.June, 1, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(100).Build(time.Date(2023, time.June, 1, 12, 0, 0, 0, time.UTC)),
 				},
 			},
 			totalHours:             2.0,
@@ -411,17 +411,17 @@ func TestComputeCoverage(t *testing.T) {
 		{
 			name: "50% coverage",
 			boundaryStats: &yearBoundaryStats{
-				Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)).
-					Fours().WithGamesPlayed(0).BuildPtr(),
-				End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.December, 31, 23, 59, 59, 0, time.UTC)).
-					Fours().WithGamesPlayed(100).BuildPtr(),
+				Start: domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithGamesPlayed(0).BuildPtr(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
+				End: domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithGamesPlayed(100).BuildPtr(time.Date(2023, time.December, 31, 23, 59, 59, 0, time.UTC)),
 			},
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.June, 1, 10, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.June, 1, 12, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(50).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(0).Build(time.Date(2023, time.June, 1, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(50).Build(time.Date(2023, time.June, 1, 12, 0, 0, 0, time.UTC)),
 				},
 			},
 			totalHours:             2.0,
@@ -431,17 +431,17 @@ func TestComputeCoverage(t *testing.T) {
 		{
 			name: "0% coverage",
 			boundaryStats: &yearBoundaryStats{
-				Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)).
-					Fours().WithGamesPlayed(0).BuildPtr(),
-				End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.December, 31, 23, 59, 59, 0, time.UTC)).
-					Fours().WithGamesPlayed(100).BuildPtr(),
+				Start: domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithGamesPlayed(0).BuildPtr(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
+				End: domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithGamesPlayed(100).BuildPtr(time.Date(2023, time.December, 31, 23, 59, 59, 0, time.UTC)),
 			},
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.June, 1, 10, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.June, 1, 12, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(0).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(0).Build(time.Date(2023, time.June, 1, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(0).Build(time.Date(2023, time.June, 1, 12, 0, 0, 0, time.UTC)),
 				},
 			},
 			totalHours:             2.0,
@@ -451,17 +451,17 @@ func TestComputeCoverage(t *testing.T) {
 		{
 			name: "coverage over 100%",
 			boundaryStats: &yearBoundaryStats{
-				Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)).
-					Fours().WithGamesPlayed(0).BuildPtr(),
-				End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.December, 31, 23, 59, 59, 0, time.UTC)).
-					Fours().WithGamesPlayed(50).BuildPtr(),
+				Start: domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithGamesPlayed(0).BuildPtr(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
+				End: domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithGamesPlayed(50).BuildPtr(time.Date(2023, time.December, 31, 23, 59, 59, 0, time.UTC)),
 			},
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.June, 1, 10, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.June, 1, 12, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(100).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(0).Build(time.Date(2023, time.June, 1, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(100).Build(time.Date(2023, time.June, 1, 12, 0, 0, 0, time.UTC)),
 				},
 			},
 			totalHours:             2.0,
@@ -473,10 +473,10 @@ func TestComputeCoverage(t *testing.T) {
 			boundaryStats: nil,
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.June, 1, 10, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.June, 1, 12, 0, 0, 0, time.UTC)).
-						Fours().WithGamesPlayed(100).Build(),
+					Start: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(0).Build(time.Date(2023, time.June, 1, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
+						Fours().WithGamesPlayed(100).Build(time.Date(2023, time.June, 1, 12, 0, 0, 0, time.UTC)),
 				},
 			},
 			totalHours:             2.0,
@@ -515,14 +515,14 @@ func TestComputeBestSessions(t *testing.T) {
 			name: "single session",
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)).
+					Start: domaintest.NewPlayerBuilder(playerUUID).
 						FromDB().
 						Fours().
-						WithKills(0).WithFinalKills(0).WithWins(0).WithFinalDeaths(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)).
+						WithKills(0).WithFinalKills(0).WithWins(0).WithFinalDeaths(0).Build(time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
 						FromDB().
 						Fours().
-						WithKills(50).WithFinalKills(20).WithWins(5).WithFinalDeaths(2).Build(),
+						WithKills(50).WithFinalKills(20).WithWins(5).WithFinalDeaths(2).Build(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
 				},
 			},
 			wantHighestFKDR:   20.0 / 2.0,
@@ -537,14 +537,14 @@ func TestComputeBestSessions(t *testing.T) {
 			name: "FKDR with zero final deaths - should use final kills as FKDR",
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)).
+					Start: domaintest.NewPlayerBuilder(playerUUID).
 						FromDB().
 						Fours().
-						WithKills(0).WithFinalKills(0).WithWins(0).WithFinalDeaths(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)).
+						WithKills(0).WithFinalKills(0).WithWins(0).WithFinalDeaths(0).Build(time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
 						FromDB().
 						Fours().
-						WithKills(50).WithFinalKills(15).WithWins(5).WithFinalDeaths(0).Build(),
+						WithKills(50).WithFinalKills(15).WithWins(5).WithFinalDeaths(0).Build(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
 				},
 			},
 			wantHighestFKDR:   15.0, // 15 final kills with 0 deaths
@@ -560,25 +560,25 @@ func TestComputeBestSessions(t *testing.T) {
 			sessions: []domain.Session{
 				// Session 1: 1 hour, FKDR=10 (10/1), 100 kills, 10 finals, 2 wins
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)).
+					Start: domaintest.NewPlayerBuilder(playerUUID).
 						FromDB().
 						Fours().
-						WithKills(0).WithFinalKills(0).WithWins(0).WithFinalDeaths(0).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)).
+						WithKills(0).WithFinalKills(0).WithWins(0).WithFinalDeaths(0).Build(time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
 						FromDB().
 						Fours().
-						WithKills(100).WithFinalKills(10).WithWins(2).WithFinalDeaths(1).Build(),
+						WithKills(100).WithFinalKills(10).WithWins(2).WithFinalDeaths(1).Build(time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)),
 				},
 				// Session 2: 8 hours (longest), FKDR=40 (40/1, highest), 50 kills, 40 finals (most), 20 wins (most)
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 2, 10, 0, 0, 0, time.UTC)).
+					Start: domaintest.NewPlayerBuilder(playerUUID).
 						FromDB().
 						Fours().
-						WithKills(100).WithFinalKills(10).WithWins(2).WithFinalDeaths(1).Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 2, 18, 0, 0, 0, time.UTC)).
+						WithKills(100).WithFinalKills(10).WithWins(2).WithFinalDeaths(1).Build(time.Date(2023, time.January, 2, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
 						FromDB().
 						Fours().
-						WithKills(150).WithFinalKills(50).WithWins(22).WithFinalDeaths(2).Build(),
+						WithKills(150).WithFinalKills(50).WithWins(22).WithFinalDeaths(2).Build(time.Date(2023, time.January, 2, 18, 0, 0, 0, time.UTC)),
 				},
 			},
 			wantHighestFKDR:   40.0,             // Session 2: 40/1
@@ -640,41 +640,41 @@ func TestComputeWinstreaks(t *testing.T) {
 		{
 			name: "winstreak of 5 then loss",
 			playerPITs: []domain.PlayerPIT{
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)).
-					Fours().WithWins(100).WithLosses(0).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)).
-					Fours().WithWins(105).WithLosses(0).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)).
-					Fours().WithWins(105).WithLosses(1).Build(),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithWins(100).WithLosses(0).Build(time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithWins(105).WithLosses(0).Build(time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithWins(105).WithLosses(1).Build(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
 			},
 			wantOverallHigh: 5,
 		},
 		{
 			name: "ongoing winstreak excluded",
 			playerPITs: []domain.PlayerPIT{
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)).
-					Fours().WithWins(0).WithLosses(0).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)).
-					Fours().WithWins(6).WithLosses(0).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)).
-					Fours().WithWins(6).WithLosses(1).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.February, 1, 10, 0, 0, 0, time.UTC)).
-					Fours().WithWins(6).WithLosses(0).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.February, 1, 11, 0, 0, 0, time.UTC)).
-					Fours().WithWins(100).WithLosses(0).Build(),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithWins(0).WithLosses(0).Build(time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithWins(6).WithLosses(0).Build(time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithWins(6).WithLosses(1).Build(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithWins(6).WithLosses(0).Build(time.Date(2023, time.February, 1, 10, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithWins(100).WithLosses(0).Build(time.Date(2023, time.February, 1, 11, 0, 0, 0, time.UTC)),
 			},
 			wantOverallHigh: 6,
 		},
 		{
 			name: "concurrent wins and losses - extra wins don't count",
 			playerPITs: []domain.PlayerPIT{
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)).
-					Fours().WithWins(0).WithLosses(0).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)).
-					Fours().WithWins(5).WithLosses(0).Build(),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithWins(0).WithLosses(0).Build(time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithWins(5).WithLosses(0).Build(time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)),
 				// Both wins and losses increased - we don't know the order
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)).
-					Fours().WithWins(8).WithLosses(1).Build(),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithWins(8).WithLosses(1).Build(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
 			},
 			wantOverallHigh: 5, // The extra 3 wins don't count toward the streak
 		},
@@ -710,41 +710,41 @@ func TestComputeFinalKillStreaks(t *testing.T) {
 		{
 			name: "final kill streak of 8 then death",
 			playerPITs: []domain.PlayerPIT{
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)).
-					Fours().WithFinalKills(100).WithFinalDeaths(0).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)).
-					Fours().WithFinalKills(108).WithFinalDeaths(0).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)).
-					Fours().WithFinalKills(108).WithFinalDeaths(1).Build(),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithFinalKills(100).WithFinalDeaths(0).Build(time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithFinalKills(108).WithFinalDeaths(0).Build(time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithFinalKills(108).WithFinalDeaths(1).Build(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
 			},
 			wantOverallHigh: 8,
 		},
 		{
 			name: "ongoing streak excluded",
 			playerPITs: []domain.PlayerPIT{
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)).
-					Fours().WithFinalKills(0).WithFinalDeaths(0).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)).
-					Fours().WithFinalKills(9).WithFinalDeaths(0).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)).
-					Fours().WithFinalKills(9).WithFinalDeaths(1).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.February, 1, 10, 0, 0, 0, time.UTC)).
-					Fours().WithFinalKills(9).WithFinalDeaths(0).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.February, 1, 11, 0, 0, 0, time.UTC)).
-					Fours().WithFinalKills(100).WithFinalDeaths(0).Build(),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithFinalKills(0).WithFinalDeaths(0).Build(time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithFinalKills(9).WithFinalDeaths(0).Build(time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithFinalKills(9).WithFinalDeaths(1).Build(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithFinalKills(9).WithFinalDeaths(0).Build(time.Date(2023, time.February, 1, 10, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithFinalKills(100).WithFinalDeaths(0).Build(time.Date(2023, time.February, 1, 11, 0, 0, 0, time.UTC)),
 			},
 			wantOverallHigh: 9,
 		},
 		{
 			name: "concurrent final kills and deaths - extra kills don't count",
 			playerPITs: []domain.PlayerPIT{
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)).
-					Fours().WithFinalKills(0).WithFinalDeaths(0).Build(),
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)).
-					Fours().WithFinalKills(8).WithFinalDeaths(0).Build(),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithFinalKills(0).WithFinalDeaths(0).Build(time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithFinalKills(8).WithFinalDeaths(0).Build(time.Date(2023, time.January, 1, 11, 0, 0, 0, time.UTC)),
 				// Both final kills and deaths increased - we don't know the order
-				domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)).
-					Fours().WithFinalKills(12).WithFinalDeaths(1).Build(),
+				domaintest.NewPlayerBuilder(playerUUID).
+					Fours().WithFinalKills(12).WithFinalDeaths(1).Build(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
 			},
 			wantOverallHigh: 8, // The extra 4 kills don't count toward the streak
 		},
@@ -803,12 +803,12 @@ func TestComputePlaytimeDistribution(t *testing.T) {
 			location: time.UTC,
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)).
+					Start: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(0).
-						Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 30, 0, 0, time.UTC)).
+						Build(time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(1).
-						Build(),
+						Build(time.Date(2023, time.January, 1, 10, 30, 0, 0, time.UTC)),
 				},
 			},
 			wantHourlyDistribution: func() [24]float64 {
@@ -830,12 +830,12 @@ func TestComputePlaytimeDistribution(t *testing.T) {
 			location: time.UTC,
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 2, 14, 0, 0, 0, time.UTC)).
+					Start: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(0).
-						Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 2, 16, 0, 0, 0, time.UTC)).
+						Build(time.Date(2023, time.January, 2, 14, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(1).
-						Build(),
+						Build(time.Date(2023, time.January, 2, 16, 0, 0, 0, time.UTC)),
 				},
 			},
 			wantHourlyDistribution: func() [24]float64 {
@@ -860,12 +860,12 @@ func TestComputePlaytimeDistribution(t *testing.T) {
 			location: time.UTC,
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 3, 9, 30, 0, 0, time.UTC)).
+					Start: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(0).
-						Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 3, 11, 45, 0, 0, time.UTC)).
+						Build(time.Date(2023, time.January, 3, 9, 30, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(1).
-						Build(),
+						Build(time.Date(2023, time.January, 3, 11, 45, 0, 0, time.UTC)),
 				},
 			},
 			wantHourlyDistribution: func() [24]float64 {
@@ -892,21 +892,21 @@ func TestComputePlaytimeDistribution(t *testing.T) {
 			sessions: []domain.Session{
 				{
 					// Sunday session
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)).
+					Start: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(0).
-						Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)).
+						Build(time.Date(2023, time.January, 1, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(1).
-						Build(),
+						Build(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
 				},
 				{
 					// Monday session at the same hour
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 2, 10, 0, 0, 0, time.UTC)).
+					Start: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(1).
-						Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 2, 11, 0, 0, 0, time.UTC)).
+						Build(time.Date(2023, time.January, 2, 10, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(2).
-						Build(),
+						Build(time.Date(2023, time.January, 2, 11, 0, 0, 0, time.UTC)),
 				},
 			},
 			wantHourlyDistribution: func() [24]float64 {
@@ -936,12 +936,12 @@ func TestComputePlaytimeDistribution(t *testing.T) {
 			location: time.UTC,
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 1, 23, 0, 0, 0, time.UTC)).
+					Start: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(0).
-						Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 2, 1, 0, 0, 0, time.UTC)).
+						Build(time.Date(2023, time.January, 1, 23, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(1).
-						Build(),
+						Build(time.Date(2023, time.January, 2, 1, 0, 0, 0, time.UTC)),
 				},
 			},
 			wantHourlyDistribution: func() [24]float64 {
@@ -971,21 +971,21 @@ func TestComputePlaytimeDistribution(t *testing.T) {
 			sessions: []domain.Session{
 				{
 					// Summer time (CEST, UTC+2)
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.June, 15, 12, 0, 0, 0, time.UTC)).
+					Start: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(0).
-						Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.June, 15, 14, 0, 0, 0, time.UTC)).
+						Build(time.Date(2023, time.June, 15, 12, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(1).
-						Build(),
+						Build(time.Date(2023, time.June, 15, 14, 0, 0, 0, time.UTC)),
 				},
 				{
 					// Winter time (CET, UTC+1)
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.December, 15, 8, 0, 0, 0, time.UTC)).
+					Start: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(0).
-						Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.December, 15, 9, 0, 0, 0, time.UTC)).
+						Build(time.Date(2023, time.December, 15, 8, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(1).
-						Build(),
+						Build(time.Date(2023, time.December, 15, 9, 0, 0, 0, time.UTC)),
 				},
 			},
 			wantHourlyDistribution: func() [24]float64 {
@@ -1017,12 +1017,12 @@ func TestComputePlaytimeDistribution(t *testing.T) {
 			location: newYork,
 			sessions: []domain.Session{
 				{
-					Start: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 10, 6, 0, 0, 0, time.UTC)).
+					Start: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(0).
-						Build(),
-					End: domaintest.NewPlayerBuilder(playerUUID, time.Date(2023, time.January, 10, 8, 0, 0, 0, time.UTC)).
+						Build(time.Date(2023, time.January, 10, 6, 0, 0, 0, time.UTC)),
+					End: domaintest.NewPlayerBuilder(playerUUID).
 						Fours().WithGamesPlayed(1).
-						Build(),
+						Build(time.Date(2023, time.January, 10, 8, 0, 0, 0, time.UTC)),
 				},
 			},
 			wantHourlyDistribution: func() [24]float64 {

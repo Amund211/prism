@@ -128,9 +128,9 @@ func TestPlayerStars(t *testing.T) {
 		t.Run(fmt.Sprintf("experience_%d", experience), func(t *testing.T) {
 			t.Parallel()
 
-			player := domaintest.NewPlayerBuilder(domaintest.NewUUID(t), queriedAt).
+			player := domaintest.NewPlayerBuilder(domaintest.NewUUID(t)).
 				WithExperience(experience).
-				BuildPtr()
+				BuildPtr(queriedAt)
 
 			require.Equal(t, domain.ExperienceToStars(experience), player.Stars())
 		})

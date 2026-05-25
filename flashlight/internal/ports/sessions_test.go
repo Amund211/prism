@@ -70,14 +70,14 @@ func TestMakeGetSessionsHandler(t *testing.T) {
 
 	// Create player PITs that will be returned by GetPlayerPITs
 	stats := []domain.PlayerPIT{
-		domaintest.NewPlayerBuilder(uuid, start).
+		domaintest.NewPlayerBuilder(uuid).
 			WithExperience(500).
 			FromDB().
-			Fours().WithGamesPlayed(10).WithFinalKills(10).Build(),
-		domaintest.NewPlayerBuilder(uuid, end).
+			Fours().WithGamesPlayed(10).WithFinalKills(10).Build(start),
+		domaintest.NewPlayerBuilder(uuid).
 			WithExperience(1000).
 			FromDB().
-			Fours().WithGamesPlayed(11).WithFinalKills(11).Build(),
+			Fours().WithGamesPlayed(11).WithFinalKills(11).Build(end),
 	}
 
 	// Expected sessions computed from stats
