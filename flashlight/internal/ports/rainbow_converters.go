@@ -8,6 +8,34 @@ import (
 	"github.com/Amund211/flashlight/internal/domain"
 )
 
+// Rainbow-format gamemode names sent on the rainbow JSON responses.
+// Kept distinct from domain.Gamemode so the JSON contract is fixed
+// regardless of how the domain constants are spelled.
+const (
+	rainbowGamemodeSolo    = "solo"
+	rainbowGamemodeDoubles = "doubles"
+	rainbowGamemodeThrees  = "threes"
+	rainbowGamemodeFours   = "fours"
+	rainbowGamemodeOverall = "overall"
+)
+
+func gamemodeToRainbowGamemode(g domain.Gamemode) (string, error) {
+	switch g {
+	case domain.GamemodeSolo:
+		return rainbowGamemodeSolo, nil
+	case domain.GamemodeDoubles:
+		return rainbowGamemodeDoubles, nil
+	case domain.GamemodeThrees:
+		return rainbowGamemodeThrees, nil
+	case domain.GamemodeFours:
+		return rainbowGamemodeFours, nil
+	case domain.GamemodeOverall:
+		return rainbowGamemodeOverall, nil
+	default:
+		return "", fmt.Errorf("unknown gamemode: %q", g)
+	}
+}
+
 type rainbowStatsPIT struct {
 	Winstreak   *int `json:"winstreak"`
 	GamesPlayed int  `json:"gamesPlayed"`
