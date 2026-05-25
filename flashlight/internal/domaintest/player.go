@@ -52,6 +52,17 @@ func (pb *playerBuilder) WithOverallWinstreak(winstreak int) *playerBuilder {
 func (pb *playerBuilder) Build() domain.PlayerPIT {
 	player := *pb.player
 
+	// Clone every pointer field so later builder mutations can't reach
+	// already-built players through shared pointers.
+	player.DBID = clonePtr(player.DBID)
+	player.Displayname = clonePtr(player.Displayname)
+	player.LastLogin = clonePtr(player.LastLogin)
+	player.LastLogout = clonePtr(player.LastLogout)
+	player.Solo.Winstreak = clonePtr(player.Solo.Winstreak)
+	player.Doubles.Winstreak = clonePtr(player.Doubles.Winstreak)
+	player.Threes.Winstreak = clonePtr(player.Threes.Winstreak)
+	player.Fours.Winstreak = clonePtr(player.Fours.Winstreak)
+
 	if pb.fromDB {
 		uuidv7, err := uuid.NewV7()
 		if err != nil {
@@ -92,6 +103,14 @@ func (pb *playerBuilder) Build() domain.PlayerPIT {
 	}
 
 	return player
+}
+
+func clonePtr[T any](p *T) *T {
+	if p == nil {
+		return nil
+	}
+	v := *p
+	return &v
 }
 
 func (pb *playerBuilder) BuildPtr() *domain.PlayerPIT {
