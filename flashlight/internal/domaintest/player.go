@@ -194,6 +194,11 @@ type statsBuilder struct {
 	stats *domain.GamemodeStatsPIT
 }
 
+// StatsBuilder is an exported alias for *statsBuilder so tests can hold
+// a configured builder (e.g. NewPlayerBuilder(uuid).Solo()) in a struct
+// field.
+type StatsBuilder = statsBuilder
+
 func (sb *statsBuilder) WithWinstreak(winstreak int) *statsBuilder {
 	sb.stats.Winstreak = &winstreak
 	return sb

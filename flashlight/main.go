@@ -189,6 +189,8 @@ func main() {
 
 	computeSessions := app.BuildComputeSessions(time.Now)
 
+	getSessionAt := app.BuildGetSessionAt(getPlayerPITs, computeSessions)
+
 	findMilestoneAchievements := app.BuildFindMilestoneAchievements(
 		playerRepo,
 		getAndPersistPlayerWithCache,
@@ -298,6 +300,22 @@ func main() {
 			registerUserVisit,
 			allowedOrigins,
 			logger.With("port", "sessions"),
+			sentryMiddleware,
+			blocklistConfig,
+		),
+	)
+
+	handleFunc(
+		"OPTIONS /v1/session-at",
+		ports.BuildCORSHandler(allowedOrigins),
+	)
+	handleFunc(
+		"POST /v1/session-at",
+		ports.MakeGetSessionAtHandler(
+			getSessionAt,
+			registerUserVisit,
+			allowedOrigins,
+			logger.With("port", "session-at"),
 			sentryMiddleware,
 			blocklistConfig,
 		),
