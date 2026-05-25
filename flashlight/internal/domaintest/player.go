@@ -1,6 +1,7 @@
 package domaintest
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -78,6 +79,9 @@ func (pb *playerBuilder) Build() domain.PlayerPIT {
 		pb.fours.stats.Winstreak != nil ||
 		pb.overallWinstreak != nil
 
+	minOverallWS := -1
+	maxOverallWS := -1
+
 	if winstreakAPIEnabled {
 		// Winstreak API enablement is all or nothing.
 		// If one gamemode had a winstreak, but another didn't, that gamemode
@@ -94,12 +98,40 @@ func (pb *playerBuilder) Build() domain.PlayerPIT {
 		if player.Fours.Winstreak == nil {
 			player.Fours.Winstreak = new(0)
 		}
+
+		// Overall winstreak is not uniquely determined by gamemode winstreaks
+		// The set of possible values are
+		//     [min(gamemode winstreaks), sum(gamemode winstreaks)]
+		minOverallWS = min(
+			*player.Solo.Winstreak,
+			*player.Doubles.Winstreak,
+			*player.Threes.Winstreak,
+			*player.Fours.Winstreak,
+		)
+
+		maxOverallWS = *player.Solo.Winstreak +
+			*player.Doubles.Winstreak +
+			*player.Threes.Winstreak +
+			*player.Fours.Winstreak
 	}
 
 	player.Overall = computeOverallStats(player.Solo, player.Doubles, player.Threes, player.Fours)
 
 	if pb.overallWinstreak != nil {
-		player.Overall.Winstreak = pb.overallWinstreak
+		// User set overall winstreak. Validate and set
+		if *pb.overallWinstreak < minOverallWS || *pb.overallWinstreak > maxOverallWS {
+			panic(fmt.Sprintf(
+				"overall winstreak %d outside valid range [%d, %d] for gamemode winstreaks (solo=%d, doubles=%d, threes=%d, fours=%d)",
+				*pb.overallWinstreak, minOverallWS, maxOverallWS,
+				*player.Solo.Winstreak, *player.Doubles.Winstreak, *player.Threes.Winstreak, *player.Fours.Winstreak,
+			))
+		}
+
+		player.Overall.Winstreak = clonePtr(pb.overallWinstreak)
+	} else if winstreakAPIEnabled {
+		// User didn't set overall winstreak, but winstreak API is enabled.
+		// Set to a valid value - choosing min here
+		player.Overall.Winstreak = new(minOverallWS)
 	}
 
 	return player
@@ -119,6 +151,7 @@ func (pb *playerBuilder) BuildPtr() *domain.PlayerPIT {
 	return &player
 }
 
+// Compute overall stats by summing all fields on the gamemodes, except winstreak.
 func computeOverallStats(modes ...domain.GamemodeStatsPIT) domain.GamemodeStatsPIT {
 	var overall domain.GamemodeStatsPIT
 
@@ -132,15 +165,6 @@ func computeOverallStats(modes ...domain.GamemodeStatsPIT) domain.GamemodeStatsP
 		overall.FinalDeaths += m.FinalDeaths
 		overall.Kills += m.Kills
 		overall.Deaths += m.Deaths
-		if m.Winstreak != nil {
-			// Overall winstreak is not uniquely determined by gamemode winstreaks
-			// The set of possible values are
-			//     [min(gamemode winstreaks), sum(gamemode winstreaks)]
-			// Doing min here.
-			if overall.Winstreak == nil || *m.Winstreak < *overall.Winstreak {
-				overall.Winstreak = m.Winstreak
-			}
-		}
 	}
 
 	return overall
