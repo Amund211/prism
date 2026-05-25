@@ -44,3 +44,8 @@ updates:
               update-types:
                   - "patch"
                   - "minor"
+              exclude-patterns:
+                  # Requires keeping in sync with pre-commit; often requires manual intervention to fix new rules
+                  - "oxlint"
+                  # Requires keeping in sync with pre-commit
+                  - "oxfmt"
