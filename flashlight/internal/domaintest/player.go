@@ -153,19 +153,21 @@ func NewPlayerBuilder(uuid string, queriedAt time.Time) *playerBuilder {
 		Experience: 500,
 	}
 	pb := &playerBuilder{player: player}
-	pb.solo = &statsBuilder{stats: &player.Solo, parent: pb}
-	pb.doubles = &statsBuilder{stats: &player.Doubles, parent: pb}
-	pb.threes = &statsBuilder{stats: &player.Threes, parent: pb}
-	pb.fours = &statsBuilder{stats: &player.Fours, parent: pb}
+	pb.solo = &statsBuilder{playerBuilder: pb, stats: &player.Solo}
+	pb.doubles = &statsBuilder{playerBuilder: pb, stats: &player.Doubles}
+	pb.threes = &statsBuilder{playerBuilder: pb, stats: &player.Threes}
+	pb.fours = &statsBuilder{playerBuilder: pb, stats: &player.Fours}
 	return pb
 }
 
 // statsBuilder mutates a single gamemode's stats on its parent
-// playerBuilder. Build/BuildPtr delegate to the parent so chains like
-// NewPlayerBuilder(...).Fours().WithGamesPlayed(10).Build() work inline.
+// playerBuilder. It embeds *playerBuilder so player-level methods
+// (Solo/Doubles/Threes/Fours, WithExperience, FromDB, Build, ...) are
+// reachable directly through the stats builder. This makes chains like
+// NewPlayerBuilder(...).Fours().WithGamesPlayed(10).Build(at) work inline.
 type statsBuilder struct {
-	stats  *domain.GamemodeStatsPIT
-	parent *playerBuilder
+	*playerBuilder
+	stats *domain.GamemodeStatsPIT
 }
 
 func (sb *statsBuilder) WithWinstreak(winstreak int) *statsBuilder {
@@ -217,16 +219,6 @@ func (sb *statsBuilder) WithDeaths(deaths int) *statsBuilder {
 	sb.stats.Deaths = deaths
 	return sb
 }
-
-// Navigation to other gamemodes on the parent player, so chains like
-// Fours().WithGamesPlayed(10).Threes().WithFinalKills(5).Build() flow inline.
-func (sb *statsBuilder) Solo() *statsBuilder    { return sb.parent.solo }
-func (sb *statsBuilder) Doubles() *statsBuilder { return sb.parent.doubles }
-func (sb *statsBuilder) Threes() *statsBuilder  { return sb.parent.threes }
-func (sb *statsBuilder) Fours() *statsBuilder   { return sb.parent.fours }
-
-func (sb *statsBuilder) Build() domain.PlayerPIT     { return sb.parent.Build() }
-func (sb *statsBuilder) BuildPtr() *domain.PlayerPIT { return sb.parent.BuildPtr() }
 
 func RequireEqualStats(t *testing.T, expected, actual domain.GamemodeStatsPIT) {
 	t.Helper()
