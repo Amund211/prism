@@ -14,6 +14,8 @@ type playerBuilder struct {
 	player                       *domain.PlayerPIT
 	solo, doubles, threes, fours *statsBuilder
 	overallWinstreak             *int
+	// Whether the player should get a random db id on Build()
+	fromDB bool
 }
 
 func (pb *playerBuilder) Solo() *statsBuilder    { return pb.solo }
@@ -27,17 +29,19 @@ func (pb *playerBuilder) WithExperience(exp int64) *playerBuilder {
 }
 
 func (pb *playerBuilder) WithDBID(dbID *string) *playerBuilder {
+	if pb.fromDB {
+		panic("WithDBID() cannot be used with FromDB()")
+	}
 	pb.player.DBID = dbID
 	return pb
 }
 
 func (pb *playerBuilder) FromDB() *playerBuilder {
-	uuidv7, err := uuid.NewV7()
-	if err != nil {
-		panic("failed to generate UUIDv7 for player DBID")
+	if pb.player.DBID != nil {
+		panic("FromDB() cannot be used with WithDBID()")
 	}
-	dbID := uuidv7.String()
-	return pb.WithDBID(&dbID)
+	pb.fromDB = true
+	return pb
 }
 
 func (pb *playerBuilder) WithOverallWinstreak(winstreak int) *playerBuilder {
@@ -47,6 +51,15 @@ func (pb *playerBuilder) WithOverallWinstreak(winstreak int) *playerBuilder {
 
 func (pb *playerBuilder) Build() domain.PlayerPIT {
 	player := *pb.player
+
+	if pb.fromDB {
+		uuidv7, err := uuid.NewV7()
+		if err != nil {
+			panic("failed to generate UUIDv7 for player DBID")
+		}
+		dbID := uuidv7.String()
+		player.DBID = &dbID
+	}
 
 	winstreakAPIEnabled := pb.solo.stats.Winstreak != nil ||
 		pb.doubles.stats.Winstreak != nil ||
