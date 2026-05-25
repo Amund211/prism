@@ -64,6 +64,11 @@ updates:
       # Leave major updates and security updates to their own PRs
       minor-updates:
         applies-to: 'version-updates'
+        exclude-patterns:
+          # Keep this dependency out of the bundle:
+          # - version must stay in sync with .pre-commit-config.yaml
+          # - updates can require manual fixes for newly introduced rules
+          - 'github.com/golangci/golangci-lint/v2'
         update-types:
           - 'patch'
           - 'minor'
