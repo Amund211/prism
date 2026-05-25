@@ -2,6 +2,7 @@ package ports
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -71,8 +72,13 @@ func MakeGetSessionsHandler(
 		ctx := r.Context()
 
 		defer r.Body.Close()
-		body, err := io.ReadAll(r.Body)
+		body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 4<<10))
 		if err != nil {
+			var maxBytesErr *http.MaxBytesError
+			if errors.As(err, &maxBytesErr) {
+				http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
+				return
+			}
 			reporting.Report(ctx, fmt.Errorf("failed to read request body: %w", err))
 			http.Error(w, "Failed to read request body", http.StatusBadRequest)
 			return

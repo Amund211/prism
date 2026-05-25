@@ -222,6 +222,29 @@ func TestMakeGetSessionsHandler(t *testing.T) {
 		require.False(t, *called)
 	})
 
+	t.Run("request body exceeds size limit", func(t *testing.T) {
+		t.Parallel()
+
+		getPlayerPITs, called := makeGetPlayerPITs(t, uuid, start, end, stats, nil)
+		handler := makeGetSessionsHandler(getPlayerPITs)
+
+		// Build a body larger than the 4 KB limit by padding the UUID field.
+		oversized := fmt.Sprintf(
+			`{"uuid":"%s","start":"%s","end":"%s"}`,
+			strings.Repeat("a", 5<<10),
+			startStr,
+			endStr,
+		)
+		body := io.NopCloser(strings.NewReader(oversized))
+		req := httptest.NewRequestWithContext(t.Context(), "GET", "/sessions", body)
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusRequestEntityTooLarge, w.Code)
+		require.False(t, *called)
+	})
+
 	t.Run("interval just under 400 days", func(t *testing.T) {
 		t.Parallel()
 

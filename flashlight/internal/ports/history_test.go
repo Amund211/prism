@@ -188,6 +188,30 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 		require.False(t, *called)
 	})
 
+	t.Run("request body exceeds size limit", func(t *testing.T) {
+		t.Parallel()
+
+		getHistoryFunc, called := makeGetHistory(t, uuid, start, end, limit, history, nil)
+		handler := makeGetHistoryHandler(getHistoryFunc)
+
+		// Build a body larger than the 4 KB limit by padding the UUID field.
+		oversized := fmt.Sprintf(
+			`{"uuid":"%s","start":"%s","end":"%s","limit":%d}`,
+			strings.Repeat("a", 5<<10),
+			startStr,
+			endStr,
+			limit,
+		)
+		body := io.NopCloser(strings.NewReader(oversized))
+		req := httptest.NewRequestWithContext(t.Context(), "GET", "/history", body)
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusRequestEntityTooLarge, w.Code)
+		require.False(t, *called)
+	})
+
 	t.Run("invalid limits", func(t *testing.T) {
 		t.Parallel()
 		for _, invalidLimit := range []int{-1, 0, 1, 101, 1001} {
