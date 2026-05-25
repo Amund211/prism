@@ -1,12 +1,5 @@
 package domain
 
-// Gamemode represents different game modes
-type Gamemode string
-
-const (
-	GamemodeOverall Gamemode = "overall"
-)
-
 // Stat represents different statistical measures
 type Stat string
 
