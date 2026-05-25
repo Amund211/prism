@@ -36,6 +36,7 @@ type rainbowSession struct {
 	Start       rainbowPlayerDataPIT `json:"start"`
 	End         rainbowPlayerDataPIT `json:"end"`
 	Consecutive bool                 `json:"consecutive"`
+	Ongoing     bool                 `json:"ongoing"`
 }
 
 func gamemodeStatsPITToRainbowStatsPIT(stats *domain.GamemodeStatsPIT) rainbowStatsPIT {
@@ -100,6 +101,7 @@ func sessionToRainbowSession(session *domain.Session) rainbowSession {
 		Start:       playerToRainbowPlayerDataPIT(&session.Start),
 		End:         playerToRainbowPlayerDataPIT(&session.End),
 		Consecutive: session.Consecutive,
+		Ongoing:     session.Ongoing,
 	}
 }
 

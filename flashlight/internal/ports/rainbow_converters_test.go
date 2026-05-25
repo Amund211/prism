@@ -1015,7 +1015,8 @@ func TestSessionsToRainbowSessionsData(t *testing.T) {
 						"deaths":       0
 					}
 				},
-				"consecutive": true
+				"consecutive": true,
+				"ongoing": false
 			}
 			]`),
 		},
