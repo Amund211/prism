@@ -11,7 +11,7 @@ dependencies = [
     "platformdirs",
     "cachetools",
     "filelock",
-    "requests>=2.34.0",
+    "requests>=2.34.2",
     "toml",
     "truststore",
     "pynput",
@@ -33,7 +33,7 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
-    "black>=25.9.0",
+    "black>=26.5.1",
     "coverage>=7.14.0",
     "flake8>=7.3.0",
     "isort>=6.0.1",
