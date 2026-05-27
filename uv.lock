@@ -494,7 +494,6 @@ dev = [
     { name = "pytest" },
     { name = "types-pyinstaller" },
     { name = "types-pynput" },
-    { name = "types-requests" },
     { name = "types-toml" },
 ]
 
@@ -505,7 +504,7 @@ requires-dist = [
     { name = "platformdirs" },
     { name = "pynput" },
     { name = "pywin32", marker = "sys_platform == 'win32'" },
-    { name = "requests" },
+    { name = "requests", specifier = ">=2.34.0" },
     { name = "toml" },
     { name = "truststore" },
 ]
@@ -523,7 +522,6 @@ dev = [
     { name = "pytest", specifier = ">=9.0.3" },
     { name = "types-pyinstaller", specifier = ">=6.20.0.20260518" },
     { name = "types-pynput", specifier = ">=1.8.1.20260508" },
-    { name = "types-requests", specifier = ">=2.33.0.20260518" },
     { name = "types-toml", specifier = ">=0.10.8.20260508" },
 ]
 
@@ -838,18 +836,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/11/aa/6456015d31e37bd0168387742880baec6e319b35f92ba07cbd76df6af298/types_pynput-1.8.1.20260508.tar.gz", hash = "sha256:739a137033c15b06f9de5420138cd76fd10e535f0ad7224dab707b2b68d03894", size = 11934, upload-time = "2026-05-08T04:47:52.064Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b8/80/80534c262d1baaf882f502269514e5a01310f0f2a5c1cd7aec30d129589f/types_pynput-1.8.1.20260508-py3-none-any.whl", hash = "sha256:f35c33155c2047f1f844b8e2f23c91c60e753689b28c0075c6485149c3694601", size = 12229, upload-time = "2026-05-08T04:47:51.037Z" },
-]
-
-[[package]]
-name = "types-requests"
-version = "2.33.0.20260518"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "urllib3" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/e0/01/c5a19253fe1ac159159ddf9a3a07cec8bb5e486ec4d9002ad2821da0e5d2/types_requests-2.33.0.20260518.tar.gz", hash = "sha256:df7bd3bfe0ca8402dfb841e7d9be714bb5578203283d66d7dc4ef69343449a5e", size = 24752, upload-time = "2026-05-18T06:07:37.966Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/1c/bc/b139710a3b6018f7fb2b9508b35c8af564e61bf2bf4fa619d088f3e16f85/types_requests-2.33.0.20260518-py3-none-any.whl", hash = "sha256:626d697d1adaaff76e2044dc8c5c051d8f21abc157bdfe204a75558076fe0bf0", size = 21391, upload-time = "2026-05-18T06:07:37.044Z" },
 ]
 
 [[package]]
