@@ -68,28 +68,14 @@ export const Route = createFileRoute("/wrapped/$uuid")({
         const uuid = normalizeUUID(rawUUID);
         if (uuid === null) return;
 
-        void (async () => {
-            try {
-                await Promise.all([
-                    queryClient.fetchQuery(
-                        getWrappedQueryOptions({
-                            uuid,
-                            year,
-                            timezone: getDefaultTimeZone(),
-                        }),
-                    ),
-                    queryClient.fetchQuery(getUsernameQueryOptions(uuid)),
-                ]);
-            } catch (error: unknown) {
-                captureException(error, {
-                    extra: {
-                        uuid,
-                        year,
-                        message: "Failed to fetch wrapped + username data",
-                    },
-                });
-            }
-        })();
+        void queryClient.prefetchQuery(
+            getWrappedQueryOptions({
+                uuid,
+                year,
+                timezone: getDefaultTimeZone(),
+            }),
+        );
+        void queryClient.prefetchQuery(getUsernameQueryOptions(uuid));
     },
     validateSearch: wrappedSearchSchema,
     // oxlint-disable-next-line eslint/no-use-before-define

@@ -62,32 +62,12 @@ export const Route = createFileRoute("/history/explore")({
     }) => {
         const uuids = normalizeUUIDsSkippingInvalid(rawUUIDs);
         // TODO: Rate limiting
-        void (async () => {
-            try {
-                await Promise.all([
-                    // oxlint-disable-next-line typescript/promise-function-async
-                    ...uuids.map((uuid) =>
-                        queryClient.fetchQuery(
-                            getHistoryQueryOptions({ uuid, start, end, limit }),
-                        ),
-                    ),
-                    // oxlint-disable-next-line typescript/promise-function-async
-                    ...uuids.map((uuid) =>
-                        queryClient.fetchQuery(getUsernameQueryOptions(uuid)),
-                    ),
-                ]);
-            } catch (error: unknown) {
-                captureException(error, {
-                    extra: {
-                        uuids: rawUUIDs,
-                        start,
-                        end,
-                        limit,
-                        message: "Failed to fetch history + username data",
-                    },
-                });
-            }
-        })();
+        for (const uuid of uuids) {
+            void queryClient.prefetchQuery(
+                getHistoryQueryOptions({ uuid, start, end, limit }),
+            );
+            void queryClient.prefetchQuery(getUsernameQueryOptions(uuid));
+        }
     },
     validateSearch: historyExploreSearchSchema,
     // oxlint-disable-next-line eslint/no-use-before-define

@@ -99,43 +99,18 @@ export const Route = createFileRoute("/session/$uuid")({
 
         const { day, week, month } = timeIntervals;
         // TODO: Rate limiting
-        void (async () => {
-            try {
-                await Promise.all([
-                    ...[day, week, month].flatMap(({ start, end }) => [
-                        queryClient.fetchQuery(
-                            getHistoryQueryOptions({ uuid, start, end, limit: 2 }),
-                        ),
-                        queryClient.fetchQuery(
-                            getHistoryQueryOptions({
-                                uuid,
-                                start,
-                                end,
-                                limit: 100,
-                            }),
-                        ),
-                    ]),
-                    queryClient.fetchQuery(
-                        getHistoryQueryOptions({
-                            uuid,
-                            ...trackingInterval,
-                            limit: 2,
-                        }),
-                    ),
-                    queryClient.fetchQuery(getUsernameQueryOptions(uuid)),
-                ]);
-            } catch (error: unknown) {
-                captureException(error, {
-                    extra: {
-                        uuid,
-                        trackingInterval,
-                        timeIntervals,
-                        message:
-                            "Failed to fetch history + tracking history + username data",
-                    },
-                });
-            }
-        })();
+        for (const { start, end } of [day, week, month]) {
+            void queryClient.prefetchQuery(
+                getHistoryQueryOptions({ uuid, start, end, limit: 2 }),
+            );
+            void queryClient.prefetchQuery(
+                getHistoryQueryOptions({ uuid, start, end, limit: 100 }),
+            );
+        }
+        void queryClient.prefetchQuery(
+            getHistoryQueryOptions({ uuid, ...trackingInterval, limit: 2 }),
+        );
+        void queryClient.prefetchQuery(getUsernameQueryOptions(uuid));
     },
     validateSearch: sessionSearchSchema,
     // oxlint-disable-next-line eslint/no-use-before-define
