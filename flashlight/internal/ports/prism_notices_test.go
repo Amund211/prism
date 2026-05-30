@@ -35,6 +35,7 @@ func makePrismNoticesHandler(t *testing.T, getPrismNotices app.GetPrismNotices) 
 		stubPrismNoticesRegisterUserVisit,
 		prismNoticesTestLogger,
 		noopPrismNoticesMiddleware,
+		noopPrismNoticesMiddleware,
 		emptyBlocklistConfig,
 	)
 }

@@ -23,6 +23,7 @@ func MakeGetPlayerDataHandler(
 	registerUserVisit app.RegisterUserVisit,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
+	bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
 ) http.HandlerFunc {
 	tracer := otel.Tracer("flashlight/ports/player_data_v1")
@@ -69,6 +70,7 @@ func MakeGetPlayerDataHandler(
 
 	middleware := ComposeMiddlewares(
 		NewRequestLoggerMiddleware(rootLogger),
+		bearerAuthMiddleware,
 		sentryMiddleware,
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("playerdata"),

@@ -16,6 +16,7 @@ import (
 
 	"github.com/Amund211/flashlight/internal/adapters/accountprovider"
 	"github.com/Amund211/flashlight/internal/adapters/accountrepository"
+	"github.com/Amund211/flashlight/internal/adapters/authsessionrepository"
 	"github.com/Amund211/flashlight/internal/adapters/cache"
 	"github.com/Amund211/flashlight/internal/adapters/database"
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
@@ -158,6 +159,16 @@ func main() {
 	userRepo := userrepository.NewPostgres(db, repositorySchemaName, time.Now)
 	logger.InfoContext(ctx, "Initialized UserRepository")
 
+	authSessionRepo := authsessionrepository.NewPostgres(db, repositorySchemaName)
+	logger.InfoContext(ctx, "Initialized AuthSessionRepository")
+
+	validateSessionCache := cache.NewTTLCache[domain.AuthSession](1 * time.Minute)
+
+	anonymousLogin := app.BuildAnonymousLogin(authSessionRepo, time.Now, app.GenerateAuthSessionID)
+	refreshSession := app.BuildRefreshSession(authSessionRepo, time.Now)
+	validateSession := app.BuildValidateSession(authSessionRepo, time.Now, validateSessionCache)
+	bearerAuthMiddleware := ports.NewBearerAuthMiddleware(validateSession)
+
 	allowedOrigins, err := ports.NewDomainSuffixes(prodDomainSuffix, stagingDomainSuffix)
 	if err != nil {
 		fail("Failed to initialize allowed origins", "error", err.Error())
@@ -214,6 +225,7 @@ func main() {
 			registerUserVisit,
 			logger.With("port", "prism-notices"),
 			sentryMiddleware,
+			bearerAuthMiddleware,
 			blocklistConfig,
 		),
 	)
@@ -225,6 +237,7 @@ func main() {
 			registerUserVisit,
 			logger.With("port", "playerdata"),
 			sentryMiddleware,
+			bearerAuthMiddleware,
 			blocklistConfig,
 		),
 	)
@@ -235,6 +248,29 @@ func main() {
 			getTags,
 			registerUserVisit,
 			logger.With("port", "tags"),
+			sentryMiddleware,
+			bearerAuthMiddleware,
+			blocklistConfig,
+		),
+	)
+
+	handleFunc(
+		"POST /v1/auth/anonymous/login",
+		ports.MakeAnonymousLoginHandler(
+			anonymousLogin,
+			time.Now,
+			logger.With("port", "auth-anonymous-login"),
+			sentryMiddleware,
+			blocklistConfig,
+		),
+	)
+
+	handleFunc(
+		"POST /v1/auth/refresh",
+		ports.MakeAuthRefreshHandler(
+			refreshSession,
+			time.Now,
+			logger.With("port", "auth-refresh"),
 			sentryMiddleware,
 			blocklistConfig,
 		),
@@ -362,6 +398,7 @@ func main() {
 			registerUserVisit,
 			logger.With("port", "playerdata"),
 			sentryMiddleware,
+			bearerAuthMiddleware,
 			blocklistConfig,
 		),
 	)
