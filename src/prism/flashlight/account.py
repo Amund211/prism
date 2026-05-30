@@ -6,6 +6,7 @@ import requests
 from requests.exceptions import RequestException
 
 from prism.errors import APIError, PlayerNotFoundError
+from prism.flashlight.auth import FlashlightAuthClient, FlashlightAuthError
 from prism.flashlight.url import FLASHLIGHT_API_URL
 from prism.player import Account
 from prism.ratelimiting import RateLimiter
@@ -19,13 +20,13 @@ class FlashlightAccountProvider:
     def __init__(
         self,
         *,
-        session: requests.Session,
+        auth_client: FlashlightAuthClient,
         retry_limit: int,
         initial_timeout: float,
     ) -> None:
         self._retry_limit = retry_limit
         self._initial_timeout = initial_timeout
-        self._session = session
+        self._auth_client = auth_client
         self._limiter = RateLimiter(limit=120, window=60)
 
     @property
@@ -43,12 +44,14 @@ class FlashlightAccountProvider:
         try:
             # Uphold our prescribed rate-limits
             with self._limiter:
-                response = self._session.get(
-                    url, headers={"X-User-Id": user_id}, timeout=10
-                )
+                response = self._auth_client.authorized_get(url, timeout=10)
         except RequestException as e:
             raise ExecutionError(
                 "Request to flashlight failed due to an unknown error"
+            ) from e
+        except FlashlightAuthError as e:
+            raise ExecutionError(
+                "Request to flashlight failed due to auth error"
             ) from e
 
         if (

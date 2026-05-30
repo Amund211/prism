@@ -1,3 +1,4 @@
+from prism.flashlight.auth import FlashlightAuthClient
 from prism.player import MISSING_WINSTREAKS
 from prism.requests import make_prism_requests_session
 from prism.strange import STATS_ENDPOINT, StrangePlayerProvider
@@ -19,6 +20,8 @@ def test_strange_player_provider() -> None:
         retry_limit=3,
         initial_timeout=1.0,
         get_time_ns=lambda: 1234567890123456789,
-        session=make_prism_requests_session(),
+        auth_client=FlashlightAuthClient(
+            session=make_prism_requests_session(), user_id="testuser"
+        ),
     )
     assert provider.seconds_until_unblocked == 0.0

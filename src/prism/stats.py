@@ -15,6 +15,7 @@ from prism.errors import (
     PlayerNotFoundError,
 )
 from prism.flashlight.account import FlashlightAccountProvider
+from prism.flashlight.auth import FlashlightAuthClient
 from prism.hypixel import (
     HypixelAPIKeyHolder,
     MissingBedwarsStatsError,
@@ -30,7 +31,9 @@ key_holder = HypixelAPIKeyHolder(api_key)
 session = make_prism_requests_session()
 
 ACCOUNT_PROVIDER = FlashlightAccountProvider(
-    retry_limit=0, initial_timeout=0, session=session
+    retry_limit=0,
+    initial_timeout=0,
+    auth_client=FlashlightAuthClient(session=session, user_id="prism-stats-cli"),
 )
 
 

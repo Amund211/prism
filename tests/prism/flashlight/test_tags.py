@@ -1,6 +1,7 @@
 import pytest
 
 from prism.errors import APIError
+from prism.flashlight.auth import FlashlightAuthClient
 from prism.flashlight.tags import (
     FlashlightTagsProvider,
     parse_flashlight_tags,
@@ -10,9 +11,15 @@ from prism.player import Tags, TagSeverity
 from prism.requests import make_prism_requests_session
 
 
+def _make_auth_client() -> FlashlightAuthClient:
+    return FlashlightAuthClient(
+        session=make_prism_requests_session(), user_id="testuser"
+    )
+
+
 def test_make_tags_provider() -> None:
     provider = FlashlightTagsProvider(
-        retry_limit=3, initial_timeout=1.0, session=make_prism_requests_session()
+        retry_limit=3, initial_timeout=1.0, auth_client=_make_auth_client()
     )
     assert provider.seconds_until_unblocked == 0.0
 

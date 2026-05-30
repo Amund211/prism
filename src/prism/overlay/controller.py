@@ -5,6 +5,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Protocol
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
+from prism.flashlight.auth import FlashlightAuthClient
 from prism.flashlight.notices import FlashlightNotice
 from prism.player import MISSING_WINSTREAKS, Account, KnownPlayer, Tags, Winstreaks
 from prism.ssl_errors import MissingLocalIssuerSSLError
@@ -78,6 +79,7 @@ class OverlayController:
         player_provider: PlayerProvider,
         winstreak_provider: WinstreakProvider,
         tags_provider: TagsProvider,
+        auth_client: FlashlightAuthClient,
     ) -> None:
         from prism.overlay.player_cache import PlayerCache
 
@@ -91,6 +93,7 @@ class OverlayController:
         self.state = state
         self.settings = settings
         self.nick_database = nick_database
+        self.auth_client = auth_client
         self.redraw_event = threading.Event()
         self.game_ended_event = threading.Event()
         self.autowho_event = threading.Event()

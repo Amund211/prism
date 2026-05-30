@@ -5,12 +5,11 @@ from dataclasses import dataclass, field
 from json import JSONDecodeError
 from typing import Any, Literal
 
-import requests
 from requests.exceptions import RequestException
 
 from prism import VERSION_STRING
+from prism.flashlight.auth import FlashlightAuthClient, FlashlightAuthError
 from prism.flashlight.url import FLASHLIGHT_API_URL
-from prism.requests import make_prism_requests_session
 
 logger = logging.getLogger(__name__)
 
@@ -62,13 +61,11 @@ class FlashlightNotice:
 
 
 def _make_flashlight_notices_request(
-    session: requests.Session,
+    auth_client: FlashlightAuthClient,
     *,
-    user_id: str,
     include_version_updates: IncludeVersionUpdates,
 ) -> Any | None:  # pragma: nocover
     headers = {
-        "X-User-Id": user_id,
         "X-Prism-Version": VERSION_STRING,
     }
 
@@ -76,7 +73,7 @@ def _make_flashlight_notices_request(
         # NOTE: The flashlight API does **not** allow third-party access.
         #       Do not send any requests to any endpoints without explicit permission.
         #       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
-        response = session.get(
+        response = auth_client.authorized_get(
             f"{FLASHLIGHT_API_URL}/v1/prism-notices",
             headers=headers,
             params={"includeVersionUpdates": include_version_updates},
@@ -84,6 +81,9 @@ def _make_flashlight_notices_request(
         )
     except RequestException:
         logger.exception("Failed to request flashlight notices")
+        return None
+    except FlashlightAuthError:
+        logger.exception("Auth error while requesting flashlight notices")
         return None
 
     if not response.ok:
@@ -170,15 +170,12 @@ def _parse_flashlight_notices(
 
 def get_flashlight_notices(
     *,
-    user_id: str,
+    auth_client: FlashlightAuthClient,
     include_version_updates: IncludeVersionUpdates,
 ) -> tuple[FlashlightNotice, ...]:  # pragma: nocover
     """Get flashlight prism notices for the user"""
-    session = make_prism_requests_session()  # TODO: reuse shared session
-
     response_json = _make_flashlight_notices_request(
-        session=session,
-        user_id=user_id,
+        auth_client,
         include_version_updates=include_version_updates,
     )
 

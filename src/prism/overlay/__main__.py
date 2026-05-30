@@ -68,6 +68,7 @@ def main() -> None:  # pragma: nocover
 
     # Import late so we can patch ssl certs in requests
     from prism.flashlight.account import FlashlightAccountProvider
+    from prism.flashlight.auth import FlashlightAuthClient
     from prism.flashlight.tags import FlashlightTagsProvider
     from prism.overlay.controller import OverlayController
     from prism.overlay.output.overlay.run_overlay import run_overlay
@@ -79,16 +80,25 @@ def main() -> None:  # pragma: nocover
 
     session = make_prism_requests_session()
 
+    auth_client = FlashlightAuthClient(
+        session=session,
+        user_id=settings.user_id,
+    )
+    auth_client.start_refresh_timer()
+
     account_provider = FlashlightAccountProvider(
-        retry_limit=5, initial_timeout=2, session=session
+        retry_limit=5, initial_timeout=2, auth_client=auth_client
     )
     player_provider = StrangePlayerProvider(
-        retry_limit=5, initial_timeout=2, get_time_ns=time.time_ns, session=session
+        retry_limit=5,
+        initial_timeout=2,
+        get_time_ns=time.time_ns,
+        auth_client=auth_client,
     )
     # Use placeholder winstreak provider - no actual API integration
     winstreak_provider = PlaceholderWinstreakProvider()
     tags_provider = FlashlightTagsProvider(
-        retry_limit=5, initial_timeout=2, session=session
+        retry_limit=5, initial_timeout=2, auth_client=auth_client
     )
 
     controller = OverlayController(
@@ -99,6 +109,7 @@ def main() -> None:  # pragma: nocover
         player_provider=player_provider,
         winstreak_provider=winstreak_provider,
         tags_provider=tags_provider,
+        auth_client=auth_client,
     )
 
     if options.test_ssl:

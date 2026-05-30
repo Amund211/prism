@@ -6,6 +6,7 @@ import requests
 from requests.exceptions import RequestException
 
 from prism.errors import APIError, APIKeyError
+from prism.flashlight.auth import FlashlightAuthClient, FlashlightAuthError
 from prism.flashlight.url import FLASHLIGHT_API_URL
 from prism.player import Tags, TagSeverity
 from prism.ratelimiting import RateLimiter
@@ -18,13 +19,13 @@ class FlashlightTagsProvider:
     def __init__(
         self,
         *,
-        session: requests.Session,
+        auth_client: FlashlightAuthClient,
         retry_limit: int,
         initial_timeout: float,
     ) -> None:
         self._retry_limit = retry_limit
         self._initial_timeout = initial_timeout
-        self._session = session
+        self._auth_client = auth_client
         self._limiter = RateLimiter(limit=120, window=60)
 
     @property
@@ -40,17 +41,23 @@ class FlashlightTagsProvider:
         last_try: bool,
         urchin_api_key: str | None,
     ) -> requests.Response:  # pragma: nocover
-        headers = {"X-User-Id": user_id}
+        headers: dict[str, str] = {}
         if urchin_api_key:
             headers["X-Urchin-Api-Key"] = urchin_api_key
 
         try:
             # Uphold our prescribed rate-limits
             with self._limiter:
-                response = self._session.get(url, headers=headers, timeout=10)
+                response = self._auth_client.authorized_get(
+                    url, headers=headers, timeout=10
+                )
         except RequestException as e:
             raise ExecutionError(
                 "Request to flashlight failed due to an unknown error"
+            ) from e
+        except FlashlightAuthError as e:
+            raise ExecutionError(
+                "Request to flashlight failed due to auth error"
             ) from e
 
         if response.status_code == 401:

@@ -97,7 +97,7 @@ class NoticeCheckerThread(threading.Thread):  # pragma: nocover
             include_version_updates = "minor"
 
         notices = get_flashlight_notices(
-            user_id=settings.user_id,
+            auth_client=self.controller.auth_client,
             include_version_updates=include_version_updates,
         )
         self.controller.flashlight_notices = notices

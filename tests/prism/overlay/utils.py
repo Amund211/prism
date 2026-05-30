@@ -3,7 +3,9 @@ import queue
 from collections.abc import Callable, Iterable, Set
 from pathlib import Path, PurePath
 from typing import Any, Literal, TextIO, TypeVar, cast, overload
+from unittest.mock import MagicMock
 
+from prism.flashlight.auth import FlashlightAuthClient
 from prism.overlay.controller import (
     AccountProvider,
     OverlayController,
@@ -414,6 +416,7 @@ def create_controller(
     player_provider: PlayerProvider = MockedPlayerProvider(assert_not_called),
     winstreak_provider: WinstreakProvider = MockedWinstreakProvider(assert_not_called),
     tags_provider: TagsProvider = MockedTagsProvider(assert_not_called),
+    auth_client: FlashlightAuthClient | None = None,
 ) -> OverlayController:
     controller = OverlayController(
         state=state or create_state(),
@@ -423,6 +426,8 @@ def create_controller(
         player_provider=player_provider,
         winstreak_provider=winstreak_provider,
         tags_provider=tags_provider,
+        auth_client=auth_client
+        or cast(FlashlightAuthClient, MagicMock(spec=FlashlightAuthClient)),
     )
 
     controller.wants_shown = wants_shown

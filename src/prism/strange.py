@@ -7,6 +7,7 @@ import requests
 from requests.exceptions import RequestException
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
+from prism.flashlight.auth import FlashlightAuthClient, FlashlightAuthError
 from prism.hypixel import create_known_player, get_playerdata_field
 from prism.player import KnownPlayer
 from prism.ratelimiting import RateLimiter
@@ -94,7 +95,7 @@ class StrangePlayerProvider:
     def __init__(
         self,
         *,
-        session: requests.Session,
+        auth_client: FlashlightAuthClient,
         retry_limit: int,
         initial_timeout: float,
         get_time_ns: Callable[[], int],
@@ -102,7 +103,7 @@ class StrangePlayerProvider:
         self._retry_limit = retry_limit
         self._initial_timeout = initial_timeout
         self._get_time_ns = get_time_ns
-        self._session = session
+        self._auth_client = auth_client
         self._limiter = RateLimiter(limit=120, window=60)
 
     @property
@@ -120,10 +121,14 @@ class StrangePlayerProvider:
         try:
             # Uphold our prescribed rate-limits
             with self._limiter:
-                response = self._session.get(url, headers={"X-User-Id": user_id})
+                response = self._auth_client.authorized_get(url)
         except RequestException as e:
             raise ExecutionError(
                 "Request to AntiSniper API failed due to an unknown error"
+            ) from e
+        except FlashlightAuthError as e:
+            raise ExecutionError(
+                "Request to flashlight failed due to auth error"
             ) from e
 
         if is_checked_too_many_offline_players_response(response):
