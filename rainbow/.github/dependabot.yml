@@ -10,6 +10,12 @@ updates:
       commit-message:
           prefix: "chore"
           include: "scope"
+      ignore:
+          # oxlint/oxfmt are driven by the npm ecosystem (package.json is the source of
+          # truth) and synced into .pre-commit-config.yaml by the check-tool-versions
+          # workflow, so don't let pre-commit bump them independently.
+          - dependency-name: "oxc-project/mirrors-oxlint"
+          - dependency-name: "oxc-project/mirrors-oxfmt"
       groups:
           # Group minor+patch updates together; major & security stay separate
           pre-commit-minor:
@@ -45,7 +51,5 @@ updates:
                   - "patch"
                   - "minor"
               exclude-patterns:
-                  # Requires keeping in sync with pre-commit; often requires manual intervention to fix new rules
+                  # Often requires manual intervention to fix new rules
                   - "oxlint"
-                  # Requires keeping in sync with pre-commit
-                  - "oxfmt"

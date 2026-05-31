@@ -22,6 +22,10 @@ on:
 jobs:
     check-versions:
         runs-on: ubuntu-latest
+        outputs:
+            out_of_sync: ${{ steps.compare.outputs.out_of_sync }}
+            oxlint_version: ${{ steps.compare.outputs.oxlint_version }}
+            oxfmt_version: ${{ steps.compare.outputs.oxfmt_version }}
         steps:
             - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
             - name: Install pnpm
@@ -35,26 +39,99 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
-            - name: Check oxlint version matches pre-commit config
+            - name: Compare oxlint/oxfmt versions
+              id: compare
               run: |
-                  PNPM_VERSION=$(pnpm exec oxlint --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-                  PRECOMMIT_VERSION=$(grep -A1 'mirrors-oxlint' .pre-commit-config.yaml | grep 'rev:' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-                  echo "oxlint version in pnpm: $PNPM_VERSION"
-                  echo "oxlint version in .pre-commit-config.yaml: $PRECOMMIT_VERSION"
-                  if [ "$PNPM_VERSION" != "$PRECOMMIT_VERSION" ]; then
-                      echo "Error: oxlint versions do not match!"
-                      exit 1
-                  fi
-                  echo "oxlint versions match ✓"
+                  OXLINT_PNPM=v$(pnpm exec oxlint --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+                  OXLINT_PRECOMMIT=$(grep -A1 'mirrors-oxlint' .pre-commit-config.yaml | grep 'rev:' | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
+                  OXFMT_PNPM=v$(pnpm exec oxfmt --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+                  OXFMT_PRECOMMIT=$(grep -A1 'mirrors-oxfmt' .pre-commit-config.yaml | grep 'rev:' | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
 
-            - name: Check oxfmt version matches pre-commit config
-              run: |
-                  PNPM_VERSION=$(pnpm exec oxfmt --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-                  PRECOMMIT_VERSION=$(grep -A1 'mirrors-oxfmt' .pre-commit-config.yaml | grep 'rev:' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-                  echo "oxfmt version in pnpm: $PNPM_VERSION"
-                  echo "oxfmt version in .pre-commit-config.yaml: $PRECOMMIT_VERSION"
-                  if [ "$PNPM_VERSION" != "$PRECOMMIT_VERSION" ]; then
-                      echo "Error: oxfmt versions do not match!"
-                      exit 1
+                  echo "oxlint — pnpm: $OXLINT_PNPM, pre-commit: $OXLINT_PRECOMMIT"
+                  echo "oxfmt  — pnpm: $OXFMT_PNPM, pre-commit: $OXFMT_PRECOMMIT"
+
+                  OUT_OF_SYNC=false
+                  if [ "$OXLINT_PNPM" = "$OXLINT_PRECOMMIT" ]; then
+                    echo "oxlint versions match ✓"
+                  else
+                    echo "oxlint versions do not match ✗"
+                    OUT_OF_SYNC=true
                   fi
-                  echo "oxfmt versions match ✓"
+                  if [ "$OXFMT_PNPM" = "$OXFMT_PRECOMMIT" ]; then
+                    echo "oxfmt versions match ✓"
+                  else
+                    echo "oxfmt versions do not match ✗"
+                    OUT_OF_SYNC=true
+                  fi
+
+                  # Always exit 0 here so these outputs are recorded even when the job
+                  # fails below; the sync-versions job reads them.
+                  echo "oxlint_version=$OXLINT_PNPM" >> "$GITHUB_OUTPUT"
+                  echo "oxfmt_version=$OXFMT_PNPM" >> "$GITHUB_OUTPUT"
+                  echo "out_of_sync=$OUT_OF_SYNC" >> "$GITHUB_OUTPUT"
+
+            - name: Fail if out of sync
+              if: steps.compare.outputs.out_of_sync == 'true'
+              run: |
+                  echo "::error::oxlint/oxfmt version in .pre-commit-config.yaml does not match package.json."
+                  echo "The 'sync-versions' job will push a fix to this PR and CI will re-run automatically."
+                  exit 1
+
+    sync-versions:
+        needs: check-versions
+        # `!cancelled()` is required because the check-versions job ends in failure
+        # when out of sync, which would otherwise skip this job (while still
+        # respecting cancellation, unlike always()).
+        # Skip PRs from forks: the deploy key/secrets aren't available there and
+        # we can't push to a fork's branch anyway.
+        if: >-
+            ${{
+              github.event_name == 'pull_request' &&
+              github.event.pull_request.head.repo.fork == false &&
+              !cancelled() &&
+              needs.check-versions.outputs.out_of_sync == 'true'
+            }}
+        runs-on: ubuntu-latest
+        # Avoid concurrent pushes to the same PR branch racing each other.
+        concurrency:
+            group: sync-versions-${{ github.head_ref }}
+            cancel-in-progress: false
+        steps:
+            - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              with:
+                  # `ref` must be the PR branch, not the detached merge ref that
+                  # pull_request checks out by default.
+                  ref: ${{ github.head_ref }}
+                  # Use a deploy key so the push triggers CI on the new commit (a
+                  # GITHUB_TOKEN push would not).
+                  ssh-key: ${{ secrets.REPO_WRITE_DEPLOY_KEY }}
+
+            - name: Sync pre-commit revs to package.json
+              env:
+                  OXLINT_VERSION: ${{ needs.check-versions.outputs.oxlint_version }}
+                  OXFMT_VERSION: ${{ needs.check-versions.outputs.oxfmt_version }}
+              run: |
+                  # Replace the `rev:` line within each tool's repo block only.
+                  sed -i "\|repo: https://github.com/oxc-project/mirrors-oxlint|,/rev:/ s|rev: .*|rev: ${OXLINT_VERSION}|" .pre-commit-config.yaml
+                  sed -i "\|repo: https://github.com/oxc-project/mirrors-oxfmt|,/rev:/ s|rev: .*|rev: ${OXFMT_VERSION}|" .pre-commit-config.yaml
+
+            - name: Validate pre-commit config
+              run: |
+                  pipx install pre-commit
+                  # Schema-check the rewritten config...
+                  pre-commit validate-config
+                  # ...then clone + build every hook environment at its pinned rev
+                  # (without running them) to catch a bad rev before committing.
+                  pre-commit install-hooks
+
+            - name: Commit & push fix
+              run: |
+                  if git diff --quiet; then
+                      echo "Nothing to change — already in sync."
+                      exit 0
+                  fi
+                  git config user.name  "Prism Overlay CI[bot]"
+                  git config user.email "ci@prismoverlay.com"
+                  git add .pre-commit-config.yaml
+                  git commit -m "chore(pre-commit): sync oxlint/oxfmt revs to package.json"
+                  git push
