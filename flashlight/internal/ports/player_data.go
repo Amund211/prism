@@ -25,6 +25,7 @@ func MakeGetPlayerDataHandler(
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
+	deprecated bool,
 ) http.HandlerFunc {
 	tracer := otel.Tracer("flashlight/ports/player_data_v1")
 
@@ -86,6 +87,10 @@ func MakeGetPlayerDataHandler(
 
 		ctx, span := tracer.Start(ctx, "ports.GetPlayerDataHandler")
 		defer span.End()
+
+		if deprecated {
+			logging.FromContext(ctx).WarnContext(ctx, "Deprecated endpoint hit", "deprecatedEndpoint", fmt.Sprintf("%s %s", r.Method, r.URL.Path))
+		}
 
 		rawUUID := r.URL.Query().Get("uuid")
 		ctx = logging.AddMetaToContext(ctx,

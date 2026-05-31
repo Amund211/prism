@@ -239,6 +239,7 @@ func main() {
 			sentryMiddleware,
 			bearerAuthMiddleware,
 			blocklistConfig,
+			false,
 		),
 	)
 
@@ -390,7 +391,8 @@ func main() {
 		),
 	)
 
-	// TODO: Remove
+	// TODO: Remove deprecated non-versioned endpoint. Hits are logged with a
+	// "Deprecated endpoint hit" WARN so we can confirm it's safe to drop.
 	handleFunc(
 		"GET /playerdata",
 		ports.MakeGetPlayerDataHandler(
@@ -400,6 +402,7 @@ func main() {
 			sentryMiddleware,
 			bearerAuthMiddleware,
 			blocklistConfig,
+			true,
 		),
 	)
 

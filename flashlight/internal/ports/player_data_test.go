@@ -48,7 +48,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return player, nil
-		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig)
+		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
 
 		w := httptest.NewRecorder()
 		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
@@ -72,7 +72,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 			t.Helper()
 			t.Fatal("should not be called")
 			return nil, nil
-		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig)
+		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
 		w := httptest.NewRecorder()
 
 		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/?uuid=1234-1234-1234", nil)
@@ -90,7 +90,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return nil, fmt.Errorf("%w: couldn't find him", domain.ErrPlayerNotFound)
-		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig)
+		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
 
@@ -107,7 +107,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return nil, fmt.Errorf("error :^(: (%w)", domain.ErrTemporarilyUnavailable)
-		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig)
+		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
 
@@ -126,7 +126,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
 			return player, nil
-		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig)
+		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
 
 		// Exhaust the rate limit
 		for range 200 {
