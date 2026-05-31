@@ -59,6 +59,9 @@ jobs:
       - name: Run tests
         run: go test ./...
 
+      - name: Run tests with race detector
+        run: go test -race ./...
+
       - name: Go build
         run: |
           go build
