@@ -10,6 +10,11 @@ updates:
     commit-message:
       prefix: 'chore'
       include: 'scope'
+    ignore:
+      # golangci-lint is driven by the gomod ecosystem (go.mod is the source of
+      # truth) and synced into .pre-commit-config.yaml by the check-tool-versions
+      # workflow, so don't let pre-commit bump it independently.
+      - dependency-name: 'golangci/golangci-lint'
     groups:
       # Group minor+patch updates together
       # Leave major updates and security updates to their own PRs
@@ -64,11 +69,6 @@ updates:
       # Leave major updates and security updates to their own PRs
       minor-updates:
         applies-to: 'version-updates'
-        exclude-patterns:
-          # Keep this dependency out of the bundle:
-          # - version must stay in sync with .pre-commit-config.yaml
-          # - updates can require manual fixes for newly introduced rules
-          - 'github.com/golangci/golangci-lint/v2'
         update-types:
           - 'patch'
           - 'minor'
