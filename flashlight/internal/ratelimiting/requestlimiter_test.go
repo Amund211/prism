@@ -392,11 +392,11 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				// Wait for the requests to start and occupy all slots
 				synctest.Wait()
 
-				ctx, cancel := context.WithCancel(t.Context())
+				cancelableCtx, cancel := context.WithCancel(t.Context())
 
 				requestCanceled := false
 				requestsCompletedWg.Go(func() {
-					ran := l.Limit(ctx, minOperationTime, func(ctx context.Context) {
+					ran := l.Limit(cancelableCtx, minOperationTime, func(ctx context.Context) {
 						t.Helper()
 						assert.False(t, true, "operation should not be called")
 					})
@@ -495,13 +495,13 @@ func TestWindowLimitRequestLimiter(t *testing.T) {
 				// Wait for the requests to start and occupy all slots
 				synctest.Wait()
 
-				ctx, cancel := context.WithCancel(context.Background())
+				canceledCtx, cancel := context.WithCancel(context.Background())
 				cancel() // Cancel immediately
 
 				canceledRequestsWg := sync.WaitGroup{}
 				for range 100 {
 					canceledRequestsWg.Go(func() {
-						ran := l.Limit(ctx, minOperationTime, func(ctx context.Context) {
+						ran := l.Limit(canceledCtx, minOperationTime, func(ctx context.Context) {
 							t.Helper()
 							assert.False(t, true, "operation should not be called")
 						})
