@@ -19,9 +19,14 @@ func (c *ttlCache[T]) getOrClaim(key string) hitResult[T] {
 	invalid := tllCacheEntry[T]{valid: false}
 	item, existed := c.cache.GetOrSet(key, invalid)
 
+	// Snapshot the value once: a concurrent set() updates the underlying
+	// *Item in place, so reading item.Value() twice can tear (e.g. observe
+	// the old empty data together with the new valid=true).
+	value := item.Value()
+
 	return hitResult[T]{
-		data:    item.Value().data,
-		valid:   item.Value().valid,
+		data:    value.data,
+		valid:   value.valid,
 		claimed: !existed,
 	}
 }
