@@ -72,17 +72,17 @@ func TestGetOrCreateSingle(t *testing.T) {
 
 	go func() {
 		client := clients[0]
-		require.Equal(t, 0, client.server.currentTick)
+		require.Equal(t, 0, int(client.server.currentTick.Load()))
 
 		data, created, err := GetOrCreate(t.Context(), client, "key1", createCallback(1))
 		require.Nil(t, err)
 		require.True(t, created)
 		require.Equal(t, "data1", data)
-		require.Equal(t, 0, client.server.currentTick)
+		require.Equal(t, 0, int(client.server.currentTick.Load()))
 
 		client.wait()
 
-		require.Equal(t, 1, client.server.currentTick)
+		require.Equal(t, 1, int(client.server.currentTick.Load()))
 
 		client.waitUntilDone()
 	}()
@@ -101,13 +101,13 @@ func TestGetOrCreateMultiple(t *testing.T) {
 		require.Nil(t, err)
 		require.True(t, created)
 		require.Equal(t, "data1", data)
-		require.Equal(t, 0, client.server.currentTick)
+		require.Equal(t, 0, int(client.server.currentTick.Load()))
 
 		data, created, err = GetOrCreate(t.Context(), client, "key2", withWait(client, 2, createCallback(2)))
 		require.Nil(t, err)
 		require.True(t, created)
 		require.Equal(t, "data2", data)
-		require.Equal(t, 2, client.server.currentTick)
+		require.Equal(t, 2, int(client.server.currentTick.Load()))
 
 		client.waitUntilDone()
 	}()
@@ -119,7 +119,7 @@ func TestGetOrCreateMultiple(t *testing.T) {
 		require.Nil(t, err)
 		require.False(t, created)
 		require.Equal(t, "data1", data)
-		require.Equal(t, 1, client.server.currentTick)
+		require.Equal(t, 1, int(client.server.currentTick.Load()))
 
 		data, created, err = GetOrCreate(t.Context(), client, "key2", createUnreachable(t))
 		require.Nil(t, err)
@@ -128,7 +128,7 @@ func TestGetOrCreateMultiple(t *testing.T) {
 		// The fist client will insert this during the second tick
 		// If our second tick processes after the first client's we will get it in the second tick
 		// If our second tick processes before the first client's we will get it in the third tick
-		require.True(t, client.server.currentTick == 2 || client.server.currentTick == 3)
+		require.True(t, int(client.server.currentTick.Load()) == 2 || int(client.server.currentTick.Load()) == 3)
 
 		client.waitUntilDone()
 	}()
@@ -145,7 +145,7 @@ func TestGetOrCreateErrorRetries(t *testing.T) {
 		client := clients[0]
 		_, _, err := GetOrCreate(t.Context(), client, "key1", withWait(client, 2, createErrorCallback(1)))
 		require.NotNil(t, err)
-		require.Equal(t, 2, client.server.currentTick)
+		require.Equal(t, 2, int(client.server.currentTick.Load()))
 
 		client.waitUntilDone()
 	}()
@@ -160,7 +160,7 @@ func TestGetOrCreateErrorRetries(t *testing.T) {
 		require.Nil(t, err)
 		require.True(t, created)
 		require.Equal(t, "data1", data)
-		require.True(t, client.server.currentTick == 4 || client.server.currentTick == 5)
+		require.True(t, int(client.server.currentTick.Load()) == 4 || int(client.server.currentTick.Load()) == 5)
 
 		client.waitUntilDone()
 	}()

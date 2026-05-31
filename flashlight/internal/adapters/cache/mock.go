@@ -3,6 +3,7 @@ package cache
 import (
 	"runtime"
 	"sync"
+	"sync/atomic"
 )
 
 type mockCacheServerEntry[T any] struct {
@@ -14,11 +15,10 @@ type mockCacheServerEntry[T any] struct {
 type mockCacheServer[T any] struct {
 	cache             map[string]mockCacheServerEntry[T]
 	cacheLock         sync.Mutex
-	tickLock          sync.Mutex
-	currentTick       int
+	currentTick       atomic.Int64
 	maxTicks          int
 	numGoroutines     int
-	completedThisTick int
+	completedThisTick atomic.Int64
 }
 
 type mockCacheClient[T any] struct {
@@ -41,7 +41,7 @@ func (cacheClient *mockCacheClient[T]) getOrClaim(uuid string) hitResult[T] {
 
 	cacheClient.server.cache[uuid] = mockCacheServerEntry[T]{
 		valid:      false,
-		insertedAt: cacheClient.server.currentTick,
+		insertedAt: int(cacheClient.server.currentTick.Load()),
 	}
 	return hitResult[T]{
 		valid:   false,
@@ -56,7 +56,7 @@ func (cacheClient *mockCacheClient[T]) set(uuid string, data T) {
 	cacheClient.server.cache[uuid] = mockCacheServerEntry[T]{
 		data:       data,
 		valid:      true,
-		insertedAt: cacheClient.server.currentTick,
+		insertedAt: int(cacheClient.server.currentTick.Load()),
 	}
 }
 
@@ -72,13 +72,11 @@ func (cacheClient *mockCacheClient[T]) wait() {
 		panic("wait() called on a client that is already done")
 	}
 
-	cacheClient.server.tickLock.Lock()
-	cacheClient.server.completedThisTick++
-	cacheClient.server.tickLock.Unlock()
+	cacheClient.server.completedThisTick.Add(1)
 
 	cacheClient.desiredTick++
 
-	for cacheClient.server.currentTick < cacheClient.desiredTick {
+	for cacheClient.server.currentTick.Load() < int64(cacheClient.desiredTick) {
 		runtime.Gosched()
 	}
 }
@@ -90,31 +88,26 @@ func (cacheClient *mockCacheClient[T]) waitUntilDone() {
 }
 
 func (cacheServer *mockCacheServer[T]) isDone() bool {
-	return cacheServer.currentTick >= cacheServer.maxTicks
+	return cacheServer.currentTick.Load() >= int64(cacheServer.maxTicks)
 }
 
 func (cacheServer *mockCacheServer[T]) processTicks() {
 	for !cacheServer.isDone() {
-		if cacheServer.completedThisTick != cacheServer.numGoroutines {
+		if cacheServer.completedThisTick.Load() != int64(cacheServer.numGoroutines) {
 			runtime.Gosched()
 			continue
 		}
 
-		cacheServer.tickLock.Lock()
-		cacheServer.completedThisTick = 0
-		cacheServer.currentTick++
-		cacheServer.tickLock.Unlock()
+		cacheServer.completedThisTick.Store(0)
+		cacheServer.currentTick.Add(1)
 	}
 }
 
 func NewMockCacheServer[T any](numGoroutines int, maxTicks int) (*mockCacheServer[T], []*mockCacheClient[T]) {
 	server := &mockCacheServer[T]{
-		cache:             make(map[string]mockCacheServerEntry[T]),
-		tickLock:          sync.Mutex{},
-		currentTick:       0,
-		maxTicks:          maxTicks,
-		numGoroutines:     numGoroutines,
-		completedThisTick: 0,
+		cache:         make(map[string]mockCacheServerEntry[T]),
+		maxTicks:      maxTicks,
+		numGoroutines: numGoroutines,
 	}
 
 	clients := make([]*mockCacheClient[T], numGoroutines)
