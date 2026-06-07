@@ -14,7 +14,7 @@ updates:
       # golangci-lint is driven by the gomod ecosystem (go.mod is the source of
       # truth) and synced into .pre-commit-config.yaml by the check-tool-versions
       # workflow, so don't let pre-commit bump it independently.
-      - dependency-name: 'golangci/golangci-lint'
+      - dependency-name: 'https://github.com/golangci/golangci-lint'
     groups:
       # Group minor+patch updates together
       # Leave major updates and security updates to their own PRs
