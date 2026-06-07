@@ -1,6 +1,10 @@
 import { test, expect, describe } from "vitest";
 
-import { parseStoredAliases, stringifyKnownAliases } from "./helpers.ts";
+import {
+    currentKnownUsernames,
+    parseStoredAliases,
+    stringifyKnownAliases,
+} from "./helpers.ts";
 import type { KnownAliases } from "./helpers.ts";
 
 describe("parse + stringify round trip", () => {
@@ -83,4 +87,36 @@ describe("parse + stringify round trip", () => {
             );
         });
     }
+});
+
+describe(currentKnownUsernames, () => {
+    test("empty", () => {
+        expect(currentKnownUsernames({})).toStrictEqual({});
+    });
+
+    test("picks the most recent (last) username per uuid", () => {
+        expect(
+            currentKnownUsernames({
+                "123e4567-e89b-12d3-a456-426614174000": [
+                    "PlayerOne",
+                    "PlayerUno",
+                    "Player1",
+                ],
+                "123e4567-e89b-12d3-a456-426614174001": ["PlayerTwo"],
+            }),
+        ).toStrictEqual({
+            "123e4567-e89b-12d3-a456-426614174000": "Player1",
+            "123e4567-e89b-12d3-a456-426614174001": "PlayerTwo",
+        });
+    });
+
+    test("maps uuids with no usernames to undefined", () => {
+        expect(
+            currentKnownUsernames({
+                "123e4567-e89b-12d3-a456-426614174000": [],
+            }),
+        ).toStrictEqual({
+            "123e4567-e89b-12d3-a456-426614174000": undefined,
+        });
+    });
 });

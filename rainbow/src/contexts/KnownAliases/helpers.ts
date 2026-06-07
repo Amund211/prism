@@ -128,6 +128,19 @@ export const addKnownAliasAndPersist = (alias: {
     writeToLocalStorage(stringified);
 };
 
+// Map each uuid to its most recently resolved username, if any. Operates on the
+// presented alias lists (see presentRecentKnownAliases), which are ordered
+// oldest-first, so the current username is the last entry. Reading names from
+// here lets callers display known players without re-resolving every uuid over
+// the network.
+export const currentKnownUsernames = (
+    aliases: Readonly<Record<string, readonly string[] | undefined>>,
+): Record<string, string | undefined> => {
+    return Object.fromEntries(
+        Object.entries(aliases).map(([uuid, usernames]) => [uuid, usernames?.at(-1)]),
+    );
+};
+
 // Convert known aliases to a map uuid -> username[] while filtering out old aliases
 export const presentRecentKnownAliases = (
     aliases: KnownAliases,

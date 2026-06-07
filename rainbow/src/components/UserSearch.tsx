@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import React from "react";
 
 import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
+import { currentKnownUsernames } from "#contexts/KnownAliases/helpers.ts";
 import { useKnownAliases } from "#contexts/KnownAliases/hooks.ts";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
@@ -73,9 +74,13 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
 ): UserSearchOptions<Multiple> => {
     const { knownAliases } = useKnownAliases();
     const uuids = Object.keys(knownAliases);
-    const uuidToUsername = useUUIDToUsername([
-        ...new Set([...uuids, ...(additionalUUIDs ?? [])]),
-    ]);
+    // Serve names for the (potentially huge) known-alias history straight from
+    // local storage so opening the page doesn't resolve every uuid over the
+    // network. Only the small set of explicitly selected uuids (e.g. the chips
+    // in UserMultiSelect) is resolved to stay fresh.
+    const localUsernames = currentKnownUsernames(knownAliases);
+    const resolvedUsernames = useUUIDToUsername(additionalUUIDs ?? []);
+    const uuidToUsername = { ...localUsernames, ...resolvedUsernames };
     const { orderUUIDsByScore } = usePlayerVisits();
     const { currentUser } = useCurrentUser();
 
