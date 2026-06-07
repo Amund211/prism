@@ -40,6 +40,45 @@ describe("Home page", () => {
             .toBeInTheDocument();
     });
 
+    mswTest("renders downloads banner linking to downloads page", async () => {
+        const { screen } = await renderAppRoute("/");
+
+        const downloadLink = screen.getByRole("link", { name: "Download" });
+        await expect.element(downloadLink).toBeInTheDocument();
+
+        await downloadLink.click();
+
+        await expect.poll(() => globalThis.location.pathname).toBe("/downloads");
+    });
+
+    mswTest("dismissing downloads banner stores it in localStorage", async () => {
+        const { screen } = await renderAppRoute("/");
+
+        const closeButton = screen.getByRole("button", { name: "Close" });
+        await expect.element(closeButton).toBeInTheDocument();
+
+        await closeButton.click();
+
+        await expect
+            .element(screen.getByRole("link", { name: "Download" }))
+            .not.toBeInTheDocument();
+        expect(localStorage.getItem("downloadsBannerDismissed")).toBe("true");
+    });
+
+    mswTest("downloads banner stays hidden when dismissed", async () => {
+        localStorage.setItem("downloadsBannerDismissed", "true");
+
+        const { screen } = await renderAppRoute("/");
+
+        // The rest of the page should render without the banner
+        await expect
+            .element(screen.getByRole("combobox", { name: "Search players" }))
+            .toBeInTheDocument();
+        await expect
+            .element(screen.getByRole("link", { name: "Download" }))
+            .not.toBeInTheDocument();
+    });
+
     mswTest("search brings you to session page", async () => {
         const { screen } = await renderAppRoute("/");
 

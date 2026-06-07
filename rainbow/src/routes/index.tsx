@@ -1,15 +1,18 @@
-import { Delete } from "@mui/icons-material";
-import { Button, IconButton, Stack, Typography } from "@mui/material";
+import { Delete, Download } from "@mui/icons-material";
+import { Alert, Button, IconButton, Stack, Typography } from "@mui/material";
 import { captureException } from "@sentry/react";
-import { createFileRoute, createLink } from "@tanstack/react-router";
+import { createFileRoute, createLink, Link } from "@tanstack/react-router";
 
 import { PlayerHead } from "#components/player.tsx";
 import { UserSearch } from "#components/UserSearch.tsx";
 import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
+import { useLocalStorage } from "#hooks/useLocalStorage.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
 
 const RouterLinkButton = createLink(Button);
+
+const DOWNLOADS_BANNER_DISMISSED_KEY = "downloadsBannerDismissed";
 
 export const Route = createFileRoute("/")({
     // oxlint-disable-next-line eslint/no-use-before-define
@@ -28,6 +31,9 @@ function RouteComponent() {
               ].slice(0, 5)
             : favoriteUUIDs.slice(0, 5);
     const uuidToUsername = useUUIDToUsername(favorites);
+    const [downloadsBannerDismissed, setDownloadsBannerDismissed] = useLocalStorage(
+        DOWNLOADS_BANNER_DISMISSED_KEY,
+    );
 
     return (
         <Stack
@@ -42,6 +48,20 @@ function RouteComponent() {
                 content="The Prism Overlay for Hypixel Bedwars shows the stats of all players in your game and automatically tracks your progress. View your session stats and compare your stats with other players."
             />
             <link rel="canonical" href="https://prismoverlay.com" />
+            {downloadsBannerDismissed === null && (
+                <Alert
+                    severity="info"
+                    icon={<Download fontSize="inherit" />}
+                    onClose={() => {
+                        setDownloadsBannerDismissed("true");
+                    }}
+                >
+                    <Typography variant="body2">
+                        Looking for the overlay? <Link to="/downloads">Download</Link>{" "}
+                        the Prism Overlay to track your stats!
+                    </Typography>
+                </Alert>
+            )}
             <UserSearch
                 onSubmit={(uuid) => {
                     void (async () => {
