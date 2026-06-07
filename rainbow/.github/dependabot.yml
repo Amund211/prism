@@ -14,8 +14,8 @@ updates:
           # oxlint/oxfmt are driven by the npm ecosystem (package.json is the source of
           # truth) and synced into .pre-commit-config.yaml by the check-tool-versions
           # workflow, so don't let pre-commit bump them independently.
-          - dependency-name: "oxc-project/mirrors-oxlint"
-          - dependency-name: "oxc-project/mirrors-oxfmt"
+          - dependency-name: "https://github.com/oxc-project/mirrors-oxlint"
+          - dependency-name: "https://github.com/oxc-project/mirrors-oxfmt"
       groups:
           # Group minor+patch updates together; major & security stay separate
           pre-commit-minor:
