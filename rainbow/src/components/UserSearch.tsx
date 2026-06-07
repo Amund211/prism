@@ -6,7 +6,6 @@ import {
     CircularProgress,
     InputAdornment,
     Skeleton,
-    Stack,
     TextField,
     Typography,
 } from "@mui/material";
@@ -23,6 +22,8 @@ import { useUUIDToUsername } from "#queries/username.ts";
 import { getUUIDQueryOptions } from "#queries/uuid.ts";
 
 import { PlayerHead } from "./player.tsx";
+import { useUserSearchListbox } from "./UserSearchListbox.tsx";
+import type { RenderedRow } from "./UserSearchListbox.tsx";
 
 interface UserSearchProps {
     onSubmit: (uuid: string) => void;
@@ -140,58 +141,22 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
             ];
         },
         renderOption: (props, option) => {
-            // Render as "Search for {text}"
+            // The listbox is virtualized (see UserSearchListbox), so renderOption
+            // returns data the row component renders instead of an element: the
+            // props MUI wants on the option, the content, and a stable key.
             const { key, ...optionProps } = props;
-            switch (option.type) {
-                case "free-text": {
-                    // If text is UUID -> render as regular user option
-                    const valueAsNormalizedUUID = normalizeUUID(option.text);
-                    if (valueAsNormalizedUUID !== null) {
-                        return (
-                            // oxlint-disable-next-line eslint/no-use-before-define
-                            <UserOption
-                                key={key}
-                                uuid={valueAsNormalizedUUID}
-                                optionProps={optionProps}
-                            />
-                        );
-                    }
-
-                    return (
-                        <Stack
-                            component="li"
-                            key={key}
-                            direction="row"
-                            gap={2}
-                            alignItems="center"
-                            // oxlint-disable-next-line react/jsx-props-no-spreading
-                            {...optionProps}
-                        >
-                            {/* HACK: Use an avatar to get the same layout as the UserOption*/}
-                            <Avatar>
-                                <Search fontSize="large" />
-                            </Avatar>
-                            <Typography variant="body1">
-                                Search for &ldquo;{option.text}&rdquo;
-                            </Typography>
-                        </Stack>
-                    );
-                }
-                case "uuid": {
-                    return (
-                        // oxlint-disable-next-line eslint/no-use-before-define
-                        <UserOption
-                            key={key}
-                            uuid={option.uuid}
-                            optionProps={optionProps}
-                        />
-                    );
-                }
-                default: {
-                    option satisfies never;
-                }
-            }
-            option satisfies never;
+            void key;
+            // The tuple is consumed by the virtualized listbox, but MUI types
+            // renderOption as returning a ReactNode. Cast to a non-Promise
+            // ReactNode so the tuple is accepted without widening the return
+            // type to include Promise (which ReactNode otherwise allows).
+            return [
+                optionProps,
+                // oxlint-disable-next-line eslint/no-use-before-define
+                renderSearchOptionContent(option),
+                // oxlint-disable-next-line eslint/no-use-before-define
+                searchOptionKey(option),
+            ] satisfies RenderedRow as Exclude<React.ReactNode, Promise<unknown>>;
         },
         getOptionLabel: (option) => {
             switch (option.type) {
@@ -274,24 +239,49 @@ const useUserSearchOptions = <Multiple extends boolean = false>(
     };
 };
 
-const UserOption: React.FC<{
-    uuid: string;
-    optionProps: React.HTMLAttributes<HTMLLIElement>;
-}> = ({ uuid, optionProps }) => {
+// A stable key per option, used by the virtualized listbox to scroll the
+// highlighted row into view during keyboard navigation.
+const searchOptionKey = (option: SearchOption): string =>
+    option.type === "uuid" ? `uuid:${option.uuid}` : `free-text:${option.text}`;
+
+// The content rendered inside a virtualized option row (the row's <li> wrapper
+// and positioning are provided by the listbox). Resolving the username here
+// means only the rows actually mounted by the virtualizer hit the network.
+const UserOptionContent: React.FC<{ uuid: string }> = ({ uuid }) => {
     const username = useUUIDToUsername([uuid])[uuid];
     return (
-        <Stack
-            component="li"
-            direction="row"
-            gap={2}
-            alignItems="center"
-            // oxlint-disable-next-line react/jsx-props-no-spreading
-            {...optionProps}
-        >
+        <>
             <PlayerHead uuid={uuid} username={username} variant="cube" />
             <Typography variant="body1">{username}</Typography>
-        </Stack>
+        </>
     );
+};
+
+const renderSearchOptionContent = (option: SearchOption): React.ReactNode => {
+    switch (option.type) {
+        case "free-text": {
+            // If the text is a UUID -> render as a regular user option.
+            const valueAsNormalizedUUID = normalizeUUID(option.text);
+            if (valueAsNormalizedUUID !== null) {
+                return <UserOptionContent uuid={valueAsNormalizedUUID} />;
+            }
+
+            return (
+                <>
+                    {/* HACK: Use an avatar to get the same layout as UserOptionContent */}
+                    <Avatar>
+                        <Search fontSize="large" />
+                    </Avatar>
+                    <Typography variant="body1">
+                        Search for &ldquo;{option.text}&rdquo;
+                    </Typography>
+                </>
+            );
+        }
+        case "uuid": {
+            return <UserOptionContent uuid={option.uuid} />;
+        }
+    }
 };
 
 export const UserSearch: React.FC<UserSearchProps> = ({
@@ -302,6 +292,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
     const queryClient = useQueryClient();
     const { uuids, filterOptions, renderOption, getOptionLabel, isOptionEqualToValue } =
         useUserSearchOptions();
+    const { disableListWrap, slots, slotProps, scrollToKey } = useUserSearchListbox();
     const [loading, setLoading] = React.useState(false);
 
     return (
@@ -313,10 +304,22 @@ export const UserSearch: React.FC<UserSearchProps> = ({
             blurOnSelect
             selectOnFocus
             autoHighlight
+            // Home/End are disabled: MUI resolves them by locating the target
+            // option's DOM node, but the listbox is virtualized so the first/last
+            // option usually isn't mounted. That made them jump only to the edge of
+            // the currently mounted window instead of the true first/last option.
+            // Arrow keys (which scroll the virtualizer via scrollToKey) still work.
+            handleHomeEndKeys={false}
+            disableListWrap={disableListWrap}
+            slots={slots}
+            slotProps={slotProps}
             filterOptions={filterOptions}
             renderOption={renderOption}
             getOptionLabel={getOptionLabel}
             isOptionEqualToValue={isOptionEqualToValue}
+            onHighlightChange={(_, option) => {
+                scrollToKey(option === null ? null : searchOptionKey(option));
+            }}
             onChange={(_, value) => {
                 if (value === null) return;
 
@@ -397,6 +400,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
         isOptionEqualToValue,
         renderValue,
     } = useUserSearchOptions<true>(uuids);
+    const { disableListWrap, slots, slotProps, scrollToKey } = useUserSearchListbox();
     const [loading, setLoading] = React.useState(false);
 
     return (
@@ -406,12 +410,22 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
             fullWidth
             size={size}
             autoHighlight
+            // Disabled because the virtualized listbox usually hasn't mounted the
+            // first/last option that MUI's Home/End handling looks up by DOM node;
+            // see the note on UserSearch above.
+            handleHomeEndKeys={false}
+            disableListWrap={disableListWrap}
+            slots={slots}
+            slotProps={slotProps}
             filterOptions={filterOptions}
             renderOption={renderOption}
             getOptionLabel={getOptionLabel}
             isOptionEqualToValue={isOptionEqualToValue}
             renderValue={renderValue}
             value={uuids.map((uuid) => ({ type: "uuid" as const, uuid }))}
+            onHighlightChange={(_, option) => {
+                scrollToKey(option === null ? null : searchOptionKey(option));
+            }}
             onChange={(_, newValues) => {
                 setLoading(true);
                 void (async () => {

@@ -104,7 +104,14 @@ describe("History Explore page", () => {
         // Add player2 via the input
         const input = screen.getByPlaceholder("Add players");
         await input.fill(USERS.player2.username);
-        await userEvent.keyboard("{Enter}");
+        // The virtualized listbox mounts option rows asynchronously, and MUI
+        // resolves Enter via the highlighted option's DOM node, so type-then-Enter
+        // can race the mount and select nothing (flaky, especially on webkit).
+        // Clicking the rendered option selects deterministically regardless of
+        // timing.
+        const option = screen.getByRole("option");
+        await expect.element(option).toBeInTheDocument();
+        await option.click();
 
         // Both players should now be present
         await expect

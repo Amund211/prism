@@ -1,5 +1,4 @@
 import { describe, expect } from "vitest";
-import { userEvent } from "vitest/browser";
 
 import { USERS } from "#mocks/data.ts";
 import { mswTest } from "#test/msw-test.ts";
@@ -27,7 +26,14 @@ describe("Settings page", () => {
         await expect.element(input).toBeInTheDocument();
 
         await input.fill(USERS.player1.username);
-        await userEvent.keyboard("{Enter}");
+        // The virtualized listbox mounts option rows asynchronously, and MUI
+        // resolves Enter via the highlighted option's DOM node, so type-then-Enter
+        // can race the mount and select nothing (flaky, especially on webkit).
+        // Clicking the rendered option selects deterministically regardless of
+        // timing.
+        const option = screen.getByRole("option");
+        await expect.element(option).toBeInTheDocument();
+        await option.click();
 
         await expect
             .poll(() => localStorage.getItem("currentUser"))
@@ -91,7 +97,11 @@ describe("Settings page", () => {
             // Add player2 via the input
             const input = screen.getByPlaceholder("Set default player");
             await input.fill(USERS.player2.username);
-            await userEvent.keyboard("{Enter}");
+            // Click the rendered option rather than pressing Enter — the virtualized
+            // option row mounts asynchronously and type-then-Enter can race it.
+            const option = screen.getByRole("option");
+            await expect.element(option).toBeInTheDocument();
+            await option.click();
 
             // localStorage should now have player2's UUID
             await expect
