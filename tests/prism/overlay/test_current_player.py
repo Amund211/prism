@@ -150,7 +150,15 @@ def test_regular_processing_order() -> None:
 
 
 def test_username_is_none() -> None:
-    """Test that processing stops early when username is None"""
+    """
+    Test that processing stops early when username is None
+
+    NOTE: It must still sleep before returning. run() calls process_updates() in a
+          tight `while True` loop, so a path that returns without blocking pins a CPU
+          core at 100%. This happens for the entire session whenever the log parser
+          never detects the client's username (e.g. an unrecognized "Setting user"
+          line, or the overlay tailing past it after a log rotation).
+    """
     controller = create_controller(
         state=create_state(
             own_username=None,  # No username set
@@ -162,9 +170,9 @@ def test_username_is_none() -> None:
     def sleep(duration: float) -> None:
         sleep_calls.append(duration)
 
-    thread = CurrentPlayerThread(controller=controller, sleep=sleep, timeout=0)
+    thread = CurrentPlayerThread(controller=controller, sleep=sleep, timeout=15)
 
-    # Process should do nothing when username is None
+    # Process should do nothing but sleep when username is None
     thread.process_updates()
 
     # No updates should be queued
@@ -179,12 +187,73 @@ def test_username_is_none() -> None:
         ignore_player_cache=True,
     )
 
-    # No sleep should have been called
-    assert sleep_calls == []
+    # We must sleep for the poll interval to avoid busy-looping in run()
+    assert sleep_calls == [15]
+
+
+def test_username_stays_none_does_not_busy_loop() -> None:
+    """
+    Repeatedly processing with no username must sleep on every iteration.
+
+    This is the primary prod busy-loop: run() spins process_updates() forever, and
+    when own_username is None every iteration must block, or one CPU core is pinned.
+    """
+    controller = create_controller(
+        state=create_state(
+            own_username=None,
+        ),
+    )
+
+    sleep_calls: list[float] = []
+
+    def sleep(duration: float) -> None:
+        sleep_calls.append(duration)
+
+    thread = CurrentPlayerThread(controller=controller, sleep=sleep, timeout=15)
+
+    for _ in range(5):
+        thread.process_updates()
+
+    # Every iteration must have slept - no busy loop
+    assert sleep_calls == [15] * 5
+
+
+def test_username_none_with_game_ended_set_still_sleeps() -> None:
+    """
+    A stale game_ended_event must not let the no-username path skip its sleep.
+
+    Guards against a future change adding event handling to the no-username path
+    that could return early (without blocking) when the event happens to be set.
+    """
+    controller = create_controller(
+        state=create_state(
+            own_username=None,
+        ),
+    )
+
+    # Stale event set while we still have no username
+    controller.game_ended_event.set()
+
+    sleep_calls: list[float] = []
+
+    def sleep(duration: float) -> None:
+        sleep_calls.append(duration)
+
+    thread = CurrentPlayerThread(controller=controller, sleep=sleep, timeout=15)
+
+    thread.process_updates()
+    thread.process_updates()
+
+    assert sleep_calls == [15, 15]
 
 
 def test_username_change_to_none() -> None:
-    """Test that username change from a value to None is handled"""
+    """
+    Test that username change from a value to None is handled
+
+    After the username clears, subsequent iterations converge on the stable
+    no-username state, which must keep sleeping rather than busy-looping.
+    """
     controller = create_controller(
         state=create_state(
             own_username="Main",
@@ -201,7 +270,7 @@ def test_username_change_to_none() -> None:
             "Main", main, genus=controller.player_cache.current_genus
         )
 
-    thread = CurrentPlayerThread(controller=controller, sleep=sleep, timeout=0)
+    thread = CurrentPlayerThread(controller=controller, sleep=sleep, timeout=15)
 
     # Initial process should cause one update
     thread.process_updates()
@@ -220,8 +289,59 @@ def test_username_change_to_none() -> None:
     # Username should be updated to None
     assert thread.username is None
 
-    # No sleep should be called when username changes to None
-    assert sleep_calls == []
+    # The transition iteration must sleep to avoid busy-looping
+    assert sleep_calls == [15]
+
+    # Further iterations in the stable no-username state must keep sleeping
+    sleep_calls.clear()
+    thread.process_updates()
+    thread.process_updates()
+    assert sleep_calls == [15, 15]
+
+
+def test_idle_known_username_waits_on_game_ended_event() -> None:
+    """
+    The idle (known username, no game ended) path must not busy-loop either.
+
+    Unlike the no-username path, it is paced by blocking on game_ended_event.wait()
+    for the poll interval. This guards that pacing so a refactor can't drop it.
+    """
+    controller = create_controller(
+        state=create_state(
+            own_username="Main",
+        ),
+    )
+
+    main = make_player("player", "Main")
+    controller.player_cache.set_cached_player(
+        "Main", main, genus=controller.player_cache.current_genus
+    )
+
+    wait_calls: list[float | None] = []
+
+    def fake_wait(timeout: float | None = None) -> bool:
+        wait_calls.append(timeout)
+        return False  # No game ended
+
+    # Shadow the bound method on this Event instance
+    controller.game_ended_event.wait = fake_wait  # type: ignore[method-assign]
+
+    sleep_calls: list[float] = []
+
+    thread = CurrentPlayerThread(
+        controller=controller, sleep=sleep_calls.append, timeout=15
+    )
+
+    # First call establishes the username (name_changed path, no idle wait)
+    thread.process_updates()
+    assert thread.username == "Main"
+    assert wait_calls == []
+
+    # Subsequent idle calls must block on the event for the poll interval
+    thread.process_updates()
+    thread.process_updates()
+
+    assert wait_calls == [15, 15]
 
 
 def test_get_player_returns_none_on_name_changed() -> None:
