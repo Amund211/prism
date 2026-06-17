@@ -7,3 +7,14 @@ allowBuilds:
 blockExoticSubdeps: true
 
 minimumReleaseAge: 10080
+
+trustPolicy: no-downgrade
+trustPolicyExclude:
+    # Reviewed provenance-adoption artifacts, not takeovers: these pinned versions
+    # predate the maintainers' adoption of npm provenance / trusted publishing, so
+    # no-downgrade flags them as trust downgrades. Pinned to exact versions so a
+    # future bump re-triggers the trust check and a fresh review.
+    - "@reduxjs/toolkit@2.9.0"
+    - "react-redux@9.2.0"
+    - "reselect@5.1.1"
+    - "semver@6.3.1"
