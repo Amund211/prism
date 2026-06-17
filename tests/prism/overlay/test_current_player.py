@@ -299,12 +299,17 @@ def test_username_change_to_none() -> None:
     assert sleep_calls == [15, 15]
 
 
-def test_idle_known_username_waits_on_game_ended_event() -> None:
+def test_no_op_fallthrough_relies_on_blocking_event_wait() -> None:
     """
-    The idle (known username, no game ended) path must not busy-loop either.
+    The no-op fallthrough (known username, no name change, no game ended) does no
+    work and no self.sleep of its own - it relies entirely on the blocking
+    game_ended_event.wait() for pacing. That bottom return is the only way to reach
+    the fallthrough, so the wait must have run.
 
-    Unlike the no-username path, it is paced by blocking on game_ended_event.wait()
-    for the poll interval. This guards that pacing so a refactor can't drop it.
+    Assert, against the real Event (wrapped, not stubbed), that each idle call
+    invokes wait() with the poll-interval timeout, that it returns False (no game)
+    yielding a genuine no-op, and that the branch never falls back to a busy-loop
+    self.sleep.
     """
     controller = create_controller(
         state=create_state(
@@ -317,31 +322,48 @@ def test_idle_known_username_waits_on_game_ended_event() -> None:
         "Main", main, genus=controller.player_cache.current_genus
     )
 
+    # Wrap (not replace) the real Event.wait: record the call AND block on it, so
+    # the real event is what provides the pacing. The event is never set, so each
+    # wait blocks for the (small) timeout and returns False.
+    real_wait = controller.game_ended_event.wait
     wait_calls: list[float | None] = []
 
-    def fake_wait(timeout: float | None = None) -> bool:
+    def spy_wait(timeout: float | None = None) -> bool:
         wait_calls.append(timeout)
-        return False  # No game ended
+        return real_wait(timeout=timeout)
 
-    # Shadow the bound method on this Event instance
-    controller.game_ended_event.wait = fake_wait  # type: ignore[method-assign]
+    controller.game_ended_event.wait = spy_wait  # type: ignore[method-assign]
 
     sleep_calls: list[float] = []
 
+    # Small real timeout so the genuine blocking wait stays fast
     thread = CurrentPlayerThread(
-        controller=controller, sleep=sleep_calls.append, timeout=15
+        controller=controller, sleep=sleep_calls.append, timeout=0.02
     )
 
-    # First call establishes the username (name_changed path, no idle wait)
+    # First call establishes the username (name_changed path - no idle wait)
     thread.process_updates()
     assert thread.username == "Main"
     assert wait_calls == []
+    controller.current_player_updates_queue.get_nowait()  # drain the establish update
 
-    # Subsequent idle calls must block on the event for the poll interval
+    # No-op fallthrough: blocks on the real event wait, returns False, does nothing
     thread.process_updates()
     thread.process_updates()
 
-    assert wait_calls == [15, 15]
+    # The real event wait was invoked with the poll interval on each idle call
+    assert wait_calls == [0.02, 0.02]
+    # Pacing comes only from the event wait - never a busy-loop self.sleep
+    assert sleep_calls == []
+    # Genuinely a no-op: no new updates produced
+    assert_controllers_equal(
+        controller,
+        create_controller(
+            state=create_state(own_username="Main"),
+            current_player_updates=(),
+        ),
+        ignore_player_cache=True,
+    )
 
 
 def test_name_change_then_same_name_does_not_busy_loop() -> None:
