@@ -56,7 +56,7 @@ describe(newUserId, () => {
                 expect(
                     suffix,
                     "User ID suffix should be a four random hex strings",
-                ).toMatch(/^([a-f0-9-]+-){3}([a-f0-9-]+)$/);
+                ).toMatch(/^(?:[a-f0-9-]+-){3}[a-f0-9-]+$/);
 
                 expect(
                     suffix.split("-"),
