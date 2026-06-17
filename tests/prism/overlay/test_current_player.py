@@ -344,6 +344,81 @@ def test_idle_known_username_waits_on_game_ended_event() -> None:
     assert wait_calls == [15, 15]
 
 
+def test_name_change_then_same_name_does_not_busy_loop() -> None:
+    """
+    A name change must advance state so it isn't re-entered forever.
+
+    The name-changed path produces no sleep when get_player hits a warm cache. It
+    avoids busy-looping only because `self.username` is updated to the new name, so
+    the next iteration is no longer name_changed and falls through to the blocking
+    idle path. This guards that guarantee: if the username assignment were ever
+    dropped, name_changed would stay True every iteration and (with a warm cache)
+    spin a CPU core with no sleep.
+    """
+    controller = create_controller(
+        state=create_state(
+            own_username="Main",
+        ),
+    )
+
+    # Pre-cache the player so get_player returns immediately - the worst case,
+    # since the name-changed path then performs no sleep of its own.
+    main = make_player("player", "Main", wins=10)
+    controller.player_cache.set_cached_player(
+        "Main", main, genus=controller.player_cache.current_genus
+    )
+
+    wait_calls: list[float | None] = []
+
+    def fake_wait(timeout: float | None = None) -> bool:
+        wait_calls.append(timeout)
+        return False  # No game ended
+
+    controller.game_ended_event.wait = fake_wait  # type: ignore[method-assign]
+
+    sleep_calls: list[float] = []
+
+    thread = CurrentPlayerThread(
+        controller=controller, sleep=sleep_calls.append, timeout=15
+    )
+
+    # Name change is handled once: username advances, an update is queued, and -
+    # because the cache is warm - it neither sleeps nor waits on the event.
+    thread.process_updates()
+
+    assert thread.username == "Main"
+    assert sleep_calls == []
+    assert wait_calls == []
+    assert_controllers_equal(
+        controller,
+        create_controller(
+            state=create_state(own_username="Main"),
+            current_player_updates=(main,),
+        ),
+        ignore_player_cache=True,
+    )
+
+    # Drain the queued update
+    controller.current_player_updates_queue.get_nowait()
+
+    # Holding the same name for a while must take the blocking idle path every time
+    # (no busy loop) and must not re-fire the name-changed handling.
+    for _ in range(3):
+        thread.process_updates()
+
+    assert sleep_calls == []
+    assert wait_calls == [15, 15, 15]
+    # No further updates queued - name_changed was not re-entered
+    assert_controllers_equal(
+        controller,
+        create_controller(
+            state=create_state(own_username="Main"),
+            current_player_updates=(),
+        ),
+        ignore_player_cache=True,
+    )
+
+
 def test_get_player_returns_none_on_name_changed() -> None:
     """Test that processing stops when get_player returns None on name change"""
     controller = create_controller(
