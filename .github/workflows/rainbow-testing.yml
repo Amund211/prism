@@ -61,12 +61,6 @@ jobs:
                     - { browser: chromium, shard: 1, total: 3 }
                     - { browser: chromium, shard: 2, total: 3 }
                     - { browser: chromium, shard: 3, total: 3 }
-                    - { browser: webkit, shard: 1, total: 6 }
-                    - { browser: webkit, shard: 2, total: 6 }
-                    - { browser: webkit, shard: 3, total: 6 }
-                    - { browser: webkit, shard: 4, total: 6 }
-                    - { browser: webkit, shard: 5, total: 6 }
-                    - { browser: webkit, shard: 6, total: 6 }
             fail-fast: false
         steps:
             - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3

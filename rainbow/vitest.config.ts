@@ -4,10 +4,6 @@ import react from "@vitejs/plugin-react";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
 
-const IS_CI = process.env.CI !== undefined && process.env.CI !== "";
-
-const USE_LOCAL_BROWSER = !IS_CI;
-
 export default defineConfig({
     resolve: {
         alias: { "#": path.resolve(import.meta.dirname, "src") },
@@ -46,41 +42,19 @@ export default defineConfig({
                         enabled: true,
                         provider: playwright(),
                         // https://vitest.dev/config/browser/playwright
-                        instances: USE_LOCAL_BROWSER
-                            ? [
-                                  { browser: "chromium" },
-                                  // { browser: "webkit" },
-                                  // { browser: "firefox" },
-                                  /*
-                                  {
-                                      browser: "chromium",
-                                      provider: playwright({
-                                          launchOptions: {
-                                              executablePath:
-                                                  "/usr/bin/chromium",
-                                          },
-                                      }),
-                                  },
-                                  */
-                                  /*
-                                  {
-                                      browser: "firefox",
-                                      provider: playwright({
-                                          launchOptions: {
-                                              executablePath:
-                                                  "/usr/bin/firefox",
-                                          },
-                                      }),
-                                  },
-                                */
-                              ]
-                            : [
-                                  { browser: "chromium" },
-                                  { browser: "webkit" },
-                                  // Firefox does not seem to work well with msw
-                                  // https://mswjs.io/docs/limitations/
-                                  // { browser: "firefox" },
-                              ],
+                        //
+                        // All supported browsers are defined here. By default
+                        // the test scripts filter to chromium with
+                        // `--browser=chromium` (see package.json). To run a
+                        // different browser locally, pass `--browser=webkit`
+                        // (e.g. `pnpm run test:ui:webkit`).
+                        instances: [
+                            { browser: "chromium" },
+                            { browser: "webkit" },
+                            // Firefox does not seem to work well with msw
+                            // https://mswjs.io/docs/limitations/
+                            // { browser: "firefox" },
+                        ],
                     },
                 },
             },
