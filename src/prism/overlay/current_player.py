@@ -49,6 +49,11 @@ class CurrentPlayerThread(threading.Thread):
         self.username = result.username
 
         if self.username is None:
+            # We don't have a username yet (e.g. the log parser hasn't seen the
+            # client's "Setting user" line). Sleep before returning so run()'s
+            # `while True` loop doesn't busy-wait and pin a CPU core while we wait
+            # for one to appear.
+            self.sleep(self.timeout)
             return
 
         if result.name_changed:
