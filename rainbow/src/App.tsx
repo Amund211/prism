@@ -1,4 +1,4 @@
-import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
+import { CssBaseline, ThemeProvider } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import type { QueryClient } from "@tanstack/react-query";
@@ -11,12 +11,7 @@ import { KnownAliasesProvider } from "#contexts/KnownAliases/provider.tsx";
 import { PlayerVisitsProvider } from "#contexts/PlayerVisits/provider.tsx";
 import type { AppRouter } from "#createRouter.ts";
 import { maxAge } from "#queryClient.ts";
-
-const theme = createTheme({
-    colorSchemes: {
-        dark: true,
-    },
-});
+import { theme } from "#theme/index.ts";
 
 interface AppProps {
     readonly router: AppRouter;

@@ -113,8 +113,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 position="fixed"
                 sx={{
                     display: { xs: "auto", lg: "none" },
-                    boxShadow: 0,
-                    bgcolor: "background.paper",
                     borderBottom: "1px solid",
                     borderColor: "divider",
                     height: APP_BAR_HEIGHT_PX,
@@ -283,7 +281,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     mt: 10,
                     display: { xs: "none", lg: "block" },
                     [`& .${drawerClasses.paper}`]: {
-                        backgroundColor: "background.paper",
                         width: 240,
                         boxSizing: "border-box",
                     },

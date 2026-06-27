@@ -31,7 +31,7 @@ import {
     Typography,
     Alert,
     ThemeProvider,
-    createTheme,
+    useTheme,
 } from "@mui/material";
 import { captureException } from "@sentry/react";
 import { useQuery } from "@tanstack/react-query";
@@ -51,6 +51,8 @@ import type { WrappedData } from "#queries/wrapped.ts";
 import { wrappedSearchSchema } from "#schemas/wrappedSearch.ts";
 import { computeStat } from "#stats/index.ts";
 import type { StatKey } from "#stats/keys.ts";
+import { createExportTheme } from "#theme/index.ts";
+import { rainbowGradient } from "#theme/tokens.ts";
 
 const getDefaultTimeZone = (): string => {
     return new Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -87,7 +89,8 @@ interface StatCardProps {
     value: string | number;
     subtitle?: string;
     icon?: JSX.Element;
-    color?: string;
+    /** Index into the theme's rainbow palette for this card's accent colour. */
+    colorIndex?: number;
 }
 
 const StatCard: React.FC<StatCardProps> = ({
@@ -95,8 +98,10 @@ const StatCard: React.FC<StatCardProps> = ({
     value,
     subtitle,
     icon,
-    color = "primary.main",
+    colorIndex = 0,
 }) => {
+    const { rainbow } = useTheme().palette;
+    const color = rainbow[colorIndex % rainbow.length];
     return (
         <Card
             variant="outlined"
@@ -125,11 +130,12 @@ const StatCard: React.FC<StatCardProps> = ({
                         variant="h4"
                         fontWeight="bold"
                         textAlign="center"
-                        sx={{
+                        sx={(theme) => ({
                             background: `linear-gradient(45deg, ${color}, ${color}dd)`,
                             backgroundClip: "text",
                             textFillColor: "transparent",
-                        }}
+                            fontFamily: theme.typography.fontFamilyMonospace,
+                        })}
                     >
                         {value}
                     </Typography>
@@ -271,7 +277,8 @@ interface BestSessionCardProps {
         | "duration"
         | "winsPerHour"
         | "finalsPerHour";
-    color: string;
+    /** Index into the theme's rainbow palette for this card's accent colour. */
+    colorIndex: number;
     showDuration?: boolean;
 }
 
@@ -281,9 +288,12 @@ const BestSessionCard: React.FC<BestSessionCardProps> = ({
     session,
     statLabel,
     statType,
-    color,
+    colorIndex,
     showDuration = true,
 }) => {
+    const { rainbow } = useTheme().palette;
+    const color = rainbow[colorIndex % rainbow.length];
+
     if (!session) return null;
 
     const startDate = new Date(session.start.queriedAt);
@@ -688,7 +698,7 @@ const YearStatsCards: React.FC<YearStatsCardsProps> = ({ wrappedData }) => {
                             : undefined
                     }
                     icon={<EmojiEvents sx={{ fontSize: 48 }} />}
-                    color="#FF6B6B"
+                    colorIndex={0}
                 />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -697,7 +707,7 @@ const YearStatsCards: React.FC<YearStatsCardsProps> = ({ wrappedData }) => {
                     value={totalWins.toLocaleString()}
                     subtitle={`${winRate.toLocaleString(undefined, { maximumFractionDigits: 1 })}% win rate`}
                     icon={<Star sx={{ fontSize: 48 }} />}
-                    color="#4ECDC4"
+                    colorIndex={1}
                 />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -706,7 +716,7 @@ const YearStatsCards: React.FC<YearStatsCardsProps> = ({ wrappedData }) => {
                     value={totalFinalKills.toLocaleString()}
                     subtitle={`${yearlyFKDR.toLocaleString(undefined, { maximumFractionDigits: 2 })} yearly FKDR`}
                     icon={<Whatshot sx={{ fontSize: 48 }} />}
-                    color="#FFD93D"
+                    colorIndex={2}
                 />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -715,7 +725,7 @@ const YearStatsCards: React.FC<YearStatsCardsProps> = ({ wrappedData }) => {
                     value={totalBedsBroken.toLocaleString()}
                     subtitle={`${yearlyBBLR.toLocaleString(undefined, { maximumFractionDigits: 2 })} yearly BBLR`}
                     icon={<Celebration sx={{ fontSize: 48 }} />}
-                    color="#95E1D3"
+                    colorIndex={3}
                 />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -729,7 +739,7 @@ const YearStatsCards: React.FC<YearStatsCardsProps> = ({ wrappedData }) => {
                         maximumFractionDigits: 2,
                     })}
                     icon={<TrendingUp sx={{ fontSize: 48 }} />}
-                    color="#A8E6CF"
+                    colorIndex={4}
                 />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -738,7 +748,7 @@ const YearStatsCards: React.FC<YearStatsCardsProps> = ({ wrappedData }) => {
                     value={`+${totalStars.toLocaleString(undefined, { maximumFractionDigits: 1 })}`}
                     subtitle={`now at ${eoyStars.toLocaleString(undefined, { maximumFractionDigits: 1 })} ⭐`}
                     icon={<Star sx={{ fontSize: 48 }} />}
-                    color="#FFB6D9"
+                    colorIndex={5}
                 />
             </Grid>
         </Grid>
@@ -842,7 +852,7 @@ const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
                         session={sessionStats.bestSessions.highestFKDR}
                         statLabel="FKDR"
                         statType="fkdr"
-                        color="#667eea"
+                        colorIndex={0}
                     />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -852,7 +862,7 @@ const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
                         session={sessionStats.bestSessions.mostKills}
                         statLabel="Kills"
                         statType="kills"
-                        color="#f093fb"
+                        colorIndex={1}
                     />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -862,7 +872,7 @@ const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
                         session={sessionStats.bestSessions.mostFinalKills}
                         statLabel="Final Kills"
                         statType="finals"
-                        color="#FFD93D"
+                        colorIndex={2}
                     />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -872,7 +882,7 @@ const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
                         session={sessionStats.bestSessions.mostWins}
                         statLabel="Wins"
                         statType="wins"
-                        color="#4ECDC4"
+                        colorIndex={3}
                     />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -882,7 +892,7 @@ const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
                         session={sessionStats.bestSessions.longestSession}
                         statLabel="hours"
                         statType="duration"
-                        color="#A8E6CF"
+                        colorIndex={4}
                         showDuration={false}
                     />
                 </Grid>
@@ -893,7 +903,7 @@ const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
                         session={sessionStats.bestSessions.mostWinsPerHour}
                         statLabel="wins/hr"
                         statType="winsPerHour"
-                        color="#95E1D3"
+                        colorIndex={5}
                     />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -903,7 +913,7 @@ const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
                         session={sessionStats.bestSessions.mostFinalsPerHour}
                         statLabel="finals/hr"
                         statType="finalsPerHour"
-                        color="#FF6B6B"
+                        colorIndex={6}
                     />
                 </Grid>
             </Grid>
@@ -1309,10 +1319,10 @@ const FlawlessSessions: React.FC<FlawlessSessionsProps> = ({ wrappedData }) => {
     return (
         <Card
             variant="outlined"
-            sx={{
-                background: "linear-gradient(135deg, #FFD70022 0%, #FFD70011 100%)",
-                border: "2px solid #FFD700",
-            }}
+            sx={(theme) => ({
+                background: `linear-gradient(135deg, ${theme.palette.warning.main}22 0%, ${theme.palette.warning.main}11 100%)`,
+                border: `2px solid ${theme.palette.warning.main}`,
+            })}
         >
             <CardContent>
                 <Stack gap={2} alignItems="center">
@@ -1320,12 +1330,12 @@ const FlawlessSessions: React.FC<FlawlessSessionsProps> = ({ wrappedData }) => {
                         <CheckCircle
                             sx={{
                                 fontSize: 32,
-                                color: "#FFD700",
+                                color: "warning.main",
                             }}
                         />
                         <Typography variant="h5">Flawless Sessions</Typography>
                     </Stack>
-                    <Typography variant="h3" fontWeight="bold" color="#FFD700">
+                    <Typography variant="h3" fontWeight="bold" color="warning.main">
                         {sessionStats.flawlessSessions.count.toLocaleString()}
                     </Typography>
                     <Typography variant="body2" color="textSecondary">
@@ -1356,19 +1366,10 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
 }) => {
     return (
         <ThemeProvider
-            theme={createTheme({
-                // Force theme and breakpoints for predictable rendering
-                palette: { mode: "dark" },
-                breakpoints: {
-                    values: {
-                        xs: 0,
-                        sm: 0,
-                        md: 0,
-                        lg: 0,
-                        xl: 1,
-                    },
-                },
-            })}
+            // Force a fixed dark theme and collapse breakpoints for predictable
+            // off-screen rendering. createExportTheme carries the custom palette
+            // tokens (gamemode/stat/rainbow) that a bare dark theme would lack.
+            theme={createExportTheme()}
         >
             <Stack
                 width="1600px"
@@ -1431,7 +1432,7 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
                                 }
                                 statLabel="FKDR"
                                 statType="fkdr"
-                                color="#667eea"
+                                colorIndex={0}
                             />
                         </Grid>
                         <Grid size={{ xs: 4 }}>
@@ -1443,7 +1444,7 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
                                 }
                                 statLabel="Final Kills"
                                 statType="finals"
-                                color="#FFD93D"
+                                colorIndex={2}
                             />
                         </Grid>
                         <Grid size={{ xs: 4 }}>
@@ -1455,7 +1456,7 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
                                 }
                                 statLabel="hours"
                                 statType="duration"
-                                color="#A8E6CF"
+                                colorIndex={4}
                                 showDuration={false}
                             />
                         </Grid>
@@ -1727,7 +1728,7 @@ function WrappedHeader({ wrappedData, uuid, year }: WrappedHeaderProps) {
                     fontWeight="bold"
                     textAlign="center"
                     sx={{
-                        background: "linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1)",
+                        background: rainbowGradient(45),
                         backgroundClip: "text",
                         textFillColor: "transparent",
                     }}
@@ -1891,11 +1892,10 @@ function RouteComponent() {
                 {wrappedData?.year !== undefined && wrappedData.yearStats && (
                     <Card
                         variant="outlined"
-                        sx={{
-                            background:
-                                "linear-gradient(135deg, #a8edea22 0%, #fed6e311 100%)",
-                            border: "2px solid #a8edea",
-                        }}
+                        sx={(theme) => ({
+                            background: `linear-gradient(135deg, ${theme.palette.info.main}22 0%, ${theme.palette.secondary.main}11 100%)`,
+                            border: `2px solid ${theme.palette.info.main}`,
+                        })}
                     >
                         <CardContent>
                             <Typography

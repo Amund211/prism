@@ -1,5 +1,7 @@
 import { QueryStats } from "@mui/icons-material";
 import {
+    Card,
+    CardContent,
     Chip,
     IconButton,
     MenuItem,
@@ -222,7 +224,7 @@ function Index() {
             : `https://prismoverlay.com/history/explore?uuids=${encodeURIComponent(JSON.stringify(sortedUUIDs))}`;
 
     return (
-        <Stack gap={1} height="100%">
+        <Stack gap={1}>
             <meta name="description" content={description} />
             <link rel="canonical" href={canonicalHref} />
             <UserMultiSelect
@@ -428,104 +430,108 @@ function Index() {
                 </Stack>
             </Stack>
 
-            <Stack
-                direction="row"
-                gap={1}
-                alignItems="center"
-                justifyContent="space-between"
-            >
-                <Stack direction="row" gap={1} alignItems="center">
-                    <HistoryChartTitle
-                        uuids={uuids}
-                        gamemodes={gamemodes}
-                        stats={stats}
-                        variants={variants}
-                    />
-                    <Tooltip
-                        id="go-to-session-page-tooltip"
-                        title={goToSessionPageTooltip}
+            <Card variant="outlined">
+                <CardContent>
+                    <Stack
+                        direction="row"
+                        gap={1}
+                        alignItems="center"
+                        justifyContent="space-between"
                     >
-                        {/* Make the span tabbable when the button is disabled so you can get to it and see the tooltip */}
-                        <span tabIndex={canGoToSessionPage ? undefined : 0}>
-                            <RouterLinkIconButton
-                                aria-labelledby="go-to-session-page-tooltip"
-                                disabled={!canGoToSessionPage}
-                                size="small"
-                                color="primary"
-                                to="/session/$uuid"
-                                params={{ uuid: uuids[0] }}
-                                search={{
-                                    gamemode: gamemodes[0],
-                                    stat: stats[0],
-                                    variantSelection,
-                                    timeIntervalDefinition: {
-                                        type: "until",
-                                        date: sessionPageEndDate,
-                                    },
-                                    sessionTableMode: "total",
-                                    showExtrapolatedSessions: false,
-                                }}
+                        <Stack direction="row" gap={1} alignItems="center">
+                            <HistoryChartTitle
+                                uuids={uuids}
+                                gamemodes={gamemodes}
+                                stats={stats}
+                                variants={variants}
+                            />
+                            <Tooltip
+                                id="go-to-session-page-tooltip"
+                                title={goToSessionPageTooltip}
                             >
-                                <QueryStats />
-                            </RouterLinkIconButton>
-                        </span>
-                    </Tooltip>
-                </Stack>
-                <ToggleButtonGroup
-                    exclusive
-                    size="small"
-                    value={variantSelection}
-                    aria-label="Stat chart variant selection"
-                >
-                    <RouterLinkToggleButton
-                        value="overall"
-                        from="/history/explore"
-                        to="/history/explore"
-                        search={(oldSearch) => ({
-                            ...oldSearch,
-                            variantSelection: "overall",
-                        })}
-                        sx={{ textAlign: "center" }}
-                    >
-                        {getVariantLabel("overall", true)}
-                    </RouterLinkToggleButton>
-                    <RouterLinkToggleButton
-                        value="session"
-                        from="/history/explore"
-                        to="/history/explore"
-                        search={(oldSearch) => ({
-                            ...oldSearch,
-                            variantSelection: "session",
-                        })}
-                        sx={{ textAlign: "center" }}
-                    >
-                        {getVariantLabel("session", true)}
-                    </RouterLinkToggleButton>
-                    <RouterLinkToggleButton
-                        value="both"
-                        from="/history/explore"
-                        to="/history/explore"
-                        search={(oldSearch) => ({
-                            ...oldSearch,
-                            variantSelection: "both",
-                        })}
-                        sx={{ textAlign: "center" }}
-                    >
-                        Both
-                    </RouterLinkToggleButton>
-                </ToggleButtonGroup>
-            </Stack>
-            <Stack flexGrow={1} paddingBottom={3}>
-                <HistoryChart
-                    start={start}
-                    end={end}
-                    uuids={uuids}
-                    gamemodes={gamemodes}
-                    stats={stats}
-                    variants={variants}
-                    limit={limit}
-                />
-            </Stack>
+                                {/* Make the span tabbable when the button is disabled so you can get to it and see the tooltip */}
+                                <span tabIndex={canGoToSessionPage ? undefined : 0}>
+                                    <RouterLinkIconButton
+                                        aria-labelledby="go-to-session-page-tooltip"
+                                        disabled={!canGoToSessionPage}
+                                        size="small"
+                                        color="primary"
+                                        to="/session/$uuid"
+                                        params={{ uuid: uuids[0] }}
+                                        search={{
+                                            gamemode: gamemodes[0],
+                                            stat: stats[0],
+                                            variantSelection,
+                                            timeIntervalDefinition: {
+                                                type: "until",
+                                                date: sessionPageEndDate,
+                                            },
+                                            sessionTableMode: "total",
+                                            showExtrapolatedSessions: false,
+                                        }}
+                                    >
+                                        <QueryStats />
+                                    </RouterLinkIconButton>
+                                </span>
+                            </Tooltip>
+                        </Stack>
+                        <ToggleButtonGroup
+                            exclusive
+                            size="small"
+                            value={variantSelection}
+                            aria-label="Stat chart variant selection"
+                        >
+                            <RouterLinkToggleButton
+                                value="overall"
+                                from="/history/explore"
+                                to="/history/explore"
+                                search={(oldSearch) => ({
+                                    ...oldSearch,
+                                    variantSelection: "overall",
+                                })}
+                                sx={{ textAlign: "center" }}
+                            >
+                                {getVariantLabel("overall", true)}
+                            </RouterLinkToggleButton>
+                            <RouterLinkToggleButton
+                                value="session"
+                                from="/history/explore"
+                                to="/history/explore"
+                                search={(oldSearch) => ({
+                                    ...oldSearch,
+                                    variantSelection: "session",
+                                })}
+                                sx={{ textAlign: "center" }}
+                            >
+                                {getVariantLabel("session", true)}
+                            </RouterLinkToggleButton>
+                            <RouterLinkToggleButton
+                                value="both"
+                                from="/history/explore"
+                                to="/history/explore"
+                                search={(oldSearch) => ({
+                                    ...oldSearch,
+                                    variantSelection: "both",
+                                })}
+                                sx={{ textAlign: "center" }}
+                            >
+                                Both
+                            </RouterLinkToggleButton>
+                        </ToggleButtonGroup>
+                    </Stack>
+                    <Stack padding={1} height={{ xs: 300, sm: 400, md: 500, xl: 600 }}>
+                        <HistoryChart
+                            start={start}
+                            end={end}
+                            uuids={uuids}
+                            gamemodes={gamemodes}
+                            stats={stats}
+                            variants={variants}
+                            limit={limit}
+                        />
+                    </Stack>
+                </CardContent>
+            </Card>
         </Stack>
     );
 }
