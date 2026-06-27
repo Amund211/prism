@@ -25,6 +25,17 @@ import { getFullStatLabel, getGamemodeLabel, getVariantLabel } from "#stats/labe
 import { generateChartData } from "./data.ts";
 import { makeDataKey } from "./dataKeys.ts";
 
+// Dash patterns cycled through once the colour palette wraps, so overlapping
+// series stay distinguishable.
+const DASHES = ["0", "5 5", "10 5", "5 10", "5 2", "10 10"];
+
+interface LineStyle {
+    readonly stroke: string;
+    readonly strokeDasharray: string;
+}
+
+type LineStyleFn = (gamemode: GamemodeKey, index: number) => LineStyle;
+
 interface HistoryChartProps {
     start: Date;
     end: Date;
@@ -246,6 +257,24 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
     // Linechart requires a mutable array for some reason. Make a copy here so we can mutate it.
     const mutableChartData = [...chartData];
 
+    // Comparing gamemodes (a single player/stat/variant) colours each line by
+    // the gamemode's identity colour. Every other combination cycles the brand
+    // rainbow, with dash patterns disambiguating once it wraps — this keeps
+    // distinct lines distinct even when several share a hue.
+    const colorByGamemode =
+        uuids.length === 1 && stats.length === 1 && variants.length === 1;
+    const { rainbow } = theme.palette;
+
+    const lineStyle: LineStyleFn = (gamemode, index) => {
+        if (colorByGamemode) {
+            return { stroke: theme.palette.gamemode[gamemode], strokeDasharray: "0" };
+        }
+        return {
+            stroke: rainbow[index % rainbow.length],
+            strokeDasharray: DASHES[Math.floor(index / rainbow.length) % DASHES.length],
+        };
+    };
+
     return (
         <LineChart
             data={mutableChartData}
@@ -261,6 +290,8 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                 domain={[start.getTime(), end.getTime()]}
                 scale="linear"
                 dataKey="queriedAt"
+                stroke={theme.palette.divider}
+                tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
                 tickFormatter={(time: number) => {
                     return renderTimeShort(time, smallestTimeDenomination);
                 }}
@@ -270,8 +301,11 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                     return startTime + ((endTime - startTime) / 9) * i;
                 })}
             />
-            <YAxis />
-            <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
+            <YAxis
+                stroke={theme.palette.divider}
+                tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+            />
+            <CartesianGrid stroke={theme.palette.divider} strokeDasharray="2 4" />
             {
                 // oxlint-disable-next-line eslint/no-use-before-define
                 renderLines({
@@ -280,16 +314,18 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                     stats,
                     variants,
                     uuidToUsername,
+                    lineStyle,
                 })
             }
             {/* Future marker */}
             <ReferenceArea
                 x1={currentDate.getTime()}
                 x2={end.getTime()}
-                stroke="#efefef"
-                fill="#e0e0e0"
+                stroke={theme.palette.divider}
+                fill={theme.palette.textMuted}
+                fillOpacity={0.12}
             />
-            <Legend />
+            <Legend wrapperStyle={{ color: theme.palette.text.secondary }} />
             <Tooltip
                 // oxlint-disable-next-line typescript/promise-function-async
                 labelFormatter={(label: ReactNode) => {
@@ -304,8 +340,11 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                 }}
                 contentStyle={{
                     backgroundColor: theme.palette.background.paper,
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 8,
                 }}
                 itemStyle={{ color: theme.palette.text.primary }}
+                labelStyle={{ color: theme.palette.text.secondary }}
             />
         </LineChart>
     );
@@ -359,6 +398,12 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
 
     const { yMax } = useSynchronizeCharts(chartData, dataKey);
 
+    // Tint the sparkline with the gamemode's identity colour. "overall" resolves
+    // to the brand primary via the theme, so the aggregate series matches the
+    // explore chart and the rest of the UI — one source of truth.
+    const seriesColor = theme.palette.gamemode[gamemode];
+    const gradientId = `spark-${dataKey.replaceAll(/[^a-zA-Z0-9]/gu, "")}`;
+
     return (
         <AreaChart
             data={mutableChartData}
@@ -369,6 +414,12 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
             syncId="history-chart"
             syncMethod="value"
         >
+            <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={seriesColor} stopOpacity={0.32} />
+                    <stop offset="100%" stopColor={seriesColor} stopOpacity={0} />
+                </linearGradient>
+            </defs>
             <XAxis
                 type="number"
                 domain={[start.getTime(), end.getTime()]}
@@ -382,7 +433,7 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
             <ReferenceArea
                 x1={start.getTime()}
                 x2={end.getTime()}
-                stroke="#efefef"
+                stroke={theme.palette.divider}
                 fillOpacity={0}
             />
             {/* Chart data */}
@@ -409,8 +460,8 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
                 )}
                 type="monotone"
                 dataKey={dataKey}
-                stroke={theme.palette.primary.main}
-                fill={theme.palette.primary.main}
+                stroke={seriesColor}
+                fill={`url(#${gradientId})`}
                 dot={false}
                 connectNulls
             />
@@ -418,8 +469,9 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
             <ReferenceArea
                 x1={currentDate.getTime()}
                 x2={end.getTime()}
-                stroke="#efefef"
-                fill="#e0e0e0"
+                stroke={theme.palette.divider}
+                fill={theme.palette.textMuted}
+                fillOpacity={0.12}
             />
 
             <Tooltip
@@ -449,6 +501,8 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
                 }}
                 contentStyle={{
                     backgroundColor: theme.palette.background.paper,
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 8,
                 }}
                 itemStyle={{ color: theme.palette.text.primary }}
             />
@@ -462,30 +516,8 @@ interface LinesProps {
     readonly stats: readonly StatKey[];
     readonly variants: readonly VariantKey[];
     readonly uuidToUsername: Readonly<Record<string, string | undefined>>;
+    readonly lineStyle: LineStyleFn;
 }
-
-const STROKES = [
-    "#82ca9d",
-    "#8884d8",
-    "#ff7300",
-    "#413ea0",
-    "#ff0000",
-    "#00ff00",
-    "#0000ff",
-    "#ff00ff",
-    "#00ffff",
-];
-
-const DASHES = ["0", "5 5", "10 5", "5 10", "5 2", "10 10"];
-
-const getLineStyle = (index: number) => {
-    // TODO: Get line style based on hash of dataKey
-    // TODO: Make linestyles more deterministic (hash of datakey/one color per player/...)
-    return {
-        stroke: STROKES[index % STROKES.length],
-        strokeDasharray: DASHES[Math.floor(index / STROKES.length) % DASHES.length],
-    } as const;
-};
 
 const renderLines = ({
     uuids,
@@ -493,6 +525,7 @@ const renderLines = ({
     stats,
     variants,
     uuidToUsername,
+    lineStyle,
 }: LinesProps): React.ReactNode[] => {
     let index = 0;
     return uuids.flatMap((uuid) => {
@@ -532,7 +565,7 @@ const renderLines = ({
                             dataKey={dataKey}
                             connectNulls
                             // oxlint-disable-next-line react/jsx-props-no-spreading
-                            {...getLineStyle(index++)}
+                            {...lineStyle("overall", index++)}
                         />
                     );
                 }
@@ -569,7 +602,7 @@ const renderLines = ({
                             type="monotone"
                             dataKey={dataKey}
                             // oxlint-disable-next-line react/jsx-props-no-spreading
-                            {...getLineStyle(index++)}
+                            {...lineStyle(gamemode, index++)}
                             connectNulls
                         />
                     );
