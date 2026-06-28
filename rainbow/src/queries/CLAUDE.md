@@ -1,0 +1,1 @@
+When making an incompatible type change in query data (a change that makes the existing cache entries not satisfy the type returned by the queries), the `PersistQueryClientProvider`'s `persistOptions.buster` must be increased so stale cached data is invalidated.
