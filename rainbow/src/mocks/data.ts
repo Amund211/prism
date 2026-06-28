@@ -105,6 +105,7 @@ export const makeSession = (
     start: makePlayerDataPIT(uuid, startTime, 1),
     end: makePlayerDataPIT(uuid, endTime, 2),
     consecutive: true,
+    ongoing: false,
 });
 
 export const makeWrappedResponse = (uuid: string, year: number) => {

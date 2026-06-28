@@ -12,6 +12,7 @@ export interface APISession {
     readonly start: APIPlayerDataPIT;
     readonly end: APIPlayerDataPIT;
     readonly consecutive: boolean;
+    readonly ongoing: boolean;
 }
 
 type APISessions = readonly APISession[];
@@ -21,6 +22,7 @@ export interface Session {
     readonly end: PlayerDataPIT;
     readonly extrapolated: boolean;
     readonly consecutive: boolean;
+    readonly ongoing: boolean;
 }
 export type Sessions = readonly Session[];
 
@@ -31,6 +33,7 @@ export const apiToSession = (
     start: apiToPlayerDataPIT(apiSession.start),
     end: apiToPlayerDataPIT(apiSession.end),
     consecutive: apiSession.consecutive,
+    ongoing: apiSession.ongoing,
     extrapolated,
 });
 

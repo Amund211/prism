@@ -37,6 +37,7 @@ export const addExtrapolatedSessions = (
                 end: historyEnd,
                 extrapolated: true,
                 consecutive: statsConsecutive(historyStart, historyEnd),
+                ongoing: false,
             },
         ];
     }
@@ -52,6 +53,7 @@ export const addExtrapolatedSessions = (
                   end: firstSessionStart,
                   extrapolated: true,
                   consecutive: statsConsecutive(historyStart, firstSessionStart),
+                  ongoing: false,
               },
           ]
         : [];
@@ -63,6 +65,7 @@ export const addExtrapolatedSessions = (
                   end: historyEnd,
                   extrapolated: true,
                   consecutive: statsConsecutive(lastSessionEnd, historyEnd),
+                  ongoing: false,
               },
           ]
         : [];
@@ -79,6 +82,7 @@ export const addExtrapolatedSessions = (
                 end: nextSession.start,
                 extrapolated: true,
                 consecutive: statsConsecutive(previousSession.end, nextSession.start),
+                ongoing: false,
             });
         }
     }
