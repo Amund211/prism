@@ -10,6 +10,7 @@ import {
     ERR_NO_DATA,
     ERR_TRACKING_STARTED,
     findSmallestPositiveCubicRoot,
+    nextCloseMilestone,
     nextNaturalMilestone,
 } from "./progression.ts";
 import type { MilestoneStrategy } from "./progression.ts";
@@ -2548,6 +2549,265 @@ describe(nextNaturalMilestone, () => {
         for (const { value, stat } of samples) {
             expect(nextNaturalMilestone(value, true, stat)).toBeGreaterThan(value);
             expect(nextNaturalMilestone(value, false, stat)).toBeLessThan(value);
+        }
+    });
+});
+
+describe(nextCloseMilestone, () => {
+    const cases: {
+        name: string;
+        value: number;
+        trendingUpward: boolean;
+        stat: StatKey;
+        expected: number;
+    }[] = [
+        // Stars: next multiple of 10 (a tenth of a prestige), regardless of trend.
+        {
+            name: "stars: low value",
+            value: 4,
+            trendingUpward: true,
+            stat: "stars",
+            expected: 10,
+        },
+        {
+            name: "stars: 42 -> 50",
+            value: 42,
+            trendingUpward: true,
+            stat: "stars",
+            expected: 50,
+        },
+        {
+            name: "stars: mid prestige",
+            value: 156,
+            trendingUpward: true,
+            stat: "stars",
+            expected: 160,
+        },
+        {
+            name: "stars: high, near a prestige",
+            value: 887,
+            trendingUpward: true,
+            stat: "stars",
+            expected: 890,
+        },
+        {
+            name: "stars: exactly on a multiple of ten",
+            value: 40,
+            trendingUpward: true,
+            stat: "stars",
+            expected: 50,
+        },
+        {
+            name: "stars: zero",
+            value: 0,
+            trendingUpward: true,
+            stat: "stars",
+            expected: 10,
+        },
+
+        // Quotients (fkdr/kdr): next 0.5 step in the trend direction.
+        {
+            name: "fkdr: up from fractional",
+            value: 200 / 75,
+            trendingUpward: true,
+            stat: "fkdr",
+            expected: 3,
+        },
+        {
+            name: "fkdr: up 2.73 -> 3.0",
+            value: 2.73,
+            trendingUpward: true,
+            stat: "fkdr",
+            expected: 3,
+        },
+        {
+            name: "fkdr: up 5.2 -> 5.5",
+            value: 5.2,
+            trendingUpward: true,
+            stat: "fkdr",
+            expected: 5.5,
+        },
+        {
+            name: "fkdr: up 1.4 -> 1.5",
+            value: 1.4,
+            trendingUpward: true,
+            stat: "fkdr",
+            expected: 1.5,
+        },
+        {
+            name: "fkdr: up from exact half-step",
+            value: 2.5,
+            trendingUpward: true,
+            stat: "fkdr",
+            expected: 3,
+        },
+        {
+            name: "fkdr: up from exact integer",
+            value: 5,
+            trendingUpward: true,
+            stat: "fkdr",
+            expected: 5.5,
+        },
+        {
+            name: "kdr: up from below 1",
+            value: 0.5,
+            trendingUpward: true,
+            stat: "kdr",
+            expected: 1,
+        },
+        {
+            name: "fkdr: down from fractional",
+            value: 2.73,
+            trendingUpward: false,
+            stat: "fkdr",
+            expected: 2.5,
+        },
+        {
+            name: "fkdr: down from exact integer",
+            value: 2,
+            trendingUpward: false,
+            stat: "fkdr",
+            expected: 1.5,
+        },
+        {
+            name: "kdr: down from exact half-step",
+            value: 2.5,
+            trendingUpward: false,
+            stat: "kdr",
+            expected: 2,
+        },
+        {
+            name: "fkdr: down to a whole number",
+            value: 1.2,
+            trendingUpward: false,
+            stat: "fkdr",
+            expected: 1,
+        },
+
+        // Everything else: half-decade step (magnitude / 2), floored at 1.
+        {
+            name: "wins: 90 -> 95",
+            value: 90,
+            trendingUpward: true,
+            stat: "wins",
+            expected: 95,
+        },
+        {
+            name: "wins: 200 -> 250",
+            value: 200,
+            trendingUpward: true,
+            stat: "wins",
+            expected: 250,
+        },
+        {
+            name: "wins: 1200 -> 1500",
+            value: 1200,
+            trendingUpward: true,
+            stat: "wins",
+            expected: 1500,
+        },
+        {
+            name: "wins: 4200 -> 4500",
+            value: 4200,
+            trendingUpward: true,
+            stat: "wins",
+            expected: 4500,
+        },
+        {
+            name: "finalKills: 12000 -> 15000",
+            value: 12_000,
+            trendingUpward: true,
+            stat: "finalKills",
+            expected: 15_000,
+        },
+        {
+            name: "experience: 7000 -> 7500",
+            value: 7000,
+            trendingUpward: true,
+            stat: "experience",
+            expected: 7500,
+        },
+        {
+            name: "index: up small",
+            value: 16,
+            trendingUpward: true,
+            stat: "index",
+            expected: 20,
+        },
+        {
+            name: "wins: single digit steps by 1 (no fractional target)",
+            value: 3,
+            trendingUpward: true,
+            stat: "wins",
+            expected: 4,
+        },
+        // Going down uses the same half-decade step; the epsilon nudge keeps a
+        // value sitting exactly on a rung from returning itself.
+        {
+            name: "index: down at power of ten",
+            value: 100,
+            trendingUpward: false,
+            stat: "index",
+            expected: 95,
+        },
+        {
+            name: "index: down within a decade",
+            value: 250,
+            trendingUpward: false,
+            stat: "index",
+            expected: 200,
+        },
+        // Non-positive values clamp to 1 (no order of magnitude to scale to).
+        {
+            name: "index: zero up",
+            value: 0,
+            trendingUpward: true,
+            stat: "index",
+            expected: 1,
+        },
+        {
+            name: "wins: negative up",
+            value: -5,
+            trendingUpward: true,
+            stat: "wins",
+            expected: 1,
+        },
+    ];
+
+    for (const c of cases) {
+        test(c.name, () => {
+            expect(nextCloseMilestone(c.value, c.trendingUpward, c.stat)).toBe(
+                c.expected,
+            );
+        });
+    }
+
+    test("honors the strict-monotonic contract for representative inputs", () => {
+        const samples: { value: number; stat: StatKey }[] = [
+            { value: 3.5, stat: "fkdr" },
+            { value: 4, stat: "kdr" },
+            { value: 16, stat: "index" },
+            { value: 100, stat: "wins" },
+            { value: 250, stat: "experience" },
+        ];
+        for (const { value, stat } of samples) {
+            expect(nextCloseMilestone(value, true, stat)).toBeGreaterThan(value);
+            expect(nextCloseMilestone(value, false, stat)).toBeLessThan(value);
+        }
+    });
+
+    test("always lands strictly closer than the natural milestone (upward)", () => {
+        const samples: { value: number; stat: StatKey }[] = [
+            { value: 42, stat: "stars" },
+            { value: 1200, stat: "wins" },
+            { value: 12_000, stat: "finalKills" },
+            { value: 5.2, stat: "fkdr" },
+        ];
+        for (const { value, stat } of samples) {
+            const close = nextCloseMilestone(value, true, stat);
+            const natural = nextNaturalMilestone(value, true, stat);
+            expect(close).toBeGreaterThan(value);
+            expect(close).toBeLessThanOrEqual(natural);
         }
     });
 });

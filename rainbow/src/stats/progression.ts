@@ -110,6 +110,26 @@ const nextRoundNumberMilestone = (value: number, trendingUpward: boolean): numbe
     return Math.floor(adjusted / magnitude) * magnitude;
 };
 
+/*
+ * Next "half-decade" number above (or below) `value`: the value's order of
+ * magnitude split into halves (…, 1000, 1500, 2000, 2500, …) — half the step of
+ * `nextRoundNumberMilestone`, so counter milestones land closer. The step is
+ * floored at 1 so integer counters never get a fractional target, and (like the
+ * round-number default) going down at an exact rung drops below it.
+ */
+const nextHalfDecadeMilestone = (value: number, trendingUpward: boolean): number => {
+    if (value <= 0) {
+        return 1;
+    }
+    if (trendingUpward) {
+        const step = Math.max(1, 10 ** Math.floor(Math.log10(value)) / 2);
+        return (Math.floor(value / step) + 1) * step;
+    }
+    const adjusted = value * (1 - 1e-9);
+    const step = Math.max(1, 10 ** Math.floor(Math.log10(adjusted)) / 2);
+    return Math.floor(adjusted / step) * step;
+};
+
 /**
  * Picks the next milestone target for `stat` at its current `value`, given the
  * direction it is trending.
@@ -168,6 +188,32 @@ export const nextNaturalMilestone: MilestoneStrategy = (
         }
         default: {
             return nextRoundNumberMilestone(value, trendingUpward);
+        }
+    }
+};
+
+/*
+ * A tighter milestone strategy that always lands closer than
+ * `nextNaturalMilestone`, used by the session detail page so its "X sessions
+ * like this" goals feel reachable: the next tenth-of-a-prestige for stars, the
+ * next 0.5 for ratios, and the next half-decade (order of magnitude split in
+ * half) for every other counter.
+ */
+export const nextCloseMilestone: MilestoneStrategy = (value, trendingUpward, stat) => {
+    switch (stat) {
+        case "stars": {
+            // Next multiple of 10 (a tenth of a prestige). Stars only trend up.
+            return (Math.floor(value / 10) + 1) * 10;
+        }
+        case "fkdr":
+        case "kdr": {
+            // Next 0.5 step in the trend direction.
+            return trendingUpward
+                ? (Math.floor(value / 0.5) + 1) * 0.5
+                : (Math.ceil(value / 0.5) - 1) * 0.5;
+        }
+        default: {
+            return nextHalfDecadeMilestone(value, trendingUpward);
         }
     }
 };
