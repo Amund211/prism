@@ -402,7 +402,8 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
     // to the brand primary via the theme, so the aggregate series matches the
     // explore chart and the rest of the UI — one source of truth.
     const seriesColor = theme.palette.gamemode[gamemode];
-    const gradientId = `spark-${dataKey.replaceAll(/[^a-zA-Z0-9]/gu, "")}`;
+    // NOTE: Assume the id format is CSS-selector-safe
+    const gradientId = `spark-${React.useId()}`;
 
     return (
         <AreaChart
