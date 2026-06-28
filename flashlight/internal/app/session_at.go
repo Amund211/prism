@@ -210,6 +210,8 @@ func buildGameSegment(ctx context.Context, prev, curr domain.PlayerPIT) GameSegm
 
 	fdDelta := currStats.FinalDeaths - prevStats.FinalDeaths
 	blDelta := currStats.BedsLost - prevStats.BedsLost
+	winsDelta := currStats.Wins - prevStats.Wins
+	lossesDelta := currStats.Losses - prevStats.Losses
 
 	// Handle weird stat deltas
 	if fdDelta < 0 ||
@@ -230,9 +232,41 @@ func buildGameSegment(ctx context.Context, prev, curr domain.PlayerPIT) GameSegm
 		return seg
 	}
 
+	// A single game moves Wins or Losses by at most one, and not both. A
+	// draw moves neither. Anything else can't be attributed to one game.
+	if winsDelta < 0 ||
+		winsDelta > 1 ||
+		lossesDelta < 0 ||
+		lossesDelta > 1 ||
+		(winsDelta == 1 && lossesDelta == 1) {
+		// unreachable
+		reporting.Report(ctx,
+			fmt.Errorf("weird Wins/Losses delta for single-game segment"),
+			map[string]string{
+				"prevQueriedAt": prev.QueriedAt.Format(time.RFC3339),
+				"currQueriedAt": curr.QueriedAt.Format(time.RFC3339),
+				"gamemode":      string(gamemode),
+				"winsDelta":     fmt.Sprintf("%d", winsDelta),
+				"lossesDelta":   fmt.Sprintf("%d", lossesDelta),
+			},
+		)
+		return seg
+	}
+
+	var outcome domain.GameOutcome
+	switch {
+	case winsDelta == 1:
+		outcome = domain.GameOutcomeWin
+	case lossesDelta == 1:
+		outcome = domain.GameOutcomeLoss
+	default:
+		// Neither Wins nor Losses moved for the single game played.
+		outcome = domain.GameOutcomeDraw
+	}
+
 	seg.Game = &domain.GameResult{
 		Gamemode:   gamemode,
-		Won:        currStats.Wins > prevStats.Wins,
+		Outcome:    outcome,
 		FinalKills: currStats.FinalKills - prevStats.FinalKills,
 		FinalDeath: fdDelta == 1,
 		BedsBroken: currStats.BedsBroken - prevStats.BedsBroken,

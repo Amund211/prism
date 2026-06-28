@@ -18,7 +18,7 @@ import (
 
 type rainbowGameResult struct {
 	Gamemode   string `json:"gamemode"`
-	Won        bool   `json:"won"`
+	Outcome    string `json:"outcome"`
 	FinalKills int    `json:"finalKills"`
 	FinalDeath bool   `json:"finalDeath"`
 	BedsBroken int    `json:"bedsBroken"`
@@ -166,9 +166,15 @@ func MakeGetSessionAtHandler(
 					http.Error(w, "Failed to serialise response", http.StatusInternalServerError)
 					return
 				}
+				rainbowOutcome, oErr := gameOutcomeToRainbowOutcome(seg.Game.Outcome)
+				if oErr != nil {
+					reporting.Report(ctx, fmt.Errorf("failed to convert outcome: %w", oErr))
+					http.Error(w, "Failed to serialise response", http.StatusInternalServerError)
+					return
+				}
 				game = &rainbowGameResult{
 					Gamemode:   rainbowGamemode,
-					Won:        seg.Game.Won,
+					Outcome:    rainbowOutcome,
 					FinalKills: seg.Game.FinalKills,
 					FinalDeath: seg.Game.FinalDeath,
 					BedsBroken: seg.Game.BedsBroken,

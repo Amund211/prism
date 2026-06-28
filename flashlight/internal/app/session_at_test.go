@@ -107,7 +107,7 @@ func TestBuildGetSessionAt(t *testing.T) {
 			Games: []app.GameSegment{
 				{Start: p0, End: p1, Game: &domain.GameResult{
 					Gamemode:   domain.GamemodeDoubles,
-					Won:        true,
+					Outcome:    domain.GameOutcomeWin,
 					FinalKills: 4,
 					FinalDeath: false,
 					BedsBroken: 1,
@@ -118,7 +118,7 @@ func TestBuildGetSessionAt(t *testing.T) {
 				}},
 				{Start: p1, End: p2, Game: &domain.GameResult{
 					Gamemode:   domain.GamemodeDoubles,
-					Won:        false,
+					Outcome:    domain.GameOutcomeLoss,
 					FinalKills: 2,
 					FinalDeath: true,
 					BedsBroken: 0,
@@ -129,7 +129,7 @@ func TestBuildGetSessionAt(t *testing.T) {
 				}},
 				{Start: p2, End: p3, Game: &domain.GameResult{
 					Gamemode:   domain.GamemodeDoubles,
-					Won:        true,
+					Outcome:    domain.GameOutcomeWin,
 					FinalKills: 4,
 					FinalDeath: false,
 					BedsBroken: 1,
@@ -288,7 +288,7 @@ func TestBuildGetSessionAt(t *testing.T) {
 
 		wonGame := &domain.GameResult{
 			Gamemode:   domain.GamemodeDoubles,
-			Won:        true,
+			Outcome:    domain.GameOutcomeWin,
 			FinalKills: 4,
 			FinalDeath: false,
 			BedsBroken: 1,
@@ -400,7 +400,7 @@ func TestBuildGetSessionAt(t *testing.T) {
 			Games: []app.GameSegment{
 				{Start: p0, End: p1, Game: &domain.GameResult{
 					Gamemode:   domain.GamemodeDoubles,
-					Won:        true,
+					Outcome:    domain.GameOutcomeWin,
 					FinalKills: 4,
 					FinalDeath: false,
 					BedsBroken: 1,
@@ -456,7 +456,7 @@ func TestBuildGetSessionAt(t *testing.T) {
 				{Start: p0, End: p1, Game: nil},
 				{Start: p1, End: p2, Game: &domain.GameResult{
 					Gamemode:   domain.GamemodeDoubles,
-					Won:        true,
+					Outcome:    domain.GameOutcomeWin,
 					FinalKills: 4,
 					FinalDeath: false,
 					BedsBroken: 1,
@@ -514,7 +514,7 @@ func TestBuildGetSessionAt(t *testing.T) {
 			Games: []app.GameSegment{
 				{Start: p0, End: p1, Game: &domain.GameResult{
 					Gamemode:   domain.GamemodeDoubles,
-					Won:        true,
+					Outcome:    domain.GameOutcomeWin,
 					FinalKills: 4,
 					FinalDeath: false,
 					BedsBroken: 1,
@@ -568,7 +568,7 @@ func TestBuildGetSessionAt(t *testing.T) {
 			Games: []app.GameSegment{
 				{Start: p0, End: p1, Game: &domain.GameResult{
 					Gamemode:   domain.GamemodeDoubles,
-					Won:        true,
+					Outcome:    domain.GameOutcomeWin,
 					FinalKills: 4,
 					FinalDeath: false,
 					BedsBroken: 1,
@@ -723,6 +723,43 @@ func TestBuildGetSessionAt(t *testing.T) {
 				},
 			}, result)
 		})
+
+		t.Run("Wins and Losses both advance for a single game", func(t *testing.T) {
+			t.Parallel()
+
+			b := domaintest.NewPlayerBuilder(uuid).
+				WithExperience(1000).FromDB().
+				Doubles().
+				WithGamesPlayed(10).WithWins(5).WithLosses(5).
+				WithBedsBroken(4).WithBedsLost(3).
+				WithFinalKills(20).WithFinalDeaths(10).
+				WithKills(50).WithDeaths(30)
+			p0 := b.Build(at.Add(-15 * time.Minute))
+
+			// Doubles advances by exactly one game, but both Wins and
+			// Losses advanced — can't win and lose the same game.
+			p1 := b.
+				WithExperience(1100).
+				Doubles().
+				WithGamesPlayed(11).WithWins(6).WithLosses(6).
+				WithBedsBroken(5).
+				WithFinalKills(22).
+				WithKills(55).WithDeaths(32).Build(at)
+
+			getSessionAt := app.BuildGetSessionAt(
+				fixedStats([]domain.PlayerPIT{p0, p1}),
+				computeSessions,
+			)
+
+			result, err := getSessionAt(t.Context(), uuid, at)
+			require.NoError(t, err)
+			require.Equal(t, app.SessionAtResult{
+				Session: &domain.Session{Start: p0, End: p1, Consecutive: true},
+				Games: []app.GameSegment{
+					{Start: p0, End: p1, Game: nil},
+				},
+			}, result)
+		})
 	})
 
 	t.Run("getPlayerPITs error is propagated", func(t *testing.T) {
@@ -801,7 +838,7 @@ func TestBuildGetSessionAt(t *testing.T) {
 						Games: []app.GameSegment{
 							{Start: prev, End: curr, Game: &domain.GameResult{
 								Gamemode:   tc.gamemode,
-								Won:        true,
+								Outcome:    domain.GameOutcomeWin,
 								FinalKills: 4,
 								FinalDeath: false,
 								BedsBroken: 1,
@@ -842,7 +879,7 @@ func TestBuildGetSessionAt(t *testing.T) {
 						Games: []app.GameSegment{
 							{Start: prev, End: curr, Game: &domain.GameResult{
 								Gamemode:   tc.gamemode,
-								Won:        false,
+								Outcome:    domain.GameOutcomeLoss,
 								FinalKills: 2,
 								FinalDeath: true,
 								BedsBroken: 0,
@@ -850,6 +887,47 @@ func TestBuildGetSessionAt(t *testing.T) {
 								Kills:      4,
 								Deaths:     4,
 								Experience: 200,
+							}},
+						},
+					}, result)
+				})
+
+				t.Run("draw", func(t *testing.T) {
+					tc.b.WithGamesPlayed(10).WithWins(5).WithLosses(5).
+						WithBedsBroken(4).WithBedsLost(3).
+						WithFinalKills(20).WithFinalDeaths(10).
+						WithKills(50).WithDeaths(30).
+						WithExperience(1000)
+					prev := tc.b.Build(at.Add(-15 * time.Minute))
+
+					// +1 game, but neither Wins nor Losses moved -> draw
+					tc.b.WithGamesPlayed(11).
+						WithBedsBroken(5).
+						WithFinalKills(24).
+						WithKills(58).WithDeaths(32).
+						WithExperience(1300)
+					curr := tc.b.Build(at)
+
+					getSessionAt := app.BuildGetSessionAt(
+						fixedStats([]domain.PlayerPIT{prev, curr}),
+						computeSessions,
+					)
+
+					result, err := getSessionAt(t.Context(), uuid, at)
+					require.NoError(t, err)
+					require.Equal(t, app.SessionAtResult{
+						Session: &domain.Session{Start: prev, End: curr, Consecutive: true},
+						Games: []app.GameSegment{
+							{Start: prev, End: curr, Game: &domain.GameResult{
+								Gamemode:   tc.gamemode,
+								Outcome:    domain.GameOutcomeDraw,
+								FinalKills: 4,
+								FinalDeath: false,
+								BedsBroken: 1,
+								BedLost:    false,
+								Kills:      8,
+								Deaths:     2,
+								Experience: 300,
 							}},
 						},
 					}, result)

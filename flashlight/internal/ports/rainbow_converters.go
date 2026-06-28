@@ -36,6 +36,28 @@ func gamemodeToRainbowGamemode(g domain.Gamemode) (string, error) {
 	}
 }
 
+// Rainbow-format game outcome names sent on the rainbow JSON responses.
+// Kept distinct from domain.GameOutcome so the JSON contract is fixed
+// regardless of how the domain constants are spelled.
+const (
+	rainbowOutcomeWin  = "win"
+	rainbowOutcomeLoss = "loss"
+	rainbowOutcomeDraw = "draw"
+)
+
+func gameOutcomeToRainbowOutcome(o domain.GameOutcome) (string, error) {
+	switch o {
+	case domain.GameOutcomeWin:
+		return rainbowOutcomeWin, nil
+	case domain.GameOutcomeLoss:
+		return rainbowOutcomeLoss, nil
+	case domain.GameOutcomeDraw:
+		return rainbowOutcomeDraw, nil
+	default:
+		return "", fmt.Errorf("unknown outcome: %q", o)
+	}
+}
+
 type rainbowStatsPIT struct {
 	Winstreak   *int `json:"winstreak"`
 	GamesPlayed int  `json:"gamesPlayed"`

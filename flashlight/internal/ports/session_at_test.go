@@ -59,7 +59,7 @@ func TestMakeGetSessionAtHandler(t *testing.T) {
 
 	type gameResponse struct {
 		Gamemode   string `json:"gamemode"`
-		Won        bool   `json:"won"`
+		Outcome    string `json:"outcome"`
 		FinalKills int    `json:"finalKills"`
 		FinalDeath bool   `json:"finalDeath"`
 		BedsBroken int    `json:"bedsBroken"`
@@ -108,7 +108,7 @@ func TestMakeGetSessionAtHandler(t *testing.T) {
 					End:   midPIT,
 					Game: &domain.GameResult{
 						Gamemode:   domain.GamemodeDoubles,
-						Won:        true,
+						Outcome:    domain.GameOutcomeWin,
 						FinalKills: 4,
 						FinalDeath: false,
 						BedsBroken: 1,
@@ -150,7 +150,7 @@ func TestMakeGetSessionAtHandler(t *testing.T) {
 		require.Len(t, response.Games, 2)
 		require.NotNil(t, response.Games[0].Game)
 		require.Equal(t, "doubles", response.Games[0].Game.Gamemode)
-		require.True(t, response.Games[0].Game.Won)
+		require.Equal(t, "win", response.Games[0].Game.Outcome)
 		require.Equal(t, 4, response.Games[0].Game.FinalKills)
 		require.False(t, response.Games[0].Game.FinalDeath)
 		require.Equal(t, 1, response.Games[0].Game.BedsBroken)
@@ -174,7 +174,7 @@ func TestMakeGetSessionAtHandler(t *testing.T) {
 			return app.GameSegment{
 				Start: startPIT,
 				End:   startPIT,
-				Game:  &domain.GameResult{Gamemode: g, Won: true},
+				Game:  &domain.GameResult{Gamemode: g, Outcome: domain.GameOutcomeWin},
 			}
 		}
 
