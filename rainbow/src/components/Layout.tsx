@@ -443,7 +443,26 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 }}
                 padding={1}
             >
-                {children}
+                {/* Wrap the children in a padded box so the bottom spacer
+                  scrolls with the content — padding on `<main>` itself doesn't,
+                  since it's overflow:visible and ends up flush with the
+                  viewport. `flexGrow` + flex column lets the wrapper fill
+                  `<main>` when content is short (so routes that center on
+                  `height:100%`, e.g. the home page, keep a full-height
+                  containing block) and grow past the viewport when content is
+                  long (so the spacer trails the content). Don't add
+                  `minHeight: 0` here: it clamps the wrapper to the viewport,
+                  burying the spacer mid-content on pages that overflow. */}
+                <Box
+                    sx={{
+                        flexGrow: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        paddingBottom: 6,
+                    }}
+                >
+                    {children}
+                </Box>
             </Stack>
         </Box>
     );
