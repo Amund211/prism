@@ -21,8 +21,8 @@ const sessionAtBuffer = 24 * time.Hour
 // gamemode advanced by one, FD/BL within {0, 1}). It is nil when stats
 // moved but couldn't be pinned to a single game — multi-game jumps,
 // simultaneous mode advances, exp drift without games. Adjacent
-// heartbeats are merged upstream, so a nil Game always spans the
-// entire run of unattributable activity.
+// non-game segments are merged upstream, so a nil Game always
+// spans the entire run of unattributable activity.
 type GameSegment struct {
 	Start domain.PlayerPIT
 	End   domain.PlayerPIT

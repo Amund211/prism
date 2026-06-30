@@ -118,7 +118,7 @@ func TestMakeGetSessionAtHandler(t *testing.T) {
 						Experience: 500,
 					},
 				},
-				// Second segment has Game nil (ambiguous / heartbeat).
+				// Second segment has Game nil (ambiguous / non-game segment).
 				{Start: midPIT, End: endPIT, Game: nil},
 			},
 		}

@@ -310,13 +310,13 @@ func TestBuildGetSessionAt(t *testing.T) {
 		}, result)
 	})
 
-	t.Run("two adjacent +2-games pairs merge into a single heartbeat segment", func(t *testing.T) {
+	t.Run("two adjacent +2-games pairs merge into a single non-game segment", func(t *testing.T) {
 		t.Parallel()
 
 		// Each adjacent pair shows gamesPlayed jumping by 2 — both
 		// produce a Game=nil segment. Output should be a single merged
-		// heartbeat spanning all three snapshots, not two heartbeats in
-		// a row.
+		// non-game segment spanning all three snapshots, not two
+		// non-game segments in a row.
 		b := domaintest.NewPlayerBuilder(uuid).
 			WithExperience(1000).FromDB().
 			Doubles().
@@ -360,9 +360,10 @@ func TestBuildGetSessionAt(t *testing.T) {
 	t.Run("an ambiguous-stat pair next to a game does NOT merge", func(t *testing.T) {
 		t.Parallel()
 
-		// Pair 1: +1 game (clean game). Pair 2: +2 games (ambiguous
-		// heartbeat). The heartbeat sits next to a game segment so the
-		// merge rule does not apply — we get [game, heartbeat].
+		// Pair 1: +1 game (clean game). Pair 2: +2 games (ambiguous —
+		// no single game). The non-game segment sits next to a game
+		// segment so the merge rule does not apply — we get
+		// [game, non-game].
 		b := domaintest.NewPlayerBuilder(uuid).
 			WithExperience(1000).FromDB().
 			Doubles().
@@ -414,7 +415,7 @@ func TestBuildGetSessionAt(t *testing.T) {
 		}, result)
 	})
 
-	t.Run("experience moves but no game finishes — still a heartbeat", func(t *testing.T) {
+	t.Run("experience moves but no game finishes — still a non-game segment", func(t *testing.T) {
 		t.Parallel()
 
 		// Experience drifted upward but no gamesPlayed changed in any
