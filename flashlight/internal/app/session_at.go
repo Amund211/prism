@@ -232,6 +232,24 @@ func buildGameSegment(ctx context.Context, prev, curr domain.PlayerPIT) GameSegm
 		return seg
 	}
 
+	// A final death is only possible once your bed is gone, so a final death
+	// in a single game implies the bed was lost in that game. NOTE: we can't
+	// make the same check for losses (loss => final death) — you can lose in
+	// sudden death (dragons) without dying.
+	if fdDelta == 1 && blDelta == 0 {
+		reporting.Report(ctx,
+			fmt.Errorf("final death without losing bed for single-game segment"),
+			map[string]string{
+				"prevQueriedAt": prev.QueriedAt.Format(time.RFC3339),
+				"currQueriedAt": curr.QueriedAt.Format(time.RFC3339),
+				"gamemode":      string(gamemode),
+				"fdDelta":       fmt.Sprintf("%d", fdDelta),
+				"blDelta":       fmt.Sprintf("%d", blDelta),
+			},
+		)
+		return seg
+	}
+
 	// A single game moves Wins or Losses by at most one, and not both. A
 	// draw moves neither. Anything else can't be attributed to one game.
 	if winsDelta < 0 ||

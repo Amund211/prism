@@ -761,6 +761,43 @@ func TestBuildGetSessionAt(t *testing.T) {
 				},
 			}, result)
 		})
+
+		t.Run("final death without losing the bed", func(t *testing.T) {
+			t.Parallel()
+
+			b := domaintest.NewPlayerBuilder(uuid).
+				WithExperience(1000).FromDB().
+				Doubles().
+				WithGamesPlayed(10).WithWins(5).WithLosses(5).
+				WithBedsBroken(4).WithBedsLost(3).
+				WithFinalKills(20).WithFinalDeaths(10).
+				WithKills(50).WithDeaths(30)
+			p0 := b.Build(at.Add(-15 * time.Minute))
+
+			// Doubles advances by exactly one game with a final death but
+			// no bed lost — impossible, a final death requires the bed to
+			// be gone.
+			p1 := b.
+				WithExperience(1100).
+				Doubles().
+				WithGamesPlayed(11).WithLosses(6).
+				WithFinalKills(22).WithFinalDeaths(11).
+				WithKills(55).WithDeaths(32).Build(at)
+
+			getSessionAt := app.BuildGetSessionAt(
+				fixedStats([]domain.PlayerPIT{p0, p1}),
+				computeSessions,
+			)
+
+			result, err := getSessionAt(t.Context(), uuid, at)
+			require.NoError(t, err)
+			require.Equal(t, app.SessionAtResult{
+				Session: &domain.Session{Start: p0, End: p1, Consecutive: true},
+				Games: []app.GameSegment{
+					{Start: p0, End: p1, Game: nil},
+				},
+			}, result)
+		})
 	})
 
 	t.Run("getPlayerPITs error is propagated", func(t *testing.T) {
