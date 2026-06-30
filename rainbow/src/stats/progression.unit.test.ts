@@ -10,8 +10,10 @@ import {
     ERR_NO_DATA,
     ERR_TRACKING_STARTED,
     findSmallestPositiveCubicRoot,
+    nextNaturalMilestone,
 } from "./progression.ts";
-import { bedwarsLevelFromExp } from "./stars.ts";
+import type { MilestoneStrategy } from "./progression.ts";
+import { bedwarsLevelFromExp, PRESTIGE_EXP } from "./stars.ts";
 
 const TEST_UUID = "0123e456-7890-1234-5678-90abcdef1234";
 
@@ -2076,4 +2078,448 @@ describe(findSmallestPositiveCubicRoot, () => {
             }
         });
     }
+});
+
+describe(nextNaturalMilestone, () => {
+    const cases: {
+        name: string;
+        value: number;
+        trendingUpward: boolean;
+        stat: StatKey;
+        expected: number;
+    }[] = [
+        // Stars: always the next prestige (multiple of 100), regardless of trend.
+        {
+            name: "stars: low value",
+            value: 4,
+            trendingUpward: true,
+            stat: "stars",
+            expected: 100,
+        },
+        {
+            name: "stars: mid prestige",
+            value: 150,
+            trendingUpward: true,
+            stat: "stars",
+            expected: 200,
+        },
+        {
+            name: "stars: exactly on a prestige",
+            value: 100,
+            trendingUpward: true,
+            stat: "stars",
+            expected: 200,
+        },
+        {
+            name: "stars: zero",
+            value: 0,
+            trendingUpward: true,
+            stat: "stars",
+            expected: 100,
+        },
+        {
+            name: "stars: just under a prestige",
+            value: 999,
+            trendingUpward: true,
+            stat: "stars",
+            expected: 1000,
+        },
+
+        // Quotients (fkdr/kdr): next whole number in the trend direction.
+        {
+            name: "fkdr: up from fractional",
+            value: 200 / 75,
+            trendingUpward: true,
+            stat: "fkdr",
+            expected: 3,
+        },
+        {
+            name: "fkdr: up from exact integer",
+            value: 5,
+            trendingUpward: true,
+            stat: "fkdr",
+            expected: 6,
+        },
+        {
+            name: "kdr: up from below 1",
+            value: 0.5,
+            trendingUpward: true,
+            stat: "kdr",
+            expected: 1,
+        },
+        {
+            name: "fkdr: down from fractional",
+            value: 1.2,
+            trendingUpward: false,
+            stat: "fkdr",
+            expected: 1,
+        },
+        {
+            name: "fkdr: down from exact integer",
+            value: 2,
+            trendingUpward: false,
+            stat: "fkdr",
+            expected: 1,
+        },
+        {
+            name: "kdr: down from fractional",
+            value: 2.5,
+            trendingUpward: false,
+            stat: "kdr",
+            expected: 2,
+        },
+        {
+            name: "fkdr: down from 1",
+            value: 1,
+            trendingUpward: false,
+            stat: "fkdr",
+            expected: 0,
+        },
+
+        // Everything else: round number scaled to the order of magnitude.
+        {
+            name: "index: up small",
+            value: 16,
+            trendingUpward: true,
+            stat: "index",
+            expected: 20,
+        },
+        {
+            name: "index: up at exact power of ten",
+            value: 1,
+            trendingUpward: true,
+            stat: "index",
+            expected: 2,
+        },
+        {
+            name: "wins: up",
+            value: 200,
+            trendingUpward: true,
+            stat: "wins",
+            expected: 300,
+        },
+        {
+            name: "finalKills: up large",
+            value: 110_000,
+            trendingUpward: true,
+            stat: "finalKills",
+            expected: 200_000,
+        },
+        {
+            name: "experience: up",
+            value: 7000,
+            trendingUpward: true,
+            stat: "experience",
+            expected: 8000,
+        },
+        // Going down at an exact power of ten drops one order of magnitude.
+        {
+            name: "index: down at power of ten",
+            value: 100,
+            trendingUpward: false,
+            stat: "index",
+            expected: 90,
+        },
+        {
+            name: "index: down within a decade",
+            value: 250,
+            trendingUpward: false,
+            stat: "index",
+            expected: 200,
+        },
+        {
+            name: "index: down small",
+            value: 16,
+            trendingUpward: false,
+            stat: "index",
+            expected: 10,
+        },
+        {
+            name: "index: down from 1000",
+            value: 1000,
+            trendingUpward: false,
+            stat: "index",
+            expected: 900,
+        },
+        // Non-positive values clamp to 1 (no order of magnitude to scale to).
+        {
+            name: "index: zero up",
+            value: 0,
+            trendingUpward: true,
+            stat: "index",
+            expected: 1,
+        },
+        {
+            name: "wins: negative up",
+            value: -5,
+            trendingUpward: true,
+            stat: "wins",
+            expected: 1,
+        },
+    ];
+
+    for (const c of cases) {
+        test(c.name, () => {
+            expect(nextNaturalMilestone(c.value, c.trendingUpward, c.stat)).toBe(
+                c.expected,
+            );
+        });
+    }
+
+    test("honors the strict-monotonic contract for representative inputs", () => {
+        const samples: { value: number; stat: StatKey }[] = [
+            { value: 3.5, stat: "fkdr" },
+            { value: 4, stat: "kdr" },
+            { value: 16, stat: "index" },
+            { value: 100, stat: "wins" },
+            { value: 250, stat: "experience" },
+        ];
+        for (const { value, stat } of samples) {
+            expect(nextNaturalMilestone(value, true, stat)).toBeGreaterThan(value);
+            expect(nextNaturalMilestone(value, false, stat)).toBeLessThan(value);
+        }
+    });
+});
+
+describe("computeStatProgression - milestone strategy injection", () => {
+    const startDate = new Date("2024-01-01T00:00:00Z");
+    const endDate = new Date("2024-01-11T00:00:00Z"); // 10 days
+
+    // A milestone strategy that records every call so we can assert on the
+    // arguments it receives, while delegating the returned value to `impl`.
+    const makeStrategy = (impl: MilestoneStrategy) => {
+        const calls: { value: number; trendingUpward: boolean; stat: StatKey }[] = [];
+        const strategy: MilestoneStrategy = (value, trendingUpward, stat) => {
+            calls.push({ value, trendingUpward, stat });
+            return impl(value, trendingUpward, stat);
+        };
+        return { strategy, calls };
+    };
+
+    const linearHistory = (
+        stat: "wins" | "finalKills" | "finalDeaths",
+        startValue: number,
+        endValue: number,
+    ): History => [
+        new PlayerDataBuilder(TEST_UUID, startDate)
+            .withGamemodeStats(
+                "overall",
+                new StatsBuilder().withStat(stat, startValue).build(),
+            )
+            .build(),
+        new PlayerDataBuilder(TEST_UUID, endDate)
+            .withGamemodeStats(
+                "overall",
+                new StatsBuilder().withStat(stat, endValue).build(),
+            )
+            .build(),
+    ];
+
+    const quotientHistory = (
+        startFk: number,
+        startFd: number,
+        endFk: number,
+        endFd: number,
+    ): History => [
+        new PlayerDataBuilder(TEST_UUID, startDate)
+            .withGamemodeStats(
+                "overall",
+                new StatsBuilder()
+                    .withStat("finalKills", startFk)
+                    .withStat("finalDeaths", startFd)
+                    .build(),
+            )
+            .build(),
+        new PlayerDataBuilder(TEST_UUID, endDate)
+            .withGamemodeStats(
+                "overall",
+                new StatsBuilder()
+                    .withStat("finalKills", endFk)
+                    .withStat("finalDeaths", endFd)
+                    .build(),
+            )
+            .build(),
+    ];
+
+    // index(t) = (4 + 0.1t) * (20 + t)^2 / (10 + 0.5t)^2. fkdr stays constant
+    // at 2, so index(t) = 16 + 0.4t — a clean closed form for milestone math.
+    const indexHistory: History = [
+        new PlayerDataBuilder(TEST_UUID, startDate)
+            .withExperience(2130)
+            .withGamemodeStats(
+                "overall",
+                new StatsBuilder()
+                    .withStat("finalKills", 10)
+                    .withStat("finalDeaths", 5)
+                    .build(),
+            )
+            .build(),
+        new PlayerDataBuilder(TEST_UUID, endDate)
+            .withExperience(7000) // 4 stars
+            .withGamemodeStats(
+                "overall",
+                new StatsBuilder()
+                    .withStat("finalKills", 20)
+                    .withStat("finalDeaths", 10)
+                    .build(),
+            )
+            .build(),
+    ];
+
+    const starsHistory: History = [
+        new PlayerDataBuilder(TEST_UUID, startDate).withExperience(500).build(),
+        new PlayerDataBuilder(TEST_UUID, endDate).withExperience(7000).build(), // 4 stars
+    ];
+
+    describe("passes the expected (value, trendingUpward, stat) to the strategy", () => {
+        test("linear stat", () => {
+            const { strategy, calls } = makeStrategy(nextNaturalMilestone);
+            computeStatProgression(
+                linearHistory("wins", 100, 200),
+                endDate,
+                "wins",
+                "overall",
+                strategy,
+            );
+            expect(calls).toStrictEqual([
+                { value: 200, trendingUpward: true, stat: "wins" },
+            ]);
+        });
+
+        test("improving quotient trends upward", () => {
+            const { strategy, calls } = makeStrategy(nextNaturalMilestone);
+            computeStatProgression(
+                quotientHistory(100, 50, 200, 75),
+                endDate,
+                "fkdr",
+                "overall",
+                strategy,
+            );
+            expect(calls).toStrictEqual([
+                { value: 200 / 75, trendingUpward: true, stat: "fkdr" },
+            ]);
+        });
+
+        test("declining quotient trends downward", () => {
+            const { strategy, calls } = makeStrategy(nextNaturalMilestone);
+            computeStatProgression(
+                quotientHistory(100, 50, 150, 125),
+                endDate,
+                "fkdr",
+                "overall",
+                strategy,
+            );
+            expect(calls).toStrictEqual([
+                { value: 150 / 125, trendingUpward: false, stat: "fkdr" },
+            ]);
+        });
+
+        test("index", () => {
+            const { strategy, calls } = makeStrategy(nextNaturalMilestone);
+            computeStatProgression(indexHistory, endDate, "index", "overall", strategy);
+            expect(calls).toStrictEqual([
+                { value: 16, trendingUpward: true, stat: "index" },
+            ]);
+        });
+
+        test("stars", () => {
+            const { strategy, calls } = makeStrategy(nextNaturalMilestone);
+            computeStatProgression(starsHistory, endDate, "stars", "overall", strategy);
+            expect(calls).toStrictEqual([
+                { value: 4, trendingUpward: true, stat: "stars" },
+            ]);
+        });
+
+        test("infinite-ratio quotient delegates to the dividend stat", () => {
+            // Zero final deaths throughout -> fkdr is computed as just final
+            // kills, so the strategy is asked for the dividend ("finalKills")
+            // milestone, not the "fkdr" one.
+            const { strategy, calls } = makeStrategy(nextNaturalMilestone);
+            computeStatProgression(
+                quotientHistory(100, 0, 200, 0),
+                endDate,
+                "fkdr",
+                "overall",
+                strategy,
+            );
+            expect(calls).toStrictEqual([
+                { value: 200, trendingUpward: true, stat: "finalKills" },
+            ]);
+        });
+    });
+
+    describe("respects the milestone value the strategy returns", () => {
+        test("linear stat", () => {
+            const result = computeStatProgression(
+                linearHistory("wins", 100, 200), // 10 wins/day
+                endDate,
+                "wins",
+                "overall",
+                () => 250,
+            );
+            if (result.error) {
+                expect.unreachable(result.reason);
+            }
+            expect(result.nextMilestoneValue).toBe(250);
+            expect(result.daysUntilMilestone).toBe(5); // (250 - 200) / 10
+            expect(result.progressPerDay).toBe(10);
+        });
+
+        test("quotient stat", () => {
+            // end 200/75, dividendPerDay 10, divisorPerDay 2.5
+            // t = (M*d0 - k0) / (k - M*d) = (2.8*75 - 200) / (10 - 2.8*2.5) = 10/3
+            const result = computeStatProgression(
+                quotientHistory(100, 50, 200, 75),
+                endDate,
+                "fkdr",
+                "overall",
+                () => 2.8,
+            );
+            if (result.error) {
+                expect.unreachable(result.reason);
+            }
+            expect(result.nextMilestoneValue).toBe(2.8);
+            expect(result.daysUntilMilestone).toBeCloseTo(10 / 3, 9);
+            expect(result.progressPerDay).toBeCloseTo((2.8 - 200 / 75) / (10 / 3), 9);
+        });
+
+        test("index", () => {
+            // index(t) = 16 + 0.4t; M = 25 -> t = (25 - 16) / 0.4 = 22.5
+            const result = computeStatProgression(
+                indexHistory,
+                endDate,
+                "index",
+                "overall",
+                () => 25,
+            );
+            if (result.error) {
+                expect.unreachable(result.reason);
+            }
+            expect(result.nextMilestoneValue).toBe(25);
+            expect(result.daysUntilMilestone).toBeCloseTo(22.5, 6);
+            expect(result.progressPerDay).toBeCloseTo(0.4, 9);
+        });
+
+        test("stars", () => {
+            // expPerDay = (7000 - 500) / 10 = 650; M = 50 stars
+            // t = (50 * PRESTIGE_EXP / 100 - 7000) / 650
+            const result = computeStatProgression(
+                starsHistory,
+                endDate,
+                "stars",
+                "overall",
+                () => 50,
+            );
+            if (result.error) {
+                expect.unreachable(result.reason);
+            }
+            expect(result.nextMilestoneValue).toBe(50);
+            expect(result.daysUntilMilestone).toBeCloseTo(
+                ((50 * PRESTIGE_EXP) / 100 - 7000) / 650,
+                6,
+            );
+            // progressPerDay stays the star rate, independent of the milestone.
+            expect(result.progressPerDay).toBeCloseTo(650 / (PRESTIGE_EXP / 100), 9);
+        });
+    });
 });

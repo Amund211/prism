@@ -91,11 +91,12 @@ export const findSmallestPositiveCubicRoot = (
 };
 
 /*
- * Next round-number index milestone above (or below) `value`, scaled to the
- * value's order of magnitude. Going down at exactly a power of 10 drops one
- * order of magnitude (e.g. 100 -> 90, not 100 -> 0).
+ * Next round number above (or below) `value`, scaled to the value's order of
+ * magnitude. Going down at exactly a power of 10 drops one order of magnitude
+ * (e.g. 100 -> 90, not 100 -> 0). Shared by the index and generic-counter
+ * milestone defaults.
  */
-const nextIndexMilestone = (value: number, trendingUpward: boolean): number => {
+const nextRoundNumberMilestone = (value: number, trendingUpward: boolean): number => {
     if (value <= 0) {
         return 1;
     }
@@ -106,6 +107,47 @@ const nextIndexMilestone = (value: number, trendingUpward: boolean): number => {
     const adjusted = value * (1 - 1e-9);
     const magnitude = 10 ** Math.floor(Math.log10(adjusted));
     return Math.floor(adjusted / magnitude) * magnitude;
+};
+
+/**
+ * Picks the next milestone target for `stat` at its current `value`, given the
+ * direction it is trending.
+ *
+ * CONTRACT: the returned value MUST be strictly greater than `value` when
+ * `trendingUpward`, and strictly less than `value` when `!trendingUpward`. The
+ * time-to-reach solvers rely on this to keep `daysUntilMilestone` non-negative
+ * and correctly signed; a value on the wrong side produces a negative or
+ * nonsensical projection, and the renderer has no defense against it.
+ */
+export type MilestoneStrategy = (
+    value: number,
+    trendingUpward: boolean,
+    stat: StatKey,
+) => number;
+
+/*
+ * The built-in milestone strategy: the next "natural" threshold for each stat
+ * family — the next prestige for stars, the next whole number for ratios, and
+ * the next round number (scaled to order of magnitude) for everything else.
+ */
+export const nextNaturalMilestone: MilestoneStrategy = (
+    value,
+    trendingUpward,
+    stat,
+) => {
+    switch (stat) {
+        case "stars": {
+            // Next prestige (multiple of 100).
+            return (Math.floor(value / 100) + 1) * 100;
+        }
+        case "fkdr":
+        case "kdr": {
+            return trendingUpward ? Math.floor(value) + 1 : Math.ceil(value) - 1;
+        }
+        default: {
+            return nextRoundNumberMilestone(value, trendingUpward);
+        }
+    }
 };
 
 interface BaseStatProgression {
@@ -146,6 +188,9 @@ const computeQuotientProgression = (
     dividendStat: Exclude<StatKey, "winstreak">,
     divisorStat: Exclude<StatKey, "winstreak">,
     gamemode: GamemodeKey,
+    // Required (no default) so the public `computeStatProgression` boundary is
+    // the single place the default strategy is applied.
+    milestoneStrategy: MilestoneStrategy,
 ): QuotientProgression | { error: true; reason: string } => {
     const [start, end] = trackingHistory;
     const startDate = start.queriedAt;
@@ -177,6 +222,7 @@ const computeQuotientProgression = (
             trackingEnd,
             dividendStat,
             gamemode,
+            milestoneStrategy,
         );
         if (dividendProgression.error) {
             return dividendProgression;
@@ -199,10 +245,7 @@ const computeQuotientProgression = (
     const trendingUpward =
         sessionQuotient >= endQuotient || noSessionProgress || infiniteSessionQuotient;
 
-    // TODO: Smaller steps for smaller quotients
-    const nextMilestoneValue = trendingUpward
-        ? Math.floor(endQuotient) + 1
-        : Math.ceil(endQuotient) - 1;
+    const nextMilestoneValue = milestoneStrategy(endQuotient, trendingUpward, stat);
 
     if (
         // Will make no progress since the quotients are equal (as long as the session quotient is not infinite)
@@ -299,6 +342,7 @@ export const computeStatProgression = (
     trackingEnd: Date,
     stat: StatKey,
     gamemode: GamemodeKey,
+    milestoneStrategy: MilestoneStrategy = nextNaturalMilestone,
 ): StatProgression | { error: true; reason: string } => {
     if (trackingHistory === undefined || trackingHistory.length === 0) {
         return { error: true, reason: ERR_NO_DATA };
@@ -329,16 +373,19 @@ export const computeStatProgression = (
             // NOTE: Slightly inaccurate over short distances as it does not account for the different exp requirements for different levels
             const starsPerDay = expPerDay / (PRESTIGE_EXP / 100);
 
-            const nextPrestige = Math.floor(endStars / 100) + 1;
-            const nextPrestigeExp = nextPrestige * PRESTIGE_EXP;
-            const expToNextPrestige = nextPrestigeExp - endExp;
-            const daysToNextPrestige = expToNextPrestige / expPerDay;
+            // Stars only ever trend upward. Convert the star milestone back to
+            // exp via the same linear "average exp per star" model used above;
+            // grouped as `(M * PRESTIGE_EXP) / 100` so the default
+            // (M = next prestige * 100) is bit-identical to `nextPrestige * PRESTIGE_EXP`.
+            const nextMilestoneValue = milestoneStrategy(endStars, true, stat);
+            const expAtMilestone = (nextMilestoneValue * PRESTIGE_EXP) / 100;
+            const daysUntilMilestone = (expAtMilestone - endExp) / expPerDay;
             return {
                 stat,
                 trackingDataTimeInterval: { start: startDate, end: endDate },
                 endValue: endStars,
-                nextMilestoneValue: nextPrestige * 100,
-                daysUntilMilestone: daysToNextPrestige,
+                nextMilestoneValue,
+                daysUntilMilestone,
                 progressPerDay: starsPerDay,
                 trendingUpward: true,
             };
@@ -351,6 +398,7 @@ export const computeStatProgression = (
                 "finalKills",
                 "finalDeaths",
                 gamemode,
+                milestoneStrategy,
             );
         }
         case "kdr": {
@@ -361,6 +409,7 @@ export const computeStatProgression = (
                 "kills",
                 "deaths",
                 gamemode,
+                milestoneStrategy,
             );
         }
         case "index": {
@@ -394,7 +443,7 @@ export const computeStatProgression = (
                 : s * k0 * k0 * d0 + 2 * s0 * k0 * k * d0 - 2 * s0 * k0 * k0 * d;
             const trendingUpward = trendNumerator >= 0;
 
-            const M = nextIndexMilestone(endIndex, trendingUpward);
+            const M = milestoneStrategy(endIndex, trendingUpward, stat);
 
             const a = s * k * k;
             const b = isFkdrAsKills
@@ -450,11 +499,8 @@ export const computeStatProgression = (
                 };
             }
 
-            const endMagnitude = 10 ** Math.floor(Math.log10(endValue));
-            // TODO: More meaningful milestones (e.g. 100, 250, 500, 1000, 2500, 5000, 10000, 20000, 30000, ...)
-            // TODO: Pick your own milestone
-            const nextMilestoneValue =
-                (Math.floor(endValue / endMagnitude) + 1) * endMagnitude;
+            // Linear counters only ever trend upward.
+            const nextMilestoneValue = milestoneStrategy(endValue, true, stat);
 
             const daysUntilMilestone = (nextMilestoneValue - endValue) / increasePerDay;
 
