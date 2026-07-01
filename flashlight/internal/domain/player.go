@@ -23,6 +23,7 @@ type PlayerPIT struct {
 	Doubles    GamemodeStatsPIT
 	Threes     GamemodeStatsPIT
 	Fours      GamemodeStatsPIT
+	Fourv4     GamemodeStatsPIT
 	Overall    GamemodeStatsPIT
 }
 

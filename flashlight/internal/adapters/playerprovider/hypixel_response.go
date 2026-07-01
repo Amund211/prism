@@ -87,6 +87,17 @@ type HypixelAPIBedwarsStats struct {
 	FoursFinalDeaths int  `json:"four_four_final_deaths_bedwars,omitempty"`
 	FoursKills       int  `json:"four_four_kills_bedwars,omitempty"`
 	FoursDeaths      int  `json:"four_four_deaths_bedwars,omitempty"`
+
+	Fourv4Winstreak   *int `json:"two_four_winstreak,omitempty"`
+	Fourv4GamesPlayed int  `json:"two_four_games_played_bedwars,omitempty"`
+	Fourv4Wins        int  `json:"two_four_wins_bedwars,omitempty"`
+	Fourv4Losses      int  `json:"two_four_losses_bedwars,omitempty"`
+	Fourv4BedsBroken  int  `json:"two_four_beds_broken_bedwars,omitempty"`
+	Fourv4BedsLost    int  `json:"two_four_beds_lost_bedwars,omitempty"`
+	Fourv4FinalKills  int  `json:"two_four_final_kills_bedwars,omitempty"`
+	Fourv4FinalDeaths int  `json:"two_four_final_deaths_bedwars,omitempty"`
+	Fourv4Kills       int  `json:"two_four_kills_bedwars,omitempty"`
+	Fourv4Deaths      int  `json:"two_four_deaths_bedwars,omitempty"`
 }
 
 func ParseHypixelAPIResponse(ctx context.Context, data []byte) (*hypixelAPIResponse, error) {
@@ -204,7 +215,7 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 	}
 
 	var experience int64 = 500
-	var solo, doubles, threes, fours, overall domain.GamemodeStatsPIT
+	var solo, doubles, threes, fours, fourv4, overall domain.GamemodeStatsPIT
 
 	if apiPlayer.Stats != nil && apiPlayer.Stats.Bedwars != nil {
 		bw := apiPlayer.Stats.Bedwars
@@ -265,6 +276,19 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 			Deaths:      bw.FoursDeaths,
 		}
 
+		fourv4 = domain.GamemodeStatsPIT{
+			Winstreak:   apiPlayer.Stats.Bedwars.Fourv4Winstreak,
+			GamesPlayed: bw.Fourv4GamesPlayed,
+			Wins:        bw.Fourv4Wins,
+			Losses:      bw.Fourv4Losses,
+			BedsBroken:  bw.Fourv4BedsBroken,
+			BedsLost:    bw.Fourv4BedsLost,
+			FinalKills:  bw.Fourv4FinalKills,
+			FinalDeaths: bw.Fourv4FinalDeaths,
+			Kills:       bw.Fourv4Kills,
+			Deaths:      bw.Fourv4Deaths,
+		}
+
 		overall = domain.GamemodeStatsPIT{
 			Winstreak:   apiPlayer.Stats.Bedwars.Winstreak,
 			GamesPlayed: bw.GamesPlayed,
@@ -295,6 +319,7 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 		Doubles:    doubles,
 		Threes:     threes,
 		Fours:      fours,
+		Fourv4:     fourv4,
 		Overall:    overall,
 	}, nil
 }

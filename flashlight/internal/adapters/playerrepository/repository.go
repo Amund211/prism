@@ -22,7 +22,7 @@ import (
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
-const dataFormatVersion = 1
+const dataFormatVersion = 2
 
 type PostgresPlayerRepository struct {
 	db     *sqlx.DB
@@ -47,6 +47,7 @@ type playerDataStorage struct {
 	Doubles    statsDataStorage `json:"2"`
 	Threes     statsDataStorage `json:"3"`
 	Fours      statsDataStorage `json:"4"`
+	Fourv4     statsDataStorage `json:"4v4"`
 	Overall    statsDataStorage `json:"all"`
 }
 
@@ -102,6 +103,7 @@ func playerToDataStorage(player *domain.PlayerPIT) ([]byte, error) {
 		Doubles:    gamemodeStatsToDataStorage(&player.Doubles),
 		Threes:     gamemodeStatsToDataStorage(&player.Threes),
 		Fours:      gamemodeStatsToDataStorage(&player.Fours),
+		Fourv4:     gamemodeStatsToDataStorage(&player.Fourv4),
 		Overall:    gamemodeStatsToDataStorage(&player.Overall),
 	}
 
@@ -156,6 +158,7 @@ func dbStatToPlayerPIT(dbStat dbStat) (*domain.PlayerPIT, error) {
 		Doubles:    *gamemodeStatsPITFromDataStorage(&playerData.Doubles),
 		Threes:     *gamemodeStatsPITFromDataStorage(&playerData.Threes),
 		Fours:      *gamemodeStatsPITFromDataStorage(&playerData.Fours),
+		Fourv4:     *gamemodeStatsPITFromDataStorage(&playerData.Fourv4),
 		Overall:    *gamemodeStatsPITFromDataStorage(&playerData.Overall),
 	}, nil
 }

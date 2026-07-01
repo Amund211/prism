@@ -54,6 +54,18 @@
     "Kills": 21,
     "Deaths": 57
   },
+  "Fourv4": {
+    "Winstreak": 0,
+    "GamesPlayed": 5,
+    "Wins": 2,
+    "Losses": 3,
+    "BedsBroken": 0,
+    "BedsLost": 4,
+    "FinalKills": 3,
+    "FinalDeaths": 4,
+    "Kills": 7,
+    "Deaths": 14
+  },
   "Overall": {
     "Winstreak": 0,
     "GamesPlayed": 1058,

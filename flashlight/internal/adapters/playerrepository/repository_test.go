@@ -496,6 +496,18 @@ func TestPostgresPlayerRepository(t *testing.T) {
 					Kills:       308,
 					Deaths:      309,
 				},
+				Fourv4: domain.GamemodeStatsPIT{
+					Winstreak:   new(350),
+					GamesPlayed: 351,
+					Wins:        352,
+					Losses:      353,
+					BedsBroken:  354,
+					BedsLost:    355,
+					FinalKills:  356,
+					FinalDeaths: 357,
+					Kills:       358,
+					Deaths:      359,
+				},
 				Overall: domain.GamemodeStatsPIT{
 					Winstreak:   nil,
 					GamesPlayed: 401,
@@ -525,6 +537,7 @@ func TestPostgresPlayerRepository(t *testing.T) {
 			domaintest.RequireEqualStats(t, player.Doubles, result.Doubles)
 			domaintest.RequireEqualStats(t, player.Threes, result.Threes)
 			domaintest.RequireEqualStats(t, player.Fours, result.Fours)
+			domaintest.RequireEqualStats(t, player.Fourv4, result.Fourv4)
 			domaintest.RequireEqualStats(t, player.Overall, result.Overall)
 
 			// Not stored to postgres

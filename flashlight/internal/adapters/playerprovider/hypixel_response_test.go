@@ -128,6 +128,51 @@ func TestHypixelAPIResponseToPlayerPIT(t *testing.T) {
 				error:              domain.ErrPlayerNotFound,
 			},
 			{
+				// Only two_four fields are set here so the mapping into
+				// domain.PlayerPIT.Fourv4 is isolated from the other modes.
+				name:      "4v4 (two_four) stats",
+				uuid:      "12345678-90ab-cdef-1234-567890abcdef",
+				queriedAt: now,
+				hypixelAPIResponse: []byte(`{
+					"success": true,
+					"player": {
+						"uuid":"1234567890abcdef1234567890abcdef",
+						"stats": {
+							"Bedwars": {
+								"two_four_winstreak": 5,
+								"two_four_games_played_bedwars": 72,
+								"two_four_wins_bedwars": 40,
+								"two_four_losses_bedwars": 32,
+								"two_four_beds_broken_bedwars": 33,
+								"two_four_beds_lost_bedwars": 30,
+								"two_four_final_kills_bedwars": 60,
+								"two_four_final_deaths_bedwars": 25,
+								"two_four_kills_bedwars": 120,
+								"two_four_deaths_bedwars": 110
+							}
+						}
+					}
+				}`),
+				hypixelStatusCode: 200,
+				result: &domain.PlayerPIT{
+					UUID:       "12345678-90ab-cdef-1234-567890abcdef",
+					QueriedAt:  now,
+					Experience: 500,
+					Fourv4: domain.GamemodeStatsPIT{
+						Winstreak:   new(5),
+						GamesPlayed: 72,
+						Wins:        40,
+						Losses:      32,
+						BedsBroken:  33,
+						BedsLost:    30,
+						FinalKills:  60,
+						FinalDeaths: 25,
+						Kills:       120,
+						Deaths:      110,
+					},
+				},
+			},
+			{
 				name:               "hypixel 500",
 				uuid:               "12345678-90ab-cdef-1234-567890abcdef",
 				queriedAt:          now,
