@@ -33,3 +33,4 @@ dist-ssr
 
 # Claude config
 /.claude/*
+/.mcp.json
