@@ -87,6 +87,10 @@ func (pb *playerBuilder) Build(queriedAt time.Time) domain.PlayerPIT {
 		// Winstreak API enablement is all or nothing.
 		// If one gamemode had a winstreak, but another didn't, that gamemode
 		// actually had winstreak 0.
+		//
+		// NOTE: This isn't strictly true of Hypixel/the DB — a gamemode winstreak
+		// can be missing while others are set, and overall can be missing while
+		// individual gamemodes are set. This builder only models all-or-nothing.
 		if player.Solo.Winstreak == nil {
 			player.Solo.Winstreak = new(0)
 		}

@@ -28,6 +28,10 @@ type PlayerPIT struct {
 }
 
 type GamemodeStatsPIT struct {
+	// Winstreak is nil when hidden via Hypixel API settings. Usually all
+	// gamemodes are set or all nil, but they vary independently: a gamemode
+	// can be nil while others are set, and Overall can be nil while individual
+	// gamemodes are set. Do not assume presence is consistent across gamemodes.
 	Winstreak   *int
 	GamesPlayed int
 	Wins        int
