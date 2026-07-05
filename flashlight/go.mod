@@ -5,7 +5,7 @@ go 1.26.4
 require (
 	github.com/getsentry/sentry-go v0.47.0
 	github.com/golang-migrate/migrate/v4 v4.19.1
-	github.com/jellydator/ttlcache/v3 v3.4.0
+	github.com/jellydator/ttlcache/v3 v3.4.1
 	github.com/lib/pq v1.12.3
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.69.0
