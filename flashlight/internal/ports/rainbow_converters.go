@@ -16,6 +16,7 @@ const (
 	rainbowGamemodeDoubles = "doubles"
 	rainbowGamemodeThrees  = "threes"
 	rainbowGamemodeFours   = "fours"
+	rainbowGamemodeFourv4  = "4v4"
 	rainbowGamemodeOverall = "overall"
 )
 
@@ -29,6 +30,8 @@ func gamemodeToRainbowGamemode(g domain.Gamemode) (string, error) {
 		return rainbowGamemodeThrees, nil
 	case domain.GamemodeFours:
 		return rainbowGamemodeFours, nil
+	case domain.GamemodeFourv4:
+		return rainbowGamemodeFourv4, nil
 	case domain.GamemodeOverall:
 		return rainbowGamemodeOverall, nil
 	default:
@@ -79,6 +82,7 @@ type rainbowPlayerDataPIT struct {
 	Doubles    rainbowStatsPIT `json:"doubles"`
 	Threes     rainbowStatsPIT `json:"threes"`
 	Fours      rainbowStatsPIT `json:"fours"`
+	Fourv4     rainbowStatsPIT `json:"4v4"`
 	Overall    rainbowStatsPIT `json:"overall"`
 }
 
@@ -113,6 +117,7 @@ func playerToRainbowPlayerDataPIT(player *domain.PlayerPIT) rainbowPlayerDataPIT
 		Doubles:    gamemodeStatsPITToRainbowStatsPIT(&player.Doubles),
 		Threes:     gamemodeStatsPITToRainbowStatsPIT(&player.Threes),
 		Fours:      gamemodeStatsPITToRainbowStatsPIT(&player.Fours),
+		Fourv4:     gamemodeStatsPITToRainbowStatsPIT(&player.Fourv4),
 		Overall:    gamemodeStatsPITToRainbowStatsPIT(&player.Overall),
 	}
 }

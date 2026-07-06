@@ -97,6 +97,18 @@ func TestPlayerToRainbowPlayerPITData(t *testing.T) {
 					Kills:       308,
 					Deaths:      309,
 				},
+				Fourv4: domain.GamemodeStatsPIT{
+					Winstreak:   new(500),
+					GamesPlayed: 501,
+					Wins:        502,
+					Losses:      503,
+					BedsBroken:  504,
+					BedsLost:    505,
+					FinalKills:  506,
+					FinalDeaths: 507,
+					Kills:       508,
+					Deaths:      509,
+				},
 				Overall: domain.GamemodeStatsPIT{
 					Winstreak:   new(400),
 					GamesPlayed: 401,
@@ -163,6 +175,18 @@ func TestPlayerToRainbowPlayerPITData(t *testing.T) {
 					"finalDeaths":  307,
 					"kills":        308,
 					"deaths":       309
+				},
+				"4v4": {
+					"winstreak":    500,
+					"gamesPlayed":  501,
+					"wins":         502,
+					"losses":       503,
+					"bedsBroken":   504,
+					"bedsLost":     505,
+					"finalKills":   506,
+					"finalDeaths":  507,
+					"kills":        508,
+					"deaths":       509
 				},
 				"overall": {
 					"winstreak":    400,
@@ -251,6 +275,18 @@ func TestPlayerToRainbowPlayerPITData(t *testing.T) {
 					"kills":        0,
 					"deaths":       0
 				},
+				"4v4": {
+					"winstreak":    null,
+					"gamesPlayed":  0,
+					"wins":         0,
+					"losses":       0,
+					"bedsBroken":   0,
+					"bedsLost":     0,
+					"finalKills":   0,
+					"finalDeaths":  0,
+					"kills":        0,
+					"deaths":       0
+				},
 				"overall": {
 					"winstreak":    null,
 					"gamesPlayed":  0,
@@ -313,6 +349,18 @@ func TestPlayerToRainbowPlayerPITData(t *testing.T) {
 					"deaths":       0
 				},
 				"fours": {
+					"winstreak":    null,
+					"gamesPlayed":  0,
+					"wins":         0,
+					"losses":       0,
+					"bedsBroken":   0,
+					"bedsLost":     0,
+					"finalKills":   0,
+					"finalDeaths":  0,
+					"kills":        0,
+					"deaths":       0
+				},
+				"4v4": {
 					"winstreak":    null,
 					"gamesPlayed":  0,
 					"wins":         0,
@@ -466,6 +514,18 @@ func TestPlayerToRainbowPlayerPITData(t *testing.T) {
 					"finalDeaths":  307,
 					"kills":        308,
 					"deaths":       309
+				},
+				"4v4": {
+					"winstreak":    null,
+					"gamesPlayed":  0,
+					"wins":         0,
+					"losses":       0,
+					"bedsBroken":   0,
+					"bedsLost":     0,
+					"finalKills":   0,
+					"finalDeaths":  0,
+					"kills":        0,
+					"deaths":       0
 				},
 				"overall": {
 					"winstreak":    null,
@@ -667,6 +727,18 @@ func TestHistoryToRainbowHistoryData(t *testing.T) {
 						"kills":        308,
 						"deaths":       309
 					},
+					"4v4": {
+						"winstreak":    null,
+						"gamesPlayed":  0,
+						"wins":         0,
+						"losses":       0,
+						"bedsBroken":   0,
+						"bedsLost":     0,
+						"finalKills":   0,
+						"finalDeaths":  0,
+						"kills":        0,
+						"deaths":       0
+					},
 					"overall": {
 						"winstreak":    null,
 						"gamesPlayed":  401,
@@ -721,6 +793,18 @@ func TestHistoryToRainbowHistoryData(t *testing.T) {
 						"deaths":       0
 					},
 					"fours": {
+						"winstreak":    null,
+						"gamesPlayed":  0,
+						"wins":         0,
+						"losses":       0,
+						"bedsBroken":   0,
+						"bedsLost":     0,
+						"finalKills":   0,
+						"finalDeaths":  0,
+						"kills":        0,
+						"deaths":       0
+					},
+					"4v4": {
 						"winstreak":    null,
 						"gamesPlayed":  0,
 						"wins":         0,
@@ -937,6 +1021,18 @@ func TestSessionsToRainbowSessionsData(t *testing.T) {
 						"kills":        308,
 						"deaths":       309
 					},
+					"4v4": {
+						"winstreak":    null,
+						"gamesPlayed":  0,
+						"wins":         0,
+						"losses":       0,
+						"bedsBroken":   0,
+						"bedsLost":     0,
+						"finalKills":   0,
+						"finalDeaths":  0,
+						"kills":        0,
+						"deaths":       0
+					},
 					"overall": {
 						"winstreak":    null,
 						"gamesPlayed":  401,
@@ -991,6 +1087,18 @@ func TestSessionsToRainbowSessionsData(t *testing.T) {
 						"deaths":       0
 					},
 					"fours": {
+						"winstreak":    null,
+						"gamesPlayed":  0,
+						"wins":         0,
+						"losses":       0,
+						"bedsBroken":   0,
+						"bedsLost":     0,
+						"finalKills":   0,
+						"finalDeaths":  0,
+						"kills":        0,
+						"deaths":       0
+					},
+					"4v4": {
 						"winstreak":    null,
 						"gamesPlayed":  0,
 						"wins":         0,
