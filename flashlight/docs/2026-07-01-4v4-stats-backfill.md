@@ -4,9 +4,9 @@ topic: player-stats-backfill
 area: internal/adapters/playerrepository
 related_pr: https://github.com/Amund211/flashlight/pull/291
 created_at: 2026-07-01
-status: in_progress
+status: done
 started_at: 2026-07-05 19:57 CEST
-completed_at:
+completed_at: 2026-07-06 CEST
 executed_by: Amund211
 target_instance: prism-overlay:northamerica-northeast2:flashlight-postgres
 target_schema: flashlight
@@ -122,6 +122,22 @@ Top-level `playerDataStorage` keys: `xp` (omitempty), `1`, `2`, `3`, `4`, `4v4`,
 # Execution runbook
 
 Fill in each **Execution record** as you go. Statuses: `pending → running → done` (or `blocked`).
+
+## Connection (how the SQL steps are executed)
+
+The SQL steps below are run from a local `psql` over the Cloud SQL Auth Proxy (Unix socket), with
+the `postgres` password pulled from Secret Manager — not Cloud SQL Studio. In one shell:
+
+```bash
+cloud-sql-proxy --unix-socket /cloudsql/ prism-overlay:northamerica-northeast2:flashlight-postgres
+```
+then, in another:
+```bash
+PGPASSWORD="$(gcloud secrets versions access latest --secret=flashlight-db-password --project=prism-overlay)" \
+  psql "host=/cloudsql/prism-overlay:northamerica-northeast2:flashlight-postgres user=postgres dbname=flashlight"
+```
+All steps run in the `flashlight` schema, so each block starts with `SET search_path TO flashlight;`.
+(The proxy holds one long-lived connection; per-statement autocommit applies as with Studio.)
 
 ## Step 0 — Backup
 
@@ -833,10 +849,12 @@ resume-from-frontier picks up exactly after the already-committed rows (the Ctrl
 | index dropped + 1 timed batch (version-filter) | 2026-07-05 ~21:30 | 20,000 | **20.9s** committed — confirms dropping `idx_stats_v1_id` restored HOT updates; the index, not the id-skip, was the slowdown. |
 | keyset, 20k batches (index dropped) | 2026-07-05 ~21:40 | ~20,000 | batch 8 = 20s clean; batch 9 spiked >80s (cancelled) — first sign of CPU throttling. |
 | keyset, throttled 5k + pg_sleep(2) + per-batch timing | 2026-07-05 ~22:50 | ~80,000 | **Diagnostic run.** batches 1–10 = 3–7s, then 26s → **72s** → 38–40s as CPU burst credits drained. Cancelled at cum 80,000. |
-| keyset (remaining) | _(paused — resume later)_ | _(fill)_ | resume with `CALL backfill_4v4();` after scaling the instance up (see root cause). |
+| keyset (remaining), dedicated core `db-custom-4-16384` | 2026-07-06 (post-Step 5.5) | ~2,250,482 | **Completed.** Each 20k batch ≈ **just under 2 s** (~10k rows/s) — no throttling, no app-cancellation storm. Already-done id windows reported 0 rows and flew past. |
 
 - Total v1 rows at start (from Step 1): **2,490,482**
-- **Migrated so far: 240,000** (confirmed 2026-07-05 ~22:56 CEST: v1 `2,250,482` / v2 `363,201`). **~2,250,482 v1 remaining (~90%)** for the resume run. Paused here.
+- Migrated pre-pause: 240,000 (2026-07-05). Remaining ~2,250,482 migrated on the dedicated core 2026-07-06.
+- **Total rows migrated: 2,490,482 (backfill COMPLETE).** Confirm with Step 6 (0 v1 rows remaining).
+- Finished at: 2026-07-06 (dedicated-core resume run) — per-batch ~2 s, whole remainder in a few minutes.
 
 > ### 🔴 Root cause of the slow/uneven batches: instance tier `db-f1-micro`
 > The Cloud SQL instance is `db-f1-micro` — shared-core, ~0.6 GB RAM, **burstable CPU**. Sustained
@@ -846,17 +864,306 @@ resume-from-frontier picks up exactly after the already-committed rows (the Ctrl
 > was 2026-06-13; `n_dead_tup` 201k < the ~520k trigger). A bare `count(*)` took 12s — the instance is
 > simply underpowered for this one-time bulk write.
 >
-> **Resume plan:** temporarily scale up to a dedicated-core tier, run to completion in minutes, scale back:
+> **Resume plan → see [Step 5.5](#step-55--temporary-instance-upgrade-resume-enabler) for the researched tier choice + full mechanics.** In short: temporarily scale to a dedicated-core tier, run to completion (~20–25 min single-session), scale back:
 > ```bash
-> gcloud sql instances patch flashlight-postgres --project=prism-overlay --tier=db-custom-1-3840   # up (restarts)
-> # ... CALL backfill_4v4();  (can bump batch back to 20k and drop pg_sleep on a dedicated core) ...
-> gcloud sql instances patch flashlight-postgres --project=prism-overlay --tier=db-f1-micro         # back down
+> gcloud sql instances patch flashlight-postgres --project=prism-overlay --tier=db-custom-4-16384   # up (restarts, <60s offline)
+> # ... CALL backfill_4v4();  (restore batch=20k and drop pg_sleep on a dedicated core) ...
+> gcloud sql instances patch flashlight-postgres --project=prism-overlay --tier=db-f1-micro          # back down (<60s offline)
 > ```
 
 - **Nothing to clean up while paused:** in-flight batch rolled back on Ctrl-C; committed batches durable;
   no open txn/locks; partial index already dropped; `backfill_4v4()` procedure left in place for one-command resume.
-- Total rows migrated: _(fill after final run)_
-- Started at: 2026-07-05 (multiple sessions) · Finished at: _____
+- Started at: 2026-07-05 (multiple sessions) · Finished at: 2026-07-06 (dedicated-core resume).
+
+> ### 📈 Storage impact (expected MVCC bloat — noted for posterity)
+> A one-time full-table UPDATE rewrites every row (new version + dead old version) and, because we
+> *grew* each row (added the `4v4` key) with the default `fillfactor=100`, most updates spilled
+> off-page → **non-HOT**, bloating both the heap and all three `stats` indexes; plus a transient WAL
+> burst on the data disk. So a large storage rise during the run is **expected** — it is not
+> duplicated logical data (row count is exactly 2,490,482 and Step 6 checksums confirm no unintended
+> changes).
+>
+> **Observed 2026-07-06 (Storage usage chart, 1 h window):** flat until the `CALL backfill_4v4()` run
+> at ~20:05 CEST, a step up during the run, then **plateau** — growth was bounded to the UPDATE.
+> Tooltip at **20:04:00 CEST** showed two "Storage usage" series reading **3.79 GiB** and **7.24 GiB**;
+> the provisioned disk auto-resized one step (to ~16 GiB).
+>
+> **Precedent + expectation:** the 2026-07-05 pre-pause run produced the same transient "blip" that
+> **receded afterward** as autovacuum reclaimed dead tuples for reuse — the used-bytes line is
+> expected to fall again here too. ⚠️ But reclaimed space is only *reusable*, not returned: neither
+> the heap file nor the Cloud SQL disk shrinks, and disk auto-resize is **one-way** — the instance is
+> now provisioned (and billed) at the larger disk permanently, and scaling the tier back to
+> `db-f1-micro` does **not** reduce the disk size.
+>
+> **Post-run resolution (2026-07-06, after downgrade + `VACUUM stats`):** disk settled at
+> `dataDiskSizeGb=15` (was 10 → +50%, permanent — confirmed still 15 GB on `db-f1-micro`).
+> `VACUUM stats;` brought `n_dead_tup` to **0** (dead space reclaimed for reuse); `stats` is total
+> **5662 MB** (heap 4869 MB, indexes 792 MB), `n_live_tup` 2,660,885, autovacuum already having run
+> 18:11 UTC. Plain VACUUM freed space for reuse but — as expected — did **not** shrink the file or the
+> 15 GB disk. (The size query matched **two** `stats` tables across schemas; the real one is
+> `flashlight.stats` @ 2,660,885 rows — filter by `schemaname='flashlight'` next time.)
+
+---
+
+## Step 5.5 — Temporary instance upgrade (resume enabler)
+
+The paused run stalled purely because `db-f1-micro` is shared-core / burstable (Step 5 root
+cause). Before resuming, temporarily move the instance to a **dedicated-core** tier so CPU is
+sustained, run the backfill to completion, then scale straight back to `db-f1-micro`. This step
+records the tier research, the chosen target, and exactly what the change does to the instance,
+data, and connections. Sources: Cloud SQL docs — [machine series](https://docs.cloud.google.com/sql/docs/postgres/machine-series-overview),
+[instance settings](https://docs.cloud.google.com/sql/docs/postgres/instance-settings),
+[storage options](https://docs.cloud.google.com/sql/docs/postgres/storage-options-overview).
+
+### 5.5.1 — Current instance (from `gcloud sql instances describe`, 2026-07-06)
+
+| field | value |
+|---|---|
+| tier | `db-f1-micro` — shared-core, 1 burst vCPU, **0.614 GB** RAM |
+| edition | `ENTERPRISE` |
+| availabilityType | `ZONAL` — single node, **no HA / no failover** |
+| region / zone | `northamerica-northeast2` (Toronto) / `-c` |
+| Postgres | 17.7 |
+| disk | **10 GB `PD_SSD`**, `storageAutoResize=true` (limit 0 = unlimited) |
+| read replicas | none |
+| primary IP | `34.124.127.91` (`ipv4Enabled`); `connectionName` = `prism-overlay:northamerica-northeast2:flashlight-postgres` |
+| protections | PITR on, 7 daily backups, `deletionProtectionEnabled=true`, `cloudsql.iam_authentication=on` |
+
+### 5.5.2 — Available machine types (Cloud SQL Enterprise edition)
+
+Enterprise offers three series. Shared-core and dedicated-core both sit on the instance's
+current `PD_SSD` storage, so moving *between* them is a plain in-place tier change. N4 uses
+Hyperdisk Balanced → a storage migration, not a simple resize → **avoid for a temporary bump**.
+
+| series | naming | vCPU | RAM rule | note |
+|---|---|---|---|---|
+| Shared-core | `db-f1-micro`, `db-g1-small` | 1 (burst) | 0.614 / 1.7 GB fixed | **burstable CPU — the current bottleneck** |
+| **Dedicated-core** | `db-custom-{vCPU}-{MB}` | 1, or even 2–96 | 0.9–6.5 GB per vCPU, ×256 MB, ≥ 3.75 GB | **sustained CPU; same PD_SSD; simple in-place resize** |
+| N4 | `db-custom-N4-{vCPU}-{MB}` | 2–80 (step 2) | 2–8 GB per vCPU | Hyperdisk only → storage migration; skip |
+
+(Enterprise **Plus** adds N2/C4A + near-zero-downtime scaling, but switching editions is a
+larger, not-cleanly-reversible change — out of scope for a one-time backfill.)
+
+### 5.5.3 — What actually binds this backfill
+
+- **Primary = CPU throttling.** Shared-core burst credits drain after ~10 batches → CPU
+  throttled to baseline → batches balloon 20s→70s and the live app's 30s-deadline queries get
+  cancelled (Step 5 root cause). A **dedicated core removes this entirely** — that alone unblocks
+  the resume.
+- **Secondary ceiling = the 10 GB disk.** Cloud SQL PD_SSD scales ~**30 IOPS/GB** and
+  ~**0.48 MB/s per GB**, so 10 GB ≈ **300 IOPS / ~4.8 MB/s** write ceiling. Per-vCPU network caps
+  (~250 MB/s per vCPU) sit far above that, so on a dedicated core the **disk size — not the
+  machine — is the throughput cap.** Empirically the healthy batches ran ~1,000 rows/s ≈ ~2 MB/s
+  WAL, comfortably under 4.8 MB/s ⇒ the disk sustains roughly **1,500–2,000 rows/s** ⇒ a single
+  session finishes ~2.25M rows in **~20–25 min**. More vCPUs can't beat this cap.
+- **RAM.** The whole DB fits on a 10 GB disk that has never auto-resized, so it is ≤ ~10 GB.
+  **16 GB RAM caches the entire table in memory**, eliminating read IOPS so the disk's small
+  IOPS/throughput budget is spent entirely on WAL/heap writes.
+
+### 5.5.4 — Chosen target tier: `db-custom-4-16384` (4 vCPU, 16 GB)
+
+Rationale: 4 sustained vCPUs kill the throttling with comfortable headroom for the WAL writer,
+checkpointer, autovacuum, **and the live flashlight app** (which keeps serving throughout the
+resume — the whole point of not co-starving it as `db-f1-micro` did); 16 GB caches the whole DB.
+Valid custom shape (16384/4 = 4096 MB per vCPU, within 0.9–6.5 GB). Cost is negligible — a few
+cents for the <1 h it's up.
+- **Minimum-viable / cheaper:** `db-custom-2-8192` (2/8) — also uncaps CPU; single-session speed
+  is identical (disk-bound), just less headroom for the co-resident app + background workers.
+- **Overkill:** `db-custom-8-32768` and up — extra cores cannot beat the 10 GB disk cap.
+- ⚠️ **Do NOT grow the disk.** The only lever to beat ~4.8 MB/s is a larger disk, but Cloud SQL
+  disks **cannot shrink** — a "temporary" disk bump would be permanent. Accept the ceiling;
+  ~20–25 min is fine. (Parallelizing 2–3 keyset-disjoint sessions could ~2× it but is likewise
+  capped by the disk and needs a range-parameterized proc + hand-picked UUIDv7 split points —
+  not worth the extra moving parts for a 20-min job. **Run single-session.**)
+
+### 5.5.5 — What the tier change does (Enterprise, ZONAL)
+
+- **Restart, brief downtime.** Changing vCPU/RAM takes the instance **offline < 60 s** (full
+  operation completes in a few minutes). No HA here, so no failover shortens it — expect the full
+  sub-minute blip. Applies to **both** the scale-up and the scale-back.
+- **Existing connections dropped** across each restart (Cloud SQL Studio session included — the
+  in-flight batch rolls back; see below).
+- **Data preserved.** The persistent disk is decoupled from the compute VM; only the VM is
+  resized/replaced. All committed rows — including the **240k already migrated** — are intact.
+  PITR/backups unaffected.
+- **IP + zone preserved.** Primary IP stays `34.124.127.91`, same zone `-c`, same
+  `connectionName` ⇒ **no flashlight config change and no redeploy** needed.
+- **Live flashlight app (Cloud Run):** during the <60 s restart its DB queries fail/time out;
+  being stateless and connecting per-request via the Cloud SQL connector, it **reconnects
+  automatically** once the instance is RUNNABLE. Users may see brief errors for ~1 min — the same
+  failure mode the backfill already induces, so no new surface. Prefer a low-traffic moment.
+- **The paused backfill:** the `backfill_4v4()` procedure lives in the DB and **survives the
+  restart**. Do the tier change with **no `CALL` running** (it's paused now — good). If a restart
+  ever coincides with a live `CALL`: in-flight batch rolls back, committed batches stay durable,
+  re-`CALL` resumes (idempotent keyset march).
+
+### 5.5.6 — Procedure
+
+```bash
+# 0. (optional) eyeball current disk usage vs the 10 GB cap in the console/metrics — the backfill
+#    adds a small '4v4' key to every row + dead tuples, so the table grows; if used approaches
+#    10 GB it may trip the (irreversible) auto-resize. 240k rows already migrated with no resize,
+#    so there is headroom, but confirm before the big remaining ~2.25M.
+
+# 1. Scale UP to dedicated core (restarts, <60s offline). deletion-protection does NOT block a patch.
+gcloud sql instances patch flashlight-postgres --project=prism-overlay --tier=db-custom-4-16384
+
+# 2. Wait until RUNNABLE on the new tier.
+gcloud sql instances describe flashlight-postgres --project=prism-overlay \
+  --format='value(state,settings.tier)'
+#    expect:  RUNNABLE   db-custom-4-16384
+
+# 3. Resume in Cloud SQL Studio. On a dedicated core, restore batch=20000 and DROP the pg_sleep
+#    throttle inside backfill_4v4() (the 5k+pg_sleep(2) build was a micro-only diagnostic).
+#    Then:  CALL backfill_4v4();
+#    Idempotent keyset: already-done id windows update 0 rows and fly past in seconds.
+
+# 4. Post-verify (Step 6): 0 v1 rows, 0 rows missing '4v4', Step 3 re-run mismatching = 0.
+
+# 5. Scale BACK DOWN once verified (another <60s restart).
+gcloud sql instances patch flashlight-postgres --project=prism-overlay --tier=db-f1-micro
+
+# 6. Confirm back on db-f1-micro + RUNNABLE, then run Step 5 cleanup (DROP PROCEDURE backfill_4v4();).
+gcloud sql instances describe flashlight-postgres --project=prism-overlay \
+  --format='value(state,settings.tier)'   # expect: RUNNABLE  db-f1-micro
+```
+
+**Execution record**
+- Status: `[ ] pending  [x] scaled-up  [x] resumed  [x] scaled-back`
+- Scaled up at: 2026-07-06 19:41:30 CEST (17:41:30 UTC) · tier `db-custom-4-16384` (4 vCPU / 16 GB) ·
+  operation `UPDATE` 17:41:30→17:46:16 UTC (DONE) · `settingsVersion` 615→620 · zone/IP unchanged.
+- Instance RUNNABLE / `database system is ready to accept connections` at:
+  **2026-07-06 19:43:40 CEST (17:43:40 UTC)**.
+- Observed downtime: **~22 s** — old node served until `17:43:18` (fast-shutdown → `checkpoint: shutdown
+  immediate`), back up `17:43:40`. Cloud SQL provisioned the new machine *before* cutting over (op
+  started 17:41:30 but DB stayed up until 17:43:18), so user-facing outage was far under the <60 s cap.
+- Restart log check: **clean.** Only expected shutdown-sequence lines (`received fast shutdown request`,
+  `checkpoint: shutdown immediate`, internal `cloudsqladmin@127.0.0.1` FATALs); **no PANIC, no
+  post-restart WARNING+**. IP `34.124.127.91` and zone `-c` preserved (no flashlight config change).
+- Resume run: 2026-07-06 · `CALL backfill_4v4()` (batch=20k, no pg_sleep) migrated the remaining
+  ~2,250,482 rows · **each 20k batch ≈ just under 2 s (~10k rows/s)** · no throttling, no app
+  cancellations — the dedicated core did exactly what it was for. Whole remainder in a few minutes.
+- Scaled back down at: 2026-07-06 · op 18:18:05→18:29:06 UTC (DONE, ~11 min; the gcloud client wait
+  timed out but the server op completed — confirmed via `gcloud beta sql operations wait`). Now
+  **RUNNABLE on `db-f1-micro`** (settingsVersion 627). Disk stays at **15 GB** (tier change ≠ disk change).
+- Notes / anomalies: none. ~2 s/batch was ~5× the pre-run estimate (16 GB cached the whole DB in RAM,
+  so the 10 GB disk-throughput ceiling never bit at this batch size). Downgrade took ~11 min (vs ~5 min
+  up) — slower to shrink the machine under the now-larger disk, but clean and non-erroring.
+
+---
+
+## Step 5.6 — Integrity checksums (capture before resume, compare after)
+
+Belt-and-suspenders proof that the backfill changes **only** the two things it's supposed to.
+The UPDATE's `SET` clause writes exactly `player_data = player_data || {'4v4':…}` and
+`data_format_version = 2` — it *structurally cannot* touch `id`, `player_uuid`, or `queried_at`.
+So a checksum over each row **with `data_format_version` and `player_data->'4v4'` masked out** is
+an **invariant**: correct migration ⇒ identical before and after; any corruption of a non-4v4
+field ⇒ the checksum changes. We also checksum the untouched native-v2 set as a second safety net.
+
+**Why the mask is exact (verified locally, PG18):** on a v1 row `player_data` has no `4v4` key, so
+`player_data - '4v4'` = `player_data`. After the backfill, `player_data - '4v4'` strips the added
+key and — because JSONB canonical key order is a pure function of the key set — yields text
+**byte-identical** to the original. A scratch-schema test (incl. `4v4 = {}`, zero-key drops, no-`xp`
+rows, plus a negative-control tamper that correctly flipped to MISMATCH) confirmed round-trip
+equality. `data_format_version` is excluded entirely since it flips 1→2 by design.
+
+**Coverage caveat (read this).** The backfill is already ~240k rows in, so a baseline captured now
+is a *true* pre-migration snapshot only for the **~2.25M rows still at v1**; comparing it at the
+end fully validates the remaining run. The **240k already migrated** have no pre-touch baseline
+here — they are trusted **by construction** (the UPDATE cannot write the masked columns). For
+100% coverage including those 240k, use the **gold-standard** option: the Step 0 on-demand backup
+(20:03 CEST) / PITR predates *all* migration writes (~20:50) — restore it to a throwaway instance,
+run the same **(A)** checksum over `id <= cutover` there, and compare to prod's `:after`.
+
+- **Masked columns:** `data_format_version` (dropped), `player_data->'4v4'` (dropped via `- '4v4'`).
+- **Migrated set:** `id <= '019f1d06-89ee-7ea0-bea9-7fe149faac38'` (the Step 5 cutover). Static —
+  no new rows ever land in this id range (UUIDv7 only ascends), so its membership is frozen.
+- **Native-v2 set:** `cutover < id <= frozen_ceiling`. We freeze `max(id)` of current v2 rows so
+  live writes (which get `id > ceiling`) are excluded and before/after compare like-for-like.
+- Aggregate is order-independent and streamable (no giant `string_agg`): two 64-bit `bit_xor`
+  slices of the per-row md5 + a 64-bit `sum` + `count`. Detecting an accidental collision after
+  real corruption is ~2⁻¹²⁸.
+
+Each set collapses to **one 32-char `checksum` string** you can paste and eyeball later, plus two
+corroborating columns: `n` (rows checksummed) and `checksum_sum` (an order-independent hash-sum
+component). The `checksum` is the authoritative comparison — it folds `count` + two 64-bit
+`bit_xor` slices + the sum into a single md5. (Verified locally on PG18, incl. a negative-control
+tamper that correctly changed the value.)
+
+### Setup — run once, now (before resuming)
+
+```sql
+SET search_path TO flashlight;
+
+-- 1) Find the native-v2 ceiling (the "latest current v2 row"). Record it, then paste it as the
+--    literal in view (B) below — that bakes the ceiling into the view definition so it stays frozen
+--    (live writes get id > it → excluded). No table; the only cleanup is the two views.
+SELECT max(id) AS v2_ceiling FROM stats WHERE data_format_version = 2;
+--    => paste the returned id into (B)'s  id <= '...'  bound.
+
+-- (A) migrated set — masked: drop data_format_version + player_data->'4v4'; scope id <= cutover
+CREATE OR REPLACE VIEW ck_migrated AS
+SELECT
+  count(*) AS n,
+  coalesce(sum(('x'||substr(h,1,16))::bit(64)::bigint::numeric),0) AS checksum_sum,
+  md5(
+    count(*)::text || '|' ||
+    coalesce(bit_xor(('x'||substr(h,1,16))::bit(64)::bigint),0)::text || '|' ||
+    coalesce(bit_xor(('x'||substr(h,17,16))::bit(64)::bigint),0)::text || '|' ||
+    coalesce(sum(('x'||substr(h,1,16))::bit(64)::bigint::numeric),0)::text
+  ) AS checksum
+FROM (
+  SELECT md5(id||'|'||player_uuid||'|'||
+             (queried_at AT TIME ZONE 'UTC')::text||'|'||
+             (player_data - '4v4')::text) AS h
+  FROM stats WHERE id <= '019f1d06-89ee-7ea0-bea9-7fe149faac38'
+) q;
+
+-- (B) native-v2 set — FULL row (must stay entirely untouched); scope cutover < id <= frozen ceiling
+CREATE OR REPLACE VIEW ck_v2 AS
+SELECT
+  count(*) AS n,
+  coalesce(sum(('x'||substr(h,1,16))::bit(64)::bigint::numeric),0) AS checksum_sum,
+  md5(
+    count(*)::text || '|' ||
+    coalesce(bit_xor(('x'||substr(h,1,16))::bit(64)::bigint),0)::text || '|' ||
+    coalesce(bit_xor(('x'||substr(h,17,16))::bit(64)::bigint),0)::text || '|' ||
+    coalesce(sum(('x'||substr(h,1,16))::bit(64)::bigint::numeric),0)::text
+  ) AS checksum
+FROM (
+  SELECT md5(id||'|'||player_uuid||'|'||
+             (queried_at AT TIME ZONE 'UTC')::text||'|'||
+             player_data::text||'|'||data_format_version::text) AS h
+  FROM stats
+  WHERE id >  '019f1d06-89ee-7ea0-bea9-7fe149faac38'
+    AND id <= '019f3894-c7b2-7360-9fef-a4bca3cf2264'   -- frozen v2 ceiling (captured 2026-07-06)
+) q;
+```
+
+### Capture (now) and compare (Step 6)
+
+Run this one query **now** (paste the two rows into the record), then **again after** the migration
+(Step 6). The `checksum` per set must be identical; `n` and `checksum_sum` corroborate.
+
+```sql
+SET search_path TO flashlight;
+SELECT 'migrated' AS set, n, checksum_sum, checksum FROM ck_migrated
+UNION ALL
+SELECT 'v2'       AS set, n, checksum_sum, checksum FROM ck_v2;
+```
+
+Cleanup after Step 6 sign-off: `DROP VIEW ck_migrated, ck_v2;` (no table to drop — ceiling is baked into the view def).
+
+**Execution record**
+- Status: `[x] baseline captured  [ ] compared`
+- Frozen `v2_ceiling` id: `019f3894-c7b2-7360-9fef-a4bca3cf2264` (captured 2026-07-06)
+- Baseline (before), captured 2026-07-06:
+  - `migrated` n=**2490482** (== Step 1 start-of-run v1 count ✓) · sum=`-3721709571243416750685` · **checksum=`87f86f10a02ff0fd3f91a002a01acc58`**
+  - `v2` n=**171288** · sum=`-2756496957840101405499` · **checksum=`2d2c0c58b2848e3f93b04eda1cc650fc`**
+- After migration: `migrated` **checksum=`________`** (expect `87f86f10a02ff0fd3f91a002a01acc58`) · `v2` **checksum=`________`** (expect `2d2c0c58b2848e3f93b04eda1cc650fc`)
+- Verdict (checksum strings identical?): migrated = ___ · v2 = ___
+- (optional) gold-standard backup cross-check of the 240k: ___
 
 ---
 
@@ -867,24 +1174,67 @@ SELECT count(*) FROM stats WHERE data_format_version = 1;    -- expect 0
 SELECT count(*) FROM stats WHERE NOT (player_data ? '4v4');  -- expect 0
 ```
 
-Then **re-run Step 3** — it now covers the freshly-migrated rows too and must still show
-`mismatching = 0`.
+Then **re-run Step 3's reconstruction check, split by the cutover boundary.** ⚠️ A full re-run will
+still surface Step 3's **27 accepted native-v2 mismatches** (`id > cutover`, untouched by the
+backfill) — so those are *not* expected to be 0. What must be **exactly 0** is mismatches among the
+**backfilled** rows (`id <= cutover`), since we wrote their `4v4` block as precisely this subtraction:
+
+```sql
+WITH derived AS (
+  SELECT s.id,
+    s.id <= '019f1d06-89ee-7ea0-bea9-7fe149faac38' AS is_backfilled,
+    (s.player_data->'4v4') - 'ws' AS stored_no_ws,
+    COALESCE(jsonb_object_agg(kv.sk, kv.v) FILTER (WHERE kv.v <> 0), '{}'::jsonb) AS computed
+  FROM stats s
+  CROSS JOIN LATERAL (
+    SELECT sk,
+      COALESCE((s.player_data->'all'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'1'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'2'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'3'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'4'->>sk)::bigint,0) AS v
+    FROM unnest(ARRAY['gp','w','l','bb','bl','fk','fd','k','d']) AS sk
+  ) kv
+  GROUP BY s.id, s.player_data
+)
+SELECT is_backfilled,
+       count(*)                                         AS total,
+       count(*) FILTER (WHERE stored_no_ws <> computed) AS mismatching
+FROM derived GROUP BY is_backfilled ORDER BY is_backfilled DESC;
+-- is_backfilled = t: total ≈ 2,490,482, mismatching MUST be 0
+-- is_backfilled = f: the accepted native-v2 drift (~27, maybe a few more from new writes)
+```
+
+Finally, run the **Step 5.6 "compare after"** capture and confirm each `checksum` equals its baseline
+(`migrated` = `87f86f10a02ff0fd3f91a002a01acc58`, `v2` = `2d2c0c58b2848e3f93b04eda1cc650fc`).
 
 **Execution record**
-- Status: `[ ] pending`  `[ ] done`  `[ ] blocked`
-- Run at: _(YYYY-MM-DD HH:MM TZ)_
-- Remaining v1 rows = _____ (expect 0)
-- Rows missing `4v4` key = _____ (expect 0)
-- Step 3 re-run `mismatching` = _____ (expect 0)
+- Status: `[x] done` — run 2026-07-06 on the dedicated core, all checks green.
+- Remaining v1 rows = **0** ✓
+- Rows missing `4v4` key = **0** ✓
+- Step 3 re-run: backfilled (`id<=cutover`) `total`=2,490,482 · `mismatching` = **0** ✓ (every reconstructed 4v4 block exact) ·
+  native-v2 (`id>cutover`) `total`=172,172 · `mismatching` = **33** (accepted Hypixel drift — was 27 at Step 3 over 121,546 rows; +6 from new native-v2 writes since; 33/172,172 = 0.019%, same rate).
+- Step 5.6 checksums both **match baseline exactly**: migrated `87f86f10a02ff0fd3f91a002a01acc58`
+  (n=2,490,482) · v2 `2d2c0c58b2848e3f93b04eda1cc650fc` (n=171,288). ⇒ every non-`4v4` field is
+  byte-identical pre/post migration, and native-v2 rows are entirely untouched.
 
 ---
 
 ## Sign-off
 
-- Outcome: `[ ] success  [ ] rolled back`
-- Completed at: _____
-- Signed off by: _____
-- Follow-ups / anomalies observed: _____
+- Outcome: `[x] success  [ ] rolled back` — all 2,490,482 v1 rows backfilled to v2. Step 6 all green:
+  0 v1 rows left, 0 rows missing `4v4`, 0 mismatches among backfilled rows, both Step 5.6 checksums
+  == baseline (`migrated` `87f86f10…acc58`, `v2` `2d2c0c58…50fc`).
+- Completed at: 2026-07-06 CEST
+- Signed off by: Amund211
+- Follow-ups / anomalies observed:
+  - **Disk permanently grew 10 GB → 15 GB** (`dataDiskSizeGb`; one-way auto-resize, survives the
+    downgrade to `db-f1-micro`). See the 📈 Storage impact callout. Used bytes recede post-VACUUM; the
+    provisioned/billed 15 GB does not.
+  - **Cleanup:** done 2026-07-06 — `backfill_4v4()` procedure and the `ck_migrated` / `ck_v2` views dropped.
+  - Known/accepted imperfections (owner-approved, unchanged from Steps 3/4): `ws` omitted on
+    backfilled 4v4 blocks; ~33 native-v2 reconstruction mismatches (ordinary Hypixel counter drift),
+    which the backfill did not touch.
 
 ## Approach notes
 
@@ -895,3 +1245,125 @@ Then **re-run Step 3** — it now covers the freshly-migrated rows too and must 
 - **Optional Go-level cross-check.** A test that takes real v2 `player_data` blobs, zeroes
   the `4v4` block, runs the reconstruction, and asserts it round-trips to the same
   `playerToDataStorage` output (minus `ws`) would add belt-and-suspenders confidence.
+
+---
+
+# Ongoing — native-v2 reconstruction-mismatch tracking
+
+The backfill reconstructs `4v4` by subtraction (`all − (1+2+3+4)`). On **native-v2** rows we have
+Hypixel's real `two_four_*`, so we can measure where that reconstruction would have been *wrong* —
+the rows where `(4v4 − ws) ≠ all − (1+2+3+4)`, i.e. the ordinary Hypixel counter drift analysed in
+Step 3 (27 rows then, 33 at Step 6). v1 rows have no ground truth, so this native-v2 population is our
+**proxy for the backfill's error rate** — the same drift affects the backfilled rows at the same rate,
+we just can't point to which ones.
+
+**Re-runnable at any time**, scoped to native-v2 rows via `id >= '019f1d07-1313-7672-9e48-e784c7839c09'`
+(the earliest native-v2 id — the `first v2` boundary from Step 3c; equivalently `id > cutover`). The
+population grows as the live app writes new v2 rows, so the counts drift upward over time — that's
+expected. **Append a new dated entry under each query every time you run it** (don't overwrite prior
+runs — this is a time series). Run in the `flashlight` schema (`SET search_path TO flashlight;`).
+
+## Query A — number of stats with incorrect backfill
+
+```sql
+WITH derived AS (
+  SELECT s.id,
+    (s.player_data->'4v4') - 'ws' AS stored_no_ws,
+    COALESCE(jsonb_object_agg(kv.sk, kv.v) FILTER (WHERE kv.v <> 0), '{}'::jsonb) AS computed
+  FROM stats s
+  CROSS JOIN LATERAL (
+    SELECT sk,
+      COALESCE((s.player_data->'all'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'1'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'2'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'3'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'4'->>sk)::bigint,0) AS v
+    FROM unnest(ARRAY['gp','w','l','bb','bl','fk','fd','k','d']) AS sk
+  ) kv
+  WHERE s.id >= '019f1d07-1313-7672-9e48-e784c7839c09'
+  GROUP BY s.id, s.player_data
+)
+SELECT count(*) AS stats_with_incorrect_backfill
+FROM derived WHERE stored_no_ws <> computed;
+```
+
+**Runs:**
+- 2026-07-06 20:42 CEST → `stats_with_incorrect_backfill` = **33** (Step 3 baseline was 27 on 2026-07-05).
+
+## Query B — number of players with incorrect backfill
+
+```sql
+WITH derived AS (
+  SELECT s.id, s.player_uuid,
+    (s.player_data->'4v4') - 'ws' AS stored_no_ws,
+    COALESCE(jsonb_object_agg(kv.sk, kv.v) FILTER (WHERE kv.v <> 0), '{}'::jsonb) AS computed
+  FROM stats s
+  CROSS JOIN LATERAL (
+    SELECT sk,
+      COALESCE((s.player_data->'all'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'1'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'2'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'3'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'4'->>sk)::bigint,0) AS v
+    FROM unnest(ARRAY['gp','w','l','bb','bl','fk','fd','k','d']) AS sk
+  ) kv
+  WHERE s.id >= '019f1d07-1313-7672-9e48-e784c7839c09'
+  GROUP BY s.id, s.player_uuid, s.player_data
+)
+SELECT count(DISTINCT player_uuid) AS players_with_incorrect_backfill
+FROM derived WHERE stored_no_ws <> computed;
+```
+
+**Runs:**
+- 2026-07-06 20:42 CEST → `players_with_incorrect_backfill` = **15** (Step 3 baseline was 14 on 2026-07-05).
+
+## Query C — players with incorrect backfill by count (uuid, username, #stats; desc, limit 25)
+
+```sql
+WITH derived AS (
+  SELECT s.id, s.player_uuid,
+    (s.player_data->'4v4') - 'ws' AS stored_no_ws,
+    COALESCE(jsonb_object_agg(kv.sk, kv.v) FILTER (WHERE kv.v <> 0), '{}'::jsonb) AS computed
+  FROM stats s
+  CROSS JOIN LATERAL (
+    SELECT sk,
+      COALESCE((s.player_data->'all'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'1'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'2'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'3'->>sk)::bigint,0)
+      - COALESCE((s.player_data->'4'->>sk)::bigint,0) AS v
+    FROM unnest(ARRAY['gp','w','l','bb','bl','fk','fd','k','d']) AS sk
+  ) kv
+  WHERE s.id >= '019f1d07-1313-7672-9e48-e784c7839c09'
+  GROUP BY s.id, s.player_uuid, s.player_data
+),
+mm AS (SELECT player_uuid FROM derived WHERE stored_no_ws <> computed)
+SELECT mm.player_uuid,
+       u.username,
+       count(*) AS incorrect_stats
+FROM mm
+LEFT JOIN usernames u ON u.player_uuid = mm.player_uuid
+GROUP BY mm.player_uuid, u.username
+ORDER BY incorrect_stats DESC, mm.player_uuid
+LIMIT 25;
+```
+
+**Runs:**
+- 2026-07-06 20:42 CEST — top 25 (15 rows returned):
+
+  ```
+             player_uuid              |    username    | incorrect_stats
+  --------------------------------------+----------------+-----------------
+   5cf1dd9a-40ac-4656-b76d-48e8f47f8332 | NoobzCraft     |               5
+   ff06feeb-aa61-43c3-8bc9-74b9b4e12b48 | PulsarX2       |               5
+   d132284b-740e-4dba-b97b-721a80d66dca | jahmers        |               3
+   ddbc32c2-9648-406c-840c-f6ed62a77d5b | KS7D           |               3
+   eda7a720-826c-48ae-a069-5cda307858bc | Lioness_Rising |               3
+   f14cb7ab-ee22-46a9-9473-3f62997bb468 | Tra1se         |               3
+   8ae4e743-a998-4a86-b970-9ad7dd6f57c9 | liltikes       |               2
+   8b301d37-78bd-4dca-a334-e35ef933adf3 |                |               2
+   0fe5d9fc-567e-4e8b-93ce-1430a1f5b145 | Stumptail      |               1
+   6b8be2f8-2f8b-464a-837c-302a03655fd2 | tcry           |               1
+   ...
+  (15 rows)
+  ```
