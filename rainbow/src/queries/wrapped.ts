@@ -50,6 +50,7 @@ interface APISessionStats {
         readonly doubles: StreakInfo;
         readonly threes: StreakInfo;
         readonly fours: StreakInfo;
+        readonly "4v4": StreakInfo;
     };
     readonly finalKillStreaks: {
         readonly overall: StreakInfo;
@@ -57,6 +58,7 @@ interface APISessionStats {
         readonly doubles: StreakInfo;
         readonly threes: StreakInfo;
         readonly fours: StreakInfo;
+        readonly "4v4": StreakInfo;
     };
     readonly sessionCoverage: {
         readonly gamesPlayedPercentage: number;
@@ -99,6 +101,7 @@ interface SessionStats {
         readonly doubles: StreakInfo;
         readonly threes: StreakInfo;
         readonly fours: StreakInfo;
+        readonly "4v4": StreakInfo;
     };
     readonly finalKillStreaks: {
         readonly overall: StreakInfo;
@@ -106,6 +109,7 @@ interface SessionStats {
         readonly doubles: StreakInfo;
         readonly threes: StreakInfo;
         readonly fours: StreakInfo;
+        readonly "4v4": StreakInfo;
     };
     readonly sessionCoverage: {
         readonly gamesPlayedPercentage: number;

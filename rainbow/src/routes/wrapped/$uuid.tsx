@@ -929,7 +929,7 @@ const Streaks: React.FC<StreaksProps> = ({ wrappedData }) => {
     const { sessionStats } = wrappedData;
     if (!sessionStats) return null;
 
-    const modes = ["overall", "solo", "doubles", "threes", "fours"] as const;
+    const modes = ["overall", "solo", "doubles", "threes", "fours", "4v4"] as const;
 
     return (
         <>

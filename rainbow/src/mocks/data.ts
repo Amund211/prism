@@ -164,6 +164,7 @@ export const makeWrappedResponse = (uuid: string, year: number) => {
                 doubles: { highest: 8, when: startTime },
                 threes: { highest: 6, when: startTime },
                 fours: { highest: 10, when: startTime },
+                "4v4": { highest: 2, when: startTime },
             },
             finalKillStreaks: {
                 overall: { highest: 20, when: startTime },
@@ -171,6 +172,7 @@ export const makeWrappedResponse = (uuid: string, year: number) => {
                 doubles: { highest: 12, when: startTime },
                 threes: { highest: 10, when: startTime },
                 fours: { highest: 15, when: startTime },
+                "4v4": { highest: 3, when: startTime },
             },
             sessionCoverage: {
                 gamesPlayedPercentage: 0.85,
