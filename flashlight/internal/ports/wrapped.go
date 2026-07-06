@@ -132,6 +132,7 @@ type winstreakStats struct {
 	Doubles *gamemodeWinstreak `json:"doubles,omitempty"`
 	Threes  *gamemodeWinstreak `json:"threes,omitempty"`
 	Fours   *gamemodeWinstreak `json:"fours,omitempty"`
+	Fourv4  *gamemodeWinstreak `json:"4v4,omitempty"`
 }
 
 type gamemodeWinstreak struct {
@@ -145,6 +146,7 @@ type finalKillStreakStats struct {
 	Doubles *gamemodeFinalKillStreak `json:"doubles,omitempty"`
 	Threes  *gamemodeFinalKillStreak `json:"threes,omitempty"`
 	Fours   *gamemodeFinalKillStreak `json:"fours,omitempty"`
+	Fourv4  *gamemodeFinalKillStreak `json:"4v4,omitempty"`
 }
 
 type gamemodeFinalKillStreak struct {
@@ -608,6 +610,7 @@ func computeWinstreaks(ctx context.Context, playerPITs []domain.PlayerPIT) winst
 	result.Doubles = computeGamemodeWinstreak(func(p *domain.PlayerPIT) domain.GamemodeStatsPIT { return p.Doubles })
 	result.Threes = computeGamemodeWinstreak(func(p *domain.PlayerPIT) domain.GamemodeStatsPIT { return p.Threes })
 	result.Fours = computeGamemodeWinstreak(func(p *domain.PlayerPIT) domain.GamemodeStatsPIT { return p.Fours })
+	result.Fourv4 = computeGamemodeWinstreak(func(p *domain.PlayerPIT) domain.GamemodeStatsPIT { return p.Fourv4 })
 
 	return result
 }
@@ -671,6 +674,7 @@ func computeFinalKillStreaks(ctx context.Context, playerPITs []domain.PlayerPIT)
 	result.Doubles = computeGamemodeFKStreak(func(p *domain.PlayerPIT) domain.GamemodeStatsPIT { return p.Doubles })
 	result.Threes = computeGamemodeFKStreak(func(p *domain.PlayerPIT) domain.GamemodeStatsPIT { return p.Threes })
 	result.Fours = computeGamemodeFKStreak(func(p *domain.PlayerPIT) domain.GamemodeStatsPIT { return p.Fours })
+	result.Fourv4 = computeGamemodeFKStreak(func(p *domain.PlayerPIT) domain.GamemodeStatsPIT { return p.Fourv4 })
 
 	return result
 }

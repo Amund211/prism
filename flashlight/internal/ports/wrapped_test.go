@@ -14,6 +14,7 @@ import (
 
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/domaintest"
 	"github.com/Amund211/flashlight/internal/ports"
 )
 
@@ -88,6 +89,52 @@ func TestMakeGetWrappedHandler(t *testing.T) {
 		require.Equal(t, true, response["success"])
 		require.Equal(t, uuid, response["uuid"])
 		require.Equal(t, float64(2023), response["year"])
+	})
+
+	t.Run("4v4 win and final kill streaks", func(t *testing.T) {
+		t.Parallel()
+
+		base := time.Date(2023, time.June, 1, 12, 0, 0, 0, time.UTC)
+		pb := domaintest.NewPlayerBuilder(uuid).FromDB().Fourv4()
+		playerPITs := []domain.PlayerPIT{
+			pb.Build(base),
+			pb.WithGamesPlayed(2).WithWins(2).WithFinalKills(3).Build(base.Add(20 * time.Minute)),
+			pb.WithGamesPlayed(3).WithWins(3).WithFinalKills(5).Build(base.Add(40 * time.Minute)),
+			pb.WithGamesPlayed(4).WithLosses(1).WithFinalDeaths(1).Build(base.Add(60 * time.Minute)),
+		}
+		getPlayerPITsFunc, called := makeGetPlayerPITs(t, uuid, playerPITs, nil)
+		handler := makeGetWrappedHandler(getPlayerPITsFunc)
+
+		req := makeRequest(uuid, "2023")
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusOK, w.Code)
+		require.True(t, *called)
+
+		var response map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		require.NoError(t, err)
+
+		require.Equal(t, true, response["success"])
+
+		sessionStats, ok := response["sessionStats"].(map[string]interface{})
+		require.True(t, ok)
+
+		winstreaks, ok := sessionStats["winstreaks"].(map[string]interface{})
+		require.True(t, ok)
+		fourv4Winstreak, ok := winstreaks["4v4"].(map[string]interface{})
+		require.True(t, ok)
+		require.Equal(t, float64(3), fourv4Winstreak["highest"])
+		require.Equal(t, "2023-06-01T12:40:00Z", fourv4Winstreak["when"])
+
+		finalKillStreaks, ok := sessionStats["finalKillStreaks"].(map[string]interface{})
+		require.True(t, ok)
+		fourv4FKStreak, ok := finalKillStreaks["4v4"].(map[string]interface{})
+		require.True(t, ok)
+		require.Equal(t, float64(5), fourv4FKStreak["highest"])
+		require.Equal(t, "2023-06-01T12:40:00Z", fourv4FKStreak["when"])
 	})
 
 	t.Run("empty sessions", func(t *testing.T) {
