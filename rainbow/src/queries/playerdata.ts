@@ -19,6 +19,7 @@ export interface APIPlayerDataPIT {
     readonly doubles: APIStatsPIT;
     readonly threes: APIStatsPIT;
     readonly fours: APIStatsPIT;
+    readonly "4v4": APIStatsPIT;
     readonly overall: APIStatsPIT;
 }
 
@@ -43,6 +44,7 @@ export interface PlayerDataPIT {
     readonly doubles: StatsPIT;
     readonly threes: StatsPIT;
     readonly fours: StatsPIT;
+    readonly "4v4": StatsPIT;
     readonly overall: StatsPIT;
 }
 
@@ -54,5 +56,6 @@ export const apiToPlayerDataPIT = (apiPlayerData: APIPlayerDataPIT): PlayerDataP
     doubles: apiPlayerData.doubles,
     threes: apiPlayerData.threes,
     fours: apiPlayerData.fours,
+    "4v4": apiPlayerData["4v4"],
     overall: apiPlayerData.overall,
 });

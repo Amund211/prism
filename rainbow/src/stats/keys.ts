@@ -31,6 +31,7 @@ export const ALL_GAMEMODE_KEYS = [
     "doubles",
     "threes",
     "fours",
+    "4v4",
     "overall",
 ] as const;
 export type GamemodeKey = (typeof ALL_GAMEMODE_KEYS)[number];

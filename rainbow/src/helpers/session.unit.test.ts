@@ -29,6 +29,7 @@ const makePlayerDataPIT = (gamesPlayed: number, experience: number): PlayerDataP
     doubles: makeStatsPIT(0),
     threes: makeStatsPIT(0),
     fours: makeStatsPIT(gamesPlayed),
+    "4v4": makeStatsPIT(0),
 });
 
 describe(addExtrapolatedSessions, () => {

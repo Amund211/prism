@@ -86,7 +86,7 @@ export const LIGHT_TOKENS: SchemeTokens = {
 };
 
 /**
- * Per-gamemode accent colours for the four real modes. Used for chart strokes
+ * Per-gamemode accent colours for the real modes. Used for chart strokes
  * and legend dots so a gamemode keeps a stable identity colour across the app.
  * Shared across light and dark. "overall" is intentionally absent — it resolves
  * to the scheme's `primary` colour (added in the theme), so the aggregate
@@ -97,6 +97,7 @@ export const GAMEMODE_COLORS: Record<Exclude<GamemodeKey, "overall">, string> = 
     doubles: "#06b6d4",
     threes: "#22c55e",
     fours: "#f59e0b",
+    "4v4": "#ef4444",
 };
 
 /**

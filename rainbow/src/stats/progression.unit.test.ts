@@ -137,6 +137,7 @@ class PlayerDataBuilder {
             doubles: { ...emptyStats },
             threes: { ...emptyStats },
             fours: { ...emptyStats },
+            "4v4": { ...emptyStats },
             overall: { ...emptyStats },
         };
     }
@@ -159,6 +160,7 @@ class PlayerDataBuilder {
             doubles: { ...this.player.doubles },
             threes: { ...this.player.threes },
             fours: { ...this.player.fours },
+            "4v4": { ...this.player["4v4"] },
             overall: { ...this.player.overall },
         };
     }

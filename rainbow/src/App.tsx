@@ -26,7 +26,7 @@ export function App({ router, queryClient, persister }: AppProps) {
             persistOptions={{
                 persister,
                 maxAge,
-                buster: "1", // API version
+                buster: "2", // API version
             }}
         >
             <LocalizationProvider dateAdapter={AdapterDayjs}>

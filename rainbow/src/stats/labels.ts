@@ -117,6 +117,9 @@ export const getGamemodeLabel = (gamemode: GamemodeKey, capitalize = false): str
         case "fours": {
             return capitalize ? "Fours" : "fours";
         }
+        case "4v4": {
+            return "4v4";
+        }
     }
 };
 

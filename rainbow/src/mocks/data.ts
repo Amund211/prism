@@ -94,7 +94,8 @@ export const makePlayerDataPIT = (
     doubles: makeStatsPIT(multiplier),
     threes: makeStatsPIT(multiplier),
     fours: makeStatsPIT(multiplier),
-    overall: makeStatsPIT(multiplier * 4),
+    "4v4": makeStatsPIT(multiplier),
+    overall: makeStatsPIT(multiplier * 5),
 });
 
 export const makeSession = (
