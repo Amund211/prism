@@ -20,7 +20,7 @@ processors:
     spike_limit_percentage: 20
 
   # automatically detect Cloud Run resource metadata
-  resourcedetection:
+  resource_detection:
     detectors: [env, gcp]
     timeout: 2s
     override: false
@@ -49,9 +49,9 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch, memory_limiter, resourcedetection, resource]
+      processors: [batch, memory_limiter, resource_detection, resource]
       exporters: [googlecloud]
     metrics:
       receivers: [otlp]
-      processors: [batch, memory_limiter, resourcedetection, resource]
+      processors: [batch, memory_limiter, resource_detection, resource]
       exporters: [googlemanagedprometheus]
