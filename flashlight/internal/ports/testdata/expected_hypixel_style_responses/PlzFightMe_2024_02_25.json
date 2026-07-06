@@ -52,7 +52,16 @@
         "four_four_final_kills_bedwars": 66266,
         "four_four_final_deaths_bedwars": 1826,
         "four_four_kills_bedwars": 48159,
-        "four_four_deaths_bedwars": 52228
+        "four_four_deaths_bedwars": 52228,
+        "two_four_games_played_bedwars": 1293,
+        "two_four_wins_bedwars": 1266,
+        "two_four_losses_bedwars": 13,
+        "two_four_beds_broken_bedwars": 412,
+        "two_four_beds_lost_bedwars": 20,
+        "two_four_final_kills_bedwars": 1583,
+        "two_four_final_deaths_bedwars": 15,
+        "two_four_kills_bedwars": 1025,
+        "two_four_deaths_bedwars": 1114
       }
     }
   }

@@ -82,6 +82,17 @@ type hypixelAPIBedwarsStats struct {
 	FoursFinalDeaths int  `json:"four_four_final_deaths_bedwars,omitempty"`
 	FoursKills       int  `json:"four_four_kills_bedwars,omitempty"`
 	FoursDeaths      int  `json:"four_four_deaths_bedwars,omitempty"`
+
+	Fourv4Winstreak   *int `json:"two_four_winstreak,omitempty"`
+	Fourv4GamesPlayed int  `json:"two_four_games_played_bedwars,omitempty"`
+	Fourv4Wins        int  `json:"two_four_wins_bedwars,omitempty"`
+	Fourv4Losses      int  `json:"two_four_losses_bedwars,omitempty"`
+	Fourv4BedsBroken  int  `json:"two_four_beds_broken_bedwars,omitempty"`
+	Fourv4BedsLost    int  `json:"two_four_beds_lost_bedwars,omitempty"`
+	Fourv4FinalKills  int  `json:"two_four_final_kills_bedwars,omitempty"`
+	Fourv4FinalDeaths int  `json:"two_four_final_deaths_bedwars,omitempty"`
+	Fourv4Kills       int  `json:"two_four_kills_bedwars,omitempty"`
+	Fourv4Deaths      int  `json:"two_four_deaths_bedwars,omitempty"`
 }
 
 func playerToPrismPlayerDataResponse(player *domain.PlayerPIT) *hypixelAPIResponse {
@@ -159,6 +170,17 @@ func playerToPrismPlayerDataResponse(player *domain.PlayerPIT) *hypixelAPIRespon
 		FoursFinalDeaths: player.Fours.FinalDeaths,
 		FoursKills:       player.Fours.Kills,
 		FoursDeaths:      player.Fours.Deaths,
+
+		Fourv4Winstreak:   player.Fourv4.Winstreak,
+		Fourv4GamesPlayed: player.Fourv4.GamesPlayed,
+		Fourv4Wins:        player.Fourv4.Wins,
+		Fourv4Losses:      player.Fourv4.Losses,
+		Fourv4BedsBroken:  player.Fourv4.BedsBroken,
+		Fourv4BedsLost:    player.Fourv4.BedsLost,
+		Fourv4FinalKills:  player.Fourv4.FinalKills,
+		Fourv4FinalDeaths: player.Fourv4.FinalDeaths,
+		Fourv4Kills:       player.Fourv4.Kills,
+		Fourv4Deaths:      player.Fourv4.Deaths,
 	}
 
 	return &hypixelAPIResponse{
