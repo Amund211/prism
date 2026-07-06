@@ -11,5 +11,6 @@ const (
 	GamemodeDoubles Gamemode = "doubles"
 	GamemodeThrees  Gamemode = "threes"
 	GamemodeFours   Gamemode = "fours"
+	GamemodeFourv4  Gamemode = "4v4"
 	GamemodeOverall Gamemode = "overall"
 )

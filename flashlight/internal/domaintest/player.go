@@ -12,9 +12,9 @@ import (
 )
 
 type playerBuilder struct {
-	player                       *domain.PlayerPIT
-	solo, doubles, threes, fours *statsBuilder
-	overallWinstreak             *int
+	player                               *domain.PlayerPIT
+	solo, doubles, threes, fours, fourv4 *statsBuilder
+	overallWinstreak                     *int
 	// Whether the player should get a random db id on Build()
 	fromDB bool
 }
@@ -23,6 +23,7 @@ func (pb *playerBuilder) Solo() *statsBuilder    { return pb.solo }
 func (pb *playerBuilder) Doubles() *statsBuilder { return pb.doubles }
 func (pb *playerBuilder) Threes() *statsBuilder  { return pb.threes }
 func (pb *playerBuilder) Fours() *statsBuilder   { return pb.fours }
+func (pb *playerBuilder) Fourv4() *statsBuilder  { return pb.fourv4 }
 
 func (pb *playerBuilder) WithExperience(exp int64) *playerBuilder {
 	pb.player.Experience = exp
@@ -64,6 +65,7 @@ func (pb *playerBuilder) Build(queriedAt time.Time) domain.PlayerPIT {
 	player.Doubles.Winstreak = clonePtr(player.Doubles.Winstreak)
 	player.Threes.Winstreak = clonePtr(player.Threes.Winstreak)
 	player.Fours.Winstreak = clonePtr(player.Fours.Winstreak)
+	player.Fourv4.Winstreak = clonePtr(player.Fourv4.Winstreak)
 
 	if pb.fromDB {
 		uuidv7, err := uuid.NewV7()
@@ -78,6 +80,7 @@ func (pb *playerBuilder) Build(queriedAt time.Time) domain.PlayerPIT {
 		pb.doubles.stats.Winstreak != nil ||
 		pb.threes.stats.Winstreak != nil ||
 		pb.fours.stats.Winstreak != nil ||
+		pb.fourv4.stats.Winstreak != nil ||
 		pb.overallWinstreak != nil
 
 	minOverallWS := -1
@@ -103,6 +106,9 @@ func (pb *playerBuilder) Build(queriedAt time.Time) domain.PlayerPIT {
 		if player.Fours.Winstreak == nil {
 			player.Fours.Winstreak = new(0)
 		}
+		if player.Fourv4.Winstreak == nil {
+			player.Fourv4.Winstreak = new(0)
+		}
 
 		// Overall winstreak is not uniquely determined by gamemode winstreaks
 		// The set of possible values are
@@ -112,23 +118,25 @@ func (pb *playerBuilder) Build(queriedAt time.Time) domain.PlayerPIT {
 			*player.Doubles.Winstreak,
 			*player.Threes.Winstreak,
 			*player.Fours.Winstreak,
+			*player.Fourv4.Winstreak,
 		)
 
 		maxOverallWS = *player.Solo.Winstreak +
 			*player.Doubles.Winstreak +
 			*player.Threes.Winstreak +
-			*player.Fours.Winstreak
+			*player.Fours.Winstreak +
+			*player.Fourv4.Winstreak
 	}
 
-	player.Overall = computeOverallStats(player.Solo, player.Doubles, player.Threes, player.Fours)
+	player.Overall = computeOverallStats(player.Solo, player.Doubles, player.Threes, player.Fours, player.Fourv4)
 
 	if pb.overallWinstreak != nil {
 		// User set overall winstreak. Validate and set
 		if *pb.overallWinstreak < minOverallWS || *pb.overallWinstreak > maxOverallWS {
 			panic(fmt.Sprintf(
-				"overall winstreak %d outside valid range [%d, %d] for gamemode winstreaks (solo=%d, doubles=%d, threes=%d, fours=%d)",
+				"overall winstreak %d outside valid range [%d, %d] for gamemode winstreaks (solo=%d, doubles=%d, threes=%d, fours=%d, 4v4=%d)",
 				*pb.overallWinstreak, minOverallWS, maxOverallWS,
-				*player.Solo.Winstreak, *player.Doubles.Winstreak, *player.Threes.Winstreak, *player.Fours.Winstreak,
+				*player.Solo.Winstreak, *player.Doubles.Winstreak, *player.Threes.Winstreak, *player.Fours.Winstreak, *player.Fourv4.Winstreak,
 			))
 		}
 
@@ -185,12 +193,13 @@ func NewPlayerBuilder(uuid string) *playerBuilder {
 	pb.doubles = &statsBuilder{playerBuilder: pb, stats: &player.Doubles}
 	pb.threes = &statsBuilder{playerBuilder: pb, stats: &player.Threes}
 	pb.fours = &statsBuilder{playerBuilder: pb, stats: &player.Fours}
+	pb.fourv4 = &statsBuilder{playerBuilder: pb, stats: &player.Fourv4}
 	return pb
 }
 
 // statsBuilder mutates a single gamemode's stats on its parent
 // playerBuilder. It embeds *playerBuilder so player-level methods
-// (Solo/Doubles/Threes/Fours, WithExperience, FromDB, Build, ...) are
+// (Solo/Doubles/Threes/Fours/Fourv4, WithExperience, FromDB, Build, ...) are
 // reachable directly through the stats builder. This makes chains like
 // NewPlayerBuilder(...).Fours().WithGamesPlayed(10).Build(at) work inline.
 type statsBuilder struct {
