@@ -196,6 +196,10 @@ func buildGameSegment(ctx context.Context, prev, curr domain.PlayerPIT) GameSegm
 		gamemode = domain.GamemodeFours
 		prevStats = &prev.Fours
 		currStats = &curr.Fours
+	case gamesPlayedDelta(prev.Fourv4, curr.Fourv4) == 1:
+		gamemode = domain.GamemodeFourv4
+		prevStats = &prev.Fourv4
+		currStats = &curr.Fourv4
 	default:
 		// unreachable
 		reporting.Report(ctx,

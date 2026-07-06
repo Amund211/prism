@@ -839,6 +839,7 @@ func TestBuildGetSessionAt(t *testing.T) {
 			{gamemode: domain.GamemodeDoubles, b: domaintest.NewPlayerBuilder(uuid).FromDB().Doubles()},
 			{gamemode: domain.GamemodeThrees, b: domaintest.NewPlayerBuilder(uuid).FromDB().Threes()},
 			{gamemode: domain.GamemodeFours, b: domaintest.NewPlayerBuilder(uuid).FromDB().Fours()},
+			{gamemode: domain.GamemodeFourv4, b: domaintest.NewPlayerBuilder(uuid).FromDB().Fourv4()},
 		}
 
 		for _, tc := range tests {
