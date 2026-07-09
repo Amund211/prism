@@ -57,6 +57,7 @@ import { getSessionsQueryOptions } from "#queries/sessions.ts";
 import type { Sessions } from "#queries/sessions.ts";
 import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
 import { sessionSearchSchema } from "#schemas/sessionSearch.ts";
+import { formatStatValue } from "#stats/format.ts";
 import { computeStat } from "#stats/index.ts";
 import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
 import type { GamemodeKey, StatKey } from "#stats/keys.ts";
@@ -142,6 +143,9 @@ const renderDuration = (end: Date, start: Date) => {
 
     return hours ? `${hours.toLocaleString()}h ${paddedMinutes}m` : `${paddedMinutes}m`;
 };
+
+// Stats where a positive trend is "bad" (i.e. rendered in error colours).
+const BAD_STATS: readonly StatKey[] = ["deaths", "finalDeaths", "bedsLost", "losses"];
 
 const isLinearStat = (stat: StatKey) => {
     return !["fkdr", "kdr", "bblr", "wlr", "index"].includes(stat);
@@ -473,9 +477,9 @@ const Sessions: React.FC<SessionsProps> = ({
                                                 return formattedNumber;
                                             }
 
-                                            return value.toLocaleString(
-                                                /*TODO: format based on stat type*/
-                                            );
+                                            return formatStatValue(statKey, value, {
+                                                precision: "detailed",
+                                            });
                                         };
 
                                         const textColor: TypographyOwnProps["color"] =
@@ -777,26 +781,10 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
         trendDirection = "down";
     }
 
-    const badStats: StatKey[] = ["deaths", "finalDeaths", "bedsLost", "losses"];
-    // Intentionally not including "index" as the number is usually so large that we don't want decmials. TODO: Could be fixed by better conditional decimal rendering for large numbers.
-    const floatStats: StatKey[] = ["fkdr", "kdr", "bblr", "wlr", "stars"];
-
-    const shortPrecision = floatStats.includes(stat) ? 2 : 0;
-    const shortFormat: Intl.NumberFormatOptions = {
-        minimumFractionDigits: shortPrecision,
-        maximumFractionDigits: shortPrecision,
-    };
-
-    const longPrecision = floatStats.includes(stat) ? 3 : 0;
-    const longFormat: Intl.NumberFormatOptions = {
-        minimumFractionDigits: longPrecision,
-        maximumFractionDigits: longPrecision,
-    };
-
     let trendColor: SvgIconOwnProps["color"];
     if (trendDirection === "flat") {
         trendColor = undefined;
-    } else if ((trendDirection === "up") === badStats.includes(stat)) {
+    } else if ((trendDirection === "up") === BAD_STATS.includes(stat)) {
         trendColor = "error";
     } else {
         trendColor = "success";
@@ -815,22 +803,21 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                             justifyContent="space-between"
                         >
                             <Typography variant="body1">
-                                {sessionValue.toLocaleString(undefined, {
-                                    ...longFormat,
+                                {formatStatValue(stat, sessionValue, {
+                                    precision: "detailed",
                                 })}
                             </Typography>
                             <Tooltip
-                                title={`${startValue.toLocaleString(undefined, {
-                                    ...longFormat,
-                                })} → ${endValue.toLocaleString(undefined, {
-                                    ...longFormat,
+                                title={`${formatStatValue(stat, startValue, {
+                                    precision: "detailed",
+                                })} → ${formatStatValue(stat, endValue, {
+                                    precision: "detailed",
                                 })}`}
                             >
                                 <Stack direction="row" gap={0.5} alignItems="center">
                                     <Typography variant="caption" color={trendColor}>
-                                        {diff.toLocaleString(undefined, {
+                                        {formatStatValue(stat, diff, {
                                             signDisplay: "always",
-                                            ...shortFormat,
                                         })}
                                     </Typography>
                                     {diff > 0 && (
@@ -915,73 +902,16 @@ const ProgressionValueAndMilestone: React.FC<ProgressionValueAndMilestoneProps> 
             </Stack>
         );
     };
-    switch (progression.stat) {
-        case "stars": {
-            // TODO: Format based on prestige colors
-            return renderValues(
-                progression.endValue,
-                progression.nextMilestoneValue,
-                (value) => (
-                    <Typography variant="body1">
-                        {value.toLocaleString(undefined, {
-                            maximumFractionDigits: 2,
-                        })}
-                    </Typography>
-                ),
-                false,
-            );
-        }
-        case "fkdr":
-        case "kdr":
-        case "bblr":
-        case "wlr": {
-            return renderValues(
-                progression.endValue,
-                progression.nextMilestoneValue,
-                (value) => (
-                    <Typography variant="body1">
-                        {value.toLocaleString(undefined, {
-                            maximumFractionDigits: 2,
-                        })}
-                    </Typography>
-                ),
-                false,
-            );
-        }
-        case "index":
-        case "experience":
-        case "winstreak":
-        case "gamesPlayed":
-        case "wins":
-        case "bedsBroken":
-        case "finalKills":
-        case "kills": {
-            return renderValues(
-                progression.endValue,
-                progression.nextMilestoneValue,
-                (value) => (
-                    <Typography variant="body1">{value.toLocaleString()}</Typography>
-                ),
-                false,
-            );
-        }
-        case "losses":
-        case "bedsLost":
-        case "finalDeaths":
-        case "deaths": {
-            return renderValues(
-                progression.endValue,
-                progression.nextMilestoneValue,
-                (value) => (
-                    <Typography variant="body1">{value.toLocaleString()}</Typography>
-                ),
-                true,
-            );
-        }
-        default: {
-            progression satisfies never;
-        }
-    }
+    return renderValues(
+        progression.endValue,
+        progression.nextMilestoneValue,
+        (value) => (
+            <Typography variant="body1">
+                {formatStatValue(progression.stat, value)}
+            </Typography>
+        ),
+        BAD_STATS.includes(progression.stat),
+    );
 };
 
 interface ProgressionCaptionProps {
