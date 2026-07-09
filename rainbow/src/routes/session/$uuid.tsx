@@ -57,7 +57,12 @@ import { getSessionsQueryOptions } from "#queries/sessions.ts";
 import type { Sessions } from "#queries/sessions.ts";
 import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
 import { sessionSearchSchema } from "#schemas/sessionSearch.ts";
-import { formatStatValue } from "#stats/format.ts";
+import {
+    formatStatValue,
+    getTrendDirection,
+    getTrendSentiment,
+} from "#stats/format.ts";
+import type { TrendSentiment } from "#stats/format.ts";
 import { computeStat } from "#stats/index.ts";
 import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
 import type { GamemodeKey, StatKey } from "#stats/keys.ts";
@@ -144,8 +149,12 @@ const renderDuration = (end: Date, start: Date) => {
     return hours ? `${hours.toLocaleString()}h ${paddedMinutes}m` : `${paddedMinutes}m`;
 };
 
-// Stats where a positive trend is "bad" (i.e. rendered in error colours).
-const BAD_STATS: readonly StatKey[] = ["deaths", "finalDeaths", "bedsLost", "losses"];
+// Maps a stat's trend sentiment to the MUI colour used for its value/icon.
+const SENTIMENT_COLOR: Record<TrendSentiment, SvgIconOwnProps["color"]> = {
+    good: "success",
+    bad: "error",
+    neutral: undefined,
+};
 
 const isLinearStat = (stat: StatKey) => {
     return !["fkdr", "kdr", "bblr", "wlr", "index", "winrate"].includes(stat);
@@ -775,23 +784,10 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
         return `Hypixel API disabled for ${getFullStatLabel(stat)}.`;
     }
 
-    let trendDirection: "flat" | "up" | "down";
-    if (diff === 0) {
-        trendDirection = "flat";
-    } else if (diff > 0) {
-        trendDirection = "up";
-    } else {
-        trendDirection = "down";
-    }
-
-    let trendColor: SvgIconOwnProps["color"];
-    if (trendDirection === "flat") {
-        trendColor = undefined;
-    } else if ((trendDirection === "up") === BAD_STATS.includes(stat)) {
-        trendColor = "error";
-    } else {
-        trendColor = "success";
-    }
+    const trendColor =
+        SENTIMENT_COLOR[
+            getTrendSentiment(stat, getTrendDirection(startValue, endValue))
+        ];
 
     return (
         <Card variant="outlined" sx={{ height: "100%", flexGrow: 1 }}>
@@ -871,25 +867,10 @@ const ProgressionValueAndMilestone: React.FC<ProgressionValueAndMilestoneProps> 
         endValue: number,
         nextMilestoneValue: number,
         renderValue: (value: number) => React.ReactNode,
-        badStat: boolean,
+        stat: StatKey,
     ) => {
-        let direction: "up" | "down" | "flat";
-        if (nextMilestoneValue > endValue) {
-            direction = "up";
-        } else if (nextMilestoneValue < endValue) {
-            direction = "down";
-        } else {
-            direction = "flat";
-        }
-
-        let color: SvgIconOwnProps["color"];
-        if (direction === "flat") {
-            color = undefined;
-        } else if ((direction === "up") === badStat) {
-            color = "error";
-        } else {
-            color = "success";
-        }
+        const direction = getTrendDirection(endValue, nextMilestoneValue);
+        const color = SENTIMENT_COLOR[getTrendSentiment(stat, direction)];
 
         return (
             <Stack direction="row" gap={0.5} alignItems="center">
@@ -913,7 +894,7 @@ const ProgressionValueAndMilestone: React.FC<ProgressionValueAndMilestoneProps> 
                 {formatStatValue(progression.stat, value)}
             </Typography>
         ),
-        BAD_STATS.includes(progression.stat),
+        progression.stat,
     );
 };
 

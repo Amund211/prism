@@ -28,6 +28,44 @@ export const STAT_FORMAT_KIND: Record<StatKey, StatFormatKind> = {
 export const getStatFormatKind = (stat: StatKey): StatFormatKind =>
     STAT_FORMAT_KIND[stat];
 
+// Stats where a rising value is "bad" (i.e. rendered in error colours): more
+// deaths, more losses, etc. Every other stat improves as it grows.
+export const BAD_STATS: readonly StatKey[] = [
+    "deaths",
+    "finalDeaths",
+    "bedsLost",
+    "losses",
+];
+
+export const isBadStat = (stat: StatKey): boolean => BAD_STATS.includes(stat);
+
+export type TrendDirection = "up" | "down" | "flat";
+
+// Three-way comparison of a stat's movement from `from` to `to`.
+export const getTrendDirection = (from: number, to: number): TrendDirection => {
+    if (to > from) {
+        return "up";
+    }
+    if (to < from) {
+        return "down";
+    }
+    return "flat";
+};
+
+export type TrendSentiment = "good" | "bad" | "neutral";
+
+// Whether moving in `direction` is good or bad for `stat`. A rising bad stat (or
+// a falling good stat) is "bad"; the opposite is "good"; no movement is neutral.
+export const getTrendSentiment = (
+    stat: StatKey,
+    direction: TrendDirection,
+): TrendSentiment => {
+    if (direction === "flat") {
+        return "neutral";
+    }
+    return (direction === "up") === isBadStat(stat) ? "bad" : "good";
+};
+
 interface FormatStatValueOptions {
     // "compact" → cards / diffs / short contexts (fewer decimals);
     // "detailed" → values / tooltips / hover detail (more decimals).
