@@ -148,7 +148,7 @@ const renderDuration = (end: Date, start: Date) => {
 const BAD_STATS: readonly StatKey[] = ["deaths", "finalDeaths", "bedsLost", "losses"];
 
 const isLinearStat = (stat: StatKey) => {
-    return !["fkdr", "kdr", "bblr", "wlr", "index"].includes(stat);
+    return !["fkdr", "kdr", "bblr", "wlr", "index", "winrate"].includes(stat);
 };
 
 const getRelatedStats = (stat: StatKey): StatKey[] => {
@@ -164,6 +164,9 @@ const getRelatedStats = (stat: StatKey): StatKey[] => {
         }
         case "wlr": {
             return ["wins", "losses"];
+        }
+        case "winrate": {
+            return ["wins", "gamesPlayed"];
         }
         case "index": {
             return ["finalKills", "finalDeaths", "stars"];
@@ -956,6 +959,16 @@ const ProgressionCaption: React.FC<ProgressionCaptionProps> = ({ progression }) 
                 </Typography>
             );
         }
+        case "winrate": {
+            // progressPerDay and sessionQuotient are fractions -> render as %.
+            // dividendPerDay (wins/day) and divisorPerDay (games/day) are
+            // fractional rates, not winrates -> keep the plain 2dp number format.
+            return (
+                <Typography variant="caption">
+                    {`${formatStatValue("winrate", progression.progressPerDay)}/day (${formatStatValue("winrate", progression.sessionQuotient)} long-time ${getShortStatLabel("winrate")}, ${progression.dividendPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("wins")}/day, ${progression.divisorPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("gamesPlayed")}/day)`}
+                </Typography>
+            );
+        }
         case "index": {
             return (
                 <Typography variant="caption">
@@ -1239,7 +1252,13 @@ function RouteComponent() {
 
     // Stats where we want to show the session value AND the all-time value
     // These are stats where the session and all-time values are usually close
-    const statsWhereSessionIsCloseToAllTime: StatKey[] = ["fkdr", "kdr", "bblr", "wlr"];
+    const statsWhereSessionIsCloseToAllTime: StatKey[] = [
+        "fkdr",
+        "kdr",
+        "bblr",
+        "wlr",
+        "winrate",
+    ];
 
     return (
         <Stack spacing={1}>

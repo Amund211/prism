@@ -16,6 +16,7 @@ export const GAMEMODE_STAT_KEYS = [
     "kdr",
     "bblr",
     "wlr",
+    "winrate",
     "index",
     /*
     "clutchRate",

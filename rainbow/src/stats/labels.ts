@@ -50,6 +50,9 @@ export const getFullStatLabel = (stat: StatKey, capitalize = false): string => {
         case "wlr": {
             return capitalize ? "Win/loss ratio" : "win/loss ratio";
         }
+        case "winrate": {
+            return capitalize ? "Win rate" : "win rate";
+        }
         case "index": {
             return capitalize ? "Index (FKDR^2 * Stars)" : "index (FKDR^2 * stars)";
         }
@@ -105,6 +108,9 @@ export const getShortStatLabel = (stat: StatKey, capitalize = false): string => 
         }
         case "wlr": {
             return capitalize ? "WLR" : "WLR";
+        }
+        case "winrate": {
+            return capitalize ? "WR" : "WR";
         }
         case "index": {
             return capitalize ? "Index" : "index";

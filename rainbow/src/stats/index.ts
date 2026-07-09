@@ -59,6 +59,11 @@ export function getStat(
             }
             return wins / losses;
         }
+        case "winrate": {
+            const { wins, gamesPlayed } = selectedGamemode;
+            // A win always increments gamesPlayed, so gamesPlayed === 0 ⇒ wins === 0.
+            return gamesPlayed === 0 ? 0 : wins / gamesPlayed;
+        }
         case "index": {
             const fkdr = getStat(playerData, gamemode, "fkdr");
             const stars = getStat(playerData, gamemode, "stars");
@@ -183,6 +188,18 @@ export function computeStat(
                 return wins;
             }
             return wins / losses;
+        }
+        case "winrate": {
+            const wins = computeStat(playerData, gamemode, "wins", variant, history);
+            const gamesPlayed = computeStat(
+                playerData,
+                gamemode,
+                "gamesPlayed",
+                variant,
+                history,
+            );
+            // A win always increments gamesPlayed, so gamesPlayed === 0 ⇒ wins === 0.
+            return gamesPlayed === 0 ? 0 : wins / gamesPlayed;
         }
         case "index": {
             const fkdr = computeStat(playerData, gamemode, "fkdr", variant, history);

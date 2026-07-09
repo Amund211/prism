@@ -1,6 +1,6 @@
 import type { StatKey } from "./keys.ts";
 
-export type StatFormatKind = "integer" | "decimal";
+export type StatFormatKind = "integer" | "decimal" | "percentage";
 
 // Record<StatKey, …> is exhaustive: a new stat won't compile until its format
 // kind is declared here. (Commit 3 adds "percentage" and the `winrate` entry.)
@@ -21,6 +21,7 @@ export const STAT_FORMAT_KIND: Record<StatKey, StatFormatKind> = {
     kdr: "decimal",
     bblr: "decimal",
     wlr: "decimal",
+    winrate: "percentage",
     index: "integer",
 };
 
@@ -51,6 +52,18 @@ export const formatStatValue = (
         case "integer": {
             return value.toLocaleString(undefined, {
                 maximumFractionDigits: 0,
+                signDisplay,
+            });
+        }
+        case "percentage": {
+            // `style: "percent"` scales by 100 and appends a locale-aware percent
+            // sign/spacing, so pass the raw fraction (not `value * 100`).
+            // min = max (like the decimal case) for a fixed number of decimals.
+            const digits = precision === "detailed" ? 2 : 1;
+            return value.toLocaleString(undefined, {
+                style: "percent",
+                minimumFractionDigits: digits,
+                maximumFractionDigits: digits,
                 signDisplay,
             });
         }

@@ -46,6 +46,7 @@ class StatsBuilder {
             | "kdr"
             | "bblr"
             | "wlr"
+            | "winrate"
             | "index"
             | "stars"
             | "experience"
@@ -55,7 +56,14 @@ class StatsBuilder {
     public withStat(
         stat: Exclude<
             StatKey,
-            "fkdr" | "kdr" | "bblr" | "wlr" | "index" | "stars" | "experience"
+            | "fkdr"
+            | "kdr"
+            | "bblr"
+            | "wlr"
+            | "winrate"
+            | "index"
+            | "stars"
+            | "experience"
         >,
         value: number | null,
     ): this {
@@ -973,6 +981,190 @@ describe("computeStatProgression - quotient stats", () => {
                     });
                 });
             }
+        });
+    }
+});
+
+describe("computeStatProgression - winrate stat", () => {
+    // Winrate = wins / gamesPlayed, a fraction in [0, 1] whose milestones step
+    // by 5%. Built from `wins` + `gamesPlayed` (not settable directly), and NOT
+    // folded into the shared quotient loop above since that hardcodes
+    // integer-ratio milestones.
+    const gamemodes = ALL_GAMEMODE_KEYS;
+
+    const winrateHistory = (
+        gamemode: GamemodeKey,
+        start: { readonly wins: number; readonly gamesPlayed: number },
+        end: { readonly wins: number; readonly gamesPlayed: number },
+        startDate: Date,
+        endDate: Date,
+    ): History => [
+        new PlayerDataBuilder(TEST_UUID, startDate)
+            .withGamemodeStats(
+                gamemode,
+                new StatsBuilder()
+                    .withStat("wins", start.wins)
+                    .withStat("gamesPlayed", start.gamesPlayed)
+                    .build(),
+            )
+            .build(),
+        new PlayerDataBuilder(TEST_UUID, endDate)
+            .withGamemodeStats(
+                gamemode,
+                new StatsBuilder()
+                    .withStat("wins", end.wins)
+                    .withStat("gamesPlayed", end.gamesPlayed)
+                    .build(),
+            )
+            .build(),
+    ];
+
+    for (const gamemode of gamemodes) {
+        describe(`gamemode: ${gamemode}`, () => {
+            test("improving winrate steps up by 5%", () => {
+                const startDate = new Date("2024-01-01T00:00:00Z");
+                const endDate = new Date("2024-01-11T00:00:00Z"); // 10 days
+
+                // Start 50/100 = 0.5, end 140/200 = 0.7, session 90/100 = 0.9.
+                const result = computeStatProgression(
+                    winrateHistory(
+                        gamemode,
+                        { wins: 50, gamesPlayed: 100 },
+                        { wins: 140, gamesPlayed: 200 },
+                        startDate,
+                        endDate,
+                    ),
+                    endDate,
+                    "winrate",
+                    gamemode,
+                );
+
+                if (result.error) {
+                    expect.unreachable(
+                        `Expected success but got error: ${result.reason}`,
+                    );
+                }
+
+                const {
+                    nextMilestoneValue,
+                    daysUntilMilestone,
+                    progressPerDay,
+                    ...rest
+                } = result;
+
+                expect(rest).toStrictEqual({
+                    stat: "winrate",
+                    endValue: 140 / 200,
+                    sessionQuotient: 90 / 100,
+                    dividendPerDay: 90 / 10,
+                    divisorPerDay: 100 / 10,
+                    trendingUpward: true,
+                    trackingDataTimeInterval: {
+                        start: startDate,
+                        end: endDate,
+                    },
+                });
+
+                // 0.70 -> 0.75 (next 5% step up).
+                expect(nextMilestoneValue).toBeCloseTo(0.75, 9);
+                // t = (M*d0 - k0) / (k - M*d) = (0.75*200 - 140) / (9 - 0.75*10)
+                expect(daysUntilMilestone).toBeCloseTo(20 / 3, 9);
+                expect(progressPerDay).toBeCloseTo((0.75 - 140 / 200) / (20 / 3), 9);
+            });
+
+            test("declining winrate steps down by 5%", () => {
+                const startDate = new Date("2024-01-01T00:00:00Z");
+                const endDate = new Date("2024-01-11T00:00:00Z"); // 10 days
+
+                // Start 160/200 = 0.8, end 175/250 = 0.7, session 15/50 = 0.3.
+                const result = computeStatProgression(
+                    winrateHistory(
+                        gamemode,
+                        { wins: 160, gamesPlayed: 200 },
+                        { wins: 175, gamesPlayed: 250 },
+                        startDate,
+                        endDate,
+                    ),
+                    endDate,
+                    "winrate",
+                    gamemode,
+                );
+
+                if (result.error) {
+                    expect.unreachable(
+                        `Expected success but got error: ${result.reason}`,
+                    );
+                }
+
+                const {
+                    nextMilestoneValue,
+                    daysUntilMilestone,
+                    progressPerDay,
+                    ...rest
+                } = result;
+
+                expect(rest).toStrictEqual({
+                    stat: "winrate",
+                    endValue: 175 / 250,
+                    sessionQuotient: 15 / 50,
+                    dividendPerDay: 15 / 10,
+                    divisorPerDay: 50 / 10,
+                    trendingUpward: false,
+                    trackingDataTimeInterval: {
+                        start: startDate,
+                        end: endDate,
+                    },
+                });
+
+                // 0.70 -> 0.65 (next 5% step down).
+                expect(nextMilestoneValue).toBeCloseTo(0.65, 9);
+                // t = (M*d0 - k0) / (k - M*d) = (0.65*250 - 175) / (1.5 - 0.65*5)
+                expect(daysUntilMilestone).toBeCloseTo(50 / 7, 9);
+                expect(progressPerDay).toBeCloseTo((0.65 - 175 / 250) / (50 / 7), 9);
+            });
+
+            test("perfect record clamps the milestone to 100% and reports it reached", () => {
+                const startDate = new Date("2024-01-01T00:00:00Z");
+                const endDate = new Date("2024-01-11T00:00:00Z"); // 10 days
+
+                // Won every game: 50/50 -> 100/100 = 100%. The 5% step would be
+                // 105%, but it clamps to 100% (== the current value), so there is
+                // no further milestone: reached now (0 days), no NaN.
+                const result = computeStatProgression(
+                    winrateHistory(
+                        gamemode,
+                        { wins: 50, gamesPlayed: 50 },
+                        { wins: 100, gamesPlayed: 100 },
+                        startDate,
+                        endDate,
+                    ),
+                    endDate,
+                    "winrate",
+                    gamemode,
+                );
+
+                if (result.error) {
+                    expect.unreachable(
+                        `Expected success but got error: ${result.reason}`,
+                    );
+                }
+
+                expect(result).toStrictEqual({
+                    stat: "winrate",
+                    endValue: 1,
+                    nextMilestoneValue: 1,
+                    daysUntilMilestone: 0,
+                    progressPerDay: 0,
+                    sessionQuotient: 1,
+                    dividendPerDay: 50 / 10,
+                    divisorPerDay: 50 / 10,
+                    trendingUpward: true,
+                    trackingDataTimeInterval: {
+                        start: startDate,
+                        end: endDate,
+                    },
+                });
+            });
         });
     }
 });
@@ -2200,6 +2392,60 @@ describe(nextNaturalMilestone, () => {
             expected: 0,
         },
 
+        // Winrate: next 5% step in the trend direction.
+        {
+            name: "winrate: up from mid-step",
+            value: 0.72,
+            trendingUpward: true,
+            stat: "winrate",
+            expected: 0.75,
+        },
+        {
+            name: "winrate: up from exact step boundary",
+            value: 0.5,
+            trendingUpward: true,
+            stat: "winrate",
+            expected: 0.55,
+        },
+        {
+            name: "winrate: down from mid-step",
+            value: 0.68,
+            trendingUpward: false,
+            stat: "winrate",
+            expected: 0.65,
+        },
+        {
+            name: "winrate: down from exact step boundary",
+            value: 0.5,
+            trendingUpward: false,
+            stat: "winrate",
+            expected: 0.45,
+        },
+        // Clamped into [0, 1]: a near-perfect record can't project past 100%.
+        // At the clamp boundary the milestone equals `value` (the strict-monotonic
+        // contract's documented exception).
+        {
+            name: "winrate: clamps up to 100% just below the top step",
+            value: 0.98,
+            trendingUpward: true,
+            stat: "winrate",
+            expected: 1,
+        },
+        {
+            name: "winrate: clamps up to 100% at 100% (returns value)",
+            value: 1,
+            trendingUpward: true,
+            stat: "winrate",
+            expected: 1,
+        },
+        {
+            name: "winrate: clamps down to 0% at 0% (returns value)",
+            value: 0,
+            trendingUpward: false,
+            stat: "winrate",
+            expected: 0,
+        },
+
         // Everything else: round number scaled to the order of magnitude.
         {
             name: "index: up small",
@@ -2294,6 +2540,7 @@ describe(nextNaturalMilestone, () => {
         const samples: { value: number; stat: StatKey }[] = [
             { value: 3.5, stat: "fkdr" },
             { value: 4, stat: "kdr" },
+            { value: 0.5, stat: "winrate" },
             { value: 16, stat: "index" },
             { value: 100, stat: "wins" },
             { value: 250, stat: "experience" },

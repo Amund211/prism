@@ -115,9 +115,16 @@ const nextRoundNumberMilestone = (value: number, trendingUpward: boolean): numbe
  *
  * CONTRACT: the returned value MUST be strictly greater than `value` when
  * `trendingUpward`, and strictly less than `value` when `!trendingUpward`. The
- * time-to-reach solvers rely on this to keep `daysUntilMilestone` non-negative
- * and correctly signed; a value on the wrong side produces a negative or
- * nonsensical projection, and the renderer has no defense against it.
+ * time-to-reach solvers rely on strict inequality (`>` / `<`, never `>=` / `<=`)
+ * to keep `daysUntilMilestone` non-negative and correctly signed; a value on the
+ * wrong side produces a negative or nonsensical projection, and the renderer has
+ * no defense against it.
+ *
+ * EXCEPTION: a bounded stat clamped at the edge of its range (winrate at 0% / 100%)
+ * has no further step, so this returns `value` itself. Callers MUST detect
+ * `milestone === value` and treat it as "already reached" BEFORE handing it to the
+ * solver, which still assumes strict inequality (see computeQuotientProgression).
+ * TODO: model "no further milestone" as a first-class state instead of returning `value`.
  */
 export type MilestoneStrategy = (
     value: number,
@@ -146,6 +153,18 @@ export const nextNaturalMilestone: MilestoneStrategy = (
         case "wlr": {
             return trendingUpward ? Math.floor(value) + 1 : Math.ceil(value) - 1;
         }
+        case "winrate": {
+            // Winrate is a fraction in [0, 1]; step by 5% in the trend direction,
+            // clamped into [0, 1] so a near-perfect record can't project past 100%
+            // (or below 0%). At the clamp boundary this returns `value` itself,
+            // which the callers must treat as "already reached" (see the CONTRACT
+            // note above and computeQuotientProgression).
+            const step = 0.05;
+            const next = trendingUpward
+                ? (Math.floor(value / step + 1e-9) + 1) * step
+                : (Math.ceil(value / step - 1e-9) - 1) * step;
+            return Math.min(1, Math.max(0, next));
+        }
         default: {
             return nextRoundNumberMilestone(value, trendingUpward);
         }
@@ -164,7 +183,7 @@ interface BaseStatProgression {
 }
 
 type QuotientProgression = BaseStatProgression & {
-    stat: "fkdr" | "kdr" | "bblr" | "wlr";
+    stat: "fkdr" | "kdr" | "bblr" | "wlr" | "winrate";
     sessionQuotient: number;
     dividendPerDay: number;
     divisorPerDay: number;
@@ -180,7 +199,7 @@ type IndexProgression = BaseStatProgression & {
 
 export type StatProgression =
     | (BaseStatProgression & {
-          stat: Exclude<StatKey, "fkdr" | "kdr" | "bblr" | "wlr" | "index">;
+          stat: Exclude<StatKey, "fkdr" | "kdr" | "bblr" | "wlr" | "winrate" | "index">;
       })
     | QuotientProgression
     | IndexProgression;
@@ -250,6 +269,26 @@ const computeQuotientProgression = (
         sessionQuotient >= endQuotient || noSessionProgress || infiniteSessionQuotient;
 
     const nextMilestoneValue = milestoneStrategy(endQuotient, trendingUpward, stat);
+
+    if (nextMilestoneValue === endQuotient) {
+        // The milestone equals the current value: a bounded stat (winrate) is
+        // clamped at the edge of its range and has no further step. Report it as
+        // reached now (0 days) instead of letting the solver below divide 0/0 into
+        // NaN. The strict-monotonic solver never sees this degenerate case.
+        // TODO: represent "no further milestone" as a first-class progression state.
+        return {
+            stat,
+            trackingDataTimeInterval: { start: startDate, end: endDate },
+            endValue: endQuotient,
+            nextMilestoneValue,
+            daysUntilMilestone: 0,
+            progressPerDay: 0,
+            sessionQuotient,
+            dividendPerDay,
+            divisorPerDay,
+            trendingUpward,
+        };
+    }
 
     if (
         // Will make no progress since the quotients are equal (as long as the session quotient is not infinite)
@@ -434,6 +473,17 @@ export const computeStatProgression = (
                 stat,
                 "wins",
                 "losses",
+                gamemode,
+                milestoneStrategy,
+            );
+        }
+        case "winrate": {
+            return computeQuotientProgression(
+                trackingHistory,
+                trackingEnd,
+                stat,
+                "wins",
+                "gamesPlayed",
                 gamemode,
                 milestoneStrategy,
             );
