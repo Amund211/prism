@@ -19,6 +19,7 @@ import { useSynchronizeCharts } from "#contexts/ChartSynchronizer/hooks.ts";
 import { useAssume } from "#hooks/useAssumption.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
+import { formatStatValue } from "#stats/format.ts";
 import type { GamemodeKey, StatKey, VariantKey } from "#stats/keys.ts";
 import { getFullStatLabel, getGamemodeLabel, getVariantLabel } from "#stats/labels.ts";
 
@@ -275,6 +276,16 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
         };
     };
 
+    // oxlint-disable-next-line eslint/no-use-before-define
+    const { lines, statByDataKey } = renderLines({
+        uuids,
+        gamemodes,
+        stats,
+        variants,
+        uuidToUsername,
+        lineStyle,
+    });
+
     return (
         <LineChart
             data={mutableChartData}
@@ -306,17 +317,7 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                 tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
             />
             <CartesianGrid stroke={theme.palette.divider} strokeDasharray="2 4" />
-            {
-                // oxlint-disable-next-line eslint/no-use-before-define
-                renderLines({
-                    uuids,
-                    gamemodes,
-                    stats,
-                    variants,
-                    uuidToUsername,
-                    lineStyle,
-                })
-            }
+            {lines}
             {/* Future marker */}
             <ReferenceArea
                 x1={currentDate.getTime()}
@@ -337,6 +338,12 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
                         timeTypeof: typeof label,
                     }));
                     return label;
+                }}
+                formatter={(value, _name, item) => {
+                    const stat = statByDataKey.get(String(item.dataKey));
+                    return typeof value === "number" && stat !== undefined
+                        ? formatStatValue(stat, value, { precision: "detailed" })
+                        : value;
                 }}
                 contentStyle={{
                     backgroundColor: theme.palette.background.paper,
@@ -497,8 +504,7 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
                         return null;
                     }
 
-                    // TODO: Better number formatting
-                    return value.toLocaleString();
+                    return formatStatValue(stat, value, { precision: "detailed" });
                 }}
                 contentStyle={{
                     backgroundColor: theme.palette.background.paper,
@@ -527,9 +533,16 @@ const renderLines = ({
     variants,
     uuidToUsername,
     lineStyle,
-}: LinesProps): React.ReactNode[] => {
+}: LinesProps): {
+    lines: React.ReactNode[];
+    statByDataKey: Map<string, StatKey>;
+} => {
     let index = 0;
-    return uuids.flatMap((uuid) => {
+    // Authoritative dataKey → stat lookup, built where each line is created so
+    // the tooltip formatter never has to reverse-parse the dataKey string
+    // (uuids and the "4v4" gamemode make splitting fragile).
+    const statByDataKey = new Map<string, StatKey>();
+    const lines = uuids.flatMap((uuid) => {
         return stats.flatMap((stat) => {
             return variants.flatMap((variant) => {
                 if (stat === "stars" || stat === "experience") {
@@ -540,6 +553,7 @@ const renderLines = ({
                         stat,
                         variant,
                     });
+                    statByDataKey.set(dataKey, stat);
                     return (
                         <Line
                             key={dataKey}
@@ -578,6 +592,7 @@ const renderLines = ({
                         stat,
                         variant,
                     });
+                    statByDataKey.set(dataKey, stat);
                     return (
                         <Line
                             key={dataKey}
@@ -611,4 +626,5 @@ const renderLines = ({
             });
         });
     });
+    return { lines, statByDataKey };
 };
