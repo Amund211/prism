@@ -41,12 +41,22 @@ class StatsBuilder {
     public withStat(
         stat: Exclude<
             StatKey,
-            "winstreak" | "fkdr" | "kdr" | "index" | "stars" | "experience"
+            | "winstreak"
+            | "fkdr"
+            | "kdr"
+            | "bblr"
+            | "wlr"
+            | "index"
+            | "stars"
+            | "experience"
         >,
         value: number,
     ): this;
     public withStat(
-        stat: Exclude<StatKey, "fkdr" | "kdr" | "index" | "stars" | "experience">,
+        stat: Exclude<
+            StatKey,
+            "fkdr" | "kdr" | "bblr" | "wlr" | "index" | "stars" | "experience"
+        >,
         value: number | null,
     ): this {
         switch (stat) {
@@ -472,7 +482,7 @@ describe("computeStatProgression - linear gamemode stats", () => {
 });
 
 describe("computeStatProgression - quotient stats", () => {
-    const quotientStats = ["fkdr", "kdr"] as const;
+    const quotientStats = ["fkdr", "kdr", "bblr", "wlr"] as const;
     const gamemodes = ALL_GAMEMODE_KEYS;
 
     type QuotientStatKey = (typeof quotientStats)[number];
@@ -485,6 +495,12 @@ describe("computeStatProgression - quotient stats", () => {
             case "kdr": {
                 return "kills";
             }
+            case "bblr": {
+                return "bedsBroken";
+            }
+            case "wlr": {
+                return "wins";
+            }
         }
     };
 
@@ -495,6 +511,12 @@ describe("computeStatProgression - quotient stats", () => {
             }
             case "kdr": {
                 return "deaths";
+            }
+            case "bblr": {
+                return "bedsLost";
+            }
+            case "wlr": {
+                return "losses";
             }
         }
     };

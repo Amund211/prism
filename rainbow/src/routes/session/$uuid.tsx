@@ -144,7 +144,7 @@ const renderDuration = (end: Date, start: Date) => {
 };
 
 const isLinearStat = (stat: StatKey) => {
-    return !["fkdr", "kdr", "index"].includes(stat);
+    return !["fkdr", "kdr", "bblr", "wlr", "index"].includes(stat);
 };
 
 const getRelatedStats = (stat: StatKey): StatKey[] => {
@@ -154,6 +154,12 @@ const getRelatedStats = (stat: StatKey): StatKey[] => {
         }
         case "kdr": {
             return ["kills", "deaths"];
+        }
+        case "bblr": {
+            return ["bedsBroken", "bedsLost"];
+        }
+        case "wlr": {
+            return ["wins", "losses"];
         }
         case "index": {
             return ["finalKills", "finalDeaths", "stars"];
@@ -773,7 +779,7 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
 
     const badStats: StatKey[] = ["deaths", "finalDeaths", "bedsLost", "losses"];
     // Intentionally not including "index" as the number is usually so large that we don't want decmials. TODO: Could be fixed by better conditional decimal rendering for large numbers.
-    const floatStats: StatKey[] = ["fkdr", "kdr", "stars"];
+    const floatStats: StatKey[] = ["fkdr", "kdr", "bblr", "wlr", "stars"];
 
     const shortPrecision = floatStats.includes(stat) ? 2 : 0;
     const shortFormat: Intl.NumberFormatOptions = {
@@ -926,7 +932,9 @@ const ProgressionValueAndMilestone: React.FC<ProgressionValueAndMilestoneProps> 
             );
         }
         case "fkdr":
-        case "kdr": {
+        case "kdr":
+        case "bblr":
+        case "wlr": {
             return renderValues(
                 progression.endValue,
                 progression.nextMilestoneValue,
@@ -1001,6 +1009,20 @@ const ProgressionCaption: React.FC<ProgressionCaptionProps> = ({ progression }) 
             return (
                 <Typography variant="caption">
                     {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day (${progression.sessionQuotient.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} long-time ${getShortStatLabel("kdr")}, ${progression.dividendPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("kills")}/day, ${progression.divisorPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("deaths")}/day)`}
+                </Typography>
+            );
+        }
+        case "bblr": {
+            return (
+                <Typography variant="caption">
+                    {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day (${progression.sessionQuotient.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} long-time ${getShortStatLabel("bblr")}, ${progression.dividendPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("bedsBroken")}/day, ${progression.divisorPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("bedsLost")}/day)`}
+                </Typography>
+            );
+        }
+        case "wlr": {
+            return (
+                <Typography variant="caption">
+                    {`${progression.progressPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day (${progression.sessionQuotient.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} long-time ${getShortStatLabel("wlr")}, ${progression.dividendPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("wins")}/day, ${progression.divisorPerDay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getShortStatLabel("losses")}/day)`}
                 </Typography>
             );
         }
@@ -1287,7 +1309,7 @@ function RouteComponent() {
 
     // Stats where we want to show the session value AND the all-time value
     // These are stats where the session and all-time values are usually close
-    const statsWhereSessionIsCloseToAllTime: StatKey[] = ["fkdr", "kdr"];
+    const statsWhereSessionIsCloseToAllTime: StatKey[] = ["fkdr", "kdr", "bblr", "wlr"];
 
     return (
         <Stack spacing={1}>

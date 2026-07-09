@@ -141,7 +141,9 @@ export const nextNaturalMilestone: MilestoneStrategy = (
             return (Math.floor(value / 100) + 1) * 100;
         }
         case "fkdr":
-        case "kdr": {
+        case "kdr":
+        case "bblr":
+        case "wlr": {
             return trendingUpward ? Math.floor(value) + 1 : Math.ceil(value) - 1;
         }
         default: {
@@ -162,7 +164,7 @@ interface BaseStatProgression {
 }
 
 type QuotientProgression = BaseStatProgression & {
-    stat: "fkdr" | "kdr";
+    stat: "fkdr" | "kdr" | "bblr" | "wlr";
     sessionQuotient: number;
     dividendPerDay: number;
     divisorPerDay: number;
@@ -177,7 +179,9 @@ type IndexProgression = BaseStatProgression & {
 };
 
 export type StatProgression =
-    | (BaseStatProgression & { stat: Exclude<StatKey, "fkdr" | "kdr" | "index"> })
+    | (BaseStatProgression & {
+          stat: Exclude<StatKey, "fkdr" | "kdr" | "bblr" | "wlr" | "index">;
+      })
     | QuotientProgression
     | IndexProgression;
 
@@ -408,6 +412,28 @@ export const computeStatProgression = (
                 stat,
                 "kills",
                 "deaths",
+                gamemode,
+                milestoneStrategy,
+            );
+        }
+        case "bblr": {
+            return computeQuotientProgression(
+                trackingHistory,
+                trackingEnd,
+                stat,
+                "bedsBroken",
+                "bedsLost",
+                gamemode,
+                milestoneStrategy,
+            );
+        }
+        case "wlr": {
+            return computeQuotientProgression(
+                trackingHistory,
+                trackingEnd,
+                stat,
+                "wins",
+                "losses",
                 gamemode,
                 milestoneStrategy,
             );

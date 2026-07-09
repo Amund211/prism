@@ -44,6 +44,12 @@ export const getFullStatLabel = (stat: StatKey, capitalize = false): string => {
         case "fkdr": {
             return capitalize ? "Final kill/death ratio" : "final kill/death ratio";
         }
+        case "bblr": {
+            return capitalize ? "Beds broken/lost ratio" : "beds broken/lost ratio";
+        }
+        case "wlr": {
+            return capitalize ? "Win/loss ratio" : "win/loss ratio";
+        }
         case "index": {
             return capitalize ? "Index (FKDR^2 * Stars)" : "index (FKDR^2 * stars)";
         }
@@ -93,6 +99,12 @@ export const getShortStatLabel = (stat: StatKey, capitalize = false): string => 
         }
         case "fkdr": {
             return capitalize ? "FKDR" : "FKDR";
+        }
+        case "bblr": {
+            return capitalize ? "BBLR" : "BBLR";
+        }
+        case "wlr": {
+            return capitalize ? "WLR" : "WLR";
         }
         case "index": {
             return capitalize ? "Index" : "index";

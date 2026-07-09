@@ -14,10 +14,10 @@ export const GAMEMODE_STAT_KEYS = [
     "deaths",
     "fkdr",
     "kdr",
-    "index",
-    /*
     "bblr",
     "wlr",
+    "index",
+    /*
     "clutchRate",
     */
 ] as const;

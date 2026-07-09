@@ -45,6 +45,20 @@ export function getStat(
             }
             return kills / deaths;
         }
+        case "bblr": {
+            const { bedsBroken, bedsLost } = selectedGamemode;
+            if (bedsLost === 0) {
+                return bedsBroken;
+            }
+            return bedsBroken / bedsLost;
+        }
+        case "wlr": {
+            const { wins, losses } = selectedGamemode;
+            if (losses === 0) {
+                return wins;
+            }
+            return wins / losses;
+        }
         case "index": {
             const fkdr = getStat(playerData, gamemode, "fkdr");
             const stars = getStat(playerData, gamemode, "stars");
@@ -133,6 +147,42 @@ export function computeStat(
                 return kills;
             }
             return kills / deaths;
+        }
+        case "bblr": {
+            const bedsBroken = computeStat(
+                playerData,
+                gamemode,
+                "bedsBroken",
+                variant,
+                history,
+            );
+            const bedsLost = computeStat(
+                playerData,
+                gamemode,
+                "bedsLost",
+                variant,
+                history,
+            );
+
+            if (bedsLost === 0) {
+                return bedsBroken;
+            }
+            return bedsBroken / bedsLost;
+        }
+        case "wlr": {
+            const wins = computeStat(playerData, gamemode, "wins", variant, history);
+            const losses = computeStat(
+                playerData,
+                gamemode,
+                "losses",
+                variant,
+                history,
+            );
+
+            if (losses === 0) {
+                return wins;
+            }
+            return wins / losses;
         }
         case "index": {
             const fkdr = computeStat(playerData, gamemode, "fkdr", variant, history);
