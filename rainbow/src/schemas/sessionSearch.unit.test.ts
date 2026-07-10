@@ -2,20 +2,25 @@ import { test, expect, describe } from "vitest";
 
 import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
 
-import { sessionSearchSchema } from "./sessionSearch.ts";
+import { makeSessionSearchSchema } from "./sessionSearch.ts";
 
-// Helper to get the expected default tracking start (start of day 1 year ago)
-const getDefaultTrackingStart = () => {
-    const date = new Date();
+// Pin "now" so the tracking-start default is deterministic instead of drifting
+// with the wall-clock and matching the source only by coincidence.
+const NOW = new Date("2025-06-15T12:34:56.789Z");
+const sessionSearchSchema = makeSessionSearchSchema(() => NOW);
+
+// The default tracking start is the start of day, one year before NOW.
+const expectedTrackingStart = (() => {
+    const date = new Date(NOW);
     date.setFullYear(date.getFullYear() - 1);
     date.setHours(0, 0, 0, 0);
     return date;
-};
+})();
 
 describe("sessionSearchSchema validation", () => {
     test("no params -> all defaults", () => {
         const result = sessionSearchSchema.parse({});
-        const expectedDefault = getDefaultTrackingStart();
+        const expectedDefault = expectedTrackingStart;
         expect(result).toStrictEqual({
             gamemode: "overall",
             stat: "fkdr",
@@ -104,32 +109,13 @@ describe("sessionSearchSchema validation", () => {
         const result = sessionSearchSchema.parse({
             trackingStart: "invalid",
         });
-        const expectedDefault = getDefaultTrackingStart();
+        const expectedDefault = expectedTrackingStart;
         expect(result.trackingStart).toStrictEqual(expectedDefault);
     });
 
-    test("default trackingStart is 1 year ago from now (same date)", () => {
+    test("default trackingStart is the start of day one year before now", () => {
         const result = sessionSearchSchema.parse({});
-        const now = new Date();
-        const expectedDate = new Date();
-        expectedDate.setFullYear(expectedDate.getFullYear() - 1);
-        expectedDate.setHours(0, 0, 0, 0);
-
-        // Verify the year is exactly 1 year less
-        expect(result.trackingStart.getFullYear()).toBe(now.getFullYear() - 1);
-
-        // Verify the month and day are the same
-        // NOTE: This test will fail on leap years when run on Feb 29
-        // because setFullYear on Feb 29 of a leap year going back to a non-leap year
-        // will result in March 1 instead of Feb 28
-        expect(result.trackingStart.getMonth()).toBe(expectedDate.getMonth());
-        expect(result.trackingStart.getDate()).toBe(expectedDate.getDate());
-
-        // Also verify it's at the start of the day (midnight)
-        expect(result.trackingStart.getHours()).toBe(0);
-        expect(result.trackingStart.getMinutes()).toBe(0);
-        expect(result.trackingStart.getSeconds()).toBe(0);
-        expect(result.trackingStart.getMilliseconds()).toBe(0);
+        expect(result.trackingStart).toStrictEqual(expectedTrackingStart);
     });
 
     test("date coercion understands simple date strings", () => {
@@ -233,7 +219,7 @@ describe("sessionSearchSchema validation", () => {
             sessionTableMode: "rate",
             showExtrapolatedSessions: "invalid",
         });
-        const expectedDefault = getDefaultTrackingStart();
+        const expectedDefault = expectedTrackingStart;
         expect(result.gamemode).toBe("overall"); // fallback
         expect(result.stat).toBe("wins"); // valid
         expect(result.variantSelection).toBe("both"); // fallback

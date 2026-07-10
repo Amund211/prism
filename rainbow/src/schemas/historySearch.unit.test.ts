@@ -1,13 +1,16 @@
 import { test, expect, describe } from "vitest";
 
+import { endOfDay, startOfDay } from "#intervals.ts";
 import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
 
-import { historyExploreSearchSchema } from "./historySearch.ts";
+import { makeHistoryExploreSearchSchema } from "./historySearch.ts";
 
-const defaultStart = new Date();
-defaultStart.setHours(0, 0, 0, 0);
-const defaultEnd = new Date();
-defaultEnd.setHours(23, 59, 59, 999);
+// Pin "now" so the start/end fallbacks are deterministic instead of drifting
+// with the wall-clock and matching the source only by coincidence.
+const NOW = new Date("2025-06-15T12:34:56.789Z");
+const defaultStart = startOfDay(NOW);
+const defaultEnd = endOfDay(NOW);
+const historyExploreSearchSchema = makeHistoryExploreSearchSchema(() => NOW);
 
 describe("historyExploreSearchSchema validation", () => {
     test("no params -> all defaults", () => {
@@ -55,16 +58,14 @@ describe("historyExploreSearchSchema validation", () => {
         const result = historyExploreSearchSchema.parse({
             start: "invalid-date",
         });
-        // Was struggling with equality on the dates here. Converting to time
-        expect(result.start.getTime()).toBe(defaultStart.getTime());
+        expect(result.start).toStrictEqual(defaultStart);
     });
 
     test("invalid end date -> fallback to default", () => {
         const result = historyExploreSearchSchema.parse({
             end: "invalid-date",
         });
-        // Was struggling with equality on the dates here. Converting to time
-        expect(result.end.getTime()).toBe(defaultEnd.getTime());
+        expect(result.end).toStrictEqual(defaultEnd);
     });
 
     test("invalid limit -> fallback to default", () => {
