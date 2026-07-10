@@ -206,11 +206,13 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 
 	var lastLogin, lastLogout *time.Time
 	if apiPlayer.LastLogin != nil {
-		l := time.UnixMilli(*apiPlayer.LastLogin)
+		// UnixMilli returns a time in the local location; normalize to UTC so
+		// serialization is independent of the host's timezone.
+		l := time.UnixMilli(*apiPlayer.LastLogin).UTC()
 		lastLogin = &l
 	}
 	if apiPlayer.LastLogout != nil {
-		l := time.UnixMilli(*apiPlayer.LastLogout)
+		l := time.UnixMilli(*apiPlayer.LastLogout).UTC()
 		lastLogout = &l
 	}
 
@@ -306,7 +308,9 @@ func HypixelAPIResponseToPlayerPIT(ctx context.Context, uuid string, queriedAt t
 	return &domain.PlayerPIT{
 		DBID: nil, // This does not come from our db, so it doesn't have an ID there yet
 
-		QueriedAt: queriedAt,
+		// Normalize to UTC so serialization is independent of the host's
+		// timezone (the caller's clock may be in local time).
+		QueriedAt: queriedAt.UTC(),
 
 		UUID: uuid,
 

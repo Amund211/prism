@@ -74,11 +74,13 @@ func main() {
 		log.Fatalf("Error reading hypixel api responses directory: %s", err.Error())
 	}
 
-	// Fixed queriedAt time for hypixel response -> player tests
+	// Fixed queriedAt time for hypixel response -> player tests.
+	// Rendered in UTC so fixtures are independent of the host's timezone.
 	playerQueriedAt, err := time.Parse(time.RFC3339, "2021-11-25T23:33:47+01:00")
 	if err != nil {
 		log.Fatalf("Error parsing player queriedAt time: %s", err.Error())
 	}
+	playerQueriedAt = playerQueriedAt.UTC()
 
 	for _, hypixelAPIResponseFile := range hypixelAPIResponseFiles {
 		if hypixelAPIResponseFile.IsDir() {

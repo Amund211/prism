@@ -144,7 +144,9 @@ func dbStatToPlayerPIT(dbStat dbStat) (*domain.PlayerPIT, error) {
 	return &domain.PlayerPIT{
 		DBID: &dbStat.ID,
 
-		QueriedAt: dbStat.QueriedAt,
+		// Normalize to UTC so serialization is independent of the host's
+		// timezone (the pq driver may return timestamps in the local location).
+		QueriedAt: dbStat.QueriedAt.UTC(),
 
 		UUID: dbStat.UUID,
 
