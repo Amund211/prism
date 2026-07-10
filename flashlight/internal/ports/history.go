@@ -90,9 +90,7 @@ func MakeGetHistoryHandler(
 		}{}
 		err = json.Unmarshal(body, &request)
 		if err != nil {
-			reporting.Report(ctx, fmt.Errorf("failed to parse request body: %w", err), map[string]string{
-				"body": string(body),
-			})
+			logging.FromContext(ctx).WarnContext(ctx, "Failed to parse request body", "error", err, "body", string(body))
 			http.Error(w, "Failed to parse request body", http.StatusBadRequest)
 			return
 		}
@@ -105,9 +103,7 @@ func MakeGetHistoryHandler(
 
 		uuid, err := strutils.NormalizeUUID(request.UUID)
 		if err != nil {
-			reporting.Report(ctx, fmt.Errorf("failed to normalize UUID: %w", err), map[string]string{
-				"rawUUID": request.UUID,
-			})
+			logging.FromContext(ctx).WarnContext(ctx, "Failed to normalize UUID", "error", err, "rawUUID", request.UUID)
 			http.Error(w, "invalid uuid", http.StatusBadRequest)
 			return
 		}
@@ -123,7 +119,7 @@ func MakeGetHistoryHandler(
 		)
 
 		if request.Start.After(request.End) {
-			reporting.Report(ctx, fmt.Errorf("start time is after end time"))
+			logging.FromContext(ctx).WarnContext(ctx, "Start time is after end time")
 			http.Error(w, "Start time cannot be after end time", http.StatusBadRequest)
 			return
 		}

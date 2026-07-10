@@ -111,7 +111,7 @@ func MakeGetSessionAtHandler(
 		}{}
 		err = json.Unmarshal(body, &request)
 		if err != nil {
-			reporting.Report(ctx, fmt.Errorf("failed to parse request body: %w", err))
+			logging.FromContext(ctx).WarnContext(ctx, "Failed to parse request body", "error", err)
 			http.Error(w, "Failed to parse request body", http.StatusBadRequest)
 			return
 		}
@@ -122,9 +122,7 @@ func MakeGetSessionAtHandler(
 
 		uuid, err := strutils.NormalizeUUID(request.UUID)
 		if err != nil {
-			reporting.Report(ctx, fmt.Errorf("failed to normalize uuid: %w", err), map[string]string{
-				"rawUUID": request.UUID,
-			})
+			logging.FromContext(ctx).WarnContext(ctx, "Failed to normalize uuid", "error", err, "rawUUID", request.UUID)
 			http.Error(w, "invalid uuid", http.StatusBadRequest)
 			return
 		}
