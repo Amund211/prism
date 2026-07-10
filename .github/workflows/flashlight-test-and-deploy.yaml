@@ -43,6 +43,19 @@ jobs:
           go mod tidy
           git diff --quiet
 
+      - name: Check generated fixtures are up to date
+        run: |
+          ./cmd/fix-fixtures/run.sh
+          # Regenerating fixtures must produce no diff. `git add -A` stages any
+          # newly generated files too, so freshly added inputs whose expected
+          # output was never committed are caught alongside stale ones.
+          git add -A internal/adapters/playerprovider/testdata internal/ports/testdata
+          if ! git diff --cached --quiet -- internal/adapters/playerprovider/testdata internal/ports/testdata; then
+            echo "::error::Generated fixtures are out of date. Run ./cmd/fix-fixtures/run.sh and commit the result."
+            git diff --cached -- internal/adapters/playerprovider/testdata internal/ports/testdata
+            exit 1
+          fi
+
       # No `version:` input — the action auto-detects from go.mod's require
       # directive (same version `go tool golangci-lint` resolves to).
       - name: Lint
