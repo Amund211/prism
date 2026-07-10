@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "d7f6207c-28af-4dd0-8a2e-a7af8442aa41",
   "Displayname": "prvx",
-  "LastLogin": "2024-01-26T20:51:25.918+01:00",
-  "LastLogout": "2024-01-26T21:07:25.193+01:00",
+  "LastLogin": "2024-01-26T19:51:25.918Z",
+  "LastLogout": "2024-01-26T20:07:25.193Z",
   "MissingBedwarsStats": false,
   "Experience": 193607,
   "Solo": {

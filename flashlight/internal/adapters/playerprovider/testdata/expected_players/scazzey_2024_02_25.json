@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "a52cdbb6-ce14-4bcf-ac89-c5cbb8338bec",
   "Displayname": "scazzey",
-  "LastLogin": "2024-02-17T11:56:48.798+01:00",
-  "LastLogout": "2024-02-17T11:57:05.847+01:00",
+  "LastLogin": "2024-02-17T10:56:48.798Z",
+  "LastLogout": "2024-02-17T10:57:05.847Z",
   "MissingBedwarsStats": false,
   "Experience": 13892,
   "Solo": {

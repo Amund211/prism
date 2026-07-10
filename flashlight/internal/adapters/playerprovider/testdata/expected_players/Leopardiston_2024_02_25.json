@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "69d462e4-c123-4e4a-b204-29804cc9d6f7",
   "Displayname": "Leopardiston",
-  "LastLogin": "2023-12-11T23:09:52.115+01:00",
-  "LastLogout": "2023-12-12T00:03:24.136+01:00",
+  "LastLogin": "2023-12-11T22:09:52.115Z",
+  "LastLogout": "2023-12-11T23:03:24.136Z",
   "MissingBedwarsStats": false,
   "Experience": 10611819,
   "Solo": {

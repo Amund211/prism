@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "9e03c961-ff4a-4b8e-af50-71b8a85261cd",
   "Displayname": "MR_money_bags777",
-  "LastLogin": "2024-02-25T00:56:18.623+01:00",
-  "LastLogout": "2024-02-25T04:16:14.109+01:00",
+  "LastLogin": "2024-02-24T23:56:18.623Z",
+  "LastLogout": "2024-02-25T03:16:14.109Z",
   "MissingBedwarsStats": false,
   "Experience": 320490,
   "Solo": {

@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "58b09e5d-ea86-41f9-82c6-2636fb8e8c91",
   "Displayname": "l_PoopJuice_l",
-  "LastLogin": "2023-12-03T01:37:35.465+01:00",
-  "LastLogout": "2023-12-03T01:43:18.98+01:00",
+  "LastLogin": "2023-12-03T00:37:35.465Z",
+  "LastLogout": "2023-12-03T00:43:18.98Z",
   "MissingBedwarsStats": false,
   "Experience": 130976,
   "Solo": {

@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "5e41936b-e8d2-4160-9c32-c5018fc627c8",
   "Displayname": "Hfoxlord",
-  "LastLogin": "2024-02-23T19:24:19.271+01:00",
-  "LastLogout": "2024-02-23T20:37:55.141+01:00",
+  "LastLogin": "2024-02-23T18:24:19.271Z",
+  "LastLogout": "2024-02-23T19:37:55.141Z",
   "MissingBedwarsStats": false,
   "Experience": 54995,
   "Solo": {

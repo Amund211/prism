@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "7031b114-ba3a-4fb4-ac07-c3a372527a07",
   "Displayname": "KZOU21",
-  "LastLogin": "2024-02-23T23:10:12.481+01:00",
-  "LastLogout": "2024-02-24T00:25:00.07+01:00",
+  "LastLogin": "2024-02-23T22:10:12.481Z",
+  "LastLogout": "2024-02-23T23:25:00.07Z",
   "MissingBedwarsStats": false,
   "Experience": 10885,
   "Solo": {

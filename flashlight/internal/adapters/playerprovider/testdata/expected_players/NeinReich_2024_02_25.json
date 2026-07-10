@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "60bc9ed5-c574-4096-bcf9-2bfae998f9a2",
   "Displayname": "NeinReich",
-  "LastLogin": "2024-01-07T18:45:31.64+01:00",
-  "LastLogout": "2024-01-08T00:40:17.529+01:00",
+  "LastLogin": "2024-01-07T17:45:31.64Z",
+  "LastLogout": "2024-01-07T23:40:17.529Z",
   "MissingBedwarsStats": false,
   "Experience": 5216,
   "Solo": {

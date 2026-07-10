@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "c5e77a4e-33fc-4fcb-a98d-4c7eda37297c",
   "Displayname": "Popcornfroid",
-  "LastLogin": "2024-02-25T13:10:07.33+01:00",
-  "LastLogout": "2024-02-25T13:15:48.989+01:00",
+  "LastLogin": "2024-02-25T12:10:07.33Z",
+  "LastLogout": "2024-02-25T12:15:48.989Z",
   "MissingBedwarsStats": false,
   "Experience": 222747,
   "Solo": {

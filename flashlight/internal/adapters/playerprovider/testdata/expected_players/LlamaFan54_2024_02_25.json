@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "6aef53ae-7954-4709-8e1b-19544c9d5aee",
   "Displayname": "LlamaFan54",
-  "LastLogin": "2024-02-22T01:57:27.008+01:00",
-  "LastLogout": "2024-02-22T02:16:18.564+01:00",
+  "LastLogin": "2024-02-22T00:57:27.008Z",
+  "LastLogout": "2024-02-22T01:16:18.564Z",
   "MissingBedwarsStats": false,
   "Experience": 117322,
   "Solo": {

@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "83c7856b-a26f-4fe8-b283-d4bb301493de",
   "Displayname": "stephen0726",
-  "LastLogin": "2024-02-24T07:35:17.896+01:00",
-  "LastLogout": "2024-02-24T08:04:12.766+01:00",
+  "LastLogin": "2024-02-24T06:35:17.896Z",
+  "LastLogout": "2024-02-24T07:04:12.766Z",
   "MissingBedwarsStats": false,
   "Experience": 142483,
   "Solo": {

@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "f38cb4f1-59fc-469a-929a-52e83fb672f2",
   "Displayname": "BIDENBLASTO",
-  "LastLogin": "2024-02-25T02:22:44.609+01:00",
-  "LastLogout": "2024-02-25T02:28:42.42+01:00",
+  "LastLogin": "2024-02-25T01:22:44.609Z",
+  "LastLogout": "2024-02-25T01:28:42.42Z",
   "MissingBedwarsStats": false,
   "Experience": 6737,
   "Solo": {

@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "f3669348-3102-4df6-b468-6fe66da84d40",
   "Displayname": "MrPoluxX",
-  "LastLogin": "2024-02-24T18:03:07.339+01:00",
-  "LastLogout": "2024-02-24T18:15:46.936+01:00",
+  "LastLogin": "2024-02-24T17:03:07.339Z",
+  "LastLogout": "2024-02-24T17:15:46.936Z",
   "MissingBedwarsStats": false,
   "Experience": 727141,
   "Solo": {

@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "fdbac989-cc52-4a0f-85a9-7fdc427f4adf",
   "Displayname": "Itz_Theo",
-  "LastLogin": "2024-02-24T14:00:25.89+01:00",
-  "LastLogout": "2024-02-24T14:59:13.97+01:00",
+  "LastLogin": "2024-02-24T13:00:25.89Z",
+  "LastLogout": "2024-02-24T13:59:13.97Z",
   "MissingBedwarsStats": false,
   "Experience": 163738,
   "Solo": {

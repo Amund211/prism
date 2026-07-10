@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "3cf23c85-f370-4cc3-be01-ac7c8aabbfdf",
   "Displayname": "poopoosnake75",
-  "LastLogin": "2024-02-24T17:29:12.519+01:00",
-  "LastLogout": "2024-02-24T20:16:31.323+01:00",
+  "LastLogin": "2024-02-24T16:29:12.519Z",
+  "LastLogout": "2024-02-24T19:16:31.323Z",
   "MissingBedwarsStats": false,
   "Experience": 10298563,
   "Solo": {

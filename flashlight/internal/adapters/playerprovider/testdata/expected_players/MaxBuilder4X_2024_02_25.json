@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "f7cf5daf-0fa9-454f-a9d9-7a3202dadddb",
   "Displayname": "MaxBuilder4X",
-  "LastLogin": "2024-02-22T15:28:50.841+01:00",
-  "LastLogout": "2024-02-22T15:36:04.451+01:00",
+  "LastLogin": "2024-02-22T14:28:50.841Z",
+  "LastLogout": "2024-02-22T14:36:04.451Z",
   "MissingBedwarsStats": false,
   "Experience": 929559,
   "Solo": {

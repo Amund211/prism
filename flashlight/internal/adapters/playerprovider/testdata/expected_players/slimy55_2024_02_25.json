@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "f0b83e64-094e-444e-b5f8-73357abcaad4",
   "Displayname": "slimy55",
-  "LastLogin": "2024-02-25T04:40:36.383+01:00",
-  "LastLogout": "2024-02-25T05:19:40.675+01:00",
+  "LastLogin": "2024-02-25T03:40:36.383Z",
+  "LastLogout": "2024-02-25T04:19:40.675Z",
   "MissingBedwarsStats": false,
   "Experience": 336155,
   "Solo": {

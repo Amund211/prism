@@ -1,9 +1,10 @@
 {
-  "QueriedAt": "2021-11-25T23:33:47+01:00",
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
   "UUID": "7f5a4275-b456-4050-9fdb-de133de70fc4",
   "Displayname": "bigboicarrot",
-  "LastLogin": "2024-02-25T02:23:20.048+01:00",
-  "LastLogout": "2024-02-25T02:26:24.528+01:00",
+  "LastLogin": "2024-02-25T01:23:20.048Z",
+  "LastLogout": "2024-02-25T01:26:24.528Z",
   "MissingBedwarsStats": false,
   "Experience": 405775,
   "Solo": {
