@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/strutils"
 )
 
 func TestSanitizeError(t *testing.T) {
@@ -114,6 +116,57 @@ func TestSanitizeError(t *testing.T) {
 				// Real error - double sanitization
 				error: `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/user123": read tcp [fddf:1111:ffff:dddd::c123]:34567->[1234:1b3:51:1::27]:443: read: connection reset by peer`,
 				want:  `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/<username>": read tcp <host>-><host>: read: connection reset by peer`,
+			},
+		}
+
+		for _, tc := range cases {
+			t.Run(tc.error, func(t *testing.T) {
+				t.Parallel()
+
+				require.Equal(t, tc.want, sanitizeError(tc.error))
+			})
+		}
+	})
+
+	t.Run("invalid uuid input", func(t *testing.T) {
+		t.Parallel()
+
+		// Generate the real errors from NormalizeUUID so the regex stays in
+		// sync with the actual message format.
+		invalidCharErr := func(input string) string {
+			_, err := strutils.NormalizeUUID(input)
+			require.Error(t, err)
+			return err.Error()
+		}
+
+		cases := []struct {
+			error string
+			want  string
+		}{
+			{
+				// Real error - invalid character
+				error: invalidCharErr("not-a-uuid!"),
+				want:  `invalid character in UUID. input: '<value>'`,
+			},
+			{
+				// Real error - incorrect length
+				error: invalidCharErr("abc"),
+				want:  `normalized UUID has incorrect length. input: '<value>'`,
+			},
+			{
+				// Real error - value containing a single quote
+				error: invalidCharErr("a'b"),
+				want:  `invalid character in UUID. input: '<value>'`,
+			},
+			{
+				// Wrapped error
+				error: fmt.Errorf("failed to normalize uuid: %w", fmt.Errorf("%s", invalidCharErr("bad uuid"))).Error(),
+				want:  `failed to normalize uuid: invalid character in UUID. input: '<value>'`,
+			},
+			{
+				// Constructed - unrelated "input:" text is not scrubbed
+				error: `some other error. input: 'keepme'`,
+				want:  `some other error. input: 'keepme'`,
 			},
 		}
 

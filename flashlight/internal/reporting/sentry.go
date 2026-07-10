@@ -20,10 +20,17 @@ var uuidRx = regexp.MustCompile(`[0-9a-f]{8}-?([0-9a-f]{4}-?){3}[0-9a-f]{12}`)
 var hostRx = regexp.MustCompile(`\[:{0,2}([0-9a-f]{0,4}:?){1,8}\]:\d+`)
 var usernameRequestRx = regexp.MustCompile(`("https://api\.mojang\.com/users/profiles/minecraft/)[^\s]+?"`)
 
+// invalidUUIDInputRx matches the errors returned by strutils.NormalizeUUID for
+// bad input, scrubbing the user-supplied value quoted after "input: ". The
+// value is high-cardinality client input, so keeping it out of the fingerprint
+// keeps these grouped together.
+var invalidUUIDInputRx = regexp.MustCompile(`((?:invalid character in UUID|normalized UUID has incorrect length)\. input: ').*'`)
+
 func sanitizeError(err string) string {
 	err = uuidRx.ReplaceAllString(err, "<uuid>")
 	err = hostRx.ReplaceAllString(err, "<host>")
 	err = usernameRequestRx.ReplaceAllString(err, `$1<username>"`)
+	err = invalidUUIDInputRx.ReplaceAllString(err, `${1}<value>'`)
 	return err
 }
 
