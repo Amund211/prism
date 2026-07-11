@@ -126,7 +126,7 @@ func MakeGetPlayerDataHandler(
 			},
 		)
 
-		player, err := getAndPersistPlayerWithCache(ctx, uuid)
+		player, err := getAndPersistPlayerWithCache(ctx, uuid, app.ProviderModeFallback)
 		if errors.Is(err, domain.ErrPlayerNotFound) {
 			hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(nil)
 			if err != nil {

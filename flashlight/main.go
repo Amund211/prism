@@ -174,12 +174,6 @@ func main() {
 		fail("Failed to initialize allowed origins", "error", err.Error())
 	}
 
-	getAndPersistPlayerWithCache, err := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, playerRepo)
-	if err != nil {
-		fail("Failed to initialize GetAndPersistPlayerWithCache", "error", err.Error())
-	}
-	updatePlayerInInterval := app.BuildUpdatePlayerInInterval(getAndPersistPlayerWithCache, time.Now)
-
 	getAccountByUsernameWithCache, err := app.BuildGetAccountByUsernameWithCache(accountByUsernameCache, accountProvider, accountRepo, time.Now)
 	if err != nil {
 		fail("Failed to initialize GetAccountByUsernameWithCache", "error", err.Error())
@@ -188,6 +182,12 @@ func main() {
 	if err != nil {
 		fail("Failed to initialize GetAccountByUUIDWithCache", "error", err.Error())
 	}
+
+	getAndPersistPlayerWithCache, err := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, playerRepo, accountRepo, getAccountByUUIDWithCache)
+	if err != nil {
+		fail("Failed to initialize GetAndPersistPlayerWithCache", "error", err.Error())
+	}
+	updatePlayerInInterval := app.BuildUpdatePlayerInInterval(getAndPersistPlayerWithCache, time.Now)
 
 	getTags, err := app.BuildGetTagsWithCache(tagsCache, tagProvider)
 	if err != nil {

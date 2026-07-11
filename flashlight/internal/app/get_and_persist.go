@@ -19,7 +19,39 @@ import (
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
-type GetAndPersistPlayerWithCache func(ctx context.Context, uuid string) (*domain.PlayerPIT, error)
+// ProviderMode controls how GetAndPersistPlayerWithCache sources player data.
+type ProviderMode string
+
+const (
+	// ProviderModeAlways always queries the player provider (Hypixel) for fresh
+	// data and persists it. This is the original behaviour.
+	ProviderModeAlways ProviderMode = "always"
+	// ProviderModeFallback returns the most recent stored stats when we have
+	// them, only querying the provider when we have no stored stats for the
+	// player.
+	ProviderModeFallback ProviderMode = "fallback"
+	// ProviderModeNever never queries the provider. If we have no stored stats
+	// for the player the request fails.
+	ProviderModeNever ProviderMode = "never"
+)
+
+func (m ProviderMode) validate() error {
+	switch m {
+	case ProviderModeAlways, ProviderModeFallback, ProviderModeNever:
+		return nil
+	default:
+		return fmt.Errorf("invalid provider mode: %q", string(m))
+	}
+}
+
+type GetAndPersistPlayerWithCache func(ctx context.Context, uuid string, providerMode ProviderMode) (*domain.PlayerPIT, error)
+
+// displaynameAccountRepository resolves a username from our own account store.
+// The player stats repository does not store usernames, so we resolve them
+// separately when serving stats from the repository.
+type displaynameAccountRepository interface {
+	GetAccountByUUID(ctx context.Context, uuid string) (domain.Account, error)
+}
 
 type getAndPersistPlayerMetricsCollection struct {
 	returnCount metric.Int64Counter
@@ -64,6 +96,8 @@ func BuildGetAndPersistPlayerWithCache(
 	playerCache cache.Cache[*domain.PlayerPIT],
 	provider playerprovider.PlayerProvider,
 	repo playerrepository.PlayerRepository,
+	accountRepo displaynameAccountRepository,
+	getAccountByUUID GetAccountByUUID,
 ) (GetAndPersistPlayerWithCache, error) {
 	const name = "flashlight/app/get_and_persist_player_with_cache"
 
@@ -79,6 +113,7 @@ func BuildGetAndPersistPlayerWithCache(
 		found        bool
 		cached       bool
 		invalidInput bool
+		providerMode ProviderMode
 	}
 
 	track := func(ctx context.Context, info trackingInfo) {
@@ -90,34 +125,101 @@ func BuildGetAndPersistPlayerWithCache(
 				attribute.Bool("found", info.found),
 				attribute.Bool("cached", info.cached),
 				attribute.Bool("invalid_input", info.invalidInput),
+				attribute.String("provider_mode", string(info.providerMode)),
 			),
 		)
 	}
 
-	return func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
+	// resolveDisplayname resolves a player's current username. The stats
+	// repository does not store usernames, so when we serve stats from the
+	// repository we resolve the name separately. We check our own account store
+	// first and only query the provider when we don't have it stored.
+	resolveDisplayname := func(ctx context.Context, uuid string) *string {
+		account, err := accountRepo.GetAccountByUUID(ctx, uuid)
+		if err != nil {
+			// Not stored (or lookup failed) -> resolve via the account use case,
+			// which queries the provider and persists the result.
+			// NOTE: accountRepo / getAccountByUUID handle their own error reporting.
+			account, err = getAccountByUUID(ctx, uuid)
+			if err != nil {
+				// The username is non-critical -> return the stats without it.
+				logging.FromContext(ctx).WarnContext(ctx, "Failed to resolve username for repository player", "uuid", uuid, "error", err.Error())
+				return nil
+			}
+		}
+		username := account.Username
+		return &username
+	}
+
+	return func(ctx context.Context, uuid string, providerMode ProviderMode) (*domain.PlayerPIT, error) {
+		if err := providerMode.validate(); err != nil {
+			logging.FromContext(ctx).ErrorContext(ctx, "Invalid provider mode", "providerMode", string(providerMode))
+			reporting.Report(ctx, err, map[string]string{
+				"providerMode": string(providerMode),
+			})
+			track(ctx, trackingInfo{success: false, invalidInput: true, providerMode: "invalid"})
+			return nil, err
+		}
+
 		if !strutils.UUIDIsNormalized(uuid) {
 			logging.FromContext(ctx).ErrorContext(ctx, "UUID is not normalized", "uuid", uuid)
 			err := fmt.Errorf("UUID is not normalized")
 			reporting.Report(ctx, err)
-			track(ctx, trackingInfo{success: false, invalidInput: true})
+			track(ctx, trackingInfo{success: false, invalidInput: true, providerMode: providerMode})
 			return nil, err
 		}
 
-		player, created, err := cache.GetOrCreate(ctx, playerCache, uuid, func() (*domain.PlayerPIT, error) {
-			return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
+		// Include the provider mode in the cache key so requests with different
+		// modes don't serve each other's (differently-sourced) results.
+		cacheKey := string(providerMode) + ":" + uuid
+
+		player, created, err := cache.GetOrCreate(ctx, playerCache, cacheKey, func() (*domain.PlayerPIT, error) {
+			switch providerMode {
+			case ProviderModeAlways:
+				return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
+			case ProviderModeFallback:
+				repoPlayer, err := repo.GetPlayer(ctx, uuid)
+				if err == nil {
+					repoPlayer.Displayname = resolveDisplayname(ctx, uuid)
+					return repoPlayer, nil
+				}
+				if !errors.Is(err, domain.ErrPlayerNotFound) {
+					// NOTE: PlayerRepository implementations handle their own error reporting
+					logging.FromContext(ctx).WarnContext(ctx, "Failed to read player from repository, falling back to provider", "error", err.Error())
+				}
+				// No stored stats (or lookup failed) -> fetch from the provider
+				return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
+			case ProviderModeNever:
+				repoPlayer, err := repo.GetPlayer(ctx, uuid)
+				if err == nil {
+					repoPlayer.Displayname = resolveDisplayname(ctx, uuid)
+					return repoPlayer, nil
+				}
+				if errors.Is(err, domain.ErrPlayerNotFound) {
+					// Provider mode is never -> we don't query the provider.
+					// Return a generic error (not ErrPlayerNotFound) so the caller
+					// responds with a 500 rather than a 404.
+					return nil, fmt.Errorf("player not stored and provider mode is %q", providerMode)
+				}
+				// NOTE: PlayerRepository implementations handle their own error reporting
+				return nil, fmt.Errorf("failed to get player from repository: %w", err)
+			default:
+				// Unreachable: providerMode was validated above.
+				return nil, fmt.Errorf("invalid provider mode: %q", providerMode)
+			}
 		})
 		if err != nil {
 			// NOTE: GetOrCreate only returns an error if create() fails.
-			// getAndPersistPlayerWithoutCache handles its own error reporting
+			// The create functions handle their own error reporting.
 			if errors.Is(err, domain.ErrPlayerNotFound) {
-				track(ctx, trackingInfo{success: true, found: false})
+				track(ctx, trackingInfo{success: true, found: false, providerMode: providerMode})
 			} else {
-				track(ctx, trackingInfo{success: false})
+				track(ctx, trackingInfo{success: false, providerMode: providerMode})
 			}
 			return nil, fmt.Errorf("failed to cache.GetOrCreate player data: %w", err)
 		}
 
-		track(ctx, trackingInfo{success: true, found: true, cached: !created})
+		track(ctx, trackingInfo{success: true, found: true, cached: !created, providerMode: providerMode})
 		return player, nil
 	}, nil
 }
@@ -155,7 +257,7 @@ func BuildUpdatePlayerInInterval(
 		}
 
 		// This is a current interval -> fetch new data and persist it to the repository
-		_, err := getAndPersistPlayerWithCache(ctx, uuid)
+		_, err := getAndPersistPlayerWithCache(ctx, uuid, ProviderModeFallback)
 		if err != nil {
 			// NOTE: GetAndPersistPlayerWithCache implementations handle their own error reporting
 			return fmt.Errorf("failed to get updated player data: %w", err)

@@ -34,10 +34,11 @@ func TestFindMilestoneAchievements(t *testing.T) {
 	ctx := t.Context()
 	playerUUID := domaintest.NewUUID(t)
 
-	getAndPersistPlayerWithoutCache := func(t *testing.T) func(ctx context.Context, playerUUIDArg string) (*domain.PlayerPIT, error) {
-		return func(ctx context.Context, playerUUIDArg string) (*domain.PlayerPIT, error) {
+	getAndPersistPlayerWithoutCache := func(t *testing.T) func(ctx context.Context, playerUUIDArg string, providerMode app.ProviderMode) (*domain.PlayerPIT, error) {
+		return func(ctx context.Context, playerUUIDArg string, providerMode app.ProviderMode) (*domain.PlayerPIT, error) {
 			t.Helper()
 			require.Equal(t, playerUUID, playerUUIDArg)
+			require.Equal(t, app.ProviderModeFallback, providerMode)
 			return nil, nil
 		}
 	}

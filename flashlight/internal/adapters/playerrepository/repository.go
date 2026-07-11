@@ -291,6 +291,69 @@ func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *doma
 	return nil
 }
 
+func (p *PostgresPlayerRepository) GetPlayer(ctx context.Context, playerUUID string) (*domain.PlayerPIT, error) {
+	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.GetPlayer")
+	defer span.End()
+
+	if !strutils.UUIDIsNormalized(playerUUID) {
+		err := fmt.Errorf("uuid is not normalized")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": playerUUID,
+		})
+		return nil, err
+	}
+
+	conn, err := p.db.Connx(ctx)
+	if err != nil {
+		err := fmt.Errorf("failed to get connection: %w", err)
+		reporting.Report(ctx, err)
+		return nil, err
+	}
+	defer conn.Close()
+
+	_, err = conn.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
+	if err != nil {
+		err := fmt.Errorf("failed to set search path: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"schema": p.schema,
+		})
+		return nil, err
+	}
+
+	var stat dbStat
+	err = conn.GetContext(
+		ctx,
+		&stat,
+		`select
+			id, data_format_version, player_uuid, queried_at, player_data
+		from stats
+		where player_uuid = $1
+		order by queried_at desc
+		limit 1`,
+		playerUUID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, domain.ErrPlayerNotFound
+	}
+	if err != nil {
+		err := fmt.Errorf("failed to select most recent stat: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": playerUUID,
+		})
+		return nil, err
+	}
+
+	player, err := dbStatToPlayerPIT(stat)
+	if err != nil {
+		err := fmt.Errorf("failed to convert db stat to playerpit: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"statID": stat.ID,
+		})
+		return nil, err
+	}
+
+	return player, nil
+}
+
 func (p *PostgresPlayerRepository) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error) {
 	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.GetHistory")
 	defer span.End()
@@ -708,6 +771,10 @@ type StubPlayerRepository struct{}
 
 func (p *StubPlayerRepository) StorePlayer(ctx context.Context, player *domain.PlayerPIT) error {
 	return nil
+}
+
+func (p *StubPlayerRepository) GetPlayer(ctx context.Context, playerUUID string) (*domain.PlayerPIT, error) {
+	return nil, domain.ErrPlayerNotFound
 }
 
 func (p *StubPlayerRepository) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error) {

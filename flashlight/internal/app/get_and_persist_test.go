@@ -42,6 +42,30 @@ func (m *mockedPlayerProvider) GetPlayer(ctx context.Context, uuid string) (*dom
 	return m.player, m.err
 }
 
+type stubAccountRepositoryByUUID struct {
+	account domain.Account
+	err     error
+}
+
+func (s stubAccountRepositoryByUUID) GetAccountByUUID(ctx context.Context, uuid string) (domain.Account, error) {
+	return s.account, s.err
+}
+
+// fakePlayerRepository lets tests configure the result of GetPlayer while
+// inheriting the no-op behaviour of the stub repository for everything else.
+type fakePlayerRepository struct {
+	*playerrepository.StubPlayerRepository
+	player       *domain.PlayerPIT
+	getPlayerErr error
+}
+
+func (f *fakePlayerRepository) GetPlayer(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
+	if f.getPlayerErr != nil {
+		return nil, f.getPlayerErr
+	}
+	return f.player, nil
+}
+
 func TestGetAndPersistPlayer(t *testing.T) {
 	t.Parallel()
 
@@ -51,8 +75,12 @@ func TestGetAndPersistPlayer(t *testing.T) {
 		t.Helper()
 
 		repo := playerrepository.NewStubPlayerRepository()
+		accountRepo := stubAccountRepositoryByUUID{err: domain.ErrUsernameNotFound}
+		getAccountByUUID := func(ctx context.Context, uuid string) (domain.Account, error) {
+			return domain.Account{}, domain.ErrUsernameNotFound
+		}
 
-		usecase, err := BuildGetAndPersistPlayerWithCache(cache, provider, repo)
+		usecase, err := BuildGetAndPersistPlayerWithCache(cache, provider, repo, accountRepo, getAccountByUUID)
 		require.NoError(t, err)
 
 		return usecase
@@ -69,10 +97,10 @@ func TestGetAndPersistPlayer(t *testing.T) {
 		panicProvider := &panicPlayerProvider{t: t}
 		cache := cache.NewBasicCache[*domain.PlayerPIT]()
 
-		_, err := mustBuildGetAndPersistPlayerWithCache(t, cache, provider)(t.Context(), UUID)
+		_, err := mustBuildGetAndPersistPlayerWithCache(t, cache, provider)(t.Context(), UUID, ProviderModeAlways)
 		require.NoError(t, err)
 
-		_, err = mustBuildGetAndPersistPlayerWithCache(t, cache, panicProvider)(t.Context(), UUID)
+		_, err = mustBuildGetAndPersistPlayerWithCache(t, cache, panicProvider)(t.Context(), UUID, ProviderModeAlways)
 		require.NoError(t, err)
 	})
 
@@ -90,7 +118,7 @@ func TestGetAndPersistPlayer(t *testing.T) {
 			}
 			cache := cache.NewBasicCache[*domain.PlayerPIT]()
 
-			_, err := mustBuildGetAndPersistPlayerWithCache(t, cache, provider)(t.Context(), "01234567-89ab-cdef-0123-456789abcdef")
+			_, err := mustBuildGetAndPersistPlayerWithCache(t, cache, provider)(t.Context(), "01234567-89ab-cdef-0123-456789abcdef", ProviderModeAlways)
 			require.ErrorIs(t, err, providerErr)
 		}
 	})
@@ -114,7 +142,7 @@ func TestGetAndPersistPlayer(t *testing.T) {
 			t.Run(fmt.Sprintf("UUID: '%s'", uuid), func(t *testing.T) {
 				t.Parallel()
 
-				_, err := mustBuildGetAndPersistPlayerWithCache(t, cache, provider)(t.Context(), uuid)
+				_, err := mustBuildGetAndPersistPlayerWithCache(t, cache, provider)(t.Context(), uuid, ProviderModeAlways)
 				require.Error(t, err)
 			})
 		}
@@ -174,9 +202,10 @@ func TestUpdatePlayerInInterval(t *testing.T) {
 			testUUID := "01234567-9999-9999-0123-456789abcdef"
 
 			updated := false
-			getAndPersist := func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
+			getAndPersist := func(ctx context.Context, uuid string, providerMode ProviderMode) (*domain.PlayerPIT, error) {
 				t.Helper()
 				require.Equal(t, testUUID, uuid)
+				require.Equal(t, ProviderModeFallback, providerMode)
 				updated = true
 				return nil, nil
 			}
@@ -200,9 +229,10 @@ func TestUpdatePlayerInInterval(t *testing.T) {
 		testUUID := "01234567-0000-9999-0123-456789abcdef"
 
 		called := false
-		getAndPersist := func(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
+		getAndPersist := func(ctx context.Context, uuid string, providerMode ProviderMode) (*domain.PlayerPIT, error) {
 			t.Helper()
 			require.Equal(t, testUUID, uuid)
+			require.Equal(t, ProviderModeFallback, providerMode)
 			called = true
 			return nil, assert.AnError
 		}
@@ -213,5 +243,144 @@ func TestUpdatePlayerInInterval(t *testing.T) {
 		require.ErrorIs(t, err, assert.AnError)
 
 		require.True(t, called)
+	})
+}
+
+func TestGetAndPersistPlayerProviderMode(t *testing.T) {
+	t.Parallel()
+
+	now := time.Now()
+
+	build := func(
+		t *testing.T,
+		provider playerprovider.PlayerProvider,
+		repo playerrepository.PlayerRepository,
+		accountRepo displaynameAccountRepository,
+		getAccountByUUID GetAccountByUUID,
+	) GetAndPersistPlayerWithCache {
+		t.Helper()
+		usecase, err := BuildGetAndPersistPlayerWithCache(
+			cache.NewBasicCache[*domain.PlayerPIT](),
+			provider,
+			repo,
+			accountRepo,
+			getAccountByUUID,
+		)
+		require.NoError(t, err)
+		return usecase
+	}
+
+	panicGetAccount := func(t *testing.T) GetAccountByUUID {
+		return func(ctx context.Context, uuid string) (domain.Account, error) {
+			t.Helper()
+			t.Fatal("getAccountByUUID should not be called")
+			return domain.Account{}, nil
+		}
+	}
+
+	t.Run("fallback returns stored player without querying the provider", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakePlayerRepository{
+			StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+			player:               domaintest.NewPlayerBuilder(UUID).WithExperience(1234).BuildPtr(now),
+		}
+		accountRepo := stubAccountRepositoryByUUID{account: domain.Account{UUID: UUID, Username: "StoredName"}}
+
+		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t))
+
+		player, err := usecase(t.Context(), UUID, ProviderModeFallback)
+		require.NoError(t, err)
+		require.NotNil(t, player)
+		require.Equal(t, int64(1234), player.Experience)
+		require.NotNil(t, player.Displayname)
+		require.Equal(t, "StoredName", *player.Displayname)
+	})
+
+	t.Run("fallback resolves username via provider when not in account repo", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakePlayerRepository{
+			StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+			player:               domaintest.NewPlayerBuilder(UUID).WithExperience(1234).BuildPtr(now),
+		}
+		accountRepo := stubAccountRepositoryByUUID{err: domain.ErrUsernameNotFound}
+		getAccountByUUID := func(ctx context.Context, uuid string) (domain.Account, error) {
+			return domain.Account{UUID: UUID, Username: "FetchedName"}, nil
+		}
+
+		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, getAccountByUUID)
+
+		player, err := usecase(t.Context(), UUID, ProviderModeFallback)
+		require.NoError(t, err)
+		require.NotNil(t, player.Displayname)
+		require.Equal(t, "FetchedName", *player.Displayname)
+	})
+
+	t.Run("fallback queries the provider when there are no stored stats", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakePlayerRepository{
+			StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+			getPlayerErr:         domain.ErrPlayerNotFound,
+		}
+		provider := &mockedPlayerProvider{
+			t:      t,
+			player: domaintest.NewPlayerBuilder(UUID).WithExperience(999).BuildPtr(now),
+		}
+		accountRepo := stubAccountRepositoryByUUID{err: domain.ErrUsernameNotFound}
+
+		usecase := build(t, provider, repo, accountRepo, panicGetAccount(t))
+
+		player, err := usecase(t.Context(), UUID, ProviderModeFallback)
+		require.NoError(t, err)
+		require.Equal(t, int64(999), player.Experience)
+	})
+
+	t.Run("never returns stored player without querying the provider", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakePlayerRepository{
+			StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+			player:               domaintest.NewPlayerBuilder(UUID).WithExperience(1234).BuildPtr(now),
+		}
+		accountRepo := stubAccountRepositoryByUUID{account: domain.Account{UUID: UUID, Username: "StoredName"}}
+
+		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t))
+
+		player, err := usecase(t.Context(), UUID, ProviderModeNever)
+		require.NoError(t, err)
+		require.Equal(t, int64(1234), player.Experience)
+		require.NotNil(t, player.Displayname)
+		require.Equal(t, "StoredName", *player.Displayname)
+	})
+
+	t.Run("never fails without querying the provider when no stored stats", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakePlayerRepository{
+			StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+			getPlayerErr:         domain.ErrPlayerNotFound,
+		}
+		accountRepo := stubAccountRepositoryByUUID{err: domain.ErrUsernameNotFound}
+
+		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t))
+
+		_, err := usecase(t.Context(), UUID, ProviderModeNever)
+		require.Error(t, err)
+		// Must NOT be ErrPlayerNotFound so the port responds with 500, not 404.
+		require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
+	})
+
+	t.Run("invalid provider mode errors without querying anything", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakePlayerRepository{StubPlayerRepository: playerrepository.NewStubPlayerRepository()}
+		accountRepo := stubAccountRepositoryByUUID{err: domain.ErrUsernameNotFound}
+
+		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t))
+
+		_, err := usecase(t.Context(), UUID, ProviderMode("bogus"))
+		require.Error(t, err)
 	})
 }

@@ -383,6 +383,50 @@ func TestPostgresPlayerRepository(t *testing.T) {
 		})
 	})
 
+	t.Run("GetPlayer", func(t *testing.T) {
+		t.Parallel()
+		p := newPostgresPlayerRepository(t, db, "get_player_tests")
+
+		now := time.Now().Truncate(time.Millisecond)
+
+		t.Run("returns the most recently queried stats", func(t *testing.T) {
+			t.Parallel()
+
+			playerUUID := domaintest.NewUUID(t)
+
+			p1 := domaintest.NewPlayerBuilder(playerUUID).Fours().WithGamesPlayed(1).BuildPtr(now.Add(-2 * time.Hour))
+			p2 := domaintest.NewPlayerBuilder(playerUUID).Fours().WithGamesPlayed(2).BuildPtr(now)
+			p3 := domaintest.NewPlayerBuilder(playerUUID).Fours().WithGamesPlayed(3).BuildPtr(now.Add(-1 * time.Hour))
+
+			require.NoError(t, p.StorePlayer(ctx, p1))
+			require.NoError(t, p.StorePlayer(ctx, p2))
+			require.NoError(t, p.StorePlayer(ctx, p3))
+
+			player, err := p.GetPlayer(ctx, playerUUID)
+			require.NoError(t, err)
+			require.Equal(t, playerUUID, player.UUID)
+			require.WithinDuration(t, p2.QueriedAt, player.QueriedAt, 0)
+			require.Equal(t, 2, player.Fours.GamesPlayed)
+			requireValidDBID(t, player.DBID)
+		})
+
+		t.Run("returns ErrPlayerNotFound when no stats are stored", func(t *testing.T) {
+			t.Parallel()
+
+			playerUUID := domaintest.NewUUID(t)
+
+			_, err := p.GetPlayer(ctx, playerUUID)
+			require.ErrorIs(t, err, domain.ErrPlayerNotFound)
+		})
+
+		t.Run("errors on un-normalized uuid", func(t *testing.T) {
+			t.Parallel()
+
+			_, err := p.GetPlayer(ctx, "not-a-uuid")
+			require.Error(t, err)
+		})
+	})
+
 	t.Run("GetPlayerPITs", func(t *testing.T) {
 		t.Parallel()
 		p := newPostgresPlayerRepository(t, db, "get_player_pits_tests")
