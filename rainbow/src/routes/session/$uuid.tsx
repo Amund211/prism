@@ -1,12 +1,4 @@
-import {
-    Info,
-    TrendingDown,
-    TrendingFlat,
-    TrendingUp,
-    InfoOutlined,
-    QueryStats,
-    Warning,
-} from "@mui/icons-material";
+import { Info, InfoOutlined, QueryStats, Warning } from "@mui/icons-material";
 import {
     Box,
     Card,
@@ -44,6 +36,7 @@ import React from "react";
 import { HistoryChart, SimpleHistoryChart } from "#charts/history/chart.tsx";
 import { PlayerHead } from "#components/player.tsx";
 import { TimeIntervalPicker } from "#components/TimeIntervalPicker.tsx";
+import { TrendIcon } from "#components/TrendIcon.tsx";
 import { UserSearch } from "#components/UserSearch.tsx";
 import { ChartSynchronizerProvider } from "#contexts/ChartSynchronizer/provider.tsx";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
@@ -684,7 +677,8 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                                         <Typography variant="caption" color={undefined}>
                                             <Skeleton variant="text" width={30} />
                                         </Typography>
-                                        <TrendingFlat
+                                        <TrendIcon
+                                            direction="flat"
                                             color={undefined}
                                             fontSize="small"
                                         />
@@ -771,10 +765,8 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
         return `Hypixel API disabled for ${getFullStatLabel(stat)}.`;
     }
 
-    const trendColor =
-        SENTIMENT_COLOR[
-            getTrendSentiment(stat, getTrendDirection(startValue, endValue))
-        ];
+    const trendDirection = getTrendDirection(startValue, endValue);
+    const trendColor = SENTIMENT_COLOR[getTrendSentiment(stat, trendDirection)];
 
     return (
         <Card variant="outlined" sx={{ height: "100%", flexGrow: 1 }}>
@@ -806,24 +798,11 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                                             signDisplay: "always",
                                         })}
                                     </Typography>
-                                    {diff > 0 && (
-                                        <TrendingUp
-                                            color={trendColor}
-                                            fontSize="small"
-                                        />
-                                    )}
-                                    {diff < 0 && (
-                                        <TrendingDown
-                                            color={trendColor}
-                                            fontSize="small"
-                                        />
-                                    )}
-                                    {diff === 0 && (
-                                        <TrendingFlat
-                                            color={trendColor}
-                                            fontSize="small"
-                                        />
-                                    )}
+                                    <TrendIcon
+                                        direction={trendDirection}
+                                        color={trendColor}
+                                        fontSize="small"
+                                    />
                                 </Stack>
                             </Tooltip>
                         </Stack>
@@ -862,13 +841,7 @@ const ProgressionValueAndMilestone: React.FC<ProgressionValueAndMilestoneProps> 
         return (
             <Stack direction="row" gap={0.5} alignItems="center">
                 {renderValue(endValue)}
-                {direction === "up" && <TrendingUp color={color} fontSize="medium" />}
-                {direction === "down" && (
-                    <TrendingDown color={color} fontSize="medium" />
-                )}
-                {direction === "flat" && (
-                    <TrendingFlat color={color} fontSize="medium" />
-                )}
+                <TrendIcon direction={direction} color={color} fontSize="medium" />
                 {renderValue(nextMilestoneValue)}
             </Stack>
         );
