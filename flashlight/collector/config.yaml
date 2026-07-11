@@ -8,8 +8,15 @@ receivers:
 
 processors:
   batch:
-    # batch metrics before sending to reduce API usage
+    # traces only; metrics use batch/metrics below
     send_batch_max_size: 200
+    send_batch_size: 200
+    timeout: 5s
+
+  # deliberately no send_batch_max_size: splitting one export into several
+  # batches makes the googlemanagedprometheus exporter re-emit target_info /
+  # otel_scope_info per batch, which GMP rejects as duplicate points
+  batch/metrics:
     send_batch_size: 200
     timeout: 5s
 
@@ -53,5 +60,5 @@ service:
       exporters: [googlecloud]
     metrics:
       receivers: [otlp]
-      processors: [batch, memory_limiter, resource_detection, resource]
+      processors: [batch/metrics, memory_limiter, resource_detection, resource]
       exporters: [googlemanagedprometheus]
