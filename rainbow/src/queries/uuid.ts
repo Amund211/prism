@@ -7,6 +7,11 @@ import { getOrSetUserId } from "#helpers/userId.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
 import { MS_PER_DAY } from "#time.ts";
 
+// Response of the flashlight `/v1/account/username/:username` endpoint.
+export type APIUUIDResponse =
+    | { readonly success: true; readonly username: string; readonly uuid: string }
+    | { readonly success: false; readonly username: string; readonly cause: string };
+
 export const getUUIDQueryOptions = (username: string) =>
     queryOptions({
         staleTime: MS_PER_DAY * 21,

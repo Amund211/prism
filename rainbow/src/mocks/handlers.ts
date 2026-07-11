@@ -3,6 +3,9 @@ import { http, HttpResponse } from "msw";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import type { APIPlayerDataPIT } from "#queries/playerdata.ts";
 import type { APISession } from "#queries/sessions.ts";
+import type { APIUsernameResponse } from "#queries/username.ts";
+import type { APIUUIDResponse } from "#queries/uuid.ts";
+import type { APIWrappedData } from "#queries/wrapped.ts";
 
 import {
     findUserByUsername,
@@ -37,21 +40,20 @@ export const handlers = [
 
         const user = findUserByUUID(uuid);
         if (user === null) {
-            return HttpResponse.json(
-                {
-                    success: false,
-                    uuid,
-                    cause: "not found",
-                },
-                { status: 404 },
-            );
+            const response: APIUsernameResponse = {
+                success: false,
+                uuid,
+                cause: "not found",
+            };
+            return HttpResponse.json(response, { status: 404 });
         }
 
-        return HttpResponse.json({
+        const response: APIUsernameResponse = {
             success: true,
             username: user.username,
             uuid: user.uuid,
-        });
+        };
+        return HttpResponse.json(response);
     }),
     http.get(flashlightEndpoint("v1/account/username/:username"), (req) => {
         const { username } = req.params;
@@ -61,21 +63,20 @@ export const handlers = [
 
         const user = findUserByUsername(username);
         if (user === null) {
-            return HttpResponse.json(
-                {
-                    success: false,
-                    username,
-                    cause: "not found",
-                },
-                { status: 404 },
-            );
+            const response: APIUUIDResponse = {
+                success: false,
+                username,
+                cause: "not found",
+            };
+            return HttpResponse.json(response, { status: 404 });
         }
 
-        return HttpResponse.json({
+        const response: APIUUIDResponse = {
             success: true,
             username: user.username,
             uuid: user.uuid,
-        });
+        };
+        return HttpResponse.json(response);
     }),
     http.post(flashlightEndpoint("v1/history"), async ({ request }) => {
         const body = (await request.json()) as {
@@ -91,22 +92,22 @@ export const handlers = [
 
         if (body.limit <= 2) {
             // For limit=2: return start and end only
-            const history: APIPlayerDataPIT[] = [
+            const response: APIPlayerDataPIT[] = [
                 makePlayerDataPIT(body.uuid, startDate.toISOString(), 1),
                 makePlayerDataPIT(body.uuid, endDate.toISOString(), 3),
             ].slice(0, body.limit);
-            return HttpResponse.json(history);
+            return HttpResponse.json(response);
         }
 
         const midDate = new Date((startDate.getTime() + endDate.getTime()) / 2);
 
-        const history: APIPlayerDataPIT[] = [
+        const response: APIPlayerDataPIT[] = [
             makePlayerDataPIT(body.uuid, startDate.toISOString(), 1),
             makePlayerDataPIT(body.uuid, midDate.toISOString(), 2),
             makePlayerDataPIT(body.uuid, endDate.toISOString(), 3),
         ].slice(0, body.limit);
 
-        return HttpResponse.json(history);
+        return HttpResponse.json(response);
     }),
     http.post(flashlightEndpoint("v1/sessions"), async ({ request }) => {
         const body = (await request.json()) as {
@@ -120,12 +121,12 @@ export const handlers = [
         const endDate = new Date(body.end);
         const midDate = new Date((startDate.getTime() + endDate.getTime()) / 2);
 
-        const sessions: APISession[] = [
+        const response: APISession[] = [
             makeSession(body.uuid, startDate.toISOString(), midDate.toISOString()),
             makeSession(body.uuid, midDate.toISOString(), endDate.toISOString()),
         ];
 
-        return HttpResponse.json(sessions);
+        return HttpResponse.json(response);
     }),
     http.get(flashlightEndpoint("v1/wrapped/:uuid/:year"), (req) => {
         const uuid = validateUUID(req.params.uuid);
@@ -138,7 +139,8 @@ export const handlers = [
             throw new Error("Invalid year parameter");
         }
 
-        return HttpResponse.json(makeWrappedResponse(uuid, year));
+        const response: APIWrappedData = makeWrappedResponse(uuid, year);
+        return HttpResponse.json(response);
     }),
     http.get("https://api.mineatar.io/:variant/:uuid", (req) => {
         validateUUID(req.params.uuid);

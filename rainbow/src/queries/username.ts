@@ -7,6 +7,11 @@ import { getOrSetUserId } from "#helpers/userId.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { MS_PER_HOUR } from "#time.ts";
 
+// Response of the flashlight `/v1/account/uuid/:uuid` endpoint.
+export type APIUsernameResponse =
+    | { readonly success: true; readonly username: string; readonly uuid: string }
+    | { readonly success: false; readonly uuid: string; readonly cause: string };
+
 export const getUsernameQueryOptions = (uuid: string) =>
     queryOptions({
         staleTime: MS_PER_HOUR,

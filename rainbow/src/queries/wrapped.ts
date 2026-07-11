@@ -124,7 +124,7 @@ interface SessionStats {
 }
 
 // API response structure (before conversion)
-interface APIWrappedData {
+export interface APIWrappedData {
     readonly success: boolean;
     readonly uuid: string;
     readonly year: number;
