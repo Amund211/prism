@@ -73,6 +73,10 @@ func MakeGetAccountByUsernameHandler(
 		ctx := r.Context()
 		username := r.PathValue("username")
 
+		logging.FromContext(ctx).InfoContext(ctx, "Handling get_account_by_username request",
+			slog.String("username", username),
+		)
+
 		handleError := func(ctx context.Context, cause string, statusCode int) {
 			response, err := makeErrorAccountResponseForUsername(ctx, username, cause)
 			if err != nil {

@@ -67,6 +67,10 @@ func MakeAnonymousLoginHandler(
 			)
 		}
 
+		logging.FromContext(ctx).InfoContext(ctx, "Handling auth-anonymous-login request",
+			slog.String("bodyUserId", body.UserID),
+		)
+
 		ipHash := GetIP(r).Hash()
 
 		sess, err := login(ctx, body.UserID, ipHash)

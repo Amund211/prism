@@ -227,6 +227,13 @@ func MakeGetWrappedHandler(
 
 		rawUUID := r.PathValue("uuid")
 		rawYear := r.PathValue("year")
+
+		logging.FromContext(ctx).InfoContext(ctx, "Handling wrapped request",
+			slog.String("uuid", rawUUID),
+			slog.String("year", rawYear),
+			slog.String("timezone", r.URL.Query().Get("timezone")),
+		)
+
 		ctx = logging.AddMetaToContext(ctx,
 			slog.String("uuid", rawUUID),
 			slog.String("year", rawYear),

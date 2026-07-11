@@ -113,6 +113,11 @@ func MakePrismNoticesHandler(
 
 		rawSelection := r.URL.Query().Get("includeVersionUpdates")
 
+		logging.FromContext(ctx).InfoContext(ctx, "Handling prism-notices request",
+			slog.String("prismVersion", prismVersion),
+			slog.String("includeVersionUpdates", rawSelection),
+		)
+
 		ctx = logging.AddMetaToContext(ctx,
 			slog.String("prismVersion", prismVersion),
 			slog.String("includeVersionUpdates", rawSelection),

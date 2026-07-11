@@ -110,6 +110,11 @@ func MakeGetTagsHandler(
 			return
 		}
 
+		logging.FromContext(ctx).InfoContext(ctx, "Handling tags request",
+			slog.String("uuid", uuid),
+			slog.Bool("hasUrchinApiKey", urchinAPIKey != nil),
+		)
+
 		ctx = reporting.AddExtrasToContext(ctx,
 			map[string]string{
 				"uuid": uuid,

@@ -108,6 +108,13 @@ func MakeGetHistoryHandler(
 			return
 		}
 
+		logging.FromContext(ctx).InfoContext(ctx, "Handling history request",
+			slog.String("uuid", uuid),
+			slog.String("start", request.Start.Format(time.RFC3339)),
+			slog.String("end", request.End.Format(time.RFC3339)),
+			slog.Int("limit", request.Limit),
+		)
+
 		ctx = reporting.AddExtrasToContext(ctx, map[string]string{
 			"uuid": uuid,
 		})

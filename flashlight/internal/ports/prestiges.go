@@ -84,6 +84,11 @@ func MakeGetPrestigesHandler(
 		ctx := r.Context()
 
 		rawUUID := r.PathValue("uuid")
+
+		logging.FromContext(ctx).InfoContext(ctx, "Handling prestiges request",
+			slog.String("uuid", rawUUID),
+		)
+
 		ctx = logging.AddMetaToContext(ctx,
 			slog.String("uuid", rawUUID),
 		)

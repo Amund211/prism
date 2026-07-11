@@ -132,6 +132,11 @@ func MakeGetSessionAtHandler(
 			return
 		}
 
+		logging.FromContext(ctx).InfoContext(ctx, "Handling session-at request",
+			slog.String("uuid", uuid),
+			slog.String("time", request.Time.Format(time.RFC3339)),
+		)
+
 		ctx = reporting.AddExtrasToContext(ctx, map[string]string{
 			"uuid": uuid,
 		})

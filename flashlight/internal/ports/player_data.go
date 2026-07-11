@@ -93,6 +93,11 @@ func MakeGetPlayerDataHandler(
 		}
 
 		rawUUID := r.URL.Query().Get("uuid")
+
+		logging.FromContext(ctx).InfoContext(ctx, "Handling playerdata request",
+			slog.String("uuid", rawUUID),
+		)
+
 		ctx = logging.AddMetaToContext(ctx,
 			slog.String("uuid", rawUUID),
 		)

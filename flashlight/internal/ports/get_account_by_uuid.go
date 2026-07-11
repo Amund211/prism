@@ -86,6 +86,10 @@ func MakeGetAccountByUUIDHandler(
 			return
 		}
 
+		logging.FromContext(ctx).InfoContext(ctx, "Handling get_account_by_uuid request",
+			slog.String("uuid", uuid),
+		)
+
 		ctx = logging.AddMetaToContext(ctx,
 			slog.String("uuid", uuid),
 		)
