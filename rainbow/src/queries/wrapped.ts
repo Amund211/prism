@@ -4,6 +4,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { env } from "#env.ts";
 import { getOrSetUserId } from "#helpers/userId.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
+import { MS_PER_MINUTE } from "#time.ts";
 
 import { apiToPlayerDataPIT } from "./playerdata.ts";
 import type { APIPlayerDataPIT, PlayerDataPIT } from "./playerdata.ts";
@@ -167,7 +168,7 @@ export const getWrappedQueryOptions = ({
     const currentTimeIsInWindow = currentYear === year;
 
     return queryOptions({
-        staleTime: currentTimeIsInWindow ? 1000 * 60 * 5 : Infinity,
+        staleTime: currentTimeIsInWindow ? MS_PER_MINUTE * 5 : Infinity,
         queryKey: ["wrapped", uuid, year, timezone],
         queryFn: async (): Promise<WrappedData> => {
             if (!isNormalizedUUID(uuid)) {

@@ -53,6 +53,7 @@ import { computeStat } from "#stats/index.ts";
 import type { StatKey } from "#stats/keys.ts";
 import { createExportTheme } from "#theme/index.ts";
 import { rainbowGradient } from "#theme/tokens.ts";
+import { MS_PER_DAY, MS_PER_HOUR } from "#time.ts";
 
 const getDefaultTimeZone = (): string => {
     return new Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -301,7 +302,7 @@ const BestSessionCard: React.FC<BestSessionCardProps> = ({
 
     // Calculate session duration in hours
     const durationMs = endDate.getTime() - startDate.getTime();
-    const durationHours = durationMs / (1000 * 60 * 60);
+    const durationHours = durationMs / MS_PER_HOUR;
 
     const { start, end } = session;
     const history = [start];
@@ -1745,12 +1746,12 @@ function WrappedHeader({ wrappedData, uuid, year }: WrappedHeaderProps) {
                     {wrappedData?.yearStats &&
                         wrappedData.yearStats.end.queriedAt.getTime() -
                             wrappedData.yearStats.start.queriedAt.getTime() <
-                            1000 * 60 * 60 * 24 * 30 * 8 && (
+                            MS_PER_DAY * 30 * 8 && (
                             <Tooltip
                                 title={`The data for this year covers only ~${(
                                     (wrappedData.yearStats.end.queriedAt.getTime() -
                                         wrappedData.yearStats.start.queriedAt.getTime()) /
-                                    (1000 * 60 * 60 * 24 * 30)
+                                    (MS_PER_DAY * 30)
                                 ).toLocaleString(undefined, {
                                     maximumFractionDigits: 1,
                                 })} month(s). Statistics may not accurately reflect the entire year.`}

@@ -2,7 +2,9 @@ import { QueryClient } from "@tanstack/react-query";
 import type { PersistedClient, Persister } from "@tanstack/react-query-persist-client";
 import { get, set, del } from "idb-keyval";
 
-export const maxAge = 1000 * 60 * 60 * 24 * 21; // 21 days
+import { MS_PER_DAY } from "#time.ts";
+
+export const maxAge = MS_PER_DAY * 21; // 21 days
 
 export function createQueryClient() {
     return new QueryClient({

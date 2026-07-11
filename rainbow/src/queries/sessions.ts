@@ -4,6 +4,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { env } from "#env.ts";
 import { getOrSetUserId } from "#helpers/userId.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
+import { MS_PER_MINUTE } from "#time.ts";
 
 import { apiToPlayerDataPIT } from "./playerdata.ts";
 import type { APIPlayerDataPIT, PlayerDataPIT } from "./playerdata.ts";
@@ -51,7 +52,7 @@ export const getSessionsQueryOptions = ({ uuid, start, end }: SessionsQueryOptio
     const endISOString = end.toISOString();
 
     return queryOptions({
-        staleTime: currentTimeIsInWindow ? 1000 * 60 * 1 : Infinity,
+        staleTime: currentTimeIsInWindow ? MS_PER_MINUTE : Infinity,
         queryKey: ["sessions", uuid, startISOString, endISOString],
         queryFn: async (): Promise<Sessions> => {
             if (!isNormalizedUUID(uuid)) {

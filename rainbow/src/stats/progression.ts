@@ -1,5 +1,6 @@
 import type { TimeInterval } from "#intervals.ts";
 import type { History } from "#queries/history.ts";
+import { MS_PER_DAY } from "#time.ts";
 
 import { getStat } from "./index.ts";
 import type { GamemodeKey, StatKey } from "./keys.ts";
@@ -218,8 +219,7 @@ const computeQuotientProgression = (
     const [start, end] = trackingHistory;
     const startDate = start.queriedAt;
     const endDate = trackingEnd;
-    const daysElapsed =
-        (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000);
+    const daysElapsed = (endDate.getTime() - startDate.getTime()) / MS_PER_DAY;
 
     const startDividend = getStat(start, gamemode, dividendStat);
     const startDivisor = getStat(start, gamemode, divisorStat);
@@ -402,8 +402,7 @@ export const computeStatProgression = (
     const [start, end] = trackingHistory;
     const startDate = start.queriedAt;
     const endDate = trackingEnd;
-    const daysElapsed =
-        (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000);
+    const daysElapsed = (endDate.getTime() - startDate.getTime()) / MS_PER_DAY;
 
     switch (stat) {
         case "stars": {

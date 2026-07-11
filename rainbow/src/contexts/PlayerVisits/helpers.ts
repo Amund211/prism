@@ -1,4 +1,5 @@
 import { isNormalizedUUID } from "#helpers/uuid.ts";
+import { MS_PER_DAY } from "#time.ts";
 
 export const localStorageKey = "playerVisits";
 
@@ -74,7 +75,7 @@ export const parseStoredPlayerVisits = (stored: string | null): PlayerVisits => 
 
 const lastVisitedWeight = (lastVisited: Date): number => {
     const diff = loadedAt.getTime() - lastVisited.getTime();
-    const days = diff / (1000 * 60 * 60 * 24);
+    const days = diff / MS_PER_DAY;
 
     // NOTE: Also includes days < 0 for when the user has visited a player after the page was loaded
     if (days < 1) {

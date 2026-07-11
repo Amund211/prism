@@ -5,10 +5,11 @@ import { addKnownAliasAndPersist } from "#contexts/KnownAliases/helpers.ts";
 import { env } from "#env.ts";
 import { getOrSetUserId } from "#helpers/userId.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
+import { MS_PER_DAY } from "#time.ts";
 
 export const getUUIDQueryOptions = (username: string) =>
     queryOptions({
-        staleTime: 1000 * 60 * 60 * 24 * 21,
+        staleTime: MS_PER_DAY * 21,
         queryKey: ["uuid", username],
         queryFn: async (): Promise<{ uuid: string; username: string }> => {
             const response = await fetch(

@@ -78,6 +78,7 @@ import {
     ERR_TRACKING_STARTED,
 } from "#stats/progression.ts";
 import type { StatProgression } from "#stats/progression.ts";
+import { MS_PER_DAY, MS_PER_HOUR } from "#time.ts";
 
 export const Route = createFileRoute("/session/$uuid")({
     loaderDeps: ({ search: { timeIntervalDefinition, trackingStart } }) => {
@@ -438,9 +439,7 @@ const Sessions: React.FC<SessionsProps> = ({
                                         const durationHours =
                                             (session.end.queriedAt.getTime() -
                                                 session.start.queriedAt.getTime()) /
-                                            1000 /
-                                            60 /
-                                            60;
+                                            MS_PER_HOUR;
 
                                         if (durationHours <= 0) {
                                             assume(
@@ -1121,11 +1120,11 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
     }
 
     const projectedMilestoneDate = new Date(
-        referenceDate.getTime() + progression.daysUntilMilestone * 24 * 60 * 60 * 1000,
+        referenceDate.getTime() + progression.daysUntilMilestone * MS_PER_DAY,
     );
 
     const daysUntilMilestoneFromNow =
-        (projectedMilestoneDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+        (projectedMilestoneDate.getTime() - now.getTime()) / MS_PER_DAY;
 
     return (
         <Card variant="outlined" sx={{ height: "100%" }}>

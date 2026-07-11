@@ -1,5 +1,6 @@
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { makeLocalStorageWrite } from "#hooks/useLocalStorage.ts";
+import { MS_PER_DAY } from "#time.ts";
 
 export const localStorageKey = "knownAliases";
 
@@ -153,7 +154,7 @@ export const presentRecentKnownAliases = (
                     (info) =>
                         // Only allow aliases that have been resolved in the last year
                         info.lastResolved.getTime() >
-                        loadedAt.getTime() - 1000 * 60 * 60 * 24 * 30 * 12,
+                        loadedAt.getTime() - MS_PER_DAY * 30 * 12,
                 )
                 .map((info) => info.username) ?? [],
         ]),

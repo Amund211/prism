@@ -1,6 +1,7 @@
 import type { History } from "#queries/history.ts";
 import { computeStat } from "#stats/index.ts";
 import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS, ALL_VARIANT_KEYS } from "#stats/keys.ts";
+import { MS_PER_MINUTE } from "#time.ts";
 
 import { makeDataKey } from "./dataKeys.ts";
 import type { DataKey } from "./dataKeys.ts";
@@ -54,7 +55,7 @@ export const clusterChartData = (chartData: ChartData): ChartData => {
     // oxlint-disable-next-line unicorn/prefer-at
     const timeSpan = chartData[chartData.length - 1].queriedAt - chartData[0].queriedAt;
     // Cluster entries that are closer than 1% of the time span or 1 minute
-    const threshold = Math.max(timeSpan / 100, 1000 * 60);
+    const threshold = Math.max(timeSpan / 100, MS_PER_MINUTE);
 
     const clusteredChartData: MutableChartData = [];
     for (let i = chartData.length - 1; i >= 0; i--) {

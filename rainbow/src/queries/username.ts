@@ -5,10 +5,11 @@ import { addKnownAliasAndPersist } from "#contexts/KnownAliases/helpers.ts";
 import { env } from "#env.ts";
 import { getOrSetUserId } from "#helpers/userId.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
+import { MS_PER_HOUR } from "#time.ts";
 
 export const getUsernameQueryOptions = (uuid: string) =>
     queryOptions({
-        staleTime: 1000 * 60 * 60,
+        staleTime: MS_PER_HOUR,
         queryKey: ["username", uuid],
         queryFn: async (): Promise<{ uuid: string; username: string }> => {
             if (!isNormalizedUUID(uuid)) {
