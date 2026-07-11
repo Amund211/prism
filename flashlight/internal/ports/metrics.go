@@ -66,24 +66,45 @@ func init() {
 	}
 }
 
+// knownMethods bounds the cardinality of the "method" metric label. r.Method is
+// client-controlled — Go's HTTP server accepts any valid HTTP token as a method,
+// not just the standard verbs — so anything outside this allow-list is collapsed
+// to "other" to keep handler × method series bounded regardless of input.
+var knownMethods = map[string]struct{}{
+	http.MethodGet:     {},
+	http.MethodHead:    {},
+	http.MethodPost:    {},
+	http.MethodPut:     {},
+	http.MethodPatch:   {},
+	http.MethodDelete:  {},
+	http.MethodConnect: {},
+	http.MethodOptions: {},
+	http.MethodTrace:   {},
+}
+
+func normalizeMethod(method string) string {
+	if _, ok := knownMethods[method]; ok {
+		return method
+	}
+	return "other"
+}
+
 func buildMetricsMiddleware(handler string) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 			ctx := r.Context()
 
-			userAgent := r.UserAgent()
-
-			// NOTE: Potentially high cardinality label
-			ipHash := GetIP(r).Hash()
-
 			next(w, r)
 
+			// NOTE: Only attach bounded attributes here. High-cardinality
+			// values (user agent, IP hash, etc.) would blow past the
+			// OpenTelemetry per-instrument cardinality limit (default 2000)
+			// and collapse into a single otel.metric.overflow series. They
+			// belong in logs/traces, not metric labels.
 			attributes := []attribute.KeyValue{
-				attribute.String("method", r.Method),
+				attribute.String("method", normalizeMethod(r.Method)),
 				attribute.String("handler", handler),
-				attribute.String("user_agent", userAgent),
-				attribute.String("ip_hash", ipHash),
 			}
 
 			attributesOption := metric.WithAttributes(attributes...)

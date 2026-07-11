@@ -87,10 +87,10 @@ func NewRateLimitMiddleware(rateLimiter ratelimiting.RequestRateLimiter, onLimit
 					slog.String("userId", userID.String()),
 				)
 
-				attributes := []attribute.KeyValue{
-					attribute.String("ip_hash", ipHash),
-				}
-				metrics.ratelimitedRequestCount.Add(ctx, 1, metric.WithAttributes(attributes...))
+				// NOTE: ip_hash is high-cardinality and is captured in the log
+				// above; keep it off the metric to stay under the OpenTelemetry
+				// cardinality limit.
+				metrics.ratelimitedRequestCount.Add(ctx, 1)
 
 				onLimitExceeded(w, r)
 				return
