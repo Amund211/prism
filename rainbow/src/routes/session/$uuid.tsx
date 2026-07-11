@@ -47,6 +47,7 @@ import { TimeIntervalPicker } from "#components/TimeIntervalPicker.tsx";
 import { UserSearch } from "#components/UserSearch.tsx";
 import { ChartSynchronizerProvider } from "#contexts/ChartSynchronizer/provider.tsx";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
+import { formatDuration } from "#helpers/duration.ts";
 import { addExtrapolatedSessions } from "#helpers/session.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
 import { useAssume } from "#hooks/useAssumption.ts";
@@ -136,19 +137,6 @@ interface SessionsProps {
     tableMode: "total" | "rate";
     showExtrapolatedSessions: boolean;
 }
-
-const renderDuration = (end: Date, start: Date) => {
-    const duration = end.getTime() - start.getTime();
-    const hours = Math.floor(duration / (1000 * 60 * 60));
-    const minutes = Math.floor(
-        (duration % (1000 * 60 * 60)) / (1000 * 60),
-    ).toLocaleString();
-
-    // Align the hours with the other rows if this row has hours
-    const paddedMinutes = minutes.length === 1 && hours ? `0${minutes}` : minutes;
-
-    return hours ? `${hours.toLocaleString()}h ${paddedMinutes}m` : `${paddedMinutes}m`;
-};
 
 // Maps a stat's trend sentiment to the MUI colour used for its value/icon.
 const SENTIMENT_COLOR: Record<TrendSentiment, SvgIconOwnProps["color"]> = {
@@ -552,9 +540,9 @@ const Sessions: React.FC<SessionsProps> = ({
                                                         {session.extrapolated
                                                             ? "< "
                                                             : undefined}
-                                                        {renderDuration(
-                                                            session.end.queriedAt,
-                                                            session.start.queriedAt,
+                                                        {formatDuration(
+                                                            session.end.queriedAt.getTime() -
+                                                                session.start.queriedAt.getTime(),
                                                         )}
                                                     </Typography>
                                                 </TableCell>

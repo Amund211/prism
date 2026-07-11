@@ -557,10 +557,10 @@ describe("Session detail page", () => {
         await expect
             .poll(() => {
                 const cells = document.querySelectorAll("td");
-                // Duration format contains "m" for minutes or "h" for hours
+                // Duration renders as "Xd Yh", "Xh YYm", or "Xm"
                 return [...cells].some((cell) => {
                     const text = cell.textContent.trim();
-                    return /\d+m/.test(text);
+                    return /\d+[dhm]/.test(text);
                 });
             })
             .toBe(true);
