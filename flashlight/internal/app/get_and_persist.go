@@ -42,7 +42,7 @@ const (
 // wellKnownStatsThreshold is the minimum number of stored stat records a player
 // must have for ProviderModeWellKnown to treat them as well-known and query the
 // provider for fresh data.
-const wellKnownStatsThreshold = 75
+const wellKnownStatsThreshold = 40
 
 func (m ProviderMode) validate() error {
 	switch m {
