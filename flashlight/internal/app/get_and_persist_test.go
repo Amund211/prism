@@ -205,7 +205,7 @@ func TestUpdatePlayerInInterval(t *testing.T) {
 			getAndPersist := func(ctx context.Context, uuid string, providerMode ProviderMode) (*domain.PlayerPIT, error) {
 				t.Helper()
 				require.Equal(t, testUUID, uuid)
-				require.Equal(t, ProviderModeFallback, providerMode)
+				require.Equal(t, ProviderModeAlways, providerMode)
 				updated = true
 				return nil, nil
 			}
@@ -232,7 +232,7 @@ func TestUpdatePlayerInInterval(t *testing.T) {
 		getAndPersist := func(ctx context.Context, uuid string, providerMode ProviderMode) (*domain.PlayerPIT, error) {
 			t.Helper()
 			require.Equal(t, testUUID, uuid)
-			require.Equal(t, ProviderModeFallback, providerMode)
+			require.Equal(t, ProviderModeAlways, providerMode)
 			called = true
 			return nil, assert.AnError
 		}

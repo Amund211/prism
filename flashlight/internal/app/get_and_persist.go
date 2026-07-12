@@ -257,7 +257,7 @@ func BuildUpdatePlayerInInterval(
 		}
 
 		// This is a current interval -> fetch new data and persist it to the repository
-		_, err := getAndPersistPlayerWithCache(ctx, uuid, ProviderModeFallback)
+		_, err := getAndPersistPlayerWithCache(ctx, uuid, ProviderModeAlways)
 		if err != nil {
 			// NOTE: GetAndPersistPlayerWithCache implementations handle their own error reporting
 			return fmt.Errorf("failed to get updated player data: %w", err)

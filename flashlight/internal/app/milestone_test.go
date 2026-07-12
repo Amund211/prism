@@ -38,7 +38,7 @@ func TestFindMilestoneAchievements(t *testing.T) {
 		return func(ctx context.Context, playerUUIDArg string, providerMode app.ProviderMode) (*domain.PlayerPIT, error) {
 			t.Helper()
 			require.Equal(t, playerUUID, playerUUIDArg)
-			require.Equal(t, app.ProviderModeFallback, providerMode)
+			require.Equal(t, app.ProviderModeAlways, providerMode)
 			return nil, nil
 		}
 	}
