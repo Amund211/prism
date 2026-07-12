@@ -354,6 +354,52 @@ func (p *PostgresPlayerRepository) GetPlayer(ctx context.Context, playerUUID str
 	return player, nil
 }
 
+func (p *PostgresPlayerRepository) CountStats(ctx context.Context, playerUUID string) (int, error) {
+	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.CountStats")
+	defer span.End()
+
+	if !strutils.UUIDIsNormalized(playerUUID) {
+		err := fmt.Errorf("uuid is not normalized")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": playerUUID,
+		})
+		return 0, err
+	}
+
+	conn, err := p.db.Connx(ctx)
+	if err != nil {
+		err := fmt.Errorf("failed to get connection: %w", err)
+		reporting.Report(ctx, err)
+		return 0, err
+	}
+	defer conn.Close()
+
+	_, err = conn.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
+	if err != nil {
+		err := fmt.Errorf("failed to set search path: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"schema": p.schema,
+		})
+		return 0, err
+	}
+
+	var count int
+	err = conn.GetContext(
+		ctx,
+		&count,
+		`select count(*) from stats where player_uuid = $1`,
+		playerUUID)
+	if err != nil {
+		err := fmt.Errorf("failed to count stats: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": playerUUID,
+		})
+		return 0, err
+	}
+
+	return count, nil
+}
+
 func (p *PostgresPlayerRepository) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error) {
 	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.GetHistory")
 	defer span.End()
@@ -775,6 +821,10 @@ func (p *StubPlayerRepository) StorePlayer(ctx context.Context, player *domain.P
 
 func (p *StubPlayerRepository) GetPlayer(ctx context.Context, playerUUID string) (*domain.PlayerPIT, error) {
 	return nil, domain.ErrPlayerNotFound
+}
+
+func (p *StubPlayerRepository) CountStats(ctx context.Context, playerUUID string) (int, error) {
+	return 0, nil
 }
 
 func (p *StubPlayerRepository) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error) {

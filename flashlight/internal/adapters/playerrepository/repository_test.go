@@ -427,6 +427,65 @@ func TestPostgresPlayerRepository(t *testing.T) {
 		})
 	})
 
+	t.Run("CountStats", func(t *testing.T) {
+		t.Parallel()
+		p := newPostgresPlayerRepository(t, db, "count_stats_tests")
+
+		now := time.Now().Truncate(time.Millisecond)
+
+		t.Run("returns the number of stored stats for the player", func(t *testing.T) {
+			t.Parallel()
+
+			playerUUID := domaintest.NewUUID(t)
+
+			// Distinct stats so the store dedup logic keeps each as a separate row.
+			p1 := domaintest.NewPlayerBuilder(playerUUID).Fours().WithGamesPlayed(1).BuildPtr(now.Add(-2 * time.Hour))
+			p2 := domaintest.NewPlayerBuilder(playerUUID).Fours().WithGamesPlayed(2).BuildPtr(now.Add(-1 * time.Hour))
+			p3 := domaintest.NewPlayerBuilder(playerUUID).Fours().WithGamesPlayed(3).BuildPtr(now)
+
+			require.NoError(t, p.StorePlayer(ctx, p1))
+			require.NoError(t, p.StorePlayer(ctx, p2))
+			require.NoError(t, p.StorePlayer(ctx, p3))
+
+			count, err := p.CountStats(ctx, playerUUID)
+			require.NoError(t, err)
+			require.Equal(t, 3, count)
+		})
+
+		t.Run("returns zero when no stats are stored", func(t *testing.T) {
+			t.Parallel()
+
+			playerUUID := domaintest.NewUUID(t)
+
+			count, err := p.CountStats(ctx, playerUUID)
+			require.NoError(t, err)
+			require.Equal(t, 0, count)
+		})
+
+		t.Run("only counts stats for the given player", func(t *testing.T) {
+			t.Parallel()
+
+			playerUUID := domaintest.NewUUID(t)
+			otherUUID := domaintest.NewUUID(t)
+
+			require.NoError(t, p.StorePlayer(ctx, domaintest.NewPlayerBuilder(playerUUID).Fours().WithGamesPlayed(1).BuildPtr(now.Add(-1*time.Hour))))
+			require.NoError(t, p.StorePlayer(ctx, domaintest.NewPlayerBuilder(playerUUID).Fours().WithGamesPlayed(2).BuildPtr(now)))
+
+			require.NoError(t, p.StorePlayer(ctx, domaintest.NewPlayerBuilder(otherUUID).Fours().WithGamesPlayed(1).BuildPtr(now)))
+
+			count, err := p.CountStats(ctx, playerUUID)
+			require.NoError(t, err)
+			require.Equal(t, 2, count)
+		})
+
+		t.Run("errors on un-normalized uuid", func(t *testing.T) {
+			t.Parallel()
+
+			_, err := p.CountStats(ctx, "not-a-uuid")
+			require.Error(t, err)
+		})
+	})
+
 	t.Run("GetPlayerPITs", func(t *testing.T) {
 		t.Parallel()
 		p := newPostgresPlayerRepository(t, db, "get_player_pits_tests")

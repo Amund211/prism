@@ -51,12 +51,14 @@ func (s stubAccountRepositoryByUUID) GetAccountByUUID(ctx context.Context, uuid 
 	return s.account, s.err
 }
 
-// fakePlayerRepository lets tests configure the result of GetPlayer while
-// inheriting the no-op behaviour of the stub repository for everything else.
+// fakePlayerRepository lets tests configure the result of GetPlayer and
+// CountStats while inheriting the no-op behaviour of the stub repository for
+// everything else.
 type fakePlayerRepository struct {
 	*playerrepository.StubPlayerRepository
 	player       *domain.PlayerPIT
 	getPlayerErr error
+	statCount    int
 }
 
 func (f *fakePlayerRepository) GetPlayer(ctx context.Context, uuid string) (*domain.PlayerPIT, error) {
@@ -64,6 +66,10 @@ func (f *fakePlayerRepository) GetPlayer(ctx context.Context, uuid string) (*dom
 		return nil, f.getPlayerErr
 	}
 	return f.player, nil
+}
+
+func (f *fakePlayerRepository) CountStats(ctx context.Context, uuid string) (int, error) {
+	return f.statCount, nil
 }
 
 func TestGetAndPersistPlayer(t *testing.T) {
@@ -367,6 +373,65 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t))
 
 		_, err := usecase(t.Context(), UUID, ProviderModeNever)
+		require.Error(t, err)
+		// Must NOT be ErrPlayerNotFound so the port responds with 500, not 404.
+		require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
+	})
+
+	t.Run("well-known queries the provider when the player has enough stored stats", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakePlayerRepository{
+			StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+			// Stored player is stale; well-known should ignore it and query the provider.
+			player:    domaintest.NewPlayerBuilder(UUID).WithExperience(1234).BuildPtr(now),
+			statCount: wellKnownStatsThreshold,
+		}
+		provider := &mockedPlayerProvider{
+			t:      t,
+			player: domaintest.NewPlayerBuilder(UUID).WithExperience(999).BuildPtr(now),
+		}
+		accountRepo := stubAccountRepositoryByUUID{err: domain.ErrUsernameNotFound}
+
+		usecase := build(t, provider, repo, accountRepo, panicGetAccount(t))
+
+		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown)
+		require.NoError(t, err)
+		require.Equal(t, int64(999), player.Experience)
+	})
+
+	t.Run("well-known returns stored player without querying the provider when below threshold", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakePlayerRepository{
+			StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+			player:               domaintest.NewPlayerBuilder(UUID).WithExperience(1234).BuildPtr(now),
+			statCount:            wellKnownStatsThreshold - 1,
+		}
+		accountRepo := stubAccountRepositoryByUUID{account: domain.Account{UUID: UUID, Username: "StoredName"}}
+
+		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t))
+
+		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown)
+		require.NoError(t, err)
+		require.Equal(t, int64(1234), player.Experience)
+		require.NotNil(t, player.Displayname)
+		require.Equal(t, "StoredName", *player.Displayname)
+	})
+
+	t.Run("well-known fails without querying the provider when below threshold and no stored stats", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakePlayerRepository{
+			StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+			getPlayerErr:         domain.ErrPlayerNotFound,
+			statCount:            0,
+		}
+		accountRepo := stubAccountRepositoryByUUID{err: domain.ErrUsernameNotFound}
+
+		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t))
+
+		_, err := usecase(t.Context(), UUID, ProviderModeWellKnown)
 		require.Error(t, err)
 		// Must NOT be ErrPlayerNotFound so the port responds with 500, not 404.
 		require.NotErrorIs(t, err, domain.ErrPlayerNotFound)

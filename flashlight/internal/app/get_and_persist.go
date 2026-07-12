@@ -33,11 +33,20 @@ const (
 	// ProviderModeNever never queries the provider. If we have no stored stats
 	// for the player the request fails.
 	ProviderModeNever ProviderMode = "never"
+	// ProviderModeWellKnown behaves like ProviderModeAlways for players we
+	// consider well-known (those with at least wellKnownStatsThreshold stored
+	// stat records) and like ProviderModeNever for everyone else.
+	ProviderModeWellKnown ProviderMode = "well-known"
 )
+
+// wellKnownStatsThreshold is the minimum number of stored stat records a player
+// must have for ProviderModeWellKnown to treat them as well-known and query the
+// provider for fresh data.
+const wellKnownStatsThreshold = 10
 
 func (m ProviderMode) validate() error {
 	switch m {
-	case ProviderModeAlways, ProviderModeFallback, ProviderModeNever:
+	case ProviderModeAlways, ProviderModeFallback, ProviderModeNever, ProviderModeWellKnown:
 		return nil
 	default:
 		return fmt.Errorf("invalid provider mode: %q", string(m))
@@ -151,6 +160,23 @@ func BuildGetAndPersistPlayerWithCache(
 		return &username
 	}
 
+	// getStoredPlayerOrFail returns the most recent stored stats for the player
+	// without ever querying the provider. If we have no stored stats it returns
+	// a generic error (not ErrPlayerNotFound) so the caller responds with a 500
+	// rather than a 404.
+	getStoredPlayerOrFail := func(ctx context.Context, uuid string, providerMode ProviderMode) (*domain.PlayerPIT, error) {
+		repoPlayer, err := repo.GetPlayer(ctx, uuid)
+		if err == nil {
+			repoPlayer.Displayname = resolveDisplayname(ctx, uuid)
+			return repoPlayer, nil
+		}
+		if errors.Is(err, domain.ErrPlayerNotFound) {
+			return nil, fmt.Errorf("player not stored and provider mode is %q", providerMode)
+		}
+		// NOTE: PlayerRepository implementations handle their own error reporting
+		return nil, fmt.Errorf("failed to get player from repository: %w", err)
+	}
+
 	return func(ctx context.Context, uuid string, providerMode ProviderMode) (*domain.PlayerPIT, error) {
 		if err := providerMode.validate(); err != nil {
 			logging.FromContext(ctx).ErrorContext(ctx, "Invalid provider mode", "providerMode", string(providerMode))
@@ -190,19 +216,20 @@ func BuildGetAndPersistPlayerWithCache(
 				// No stored stats (or lookup failed) -> fetch from the provider
 				return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
 			case ProviderModeNever:
-				repoPlayer, err := repo.GetPlayer(ctx, uuid)
-				if err == nil {
-					repoPlayer.Displayname = resolveDisplayname(ctx, uuid)
-					return repoPlayer, nil
+				// Provider mode is never -> we don't query the provider.
+				return getStoredPlayerOrFail(ctx, uuid, providerMode)
+			case ProviderModeWellKnown:
+				count, err := repo.CountStats(ctx, uuid)
+				if err != nil {
+					// NOTE: PlayerRepository implementations handle their own error reporting
+					return nil, fmt.Errorf("failed to count stored player stats: %w", err)
 				}
-				if errors.Is(err, domain.ErrPlayerNotFound) {
-					// Provider mode is never -> we don't query the provider.
-					// Return a generic error (not ErrPlayerNotFound) so the caller
-					// responds with a 500 rather than a 404.
-					return nil, fmt.Errorf("player not stored and provider mode is %q", providerMode)
+				if count >= wellKnownStatsThreshold {
+					// Well-known player -> behave like ProviderModeAlways.
+					return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
 				}
-				// NOTE: PlayerRepository implementations handle their own error reporting
-				return nil, fmt.Errorf("failed to get player from repository: %w", err)
+				// Not well-known -> behave like ProviderModeNever.
+				return getStoredPlayerOrFail(ctx, uuid, providerMode)
 			default:
 				// Unreachable: providerMode was validated above.
 				return nil, fmt.Errorf("invalid provider mode: %q", providerMode)
