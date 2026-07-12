@@ -224,6 +224,7 @@ func BuildGetAndPersistPlayerWithCache(
 					// NOTE: PlayerRepository implementations handle their own error reporting
 					return nil, fmt.Errorf("failed to count stored player stats: %w", err)
 				}
+				logging.FromContext(ctx).InfoContext(ctx, "Counted stored player stats for well-known provider mode", "statsCount", count)
 				if count >= wellKnownStatsThreshold {
 					// Well-known player -> behave like ProviderModeAlways.
 					return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
