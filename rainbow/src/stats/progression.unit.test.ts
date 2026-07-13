@@ -1745,9 +1745,9 @@ describe("computeStatProgression - index stat", () => {
                     index: 400, // 4 star * (10 fkdr)^2
                     milestone: 300,
                     // Shamelessly solved by WolframAlpha
-                    daysUntilMilestone: 9.211_65,
+                    daysUntilMilestone: 9.21165,
                     // (300 - 400) / daysUntilMilestone
-                    progressPerDay: -100 / 9.211_65,
+                    progressPerDay: -100 / 9.21165,
                     cubic: {
                         discriminant: "positive",
                         a: "positive",
@@ -2125,7 +2125,7 @@ describe(findSmallestPositiveCubicRoot, () => {
             b: 8.0,
             c: 7.0,
             e: -42.0,
-            expected: 1.747_522_912_898_955_6,
+            expected: 1.7475229128989556,
         },
         {
             name: "cubic 3 distinct negatives",
@@ -2246,7 +2246,7 @@ describe(findSmallestPositiveCubicRoot, () => {
             b: -27.0,
             c: -480.0,
             e: 6400.0,
-            expected: 9.211_646_096_066_227,
+            expected: 9.211646096066227,
         },
         {
             name: "index: decr not reaching",
@@ -2262,7 +2262,7 @@ describe(findSmallestPositiveCubicRoot, () => {
             b: 920_000.0,
             c: 540_000_000.0,
             e: -32_400_000_000.0,
-            expected: 54.767_996_111_769_335,
+            expected: 54.767996111769335,
         },
         {
             name: "realistic: 1 day root",

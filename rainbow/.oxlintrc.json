@@ -102,6 +102,13 @@
         "react/forbid-component-props": "off",
         "eslint/sort-imports": "off",
 
+        // i18n rule; this project has no translation layer
+        "react/jsx-no-literals": "off",
+        // Arbitrary nesting limit; conflicts with idiomatic zod schema chains
+        "unicorn/max-nested-calls": "off",
+        // Intentional Number.parseInt usage is clearer than Math.trunc(Number(...))
+        "unicorn/prefer-number-coercion": "off",
+
         // TODO: Decide on function style and fix or disable rule
         "eslint/func-style": "off",
         // TODO: Decide on filename case and fix or disable rule

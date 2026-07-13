@@ -10,7 +10,6 @@ export const mswTest = testBase.extend({
             await worker.start({ onUnhandledRequest: "error", quiet: true });
 
             // Expose the worker object on the test's context.
-            // oxlint-disable-next-line react-hooks/rules-of-hooks
             await use(worker);
 
             // Remove any request handlers added in individual test cases.
