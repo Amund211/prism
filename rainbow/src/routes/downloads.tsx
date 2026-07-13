@@ -475,7 +475,7 @@ function RouteComponent() {
             <Stack
                 sx={{
                     gap: 1,
-                    alignItems: "left",
+                    alignItems: "flex-start",
                 }}
             >
                 <Typography variant="caption" id="windows-logo">
