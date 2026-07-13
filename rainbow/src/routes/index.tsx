@@ -37,11 +37,13 @@ function RouteComponent() {
 
     return (
         <Stack
-            height="100%"
-            width="100%"
-            justifyContent="center"
-            alignItems="center"
-            gap={2}
+            sx={{
+                height: "100%",
+                width: "100%",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 2,
+            }}
         >
             <meta
                 name="description"
@@ -94,7 +96,12 @@ function RouteComponent() {
                 size="medium"
             />
             {favorites.length > 0 && (
-                <Stack direction="row" gap={1}>
+                <Stack
+                    direction="row"
+                    sx={{
+                        gap: 1,
+                    }}
+                >
                     {favorites.map((uuid) => (
                         <RouterLinkButton
                             sx={{
@@ -121,7 +128,12 @@ function RouteComponent() {
                                 showExtrapolatedSessions: false,
                             }}
                         >
-                            <Stack alignItems="center" gap={1}>
+                            <Stack
+                                sx={{
+                                    alignItems: "center",
+                                    gap: 1,
+                                }}
+                            >
                                 <PlayerHead
                                     uuid={uuid}
                                     username={uuidToUsername[uuid]}

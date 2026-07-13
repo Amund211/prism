@@ -56,11 +56,10 @@ function VirtualizedRow({ index, style, rows }: RowComponentProps<RowProps>) {
         <Stack
             component="li"
             direction="row"
-            gap={2}
-            alignItems="center"
             // oxlint-disable-next-line react/jsx-props-no-spreading
             {...optionProps}
             style={{ ...style, top: top + LISTBOX_PADDING, margin: 0 }}
+            sx={{ gap: 2, alignItems: "center" }}
         >
             {content}
         </Stack>

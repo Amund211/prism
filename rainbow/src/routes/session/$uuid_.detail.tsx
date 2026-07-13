@@ -391,16 +391,20 @@ const PlayerBanner: React.FC<PlayerBannerProps> = ({
             />
             <Stack
                 direction={{ xs: "column", sm: "row" }}
-                alignItems={{ xs: "stretch", sm: "center" }}
-                gap={2}
+                sx={{
+                    alignItems: { xs: "stretch", sm: "center" },
+                    gap: 2,
+                }}
             >
                 <PlayerHead uuid={uuid} username={username} variant="face" width={64} />
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Stack
                         direction="row"
-                        alignItems="center"
-                        gap={1.5}
-                        flexWrap="wrap"
+                        sx={{
+                            alignItems: "center",
+                            gap: 1.5,
+                            flexWrap: "wrap",
+                        }}
                     >
                         <Chip
                             icon={<Star sx={{ color: "secondary.main" }} />}
@@ -418,18 +422,32 @@ const PlayerBanner: React.FC<PlayerBannerProps> = ({
                     </Stack>
                     <Stack
                         direction="row"
-                        gap={3}
-                        flexWrap="wrap"
-                        sx={{ mt: 1 }}
-                        color="text.secondary"
+                        sx={{
+                            gap: 3,
+                            flexWrap: "wrap",
+                            color: "text.secondary",
+                            mt: 1,
+                        }}
                     >
-                        <Stack direction="row" alignItems="center" gap={0.5}>
+                        <Stack
+                            direction="row"
+                            sx={{
+                                alignItems: "center",
+                                gap: 0.5,
+                            }}
+                        >
                             <Schedule fontSize="small" />
                             <Typography variant="body2">
                                 {`${startedDate} · ${startedTime}–${endedTime} · ${formatDuration(agg.elapsedMs)}`}
                             </Typography>
                         </Stack>
-                        <Stack direction="row" alignItems="center" gap={0.5}>
+                        <Stack
+                            direction="row"
+                            sx={{
+                                alignItems: "center",
+                                gap: 0.5,
+                            }}
+                        >
                             <SportsEsports fontSize="small" />
                             <Typography variant="body2">
                                 {`${agg.games.toString()} games`}
@@ -453,7 +471,13 @@ const PlayerBanner: React.FC<PlayerBannerProps> = ({
 const TagsRow: React.FC<{ tags: readonly SessionTag[] }> = ({ tags }) => {
     const theme = useTheme();
     return (
-        <Stack direction="row" gap={1} flexWrap="wrap">
+        <Stack
+            direction="row"
+            sx={{
+                gap: 1,
+                flexWrap: "wrap",
+            }}
+        >
             {tags.map((tag) => {
                 const Icon = tag.icon;
                 const color = tagColor(theme, tag.key);
@@ -509,10 +533,12 @@ const DeltaTag: React.FC<{
     return (
         <Stack
             direction="row"
-            alignItems="center"
-            gap={0.5}
             component="span"
-            sx={{ color: SENTIMENT_COLOR[sentiment] }}
+            sx={{
+                alignItems: "center",
+                gap: 0.5,
+                color: SENTIMENT_COLOR[sentiment],
+            }}
         >
             <TrendIcon direction={direction} sx={{ fontSize: 14 }} />
             <span>{`${sign}${value.toFixed(2)}${suffix} vs lifetime`}</span>
@@ -660,9 +686,9 @@ const StatusPill: React.FC<{
     const pill = (
         <Stack
             direction="row"
-            alignItems="center"
-            gap={0.5}
             sx={{
+                alignItems: "center",
+                gap: 0.5,
                 px: 1,
                 py: 0.25,
                 borderRadius: 5,
@@ -783,13 +809,24 @@ const GameDetail: React.FC<{ segment: GameSegment; numbering: SegmentGameNumber 
         <Box sx={{ mt: 1.75, pt: 1.75, borderTop: 1, borderColor: "divider" }}>
             <Stack
                 direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-                flexWrap="wrap"
-                gap={1}
-                sx={{ mb: 1.75, maxWidth: 720, mx: "auto" }}
+                sx={{
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: 1,
+                    mb: 1.75,
+                    maxWidth: 720,
+                    mx: "auto",
+                }}
             >
-                <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+                <Stack
+                    direction="row"
+                    sx={{
+                        alignItems: "center",
+                        gap: 1,
+                        flexWrap: "wrap",
+                    }}
+                >
                     <Typography sx={{ fontWeight: 600 }}>{title}</Typography>
                     <Typography variant="body2" color="textSecondary">
                         {`· ${context} · ${durationLabel}`}
@@ -813,7 +850,13 @@ const GameDetail: React.FC<{ segment: GameSegment; numbering: SegmentGameNumber 
                     )}
                 </Stack>
                 {pills !== null && (
-                    <Stack direction="row" gap={1} flexWrap="wrap">
+                    <Stack
+                        direction="row"
+                        sx={{
+                            gap: 1,
+                            flexWrap: "wrap",
+                        }}
+                    >
                         {pills}
                     </Stack>
                 )}
@@ -932,9 +975,11 @@ const GameTile: React.FC<{
             >
                 <Stack
                     direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    sx={{ mb: 0.5 }}
+                    sx={{
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        mb: 0.5,
+                    }}
                 >
                     <Typography variant="caption" sx={{ fontFamily: "monospace" }}>
                         {numberLabel ?? ""}
@@ -949,7 +994,14 @@ const GameTile: React.FC<{
                 <Typography variant="caption" color="textSecondary">
                     {noGame ? "no game" : gamesLabel}
                 </Typography>
-                <Stack direction="row" gap={0.75} sx={{ mt: 1, fontSize: 10 }}>
+                <Stack
+                    direction="row"
+                    sx={{
+                        gap: 0.75,
+                        mt: 1,
+                        fontSize: 10,
+                    }}
+                >
                     <Typography variant="caption" color="textSecondary">
                         ?
                     </Typography>
@@ -996,14 +1048,22 @@ const GameTile: React.FC<{
             />
             <Stack
                 direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-                sx={{ mb: 0.5 }}
+                sx={{
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    mb: 0.5,
+                }}
             >
                 <Typography variant="caption" sx={{ fontFamily: "monospace" }}>
                     {numberLabel ?? ""}
                 </Typography>
-                <Stack direction="row" alignItems="center" gap={0.5}>
+                <Stack
+                    direction="row"
+                    sx={{
+                        alignItems: "center",
+                        gap: 0.5,
+                    }}
+                >
                     <ClutchOrCarriedBadge game={game} />
                     <Chip
                         size="small"
@@ -1024,7 +1084,14 @@ const GameTile: React.FC<{
             <Typography variant="caption" color="textSecondary">
                 {game.finalKills === 1 ? "Final" : "Finals"}
             </Typography>
-            <Stack direction="row" gap={0.75} sx={{ mt: 1, fontSize: 10 }}>
+            <Stack
+                direction="row"
+                sx={{
+                    gap: 0.75,
+                    mt: 1,
+                    fontSize: 10,
+                }}
+            >
                 <Box sx={{ color: theme.palette.gamemode[game.gamemode] }}>●</Box>
                 <Typography variant="caption">
                     {getGamemodeLabel(game.gamemode, true)}
@@ -1051,9 +1118,9 @@ const StreakIndicator: React.FC<{ segments: readonly GameSegment[] }> = ({
     return (
         <Stack
             direction="row"
-            alignItems="center"
-            gap={0.75}
             sx={{
+                alignItems: "center",
+                gap: 0.75,
                 px: 1.25,
                 py: 0.75,
                 borderRadius: 0.75,
@@ -1095,10 +1162,12 @@ const MomentumStrip: React.FC<{ segments: readonly GameSegment[] }> = ({
             <Box sx={{ mb: 1.5 }}>
                 <Stack
                     direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    gap={2}
-                    sx={{ mb: 0.5 }}
+                    sx={{
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 2,
+                        mb: 0.5,
+                    }}
                 >
                     <Typography variant="subtitle1">Game-by-game</Typography>
                     <StreakIndicator segments={segments} />
@@ -1175,11 +1244,13 @@ const TrajectoryChart: React.FC<TrajectoryChartProps> = ({ session, segments }) 
         <Panel sx={{ height: "100%" }}>
             <Stack
                 direction="row"
-                justifyContent="space-between"
-                alignItems="baseline"
-                sx={{ mb: 1.5 }}
-                flexWrap="wrap"
-                gap={1}
+                sx={{
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                    flexWrap: "wrap",
+                    gap: 1,
+                    mb: 1.5,
+                }}
             >
                 <Box>
                     <Typography variant="subtitle1">FKDR trajectory</Typography>
@@ -1187,8 +1258,19 @@ const TrajectoryChart: React.FC<TrajectoryChartProps> = ({ session, segments }) 
                         Session FKDR after each game vs. all-time
                     </Typography>
                 </Box>
-                <Stack direction="row" gap={1.75}>
-                    <Stack direction="row" alignItems="center" gap={0.75}>
+                <Stack
+                    direction="row"
+                    sx={{
+                        gap: 1.75,
+                    }}
+                >
+                    <Stack
+                        direction="row"
+                        sx={{
+                            alignItems: "center",
+                            gap: 0.75,
+                        }}
+                    >
                         <Box
                             sx={{
                                 width: 18,
@@ -1201,7 +1283,13 @@ const TrajectoryChart: React.FC<TrajectoryChartProps> = ({ session, segments }) 
                             Session
                         </Typography>
                     </Stack>
-                    <Stack direction="row" alignItems="center" gap={0.75}>
+                    <Stack
+                        direction="row"
+                        sx={{
+                            alignItems: "center",
+                            gap: 0.75,
+                        }}
+                    >
                         <Box
                             sx={{
                                 width: 18,
@@ -1382,9 +1470,12 @@ const ModeDetail: React.FC<{
             >
                 <Stack
                     direction="row"
-                    alignItems="center"
-                    gap={0.75}
-                    sx={{ gridColumn: "1 / -1", mb: 0.5 }}
+                    sx={{
+                        alignItems: "center",
+                        gap: 0.75,
+                        gridColumn: "1 / -1",
+                        mb: 0.5,
+                    }}
                 >
                     <Box
                         sx={{ width: 8, height: 8, borderRadius: 0.25, bgcolor: color }}
@@ -1502,9 +1593,11 @@ const ModeBreakdown: React.FC<{
                         >
                             <Stack
                                 direction="row"
-                                alignItems="center"
-                                gap={0.75}
-                                sx={{ mb: 1.25 }}
+                                sx={{
+                                    alignItems: "center",
+                                    gap: 0.75,
+                                    mb: 1.25,
+                                }}
                             >
                                 <Box
                                     sx={{
@@ -1548,8 +1641,10 @@ const ModeBreakdown: React.FC<{
                             />
                             <Stack
                                 direction="row"
-                                justifyContent="space-between"
-                                sx={{ mt: 1 }}
+                                sx={{
+                                    justifyContent: "space-between",
+                                    mt: 1,
+                                }}
                             >
                                 <Typography variant="caption" color="textSecondary">
                                     FKDR
@@ -1624,7 +1719,13 @@ const MilestonesCard: React.FC<{ milestones: readonly Milestone[] }> = ({
                                 gap: 1.25,
                             }}
                         >
-                            <Stack direction="row" alignItems="center" gap={1}>
+                            <Stack
+                                direction="row"
+                                sx={{
+                                    alignItems: "center",
+                                    gap: 1,
+                                }}
+                            >
                                 <Box
                                     sx={{
                                         width: 28,
@@ -1651,9 +1752,11 @@ const MilestonesCard: React.FC<{ milestones: readonly Milestone[] }> = ({
                             </Stack>
                             <Stack
                                 direction="row"
-                                alignItems="baseline"
-                                gap={1}
-                                sx={{ fontFamily: "monospace" }}
+                                sx={{
+                                    alignItems: "baseline",
+                                    gap: 1,
+                                    fontFamily: "monospace",
+                                }}
                             >
                                 <Typography sx={{ fontSize: 18 }}>
                                     {m.format(m.current)}
@@ -1673,8 +1776,10 @@ const MilestonesCard: React.FC<{ milestones: readonly Milestone[] }> = ({
                                 <Box>
                                     <Stack
                                         direction="row"
-                                        alignItems="baseline"
-                                        gap={0.75}
+                                        sx={{
+                                            alignItems: "baseline",
+                                            gap: 0.75,
+                                        }}
                                     >
                                         <Typography
                                             sx={{ fontSize: 26, lineHeight: 1 }}
@@ -1695,9 +1800,11 @@ const MilestonesCard: React.FC<{ milestones: readonly Milestone[] }> = ({
                                     {m.sessions >= 1 && (
                                         <Stack
                                             direction="row"
-                                            gap={0.5}
-                                            alignItems="center"
-                                            sx={{ mt: 0.75 }}
+                                            sx={{
+                                                gap: 0.5,
+                                                alignItems: "center",
+                                                mt: 0.75,
+                                            }}
                                         >
                                             <Schedule
                                                 sx={{
@@ -1718,9 +1825,11 @@ const MilestonesCard: React.FC<{ milestones: readonly Milestone[] }> = ({
                             ) : (
                                 <Stack
                                     direction="row"
-                                    alignItems="center"
-                                    gap={0.75}
-                                    color="text.disabled"
+                                    sx={{
+                                        alignItems: "center",
+                                        gap: 0.75,
+                                        color: "text.disabled",
+                                    }}
                                 >
                                     <Block fontSize="small" />
                                     <Typography variant="caption">
@@ -1933,8 +2042,10 @@ const SessionDetail: React.FC<SessionDetailProps> = ({
             {games.length > 0 && <MomentumStrip segments={games} />}
             <Stack
                 direction={{ xs: "column", md: "row" }}
-                gap={1.5}
-                alignItems="stretch"
+                sx={{
+                    gap: 1.5,
+                    alignItems: "stretch",
+                }}
             >
                 <Box sx={{ flex: 2, minWidth: 0 }}>
                     <TrajectoryChart session={session} segments={games} />

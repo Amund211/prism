@@ -123,12 +123,20 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     <Stack
                         direction="row"
                         spacing={2}
-                        alignItems="center"
-                        justifyContent="space-between"
-                        width="100%"
+                        sx={{
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            width: "100%",
+                        }}
                     >
                         <Link to="/" style={{ textDecoration: "none" }}>
-                            <Stack direction="row" gap={1} alignItems="center">
+                            <Stack
+                                direction="row"
+                                sx={{
+                                    gap: 1,
+                                    alignItems: "center",
+                                }}
+                            >
                                 <img
                                     src="/who.png"
                                     alt="Prism Overlay logo"
@@ -140,7 +148,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                 </Typography>
                             </Stack>
                         </Link>
-                        <Stack direction="row" gap={1}>
+                        <Stack
+                            direction="row"
+                            sx={{
+                                gap: 1,
+                            }}
+                        >
                             <DarkModeSwitch />
                             <IconButton
                                 onClick={handleClickMenu}
@@ -290,10 +303,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 <Link to="/" style={{ textDecoration: "none" }}>
                     <Stack
                         direction="row"
-                        paddingY={1.5}
-                        paddingX={3}
-                        gap={1}
-                        alignItems="center"
+                        sx={{
+                            paddingY: 1.5,
+                            paddingX: 3,
+                            gap: 1,
+                            alignItems: "center",
+                        }}
                     >
                         <img
                             src="/who.png"
@@ -307,7 +322,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     </Stack>
                 </Link>
                 <Divider />
-                <Stack height="100%" overflow="auto">
+                <Stack
+                    sx={{
+                        height: "100%",
+                        overflow: "auto",
+                    }}
+                >
                     <List dense component="menu">
                         <ListItem disablePadding>
                             {playerToNavigate !== null ? (
@@ -431,18 +451,24 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     </List>
                 </Stack>
                 <Divider />
-                <Stack padding={1} justifyContent="center" alignItems="center">
+                <Stack
+                    sx={{
+                        padding: 1,
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
                     <DarkModeSwitch />
                 </Stack>
             </Drawer>
             <Stack
                 component="main"
                 sx={{
+                    padding: 1,
                     marginTop: { xs: APP_BAR_HEIGHT_PX, lg: 0 },
                     width: "100%",
                     height: "100%",
                 }}
-                padding={1}
             >
                 {/* Wrap the children in a padded box so the bottom spacer
                   scrolls with the content — padding on `<main>` itself doesn't,

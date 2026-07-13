@@ -224,7 +224,11 @@ function Index() {
             : `https://prismoverlay.com/history/explore?uuids=${encodeURIComponent(JSON.stringify(sortedUUIDs))}`;
 
     return (
-        <Stack gap={1}>
+        <Stack
+            sx={{
+                gap: 1,
+            }}
+        >
             <meta name="description" content={description} />
             <link rel="canonical" href={canonicalHref} />
             <UserMultiSelect
@@ -260,7 +264,12 @@ function Index() {
                     })();
                 }}
             />
-            <Stack direction="row" gap={1}>
+            <Stack
+                direction="row"
+                sx={{
+                    gap: 1,
+                }}
+            >
                 <Select
                     value={gamemodes}
                     label="Gamemodes"
@@ -334,14 +343,21 @@ function Index() {
                     ))}
                 </Select>
             </Stack>
-
             <Stack
                 direction="row"
-                gap={1}
-                alignItems="center"
-                justifyContent="space-between"
+                sx={{
+                    gap: 1,
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                }}
             >
-                <Stack direction="row" gap={1} flexWrap="wrap">
+                <Stack
+                    direction="row"
+                    sx={{
+                        gap: 1,
+                        flexWrap: "wrap",
+                    }}
+                >
                     {timeFilterOptions.map((option) => {
                         const selected =
                             option.start.toISOString() === start.toISOString() &&
@@ -368,7 +384,12 @@ function Index() {
                         );
                     })}
                 </Stack>
-                <Stack direction="row" gap={1}>
+                <Stack
+                    direction="row"
+                    sx={{
+                        gap: 1,
+                    }}
+                >
                     <DateTimePicker
                         label="Start"
                         value={dayjs(start)}
@@ -429,16 +450,23 @@ function Index() {
                     />
                 </Stack>
             </Stack>
-
             <Card variant="outlined">
                 <CardContent>
                     <Stack
                         direction="row"
-                        gap={1}
-                        alignItems="center"
-                        justifyContent="space-between"
+                        sx={{
+                            gap: 1,
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                        }}
                     >
-                        <Stack direction="row" gap={1} alignItems="center">
+                        <Stack
+                            direction="row"
+                            sx={{
+                                gap: 1,
+                                alignItems: "center",
+                            }}
+                        >
                             <HistoryChartTitle
                                 uuids={uuids}
                                 gamemodes={gamemodes}
@@ -519,7 +547,12 @@ function Index() {
                             </RouterLinkToggleButton>
                         </ToggleButtonGroup>
                     </Stack>
-                    <Stack padding={1} height={{ xs: 300, sm: 400, md: 500, xl: 600 }}>
+                    <Stack
+                        sx={{
+                            padding: 1,
+                            height: { xs: 300, sm: 400, md: 500, xl: 600 },
+                        }}
+                    >
                         <HistoryChart
                             start={start}
                             end={end}

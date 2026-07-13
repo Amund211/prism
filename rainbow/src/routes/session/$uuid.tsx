@@ -200,22 +200,32 @@ const Sessions: React.FC<SessionsProps> = ({
     const renderHeader = (showExtrapolatedToggle?: React.ReactNode) => (
         <Stack
             direction="row"
-            gap={1}
-            alignItems="center"
-            justifyContent="space-between"
+            sx={{
+                gap: 1,
+                alignItems: "center",
+                justifyContent: "space-between",
+            }}
         >
             <Stack
                 direction="row"
-                gap={1}
-                alignItems="center"
-                justifyContent="space-between"
+                sx={{
+                    gap: 1,
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                }}
             >
                 <Typography variant="subtitle2">Sessions</Typography>
                 <Tooltip title="Sessions are automatically recorded when using the Prism Overlay. Users who have disabled 'Online Game Stats' in the settings, or are not using the Prism Overlay may have weird or missing sessions.">
                     <InfoOutlined fontSize="small" />
                 </Tooltip>
             </Stack>
-            <Stack direction="row" gap={3} alignItems="center">
+            <Stack
+                direction="row"
+                sx={{
+                    gap: 3,
+                    alignItems: "center",
+                }}
+            >
                 {showExtrapolatedToggle}
                 <ToggleButtonGroup
                     exclusive
@@ -277,7 +287,13 @@ const Sessions: React.FC<SessionsProps> = ({
             >
                 <CardContent>
                     {renderHeader()}
-                    <Stack direction="row" gap={0.5} alignItems="center">
+                    <Stack
+                        direction="row"
+                        sx={{
+                            gap: 0.5,
+                            alignItems: "center",
+                        }}
+                    >
                         <Tooltip title="The player has no recorded sessions with the Prism overlay in the given time interval. They have either not played, or played without using the Prism Overlay.">
                             <Info color="error" fontSize="small" />
                         </Tooltip>
@@ -304,7 +320,11 @@ const Sessions: React.FC<SessionsProps> = ({
             sx={{ height: "100%", flexGrow: 1, overflow: "scroll" }}
         >
             <CardContent>
-                <Stack gap={1}>
+                <Stack
+                    sx={{
+                        gap: 1,
+                    }}
+                >
                     {renderHeader(
                         hasExtrapolatedSessions ? (
                             <FormControlLabel
@@ -341,7 +361,13 @@ const Sessions: React.FC<SessionsProps> = ({
                                     />
                                 }
                                 label={
-                                    <Stack direction="row" gap={1} alignItems="center">
+                                    <Stack
+                                        direction="row"
+                                        sx={{
+                                            gap: 1,
+                                            alignItems: "center",
+                                        }}
+                                    >
                                         <Typography
                                             variant="body2"
                                             color="textSecondary"
@@ -657,9 +683,11 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
     const cardTitle = (
         <Stack
             direction="row"
-            gap={0.5}
-            alignItems="center"
-            justifyContent="space-between"
+            sx={{
+                gap: 0.5,
+                alignItems: "center",
+                justifyContent: "space-between",
+            }}
         >
             <Typography variant="subtitle2">
                 {`${intervalTypeName} ${getGamemodeLabel(gamemode)} ${getFullStatLabel(stat)}`}
@@ -682,14 +710,22 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                         "&:last-child": { pb: 2 },
                     }}
                 >
-                    <Stack gap={1} justifyContent="space-between" height="100%">
+                    <Stack
+                        sx={{
+                            gap: 1,
+                            justifyContent: "space-between",
+                            height: "100%",
+                        }}
+                    >
                         {cardTitle}
                         <Stack>
                             <Stack
                                 direction="row"
-                                gap={1}
-                                alignItems="center"
-                                justifyContent="space-between"
+                                sx={{
+                                    gap: 1,
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                }}
                             >
                                 <Typography variant="body1">
                                     <Skeleton variant="text" width={50} />
@@ -697,8 +733,10 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                                 <Tooltip title={<Skeleton variant="text" />}>
                                     <Stack
                                         direction="row"
-                                        gap={0.5}
-                                        alignItems="center"
+                                        sx={{
+                                            gap: 0.5,
+                                            alignItems: "center",
+                                        }}
                                     >
                                         <Typography variant="caption" color={undefined}>
                                             <Skeleton variant="text" width={30} />
@@ -737,10 +775,22 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                         "&:last-child": { pb: 2 },
                     }}
                 >
-                    <Stack gap={1} justifyContent="space-between" height="100%">
+                    <Stack
+                        sx={{
+                            gap: 1,
+                            justifyContent: "space-between",
+                            height: "100%",
+                        }}
+                    >
                         {cardTitle}
                         <Stack>
-                            <Stack direction="row" gap={0.5} alignItems="center">
+                            <Stack
+                                direction="row"
+                                sx={{
+                                    gap: 0.5,
+                                    alignItems: "center",
+                                }}
+                            >
                                 <Tooltip title="The player has not recorded any stats with the Prism Overlay in the given time interval. They have either not played, or played without using the Prism Overlay.">
                                     <Info color="error" fontSize="small" />
                                 </Tooltip>
@@ -797,14 +847,22 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
     return (
         <Card variant="outlined" sx={{ height: "100%", flexGrow: 1 }}>
             <CardContent sx={{ height: "100%", padding: 2, "&:last-child": { pb: 2 } }}>
-                <Stack gap={1} justifyContent="space-between" height="100%">
+                <Stack
+                    sx={{
+                        gap: 1,
+                        justifyContent: "space-between",
+                        height: "100%",
+                    }}
+                >
                     {cardTitle}
                     <Stack>
                         <Stack
                             direction="row"
-                            gap={1}
-                            alignItems="center"
-                            justifyContent="space-between"
+                            sx={{
+                                gap: 1,
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                            }}
                         >
                             <Typography variant="body1">
                                 {formatStatValue(stat, sessionValue, {
@@ -818,7 +876,13 @@ const SessionStatCard: React.FC<SessionStatCardProps> = ({
                                     precision: "detailed",
                                 })}`}
                             >
-                                <Stack direction="row" gap={0.5} alignItems="center">
+                                <Stack
+                                    direction="row"
+                                    sx={{
+                                        gap: 0.5,
+                                        alignItems: "center",
+                                    }}
+                                >
                                     <Typography variant="caption" color={trendColor}>
                                         {formatStatValue(stat, diff, {
                                             signDisplay: "always",
@@ -865,7 +929,13 @@ const ProgressionValueAndMilestone: React.FC<ProgressionValueAndMilestoneProps> 
         const color = SENTIMENT_COLOR[getTrendSentiment(stat, direction)];
 
         return (
-            <Stack direction="row" gap={0.5} alignItems="center">
+            <Stack
+                direction="row"
+                sx={{
+                    gap: 0.5,
+                    alignItems: "center",
+                }}
+            >
                 {renderValue(endValue)}
                 <TrendIcon direction={direction} color={color} fontSize="medium" />
                 {renderValue(nextMilestoneValue)}
@@ -1029,9 +1099,11 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
 
                 <Stack
                     direction="row"
-                    gap={1}
-                    alignItems="center"
-                    justifyContent="space-between"
+                    sx={{
+                        gap: 1,
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                    }}
                 >
                     <Typography variant="body1">
                         <Skeleton variant="text" width={200} />
@@ -1074,7 +1146,14 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
                             <Typography variant="subtitle2">
                                 {`${getGamemodeLabel(gamemode, true)} ${getFullStatLabel(stat)} milestone progress`}
                             </Typography>
-                            <Stack pt={1} gap={1} direction="row" alignItems="center">
+                            <Stack
+                                direction="row"
+                                sx={{
+                                    pt: 1,
+                                    gap: 1,
+                                    alignItems: "center",
+                                }}
+                            >
                                 <Tooltip title="The player's stats have been recorded by the Prism Overlay. Come back later to see their updated stat progression.">
                                     <Info color="info" fontSize="small" />
                                 </Tooltip>
@@ -1097,7 +1176,14 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
                     <Typography variant="subtitle2">
                         {`${getGamemodeLabel(gamemode, true)} ${getFullStatLabel(stat)} milestone progress`}
                     </Typography>
-                    <Stack pt={1} gap={1} direction="row" alignItems="center">
+                    <Stack
+                        direction="row"
+                        sx={{
+                            pt: 1,
+                            gap: 1,
+                            alignItems: "center",
+                        }}
+                    >
                         <Info color="error" fontSize="small" />
                         <Typography variant="body2">{progression.reason}</Typography>
                     </Stack>
@@ -1123,9 +1209,11 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
                 <ProgressionValueAndMilestone progression={progression} />
                 <Stack
                     direction="row"
-                    gap={1}
-                    alignItems="center"
-                    justifyContent="space-between"
+                    sx={{
+                        gap: 1,
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                    }}
                 >
                     <Typography variant="body1">
                         {Number.isFinite(progression.daysUntilMilestone)
@@ -1140,9 +1228,11 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
 
                     <Stack
                         direction="row"
-                        gap={0.5}
-                        alignItems="center"
-                        justifyContent="space-between"
+                        sx={{
+                            gap: 0.5,
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                        }}
                     >
                         <ProgressionCaption progression={progression} />
                         <Tooltip
@@ -1259,14 +1349,27 @@ function RouteComponent() {
             />
             <Stack
                 direction="row"
-                gap={1}
-                alignItems="center"
-                justifyContent="space-between"
+                sx={{
+                    gap: 1,
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                }}
             >
-                <Stack direction="row" alignItems="center" gap={1}>
+                <Stack
+                    direction="row"
+                    sx={{
+                        alignItems: "center",
+                        gap: 1,
+                    }}
+                >
                     <PlayerHead uuid={uuid} username={username} variant="face" />
                     {username === undefined ? (
-                        <Stack direction="row" alignItems="center">
+                        <Stack
+                            direction="row"
+                            sx={{
+                                alignItems: "center",
+                            }}
+                        >
                             <Skeleton variant="rounded" width={60} />
                             <Typography variant="h6">&apos;s session stats</Typography>
                         </Stack>
@@ -1300,7 +1403,12 @@ function RouteComponent() {
                     }}
                 />
             </Stack>
-            <Stack direction="row" gap={1}>
+            <Stack
+                direction="row"
+                sx={{
+                    gap: 1,
+                }}
+            >
                 <Select
                     value={gamemode}
                     label="Gamemode"
@@ -1430,13 +1538,26 @@ function RouteComponent() {
                     <CardContent>
                         <Stack
                             direction="row"
-                            gap={1}
-                            alignItems="center"
-                            justifyContent="space-between"
+                            sx={{
+                                gap: 1,
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                            }}
                         >
-                            <Stack direction="row" gap={1} alignItems="center">
+                            <Stack
+                                direction="row"
+                                sx={{
+                                    gap: 1,
+                                    alignItems: "center",
+                                }}
+                            >
                                 {username === undefined ? (
-                                    <Stack direction="row" alignItems="center">
+                                    <Stack
+                                        direction="row"
+                                        sx={{
+                                            alignItems: "center",
+                                        }}
+                                    >
                                         <Skeleton variant="rounded" width={100} />
                                         <Typography variant="subtitle2">
                                             {`'s ${getFullStatLabel(stat)}`}
@@ -1509,8 +1630,10 @@ function RouteComponent() {
                             </ToggleButtonGroup>
                         </Stack>
                         <Stack
-                            padding={1}
-                            height={{ xs: 300, sm: 400, md: 500, xl: 600 }}
+                            sx={{
+                                padding: 1,
+                                height: { xs: 300, sm: 400, md: 500, xl: 600 },
+                            }}
                         >
                             <HistoryChart
                                 start={month.start}

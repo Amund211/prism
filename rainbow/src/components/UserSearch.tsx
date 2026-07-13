@@ -357,8 +357,9 @@ export const UserSearch: React.FC<UserSearchProps> = ({
                         {...params}
                         placeholder={placeholder}
                         slotProps={{
+                            ...params.slotProps,
                             input: {
-                                ...params.InputProps,
+                                ...params.slotProps.input,
                                 startAdornment: (
                                     <InputAdornment position="start">
                                         <Search fontSize="small" />
@@ -474,8 +475,9 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                         {...params}
                         placeholder={placeholder}
                         slotProps={{
+                            ...params.slotProps,
                             input: {
-                                ...params.InputProps,
+                                ...params.slotProps.input,
                                 endAdornment: loading && (
                                     <InputAdornment position="end">
                                         <CircularProgress size={20} />

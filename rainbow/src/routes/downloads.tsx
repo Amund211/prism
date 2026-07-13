@@ -268,8 +268,18 @@ const osLabel = (os: OS) => {
 
 const AutoWhoVideo = () => {
     return (
-        <Stack gap={1} alignItems="center">
-            <Stack maxWidth="calc(min(100vw, 800px))" width="100%">
+        <Stack
+            sx={{
+                gap: 1,
+                alignItems: "center",
+            }}
+        >
+            <Stack
+                sx={{
+                    maxWidth: "calc(min(100vw, 800px))",
+                    width: "100%",
+                }}
+            >
                 <img
                     alt="Video of a bedwars game starting, with the Prism Overlay in the top left corner. When the game starts, the overlay automatically types '/who' to show all players."
                     src={autoWhoURL}
@@ -290,7 +300,11 @@ const LatestDownloadWindows = () => {
     if (!download) return null;
 
     return (
-        <Stack alignItems="center">
+        <Stack
+            sx={{
+                alignItems: "center",
+            }}
+        >
             <a href={download.link} download>
                 <img src={downloadWindowsURL} alt="Download for Windows" />
             </a>
@@ -304,7 +318,11 @@ const LatestDownloadMac = () => {
     if (!download) return null;
 
     return (
-        <Stack alignItems="center">
+        <Stack
+            sx={{
+                alignItems: "center",
+            }}
+        >
             <a href={download.link} download>
                 <img src={downloadMacURL} alt="Download for Mac" />
             </a>
@@ -318,7 +336,11 @@ const LatestDownloadLinux = () => {
     if (!download) return null;
 
     return (
-        <Stack alignItems="center">
+        <Stack
+            sx={{
+                alignItems: "center",
+            }}
+        >
             <a href={download.link} download>
                 <img src={downloadLinuxURL} alt="Download for Linux" />
             </a>
@@ -349,13 +371,22 @@ const LatestDownload = () => {
 
 function RouteComponent() {
     return (
-        <Stack gap={5}>
+        <Stack
+            sx={{
+                gap: 5,
+            }}
+        >
             <meta
                 name="description"
                 content="Download Prism Overlay - a statistics overlay for Hypixel BedWars. Prism Overlay is a free and open-source overlay that provides real-time statistics when playing bedwars, and automatically tracks your stats."
             />
             <link rel="canonical" href="https://prismoverlay.com/downloads" />
-            <Stack gap={1} alignItems="center">
+            <Stack
+                sx={{
+                    gap: 1,
+                    alignItems: "center",
+                }}
+            >
                 <Typography variant="body1">
                     Get started with real-time statistics and automated stat tracking by
                     downloading the Prism Overlay.
@@ -363,9 +394,20 @@ function RouteComponent() {
                 <LatestDownload />
             </Stack>
             <AutoWhoVideo />
-            <Stack gap={1} alignItems="center" paddingTop={10}>
+            <Stack
+                sx={{
+                    gap: 1,
+                    alignItems: "center",
+                    paddingTop: 10,
+                }}
+            >
                 <Typography variant="h5">Archive</Typography>
-                <Stack width="100%" gap={1}>
+                <Stack
+                    sx={{
+                        width: "100%",
+                        gap: 1,
+                    }}
+                >
                     <TableContainer>
                         <Table aria-label="Archive" size="small" stickyHeader>
                             <TableHead>
@@ -398,7 +440,12 @@ function RouteComponent() {
                                             </a>
                                         </TableCell>
                                         <TableCell>
-                                            <Stack direction="row" gap={1}>
+                                            <Stack
+                                                direction="row"
+                                                sx={{
+                                                    gap: 1,
+                                                }}
+                                            >
                                                 <OSLogoAttribution os={download.os} />
                                                 <OSLogo os={download.os} height={20} />
                                                 <Typography variant="body1">
@@ -425,7 +472,12 @@ function RouteComponent() {
                     </TableContainer>
                 </Stack>
             </Stack>
-            <Stack gap={1} alignItems="left">
+            <Stack
+                sx={{
+                    gap: 1,
+                    alignItems: "left",
+                }}
+            >
                 <Typography variant="caption" id="windows-logo">
                     [1] Windows and the Windows logo are registered trademarks of the
                     Microsoft Corporation.

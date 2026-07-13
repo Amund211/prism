@@ -118,25 +118,37 @@ const StatCard: React.FC<StatCardProps> = ({
             }}
         >
             <CardContent>
-                <Stack gap={1} alignItems="center" justifyContent="center">
+                <Stack
+                    sx={{
+                        gap: 1,
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
+                >
                     {icon && <Box sx={{ color }}>{icon}</Box>}
                     <Typography
                         variant="subtitle2"
                         color="textSecondary"
-                        textAlign="center"
+                        sx={{
+                            textAlign: "center",
+                        }}
                     >
                         {title}
                     </Typography>
                     <Typography
                         variant="h4"
-                        fontWeight="bold"
-                        textAlign="center"
-                        sx={(theme) => ({
-                            background: `linear-gradient(45deg, ${color}, ${color}dd)`,
-                            backgroundClip: "text",
-                            textFillColor: "transparent",
-                            fontFamily: theme.typography.fontFamilyMonospace,
-                        })}
+                        sx={[
+                            {
+                                fontWeight: "bold",
+                                textAlign: "center",
+                            },
+                            (theme) => ({
+                                background: `linear-gradient(45deg, ${color}, ${color}dd)`,
+                                backgroundClip: "text",
+                                textFillColor: "transparent",
+                                fontFamily: theme.typography.fontFamilyMonospace,
+                            }),
+                        ]}
                     >
                         {value}
                     </Typography>
@@ -144,7 +156,9 @@ const StatCard: React.FC<StatCardProps> = ({
                         <Typography
                             variant="caption"
                             color="textSecondary"
-                            textAlign="center"
+                            sx={{
+                                textAlign: "center",
+                            }}
                         >
                             {subtitle}
                         </Typography>
@@ -353,15 +367,26 @@ const BestSessionCard: React.FC<BestSessionCardProps> = ({
             }}
         >
             <CardContent>
-                <Stack gap={2}>
+                <Stack
+                    sx={{
+                        gap: 2,
+                    }}
+                >
                     <Stack
                         direction="row"
-                        gap={1}
-                        alignItems="center"
-                        justifyContent="center"
+                        sx={{
+                            gap: 1,
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
                     >
                         <Box sx={{ color, fontSize: 32 }}>{icon}</Box>
-                        <Typography variant="h6" fontWeight="bold">
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontWeight: "bold",
+                            }}
+                        >
                             {title}
                         </Typography>
                         {(statType === "winsPerHour" ||
@@ -373,8 +398,10 @@ const BestSessionCard: React.FC<BestSessionCardProps> = ({
                     </Stack>
                     <Typography
                         variant="body2"
-                        textAlign="center"
                         color="textSecondary"
+                        sx={{
+                            textAlign: "center",
+                        }}
                     >
                         {startDate.toLocaleDateString(undefined, {
                             month: "long",
@@ -382,7 +409,13 @@ const BestSessionCard: React.FC<BestSessionCardProps> = ({
                             year: "numeric",
                         })}
                     </Typography>
-                    <Typography variant="h4" textAlign="center" fontWeight="bold">
+                    <Typography
+                        variant="h4"
+                        sx={{
+                            textAlign: "center",
+                            fontWeight: "bold",
+                        }}
+                    >
                         {displayValue.toLocaleString(undefined, {
                             maximumFractionDigits: 2,
                         })}{" "}
@@ -390,9 +423,11 @@ const BestSessionCard: React.FC<BestSessionCardProps> = ({
                     </Typography>
                     <Stack
                         direction="row"
-                        gap={2}
-                        justifyContent="center"
-                        flexWrap="wrap"
+                        sx={{
+                            gap: 2,
+                            justifyContent: "center",
+                            flexWrap: "wrap",
+                        }}
                     >
                         <Typography variant="caption" color="textSecondary">
                             {gamesPlayed.toLocaleString()} games
@@ -433,18 +468,34 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
     return (
         <Card variant="outlined">
             <CardContent>
-                <Stack gap={2}>
-                    <Stack direction="row" alignItems="center" gap={1}>
+                <Stack
+                    sx={{
+                        gap: 2,
+                    }}
+                >
+                    <Stack
+                        direction="row"
+                        sx={{
+                            alignItems: "center",
+                            gap: 1,
+                        }}
+                    >
                         <Schedule color="action" />
                         <Typography variant="h6">Session Overview</Typography>
                     </Stack>
                     <Grid container spacing={2}>
                         <Grid size={{ xs: 6, sm: 3 }}>
-                            <Stack alignItems="center">
+                            <Stack
+                                sx={{
+                                    alignItems: "center",
+                                }}
+                            >
                                 <Typography
                                     variant="h4"
                                     color="primary"
-                                    textAlign="center"
+                                    sx={{
+                                        textAlign: "center",
+                                    }}
                                 >
                                     {wrappedData.totalSessions.toLocaleString()}
                                 </Typography>
@@ -455,18 +506,26 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                         </Grid>
                         <Grid size={{ xs: 6, sm: 3 }}>
                             <Tooltip title="These sessions had gaps in tracking and were excluded">
-                                <Stack alignItems="center">
+                                <Stack
+                                    sx={{
+                                        alignItems: "center",
+                                    }}
+                                >
                                     <Typography
                                         variant="h4"
-                                        color="warning.main"
-                                        textAlign="center"
+                                        sx={{
+                                            color: "warning.main",
+                                            textAlign: "center",
+                                        }}
                                     >
                                         {wrappedData.nonConsecutiveSessions.toLocaleString()}
                                     </Typography>
                                     <Stack
                                         direction="row"
-                                        alignItems="center"
-                                        gap={0.5}
+                                        sx={{
+                                            alignItems: "center",
+                                            gap: 0.5,
+                                        }}
                                     >
                                         <Info fontSize="small" />
                                         <Typography
@@ -480,11 +539,17 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                             </Tooltip>
                         </Grid>
                         <Grid size={{ xs: 6, sm: 3 }}>
-                            <Stack alignItems="center">
+                            <Stack
+                                sx={{
+                                    alignItems: "center",
+                                }}
+                            >
                                 <Typography
                                     variant="h4"
-                                    color="success.main"
-                                    textAlign="center"
+                                    sx={{
+                                        color: "success.main",
+                                        textAlign: "center",
+                                    }}
                                 >
                                     {formatHours(
                                         sessionStats.sessionLengths.totalHours,
@@ -496,11 +561,17 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                             </Stack>
                         </Grid>
                         <Grid size={{ xs: 6, sm: 3 }}>
-                            <Stack alignItems="center">
+                            <Stack
+                                sx={{
+                                    alignItems: "center",
+                                }}
+                            >
                                 <Typography
                                     variant="h4"
-                                    color="info.main"
-                                    textAlign="center"
+                                    sx={{
+                                        color: "info.main",
+                                        textAlign: "center",
+                                    }}
                                 >
                                     {formatHours(
                                         sessionStats.sessionLengths.averageHours,
@@ -544,7 +615,12 @@ const SessionOverview: React.FC<SessionOverviewProps> = ({ wrappedData }) => {
                                     <Tooltip
                                         title={`${count.toLocaleString()} sessions`}
                                     >
-                                        <Stack alignItems="center" gap={0.5}>
+                                        <Stack
+                                            sx={{
+                                                alignItems: "center",
+                                                gap: 0.5,
+                                            }}
+                                        >
                                             <Typography
                                                 variant="caption"
                                                 color="textSecondary"
@@ -767,14 +843,28 @@ const AverageSessionStats: React.FC<AverageSessionStatsProps> = ({ wrappedData }
     return (
         <Card variant="outlined" sx={{ height: "100%" }}>
             <CardContent>
-                <Stack gap={2}>
-                    <Stack direction="row" alignItems="center" gap={1}>
+                <Stack
+                    sx={{
+                        gap: 2,
+                    }}
+                >
+                    <Stack
+                        direction="row"
+                        sx={{
+                            alignItems: "center",
+                            gap: 1,
+                        }}
+                    >
                         <ShowChart color="action" />
                         <Typography variant="h6">Average Session Stats</Typography>
                     </Stack>
                     <Grid container spacing={2}>
                         <Grid size={{ xs: 6, sm: 3 }}>
-                            <Stack alignItems="center">
+                            <Stack
+                                sx={{
+                                    alignItems: "center",
+                                }}
+                            >
                                 <Typography variant="h5" color="primary">
                                     {sessionStats.averages.gamesPlayed.toLocaleString(
                                         undefined,
@@ -787,8 +877,17 @@ const AverageSessionStats: React.FC<AverageSessionStatsProps> = ({ wrappedData }
                             </Stack>
                         </Grid>
                         <Grid size={{ xs: 6, sm: 3 }}>
-                            <Stack alignItems="center">
-                                <Typography variant="h5" color="success.main">
+                            <Stack
+                                sx={{
+                                    alignItems: "center",
+                                }}
+                            >
+                                <Typography
+                                    variant="h5"
+                                    sx={{
+                                        color: "success.main",
+                                    }}
+                                >
                                     {sessionStats.averages.wins.toLocaleString(
                                         undefined,
                                         { maximumFractionDigits: 1 },
@@ -800,8 +899,17 @@ const AverageSessionStats: React.FC<AverageSessionStatsProps> = ({ wrappedData }
                             </Stack>
                         </Grid>
                         <Grid size={{ xs: 6, sm: 3 }}>
-                            <Stack alignItems="center">
-                                <Typography variant="h5" color="warning.main">
+                            <Stack
+                                sx={{
+                                    alignItems: "center",
+                                }}
+                            >
+                                <Typography
+                                    variant="h5"
+                                    sx={{
+                                        color: "warning.main",
+                                    }}
+                                >
                                     {sessionStats.averages.finalKills.toLocaleString(
                                         undefined,
                                         { maximumFractionDigits: 1 },
@@ -813,8 +921,17 @@ const AverageSessionStats: React.FC<AverageSessionStatsProps> = ({ wrappedData }
                             </Stack>
                         </Grid>
                         <Grid size={{ xs: 6, sm: 3 }}>
-                            <Stack alignItems="center">
-                                <Typography variant="h5" color="info.main">
+                            <Stack
+                                sx={{
+                                    alignItems: "center",
+                                }}
+                            >
+                                <Typography
+                                    variant="h5"
+                                    sx={{
+                                        color: "info.main",
+                                    }}
+                                >
                                     {formatHours(
                                         sessionStats.averages.sessionLengthHours,
                                     )}
@@ -841,10 +958,15 @@ const BestSessions: React.FC<BestSessionsProps> = ({ wrappedData }) => {
 
     return (
         <>
-            <Typography variant="h5" fontWeight="bold" sx={{ mt: 3 }}>
+            <Typography
+                variant="h5"
+                sx={{
+                    fontWeight: "bold",
+                    mt: 3,
+                }}
+            >
                 🏆 Best Sessions
             </Typography>
-
             <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                     <BestSessionCard
@@ -934,16 +1056,30 @@ const Streaks: React.FC<StreaksProps> = ({ wrappedData }) => {
 
     return (
         <>
-            <Typography variant="h5" fontWeight="bold" sx={{ mt: 3 }}>
+            <Typography
+                variant="h5"
+                sx={{
+                    fontWeight: "bold",
+                    mt: 3,
+                }}
+            >
                 🔥 Streaks
             </Typography>
-
             <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <Card variant="outlined">
                         <CardContent>
-                            <Stack gap={2}>
-                                <Typography variant="h6" textAlign="center">
+                            <Stack
+                                sx={{
+                                    gap: 2,
+                                }}
+                            >
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        textAlign: "center",
+                                    }}
+                                >
                                     Highest Ended Winstreaks
                                 </Typography>
                                 <Divider />
@@ -954,8 +1090,10 @@ const Streaks: React.FC<StreaksProps> = ({ wrappedData }) => {
                                         <Stack
                                             key={mode}
                                             direction="row"
-                                            justifyContent="space-between"
-                                            alignItems="center"
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                            }}
                                         >
                                             <Typography
                                                 variant="body2"
@@ -965,10 +1103,16 @@ const Streaks: React.FC<StreaksProps> = ({ wrappedData }) => {
                                             >
                                                 {mode}
                                             </Typography>
-                                            <Stack alignItems="flex-end">
+                                            <Stack
+                                                sx={{
+                                                    alignItems: "flex-end",
+                                                }}
+                                            >
                                                 <Typography
                                                     variant="h6"
-                                                    color="primary.main"
+                                                    sx={{
+                                                        color: "primary.main",
+                                                    }}
                                                 >
                                                     {streak.highest.toLocaleString()}
                                                 </Typography>
@@ -995,12 +1139,18 @@ const Streaks: React.FC<StreaksProps> = ({ wrappedData }) => {
                 <Grid size={{ xs: 12, md: 6 }}>
                     <Card variant="outlined">
                         <CardContent>
-                            <Stack gap={2}>
+                            <Stack
+                                sx={{
+                                    gap: 2,
+                                }}
+                            >
                                 <Stack
                                     direction="row"
-                                    alignItems="center"
-                                    justifyContent="center"
-                                    gap={1}
+                                    sx={{
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        gap: 1,
+                                    }}
                                 >
                                     <Typography variant="h6">
                                         Highest Ended Final Kill Streaks
@@ -1016,8 +1166,10 @@ const Streaks: React.FC<StreaksProps> = ({ wrappedData }) => {
                                         <Stack
                                             key={mode}
                                             direction="row"
-                                            justifyContent="space-between"
-                                            alignItems="center"
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                            }}
                                         >
                                             <Typography
                                                 variant="body2"
@@ -1027,10 +1179,16 @@ const Streaks: React.FC<StreaksProps> = ({ wrappedData }) => {
                                             >
                                                 {mode}
                                             </Typography>
-                                            <Stack alignItems="flex-end">
+                                            <Stack
+                                                sx={{
+                                                    alignItems: "flex-end",
+                                                }}
+                                            >
                                                 <Typography
                                                     variant="h6"
-                                                    color="error.main"
+                                                    sx={{
+                                                        color: "error.main",
+                                                    }}
                                                 >
                                                     {streak.highest.toLocaleString()}
                                                 </Typography>
@@ -1081,8 +1239,18 @@ const FavoritePlayTimes: React.FC<FavoritePlayTimesProps> = ({ wrappedData }) =>
     return (
         <Card variant="outlined">
             <CardContent>
-                <Stack gap={2}>
-                    <Stack direction="row" alignItems="center" gap={1}>
+                <Stack
+                    sx={{
+                        gap: 2,
+                    }}
+                >
+                    <Stack
+                        direction="row"
+                        sx={{
+                            alignItems: "center",
+                            gap: 1,
+                        }}
+                    >
                         <CalendarMonth color="action" />
                         <Typography variant="h6">
                             {`Play Time Patterns (${tz})`}
@@ -1326,8 +1494,19 @@ const FlawlessSessions: React.FC<FlawlessSessionsProps> = ({ wrappedData }) => {
             })}
         >
             <CardContent>
-                <Stack gap={2} alignItems="center">
-                    <Stack direction="row" alignItems="center" gap={1}>
+                <Stack
+                    sx={{
+                        gap: 2,
+                        alignItems: "center",
+                    }}
+                >
+                    <Stack
+                        direction="row"
+                        sx={{
+                            alignItems: "center",
+                            gap: 1,
+                        }}
+                    >
                         <CheckCircle
                             sx={{
                                 fontSize: 32,
@@ -1336,7 +1515,13 @@ const FlawlessSessions: React.FC<FlawlessSessionsProps> = ({ wrappedData }) => {
                         />
                         <Typography variant="h5">Flawless Sessions</Typography>
                     </Stack>
-                    <Typography variant="h3" fontWeight="bold" color="warning.main">
+                    <Typography
+                        variant="h3"
+                        sx={{
+                            fontWeight: "bold",
+                            color: "warning.main",
+                        }}
+                    >
                         {sessionStats.flawlessSessions.count.toLocaleString()}
                     </Typography>
                     <Typography variant="body2" color="textSecondary">
@@ -1373,15 +1558,16 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
             theme={createExportTheme()}
         >
             <Stack
-                width="1600px"
-                padding={4}
-                gap={3}
                 sx={{
+                    width: "1600px",
+                    padding: 4,
+                    gap: 3,
                     background: (theme) => theme.palette.background.default,
 
                     // Never wrap whitespace, as that causes all typography to wrap their last word
                     // https://github.com/bubkoo/html-to-image/issues/132
                     whiteSpace: "nowrap",
+
                     // The gradient with backgroundClip was causing clipping issues
                     // likely due to different size calculations for the background
                     // Using white font for simplicity.
@@ -1470,15 +1656,19 @@ const ExportStatsCard: React.FC<ExportStatsCardProps> = ({
 
                 <Typography
                     variant="h6"
-                    textAlign="center"
-                    sx={{ color: "rgba(255, 255, 255, 0.9)" }}
+                    sx={{
+                        textAlign: "center",
+                        color: "rgba(255, 255, 255, 0.9)",
+                    }}
                 >
                     🎮 See more details and create your own at{" "}
                     <Typography
                         component="span"
                         variant="h6"
-                        fontWeight="bold"
-                        sx={{ color: "white" }}
+                        sx={{
+                            fontWeight: "bold",
+                            color: "white",
+                        }}
                     >
                         prismoverlay.com/wrapped
                     </Typography>
@@ -1499,14 +1689,28 @@ const SessionCoverage: React.FC<SessionCoverageProps> = ({ wrappedData }) => {
     return (
         <Card variant="outlined">
             <CardContent>
-                <Stack gap={2}>
-                    <Stack direction="row" alignItems="center" gap={1}>
+                <Stack
+                    sx={{
+                        gap: 2,
+                    }}
+                >
+                    <Stack
+                        direction="row"
+                        sx={{
+                            alignItems: "center",
+                            gap: 1,
+                        }}
+                    >
                         <PieChart color="action" />
                         <Typography variant="h6">Session Coverage</Typography>
                     </Stack>
                     <Grid container spacing={2}>
                         <Grid size={{ xs: 12, sm: 6 }}>
-                            <Stack alignItems="center">
+                            <Stack
+                                sx={{
+                                    alignItems: "center",
+                                }}
+                            >
                                 <Typography variant="h4" color="primary">
                                     {sessionStats.sessionCoverage.gamesPlayedPercentage.toLocaleString(
                                         undefined,
@@ -1517,15 +1721,26 @@ const SessionCoverage: React.FC<SessionCoverageProps> = ({ wrappedData }) => {
                                 <Typography
                                     variant="caption"
                                     color="textSecondary"
-                                    textAlign="center"
+                                    sx={{
+                                        textAlign: "center",
+                                    }}
                                 >
                                     of games played captured in sessions
                                 </Typography>
                             </Stack>
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6 }}>
-                            <Stack alignItems="center">
-                                <Typography variant="h4" color="success.main">
+                            <Stack
+                                sx={{
+                                    alignItems: "center",
+                                }}
+                            >
+                                <Typography
+                                    variant="h4"
+                                    sx={{
+                                        color: "success.main",
+                                    }}
+                                >
                                     {formatHours(
                                         sessionStats.sessionCoverage.adjustedTotalHours,
                                     )}
@@ -1533,7 +1748,9 @@ const SessionCoverage: React.FC<SessionCoverageProps> = ({ wrappedData }) => {
                                 <Typography
                                     variant="caption"
                                     color="textSecondary"
-                                    textAlign="center"
+                                    sx={{
+                                        textAlign: "center",
+                                    }}
                                 >
                                     adjusted total playtime (accounting for games not in
                                     sessions)
@@ -1598,7 +1815,12 @@ function WrappedStatsContent({ wrappedData, isLoading }: WrappedStatsContentProp
         return (
             <Card variant="outlined">
                 <CardContent>
-                    <Typography variant="h6" textAlign="center">
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            textAlign: "center",
+                        }}
+                    >
                         Loading your year in review...
                     </Typography>
                     <LinearProgress sx={{ mt: 2 }} />
@@ -1611,14 +1833,21 @@ function WrappedStatsContent({ wrappedData, isLoading }: WrappedStatsContentProp
         return (
             <Card variant="outlined">
                 <CardContent
-                    component={Stack}
-                    direction="row"
-                    gap={2}
-                    alignItems="center"
-                    justifyContent="center"
+                    sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: 2,
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
                 >
                     <Error color="error" />
-                    <Typography variant="h6" textAlign="center">
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            textAlign: "center",
+                        }}
+                    >
                         Failed loading your year in review. Please try again later.
                     </Typography>
                 </CardContent>
@@ -1717,23 +1946,30 @@ function WrappedHeader({ wrappedData, uuid, year }: WrappedHeaderProps) {
     return (
         <Stack
             direction="row"
-            gap={2}
-            alignItems="center"
-            justifyContent="center"
-            flexWrap="wrap"
+            sx={{
+                gap: 2,
+                alignItems: "center",
+                justifyContent: "center",
+                flexWrap: "wrap",
+            }}
         >
             <PlayerHead uuid={uuid} username={username} variant="face" width={80} />
-            <Stack alignItems="center">
+            <Stack
+                sx={{
+                    alignItems: "center",
+                }}
+            >
                 <Typography
                     variant="h3"
-                    fontWeight="bold"
-                    textAlign="center"
+                    // Needed for some manual tweaking in export
+                    id="wrapped-header-title"
                     sx={{
+                        fontWeight: "bold",
+                        textAlign: "center",
                         background: rainbowGradient(45),
                         backgroundClip: "text",
                         textFillColor: "transparent",
                     }}
-                    id="wrapped-header-title" // Needed for some manual tweaking in export
                 >
                     {username !== undefined ? `${username}'s` : null}
                     <br />
@@ -1742,7 +1978,13 @@ function WrappedHeader({ wrappedData, uuid, year }: WrappedHeaderProps) {
                 <Typography variant="subtitle1" color="textSecondary">
                     A year of Bed Wars achievements
                 </Typography>
-                <Stack direction="row" alignItems="center" gap={1}>
+                <Stack
+                    direction="row"
+                    sx={{
+                        alignItems: "center",
+                        gap: 1,
+                    }}
+                >
                     {wrappedData?.yearStats &&
                         wrappedData.yearStats.end.queriedAt.getTime() -
                             wrappedData.yearStats.start.queriedAt.getTime() <
@@ -1901,16 +2143,20 @@ function RouteComponent() {
                         <CardContent>
                             <Typography
                                 variant="h5"
-                                textAlign="center"
-                                fontWeight="bold"
                                 gutterBottom
+                                sx={{
+                                    textAlign: "center",
+                                    fontWeight: "bold",
+                                }}
                             >
                                 🎉 What a Year! 🎉
                             </Typography>
                             <Typography
                                 variant="body1"
-                                textAlign="center"
                                 color="textSecondary"
+                                sx={{
+                                    textAlign: "center",
+                                }}
                             >
                                 Thank you for an amazing {wrappedData.year.toString()}!
                                 Here&apos;s to even more victories in the next year.

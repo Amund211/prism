@@ -64,7 +64,11 @@ const HypixelAPIPolicy = () => {
     return (
         <Stack>
             <Typography variant="h6">Hypixel API Policy</Typography>
-            <Stack gap={1}>
+            <Stack
+                sx={{
+                    gap: 1,
+                }}
+            >
                 <Typography variant="body1">
                     The Prism Overlay project strives to stay within the bounds of the{" "}
                     <a
@@ -111,7 +115,11 @@ const Privacy = () => {
 
 function RouteComponent() {
     return (
-        <Stack gap={3}>
+        <Stack
+            sx={{
+                gap: 3,
+            }}
+        >
             <meta
                 name="description"
                 content="Learn more about the Prism Overlay, a tool for Hypixel Bedwars that shows the stats of all players in your game and automatically tracks your progress. Use it to view your session stats and compare your stats with other players."
