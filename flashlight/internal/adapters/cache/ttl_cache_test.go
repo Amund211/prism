@@ -13,7 +13,7 @@ func TestTTLCache(t *testing.T) {
 	t.Run("Set and get", func(t *testing.T) {
 		t.Parallel()
 
-		cache := NewTTLCache[Data](1000 * time.Second)
+		cache := NewTTLCacheWithMaxSize[Data](1000*time.Second, 1000)
 
 		cache.set("key", "data")
 
@@ -25,7 +25,7 @@ func TestTTLCache(t *testing.T) {
 	t.Run("getOrClaim claims when missing", func(t *testing.T) {
 		t.Parallel()
 
-		cache := NewTTLCache[Data](1000 * time.Second)
+		cache := NewTTLCacheWithMaxSize[Data](1000*time.Second, 1000)
 
 		result := cache.getOrClaim("key")
 		require.True(t, result.claimed, "Expected entry to not exist and get claimed")
@@ -38,7 +38,7 @@ func TestTTLCache(t *testing.T) {
 	t.Run("delete", func(t *testing.T) {
 		t.Parallel()
 
-		cache := NewTTLCache[Data](1000 * time.Second)
+		cache := NewTTLCacheWithMaxSize[Data](1000*time.Second, 1000)
 		cache.set("key", "data")
 
 		cache.delete("key")
@@ -50,7 +50,7 @@ func TestTTLCache(t *testing.T) {
 	t.Run("delete missing entry", func(t *testing.T) {
 		t.Parallel()
 
-		cache := NewTTLCache[Data](1000 * time.Second)
+		cache := NewTTLCacheWithMaxSize[Data](1000*time.Second, 1000)
 
 		cache.delete("key")
 
@@ -61,7 +61,7 @@ func TestTTLCache(t *testing.T) {
 	t.Run("wait", func(t *testing.T) {
 		t.Parallel()
 
-		cache := NewTTLCache[Data](1000 * time.Second)
+		cache := NewTTLCacheWithMaxSize[Data](1000*time.Second, 1000)
 		cache.wait()
 	})
 }

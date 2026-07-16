@@ -43,15 +43,8 @@ func (c *ttlCache[T]) wait() {
 	time.Sleep(50 * time.Millisecond)
 }
 
-func NewTTLCache[T any](ttl time.Duration) Cache[T] {
-	return newTTLCache[T](
-		ttlcache.WithTTL[string, tllCacheEntry[T]](ttl),
-		ttlcache.WithDisableTouchOnHit[string, tllCacheEntry[T]](),
-	)
-}
-
-// NewTTLCacheWithMaxSize is NewTTLCache with a bound on the number of entries.
-// When the cache is full, the least recently used entry is evicted.
+// NewTTLCacheWithMaxSize builds a TTL cache with a bound on the number of
+// entries. When the cache is full, the least recently used entry is evicted.
 func NewTTLCacheWithMaxSize[T any](ttl time.Duration, maxSize uint64) Cache[T] {
 	return newTTLCache[T](
 		ttlcache.WithTTL[string, tllCacheEntry[T]](ttl),

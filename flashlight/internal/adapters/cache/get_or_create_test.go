@@ -180,7 +180,7 @@ func TestGetOrCreateCleansUpOnError(t *testing.T) {
 		},
 		{
 			name:  "TTLCache",
-			cache: NewTTLCache[Data](1 * time.Minute),
+			cache: NewTTLCacheWithMaxSize[Data](1*time.Minute, 1000),
 		},
 	}
 
@@ -207,7 +207,7 @@ func TestGetOrCreateRealCache(t *testing.T) {
 		t.Parallel()
 
 		ctx := t.Context()
-		cache := NewTTLCache[Data](1 * time.Minute)
+		cache := NewTTLCacheWithMaxSize[Data](1*time.Minute, 1000)
 
 		wg := sync.WaitGroup{}
 
