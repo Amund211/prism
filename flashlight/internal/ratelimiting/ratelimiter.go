@@ -26,9 +26,16 @@ func (rateLimiter *tokenBucketRateLimiter) Consume(key string) bool {
 type RefillPerSecond float64
 type BurstSize int
 
+// maxLimiterEntries bounds the number of live per-key limiters so a flood of
+// distinct keys can't OOM the service. Many limiters are instantiated (per
+// endpoint, per IP/user), so this is kept well below the app caches while
+// still sitting far above the distinct keys a single instance sees per TTL.
+const maxLimiterEntries = 10_000
+
 func NewTokenBucketRateLimiter(refillPerSecond RefillPerSecond, burstSize BurstSize) (RateLimiter, func()) {
 	limiterTTLCache := ttlcache.New[string, *rate.Limiter](
-		ttlcache.WithTTL[string, *rate.Limiter](30 * time.Minute),
+		ttlcache.WithTTL[string, *rate.Limiter](30*time.Minute),
+		ttlcache.WithCapacity[string, *rate.Limiter](maxLimiterEntries),
 	)
 	go limiterTTLCache.Start()
 

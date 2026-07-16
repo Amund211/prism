@@ -95,12 +95,16 @@ func main() {
 		originalFail(msg, args...)
 	}
 
-	playerCache := cache.NewTTLCache[*domain.PlayerPIT](1 * time.Minute)
+	// Bound every cache so unbounded key growth can't OOM the 128Mi service.
+	// Limits sit far above the distinct keys a single instance sees within
+	// each TTL, so normal traffic never hits eviction. PlayerPIT is the
+	// largest value (~1KB), so its cache is kept smaller than the others.
+	playerCache := cache.NewTTLCacheWithMaxSize[*domain.PlayerPIT](1*time.Minute, 20_000)
 
-	accountByUsernameCache := cache.NewTTLCache[domain.Account](24 * time.Hour)
-	accountByUUIDCache := cache.NewTTLCache[domain.Account](1 * time.Minute) // Low TTL to quickly show name changes
+	accountByUsernameCache := cache.NewTTLCacheWithMaxSize[domain.Account](24*time.Hour, 50_000)
+	accountByUUIDCache := cache.NewTTLCacheWithMaxSize[domain.Account](1*time.Minute, 50_000) // Low TTL to quickly show name changes
 
-	tagsCache := cache.NewTTLCache[domain.Tags](1 * time.Minute)
+	tagsCache := cache.NewTTLCacheWithMaxSize[domain.Tags](1*time.Minute, 50_000)
 
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
@@ -162,7 +166,7 @@ func main() {
 	authSessionRepo := authsessionrepository.NewPostgres(db, repositorySchemaName)
 	logger.InfoContext(ctx, "Initialized AuthSessionRepository")
 
-	validateSessionCache := cache.NewTTLCache[domain.AuthSession](1 * time.Minute)
+	validateSessionCache := cache.NewTTLCacheWithMaxSize[domain.AuthSession](1*time.Minute, 50_000)
 
 	anonymousLogin := app.BuildAnonymousLogin(authSessionRepo, time.Now, app.GenerateAuthSessionID)
 	refreshSession := app.BuildRefreshSession(authSessionRepo, time.Now)
