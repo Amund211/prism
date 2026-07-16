@@ -81,12 +81,6 @@ type displaynameAccountRepository interface {
 	GetAccountByUUID(ctx context.Context, uuid string) (domain.Account, error)
 }
 
-// firstSeenUserRepository resolves overlay users by their user ID so we can
-// check how long we have known the requesting user.
-type firstSeenUserRepository interface {
-	GetUser(ctx context.Context, userID string) (domain.User, error)
-}
-
 type getAndPersistPlayerMetricsCollection struct {
 	returnCount metric.Int64Counter
 }
@@ -132,7 +126,7 @@ func BuildGetAndPersistPlayerWithCache(
 	repo playerrepository.PlayerRepository,
 	accountRepo displaynameAccountRepository,
 	getAccountByUUID GetAccountByUUID,
-	userRepo firstSeenUserRepository,
+	getUser GetUser,
 ) (GetAndPersistPlayerWithCache, error) {
 	const name = "flashlight/app/get_and_persist_player_with_cache"
 
@@ -211,10 +205,10 @@ func BuildGetAndPersistPlayerWithCache(
 		if requesterUserID == "" {
 			return false
 		}
-		user, err := userRepo.GetUser(ctx, requesterUserID)
+		user, err := getUser(ctx, requesterUserID)
 		if err != nil {
 			if !errors.Is(err, domain.ErrUserNotFound) {
-				// NOTE: The user repository handles its own error reporting
+				// NOTE: GetUser implementations handle their own error reporting
 				logging.FromContext(ctx).WarnContext(ctx, "Failed to get requesting user, treating them as not well-known", "error", err.Error())
 			}
 			return false

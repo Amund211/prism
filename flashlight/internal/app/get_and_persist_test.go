@@ -108,7 +108,7 @@ func TestGetAndPersistPlayer(t *testing.T) {
 			return domain.Account{}, domain.ErrUsernameNotFound
 		}
 
-		usecase, err := BuildGetAndPersistPlayerWithCache(cache, provider, repo, accountRepo, getAccountByUUID, panicUserRepository{t: t})
+		usecase, err := BuildGetAndPersistPlayerWithCache(cache, provider, repo, accountRepo, getAccountByUUID, panicUserRepository{t: t}.GetUser)
 		require.NoError(t, err)
 
 		return usecase
@@ -281,13 +281,13 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 
 	now := time.Now()
 
-	buildWithUserRepo := func(
+	buildWithGetUser := func(
 		t *testing.T,
 		provider playerprovider.PlayerProvider,
 		repo playerrepository.PlayerRepository,
 		accountRepo displaynameAccountRepository,
 		getAccountByUUID GetAccountByUUID,
-		userRepo firstSeenUserRepository,
+		getUser GetUser,
 	) GetAndPersistPlayerWithCache {
 		t.Helper()
 		usecase, err := BuildGetAndPersistPlayerWithCache(
@@ -296,7 +296,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 			repo,
 			accountRepo,
 			getAccountByUUID,
-			userRepo,
+			getUser,
 		)
 		require.NoError(t, err)
 		return usecase
@@ -310,7 +310,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 		getAccountByUUID GetAccountByUUID,
 	) GetAndPersistPlayerWithCache {
 		t.Helper()
-		return buildWithUserRepo(t, provider, repo, accountRepo, getAccountByUUID, panicUserRepository{t: t})
+		return buildWithGetUser(t, provider, repo, accountRepo, getAccountByUUID, panicUserRepository{t: t}.GetUser)
 	}
 
 	panicGetAccount := func(t *testing.T) GetAccountByUUID {
@@ -505,7 +505,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 			user: domain.User{UserID: "requester-1", FirstSeenAt: wellKnownUserFirstSeenCutoff.Add(-time.Hour)},
 		}
 
-		usecase := buildWithUserRepo(t, provider, repo, accountRepo, panicGetAccount(t), userRepo)
+		usecase := buildWithGetUser(t, provider, repo, accountRepo, panicGetAccount(t), userRepo.GetUser)
 
 		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "requester-1")
 		require.NoError(t, err)
@@ -533,7 +533,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 				},
 			}
 
-			usecase := buildWithUserRepo(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t), userRepo)
+			usecase := buildWithGetUser(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t), userRepo.GetUser)
 
 			player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "requester-1")
 			require.NoError(t, err)
@@ -562,7 +562,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 			},
 		}
 
-		usecase := buildWithUserRepo(t, provider, repo, accountRepo, panicGetAccount(t), userRepo)
+		usecase := buildWithGetUser(t, provider, repo, accountRepo, panicGetAccount(t), userRepo.GetUser)
 
 		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "requester-1")
 		require.NoError(t, err)
@@ -586,7 +586,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 				user: domain.User{UserID: "requester-1", FirstSeenAt: firstSeen},
 			}
 
-			usecase := buildWithUserRepo(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t), userRepo)
+			usecase := buildWithGetUser(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t), userRepo.GetUser)
 
 			player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "requester-1")
 			require.NoError(t, err)
@@ -623,7 +623,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 		accountRepo := stubAccountRepositoryByUUID{account: domain.Account{UUID: UUID, Username: "StoredName"}}
 		userRepo := fakeUserRepository{err: domain.ErrUserNotFound}
 
-		usecase := buildWithUserRepo(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t), userRepo)
+		usecase := buildWithGetUser(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t), userRepo.GetUser)
 
 		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "requester-1")
 		require.NoError(t, err)
@@ -641,7 +641,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 		accountRepo := stubAccountRepositoryByUUID{account: domain.Account{UUID: UUID, Username: "StoredName"}}
 		userRepo := fakeUserRepository{err: assert.AnError}
 
-		usecase := buildWithUserRepo(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t), userRepo)
+		usecase := buildWithGetUser(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t), userRepo.GetUser)
 
 		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "requester-1")
 		require.NoError(t, err)
@@ -671,7 +671,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 		sharedCache := cache.NewBasicCache[*domain.PlayerPIT]()
 		accountRepo := stubAccountRepositoryByUUID{account: domain.Account{UUID: UUID, Username: "StoredName"}}
 
-		buildShared := func(t *testing.T, provider playerprovider.PlayerProvider, userRepo firstSeenUserRepository) GetAndPersistPlayerWithCache {
+		buildShared := func(t *testing.T, provider playerprovider.PlayerProvider, getUser GetUser) GetAndPersistPlayerWithCache {
 			t.Helper()
 			repo := &fakePlayerRepository{
 				StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
@@ -684,7 +684,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 				repo,
 				accountRepo,
 				panicGetAccount(t),
-				userRepo,
+				getUser,
 			)
 			require.NoError(t, err)
 			return usecase
@@ -693,7 +693,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 		wellKnownRequesterUsecase := buildShared(
 			t,
 			&mockedPlayerProvider{t: t, player: domaintest.NewPlayerBuilder(UUID).WithExperience(999).BuildPtr(now)},
-			fakeUserRepository{user: domain.User{UserID: "requester-1", FirstSeenAt: wellKnownUserFirstSeenCutoff.Add(-time.Hour)}},
+			fakeUserRepository{user: domain.User{UserID: "requester-1", FirstSeenAt: wellKnownUserFirstSeenCutoff.Add(-time.Hour)}}.GetUser,
 		)
 
 		player, err := wellKnownRequesterUsecase(t.Context(), UUID, ProviderModeWellKnown, "requester-1")
@@ -702,7 +702,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 
 		// An anonymous requester asking for the same (not well-known) player
 		// must not be served the well-known requester's fresh data.
-		anonymousUsecase := buildShared(t, &panicPlayerProvider{t: t}, panicUserRepository{t: t})
+		anonymousUsecase := buildShared(t, &panicPlayerProvider{t: t}, panicUserRepository{t: t}.GetUser)
 
 		player, err = anonymousUsecase(t.Context(), UUID, ProviderModeWellKnown, "")
 		require.NoError(t, err)

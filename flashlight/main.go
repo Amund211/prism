@@ -183,7 +183,15 @@ func main() {
 		fail("Failed to initialize GetAccountByUUIDWithCache", "error", err.Error())
 	}
 
-	getAndPersistPlayerWithCache, err := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, playerRepo, accountRepo, getAccountByUUIDWithCache, userRepo)
+	// Long TTL: the well-known requester check only uses FirstSeenAt, which
+	// never changes, and SeenCount, which is just a coarse spam guard.
+	userCache := cache.NewTTLCacheWithMaxSize[domain.User](24*time.Hour, 10_000)
+	getUserWithCache, err := app.BuildGetUserWithCache(userCache, userRepo)
+	if err != nil {
+		fail("Failed to initialize GetUserWithCache", "error", err.Error())
+	}
+
+	getAndPersistPlayerWithCache, err := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, playerRepo, accountRepo, getAccountByUUIDWithCache, getUserWithCache)
 	if err != nil {
 		fail("Failed to initialize GetAndPersistPlayerWithCache", "error", err.Error())
 	}

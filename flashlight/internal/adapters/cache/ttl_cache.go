@@ -44,10 +44,24 @@ func (c *ttlCache[T]) wait() {
 }
 
 func NewTTLCache[T any](ttl time.Duration) Cache[T] {
-	cache := ttlcache.New[string, tllCacheEntry[T]](
+	return newTTLCache[T](
 		ttlcache.WithTTL[string, tllCacheEntry[T]](ttl),
 		ttlcache.WithDisableTouchOnHit[string, tllCacheEntry[T]](),
 	)
+}
+
+// NewTTLCacheWithMaxSize is NewTTLCache with a bound on the number of entries.
+// When the cache is full, the least recently used entry is evicted.
+func NewTTLCacheWithMaxSize[T any](ttl time.Duration, maxSize uint64) Cache[T] {
+	return newTTLCache[T](
+		ttlcache.WithTTL[string, tllCacheEntry[T]](ttl),
+		ttlcache.WithDisableTouchOnHit[string, tllCacheEntry[T]](),
+		ttlcache.WithCapacity[string, tllCacheEntry[T]](maxSize),
+	)
+}
+
+func newTTLCache[T any](options ...ttlcache.Option[string, tllCacheEntry[T]]) Cache[T] {
+	cache := ttlcache.New(options...)
 	go cache.Start()
 	return &ttlCache[T]{cache: cache}
 }
