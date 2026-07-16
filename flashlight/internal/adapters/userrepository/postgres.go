@@ -2,6 +2,8 @@ package userrepository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -73,6 +75,46 @@ func (p *Postgres) RegisterVisit(ctx context.Context, userID string, ipHash stri
 	).StructScan(&user)
 	if err != nil {
 		err := fmt.Errorf("failed to insert or update user: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"userID": userID,
+		})
+		return domain.User{}, err
+	}
+
+	return domain.User{
+		UserID:        user.UserID,
+		FirstSeenAt:   user.FirstSeenAt.UTC(),
+		LastSeenAt:    user.LastSeenAt.UTC(),
+		LastIPHash:    user.LastIPHash,
+		LastUserAgent: user.LastUserAgent,
+		SeenCount:     user.SeenCount,
+	}, nil
+}
+
+func (p *Postgres) GetUser(ctx context.Context, userID string) (domain.User, error) {
+	ctx, span := p.tracer.Start(ctx, "Postgres.GetUser")
+	defer span.End()
+
+	if userID == "" {
+		err := fmt.Errorf("userID is empty")
+		reporting.Report(ctx, err)
+		return domain.User{}, err
+	}
+
+	var user dbUser
+	err := p.db.QueryRowxContext(
+		ctx,
+		fmt.Sprintf(`SELECT user_id, first_seen_at, last_seen_at, last_ip_hash, last_user_agent, seen_count
+		FROM %s.users
+		WHERE user_id = $1`,
+			pq.QuoteIdentifier(p.schema)),
+		userID,
+	).StructScan(&user)
+	if errors.Is(err, sql.ErrNoRows) {
+		return domain.User{}, domain.ErrUserNotFound
+	}
+	if err != nil {
+		err := fmt.Errorf("failed to get user: %w", err)
 		reporting.Report(ctx, err, map[string]string{
 			"userID": userID,
 		})

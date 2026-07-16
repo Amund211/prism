@@ -72,6 +72,28 @@ func (f *fakePlayerRepository) CountStats(ctx context.Context, uuid string) (int
 	return f.statCount, nil
 }
 
+type panicUserRepository struct {
+	t *testing.T
+}
+
+func (p panicUserRepository) GetUser(ctx context.Context, userID string) (domain.User, error) {
+	p.t.Helper()
+	p.t.Fatal("GetUser should not be called")
+	return domain.User{}, nil
+}
+
+type fakeUserRepository struct {
+	user domain.User
+	err  error
+}
+
+func (f fakeUserRepository) GetUser(ctx context.Context, userID string) (domain.User, error) {
+	if f.err != nil {
+		return domain.User{}, f.err
+	}
+	return f.user, nil
+}
+
 func TestGetAndPersistPlayer(t *testing.T) {
 	t.Parallel()
 
@@ -86,7 +108,7 @@ func TestGetAndPersistPlayer(t *testing.T) {
 			return domain.Account{}, domain.ErrUsernameNotFound
 		}
 
-		usecase, err := BuildGetAndPersistPlayerWithCache(cache, provider, repo, accountRepo, getAccountByUUID)
+		usecase, err := BuildGetAndPersistPlayerWithCache(cache, provider, repo, accountRepo, getAccountByUUID, panicUserRepository{t: t})
 		require.NoError(t, err)
 
 		return usecase
@@ -103,10 +125,10 @@ func TestGetAndPersistPlayer(t *testing.T) {
 		panicProvider := &panicPlayerProvider{t: t}
 		cache := cache.NewBasicCache[*domain.PlayerPIT]()
 
-		_, err := mustBuildGetAndPersistPlayerWithCache(t, cache, provider)(t.Context(), UUID, ProviderModeAlways)
+		_, err := mustBuildGetAndPersistPlayerWithCache(t, cache, provider)(t.Context(), UUID, ProviderModeAlways, "")
 		require.NoError(t, err)
 
-		_, err = mustBuildGetAndPersistPlayerWithCache(t, cache, panicProvider)(t.Context(), UUID, ProviderModeAlways)
+		_, err = mustBuildGetAndPersistPlayerWithCache(t, cache, panicProvider)(t.Context(), UUID, ProviderModeAlways, "")
 		require.NoError(t, err)
 	})
 
@@ -124,7 +146,7 @@ func TestGetAndPersistPlayer(t *testing.T) {
 			}
 			cache := cache.NewBasicCache[*domain.PlayerPIT]()
 
-			_, err := mustBuildGetAndPersistPlayerWithCache(t, cache, provider)(t.Context(), "01234567-89ab-cdef-0123-456789abcdef", ProviderModeAlways)
+			_, err := mustBuildGetAndPersistPlayerWithCache(t, cache, provider)(t.Context(), "01234567-89ab-cdef-0123-456789abcdef", ProviderModeAlways, "")
 			require.ErrorIs(t, err, providerErr)
 		}
 	})
@@ -148,7 +170,7 @@ func TestGetAndPersistPlayer(t *testing.T) {
 			t.Run(fmt.Sprintf("UUID: '%s'", uuid), func(t *testing.T) {
 				t.Parallel()
 
-				_, err := mustBuildGetAndPersistPlayerWithCache(t, cache, provider)(t.Context(), uuid, ProviderModeAlways)
+				_, err := mustBuildGetAndPersistPlayerWithCache(t, cache, provider)(t.Context(), uuid, ProviderModeAlways, "")
 				require.Error(t, err)
 			})
 		}
@@ -208,10 +230,11 @@ func TestUpdatePlayerInInterval(t *testing.T) {
 			testUUID := "01234567-9999-9999-0123-456789abcdef"
 
 			updated := false
-			getAndPersist := func(ctx context.Context, uuid string, providerMode ProviderMode) (*domain.PlayerPIT, error) {
+			getAndPersist := func(ctx context.Context, uuid string, providerMode ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
 				t.Helper()
 				require.Equal(t, testUUID, uuid)
 				require.Equal(t, ProviderModeAlways, providerMode)
+				require.Empty(t, requesterUserID)
 				updated = true
 				return nil, nil
 			}
@@ -235,10 +258,11 @@ func TestUpdatePlayerInInterval(t *testing.T) {
 		testUUID := "01234567-0000-9999-0123-456789abcdef"
 
 		called := false
-		getAndPersist := func(ctx context.Context, uuid string, providerMode ProviderMode) (*domain.PlayerPIT, error) {
+		getAndPersist := func(ctx context.Context, uuid string, providerMode ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
 			t.Helper()
 			require.Equal(t, testUUID, uuid)
 			require.Equal(t, ProviderModeAlways, providerMode)
+			require.Empty(t, requesterUserID)
 			called = true
 			return nil, assert.AnError
 		}
@@ -257,12 +281,13 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 
 	now := time.Now()
 
-	build := func(
+	buildWithUserRepo := func(
 		t *testing.T,
 		provider playerprovider.PlayerProvider,
 		repo playerrepository.PlayerRepository,
 		accountRepo displaynameAccountRepository,
 		getAccountByUUID GetAccountByUUID,
+		userRepo firstSeenUserRepository,
 	) GetAndPersistPlayerWithCache {
 		t.Helper()
 		usecase, err := BuildGetAndPersistPlayerWithCache(
@@ -271,9 +296,21 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 			repo,
 			accountRepo,
 			getAccountByUUID,
+			userRepo,
 		)
 		require.NoError(t, err)
 		return usecase
+	}
+
+	build := func(
+		t *testing.T,
+		provider playerprovider.PlayerProvider,
+		repo playerrepository.PlayerRepository,
+		accountRepo displaynameAccountRepository,
+		getAccountByUUID GetAccountByUUID,
+	) GetAndPersistPlayerWithCache {
+		t.Helper()
+		return buildWithUserRepo(t, provider, repo, accountRepo, getAccountByUUID, panicUserRepository{t: t})
 	}
 
 	panicGetAccount := func(t *testing.T) GetAccountByUUID {
@@ -295,7 +332,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 
 		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t))
 
-		player, err := usecase(t.Context(), UUID, ProviderModeFallback)
+		player, err := usecase(t.Context(), UUID, ProviderModeFallback, "")
 		require.NoError(t, err)
 		require.NotNil(t, player)
 		require.Equal(t, int64(1234), player.Experience)
@@ -317,7 +354,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 
 		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, getAccountByUUID)
 
-		player, err := usecase(t.Context(), UUID, ProviderModeFallback)
+		player, err := usecase(t.Context(), UUID, ProviderModeFallback, "")
 		require.NoError(t, err)
 		require.NotNil(t, player.Displayname)
 		require.Equal(t, "FetchedName", *player.Displayname)
@@ -338,7 +375,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 
 		usecase := build(t, provider, repo, accountRepo, panicGetAccount(t))
 
-		player, err := usecase(t.Context(), UUID, ProviderModeFallback)
+		player, err := usecase(t.Context(), UUID, ProviderModeFallback, "")
 		require.NoError(t, err)
 		require.Equal(t, int64(999), player.Experience)
 	})
@@ -354,7 +391,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 
 		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t))
 
-		player, err := usecase(t.Context(), UUID, ProviderModeNever)
+		player, err := usecase(t.Context(), UUID, ProviderModeNever, "")
 		require.NoError(t, err)
 		require.Equal(t, int64(1234), player.Experience)
 		require.NotNil(t, player.Displayname)
@@ -372,7 +409,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 
 		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t))
 
-		_, err := usecase(t.Context(), UUID, ProviderModeNever)
+		_, err := usecase(t.Context(), UUID, ProviderModeNever, "")
 		require.Error(t, err)
 		// Must NOT be ErrPlayerNotFound so the port responds with 500, not 404.
 		require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
@@ -395,7 +432,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 
 		usecase := build(t, provider, repo, accountRepo, panicGetAccount(t))
 
-		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown)
+		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "")
 		require.NoError(t, err)
 		require.Equal(t, int64(999), player.Experience)
 	})
@@ -412,7 +449,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 
 		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t))
 
-		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown)
+		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "")
 		require.NoError(t, err)
 		require.Equal(t, int64(1234), player.Experience)
 		require.NotNil(t, player.Displayname)
@@ -431,7 +468,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 
 		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t))
 
-		_, err := usecase(t.Context(), UUID, ProviderModeWellKnown)
+		_, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "")
 		require.Error(t, err)
 		// Must NOT be ErrPlayerNotFound so the port responds with 500, not 404.
 		require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
@@ -445,7 +482,230 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 
 		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t))
 
-		_, err := usecase(t.Context(), UUID, ProviderMode("bogus"))
+		_, err := usecase(t.Context(), UUID, ProviderMode("bogus"), "")
 		require.Error(t, err)
+	})
+
+	t.Run("well-known queries the provider when the requester was first seen before the cutoff", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakePlayerRepository{
+			StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+			// Requested player is not well-known; the well-known requester
+			// should still get fresh data from the provider.
+			player:    domaintest.NewPlayerBuilder(UUID).WithExperience(1234).BuildPtr(now),
+			statCount: 0,
+		}
+		provider := &mockedPlayerProvider{
+			t:      t,
+			player: domaintest.NewPlayerBuilder(UUID).WithExperience(999).BuildPtr(now),
+		}
+		accountRepo := stubAccountRepositoryByUUID{err: domain.ErrUsernameNotFound}
+		userRepo := fakeUserRepository{
+			user: domain.User{UserID: "requester-1", FirstSeenAt: wellKnownUserFirstSeenCutoff.Add(-time.Hour)},
+		}
+
+		usecase := buildWithUserRepo(t, provider, repo, accountRepo, panicGetAccount(t), userRepo)
+
+		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "requester-1")
+		require.NoError(t, err)
+		require.Equal(t, int64(999), player.Experience)
+	})
+
+	t.Run("well-known ignores requesters with too many visits", func(t *testing.T) {
+		t.Parallel()
+
+		for _, seenCount := range []int64{
+			wellKnownUserMaxSeenCount,
+			wellKnownUserMaxSeenCount + 1,
+		} {
+			repo := &fakePlayerRepository{
+				StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+				player:               domaintest.NewPlayerBuilder(UUID).WithExperience(1234).BuildPtr(now),
+				statCount:            wellKnownStatsThreshold - 1,
+			}
+			accountRepo := stubAccountRepositoryByUUID{account: domain.Account{UUID: UUID, Username: "StoredName"}}
+			userRepo := fakeUserRepository{
+				user: domain.User{
+					UserID:      "requester-1",
+					FirstSeenAt: wellKnownUserFirstSeenCutoff.Add(-time.Hour),
+					SeenCount:   seenCount,
+				},
+			}
+
+			usecase := buildWithUserRepo(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t), userRepo)
+
+			player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "requester-1")
+			require.NoError(t, err)
+			require.Equal(t, int64(1234), player.Experience)
+		}
+	})
+
+	t.Run("well-known accepts requesters just below the visit limit", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakePlayerRepository{
+			StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+			player:               domaintest.NewPlayerBuilder(UUID).WithExperience(1234).BuildPtr(now),
+			statCount:            0,
+		}
+		provider := &mockedPlayerProvider{
+			t:      t,
+			player: domaintest.NewPlayerBuilder(UUID).WithExperience(999).BuildPtr(now),
+		}
+		accountRepo := stubAccountRepositoryByUUID{err: domain.ErrUsernameNotFound}
+		userRepo := fakeUserRepository{
+			user: domain.User{
+				UserID:      "requester-1",
+				FirstSeenAt: wellKnownUserFirstSeenCutoff.Add(-time.Hour),
+				SeenCount:   wellKnownUserMaxSeenCount - 1,
+			},
+		}
+
+		usecase := buildWithUserRepo(t, provider, repo, accountRepo, panicGetAccount(t), userRepo)
+
+		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "requester-1")
+		require.NoError(t, err)
+		require.Equal(t, int64(999), player.Experience)
+	})
+
+	t.Run("well-known returns stored player when the requester was first seen at or after the cutoff", func(t *testing.T) {
+		t.Parallel()
+
+		for _, firstSeen := range []time.Time{
+			wellKnownUserFirstSeenCutoff,
+			wellKnownUserFirstSeenCutoff.Add(time.Hour),
+		} {
+			repo := &fakePlayerRepository{
+				StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+				player:               domaintest.NewPlayerBuilder(UUID).WithExperience(1234).BuildPtr(now),
+				statCount:            wellKnownStatsThreshold - 1,
+			}
+			accountRepo := stubAccountRepositoryByUUID{account: domain.Account{UUID: UUID, Username: "StoredName"}}
+			userRepo := fakeUserRepository{
+				user: domain.User{UserID: "requester-1", FirstSeenAt: firstSeen},
+			}
+
+			usecase := buildWithUserRepo(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t), userRepo)
+
+			player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "requester-1")
+			require.NoError(t, err)
+			require.Equal(t, int64(1234), player.Experience)
+		}
+	})
+
+	t.Run("well-known does not look up the requester when no user id is given", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakePlayerRepository{
+			StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+			player:               domaintest.NewPlayerBuilder(UUID).WithExperience(1234).BuildPtr(now),
+			statCount:            wellKnownStatsThreshold - 1,
+		}
+		accountRepo := stubAccountRepositoryByUUID{account: domain.Account{UUID: UUID, Username: "StoredName"}}
+
+		// The panicking user repository ensures we never look up an empty user id.
+		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t))
+
+		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "")
+		require.NoError(t, err)
+		require.Equal(t, int64(1234), player.Experience)
+	})
+
+	t.Run("well-known treats unknown requesters as not well-known", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakePlayerRepository{
+			StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+			player:               domaintest.NewPlayerBuilder(UUID).WithExperience(1234).BuildPtr(now),
+			statCount:            wellKnownStatsThreshold - 1,
+		}
+		accountRepo := stubAccountRepositoryByUUID{account: domain.Account{UUID: UUID, Username: "StoredName"}}
+		userRepo := fakeUserRepository{err: domain.ErrUserNotFound}
+
+		usecase := buildWithUserRepo(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t), userRepo)
+
+		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "requester-1")
+		require.NoError(t, err)
+		require.Equal(t, int64(1234), player.Experience)
+	})
+
+	t.Run("well-known treats requester lookup failures as not well-known", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakePlayerRepository{
+			StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+			player:               domaintest.NewPlayerBuilder(UUID).WithExperience(1234).BuildPtr(now),
+			statCount:            wellKnownStatsThreshold - 1,
+		}
+		accountRepo := stubAccountRepositoryByUUID{account: domain.Account{UUID: UUID, Username: "StoredName"}}
+		userRepo := fakeUserRepository{err: assert.AnError}
+
+		usecase := buildWithUserRepo(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t), userRepo)
+
+		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "requester-1")
+		require.NoError(t, err)
+		require.Equal(t, int64(1234), player.Experience)
+	})
+
+	t.Run("requester is not looked up for other provider modes", func(t *testing.T) {
+		t.Parallel()
+
+		repo := &fakePlayerRepository{StubPlayerRepository: playerrepository.NewStubPlayerRepository()}
+		provider := &mockedPlayerProvider{
+			t:      t,
+			player: domaintest.NewPlayerBuilder(UUID).WithExperience(999).BuildPtr(now),
+		}
+		accountRepo := stubAccountRepositoryByUUID{err: domain.ErrUsernameNotFound}
+
+		usecase := build(t, provider, repo, accountRepo, panicGetAccount(t))
+
+		player, err := usecase(t.Context(), UUID, ProviderModeAlways, "requester-1")
+		require.NoError(t, err)
+		require.Equal(t, int64(999), player.Experience)
+	})
+
+	t.Run("well-known requester results are not served to other requesters from the cache", func(t *testing.T) {
+		t.Parallel()
+
+		sharedCache := cache.NewBasicCache[*domain.PlayerPIT]()
+		accountRepo := stubAccountRepositoryByUUID{account: domain.Account{UUID: UUID, Username: "StoredName"}}
+
+		buildShared := func(t *testing.T, provider playerprovider.PlayerProvider, userRepo firstSeenUserRepository) GetAndPersistPlayerWithCache {
+			t.Helper()
+			repo := &fakePlayerRepository{
+				StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
+				player:               domaintest.NewPlayerBuilder(UUID).WithExperience(1234).BuildPtr(now),
+				statCount:            wellKnownStatsThreshold - 1,
+			}
+			usecase, err := BuildGetAndPersistPlayerWithCache(
+				sharedCache,
+				provider,
+				repo,
+				accountRepo,
+				panicGetAccount(t),
+				userRepo,
+			)
+			require.NoError(t, err)
+			return usecase
+		}
+
+		wellKnownRequesterUsecase := buildShared(
+			t,
+			&mockedPlayerProvider{t: t, player: domaintest.NewPlayerBuilder(UUID).WithExperience(999).BuildPtr(now)},
+			fakeUserRepository{user: domain.User{UserID: "requester-1", FirstSeenAt: wellKnownUserFirstSeenCutoff.Add(-time.Hour)}},
+		)
+
+		player, err := wellKnownRequesterUsecase(t.Context(), UUID, ProviderModeWellKnown, "requester-1")
+		require.NoError(t, err)
+		require.Equal(t, int64(999), player.Experience)
+
+		// An anonymous requester asking for the same (not well-known) player
+		// must not be served the well-known requester's fresh data.
+		anonymousUsecase := buildShared(t, &panicPlayerProvider{t: t}, panicUserRepository{t: t})
+
+		player, err = anonymousUsecase(t.Context(), UUID, ProviderModeWellKnown, "")
+		require.NoError(t, err)
+		require.Equal(t, int64(1234), player.Experience)
 	})
 }

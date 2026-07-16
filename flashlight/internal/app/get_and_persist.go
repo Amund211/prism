@@ -33,9 +33,13 @@ const (
 	// ProviderModeNever never queries the provider. If we have no stored stats
 	// for the player the request fails.
 	ProviderModeNever ProviderMode = "never"
-	// ProviderModeWellKnown behaves like ProviderModeAlways for players we
-	// consider well-known (those with at least wellKnownStatsThreshold stored
-	// stat records) and like ProviderModeNever for everyone else.
+	// ProviderModeWellKnown behaves like ProviderModeAlways when either the
+	// requested player or the requesting user is well-known, and like
+	// ProviderModeNever otherwise. A requested player is well-known when they
+	// have at least wellKnownStatsThreshold stored stat records; a requesting
+	// user is well-known when we first saw their user ID before
+	// wellKnownUserFirstSeenCutoff and they have fewer than
+	// wellKnownUserMaxSeenCount visits.
 	ProviderModeWellKnown ProviderMode = "well-known"
 )
 
@@ -43,6 +47,18 @@ const (
 // must have for ProviderModeWellKnown to treat them as well-known and query the
 // provider for fresh data.
 const wellKnownStatsThreshold = 40
+
+// wellKnownUserFirstSeenCutoff is the first seen cutoff for requesting users in
+// ProviderModeWellKnown: users first seen before this time are considered
+// well-known and get fresh data from the provider for any requested player.
+// The cutoff sits just before the first spike in created users in the live db
+// and marks 516 user ids as well-known (one day later it would be 1376).
+var wellKnownUserFirstSeenCutoff = time.Date(2026, time.March, 1, 0, 0, 0, 0, time.UTC)
+
+// wellKnownUserMaxSeenCount excludes "well-known spammers" from the requesting
+// user check in ProviderModeWellKnown: users seen this many times or more are
+// not considered well-known even if they were first seen before the cutoff.
+const wellKnownUserMaxSeenCount = 30_000
 
 func (m ProviderMode) validate() error {
 	switch m {
@@ -53,13 +69,22 @@ func (m ProviderMode) validate() error {
 	}
 }
 
-type GetAndPersistPlayerWithCache func(ctx context.Context, uuid string, providerMode ProviderMode) (*domain.PlayerPIT, error)
+// GetAndPersistPlayerWithCache returns player data for the given (player) uuid.
+// requesterUserID identifies the user making the request (empty when unknown);
+// it is only used by ProviderModeWellKnown.
+type GetAndPersistPlayerWithCache func(ctx context.Context, uuid string, providerMode ProviderMode, requesterUserID string) (*domain.PlayerPIT, error)
 
 // displaynameAccountRepository resolves a username from our own account store.
 // The player stats repository does not store usernames, so we resolve them
 // separately when serving stats from the repository.
 type displaynameAccountRepository interface {
 	GetAccountByUUID(ctx context.Context, uuid string) (domain.Account, error)
+}
+
+// firstSeenUserRepository resolves overlay users by their user ID so we can
+// check how long we have known the requesting user.
+type firstSeenUserRepository interface {
+	GetUser(ctx context.Context, userID string) (domain.User, error)
 }
 
 type getAndPersistPlayerMetricsCollection struct {
@@ -107,6 +132,7 @@ func BuildGetAndPersistPlayerWithCache(
 	repo playerrepository.PlayerRepository,
 	accountRepo displaynameAccountRepository,
 	getAccountByUUID GetAccountByUUID,
+	userRepo firstSeenUserRepository,
 ) (GetAndPersistPlayerWithCache, error) {
 	const name = "flashlight/app/get_and_persist_player_with_cache"
 
@@ -177,7 +203,26 @@ func BuildGetAndPersistPlayerWithCache(
 		return nil, fmt.Errorf("failed to get player from repository: %w", err)
 	}
 
-	return func(ctx context.Context, uuid string, providerMode ProviderMode) (*domain.PlayerPIT, error) {
+	// requesterIsWellKnown reports whether the requesting user was first seen
+	// before wellKnownUserFirstSeenCutoff and has fewer than
+	// wellKnownUserMaxSeenCount visits. Unknown users and lookup failures are
+	// treated as not well-known.
+	requesterIsWellKnown := func(ctx context.Context, requesterUserID string) bool {
+		if requesterUserID == "" {
+			return false
+		}
+		user, err := userRepo.GetUser(ctx, requesterUserID)
+		if err != nil {
+			if !errors.Is(err, domain.ErrUserNotFound) {
+				// NOTE: The user repository handles its own error reporting
+				logging.FromContext(ctx).WarnContext(ctx, "Failed to get requesting user, treating them as not well-known", "error", err.Error())
+			}
+			return false
+		}
+		return user.FirstSeenAt.Before(wellKnownUserFirstSeenCutoff) && user.SeenCount < wellKnownUserMaxSeenCount
+	}
+
+	return func(ctx context.Context, uuid string, providerMode ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
 		if err := providerMode.validate(); err != nil {
 			logging.FromContext(ctx).ErrorContext(ctx, "Invalid provider mode", "providerMode", string(providerMode))
 			reporting.Report(ctx, err, map[string]string{
@@ -195,12 +240,21 @@ func BuildGetAndPersistPlayerWithCache(
 			return nil, err
 		}
 
-		// Include the provider mode in the cache key so requests with different
-		// modes don't serve each other's (differently-sourced) results.
-		cacheKey := string(providerMode) + ":" + uuid
+		effectiveProviderMode := providerMode
+		if providerMode == ProviderModeWellKnown && requesterIsWellKnown(ctx, requesterUserID) {
+			// Well-known requesting user -> get fresh data regardless of the
+			// requested player.
+			logging.FromContext(ctx).InfoContext(ctx, "Requesting user is well-known, getting fresh data")
+			effectiveProviderMode = ProviderModeAlways
+		}
+
+		// Include the (effective) provider mode in the cache key so requests
+		// with different modes don't serve each other's (differently-sourced)
+		// results.
+		cacheKey := string(effectiveProviderMode) + ":" + uuid
 
 		player, created, err := cache.GetOrCreate(ctx, playerCache, cacheKey, func() (*domain.PlayerPIT, error) {
-			switch providerMode {
+			switch effectiveProviderMode {
 			case ProviderModeAlways:
 				return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
 			case ProviderModeFallback:
@@ -285,7 +339,7 @@ func BuildUpdatePlayerInInterval(
 		}
 
 		// This is a current interval -> fetch new data and persist it to the repository
-		_, err := getAndPersistPlayerWithCache(ctx, uuid, ProviderModeAlways)
+		_, err := getAndPersistPlayerWithCache(ctx, uuid, ProviderModeAlways, "")
 		if err != nil {
 			// NOTE: GetAndPersistPlayerWithCache implementations handle their own error reporting
 			return fmt.Errorf("failed to get updated player data: %w", err)

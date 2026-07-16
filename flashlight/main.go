@@ -183,7 +183,7 @@ func main() {
 		fail("Failed to initialize GetAccountByUUIDWithCache", "error", err.Error())
 	}
 
-	getAndPersistPlayerWithCache, err := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, playerRepo, accountRepo, getAccountByUUIDWithCache)
+	getAndPersistPlayerWithCache, err := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, playerRepo, accountRepo, getAccountByUUIDWithCache, userRepo)
 	if err != nil {
 		fail("Failed to initialize GetAndPersistPlayerWithCache", "error", err.Error())
 	}

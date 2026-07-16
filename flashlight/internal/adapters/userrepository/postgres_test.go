@@ -377,3 +377,77 @@ func TestPostgresRegisterVisit(t *testing.T) {
 		require.Equal(t, userID, stored.UserID)
 	})
 }
+
+func TestPostgresGetUser(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping db tests in short mode.")
+	}
+	t.Parallel()
+
+	t.Run("returns stored user", func(t *testing.T) {
+		t.Parallel()
+		ctx := t.Context()
+
+		db, err := database.NewPostgresDatabase(database.LocalConnectionString)
+		require.NoError(t, err)
+		defer db.Close()
+
+		firstSeen := time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)
+		currentTime := firstSeen
+		nowFunc := func() time.Time {
+			return currentTime
+		}
+
+		p, _ := newPostgres(t, db, "get_user", nowFunc)
+		userID := "test-get-user-1"
+
+		_, err = p.RegisterVisit(ctx, userID, "ip-hash-1", "ua-1")
+		require.NoError(t, err)
+
+		currentTime = currentTime.Add(1 * time.Hour)
+
+		_, err = p.RegisterVisit(ctx, userID, "ip-hash-2", "ua-2")
+		require.NoError(t, err)
+
+		user, err := p.GetUser(ctx, userID)
+		require.NoError(t, err)
+		require.Equal(t, userID, user.UserID)
+		require.Equal(t, int64(2), user.SeenCount)
+		require.Equal(t, "ip-hash-2", user.LastIPHash)
+		require.Equal(t, "ua-2", user.LastUserAgent)
+		require.Equal(t, time.UTC, user.FirstSeenAt.Location())
+		require.Equal(t, time.UTC, user.LastSeenAt.Location())
+		// Time can get truncated when round-tripping to the database
+		require.WithinDuration(t, firstSeen, user.FirstSeenAt, time.Millisecond)
+		require.WithinDuration(t, currentTime, user.LastSeenAt, time.Millisecond)
+	})
+
+	t.Run("returns ErrUserNotFound for unknown user", func(t *testing.T) {
+		t.Parallel()
+		ctx := t.Context()
+
+		db, err := database.NewPostgresDatabase(database.LocalConnectionString)
+		require.NoError(t, err)
+		defer db.Close()
+
+		p, _ := newPostgres(t, db, "get_user_not_found", time.Now)
+
+		_, err = p.GetUser(ctx, "nonexistent-user")
+		require.ErrorIs(t, err, domain.ErrUserNotFound)
+	})
+
+	t.Run("empty userID returns error", func(t *testing.T) {
+		t.Parallel()
+		ctx := t.Context()
+
+		db, err := database.NewPostgresDatabase(database.LocalConnectionString)
+		require.NoError(t, err)
+		defer db.Close()
+
+		p, _ := newPostgres(t, db, "get_user_empty", time.Now)
+
+		_, err = p.GetUser(ctx, "")
+		require.Error(t, err)
+		require.NotErrorIs(t, err, domain.ErrUserNotFound)
+	})
+}

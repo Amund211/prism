@@ -30,7 +30,7 @@ func BuildFindMilestoneAchievements(
 
 		// Ensure the repository is updated with the latest data
 		// NOTE: GetAndPersistPlayerWithCache implementations handle their own error reporting
-		_, _ = getAndPersistPlayerWithCache(ctx, playerUUID, ProviderModeAlways)
+		_, _ = getAndPersistPlayerWithCache(ctx, playerUUID, ProviderModeAlways, "")
 
 		// Convert star milestones to experience milestones
 		var convertedMilestones []int64

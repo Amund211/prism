@@ -126,7 +126,14 @@ func MakeGetPlayerDataHandler(
 			},
 		)
 
-		player, err := getAndPersistPlayerWithCache(ctx, uuid, app.ProviderModeWellKnown)
+		requesterUserID := string(GetUserID(r))
+		if requesterUserID == missingUserID {
+			// Clients without an id are all registered under the shared
+			// "<missing>" sentinel; it must never identify a requester.
+			requesterUserID = ""
+		}
+
+		player, err := getAndPersistPlayerWithCache(ctx, uuid, app.ProviderModeWellKnown, requesterUserID)
 		if errors.Is(err, domain.ErrPlayerNotFound) {
 			hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(nil)
 			if err != nil {

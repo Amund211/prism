@@ -47,7 +47,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		player := domaintest.NewPlayerBuilder(UUID).WithExperience(1000).BuildPtr(now)
 
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode) (*domain.PlayerPIT, error) {
+		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
 			return player, nil
 		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
 
@@ -66,10 +66,49 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 		require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 	})
 
+	t.Run("requester user id is passed through from the X-User-Id header", func(t *testing.T) {
+		t.Parallel()
+
+		player := domaintest.NewPlayerBuilder(UUID).WithExperience(1000).BuildPtr(now)
+
+		for _, tc := range []struct {
+			name              string
+			headerValue       string
+			expectedRequester string
+		}{
+			{name: "real user id", headerValue: "some-user-id-from-the-client", expectedRequester: "some-user-id-from-the-client"},
+			{name: "missing header", headerValue: "", expectedRequester: ""},
+			// Clients without an id are all registered under the shared
+			// "<missing>" sentinel; it must never identify a requester.
+			{name: "missing sentinel", headerValue: "<missing>", expectedRequester: ""},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
+				var gotRequesterUserID *string
+				getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+					gotRequesterUserID = &requesterUserID
+					return player, nil
+				}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
+
+				w := httptest.NewRecorder()
+				req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
+				if tc.headerValue != "" {
+					req.Header.Set("X-User-Id", tc.headerValue)
+				}
+				getPlayerDataHandler(w, req)
+
+				require.Equal(t, 200, w.Result().StatusCode)
+				require.NotNil(t, gotRequesterUserID)
+				require.Equal(t, tc.expectedRequester, *gotRequesterUserID)
+			})
+		}
+	})
+
 	t.Run("client error: invalid uuid", func(t *testing.T) {
 		t.Parallel()
 
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode) (*domain.PlayerPIT, error) {
+		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
 			t.Helper()
 			t.Fatal("should not be called")
 			return nil, nil
@@ -89,7 +128,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	t.Run("player not found", func(t *testing.T) {
 		t.Parallel()
 
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode) (*domain.PlayerPIT, error) {
+		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
 			return nil, fmt.Errorf("%w: couldn't find him", domain.ErrPlayerNotFound)
 		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
 		w := httptest.NewRecorder()
@@ -106,7 +145,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	t.Run("provider temporarily unavailable", func(t *testing.T) {
 		t.Parallel()
 
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode) (*domain.PlayerPIT, error) {
+		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
 			return nil, fmt.Errorf("error :^(: (%w)", domain.ErrTemporarilyUnavailable)
 		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
 		w := httptest.NewRecorder()
@@ -125,7 +164,7 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		player := domaintest.NewPlayerBuilder(UUID).WithExperience(1000).BuildPtr(now)
 
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode) (*domain.PlayerPIT, error) {
+		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
 			return player, nil
 		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
 
