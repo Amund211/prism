@@ -86,7 +86,7 @@ func TestPostgres(t *testing.T) {
 					converted[i] = username{
 						PlayerUUID: entry.PlayerUUID,
 						Username:   entry.Username,
-						QueriedAt:  entry.QueriedAt.Format(time.RFC3339),
+						QueriedAt:  entry.QueriedAt.UTC().Format(time.RFC3339),
 					}
 				}
 				return converted
@@ -127,7 +127,7 @@ func TestPostgres(t *testing.T) {
 					converted[i] = usernameQuery{
 						PlayerUUID:    entry.PlayerUUID,
 						Username:      entry.Username,
-						LastQueriedAt: entry.LastQueriedAt.Format(time.RFC3339),
+						LastQueriedAt: entry.LastQueriedAt.UTC().Format(time.RFC3339),
 					}
 				}
 				return converted
@@ -666,6 +666,7 @@ func TestPostgres(t *testing.T) {
 			require.Equal(t, makeUUID(2), account.UUID)
 			require.Equal(t, "Leto", account.Username)
 			require.WithinDuration(t, now, account.QueriedAt, 1*time.Millisecond)
+			require.Equal(t, time.UTC, account.QueriedAt.Location())
 		})
 
 		t.Run("get different casing", func(t *testing.T) {
@@ -719,6 +720,7 @@ func TestPostgres(t *testing.T) {
 			require.Equal(t, makeUUID(2), account.UUID)
 			require.Equal(t, "Leto", account.Username)
 			require.WithinDuration(t, now, account.QueriedAt, 1*time.Millisecond)
+			require.Equal(t, time.UTC, account.QueriedAt.Location())
 		})
 
 		t.Run("get different casing", func(t *testing.T) {

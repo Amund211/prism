@@ -219,7 +219,7 @@ func (p *Postgres) GetAccountByUUID(ctx context.Context, uuid string) (domain.Ac
 	return domain.Account{
 		UUID:      entry.PlayerUUID,
 		Username:  entry.Username,
-		QueriedAt: entry.QueriedAt,
+		QueriedAt: entry.QueriedAt.UTC(),
 	}, nil
 }
 
@@ -259,6 +259,6 @@ func (p *Postgres) GetAccountByUsername(ctx context.Context, username string) (d
 	return domain.Account{
 		UUID:      entry.PlayerUUID,
 		Username:  entry.Username,
-		QueriedAt: entry.QueriedAt,
+		QueriedAt: entry.QueriedAt.UTC(),
 	}, nil
 }

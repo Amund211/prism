@@ -125,6 +125,8 @@ func TestPostgresRegisterVisit(t *testing.T) {
 		}
 
 		requireEqualUsers(t, expectedUser, user)
+		require.Equal(t, time.UTC, user.FirstSeenAt.Location())
+		require.Equal(t, time.UTC, user.LastSeenAt.Location())
 		// First seen and last seen should be equal on first visit
 		require.Equal(t, user.FirstSeenAt, user.LastSeenAt)
 

@@ -81,8 +81,8 @@ func (p *Postgres) RegisterVisit(ctx context.Context, userID string, ipHash stri
 
 	return domain.User{
 		UserID:        user.UserID,
-		FirstSeenAt:   user.FirstSeenAt,
-		LastSeenAt:    user.LastSeenAt,
+		FirstSeenAt:   user.FirstSeenAt.UTC(),
+		LastSeenAt:    user.LastSeenAt.UTC(),
 		LastIPHash:    user.LastIPHash,
 		LastUserAgent: user.LastUserAgent,
 		SeenCount:     user.SeenCount,

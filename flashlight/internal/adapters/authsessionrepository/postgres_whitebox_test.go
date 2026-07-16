@@ -206,6 +206,10 @@ func TestPostgresAuthSession(t *testing.T) {
 		require.NoError(t, err)
 		require.WithinDuration(t, bumped.Add(1*time.Hour), updated.ExpiresAt, time.Millisecond)
 		require.Equal(t, "iphash-new", updated.IPHash)
+		// CreatedAt/LifetimeEndsAt are untouched by the callback, so they
+		// come from the db read — must be normalized to UTC.
+		require.Equal(t, time.UTC, updated.CreatedAt.Location())
+		require.Equal(t, time.UTC, updated.LifetimeEndsAt.Location())
 
 		row := selectRow(t, db, schema, "flsess_u")
 		require.NotNil(t, row)

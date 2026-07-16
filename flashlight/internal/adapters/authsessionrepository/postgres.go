@@ -83,7 +83,7 @@ func (r dbAuthSession) toDomain() (domain.AuthSession, error) {
 	}
 	var revokedAt *time.Time
 	if r.RevokedAt.Valid {
-		t := r.RevokedAt.Time
+		t := r.RevokedAt.Time.UTC()
 		revokedAt = &t
 	}
 	return domain.AuthSession{
@@ -91,11 +91,11 @@ func (r dbAuthSession) toDomain() (domain.AuthSession, error) {
 		IdentityType:   identityType,
 		IdentityKey:    r.IdentityKey,
 		IPHash:         r.IPHash,
-		CreatedAt:      r.CreatedAt,
-		ExpiresAt:      r.ExpiresAt,
-		RefreshUntil:   r.RefreshUntil,
-		LifetimeEndsAt: r.LifetimeEndsAt,
-		LastUsedAt:     r.LastUsedAt,
+		CreatedAt:      r.CreatedAt.UTC(),
+		ExpiresAt:      r.ExpiresAt.UTC(),
+		RefreshUntil:   r.RefreshUntil.UTC(),
+		LifetimeEndsAt: r.LifetimeEndsAt.UTC(),
+		LastUsedAt:     r.LastUsedAt.UTC(),
 		RevokedAt:      revokedAt,
 	}, nil
 }
