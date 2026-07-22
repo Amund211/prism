@@ -43,7 +43,7 @@ dev = [
     "pyinstaller>=6.21.0",
     "pytest>=9.1.1",
     "types-pyinstaller>=6.21.0.20260616",
-    "types-pynput>=1.8.1.20260603",
+    "types-pynput>=1.8.1.20260712",
     "types-toml>=0.10.8.20260518",
 ]
 

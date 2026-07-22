@@ -543,7 +543,7 @@ dev = [
     { name = "pyinstaller", specifier = ">=6.21.0" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "types-pyinstaller", specifier = ">=6.21.0.20260616" },
-    { name = "types-pynput", specifier = ">=1.8.1.20260603" },
+    { name = "types-pynput", specifier = ">=1.8.1.20260712" },
     { name = "types-toml", specifier = ">=0.10.8.20260518" },
 ]
 
@@ -855,11 +855,11 @@ wheels = [
 
 [[package]]
 name = "types-pynput"
-version = "1.8.1.20260603"
+version = "1.8.1.20260712"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/4b/fb/71a9c1ad440a7f1c6c2bd3a8ffb889f6983a4a5b1f782804c3015b60fac6/types_pynput-1.8.1.20260603.tar.gz", hash = "sha256:c22690e389ce6ae5ca19ae496176d5ebac507aa742bfcdf34cb530c8c1ba9450", size = 12215, upload-time = "2026-06-03T06:42:02.578Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/64/e3/9c440c4e96055259292bca0758ece072e73c7b75f95689470b8ddb03d38e/types_pynput-1.8.1.20260712.tar.gz", hash = "sha256:0eab69f49a3b626c3da117651ffd65291fffae6bf8559ff0e976fcf6762ff20a", size = 12543, upload-time = "2026-07-12T05:13:20.791Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e8/50/5a7b71dd98fdecc0133133c72581acf637faaafc1e244ae6d39a8d7592fe/types_pynput-1.8.1.20260603-py3-none-any.whl", hash = "sha256:59a73c1c9d51f74a20aa57d26278e4db1e8501c609177182beca378eab016802", size = 12302, upload-time = "2026-06-03T06:42:01.545Z" },
+    { url = "https://files.pythonhosted.org/packages/3f/41/ede4d88cffc7cfc6d7bea308c029b29451dcbc3025e01581ce3a251ce063/types_pynput-1.8.1.20260712-py3-none-any.whl", hash = "sha256:b9d6369171a0c61eeaedc0b0330c1827d13a1265ed5821bcc88f3c71d548ec0c", size = 12313, upload-time = "2026-07-12T05:13:19.846Z" },
 ]
 
 [[package]]
