@@ -2,7 +2,7 @@ import { captureException, captureMessage } from "@sentry/react";
 import { queryOptions } from "@tanstack/react-query";
 
 import { env } from "#env.ts";
-import { getOrSetUserId } from "#helpers/userId.ts";
+import { getFlashlightHeaders } from "#helpers/flashlight.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { MS_PER_MINUTE } from "#time.ts";
 
@@ -194,7 +194,7 @@ export const getWrappedQueryOptions = ({
             const response = await fetch(url, {
                 headers: {
                     "Content-Type": "application/json",
-                    "X-User-Id": getOrSetUserId(),
+                    ...getFlashlightHeaders(),
                 },
                 method: "GET",
             }).catch((error: unknown) => {

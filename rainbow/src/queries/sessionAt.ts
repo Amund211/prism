@@ -2,7 +2,7 @@ import { captureException, captureMessage } from "@sentry/react";
 import { queryOptions } from "@tanstack/react-query";
 
 import { env } from "#env.ts";
-import { getOrSetUserId } from "#helpers/userId.ts";
+import { getFlashlightHeaders } from "#helpers/flashlight.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { ALL_GAMEMODE_KEYS } from "#stats/keys.ts";
 import type { GamemodeKey } from "#stats/keys.ts";
@@ -147,7 +147,7 @@ export const getSessionAtQueryOptions = ({ uuid, time }: SessionAtQueryOptions) 
                 {
                     headers: {
                         "Content-Type": "application/json",
-                        "X-User-Id": getOrSetUserId(),
+                        ...getFlashlightHeaders(),
                     },
                     method: "POST",
                     body: JSON.stringify({ uuid, time: timeISOString }),

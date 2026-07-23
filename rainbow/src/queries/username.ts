@@ -3,7 +3,7 @@ import { queryOptions, useQueries } from "@tanstack/react-query";
 
 import { addKnownAliasAndPersist } from "#contexts/KnownAliases/helpers.ts";
 import { env } from "#env.ts";
-import { getOrSetUserId } from "#helpers/userId.ts";
+import { getFlashlightHeaders } from "#helpers/flashlight.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { MS_PER_HOUR } from "#time.ts";
 
@@ -33,9 +33,7 @@ export const getUsernameQueryOptions = (uuid: string) =>
                 //       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
                 `${env.VITE_FLASHLIGHT_URL}/v1/account/uuid/${uuid}`,
                 {
-                    headers: {
-                        "X-User-Id": getOrSetUserId(),
-                    },
+                    headers: getFlashlightHeaders(),
                 },
             ).catch((error: unknown) => {
                 captureException(error, {
