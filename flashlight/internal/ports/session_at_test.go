@@ -37,7 +37,7 @@ func TestMakeGetSessionAtHandler(t *testing.T) {
 		stubRegisterUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 			return domain.User{}, nil
 		}
-		return ports.MakeGetSessionAtHandler(
+		handler, stop := ports.MakeGetSessionAtHandler(
 			getSessionAt,
 			stubRegisterUserVisit,
 			allowedOrigins,
@@ -45,6 +45,8 @@ func TestMakeGetSessionAtHandler(t *testing.T) {
 			noopMiddleware,
 			emptyBlocklistConfig,
 		)
+		t.Cleanup(stop)
+		return handler
 	}
 
 	makeRequest := func(uuid, timeStr string) *http.Request {

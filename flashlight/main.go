@@ -225,47 +225,60 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	handleFunc := func(pattern string, handlerFunc http.HandlerFunc) {
+	// Handler constructors start background rate-limiter eviction goroutines
+	// and return a stop func to shut them down. These handlers live for the
+	// whole process lifetime, so stopping them only actually matters in tests
+	// (via t.Cleanup); in production the goroutines are reclaimed when the
+	// process exits. We still collect and defer the stops so a clean main()
+	// return tears them down, but note this defer does NOT run on the Cloud Run
+	// SIGTERM path (ListenAndServe blocks, main never returns) nor via fail()
+	// (os.Exit skips defers) — which is fine, since process exit reclaims them.
+	var handlerStops []func()
+	defer func() {
+		for _, stop := range handlerStops {
+			stop()
+		}
+	}()
+
+	// stops are the rate-limiter eviction-goroutine cleanups for the handler,
+	// collected here so a handler can't be registered without also collecting
+	// them (handlers without rate limiters pass none).
+	handleFunc := func(pattern string, handlerFunc http.HandlerFunc, stops ...func()) {
+		handlerStops = append(handlerStops, stops...)
 		handler := otelhttp.NewHandler(handlerFunc, pattern)
 		mux.Handle(pattern, handler)
 	}
 
-	handleFunc(
-		"GET /v1/prism-notices",
-		ports.MakePrismNoticesHandler(
-			getPrismNotices,
-			registerUserVisit,
-			logger.With("port", "prism-notices"),
-			sentryMiddleware,
-			bearerAuthMiddleware,
-			blocklistConfig,
-		),
+	prismNoticesHandler, stopPrismNotices := ports.MakePrismNoticesHandler(
+		getPrismNotices,
+		registerUserVisit,
+		logger.With("port", "prism-notices"),
+		sentryMiddleware,
+		bearerAuthMiddleware,
+		blocklistConfig,
 	)
+	handleFunc("GET /v1/prism-notices", prismNoticesHandler, stopPrismNotices)
 
-	handleFunc(
-		"GET /v1/playerdata",
-		ports.MakeGetPlayerDataHandler(
-			getAndPersistPlayerWithCache,
-			registerUserVisit,
-			logger.With("port", "playerdata"),
-			sentryMiddleware,
-			bearerAuthMiddleware,
-			blocklistConfig,
-			false,
-		),
+	playerDataHandler, stopPlayerData := ports.MakeGetPlayerDataHandler(
+		getAndPersistPlayerWithCache,
+		registerUserVisit,
+		logger.With("port", "playerdata"),
+		sentryMiddleware,
+		bearerAuthMiddleware,
+		blocklistConfig,
+		false,
 	)
+	handleFunc("GET /v1/playerdata", playerDataHandler, stopPlayerData)
 
-	handleFunc(
-		"GET /v1/tags/{uuid}",
-		ports.MakeGetTagsHandler(
-			getTags,
-			registerUserVisit,
-			logger.With("port", "tags"),
-			sentryMiddleware,
-			bearerAuthMiddleware,
-			blocklistConfig,
-		),
+	tagsHandler, stopTags := ports.MakeGetTagsHandler(
+		getTags,
+		registerUserVisit,
+		logger.With("port", "tags"),
+		sentryMiddleware,
+		bearerAuthMiddleware,
+		blocklistConfig,
 	)
+	handleFunc("GET /v1/tags/{uuid}", tagsHandler, stopTags)
 
 	handleFunc(
 		"POST /v1/auth/anonymous/login",
@@ -293,130 +306,114 @@ func main() {
 		"OPTIONS /v1/account/username/{username}",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
-	handleFunc(
-		"GET /v1/account/username/{username}",
-		ports.MakeGetAccountByUsernameHandler(
-			getAccountByUsernameWithCache,
-			registerUserVisit,
-			allowedOrigins,
-			logger.With("port", "getaccountbyusername"),
-			sentryMiddleware,
-			blocklistConfig,
-		),
+	accountByUsernameHandler, stopAccountByUsername := ports.MakeGetAccountByUsernameHandler(
+		getAccountByUsernameWithCache,
+		registerUserVisit,
+		allowedOrigins,
+		logger.With("port", "getaccountbyusername"),
+		sentryMiddleware,
+		blocklistConfig,
 	)
+	handleFunc("GET /v1/account/username/{username}", accountByUsernameHandler, stopAccountByUsername)
 
 	handleFunc(
 		"OPTIONS /v1/account/uuid/{uuid}",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
-	handleFunc(
-		"GET /v1/account/uuid/{uuid}",
-		ports.MakeGetAccountByUUIDHandler(
-			getAccountByUUIDWithCache,
-			registerUserVisit,
-			allowedOrigins,
-			logger.With("port", "getaccountbyuuid"),
-			sentryMiddleware,
-			blocklistConfig,
-		),
+	accountByUUIDHandler, stopAccountByUUID := ports.MakeGetAccountByUUIDHandler(
+		getAccountByUUIDWithCache,
+		registerUserVisit,
+		allowedOrigins,
+		logger.With("port", "getaccountbyuuid"),
+		sentryMiddleware,
+		blocklistConfig,
 	)
+	handleFunc("GET /v1/account/uuid/{uuid}", accountByUUIDHandler, stopAccountByUUID)
 
 	handleFunc(
 		"OPTIONS /v1/history",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
-	handleFunc(
-		"POST /v1/history",
-		ports.MakeGetHistoryHandler(
-			getHistory,
-			registerUserVisit,
-			allowedOrigins,
-			logger.With("port", "history"),
-			sentryMiddleware,
-			blocklistConfig,
-		),
+	historyHandler, stopHistory := ports.MakeGetHistoryHandler(
+		getHistory,
+		registerUserVisit,
+		allowedOrigins,
+		logger.With("port", "history"),
+		sentryMiddleware,
+		blocklistConfig,
 	)
+	handleFunc("POST /v1/history", historyHandler, stopHistory)
 
 	handleFunc(
 		"OPTIONS /v1/sessions",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
-	handleFunc(
-		"POST /v1/sessions",
-		ports.MakeGetSessionsHandler(
-			getPlayerPITs,
-			computeSessions,
-			registerUserVisit,
-			allowedOrigins,
-			logger.With("port", "sessions"),
-			sentryMiddleware,
-			blocklistConfig,
-		),
+	sessionsHandler, stopSessions := ports.MakeGetSessionsHandler(
+		getPlayerPITs,
+		computeSessions,
+		registerUserVisit,
+		allowedOrigins,
+		logger.With("port", "sessions"),
+		sentryMiddleware,
+		blocklistConfig,
 	)
+	handleFunc("POST /v1/sessions", sessionsHandler, stopSessions)
 
 	handleFunc(
 		"OPTIONS /v1/session-at",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
-	handleFunc(
-		"POST /v1/session-at",
-		ports.MakeGetSessionAtHandler(
-			getSessionAt,
-			registerUserVisit,
-			allowedOrigins,
-			logger.With("port", "session-at"),
-			sentryMiddleware,
-			blocklistConfig,
-		),
+	sessionAtHandler, stopSessionAt := ports.MakeGetSessionAtHandler(
+		getSessionAt,
+		registerUserVisit,
+		allowedOrigins,
+		logger.With("port", "session-at"),
+		sentryMiddleware,
+		blocklistConfig,
 	)
+	handleFunc("POST /v1/session-at", sessionAtHandler, stopSessionAt)
 
 	handleFunc(
 		"OPTIONS /v1/prestiges/{uuid}",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
-	handleFunc(
-		"GET /v1/prestiges/{uuid}",
-		ports.MakeGetPrestigesHandler(
-			findMilestoneAchievements,
-			registerUserVisit,
-			allowedOrigins,
-			logger.With("port", "prestiges"),
-			sentryMiddleware,
-			blocklistConfig,
-		),
+	prestigesHandler, stopPrestiges := ports.MakeGetPrestigesHandler(
+		findMilestoneAchievements,
+		registerUserVisit,
+		allowedOrigins,
+		logger.With("port", "prestiges"),
+		sentryMiddleware,
+		blocklistConfig,
 	)
+	handleFunc("GET /v1/prestiges/{uuid}", prestigesHandler, stopPrestiges)
 
 	handleFunc(
 		"OPTIONS /v1/wrapped/{uuid}/{year}",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
-	handleFunc(
-		"GET /v1/wrapped/{uuid}/{year}",
-		ports.MakeGetWrappedHandler(
-			getPlayerPITs,
-			computeSessions,
-			registerUserVisit,
-			allowedOrigins,
-			logger.With("port", "wrapped"),
-			sentryMiddleware,
-			blocklistConfig,
-		),
+	wrappedHandler, stopWrapped := ports.MakeGetWrappedHandler(
+		getPlayerPITs,
+		computeSessions,
+		registerUserVisit,
+		allowedOrigins,
+		logger.With("port", "wrapped"),
+		sentryMiddleware,
+		blocklistConfig,
 	)
+	handleFunc("GET /v1/wrapped/{uuid}/{year}", wrappedHandler, stopWrapped)
 
 	// TODO: Remove deprecated non-versioned endpoint. Hits are logged with a
 	// "Deprecated endpoint hit" WARN so we can confirm it's safe to drop.
-	handleFunc(
-		"GET /playerdata",
-		ports.MakeGetPlayerDataHandler(
-			getAndPersistPlayerWithCache,
-			registerUserVisit,
-			logger.With("port", "playerdata"),
-			sentryMiddleware,
-			bearerAuthMiddleware,
-			blocklistConfig,
-			true,
-		),
+	legacyPlayerDataHandler, stopLegacyPlayerData := ports.MakeGetPlayerDataHandler(
+		getAndPersistPlayerWithCache,
+		registerUserVisit,
+		logger.With("port", "playerdata"),
+		sentryMiddleware,
+		bearerAuthMiddleware,
+		blocklistConfig,
+		true,
 	)
+	handleFunc("GET /playerdata", legacyPlayerDataHandler, stopLegacyPlayerData)
 
 	httpServer := &http.Server{
 		Addr:         fmt.Sprintf(":%s", config.Port()),

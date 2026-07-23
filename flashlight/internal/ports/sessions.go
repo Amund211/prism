@@ -25,8 +25,8 @@ func MakeGetSessionsHandler(
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
-) http.HandlerFunc {
-	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+) (http.HandlerFunc, func()) {
+	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(4),
 		ratelimiting.BurstSize(80),
 	)
@@ -34,7 +34,7 @@ func MakeGetSessionsHandler(
 		ipLimiter,
 		IPHashKeyFunc,
 	)
-	userIDLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+	userIDLimiter, stopUserIDLimiter := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(1),
 		ratelimiting.BurstSize(20),
 	)
@@ -165,5 +165,10 @@ func MakeGetSessionsHandler(
 		w.Write(marshalled)
 	}
 
-	return middleware(handler)
+	stop := func() {
+		stopIPLimiter()
+		stopUserIDLimiter()
+	}
+
+	return middleware(handler), stop
 }

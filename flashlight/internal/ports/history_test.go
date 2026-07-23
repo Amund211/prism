@@ -51,7 +51,7 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 		stubRegisterUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 			return domain.User{}, nil
 		}
-		return ports.MakeGetHistoryHandler(
+		handler, stop := ports.MakeGetHistoryHandler(
 			getHistory,
 			stubRegisterUserVisit,
 			allowedOrigins,
@@ -59,6 +59,8 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 			noopMiddleware,
 			emptyBlocklistConfig,
 		)
+		t.Cleanup(stop)
+		return handler
 	}
 
 	uuid := "01234567-89ab-cdef-0123-456789abcdef"

@@ -30,7 +30,7 @@ var prismNoticesTestLogger = slog.New(slog.NewTextHandler(io.Discard, nil))
 
 func makePrismNoticesHandler(t *testing.T, getPrismNotices app.GetPrismNotices) http.HandlerFunc {
 	t.Helper()
-	return ports.MakePrismNoticesHandler(
+	handler, stop := ports.MakePrismNoticesHandler(
 		getPrismNotices,
 		stubPrismNoticesRegisterUserVisit,
 		prismNoticesTestLogger,
@@ -38,6 +38,8 @@ func makePrismNoticesHandler(t *testing.T, getPrismNotices app.GetPrismNotices) 
 		noopPrismNoticesMiddleware,
 		emptyBlocklistConfig,
 	)
+	t.Cleanup(stop)
+	return handler
 }
 
 func TestPrismNoticesHandlerPassesArgsToApp(t *testing.T) {

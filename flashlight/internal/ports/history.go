@@ -24,8 +24,8 @@ func MakeGetHistoryHandler(
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
-) http.HandlerFunc {
-	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+) (http.HandlerFunc, func()) {
+	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(4),
 		ratelimiting.BurstSize(240),
 	)
@@ -33,7 +33,7 @@ func MakeGetHistoryHandler(
 		ipLimiter,
 		IPHashKeyFunc,
 	)
-	ipLimiterLong, _ := ratelimiting.NewTokenBucketRateLimiter(
+	ipLimiterLong, stopIPLimiterLong := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(0.1),
 		ratelimiting.BurstSize(200),
 	)
@@ -41,7 +41,7 @@ func MakeGetHistoryHandler(
 		ipLimiterLong,
 		IPHashKeyFunc,
 	)
-	userIDLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+	userIDLimiter, stopUserIDLimiter := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(1),
 		ratelimiting.BurstSize(60),
 	)
@@ -75,6 +75,12 @@ func MakeGetHistoryHandler(
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
 		BuildRegisterUserVisitMiddleware(registerUserVisit),
 	)
+
+	stop := func() {
+		stopIPLimiter()
+		stopIPLimiterLong()
+		stopUserIDLimiter()
+	}
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -168,5 +174,5 @@ func MakeGetHistoryHandler(
 		w.Write(marshalled)
 	}
 
-	return middleware(handler)
+	return middleware(handler), stop
 }

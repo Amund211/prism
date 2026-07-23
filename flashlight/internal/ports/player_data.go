@@ -26,10 +26,10 @@ func MakeGetPlayerDataHandler(
 	bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
 	deprecated bool,
-) http.HandlerFunc {
+) (http.HandlerFunc, func()) {
 	tracer := otel.Tracer("flashlight/ports/player_data_v1")
 
-	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(8),
 		ratelimiting.BurstSize(480),
 	)
@@ -37,7 +37,7 @@ func MakeGetPlayerDataHandler(
 		ipLimiter,
 		IPHashKeyFunc,
 	)
-	ipLimiterLong, _ := ratelimiting.NewTokenBucketRateLimiter(
+	ipLimiterLong, stopIPLimiterLong := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(0.1),
 		ratelimiting.BurstSize(200),
 	)
@@ -45,7 +45,7 @@ func MakeGetPlayerDataHandler(
 		ipLimiterLong,
 		IPHashKeyFunc,
 	)
-	userIDLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+	userIDLimiter, stopUserIDLimiter := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(2),
 		ratelimiting.BurstSize(120),
 	)
@@ -182,7 +182,13 @@ func MakeGetPlayerDataHandler(
 		w.Write(hypixelAPIResponseData)
 	}
 
-	return middleware(handler)
+	stop := func() {
+		stopIPLimiter()
+		stopIPLimiterLong()
+		stopUserIDLimiter()
+	}
+
+	return middleware(handler), stop
 }
 
 func writeHypixelStyleErrorResponse(ctx context.Context, w http.ResponseWriter, responseError error) int {

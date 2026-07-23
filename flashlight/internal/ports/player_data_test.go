@@ -47,9 +47,10 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		player := domaintest.NewPlayerBuilder(UUID).WithExperience(1000).BuildPtr(now)
 
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+		getPlayerDataHandler, stop := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
 			return player, nil
 		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
+		t.Cleanup(stop)
 
 		w := httptest.NewRecorder()
 		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
@@ -86,10 +87,11 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 				t.Parallel()
 
 				var gotRequesterUserID *string
-				getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+				getPlayerDataHandler, stop := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
 					gotRequesterUserID = &requesterUserID
 					return player, nil
 				}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
+				t.Cleanup(stop)
 
 				w := httptest.NewRecorder()
 				req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
@@ -108,11 +110,12 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	t.Run("client error: invalid uuid", func(t *testing.T) {
 		t.Parallel()
 
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+		getPlayerDataHandler, stop := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
 			t.Helper()
 			t.Fatal("should not be called")
 			return nil, nil
 		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
+		t.Cleanup(stop)
 		w := httptest.NewRecorder()
 
 		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/?uuid=1234-1234-1234", nil)
@@ -128,9 +131,10 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	t.Run("player not found", func(t *testing.T) {
 		t.Parallel()
 
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+		getPlayerDataHandler, stop := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
 			return nil, fmt.Errorf("%w: couldn't find him", domain.ErrPlayerNotFound)
 		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
+		t.Cleanup(stop)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
 
@@ -145,9 +149,10 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	t.Run("provider temporarily unavailable", func(t *testing.T) {
 		t.Parallel()
 
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+		getPlayerDataHandler, stop := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
 			return nil, fmt.Errorf("error :^(: (%w)", domain.ErrTemporarilyUnavailable)
 		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
+		t.Cleanup(stop)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
 
@@ -164,9 +169,10 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 
 		player := domaintest.NewPlayerBuilder(UUID).WithExperience(1000).BuildPtr(now)
 
-		getPlayerDataHandler := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+		getPlayerDataHandler, stop := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
 			return player, nil
 		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
+		t.Cleanup(stop)
 
 		// Exhaust the rate limit
 		for range 200 {

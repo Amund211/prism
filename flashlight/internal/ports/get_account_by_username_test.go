@@ -46,7 +46,7 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 		stubRegisterUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 			return domain.User{}, nil
 		}
-		return ports.MakeGetAccountByUsernameHandler(
+		handler, stop := ports.MakeGetAccountByUsernameHandler(
 			getAccountByUsername,
 			stubRegisterUserVisit,
 			allowedOrigins,
@@ -54,6 +54,8 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 			noopMiddleware,
 			emptyBlocklistConfig,
 		)
+		t.Cleanup(stop)
+		return handler
 	}
 
 	username := "someguy"

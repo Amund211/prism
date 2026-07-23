@@ -48,7 +48,7 @@ func TestMakeGetAccountByUUIDHandler(t *testing.T) {
 		stubRegisterUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 			return domain.User{}, nil
 		}
-		return ports.MakeGetAccountByUUIDHandler(
+		handler, stop := ports.MakeGetAccountByUUIDHandler(
 			getAccountByUUID,
 			stubRegisterUserVisit,
 			allowedOrigins,
@@ -56,6 +56,8 @@ func TestMakeGetAccountByUUIDHandler(t *testing.T) {
 			noopMiddleware,
 			emptyBlocklistConfig,
 		)
+		t.Cleanup(stop)
+		return handler
 	}
 
 	uuid := "01234567-89ab-cdef-0123-456789abcdef"

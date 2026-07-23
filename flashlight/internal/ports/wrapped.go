@@ -183,8 +183,8 @@ func MakeGetWrappedHandler(
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
-) http.HandlerFunc {
-	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+) (http.HandlerFunc, func()) {
+	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(4),
 		ratelimiting.BurstSize(240),
 	)
@@ -192,7 +192,7 @@ func MakeGetWrappedHandler(
 		ipLimiter,
 		IPHashKeyFunc,
 	)
-	userIDLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+	userIDLimiter, stopUserIDLimiter := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(1),
 		ratelimiting.BurstSize(60),
 	)
@@ -324,7 +324,12 @@ func MakeGetWrappedHandler(
 		w.Write(marshalled)
 	}
 
-	return middleware(handler)
+	stop := func() {
+		stopIPLimiter()
+		stopUserIDLimiter()
+	}
+
+	return middleware(handler), stop
 }
 
 func computeWrappedStats(ctx context.Context, computeSessions app.ComputeSessions, playerPITs []domain.PlayerPIT, year int, location *time.Location) wrappedResponse {

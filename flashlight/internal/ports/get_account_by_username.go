@@ -30,8 +30,8 @@ func MakeGetAccountByUsernameHandler(
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
-) http.HandlerFunc {
-	ipLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+) (http.HandlerFunc, func()) {
+	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(8),
 		ratelimiting.BurstSize(480),
 	)
@@ -39,7 +39,7 @@ func MakeGetAccountByUsernameHandler(
 		ipLimiter,
 		IPHashKeyFunc,
 	)
-	userIDLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
+	userIDLimiter, stopUserIDLimiter := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(2),
 		ratelimiting.BurstSize(120),
 	)
@@ -148,7 +148,12 @@ func MakeGetAccountByUsernameHandler(
 		w.Write(response)
 	}
 
-	return middleware(handler)
+	stop := func() {
+		stopIPLimiter()
+		stopUserIDLimiter()
+	}
+
+	return middleware(handler), stop
 }
 
 func makeAccountResponse(ctx context.Context, username string, success bool, uuid string, cause string) ([]byte, error) {
