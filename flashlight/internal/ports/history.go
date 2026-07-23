@@ -33,6 +33,14 @@ func MakeGetHistoryHandler(
 		ipLimiter,
 		IPHashKeyFunc,
 	)
+	ipLimiterLong, _ := ratelimiting.NewTokenBucketRateLimiter(
+		ratelimiting.RefillPerSecond(0.1),
+		ratelimiting.BurstSize(200),
+	)
+	ipRateLimiterLong := ratelimiting.NewRequestBasedRateLimiter(
+		ipLimiterLong,
+		IPHashKeyFunc,
+	)
 	userIDLimiter, _ := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(1),
 		ratelimiting.BurstSize(60),
@@ -63,6 +71,7 @@ func MakeGetHistoryHandler(
 		NewReportingMetaMiddleware("history"),
 		BuildCORSMiddleware(allowedOrigins),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
+		NewRateLimitMiddleware(ipRateLimiterLong, makeOnLimitExceeded(ipRateLimiterLong)),
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
 		BuildRegisterUserVisitMiddleware(registerUserVisit),
 	)
