@@ -8,6 +8,13 @@ fails, do a fresh anonymous login and retry once.
 
 The session token itself is not persisted across overlay restarts in v1.
 Re-acquire on every launch is acceptable because the chain is silent.
+
+Design note — no wall-clock reads. Every timing decision is driven by a
+monotonic deadline computed from the server-supplied duration at the
+moment the response arrives. The client never compares timestamps
+against ``datetime.now()``: a frozen laptop, NTP skew, or DST roll-over
+cannot cause spurious refreshes. The contract on the wire is pure
+seconds-from-now.
 """
 
 from __future__ import annotations
@@ -17,7 +24,6 @@ import threading
 import time
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from datetime import datetime
 from json import JSONDecodeError
 from typing import Any
 
@@ -33,15 +39,24 @@ logger = logging.getLogger(__name__)
 class FlashlightSession:
     """In-memory representation of an auth_sessions row, as the client sees it.
 
-    All four timestamps are server-supplied. The client never computes
-    refresh timing itself — it just observes ``refresh_at`` and acts on it.
+    ``refresh_at_monotonic`` is a monotonic-clock deadline (in seconds,
+    same scale as :func:`time.monotonic`) computed from the
+    server-supplied ``refreshInSeconds`` at the moment the response
+    landed. The proactive timer compares it only against
+    :func:`time.monotonic`, never against wall-clock time.
+
+    ``can_refresh`` is the server's "should I bother calling /refresh?"
+    hint: ``True`` while another refresh would still grant a full
+    window, ``False`` on the final refresh whose ``refresh_until`` got
+    pinned to the absolute lifetime cap. When the timer fires with
+    ``can_refresh=False`` the client does a full re-login instead of
+    calling /refresh.
     """
 
     session_id: str
-    expires_at: datetime
-    refresh_until: datetime
-    refresh_at: datetime
     tier: str
+    can_refresh: bool
+    refresh_at_monotonic: float
 
 
 class FlashlightAuthError(Exception):
@@ -52,52 +67,48 @@ class FlashlightAuthError(Exception):
     """
 
 
-def _parse_session_response(payload: object) -> FlashlightSession:
+def _parse_session_response(payload: object, monotonic_now: float) -> FlashlightSession:
     if not isinstance(payload, Mapping):
         raise FlashlightAuthError(
             f"Invalid auth session response (not a mapping): {payload=}"
         )
     try:
         session_id = payload["sessionId"]
-        expires_at = payload["expiresAt"]
-        refresh_until = payload["refreshUntil"]
-        refresh_at = payload["refreshAt"]
         tier = payload["tier"]
+        refresh_in_seconds = payload["refreshInSeconds"]
+        can_refresh = payload["canRefresh"]
     except KeyError as e:
         raise FlashlightAuthError(
             f"Auth session response missing required field: {e}"
         ) from e
 
-    for name, value in (
-        ("sessionId", session_id),
-        ("expiresAt", expires_at),
-        ("refreshUntil", refresh_until),
-        ("refreshAt", refresh_at),
-        ("tier", tier),
-    ):
-        if not isinstance(value, str):
-            raise FlashlightAuthError(
-                f"Auth session field {name!r} is not a string: {value=}"
-            )
-
-    try:
-        return FlashlightSession(
-            session_id=session_id,
-            expires_at=_parse_iso8601(expires_at),
-            refresh_until=_parse_iso8601(refresh_until),
-            refresh_at=_parse_iso8601(refresh_at),
-            tier=tier,
-        )
-    except ValueError as e:
+    if not isinstance(session_id, str):
         raise FlashlightAuthError(
-            f"Auth session response has invalid timestamp: {e}"
-        ) from e
+            f"Auth session field 'sessionId' is not a string: {session_id=}"
+        )
+    if not isinstance(tier, str):
+        raise FlashlightAuthError(f"Auth session field 'tier' is not a string: {tier=}")
+    if not isinstance(can_refresh, bool):
+        raise FlashlightAuthError(
+            f"Auth session field 'canRefresh' is not a bool: {can_refresh=}"
+        )
+    # Accept ints; reject bools (which are also ints in Python) and floats.
+    if isinstance(refresh_in_seconds, bool) or not isinstance(refresh_in_seconds, int):
+        raise FlashlightAuthError(
+            "Auth session field 'refreshInSeconds' is not an int: "
+            f"{refresh_in_seconds=}"
+        )
+    if refresh_in_seconds < 0:
+        raise FlashlightAuthError(
+            f"Auth session field 'refreshInSeconds' is negative: {refresh_in_seconds=}"
+        )
 
-
-def _parse_iso8601(s: str) -> datetime:
-    # The server emits time.RFC3339Nano with a trailing 'Z'; datetime.fromisoformat
-    # in Python 3.11+ accepts 'Z' directly.
-    return datetime.fromisoformat(s)
+    return FlashlightSession(
+        session_id=session_id,
+        tier=tier,
+        can_refresh=can_refresh,
+        refresh_at_monotonic=monotonic_now + float(refresh_in_seconds),
+    )
 
 
 class FlashlightAuthClient:
@@ -106,8 +117,11 @@ class FlashlightAuthClient:
     Lifecycle:
       - lazy login on first ``authorized_get`` (or explicit ``login()``)
       - on 401 mid-request, refresh once; if that also 401s, log in fresh
-      - the proactive refresh timer (see ``start_refresh_timer``) calls
-        ``refresh()`` at ``session.refresh_at`` to renew before expiry
+      - the proactive refresh timer (see ``start_refresh_timer``) wakes
+        up at the session's ``refresh_at_monotonic`` deadline and either
+        calls ``refresh()`` (when ``can_refresh`` is True) or
+        ``login()`` (when False, i.e. the server has signalled that the
+        next refresh would be useless).
     """
 
     def __init__(
@@ -117,13 +131,13 @@ class FlashlightAuthClient:
         user_id: str,
         api_url: str = FLASHLIGHT_API_URL,
         request_timeout: float = 10.0,
-        now: Callable[[], datetime] | None = None,
+        monotonic_clock: Callable[[], float] | None = None,
     ) -> None:
         self._http = session
         self._user_id = user_id
         self._api_url = api_url
         self._request_timeout = request_timeout
-        self._now = now or _utcnow
+        self._monotonic = monotonic_clock or time.monotonic
 
         # The lock protects the cached session and the timer thread handle.
         # All HTTP work happens outside the lock — only state swaps are
@@ -140,8 +154,12 @@ class FlashlightAuthClient:
         with self._lock:
             return self._session
 
-    def login(self) -> FlashlightSession:
-        """Issue a fresh anonymous session, replacing any existing one."""
+    def anonymous_login(self) -> FlashlightSession:
+        """Issue a fresh anonymous session, replacing any existing one.
+
+        Named tier-explicitly so a Microsoft-login method can sit
+        alongside this one when that lands, without churning callers.
+        """
         url = f"{self._api_url}/v1/auth/anonymous/login"
         try:
             response = self._http.post(
@@ -163,7 +181,7 @@ class FlashlightAuthClient:
                 f"Anonymous login returned invalid JSON: {response.text!r}"
             ) from e
 
-        session = _parse_session_response(payload)
+        session = _parse_session_response(payload, self._monotonic())
         with self._lock:
             self._session = session
         logger.info(
@@ -206,7 +224,7 @@ class FlashlightAuthClient:
                 f"Refresh returned invalid JSON: {response.text!r}"
             ) from e
 
-        session = _parse_session_response(payload)
+        session = _parse_session_response(payload, self._monotonic())
         with self._lock:
             self._session = session
         logger.info("Session refreshed", extra={"sessionId": session.session_id})
@@ -241,10 +259,11 @@ class FlashlightAuthClient:
         timeout: float | tuple[float, float] | None = None,
     ) -> requests.Response:
         # Ensure we have a session. Login is silent and only happens if we
-        # don't already have one; concurrent calls are safe because login()
-        # is idempotent (a second login just issues a fresh session).
+        # don't already have one; concurrent calls are safe because
+        # anonymous_login() is idempotent (a second login just issues a
+        # fresh session).
         if self.current_session is None:
-            self.login()
+            self.anonymous_login()
 
         response = self._send_with_bearer(
             method, url, headers=headers, params=params, timeout=timeout
@@ -265,7 +284,7 @@ class FlashlightAuthClient:
                 return response
 
         # Second fallback: fresh anonymous login.
-        self.login()
+        self.anonymous_login()
         response = self._send_with_bearer(
             method, url, headers=headers, params=params, timeout=timeout
         )
@@ -297,7 +316,7 @@ class FlashlightAuthClient:
     # --- Proactive refresh ---------------------------------------------------
 
     def start_refresh_timer(self) -> None:
-        """Start the background thread that refreshes at ``session.refresh_at``.
+        """Start the background thread that refreshes at the session's deadline.
 
         Safe to call multiple times — only one timer thread runs.
         """
@@ -327,7 +346,7 @@ class FlashlightAuthClient:
                     return
                 continue
 
-            sleep_seconds = max(0.0, (session.refresh_at - self._now()).total_seconds())
+            sleep_seconds = max(0.0, session.refresh_at_monotonic - self._monotonic())
             # Cap the maximum sleep so we re-check the session reference
             # periodically (it might have been replaced by reactive
             # refresh / login).
@@ -335,11 +354,23 @@ class FlashlightAuthClient:
             if self._stop_event.wait(sleep_seconds):
                 return
 
+            # Re-read in case it was replaced while we slept.
+            session = self.current_session
+            if session is None:
+                continue
+
             try:
-                self.refresh()
+                if session.can_refresh:
+                    self.refresh()
+                else:
+                    # Server has told us another /refresh would be
+                    # useless: the session's refresh window has been
+                    # clamped to the absolute lifetime cap. Skip the
+                    # round-trip and re-auth from scratch.
+                    self.anonymous_login()
             except FlashlightAuthError as e:
                 logger.warning(
-                    "Proactive refresh failed; leaving reactive path to recover",
+                    "Proactive renewal failed; leaving reactive path to recover",
                     exc_info=e,
                 )
                 # On failure, let the next reactive 401 trigger recovery.
@@ -348,18 +379,8 @@ class FlashlightAuthClient:
                     return
 
 
-def _utcnow() -> datetime:
-    from datetime import timezone
-
-    return datetime.now(tz=timezone.utc)
-
-
 __all__ = [
     "FlashlightAuthClient",
     "FlashlightAuthError",
     "FlashlightSession",
 ]
-
-
-# Suppress unused-import warning in some linter setups.
-_ = time
