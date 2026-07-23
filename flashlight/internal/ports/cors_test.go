@@ -154,7 +154,7 @@ func TestCORS(t *testing.T) {
 
 			if method == "OPTIONS" {
 				require.Equal(t, "GET,POST", resp.Header.Get("Access-Control-Allow-Methods"))
-				require.Equal(t, "Content-Type, X-User-Id, X-Client-Type, X-Client-Version", resp.Header.Get("Access-Control-Allow-Headers"))
+				require.Equal(t, "Content-Type, X-User-Id, X-Client-Type, X-Client-Version, Authorization", resp.Header.Get("Access-Control-Allow-Headers"))
 			} else {
 				require.Empty(t, resp.Header.Get("Access-Control-Allow-Methods"))
 				require.Empty(t, resp.Header.Get("Access-Control-Allow-Headers"))
