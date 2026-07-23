@@ -9,6 +9,7 @@ import requests
 from requests.exceptions import RequestException
 
 from prism import VERSION_STRING
+from prism.flashlight.headers import make_flashlight_client_headers
 from prism.flashlight.url import FLASHLIGHT_API_URL
 from prism.requests import make_prism_requests_session
 
@@ -69,7 +70,12 @@ def _make_flashlight_notices_request(
 ) -> Any | None:  # pragma: nocover
     headers = {
         "X-User-Id": user_id,
+        # TODO: X-Prism-Version is now redundant with the X-Client-Version
+        # header from make_flashlight_client_headers() (which carries the same
+        # VERSION_STRING). Remove this once v1.12.0+ adoption is high enough
+        # that X-Client-Version covers prism.
         "X-Prism-Version": VERSION_STRING,
+        **make_flashlight_client_headers(),
     }
 
     try:

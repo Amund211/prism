@@ -6,6 +6,7 @@ import requests
 from requests.exceptions import RequestException
 
 from prism.errors import APIError, PlayerNotFoundError
+from prism.flashlight.headers import make_flashlight_client_headers
 from prism.flashlight.url import FLASHLIGHT_API_URL
 from prism.player import Account
 from prism.ratelimiting import RateLimiter
@@ -44,7 +45,12 @@ class FlashlightAccountProvider:
             # Uphold our prescribed rate-limits
             with self._limiter:
                 response = self._session.get(
-                    url, headers={"X-User-Id": user_id}, timeout=10
+                    url,
+                    headers={
+                        "X-User-Id": user_id,
+                        **make_flashlight_client_headers(),
+                    },
+                    timeout=10,
                 )
         except RequestException as e:
             raise ExecutionError(
