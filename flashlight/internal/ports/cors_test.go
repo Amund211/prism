@@ -148,6 +148,9 @@ func TestCORS(t *testing.T) {
 			require.Equal(t, handlerBody, body)
 		}
 
+		// The response varies by Origin regardless of whether it is allowed.
+		require.Equal(t, "Origin", resp.Header.Get("Vary"))
+
 		// CORS
 		if c.allowed {
 			require.Equal(t, c.origin, resp.Header.Get("Access-Control-Allow-Origin"))

@@ -57,6 +57,13 @@ func BuildCORSMiddleware(allowedSuffixes *DomainSuffixes) func(http.HandlerFunc)
 		return func(w http.ResponseWriter, r *http.Request) {
 			origin := r.Header.Get("Origin")
 
+			// The response depends on the request's Origin (it is echoed into
+			// Access-Control-Allow-Origin, and its presence differs per origin),
+			// so shared caches must key on it. Set unconditionally, including for
+			// disallowed origins, to avoid a cached no-CORS response being served
+			// to an allowed origin. Add (not Set) to preserve any downstream Vary.
+			w.Header().Add("Vary", "Origin")
+
 			if allowedSuffixes.AnyMatch(origin) {
 				w.Header().Set("Access-Control-Allow-Origin", origin)
 
