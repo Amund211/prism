@@ -7,6 +7,7 @@ import requests
 from requests.exceptions import RequestException
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
+from prism.flashlight.headers import make_flashlight_client_headers
 from prism.hypixel import create_known_player, get_playerdata_field
 from prism.player import KnownPlayer
 from prism.ratelimiting import RateLimiter
@@ -120,7 +121,13 @@ class StrangePlayerProvider:
         try:
             # Uphold our prescribed rate-limits
             with self._limiter:
-                response = self._session.get(url, headers={"X-User-Id": user_id})
+                response = self._session.get(
+                    url,
+                    headers={
+                        "X-User-Id": user_id,
+                        **make_flashlight_client_headers(),
+                    },
+                )
         except RequestException as e:
             raise ExecutionError(
                 "Request to AntiSniper API failed due to an unknown error"

@@ -6,6 +6,7 @@ import requests
 from requests.exceptions import RequestException
 
 from prism.errors import APIError, APIKeyError
+from prism.flashlight.headers import make_flashlight_client_headers
 from prism.flashlight.url import FLASHLIGHT_API_URL
 from prism.player import Tags, TagSeverity
 from prism.ratelimiting import RateLimiter
@@ -40,7 +41,7 @@ class FlashlightTagsProvider:
         last_try: bool,
         urchin_api_key: str | None,
     ) -> requests.Response:  # pragma: nocover
-        headers = {"X-User-Id": user_id}
+        headers = {"X-User-Id": user_id, **make_flashlight_client_headers()}
         if urchin_api_key:
             headers["X-Urchin-Api-Key"] = urchin_api_key
 
