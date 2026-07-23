@@ -22,7 +22,7 @@ func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc)
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			correlationID := uuid.New().String()
+			correlationID := "corr_" + uuid.New().String()
 
 			userAgent := r.UserAgent()
 
