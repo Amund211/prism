@@ -111,6 +111,9 @@
 
         // TODO: Decide on function style and fix or disable rule
         "eslint/func-style": "off",
+        // Same undecided function-style question as func-style above; newly
+        // enabled in oxlint 1.75, would churn ~66 arrow-function components.
+        "react/function-component-definition": "off",
         // TODO: Decide on filename case and fix or disable rule
         "unicorn/filename-case": "off",
         // TODO: Enable. NOTE: Weird behavior in src/charts/history/data.unit.test.ts
