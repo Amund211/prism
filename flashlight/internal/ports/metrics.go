@@ -101,11 +101,14 @@ func buildMetricsMiddleware(handler string) func(http.HandlerFunc) http.HandlerF
 			// values (user agent, IP hash, etc.) would blow past the
 			// OpenTelemetry per-instrument cardinality limit (default 2000)
 			// and collapse into a single otel.metric.overflow series. They
-			// belong in logs/traces, not metric labels.
+			// belong in logs/traces, not metric labels. Client type/version
+			// are bounded: normalizeClient allowlists them into a small, fixed
+			// set of valid pairs (kept short deliberately).
 			attributes := []attribute.KeyValue{
 				attribute.String("method", normalizeMethod(r.Method)),
 				attribute.String("handler", handler),
 			}
+			attributes = append(attributes, GetClient(r).MetricAttributes()...)
 
 			attributesOption := metric.WithAttributes(attributes...)
 

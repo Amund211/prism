@@ -28,6 +28,8 @@ func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc)
 
 			userID := GetUserID(r)
 
+			client := GetClient(r)
+
 			requestLogger := logger.With(
 				slog.String("correlationID", correlationID),
 				slog.String("ipHash", GetIP(r).Hash()),
@@ -35,10 +37,17 @@ func NewRequestLoggerMiddleware(logger *slog.Logger) func(next http.HandlerFunc)
 				slog.String("methodPath", fmt.Sprintf("%s %s", r.Method, r.URL.Path)),
 				slog.String("userId", userID.String()),
 				slog.String("lowCardinalityUserId", userID.LowCardinalityString()),
+				slog.String("clientType", client.Type),
+				slog.String("clientVersion", client.Version),
 			)
 
 			start := time.Now()
 			ctx = logging.AddToContext(ctx, requestLogger)
+
+			logging.FromContext(ctx).InfoContext(ctx, "Normalized client info",
+				slog.String("rawClientType", client.RawType),
+				slog.String("rawClientVersion", client.RawVersion),
+			)
 
 			logging.FromContext(ctx).InfoContext(ctx, "Handling request")
 			defer func() {
@@ -89,8 +98,10 @@ func NewRateLimitMiddleware(rateLimiter ratelimiting.RequestRateLimiter, onLimit
 
 				// NOTE: ip_hash is high-cardinality and is captured in the log
 				// above; keep it off the metric to stay under the OpenTelemetry
-				// cardinality limit.
-				metrics.ratelimitedRequestCount.Add(ctx, 1)
+				// cardinality limit. Client type/version are bounded (allowlisted).
+				metrics.ratelimitedRequestCount.Add(ctx, 1,
+					metric.WithAttributes(GetClient(r).MetricAttributes()...),
+				)
 
 				onLimitExceeded(w, r)
 				return
@@ -169,6 +180,7 @@ func BuildBlocklistMiddleware(config BlocklistConfig) func(http.HandlerFunc) htt
 					attribute.Bool("bad_user_agent", badUserAgent),
 					attribute.Bool("bad_user_id", badUserID),
 				}
+				attributes = append(attributes, GetClient(r).MetricAttributes()...)
 				metrics.blockedRequestCount.Add(ctx, 1, metric.WithAttributes(attributes...))
 
 				http.Error(w, `{"success": false, "detail": "This API does not allow third-party use. Reach out on the Prism discord if you have questions :^) (https://discord.gg/k4FGUnEHYg)"}`, http.StatusBadRequest)
@@ -186,12 +198,15 @@ func NewReportingMetaMiddleware(port string) func(http.HandlerFunc) http.Handler
 
 			userAgent := r.UserAgent()
 			methodPath := fmt.Sprintf("%s %s", r.Method, r.URL.Path)
+			client := GetClient(r)
 
 			ctx = reporting.AddTagsToContext(ctx,
 				map[string]string{
-					"port":       port,
-					"userAgent":  userAgent,
-					"methodPath": methodPath,
+					"port":          port,
+					"userAgent":     userAgent,
+					"methodPath":    methodPath,
+					"clientType":    client.Type,
+					"clientVersion": client.Version,
 				},
 			)
 

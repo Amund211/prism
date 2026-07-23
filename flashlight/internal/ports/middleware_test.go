@@ -627,22 +627,27 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 		handler(w, request)
 
 		lines := bytes.Split(buf.Bytes(), []byte{'\n'})
-		require.Len(t, lines, 4) // Started + done + our log (+ last newline)
+		require.Len(t, lines, 5) // Normalizing client info + started + our log + done (+ last newline)
+
+		var normalizedEntry map[string]interface{}
+		err := json.Unmarshal(lines[0], &normalizedEntry)
+		require.NoError(t, err)
+		require.Equal(t, "Normalized client info", normalizedEntry["msg"])
 
 		var startedEntry map[string]interface{}
-		err := json.Unmarshal(lines[0], &startedEntry)
+		err = json.Unmarshal(lines[1], &startedEntry)
 		require.NoError(t, err)
 		require.Equal(t, "Handling request", startedEntry["msg"])
 
 		var endedEntry map[string]interface{}
-		err = json.Unmarshal(lines[2], &endedEntry)
+		err = json.Unmarshal(lines[3], &endedEntry)
 		require.NoError(t, err)
 		require.Equal(t, "Finished handling request", endedEntry["msg"])
 
-		require.Empty(t, lines[3])
+		require.Empty(t, lines[4])
 
 		var logEntry map[string]interface{}
-		err = json.Unmarshal(lines[1], &logEntry)
+		err = json.Unmarshal(lines[2], &logEntry)
 		require.NoError(t, err)
 		attrs := make([]StringAttr, 0)
 
@@ -695,6 +700,8 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 				{Key: "methodPath", Value: "GET /my-path"},
 				{Key: "userId", Value: "this-is-a-long-enough-user-id"},
 				{Key: "lowCardinalityUserId", Value: "this-is-a-long-enough-user-id"},
+				{Key: "clientType", Value: "missing"},
+				{Key: "clientVersion", Value: "missing"},
 			}, attrs)
 		})
 
@@ -718,6 +725,8 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 				{Key: "methodPath", Value: "GET /my-path"},
 				{Key: "userId", Value: "short"},
 				{Key: "lowCardinalityUserId", Value: "<short-user-id>"},
+				{Key: "clientType", Value: "missing"},
+				{Key: "clientVersion", Value: "missing"},
 			}, attrs)
 		})
 
@@ -737,6 +746,33 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 				{Key: "methodPath", Value: "POST /my-other-path"},
 				{Key: "userId", Value: "<missing>"},
 				{Key: "lowCardinalityUserId", Value: "<missing>"},
+				{Key: "clientType", Value: "missing"},
+				{Key: "clientVersion", Value: "missing"},
+			}, attrs)
+		})
+
+		t.Run("with client headers", func(t *testing.T) {
+			t.Parallel()
+
+			requestURL, err := url.Parse("http://example.com/my-path")
+			require.NoError(t, err)
+
+			attrs := run(t, &http.Request{
+				URL:    requestURL,
+				Method: "GET",
+				Header: http.Header{
+					"X-Client-Type":    []string{"prism"},
+					"X-Client-Version": []string{"v1.12.0"},
+				},
+			})
+
+			require.ElementsMatch(t, []StringAttr{
+				{Key: "userAgent", Value: ""},
+				{Key: "methodPath", Value: "GET /my-path"},
+				{Key: "userId", Value: "<missing>"},
+				{Key: "lowCardinalityUserId", Value: "<missing>"},
+				{Key: "clientType", Value: "prism"},
+				{Key: "clientVersion", Value: "v1.12.0"},
 			}, attrs)
 		})
 	})

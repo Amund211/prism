@@ -106,6 +106,9 @@ func MakePrismNoticesHandler(
 
 		userID := GetUserID(r)
 
+		// TODO: X-Prism-Version is now redundant with the global X-Client-Version
+		// header (which normalizes to the same prism versions). Remove this once
+		// v1.12.0+ adoption is high enough that X-Client-Version covers prism.
 		prismVersion := r.Header.Get("X-Prism-Version")
 		if prismVersion == "" {
 			prismVersion = "<missing>"
