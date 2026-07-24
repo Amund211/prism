@@ -49,6 +49,12 @@ SERVICE_NAME="$service_name" \
 echo 'Deploying new service description:' >&2
 cat "$script_dir/service.yaml" >&2
 
+# Measure deploy-to-serving time: `gcloud run services replace` blocks until the
+# revision is health-checked and Ready (so the cold start / startup probes happen
+# here), and the verification request below confirms it actually serves. We time
+# from just before the replace through the first successful response.
+deploy_to_serving_start="$(date +%s.%N)"
+
 gcloud run services replace "$script_dir/service.yaml"
 
 # Verify that newly deployed function works
@@ -62,9 +68,14 @@ response="$(
 		"https://${service_name}-184945651621.northamerica-northeast2.run.app/v1/playerdata?uuid=a937646b-f115-44c3-8dbf-9ae4a65669a0"
 )"
 
+deploy_to_serving_end="$(date +%s.%N)"
+
 echo 'Verifying response from new deployment' >&2
 if ! echo "$response" | grep 'Skydeath' >/dev/null; then
 	echo 'Could not find username in response!' >&2
 	echo "Response: $response" >&2
 	exit 1
 fi
+
+deploy_to_serving_seconds="$(awk "BEGIN { printf \"%.1f\", $deploy_to_serving_end - $deploy_to_serving_start }")"
+echo "✓ Deployed and serving in ${deploy_to_serving_seconds}s (rollout + first successful request)." >&2
