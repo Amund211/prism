@@ -138,6 +138,81 @@ func (p *Postgres) Create(ctx context.Context, sess domain.AuthSession) error {
 	}
 	defer tx.Rollback()
 
+	// Bound every lock wait in this transaction before taking any.
+	//
+	// The advisory lock below is keyed on the identity, and on the login
+	// path identity_key is the caller-supplied userId — so requests from
+	// any number of distinct IPs can name the same identity and queue on
+	// one lock. The per-IP limiters in front of the handler key on the IP
+	// and can't see that. Each waiter parks one of the pool's connections
+	// (16 in prod) for as long as it blocks, so an unbounded wait turns a
+	// single hot identity into pool starvation for every other query.
+	//
+	// The transactions being waited on are two short statements, so
+	// anything past a couple of seconds is pathological and failing the
+	// login is cheaper than holding the connection. Also covers the row
+	// locks taken by the revoke below. LOCAL so it is scoped to this
+	// transaction and the connection returns to the pool unmodified.
+	_, err = tx.ExecContext(ctx, `SET LOCAL lock_timeout = '2s'`)
+	if err != nil {
+		err := fmt.Errorf("failed to set lock timeout for create: %w", err)
+		reporting.Report(ctx, err)
+		return err
+	}
+
+	// Serialize issuance per identity before touching any rows.
+	//
+	// The revoke-then-insert pair below is not concurrency-safe on its
+	// own, because the revoke can only lock rows that already exist and
+	// match its predicate:
+	//   - No incumbent row: the UPDATE matches nothing and takes no
+	//     locks at all (there is no predicate locking under READ
+	//     COMMITTED), so both callers walk straight to the INSERT.
+	//   - Incumbent row exists: the loser blocks on the winner's row
+	//     lock, then re-evaluates its predicate against the new row
+	//     version, finds revoked_at now non-null, and matches nothing.
+	//     It can't see the winner's freshly inserted row either, so that
+	//     goes unreaped too — and the loser doesn't even learn it lost,
+	//     since "0 rows updated" isn't an error.
+	// Either way two live rows for one identity reach
+	// auth_sessions_active_identity, which rejects the loser's insert and
+	// turns a login that should have succeeded into a 500.
+	//
+	// With the lock, the loser waits until the winner has committed, so
+	// its revoke sees the winner's row and reaps it normally. Last writer
+	// wins, which is the documented single-active-session semantic.
+	//
+	// Notes:
+	//   - Transaction-scoped on purpose: released on commit or rollback.
+	//     A session-scoped lock would be handed back to the connection
+	//     pool still held.
+	//   - The key is schema-qualified. Advisory locks are database-global,
+	//     while every other statement in this file is scoped to p.schema —
+	//     and the prod and test services share one database, separated only
+	//     by schema (flashlight vs flashlight_test). Without the schema in
+	//     the key a login against one would block an unrelated login
+	//     against the other.
+	//   - '|' separates the parts so they can't run together into the same
+	//     string. Neither a schema name nor an identity type contains one,
+	//     so no identity_key can be crafted to collide with a different
+	//     triple.
+	//   - hashtext collisions between unrelated identities are harmless;
+	//     they only serialize two logins that didn't need it.
+	//   - The ::text casts are required — Postgres can't resolve `||`
+	//     between two parameters of unknown type.
+	_, err = tx.ExecContext(
+		ctx,
+		`SELECT pg_advisory_xact_lock(hashtext($1::text || '|' || $2::text || '|' || $3::text)::bigint)`,
+		p.schema,
+		identityTypeDB,
+		sess.IdentityKey,
+	)
+	if err != nil {
+		err := fmt.Errorf("failed to lock identity for create: %w", err)
+		reporting.Report(ctx, err)
+		return err
+	}
+
 	// Soft-revoke any existing active row for this identity. Both the
 	// reason and the revoked_at timestamp depend on whether the row
 	// was still within its refresh window: an actively-killed row gets

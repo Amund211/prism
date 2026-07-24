@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -178,6 +179,65 @@ func TestPostgresAuthSession(t *testing.T) {
 		require.True(t, oldRow.RevokedAt.Time.Equal(oldRow.ExpiresAt),
 			"expired reaps stamp revoked_at = expires_at — the last point the "+
 				"session was provably usable; anything past that is dead time")
+	})
+
+	t.Run("Create serializes concurrent issuance for one identity", func(t *testing.T) {
+		t.Parallel()
+		ctx := t.Context()
+
+		db, err := database.NewPostgresDatabase(database.LocalConnectionString)
+		require.NoError(t, err)
+		defer db.Close()
+		p, schema := newPostgres(t, db, "create_concurrent")
+
+		// Concurrent logins for one identity used to collide: the revoke
+		// UPDATE can only lock rows that already exist and match, so
+		// either both callers match nothing (no incumbent) or the loser
+		// re-evaluates its predicate after the winner commits, finds the
+		// incumbent already revoked, and can't see the winner's new row
+		// to reap it. Both paths end with two live rows for one identity,
+		// which auth_sessions_active_identity rejects — surfacing as a
+		// 500 on a login that should have succeeded.
+		const concurrent = 8
+
+		const identityKey = "user-concurrent"
+
+		start := make(chan struct{})
+		errs := make(chan error, concurrent)
+		var wg sync.WaitGroup
+		for i := range concurrent {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				sess := mkSession(fmt.Sprintf("flsess_concurrent-%d", i), identityKey)
+				<-start
+				errs <- p.Create(ctx, sess)
+			}()
+		}
+		close(start)
+		wg.Wait()
+		close(errs)
+
+		for err := range errs {
+			require.NoError(t, err, "every concurrent login for one identity must succeed")
+		}
+
+		countWhere := func(predicate string) int {
+			t.Helper()
+			var count int
+			require.NoError(t, db.GetContext(ctx, &count, fmt.Sprintf(
+				`SELECT count(*) FROM %s.auth_sessions WHERE identity_key = $1 AND %s`,
+				pq.QuoteIdentifier(schema), predicate,
+			), identityKey))
+			return count
+		}
+
+		require.Equal(t, concurrent, countWhere("TRUE"),
+			"every caller should have inserted its row")
+		require.Equal(t, 1, countWhere("revoked_at IS NULL"),
+			"exactly one session should be left active — last writer wins")
+		require.Zero(t, countWhere("revoked_at IS NOT NULL AND revoked_reason IS NULL"),
+			"every reaped row should still carry an audit reason")
 	})
 
 	t.Run("Update applies fn and persists the result", func(t *testing.T) {
