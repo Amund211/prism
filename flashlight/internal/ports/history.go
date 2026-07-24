@@ -23,6 +23,7 @@ func MakeGetHistoryHandler(
 	allowedOrigins *DomainSuffixes,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
+	bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
 ) (http.HandlerFunc, func()) {
 	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
@@ -73,6 +74,12 @@ func MakeGetHistoryHandler(
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		NewRateLimitMiddleware(ipRateLimiterLong, makeOnLimitExceeded(ipRateLimiterLong)),
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
+		// Behind the rate limiters: validating a bearer opens a
+		// SELECT-FOR-UPDATE transaction on the session row, and failed
+		// validations aren't cached, so a bad token in front of them would be
+		// an unthrottled DB write. Still inside CORS so the 401 keeps its
+		// Access-Control-Allow-Origin header.
+		bearerAuthMiddleware,
 		BuildRegisterUserVisitMiddleware(registerUserVisit),
 	)
 

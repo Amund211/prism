@@ -54,6 +54,7 @@ func TestMakeGetAccountByUUIDHandler(t *testing.T) {
 			allowedOrigins,
 			testLogger,
 			noopMiddleware,
+			noopMiddleware,
 			emptyBlocklistConfig,
 		)
 		t.Cleanup(stop)

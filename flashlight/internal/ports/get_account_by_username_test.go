@@ -52,6 +52,7 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 			allowedOrigins,
 			testLogger,
 			noopMiddleware,
+			noopMiddleware,
 			emptyBlocklistConfig,
 		)
 		t.Cleanup(stop)

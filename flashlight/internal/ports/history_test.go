@@ -57,6 +57,24 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 			allowedOrigins,
 			testLogger,
 			noopMiddleware,
+			noopMiddleware,
+			emptyBlocklistConfig,
+		)
+		t.Cleanup(stop)
+		return handler
+	}
+
+	makeGetHistoryHandlerWithBearerMiddleware := func(getHistory app.GetHistory, bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc) http.HandlerFunc {
+		stubRegisterUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
+			return domain.User{}, nil
+		}
+		handler, stop := ports.MakeGetHistoryHandler(
+			getHistory,
+			stubRegisterUserVisit,
+			allowedOrigins,
+			testLogger,
+			noopMiddleware,
+			bearerAuthMiddleware,
 			emptyBlocklistConfig,
 		)
 		t.Cleanup(stop)
@@ -211,6 +229,100 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 		handler.ServeHTTP(w, req)
 
 		require.Equal(t, http.StatusRequestEntityTooLarge, w.Code)
+		require.False(t, *called)
+	})
+
+	t.Run("runs the bearer auth middleware", func(t *testing.T) {
+		t.Parallel()
+
+		bearerMiddlewareRan := false
+		bearerAuthMiddleware := func(h http.HandlerFunc) http.HandlerFunc {
+			return func(w http.ResponseWriter, r *http.Request) {
+				bearerMiddlewareRan = true
+				h(w, r)
+			}
+		}
+
+		getHistoryFunc, called := makeGetHistory(t, uuid, start, end, limit, history, nil)
+		handler := makeGetHistoryHandlerWithBearerMiddleware(getHistoryFunc, bearerAuthMiddleware)
+
+		req := makeRequest(uuid, startStr, endStr, limit)
+		req.Header.Set("Authorization", "Bearer some-session-id")
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusOK, w.Code)
+		require.True(t, bearerMiddlewareRan)
+		require.True(t, *called)
+	})
+
+	t.Run("rejection from the bearer auth middleware still gets cors headers", func(t *testing.T) {
+		t.Parallel()
+
+		rejectingBearerAuthMiddleware := func(h http.HandlerFunc) http.HandlerFunc {
+			return func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, "Invalid or expired session", http.StatusUnauthorized)
+			}
+		}
+
+		getHistoryFunc, called := makeGetHistory(t, uuid, start, end, limit, history, nil)
+		handler := makeGetHistoryHandlerWithBearerMiddleware(getHistoryFunc, rejectingBearerAuthMiddleware)
+
+		origin := "https://subdomain.example.com"
+		req := makeRequest(uuid, startStr, endStr, limit)
+		req.Header.Set("Authorization", "Bearer bad-session-id")
+		req.Header.Set("Origin", origin)
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+		require.Equal(t, origin, w.Header().Get("Access-Control-Allow-Origin"),
+			"without the header the browser can't read the 401 and reports an opaque network error")
+		require.False(t, *called)
+	})
+
+	t.Run("rate limits before validating the bearer", func(t *testing.T) {
+		t.Parallel()
+
+		bearerCalls := 0
+		rejectingBearerAuthMiddleware := func(h http.HandlerFunc) http.HandlerFunc {
+			return func(w http.ResponseWriter, r *http.Request) {
+				bearerCalls++
+				http.Error(w, "Invalid or expired session", http.StatusUnauthorized)
+			}
+		}
+
+		getHistoryFunc, called := makeGetHistory(t, uuid, start, end, limit, history, nil)
+		handler := makeGetHistoryHandlerWithBearerMiddleware(getHistoryFunc, rejectingBearerAuthMiddleware)
+
+		doRequest := func() int {
+			req := makeRequest(uuid, startStr, endStr, limit)
+			req.Header.Set("Authorization", "Bearer bad-session-id")
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, req)
+			return w.Code
+		}
+
+		// Validating a bearer costs a SELECT-FOR-UPDATE transaction, and
+		// failed validations aren't cached, so an unthrottled bad token is a
+		// free DB write. The limiters have to bite before the middleware runs.
+		// The tightest bucket on this endpoint is the userId one (burst 60);
+		// the few extra attempts absorb any wall-clock refill.
+		rejected := 0
+		var lastCode int
+		for range 65 {
+			lastCode = doRequest()
+			if lastCode != http.StatusUnauthorized {
+				break
+			}
+			rejected++
+		}
+
+		require.Equal(t, http.StatusTooManyRequests, lastCode)
+		require.GreaterOrEqual(t, rejected, 60, "the full burst should reach the bearer middleware")
+		require.Equal(t, rejected, bearerCalls, "the throttled request must not reach the bearer middleware")
 		require.False(t, *called)
 	})
 

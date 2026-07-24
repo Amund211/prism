@@ -325,6 +325,7 @@ func main() {
 		allowedOrigins,
 		logger.With("port", "getaccountbyusername"),
 		sentryMiddleware,
+		bearerAuthMiddleware,
 		blocklistConfig,
 	)
 	handleFunc("GET /v1/account/username/{username}", accountByUsernameHandler, stopAccountByUsername)
@@ -339,6 +340,7 @@ func main() {
 		allowedOrigins,
 		logger.With("port", "getaccountbyuuid"),
 		sentryMiddleware,
+		bearerAuthMiddleware,
 		blocklistConfig,
 	)
 	handleFunc("GET /v1/account/uuid/{uuid}", accountByUUIDHandler, stopAccountByUUID)
@@ -353,6 +355,7 @@ func main() {
 		allowedOrigins,
 		logger.With("port", "history"),
 		sentryMiddleware,
+		bearerAuthMiddleware,
 		blocklistConfig,
 	)
 	handleFunc("POST /v1/history", historyHandler, stopHistory)
@@ -368,6 +371,7 @@ func main() {
 		allowedOrigins,
 		logger.With("port", "sessions"),
 		sentryMiddleware,
+		bearerAuthMiddleware,
 		blocklistConfig,
 	)
 	handleFunc("POST /v1/sessions", sessionsHandler, stopSessions)
@@ -382,6 +386,7 @@ func main() {
 		allowedOrigins,
 		logger.With("port", "session-at"),
 		sentryMiddleware,
+		bearerAuthMiddleware,
 		blocklistConfig,
 	)
 	handleFunc("POST /v1/session-at", sessionAtHandler, stopSessionAt)
@@ -411,6 +416,7 @@ func main() {
 		allowedOrigins,
 		logger.With("port", "wrapped"),
 		sentryMiddleware,
+		bearerAuthMiddleware,
 		blocklistConfig,
 	)
 	handleFunc("GET /v1/wrapped/{uuid}/{year}", wrappedHandler, stopWrapped)
