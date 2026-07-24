@@ -31,7 +31,7 @@ func TestAuthRefreshHandler(t *testing.T) {
 				LifetimeEndsAt: now.Add(23 * time.Hour),
 			}, nil
 		}
-		handler := ports.MakeAuthRefreshHandler(refresh, time.Now, authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
+		handler := ports.MakeAuthRefreshHandler(refresh, time.Now, authTestOrigins(t), authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/refresh", http.NoBody)
 		r.Header.Set("Authorization", "Bearer my-session-id")
 		withRequestIP(r, "1.2.3.4")
@@ -54,7 +54,7 @@ func TestAuthRefreshHandler(t *testing.T) {
 				LifetimeEndsAt: now.Add(23 * time.Hour),
 			}, nil
 		}
-		handler := ports.MakeAuthRefreshHandler(refresh, time.Now, authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
+		handler := ports.MakeAuthRefreshHandler(refresh, time.Now, authTestOrigins(t), authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/refresh", http.NoBody)
 		r.Header.Set("Authorization", "Bearer my-session-id")
 		withRequestIP(r, "1.2.3.4")
@@ -65,13 +65,41 @@ func TestAuthRefreshHandler(t *testing.T) {
 			"refresh responses carry a bearer token; no intermediary should cache them")
 	})
 
+	t.Run("returns cors headers", func(t *testing.T) {
+		t.Parallel()
+		refresh := func(ctx context.Context, sessionID, ipHash string) (domain.AuthSession, error) {
+			now := time.Date(2026, 1, 1, 13, 0, 0, 0, time.UTC)
+			return domain.AuthSession{
+				ID:             sessionID,
+				IdentityType:   domain.AuthSessionIdentityAnonymous,
+				CreatedAt:      now.Add(-30 * time.Minute),
+				ExpiresAt:      now.Add(1 * time.Hour),
+				RefreshUntil:   now.Add(2 * time.Hour),
+				LifetimeEndsAt: now.Add(23 * time.Hour),
+			}, nil
+		}
+		handler := ports.MakeAuthRefreshHandler(refresh, time.Now, authTestOrigins(t), authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
+
+		origin := "https://subdomain.example.com"
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/refresh", http.NoBody)
+		r.Header.Set("Authorization", "Bearer my-session-id")
+		r.Header.Set("Origin", origin)
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+
+		handler(w, r)
+
+		require.Equal(t, http.StatusOK, w.Code)
+		require.Equal(t, origin, w.Header().Get("Access-Control-Allow-Origin"))
+	})
+
 	t.Run("401 when bearer is missing", func(t *testing.T) {
 		t.Parallel()
 		refresh := func(ctx context.Context, sessionID, ipHash string) (domain.AuthSession, error) {
 			t.Fatal("should not be called without bearer")
 			return domain.AuthSession{}, nil
 		}
-		handler := ports.MakeAuthRefreshHandler(refresh, time.Now, authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
+		handler := ports.MakeAuthRefreshHandler(refresh, time.Now, authTestOrigins(t), authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/refresh", http.NoBody)
 		withRequestIP(r, "1.2.3.4")
 		w := httptest.NewRecorder()
@@ -90,7 +118,7 @@ func TestAuthRefreshHandler(t *testing.T) {
 			refresh := func(ctx context.Context, sessionID, ipHash string) (domain.AuthSession, error) {
 				return domain.AuthSession{}, sentinel
 			}
-			handler := ports.MakeAuthRefreshHandler(refresh, time.Now, authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
+			handler := ports.MakeAuthRefreshHandler(refresh, time.Now, authTestOrigins(t), authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
 			r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/refresh", http.NoBody)
 			r.Header.Set("Authorization", "Bearer some-id")
 			withRequestIP(r, "1.2.3.4")

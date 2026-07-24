@@ -284,10 +284,15 @@ func main() {
 	handleFunc("GET /v1/tags/{uuid}", tagsHandler, stopTags)
 
 	handleFunc(
+		"OPTIONS /v1/auth/anonymous/login",
+		ports.BuildCORSHandler(allowedOrigins),
+	)
+	handleFunc(
 		"POST /v1/auth/anonymous/login",
 		ports.MakeAnonymousLoginHandler(
 			anonymousLogin,
 			time.Now,
+			allowedOrigins,
 			logger.With("port", "auth-anonymous-login"),
 			sentryMiddleware,
 			blocklistConfig,
@@ -295,10 +300,15 @@ func main() {
 	)
 
 	handleFunc(
+		"OPTIONS /v1/auth/refresh",
+		ports.BuildCORSHandler(allowedOrigins),
+	)
+	handleFunc(
 		"POST /v1/auth/refresh",
 		ports.MakeAuthRefreshHandler(
 			refreshSession,
 			time.Now,
+			allowedOrigins,
 			logger.With("port", "auth-refresh"),
 			sentryMiddleware,
 			blocklistConfig,

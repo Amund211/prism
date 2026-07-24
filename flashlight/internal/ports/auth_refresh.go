@@ -20,6 +20,7 @@ import (
 func MakeAuthRefreshHandler(
 	refresh app.RefreshSession,
 	nowFunc func() time.Time,
+	allowedOrigins *DomainSuffixes,
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
@@ -30,6 +31,7 @@ func MakeAuthRefreshHandler(
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("auth-refresh"),
 		NewReportingMetaMiddleware("auth-refresh"),
+		BuildCORSMiddleware(allowedOrigins),
 	)
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
