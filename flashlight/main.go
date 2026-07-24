@@ -7,6 +7,9 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/google/uuid"
@@ -37,6 +40,17 @@ const prodDomainSuffix = "prismoverlay.com"
 const stagingDomainSuffix = "rainbow-ctx.pages.dev"
 
 func main() {
+	// rootCtx is cancelled when Cloud Run sends SIGTERM (or on a local SIGINT),
+	// which drives the graceful-shutdown sequence at the end of main. It is
+	// deliberately kept separate from the startup ctx below: a signal arriving
+	// mid-startup must not cancel the in-progress DB migration or OTel setup
+	// (that would abort them and log a spurious init error on what is really a
+	// normal shutdown) — it is handled once init completes and we reach the
+	// serve/select. Tradeoff: a genuinely hung startup won't react to the first
+	// SIGTERM and waits for Cloud Run's SIGKILL, but startup is normally
+	// sub-second, so avoiding false init errors on every shutdown wins.
+	rootCtx, stopSignals := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stopSignals()
 	ctx := context.Background()
 	instanceID := uuid.New().String()
 
@@ -79,12 +93,8 @@ func main() {
 	if err != nil {
 		fail("Failed to initialize OpenTelemetry SDK", "error", err.Error())
 	}
-	defer func() {
-		err := otelShutdown(ctx)
-		if err != nil {
-			logger.ErrorContext(ctx, "Failed to shutdown OpenTelemetry SDK", "error", err.Error())
-		}
-	}()
+	// otelShutdown is invoked from the graceful-shutdown sequence at the end of
+	// main rather than deferred, so it also runs on the SIGTERM path.
 
 	ctx, span := otel.Tracer("flashlight/main").Start(ctx, "startup")
 	defer span.End()
@@ -131,7 +141,8 @@ func main() {
 	if err != nil {
 		fail("Failed to initialize Sentry", "error", err.Error())
 	}
-	defer flush()
+	// flush is invoked from the graceful-shutdown sequence at the end of main
+	// rather than deferred, so buffered events are flushed on the SIGTERM path.
 	logger.InfoContext(ctx, "Initialized Sentry middleware")
 
 	logger.InfoContext(ctx, "Initializing database connection")
@@ -227,18 +238,10 @@ func main() {
 
 	// Handler constructors start background rate-limiter eviction goroutines
 	// and return a stop func to shut them down. These handlers live for the
-	// whole process lifetime, so stopping them only actually matters in tests
-	// (via t.Cleanup); in production the goroutines are reclaimed when the
-	// process exits. We still collect and defer the stops so a clean main()
-	// return tears them down, but note this defer does NOT run on the Cloud Run
-	// SIGTERM path (ListenAndServe blocks, main never returns) nor via fail()
-	// (os.Exit skips defers) — which is fine, since process exit reclaims them.
+	// whole process lifetime; the collected stops are invoked from the
+	// graceful-shutdown sequence at the end of main so the eviction goroutines
+	// are torn down cleanly on the SIGTERM path.
 	var handlerStops []func()
-	defer func() {
-		for _, stop := range handlerStops {
-			stop()
-		}
-	}()
 
 	// stops are the rate-limiter eviction-goroutine cleanups for the handler,
 	// collected here so a handler can't be registered without also collecting
@@ -427,10 +430,90 @@ func main() {
 	span.End()
 	logger.InfoContext(ctx, "Init complete")
 
-	err = httpServer.ListenAndServe()
-	if errors.Is(err, http.ErrServerClosed) {
-		logger.InfoContext(ctx, "Server shutdown")
-	} else {
+	// Serve in a goroutine so main can wait for either a fatal server error or
+	// a shutdown signal (SIGTERM from Cloud Run, SIGINT locally) and then drive
+	// a graceful shutdown. Cloud Run sends SIGTERM and then SIGKILLs the
+	// container after a fixed 10s grace period, so the teardown below is
+	// budgeted to finish comfortably within that window.
+	serverErr := make(chan error, 1)
+	go func() {
+		if err := httpServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			serverErr <- err
+		}
+	}()
+
+	select {
+	case err := <-serverErr:
+		// The server stopped before we asked it to — a genuine failure such as
+		// the port already being in use. Nothing is serving, so exit.
 		fail("Server error", "error", err.Error())
+	case <-rootCtx.Done():
 	}
+
+	// Restore default signal handling so a second SIGTERM/SIGINT during a slow
+	// or stuck shutdown force-terminates the process instead of being swallowed
+	// by the NotifyContext channel.
+	stopSignals()
+
+	// The startup span has ended; use a fresh, uncancelled context for the
+	// shutdown phase so its logs and bounded steps aren't tied to the finished
+	// startup trace or to the already-cancelled rootCtx.
+	ctx = context.Background()
+	logger.InfoContext(ctx, "Shutdown signal received, shutting down gracefully")
+
+	// Graceful teardown, in reverse order of initialization. Cloud Run SIGKILLs
+	// the container 10s after SIGTERM, so the per-step budgets below are sized
+	// to sum to at most ~9s in the worst case, leaving margin before the kill.
+
+	// 1. Stop accepting new connections and let in-flight requests drain (5s).
+	shutdownCtx, cancelShutdown := context.WithTimeout(ctx, 5*time.Second)
+	defer cancelShutdown()
+	if err := httpServer.Shutdown(shutdownCtx); err != nil {
+		logger.ErrorContext(ctx, "Graceful shutdown failed, forcing connections closed", "error", err.Error())
+		if closeErr := httpServer.Close(); closeErr != nil {
+			logger.ErrorContext(ctx, "Forced server close failed", "error", closeErr.Error())
+		}
+	}
+
+	// 2. Stop the background rate-limiter eviction goroutines.
+	for _, stop := range handlerStops {
+		stop()
+	}
+
+	// 3. Close the database pool now that in-flight queries have drained.
+	//    Bounded (1s) because db.Close waits for in-flight queries to finish,
+	//    so a wedged connection must not eat into the telemetry-flush budget.
+	dbClosed := make(chan error, 1)
+	go func() { dbClosed <- db.Close() }()
+	select {
+	case err := <-dbClosed:
+		if err != nil {
+			logger.ErrorContext(ctx, "Failed to close database connection", "error", err.Error())
+		}
+	case <-time.After(1 * time.Second):
+		logger.ErrorContext(ctx, "Timed out closing database connection")
+	}
+
+	// 4. Flush telemetry LAST so shutdown spans/metrics and buffered Sentry
+	//    events are exported before the process exits. The OTel and Sentry
+	//    exporters are independent, so flush them concurrently (1.5s each) to
+	//    cap telemetry teardown at ~1.5s rather than 3s, leaving more margin
+	//    before SIGKILL.
+	flushCtx, cancelFlush := context.WithTimeout(ctx, 1500*time.Millisecond)
+	defer cancelFlush()
+	var flushWG sync.WaitGroup
+	flushWG.Add(2)
+	go func() {
+		defer flushWG.Done()
+		if err := otelShutdown(flushCtx); err != nil {
+			logger.ErrorContext(ctx, "Failed to shut down OpenTelemetry SDK", "error", err.Error())
+		}
+	}()
+	go func() {
+		defer flushWG.Done()
+		flush(1500 * time.Millisecond)
+	}()
+	flushWG.Wait()
+
+	logger.InfoContext(ctx, "Shutdown complete")
 }

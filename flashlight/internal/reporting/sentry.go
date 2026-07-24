@@ -88,7 +88,7 @@ func Report(ctx context.Context, err error, extras ...map[string]string) {
 	})
 }
 
-func InitSentryMiddleware(sentryDSN string) (func(http.HandlerFunc) http.HandlerFunc, func(), error) {
+func InitSentryMiddleware(sentryDSN string) (func(http.HandlerFunc) http.HandlerFunc, func(time.Duration), error) {
 	err := sentry.Init(sentry.ClientOptions{
 		Dsn:              sentryDSN,
 		EnableTracing:    true,
@@ -107,14 +107,14 @@ func InitSentryMiddleware(sentryDSN string) (func(http.HandlerFunc) http.Handler
 		}
 	}
 
-	flush := func() {
-		sentry.Flush(5 * time.Second)
+	flush := func(timeout time.Duration) {
+		sentry.Flush(timeout)
 	}
 
 	return middleware, flush, nil
 }
 
-func NewSentryMiddlewareOrMock(config config.Config) (func(http.HandlerFunc) http.HandlerFunc, func(), error) {
+func NewSentryMiddlewareOrMock(config config.Config) (func(http.HandlerFunc) http.HandlerFunc, func(time.Duration), error) {
 	if config.SentryDSN() != "" {
 		return InitSentryMiddleware(config.SentryDSN())
 	}
@@ -123,7 +123,7 @@ func NewSentryMiddlewareOrMock(config config.Config) (func(http.HandlerFunc) htt
 		middleware := func(next http.HandlerFunc) http.HandlerFunc {
 			return next
 		}
-		flush := func() {}
+		flush := func(time.Duration) {}
 		return middleware, flush, nil
 	}
 
