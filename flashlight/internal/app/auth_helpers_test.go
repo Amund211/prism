@@ -28,7 +28,7 @@ const sessionIDPrefix = "flsess_"
 type fakeAuthSessionRepo struct {
 	createFn             func(ctx context.Context, sess domain.AuthSession) error
 	updateFn             func(ctx context.Context, id string, update func(domain.AuthSession) (domain.AuthSession, error)) (domain.AuthSession, error)
-	enforceActiveIPCapFn func(ctx context.Context, identityType domain.AuthSessionIdentityType, ipHash string, maxActive int, now time.Time) error
+	enforceActiveIPCapFn func(ctx context.Context, identityType domain.AuthSessionIdentityType, identityKey string, ipHash string, maxActive int, now time.Time) error
 }
 
 func (f *fakeAuthSessionRepo) Create(ctx context.Context, sess domain.AuthSession) error {
@@ -46,9 +46,10 @@ func (f *fakeAuthSessionRepo) Update(
 func (f *fakeAuthSessionRepo) EnforceActiveIPCap(
 	ctx context.Context,
 	identityType domain.AuthSessionIdentityType,
+	identityKey string,
 	ipHash string,
 	maxActive int,
 	now time.Time,
 ) error {
-	return f.enforceActiveIPCapFn(ctx, identityType, ipHash, maxActive, now)
+	return f.enforceActiveIPCapFn(ctx, identityType, identityKey, ipHash, maxActive, now)
 }

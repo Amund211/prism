@@ -362,7 +362,7 @@ func TestPostgresAuthSession(t *testing.T) {
 
 		// cap=2 means keep at most 1 active so a new insert lands within cap.
 		callNow := now.Add(3 * time.Minute)
-		require.NoError(t, p.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, "ip-z", 2, callNow))
+		require.NoError(t, p.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, "u-none", "ip-z", 2, callNow))
 
 		oldRow := selectRow(t, db, schema, "flsess_old")
 		require.NotNil(t, oldRow, "evicted rows should still exist for audit")
@@ -402,7 +402,7 @@ func TestPostgresAuthSession(t *testing.T) {
 		require.NoError(t, p.Create(ctx, mk("flsess_expired", "u-e", now.Add(-1*time.Hour))))
 		require.NoError(t, p.Create(ctx, mk("flsess_active", "u-a", now.Add(1*time.Hour))))
 
-		require.NoError(t, p.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, "ip-y", 2, now))
+		require.NoError(t, p.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, "u-none", "ip-y", 2, now))
 
 		expiredRow := selectRow(t, db, schema, "flsess_expired")
 		require.NotNil(t, expiredRow)
@@ -443,7 +443,7 @@ func TestPostgresAuthSession(t *testing.T) {
 		// cap=2 → keep at most 1 active so the over-cap active gets
 		// 'evicted_by_ip_cap' and the aged one gets 'expired'.
 		callNow := now.Add(2 * time.Minute)
-		require.NoError(t, p.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, "ip-m", 2, callNow))
+		require.NoError(t, p.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, "u-none", "ip-m", 2, callNow))
 
 		oldActive := selectRow(t, db, schema, "flsess_active_old")
 		require.NotNil(t, oldActive)
@@ -493,12 +493,124 @@ func TestPostgresAuthSession(t *testing.T) {
 		// At this point: v1 and v2 are revoked ('replaced'), v3 active.
 		// cap=4 → no eviction needed; check that already-revoked rows
 		// aren't disturbed.
-		require.NoError(t, p.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, "ip-r", 4, now.Add(3*time.Minute)))
+		require.NoError(t, p.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, "u-none", "ip-r", 4, now.Add(3*time.Minute)))
 
 		v1 := selectRow(t, db, schema, "flsess_v1")
 		require.NotNil(t, v1)
 		require.Equal(t, revokedReasonReplaced, v1.RevokedReason.String,
 			"reason should remain 'replaced', not overwritten by EnforceActiveIPCap")
+	})
+
+	// The identity that's re-logging in is about to have its own incumbent
+	// row revoked by Create, so counting it against the cap would evict an
+	// unrelated session for nothing.
+	t.Run("EnforceActiveIPCap excludes the re-logging identity from the cap", func(t *testing.T) {
+		t.Parallel()
+		ctx := t.Context()
+		db, err := database.NewPostgresDatabase(database.LocalConnectionString)
+		require.NoError(t, err)
+		defer db.Close()
+		p, schema := newPostgres(t, db, "evict_skips_self")
+
+		mk := func(id, key string, createdAt time.Time) domain.AuthSession {
+			s := mkSession(id, key)
+			s.IPHash = "ip-self"
+			s.CreatedAt = createdAt
+			s.LastUsedAt = createdAt
+			s.ExpiresAt = createdAt.Add(1 * time.Hour)
+			s.RefreshUntil = createdAt.Add(2 * time.Hour)
+			return s
+		}
+		// D oldest .. A newest, all four active and at the cap.
+		require.NoError(t, p.Create(ctx, mk("flsess_d", "u-d", now)))
+		require.NoError(t, p.Create(ctx, mk("flsess_c", "u-c", now.Add(1*time.Minute))))
+		require.NoError(t, p.Create(ctx, mk("flsess_b", "u-b", now.Add(2*time.Minute))))
+		require.NoError(t, p.Create(ctx, mk("flsess_a", "u-a", now.Add(3*time.Minute))))
+
+		// u-a re-logs in. Its incumbent is the newest row, so counting it
+		// would push the oldest (u-d) past OFFSET cap-1 and evict it.
+		callNow := now.Add(4 * time.Minute)
+		require.NoError(t, p.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, "u-a", "ip-self", 4, callNow))
+
+		for _, id := range []string{"flsess_a", "flsess_b", "flsess_c", "flsess_d"} {
+			row := selectRow(t, db, schema, id)
+			require.NotNil(t, row)
+			require.False(t, row.RevokedAt.Valid,
+				"%s should survive: the only row over the cap belongs to the identity being replaced", id)
+		}
+	})
+
+	t.Run("EnforceActiveIPCap still evicts others when the re-logging identity is excluded", func(t *testing.T) {
+		t.Parallel()
+		ctx := t.Context()
+		db, err := database.NewPostgresDatabase(database.LocalConnectionString)
+		require.NoError(t, err)
+		defer db.Close()
+		p, schema := newPostgres(t, db, "evict_skips_self_still_evicts")
+
+		mk := func(id, key string, createdAt time.Time) domain.AuthSession {
+			s := mkSession(id, key)
+			s.IPHash = "ip-self2"
+			s.CreatedAt = createdAt
+			s.LastUsedAt = createdAt
+			s.ExpiresAt = createdAt.Add(1 * time.Hour)
+			s.RefreshUntil = createdAt.Add(2 * time.Hour)
+			return s
+		}
+		require.NoError(t, p.Create(ctx, mk("flsess_d", "u-d", now)))
+		require.NoError(t, p.Create(ctx, mk("flsess_c", "u-c", now.Add(1*time.Minute))))
+		require.NoError(t, p.Create(ctx, mk("flsess_b", "u-b", now.Add(2*time.Minute))))
+		require.NoError(t, p.Create(ctx, mk("flsess_a", "u-a", now.Add(3*time.Minute))))
+
+		// cap=2 keeps 1 non-self row active. Excluding u-a leaves b, c, d;
+		// b is newest of those and survives, c and d go.
+		callNow := now.Add(4 * time.Minute)
+		require.NoError(t, p.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, "u-a", "ip-self2", 2, callNow))
+
+		for _, id := range []string{"flsess_c", "flsess_d"} {
+			row := selectRow(t, db, schema, id)
+			require.NotNil(t, row)
+			require.True(t, row.RevokedAt.Valid, "%s is over the cap and should be evicted", id)
+			require.Equal(t, revokedReasonEvictedByIPCap, row.RevokedReason.String)
+		}
+		bRow := selectRow(t, db, schema, "flsess_b")
+		require.NotNil(t, bRow)
+		require.False(t, bRow.RevokedAt.Valid, "newest non-self row stays active")
+		aRow := selectRow(t, db, schema, "flsess_a")
+		require.NotNil(t, aRow)
+		require.False(t, aRow.RevokedAt.Valid,
+			"the re-logging identity's own row is left for Create to revoke as 'replaced'")
+	})
+
+	// The exclusion is on the active branch only. An aged-out row for the
+	// re-logging identity isn't competing for the cap either way, so it is
+	// still stamped 'expired' rather than left for Create to call
+	// 'replaced' — the audit trail should say why the row actually died.
+	t.Run("EnforceActiveIPCap still expires the re-logging identity's aged-out row", func(t *testing.T) {
+		t.Parallel()
+		ctx := t.Context()
+		db, err := database.NewPostgresDatabase(database.LocalConnectionString)
+		require.NoError(t, err)
+		defer db.Close()
+		p, schema := newPostgres(t, db, "expire_self")
+
+		aged := mkSession("flsess_self_aged", "u-a")
+		aged.IPHash = "ip-self3"
+		aged.ExpiresAt = now.Add(-2 * time.Hour)
+		aged.RefreshUntil = now.Add(-1 * time.Hour)
+		require.NoError(t, p.Create(ctx, aged))
+
+		// Well under the cap, so the only branch that can touch this row is
+		// the expiry one.
+		require.NoError(t, p.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, "u-a", "ip-self3", 4, now))
+
+		row := selectRow(t, db, schema, "flsess_self_aged")
+		require.NotNil(t, row)
+		require.True(t, row.RevokedAt.Valid,
+			"an aged-out row is stamped even when it belongs to the identity logging in")
+		require.Equal(t, revokedReasonExpired, row.RevokedReason.String)
+		require.True(t, row.RevokedAt.Time.Equal(aged.ExpiresAt),
+			"expired rows are stamped at expires_at, the last point the session was provably usable")
 	})
 
 	t.Run("EnforceActiveIPCap no-op when under cap", func(t *testing.T) {
@@ -509,6 +621,6 @@ func TestPostgresAuthSession(t *testing.T) {
 		defer db.Close()
 		p, _ := newPostgres(t, db, "evict_under_cap")
 
-		require.NoError(t, p.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, "no-ip", 4, now))
+		require.NoError(t, p.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, "u-none", "no-ip", 4, now))
 	})
 }

@@ -12,12 +12,14 @@ import (
 // repository that BuildAnonymousLogin depends on.
 type anonymousLoginRepository interface {
 	Create(ctx context.Context, sess domain.AuthSession) error
-	EnforceActiveIPCap(ctx context.Context, identityType domain.AuthSessionIdentityType, ipHash string, maxActive int, now time.Time) error
+	EnforceActiveIPCap(ctx context.Context, identityType domain.AuthSessionIdentityType, identityKey string, ipHash string, maxActive int, now time.Time) error
 }
 
 // authAnonymousIPCap is the max number of concurrently-active
 // anonymous sessions per ip_hash. When exceeded, the oldest active
-// sessions are evicted before issuing a new one.
+// sessions are evicted before issuing a new one. Sessions already held
+// by the identity that's logging in don't count towards it — Create
+// replaces those anyway.
 const authAnonymousIPCap = 4
 
 // AnonymousLogin issues a new anonymous-tier session for (userID,
@@ -37,7 +39,7 @@ func BuildAnonymousLogin(
 	return func(ctx context.Context, userID string, ipHash string) (domain.AuthSession, error) {
 		now := nowFunc()
 
-		if err := repo.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, ipHash, authAnonymousIPCap, now); err != nil {
+		if err := repo.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, userID, ipHash, authAnonymousIPCap, now); err != nil {
 			return domain.AuthSession{}, fmt.Errorf("failed to enforce ip cap: %w", err)
 		}
 

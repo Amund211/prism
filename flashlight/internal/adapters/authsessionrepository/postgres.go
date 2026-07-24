@@ -374,6 +374,15 @@ func (p *Postgres) Update(
 //     gets revoked_reason = 'evicted_by_ip_cap' and revoked_at = now
 //     (the session is being actively killed now to make room).
 //
+// identityKey is the identity that's about to log in. Its own rows are
+// excluded from the eviction candidates and from the count they're
+// measured against, because Create is about to soft-revoke that
+// incumbent as 'replaced' regardless — counting it would evict an
+// unrelated session to make room the login was going to free anyway.
+// Only the active branch excludes it: an aged-out row for the same
+// identity is still worth stamping 'expired' for the audit trail, and
+// it isn't competing for the cap either way.
+//
 // CASE expressions pick reason and timestamp at write time from each
 // row's own refresh_until so each touched row gets the accurate "why"
 // and "when." Idempotent: if there's nothing to revoke, this is a
@@ -381,6 +390,7 @@ func (p *Postgres) Update(
 func (p *Postgres) EnforceActiveIPCap(
 	ctx context.Context,
 	identityType domain.AuthSessionIdentityType,
+	identityKey string,
 	ipHash string,
 	maxActive int,
 	now time.Time,
@@ -409,6 +419,7 @@ func (p *Postgres) EnforceActiveIPCap(
 			(SELECT id FROM %s.auth_sessions
 			 WHERE identity_type = $1 AND ip_hash = $2
 			   AND revoked_at IS NULL AND refresh_until > $3
+			   AND identity_key <> $7
 			 ORDER BY created_at DESC
 			 OFFSET $4)
 		)
@@ -425,6 +436,7 @@ func (p *Postgres) EnforceActiveIPCap(
 		maxActive-1,
 		revokedReasonEvictedByIPCap,
 		revokedReasonExpired,
+		identityKey,
 	)
 	if err != nil {
 		err := fmt.Errorf("failed to enforce active ip cap: %w", err)

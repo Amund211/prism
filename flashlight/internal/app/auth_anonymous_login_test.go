@@ -28,9 +28,11 @@ func TestBuildAnonymousLogin(t *testing.T) {
 
 		var enforceCalled, createCalled, generated bool
 		repo := &fakeAuthSessionRepo{
-			enforceActiveIPCapFn: func(_ context.Context, identityType domain.AuthSessionIdentityType, ipHash string, maxActive int, capNow time.Time) error {
+			enforceActiveIPCapFn: func(_ context.Context, identityType domain.AuthSessionIdentityType, identityKey string, ipHash string, maxActive int, capNow time.Time) error {
 				enforceCalled = true
 				require.Equal(t, domain.AuthSessionIdentityAnonymous, identityType)
+				require.Equal(t, "user-12345", identityKey,
+					"the cap must know who is logging in so it doesn't evict a stranger to replace this identity's own session")
 				require.Equal(t, "iphash-abc", ipHash)
 				require.Equal(t, authAnonymousIPCap, maxActive)
 				require.Equal(t, now, capNow)
@@ -69,7 +71,7 @@ func TestBuildAnonymousLogin(t *testing.T) {
 	t.Run("propagates EnforceActiveIPCap errors and does not generate or Create", func(t *testing.T) {
 		t.Parallel()
 		repo := &fakeAuthSessionRepo{
-			enforceActiveIPCapFn: func(_ context.Context, _ domain.AuthSessionIdentityType, _ string, _ int, _ time.Time) error {
+			enforceActiveIPCapFn: func(_ context.Context, _ domain.AuthSessionIdentityType, _ string, _ string, _ int, _ time.Time) error {
 				return errors.New("ip cap query failed")
 			},
 		}
@@ -85,7 +87,7 @@ func TestBuildAnonymousLogin(t *testing.T) {
 	t.Run("propagates generator errors and does not Create", func(t *testing.T) {
 		t.Parallel()
 		repo := &fakeAuthSessionRepo{
-			enforceActiveIPCapFn: func(_ context.Context, _ domain.AuthSessionIdentityType, _ string, _ int, _ time.Time) error {
+			enforceActiveIPCapFn: func(_ context.Context, _ domain.AuthSessionIdentityType, _ string, _ string, _ int, _ time.Time) error {
 				return nil
 			},
 		}
