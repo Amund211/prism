@@ -10,9 +10,18 @@ spec:
   template:
     metadata:
       annotations:
-        # The guide makes the service dependent on the collector, but we skip that for faster cold starts
+        # The service depends on the collector so Cloud Run orders the two
+        # containers: on startup the collector is brought up (and its
+        # startupProbe passes) before the service starts, so the service never
+        # pushes OTLP telemetry to a collector that isn't listening; on shutdown
+        # containers stop in reverse dependency order, so the service is stopped
+        # first and the collector stays alive to receive the service's final
+        # telemetry flush. Without this, both containers get SIGTERM at once and
+        # the collector exits before the service can flush, dropping the last
+        # batch of metrics/traces. The collector's startupProbe below is tuned to
+        # a 1s period so gating the service on it costs only ~2-4s of cold start.
         # Ref: https://cloud.google.com/run/docs/tutorials/custom-metrics-opentelemetry-sidecar
-        # run.googleapis.com/container-dependencies: '{"service":["collector"]}'
+        run.googleapis.com/container-dependencies: '{"service":["collector"]}'
         autoscaling.knative.dev/minScale: "0"
         autoscaling.knative.dev/maxScale: "1"
         run.googleapis.com/cloudsql-instances: "prism-overlay:northamerica-northeast2:flashlight-postgres"
@@ -82,3 +91,13 @@ spec:
           httpGet:
             path: "/"
             port: 13133
+          # Poll every 1s instead of the default 10s. The collector is ready
+          # within ~30ms of its process starting, but with the default 10s
+          # period the first probe fires before it's listening and the retry
+          # doesn't happen until ~10s later — which, via the container
+          # dependency above, would add ~10s to the service's cold start. A 1s
+          # period lets the probe pass as soon as the collector is up.
+          # failureThreshold * periodSeconds = 30s of startup headroom.
+          periodSeconds: 1
+          timeoutSeconds: 1
+          failureThreshold: 30
