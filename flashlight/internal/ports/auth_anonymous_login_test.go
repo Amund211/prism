@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/ports"
 )
 
 func TestAnonymousLoginHandler(t *testing.T) {
@@ -43,7 +42,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 			}, nil
 		}
 
-		handler := ports.MakeAnonymousLoginHandler(login, fixedNow(now), authTestOrigins(t), authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
+		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
 		body := strings.NewReader(`{"userId":"user-abc"}`)
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", body)
 		withJSONContentType(r)
@@ -89,7 +88,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 				LifetimeEndsAt: now.Add(24 * time.Hour),
 			}, nil
 		}
-		handler := ports.MakeAnonymousLoginHandler(login, fixedNow(now), authTestOrigins(t), authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
+		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(`{"userId":"user-abc"}`))
 		withJSONContentType(r)
 		withRequestIP(r, "1.2.3.4")
@@ -118,7 +117,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 				LifetimeEndsAt: capAt,
 			}, nil
 		}
-		handler := ports.MakeAnonymousLoginHandler(login, fixedNow(now), authTestOrigins(t), authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
+		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(`{"userId":"user-late"}`))
 		withJSONContentType(r)
 		withRequestIP(r, "1.2.3.4")
@@ -151,7 +150,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 				LifetimeEndsAt: now.Add(24 * time.Hour),
 			}, nil
 		}
-		handler := ports.MakeAnonymousLoginHandler(login, fixedNow(now), authTestOrigins(t), authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
+		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
 
 		origin := "https://subdomain.example.com"
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(`{"userId":"user-abc"}`))
@@ -186,7 +185,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 					t.Fatal("login should not be called for a non-JSON content type")
 					return domain.AuthSession{}, nil
 				}
-				handler := ports.MakeAnonymousLoginHandler(login, time.Now, authTestOrigins(t), authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
+				handler := newAnonymousLoginHandler(t, login, time.Now)
 				r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(`{"userId":"user-abc"}`))
 				if contentType != "" {
 					r.Header.Set("Content-Type", contentType)
@@ -215,7 +214,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 				LifetimeEndsAt: now.Add(24 * time.Hour),
 			}, nil
 		}
-		handler := ports.MakeAnonymousLoginHandler(login, fixedNow(now), authTestOrigins(t), authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
+		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(`{"userId":"user-abc"}`))
 		// What fetch() sends when you hand it a JSON string body.
 		r.Header.Set("Content-Type", "application/json; charset=utf-8")
@@ -227,13 +226,65 @@ func TestAnonymousLoginHandler(t *testing.T) {
 		require.Equal(t, http.StatusOK, w.Code)
 	})
 
+	t.Run("rate limits per ip", func(t *testing.T) {
+		t.Parallel()
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		logins := 0
+		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			logins++
+			return domain.AuthSession{
+				ID:             "sid-limit",
+				IdentityType:   domain.AuthSessionIdentityAnonymous,
+				IdentityKey:    userID,
+				CreatedAt:      now,
+				ExpiresAt:      now.Add(1 * time.Hour),
+				RefreshUntil:   now.Add(2 * time.Hour),
+				LifetimeEndsAt: now.Add(24 * time.Hour),
+			}, nil
+		}
+		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
+
+		doLogin := func(ip string, userID string) int {
+			body := fmt.Sprintf(`{"userId":%q}`, userID)
+			r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(body))
+			withJSONContentType(r)
+			withRequestIP(r, ip)
+			w := httptest.NewRecorder()
+			handler(w, r)
+			return w.Code
+		}
+
+		// The burst is 60, after which the same IP is refused without ever
+		// reaching the (write-heavy) login use case. The bucket refills at 1/s
+		// off the wall clock, so a slow run could hand a token back mid-loop —
+		// keep asking rather than pinning the exact boundary request.
+		accepted := 0
+		var lastCode int
+		for range 65 {
+			lastCode = doLogin("1.2.3.4", "user-abc")
+			if lastCode != http.StatusOK {
+				break
+			}
+			accepted++
+		}
+
+		require.Equal(t, http.StatusTooManyRequests, lastCode)
+		require.GreaterOrEqual(t, accepted, 60, "the full burst should be allowed through")
+		require.Equal(t, accepted, logins, "the throttled request must not reach the login use case")
+
+		// Keyed on the IP, not the body — a fresh userId from the same IP is
+		// still refused, and an unrelated IP is unaffected.
+		require.Equal(t, http.StatusTooManyRequests, doLogin("1.2.3.4", "some-other-user"))
+		require.Equal(t, http.StatusOK, doLogin("5.6.7.8", "user-abc"))
+	})
+
 	t.Run("400 on invalid userId", func(t *testing.T) {
 		t.Parallel()
 		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
 			t.Fatal("login should not be called when userId is invalid")
 			return domain.AuthSession{}, nil
 		}
-		handler := ports.MakeAnonymousLoginHandler(login, time.Now, authTestOrigins(t), authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
+		handler := newAnonymousLoginHandler(t, login, time.Now)
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(`{"userId":""}`))
 		withJSONContentType(r)
 		withRequestIP(r, "1.2.3.4")
@@ -248,7 +299,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 			t.Fatal("login should not be called when userId is too long")
 			return domain.AuthSession{}, nil
 		}
-		handler := ports.MakeAnonymousLoginHandler(login, time.Now, authTestOrigins(t), authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
+		handler := newAnonymousLoginHandler(t, login, time.Now)
 		// 101 chars — past the 100-char hard cap.
 		body := fmt.Sprintf(`{"userId":%q}`, strings.Repeat("x", 101))
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(body))
@@ -280,7 +331,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 				LifetimeEndsAt: now.Add(24 * time.Hour),
 			}, nil
 		}
-		handler := ports.MakeAnonymousLoginHandler(login, time.Now, authTestOrigins(t), authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
+		handler := newAnonymousLoginHandler(t, login, time.Now)
 		body := fmt.Sprintf(`{"userId":%q}`, longID)
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(body))
 		withJSONContentType(r)
@@ -297,7 +348,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 			t.Fatal("login should not be called on malformed body")
 			return domain.AuthSession{}, nil
 		}
-		handler := ports.MakeAnonymousLoginHandler(login, time.Now, authTestOrigins(t), authTestLogger, noopAuthMiddleware, ports.BlocklistConfig{})
+		handler := newAnonymousLoginHandler(t, login, time.Now)
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(`not-json`))
 		withJSONContentType(r)
 		withRequestIP(r, "1.2.3.4")

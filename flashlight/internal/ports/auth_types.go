@@ -10,6 +10,7 @@ import (
 
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 )
 
@@ -82,6 +83,21 @@ func writeAuthSessionResponse(ctx context.Context, w http.ResponseWriter, sess d
 	if _, err := w.Write(data); err != nil {
 		logging.FromContext(ctx).ErrorContext(ctx, "Failed to write session response", "error", err.Error())
 		reporting.Report(ctx, fmt.Errorf("write session response: %w", err))
+	}
+}
+
+// makeOnAuthLimitExceeded is the 429 responder shared by the auth
+// endpoints. Same shape as the per-endpoint ones elsewhere; shared here
+// because login and refresh want identical behaviour.
+func makeOnAuthLimitExceeded(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		statusCode := http.StatusTooManyRequests
+
+		logging.FromContext(ctx).InfoContext(ctx, "Rate limit exceeded", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
+
+		http.Error(w, "Rate limit exceeded", statusCode)
 	}
 }
 

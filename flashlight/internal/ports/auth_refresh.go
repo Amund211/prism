@@ -10,6 +10,7 @@ import (
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 )
 
@@ -24,7 +25,29 @@ func MakeAuthRefreshHandler(
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
-) http.HandlerFunc {
+) (http.HandlerFunc, func()) {
+	// A refresh costs a SELECT-FOR-UPDATE transaction on the session row (no
+	// IP-cap UPDATE — that one is on the login path only), and the bearer is
+	// only checked inside that transaction, so an unknown token is just as
+	// expensive as a valid one. The request IP is all we can key on before
+	// touching the database.
+	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
+		ratelimiting.RefillPerSecond(1),
+		ratelimiting.BurstSize(60),
+	)
+	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
+		ipLimiter,
+		IPHashKeyFunc,
+	)
+	ipLimiterLong, stopIPLimiterLong := ratelimiting.NewTokenBucketRateLimiter(
+		ratelimiting.RefillPerSecond(0.1),
+		ratelimiting.BurstSize(200),
+	)
+	ipRateLimiterLong := ratelimiting.NewRequestBasedRateLimiter(
+		ipLimiterLong,
+		IPHashKeyFunc,
+	)
+
 	middleware := ComposeMiddlewares(
 		NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,
@@ -32,7 +55,14 @@ func MakeAuthRefreshHandler(
 		buildMetricsMiddleware("auth-refresh"),
 		NewReportingMetaMiddleware("auth-refresh"),
 		BuildCORSMiddleware(allowedOrigins),
+		NewRateLimitMiddleware(ipRateLimiter, makeOnAuthLimitExceeded(ipRateLimiter)),
+		NewRateLimitMiddleware(ipRateLimiterLong, makeOnAuthLimitExceeded(ipRateLimiterLong)),
 	)
+
+	stop := func() {
+		stopIPLimiter()
+		stopIPLimiterLong()
+	}
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -62,5 +92,5 @@ func MakeAuthRefreshHandler(
 		writeAuthSessionResponse(ctx, w, view, nowFunc())
 	}
 
-	return middleware(handler)
+	return middleware(handler), stop
 }

@@ -5,9 +5,11 @@ import (
 	"log/slog"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/ports"
 )
 
@@ -37,4 +39,32 @@ func authTestOrigins(t *testing.T) *ports.DomainSuffixes {
 	allowedOrigins, err := ports.NewDomainSuffixes("example.com", "test.com")
 	require.NoError(t, err)
 	return allowedOrigins
+}
+
+func newAnonymousLoginHandler(t *testing.T, login app.AnonymousLogin, nowFunc func() time.Time) http.HandlerFunc {
+	t.Helper()
+	handler, stop := ports.MakeAnonymousLoginHandler(
+		login,
+		nowFunc,
+		authTestOrigins(t),
+		authTestLogger,
+		noopAuthMiddleware,
+		ports.BlocklistConfig{},
+	)
+	t.Cleanup(stop)
+	return handler
+}
+
+func newAuthRefreshHandler(t *testing.T, refresh app.RefreshSession, nowFunc func() time.Time) http.HandlerFunc {
+	t.Helper()
+	handler, stop := ports.MakeAuthRefreshHandler(
+		refresh,
+		nowFunc,
+		authTestOrigins(t),
+		authTestLogger,
+		noopAuthMiddleware,
+		ports.BlocklistConfig{},
+	)
+	t.Cleanup(stop)
+	return handler
 }

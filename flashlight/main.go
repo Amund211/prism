@@ -287,33 +287,29 @@ func main() {
 		"OPTIONS /v1/auth/anonymous/login",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
-	handleFunc(
-		"POST /v1/auth/anonymous/login",
-		ports.MakeAnonymousLoginHandler(
-			anonymousLogin,
-			time.Now,
-			allowedOrigins,
-			logger.With("port", "auth-anonymous-login"),
-			sentryMiddleware,
-			blocklistConfig,
-		),
+	anonymousLoginHandler, stopAnonymousLogin := ports.MakeAnonymousLoginHandler(
+		anonymousLogin,
+		time.Now,
+		allowedOrigins,
+		logger.With("port", "auth-anonymous-login"),
+		sentryMiddleware,
+		blocklistConfig,
 	)
+	handleFunc("POST /v1/auth/anonymous/login", anonymousLoginHandler, stopAnonymousLogin)
 
 	handleFunc(
 		"OPTIONS /v1/auth/refresh",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
-	handleFunc(
-		"POST /v1/auth/refresh",
-		ports.MakeAuthRefreshHandler(
-			refreshSession,
-			time.Now,
-			allowedOrigins,
-			logger.With("port", "auth-refresh"),
-			sentryMiddleware,
-			blocklistConfig,
-		),
+	authRefreshHandler, stopAuthRefresh := ports.MakeAuthRefreshHandler(
+		refreshSession,
+		time.Now,
+		allowedOrigins,
+		logger.With("port", "auth-refresh"),
+		sentryMiddleware,
+		blocklistConfig,
 	)
+	handleFunc("POST /v1/auth/refresh", authRefreshHandler, stopAuthRefresh)
 
 	handleFunc(
 		"OPTIONS /v1/account/username/{username}",

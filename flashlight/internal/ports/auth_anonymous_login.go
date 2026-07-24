@@ -10,6 +10,7 @@ import (
 
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 )
 
@@ -50,7 +51,29 @@ func MakeAnonymousLoginHandler(
 	rootLogger *slog.Logger,
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
-) http.HandlerFunc {
+) (http.HandlerFunc, func()) {
+	// Every login costs an IP-cap UPDATE plus a multi-statement transaction, and
+	// the endpoint is unauthenticated by definition — so it is rate limited on
+	// the only thing we have before doing any of that work, the request IP.
+	// There is no userId bucket: the body is attacker-controlled, so keying on
+	// it would just make the limit free to evade.
+	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
+		ratelimiting.RefillPerSecond(1),
+		ratelimiting.BurstSize(60),
+	)
+	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
+		ipLimiter,
+		IPHashKeyFunc,
+	)
+	ipLimiterLong, stopIPLimiterLong := ratelimiting.NewTokenBucketRateLimiter(
+		ratelimiting.RefillPerSecond(0.1),
+		ratelimiting.BurstSize(200),
+	)
+	ipRateLimiterLong := ratelimiting.NewRequestBasedRateLimiter(
+		ipLimiterLong,
+		IPHashKeyFunc,
+	)
+
 	middleware := ComposeMiddlewares(
 		NewRequestLoggerMiddleware(rootLogger),
 		sentryMiddleware,
@@ -58,7 +81,14 @@ func MakeAnonymousLoginHandler(
 		buildMetricsMiddleware("auth-anonymous-login"),
 		NewReportingMetaMiddleware("auth-anonymous-login"),
 		BuildCORSMiddleware(allowedOrigins),
+		NewRateLimitMiddleware(ipRateLimiter, makeOnAuthLimitExceeded(ipRateLimiter)),
+		NewRateLimitMiddleware(ipRateLimiterLong, makeOnAuthLimitExceeded(ipRateLimiterLong)),
 	)
+
+	stop := func() {
+		stopIPLimiter()
+		stopIPLimiterLong()
+	}
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -119,5 +149,5 @@ func MakeAnonymousLoginHandler(
 		writeAuthSessionResponse(ctx, w, sess, nowFunc())
 	}
 
-	return middleware(handler)
+	return middleware(handler), stop
 }
