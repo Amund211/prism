@@ -452,6 +452,8 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 		require.Error(t, err)
 		// Must NOT be ErrPlayerNotFound so the port responds with 500, not 404.
 		require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
+		// Only the well-known fallthrough asks the client to retry.
+		require.NotErrorIs(t, err, domain.ErrTemporarilyUnavailable)
 	})
 
 	t.Run("well-known queries the provider when the player has enough stored stats", func(t *testing.T) {
@@ -510,8 +512,10 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 
 		_, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "")
 		require.Error(t, err)
-		// Must NOT be ErrPlayerNotFound so the port responds with 500, not 404.
+		// Must NOT be ErrPlayerNotFound so the port doesn't respond with 404.
 		require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
+		// Retryable (504) so prism retries and gets another roll.
+		require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
 	})
 
 	t.Run("well-known queries the provider when the fallthrough roll wins", func(t *testing.T) {
@@ -570,6 +574,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 				player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "")
 				if !tc.hitProvider {
 					require.Error(t, err)
+					require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
 					return
 				}
 				require.NoError(t, err)

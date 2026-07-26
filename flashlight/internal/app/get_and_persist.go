@@ -65,6 +65,10 @@ const wellKnownUserMaxSeenCount = 30_000
 // the repository queries the provider anyway instead of failing. It only
 // applies to requests that would otherwise error, so the extra provider load is
 // bounded by the number of requests we currently reject.
+//
+// NOTE: This is a per-request chance, and we reject with a retryable status, so
+// the chance that a client eventually gets served is much higher than this:
+// prism retries up to 5 times, giving 1-0.7^5 ~= 83%.
 const wellKnownFallthroughProviderChance = 0.3
 
 func (m ProviderMode) validate() error {
@@ -301,7 +305,10 @@ func BuildGetAndPersistPlayerWithCache(
 				// stale) snapshot rather than accruing records towards
 				// wellKnownStatsThreshold.
 				if randFloat() >= wellKnownFallthroughProviderChance {
-					return nil, err
+					// Report the rejection as temporarily unavailable (504) so
+					// prism retries it. Failures aren't cached, so every retry
+					// re-rolls.
+					return nil, fmt.Errorf("%w: %w", domain.ErrTemporarilyUnavailable, err)
 				}
 				logging.FromContext(ctx).InfoContext(ctx, "Querying the provider for a not well-known player we can't serve from the repository", "error", err.Error())
 				return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
