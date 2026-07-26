@@ -60,6 +60,13 @@ var wellKnownUserFirstSeenCutoff = time.Date(2026, time.March, 1, 0, 0, 0, 0, ti
 // not considered well-known even if they were first seen before the cutoff.
 const wellKnownUserMaxSeenCount = 30_000
 
+// wellKnownFallthroughProviderChance is the probability that a
+// ProviderModeWellKnown request which is neither well-known nor servable from
+// the repository queries the provider anyway instead of failing. It only
+// applies to requests that would otherwise error, so the extra provider load is
+// bounded by the number of requests we currently reject.
+const wellKnownFallthroughProviderChance = 0.3
+
 func (m ProviderMode) validate() error {
 	switch m {
 	case ProviderModeAlways, ProviderModeFallback, ProviderModeNever, ProviderModeWellKnown:
@@ -127,6 +134,10 @@ func BuildGetAndPersistPlayerWithCache(
 	accountRepo displaynameAccountRepository,
 	getAccountByUUID GetAccountByUUID,
 	getUser GetUser,
+	// randFloat returns a random float in [0, 1) and decides whether a
+	// ProviderModeWellKnown request that would otherwise fail queries the
+	// provider anyway. Tests pass a deterministic implementation.
+	randFloat func() float64,
 ) (GetAndPersistPlayerWithCache, error) {
 	const name = "flashlight/app/get_and_persist_player_with_cache"
 
@@ -278,7 +289,22 @@ func BuildGetAndPersistPlayerWithCache(
 					return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
 				}
 				// Not well-known -> behave like ProviderModeNever.
-				return getStoredPlayerOrFail(ctx, uuid, providerMode)
+				storedPlayer, err := getStoredPlayerOrFail(ctx, uuid, providerMode)
+				if err == nil {
+					return storedPlayer, nil
+				}
+				// We have nothing to serve this requester. Query the provider
+				// for a small share of these requests instead of failing.
+				// NOTE: A winning roll stores a single stat record, which is
+				// enough for getStoredPlayerOrFail to succeed from then on, so
+				// the player will keep being served that one (increasingly
+				// stale) snapshot rather than accruing records towards
+				// wellKnownStatsThreshold.
+				if randFloat() >= wellKnownFallthroughProviderChance {
+					return nil, err
+				}
+				logging.FromContext(ctx).InfoContext(ctx, "Querying the provider for a not well-known player we can't serve from the repository", "error", err.Error())
+				return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
 			default:
 				// Unreachable: providerMode was validated above.
 				return nil, fmt.Errorf("invalid provider mode: %q", providerMode)

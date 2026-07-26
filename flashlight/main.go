@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"os/signal"
@@ -206,7 +207,7 @@ func main() {
 		fail("Failed to initialize GetUserWithCache", "error", err.Error())
 	}
 
-	getAndPersistPlayerWithCache, err := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, playerRepo, accountRepo, getAccountByUUIDWithCache, getUserWithCache)
+	getAndPersistPlayerWithCache, err := app.BuildGetAndPersistPlayerWithCache(playerCache, playerProvider, playerRepo, accountRepo, getAccountByUUIDWithCache, getUserWithCache, rand.Float64)
 	if err != nil {
 		fail("Failed to initialize GetAndPersistPlayerWithCache", "error", err.Error())
 	}
