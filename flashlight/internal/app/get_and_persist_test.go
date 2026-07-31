@@ -95,14 +95,14 @@ func (f fakeUserRepository) GetUser(ctx context.Context, userID string) (domain.
 	return f.user, nil
 }
 
-// alwaysLosesTheRoll makes the ProviderModeWellKnown fallthrough roll never
-// query the provider, so tests that don't exercise the roll are deterministic.
+// alwaysLosesTheRoll makes the ProviderModeWellKnown roll never query the
+// provider, so tests that don't exercise the roll are deterministic.
 func alwaysLosesTheRoll() float64 {
 	return 1
 }
 
-// alwaysWinsTheRoll makes the ProviderModeWellKnown fallthrough roll always
-// query the provider.
+// alwaysWinsTheRoll makes the ProviderModeWellKnown roll always query the
+// provider.
 func alwaysWinsTheRoll() float64 {
 	return 0
 }
@@ -452,7 +452,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 		require.Error(t, err)
 		// Must NOT be ErrPlayerNotFound so the port responds with 500, not 404.
 		require.NotErrorIs(t, err, domain.ErrPlayerNotFound)
-		// Only the well-known fallthrough asks the client to retry.
+		// Only well-known asks the client to retry.
 		require.NotErrorIs(t, err, domain.ErrTemporarilyUnavailable)
 	})
 
@@ -507,7 +507,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 		}
 		accountRepo := stubAccountRepositoryByUUID{err: domain.ErrUsernameNotFound}
 
-		// The fallthrough roll loses -> we never reach the provider.
+		// The roll loses -> we never reach the provider.
 		usecase := build(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t))
 
 		_, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "")
@@ -518,7 +518,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 		require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
 	})
 
-	t.Run("well-known queries the provider when the fallthrough roll wins", func(t *testing.T) {
+	t.Run("well-known queries the provider when the roll wins", func(t *testing.T) {
 		t.Parallel()
 
 		repo := &fakePlayerRepository{
@@ -539,7 +539,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 		require.Equal(t, int64(999), player.Experience)
 	})
 
-	t.Run("the fallthrough roll is decided by wellKnownFallthroughProviderChance", func(t *testing.T) {
+	t.Run("the roll is decided by wellKnownProviderChance", func(t *testing.T) {
 		t.Parallel()
 
 		for _, tc := range []struct {
@@ -547,9 +547,9 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 			roll        float64
 			hitProvider bool
 		}{
-			{name: "just below the chance", roll: wellKnownFallthroughProviderChance - 0.0001, hitProvider: true},
-			{name: "exactly the chance", roll: wellKnownFallthroughProviderChance, hitProvider: false},
-			{name: "just above the chance", roll: wellKnownFallthroughProviderChance + 0.0001, hitProvider: false},
+			{name: "just below the chance", roll: wellKnownProviderChance - 0.0001, hitProvider: true},
+			{name: "exactly the chance", roll: wellKnownProviderChance, hitProvider: false},
+			{name: "just above the chance", roll: wellKnownProviderChance + 0.0001, hitProvider: false},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				t.Parallel()
@@ -583,29 +583,30 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 		}
 	})
 
-	t.Run("well-known does not roll when it can serve the player from the repository", func(t *testing.T) {
+	t.Run("a winning roll queries the provider even when the player is servable from the repository", func(t *testing.T) {
 		t.Parallel()
 
 		repo := &fakePlayerRepository{
 			StubPlayerRepository: playerrepository.NewStubPlayerRepository(),
-			player:               domaintest.NewPlayerBuilder(UUID).WithExperience(1234).BuildPtr(now),
-			statCount:            wellKnownStatsThreshold - 1,
+			// Stored player is below the threshold, so a losing roll would
+			// serve this stale record instead of querying the provider.
+			player:    domaintest.NewPlayerBuilder(UUID).WithExperience(1234).BuildPtr(now),
+			statCount: wellKnownStatsThreshold - 1,
 		}
-		accountRepo := stubAccountRepositoryByUUID{account: domain.Account{UUID: UUID, Username: "StoredName"}}
+		provider := &mockedPlayerProvider{
+			t:      t,
+			player: domaintest.NewPlayerBuilder(UUID).WithExperience(999).BuildPtr(now),
+		}
+		accountRepo := stubAccountRepositoryByUUID{err: domain.ErrUsernameNotFound}
 
-		// Even with a winning roll we serve the stored player without ever
-		// asking the provider.
-		usecase := buildWithRandFloat(t, &panicPlayerProvider{t: t}, repo, accountRepo, panicGetAccount(t), func() float64 {
-			t.Error("randFloat should not be called when the player is served from the repository")
-			return 0
-		})
+		usecase := buildWithRandFloat(t, provider, repo, accountRepo, panicGetAccount(t), alwaysWinsTheRoll)
 
 		player, err := usecase(t.Context(), UUID, ProviderModeWellKnown, "")
 		require.NoError(t, err)
-		require.Equal(t, int64(1234), player.Experience)
+		require.Equal(t, int64(999), player.Experience)
 	})
 
-	t.Run("roughly wellKnownFallthroughProviderChance of the fallthrough requests hit the provider", func(t *testing.T) {
+	t.Run("roughly wellKnownProviderChance of the requests hit the provider", func(t *testing.T) {
 		t.Parallel()
 
 		// Fixed seed -> deterministic sequence of rolls.
@@ -633,7 +634,7 @@ func TestGetAndPersistPlayerProviderMode(t *testing.T) {
 			}
 		}
 
-		require.InDelta(t, wellKnownFallthroughProviderChance*attempts, hits, 0.05*attempts)
+		require.InDelta(t, wellKnownProviderChance*attempts, hits, 0.05*attempts)
 	})
 
 	t.Run("invalid provider mode errors without querying anything", func(t *testing.T) {

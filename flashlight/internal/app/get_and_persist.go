@@ -60,16 +60,16 @@ var wellKnownUserFirstSeenCutoff = time.Date(2026, time.March, 1, 0, 0, 0, 0, ti
 // not considered well-known even if they were first seen before the cutoff.
 const wellKnownUserMaxSeenCount = 30_000
 
-// wellKnownFallthroughProviderChance is the probability that a
-// ProviderModeWellKnown request which is neither well-known nor servable from
-// the repository queries the provider anyway instead of failing. It only
-// applies to requests that would otherwise error, so the extra provider load is
-// bounded by the number of requests we currently reject.
+// wellKnownProviderChance is the probability that a ProviderModeWellKnown
+// request queries the provider for fresh data regardless of whether the player
+// is well-known. The roll happens before the well-known checks, so it applies
+// to every ProviderModeWellKnown request, not just the ones we would otherwise
+// reject - a losing roll falls back to the normal well-known behaviour.
 //
-// NOTE: This is a per-request chance, and we reject with a retryable status, so
-// the chance that a client eventually gets served is much higher than this:
-// prism retries up to 5 times, giving 1-0.7^5 ~= 83%.
-const wellKnownFallthroughProviderChance = 0.3
+// NOTE: This is a per-request chance, and we reject unservable requests with a
+// retryable status, so the chance that a rejected client eventually gets served
+// is much higher than this: prism retries up to 5 times, giving 1-0.7^5 ~= 83%.
+const wellKnownProviderChance = 0.3
 
 func (m ProviderMode) validate() error {
 	switch m {
@@ -282,6 +282,14 @@ func BuildGetAndPersistPlayerWithCache(
 				// Provider mode is never -> we don't query the provider.
 				return getStoredPlayerOrFail(ctx, uuid, providerMode)
 			case ProviderModeWellKnown:
+				// Roll before the well-known checks: a winning roll gets fresh
+				// data for any player, so below-threshold players keep accruing
+				// records towards wellKnownStatsThreshold instead of being
+				// frozen at whatever snapshot we happen to have stored.
+				if randFloat() < wellKnownProviderChance {
+					logging.FromContext(ctx).InfoContext(ctx, "Well-known provider roll won, getting fresh data")
+					return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
+				}
 				count, err := repo.CountStats(ctx, uuid)
 				if err != nil {
 					// NOTE: PlayerRepository implementations handle their own error reporting
@@ -292,26 +300,16 @@ func BuildGetAndPersistPlayerWithCache(
 					// Well-known player -> behave like ProviderModeAlways.
 					return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
 				}
-				// Not well-known -> behave like ProviderModeNever.
+				// Not well-known and the roll lost -> behave like
+				// ProviderModeNever.
 				storedPlayer, err := getStoredPlayerOrFail(ctx, uuid, providerMode)
 				if err == nil {
 					return storedPlayer, nil
 				}
-				// We have nothing to serve this requester. Query the provider
-				// for a small share of these requests instead of failing.
-				// NOTE: A winning roll stores a single stat record, which is
-				// enough for getStoredPlayerOrFail to succeed from then on, so
-				// the player will keep being served that one (increasingly
-				// stale) snapshot rather than accruing records towards
-				// wellKnownStatsThreshold.
-				if randFloat() >= wellKnownFallthroughProviderChance {
-					// Report the rejection as temporarily unavailable (504) so
-					// prism retries it. Failures aren't cached, so every retry
-					// re-rolls.
-					return nil, fmt.Errorf("%w: %w", domain.ErrTemporarilyUnavailable, err)
-				}
-				logging.FromContext(ctx).InfoContext(ctx, "Querying the provider for a not well-known player we can't serve from the repository", "error", err.Error())
-				return getAndPersistPlayerWithoutCache(ctx, provider, repo, uuid)
+				// We have nothing to serve this requester. Report the rejection
+				// as temporarily unavailable (504) so prism retries it.
+				// Failures aren't cached, so every retry re-rolls.
+				return nil, fmt.Errorf("%w: %w", domain.ErrTemporarilyUnavailable, err)
 			default:
 				// Unreachable: providerMode was validated above.
 				return nil, fmt.Errorf("invalid provider mode: %q", providerMode)
