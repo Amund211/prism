@@ -1,7 +1,6 @@
 package tagprovider
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -9,7 +8,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -27,14 +25,6 @@ import (
 )
 
 const getTagsMinOperationTime = 150 * time.Millisecond
-
-// urchinKeyRx matches the `key=<value>` query param so the value can be
-// redacted from error messages before logging or reporting.
-var urchinKeyRx = regexp.MustCompile(`key=[^&"\s]+`)
-
-func scrubURLKey(s string) string {
-	return urchinKeyRx.ReplaceAllString(s, "key=<redacted>")
-}
 
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
@@ -114,7 +104,7 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 		effectiveAPIKey = *urchinAPIKey
 	}
 
-	url := fmt.Sprintf("https://urchin.ws/player/%s?sources=MANUAL&key=%s", uuid, effectiveAPIKey)
+	url := fmt.Sprintf("https://api.urchin.gg/v3/player/tags?player=%s", uuid)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, http.NoBody)
 	if err != nil {
@@ -124,6 +114,9 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 	}
 
 	req.Header.Set("User-Agent", constants.UserAgent)
+	// NOTE: Sent as a header, not a query param, so the key can't leak through
+	//       URLs in error messages, logs, or traces.
+	req.Header.Set("X-API-Key", effectiveAPIKey)
 
 	var resp *http.Response
 	var data []byte
@@ -143,12 +136,12 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 				err = fmt.Errorf(
 					"%w: failed to send request: %s",
 					domain.ErrTemporarilyUnavailable,
-					scrubURLKey(errString),
+					errString,
 				)
 				// Don't report to sentry, as we get a bit of spam here
 				return
 			}
-			err = fmt.Errorf("failed to send request: %s", scrubURLKey(errString))
+			err = fmt.Errorf("failed to send request: %s", errString)
 			reporting.Report(ctx, err)
 			return
 		}
@@ -222,6 +215,7 @@ func (u *urchin) GetTags(ctx context.Context, uuid string, urchinAPIKey *string)
 			attribute.Bool("tag_blatant_cheater", seen.blatantCheater),
 			attribute.Bool("tag_confirmed_cheater", seen.confirmedCheater),
 			attribute.Bool("tag_account", seen.account),
+			attribute.Bool("tag_replays_needed", seen.replaysNeeded),
 			attribute.Bool("with_api_key", withAPIKey),
 		),
 	)
@@ -244,7 +238,7 @@ type urchinResponse struct {
 }
 
 type urchinTag struct {
-	Type urchinTagType `json:"type"`
+	Type urchinTagType `json:"tag_type"`
 }
 
 type urchinTagType string
@@ -259,6 +253,7 @@ const (
 	blatantCheater   urchinTagType = "blatant_cheater"
 	confirmedCheater urchinTagType = "confirmed_cheater"
 	account          urchinTagType = "account"
+	replaysNeeded    urchinTagType = "replays_needed"
 )
 
 type urchinTagCollection struct {
@@ -271,16 +266,15 @@ type urchinTagCollection struct {
 	blatantCheater   bool
 	confirmedCheater bool
 	account          bool
+	replaysNeeded    bool
 }
 
 func tagsFromUrchinResponse(ctx context.Context, statusCode int, data []byte, usedAPIKey bool) (domain.Tags, urchinTagCollection, error) {
 	if usedAPIKey {
+		// An unrecognized key gives 401 (with an empty body), and a locked key or one
+		// with insufficient rank/permission gives 403.
 		if statusCode == http.StatusUnauthorized || statusCode == http.StatusForbidden {
 			return domain.Tags{}, urchinTagCollection{}, fmt.Errorf("urchin API returned status code %d: %w", statusCode, domain.ErrInvalidAPIKey)
-		}
-
-		if len(data) < 100 && string(data) == `"Invalid Key"` {
-			return domain.Tags{}, urchinTagCollection{}, fmt.Errorf("urchin API returned 'Invalid Key': %w", domain.ErrInvalidAPIKey)
 		}
 	}
 
@@ -289,8 +283,9 @@ func tagsFromUrchinResponse(ctx context.Context, statusCode int, data []byte, us
 	// Treating all these as temporarily unavailable
 	case http.StatusTooManyRequests,
 		http.StatusInternalServerError,
-		http.StatusBadGateway,
-		525: // SSL handshake failed
+		http.StatusBadGateway,         // Hypixel or Mojang returned an upstream error
+		http.StatusServiceUnavailable, // A service urchin depends on is unavailable
+		525:                           // SSL handshake failed
 		return domain.Tags{}, urchinTagCollection{}, fmt.Errorf(
 			"urchin API returned status code %d: %w",
 			statusCode,
@@ -304,15 +299,6 @@ func tagsFromUrchinResponse(ctx context.Context, statusCode int, data []byte, us
 
 	var response urchinResponse
 	if err := json.Unmarshal(data, &response); err != nil {
-		if bytes.HasPrefix(data, []byte(`"Invalid source(s)`)) {
-			// Urchin returns a bare JSON string `"Invalid source(s) ..."` in some
-			// cases. Treat as transient instead of reporting a noisy
-			// "cannot unmarshal string into ...urchinResponse" parse error to Sentry.
-			return domain.Tags{}, urchinTagCollection{}, fmt.Errorf(
-				"%w: urchin API returned 'Invalid source(s)' response",
-				domain.ErrTemporarilyUnavailable,
-			)
-		}
 		return domain.Tags{}, urchinTagCollection{}, fmt.Errorf("failed to parse urchin response: %w", err)
 	}
 
@@ -358,6 +344,10 @@ func tagsFromUrchinResponse(ctx context.Context, statusCode int, data []byte, us
 		case account:
 			// Notes on the account, like "sold", "fake", etc.
 			seenTags.account = true
+		case replaysNeeded:
+			// Marks a player as awaiting review, not as a finding. Usually carries
+			// an expires_at, and often an empty reason.
+			seenTags.replaysNeeded = true
 		default:
 			// Unknown tag type, ignore
 			reporting.Report(

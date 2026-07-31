@@ -23,22 +23,26 @@ import (
 const defaultKey = "test-default-key"
 
 type mockedHTTPClient struct {
-	t           *testing.T
-	expectedURL string
-	response    *http.Response
-	statusCode  int
-	body        string
-	err         error
+	t              *testing.T
+	expectedURL    string
+	expectedAPIKey string
+	response       *http.Response
+	statusCode     int
+	body           string
+	err            error
 }
 
 func (m *mockedHTTPClient) Do(req *http.Request) (*http.Response, error) {
 	expectedHeaders := http.Header{
 		// NOTE: go's http.Header automatically camelcases the keys
 		"User-Agent": {"flashlight/0.1.0 (+https://github.com/Amund211/flashlight)"},
+		// The API key goes in a header, never in the URL
+		"X-Api-Key": {m.expectedAPIKey},
 	}
 
 	require.Equal(m.t, m.expectedURL, req.URL.String())
 	require.True(m.t, reflect.DeepEqual(expectedHeaders, req.Header), "Expected %v, got %v", expectedHeaders, req.Header)
+	require.NotContains(m.t, req.URL.String(), m.expectedAPIKey, "API key must not appear in the URL")
 
 	if m.response != nil {
 		return m.response, m.err
@@ -72,11 +76,7 @@ func TestUrchinTagsProvider(t *testing.T) {
 	}
 
 	urlForUUID := func(uuid string) string {
-		return fmt.Sprintf("https://urchin.ws/player/%s?sources=MANUAL", uuid)
-	}
-
-	urlForUUIDWithDefaultKey := func(uuid string) string {
-		return urlForUUID(uuid) + "&key=" + defaultKey
+		return fmt.Sprintf("https://api.urchin.gg/v3/player/tags?player=%s", uuid)
 	}
 
 	uuid := domaintest.NewUUID(t)
@@ -86,12 +86,15 @@ func TestUrchinTagsProvider(t *testing.T) {
 
 		t.Run("empty tags", func(t *testing.T) {
 			t.Parallel()
+			// Real response from /v3/player/tags (2026-08-01) with the uuid anonymized.
+			// displayname carries the rank prefix and its plus-colors.
 			httpClient := &mockedHTTPClient{
-				t:           t,
-				expectedURL: urlForUUIDWithDefaultKey(uuid),
-				statusCode:  200,
-				body:        `{"uuid":"0123456789abcdef0123456789abcdef","tags":[]}`,
-				err:         nil,
+				t:              t,
+				expectedURL:    urlForUUID(uuid),
+				expectedAPIKey: defaultKey,
+				statusCode:     200,
+				body:           `{"uuid":"0123456789abcdef0123456789abcdef","displayname":"§b[MVP§3+§b] Skydeath","tags":[]}`,
+				err:            nil,
 			}
 			urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
 			require.NoError(t, err)
@@ -107,12 +110,16 @@ func TestUrchinTagsProvider(t *testing.T) {
 
 			uuid := domaintest.NewUUID(t)
 
+			// Real tag object from POST /v3/players (2026-08-01), which returns no
+			// displayname. `uuid`, `added_by` and `added_by_username` are anonymized.
+			// See urchin_internal_test.go for the full set of parsing cases.
 			httpClient := &mockedHTTPClient{
-				t:           t,
-				expectedURL: urlForUUIDWithDefaultKey(uuid),
-				statusCode:  200,
-				body:        `{"uuid":"0123456789abcdef0123456789abcdef","tags":[{"type":"sniper","reason":"3q - scaff, ab, blink","added_by_id":null,"added_by_username":null,"added_on":"2025-10-10T06:56:37.998405"}]}`,
-				err:         nil,
+				t:              t,
+				expectedURL:    urlForUUID(uuid),
+				expectedAPIKey: defaultKey,
+				statusCode:     200,
+				body:           `{"uuid":"0123456789abcdef0123456789abcdef","tags":[{"tag_type":"sniper","reason":"ab legitscaff lagrange blink","added_by":111111111111111111,"added_by_username":"anonymized","added_on":1760968222172,"hide_username":false}]}`,
+				err:            nil,
 			}
 			urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
 			require.NoError(t, err)
@@ -131,17 +138,20 @@ func TestUrchinTagsProvider(t *testing.T) {
 
 		t.Run("custom api key overrides configured default", func(t *testing.T) {
 			t.Parallel()
+
+			key := "my-custom-key"
+
 			httpClient := &mockedHTTPClient{
-				t:           t,
-				expectedURL: urlForUUID(uuid) + "&key=my-custom-key",
-				statusCode:  200,
-				body:        `{"uuid":"0123456789abcdef0123456789abcdef","tags":[]}`,
-				err:         nil,
+				t:              t,
+				expectedURL:    urlForUUID(uuid),
+				expectedAPIKey: key,
+				statusCode:     200,
+				body:           `{"uuid":"0123456789abcdef0123456789abcdef","tags":[]}`,
+				err:            nil,
 			}
 			urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
 			require.NoError(t, err)
 
-			key := "my-custom-key"
 			tags, err := urchinAPI.GetTags(t.Context(), uuid, &key)
 			require.NoError(t, err)
 
@@ -151,11 +161,12 @@ func TestUrchinTagsProvider(t *testing.T) {
 		t.Run("configured default api key is used when caller passes nil", func(t *testing.T) {
 			t.Parallel()
 			httpClient := &mockedHTTPClient{
-				t:           t,
-				expectedURL: urlForUUIDWithDefaultKey(uuid),
-				statusCode:  200,
-				body:        `{"uuid":"0123456789abcdef0123456789abcdef","tags":[]}`,
-				err:         nil,
+				t:              t,
+				expectedURL:    urlForUUID(uuid),
+				expectedAPIKey: defaultKey,
+				statusCode:     200,
+				body:           `{"uuid":"0123456789abcdef0123456789abcdef","tags":[]}`,
+				err:            nil,
 			}
 			urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
 			require.NoError(t, err)
@@ -179,13 +190,16 @@ func TestUrchinTagsProvider(t *testing.T) {
 		t.Run("status code", func(t *testing.T) {
 			t.Parallel()
 			t.Run("429", func(t *testing.T) {
-				// Real response from urchin API (2026-03-06)
+				// NOTE: Synthetic body - we have not captured a real v3 rate limit
+				//       response. v3 documents errors as {"error": ...}, and the message
+				//       text here is made up.
 				httpClient := &mockedHTTPClient{
-					t:           t,
-					expectedURL: urlForUUIDWithDefaultKey(uuid),
-					statusCode:  429,
-					body:        `{"detail":"Rate limit exceeded! Please wait a few minutes before making more requests."}`,
-					err:         nil,
+					t:              t,
+					expectedURL:    urlForUUID(uuid),
+					expectedAPIKey: defaultKey,
+					statusCode:     429,
+					body:           `{"error":"rate limit exceeded"}`,
+					err:            nil,
 				}
 				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
 				require.NoError(t, err)
@@ -195,13 +209,15 @@ func TestUrchinTagsProvider(t *testing.T) {
 				require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
 			})
 			t.Run("500", func(t *testing.T) {
-				// Real response from urchin API (2025-11-18)
+				// Real response from the pre-v3 urchin API (2025-11-18). Bodies like this
+				// come from Cloudflare, which still fronts the v3 API.
 				httpClient := &mockedHTTPClient{
-					t:           t,
-					expectedURL: urlForUUIDWithDefaultKey(uuid),
-					statusCode:  500,
-					body:        `error code: 500`,
-					err:         nil,
+					t:              t,
+					expectedURL:    urlForUUID(uuid),
+					expectedAPIKey: defaultKey,
+					statusCode:     500,
+					body:           `error code: 500`,
+					err:            nil,
 				}
 				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
 				require.NoError(t, err)
@@ -211,13 +227,15 @@ func TestUrchinTagsProvider(t *testing.T) {
 				require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
 			})
 			t.Run("502", func(t *testing.T) {
-				// Real response from urchin API (2025-11-18)
+				// Real response from the pre-v3 urchin API (2025-11-18). Bodies like this
+				// come from Cloudflare, which still fronts the v3 API.
 				httpClient := &mockedHTTPClient{
-					t:           t,
-					expectedURL: urlForUUIDWithDefaultKey(uuid),
-					statusCode:  502,
-					body:        `error code: 502`,
-					err:         nil,
+					t:              t,
+					expectedURL:    urlForUUID(uuid),
+					expectedAPIKey: defaultKey,
+					statusCode:     502,
+					body:           `error code: 502`,
+					err:            nil,
 				}
 				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
 				require.NoError(t, err)
@@ -226,14 +244,33 @@ func TestUrchinTagsProvider(t *testing.T) {
 				// Since we have experienced these intermittently, we allow the client to retry
 				require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
 			})
-			t.Run("525", func(t *testing.T) {
-				// Real response from urchin API (2026-03-06)
+			t.Run("503", func(t *testing.T) {
+				// NOTE: Synthetic body - v3 documents 503 for "a service that Coral
+				//       depends on is unavailable", but we have not captured a real one.
 				httpClient := &mockedHTTPClient{
-					t:           t,
-					expectedURL: urlForUUIDWithDefaultKey(uuid),
-					statusCode:  525,
-					body:        ``, // Sentry event had no data for this response
-					err:         nil,
+					t:              t,
+					expectedURL:    urlForUUID(uuid),
+					expectedAPIKey: defaultKey,
+					statusCode:     503,
+					body:           `{"error":"service unavailable"}`,
+					err:            nil,
+				}
+				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
+				require.NoError(t, err)
+
+				_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
+				require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			})
+			t.Run("525", func(t *testing.T) {
+				// Real response from the pre-v3 urchin API (2026-03-06). Cloudflare still
+				// fronts the v3 API, so this remains reachable.
+				httpClient := &mockedHTTPClient{
+					t:              t,
+					expectedURL:    urlForUUID(uuid),
+					expectedAPIKey: defaultKey,
+					statusCode:     525,
+					body:           ``, // Sentry event had no data for this response
+					err:            nil,
 				}
 				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
 				require.NoError(t, err)
@@ -241,15 +278,35 @@ func TestUrchinTagsProvider(t *testing.T) {
 				_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
 				// Since we have experienced these intermittently, we allow the client to retry
 				require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
+			})
+			t.Run("404", func(t *testing.T) {
+				// Real response from /v3/player/tags (2026-08-01) for an identifier
+				// urchin can't resolve. We normalize UUIDs before calling, so this
+				// should not happen, and we let it surface as an error.
+				httpClient := &mockedHTTPClient{
+					t:              t,
+					expectedURL:    urlForUUID(uuid),
+					expectedAPIKey: defaultKey,
+					statusCode:     404,
+					body:           `{"error":"Player not found: not-a-uuid-!!"}`,
+					err:            nil,
+				}
+				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
+				require.NoError(t, err)
+
+				_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
+				require.Error(t, err)
+				require.NotErrorIs(t, err, domain.ErrTemporarilyUnavailable)
 			})
 			t.Run("unexpected status code", func(t *testing.T) {
 				// Made up response to test status codes we don't handle
 				httpClient := &mockedHTTPClient{
-					t:           t,
-					expectedURL: urlForUUIDWithDefaultKey(uuid),
-					statusCode:  418,
-					body:        `:^)`,
-					err:         nil,
+					t:              t,
+					expectedURL:    urlForUUID(uuid),
+					expectedAPIKey: defaultKey,
+					statusCode:     418,
+					body:           `:^)`,
+					err:            nil,
 				}
 				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
 				require.NoError(t, err)
@@ -265,12 +322,13 @@ func TestUrchinTagsProvider(t *testing.T) {
 			t.Run("timeout while awaiting headers", func(t *testing.T) {
 				t.Parallel()
 				httpClient := &mockedHTTPClient{
-					t:           t,
-					expectedURL: urlForUUIDWithDefaultKey(uuid),
+					t:              t,
+					expectedURL:    urlForUUID(uuid),
+					expectedAPIKey: defaultKey,
 					// Raw error string copied from sentry
 					// NOTE: Error type is probably completely incorrect, but the text content
 					//       (like from .Error()) should be correct
-					err: errors.New(`Get "https://urchin.ws/player/01234567-89ab-cdef-0123-456789abcdef?sources=MANUAL": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`),
+					err: errors.New(`Get "https://api.urchin.gg/v3/player/tags?player=0123456789abcdef0123456789abcdef": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`),
 				}
 				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
 				require.NoError(t, err)
@@ -284,11 +342,12 @@ func TestUrchinTagsProvider(t *testing.T) {
 				// "Client.Timeout exceeded while awaiting headers" suffix; the wrapped
 				// error is detectable via errors.Is(err, context.DeadlineExceeded).
 				httpClient := &mockedHTTPClient{
-					t:           t,
-					expectedURL: urlForUUIDWithDefaultKey(uuid),
+					t:              t,
+					expectedURL:    urlForUUID(uuid),
+					expectedAPIKey: defaultKey,
 					err: &url.Error{
 						Op:  "Get",
-						URL: urlForUUIDWithDefaultKey(uuid),
+						URL: urlForUUID(uuid),
 						Err: context.DeadlineExceeded,
 					},
 				}
@@ -301,12 +360,13 @@ func TestUrchinTagsProvider(t *testing.T) {
 			t.Run("connection reset by peer", func(t *testing.T) {
 				t.Parallel()
 				httpClient := &mockedHTTPClient{
-					t:           t,
-					expectedURL: urlForUUIDWithDefaultKey(uuid),
+					t:              t,
+					expectedURL:    urlForUUID(uuid),
+					expectedAPIKey: defaultKey,
 					// Raw error string copied from sentry
 					// NOTE: Error type is probably completely incorrect, but the text content
 					//       (like from .Error()) should be correct
-					err: errors.New(`Get "https://urchin.ws/player/01234567-89ab-cdef-0123-456789abcdef?sources=MANUAL": read tcp [ffff:ffff:ffff:ffff::ffff]:12345->[bbbb:bbbb:bbb:bbbb:bbbb:bbbb:bbbb:bbbb]:443: read: connection reset by peer`),
+					err: errors.New(`Get "https://api.urchin.gg/v3/player/tags?player=0123456789abcdef0123456789abcdef": read tcp [ffff:ffff:ffff:ffff::ffff]:12345->[bbbb:bbbb:bbb:bbbb:bbbb:bbbb:bbbb:bbbb]:443: read: connection reset by peer`),
 				}
 				urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
 				require.NoError(t, err)
@@ -320,11 +380,12 @@ func TestUrchinTagsProvider(t *testing.T) {
 			t.Parallel()
 			// NOTE: Synthetic test
 			httpClient := &mockedHTTPClient{
-				t:           t,
-				expectedURL: urlForUUIDWithDefaultKey(uuid),
-				statusCode:  200,
-				body:        `{"uuid":"0123456789abcdef0123456789abcdef","tags":"some-tag"}`,
-				err:         nil,
+				t:              t,
+				expectedURL:    urlForUUID(uuid),
+				expectedAPIKey: defaultKey,
+				statusCode:     200,
+				body:           `{"uuid":"0123456789abcdef0123456789abcdef","tags":"some-tag"}`,
+				err:            nil,
 			}
 			urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
 			require.NoError(t, err)
@@ -334,48 +395,32 @@ func TestUrchinTagsProvider(t *testing.T) {
 			require.NotErrorIs(t, err, domain.ErrTemporarilyUnavailable)
 		})
 
-		t.Run("invalid sources response", func(t *testing.T) {
+		t.Run("missing credentials response", func(t *testing.T) {
 			t.Parallel()
-			// Urchin sometimes returns `"Invalid source(s) ..."` as a bare JSON string,
-			// which would otherwise surface in Sentry as a noisy
-			// "cannot unmarshal string into ...urchinResponse" parse error.
+			// Real response from /v3/player/tags (2026-08-01) when no key is sent at
+			// all. We always send one, so this should not happen, and it is not a
+			// caller error when it does.
 			httpClient := &mockedHTTPClient{
-				t:           t,
-				expectedURL: urlForUUIDWithDefaultKey(uuid),
-				statusCode:  200,
-				body:        `"Invalid source(s) provided: {{sources}} must be one of: PARTY_INVITES, MANUAL, CHAT, GAME, CHAT_MENTIONS, PARTY, ME"`,
-				err:         nil,
+				t:              t,
+				expectedURL:    urlForUUID(uuid),
+				expectedAPIKey: defaultKey,
+				statusCode:     401,
+				body:           `{"error":"missing credentials"}`,
+				err:            nil,
 			}
 			urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
 			require.NoError(t, err)
 
 			_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
-			require.ErrorIs(t, err, domain.ErrTemporarilyUnavailable)
-		})
-
-		t.Run("Invalid api key response", func(t *testing.T) {
-			t.Parallel()
-
-			invalidKey := "1o23iu1o2i"
-
-			// NOTE: Real response from urchin when an invalid API key is used
-			httpClient := &mockedHTTPClient{
-				t:           t,
-				expectedURL: urlForUUID(uuid) + "&key=" + invalidKey,
-				statusCode:  200,
-				body:        `"Invalid Key"`,
-				err:         nil,
-			}
-			urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
-			require.NoError(t, err)
-
-			_, err = urchinAPI.GetTags(t.Context(), uuid, &invalidKey)
-			require.ErrorIs(t, err, domain.ErrInvalidAPIKey)
+			require.Error(t, err)
+			require.NotErrorIs(t, err, domain.ErrInvalidAPIKey)
 		})
 
 		t.Run("auth status code", func(t *testing.T) {
 			t.Parallel()
-			// NOTE: Synthetic test for 401/403 responses from urchin
+			// Both are real responses from v3 (2026-08-01), and both have an empty
+			// body: 401 from /v3/player/tags with an unrecognized key, and 403 from a
+			// v3 endpoint the key lacks permission for. A locked key also gives 403.
 			for _, statusCode := range []int{http.StatusUnauthorized, http.StatusForbidden} {
 				t.Run(fmt.Sprintf("status code %d", statusCode), func(t *testing.T) {
 					t.Parallel()
@@ -383,11 +428,12 @@ func TestUrchinTagsProvider(t *testing.T) {
 					invalidKey := "1o23iu1o2i"
 
 					httpClient := &mockedHTTPClient{
-						t:           t,
-						expectedURL: urlForUUID(uuid) + "&key=" + invalidKey,
-						statusCode:  statusCode,
-						body:        ``,
-						err:         nil,
+						t:              t,
+						expectedURL:    urlForUUID(uuid),
+						expectedAPIKey: invalidKey,
+						statusCode:     statusCode,
+						body:           ``,
+						err:            nil,
 					}
 					urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
 					require.NoError(t, err)
@@ -398,35 +444,21 @@ func TestUrchinTagsProvider(t *testing.T) {
 			}
 		})
 
-		t.Run("Invalid api key response when not passing API key", func(t *testing.T) {
-			t.Parallel()
-
-			httpClient := &mockedHTTPClient{
-				t:           t,
-				expectedURL: urlForUUIDWithDefaultKey(uuid),
-				statusCode:  200,
-				body:        `"Invalid Key"`,
-				err:         nil,
-			}
-			urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
-			require.NoError(t, err)
-
-			_, err = urchinAPI.GetTags(t.Context(), uuid, nil)
-			require.NotErrorIs(t, err, domain.ErrInvalidAPIKey)
-		})
-
 		t.Run("auth status code when not passing API key", func(t *testing.T) {
 			t.Parallel()
+			// Same real responses as above, but with our own default key: a broken key
+			// on our side must not be reported to the caller as their error.
 			for _, statusCode := range []int{http.StatusUnauthorized, http.StatusForbidden} {
 				t.Run(fmt.Sprintf("status code %d", statusCode), func(t *testing.T) {
 					t.Parallel()
 
 					httpClient := &mockedHTTPClient{
-						t:           t,
-						expectedURL: urlForUUIDWithDefaultKey(uuid),
-						statusCode:  statusCode,
-						body:        ``,
-						err:         nil,
+						t:              t,
+						expectedURL:    urlForUUID(uuid),
+						expectedAPIKey: defaultKey,
+						statusCode:     statusCode,
+						body:           ``,
+						err:            nil,
 					}
 					urchinAPI, err := tagprovider.NewUrchin(httpClient, nowFunc, time.After, defaultKey)
 					require.NoError(t, err)
@@ -442,8 +474,9 @@ func TestUrchinTagsProvider(t *testing.T) {
 		t.Parallel()
 
 		httpClient := &mockedHTTPClient{
-			t:           t,
-			expectedURL: urlForUUIDWithDefaultKey(uuid),
+			t:              t,
+			expectedURL:    urlForUUID(uuid),
+			expectedAPIKey: defaultKey,
 			response: &http.Response{
 				StatusCode: 200,
 				Body:       &cantRead{err: assert.AnError},
