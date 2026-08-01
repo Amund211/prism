@@ -72,12 +72,12 @@ func MakeGetTagsHandler(
 
 	middleware := ComposeMiddlewares(
 		NewRequestLoggerMiddleware(rootLogger),
-		bearerAuthMiddleware,
 		sentryMiddleware,
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("tags"),
 		NewReportingMetaMiddleware("tags"),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
+		bearerAuthMiddleware,
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
 		BuildRegisterUserVisitMiddleware(registerUserVisit),
 	)

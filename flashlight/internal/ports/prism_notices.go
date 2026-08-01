@@ -91,12 +91,12 @@ func MakePrismNoticesHandler(
 
 	middleware := ComposeMiddlewares(
 		NewRequestLoggerMiddleware(rootLogger),
-		bearerAuthMiddleware,
 		sentryMiddleware,
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("prism-notices"),
 		NewReportingMetaMiddleware("prism-notices"),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
+		bearerAuthMiddleware,
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
 		BuildRegisterUserVisitMiddleware(registerUserVisit),
 	)

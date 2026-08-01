@@ -71,13 +71,13 @@ func MakeGetPlayerDataHandler(
 
 	middleware := ComposeMiddlewares(
 		NewRequestLoggerMiddleware(rootLogger),
-		bearerAuthMiddleware,
 		sentryMiddleware,
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("playerdata"),
 		NewReportingMetaMiddleware("playerdata"),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		NewRateLimitMiddleware(ipRateLimiterLong, makeOnLimitExceeded(ipRateLimiterLong)),
+		bearerAuthMiddleware,
 		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
 		BuildRegisterUserVisitMiddleware(registerUserVisit),
 	)

@@ -307,12 +307,13 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 
 		// Validating a bearer costs a SELECT-FOR-UPDATE transaction, and
 		// failed validations aren't cached, so an unthrottled bad token is a
-		// free DB write. The limiters have to bite before the middleware runs.
-		// The tightest bucket on this endpoint is the userId one (burst 60);
-		// the few extra attempts absorb any wall-clock refill.
+		// free DB write. The IP limiters have to bite before the middleware
+		// runs. The userId limiter is deliberately behind it, so the tightest
+		// bucket in front is the long IP one (burst 200); the few extra
+		// attempts absorb any wall-clock refill.
 		rejected := 0
 		var lastCode int
-		for range 65 {
+		for range 205 {
 			lastCode = doRequest()
 			if lastCode != http.StatusUnauthorized {
 				break
@@ -321,7 +322,7 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 		}
 
 		require.Equal(t, http.StatusTooManyRequests, lastCode)
-		require.GreaterOrEqual(t, rejected, 60, "the full burst should reach the bearer middleware")
+		require.GreaterOrEqual(t, rejected, 200, "the full burst should reach the bearer middleware")
 		require.Equal(t, rejected, bearerCalls, "the throttled request must not reach the bearer middleware")
 		require.False(t, *called)
 	})
