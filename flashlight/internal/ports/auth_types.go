@@ -70,10 +70,18 @@ func secondsUntil(t, now time.Time) int64 {
 }
 
 func writeAuthSessionResponse(ctx context.Context, w http.ResponseWriter, sess domain.AuthSession, now time.Time) {
-	data, err := json.Marshal(sessionResponseFromSession(sess, now))
+	writeAuthJSONResponse(ctx, w, "session", sessionResponseFromSession(sess, now))
+}
+
+// writeAuthJSONResponse writes a 200 with a JSON body. Everything the auth
+// endpoints hand out is single-use and caller-specific — a session token, a
+// challenge bound to one ip — so no-store is not optional on any of them.
+// The what argument names the payload in logs and Sentry reports.
+func writeAuthJSONResponse(ctx context.Context, w http.ResponseWriter, what string, body any) {
+	data, err := json.Marshal(body)
 	if err != nil {
-		logging.FromContext(ctx).ErrorContext(ctx, "Failed to marshal session response", "error", err.Error())
-		reporting.Report(ctx, fmt.Errorf("marshal session response: %w", err))
+		logging.FromContext(ctx).ErrorContext(ctx, "Failed to marshal auth response", "what", what, "error", err.Error())
+		reporting.Report(ctx, fmt.Errorf("marshal %s response: %w", what, err))
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -81,8 +89,8 @@ func writeAuthSessionResponse(ctx context.Context, w http.ResponseWriter, sess d
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write(data); err != nil {
-		logging.FromContext(ctx).ErrorContext(ctx, "Failed to write session response", "error", err.Error())
-		reporting.Report(ctx, fmt.Errorf("write session response: %w", err))
+		logging.FromContext(ctx).ErrorContext(ctx, "Failed to write auth response", "what", what, "error", err.Error())
+		reporting.Report(ctx, fmt.Errorf("write %s response: %w", what, err))
 	}
 }
 

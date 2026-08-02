@@ -1,0 +1,516 @@
+package proofofwork_test
+
+import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"math/bits"
+	"strconv"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/proofofwork"
+)
+
+const testIPHash = "0000000000000000000000000000000000000000000000000000000000000001"
+
+var errUnexpected = errors.New("something else entirely")
+
+var testTime = time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+
+func testKey(t *testing.T, fill byte) []byte {
+	t.Helper()
+	key := make([]byte, 32)
+	for i := range key {
+		key[i] = fill
+	}
+	return key
+}
+
+// clock is a nowFunc whose value the test can move.
+type clock struct{ now time.Time }
+
+func (c *clock) Now() time.Time { return c.now }
+
+func fixedDifficulty(difficulty int) proofofwork.DifficultyFunc {
+	return func(proofofwork.DifficultyInput) int { return difficulty }
+}
+
+// solve brute-forces a solution the way a client would. Deliberately
+// re-implements the leading-zero-bit count rather than reusing the
+// package's, so the tests pin the definition of the algorithm and not just
+// its self-consistency.
+func solve(t *testing.T, challenge string, difficulty int) string {
+	t.Helper()
+	for attempt := range 1 << 22 {
+		solution := strconv.Itoa(attempt)
+		if solutionZeroBits(challenge, solution) >= difficulty {
+			return solution
+		}
+	}
+	t.Fatalf("no solution found for difficulty %d", difficulty)
+	return ""
+}
+
+// solveShortOf finds a solution that clears atLeast zero bits but stays
+// under below — a genuine proof of less work than was asked for. Searching
+// for the bracket rather than just solving for the lower bar keeps the test
+// deterministic: the first solution clearing (difficulty - 4) bits clears
+// the real bar too about one run in sixteen.
+func solveShortOf(t *testing.T, challenge string, atLeast int, below int) string {
+	t.Helper()
+	for attempt := range 1 << 22 {
+		solution := strconv.Itoa(attempt)
+		if zeros := solutionZeroBits(challenge, solution); zeros >= atLeast && zeros < below {
+			return solution
+		}
+	}
+	t.Fatalf("no solution found in [%d, %d) zero bits", atLeast, below)
+	return ""
+}
+
+func solutionZeroBits(challenge, solution string) int {
+	digest := sha256.Sum256([]byte(challenge + ":" + solution))
+	zeros := 0
+	for _, b := range digest {
+		zeros += bits.LeadingZeros8(b)
+		if b != 0 {
+			break
+		}
+	}
+	return zeros
+}
+
+// scheme wires both halves against one set of keys and one clock, which is
+// how they are used in production.
+func scheme(t *testing.T, keys [][]byte, difficulty int, c *clock) (proofofwork.IssueChallenge, proofofwork.VerifySolution) {
+	t.Helper()
+	nonces, stop := proofofwork.NewInMemoryUsedNonceStore(1000)
+	t.Cleanup(stop)
+
+	issue, err := proofofwork.BuildIssueChallenge(keys, fixedDifficulty(difficulty), c.Now)
+	require.NoError(t, err)
+	verify, err := proofofwork.BuildVerifySolution(keys, nonces, c.Now)
+	require.NoError(t, err)
+	return issue, verify
+}
+
+// signPayload mints a challenge the way a different revision might have, so
+// the tests pin what verification accepts and not only what this revision
+// produces. Takes raw JSON for the same reason.
+func signPayload(t *testing.T, key []byte, payloadJSON string) string {
+	t.Helper()
+	body := base64.RawURLEncoding.EncodeToString([]byte(payloadJSON))
+	mac := hmac.New(sha256.New, key)
+	_, err := mac.Write([]byte(body))
+	require.NoError(t, err)
+	return body + "." + base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+}
+
+func TestIssueAndVerify(t *testing.T) {
+	t.Parallel()
+
+	t.Run("a solved challenge verifies", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
+
+		challenge, err := issue(testIPHash, "prism")
+		require.NoError(t, err)
+		require.Equal(t, proofofwork.AlgorithmSHA256LeadingZeros, challenge.Algorithm)
+		require.Equal(t, 0, challenge.Difficulty)
+		require.Equal(t, 60*time.Second, challenge.ExpiresIn)
+		require.NotEmpty(t, challenge.Value)
+
+		require.NoError(t, verify(challenge.Value, solve(t, challenge.Value, 0), testIPHash))
+	})
+
+	t.Run("difficulty travels inside the challenge", func(t *testing.T) {
+		t.Parallel()
+		const difficulty = 10
+		c := &clock{now: testTime}
+		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, difficulty, c)
+
+		challenge, err := issue(testIPHash, "prism")
+		require.NoError(t, err)
+		require.Equal(t, difficulty, challenge.Difficulty)
+
+		// A solution that only clears a lower bar is not enough, even
+		// though verification was never told what difficulty was asked for.
+		tooEasy := solveShortOf(t, challenge.Value, difficulty-4, difficulty)
+		require.GreaterOrEqual(t, solutionZeroBits(challenge.Value, tooEasy), difficulty-4,
+			"the rejected solution should be real work, just not enough of it")
+		require.ErrorIs(t, verify(challenge.Value, tooEasy, testIPHash), proofofwork.ErrInsufficientWork)
+
+		// ...and a fresh challenge solved properly is.
+		challenge, err = issue(testIPHash, "prism")
+		require.NoError(t, err)
+		require.NoError(t, verify(challenge.Value, solve(t, challenge.Value, difficulty), testIPHash))
+	})
+
+	t.Run("difficulty is clamped to the sanity ceiling", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		issue, _ := scheme(t, [][]byte{testKey(t, 1)}, proofofwork.MaxDifficulty+10, c)
+
+		challenge, err := issue(testIPHash, "prism")
+		require.NoError(t, err)
+		require.Equal(t, proofofwork.MaxDifficulty, challenge.Difficulty,
+			"a bug in a future difficulty signal must not be able to ask for work no client will finish")
+	})
+
+	t.Run("rejects a tampered difficulty", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 12, c)
+
+		challenge, err := issue(testIPHash, "prism")
+		require.NoError(t, err)
+
+		// The obvious attack on a self-describing challenge: keep the
+		// signature, rewrite the work it asks for.
+		body, signature, ok := strings.Cut(challenge.Value, ".")
+		require.True(t, ok)
+		rawPayload, err := base64.RawURLEncoding.DecodeString(body)
+		require.NoError(t, err)
+		var payload map[string]any
+		require.NoError(t, json.Unmarshal(rawPayload, &payload))
+		payload["difficulty"] = 0
+		rewritten, err := json.Marshal(payload)
+		require.NoError(t, err)
+		tampered := base64.RawURLEncoding.EncodeToString(rewritten) + "." + signature
+
+		require.ErrorIs(t, verify(tampered, "0", testIPHash), proofofwork.ErrBadSignature)
+	})
+
+	t.Run("rejects a challenge signed with an unknown key", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		issue, _ := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
+		_, verifyOther := scheme(t, [][]byte{testKey(t, 2)}, 0, c)
+
+		challenge, err := issue(testIPHash, "prism")
+		require.NoError(t, err)
+		require.ErrorIs(t, verifyOther(challenge.Value, "0", testIPHash), proofofwork.ErrBadSignature)
+	})
+
+	t.Run("rotation: mints with the first key, accepts every key", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		oldKey, newKey := testKey(t, 1), testKey(t, 2)
+
+		// Before the rotation deploy: minted with the old key.
+		issueOld, _ := scheme(t, [][]byte{oldKey}, 0, c)
+		challenge, err := issueOld(testIPHash, "prism")
+		require.NoError(t, err)
+
+		// After it: the new key signs, but the outstanding challenge from
+		// the previous revision still verifies.
+		issueNew, verifyBoth := scheme(t, [][]byte{newKey, oldKey}, 0, c)
+		require.NoError(t, verifyBoth(challenge.Value, solve(t, challenge.Value, 0), testIPHash))
+
+		fresh, err := issueNew(testIPHash, "prism")
+		require.NoError(t, err)
+		_, verifyNewOnly := scheme(t, [][]byte{newKey}, 0, c)
+		require.NoError(t, verifyNewOnly(fresh.Value, solve(t, fresh.Value, 0), testIPHash),
+			"new challenges must be signed with the first key, or dropping the old one breaks them")
+	})
+
+	t.Run("rejects an expired challenge", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
+
+		challenge, err := issue(testIPHash, "prism")
+		require.NoError(t, err)
+
+		c.now = testTime.Add(59 * time.Second)
+		require.NoError(t, verify(challenge.Value, solve(t, challenge.Value, 0), testIPHash),
+			"still inside the 60s window")
+
+		challenge, err = issue(testIPHash, "prism")
+		require.NoError(t, err)
+		c.now = c.now.Add(61 * time.Second)
+		require.ErrorIs(t, verify(challenge.Value, solve(t, challenge.Value, 0), testIPHash), proofofwork.ErrChallengeExpired)
+	})
+
+	t.Run("rejects a challenge issued in the future", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
+
+		challenge, err := issue(testIPHash, "prism")
+		require.NoError(t, err)
+
+		// Our own clock jumping backwards, not anything the caller did.
+		// The client recovers by asking for another challenge.
+		c.now = testTime.Add(-5 * time.Minute)
+		require.ErrorIs(t, verify(challenge.Value, solve(t, challenge.Value, 0), testIPHash), proofofwork.ErrChallengeExpired)
+	})
+
+	t.Run("tolerates a verifier whose clock trails the minter's", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
+
+		challenge, err := issue(testIPHash, "prism")
+		require.NoError(t, err)
+		solution := solve(t, challenge.Value, 0)
+
+		// A rollout serves two revisions whose clocks can disagree.
+		c.now = testTime.Add(-2 * time.Second)
+		require.NoError(t, verify(challenge.Value, solution, testIPHash),
+			"a small backwards skew must not reject a challenge we just minted")
+
+		challenge, err = issue(testIPHash, "prism")
+		require.NoError(t, err)
+		c.now = testTime.Add(-30 * time.Second)
+		require.ErrorIs(t, verify(challenge.Value, solve(t, challenge.Value, 0), testIPHash),
+			proofofwork.ErrChallengeExpired,
+			"the grace is a tolerance, not an open window into the future")
+	})
+
+	t.Run("the algorithm travels signed", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
+
+		challenge, err := issue(testIPHash, "prism")
+		require.NoError(t, err)
+		require.Equal(t, proofofwork.AlgorithmSHA256LeadingZeros, challenge.Algorithm)
+
+		body, _, ok := strings.Cut(challenge.Value, ".")
+		require.True(t, ok)
+		rawPayload, err := base64.RawURLEncoding.DecodeString(body)
+		require.NoError(t, err)
+		var payload struct {
+			Algorithm string `json:"alg"`
+		}
+		require.NoError(t, json.Unmarshal(rawPayload, &payload))
+		require.Equal(t, proofofwork.AlgorithmSHA256LeadingZeros, payload.Algorithm,
+			"the scheme has to be inside the signed blob, or verification is guessing")
+
+		require.NoError(t, verify(challenge.Value, solve(t, challenge.Value, 0), testIPHash))
+	})
+
+	// Adding a v2 later means an outgoing revision gets handed v2 challenges
+	// mid-rollout. Without the field it would verify them as v1 and reject
+	// correct solutions as insufficient work.
+	t.Run("refuses a scheme it does not implement, without spending it", func(t *testing.T) {
+		t.Parallel()
+		key := testKey(t, 1)
+		c := &clock{now: testTime}
+		_, verify := scheme(t, [][]byte{key}, 0, c)
+
+		future := signPayload(t, key, fmt.Sprintf(
+			`{"nonce":"future-scheme-nonce","ipHash":%q,"issuedAtUnixMillis":%d,"difficulty":0,"alg":"argon2id-v2"}`,
+			testIPHash, testTime.UnixMilli(),
+		))
+
+		err := verify(future, "0", testIPHash)
+		require.ErrorIs(t, err, proofofwork.ErrUnsupportedAlgorithm)
+		require.NotErrorIs(t, err, proofofwork.ErrInsufficientWork,
+			"a scheme we can't check is not the client doing too little work")
+
+		// Checked ahead of the nonce claim, so the retry isn't spent before a
+		// revision that can verify it sees it.
+		require.ErrorIs(t, verify(future, "0", testIPHash), proofofwork.ErrUnsupportedAlgorithm)
+
+		missing := signPayload(t, key, fmt.Sprintf(
+			`{"nonce":"no-alg-nonce","ipHash":%q,"issuedAtUnixMillis":%d,"difficulty":0}`,
+			testIPHash, testTime.UnixMilli(),
+		))
+		require.ErrorIs(t, verify(missing, solve(t, missing, 0), testIPHash),
+			proofofwork.ErrUnsupportedAlgorithm,
+			"an absent scheme is refused rather than defaulted: nothing has ever minted one")
+	})
+
+	t.Run("rejects a tampered algorithm", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 12, c)
+
+		challenge, err := issue(testIPHash, "prism")
+		require.NoError(t, err)
+
+		// Downgrading the scheme is the same attack as downgrading the
+		// difficulty.
+		body, signature, ok := strings.Cut(challenge.Value, ".")
+		require.True(t, ok)
+		rawPayload, err := base64.RawURLEncoding.DecodeString(body)
+		require.NoError(t, err)
+		var payload map[string]any
+		require.NoError(t, json.Unmarshal(rawPayload, &payload))
+		payload["alg"] = "something-easier"
+		rewritten, err := json.Marshal(payload)
+		require.NoError(t, err)
+		tampered := base64.RawURLEncoding.EncodeToString(rewritten) + "." + signature
+
+		require.ErrorIs(t, verify(tampered, "0", testIPHash), proofofwork.ErrBadSignature)
+	})
+
+	t.Run("rejects a challenge presented from another ip, without spending it", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
+
+		challenge, err := issue(testIPHash, "prism")
+		require.NoError(t, err)
+		solution := solve(t, challenge.Value, 0)
+
+		otherIPHash := strings.Repeat("a", 64)
+		require.ErrorIs(t, verify(challenge.Value, solution, otherIPHash), proofofwork.ErrIPMismatch)
+		require.NoError(t, verify(challenge.Value, solution, testIPHash),
+			"the ip check runs before the nonce is spent, so a misdirected attempt can't burn someone's challenge")
+	})
+
+	t.Run("a challenge can only be spent once", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
+
+		challenge, err := issue(testIPHash, "prism")
+		require.NoError(t, err)
+		solution := solve(t, challenge.Value, 0)
+
+		require.NoError(t, verify(challenge.Value, solution, testIPHash))
+		require.ErrorIs(t, verify(challenge.Value, solution, testIPHash), proofofwork.ErrNonceReplayed,
+			"one solved challenge must mint exactly one session, not one per request until it expires")
+	})
+
+	t.Run("a wrong solution spends the challenge", func(t *testing.T) {
+		t.Parallel()
+		const difficulty = 10
+		c := &clock{now: testTime}
+		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, difficulty, c)
+
+		challenge, err := issue(testIPHash, "prism")
+		require.NoError(t, err)
+		// Not a fixed string: against a random challenge one would clear a
+		// 10-bit bar about one run in a thousand.
+		wrong := solveShortOf(t, challenge.Value, 0, difficulty)
+		require.ErrorIs(t, verify(challenge.Value, wrong, testIPHash), proofofwork.ErrInsufficientWork)
+		require.ErrorIs(t, verify(challenge.Value, solve(t, challenge.Value, difficulty), testIPHash), proofofwork.ErrNonceReplayed,
+			"the nonce is claimed before the work is checked; a failed attempt costs a fresh challenge")
+	})
+
+	t.Run("rejects malformed challenges", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		_, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
+
+		for name, value := range map[string]string{
+			"empty":             "",
+			"no separator":      "abcdef",
+			"signature not b64": "abcdef.not base64!",
+			"empty signature":   "abcdef.",
+		} {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				err := verify(value, "0", testIPHash)
+				require.Error(t, err)
+				require.NotErrorIs(t, err, proofofwork.ErrInsufficientWork)
+			})
+		}
+	})
+}
+
+func TestParseSigningKeys(t *testing.T) {
+	t.Parallel()
+
+	valid := base64.StdEncoding.EncodeToString(testKey(t, 1))
+	other := base64.StdEncoding.EncodeToString(testKey(t, 2))
+
+	t.Run("parses keys in order, skipping blanks", func(t *testing.T) {
+		t.Parallel()
+		keys, err := proofofwork.ParseSigningKeys([]string{valid, "", "  ", other})
+		require.NoError(t, err)
+		require.Equal(t, [][]byte{testKey(t, 1), testKey(t, 2)}, keys)
+	})
+
+	t.Run("rejects an empty key list", func(t *testing.T) {
+		t.Parallel()
+		for _, keys := range [][]string{nil, {}, {""}, {"  "}} {
+			_, err := proofofwork.ParseSigningKeys(keys)
+			require.ErrorIs(t, err, proofofwork.ErrInvalidConfig)
+		}
+	})
+
+	t.Run("rejects keys that aren't base64", func(t *testing.T) {
+		t.Parallel()
+		_, err := proofofwork.ParseSigningKeys([]string{"not base64!"})
+		require.ErrorIs(t, err, proofofwork.ErrInvalidConfig)
+	})
+
+	t.Run("rejects short keys", func(t *testing.T) {
+		t.Parallel()
+		short := base64.StdEncoding.EncodeToString([]byte("too-short"))
+		_, err := proofofwork.ParseSigningKeys([]string{short})
+		require.ErrorIs(t, err, proofofwork.ErrInvalidConfig)
+	})
+
+	t.Run("does not leak key material in the error", func(t *testing.T) {
+		t.Parallel()
+		_, err := proofofwork.ParseSigningKeys([]string{"c2VjcmV0-not-base64"})
+		require.Error(t, err)
+		require.NotContains(t, err.Error(), "c2VjcmV0")
+	})
+
+	t.Run("generated keys parse", func(t *testing.T) {
+		t.Parallel()
+		generated, err := proofofwork.GenerateSigningKey()
+		require.NoError(t, err)
+		keys, err := proofofwork.ParseSigningKeys([]string{generated})
+		require.NoError(t, err)
+		require.Len(t, keys, 1)
+	})
+}
+
+func TestBuildersRejectInvalidConfig(t *testing.T) {
+	t.Parallel()
+
+	nonces, stop := proofofwork.NewInMemoryUsedNonceStore(10)
+	t.Cleanup(stop)
+	keys := [][]byte{testKey(t, 1)}
+
+	_, err := proofofwork.BuildIssueChallenge(nil, fixedDifficulty(0), time.Now)
+	require.ErrorIs(t, err, proofofwork.ErrInvalidConfig)
+
+	_, err = proofofwork.BuildIssueChallenge(keys, nil, time.Now)
+	require.ErrorIs(t, err, proofofwork.ErrInvalidConfig)
+
+	_, err = proofofwork.BuildVerifySolution(nil, nonces, time.Now)
+	require.ErrorIs(t, err, proofofwork.ErrInvalidConfig)
+
+	_, err = proofofwork.BuildVerifySolution(keys, nil, time.Now)
+	require.ErrorIs(t, err, proofofwork.ErrInvalidConfig)
+}
+
+func TestRejectionReason(t *testing.T) {
+	t.Parallel()
+
+	// The label set is bounded and each cause is distinguishable — a
+	// difficulty change and a client bug must not look the same.
+	seen := map[string]struct{}{}
+	for _, err := range []error{
+		proofofwork.ErrMalformedChallenge,
+		proofofwork.ErrBadSignature,
+		proofofwork.ErrChallengeExpired,
+		proofofwork.ErrIPMismatch,
+		proofofwork.ErrNonceReplayed,
+		proofofwork.ErrInsufficientWork,
+		proofofwork.ErrUnsupportedAlgorithm,
+	} {
+		reason := proofofwork.RejectionReason(err)
+		require.NotEqual(t, "other", reason, "every sentinel needs its own label")
+		require.NotContains(t, seen, reason)
+		seen[reason] = struct{}{}
+	}
+	require.Equal(t, "other", proofofwork.RejectionReason(errUnexpected))
+}

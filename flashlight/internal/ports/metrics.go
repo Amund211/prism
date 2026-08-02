@@ -15,6 +15,8 @@ type portsMetricsCollection struct {
 	requestDuration         metric.Float64Histogram
 	blockedRequestCount     metric.Int64Counter
 	ratelimitedRequestCount metric.Int64Counter
+	powChallengeCount       metric.Int64Counter
+	powRejectedLoginCount   metric.Int64Counter
 }
 
 var metrics portsMetricsCollection
@@ -58,11 +60,34 @@ func init() {
 		panic(fmt.Errorf("failed to create ratelimited request count metric: %w", err))
 	}
 
+	// Proof-of-work difficulty is a dial we turn from the server with no
+	// client release, and a dial with no gauge isn't tunable. These two are
+	// what tells us whether a difficulty change did anything and whether it
+	// broke a client: issuance carries the difficulty it handed out, and
+	// rejections carry the cause.
+	powChallengeCount, err := meter.Int64Counter(
+		"ports/pow_challenge_count",
+		metric.WithDescription("Total number of proof-of-work challenges issued, by difficulty"),
+	)
+	if err != nil {
+		panic(fmt.Errorf("failed to create pow challenge count metric: %w", err))
+	}
+
+	powRejectedLoginCount, err := meter.Int64Counter(
+		"ports/pow_rejected_login_count",
+		metric.WithDescription("Total number of anonymous logins rejected by proof-of-work verification, by cause"),
+	)
+	if err != nil {
+		panic(fmt.Errorf("failed to create pow rejected login count metric: %w", err))
+	}
+
 	metrics = portsMetricsCollection{
 		requestCount:            requestCount,
 		requestDuration:         requestDuration,
 		blockedRequestCount:     blockedRequestCount,
 		ratelimitedRequestCount: ratelimitedRequestCount,
+		powChallengeCount:       powChallengeCount,
+		powRejectedLoginCount:   powRejectedLoginCount,
 	}
 }
 

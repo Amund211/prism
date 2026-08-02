@@ -17,7 +17,7 @@ const (
 	development environment = "development"
 )
 
-var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "BLOCKED_IPS", "BLOCKED_USER_AGENTS", "BLOCKED_USER_IDS", "BLOCKED_IPS_SHA256_HEX"}
+var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "BLOCKED_IPS", "BLOCKED_USER_AGENTS", "BLOCKED_USER_IDS", "BLOCKED_IPS_SHA256_HEX", "AUTH_CHALLENGE_SIGNING_KEYS"}
 
 func TestGetConfig(t *testing.T) {
 	compareConfig := func(t *testing.T, socketPath, username, password, sentryDSN, hypixelAPIKey, urchinAPIKey string, blockedIPs, blockedUserAgents, blockedUserIDs, blockedIPsSHA256Hex []string, env environment, conf config.Config) {
@@ -69,7 +69,7 @@ func TestGetConfig(t *testing.T) {
 			conf, err := config.ConfigFromEnv()
 			require.NoError(t, err)
 
-			for _, sensitive := range []string{"DB_PASSWORD", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "SENTRY_DSN"} {
+			for _, sensitive := range []string{"DB_PASSWORD", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "SENTRY_DSN", "AUTH_CHALLENGE_SIGNING_KEYS"} {
 				require.NotContains(t, conf.NonSensitiveString(), sensitive)
 			}
 		})
@@ -110,6 +110,64 @@ func TestGetConfig(t *testing.T) {
 				require.ErrorIs(t, err, config.ErrInvalidValue)
 			})
 		}
+	})
+
+	// A secret version rotated to an empty value is set, so the ok flag the
+	// blocklists check is true. Letting that through means main.go sees an
+	// empty list and generates an ephemeral key, so production boots green
+	// with a per-revision key and rejects every challenge minted by the
+	// outgoing revision.
+	t.Run("production and staging reject an empty auth challenge signing key", func(t *testing.T) {
+		for _, variable := range allVariablesExceptEnv {
+			t.Setenv(variable, "placeholder_value")
+		}
+
+		// Whitespace counts as empty. A secret is a hand-edited value, so "\n"
+		// and "   " are the realistic shapes of "rotated to nothing" — and
+		// they used to parse as a list of blank entries, which is non-empty,
+		// so the check here passed and the failure moved to ParseSigningKeys
+		// in another package.
+		for name, value := range map[string]string{
+			"empty":              "",
+			"one newline":        "\n",
+			"spaces":             "   ",
+			"newlines and tabs":  "\n\t\n  \n",
+			"comment only":       "# rotated out, forgot to add the new one",
+			"comment and blanks": "\n# nothing here\n   \n",
+		} {
+			for _, env := range []environment{production, staging} {
+				t.Run(name+"/"+string(env), func(t *testing.T) {
+					t.Setenv("FLASHLIGHT_ENVIRONMENT", string(env))
+					t.Setenv("AUTH_CHALLENGE_SIGNING_KEYS", value)
+
+					_, err := config.ConfigFromEnv()
+					require.ErrorIs(t, err, config.ErrMissingRequiredValue)
+				})
+			}
+
+			t.Run(name+"/development still runs without one", func(t *testing.T) {
+				t.Setenv("FLASHLIGHT_ENVIRONMENT", string(development))
+				t.Setenv("AUTH_CHALLENGE_SIGNING_KEYS", value)
+
+				conf, err := config.ConfigFromEnv()
+				require.NoError(t, err)
+				require.Empty(t, conf.AuthChallengeSigningKeys(),
+					"development generates an ephemeral key, which needs an empty list rather than a list of blanks")
+			})
+		}
+	})
+
+	t.Run("auth challenge signing keys are parsed as an ordered list", func(t *testing.T) {
+		for _, variable := range allVariablesExceptEnv {
+			t.Setenv(variable, "placeholder_value")
+		}
+		t.Setenv("FLASHLIGHT_ENVIRONMENT", string(production))
+		t.Setenv("AUTH_CHALLENGE_SIGNING_KEYS", "primary\nsecondary")
+
+		conf, err := config.ConfigFromEnv()
+		require.NoError(t, err)
+		require.Equal(t, []string{"primary", "secondary"}, conf.AuthChallengeSigningKeys(),
+			"the first key signs and the rest are only accepted, so the order is load-bearing for rotation")
 	})
 
 	t.Run("blocked IPs, user agents, and user ids are parsed correctly", func(t *testing.T) {
@@ -173,9 +231,14 @@ value3`,
 				expectedList: []string{"value1"},
 			},
 			{
+				// Entries that are empty once the comment is stripped and
+				// the rest trimmed are dropped, not kept as empty strings. A
+				// blank entry is matched with slices.Contains like any other,
+				// so keeping it would block every request whose user agent or
+				// user id is absent.
 				name:         "line with only comment",
 				envValue:     "# this is just a comment",
-				expectedList: []string{""},
+				expectedList: []string{},
 			},
 			{
 				name:         "mixed lines with and without comments",
@@ -190,7 +253,7 @@ value3`,
 			{
 				name:         "empty line and line with comment",
 				envValue:     "\n# comment\nvalue1",
-				expectedList: []string{"", "", "value1"},
+				expectedList: []string{"value1"},
 			},
 			{
 				name: "complex real-world example",
@@ -200,7 +263,7 @@ value3`,
   192.168.1.4  # IP with spaces
 # 192.168.1.5 commented out IP
 192.168.1.6 # comment with # multiple # hashes`,
-				expectedList: []string{"192.168.1.1", "192.168.1.2", "192.168.1.3", "192.168.1.4", "", "192.168.1.6"},
+				expectedList: []string{"192.168.1.1", "192.168.1.2", "192.168.1.3", "192.168.1.4", "192.168.1.6"},
 			},
 		}
 

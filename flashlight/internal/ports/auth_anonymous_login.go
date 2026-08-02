@@ -8,14 +8,26 @@ import (
 	"net/http"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/proofofwork"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 )
 
 type anonymousLoginRequest struct {
 	UserID string `json:"userId"`
+	// Challenge is the opaque blob handed out by
+	// POST /v1/auth/anonymous/challenge, and Solution is the client's
+	// answer to it. Both are mandatory: the handshake ships required and
+	// the work ships at zero, because prism has a months-long upgrade tail
+	// and a no-proof path attackers can use is the same as having no
+	// proof-of-work at all.
+	Challenge string `json:"challenge"`
+	Solution  string `json:"solution"`
 }
 
 // userIDMaxLength is the hard cap above which we reject the request.
@@ -31,6 +43,17 @@ const userIDMaxLength = 100
 // values before deciding whether to lower the hard cap.
 const userIDWarnLength = 50
 
+// challengeMaxLength and solutionMaxLength bound the proof-of-work fields
+// before we hash anything. A challenge we minted is ~250 chars; a solution
+// is a counter the client incremented until the hash came out right, which
+// stays short even at the sanity-ceiling difficulty. Both caps sit well
+// above that so a client picking a different (still sane) solution
+// encoding doesn't trip them.
+const (
+	challengeMaxLength = 512
+	solutionMaxLength  = 128
+)
+
 // hasJSONContentType reports whether the request declares a JSON body.
 // Parameters are allowed (application/json; charset=utf-8); a missing,
 // malformed or non-JSON header is not.
@@ -43,9 +66,10 @@ func hasJSONContentType(r *http.Request) bool {
 }
 
 // MakeAnonymousLoginHandler returns a handler for POST /v1/auth/anonymous/login.
-// Body: { userId }. Response: a fresh session payload.
+// Body: { userId, challenge, solution }. Response: a fresh session payload.
 func MakeAnonymousLoginHandler(
 	login app.AnonymousLogin,
+	verifySolution proofofwork.VerifySolution,
 	nowFunc func() time.Time,
 	allowedOrigins *DomainSuffixes,
 	rootLogger *slog.Logger,
@@ -114,8 +138,11 @@ func MakeAnonymousLoginHandler(
 			return
 		}
 
+		// 2KiB comfortably fits the largest legal body — a 100-char userId,
+		// a challenge blob and a solution, all capped below — with room for
+		// the JSON around them.
 		var body anonymousLoginRequest
-		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1024)).Decode(&body); err != nil {
+		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 2048)).Decode(&body); err != nil {
 			logging.FromContext(ctx).InfoContext(ctx, "Failed to decode anonymous login body", "error", err.Error())
 			http.Error(w, "Invalid request body", http.StatusBadRequest)
 			return
@@ -132,11 +159,48 @@ func MakeAnonymousLoginHandler(
 			)
 		}
 
+		if body.Challenge == "" || len(body.Challenge) > challengeMaxLength {
+			http.Error(w, "Invalid challenge", http.StatusBadRequest)
+			return
+		}
+		// A non-empty solution is required even though at difficulty 0 the
+		// empty string is a perfectly valid proof. Accepting it would let a
+		// client ship a stub that never implements the hash loop, and
+		// discovering that the day we raise the difficulty is exactly the
+		// retrofit this whole mechanism exists to avoid.
+		if body.Solution == "" || len(body.Solution) > solutionMaxLength {
+			http.Error(w, "Invalid solution", http.StatusBadRequest)
+			return
+		}
+
 		logging.FromContext(ctx).InfoContext(ctx, "Handling auth-anonymous-login request",
 			slog.String("bodyUserId", body.UserID),
 		)
 
 		ipHash := GetIP(r).Hash()
+
+		// Ahead of every bit of database work below, which is the entire
+		// point: a proof checked after the IP-cap UPDATE and the INSERT
+		// prices nothing. Verification itself is one HMAC, one hash and a
+		// map lookup.
+		//
+		// Every cause gets the same status. They differ only in what the
+		// client should have done differently, and the answer is the same
+		// for all of them — fetch a fresh challenge and try again (with
+		// backoff; a client that hot-loops on 403 is a client that
+		// rate-limits itself out).
+		if err := verifySolution(body.Challenge, body.Solution, ipHash); err != nil {
+			reason := proofofwork.RejectionReason(err)
+			logging.FromContext(ctx).InfoContext(ctx, "Rejected anonymous login proof of work",
+				slog.String("reason", reason),
+				slog.String("error", err.Error()),
+			)
+			metrics.powRejectedLoginCount.Add(ctx, 1, metric.WithAttributes(
+				append(GetClient(r).MetricAttributes(), attribute.String("reason", reason))...,
+			))
+			http.Error(w, "Invalid proof of work", http.StatusForbidden)
+			return
+		}
 
 		sess, err := login(ctx, body.UserID, ipHash)
 		if err != nil {

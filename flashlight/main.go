@@ -32,6 +32,7 @@ import (
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ports"
+	"github.com/Amund211/flashlight/internal/proofofwork"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/telemetry"
 )
@@ -180,6 +181,51 @@ func main() {
 
 	validateSessionCache := cache.NewTTLCacheWithMaxSize[domain.AuthSession](1*time.Minute, 50_000)
 
+	// Proof-of-work on anonymous login. Mandatory handshake, difficulty 0:
+	// the mechanism has to be in every client from the first auth release,
+	// because prism's upgrade tail means a no-proof path added later would
+	// have to stay open for months — and a no-proof path attackers can use
+	// is the same as having no proof-of-work at all. What it buys today is
+	// the ability to raise the price of an anonymous identity from the
+	// server, with no client release.
+	signingKeys := config.AuthChallengeSigningKeys()
+	if len(signingKeys) == 0 && config.IsDevelopment() {
+		// Gated on the environment, not just on the empty list: config
+		// rejects an empty value in production and staging, and this branch
+		// must not be the thing that papers over it if that check ever
+		// loosens. An ephemeral key boots green and then fails every
+		// challenge minted by the previous revision, which is a much worse
+		// failure than refusing to start.
+		generatedKey, err := proofofwork.GenerateSigningKey()
+		if err != nil {
+			fail("Failed to generate auth challenge signing key", "error", err.Error())
+		}
+		logger.WarnContext(ctx, "No auth challenge signing keys configured, generated an ephemeral one")
+		signingKeys = []string{generatedKey}
+	}
+	authChallengeKeys, err := proofofwork.ParseSigningKeys(signingKeys)
+	if err != nil {
+		fail("Failed to parse auth challenge signing keys", "error", err.Error())
+	}
+	difficultyFor, err := proofofwork.BuildDifficultyFunc(proofofwork.DefaultDifficulty)
+	if err != nil {
+		fail("Failed to initialize proof-of-work difficulty", "error", err.Error())
+	}
+	// Sized like the other caches: 50k nonces within the 60s challenge TTL
+	// is orders of magnitude more logins than the limiters let through, so
+	// capacity eviction — which would let a replay past — never happens in
+	// practice.
+	usedNonces, stopUsedNonces := proofofwork.NewInMemoryUsedNonceStore(50_000)
+	issueChallenge, err := proofofwork.BuildIssueChallenge(authChallengeKeys, difficultyFor, time.Now)
+	if err != nil {
+		fail("Failed to initialize proof-of-work challenges", "error", err.Error())
+	}
+	verifySolution, err := proofofwork.BuildVerifySolution(authChallengeKeys, usedNonces, time.Now)
+	if err != nil {
+		fail("Failed to initialize proof-of-work verification", "error", err.Error())
+	}
+	logger.InfoContext(ctx, "Initialized anonymous login proof-of-work", "difficulty", proofofwork.DefaultDifficulty)
+
 	anonymousLogin := app.BuildAnonymousLogin(authSessionRepo, time.Now, app.GenerateAuthSessionID)
 	refreshSession := app.BuildRefreshSession(authSessionRepo, time.Now)
 	validateSession := app.BuildValidateSession(authSessionRepo, time.Now, validateSessionCache)
@@ -244,6 +290,10 @@ func main() {
 	// are torn down cleanly on the SIGTERM path.
 	var handlerStops []func()
 
+	// The used-nonce set has an eviction goroutine of the same shape, torn
+	// down alongside them.
+	handlerStops = append(handlerStops, stopUsedNonces)
+
 	// stops are the rate-limiter eviction-goroutine cleanups for the handler,
 	// collected here so a handler can't be registered without also collecting
 	// them (handlers without rate limiters pass none).
@@ -285,11 +335,25 @@ func main() {
 	handleFunc("GET /v1/tags/{uuid}", tagsHandler, stopTags)
 
 	handleFunc(
+		"OPTIONS /v1/auth/anonymous/challenge",
+		ports.BuildCORSHandler(allowedOrigins),
+	)
+	anonymousChallengeHandler, stopAnonymousChallenge := ports.MakeAnonymousChallengeHandler(
+		issueChallenge,
+		allowedOrigins,
+		logger.With("port", "auth-anonymous-challenge"),
+		sentryMiddleware,
+		blocklistConfig,
+	)
+	handleFunc("POST /v1/auth/anonymous/challenge", anonymousChallengeHandler, stopAnonymousChallenge)
+
+	handleFunc(
 		"OPTIONS /v1/auth/anonymous/login",
 		ports.BuildCORSHandler(allowedOrigins),
 	)
 	anonymousLoginHandler, stopAnonymousLogin := ports.MakeAnonymousLoginHandler(
 		anonymousLogin,
+		verifySolution,
 		time.Now,
 		allowedOrigins,
 		logger.With("port", "auth-anonymous-login"),

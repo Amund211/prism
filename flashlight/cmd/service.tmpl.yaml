@@ -85,6 +85,16 @@ spec:
             secretKeyRef:
               name: "prism-blocked-ips-sha256-hex"
               key: "latest"
+        # HMAC keys for the anonymous-login proof-of-work challenges,
+        # newline-delimited base64 (openssl rand -base64 32). The first line
+        # signs; every line is accepted, so rotating is: prepend the new key,
+        # deploy, drop the old line one challenge TTL later. Per environment,
+        # so a staging challenge is never valid against production.
+        - name: "AUTH_CHALLENGE_SIGNING_KEYS"
+          valueFrom:
+            secretKeyRef:
+              name: "${AUTH_CHALLENGE_SIGNING_KEYS_KEY}"
+              key: "latest"
       - image: "${COLLECTOR_IMAGE}"
         name: "collector"
         startupProbe:

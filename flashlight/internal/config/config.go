@@ -31,6 +31,11 @@ type Config struct {
 	blockedUserAgents      []string
 	blockedUserIDs         []string
 	blockedIPsSHA256Hex    []string
+	// authChallengeSigningKeys are the HMAC keys for the anonymous-login
+	// proof-of-work challenges, newline-delimited and base64-encoded. The
+	// first one signs; the rest are still accepted, which is how a key is
+	// rotated without invalidating outstanding challenges. Secret.
+	authChallengeSigningKeys []string
 }
 
 func (c *Config) CloudSQLUnixSocketPath() string {
@@ -87,6 +92,10 @@ func (c *Config) BlockedUserIDs() []string {
 
 func (c *Config) BlockedIPsSHA256Hex() []string {
 	return c.blockedIPsSHA256Hex
+}
+
+func (c *Config) AuthChallengeSigningKeys() []string {
+	return c.authChallengeSigningKeys
 }
 
 // Return a string representation suitable for logging etc
@@ -170,6 +179,20 @@ func ConfigFromEnv() (Config, error) {
 	if requireEnv && !ok {
 		return missingKey("BLOCKED_IPS_SHA256_HEX")
 	}
+	// Development runs without it and generates an ephemeral key at
+	// startup; production and staging must not, since a key that dies with
+	// the process invalidates every outstanding challenge on each revision.
+	//
+	// Checked on length rather than the ok flag the blocklists use: a
+	// secret version rotated to an empty value is *set*, so ok is true, and
+	// an empty list is what sends main.go down the ephemeral-key path. The
+	// blocklists are legitimately empty; a signing key never is.
+	// Whitespace variants included: lookupNewlineDelimitedEnv drops blank
+	// entries, so "\n" is an empty list here rather than a list of blanks.
+	authChallengeSigningKeys, _ := lookupNewlineDelimitedEnv("AUTH_CHALLENGE_SIGNING_KEYS")
+	if requireEnv && len(authChallengeSigningKeys) == 0 {
+		return missingKey("AUTH_CHALLENGE_SIGNING_KEYS")
+	}
 
 	return Config{
 		cloudSQLUnixSocketPath: cloudSQLUnixSocketPath,
@@ -184,6 +207,8 @@ func ConfigFromEnv() (Config, error) {
 		blockedUserAgents:      blockedUserAgents,
 		blockedUserIDs:         blockedUserIDs,
 		blockedIPsSHA256Hex:    blockedIPsSHA256Hex,
+
+		authChallengeSigningKeys: authChallengeSigningKeys,
 	}, nil
 }
 
@@ -197,13 +222,21 @@ func lookupNewlineDelimitedEnv(key string) ([]string, bool) {
 		return []string{}, true
 	}
 
-	parts := strings.Split(value, "\n")
-	for i := range parts {
+	// Entries that are empty once trimmed are dropped. A trailing newline or a
+	// comment-only line is routine in a hand-edited secret, and a blank entry
+	// is matched with slices.Contains like any other — so keeping it blocks
+	// every request whose user agent or user id is absent.
+	parts := make([]string, 0, strings.Count(value, "\n")+1)
+	for part := range strings.SplitSeq(value, "\n") {
 		// Strip comment (everything from the first # onwards)
-		if hashIndex := strings.Index(parts[i], "#"); hashIndex != -1 {
-			parts[i] = parts[i][:hashIndex]
+		if hashIndex := strings.Index(part, "#"); hashIndex != -1 {
+			part = part[:hashIndex]
 		}
-		parts[i] = strings.TrimSpace(parts[i])
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		parts = append(parts, part)
 	}
 
 	return parts, true

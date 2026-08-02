@@ -1,9 +1,14 @@
 package ports_test
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
+	"fmt"
 	"io"
 	"log/slog"
+	"math/bits"
 	"net/http"
+	"strconv"
 	"testing"
 	"time"
 
@@ -11,6 +16,7 @@ import (
 
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/ports"
+	"github.com/Amund211/flashlight/internal/proofofwork"
 )
 
 var noopAuthMiddleware = func(h http.HandlerFunc) http.HandlerFunc {
@@ -41,11 +47,83 @@ func authTestOrigins(t *testing.T) *ports.DomainSuffixes {
 	return allowedOrigins
 }
 
+// acceptAnyProof stands in for proof-of-work verification in the tests
+// that aren't about it. The ones that are build a real scheme.
+func acceptAnyProof(challenge string, solution string, ipHash string) error {
+	return nil
+}
+
+// anonymousLoginBody is a login body whose proof-of-work fields are
+// well-formed but meaningless — enough to clear the shape checks when the
+// verifier is acceptAnyProof.
+func anonymousLoginBody(userID string) string {
+	return fmt.Sprintf(`{"userId":%q,"challenge":"challenge-blob","solution":"1"}`, userID)
+}
+
 func newAnonymousLoginHandler(t *testing.T, login app.AnonymousLogin, nowFunc func() time.Time) http.HandlerFunc {
+	t.Helper()
+	return newAnonymousLoginHandlerWithProof(t, login, acceptAnyProof, nowFunc)
+}
+
+func newAnonymousLoginHandlerWithProof(t *testing.T, login app.AnonymousLogin, verifySolution proofofwork.VerifySolution, nowFunc func() time.Time) http.HandlerFunc {
 	t.Helper()
 	handler, stop := ports.MakeAnonymousLoginHandler(
 		login,
+		verifySolution,
 		nowFunc,
+		authTestOrigins(t),
+		authTestLogger,
+		noopAuthMiddleware,
+		ports.BlocklistConfig{},
+	)
+	t.Cleanup(stop)
+	return handler
+}
+
+// newProofOfWorkScheme wires a real challenge/verify pair sharing one key
+// and one used-nonce set, the way main.go does.
+func newProofOfWorkScheme(t *testing.T, difficulty int) (proofofwork.IssueChallenge, proofofwork.VerifySolution) {
+	t.Helper()
+	keys, err := proofofwork.ParseSigningKeys([]string{base64.StdEncoding.EncodeToString(make([]byte, 32))})
+	require.NoError(t, err)
+	difficultyFor, err := proofofwork.BuildDifficultyFunc(difficulty)
+	require.NoError(t, err)
+	nonces, stopNonces := proofofwork.NewInMemoryUsedNonceStore(100)
+	t.Cleanup(stopNonces)
+
+	issueChallenge, err := proofofwork.BuildIssueChallenge(keys, difficultyFor, time.Now)
+	require.NoError(t, err)
+	verifySolution, err := proofofwork.BuildVerifySolution(keys, nonces, time.Now)
+	require.NoError(t, err)
+	return issueChallenge, verifySolution
+}
+
+// solveChallenge does what a client's worker thread does: hash until the
+// digest has enough leading zero bits.
+func solveChallenge(t *testing.T, challenge string, difficulty int) string {
+	t.Helper()
+	for attempt := range 1 << 22 {
+		solution := strconv.Itoa(attempt)
+		digest := sha256.Sum256([]byte(challenge + ":" + solution))
+		zeros := 0
+		for _, b := range digest {
+			zeros += bits.LeadingZeros8(b)
+			if b != 0 {
+				break
+			}
+		}
+		if zeros >= difficulty {
+			return solution
+		}
+	}
+	t.Fatalf("no solution found for difficulty %d", difficulty)
+	return ""
+}
+
+func newAnonymousChallengeHandler(t *testing.T, issueChallenge proofofwork.IssueChallenge) http.HandlerFunc {
+	t.Helper()
+	handler, stop := ports.MakeAnonymousChallengeHandler(
+		issueChallenge,
 		authTestOrigins(t),
 		authTestLogger,
 		noopAuthMiddleware,

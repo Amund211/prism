@@ -12,7 +12,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/ports"
+	"github.com/Amund211/flashlight/internal/proofofwork"
 )
 
 func TestAnonymousLoginHandler(t *testing.T) {
@@ -43,7 +46,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 		}
 
 		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
-		body := strings.NewReader(`{"userId":"user-abc"}`)
+		body := strings.NewReader(anonymousLoginBody("user-abc"))
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", body)
 		withJSONContentType(r)
 		withRequestIP(r, "1.2.3.4")
@@ -89,7 +92,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 			}, nil
 		}
 		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
-		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(`{"userId":"user-abc"}`))
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("user-abc")))
 		withJSONContentType(r)
 		withRequestIP(r, "1.2.3.4")
 		w := httptest.NewRecorder()
@@ -118,7 +121,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 			}, nil
 		}
 		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
-		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(`{"userId":"user-late"}`))
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("user-late")))
 		withJSONContentType(r)
 		withRequestIP(r, "1.2.3.4")
 		w := httptest.NewRecorder()
@@ -153,7 +156,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
 
 		origin := "https://subdomain.example.com"
-		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(`{"userId":"user-abc"}`))
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("user-abc")))
 		r.Header.Set("Origin", origin)
 		withJSONContentType(r)
 		withRequestIP(r, "1.2.3.4")
@@ -186,7 +189,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 					return domain.AuthSession{}, nil
 				}
 				handler := newAnonymousLoginHandler(t, login, time.Now)
-				r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(`{"userId":"user-abc"}`))
+				r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("user-abc")))
 				if contentType != "" {
 					r.Header.Set("Content-Type", contentType)
 				}
@@ -215,7 +218,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 			}, nil
 		}
 		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
-		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(`{"userId":"user-abc"}`))
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("user-abc")))
 		// What fetch() sends when you hand it a JSON string body.
 		r.Header.Set("Content-Type", "application/json; charset=utf-8")
 		withRequestIP(r, "1.2.3.4")
@@ -245,7 +248,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
 
 		doLogin := func(ip string, userID string) int {
-			body := fmt.Sprintf(`{"userId":%q}`, userID)
+			body := anonymousLoginBody(userID)
 			r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(body))
 			withJSONContentType(r)
 			withRequestIP(r, ip)
@@ -285,7 +288,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 			return domain.AuthSession{}, nil
 		}
 		handler := newAnonymousLoginHandler(t, login, time.Now)
-		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(`{"userId":""}`))
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("")))
 		withJSONContentType(r)
 		withRequestIP(r, "1.2.3.4")
 		w := httptest.NewRecorder()
@@ -301,7 +304,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 		}
 		handler := newAnonymousLoginHandler(t, login, time.Now)
 		// 101 chars — past the 100-char hard cap.
-		body := fmt.Sprintf(`{"userId":%q}`, strings.Repeat("x", 101))
+		body := anonymousLoginBody(strings.Repeat("x", 101))
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(body))
 		withJSONContentType(r)
 		withRequestIP(r, "1.2.3.4")
@@ -332,7 +335,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 			}, nil
 		}
 		handler := newAnonymousLoginHandler(t, login, time.Now)
-		body := fmt.Sprintf(`{"userId":%q}`, longID)
+		body := anonymousLoginBody(longID)
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(body))
 		withJSONContentType(r)
 		withRequestIP(r, "1.2.3.4")
@@ -355,5 +358,178 @@ func TestAnonymousLoginHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		handler(w, r)
 		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+}
+
+// TestAnonymousLoginProofOfWork covers the handshake the endpoint now
+// requires. The mechanism ships mandatory at difficulty 0, so "no proof"
+// has to be a rejection even while the work is free — that is the whole
+// reason for shipping it before any client does.
+func TestAnonymousLoginProofOfWork(t *testing.T) {
+	t.Parallel()
+
+	failIfCalled := func(t *testing.T, reason string) app.AnonymousLogin {
+		return func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			t.Fatalf("login should not be called %s", reason)
+			return domain.AuthSession{}, nil
+		}
+	}
+
+	issuedSession := func(now time.Time) app.AnonymousLogin {
+		return func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			return domain.AuthSession{
+				ID:             "sid-pow",
+				IdentityType:   domain.AuthSessionIdentityAnonymous,
+				IdentityKey:    userID,
+				CreatedAt:      now,
+				ExpiresAt:      now.Add(1 * time.Hour),
+				RefreshUntil:   now.Add(2 * time.Hour),
+				LifetimeEndsAt: now.Add(24 * time.Hour),
+			}, nil
+		}
+	}
+
+	postLogin := func(t *testing.T, handler http.HandlerFunc, ip string, body string) *httptest.ResponseRecorder {
+		t.Helper()
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(body))
+		withJSONContentType(r)
+		withRequestIP(r, ip)
+		w := httptest.NewRecorder()
+		handler(w, r)
+		return w
+	}
+
+	t.Run("400 on missing or oversized proof fields", func(t *testing.T) {
+		t.Parallel()
+		for name, body := range map[string]string{
+			"no proof at all":      `{"userId":"user-abc"}`,
+			"no challenge":         `{"userId":"user-abc","solution":"1"}`,
+			"empty challenge":      `{"userId":"user-abc","challenge":"","solution":"1"}`,
+			"no solution":          `{"userId":"user-abc","challenge":"blob"}`,
+			"empty solution":       `{"userId":"user-abc","challenge":"blob","solution":""}`,
+			"huge challenge":       fmt.Sprintf(`{"userId":"user-abc","challenge":%q,"solution":"1"}`, strings.Repeat("x", 513)),
+			"huge solution":        fmt.Sprintf(`{"userId":"user-abc","challenge":"blob","solution":%q}`, strings.Repeat("x", 129)),
+			"whole body oversized": fmt.Sprintf(`{"userId":"user-abc","challenge":%q,"solution":"1"}`, strings.Repeat("x", 4096)),
+		} {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				verify := func(challenge, solution, ipHash string) error {
+					t.Fatal("verification should not be reached for a malformed body")
+					return nil
+				}
+				handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "without a well-formed proof"), verify, time.Now)
+				require.Equal(t, http.StatusBadRequest, postLogin(t, handler, "1.2.3.4", body).Code)
+			})
+		}
+	})
+
+	// The empty string is a valid proof at difficulty 0, so nothing about
+	// the hashing forces a client to implement the loop. Rejecting it does
+	// — and finding out the client shipped a stub the day we raise the
+	// difficulty is exactly the retrofit this design avoids.
+	t.Run("400 on an empty solution even though difficulty is 0", func(t *testing.T) {
+		t.Parallel()
+		issue, verify := newProofOfWorkScheme(t, 0)
+		challenge, err := issue(ports.IP("1.2.3.4").Hash(), "prism")
+		require.NoError(t, err)
+
+		handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "with an empty solution"), verify, time.Now)
+		body := fmt.Sprintf(`{"userId":"user-abc","challenge":%q,"solution":""}`, challenge.Value)
+		require.Equal(t, http.StatusBadRequest, postLogin(t, handler, "1.2.3.4", body).Code)
+	})
+
+	t.Run("403 on a rejected proof, ahead of any database work", func(t *testing.T) {
+		t.Parallel()
+		for name, cause := range map[string]error{
+			"malformed":             proofofwork.ErrMalformedChallenge,
+			"bad signature":         proofofwork.ErrBadSignature,
+			"expired":               proofofwork.ErrChallengeExpired,
+			"ip mismatch":           proofofwork.ErrIPMismatch,
+			"replayed":              proofofwork.ErrNonceReplayed,
+			"insufficient work":     proofofwork.ErrInsufficientWork,
+			"unsupported algorithm": proofofwork.ErrUnsupportedAlgorithm,
+		} {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				verify := func(challenge, solution, ipHash string) error { return cause }
+				handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "for a rejected proof"), verify, time.Now)
+				require.Equal(t, http.StatusForbidden, postLogin(t, handler, "1.2.3.4", anonymousLoginBody("user-abc")).Code)
+			})
+		}
+	})
+
+	t.Run("verification gets the body's proof and the request's ip hash", func(t *testing.T) {
+		t.Parallel()
+		var sawChallenge, sawSolution, sawIPHash string
+		verify := func(challenge, solution, ipHash string) error {
+			sawChallenge, sawSolution, sawIPHash = challenge, solution, ipHash
+			return nil
+		}
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		handler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), verify, func() time.Time { return now })
+
+		body := `{"userId":"user-abc","challenge":"some-blob","solution":"42"}`
+		require.Equal(t, http.StatusOK, postLogin(t, handler, "1.2.3.4", body).Code)
+		require.Equal(t, "some-blob", sawChallenge)
+		require.Equal(t, "42", sawSolution)
+		require.Equal(t, ports.IP("1.2.3.4").Hash(), sawIPHash,
+			"the proof is bound to the caller's ip, so it must be checked against the ip we'd bill the login to")
+	})
+
+	// End to end over both endpoints, with real hashing: what a client
+	// actually has to do, and what it buys an attacker who tries to reuse
+	// the result.
+	t.Run("a challenge from the challenge endpoint logs in exactly once", func(t *testing.T) {
+		t.Parallel()
+		const difficulty = 8
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		issue, verify := newProofOfWorkScheme(t, difficulty)
+		challengeHandler := newAnonymousChallengeHandler(t, issue)
+		loginHandler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), verify, func() time.Time { return now })
+
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/challenge", nil)
+		withJSONContentType(r)
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+		challengeHandler(w, r)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		var challenge struct {
+			Challenge  string `json:"challenge"`
+			Algorithm  string `json:"algorithm"`
+			Difficulty int    `json:"difficulty"`
+		}
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&challenge))
+		require.Equal(t, difficulty, challenge.Difficulty)
+
+		body := fmt.Sprintf(
+			`{"userId":"user-abc","challenge":%q,"solution":%q}`,
+			challenge.Challenge,
+			solveChallenge(t, challenge.Challenge, challenge.Difficulty),
+		)
+		require.Equal(t, http.StatusOK, postLogin(t, loginHandler, "1.2.3.4", body).Code)
+
+		require.Equal(t, http.StatusForbidden, postLogin(t, loginHandler, "1.2.3.4", body).Code,
+			"replaying a solved challenge would price identity per minute instead of per identity")
+	})
+
+	t.Run("a challenge solved for one ip does not work from another", func(t *testing.T) {
+		t.Parallel()
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		issue, verify := newProofOfWorkScheme(t, 0)
+		loginHandler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), verify, func() time.Time { return now })
+
+		challenge, err := issue(ports.IP("1.2.3.4").Hash(), "prism")
+		require.NoError(t, err)
+		body := fmt.Sprintf(
+			`{"userId":"user-abc","challenge":%q,"solution":%q}`,
+			challenge.Value,
+			solveChallenge(t, challenge.Value, challenge.Difficulty),
+		)
+
+		require.Equal(t, http.StatusForbidden, postLogin(t, loginHandler, "5.6.7.8", body).Code,
+			"one rented CPU box must not be able to solve challenges for a pool of proxy exits")
+		require.Equal(t, http.StatusOK, postLogin(t, loginHandler, "1.2.3.4", body).Code,
+			"and the misdirected attempt must not have burned the challenge")
 	})
 }
