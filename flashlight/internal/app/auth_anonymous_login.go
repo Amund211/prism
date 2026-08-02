@@ -15,17 +15,22 @@ type anonymousLoginRepository interface {
 	EnforceActiveIPCap(ctx context.Context, identityType domain.AuthSessionIdentityType, identityKey string, ipHash string, maxActive int, now time.Time) error
 }
 
-// authAnonymousIPCap is the max number of concurrently-active
-// anonymous sessions per ip_hash. When exceeded, the oldest active
-// sessions are evicted before issuing a new one. Sessions already held
-// by the identity that's logging in don't count towards it — Create
-// replaces those anyway.
+// authAnonymousIPCap is the max number of *identities* holding
+// concurrently-active anonymous sessions per ip_hash. When exceeded,
+// the identities whose most recent login is oldest are evicted before
+// issuing a new one. An identity may hold any number of sessions, so
+// this number is looser than the same number used to mean when it
+// counted rows. Sessions already held by the identity that's logging in
+// don't count towards it — that identity occupies exactly one slot
+// either way.
 const authAnonymousIPCap = 4
 
 // AnonymousLogin issues a new anonymous-tier session for (userID,
-// ipHash). It enforces the per-IP anonymous session cap by deleting
-// the oldest active sessions for the ip until there's room, then
-// inserts (or upserts, single-active-per-identity) the new row.
+// ipHash). It enforces the per-IP anonymous identity cap by revoking
+// the least-recently-logged-in identities' sessions until there's room,
+// then inserts the new row. Nothing the caller already holds is
+// revoked: concurrent sessions for one identity coexist and expire
+// naturally.
 //
 // userID is trusted as-is — input shape validation is the caller's
 // responsibility.
