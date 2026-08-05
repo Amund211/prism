@@ -63,6 +63,7 @@ func MakeGetSessionAtHandler(
 		ratelimiting.BurstSize(20),
 	)
 	userIDRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
+		// NOTE: Verified identity when there is one, user controlled value otherwise
 		userIDLimiter,
 		UserIDKeyFunc,
 	)

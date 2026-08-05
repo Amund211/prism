@@ -13,6 +13,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 
 	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
@@ -77,8 +78,27 @@ func IPHashKeyFunc(r *http.Request) string {
 	return fmt.Sprintf("ip: %s", GetIP(r).Hash())
 }
 
+// UserIDKeyFunc keys the per-user rate limiters on the verified identity, falling
+// back to the self-asserted X-User-Id header. Needs the bearer middleware ahead
+// of the limiter. Never key on the session id — an identity holds any number of
+// sessions, so that would mint quota per login.
+//
+// The anonymous tier shares the fallback's namespace on purpose: its
+// identity_key *is* the userId from the header, so a separate key would be a
+// second budget, claimable by dropping the Authorization header.
 func UserIDKeyFunc(r *http.Request) string {
-	return fmt.Sprintf("user-id: %s", GetUserID(r).String())
+	auth, ok := AuthFromContext(r.Context())
+	if !ok {
+		return fmt.Sprintf("user-id: %s", GetUserID(r).String())
+	}
+
+	switch auth.IdentityType {
+	case domain.AuthSessionIdentityAnonymous:
+		return fmt.Sprintf("user-id: %s", NewUserID(auth.IdentityKey).String())
+	default:
+		// Unknown tiers get isolated rather than poured in above.
+		return fmt.Sprintf("identity: %s: %s", auth.IdentityType, NewUserID(auth.IdentityKey).String())
+	}
 }
 
 func NewRateLimitMiddleware(rateLimiter ratelimiting.RequestRateLimiter, onLimitExceeded http.HandlerFunc) func(http.HandlerFunc) http.HandlerFunc {

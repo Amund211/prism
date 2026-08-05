@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"slices"
+	"strings"
 	"sync"
 	"testing"
 
@@ -94,6 +95,174 @@ func TestRateLimitMiddleware(t *testing.T) {
 
 		runTest(t, false)
 	})
+}
+
+// keyForRequest returns the key UserIDKeyFunc produces for req, with the auth
+// context attached the way production attaches it — by running the bearer
+// middleware. session is what validation returns; nil means the request carries
+// no Authorization header at all.
+func keyForRequest(t *testing.T, req *http.Request, session *domain.AuthSession) string {
+	t.Helper()
+
+	validate := func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
+		require.NotNil(t, session, "validate should not be called without a bearer")
+		return *session, nil
+	}
+
+	var key string
+	reached := false
+	handler := NewBearerAuthMiddleware(validate)(func(w http.ResponseWriter, r *http.Request) {
+		reached = true
+		key = UserIDKeyFunc(r)
+	})
+
+	if session != nil {
+		req.Header.Set("Authorization", "Bearer flsess_good")
+	}
+	handler(httptest.NewRecorder(), req)
+
+	require.True(t, reached, "the request should have reached the key func")
+	return key
+}
+
+func TestUserIDKeyFunc(t *testing.T) {
+	t.Parallel()
+
+	anonymousSession := func(identityKey string) *domain.AuthSession {
+		return &domain.AuthSession{
+			ID:           "flsess_abc",
+			IdentityType: domain.AuthSessionIdentityAnonymous,
+			IdentityKey:  identityKey,
+		}
+	}
+
+	makeRequest := func(t *testing.T, userIDHeader string) *http.Request {
+		t.Helper()
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/playerdata", http.NoBody)
+		if userIDHeader != "" {
+			req.Header.Set("X-User-Id", userIDHeader)
+		}
+		return req
+	}
+
+	t.Run("falls back to the header without a bearer", func(t *testing.T) {
+		t.Parallel()
+
+		require.Equal(t,
+			"user-id: this-is-a-long-enough-user-id",
+			keyForRequest(t, makeRequest(t, "this-is-a-long-enough-user-id"), nil),
+		)
+	})
+
+	t.Run("falls back to <missing> with neither", func(t *testing.T) {
+		t.Parallel()
+
+		require.Equal(t, "user-id: <missing>", keyForRequest(t, makeRequest(t, ""), nil))
+	})
+
+	t.Run("prefers the verified identity over the header", func(t *testing.T) {
+		t.Parallel()
+
+		require.Equal(t,
+			"user-id: verified-identity-key",
+			keyForRequest(t, makeRequest(t, "some-other-user-entirely"), anonymousSession("verified-identity-key")),
+		)
+	})
+
+	t.Run("the anonymous tier shares the header's bucket", func(t *testing.T) {
+		t.Parallel()
+
+		// Not merely equal-looking: the same string, so the two land in the same
+		// token bucket. A second key here would be a second budget, claimable by
+		// dropping the Authorization header.
+		userID := "the-very-same-user-id"
+		require.Equal(t,
+			keyForRequest(t, makeRequest(t, userID), nil),
+			keyForRequest(t, makeRequest(t, ""), anonymousSession(userID)),
+		)
+	})
+
+	t.Run("a long identity key truncates like the header does", func(t *testing.T) {
+		t.Parallel()
+
+		// Login accepts userIds up to 100 chars while the header stops at 50, so
+		// without matching truncation this is where the two buckets diverge.
+		longUserID := strings.Repeat("a", 80)
+		require.Equal(t,
+			keyForRequest(t, makeRequest(t, longUserID), nil),
+			keyForRequest(t, makeRequest(t, ""), anonymousSession(longUserID)),
+		)
+		require.Equal(t, "user-id: "+strings.Repeat("a", 50), keyForRequest(t, makeRequest(t, ""), anonymousSession(longUserID)))
+	})
+
+	t.Run("an unknown tier gets its own namespace", func(t *testing.T) {
+		t.Parallel()
+
+		// A future tier's identity_key is a different kind of value (the
+		// Microsoft tier's verified MC uuid), so it must not be reachable from
+		// the self-asserted header.
+		key := keyForRequest(t, makeRequest(t, ""), &domain.AuthSession{
+			IdentityType: domain.AuthSessionIdentityType("microsoft"),
+			IdentityKey:  "01234567-89ab-cdef-0123-456789abcdef",
+		})
+
+		require.Equal(t, "identity: microsoft: 01234567-89ab-cdef-0123-456789abcdef", key)
+		require.NotEqual(t, key, keyForRequest(t, makeRequest(t, "01234567-89ab-cdef-0123-456789abcdef"), nil))
+	})
+}
+
+// TestUserIDLimiterSpendsOneBudgetPerIdentity is the invariant task 2 leans on:
+// authenticating must buy convenience, never throughput.
+func TestUserIDLimiterSpendsOneBudgetPerIdentity(t *testing.T) {
+	t.Parallel()
+
+	const userID = "the-same-user-every-time"
+
+	// No refill, so the two tokens in the bucket are all there will ever be.
+	userIDLimiter, stop := ratelimiting.NewTokenBucketRateLimiter(
+		ratelimiting.RefillPerSecond(0),
+		ratelimiting.BurstSize(2),
+	)
+	t.Cleanup(stop)
+
+	validate := func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
+		return domain.AuthSession{
+			ID:           sessionID,
+			IdentityType: domain.AuthSessionIdentityAnonymous,
+			IdentityKey:  userID,
+		}, nil
+	}
+
+	rateLimiter := ratelimiting.NewRequestBasedRateLimiter(userIDLimiter, UserIDKeyFunc)
+	handler := ComposeMiddlewares(
+		NewBearerAuthMiddleware(validate),
+		NewRateLimitMiddleware(rateLimiter, func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+		}),
+	)(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	send := func(t *testing.T, withBearer bool, headerUserID string) int {
+		t.Helper()
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/playerdata", http.NoBody)
+		if withBearer {
+			req.Header.Set("Authorization", "Bearer flsess_good")
+		}
+		if headerUserID != "" {
+			req.Header.Set("X-User-Id", headerUserID)
+		}
+		w := httptest.NewRecorder()
+		handler(w, req)
+		return w.Code
+	}
+
+	require.Equal(t, http.StatusOK, send(t, true, ""), "the bearer request should spend the first token")
+	require.Equal(t, http.StatusOK, send(t, false, userID), "the header request should spend the second token from the same bucket")
+	require.Equal(t, http.StatusTooManyRequests, send(t, true, ""),
+		"dropping and re-adding the Authorization header must not buy a second budget")
+	require.Equal(t, http.StatusOK, send(t, false, "somebody-else-entirely"),
+		"a different identity should still have its own budget")
 }
 
 func TestBuildRegisterUserVisitMiddleware(t *testing.T) {

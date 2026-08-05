@@ -36,7 +36,12 @@ func (u UserID) LowCardinalityString() string {
 	return string(u)
 }
 
-func GetUserID(r *http.Request) UserID {
-	userID := r.Header.Get("X-User-Id")
+// NewUserID truncates like GetUserID does. UserIDKeyFunc keys one bucket off
+// both, so they have to agree — login accepts userIds longer than 50.
+func NewUserID(userID string) UserID {
 	return UserID(fmt.Sprintf("%.50s", userID))
+}
+
+func GetUserID(r *http.Request) UserID {
+	return NewUserID(r.Header.Get("X-User-Id"))
 }

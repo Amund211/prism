@@ -55,7 +55,9 @@ func MakeGetPrestigesHandler(
 		ratelimiting.BurstSize(60),
 	)
 	userIDRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		// NOTE: Rate limiting based on user controlled value
+		// NOTE: Rate limiting based on user controlled value — this handler
+		//       mounts no bearer middleware, so there is no verified identity
+		//       for UserIDKeyFunc to prefer
 		userIDLimiter,
 		UserIDKeyFunc,
 	)
