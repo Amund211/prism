@@ -1,6 +1,9 @@
 package cache
 
-import "sync"
+import (
+	"context"
+	"sync"
+)
 
 type basicCacheEntry[T any] struct {
 	data  T
@@ -46,7 +49,11 @@ func (c *basicCache[T]) delete(key string) {
 	delete(c.cache, key)
 }
 
-func (c *basicCache[T]) wait() {
+// wait does not sleep: basicCache is only used in tests, where nothing is
+// gained by slowing a retry down. Nothing here needs to observe ctx —
+// GetOrCreate checks it on every iteration — but it does mean the wait budget
+// (maxWaitAttempts) is spent as fast as the loop can run.
+func (c *basicCache[T]) wait(ctx context.Context) {
 }
 
 func NewBasicCache[T any]() *basicCache[T] {

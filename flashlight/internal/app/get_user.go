@@ -77,8 +77,9 @@ func BuildGetUserWithCache(
 			track(ctx, trackingInfo{success: true, found: false})
 			return domain.User{}, err
 		} else if err != nil {
-			// NOTE: GetOrCreate only returns an error if create() fails.
-			// The user repository handles its own error reporting.
+			// NOTE: The error is either create()'s — the user repository
+			// handles its own error reporting — or GetOrCreate giving up on a
+			// done context or a contended entry, which it logs itself.
 			track(ctx, trackingInfo{success: false})
 			return domain.User{}, fmt.Errorf("failed to cache.GetOrCreate user: %w", err)
 		}

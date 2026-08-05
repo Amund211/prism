@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -58,11 +59,46 @@ func TestTTLCache(t *testing.T) {
 		require.True(t, result.claimed, "Expected to not find a value")
 	})
 
-	t.Run("wait", func(t *testing.T) {
+	t.Run("wait sleeps for the wait interval", func(t *testing.T) {
 		t.Parallel()
 
-		cache := NewTTLCacheWithMaxSize[Data](1000*time.Second, 1000)
-		cache.wait()
+		cache := &ttlCache[Data]{waitInterval: 20 * time.Millisecond}
+
+		start := time.Now()
+		cache.wait(t.Context())
+
+		require.GreaterOrEqual(t, time.Since(start), 20*time.Millisecond)
+	})
+
+	t.Run("wait returns early when the context is already done", func(t *testing.T) {
+		t.Parallel()
+
+		// A wait interval far longer than any sane one, so that a wait
+		// ignoring ctx fails the assertion rather than racing the clock.
+		cache := &ttlCache[Data]{waitInterval: 10 * time.Second}
+
+		ctx, cancel := context.WithCancel(t.Context())
+		cancel()
+
+		start := time.Now()
+		cache.wait(ctx)
+
+		require.Less(t, time.Since(start), 1*time.Second)
+	})
+
+	t.Run("wait returns when the context is cancelled while it waits", func(t *testing.T) {
+		t.Parallel()
+
+		cache := &ttlCache[Data]{waitInterval: 10 * time.Second}
+
+		ctx, cancel := context.WithCancel(t.Context())
+		timer := time.AfterFunc(10*time.Millisecond, cancel)
+		defer timer.Stop()
+
+		start := time.Now()
+		cache.wait(ctx)
+
+		require.Less(t, time.Since(start), 1*time.Second)
 	})
 }
 

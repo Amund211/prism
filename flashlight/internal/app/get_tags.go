@@ -112,8 +112,9 @@ func BuildGetTagsWithCache(
 			return getTagsWithoutCache(ctx, uuid, apiKey)
 		})
 		if err != nil {
-			// NOTE: GetOrCreate only returns an error if create() fails.
-			// getTagsWithoutCache handles its own error reporting
+			// NOTE: The error is either create()'s — getTagsWithoutCache
+			// handles its own error reporting — or GetOrCreate giving up on a
+			// done context or a contended entry, which it logs itself.
 			track(ctx, trackingInfo{
 				success:       false,
 				withAPIKey:    withAPIKey,

@@ -316,8 +316,9 @@ func BuildGetAndPersistPlayerWithCache(
 			}
 		})
 		if err != nil {
-			// NOTE: GetOrCreate only returns an error if create() fails.
-			// The create functions handle their own error reporting.
+			// NOTE: The error is either create()'s — the create functions
+			// handle their own error reporting — or GetOrCreate giving up on a
+			// done context or a contended entry, which it logs itself.
 			if errors.Is(err, domain.ErrPlayerNotFound) {
 				track(ctx, trackingInfo{success: true, found: false, providerMode: providerMode})
 			} else {

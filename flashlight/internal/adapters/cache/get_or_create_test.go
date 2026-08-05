@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"testing"
@@ -16,7 +17,7 @@ type Callback func() (Data, error)
 func withWait[T any](client *mockCacheClient[T], waits int, f Callback) Callback {
 	wrapped := func() (Data, error) {
 		for range waits {
-			client.wait()
+			client.wait(context.Background())
 		}
 		return f()
 	}
@@ -80,7 +81,7 @@ func TestGetOrCreateSingle(t *testing.T) {
 		require.Equal(t, "data1", data)
 		require.Equal(t, 0, int(client.server.currentTick.Load()))
 
-		client.wait()
+		client.wait(context.Background())
 
 		require.Equal(t, 1, int(client.server.currentTick.Load()))
 
@@ -114,7 +115,7 @@ func TestGetOrCreateMultiple(t *testing.T) {
 
 	go func() {
 		client := clients[1]
-		client.wait() // Wait for the first client to populate the cache
+		client.wait(context.Background()) // Wait for the first client to populate the cache
 		data, created, err := GetOrCreate(t.Context(), client, "key1", createUnreachable(t))
 		require.Nil(t, err)
 		require.False(t, created)
@@ -152,7 +153,7 @@ func TestGetOrCreateErrorRetries(t *testing.T) {
 
 	go func() {
 		client := clients[1]
-		client.wait()
+		client.wait(context.Background())
 
 		// This should wait for the first client to finish (not storing a result due to an error)
 		// then it should retry and get the result
@@ -198,6 +199,98 @@ func TestGetOrCreateCleansUpOnError(t *testing.T) {
 			require.Equal(t, "data1", data)
 		})
 	}
+}
+
+// TestGetOrCreateStopsWaiting covers the exits available to a caller that did
+// not get the claim. Without them the loop only ends when the claimer
+// publishes or fails, which no caller controls and neither the client nor the
+// deadline can interrupt.
+func TestGetOrCreateStopsWaiting(t *testing.T) {
+	t.Parallel()
+
+	t.Run("returns the context error when the context is already done", func(t *testing.T) {
+		t.Parallel()
+
+		c := NewBasicCache[Data]()
+		// Somebody else holds the claim and never publishes
+		require.True(t, c.getOrClaim("key1").claimed)
+
+		ctx, cancel := context.WithCancel(t.Context())
+		cancel()
+
+		_, _, err := GetOrCreate(ctx, c, "key1", createUnreachable(t))
+		require.ErrorIs(t, err, context.Canceled)
+	})
+
+	t.Run("does not create anything when the context is already done", func(t *testing.T) {
+		t.Parallel()
+
+		c := NewBasicCache[Data]()
+
+		ctx, cancel := context.WithCancel(t.Context())
+		cancel()
+
+		// The entry is there for the taking, but nobody will read it
+		_, _, err := GetOrCreate(ctx, c, "key1", createUnreachable(t))
+		require.ErrorIs(t, err, context.Canceled)
+	})
+
+	t.Run("returns the context error when it is cancelled while waiting", func(t *testing.T) {
+		t.Parallel()
+
+		// The real wait, so this exercises a caller that is inside wait()
+		// when the cancellation lands.
+		c := NewTTLCacheWithMaxSize[Data](1*time.Minute, 1000)
+		require.True(t, c.getOrClaim("key1").claimed)
+
+		ctx, cancel := context.WithCancel(t.Context())
+		timer := time.AfterFunc(10*time.Millisecond, cancel)
+		defer timer.Stop()
+
+		start := time.Now()
+		_, _, err := GetOrCreate(ctx, c, "key1", createUnreachable(t))
+
+		require.ErrorIs(t, err, context.Canceled)
+		// Well short of the full budget of maxWaitAttempts * 50ms
+		require.Less(t, time.Since(start), 5*time.Second)
+	})
+
+	t.Run("gives up once the wait budget is spent", func(t *testing.T) {
+		t.Parallel()
+
+		// basicCache's wait() doesn't sleep, so the whole budget is spent
+		// without the test taking maxWaitAttempts * 50ms.
+		c := NewBasicCache[Data]()
+		require.True(t, c.getOrClaim("key1").claimed)
+
+		_, _, err := GetOrCreate(t.Context(), c, "key1", createUnreachable(t))
+		require.ErrorIs(t, err, ErrGaveUpWaiting)
+
+		// Giving up must not take the other caller's claim with it — the
+		// cleanup in GetOrCreate only applies to a claim we made ourselves.
+		require.False(t, c.getOrClaim("key1").claimed)
+	})
+
+	t.Run("a waiter that gets the claim within the budget still creates", func(t *testing.T) {
+		t.Parallel()
+
+		// The real 50ms wait, so the claim below is dropped while this caller
+		// is in its first wait rather than after the budget is gone.
+		c := NewTTLCacheWithMaxSize[Data](1*time.Minute, 1000)
+		require.True(t, c.getOrClaim("key1").claimed)
+
+		// The claim is dropped a few attempts in, as it would be by a
+		// create() that failed
+		go func() {
+			time.Sleep(10 * time.Millisecond)
+			c.delete("key1")
+		}()
+
+		data, created, err := GetOrCreate(t.Context(), c, "key1", createCallback(1))
+		require.NoError(t, err)
+		require.True(t, created)
+		require.Equal(t, "data1", data)
+	})
 }
 
 func TestGetOrCreateRealCache(t *testing.T) {

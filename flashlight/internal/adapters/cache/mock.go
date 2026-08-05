@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -67,7 +68,12 @@ func (cacheClient *mockCacheClient[T]) delete(uuid string) {
 	delete(cacheClient.server.cache, uuid)
 }
 
-func (cacheClient *mockCacheClient[T]) wait() {
+// wait deliberately ignores ctx. It is not a sleep but a rendezvous with the
+// other clients on this server's tick, and a client that dropped out of it
+// would stall processTicks for everybody. Cancellation is instead covered by
+// GetOrCreate's check at the top of each iteration, which fires one wait
+// later, and tested against the real caches.
+func (cacheClient *mockCacheClient[T]) wait(ctx context.Context) {
 	if cacheClient.server.isDone() {
 		panic("wait() called on a client that is already done")
 	}
@@ -83,7 +89,7 @@ func (cacheClient *mockCacheClient[T]) wait() {
 
 func (cacheClient *mockCacheClient[T]) waitUntilDone() {
 	for !cacheClient.server.isDone() {
-		cacheClient.wait()
+		cacheClient.wait(context.Background())
 	}
 }
 

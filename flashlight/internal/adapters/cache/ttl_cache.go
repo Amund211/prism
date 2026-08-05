@@ -1,10 +1,16 @@
 package cache
 
 import (
+	"context"
 	"time"
 
 	"github.com/jellydator/ttlcache/v3"
 )
+
+// defaultWaitInterval is how long a caller sleeps between attempts at claiming
+// an entry. GetOrCreate's wait budget is spent in units of this — see
+// maxWaitAttempts.
+const defaultWaitInterval = 50 * time.Millisecond
 
 type tllCacheEntry[T any] struct {
 	data  T
@@ -12,7 +18,8 @@ type tllCacheEntry[T any] struct {
 }
 
 type ttlCache[T any] struct {
-	cache *ttlcache.Cache[string, tllCacheEntry[T]]
+	cache        *ttlcache.Cache[string, tllCacheEntry[T]]
+	waitInterval time.Duration
 }
 
 func (c *ttlCache[T]) getOrClaim(key string) hitResult[T] {
@@ -39,8 +46,14 @@ func (c *ttlCache[T]) delete(key string) {
 	c.cache.Delete(key)
 }
 
-func (c *ttlCache[T]) wait() {
-	time.Sleep(50 * time.Millisecond)
+func (c *ttlCache[T]) wait(ctx context.Context) {
+	timer := time.NewTimer(c.waitInterval)
+	defer timer.Stop()
+
+	select {
+	case <-timer.C:
+	case <-ctx.Done():
+	}
 }
 
 // NewTTLCacheWithMaxSize builds a TTL cache with a bound on the number of
@@ -56,5 +69,5 @@ func NewTTLCacheWithMaxSize[T any](ttl time.Duration, maxSize uint64) Cache[T] {
 func newTTLCache[T any](options ...ttlcache.Option[string, tllCacheEntry[T]]) Cache[T] {
 	cache := ttlcache.New(options...)
 	go cache.Start()
-	return &ttlCache[T]{cache: cache}
+	return &ttlCache[T]{cache: cache, waitInterval: defaultWaitInterval}
 }

@@ -234,8 +234,10 @@ func BuildGetAccountByUsernameWithCache(
 			track(ctx, trackingInfo{success: true, found: false})
 			return domain.Account{}, err
 		} else if err != nil {
-			// NOTE: GetOrCreate only returns an error if create() fails.
-			// getAccountByUsernameWithoutCache handles its own error reporting
+			// NOTE: The error is either create()'s —
+			// getAccountByUsernameWithoutCache handles its own error
+			// reporting — or GetOrCreate giving up on a done context or a
+			// contended entry, which it logs itself.
 			track(ctx, trackingInfo{success: false})
 			return domain.Account{}, fmt.Errorf("failed to cache.GetOrCreate account for username: %w", err)
 		}
