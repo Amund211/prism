@@ -9,25 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root.tsx'
-import { Route as SettingsRouteImport } from './routes/settings.tsx'
-import { Route as DownloadsRouteImport } from './routes/downloads.tsx'
-import { Route as AboutRouteImport } from './routes/about.tsx'
 import { Route as IndexRouteImport } from './routes/index.tsx'
-import { Route as WrappedIndexRouteImport } from './routes/wrapped/index.tsx'
-import { Route as SessionIndexRouteImport } from './routes/session/index.tsx'
-import { Route as WrappedUuidRouteImport } from './routes/wrapped/$uuid.tsx'
-import { Route as SessionUuidRouteImport } from './routes/session/$uuid.tsx'
+import { Route as AboutRouteImport } from './routes/about.tsx'
+import { Route as DownloadsRouteImport } from './routes/downloads.tsx'
+import { Route as SettingsRouteImport } from './routes/settings.tsx'
 import { Route as HistoryExploreRouteImport } from './routes/history.explore.tsx'
+import { Route as SessionIndexRouteImport } from './routes/session/index.tsx'
+import { Route as SessionUuidRouteImport } from './routes/session/$uuid.tsx'
+import { Route as WrappedIndexRouteImport } from './routes/wrapped/index.tsx'
+import { Route as WrappedUuidRouteImport } from './routes/wrapped/$uuid.tsx'
 import { Route as SessionUuidDetailRouteImport } from './routes/session/$uuid_.detail.tsx'
 
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DownloadsRoute = DownloadsRouteImport.update({
-  id: '/downloads',
-  path: '/downloads',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -35,14 +30,19 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DownloadsRoute = DownloadsRouteImport.update({
+  id: '/downloads',
+  path: '/downloads',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WrappedIndexRoute = WrappedIndexRouteImport.update({
-  id: '/wrapped/',
-  path: '/wrapped/',
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryExploreRoute = HistoryExploreRouteImport.update({
+  id: '/history/explore',
+  path: '/history/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SessionIndexRoute = SessionIndexRouteImport.update({
@@ -50,19 +50,19 @@ const SessionIndexRoute = SessionIndexRouteImport.update({
   path: '/session/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WrappedUuidRoute = WrappedUuidRouteImport.update({
-  id: '/wrapped/$uuid',
-  path: '/wrapped/$uuid',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SessionUuidRoute = SessionUuidRouteImport.update({
   id: '/session/$uuid',
   path: '/session/$uuid',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HistoryExploreRoute = HistoryExploreRouteImport.update({
-  id: '/history/explore',
-  path: '/history/explore',
+const WrappedIndexRoute = WrappedIndexRouteImport.update({
+  id: '/wrapped/',
+  path: '/wrapped/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WrappedUuidRoute = WrappedUuidRouteImport.update({
+  id: '/wrapped/$uuid',
+  path: '/wrapped/$uuid',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SessionUuidDetailRoute = SessionUuidDetailRouteImport.update({
@@ -162,18 +162,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/downloads': {
-      id: '/downloads'
-      path: '/downloads'
-      fullPath: '/downloads'
-      preLoaderRoute: typeof DownloadsRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -183,18 +176,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/downloads': {
+      id: '/downloads'
+      path: '/downloads'
+      fullPath: '/downloads'
+      preLoaderRoute: typeof DownloadsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/wrapped/': {
-      id: '/wrapped/'
-      path: '/wrapped'
-      fullPath: '/wrapped/'
-      preLoaderRoute: typeof WrappedIndexRouteImport
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history/explore': {
+      id: '/history/explore'
+      path: '/history/explore'
+      fullPath: '/history/explore'
+      preLoaderRoute: typeof HistoryExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/session/': {
@@ -204,13 +204,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SessionIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/wrapped/$uuid': {
-      id: '/wrapped/$uuid'
-      path: '/wrapped/$uuid'
-      fullPath: '/wrapped/$uuid'
-      preLoaderRoute: typeof WrappedUuidRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/session/$uuid': {
       id: '/session/$uuid'
       path: '/session/$uuid'
@@ -218,11 +211,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SessionUuidRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/history/explore': {
-      id: '/history/explore'
-      path: '/history/explore'
-      fullPath: '/history/explore'
-      preLoaderRoute: typeof HistoryExploreRouteImport
+    '/wrapped/': {
+      id: '/wrapped/'
+      path: '/wrapped'
+      fullPath: '/wrapped/'
+      preLoaderRoute: typeof WrappedIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wrapped/$uuid': {
+      id: '/wrapped/$uuid'
+      path: '/wrapped/$uuid'
+      fullPath: '/wrapped/$uuid'
+      preLoaderRoute: typeof WrappedUuidRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/session/$uuid_/detail': {
