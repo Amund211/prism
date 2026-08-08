@@ -434,7 +434,7 @@ def render_stats(
             rating_configs.stars.decimals,
             rating_configs.stars.levels,
             use_star_colors=not rating_configs.stars.rate_by_level,
-            sort_ascending=rating_configs.index.sort_ascending,
+            sort_ascending=rating_configs.stars.sort_ascending,
         )
         index_cell = render_based_on_level(
             truncate_float_or_int(player.stats.index, rating_configs.index.decimals),
