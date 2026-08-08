@@ -10,9 +10,13 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
+import { startSession } from "#helpers/flashlight/auth/session.ts";
 import { getOrSetUserId } from "#helpers/userId.ts";
 
 const userId = getOrSetUserId(); // Ensure a user ID is set
+
+// Overlap the login round-trip with app boot
+void startSession();
 
 // Set the user in Sentry
 setUser({

@@ -1,8 +1,9 @@
+import type { SetupWorker } from "msw/browser";
 import { test as testBase } from "vitest";
 
 import { worker } from "#mocks/worker.ts";
 
-export const mswTest = testBase.extend({
+export const mswTest = testBase.extend<{ worker: SetupWorker }>({
     worker: [
         // oxlint-disable-next-line no-empty-pattern
         async ({}, use) => {

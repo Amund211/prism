@@ -1,6 +1,6 @@
 import { test, expect, describe, vi, afterEach } from "vitest";
 
-import { flashlightFetch, getFlashlightHeaders } from "./fetch.ts";
+import { flashlightRequest, getFlashlightHeaders } from "./request.ts";
 
 describe(getFlashlightHeaders, () => {
     test("identifies rainbow as the client", () => {
@@ -25,7 +25,7 @@ const mockFetch = (response: Response) => {
     return fetchMock;
 };
 
-describe(flashlightFetch, () => {
+describe(flashlightRequest, () => {
     afterEach(() => {
         vi.unstubAllGlobals();
     });
@@ -33,7 +33,7 @@ describe(flashlightFetch, () => {
     test("parses the response and sends the client headers", async () => {
         const fetchMock = mockFetch(Response.json({ hello: "world" }));
 
-        const data = await flashlightFetch<{ hello: string }>("/v1/thing", {
+        const { data } = await flashlightRequest<{ hello: string }>("/v1/thing", {
             errorContext: "Failed to get thing",
             extra: {},
         });
@@ -50,7 +50,7 @@ describe(flashlightFetch, () => {
     test("forwards init to fetch", async () => {
         const fetchMock = mockFetch(Response.json([]));
 
-        await flashlightFetch("/v1/thing", {
+        await flashlightRequest("/v1/thing", {
             init: { method: "POST", body: JSON.stringify({ a: 1 }) },
             errorContext: "Failed to get thing",
             extra: {},
@@ -65,7 +65,7 @@ describe(flashlightFetch, () => {
         mockFetch(new Response("nope", { status: 500 }));
 
         await expect(
-            flashlightFetch("/v1/thing", {
+            flashlightRequest("/v1/thing", {
                 errorContext: "Failed to get thing",
                 extra: {},
             }),
@@ -76,10 +76,50 @@ describe(flashlightFetch, () => {
         mockFetch(new Response("not json"));
 
         await expect(
-            flashlightFetch("/v1/thing", {
+            flashlightRequest("/v1/thing", {
                 errorContext: "Failed to get thing",
                 extra: {},
             }),
         ).rejects.toThrow("JSON");
+    });
+
+    test("sends the bearer when given one", async () => {
+        const fetchMock = mockFetch(Response.json({}));
+
+        await flashlightRequest("/v1/thing", {
+            errorContext: "Failed to get thing",
+            extra: {},
+            bearer: "flsess_token",
+        });
+
+        const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+        expect(new Headers(init.headers).get("Authorization")).toBe(
+            "Bearer flsess_token",
+        );
+    });
+
+    test("reports the status on a non-ok response", async () => {
+        mockFetch(new Response("nope", { status: 401 }));
+
+        await expect(
+            flashlightRequest("/v1/thing", {
+                errorContext: "Failed to get thing",
+                extra: {},
+            }),
+        ).rejects.toMatchObject({
+            name: "FlashlightResponseError",
+            status: 401,
+        });
+    });
+
+    test("reads the refresh hint", async () => {
+        mockFetch(Response.json({}, { headers: { "X-Auth-Refresh": "1" } }));
+
+        const { refreshHint } = await flashlightRequest("/v1/thing", {
+            errorContext: "Failed to get thing",
+            extra: {},
+        });
+
+        expect(refreshHint).toBe(true);
     });
 });

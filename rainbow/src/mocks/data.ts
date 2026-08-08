@@ -1,6 +1,33 @@
+import type {
+    APIChallengeResponse,
+    APISessionResponse,
+} from "#helpers/flashlight/auth/api.ts";
+import { POW_ALGORITHM } from "#helpers/flashlight/auth/proofOfWork.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import type { APIPlayerDataPIT } from "#queries/playerdata.ts";
 import type { APISession } from "#queries/sessions.ts";
+
+export const TEST_SESSION_ID = "flsess_test_session";
+
+export const makeChallengeResponse = (userId: string): APIChallengeResponse => ({
+    challenge: `challenge-for-${userId}`,
+    algorithm: POW_ALGORITHM,
+    // Difficulty 0 so the suite never burns CPU on the hash loop. A non-zero
+    // difficulty is covered directly against the solver.
+    difficulty: 0,
+    expiresInSeconds: 60,
+});
+
+export const makeSessionResponse = (
+    sessionId: string = TEST_SESSION_ID,
+): APISessionResponse => ({
+    sessionId,
+    tier: "anonymous",
+    expiresInSeconds: 3600,
+    refreshUntilInSeconds: 7200,
+    refreshInSeconds: 3300,
+    canRefresh: true,
+});
 
 interface User {
     username: string;

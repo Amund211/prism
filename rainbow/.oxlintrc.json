@@ -169,7 +169,10 @@
                             "HTMLElement",
                             "CustomEvent",
                             "StorageEvent",
-                            "IDBValidKey"
+                            "IDBValidKey",
+                            "MessageEvent",
+                            "Worker",
+                            "Uint8Array"
                         ]
                     },
                     {

@@ -11,8 +11,10 @@ import type { APIWrappedData } from "#queries/wrapped.ts";
 import {
     findUserByUsername,
     findUserByUUID,
+    makeChallengeResponse,
     makePlayerDataPIT,
     makeSession,
+    makeSessionResponse,
     makeWrappedResponse,
 } from "./data.ts";
 
@@ -36,6 +38,43 @@ const validateUUID = (uuid: unknown): string => {
 };
 
 export const handlers = [
+    http.post(
+        flashlightEndpoint("v1/auth/anonymous/challenge"),
+        async ({ request }) => {
+            const body = (await request.json()) as { userId: string };
+            if (typeof body.userId !== "string" || body.userId.length === 0) {
+                throw new TypeError("Invalid userId");
+            }
+
+            return HttpResponse.json(makeChallengeResponse(body.userId));
+        },
+    ),
+    http.post(flashlightEndpoint("v1/auth/anonymous/login"), async ({ request }) => {
+        const body = (await request.json()) as {
+            userId: string;
+            challenge: string;
+            solution: string;
+        };
+        if (body.challenge !== makeChallengeResponse(body.userId).challenge) {
+            throw new Error("Challenge was not minted for this userId");
+        }
+        // flashlight rejects an empty solution even at difficulty 0.
+        if (typeof body.solution !== "string" || body.solution.length === 0) {
+            throw new Error("Missing solution");
+        }
+
+        return HttpResponse.json(makeSessionResponse());
+    }),
+    http.post(flashlightEndpoint("v1/auth/refresh"), ({ request }) => {
+        const authorization = request.headers.get("Authorization");
+        if (authorization?.startsWith("Bearer flsess_") !== true) {
+            return new HttpResponse(null, { status: 401 });
+        }
+
+        return HttpResponse.json(
+            makeSessionResponse(authorization.slice("Bearer ".length)),
+        );
+    }),
     http.get(flashlightEndpoint("v1/account/uuid/:uuid"), (req) => {
         const uuid = validateUUID(req.params.uuid);
 
