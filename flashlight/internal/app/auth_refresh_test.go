@@ -159,6 +159,96 @@ func TestBuildRefreshSession(t *testing.T) {
 		require.Equal(t, lifetimeEndsAt, session.RefreshUntil)
 	})
 
+	t.Run("rejects a refresh less than authMinRefreshInterval after the last one", func(t *testing.T) {
+		t.Parallel()
+		now := time.Date(2026, 1, 1, 12, 30, 0, 0, time.UTC)
+		// Refreshed 15 minutes ago: expires_at is still 45 minutes out.
+		current := domain.AuthSession{
+			ID:             "flsess_sid",
+			IdentityType:   domain.AuthSessionIdentityAnonymous,
+			CreatedAt:      now.Add(-15 * time.Minute),
+			ExpiresAt:      now.Add(authSessionTTL - 15*time.Minute),
+			RefreshUntil:   now.Add(authRefreshWindow - 15*time.Minute),
+			LifetimeEndsAt: now.Add(authMaxSessionAge - 15*time.Minute),
+			LastUsedAt:     now.Add(-15 * time.Minute),
+		}
+
+		var persisted bool
+		repo := &fakeAuthSessionRepo{
+			updateFn: func(_ context.Context, _ string, fn func(domain.AuthSession) (domain.AuthSession, error)) (domain.AuthSession, error) {
+				updated, err := fn(current)
+				persisted = err == nil
+				return updated, err
+			},
+		}
+
+		refresh := app.BuildRefreshSession(repo, func() time.Time { return now })
+		_, err := refresh(ctx, "flsess_sid", "new-ip")
+		require.ErrorIs(t, err, domain.ErrAuthSessionRefreshTooSoon)
+		require.False(t, persisted, "the row must be left untouched")
+	})
+
+	t.Run("allows a refresh exactly authMinRefreshInterval after the last one", func(t *testing.T) {
+		t.Parallel()
+		now := time.Date(2026, 1, 1, 12, 30, 0, 0, time.UTC)
+		current := domain.AuthSession{
+			ID:             "flsess_sid",
+			IdentityType:   domain.AuthSessionIdentityAnonymous,
+			CreatedAt:      now.Add(-authMinRefreshInterval),
+			ExpiresAt:      now.Add(authSessionTTL - authMinRefreshInterval),
+			RefreshUntil:   now.Add(authRefreshWindow - authMinRefreshInterval),
+			LifetimeEndsAt: now.Add(authMaxSessionAge - authMinRefreshInterval),
+			LastUsedAt:     now.Add(-authMinRefreshInterval),
+		}
+		refresh := app.BuildRefreshSession(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now })
+		session, err := refresh(ctx, "flsess_sid", "ip")
+		require.NoError(t, err)
+		require.Equal(t, now.Add(authSessionTTL), session.ExpiresAt)
+	})
+
+	t.Run("allows a refresh of an expired session in the grace window", func(t *testing.T) {
+		t.Parallel()
+		// The reactive client flow — 401, refresh, retry — must never hit
+		// the too-soon check: a session past expires_at has by definition
+		// burned its whole ttl.
+		now := time.Date(2026, 1, 1, 12, 30, 0, 0, time.UTC)
+		current := domain.AuthSession{
+			ID:             "flsess_sid",
+			IdentityType:   domain.AuthSessionIdentityAnonymous,
+			CreatedAt:      now.Add(-90 * time.Minute),
+			ExpiresAt:      now.Add(-30 * time.Minute),
+			RefreshUntil:   now.Add(30 * time.Minute),
+			LifetimeEndsAt: now.Add(authMaxSessionAge - 90*time.Minute),
+			LastUsedAt:     now.Add(-30 * time.Minute),
+		}
+		refresh := app.BuildRefreshSession(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now })
+		session, err := refresh(ctx, "flsess_sid", "ip")
+		require.NoError(t, err)
+		require.Equal(t, now.Add(authSessionTTL), session.ExpiresAt)
+	})
+
+	t.Run("a session clamped to lifetime_ends_at may refresh again immediately", func(t *testing.T) {
+		t.Parallel()
+		// Near the lifetime cap expires_at is pinned below now+ttl, so the
+		// remaining-lifetime test reads as "plenty burned" and the session
+		// can never lock itself out in its final stretch.
+		now := time.Date(2026, 1, 1, 12, 30, 0, 0, time.UTC)
+		lifetimeEndsAt := now.Add(20 * time.Minute)
+		current := domain.AuthSession{
+			ID:             "flsess_sid",
+			IdentityType:   domain.AuthSessionIdentityAnonymous,
+			CreatedAt:      now.Add(-(authMaxSessionAge - 20*time.Minute)),
+			ExpiresAt:      lifetimeEndsAt,
+			RefreshUntil:   lifetimeEndsAt,
+			LifetimeEndsAt: lifetimeEndsAt,
+			LastUsedAt:     now.Add(-time.Minute),
+		}
+		refresh := app.BuildRefreshSession(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now })
+		session, err := refresh(ctx, "flsess_sid", "ip")
+		require.NoError(t, err)
+		require.Equal(t, lifetimeEndsAt, session.ExpiresAt)
+	})
+
 	t.Run("missing id returns ErrAuthSessionNotFound", func(t *testing.T) {
 		t.Parallel()
 		repo := &fakeAuthSessionRepo{

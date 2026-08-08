@@ -153,6 +153,22 @@ func TestAuthRefreshHandler(t *testing.T) {
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
+	t.Run("429 on "+domain.ErrAuthSessionRefreshTooSoon.Error(), func(t *testing.T) {
+		t.Parallel()
+		// Deliberately not a 401: the session is still good, so the client
+		// must keep using it rather than re-authenticating.
+		refresh := func(ctx context.Context, sessionID, ipHash string) (domain.AuthSession, error) {
+			return domain.AuthSession{}, domain.ErrAuthSessionRefreshTooSoon
+		}
+		handler := newAuthRefreshHandler(t, refresh, time.Now)
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/refresh", http.NoBody)
+		r.Header.Set("Authorization", "Bearer some-id")
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusTooManyRequests, w.Code)
+	})
+
 	for _, sentinel := range []error{
 		domain.ErrAuthSessionNotFound,
 		domain.ErrAuthSessionRevoked,

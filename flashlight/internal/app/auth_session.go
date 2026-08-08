@@ -22,6 +22,11 @@ const (
 	// client must re-auth.
 	authRefreshWindow = 2 * time.Hour
 
+	// authMinRefreshInterval is how much of a session's ttl must burn
+	// before it may be refreshed again. Clients are told to refresh at
+	// 55 minutes in, so only a hammering one hits this.
+	authMinRefreshInterval = authSessionTTL / 2
+
 	// authMaxSessionAge is the absolute lifetime cap on a session.
 	// Stamped onto each row as lifetime_ends_at at issue time, then
 	// used to clamp refresh extensions; never re-evaluated.

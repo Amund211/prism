@@ -77,6 +77,11 @@ func MakeAuthRefreshHandler(
 
 		view, err := refresh(ctx, sessionID, ipHash)
 		switch {
+		case errors.Is(err, domain.ErrAuthSessionRefreshTooSoon):
+			// Not a 401: the session is fine, so re-auth is the wrong reaction.
+			logging.FromContext(ctx).InfoContext(ctx, "Session refreshed too soon", "statusCode", http.StatusTooManyRequests)
+			http.Error(w, "Session refreshed too recently", http.StatusTooManyRequests)
+			return
 		case errors.Is(err, domain.ErrAuthSessionNotFound),
 			errors.Is(err, domain.ErrAuthSessionRevoked),
 			errors.Is(err, domain.ErrAuthSessionRefreshExpired):

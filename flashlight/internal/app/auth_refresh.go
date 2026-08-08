@@ -16,8 +16,9 @@ type refreshRepository interface {
 
 // RefreshSession bumps the lifetime of an existing session given its
 // bearer id. Accepts ids that are past expires_at but still within
-// refresh_until and lifetime_ends_at. Updates ip_hash so roaming
-// clients don't get stuck on stale ip counters.
+// refresh_until and lifetime_ends_at. Rejects ids refreshed less than
+// authMinRefreshInterval ago. Updates ip_hash so roaming clients don't
+// get stuck on stale ip counters.
 type RefreshSession func(ctx context.Context, sessionID string, ipHash string) (domain.AuthSession, error)
 
 func BuildRefreshSession(repo refreshRepository, nowFunc func() time.Time) RefreshSession {
@@ -34,6 +35,12 @@ func BuildRefreshSession(repo refreshRepository, nowFunc func() time.Time) Refre
 			}
 			if !now.Before(s.LifetimeEndsAt) {
 				return domain.AuthSession{}, domain.ErrAuthSessionRefreshExpired
+			}
+
+			// Every bump sets expires_at = now + authSessionTTL, so the
+			// remaining lifetime tells us how long ago the last one was.
+			if authSessionTTL-s.ExpiresAt.Sub(now) < authMinRefreshInterval {
+				return domain.AuthSession{}, domain.ErrAuthSessionRefreshTooSoon
 			}
 
 			newExpiresAt := now.Add(authSessionTTL)
