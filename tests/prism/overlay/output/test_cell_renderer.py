@@ -11,6 +11,7 @@ from prism.overlay.output.cell_renderer import (
     rate_value_descending,
     render_based_on_level,
     render_stars,
+    render_stats,
 )
 from prism.overlay.output.cells import (
     ALL_COLUMN_NAMES_ORDERED,
@@ -20,7 +21,24 @@ from prism.overlay.output.cells import (
     ColumnName,
 )
 from prism.overlay.output.color import MinecraftColor
+from prism.overlay.output.config import (
+    DEFAULT_BBLR_CONFIG,
+    DEFAULT_BEDS_CONFIG,
+    DEFAULT_FINALS_CONFIG,
+    DEFAULT_FKDR_CONFIG,
+    DEFAULT_INDEX_CONFIG,
+    DEFAULT_KDR_CONFIG,
+    DEFAULT_KILLS_CONFIG,
+    DEFAULT_SESSIONTIME_CONFIG,
+    DEFAULT_STARS_CONFIG,
+    DEFAULT_WINS_CONFIG,
+    DEFAULT_WINSTREAK_CONFIG,
+    DEFAULT_WLR_CONFIG,
+    RatingConfig,
+    RatingConfigCollection,
+)
 from prism.utils import truncate_float
+from tests.prism.overlay.utils import make_player
 
 LEVELS = (0.1, 0.5, 1, 10, 100)
 
@@ -573,3 +591,66 @@ def test_render_based_on_level_too_many_levels() -> None:
     assert render_based_on_level(
         "a", 100, (1, 2, 3, 4, 5, 6, 7, 8), True, sort_ascending=False
     ) == CellValue.monochrome("a", GUI_COLORS[4])
+
+
+DEFAULT_RATING_CONFIGS = RatingConfigCollection(
+    stars=DEFAULT_STARS_CONFIG,
+    index=DEFAULT_INDEX_CONFIG,
+    fkdr=DEFAULT_FKDR_CONFIG,
+    kdr=DEFAULT_KDR_CONFIG,
+    bblr=DEFAULT_BBLR_CONFIG,
+    wlr=DEFAULT_WLR_CONFIG,
+    winstreak=DEFAULT_WINSTREAK_CONFIG,
+    kills=DEFAULT_KILLS_CONFIG,
+    finals=DEFAULT_FINALS_CONFIG,
+    beds=DEFAULT_BEDS_CONFIG,
+    wins=DEFAULT_WINS_CONFIG,
+    sessiontime=DEFAULT_SESSIONTIME_CONFIG,
+)
+
+# Levels are stored in descending order when sorting ascending
+STARS_ASCENDING_CONFIG = RatingConfig(
+    rate_by_level=True,
+    levels=(800.0, 500.0, 300.0, 100.0),
+    decimals=2,
+    sort_ascending=True,
+)
+STARS_DESCENDING_CONFIG = RatingConfig(
+    rate_by_level=True,
+    levels=(100.0, 300.0, 500.0, 800.0),
+    decimals=2,
+    sort_ascending=False,
+)
+
+
+@pytest.mark.parametrize(
+    "stars_config, index_sort_ascending, stars, gui_color",
+    (
+        # Sorting ascending -> low stars rated highly
+        (STARS_ASCENDING_CONFIG, False, 50, GUI_COLORS[4]),
+        (STARS_ASCENDING_CONFIG, False, 1500, GUI_COLORS[0]),
+        (STARS_ASCENDING_CONFIG, True, 50, GUI_COLORS[4]),
+        (STARS_ASCENDING_CONFIG, True, 1500, GUI_COLORS[0]),
+        # Sorting descending -> high stars rated highly
+        (STARS_DESCENDING_CONFIG, False, 50, GUI_COLORS[0]),
+        (STARS_DESCENDING_CONFIG, False, 1500, GUI_COLORS[4]),
+        (STARS_DESCENDING_CONFIG, True, 50, GUI_COLORS[0]),
+        (STARS_DESCENDING_CONFIG, True, 1500, GUI_COLORS[4]),
+    ),
+)
+def test_render_stats_stars_uses_stars_sort_ascending(
+    stars_config: RatingConfig,
+    index_sort_ascending: bool,
+    stars: float,
+    gui_color: str,
+) -> None:
+    """The stars cell must be rated by the stars config, not the index config"""
+    rating_configs = replace(
+        DEFAULT_RATING_CONFIGS,
+        stars=stars_config,
+        index=replace(DEFAULT_INDEX_CONFIG, sort_ascending=index_sort_ascending),
+    )
+
+    stars_cell = render_stats(make_player(stars=stars), rating_configs).stars
+
+    assert stars_cell.color_sections[0].color == gui_color
