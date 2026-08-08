@@ -1,9 +1,8 @@
-import { captureException, captureMessage } from "@sentry/react";
+import { captureMessage } from "@sentry/react";
 import { queryOptions } from "@tanstack/react-query";
 
 import { addKnownAliasAndPersist } from "#contexts/KnownAliases/helpers.ts";
-import { env } from "#env.ts";
-import { getFlashlightHeaders } from "#helpers/flashlight.ts";
+import { flashlightFetch } from "#helpers/flashlight/fetch.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
 import { MS_PER_DAY } from "#time.ts";
 
@@ -17,81 +16,13 @@ export const getUUIDQueryOptions = (username: string) =>
         staleTime: MS_PER_DAY * 21,
         queryKey: ["uuid", username],
         queryFn: async (): Promise<{ uuid: string; username: string }> => {
-            const response = await fetch(
-                // NOTE: The flashlight API does **not** allow third-party access.
-                //       Do not send any requests to any endpoints without explicit permission.
-                //       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
-                `${env.VITE_FLASHLIGHT_URL}/v1/account/username/${username}`,
+            const data = await flashlightFetch<unknown>(
+                `/v1/account/username/${username}`,
                 {
-                    headers: getFlashlightHeaders(),
+                    errorContext: "Failed to get uuid",
+                    extra: { username },
                 },
-            ).catch((error: unknown) => {
-                captureException(error, {
-                    extra: {
-                        username,
-                        message: "Failed to get uuid: failed to fetch",
-                    },
-                });
-                throw error;
-            });
-
-            if (!response.ok) {
-                const text = await response.text().catch((error: unknown) => {
-                    captureException(error, {
-                        tags: {
-                            status: response.status,
-                            statusText: response.statusText,
-                        },
-                        extra: {
-                            message:
-                                "Failed to get uuid: failed to read response text when handling response error",
-                            username,
-                        },
-                    });
-                    throw error;
-                });
-                captureMessage("Failed to get uuid: response error", {
-                    level: "error",
-                    extra: {
-                        status: response.status,
-                        statusText: response.statusText,
-                        text,
-                    },
-                });
-                throw new Error(
-                    `Failed to fetch uuid for username. ${response.status.toString()} - ${response.statusText}: ${text}`,
-                );
-            }
-
-            const data: unknown = await response
-                .json()
-                .catch(async (error: unknown) => {
-                    try {
-                        const text = await response.text();
-                        captureException(error, {
-                            extra: {
-                                message: "Failed to get uuid: failed to parse json",
-                                username,
-                                text,
-                            },
-                        });
-                    } catch (textError: unknown) {
-                        captureException(textError, {
-                            tags: {
-                                status: response.status,
-                                statusText: response.statusText,
-                            },
-                            extra: {
-                                message:
-                                    "Failed to get uuid: failed to read response text when handling json parse error",
-                                username,
-                                jsonParseError: error,
-                            },
-                        });
-                        throw textError;
-                    }
-                    throw error;
-                });
+            );
 
             if (typeof data !== "object" || data === null) {
                 captureMessage("Failed to get uuid: invalid response", {

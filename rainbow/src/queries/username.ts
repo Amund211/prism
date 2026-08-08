@@ -1,9 +1,8 @@
-import { captureException, captureMessage } from "@sentry/react";
+import { captureMessage } from "@sentry/react";
 import { queryOptions, useQueries } from "@tanstack/react-query";
 
 import { addKnownAliasAndPersist } from "#contexts/KnownAliases/helpers.ts";
-import { env } from "#env.ts";
-import { getFlashlightHeaders } from "#helpers/flashlight.ts";
+import { flashlightFetch } from "#helpers/flashlight/fetch.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { MS_PER_HOUR } from "#time.ts";
 
@@ -27,76 +26,10 @@ export const getUsernameQueryOptions = (uuid: string) =>
                 throw new Error(`UUID not normalized: ${uuid}`);
             }
 
-            const response = await fetch(
-                // NOTE: The flashlight API does **not** allow third-party access.
-                //       Do not send any requests to any endpoints without explicit permission.
-                //       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
-                `${env.VITE_FLASHLIGHT_URL}/v1/account/uuid/${uuid}`,
-                {
-                    headers: getFlashlightHeaders(),
-                },
-            ).catch((error: unknown) => {
-                captureException(error, {
-                    extra: {
-                        uuid,
-                        message: "Failed to get username: failed to fetch",
-                    },
-                });
-                throw error;
+            const data = await flashlightFetch<unknown>(`/v1/account/uuid/${uuid}`, {
+                errorContext: "Failed to get username",
+                extra: { uuid },
             });
-            if (!response.ok) {
-                const text = await response.text().catch((error: unknown) => {
-                    captureException(error, {
-                        tags: {
-                            status: response.status,
-                            statusText: response.statusText,
-                        },
-                        extra: {
-                            message:
-                                "Failed to get username: failed to read response text when handling response error",
-                            uuid,
-                        },
-                    });
-                    throw error;
-                });
-                captureMessage("Failed to get username: response error", {
-                    level: "error",
-                    tags: {
-                        status: response.status,
-                        statusText: response.statusText,
-                    },
-                    extra: {
-                        text,
-                    },
-                });
-                throw new Error(
-                    `Failed to fetch username for uuid. ${response.status.toString()} - ${response.statusText}: ${await response.text()}`,
-                );
-            }
-
-            const data: unknown = await response
-                .json()
-                .catch(async (error: unknown) => {
-                    try {
-                        const text = await response.text();
-                        captureException(error, {
-                            extra: {
-                                message: "Failed to get username: failed to parse json",
-                                uuid,
-                                text,
-                            },
-                        });
-                    } catch (textError: unknown) {
-                        captureException(textError, {
-                            extra: {
-                                message:
-                                    "Failed to get username: failed to read response text when handling response error",
-                                uuid,
-                                jsonParseError: error,
-                            },
-                        });
-                    }
-                });
             if (typeof data !== "object" || data === null) {
                 captureMessage("Failed to get username: invalid response", {
                     level: "error",

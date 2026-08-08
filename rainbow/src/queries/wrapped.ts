@@ -1,8 +1,7 @@
-import { captureException, captureMessage } from "@sentry/react";
+import { captureMessage } from "@sentry/react";
 import { queryOptions } from "@tanstack/react-query";
 
-import { env } from "#env.ts";
-import { getFlashlightHeaders } from "#helpers/flashlight.ts";
+import { flashlightFetch } from "#helpers/flashlight/fetch.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { MS_PER_MINUTE } from "#time.ts";
 
@@ -183,91 +182,15 @@ export const getWrappedQueryOptions = ({
                 throw new Error(`UUID not normalized: ${uuid}`);
             }
 
-            const url = new URL(
-                // NOTE: The flashlight API does **not** allow third-party access.
-                //       Do not send any requests to any endpoints without explicit permission.
-                //       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
-                `${env.VITE_FLASHLIGHT_URL}/v1/wrapped/${uuid}/${year.toString()}`,
-            );
-            url.searchParams.set("timezone", timezone);
+            const search = new URLSearchParams({ timezone });
 
-            const response = await fetch(url, {
-                headers: {
-                    "Content-Type": "application/json",
-                    ...getFlashlightHeaders(),
+            const apiData = await flashlightFetch<APIWrappedData>(
+                `/v1/wrapped/${uuid}/${year.toString()}?${search.toString()}`,
+                {
+                    errorContext: "Failed to get wrapped",
+                    extra: { uuid, year, timezone },
                 },
-                method: "GET",
-            }).catch((error: unknown) => {
-                captureException(error, {
-                    extra: {
-                        uuid,
-                        year,
-                        timezone,
-                        message: "Failed to get wrapped: failed to fetch",
-                    },
-                });
-                throw error;
-            });
-
-            if (!response.ok) {
-                const text = await response.text().catch((error: unknown) => {
-                    captureException(error, {
-                        tags: {
-                            status: response.status,
-                            statusText: response.statusText,
-                        },
-                        extra: {
-                            message:
-                                "Failed to get wrapped: failed to read response text when handling response error",
-                            uuid,
-                            year,
-                        },
-                    });
-                    throw error;
-                });
-                captureMessage("Failed to get wrapped: response error", {
-                    level: "error",
-                    tags: {
-                        status: response.status,
-                        statusText: response.statusText,
-                    },
-                    extra: {
-                        uuid,
-                        year,
-                        text,
-                    },
-                });
-                throw new Error(
-                    `Failed to fetch wrapped data from API. ${response.status.toString()} - ${response.statusText}: ${text}`,
-                );
-            }
-
-            const apiData = (await response.json().catch(async (error: unknown) => {
-                try {
-                    const text = await response.text();
-                    captureException(error, {
-                        extra: {
-                            message: "Failed to get wrapped: failed to parse json",
-                            uuid,
-                            year,
-                            timezone,
-                            text,
-                        },
-                    });
-                } catch (textError: unknown) {
-                    captureException(textError, {
-                        extra: {
-                            message:
-                                "Failed to get wrapped: failed to read response text when handling response error",
-                            uuid,
-                            year,
-                            timezone,
-                            jsonParseError: error,
-                        },
-                    });
-                }
-                throw error;
-            })) as APIWrappedData;
+            );
 
             // Convert the API response to application format, keeping nested structure
             const convertedData: WrappedData = {

@@ -1,8 +1,7 @@
-import { captureException, captureMessage } from "@sentry/react";
+import { captureMessage } from "@sentry/react";
 import { queryOptions } from "@tanstack/react-query";
 
-import { env } from "#env.ts";
-import { getFlashlightHeaders } from "#helpers/flashlight.ts";
+import { flashlightFetch } from "#helpers/flashlight/fetch.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { ALL_GAMEMODE_KEYS } from "#stats/keys.ts";
 import type { GamemodeKey } from "#stats/keys.ts";
@@ -139,55 +138,14 @@ export const getSessionAtQueryOptions = ({ uuid, time }: SessionAtQueryOptions) 
                 throw new Error(`UUID not normalized: ${uuid}`);
             }
 
-            const response = await fetch(
-                // NOTE: The flashlight API does **not** allow third-party access.
-                //       Do not send any requests to any endpoints without explicit permission.
-                //       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
-                `${env.VITE_FLASHLIGHT_URL}/v1/session-at`,
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                        ...getFlashlightHeaders(),
-                    },
+            const data = await flashlightFetch<APISessionAtResponse>("/v1/session-at", {
+                init: {
                     method: "POST",
                     body: JSON.stringify({ uuid, time: timeISOString }),
                 },
-            ).catch((error: unknown) => {
-                captureException(error, {
-                    extra: {
-                        uuid,
-                        time: timeISOString,
-                        message: "Failed to get session-at: failed to fetch",
-                    },
-                });
-                throw error;
+                errorContext: "Failed to get session-at",
+                extra: { uuid, time: timeISOString },
             });
-
-            if (!response.ok) {
-                const text = await response.text().catch(() => "");
-                captureMessage("Failed to get session-at: response error", {
-                    level: "error",
-                    tags: {
-                        status: response.status,
-                        statusText: response.statusText,
-                    },
-                    extra: { uuid, time: timeISOString, text },
-                });
-                throw new Error(
-                    `Failed to fetch session-at. ${response.status.toString()} - ${response.statusText}`,
-                );
-            }
-
-            const data = (await response.json().catch((error: unknown) => {
-                captureException(error, {
-                    extra: {
-                        uuid,
-                        time: timeISOString,
-                        message: "Failed to get session-at: failed to parse json",
-                    },
-                });
-                throw error;
-            })) as APISessionAtResponse;
 
             return {
                 session:

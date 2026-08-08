@@ -1,8 +1,7 @@
-import { captureException, captureMessage } from "@sentry/react";
+import { captureMessage } from "@sentry/react";
 import { queryOptions } from "@tanstack/react-query";
 
-import { env } from "#env.ts";
-import { getFlashlightHeaders } from "#helpers/flashlight.ts";
+import { flashlightFetch } from "#helpers/flashlight/fetch.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import { MS_PER_MINUTE } from "#time.ts";
 
@@ -58,16 +57,9 @@ export const getHistoryQueryOptions = ({
             if (start.getTime() > end.getTime()) {
                 return [];
             }
-            const response = await fetch(
-                // NOTE: The flashlight API does **not** allow third-party access.
-                //       Do not send any requests to any endpoints without explicit permission.
-                //       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
-                `${env.VITE_FLASHLIGHT_URL}/v1/history`,
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                        ...getFlashlightHeaders(),
-                    },
+
+            const apiHistory = await flashlightFetch<APIHistory>("/v1/history", {
+                init: {
                     method: "POST",
                     body: JSON.stringify({
                         uuid,
@@ -76,79 +68,14 @@ export const getHistoryQueryOptions = ({
                         limit,
                     }),
                 },
-            ).catch((error: unknown) => {
-                captureException(error, {
-                    extra: {
-                        uuid,
-                        start: startISOString,
-                        end: endISOString,
-                        limit,
-                        message: "Failed to get history: failed to fetch",
-                    },
-                });
-                throw error;
+                errorContext: "Failed to get history",
+                extra: {
+                    uuid,
+                    start: startISOString,
+                    end: endISOString,
+                    limit,
+                },
             });
-
-            if (!response.ok) {
-                const text = await response.text().catch((error: unknown) => {
-                    captureException(error, {
-                        extra: {
-                            message:
-                                "Failed to get history: failed to read response text while handling response error",
-                            uuid,
-                            start: startISOString,
-                            end: endISOString,
-                            limit,
-                        },
-                    });
-                    throw error;
-                });
-
-                captureMessage("Failed to get history: response error", {
-                    level: "error",
-                    extra: {
-                        status: response.status,
-                        statusText: response.statusText,
-                        text,
-                        uuid,
-                        start: startISOString,
-                        end: endISOString,
-                        limit,
-                    },
-                });
-                throw new Error(
-                    `Failed to fetch history data from API. ${response.status.toString()} - ${response.statusText}: ${await response.text()}`,
-                );
-            }
-
-            const apiHistory = (await response.json().catch(async (error: unknown) => {
-                try {
-                    const text = await response.text();
-                    captureException(error, {
-                        extra: {
-                            message: "Failed to get history: failed to parse json",
-                            uuid,
-                            start: startISOString,
-                            end: endISOString,
-                            limit,
-                            text,
-                        },
-                    });
-                } catch (textError: unknown) {
-                    captureException(textError, {
-                        extra: {
-                            message:
-                                "Failed to get history: failed to get response text while handling json parse error",
-                            uuid,
-                            start: startISOString,
-                            end: endISOString,
-                            limit,
-                            jsonParseError: error,
-                        },
-                    });
-                }
-                throw error;
-            })) as APIHistory;
 
             return apiHistory.map(apiToPlayerDataPIT);
         },
