@@ -1,11 +1,14 @@
 import functools
 import logging
+from collections.abc import Mapping
 from json import JSONDecodeError
 
 import requests
 from requests.exceptions import RequestException
 
 from prism.errors import APIError, PlayerNotFoundError
+from prism.flashlight.auth.manager import AuthManager
+from prism.flashlight.auth.request import send_authenticated
 from prism.flashlight.headers import make_flashlight_client_headers
 from prism.flashlight.url import FLASHLIGHT_API_URL
 from prism.player import Account
@@ -21,12 +24,14 @@ class FlashlightAccountProvider:
         self,
         *,
         session: requests.Session,
+        auth: AuthManager,
         retry_limit: int,
         initial_timeout: float,
     ) -> None:
         self._retry_limit = retry_limit
         self._initial_timeout = initial_timeout
         self._session = session
+        self._auth = auth
         self._limiter = RateLimiter(limit=120, window=60)
 
     @property
@@ -41,17 +46,19 @@ class FlashlightAccountProvider:
         user_id: str,
         last_try: bool,
     ) -> requests.Response:  # pragma: nocover
-        try:
+        headers = {"X-User-Id": user_id, **make_flashlight_client_headers()}
+
+        def send(auth_headers: Mapping[str, str]) -> requests.Response:
             # Uphold our prescribed rate-limits
             with self._limiter:
-                response = self._session.get(
+                return self._session.get(
                     url,
-                    headers={
-                        "X-User-Id": user_id,
-                        **make_flashlight_client_headers(),
-                    },
+                    headers={**headers, **auth_headers},
                     timeout=10,
                 )
+
+        try:
+            response = send_authenticated(auth=self._auth, send=send)
         except RequestException as e:
             raise ExecutionError(
                 "Request to flashlight failed due to an unknown error"

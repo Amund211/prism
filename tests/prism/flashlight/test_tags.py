@@ -8,11 +8,15 @@ from prism.flashlight.tags import (
 )
 from prism.player import Tags, TagSeverity
 from prism.requests import make_prism_requests_session
+from tests.prism.auth_utils import make_real_clock_auth_manager
 
 
 def test_make_tags_provider() -> None:
     provider = FlashlightTagsProvider(
-        retry_limit=3, initial_timeout=1.0, session=make_prism_requests_session()
+        retry_limit=3,
+        initial_timeout=1.0,
+        session=make_prism_requests_session(),
+        auth=make_real_clock_auth_manager(),
     )
     assert provider.seconds_until_unblocked == 0.0
 

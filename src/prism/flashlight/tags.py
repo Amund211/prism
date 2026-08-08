@@ -1,11 +1,14 @@
 import functools
 import logging
+from collections.abc import Mapping
 from json import JSONDecodeError
 
 import requests
 from requests.exceptions import RequestException
 
 from prism.errors import APIError, APIKeyError
+from prism.flashlight.auth.manager import AuthManager
+from prism.flashlight.auth.request import send_authenticated
 from prism.flashlight.headers import make_flashlight_client_headers
 from prism.flashlight.url import FLASHLIGHT_API_URL
 from prism.player import Tags, TagSeverity
@@ -20,12 +23,14 @@ class FlashlightTagsProvider:
         self,
         *,
         session: requests.Session,
+        auth: AuthManager,
         retry_limit: int,
         initial_timeout: float,
     ) -> None:
         self._retry_limit = retry_limit
         self._initial_timeout = initial_timeout
         self._session = session
+        self._auth = auth
         self._limiter = RateLimiter(limit=120, window=60)
 
     @property
@@ -45,15 +50,27 @@ class FlashlightTagsProvider:
         if urchin_api_key:
             headers["X-Urchin-Api-Key"] = urchin_api_key
 
-        try:
+        def send(auth_headers: Mapping[str, str]) -> requests.Response:
             # Uphold our prescribed rate-limits
             with self._limiter:
-                response = self._session.get(url, headers=headers, timeout=10)
+                return self._session.get(
+                    url, headers={**headers, **auth_headers}, timeout=10
+                )
+
+        try:
+            response = send_authenticated(auth=self._auth, send=send)
         except RequestException as e:
             raise ExecutionError(
                 "Request to flashlight failed due to an unknown error"
             ) from e
 
+        # NOTE: This endpoint answers 401 both for an invalid urchin API key and
+        #       for an auth session flashlight won't accept. A 401 only reaches
+        #       this point when send_authenticated established that our session is
+        #       *not* the cause - otherwise it raises SessionRecoveryError - so
+        #       this one is the urchin key's. That distinction matters because
+        #       APIKeyError latches urchin_api_key_invalid for the rest of the
+        #       process, which would stop us sending a perfectly good key.
         if response.status_code == 401:
             raise APIKeyError(
                 "Request to flashlight failed with HTTP 401 Unauthorized - "
