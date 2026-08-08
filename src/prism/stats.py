@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import functools
 import math
 import sys
 from collections.abc import Mapping
@@ -15,6 +16,9 @@ from prism.errors import (
     PlayerNotFoundError,
 )
 from prism.flashlight.account import FlashlightAccountProvider
+from prism.flashlight.auth.anonymous import AnonymousLogin
+from prism.flashlight.auth.endpoints import refresh_session
+from prism.flashlight.auth.manager import AuthManager
 from prism.hypixel import (
     HypixelAPIKeyHolder,
     MissingBedwarsStatsError,
@@ -29,8 +33,15 @@ key_holder = HypixelAPIKeyHolder(api_key)
 
 session = make_prism_requests_session()
 
+AUTH = AuthManager(
+    login_method=AnonymousLogin(requests_session=session, user_id="get_stats_script"),
+    refresh_session=functools.partial(refresh_session, requests_session=session),
+)
+# NOTE: Started from main(), not here. Importing a module should not spawn a
+#       thread that does network i/o.
+
 ACCOUNT_PROVIDER = FlashlightAccountProvider(
-    retry_limit=0, initial_timeout=0, session=session
+    retry_limit=0, initial_timeout=0, session=session, auth=AUTH
 )
 
 
@@ -198,6 +209,8 @@ def get_and_display(username: str) -> None:
 
 
 def main() -> None:
+    AUTH.start()
+
     for i, username in enumerate(sys.argv[1:]):
         get_and_display(username)
 

@@ -1,6 +1,6 @@
 import logging
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from json import JSONDecodeError
 from typing import Any, Literal
@@ -9,6 +9,9 @@ import requests
 from requests.exceptions import RequestException
 
 from prism import VERSION_STRING
+from prism.flashlight.auth.errors import NoSessionError
+from prism.flashlight.auth.manager import AuthManager
+from prism.flashlight.auth.request import send_authenticated
 from prism.flashlight.headers import make_flashlight_client_headers
 from prism.flashlight.url import FLASHLIGHT_API_URL
 from prism.requests import make_prism_requests_session
@@ -65,6 +68,7 @@ class FlashlightNotice:
 def _make_flashlight_notices_request(
     session: requests.Session,
     *,
+    auth: AuthManager,
     user_id: str,
     include_version_updates: IncludeVersionUpdates,
 ) -> Any | None:  # pragma: nocover
@@ -78,18 +82,24 @@ def _make_flashlight_notices_request(
         **make_flashlight_client_headers(),
     }
 
-    try:
+    def send(auth_headers: Mapping[str, str]) -> requests.Response:
         # NOTE: The flashlight API does **not** allow third-party access.
         #       Do not send any requests to any endpoints without explicit permission.
         #       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
-        response = session.get(
+        return session.get(
             f"{FLASHLIGHT_API_URL}/v1/prism-notices",
-            headers=headers,
+            headers={**headers, **auth_headers},
             params={"includeVersionUpdates": include_version_updates},
             timeout=30,
         )
+
+    try:
+        response = send_authenticated(auth=auth, send=send)
     except RequestException:
         logger.exception("Failed to request flashlight notices")
+        return None
+    except NoSessionError:
+        logger.warning("Skipping flashlight notices - no auth session yet")
         return None
 
     if not response.ok:
@@ -176,19 +186,28 @@ def _parse_flashlight_notices(
 
 def get_flashlight_notices(
     *,
+    auth: AuthManager,
     user_id: str,
     include_version_updates: IncludeVersionUpdates,
-) -> tuple[FlashlightNotice, ...]:  # pragma: nocover
-    """Get flashlight prism notices for the user"""
+) -> tuple[FlashlightNotice, ...] | None:  # pragma: nocover
+    """
+    Get flashlight prism notices for the user
+
+    None means the request failed and is worth retrying - an empty tuple means it
+    succeeded and there is nothing to show. The caller needs the difference,
+    because this is how users learn a new version exists, and it is fetched once
+    per run.
+    """
     session = make_prism_requests_session()  # TODO: reuse shared session
 
     response_json = _make_flashlight_notices_request(
         session=session,
+        auth=auth,
         user_id=user_id,
         include_version_updates=include_version_updates,
     )
 
     if response_json is None:
-        return ()
+        return None
 
     return _parse_flashlight_notices(response_json, get_time_seconds=time.monotonic)

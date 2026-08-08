@@ -4,6 +4,7 @@ import threading
 import time
 from collections.abc import Iterable
 
+from prism.flashlight.auth.manager import AuthManager
 from prism.flashlight.notices import IncludeVersionUpdates, get_flashlight_notices
 from prism.overlay.behaviour import get_and_cache_player
 from prism.overlay.controller import OverlayController
@@ -13,6 +14,12 @@ from prism.overlay.process_event import process_loglines
 from prism.overlay.rich_presence import RPCThread
 
 logger = logging.getLogger(__name__)
+
+# How hard the notice checker tries. Notices are fetched once per launch, so a
+# single failure otherwise costs the user every notice - including the new-version
+# prompt - until they restart.
+NOTICE_FETCH_ATTEMPTS = 3
+NOTICE_RETRY_DELAY_SECONDS = 30.0
 
 
 class UpdateStateThread(threading.Thread):  # pragma: nocover
@@ -81,9 +88,11 @@ class NoticeCheckerThread(threading.Thread):  # pragma: nocover
     def __init__(
         self,
         controller: OverlayController,
+        auth: AuthManager,
     ) -> None:
         super().__init__(daemon=True)  # Don't block the process from exiting
         self.controller = controller
+        self.auth = auth
 
     def run(self) -> None:
         """Fetch the notices and store them in the controller"""
@@ -96,11 +105,27 @@ class NoticeCheckerThread(threading.Thread):  # pragma: nocover
         else:
             include_version_updates = "minor"
 
-        notices = get_flashlight_notices(
-            user_id=settings.user_id,
-            include_version_updates=include_version_updates,
+        # Retried, because this thread runs once per launch and it is how users
+        # learn that a new version exists. A single failure - a flaky network, or
+        # the auth session not being established yet - used to mean no notices at
+        # all until the next restart.
+        for attempt in range(NOTICE_FETCH_ATTEMPTS):
+            if attempt > 0:
+                time.sleep(NOTICE_RETRY_DELAY_SECONDS)
+
+            notices = get_flashlight_notices(
+                auth=self.auth,
+                user_id=settings.user_id,
+                include_version_updates=include_version_updates,
+            )
+            if notices is not None:
+                self.controller.flashlight_notices = notices
+                return
+
+        logger.warning(
+            f"Giving up on fetching flashlight notices "
+            f"after {NOTICE_FETCH_ATTEMPTS} attempts"
         )
-        self.controller.flashlight_notices = notices
 
 
 class AutoWhoThread(threading.Thread):  # pragma: nocover
@@ -161,7 +186,7 @@ class AutoWhoThread(threading.Thread):  # pragma: nocover
 
 
 def start_threads(
-    controller: OverlayController, loglines: Iterable[str]
+    controller: OverlayController, loglines: Iterable[str], auth: AuthManager
 ) -> None:  # pragma: nocover
     """Spawn threads that perform the state updates and stats downloading"""
 
@@ -181,4 +206,5 @@ def start_threads(
     # Spawn thread to check for flashlight information
     NoticeCheckerThread(
         controller=controller,
+        auth=auth,
     ).start()

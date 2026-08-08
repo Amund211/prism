@@ -4,6 +4,7 @@ Parse the chat on Hypixel to detect players in your party and bedwars lobby
 Run from the root dir by `python -m prism.overlay [--logfile <path-to-logfile>]`
 """
 
+import functools
 import logging
 import sys
 import time
@@ -68,6 +69,9 @@ def main() -> None:  # pragma: nocover
 
     # Import late so we can patch ssl certs in requests
     from prism.flashlight.account import FlashlightAccountProvider
+    from prism.flashlight.auth.anonymous import AnonymousLogin
+    from prism.flashlight.auth.endpoints import refresh_session
+    from prism.flashlight.auth.manager import AuthManager
     from prism.flashlight.tags import FlashlightTagsProvider
     from prism.overlay.controller import OverlayController
     from prism.overlay.output.overlay.run_overlay import run_overlay
@@ -79,16 +83,29 @@ def main() -> None:  # pragma: nocover
 
     session = make_prism_requests_session()
 
+    # Start authenticating right away, before the (possibly interactive) logfile
+    # selection, so the login round trip overlaps the rest of startup. Every
+    # flashlight request waits for the session this establishes.
+    auth = AuthManager(
+        login_method=AnonymousLogin(requests_session=session, user_id=settings.user_id),
+        refresh_session=functools.partial(refresh_session, requests_session=session),
+    )
+    auth.start()
+
     account_provider = FlashlightAccountProvider(
-        retry_limit=5, initial_timeout=2, session=session
+        retry_limit=5, initial_timeout=2, session=session, auth=auth
     )
     player_provider = StrangePlayerProvider(
-        retry_limit=5, initial_timeout=2, get_time_ns=time.time_ns, session=session
+        retry_limit=5,
+        initial_timeout=2,
+        get_time_ns=time.time_ns,
+        session=session,
+        auth=auth,
     )
     # Use placeholder winstreak provider - no actual API integration
     winstreak_provider = PlaceholderWinstreakProvider()
     tags_provider = FlashlightTagsProvider(
-        retry_limit=5, initial_timeout=2, session=session
+        retry_limit=5, initial_timeout=2, session=session, auth=auth
     )
 
     controller = OverlayController(
@@ -116,7 +133,7 @@ def main() -> None:  # pragma: nocover
 
     controller.ready = True
 
-    run_overlay(controller, loglines)
+    run_overlay(controller, loglines, auth)
 
 
 if __name__ == "__main__":  # pragma: nocover

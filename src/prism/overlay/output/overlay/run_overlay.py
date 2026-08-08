@@ -3,6 +3,7 @@ import math
 import time
 from collections.abc import Iterable
 
+from prism.flashlight.auth.manager import AuthManager
 from prism.overlay.behaviour import get_cached_player_or_enqueue_request, should_redraw
 from prism.overlay.controller import OverlayController
 from prism.overlay.output.cells import InfoCellValue
@@ -88,9 +89,10 @@ def get_stat_list(controller: OverlayController) -> list[Player] | None:
 def run_overlay(
     controller: OverlayController,
     loglines: Iterable[str],
+    auth: AuthManager,
 ) -> None:  # pragma: nocover
     """Run the overlay"""
-    start_threads(controller, loglines)
+    start_threads(controller, loglines, auth)
 
     def get_new_data() -> tuple[bool, list[InfoCellValue], list[OverlayRowData] | None]:
         # Store a persistent view to the current state

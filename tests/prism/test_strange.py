@@ -1,6 +1,7 @@
 from prism.player import MISSING_WINSTREAKS
 from prism.requests import make_prism_requests_session
 from prism.strange import STATS_ENDPOINT, StrangePlayerProvider
+from tests.prism.auth_utils import make_real_clock_auth_manager
 from tests.prism.overlay.utils import make_winstreaks
 
 assert MISSING_WINSTREAKS == make_winstreaks()
@@ -20,5 +21,6 @@ def test_strange_player_provider() -> None:
         initial_timeout=1.0,
         get_time_ns=lambda: 1234567890123456789,
         session=make_prism_requests_session(),
+        auth=make_real_clock_auth_manager(),
     )
     assert provider.seconds_until_unblocked == 0.0

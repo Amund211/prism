@@ -1,0 +1,182 @@
+from collections.abc import Mapping, Sequence
+
+import pytest
+import requests
+
+from prism.flashlight.auth.errors import (
+    AuthError,
+    NoSessionError,
+    RefreshTooSoonError,
+    SessionRecoveryError,
+)
+from prism.flashlight.auth.request import (
+    REFRESH_HINT_HEADER,
+    bearer_headers,
+    send_authenticated,
+)
+from tests.prism.auth_utils import (
+    TEST_SESSION_ID,
+    make_auth_manager,
+    make_fast_forward_auth_manager,
+    make_session,
+    running_auth_thread,
+)
+
+
+def make_response(
+    status_code: int, *, refresh_hint: str | None = None
+) -> requests.Response:
+    response = requests.Response()
+    response.status_code = status_code
+    if refresh_hint is not None:
+        response.headers[REFRESH_HINT_HEADER] = refresh_hint
+    return response
+
+
+class RecordingSender:
+    """Records the auth headers it is called with, and returns queued responses"""
+
+    def __init__(self, responses: Sequence[requests.Response]) -> None:
+        self.responses = list(responses)
+        self.auth_headers: list[Mapping[str, str]] = []
+
+    def __call__(self, auth_headers: Mapping[str, str]) -> requests.Response:
+        self.auth_headers.append(auth_headers)
+        assert self.responses, "Unexpected request"
+        return self.responses.pop(0)
+
+
+def test_bearer_headers() -> None:
+    assert bearer_headers(make_session(session_id="flsess_abc")) == {
+        "Authorization": "Bearer flsess_abc"
+    }
+
+
+def test_send_authenticated() -> None:
+    manager, _, _ = make_auth_manager(login_results=[make_session()])
+    manager.reconcile()
+    send = RecordingSender([make_response(200)])
+
+    response = send_authenticated(auth=manager, send=send)
+
+    assert response.status_code == 200
+    assert send.auth_headers == [{"Authorization": f"Bearer {TEST_SESSION_ID}"}]
+
+
+def test_send_authenticated_without_a_session() -> None:
+    """A NoSessionError is an APIError, so every call site already handles it"""
+    manager = make_fast_forward_auth_manager()
+
+    with pytest.raises(NoSessionError):
+        send_authenticated(auth=manager, send=RecordingSender([]))
+
+
+def test_send_authenticated_retries_once_with_a_renewed_session() -> None:
+    lapsed = make_session(session_id="flsess_lapsed")
+    renewed = make_session(session_id="flsess_renewed")
+    manager, _, _ = make_auth_manager(login_results=[lapsed], refresh_results=[renewed])
+    manager.reconcile()
+    send = RecordingSender([make_response(401), make_response(200)])
+
+    with running_auth_thread(manager):
+        response = send_authenticated(auth=manager, send=send)
+
+    assert response.status_code == 200
+    assert send.auth_headers == [
+        {"Authorization": "Bearer flsess_lapsed"},
+        {"Authorization": "Bearer flsess_renewed"},
+    ]
+
+
+def test_send_authenticated_surfaces_a_401_the_server_says_is_not_ours() -> None:
+    """
+    /v1/tags answers 401 for an invalid Urchin API key too
+
+    Handing the 401 back is what lets that call site tell the two apart, and it
+    is also why the request is not retried with the same bearer. This is the real
+    shape of that case: the 401 provokes a refresh, the server refuses to touch a
+    session it considers too fresh, and so the 401 was never about the session.
+    """
+    session = make_session()
+    manager, _, _ = make_auth_manager(
+        login_results=[session], refresh_results=[RefreshTooSoonError("too soon")]
+    )
+    manager.reconcile()
+    send = RecordingSender([make_response(401)])
+
+    with running_auth_thread(manager):
+        response = send_authenticated(auth=manager, send=send)
+
+    assert response.status_code == 401
+    assert len(send.auth_headers) == 1
+
+
+def test_send_authenticated_raises_on_a_401_it_cannot_account_for() -> None:
+    """
+    An unexplained 401 must not be passed off as the caller's
+
+    /v1/tags would latch urchin_api_key_invalid for the rest of the process and
+    stop sending a perfectly good key, so "we could not check" has to be an error
+    rather than a 401 handed back.
+    """
+    session = make_session()
+    manager, _, _ = make_auth_manager(
+        login_results=[session], refresh_results=[AuthError("no network")]
+    )
+    manager.reconcile()
+    manager.reconcile()  # fails, so we are inside the backoff with no verdict
+
+    send = RecordingSender([make_response(401)])
+    with pytest.raises(SessionRecoveryError):
+        send_authenticated(auth=manager, send=send)
+
+    assert len(send.auth_headers) == 1
+
+
+def test_send_authenticated_acts_on_the_refresh_hint() -> None:
+    session = make_session()
+    manager, _, _ = make_auth_manager(login_results=[session])
+    manager.reconcile()
+    assert manager.seconds_until_next_action() > 0
+
+    send_authenticated(
+        auth=manager, send=RecordingSender([make_response(200, refresh_hint="1")])
+    )
+
+    assert manager.seconds_until_next_action() == 0.0
+
+
+def test_send_authenticated_acts_on_an_unknown_refresh_hint_value() -> None:
+    """Room is reserved for a richer value, and every value means "deal with it now" """
+    session = make_session()
+    manager, _, _ = make_auth_manager(login_results=[session])
+    manager.reconcile()
+
+    send_authenticated(
+        auth=manager, send=RecordingSender([make_response(200, refresh_hint="reauth")])
+    )
+
+    assert manager.seconds_until_next_action() == 0.0
+
+
+def test_send_authenticated_ignores_a_missing_refresh_hint() -> None:
+    session = make_session()
+    manager, _, _ = make_auth_manager(login_results=[session])
+    manager.reconcile()
+
+    send_authenticated(auth=manager, send=RecordingSender([make_response(200)]))
+
+    assert manager.seconds_until_next_action() == session.refresh_in_seconds
+
+
+def test_send_authenticated_reads_the_refresh_hint_from_the_retry() -> None:
+    lapsed = make_session(session_id="flsess_lapsed")
+    renewed = make_session(session_id="flsess_renewed")
+    manager, _, _ = make_auth_manager(login_results=[lapsed], refresh_results=[renewed])
+    manager.reconcile()
+    send = RecordingSender([make_response(401), make_response(200, refresh_hint="1")])
+
+    with running_auth_thread(manager):
+        send_authenticated(auth=manager, send=send)
+
+    assert manager.seconds_until_next_action() == 0.0

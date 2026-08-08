@@ -7,11 +7,15 @@ from prism.flashlight.account import (
 )
 from prism.player import Account
 from prism.requests import make_prism_requests_session
+from tests.prism.auth_utils import make_real_clock_auth_manager
 
 
 def test_make_account_provider() -> None:
     provider = FlashlightAccountProvider(
-        retry_limit=3, initial_timeout=1.0, session=make_prism_requests_session()
+        retry_limit=3,
+        initial_timeout=1.0,
+        session=make_prism_requests_session(),
+        auth=make_real_clock_auth_manager(),
     )
     assert provider.seconds_until_unblocked == 0.0
 
