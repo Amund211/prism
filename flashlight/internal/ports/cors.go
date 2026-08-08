@@ -75,6 +75,11 @@ func BuildCORSMiddleware(allowedSuffixes *DomainSuffixes) func(http.HandlerFunc)
 					w.WriteHeader(http.StatusNoContent)
 					return
 				}
+
+				// Without this a cross-origin caller cannot read the
+				// header. Read off the response it appears on, not the
+				// preflight.
+				w.Header().Set("Access-Control-Expose-Headers", AuthRefreshHeader)
 			}
 
 			next(w, r)

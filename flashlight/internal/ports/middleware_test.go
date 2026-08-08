@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -111,7 +112,7 @@ func keyForRequest(t *testing.T, req *http.Request, session *domain.AuthSession)
 
 	var key string
 	reached := false
-	handler := NewBearerAuthMiddleware(validate)(func(w http.ResponseWriter, r *http.Request) {
+	handler := NewBearerAuthMiddleware(validate, time.Now)(func(w http.ResponseWriter, r *http.Request) {
 		reached = true
 		key = UserIDKeyFunc(r)
 	})
@@ -235,7 +236,7 @@ func TestUserIDLimiterSpendsOneBudgetPerIdentity(t *testing.T) {
 
 	rateLimiter := ratelimiting.NewRequestBasedRateLimiter(userIDLimiter, UserIDKeyFunc)
 	handler := ComposeMiddlewares(
-		NewBearerAuthMiddleware(validate),
+		NewBearerAuthMiddleware(validate, time.Now),
 		NewRateLimitMiddleware(rateLimiter, func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
 		}),

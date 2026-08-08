@@ -38,6 +38,10 @@ actually running.
    finished, re-auth from scratch. `429` means too soon (or the IP limit): the
    session is untouched, keep using it and do **not** re-auth.
 
+6. Any response to a request that carried a valid bearer gets
+   `X-Auth-Refresh: 1` once the session is within `refreshAtOffset` of expiry —
+   "refresh now". A hint: a client that ignores it still recovers via 401.
+
 Lifetimes, all Go constants in `internal/app/auth_session.go`: `expires_at`
 now+**1h**, `refresh_until` now+**2h**, `lifetime_ends_at` stamped at issue as
 created_at+**24h** and never extended, and at least **30min** must burn between
@@ -73,6 +77,11 @@ Validate is cached: keyed by session id, **1 minute, successes only**, LRU at
   then also unrefreshable, `expired` becomes immutable, and caching it is safe.
   The cost is the grace window — a client idle past the TTL always pays a full
   re-login instead of a refresh, which hits reactive clients (rainbow) hardest.
+- **`X-Auth-Refresh` must be set before the handler writes, and named in
+  `Access-Control-Expose-Headers`.** After `WriteHeader` the header map is
+  frozen and setting it is a silent no-op; without the CORS entry a browser
+  cannot read it, also silently. Never advertise a refresh that would 429 —
+  `shouldHintRefresh` checks `app.RefreshTooSoon` for that reason.
 - **Refresh does not rotate the session id.** A leaked token therefore lives to
   its own `lifetime_ends_at` (≤24h) no matter what the real user does; there is
   no user-driven remediation and no "sign out everywhere".

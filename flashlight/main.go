@@ -224,7 +224,7 @@ func main() {
 	anonymousLogin := app.BuildAnonymousLogin(authSessionRepo, time.Now, app.GenerateAuthSessionID)
 	refreshSession := app.BuildRefreshSession(authSessionRepo, time.Now)
 	validateSession := app.BuildValidateSession(authSessionRepo, time.Now, validateSessionCache)
-	bearerAuthMiddleware := ports.NewBearerAuthMiddleware(validateSession)
+	bearerAuthMiddleware := ports.NewBearerAuthMiddleware(validateSession, time.Now)
 
 	allowedOrigins, err := ports.NewDomainSuffixes(prodDomainSuffix, stagingDomainSuffix)
 	if err != nil {

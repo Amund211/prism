@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
@@ -18,6 +19,26 @@ import (
 // computing the recommended refresh delay sent to the client.
 // Lives here because it's purely a wire-shape concern.
 const refreshAtOffset = 5 * time.Minute
+
+// AuthRefreshHeader is set to "1" on responses to bearer-authenticated
+// requests whose session the client should now refresh (or re-login, if
+// canRefresh said a refresh would be pointless). It is a hint: clients
+// that ignore it keep working through the reactive 401 path, which is
+// what makes refresh timing changeable server-side after a client ships.
+//
+// Browsers cannot read it cross-origin unless it is named in
+// Access-Control-Expose-Headers — see BuildCORSMiddleware.
+const AuthRefreshHeader = "X-Auth-Refresh"
+
+// shouldHintRefresh reports whether to set AuthRefreshHeader for s: the
+// client's proactive refresh point (the same one refreshInSeconds counts
+// down to) has arrived, and a refresh would not come back a 429. The
+// second condition is redundant while refreshAtOffset is well inside
+// authMinRefreshInterval, and is here so retuning either one cannot
+// start advertising a refresh that gets refused.
+func shouldHintRefresh(s domain.AuthSession, now time.Time) bool {
+	return !now.Before(s.ExpiresAt.Add(-refreshAtOffset)) && !app.RefreshTooSoon(s, now)
+}
 
 // authSessionResponse is the wire shape returned by every session-issuing
 // endpoint (login + refresh). The client never needs a wall clock —

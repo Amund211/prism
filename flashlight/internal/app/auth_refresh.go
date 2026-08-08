@@ -14,6 +14,15 @@ type refreshRepository interface {
 	Update(ctx context.Context, id string, update func(domain.AuthSession) (domain.AuthSession, error)) (domain.AuthSession, error)
 }
 
+// RefreshTooSoon reports whether refreshing s at now would be rejected
+// with ErrAuthSessionRefreshTooSoon. Every bump sets
+// expires_at = now + authSessionTTL, so the remaining lifetime says how
+// long ago the last one was. Exported so callers that want to ask the
+// client to refresh can avoid asking for one that would be refused.
+func RefreshTooSoon(s domain.AuthSession, now time.Time) bool {
+	return authSessionTTL-s.ExpiresAt.Sub(now) < authMinRefreshInterval
+}
+
 // RefreshSession bumps the lifetime of an existing session given its
 // bearer id. Accepts ids that are past expires_at but still within
 // refresh_until and lifetime_ends_at. Rejects ids refreshed less than
@@ -37,9 +46,7 @@ func BuildRefreshSession(repo refreshRepository, nowFunc func() time.Time) Refre
 				return domain.AuthSession{}, domain.ErrAuthSessionRefreshExpired
 			}
 
-			// Every bump sets expires_at = now + authSessionTTL, so the
-			// remaining lifetime tells us how long ago the last one was.
-			if authSessionTTL-s.ExpiresAt.Sub(now) < authMinRefreshInterval {
+			if RefreshTooSoon(s, now) {
 				return domain.AuthSession{}, domain.ErrAuthSessionRefreshTooSoon
 			}
 

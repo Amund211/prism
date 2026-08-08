@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
@@ -50,7 +51,11 @@ func AuthFromContext(ctx context.Context) (AuthContext, bool) {
 // Ahead of the user-id limiter so that limiter can key on the verified
 // identity from the auth context instead of the self-asserted X-User-Id
 // header.
-func NewBearerAuthMiddleware(validate app.ValidateSession) func(http.HandlerFunc) http.HandlerFunc {
+//
+// On a successful validation it also sets AuthRefreshHeader when the
+// session is due for a refresh, which is what keeps refresh timing
+// server-side policy for clients already in users' hands.
+func NewBearerAuthMiddleware(validate app.ValidateSession, nowFunc func() time.Time) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			rawAuth := r.Header.Get("Authorization")
@@ -77,6 +82,12 @@ func NewBearerAuthMiddleware(validate app.ValidateSession) func(http.HandlerFunc
 				logging.FromContext(ctx).ErrorContext(ctx, "Failed to validate bearer session", "error", err.Error())
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
 				return
+			}
+
+			// Must happen before next(): once the handler calls
+			// WriteHeader the header map is frozen and this is a no-op.
+			if shouldHintRefresh(view, nowFunc()) {
+				w.Header().Set(AuthRefreshHeader, "1")
 			}
 
 			authCtx := AuthContext{
