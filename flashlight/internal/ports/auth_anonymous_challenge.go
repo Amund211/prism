@@ -1,6 +1,7 @@
 package ports
 
 import (
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -13,6 +14,13 @@ import (
 	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 )
+
+// anonymousChallengeRequest names the identity the caller intends to log in
+// as. The challenge is bound to it, which is what lets the scheme stay
+// stateless: see the comment on challengePayload.UserID.
+type anonymousChallengeRequest struct {
+	UserID string `json:"userId"`
+}
 
 // anonymousChallengeResponse is the wire shape of a minted proof-of-work
 // challenge. challenge is opaque to the client — everything needed to
@@ -30,8 +38,8 @@ type anonymousChallengeResponse struct {
 }
 
 // MakeAnonymousChallengeHandler returns a handler for
-// POST /v1/auth/anonymous/challenge. Body: none. Response: a signed
-// challenge the caller must solve to log in.
+// POST /v1/auth/anonymous/challenge. Body: { userId }. Response: a signed
+// challenge the caller must solve to log in as that userId.
 //
 // The challenge is stateless — signed, not stored — so this endpoint
 // touches no database and holds nothing. It still gets a limiter of its
@@ -86,8 +94,7 @@ func MakeAnonymousChallengeHandler(
 		// lower here: a JSON content type is not CORS-safelisted, so
 		// demanding it forces a preflight and keeps a page on an arbitrary
 		// origin from spending a visitor's challenge budget — and with it
-		// the visitor's ability to log in — from the visitor's own IP. The
-		// request carries no body; the header is the whole point.
+		// the visitor's ability to log in — from the visitor's own IP.
 		if !hasJSONContentType(r) {
 			logging.FromContext(ctx).InfoContext(ctx, "Rejected anonymous challenge with non-JSON content type",
 				slog.String("contentType", r.Header.Get("Content-Type")),
@@ -96,10 +103,26 @@ func MakeAnonymousChallengeHandler(
 			return
 		}
 
+		var body anonymousChallengeRequest
+		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, authBodyMaxBytes)).Decode(&body); err != nil {
+			logging.FromContext(ctx).InfoContext(ctx, "Failed to decode anonymous challenge body", "error", err.Error())
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+		// The same validation as login, because the two have to agree on
+		// what a userId is: a value accepted here and rejected there would
+		// hand out challenges that can never be spent. Note the other half
+		// of that agreement is challengeMaxLength, which has to cover the
+		// largest blob any userId passing this check can mint.
+		if !validAnonymousUserID(body.UserID) {
+			http.Error(w, "Invalid userId", http.StatusBadRequest)
+			return
+		}
+
 		client := GetClient(r)
 		ipHash := GetIP(r).Hash()
 
-		challenge, err := issueChallenge(ipHash, client.Type)
+		challenge, err := issueChallenge(body.UserID, ipHash, client.Type)
 		if err != nil {
 			logging.FromContext(ctx).ErrorContext(ctx, "Failed to issue anonymous challenge", "error", err.Error())
 			reporting.Report(ctx, fmt.Errorf("issue anonymous challenge: %w", err))

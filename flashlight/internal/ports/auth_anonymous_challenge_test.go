@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,14 +19,19 @@ import (
 func TestAnonymousChallengeHandler(t *testing.T) {
 	t.Parallel()
 
-	postChallenge := func(t *testing.T, handler http.HandlerFunc, ip string) *httptest.ResponseRecorder {
+	postBody := func(t *testing.T, handler http.HandlerFunc, ip string, body string) *httptest.ResponseRecorder {
 		t.Helper()
-		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/challenge", nil)
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/challenge", strings.NewReader(body))
 		withJSONContentType(r)
 		withRequestIP(r, ip)
 		w := httptest.NewRecorder()
 		handler(w, r)
 		return w
+	}
+
+	postChallenge := func(t *testing.T, handler http.HandlerFunc, ip string) *httptest.ResponseRecorder {
+		t.Helper()
+		return postBody(t, handler, ip, anonymousChallengeBody("user-abc"))
 	}
 
 	type challengeResponse struct {
@@ -70,7 +76,7 @@ func TestAnonymousChallengeHandler(t *testing.T) {
 	t.Run("challenges are bound to the caller's ip", func(t *testing.T) {
 		t.Parallel()
 		var sawIPHash string
-		issue := func(ipHash string, clientType string) (proofofwork.Challenge, error) {
+		issue := func(userID string, ipHash string, clientType string) (proofofwork.Challenge, error) {
 			sawIPHash = ipHash
 			return proofofwork.Challenge{Value: "blob", Algorithm: "x", ExpiresIn: 60 * time.Second}, nil
 		}
@@ -80,16 +86,56 @@ func TestAnonymousChallengeHandler(t *testing.T) {
 		require.Equal(t, ports.IP("1.2.3.4").Hash(), sawIPHash)
 	})
 
+	t.Run("challenges are bound to the body's userId, verbatim", func(t *testing.T) {
+		t.Parallel()
+		var sawUserID string
+		issue := func(userID string, ipHash string, clientType string) (proofofwork.Challenge, error) {
+			sawUserID = userID
+			return proofofwork.Challenge{Value: "blob", Algorithm: "x", ExpiresIn: 60 * time.Second}, nil
+		}
+		handler := newAnonymousChallengeHandler(t, issue)
+
+		// Untouched on the way in, because login compares it byte for byte
+		// against what comes back out.
+		const userID = "  MiXeD-Case-User  "
+		require.Equal(t, http.StatusOK, postBody(t, handler, "1.2.3.4", anonymousChallengeBody(userID)).Code)
+		require.Equal(t, userID, sawUserID)
+	})
+
+	// A userId accepted here and rejected by login would be a challenge that
+	// can never be spent, so the two endpoints share one check.
+	t.Run("400 on a userId login would reject", func(t *testing.T) {
+		t.Parallel()
+		for name, body := range map[string]string{
+			"no body":     "",
+			"no userId":   `{}`,
+			"empty":       anonymousChallengeBody(""),
+			"over length": anonymousChallengeBody(strings.Repeat("x", 101)),
+			"not json":    `{"userId":`,
+			"oversized":   anonymousChallengeBody(strings.Repeat("x", 4096)),
+		} {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				issue := func(userID string, ipHash string, clientType string) (proofofwork.Challenge, error) {
+					t.Fatal("no challenge should be minted for an unusable userId")
+					return proofofwork.Challenge{}, nil
+				}
+				handler := newAnonymousChallengeHandler(t, issue)
+				require.Equal(t, http.StatusBadRequest, postBody(t, handler, "1.2.3.4", body).Code)
+			})
+		}
+	})
+
 	t.Run("difficulty is priced on the normalized client type", func(t *testing.T) {
 		t.Parallel()
 		var sawClientType string
-		issue := func(ipHash string, clientType string) (proofofwork.Challenge, error) {
+		issue := func(userID string, ipHash string, clientType string) (proofofwork.Challenge, error) {
 			sawClientType = clientType
 			return proofofwork.Challenge{Value: "blob", Algorithm: "x", ExpiresIn: 60 * time.Second}, nil
 		}
 		handler := newAnonymousChallengeHandler(t, issue)
 
-		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/challenge", nil)
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/challenge", strings.NewReader(anonymousChallengeBody("user-abc")))
 		withJSONContentType(r)
 		withRequestIP(r, "1.2.3.4")
 		// Raw header values are attacker-controlled; the difficulty function
@@ -109,7 +155,7 @@ func TestAnonymousChallengeHandler(t *testing.T) {
 		handler := newAnonymousChallengeHandler(t, issue)
 
 		origin := "https://subdomain.example.com"
-		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/challenge", nil)
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/challenge", strings.NewReader(anonymousChallengeBody("user-abc")))
 		r.Header.Set("Origin", origin)
 		withJSONContentType(r)
 		withRequestIP(r, "1.2.3.4")
@@ -130,7 +176,7 @@ func TestAnonymousChallengeHandler(t *testing.T) {
 		for _, contentType := range []string{"", "text/plain", "application/x-www-form-urlencoded"} {
 			t.Run(fmt.Sprintf("%q", contentType), func(t *testing.T) {
 				t.Parallel()
-				issue := func(ipHash string, clientType string) (proofofwork.Challenge, error) {
+				issue := func(userID string, ipHash string, clientType string) (proofofwork.Challenge, error) {
 					t.Fatal("no challenge should be minted for a non-JSON content type")
 					return proofofwork.Challenge{}, nil
 				}
@@ -152,7 +198,7 @@ func TestAnonymousChallengeHandler(t *testing.T) {
 
 	t.Run("500 when minting fails", func(t *testing.T) {
 		t.Parallel()
-		issue := func(ipHash string, clientType string) (proofofwork.Challenge, error) {
+		issue := func(userID string, ipHash string, clientType string) (proofofwork.Challenge, error) {
 			return proofofwork.Challenge{}, errors.New("no entropy")
 		}
 		handler := newAnonymousChallengeHandler(t, issue)
@@ -162,7 +208,7 @@ func TestAnonymousChallengeHandler(t *testing.T) {
 	t.Run("rate limits per ip", func(t *testing.T) {
 		t.Parallel()
 		issued := 0
-		issue := func(ipHash string, clientType string) (proofofwork.Challenge, error) {
+		issue := func(userID string, ipHash string, clientType string) (proofofwork.Challenge, error) {
 			issued++
 			return proofofwork.Challenge{Value: "blob", Algorithm: "x", ExpiresIn: 60 * time.Second}, nil
 		}

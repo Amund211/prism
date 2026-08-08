@@ -20,6 +20,8 @@ import (
 
 const testIPHash = "0000000000000000000000000000000000000000000000000000000000000001"
 
+const testUserID = "user-abc"
+
 var errUnexpected = errors.New("something else entirely")
 
 var testTime = time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
@@ -91,12 +93,9 @@ func solutionZeroBits(challenge, solution string) int {
 // how they are used in production.
 func scheme(t *testing.T, keys [][]byte, difficulty int, c *clock) (proofofwork.IssueChallenge, proofofwork.VerifySolution) {
 	t.Helper()
-	nonces, stop := proofofwork.NewInMemoryUsedNonceStore(1000)
-	t.Cleanup(stop)
-
 	issue, err := proofofwork.BuildIssueChallenge(keys, fixedDifficulty(difficulty), c.Now)
 	require.NoError(t, err)
-	verify, err := proofofwork.BuildVerifySolution(keys, nonces, c.Now)
+	verify, err := proofofwork.BuildVerifySolution(keys, c.Now)
 	require.NoError(t, err)
 	return issue, verify
 }
@@ -121,14 +120,14 @@ func TestIssueAndVerify(t *testing.T) {
 		c := &clock{now: testTime}
 		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
 
-		challenge, err := issue(testIPHash, "prism")
+		challenge, err := issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 		require.Equal(t, proofofwork.AlgorithmSHA256LeadingZeros, challenge.Algorithm)
 		require.Equal(t, 0, challenge.Difficulty)
 		require.Equal(t, 60*time.Second, challenge.ExpiresIn)
 		require.NotEmpty(t, challenge.Value)
 
-		require.NoError(t, verify(challenge.Value, solve(t, challenge.Value, 0), testIPHash))
+		require.NoError(t, verify(challenge.Value, solve(t, challenge.Value, 0), testUserID, testIPHash))
 	})
 
 	t.Run("difficulty travels inside the challenge", func(t *testing.T) {
@@ -137,7 +136,7 @@ func TestIssueAndVerify(t *testing.T) {
 		c := &clock{now: testTime}
 		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, difficulty, c)
 
-		challenge, err := issue(testIPHash, "prism")
+		challenge, err := issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 		require.Equal(t, difficulty, challenge.Difficulty)
 
@@ -146,12 +145,12 @@ func TestIssueAndVerify(t *testing.T) {
 		tooEasy := solveShortOf(t, challenge.Value, difficulty-4, difficulty)
 		require.GreaterOrEqual(t, solutionZeroBits(challenge.Value, tooEasy), difficulty-4,
 			"the rejected solution should be real work, just not enough of it")
-		require.ErrorIs(t, verify(challenge.Value, tooEasy, testIPHash), proofofwork.ErrInsufficientWork)
+		require.ErrorIs(t, verify(challenge.Value, tooEasy, testUserID, testIPHash), proofofwork.ErrInsufficientWork)
 
 		// ...and a fresh challenge solved properly is.
-		challenge, err = issue(testIPHash, "prism")
+		challenge, err = issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
-		require.NoError(t, verify(challenge.Value, solve(t, challenge.Value, difficulty), testIPHash))
+		require.NoError(t, verify(challenge.Value, solve(t, challenge.Value, difficulty), testUserID, testIPHash))
 	})
 
 	t.Run("difficulty is clamped to the sanity ceiling", func(t *testing.T) {
@@ -159,7 +158,7 @@ func TestIssueAndVerify(t *testing.T) {
 		c := &clock{now: testTime}
 		issue, _ := scheme(t, [][]byte{testKey(t, 1)}, proofofwork.MaxDifficulty+10, c)
 
-		challenge, err := issue(testIPHash, "prism")
+		challenge, err := issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 		require.Equal(t, proofofwork.MaxDifficulty, challenge.Difficulty,
 			"a bug in a future difficulty signal must not be able to ask for work no client will finish")
@@ -170,7 +169,7 @@ func TestIssueAndVerify(t *testing.T) {
 		c := &clock{now: testTime}
 		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 12, c)
 
-		challenge, err := issue(testIPHash, "prism")
+		challenge, err := issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 
 		// The obvious attack on a self-describing challenge: keep the
@@ -186,7 +185,7 @@ func TestIssueAndVerify(t *testing.T) {
 		require.NoError(t, err)
 		tampered := base64.RawURLEncoding.EncodeToString(rewritten) + "." + signature
 
-		require.ErrorIs(t, verify(tampered, "0", testIPHash), proofofwork.ErrBadSignature)
+		require.ErrorIs(t, verify(tampered, "0", testUserID, testIPHash), proofofwork.ErrBadSignature)
 	})
 
 	t.Run("rejects a challenge signed with an unknown key", func(t *testing.T) {
@@ -195,9 +194,9 @@ func TestIssueAndVerify(t *testing.T) {
 		issue, _ := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
 		_, verifyOther := scheme(t, [][]byte{testKey(t, 2)}, 0, c)
 
-		challenge, err := issue(testIPHash, "prism")
+		challenge, err := issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
-		require.ErrorIs(t, verifyOther(challenge.Value, "0", testIPHash), proofofwork.ErrBadSignature)
+		require.ErrorIs(t, verifyOther(challenge.Value, "0", testUserID, testIPHash), proofofwork.ErrBadSignature)
 	})
 
 	t.Run("rotation: mints with the first key, accepts every key", func(t *testing.T) {
@@ -207,18 +206,18 @@ func TestIssueAndVerify(t *testing.T) {
 
 		// Before the rotation deploy: minted with the old key.
 		issueOld, _ := scheme(t, [][]byte{oldKey}, 0, c)
-		challenge, err := issueOld(testIPHash, "prism")
+		challenge, err := issueOld(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 
 		// After it: the new key signs, but the outstanding challenge from
 		// the previous revision still verifies.
 		issueNew, verifyBoth := scheme(t, [][]byte{newKey, oldKey}, 0, c)
-		require.NoError(t, verifyBoth(challenge.Value, solve(t, challenge.Value, 0), testIPHash))
+		require.NoError(t, verifyBoth(challenge.Value, solve(t, challenge.Value, 0), testUserID, testIPHash))
 
-		fresh, err := issueNew(testIPHash, "prism")
+		fresh, err := issueNew(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 		_, verifyNewOnly := scheme(t, [][]byte{newKey}, 0, c)
-		require.NoError(t, verifyNewOnly(fresh.Value, solve(t, fresh.Value, 0), testIPHash),
+		require.NoError(t, verifyNewOnly(fresh.Value, solve(t, fresh.Value, 0), testUserID, testIPHash),
 			"new challenges must be signed with the first key, or dropping the old one breaks them")
 	})
 
@@ -227,17 +226,17 @@ func TestIssueAndVerify(t *testing.T) {
 		c := &clock{now: testTime}
 		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
 
-		challenge, err := issue(testIPHash, "prism")
+		challenge, err := issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 
 		c.now = testTime.Add(59 * time.Second)
-		require.NoError(t, verify(challenge.Value, solve(t, challenge.Value, 0), testIPHash),
+		require.NoError(t, verify(challenge.Value, solve(t, challenge.Value, 0), testUserID, testIPHash),
 			"still inside the 60s window")
 
-		challenge, err = issue(testIPHash, "prism")
+		challenge, err = issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 		c.now = c.now.Add(61 * time.Second)
-		require.ErrorIs(t, verify(challenge.Value, solve(t, challenge.Value, 0), testIPHash), proofofwork.ErrChallengeExpired)
+		require.ErrorIs(t, verify(challenge.Value, solve(t, challenge.Value, 0), testUserID, testIPHash), proofofwork.ErrChallengeExpired)
 	})
 
 	t.Run("rejects a challenge issued in the future", func(t *testing.T) {
@@ -245,13 +244,13 @@ func TestIssueAndVerify(t *testing.T) {
 		c := &clock{now: testTime}
 		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
 
-		challenge, err := issue(testIPHash, "prism")
+		challenge, err := issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 
 		// Our own clock jumping backwards, not anything the caller did.
 		// The client recovers by asking for another challenge.
 		c.now = testTime.Add(-5 * time.Minute)
-		require.ErrorIs(t, verify(challenge.Value, solve(t, challenge.Value, 0), testIPHash), proofofwork.ErrChallengeExpired)
+		require.ErrorIs(t, verify(challenge.Value, solve(t, challenge.Value, 0), testUserID, testIPHash), proofofwork.ErrChallengeExpired)
 	})
 
 	t.Run("tolerates a verifier whose clock trails the minter's", func(t *testing.T) {
@@ -259,19 +258,19 @@ func TestIssueAndVerify(t *testing.T) {
 		c := &clock{now: testTime}
 		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
 
-		challenge, err := issue(testIPHash, "prism")
+		challenge, err := issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 		solution := solve(t, challenge.Value, 0)
 
 		// A rollout serves two revisions whose clocks can disagree.
 		c.now = testTime.Add(-2 * time.Second)
-		require.NoError(t, verify(challenge.Value, solution, testIPHash),
+		require.NoError(t, verify(challenge.Value, solution, testUserID, testIPHash),
 			"a small backwards skew must not reject a challenge we just minted")
 
-		challenge, err = issue(testIPHash, "prism")
+		challenge, err = issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 		c.now = testTime.Add(-30 * time.Second)
-		require.ErrorIs(t, verify(challenge.Value, solve(t, challenge.Value, 0), testIPHash),
+		require.ErrorIs(t, verify(challenge.Value, solve(t, challenge.Value, 0), testUserID, testIPHash),
 			proofofwork.ErrChallengeExpired,
 			"the grace is a tolerance, not an open window into the future")
 	})
@@ -281,7 +280,7 @@ func TestIssueAndVerify(t *testing.T) {
 		c := &clock{now: testTime}
 		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
 
-		challenge, err := issue(testIPHash, "prism")
+		challenge, err := issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 		require.Equal(t, proofofwork.AlgorithmSHA256LeadingZeros, challenge.Algorithm)
 
@@ -296,7 +295,7 @@ func TestIssueAndVerify(t *testing.T) {
 		require.Equal(t, proofofwork.AlgorithmSHA256LeadingZeros, payload.Algorithm,
 			"the scheme has to be inside the signed blob, or verification is guessing")
 
-		require.NoError(t, verify(challenge.Value, solve(t, challenge.Value, 0), testIPHash))
+		require.NoError(t, verify(challenge.Value, solve(t, challenge.Value, 0), testUserID, testIPHash))
 	})
 
 	// Adding a v2 later means an outgoing revision gets handed v2 challenges
@@ -309,24 +308,20 @@ func TestIssueAndVerify(t *testing.T) {
 		_, verify := scheme(t, [][]byte{key}, 0, c)
 
 		future := signPayload(t, key, fmt.Sprintf(
-			`{"nonce":"future-scheme-nonce","ipHash":%q,"issuedAtUnixMillis":%d,"difficulty":0,"alg":"argon2id-v2"}`,
-			testIPHash, testTime.UnixMilli(),
+			`{"nonce":"future-scheme-nonce","userId":%q,"ipHash":%q,"issuedAtUnixMillis":%d,"difficulty":0,"alg":"argon2id-v2"}`,
+			testUserID, testIPHash, testTime.UnixMilli(),
 		))
 
-		err := verify(future, "0", testIPHash)
+		err := verify(future, "0", testUserID, testIPHash)
 		require.ErrorIs(t, err, proofofwork.ErrUnsupportedAlgorithm)
 		require.NotErrorIs(t, err, proofofwork.ErrInsufficientWork,
 			"a scheme we can't check is not the client doing too little work")
 
-		// Checked ahead of the nonce claim, so the retry isn't spent before a
-		// revision that can verify it sees it.
-		require.ErrorIs(t, verify(future, "0", testIPHash), proofofwork.ErrUnsupportedAlgorithm)
-
 		missing := signPayload(t, key, fmt.Sprintf(
-			`{"nonce":"no-alg-nonce","ipHash":%q,"issuedAtUnixMillis":%d,"difficulty":0}`,
-			testIPHash, testTime.UnixMilli(),
+			`{"nonce":"no-alg-nonce","userId":%q,"ipHash":%q,"issuedAtUnixMillis":%d,"difficulty":0}`,
+			testUserID, testIPHash, testTime.UnixMilli(),
 		))
-		require.ErrorIs(t, verify(missing, solve(t, missing, 0), testIPHash),
+		require.ErrorIs(t, verify(missing, solve(t, missing, 0), testUserID, testIPHash),
 			proofofwork.ErrUnsupportedAlgorithm,
 			"an absent scheme is refused rather than defaulted: nothing has ever minted one")
 	})
@@ -336,7 +331,7 @@ func TestIssueAndVerify(t *testing.T) {
 		c := &clock{now: testTime}
 		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 12, c)
 
-		challenge, err := issue(testIPHash, "prism")
+		challenge, err := issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 
 		// Downgrading the scheme is the same attack as downgrading the
@@ -352,52 +347,88 @@ func TestIssueAndVerify(t *testing.T) {
 		require.NoError(t, err)
 		tampered := base64.RawURLEncoding.EncodeToString(rewritten) + "." + signature
 
-		require.ErrorIs(t, verify(tampered, "0", testIPHash), proofofwork.ErrBadSignature)
+		require.ErrorIs(t, verify(tampered, "0", testUserID, testIPHash), proofofwork.ErrBadSignature)
 	})
 
-	t.Run("rejects a challenge presented from another ip, without spending it", func(t *testing.T) {
+	t.Run("rejects a challenge presented from another ip", func(t *testing.T) {
 		t.Parallel()
 		c := &clock{now: testTime}
 		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
 
-		challenge, err := issue(testIPHash, "prism")
+		challenge, err := issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 		solution := solve(t, challenge.Value, 0)
 
 		otherIPHash := strings.Repeat("a", 64)
-		require.ErrorIs(t, verify(challenge.Value, solution, otherIPHash), proofofwork.ErrIPMismatch)
-		require.NoError(t, verify(challenge.Value, solution, testIPHash),
-			"the ip check runs before the nonce is spent, so a misdirected attempt can't burn someone's challenge")
+		require.ErrorIs(t, verify(challenge.Value, solution, testUserID, otherIPHash), proofofwork.ErrIPMismatch,
+			"one rented CPU box must not solve challenges for a pool of proxy exits")
+		require.NoError(t, verify(challenge.Value, solution, testUserID, testIPHash))
 	})
 
-	t.Run("a challenge can only be spent once", func(t *testing.T) {
+	t.Run("rejects a challenge presented for another user id", func(t *testing.T) {
 		t.Parallel()
 		c := &clock{now: testTime}
 		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
 
-		challenge, err := issue(testIPHash, "prism")
+		challenge, err := issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 		solution := solve(t, challenge.Value, 0)
 
-		require.NoError(t, verify(challenge.Value, solution, testIPHash))
-		require.ErrorIs(t, verify(challenge.Value, solution, testIPHash), proofofwork.ErrNonceReplayed,
-			"one solved challenge must mint exactly one session, not one per request until it expires")
+		require.ErrorIs(t, verify(challenge.Value, solution, "someone-else", testIPHash), proofofwork.ErrUserIDMismatch,
+			"a second identity has to cost a second solve, or the work prices nothing")
+		require.NoError(t, verify(challenge.Value, solution, testUserID, testIPHash))
 	})
 
-	t.Run("a wrong solution spends the challenge", func(t *testing.T) {
+	t.Run("the user id is compared byte for byte", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
+
+		challenge, err := issue(testUserID, testIPHash, "prism")
+		require.NoError(t, err)
+		solution := solve(t, challenge.Value, 0)
+
+		// No trimming, no case folding: whatever normalization either side
+		// grew unilaterally would reject correct solutions.
+		for _, near := range []string{" " + testUserID, testUserID + " ", strings.ToUpper(testUserID), testUserID + "\x00"} {
+			require.ErrorIs(t, verify(challenge.Value, solution, near, testIPHash), proofofwork.ErrUserIDMismatch)
+		}
+	})
+
+	// Replay is what the used-nonce set used to prevent. It is allowed now:
+	// the binding above means a reused solution only ever mints sessions for
+	// one identity, which shares one budget — the multiple-tabs case.
+	t.Run("a solved challenge can be presented again inside its ttl", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, 0, c)
+
+		challenge, err := issue(testUserID, testIPHash, "prism")
+		require.NoError(t, err)
+		solution := solve(t, challenge.Value, 0)
+
+		require.NoError(t, verify(challenge.Value, solution, testUserID, testIPHash))
+		require.NoError(t, verify(challenge.Value, solution, testUserID, testIPHash))
+
+		// The ttl is the whole bound on that window.
+		c.now = testTime.Add(61 * time.Second)
+		require.ErrorIs(t, verify(challenge.Value, solution, testUserID, testIPHash), proofofwork.ErrChallengeExpired)
+	})
+
+	t.Run("a wrong solution does not cost the challenge", func(t *testing.T) {
 		t.Parallel()
 		const difficulty = 10
 		c := &clock{now: testTime}
 		issue, verify := scheme(t, [][]byte{testKey(t, 1)}, difficulty, c)
 
-		challenge, err := issue(testIPHash, "prism")
+		challenge, err := issue(testUserID, testIPHash, "prism")
 		require.NoError(t, err)
 		// Not a fixed string: against a random challenge one would clear a
 		// 10-bit bar about one run in a thousand.
 		wrong := solveShortOf(t, challenge.Value, 0, difficulty)
-		require.ErrorIs(t, verify(challenge.Value, wrong, testIPHash), proofofwork.ErrInsufficientWork)
-		require.ErrorIs(t, verify(challenge.Value, solve(t, challenge.Value, difficulty), testIPHash), proofofwork.ErrNonceReplayed,
-			"the nonce is claimed before the work is checked; a failed attempt costs a fresh challenge")
+		require.ErrorIs(t, verify(challenge.Value, wrong, testUserID, testIPHash), proofofwork.ErrInsufficientWork)
+		require.NoError(t, verify(challenge.Value, solve(t, challenge.Value, difficulty), testUserID, testIPHash),
+			"nothing is spent before the work is checked, so a client bug doesn't cost a round trip")
 	})
 
 	t.Run("rejects malformed challenges", func(t *testing.T) {
@@ -413,7 +444,7 @@ func TestIssueAndVerify(t *testing.T) {
 		} {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
-				err := verify(value, "0", testIPHash)
+				err := verify(value, "0", testUserID, testIPHash)
 				require.Error(t, err)
 				require.NotErrorIs(t, err, proofofwork.ErrInsufficientWork)
 			})
@@ -475,8 +506,6 @@ func TestParseSigningKeys(t *testing.T) {
 func TestBuildersRejectInvalidConfig(t *testing.T) {
 	t.Parallel()
 
-	nonces, stop := proofofwork.NewInMemoryUsedNonceStore(10)
-	t.Cleanup(stop)
 	keys := [][]byte{testKey(t, 1)}
 
 	_, err := proofofwork.BuildIssueChallenge(nil, fixedDifficulty(0), time.Now)
@@ -485,10 +514,7 @@ func TestBuildersRejectInvalidConfig(t *testing.T) {
 	_, err = proofofwork.BuildIssueChallenge(keys, nil, time.Now)
 	require.ErrorIs(t, err, proofofwork.ErrInvalidConfig)
 
-	_, err = proofofwork.BuildVerifySolution(nil, nonces, time.Now)
-	require.ErrorIs(t, err, proofofwork.ErrInvalidConfig)
-
-	_, err = proofofwork.BuildVerifySolution(keys, nil, time.Now)
+	_, err = proofofwork.BuildVerifySolution(nil, time.Now)
 	require.ErrorIs(t, err, proofofwork.ErrInvalidConfig)
 }
 
@@ -503,7 +529,7 @@ func TestRejectionReason(t *testing.T) {
 		proofofwork.ErrBadSignature,
 		proofofwork.ErrChallengeExpired,
 		proofofwork.ErrIPMismatch,
-		proofofwork.ErrNonceReplayed,
+		proofofwork.ErrUserIDMismatch,
 		proofofwork.ErrInsufficientWork,
 		proofofwork.ErrUnsupportedAlgorithm,
 	} {

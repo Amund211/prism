@@ -313,12 +313,11 @@ func TestAnonymousLoginHandler(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
-	t.Run("accepts userId in the warn band (above 50, within 100)", func(t *testing.T) {
+	t.Run("accepts a userId longer than the legacy header truncation point", func(t *testing.T) {
 		t.Parallel()
-		// 60 chars — over the previous limit but under the new cap.
-		// Behaviour change introduced when we bumped the cap to 100;
-		// the request also fires a reporting.Report call which Sentry
-		// will pick up (not verified here since the reporter is global).
+		// 60 chars — over the 50 the X-User-Id header truncates at, and
+		// under userIDMaxLength. Accepted without comment: an unexpected
+		// length is bad input, not something to report.
 		longID := strings.Repeat("x", 60)
 		var sawUserID string
 		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
@@ -407,13 +406,13 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 			"empty challenge":      `{"userId":"user-abc","challenge":"","solution":"1"}`,
 			"no solution":          `{"userId":"user-abc","challenge":"blob"}`,
 			"empty solution":       `{"userId":"user-abc","challenge":"blob","solution":""}`,
-			"huge challenge":       fmt.Sprintf(`{"userId":"user-abc","challenge":%q,"solution":"1"}`, strings.Repeat("x", 513)),
+			"huge challenge":       fmt.Sprintf(`{"userId":"user-abc","challenge":%q,"solution":"1"}`, strings.Repeat("x", 1281)),
 			"huge solution":        fmt.Sprintf(`{"userId":"user-abc","challenge":"blob","solution":%q}`, strings.Repeat("x", 129)),
 			"whole body oversized": fmt.Sprintf(`{"userId":"user-abc","challenge":%q,"solution":"1"}`, strings.Repeat("x", 4096)),
 		} {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
-				verify := func(challenge, solution, ipHash string) error {
+				verify := func(challenge, solution, userID, ipHash string) error {
 					t.Fatal("verification should not be reached for a malformed body")
 					return nil
 				}
@@ -430,7 +429,7 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 	t.Run("400 on an empty solution even though difficulty is 0", func(t *testing.T) {
 		t.Parallel()
 		issue, verify := newProofOfWorkScheme(t, 0)
-		challenge, err := issue(ports.IP("1.2.3.4").Hash(), "prism")
+		challenge, err := issue("user-abc", ports.IP("1.2.3.4").Hash(), "prism")
 		require.NoError(t, err)
 
 		handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "with an empty solution"), verify, time.Now)
@@ -445,24 +444,24 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 			"bad signature":         proofofwork.ErrBadSignature,
 			"expired":               proofofwork.ErrChallengeExpired,
 			"ip mismatch":           proofofwork.ErrIPMismatch,
-			"replayed":              proofofwork.ErrNonceReplayed,
+			"user id mismatch":      proofofwork.ErrUserIDMismatch,
 			"insufficient work":     proofofwork.ErrInsufficientWork,
 			"unsupported algorithm": proofofwork.ErrUnsupportedAlgorithm,
 		} {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
-				verify := func(challenge, solution, ipHash string) error { return cause }
+				verify := func(challenge, solution, userID, ipHash string) error { return cause }
 				handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "for a rejected proof"), verify, time.Now)
 				require.Equal(t, http.StatusForbidden, postLogin(t, handler, "1.2.3.4", anonymousLoginBody("user-abc")).Code)
 			})
 		}
 	})
 
-	t.Run("verification gets the body's proof and the request's ip hash", func(t *testing.T) {
+	t.Run("verification gets the body's proof, userId and the request's ip hash", func(t *testing.T) {
 		t.Parallel()
-		var sawChallenge, sawSolution, sawIPHash string
-		verify := func(challenge, solution, ipHash string) error {
-			sawChallenge, sawSolution, sawIPHash = challenge, solution, ipHash
+		var sawChallenge, sawSolution, sawUserID, sawIPHash string
+		verify := func(challenge, solution, userID, ipHash string) error {
+			sawChallenge, sawSolution, sawUserID, sawIPHash = challenge, solution, userID, ipHash
 			return nil
 		}
 		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
@@ -474,12 +473,14 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 		require.Equal(t, "42", sawSolution)
 		require.Equal(t, ports.IP("1.2.3.4").Hash(), sawIPHash,
 			"the proof is bound to the caller's ip, so it must be checked against the ip we'd bill the login to")
+		require.Equal(t, "user-abc", sawUserID,
+			"the raw userId that becomes identity_key, so the binding is checked against the identity we'd bill the login to")
 	})
 
 	// End to end over both endpoints, with real hashing: what a client
 	// actually has to do, and what it buys an attacker who tries to reuse
 	// the result.
-	t.Run("a challenge from the challenge endpoint logs in exactly once", func(t *testing.T) {
+	t.Run("a challenge from the challenge endpoint logs in as the userId it was minted for", func(t *testing.T) {
 		t.Parallel()
 		const difficulty = 8
 		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
@@ -487,7 +488,7 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 		challengeHandler := newAnonymousChallengeHandler(t, issue)
 		loginHandler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), verify, func() time.Time { return now })
 
-		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/challenge", nil)
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/challenge", strings.NewReader(anonymousChallengeBody("user-abc")))
 		withJSONContentType(r)
 		withRequestIP(r, "1.2.3.4")
 		w := httptest.NewRecorder()
@@ -502,15 +503,18 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 		require.NoError(t, json.NewDecoder(w.Body).Decode(&challenge))
 		require.Equal(t, difficulty, challenge.Difficulty)
 
-		body := fmt.Sprintf(
-			`{"userId":"user-abc","challenge":%q,"solution":%q}`,
-			challenge.Challenge,
-			solveChallenge(t, challenge.Challenge, challenge.Difficulty),
-		)
+		solution := solveChallenge(t, challenge.Challenge, challenge.Difficulty)
+		body := fmt.Sprintf(`{"userId":"user-abc","challenge":%q,"solution":%q}`, challenge.Challenge, solution)
 		require.Equal(t, http.StatusOK, postLogin(t, loginHandler, "1.2.3.4", body).Code)
 
-		require.Equal(t, http.StatusForbidden, postLogin(t, loginHandler, "1.2.3.4", body).Code,
-			"replaying a solved challenge would price identity per minute instead of per identity")
+		// Replay is allowed, and is why there is no used-nonce set: it only
+		// mints more sessions for one identity, which shares one budget.
+		require.Equal(t, http.StatusOK, postLogin(t, loginHandler, "1.2.3.4", body).Code)
+
+		// What it can't do is pay for a second identity.
+		other := fmt.Sprintf(`{"userId":"user-xyz","challenge":%q,"solution":%q}`, challenge.Challenge, solution)
+		require.Equal(t, http.StatusForbidden, postLogin(t, loginHandler, "1.2.3.4", other).Code,
+			"the work prices identity, so a second identity has to cost a second solve")
 	})
 
 	t.Run("a challenge solved for one ip does not work from another", func(t *testing.T) {
@@ -519,7 +523,7 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 		issue, verify := newProofOfWorkScheme(t, 0)
 		loginHandler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), verify, func() time.Time { return now })
 
-		challenge, err := issue(ports.IP("1.2.3.4").Hash(), "prism")
+		challenge, err := issue("user-abc", ports.IP("1.2.3.4").Hash(), "prism")
 		require.NoError(t, err)
 		body := fmt.Sprintf(
 			`{"userId":"user-abc","challenge":%q,"solution":%q}`,
@@ -529,7 +533,53 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 
 		require.Equal(t, http.StatusForbidden, postLogin(t, loginHandler, "5.6.7.8", body).Code,
 			"one rented CPU box must not be able to solve challenges for a pool of proxy exits")
-		require.Equal(t, http.StatusOK, postLogin(t, loginHandler, "1.2.3.4", body).Code,
-			"and the misdirected attempt must not have burned the challenge")
+		require.Equal(t, http.StatusOK, postLogin(t, loginHandler, "1.2.3.4", body).Code)
+	})
+
+	// The two endpoints agree on what a userId is, but that is only half of
+	// the handshake completing: the challenge they exchange is sized by the
+	// *marshalled* payload, and encoding/json escapes `&`, `<`, `>` and
+	// control characters to six bytes each. So a userId well inside
+	// userIDMaxLength can inflate the blob far past its own length, and a blob
+	// over challengeMaxLength is rejected on shape before verification ever
+	// runs — a handshake that can never complete, however many times the
+	// client retries.
+	t.Run("challengeMaxLength covers everything the mint can produce", func(t *testing.T) {
+		t.Parallel()
+
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		maxUserID := func(s string) string { return strings.Repeat(s, 100/len(s)) }
+
+		for name, userID := range map[string]string{
+			"uuid4 hex":        strings.Repeat("a", 32),
+			"plain ascii":      strings.Repeat("x", 100),
+			"html escaped":     maxUserID("&"),
+			"angle brackets":   maxUserID("<"),
+			"control chars":    maxUserID("\x01"),
+			"quotes":           maxUserID(`"`),
+			"backslashes":      maxUserID(`\`),
+			"multibyte":        maxUserID("é"),
+			"line separator":   maxUserID(" "),
+			"single character": "x",
+		} {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				issue, verify := newProofOfWorkScheme(t, 0)
+				loginHandler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), verify, func() time.Time { return now })
+
+				challenge, err := issue(userID, ports.IP("1.2.3.4").Hash(), "prism")
+				require.NoError(t, err)
+
+				body, err := json.Marshal(map[string]string{
+					"userId":    userID,
+					"challenge": challenge.Value,
+					"solution":  solveChallenge(t, challenge.Value, challenge.Difficulty),
+				})
+				require.NoError(t, err)
+				require.Equal(t, http.StatusOK, postLogin(t, loginHandler, "1.2.3.4", string(body)).Code,
+					"a %d-byte userId minted a %d-byte challenge; a 400 here means challengeMaxLength no longer covers what the mint can produce",
+					len(userID), len(challenge.Value))
+			})
+		}
 	})
 }

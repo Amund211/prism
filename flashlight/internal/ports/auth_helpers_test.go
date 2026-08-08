@@ -49,7 +49,7 @@ func authTestOrigins(t *testing.T) *ports.DomainSuffixes {
 
 // acceptAnyProof stands in for proof-of-work verification in the tests
 // that aren't about it. The ones that are build a real scheme.
-func acceptAnyProof(challenge string, solution string, ipHash string) error {
+func acceptAnyProof(challenge string, solution string, userID string, ipHash string) error {
 	return nil
 }
 
@@ -58,6 +58,10 @@ func acceptAnyProof(challenge string, solution string, ipHash string) error {
 // verifier is acceptAnyProof.
 func anonymousLoginBody(userID string) string {
 	return fmt.Sprintf(`{"userId":%q,"challenge":"challenge-blob","solution":"1"}`, userID)
+}
+
+func anonymousChallengeBody(userID string) string {
+	return fmt.Sprintf(`{"userId":%q}`, userID)
 }
 
 func newAnonymousLoginHandler(t *testing.T, login app.AnonymousLogin, nowFunc func() time.Time) http.HandlerFunc {
@@ -80,20 +84,18 @@ func newAnonymousLoginHandlerWithProof(t *testing.T, login app.AnonymousLogin, v
 	return handler
 }
 
-// newProofOfWorkScheme wires a real challenge/verify pair sharing one key
-// and one used-nonce set, the way main.go does.
+// newProofOfWorkScheme wires a real challenge/verify pair sharing one key,
+// the way main.go does.
 func newProofOfWorkScheme(t *testing.T, difficulty int) (proofofwork.IssueChallenge, proofofwork.VerifySolution) {
 	t.Helper()
 	keys, err := proofofwork.ParseSigningKeys([]string{base64.StdEncoding.EncodeToString(make([]byte, 32))})
 	require.NoError(t, err)
 	difficultyFor, err := proofofwork.BuildDifficultyFunc(difficulty)
 	require.NoError(t, err)
-	nonces, stopNonces := proofofwork.NewInMemoryUsedNonceStore(100)
-	t.Cleanup(stopNonces)
 
 	issueChallenge, err := proofofwork.BuildIssueChallenge(keys, difficultyFor, time.Now)
 	require.NoError(t, err)
-	verifySolution, err := proofofwork.BuildVerifySolution(keys, nonces, time.Now)
+	verifySolution, err := proofofwork.BuildVerifySolution(keys, time.Now)
 	require.NoError(t, err)
 	return issueChallenge, verifySolution
 }

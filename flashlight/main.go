@@ -211,16 +211,11 @@ func main() {
 	if err != nil {
 		fail("Failed to initialize proof-of-work difficulty", "error", err.Error())
 	}
-	// Sized like the other caches: 50k nonces within the 60s challenge TTL
-	// is orders of magnitude more logins than the limiters let through, so
-	// capacity eviction — which would let a replay past — never happens in
-	// practice.
-	usedNonces, stopUsedNonces := proofofwork.NewInMemoryUsedNonceStore(50_000)
 	issueChallenge, err := proofofwork.BuildIssueChallenge(authChallengeKeys, difficultyFor, time.Now)
 	if err != nil {
 		fail("Failed to initialize proof-of-work challenges", "error", err.Error())
 	}
-	verifySolution, err := proofofwork.BuildVerifySolution(authChallengeKeys, usedNonces, time.Now)
+	verifySolution, err := proofofwork.BuildVerifySolution(authChallengeKeys, time.Now)
 	if err != nil {
 		fail("Failed to initialize proof-of-work verification", "error", err.Error())
 	}
@@ -289,10 +284,6 @@ func main() {
 	// graceful-shutdown sequence at the end of main so the eviction goroutines
 	// are torn down cleanly on the SIGTERM path.
 	var handlerStops []func()
-
-	// The used-nonce set has an eviction goroutine of the same shape, torn
-	// down alongside them.
-	handlerStops = append(handlerStops, stopUsedNonces)
 
 	// stops are the rate-limiter eviction-goroutine cleanups for the handler,
 	// collected here so a handler can't be registered without also collecting

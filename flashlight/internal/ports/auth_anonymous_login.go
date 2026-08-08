@@ -33,26 +33,39 @@ type anonymousLoginRequest struct {
 // userIDMaxLength is the hard cap above which we reject the request.
 // The legacy X-User-Id header silently truncates at 50 chars
 // (internal/ports/userid.go) and real overlay-generated user_ids are
-// 32 chars (uuid4 hex), so 100 is comfortably above expected traffic;
-// the over-length report below gives us data to tighten the cap later.
+// 32 chars (uuid4 hex), so 100 is comfortably above expected traffic.
 const userIDMaxLength = 100
 
-// userIDWarnLength is the threshold above which we still accept the
-// userId but log to Sentry. Anything above 50 is unexpected (matches
-// the legacy header truncation point) — keep an eye on real-world
-// values before deciding whether to lower the hard cap.
-const userIDWarnLength = 50
-
 // challengeMaxLength and solutionMaxLength bound the proof-of-work fields
-// before we hash anything. A challenge we minted is ~250 chars; a solution
-// is a counter the client incremented until the hash came out right, which
-// stays short even at the sanity-ceiling difficulty. Both caps sit well
-// above that so a client picking a different (still sane) solution
-// encoding doesn't trip them.
+// before we hash anything. A solution is a counter the client incremented
+// until the hash came out right, which stays short even at the sanity-ceiling
+// difficulty.
+//
+// The challenge cap has to clear **everything the mint can produce**, or the
+// challenge endpoint hands out blobs login rejects on shape and the handshake
+// can never complete. It is not userIDMaxLength plus a constant: the payload
+// is marshalled with encoding/json, which escapes `&`, `<`, `>` and control
+// characters to six bytes each, so a legal 100-byte userId can contribute 600
+// bytes before base64. Worst case today is 1116 bytes; the headroom here
+// covers a field or two being added to challengePayload later. Pinned by
+// TestAnonymousLoginProofOfWork/"challengeMaxLength covers everything the
+// mint can produce".
 const (
-	challengeMaxLength = 512
+	challengeMaxLength = 1280
 	solutionMaxLength  = 128
 )
+
+// authBodyMaxBytes comfortably fits the largest legal body on either
+// anonymous endpoint — a 100-char userId, a challenge blob and a solution,
+// all capped above — with room for the JSON around them.
+const authBodyMaxBytes = 2048
+
+// validAnonymousUserID applies the shared shape check. The challenge and
+// login endpoints must agree on it exactly: the userId travels signed
+// inside the challenge and is compared byte for byte on the way back in.
+func validAnonymousUserID(userID string) bool {
+	return userID != "" && len(userID) <= userIDMaxLength
+}
 
 // hasJSONContentType reports whether the request declares a JSON body.
 // Parameters are allowed (application/json; charset=utf-8); a missing,
@@ -138,25 +151,16 @@ func MakeAnonymousLoginHandler(
 			return
 		}
 
-		// 2KiB comfortably fits the largest legal body — a 100-char userId,
-		// a challenge blob and a solution, all capped below — with room for
-		// the JSON around them.
 		var body anonymousLoginRequest
-		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 2048)).Decode(&body); err != nil {
+		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, authBodyMaxBytes)).Decode(&body); err != nil {
 			logging.FromContext(ctx).InfoContext(ctx, "Failed to decode anonymous login body", "error", err.Error())
 			http.Error(w, "Invalid request body", http.StatusBadRequest)
 			return
 		}
 
-		if body.UserID == "" || len(body.UserID) > userIDMaxLength {
+		if !validAnonymousUserID(body.UserID) {
 			http.Error(w, "Invalid userId", http.StatusBadRequest)
 			return
-		}
-		if len(body.UserID) > userIDWarnLength {
-			reporting.Report(
-				ctx,
-				fmt.Errorf("anonymous login userId longer than expected: len=%d", len(body.UserID)),
-			)
 		}
 
 		if body.Challenge == "" || len(body.Challenge) > challengeMaxLength {
@@ -189,7 +193,7 @@ func MakeAnonymousLoginHandler(
 		// for all of them — fetch a fresh challenge and try again (with
 		// backoff; a client that hot-loops on 403 is a client that
 		// rate-limits itself out).
-		if err := verifySolution(body.Challenge, body.Solution, ipHash); err != nil {
+		if err := verifySolution(body.Challenge, body.Solution, body.UserID, ipHash); err != nil {
 			reason := proofofwork.RejectionReason(err)
 			logging.FromContext(ctx).InfoContext(ctx, "Rejected anonymous login proof of work",
 				slog.String("reason", reason),

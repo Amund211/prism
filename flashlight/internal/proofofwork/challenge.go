@@ -21,8 +21,7 @@ import (
 // breaking.
 const AlgorithmSHA256LeadingZeros = "sha256-leading-zeros-v1"
 
-// challengeTTL is how long a minted challenge stays solvable. Short enough
-// that a solved-but-unspent challenge is worth little.
+// challengeTTL is how long a minted challenge stays solvable.
 //
 // It is measured from minting, server-side, so the client's solve time and
 // both round trips come out of it — which is what bounds the difficulty
@@ -30,6 +29,12 @@ const AlgorithmSHA256LeadingZeros = "sha256-leading-zeros-v1"
 // before turning the dial up: past a certain difficulty a client cannot
 // finish inside the window, and since the TTL is checked before the work,
 // it would loop solving challenges that expire under it.
+//
+// It is also the replay window, and that is the whole bound on replay: a
+// solved challenge logs in as often as the login limiter allows until it
+// expires. Those two roles pull in opposite directions — a higher
+// difficulty wants a longer TTL, a shorter TTL is what keeps replay cheap
+// to ignore — so neither can be retuned without the other in mind.
 const challengeTTL = 60 * time.Second
 
 // clockSkewGrace is how far into the future a challenge may claim to have been
@@ -42,9 +47,9 @@ const clockSkewGrace = 5 * time.Second
 // the base64url alphabet, so it can't occur inside either half.
 const challengeSeparator = "."
 
-// nonceLength is the size of the random per-challenge nonce. It only has
-// to be wide enough that two live challenges never collide — a collision
-// would let the used-nonce set reject a legitimate login.
+// nonceLength is the size of the random per-challenge nonce, which is what
+// makes two challenges minted for the same caller in the same millisecond
+// distinct and unpredictable.
 const nonceLength = 16
 
 // minSigningKeyLength is the smallest signing key we accept, matching the
@@ -60,7 +65,7 @@ var (
 	ErrBadSignature       = errors.New("bad challenge signature")
 	ErrChallengeExpired   = errors.New("challenge expired")
 	ErrIPMismatch         = errors.New("challenge was issued to a different ip")
-	ErrNonceReplayed      = errors.New("challenge has already been used")
+	ErrUserIDMismatch     = errors.New("challenge was issued to a different user id")
 	ErrInsufficientWork   = errors.New("solution does not meet the required difficulty")
 
 	// ErrUnsupportedAlgorithm means we signed it but cannot check it: a newer
@@ -78,23 +83,31 @@ type Challenge struct {
 	ExpiresIn  time.Duration
 }
 
-// IssueChallenge mints a challenge bound to the caller's ip hash.
-// clientType must be the *normalized* client type: it is client-supplied,
-// so it may only ever raise the cost, never lower it.
-type IssueChallenge func(ipHash string, clientType string) (Challenge, error)
+// IssueChallenge mints a challenge bound to the userId the caller intends
+// to log in as and to their ip hash. clientType must be the *normalized*
+// client type: it is client-supplied, so it may only ever raise the cost,
+// never lower it.
+type IssueChallenge func(userID string, ipHash string, clientType string) (Challenge, error)
 
 // VerifySolution checks a (challenge, solution) pair presented by a caller
-// at ipHash, and consumes the challenge so it can't be presented twice.
-// Every failure wraps one of the sentinel errors above; RejectionReason
-// turns that into a bounded metric label.
-type VerifySolution func(challenge string, solution string, ipHash string) error
+// logging in as userID from ipHash. Every failure wraps one of the sentinel
+// errors above; RejectionReason turns that into a bounded metric label.
+//
+// userID must be the raw value that becomes the session's identity_key,
+// compared byte for byte against what was minted. Normalizing on one side
+// only would reject correct solutions.
+type VerifySolution func(challenge string, solution string, userID string, ipHash string) error
 
 // challengePayload is the signed half of a challenge. It is the server
 // talking to itself — the client never reads it — so it carries everything
 // verification needs, difficulty included. That is what lets difficulty
 // vary per request without the server remembering what it asked for.
 type challengePayload struct {
-	Nonce  string `json:"nonce"`
+	Nonce string `json:"nonce"`
+	// UserID is what makes replay harmless and the used-nonce set
+	// unnecessary: a reused solution mints sessions for one identity, which
+	// shares one budget, and is the multiple-tabs case we already allow.
+	UserID string `json:"userId"`
 	IPHash string `json:"ipHash"`
 	// Milliseconds because the age of a challenge is a measurement: truncating
 	// the mint instant to a whole second would add a second of noise to it,
@@ -160,7 +173,7 @@ func BuildIssueChallenge(keys [][]byte, difficultyFor DifficultyFunc, nowFunc fu
 	}
 	signingKey := keys[0]
 
-	return func(ipHash string, clientType string) (Challenge, error) {
+	return func(userID string, ipHash string, clientType string) (Challenge, error) {
 		var nonce [nonceLength]byte
 		if _, err := rand.Read(nonce[:]); err != nil {
 			return Challenge{}, fmt.Errorf("failed to generate challenge nonce: %w", err)
@@ -174,6 +187,7 @@ func BuildIssueChallenge(keys [][]byte, difficultyFor DifficultyFunc, nowFunc fu
 
 		payload, err := json.Marshal(challengePayload{
 			Nonce:              base64.RawURLEncoding.EncodeToString(nonce[:]),
+			UserID:             userID,
 			IPHash:             ipHash,
 			IssuedAtUnixMillis: nowFunc().UnixMilli(),
 			Difficulty:         difficulty,
@@ -195,19 +209,15 @@ func BuildIssueChallenge(keys [][]byte, difficultyFor DifficultyFunc, nowFunc fu
 	}, nil
 }
 
-// BuildVerifySolution returns the verifying half of the scheme. The order
-// of the checks is the point of the whole mechanism and is load-bearing:
-// everything here is cheap, stateless and runs ahead of any database work
-// on the login path, because a proof checked after the write buys nothing.
-func BuildVerifySolution(keys [][]byte, nonces UsedNonceStore, nowFunc func() time.Time) (VerifySolution, error) {
+// BuildVerifySolution returns the verifying half of the scheme. Every check
+// is cheap and stateless, and runs ahead of any database work on the login
+// path, because a proof checked after the write buys nothing.
+func BuildVerifySolution(keys [][]byte, nowFunc func() time.Time) (VerifySolution, error) {
 	if len(keys) == 0 {
 		return nil, fmt.Errorf("%w: no signing keys", ErrInvalidConfig)
 	}
-	if nonces == nil {
-		return nil, fmt.Errorf("%w: no used-nonce store", ErrInvalidConfig)
-	}
 
-	return func(challenge string, solution string, ipHash string) error {
+	return func(challenge string, solution string, userID string, ipHash string) error {
 		body, signature, ok := strings.Cut(challenge, challengeSeparator)
 		if !ok {
 			return fmt.Errorf("%w: expected two %q-separated parts", ErrMalformedChallenge, challengeSeparator)
@@ -235,8 +245,6 @@ func BuildVerifySolution(keys [][]byte, nonces UsedNonceStore, nowFunc func() ti
 		// Both decodes are unreachable for a blob we signed ourselves, but a
 		// signature check is not a parse and shouldn't be treated as one.
 
-		// Ahead of the nonce claim, so a challenge this revision cannot check
-		// isn't also spent by it.
 		if payload.Algorithm != AlgorithmSHA256LeadingZeros {
 			return fmt.Errorf("%w: %q", ErrUnsupportedAlgorithm, payload.Algorithm)
 		}
@@ -255,14 +263,13 @@ func BuildVerifySolution(keys [][]byte, nonces UsedNonceStore, nowFunc func() ti
 			return ErrIPMismatch
 		}
 
-		// Spend the challenge before checking the work, not after: this is
-		// the only state in an otherwise stateless scheme, and without it
-		// one solved challenge mints sessions until it expires, which
-		// prices identity per minute instead of per identity. The cost is
-		// that a wrong solution burns the challenge, which is correct — the
-		// client asks for a new one.
-		if !nonces.Claim(payload.Nonce) {
-			return ErrNonceReplayed
+		// And binding to the user id is what keeps a replayed solution
+		// worth nothing: it can only mint sessions for the identity it was
+		// minted for, and those share that identity's budget. Cost per
+		// identity — the thing the work is meant to price — is unchanged,
+		// since a second identity still needs a second solve.
+		if payload.UserID != userID {
+			return ErrUserIDMismatch
 		}
 
 		digest := sha256.Sum256([]byte(challenge + ":" + solution))
@@ -288,8 +295,8 @@ func RejectionReason(err error) string {
 		return "expired"
 	case errors.Is(err, ErrIPMismatch):
 		return "ip_mismatch"
-	case errors.Is(err, ErrNonceReplayed):
-		return "replayed"
+	case errors.Is(err, ErrUserIDMismatch):
+		return "user_id_mismatch"
 	case errors.Is(err, ErrInsufficientWork):
 		return "insufficient_work"
 	case errors.Is(err, ErrUnsupportedAlgorithm):
