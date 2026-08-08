@@ -222,7 +222,7 @@ func main() {
 	logger.InfoContext(ctx, "Initialized anonymous login proof-of-work", "difficulty", proofofwork.DefaultDifficulty)
 
 	anonymousLogin := app.BuildAnonymousLogin(authSessionRepo, time.Now, app.GenerateAuthSessionID)
-	refreshSession := app.BuildRefreshSession(authSessionRepo, time.Now)
+	refreshSession := app.BuildRefreshSession(authSessionRepo, time.Now, validateSessionCache)
 	validateSession := app.BuildValidateSession(authSessionRepo, time.Now, validateSessionCache)
 	bearerAuthMiddleware := ports.NewBearerAuthMiddleware(validateSession, time.Now)
 

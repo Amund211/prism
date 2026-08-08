@@ -65,14 +65,15 @@ Validate is cached: keyed by session id, **1 minute, successes only**, LRU at
 - **A validate cache hit re-checks nothing.** Expiry is only evaluated inside
   `create()`, so an entry serves for its full minute regardless of what the row
   does. A revoked or expired session stays usable for up to a minute; accepted.
-- **Only immutable verdicts may be negatively cached — so `expired` may not
-  be.** Failures are deliberately uncached today. `not_found` and `revoked` are
-  permanent and would be safe; **`expired` is not, because refresh flips it back
-  to valid.** Since refresh does not rotate the id, the retry after a refresh
-  presents the same cache key: it would be served a stale 401, react by
-  refreshing again, and get a `429` (the 30-minute interval), which is not a
+- **Only immutable verdicts may be negatively cached — `expired` rests on the
+  refresh invalidation.** Failures are deliberately uncached today. `not_found`
+  and `revoked` are permanent and would be safe; **`expired` is not permanent,
+  because refresh flips it back to valid**, and refresh presents the same cache
+  key. Deleting the entry on refresh is what makes caching it feasible at all:
+  without that, the retry after a refresh is served a stale 401, reacts by
+  refreshing again, and gets a `429` (the 30-minute interval), which is not a
   401 and so does not trigger re-login — the client is wedged for the whole
-  negative TTL. The alternative, if negative caching is ever wanted, is to make
+  negative TTL. The other way out, if negative caching is ever wanted, is to make
   **`authRefreshWindow` equal `authSessionTTL`**: past `expires_at` a session is
   then also unrefreshable, `expired` becomes immutable, and caching it is safe.
   The cost is the grace window — a client idle past the TTL always pays a full
@@ -85,8 +86,12 @@ Validate is cached: keyed by session id, **1 minute, successes only**, LRU at
 - **Refresh does not rotate the session id.** A leaked token therefore lives to
   its own `lifetime_ends_at` (≤24h) no matter what the real user does; there is
   no user-driven remediation and no "sign out everywhere".
-- **Refresh does not invalidate the validate cache.** Harmless only because
-  hits aren't re-checked and the id is stable — don't build on it.
+- **Refresh deletes the session's validate cache entry.** Since the id is
+  stable and a hit re-checks nothing, leaving it means every read for the rest
+  of that minute — the `X-Auth-Refresh` hint included — sees the pre-refresh
+  `expires_at`, and the client refreshes into a `429`. The delete does not
+  reach a validate already inside `create()`; that one still writes its
+  pre-refresh view.
 - **Concurrent validates of one dead session queue ~50ms apart**, one DB
   round-trip each, because failures release the cache claim instead of
   populating it. Clients that fan out must start recovery from the *first* 401.

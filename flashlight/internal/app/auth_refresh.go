@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Amund211/flashlight/internal/adapters/cache"
 	"github.com/Amund211/flashlight/internal/domain"
 )
 
@@ -28,9 +29,24 @@ func RefreshTooSoon(s domain.AuthSession, now time.Time) bool {
 // refresh_until and lifetime_ends_at. Rejects ids refreshed less than
 // authMinRefreshInterval ago. Updates ip_hash so roaming clients don't
 // get stuck on stale ip counters.
+//
+// A successful refresh drops the session's entry from the validate cache
+// (see sessionCache below).
 type RefreshSession func(ctx context.Context, sessionID string, ipHash string) (domain.AuthSession, error)
 
-func BuildRefreshSession(repo refreshRepository, nowFunc func() time.Time) RefreshSession {
+// sessionCache is BuildValidateSession's cache. Since refresh does not
+// rotate the id, the row it just bumped is cached under the same key, and
+// a hit re-checks nothing — so every read of the session for the rest of
+// that entry's ttl would see the pre-refresh expires_at. That is what the
+// bearer middleware computes its X-Auth-Refresh hint from: it would keep
+// asking for a refresh that the real row now answers with a 429. Dropping
+// the entry is also what would make caching negative verdicts feasible,
+// since `expired` stops being a verdict a refresh can silently outdate.
+func BuildRefreshSession(
+	repo refreshRepository,
+	nowFunc func() time.Time,
+	sessionCache cache.Cache[domain.AuthSession],
+) RefreshSession {
 	return func(ctx context.Context, sessionID string, ipHash string) (domain.AuthSession, error) {
 		if sessionID == "" {
 			return domain.AuthSession{}, domain.ErrAuthSessionNotFound
@@ -66,8 +82,15 @@ func BuildRefreshSession(repo refreshRepository, nowFunc func() time.Time) Refre
 			return s, nil
 		})
 		if err != nil {
+			// Nothing was written on any of these paths, so whatever is
+			// cached is as good as it was.
 			return domain.AuthSession{}, fmt.Errorf("failed to refresh session: %w", err)
 		}
+
+		// After the write is durable, so a validate that misses reads the
+		// bumped row.
+		cache.Delete(sessionCache, sessionID)
+
 		return sess, nil
 	}
 }
