@@ -203,7 +203,7 @@ def words_match(words: Sequence[str], target: str) -> bool:
     )
 
     if not full_match:
-        logger.debug("Message does not match target! {joined_words=} != {target=}")
+        logger.debug(f"Message does not match target! {joined_words=} != {target=}")
 
     return full_match
 

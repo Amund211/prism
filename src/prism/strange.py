@@ -187,7 +187,7 @@ class StrangePlayerProvider:
             )
 
         if is_checked_too_many_offline_players_response(response):
-            raise APIError("Checked too many offline players for {uuid}")
+            raise APIError(f"Checked too many offline players for {uuid}")
 
         if response.status_code == 404:
             raise PlayerNotFoundError(f"Could not find a user with {uuid=} (404)")
