@@ -54,11 +54,13 @@ extensions:
 service:
   extensions: [health_check]
   pipelines:
+    # memory_limiter first so it can refuse data at the receiver and let the
+    # client retry; batch last so it never buffers data we would then drop
     traces:
       receivers: [otlp]
-      processors: [batch, memory_limiter, resource_detection, resource]
+      processors: [memory_limiter, resource_detection, resource, batch]
       exporters: [googlecloud]
     metrics:
       receivers: [otlp]
-      processors: [batch/metrics, memory_limiter, resource_detection, resource]
+      processors: [memory_limiter, resource_detection, resource, batch/metrics]
       exporters: [googlemanagedprometheus]
