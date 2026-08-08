@@ -89,14 +89,45 @@ type Challenge struct {
 // never lower it.
 type IssueChallenge func(userID string, ipHash string, clientType string) (Challenge, error)
 
-// VerifySolution checks a (challenge, solution) pair presented by a caller
-// logging in as userID from ipHash. Every failure wraps one of the sentinel
-// errors above; RejectionReason turns that into a bounded metric label.
+// ParseChallenge recovers a challenge we minted from the blob a client
+// presents. Every check it makes is a pure function of that blob, so a value
+// coming back carries observations that hold however the verdict goes, and a
+// failure means there was nothing to observe. Anything reading the clock or
+// caller input is on SignedChallenge.Check.
+type ParseChallenge func(challenge string) (SignedChallenge, error)
+
+// SignedChallenge is a challenge signed by one of our keys, naming a scheme
+// we implement. Not a verdict on the caller's solution — that is Check.
 //
-// userID must be the raw value that becomes the session's identity_key,
-// compared byte for byte against what was minted. Normalizing on one side
-// only would reject correct solutions.
-type VerifySolution func(challenge string, solution string, userID string, ipHash string) error
+// An interface only so callers can fake it; nothing outside this package can
+// build one.
+type SignedChallenge interface {
+	// Difficulty is read from the signed payload, never re-derived: the dial
+	// can move between mint and login, so re-deriving would report a
+	// difficulty the client was never asked for.
+	Difficulty() int
+
+	// Age is minted-until-now, so it spans both round trips and the client's
+	// own solve. Negative when our clock stepped backwards, and unbounded
+	// above once past challengeTTL.
+	Age() time.Duration
+
+	// Check verifies freshness, the bindings and the work. Every failure
+	// wraps one of the sentinel errors above.
+	//
+	// userID must be the raw value that becomes the session's identity_key,
+	// compared byte for byte against what was minted. Normalizing on one
+	// side only would reject correct solutions.
+	Check(solution string, userID string, ipHash string) error
+}
+
+type signedChallenge struct {
+	// raw is the blob as it arrived; the digest is taken over it, so it must
+	// not be rebuilt from payload.
+	raw     string
+	payload challengePayload
+	nowFunc func() time.Time
+}
 
 // challengePayload is the signed half of a challenge. It is the server
 // talking to itself — the client never reads it — so it carries everything
@@ -209,82 +240,97 @@ func BuildIssueChallenge(keys [][]byte, difficultyFor DifficultyFunc, nowFunc fu
 	}, nil
 }
 
-// BuildVerifySolution returns the verifying half of the scheme. Every check
-// is cheap and stateless, and runs ahead of any database work on the login
-// path, because a proof checked after the write buys nothing.
-func BuildVerifySolution(keys [][]byte, nowFunc func() time.Time) (VerifySolution, error) {
+// BuildParseChallenge returns the parsing half of the verifying side.
+func BuildParseChallenge(keys [][]byte, nowFunc func() time.Time) (ParseChallenge, error) {
 	if len(keys) == 0 {
 		return nil, fmt.Errorf("%w: no signing keys", ErrInvalidConfig)
 	}
 
-	return func(challenge string, solution string, userID string, ipHash string) error {
+	return func(challenge string) (SignedChallenge, error) {
 		body, signature, ok := strings.Cut(challenge, challengeSeparator)
 		if !ok {
-			return fmt.Errorf("%w: expected two %q-separated parts", ErrMalformedChallenge, challengeSeparator)
+			return nil, fmt.Errorf("%w: expected two %q-separated parts", ErrMalformedChallenge, challengeSeparator)
 		}
 		rawSignature, err := base64.RawURLEncoding.DecodeString(signature)
 		if err != nil {
-			return fmt.Errorf("%w: signature is not base64url", ErrMalformedChallenge)
+			return nil, fmt.Errorf("%w: signature is not base64url", ErrMalformedChallenge)
 		}
 
 		// The signature covers the encoded payload exactly as it arrived,
 		// so verification never depends on re-encoding the payload the same
 		// way we did when minting it.
 		if !signedByAnyKey(keys, body, rawSignature) {
-			return ErrBadSignature
+			return nil, ErrBadSignature
 		}
 
 		rawPayload, err := base64.RawURLEncoding.DecodeString(body)
 		if err != nil {
-			return fmt.Errorf("%w: payload is not base64url", ErrMalformedChallenge)
+			return nil, fmt.Errorf("%w: payload is not base64url", ErrMalformedChallenge)
 		}
 		var payload challengePayload
 		if err := json.Unmarshal(rawPayload, &payload); err != nil {
-			return fmt.Errorf("%w: payload is not json", ErrMalformedChallenge)
+			return nil, fmt.Errorf("%w: payload is not json", ErrMalformedChallenge)
 		}
 		// Both decodes are unreachable for a blob we signed ourselves, but a
 		// signature check is not a parse and shouldn't be treated as one.
 
+		// Here rather than in Check: difficulty means nothing without the
+		// scheme it was set under, so a challenge we can't evaluate is one we
+		// can't observe either.
 		if payload.Algorithm != AlgorithmSHA256LeadingZeros {
-			return fmt.Errorf("%w: %q", ErrUnsupportedAlgorithm, payload.Algorithm)
+			return nil, fmt.Errorf("%w: %q", ErrUnsupportedAlgorithm, payload.Algorithm)
 		}
 
-		// A challenge from further in the future than the skew grace is our own
-		// clock jumping, not anything the caller did. Rejecting is
-		// self-healing: the client just asks for another.
-		age := nowFunc().Sub(time.UnixMilli(payload.IssuedAtUnixMillis))
-		if age < -clockSkewGrace || age > challengeTTL {
-			return ErrChallengeExpired
-		}
-
-		// Binding to the ip hash is what stops one rented CPU box solving
-		// challenges on behalf of a hundred proxy exits.
-		if payload.IPHash != ipHash {
-			return ErrIPMismatch
-		}
-
-		// And binding to the user id is what keeps a replayed solution
-		// worth nothing: it can only mint sessions for the identity it was
-		// minted for, and those share that identity's budget. Cost per
-		// identity — the thing the work is meant to price — is unchanged,
-		// since a second identity still needs a second solve.
-		if payload.UserID != userID {
-			return ErrUserIDMismatch
-		}
-
-		digest := sha256.Sum256([]byte(challenge + ":" + solution))
-		if leadingZeroBits(digest) < payload.Difficulty {
-			return ErrInsufficientWork
-		}
-
-		return nil
+		return signedChallenge{raw: challenge, payload: payload, nowFunc: nowFunc}, nil
 	}, nil
 }
 
-// RejectionReason maps a VerifySolution error to a bounded label safe to
-// use as a metric attribute. A dial with no gauge isn't tunable, and the
-// split by cause is what tells a difficulty change apart from a client
-// bug.
+func (c signedChallenge) Difficulty() int {
+	return c.payload.Difficulty
+}
+
+func (c signedChallenge) Age() time.Duration {
+	return c.nowFunc().Sub(time.UnixMilli(c.payload.IssuedAtUnixMillis))
+}
+
+// Check is cheap and stateless, and runs ahead of any database work on the
+// login path, because a proof checked after the write buys nothing.
+func (c signedChallenge) Check(solution string, userID string, ipHash string) error {
+	// A challenge from further in the future than the skew grace is our own
+	// clock jumping, not anything the caller did. Rejecting is self-healing:
+	// the client just asks for another.
+	age := c.Age()
+	if age < -clockSkewGrace || age > challengeTTL {
+		return ErrChallengeExpired
+	}
+
+	// Binding to the ip hash is what stops one rented CPU box solving
+	// challenges on behalf of a hundred proxy exits.
+	if c.payload.IPHash != ipHash {
+		return ErrIPMismatch
+	}
+
+	// And binding to the user id is what keeps a replayed solution
+	// worth nothing: it can only mint sessions for the identity it was
+	// minted for, and those share that identity's budget. Cost per
+	// identity — the thing the work is meant to price — is unchanged,
+	// since a second identity still needs a second solve.
+	if c.payload.UserID != userID {
+		return ErrUserIDMismatch
+	}
+
+	digest := sha256.Sum256([]byte(c.raw + ":" + solution))
+	if leadingZeroBits(digest) < c.payload.Difficulty {
+		return ErrInsufficientWork
+	}
+
+	return nil
+}
+
+// RejectionReason maps an error from ParseChallenge or Check to a bounded
+// label safe to use as a metric attribute. A dial with no gauge isn't
+// tunable, and the split by cause is what tells a difficulty change apart
+// from a client bug.
 func RejectionReason(err error) string {
 	switch {
 	case errors.Is(err, ErrMalformedChallenge):

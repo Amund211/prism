@@ -215,7 +215,7 @@ func main() {
 	if err != nil {
 		fail("Failed to initialize proof-of-work challenges", "error", err.Error())
 	}
-	verifySolution, err := proofofwork.BuildVerifySolution(authChallengeKeys, time.Now)
+	parseChallenge, err := proofofwork.BuildParseChallenge(authChallengeKeys, time.Now)
 	if err != nil {
 		fail("Failed to initialize proof-of-work verification", "error", err.Error())
 	}
@@ -344,7 +344,7 @@ func main() {
 	)
 	anonymousLoginHandler, stopAnonymousLogin := ports.MakeAnonymousLoginHandler(
 		anonymousLogin,
-		verifySolution,
+		parseChallenge,
 		time.Now,
 		allowedOrigins,
 		logger.With("port", "auth-anonymous-login"),

@@ -94,5 +94,8 @@ Validate is cached: keyed by session id, **1 minute, successes only**, LRU at
   aimed at an anonymous identity's bucket. Ends when the fallback does.
 - **Nothing deletes `auth_sessions` rows.** Retention is unbuilt, and it is the
   gate before prism ships auth.
+- **`pow_challenge_age_seconds` only samples challenges that come back**, so a
+  difficulty past what clients can finish makes `outcome="ok"` look *better* as
+  the slow half stops reporting. Read it next to `outcome="expired"`.
 - **CORS is not observable locally** — `dev` has no backend, the `proxy-*` modes
   are same-origin, tests are mocked. Verify against `flashlight-test` with curl.

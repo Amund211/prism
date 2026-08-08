@@ -1,6 +1,7 @@
 package ports
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -8,6 +9,8 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+
+	"github.com/Amund211/flashlight/internal/proofofwork"
 )
 
 type portsMetricsCollection struct {
@@ -16,8 +19,14 @@ type portsMetricsCollection struct {
 	blockedRequestCount     metric.Int64Counter
 	ratelimitedRequestCount metric.Int64Counter
 	powChallengeCount       metric.Int64Counter
+	powChallengeAge         metric.Float64Histogram
 	powRejectedLoginCount   metric.Int64Counter
 }
+
+// powOutcomeAccepted labels an age sample from a proof that verified. Every
+// other value is a proofofwork.RejectionReason, so both pow metrics draw on
+// one bounded vocabulary.
+const powOutcomeAccepted = "ok"
 
 var metrics portsMetricsCollection
 
@@ -73,6 +82,34 @@ func init() {
 		panic(fmt.Errorf("failed to create pow challenge count metric: %w", err))
 	}
 
+	// What the difficulty costs a real client — the number no local
+	// benchmark answers, since real clients are Windows machines running
+	// CPython on whatever CPU came with the laptop.
+	//
+	// Attributed by difficulty because an age aggregated across mixed
+	// difficulties answers nothing: a rise is equally explained by "clients
+	// got slower" and "we asked for more work", and those have opposite
+	// responses. Attributed, it is a cost curve.
+	//
+	// Read outcome="ok" next to outcome="expired" and
+	// pow_rejected_login_count{reason="expired"}: only challenges that come
+	// back are sampled, so a difficulty past what clients can finish makes
+	// outcome="ok" look *better* as the slow half stops reporting.
+	powChallengeAge, err := meter.Float64Histogram(
+		"ports/pow_challenge_age_seconds",
+		metric.WithDescription("Age of a proof-of-work challenge when presented at login (mint to arrival, including both round trips and the client's solve), by difficulty and outcome"),
+		metric.WithUnit("s"),
+		// Against challengeTTL rather than copied from requestDuration, whose
+		// 10s ceiling would dump most of the range into the overflow bucket.
+		// Fine below 1s because difficulty 0 is nearly a pure round trip, and
+		// past 60s so an expired challenge that just missed is distinguishable
+		// from a resumed laptop replaying a stale blob.
+		metric.WithExplicitBucketBoundaries(0, 0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8, 15, 30, 45, 60, 75, 90, 120, 300),
+	)
+	if err != nil {
+		panic(fmt.Errorf("failed to create pow challenge age metric: %w", err))
+	}
+
 	powRejectedLoginCount, err := meter.Int64Counter(
 		"ports/pow_rejected_login_count",
 		metric.WithDescription("Total number of anonymous logins rejected by proof-of-work verification, by cause"),
@@ -87,8 +124,28 @@ func init() {
 		blockedRequestCount:     blockedRequestCount,
 		ratelimitedRequestCount: ratelimitedRequestCount,
 		powChallengeCount:       powChallengeCount,
+		powChallengeAge:         powChallengeAge,
 		powRejectedLoginCount:   powRejectedLoginCount,
 	}
+}
+
+// recordPowChallengeAge samples how long a challenge took to come back.
+// Difficulty is bounded by proofofwork.MaxDifficulty at mint time, so it is
+// safe as an attribute.
+func recordPowChallengeAge(ctx context.Context, r *http.Request, challenge proofofwork.SignedChallenge, outcome string) {
+	age := challenge.Age()
+	if age < 0 {
+		// Our clock stepping backwards, not a measurement — and one negative
+		// sample drags this instrument's sum for the life of the process.
+		return
+	}
+
+	metrics.powChallengeAge.Record(ctx, age.Seconds(), metric.WithAttributes(
+		append(GetClient(r).MetricAttributes(),
+			attribute.Int("difficulty", challenge.Difficulty()),
+			attribute.String("outcome", outcome),
+		)...,
+	))
 }
 
 // knownMethods bounds the cardinality of the "method" metric label. r.Method is

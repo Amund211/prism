@@ -90,14 +90,28 @@ func solutionZeroBits(challenge, solution string) int {
 }
 
 // scheme wires both halves against one set of keys and one clock, which is
-// how they are used in production.
-func scheme(t *testing.T, keys [][]byte, difficulty int, c *clock) (proofofwork.IssueChallenge, proofofwork.VerifySolution) {
+// how they are used in production. The verify it returns is parse-then-check
+// the way the login handler runs them, for the cases that don't care which
+// half refused; the ones that do build the halves themselves.
+func scheme(t *testing.T, keys [][]byte, difficulty int, c *clock) (proofofwork.IssueChallenge, func(challenge, solution, userID, ipHash string) error) {
+	t.Helper()
+	issue, parse := parsingScheme(t, keys, difficulty, c)
+	return issue, func(challenge, solution, userID, ipHash string) error {
+		signed, err := parse(challenge)
+		if err != nil {
+			return err
+		}
+		return signed.Check(solution, userID, ipHash)
+	}
+}
+
+func parsingScheme(t *testing.T, keys [][]byte, difficulty int, c *clock) (proofofwork.IssueChallenge, proofofwork.ParseChallenge) {
 	t.Helper()
 	issue, err := proofofwork.BuildIssueChallenge(keys, fixedDifficulty(difficulty), c.Now)
 	require.NoError(t, err)
-	verify, err := proofofwork.BuildVerifySolution(keys, c.Now)
+	parse, err := proofofwork.BuildParseChallenge(keys, c.Now)
 	require.NoError(t, err)
-	return issue, verify
+	return issue, parse
 }
 
 // signPayload mints a challenge the way a different revision might have, so
@@ -514,8 +528,118 @@ func TestBuildersRejectInvalidConfig(t *testing.T) {
 	_, err = proofofwork.BuildIssueChallenge(keys, nil, time.Now)
 	require.ErrorIs(t, err, proofofwork.ErrInvalidConfig)
 
-	_, err = proofofwork.BuildVerifySolution(nil, time.Now)
+	_, err = proofofwork.BuildParseChallenge(nil, time.Now)
 	require.ErrorIs(t, err, proofofwork.ErrInvalidConfig)
+}
+
+func TestParseAndCheck(t *testing.T) {
+	t.Parallel()
+
+	// The split is what lets the caller observe a challenge without asking
+	// which of its fields are trustworthy: parse refuses everything that
+	// carries nothing interpretable, check refuses everything else.
+	t.Run("parse refuses what cannot be observed", func(t *testing.T) {
+		t.Parallel()
+		key := testKey(t, 1)
+		c := &clock{now: testTime}
+		issue, parse := parsingScheme(t, [][]byte{key}, 0, c)
+
+		challenge, err := issue(testUserID, testIPHash, "prism")
+		require.NoError(t, err)
+		body, signature, ok := strings.Cut(challenge.Value, ".")
+		require.True(t, ok)
+
+		otherKey := signPayload(t, testKey(t, 2), fmt.Sprintf(
+			`{"nonce":"n","userId":%q,"ipHash":%q,"issuedAtUnixMillis":%d,"difficulty":0,"alg":%q}`,
+			testUserID, testIPHash, testTime.UnixMilli(), proofofwork.AlgorithmSHA256LeadingZeros,
+		))
+		futureScheme := signPayload(t, key, fmt.Sprintf(
+			`{"nonce":"n","userId":%q,"ipHash":%q,"issuedAtUnixMillis":%d,"difficulty":0,"alg":"argon2id-v2"}`,
+			testUserID, testIPHash, testTime.UnixMilli(),
+		))
+
+		for name, tc := range map[string]struct {
+			challenge string
+			want      error
+		}{
+			"no separator":          {"abcdef", proofofwork.ErrMalformedChallenge},
+			"signature not b64":     {"abcdef.not base64!", proofofwork.ErrMalformedChallenge},
+			"payload not b64":       {"not base64!." + signature, proofofwork.ErrBadSignature},
+			"unknown key":           {otherKey, proofofwork.ErrBadSignature},
+			"unsupported algorithm": {futureScheme, proofofwork.ErrUnsupportedAlgorithm},
+		} {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				signed, err := parse(tc.challenge)
+				require.ErrorIs(t, err, tc.want)
+				require.Nil(t, signed)
+			})
+		}
+
+		signed, err := parse(body + "." + signature)
+		require.NoError(t, err)
+		require.NotNil(t, signed)
+	})
+
+	// An expired challenge parses so the caller can still observe it: how far
+	// past the ttl it came back is the whole signal for a difficulty set past
+	// what clients can finish.
+	t.Run("check owns freshness, so an expired challenge still parses", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		issue, parse := parsingScheme(t, [][]byte{testKey(t, 1)}, 0, c)
+
+		challenge, err := issue(testUserID, testIPHash, "prism")
+		require.NoError(t, err)
+		solution := solve(t, challenge.Value, 0)
+
+		c.now = testTime.Add(90 * time.Second)
+		signed, err := parse(challenge.Value)
+		require.NoError(t, err)
+		require.Equal(t, 90*time.Second, signed.Age())
+		require.ErrorIs(t, signed.Check(solution, testUserID, testIPHash), proofofwork.ErrChallengeExpired)
+	})
+
+	t.Run("age is measured from the mint instant", func(t *testing.T) {
+		t.Parallel()
+		c := &clock{now: testTime}
+		issue, parse := parsingScheme(t, [][]byte{testKey(t, 1)}, 0, c)
+
+		challenge, err := issue(testUserID, testIPHash, "prism")
+		require.NoError(t, err)
+
+		signed, err := parse(challenge.Value)
+		require.NoError(t, err)
+		require.Zero(t, signed.Age())
+
+		c.now = testTime.Add(1500 * time.Millisecond)
+		require.Equal(t, 1500*time.Millisecond, signed.Age(),
+			"milliseconds, because a difficulty-0 handshake is a round trip")
+
+		// Our own clock stepping backwards is not a measurement. The caller
+		// recording it has to drop this rather than poison the histogram.
+		c.now = testTime.Add(-2 * time.Second)
+		require.Negative(t, signed.Age())
+	})
+
+	t.Run("difficulty comes from the signed payload, not the dial", func(t *testing.T) {
+		t.Parallel()
+		const minted = 6
+		keys := [][]byte{testKey(t, 1)}
+		c := &clock{now: testTime}
+		issue, _ := parsingScheme(t, keys, minted, c)
+
+		challenge, err := issue(testUserID, testIPHash, "prism")
+		require.NoError(t, err)
+
+		// The dial moved after minting — the point of it being server-side.
+		_, parse := parsingScheme(t, keys, 20, c)
+		signed, err := parse(challenge.Value)
+		require.NoError(t, err)
+		require.Equal(t, minted, signed.Difficulty(),
+			"reporting the current dial would label the sample with work the client was never asked for")
+		require.NoError(t, signed.Check(solve(t, challenge.Value, minted), testUserID, testIPHash))
+	})
 }
 
 func TestRejectionReason(t *testing.T) {

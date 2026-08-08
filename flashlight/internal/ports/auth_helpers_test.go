@@ -47,10 +47,27 @@ func authTestOrigins(t *testing.T) *ports.DomainSuffixes {
 	return allowedOrigins
 }
 
-// acceptAnyProof stands in for proof-of-work verification in the tests
-// that aren't about it. The ones that are build a real scheme.
-func acceptAnyProof(challenge string, solution string, userID string, ipHash string) error {
-	return nil
+// fakeChallenge stands in for a parsed challenge in the tests that aren't
+// about proof-of-work. The ones that are build a real scheme.
+type fakeChallenge struct {
+	difficulty int
+	age        time.Duration
+	checkErr   error
+	onCheck    func(solution string, userID string, ipHash string)
+}
+
+func (c fakeChallenge) Difficulty() int    { return c.difficulty }
+func (c fakeChallenge) Age() time.Duration { return c.age }
+
+func (c fakeChallenge) Check(solution string, userID string, ipHash string) error {
+	if c.onCheck != nil {
+		c.onCheck(solution, userID, ipHash)
+	}
+	return c.checkErr
+}
+
+func acceptAnyProof(challenge string) (proofofwork.SignedChallenge, error) {
+	return fakeChallenge{}, nil
 }
 
 // anonymousLoginBody is a login body whose proof-of-work fields are
@@ -69,11 +86,11 @@ func newAnonymousLoginHandler(t *testing.T, login app.AnonymousLogin, nowFunc fu
 	return newAnonymousLoginHandlerWithProof(t, login, acceptAnyProof, nowFunc)
 }
 
-func newAnonymousLoginHandlerWithProof(t *testing.T, login app.AnonymousLogin, verifySolution proofofwork.VerifySolution, nowFunc func() time.Time) http.HandlerFunc {
+func newAnonymousLoginHandlerWithProof(t *testing.T, login app.AnonymousLogin, parseChallenge proofofwork.ParseChallenge, nowFunc func() time.Time) http.HandlerFunc {
 	t.Helper()
 	handler, stop := ports.MakeAnonymousLoginHandler(
 		login,
-		verifySolution,
+		parseChallenge,
 		nowFunc,
 		authTestOrigins(t),
 		authTestLogger,
@@ -84,9 +101,9 @@ func newAnonymousLoginHandlerWithProof(t *testing.T, login app.AnonymousLogin, v
 	return handler
 }
 
-// newProofOfWorkScheme wires a real challenge/verify pair sharing one key,
+// newProofOfWorkScheme wires a real challenge/parse pair sharing one key,
 // the way main.go does.
-func newProofOfWorkScheme(t *testing.T, difficulty int) (proofofwork.IssueChallenge, proofofwork.VerifySolution) {
+func newProofOfWorkScheme(t *testing.T, difficulty int) (proofofwork.IssueChallenge, proofofwork.ParseChallenge) {
 	t.Helper()
 	keys, err := proofofwork.ParseSigningKeys([]string{base64.StdEncoding.EncodeToString(make([]byte, 32))})
 	require.NoError(t, err)
@@ -95,9 +112,9 @@ func newProofOfWorkScheme(t *testing.T, difficulty int) (proofofwork.IssueChalle
 
 	issueChallenge, err := proofofwork.BuildIssueChallenge(keys, difficultyFor, time.Now)
 	require.NoError(t, err)
-	verifySolution, err := proofofwork.BuildVerifySolution(keys, time.Now)
+	parseChallenge, err := proofofwork.BuildParseChallenge(keys, time.Now)
 	require.NoError(t, err)
-	return issueChallenge, verifySolution
+	return issueChallenge, parseChallenge
 }
 
 // solveChallenge does what a client's worker thread does: hash until the

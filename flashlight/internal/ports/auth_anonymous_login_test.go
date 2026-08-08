@@ -412,11 +412,11 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 		} {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
-				verify := func(challenge, solution, userID, ipHash string) error {
+				parse := func(challenge string) (proofofwork.SignedChallenge, error) {
 					t.Fatal("verification should not be reached for a malformed body")
-					return nil
+					return nil, nil
 				}
-				handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "without a well-formed proof"), verify, time.Now)
+				handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "without a well-formed proof"), parse, time.Now)
 				require.Equal(t, http.StatusBadRequest, postLogin(t, handler, "1.2.3.4", body).Code)
 			})
 		}
@@ -437,21 +437,38 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, postLogin(t, handler, "1.2.3.4", body).Code)
 	})
 
-	t.Run("403 on a rejected proof, ahead of any database work", func(t *testing.T) {
+	// Both halves refuse with the same status: they differ only in whether
+	// there was an interpretable challenge to observe.
+	t.Run("403 on a proof rejected at parse, ahead of any database work", func(t *testing.T) {
 		t.Parallel()
 		for name, cause := range map[string]error{
 			"malformed":             proofofwork.ErrMalformedChallenge,
 			"bad signature":         proofofwork.ErrBadSignature,
-			"expired":               proofofwork.ErrChallengeExpired,
-			"ip mismatch":           proofofwork.ErrIPMismatch,
-			"user id mismatch":      proofofwork.ErrUserIDMismatch,
-			"insufficient work":     proofofwork.ErrInsufficientWork,
 			"unsupported algorithm": proofofwork.ErrUnsupportedAlgorithm,
 		} {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
-				verify := func(challenge, solution, userID, ipHash string) error { return cause }
-				handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "for a rejected proof"), verify, time.Now)
+				parse := func(challenge string) (proofofwork.SignedChallenge, error) { return nil, cause }
+				handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "for a rejected proof"), parse, time.Now)
+				require.Equal(t, http.StatusForbidden, postLogin(t, handler, "1.2.3.4", anonymousLoginBody("user-abc")).Code)
+			})
+		}
+	})
+
+	t.Run("403 on a proof rejected at check, ahead of any database work", func(t *testing.T) {
+		t.Parallel()
+		for name, cause := range map[string]error{
+			"expired":           proofofwork.ErrChallengeExpired,
+			"ip mismatch":       proofofwork.ErrIPMismatch,
+			"user id mismatch":  proofofwork.ErrUserIDMismatch,
+			"insufficient work": proofofwork.ErrInsufficientWork,
+		} {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				parse := func(challenge string) (proofofwork.SignedChallenge, error) {
+					return fakeChallenge{checkErr: cause}, nil
+				}
+				handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "for a rejected proof"), parse, time.Now)
 				require.Equal(t, http.StatusForbidden, postLogin(t, handler, "1.2.3.4", anonymousLoginBody("user-abc")).Code)
 			})
 		}
@@ -460,12 +477,14 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 	t.Run("verification gets the body's proof, userId and the request's ip hash", func(t *testing.T) {
 		t.Parallel()
 		var sawChallenge, sawSolution, sawUserID, sawIPHash string
-		verify := func(challenge, solution, userID, ipHash string) error {
-			sawChallenge, sawSolution, sawUserID, sawIPHash = challenge, solution, userID, ipHash
-			return nil
+		parse := func(challenge string) (proofofwork.SignedChallenge, error) {
+			sawChallenge = challenge
+			return fakeChallenge{onCheck: func(solution, userID, ipHash string) {
+				sawSolution, sawUserID, sawIPHash = solution, userID, ipHash
+			}}, nil
 		}
 		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
-		handler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), verify, func() time.Time { return now })
+		handler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), parse, func() time.Time { return now })
 
 		body := `{"userId":"user-abc","challenge":"some-blob","solution":"42"}`
 		require.Equal(t, http.StatusOK, postLogin(t, handler, "1.2.3.4", body).Code)

@@ -1,6 +1,7 @@
 package ports
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -78,11 +79,28 @@ func hasJSONContentType(r *http.Request) bool {
 	return mediaType == "application/json"
 }
 
+// rejectProofOfWork refuses a login whose proof didn't verify. Every cause
+// gets the same status: they differ only in what the client should have done
+// differently, and the answer is the same for all of them — fetch a fresh
+// challenge and try again (with backoff; a client that hot-loops on 403 is a
+// client that rate-limits itself out).
+func rejectProofOfWork(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
+	reason := proofofwork.RejectionReason(err)
+	logging.FromContext(ctx).InfoContext(ctx, "Rejected anonymous login proof of work",
+		slog.String("reason", reason),
+		slog.String("error", err.Error()),
+	)
+	metrics.powRejectedLoginCount.Add(ctx, 1, metric.WithAttributes(
+		append(GetClient(r).MetricAttributes(), attribute.String("reason", reason))...,
+	))
+	http.Error(w, "Invalid proof of work", http.StatusForbidden)
+}
+
 // MakeAnonymousLoginHandler returns a handler for POST /v1/auth/anonymous/login.
 // Body: { userId, challenge, solution }. Response: a fresh session payload.
 func MakeAnonymousLoginHandler(
 	login app.AnonymousLogin,
-	verifySolution proofofwork.VerifySolution,
+	parseChallenge proofofwork.ParseChallenge,
 	nowFunc func() time.Time,
 	allowedOrigins *DomainSuffixes,
 	rootLogger *slog.Logger,
@@ -187,22 +205,25 @@ func MakeAnonymousLoginHandler(
 		// point: a proof checked after the IP-cap UPDATE and the INSERT
 		// prices nothing. Verification itself is one HMAC, one hash and a
 		// map lookup.
-		//
-		// Every cause gets the same status. They differ only in what the
-		// client should have done differently, and the answer is the same
-		// for all of them — fetch a fresh challenge and try again (with
-		// backoff; a client that hot-loops on 403 is a client that
-		// rate-limits itself out).
-		if err := verifySolution(body.Challenge, body.Solution, body.UserID, ipHash); err != nil {
-			reason := proofofwork.RejectionReason(err)
-			logging.FromContext(ctx).InfoContext(ctx, "Rejected anonymous login proof of work",
-				slog.String("reason", reason),
-				slog.String("error", err.Error()),
-			)
-			metrics.powRejectedLoginCount.Add(ctx, 1, metric.WithAttributes(
-				append(GetClient(r).MetricAttributes(), attribute.String("reason", reason))...,
-			))
-			http.Error(w, "Invalid proof of work", http.StatusForbidden)
+		challenge, err := parseChallenge(body.Challenge)
+		if err != nil {
+			// Nothing to sample: a blob we didn't sign, can't read, or whose
+			// scheme we can't evaluate carries no age or difficulty we could
+			// interpret.
+			rejectProofOfWork(ctx, w, r, err)
+			return
+		}
+
+		checkErr := challenge.Check(body.Solution, body.UserID, ipHash)
+
+		outcome := powOutcomeAccepted
+		if checkErr != nil {
+			outcome = proofofwork.RejectionReason(checkErr)
+		}
+		recordPowChallengeAge(ctx, r, challenge, outcome)
+
+		if checkErr != nil {
+			rejectProofOfWork(ctx, w, r, checkErr)
 			return
 		}
 
