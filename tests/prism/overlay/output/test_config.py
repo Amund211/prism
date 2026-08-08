@@ -7,6 +7,7 @@ from prism.overlay.output.config import (
     RatingConfigCollection,
     RatingConfigCollectionDict,
     RatingConfigDict,
+    default_levels_for_sort_order,
     read_rating_config_collection_dict,
     read_rating_config_dict,
     safe_read_rating_config_collection_dict,
@@ -95,6 +96,7 @@ def test_read_rating_config_collection_dict(
 
 
 DEFAULT_LEVELS = (1.0, 2.0, 3.0, 4.0)
+REVERSED_DEFAULT_LEVELS = (4.0, 3.0, 2.0, 1.0)
 DEFAULT_DECIMALS = 2
 DEFAULT_RATE_BY_LEVEL = True
 DEFAULT_SORT_ASCENDING = True
@@ -169,14 +171,37 @@ READ_RATING_CONFIG_CASES: tuple[tuple[Mapping[str, object], RatingConfigDict], .
             "sort_ascending": DEFAULT_SORT_ASCENDING,
         },
     ),
+    # The default levels are flipped to match the requested sort order
     (
         {"sort_ascending": False},
         {
             "type": "level_based",
             "rate_by_level": DEFAULT_RATE_BY_LEVEL,
-            "levels": DEFAULT_LEVELS,
+            "levels": REVERSED_DEFAULT_LEVELS,
             "decimals": DEFAULT_DECIMALS,
             "sort_ascending": False,
+        },
+    ),
+    # Invalid levels + a differing sort order -> flipped default levels
+    (
+        {"sort_ascending": False, "levels": "garbage"},
+        {
+            "type": "level_based",
+            "rate_by_level": DEFAULT_RATE_BY_LEVEL,
+            "levels": REVERSED_DEFAULT_LEVELS,
+            "decimals": DEFAULT_DECIMALS,
+            "sort_ascending": False,
+        },
+    ),
+    # Invalid levels + the same sort order -> the default levels as they are
+    (
+        {"sort_ascending": True, "levels": "garbage"},
+        {
+            "type": "level_based",
+            "rate_by_level": DEFAULT_RATE_BY_LEVEL,
+            "levels": DEFAULT_LEVELS,
+            "decimals": DEFAULT_DECIMALS,
+            "sort_ascending": True,
         },
     ),
     (
@@ -263,3 +288,27 @@ def test_read_rating_config_dict(
     result, source_updated = reader(source, DEFAULT_CONFIG)
     assert result == target
     assert source_updated == (source != target)
+
+
+DESCENDING_DEFAULT_CONFIG = RatingConfig(
+    rate_by_level=DEFAULT_RATE_BY_LEVEL,
+    levels=DEFAULT_LEVELS,
+    decimals=DEFAULT_DECIMALS,
+    sort_ascending=False,
+)
+
+
+@pytest.mark.parametrize(
+    "default, sort_ascending, target",
+    (
+        (DEFAULT_CONFIG, True, DEFAULT_LEVELS),
+        (DEFAULT_CONFIG, False, REVERSED_DEFAULT_LEVELS),
+        (DESCENDING_DEFAULT_CONFIG, False, DEFAULT_LEVELS),
+        (DESCENDING_DEFAULT_CONFIG, True, REVERSED_DEFAULT_LEVELS),
+    ),
+)
+def test_default_levels_for_sort_order(
+    default: RatingConfig, sort_ascending: bool, target: tuple[float, ...]
+) -> None:
+    """The default levels must be flipped when the sort order differs"""
+    assert default_levels_for_sort_order(default, sort_ascending) == target

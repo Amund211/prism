@@ -15,6 +15,21 @@ class RatingConfigDict(TypedDict):
     sort_ascending: bool
 
 
+def default_levels_for_sort_order(
+    default: "RatingConfig", sort_ascending: bool
+) -> tuple[float, ...]:
+    """
+    Return the default levels, ordered to match the given sort order
+
+    Levels are stored from worst to best, so they are listed in increasing order
+    when sorting descending, and in decreasing order when sorting ascending.
+    """
+    if sort_ascending == default.sort_ascending:
+        return default.levels
+
+    return tuple(reversed(default.levels))
+
+
 def read_rating_config_dict(
     source: Mapping[str, object], default: "RatingConfig"
 ) -> tuple[RatingConfigDict, bool]:
@@ -29,13 +44,6 @@ def read_rating_config_dict(
         rate_by_level = default.rate_by_level
         source_updated = True
 
-    levels = source.get("levels", None)
-    if not isinstance(levels, (list, tuple)) or not all(
-        isinstance(el, float) for el in levels
-    ):
-        levels = default.levels
-        source_updated = True
-
     decimals = source.get("decimals", None)
     if not isinstance(decimals, int) or decimals < 0:
         decimals = default.decimals
@@ -44,6 +52,14 @@ def read_rating_config_dict(
     sort_ascending = source.get("sort_ascending", None)
     if not isinstance(sort_ascending, bool):
         sort_ascending = default.sort_ascending
+        source_updated = True
+
+    levels = source.get("levels", None)
+    if not isinstance(levels, (list, tuple)) or not all(
+        isinstance(el, float) for el in levels
+    ):
+        # NOTE: Read after sort_ascending so the defaults can match the sort order
+        levels = default_levels_for_sort_order(default, sort_ascending)
         source_updated = True
 
     return {

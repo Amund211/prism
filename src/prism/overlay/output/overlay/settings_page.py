@@ -31,6 +31,7 @@ from prism.overlay.output.config import (
     DEFAULT_WLR_CONFIG,
     RatingConfig,
     RatingConfigCollection,
+    default_levels_for_sort_order,
 )
 from prism.overlay.output.overlay.gui_components import (
     KeybindSelector,
@@ -1196,13 +1197,15 @@ class RatingConfigEditor:  # pragma: nocover
 
         self._set_component_state()
 
-    def _get_levels(self) -> tuple[float, ...]:
+    def _get_levels(self, sort_ascending: bool) -> tuple[float, ...]:
         """Get the levels from the entries. Fallback to the default."""
         valid_characters = frozenset(string.digits + ".")
 
+        default_levels = default_levels_for_sort_order(self.default, sort_ascending)
+
         levels: list[float] = []
         for level_entry_variable, default_level in zip(
-            self.level_entry_variables, self.default.levels, strict=True
+            self.level_entry_variables, default_levels, strict=True
         ):
             value = level_entry_variable.get()
             clean_value = "".join(
@@ -1236,11 +1239,13 @@ class RatingConfigEditor:  # pragma: nocover
             )
             decimals = self.default.decimals
 
+        sort_ascending = not self.sort_descending_toggle.enabled
+
         return RatingConfig(
             self.rate_by_level_toggle.enabled,
-            self._get_levels(),
+            self._get_levels(sort_ascending),
             decimals,
-            not self.sort_descending_toggle.enabled,
+            sort_ascending,
         )
 
 
