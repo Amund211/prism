@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from collections.abc import Sequence
-from dataclasses import replace
+from dataclasses import fields, replace
 
 import pytest
 
@@ -654,3 +654,56 @@ def test_render_stats_stars_uses_stars_sort_ascending(
     stars_cell = render_stats(make_player(stars=stars), rating_configs).stars
 
     assert stars_cell.color_sections[0].color == gui_color
+
+
+RATING_COLUMNS = tuple(field.name for field in fields(RatingConfigCollection))
+
+UNIFORM_CONFIG = RatingConfig(
+    rate_by_level=True, levels=(1.0, 2.0, 3.0, 4.0), decimals=2, sort_ascending=False
+)
+UNIFORM_RATING_CONFIGS = RatingConfigCollection(
+    **{column: UNIFORM_CONFIG for column in RATING_COLUMNS}
+)
+
+# A player scoring above every level in UNIFORM_CONFIG for all stats, so that
+# flipping the sort order changes the rating of any column it applies to
+HIGH_STAT_PLAYER = make_player(
+    stars=1500,
+    fkdr=100,
+    kdr=100,
+    bblr=100,
+    wlr=100,
+    winstreak=1000,
+    kills=1_000_000,
+    finals=1_000_000,
+    beds=1_000_000,
+    wins=1_000_000,
+    lastLoginMs=1234567890 - 3_600_000,
+    lastLogoutMs=1234567890 - 7_200_000,
+)
+
+
+@pytest.mark.parametrize("column", RATING_COLUMNS)
+def test_render_stats_reads_the_config_of_each_column(column: str) -> None:
+    """Each rendered cell must depend on its own rating config, and no other"""
+    rating_configs = replace(
+        UNIFORM_RATING_CONFIGS,
+        **{
+            column: replace(
+                UNIFORM_CONFIG,
+                sort_ascending=True,
+                levels=tuple(reversed(UNIFORM_CONFIG.levels)),
+            )
+        },
+    )
+
+    before = render_stats(HIGH_STAT_PLAYER, UNIFORM_RATING_CONFIGS)
+    after = render_stats(HIGH_STAT_PLAYER, rating_configs)
+
+    changed = {
+        field.name
+        for field in fields(before)
+        if getattr(before, field.name) != getattr(after, field.name)
+    }
+
+    assert changed == {column}, f"Flipping the sort order of {column} changed {changed}"
