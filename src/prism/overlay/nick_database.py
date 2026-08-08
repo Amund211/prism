@@ -89,7 +89,7 @@ class NickDatabase:
             if nick in database:
                 return database[nick]
 
-        raise ValueError("{nick} is not known by the database")
+        raise ValueError(f"{nick} is not known by the database")
 
     def __getitem__(self, nick: str) -> str:
         """Implement `nick_database[nick]` with `nick_database.denick(nick)`"""

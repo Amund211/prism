@@ -37,7 +37,7 @@ def process_event(
         logger.info(f"Setting new nickname {event.nick}={state.own_username}")
         if state.own_username is None:
             logger.warning(
-                "Own username is not set, could not add denick entry for {event.nick}."
+                f"Own username is not set, could not add denick entry for {event.nick}."
             )
             return state, False
 
