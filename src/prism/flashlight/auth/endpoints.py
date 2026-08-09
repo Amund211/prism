@@ -144,6 +144,20 @@ def refresh_session(
         # Either the too-soon throttle or the endpoint's IP rate limit. Both
         # leave the session untouched, and re-logging in is the wrong reaction
         # to both.
+        # TODO: The two causes are indistinguishable on the wire today, but they
+        #       do not mean the same thing, and we treat both as the server
+        #       vouching for our session: `_postpone` sets
+        #       `confirmed_session=True` and holds requests off for 5 minutes, so
+        #       every 401 in that window is handed back to the caller and
+        #       `tags.py` blames the Urchin API key - which latches
+        #       `urchin_api_key_invalid` permanently (once set, `urchin_api_key`
+        #       is passed as None, so the reset branch never runs). The IP limiter
+        #       runs before the handler and never looks at the bearer, so several
+        #       prism users behind one NAT/CGNAT IP can trip it while one of them
+        #       genuinely has a dead session: that user gets a permanent bogus
+        #       "Invalid Urchin API key" banner and stops sending a good key.
+        #       Only the too-soon throttle should confirm the session - needs the
+        #       server to tell the two apart.
         raise RefreshTooSoonError("Flashlight refused to refresh this session yet")
 
     if not response.ok:

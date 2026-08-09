@@ -101,6 +101,13 @@ def _make_flashlight_notices_request(
     except NoSessionError:
         logger.warning("Skipping flashlight notices - no auth session yet")
         return None
+    # TODO: `SessionRecoveryError` is not caught here, and this endpoint is behind
+    #       the bearer middleware, so it does 401 on a dead session. The exception
+    #       propagates through `get_flashlight_notices` into
+    #       `NoticeCheckerThread.run`, which has no handler either - the thread dies
+    #       with an unhandled traceback, skipping the retries we just added, and the
+    #       user gets no notices at all (including the new-version prompt) until
+    #       restart.
 
     if not response.ok:
         logger.error(
@@ -110,6 +117,11 @@ def _make_flashlight_notices_request(
         return None
 
     if response.status_code == 204:
+        # TODO: `None` now means "the request failed and is worth retrying", so a
+        #       204 is misclassified: the caller would issue three requests with two
+        #       30s sleeps and log "Giving up on fetching flashlight notices" for a
+        #       response that succeeded. Latent - the server never sends 204 on this
+        #       route today - but this branch now says the opposite of what it means.
         return None
 
     try:

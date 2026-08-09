@@ -61,6 +61,16 @@ def send_authenticated(
             "Got HTTP 401 from flashlight and could not renew the auth session"
         )
 
+    # TODO: The retry's own 401 is returned with no verdict at all, which breaks
+    #       the invariant this docstring promises and `tags.py` relies on. Same for
+    #       the session `recover_from_unauthorized` hands back from the
+    #       already-replaced branch: nothing has vouched for it. Concretely, during
+    #       a flashlight rollout or with read-replica lag the first request 401s,
+    #       the refresh succeeds against the primary, and the retry hits a replica
+    #       that has not seen the new session and 401s again - `tags.py` then
+    #       blames the Urchin API key and latches `urchin_api_key_invalid` for the
+    #       rest of the process. A second 401 should raise `SessionRecoveryError`
+    #       rather than reach the caller.
     response = send(bearer_headers(recovery.session))
     _note_refresh_hint(auth, recovery.session, response)
     return response
