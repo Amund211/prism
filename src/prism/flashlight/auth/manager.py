@@ -172,6 +172,16 @@ class AuthManager:
                 # Every flashlight request needs this thread, so it must not be
                 # possible for a bug in here to take the overlay down with it.
                 logger.exception("Unexpected error in the auth thread")
+                # TODO: This sleep outlives the retry deadline that is supposed to
+                #       cover it. `reconcile`'s `except BaseException` calls `_fail`,
+                #       which sets `_retry_not_before` to the *current* backoff (2s
+                #       on the first failure), but we then sleep 300s. In between,
+                #       every 401'd request queues a pass and blocks the full
+                #       `SESSION_WAIT_TIMEOUT_SECONDS` waiting for a pass that
+                #       cannot come - including `set_nickname` -> `get_uuid` on the
+                #       tkinter thread, which is the frozen window that timeout
+                #       exists to bound. Sleep the current backoff instead, or have
+                #       `_fail` cover the sleep.
                 time.sleep(MAX_BACKOFF_SECONDS)
 
     def wait_for_session(
@@ -210,6 +220,20 @@ class AuthManager:
                 # request's 401. Retry with what we have now - no server call.
                 # `None` here means it was replaced by nothing, i.e. discarded as
                 # dead, which is not a verdict on this 401.
+                # TODO: Returning `None` here makes a fan-out of 401s fail outright
+                #       while the re-login it triggered is still in flight.
+                #       `self._session` is None for the whole login after `_discard`
+                #       (challenge + proof-of-work + login = two round trips), so
+                #       every other thread gets no session and no verdict and
+                #       raises `SessionRecoveryError` immediately. Concretely: a
+                #       laptop resumes from suspend - `time.monotonic()` does not
+                #       advance across suspend, so we still believe the session is
+                #       fresh while the server has expired it - the user opens a
+                #       lobby, up to 16 stats threads 401 together, and the whole
+                #       lobby renders as errors even though a valid session lands a
+                #       second later. `wait_for_session` would have waited; this
+                #       path does not. Fall through to the wait loop below when
+                #       `self._session is None`.
                 return Recovery(session=self._session, session_confirmed=False)
 
             if self._monotonic() < self._retry_not_before:
