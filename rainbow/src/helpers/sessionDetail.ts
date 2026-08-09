@@ -1,5 +1,5 @@
 import type { History } from "#queries/history.ts";
-import type { StatsPIT } from "#queries/playerdata.ts";
+import type { PlayerDataPIT, StatsPIT } from "#queries/playerdata.ts";
 import type {
     GameOutcome,
     GameResult,
@@ -212,21 +212,79 @@ const toModeStats = (de: StatDelta): ModeStats => ({
 // modes) that the wire contract folds into `overall` but doesn't break out.
 export type ModeBreakdownKey = Gamemode | "other";
 
-export const modeBreakdown = (
-    session: Session,
-): Record<ModeBreakdownKey, ModeStats> => {
+/**
+ * A pair of point-in-time snapshots to diff. Both a whole `Session` and a
+ * single `GameSegment` satisfy this, so the same per-mode breakdown serves the
+ * "By gamemode" panel and one multi-game gap in the momentum strip.
+ */
+interface Span {
+    readonly start: PlayerDataPIT;
+    readonly end: PlayerDataPIT;
+}
+
+export const modeBreakdown = (span: Span): Record<ModeBreakdownKey, ModeStats> => {
     const out = {} as Record<ModeBreakdownKey, ModeStats>;
     let core = ZERO_DELTA;
     for (const mode of GAMEMODES) {
-        const delta = statDelta(session.start[mode], session.end[mode]);
+        const delta = statDelta(span.start[mode], span.end[mode]);
         out[mode] = toModeStats(delta);
         core = addDelta(core, delta);
     }
     // Some players have strange stats where sum(gamemodes) != overall
     // surface that here in case it happens.
-    const overall = statDelta(session.start.overall, session.end.overall);
+    const overall = statDelta(span.start.overall, span.end.overall);
     out.other = toModeStats(subtractDelta(overall, core));
     return out;
+};
+
+export interface ModeEntry {
+    readonly key: ModeBreakdownKey;
+    readonly stats: ModeStats;
+}
+
+/**
+ * The modes actually played across a span, in the canonical display order with
+ * the "other" bucket last. Presence is strictly "gamesPlayed advanced", so the
+ * entries always account for exactly the games the span covers — a mode whose
+ * game counter didn't move is left out even if its other counters did.
+ */
+export const playedModes = (span: Span): ModeEntry[] => {
+    const data = modeBreakdown(span);
+    const entries: ModeEntry[] = GAMEMODES.filter((mode) => data[mode].games > 0).map(
+        (mode) => ({ key: mode, stats: data[mode] }),
+    );
+    if (data.other.games > 0) {
+        entries.push({ key: "other", stats: data.other });
+    }
+    return entries;
+};
+
+/**
+ * How a multi-game segment's games split by outcome, as shares of 1. Anything
+ * neither won nor lost — draws, or counters that don't reconcile — lands in
+ * `unknownShare` rather than being silently dropped. Null when the span covers
+ * no games at all, which has no split to draw.
+ */
+export interface OutcomeSplit {
+    readonly winShare: number;
+    readonly lossShare: number;
+    readonly unknownShare: number;
+}
+
+export const outcomeSplit = (span: Span): OutcomeSplit | null => {
+    const delta = statDelta(span.start.overall, span.end.overall);
+    // Clamp before dividing: a counter that moved backwards would otherwise
+    // produce a negative share and flip the bar inside out. Sizing the bar by
+    // max(games, wins + losses) keeps it full when the record over-accounts.
+    const wins = Math.max(0, delta.wins);
+    const losses = Math.max(0, delta.losses);
+    const total = Math.max(delta.games, wins + losses);
+    if (total <= 0) return null;
+    return {
+        winShare: wins / total,
+        lossShare: losses / total,
+        unknownShare: (total - wins - losses) / total,
+    };
 };
 
 /**

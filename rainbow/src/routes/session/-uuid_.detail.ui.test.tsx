@@ -83,6 +83,25 @@ describe("Session detail page", () => {
         await expect.element(screen.getByText("FINAL KILLS")).toBeInTheDocument();
     });
 
+    mswTest("expands a multi-game gap tile into a per-gamemode breakdown", async () => {
+        const { screen } = await renderAppRoute(detailUrl);
+
+        // The mock's last segment covers three games that can't be attributed
+        // individually — a solo win, a fours loss and one in a mode only
+        // `overall` reflects — so it's numbered G4-6 and dotted for all three.
+        const tile = screen.getByText("G4-6").first();
+        await expect.element(tile).toBeInTheDocument();
+        await expect
+            .element(screen.getByLabelText("Modes played: Solo, Fours, Other"))
+            .toBeInTheDocument();
+
+        await tile.click();
+
+        // "RECORD" is the wins/losses column, which only the per-mode rows have.
+        await expect.element(screen.getByText("RECORD").first()).toBeInTheDocument();
+        await expect.element(screen.getByText("Other").first()).toBeInTheDocument();
+    });
+
     mswTest(
         "shows the no-session empty state when session-at returns null",
         async ({ worker }: { readonly worker: SetupWorker }) => {

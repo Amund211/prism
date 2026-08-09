@@ -125,6 +125,74 @@ export const makePlayerDataPIT = (
     overall: makeStatsPIT(multiplier * 5),
 });
 
+type APIStatsPIT = APIPlayerDataPIT["overall"];
+
+// The counters a mocked stretch of games advances. Every field is required so a
+// new stat can't be silently left flat when the wire contract grows one.
+type StatsDelta = Omit<APIStatsPIT, "winstreak">;
+
+const addStats = (base: APIStatsPIT, delta: StatsDelta): APIStatsPIT => ({
+    winstreak: base.winstreak,
+    gamesPlayed: base.gamesPlayed + delta.gamesPlayed,
+    wins: base.wins + delta.wins,
+    losses: base.losses + delta.losses,
+    bedsBroken: base.bedsBroken + delta.bedsBroken,
+    bedsLost: base.bedsLost + delta.bedsLost,
+    finalKills: base.finalKills + delta.finalKills,
+    finalDeaths: base.finalDeaths + delta.finalDeaths,
+    kills: base.kills + delta.kills,
+    deaths: base.deaths + delta.deaths,
+});
+
+/**
+ * A snapshot advanced past `base` by three games that can't be attributed
+ * individually: one solo win, one fours loss, and one played in a mode the wire
+ * contract folds into `overall` without breaking out — so `overall` gains three
+ * games while the core modes only account for two. Drives the multi-game gap
+ * tile on the session detail page.
+ */
+export const makeMultiGamePlayerDataPIT = (
+    base: APIPlayerDataPIT,
+    queriedAt: string,
+): APIPlayerDataPIT => ({
+    ...base,
+    queriedAt,
+    experience: base.experience + 1240,
+    solo: addStats(base.solo, {
+        gamesPlayed: 1,
+        wins: 1,
+        losses: 0,
+        bedsBroken: 2,
+        bedsLost: 0,
+        finalKills: 3,
+        finalDeaths: 1,
+        kills: 5,
+        deaths: 2,
+    }),
+    fours: addStats(base.fours, {
+        gamesPlayed: 1,
+        wins: 0,
+        losses: 1,
+        bedsBroken: 0,
+        bedsLost: 1,
+        finalKills: 1,
+        finalDeaths: 1,
+        kills: 3,
+        deaths: 4,
+    }),
+    overall: addStats(base.overall, {
+        gamesPlayed: 3,
+        wins: 1,
+        losses: 1,
+        bedsBroken: 3,
+        bedsLost: 1,
+        finalKills: 5,
+        finalDeaths: 2,
+        kills: 10,
+        deaths: 7,
+    }),
+});
+
 export const makeSession = (
     uuid: string,
     startTime: string,

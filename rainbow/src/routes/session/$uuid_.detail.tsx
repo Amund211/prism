@@ -63,7 +63,9 @@ import type {
     GameAccoladeKind,
     Milestone,
     ModeBreakdownKey,
+    ModeEntry,
     ModeStats,
+    OutcomeSplit,
     SegmentGameNumber,
     SessionAggregate,
     SessionTagKey,
@@ -80,11 +82,12 @@ import {
     gameNumberLabel,
     inferredGameCount,
     modeBreakdown,
+    outcomeSplit,
+    playedModes,
     segmentDurationMs,
     segmentExperience,
     segmentGameNumbers,
     sessionTagKeys,
-    statDelta,
     trailingStreak,
 } from "#helpers/sessionDetail.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
@@ -252,6 +255,50 @@ const outcomeColor = (
         }
     }
 };
+
+// Identity colour and label for a breakdown key — the five real modes carry
+// their palette accent, the catch-all "other" bucket stays muted.
+const modeColor = (
+    // oxlint-disable-next-line typescript/prefer-readonly-parameter-types
+    theme: Theme,
+    key: ModeBreakdownKey,
+): string => (key === "other" ? theme.palette.textMuted : theme.palette.gamemode[key]);
+
+const modeLabel = (key: ModeBreakdownKey): string =>
+    key === "other" ? "Other" : getGamemodeLabel(key, true);
+
+// The identity dot a gamemode is recognised by across the page: on a game tile,
+// in the expanded detail header and beside each breakdown row.
+const ModeDot: React.FC<{ modeKey: ModeBreakdownKey }> = ({ modeKey }) => {
+    const theme = useTheme();
+    return (
+        <Box
+            sx={{
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                bgcolor: modeColor(theme, modeKey),
+                flexShrink: 0,
+            }}
+        />
+    );
+};
+
+// One dot per mode played in a segment, in canonical order. Unlabelled by
+// design — the tile has no room — so the modes are named for screen readers
+// and spelled out in the expanded breakdown below the strip.
+const ModeDots: React.FC<{ modes: readonly ModeEntry[] }> = ({ modes }) =>
+    modes.length === 0 ? null : (
+        <Stack
+            direction="row"
+            aria-label={`Modes played: ${modes.map((mode) => modeLabel(mode.key)).join(", ")}`}
+            sx={{ alignItems: "center", gap: 0.5 }}
+        >
+            {modes.map((mode) => (
+                <ModeDot key={mode.key} modeKey={mode.key} />
+            ))}
+        </Stack>
+    );
 
 const Panel: React.FC<{ children: React.ReactNode; sx?: object }> = ({
     children,
@@ -707,6 +754,92 @@ const StatusPill: React.FC<{
     return tooltip === undefined ? pill : <Tooltip title={tooltip}>{pill}</Tooltip>;
 };
 
+// One uppercase-label / monospace-value cell of a stat grid.
+const StatCell: React.FC<{ label: string; value: string; fontSize?: number }> = ({
+    label,
+    value,
+    fontSize = 16,
+}) => (
+    <Box>
+        <Typography
+            variant="caption"
+            color="textSecondary"
+            sx={{
+                textTransform: "uppercase",
+                letterSpacing: 0.6,
+                fontSize: 10,
+            }}
+        >
+            {label}
+        </Typography>
+        <Typography sx={{ fontFamily: "monospace", fontSize, mt: 0.5 }}>
+            {value}
+        </Typography>
+    </Box>
+);
+
+const STAT_GRID_SX = {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, 1fr)",
+    gap: 1,
+} as const;
+
+// Per-gamemode stats for a stretch of games that couldn't be attributed one by
+// one. Only the modes actually played get a row. XP is deliberately absent:
+// experience is only known for the whole segment, so it stays in the header
+// instead of being split across modes it can't be attributed to.
+const ModeRows: React.FC<{ modes: readonly ModeEntry[] }> = ({ modes }) => (
+    <Stack sx={{ gap: 2, maxWidth: 720, mx: "auto" }}>
+        {modes.map(({ key, stats }) => (
+            <Box key={key}>
+                <Stack
+                    direction="row"
+                    sx={{
+                        alignItems: "center",
+                        gap: 0.75,
+                        mb: 0.75,
+                    }}
+                >
+                    <ModeDot modeKey={key} />
+                    <Typography
+                        variant="caption"
+                        color="textSecondary"
+                        sx={{
+                            textTransform: "uppercase",
+                            letterSpacing: 0.6,
+                            fontSize: 10,
+                        }}
+                    >
+                        {modeLabel(key)}
+                    </Typography>
+                </Stack>
+                <Box sx={STAT_GRID_SX}>
+                    <StatCell
+                        label="RECORD"
+                        value={`${stats.wins.toString()}W · ${stats.losses.toString()}L`}
+                        fontSize={14}
+                    />
+                    <StatCell
+                        label="FINAL KILLS"
+                        value={stats.fk.toString()}
+                        fontSize={14}
+                    />
+                    <StatCell
+                        label="BEDS BROKEN"
+                        value={stats.bb.toString()}
+                        fontSize={14}
+                    />
+                    <StatCell
+                        label="KILLS / DEATHS"
+                        value={`${stats.k.toString()} / ${stats.d.toString()}`}
+                        fontSize={14}
+                    />
+                </Box>
+            </Box>
+        ))}
+    </Stack>
+);
+
 const GameDetail: React.FC<{ segment: GameSegment; numbering: SegmentGameNumber }> = ({
     segment,
     numbering,
@@ -721,35 +854,33 @@ const GameDetail: React.FC<{ segment: GameSegment; numbering: SegmentGameNumber 
     // derived per segment kind (real game / no-game window / multi-game gap).
     let title: string;
     let context: string;
+    // Set only for a single game, whose one gamemode the header can colour-dot.
+    let modeKey: ModeBreakdownKey | null = null;
     let badge: { label: string; color: string } | null = null;
     let pills: React.ReactNode = null;
-    let items: [string, string][];
+    let items: [string, string][] = [];
+    let modes: readonly ModeEntry[] = [];
 
     if (segment.game === null) {
         const count = inferredGameCount(segment);
         if (count === 0) {
             title = "Segment";
-            context = "No game";
+            context = `No game · ${durationLabel}`;
             items = [
                 ["GAMES", "0"],
                 ["XP", `+${xp.toLocaleString()}`],
                 ["SPAN", durationLabel],
             ];
         } else {
-            const delta = statDelta(segment.start.overall, segment.end.overall);
             title = numberLabel ?? "Games";
-            context = `${count.toString()} game${count === 1 ? "" : "s"}`;
-            items = [
-                ["FINAL KILLS", delta.fk.toString()],
-                ["BEDS BROKEN", delta.bb.toString()],
-                ["KILLS / DEATHS", `${delta.k.toString()} / ${delta.d.toString()}`],
-                ["XP", `+${xp.toLocaleString()}`],
-            ];
+            context = `${count.toString()} game${count === 1 ? "" : "s"} · ${durationLabel} · +${xp.toLocaleString()} XP`;
+            modes = playedModes(segment);
         }
     } else {
         const { game } = segment;
         title = numberLabel ?? "Game";
-        context = getGamemodeLabel(game.gamemode, true);
+        modeKey = game.gamemode;
+        context = `${getGamemodeLabel(game.gamemode, true)} · ${durationLabel}`;
         badge = {
             label: OUTCOME_FULL_LABEL[game.outcome],
             color: outcomeColor(theme, game.outcome),
@@ -828,8 +959,9 @@ const GameDetail: React.FC<{ segment: GameSegment; numbering: SegmentGameNumber 
                     }}
                 >
                     <Typography sx={{ fontWeight: 600 }}>{title}</Typography>
+                    {modeKey !== null && <ModeDot modeKey={modeKey} />}
                     <Typography variant="body2" color="textSecondary">
-                        {`· ${context} · ${durationLabel}`}
+                        {modeKey === null ? `· ${context}` : context}
                     </Typography>
                     {badge !== null && (
                         <Typography
@@ -861,36 +993,15 @@ const GameDetail: React.FC<{ segment: GameSegment; numbering: SegmentGameNumber 
                     </Stack>
                 )}
             </Stack>
-            <Box
-                sx={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
-                    gap: 1,
-                    maxWidth: 720,
-                    mx: "auto",
-                }}
-            >
-                {items.map(([label, value]) => (
-                    <Box key={label}>
-                        <Typography
-                            variant="caption"
-                            color="textSecondary"
-                            sx={{
-                                textTransform: "uppercase",
-                                letterSpacing: 0.6,
-                                fontSize: 10,
-                            }}
-                        >
-                            {label}
-                        </Typography>
-                        <Typography
-                            sx={{ fontFamily: "monospace", fontSize: 16, mt: 0.5 }}
-                        >
-                            {value}
-                        </Typography>
-                    </Box>
-                ))}
-            </Box>
+            {modes.length > 0 ? (
+                <ModeRows modes={modes} />
+            ) : (
+                <Box sx={{ ...STAT_GRID_SX, maxWidth: 720, mx: "auto" }}>
+                    {items.map(([label, value]) => (
+                        <StatCell key={label} label={label} value={value} />
+                    ))}
+                </Box>
+            )}
         </Box>
     );
 };
@@ -922,6 +1033,39 @@ const ClutchOrCarriedBadge: React.FC<{ game: GameResult }> = ({ game }) => {
     );
 };
 
+// Top highlight for a multi-game tile, split by how those games went: wins
+// green from the left, losses red from the right, and anything neither (a draw,
+// or counters that don't reconcile) as a neutral slice between them.
+const OutcomeSplitBar: React.FC<{ split: OutcomeSplit }> = ({ split }) => {
+    const theme = useTheme();
+    const slices: readonly [GameOutcome, number][] = [
+        ["win", split.winShare],
+        ["draw", split.unknownShare],
+        ["loss", split.lossShare],
+    ];
+    return (
+        <Box
+            sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 3,
+                display: "flex",
+            }}
+        >
+            {slices.map(([outcome, share]) =>
+                share <= 0 ? null : (
+                    <Box
+                        key={outcome}
+                        sx={{ flexGrow: share, bgcolor: outcomeColor(theme, outcome) }}
+                    />
+                ),
+            )}
+        </Box>
+    );
+};
+
 const GameTile: React.FC<{
     segment: GameSegment;
     numbering: SegmentGameNumber;
@@ -947,6 +1091,13 @@ const GameTile: React.FC<{
             ? `No game was attributed to this window. ${TRACKING_NOTE}`
             : gapTooltip;
         const gamesLabel = count === 1 ? "game" : "games";
+        // A no-game window has nothing to colour or dot, so it keeps the bare
+        // dashed tile it has always had. Gate on the game count rather than on
+        // `outcomeSplit` alone: Hypixel doesn't move its counters atomically,
+        // so a window can show a win with `gamesPlayed` still flat — which
+        // would otherwise paint a full green bar over "no game".
+        const split = noGame ? null : outcomeSplit(segment);
+        const modes = playedModes(segment);
         return (
             <Button
                 onClick={onClick}
@@ -973,6 +1124,7 @@ const GameTile: React.FC<{
                     "&:hover": { bgcolor: alpha(color, 0.07) },
                 }}
             >
+                {split !== null && <OutcomeSplitBar split={split} />}
                 <Stack
                     direction="row"
                     sx={{
@@ -997,14 +1149,13 @@ const GameTile: React.FC<{
                 <Stack
                     direction="row"
                     sx={{
+                        alignItems: "center",
                         gap: 0.75,
                         mt: 1,
                         fontSize: 10,
                     }}
                 >
-                    <Typography variant="caption" color="textSecondary">
-                        ?
-                    </Typography>
+                    <ModeDots modes={modes} />
                     <Typography variant="caption" sx={{ ml: "auto" }}>
                         {`${mins.toString()}m`}
                     </Typography>
@@ -1087,12 +1238,13 @@ const GameTile: React.FC<{
             <Stack
                 direction="row"
                 sx={{
+                    alignItems: "center",
                     gap: 0.75,
                     mt: 1,
                     fontSize: 10,
                 }}
             >
-                <Box sx={{ color: theme.palette.gamemode[game.gamemode] }}>●</Box>
+                <ModeDot modeKey={game.gamemode} />
                 <Typography variant="caption">
                     {getGamemodeLabel(game.gamemode, true)}
                 </Typography>
@@ -1493,24 +1645,12 @@ const ModeDetail: React.FC<{
                     </Typography>
                 </Stack>
                 {items.map(([itemLabel, value]) => (
-                    <Box key={itemLabel}>
-                        <Typography
-                            variant="caption"
-                            color="textSecondary"
-                            sx={{
-                                textTransform: "uppercase",
-                                letterSpacing: 0.6,
-                                fontSize: 10,
-                            }}
-                        >
-                            {itemLabel}
-                        </Typography>
-                        <Typography
-                            sx={{ fontFamily: "monospace", fontSize: 14, mt: 0.5 }}
-                        >
-                            {value}
-                        </Typography>
-                    </Box>
+                    <StatCell
+                        key={itemLabel}
+                        label={itemLabel}
+                        value={value}
+                        fontSize={14}
+                    />
                 ))}
             </Box>
         </Box>
@@ -1534,16 +1674,16 @@ const ModeBreakdown: React.FC<{
     }[] = GAMEMODES.filter((mode) => mode !== "4v4" || data[mode].games > 0).map(
         (mode) => ({
             key: mode,
-            label: getGamemodeLabel(mode, true),
-            color: theme.palette.gamemode[mode],
+            label: modeLabel(mode),
+            color: modeColor(theme, mode),
             stats: data[mode],
         }),
     );
     if (data.other.games > 0) {
         entries.push({
             key: "other",
-            label: "Other",
-            color: theme.palette.textMuted,
+            label: modeLabel("other"),
+            color: modeColor(theme, "other"),
             stats: data.other,
         });
     }

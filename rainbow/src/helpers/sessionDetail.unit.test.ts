@@ -23,6 +23,8 @@ import {
     inferredGameCount,
     isPerfectGame,
     modeBreakdown,
+    outcomeSplit,
+    playedModes,
     segmentGameNumbers,
     sessionTagKeys,
     trailingStreak,
@@ -1151,5 +1153,103 @@ describe(gameAccolade, () => {
 
     test.each(cases)("$name", ({ game, expected }) => {
         expect(gameAccolade(makeGame(game))).toBe(expected);
+    });
+});
+
+describe(playedModes, () => {
+    test("lists the modes played in canonical order with 'other' last", () => {
+        const end = makePIT({
+            // Three games: one solo win, one fours loss, and one in a mode the
+            // wire contract only reflects in `overall`.
+            overall: makeStats({ gamesPlayed: 3, wins: 1, losses: 1, finalKills: 5 }),
+            solo: makeStats({ gamesPlayed: 1, wins: 1, finalKills: 3 }),
+            fours: makeStats({ gamesPlayed: 1, losses: 1, finalKills: 1 }),
+        });
+
+        const modes = playedModes({ start: PLACEHOLDER_PIT, end });
+
+        expect(modes.map((mode) => mode.key)).toStrictEqual(["solo", "fours", "other"]);
+        expect(modes.map((mode) => mode.stats.games)).toStrictEqual([1, 1, 1]);
+        // The "other" bucket carries the finals the core modes don't claim.
+        expect(modes[2].stats.fk).toBe(1);
+    });
+
+    test("omits a mode whose stats moved without its game counter", () => {
+        const end = makePIT({
+            overall: makeStats({ gamesPlayed: 1, wins: 1 }),
+            threes: makeStats({ finalKills: 2 }),
+        });
+
+        expect(
+            playedModes({ start: PLACEHOLDER_PIT, end }).map((mode) => mode.key),
+        ).toStrictEqual(["other"]);
+    });
+
+    test("omits 'other' when the core modes account for every game", () => {
+        const end = makePIT({
+            overall: makeStats({ gamesPlayed: 2, wins: 2 }),
+            doubles: makeStats({ gamesPlayed: 2, wins: 2 }),
+        });
+
+        expect(
+            playedModes({ start: PLACEHOLDER_PIT, end }).map((mode) => mode.key),
+        ).toStrictEqual(["doubles"]);
+    });
+
+    test("omits 'other' when the core modes over-account for the games", () => {
+        const end = makePIT({
+            // Stats that don't reconcile: solo claims more games than overall.
+            overall: makeStats({ gamesPlayed: 1, wins: 1 }),
+            solo: makeStats({ gamesPlayed: 2, wins: 1 }),
+        });
+
+        expect(
+            playedModes({ start: PLACEHOLDER_PIT, end }).map((mode) => mode.key),
+        ).toStrictEqual(["solo"]);
+    });
+});
+
+describe(outcomeSplit, () => {
+    const cases: {
+        name: string;
+        overall: Partial<StatsPIT>;
+        expected: { winShare: number; unknownShare: number; lossShare: number } | null;
+    }[] = [
+        {
+            name: "all wins fills the bar green",
+            overall: { gamesPlayed: 3, wins: 3 },
+            expected: { winShare: 1, unknownShare: 0, lossShare: 0 },
+        },
+        {
+            name: "one win and one loss splits it in half",
+            overall: { gamesPlayed: 2, wins: 1, losses: 1 },
+            expected: { winShare: 0.5, unknownShare: 0, lossShare: 0.5 },
+        },
+        {
+            name: "a game that is neither won nor lost becomes a neutral slice",
+            overall: { gamesPlayed: 4, wins: 2, losses: 1 },
+            expected: { winShare: 0.5, unknownShare: 0.25, lossShare: 0.25 },
+        },
+        {
+            name: "a record that over-accounts sizes the bar by wins + losses",
+            overall: { gamesPlayed: 1, wins: 1, losses: 1 },
+            expected: { winShare: 0.5, unknownShare: 0, lossShare: 0.5 },
+        },
+        {
+            name: "counters moving backwards never produce a negative slice",
+            overall: { gamesPlayed: 2, wins: -1, losses: 1 },
+            expected: { winShare: 0, unknownShare: 0.5, lossShare: 0.5 },
+        },
+        {
+            name: "a window covering no games has no split",
+            overall: {},
+            expected: null,
+        },
+    ];
+
+    test.each(cases)("$name", ({ overall, expected }) => {
+        const end = makePIT({ overall: makeStats(overall) });
+
+        expect(outcomeSplit({ start: PLACEHOLDER_PIT, end })).toStrictEqual(expected);
     });
 });

@@ -12,6 +12,7 @@ import {
     findUserByUsername,
     findUserByUUID,
     makeChallengeResponse,
+    makeMultiGamePlayerDataPIT,
     makePlayerDataPIT,
     makeSession,
     makeSessionResponse,
@@ -160,12 +161,16 @@ export const handlers = [
         const startDate = new Date(timeDate.getTime() - 60 * 60 * 1000);
         const midDate = new Date(timeDate);
         const mid2Date = new Date(timeDate.getTime() + 30 * 60 * 1000);
+        const mid3Date = new Date(timeDate.getTime() + 45 * 60 * 1000);
         const endDate = new Date(timeDate.getTime() + 60 * 60 * 1000);
 
         const startPIT = makePlayerDataPIT(body.uuid, startDate.toISOString(), 1);
         const midPIT = makePlayerDataPIT(body.uuid, midDate.toISOString(), 2);
         const mid2PIT = makePlayerDataPIT(body.uuid, mid2Date.toISOString(), 3);
-        const endPIT = makePlayerDataPIT(body.uuid, endDate.toISOString(), 4);
+        const mid3PIT = makePlayerDataPIT(body.uuid, mid3Date.toISOString(), 4);
+        // Last segment covers several games at once, so its counters advance
+        // from the previous snapshot rather than jumping a whole multiplier.
+        const endPIT = makeMultiGamePlayerDataPIT(mid3PIT, endDate.toISOString());
 
         const response: APISessionAtResponse = {
             session: makeSession(
@@ -206,7 +211,7 @@ export const handlers = [
                 },
                 {
                     start: mid2PIT,
-                    end: endPIT,
+                    end: mid3PIT,
                     game: {
                         gamemode: "4v4",
                         outcome: "win",
@@ -219,6 +224,7 @@ export const handlers = [
                         experience: 1800,
                     },
                 },
+                { start: mid3PIT, end: endPIT, game: null },
             ],
         };
 
