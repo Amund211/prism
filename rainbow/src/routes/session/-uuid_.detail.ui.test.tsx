@@ -1,8 +1,10 @@
 import { http, HttpResponse } from "msw";
 import type { SetupWorker } from "msw/browser";
 import { describe, expect } from "vitest";
+import { page } from "vitest/browser";
 
-import { USERS } from "#mocks/data.ts";
+import { makePlayerDataPIT, makeSession, USERS } from "#mocks/data.ts";
+import type { APISessionAtResponse } from "#queries/sessionAt.ts";
 import { mswTest } from "#test/msw-test.ts";
 import { renderAppRoute } from "#test/render.tsx";
 
@@ -116,6 +118,77 @@ describe("Session detail page", () => {
             await expect
                 .element(screen.getByText("No session yet"))
                 .toBeInTheDocument();
+        },
+    );
+
+    mswTest(
+        "long sessions scroll the game strip instead of the page",
+        async ({ worker }: { readonly worker: SetupWorker }) => {
+            const { uuid } = USERS.player1;
+            const start = new Date(date);
+            // Enough games that the strip's `minmax(120px, 1fr)` columns exceed
+            // the width left over next to the desktop sidebar.
+            const gameCount = 12;
+            const pits = Array.from({ length: gameCount + 1 }, (_, index) =>
+                makePlayerDataPIT(
+                    uuid,
+                    new Date(start.getTime() + index * 10 * 60 * 1000).toISOString(),
+                    index + 1,
+                ),
+            );
+
+            worker.use(
+                http.post("http://localhost:5173/flashlight/v1/session-at", () => {
+                    const response: APISessionAtResponse = {
+                        session: makeSession(
+                            uuid,
+                            pits[0].queriedAt,
+                            pits[gameCount].queriedAt,
+                        ),
+                        games: Array.from({ length: gameCount }, (_, index) => ({
+                            start: pits[index],
+                            end: pits[index + 1],
+                            game: {
+                                gamemode: "doubles",
+                                outcome: "win",
+                                finalKills: 5,
+                                finalDeath: true,
+                                bedsBroken: 1,
+                                bedLost: false,
+                                kills: 12,
+                                deaths: 4,
+                                experience: 2400,
+                            },
+                        })),
+                    };
+                    return HttpResponse.json(response);
+                }),
+            );
+
+            // Wide enough for the permanent sidebar to be shown.
+            await page.viewport(1280, 720);
+            const { screen } = await renderAppRoute(detailUrl);
+
+            const tile = screen.getByText("G1").first();
+            await expect.element(tile).toBeInTheDocument();
+
+            // The page itself must not scroll sideways ...
+            const { documentElement } = document;
+            await expect
+                .poll(() => documentElement.scrollWidth - documentElement.clientWidth)
+                .toBe(0);
+
+            // ... the strip holding the tiles does, so the later games stay
+            // reachable rather than being clipped away. It is the only
+            // horizontally scrollable container inside `<main>` (the sidebar
+            // has one too, hence the scoping).
+            const strip = [
+                ...(document.querySelector("main")?.querySelectorAll("div") ?? []),
+            ].find(
+                (element) => globalThis.getComputedStyle(element).overflowX === "auto",
+            );
+            expect(strip).toBeDefined();
+            expect(strip?.scrollWidth).toBeGreaterThan(strip?.clientWidth ?? 0);
         },
     );
 });

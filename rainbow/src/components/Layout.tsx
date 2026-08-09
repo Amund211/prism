@@ -468,6 +468,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     marginTop: { xs: APP_BAR_HEIGHT_PX, lg: 0 },
                     width: "100%",
                     height: "100%",
+                    // `<main>` is a flex item next to the permanent drawer, so
+                    // its default `min-width: auto` floors it at the content's
+                    // min-content width. Wide content (e.g. the session
+                    // detail game strip) then refuses to give up room for the
+                    // 240px drawer and the whole page scrolls sideways instead
+                    // of the content scrolling inside its own container.
+                    minWidth: 0,
                 }}
             >
                 {/* Wrap the children in a padded box so the bottom spacer
