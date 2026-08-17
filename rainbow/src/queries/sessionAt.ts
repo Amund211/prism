@@ -150,13 +150,11 @@ export const getSessionAtQueryOptions = ({ uuid, time }: SessionAtQueryOptions) 
             return {
                 session:
                     data.session === null ? null : apiToSession(data.session, false),
-                games: data.games.map(
-                    (seg): GameSegment => ({
-                        start: apiToPlayerDataPIT(seg.start),
-                        end: apiToPlayerDataPIT(seg.end),
-                        game: seg.game === null ? null : apiToGameResult(seg.game),
-                    }),
-                ),
+                games: data.games.map((seg): GameSegment => ({
+                    start: apiToPlayerDataPIT(seg.start),
+                    end: apiToPlayerDataPIT(seg.end),
+                    game: seg.game === null ? null : apiToGameResult(seg.game),
+                })),
             };
         },
     });
