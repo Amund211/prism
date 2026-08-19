@@ -81,6 +81,14 @@ def main() -> None:  # pragma: nocover
     from prism.requests import make_prism_requests_session
     from prism.strange import StrangePlayerProvider
 
+    # Below the imports so they stay covered, above auth.start() so we don't exit
+    # with its daemon thread mid-handshake inside OpenSSL.
+    if options.test_ssl:
+        from prism.overlay.testing import test_ssl
+
+        test_ssl()
+        return
+
     session = make_prism_requests_session()
 
     # Start authenticating right away, before the (possibly interactive) logfile
@@ -117,12 +125,6 @@ def main() -> None:  # pragma: nocover
         winstreak_provider=winstreak_provider,
         tags_provider=tags_provider,
     )
-
-    if options.test_ssl:
-        from prism.overlay.testing import test_ssl
-
-        test_ssl()
-        return
 
     if options.test:
         from prism.overlay.testing import get_test_loglines
