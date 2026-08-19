@@ -89,6 +89,12 @@ jobs:
 
   build:
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      # Mint an OIDC token so Sigstore can bind the provenance to this workflow
+      id-token: write
+      # Write the resulting attestation to the repo's attestation store
+      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -178,6 +184,19 @@ jobs:
         if: matrix.OS_NAME != 'mac'
         run: |
           mv "dist/${{ env.SIMPLE_NAME }}${{ matrix.RESULT_EXTENSION }}" "${{ env.BUILD_RESULT_NAME }}"
+
+      # Publish SLSA build provenance for the artifact we hand to users, so they
+      # can verify it came out of this workflow at a known commit:
+      #   gh attestation verify <file> --repo Amund211/prism
+      # Only run for refs we cut releases from, to keep the attestation log
+      # meaningful. Keep this step LAST before the upload: the attestation is
+      # bound to the file's digest, so anything that rewrites the file
+      # (e.g. code signing) must happen before this runs.
+      - name: Attest build provenance
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: "${{ env.BUILD_RESULT_NAME }}"
 
       - name: Upload built binary/app .dmg
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
