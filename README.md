@@ -140,6 +140,17 @@ The released binaries are created using `pyinstaller` in GitHub Actions from a c
 If you do not trust the released binary you can clone the project and run it from source by installing the dependencies and running `uv run prism_overlay.py` from the project root.
 See [running the overlay from source](#running-the-overlay-from-source) for more info.
 
+### Verifying your download
+Every released binary is published with [build provenance](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds), a signed statement of which repository, commit and workflow run produced the file.
+If you have the [GitHub CLI](https://cli.github.com/) installed you can check a downloaded file with:
+
+```bash
+gh attestation verify prism-v1.11.0-windows.exe --repo Amund211/prism
+```
+
+A successful run prints the commit and workflow that built the file.
+This proves the file came out of Prism's build pipeline unmodified — a binary someone else built, or one that has been tampered with after the build, will fail the check.
+
 ## Running the overlay from source
 Note: make sure you have a recent version of Python installed.
 The overlay currently depends on version `>=3.14`.

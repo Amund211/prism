@@ -66,7 +66,19 @@ GitHub Actions (`.github/workflows/testing.yml`) automatically:
 3. **Quality checks**: Tests, type checking, linting
 4. **Icon generation**: Version overlay on icon
 5. **PyInstaller builds**: Platform-specific executables
-6. **Artifact upload**: Stores build results
+6. **Build provenance**: Signed SLSA attestation of the final artifact (`main` and tags only)
+7. **Artifact upload**: Stores build results
+
+### Build provenance
+The `build` job runs `actions/attest-build-provenance` on the finished artifact when
+building `main` or a tag. This requires `id-token: write` and `attestations: write` on
+the job, and lets users verify a download with
+`gh attestation verify <file> --repo Amund211/prism`.
+
+The attestation is bound to the artifact's SHA256 digest, so the attest step must stay
+the LAST step before the upload. Any step that rewrites the file — code signing,
+notarization, re-compression — must run *before* it, or verification will fail against
+the shipped file.
 
 ### Build Matrix
 - **OS**: ubuntu-latest, windows-latest, macOS-15
