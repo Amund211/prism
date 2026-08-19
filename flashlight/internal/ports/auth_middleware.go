@@ -84,8 +84,6 @@ func NewBearerAuthMiddleware(validate app.ValidateSession, nowFunc func() time.T
 				return
 			}
 
-			// Must happen before next(): once the handler calls
-			// WriteHeader the header map is frozen and this is a no-op.
 			if shouldHintRefresh(view, nowFunc()) {
 				w.Header().Set(AuthRefreshHeader, "1")
 			}

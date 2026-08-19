@@ -104,6 +104,31 @@ func TestBearerAuthMiddleware(t *testing.T) {
 		})
 	}
 
+	// /v1/tags 401ing for a bad Urchin API key behind a valid bearer: the hint
+	// must be set before next(), because the handler writing its own response
+	// freezes the header map.
+	t.Run("keeps the refresh hint on a handler's own 401", func(t *testing.T) {
+		t.Parallel()
+		validate := func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
+			return domain.AuthSession{
+				ID:           sessionID,
+				IdentityType: domain.AuthSessionIdentityAnonymous,
+				IdentityKey:  "user-xyz",
+				ExpiresAt:    authMiddlewareNow.Add(4 * time.Minute),
+			}, nil
+		}
+		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow })
+		handler := mw(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "Invalid urchin API key. Fix it or remove the key.", http.StatusUnauthorized)
+		})
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/tags/uuid", http.NoBody)
+		r.Header.Set("Authorization", "Bearer good-token")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+		require.Equal(t, "1", w.Result().Header.Get(ports.AuthRefreshHeader))
+	})
+
 	t.Run("no refresh hint without an Authorization header", func(t *testing.T) {
 		t.Parallel()
 		validate := func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
