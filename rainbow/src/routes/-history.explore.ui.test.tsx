@@ -90,6 +90,41 @@ describe("History Explore page", () => {
             .toBeInTheDocument();
     });
 
+    mswTest("a background update does not clear the typed search text", async () => {
+        const { screen } = await renderAppRoute(historyUrl);
+
+        await expect
+            .poll(() => {
+                const chips = document.querySelectorAll(".MuiChip-label");
+                return [...chips].some((c) => c.textContent === USERS.player1.username);
+            })
+            .toBe(true);
+
+        const input = screen.getByPlaceholder("Add players");
+        await input.fill(USERS.player2.username);
+
+        // Simulate an unrelated update to a localStorage-backed context (e.g. a
+        // username resolving in the background), which re-renders the page. The
+        // `value` passed to MUI's Autocomplete must keep its identity across such
+        // renders, or MUI resets the input and wipes what was typed.
+        localStorage.setItem(
+            "knownAliases",
+            JSON.stringify({
+                [USERS.player3.uuid]: [
+                    {
+                        username: USERS.player3.username,
+                        lastResolved: new Date().toISOString(),
+                    },
+                ],
+            }),
+        );
+        globalThis.dispatchEvent(new StorageEvent("storage", { key: "knownAliases" }));
+
+        await expect
+            .poll(() => (input.element() as HTMLInputElement).value)
+            .toBe(USERS.player2.username);
+    });
+
     mswTest("add and remove users in multi-select", async () => {
         const { screen } = await renderAppRoute(historyUrl);
 
@@ -108,8 +143,11 @@ describe("History Explore page", () => {
         // resolves Enter via the highlighted option's DOM node, so type-then-Enter
         // can race the mount and select nothing (flaky, especially on webkit).
         // Clicking the rendered option selects deterministically regardless of
-        // timing.
-        const option = screen.getByRole("option");
+        // timing. Match on the player so a leftover option for an
+        // already-selected player can't be clicked, which would deselect it.
+        const option = screen.getByRole("option", {
+            name: new RegExp(USERS.player2.username),
+        });
         await expect.element(option).toBeInTheDocument();
         await option.click();
 

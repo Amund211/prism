@@ -90,7 +90,13 @@ function Index() {
         end,
         limit,
     } = Route.useSearch();
-    const uuids = normalizeUUIDsSkippingInvalid(rawUUIDs);
+    // Stable identity: UserMultiSelect passes `uuids` straight to MUI's
+    // Autocomplete as its `value`, and MUI clears the search input whenever that
+    // identity changes -- even mid-typing.
+    const uuids = React.useMemo(
+        () => normalizeUUIDsSkippingInvalid(rawUUIDs),
+        [rawUUIDs],
+    );
     const navigate = Route.useNavigate();
     const { visitPlayer } = usePlayerVisits();
     const uuidToUsername = useUUIDToUsername(uuids);

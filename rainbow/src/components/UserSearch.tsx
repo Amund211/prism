@@ -404,6 +404,14 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
     const { disableListWrap, slots, slotProps, scrollToKey } = useUserSearchListbox();
     const [loading, setLoading] = React.useState(false);
 
+    // The `value` identity must only change when the selection does: MUI resets
+    // (for `multiple`: clears) the input whenever it changes, even while focused,
+    // so an unstable identity wipes the search text on any unrelated re-render.
+    const selectedOptions = React.useMemo(
+        () => uuids.map((uuid) => ({ type: "uuid" as const, uuid })),
+        [uuids],
+    );
+
     return (
         <Autocomplete
             multiple
@@ -423,7 +431,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
             getOptionLabel={getOptionLabel}
             isOptionEqualToValue={isOptionEqualToValue}
             renderValue={renderValue}
-            value={uuids.map((uuid) => ({ type: "uuid" as const, uuid }))}
+            value={selectedOptions}
             onHighlightChange={(_, option) => {
                 scrollToKey(option === null ? null : searchOptionKey(option));
             }}

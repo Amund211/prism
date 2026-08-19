@@ -31,7 +31,9 @@ describe("Settings page", () => {
         // can race the mount and select nothing (flaky, especially on webkit).
         // Clicking the rendered option selects deterministically regardless of
         // timing.
-        const option = screen.getByRole("option");
+        const option = screen.getByRole("option", {
+            name: new RegExp(USERS.player1.username),
+        });
         await expect.element(option).toBeInTheDocument();
         await option.click();
 
@@ -99,7 +101,11 @@ describe("Settings page", () => {
             await input.fill(USERS.player2.username);
             // Click the rendered option rather than pressing Enter — the virtualized
             // option row mounts asynchronously and type-then-Enter can race it.
-            const option = screen.getByRole("option");
+            // Match on the player to avoid clicking a leftover option for the
+            // already-selected player, which would deselect it instead.
+            const option = screen.getByRole("option", {
+                name: new RegExp(USERS.player2.username),
+            });
             await expect.element(option).toBeInTheDocument();
             await option.click();
 
@@ -109,6 +115,41 @@ describe("Settings page", () => {
                 .toBe(USERS.player2.uuid);
         },
     );
+
+    mswTest("a background update does not clear the typed search text", async () => {
+        localStorage.setItem("currentUser", USERS.player1.uuid);
+
+        const { screen } = await renderAppRoute("/settings");
+
+        await expect
+            .poll(() => {
+                const chips = document.querySelectorAll(".MuiChip-root");
+                return [...chips].some((c) => c.textContent === USERS.player1.username);
+            })
+            .toBe(true);
+
+        const input = screen.getByPlaceholder("Set default player");
+        await input.fill(USERS.player2.username);
+
+        // Simulate an unrelated update to a localStorage-backed context (e.g. a
+        // username resolving in the background) which re-renders the page.
+        localStorage.setItem(
+            "knownAliases",
+            JSON.stringify({
+                [USERS.player3.uuid]: [
+                    {
+                        username: USERS.player3.username,
+                        lastResolved: new Date().toISOString(),
+                    },
+                ],
+            }),
+        );
+        globalThis.dispatchEvent(new StorageEvent("storage", { key: "knownAliases" }));
+
+        await expect
+            .poll(() => (input.element() as HTMLInputElement).value)
+            .toBe(USERS.player2.username);
+    });
 
     mswTest("renders info tooltip icon", async () => {
         const { screen } = await renderAppRoute("/settings");
