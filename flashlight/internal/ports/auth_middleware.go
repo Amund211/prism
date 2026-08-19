@@ -55,11 +55,20 @@ func AuthFromContext(ctx context.Context) (AuthContext, bool) {
 // On a successful validation it also sets AuthRefreshHeader when the
 // session is due for a refresh, which is what keeps refresh timing
 // server-side policy for clients already in users' hands.
+//
+// It also sets AuthSessionHeader to say what it decided about this
+// request: AuthSessionValid once validate succeeds, AuthSessionAbsent on
+// the pass-through, and nothing at all on the arms below, where the
+// session is bad or its state is unknown. That vouch is what lets a
+// client attribute a 401 it did not cause — /v1/tags 401s for a bad
+// Urchin API key and this middleware 401s for a bad session, and until
+// the vouch existed nothing on the wire told them apart.
 func NewBearerAuthMiddleware(validate app.ValidateSession, nowFunc func() time.Time) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			rawAuth := r.Header.Get("Authorization")
 			if rawAuth == "" {
+				w.Header().Set(AuthSessionHeader, AuthSessionAbsent)
 				next(w, r)
 				return
 			}
@@ -83,6 +92,8 @@ func NewBearerAuthMiddleware(validate app.ValidateSession, nowFunc func() time.T
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
 				return
 			}
+
+			w.Header().Set(AuthSessionHeader, AuthSessionValid)
 
 			if shouldHintRefresh(view, nowFunc()) {
 				w.Header().Set(AuthRefreshHeader, "1")

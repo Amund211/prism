@@ -2,6 +2,7 @@ package ports_test
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -38,6 +39,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 		handler(w, r)
 		require.True(t, called)
 		require.Equal(t, http.StatusOK, w.Code)
+		require.Equal(t, ports.AuthSessionAbsent, w.Result().Header.Get(ports.AuthSessionHeader), "a stripped Authorization header is invisible without this")
 	})
 
 	t.Run("attaches auth context for valid bearer", func(t *testing.T) {
@@ -68,6 +70,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 		require.Equal(t, domain.AuthSessionIdentityAnonymous, seen.IdentityType)
 		require.Equal(t, "user-xyz", seen.IdentityKey)
 		require.Empty(t, w.Result().Header.Get(ports.AuthRefreshHeader), "a fresh session needs no refresh hint")
+		require.Equal(t, ports.AuthSessionValid, w.Result().Header.Get(ports.AuthSessionHeader))
 	})
 
 	// Reading the header off w.Result() rather than w.Header() is the point:
@@ -129,6 +132,30 @@ func TestBearerAuthMiddleware(t *testing.T) {
 		require.Equal(t, "1", w.Result().Header.Get(ports.AuthRefreshHeader))
 	})
 
+	// The whole reason the vouch exists: this 401 is the handler's, not the
+	// middleware's, and only the header says so.
+	t.Run("vouches for a handler's own 401", func(t *testing.T) {
+		t.Parallel()
+		validate := func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
+			return domain.AuthSession{
+				ID:           sessionID,
+				IdentityType: domain.AuthSessionIdentityAnonymous,
+				IdentityKey:  "user-xyz",
+				ExpiresAt:    authMiddlewareNow.Add(time.Hour),
+			}, nil
+		}
+		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow })
+		handler := mw(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "Invalid urchin API key. Fix it or remove the key.", http.StatusUnauthorized)
+		})
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/tags/uuid", http.NoBody)
+		r.Header.Set("Authorization", "Bearer good-token")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+		require.Equal(t, ports.AuthSessionValid, w.Result().Header.Get(ports.AuthSessionHeader))
+	})
+
 	t.Run("no refresh hint without an Authorization header", func(t *testing.T) {
 		t.Parallel()
 		validate := func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
@@ -161,6 +188,25 @@ func TestBearerAuthMiddleware(t *testing.T) {
 		w := httptest.NewRecorder()
 		handler(w, r)
 		require.Equal(t, http.StatusUnauthorized, w.Code)
+		require.Empty(t, w.Result().Header.Get(ports.AuthSessionHeader), "a client bug is not a session state")
+	})
+
+	t.Run("500 and no vouch when validate fails unexpectedly", func(t *testing.T) {
+		t.Parallel()
+		validate := func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
+			return domain.AuthSession{}, errors.New("the database is on fire")
+		}
+		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow })
+		next := func(w http.ResponseWriter, r *http.Request) {
+			t.Fatal("next should not be invoked when validation errors")
+		}
+		handler := mw(next)
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/playerdata", http.NoBody)
+		r.Header.Set("Authorization", "Bearer good-token")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusInternalServerError, w.Code)
+		require.Empty(t, w.Result().Header.Get(ports.AuthSessionHeader), "the session state is unknown, and unknown is spelled no vouch")
 	})
 
 	for _, sentinel := range []error{
@@ -185,6 +231,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 			handler(w, r)
 			require.Equal(t, http.StatusUnauthorized, w.Code)
 			require.Empty(t, w.Result().Header.Get(ports.AuthRefreshHeader), "nothing to refresh when validation failed")
+			require.Empty(t, w.Result().Header.Get(ports.AuthSessionHeader), "never vouch for a session we rejected")
 		})
 	}
 }

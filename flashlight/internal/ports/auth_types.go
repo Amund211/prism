@@ -30,6 +30,45 @@ const refreshAtOffset = 5 * time.Minute
 // Access-Control-Expose-Headers — see BuildCORSMiddleware.
 const AuthRefreshHeader = "X-Auth-Refresh"
 
+// AuthSessionHeader states the auth disposition of the request that
+// produced this response, so a client can attribute a 401 without asking
+// the server a second question. It is set by the bearer middleware on
+// every request it handled, whatever the handler then returns.
+//
+// Only AuthSessionValid may be trusted, and only as a statement about
+// this one request. Absence means "unknown", not "the session is bad":
+// anything answering ahead of the middleware (the blocklist, the IP
+// limiters, CORS preflight), anything answering instead of flashlight
+// (Cloud Run, the LB), /v1/prestiges/{uuid} which mounts no bearer
+// middleware, and a proxy stripping the header all look identical from
+// the outside. A client that reads absence as a vouch latches a wrong
+// verdict it cannot clear; one that reads it as "unknown" degrades to
+// the reactive 401 path it already has.
+//
+// This is deliberately stricter than the AuthRefreshHeader idiom, where
+// any non-empty value counts. Over-reading a hint costs one request;
+// over-reading a vouch means believing a session is fine when nothing
+// said so.
+//
+// Browsers cannot read it cross-origin unless it is named in
+// Access-Control-Expose-Headers — see BuildCORSMiddleware.
+const AuthSessionHeader = "X-Auth-Session"
+
+const (
+	// AuthSessionValid means this request carried a bearer that the
+	// middleware validated. A 401 alongside it came from the handler and
+	// says nothing about the session — /v1/tags rejecting an Urchin API
+	// key is the case this exists for.
+	AuthSessionValid = "valid"
+
+	// AuthSessionAbsent means the request reached a bearer handler with no
+	// Authorization header. Purely diagnostic — it is how a proxy that
+	// strips Authorization becomes visible, which it otherwise is not:
+	// the server quietly falls back to the X-User-Id path and everything
+	// appears to work. No client may branch on it.
+	AuthSessionAbsent = "absent"
+)
+
 // shouldHintRefresh reports whether to set AuthRefreshHeader for s: the
 // client's proactive refresh point (the same one refreshInSeconds counts
 // down to) has arrived, and a refresh would not come back a 429. The

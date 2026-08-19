@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -162,7 +163,12 @@ func TestCORS(t *testing.T) {
 			} else {
 				require.Empty(t, resp.Header.Get("Access-Control-Allow-Methods"))
 				require.Empty(t, resp.Header.Get("Access-Control-Allow-Headers"))
-				require.Equal(t, ports.AuthRefreshHeader, resp.Header.Get("Access-Control-Expose-Headers"))
+				// Asserted name by name: this is one comma-joined value that
+				// Set overwrites, and a dropped name fails silently in the
+				// browser rather than anywhere a test would notice.
+				exposed := strings.Split(resp.Header.Get("Access-Control-Expose-Headers"), ", ")
+				require.Contains(t, exposed, ports.AuthRefreshHeader)
+				require.Contains(t, exposed, ports.AuthSessionHeader)
 			}
 		} else {
 			require.Empty(t, resp.Header.Get("Access-Control-Allow-Origin"))

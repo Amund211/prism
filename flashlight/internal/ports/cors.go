@@ -6,6 +6,14 @@ import (
 	"strings"
 )
 
+// exposedHeaders is every auth header a browser is allowed to read.
+// Concatenated rather than written out so adding one is an edit here and
+// nowhere else: Access-Control-Expose-Headers is a single comma-joined
+// value and Set overwrites, so a second Set — or a hand-written list that
+// forgets a name — makes a shipped header silently unreadable to rainbow,
+// with no error anywhere.
+const exposedHeaders = AuthRefreshHeader + ", " + AuthSessionHeader
+
 type DomainSuffixes struct {
 	suffixes []string
 }
@@ -77,9 +85,9 @@ func BuildCORSMiddleware(allowedSuffixes *DomainSuffixes) func(http.HandlerFunc)
 				}
 
 				// Without this a cross-origin caller cannot read the
-				// header. Read off the response it appears on, not the
+				// headers. Read off the response they appear on, not the
 				// preflight.
-				w.Header().Set("Access-Control-Expose-Headers", AuthRefreshHeader)
+				w.Header().Set("Access-Control-Expose-Headers", exposedHeaders)
 			}
 
 			next(w, r)
