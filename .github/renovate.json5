@@ -1,0 +1,44 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    // config:recommended, plus docker:pinDigests, helpers:pinGitHubActionDigests,
+    // :configMigration, :pinDevDependencies, abandonments:recommended,
+    // security:minimumReleaseAgeNpm and :maintainLockFilesWeekly.
+    // Renovate's own docs recommend this over plain config:recommended.
+    "config:best-practices",
+    // Track SHA-pinned actions by the `# vX.Y.Z` comment as semver, rather than
+    // by digest movement on a floating tag.
+    "helpers:pinGitHubActionDigestsToSemver",
+    // The pre-commit manager is disabled by default in renovate, so opt in
+    // explicitly.
+    ":enablePreCommit",
+    // config:recommended would use fix(deps) for runtime dependencies.
+    // Everything in this repo's history is chore(deps) — keep it uniform.
+    ":semanticCommitTypeAll(chore)",
+  ],
+  timezone: "Europe/Oslo",
+  // Roughly matches the weekly interval in .github/dependabot.yml.
+  schedule: ["* 2-6 * * 1"],
+  // Parity with the 7-day cooldown in .github/dependabot.yml — and required, not
+  // cosmetic: pyproject.toml sets `[tool.uv] exclude-newer = "1 week"`, and uv
+  // honours that when renovate shells out to it to regenerate uv.lock. Without a
+  // matching floor here renovate proposes versions its own lockfile step then
+  // fails to resolve.
+  minimumReleaseAge: "7 days",
+  prConcurrentLimit: 5,
+  prHourlyLimit: 2,
+  // Keep this off until the default branch ruleset requires status checks.
+  // With no required check, platform automerge can merge a red PR.
+  automerge: false,
+  packageRules: [
+    {
+      // A digest-only move on a SHA-pinned action means an existing tag was
+      // repointed upstream — the tag-hijack signature (tj-actions/changed-files,
+      // CVE-2025-30066). Legitimate fixes arrive as a new tag through the normal
+      // version-update path.
+      matchManagers: ["github-actions"],
+      matchUpdateTypes: ["digest"],
+      enabled: false,
+    },
+  ],
+}
