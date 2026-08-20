@@ -11,20 +11,30 @@ repos:
           - id: check-merge-conflict
           - id: check-added-large-files
 
-    - repo: https://github.com/oxc-project/mirrors-oxlint
-      rev: v1.77.0
-      hooks:
-          - id: oxlint
-            verbose: false
-
-    - repo: https://github.com/oxc-project/mirrors-oxfmt
-      rev: v0.63.0
-      hooks:
-          - id: oxfmt
-            verbose: false
-
     - repo: local
       hooks:
+          # oxlint and oxfmt run from node_modules, so package.json is the only
+          # place their versions live. Fields copied from the upstream hook
+          # definitions at oxc-project/mirrors-oxlint@v1.77.0 and
+          # mirrors-oxfmt@v0.63.0. The mirrors install oxlint on its own, which
+          # leaves out oxlint-tsgolint — an optional peer dependency that
+          # `"typeAware": true` in .oxlintrc.json needs — so this also lines the
+          # hook up with `pnpm run lint:check`.
+          # `pnpm exec` rather than a bare node_modules path: it reconciles
+          # node_modules with the lockfile first, so a stale checkout still
+          # lints at the version package.json pins.
+          - id: oxlint
+            name: oxlint
+            entry: pnpm exec oxlint
+            language: system
+            types_or: [javascript, jsx, ts, tsx]
+            verbose: false
+          - id: oxfmt
+            name: oxfmt
+            entry: pnpm exec oxfmt
+            language: system
+            types_or: [javascript, jsx, ts, tsx]
+            verbose: false
           - id: test
             name: Test
             entry: pnpm run 'test:unit'
