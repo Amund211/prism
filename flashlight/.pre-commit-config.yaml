@@ -5,10 +5,20 @@ repos:
     - id: check-yaml
     - id: check-merge-conflict
     - id: check-added-large-files
-- repo: https://github.com/golangci/golangci-lint
-  rev: v2.12.2
+- repo: local
   hooks:
+    # Runs the golangci-lint pinned by the `tool (...)` directive in go.mod, so
+    # go.mod is the only place the version lives. Copied from the upstream hook
+    # definition at golangci/golangci-lint@v2.12.2 — `--new-from-rev HEAD` is
+    # what makes this the incremental `golangci-lint` hook rather than
+    # `golangci-lint-full`.
     - id: golangci-lint
+      name: golangci-lint
+      entry: go tool golangci-lint run --new-from-rev HEAD --fix
+      types: [go]
+      language: system
+      require_serial: true
+      pass_filenames: false
 - repo: https://github.com/TekWizely/pre-commit-golang
   rev: v1.0.0-rc.4
   hooks:
