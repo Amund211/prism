@@ -49,11 +49,16 @@
     // inside the artifact step. That is NOT a renovate-managed dependency, so
     // minimumReleaseAge does not apply to it and it defaults to `@latest`.
     // `constraints.gomodMod` below pins it.
+    // Does not cover the `tool (...)` deps: renovate only rewrites the
+    // `require` line, so the tool path keeps the old major and tidy reverts the
+    // bump — those arrive as empty PRs that keep regenerating. Do them by hand
+    // when one shows up (matchPackageNames + major + enabled:false).
     "gomodUpdateImportPaths",
   ],
   constraints: {
-    // Pins the `go install` above to an exact tag instead of `@latest`, so an
-    // upstream tag move cannot change what runs against this repo's source.
+    // Pins the `go install` above to an exact tag instead of `@latest`. Not
+    // about tag moves — sum.golang.org covers those — but about not
+    // auto-adopting a brand-new release, which minimumReleaseAge cannot reach.
     // Renovate requires a leading `v` and valid semver here, otherwise it logs
     // "compatibility range is not valid" and silently falls back to `@latest`.
     // Bump by hand — renovate does not manage this value.
