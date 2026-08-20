@@ -42,5 +42,37 @@
             matchUpdateTypes: ["digest"],
             enabled: false,
         },
+        {
+            // Renovate cannot date this image, so the repo-level
+            // minimumReleaseAge never clears for it. The tag's OCI index carries
+            // no annotations, and the only timestamp is `created` in the image
+            // config blob, behind a signed redirect to a storage host. The
+            // v1.62.1-noble image was built 2026-07-30, and renovate still
+            // reported `renovate/stability-days` as pending on it on 2026-08-20
+            // (#364) — an unknown age counts as an unmet one, indefinitely.
+            matchDatasources: ["docker"],
+            matchPackageNames: ["mcr.microsoft.com/playwright"],
+            minimumReleaseAge: null,
+        },
+        {
+            // playwright is pinned in two files that must agree on the chromium
+            // browser revision: `playwright` in package.json, and the ui-tests
+            // container tag in .github/workflows/testing.yml. Group them so one
+            // PR moves both. Must be LAST — later rules override earlier ones
+            // field-by-field, so a broader rule added below would clobber this
+            // groupName.
+            //
+            // Grouped is not atomic. The two resolve from independent sources
+            // (npm and a container registry) and renovate drops any half that
+            // has not cleared its checks, so a run can produce a PR that moves
+            // only one file. Expect that for up to a week after each playwright
+            // release — the image is exempt above while the npm half still waits
+            // out minimumReleaseAge — with ui-tests red until the second half
+            // lands. `dependencyDashboardApproval: true` here would trade that
+            // window for a checkbox tick per release.
+            matchDatasources: ["npm", "docker"],
+            matchPackageNames: ["playwright", "mcr.microsoft.com/playwright"],
+            groupName: "playwright",
+        },
     ],
 }
