@@ -28,6 +28,37 @@
   // Keep this off until the default branch ruleset requires status checks.
   // With no required check, platform automerge can merge a red PR.
   automerge: false,
+  postUpdateOptions: [
+    // Renovate's default gomod update runs only `go get -t ./...`, which adds
+    // go.sum entries but never prunes stale ones, and never resolves packages
+    // that are only reachable through the `tool (...)` directive in go.mod.
+    // Both break CI here: `go mod tidy && git diff --quiet` in the "Format, vet,
+    // test" job fails on the leftover entries, and `go tool govulncheck` fails
+    // with "missing go.sum entry" because only the `/go.mod` hash gets written
+    // for a tool dep, not the `h1:` module hash. Renovate's own gomod docs call
+    // this out. Upstream intends to make this the default in a future major
+    // (renovatebot/renovate#45261); until then it has to be opt-in.
+    "gomodTidy",
+    // A Go major bump changes the module path (`example.com/foo` ->
+    // `example.com/foo/v2`), so go.mod alone is never enough — the import
+    // statements have to follow or nothing compiles. This runs
+    // marwan-at-work/mod to rewrite them. It is also the flag that un-skips
+    // `go mod tidy` on major updates, which renovate otherwise refuses to run
+    // (it would drop the module before the code is migrated).
+    // Non-obvious: this executes `go install github.com/marwan-at-work/mod`
+    // inside the artifact step. That is NOT a renovate-managed dependency, so
+    // minimumReleaseAge does not apply to it and it defaults to `@latest`.
+    // `constraints.gomodMod` below pins it.
+    "gomodUpdateImportPaths",
+  ],
+  constraints: {
+    // Pins the `go install` above to an exact tag instead of `@latest`, so an
+    // upstream tag move cannot change what runs against this repo's source.
+    // Renovate requires a leading `v` and valid semver here, otherwise it logs
+    // "compatibility range is not valid" and silently falls back to `@latest`.
+    // Bump by hand — renovate does not manage this value.
+    gomodMod: "v0.10.0",
+  },
   packageRules: [
     {
       // A digest-only move on a SHA-pinned action means an existing tag was
