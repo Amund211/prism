@@ -11,20 +11,39 @@ repos:
     hooks:
     -   id: pyupgrade
         args: [--py313-plus]
--   repo: https://github.com/psf/black
-    rev: 26.5.1
-    hooks:
-    -   id: black
--   repo: https://github.com/PyCQA/isort
-    rev: 8.0.1
-    hooks:
-    -   id: isort
--   repo: https://github.com/PyCQA/flake8
-    rev: 7.3.0
-    hooks:
-    -   id: flake8
 -   repo: local
     hooks:
+    # black, isort and flake8 run from the project venv, so uv.lock is the only
+    # place their versions live. Fields copied from the upstream hook
+    # definitions at psf/black@26.5.1, PyCQA/isort@8.0.1 and PyCQA/flake8@7.3.0.
+    # black upstream recommends against its own hooks: installing from the git
+    # clone skips the mypyc-compiled wheel, which is ~2x slower than the wheel
+    # uv installs here.
+    # `uv run` rather than a bare .venv path: it reconciles the venv with
+    # uv.lock first, so a stale checkout still formats at the locked version.
+    -   id: black
+        name: black
+        entry: uv run black
+        language: system
+        'types_or': [python, pyi]
+        require_serial: true
+    -   id: isort
+        name: isort
+        entry: uv run isort
+        language: system
+        'types_or': [cython, pyi, python]
+        # Not optional: without --filter-files isort ignores the `skip` list in
+        # pyproject.toml for paths named on the command line, which is exactly
+        # how pre-commit invokes it.
+        args: ['--filter-files']
+        stages: [pre-commit, pre-merge-commit, pre-push, manual]
+        require_serial: true
+    -   id: flake8
+        name: flake8
+        entry: uv run flake8
+        language: system
+        types: [python]
+        require_serial: true
     -   id: mypy
         name: mypy
         entry: .venv/bin/mypy
