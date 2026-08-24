@@ -345,9 +345,10 @@ export const UserSearch: React.FC<UserSearchProps> = ({
                     } catch (error: unknown) {
                         // oxlint-disable-next-line eslint/no-console
                         console.error("Failed to fetch username", error);
-                    } finally {
-                        setLoading(false);
                     }
+                    // Not `finally`: React Compiler cannot lower a finalizer,
+                    // and it would skip optimizing this component.
+                    setLoading(false);
                 })();
             }}
             renderInput={(params) => {
@@ -471,9 +472,10 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                     } catch (error: unknown) {
                         // oxlint-disable-next-line eslint/no-console
                         console.error("Failed to settle all uuid promises", error);
-                    } finally {
-                        setLoading(false);
                     }
+                    // Not `finally`: React Compiler cannot lower a finalizer,
+                    // and it would skip optimizing this component.
+                    setLoading(false);
                 })();
             }}
             renderInput={(params) => {

@@ -48,7 +48,6 @@ import { timeIntervalsFromDefinition } from "#intervals.ts";
 import type { TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import { getSessionsQueryOptions } from "#queries/sessions.ts";
-import type { Sessions } from "#queries/sessions.ts";
 import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
 import { sessionSearchSchema } from "#schemas/sessionSearch.ts";
 import {
