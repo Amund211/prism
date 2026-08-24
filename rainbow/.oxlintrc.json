@@ -147,6 +147,8 @@
             }
         ],
         "eslint/curly": ["error", "multi-line", "consistent"],
+        // Default "always" would force one combined declaration per scope
+        "eslint/one-var": ["error", "never"],
         "typescript/switch-exhaustiveness-check": [
             "error",
             {
