@@ -41,10 +41,11 @@ actually running.
 6. Any response to a request that carried a valid bearer gets
    `X-Auth-Refresh: 1` once the session is within `refreshAtOffset` of expiry —
    "refresh now". A hint: a client that ignores it still recovers via 401.
-7. Every response the bearer middleware handled carries `X-Auth-Session`:
-   `valid` once validate succeeded, `absent` on the no-header pass-through, and
-   nothing at all on the arms where it rejected the session. It is what lets a
-   client attribute a 401 it did not cause.
+7. The bearer middleware states its verdict in `X-Auth-Session`: `valid` once
+   validate succeeded, `absent` on the no-`Authorization` pass-through, and
+   nothing at all on every other arm — a bad session, a malformed header, or a
+   `validate` that failed unexpectedly. It is what lets a client attribute a
+   401 it did not cause.
 
 Lifetimes, all Go constants in `internal/app/auth_session.go`: `expires_at`
 now+**1h**, `refresh_until` now+**2h**, `lifetime_ends_at` stamped at issue as
