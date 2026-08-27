@@ -20,9 +20,12 @@ export const makeChallengeResponse = (userId: string): APIChallengeResponse => (
 
 export const makeSessionResponse = (
     sessionId: string = TEST_SESSION_ID,
+    // Deliberately a string, like the wire type: an unknown tier is a shape the
+    // client has to handle, not one to make untypeable.
+    tier = "anonymous",
 ): APISessionResponse => ({
     sessionId,
-    tier: "anonymous",
+    tier,
     expiresInSeconds: 3600,
     refreshUntilInSeconds: 7200,
     refreshInSeconds: 3300,
