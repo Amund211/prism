@@ -46,7 +46,7 @@ class SessionRecoveryError(APIError):
     A request got a 401 we cannot account for
 
     The counterpart to handing a 401 back to the caller, which only happens when
-    the server has vouched for the session we hold. This says the opposite: we do
+    we know the session it carried was validated. This says the opposite: we do
     not know whose 401 it was, so a caller must not blame anything of its own for
     it. `/v1/tags/{uuid}` is why that distinction exists - it answers 401 for an
     invalid Urchin API key too, and wrongly latching that is sticky for the rest

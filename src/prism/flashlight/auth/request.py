@@ -11,6 +11,11 @@ from prism.flashlight.auth.session import Session
 # thread, and ignoring it would still be correct.
 REFRESH_HINT_HEADER = "X-Auth-Refresh"
 
+# Set by flashlight's bearer middleware on every request it handled. `valid` means
+# it validated our bearer, so a 401 alongside it came from the handler.
+AUTH_SESSION_HEADER = "X-Auth-Session"
+AUTH_SESSION_VALID = "valid"
+
 # Performs one HTTP request, merging in the given auth headers.
 SendRequest = Callable[[Mapping[str, str]], requests.Response]
 
@@ -32,11 +37,16 @@ def send_authenticated(
     twice: prism holds one session for the whole process, so a lapsed session
     means the first call 401s and the second carries a renewed bearer.
 
-    A 401 is only ever returned to the caller when the server has vouched for the
-    session we hold, which means the 401 was about something else — that is what
-    lets `/v1/tags/{uuid}` interpret its own 401 for an invalid Urchin API key. A
-    401 we cannot account for raises `SessionRecoveryError` instead, so no call
-    site can mistake an auth problem for one of its own.
+    A 401 is only ever returned to the caller when we know the session we sent was
+    validated, which means the 401 was about something else — that is what lets
+    `/v1/tags/{uuid}` interpret its own 401 for an invalid Urchin API key. A 401 we
+    cannot account for raises `SessionRecoveryError` instead, so no call site can
+    mistake an auth problem for one of its own.
+
+    Normally the server says so on the 401 itself, in `X-Auth-Session`. Without it
+    we fall back to the auth manager, which can only confirm a session the server
+    refused to replace — so a lapsed session still recovers, but attribution is
+    given up on a 401 that survives a successful refresh.
 
     NOTE: `send` must be safe to call twice. Every flashlight endpoint prism
           calls is a read, so replaying one is harmless.
@@ -46,7 +56,9 @@ def send_authenticated(
         raise NoSessionError("No flashlight auth session available")
 
     response = send(bearer_headers(session))
-    if response.status_code != 401:
+    # Nothing here says our session is bad, so there is nothing to recover from -
+    # and the hint rides a validated 401 like any other response.
+    if response.status_code != 401 or _session_was_validated(response):
         _note_refresh_hint(auth, session, response)
         return response
 
@@ -61,19 +73,25 @@ def send_authenticated(
             "Got HTTP 401 from flashlight and could not renew the auth session"
         )
 
-    # TODO: The retry's own 401 is returned with no verdict at all, which breaks
-    #       the invariant this docstring promises and `tags.py` relies on. Same for
-    #       the session `recover_from_unauthorized` hands back from the
-    #       already-replaced branch: nothing has vouched for it. Concretely, during
-    #       a flashlight rollout or with read-replica lag the first request 401s,
-    #       the refresh succeeds against the primary, and the retry hits a replica
-    #       that has not seen the new session and 401s again - `tags.py` then
-    #       blames the Urchin API key and latches `urchin_api_key_invalid` for the
-    #       rest of the process. A second 401 should raise `SessionRecoveryError`
-    #       rather than reach the caller.
     response = send(bearer_headers(recovery.session))
+    if response.status_code == 401 and not _session_was_validated(response):
+        # A renewed bearer rejected with nothing confirming it is an auth problem,
+        # not the caller's: an instance that has not seen the new session - a
+        # rollout, or replica lag - looks exactly like a bad Urchin API key, and
+        # `tags.py` would latch `urchin_api_key_invalid` for the process.
+        raise SessionRecoveryError(
+            "Got HTTP 401 from flashlight with a renewed auth session"
+        )
     _note_refresh_hint(auth, recovery.session, response)
     return response
+
+
+def _session_was_validated(response: requests.Response) -> bool:
+    """Report whether the server says it validated the bearer we sent"""
+    # Exact match, unlike the permissive `_note_refresh_hint` below: a hint is safe
+    # to over-read, this is not. Absence means "unknown" - a stripped header, or
+    # something answering ahead of the middleware - which keeps recovery.
+    return response.headers.get(AUTH_SESSION_HEADER) == AUTH_SESSION_VALID
 
 
 def _note_refresh_hint(
