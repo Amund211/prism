@@ -98,7 +98,7 @@ import type {
     SessionAt,
 } from "#queries/sessionAt.ts";
 import { getSessionAtQueryOptions } from "#queries/sessionAt.ts";
-import { useUUIDToUsername } from "#queries/username.ts";
+import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
 import { detailSearchSchema } from "#schemas/detailSearch.ts";
 import {
     formatStatValue,
@@ -113,6 +113,21 @@ import { rainbowGradient } from "#theme/tokens.ts";
 import { MS_PER_HOUR, MS_PER_MINUTE } from "#time.ts";
 
 export const Route = createFileRoute("/session/$uuid_/detail")({
+    loaderDeps: ({ search: { date } }) => ({ date }),
+    loader: ({
+        params: { uuid: rawUUID },
+        deps: { date },
+        context: { queryClient },
+    }) => {
+        const uuid = normalizeUUID(rawUUID);
+        if (uuid === null) return;
+
+        // The URL date is normalized to the session's real start time once the
+        // data lands, so this key may be superseded by a second fetch on the
+        // canonical key. The page redirects and self-corrects.
+        void queryClient.prefetchQuery(getSessionAtQueryOptions({ uuid, time: date }));
+        void queryClient.prefetchQuery(getUsernameQueryOptions(uuid));
+    },
     validateSearch: detailSearchSchema,
     // oxlint-disable-next-line eslint/no-use-before-define
     component: RouteComponent,

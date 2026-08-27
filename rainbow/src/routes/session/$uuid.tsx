@@ -111,6 +111,10 @@ export const Route = createFileRoute("/session/$uuid")({
         void queryClient.prefetchQuery(
             getHistoryQueryOptions({ uuid, ...trackingInterval, limit: 2 }),
         );
+        // The sessions table covers the month interval
+        void queryClient.prefetchQuery(
+            getSessionsQueryOptions({ uuid, start: month.start, end: month.end }),
+        );
         void queryClient.prefetchQuery(getUsernameQueryOptions(uuid));
     },
     validateSearch: sessionSearchSchema,

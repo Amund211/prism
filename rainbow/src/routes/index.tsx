@@ -7,14 +7,22 @@ import { PlayerHead } from "#components/player.tsx";
 import { UserSearch } from "#components/UserSearch.tsx";
 import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
+import { favoriteUUIDsFromStorage, selectFavoriteUUIDs } from "#helpers/favorites.ts";
 import { useLocalStorage } from "#hooks/useLocalStorage.ts";
-import { useUUIDToUsername } from "#queries/username.ts";
+import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
 
 const RouterLinkButton = createLink(Button);
 
 const DOWNLOADS_BANNER_DISMISSED_KEY = "downloadsBannerDismissed";
 
 export const Route = createFileRoute("/")({
+    loader: ({ context: { queryClient } }) => {
+        // The favorites come from local storage, so they're known before the
+        // providers mount and their usernames can be resolved up front.
+        for (const uuid of favoriteUUIDsFromStorage()) {
+            void queryClient.prefetchQuery(getUsernameQueryOptions(uuid));
+        }
+    },
     // oxlint-disable-next-line eslint/no-use-before-define
     component: RouteComponent,
 });
@@ -23,13 +31,7 @@ function RouteComponent() {
     const navigate = Route.useNavigate();
     const { currentUser } = useCurrentUser();
     const { favoriteUUIDs, removePlayerVisits } = usePlayerVisits();
-    const favorites =
-        currentUser !== null
-            ? [
-                  currentUser,
-                  ...favoriteUUIDs.filter((uuid) => uuid !== currentUser),
-              ].slice(0, 5)
-            : favoriteUUIDs.slice(0, 5);
+    const favorites = selectFavoriteUUIDs(favoriteUUIDs, currentUser);
     const uuidToUsername = useUUIDToUsername(favorites);
     const [downloadsBannerDismissed, setDownloadsBannerDismissed] = useLocalStorage(
         DOWNLOADS_BANNER_DISMISSED_KEY,
