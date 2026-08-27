@@ -95,6 +95,17 @@ spec:
             secretKeyRef:
               name: "${AUTH_CHALLENGE_SIGNING_KEYS_KEY}"
               key: "latest"
+        # HMAC keys for stateless auth session handles. Same format as the
+        # challenge keys above and deliberately a different list — a session
+        # and a challenge must never be signed with the same key. Rotation
+        # differs too: drop the old line no sooner than one session max age
+        # after deploying the new one, or every client holding a token signed
+        # with it is logged out at once.
+        - name: "AUTH_SESSION_SIGNING_KEYS"
+          valueFrom:
+            secretKeyRef:
+              name: "${AUTH_SESSION_SIGNING_KEYS_KEY}"
+              key: "latest"
       - image: "${COLLECTOR_IMAGE}"
         name: "collector"
         startupProbe:

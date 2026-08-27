@@ -36,6 +36,12 @@ type Config struct {
 	// first one signs; the rest are still accepted, which is how a key is
 	// rotated without invalidating outstanding challenges. Secret.
 	authChallengeSigningKeys []string
+	// authSessionSigningKeys are the HMAC keys for stateless auth session
+	// handles, same format as the challenge keys. A separate list on
+	// purpose: two signed blobs that differ only by shape are one refactor
+	// away from cross-protocol confusion. Nothing signs with these yet —
+	// the sealer arrives with the stateless session cutover. Secret.
+	authSessionSigningKeys []string
 }
 
 func (c *Config) CloudSQLUnixSocketPath() string {
@@ -96,6 +102,10 @@ func (c *Config) BlockedIPsSHA256Hex() []string {
 
 func (c *Config) AuthChallengeSigningKeys() []string {
 	return c.authChallengeSigningKeys
+}
+
+func (c *Config) AuthSessionSigningKeys() []string {
+	return c.authSessionSigningKeys
 }
 
 // Return a string representation suitable for logging etc
@@ -193,6 +203,15 @@ func ConfigFromEnv() (Config, error) {
 	if requireEnv && len(authChallengeSigningKeys) == 0 {
 		return missingKey("AUTH_CHALLENGE_SIGNING_KEYS")
 	}
+	// Same shape and the same empty-value trap as the challenge keys above.
+	// The cost of an ephemeral key is larger here, though: it invalidates
+	// every session on restart, against 24h refresh chains, rather than a
+	// 60s challenge window. What development does about that is decided
+	// when the sealer is wired up.
+	authSessionSigningKeys, _ := lookupNewlineDelimitedEnv("AUTH_SESSION_SIGNING_KEYS")
+	if requireEnv && len(authSessionSigningKeys) == 0 {
+		return missingKey("AUTH_SESSION_SIGNING_KEYS")
+	}
 
 	return Config{
 		cloudSQLUnixSocketPath: cloudSQLUnixSocketPath,
@@ -209,6 +228,7 @@ func ConfigFromEnv() (Config, error) {
 		blockedIPsSHA256Hex:    blockedIPsSHA256Hex,
 
 		authChallengeSigningKeys: authChallengeSigningKeys,
+		authSessionSigningKeys:   authSessionSigningKeys,
 	}, nil
 }
 

@@ -17,10 +17,21 @@ const (
 	development environment = "development"
 )
 
-var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "BLOCKED_IPS", "BLOCKED_USER_AGENTS", "BLOCKED_USER_IDS", "BLOCKED_IPS_SHA256_HEX", "AUTH_CHALLENGE_SIGNING_KEYS"}
+var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "BLOCKED_IPS", "BLOCKED_USER_AGENTS", "BLOCKED_USER_IDS", "BLOCKED_IPS_SHA256_HEX", "AUTH_CHALLENGE_SIGNING_KEYS", "AUTH_SESSION_SIGNING_KEYS"}
+
+// The two signing key lists behave identically — required in production and
+// staging, ordered, blank-entry tolerant — so every property is asserted for
+// both. Domain separation means there will never be fewer than two.
+var signingKeyLists = []struct {
+	envVar string
+	get    func(*config.Config) []string
+}{
+	{"AUTH_CHALLENGE_SIGNING_KEYS", (*config.Config).AuthChallengeSigningKeys},
+	{"AUTH_SESSION_SIGNING_KEYS", (*config.Config).AuthSessionSigningKeys},
+}
 
 func TestGetConfig(t *testing.T) {
-	compareConfig := func(t *testing.T, socketPath, username, password, sentryDSN, hypixelAPIKey, urchinAPIKey string, blockedIPs, blockedUserAgents, blockedUserIDs, blockedIPsSHA256Hex []string, env environment, conf config.Config) {
+	compareConfig := func(t *testing.T, socketPath, username, password, sentryDSN, hypixelAPIKey, urchinAPIKey string, blockedIPs, blockedUserAgents, blockedUserIDs, blockedIPsSHA256Hex, authChallengeSigningKeys, authSessionSigningKeys []string, env environment, conf config.Config) {
 		t.Helper()
 		require.Equal(t, socketPath, conf.CloudSQLUnixSocketPath())
 		require.Equal(t, username, conf.DBUsername())
@@ -28,6 +39,12 @@ func TestGetConfig(t *testing.T) {
 		require.Equal(t, sentryDSN, conf.SentryDSN())
 		require.Equal(t, hypixelAPIKey, conf.HypixelAPIKey())
 		require.Equal(t, urchinAPIKey, conf.UrchinAPIKey())
+		require.Equal(t, blockedIPs, conf.BlockedIPs())
+		require.Equal(t, blockedUserAgents, conf.BlockedUserAgents())
+		require.Equal(t, blockedUserIDs, conf.BlockedUserIDs())
+		require.Equal(t, blockedIPsSHA256Hex, conf.BlockedIPsSHA256Hex())
+		require.Equal(t, authChallengeSigningKeys, conf.AuthChallengeSigningKeys())
+		require.Equal(t, authSessionSigningKeys, conf.AuthSessionSigningKeys())
 		require.Equal(t, env == production, conf.IsProduction())
 		require.Equal(t, env == staging, conf.IsStaging())
 		require.Equal(t, env == development, conf.IsDevelopment())
@@ -45,7 +62,7 @@ func TestGetConfig(t *testing.T) {
 
 			conf, err := config.ConfigFromEnv()
 			require.NoError(t, err)
-			compareConfig(t, "", "", "", "", "", "", []string{}, []string{}, []string{}, []string{}, development, conf)
+			compareConfig(t, "", "", "", "", "", "", []string{}, []string{}, []string{}, []string{}, []string{}, []string{}, development, conf)
 		})
 	})
 
@@ -60,7 +77,7 @@ func TestGetConfig(t *testing.T) {
 
 				conf, err := config.ConfigFromEnv()
 				require.NoError(t, err)
-				compareConfig(t, "CLOUDSQL_UNIX_SOCKET", "DB_USERNAME", "DB_PASSWORD", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", []string{"BLOCKED_IPS"}, []string{"BLOCKED_USER_AGENTS"}, []string{"BLOCKED_USER_IDS"}, []string{"BLOCKED_IPS_SHA256_HEX"}, env, conf)
+				compareConfig(t, "CLOUDSQL_UNIX_SOCKET", "DB_USERNAME", "DB_PASSWORD", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", []string{"BLOCKED_IPS"}, []string{"BLOCKED_USER_AGENTS"}, []string{"BLOCKED_USER_IDS"}, []string{"BLOCKED_IPS_SHA256_HEX"}, []string{"AUTH_CHALLENGE_SIGNING_KEYS"}, []string{"AUTH_SESSION_SIGNING_KEYS"}, env, conf)
 			})
 		}
 
@@ -69,7 +86,7 @@ func TestGetConfig(t *testing.T) {
 			conf, err := config.ConfigFromEnv()
 			require.NoError(t, err)
 
-			for _, sensitive := range []string{"DB_PASSWORD", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "SENTRY_DSN", "AUTH_CHALLENGE_SIGNING_KEYS"} {
+			for _, sensitive := range []string{"DB_PASSWORD", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "SENTRY_DSN", "AUTH_CHALLENGE_SIGNING_KEYS", "AUTH_SESSION_SIGNING_KEYS"} {
 				require.NotContains(t, conf.NonSensitiveString(), sensitive)
 			}
 		})
@@ -88,14 +105,19 @@ func TestGetConfig(t *testing.T) {
 
 				for _, variable := range allVariablesExceptEnv {
 					t.Run(variable, func(t *testing.T) {
+						// Set it here so t.Setenv's own cleanup restores it,
+						// then unset it. Restoring by calling t.Setenv *from* a
+						// cleanup instead leaves it unset: that registers a
+						// further cleanup which promptly reverts to the
+						// pre-Setenv value, which is unset. Every subtest after
+						// the first then failed on a leaked variable rather
+						// than its own, and passed for the wrong reason.
+						t.Setenv(variable, "placeholder_value")
 						err := os.Unsetenv(variable)
 						require.NoError(t, err)
-						t.Cleanup(func() {
-							t.Setenv(variable, "placeholder_value")
-						})
 
 						_, err = config.ConfigFromEnv()
-						require.ErrorIs(t, err, config.ErrMissingRequiredValue)
+						require.ErrorIs(t, err, config.ErrMissingRequiredValue, "%s must be required", variable)
 					})
 				}
 			})
@@ -116,58 +138,68 @@ func TestGetConfig(t *testing.T) {
 	// blocklists check is true. Letting that through means main.go sees an
 	// empty list and generates an ephemeral key, so production boots green
 	// with a per-revision key and rejects every challenge minted by the
-	// outgoing revision.
-	t.Run("production and staging reject an empty auth challenge signing key", func(t *testing.T) {
+	// outgoing revision. For session keys the same mistake logs out every
+	// client instead.
+	t.Run("production and staging reject an empty signing key list", func(t *testing.T) {
 		for _, variable := range allVariablesExceptEnv {
 			t.Setenv(variable, "placeholder_value")
 		}
 
-		// Whitespace counts as empty. A secret is a hand-edited value, so "\n"
-		// and "   " are the realistic shapes of "rotated to nothing" — and
-		// they used to parse as a list of blank entries, which is non-empty,
-		// so the check here passed and the failure moved to ParseSigningKeys
-		// in another package.
-		for name, value := range map[string]string{
-			"empty":              "",
-			"one newline":        "\n",
-			"spaces":             "   ",
-			"newlines and tabs":  "\n\t\n  \n",
-			"comment only":       "# rotated out, forgot to add the new one",
-			"comment and blanks": "\n# nothing here\n   \n",
-		} {
-			for _, env := range []environment{production, staging} {
-				t.Run(name+"/"+string(env), func(t *testing.T) {
-					t.Setenv("FLASHLIGHT_ENVIRONMENT", string(env))
-					t.Setenv("AUTH_CHALLENGE_SIGNING_KEYS", value)
+		for _, keyList := range signingKeyLists {
+			t.Run(keyList.envVar, func(t *testing.T) {
+				// Whitespace counts as empty. A secret is a hand-edited value,
+				// so "\n" and "   " are the realistic shapes of "rotated to
+				// nothing" — and they used to parse as a list of blank entries,
+				// which is non-empty, so the check here passed and the failure
+				// moved to ParseSigningKeys in another package.
+				for name, value := range map[string]string{
+					"empty":              "",
+					"one newline":        "\n",
+					"spaces":             "   ",
+					"newlines and tabs":  "\n\t\n  \n",
+					"comment only":       "# rotated out, forgot to add the new one",
+					"comment and blanks": "\n# nothing here\n   \n",
+				} {
+					for _, env := range []environment{production, staging} {
+						t.Run(name+"/"+string(env), func(t *testing.T) {
+							t.Setenv("FLASHLIGHT_ENVIRONMENT", string(env))
+							t.Setenv(keyList.envVar, value)
 
-					_, err := config.ConfigFromEnv()
-					require.ErrorIs(t, err, config.ErrMissingRequiredValue)
-				})
-			}
+							_, err := config.ConfigFromEnv()
+							require.ErrorIs(t, err, config.ErrMissingRequiredValue)
+						})
+					}
 
-			t.Run(name+"/development still runs without one", func(t *testing.T) {
-				t.Setenv("FLASHLIGHT_ENVIRONMENT", string(development))
-				t.Setenv("AUTH_CHALLENGE_SIGNING_KEYS", value)
+					t.Run(name+"/development still runs without one", func(t *testing.T) {
+						t.Setenv("FLASHLIGHT_ENVIRONMENT", string(development))
+						t.Setenv(keyList.envVar, value)
 
-				conf, err := config.ConfigFromEnv()
-				require.NoError(t, err)
-				require.Empty(t, conf.AuthChallengeSigningKeys(),
-					"development generates an ephemeral key, which needs an empty list rather than a list of blanks")
+						conf, err := config.ConfigFromEnv()
+						require.NoError(t, err)
+						require.Empty(t, keyList.get(&conf),
+							"development runs without a key, which needs an empty list rather than a list of blanks")
+					})
+				}
 			})
 		}
 	})
 
-	t.Run("auth challenge signing keys are parsed as an ordered list", func(t *testing.T) {
+	t.Run("signing keys are parsed as an ordered list", func(t *testing.T) {
 		for _, variable := range allVariablesExceptEnv {
 			t.Setenv(variable, "placeholder_value")
 		}
 		t.Setenv("FLASHLIGHT_ENVIRONMENT", string(production))
-		t.Setenv("AUTH_CHALLENGE_SIGNING_KEYS", "primary\nsecondary")
 
-		conf, err := config.ConfigFromEnv()
-		require.NoError(t, err)
-		require.Equal(t, []string{"primary", "secondary"}, conf.AuthChallengeSigningKeys(),
-			"the first key signs and the rest are only accepted, so the order is load-bearing for rotation")
+		for _, keyList := range signingKeyLists {
+			t.Run(keyList.envVar, func(t *testing.T) {
+				t.Setenv(keyList.envVar, "primary\nsecondary")
+
+				conf, err := config.ConfigFromEnv()
+				require.NoError(t, err)
+				require.Equal(t, []string{"primary", "secondary"}, keyList.get(&conf),
+					"the first key signs and the rest are only accepted, so the order is load-bearing for rotation")
+			})
+		}
 	})
 
 	t.Run("blocked IPs, user agents, and user ids are parsed correctly", func(t *testing.T) {
