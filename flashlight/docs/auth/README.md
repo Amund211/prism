@@ -56,6 +56,29 @@ per `ip_hash`; the oldest are soft-revoked as `evicted_by_ip_cap`.
 Validate is cached: keyed by session id, **1 minute, successes only**, LRU at
 50k entries (`main.go`).
 
+## Signing keys and rotation
+
+`AUTH_CHALLENGE_SIGNING_KEYS` is the HMAC key list for proof-of-work
+challenges: a secret, **one per environment** so a staging challenge never
+validates against production, newline-delimited base64, at least 32 bytes once
+decoded, blank lines and `#` comments ignored (`proofofwork.ParseSigningKeys`).
+
+**The first key signs; every key is accepted.** That is what makes rotation
+non-breaking:
+
+1. prepend the new key, deploy;
+2. drop the old line once nothing signed with it can still be presented — one
+   `challengeTTL` (**60s**) later.
+
+Dropping it in the same deploy instead invalidates every outstanding challenge.
+Clients recover by asking for a new one, so the blast radius is a round trip.
+
+Development may run with no keys and generates an ephemeral one at startup, so a
+restart invalidates outstanding challenges. Production and staging refuse to
+start without keys — deliberately, since a key that dies with the process also
+dies on every revision rollout. **An empty secret version is `set`**, so the
+check is on the parsed list's length, not on the variable's presence.
+
 ## Assumptions and pitfalls
 
 - **Never key a rate limiter on `session_id`.** One identity may hold any
