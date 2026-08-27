@@ -9,7 +9,7 @@ import requests
 from requests.exceptions import RequestException
 
 from prism import VERSION_STRING
-from prism.flashlight.auth.errors import NoSessionError
+from prism.flashlight.auth.errors import NoSessionError, SessionRecoveryError
 from prism.flashlight.auth.manager import AuthManager
 from prism.flashlight.auth.request import send_authenticated
 from prism.flashlight.headers import make_flashlight_client_headers
@@ -101,13 +101,11 @@ def _make_flashlight_notices_request(
     except NoSessionError:
         logger.warning("Skipping flashlight notices - no auth session yet")
         return None
-    # TODO: `SessionRecoveryError` is not caught here, and this endpoint is behind
-    #       the bearer middleware, so it does 401 on a dead session. The exception
-    #       propagates through `get_flashlight_notices` into
-    #       `NoticeCheckerThread.run`, which has no handler either - the thread dies
-    #       with an unhandled traceback, skipping the retries we just added, and the
-    #       user gets no notices at all (including the new-version prompt) until
-    #       restart.
+    except SessionRecoveryError:
+        # `NoticeCheckerThread.run` has no handler, so letting this out kills the
+        # thread and costs the user every notice until restart. `None` is retryable.
+        logger.warning("Skipping flashlight notices - got a 401 we cannot account for")
+        return None
 
     if not response.ok:
         logger.error(
