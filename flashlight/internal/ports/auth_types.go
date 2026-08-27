@@ -41,13 +41,13 @@ const AuthRefreshHeader = "X-Auth-Refresh"
 // limiters, CORS preflight), anything answering instead of flashlight
 // (Cloud Run, the LB), /v1/prestiges/{uuid} which mounts no bearer
 // middleware, and a proxy stripping the header all look identical from
-// the outside. A client that reads absence as a vouch latches a wrong
-// verdict it cannot clear; one that reads it as "unknown" degrades to
-// the reactive 401 path it already has.
+// the outside. A client that reads absence as "the server validated my
+// bearer" latches a wrong verdict it cannot clear; one that reads it as
+// "unknown" degrades to the reactive 401 path it already has.
 //
 // This is deliberately stricter than the AuthRefreshHeader idiom, where
 // any non-empty value counts. Over-reading a hint costs one request;
-// over-reading a vouch means believing a session is fine when nothing
+// over-reading this one means believing a session is fine when nothing
 // said so.
 //
 // Browsers cannot read it cross-origin unless it is named in

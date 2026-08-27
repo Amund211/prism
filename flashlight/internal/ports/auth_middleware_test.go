@@ -132,9 +132,9 @@ func TestBearerAuthMiddleware(t *testing.T) {
 		require.Equal(t, "1", w.Result().Header.Get(ports.AuthRefreshHeader))
 	})
 
-	// The whole reason the vouch exists: this 401 is the handler's, not the
+	// The whole reason the header exists: this 401 is the handler's, not the
 	// middleware's, and only the header says so.
-	t.Run("vouches for a handler's own 401", func(t *testing.T) {
+	t.Run("marks a handler's own 401 as validated", func(t *testing.T) {
 		t.Parallel()
 		validate := func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
 			return domain.AuthSession{
@@ -191,7 +191,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 		require.Empty(t, w.Result().Header.Get(ports.AuthSessionHeader), "a client bug is not a session state")
 	})
 
-	t.Run("500 and no vouch when validate fails unexpectedly", func(t *testing.T) {
+	t.Run("500 and no header when validate fails unexpectedly", func(t *testing.T) {
 		t.Parallel()
 		validate := func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
 			return domain.AuthSession{}, errors.New("the database is on fire")
@@ -206,7 +206,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 		w := httptest.NewRecorder()
 		handler(w, r)
 		require.Equal(t, http.StatusInternalServerError, w.Code)
-		require.Empty(t, w.Result().Header.Get(ports.AuthSessionHeader), "the session state is unknown, and unknown is spelled no vouch")
+		require.Empty(t, w.Result().Header.Get(ports.AuthSessionHeader), "the session state is unknown, and unknown is spelled no header")
 	})
 
 	for _, sentinel := range []error{
@@ -231,7 +231,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 			handler(w, r)
 			require.Equal(t, http.StatusUnauthorized, w.Code)
 			require.Empty(t, w.Result().Header.Get(ports.AuthRefreshHeader), "nothing to refresh when validation failed")
-			require.Empty(t, w.Result().Header.Get(ports.AuthSessionHeader), "never vouch for a session we rejected")
+			require.Empty(t, w.Result().Header.Get(ports.AuthSessionHeader), "never claim we validated a session we rejected")
 		})
 	}
 }

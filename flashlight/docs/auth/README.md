@@ -41,6 +41,10 @@ actually running.
 6. Any response to a request that carried a valid bearer gets
    `X-Auth-Refresh: 1` once the session is within `refreshAtOffset` of expiry —
    "refresh now". A hint: a client that ignores it still recovers via 401.
+7. Every response the bearer middleware handled carries `X-Auth-Session`:
+   `valid` once validate succeeded, `absent` on the no-header pass-through, and
+   nothing at all on the arms where it rejected the session. It is what lets a
+   client attribute a 401 it did not cause.
 
 Lifetimes, all Go constants in `internal/app/auth_session.go`: `expires_at`
 now+**1h**, `refresh_until` now+**2h**, `lifetime_ends_at` stamped at issue as
@@ -83,6 +87,15 @@ Validate is cached: keyed by session id, **1 minute, successes only**, LRU at
   frozen and setting it is a silent no-op; without the CORS entry a browser
   cannot read it, also silently. Never advertise a refresh that would 429 —
   `shouldHintRefresh` checks `app.RefreshTooSoon` for that reason.
+- **`X-Auth-Session` marks the good case, and only `valid` may be trusted.**
+  It exists because `/v1/tags/{uuid}` 401s for a bad Urchin API key while the
+  middleware 401s for a bad session, and until this header nothing on the wire
+  told them apart. Same slot and the same two mechanics as `X-Auth-Refresh` —
+  set before the handler writes, named in `Access-Control-Expose-Headers` — but
+  read strictly: **absence never means "the session is fine"**. The blocklist,
+  the IP limiters, CORS preflight, `/v1/prestiges/{uuid}`, Cloud Run and a
+  stripping proxy all answer without it, so a client that reads absence as "the
+  server validated my bearer" latches a verdict it cannot clear.
 - **Refresh does not rotate the session id.** A leaked token therefore lives to
   its own `lifetime_ends_at` (≤24h) no matter what the real user does; there is
   no user-driven remediation and no "sign out everywhere".

@@ -59,10 +59,11 @@ func AuthFromContext(ctx context.Context) (AuthContext, bool) {
 // It also sets AuthSessionHeader to say what it decided about this
 // request: AuthSessionValid once validate succeeds, AuthSessionAbsent on
 // the pass-through, and nothing at all on the arms below, where the
-// session is bad or its state is unknown. That vouch is what lets a
-// client attribute a 401 it did not cause — /v1/tags 401s for a bad
-// Urchin API key and this middleware 401s for a bad session, and until
-// the vouch existed nothing on the wire told them apart.
+// session is bad or its state is unknown. Saying that it validated the
+// bearer is what lets a client attribute a 401 it did not cause —
+// /v1/tags 401s for a bad Urchin API key and this middleware 401s for a
+// bad session, and until this header nothing on the wire told them
+// apart.
 func NewBearerAuthMiddleware(validate app.ValidateSession, nowFunc func() time.Time) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
