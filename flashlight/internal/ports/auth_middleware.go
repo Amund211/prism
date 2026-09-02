@@ -5,7 +5,11 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"slices"
 	"time"
+
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
@@ -64,7 +68,12 @@ func AuthFromContext(ctx context.Context) (AuthContext, bool) {
 // /v1/tags 401s for a bad Urchin API key and this middleware 401s for a
 // bad session, and until this header nothing on the wire told them
 // apart.
-func NewBearerAuthMiddleware(validate app.ValidateSession, nowFunc func() time.Time) func(http.HandlerFunc) http.HandlerFunc {
+//
+// It also tests the verified IdentityKey against BLOCKED_USER_IDS. The
+// blocklist in front can only match the X-User-Id header, which a blocked
+// caller omits while keeping its session. Not revocation: a fresh userId
+// with no bearer is a new unauthenticated identity.
+func NewBearerAuthMiddleware(validate app.ValidateSession, nowFunc func() time.Time, blocklistConfig BlocklistConfig) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			rawAuth := r.Header.Get("Authorization")
@@ -94,7 +103,29 @@ func NewBearerAuthMiddleware(validate app.ValidateSession, nowFunc func() time.T
 				return
 			}
 
+			// Set before the block below: the session is valid, and saying
+			// so keeps a blocked client from re-authenticating into it.
 			w.Header().Set(AuthSessionHeader, AuthSessionValid)
+
+			// Normalized like UserIDKeyFunc: the header path truncates to
+			// 50 chars, so a raw compare covers one path and misses the other.
+			if slices.Contains(blocklistConfig.UserIDs, NewUserID(view.IdentityKey).String()) {
+				logging.FromContext(ctx).InfoContext(ctx, "Blocked request",
+					slog.String("authIdentityKey", view.IdentityKey),
+					slog.Bool("badIdentityKey", true),
+				)
+				attributes := []attribute.KeyValue{
+					attribute.Bool("bad_ip", false),
+					attribute.Bool("bad_user_agent", false),
+					attribute.Bool("bad_user_id", false),
+					attribute.Bool("bad_identity_key", true),
+				}
+				attributes = append(attributes, GetClient(r).MetricAttributes()...)
+				metrics.blockedRequestCount.Add(ctx, 1, metric.WithAttributes(attributes...))
+
+				http.Error(w, blockedRequestBody, http.StatusBadRequest)
+				return
+			}
 
 			if shouldHintRefresh(view, nowFunc()) {
 				w.Header().Set(AuthRefreshHeader, "1")

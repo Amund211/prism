@@ -156,6 +156,9 @@ func BuildRegisterUserVisitMiddleware(registerUserVisit app.RegisterUserVisit) f
 	}
 }
 
+// The bearer middleware's blocked-identity arm answers with this too.
+const blockedRequestBody = `{"success": false, "detail": "This API does not allow third-party use. Reach out on the Prism discord if you have questions :^) (https://discord.gg/k4FGUnEHYg)"}`
+
 type BlocklistConfig struct {
 	IPs          []string
 	UserAgents   []string
@@ -199,11 +202,12 @@ func BuildBlocklistMiddleware(config BlocklistConfig) func(http.HandlerFunc) htt
 					attribute.Bool("bad_ip", badIP),
 					attribute.Bool("bad_user_agent", badUserAgent),
 					attribute.Bool("bad_user_id", badUserID),
+					attribute.Bool("bad_identity_key", false),
 				}
 				attributes = append(attributes, GetClient(r).MetricAttributes()...)
 				metrics.blockedRequestCount.Add(ctx, 1, metric.WithAttributes(attributes...))
 
-				http.Error(w, `{"success": false, "detail": "This API does not allow third-party use. Reach out on the Prism discord if you have questions :^) (https://discord.gg/k4FGUnEHYg)"}`, http.StatusBadRequest)
+				http.Error(w, blockedRequestBody, http.StatusBadRequest)
 				return
 			}
 			next(w, r)

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -26,7 +27,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 			t.Fatal("validate should not be called when no Authorization header")
 			return domain.AuthSession{}, nil
 		}
-		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow })
+		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow }, ports.BlocklistConfig{})
 		next := func(w http.ResponseWriter, r *http.Request) {
 			called = true
 			_, ok := ports.AuthFromContext(r.Context())
@@ -52,7 +53,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 				ExpiresAt:    authMiddlewareNow.Add(time.Hour),
 			}, nil
 		}
-		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow })
+		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow }, ports.BlocklistConfig{})
 		var seen ports.AuthContext
 		next := func(w http.ResponseWriter, r *http.Request) {
 			ctx, ok := ports.AuthFromContext(r.Context())
@@ -94,7 +95,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 					ExpiresAt:    tc.expiresAt,
 				}, nil
 			}
-			mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow })
+			mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow }, ports.BlocklistConfig{})
 			handler := mw(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
 			})
@@ -120,7 +121,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 				ExpiresAt:    authMiddlewareNow.Add(4 * time.Minute),
 			}, nil
 		}
-		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow })
+		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow }, ports.BlocklistConfig{})
 		handler := mw(func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid urchin API key. Fix it or remove the key.", http.StatusUnauthorized)
 		})
@@ -144,7 +145,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 				ExpiresAt:    authMiddlewareNow.Add(time.Hour),
 			}, nil
 		}
-		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow })
+		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow }, ports.BlocklistConfig{})
 		handler := mw(func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid urchin API key. Fix it or remove the key.", http.StatusUnauthorized)
 		})
@@ -162,7 +163,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 			t.Fatal("validate should not be called when no Authorization header")
 			return domain.AuthSession{}, nil
 		}
-		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow })
+		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow }, ports.BlocklistConfig{})
 		handler := mw(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		})
@@ -178,7 +179,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 			t.Fatal("validate should not be called for malformed header")
 			return domain.AuthSession{}, nil
 		}
-		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow })
+		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow }, ports.BlocklistConfig{})
 		next := func(w http.ResponseWriter, r *http.Request) {
 			t.Fatal("next should not be invoked on malformed header")
 		}
@@ -196,7 +197,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 		validate := func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
 			return domain.AuthSession{}, errors.New("the database is on fire")
 		}
-		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow })
+		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow }, ports.BlocklistConfig{})
 		next := func(w http.ResponseWriter, r *http.Request) {
 			t.Fatal("next should not be invoked when validation errors")
 		}
@@ -220,7 +221,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 			validate := func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
 				return domain.AuthSession{}, sentinel
 			}
-			mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow })
+			mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow }, ports.BlocklistConfig{})
 			next := func(w http.ResponseWriter, r *http.Request) {
 				t.Fatal("next should not be invoked on invalid session")
 			}
@@ -234,4 +235,122 @@ func TestBearerAuthMiddleware(t *testing.T) {
 			require.Empty(t, w.Result().Header.Get(ports.AuthSessionHeader), "never claim we validated a session we rejected")
 		})
 	}
+}
+
+// The blocklist in front matches the X-User-Id header, which a blocked caller
+// just omits. These pin the check on the verified identity.
+func TestBearerAuthMiddlewareBlocklist(t *testing.T) {
+	t.Parallel()
+
+	validateAs := func(identityKey string) func(context.Context, string) (domain.AuthSession, error) {
+		return func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
+			return domain.AuthSession{
+				ID:           sessionID,
+				IdentityType: domain.AuthSessionIdentityAnonymous,
+				IdentityKey:  identityKey,
+				ExpiresAt:    authMiddlewareNow.Add(time.Hour),
+			}, nil
+		}
+	}
+
+	blocklist := ports.BlocklistConfig{UserIDs: []string{"blocked-user"}}
+
+	t.Run("refuses a blocked identity with no X-User-Id to block on", func(t *testing.T) {
+		t.Parallel()
+		mw := ports.NewBearerAuthMiddleware(validateAs("blocked-user"), func() time.Time { return authMiddlewareNow }, blocklist)
+		handler := mw(func(w http.ResponseWriter, r *http.Request) {
+			t.Fatal("next should not be invoked for a blocked identity")
+		})
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/playerdata", http.NoBody)
+		r.Header.Set("Authorization", "Bearer good-token")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusBadRequest, w.Code, "same status and body as the header-keyed blocklist")
+	})
+
+	// The front blocklist has nothing to match; only the verified identity is left.
+	t.Run("refuses a blocked identity behind an unblocked X-User-Id", func(t *testing.T) {
+		t.Parallel()
+		mw := ports.NewBearerAuthMiddleware(validateAs("blocked-user"), func() time.Time { return authMiddlewareNow }, blocklist)
+		handler := mw(func(w http.ResponseWriter, r *http.Request) {
+			t.Fatal("next should not be invoked for a blocked identity")
+		})
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/playerdata", http.NoBody)
+		r.Header.Set("Authorization", "Bearer good-token")
+		r.Header.Set("X-User-Id", "some-other-user")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	// The session is fine; it is the identity we refuse.
+	t.Run("still reports the session as valid when refusing", func(t *testing.T) {
+		t.Parallel()
+		mw := ports.NewBearerAuthMiddleware(validateAs("blocked-user"), func() time.Time { return authMiddlewareNow }, blocklist)
+		handler := mw(func(w http.ResponseWriter, r *http.Request) {
+			t.Fatal("next should not be invoked for a blocked identity")
+		})
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/playerdata", http.NoBody)
+		r.Header.Set("Authorization", "Bearer good-token")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, ports.AuthSessionValid, w.Result().Header.Get(ports.AuthSessionHeader))
+	})
+
+	// Login takes 100 chars, the header is truncated to 50, and one entry must
+	// cover both.
+	t.Run("normalizes the identity the way the header path is normalized", func(t *testing.T) {
+		t.Parallel()
+		longKey := strings.Repeat("a", 60)
+		mw := ports.NewBearerAuthMiddleware(
+			validateAs(longKey),
+			func() time.Time { return authMiddlewareNow },
+			ports.BlocklistConfig{UserIDs: []string{ports.NewUserID(longKey).String()}},
+		)
+		handler := mw(func(w http.ResponseWriter, r *http.Request) {
+			t.Fatal("next should not be invoked for a blocked identity")
+		})
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/playerdata", http.NoBody)
+		r.Header.Set("Authorization", "Bearer good-token")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusBadRequest, w.Code, "the 50-char entry that blocks the header path must block this one too")
+	})
+
+	t.Run("lets an unblocked identity through", func(t *testing.T) {
+		t.Parallel()
+		called := false
+		mw := ports.NewBearerAuthMiddleware(validateAs("fine-user"), func() time.Time { return authMiddlewareNow }, blocklist)
+		handler := mw(func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			w.WriteHeader(http.StatusOK)
+		})
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/playerdata", http.NoBody)
+		r.Header.Set("Authorization", "Bearer good-token")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.True(t, called)
+		require.Equal(t, http.StatusOK, w.Code)
+	})
+
+	// No bearer, no verified identity — that path belongs to the check in front.
+	t.Run("does not consult the blocklist without a bearer", func(t *testing.T) {
+		t.Parallel()
+		called := false
+		validate := func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
+			t.Fatal("validate should not be called when no Authorization header")
+			return domain.AuthSession{}, nil
+		}
+		mw := ports.NewBearerAuthMiddleware(validate, func() time.Time { return authMiddlewareNow }, blocklist)
+		handler := mw(func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			w.WriteHeader(http.StatusOK)
+		})
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/playerdata", http.NoBody)
+		r.Header.Set("X-User-Id", "blocked-user")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.True(t, called)
+		require.Equal(t, http.StatusOK, w.Code)
+	})
 }

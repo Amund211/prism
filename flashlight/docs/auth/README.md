@@ -30,7 +30,9 @@ actually running.
    (`ports.NewBearerAuthMiddleware`, mounted on nine handlers) validates it,
    puts `{SessionID, IdentityType, IdentityKey}` in the request context, and
    401s a header it can't validate. No header at all passes through to the
-   legacy `X-User-Id` path.
+   legacy `X-User-Id` path. Once validate succeeds it also tests the verified
+   `IdentityKey` against `BLOCKED_USER_IDS` and answers a hit with the
+   blocklist middleware's own status and body.
 4. The user-id rate limiter (`UserIDKeyFunc`) prefers the context identity and
    falls back to the header.
 5. `POST /v1/auth/refresh` bumps `expires_at` / `refresh_until` on **the same
@@ -42,8 +44,9 @@ actually running.
    `X-Auth-Refresh: 1` once the session is within `refreshAtOffset` of expiry —
    "refresh now". A hint: a client that ignores it still recovers via 401.
 7. The bearer middleware states its verdict in `X-Auth-Session`: `valid` once
-   validate succeeded, `absent` on the no-`Authorization` pass-through, and
-   nothing at all on every other arm — a bad session, a malformed header, or a
+   validate succeeded — the blocked-identity 400 included, where the session
+   really is fine — `absent` on the no-`Authorization` pass-through, and
+   nothing at all on every other arm: a bad session, a malformed header, or a
    `validate` that failed unexpectedly. It is what lets a client attribute a
    401 it did not cause.
 
@@ -90,6 +93,22 @@ check is on the parsed list's length, not on the variable's presence.
   limiters is connection-pool exhaustion from one host — this was a live DoS.
   `TestBearerAuthMiddlewareMountPosition` is the only thing keeping the nine
   hand-assembled chains in agreement.
+- **`BLOCKED_USER_IDS` is checked twice, and both are needed.** The blocklist
+  middleware tests the `X-User-Id` header, which a blocked caller omits for
+  free while presenting a valid session; the bearer middleware tests the
+  verified `IdentityKey`. For the anonymous tier `identity_key == userId`, so
+  **one entry covers both paths — but only through `NewUserID`**, which
+  truncates to **50 chars** while a `userId` may be **100**. Both checks
+  normalize, as `UserIDKeyFunc` does; compare a raw key on either side and one
+  entry silently covers one path and misses the other. An entry may be dropped
+  after **24h**: `lifetime_ends_at` bounds every token that could still be
+  presented, so nothing survives it. The cheap header check stays in front — it
+  runs before any validation, and no `Authorization` header means no identity
+  to test. Two things it is **not**: the auth endpoints test neither list, so a
+  blocked identity can still log in and refresh (what it gets is tokens no
+  authed handler accepts); and it is not revocation, because dropping the
+  bearer and picking a fresh `userId` is a new unauthenticated identity — the
+  `X-User-Id` fallback pitfall below, which outlives this.
 - **A validate cache hit re-checks nothing.** Expiry is only evaluated inside
   `create()`, so an entry serves for its full minute regardless of what the row
   does. A revoked or expired session stays usable for up to a minute; accepted.

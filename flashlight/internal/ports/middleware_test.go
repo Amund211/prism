@@ -112,7 +112,7 @@ func keyForRequest(t *testing.T, req *http.Request, session *domain.AuthSession)
 
 	var key string
 	reached := false
-	handler := NewBearerAuthMiddleware(validate, time.Now)(func(w http.ResponseWriter, r *http.Request) {
+	handler := NewBearerAuthMiddleware(validate, time.Now, BlocklistConfig{})(func(w http.ResponseWriter, r *http.Request) {
 		reached = true
 		key = UserIDKeyFunc(r)
 	})
@@ -236,7 +236,7 @@ func TestUserIDLimiterSpendsOneBudgetPerIdentity(t *testing.T) {
 
 	rateLimiter := ratelimiting.NewRequestBasedRateLimiter(userIDLimiter, UserIDKeyFunc)
 	handler := ComposeMiddlewares(
-		NewBearerAuthMiddleware(validate, time.Now),
+		NewBearerAuthMiddleware(validate, time.Now, BlocklistConfig{}),
 		NewRateLimitMiddleware(rateLimiter, func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
 		}),
