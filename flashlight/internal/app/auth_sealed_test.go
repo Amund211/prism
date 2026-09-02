@@ -9,7 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/flashlight/internal/authsessiontoken"
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/signing"
 )
 
 var sealedOrigin = time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
@@ -161,4 +163,50 @@ func TestBuildRefreshSessionFromSealer(t *testing.T) {
 		_, err := refresh(ctx, "flsess_handle", "iphash")
 		require.ErrorIs(t, err, sealFailed)
 	})
+}
+
+// The whole thing end to end, against the real sealer: 40 refreshes over
+// 20h. Catches a re-stamped chain origin, a cap read off the per-handle
+// issuedAt, and a sealer that drops either origin on the round trip — all
+// of which make refresh an unbounded lifetime extension, silently.
+func TestRefreshChainAgainstTheSignedSealer(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	key := make([]byte, signing.MinKeyLength)
+	sealer, err := authsessiontoken.NewSigned([][]byte{key})
+	require.NoError(t, err)
+
+	login, err := sealer.Seal(ctx, unsealed(sealedOrigin, sealedOrigin, 0))
+	require.NoError(t, err)
+
+	wantCap := sealedOrigin.Add(authMaxSessionAge)
+	handle := login.ID
+	now := sealedOrigin
+
+	for i := 1; i <= 40; i++ {
+		now = now.Add(30 * time.Minute)
+
+		sess, err := app.BuildRefreshSession(sealer, fixedNow(now))(ctx, handle, "iphash")
+		require.NoError(t, err, "refresh %d should still be inside the 24h chain", i)
+
+		require.NotEqual(t, handle, sess.ID, "every refresh rotates the handle")
+		require.Equal(t, wantCap, sess.LifetimeEndsAt.UTC(), "refresh %d moved the cap", i)
+		require.Equal(t, i, sess.Generation)
+		require.Equal(t, login.Lineage, sess.Lineage)
+
+		// The new handle validates, and so does the parent until its own
+		// expiry — nothing revokes it, which is expected, not a bug.
+		validate := app.BuildValidateSession(sealer, fixedNow(now))
+		_, err = validate(ctx, sess.ID)
+		require.NoError(t, err)
+		_, err = validate(ctx, handle)
+		require.NoError(t, err, "a refreshed parent is not revoked")
+
+		handle = sess.ID
+	}
+
+	// 20h spent above, and the cap is what ends the chain.
+	_, err = app.BuildRefreshSession(sealer, fixedNow(wantCap))(ctx, handle, "iphash")
+	require.ErrorIs(t, err, domain.ErrAuthSessionRefreshExpired)
 }
