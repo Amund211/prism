@@ -3,12 +3,11 @@ import random
 import threading
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
 from typing import Protocol
 
 from prism.flashlight.auth.errors import (
     AuthError,
-    RefreshTooSoonError,
+    RefreshRateLimitedError,
     SessionExpiredError,
 )
 from prism.flashlight.auth.session import Session
@@ -32,11 +31,9 @@ INITIAL_BACKOFF_SECONDS = 2.0
 MAX_BACKOFF_SECONDS = 300.0
 BACKOFF_MULTIPLIER = 2.0
 
-# How long to wait after the server says we refreshed too recently. No honest
-# client should ever see this - we refresh 55 minutes into a 1 hour session and
-# the server's floor is 30 minutes - so it is logged as the bug signal it is.
-# The session is untouched, so we keep using it.
-TOO_SOON_REFRESH_DELAY_SECONDS = 300.0
+# How long to wait after flashlight rate limited a refresh. The session is
+# untouched, so we keep using it and stop asking for a while.
+RATE_LIMITED_REFRESH_DELAY_SECONDS = 300.0
 
 
 class LoginMethod(Protocol):  # pragma: nocover
@@ -61,30 +58,6 @@ class LoginMethod(Protocol):  # pragma: nocover
 RefreshSession = Callable[[str], Session]
 
 
-@dataclass(frozen=True, slots=True)
-class Recovery:
-    """
-    What can be done about a request that got a 401
-
-    The two fields are not redundant, and the difference is what keeps a valid
-    Urchin API key from being blamed for an auth problem. `/v1/tags/{uuid}`
-    answers 401 both for a bad key and for a session flashlight won't accept, so
-    a caller may only interpret a 401 as its own when we can say the session is
-    not the cause.
-    """
-
-    # A session to retry the request with, if we got one. Note refresh does not
-    # rotate the id, so this can carry the same token with later deadlines.
-    session: Session | None
-
-    # True only when the *server* told us the session is fine - it refused to
-    # replace one it considers too fresh. Then the 401 was about something else,
-    # and the caller is the one that can interpret it. False whenever we could not
-    # get a verdict, which includes a failed re-login and a timed-out wait: a
-    # caller must not blame anything of its own for a 401 we cannot account for.
-    session_confirmed: bool
-
-
 def _default_jitter() -> float:  # pragma: nocover
     return random.uniform(0.75, 1.25)
 
@@ -106,8 +79,7 @@ class AuthManager:
 
     A `Session` is immutable and replaced wholesale, so "did anything change?" is
     an identity comparison, which is what the 401 path uses to tell "your session
-    was renewed, try again" from "your session is fine, that 401 was about
-    something else".
+    was renewed, try again" from "we have nothing for you".
     """
 
     def __init__(
@@ -140,9 +112,6 @@ class AuthManager:
         # thread's own backoff would otherwise be bypassed on every 401.
         self._retry_not_before = monotonic()
         self._reconcile_requested = False
-        # Whether the last pass ended with the server vouching for the session we
-        # hold. Read by recover_from_unauthorized - see `Recovery`.
-        self._last_pass_confirmed_session = False
         self._backoff_seconds = INITIAL_BACKOFF_SECONDS
         self._consecutive_failures = 0
         self._last_error: str | None = None
@@ -205,13 +174,13 @@ class AuthManager:
 
     def recover_from_unauthorized(
         self, observed: Session, timeout: float = SESSION_WAIT_TIMEOUT_SECONDS
-    ) -> "Recovery":
+    ) -> Session | None:
         """
-        Handle a 401 for `observed` and report what can be done about it
+        Handle a 401 for `observed` and return a session to retry it with
 
-        See `Recovery`: either there is a session to retry with, or the server has
-        confirmed the one we hold is fine (so the 401 was about something else), or
-        we simply do not know.
+        `None` means we have nothing to offer - a failed re-login, a timed-out
+        wait, a backoff - and is never a verdict on the 401. Only the server
+        gives one, on the 401 itself, in `X-Auth-Session`.
         """
         deadline = self._monotonic() + timeout
         with self._condition:
@@ -219,31 +188,28 @@ class AuthManager:
                 # Already replaced, by the auth thread's own timer or by another
                 # request's 401. Retry with what we have now - no server call.
                 # `None` here means it was replaced by nothing, i.e. discarded as
-                # dead, which is not a verdict on this 401.
+                # dead.
                 # TODO: Returning `None` here makes a fan-out of 401s fail outright
                 #       while the re-login it triggered is still in flight.
                 #       `self._session` is None for the whole login after `_discard`
                 #       (challenge + proof-of-work + login = two round trips), so
-                #       every other thread gets no session and no verdict and
-                #       raises `SessionRecoveryError` immediately. Concretely: a
-                #       laptop resumes from suspend - `time.monotonic()` does not
-                #       advance across suspend, so we still believe the session is
-                #       fresh while the server has expired it - the user opens a
-                #       lobby, up to 16 stats threads 401 together, and the whole
-                #       lobby renders as errors even though a valid session lands a
-                #       second later. `wait_for_session` would have waited; this
-                #       path does not. Fall through to the wait loop below when
+                #       every other thread gets nothing back and raises
+                #       `SessionRecoveryError` immediately. Concretely: a laptop
+                #       resumes from suspend - `time.monotonic()` does not advance
+                #       across suspend, so we still believe the session is fresh
+                #       while the server has expired it - the user opens a lobby, up
+                #       to 16 stats threads 401 together, and the whole lobby
+                #       renders as errors even though a valid session lands a second
+                #       later. `wait_for_session` would have waited; this path does
+                #       not. Fall through to the wait loop below when
                 #       `self._session is None`.
-                return Recovery(session=self._session, session_confirmed=False)
+                return self._session
 
             if self._monotonic() < self._retry_not_before:
-                # Auth is failing, or the server has just refused to touch this
-                # session. Either way: don't queue an attempt per request, and
-                # don't make the caller wait for one.
-                return Recovery(
-                    session=None,
-                    session_confirmed=self._last_pass_confirmed_session,
-                )
+                # Auth is failing, or flashlight has just rate limited us. Either
+                # way: don't queue an attempt per request, and don't make the
+                # caller wait for one.
+                return None
 
             target = self._passes + 1
             self._reconcile_requested = True
@@ -252,16 +218,12 @@ class AuthManager:
             while self._passes < target:
                 remaining = deadline - self._monotonic()
                 if remaining <= 0:
-                    # Timed out waiting for the pass, so we have no verdict.
-                    return Recovery(session=None, session_confirmed=False)
+                    # Timed out waiting for the pass, so we have nothing to offer.
+                    return None
                 self._condition.wait(remaining)
 
             current = self._session
-            if current is not observed:
-                return Recovery(session=current, session_confirmed=False)
-            return Recovery(
-                session=None, session_confirmed=self._last_pass_confirmed_session
-            )
+            return current if current is not observed else None
 
     def note_refresh_hint(self, session: Session) -> None:
         """
@@ -279,6 +241,9 @@ class AuthManager:
                 # Same reason as in recover_from_unauthorized: a fan-out of
                 # responses must not out-vote the auth thread's backoff.
                 return
+            # TODO: Unfloored, unlike the proactive timer. A server hinting on
+            #       every response gets one refresh per response wave forever -
+            #       the too-soon 429 used to bound that.
             self._reconcile_requested = True
             self._condition.notify_all()
 
@@ -315,15 +280,15 @@ class AuthManager:
 
         try:
             new_session = self._acquire(session)
-        except RefreshTooSoonError:
+        except RefreshRateLimitedError:
             # The session is untouched and still good. Keeping it is the whole
-            # point: reacting to this by logging in again would turn the
-            # server's throttle into the re-login stampede it exists to prevent.
+            # point: logging in again would throw away a session that works, and
+            # spend the login limiter to do it.
             logger.warning(
-                "Flashlight refused to refresh our session as too recent. "
-                "Keeping it and trying again later."
+                "Flashlight rate limited our session refresh. "
+                "Keeping the session we have and trying again later."
             )
-            self._postpone(TOO_SOON_REFRESH_DELAY_SECONDS)
+            self._postpone(RATE_LIMITED_REFRESH_DELAY_SECONDS)
         except AuthError as e:
             logger.warning("Failed establishing a flashlight auth session", exc_info=e)
             self._fail(str(e))
@@ -381,28 +346,28 @@ class AuthManager:
             self._backoff_seconds = INITIAL_BACKOFF_SECONDS
             self._consecutive_failures = 0
             self._last_error = None
-            self._finish_pass(confirmed_session=False)
+            self._finish_pass()
 
     def _postpone(self, delay: float) -> None:
         """
-        Nothing changed and nothing is wrong - come back later
+        Nothing changed - come back later
 
         **Never earlier than what was already scheduled.** The session we are
-        holding is good until its own refresh point, and a too-soon refusal says
-        nothing about that; moving the next attempt *forward* to `delay` would
-        walk into the same refusal again, and again, for as long as the server's
-        minimum interval has left to run.
+        holding is good until its own refresh point, and a rate limited refresh
+        says nothing about that; moving the next attempt *forward* to `delay`
+        would only spend more of the limit we have already hit.
 
-        Requests are held off for `delay` as well. The server has just told us it
-        will not touch this session, so asking again per 401 would only reproduce
-        the answer - and one of the two things that produce a 429 is the refresh
-        endpoint's own rate limit.
+        Requests are held off for `delay` too: asking again per 401 would only
+        reproduce the same rate limit.
         """
         with self._condition:
             retry_at = self._monotonic() + delay
             self._next_action_at = max(retry_at, self._next_action_at)
+            # TODO: This blocks the only path that can replace a session that
+            #       really is dead, and nothing logs in instead - login is a
+            #       different limiter and does not present the session.
             self._retry_not_before = retry_at
-            self._finish_pass(confirmed_session=True)
+            self._finish_pass()
 
     def _fail(self, error: str) -> None:
         with self._condition:
@@ -414,19 +379,18 @@ class AuthManager:
             )
             self._consecutive_failures += 1
             self._last_error = error
-            self._finish_pass(confirmed_session=False)
+            self._finish_pass()
 
-    def _finish_pass(self, *, confirmed_session: bool) -> None:
+    def _finish_pass(self) -> None:
         """Publish the outcome of a reconcile pass. Caller holds the condition."""
         # Cleared here, at the *end* of the pass. A request that reported a 401 or
         # a refresh hint while this pass was in flight has already been served by
         # it - the pass read the very session it is reporting about - so leaving
         # the flag set would make the auth thread immediately reconcile again.
-        # Right after a successful refresh that second pass is a refresh the
-        # server refuses as too soon, and every bearer response carries
-        # `X-Auth-Refresh` from exactly the moment our own timer fires, so a
-        # lobby fan-out sets the flag every single time.
+        # Right after a successful refresh that second pass renews what was just
+        # renewed, and every bearer response carries `X-Auth-Refresh` from exactly
+        # the moment our own timer fires, so a lobby fan-out sets the flag every
+        # single time.
         self._reconcile_requested = False
-        self._last_pass_confirmed_session = confirmed_session
         self._passes += 1
         self._condition.notify_all()

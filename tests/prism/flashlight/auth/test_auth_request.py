@@ -7,7 +7,7 @@ import requests
 from prism.flashlight.auth.errors import (
     AuthError,
     NoSessionError,
-    RefreshTooSoonError,
+    RefreshRateLimitedError,
     SessionRecoveryError,
 )
 from prism.flashlight.auth.request import (
@@ -96,26 +96,25 @@ def test_send_authenticated_retries_once_with_a_renewed_session() -> None:
     ]
 
 
-def test_send_authenticated_surfaces_a_401_the_server_says_is_not_ours() -> None:
+def test_send_authenticated_raises_when_a_429_leaves_the_401_unexplained() -> None:
     """
-    /v1/tags answers 401 for an invalid Urchin API key too
+    A rate limited refresh is not a verdict on the session
 
-    Handing the 401 back is what lets that call site tell the two apart, and it
-    is also why the request is not retried with the same bearer. This is the real
-    shape of that case: the 401 provokes a refresh, the server refuses to touch a
-    session it considers too fresh, and so the 401 was never about the session.
+    The 429 comes from the endpoint's IP limiters, which answer ahead of the
+    handler that reads the bearer - so we still do not know whose 401 this was,
+    and handing it to `tags.py` would latch `urchin_api_key_invalid`.
     """
     session = make_session()
     manager, _, _ = make_auth_manager(
-        login_results=[session], refresh_results=[RefreshTooSoonError("too soon")]
+        login_results=[session], refresh_results=[RefreshRateLimitedError("slow down")]
     )
     manager.reconcile()
     send = RecordingSender([make_response(401)])
 
     with running_auth_thread(manager):
-        response = send_authenticated(auth=manager, send=send)
+        with pytest.raises(SessionRecoveryError):
+            send_authenticated(auth=manager, send=send)
 
-    assert response.status_code == 401
     assert len(send.auth_headers) == 1
 
 
@@ -163,20 +162,25 @@ def test_send_authenticated_acts_on_the_refresh_hint_on_a_validated_401() -> Non
 
 def test_send_authenticated_ignores_an_unknown_auth_session_value() -> None:
     """Only `valid` counts - any other value means the same as no header at all"""
-    session = make_session()
+    renewed = make_session(session_id="flsess_renewed")
     manager, _, refresh = make_auth_manager(
-        login_results=[session], refresh_results=[RefreshTooSoonError("too soon")]
+        login_results=[make_session()], refresh_results=[renewed]
     )
     manager.reconcile()
-    send = RecordingSender([make_response(401, auth_session="invalid")])
+    send = RecordingSender(
+        [make_response(401, auth_session="invalid"), make_response(200)]
+    )
 
     with running_auth_thread(manager):
         response = send_authenticated(auth=manager, send=send)
 
-    assert response.status_code == 401
-    assert len(send.auth_headers) == 1
-    # The verdict came from the server refusing to refresh, i.e. the old path.
+    assert response.status_code == 200
+    # The header was not trusted, so recovery ran and the request was retried
     assert refresh.session_ids == [TEST_SESSION_ID]
+    assert send.auth_headers == [
+        {"Authorization": f"Bearer {TEST_SESSION_ID}"},
+        {"Authorization": "Bearer flsess_renewed"},
+    ]
 
 
 def test_send_authenticated_raises_when_the_retry_401s_unvalidated() -> None:

@@ -37,16 +37,15 @@ def send_authenticated(
     twice: prism holds one session for the whole process, so a lapsed session
     means the first call 401s and the second carries a renewed bearer.
 
-    A 401 is only ever returned to the caller when we know the session we sent was
-    validated, which means the 401 was about something else — that is what lets
-    `/v1/tags/{uuid}` interpret its own 401 for an invalid Urchin API key. A 401 we
-    cannot account for raises `SessionRecoveryError` instead, so no call site can
-    mistake an auth problem for one of its own.
+    A 401 is only ever returned to the caller when the server says it validated
+    the session we sent (`X-Auth-Session: valid`), which means the 401 was about
+    something else — that is what lets `/v1/tags/{uuid}` interpret its own 401 for
+    an invalid Urchin API key. A 401 we cannot account for raises
+    `SessionRecoveryError` instead, so no call site can mistake an auth problem
+    for one of its own.
 
-    Normally the server says so on the 401 itself, in `X-Auth-Session`. Without it
-    we fall back to the auth manager, which can only confirm a session the server
-    refused to replace — so a lapsed session still recovers, but attribution is
-    given up on a 401 that survives a successful refresh.
+    That header is the only attribution mechanism: nothing the auth manager can
+    tell us amounts to "your session is fine".
 
     NOTE: `send` must be safe to call twice. Every flashlight endpoint prism
           calls is a read, so replaying one is harmless.
@@ -62,18 +61,13 @@ def send_authenticated(
         _note_refresh_hint(auth, session, response)
         return response
 
-    recovery = auth.recover_from_unauthorized(session)
-    if recovery.session is None:
-        if recovery.session_confirmed:
-            # The server refuses to replace this session, so it is fine and the
-            # 401 belongs to the caller. Sending the same bearer again would only
-            # reproduce it.
-            return response
+    renewed = auth.recover_from_unauthorized(session)
+    if renewed is None:
         raise SessionRecoveryError(
             "Got HTTP 401 from flashlight and could not renew the auth session"
         )
 
-    response = send(bearer_headers(recovery.session))
+    response = send(bearer_headers(renewed))
     if response.status_code == 401 and not _session_was_validated(response):
         # A renewed bearer rejected with nothing confirming it is an auth problem,
         # not the caller's: an instance that has not seen the new session - a
@@ -82,7 +76,7 @@ def send_authenticated(
         raise SessionRecoveryError(
             "Got HTTP 401 from flashlight with a renewed auth session"
         )
-    _note_refresh_hint(auth, recovery.session, response)
+    _note_refresh_hint(auth, renewed, response)
     return response
 
 
