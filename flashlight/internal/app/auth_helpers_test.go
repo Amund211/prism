@@ -30,9 +30,8 @@ func fixedNow(now time.Time) func() time.Time {
 // which is the signal that the use case touched a repo method the test
 // didn't expect.
 type fakeAuthSessionRepo struct {
-	createFn             func(ctx context.Context, sess domain.AuthSession) error
-	updateFn             func(ctx context.Context, id string, update func(domain.AuthSession) (domain.AuthSession, error)) (domain.AuthSession, error)
-	enforceActiveIPCapFn func(ctx context.Context, identityType domain.AuthSessionIdentityType, identityKey string, ipHash string, maxActive int, now time.Time) error
+	createFn func(ctx context.Context, sess domain.AuthSession) error
+	updateFn func(ctx context.Context, id string, update func(domain.AuthSession) (domain.AuthSession, error)) (domain.AuthSession, error)
 }
 
 func (f *fakeAuthSessionRepo) Create(ctx context.Context, sess domain.AuthSession) error {
@@ -74,15 +73,4 @@ func unsealTo(sess domain.AuthSession) *fakeSessionSealer {
 			return s, nil
 		},
 	}
-}
-
-func (f *fakeAuthSessionRepo) EnforceActiveIPCap(
-	ctx context.Context,
-	identityType domain.AuthSessionIdentityType,
-	identityKey string,
-	ipHash string,
-	maxActive int,
-	now time.Time,
-) error {
-	return f.enforceActiveIPCapFn(ctx, identityType, identityKey, ipHash, maxActive, now)
 }

@@ -55,9 +55,7 @@ Lifetimes, all Go constants in `internal/app/auth_session.go`: `expires_at`
 now+**1h**, `refresh_until` now+**2h**, `lifetime_ends_at` stamped at issue as
 created_at+**24h** and never extended. **Nothing limits how often a session may
 be refreshed** — the endpoint's IP limiters bound the calls, and extra handles
-buy no budget because the identity is the rate-limit key. Anonymous logins are
-capped at **4** concurrently-active identities per `ip_hash`; the oldest are
-soft-revoked as `evicted_by_ip_cap`.
+buy no budget because the identity is the rate-limit key.
 
 Validate is cached: keyed by session id, **1 minute, successes only**, LRU at
 50k entries (`main.go`).
@@ -90,6 +88,16 @@ check is on the parsed list's length, not on the variable's presence.
 - **Never key a rate limiter on `session_id`.** One identity may hold any
   number of concurrent sessions; keying on the session would hand out a fresh
   budget per login. The identity is the unit.
+- **Nothing bounds how many identities one IP may hold sessions for.**
+  `authsessionguard.AllowAll{}` in `main.go` is that decision, made visible;
+  anonymous issuance is bounded only by proof-of-work (difficulty 0 today) and
+  the login endpoint's per-IP limiters. The per-IP identity cap that used to
+  soft-revoke the oldest identities is gone — it could only count rows, which
+  stateless sessions are not, and it bounded concurrently *active* identities
+  rather than issuance. `revoked_at` / `revoked_reason` are therefore written
+  by nothing. A guard that *does* refuse must wrap
+  `domain.ErrAuthSessionIssuanceRefused`: that is what login answers with a
+  **429**, and anything else it returns is a 500 plus a Sentry report.
 - **The bearer middleware must stay behind an IP limiter and inside CORS, and
   ahead of the identity-keyed limiter.** Failed validations are uncached
   `SELECT … FOR UPDATE` transactions, so a garbage token in front of the

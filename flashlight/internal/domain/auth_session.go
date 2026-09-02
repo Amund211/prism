@@ -77,3 +77,9 @@ var ErrAuthSessionExpired = errors.New("auth session expired")
 // ErrAuthSessionRefreshExpired is returned when the session is past the
 // refresh window or its 24h hard max-age.
 var ErrAuthSessionRefreshExpired = errors.New("auth session refresh window expired")
+
+// ErrAuthSessionIssuanceRefused is how an issuance guard says "not this
+// one" rather than "something broke". Wrap it, or the refusal reaches
+// internal/ports as an unclassifiable failure and every rate-limited
+// client gets a 500 and a Sentry alert instead of a 429.
+var ErrAuthSessionIssuanceRefused = errors.New("auth session issuance refused")

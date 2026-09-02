@@ -3,6 +3,7 @@ package app_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -12,10 +13,20 @@ import (
 	"github.com/Amund211/flashlight/internal/domain"
 )
 
-// authAnonymousIPCap mirrors the production constant in
-// auth_anonymous_login.go. Kept here because it's anonymous-specific
-// and only referenced by these tests.
-const authAnonymousIPCap = 4
+// allowFunc satisfies the app package's unexported issuanceGuard by
+// structural typing, the same way fakeAuthSessionRepo does. Login-specific,
+// so it lives here rather than in the shared helpers.
+type allowFunc func(ctx context.Context, identityType domain.AuthSessionIdentityType, identityKey string, ipHash string, now time.Time) error
+
+func (f allowFunc) Allow(ctx context.Context, identityType domain.AuthSessionIdentityType, identityKey string, ipHash string, now time.Time) error {
+	return f(ctx, identityType, identityKey, ipHash, now)
+}
+
+func allowAll() allowFunc {
+	return func(_ context.Context, _ domain.AuthSessionIdentityType, _ string, _ string, _ time.Time) error {
+		return nil
+	}
+}
 
 func TestBuildAnonymousLogin(t *testing.T) {
 	t.Parallel()
@@ -26,18 +37,8 @@ func TestBuildAnonymousLogin(t *testing.T) {
 		t.Parallel()
 		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 
-		var enforceCalled, createCalled, generated bool
+		var allowCalled, createCalled, generated bool
 		repo := &fakeAuthSessionRepo{
-			enforceActiveIPCapFn: func(_ context.Context, identityType domain.AuthSessionIdentityType, identityKey string, ipHash string, maxActive int, capNow time.Time) error {
-				enforceCalled = true
-				require.Equal(t, domain.AuthSessionIdentityAnonymous, identityType)
-				require.Equal(t, "user-12345", identityKey,
-					"the cap must know who is logging in so it doesn't evict a stranger to replace this identity's own session")
-				require.Equal(t, "iphash-abc", ipHash)
-				require.Equal(t, authAnonymousIPCap, maxActive)
-				require.Equal(t, now, capNow)
-				return nil
-			},
 			createFn: func(_ context.Context, sess domain.AuthSession) error {
 				createCalled = true
 				require.Equal(t, "flsess_test-id", sess.ID)
@@ -52,49 +53,53 @@ func TestBuildAnonymousLogin(t *testing.T) {
 				return nil
 			},
 		}
+		guard := allowFunc(func(_ context.Context, identityType domain.AuthSessionIdentityType, identityKey string, ipHash string, guardNow time.Time) error {
+			allowCalled = true
+			require.Equal(t, domain.AuthSessionIdentityAnonymous, identityType)
+			require.Equal(t, "user-12345", identityKey)
+			require.Equal(t, "iphash-abc", ipHash)
+			require.Equal(t, now, guardNow)
+			return nil
+		})
 		generate := func() (string, error) {
 			generated = true
 			return "flsess_test-id", nil
 		}
 
-		login := app.BuildAnonymousLogin(repo, func() time.Time { return now }, generate)
+		login := app.BuildAnonymousLogin(repo, guard, func() time.Time { return now }, generate)
 		sess, err := login(ctx, "user-12345", "iphash-abc")
 		require.NoError(t, err)
 
-		require.True(t, enforceCalled)
+		require.True(t, allowCalled, "the guard must be consulted on every issue")
 		require.True(t, generated)
 		require.True(t, createCalled)
 		require.Equal(t, "flsess_test-id", sess.ID)
 		require.Equal(t, now, sess.LastUsedAt)
 	})
 
-	t.Run("propagates EnforceActiveIPCap errors and does not generate or Create", func(t *testing.T) {
+	t.Run("propagates guard refusals and does not generate or Create", func(t *testing.T) {
 		t.Parallel()
-		repo := &fakeAuthSessionRepo{
-			enforceActiveIPCapFn: func(_ context.Context, _ domain.AuthSessionIdentityType, _ string, _ string, _ int, _ time.Time) error {
-				return errors.New("ip cap query failed")
-			},
-		}
+		repo := &fakeAuthSessionRepo{}
+		guard := allowFunc(func(_ context.Context, _ domain.AuthSessionIdentityType, _ string, _ string, _ time.Time) error {
+			return fmt.Errorf("some cap reached: %w", domain.ErrAuthSessionIssuanceRefused)
+		})
 		generate := func() (string, error) {
-			t.Fatal("generate should not be called when EnforceActiveIPCap fails")
+			t.Fatal("generate should not be called when the guard refuses")
 			return "", nil
 		}
-		login := app.BuildAnonymousLogin(repo, time.Now, generate)
+		login := app.BuildAnonymousLogin(repo, guard, time.Now, generate)
 		_, err := login(ctx, "user-A", "ipA")
-		require.Error(t, err)
+		require.ErrorIs(t, err, domain.ErrAuthSessionIssuanceRefused,
+			"the wrap has to keep the refusal classifiable, or ports answers it with a 500")
 	})
 
 	t.Run("propagates generator errors and does not Create", func(t *testing.T) {
 		t.Parallel()
-		repo := &fakeAuthSessionRepo{
-			enforceActiveIPCapFn: func(_ context.Context, _ domain.AuthSessionIdentityType, _ string, _ string, _ int, _ time.Time) error {
-				return nil
-			},
-		}
+		repo := &fakeAuthSessionRepo{}
 		generate := func() (string, error) {
 			return "", errors.New("rand failed")
 		}
-		login := app.BuildAnonymousLogin(repo, time.Now, generate)
+		login := app.BuildAnonymousLogin(repo, allowAll(), time.Now, generate)
 		_, err := login(ctx, "user-A", "ipA")
 		require.Error(t, err)
 	})

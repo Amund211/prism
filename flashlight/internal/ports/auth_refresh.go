@@ -26,11 +26,10 @@ func MakeAuthRefreshHandler(
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
 ) (http.HandlerFunc, func()) {
-	// A refresh costs a SELECT-FOR-UPDATE transaction on the session row (no
-	// IP-cap UPDATE — that one is on the login path only), and the bearer is
-	// only checked inside that transaction, so an unknown token is just as
-	// expensive as a valid one. The request IP is all we can key on before
-	// touching the database.
+	// A refresh costs a SELECT-FOR-UPDATE transaction on the session row, and
+	// the bearer is only checked inside that transaction, so an unknown token
+	// is just as expensive as a valid one. The request IP is all we can key
+	// on before touching the database.
 	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(1),
 		ratelimiting.BurstSize(60),

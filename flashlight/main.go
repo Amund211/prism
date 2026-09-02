@@ -28,6 +28,7 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/tagprovider"
 	"github.com/Amund211/flashlight/internal/adapters/userrepository"
 	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/flashlight/internal/authsessionguard"
 	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
@@ -222,7 +223,9 @@ func main() {
 	}
 	logger.InfoContext(ctx, "Initialized anonymous login proof-of-work", "difficulty", proofofwork.DefaultDifficulty)
 
-	anonymousLogin := app.BuildAnonymousLogin(authSessionRepo, time.Now, app.GenerateAuthSessionID)
+	// AllowAll: nothing bounds how many identities one IP may hold
+	// sessions for. See its doc comment for what that gave up.
+	anonymousLogin := app.BuildAnonymousLogin(authSessionRepo, authsessionguard.AllowAll{}, time.Now, app.GenerateAuthSessionID)
 	// The row backing. The stateless cutover swaps these two for the
 	// sealer-based builders next to them and drops the cache.
 	refreshSession := app.BuildRefreshSessionFromRepository(authSessionRepo, time.Now, validateSessionCache)

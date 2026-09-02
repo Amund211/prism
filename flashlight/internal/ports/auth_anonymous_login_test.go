@@ -3,6 +3,7 @@ package ports_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -172,7 +173,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 	// forces a preflight. Without the gate a page on any origin could make
 	// a visitor's browser POST text/plain with a JSON body — no preflight,
 	// so the request lands — and mint sessions from the visitor's IP until
-	// their real ones are evicted by the ip cap.
+	// the login limiter locks their real client out.
 	t.Run("415 on a content type that would skip the preflight", func(t *testing.T) {
 		t.Parallel()
 		for _, contentType := range []string{
@@ -357,6 +358,39 @@ func TestAnonymousLoginHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		handler(w, r)
 		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	// The guard is the seam a real issuance cap will land in, and a cap
+	// refusing is ordinary traffic — not a page. AllowAll never refuses, so
+	// nothing else would catch this arm going missing until the day the
+	// first real guard ships and answers every rate-limited client with a
+	// 500 and a Sentry alert.
+	t.Run("429 when the issuance guard refuses", func(t *testing.T) {
+		t.Parallel()
+		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			return domain.AuthSession{}, fmt.Errorf("failed to check issuance guard: %w", domain.ErrAuthSessionIssuanceRefused)
+		}
+		handler := newAnonymousLoginHandler(t, login, time.Now)
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("user-abc")))
+		withJSONContentType(r)
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusTooManyRequests, w.Code)
+	})
+
+	t.Run("500 on any other login failure", func(t *testing.T) {
+		t.Parallel()
+		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			return domain.AuthSession{}, errors.New("boom")
+		}
+		handler := newAnonymousLoginHandler(t, login, time.Now)
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("user-abc")))
+		withJSONContentType(r)
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
 

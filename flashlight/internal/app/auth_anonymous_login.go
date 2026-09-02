@@ -12,25 +12,24 @@ import (
 // repository that BuildAnonymousLogin depends on.
 type anonymousLoginRepository interface {
 	Create(ctx context.Context, sess domain.AuthSession) error
-	EnforceActiveIPCap(ctx context.Context, identityType domain.AuthSessionIdentityType, identityKey string, ipHash string, maxActive int, now time.Time) error
 }
 
-// authAnonymousIPCap is the max number of *identities* holding
-// concurrently-active anonymous sessions per ip_hash. When exceeded,
-// the identities whose most recent login is oldest are evicted before
-// issuing a new one. An identity may hold any number of sessions, so
-// this number is looser than the same number used to mean when it
-// counted rows. Sessions already held by the identity that's logging in
-// don't count towards it — that identity occupies exactly one slot
-// either way.
-const authAnonymousIPCap = 4
+// issuanceGuard is consulted before a new session is issued. It refuses
+// by returning an error wrapping domain.ErrAuthSessionIssuanceRefused —
+// anything else is read as the guard itself breaking, which internal/ports
+// answers with a 500 and a Sentry report rather than the 429 a refused
+// client should see. Deliberately not a sessionSealer method: a backing
+// that cannot count across handles has to say so at the wiring site in
+// main.go, not by silently succeeding. Today the only implementation is
+// authsessionguard.AllowAll, whose doc comment records what was given up.
+type issuanceGuard interface {
+	Allow(ctx context.Context, identityType domain.AuthSessionIdentityType, identityKey string, ipHash string, now time.Time) error
+}
 
 // AnonymousLogin issues a new anonymous-tier session for (userID,
-// ipHash). It enforces the per-IP anonymous identity cap by revoking
-// the least-recently-logged-in identities' sessions until there's room,
-// then inserts the new row. Nothing the caller already holds is
-// revoked: concurrent sessions for one identity coexist and expire
-// naturally.
+// ipHash), if the issuance guard allows it. Nothing the caller already
+// holds is touched: concurrent sessions for one identity coexist and
+// expire naturally.
 //
 // userID is trusted as-is — input shape validation is the caller's
 // responsibility.
@@ -38,14 +37,15 @@ type AnonymousLogin func(ctx context.Context, userID string, ipHash string) (dom
 
 func BuildAnonymousLogin(
 	repo anonymousLoginRepository,
+	guard issuanceGuard,
 	nowFunc func() time.Time,
 	generateSessionID func() (string, error),
 ) AnonymousLogin {
 	return func(ctx context.Context, userID string, ipHash string) (domain.AuthSession, error) {
 		now := nowFunc()
 
-		if err := repo.EnforceActiveIPCap(ctx, domain.AuthSessionIdentityAnonymous, userID, ipHash, authAnonymousIPCap, now); err != nil {
-			return domain.AuthSession{}, fmt.Errorf("failed to enforce ip cap: %w", err)
+		if err := guard.Allow(ctx, domain.AuthSessionIdentityAnonymous, userID, ipHash, now); err != nil {
+			return domain.AuthSession{}, fmt.Errorf("failed to check issuance guard: %w", err)
 		}
 
 		id, err := generateSessionID()

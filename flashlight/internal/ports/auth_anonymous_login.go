@@ -3,6 +3,7 @@ package ports
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"mime"
@@ -13,6 +14,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 
 	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/proofofwork"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
@@ -107,11 +109,11 @@ func MakeAnonymousLoginHandler(
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
 ) (http.HandlerFunc, func()) {
-	// Every login costs an IP-cap UPDATE plus a multi-statement transaction, and
-	// the endpoint is unauthenticated by definition — so it is rate limited on
-	// the only thing we have before doing any of that work, the request IP.
-	// There is no userId bucket: the body is attacker-controlled, so keying on
-	// it would just make the limit free to evade.
+	// Every login costs a multi-statement transaction, and the endpoint is
+	// unauthenticated by definition — so it is rate limited on the only thing
+	// we have before doing any of that work, the request IP. There is no
+	// userId bucket: the body is attacker-controlled, so keying on it would
+	// just make the limit free to evade.
 	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(1),
 		ratelimiting.BurstSize(60),
@@ -153,11 +155,11 @@ func MakeAnonymousLoginHandler(
 		// text/plain (or no Content-Type at all) carrying a JSON body is
 		// dispatched cross-origin without a preflight, so any page on any
 		// origin could make a visitor's browser mint sessions from the
-		// visitor's IP — enough to walk their ip_hash down the cap in
-		// authAnonymousIPCap requests and evict their real sessions. The
-		// attacker can't read the response, but it doesn't need to.
-		// Requiring application/json forces the preflight, which
-		// BuildCORSMiddleware answers only for allowed origins.
+		// visitor's IP — spending the login limiter's budget for that IP
+		// and locking the real client out. The attacker can't read the
+		// response, but it doesn't need to. Requiring application/json
+		// forces the preflight, which BuildCORSMiddleware answers only
+		// for allowed origins.
 		//
 		// Refresh needs no equivalent: its Authorization header is not a
 		// CORS-safelisted request header, so it is always preflighted.
@@ -202,9 +204,8 @@ func MakeAnonymousLoginHandler(
 		ipHash := GetIP(r).Hash()
 
 		// Ahead of every bit of database work below, which is the entire
-		// point: a proof checked after the IP-cap UPDATE and the INSERT
-		// prices nothing. Verification itself is one HMAC, one hash and a
-		// map lookup.
+		// point: a proof checked after the INSERT prices nothing.
+		// Verification itself is one HMAC, one hash and a map lookup.
 		challenge, err := parseChallenge(body.Challenge)
 		if err != nil {
 			// Nothing to sample: a blob we didn't sign, can't read, or whose
@@ -228,7 +229,15 @@ func MakeAnonymousLoginHandler(
 		}
 
 		sess, err := login(ctx, body.UserID, ipHash)
-		if err != nil {
+		switch {
+		case errors.Is(err, domain.ErrAuthSessionIssuanceRefused):
+			// An issuance guard saying "not this one" is ordinary traffic,
+			// not a fault: it must not page, and the client has to be able
+			// to tell it apart from a server that broke.
+			logging.FromContext(ctx).InfoContext(ctx, "Refused anonymous login issuance", "error", err.Error())
+			http.Error(w, "Too many sessions issued", http.StatusTooManyRequests)
+			return
+		case err != nil:
 			logging.FromContext(ctx).ErrorContext(ctx, "Anonymous login failed", "error", err.Error())
 			reporting.Report(ctx, fmt.Errorf("anonymous login: %w", err))
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
