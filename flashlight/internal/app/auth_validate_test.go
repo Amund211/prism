@@ -56,7 +56,7 @@ func TestBuildValidateSession(t *testing.T) {
 			},
 		}
 
-		validate := app.BuildValidateSession(repo, func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
+		validate := app.BuildValidateSessionFromRepository(repo, func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
 		sess, err := validate(ctx, "flsess_sid")
 		require.NoError(t, err)
 		require.Equal(t, "flsess_sid", sess.ID)
@@ -86,7 +86,7 @@ func TestBuildValidateSession(t *testing.T) {
 			},
 		}
 
-		validate := app.BuildValidateSession(repo, func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
+		validate := app.BuildValidateSessionFromRepository(repo, func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
 		_, err := validate(ctx, "flsess_sid")
 		require.NoError(t, err)
 		_, err = validate(ctx, "flsess_sid")
@@ -107,7 +107,7 @@ func TestBuildValidateSession(t *testing.T) {
 			LifetimeEndsAt: now.Add(authMaxSessionAge - 90*time.Minute),
 			LastUsedAt:     now.Add(-90 * time.Minute),
 		}
-		validate := app.BuildValidateSession(validateUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
+		validate := app.BuildValidateSessionFromRepository(validateUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
 		_, err := validate(ctx, "flsess_sid")
 		require.ErrorIs(t, err, domain.ErrAuthSessionExpired)
 	})
@@ -125,7 +125,7 @@ func TestBuildValidateSession(t *testing.T) {
 			LifetimeEndsAt: now.Add(-5 * time.Minute),
 			LastUsedAt:     now.Add(-(authMaxSessionAge + 5*time.Minute)),
 		}
-		validate := app.BuildValidateSession(validateUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
+		validate := app.BuildValidateSessionFromRepository(validateUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
 		_, err := validate(ctx, "flsess_sid")
 		require.ErrorIs(t, err, domain.ErrAuthSessionExpired)
 	})
@@ -137,7 +137,7 @@ func TestBuildValidateSession(t *testing.T) {
 				return domain.AuthSession{}, domain.ErrAuthSessionNotFound
 			},
 		}
-		validate := app.BuildValidateSession(repo, time.Now, cache.NewBasicCache[domain.AuthSession]())
+		validate := app.BuildValidateSessionFromRepository(repo, time.Now, cache.NewBasicCache[domain.AuthSession]())
 		_, err := validate(ctx, "no-such")
 		require.ErrorIs(t, err, domain.ErrAuthSessionNotFound)
 	})
@@ -149,7 +149,7 @@ func TestBuildValidateSession(t *testing.T) {
 				return domain.AuthSession{}, errors.New("db down")
 			},
 		}
-		validate := app.BuildValidateSession(repo, time.Now, cache.NewBasicCache[domain.AuthSession]())
+		validate := app.BuildValidateSessionFromRepository(repo, time.Now, cache.NewBasicCache[domain.AuthSession]())
 		_, err := validate(ctx, "flsess_sid")
 		require.Error(t, err)
 	})
@@ -163,7 +163,7 @@ func TestBuildValidateSession(t *testing.T) {
 				return domain.AuthSession{}, domain.ErrAuthSessionNotFound
 			},
 		}
-		validate := app.BuildValidateSession(repo, time.Now, cache.NewBasicCache[domain.AuthSession]())
+		validate := app.BuildValidateSessionFromRepository(repo, time.Now, cache.NewBasicCache[domain.AuthSession]())
 		_, err := validate(ctx, "flsess_sid")
 		require.ErrorIs(t, err, domain.ErrAuthSessionNotFound)
 		_, err = validate(ctx, "flsess_sid")
@@ -174,7 +174,7 @@ func TestBuildValidateSession(t *testing.T) {
 
 	t.Run("empty id rejected without a lookup", func(t *testing.T) {
 		t.Parallel()
-		validate := app.BuildValidateSession(&fakeAuthSessionRepo{}, time.Now, cache.NewBasicCache[domain.AuthSession]())
+		validate := app.BuildValidateSessionFromRepository(&fakeAuthSessionRepo{}, time.Now, cache.NewBasicCache[domain.AuthSession]())
 		_, err := validate(ctx, "")
 		require.ErrorIs(t, err, domain.ErrAuthSessionNotFound)
 	})

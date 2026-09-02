@@ -44,7 +44,7 @@ func TestBuildRefreshSession(t *testing.T) {
 			LastUsedAt:     now.Add(-30 * time.Minute),
 		}
 
-		refresh := app.BuildRefreshSession(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
+		refresh := app.BuildRefreshSessionFromRepository(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
 		session, err := refresh(ctx, "flsess_sid", "new-ip")
 		require.NoError(t, err)
 
@@ -85,7 +85,7 @@ func TestBuildRefreshSession(t *testing.T) {
 			},
 		}
 
-		refresh := app.BuildRefreshSession(repo, func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
+		refresh := app.BuildRefreshSessionFromRepository(repo, func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
 		_, err := refresh(ctx, "flsess_sid", "new-ip")
 		require.NoError(t, err)
 
@@ -114,7 +114,7 @@ func TestBuildRefreshSession(t *testing.T) {
 			LifetimeEndsAt: now.Add(authMaxSessionAge - 3*time.Hour),
 			LastUsedAt:     now.Add(-3 * time.Hour),
 		}
-		refresh := app.BuildRefreshSession(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
+		refresh := app.BuildRefreshSessionFromRepository(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
 		_, err := refresh(ctx, "flsess_sid", "ip")
 		require.ErrorIs(t, err, domain.ErrAuthSessionRefreshExpired)
 	})
@@ -133,7 +133,7 @@ func TestBuildRefreshSession(t *testing.T) {
 			LifetimeEndsAt: now.Add(-time.Hour),
 			LastUsedAt:     now.Add(-(authMaxSessionAge + time.Hour)),
 		}
-		refresh := app.BuildRefreshSession(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
+		refresh := app.BuildRefreshSessionFromRepository(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
 		_, err := refresh(ctx, "flsess_sid", "ip")
 		require.ErrorIs(t, err, domain.ErrAuthSessionRefreshExpired)
 	})
@@ -153,7 +153,7 @@ func TestBuildRefreshSession(t *testing.T) {
 			LifetimeEndsAt: lifetimeEndsAt,
 			LastUsedAt:     now.Add(-(authMaxSessionAge - 30*time.Minute)),
 		}
-		refresh := app.BuildRefreshSession(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
+		refresh := app.BuildRefreshSessionFromRepository(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
 		session, err := refresh(ctx, "flsess_sid", "ip")
 		require.NoError(t, err)
 		require.Equal(t, lifetimeEndsAt, session.ExpiresAt)
@@ -173,7 +173,7 @@ func TestBuildRefreshSession(t *testing.T) {
 			LifetimeEndsAt: now.Add(authMaxSessionAge - time.Minute),
 			LastUsedAt:     now.Add(-time.Minute),
 		}
-		refresh := app.BuildRefreshSession(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
+		refresh := app.BuildRefreshSessionFromRepository(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
 		session, err := refresh(ctx, "flsess_sid", "new-ip")
 		require.NoError(t, err)
 		require.Equal(t, now.Add(authSessionTTL), session.ExpiresAt)
@@ -194,7 +194,7 @@ func TestBuildRefreshSession(t *testing.T) {
 			LifetimeEndsAt: now.Add(authMaxSessionAge - 90*time.Minute),
 			LastUsedAt:     now.Add(-30 * time.Minute),
 		}
-		refresh := app.BuildRefreshSession(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
+		refresh := app.BuildRefreshSessionFromRepository(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
 		session, err := refresh(ctx, "flsess_sid", "ip")
 		require.NoError(t, err)
 		require.Equal(t, now.Add(authSessionTTL), session.ExpiresAt)
@@ -214,7 +214,7 @@ func TestBuildRefreshSession(t *testing.T) {
 			LifetimeEndsAt: lifetimeEndsAt,
 			LastUsedAt:     now.Add(-time.Minute),
 		}
-		refresh := app.BuildRefreshSession(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
+		refresh := app.BuildRefreshSessionFromRepository(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
 		session, err := refresh(ctx, "flsess_sid", "ip")
 		require.NoError(t, err)
 		require.Equal(t, lifetimeEndsAt, session.ExpiresAt)
@@ -243,7 +243,7 @@ func TestBuildRefreshSession(t *testing.T) {
 		prime("flsess_sid", current)
 		prime("flsess_other", domain.AuthSession{ID: "flsess_other"})
 
-		refresh := app.BuildRefreshSession(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, sessionCache)
+		refresh := app.BuildRefreshSessionFromRepository(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, sessionCache)
 		refreshed, err := refresh(ctx, "flsess_sid", "new-ip")
 		require.NoError(t, err)
 
@@ -285,7 +285,7 @@ func TestBuildRefreshSession(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		refresh := app.BuildRefreshSession(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, sessionCache)
+		refresh := app.BuildRefreshSessionFromRepository(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, sessionCache)
 		_, err = refresh(ctx, "flsess_sid", "new-ip")
 		require.ErrorIs(t, err, domain.ErrAuthSessionRefreshExpired)
 
@@ -305,14 +305,14 @@ func TestBuildRefreshSession(t *testing.T) {
 				return domain.AuthSession{}, domain.ErrAuthSessionNotFound
 			},
 		}
-		refresh := app.BuildRefreshSession(repo, time.Now, cache.NewBasicCache[domain.AuthSession]())
+		refresh := app.BuildRefreshSessionFromRepository(repo, time.Now, cache.NewBasicCache[domain.AuthSession]())
 		_, err := refresh(ctx, "no-such", "ip")
 		require.ErrorIs(t, err, domain.ErrAuthSessionNotFound)
 	})
 
 	t.Run("empty id rejected without a lookup", func(t *testing.T) {
 		t.Parallel()
-		refresh := app.BuildRefreshSession(&fakeAuthSessionRepo{}, time.Now, cache.NewBasicCache[domain.AuthSession]())
+		refresh := app.BuildRefreshSessionFromRepository(&fakeAuthSessionRepo{}, time.Now, cache.NewBasicCache[domain.AuthSession]())
 		_, err := refresh(ctx, "", "ip")
 		require.ErrorIs(t, err, domain.ErrAuthSessionNotFound)
 	})

@@ -19,6 +19,10 @@ const (
 
 const sessionIDPrefix = "flsess_"
 
+func fixedNow(now time.Time) func() time.Time {
+	return func() time.Time { return now }
+}
+
 // fakeAuthSessionRepo is a function-field stub satisfying the
 // file-local repository interfaces in the app package by structural
 // typing. Each test wires up only the methods it expects to be called;
@@ -41,6 +45,35 @@ func (f *fakeAuthSessionRepo) Update(
 	update func(domain.AuthSession) (domain.AuthSession, error),
 ) (domain.AuthSession, error) {
 	return f.updateFn(ctx, id, update)
+}
+
+// fakeSessionSealer satisfies the app package's unexported sessionSealer by
+// structural typing, the same way fakeAuthSessionRepo does.
+type fakeSessionSealer struct {
+	sealFn   func(ctx context.Context, sess domain.AuthSession) (domain.AuthSession, error)
+	unsealFn func(ctx context.Context, handle string) (domain.AuthSession, error)
+}
+
+func (f *fakeSessionSealer) Seal(ctx context.Context, sess domain.AuthSession) (domain.AuthSession, error) {
+	return f.sealFn(ctx, sess)
+}
+
+func (f *fakeSessionSealer) Unseal(ctx context.Context, handle string) (domain.AuthSession, error) {
+	return f.unsealFn(ctx, handle)
+}
+
+// unsealTo returns a sealer whose Unseal always yields sess, and whose Seal
+// hands back what it was given under a fixed handle.
+func unsealTo(sess domain.AuthSession) *fakeSessionSealer {
+	return &fakeSessionSealer{
+		unsealFn: func(_ context.Context, _ string) (domain.AuthSession, error) {
+			return sess, nil
+		},
+		sealFn: func(_ context.Context, s domain.AuthSession) (domain.AuthSession, error) {
+			s.ID = "flsess_resealed"
+			return s, nil
+		},
+	}
 }
 
 func (f *fakeAuthSessionRepo) EnforceActiveIPCap(

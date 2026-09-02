@@ -223,8 +223,10 @@ func main() {
 	logger.InfoContext(ctx, "Initialized anonymous login proof-of-work", "difficulty", proofofwork.DefaultDifficulty)
 
 	anonymousLogin := app.BuildAnonymousLogin(authSessionRepo, time.Now, app.GenerateAuthSessionID)
-	refreshSession := app.BuildRefreshSession(authSessionRepo, time.Now, validateSessionCache)
-	validateSession := app.BuildValidateSession(authSessionRepo, time.Now, validateSessionCache)
+	// The row backing. The stateless cutover swaps these two for the
+	// sealer-based builders next to them and drops the cache.
+	refreshSession := app.BuildRefreshSessionFromRepository(authSessionRepo, time.Now, validateSessionCache)
+	validateSession := app.BuildValidateSessionFromRepository(authSessionRepo, time.Now, validateSessionCache)
 	bearerAuthMiddleware := ports.NewBearerAuthMiddleware(validateSession, time.Now, blocklistConfig)
 
 	allowedOrigins, err := ports.NewDomainSuffixes(prodDomainSuffix, stagingDomainSuffix)
