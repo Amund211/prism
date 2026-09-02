@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/ratelimiting"
@@ -71,12 +70,9 @@ const (
 
 // shouldHintRefresh reports whether to set AuthRefreshHeader for s: the
 // client's proactive refresh point (the same one refreshInSeconds counts
-// down to) has arrived, and a refresh would not come back a 429. The
-// second condition is redundant while refreshAtOffset is well inside
-// authMinRefreshInterval, and is here so retuning either one cannot
-// start advertising a refresh that gets refused.
+// down to) has arrived.
 func shouldHintRefresh(s domain.AuthSession, now time.Time) bool {
-	return !now.Before(s.ExpiresAt.Add(-refreshAtOffset)) && !app.RefreshTooSoon(s, now)
+	return !now.Before(s.ExpiresAt.Add(-refreshAtOffset))
 }
 
 // authSessionResponse is the wire shape returned by every session-issuing

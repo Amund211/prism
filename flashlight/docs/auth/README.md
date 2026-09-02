@@ -36,9 +36,10 @@ actually running.
 4. The user-id rate limiter (`UserIDKeyFunc`) prefers the context identity and
    falls back to the header.
 5. `POST /v1/auth/refresh` bumps `expires_at` / `refresh_until` on **the same
-   session id** — no rotation, no proof required. `401` means the session is
-   finished, re-auth from scratch. `429` means too soon (or the IP limit): the
-   session is untouched, keep using it and do **not** re-auth.
+   session id** — no rotation, no proof, **no minimum interval**. `401` means
+   the session is finished, re-auth from scratch. `429` is the IP limiters
+   only, and they answer ahead of the handler that reads the bearer, so it says
+   **nothing about the session** — back off, and don't re-auth on it.
 
 6. Any response to a request that carried a valid bearer gets
    `X-Auth-Refresh: 1` once the session is within `refreshAtOffset` of expiry —
@@ -52,9 +53,11 @@ actually running.
 
 Lifetimes, all Go constants in `internal/app/auth_session.go`: `expires_at`
 now+**1h**, `refresh_until` now+**2h**, `lifetime_ends_at` stamped at issue as
-created_at+**24h** and never extended, and at least **30min** must burn between
-refreshes. Anonymous logins are capped at **4** concurrently-active identities
-per `ip_hash`; the oldest are soft-revoked as `evicted_by_ip_cap`.
+created_at+**24h** and never extended. **Nothing limits how often a session may
+be refreshed** — the endpoint's IP limiters bound the calls, and extra handles
+buy no budget because the identity is the rate-limit key. Anonymous logins are
+capped at **4** concurrently-active identities per `ip_hash`; the oldest are
+soft-revoked as `evicted_by_ip_cap`.
 
 Validate is cached: keyed by session id, **1 minute, successes only**, LRU at
 50k entries (`main.go`).
@@ -117,10 +120,10 @@ check is on the parsed list's length, not on the variable's presence.
   and `revoked` are permanent and would be safe; **`expired` is not permanent,
   because refresh flips it back to valid**, and refresh presents the same cache
   key. Deleting the entry on refresh is what makes caching it feasible at all:
-  without that, the retry after a refresh is served a stale 401, reacts by
-  refreshing again, and gets a `429` (the 30-minute interval), which is not a
-  401 and so does not trigger re-login — the client is wedged for the whole
-  negative TTL. The other way out, if negative caching is ever wanted, is to make
+  without that, the retry after a refresh is served a stale 401 and refreshes
+  again — which now succeeds, so the client loops for the whole negative TTL
+  instead of re-logging in. The other way out, if negative caching is ever
+  wanted, is to make
   **`authRefreshWindow` equal `authSessionTTL`**: past `expires_at` a session is
   then also unrefreshable, `expired` becomes immutable, and caching it is safe.
   The cost is the grace window — a client idle past the TTL always pays a full
@@ -128,8 +131,9 @@ check is on the parsed list's length, not on the variable's presence.
 - **`X-Auth-Refresh` must be set before the handler writes, and named in
   `Access-Control-Expose-Headers`.** After `WriteHeader` the header map is
   frozen and setting it is a silent no-op; without the CORS entry a browser
-  cannot read it, also silently. Never advertise a refresh that would 429 —
-  `shouldHintRefresh` checks `app.RefreshTooSoon` for that reason.
+  cannot read it, also silently. `shouldHintRefresh` is the expiry-offset check
+  alone; the "never advertise a refresh that would 429" rule it used to carry
+  went with the minimum refresh interval.
 - **`X-Auth-Session` marks the good case, and only `valid` may be trusted.**
   It exists because `/v1/tags/{uuid}` 401s for a bad Urchin API key while the
   middleware 401s for a bad session, and until this header nothing on the wire
@@ -145,9 +149,9 @@ check is on the parsed list's length, not on the variable's presence.
 - **Refresh deletes the session's validate cache entry.** Since the id is
   stable and a hit re-checks nothing, leaving it means every read for the rest
   of that minute — the `X-Auth-Refresh` hint included — sees the pre-refresh
-  `expires_at`, and the client refreshes into a `429`. The delete does not
-  reach a validate already inside `create()`; that one still writes its
-  pre-refresh view.
+  `expires_at`, so the hint keeps firing on a session already refreshed. The
+  delete does not reach a validate already inside `create()`; that one still
+  writes its pre-refresh view.
 - **Concurrent validates of one dead session queue ~50ms apart**, one DB
   round-trip each, because failures release the cache claim instead of
   populating it. Clients that fan out must start recovery from the *first* 401.

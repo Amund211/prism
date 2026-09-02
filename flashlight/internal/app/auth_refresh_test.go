@@ -160,58 +160,30 @@ func TestBuildRefreshSession(t *testing.T) {
 		require.Equal(t, lifetimeEndsAt, session.RefreshUntil)
 	})
 
-	t.Run("rejects a refresh less than authMinRefreshInterval after the last one", func(t *testing.T) {
+	t.Run("allows a refresh immediately after the last one", func(t *testing.T) {
 		t.Parallel()
-		now := time.Date(2026, 1, 1, 12, 30, 0, 0, time.UTC)
-		// Refreshed 15 minutes ago: expires_at is still 45 minutes out.
-		current := domain.AuthSession{
-			ID:             "flsess_sid",
-			IdentityType:   domain.AuthSessionIdentityAnonymous,
-			CreatedAt:      now.Add(-15 * time.Minute),
-			ExpiresAt:      now.Add(authSessionTTL - 15*time.Minute),
-			RefreshUntil:   now.Add(authRefreshWindow - 15*time.Minute),
-			LifetimeEndsAt: now.Add(authMaxSessionAge - 15*time.Minute),
-			LastUsedAt:     now.Add(-15 * time.Minute),
-		}
-
-		var persisted bool
-		repo := &fakeAuthSessionRepo{
-			updateFn: func(_ context.Context, _ string, fn func(domain.AuthSession) (domain.AuthSession, error)) (domain.AuthSession, error) {
-				updated, err := fn(current)
-				persisted = err == nil
-				return updated, err
-			},
-		}
-
-		refresh := app.BuildRefreshSession(repo, func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
-		_, err := refresh(ctx, "flsess_sid", "new-ip")
-		require.ErrorIs(t, err, domain.ErrAuthSessionRefreshTooSoon)
-		require.False(t, persisted, "the row must be left untouched")
-	})
-
-	t.Run("allows a refresh exactly authMinRefreshInterval after the last one", func(t *testing.T) {
-		t.Parallel()
+		// No minimum interval: an early refresh gets a full new window.
 		now := time.Date(2026, 1, 1, 12, 30, 0, 0, time.UTC)
 		current := domain.AuthSession{
 			ID:             "flsess_sid",
 			IdentityType:   domain.AuthSessionIdentityAnonymous,
-			CreatedAt:      now.Add(-authMinRefreshInterval),
-			ExpiresAt:      now.Add(authSessionTTL - authMinRefreshInterval),
-			RefreshUntil:   now.Add(authRefreshWindow - authMinRefreshInterval),
-			LifetimeEndsAt: now.Add(authMaxSessionAge - authMinRefreshInterval),
-			LastUsedAt:     now.Add(-authMinRefreshInterval),
+			CreatedAt:      now.Add(-time.Minute),
+			ExpiresAt:      now.Add(authSessionTTL - time.Minute),
+			RefreshUntil:   now.Add(authRefreshWindow - time.Minute),
+			LifetimeEndsAt: now.Add(authMaxSessionAge - time.Minute),
+			LastUsedAt:     now.Add(-time.Minute),
 		}
 		refresh := app.BuildRefreshSession(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, cache.NewBasicCache[domain.AuthSession]())
-		session, err := refresh(ctx, "flsess_sid", "ip")
+		session, err := refresh(ctx, "flsess_sid", "new-ip")
 		require.NoError(t, err)
 		require.Equal(t, now.Add(authSessionTTL), session.ExpiresAt)
+		require.Equal(t, now.Add(authRefreshWindow), session.RefreshUntil)
 	})
 
 	t.Run("allows a refresh of an expired session in the grace window", func(t *testing.T) {
 		t.Parallel()
-		// The reactive client flow — 401, refresh, retry — must never hit
-		// the too-soon check: a session past expires_at has by definition
-		// burned its whole ttl.
+		// The reactive client flow — 401, refresh, retry. refresh_until is
+		// what bounds it.
 		now := time.Date(2026, 1, 1, 12, 30, 0, 0, time.UTC)
 		current := domain.AuthSession{
 			ID:             "flsess_sid",
@@ -228,11 +200,9 @@ func TestBuildRefreshSession(t *testing.T) {
 		require.Equal(t, now.Add(authSessionTTL), session.ExpiresAt)
 	})
 
-	t.Run("a session clamped to lifetime_ends_at may refresh again immediately", func(t *testing.T) {
+	t.Run("a session clamped to lifetime_ends_at may refresh again", func(t *testing.T) {
 		t.Parallel()
-		// Near the lifetime cap expires_at is pinned below now+ttl, so the
-		// remaining-lifetime test reads as "plenty burned" and the session
-		// can never lock itself out in its final stretch.
+		// Every window is pinned to the cap, so refresh is a deadline no-op.
 		now := time.Date(2026, 1, 1, 12, 30, 0, 0, time.UTC)
 		lifetimeEndsAt := now.Add(20 * time.Minute)
 		current := domain.AuthSession{
@@ -302,11 +272,11 @@ func TestBuildRefreshSession(t *testing.T) {
 		current := domain.AuthSession{
 			ID:             "flsess_sid",
 			IdentityType:   domain.AuthSessionIdentityAnonymous,
-			CreatedAt:      now.Add(-15 * time.Minute),
-			ExpiresAt:      now.Add(authSessionTTL - 15*time.Minute),
-			RefreshUntil:   now.Add(authRefreshWindow - 15*time.Minute),
-			LifetimeEndsAt: now.Add(authMaxSessionAge - 15*time.Minute),
-			LastUsedAt:     now.Add(-15 * time.Minute),
+			CreatedAt:      now.Add(-3 * time.Hour),
+			ExpiresAt:      now.Add(-2 * time.Hour),
+			RefreshUntil:   now.Add(-time.Hour),
+			LifetimeEndsAt: now.Add(authMaxSessionAge - 3*time.Hour),
+			LastUsedAt:     now.Add(-3 * time.Hour),
 		}
 
 		sessionCache := cache.NewBasicCache[domain.AuthSession]()
@@ -317,7 +287,7 @@ func TestBuildRefreshSession(t *testing.T) {
 
 		refresh := app.BuildRefreshSession(refreshUpdateRepo(t, current, "flsess_sid"), func() time.Time { return now }, sessionCache)
 		_, err = refresh(ctx, "flsess_sid", "new-ip")
-		require.ErrorIs(t, err, domain.ErrAuthSessionRefreshTooSoon)
+		require.ErrorIs(t, err, domain.ErrAuthSessionRefreshExpired)
 
 		view, created, err := cache.GetOrCreate(ctx, sessionCache, "flsess_sid", func() (domain.AuthSession, error) {
 			require.Fail(t, "the entry must still be cached")

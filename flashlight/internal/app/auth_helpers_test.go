@@ -12,10 +12,9 @@ import (
 // it here too. We duplicate rather than export to keep the production
 // package's surface internal — these values are policy, not API.
 const (
-	authSessionTTL         = 1 * time.Hour
-	authRefreshWindow      = 2 * time.Hour
-	authMinRefreshInterval = authSessionTTL / 2
-	authMaxSessionAge      = 24 * time.Hour
+	authSessionTTL    = 1 * time.Hour
+	authRefreshWindow = 2 * time.Hour
+	authMaxSessionAge = 24 * time.Hour
 )
 
 const sessionIDPrefix = "flsess_"

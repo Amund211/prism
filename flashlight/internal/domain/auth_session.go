@@ -50,9 +50,3 @@ var ErrAuthSessionExpired = errors.New("auth session expired")
 // ErrAuthSessionRefreshExpired is returned when the session is past the
 // refresh window or its 24h hard max-age.
 var ErrAuthSessionRefreshExpired = errors.New("auth session refresh window expired")
-
-// ErrAuthSessionRefreshTooSoon is returned when a session is refreshed
-// again before half its ttl has burned. Unlike the other refresh errors
-// this one is not terminal: the session is untouched and still usable,
-// the caller just asked too early.
-var ErrAuthSessionRefreshTooSoon = errors.New("auth session refreshed too soon")
