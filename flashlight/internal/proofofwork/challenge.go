@@ -1,7 +1,6 @@
 package proofofwork
 
 import (
-	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
@@ -11,6 +10,8 @@ import (
 	"math/bits"
 	"strings"
 	"time"
+
+	"github.com/Amund211/flashlight/internal/signing"
 )
 
 // AlgorithmSHA256LeadingZeros names the only proof-of-work scheme we issue
@@ -52,13 +53,10 @@ const challengeSeparator = "."
 // distinct and unpredictable.
 const nonceLength = 16
 
-// minSigningKeyLength is the smallest signing key we accept, matching the
-// SHA-256 block output. Shorter keys are almost always a truncated or
-// misconfigured secret rather than a deliberate choice.
-const minSigningKeyLength = 32
-
 var (
 	// ErrInvalidConfig is returned at construction time, never per-request.
+	// Key material is validated by internal/signing and reports
+	// signing.ErrInvalidConfig; this one covers this package's own wiring.
 	ErrInvalidConfig = errors.New("invalid proof-of-work configuration")
 
 	ErrMalformedChallenge = errors.New("malformed challenge")
@@ -151,49 +149,6 @@ type challengePayload struct {
 	Algorithm string `json:"alg"`
 }
 
-// ParseSigningKeys decodes base64 signing keys from config. The first key
-// signs every challenge we mint and all of them are accepted on the way
-// back in, so rotation is: prepend the new key, deploy, drop the old one a
-// TTL later. Blank entries are skipped — the config format is
-// newline-delimited and gets edited by hand.
-func ParseSigningKeys(encoded []string) ([][]byte, error) {
-	keys := make([][]byte, 0, len(encoded))
-	for i, raw := range encoded {
-		raw = strings.TrimSpace(raw)
-		if raw == "" {
-			continue
-		}
-		key, err := base64.StdEncoding.DecodeString(raw)
-		if err != nil {
-			// Deliberately not wrapping the decode error: it quotes the
-			// input, and the input is key material.
-			return nil, fmt.Errorf("%w: signing key %d is not valid base64", ErrInvalidConfig, i)
-		}
-		if len(key) < minSigningKeyLength {
-			return nil, fmt.Errorf("%w: signing key %d is %d bytes, want at least %d", ErrInvalidConfig, i, len(key), minSigningKeyLength)
-		}
-		keys = append(keys, key)
-	}
-	if len(keys) == 0 {
-		return nil, fmt.Errorf("%w: no signing keys", ErrInvalidConfig)
-	}
-	return keys, nil
-}
-
-// GenerateSigningKey returns a fresh base64-encoded signing key.
-// Development only. A key generated at startup dies with the process,
-// which invalidates every outstanding challenge on restart — a 60-second
-// window that a local client just retries through, but not something to
-// run in production, where the key is a secret so that it also survives a
-// revision rollout.
-func GenerateSigningKey() (string, error) {
-	var key [minSigningKeyLength]byte
-	if _, err := rand.Read(key[:]); err != nil {
-		return "", fmt.Errorf("failed to generate signing key: %w", err)
-	}
-	return base64.StdEncoding.EncodeToString(key[:]), nil
-}
-
 // BuildIssueChallenge returns the challenge minting half of the scheme.
 func BuildIssueChallenge(keys [][]byte, difficultyFor DifficultyFunc, nowFunc func() time.Time) (IssueChallenge, error) {
 	if len(keys) == 0 {
@@ -229,7 +184,7 @@ func BuildIssueChallenge(keys [][]byte, difficultyFor DifficultyFunc, nowFunc fu
 		}
 
 		body := base64.RawURLEncoding.EncodeToString(payload)
-		signature := base64.RawURLEncoding.EncodeToString(sign(signingKey, body))
+		signature := base64.RawURLEncoding.EncodeToString(signing.Sign(signingKey, body))
 
 		return Challenge{
 			Value:      body + challengeSeparator + signature,
@@ -259,7 +214,7 @@ func BuildParseChallenge(keys [][]byte, nowFunc func() time.Time) (ParseChalleng
 		// The signature covers the encoded payload exactly as it arrived,
 		// so verification never depends on re-encoding the payload the same
 		// way we did when minting it.
-		if !signedByAnyKey(keys, body, rawSignature) {
+		if !signing.SignedByAnyKey(keys, body, rawSignature) {
 			return nil, ErrBadSignature
 		}
 
@@ -350,22 +305,6 @@ func RejectionReason(err error) string {
 	default:
 		return "other"
 	}
-}
-
-func signedByAnyKey(keys [][]byte, body string, signature []byte) bool {
-	for _, key := range keys {
-		if hmac.Equal(sign(key, body), signature) {
-			return true
-		}
-	}
-	return false
-}
-
-func sign(key []byte, body string) []byte {
-	mac := hmac.New(sha256.New, key)
-	// hash.Hash.Write never returns an error.
-	_, _ = mac.Write([]byte(body))
-	return mac.Sum(nil)
 }
 
 func leadingZeroBits(digest [sha256.Size]byte) int {

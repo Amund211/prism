@@ -466,57 +466,6 @@ func TestIssueAndVerify(t *testing.T) {
 	})
 }
 
-func TestParseSigningKeys(t *testing.T) {
-	t.Parallel()
-
-	valid := base64.StdEncoding.EncodeToString(testKey(t, 1))
-	other := base64.StdEncoding.EncodeToString(testKey(t, 2))
-
-	t.Run("parses keys in order, skipping blanks", func(t *testing.T) {
-		t.Parallel()
-		keys, err := proofofwork.ParseSigningKeys([]string{valid, "", "  ", other})
-		require.NoError(t, err)
-		require.Equal(t, [][]byte{testKey(t, 1), testKey(t, 2)}, keys)
-	})
-
-	t.Run("rejects an empty key list", func(t *testing.T) {
-		t.Parallel()
-		for _, keys := range [][]string{nil, {}, {""}, {"  "}} {
-			_, err := proofofwork.ParseSigningKeys(keys)
-			require.ErrorIs(t, err, proofofwork.ErrInvalidConfig)
-		}
-	})
-
-	t.Run("rejects keys that aren't base64", func(t *testing.T) {
-		t.Parallel()
-		_, err := proofofwork.ParseSigningKeys([]string{"not base64!"})
-		require.ErrorIs(t, err, proofofwork.ErrInvalidConfig)
-	})
-
-	t.Run("rejects short keys", func(t *testing.T) {
-		t.Parallel()
-		short := base64.StdEncoding.EncodeToString([]byte("too-short"))
-		_, err := proofofwork.ParseSigningKeys([]string{short})
-		require.ErrorIs(t, err, proofofwork.ErrInvalidConfig)
-	})
-
-	t.Run("does not leak key material in the error", func(t *testing.T) {
-		t.Parallel()
-		_, err := proofofwork.ParseSigningKeys([]string{"c2VjcmV0-not-base64"})
-		require.Error(t, err)
-		require.NotContains(t, err.Error(), "c2VjcmV0")
-	})
-
-	t.Run("generated keys parse", func(t *testing.T) {
-		t.Parallel()
-		generated, err := proofofwork.GenerateSigningKey()
-		require.NoError(t, err)
-		keys, err := proofofwork.ParseSigningKeys([]string{generated})
-		require.NoError(t, err)
-		require.Len(t, keys, 1)
-	})
-}
-
 func TestBuildersRejectInvalidConfig(t *testing.T) {
 	t.Parallel()
 

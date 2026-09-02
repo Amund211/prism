@@ -17,6 +17,7 @@ import (
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/Amund211/flashlight/internal/proofofwork"
+	"github.com/Amund211/flashlight/internal/signing"
 )
 
 var noopAuthMiddleware = func(h http.HandlerFunc) http.HandlerFunc {
@@ -105,7 +106,7 @@ func newAnonymousLoginHandlerWithProof(t *testing.T, login app.AnonymousLogin, p
 // the way main.go does.
 func newProofOfWorkScheme(t *testing.T, difficulty int) (proofofwork.IssueChallenge, proofofwork.ParseChallenge) {
 	t.Helper()
-	keys, err := proofofwork.ParseSigningKeys([]string{base64.StdEncoding.EncodeToString(make([]byte, 32))})
+	keys, err := signing.ParseKeys([]string{base64.StdEncoding.EncodeToString(make([]byte, signing.MinKeyLength))})
 	require.NoError(t, err)
 	difficultyFor, err := proofofwork.BuildDifficultyFunc(difficulty)
 	require.NoError(t, err)

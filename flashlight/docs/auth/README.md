@@ -67,7 +67,7 @@ Validate is cached: keyed by session id, **1 minute, successes only**, LRU at
 `AUTH_CHALLENGE_SIGNING_KEYS` is the HMAC key list for proof-of-work
 challenges: a secret, **one per environment** so a staging challenge never
 validates against production, newline-delimited base64, at least 32 bytes once
-decoded, blank lines and `#` comments ignored (`proofofwork.ParseSigningKeys`).
+decoded, blank lines and `#` comments ignored (`signing.ParseKeys`).
 
 **The first key signs; every key is accepted.** That is what makes rotation
 non-breaking:

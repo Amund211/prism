@@ -34,6 +34,7 @@ import (
 	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/Amund211/flashlight/internal/proofofwork"
 	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/flashlight/internal/signing"
 	"github.com/Amund211/flashlight/internal/telemetry"
 )
 
@@ -196,14 +197,14 @@ func main() {
 		// loosens. An ephemeral key boots green and then fails every
 		// challenge minted by the previous revision, which is a much worse
 		// failure than refusing to start.
-		generatedKey, err := proofofwork.GenerateSigningKey()
+		generatedKey, err := signing.GenerateKey()
 		if err != nil {
 			fail("Failed to generate auth challenge signing key", "error", err.Error())
 		}
 		logger.WarnContext(ctx, "No auth challenge signing keys configured, generated an ephemeral one")
 		signingKeys = []string{generatedKey}
 	}
-	authChallengeKeys, err := proofofwork.ParseSigningKeys(signingKeys)
+	authChallengeKeys, err := signing.ParseKeys(signingKeys)
 	if err != nil {
 		fail("Failed to parse auth challenge signing keys", "error", err.Error())
 	}

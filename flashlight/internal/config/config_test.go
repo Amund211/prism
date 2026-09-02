@@ -151,7 +151,7 @@ func TestGetConfig(t *testing.T) {
 				// so "\n" and "   " are the realistic shapes of "rotated to
 				// nothing" — and they used to parse as a list of blank entries,
 				// which is non-empty, so the check here passed and the failure
-				// moved to ParseSigningKeys in another package.
+				// moved to signing.ParseKeys in another package.
 				for name, value := range map[string]string{
 					"empty":              "",
 					"one newline":        "\n",
