@@ -44,12 +44,12 @@ func AuthFromContext(ctx context.Context) (AuthContext, bool) {
 // un-authenticated path just by sending a bad token.
 //
 // Where to mount it: behind the blocklist and the IP rate limiters, and
-// inside CORS, but ahead of the user-id rate limiter. Validating a bearer
-// opens a SELECT-FOR-UPDATE transaction on the session row, and failed
-// validations are deliberately never cached, so a garbage token in front
-// of the limiters buys an unthrottled DB transaction per request —
-// connection-pool exhaustion from a single host, and invisible in the
-// metrics if the 401 also short-circuits above the metrics middleware.
+// inside CORS, but ahead of the user-id rate limiter. The original reason
+// for the first half is gone — validating a bearer used to open an uncached
+// SELECT-FOR-UPDATE per request, so a garbage token in front of the
+// limiters was connection-pool exhaustion from a single host; a failed
+// unseal is now one HMAC. Keep the order anyway: it costs nothing, and the
+// two reasons below stand on their own.
 // Inside CORS so a 401 keeps its Access-Control-Allow-Origin header and
 // the browser can read it rather than reporting an opaque network error.
 // Ahead of the user-id limiter so that limiter can key on the verified

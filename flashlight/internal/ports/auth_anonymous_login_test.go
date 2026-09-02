@@ -473,7 +473,7 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 
 	// Both halves refuse with the same status: they differ only in whether
 	// there was an interpretable challenge to observe.
-	t.Run("403 on a proof rejected at parse, ahead of any database work", func(t *testing.T) {
+	t.Run("403 on a proof rejected at parse, ahead of issuing anything", func(t *testing.T) {
 		t.Parallel()
 		for name, cause := range map[string]error{
 			"malformed":             proofofwork.ErrMalformedChallenge,
@@ -489,7 +489,7 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 		}
 	})
 
-	t.Run("403 on a proof rejected at check, ahead of any database work", func(t *testing.T) {
+	t.Run("403 on a proof rejected at check, ahead of issuing anything", func(t *testing.T) {
 		t.Parallel()
 		for name, cause := range map[string]error{
 			"expired":           proofofwork.ErrChallengeExpired,

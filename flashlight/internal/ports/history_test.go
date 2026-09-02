@@ -305,12 +305,12 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 			return w.Code
 		}
 
-		// Validating a bearer costs a SELECT-FOR-UPDATE transaction, and
-		// failed validations aren't cached, so an unthrottled bad token is a
-		// free DB write. The IP limiters have to bite before the middleware
-		// runs. The userId limiter is deliberately behind it, so the tightest
-		// bucket in front is the long IP one (burst 200); the few extra
-		// attempts absorb any wall-clock refill.
+		// A bad token now costs one failed HMAC, but the IP limiters still
+		// have to bite before the middleware runs: they are the only bucket
+		// an unauthenticated caller can be held to, since the userId limiter
+		// is deliberately behind it. That makes the tightest bucket in front
+		// the long IP one (burst 200); the few extra attempts absorb any
+		// wall-clock refill.
 		rejected := 0
 		var lastCode int
 		for range 205 {

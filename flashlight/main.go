@@ -20,7 +20,6 @@ import (
 
 	"github.com/Amund211/flashlight/internal/adapters/accountprovider"
 	"github.com/Amund211/flashlight/internal/adapters/accountrepository"
-	"github.com/Amund211/flashlight/internal/adapters/authsessionrepository"
 	"github.com/Amund211/flashlight/internal/adapters/cache"
 	"github.com/Amund211/flashlight/internal/adapters/database"
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
@@ -29,6 +28,7 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/userrepository"
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/authsessionguard"
+	"github.com/Amund211/flashlight/internal/authsessiontoken"
 	"github.com/Amund211/flashlight/internal/config"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
@@ -178,11 +178,6 @@ func main() {
 	userRepo := userrepository.NewPostgres(db, repositorySchemaName, time.Now)
 	logger.InfoContext(ctx, "Initialized UserRepository")
 
-	authSessionRepo := authsessionrepository.NewPostgres(db, repositorySchemaName)
-	logger.InfoContext(ctx, "Initialized AuthSessionRepository")
-
-	validateSessionCache := cache.NewTTLCacheWithMaxSize[domain.AuthSession](1*time.Minute, 50_000)
-
 	// Proof-of-work on anonymous login. Mandatory handshake, difficulty 0:
 	// the mechanism has to be in every client from the first auth release,
 	// because prism's upgrade tail means a no-proof path added later would
@@ -223,13 +218,36 @@ func main() {
 	}
 	logger.InfoContext(ctx, "Initialized anonymous login proof-of-work", "difficulty", proofofwork.DefaultDifficulty)
 
+	// Sessions are signed, stateless tokens: no table, no validate cache,
+	// and every refresh mints a new handle instead of mutating a row.
+	sessionKeys := config.AuthSessionSigningKeys()
+	if len(sessionKeys) == 0 && config.IsDevelopment() {
+		// Same shape and the same reasoning as the challenge keys above,
+		// but a restart costs more here: an ephemeral key invalidates every
+		// live session rather than a 60s challenge window. Acceptable in
+		// development only, and both clients re-authenticate silently.
+		generatedKey, err := signing.GenerateKey()
+		if err != nil {
+			fail("Failed to generate auth session signing key", "error", err.Error())
+		}
+		logger.WarnContext(ctx, "No auth session signing keys configured, generated an ephemeral one — a restart logs out every session")
+		sessionKeys = []string{generatedKey}
+	}
+	authSessionKeys, err := signing.ParseKeys(sessionKeys)
+	if err != nil {
+		fail("Failed to parse auth session signing keys", "error", err.Error())
+	}
+	sessionSealer, err := authsessiontoken.NewSigned(authSessionKeys)
+	if err != nil {
+		fail("Failed to initialize the auth session sealer", "error", err.Error())
+	}
+	logger.InfoContext(ctx, "Initialized stateless auth sessions")
+
 	// AllowAll: nothing bounds how many identities one IP may hold
 	// sessions for. See its doc comment for what that gave up.
-	anonymousLogin := app.BuildAnonymousLogin(authSessionRepo, authsessionguard.AllowAll{}, time.Now, app.GenerateAuthSessionID)
-	// The row backing. The stateless cutover swaps these two for the
-	// sealer-based builders next to them and drops the cache.
-	refreshSession := app.BuildRefreshSessionFromRepository(authSessionRepo, time.Now, validateSessionCache)
-	validateSession := app.BuildValidateSessionFromRepository(authSessionRepo, time.Now, validateSessionCache)
+	anonymousLogin := app.BuildAnonymousLogin(sessionSealer, authsessionguard.AllowAll{}, time.Now, app.GenerateLineage)
+	refreshSession := app.BuildRefreshSession(sessionSealer, time.Now)
+	validateSession := app.BuildValidateSession(sessionSealer, time.Now)
 	bearerAuthMiddleware := ports.NewBearerAuthMiddleware(validateSession, time.Now, blocklistConfig)
 
 	allowedOrigins, err := ports.NewDomainSuffixes(prodDomainSuffix, stagingDomainSuffix)

@@ -39,8 +39,8 @@ type Config struct {
 	// authSessionSigningKeys are the HMAC keys for stateless auth session
 	// handles, same format as the challenge keys. A separate list on
 	// purpose: two signed blobs that differ only by shape are one refactor
-	// away from cross-protocol confusion. Nothing signs with these yet —
-	// the sealer arrives with the stateless session cutover. Secret.
+	// away from cross-protocol confusion. Dropping a key from the list logs
+	// out every session signed with it. Secret.
 	authSessionSigningKeys []string
 }
 
@@ -206,8 +206,8 @@ func ConfigFromEnv() (Config, error) {
 	// Same shape and the same empty-value trap as the challenge keys above.
 	// The cost of an ephemeral key is larger here, though: it invalidates
 	// every session on restart, against 24h refresh chains, rather than a
-	// 60s challenge window. What development does about that is decided
-	// when the sealer is wired up.
+	// 60s challenge window. Development accepts that and generates an
+	// ephemeral key in main.go; production and staging must not.
 	authSessionSigningKeys, _ := lookupNewlineDelimitedEnv("AUTH_SESSION_SIGNING_KEYS")
 	if requireEnv && len(authSessionSigningKeys) == 0 {
 		return missingKey("AUTH_SESSION_SIGNING_KEYS")

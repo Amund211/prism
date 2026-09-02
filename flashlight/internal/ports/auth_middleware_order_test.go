@@ -258,7 +258,7 @@ func TestBearerAuthMiddlewareMountPosition(t *testing.T) {
 	t.Parallel()
 
 	// A bad token is the interesting case: it is what an attacker sends, and
-	// the real middleware answers it with an uncached SELECT-FOR-UPDATE.
+	// it is the arm that must stay behind the limiters and inside CORS.
 	makeCountingBearerMiddleware := func(calls *int) func(http.HandlerFunc) http.HandlerFunc {
 		return func(http.HandlerFunc) http.HandlerFunc {
 			return func(w http.ResponseWriter, r *http.Request) {

@@ -17,7 +17,7 @@ import (
 // MakeAuthRefreshHandler returns a handler for POST /v1/auth/refresh.
 // Accepts a Bearer token (which may be past expires_at but within
 // refresh_until). Tier-agnostic: the underlying use case branches on
-// the stored session.
+// the tier in the signed payload.
 func MakeAuthRefreshHandler(
 	refresh app.RefreshSession,
 	nowFunc func() time.Time,
@@ -26,10 +26,12 @@ func MakeAuthRefreshHandler(
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
 ) (http.HandlerFunc, func()) {
-	// A refresh costs a SELECT-FOR-UPDATE transaction on the session row, and
-	// the bearer is only checked inside that transaction, so an unknown token
-	// is just as expensive as a valid one. The request IP is all we can key
-	// on before touching the database.
+	// A refresh unseals a handle and seals a new one: two HMACs, no database,
+	// and an unknown token costs less than a valid one. So these limiters are
+	// not protecting a transaction — they bound how fast one host can mint
+	// handles, and the request IP is all we can key on ahead of reading the
+	// bearer. Rotation is unlimited by design (see docs/auth/README.md), which
+	// makes them the only ceiling on the call rate.
 	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(1),
 		ratelimiting.BurstSize(60),

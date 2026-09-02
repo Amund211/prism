@@ -109,11 +109,14 @@ func MakeAnonymousLoginHandler(
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
 ) (http.HandlerFunc, func()) {
-	// Every login costs a multi-statement transaction, and the endpoint is
-	// unauthenticated by definition — so it is rate limited on the only thing
-	// we have before doing any of that work, the request IP. There is no
-	// userId bucket: the body is attacker-controlled, so keying on it would
-	// just make the limit free to evade.
+	// A login is cheap now that it touches no database — one HMAC to verify
+	// the proof and one to sign the handle — so these limiters are not about
+	// server cost. They are what bounds issuance: the endpoint is
+	// unauthenticated by definition and mints a bearer for anyone who asks,
+	// and with the per-IP identity cap gone they and proof-of-work are the
+	// only things in the way. The request IP is all we have to key on. There
+	// is no userId bucket: the body is attacker-controlled, so keying on it
+	// would just make the limit free to evade.
 	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
 		ratelimiting.RefillPerSecond(1),
 		ratelimiting.BurstSize(60),
@@ -203,8 +206,10 @@ func MakeAnonymousLoginHandler(
 
 		ipHash := GetIP(r).Hash()
 
-		// Ahead of every bit of database work below, which is the entire
-		// point: a proof checked after the INSERT prices nothing.
+		// Ahead of issuing anything, which is the entire point: a proof
+		// checked after the handle is sealed gates nothing. Nothing below
+		// touches a database any more, so this is no longer about saving
+		// server work — it is about the client paying before we mint.
 		// Verification itself is one HMAC, one hash and a map lookup.
 		challenge, err := parseChallenge(body.Challenge)
 		if err != nil {

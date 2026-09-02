@@ -2,8 +2,6 @@ package app
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -147,19 +145,6 @@ type sessionSealer interface {
 	Unseal(ctx context.Context, handle string) (domain.AuthSession, error)
 }
 
-// sessionIDPrefix tags every server-issued session ID so logs and
-// scraping tools can recognize them at a glance, and so the format can
-// evolve later without breaking comparisons. Tier-agnostic — both
-// anonymous and (future) Microsoft sessions share the prefix.
-const sessionIDPrefix = "flsess_"
-
-// GenerateAuthSessionID returns a 32-byte URL-safe base64 session id
-// with sessionIDPrefix applied. The row backing's id minter; goes with the
-// repository at the cutover.
-func GenerateAuthSessionID() (string, error) {
-	var b [32]byte
-	if _, err := rand.Read(b[:]); err != nil {
-		return "", fmt.Errorf("failed to generate session id: %w", err)
-	}
-	return sessionIDPrefix + base64.RawURLEncoding.EncodeToString(b[:]), nil
-}
+// The handle's prefix and format belong to the sealer that mints them —
+// authsessiontoken.Signed — not here. Nothing in this package generates a
+// session id any more.

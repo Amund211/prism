@@ -1,7 +1,7 @@
 ---
 title: Auth sessions — how it works
 topic: auth
-area: internal/app, internal/ports, internal/adapters/authsessionrepository
+area: internal/app, internal/ports, internal/authsessiontoken
 created_at: 2026-08-08
 status: current
 tags: [auth, sessions, bearer, proof-of-work, rate-limiting]
@@ -22,10 +22,15 @@ actually running.
    no server state. Difficulty is **0** today (`proofofwork.DefaultDifficulty`):
    the mechanism is mandatory, the work is zero, so the dial can be turned
    without a client retrofit.
-2. `POST /v1/auth/anonymous/login` `{userId, challenge, solution}` → inserts an
-   `auth_sessions` row and returns `sessionId` (`flsess_` + 32 random bytes),
-   `tier`, and **durations** (never timestamps), so no client depends on a
-   wall clock. The `identity_key` is the presented `userId`.
+2. `POST /v1/auth/anonymous/login` `{userId, challenge, solution}` → returns
+   `sessionId`, `tier`, and **durations** (never timestamps), so no client
+   depends on a wall clock. The identity is the presented `userId`. **No DB and
+   no server state:** the session *is* the handle,
+   `flsess_<base64url(payload)>.<base64url(hmac-sha256)>`, signed with
+   `AUTH_SESSION_SIGNING_KEYS` (`internal/authsessiontoken`). The payload holds
+   `typ`, `identityType`, `identityKey`, `issuedAtUnixMillis`,
+   `lineageIssuedAtUnixMillis`, `lineage` and `generation` — and no deadlines.
+   Validating is a signature check; nothing is looked up and nothing is cached.
 3. The client sends `Authorization: Bearer flsess_…`. The bearer middleware
    (`ports.NewBearerAuthMiddleware`, mounted on nine handlers) validates it,
    puts `{SessionID, IdentityType, IdentityKey}` in the request context, and
@@ -35,11 +40,13 @@ actually running.
    blocklist middleware's own status and body.
 4. The user-id rate limiter (`UserIDKeyFunc`) prefers the context identity and
    falls back to the header.
-5. `POST /v1/auth/refresh` bumps `expires_at` / `refresh_until` on **the same
-   session id** — no rotation, no proof, **no minimum interval**. `401` means
-   the session is finished, re-auth from scratch. `429` is the IP limiters
-   only, and they answer ahead of the handler that reads the bearer, so it says
-   **nothing about the session** — back off, and don't re-auth on it.
+5. `POST /v1/auth/refresh` unseals, re-stamps `issuedAt`, bumps `generation`
+   and seals **a new handle** — no proof, **no minimum interval**. The client
+   must store what comes back; the previous handle is not revoked and keeps
+   working until its own expiry. `401` means the session is finished, re-auth
+   from scratch. `429` is the IP limiters only, and they answer ahead of the
+   handler that reads the bearer, so it says **nothing about the session** —
+   back off, and don't re-auth on it.
 
 6. Any response to a request that carried a valid bearer gets
    `X-Auth-Refresh: 1` once the session is within `refreshAtOffset` of expiry —
@@ -51,37 +58,60 @@ actually running.
    `validate` that failed unexpectedly. It is what lets a client attribute a
    401 it did not cause.
 
-Lifetimes, all Go constants in `internal/app/auth_session.go`: `expires_at`
-now+**1h**, `refresh_until` now+**2h**, `lifetime_ends_at` stamped at issue as
-created_at+**24h** and never extended. **Nothing limits how often a session may
-be refreshed** — the endpoint's IP limiters bound the calls, and extra handles
-buy no budget because the identity is the rate-limit key.
+Lifetimes are **derived, never stamped** — `deadlinesFor` in
+`internal/app/auth_session.go` is the only thing that computes them, from the
+two origins in the payload and the per-tier constants there:
 
-Validate is cached: keyed by session id, **1 minute, successes only**, LRU at
-50k entries (`main.go`).
+```
+lifetimeEndsAt = lineageIssuedAt + 24h        // the chain cap
+expiresAt      = min(issuedAt + 1h,  lifetimeEndsAt)
+refreshUntil   = min(issuedAt + 2h,  lifetimeEndsAt)
+```
+
+`lineageIssuedAt` is the chain's origin — copied by every reseal — and
+`issuedAt` is this handle's, re-stamped by every reseal. **Nothing limits how
+often a session may be refreshed**: the endpoint's IP limiters bound the calls,
+and extra handles buy no budget because the identity is the rate-limit key.
+
+`lineage` and `generation` are recorded by **nothing** today. They are in the
+payload on purpose, so an issuance-events table can be built later without a
+format bump — they are not dead fields.
 
 ## Signing keys and rotation
 
-`AUTH_CHALLENGE_SIGNING_KEYS` is the HMAC key list for proof-of-work
-challenges: a secret, **one per environment** so a staging challenge never
-validates against production, newline-delimited base64, at least 32 bytes once
-decoded, blank lines and `#` comments ignored (`signing.ParseKeys`).
+**Two separate key lists, and they must never be shared.** Domain separation is
+what stops a challenge blob and a session handle — two signed blobs differing
+only by shape — from being confused for one another; the `typ` field inside the
+payload is the second half of it.
+
+| Variable | Signs | A dropped key costs |
+|---|---|---|
+| `AUTH_CHALLENGE_SIGNING_KEYS` | proof-of-work challenges | outstanding challenges, ≤ `challengeTTL` (**60s**) |
+| `AUTH_SESSION_SIGNING_KEYS` | session handles | **every live session** — a mass logout, up to 24h of chains |
+
+Both are secrets, **one per environment** so a staging blob never validates
+against production, newline-delimited base64, at least 32 bytes once decoded.
+Blank lines and `#` comments are stripped when the env var is read
+(`config.lookupNewlineDelimitedEnv`); `signing.ParseKeys` then decodes and
+length-checks what survives.
 
 **The first key signs; every key is accepted.** That is what makes rotation
 non-breaking:
 
 1. prepend the new key, deploy;
 2. drop the old line once nothing signed with it can still be presented — one
-   `challengeTTL` (**60s**) later.
+   `challengeTTL` (60s) for challenges, **24h** for sessions.
 
-Dropping it in the same deploy instead invalidates every outstanding challenge.
-Clients recover by asking for a new one, so the blast radius is a round trip.
+Dropping a key in the same deploy instead is a revocation, and it is the only
+irreversible one available: for challenges the blast radius is a round trip,
+for sessions it is a silent re-login for everybody.
 
 Development may run with no keys and generates an ephemeral one at startup, so a
-restart invalidates outstanding challenges. Production and staging refuse to
-start without keys — deliberately, since a key that dies with the process also
-dies on every revision rollout. **An empty secret version is `set`**, so the
-check is on the parsed list's length, not on the variable's presence.
+restart invalidates outstanding challenges and logs out local sessions.
+Production and staging refuse to start without keys — deliberately, since a key
+that dies with the process also dies on every revision rollout. **An empty
+secret version is `set`**, so the check is on the parsed list's length, not on
+the variable's presence.
 
 ## Assumptions and pitfalls
 
@@ -99,11 +129,33 @@ check is on the parsed list's length, not on the variable's presence.
   `domain.ErrAuthSessionIssuanceRefused`: that is what login answers with a
   **429**, and anything else it returns is a 500 plus a Sentry report.
 - **The bearer middleware must stay behind an IP limiter and inside CORS, and
-  ahead of the identity-keyed limiter.** Failed validations are uncached
-  `SELECT … FOR UPDATE` transactions, so a garbage token in front of the
-  limiters is connection-pool exhaustion from one host — this was a live DoS.
+  ahead of the identity-keyed limiter.** The order's original motivation is
+  gone — a failed unseal is an HMAC, not an uncached `SELECT … FOR UPDATE`
+  against 16 connections, which was a live DoS — but keep the order anyway: it
+  costs nothing and the identity-keyed limiter needs the identity.
   `TestBearerAuthMiddlewareMountPosition` is the only thing keeping the nine
   hand-assembled chains in agreement.
+- **`lineageIssuedAt` is copied on reseal and never re-stamped, and the chain
+  cap is derived from it — never from `issuedAt`.** `refreshed()` is the only
+  writer of a refreshed session for exactly this reason. Get it wrong and
+  refresh becomes an unbounded lifetime extension: silent, and invisible until
+  a session has lived a week.
+- **Expiry is not monotonic, because nothing is stamped.** Shortening a
+  lifetime constant kills live sessions (intended); **lengthening one
+  resurrects dead handles**, since every deadline is recomputed from the
+  payload on each request. So a lifetime reduction is *not* a revocation —
+  treat it as permanent, or drop a signing key, which is the only irreversible
+  lever.
+- **The payload is readable by anyone holding the handle** — it is signed, not
+  encrypted. It carries the `userId` the client generated itself, so the
+  disclosure is ~nil; the hazard is that its readability invites somebody to
+  parse it. Opaque by contract is the whole reason this backing could change
+  without a client release.
+- **A leaked signing key mints any identity in any tier**, including tiers that
+  do not exist yet. Bounded only by rotation, which is a deploy.
+- **The blocklist is the only revocation.** There is no row to mark, so
+  `BLOCKED_USER_IDS` on the verified `IdentityKey` (below) plus dropping a
+  signing key is the whole toolbox.
 - **`BLOCKED_USER_IDS` is checked twice, and both are needed.** The blocklist
   middleware tests the `X-User-Id` header, which a blocked caller omits for
   free while presenting a valid session; the bearer middleware tests the
@@ -112,7 +164,7 @@ check is on the parsed list's length, not on the variable's presence.
   truncates to **50 chars** while a `userId` may be **100**. Both checks
   normalize, as `UserIDKeyFunc` does; compare a raw key on either side and one
   entry silently covers one path and misses the other. An entry may be dropped
-  after **24h**: `lifetime_ends_at` bounds every token that could still be
+  after **24h**: the chain cap bounds every handle that could still be
   presented, so nothing survives it. The cheap header check stays in front — it
   runs before any validation, and no `Authorization` header means no identity
   to test. Two things it is **not**: the auth endpoints test neither list, so a
@@ -120,22 +172,6 @@ check is on the parsed list's length, not on the variable's presence.
   authed handler accepts); and it is not revocation, because dropping the
   bearer and picking a fresh `userId` is a new unauthenticated identity — the
   `X-User-Id` fallback pitfall below, which outlives this.
-- **A validate cache hit re-checks nothing.** Expiry is only evaluated inside
-  `create()`, so an entry serves for its full minute regardless of what the row
-  does. A revoked or expired session stays usable for up to a minute; accepted.
-- **Only immutable verdicts may be negatively cached — `expired` rests on the
-  refresh invalidation.** Failures are deliberately uncached today. `not_found`
-  and `revoked` are permanent and would be safe; **`expired` is not permanent,
-  because refresh flips it back to valid**, and refresh presents the same cache
-  key. Deleting the entry on refresh is what makes caching it feasible at all:
-  without that, the retry after a refresh is served a stale 401 and refreshes
-  again — which now succeeds, so the client loops for the whole negative TTL
-  instead of re-logging in. The other way out, if negative caching is ever
-  wanted, is to make
-  **`authRefreshWindow` equal `authSessionTTL`**: past `expires_at` a session is
-  then also unrefreshable, `expired` becomes immutable, and caching it is safe.
-  The cost is the grace window — a client idle past the TTL always pays a full
-  re-login instead of a refresh, which hits reactive clients (rainbow) hardest.
 - **`X-Auth-Refresh` must be set before the handler writes, and named in
   `Access-Control-Expose-Headers`.** After `WriteHeader` the header map is
   frozen and setting it is a silent no-op; without the CORS entry a browser
@@ -151,22 +187,16 @@ check is on the parsed list's length, not on the variable's presence.
   the IP limiters, CORS preflight, `/v1/prestiges/{uuid}`, Cloud Run and a
   stripping proxy all answer without it, so a client that reads absence as "the
   server validated my bearer" latches a verdict it cannot clear.
-- **Refresh does not rotate the session id.** A leaked token therefore lives to
-  its own `lifetime_ends_at` (≤24h) no matter what the real user does; there is
-  no user-driven remediation and no "sign out everywhere".
-- **Refresh deletes the session's validate cache entry.** Since the id is
-  stable and a hit re-checks nothing, leaving it means every read for the rest
-  of that minute — the `X-Auth-Refresh` hint included — sees the pre-refresh
-  `expires_at`, so the hint keeps firing on a session already refreshed. The
-  delete does not reach a validate already inside `create()`; that one still
-  writes its pre-refresh view.
-- **Concurrent validates of one dead session queue ~50ms apart**, one DB
-  round-trip each, because failures release the cache claim instead of
-  populating it. Clients that fan out must start recovery from the *first* 401.
+- **Refresh rotates the handle, and refreshing does not revoke the parent.**
+  The old handle keeps validating until its own `expiresAt`, so a client that
+  drops the response still works for up to an hour. A leaked handle likewise
+  lives to its own deadline (≤24h) whatever the real user does: there is no
+  user-driven remediation and no "sign out everywhere".
 - **The `X-User-Id` fallback still exists**, so a self-asserted header can be
   aimed at an anonymous identity's bucket. Ends when the fallback does.
-- **Nothing deletes `auth_sessions` rows.** Retention is unbuilt, and it is the
-  gate before prism ships auth.
+- **`auth_sessions` is orphaned, not gone.** Nothing reads or writes it; it is
+  left in place for one deploy or two so `git revert` of the cutover has a table
+  to land on. Dropping it is a migration of its own.
 - **`pow_challenge_age_seconds` only samples challenges that come back**, so a
   difficulty past what clients can finish makes `outcome="ok"` look *better* as
   the slow half stops reporting. Read it next to `outcome="expired"`.

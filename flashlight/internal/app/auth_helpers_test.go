@@ -2,9 +2,14 @@ package app_test
 
 import (
 	"context"
+	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/authsessiontoken"
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/signing"
 )
 
 // Local mirrors of the production tier-agnostic tunables. Kept in
@@ -17,37 +22,15 @@ const (
 	authMaxSessionAge = 24 * time.Hour
 )
 
-const sessionIDPrefix = "flsess_"
-
 func fixedNow(now time.Time) func() time.Time {
 	return func() time.Time { return now }
 }
 
-// fakeAuthSessionRepo is a function-field stub satisfying the
-// file-local repository interfaces in the app package by structural
-// typing. Each test wires up only the methods it expects to be called;
-// an unconfigured method will panic with a nil-pointer dereference,
-// which is the signal that the use case touched a repo method the test
-// didn't expect.
-type fakeAuthSessionRepo struct {
-	createFn func(ctx context.Context, sess domain.AuthSession) error
-	updateFn func(ctx context.Context, id string, update func(domain.AuthSession) (domain.AuthSession, error)) (domain.AuthSession, error)
-}
-
-func (f *fakeAuthSessionRepo) Create(ctx context.Context, sess domain.AuthSession) error {
-	return f.createFn(ctx, sess)
-}
-
-func (f *fakeAuthSessionRepo) Update(
-	ctx context.Context,
-	id string,
-	update func(domain.AuthSession) (domain.AuthSession, error),
-) (domain.AuthSession, error) {
-	return f.updateFn(ctx, id, update)
-}
-
-// fakeSessionSealer satisfies the app package's unexported sessionSealer by
-// structural typing, the same way fakeAuthSessionRepo does.
+// fakeSessionSealer is a function-field stub satisfying the app package's
+// unexported sessionSealer by structural typing. Each test wires up only
+// the methods it expects to be called; an unconfigured method panics with
+// a nil-pointer dereference, which is the signal that the use case touched
+// a method the test didn't expect.
 type fakeSessionSealer struct {
 	sealFn   func(ctx context.Context, sess domain.AuthSession) (domain.AuthSession, error)
 	unsealFn func(ctx context.Context, handle string) (domain.AuthSession, error)
@@ -59,6 +42,15 @@ func (f *fakeSessionSealer) Seal(ctx context.Context, sess domain.AuthSession) (
 
 func (f *fakeSessionSealer) Unseal(ctx context.Context, handle string) (domain.AuthSession, error) {
 	return f.unsealFn(ctx, handle)
+}
+
+// newTestSealer is the real signed sealer under an all-zero key, for the
+// cases that must go through the production format rather than a fake.
+func newTestSealer(t *testing.T) authsessiontoken.Signed {
+	t.Helper()
+	sealer, err := authsessiontoken.NewSigned([][]byte{make([]byte, signing.MinKeyLength)})
+	require.NoError(t, err)
+	return sealer
 }
 
 // unsealTo returns a sealer whose Unseal always yields sess, and whose Seal
