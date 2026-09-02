@@ -4,13 +4,13 @@ import pytest
 
 from prism.flashlight.auth.errors import (
     AuthError,
-    RefreshTooSoonError,
+    RefreshRateLimitedError,
     SessionExpiredError,
 )
 from prism.flashlight.auth.manager import (
     INITIAL_BACKOFF_SECONDS,
     MAX_BACKOFF_SECONDS,
-    TOO_SOON_REFRESH_DELAY_SECONDS,
+    RATE_LIMITED_REFRESH_DELAY_SECONDS,
 )
 from tests.prism.auth_utils import (
     make_auth_manager,
@@ -88,11 +88,11 @@ def test_reconcile_skips_a_refresh_that_would_be_pointless() -> None:
     assert refresh.session_ids == []
 
 
-def test_reconcile_keeps_the_session_when_a_refresh_is_too_soon() -> None:
-    """A 429 means the session is untouched - re-logging in would be a stampede"""
+def test_reconcile_keeps_the_session_when_a_refresh_is_rate_limited() -> None:
+    """A 429 leaves the session untouched, so keep it rather than log in again"""
     session = make_session(refresh_in_seconds=60.0)
     manager, login, refresh = make_auth_manager(
-        login_results=[session], refresh_results=[RefreshTooSoonError("too soon")]
+        login_results=[session], refresh_results=[RefreshRateLimitedError("slow down")]
     )
 
     manager.reconcile()
@@ -102,21 +102,20 @@ def test_reconcile_keeps_the_session_when_a_refresh_is_too_soon() -> None:
     assert login.calls == 1
     assert manager.consecutive_failures == 0
     assert manager.last_error is None
-    assert manager.seconds_until_next_action() == TOO_SOON_REFRESH_DELAY_SECONDS
+    assert manager.seconds_until_next_action() == RATE_LIMITED_REFRESH_DELAY_SECONDS
 
 
-def test_a_too_soon_refusal_never_schedules_earlier_than_the_session_wants() -> None:
+def test_a_rate_limited_refresh_never_schedules_earlier_than_wanted() -> None:
     """
     Otherwise one 429 becomes a loop of them
 
-    A session refused as too fresh is good until its own refresh point, and the
-    server's minimum interval is longer than the too-soon delay - so moving the
-    next attempt *forward* would just walk into the same refusal repeatedly, each
-    time logging a warning that claims no honest client sees it.
+    The session we hold is good until its own refresh point and the 429 says
+    nothing about it, so moving the next attempt *forward* would just spend the
+    endpoint's rate limit on an answer we already have.
     """
     session = make_session(refresh_in_seconds=3300.0)
     manager, login, refresh = make_auth_manager(
-        login_results=[session], refresh_results=[RefreshTooSoonError("too soon")]
+        login_results=[session], refresh_results=[RefreshRateLimitedError("slow down")]
     )
 
     manager.reconcile()
@@ -132,7 +131,7 @@ def test_a_request_arriving_mid_pass_does_not_provoke_a_second_one() -> None:
     Flashlight sets X-Auth-Refresh from the same point refreshInSeconds counts
     down to, so a lobby fan-out reports the hint while the refresh it asked for is
     still in flight. Leaving that request queued would make the auth thread
-    refresh again immediately - straight into a too-soon 429.
+    refresh again immediately - a round trip that renews what was just renewed.
     """
     session = make_session(session_id="flsess_first")
     refreshed = make_session(session_id="flsess_first")
@@ -169,9 +168,7 @@ def test_reconcile_records_a_bug_as_a_failure_before_re_raising() -> None:
     assert manager.consecutive_failures == 1
     assert manager.seconds_until_next_action() == INITIAL_BACKOFF_SECONDS
     # And a request that 401s now fails fast instead of waiting for a pass
-    recovery = manager.recover_from_unauthorized(session, timeout=5)
-    assert recovery.session is None
-    assert not recovery.session_confirmed
+    assert manager.recover_from_unauthorized(session, timeout=5) is None
 
 
 def test_reconcile_records_failures_and_backs_off() -> None:
@@ -245,39 +242,35 @@ def test_recover_from_unauthorized_adopts_a_session_someone_else_got() -> None:
 
     manager.reconcile()
 
-    recovery = manager.recover_from_unauthorized(stale, timeout=0)
-    assert recovery.session is current
-    assert not recovery.session_confirmed
+    assert manager.recover_from_unauthorized(stale, timeout=0) is current
     # Nothing was asked of the server
     assert login.calls == 1
     assert refresh.session_ids == []
 
 
-def test_recover_from_unauthorized_confirms_a_session_the_server_vouched_for() -> None:
+def test_recover_from_unauthorized_has_nothing_to_offer_after_a_429() -> None:
     """
-    A too-soon refusal is the server saying our session is fine
+    A rate limited refresh is not the server vouching for our session
 
-    Which is the only thing that lets /v1/tags conclude a 401 was its Urchin API
-    key's rather than ours.
+    The refresh endpoint's IP limiters answer ahead of the handler that reads the
+    bearer, so a 429 says nothing about the session we sent - and a caller told
+    otherwise blames its own 401 on an Urchin API key that is fine.
     """
     session = make_session()
     manager, login, refresh = make_auth_manager(
-        login_results=[session], refresh_results=[RefreshTooSoonError("too soon")]
+        login_results=[session], refresh_results=[RefreshRateLimitedError("slow down")]
     )
     manager.reconcile()
 
     with running_auth_thread(manager):
-        recovery = manager.recover_from_unauthorized(session, timeout=5)
-
-    assert recovery.session is None
-    assert recovery.session_confirmed
+        assert manager.recover_from_unauthorized(session, timeout=5) is None
 
 
-def test_recover_from_unauthorized_does_not_confirm_what_it_could_not_check() -> None:
+def test_recover_from_unauthorized_gives_up_while_auth_is_failing() -> None:
     """
     16 stats threads must not out-vote the auth thread's backoff
 
-    And while auth is failing we have no verdict on the session, so nothing may be
+    And while auth is failing we have nothing to retry with, so nothing may be
     told that its own 401 is explained.
     """
     session = make_session()
@@ -289,23 +282,19 @@ def test_recover_from_unauthorized_does_not_confirm_what_it_could_not_check() ->
     manager.reconcile()
     manager.reconcile()
 
-    recovery = manager.recover_from_unauthorized(session, timeout=0)
-    assert recovery.session is None
-    assert not recovery.session_confirmed
+    assert manager.recover_from_unauthorized(session, timeout=0) is None
     # No pass was requested, so the auth thread still gets to sleep off its backoff
     assert manager.seconds_until_next_action() == INITIAL_BACKOFF_SECONDS
 
 
-def test_recover_from_unauthorized_has_no_verdict_when_the_wait_times_out() -> None:
+def test_recover_from_unauthorized_has_nothing_when_the_wait_times_out() -> None:
     session = make_session()
     manager, login, refresh = make_auth_manager(login_results=[session])
 
     manager.reconcile()
 
     # No auth thread running, so the requested pass never completes
-    recovery = manager.recover_from_unauthorized(session, timeout=0)
-    assert recovery.session is None
-    assert not recovery.session_confirmed
+    assert manager.recover_from_unauthorized(session, timeout=0) is None
 
 
 def test_recover_from_unauthorized_waits_for_the_auth_thread() -> None:
@@ -320,10 +309,8 @@ def test_recover_from_unauthorized_waits_for_the_auth_thread() -> None:
     assert observed is session
 
     with running_auth_thread(manager):
-        recovery = manager.recover_from_unauthorized(observed, timeout=5)
+        assert manager.recover_from_unauthorized(observed, timeout=5) is renewed
 
-    assert recovery.session is renewed
-    assert not recovery.session_confirmed
     assert refresh.session_ids == ["flsess_lapsed"]
 
 

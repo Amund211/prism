@@ -5,11 +5,9 @@ from prism.flashlight.auth.errors import AuthError
 
 # The shortest delay we will ever schedule a proactive refresh for.
 #
-# The server decides when we refresh (`refreshInSeconds`, ~55 minutes into a
-# 1 hour session today) and we just obey it - but a bug or a misconfiguration
-# there must not be able to turn the auth thread into a hash-and-HTTP loop.
-# Refreshing a session the server considers too fresh changes nothing and comes
-# back 429, so a zero delay would spin.
+# `refreshInSeconds: 0` would otherwise spin: nothing refuses an early refresh,
+# so every pass succeeds and hands back another session asking for the same.
+# Floors the proactive timer only - see `note_refresh_hint`'s TODO.
 MIN_REFRESH_DELAY_SECONDS = 60.0
 
 

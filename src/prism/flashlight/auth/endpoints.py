@@ -7,7 +7,7 @@ from requests.exceptions import RequestException
 
 from prism.flashlight.auth.errors import (
     AuthError,
-    RefreshTooSoonError,
+    RefreshRateLimitedError,
     SessionExpiredError,
 )
 from prism.flashlight.auth.proof_of_work import Challenge, parse_challenge_response
@@ -121,8 +121,9 @@ def refresh_session(
     Extend the given session
 
     Tier-agnostic: the server branches on the stored session, so this is the
-    same call whichever `LoginMethod` established it. The session id does not
-    rotate - the returned session carries the same id with later deadlines.
+    same call whichever `LoginMethod` established it. The returned session
+    replaces the one we hold whole - the id is opaque, and whether it is the same
+    one is the server's business, not ours.
     """
     path = "/v1/auth/refresh"
     response = _post_json(
@@ -141,24 +142,10 @@ def refresh_session(
         )
 
     if response.status_code == 429:
-        # Either the too-soon throttle or the endpoint's IP rate limit. Both
-        # leave the session untouched, and re-logging in is the wrong reaction
-        # to both.
-        # TODO: The two causes are indistinguishable on the wire today, but they
-        #       do not mean the same thing, and we treat both as the server
-        #       vouching for our session: `_postpone` sets
-        #       `confirmed_session=True` and holds requests off for 5 minutes, so
-        #       every 401 in that window is handed back to the caller and
-        #       `tags.py` blames the Urchin API key - which latches
-        #       `urchin_api_key_invalid` permanently (once set, `urchin_api_key`
-        #       is passed as None, so the reset branch never runs). The IP limiter
-        #       runs before the handler and never looks at the bearer, so several
-        #       prism users behind one NAT/CGNAT IP can trip it while one of them
-        #       genuinely has a dead session: that user gets a permanent bogus
-        #       "Invalid Urchin API key" banner and stops sending a good key.
-        #       Only the too-soon throttle should confirm the session - needs the
-        #       server to tell the two apart.
-        raise RefreshTooSoonError("Flashlight refused to refresh this session yet")
+        # The endpoint's per-IP rate limit, and nothing else since the server
+        # dropped its minimum refresh interval. The limiters answer ahead of the
+        # handler that reads the bearer, so this says nothing about our session.
+        raise RefreshRateLimitedError("Flashlight rate limited the refresh request")
 
     if not response.ok:
         raise AuthError(f"Session refresh failed, status code {response.status_code}")

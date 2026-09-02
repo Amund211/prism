@@ -66,9 +66,9 @@ class FlashlightTagsProvider:
 
         # NOTE: This endpoint answers 401 both for an invalid urchin API key and
         #       for an auth session flashlight won't accept. A 401 only reaches
-        #       this point when send_authenticated established that our session is
-        #       *not* the cause - otherwise it raises SessionRecoveryError - so
-        #       this one is the urchin key's. That distinction matters because
+        #       this point when the server itself told us it validated our session
+        #       (X-Auth-Session), so it is *not* the cause - any other 401 becomes
+        #       a SessionRecoveryError. That distinction matters because
         #       APIKeyError latches urchin_api_key_invalid for the rest of the
         #       process, which would stop us sending a perfectly good key.
         if response.status_code == 401:

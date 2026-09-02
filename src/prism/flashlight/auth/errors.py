@@ -22,13 +22,13 @@ class SessionExpiredError(AuthError):
     """
 
 
-class RefreshTooSoonError(AuthError):
+class RefreshRateLimitedError(AuthError):
     """
-    Flashlight refused to refresh a session it considers too fresh (429)
+    Flashlight rate limited the refresh request (429)
 
-    The opposite of `SessionExpiredError`: the session is untouched and still
-    good, so the session must be kept and re-login must NOT happen. Folding
-    this into the 401 case would turn a throttle into a re-login stampede.
+    Says nothing about the session, unlike `SessionExpiredError`: the per-IP
+    limiters answer ahead of the handler that reads the bearer. The session is
+    untouched, so keep it and do not re-log in.
     """
 
 
@@ -46,9 +46,9 @@ class SessionRecoveryError(APIError):
     A request got a 401 we cannot account for
 
     The counterpart to handing a 401 back to the caller, which only happens when
-    we know the session it carried was validated. This says the opposite: we do
-    not know whose 401 it was, so a caller must not blame anything of its own for
-    it. `/v1/tags/{uuid}` is why that distinction exists - it answers 401 for an
-    invalid Urchin API key too, and wrongly latching that is sticky for the rest
-    of the process.
+    the server told us it validated the bearer we sent (`X-Auth-Session`). This
+    says the opposite: we do not know whose 401 it was, so a caller must not
+    blame anything of its own for it. `/v1/tags/{uuid}` is why that distinction
+    exists - it answers 401 for an invalid Urchin API key too, and wrongly
+    latching that is sticky for the rest of the process.
     """
