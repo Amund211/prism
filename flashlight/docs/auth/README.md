@@ -194,9 +194,6 @@ the variable's presence.
   user-driven remediation and no "sign out everywhere".
 - **The `X-User-Id` fallback still exists**, so a self-asserted header can be
   aimed at an anonymous identity's bucket. Ends when the fallback does.
-- **`auth_sessions` is orphaned, not gone.** Nothing reads or writes it; it is
-  left in place for one deploy or two so `git revert` of the cutover has a table
-  to land on. Dropping it is a migration of its own.
 - **`pow_challenge_age_seconds` only samples challenges that come back**, so a
   difficulty past what clients can finish makes `outcome="ok"` look *better* as
   the slow half stops reporting. Read it next to `outcome="expired"`.
