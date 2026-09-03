@@ -25,6 +25,18 @@ export const getFlashlightHeaders = (): Record<string, string> => ({
 // request that carried a valid bearer, from 5 minutes before it expires.
 const REFRESH_HINT_HEADER = "X-Auth-Refresh";
 
+// A session handle: the `flsess_` prefix and its base64url payload.signature.
+// The prefix is a hard constraint on the wire, not a convention — auth/api.ts
+// throws on a login response without it — so matching on it is safe.
+const HANDLE_RX = /flsess_[A-Za-z0-9_.-]*/g;
+
+// redactHandles strips session handles from a response body before it is
+// reported. The body of a login or refresh response *is* a session response,
+// so every path that ships a body to Sentry or into a thrown message would
+// otherwise ship a bearer. Unconditional, so no call site has to remember.
+const redactHandles = (text: string): string =>
+    text.replace(HANDLE_RX, "flsess_<redacted>");
+
 export class FlashlightResponseError extends Error {
     public readonly status: number;
 
@@ -113,15 +125,16 @@ export const flashlightRequest = async <T>(
     });
 
     if (!response.ok) {
+        const safeText = redactHandles(text);
         if (expectedStatuses?.includes(response.status) !== true) {
             captureMessage(`${errorContext}: response error`, {
                 level: "error",
                 tags,
-                extra: { ...extra, ...tags, text },
+                extra: { ...extra, ...tags, text: safeText },
             });
         }
         throw new FlashlightResponseError(
-            `${errorContext}. ${response.status.toString()} - ${response.statusText}: ${text}`,
+            `${errorContext}. ${response.status.toString()} - ${response.statusText}: ${safeText}`,
             response.status,
         );
     }
@@ -129,9 +142,15 @@ export const flashlightRequest = async <T>(
     try {
         return { data: JSON.parse(text) as T, refreshHint };
     } catch (error: unknown) {
+        // The thrown SyntaxError is reported as-is: V8 truncates the body
+        // snippet in its message to ~10 chars, which cannot carry a handle.
         captureException(error, {
             tags,
-            extra: { ...extra, message: `${errorContext}: failed to parse json`, text },
+            extra: {
+                ...extra,
+                message: `${errorContext}: failed to parse json`,
+                text: redactHandles(text),
+            },
         });
         throw error;
     }
