@@ -150,7 +150,13 @@ the variable's presence.
   encrypted. It carries the `userId` the client generated itself, so the
   disclosure is ~nil; the hazard is that its readability invites somebody to
   parse it. Opaque by contract is the whole reason this backing could change
-  without a client release.
+  without a client release. AEAD is refused: nothing in the payload is worth
+  hiding.
+- **A handle must never reach a log or an error report.** Nothing does today.
+  The one non-obvious reason is `SendDefaultPII` left **false**, which is why
+  `sentryhttp` strips `Authorization` from the request it attaches to every
+  event; turning it on ships bearers to Sentry
+  (`TestSentryDoesNotSendTheAuthorizationHeader`).
 - **A leaked signing key mints any identity in any tier**, including tiers that
   do not exist yet. Bounded only by rotation, which is a deploy.
 - **The blocklist is the only revocation.** There is no row to mark, so

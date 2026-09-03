@@ -2,12 +2,38 @@ package reporting
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/stretchr/testify/require"
 
 	"github.com/Amund211/flashlight/internal/strutils"
 )
+
+// sentryhttp attaches the incoming request to every event, and SendDefaultPII
+// is the only thing that decides whether its headers come along. Left false,
+// sentry-go drops Authorization (its sensitiveHeaders list); turned on, every
+// event carries a live bearer. Nothing else in the codebase would notice, so
+// pin it here.
+//
+// Not parallel: sentry.Init replaces the global hub's client.
+func TestSentryDoesNotSendTheAuthorizationHeader(t *testing.T) {
+	_, _, err := InitSentryMiddleware("https://key@example.invalid/1")
+	require.NoError(t, err)
+
+	options := sentry.CurrentHub().Client().Options()
+	require.False(t, options.SendDefaultPII, "SendDefaultPII ships bearers to Sentry")
+
+	r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/playerdata", http.NoBody)
+	r.Header.Set("Authorization", "Bearer flsess_payload.signature")
+	r.Header.Set("X-Client-Type", "prism")
+
+	headers := sentry.NewRequest(r).Headers
+	require.NotContains(t, headers, "Authorization")
+	require.Equal(t, "prism", headers["X-Client-Type"])
+}
 
 func TestSanitizeError(t *testing.T) {
 	t.Parallel()
