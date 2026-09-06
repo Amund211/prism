@@ -66,6 +66,35 @@
   },
   packageRules: [
     {
+      // The `go` directive in go.mod. Renovate parses it with the
+      // `go-mod-directive` versioning, which reads `go 1.26.6` as the range
+      // `^1.26.6`. Under the default `replace` strategy a range is only
+      // rewritten when the new version falls outside it, and every 1.x release
+      // satisfies `^1.26.6` — so the directive silently never moves. `bump`
+      // raises the floor to the new version instead. Upstream's default is
+      // deliberate (the Go team advises against bumping the directive without
+      // reason), but every workflow here resolves its toolchain from
+      // `go-version-file: go.mod`, so leaving it behind means CI tests on an
+      // older Go than the Dockerfile ships.
+      // `matchDepTypes` is load-bearing: a `toolchain` directive would also be
+      // depName `go`, and that one renovate already updates by default.
+      matchManagers: ["gomod"],
+      matchDepTypes: ["golang"],
+      matchDepNames: ["go"],
+      rangeStrategy: "bump",
+      groupName: "go version",
+    },
+    {
+      // Same group as the directive above, so the go.mod bump and the build
+      // stage's `FROM golang:...` bump arrive as one PR instead of two that
+      // each leave the pair mismatched. Both resolve to the same upstream
+      // release — golang-version and the docker tag — so they move in step.
+      // Digest-only moves on the pinned tag land here too; that is fine.
+      matchManagers: ["dockerfile"],
+      matchDepNames: ["golang"],
+      groupName: "go version",
+    },
+    {
       // A digest-only move on a SHA-pinned action means an existing tag was
       // repointed upstream — the tag-hijack signature (tj-actions/changed-files,
       // CVE-2025-30066). Legitimate fixes arrive as a new tag through the normal
