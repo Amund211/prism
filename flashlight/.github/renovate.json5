@@ -103,5 +103,23 @@
       matchUpdateTypes: ["digest"],
       enabled: false,
     },
+    {
+      // Of all the container registries, only Docker Hub reports a release
+      // timestamp to renovate (renovatebot/renovate#38656). Everything else —
+      // gcr.io and us-docker.pkg.dev here — reports none, and the default
+      // minimumReleaseAgeBehaviour=timestamp-required counts a missing
+      // timestamp as "not aged yet". Nothing ever supplies it later, so with
+      // the default internalChecksFilter=strict the update is withheld
+      // indefinitely: no branch, no PR, only a line under "Pending Status
+      // Checks" on the dependency dashboard. That is why dependabot opened
+      // #353 (distroless digest) and #378 (otel collector 0.156.1 -> 0.159.0)
+      // and renovate did not.
+      // The flag only decides what to do when the timestamp is absent, so this
+      // is a no-op for golang and postgres — those keep the full 7 days. In
+      // exchange renovate warns on the dashboard for each dep it lets through
+      // unaged; that warning is the point, so it is left unremapped.
+      matchDatasources: ["docker"],
+      minimumReleaseAgeBehaviour: "timestamp-optional",
+    },
   ],
 }
