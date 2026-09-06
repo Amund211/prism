@@ -387,59 +387,32 @@ describe("Layout - mobile navigation links include current user", () => {
 });
 
 describe("Layout - dark mode", () => {
+    // Both layouts render a switch, so assert visibility, not presence: the
+    // drawer one is visible at desktop width, the AppBar one at mobile width.
+    const darkModeSwitches = (
+        screen: Awaited<ReturnType<typeof renderAppRoute>>["screen"],
+    ) => screen.getByLabelText("Switch to dark mode", { exact: true });
+
     mswTest("dark mode switch renders in desktop layout", async () => {
         await page.viewport(1280, 720);
-        await renderAppRoute("/");
+        const { screen } = await renderAppRoute("/");
 
-        // Look for the dark mode toggle buttons (light/system/dark)
-        await expect
-            .poll(() => {
-                const toggleGroup = document.querySelector(
-                    ".MuiToggleButtonGroup-root",
-                );
-                return toggleGroup !== null;
-            })
-            .toBe(true);
+        await expect.element(darkModeSwitches(screen).last()).toBeVisible();
     });
 
     mswTest("dark mode switch renders in mobile layout", async () => {
         await page.viewport(375, 667);
-        await renderAppRoute("/");
+        const { screen } = await renderAppRoute("/");
 
-        await expect
-            .poll(() => {
-                const toggleGroup = document.querySelector(
-                    ".MuiToggleButtonGroup-root",
-                );
-                return toggleGroup !== null;
-            })
-            .toBe(true);
+        await expect.element(darkModeSwitches(screen).first()).toBeVisible();
     });
 
     mswTest("dark mode toggle persists selection to localStorage", async () => {
         await page.viewport(1280, 720);
         const { screen } = await renderAppRoute("/");
 
-        const group = screen.getByRole("group", {
-            name: "Color theme switcher",
-        });
-        await expect.element(group).toBeInTheDocument();
+        await darkModeSwitches(screen).last().click();
 
-        // Click "Dark mode" toggle button
-        await expect
-            .poll(() => {
-                const darkBtn = document.querySelector(
-                    '[aria-label="Color theme switcher"] [value="dark"]',
-                );
-                if (darkBtn) {
-                    (darkBtn as HTMLElement).click();
-                    return true;
-                }
-                return false;
-            })
-            .toBe(true);
-
-        // MUI stores the mode in localStorage under mui-mode
         await expect
             .poll(() => {
                 return localStorage.getItem("mui-mode");

@@ -40,7 +40,10 @@ export default defineConfig({
                     },
                     browser: {
                         enabled: true,
-                        provider: playwright(),
+                        provider: playwright({
+                            // DarkModeSwitch reads the OS preference
+                            contextOptions: { colorScheme: "light" },
+                        }),
                         // https://vitest.dev/config/browser/playwright
                         //
                         // All supported browsers are defined here. By default
