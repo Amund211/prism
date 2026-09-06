@@ -106,6 +106,15 @@ spec:
             secretKeyRef:
               name: "${AUTH_SESSION_SIGNING_KEYS_KEY}"
               key: "latest"
+        # When the Entra client secret expires. To rotate, for production
+        # and staging both:
+        #   1. Entra > App registrations > Certificates & secrets > New
+        #      client secret. The old one keeps working meanwhile.
+        #   2. gcloud secrets versions add <secret> --data-file -
+        #   3. Update the date here and deploy.
+        #   4. Verify a sign-in, then delete the old secret in Entra.
+        - name: "AZURE_CLIENT_SECRET_EXPIRES_AT"
+          value: "2028-09-06"
       - image: "${COLLECTOR_IMAGE}"
         name: "collector"
         startupProbe:

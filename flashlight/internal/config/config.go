@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 var ErrMissingRequiredValue = errors.New("missing required value")
@@ -42,7 +43,16 @@ type Config struct {
 	// away from cross-protocol confusion. Dropping a key from the list logs
 	// out every session signed with it. Secret.
 	authSessionSigningKeys []string
+	// azureClientSecretExpiresAt is when the Entra client secret dies, at UTC
+	// midnight. Hand-recorded: nothing in the secret says when it expires,
+	// and Entra sends no warning. Not secret. Zero in development.
+	azureClientSecretExpiresAt time.Time
 }
+
+const azureClientSecretName = "azure-client-secret"
+
+// expiryWarningWindow is how far ahead of expiry warnings start.
+const expiryWarningWindow = 56 * 24 * time.Hour
 
 func (c *Config) CloudSQLUnixSocketPath() string {
 	return c.cloudSQLUnixSocketPath
@@ -106,6 +116,42 @@ func (c *Config) AuthChallengeSigningKeys() []string {
 
 func (c *Config) AuthSessionSigningKeys() []string {
 	return c.authSessionSigningKeys
+}
+
+func (c *Config) AzureClientSecretExpiresAt() time.Time {
+	return c.azureClientSecretExpiresAt
+}
+
+// AzureClientSecretDaysUntilExpiry counts whole calendar days from now until
+// the secret expires, in UTC. Negative once expired. Calendar days rather
+// than 24h spans, so the result doesn't depend on the time of day a caller
+// happens to run.
+func (c *Config) AzureClientSecretDaysUntilExpiry(now time.Time) int {
+	expiryDay := c.azureClientSecretExpiresAt.UTC().Truncate(24 * time.Hour)
+	today := now.UTC().Truncate(24 * time.Hour)
+	return int(expiryDay.Sub(today).Hours() / 24)
+}
+
+// AzureClientSecretExpiryWarning returns a non-nil error when the secret is
+// within expiryWarningWindow of expiring, or has expired. nil means nothing
+// worth reporting.
+//
+// The text is constant per rung: the caller fingerprints Sentry issues on it,
+// so a day count here would file a fresh issue every day.
+func (c *Config) AzureClientSecretExpiryWarning(now time.Time) error {
+	days := c.AzureClientSecretDaysUntilExpiry(now)
+	switch {
+	case days <= 0:
+		return fmt.Errorf("credential %q has EXPIRED", azureClientSecretName)
+	case days > int(expiryWarningWindow.Hours()/24):
+		return nil
+	case days < 7:
+		return fmt.Errorf("credential %q expires in less than a week", azureClientSecretName)
+	case days < 14:
+		return fmt.Errorf("credential %q expires in 1 week", azureClientSecretName)
+	default:
+		return fmt.Errorf("credential %q expires in %d weeks", azureClientSecretName, days/7)
+	}
 }
 
 // Return a string representation suitable for logging etc
@@ -212,6 +258,22 @@ func ConfigFromEnv() (Config, error) {
 	if requireEnv && len(authSessionSigningKeys) == 0 {
 		return missingKey("AUTH_SESSION_SIGNING_KEYS")
 	}
+	// Required in production and staging: an alarm that is silently not
+	// configured is worse than no alarm. Rejected everywhere when it doesn't
+	// parse, since a mistyped date is a warning that never fires.
+	var azureClientSecretExpiresAt time.Time
+	rawAzureClientSecretExpiresAt := strings.TrimSpace(os.Getenv("AZURE_CLIENT_SECRET_EXPIRES_AT"))
+	if rawAzureClientSecretExpiresAt == "" {
+		if requireEnv {
+			return missingKey("AZURE_CLIENT_SECRET_EXPIRES_AT")
+		}
+	} else {
+		parsed, err := time.Parse(time.DateOnly, rawAzureClientSecretExpiresAt)
+		if err != nil {
+			return Config{}, fmt.Errorf("%w: AZURE_CLIENT_SECRET_EXPIRES_AT (%s)", ErrInvalidValue, rawAzureClientSecretExpiresAt)
+		}
+		azureClientSecretExpiresAt = parsed
+	}
 
 	return Config{
 		cloudSQLUnixSocketPath: cloudSQLUnixSocketPath,
@@ -229,6 +291,8 @@ func ConfigFromEnv() (Config, error) {
 
 		authChallengeSigningKeys: authChallengeSigningKeys,
 		authSessionSigningKeys:   authSessionSigningKeys,
+
+		azureClientSecretExpiresAt: azureClientSecretExpiresAt,
 	}, nil
 }
 

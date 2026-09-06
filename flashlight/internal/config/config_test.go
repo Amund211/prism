@@ -3,6 +3,7 @@ package config_test
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -17,7 +18,17 @@ const (
 	development environment = "development"
 )
 
-var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "BLOCKED_IPS", "BLOCKED_USER_AGENTS", "BLOCKED_USER_IDS", "BLOCKED_IPS_SHA256_HEX", "AUTH_CHALLENGE_SIGNING_KEYS", "AUTH_SESSION_SIGNING_KEYS"}
+var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "BLOCKED_IPS", "BLOCKED_USER_AGENTS", "BLOCKED_USER_IDS", "BLOCKED_IPS_SHA256_HEX", "AUTH_CHALLENGE_SIGNING_KEYS", "AUTH_SESSION_SIGNING_KEYS", "AZURE_CLIENT_SECRET_EXPIRES_AT"}
+
+// placeholderFor adapts the generic placeholder the tables above use to the
+// one variable that is validated on its shape. Every other value is free-form,
+// so its own name doubles as a recognisable placeholder.
+func placeholderFor(variable, fallback string) string {
+	if variable == "AZURE_CLIENT_SECRET_EXPIRES_AT" {
+		return "2028-09-06"
+	}
+	return fallback
+}
 
 // The two signing key lists behave identically — required in production and
 // staging, ordered, blank-entry tolerant — so every property is asserted for
@@ -68,7 +79,7 @@ func TestGetConfig(t *testing.T) {
 
 	t.Run("values are read correctly", func(t *testing.T) {
 		for _, variable := range allVariablesExceptEnv {
-			t.Setenv(variable, variable)
+			t.Setenv(variable, placeholderFor(variable, variable))
 		}
 
 		for _, env := range []environment{production, staging, development} {
@@ -96,7 +107,7 @@ func TestGetConfig(t *testing.T) {
 	t.Run("production and staging fail when missing variables", func(t *testing.T) {
 		// Set all variables
 		for _, variable := range allVariablesExceptEnv {
-			t.Setenv(variable, "placeholder_value")
+			t.Setenv(variable, placeholderFor(variable, "placeholder_value"))
 		}
 
 		for _, env := range []environment{production, staging} {
@@ -112,7 +123,7 @@ func TestGetConfig(t *testing.T) {
 						// pre-Setenv value, which is unset. Every subtest after
 						// the first then failed on a leaked variable rather
 						// than its own, and passed for the wrong reason.
-						t.Setenv(variable, "placeholder_value")
+						t.Setenv(variable, placeholderFor(variable, "placeholder_value"))
 						err := os.Unsetenv(variable)
 						require.NoError(t, err)
 
@@ -142,7 +153,7 @@ func TestGetConfig(t *testing.T) {
 	// client instead.
 	t.Run("production and staging reject an empty signing key list", func(t *testing.T) {
 		for _, variable := range allVariablesExceptEnv {
-			t.Setenv(variable, "placeholder_value")
+			t.Setenv(variable, placeholderFor(variable, "placeholder_value"))
 		}
 
 		for _, keyList := range signingKeyLists {
@@ -186,7 +197,7 @@ func TestGetConfig(t *testing.T) {
 
 	t.Run("signing keys are parsed as an ordered list", func(t *testing.T) {
 		for _, variable := range allVariablesExceptEnv {
-			t.Setenv(variable, "placeholder_value")
+			t.Setenv(variable, placeholderFor(variable, "placeholder_value"))
 		}
 		t.Setenv("FLASHLIGHT_ENVIRONMENT", string(production))
 
@@ -205,7 +216,7 @@ func TestGetConfig(t *testing.T) {
 	t.Run("blocked IPs, user agents, and user ids are parsed correctly", func(t *testing.T) {
 		// Set all variables
 		for _, variable := range allVariablesExceptEnv {
-			t.Setenv(variable, "placeholder_value")
+			t.Setenv(variable, placeholderFor(variable, "placeholder_value"))
 		}
 
 		cases := []struct {
@@ -316,4 +327,121 @@ value3`,
 			})
 		}
 	})
+
+	t.Run("azure client secret expiry", func(t *testing.T) {
+		for _, variable := range allVariablesExceptEnv {
+			t.Setenv(variable, placeholderFor(variable, "placeholder_value"))
+		}
+
+		t.Run("is parsed as a date", func(t *testing.T) {
+			t.Setenv("FLASHLIGHT_ENVIRONMENT", string(production))
+			t.Setenv("AZURE_CLIENT_SECRET_EXPIRES_AT", "2028-09-06")
+
+			conf, err := config.ConfigFromEnv()
+			require.NoError(t, err)
+			require.Equal(t, time.Date(2028, 9, 6, 0, 0, 0, 0, time.UTC), conf.AzureClientSecretExpiresAt())
+		})
+
+		// An unparseable date would otherwise leave a silently disabled
+		// alarm behind, so it is rejected in every environment.
+		t.Run("rejects a value that is not a date", func(t *testing.T) {
+			for _, env := range []environment{production, staging, development} {
+				for _, value := range []string{"placeholder_value", "06-09-2028", "2028-09-06T00:00:00Z", "2028-13-01"} {
+					t.Run(string(env)+"/"+value, func(t *testing.T) {
+						t.Setenv("FLASHLIGHT_ENVIRONMENT", string(env))
+						t.Setenv("AZURE_CLIENT_SECRET_EXPIRES_AT", value)
+
+						_, err := config.ConfigFromEnv()
+						require.ErrorIs(t, err, config.ErrInvalidValue)
+					})
+				}
+			}
+		})
+
+		t.Run("development runs without one", func(t *testing.T) {
+			t.Setenv("FLASHLIGHT_ENVIRONMENT", string(development))
+			// See the missing-variable table above for why this is set
+			// before it is unset.
+			t.Setenv("AZURE_CLIENT_SECRET_EXPIRES_AT", "2028-09-06")
+			err := os.Unsetenv("AZURE_CLIENT_SECRET_EXPIRES_AT")
+			require.NoError(t, err)
+
+			conf, err := config.ConfigFromEnv()
+			require.NoError(t, err)
+			require.True(t, conf.AzureClientSecretExpiresAt().IsZero())
+			// Warns instead of crashing. The date is only ever unset in
+			// development, and the warning is what points at that.
+			require.EqualError(t, conf.AzureClientSecretExpiryWarning(time.Now()),
+				`credential "azure-client-secret" has EXPIRED`)
+		})
+	})
+}
+
+// main.go fingerprints Sentry issues on this text, so each rung must be a
+// constant string: a day count would open a new issue every day.
+func TestAzureClientSecretExpiryWarning(t *testing.T) {
+	const expiresAt = "2028-09-06"
+
+	newConfig := func(t *testing.T) config.Config {
+		t.Helper()
+		for _, variable := range allVariablesExceptEnv {
+			t.Setenv(variable, placeholderFor(variable, "placeholder_value"))
+		}
+		t.Setenv("FLASHLIGHT_ENVIRONMENT", string(production))
+		t.Setenv("AZURE_CLIENT_SECRET_EXPIRES_AT", expiresAt)
+
+		conf, err := config.ConfigFromEnv()
+		require.NoError(t, err)
+		return conf
+	}
+
+	cases := []struct {
+		name     string
+		now      time.Time
+		days     int
+		expected string
+	}{
+		{"57 days out is outside the window", time.Date(2028, 7, 11, 0, 0, 0, 0, time.UTC), 57, ""},
+		{"a year out", time.Date(2027, 9, 6, 0, 0, 0, 0, time.UTC), 366, ""},
+		{"56 days is the first rung", time.Date(2028, 7, 12, 0, 0, 0, 0, time.UTC), 56, `credential "azure-client-secret" expires in 8 weeks`},
+		{"55 days", time.Date(2028, 7, 13, 0, 0, 0, 0, time.UTC), 55, `credential "azure-client-secret" expires in 7 weeks`},
+		{"49 days", time.Date(2028, 7, 19, 0, 0, 0, 0, time.UTC), 49, `credential "azure-client-secret" expires in 7 weeks`},
+		{"48 days", time.Date(2028, 7, 20, 0, 0, 0, 0, time.UTC), 48, `credential "azure-client-secret" expires in 6 weeks`},
+		{"42 days", time.Date(2028, 7, 26, 0, 0, 0, 0, time.UTC), 42, `credential "azure-client-secret" expires in 6 weeks`},
+		{"35 days", time.Date(2028, 8, 2, 0, 0, 0, 0, time.UTC), 35, `credential "azure-client-secret" expires in 5 weeks`},
+		{"29 days", time.Date(2028, 8, 8, 0, 0, 0, 0, time.UTC), 29, `credential "azure-client-secret" expires in 4 weeks`},
+		{"28 days", time.Date(2028, 8, 9, 0, 0, 0, 0, time.UTC), 28, `credential "azure-client-secret" expires in 4 weeks`},
+		{"22 days", time.Date(2028, 8, 15, 0, 0, 0, 0, time.UTC), 22, `credential "azure-client-secret" expires in 3 weeks`},
+		{"21 days", time.Date(2028, 8, 16, 0, 0, 0, 0, time.UTC), 21, `credential "azure-client-secret" expires in 3 weeks`},
+		{"14 days", time.Date(2028, 8, 23, 0, 0, 0, 0, time.UTC), 14, `credential "azure-client-secret" expires in 2 weeks`},
+		{"13 days", time.Date(2028, 8, 24, 0, 0, 0, 0, time.UTC), 13, `credential "azure-client-secret" expires in 1 week`},
+		{"7 days", time.Date(2028, 8, 30, 0, 0, 0, 0, time.UTC), 7, `credential "azure-client-secret" expires in 1 week`},
+		{"6 days", time.Date(2028, 8, 31, 0, 0, 0, 0, time.UTC), 6, `credential "azure-client-secret" expires in less than a week`},
+		{"1 day", time.Date(2028, 9, 5, 0, 0, 0, 0, time.UTC), 1, `credential "azure-client-secret" expires in less than a week`},
+		{"the day itself", time.Date(2028, 9, 6, 0, 0, 0, 0, time.UTC), 0, `credential "azure-client-secret" has EXPIRED`},
+		{"the day after", time.Date(2028, 9, 7, 0, 0, 0, 0, time.UTC), -1, `credential "azure-client-secret" has EXPIRED`},
+		{"long expired", time.Date(2030, 1, 1, 0, 0, 0, 0, time.UTC), -482, `credential "azure-client-secret" has EXPIRED`},
+		// Days are counted between calendar dates, not as 24h spans, so a
+		// rung means the same thing whatever time of day the instance
+		// happens to cold-start. Otherwise the first alert would land on
+		// "3 weeks" and "4 weeks" would only fire for instances started in
+		// the first moments of the day.
+		{"late in the day is still the same rung", time.Date(2028, 8, 9, 23, 59, 59, 0, time.UTC), 28, `credential "azure-client-secret" expires in 4 weeks`},
+		{"a non-UTC clock is converted", time.Date(2028, 8, 9, 20, 0, 0, 0, time.FixedZone("PST", -8*60*60)), 27, `credential "azure-client-secret" expires in 3 weeks`},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			conf := newConfig(t)
+
+			require.Equal(t, c.days, conf.AzureClientSecretDaysUntilExpiry(c.now))
+
+			err := conf.AzureClientSecretExpiryWarning(c.now)
+			if c.expected == "" {
+				require.NoError(t, err)
+				return
+			}
+			require.EqualError(t, err, c.expected)
+		})
+	}
 }

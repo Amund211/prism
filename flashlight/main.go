@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/google/uuid"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -148,6 +149,38 @@ func main() {
 	// flush is invoked from the graceful-shutdown sequence at the end of main
 	// rather than deferred, so buffered events are flushed on the SIGTERM path.
 	logger.InfoContext(ctx, "Initialized Sentry middleware")
+
+	// Entra sends no warning before a client secret expires — the first sign
+	// is every Microsoft sign-in failing at once with AADSTS7000222. Checked
+	// on startup because Cloud Run recycles instances far more often than the
+	// warning window, so this needs no scheduler, endpoint or IAM grant.
+	// Reported, never fatal.
+	//
+	// reporting.Report is not used: it reads the Sentry hub off the context,
+	// which only the sentryhttp middleware installs, so the event would be
+	// dropped outside a request.
+	startedAt := time.Now()
+	if warning := config.AzureClientSecretExpiryWarning(startedAt); warning != nil {
+		daysLeft := config.AzureClientSecretDaysUntilExpiry(startedAt)
+		expiresAt := config.AzureClientSecretExpiresAt().Format(time.DateOnly)
+
+		// Logged too, so the signal survives Sentry being what's broken.
+		logger.WarnContext(ctx, "Credential is expiring",
+			"warning", warning.Error(),
+			"expiresAt", expiresAt,
+			"daysLeft", daysLeft,
+		)
+		sentry.WithScope(func(scope *sentry.Scope) {
+			// Without this the stacktrace CaptureException attaches groups
+			// every rung into one issue, so resolving it silences the rest.
+			scope.SetFingerprint([]string{"azure-client-secret-expiry", warning.Error()})
+			scope.SetContext("credential", map[string]any{
+				"expiresAt": expiresAt,
+				"daysLeft":  daysLeft,
+			})
+			sentry.CaptureException(warning)
+		})
+	}
 
 	logger.InfoContext(ctx, "Initializing database connection")
 	db, err := database.NewCloudsqlPostgresDatabase(config)
