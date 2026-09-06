@@ -14,5 +14,5 @@
             "unknown"
         ]
     },
-    "ignorePatterns": ["src/routeTree.gen.ts", "coverage"]
+    "ignorePatterns": ["src/routeTree.gen.ts", "coverage", "public/.well-known"]
 }
