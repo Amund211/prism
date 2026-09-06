@@ -7,7 +7,7 @@ import {
     Stack,
     Typography,
 } from "@mui/material";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 const Discord = () => {
     return (
@@ -108,6 +108,11 @@ const Privacy = () => {
                     Discord
                 </a>
                 .
+            </Typography>
+            <Typography variant="body1">
+                The <Link to="/privacy">privacy policy</Link> describes what we handle
+                in full, and the <Link to="/terms">terms of service</Link> describe what
+                you can expect from the project.
             </Typography>
         </Stack>
     );

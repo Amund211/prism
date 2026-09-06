@@ -21,6 +21,18 @@ describe("Layout - Desktop navigation", () => {
         await expect.element(screen.getByText("About").first()).toBeInTheDocument();
     });
 
+    mswTest("renders the legal links in the drawer footer", async () => {
+        await page.viewport(1280, 720);
+        const { screen } = await renderAppRoute("/");
+
+        await expect
+            .element(screen.getByRole("link", { name: "Terms" }))
+            .toHaveAttribute("href", "/terms");
+        await expect
+            .element(screen.getByRole("link", { name: "Privacy" }))
+            .toHaveAttribute("href", "/privacy");
+    });
+
     mswTest("clicking Session stats navigates", async () => {
         await page.viewport(1280, 720);
         const { screen } = await renderAppRoute("/");
@@ -229,6 +241,29 @@ describe("Layout - Mobile navigation", () => {
         await screen.getByRole("menuitem", { name: "About" }).click();
 
         await expect.poll(() => globalThis.location.pathname).toBe("/about");
+    });
+
+    // Below `lg` the burger menu is the only route to the legal pages, so they
+    // have to be menu items — a plain link in a `Menu` is unreachable by
+    // keyboard.
+    mswTest("clicking Terms navigates", async () => {
+        await page.viewport(375, 667);
+        const { screen } = await renderAppRoute("/");
+
+        await openBurgerMenu(screen);
+        await screen.getByRole("menuitem", { name: "Terms" }).click();
+
+        await expect.poll(() => globalThis.location.pathname).toBe("/terms");
+    });
+
+    mswTest("clicking Privacy navigates", async () => {
+        await page.viewport(375, 667);
+        const { screen } = await renderAppRoute("/");
+
+        await openBurgerMenu(screen);
+        await screen.getByRole("menuitem", { name: "Privacy" }).click();
+
+        await expect.poll(() => globalThis.location.pathname).toBe("/privacy");
     });
 
     mswTest("logo navigates home", async () => {

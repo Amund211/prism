@@ -45,7 +45,21 @@ describe("About page", () => {
     mswTest("renders Privacy section", async () => {
         const { screen } = await renderAppRoute("/about");
 
-        await expect.element(screen.getByText("Privacy")).toBeInTheDocument();
+        await expect
+            .element(screen.getByRole("heading", { name: "Privacy" }))
+            .toBeInTheDocument();
+    });
+
+    mswTest("links to the privacy policy and the terms of service", async () => {
+        const { screen } = await renderAppRoute("/about");
+
+        await expect
+            .element(screen.getByRole("link", { name: "privacy policy" }))
+            .toHaveAttribute("href", "/privacy");
+
+        await expect
+            .element(screen.getByRole("link", { name: "terms of service" }))
+            .toHaveAttribute("href", "/terms");
     });
 
     mswTest("Discord link has correct href and opens in new tab", async () => {

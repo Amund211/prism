@@ -1,9 +1,11 @@
 import {
     CalendarMonth,
     Download,
+    Gavel,
     Info,
     Menu as MenuIcon,
     MenuOpen,
+    PrivacyTip,
     Redeem,
     Settings,
     TrendingUp,
@@ -40,6 +42,34 @@ const RouterMenuItem = createLink(MenuItem);
 
 const APP_BAR_HEIGHT_PX = "64px";
 
+// The drawer's footer pair. The toolbar menu links the same two pages as real
+// menu items instead — see the note there.
+const LegalLinks = () => {
+    return (
+        <Stack
+            direction="row"
+            sx={{
+                gap: 1,
+                alignItems: "center",
+            }}
+        >
+            <Link to="/terms">
+                <Typography variant="caption" color="textSecondary">
+                    Terms
+                </Typography>
+            </Link>
+            <Typography variant="caption" color="textSecondary">
+                ·
+            </Typography>
+            <Link to="/privacy">
+                <Typography variant="caption" color="textSecondary">
+                    Privacy
+                </Typography>
+            </Link>
+        </Stack>
+    );
+};
+
 /**
  * Get the UUID of the currently shown player based on the current route.
  * Returns the UUID from route params for session/wrapped pages,
@@ -70,7 +100,9 @@ function useShownPlayer(): string | null {
         case "/":
         case "/about":
         case "/downloads":
+        case "/privacy":
         case "/settings":
+        case "/terms":
         case "/session/":
         case "/wrapped/": {
             return null;
@@ -282,6 +314,33 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                 </ListItemIcon>
                                 <ListItemText primary="About" />
                             </RouterMenuItem>
+                            <Divider />
+                            {/* Real menu items, not the compact `LegalLinks`
+                              pair the drawer uses: `Menu` swallows Tab and
+                              `MenuList` skips children without a tabindex, so
+                              anything else here is unreachable by keyboard —
+                              and below `lg` this menu is the only route to
+                              these two pages. */}
+                            <RouterMenuItem
+                                selected={location.pathname === "/terms"}
+                                to="/terms"
+                                onClick={handleCloseMenu}
+                            >
+                                <ListItemIcon>
+                                    <Gavel />
+                                </ListItemIcon>
+                                <ListItemText primary="Terms" />
+                            </RouterMenuItem>
+                            <RouterMenuItem
+                                selected={location.pathname === "/privacy"}
+                                to="/privacy"
+                                onClick={handleCloseMenu}
+                            >
+                                <ListItemIcon>
+                                    <PrivacyTip />
+                                </ListItemIcon>
+                                <ListItemText primary="Privacy" />
+                            </RouterMenuItem>
                         </Menu>
                     </Stack>
                 </Toolbar>
@@ -454,11 +513,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 <Stack
                     sx={{
                         padding: 1,
+                        gap: 1,
                         justifyContent: "center",
                         alignItems: "center",
                     }}
                 >
                     <DarkModeSwitch />
+                    <LegalLinks />
                 </Stack>
             </Drawer>
             <Stack

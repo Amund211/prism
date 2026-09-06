@@ -5,3 +5,5 @@ https://prismoverlay.com/wrapped
 https://prismoverlay.com/settings
 https://prismoverlay.com/downloads
 https://prismoverlay.com/about
+https://prismoverlay.com/terms
+https://prismoverlay.com/privacy

@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root.tsx'
 import { Route as IndexRouteImport } from './routes/index.tsx'
 import { Route as AboutRouteImport } from './routes/about.tsx'
 import { Route as DownloadsRouteImport } from './routes/downloads.tsx'
+import { Route as PrivacyRouteImport } from './routes/privacy.tsx'
 import { Route as SettingsRouteImport } from './routes/settings.tsx'
+import { Route as TermsRouteImport } from './routes/terms.tsx'
 import { Route as HistoryExploreRouteImport } from './routes/history.explore.tsx'
 import { Route as SessionIndexRouteImport } from './routes/session/index.tsx'
 import { Route as SessionUuidRouteImport } from './routes/session/$uuid.tsx'
@@ -35,9 +37,19 @@ const DownloadsRoute = DownloadsRouteImport.update({
   path: '/downloads',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistoryExploreRoute = HistoryExploreRouteImport.update({
@@ -75,7 +87,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/downloads': typeof DownloadsRoute
+  '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
   '/history/explore': typeof HistoryExploreRoute
   '/session/$uuid': typeof SessionUuidRoute
   '/wrapped/$uuid': typeof WrappedUuidRoute
@@ -87,7 +101,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/downloads': typeof DownloadsRoute
+  '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
   '/history/explore': typeof HistoryExploreRoute
   '/session/$uuid': typeof SessionUuidRoute
   '/wrapped/$uuid': typeof WrappedUuidRoute
@@ -100,7 +116,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/downloads': typeof DownloadsRoute
+  '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
   '/history/explore': typeof HistoryExploreRoute
   '/session/$uuid': typeof SessionUuidRoute
   '/wrapped/$uuid': typeof WrappedUuidRoute
@@ -114,7 +132,9 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/downloads'
+    | '/privacy'
     | '/settings'
+    | '/terms'
     | '/history/explore'
     | '/session/$uuid'
     | '/wrapped/$uuid'
@@ -126,7 +146,9 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/downloads'
+    | '/privacy'
     | '/settings'
+    | '/terms'
     | '/history/explore'
     | '/session/$uuid'
     | '/wrapped/$uuid'
@@ -138,7 +160,9 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/downloads'
+    | '/privacy'
     | '/settings'
+    | '/terms'
     | '/history/explore'
     | '/session/$uuid'
     | '/wrapped/$uuid'
@@ -151,7 +175,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   DownloadsRoute: typeof DownloadsRoute
+  PrivacyRoute: typeof PrivacyRoute
   SettingsRoute: typeof SettingsRoute
+  TermsRoute: typeof TermsRoute
   HistoryExploreRoute: typeof HistoryExploreRoute
   SessionUuidRoute: typeof SessionUuidRoute
   WrappedUuidRoute: typeof WrappedUuidRoute
@@ -183,11 +209,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DownloadsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/history/explore': {
@@ -239,7 +279,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   DownloadsRoute: DownloadsRoute,
+  PrivacyRoute: PrivacyRoute,
   SettingsRoute: SettingsRoute,
+  TermsRoute: TermsRoute,
   HistoryExploreRoute: HistoryExploreRoute,
   SessionUuidRoute: SessionUuidRoute,
   WrappedUuidRoute: WrappedUuidRoute,
