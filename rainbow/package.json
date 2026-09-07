@@ -66,8 +66,8 @@
         "@types/react": "19.2.18",
         "@types/react-dom": "19.2.4",
         "@vitejs/plugin-react": "6.0.5",
-        "@vitest/browser-playwright": "4.1.10",
-        "@vitest/coverage-v8": "4.1.10",
+        "@vitest/browser-playwright": "4.1.11",
+        "@vitest/coverage-v8": "4.1.11",
         "babel-plugin-react-compiler": "1.0.0",
         "knip": "6.32.2",
         "msw": "2.15.0",
@@ -79,7 +79,7 @@
         "typescript": "7.0.2",
         "vite": "8.2.2",
         "vite-plugin-react-click-to-component": "4.2.3",
-        "vitest": "4.1.10",
+        "vitest": "4.1.11",
         "vitest-browser-react": "2.2.0"
     },
     "packageManager": "pnpm@11.22.0"
