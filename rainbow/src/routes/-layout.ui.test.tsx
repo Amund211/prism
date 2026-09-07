@@ -1,5 +1,5 @@
 import { describe, expect } from "vitest";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 
 import { getWrappedYear } from "#helpers/wrapped.ts";
 import { USERS } from "#mocks/data.ts";
@@ -178,6 +178,59 @@ describe("Layout - Mobile navigation", () => {
             .element(screen.getByRole("menuitem", { name: "About" }))
             .toBeInTheDocument();
     });
+
+    // The menu items must be real anchors, not `<li>`s with a click handler, so
+    // middle-click/ctrl-click/"open in new tab" work like they do in the drawer.
+    mswTest("burger menu items are anchors with hrefs", async () => {
+        await page.viewport(375, 667);
+        const { screen } = await renderAppRoute("/");
+
+        await openBurgerMenu(screen);
+
+        const items: [string, string][] = [
+            ["Session stats", "/session"],
+            ["History explorer", "/history/explore"],
+            [`Wrapped ${getWrappedYear().toString()}`, "/wrapped"],
+            ["Downloads", "/downloads"],
+            ["Settings", "/settings"],
+            ["About", "/about"],
+            ["Terms", "/terms"],
+            ["Privacy", "/privacy"],
+        ];
+
+        // Wait for the menu to be mounted, then read every item synchronously
+        await expect
+            .element(screen.getByRole("menuitem", { name: "About" }))
+            .toBeInTheDocument();
+
+        for (const [name, href] of items) {
+            const element = screen.getByRole("menuitem", { name }).element();
+            expect(element.tagName, `${name} should render an anchor`).toBe("A");
+            expect(element.getAttribute("href"), `href of ${name}`).toMatch(
+                new RegExp(`^${href}(\\?|$)`),
+            );
+        }
+    });
+
+    // The WAI-ARIA menu pattern activates `menuitem`s on both Enter and Space.
+    // A native anchor only does Enter, so Space needs handling of its own.
+    mswTest.for([["{Enter}"], ["{ }"]] as const)(
+        "pressing %s on a burger menu item navigates",
+        async ([key]) => {
+            await page.viewport(375, 667);
+            const { screen } = await renderAppRoute("/");
+
+            await openBurgerMenu(screen);
+
+            const about = screen.getByRole("menuitem", { name: "About" });
+            await expect.element(about).toBeInTheDocument();
+            about.element().focus();
+
+            await userEvent.keyboard(key);
+
+            await expect.poll(() => globalThis.location.pathname).toBe("/about");
+        },
+    );
 
     mswTest("clicking Session stats navigates", async () => {
         await page.viewport(375, 667);

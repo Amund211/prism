@@ -28,6 +28,7 @@ import {
     Toolbar,
     Typography,
 } from "@mui/material";
+import type { MenuItemProps } from "@mui/material";
 import { createLink, Link, useLocation, useRouterState } from "@tanstack/react-router";
 import React from "react";
 
@@ -38,7 +39,48 @@ import { endOfMonth, startOfMonth } from "#intervals.ts";
 import { DarkModeSwitch } from "./DarkModeSwitch.tsx";
 
 const RouterLinkItemButton = createLink(ListItemButton);
-const RouterMenuItem = createLink(MenuItem);
+
+// `MenuItem` roots an `<li>`, and an `<li href>` is inert — the router's href
+// lands on it, but middle-click and "open in new tab" do nothing. Pin
+// `component="a"` here rather than at each call site: MUI's own `component`
+// prop doesn't survive `createLink`'s prop types (cf. the cast the history
+// explorer's `RouterLinkChip` needs). `role="menuitem"` is unaffected. The
+// anchors do end up directly inside `MenuList`'s `<ul>`, which only permits
+// `<li>` — MUI's own documented `component="a"` pattern has that wart too.
+// MUI owns this prop shape, so the parameter cannot be made fully readonly.
+// oxlint-disable-next-line typescript/prefer-readonly-parameter-types
+const AnchorMenuItem = (props: MenuItemProps<"a">) => (
+    <MenuItem
+        // Spread first so `component` stays pinned: it is optional in
+        // `MenuItemProps`, so a call site overriding it would silently go back
+        // to an inert `<li href>` with no type error.
+        // oxlint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        component="a"
+        // Space is the half of the menu pattern the anchor doesn't cover: a
+        // native `<a>` activates on Enter only, and MUI drops its synthetic
+        // Space -> click once the root is an `<a href>`
+        // (`useButtonBase.hasNativeKeyboardActivation`).
+        onKeyDown={(event) => {
+            props.onKeyDown?.(event);
+            if (event.key === " " && event.target === event.currentTarget) {
+                event.preventDefault(); // Don't scroll the page
+            }
+        }}
+        onKeyUp={(event) => {
+            props.onKeyUp?.(event);
+            if (
+                event.key === " " &&
+                event.target === event.currentTarget &&
+                !event.defaultPrevented
+            ) {
+                event.currentTarget.click();
+            }
+        }}
+    />
+);
+
+const RouterLinkMenuItem = createLink(AnchorMenuItem);
 
 const APP_BAR_HEIGHT_PX = "64px";
 
@@ -200,7 +242,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                             onClose={handleCloseMenu}
                         >
                             {playerToNavigate !== null ? (
-                                <RouterMenuItem
+                                <RouterLinkMenuItem
                                     to="/session/$uuid"
                                     selected={location.pathname.startsWith("/session")}
                                     params={{ uuid: playerToNavigate }}
@@ -220,9 +262,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                         <TrendingUp />
                                     </ListItemIcon>
                                     <ListItemText primary="Session stats" />
-                                </RouterMenuItem>
+                                </RouterLinkMenuItem>
                             ) : (
-                                <RouterMenuItem
+                                <RouterLinkMenuItem
                                     to="/session"
                                     selected={location.pathname.startsWith("/session")}
                                     onClick={handleCloseMenu}
@@ -231,9 +273,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                         <TrendingUp />
                                     </ListItemIcon>
                                     <ListItemText primary="Session stats" />
-                                </RouterMenuItem>
+                                </RouterLinkMenuItem>
                             )}
-                            <RouterMenuItem
+                            <RouterLinkMenuItem
                                 to="/history/explore"
                                 selected={location.pathname === "/history/explore"}
                                 search={{
@@ -254,9 +296,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     <CalendarMonth />
                                 </ListItemIcon>
                                 <ListItemText primary="History explorer" />
-                            </RouterMenuItem>
+                            </RouterLinkMenuItem>
                             {playerToNavigate !== null ? (
-                                <RouterMenuItem
+                                <RouterLinkMenuItem
                                     to="/wrapped/$uuid"
                                     selected={location.pathname.startsWith("/wrapped")}
                                     params={{ uuid: playerToNavigate }}
@@ -269,9 +311,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     <ListItemText
                                         primary={`Wrapped ${getWrappedYear().toString()}`}
                                     />
-                                </RouterMenuItem>
+                                </RouterLinkMenuItem>
                             ) : (
-                                <RouterMenuItem
+                                <RouterLinkMenuItem
                                     to="/wrapped"
                                     selected={location.pathname.startsWith("/wrapped")}
                                     onClick={handleCloseMenu}
@@ -282,9 +324,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     <ListItemText
                                         primary={`Wrapped ${getWrappedYear().toString()}`}
                                     />
-                                </RouterMenuItem>
+                                </RouterLinkMenuItem>
                             )}
-                            <RouterMenuItem
+                            <RouterLinkMenuItem
                                 selected={location.pathname === "/downloads"}
                                 to="/downloads"
                                 onClick={handleCloseMenu}
@@ -293,8 +335,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     <Download />
                                 </ListItemIcon>
                                 <ListItemText primary="Downloads" />
-                            </RouterMenuItem>
-                            <RouterMenuItem
+                            </RouterLinkMenuItem>
+                            <RouterLinkMenuItem
                                 selected={location.pathname === "/settings"}
                                 to="/settings"
                                 onClick={handleCloseMenu}
@@ -303,8 +345,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     <Settings />
                                 </ListItemIcon>
                                 <ListItemText primary="Settings" />
-                            </RouterMenuItem>
-                            <RouterMenuItem
+                            </RouterLinkMenuItem>
+                            <RouterLinkMenuItem
                                 selected={location.pathname === "/about"}
                                 to="/about"
                                 onClick={handleCloseMenu}
@@ -313,7 +355,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     <Info />
                                 </ListItemIcon>
                                 <ListItemText primary="About" />
-                            </RouterMenuItem>
+                            </RouterLinkMenuItem>
                             <Divider />
                             {/* Real menu items, not the compact `LegalLinks`
                               pair the drawer uses: `Menu` swallows Tab and
@@ -321,7 +363,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                               anything else here is unreachable by keyboard —
                               and below `lg` this menu is the only route to
                               these two pages. */}
-                            <RouterMenuItem
+                            <RouterLinkMenuItem
                                 selected={location.pathname === "/terms"}
                                 to="/terms"
                                 onClick={handleCloseMenu}
@@ -330,8 +372,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     <Gavel />
                                 </ListItemIcon>
                                 <ListItemText primary="Terms" />
-                            </RouterMenuItem>
-                            <RouterMenuItem
+                            </RouterLinkMenuItem>
+                            <RouterLinkMenuItem
                                 selected={location.pathname === "/privacy"}
                                 to="/privacy"
                                 onClick={handleCloseMenu}
@@ -340,7 +382,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     <PrivacyTip />
                                 </ListItemIcon>
                                 <ListItemText primary="Privacy" />
-                            </RouterMenuItem>
+                            </RouterLinkMenuItem>
                         </Menu>
                     </Stack>
                 </Toolbar>
