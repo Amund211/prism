@@ -17,10 +17,15 @@ import "fmt"
 // challengeTTL raised in the same change.
 const MaxDifficulty = 26
 
-// DefaultDifficulty is where the dial sits normally. Zero: the mechanism
-// ships mandatory and the work ships at nothing, so raising the price of
-// an anonymous identity later needs no client release.
-const DefaultDifficulty = 0
+// DefaultDifficulty is where the dial sits normally. 16 costs 2^16 expected
+// hashes, which the three solvers we have measured absorb without a user
+// noticing: rainbow on desktop at 188 kH/s, rainbow on an iPhone 13 mini at
+// 400 kH/s, prism on desktop at 1300 kH/s. p99 on the slowest of those —
+// ln(100) * 2^16 hashes at 188 kH/s — is 1.60s, well inside challengeTTL.
+//
+// Move it as the solvers get faster, or down if pow_challenge_age_seconds
+// starts climbing. Both directions are a server-side change only.
+const DefaultDifficulty = 16
 
 // DifficultyInput is everything the difficulty policy may key on. All of
 // it is knowable server-side at challenge time, which is the point —

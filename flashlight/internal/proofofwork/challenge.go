@@ -140,7 +140,7 @@ type challengePayload struct {
 	IPHash string `json:"ipHash"`
 	// Milliseconds because the age of a challenge is a measurement: truncating
 	// the mint instant to a whole second would add a second of noise to it,
-	// which is several times a difficulty-0 round trip.
+	// which is more than a fast solver spends on the whole handshake.
 	IssuedAtUnixMillis int64 `json:"issuedAtUnixMillis"`
 	Difficulty         int   `json:"difficulty"`
 	// Signed for the same reason difficulty is, so verification never assumes

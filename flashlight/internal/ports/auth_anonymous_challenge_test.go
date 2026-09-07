@@ -62,15 +62,15 @@ func TestAnonymousChallengeHandler(t *testing.T) {
 		require.Equal(t, int64(60), resp.ExpiresInSeconds)
 	})
 
-	t.Run("the default difficulty is zero", func(t *testing.T) {
+	t.Run("the response carries the shipped default difficulty", func(t *testing.T) {
 		t.Parallel()
 		issue, _ := newProofOfWorkScheme(t, proofofwork.DefaultDifficulty)
 		handler := newAnonymousChallengeHandler(t, issue)
 
 		var resp challengeResponse
 		require.NoError(t, json.NewDecoder(postChallenge(t, handler, "1.2.3.4").Body).Decode(&resp))
-		require.Equal(t, 0, resp.Difficulty,
-			"the mechanism ships mandatory and the work ships at nothing")
+		require.Equal(t, proofofwork.DefaultDifficulty, resp.Difficulty,
+			"clients solve what the response asks for, so the dial must reach them")
 	})
 
 	t.Run("challenges are bound to the caller's ip", func(t *testing.T) {

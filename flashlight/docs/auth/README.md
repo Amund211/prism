@@ -24,8 +24,9 @@ no row, no lookup, no cache; validating is a signature check. The payload holds
 
 - `POST /v1/auth/anonymous/challenge` `{userId}` → a signed, stateless
   proof-of-work challenge bound to that `userId` and the caller's IP. Difficulty
-  is **0** today (`proofofwork.DefaultDifficulty`); the mechanism is mandatory so
-  the dial can move without a client retrofit.
+  is **16** today (`proofofwork.DefaultDifficulty`) — ~0.35s mean, 1.60s p99 on
+  the slowest solver measured; the mechanism is mandatory so the dial can move
+  without a client retrofit.
 - `POST /v1/auth/anonymous/login` `{userId, challenge, solution}` → `sessionId`,
   `tier`, and **durations, never timestamps**. The identity is the presented
   `userId`.

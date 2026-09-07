@@ -178,13 +178,13 @@ func main() {
 	userRepo := userrepository.NewPostgres(db, repositorySchemaName, time.Now)
 	logger.InfoContext(ctx, "Initialized UserRepository")
 
-	// Proof-of-work on anonymous login. Mandatory handshake, difficulty 0:
-	// the mechanism has to be in every client from the first auth release,
+	// Proof-of-work on anonymous login. The handshake is mandatory: the
+	// mechanism has to be in every client from the first auth release,
 	// because prism's upgrade tail means a no-proof path added later would
 	// have to stay open for months — and a no-proof path attackers can use
-	// is the same as having no proof-of-work at all. What it buys today is
-	// the ability to raise the price of an anonymous identity from the
-	// server, with no client release.
+	// is the same as having no proof-of-work at all. That is what lets the
+	// price of an anonymous identity move from the server, with no client
+	// release; proofofwork.DefaultDifficulty is the dial.
 	signingKeys := config.AuthChallengeSigningKeys()
 	if len(signingKeys) == 0 && config.IsDevelopment() {
 		// Gated on the environment, not just on the empty list: config

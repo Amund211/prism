@@ -25,10 +25,9 @@ type anonymousLoginRequest struct {
 	UserID string `json:"userId"`
 	// Challenge is the opaque blob handed out by
 	// POST /v1/auth/anonymous/challenge, and Solution is the client's
-	// answer to it. Both are mandatory: the handshake ships required and
-	// the work ships at zero, because prism has a months-long upgrade tail
-	// and a no-proof path attackers can use is the same as having no
-	// proof-of-work at all.
+	// answer to it. Both are mandatory whatever the difficulty is set to,
+	// because prism has a months-long upgrade tail and a no-proof path
+	// attackers can use is the same as having no proof-of-work at all.
 	Challenge string `json:"challenge"`
 	Solution  string `json:"solution"`
 }
@@ -190,9 +189,9 @@ func MakeAnonymousLoginHandler(
 			http.Error(w, "Invalid challenge", http.StatusBadRequest)
 			return
 		}
-		// A non-empty solution is required even though at difficulty 0 the
-		// empty string is a perfectly valid proof. Accepting it would let a
-		// client ship a stub that never implements the hash loop, and
+		// A non-empty solution is required independently of the difficulty,
+		// where the empty string can be a valid proof. Accepting it would let
+		// a client ship a stub that never implements the hash loop, and
 		// discovering that the day we raise the difficulty is exactly the
 		// retrofit this whole mechanism exists to avoid.
 		if body.Solution == "" || len(body.Solution) > solutionMaxLength {

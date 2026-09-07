@@ -101,7 +101,8 @@ func init() {
 		metric.WithUnit("s"),
 		// Against challengeTTL rather than copied from requestDuration, whose
 		// 10s ceiling would dump most of the range into the overflow bucket.
-		// Fine below 1s because difficulty 0 is nearly a pure round trip, and
+		// Fine below 1s because a fast solver clears the current difficulty in
+		// well under a second, leaving mostly the two round trips, and
 		// past 60s so an expired challenge that just missed is distinguishable
 		// from a resumed laptop replaying a stale blob.
 		metric.WithExplicitBucketBoundaries(0, 0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8, 15, 30, 45, 60, 75, 90, 120, 300),

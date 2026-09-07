@@ -25,11 +25,11 @@ func TestBuildDifficultyFunc(t *testing.T) {
 		}
 	})
 
-	t.Run("the shipped default is zero", func(t *testing.T) {
+	t.Run("the shipped default is 16", func(t *testing.T) {
 		t.Parallel()
 		difficultyFor, err := proofofwork.BuildDifficultyFunc(proofofwork.DefaultDifficulty)
 		require.NoError(t, err)
-		require.Equal(t, 0, difficultyFor(proofofwork.DifficultyInput{IPHash: testIPHash, ClientType: "prism"}))
+		require.Equal(t, 16, difficultyFor(proofofwork.DifficultyInput{IPHash: testIPHash, ClientType: "prism"}))
 	})
 
 	t.Run("rejects a floor outside the sanity ceiling", func(t *testing.T) {

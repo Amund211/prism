@@ -20,8 +20,8 @@ import (
 // not ported. It was scored near zero anyway: it bounded concurrently
 // *active* identities, never issuance, so a fresh IP was always worth ~200
 // identities for the asking. What actually bounds anonymous issuance now is
-// proof-of-work (difficulty 0 today) and the login endpoint's per-IP
-// limiters.
+// proof-of-work (proofofwork.DefaultDifficulty) and the login endpoint's
+// per-IP limiters.
 //
 // Reinstating a real guard means an implementation that can count — an
 // issuance-events table — and this seam is what makes that a new type plus
