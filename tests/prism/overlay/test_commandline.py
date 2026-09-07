@@ -2,7 +2,12 @@ import logging
 
 import pytest
 
-from prism.overlay.commandline import Options, get_options, resolve_path
+from prism.overlay.commandline import (
+    DEFAULT_POW_SPEC,
+    Options,
+    get_options,
+    resolve_path,
+)
 
 DEFAULT_SETTINGS = "some_settings_file.toml"
 
@@ -13,6 +18,7 @@ def make_options(
     loglevel: int = logging.INFO,
     test_ssl: bool = False,
     test: bool = False,
+    test_pow: str | None = None,
 ) -> Options:
     """Construct an Options instance from its components"""
     return Options(
@@ -21,6 +27,7 @@ def make_options(
         loglevel=loglevel,
         test_ssl=test_ssl,
         test=test,
+        test_pow=test_pow,
     )
 
 
@@ -44,6 +51,17 @@ test_cases: tuple[tuple[str, Options], ...] = (
     ("--test-ssl", make_options(test_ssl=True)),
     # Test
     ("--test", make_options(test=True)),
+    # Test proof-of-work
+    ("--test-pow", make_options(test_pow=DEFAULT_POW_SPEC)),
+    ("--test-pow 20", make_options(test_pow="20")),
+    ("--test-pow 14-22x3", make_options(test_pow="14-22x3")),
+    # The spec is validated where it is used, not here
+    ("--test-pow nonsense", make_options(test_pow="nonsense")),
+    # An optional argument does not swallow the next flag
+    (
+        "--test-pow --test",
+        make_options(test=True, test_pow=DEFAULT_POW_SPEC),
+    ),
     # Multiple arguments
     (
         "-l somelogfile --settings s.toml",
