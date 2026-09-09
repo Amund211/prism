@@ -32,6 +32,13 @@
   automerge: false,
   packageRules: [
     {
+      // Batch routine updates into one PR. Must stay first — later rules win,
+      // so the group rules below keep their own groupName. Majors stay
+      // separate; separateMajorMinor splits them out regardless of grouping.
+      matchUpdateTypes: ["minor", "patch", "digest"],
+      groupName: "all non-major dependencies",
+    },
+    {
       // A digest-only move on a SHA-pinned action means an existing tag was
       // repointed upstream — the tag-hijack signature (tj-actions/changed-files,
       // CVE-2025-30066). Legitimate fixes arrive as a new tag through the normal
