@@ -8,6 +8,8 @@
         // NOTE: :pinDevDependencies pins devDependencies in package.json to exact
         // versions, replacing the `^x.y.z` ranges we have today.
         "config:best-practices",
+        // config:best-practices pins devDependencies; pin `dependencies` too.
+        ":pinDependencies",
         // Track SHA-pinned actions by the `# vX.Y.Z` comment as semver, rather than
         // by digest movement on a floating tag.
         "helpers:pinGitHubActionDigestsToSemver",
