@@ -689,30 +689,30 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cachetools" },
-    { name = "filelock" },
-    { name = "platformdirs" },
-    { name = "pynput" },
-    { name = "pywin32", marker = "sys_platform == 'win32'" },
-    { name = "requests", specifier = ">=2.34.2" },
-    { name = "toml" },
-    { name = "truststore" },
+    { name = "cachetools", specifier = "==7.1.7" },
+    { name = "filelock", specifier = "==3.32.3" },
+    { name = "platformdirs", specifier = "==4.11.3" },
+    { name = "pynput", specifier = "==1.8.2" },
+    { name = "pywin32", marker = "sys_platform == 'win32'", specifier = "==312" },
+    { name = "requests", specifier = "==2.34.2" },
+    { name = "toml", specifier = "==0.10.2" },
+    { name = "truststore", specifier = "==0.10.4" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "black", specifier = ">=26.5.1" },
-    { name = "coverage", specifier = ">=7.15.2" },
-    { name = "flake8", specifier = ">=7.3.0" },
-    { name = "isort", specifier = ">=6.0.1" },
-    { name = "mypy", specifier = ">=2.3.0" },
-    { name = "pillow", specifier = ">=12.3.0" },
-    { name = "pre-commit", specifier = ">=4.6.1" },
-    { name = "pyinstaller", specifier = ">=6.21.0" },
-    { name = "pytest", specifier = ">=9.1.1" },
-    { name = "types-pyinstaller", specifier = ">=6.21.0.20260616" },
-    { name = "types-pynput", specifier = ">=1.8.1.20260712" },
-    { name = "types-toml", specifier = ">=0.10.8.20260518" },
+    { name = "black", specifier = "==26.5.1" },
+    { name = "coverage", specifier = "==7.15.4" },
+    { name = "flake8", specifier = "==7.3.0" },
+    { name = "isort", specifier = "==8.0.1" },
+    { name = "mypy", specifier = "==2.3.1" },
+    { name = "pillow", specifier = "==12.3.0" },
+    { name = "pre-commit", specifier = "==4.6.2" },
+    { name = "pyinstaller", specifier = "==6.22.2" },
+    { name = "pytest", specifier = "==9.1.1" },
+    { name = "types-pyinstaller", specifier = "==6.22.0.20260812" },
+    { name = "types-pynput", specifier = "==1.8.1.20260712" },
+    { name = "types-toml", specifier = "==0.10.8.20260518" },
 ]
 
 [[package]]
