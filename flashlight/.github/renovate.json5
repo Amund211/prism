@@ -66,6 +66,13 @@
   },
   packageRules: [
     {
+      // Batch routine updates into one PR. Must stay first — later rules win,
+      // so the group rules below keep their own groupName. Majors stay
+      // separate; separateMajorMinor splits them out regardless of grouping.
+      matchUpdateTypes: ["minor", "patch", "digest"],
+      groupName: "all non-major dependencies",
+    },
+    {
       // The `go` directive in go.mod. Renovate parses it with the
       // `go-mod-directive` versioning, which reads `go 1.26.6` as the range
       // `^1.26.6`. Under the default `replace` strategy a range is only
