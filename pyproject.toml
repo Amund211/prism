@@ -8,14 +8,14 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
-    "platformdirs",
-    "cachetools",
-    "filelock",
-    "requests>=2.34.2",
-    "toml",
-    "truststore",
-    "pynput",
-    "pywin32; platform_system=='Windows'",
+    "platformdirs==4.11.3",
+    "cachetools==7.1.7",
+    "filelock==3.32.3",
+    "requests==2.34.2",
+    "toml==0.10.2",
+    "truststore==0.10.4",
+    "pynput==1.8.2",
+    "pywin32==312; platform_system=='Windows'",
 ]
 classifiers = [
     "Programming Language :: Python :: 3"
@@ -33,18 +33,18 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
-    "black>=26.5.1",
-    "coverage>=7.15.2",
-    "flake8>=7.3.0",
-    "isort>=6.0.1",
-    "mypy>=2.3.0",
-    "pillow>=12.3.0",
-    "pre-commit>=4.6.1",
-    "pyinstaller>=6.21.0",
-    "pytest>=9.1.1",
-    "types-pyinstaller>=6.21.0.20260616",
-    "types-pynput>=1.8.1.20260712",
-    "types-toml>=0.10.8.20260518",
+    "black==26.5.1",
+    "coverage==7.15.4",
+    "flake8==7.3.0",
+    "isort==8.0.1",
+    "mypy==2.3.1",
+    "pillow==12.3.0",
+    "pre-commit==4.6.2",
+    "pyinstaller==6.22.2",
+    "pytest==9.1.1",
+    "types-pyinstaller==6.22.0.20260812",
+    "types-pynput==1.8.1.20260712",
+    "types-toml==0.10.8.20260518",
 ]
 
 [tool.uv]
