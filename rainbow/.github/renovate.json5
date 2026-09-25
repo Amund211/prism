@@ -28,6 +28,8 @@
     // pnpm honours that when renovate shells out to it to regenerate
     // pnpm-lock.yaml. Without a matching floor here renovate proposes versions its
     // own lockfile step then fails to resolve.
+    // For npm this is overridden by security:minimumReleaseAgeNpm (3 days) from
+    // config:best-practices; a packageRule below restores 7 days.
     minimumReleaseAge: "7 days",
     prConcurrentLimit: 5,
     prHourlyLimit: 2,
@@ -62,6 +64,25 @@
             // (#364) — an unknown age counts as an unmet one, indefinitely.
             matchDatasources: ["docker"],
             matchPackageNames: ["mcr.microsoft.com/playwright"],
+            minimumReleaseAge: null,
+        },
+        {
+            // security:minimumReleaseAgeNpm sets npm to 3 days via a packageRule,
+            // which beats the top-level 7 days. Renovate then proposes versions
+            // 3-6 days old, and pnpm fails the lockfile with
+            // ERR_PNPM_NO_MATURE_MATCHING_VERSION (#405). Limited to update types
+            // that carry a release timestamp, so the preset's null for pin etc.
+            // still applies.
+            matchDatasources: ["npm"],
+            matchUpdateTypes: ["major", "minor", "patch"],
+            minimumReleaseAge: "7 days",
+        },
+        {
+            // The preset's lockFileMaintenance exemption matches on datasource,
+            // which lockFileMaintenance has none of, so the top-level 7 days
+            // applies with no timestamp and renovate/stability-days stays pending
+            // forever (#382). pnpm enforces minimumReleaseAge itself here.
+            matchUpdateTypes: ["lockFileMaintenance"],
             minimumReleaseAge: null,
         },
         {
