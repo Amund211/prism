@@ -97,9 +97,15 @@
       // each leave the pair mismatched. Both resolve to the same upstream
       // release — golang-version and the docker tag — so they move in step.
       // Digest-only moves on the pinned tag land here too; that is fine.
+      // No release age here: Docker Hub resets the tag timestamp on every
+      // image rebuild, so the tag can stay "unaged" after the go directive
+      // passes. A group does not wait for all members, so that gave #397 with
+      // go.mod alone, and the Dockerfile build failed. The go directive already
+      // gates the Go release age for this group.
       matchManagers: ["dockerfile"],
       matchDepNames: ["golang"],
       groupName: "go version",
+      minimumReleaseAge: null,
     },
     {
       // A digest-only move on a SHA-pinned action means an existing tag was
