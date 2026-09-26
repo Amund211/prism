@@ -30,6 +30,7 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/userrepository"
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/authflowtoken"
+	"github.com/Amund211/flashlight/internal/authresulttoken"
 	"github.com/Amund211/flashlight/internal/authsessionguard"
 	"github.com/Amund211/flashlight/internal/authsessiontoken"
 	"github.com/Amund211/flashlight/internal/config"
@@ -302,6 +303,10 @@ func main() {
 		if err != nil {
 			fail("Failed to initialize the auth flow sealer", "error", err.Error())
 		}
+		resultSealer, err := authresulttoken.NewSigned(authFlowKeys)
+		if err != nil {
+			fail("Failed to initialize the auth result sealer", "error", err.Error())
+		}
 		microsoftClient, err := microsoftauth.New(httpClient, microsoftauth.Config{
 			ClientID:     config.AzureClientID(),
 			ClientSecret: config.AzureClientSecret(),
@@ -312,7 +317,7 @@ func main() {
 			fail("Failed to initialize the Microsoft sign-in client", "error", err.Error())
 		}
 		startMicrosoftSignIn = app.BuildStartMicrosoftSignIn(microsoftClient, flowSealer, time.Now)
-		finishMicrosoftSignIn = app.BuildFinishMicrosoftSignIn(microsoftClient, flowSealer, time.Now)
+		finishMicrosoftSignIn = app.BuildFinishMicrosoftSignIn(microsoftClient, flowSealer, resultSealer, time.Now)
 		logger.InfoContext(ctx, "Initialized Microsoft sign-in")
 	} else {
 		logger.WarnContext(ctx, "No Azure app registration configured, Microsoft sign-in routes are not registered")
@@ -469,6 +474,7 @@ func main() {
 	if startMicrosoftSignIn != nil {
 		microsoftStartHandler, stopMicrosoftStart := ports.MakeMicrosoftSignInStartHandler(
 			startMicrosoftSignIn,
+			allowedOrigins,
 			logger.With("port", "auth-microsoft-start"),
 			sentryMiddleware,
 			blocklistConfig,

@@ -24,7 +24,7 @@ const flowCookieName = "__Host-fl_flow"
 
 func newMicrosoftStartHandler(t *testing.T, start app.StartMicrosoftSignIn, blocklistConfig ports.BlocklistConfig) http.HandlerFunc {
 	t.Helper()
-	handler, stop := ports.MakeMicrosoftSignInStartHandler(start, authTestLogger, noopAuthMiddleware, blocklistConfig)
+	handler, stop := ports.MakeMicrosoftSignInStartHandler(start, authTestOrigins(t), authTestLogger, noopAuthMiddleware, blocklistConfig)
 	t.Cleanup(stop)
 	return handler
 }
@@ -36,14 +36,22 @@ func newMicrosoftCallbackHandler(t *testing.T, finish app.FinishMicrosoftSignIn,
 	return handler
 }
 
-func startReturning(started app.MicrosoftSignInStart, err error, calls *int) app.StartMicrosoftSignIn {
-	return func(context.Context) (app.MicrosoftSignInStart, error) {
-		if calls != nil {
-			*calls++
+type startCall struct {
+	calls  int
+	target *domain.MicrosoftSignInTarget
+}
+
+func startReturning(started app.MicrosoftSignInStart, err error, call *startCall) app.StartMicrosoftSignIn {
+	return func(_ context.Context, target *domain.MicrosoftSignInTarget) (app.MicrosoftSignInStart, error) {
+		if call != nil {
+			call.calls++
+			call.target = target
 		}
 		return started, err
 	}
 }
+
+const testChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
 
 var testStart = app.MicrosoftSignInStart{
 	AuthorizeURL: "https://login.example.com/authorize?state=abc",
@@ -89,19 +97,76 @@ func TestMicrosoftSignInStartHandler(t *testing.T) {
 		require.Equal(t, 600, cookie.MaxAge)
 	})
 
-	t.Run("refuses return until the client flows exist", func(t *testing.T) {
+	t.Run("the test sign-in has no target", func(t *testing.T) {
 		t.Parallel()
-		calls := 0
-		handler := newMicrosoftStartHandler(t, startReturning(testStart, nil, &calls), emptyBlocklistConfig)
+		var call startCall
+		handler := newMicrosoftStartHandler(t, startReturning(testStart, nil, &call), emptyBlocklistConfig)
 
-		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/auth/microsoft/start?return=https%3A%2F%2Fprismoverlay.com", http.NoBody)
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/auth/microsoft/start", http.NoBody)
+		withRequestIP(r, "1.2.3.4")
+		handler(httptest.NewRecorder(), r)
+
+		require.Equal(t, startCall{calls: 1}, call)
+	})
+
+	t.Run("passes a validated target", func(t *testing.T) {
+		t.Parallel()
+		var call startCall
+		handler := newMicrosoftStartHandler(t, startReturning(testStart, nil, &call), emptyBlocklistConfig)
+
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet,
+			"/v1/auth/microsoft/start?return=http%3A%2F%2F127.0.0.1%3A52345%2Fcallback&challenge="+testChallenge+"&state=nonce", http.NoBody)
 		withRequestIP(r, "1.2.3.4")
 		w := httptest.NewRecorder()
 		handler(w, r)
 
-		require.Equal(t, http.StatusBadRequest, w.Code)
-		require.Zero(t, calls)
-		require.Empty(t, w.Result().Cookies())
+		require.Equal(t, http.StatusFound, w.Code)
+		require.Equal(t, 1, call.calls)
+		require.Equal(t, &domain.MicrosoftSignInTarget{
+			ClientType:  domain.MicrosoftClientPrism,
+			URL:         "http://127.0.0.1:52345/callback",
+			Challenge:   testChallenge,
+			ClientState: "nonce",
+		}, call.target)
+	})
+
+	for name, query := range map[string]string{
+		"a return off the allowlist": "return=https%3A%2F%2Fevil.com&challenge=" + testChallenge,
+		"a return without challenge": "return=https%3A%2F%2Fexample.com",
+		"a challenge without return": "challenge=" + testChallenge,
+	} {
+		t.Run("refuses "+name, func(t *testing.T) {
+			t.Parallel()
+			var call startCall
+			handler := newMicrosoftStartHandler(t, startReturning(testStart, nil, &call), emptyBlocklistConfig)
+
+			r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/auth/microsoft/start?"+query, http.NoBody)
+			withRequestIP(r, "1.2.3.4")
+			w := httptest.NewRecorder()
+			handler(w, r)
+
+			require.Equal(t, http.StatusBadRequest, w.Code)
+			require.Zero(t, call.calls)
+			require.Empty(t, w.Result().Cookies())
+		})
+	}
+
+	t.Run("the nonce and challenge stay out of the log", func(t *testing.T) {
+		t.Parallel()
+		var logs bytes.Buffer
+		handler, stop := ports.MakeMicrosoftSignInStartHandler(startReturning(testStart, nil, nil), authTestOrigins(t), slog.New(slog.NewJSONHandler(&logs, nil)), noopAuthMiddleware, emptyBlocklistConfig)
+		t.Cleanup(stop)
+
+		for _, ret := range []string{"http%3A%2F%2F127.0.0.1%3A52345%2Fcallback", "https%3A%2F%2Fevil.com"} {
+			r := httptest.NewRequestWithContext(t.Context(), http.MethodGet,
+				"/v1/auth/microsoft/start?return="+ret+"&challenge="+testChallenge+"&state="+testPrismNonce, http.NoBody)
+			withRequestIP(r, "1.2.3.4")
+			handler(httptest.NewRecorder(), r)
+		}
+
+		require.NotEmpty(t, logs.String())
+		require.NotContains(t, logs.String(), testPrismNonce)
+		require.NotContains(t, logs.String(), testChallenge)
 	})
 
 	t.Run("500s when the flow cannot start", func(t *testing.T) {
@@ -119,8 +184,8 @@ func TestMicrosoftSignInStartHandler(t *testing.T) {
 
 	t.Run("blocked callers are refused", func(t *testing.T) {
 		t.Parallel()
-		calls := 0
-		handler := newMicrosoftStartHandler(t, startReturning(testStart, nil, &calls), ports.BlocklistConfig{IPs: []string{"1.2.3.4"}})
+		var call startCall
+		handler := newMicrosoftStartHandler(t, startReturning(testStart, nil, &call), ports.BlocklistConfig{IPs: []string{"1.2.3.4"}})
 
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/auth/microsoft/start", http.NoBody)
 		withRequestIP(r, "1.2.3.4")
@@ -128,7 +193,7 @@ func TestMicrosoftSignInStartHandler(t *testing.T) {
 		handler(w, r)
 
 		require.Equal(t, http.StatusBadRequest, w.Code)
-		require.Zero(t, calls)
+		require.Zero(t, call.calls)
 	})
 
 	t.Run("rate limits per ip", func(t *testing.T) {
@@ -160,19 +225,44 @@ type finishCall struct {
 	flowCookie string
 	state      string
 	code       string
+	refused    bool
 }
 
 func finishReturning(account domain.MinecraftAccount, err error, call *finishCall) app.FinishMicrosoftSignIn {
-	return func(_ context.Context, flowCookie, state, code string) (domain.MinecraftAccount, error) {
+	return finishReturningFinished(app.MicrosoftSignInFinished{Account: account}, err, call)
+}
+
+func finishReturningFinished(finished app.MicrosoftSignInFinished, err error, call *finishCall) app.FinishMicrosoftSignIn {
+	return func(_ context.Context, callback app.MicrosoftCallback) (app.MicrosoftSignInFinished, error) {
 		if call != nil {
 			call.calls++
-			call.flowCookie = flowCookie
-			call.state = state
-			call.code = code
+			call.flowCookie = callback.FlowCookie
+			call.state = callback.State
+			call.code = callback.Code
+			call.refused = callback.MicrosoftRefused
 		}
-		return account, err
+		return finished, err
 	}
 }
+
+const (
+	testResultToken = "flresult_the-secret-result.sig"
+	testPrismNonce  = "the-secret-nonce"
+)
+
+var (
+	testRainbowTarget = &domain.MicrosoftSignInTarget{
+		ClientType: domain.MicrosoftClientRainbow,
+		URL:        "https://example.com",
+		Challenge:  testChallenge,
+	}
+	testPrismTarget = &domain.MicrosoftSignInTarget{
+		ClientType:  domain.MicrosoftClientPrism,
+		URL:         "http://127.0.0.1:52345/callback",
+		Challenge:   testChallenge,
+		ClientState: testPrismNonce,
+	}
+)
 
 const (
 	testCallbackCode  = "M.C123_the-secret-code"
@@ -262,6 +352,7 @@ func TestMicrosoftSignInCallbackHandler(t *testing.T) {
 		{domain.ErrMicrosoftSignInFlowInvalid, "flow_invalid", http.StatusBadRequest},
 		{domain.ErrMicrosoftSignInFlowExpired, "flow_expired", http.StatusBadRequest},
 		{domain.ErrMicrosoftSignInStateMismatch, "state_mismatch", http.StatusBadRequest},
+		{domain.ErrMicrosoftSignInRefused, "microsoft_error", http.StatusBadRequest},
 		{domain.ErrMicrosoftCodeRejected, "code_rejected", http.StatusBadRequest},
 		{domain.ErrXbox, "xbox_refused", http.StatusForbidden},
 		{domain.ErrNoXboxAccount, "no_xbox_account", http.StatusForbidden},
@@ -288,13 +379,87 @@ func TestMicrosoftSignInCallbackHandler(t *testing.T) {
 		})
 	}
 
-	t.Run("an error from Microsoft does not reach the chain", func(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		target   *domain.MicrosoftSignInTarget
+		location string
+	}{
+		{"rainbow", testRainbowTarget, "https://example.com/auth/microsoft#result=" + testResultToken},
+		{"prism", testPrismTarget, "http://127.0.0.1:52345/callback?result=" + testResultToken + "&state=" + testPrismNonce},
+		{"prism without state", &domain.MicrosoftSignInTarget{ClientType: domain.MicrosoftClientPrism, URL: "http://[::1]:1/callback", Challenge: testChallenge}, "http://[::1]:1/callback?result=" + testResultToken},
+	} {
+		t.Run("redirects the result to "+tc.name, func(t *testing.T) {
+			t.Parallel()
+			handler := newMicrosoftCallbackHandler(t, finishReturningFinished(app.MicrosoftSignInFinished{Account: account, Target: tc.target, Result: testResultToken}, nil, nil), authTestLogger, noopAuthMiddleware)
+
+			w := httptest.NewRecorder()
+			handler(w, callbackRequest(t, validCallbackQuery, true))
+
+			resp := w.Result()
+			require.Equal(t, http.StatusFound, resp.StatusCode)
+			require.Equal(t, tc.location, resp.Header.Get("Location"))
+			require.Equal(t, "no-store", resp.Header.Get("Cache-Control"))
+			require.Equal(t, "no-referrer", resp.Header.Get("Referrer-Policy"))
+			requireFlowCookieCleared(t, resp)
+			require.Len(t, resp.Cookies(), 1, "the callback sets no cookie but the cleared flow cookie")
+		})
+	}
+
+	for _, tc := range []struct {
+		name     string
+		target   *domain.MicrosoftSignInTarget
+		location string
+	}{
+		{"rainbow", testRainbowTarget, "https://example.com/auth/microsoft#error=client_not_approved"},
+		{"prism", testPrismTarget, "http://127.0.0.1:52345/callback?error=client_not_approved&state=" + testPrismNonce},
+	} {
+		t.Run("redirects a failure to "+tc.name, func(t *testing.T) {
+			t.Parallel()
+			handler := newMicrosoftCallbackHandler(t, finishReturningFinished(app.MicrosoftSignInFinished{Target: tc.target}, fmt.Errorf("wrapped: %w", domain.ErrClientNotApproved), nil), authTestLogger, noopAuthMiddleware)
+
+			w := httptest.NewRecorder()
+			handler(w, callbackRequest(t, validCallbackQuery, true))
+
+			resp := w.Result()
+			require.Equal(t, http.StatusFound, resp.StatusCode)
+			require.Equal(t, tc.location, resp.Header.Get("Location"))
+			requireFlowCookieCleared(t, resp)
+		})
+	}
+
+	t.Run("an error from Microsoft is checked against the flow without a code", func(t *testing.T) {
+		t.Parallel()
+		var call finishCall
+		handler := newMicrosoftCallbackHandler(t, finishReturningFinished(app.MicrosoftSignInFinished{Target: testPrismTarget}, domain.ErrMicrosoftSignInRefused, &call), authTestLogger, noopAuthMiddleware)
+
+		w := httptest.NewRecorder()
+		handler(w, callbackRequest(t, "error=access_denied&error_description=The+user+said+no&code=ignored&state="+testCallbackState, true))
+
+		require.Equal(t, finishCall{calls: 1, flowCookie: testFlowCookie, state: testCallbackState, refused: true}, call)
+		require.Equal(t, http.StatusFound, w.Code)
+		require.Equal(t, "http://127.0.0.1:52345/callback?error=microsoft_error&state="+testPrismNonce, w.Header().Get("Location"))
+		requireFlowCookieCleared(t, w.Result())
+	})
+
+	t.Run("an error from Microsoft on the test sign-in renders the page", func(t *testing.T) {
+		t.Parallel()
+		handler := newMicrosoftCallbackHandler(t, finishReturning(domain.MinecraftAccount{}, domain.ErrMicrosoftSignInRefused, nil), authTestLogger, noopAuthMiddleware)
+
+		w := httptest.NewRecorder()
+		handler(w, callbackRequest(t, "error=access_denied&state="+testCallbackState, true))
+
+		require.Equal(t, http.StatusBadRequest, w.Code)
+		require.Contains(t, w.Body.String(), "microsoft_error")
+		requireFlowCookieCleared(t, w.Result())
+	})
+
+	t.Run("an error from Microsoft without state does not reach the flow", func(t *testing.T) {
 		t.Parallel()
 		var call finishCall
 		handler := newMicrosoftCallbackHandler(t, finishReturning(account, nil, &call), authTestLogger, noopAuthMiddleware)
 
 		w := httptest.NewRecorder()
-		handler(w, callbackRequest(t, "error=access_denied&error_description=The+user+said+no&state="+testCallbackState, true))
+		handler(w, callbackRequest(t, "error=access_denied", true))
 
 		require.Zero(t, call.calls)
 		require.Equal(t, http.StatusBadRequest, w.Code)
@@ -352,10 +517,19 @@ func TestMicrosoftSignInCallbackHandler(t *testing.T) {
 			w := httptest.NewRecorder()
 			handler(w, callbackRequest(t, validCallbackQuery, true))
 		}
+		for _, finished := range []app.MicrosoftSignInFinished{
+			{Account: account, Target: testPrismTarget, Result: testResultToken},
+			{Account: account, Target: testRainbowTarget, Result: testResultToken},
+		} {
+			handler := newMicrosoftCallbackHandler(t, finishReturningFinished(finished, nil, nil), logger, recordingSentry)
+			w := httptest.NewRecorder()
+			handler(w, callbackRequest(t, validCallbackQuery, true))
+			require.Equal(t, http.StatusFound, w.Code)
+		}
 
 		require.NotEmpty(t, logs.String())
-		require.Len(t, sentryRequests, 4)
-		for _, secret := range []string{testCallbackCode, testCallbackState, testFlowCookie} {
+		require.Len(t, sentryRequests, 6)
+		for _, secret := range []string{testCallbackCode, testCallbackState, testFlowCookie, testResultToken, testPrismNonce, testChallenge} {
 			require.NotContains(t, logs.String(), secret)
 			for _, req := range sentryRequests {
 				require.NotContains(t, fmt.Sprintf("%+v", *req), secret)

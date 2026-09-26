@@ -11,7 +11,7 @@ tags: [auth, sessions, bearer, proof-of-work, rate-limiting]
 
 Bearer sessions, so the per-user rate budget keys on an identity we verified
 rather than a self-asserted `X-User-Id` header. Only the **anonymous** tier is
-built, plus a Microsoft **test sign-in** that issues no session (below).
+built, plus a Microsoft sign-in that issues no session yet (below).
 Rationale lives outside this repo in `auth-plan/`; this file is what runs plus
 what breaks silently.
 
@@ -55,18 +55,24 @@ refreshUntil   = min(issuedAt + 2h,  lifetimeEndsAt)
 on purpose, so an issuance-events table can be added later without a format bump.
 They are not dead fields — do not remove them.
 
-## Microsoft test sign-in
+## Microsoft sign-in
 
 Registered only when `AZURE_*` is set — always in production and staging;
-config refuses a partial set.
+config refuses a partial set. Nothing issues a session from it yet.
 
-- `GET /v1/auth/microsoft/start` sets `__Host-fl_flow` (`flflow_<payload>.<sig>`
-  holding `msState`, `msVerifier`, `exp`; 10 min, `internal/authflowtoken`) and
-  302s to Microsoft. `?return` is a 400 until the client flows exist.
+- `GET /v1/auth/microsoft/start[?return&challenge[&state]]` sets
+  `__Host-fl_flow` (`flflow_<payload>.<sig>`: `msState`, `msVerifier`, `exp`
+  and the target; 10 min, `internal/authflowtoken`) and 302s to Microsoft.
+  No `return` is the test sign-in. `return` is an exact https rainbow origin
+  (`DomainSuffixes`) or `http://127.0.0.1|[::1]:<port>/callback` for prism;
+  `challenge` (43-char base64url) is then required; `state` is prism's only.
 - `GET /v1/auth/microsoft/callback` checks the cookie, its expiry and `state`
-  **before** it redeems the code, clears the cookie, and renders a page with
-  "Signed in as <name>" or an outcome code (`client_not_approved` until Mojang
-  approves). It issues no session and writes nothing.
+  **before** it redeems the code, and clears the cookie. With a target it
+  302s a result token (`flresult_…`, 60 s, `internal/authresulttoken`) to
+  `https://<origin>/auth/microsoft#result=` or
+  `http://127.0.0.1:<port>/callback?result=&state=`, or `error=<code>` in the
+  same place. Without one, or when the cookie does not verify, it renders a
+  page with "Signed in as <name>" or the code. It never sets a credential.
 
 ## Signing keys and rotation
 
@@ -157,11 +163,18 @@ These are the parts you cannot recover by reading the code.
   or 308 would replay the client secret, code or token to another host. Scope is
   `XboxLive.signin` only; adding `offline_access` makes Microsoft issue refresh
   tokens, which the design rules out.
-- **The callback's query holds the code and `state`, so `hideQuery` must stay
-  the outermost middleware on it.** `sentryhttp` sends the query string with
-  every event (`code` and `state` match no deny term), and `GetIP` reports the URL.
-  Cloud Run's own request log still records the full URL; accepted, since the
-  code is single-use and useless without the client secret and the verifier.
+- **The callback's query holds the code and `state`, and `/start`'s holds
+  prism's nonce, so `hideQuery` must stay the outermost middleware on both.**
+  `sentryhttp` sends the query string with every event (`code` and `state`
+  match no deny term), and `GetIP` reports the URL. Cloud Run's own request log
+  still records the full URL; accepted, since the code is single-use and
+  useless without the client secret and the verifier.
+- **`return` validation is the exfiltration boundary.** Loosen
+  `parseMicrosoftSignInTarget` and the result token goes to a host we do not
+  control. The result token is useless without the client's verifier, which is
+  what makes it safe in a fragment or a loopback URL. The flow cookie and the
+  result token share `AUTH_FLOW_SIGNING_KEYS`; only the signed prefix and `typ`
+  keep one from verifying as the other.
 - **The flow cookie only works on one host.** `__Host-` makes the browser drop
   it unless it is `Secure`, `Path=/` and has no `Domain` — the clearing
   `Set-Cookie` too. `/start` must be opened on the host in `AZURE_REDIRECT_URI`

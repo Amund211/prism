@@ -37,11 +37,12 @@ type MicrosoftSignInStart struct {
 }
 
 // StartMicrosoftSignIn begins a flow: a fresh state and PKCE verifier,
-// sealed into the flow cookie, and the Microsoft authorize URL.
-type StartMicrosoftSignIn func(ctx context.Context) (MicrosoftSignInStart, error)
+// sealed into the flow cookie with target, and the Microsoft authorize
+// URL. target is validated by the caller; nil is the test sign-in.
+type StartMicrosoftSignIn func(ctx context.Context, target *domain.MicrosoftSignInTarget) (MicrosoftSignInStart, error)
 
 func BuildStartMicrosoftSignIn(microsoft microsoftSignIn, sealer flowSealer, nowFunc func() time.Time) StartMicrosoftSignIn {
-	return func(ctx context.Context) (MicrosoftSignInStart, error) {
+	return func(ctx context.Context, target *domain.MicrosoftSignInTarget) (MicrosoftSignInStart, error) {
 		state, err := randomURLSafe()
 		if err != nil {
 			return MicrosoftSignInStart{}, fmt.Errorf("failed to generate state: %w", err)
@@ -55,6 +56,7 @@ func BuildStartMicrosoftSignIn(microsoft microsoftSignIn, sealer flowSealer, now
 			State:     state,
 			Verifier:  verifier,
 			ExpiresAt: nowFunc().Add(microsoftSignInFlowTTL),
+			Target:    target,
 		})
 		if err != nil {
 			return MicrosoftSignInStart{}, fmt.Errorf("failed to seal flow: %w", err)
@@ -69,32 +71,80 @@ func BuildStartMicrosoftSignIn(microsoft microsoftSignIn, sealer flowSealer, now
 	}
 }
 
+// microsoftSignInResultTTL bounds the hop from the callback to /exchange.
+const microsoftSignInResultTTL = 60 * time.Second
+
+// resultSealer seals the result token the callback hands a client.
+type resultSealer interface {
+	Seal(result domain.MicrosoftSignInResult) (string, error)
+}
+
+// MicrosoftSignInFinished is the outcome of a callback.
+type MicrosoftSignInFinished struct {
+	Account domain.MinecraftAccount
+	// Target is the flow's, set whenever the flow cookie verified — also
+	// alongside an error, so a client can be sent its failure. Nil for the
+	// test sign-in.
+	Target *domain.MicrosoftSignInTarget
+	// Result is the signed result token, set only on success with a
+	// Target.
+	Result string
+}
+
+// MicrosoftCallback is what Microsoft's redirect back carries.
+type MicrosoftCallback struct {
+	// FlowCookie is "" when the browser sent none.
+	FlowCookie string
+	State      string
+	Code       string
+	// MicrosoftRefused is set when Microsoft sent an error instead of a
+	// code, for example when the user cancelled.
+	MicrosoftRefused bool
+}
+
 // FinishMicrosoftSignIn verifies the flow cookie and state, then redeems
-// code and runs the chain. flowCookie is "" when the browser sent none.
-// Errors never quote the cookie, state or code.
-type FinishMicrosoftSignIn func(ctx context.Context, flowCookie, state, code string) (domain.MinecraftAccount, error)
+// the code and runs the chain. Errors never quote the cookie, state or
+// code.
+type FinishMicrosoftSignIn func(ctx context.Context, callback MicrosoftCallback) (MicrosoftSignInFinished, error)
 
-func BuildFinishMicrosoftSignIn(microsoft microsoftSignIn, sealer flowSealer, nowFunc func() time.Time) FinishMicrosoftSignIn {
-	return func(ctx context.Context, flowCookie, state, code string) (domain.MinecraftAccount, error) {
-		if flowCookie == "" {
-			return domain.MinecraftAccount{}, domain.ErrMicrosoftSignInFlowMissing
+func BuildFinishMicrosoftSignIn(microsoft microsoftSignIn, flows flowSealer, results resultSealer, nowFunc func() time.Time) FinishMicrosoftSignIn {
+	return func(ctx context.Context, callback MicrosoftCallback) (MicrosoftSignInFinished, error) {
+		if callback.FlowCookie == "" {
+			return MicrosoftSignInFinished{}, domain.ErrMicrosoftSignInFlowMissing
 		}
-		flow, err := sealer.Unseal(flowCookie)
+		flow, err := flows.Unseal(callback.FlowCookie)
 		if err != nil {
-			return domain.MinecraftAccount{}, fmt.Errorf("failed to unseal flow: %w", err)
+			return MicrosoftSignInFinished{}, fmt.Errorf("failed to unseal flow: %w", err)
 		}
+		failed := MicrosoftSignInFinished{Target: flow.Target}
 		if !nowFunc().Before(flow.ExpiresAt) {
-			return domain.MinecraftAccount{}, domain.ErrMicrosoftSignInFlowExpired
+			return failed, domain.ErrMicrosoftSignInFlowExpired
 		}
-		if subtle.ConstantTimeCompare([]byte(state), []byte(flow.State)) != 1 {
-			return domain.MinecraftAccount{}, domain.ErrMicrosoftSignInStateMismatch
+		if subtle.ConstantTimeCompare([]byte(callback.State), []byte(flow.State)) != 1 {
+			return failed, domain.ErrMicrosoftSignInStateMismatch
+		}
+		if callback.MicrosoftRefused {
+			return failed, domain.ErrMicrosoftSignInRefused
 		}
 
-		account, err := microsoft.SignIn(ctx, code, flow.Verifier)
+		account, err := microsoft.SignIn(ctx, callback.Code, flow.Verifier)
 		if err != nil {
-			return domain.MinecraftAccount{}, fmt.Errorf("failed to sign in: %w", err)
+			return failed, fmt.Errorf("failed to sign in: %w", err)
 		}
-		return account, nil
+		if flow.Target == nil {
+			return MicrosoftSignInFinished{Account: account}, nil
+		}
+
+		result, err := results.Seal(domain.MicrosoftSignInResult{
+			Account:    account,
+			ClientType: flow.Target.ClientType,
+			Challenge:  flow.Target.Challenge,
+			ExpiresAt:  nowFunc().Add(microsoftSignInResultTTL),
+		})
+		if err != nil {
+			return failed, fmt.Errorf("failed to seal result: %w", err)
+		}
+		return MicrosoftSignInFinished{Account: account, Target: flow.Target, Result: result}, nil
 	}
 }
 

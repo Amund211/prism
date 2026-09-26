@@ -13,6 +13,55 @@ type MicrosoftSignInFlow struct {
 	// Verifier is the PKCE verifier toward Microsoft.
 	Verifier  string
 	ExpiresAt time.Time
+	// Target is nil for the test sign-in, which renders a page instead.
+	Target *MicrosoftSignInTarget
+}
+
+// MicrosoftClientType is the client a sign-in returns to.
+type MicrosoftClientType string
+
+const (
+	MicrosoftClientRainbow MicrosoftClientType = "rainbow"
+	MicrosoftClientPrism   MicrosoftClientType = "prism"
+)
+
+func (c MicrosoftClientType) IsKnown() bool {
+	return c == MicrosoftClientRainbow || c == MicrosoftClientPrism
+}
+
+// Bounds on the client-supplied parts of a target, so the flow cookie
+// stays under its cap.
+const (
+	MicrosoftSignInReturnMaxLength      = 256
+	MicrosoftSignInClientStateMaxLength = 128
+)
+
+// MicrosoftSignInTarget is where the callback sends the result token, and
+// what the client must prove at /exchange.
+type MicrosoftSignInTarget struct {
+	ClientType MicrosoftClientType
+	// URL is the validated return: a rainbow origin or a prism loopback
+	// callback.
+	URL string
+	// Challenge is base64url(sha256(verifier)); the client holds the
+	// verifier.
+	Challenge string
+	// ClientState is prism's loopback nonce, echoed back unchecked.
+	ClientState string
+}
+
+// Complete reports whether every required field is set.
+func (t MicrosoftSignInTarget) Complete() bool {
+	return t.ClientType.IsKnown() && t.URL != "" && t.Challenge != ""
+}
+
+// MicrosoftSignInResult is what the callback hands the client, signed, for
+// it to trade at /exchange together with the verifier.
+type MicrosoftSignInResult struct {
+	Account    MinecraftAccount
+	ClientType MicrosoftClientType
+	Challenge  string
+	ExpiresAt  time.Time
 }
 
 // Why a callback was refused before the code was redeemed.
@@ -21,7 +70,14 @@ var (
 	ErrMicrosoftSignInFlowInvalid   = errors.New("microsoft sign-in flow cookie is invalid")
 	ErrMicrosoftSignInFlowExpired   = errors.New("microsoft sign-in flow has expired")
 	ErrMicrosoftSignInStateMismatch = errors.New("microsoft sign-in state does not match the flow")
+	// ErrMicrosoftSignInRefused: Microsoft redirected back with an error,
+	// not a code.
+	ErrMicrosoftSignInRefused = errors.New("microsoft refused the sign-in")
 )
+
+// ErrMicrosoftSignInResultInvalid is every refusal of a result token we
+// did not sign or cannot read.
+var ErrMicrosoftSignInResultInvalid = errors.New("microsoft sign-in result is invalid")
 
 // MinecraftAccount is who a Microsoft sign-in proved the caller to be: the
 // profile Mojang returned for the token the sign-in obtained. UUID is the

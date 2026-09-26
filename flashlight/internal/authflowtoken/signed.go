@@ -25,13 +25,18 @@ const valuePrefix = "flflow_"
 const valueSeparator = "."
 
 // valueMaxLength bounds the work before the signature check.
-const valueMaxLength = 1024
+const valueMaxLength = 2048
 
+// The target fields are empty for the test sign-in.
 type payload struct {
 	Typ                 string `json:"typ"`
 	MSState             string `json:"msState"`
 	MSVerifier          string `json:"msVerifier"`
 	ExpiresAtUnixMillis int64  `json:"expiresAtUnixMillis"`
+	ClientType          string `json:"clientType,omitempty"`
+	Return              string `json:"return,omitempty"`
+	Challenge           string `json:"challenge,omitempty"`
+	ClientState         string `json:"clientState,omitempty"`
 }
 
 type Signed struct {
@@ -56,12 +61,22 @@ func (s Signed) Seal(flow domain.MicrosoftSignInFlow) (string, error) {
 	if flow.State == "" || flow.Verifier == "" || flow.ExpiresAt.IsZero() {
 		return "", fmt.Errorf("refusing to seal an incomplete flow")
 	}
-	raw, err := json.Marshal(payload{
+	p := payload{
 		Typ:                 typeV1,
 		MSState:             flow.State,
 		MSVerifier:          flow.Verifier,
 		ExpiresAtUnixMillis: flow.ExpiresAt.UnixMilli(),
-	})
+	}
+	if flow.Target != nil {
+		if !flow.Target.Complete() {
+			return "", fmt.Errorf("refusing to seal an incomplete target")
+		}
+		p.ClientType = string(flow.Target.ClientType)
+		p.Return = flow.Target.URL
+		p.Challenge = flow.Target.Challenge
+		p.ClientState = flow.Target.ClientState
+	}
+	raw, err := json.Marshal(p)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal flow payload: %w", err)
 	}
@@ -112,9 +127,22 @@ func (s Signed) Unseal(value string) (domain.MicrosoftSignInFlow, error) {
 		return domain.MicrosoftSignInFlow{}, fmt.Errorf("%w: payload is incomplete", domain.ErrMicrosoftSignInFlowInvalid)
 	}
 
-	return domain.MicrosoftSignInFlow{
+	flow := domain.MicrosoftSignInFlow{
 		State:     p.MSState,
 		Verifier:  p.MSVerifier,
 		ExpiresAt: time.UnixMilli(p.ExpiresAtUnixMillis).UTC(),
-	}, nil
+	}
+	if p.ClientType != "" || p.Return != "" || p.Challenge != "" || p.ClientState != "" {
+		target := domain.MicrosoftSignInTarget{
+			ClientType:  domain.MicrosoftClientType(p.ClientType),
+			URL:         p.Return,
+			Challenge:   p.Challenge,
+			ClientState: p.ClientState,
+		}
+		if !target.Complete() {
+			return domain.MicrosoftSignInFlow{}, fmt.Errorf("%w: target is incomplete", domain.ErrMicrosoftSignInFlowInvalid)
+		}
+		flow.Target = &target
+	}
+	return flow, nil
 }

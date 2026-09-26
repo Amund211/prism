@@ -30,6 +30,20 @@ var testFlow = domain.MicrosoftSignInFlow{
 	ExpiresAt: time.Date(2026, 9, 26, 12, 10, 0, 0, time.UTC),
 }
 
+var (
+	testRainbowTarget = domain.MicrosoftSignInTarget{
+		ClientType: domain.MicrosoftClientRainbow,
+		URL:        "https://prismoverlay.com",
+		Challenge:  "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+	}
+	testPrismTarget = domain.MicrosoftSignInTarget{
+		ClientType:  domain.MicrosoftClientPrism,
+		URL:         "http://127.0.0.1:52345/callback",
+		Challenge:   "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+		ClientState: "prism-nonce",
+	}
+)
+
 func TestNewSigned(t *testing.T) {
 	t.Parallel()
 
@@ -54,6 +68,57 @@ func TestSealUnseal(t *testing.T) {
 		flow, err := s.Unseal(value)
 		require.NoError(t, err)
 		require.Equal(t, testFlow, flow)
+	})
+
+	t.Run("round trips a client flow", func(t *testing.T) {
+		t.Parallel()
+		s := newSigned(t, testKey(0))
+
+		for _, target := range []domain.MicrosoftSignInTarget{
+			testRainbowTarget,
+			testPrismTarget,
+			{ClientType: domain.MicrosoftClientPrism, URL: "http://127.0.0.1:1/callback", Challenge: testPrismTarget.Challenge},
+		} {
+			flow := testFlow
+			flow.Target = &target
+			value, err := s.Seal(flow)
+			require.NoError(t, err)
+
+			got, err := s.Unseal(value)
+			require.NoError(t, err)
+			require.Equal(t, flow, got)
+		}
+	})
+
+	t.Run("the largest client flow fits the cap", func(t *testing.T) {
+		t.Parallel()
+		flow := testFlow
+		flow.State = strings.Repeat("s", 43)
+		flow.Verifier = strings.Repeat("v", 43)
+		flow.Target = &domain.MicrosoftSignInTarget{
+			ClientType:  domain.MicrosoftClientRainbow,
+			URL:         strings.Repeat("u", domain.MicrosoftSignInReturnMaxLength),
+			Challenge:   strings.Repeat("c", 43),
+			ClientState: strings.Repeat("n", domain.MicrosoftSignInClientStateMaxLength),
+		}
+		_, err := newSigned(t, testKey(0)).Seal(flow)
+		require.NoError(t, err)
+	})
+
+	t.Run("refuses to seal an incomplete target", func(t *testing.T) {
+		t.Parallel()
+		s := newSigned(t, testKey(0))
+		for _, target := range []domain.MicrosoftSignInTarget{
+			{URL: "https://prismoverlay.com", Challenge: "c"},
+			{ClientType: "other", URL: "https://prismoverlay.com", Challenge: "c"},
+			{ClientType: domain.MicrosoftClientRainbow, Challenge: "c"},
+			{ClientType: domain.MicrosoftClientRainbow, URL: "https://prismoverlay.com"},
+		} {
+			flow := testFlow
+			flow.Target = &target
+			_, err := s.Seal(flow)
+			require.Error(t, err)
+		}
 	})
 
 	t.Run("is a valid cookie value", func(t *testing.T) {
@@ -112,7 +177,7 @@ func TestSealUnseal(t *testing.T) {
 			"non-base64 sig":      signed + ".***",
 			"other prefix":        sessionLike,
 			"other key":           mustSeal(t, newSigned(t, testKey(2))),
-			"over the length cap": strings.Repeat("a", 2000) + "." + signature,
+			"over the length cap": strings.Repeat("a", 3000) + "." + signature,
 		} {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
@@ -130,6 +195,23 @@ func TestSealUnseal(t *testing.T) {
 
 		_, err := newSigned(t, key).Unseal(value)
 		require.ErrorIs(t, err, domain.ErrMicrosoftSignInFlowInvalid)
+	})
+
+	t.Run("rejects an incomplete target", func(t *testing.T) {
+		t.Parallel()
+		key := testKey(0)
+		for _, extra := range []string{
+			`"clientType":"other","return":"r","challenge":"c"`,
+			`"clientType":"rainbow","challenge":"c"`,
+			`"clientType":"rainbow","return":"r"`,
+			`"return":"r","challenge":"c"`,
+		} {
+			signed := "flflow_" + base64.RawURLEncoding.EncodeToString([]byte(`{"typ":"flflow/1","msState":"s","msVerifier":"v","expiresAtUnixMillis":1,`+extra+`}`))
+			value := signed + "." + base64.RawURLEncoding.EncodeToString(signing.Sign(key, signed))
+
+			_, err := newSigned(t, key).Unseal(value)
+			require.ErrorIs(t, err, domain.ErrMicrosoftSignInFlowInvalid, extra)
+		}
 	})
 
 	t.Run("errors never quote the value", func(t *testing.T) {
