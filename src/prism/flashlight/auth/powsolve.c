@@ -17,13 +17,27 @@
 #define EXPORT __attribute__((visibility("default")))
 #endif
 
+#if defined(__x86_64__) || defined(_M_X64)
+#define HAVE_SHA_NI 1
+#include <cpuid.h>
+#include <immintrin.h>
+#endif
+
+#if defined(__aarch64__) && (defined(__APPLE__) || defined(__linux__))
+#define HAVE_ARMV8 1
+#include <arm_neon.h>
+#if defined(__linux__)
+#include <sys/auxv.h>
+#endif
+#endif
+
 // Bump when the exported functions change. Checked by the loader.
 #define ABI_VERSION 1
 
 #define SOLUTION_DIGITS 12
 #define MAX_COUNTER 1000000000000ULL
 
-enum { IMPL_PORTABLE = 1 };
+enum { IMPL_PORTABLE = 1, IMPL_SHA_NI = 2, IMPL_ARMV8 = 3 };
 
 typedef void (*compress_fn)(uint32_t state[8], const uint8_t *data, size_t blocks);
 
@@ -85,10 +99,148 @@ static void compress_portable(uint32_t s[8], const uint8_t *p, size_t blocks) {
     }
 }
 
+#ifdef HAVE_SHA_NI
+// Intel SHA extensions. Present on AMD Zen and on Intel since about 2019-2021,
+// missing on most older Intel desktop CPUs.
+static int sha_ni_supported(void) {
+    unsigned int a, b, c, d;
+    // SSSE3 and SSE4.1 (leaf 1, ecx bits 9 and 19) for the shuffles
+    if (!__get_cpuid(1, &a, &b, &c, &d) || !(c & (1u << 9)) || !(c & (1u << 19))) {
+        return 0;
+    }
+    // SHA (leaf 7, ebx bit 29)
+    if (!__get_cpuid_count(7, 0, &a, &b, &c, &d)) {
+        return 0;
+    }
+    return (b & (1u << 29)) != 0;
+}
+
+// State is kept as ABEF/CDGH, the layout sha256rnds2 works on
+__attribute__((target("sha,sse4.1,ssse3")))
+static void compress_sha_ni(uint32_t state[8], const uint8_t *data, size_t blocks) {
+    const __m128i BSWAP = _mm_set_epi64x(0x0c0d0e0f08090a0bULL, 0x0405060700010203ULL);
+    __m128i tmp = _mm_shuffle_epi32(_mm_loadu_si128((const __m128i *)&state[0]), 0xB1);
+    __m128i st1 = _mm_shuffle_epi32(_mm_loadu_si128((const __m128i *)&state[4]), 0x1B);
+    __m128i st0 = _mm_alignr_epi8(tmp, st1, 8);
+    st1 = _mm_blend_epi16(st1, tmp, 0xF0);
+
+// Four rounds with message words w, for round group g
+#define SHA_NI_ROUNDS(w, g)                                                              \
+    do {                                                                                 \
+        __m128i wk = _mm_add_epi32(w, _mm_loadu_si128((const __m128i *)&K[4 * (g)]));    \
+        st1 = _mm_sha256rnds2_epu32(st1, st0, wk);                                       \
+        st0 = _mm_sha256rnds2_epu32(st0, st1, _mm_shuffle_epi32(wk, 0x0E));              \
+    } while (0)
+
+// The next four message words, replacing w0, from the previous sixteen (oldest first)
+#define SHA_NI_SCHEDULE(w0, w1, w2, w3)                                                  \
+    w0 = _mm_sha256msg2_epu32(                                                           \
+        _mm_add_epi32(_mm_sha256msg1_epu32(w0, w1), _mm_alignr_epi8(w3, w2, 4)), w3)
+
+    while (blocks--) {
+        __m128i save0 = st0, save1 = st1;
+        __m128i w0 = _mm_shuffle_epi8(_mm_loadu_si128((const __m128i *)(data + 0)), BSWAP);
+        __m128i w1 = _mm_shuffle_epi8(_mm_loadu_si128((const __m128i *)(data + 16)), BSWAP);
+        __m128i w2 = _mm_shuffle_epi8(_mm_loadu_si128((const __m128i *)(data + 32)), BSWAP);
+        __m128i w3 = _mm_shuffle_epi8(_mm_loadu_si128((const __m128i *)(data + 48)), BSWAP);
+        SHA_NI_ROUNDS(w0, 0);
+        SHA_NI_ROUNDS(w1, 1);
+        SHA_NI_ROUNDS(w2, 2);
+        SHA_NI_ROUNDS(w3, 3);
+        for (int g = 4; g < 16; g += 4) {
+            SHA_NI_SCHEDULE(w0, w1, w2, w3);
+            SHA_NI_ROUNDS(w0, g);
+            SHA_NI_SCHEDULE(w1, w2, w3, w0);
+            SHA_NI_ROUNDS(w1, g + 1);
+            SHA_NI_SCHEDULE(w2, w3, w0, w1);
+            SHA_NI_ROUNDS(w2, g + 2);
+            SHA_NI_SCHEDULE(w3, w0, w1, w2);
+            SHA_NI_ROUNDS(w3, g + 3);
+        }
+        st0 = _mm_add_epi32(st0, save0);
+        st1 = _mm_add_epi32(st1, save1);
+        data += 64;
+    }
+
+    tmp = _mm_shuffle_epi32(st0, 0x1B);
+    st1 = _mm_shuffle_epi32(st1, 0xB1);
+    st0 = _mm_blend_epi16(tmp, st1, 0xF0);
+    st1 = _mm_alignr_epi8(st1, tmp, 8);
+    _mm_storeu_si128((__m128i *)&state[0], st0);
+    _mm_storeu_si128((__m128i *)&state[4], st1);
+}
+#endif
+
+#ifdef HAVE_ARMV8
+// ARMv8 cryptography extensions. Every Apple Silicon CPU has them.
+static int armv8_supported(void) {
+#if defined(__APPLE__)
+    return 1;
+#else
+    return (getauxval(AT_HWCAP) & HWCAP_SHA2) != 0;
+#endif
+}
+
+__attribute__((target("arch=armv8-a+sha2")))
+static void compress_armv8(uint32_t state[8], const uint8_t *data, size_t blocks) {
+    uint32x4_t abcd = vld1q_u32(&state[0]);
+    uint32x4_t efgh = vld1q_u32(&state[4]);
+
+// Four rounds with message words w, for round group g
+#define ARMV8_ROUNDS(w, g)                                                               \
+    do {                                                                                 \
+        uint32x4_t wk = vaddq_u32(w, vld1q_u32(&K[4 * (g)]));                            \
+        uint32x4_t prev_abcd = abcd;                                                     \
+        abcd = vsha256hq_u32(abcd, efgh, wk);                                            \
+        efgh = vsha256h2q_u32(efgh, prev_abcd, wk);                                      \
+    } while (0)
+
+// The next four message words, replacing w0, from the previous sixteen (oldest first)
+#define ARMV8_SCHEDULE(w0, w1, w2, w3) w0 = vsha256su1q_u32(vsha256su0q_u32(w0, w1), w2, w3)
+
+    while (blocks--) {
+        uint32x4_t save_abcd = abcd, save_efgh = efgh;
+        uint32x4_t w0 = vreinterpretq_u32_u8(vrev32q_u8(vld1q_u8(data + 0)));
+        uint32x4_t w1 = vreinterpretq_u32_u8(vrev32q_u8(vld1q_u8(data + 16)));
+        uint32x4_t w2 = vreinterpretq_u32_u8(vrev32q_u8(vld1q_u8(data + 32)));
+        uint32x4_t w3 = vreinterpretq_u32_u8(vrev32q_u8(vld1q_u8(data + 48)));
+        ARMV8_ROUNDS(w0, 0);
+        ARMV8_ROUNDS(w1, 1);
+        ARMV8_ROUNDS(w2, 2);
+        ARMV8_ROUNDS(w3, 3);
+        for (int g = 4; g < 16; g += 4) {
+            ARMV8_SCHEDULE(w0, w1, w2, w3);
+            ARMV8_ROUNDS(w0, g);
+            ARMV8_SCHEDULE(w1, w2, w3, w0);
+            ARMV8_ROUNDS(w1, g + 1);
+            ARMV8_SCHEDULE(w2, w3, w0, w1);
+            ARMV8_ROUNDS(w2, g + 2);
+            ARMV8_SCHEDULE(w3, w0, w1, w2);
+            ARMV8_ROUNDS(w3, g + 3);
+        }
+        abcd = vaddq_u32(abcd, save_abcd);
+        efgh = vaddq_u32(efgh, save_efgh);
+        data += 64;
+    }
+
+    vst1q_u32(&state[0], abcd);
+    vst1q_u32(&state[4], efgh);
+}
+#endif
+
+// NULL if the implementation is unknown or can't run on this CPU
 static compress_fn get_compress(int impl) {
     switch (impl) {
     case IMPL_PORTABLE:
         return compress_portable;
+#ifdef HAVE_SHA_NI
+    case IMPL_SHA_NI:
+        return sha_ni_supported() ? compress_sha_ni : NULL;
+#endif
+#ifdef HAVE_ARMV8
+    case IMPL_ARMV8:
+        return armv8_supported() ? compress_armv8 : NULL;
+#endif
     default:
         return NULL;
     }

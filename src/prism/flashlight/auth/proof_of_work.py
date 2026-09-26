@@ -90,7 +90,7 @@ class Solver:
 
 
 # Fastest first
-NATIVE_PREFERENCE = ("portable",)
+NATIVE_PREFERENCE = ("sha-ni", "armv8", "portable")
 
 
 def get_solver(name: str, library_path: Path = native_pow.LIBRARY_PATH) -> Solver:

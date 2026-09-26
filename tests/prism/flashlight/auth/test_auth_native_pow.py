@@ -1,4 +1,6 @@
 import hashlib
+import platform
+import sys
 import threading
 import time
 from pathlib import Path
@@ -43,6 +45,48 @@ def first_valid_counter(prefix: bytes, difficulty: int, start: int = 0) -> int:
     while not is_valid(prefix, f"{counter:012d}", difficulty):
         counter += 1
     return counter
+
+
+IS_X86 = platform.machine().lower() in ("x86_64", "amd64")
+IS_ARM = platform.machine().lower() in ("arm64", "aarch64")
+
+
+def cpuinfo_words() -> set[str]:
+    return set(Path("/proc/cpuinfo").read_text().split())
+
+
+@pytest.mark.skipif(
+    not (sys.platform == "linux" and IS_X86), reason="Needs /proc/cpuinfo on x86"
+)
+def test_sha_ni_detection_matches_cpuinfo(library: NativeLibrary) -> None:
+    """Check the library's cpuid detection against the kernel's"""
+    expected = {"sha_ni", "sse4_1", "ssse3"} <= cpuinfo_words()
+    assert library.supported("sha-ni") == expected
+
+
+@pytest.mark.skipif(
+    not (sys.platform == "linux" and IS_ARM), reason="Needs /proc/cpuinfo on ARM"
+)
+def test_armv8_detection_matches_cpuinfo(
+    library: NativeLibrary,
+) -> None:
+    assert library.supported("armv8") == ("sha2" in cpuinfo_words())
+
+
+@pytest.mark.skipif(
+    not (sys.platform == "darwin" and IS_ARM), reason="Needs Apple Silicon"
+)
+def test_armv8_supported_on_apple_silicon(
+    library: NativeLibrary,
+) -> None:
+    assert library.supported("armv8")
+
+
+@pytest.mark.skipif(not (IS_X86 or IS_ARM), reason="Unknown architecture")
+def test_other_architectures_implementation_is_unsupported(
+    library: NativeLibrary,
+) -> None:
+    assert not library.supported("armv8" if IS_X86 else "sha-ni")
 
 
 def test_missing_library_raises(tmp_path: Path) -> None:
