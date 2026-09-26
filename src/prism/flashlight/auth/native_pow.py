@@ -22,7 +22,7 @@ else:  # pragma: nocover
 LIBRARY_PATH = SOURCE_PATH.with_name(LIBRARY_NAME)
 
 # Must match ABI_VERSION, SOLUTION_DIGITS and MAX_COUNTER in powsolve.c
-ABI_VERSION = 1
+ABI_VERSION = 2
 SOLUTION_DIGITS = 12
 MAX_COUNTER = 10**SOLUTION_DIGITS
 
@@ -74,6 +74,7 @@ class NativeLibrary:
             ctypes.c_uint64,
             ctypes.c_uint64,
             ctypes.POINTER(ctypes.c_uint64),
+            ctypes.POINTER(ctypes.c_uint32),
         ]
         lib.pow_solve.restype = ctypes.c_int
 
@@ -105,6 +106,7 @@ class NativeLibrary:
         """
         impl = _impl_id(name)
         found = ctypes.c_uint64()
+        width = ctypes.c_uint32()
         for chunk_start in range(start, end, CHUNK_SIZE):
             chunk_end = min(chunk_start + CHUNK_SIZE, end)
             result = self._lib.pow_solve(
@@ -115,9 +117,10 @@ class NativeLibrary:
                 chunk_start,
                 chunk_end,
                 ctypes.byref(found),
+                ctypes.byref(width),
             )
             if result == 1:
-                return f"{found.value:0{SOLUTION_DIGITS}d}"
+                return f"{found.value:0{width.value}d}"
             if result != 0:
                 raise NativePowError(
                     f"pow_solve failed with implementation {name}, "
