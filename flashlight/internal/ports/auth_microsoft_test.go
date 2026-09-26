@@ -17,6 +17,7 @@ import (
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/ports"
+	"github.com/Amund211/flashlight/internal/reporting"
 )
 
 const flowCookieName = "__Host-fl_flow"
@@ -326,10 +327,22 @@ func TestMicrosoftSignInCallbackHandler(t *testing.T) {
 		var logs bytes.Buffer
 		logger := slog.New(slog.NewJSONHandler(&logs, nil))
 
+		// A local client with the production DataCollection: sentry.NewRequest
+		// reads the global hub, which has no client here and so no filtering.
 		var sentryRequests []*sentry.Request
+		client, err := sentry.NewClient(sentry.ClientOptions{
+			DataCollection: reporting.StrictDataCollection(),
+			BeforeSend: func(event *sentry.Event, _ *sentry.EventHint) *sentry.Event {
+				sentryRequests = append(sentryRequests, event.Request)
+				return nil
+			},
+		})
+		require.NoError(t, err)
 		recordingSentry := func(next http.HandlerFunc) http.HandlerFunc {
 			return func(w http.ResponseWriter, r *http.Request) {
-				sentryRequests = append(sentryRequests, sentry.NewRequest(r))
+				hub := sentry.NewHub(client, sentry.NewScope())
+				hub.Scope().SetRequest(r)
+				hub.CaptureMessage("callback")
 				next(w, r)
 			}
 		}

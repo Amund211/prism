@@ -12,27 +12,31 @@ import (
 	"github.com/Amund211/flashlight/internal/strutils"
 )
 
-// sentryhttp attaches the incoming request to every event, and SendDefaultPII
-// is the only thing that decides whether its headers come along. Left false,
-// sentry-go drops Authorization (its sensitiveHeaders list); turned on, every
-// event carries a live bearer. Nothing else in the codebase would notice, so
-// pin it here.
+// sentryhttp attaches the incoming request to every event, and DataCollection
+// decides what comes along. Nothing else in the codebase would notice a bearer,
+// flow cookie or client IP leaking, so pin it here.
 //
 // Not parallel: sentry.Init replaces the global hub's client.
 func TestSentryDoesNotSendTheAuthorizationHeader(t *testing.T) {
 	_, _, err := InitSentryMiddleware("https://key@example.invalid/1")
 	require.NoError(t, err)
 
-	options := sentry.CurrentHub().Client().Options()
-	require.False(t, options.SendDefaultPII, "SendDefaultPII ships bearers to Sentry")
-
 	r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/playerdata", http.NoBody)
 	r.Header.Set("Authorization", "Bearer flsess_payload.signature")
+	r.Header.Set("Cookie", "__Host-fl_flow=payload.signature")
+	r.Header.Set("X-Forwarded-For", "203.0.113.7")
 	r.Header.Set("X-Client-Type", "prism")
 
-	headers := sentry.NewRequest(r).Headers
-	require.NotContains(t, headers, "Authorization")
-	require.Equal(t, "prism", headers["X-Client-Type"])
+	req := sentry.NewRequest(r)
+	require.Equal(t, "[Filtered]", req.Headers["Authorization"])
+	require.Empty(t, req.Cookies)
+	require.NotContains(t, req.Headers, "Cookie")
+	require.Equal(t, "[Filtered]", req.Headers["X-Forwarded-For"])
+	require.Equal(t, "prism", req.Headers["X-Client-Type"])
+
+	dc := sentry.CurrentHub().Client().Options().DataCollection
+	require.False(t, dc.UserInfo.Value, "UserInfo attaches the client IP")
+	require.Empty(t, dc.HTTPBodies, "request bodies can carry tokens")
 }
 
 func TestSanitizeError(t *testing.T) {

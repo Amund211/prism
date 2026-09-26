@@ -144,9 +144,11 @@ These are the parts you cannot recover by reading the code.
   works for up to an hour. A leaked handle likewise lives to its own deadline
   (≤24h) whatever the real user does: there is no "sign out everywhere".
 - **A handle must never reach a log or an error report.** Nothing does today, and
-  the non-obvious reason is `SendDefaultPII` left **false** — that is why
-  `sentryhttp` strips `Authorization` from the request attached to every event.
-  Turning it on ships bearers to Sentry
+  the non-obvious reason is the strict `DataCollection` in
+  `internal/reporting/sentry.go` — that is why `sentryhttp` sends
+  `Authorization` as `[Filtered]` and drops cookies and bodies. The SDK
+  defaults (`&sentry.DataCollection{}` or `SendDefaultPII`) ship the flow
+  cookie and request bodies
   (`TestSentryDoesNotSendTheAuthorizationHeader`).
 - **The Microsoft chain (`internal/adapters/microsoftauth`) never returns a
   token, and its errors never quote a token, code, secret or response body** —
@@ -157,7 +159,7 @@ These are the parts you cannot recover by reading the code.
   tokens, which the design rules out.
 - **The callback's query holds the code and `state`, so `hideQuery` must stay
   the outermost middleware on it.** `sentryhttp` sends the query string with
-  every event whatever `SendDefaultPII` says, and `GetIP` reports the URL.
+  every event (`code` and `state` match no deny term), and `GetIP` reports the URL.
   Cloud Run's own request log still records the full URL; accepted, since the
   code is single-use and useless without the client secret and the verifier.
 - **The flow cookie only works on one host.** `__Host-` makes the browser drop

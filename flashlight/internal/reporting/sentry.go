@@ -88,11 +88,29 @@ func Report(ctx context.Context, err error, extras ...map[string]string) {
 	})
 }
 
+// StrictDataCollection mirrors the legacy SendDefaultPII=false behavior. The
+// SDK defaults would ship cookies (the flow cookie), request bodies and IPs.
+func StrictDataCollection() *sentry.DataCollection {
+	// Legacy extra deny terms: IP-forwarding and user headers.
+	extraTerms := []string{"forwarded", "-ip", "remote-", "via", "-user"}
+	return &sentry.DataCollection{
+		UserInfo:   sentry.Set(false),
+		Cookies:    &sentry.KeyValueCollectionBehavior{Mode: sentry.CollectionOff},
+		HTTPBodies: []sentry.BodyType{},
+		HTTPHeaders: &sentry.HeaderCollectionConfig{
+			Request:  &sentry.KeyValueCollectionBehavior{Mode: sentry.CollectionDenyList, Terms: extraTerms},
+			Response: &sentry.KeyValueCollectionBehavior{Mode: sentry.CollectionDenyList, Terms: extraTerms},
+		},
+		QueryParams: &sentry.KeyValueCollectionBehavior{Mode: sentry.CollectionDenyList, Terms: extraTerms},
+	}
+}
+
 func InitSentryMiddleware(sentryDSN string) (func(http.HandlerFunc) http.HandlerFunc, func(time.Duration), error) {
 	err := sentry.Init(sentry.ClientOptions{
 		Dsn:              sentryDSN,
 		EnableTracing:    true,
 		TracesSampleRate: 1.0 / 100.0,
+		DataCollection:   StrictDataCollection(),
 	})
 	if err != nil {
 		return nil, nil, err
