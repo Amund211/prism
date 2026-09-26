@@ -12,6 +12,7 @@ class Options:
     settings_path: Path
     loglevel: int
     test_ssl: bool
+    test_pow: str | None
     test: bool
 
 
@@ -64,6 +65,13 @@ def get_options(
         action="store_true",
     )
 
+    # Used for testing the proof-of-work solvers. Takes a solver name.
+    parser.add_argument(
+        "--test-pow",
+        help=argparse.SUPPRESS,
+        default=None,
+    )
+
     parser.add_argument(
         "--test",
         help=argparse.SUPPRESS,
@@ -79,6 +87,7 @@ def get_options(
     assert isinstance(parsed.quiet, bool)
     assert isinstance(parsed.verbose, int)
     assert isinstance(parsed.test_ssl, bool)
+    assert parsed.test_pow is None or isinstance(parsed.test_pow, str)
     assert isinstance(parsed.test, bool)
 
     if parsed.verbose <= 0:
@@ -100,5 +109,6 @@ def get_options(
         settings_path=parsed.settings,
         loglevel=loglevel,
         test_ssl=parsed.test_ssl,
+        test_pow=parsed.test_pow,
         test=parsed.test,
     )

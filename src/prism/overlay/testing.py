@@ -46,6 +46,16 @@ def get_test_loglines(options: Options) -> Iterable[str]:  # pragma: nocover
     return loglines
 
 
+def test_pow(solver_name: str) -> None:  # pragma: nocover
+    """Solve and verify challenges with the named proof-of-work solver"""
+    from prism.flashlight.auth.proof_of_work import default_solver, self_test
+
+    print(f"Default proof-of-work solver: {default_solver().name}")
+    solver = self_test(solver_name)
+    # Only printed if every solution verified. Raises otherwise.
+    print(f"Proof-of-work OK: {solver.name}")
+
+
 def test_ssl() -> None:  # pragma: nocover
     """Test SSL certificate patching"""
     import requests

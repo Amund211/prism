@@ -89,6 +89,12 @@ def main() -> None:  # pragma: nocover
         test_ssl()
         return
 
+    if options.test_pow is not None:
+        from prism.overlay.testing import test_pow
+
+        test_pow(options.test_pow)
+        return
+
     session = make_prism_requests_session()
 
     # Start authenticating right away, before the (possibly interactive) logfile

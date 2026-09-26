@@ -12,6 +12,7 @@ def make_options(
     settings: str = DEFAULT_SETTINGS,
     loglevel: int = logging.INFO,
     test_ssl: bool = False,
+    test_pow: str | None = None,
     test: bool = False,
 ) -> Options:
     """Construct an Options instance from its components"""
@@ -20,6 +21,7 @@ def make_options(
         settings_path=resolve_path(settings),
         loglevel=loglevel,
         test_ssl=test_ssl,
+        test_pow=test_pow,
         test=test,
     )
 
@@ -42,6 +44,9 @@ test_cases: tuple[tuple[str, Options], ...] = (
     ("-s s.toml", make_options(settings="s.toml")),
     # Test ssl
     ("--test-ssl", make_options(test_ssl=True)),
+    # Test proof-of-work
+    ("--test-pow native", make_options(test_pow="native")),
+    ("--test-pow=portable", make_options(test_pow="portable")),
     # Test
     ("--test", make_options(test=True)),
     # Multiple arguments

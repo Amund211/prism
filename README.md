@@ -166,6 +166,14 @@ git clone https://github.com/Amund211/prism
 This project uses uv as a package manager.
 Install it by following the [official instructions](https://docs.astral.sh/uv/getting-started/installation/).
 
+### Build the native proof-of-work solver (optional)
+This needs `clang` (or set `CC` to another C compiler).
+Without it the overlay uses a slower solver written in Python.
+The tests need it.
+```bash
+uv run build_powsolve.py
+```
+
 ### Run the overlay
 ```bash
 uv run prism_overlay.py
