@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -48,6 +49,13 @@ type Config struct {
 	// so a flow token can never verify as a session or a challenge. Dropping
 	// a key only fails sign-ins in flight (≤10 min). Secret.
 	authFlowSigningKeys []string
+	// azureClientID, azureClientSecret and azureRedirectURI identify the
+	// Entra app registration Microsoft sign-in runs against, one per
+	// environment. Only the secret is secret. Empty in development unless
+	// set, which leaves Microsoft sign-in off.
+	azureClientID     string
+	azureClientSecret string
+	azureRedirectURI  string
 	// azureClientSecretExpiresAt is when the Entra client secret dies, at UTC
 	// midnight. Hand-recorded: nothing in the secret says when it expires,
 	// and Entra sends no warning. Not secret. Zero in development.
@@ -125,6 +133,18 @@ func (c *Config) AuthSessionSigningKeys() []string {
 
 func (c *Config) AuthFlowSigningKeys() []string {
 	return c.authFlowSigningKeys
+}
+
+func (c *Config) AzureClientID() string {
+	return c.azureClientID
+}
+
+func (c *Config) AzureClientSecret() string {
+	return c.azureClientSecret
+}
+
+func (c *Config) AzureRedirectURI() string {
+	return c.azureRedirectURI
 }
 
 func (c *Config) AzureClientSecretExpiresAt() time.Time {
@@ -289,6 +309,26 @@ func ConfigFromEnv() (Config, error) {
 		azureClientSecretExpiresAt = parsed
 	}
 
+	azureClientID := strings.TrimSpace(os.Getenv("AZURE_CLIENT_ID"))
+	azureClientSecret := strings.TrimSpace(os.Getenv("AZURE_CLIENT_SECRET"))
+	azureRedirectURI := strings.TrimSpace(os.Getenv("AZURE_REDIRECT_URI"))
+	if requireEnv {
+		if azureClientID == "" {
+			return missingKey("AZURE_CLIENT_ID")
+		}
+		if azureClientSecret == "" {
+			return missingKey("AZURE_CLIENT_SECRET")
+		}
+		if azureRedirectURI == "" {
+			return missingKey("AZURE_REDIRECT_URI")
+		}
+	}
+	// Rejected everywhere: Entra matches it byte for byte, so a malformed
+	// value is a sign-in that fails only after the user has consented.
+	if azureRedirectURI != "" && !isValidRedirectURI(azureRedirectURI) {
+		return Config{}, fmt.Errorf("%w: AZURE_REDIRECT_URI (%s)", ErrInvalidValue, azureRedirectURI)
+	}
+
 	return Config{
 		cloudSQLUnixSocketPath: cloudSQLUnixSocketPath,
 		dBPassword:             dbPassword,
@@ -307,8 +347,22 @@ func ConfigFromEnv() (Config, error) {
 		authSessionSigningKeys:   authSessionSigningKeys,
 		authFlowSigningKeys:      authFlowSigningKeys,
 
+		azureClientID:              azureClientID,
+		azureClientSecret:          azureClientSecret,
+		azureRedirectURI:           azureRedirectURI,
 		azureClientSecretExpiresAt: azureClientSecretExpiresAt,
 	}, nil
+}
+
+func isValidRedirectURI(raw string) bool {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return false
+	}
+	return (u.Scheme == "https" || u.Scheme == "http") &&
+		u.Host != "" &&
+		u.RawQuery == "" && !u.ForceQuery &&
+		u.Fragment == "" && !strings.Contains(raw, "#")
 }
 
 func lookupNewlineDelimitedEnv(key string) ([]string, bool) {

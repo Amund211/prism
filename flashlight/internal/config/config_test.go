@@ -18,14 +18,19 @@ const (
 	development environment = "development"
 )
 
-var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "BLOCKED_IPS", "BLOCKED_USER_AGENTS", "BLOCKED_USER_IDS", "BLOCKED_IPS_SHA256_HEX", "AUTH_CHALLENGE_SIGNING_KEYS", "AUTH_SESSION_SIGNING_KEYS", "AUTH_FLOW_SIGNING_KEYS", "AZURE_CLIENT_SECRET_EXPIRES_AT"}
+var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "BLOCKED_IPS", "BLOCKED_USER_AGENTS", "BLOCKED_USER_IDS", "BLOCKED_IPS_SHA256_HEX", "AUTH_CHALLENGE_SIGNING_KEYS", "AUTH_SESSION_SIGNING_KEYS", "AUTH_FLOW_SIGNING_KEYS", "AZURE_CLIENT_SECRET_EXPIRES_AT", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET", "AZURE_REDIRECT_URI"}
+
+const validRedirectURI = "https://flashlight.example.com/v1/auth/microsoft/callback"
 
 // placeholderFor adapts the generic placeholder the tables above use to the
-// one variable that is validated on its shape. Every other value is free-form,
+// variables that are validated on their shape. Every other value is free-form,
 // so its own name doubles as a recognisable placeholder.
 func placeholderFor(variable, fallback string) string {
-	if variable == "AZURE_CLIENT_SECRET_EXPIRES_AT" {
+	switch variable {
+	case "AZURE_CLIENT_SECRET_EXPIRES_AT":
 		return "2028-09-06"
+	case "AZURE_REDIRECT_URI":
+		return validRedirectURI
 	}
 	return fallback
 }
@@ -99,9 +104,19 @@ func TestGetConfig(t *testing.T) {
 			conf, err := config.ConfigFromEnv()
 			require.NoError(t, err)
 
-			for _, sensitive := range []string{"DB_PASSWORD", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "SENTRY_DSN", "AUTH_CHALLENGE_SIGNING_KEYS", "AUTH_SESSION_SIGNING_KEYS", "AUTH_FLOW_SIGNING_KEYS"} {
+			for _, sensitive := range []string{"DB_PASSWORD", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "SENTRY_DSN", "AUTH_CHALLENGE_SIGNING_KEYS", "AUTH_SESSION_SIGNING_KEYS", "AUTH_FLOW_SIGNING_KEYS", "AZURE_CLIENT_SECRET"} {
 				require.NotContains(t, conf.NonSensitiveString(), sensitive)
 			}
+		})
+
+		t.Run("azure app registration", func(t *testing.T) {
+			t.Setenv("FLASHLIGHT_ENVIRONMENT", string(production))
+			conf, err := config.ConfigFromEnv()
+			require.NoError(t, err)
+
+			require.Equal(t, "AZURE_CLIENT_ID", conf.AzureClientID())
+			require.Equal(t, "AZURE_CLIENT_SECRET", conf.AzureClientSecret())
+			require.Equal(t, validRedirectURI, conf.AzureRedirectURI())
 		})
 
 	})
@@ -328,6 +343,61 @@ value3`,
 				require.Equal(t, c.expectedList, conf.BlockedIPsSHA256Hex())
 			})
 		}
+	})
+
+	t.Run("azure redirect uri", func(t *testing.T) {
+		for _, variable := range allVariablesExceptEnv {
+			t.Setenv(variable, placeholderFor(variable, "placeholder_value"))
+		}
+
+		// Entra compares the redirect URI byte for byte and allows no query,
+		// so a malformed value is a sign-in that can never complete.
+		t.Run("rejects a value that is not an absolute http(s) url without query or fragment", func(t *testing.T) {
+			for _, env := range []environment{production, staging, development} {
+				for _, value := range []string{
+					"placeholder_value",
+					"/v1/auth/microsoft/callback",
+					"ftp://flashlight.example.com/v1/auth/microsoft/callback",
+					"https:///v1/auth/microsoft/callback",
+					"https://flashlight.example.com/v1/auth/microsoft/callback?a=b",
+					"https://flashlight.example.com/v1/auth/microsoft/callback#a",
+					"https://flashlight.example.com/%zz",
+				} {
+					t.Run(string(env)+"/"+value, func(t *testing.T) {
+						t.Setenv("FLASHLIGHT_ENVIRONMENT", string(env))
+						t.Setenv("AZURE_REDIRECT_URI", value)
+
+						_, err := config.ConfigFromEnv()
+						require.ErrorIs(t, err, config.ErrInvalidValue)
+					})
+				}
+			}
+		})
+
+		t.Run("accepts a local http url", func(t *testing.T) {
+			t.Setenv("FLASHLIGHT_ENVIRONMENT", string(development))
+			t.Setenv("AZURE_REDIRECT_URI", "http://localhost:8080/v1/auth/microsoft/callback")
+
+			conf, err := config.ConfigFromEnv()
+			require.NoError(t, err)
+			require.Equal(t, "http://localhost:8080/v1/auth/microsoft/callback", conf.AzureRedirectURI())
+		})
+
+		t.Run("development runs without the azure app registration", func(t *testing.T) {
+			t.Setenv("FLASHLIGHT_ENVIRONMENT", string(development))
+			for _, variable := range []string{"AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET", "AZURE_REDIRECT_URI"} {
+				// See the missing-variable table above for why this is set
+				// before it is unset.
+				t.Setenv(variable, placeholderFor(variable, "placeholder_value"))
+				require.NoError(t, os.Unsetenv(variable))
+			}
+
+			conf, err := config.ConfigFromEnv()
+			require.NoError(t, err)
+			require.Empty(t, conf.AzureClientID())
+			require.Empty(t, conf.AzureClientSecret())
+			require.Empty(t, conf.AzureRedirectURI())
+		})
 	})
 
 	t.Run("azure client secret expiry", func(t *testing.T) {

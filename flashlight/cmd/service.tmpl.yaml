@@ -114,6 +114,18 @@ spec:
             secretKeyRef:
               name: "${AUTH_FLOW_SIGNING_KEYS_KEY}"
               key: "latest"
+        # The Entra app registration Microsoft sign-in runs against, one per
+        # environment. The redirect URI must equal the one registered in
+        # Entra byte for byte.
+        - name: "AZURE_CLIENT_ID"
+          value: "${AZURE_CLIENT_ID}"
+        - name: "AZURE_REDIRECT_URI"
+          value: "${AZURE_REDIRECT_URI}"
+        - name: "AZURE_CLIENT_SECRET"
+          valueFrom:
+            secretKeyRef:
+              name: "${AZURE_CLIENT_SECRET_KEY}"
+              key: "latest"
         # When the Entra client secret expires. To rotate, for production
         # and staging both:
         #   1. Entra > App registrations > Certificates & secrets > New
