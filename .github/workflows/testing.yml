@@ -16,6 +16,9 @@ jobs:
             INSTALL_CA_CERT: certutil.exe -addstore root local-ca.pem
           - os: ubuntu-latest
             INSTALL_CA_CERT: sudo cp local-ca.pem /usr/local/share/ca-certificates/local-ca.crt; sudo update-ca-certificates
+          # Runs the armv8 solver's Linux detection (getauxval) on real hardware
+          - os: ubuntu-24.04-arm
+            INSTALL_CA_CERT: sudo cp local-ca.pem /usr/local/share/ca-certificates/local-ca.crt; sudo update-ca-certificates
           - os: macOS-15
             INSTALL_CA_CERT: sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain local-ca.pem
     defaults:
