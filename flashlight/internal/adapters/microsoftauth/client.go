@@ -30,10 +30,6 @@ const scope = "XboxLive.signin"
 // entitlements list, is a few KB.
 const maxResponseBytes = 1 << 20
 
-type HTTPClient interface {
-	Do(req *http.Request) (*http.Response, error)
-}
-
 // Endpoints are the URLs of each leg. Tests point them at a fake.
 type Endpoints struct {
 	Authorize     string
@@ -67,13 +63,18 @@ type Config struct {
 }
 
 type Client struct {
-	httpClient HTTPClient
+	httpClient *http.Client
 	config     Config
 	tracer     trace.Tracer
 }
 
-func New(httpClient HTTPClient, config Config) (*Client, error) {
+// New uses a copy of httpClient that never follows a redirect: a 307 or 308
+// would replay a body holding the client secret, the code or a token to the
+// Location host. No leg redirects, so a 3xx is an unexpected status.
+func New(httpClient *http.Client, config Config) (*Client, error) {
 	switch {
+	case httpClient == nil:
+		return nil, errors.New("microsoftauth: missing http client")
 	case config.ClientID == "":
 		return nil, errors.New("microsoftauth: missing client id")
 	case config.ClientSecret == "":
@@ -88,8 +89,13 @@ func New(httpClient HTTPClient, config Config) (*Client, error) {
 		}
 	}
 
+	noRedirects := *httpClient
+	noRedirects.CheckRedirect = func(*http.Request, []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
 	return &Client{
-		httpClient: httpClient,
+		httpClient: &noRedirects,
 		config:     config,
 		tracer:     otel.Tracer("flashlight/adapters/microsoftauth"),
 	}, nil

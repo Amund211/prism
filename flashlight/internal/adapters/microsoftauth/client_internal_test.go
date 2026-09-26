@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -181,6 +182,9 @@ func TestNew(t *testing.T) {
 
 	_, err := New(http.DefaultClient, valid)
 	require.NoError(t, err)
+
+	_, err = New(nil, valid)
+	require.Error(t, err)
 
 	for name, mutate := range map[string]func(*Config){
 		"no client id":     func(c *Config) { c.ClientID = "" },
@@ -633,6 +637,50 @@ func TestSignIn(t *testing.T) {
 
 		_, err := client.SignIn(ctx, testCode, testCodeVerifier)
 		require.ErrorIs(t, err, context.Canceled)
+	})
+}
+
+// A 307 or 308 replays the POST body, which holds the client secret, the
+// code or a token, to whatever host Location names. No leg ever redirects.
+func TestRedirectsAreNotFollowed(t *testing.T) {
+	t.Parallel()
+
+	for _, path := range []string{pathToken, pathXboxUser, pathXSTS, pathLoginWithXbox, pathEntitlements, pathProfile} {
+		for _, status := range []int{http.StatusFound, http.StatusTemporaryRedirect, http.StatusPermanentRedirect} {
+			t.Run(fmt.Sprintf("%s/%d", path, status), func(t *testing.T) {
+				t.Parallel()
+
+				var elsewhereCalled atomic.Bool
+				elsewhere := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					elsewhereCalled.Store(true)
+				}))
+				t.Cleanup(elsewhere.Close)
+
+				f := newFakeMicrosoft(t)
+				f.handle(path, func(w http.ResponseWriter, r *http.Request) {
+					http.Redirect(w, r, elsewhere.URL+"/steal", status)
+				})
+				client := newTestClient(t, f)
+
+				_, err := client.SignIn(t.Context(), testCode, testCodeVerifier)
+				require.Error(t, err)
+				requireNoSecrets(t, err.Error())
+				require.False(t, elsewhereCalled.Load(), "the redirect must not be followed")
+			})
+		}
+	}
+
+	t.Run("the caller's client is left alone", func(t *testing.T) {
+		t.Parallel()
+		shared := &http.Client{}
+		_, err := New(shared, Config{
+			ClientID:     testClientID,
+			ClientSecret: testClientSecret,
+			RedirectURI:  testRedirectURI,
+			Endpoints:    DefaultEndpoints(),
+		})
+		require.NoError(t, err)
+		require.Nil(t, shared.CheckRedirect, "other adapters share this client and may rely on redirects")
 	})
 }
 

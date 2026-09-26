@@ -137,7 +137,8 @@ These are the parts you cannot recover by reading the code.
 - **The Microsoft chain (`internal/adapters/microsoftauth`) never returns a
   token, and its errors never quote a token, code, secret or response body** —
   that is what makes them safe to log and report. Keep it so: a new leg that
-  wraps a body, or a caller handed a token, breaks it silently. Scope is
+  wraps a body, or a caller handed a token, breaks it silently. It never follows a redirect: a 307
+  or 308 would replay the client secret, code or token to another host. Scope is
   `XboxLive.signin` only; adding `offline_access` makes Microsoft issue refresh
   tokens, which the design rules out.
 - **The payload is readable by anyone holding the handle** — signed, not
