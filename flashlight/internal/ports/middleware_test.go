@@ -196,14 +196,13 @@ func TestUserIDKeyFunc(t *testing.T) {
 		require.Equal(t, "user-id: "+strings.Repeat("a", 50), keyForRequest(t, makeRequest(t, ""), anonymousSession(longUserID)))
 	})
 
-	t.Run("an unknown tier gets its own namespace", func(t *testing.T) {
+	t.Run("the microsoft tier gets its own namespace", func(t *testing.T) {
 		t.Parallel()
 
-		// A future tier's identity_key is a different kind of value (the
-		// Microsoft tier's verified MC uuid), so it must not be reachable from
-		// the self-asserted header.
+		// Its identity_key is a verified MC uuid, so it must not be
+		// reachable from the self-asserted header.
 		key := keyForRequest(t, makeRequest(t, ""), &domain.AuthSession{
-			IdentityType: domain.AuthSessionIdentityType("microsoft"),
+			IdentityType: domain.AuthSessionIdentityMicrosoft,
 			IdentityKey:  "01234567-89ab-cdef-0123-456789abcdef",
 		})
 

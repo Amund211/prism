@@ -1,8 +1,10 @@
 package ports_test
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -18,7 +20,10 @@ import (
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/authflowtoken"
 	"github.com/Amund211/flashlight/internal/authresulttoken"
+	"github.com/Amund211/flashlight/internal/authsessionguard"
+	"github.com/Amund211/flashlight/internal/authsessiontoken"
 	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/Amund211/flashlight/internal/signing"
 )
 
@@ -71,11 +76,32 @@ func fakeMicrosoftChain(t *testing.T, approved bool) (*httptest.Server, func() u
 	}
 }
 
+type memoryCredentials struct {
+	mu   sync.Mutex
+	rows []domain.UserCredential
+}
+
+func (m *memoryCredentials) Insert(_ context.Context, cred domain.UserCredential) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.rows = append(m.rows, cred)
+	return nil
+}
+
+func (m *memoryCredentials) all() []domain.UserCredential {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return append([]domain.UserCredential(nil), m.rows...)
+}
+
 type microsoftE2E struct {
-	start     http.HandlerFunc
-	callback  http.HandlerFunc
-	results   authresulttoken.Signed
-	tokenForm func() url.Values
+	start       http.HandlerFunc
+	callback    http.HandlerFunc
+	exchange    http.HandlerFunc
+	results     authresulttoken.Signed
+	sessions    authsessiontoken.Signed
+	credentials *memoryCredentials
+	tokenForm   func() url.Values
 }
 
 func newMicrosoftE2E(t *testing.T, approved bool) microsoftE2E {
@@ -101,13 +127,56 @@ func newMicrosoftE2E(t *testing.T, approved bool) microsoftE2E {
 	require.NoError(t, err)
 	results, err := authresulttoken.NewSigned(keys)
 	require.NoError(t, err)
+	sessions, err := authsessiontoken.NewSigned([][]byte{[]byte(strings.Repeat("s", signing.MinKeyLength))})
+	require.NoError(t, err)
+	credentials := &memoryCredentials{}
+	exchange, stopExchange := ports.MakeMicrosoftSignInExchangeHandler(
+		app.BuildExchangeMicrosoftSignIn(results, credentials, sessions, authsessionguard.AllowAll{}, time.Now, app.GenerateLineage),
+		time.Now, authTestOrigins(t), authTestLogger, noopAuthMiddleware, emptyBlocklistConfig,
+	)
+	t.Cleanup(stopExchange)
 
 	return microsoftE2E{
-		start:     newMicrosoftStartHandler(t, app.BuildStartMicrosoftSignIn(client, flows, time.Now), emptyBlocklistConfig),
-		callback:  newMicrosoftCallbackHandler(t, app.BuildFinishMicrosoftSignIn(client, flows, results, time.Now), authTestLogger, noopAuthMiddleware),
-		results:   results,
-		tokenForm: tokenForm,
+		start:       newMicrosoftStartHandler(t, app.BuildStartMicrosoftSignIn(client, flows, time.Now), emptyBlocklistConfig),
+		callback:    newMicrosoftCallbackHandler(t, app.BuildFinishMicrosoftSignIn(client, flows, results, time.Now), authTestLogger, noopAuthMiddleware),
+		exchange:    exchange,
+		results:     results,
+		sessions:    sessions,
+		credentials: credentials,
+		tokenForm:   tokenForm,
 	}
+}
+
+// exchangeResult POSTs the result and verifier to /exchange.
+func (e microsoftE2E) exchangeResult(t *testing.T, result, verifier, origin string) *httptest.ResponseRecorder {
+	t.Helper()
+	r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/microsoft/exchange",
+		strings.NewReader(`{"result":"`+result+`","verifier":"`+verifier+`"}`))
+	withRequestIP(r, "1.2.3.4")
+	withJSONContentType(r)
+	if origin != "" {
+		r.Header.Set("Origin", origin)
+	}
+	w := httptest.NewRecorder()
+	e.exchange(w, r)
+	return w
+}
+
+// requireMicrosoftSession checks body holds a Microsoft-tier session for
+// the faked account, and returns the body.
+func (e microsoftE2E) requireMicrosoftSession(t *testing.T, w *httptest.ResponseRecorder) map[string]any {
+	t.Helper()
+	require.Equal(t, http.StatusOK, w.Code)
+	var body map[string]any
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &body))
+	require.Equal(t, "microsoft", body["tier"])
+	sessionID, ok := body["sessionId"].(string)
+	require.True(t, ok)
+	sess, err := e.sessions.Unseal(t.Context(), sessionID)
+	require.NoError(t, err)
+	require.Equal(t, domain.AuthSessionIdentityMicrosoft, sess.IdentityType)
+	require.Equal(t, "a937646bf11544c38dbf9ae4a65669a0", sess.IdentityKey)
+	return body
 }
 
 // signIn runs /start with query, then Microsoft's redirect back with a
@@ -172,11 +241,29 @@ func TestMicrosoftClientSignInEndToEnd(t *testing.T) {
 		require.Equal(t, "http://127.0.0.1:52345/callback", location.Scheme+"://"+location.Host+location.Path)
 		require.Equal(t, "nonce", location.Query().Get("state"))
 
-		result, err := e.results.Unseal(location.Query().Get("result"))
+		rawResult := location.Query().Get("result")
+		result, err := e.results.Unseal(rawResult)
 		require.NoError(t, err)
 		require.Equal(t, account, result.Account)
 		require.Equal(t, domain.MicrosoftClientPrism, result.ClientType)
 		require.Equal(t, challenge, result.Challenge)
+
+		require.Equal(t, http.StatusUnauthorized, e.exchangeResult(t, rawResult, strings.Repeat("w", 43), "").Code,
+			"a leaked result is useless without the verifier")
+		require.Empty(t, e.credentials.all())
+
+		w = e.exchangeResult(t, rawResult, verifier, "")
+		body := e.requireMicrosoftSession(t, w)
+		require.Empty(t, w.Result().Cookies(), "prism never gets fl_rm")
+		credential, ok := body["credential"].(string)
+		require.True(t, ok)
+		hash := sha256.Sum256([]byte(credential))
+
+		rows := e.credentials.all()
+		require.Len(t, rows, 1)
+		require.Equal(t, hash[:], rows[0].Hash)
+		require.Equal(t, "a937646bf11544c38dbf9ae4a65669a0", rows[0].IdentityKey)
+		require.Equal(t, domain.MicrosoftClientPrism, rows[0].ClientType)
 	})
 
 	t.Run("rainbow gets the result in the fragment", func(t *testing.T) {
@@ -192,11 +279,24 @@ func TestMicrosoftClientSignInEndToEnd(t *testing.T) {
 		fragment, err := url.ParseQuery(location.Fragment)
 		require.NoError(t, err)
 
-		result, err := e.results.Unseal(fragment.Get("result"))
+		rawResult := fragment.Get("result")
+		result, err := e.results.Unseal(rawResult)
 		require.NoError(t, err)
 		require.Equal(t, account, result.Account)
 		require.Equal(t, domain.MicrosoftClientRainbow, result.ClientType)
 		require.Equal(t, challenge, result.Challenge)
+
+		w = e.exchangeResult(t, rawResult, verifier, "https://example.com")
+		body := e.requireMicrosoftSession(t, w)
+		require.NotContains(t, body, "credential")
+		require.Equal(t, "true", w.Header().Get("Access-Control-Allow-Credentials"))
+		cookie := findCookie(t, w.Result(), "fl_rm")
+		hash := sha256.Sum256([]byte(cookie.Value))
+
+		rows := e.credentials.all()
+		require.Len(t, rows, 1)
+		require.Equal(t, hash[:], rows[0].Hash)
+		require.Equal(t, domain.MicrosoftClientRainbow, rows[0].ClientType)
 	})
 
 	t.Run("an unapproved client id is sent back as an error", func(t *testing.T) {

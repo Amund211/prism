@@ -75,9 +75,14 @@ var (
 	ErrMicrosoftSignInRefused = errors.New("microsoft refused the sign-in")
 )
 
-// ErrMicrosoftSignInResultInvalid is every refusal of a result token we
-// did not sign or cannot read.
-var ErrMicrosoftSignInResultInvalid = errors.New("microsoft sign-in result is invalid")
+// Why /exchange refused a result token.
+var (
+	// ErrMicrosoftSignInResultInvalid is every refusal of a result token
+	// we did not sign or cannot read.
+	ErrMicrosoftSignInResultInvalid    = errors.New("microsoft sign-in result is invalid")
+	ErrMicrosoftSignInResultExpired    = errors.New("microsoft sign-in result has expired")
+	ErrMicrosoftSignInVerifierMismatch = errors.New("verifier does not match the sign-in challenge")
+)
 
 // MinecraftAccount is who a Microsoft sign-in proved the caller to be: the
 // profile Mojang returned for the token the sign-in obtained. UUID is the

@@ -6,18 +6,21 @@ import (
 )
 
 // AuthSessionIdentityType discriminates the tier the session represents.
-// Only the anonymous tier is implemented today; the Microsoft tier will
-// add a value here when it lands.
 type AuthSessionIdentityType string
 
-const AuthSessionIdentityAnonymous AuthSessionIdentityType = "anonymous"
+const (
+	AuthSessionIdentityAnonymous AuthSessionIdentityType = "anonymous"
+	// AuthSessionIdentityMicrosoft keys on the Minecraft UUID a Microsoft
+	// sign-in verified, without dashes.
+	AuthSessionIdentityMicrosoft AuthSessionIdentityType = "microsoft"
+)
 
 // IsKnown reports whether this revision implements the tier. A tier we
 // cannot evaluate is refused rather than defaulted, by the sealer on the
-// way in and by the lifetime policy that has no answer for it. Once the
-// Microsoft tier ships, rolling back past it logs out its sessions.
+// way in and by the lifetime policy that has no answer for it. Rolling
+// back past the Microsoft tier logs out its sessions.
 func (t AuthSessionIdentityType) IsKnown() bool {
-	return t == AuthSessionIdentityAnonymous
+	return t == AuthSessionIdentityAnonymous || t == AuthSessionIdentityMicrosoft
 }
 
 // AuthSession is a server-side bearer session, regardless of tier. The

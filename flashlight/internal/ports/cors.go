@@ -95,6 +95,28 @@ func BuildCORSMiddleware(allowedSuffixes *DomainSuffixes) func(http.HandlerFunc)
 	}
 }
 
+// BuildCredentialedCORSMiddleware is BuildCORSMiddleware plus
+// Access-Control-Allow-Credentials, for the endpoints that set or read
+// fl_rm. Safe only because the allowed origin is echoed, never "*".
+func BuildCredentialedCORSMiddleware(allowedSuffixes *DomainSuffixes) func(http.HandlerFunc) http.HandlerFunc {
+	cors := BuildCORSMiddleware(allowedSuffixes)
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		inner := cors(next)
+		return func(w http.ResponseWriter, r *http.Request) {
+			if allowedSuffixes.AnyMatch(r.Header.Get("Origin")) {
+				w.Header().Set("Access-Control-Allow-Credentials", "true")
+			}
+			inner(w, r)
+		}
+	}
+}
+
+func BuildCredentialedCORSHandler(allowedSuffixes *DomainSuffixes) http.HandlerFunc {
+	return BuildCredentialedCORSMiddleware(allowedSuffixes)(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	})
+}
+
 func BuildCORSHandler(allowedSuffixes *DomainSuffixes) http.HandlerFunc {
 	return BuildCORSMiddleware(allowedSuffixes)(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)

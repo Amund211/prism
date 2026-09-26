@@ -53,17 +53,7 @@ func BuildAnonymousLogin(
 			return domain.AuthSession{}, fmt.Errorf("failed to generate lineage: %w", err)
 		}
 
-		// The one place both origins are stamped from the same instant.
-		// Every reseal copies LineageIssuedAt and re-stamps CreatedAt; see
-		// refreshed().
-		sess, err := withDeadlines(domain.AuthSession{
-			IdentityType:    domain.AuthSessionIdentityAnonymous,
-			IdentityKey:     userID,
-			CreatedAt:       now,
-			LineageIssuedAt: now,
-			Lineage:         lineage,
-			Generation:      0,
-		})
+		sess, err := newChain(domain.AuthSessionIdentityAnonymous, userID, now, lineage)
 		if err != nil {
 			return domain.AuthSession{}, fmt.Errorf("failed to derive session deadlines: %w", err)
 		}

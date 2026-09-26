@@ -10,8 +10,8 @@ tags: [auth, sessions, bearer, proof-of-work, rate-limiting]
 # Auth sessions
 
 Bearer sessions, so the per-user rate budget keys on an identity we verified
-rather than a self-asserted `X-User-Id` header. Only the **anonymous** tier is
-built, plus a Microsoft sign-in that issues no session yet (below).
+rather than a self-asserted `X-User-Id` header. Two tiers: **anonymous**, and
+**microsoft** (below) — the same lifetimes, and no client uses it yet.
 Rationale lives outside this repo in `auth-plan/`; this file is what runs plus
 what breaks silently.
 
@@ -58,7 +58,7 @@ They are not dead fields — do not remove them.
 ## Microsoft sign-in
 
 Registered only when `AZURE_*` is set — always in production and staging;
-config refuses a partial set. Nothing issues a session from it yet.
+config refuses a partial set.
 
 - `GET /v1/auth/microsoft/start[?return&challenge[&state]]` sets
   `__Host-fl_flow` (`flflow_<payload>.<sig>`: `msState`, `msVerifier`, `exp`
@@ -73,6 +73,12 @@ config refuses a partial set. Nothing issues a session from it yet.
   `http://127.0.0.1:<port>/callback?result=&state=`, or `error=<code>` in the
   same place. Without one, or when the cookie does not verify, it renders a
   page with "Signed in as <name>" or the code. It never sets a credential.
+- `POST /v1/auth/microsoft/exchange {result, verifier}` checks the signature,
+  expiry and `sha256(verifier) == challenge`, inserts a `user_credentials` row
+  (sha256 of a 32-byte credential; `identity_key` is the UUID without dashes;
+  expires +90d) and returns a `microsoft` session. Rainbow gets the credential
+  as `fl_rm` (`HttpOnly; Secure; SameSite=Lax; Path=/v1/auth/`, 90d), prism as
+  `credential` in the body. CORS allows credentials here, and only here.
 
 ## Signing keys and rotation
 
@@ -169,6 +175,12 @@ These are the parts you cannot recover by reading the code.
   match no deny term), and `GetIP` reports the URL. Cloud Run's own request log
   still records the full URL; accepted, since the code is single-use and
   useless without the client secret and the verifier.
+- **Only `/exchange` mints credentials, and only a rainbow result sets
+  `fl_rm`.** `Path=/v1/auth/` sends the cookie to the callback too; a callback
+  that set it would overwrite rainbow's credential during a prism sign-in in
+  the same browser, and give one row two holders.
+- **Rolling back past the Microsoft tier logs out its sessions** — an older
+  revision refuses `identityType: microsoft` at unseal.
 - **`return` validation is the exfiltration boundary.** Loosen
   `parseMicrosoftSignInTarget` and the result token goes to a host we do not
   control. The result token is useless without the client's verifier, which is

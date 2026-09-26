@@ -104,6 +104,20 @@ func withDeadlines(sess domain.AuthSession) (domain.AuthSession, error) {
 	return sess, nil
 }
 
+// newChain starts a refresh chain at generation 0, ready to be sealed. The
+// one place both origins are stamped from the same instant; every reseal
+// copies LineageIssuedAt and re-stamps CreatedAt, see refreshed().
+func newChain(identityType domain.AuthSessionIdentityType, identityKey string, now time.Time, lineage string) (domain.AuthSession, error) {
+	return withDeadlines(domain.AuthSession{
+		IdentityType:    identityType,
+		IdentityKey:     identityKey,
+		CreatedAt:       now,
+		LineageIssuedAt: now,
+		Lineage:         lineage,
+		Generation:      0,
+	})
+}
+
 // refreshed returns the next session in the chain, ready to be sealed. The
 // only writer of a refreshed session, so the chain origin cannot be
 // re-stamped by accident. Tolerates expiry, refuses a closed refresh

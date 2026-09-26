@@ -22,6 +22,7 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/accountprovider"
 	"github.com/Amund211/flashlight/internal/adapters/accountrepository"
 	"github.com/Amund211/flashlight/internal/adapters/cache"
+	"github.com/Amund211/flashlight/internal/adapters/credentialrepository"
 	"github.com/Amund211/flashlight/internal/adapters/database"
 	"github.com/Amund211/flashlight/internal/adapters/microsoftauth"
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
@@ -283,6 +284,7 @@ func main() {
 	// and requires it outside development.
 	var startMicrosoftSignIn app.StartMicrosoftSignIn
 	var finishMicrosoftSignIn app.FinishMicrosoftSignIn
+	var exchangeMicrosoftSignIn app.ExchangeMicrosoftSignIn
 	if config.AzureClientID() != "" {
 		flowKeys := config.AuthFlowSigningKeys()
 		if len(flowKeys) == 0 && config.IsDevelopment() {
@@ -318,6 +320,14 @@ func main() {
 		}
 		startMicrosoftSignIn = app.BuildStartMicrosoftSignIn(microsoftClient, flowSealer, time.Now)
 		finishMicrosoftSignIn = app.BuildFinishMicrosoftSignIn(microsoftClient, flowSealer, resultSealer, time.Now)
+		exchangeMicrosoftSignIn = app.BuildExchangeMicrosoftSignIn(
+			resultSealer,
+			credentialrepository.NewPostgres(db, repositorySchemaName),
+			sessionSealer,
+			authsessionguard.AllowAll{},
+			time.Now,
+			app.GenerateLineage,
+		)
 		logger.InfoContext(ctx, "Initialized Microsoft sign-in")
 	} else {
 		logger.WarnContext(ctx, "No Azure app registration configured, Microsoft sign-in routes are not registered")
@@ -488,6 +498,20 @@ func main() {
 			blocklistConfig,
 		)
 		handleFunc("GET /v1/auth/microsoft/callback", microsoftCallbackHandler, stopMicrosoftCallback)
+
+		handleFunc(
+			"OPTIONS /v1/auth/microsoft/exchange",
+			ports.BuildCredentialedCORSHandler(allowedOrigins),
+		)
+		microsoftExchangeHandler, stopMicrosoftExchange := ports.MakeMicrosoftSignInExchangeHandler(
+			exchangeMicrosoftSignIn,
+			time.Now,
+			allowedOrigins,
+			logger.With("port", "auth-microsoft-exchange"),
+			sentryMiddleware,
+			blocklistConfig,
+		)
+		handleFunc("POST /v1/auth/microsoft/exchange", microsoftExchangeHandler, stopMicrosoftExchange)
 	}
 
 	handleFunc(

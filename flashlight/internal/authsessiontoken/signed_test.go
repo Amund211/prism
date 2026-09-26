@@ -87,6 +87,23 @@ func TestSealUnsealRoundTrip(t *testing.T) {
 	require.Zero(t, got.LifetimeEndsAt)
 }
 
+func TestSealUnsealMicrosoftTier(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	sealer := newSigned(t, testKey(t, 1))
+	sess := testSession()
+	sess.IdentityType = domain.AuthSessionIdentityMicrosoft
+	sess.IdentityKey = "a937646bf11544c38dbf9ae4a65669a0"
+
+	sealed, err := sealer.Seal(ctx, sess)
+	require.NoError(t, err)
+	got, err := sealer.Unseal(ctx, sealed.ID)
+	require.NoError(t, err)
+	require.Equal(t, domain.AuthSessionIdentityMicrosoft, got.IdentityType)
+	require.Equal(t, sess.IdentityKey, got.IdentityKey)
+}
+
 func TestSealShape(t *testing.T) {
 	t.Parallel()
 
@@ -145,7 +162,7 @@ func TestSealRefusesWhatUnsealWouldReject(t *testing.T) {
 	sealer := newSigned(t, testKey(t, 1))
 
 	mutations := map[string]func(*domain.AuthSession){
-		"an unknown tier":         func(s *domain.AuthSession) { s.IdentityType = "microsoft" },
+		"an unknown tier":         func(s *domain.AuthSession) { s.IdentityType = "steam" },
 		"no issuedAt":             func(s *domain.AuthSession) { s.CreatedAt = time.Time{} },
 		"no lineageIssuedAt":      func(s *domain.AuthSession) { s.LineageIssuedAt = time.Time{} },
 		"an over-cap identityKey": func(s *domain.AuthSession) { s.IdentityKey = strings.Repeat("<", 300) },
@@ -221,7 +238,7 @@ func TestUnsealRefusals(t *testing.T) {
 			"typ is absent":             func(p map[string]any) { delete(p, "typ") },
 			"typ is unknown":            func(p map[string]any) { p["typ"] = "flsess/2" },
 			"typ is empty":              func(p map[string]any) { p["typ"] = "" },
-			"identityType is unknown":   func(p map[string]any) { p["identityType"] = "microsoft" },
+			"identityType is unknown":   func(p map[string]any) { p["identityType"] = "steam" },
 			"identityType is absent":    func(p map[string]any) { delete(p, "identityType") },
 			"issuedAt is absent":        func(p map[string]any) { delete(p, "issuedAtUnixMillis") },
 			"lineageIssuedAt is absent": func(p map[string]any) { delete(p, "lineageIssuedAtUnixMillis") },

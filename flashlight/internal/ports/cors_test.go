@@ -132,7 +132,7 @@ func TestCORS(t *testing.T) {
 		},
 	}
 
-	runCORSTest := func(t *testing.T, handler http.HandlerFunc, method string, c originRule, handlerStatusCode int, handlerBody []byte) {
+	runCORSTest := func(t *testing.T, handler http.HandlerFunc, method string, c originRule, handlerStatusCode int, handlerBody []byte, credentialed bool) {
 		req := httptest.NewRequestWithContext(t.Context(), method, "https://api-url.com", nil)
 		req.Header.Set("Origin", c.origin)
 		w := httptest.NewRecorder()
@@ -153,6 +153,11 @@ func TestCORS(t *testing.T) {
 		require.Equal(t, "Origin", resp.Header.Get("Vary"))
 
 		// CORS
+		if c.allowed && credentialed {
+			require.Equal(t, "true", resp.Header.Get("Access-Control-Allow-Credentials"))
+		} else {
+			require.Empty(t, resp.Header.Get("Access-Control-Allow-Credentials"))
+		}
 		if c.allowed {
 			require.Equal(t, c.origin, resp.Header.Get("Access-Control-Allow-Origin"))
 
@@ -197,9 +202,45 @@ func TestCORS(t *testing.T) {
 					t.Run(method, func(t *testing.T) {
 						t.Parallel()
 
-						runCORSTest(t, handler, method, c, 200, []byte("Hello, world!"))
+						runCORSTest(t, handler, method, c, 200, []byte("Hello, world!"), false)
 					})
 				}
+			})
+		}
+	})
+
+	t.Run("BuildCredentialedCORSMiddleware", func(t *testing.T) {
+		t.Parallel()
+
+		handler := ports.BuildCredentialedCORSMiddleware(allowedOrigins)(
+			func(w http.ResponseWriter, r *http.Request) {
+				w.Write([]byte("Hello, world!"))
+			},
+		)
+
+		for _, c := range cases {
+			t.Run(fmt.Sprintf("Origin:'%s'", c.origin), func(t *testing.T) {
+				t.Parallel()
+				for _, method := range []string{"GET", "POST", "OPTIONS"} {
+					t.Run(method, func(t *testing.T) {
+						t.Parallel()
+
+						runCORSTest(t, handler, method, c, 200, []byte("Hello, world!"), true)
+					})
+				}
+			})
+		}
+	})
+
+	t.Run("BuildCredentialedCORSHandler", func(t *testing.T) {
+		t.Parallel()
+
+		handler := ports.BuildCredentialedCORSHandler(allowedOrigins)
+
+		for _, c := range cases {
+			t.Run(fmt.Sprintf("Origin:'%s'", c.origin), func(t *testing.T) {
+				t.Parallel()
+				runCORSTest(t, handler, "OPTIONS", c, 204, []byte{}, true)
 			})
 		}
 	})
@@ -216,7 +257,7 @@ func TestCORS(t *testing.T) {
 					t.Run(method, func(t *testing.T) {
 						t.Parallel()
 
-						runCORSTest(t, handler, method, c, 204, []byte{})
+						runCORSTest(t, handler, method, c, 204, []byte{}, false)
 					})
 				}
 			})

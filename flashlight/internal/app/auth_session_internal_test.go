@@ -73,10 +73,22 @@ func TestDeadlinesFor(t *testing.T) {
 	t.Run("refuses a tier it cannot evaluate", func(t *testing.T) {
 		t.Parallel()
 		sess := sealedSession(policyOrigin, policyOrigin, 0)
-		sess.IdentityType = domain.AuthSessionIdentityType("microsoft")
+		sess.IdentityType = domain.AuthSessionIdentityType("steam")
 
 		_, err := deadlinesFor(sess)
 		require.ErrorIs(t, err, domain.ErrAuthSessionNotFound)
+	})
+
+	t.Run("the microsoft tier lives 1h / 2h / 24h", func(t *testing.T) {
+		t.Parallel()
+		sess := sealedSession(policyOrigin, policyOrigin, 0)
+		sess.IdentityType = domain.AuthSessionIdentityMicrosoft
+
+		d, err := deadlinesFor(sess)
+		require.NoError(t, err)
+		require.Equal(t, policyOrigin.Add(1*time.Hour), d.expiresAt)
+		require.Equal(t, policyOrigin.Add(2*time.Hour), d.refreshUntil)
+		require.Equal(t, policyOrigin.Add(24*time.Hour), d.lifetimeEndsAt)
 	})
 
 	t.Run("refuses a session missing either origin", func(t *testing.T) {
@@ -184,7 +196,7 @@ func TestRefreshed(t *testing.T) {
 	t.Run("refuses a tier it cannot evaluate", func(t *testing.T) {
 		t.Parallel()
 		sess := sealedSession(policyOrigin, policyOrigin, 0)
-		sess.IdentityType = domain.AuthSessionIdentityType("microsoft")
+		sess.IdentityType = domain.AuthSessionIdentityType("steam")
 
 		_, err := refreshed(sess, policyOrigin.Add(time.Minute))
 		require.ErrorIs(t, err, domain.ErrAuthSessionNotFound)
