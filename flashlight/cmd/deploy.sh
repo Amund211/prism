@@ -89,6 +89,13 @@ SERVICE_NAME="$service_name" \
 	COLLECTOR_IMAGE="$sidecar_image" \
 	envsubst <"$script_dir/service.tmpl.yaml" >"$script_dir/service.yaml"
 
+# envsubst replaces a variable it was not given with an empty string. Every
+# placeholder in the template is quoted, so that shows up as "".
+if grep -n '""' "$script_dir/service.yaml" >&2; then
+	echo 'Empty value in the generated service.yaml. Is a variable missing from the envsubst call?' >&2
+	exit 1
+fi
+
 echo 'Deploying new service description:' >&2
 cat "$script_dir/service.yaml" >&2
 
