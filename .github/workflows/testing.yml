@@ -45,22 +45,7 @@ jobs:
           uv run coverage report
 
       - name: Test proof-of-work solvers through the overlay
-        run: |
-          # Don't open the settings prompt
-          echo 'autowho = true' > pow_settings.toml
-          touch latest.log
-
-          # Asserts the solver by name, so a fallback to Python can't pass.
-          # `native` also checks that the default solver is the native one.
-          check_pow() {
-            out="$(uv run prism_overlay.py --test-pow="$1" --settings=pow_settings.toml --logfile=latest.log)"
-            echo "$out"
-            grep -qx "Proof-of-work OK: $2" <<< "$out"
-          }
-
-          check_pow native portable
-          check_pow portable portable
-          check_pow python python
+        run: bash tests/pow_integration.sh uv run prism_overlay.py
 
       - name: tee | stderr
         if: runner.os != 'Windows'
@@ -180,26 +165,14 @@ jobs:
             binary="dist/${{ env.SIMPLE_NAME }}${{ matrix.RESULT_EXTENSION }}"
           fi
 
-          # Don't open the settings prompt
-          echo 'autowho = true' > pow_settings.toml
-          touch latest.log
-
           # Asserts the solver by name, so a library missing from the bundle
           # can't pass by falling back to Python
-          check_pow() {
-            out="$("$binary" --test-pow="$1" --settings=pow_settings.toml --logfile=latest.log)"
-            echo "$out"
-            grep -qx "Proof-of-work OK: $2" <<< "$out"
-          }
-
-          check_pow native portable
+          bash tests/pow_integration.sh "$binary"
 
           if [ "${{ matrix.OS_NAME }}" = mac ]; then
             if arch -x86_64 /usr/bin/true 2>/dev/null; then
               echo 'Testing the x86_64 slice under Rosetta'
-              out="$(arch -x86_64 "$binary" --test-pow=portable --settings=pow_settings.toml --logfile=latest.log)"
-              echo "$out"
-              grep -qx "Proof-of-work OK: portable" <<< "$out"
+              POW_TEST_ARCH=x86_64 bash tests/pow_integration.sh arch -x86_64 "$binary"
             else
               echo '::warning::Rosetta is not available, the x86_64 slice was not tested'
             fi

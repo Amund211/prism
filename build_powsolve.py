@@ -18,6 +18,8 @@ def compile_command() -> list[str]:
     command = [
         os.environ.get("CC", "clang"),
         "-O3",
+        # About +10% for every implementation
+        "-funroll-loops",
         "-shared",
         "-Wall",
         "-Werror",

@@ -26,8 +26,9 @@ ABI_VERSION = 1
 SOLUTION_DIGITS = 12
 MAX_COUNTER = 10**SOLUTION_DIGITS
 
-# Implementation ids in powsolve.c, by name
-IMPLEMENTATIONS = {"portable": 1}
+# Implementation ids in powsolve.c, by name. "sha-ni" needs Intel SHA
+# extensions, "armv8" the ARMv8 cryptography extensions.
+IMPLEMENTATIONS = {"portable": 1, "sha-ni": 2, "armv8": 3}
 
 # Counters per foreign call. Small enough that a call never runs for long, so
 # the thread comes back to Python regularly.
