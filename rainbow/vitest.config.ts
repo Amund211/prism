@@ -25,7 +25,19 @@ export default defineConfig({
             },
             {
                 extends: true,
-                plugins: [react()],
+                plugins: [
+                    react(),
+                    // Vitest 5 no longer serves the MSW worker script itself
+                    {
+                        name: "msw-worker",
+                        async resolveId(id) {
+                            if (id === "/mockServiceWorker.js") {
+                                return this.resolve("msw/mockServiceWorker.js");
+                            }
+                            return null;
+                        },
+                    },
+                ],
                 test: {
                     name: "ui",
                     include: ["src/**/*.ui.test.tsx"],
