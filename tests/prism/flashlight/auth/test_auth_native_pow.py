@@ -40,9 +40,19 @@ def is_valid(prefix: bytes, solution: str, difficulty: int) -> bool:
     return leading_zero_bits(digest) >= difficulty
 
 
+def solution_for(prefix: bytes, counter: int) -> str:
+    """
+    The native solvers' solution for `counter`: 12 digits, after enough zeros
+    to start a new block when the digits and the padding don't fit the last one
+    """
+    tail = len(prefix) % 64
+    width = 12 + (64 - tail if tail + 12 + 9 > 64 else 0)
+    return f"{counter:0{width}d}"
+
+
 def first_valid_counter(prefix: bytes, difficulty: int, start: int = 0) -> int:
     counter = start
-    while not is_valid(prefix, f"{counter:012d}", difficulty):
+    while not is_valid(prefix, solution_for(prefix, counter), difficulty):
         counter += 1
     return counter
 
@@ -142,10 +152,10 @@ def test_solve_returns_first_valid_counter(
         for length in range(0, 140, 3):
             prefix = b"p" * length
             solution = library.solve(name, prefix, difficulty)
-            assert solution == f"{first_valid_counter(prefix, difficulty):012d}", (
-                name,
-                length,
-            )
+            expected = solution_for(prefix, first_valid_counter(prefix, difficulty))
+            assert solution == expected, (name, length)
+            # Well under flashlight's limit of 128
+            assert len(solution) <= 64 + 12
 
 
 def test_solve_honours_start(
@@ -155,7 +165,9 @@ def test_solve_honours_start(
     for name in supported:
         start = first_valid_counter(prefix, 8) + 1
         expected = first_valid_counter(prefix, 8, start=start)
-        assert library.solve(name, prefix, 8, start=start) == f"{expected:012d}"
+        assert library.solve(name, prefix, 8, start=start) == solution_for(
+            prefix, expected
+        )
 
 
 def test_solve_spans_chunks(
@@ -164,10 +176,36 @@ def test_solve_spans_chunks(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(native_pow, "CHUNK_SIZE", 7)
-    prefix = b"a-challenge:"
-    expected = f"{first_valid_counter(prefix, 10):012d}"
+    # Long enough that the digits start a new block
+    for prefix in (b"a-challenge:", b"c" * 108 + b":"):
+        expected = solution_for(prefix, first_valid_counter(prefix, 10))
+        for name in supported:
+            assert library.solve(name, prefix, 10) == expected
+
+
+def test_every_attempt_is_one_block(
+    library: NativeLibrary, supported: tuple[str, ...]
+) -> None:
+    """
+    A tail the digits don't fit must not cost a second block per attempt
+
+    Real challenges hit this: one with a UUID userId leaves a ~45 byte tail.
+    Two blocks per attempt would halve the rate.
+    """
+
+    def rate(name: str, prefix: bytes) -> float:
+        best = 0.0
+        for _ in range(3):
+            start = time.perf_counter()
+            with pytest.raises(NativePowError):
+                library.solve(name, prefix, 32, end=1 << 20)
+            best = max(best, (1 << 20) / (time.perf_counter() - start))
+        return best
+
     for name in supported:
-        assert library.solve(name, prefix, 10) == expected
+        short_tail = rate(name, b"c" * 340 + b":")  # 21 byte tail
+        long_tail = rate(name, b"c" * 364 + b":")  # 45 byte tail
+        assert long_tail > 0.75 * short_tail, name
 
 
 def test_solve_gives_up_at_the_end_of_the_range(
@@ -179,7 +217,9 @@ def test_solve_gives_up_at_the_end_of_the_range(
         # The range ends right before the first candidate that would do
         with pytest.raises(NativePowError, match="No solution"):
             library.solve(name, prefix, 8, end=first)
-        assert library.solve(name, prefix, 8, end=first + 1) == f"{first:012d}"
+        assert library.solve(name, prefix, 8, end=first + 1) == solution_for(
+            prefix, first
+        )
 
 
 def test_solve_rejects_bad_arguments(library: NativeLibrary) -> None:

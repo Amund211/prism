@@ -3,6 +3,12 @@
 import time
 from collections.abc import Iterable
 
+from prism.flashlight.auth.benchmark import (
+    BenchmarkSpec,
+    available_solvers,
+    parse_spec,
+    start_benchmark,
+)
 from prism.overlay.commandline import Options
 from prism.ssl_errors import is_missing_local_issuer_error
 
@@ -54,6 +60,40 @@ def test_pow(solver_name: str) -> None:  # pragma: nocover
     solver = self_test(solver_name)
     # Only printed if every solution verified. Raises otherwise.
     print(f"Proof-of-work OK: {solver.name}")
+
+
+def parse_pow_benchmark_spec(spec: str) -> BenchmarkSpec | None:  # pragma: nocover
+    """
+    Parse a `--benchmark-pow` spec, printing why and returning None if invalid
+
+    Separate from starting the benchmark so a typo is caught before the overlay
+    starts, rather than after the logfile prompt and a window.
+    """
+    try:
+        return parse_spec(spec)
+    except ValueError as e:
+        print(e)
+        return None
+
+
+def start_pow_benchmark(spec: BenchmarkSpec) -> None:  # pragma: nocover
+    """
+    Start the proof-of-work benchmark beside the overlay that is about to run
+
+    Backgrounded on purpose: the overlay keeps starting, and the hash loop then
+    competes for the GIL with the tkinter thread and the stats threads, the way
+    a real login's solve does. Pass -q to keep the stats table out of the
+    output.
+    """
+    solvers, unavailable = available_solvers()
+    print(
+        f"Benchmarking the proof-of-work solvers "
+        f"{', '.join(solver.name for solver in solvers)} at difficulty "
+        f"{spec.first}-{spec.last}, {spec.runs} run(s) each, beside the running "
+        f"overlay. Solving fake challenges - nothing is sent to flashlight."
+    )
+
+    start_benchmark(spec, solvers, report=print, unavailable=unavailable)
 
 
 def test_ssl() -> None:  # pragma: nocover

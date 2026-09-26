@@ -5,6 +5,11 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
+# What `--benchmark-pow` measures when given no spec of its own. Difficulty 22 is
+# the top of the band flashlight considers usable, and three runs is enough for
+# the hash rate - which converges far faster than the individual solve times.
+DEFAULT_POW_SPEC = "16-22x3"
+
 
 @dataclass
 class Options:
@@ -14,6 +19,8 @@ class Options:
     test_ssl: bool
     test_pow: str | None
     test: bool
+    # The proof-of-work benchmark spec, or None to not run the benchmark
+    benchmark_pow: str | None = None
 
 
 def resolve_path(p: str) -> Path:  # pragma: no cover
@@ -78,6 +85,22 @@ def get_options(
         action="store_true",
     )
 
+    # Not suppressed like the other test flags: it is a calibration tool you
+    # are meant to be able to find and to pass parameters to.
+    parser.add_argument(
+        "--benchmark-pow",
+        help=(
+            "Benchmark the proof-of-work solver beside the running overlay, "
+            "printing the results to stdout. Takes an optional "
+            f"FIRST[-LAST][xRUNS] spec, e.g. 20, 14-22, 18x10 "
+            f"(default {DEFAULT_POW_SPEC})"
+        ),
+        nargs="?",
+        const=DEFAULT_POW_SPEC,
+        default=None,
+        metavar="SPEC",
+    )
+
     # Parse the args
     # Parses from sys.argv if args is None
     parsed = parser.parse_args(args=args)
@@ -89,6 +112,7 @@ def get_options(
     assert isinstance(parsed.test_ssl, bool)
     assert parsed.test_pow is None or isinstance(parsed.test_pow, str)
     assert isinstance(parsed.test, bool)
+    assert parsed.benchmark_pow is None or isinstance(parsed.benchmark_pow, str)
 
     if parsed.verbose <= 0:
         # Default loglevel to INFO
@@ -111,4 +135,5 @@ def get_options(
         test_ssl=parsed.test_ssl,
         test_pow=parsed.test_pow,
         test=parsed.test,
+        benchmark_pow=parsed.benchmark_pow,
     )
