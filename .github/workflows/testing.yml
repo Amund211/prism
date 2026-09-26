@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked
 
+      - name: Build native proof-of-work solver
+        run: uv run build_powsolve.py
+
       - name: Run typechecking
         run: |
           uv run mypy --strict .
@@ -40,6 +43,9 @@ jobs:
         run: |
           uv run coverage run
           uv run coverage report
+
+      - name: Test proof-of-work solvers through the overlay
+        run: bash tests/pow_integration.sh uv run prism_overlay.py
 
       - name: tee | stderr
         if: runner.os != 'Windows'
@@ -135,10 +141,42 @@ jobs:
           echo "SIMPLE_NAME=prism-$VERSION_STRING" >> $GITHUB_ENV
           echo "BUILD_RESULT_NAME=prism-$VERSION_STRING-${{ matrix.OS_NAME }}${{ matrix.RESULT_EXTENSION }}" >> $GITHUB_ENV
 
+      - name: Build native proof-of-work solver
+        run: uv run build_powsolve.py
+
+      - name: Check native solver architectures (mac)
+        if: matrix.OS_NAME == 'mac'
+        run: |
+          archs="$(lipo -archs src/prism/flashlight/auth/_powsolve.dylib)"
+          echo "$archs"
+          grep -qw x86_64 <<< "$archs"
+          grep -qw arm64 <<< "$archs"
+
       - name: Build binary with pyinstaller
         run: |
           uv run add_version_to_icon.py  # Create the icon file
           uv run pyinstaller prism_overlay.py --noconfirm --icon=pyinstaller/who_with_version.ico --name "${{ env.SIMPLE_NAME }}" --additional-hooks-dir=pyinstaller ${{ matrix.PYINSTALLER_ARGS }}
+
+      - name: Test proof-of-work solvers in the built binary
+        run: |
+          if [ "${{ matrix.OS_NAME }}" = mac ]; then
+            binary="dist/${{ env.SIMPLE_NAME }}.app/Contents/MacOS/${{ env.SIMPLE_NAME }}"
+          else
+            binary="dist/${{ env.SIMPLE_NAME }}${{ matrix.RESULT_EXTENSION }}"
+          fi
+
+          # Asserts the solver by name, so a library missing from the bundle
+          # can't pass by falling back to Python
+          bash tests/pow_integration.sh "$binary"
+
+          if [ "${{ matrix.OS_NAME }}" = mac ]; then
+            if arch -x86_64 /usr/bin/true 2>/dev/null; then
+              echo 'Testing the x86_64 slice under Rosetta'
+              POW_TEST_ARCH=x86_64 bash tests/pow_integration.sh arch -x86_64 "$binary"
+            else
+              echo '::warning::Rosetta is not available, the x86_64 slice was not tested'
+            fi
+          fi
 
       - name: Prepare to package app bundle to disk image (mac)
         if: matrix.OS_NAME == 'mac'
