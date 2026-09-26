@@ -1,4 +1,5 @@
 import hashlib
+import itertools
 import logging
 from dataclasses import dataclass
 
@@ -25,8 +26,9 @@ ALGORITHM_SHA256_LEADING_ZEROS = "sha256-leading-zeros-v1"
 # difficulty CPython cannot finish inside the window never converges at all.
 MAX_DIFFICULTY = 26
 
-# Difficulties at or above this are logged. Around a million hashes takes about
-# a second in CPython, and if we ever start paying that we want the record.
+# Difficulties at or above this are logged. Around a million hashes takes a
+# noticeable fraction of a second in CPython, and if we ever start paying that
+# we want the record.
 NOTEWORTHY_DIFFICULTY = 20
 
 _DIGEST_BITS = 256
@@ -98,15 +100,42 @@ def solve_challenge(challenge: Challenge) -> str:
     if challenge.difficulty >= NOTEWORTHY_DIFFICULTY:
         logger.warning(f"Solving proof-of-work at difficulty {challenge.difficulty}")
 
-    prefix = f"{challenge.challenge}:".encode()
+    return _solve_python(f"{challenge.challenge}:".encode(), challenge.difficulty)
 
-    # A non-empty solution is required even at difficulty 0, where the empty
-    # string would be a perfectly valid proof - so we count from "0" rather than
-    # special-casing the easy path away.
-    counter = 0
-    while True:
-        solution = str(counter)
-        digest = hashlib.sha256(prefix + solution.encode()).digest()
-        if leading_zero_bits(digest) >= challenge.difficulty:
-            return solution
-        counter += 1
+
+def difficulty_target(difficulty: int) -> bytes:
+    """
+    Return the bound a digest must be below to meet the given difficulty
+
+    A big-endian digest has at least `difficulty` leading zero bits iff it is
+    below 2**(256 - difficulty), and equal-length bytes compare like big-endian
+    integers - so the check is a single bytes comparison.
+    """
+    if difficulty == 0:
+        # 2**256 does not fit in 32 bytes. Every 32-byte digest is a prefix of,
+        # and therefore less than, this.
+        return b"\xff" * 33
+    return (1 << (256 - difficulty)).to_bytes(32, "big")
+
+
+_LOW_DIGITS = tuple(f"{low:03d}".encode() for low in range(1000))
+
+
+def _solve_python(prefix: bytes, difficulty: int) -> str:
+    # Candidates are str(high) + three digits. Hashing the prefix, and then each
+    # high part, once and copying the state leaves one copy, update and digest
+    # per attempt - which is what the interpreter spends its time on.
+    # Every candidate is non-empty, as the server requires even at difficulty 0.
+    target = difficulty_target(difficulty)
+    base = hashlib.sha256(prefix)
+    for high in itertools.count():
+        high_part = str(high)
+        with_high = base.copy()
+        with_high.update(high_part.encode())
+        copy = with_high.copy
+        for low in _LOW_DIGITS:
+            attempt = copy()
+            attempt.update(low)
+            if attempt.digest() < target:
+                return high_part + low.decode()
+    assert False, "unreachable"  # pragma: nocover
