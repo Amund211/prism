@@ -398,6 +398,21 @@ value3`,
 			require.Empty(t, conf.AzureClientSecret())
 			require.Empty(t, conf.AzureRedirectURI())
 		})
+
+		// main.go registers the sign-in routes on the client id alone, so a
+		// partial registration must not boot.
+		t.Run("development rejects a partial azure app registration", func(t *testing.T) {
+			t.Setenv("FLASHLIGHT_ENVIRONMENT", string(development))
+			for _, missing := range []string{"AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET", "AZURE_REDIRECT_URI"} {
+				t.Run(missing, func(t *testing.T) {
+					t.Setenv(missing, "placeholder_value")
+					require.NoError(t, os.Unsetenv(missing))
+
+					_, err := config.ConfigFromEnv()
+					require.ErrorIs(t, err, config.ErrInvalidValue)
+				})
+			}
+		})
 	})
 
 	t.Run("azure client secret expiry", func(t *testing.T) {

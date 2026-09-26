@@ -323,6 +323,17 @@ func ConfigFromEnv() (Config, error) {
 			return missingKey("AZURE_REDIRECT_URI")
 		}
 	}
+	// All or nothing, because main.go registers the sign-in routes when the
+	// client id is set.
+	azureSet := 0
+	for _, value := range []string{azureClientID, azureClientSecret, azureRedirectURI} {
+		if value != "" {
+			azureSet++
+		}
+	}
+	if azureSet != 0 && azureSet != 3 {
+		return Config{}, fmt.Errorf("%w: AZURE_CLIENT_ID, AZURE_CLIENT_SECRET and AZURE_REDIRECT_URI must be set together", ErrInvalidValue)
+	}
 	// Rejected everywhere: Entra matches it byte for byte, so a malformed
 	// value is a sign-in that fails only after the user has consented.
 	if azureRedirectURI != "" && !isValidRedirectURI(azureRedirectURI) {
