@@ -11,6 +11,9 @@ dist/
 wheels/
 *.egg-info
 
+# Native proof-of-work solver, built by build_powsolve.py
+/src/prism/flashlight/auth/_powsolve.*
+
 # Pyinstaller generated files
 *.spec
 

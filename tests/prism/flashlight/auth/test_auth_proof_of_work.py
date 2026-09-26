@@ -1,17 +1,25 @@
 import hashlib
 import itertools
+from pathlib import Path
 
 import pytest
 
-from prism.flashlight.auth import proof_of_work
+from prism.flashlight.auth import native_pow, proof_of_work
 from prism.flashlight.auth.errors import AuthError
 from prism.flashlight.auth.proof_of_work import (
     ALGORITHM_SHA256_LEADING_ZEROS,
     MAX_DIFFICULTY,
+    NATIVE_PREFERENCE,
+    PYTHON_SOLVER,
     Challenge,
+    Solver,
+    default_solver,
     difficulty_target,
+    get_solver,
     leading_zero_bits,
     parse_challenge_response,
+    pick_default_solver,
+    self_test,
     solve_challenge,
 )
 
@@ -109,15 +117,18 @@ def test_difficulty_target(difficulty: int) -> None:
         assert (digest < target) == (leading_zero_bits(digest) >= difficulty)
 
 
+@pytest.mark.parametrize("solver_name", ("python", "native"))
 @pytest.mark.parametrize("difficulty", (0, 1, 4, 8, 12))
 @pytest.mark.parametrize("challenge_length", (1, 11, 54, 63, 64, 65, 341))
-def test_solve_challenge(difficulty: int, challenge_length: int) -> None:
+def test_solve_challenge(
+    solver_name: str, difficulty: int, challenge_length: int
+) -> None:
     challenge = Challenge(
         challenge="c" * challenge_length,
         algorithm=ALGORITHM_SHA256_LEADING_ZEROS,
         difficulty=difficulty,
     )
-    solution = solve_challenge(challenge)
+    solution = solve_challenge(challenge, solver=get_solver(solver_name))
 
     # A non-empty solution is required even at difficulty 0
     assert solution
@@ -142,11 +153,16 @@ def test_solve_challenge_returns_first_candidate(difficulty: int) -> None:
                     return candidate
         assert False  # pragma: nocover
 
-    assert solve_challenge(challenge) == reference()
+    assert solve_challenge(challenge, solver=PYTHON_SOLVER) == reference()
 
 
 def test_solve_challenge_at_difficulty_zero_is_one_hash() -> None:
-    assert solve_challenge(make_challenge(difficulty=0)) == "0000"
+    assert solve_challenge(make_challenge(difficulty=0), solver=PYTHON_SOLVER) == (
+        "0000"
+    )
+    assert solve_challenge(
+        make_challenge(difficulty=0), solver=get_solver("portable")
+    ) == ("000000000000")
 
 
 def test_solve_challenge_rejects_unknown_algorithm() -> None:
@@ -166,3 +182,94 @@ def test_solve_challenge_logs_noteworthy_difficulties(
 ) -> None:
     monkeypatch.setattr(proof_of_work, "NOTEWORTHY_DIFFICULTY", 4)
     assert solve_challenge(make_challenge(difficulty=4))
+
+
+def test_solve_challenge_wraps_native_errors() -> None:
+    def fail(prefix: bytes, difficulty: int) -> str:
+        raise native_pow.NativePowError("broken")
+
+    with pytest.raises(AuthError, match="'broken-solver' failed"):
+        solve_challenge(make_challenge(), solver=Solver("broken-solver", fail))
+
+
+def test_get_solver_python() -> None:
+    assert get_solver("python") is PYTHON_SOLVER
+
+
+def test_get_solver_portable() -> None:
+    solver = get_solver("portable")
+    assert solver.name == "portable"
+    assert solve_challenge(make_challenge(difficulty=8), solver=solver)
+
+
+def test_get_solver_native_picks_the_best_supported() -> None:
+    library = native_pow.NativeLibrary(native_pow.LIBRARY_PATH)
+    best = next(name for name in NATIVE_PREFERENCE if library.supported(name))
+    assert get_solver("native").name == best
+
+
+def test_get_solver_unknown_name() -> None:
+    with pytest.raises(AuthError, match="Unknown proof-of-work solver"):
+        get_solver("sha-3000")
+
+
+@pytest.mark.parametrize("name", ("native", "portable"))
+def test_get_solver_does_not_fall_back(name: str, tmp_path: Path) -> None:
+    with pytest.raises(AuthError, match="Could not load"):
+        get_solver(name, library_path=tmp_path / "missing")
+
+
+def test_get_solver_refuses_unsupported_implementation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(native_pow.NativeLibrary, "supported", lambda _, __: False)
+    with pytest.raises(AuthError, match="not supported"):
+        get_solver("portable")
+    with pytest.raises(AuthError, match="No native"):
+        get_solver("native")
+
+
+def test_pick_default_solver_prefers_native() -> None:
+    assert pick_default_solver().name == get_solver("native").name
+
+
+def test_pick_default_solver_falls_back_to_python(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    assert pick_default_solver(library_path=tmp_path / "missing") is PYTHON_SOLVER
+    assert "falling back" in caplog.text
+
+
+def test_default_solver_is_native() -> None:
+    """With the library built, a real login must not use the Python solver"""
+    assert default_solver().name == get_solver("native").name
+
+
+@pytest.mark.parametrize("name", ("python", "portable", "native"))
+def test_self_test(name: str) -> None:
+    solver = self_test(name, difficulties=(0, 1, 8))
+    assert solver.name == get_solver(name).name
+
+
+def test_self_test_catches_wrong_solutions(monkeypatch: pytest.MonkeyPatch) -> None:
+    def wrong(prefix: bytes, difficulty: int) -> str:
+        """Return a candidate that does *not* meet the difficulty"""
+        for counter in itertools.count():  # pragma: no branch
+            digest = hashlib.sha256(prefix + str(counter).encode()).digest()
+            if leading_zero_bits(digest) < difficulty:
+                return str(counter)
+        assert False  # pragma: nocover
+
+    monkeypatch.setattr(
+        proof_of_work, "get_solver", lambda _: Solver(name="wrong", solve=wrong)
+    )
+    with pytest.raises(AuthError, match="wrong"):
+        self_test("wrong", difficulties=(8,))
+
+
+def test_self_test_native_catches_a_python_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(proof_of_work, "default_solver", lambda: PYTHON_SOLVER)
+    with pytest.raises(AuthError, match="default"):
+        self_test("native", difficulties=(0,))
