@@ -56,21 +56,22 @@ They are not dead fields — do not remove them.
 
 ## Signing keys and rotation
 
-**Two key lists, never shared.** Domain separation is what stops a challenge blob
-and a session handle from being confused for one another; the payload's `typ` is
-the other half.
+**Three key lists, never shared.** Domain separation is what stops a challenge
+blob, a session handle and a flow token from being confused for one another; the
+payload's `typ` is the other half.
 
 | Variable | Signs | A dropped key costs |
 |---|---|---|
 | `AUTH_CHALLENGE_SIGNING_KEYS` | proof-of-work challenges | outstanding challenges, ≤ `challengeTTL` (**60s**) |
 | `AUTH_SESSION_SIGNING_KEYS` | session handles | **every live session** — a mass logout, up to 24h of chains |
+| `AUTH_FLOW_SIGNING_KEYS` | Microsoft sign-in flow cookie and result token | sign-ins in flight, ≤ 10 min |
 
-Both are secrets, **one per environment** so a staging blob never validates
+All are secrets, **one per environment** so a staging blob never validates
 against production: newline-delimited base64, ≥32 bytes decoded.
 
 **The first key signs; every key is accepted**, which is what makes rotation
 non-breaking: prepend the new key and deploy, then drop the old line once nothing
-signed with it can still be presented — 60s for challenges, **24h** for sessions.
+signed with it can still be presented — 60s for challenges, **24h** for sessions, 10 min for flows.
 Dropping a key in the same deploy is instead a revocation, and the only
 irreversible one available.
 
@@ -133,6 +134,12 @@ These are the parts you cannot recover by reading the code.
   `sentryhttp` strips `Authorization` from the request attached to every event.
   Turning it on ships bearers to Sentry
   (`TestSentryDoesNotSendTheAuthorizationHeader`).
+- **The Microsoft chain (`internal/adapters/microsoftauth`) never returns a
+  token, and its errors never quote a token, code, secret or response body** —
+  that is what makes them safe to log and report. Keep it so: a new leg that
+  wraps a body, or a caller handed a token, breaks it silently. Scope is
+  `XboxLive.signin` only; adding `offline_access` makes Microsoft issue refresh
+  tokens, which the design rules out.
 - **The payload is readable by anyone holding the handle** — signed, not
   encrypted, and AEAD is refused. It carries a `userId` the client generated
   itself, so the disclosure is ~nil; the hazard is that readability invites
