@@ -1,7 +1,7 @@
 ---
 title: Auth sessions — how it works
 topic: auth
-area: internal/app, internal/ports, internal/authsessiontoken, internal/signing
+area: internal/app, internal/ports, internal/authsessiontoken, internal/authflowtoken, internal/signing
 created_at: 2026-08-08
 status: current
 tags: [auth, sessions, bearer, proof-of-work, rate-limiting]
@@ -11,8 +11,9 @@ tags: [auth, sessions, bearer, proof-of-work, rate-limiting]
 
 Bearer sessions, so the per-user rate budget keys on an identity we verified
 rather than a self-asserted `X-User-Id` header. Only the **anonymous** tier is
-built. Rationale lives outside this repo in `auth-plan/`; this file is what runs
-plus what breaks silently.
+built, plus a Microsoft **test sign-in** that issues no session (below).
+Rationale lives outside this repo in `auth-plan/`; this file is what runs plus
+what breaks silently.
 
 ## The shape of it
 
@@ -53,6 +54,19 @@ refreshUntil   = min(issuedAt + 2h,  lifetimeEndsAt)
 `lineage` and `generation` are read by **nothing** today. They are in the payload
 on purpose, so an issuance-events table can be added later without a format bump.
 They are not dead fields — do not remove them.
+
+## Microsoft test sign-in
+
+Registered only when `AZURE_*` is set — always in production and staging;
+config refuses a partial set.
+
+- `GET /v1/auth/microsoft/start` sets `__Host-fl_flow` (`flflow_<payload>.<sig>`
+  holding `msState`, `msVerifier`, `exp`; 10 min, `internal/authflowtoken`) and
+  302s to Microsoft. `?return` is a 400 until the client flows exist.
+- `GET /v1/auth/microsoft/callback` checks the cookie, its expiry and `state`
+  **before** it redeems the code, clears the cookie, and renders a page with
+  "Signed in as <name>" or an outcome code (`client_not_approved` until Mojang
+  approves). It issues no session and writes nothing.
 
 ## Signing keys and rotation
 
@@ -141,6 +155,16 @@ These are the parts you cannot recover by reading the code.
   or 308 would replay the client secret, code or token to another host. Scope is
   `XboxLive.signin` only; adding `offline_access` makes Microsoft issue refresh
   tokens, which the design rules out.
+- **The callback's query holds the code and `state`, so `hideQuery` must stay
+  the outermost middleware on it.** `sentryhttp` sends the query string with
+  every event whatever `SendDefaultPII` says, and `GetIP` reports the URL.
+  Cloud Run's own request log still records the full URL; accepted, since the
+  code is single-use and useless without the client secret and the verifier.
+- **The flow cookie only works on one host.** `__Host-` makes the browser drop
+  it unless it is `Secure`, `Path=/` and has no `Domain` — the clearing
+  `Set-Cookie` too. `/start` must be opened on the host in `AZURE_REDIRECT_URI`
+  (not `*.run.app`), or every callback is `flow_missing`. `SameSite=Lax`, not
+  `Strict`: Strict drops it on the redirect back from Microsoft.
 - **The payload is readable by anyone holding the handle** — signed, not
   encrypted, and AEAD is refused. It carries a `userId` the client generated
   itself, so the disclosure is ~nil; the hazard is that readability invites
