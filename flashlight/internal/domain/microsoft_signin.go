@@ -1,6 +1,27 @@
 package domain
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
+
+// MicrosoftSignInFlow is one sign-in in progress. It lives in the browser's
+// signed flow cookie between /start and /callback, and nowhere else.
+type MicrosoftSignInFlow struct {
+	// State is the OAuth state sent to Microsoft.
+	State string
+	// Verifier is the PKCE verifier toward Microsoft.
+	Verifier  string
+	ExpiresAt time.Time
+}
+
+// Why a callback was refused before the code was redeemed.
+var (
+	ErrMicrosoftSignInFlowMissing   = errors.New("microsoft sign-in flow cookie is missing")
+	ErrMicrosoftSignInFlowInvalid   = errors.New("microsoft sign-in flow cookie is invalid")
+	ErrMicrosoftSignInFlowExpired   = errors.New("microsoft sign-in flow has expired")
+	ErrMicrosoftSignInStateMismatch = errors.New("microsoft sign-in state does not match the flow")
+)
 
 // MinecraftAccount is who a Microsoft sign-in proved the caller to be: the
 // profile Mojang returned for the token the sign-in obtained. UUID is the
