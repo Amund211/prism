@@ -23,11 +23,13 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/accountrepository"
 	"github.com/Amund211/flashlight/internal/adapters/cache"
 	"github.com/Amund211/flashlight/internal/adapters/database"
+	"github.com/Amund211/flashlight/internal/adapters/microsoftauth"
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/adapters/tagprovider"
 	"github.com/Amund211/flashlight/internal/adapters/userrepository"
 	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/flashlight/internal/authflowtoken"
 	"github.com/Amund211/flashlight/internal/authsessionguard"
 	"github.com/Amund211/flashlight/internal/authsessiontoken"
 	"github.com/Amund211/flashlight/internal/config"
@@ -276,6 +278,46 @@ func main() {
 	}
 	logger.InfoContext(ctx, "Initialized stateless auth sessions")
 
+	// Microsoft sign-in. Config makes the Azure registration all or nothing,
+	// and requires it outside development.
+	var startMicrosoftSignIn app.StartMicrosoftSignIn
+	var finishMicrosoftSignIn app.FinishMicrosoftSignIn
+	if config.AzureClientID() != "" {
+		flowKeys := config.AuthFlowSigningKeys()
+		if len(flowKeys) == 0 && config.IsDevelopment() {
+			// Same reasoning as the challenge keys. A restart fails the
+			// sign-ins in flight.
+			generatedKey, err := signing.GenerateKey()
+			if err != nil {
+				fail("Failed to generate auth flow signing key", "error", err.Error())
+			}
+			logger.WarnContext(ctx, "No auth flow signing keys configured, generated an ephemeral one")
+			flowKeys = []string{generatedKey}
+		}
+		authFlowKeys, err := signing.ParseKeys(flowKeys)
+		if err != nil {
+			fail("Failed to parse auth flow signing keys", "error", err.Error())
+		}
+		flowSealer, err := authflowtoken.NewSigned(authFlowKeys)
+		if err != nil {
+			fail("Failed to initialize the auth flow sealer", "error", err.Error())
+		}
+		microsoftClient, err := microsoftauth.New(httpClient, microsoftauth.Config{
+			ClientID:     config.AzureClientID(),
+			ClientSecret: config.AzureClientSecret(),
+			RedirectURI:  config.AzureRedirectURI(),
+			Endpoints:    microsoftauth.DefaultEndpoints(),
+		})
+		if err != nil {
+			fail("Failed to initialize the Microsoft sign-in client", "error", err.Error())
+		}
+		startMicrosoftSignIn = app.BuildStartMicrosoftSignIn(microsoftClient, flowSealer, time.Now)
+		finishMicrosoftSignIn = app.BuildFinishMicrosoftSignIn(microsoftClient, flowSealer, time.Now)
+		logger.InfoContext(ctx, "Initialized Microsoft sign-in")
+	} else {
+		logger.WarnContext(ctx, "No Azure app registration configured, Microsoft sign-in routes are not registered")
+	}
+
 	// AllowAll: nothing bounds how many identities one IP may hold
 	// sessions for. See its doc comment for what that gave up.
 	anonymousLogin := app.BuildAnonymousLogin(sessionSealer, authsessionguard.AllowAll{}, time.Now, app.GenerateLineage)
@@ -423,6 +465,24 @@ func main() {
 		blocklistConfig,
 	)
 	handleFunc("POST /v1/auth/refresh", authRefreshHandler, stopAuthRefresh)
+
+	if startMicrosoftSignIn != nil {
+		microsoftStartHandler, stopMicrosoftStart := ports.MakeMicrosoftSignInStartHandler(
+			startMicrosoftSignIn,
+			logger.With("port", "auth-microsoft-start"),
+			sentryMiddleware,
+			blocklistConfig,
+		)
+		handleFunc("GET /v1/auth/microsoft/start", microsoftStartHandler, stopMicrosoftStart)
+
+		microsoftCallbackHandler, stopMicrosoftCallback := ports.MakeMicrosoftSignInCallbackHandler(
+			finishMicrosoftSignIn,
+			logger.With("port", "auth-microsoft-callback"),
+			sentryMiddleware,
+			blocklistConfig,
+		)
+		handleFunc("GET /v1/auth/microsoft/callback", microsoftCallbackHandler, stopMicrosoftCallback)
+	}
 
 	handleFunc(
 		"OPTIONS /v1/account/username/{username}",
