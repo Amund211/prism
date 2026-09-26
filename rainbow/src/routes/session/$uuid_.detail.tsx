@@ -91,6 +91,7 @@ import {
     trailingStreak,
 } from "#helpers/sessionDetail.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
+import { prefetchQuery } from "#queries/prefetch.ts";
 import type {
     GameOutcome,
     GameResult,
@@ -125,8 +126,8 @@ export const Route = createFileRoute("/session/$uuid_/detail")({
         // The URL date is normalized to the session's real start time once the
         // data lands, so this key may be superseded by a second fetch on the
         // canonical key. The page redirects and self-corrects.
-        void queryClient.prefetchQuery(getSessionAtQueryOptions({ uuid, time: date }));
-        void queryClient.prefetchQuery(getUsernameQueryOptions(uuid));
+        void prefetchQuery(queryClient, getSessionAtQueryOptions({ uuid, time: date }));
+        void prefetchQuery(queryClient, getUsernameQueryOptions(uuid));
     },
     validateSearch: detailSearchSchema,
     // oxlint-disable-next-line eslint/no-use-before-define

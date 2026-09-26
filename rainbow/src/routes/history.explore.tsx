@@ -40,6 +40,7 @@ import {
     startOfYear,
 } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
+import { prefetchQuery } from "#queries/prefetch.ts";
 import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
 import { historyExploreSearchSchema } from "#schemas/historySearch.ts";
 import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
@@ -65,10 +66,11 @@ export const Route = createFileRoute("/history/explore")({
         const uuids = normalizeUUIDsSkippingInvalid(rawUUIDs);
         // TODO: Rate limiting
         for (const uuid of uuids) {
-            void queryClient.prefetchQuery(
+            void prefetchQuery(
+                queryClient,
                 getHistoryQueryOptions({ uuid, start, end, limit }),
             );
-            void queryClient.prefetchQuery(getUsernameQueryOptions(uuid));
+            void prefetchQuery(queryClient, getUsernameQueryOptions(uuid));
         }
     },
     validateSearch: historyExploreSearchSchema,

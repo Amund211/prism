@@ -9,6 +9,7 @@ import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { favoriteUUIDsFromStorage, selectFavoriteUUIDs } from "#helpers/favorites.ts";
 import { useLocalStorage } from "#hooks/useLocalStorage.ts";
+import { prefetchQuery } from "#queries/prefetch.ts";
 import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
 
 const RouterLinkButton = createLink(Button);
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/")({
         // The favorites come from local storage, so they're known before the
         // providers mount and their usernames can be resolved up front.
         for (const uuid of favoriteUUIDsFromStorage()) {
-            void queryClient.prefetchQuery(getUsernameQueryOptions(uuid));
+            void prefetchQuery(queryClient, getUsernameQueryOptions(uuid));
         }
     },
     // oxlint-disable-next-line eslint/no-use-before-define

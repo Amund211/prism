@@ -44,6 +44,7 @@ import { UserSearch } from "#components/UserSearch.tsx";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { ExportImageMount } from "#helpers/exportImage.tsx";
 import { normalizeUUID } from "#helpers/uuid.ts";
+import { prefetchQuery } from "#queries/prefetch.ts";
 import type { Session } from "#queries/sessions.ts";
 import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
 import { getWrappedQueryOptions } from "#queries/wrapped.ts";
@@ -71,14 +72,15 @@ export const Route = createFileRoute("/wrapped/$uuid")({
         const uuid = normalizeUUID(rawUUID);
         if (uuid === null) return;
 
-        void queryClient.prefetchQuery(
+        void prefetchQuery(
+            queryClient,
             getWrappedQueryOptions({
                 uuid,
                 year,
                 timezone: getDefaultTimeZone(),
             }),
         );
-        void queryClient.prefetchQuery(getUsernameQueryOptions(uuid));
+        void prefetchQuery(queryClient, getUsernameQueryOptions(uuid));
     },
     validateSearch: wrappedSearchSchema,
     // oxlint-disable-next-line eslint/no-use-before-define

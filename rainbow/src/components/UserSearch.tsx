@@ -338,7 +338,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
                 setLoading(true);
                 void (async () => {
                     try {
-                        const { uuid } = await queryClient.fetchQuery(
+                        const { uuid } = await queryClient.query(
                             getUUIDQueryOptions(value.text),
                         );
                         onSubmit(uuid);
@@ -453,7 +453,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                                 }
 
                                 try {
-                                    const { uuid } = await queryClient.fetchQuery(
+                                    const { uuid } = await queryClient.query(
                                         getUUIDQueryOptions(value.text),
                                     );
                                     return uuid;

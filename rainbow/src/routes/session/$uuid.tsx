@@ -47,6 +47,7 @@ import { useAssume } from "#hooks/useAssumption.ts";
 import { timeIntervalsFromDefinition } from "#intervals.ts";
 import type { TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
+import { prefetchQuery } from "#queries/prefetch.ts";
 import { getSessionsQueryOptions } from "#queries/sessions.ts";
 import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
 import { sessionSearchSchema } from "#schemas/sessionSearch.ts";
@@ -100,21 +101,25 @@ export const Route = createFileRoute("/session/$uuid")({
         const { day, week, month } = timeIntervals;
         // TODO: Rate limiting
         for (const { start, end } of [day, week, month]) {
-            void queryClient.prefetchQuery(
+            void prefetchQuery(
+                queryClient,
                 getHistoryQueryOptions({ uuid, start, end, limit: 2 }),
             );
-            void queryClient.prefetchQuery(
+            void prefetchQuery(
+                queryClient,
                 getHistoryQueryOptions({ uuid, start, end, limit: 100 }),
             );
         }
-        void queryClient.prefetchQuery(
+        void prefetchQuery(
+            queryClient,
             getHistoryQueryOptions({ uuid, ...trackingInterval, limit: 2 }),
         );
         // The sessions table covers the month interval
-        void queryClient.prefetchQuery(
+        void prefetchQuery(
+            queryClient,
             getSessionsQueryOptions({ uuid, start: month.start, end: month.end }),
         );
-        void queryClient.prefetchQuery(getUsernameQueryOptions(uuid));
+        void prefetchQuery(queryClient, getUsernameQueryOptions(uuid));
     },
     validateSearch: sessionSearchSchema,
     // oxlint-disable-next-line eslint/no-use-before-define

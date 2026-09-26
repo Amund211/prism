@@ -186,7 +186,7 @@
                     {
                         "from": "package",
                         "package": "@tanstack/query-core",
-                        "name": "QueryClient"
+                        "name": ["QueryClient", "QueryExecuteOptions"]
                     },
                     {
                         "from": "package",
