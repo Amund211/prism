@@ -95,6 +95,16 @@ def main() -> None:  # pragma: nocover
         test_pow(options.test_pow)
         return
 
+    # Parsed here, before the (possibly interactive) logfile selection, so a
+    # typo in the spec fails now rather than after a window is up.
+    pow_benchmark_spec = None
+    if options.benchmark_pow is not None:
+        from prism.overlay.testing import parse_pow_benchmark_spec
+
+        pow_benchmark_spec = parse_pow_benchmark_spec(options.benchmark_pow)
+        if pow_benchmark_spec is None:
+            return
+
     session = make_prism_requests_session()
 
     # Start authenticating right away, before the (possibly interactive) logfile
@@ -140,6 +150,14 @@ def main() -> None:  # pragma: nocover
         loglines = prompt_and_read_logfile(controller, options, settings)
 
     controller.ready = True
+
+    # Last, so the benchmark runs against a fully started overlay: auth up,
+    # stats threads live, and the tkinter mainloop about to take the main
+    # thread. That contention is the whole reason to run both.
+    if pow_benchmark_spec is not None:
+        from prism.overlay.testing import start_pow_benchmark
+
+        start_pow_benchmark(pow_benchmark_spec)
 
     run_overlay(controller, loglines, auth)
 
