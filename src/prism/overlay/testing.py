@@ -3,7 +3,12 @@
 import time
 from collections.abc import Iterable
 
-from prism.flashlight.auth.benchmark import BenchmarkSpec, parse_spec, start_benchmark
+from prism.flashlight.auth.benchmark import (
+    BenchmarkSpec,
+    available_solvers,
+    parse_spec,
+    start_benchmark,
+)
 from prism.overlay.commandline import Options
 from prism.ssl_errors import is_missing_local_issuer_error
 
@@ -80,13 +85,15 @@ def start_pow_benchmark(spec: BenchmarkSpec) -> None:  # pragma: nocover
     a real login's solve does. Pass -q to keep the stats table out of the
     output.
     """
+    solvers, unavailable = available_solvers()
     print(
-        f"Benchmarking the proof-of-work solver at difficulty "
+        f"Benchmarking the proof-of-work solvers "
+        f"{', '.join(solver.name for solver in solvers)} at difficulty "
         f"{spec.first}-{spec.last}, {spec.runs} run(s) each, beside the running "
         f"overlay. Solving fake challenges - nothing is sent to flashlight."
     )
 
-    start_benchmark(spec, report=print)
+    start_benchmark(spec, solvers, report=print, unavailable=unavailable)
 
 
 def test_ssl() -> None:  # pragma: nocover

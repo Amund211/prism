@@ -16,6 +16,7 @@ sluggishness.
 """
 
 import base64
+import hashlib
 import json
 import logging
 import math
@@ -26,11 +27,18 @@ import time
 import uuid
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 
+from prism.flashlight.auth import native_pow
+from prism.flashlight.auth.errors import AuthError
 from prism.flashlight.auth.proof_of_work import (
     ALGORITHM_SHA256_LEADING_ZEROS,
     MAX_DIFFICULTY,
+    NATIVE_PREFERENCE,
     Challenge,
+    Solver,
+    get_solver,
+    leading_zero_bits,
     solve_challenge,
 )
 
@@ -175,20 +183,56 @@ def mint_fake_challenge(difficulty: int) -> Challenge:
     )
 
 
+def _solve_old_python(prefix: bytes, difficulty: int) -> str:
+    # The loop prism had before the midstate and native solvers, verbatim
+    counter = 0
+    while True:
+        solution = str(counter)
+        digest = hashlib.sha256(prefix + solution.encode()).digest()
+        if leading_zero_bits(digest) >= difficulty:
+            return solution
+        counter += 1
+
+
+# Not used for logging in. Kept so the benchmark can show what the other
+# solvers gained.
+OLD_PYTHON_SOLVER = Solver(name="old-python", solve=_solve_old_python)
+
+
+def available_solvers(
+    library_path: Path = native_pow.LIBRARY_PATH,
+) -> tuple[list[Solver], list[tuple[str, str]]]:
+    """
+    Return the solvers that run on this machine, and (name, reason) for the rest
+
+    The old Python loop first, as the baseline, then the Python solver, then
+    the native ones slowest first.
+    """
+    solvers = [OLD_PYTHON_SOLVER]
+    unavailable = []
+    for name in ("python", *reversed(NATIVE_PREFERENCE)):
+        try:
+            solvers.append(get_solver(name, library_path=library_path))
+        except AuthError as e:
+            unavailable.append((name, str(e)))
+    return solvers, unavailable
+
+
 @dataclass(frozen=True, slots=True)
 class Run:
     """One timed solve"""
 
+    solver: str
     difficulty: int
     duration_seconds: float
     hashes: int
 
 
 def time_one_solve(
-    difficulty: int, clock: Callable[[], float] = time.perf_counter
+    difficulty: int, solver: Solver, clock: Callable[[], float] = time.perf_counter
 ) -> Run:
     """
-    Solve one freshly minted fake challenge and time it
+    Solve one freshly minted fake challenge with `solver` and time it
 
     `time.perf_counter` rather than `time.monotonic`: the coarse clock on
     Windows would report whole runs at the low difficulties as taking no time.
@@ -196,12 +240,13 @@ def time_one_solve(
     challenge = mint_fake_challenge(difficulty)
 
     start = clock()
-    solution = solve_challenge(challenge)
+    solution = solve_challenge(challenge, solver=solver)
     duration_seconds = clock() - start
 
-    # The solver counts up from 0, so the winning counter is also the number of
-    # attempts that missed before it.
+    # Every solver counts up from 0 and writes the counter in decimal, so the
+    # winning counter is also the number of attempts that missed before it.
     return Run(
+        solver=solver.name,
         difficulty=difficulty,
         duration_seconds=duration_seconds,
         hashes=int(solution) + 1,
@@ -370,7 +415,6 @@ def _row(cells: Sequence[str], widths: Sequence[int]) -> str:
 
 
 _SUMMARY_WIDTHS = (4, 4, 9, 9, 9, 9, 12, 11)
-_ESTIMATE_WIDTHS = (4, 12, 9, 9, 9, 28)
 
 
 def format_summaries(summaries: Sequence[Summary]) -> list[str]:
@@ -400,66 +444,98 @@ def format_summaries(summaries: Sequence[Summary]) -> list[str]:
     return lines
 
 
-def format_estimates(estimates: Sequence[Estimate]) -> list[str]:
-    """Format the extrapolated difficulty band as a table"""
-    lines = [
-        _row(("diff", "hashes", "mean", "p95", "p99", "verdict"), _ESTIMATE_WIDTHS)
-    ]
-    for estimate in estimates:
+@dataclass(frozen=True, slots=True)
+class SolverResult:
+    """Every difficulty measured with one solver"""
+
+    solver: str
+    summaries: list[Summary]
+
+
+def _comparison_cell(estimate: Estimate) -> str:
+    if estimate.verdict in BROKEN_VERDICTS:
+        return f"{format_seconds(estimate.p95_seconds)} x"
+    if hurts(estimate.verdict):
+        return f"{format_seconds(estimate.p95_seconds)} !"
+    return format_seconds(estimate.p95_seconds)
+
+
+def format_comparison(
+    names: Sequence[str], estimate_sets: Sequence[Sequence[Estimate]]
+) -> list[str]:
+    """Format the estimated p95 of each solver side by side, one row a difficulty"""
+    widths = (4, *(max(len(name), 11) for name in names))
+    lines = [_row(("diff", *names), widths)]
+    for row in zip(*estimate_sets, strict=True):
         lines.append(
             _row(
-                (
-                    str(estimate.difficulty),
-                    f"{estimate.mean_hashes:,}",
-                    format_seconds(estimate.mean_seconds),
-                    format_seconds(estimate.p95_seconds),
-                    format_seconds(estimate.p99_seconds),
-                    estimate.verdict,
-                ),
-                _ESTIMATE_WIDTHS,
+                (str(row[0].difficulty), *(_comparison_cell(e) for e in row)),
+                widths,
             )
         )
     return lines
 
 
 def format_report(
-    summaries: Sequence[Summary], budget_seconds: float = SOLVE_BUDGET_SECONDS
+    results: Sequence[SolverResult],
+    budget_seconds: float = SOLVE_BUDGET_SECONDS,
+    unavailable: Sequence[tuple[str, str]] = (),
 ) -> str:
     """
-    Render the whole report
+    Render the whole report, comparing the solvers against the first one
 
     The estimates come off the hardest difficulty measured: those are the runs
     where the hash loop, rather than the timing overhead, dominates.
     """
-    if not summaries:
+    if not results:
         return "No proof-of-work results to report."
 
-    basis = summaries[-1]
-    estimates = estimate_difficulties(basis.hashes_per_second, budget_seconds)
+    bases = [result.summaries[-1] for result in results]
+    estimate_sets = [
+        estimate_difficulties(basis.hashes_per_second, budget_seconds)
+        for basis in bases
+    ]
+    baseline_name = results[0].solver
+    baseline_rate = bases[0].hashes_per_second
+
+    headlines = [
+        f"{result.solver}: {basis.hashes_per_second / 1000:,.0f} kH/s "
+        f"({basis.hashes_per_second / baseline_rate:.1f}x {baseline_name}). "
+        f"{format_headline(estimates)}"
+        for result, basis, estimates in zip(results, bases, estimate_sets, strict=True)
+    ]
+
+    measured = []
+    for result in results:
+        measured += [
+            "",
+            f"Measured: {result.solver}",
+            *format_summaries(result.summaries),
+        ]
 
     return "\n".join(
         (
             "",
-            format_headline(estimates),
+            *headlines,
+            *(f"{name}: not measured - {reason}" for name, reason in unavailable),
             "",
-            "Measured",
-            *format_summaries(summaries),
-            "",
-            f"Estimated from {basis.hashes_per_second / 1000:,.0f} kH/s measured "
-            f"at difficulty {basis.difficulty} over {basis.runs} run(s). Solve "
-            f"time is geometric, so p95 is ~3x the mean and p99 ~4.6x. A verdict "
-            f"is how the p95 wait reads to a user; the last two mean the "
-            f"handshake no longer fits the "
+            f"Estimated p95 per solver, from its rate at the hardest difficulty "
+            f"measured. Solve time is geometric, so p95 is ~3x the mean. '!' is a "
+            f"wait a user feels, 'x' a handshake that no longer fits the "
             f"{budget_seconds:.0f}s of flashlight's "
             f"{CHALLENGE_TTL_SECONDS:.0f}s challenge TTL left for the solve.",
-            *format_estimates(estimates),
+            *format_comparison([result.solver for result in results], estimate_sets),
+            *measured,
         )
     )
 
 
-def run_benchmark(spec: BenchmarkSpec, report: Callable[[str], None]) -> list[Summary]:
+def run_benchmark(
+    spec: BenchmarkSpec, solvers: Sequence[Solver], report: Callable[[str], None]
+) -> list[SolverResult]:
     """
-    Measure every difficulty in the spec, reporting each run as it lands
+    Measure every difficulty in the spec with each solver in turn, reporting
+    each run as it lands
 
     Call it from a worker thread - see `start_benchmark`.
 
@@ -467,33 +543,39 @@ def run_benchmark(spec: BenchmarkSpec, report: Callable[[str], None]) -> list[Su
     warmup run would exclude a cost the user really pays and report a
     difficulty as cheaper than it is.
     """
-    summaries = []
-    for difficulty in range(spec.first, spec.last + 1):
-        runs = []
-        for index in range(spec.runs):
-            run = time_one_solve(difficulty)
-            runs.append(run)
-            report(
-                f"difficulty {difficulty} "
-                f"run {index + 1}/{spec.runs}: "
-                f"{format_seconds(run.duration_seconds)} "
-                f"({run.hashes:,} hashes)"
-            )
-        summaries.append(summarize(difficulty, runs))
-    return summaries
+    results = []
+    for solver in solvers:
+        summaries = []
+        for difficulty in range(spec.first, spec.last + 1):
+            runs = []
+            for index in range(spec.runs):
+                run = time_one_solve(difficulty, solver)
+                runs.append(run)
+                report(
+                    f"{solver.name}: difficulty {difficulty} "
+                    f"run {index + 1}/{spec.runs}: "
+                    f"{format_seconds(run.duration_seconds)} "
+                    f"({run.hashes:,} hashes)"
+                )
+            summaries.append(summarize(difficulty, runs))
+        results.append(SolverResult(solver=solver.name, summaries=summaries))
+    return results
 
 
 def start_benchmark(
     spec: BenchmarkSpec,
+    solvers: Sequence[Solver],
     report: Callable[[str], None],
+    unavailable: Sequence[tuple[str, str]] = (),
     budget_seconds: float = SOLVE_BUDGET_SECONDS,
 ) -> threading.Thread:
     """
     Start the benchmark on a background thread and return it, already running
 
     Not joined, so the caller goes on to run the overlay: the point of running
-    both is that the hash loop competes for the GIL with the tkinter thread and
-    the stats threads, exactly as a real login's solve does.
+    both is that a solver that holds the GIL competes with the tkinter thread
+    and the stats threads, exactly as a real login's solve does. The native
+    solvers release it, and the numbers show what that buys.
 
     A worker thread rather than the main one for the same reason.
     `solve_challenge` is auth-thread-only in the overlay, and the thread is
@@ -504,14 +586,14 @@ def start_benchmark(
 
     def target() -> None:
         try:
-            summaries = run_benchmark(spec, report)
+            results = run_benchmark(spec, solvers, report)
         except BaseException:
             # The benchmark is a diagnostic running beside the real overlay. It
             # reports its own failure and leaves everything else alone.
             logger.exception("The proof-of-work benchmark failed")
             report("The proof-of-work benchmark failed - see the log for why.")
             return
-        report(format_report(summaries, budget_seconds))
+        report(format_report(results, budget_seconds, unavailable))
 
     thread = threading.Thread(target=target, daemon=True, name="prism-pow-benchmark")
     thread.start()

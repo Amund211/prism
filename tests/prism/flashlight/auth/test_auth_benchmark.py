@@ -1,14 +1,17 @@
 import hashlib
 import itertools
 from collections.abc import Callable
+from pathlib import Path
 
 import pytest
 
+from prism.flashlight.auth import native_pow
 from prism.flashlight.auth.benchmark import (
     DEFAULT_RUNS,
     ESTIMATE_FROM,
     IMPERCEPTIBLE_UNTIL_SECONDS,
     NOTICEABLE_FROM_SECONDS,
+    OLD_PYTHON_SOLVER,
     P95_FACTOR,
     P99_FACTOR,
     PAINFUL_FROM_SECONDS,
@@ -22,6 +25,8 @@ from prism.flashlight.auth.benchmark import (
     BenchmarkSpec,
     Estimate,
     Run,
+    SolverResult,
+    available_solvers,
     estimate_difficulties,
     format_headline,
     format_report,
@@ -38,6 +43,8 @@ from prism.flashlight.auth.benchmark import (
 from prism.flashlight.auth.proof_of_work import (
     ALGORITHM_SHA256_LEADING_ZEROS,
     MAX_DIFFICULTY,
+    PYTHON_SOLVER,
+    get_solver,
     leading_zero_bits,
     solve_challenge,
 )
@@ -126,9 +133,48 @@ def test_mint_fake_challenge_is_solvable() -> None:
     assert leading_zero_bits(digest) >= 8
 
 
-def test_time_one_solve() -> None:
-    run = time_one_solve(4, clock=make_clock(10.0, 12.5))
+def test_available_solvers() -> None:
+    solvers, unavailable = available_solvers()
+    names = [solver.name for solver in solvers]
 
+    # The old loop as the baseline, then every solver this machine runs
+    assert names[:3] == ["old-python", "python", "portable"]
+    assert get_solver("native").name in names
+
+    # Every solver is either measured or reported as unavailable, with a reason
+    unavailable_names = [name for name, _ in unavailable]
+    assert sorted(names + unavailable_names) == sorted(
+        ("old-python", "python", *native_pow.IMPLEMENTATIONS)
+    )
+    assert all(reason for _, reason in unavailable)
+
+
+def test_available_solvers_without_the_library(tmp_path: Path) -> None:
+    solvers, unavailable = available_solvers(library_path=tmp_path / "missing")
+
+    assert solvers == [OLD_PYTHON_SOLVER, PYTHON_SOLVER]
+    assert sorted(name for name, _ in unavailable) == sorted(native_pow.IMPLEMENTATIONS)
+    assert all("Could not load" in reason for _, reason in unavailable)
+
+
+@pytest.mark.parametrize("difficulty", (0, 4, 8))
+def test_old_python_solver(difficulty: int) -> None:
+    """The old loop still solves, and returns its first valid counter"""
+    challenge = mint_fake_challenge(difficulty)
+    solution = solve_challenge(challenge, solver=OLD_PYTHON_SOLVER)
+
+    def valid(candidate: str) -> bool:
+        digest = hashlib.sha256(f"{challenge.challenge}:{candidate}".encode()).digest()
+        return leading_zero_bits(digest) >= difficulty
+
+    assert valid(solution)
+    assert not any(valid(str(counter)) for counter in range(int(solution)))
+
+
+def test_time_one_solve() -> None:
+    run = time_one_solve(4, PYTHON_SOLVER, clock=make_clock(10.0, 12.5))
+
+    assert run.solver == "python"
     assert run.difficulty == 4
     assert run.duration_seconds == 2.5
     # Every attempt from 0 up to and including the winning one
@@ -136,14 +182,22 @@ def test_time_one_solve() -> None:
 
 
 def test_time_one_solve_counts_every_attempt() -> None:
-    """Difficulty 0 is solved by the first counter value"""
-    run = time_one_solve(0, clock=make_clock(0.0, 1.0))
+    """Difficulty 0 is solved by the first counter value, for every solver"""
+    solvers, _ = available_solvers()
+    for solver in solvers:
+        run = time_one_solve(0, solver, clock=make_clock(0.0, 1.0))
+        assert run.hashes == 1, solver.name
 
-    assert run.hashes == 1
 
-
-def make_run(duration_seconds: float, hashes: int, difficulty: int = 18) -> Run:
-    return Run(difficulty=difficulty, duration_seconds=duration_seconds, hashes=hashes)
+def make_run(
+    duration_seconds: float, hashes: int, difficulty: int = 18, solver: str = "python"
+) -> Run:
+    return Run(
+        solver=solver,
+        difficulty=difficulty,
+        duration_seconds=duration_seconds,
+        hashes=hashes,
+    )
 
 
 def test_summarize() -> None:
@@ -321,24 +375,62 @@ def test_format_headline_when_everything_is_broken() -> None:
     assert "Stops working" not in headline
 
 
-def test_format_report() -> None:
-    summaries = (
-        summarize(18, (make_run(1.0, 250_000),)),
-        summarize(19, (make_run(2.0, 500_000),)),
+def make_result(solver: str, hashes_per_second: float) -> SolverResult:
+    return SolverResult(
+        solver=solver,
+        summaries=[
+            summarize(18, (make_run(1.0, int(hashes_per_second) // 2),)),
+            # The estimates come off this one, the hardest measured
+            summarize(19, (make_run(1.0, int(hashes_per_second)),)),
+        ],
     )
 
-    report = format_report(summaries, budget_seconds=30.0)
 
-    # The answer comes first, before the working behind it
-    assert report.strip().startswith("Starts to hurt at difficulty ")
-    assert "Measured" in report
-    # Both measured difficulties, and the whole estimated band
-    for difficulty in (18, 19, *range(ESTIMATE_FROM, MAX_DIFFICULTY + 1)):
-        assert f"\n{difficulty} " in report
-    # Estimates come off the hardest difficulty measured
-    assert "difficulty 19" in report
-    assert VERDICT_IMPERCEPTIBLE in report
-    assert VERDICT_NEVER in report
+def test_format_report() -> None:
+    report = format_report(
+        (make_result("python", 250_000), make_result("sha-ni", 5_000_000)),
+        budget_seconds=30.0,
+        unavailable=(("armv8", "Not supported on this machine"),),
+    )
+    lines = report.strip().splitlines()
+
+    # The answer comes first, one line per solver, against the baseline
+    assert lines[0].startswith("python: 250 kH/s (1.0x python). Starts to hurt at")
+    assert lines[1].startswith("sha-ni: 5,000 kH/s (20.0x python). Starts to hurt at")
+    assert "armv8: not measured - Not supported on this machine" in report
+
+    # The whole estimated band, side by side
+    comparison = report[report.index("Estimated p95") :]
+    for difficulty in range(ESTIMATE_FROM, MAX_DIFFICULTY + 1):
+        assert f"\n{difficulty} " in comparison
+    # 2**20 hashes at 250 kH/s is 4.19s mean, at 5 MH/s 0.21s
+    row_20 = next(line for line in comparison.splitlines() if line.startswith("20 "))
+    assert format_seconds(2**20 / 250_000 * P95_FACTOR) in row_20
+    assert format_seconds(2**20 / 5_000_000 * P95_FACTOR) in row_20
+
+    # The measured runs of every solver
+    assert "Measured: python" in report
+    assert "Measured: sha-ni" in report
+
+
+def test_format_report_marks_what_hurts_and_what_breaks() -> None:
+    report = format_report((make_result("python", 250_000),), budget_seconds=30.0)
+    # The comparison table, up to the blank line before the measured runs
+    table = report[report.index("Estimated p95") :].split("\n\n")[0]
+    rows = {line.split()[0]: line for line in table.splitlines()[2:]}
+
+    assert rows["10"].endswith("s")
+    assert rows["20"].endswith(" !")
+    assert rows[str(MAX_DIFFICULTY)].endswith(" x")
+
+
+def test_format_report_without_a_python_baseline() -> None:
+    report = format_report(
+        (make_result("portable", 1_000_000), make_result("sha-ni", 5_000_000))
+    )
+
+    assert "portable: 1,000 kH/s (1.0x portable)" in report
+    assert "sha-ni: 5,000 kH/s (5.0x portable)" in report
 
 
 def test_format_report_without_results() -> None:
@@ -351,24 +443,30 @@ def collect(reports: list[str]) -> Callable[[str], None]:
 
 def test_run_benchmark() -> None:
     reports: list[str] = []
+    solvers = [PYTHON_SOLVER, get_solver("portable")]
 
-    summaries = run_benchmark(
-        BenchmarkSpec(first=0, last=2, runs=2), report=collect(reports)
+    results = run_benchmark(
+        BenchmarkSpec(first=0, last=2, runs=2), solvers, report=collect(reports)
     )
 
-    assert [summary.difficulty for summary in summaries] == [0, 1, 2]
-    assert all(summary.runs == 2 for summary in summaries)
+    # Every solver over the same spec, one after the other
+    assert [result.solver for result in results] == ["python", "portable"]
+    for result in results:
+        assert [summary.difficulty for summary in result.summaries] == [0, 1, 2]
+        assert all(summary.runs == 2 for summary in result.summaries)
     # One line per run, and no unreported warmup run inflating the rate
-    assert len(reports) == 6
-    assert reports[0].startswith("difficulty 0 run 1/2:")
-    assert reports[-1].startswith("difficulty 2 run 2/2:")
+    assert len(reports) == 12
+    assert reports[0].startswith("python: difficulty 0 run 1/2:")
+    assert reports[-1].startswith("portable: difficulty 2 run 2/2:")
 
 
 def test_start_benchmark() -> None:
     reports: list[str] = []
 
     thread = start_benchmark(
-        BenchmarkSpec(first=0, last=0, runs=1), report=collect(reports)
+        BenchmarkSpec(first=0, last=0, runs=1),
+        [PYTHON_SOLVER],
+        report=collect(reports),
     )
 
     # Backgrounded, so the overlay keeps starting while it runs
@@ -378,8 +476,8 @@ def test_start_benchmark() -> None:
 
     # The run line, then the whole report
     assert len(reports) == 2
-    assert reports[0].startswith("difficulty 0 run 1/1:")
-    assert "Measured" in reports[1]
+    assert reports[0].startswith("python: difficulty 0 run 1/1:")
+    assert "Measured: python" in reports[1]
 
 
 def test_start_benchmark_reports_its_own_failure() -> None:
@@ -387,11 +485,13 @@ def test_start_benchmark_reports_its_own_failure() -> None:
     reports: list[str] = []
 
     def explode(line: str) -> None:
-        if line.startswith("difficulty"):
+        if line.startswith("python: difficulty"):
             raise RuntimeError("boom")
         reports.append(line)
 
-    thread = start_benchmark(BenchmarkSpec(first=0, last=0, runs=1), report=explode)
+    thread = start_benchmark(
+        BenchmarkSpec(first=0, last=0, runs=1), [PYTHON_SOLVER], report=explode
+    )
     thread.join(timeout=30)
 
     assert not thread.is_alive()
@@ -399,13 +499,16 @@ def test_start_benchmark_reports_its_own_failure() -> None:
 
 
 def test_run_benchmark_solves_real_challenges() -> None:
-    """The benchmark measures the shipped solver, not a copy of it"""
+    """The benchmark measures the shipped solvers, not copies of them"""
     reports: list[str] = []
+    solvers, _ = available_solvers()
 
-    summaries = run_benchmark(
-        BenchmarkSpec(first=6, last=6, runs=1), report=collect(reports)
+    results = run_benchmark(
+        BenchmarkSpec(first=6, last=6, runs=1), solvers, report=collect(reports)
     )
 
-    (summary,) = summaries
-    assert summary.mean_hashes >= 1
-    assert summary.hashes_per_second > 0
+    assert [result.solver for result in results] == [s.name for s in solvers]
+    for result in results:
+        (summary,) = result.summaries
+        assert summary.mean_hashes >= 1
+        assert summary.hashes_per_second > 0
