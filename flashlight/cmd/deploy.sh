@@ -14,6 +14,7 @@ flashlight)
 	sentry_dsn_key='flashlight-sentry-dsn'
 	auth_challenge_signing_keys_key='flashlight-auth-challenge-signing-keys'
 	auth_session_signing_keys_key='flashlight-auth-session-signing-keys'
+	auth_flow_signing_keys_key='flashlight-auth-flow-signing-keys'
 	environment='production'
 	image_name='flashlight'
 	public_url='https://flashlight.prismoverlay.com'
@@ -23,6 +24,7 @@ flashlight-test)
 	sentry_dsn_key='flashlight-test-sentry-dsn'
 	auth_challenge_signing_keys_key='flashlight-test-auth-challenge-signing-keys'
 	auth_session_signing_keys_key='flashlight-test-auth-session-signing-keys'
+	auth_flow_signing_keys_key='flashlight-test-auth-flow-signing-keys'
 	environment='staging'
 	image_name='flashlight-test'
 	public_url='https://flashlight-test.prismoverlay.com'
@@ -76,6 +78,7 @@ SERVICE_NAME="$service_name" \
 	SENTRY_DSN_KEY="$sentry_dsn_key" \
 	AUTH_CHALLENGE_SIGNING_KEYS_KEY="$auth_challenge_signing_keys_key" \
 	AUTH_SESSION_SIGNING_KEYS_KEY="$auth_session_signing_keys_key" \
+	AUTH_FLOW_SIGNING_KEYS_KEY="$auth_flow_signing_keys_key" \
 	COLLECTOR_IMAGE="$sidecar_image" \
 	envsubst <"$script_dir/service.tmpl.yaml" >"$script_dir/service.yaml"
 

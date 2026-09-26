@@ -106,6 +106,14 @@ spec:
             secretKeyRef:
               name: "${AUTH_SESSION_SIGNING_KEYS_KEY}"
               key: "latest"
+        # HMAC keys for the Microsoft sign-in flow cookie and result token.
+        # Same format, its own list. Drop the old line 10 minutes after
+        # deploying the new one; sooner only fails sign-ins in flight.
+        - name: "AUTH_FLOW_SIGNING_KEYS"
+          valueFrom:
+            secretKeyRef:
+              name: "${AUTH_FLOW_SIGNING_KEYS_KEY}"
+              key: "latest"
         # When the Entra client secret expires. To rotate, for production
         # and staging both:
         #   1. Entra > App registrations > Certificates & secrets > New

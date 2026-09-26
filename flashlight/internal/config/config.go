@@ -43,6 +43,11 @@ type Config struct {
 	// away from cross-protocol confusion. Dropping a key from the list logs
 	// out every session signed with it. Secret.
 	authSessionSigningKeys []string
+	// authFlowSigningKeys are the HMAC keys for the Microsoft sign-in flow
+	// cookie and result token, same format as the keys above. Its own list,
+	// so a flow token can never verify as a session or a challenge. Dropping
+	// a key only fails sign-ins in flight (≤10 min). Secret.
+	authFlowSigningKeys []string
 	// azureClientSecretExpiresAt is when the Entra client secret dies, at UTC
 	// midnight. Hand-recorded: nothing in the secret says when it expires,
 	// and Entra sends no warning. Not secret. Zero in development.
@@ -116,6 +121,10 @@ func (c *Config) AuthChallengeSigningKeys() []string {
 
 func (c *Config) AuthSessionSigningKeys() []string {
 	return c.authSessionSigningKeys
+}
+
+func (c *Config) AuthFlowSigningKeys() []string {
+	return c.authFlowSigningKeys
 }
 
 func (c *Config) AzureClientSecretExpiresAt() time.Time {
@@ -258,6 +267,11 @@ func ConfigFromEnv() (Config, error) {
 	if requireEnv && len(authSessionSigningKeys) == 0 {
 		return missingKey("AUTH_SESSION_SIGNING_KEYS")
 	}
+	// Same shape and the same empty-value trap again.
+	authFlowSigningKeys, _ := lookupNewlineDelimitedEnv("AUTH_FLOW_SIGNING_KEYS")
+	if requireEnv && len(authFlowSigningKeys) == 0 {
+		return missingKey("AUTH_FLOW_SIGNING_KEYS")
+	}
 	// Required in production and staging: an alarm that is silently not
 	// configured is worse than no alarm. Rejected everywhere when it doesn't
 	// parse, since a mistyped date is a warning that never fires.
@@ -291,6 +305,7 @@ func ConfigFromEnv() (Config, error) {
 
 		authChallengeSigningKeys: authChallengeSigningKeys,
 		authSessionSigningKeys:   authSessionSigningKeys,
+		authFlowSigningKeys:      authFlowSigningKeys,
 
 		azureClientSecretExpiresAt: azureClientSecretExpiresAt,
 	}, nil

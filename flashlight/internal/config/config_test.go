@@ -18,7 +18,7 @@ const (
 	development environment = "development"
 )
 
-var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "BLOCKED_IPS", "BLOCKED_USER_AGENTS", "BLOCKED_USER_IDS", "BLOCKED_IPS_SHA256_HEX", "AUTH_CHALLENGE_SIGNING_KEYS", "AUTH_SESSION_SIGNING_KEYS", "AZURE_CLIENT_SECRET_EXPIRES_AT"}
+var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "BLOCKED_IPS", "BLOCKED_USER_AGENTS", "BLOCKED_USER_IDS", "BLOCKED_IPS_SHA256_HEX", "AUTH_CHALLENGE_SIGNING_KEYS", "AUTH_SESSION_SIGNING_KEYS", "AUTH_FLOW_SIGNING_KEYS", "AZURE_CLIENT_SECRET_EXPIRES_AT"}
 
 // placeholderFor adapts the generic placeholder the tables above use to the
 // one variable that is validated on its shape. Every other value is free-form,
@@ -39,10 +39,11 @@ var signingKeyLists = []struct {
 }{
 	{"AUTH_CHALLENGE_SIGNING_KEYS", (*config.Config).AuthChallengeSigningKeys},
 	{"AUTH_SESSION_SIGNING_KEYS", (*config.Config).AuthSessionSigningKeys},
+	{"AUTH_FLOW_SIGNING_KEYS", (*config.Config).AuthFlowSigningKeys},
 }
 
 func TestGetConfig(t *testing.T) {
-	compareConfig := func(t *testing.T, socketPath, username, password, sentryDSN, hypixelAPIKey, urchinAPIKey string, blockedIPs, blockedUserAgents, blockedUserIDs, blockedIPsSHA256Hex, authChallengeSigningKeys, authSessionSigningKeys []string, env environment, conf config.Config) {
+	compareConfig := func(t *testing.T, socketPath, username, password, sentryDSN, hypixelAPIKey, urchinAPIKey string, blockedIPs, blockedUserAgents, blockedUserIDs, blockedIPsSHA256Hex, authChallengeSigningKeys, authSessionSigningKeys, authFlowSigningKeys []string, env environment, conf config.Config) {
 		t.Helper()
 		require.Equal(t, socketPath, conf.CloudSQLUnixSocketPath())
 		require.Equal(t, username, conf.DBUsername())
@@ -56,6 +57,7 @@ func TestGetConfig(t *testing.T) {
 		require.Equal(t, blockedIPsSHA256Hex, conf.BlockedIPsSHA256Hex())
 		require.Equal(t, authChallengeSigningKeys, conf.AuthChallengeSigningKeys())
 		require.Equal(t, authSessionSigningKeys, conf.AuthSessionSigningKeys())
+		require.Equal(t, authFlowSigningKeys, conf.AuthFlowSigningKeys())
 		require.Equal(t, env == production, conf.IsProduction())
 		require.Equal(t, env == staging, conf.IsStaging())
 		require.Equal(t, env == development, conf.IsDevelopment())
@@ -73,7 +75,7 @@ func TestGetConfig(t *testing.T) {
 
 			conf, err := config.ConfigFromEnv()
 			require.NoError(t, err)
-			compareConfig(t, "", "", "", "", "", "", []string{}, []string{}, []string{}, []string{}, []string{}, []string{}, development, conf)
+			compareConfig(t, "", "", "", "", "", "", []string{}, []string{}, []string{}, []string{}, []string{}, []string{}, []string{}, development, conf)
 		})
 	})
 
@@ -88,7 +90,7 @@ func TestGetConfig(t *testing.T) {
 
 				conf, err := config.ConfigFromEnv()
 				require.NoError(t, err)
-				compareConfig(t, "CLOUDSQL_UNIX_SOCKET", "DB_USERNAME", "DB_PASSWORD", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", []string{"BLOCKED_IPS"}, []string{"BLOCKED_USER_AGENTS"}, []string{"BLOCKED_USER_IDS"}, []string{"BLOCKED_IPS_SHA256_HEX"}, []string{"AUTH_CHALLENGE_SIGNING_KEYS"}, []string{"AUTH_SESSION_SIGNING_KEYS"}, env, conf)
+				compareConfig(t, "CLOUDSQL_UNIX_SOCKET", "DB_USERNAME", "DB_PASSWORD", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", []string{"BLOCKED_IPS"}, []string{"BLOCKED_USER_AGENTS"}, []string{"BLOCKED_USER_IDS"}, []string{"BLOCKED_IPS_SHA256_HEX"}, []string{"AUTH_CHALLENGE_SIGNING_KEYS"}, []string{"AUTH_SESSION_SIGNING_KEYS"}, []string{"AUTH_FLOW_SIGNING_KEYS"}, env, conf)
 			})
 		}
 
@@ -97,7 +99,7 @@ func TestGetConfig(t *testing.T) {
 			conf, err := config.ConfigFromEnv()
 			require.NoError(t, err)
 
-			for _, sensitive := range []string{"DB_PASSWORD", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "SENTRY_DSN", "AUTH_CHALLENGE_SIGNING_KEYS", "AUTH_SESSION_SIGNING_KEYS"} {
+			for _, sensitive := range []string{"DB_PASSWORD", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "SENTRY_DSN", "AUTH_CHALLENGE_SIGNING_KEYS", "AUTH_SESSION_SIGNING_KEYS", "AUTH_FLOW_SIGNING_KEYS"} {
 				require.NotContains(t, conf.NonSensitiveString(), sensitive)
 			}
 		})
