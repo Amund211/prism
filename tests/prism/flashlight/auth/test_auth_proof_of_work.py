@@ -1,4 +1,5 @@
 import hashlib
+import itertools
 
 import pytest
 
@@ -8,6 +9,7 @@ from prism.flashlight.auth.proof_of_work import (
     ALGORITHM_SHA256_LEADING_ZEROS,
     MAX_DIFFICULTY,
     Challenge,
+    difficulty_target,
     leading_zero_bits,
     parse_challenge_response,
     solve_challenge,
@@ -91,9 +93,30 @@ def test_leading_zero_bits(digest: bytes, bits: int) -> None:
     assert leading_zero_bits(digest) == bits
 
 
-@pytest.mark.parametrize("difficulty", (0, 1, 4, 8))
-def test_solve_challenge(difficulty: int) -> None:
-    challenge = make_challenge(difficulty=difficulty)
+@pytest.mark.parametrize("difficulty", range(0, 27))
+def test_difficulty_target(difficulty: int) -> None:
+    """`digest < target` must agree with counting leading zero bits"""
+    target = difficulty_target(difficulty)
+
+    # The digests either side of the boundary, and the extremes
+    boundary = 1 << (256 - difficulty)
+    digests = [bytes(32), b"\xff" * 32]
+    digests += [
+        n.to_bytes(32, "big") for n in (boundary - 1, boundary) if n < (1 << 256)
+    ]
+
+    for digest in digests:
+        assert (digest < target) == (leading_zero_bits(digest) >= difficulty)
+
+
+@pytest.mark.parametrize("difficulty", (0, 1, 4, 8, 12))
+@pytest.mark.parametrize("challenge_length", (1, 11, 54, 63, 64, 65, 341))
+def test_solve_challenge(difficulty: int, challenge_length: int) -> None:
+    challenge = Challenge(
+        challenge="c" * challenge_length,
+        algorithm=ALGORITHM_SHA256_LEADING_ZEROS,
+        difficulty=difficulty,
+    )
     solution = solve_challenge(challenge)
 
     # A non-empty solution is required even at difficulty 0
@@ -103,8 +126,27 @@ def test_solve_challenge(difficulty: int) -> None:
     assert leading_zero_bits(digest) >= difficulty
 
 
+@pytest.mark.parametrize("difficulty", (0, 6, 10))
+def test_solve_challenge_returns_first_candidate(difficulty: int) -> None:
+    """The solver must not skip candidates: compare with a plain loop"""
+    challenge = make_challenge(difficulty=difficulty)
+
+    def reference() -> str:
+        for high in itertools.count():
+            for low in range(1000):
+                candidate = f"{high}{low:03d}"
+                digest = hashlib.sha256(
+                    f"{challenge.challenge}:{candidate}".encode()
+                ).digest()
+                if leading_zero_bits(digest) >= difficulty:
+                    return candidate
+        assert False  # pragma: nocover
+
+    assert solve_challenge(challenge) == reference()
+
+
 def test_solve_challenge_at_difficulty_zero_is_one_hash() -> None:
-    assert solve_challenge(make_challenge(difficulty=0)) == "0"
+    assert solve_challenge(make_challenge(difficulty=0)) == "0000"
 
 
 def test_solve_challenge_rejects_unknown_algorithm() -> None:
