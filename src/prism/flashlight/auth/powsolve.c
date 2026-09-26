@@ -5,7 +5,8 @@
 // with it. Built by build_powsolve.py. Plain C with no dependencies, so the
 // library does not depend on the Python version.
 //
-// A solution is a counter written as SOLUTION_DIGITS zero-padded decimal digits.
+// A solution is a counter written as SOLUTION_DIGITS zero-padded decimal digits,
+// with more leading zeros when that keeps each attempt to one block.
 
 #include <stddef.h>
 #include <stdint.h>
@@ -32,7 +33,7 @@
 #endif
 
 // Bump when the exported functions change. Checked by the loader.
-#define ABI_VERSION 1
+#define ABI_VERSION 2
 
 #define SOLUTION_DIGITS 12
 #define MAX_COUNTER 1000000000000ULL
@@ -287,11 +288,12 @@ EXPORT int pow_sha256(int impl, const uint8_t *data, size_t len, uint8_t out[32]
 }
 
 // Search counters in [start, end) for the first one where
-// SHA-256(prefix || counter) has at least `difficulty` leading zero bits.
-// Returns 1 and sets *found, 0 if the range holds no solution, or -1 on bad
-// arguments.
+// SHA-256(prefix || solution) has at least `difficulty` leading zero bits.
+// The solution is the counter in *width zero-padded decimal digits.
+// Returns 1 and sets *found and *width, 0 if the range holds no solution, or -1
+// on bad arguments.
 EXPORT int pow_solve(int impl, const uint8_t *prefix, size_t len, int difficulty,
-                     uint64_t start, uint64_t end, uint64_t *found) {
+                     uint64_t start, uint64_t end, uint64_t *found, uint32_t *width) {
     compress_fn compress = get_compress(impl);
     if (compress == NULL || difficulty < 0 || difficulty > 32 || start > end ||
         end > MAX_COUNTER) {
@@ -306,6 +308,17 @@ EXPORT int pow_solve(int impl, const uint8_t *prefix, size_t len, int difficulty
     size_t tail_len = len % 64;
     uint8_t tail[64 + SOLUTION_DIGITS];
     memcpy(tail, prefix + len / 64 * 64, tail_len);
+
+    // When the digits and the padding don't fit the last block, every attempt
+    // would cost two blocks. Fill the block with leading zeros instead: it is
+    // then the same for every attempt, and goes into the midstate.
+    size_t zeros = tail_len + SOLUTION_DIGITS + 9 > 64 ? 64 - tail_len : 0;
+    if (zeros) {
+        memset(tail + tail_len, '0', zeros);
+        compress(mid, tail, 1);
+        tail_len = 0;
+    }
+    len += zeros;
     uint64_t n = start;
     for (int i = SOLUTION_DIGITS - 1; i >= 0; i--) {
         tail[tail_len + i] = (uint8_t)('0' + n % 10);
@@ -323,6 +336,7 @@ EXPORT int pow_solve(int impl, const uint8_t *prefix, size_t len, int difficulty
         compress(state, buf, blocks);
         if ((state[0] & mask) == 0) {
             *found = counter;
+            *width = (uint32_t)(zeros + SOLUTION_DIGITS);
             return 1;
         }
         // Increment the decimal counter in place
