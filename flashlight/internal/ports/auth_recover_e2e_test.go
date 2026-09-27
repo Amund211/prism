@@ -59,7 +59,7 @@ func newCredentialLifecycle(t *testing.T, schemaSuffix string) *credentialLifecy
 	)
 	t.Cleanup(stopRecover)
 	logout, stopLogout := ports.MakeAuthLogoutHandler(
-		app.BuildLogoutMicrosoft(repo, clock),
+		app.BuildLogoutMicrosoft(repo),
 		authTestOrigins(t), authTestLogger, noopAuthMiddleware, emptyBlocklistConfig,
 	)
 	t.Cleanup(stopLogout)
@@ -75,8 +75,6 @@ func (c *credentialLifecycle) rowCount(t *testing.T) int {
 	return count
 }
 
-// signInAndExchange runs a full sign-in for a return target and returns the
-// /exchange response.
 func (c *credentialLifecycle) signInAndExchange(t *testing.T, target string) *httptest.ResponseRecorder {
 	t.Helper()
 	verifier := strings.Repeat("v", 43)
@@ -189,14 +187,17 @@ func TestCredentialLifecycleEndToEnd(t *testing.T) {
 		c := newCredentialLifecycle(t, "logout")
 		prism := bodyCredential(t, c.signInAndExchange(t, "http://127.0.0.1:52345/callback"))
 		rainbow := findCookie(t, c.signInAndExchange(t, "https://example.com").Result(), rememberMeCookieName).Value
+		stale := prism
 		w := c.prismRecover(t, prism)
 		c.requireMicrosoftSession(t, w)
 		prism = bodyCredential(t, w)
 		require.Equal(t, 3, c.rowCount(t))
 
+		c.now = c.now.Add(2 * time.Minute)
+		require.Equal(t, http.StatusUnauthorized, c.prismRecover(t, stale).Code)
 		w = httptest.NewRecorder()
-		c.logout(w, credentialRequest(t, "/v1/auth/logout", credentialBody(prism), ""))
-		require.Equal(t, http.StatusNoContent, w.Code)
+		c.logout(w, credentialRequest(t, "/v1/auth/logout", credentialBody(stale), ""))
+		require.Equal(t, http.StatusNoContent, w.Code, "a victim holding only a stale value can still log out")
 		require.Zero(t, c.rowCount(t))
 
 		require.Equal(t, http.StatusUnauthorized, c.prismRecover(t, prism).Code)

@@ -12,18 +12,16 @@ import (
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 )
 
-// credentialRx is 32 bytes, base64url, as /exchange mints them.
 var credentialRx = regexp.MustCompile(`^[A-Za-z0-9_-]{43}$`)
 
 type credentialRequest struct {
-	// Credential is prism's; rainbow sends {} and fl_rm.
 	Credential string `json:"credential"`
 }
 
-// rememberMeCookie is fl_rm. maxAge -1 clears it.
 func rememberMeCookie(value string, maxAge int) *http.Cookie {
 	return &http.Cookie{
 		Name:     rememberMeCookieName,
@@ -36,10 +34,23 @@ func rememberMeCookie(value string, maxAge int) *http.Cookie {
 	}
 }
 
-// readCredential returns the presented credential and the client it came
-// from: a body credential is prism, fl_rm is rainbow. status is 0 on
-// success, else the status to answer with; transport is set whenever fl_rm
-// was sent.
+// Looser than sign-in: every prism start recovers, often many behind one NAT.
+func newCredentialIPLimiters() (ratelimiting.RequestRateLimiter, ratelimiting.RequestRateLimiter, func()) {
+	short, stopShort := ratelimiting.NewTokenBucketRateLimiter(
+		ratelimiting.RefillPerSecond(1),
+		ratelimiting.BurstSize(60),
+	)
+	long, stopLong := ratelimiting.NewTokenBucketRateLimiter(
+		ratelimiting.RefillPerSecond(0.1),
+		ratelimiting.BurstSize(200),
+	)
+	stop := func() {
+		stopShort()
+		stopLong()
+	}
+	return ratelimiting.NewRequestBasedRateLimiter(short, IPHashKeyFunc), ratelimiting.NewRequestBasedRateLimiter(long, IPHashKeyFunc), stop
+}
+
 func readCredential(w http.ResponseWriter, r *http.Request) (string, domain.MicrosoftClientType, int) {
 	var body credentialRequest
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, authBodyMaxBytes)).Decode(&body); err != nil {
@@ -78,7 +89,7 @@ func MakeAuthRecoverHandler(
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
 ) (http.HandlerFunc, func()) {
-	ipRateLimiter, stop := newMicrosoftSignInIPLimiter()
+	ipRateLimiter, ipRateLimiterLong, stop := newCredentialIPLimiters()
 
 	middleware := ComposeMiddlewares(
 		NewRequestLoggerMiddleware(rootLogger),
@@ -88,6 +99,7 @@ func MakeAuthRecoverHandler(
 		NewReportingMetaMiddleware("auth-recover"),
 		BuildCredentialedCORSMiddleware(allowedOrigins),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnAuthLimitExceeded(ipRateLimiter)),
+		NewRateLimitMiddleware(ipRateLimiterLong, makeOnAuthLimitExceeded(ipRateLimiterLong)),
 	)
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
@@ -113,7 +125,6 @@ func MakeAuthRecoverHandler(
 		switch {
 		case errors.Is(err, domain.ErrUserCredentialStale),
 			errors.Is(err, domain.ErrUserCredentialClientMismatch):
-			// The theft signal, or a client that lost its rotated credential.
 			// Safe to log: no error on this path quotes the credential.
 			logger.WarnContext(ctx, "Refused recover", "clientType", string(transport), "error", err.Error())
 			http.Error(w, "Sign in again", http.StatusUnauthorized)
@@ -157,7 +168,7 @@ func MakeAuthLogoutHandler(
 	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
 ) (http.HandlerFunc, func()) {
-	ipRateLimiter, stop := newMicrosoftSignInIPLimiter()
+	ipRateLimiter, ipRateLimiterLong, stop := newCredentialIPLimiters()
 
 	middleware := ComposeMiddlewares(
 		NewRequestLoggerMiddleware(rootLogger),
@@ -167,6 +178,7 @@ func MakeAuthLogoutHandler(
 		NewReportingMetaMiddleware("auth-logout"),
 		BuildCredentialedCORSMiddleware(allowedOrigins),
 		NewRateLimitMiddleware(ipRateLimiter, makeOnAuthLimitExceeded(ipRateLimiter)),
+		NewRateLimitMiddleware(ipRateLimiterLong, makeOnAuthLimitExceeded(ipRateLimiterLong)),
 	)
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
@@ -195,8 +207,7 @@ func MakeAuthLogoutHandler(
 
 		identityKey, deleted, err := logout(ctx, credential)
 		switch {
-		case errors.Is(err, domain.ErrUserCredentialNotFound),
-			errors.Is(err, domain.ErrUserCredentialStale):
+		case errors.Is(err, domain.ErrUserCredentialNotFound):
 			logger.InfoContext(ctx, "Refused logout", "clientType", string(transport), "error", err.Error())
 			clearCookie()
 			http.Error(w, "Not signed in", http.StatusUnauthorized)

@@ -19,7 +19,6 @@ import (
 	"github.com/Amund211/flashlight/internal/ports"
 )
 
-// presentedCredential is shaped like a real one: 32 bytes, base64url.
 const presentedCredential = "cred0123456789abcdefghijklmnopqrstuvwxyzABC"
 
 func newRecoverHandler(t *testing.T, recoverSession app.RecoverMicrosoftSession, logger *slog.Logger) http.HandlerFunc {
@@ -52,8 +51,6 @@ func recoverReturning(err error, call *recoverCall) app.RecoverMicrosoftSession 
 	}
 }
 
-// credentialRequest is a rainbow request when cookie is set, and a prism
-// one when the body carries the credential.
 func credentialRequest(t *testing.T, path, body, cookie string) *http.Request {
 	t.Helper()
 	r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, path, strings.NewReader(body))
@@ -143,8 +140,6 @@ func TestAuthRecoverHandler(t *testing.T) {
 			handler(w, credentialRequest(t, "/v1/auth/recover", `{}`, presentedCredential))
 
 			require.Equal(t, tc.status, w.Code)
-			// A tab that lost a rotation race must not clear the cookie the
-			// winning tab was just given.
 			require.Empty(t, w.Result().Cookies())
 		})
 	}
@@ -297,18 +292,16 @@ func TestAuthLogoutHandler(t *testing.T) {
 		require.Empty(t, w.Result().Cookies())
 	})
 
-	for _, err := range []error{domain.ErrUserCredentialNotFound, domain.ErrUserCredentialStale} {
-		t.Run("401 for "+err.Error()+", and a dead fl_rm is cleared", func(t *testing.T) {
-			t.Parallel()
-			handler := newLogoutHandler(t, logoutReturning(fmt.Errorf("wrapped: %w", err), nil), authTestLogger)
+	t.Run("401 for an unknown credential, and a dead fl_rm is cleared", func(t *testing.T) {
+		t.Parallel()
+		handler := newLogoutHandler(t, logoutReturning(fmt.Errorf("wrapped: %w", domain.ErrUserCredentialNotFound), nil), authTestLogger)
 
-			w := httptest.NewRecorder()
-			handler(w, credentialRequest(t, "/v1/auth/logout", `{}`, presentedCredential))
+		w := httptest.NewRecorder()
+		handler(w, credentialRequest(t, "/v1/auth/logout", `{}`, presentedCredential))
 
-			require.Equal(t, http.StatusUnauthorized, w.Code)
-			requireRememberMeCleared(t, w.Result())
-		})
-	}
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+		requireRememberMeCleared(t, w.Result())
+	})
 
 	t.Run("500 keeps fl_rm so the user can retry", func(t *testing.T) {
 		t.Parallel()
@@ -362,7 +355,7 @@ func TestAuthLogoutHandler(t *testing.T) {
 		var logs bytes.Buffer
 		logger := slog.New(slog.NewJSONHandler(&logs, nil))
 
-		for _, err := range []error{nil, domain.ErrUserCredentialStale, errors.New("unexpected")} {
+		for _, err := range []error{nil, domain.ErrUserCredentialNotFound, errors.New("unexpected")} {
 			handler := newLogoutHandler(t, logoutReturning(err, nil), logger)
 			handler(httptest.NewRecorder(), credentialRequest(t, "/v1/auth/logout", `{}`, presentedCredential))
 			handler(httptest.NewRecorder(), credentialRequest(t, "/v1/auth/logout", credentialBody(presentedCredential), ""))

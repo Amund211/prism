@@ -2,6 +2,7 @@ package credentialrepository
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -350,7 +351,7 @@ func TestPostgresDeleteByIdentityOf(t *testing.T) {
 		repo, db, schema := newPostgres(t, "logout")
 		seed(t, repo)
 
-		identityKey, deleted, err := repo.DeleteByIdentityOf(t.Context(), hashOf(2), now)
+		identityKey, deleted, err := repo.DeleteByIdentityOf(t.Context(), hashOf(2))
 		require.NoError(t, err)
 		require.Equal(t, identity, identityKey)
 		require.Equal(t, 3, deleted, "includes other clients and expired rows")
@@ -367,28 +368,81 @@ func TestPostgresDeleteByIdentityOf(t *testing.T) {
 		_, err := repo.Rotate(t.Context(), hashOf(1), hashOf(5), now, grace, idleWindow)
 		require.NoError(t, err)
 
-		_, deleted, err := repo.DeleteByIdentityOf(t.Context(), hashOf(1), now.Add(30*time.Second))
+		_, deleted, err := repo.DeleteByIdentityOf(t.Context(), hashOf(1))
 		require.NoError(t, err)
 		require.Equal(t, 4, deleted)
 		require.Len(t, readAll(t, db, schema), 1)
 	})
 
-	t.Run("refuses a stale credential and deletes nothing", func(t *testing.T) {
+	t.Run("a stale credential still logs out", func(t *testing.T) {
 		t.Parallel()
 		repo, db, schema := newPostgres(t, "logoutstale")
 		seed(t, repo)
 
-		_, _, err := repo.DeleteByIdentityOf(t.Context(), hashOf(3), now)
-		require.ErrorIs(t, err, domain.ErrUserCredentialStale)
-		require.Len(t, readAll(t, db, schema), 4)
+		identityKey, deleted, err := repo.DeleteByIdentityOf(t.Context(), hashOf(3))
+		require.NoError(t, err)
+		require.Equal(t, identity, identityKey)
+		require.Equal(t, 3, deleted)
+		require.Len(t, readAll(t, db, schema), 1)
+	})
+
+	t.Run("concurrent logouts of one identity do not deadlock", func(t *testing.T) {
+		t.Parallel()
+		repo, db, schema := newPostgres(t, "logoutconcurrent")
+
+		for range 20 {
+			seed(t, repo)
+			errs := make(chan error, 2)
+			for _, hash := range [][]byte{hashOf(1), hashOf(2)} {
+				go func() {
+					_, _, err := repo.DeleteByIdentityOf(t.Context(), hash)
+					if errors.Is(err, domain.ErrUserCredentialNotFound) {
+						err = nil
+					}
+					errs <- err
+				}()
+			}
+			require.NoError(t, <-errs)
+			require.NoError(t, <-errs)
+			require.Len(t, readAll(t, db, schema), 1)
+			db.MustExec(fmt.Sprintf("DELETE FROM %s.user_credentials", pq.QuoteIdentifier(schema)))
+		}
+	})
+
+	t.Run("a logout racing a rotation leaves no live credential", func(t *testing.T) {
+		t.Parallel()
+		repo, db, schema := newPostgres(t, "logoutrotate")
+
+		for i := range 20 {
+			seed(t, repo)
+			done := make(chan error, 2)
+			go func() {
+				_, err := repo.Rotate(t.Context(), hashOf(2), hashOf(byte(100+i)), now, grace, idleWindow)
+				if errors.Is(err, domain.ErrUserCredentialNotFound) {
+					err = nil
+				}
+				done <- err
+			}()
+			go func() {
+				_, _, err := repo.DeleteByIdentityOf(t.Context(), hashOf(1))
+				done <- err
+			}()
+			require.NoError(t, <-done)
+			require.NoError(t, <-done)
+
+			rows := readAll(t, db, schema)
+			require.Len(t, rows, 1, "the rotated successor is deleted too")
+			require.Equal(t, other, rows[0].IdentityKey)
+			db.MustExec(fmt.Sprintf("DELETE FROM %s.user_credentials", pq.QuoteIdentifier(schema)))
+		}
 	})
 
 	t.Run("refuses an unknown credential and deletes nothing", func(t *testing.T) {
 		t.Parallel()
-		repo, db, schema := newPostgres(t, "logoutunknown")
+		repo, db, schema := newPostgres(t, "logout_unknown")
 		seed(t, repo)
 
-		_, _, err := repo.DeleteByIdentityOf(t.Context(), hashOf(9), now)
+		_, _, err := repo.DeleteByIdentityOf(t.Context(), hashOf(9))
 		require.ErrorIs(t, err, domain.ErrUserCredentialNotFound)
 		require.Len(t, readAll(t, db, schema), 4)
 	})

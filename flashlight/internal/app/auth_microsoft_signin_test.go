@@ -19,7 +19,6 @@ import (
 	"github.com/Amund211/flashlight/internal/signing"
 )
 
-// fakeMicrosoftSignIn is shared by parallel subtests, hence mu.
 type fakeMicrosoftSignIn struct {
 	mu sync.Mutex
 

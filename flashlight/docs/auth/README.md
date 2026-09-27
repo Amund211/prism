@@ -87,8 +87,14 @@ config refuses a partial set.
   same minute, so a crash between response and file write costs a sign-in.
   A credential presented the other client's way 401s.
 - `POST /v1/auth/logout` deletes **every** row for the credential's
-  identity, returns 204 and clears `fl_rm`. Live sessions run to their
-  own deadline.
+  identity, returns 204 and clears `fl_rm`. A stale credential works too,
+  so a victim whose value a thief rotated can still reach it. Live
+  sessions run to their own deadline.
+- Recover and logout take an advisory lock per identity
+  (`lockIdentity`), always before any row lock. Without it a logout
+  misses a successor inserted mid-`DELETE`, and two logouts deadlock.
+- Their IP limits are the anonymous-login ones, not sign-in's: every
+  prism start recovers.
 - CORS allows credentials on `exchange`, `recover` and `logout` only. The
   last two are version-pinned by `fl_rm`'s `Path`.
 
@@ -191,8 +197,10 @@ These are the parts you cannot recover by reading the code.
   `fl_rm`.** `Path=/v1/auth/` sends the cookie to the callback too; a callback
   that set it would overwrite rainbow's credential during a prism sign-in in
   the same browser, and give one row two holders.
-- **Never re-slide a rotated-out credential.** The `LEAST` in `Rotate` is
-  what keeps a grace row from becoming a second live credential. Do not
+- **Never re-slide a rotated-out credential.** The `LEAST` in `Rotate`
+  keeps the old value from living past its minute. Within that minute it
+  can still mint any number of 90-day successors — the accepted cost of
+  the window, and why the window must stay short. Do not
   "optimise" the stale-value 401 away either: with sessions many per
   identity, it is the only thing that makes theft visible.
 - **A failed recover must not clear `fl_rm`.** The tab that lost a

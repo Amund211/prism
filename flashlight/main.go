@@ -338,7 +338,7 @@ func main() {
 			time.Now,
 			app.GenerateLineage,
 		)
-		logoutMicrosoft = app.BuildLogoutMicrosoft(credentials, time.Now)
+		logoutMicrosoft = app.BuildLogoutMicrosoft(credentials)
 		logger.InfoContext(ctx, "Initialized Microsoft sign-in")
 	} else {
 		logger.WarnContext(ctx, "No Azure app registration configured, Microsoft sign-in routes are not registered")

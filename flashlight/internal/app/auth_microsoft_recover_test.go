@@ -55,7 +55,7 @@ func (f *fakeCredentialStore) Rotate(_ context.Context, presentedHash, newHash [
 	return next, nil
 }
 
-func (f *fakeCredentialStore) DeleteByIdentityOf(_ context.Context, hash []byte, _ time.Time) (string, int, error) {
+func (f *fakeCredentialStore) DeleteByIdentityOf(_ context.Context, hash []byte) (string, int, error) {
 	f.deletes++
 	if f.deleteErr != nil {
 		return "", 0, f.deleteErr
@@ -203,7 +203,7 @@ func TestLogoutMicrosoft(t *testing.T) {
 	t.Run("deletes by the identity of the presented credential", func(t *testing.T) {
 		t.Parallel()
 		store := storeHolding(domain.MicrosoftClientPrism)
-		logout := app.BuildLogoutMicrosoft(store, fixedNow(signInNow))
+		logout := app.BuildLogoutMicrosoft(store)
 
 		identityKey, deleted, err := logout(t.Context(), presentedCredential)
 		require.NoError(t, err)
@@ -215,7 +215,7 @@ func TestLogoutMicrosoft(t *testing.T) {
 	t.Run("passes a refusal through", func(t *testing.T) {
 		t.Parallel()
 		store := storeHolding(domain.MicrosoftClientPrism)
-		logout := app.BuildLogoutMicrosoft(store, fixedNow(signInNow))
+		logout := app.BuildLogoutMicrosoft(store)
 
 		_, _, err := logout(t.Context(), "some-other-credential")
 		require.ErrorIs(t, err, domain.ErrUserCredentialNotFound)

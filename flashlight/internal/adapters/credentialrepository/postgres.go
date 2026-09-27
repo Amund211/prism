@@ -36,21 +36,26 @@ func (p *Postgres) Insert(ctx context.Context, cred domain.UserCredential) error
 	ctx, span := p.tracer.Start(ctx, "Postgres.Insert")
 	defer span.End()
 
+	return p.insert(ctx, p.db, cred, nil)
+}
+
+func (p *Postgres) insert(ctx context.Context, e sqlx.ExecerContext, cred domain.UserCredential, lastUsedAt *time.Time) error {
 	if len(cred.Hash) != domain.UserCredentialHashLength || cred.IdentityKey == "" || !cred.ClientType.IsKnown() || cred.CreatedAt.IsZero() || cred.ExpiresAt.IsZero() {
 		return fmt.Errorf("refusing to insert an incomplete credential")
 	}
 
-	_, err := p.db.ExecContext(
+	_, err := e.ExecContext(
 		ctx,
 		fmt.Sprintf(`INSERT INTO %s.user_credentials
-		(credential_hash, identity_key, client_type, created_at, expires_at)
-		VALUES ($1, $2, $3, $4, $5)`,
+		(credential_hash, identity_key, client_type, created_at, expires_at, last_used_at)
+		VALUES ($1, $2, $3, $4, $5, $6)`,
 			pq.QuoteIdentifier(p.schema)),
 		cred.Hash,
 		cred.IdentityKey,
 		string(cred.ClientType),
 		cred.CreatedAt,
 		cred.ExpiresAt,
+		lastUsedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to insert credential: %w", err)
@@ -76,26 +81,37 @@ func (r credentialRow) toDomain() domain.UserCredential {
 	}
 }
 
-// get reads one row, and refuses it unless it is live at now.
-func (p *Postgres) get(ctx context.Context, q sqlx.QueryerContext, hash []byte, now time.Time, forUpdate bool) (credentialRow, error) {
-	query := fmt.Sprintf(`SELECT credential_hash, identity_key, client_type, created_at, expires_at
-		FROM %s.user_credentials WHERE credential_hash = $1`, pq.QuoteIdentifier(p.schema))
-	if forUpdate {
-		query += " FOR UPDATE"
-	}
-
+func (p *Postgres) get(ctx context.Context, q sqlx.QueryerContext, hash []byte) (credentialRow, error) {
 	var row credentialRow
-	err := sqlx.GetContext(ctx, q, &row, query, hash)
+	err := sqlx.GetContext(ctx, q, &row, fmt.Sprintf(`SELECT credential_hash, identity_key, client_type, created_at, expires_at
+		FROM %s.user_credentials WHERE credential_hash = $1`, pq.QuoteIdentifier(p.schema)), hash)
 	if errors.Is(err, sql.ErrNoRows) {
 		return credentialRow{}, domain.ErrUserCredentialNotFound
 	}
 	if err != nil {
 		return credentialRow{}, fmt.Errorf("failed to read credential: %w", err)
 	}
+	return row, nil
+}
+
+func (p *Postgres) getLive(ctx context.Context, q sqlx.QueryerContext, hash []byte, now time.Time) (credentialRow, error) {
+	row, err := p.get(ctx, q, hash)
+	if err != nil {
+		return credentialRow{}, err
+	}
 	if !now.Before(row.ExpiresAt) {
 		return credentialRow{}, domain.ErrUserCredentialStale
 	}
 	return row, nil
+}
+
+// Without it a logout misses a successor inserted mid-DELETE, and two
+// logouts deadlock on each other's row locks. Take it before any row lock.
+func lockIdentity(ctx context.Context, tx *sqlx.Tx, identityKey string) error {
+	if _, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", identityKey); err != nil {
+		return fmt.Errorf("failed to lock identity: %w", err)
+	}
+	return nil
 }
 
 // Find returns the live credential with this hash, or
@@ -104,7 +120,7 @@ func (p *Postgres) Find(ctx context.Context, hash []byte, now time.Time) (domain
 	ctx, span := p.tracer.Start(ctx, "Postgres.Find")
 	defer span.End()
 
-	row, err := p.get(ctx, p.db, hash, now, false)
+	row, err := p.getLive(ctx, p.db, hash, now)
 	if err != nil {
 		return domain.UserCredential{}, err
 	}
@@ -119,17 +135,21 @@ func (p *Postgres) Rotate(ctx context.Context, presentedHash, newHash []byte, no
 	ctx, span := p.tracer.Start(ctx, "Postgres.Rotate")
 	defer span.End()
 
-	if len(newHash) != domain.UserCredentialHashLength {
-		return domain.UserCredential{}, fmt.Errorf("refusing to rotate to a malformed hash")
-	}
-
 	tx, err := p.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return domain.UserCredential{}, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	old, err := p.get(ctx, tx, presentedHash, now, true)
+	unlocked, err := p.get(ctx, tx, presentedHash)
+	if err != nil {
+		return domain.UserCredential{}, err
+	}
+	if err := lockIdentity(ctx, tx, unlocked.IdentityKey); err != nil {
+		return domain.UserCredential{}, err
+	}
+	// Read again under the lock: a logout or a rotation may have committed.
+	old, err := p.getLive(ctx, tx, presentedHash, now)
 	if err != nil {
 		return domain.UserCredential{}, err
 	}
@@ -141,25 +161,11 @@ func (p *Postgres) Rotate(ctx context.Context, presentedHash, newHash []byte, no
 		CreatedAt:   old.CreatedAt,
 		ExpiresAt:   now.Add(idleWindow),
 	}
-	_, err = tx.ExecContext(
-		ctx,
-		fmt.Sprintf(`INSERT INTO %s.user_credentials
-		(credential_hash, identity_key, client_type, created_at, expires_at, last_used_at)
-		VALUES ($1, $2, $3, $4, $5, $6)`,
-			pq.QuoteIdentifier(p.schema)),
-		next.Hash,
-		next.IdentityKey,
-		string(next.ClientType),
-		next.CreatedAt,
-		next.ExpiresAt,
-		now,
-	)
-	if err != nil {
-		return domain.UserCredential{}, fmt.Errorf("failed to insert rotated credential: %w", err)
+	if err := p.insert(ctx, tx, next, &now); err != nil {
+		return domain.UserCredential{}, err
 	}
 
-	// LEAST: re-sliding a grace row would make the stale value a second
-	// live credential.
+	// LEAST: re-sliding a grace row would keep the old value alive forever.
 	_, err = tx.ExecContext(
 		ctx,
 		fmt.Sprintf(`UPDATE %s.user_credentials
@@ -181,9 +187,10 @@ func (p *Postgres) Rotate(ctx context.Context, presentedHash, newHash []byte, no
 }
 
 // DeleteByIdentityOf deletes every credential of the identity that holds
-// the live credential hash, expired rows included. Returns that identity
-// and the number of rows deleted, or the errors Find returns.
-func (p *Postgres) DeleteByIdentityOf(ctx context.Context, hash []byte, now time.Time) (string, int, error) {
+// the credential hash, live or not, expired rows included. Returns that
+// identity and the number of rows deleted, or
+// domain.ErrUserCredentialNotFound.
+func (p *Postgres) DeleteByIdentityOf(ctx context.Context, hash []byte) (string, int, error) {
 	ctx, span := p.tracer.Start(ctx, "Postgres.DeleteByIdentityOf")
 	defer span.End()
 
@@ -193,8 +200,11 @@ func (p *Postgres) DeleteByIdentityOf(ctx context.Context, hash []byte, now time
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	row, err := p.get(ctx, tx, hash, now, true)
+	row, err := p.get(ctx, tx, hash)
 	if err != nil {
+		return "", 0, err
+	}
+	if err := lockIdentity(ctx, tx, row.IdentityKey); err != nil {
 		return "", 0, err
 	}
 

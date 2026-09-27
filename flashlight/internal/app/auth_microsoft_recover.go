@@ -9,22 +9,16 @@ import (
 	"github.com/Amund211/flashlight/internal/domain"
 )
 
-// userCredentialGraceWindow is how long a rotated-out credential still
-// works, so two rainbow tabs racing a recover do not log each other out.
-// It is also how long a stolen value and the real one both work, so keep
-// it short. Prism gets the same window; see prism-client.md
-// § Rotate-then-crash.
+// A stolen value and the real one both work for this long; keep it short.
 const userCredentialGraceWindow = time.Minute
 
-// credentialRotator reads and rotates recovery credentials.
 type credentialRotator interface {
 	Find(ctx context.Context, hash []byte, now time.Time) (domain.UserCredential, error)
 	Rotate(ctx context.Context, presentedHash, newHash []byte, now time.Time, grace, idleWindow time.Duration) (domain.UserCredential, error)
 }
 
-// credentialDeleter deletes recovery credentials.
 type credentialDeleter interface {
-	DeleteByIdentityOf(ctx context.Context, hash []byte, now time.Time) (string, int, error)
+	DeleteByIdentityOf(ctx context.Context, hash []byte) (string, int, error)
 }
 
 // RecoverMicrosoftSession trades a live credential for a new Microsoft-tier
@@ -85,15 +79,16 @@ func BuildRecoverMicrosoftSession(
 }
 
 // LogoutMicrosoft deletes every credential of the identity that holds the
-// presented live credential, and returns that identity and the number of
-// rows deleted. Live sessions are not revoked. Errors never quote the
-// credential.
+// presented credential, and returns that identity and the number of rows
+// deleted. A stale credential works too: deleting grants nothing, and a
+// victim whose credential was rotated by a thief must still reach this.
+// Live sessions are not revoked. Errors never quote the credential.
 type LogoutMicrosoft func(ctx context.Context, credential string) (string, int, error)
 
-func BuildLogoutMicrosoft(credentials credentialDeleter, nowFunc func() time.Time) LogoutMicrosoft {
+func BuildLogoutMicrosoft(credentials credentialDeleter) LogoutMicrosoft {
 	return func(ctx context.Context, credential string) (string, int, error) {
 		hash := sha256.Sum256([]byte(credential))
-		identityKey, deleted, err := credentials.DeleteByIdentityOf(ctx, hash[:], nowFunc())
+		identityKey, deleted, err := credentials.DeleteByIdentityOf(ctx, hash[:])
 		if err != nil {
 			return "", 0, fmt.Errorf("failed to delete credentials: %w", err)
 		}
