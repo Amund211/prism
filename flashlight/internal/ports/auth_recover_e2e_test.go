@@ -39,6 +39,7 @@ func newCredentialLifecycle(t *testing.T, schemaSuffix string) *credentialLifecy
 	t.Helper()
 	db, err := database.NewPostgresDatabase(database.LocalConnectionString)
 	require.NoError(t, err)
+	t.Cleanup(func() { _ = db.Close() })
 	schema := "credential_lifecycle_test_" + schemaSuffix
 	db.MustExec(fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", pq.QuoteIdentifier(schema)))
 	require.NoError(t, database.NewDatabaseMigrator(db, slog.New(slog.NewJSONHandler(os.Stdout, nil))).Migrate(t.Context(), schema))

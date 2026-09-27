@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -18,7 +19,10 @@ import (
 	"github.com/Amund211/flashlight/internal/signing"
 )
 
+// fakeMicrosoftSignIn is shared by parallel subtests, hence mu.
 type fakeMicrosoftSignIn struct {
+	mu sync.Mutex
+
 	authorizeState     string
 	authorizeChallenge string
 
@@ -30,12 +34,16 @@ type fakeMicrosoftSignIn struct {
 }
 
 func (f *fakeMicrosoftSignIn) AuthorizeURL(state, codeChallenge string) string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.authorizeState = state
 	f.authorizeChallenge = codeChallenge
 	return "https://login.example.com/authorize?state=" + state
 }
 
 func (f *fakeMicrosoftSignIn) SignIn(_ context.Context, code, codeVerifier string) (domain.MinecraftAccount, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.signInCalls++
 	f.signInCode = code
 	f.signInVerifier = codeVerifier

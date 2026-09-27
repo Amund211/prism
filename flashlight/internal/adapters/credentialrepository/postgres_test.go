@@ -20,6 +20,7 @@ func newPostgres(t *testing.T, schemaSuffix string) (*Postgres, *sqlx.DB, string
 	t.Helper()
 	db, err := database.NewPostgresDatabase(database.LocalConnectionString)
 	require.NoError(t, err)
+	t.Cleanup(func() { _ = db.Close() })
 
 	schema := fmt.Sprintf("credential_repo_test_%s", schemaSuffix)
 	db.MustExec(fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", pq.QuoteIdentifier(schema)))
