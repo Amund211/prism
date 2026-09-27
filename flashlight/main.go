@@ -285,6 +285,8 @@ func main() {
 	var startMicrosoftSignIn app.StartMicrosoftSignIn
 	var finishMicrosoftSignIn app.FinishMicrosoftSignIn
 	var exchangeMicrosoftSignIn app.ExchangeMicrosoftSignIn
+	var recoverMicrosoftSession app.RecoverMicrosoftSession
+	var logoutMicrosoft app.LogoutMicrosoft
 	if config.AzureClientID() != "" {
 		flowKeys := config.AuthFlowSigningKeys()
 		if len(flowKeys) == 0 && config.IsDevelopment() {
@@ -320,14 +322,23 @@ func main() {
 		}
 		startMicrosoftSignIn = app.BuildStartMicrosoftSignIn(microsoftClient, flowSealer, time.Now)
 		finishMicrosoftSignIn = app.BuildFinishMicrosoftSignIn(microsoftClient, flowSealer, resultSealer, time.Now)
+		credentials := credentialrepository.NewPostgres(db, repositorySchemaName)
 		exchangeMicrosoftSignIn = app.BuildExchangeMicrosoftSignIn(
 			resultSealer,
-			credentialrepository.NewPostgres(db, repositorySchemaName),
+			credentials,
 			sessionSealer,
 			authsessionguard.AllowAll{},
 			time.Now,
 			app.GenerateLineage,
 		)
+		recoverMicrosoftSession = app.BuildRecoverMicrosoftSession(
+			credentials,
+			sessionSealer,
+			authsessionguard.AllowAll{},
+			time.Now,
+			app.GenerateLineage,
+		)
+		logoutMicrosoft = app.BuildLogoutMicrosoft(credentials, time.Now)
 		logger.InfoContext(ctx, "Initialized Microsoft sign-in")
 	} else {
 		logger.WarnContext(ctx, "No Azure app registration configured, Microsoft sign-in routes are not registered")
@@ -512,6 +523,34 @@ func main() {
 			blocklistConfig,
 		)
 		handleFunc("POST /v1/auth/microsoft/exchange", microsoftExchangeHandler, stopMicrosoftExchange)
+
+		// Version-pinned: fl_rm has Path=/v1/auth/.
+		handleFunc(
+			"OPTIONS /v1/auth/recover",
+			ports.BuildCredentialedCORSHandler(allowedOrigins),
+		)
+		recoverHandler, stopRecover := ports.MakeAuthRecoverHandler(
+			recoverMicrosoftSession,
+			time.Now,
+			allowedOrigins,
+			logger.With("port", "auth-recover"),
+			sentryMiddleware,
+			blocklistConfig,
+		)
+		handleFunc("POST /v1/auth/recover", recoverHandler, stopRecover)
+
+		handleFunc(
+			"OPTIONS /v1/auth/logout",
+			ports.BuildCredentialedCORSHandler(allowedOrigins),
+		)
+		logoutHandler, stopLogout := ports.MakeAuthLogoutHandler(
+			logoutMicrosoft,
+			allowedOrigins,
+			logger.With("port", "auth-logout"),
+			sentryMiddleware,
+			blocklistConfig,
+		)
+		handleFunc("POST /v1/auth/logout", logoutHandler, stopLogout)
 	}
 
 	handleFunc(

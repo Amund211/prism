@@ -78,7 +78,19 @@ config refuses a partial set.
   (sha256 of a 32-byte credential; `identity_key` is the UUID without dashes;
   expires +90d) and returns a `microsoft` session. Rainbow gets the credential
   as `fl_rm` (`HttpOnly; Secure; SameSite=Lax; Path=/v1/auth/`, 90d), prism as
-  `credential` in the body. CORS allows credentials here, and only here.
+  `credential` in the body.
+- `POST /v1/auth/recover` (`{}` + `fl_rm`, or `{credential}`) → a new
+  `microsoft` chain and the credential's successor, the same way it came.
+  No outbound calls. **Rotation on use**: the presented row gets
+  `expires_at = LEAST(expires_at, now + 1 min)`; the successor `now + 90d`.
+  Past that minute the old value 401s — the theft signal. Prism has the
+  same minute, so a crash between response and file write costs a sign-in.
+  A credential presented the other client's way 401s.
+- `POST /v1/auth/logout` deletes **every** row for the credential's
+  identity, returns 204 and clears `fl_rm`. Live sessions run to their
+  own deadline.
+- CORS allows credentials on `exchange`, `recover` and `logout` only. The
+  last two are version-pinned by `fl_rm`'s `Path`.
 
 ## Signing keys and rotation
 
@@ -179,6 +191,14 @@ These are the parts you cannot recover by reading the code.
   `fl_rm`.** `Path=/v1/auth/` sends the cookie to the callback too; a callback
   that set it would overwrite rainbow's credential during a prism sign-in in
   the same browser, and give one row two holders.
+- **Never re-slide a rotated-out credential.** The `LEAST` in `Rotate` is
+  what keeps a grace row from becoming a second live credential. Do not
+  "optimise" the stale-value 401 away either: with sessions many per
+  identity, it is the only thing that makes theft visible.
+- **A failed recover must not clear `fl_rm`.** The tab that lost a
+  rotation race would delete the cookie the winning tab just got.
+- **Rotated-out rows are kept** until a reaper exists; nothing deletes
+  them but logout.
 - **Rolling back past the Microsoft tier logs out its sessions** — an older
   revision refuses `identityType: microsoft` at unseal.
 - **`return` validation is the exfiltration boundary.** Loosen

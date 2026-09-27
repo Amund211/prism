@@ -111,15 +111,7 @@ func MakeMicrosoftSignInExchangeHandler(
 
 		response := microsoftExchangeResponse{authSessionResponse: sessionResponseFromSession(exchanged.Session, nowFunc())}
 		if exchanged.ClientType == domain.MicrosoftClientRainbow {
-			http.SetCookie(w, &http.Cookie{
-				Name:     rememberMeCookieName,
-				Value:    exchanged.Credential,
-				Path:     "/v1/auth/",
-				MaxAge:   rememberMeMaxAge,
-				Secure:   true,
-				HttpOnly: true,
-				SameSite: http.SameSiteLaxMode,
-			})
+			http.SetCookie(w, rememberMeCookie(exchanged.Credential, rememberMeMaxAge))
 		} else {
 			response.Credential = exchanged.Credential
 		}
