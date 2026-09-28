@@ -17,10 +17,8 @@
     ":semanticCommitTypeAll(chore)",
   ],
   timezone: "Europe/Oslo",
-  // Roughly matches the weekly interval in .github/dependabot.yml.
   schedule: ["* 2-6 * * 1"],
-  // Parity with the 7-day cooldown in .github/dependabot.yml — and required, not
-  // cosmetic: pyproject.toml sets `[tool.uv] exclude-newer = "1 week"`, and uv
+  // Required, not cosmetic: pyproject.toml sets `[tool.uv] exclude-newer = "1 week"`, and uv
   // honours that when renovate shells out to it to regenerate uv.lock. Without a
   // matching floor here renovate proposes versions its own lockfile step then
   // fails to resolve.
