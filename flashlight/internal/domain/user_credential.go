@@ -33,3 +33,14 @@ type UserCredential struct {
 	CreatedAt time.Time
 	ExpiresAt time.Time
 }
+
+// ActiveSignIn is one Microsoft sign-in that still has a credential able
+// to mint a session, as the active-sign-ins view shows it. It holds no
+// hash on purpose.
+type ActiveSignIn struct {
+	ClientType MicrosoftClientType
+	// CreatedAt is when the Microsoft sign-in happened; successors keep it.
+	CreatedAt time.Time
+	// LastUsedAt is the last recover, or CreatedAt if there was none.
+	LastUsedAt time.Time
+}

@@ -15,11 +15,11 @@ import (
 	"github.com/Amund211/flashlight/internal/ports"
 )
 
-// The nine handlers below mount the bearer auth middleware, each assembling
+// The handlers below mount the bearer auth middleware, each assembling
 // its own chain by hand. They all have to mount it in the same slot: behind
 // the blocklist and the IP limiters, inside CORS, and ahead of the user-id
 // limiter. See NewBearerAuthMiddleware for why. Nothing but this test keeps
-// the nine in agreement — both arrangements serve correct responses, one just
+// them in agreement — both arrangements serve correct responses, one just
 // does it without a throttle in front.
 
 // The bearer probe rejects every request, so it short-circuits ahead of the
@@ -63,6 +63,10 @@ func unusedGetAccountByUsername(context.Context, string) (domain.Account, error)
 
 func unusedGetAccountByUUID(context.Context, string) (domain.Account, error) {
 	return domain.Account{}, nil
+}
+
+func unusedListMicrosoftSignIns(context.Context, domain.AuthSessionIdentityType, string) ([]domain.ActiveSignIn, error) {
+	return nil, nil
 }
 
 type bearerMountCase struct {
@@ -241,6 +245,24 @@ func bearerMountCases(t *testing.T) []bearerMountCase {
 				handler, stop := ports.MakeGetAccountByUUIDHandler(
 					unusedGetAccountByUUID,
 					unusedRegisterUserVisit,
+					allowedOrigins,
+					authTestLogger,
+					noopAuthMiddleware,
+					bearerAuthMiddleware,
+					blocklistConfig,
+				)
+				t.Cleanup(stop)
+				return handler
+			},
+		},
+		{
+			name:             "auth_credentials",
+			aboveUserIDBurst: 30,
+			path:             "/v1/auth/credentials",
+			hasCORS:          true,
+			build: func(t *testing.T, bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc, blocklistConfig ports.BlocklistConfig) http.HandlerFunc {
+				handler, stop := ports.MakeAuthCredentialsHandler(
+					unusedListMicrosoftSignIns,
 					allowedOrigins,
 					authTestLogger,
 					noopAuthMiddleware,

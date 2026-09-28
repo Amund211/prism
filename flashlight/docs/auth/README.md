@@ -34,7 +34,7 @@ no row, no lookup, no cache; validating is a signature check. The payload holds
 - `POST /v1/auth/refresh` re-stamps `issuedAt`, bumps `generation` and seals **a
   new handle**. No proof, no minimum interval. The client must store what comes
   back.
-- The bearer middleware (`ports.NewBearerAuthMiddleware`, on nine handlers)
+- The bearer middleware (`ports.NewBearerAuthMiddleware`, on ten handlers)
   validates, puts `{SessionID, IdentityType, IdentityKey}` in the context, and
   401s what it cannot validate. **No `Authorization` header at all passes
   through** to the legacy `X-User-Id` path.
@@ -90,6 +90,12 @@ config refuses a partial set.
   identity, returns 204 and clears `fl_rm`. A stale credential works too,
   so a victim whose value a thief rotated can still reach it. Live
   sessions run to their own deadline.
+- `GET /v1/auth/credentials` (bearer, `microsoft` tier only, else 403)
+  lists `clientType`, `createdAt`, `lastUsedAt` per Microsoft sign-in
+  that still has a live credential — the active-sign-ins view. Rows are
+  grouped by `(client_type, created_at)`, so grace rows and racing
+  successors are one entry. Logout also deletes the expired rows it
+  hides. No hash, no id.
 - Recover and logout take an advisory lock per identity
   (`lockIdentity`), always before any row lock. Without it a logout
   misses a successor inserted mid-`DELETE`, and two logouts deadlock.
@@ -206,7 +212,9 @@ These are the parts you cannot recover by reading the code.
 - **A failed recover must not clear `fl_rm`.** The tab that lost a
   rotation race would delete the cookie the winning tab just got.
 - **Rotated-out rows are kept** until a reaper exists; nothing deletes
-  them but logout.
+  them but logout. `Rotate` must copy `created_at` and `client_type`:
+  the sign-ins view groups on them, and a re-stamp shows every recover as
+  a new sign-in.
 - **Rolling back past the Microsoft tier logs out its sessions** — an older
   revision refuses `identityType: microsoft` at unseal.
 - **`return` validation is the exfiltration boundary.** Loosen
@@ -227,7 +235,7 @@ These are the parts you cannot recover by reading the code.
   could be swapped without a client release.
 - **The bearer middleware must stay behind an IP limiter and inside CORS, and
   ahead of the identity-keyed limiter**, which needs the identity.
-  `TestBearerAuthMiddlewareMountPosition` is the only thing keeping the nine
+  `TestBearerAuthMiddlewareMountPosition` is the only thing keeping the ten
   hand-assembled chains in agreement.
 - **The `X-User-Id` fallback still exists**, so a self-asserted header can be
   aimed at an anonymous identity's bucket. Ends when the fallback does.

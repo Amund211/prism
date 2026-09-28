@@ -186,6 +186,39 @@ func (p *Postgres) Rotate(ctx context.Context, presentedHash, newHash []byte, no
 	return next, nil
 }
 
+// ListActive returns one entry per Microsoft sign-in of the identity that
+// still has a live credential, newest first. A sign-in is (client_type,
+// created_at): rotation copies both, so a grace row and racing successors
+// fold into the sign-in they came from.
+func (p *Postgres) ListActive(ctx context.Context, identityKey string, now time.Time) ([]domain.ActiveSignIn, error) {
+	ctx, span := p.tracer.Start(ctx, "Postgres.ListActive")
+	defer span.End()
+
+	var rows []struct {
+		ClientType string    `db:"client_type"`
+		CreatedAt  time.Time `db:"created_at"`
+		LastUsedAt time.Time `db:"last_used_at"`
+	}
+	err := sqlx.SelectContext(ctx, p.db, &rows, fmt.Sprintf(`SELECT client_type, created_at, MAX(COALESCE(last_used_at, created_at)) AS last_used_at
+		FROM %s.user_credentials
+		WHERE identity_key = $1 AND expires_at > $2
+		GROUP BY client_type, created_at
+		ORDER BY created_at DESC, last_used_at DESC`, pq.QuoteIdentifier(p.schema)), identityKey, now)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list credentials: %w", err)
+	}
+
+	signIns := make([]domain.ActiveSignIn, 0, len(rows))
+	for _, row := range rows {
+		signIns = append(signIns, domain.ActiveSignIn{
+			ClientType: domain.MicrosoftClientType(row.ClientType),
+			CreatedAt:  row.CreatedAt,
+			LastUsedAt: row.LastUsedAt,
+		})
+	}
+	return signIns, nil
+}
+
 // DeleteByIdentityOf deletes every credential of the identity that holds
 // the credential hash, live or not, expired rows included. Returns that
 // identity and the number of rows deleted, or

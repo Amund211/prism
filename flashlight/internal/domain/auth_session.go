@@ -90,3 +90,7 @@ var ErrAuthSessionRefreshExpired = errors.New("auth session refresh window expir
 // internal/ports as an unclassifiable failure and every rate-limited
 // client gets a 500 and a Sentry alert instead of a 429.
 var ErrAuthSessionIssuanceRefused = errors.New("auth session issuance refused")
+
+// ErrAuthSessionTierRefused is a valid session whose tier the operation
+// does not accept, e.g. an anonymous session asking for Microsoft-tier data.
+var ErrAuthSessionTierRefused = errors.New("auth session tier refused")

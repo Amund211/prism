@@ -326,6 +326,102 @@ func TestPostgresRotate(t *testing.T) {
 	})
 }
 
+func TestPostgresListActive(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping db tests in short mode.")
+	}
+	t.Parallel()
+
+	const identity = "a937646bf11544c38dbf9ae4a65669a0"
+	const other = "b937646bf11544c38dbf9ae4a65669a0"
+
+	t.Run("lists the live rows of the identity, newest sign-in first", func(t *testing.T) {
+		t.Parallel()
+		repo, _, _ := newPostgres(t, "list")
+
+		older := testCredential(1, identity)
+		older.CreatedAt = now.Add(-48 * time.Hour)
+		require.NoError(t, repo.Insert(t.Context(), older))
+		prism := testCredential(2, identity)
+		prism.ClientType = domain.MicrosoftClientPrism
+		prism.CreatedAt = now.Add(-time.Hour)
+		require.NoError(t, repo.Insert(t.Context(), prism))
+		expired := testCredential(3, identity)
+		expired.ExpiresAt = now
+		require.NoError(t, repo.Insert(t.Context(), expired))
+		require.NoError(t, repo.Insert(t.Context(), testCredential(4, other)))
+
+		got, err := repo.ListActive(t.Context(), identity, now)
+		require.NoError(t, err)
+		require.Len(t, got, 2, "expired rows and other identities are left out")
+
+		require.Equal(t, domain.MicrosoftClientPrism, got[0].ClientType)
+		require.True(t, prism.CreatedAt.Equal(got[0].CreatedAt))
+		require.True(t, prism.CreatedAt.Equal(got[0].LastUsedAt), "a row never recovered was last used at its sign-in")
+
+		require.Equal(t, domain.MicrosoftClientRainbow, got[1].ClientType)
+		require.True(t, older.CreatedAt.Equal(got[1].CreatedAt))
+	})
+
+	t.Run("one sign-in stays one entry through rotations", func(t *testing.T) {
+		t.Parallel()
+		repo, _, _ := newPostgres(t, "listgrace")
+
+		signedInAt := now.Add(-10 * 24 * time.Hour)
+		cred := testCredential(1, identity)
+		cred.CreatedAt = signedInAt
+		require.NoError(t, repo.Insert(t.Context(), cred))
+		_, err := repo.Rotate(t.Context(), hashOf(1), hashOf(2), now, grace, idleWindow)
+		require.NoError(t, err)
+		later := now.Add(30 * time.Second)
+		_, err = repo.Rotate(t.Context(), hashOf(1), hashOf(3), later, grace, idleWindow)
+		require.NoError(t, err)
+
+		got, err := repo.ListActive(t.Context(), identity, later)
+		require.NoError(t, err)
+		require.Equal(t, []domain.ActiveSignIn{{
+			ClientType: domain.MicrosoftClientRainbow,
+			CreatedAt:  signedInAt,
+			LastUsedAt: later,
+		}}, normalized(got), "the grace row and both successors are one sign-in")
+	})
+
+	t.Run("separate sign-ins of one client are separate entries", func(t *testing.T) {
+		t.Parallel()
+		repo, _, _ := newPostgres(t, "listseparate")
+
+		first := testCredential(1, identity)
+		first.CreatedAt = now.Add(-time.Hour)
+		require.NoError(t, repo.Insert(t.Context(), first))
+		require.NoError(t, repo.Insert(t.Context(), testCredential(2, identity)))
+
+		got, err := repo.ListActive(t.Context(), identity, now)
+		require.NoError(t, err)
+		require.Len(t, got, 2)
+		require.True(t, now.Equal(got[0].CreatedAt))
+		require.True(t, first.CreatedAt.Equal(got[1].CreatedAt))
+	})
+
+	t.Run("an identity without rows gets an empty list", func(t *testing.T) {
+		t.Parallel()
+		repo, _, _ := newPostgres(t, "listempty")
+		require.NoError(t, repo.Insert(t.Context(), testCredential(1, other)))
+
+		got, err := repo.ListActive(t.Context(), identity, now)
+		require.NoError(t, err)
+		require.NotNil(t, got)
+		require.Empty(t, got)
+	})
+}
+
+func normalized(signIns []domain.ActiveSignIn) []domain.ActiveSignIn {
+	out := make([]domain.ActiveSignIn, 0, len(signIns))
+	for _, s := range signIns {
+		out = append(out, domain.ActiveSignIn{ClientType: s.ClientType, CreatedAt: s.CreatedAt.UTC(), LastUsedAt: s.LastUsedAt.UTC()})
+	}
+	return out
+}
+
 func TestPostgresDeleteByIdentityOf(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping db tests in short mode.")

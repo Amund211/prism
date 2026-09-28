@@ -1,8 +1,10 @@
 package ports_test
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -27,12 +29,14 @@ import (
 
 type credentialLifecycle struct {
 	microsoftE2E
-	now      time.Time
-	exchange http.HandlerFunc
-	recover  http.HandlerFunc
-	logout   http.HandlerFunc
-	db       *sqlx.DB
-	schema   string
+	now         time.Time
+	exchange    http.HandlerFunc
+	recover     http.HandlerFunc
+	logout      http.HandlerFunc
+	credentials http.HandlerFunc
+	db          *sqlx.DB
+	schema      string
+	logs        *bytes.Buffer
 }
 
 func newCredentialLifecycle(t *testing.T, schemaSuffix string) *credentialLifecycle {
@@ -45,27 +49,61 @@ func newCredentialLifecycle(t *testing.T, schemaSuffix string) *credentialLifecy
 	require.NoError(t, database.NewDatabaseMigrator(db, slog.New(slog.NewJSONHandler(os.Stdout, nil))).Migrate(t.Context(), schema))
 	repo := credentialrepository.NewPostgres(db, schema)
 
-	c := &credentialLifecycle{microsoftE2E: newMicrosoftE2E(t, true), now: time.Now().Truncate(time.Microsecond), db: db, schema: schema}
+	c := &credentialLifecycle{microsoftE2E: newMicrosoftE2E(t, true), now: time.Now().Truncate(time.Microsecond), db: db, schema: schema, logs: &bytes.Buffer{}}
 	clock := func() time.Time { return c.now }
+	logger := slog.New(slog.NewJSONHandler(c.logs, nil))
 
 	exchange, stopExchange := ports.MakeMicrosoftSignInExchangeHandler(
 		app.BuildExchangeMicrosoftSignIn(c.results, repo, c.sessions, authsessionguard.AllowAll{}, clock, app.GenerateLineage),
-		clock, authTestOrigins(t), authTestLogger, noopAuthMiddleware, emptyBlocklistConfig,
+		clock, authTestOrigins(t), logger, noopAuthMiddleware, emptyBlocklistConfig,
 	)
 	t.Cleanup(stopExchange)
 	recoverSession, stopRecover := ports.MakeAuthRecoverHandler(
 		app.BuildRecoverMicrosoftSession(repo, c.sessions, authsessionguard.AllowAll{}, clock, app.GenerateLineage),
-		clock, authTestOrigins(t), authTestLogger, noopAuthMiddleware, emptyBlocklistConfig,
+		clock, authTestOrigins(t), logger, noopAuthMiddleware, emptyBlocklistConfig,
 	)
 	t.Cleanup(stopRecover)
 	logout, stopLogout := ports.MakeAuthLogoutHandler(
 		app.BuildLogoutMicrosoft(repo),
-		authTestOrigins(t), authTestLogger, noopAuthMiddleware, emptyBlocklistConfig,
+		authTestOrigins(t), logger, noopAuthMiddleware, emptyBlocklistConfig,
 	)
 	t.Cleanup(stopLogout)
+	credentials, stopCredentials := ports.MakeAuthCredentialsHandler(
+		app.BuildListMicrosoftSignIns(repo, clock),
+		authTestOrigins(t), logger, noopAuthMiddleware,
+		ports.NewBearerAuthMiddleware(app.BuildValidateSession(c.sessions, clock), clock, emptyBlocklistConfig),
+		emptyBlocklistConfig,
+	)
+	t.Cleanup(stopCredentials)
 
-	c.exchange, c.recover, c.logout = exchange, recoverSession, logout
+	c.exchange, c.recover, c.logout, c.credentials = exchange, recoverSession, logout, credentials
 	return c
+}
+
+const signInTimeLayout = "2006-01-02T15:04:05.000000Z07:00"
+
+type listedSignIn struct {
+	ClientType string `json:"clientType"`
+	CreatedAt  string `json:"createdAt"`
+	LastUsedAt string `json:"lastUsedAt"`
+}
+
+func (c *credentialLifecycle) listSignIns(t *testing.T, bearer string) (*httptest.ResponseRecorder, []listedSignIn) {
+	t.Helper()
+	r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/auth/credentials", http.NoBody)
+	withRequestIP(r, "1.2.3.4")
+	r.Header.Set("Authorization", "Bearer "+bearer)
+	w := httptest.NewRecorder()
+	c.credentials(w, r)
+	if w.Code != http.StatusOK {
+		return w, nil
+	}
+	var body struct {
+		Credentials []listedSignIn `json:"credentials"`
+	}
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &body))
+	require.NotNil(t, body.Credentials)
+	return w, body.Credentials
 }
 
 func (c *credentialLifecycle) rowCount(t *testing.T) int {
@@ -209,5 +247,59 @@ func TestCredentialLifecycleEndToEnd(t *testing.T) {
 		c.logout(w, credentialRequest(t, "/v1/auth/logout", `{}`, rainbow))
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 		requireRememberMeCleared(t, w.Result())
+	})
+
+	t.Run("the sign-ins view lists each live sign-in once", func(t *testing.T) {
+		t.Parallel()
+		c := newCredentialLifecycle(t, "credentials")
+		signedInAt := c.now
+
+		w := c.signInAndExchange(t, "http://127.0.0.1:52345/callback")
+		prism := bodyCredential(t, w)
+		bearer := c.requireMicrosoftSession(t, w)["sessionId"].(string)
+		c.now = c.now.Add(10 * time.Second)
+		w = c.signInAndExchange(t, "https://example.com")
+		rainbow := findCookie(t, w.Result(), rememberMeCookieName).Value
+		rainbowBearer := c.requireMicrosoftSession(t, w)["sessionId"].(string)
+
+		w, listed := c.listSignIns(t, bearer)
+		require.Equal(t, http.StatusOK, w.Code)
+		require.Equal(t, []listedSignIn{
+			{"rainbow", signedInAt.Add(10 * time.Second).UTC().Format(signInTimeLayout), signedInAt.Add(10 * time.Second).UTC().Format(signInTimeLayout)},
+			{"prism", signedInAt.UTC().Format(signInTimeLayout), signedInAt.UTC().Format(signInTimeLayout)},
+		}, listed)
+		secrets := []string{prism, rainbow, bearer, rainbowBearer}
+
+		c.now = c.now.Add(5 * time.Minute)
+		w = c.prismRecover(t, prism)
+		secrets = append(secrets, bodyCredential(t, w), c.requireMicrosoftSession(t, w)["sessionId"].(string))
+		c.now = c.now.Add(30 * time.Second)
+		w = c.prismRecover(t, prism)
+		secrets = append(secrets, bodyCredential(t, w), c.requireMicrosoftSession(t, w)["sessionId"].(string))
+		require.Equal(t, 4, c.rowCount(t))
+
+		_, listed = c.listSignIns(t, rainbowBearer)
+		require.Len(t, listed, 2, "the grace row and a racing second successor are not more prism sign-ins")
+		require.Equal(t, listedSignIn{"prism", signedInAt.UTC().Format(signInTimeLayout), c.now.UTC().Format(signInTimeLayout)}, listed[1])
+
+		anonymous, err := app.BuildAnonymousLogin(c.sessions, authsessionguard.AllowAll{}, func() time.Time { return c.now }, app.GenerateLineage)(t.Context(), "a937646bf11544c38dbf9ae4a65669a0", "iphash")
+		require.NoError(t, err)
+		w, _ = c.listSignIns(t, anonymous.ID)
+		require.Equal(t, http.StatusForbidden, w.Code, "an anonymous session under the same key sees nothing")
+
+		w = httptest.NewRecorder()
+		c.logout(w, credentialRequest(t, "/v1/auth/logout", `{}`, rainbow))
+		require.Equal(t, http.StatusNoContent, w.Code)
+		w, listed = c.listSignIns(t, bearer)
+		require.Equal(t, http.StatusOK, w.Code, "logout does not end live sessions")
+		require.Empty(t, listed, "and the view says the lever worked")
+
+		require.NotEmpty(t, c.logs.String())
+		for _, secret := range secrets {
+			digest := sha256.Sum256([]byte(secret))
+			for _, s := range []string{secret, hex.EncodeToString(digest[:]), base64.StdEncoding.EncodeToString(digest[:]), base64.RawURLEncoding.EncodeToString(digest[:])} {
+				require.NotContains(t, c.logs.String(), s)
+			}
+		}
 	})
 }

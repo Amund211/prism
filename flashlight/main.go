@@ -287,6 +287,7 @@ func main() {
 	var exchangeMicrosoftSignIn app.ExchangeMicrosoftSignIn
 	var recoverMicrosoftSession app.RecoverMicrosoftSession
 	var logoutMicrosoft app.LogoutMicrosoft
+	var listMicrosoftSignIns app.ListMicrosoftSignIns
 	if config.AzureClientID() != "" {
 		flowKeys := config.AuthFlowSigningKeys()
 		if len(flowKeys) == 0 && config.IsDevelopment() {
@@ -339,6 +340,7 @@ func main() {
 			app.GenerateLineage,
 		)
 		logoutMicrosoft = app.BuildLogoutMicrosoft(credentials)
+		listMicrosoftSignIns = app.BuildListMicrosoftSignIns(credentials, time.Now)
 		logger.InfoContext(ctx, "Initialized Microsoft sign-in")
 	} else {
 		logger.WarnContext(ctx, "No Azure app registration configured, Microsoft sign-in routes are not registered")
@@ -551,6 +553,20 @@ func main() {
 			blocklistConfig,
 		)
 		handleFunc("POST /v1/auth/logout", logoutHandler, stopLogout)
+
+		handleFunc(
+			"OPTIONS /v1/auth/credentials",
+			ports.BuildCORSHandler(allowedOrigins),
+		)
+		credentialsHandler, stopCredentials := ports.MakeAuthCredentialsHandler(
+			listMicrosoftSignIns,
+			allowedOrigins,
+			logger.With("port", "auth-credentials"),
+			sentryMiddleware,
+			bearerAuthMiddleware,
+			blocklistConfig,
+		)
+		handleFunc("GET /v1/auth/credentials", credentialsHandler, stopCredentials)
 	}
 
 	handleFunc(
