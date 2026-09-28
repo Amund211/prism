@@ -122,6 +122,7 @@
       // repointed upstream — the tag-hijack signature (tj-actions/changed-files,
       // CVE-2025-30066). Legitimate fixes arrive as a new tag through the normal
       // version-update path.
+      // NOTE: Also freezes workflow service images (postgres) on their digest until a new tag.
       matchManagers: ["github-actions"],
       matchUpdateTypes: ["digest"],
       enabled: false,
