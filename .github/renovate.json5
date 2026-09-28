@@ -30,6 +30,8 @@
   // Keep this off until the default branch ruleset requires status checks.
   // With no required check, platform automerge can merge a red PR.
   automerge: false,
+  // Same labels as the dependabot PRs. A group PR gets the union.
+  labels: ["dependencies"],
   packageRules: [
     {
       // Batch routine updates into one PR. Must stay first — later rules win,
@@ -54,5 +56,11 @@
       matchUpdateTypes: ["lockFileMaintenance"],
       minimumReleaseAge: null,
     },
+    // pyproject.toml + uv.lock. Dependabot's uv ecosystem used python:uv.
+    { matchManagers: ["pep621"], addLabels: ["python:uv"] },
+    // .python-version
+    { matchManagers: ["pyenv"], addLabels: ["python"] },
+    { matchManagers: ["github-actions"], addLabels: ["github_actions"] },
+    { matchManagers: ["pre-commit"], addLabels: ["pre_commit"] },
   ],
 }
