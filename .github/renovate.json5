@@ -47,5 +47,12 @@
       matchUpdateTypes: ["digest"],
       enabled: false,
     },
+    {
+      // lockFileMaintenance has no release timestamp, so the top-level 7 days
+      // keeps renovate/stability-days pending forever. uv enforces
+      // exclude-newer itself here.
+      matchUpdateTypes: ["lockFileMaintenance"],
+      minimumReleaseAge: null,
+    },
   ],
 }
