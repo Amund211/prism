@@ -92,6 +92,13 @@
       matchDepNames: ["go"],
       rangeStrategy: "bump",
       groupName: "go version",
+      // Go point releases are nearly always security releases, and the daily
+      // govulncheck in check-vulnerabilities.yaml fails on the stdlib the same
+      // day. Waiting for the release age and the Monday schedule left CI red
+      // for up to two weeks. osvVulnerabilityAlerts does not cover this: it
+      // skips the `go` directive and only checks a `toolchain` directive.
+      minimumReleaseAge: null,
+      schedule: ["at any time"],
     },
     {
       // Same group as the directive above, so the go.mod bump and the build
@@ -102,12 +109,15 @@
       // No release age here: Docker Hub resets the tag timestamp on every
       // image rebuild, so the tag can stay "unaged" after the go directive
       // passes. A group does not wait for all members, so that gave #397 with
-      // go.mod alone, and the Dockerfile build failed. The go directive already
-      // gates the Go release age for this group.
+      // go.mod alone, and the Dockerfile build failed.
+      // The image can still lag the go.dev release by a few hours. Then the
+      // group PR opens with go.mod alone, and a later run adds the Dockerfile.
       matchManagers: ["dockerfile"],
       matchDepNames: ["golang"],
       groupName: "go version",
       minimumReleaseAge: null,
+      // Same schedule as the go directive, so both halves arrive together.
+      schedule: ["at any time"],
     },
     {
       // A digest-only move on a SHA-pinned action means an existing tag was
