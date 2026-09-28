@@ -21,10 +21,8 @@
         ":semanticCommitTypeAll(chore)",
     ],
     timezone: "Europe/Oslo",
-    // Roughly matches the weekly interval in .github/dependabot.yml.
     schedule: ["* 2-6 * * 1"],
-    // Parity with the 7-day cooldown in .github/dependabot.yml — and required, not
-    // cosmetic: pnpm-workspace.yaml sets `minimumReleaseAge: 10080` (7 days), and
+    // Required, not cosmetic: pnpm-workspace.yaml sets `minimumReleaseAge: 10080` (7 days), and
     // pnpm honours that when renovate shells out to it to regenerate
     // pnpm-lock.yaml. Without a matching floor here renovate proposes versions its
     // own lockfile step then fails to resolve.
