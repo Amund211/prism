@@ -19,9 +19,7 @@
     ":semanticCommitTypeAll(chore)",
   ],
   timezone: "Europe/Oslo",
-  // Roughly matches the weekly interval in .github/dependabot.yml.
   schedule: ["* 2-6 * * 1"],
-  // Parity with the 7-day cooldown in .github/dependabot.yml.
   minimumReleaseAge: "7 days",
   prConcurrentLimit: 5,
   prHourlyLimit: 2,
