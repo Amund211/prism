@@ -33,7 +33,8 @@ import { createLink, Link, useLocation, useRouterState } from "@tanstack/react-r
 import React from "react";
 
 import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
-import { getWrappedYear } from "#helpers/wrapped.ts";
+import { computeWrappedYear } from "#helpers/wrapped.ts";
+import { useNow } from "#hooks/useNow.ts";
 import { endOfMonth, startOfMonth } from "#intervals.ts";
 
 import { DarkModeSwitch } from "./DarkModeSwitch.tsx";
@@ -171,7 +172,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     const shownPlayer = useShownPlayer();
     const playerToNavigate = shownPlayer ?? currentUser;
 
-    const now = new Date();
+    const now = useNow("month");
+    const wrappedYear = computeWrappedYear(now);
 
     return (
         // Layout inspired by https://github.com/mui/material-ui/tree/v6.4.1/docs/data/material/getting-started/templates/dashboard
@@ -302,14 +304,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     to="/wrapped/$uuid"
                                     selected={location.pathname.startsWith("/wrapped")}
                                     params={{ uuid: playerToNavigate }}
-                                    search={{ year: getWrappedYear() }}
+                                    search={{ year: wrappedYear }}
                                     onClick={handleCloseMenu}
                                 >
                                     <ListItemIcon>
                                         <Redeem />
                                     </ListItemIcon>
                                     <ListItemText
-                                        primary={`Wrapped ${getWrappedYear().toString()}`}
+                                        primary={`Wrapped ${wrappedYear.toString()}`}
                                     />
                                 </RouterLinkMenuItem>
                             ) : (
@@ -322,7 +324,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                         <Redeem />
                                     </ListItemIcon>
                                     <ListItemText
-                                        primary={`Wrapped ${getWrappedYear().toString()}`}
+                                        primary={`Wrapped ${wrappedYear.toString()}`}
                                     />
                                 </RouterLinkMenuItem>
                             )}
@@ -493,13 +495,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     selected={location.pathname.startsWith("/wrapped")}
                                     to="/wrapped/$uuid"
                                     params={{ uuid: playerToNavigate }}
-                                    search={{ year: getWrappedYear() }}
+                                    search={{ year: wrappedYear }}
                                 >
                                     <ListItemIcon>
                                         <Redeem />
                                     </ListItemIcon>
                                     <ListItemText
-                                        primary={`Wrapped ${getWrappedYear().toString()}`}
+                                        primary={`Wrapped ${wrappedYear.toString()}`}
                                     />
                                 </RouterLinkItemButton>
                             ) : (
@@ -511,7 +513,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                         <Redeem />
                                     </ListItemIcon>
                                     <ListItemText
-                                        primary={`Wrapped ${getWrappedYear().toString()}`}
+                                        primary={`Wrapped ${wrappedYear.toString()}`}
                                     />
                                 </RouterLinkItemButton>
                             )}

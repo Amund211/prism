@@ -17,6 +17,7 @@ import {
 
 import { useSynchronizeCharts } from "#contexts/ChartSynchronizer/hooks.ts";
 import { useAssume } from "#hooks/useAssumption.ts";
+import { useNow } from "#hooks/useNow.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
 import { useUUIDToUsername } from "#queries/username.ts";
 import { formatStatValue } from "#stats/format.ts";
@@ -230,6 +231,7 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
     const uuidToUsername = useUUIDToUsername(uuids);
 
     const assume = useAssume();
+    const currentDate = useNow("minute");
 
     if (uuids.length === 0) {
         return <div>Select at least one user</div>;
@@ -250,8 +252,6 @@ export const HistoryChart: React.FC<HistoryChartProps> = ({
     if (chartData.length === 0) {
         return <div>No data</div>;
     }
-
-    const currentDate = new Date();
 
     const smallestTimeDenomination = getSmallestTimeDenomination(start, end);
 
@@ -391,7 +391,7 @@ export const SimpleHistoryChart: React.FC<SimpleHistoryChartProps> = ({
 
     const uuidToUsername = useUUIDToUsername([uuid]);
 
-    const currentDate = new Date();
+    const currentDate = useNow("minute");
 
     // Linechart requires a mutable array for some reason. Make a copy here so we can mutate it.
     const mutableChartData = [...chartData];

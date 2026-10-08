@@ -21,6 +21,7 @@ import { HistoryChart, HistoryChartTitle } from "#charts/history/chart.tsx";
 import { UserMultiSelect } from "#components/UserSearch.tsx";
 import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
+import { useNow } from "#hooks/useNow.ts";
 import {
     endOfDay,
     endOfLastDay,
@@ -102,6 +103,7 @@ function Index() {
     const navigate = Route.useNavigate();
     const { visitPlayer } = usePlayerVisits();
     const uuidToUsername = useUUIDToUsername(uuids);
+    const now = useNow("day");
 
     // Register visits for all players on page load
     const initialUUIDsRef = React.useRef(uuids);
@@ -132,7 +134,6 @@ function Index() {
             ? (["session", "overall"] as const)
             : ([variantSelection] as const);
 
-    const now = new Date();
     const timeFilterOptions = [
         {
             label: "Today",

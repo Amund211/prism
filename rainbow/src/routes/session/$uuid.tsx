@@ -44,6 +44,7 @@ import { formatDuration } from "#helpers/duration.ts";
 import { addExtrapolatedSessions } from "#helpers/session.ts";
 import { normalizeUUID } from "#helpers/uuid.ts";
 import { useAssume } from "#hooks/useAssumption.ts";
+import { useNow } from "#hooks/useNow.ts";
 import { timeIntervalsFromDefinition } from "#intervals.ts";
 import type { TimeInterval } from "#intervals.ts";
 import { getHistoryQueryOptions } from "#queries/history.ts";
@@ -1089,6 +1090,7 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
             limit: 2,
         }),
     );
+    const now = useNow("minute");
 
     if (stat === "winstreak") {
         return null;
@@ -1130,7 +1132,6 @@ const StatProgressionCard: React.FC<StatProgressionCardProps> = ({
     }
 
     const currentDate = trackingInterval.end;
-    const now = new Date();
 
     const currentDateIsToday =
         now.getFullYear() === currentDate.getFullYear() &&
