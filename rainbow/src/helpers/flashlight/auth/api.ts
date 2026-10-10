@@ -121,6 +121,11 @@ export const exchangeMicrosoftResult = async (
  *
  * Returns null on a 401 (no usable credential: sign in again). Throws on any
  * other error, and the caller must keep its session then.
+ *
+ * Staging and previews (*.rainbow-ctx.pages.dev) are cross-site to flashlight,
+ * so the SameSite=Lax fl_rm cookie is never sent there and recover 401s once
+ * the 24h session chain ends. Expected; moving staging to *.prismoverlay.com
+ * would fix it and let flashlight's CORS allowlist drop pages.dev.
  */
 export const recoverSession = async (): Promise<Session | null> => {
     try {
