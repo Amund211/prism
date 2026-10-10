@@ -2,6 +2,7 @@ import math
 from dataclasses import dataclass
 
 from prism.flashlight.auth.errors import AuthError
+from prism.flashlight.auth.validation import CREDENTIAL_RE, DASHED_UUID_RE
 
 # The shortest delay we will ever schedule a proactive refresh for.
 #
@@ -75,3 +76,33 @@ def parse_session_response(response_json: object) -> Session:
         can_refresh=can_refresh,
         refresh_in_seconds=max(float(refresh_in_seconds), MIN_REFRESH_DELAY_SECONDS),
     )
+
+
+@dataclass(frozen=True, slots=True)
+class MicrosoftGrant:
+    """
+    A Microsoft-tier session, the successor credential and the dashed uuid
+
+    The credential that was sent goes stale a minute after this is issued.
+    """
+
+    session: Session
+    credential: str
+    uuid: str
+
+
+def parse_microsoft_grant_response(response_json: object) -> MicrosoftGrant:
+    """Parse an exchange or recover response"""
+    session = parse_session_response(response_json)
+    assert isinstance(response_json, dict)  # Checked by parse_session_response
+
+    # The values are secret or personal, so leave them out of the message
+    credential = response_json.get("credential", None)
+    if not isinstance(credential, str) or not CREDENTIAL_RE.match(credential):
+        raise AuthError("Invalid credential in Microsoft session response")
+
+    uuid = response_json.get("uuid", None)
+    if not isinstance(uuid, str) or not DASHED_UUID_RE.match(uuid):
+        raise AuthError("Invalid uuid in Microsoft session response")
+
+    return MicrosoftGrant(session=session, credential=credential, uuid=uuid)

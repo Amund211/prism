@@ -7,6 +7,7 @@ from typing import Protocol
 
 from prism.flashlight.auth.errors import (
     AuthError,
+    CredentialRejectedError,
     RefreshRateLimitedError,
     SessionExpiredError,
 )
@@ -53,6 +54,18 @@ class LoginMethod(Protocol):  # pragma: nocover
         """Establish a new session, or raise `AuthError`"""
 
 
+class MicrosoftLoginMethod(LoginMethod, Protocol):  # pragma: nocover
+    """
+    A `LoginMethod` for a signed-in Microsoft account
+
+    `log_in` raises `CredentialRejectedError` when only a new sign-in can help.
+    """
+
+    @property
+    def uuid(self) -> str:
+        """The dashed uuid of the signed-in account"""
+
+
 # Extends the given session. Tier-agnostic - the server branches on the stored
 # session, not on the caller.
 RefreshSession = Callable[[str], Session]
@@ -77,6 +90,10 @@ class AuthManager:
     - report that a snapshot got a 401 (`recover_from_unauthorized`)
     - report that the server asked for a refresh (`note_refresh_hint`)
 
+    The exception is a swap of the login method (`adopt`,
+    `sign_out_to_anonymous`), from the sign-in or settings thread. It bumps an
+    epoch, and the auth thread drops the outcome of a pass from an older one.
+
     A `Session` is immutable and replaced wholesale, so "did anything change?" is
     an identity comparison, which is what the 401 path uses to tell "your session
     was renewed, try again" from "we have nothing for you".
@@ -85,12 +102,13 @@ class AuthManager:
     def __init__(
         self,
         *,
-        login_method: LoginMethod,
+        anonymous_login: LoginMethod,
+        microsoft_login: MicrosoftLoginMethod | None = None,
         refresh_session: RefreshSession,
         monotonic: Callable[[], float] = time.monotonic,
         jitter: Callable[[], float] = _default_jitter,
     ) -> None:
-        self._login_method = login_method
+        self._anonymous_login = anonymous_login
         self._refresh_session = refresh_session
         self._monotonic = monotonic
         self._jitter = jitter
@@ -101,7 +119,8 @@ class AuthManager:
         self._session: Session | None = None
         # Number of completed reconcile passes. Bumped exactly once per pass,
         # whatever the outcome, so a waiter can tell "the auth thread has looked
-        # at this" from "nothing has happened yet".
+        # at this" from "nothing has happened yet". A pass dropped by a method
+        # swap does not count; the swap itself does.
         self._passes = 0
         # Monotonic deadline for the auth thread's next pass. Now, initially:
         # we have no session and want one.
@@ -115,6 +134,30 @@ class AuthManager:
         self._backoff_seconds = INITIAL_BACKOFF_SECONDS
         self._consecutive_failures = 0
         self._last_error: str | None = None
+        self._microsoft_login = microsoft_login
+        self._microsoft_signin_ended = False
+        # Bumped on a method swap, to drop the outcome of a pass in flight
+        self._epoch = 0
+
+    @property
+    def tier(self) -> str:
+        """The tier of the current login method"""
+        with self._condition:
+            return self._current_login_method().tier
+
+    @property
+    def signed_in_uuid(self) -> str | None:
+        """The dashed uuid of the signed-in Microsoft account, if any"""
+        with self._condition:
+            if self._microsoft_login is None:
+                return None
+            return self._microsoft_login.uuid
+
+    @property
+    def microsoft_signin_ended(self) -> bool:
+        """True after flashlight rejected our credential and we went anonymous"""
+        with self._condition:
+            return self._microsoft_signin_ended
 
     @property
     def consecutive_failures(self) -> int:
@@ -247,6 +290,37 @@ class AuthManager:
             self._reconcile_requested = True
             self._condition.notify_all()
 
+    def adopt(self, session: Session, login_method: MicrosoftLoginMethod) -> None:
+        """
+        Switch to a Microsoft sign-in, starting with its first session
+
+        Called from the sign-in thread, after the credential is stored. The
+        outcome of a pass in flight is dropped, since it used the old method.
+        """
+        with self._condition:
+            self._microsoft_login = login_method
+            self._microsoft_signin_ended = False
+            self._epoch += 1
+            self._succeed(session, self._epoch)
+
+    def sign_out_to_anonymous(self) -> None:
+        """
+        Switch to the anonymous tier, and get a session for it now
+
+        Drops the session we hold: it belongs to the account we signed out of.
+        """
+        with self._condition:
+            self._microsoft_login = None
+            self._microsoft_signin_ended = False
+            self._epoch += 1
+            self._session = None
+            self._retry_not_before = self._monotonic()
+            self._backoff_seconds = INITIAL_BACKOFF_SECONDS
+            self._consecutive_failures = 0
+            self._last_error = None
+            self._reconcile_requested = True
+            self._condition.notify_all()
+
     def seconds_until_next_action(self) -> float:
         """Return how long the auth thread should idle before its next pass"""
         with self._condition:
@@ -277,9 +351,11 @@ class AuthManager:
         """
         with self._condition:
             session = self._session
+            microsoft_login = self._microsoft_login
+            epoch = self._epoch
 
         try:
-            new_session = self._acquire(session)
+            new_session = self._acquire(session, microsoft_login, epoch)
         except RefreshRateLimitedError:
             # The session is untouched and still good. Keeping it is the whole
             # point: logging in again would throw away a session that works, and
@@ -288,36 +364,68 @@ class AuthManager:
                 "Flashlight rate limited our session refresh. "
                 "Keeping the session we have and trying again later."
             )
-            self._postpone(RATE_LIMITED_REFRESH_DELAY_SECONDS)
+            self._postpone(RATE_LIMITED_REFRESH_DELAY_SECONDS, epoch)
         except AuthError as e:
             logger.warning("Failed establishing a flashlight auth session", exc_info=e)
-            self._fail(str(e))
+            self._fail(str(e), epoch)
         except BaseException as e:
             # A bug rather than an auth failure. Record it as a failure anyway,
             # which publishes the pass and sets a retry deadline: without the
             # deadline every request would go on paying the full session wait for
             # a pass that cannot come while the auth thread sleeps this off.
             logger.exception("Unexpected error while reconciling the auth session")
-            self._fail(f"unexpected error: {e!r}")
+            self._fail(f"unexpected error: {e!r}", epoch)
             raise
         else:
             logger.info(
                 f"Established flashlight auth session "
                 f"(tier={new_session.tier}, can_refresh={new_session.can_refresh})"
             )
-            self._succeed(new_session)
+            self._succeed(new_session, epoch)
 
-    def _acquire(self, session: Session | None) -> Session:
+    def _current_login_method(self) -> LoginMethod:
+        if self._microsoft_login is not None:
+            return self._microsoft_login
+        return self._anonymous_login
+
+    def _log_in(
+        self, microsoft_login: MicrosoftLoginMethod | None, epoch: int
+    ) -> Session:
+        if microsoft_login is None:
+            logger.info(f"Logging in to flashlight ({self._anonymous_login.tier})")
+            return self._anonymous_login.log_in()
+
+        logger.info(f"Logging in to flashlight ({microsoft_login.tier})")
+        try:
+            return microsoft_login.log_in()
+        except CredentialRejectedError:
+            with self._condition:
+                if epoch != self._epoch:
+                    # Swapped mid-pass. The pass's outcome is dropped anyway.
+                    raise
+                self._microsoft_login = None
+                self._microsoft_signin_ended = True
+
+        # No backoff: anonymous login is a different limiter, and every request
+        # is waiting for a session.
+        logger.warning("Microsoft sign-in ended - logging in anonymously")
+        return self._anonymous_login.log_in()
+
+    def _acquire(
+        self,
+        session: Session | None,
+        microsoft_login: MicrosoftLoginMethod | None,
+        epoch: int,
+    ) -> Session:
         """Return a usable session, refreshing the one we hold when we can"""
         if session is None:
-            logger.info(f"Logging in to flashlight ({self._login_method.tier})")
-            return self._login_method.log_in()
+            return self._log_in(microsoft_login, epoch)
 
         if not session.can_refresh:
             # The server said at issue time that refreshing this one again would
             # be pointless, so don't spend a round trip finding that out.
             logger.info("Session cannot be refreshed again - logging in")
-            return self._login_method.log_in()
+            return self._log_in(microsoft_login, epoch)
 
         try:
             return self._refresh_session(session.session_id)
@@ -328,7 +436,7 @@ class AuthManager:
             # Validating an unknown bearer costs flashlight an uncached
             # transaction, so hammering it with one is not a neutral act.
             self._discard(session)
-            return self._login_method.log_in()
+            return self._log_in(microsoft_login, epoch)
 
     def _discard(self, session: Session) -> None:
         """Stop handing out a session we know flashlight will not accept"""
@@ -336,8 +444,17 @@ class AuthManager:
             if session is self._session:
                 self._session = None
 
-    def _succeed(self, session: Session) -> None:
+    def _is_stale(self, epoch: int) -> bool:
+        if epoch == self._epoch:
+            return False
+        # Not a finished pass: requests made since the swap still want one
+        logger.info("Dropping the outcome of an auth pass for a replaced sign-in")
+        return True
+
+    def _succeed(self, session: Session, epoch: int) -> None:
         with self._condition:
+            if self._is_stale(epoch):
+                return
             self._session = session
             # The one place a duration becomes a deadline, against the one clock
             # this class owns.
@@ -348,7 +465,7 @@ class AuthManager:
             self._last_error = None
             self._finish_pass()
 
-    def _postpone(self, delay: float) -> None:
+    def _postpone(self, delay: float, epoch: int) -> None:
         """
         Nothing changed - come back later
 
@@ -361,6 +478,8 @@ class AuthManager:
         reproduce the same rate limit.
         """
         with self._condition:
+            if self._is_stale(epoch):
+                return
             retry_at = self._monotonic() + delay
             self._next_action_at = max(retry_at, self._next_action_at)
             # TODO: This blocks the only path that can replace a session that
@@ -369,8 +488,10 @@ class AuthManager:
             self._retry_not_before = retry_at
             self._finish_pass()
 
-    def _fail(self, error: str) -> None:
+    def _fail(self, error: str, epoch: int) -> None:
         with self._condition:
+            if self._is_stale(epoch):
+                return
             retry_at = self._monotonic() + self._backoff_seconds * self._jitter()
             self._next_action_at = retry_at
             self._retry_not_before = retry_at
