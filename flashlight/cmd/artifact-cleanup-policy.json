@@ -1,0 +1,17 @@
+[
+  {
+    "name": "delete-older-than-30d",
+    "action": {"type": "Delete"},
+    "condition": {"tagState": "any", "olderThan": "30d"}
+  },
+  {
+    "name": "keep-10-most-recent",
+    "action": {"type": "Keep"},
+    "mostRecentVersions": {"keepCount": 10}
+  },
+  {
+    "name": "keep-latest-tag",
+    "action": {"type": "Keep"},
+    "condition": {"tagState": "tagged", "tagPrefixes": ["latest"]}
+  }
+]
