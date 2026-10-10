@@ -11,9 +11,9 @@ tags: [auth, sessions, bearer, proof-of-work, rate-limiting]
 
 Bearer sessions, so the per-user rate budget keys on an identity we verified
 rather than a self-asserted `X-User-Id` header. Two tiers: **anonymous**, and
-**microsoft** (below) — the same lifetimes, and no client uses it yet.
-Rationale lives outside this repo in `auth-plan/`; this file is what runs plus
-what breaks silently.
+**microsoft** (below) — the same lifetimes. Rainbow uses both; prism has both
+merged and unreleased. This file is what runs, what breaks silently, and the
+few decisions worth not reopening.
 
 ## The shape of it
 
@@ -105,6 +105,57 @@ config refuses a partial set.
   prism start recovers.
 - CORS allows credentials on `exchange`, `recover` and `logout` only. The
   last two are version-pinned by `fl_rm`'s `Path`.
+
+## Azure app registrations
+
+One registration per environment, both in tenant
+`7bcc7051-95e7-4cb4-bc40-346d1b632698`. None of these values is a secret.
+
+| | Production | Staging |
+|---|---|---|
+| Client ID | `d8f8630a-d99b-4657-99a0-8e608c5e2e64` | `21f5d51b-0f2a-4307-8fc4-a6f28d19b78e` |
+| Display name | `Prism Overlay` | `Prism Overlay (Development)` |
+| Redirect URI | `https://flashlight.prismoverlay.com/v1/auth/microsoft/callback` | `https://flashlight-test.prismoverlay.com/v1/auth/microsoft/callback` |
+| Secret | `flashlight-azure-client-secret` | `flashlight-test-azure-client-secret` |
+
+- **Mojang allowlists each client ID** ([`aka.ms/mce-reviewappid`](https://aka.ms/mce-reviewappid));
+  `api.minecraftservices.com` 403s any other. A new registration needs a new
+  review (ours took under two weeks), and the tier is down until it clears.
+- **Two client secrets per app at most**, so a rotation with overlap uses both
+  slots: add the new secret, deploy, then delete the old one.
+  `AZURE_CLIENT_SECRET_EXPIRES_AT` warns in Sentry at startup. Any secret
+  authenticates its whole app — the staging app, not the staging secret, is the
+  boundary.
+- **Audience is `PersonalMicrosoftAccount`** (`/consumers`): Xbox Live and Java
+  exist only on personal accounts. The portal offers it only at creation; later,
+  only a manifest edit changes it (the client ID stays).
+- **Sign in to Entra tenant-scoped** (`entra.microsoft.com/<tenant id>`); a
+  bare URL sends a personal account to the wrong tenant and fails.
+- **Publisher domain** is `prismoverlay.com`, verified by rainbow's
+  `public/.well-known/microsoft-identity-association.json`. Add a new client ID
+  there **before** registering it. The apps were registered by a personal
+  account, so they can never be publisher verified.
+- **Redirect URIs:** keep `localhost` off the production app. An `http`
+  loopback URI needs a manifest edit; the portal refuses it.
+
+## Declined, and why
+
+- **No `join` / `hasJoined`.** Flashlight redeems the code with its own secret
+  and reads the UUID from `/minecraft/profile`; that is the proof.
+- **No Microsoft refresh token, anywhere.** Recover makes no outbound calls, so
+  a Microsoft outage signs nobody out. The cost: no client is in Microsoft's
+  revocation channel. A password change ends nothing and a resold account keeps
+  its identity; logout is the only remedy, which is why the sign-ins view
+  exists. Reopen on a credible account-compromise report.
+- **Prism returns via loopback, not polling.** Polling is phishable and needs a
+  server-side store.
+- **No reuse detection on recover.** One prism crash would sign out every
+  device.
+- **The session is a bearer, not a cookie.** A cookie brings CSRF, staging is
+  cross-site, and credentialed CORS on data endpoints would make any
+  `*.prismoverlay.com` subdomain an authenticated-request primitive.
+- **`user_credentials` stays in Postgres.** Logout must delete something, and a
+  signature cannot be deleted.
 
 ## Signing keys and rotation
 
