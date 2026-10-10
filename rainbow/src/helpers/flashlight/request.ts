@@ -25,17 +25,17 @@ export const getFlashlightHeaders = (): Record<string, string> => ({
 // request that carried a valid bearer, from 5 minutes before it expires.
 const REFRESH_HINT_HEADER = "X-Auth-Refresh";
 
-// A session handle: the `flsess_` prefix and its base64url payload.signature.
-// The prefix is a hard constraint on the wire, not a convention — auth/api.ts
-// throws on a login response without it — so matching on it is safe.
-const HANDLE_RX = /flsess_[A-Za-z0-9_.-]*/g;
+const HANDLE_RX = /(?<prefix>flsess|flresult)_[A-Za-z0-9_.-]*/g;
 
-// redactHandles strips session handles from a response body before it is
-// reported. The body of a login or refresh response *is* a session response,
-// so every path that ships a body to Sentry or into a thrown message would
-// otherwise ship a bearer. Unconditional, so no call site has to remember.
-const redactHandles = (text: string): string =>
-    text.replace(HANDLE_RX, "flsess_<redacted>");
+/**
+ * Strip session handles and result tokens from text before it is reported.
+ *
+ * The body of a login or refresh response *is* a session response, so every
+ * path that ships a body to Sentry or into a thrown message would otherwise
+ * ship a bearer. Unconditional, so no call site has to remember.
+ */
+export const redactHandles = (text: string): string =>
+    text.replace(HANDLE_RX, "$<prefix>_<redacted>");
 
 export class FlashlightResponseError extends Error {
     public readonly status: number;

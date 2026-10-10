@@ -10,13 +10,17 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
+import { isMicrosoftCallback } from "#helpers/flashlight/auth/microsoft.ts";
 import { startSession } from "#helpers/flashlight/auth/session.ts";
 import { getOrSetUserId } from "#helpers/userId.ts";
 
 const userId = getOrSetUserId(); // Ensure a user ID is set
 
-// Overlap the login round-trip with app boot
-void startSession();
+// Overlap the login round-trip with app boot. Not on the sign-in callback: the
+// sign-in would wait for an anonymous login, then replace it.
+if (!isMicrosoftCallback()) {
+    void startSession();
+}
 
 // Set the user in Sentry
 setUser({

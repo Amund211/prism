@@ -400,6 +400,80 @@ describe("microsoft auth", () => {
         },
     );
 
+    mswTest(
+        "an ensureSession that starts during adoptSession gets the adopted session",
+        async ({ worker }) => {
+            vi.spyOn(navigator, "locks", "get").mockReturnValue(
+                undefined as unknown as LockManager,
+            );
+            let logins = 0;
+            worker.use(
+                http.post(endpoint("v1/auth/anonymous/login"), () => {
+                    logins++;
+                    return HttpResponse.json(makeSessionResponse());
+                }),
+            );
+            const session = {
+                sessionId: "flsess_ms_new",
+                tier: "microsoft",
+                uuid,
+            } as const;
+
+            const adopted = adoptSession(session);
+            const later = ensureSession(null);
+
+            await expect(later).resolves.toStrictEqual(session);
+            await adopted;
+            expect(logins).toBe(0);
+            expect(readSession()).toStrictEqual(session);
+        },
+    );
+
+    mswTest(
+        "an ensureSession after the previous acquire settles waits for adoptSession",
+        async ({ worker }) => {
+            // No exclusion: the second request (the adopt's) is granted late,
+            // like a lock held by another tab.
+            const grantDelays = [0, 100];
+            const locks = {
+                request: async (
+                    _name: string,
+                    _options: unknown,
+                    run: () => Promise<unknown>,
+                ) => {
+                    await delay(grantDelays.shift() ?? 0);
+                    return run();
+                },
+            };
+            vi.spyOn(navigator, "locks", "get").mockReturnValue(
+                locks as unknown as LockManager,
+            );
+            let logins = 0;
+            worker.use(
+                http.post(endpoint("v1/auth/anonymous/login"), async () => {
+                    logins++;
+                    await delay(50);
+                    return HttpResponse.json(makeSessionResponse());
+                }),
+            );
+            const session = {
+                sessionId: "flsess_ms_new",
+                tier: "microsoft",
+                uuid,
+            } as const;
+
+            const anonymous = ensureSession(null);
+            const adopted = adoptSession(session);
+            await anonymous;
+            const later = ensureSession(null);
+
+            await expect(later).resolves.toStrictEqual(session);
+            await adopted;
+            expect(logins).toBe(1);
+            expect(readSession()).toStrictEqual(session);
+        },
+    );
+
     mswTest("adoptSession stores the session", async () => {
         const session = {
             sessionId: "flsess_ms_new",

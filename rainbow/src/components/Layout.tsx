@@ -142,6 +142,7 @@ function useShownPlayer(): string | null {
         case "__root__":
         case "/":
         case "/about":
+        case "/auth/microsoft":
         case "/downloads":
         case "/privacy":
         case "/settings":

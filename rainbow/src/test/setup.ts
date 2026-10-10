@@ -5,4 +5,5 @@ beforeEach(() => {
     // session too, so every test does a (mocked) anonymous login before its
     // first query.
     localStorage.clear();
+    sessionStorage.clear();
 });

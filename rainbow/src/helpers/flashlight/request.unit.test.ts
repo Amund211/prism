@@ -201,6 +201,23 @@ describe(flashlightRequest, () => {
             const [, context] = vi.mocked(captureMessage).mock.calls[0] ?? [];
             expect(reportedText(context)).toBe("upstream exploded");
         });
+
+        // The Microsoft result token is a credential for 60 s.
+        test("keeps a result token out of Sentry and the thrown message", async () => {
+            mockFetch(
+                new Response("bad result flresult_abc.DEF-123_x", { status: 400 }),
+            );
+
+            await expect(
+                flashlightRequest("/v1/auth/microsoft/exchange", {
+                    errorContext: "Failed to exchange",
+                    extra: {},
+                }),
+            ).rejects.toThrow("bad result flresult_<redacted>");
+
+            const [, context] = vi.mocked(captureMessage).mock.calls[0] ?? [];
+            expect(reportedText(context)).toBe("bad result flresult_<redacted>");
+        });
     });
 
     test("reads the refresh hint", async () => {

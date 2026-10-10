@@ -109,16 +109,31 @@ const acquire = async (observed: Session | null): Promise<Session> =>
 
 let inFlight: Promise<Session> | null = null;
 
+const setInFlight = async (run: () => Promise<Session>): Promise<Session> => {
+    const promise = run();
+    inFlight = promise;
+    try {
+        return await promise;
+    } finally {
+        if (inFlight === promise) {
+            inFlight = null;
+        }
+    }
+};
+
 /**
  * Store a session from a sign-in, under the same lock as refresh and login.
+ *
+ * Resolves with `session`. Until then, ensureSession callers wait for it.
  */
-export const adoptSession = async (session: Session): Promise<void> => {
+export const adoptSession = async (session: Session): Promise<Session> => {
     // The lock alone is not enough: without Web Locks, or past its timeout, an
     // in-flight acquire would commit after this and overwrite the sign-in.
-    await inFlight?.catch(() => null);
-    // oxlint-disable-next-line typescript/require-await -- withAuthLock takes an async callback
-    await withAuthLock(async () => {
-        writeSession(session);
+    const previous = inFlight;
+    return setInFlight(async () => {
+        await previous?.catch(() => null);
+        // oxlint-disable-next-line typescript/require-await -- withAuthLock takes an async callback
+        return withAuthLock(async () => commit(session));
     });
 };
 
@@ -128,19 +143,8 @@ export const adoptSession = async (session: Session): Promise<void> => {
  * `observed` is the session the caller held when it saw a 401 (or the refresh
  * hint), or null if it held none.
  */
-export const ensureSession = async (observed: Session | null): Promise<Session> => {
-    // Cleared in finally, rejections included: otherwise one failed login
-    // caches a rejected promise that every later caller adopts, and the tab
-    // never recovers. Backoff is react-query's job.
-    inFlight ??= (async () => {
-        try {
-            return await acquire(observed);
-        } finally {
-            inFlight = null;
-        }
-    })();
-    return inFlight;
-};
+export const ensureSession = async (observed: Session | null): Promise<Session> =>
+    inFlight ?? setInFlight(async () => acquire(observed));
 
 /**
  * Acquire a session in the background, at app boot.
