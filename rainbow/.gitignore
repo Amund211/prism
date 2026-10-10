@@ -29,6 +29,7 @@ dist-ssr
 # vitest artifacts
 /coverage
 /.vitest-attachments
+/.vitest
 **/__screenshots__
 
 # Claude config
