@@ -43,6 +43,18 @@ describe(flashlightRequest, () => {
         vi.clearAllMocks();
     });
 
+    test("returns undefined data for a 204 without reporting", async () => {
+        mockFetch(new Response(null, { status: 204 }));
+
+        const { data } = await flashlightRequest<undefined>("/v1/thing", {
+            errorContext: "Failed to get thing",
+            extra: {},
+        });
+
+        expect(data).toBeUndefined();
+        expect(captureException).not.toHaveBeenCalled();
+    });
+
     test("parses the response and sends the client headers", async () => {
         const fetchMock = mockFetch(Response.json({ hello: "world" }));
 

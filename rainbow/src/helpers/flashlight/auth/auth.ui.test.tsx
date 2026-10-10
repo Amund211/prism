@@ -1,11 +1,19 @@
-import { http, HttpResponse } from "msw";
-import { describe, expect } from "vitest";
+import { delay, http, HttpResponse } from "msw";
+import { afterEach, describe, expect, vi } from "vitest";
+import { renderHook } from "vitest-browser-react";
 
 import { flashlightFetch } from "#helpers/flashlight/fetch.ts";
-import { makeSessionResponse, TEST_SESSION_ID } from "#mocks/data.ts";
+import {
+    makeMicrosoftSessionResponse,
+    makeSessionResponse,
+    TEST_SESSION_ID,
+    USERS,
+} from "#mocks/data.ts";
 import { mswTest } from "#test/msw-test.ts";
 
-import { readSession, writeSession } from "./storage.ts";
+import { adoptSession, ensureSession } from "./session.ts";
+import { clearSession, readSession, writeSession } from "./storage.ts";
+import { useAuthSession } from "./useAuthSession.ts";
 
 const endpoint = (path: string) => `http://localhost:5173/flashlight/${path}`;
 
@@ -181,6 +189,35 @@ describe("anonymous auth", () => {
         expect(logins).toBe(1);
     });
 
+    mswTest(
+        "never calls recover when an anonymous refresh 401s",
+        async ({ worker }) => {
+            writeSession({ sessionId: "flsess_dead", tier: "anonymous" });
+
+            let recovers = 0;
+            worker.use(
+                http.post(
+                    endpoint("v1/auth/refresh"),
+                    () => new HttpResponse(null, { status: 401 }),
+                ),
+                http.post(endpoint("v1/auth/recover"), () => {
+                    recovers++;
+                    return HttpResponse.json(makeMicrosoftSessionResponse());
+                }),
+                http.get(endpoint("v1/thing"), ({ request }) =>
+                    request.headers.get("Authorization") === "Bearer flsess_dead"
+                        ? new HttpResponse(null, { status: 401 })
+                        : HttpResponse.json({ ok: true }),
+                ),
+            );
+
+            await expect(fetchThing()).resolves.toStrictEqual({ ok: true });
+
+            expect(recovers).toBe(0);
+            expect(readSession()?.tier).toBe("anonymous");
+        },
+    );
+
     mswTest("discards a corrupted stored session", async ({ worker }) => {
         localStorage.setItem("rainbow_auth_session", '{"v":1,"sessionId":"nope"}');
 
@@ -195,5 +232,211 @@ describe("anonymous auth", () => {
         await expect(fetchThing()).resolves.toStrictEqual({ ok: true });
 
         expect(bearers).toStrictEqual([`Bearer ${TEST_SESSION_ID}`]);
+    });
+});
+
+describe("microsoft auth", () => {
+    const { uuid } = USERS.player1;
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    const failOn = (bearer: string) =>
+        http.get(endpoint("v1/thing"), ({ request }) =>
+            request.headers.get("Authorization") === `Bearer ${bearer}`
+                ? new HttpResponse(null, { status: 401 })
+                : HttpResponse.json({ ok: true }),
+        );
+
+    const refresh401 = http.post(
+        endpoint("v1/auth/refresh"),
+        () => new HttpResponse(null, { status: 401 }),
+    );
+
+    // Refresh does not return the uuid, so the client carries it forward.
+    mswTest("keeps the uuid across a refresh", async ({ worker }) => {
+        writeSession({ sessionId: "flsess_ms_stale", tier: "microsoft", uuid });
+
+        worker.use(
+            http.post(endpoint("v1/auth/refresh"), () =>
+                HttpResponse.json(makeSessionResponse("flsess_ms_fresh", "microsoft")),
+            ),
+            failOn("flsess_ms_stale"),
+        );
+
+        await expect(fetchThing()).resolves.toStrictEqual({ ok: true });
+
+        expect(readSession()).toStrictEqual({
+            sessionId: "flsess_ms_fresh",
+            tier: "microsoft",
+            uuid,
+        });
+    });
+
+    mswTest("recovers and retries when the refresh 401s", async ({ worker }) => {
+        writeSession({ sessionId: "flsess_ms_dead", tier: "microsoft", uuid });
+
+        const bearers: (string | null)[] = [];
+        let recovers = 0;
+        let logins = 0;
+        worker.use(
+            refresh401,
+            http.post(endpoint("v1/auth/recover"), ({ request }) => {
+                recovers++;
+                // Only recover sends the cookie, and never a bearer.
+                expect(request.headers.get("Authorization")).toBeNull();
+                expect(request.credentials).toBe("include");
+                return HttpResponse.json(
+                    makeMicrosoftSessionResponse("flsess_ms_recovered", uuid),
+                );
+            }),
+            http.post(endpoint("v1/auth/anonymous/login"), () => {
+                logins++;
+                return HttpResponse.json(makeSessionResponse());
+            }),
+            http.get(endpoint("v1/thing"), ({ request }) => {
+                const bearer = request.headers.get("Authorization");
+                bearers.push(bearer);
+                // Data requests never carry the cookie.
+                expect(request.credentials).not.toBe("include");
+                return bearer === "Bearer flsess_ms_dead"
+                    ? new HttpResponse(null, { status: 401 })
+                    : HttpResponse.json({ ok: true });
+            }),
+        );
+
+        await expect(fetchThing()).resolves.toStrictEqual({ ok: true });
+
+        expect(recovers).toBe(1);
+        expect(logins).toBe(0);
+        expect(bearers).toStrictEqual([
+            "Bearer flsess_ms_dead",
+            "Bearer flsess_ms_recovered",
+        ]);
+        expect(readSession()).toStrictEqual({
+            sessionId: "flsess_ms_recovered",
+            tier: "microsoft",
+            uuid,
+        });
+    });
+
+    mswTest("falls back to anonymous when recover 401s", async ({ worker }) => {
+        writeSession({ sessionId: "flsess_ms_dead", tier: "microsoft", uuid });
+
+        worker.use(
+            refresh401,
+            http.post(
+                endpoint("v1/auth/recover"),
+                () => new HttpResponse("unauthorized", { status: 401 }),
+            ),
+            failOn("flsess_ms_dead"),
+        );
+
+        await expect(fetchThing()).resolves.toStrictEqual({ ok: true });
+
+        expect(readSession()).toStrictEqual({
+            sessionId: TEST_SESSION_ID,
+            tier: "anonymous",
+        });
+    });
+
+    mswTest.for([429, 500, 503])(
+        "keeps the microsoft session when recover returns %i",
+        async (status, { worker }) => {
+            const session = {
+                sessionId: "flsess_ms_dead",
+                tier: "microsoft",
+                uuid,
+            } as const;
+            writeSession(session);
+
+            let logins = 0;
+            worker.use(
+                refresh401,
+                http.post(
+                    endpoint("v1/auth/recover"),
+                    () => new HttpResponse("nope", { status }),
+                ),
+                http.post(endpoint("v1/auth/anonymous/login"), () => {
+                    logins++;
+                    return HttpResponse.json(makeSessionResponse());
+                }),
+                failOn("flsess_ms_dead"),
+            );
+
+            await expect(fetchThing()).rejects.toThrow("Failed to recover");
+
+            expect(logins).toBe(0);
+            expect(readSession()).toStrictEqual(session);
+        },
+    );
+
+    // Without Web Locks (or past the lock timeout) only the in-flight promise
+    // orders the two writes.
+    mswTest(
+        "adoptSession is not overwritten by an in-flight anonymous login",
+        async ({ worker }) => {
+            vi.spyOn(navigator, "locks", "get").mockReturnValue(
+                undefined as unknown as LockManager,
+            );
+            worker.use(
+                http.post(endpoint("v1/auth/anonymous/login"), async () => {
+                    await delay(100);
+                    return HttpResponse.json(makeSessionResponse());
+                }),
+            );
+            const session = {
+                sessionId: "flsess_ms_new",
+                tier: "microsoft",
+                uuid,
+            } as const;
+
+            const anonymous = ensureSession(null);
+            const adopted = adoptSession(session);
+            await Promise.all([anonymous, adopted]);
+
+            expect(readSession()).toStrictEqual(session);
+        },
+    );
+
+    mswTest("adoptSession stores the session", async () => {
+        const session = {
+            sessionId: "flsess_ms_new",
+            tier: "microsoft",
+            uuid,
+        } as const;
+
+        await adoptSession(session);
+
+        expect(readSession()).toStrictEqual(session);
+    });
+});
+
+describe(useAuthSession, () => {
+    mswTest("follows writes and clears in the same tab", async () => {
+        const { result } = await renderHook(() => useAuthSession());
+        expect(result.current).toBeNull();
+
+        const session = {
+            sessionId: "flsess_ms",
+            tier: "microsoft",
+            uuid: USERS.player1.uuid,
+        } as const;
+        writeSession(session);
+        await expect.poll(() => result.current).toStrictEqual(session);
+
+        clearSession();
+        await expect.poll(() => result.current).toBeNull();
+    });
+
+    mswTest("returns a stable snapshot between writes", async () => {
+        writeSession({ sessionId: "flsess_ms", tier: "microsoft" });
+
+        const { result, rerender } = await renderHook(() => useAuthSession());
+        const first = result.current;
+        await rerender();
+
+        expect(result.current).toBe(first);
     });
 });

@@ -1,5 +1,6 @@
 import type {
     APIChallengeResponse,
+    APIMicrosoftSessionResponse,
     APISessionResponse,
 } from "#helpers/flashlight/auth/api.ts";
 import { POW_ALGORITHM } from "#helpers/flashlight/auth/proofOfWork.ts";
@@ -80,6 +81,17 @@ for (const { uuid, username } of Object.values(USERS)) {
     }
     seenUsernames.add(username);
 }
+
+const TEST_MICROSOFT_SESSION_ID = "flsess_test_microsoft_session";
+
+// exchange and recover add the signed-in uuid; refresh does not.
+export const makeMicrosoftSessionResponse = (
+    sessionId: string = TEST_MICROSOFT_SESSION_ID,
+    uuid: string = USERS.player1.uuid,
+): APIMicrosoftSessionResponse => ({
+    ...makeSessionResponse(sessionId, "microsoft"),
+    uuid,
+});
 
 export const findUserByUUID = (uuid: string): User | null => {
     for (const user of Object.values(USERS)) {

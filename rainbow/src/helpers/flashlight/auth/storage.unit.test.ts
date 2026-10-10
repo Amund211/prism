@@ -1,7 +1,17 @@
+import { captureException } from "@sentry/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
-import { clearSession, readSession, writeSession } from "./storage.ts";
+import {
+    clearSession,
+    getSessionSnapshot,
+    readSession,
+    writeSession,
+} from "./storage.ts";
 import type { Session } from "./storage.ts";
+
+vi.mock(import("@sentry/react"), () => ({
+    captureException: vi.fn<typeof captureException>(),
+}));
 
 const SESSION_LOCAL_STORAGE_KEY = "rainbow_auth_session";
 
@@ -11,6 +21,8 @@ const STATELESS_SESSION_ID = "flsess_eyJ0eXAiOiJmbHNlc3MvMSJ9.c2lnbmF0dXJl";
 
 // The row-backed shape, still stored in browsers when the cutover lands.
 const ROW_BACKED_SESSION_ID = "flsess_0f1e2d3c4b5a6978";
+
+const TEST_UUID = "0123abcd-4567-89ef-0123-456789abcdef";
 
 type StorageMethod = "getItem" | "setItem" | "removeItem";
 
@@ -44,6 +56,7 @@ const stored = (value: unknown): string => JSON.stringify(value);
 
 afterEach(() => {
     vi.unstubAllGlobals();
+    vi.clearAllMocks();
 });
 
 describe(readSession, () => {
@@ -116,6 +129,58 @@ describe(readSession, () => {
         expect(readSession()).toBeNull();
     });
 
+    // v1 without a uuid is what every browser stores today, and what a rollback
+    // leaves behind.
+    test("accepts a microsoft session without a uuid", () => {
+        const store = stubStorage();
+        store.set(
+            SESSION_LOCAL_STORAGE_KEY,
+            stored({ v: 1, sessionId: STATELESS_SESSION_ID, tier: "microsoft" }),
+        );
+
+        expect(readSession()).toStrictEqual({
+            sessionId: STATELESS_SESSION_ID,
+            tier: "microsoft",
+        });
+    });
+
+    // A bad uuid costs the "Signed in as" name, not the session.
+    test.for([
+        ["a non-string uuid", 42],
+        ["an undashed uuid", TEST_UUID.replaceAll("-", "")],
+        ["an uppercase uuid", TEST_UUID.toUpperCase()],
+        ["a non-uuid string", "steve"],
+    ] as const)("drops %s but keeps the session", ([, uuid]) => {
+        const store = stubStorage();
+        store.set(
+            SESSION_LOCAL_STORAGE_KEY,
+            stored({ v: 1, sessionId: STATELESS_SESSION_ID, tier: "microsoft", uuid }),
+        );
+
+        expect(readSession()).toStrictEqual({
+            sessionId: STATELESS_SESSION_ID,
+            tier: "microsoft",
+        });
+    });
+
+    test("drops a uuid on an anonymous session", () => {
+        const store = stubStorage();
+        store.set(
+            SESSION_LOCAL_STORAGE_KEY,
+            stored({
+                v: 1,
+                sessionId: STATELESS_SESSION_ID,
+                tier: "anonymous",
+                uuid: TEST_UUID,
+            }),
+        );
+
+        expect(readSession()).toStrictEqual({
+            sessionId: STATELESS_SESSION_ID,
+            tier: "anonymous",
+        });
+    });
+
     test("returns null when localStorage throws on read", () => {
         stubStorage(["getItem"]);
 
@@ -151,12 +216,46 @@ describe(writeSession, () => {
         expect(readSession()).toStrictEqual(session);
     });
 
+    test("round-trips a microsoft session with a uuid", () => {
+        stubStorage();
+        const session: Session = {
+            sessionId: STATELESS_SESSION_ID,
+            tier: "microsoft",
+            uuid: TEST_UUID,
+        };
+
+        writeSession(session);
+
+        expect(readSession()).toStrictEqual(session);
+    });
+
     test("does not throw when localStorage refuses the write", () => {
         stubStorage(["setItem"]);
 
         expect(() => {
             writeSession({ sessionId: STATELESS_SESSION_ID, tier: "anonymous" });
         }).not.toThrow();
+    });
+});
+
+describe(getSessionSnapshot, () => {
+    test("returns the same object until the stored value changes", () => {
+        stubStorage();
+        writeSession({ sessionId: STATELESS_SESSION_ID, tier: "anonymous" });
+
+        const first = getSessionSnapshot();
+        expect(getSessionSnapshot()).toBe(first);
+
+        writeSession({ sessionId: ROW_BACKED_SESSION_ID, tier: "anonymous" });
+        expect(getSessionSnapshot()).not.toBe(first);
+    });
+
+    // It runs on every render, so a report here floods Sentry.
+    test("does not report when localStorage throws", () => {
+        stubStorage(["getItem"]);
+
+        expect(getSessionSnapshot()).toBeNull();
+        expect(captureException).not.toHaveBeenCalled();
     });
 });
 

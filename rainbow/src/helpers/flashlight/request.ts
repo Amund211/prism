@@ -139,6 +139,11 @@ export const flashlightRequest = async <T>(
         );
     }
 
+    // logout answers 204 with no body.
+    if (response.status === 204) {
+        return { data: undefined as T, refreshHint };
+    }
+
     try {
         return { data: JSON.parse(text) as T, refreshHint };
     } catch (error: unknown) {

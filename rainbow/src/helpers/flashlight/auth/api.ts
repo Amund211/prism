@@ -6,7 +6,7 @@ import {
 } from "#helpers/flashlight/request.ts";
 
 import type { Challenge } from "./proofOfWork.ts";
-import { isTier, validateSessionId } from "./storage.ts";
+import { isTier, validateSessionId, withUUID } from "./storage.ts";
 import type { Session } from "./storage.ts";
 
 export interface APIChallengeResponse {
@@ -82,10 +82,126 @@ export const anonymousLogin = async ({
     return toSession(data);
 };
 
+export interface APIMicrosoftSessionResponse extends APISessionResponse {
+    readonly uuid: string;
+}
+
+const toMicrosoftSession = (response: APIMicrosoftSessionResponse): Session =>
+    withUUID(toSession(response), response.uuid);
+
+/**
+ * Exchange the result token from the Microsoft callback for a session.
+ *
+ * Throws a FlashlightResponseError with status 401 when the result expired or
+ * the verifier is wrong. Not retried: the result is single-purpose.
+ */
+export const exchangeMicrosoftResult = async (
+    result: string,
+    verifier: string,
+): Promise<Session> => {
+    const { data } = await flashlightRequest<APIMicrosoftSessionResponse>(
+        "/v1/auth/microsoft/exchange",
+        {
+            // include, so the browser keeps the fl_rm cookie flashlight sets.
+            init: {
+                method: "POST",
+                credentials: "include",
+                body: JSON.stringify({ result, verifier }),
+            },
+            errorContext: "Failed to exchange the Microsoft sign-in result",
+            extra: {},
+            expectedStatuses: [401],
+        },
+    );
+    return toMicrosoftSession(data);
+};
+
+/**
+ * Get a new microsoft session chain with the fl_rm cookie.
+ *
+ * Returns null on a 401 (no usable credential: sign in again). Throws on any
+ * other error, and the caller must keep its session then.
+ */
+export const recoverSession = async (): Promise<Session | null> => {
+    try {
+        const { data } = await flashlightRequest<APIMicrosoftSessionResponse>(
+            "/v1/auth/recover",
+            {
+                // An empty body is a 400.
+                init: { method: "POST", credentials: "include", body: "{}" },
+                errorContext: "Failed to recover the session",
+                extra: {},
+                expectedStatuses: [401],
+            },
+        );
+        return toMicrosoftSession(data);
+    } catch (error: unknown) {
+        if (error instanceof FlashlightResponseError && error.status === 401) {
+            return null;
+        }
+        throw error;
+    }
+};
+
+/**
+ * Delete every credential for the signed-in identity.
+ *
+ * A 401 means there is nothing to sign out of, so it counts as done. Throws on
+ * any other error, and the caller must keep its local state then.
+ */
+export const logout = async (): Promise<void> => {
+    try {
+        await flashlightRequest<undefined>("/v1/auth/logout", {
+            init: { method: "POST", credentials: "include", body: "{}" },
+            errorContext: "Failed to sign out",
+            extra: {},
+            expectedStatuses: [401],
+        });
+    } catch (error: unknown) {
+        if (error instanceof FlashlightResponseError && error.status === 401) {
+            return;
+        }
+        throw error;
+    }
+};
+
+export interface APICredential {
+    readonly clientType: string;
+    // RFC 3339, UTC.
+    readonly createdAt: string;
+    readonly lastUsedAt: string;
+}
+
+interface APICredentialsResponse {
+    readonly credentials: readonly APICredential[];
+}
+
+/**
+ * List the signed-in identity's credentials, newest first.
+ *
+ * Throws a FlashlightResponseError: 401 for a lapsed session, 403 for an
+ * anonymous one.
+ */
+export const listCredentials = async (
+    session: Session,
+): Promise<readonly APICredential[]> => {
+    const { data } = await flashlightRequest<APICredentialsResponse>(
+        "/v1/auth/credentials",
+        {
+            init: { method: "GET" },
+            errorContext: "Failed to list sign-ins",
+            extra: { tier: session.tier },
+            bearer: session.sessionId,
+            expectedStatuses: [401, 403],
+        },
+    );
+    return data.credentials;
+};
+
 /**
  * Refresh a session.
  *
- * Returns the refreshed session, `session` unchanged on a 429 (refreshed too
+ * Returns the refreshed session with `session`'s uuid, `session` unchanged on a 429 (refreshed too
  * recently, or rate limited — the session is untouched and must be reused), or
  * null on a 401 (the session is finished; re-auth from scratch).
  */
@@ -101,7 +217,8 @@ export const refreshSession = async (session: Session): Promise<Session | null> 
                 expectedStatuses: [401, 429],
             },
         );
-        return toSession(data);
+        // Refresh does not return the uuid, so carry it forward.
+        return withUUID(toSession(data), session.uuid);
     } catch (error: unknown) {
         if (error instanceof FlashlightResponseError) {
             if (error.status === 401) {

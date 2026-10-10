@@ -12,6 +12,7 @@ import {
     findUserByUsername,
     findUserByUUID,
     makeChallengeResponse,
+    makeMicrosoftSessionResponse,
     makeMultiGamePlayerDataPIT,
     makePlayerDataPIT,
     makeSession,
@@ -75,6 +76,44 @@ export const handlers = [
         return HttpResponse.json(
             makeSessionResponse(authorization.slice("Bearer ".length)),
         );
+    }),
+    http.post(flashlightEndpoint("v1/auth/microsoft/exchange"), async ({ request }) => {
+        const body = (await request.json()) as { result: unknown; verifier: unknown };
+        if (typeof body.result !== "string" || typeof body.verifier !== "string") {
+            return new HttpResponse("bad body", { status: 400 });
+        }
+
+        return HttpResponse.json(makeMicrosoftSessionResponse());
+    }),
+    // The fl_rm cookie is httpOnly and cross-origin here, so the mock cannot
+    // check it. It checks the body flashlight requires instead.
+    http.post(flashlightEndpoint("v1/auth/recover"), async ({ request }) => {
+        const body = await request.text();
+        if (body !== "{}") {
+            return new HttpResponse("bad body", { status: 400 });
+        }
+
+        return HttpResponse.json(makeMicrosoftSessionResponse());
+    }),
+    http.post(
+        flashlightEndpoint("v1/auth/logout"),
+        () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.get(flashlightEndpoint("v1/auth/credentials"), ({ request }) => {
+        const authorization = request.headers.get("Authorization");
+        if (authorization?.startsWith("Bearer flsess_") !== true) {
+            return new HttpResponse("unauthorized", { status: 401 });
+        }
+
+        return HttpResponse.json({
+            credentials: [
+                {
+                    clientType: "rainbow",
+                    createdAt: "2026-10-01T12:00:00Z",
+                    lastUsedAt: "2026-10-10T12:00:00Z",
+                },
+            ],
+        });
     }),
     http.get(flashlightEndpoint("v1/account/uuid/:uuid"), (req) => {
         const uuid = validateUUID(req.params.uuid);

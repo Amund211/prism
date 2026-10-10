@@ -2,7 +2,12 @@ import { captureException } from "@sentry/react";
 
 import { getOrSetUserId } from "#helpers/userId.ts";
 
-import { anonymousLogin, refreshSession, requestChallenge } from "./api.ts";
+import {
+    anonymousLogin,
+    recoverSession,
+    refreshSession,
+    requestChallenge,
+} from "./api.ts";
 import { solve } from "./solve.ts";
 import { clearSession, readSession, writeSession } from "./storage.ts";
 import type { Session } from "./storage.ts";
@@ -61,6 +66,11 @@ const acquireSession = async (): Promise<Session> => {
     return anonymousLogin({ userId, challenge: challenge.challenge, solution });
 };
 
+const commit = (session: Session): Session => {
+    writeSession(session);
+    return session;
+};
+
 const acquire = async (observed: Session | null): Promise<Session> =>
     withAuthLock(async () => {
         const stored = readSession();
@@ -72,21 +82,45 @@ const acquire = async (observed: Session | null): Promise<Session> =>
             return stored;
         }
 
-        const refreshed = stored === null ? null : await refreshSession(stored);
-        if (stored !== null && refreshed === null) {
-            // A 401 from refresh means the session is finished by definition.
-            // Drop it now so a failing login doesn't leave later requests
-            // paying for a refresh that cannot succeed.
-            clearSession();
+        if (stored === null) {
+            return commit(await acquireSession());
         }
 
-        const next = refreshed ?? (await acquireSession());
+        const refreshed = await refreshSession(stored);
+        if (refreshed !== null) {
+            return commit(refreshed);
+        }
 
-        writeSession(next);
-        return next;
+        if (stored.tier === "microsoft") {
+            // Throws on a 429 or 5xx before anything is cleared: a transient
+            // error must not sign the user out.
+            const recovered = await recoverSession();
+            if (recovered !== null) {
+                return commit(recovered);
+            }
+        }
+
+        // The session is finished by definition. Drop it now so a failing
+        // login doesn't leave later requests paying for a refresh that cannot
+        // succeed.
+        clearSession();
+        return commit(await acquireSession());
     });
 
 let inFlight: Promise<Session> | null = null;
+
+/**
+ * Store a session from a sign-in, under the same lock as refresh and login.
+ */
+export const adoptSession = async (session: Session): Promise<void> => {
+    // The lock alone is not enough: without Web Locks, or past its timeout, an
+    // in-flight acquire would commit after this and overwrite the sign-in.
+    await inFlight?.catch(() => null);
+    // oxlint-disable-next-line typescript/require-await -- withAuthLock takes an async callback
+    await withAuthLock(async () => {
+        writeSession(session);
+    });
+};
 
 /**
  * Get a usable session, refreshing or logging in as needed.
