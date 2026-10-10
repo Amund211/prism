@@ -68,16 +68,21 @@ sidecar_image="$("$script_dir/../collector/build.sh" get-url "$function_name")"
 
 image="$docker_repository_url/$image_name:latest"
 
-docker build -t "$image" .
+sudo docker build -t "$image" .
 
-docker push "$image"
+# Root does not have the gcloud credential helper, so log root in with a short-lived token.
+# Always log in: an expired token still looks logged in, and the push then fails.
+gcloud auth print-access-token |
+	sudo docker login -u oauth2accesstoken --password-stdin "https://${docker_repository_url%%/*}"
+
+sudo docker push "$image"
 
 # NOTE: Since we're using a sidecar for telemetry collection, it is recommended to use an
 # always-allocated CPU
 # We're currently not doing this.
 # Ref: https://cloud.google.com/stackdriver/docs/instrumentation/choose-approach#run
 SERVICE_NAME="$service_name" \
-	SERVICE_IMAGE="$(docker inspect --format='{{index .RepoDigests 0}}' "$image")" \
+	SERVICE_IMAGE="$(sudo docker inspect --format='{{index .RepoDigests 0}}' "$image")" \
 	FLASHLIGHT_ENVIRONMENT="$environment" \
 	SENTRY_DSN_KEY="$sentry_dsn_key" \
 	AUTH_CHALLENGE_SIGNING_KEYS_KEY="$auth_challenge_signing_keys_key" \
