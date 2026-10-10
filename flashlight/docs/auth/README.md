@@ -78,9 +78,11 @@ config refuses a partial set.
   (sha256 of a 32-byte credential; `identity_key` is the UUID without dashes;
   expires +90d) and returns a `microsoft` session. Rainbow gets the credential
   as `fl_rm` (`HttpOnly; Secure; SameSite=Lax; Path=/v1/auth/`, 90d), prism as
-  `credential` in the body.
+  `credential` in the body. The body also has `uuid`: the `identity_key`, dashed like
+  every other `uuid` in the API.
 - `POST /v1/auth/recover` (`{}` + `fl_rm`, or `{credential}`) → a new
-  `microsoft` chain and the credential's successor, the same way it came.
+  `microsoft` chain, `uuid`, and the credential's successor, the same way it
+  came. Refresh has no `uuid`; clients keep it across refreshes.
   No outbound calls. **Rotation on use**: the presented row gets
   `expires_at = LEAST(expires_at, now + 1 min)`; the successor `now + 90d`.
   Past that minute the old value 401s — the theft signal. Prism has the

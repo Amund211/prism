@@ -101,6 +101,7 @@ func TestAuthRecoverHandler(t *testing.T) {
 		require.Equal(t, "flsess_microsoft", body["sessionId"])
 		require.Equal(t, "microsoft", body["tier"])
 		require.EqualValues(t, 3600, body["expiresInSeconds"])
+		require.Equal(t, "a937646b-f115-44c3-8dbf-9ae4a65669a0", body["uuid"])
 		require.NotContains(t, body, "credential")
 	})
 
@@ -119,6 +120,7 @@ func TestAuthRecoverHandler(t *testing.T) {
 		var body map[string]any
 		require.NoError(t, json.Unmarshal(w.Body.Bytes(), &body))
 		require.Equal(t, "flsess_microsoft", body["sessionId"])
+		require.Equal(t, "a937646b-f115-44c3-8dbf-9ae4a65669a0", body["uuid"])
 		require.Equal(t, testCredential, body["credential"])
 	})
 

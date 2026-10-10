@@ -176,6 +176,7 @@ func (e microsoftE2E) requireMicrosoftSession(t *testing.T, w *httptest.Response
 	require.NoError(t, err)
 	require.Equal(t, domain.AuthSessionIdentityMicrosoft, sess.IdentityType)
 	require.Equal(t, "a937646bf11544c38dbf9ae4a65669a0", sess.IdentityKey)
+	require.Equal(t, "a937646b-f115-44c3-8dbf-9ae4a65669a0", body["uuid"], "dashed, like every other uuid in the API")
 	return body
 }
 

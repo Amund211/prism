@@ -144,7 +144,13 @@ func MakeAuthRecoverHandler(
 			return
 		}
 
-		response := microsoftExchangeResponse{authSessionResponse: sessionResponseFromSession(recovered.Session, nowFunc())}
+		response, err := newMicrosoftSessionResponse(recovered, nowFunc())
+		if err != nil {
+			logger.ErrorContext(ctx, "Recover failed", "error", err.Error())
+			reporting.Report(ctx, fmt.Errorf("recover: %w", err))
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 		if transport == domain.MicrosoftClientRainbow {
 			http.SetCookie(w, rememberMeCookie(recovered.Credential, rememberMeMaxAge))
 		} else {

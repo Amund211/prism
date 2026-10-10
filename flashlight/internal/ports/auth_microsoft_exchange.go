@@ -13,6 +13,7 @@ import (
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
 	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/flashlight/internal/strutils"
 )
 
 // rememberMeCookieName is rainbow's recovery credential. Path=/v1/auth/
@@ -33,10 +34,25 @@ type microsoftExchangeRequest struct {
 	Verifier string `json:"verifier"`
 }
 
-type microsoftExchangeResponse struct {
+// microsoftSessionResponse is the body of exchange and recover.
+type microsoftSessionResponse struct {
 	authSessionResponse
+	// UUID is the verified Minecraft UUID, dashed like every other uuid in
+	// the API. Not on refresh: clients carry it across refreshes themselves.
+	UUID string `json:"uuid"`
 	// Credential is prism's recovery credential; rainbow's is fl_rm.
 	Credential string `json:"credential,omitempty"`
+}
+
+func newMicrosoftSessionResponse(issued app.MicrosoftExchanged, now time.Time) (microsoftSessionResponse, error) {
+	uuid, err := strutils.NormalizeUUID(issued.Session.IdentityKey)
+	if err != nil {
+		return microsoftSessionResponse{}, fmt.Errorf("failed to normalize identity key: %w", err)
+	}
+	return microsoftSessionResponse{
+		authSessionResponse: sessionResponseFromSession(issued.Session, now),
+		UUID:                uuid,
+	}, nil
 }
 
 // MakeMicrosoftSignInExchangeHandler returns a handler for
@@ -109,7 +125,13 @@ func MakeMicrosoftSignInExchangeHandler(
 			return
 		}
 
-		response := microsoftExchangeResponse{authSessionResponse: sessionResponseFromSession(exchanged.Session, nowFunc())}
+		response, err := newMicrosoftSessionResponse(exchanged, nowFunc())
+		if err != nil {
+			logger.ErrorContext(ctx, "Microsoft exchange failed", "error", err.Error())
+			reporting.Report(ctx, fmt.Errorf("microsoft exchange: %w", err))
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 		if exchanged.ClientType == domain.MicrosoftClientRainbow {
 			http.SetCookie(w, rememberMeCookie(exchanged.Credential, rememberMeMaxAge))
 		} else {
