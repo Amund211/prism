@@ -168,6 +168,22 @@ def test_adopt_clears_microsoft_signin_ended() -> None:
     assert manager.tier == "microsoft"
 
 
+def test_dismiss_signin_ended_clears_the_flag_and_keeps_the_session() -> None:
+    session = make_session()
+    manager, _, _, _ = make_microsoft_auth_manager(
+        microsoft_results=[CredentialRejectedError("401")],
+        anonymous_results=[session],
+    )
+    manager.reconcile()
+    assert manager.microsoft_signin_ended
+
+    manager.dismiss_signin_ended()
+
+    assert not manager.microsoft_signin_ended
+    assert manager.tier == "anonymous"
+    assert manager.wait_for_session(timeout=0) is session
+
+
 def test_adopt_clears_a_failure_backoff() -> None:
     manager, anonymous, _ = make_auth_manager(login_results=[AuthError("down")])
     manager.reconcile()

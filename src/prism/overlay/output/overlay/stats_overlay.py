@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Literal, assert_never
 
 from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import SpecialKey, create_pynput_normalizer
+from prism.overlay.microsoft_account import MicrosoftAccount
 from prism.overlay.output.cells import ColumnName, InfoCellValue
 from prism.overlay.output.overlay.main_content import MainContent
 from prism.overlay.output.overlay.overlay_window import OverlayWindow
@@ -30,6 +31,7 @@ class StatsOverlay:  # pragma: nocover
         start_hidden: bool,
         column_order: tuple[ColumnName, ...],
         controller: OverlayController,
+        microsoft_account: MicrosoftAccount,
         get_new_data: Callable[
             [], tuple[bool, list[InfoCellValue], list[OverlayRowData] | None]
         ],
@@ -62,7 +64,9 @@ class StatsOverlay:  # pragma: nocover
         )
         self.main_content.frame.pack(side=tk.TOP, fill=tk.BOTH, padx=3)
         # Add the settings page
-        self.settings_page = SettingsPage(self.page_frame, self, controller)
+        self.settings_page = SettingsPage(
+            self.page_frame, self, controller, microsoft_account
+        )
         # Add the set nickname page
         self.set_nickname_page = SetNicknamePage(self.page_frame, self, controller)
         # Add the toolbar
@@ -191,6 +195,7 @@ class StatsOverlay:  # pragma: nocover
             self.main_content.frame.pack(side=tk.TOP, fill=tk.BOTH, padx=3)
         elif new_page == "settings":
             self.settings_page.set_content(self.controller.settings)
+            self.settings_page.on_open()
             self.settings_page.frame.pack(side=tk.TOP, fill=tk.BOTH)
         elif new_page == "set_nickname":
             # NOTE: caller must update the content
@@ -230,6 +235,9 @@ class StatsOverlay:  # pragma: nocover
             # recent update so we can use that when we show the table again
             if new_rows is not None:
                 self.last_new_rows = new_rows
+
+        if self.current_page == "settings":
+            self.settings_page.poll()
 
         self.window.root.after(self.poll_interval, self.update_overlay)
 

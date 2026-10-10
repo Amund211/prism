@@ -6,6 +6,7 @@ from collections.abc import Iterable
 from prism.flashlight.auth.manager import AuthManager
 from prism.overlay.behaviour import get_cached_player_or_enqueue_request, should_redraw
 from prism.overlay.controller import OverlayController
+from prism.overlay.microsoft_account import MicrosoftAccount
 from prism.overlay.output.cells import InfoCellValue
 from prism.overlay.output.overlay.stats_overlay import StatsOverlay
 from prism.overlay.output.overlay.utils import OverlayRowData, player_to_row
@@ -86,10 +87,22 @@ def get_stat_list(controller: OverlayController) -> list[Player] | None:
     return sorted_stats
 
 
+def get_microsoft_signin_ended_info_cell(auth: AuthManager) -> InfoCellValue | None:
+    """An info cell telling the user flashlight ended their Microsoft sign-in"""
+    if not auth.microsoft_signin_ended:
+        return None
+    return InfoCellValue(
+        text="Microsoft sign-in ended - sign in again in settings",
+        color="orange",
+        url=None,
+    )
+
+
 def run_overlay(
     controller: OverlayController,
     loglines: Iterable[str],
     auth: AuthManager,
+    microsoft_account: MicrosoftAccount,
 ) -> None:  # pragma: nocover
     """Run the overlay"""
     start_threads(controller, loglines, auth)
@@ -140,6 +153,10 @@ def run_overlay(
                     text="Overlay out of sync. Use /who", color="orange", url=None
                 )
             )
+
+        signin_ended_cell = get_microsoft_signin_ended_info_cell(auth)
+        if signin_ended_cell is not None:
+            info_cells.append(signin_ended_cell)
 
         if controller.urchin_api_key_invalid:
             info_cells.append(
@@ -195,6 +212,7 @@ def run_overlay(
     overlay = StatsOverlay(
         column_order=controller.settings.column_order,
         controller=controller,
+        microsoft_account=microsoft_account,
         get_new_data=get_new_data,
         poll_interval=100,
         start_hidden=False,

@@ -159,6 +159,11 @@ class AuthManager:
         with self._condition:
             return self._microsoft_signin_ended
 
+    def dismiss_signin_ended(self) -> None:
+        """The user has seen that the Microsoft sign-in ended"""
+        with self._condition:
+            self._microsoft_signin_ended = False
+
     @property
     def consecutive_failures(self) -> int:
         """How many auth attempts have failed in a row"""

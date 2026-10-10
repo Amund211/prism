@@ -8,6 +8,7 @@ import functools
 import logging
 import sys
 import time
+import webbrowser
 
 import truststore
 
@@ -74,11 +75,18 @@ def main() -> None:  # pragma: nocover
         CREDENTIAL_FILENAME,
         CredentialStore,
     )
-    from prism.flashlight.auth.endpoints import recover, refresh_session
+    from prism.flashlight.auth.endpoints import (
+        logout,
+        microsoft_exchange,
+        recover,
+        refresh_session,
+    )
     from prism.flashlight.auth.manager import AuthManager
     from prism.flashlight.auth.microsoft import MicrosoftRecover
+    from prism.flashlight.auth.signin import MicrosoftSignIn
     from prism.flashlight.tags import FlashlightTagsProvider
     from prism.overlay.controller import OverlayController
+    from prism.overlay.microsoft_account import MicrosoftAccount
     from prism.overlay.output.overlay.run_overlay import run_overlay
     from prism.overlay.process_loglines import (
         prompt_and_read_logfile,
@@ -133,6 +141,22 @@ def main() -> None:  # pragma: nocover
     account_provider = FlashlightAccountProvider(
         retry_limit=5, initial_timeout=2, session=session, auth=auth
     )
+    microsoft_account = MicrosoftAccount(
+        auth=auth,
+        signin=MicrosoftSignIn(
+            auth=auth,
+            store=credential_store,
+            exchange=functools.partial(microsoft_exchange, requests_session=session),
+            recover=functools.partial(recover, requests_session=session),
+            # Not the overlay's open_url helper: that one logs the url
+            open_url=webbrowser.open,
+        ),
+        store=credential_store,
+        logout=functools.partial(logout, requests_session=session),
+        get_username=lambda uuid: account_provider.get_account_by_uuid(
+            uuid, user_id=settings.user_id
+        ).username,
+    )
     player_provider = StrangePlayerProvider(
         retry_limit=5,
         initial_timeout=2,
@@ -165,7 +189,7 @@ def main() -> None:  # pragma: nocover
 
     controller.ready = True
 
-    run_overlay(controller, loglines, auth)
+    run_overlay(controller, loglines, auth, microsoft_account)
 
 
 if __name__ == "__main__":  # pragma: nocover
