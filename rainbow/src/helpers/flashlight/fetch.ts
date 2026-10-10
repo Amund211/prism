@@ -6,10 +6,7 @@ import type { Session } from "./auth/storage.ts";
 import { FlashlightResponseError, flashlightRequest } from "./request.ts";
 import type { FlashlightRequestOptions, FlashlightResult } from "./request.ts";
 
-type FlashlightFetchOptions = Omit<
-    FlashlightRequestOptions,
-    "bearer" | "expectedStatuses"
->;
+type FlashlightFetchOptions = Omit<FlashlightRequestOptions, "bearer">;
 
 const refreshInBackground = async (session: Session): Promise<void> => {
     try {
@@ -55,7 +52,7 @@ export const flashlightFetch = async <T>(
             bearer: session.sessionId,
             // A lapsed session is the reactive path working as designed, not a
             // failure worth reporting.
-            expectedStatuses: [401],
+            expectedStatuses: [401, ...(options.expectedStatuses ?? [])],
         });
         return handleRefreshHint(result, session);
     } catch (error: unknown) {

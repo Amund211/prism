@@ -10,7 +10,7 @@ import { CurrentUserProvider } from "#contexts/CurrentUser/provider.tsx";
 import { KnownAliasesProvider } from "#contexts/KnownAliases/provider.tsx";
 import { PlayerVisitsProvider } from "#contexts/PlayerVisits/provider.tsx";
 import type { AppRouter } from "#createRouter.ts";
-import { maxAge } from "#queryClient.ts";
+import { maxAge, shouldPersistQuery } from "#queryClient.ts";
 import { theme } from "#theme/index.ts";
 
 interface AppProps {
@@ -27,6 +27,7 @@ export function App({ router, queryClient, persister }: AppProps) {
                 persister,
                 maxAge,
                 buster: "2", // API version
+                dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
             }}
         >
             <LocalizationProvider dateAdapter={AdapterDayjs}>

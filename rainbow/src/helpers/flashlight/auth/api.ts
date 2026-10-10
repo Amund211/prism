@@ -165,39 +165,6 @@ export const logout = async (): Promise<void> => {
     }
 };
 
-export interface APICredential {
-    readonly clientType: string;
-    // RFC 3339, UTC.
-    readonly createdAt: string;
-    readonly lastUsedAt: string;
-}
-
-interface APICredentialsResponse {
-    readonly credentials: readonly APICredential[];
-}
-
-/**
- * List the signed-in identity's credentials, newest first.
- *
- * Throws a FlashlightResponseError: 401 for a lapsed session, 403 for an
- * anonymous one.
- */
-export const listCredentials = async (
-    session: Session,
-): Promise<readonly APICredential[]> => {
-    const { data } = await flashlightRequest<APICredentialsResponse>(
-        "/v1/auth/credentials",
-        {
-            init: { method: "GET" },
-            errorContext: "Failed to list sign-ins",
-            extra: { tier: session.tier },
-            bearer: session.sessionId,
-            expectedStatuses: [401, 403],
-        },
-    );
-    return data.credentials;
-};
-
 /**
  * Refresh a session.
  *

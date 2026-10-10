@@ -4,6 +4,7 @@ import { getOrSetUserId } from "#helpers/userId.ts";
 
 import {
     anonymousLogin,
+    logout,
     recoverSession,
     refreshSession,
     requestChallenge,
@@ -135,6 +136,32 @@ export const adoptSession = async (session: Session): Promise<Session> => {
         // oxlint-disable-next-line typescript/require-await -- withAuthLock takes an async callback
         return withAuthLock(async () => commit(session));
     });
+};
+
+/**
+ * Sign out every client of the signed-in identity, then continue anonymous.
+ *
+ * Throws if logout fails, and keeps the session then.
+ */
+export const signOutEverywhere = async (): Promise<void> => {
+    await logout();
+    // Through inFlight, like adoptSession: an acquire in flight would
+    // otherwise store the microsoft session again after the clear.
+    const previous = inFlight;
+    try {
+        await setInFlight(async () => {
+            await previous?.catch(() => null);
+            return withAuthLock(async () => {
+                clearSession();
+                return commit(await acquireSession());
+            });
+        });
+    } catch (error: unknown) {
+        // The sign-out is done. The next request logs in again.
+        captureException(error, {
+            extra: { message: "Failed to log in anonymously after sign-out" },
+        });
+    }
 };
 
 /**

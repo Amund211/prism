@@ -5,7 +5,6 @@ import { makeSessionResponse } from "#mocks/data.ts";
 import {
     anonymousLogin,
     exchangeMicrosoftResult,
-    listCredentials,
     logout,
     recoverSession,
     refreshSession,
@@ -269,35 +268,5 @@ describe(logout, () => {
         mockFetch(new Response("boom", { status: 500 }));
 
         await expect(logout()).rejects.toMatchObject({ status: 500 });
-    });
-});
-
-describe(listCredentials, () => {
-    const session: Session = { sessionId: "flsess_ms", tier: "microsoft" };
-
-    test("sends the bearer and no cookie", async () => {
-        const credentials = [
-            {
-                clientType: "rainbow",
-                createdAt: "2026-10-01T12:00:00Z",
-                lastUsedAt: "2026-10-10T12:00:00Z",
-            },
-        ];
-        const fetchMock = mockFetch(Response.json({ credentials }));
-
-        await expect(listCredentials(session)).resolves.toStrictEqual(credentials);
-
-        const [url, init] = fetchMock.mock.calls[0] ?? [];
-        expect(url).toStrictEqual(expect.stringContaining("/v1/auth/credentials"));
-        expect(init?.credentials).toBeUndefined();
-        expect(new Headers(init?.headers).get("Authorization")).toBe(
-            "Bearer flsess_ms",
-        );
-    });
-
-    test("throws on a 403", async () => {
-        mockFetch(new Response("forbidden", { status: 403 }));
-
-        await expect(listCredentials(session)).rejects.toMatchObject({ status: 403 });
     });
 });

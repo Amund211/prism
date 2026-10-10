@@ -11,7 +11,7 @@ import {
 } from "#mocks/data.ts";
 import { mswTest } from "#test/msw-test.ts";
 
-import { adoptSession, ensureSession } from "./session.ts";
+import { adoptSession, ensureSession, signOutEverywhere } from "./session.ts";
 import { clearSession, readSession, writeSession } from "./storage.ts";
 import { useAuthSession } from "./useAuthSession.ts";
 
@@ -471,6 +471,106 @@ describe("microsoft auth", () => {
             await adopted;
             expect(logins).toBe(1);
             expect(readSession()).toStrictEqual(session);
+        },
+    );
+
+    mswTest(
+        "signOutEverywhere logs out and ends with an anonymous session",
+        async ({ worker }) => {
+            writeSession({ sessionId: "flsess_ms", tier: "microsoft", uuid });
+            let logouts = 0;
+            worker.use(
+                http.post(endpoint("v1/auth/logout"), ({ request }) => {
+                    logouts++;
+                    expect(request.credentials).toBe("include");
+                    return new HttpResponse(null, { status: 204 });
+                }),
+            );
+
+            await signOutEverywhere();
+
+            expect(logouts).toBe(1);
+            expect(readSession()).toStrictEqual({
+                sessionId: TEST_SESSION_ID,
+                tier: "anonymous",
+            });
+        },
+    );
+
+    mswTest(
+        "signOutEverywhere keeps the session when logout fails",
+        async ({ worker }) => {
+            const session = {
+                sessionId: "flsess_ms",
+                tier: "microsoft",
+                uuid,
+            } as const;
+            writeSession(session);
+            worker.use(
+                http.post(
+                    endpoint("v1/auth/logout"),
+                    () => new HttpResponse("nope", { status: 500 }),
+                ),
+            );
+
+            await expect(signOutEverywhere()).rejects.toThrow("Failed to sign out");
+
+            expect(readSession()).toStrictEqual(session);
+        },
+    );
+
+    // Without Web Locks only the in-flight promise orders the refresh's write
+    // after the sign-out's clear.
+    mswTest(
+        "an in-flight refresh does not store the microsoft session again after signOutEverywhere",
+        async ({ worker }) => {
+            vi.spyOn(navigator, "locks", "get").mockReturnValue(
+                undefined as unknown as LockManager,
+            );
+            const session = {
+                sessionId: "flsess_ms",
+                tier: "microsoft",
+                uuid,
+            } as const;
+            writeSession(session);
+            // The refresh answers only after logout has answered, so it is
+            // still in flight when the sign-out starts its clear.
+            const events: string[] = [];
+            let loggedOut = false;
+            worker.use(
+                http.post(endpoint("v1/auth/logout"), () => {
+                    events.push("logout");
+                    loggedOut = true;
+                    return new HttpResponse(null, { status: 204 });
+                }),
+                http.post(endpoint("v1/auth/refresh"), async () => {
+                    // oxlint-disable-next-line no-unmodified-loop-condition -- the logout handler sets it
+                    while (!loggedOut) {
+                        // oxlint-disable-next-line no-await-in-loop -- polling the gate
+                        await delay(10);
+                    }
+                    await delay(50);
+                    events.push("refresh");
+                    return HttpResponse.json(
+                        makeSessionResponse("flsess_ms_fresh", "microsoft"),
+                    );
+                }),
+                http.post(endpoint("v1/auth/anonymous/login"), () => {
+                    events.push("login");
+                    return HttpResponse.json(makeSessionResponse());
+                }),
+            );
+
+            const refreshing = ensureSession(session);
+            await signOutEverywhere();
+            await refreshing;
+
+            // The login waited for the refresh: the ordering under test ran.
+            expect(events).toStrictEqual(["logout", "refresh", "login"]);
+            expect(readSession()).toStrictEqual({
+                sessionId: TEST_SESSION_ID,
+                tier: "anonymous",
+            });
         },
     );
 

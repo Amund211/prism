@@ -3,6 +3,7 @@ import { Stack, Tooltip, Typography } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 import React from "react";
 
+import { AccountSettings } from "#components/AccountSettings.tsx";
 import { UserMultiSelect } from "#components/UserSearch.tsx";
 import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
 
@@ -48,6 +49,7 @@ function RouteComponent() {
                     setCurrentUser(newDefault);
                 }}
             />
+            <AccountSettings />
         </Stack>
     );
 }

@@ -1,10 +1,28 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, defaultShouldDehydrateQuery } from "@tanstack/react-query";
+import type { Query } from "@tanstack/react-query";
 import type { PersistedClient, Persister } from "@tanstack/react-query-persist-client";
 import { get, set, del } from "idb-keyval";
 
 import { MS_PER_DAY } from "#time.ts";
 
 export const maxAge = MS_PER_DAY * 21; // 21 days
+
+declare module "@tanstack/react-query" {
+    interface Register {
+        queryMeta: {
+            // false keeps the query out of the IndexedDB persister.
+            persist?: boolean;
+        };
+    }
+}
+
+/**
+ * The persister's dehydrate filter. A query with `meta: { persist: false }`
+ * stays in memory only.
+ */
+// oxlint-disable-next-line typescript/prefer-readonly-parameter-types -- dehydrateOptions passes a mutable Query
+export const shouldPersistQuery = (query: Query): boolean =>
+    defaultShouldDehydrateQuery(query) && query.meta?.persist !== false;
 
 export function createQueryClient() {
     return new QueryClient({
