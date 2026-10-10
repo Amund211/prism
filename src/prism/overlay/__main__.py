@@ -70,8 +70,13 @@ def main() -> None:  # pragma: nocover
     # Import late so we can patch ssl certs in requests
     from prism.flashlight.account import FlashlightAccountProvider
     from prism.flashlight.auth.anonymous import AnonymousLogin
-    from prism.flashlight.auth.endpoints import refresh_session
+    from prism.flashlight.auth.credential_store import (
+        CREDENTIAL_FILENAME,
+        CredentialStore,
+    )
+    from prism.flashlight.auth.endpoints import recover, refresh_session
     from prism.flashlight.auth.manager import AuthManager
+    from prism.flashlight.auth.microsoft import MicrosoftRecover
     from prism.flashlight.tags import FlashlightTagsProvider
     from prism.overlay.controller import OverlayController
     from prism.overlay.output.overlay.run_overlay import run_overlay
@@ -100,8 +105,27 @@ def main() -> None:  # pragma: nocover
     # Start authenticating right away, before the (possibly interactive) logfile
     # selection, so the login round trip overlaps the rest of startup. Every
     # flashlight request waits for the session this establishes.
+    # A plain file read, so no OS prompt before the user opted in to Microsoft
+    credential_store = CredentialStore(CONFIG_DIR / CREDENTIAL_FILENAME)
+    try:
+        stored_credential = credential_store.read()
+    except OSError:
+        # Anonymous for this run only - the file is kept
+        logger.exception("Failed reading the Microsoft credential file")
+        stored_credential = None
     auth = AuthManager(
-        login_method=AnonymousLogin(requests_session=session, user_id=settings.user_id),
+        anonymous_login=AnonymousLogin(
+            requests_session=session, user_id=settings.user_id
+        ),
+        microsoft_login=(
+            MicrosoftRecover(
+                store=credential_store,
+                recover=functools.partial(recover, requests_session=session),
+                stored=stored_credential,
+            )
+            if stored_credential is not None
+            else None
+        ),
         refresh_session=functools.partial(refresh_session, requests_session=session),
     )
     auth.start()

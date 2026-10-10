@@ -32,6 +32,15 @@ class RefreshRateLimitedError(AuthError):
     """
 
 
+class CredentialRejectedError(AuthError):
+    """
+    Flashlight rejected our Microsoft-tier credential (401 from /recover)
+
+    The one `AuthError` that is not retryable: the credential is unknown,
+    stale or revoked, and only a new sign-in gets another one.
+    """
+
+
 class NoSessionError(APIError):
     """
     No auth session was available to make a flashlight request with

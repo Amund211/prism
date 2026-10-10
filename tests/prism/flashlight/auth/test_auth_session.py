@@ -3,7 +3,9 @@ import pytest
 from prism.flashlight.auth.errors import AuthError
 from prism.flashlight.auth.session import (
     MIN_REFRESH_DELAY_SECONDS,
+    MicrosoftGrant,
     Session,
+    parse_microsoft_grant_response,
     parse_session_response,
 )
 
@@ -82,3 +84,42 @@ def test_parse_session_response_clamps_short_refresh_delays(
 def test_parse_session_response_invalid(response_json: object) -> None:
     with pytest.raises(AuthError):
         parse_session_response(response_json)
+
+
+# The shape of a POST /v1/auth/recover response, with made up secrets
+VALID_MICROSOFT_RESPONSE = {
+    **VALID_RESPONSE,
+    "tier": "microsoft",
+    "uuid": "a937646b-f115-44c3-8dbf-9ae4a65669a0",
+    "credential": "C" * 43,
+}
+
+
+def test_parse_microsoft_grant_response() -> None:
+    assert parse_microsoft_grant_response(VALID_MICROSOFT_RESPONSE) == MicrosoftGrant(
+        session=Session(
+            session_id="flsess_bm90LWEtcmVhbC1zZXNzaW9uLWlkLW9idmlvdXNsee8",
+            tier="microsoft",
+            can_refresh=True,
+            refresh_in_seconds=3300.0,
+        ),
+        credential="C" * 43,
+        uuid="a937646b-f115-44c3-8dbf-9ae4a65669a0",
+    )
+
+
+@pytest.mark.parametrize(
+    "response_json",
+    (
+        None,
+        VALID_RESPONSE,
+        {**VALID_MICROSOFT_RESPONSE, "sessionId": None},
+        {**VALID_MICROSOFT_RESPONSE, "credential": None},
+        {**VALID_MICROSOFT_RESPONSE, "credential": "C" * 42},
+        {**VALID_MICROSOFT_RESPONSE, "uuid": None},
+        {**VALID_MICROSOFT_RESPONSE, "uuid": "a937646bf11544c38dbf9ae4a65669a0"},
+    ),
+)
+def test_parse_microsoft_grant_response_invalid(response_json: object) -> None:
+    with pytest.raises(AuthError):
+        parse_microsoft_grant_response(response_json)

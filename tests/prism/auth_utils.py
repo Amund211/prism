@@ -12,6 +12,8 @@ from prism.flashlight.auth.session import Session
 # Not a real session id - flashlight's are `flsess_` plus 32 random bytes
 TEST_SESSION_ID = "flsess_test_session_id"
 
+TEST_UUID = "a937646b-f115-44c3-8dbf-9ae4a65669a0"
+
 
 def make_session(
     *,
@@ -31,25 +33,47 @@ def make_session(
 class QueuedLoginMethod:
     """A `LoginMethod` returning (or raising) queued results, in order"""
 
-    tier = "test"
-
-    def __init__(self, results: Sequence[Session | Exception] = ()) -> None:
+    def __init__(
+        self,
+        results: Sequence[Session | Exception | Callable[[], Session]] = (),
+        *,
+        tier: str = "test",
+    ) -> None:
         self.results = list(results)
         self.calls = 0
+        self.tier = tier
 
     def log_in(self) -> Session:
         self.calls += 1
-        assert self.results, "Unexpected call to log_in"
+        assert self.results, f"Unexpected call to log_in ({self.tier})"
         result = self.results.pop(0)
         if isinstance(result, Exception):
             raise result
+        if callable(result):
+            # Lets a test act while the login is in flight
+            return result()
         return result
+
+
+class QueuedMicrosoftLogin(QueuedLoginMethod):
+    """A `MicrosoftLoginMethod` returning (or raising) queued results"""
+
+    def __init__(
+        self,
+        results: Sequence[Session | Exception | Callable[[], Session]] = (),
+        *,
+        uuid: str = TEST_UUID,
+    ) -> None:
+        super().__init__(results, tier="microsoft")
+        self.uuid = uuid
 
 
 class QueuedRefresh:
     """A refresh callable returning (or raising) queued results, in order"""
 
-    def __init__(self, results: Sequence[Session | Exception] = ()) -> None:
+    def __init__(
+        self, results: Sequence[Session | Exception | Callable[[str], Session]] = ()
+    ) -> None:
         self.results = list(results)
         self.session_ids: list[str] = []
 
@@ -59,6 +83,9 @@ class QueuedRefresh:
         result = self.results.pop(0)
         if isinstance(result, Exception):
             raise result
+        if callable(result):
+            # Lets a test act while the refresh is in flight
+            return result(session_id)
         return result
 
 
@@ -80,12 +107,32 @@ def make_auth_manager(
     login_method = QueuedLoginMethod(login_results)
     refresh = QueuedRefresh(refresh_results)
     manager = AuthManager(
-        login_method=login_method,
+        anonymous_login=login_method,
         refresh_session=refresh,
         monotonic=(lambda: 0.0) if monotonic is None else monotonic,
         jitter=lambda: 1.0,
     )
     return manager, login_method, refresh
+
+
+def make_microsoft_auth_manager(
+    *,
+    microsoft_results: Sequence[Session | Exception | Callable[[], Session]] = (),
+    anonymous_results: Sequence[Session | Exception | Callable[[], Session]] = (),
+    refresh_results: Sequence[Session | Exception] = (),
+) -> tuple[AuthManager, QueuedMicrosoftLogin, QueuedLoginMethod, QueuedRefresh]:
+    """Like `make_auth_manager`, but starting on the Microsoft tier"""
+    microsoft = QueuedMicrosoftLogin(microsoft_results)
+    anonymous = QueuedLoginMethod(anonymous_results, tier="anonymous")
+    refresh = QueuedRefresh(refresh_results)
+    manager = AuthManager(
+        anonymous_login=anonymous,
+        microsoft_login=microsoft,
+        refresh_session=refresh,
+        monotonic=lambda: 0.0,
+        jitter=lambda: 1.0,
+    )
+    return manager, microsoft, anonymous, refresh
 
 
 def make_real_clock_auth_manager() -> AuthManager:

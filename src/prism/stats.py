@@ -34,7 +34,9 @@ key_holder = HypixelAPIKeyHolder(api_key)
 session = make_prism_requests_session()
 
 AUTH = AuthManager(
-    login_method=AnonymousLogin(requests_session=session, user_id="get_stats_script"),
+    anonymous_login=AnonymousLogin(
+        requests_session=session, user_id="get_stats_script"
+    ),
     refresh_session=functools.partial(refresh_session, requests_session=session),
 )
 # NOTE: Started from main(), not here. Importing a module should not spawn a

@@ -7,11 +7,17 @@ from requests.exceptions import RequestException
 
 from prism.flashlight.auth.errors import (
     AuthError,
+    CredentialRejectedError,
     RefreshRateLimitedError,
     SessionExpiredError,
 )
 from prism.flashlight.auth.proof_of_work import Challenge, parse_challenge_response
-from prism.flashlight.auth.session import Session, parse_session_response
+from prism.flashlight.auth.session import (
+    MicrosoftGrant,
+    Session,
+    parse_microsoft_grant_response,
+    parse_session_response,
+)
 from prism.flashlight.headers import make_flashlight_client_headers
 from prism.flashlight.url import FLASHLIGHT_API_URL
 
@@ -151,3 +157,83 @@ def refresh_session(
         raise AuthError(f"Session refresh failed, status code {response.status_code}")
 
     return parse_session_response(_parse_json(response, path=path))
+
+
+def microsoft_exchange(
+    *,
+    requests_session: requests.Session,
+    result: str,
+    verifier: str,
+) -> MicrosoftGrant:  # pragma: nocover
+    """Exchange the sign-in callback's result for a Microsoft-tier session"""
+    path = "/v1/auth/microsoft/exchange"
+    response = _post_json(
+        requests_session,
+        path=path,
+        body={"result": result, "verifier": verifier},
+        headers=make_flashlight_client_headers(),
+    )
+
+    if response.status_code == 401:
+        # An expired or invalid result, or the wrong verifier
+        raise CredentialRejectedError("Flashlight rejected the sign-in result")
+
+    if not response.ok:
+        raise AuthError(
+            f"Microsoft exchange failed, status code {response.status_code}"
+        )
+
+    return parse_microsoft_grant_response(_parse_json(response, path=path))
+
+
+def recover(
+    credential: str,
+    *,
+    requests_session: requests.Session,
+) -> MicrosoftGrant:  # pragma: nocover
+    """
+    Trade a credential for a new session and the credential's successor
+
+    The credential we sent goes stale a minute after this succeeds, so the
+    successor must be stored before the session is used.
+    """
+    path = "/v1/auth/recover"
+    response = _post_json(
+        requests_session,
+        path=path,
+        body={"credential": credential},
+        headers=make_flashlight_client_headers(),
+    )
+
+    if response.status_code == 401:
+        raise CredentialRejectedError("Flashlight rejected our Microsoft credential")
+
+    if not response.ok:
+        # 429 and 5xx: keep the credential and back off
+        raise AuthError(f"Recover failed, status code {response.status_code}")
+
+    return parse_microsoft_grant_response(_parse_json(response, path=path))
+
+
+def logout(
+    credential: str,
+    *,
+    requests_session: requests.Session,
+) -> None:  # pragma: nocover
+    """
+    Delete every credential of the credential's identity
+
+    Live sessions stay valid until their 24 h cap. Raises `AuthError` when the
+    user should keep their local state and retry.
+    """
+    path = "/v1/auth/logout"
+    response = _post_json(
+        requests_session,
+        path=path,
+        body={"credential": credential},
+        headers=make_flashlight_client_headers(),
+    )
+
+    # 401 is an unknown credential - nothing left to sign out of
+    if response.status_code not in (204, 401):
+        raise AuthError(f"Logout failed, status code {response.status_code}")
