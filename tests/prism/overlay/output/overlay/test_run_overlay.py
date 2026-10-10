@@ -1,9 +1,15 @@
 import pytest
 
+from prism.flashlight.auth.errors import CredentialRejectedError
 from prism.overlay.controller import OverlayController
-from prism.overlay.output.overlay.run_overlay import get_stat_list
+from prism.overlay.output.cells import InfoCellValue
+from prism.overlay.output.overlay.run_overlay import (
+    get_microsoft_signin_ended_info_cell,
+    get_stat_list,
+)
 from prism.overlay.player_cache import PlayerCache
 from prism.player import KnownPlayer, PendingPlayer, Player
+from tests.prism.auth_utils import make_microsoft_auth_manager, make_session
 from tests.prism.overlay.utils import (
     create_controller,
     create_state,
@@ -205,3 +211,30 @@ def test_get_stat_list(
         for _ in range(controller.requested_stats_queue.qsize())
     }
     assert requested_stats == expected_requested_stats
+
+
+def test_no_signin_ended_info_cell_while_signed_in() -> None:
+    manager, _, _, _ = make_microsoft_auth_manager(
+        microsoft_results=[make_session(tier="microsoft")]
+    )
+    manager.reconcile()
+
+    assert get_microsoft_signin_ended_info_cell(manager) is None
+
+
+def test_signin_ended_info_cell_until_dismissed() -> None:
+    manager, _, _, _ = make_microsoft_auth_manager(
+        microsoft_results=[CredentialRejectedError("401")],
+        anonymous_results=[make_session()],
+    )
+    manager.reconcile()
+
+    assert get_microsoft_signin_ended_info_cell(manager) == InfoCellValue(
+        text="Microsoft sign-in ended - sign in again in settings",
+        color="orange",
+        url=None,
+    )
+
+    manager.dismiss_signin_ended()
+
+    assert get_microsoft_signin_ended_info_cell(manager) is None

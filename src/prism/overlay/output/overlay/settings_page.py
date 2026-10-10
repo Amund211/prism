@@ -10,6 +10,11 @@ from typing import TYPE_CHECKING, Any, Literal
 from prism.overlay.behaviour import update_settings
 from prism.overlay.controller import OverlayController
 from prism.overlay.keybinds import AlphanumericKey, Key
+from prism.overlay.microsoft_account import (
+    MANAGE_SIGNINS_URL,
+    AccountView,
+    MicrosoftAccount,
+)
 from prism.overlay.output.cells import (
     ALL_COLUMN_NAMES_ORDERED,
     DEFAULT_COLUMN_ORDER,
@@ -68,6 +73,218 @@ class SupportSection:  # pragma: nocover
         )
         discord_button.pack(side=tk.TOP)
         parent.make_widgets_scrollable(discord_button)
+
+
+class MicrosoftAccountSection:  # pragma: nocover
+    """Sign in and out of Microsoft. Acts at once - not part of on_save."""
+
+    def __init__(self, parent: "SettingsPage", account: MicrosoftAccount) -> None:
+        self.account = account
+        self.frame = parent.make_section("Microsoft account")
+        self.frame.columnconfigure(0, weight=1)
+
+        def make_label(row: int, font_size: int, color: str = "white") -> tk.Label:
+            label = tk.Label(
+                self.frame,
+                font=("Consolas", font_size),
+                foreground=color,
+                background="black",
+                justify=tk.LEFT,
+                wraplength=400,
+            )
+            label.grid(row=row, column=0, columnspan=2, sticky=tk.W)
+            return label
+
+        self.info_label = make_label(0, 12)
+        self.status_label = make_label(1, 10)
+        self.message_label = make_label(2, 10, color="orange")
+
+        self.start_url_variable = tk.StringVar()
+        self.start_url_entry = tk.Entry(
+            self.frame,
+            textvariable=self.start_url_variable,
+            state="readonly",
+            readonlybackground="black",
+            foreground="white",
+        )
+        self.start_url_entry.grid(row=3, column=0, sticky=tk.W + tk.E)
+        self.copy_button = tk.Button(
+            self.frame,
+            text="COPY LINK",
+            font=("Consolas", 10),
+            foreground="white",
+            background="black",
+            command=self._copy_start_url,
+            relief="flat",
+            cursor="hand2",
+        )
+        self.copy_button.grid(row=3, column=1, padx=(5, 0))
+
+        buttons_frame = tk.Frame(self.frame, background="black")
+        buttons_frame.grid(row=4, column=0, columnspan=2, sticky=tk.W, pady=(3, 0))
+        self.primary_button = tk.Button(
+            buttons_frame,
+            font=("Consolas", 12),
+            foreground="white",
+            background="#2F2F2F",
+            disabledforeground="gray",
+            relief="flat",
+            cursor="hand2",
+        )
+        self.primary_button.pack(side=tk.LEFT)
+        self.manage_button = tk.Button(
+            buttons_frame,
+            text="Manage sign-ins",
+            font=("Consolas", 12),
+            foreground="white",
+            background="black",
+            command=functools.partial(open_url, MANAGE_SIGNINS_URL),
+            relief="flat",
+            cursor="hand2",
+        )
+
+        self.confirm_frame = tk.Frame(self.frame, background="black")
+        self.confirm_frame.grid(row=5, column=0, columnspan=2, sticky=tk.W)
+        confirm_label = tk.Label(
+            self.confirm_frame,
+            text=(
+                "This also signs out every browser and other overlay "
+                "signed in to this account. Sign out?"
+            ),
+            font=("Consolas", 10),
+            foreground="orange",
+            background="black",
+            justify=tk.LEFT,
+            wraplength=400,
+        )
+        confirm_label.pack(side=tk.TOP, anchor=tk.W)
+        confirm_yes_button = tk.Button(
+            self.confirm_frame,
+            text="Sign out everywhere",
+            font=("Consolas", 10),
+            foreground="white",
+            background="#8B0000",
+            command=self._confirm_sign_out,
+            relief="flat",
+            cursor="hand2",
+        )
+        confirm_yes_button.pack(side=tk.LEFT)
+        confirm_no_button = tk.Button(
+            self.confirm_frame,
+            text="Keep me signed in",
+            font=("Consolas", 10),
+            foreground="white",
+            background="black",
+            command=lambda: self._set_confirming(False),
+            relief="flat",
+            cursor="hand2",
+        )
+        confirm_no_button.pack(side=tk.LEFT, padx=(5, 0))
+
+        parent.make_widgets_scrollable(
+            self.info_label,
+            self.status_label,
+            self.message_label,
+            self.start_url_entry,
+            self.copy_button,
+            buttons_frame,
+            self.primary_button,
+            self.manage_button,
+            self.confirm_frame,
+            confirm_label,
+            confirm_yes_button,
+            confirm_no_button,
+        )
+
+        self._confirming = False
+        # Rendered on page open, so the name lookup waits until it is needed
+        self._rendered: tuple[AccountView, bool] | None = None
+
+    def page_opened(self) -> None:
+        self._confirming = False
+        self.account.page_opened()
+        self.update()
+
+    def update(self) -> None:
+        """Show the latest state. Called from the overlay's update loop."""
+        view = self.account.view()
+        if not view.signed_in or not view.can_sign_out:
+            self._confirming = False
+
+        if self._rendered == (view, self._confirming):
+            return
+        self._rendered = (view, self._confirming)
+        self._render(view)
+
+    def _set_confirming(self, confirming: bool) -> None:
+        self._confirming = confirming
+        self.update()
+
+    def _confirm_sign_out(self) -> None:
+        self._confirming = False
+        self.account.sign_out()
+        self.update()
+
+    def _copy_start_url(self) -> None:
+        self.frame.clipboard_clear()
+        self.frame.clipboard_append(self.start_url_variable.get())
+
+    @staticmethod
+    def _show(widget: tk.Label, text: str | None) -> None:
+        if text is None:
+            widget.grid_remove()
+        else:
+            widget.configure(text=text)
+            widget.grid()
+
+    def _render(self, view: AccountView) -> None:
+        if view.signed_in:
+            self.info_label.configure(text=f"Signed in as {view.name}")
+            self.primary_button.configure(
+                text="Sign out everywhere",
+                command=lambda: self._set_confirming(True),
+                state=(
+                    tk.NORMAL
+                    if view.can_sign_out and not self._confirming
+                    else tk.DISABLED
+                ),
+            )
+            self.manage_button.pack(side=tk.LEFT, padx=(5, 0))
+        else:
+            self.info_label.configure(
+                text=(
+                    "Sign in with the Microsoft account you play Minecraft on "
+                    "to get your own personal stats lookup quota."
+                )
+            )
+            if view.can_cancel:
+                self.primary_button.configure(
+                    text="Cancel", command=self.account.cancel_sign_in, state=tk.NORMAL
+                )
+            else:
+                self.primary_button.configure(
+                    text="Sign in with Microsoft",
+                    command=self.account.sign_in,
+                    state=tk.NORMAL if view.can_sign_in else tk.DISABLED,
+                )
+            self.manage_button.pack_forget()
+
+        self._show(self.status_label, view.status)
+        self._show(self.message_label, view.message)
+
+        if view.start_url is None:
+            self.start_url_variable.set("")
+            self.start_url_entry.grid_remove()
+            self.copy_button.grid_remove()
+        else:
+            self.start_url_variable.set(view.start_url)
+            self.start_url_entry.grid()
+            self.copy_button.grid()
+
+        if self._confirming:
+            self.confirm_frame.grid()
+        else:
+            self.confirm_frame.grid_remove()
 
 
 @dataclass(frozen=True, slots=True)
@@ -1332,6 +1549,7 @@ class SettingsPage:  # pragma: nocover
         parent: tk.Misc,
         overlay: "StatsOverlay",
         controller: OverlayController,
+        microsoft_account: MicrosoftAccount,
     ) -> None:
         """Set up a frame containing the settings page for the overlay"""
         # Gates preview refreshes. Off during widget construction (var traces
@@ -1394,6 +1612,9 @@ class SettingsPage:  # pragma: nocover
         self.preview.frame.pack(side=tk.RIGHT, fill=tk.Y, padx=(5, 0))
 
         SupportSection(self)
+        self.microsoft_account_section = MicrosoftAccountSection(
+            self, microsoft_account
+        )
         self.general_settings_section = GeneralSettingSection(self)
         self.autowho_section = AutoWhoSection(self)
         self.display_section = DisplaySection(
@@ -1413,6 +1634,10 @@ class SettingsPage:  # pragma: nocover
         settings_frame_wrapper.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         self._preview_active = True
+
+    def poll(self) -> None:
+        """Show state changed by other threads. Called while the page is open."""
+        self.microsoft_account_section.update()
 
     def _trace_for_preview(self, var: tk.Variable) -> None:
         """Attach a write-trace that refreshes the preview when `var` changes."""
@@ -1541,6 +1766,10 @@ class SettingsPage:  # pragma: nocover
                 GraphicsSettings(alpha_hundredths=settings.alpha_hundredths)
             )
             self.stats_section.set(settings.rating_configs)
+
+    def on_open(self) -> None:
+        """Show the latest account state when the user opens the settings page"""
+        self.microsoft_account_section.page_opened()
 
     def on_close(self) -> None:
         """Reset window alpha when leaving settings page"""

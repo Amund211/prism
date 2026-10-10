@@ -39,7 +39,7 @@ class FlashlightAccountProvider:
         """Return the number of seconds until we are unblocked"""
         return self._limiter.block_duration_seconds
 
-    def _make_account_by_username_request(
+    def _make_account_request(
         self,
         *,
         url: str,
@@ -80,15 +80,39 @@ class FlashlightAccountProvider:
         user_id: str,
     ) -> Account:  # pragma: nocover
         """Get the account information for the given username from flashlight"""
+        return self._get_account(
+            f"{FLASHLIGHT_API_URL}/v1/account/username/{username}",
+            description=f"{username=}",
+            user_id=user_id,
+        )
+
+    def get_account_by_uuid(
+        self,
+        uuid: str,
+        *,
+        user_id: str,
+    ) -> Account:  # pragma: nocover
+        """Get the account information for the given uuid from flashlight"""
+        return self._get_account(
+            f"{FLASHLIGHT_API_URL}/v1/account/uuid/{uuid}",
+            description=f"{uuid=}",
+            user_id=user_id,
+        )
+
+    def _get_account(
+        self,
+        url: str,
+        *,
+        description: str,
+        user_id: str,
+    ) -> Account:  # pragma: nocover
         # NOTE: The flashlight API does **not** allow third-party access.
         #       Do not send any requests to any endpoints without explicit permission.
         #       Reach out on Discord for more information. https://discord.gg/k4FGUnEHYg
-        url = f"{FLASHLIGHT_API_URL}/v1/account/username/{username}"
-
         try:
             response = execute_with_retry(
                 functools.partial(
-                    self._make_account_by_username_request,
+                    self._make_account_request,
                     url=url,
                     user_id=user_id,
                 ),
@@ -96,17 +120,17 @@ class FlashlightAccountProvider:
                 initial_timeout=self._initial_timeout,
             )
         except ExecutionError as e:
-            raise APIError(f"Request to flashlight failed for {username=}.") from e
+            raise APIError(f"Request to flashlight failed for {description}.") from e
 
         if response.status_code == 404:
             raise PlayerNotFoundError(
-                f"Player with username {username} not found from Flashlight API."
+                f"Player with {description} not found from Flashlight API."
             )
 
         if not response:
             raise APIError(
                 f"Request to flashlight failed with status code "
-                f"{response.status_code} when getting account for {username=}. "
+                f"{response.status_code} when getting account for {description}. "
                 f"Response: {response.text}"
             )
 
