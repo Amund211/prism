@@ -14,6 +14,7 @@ class Options:
     test_ssl: bool
     test_pow: str | None
     test: bool
+    preview_signin_page: bool
 
 
 def resolve_path(p: str) -> Path:  # pragma: no cover
@@ -78,6 +79,13 @@ def get_options(
         action="store_true",
     )
 
+    # Serves every state of the sign-in callback page, with a control panel
+    parser.add_argument(
+        "--preview-signin-page",
+        help=argparse.SUPPRESS,
+        action="store_true",
+    )
+
     # Parse the args
     # Parses from sys.argv if args is None
     parsed = parser.parse_args(args=args)
@@ -89,6 +97,7 @@ def get_options(
     assert isinstance(parsed.test_ssl, bool)
     assert parsed.test_pow is None or isinstance(parsed.test_pow, str)
     assert isinstance(parsed.test, bool)
+    assert isinstance(parsed.preview_signin_page, bool)
 
     if parsed.verbose <= 0:
         # Default loglevel to INFO
@@ -111,4 +120,5 @@ def get_options(
         test_ssl=parsed.test_ssl,
         test_pow=parsed.test_pow,
         test=parsed.test,
+        preview_signin_page=parsed.preview_signin_page,
     )
