@@ -8,6 +8,7 @@ Build the library with `uv run build_powsolve.py`.
 
 import ctypes
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 SOURCE_PATH = Path(__file__).with_name("powsolve.c")
@@ -22,7 +23,7 @@ else:  # pragma: nocover
 LIBRARY_PATH = SOURCE_PATH.with_name(LIBRARY_NAME)
 
 # Must match ABI_VERSION, SOLUTION_DIGITS and MAX_COUNTER in powsolve.c
-ABI_VERSION = 2
+ABI_VERSION = 3
 SOLUTION_DIGITS = 12
 MAX_COUNTER = 10**SOLUTION_DIGITS
 
@@ -37,6 +38,14 @@ CHUNK_SIZE = 1 << 20
 
 class NativePowError(Exception):
     """The native solver failed or can't be used"""
+
+
+class SolveStopped(Exception):
+    """`should_stop` stopped a solve after `hashes` attempts"""
+
+    def __init__(self, hashes: int) -> None:
+        super().__init__(f"Stopped after {hashes} hashes")
+        self.hashes = hashes
 
 
 class NativeLibrary:
@@ -98,16 +107,21 @@ class NativeLibrary:
         *,
         start: int = 0,
         end: int = MAX_COUNTER,
+        should_stop: Callable[[], bool] = lambda: False,
     ) -> str:
         """
         Return the first solution in counters [start, end)
 
-        Raises NativePowError if there is none, or on bad arguments.
+        Calls `should_stop` before each chunk, and raises SolveStopped when it
+        returns True. Raises NativePowError if there is no solution, or on bad
+        arguments.
         """
         impl = _impl_id(name)
         found = ctypes.c_uint64()
         width = ctypes.c_uint32()
-        for chunk_start in range(start, end, CHUNK_SIZE):
+        for chunks, chunk_start in enumerate(range(start, end, CHUNK_SIZE)):
+            if should_stop():
+                raise SolveStopped(chunks * CHUNK_SIZE)
             chunk_end = min(chunk_start + CHUNK_SIZE, end)
             result = self._lib.pow_solve(
                 impl,

@@ -33,7 +33,7 @@
 #endif
 
 // Bump when the exported functions change. Checked by the loader.
-#define ABI_VERSION 2
+#define ABI_VERSION 3
 
 #define SOLUTION_DIGITS 12
 #define MAX_COUNTER 1000000000000ULL
@@ -287,6 +287,19 @@ EXPORT int pow_sha256(int impl, const uint8_t *data, size_t len, uint8_t out[32]
     return 0;
 }
 
+// True if the digest in `state` has at least `difficulty` leading zero bits.
+// Out of line and cold, so the hot loop compiles as it did with one word.
+__attribute__((noinline, cold)) static int meets_difficulty(const uint32_t state[8],
+                                                            int difficulty) {
+    int i = 0;
+    for (; difficulty >= 32; difficulty -= 32, i++) {
+        if (state[i] != 0) {
+            return 0;
+        }
+    }
+    return difficulty == 0 || (state[i] >> (32 - difficulty)) == 0;
+}
+
 // Search counters in [start, end) for the first one where
 // SHA-256(prefix || solution) has at least `difficulty` leading zero bits.
 // The solution is the counter in *width zero-padded decimal digits.
@@ -295,7 +308,7 @@ EXPORT int pow_sha256(int impl, const uint8_t *data, size_t len, uint8_t out[32]
 EXPORT int pow_solve(int impl, const uint8_t *prefix, size_t len, int difficulty,
                      uint64_t start, uint64_t end, uint64_t *found, uint32_t *width) {
     compress_fn compress = get_compress(impl);
-    if (compress == NULL || difficulty < 0 || difficulty > 32 || start > end ||
+    if (compress == NULL || difficulty < 0 || difficulty > 256 || start > end ||
         end > MAX_COUNTER) {
         return -1;
     }
@@ -328,13 +341,16 @@ EXPORT int pow_solve(int impl, const uint8_t *prefix, size_t len, int difficulty
     size_t blocks = pad(buf, tail, tail_len + SOLUTION_DIGITS, len + SOLUTION_DIGITS);
     uint8_t *digits = buf + tail_len;
 
-    // The first state word holds the leading 32 bits of the digest
-    uint32_t mask = difficulty == 0 ? 0 : 0xffffffffu << (32 - difficulty);
+    // The first state word holds the leading 32 bits of the digest. Testing it
+    // alone is the fast path; the other words are only read after it passes.
+    uint32_t mask = difficulty == 0    ? 0
+                    : difficulty >= 32 ? 0xffffffffu
+                                       : 0xffffffffu << (32 - difficulty);
     for (uint64_t counter = start; counter < end; counter++) {
         uint32_t state[8];
         memcpy(state, mid, sizeof state);
         compress(state, buf, blocks);
-        if ((state[0] & mask) == 0) {
+        if ((state[0] & mask) == 0 && meets_difficulty(state, difficulty)) {
             *found = counter;
             *width = (uint32_t)(zeros + SOLUTION_DIGITS);
             return 1;
