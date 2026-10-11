@@ -100,6 +100,50 @@ static void compress_portable(uint32_t s[8], const uint8_t *p, size_t blocks) {
     }
 }
 
+// Four lanes in one vector: SSE2 on x86_64, NEON on arm64
+typedef uint32_t v4 __attribute__((vector_size(16)));
+
+// One block from midstate `mid` for each of four messages
+static void compress_portable_x4(const uint32_t mid[8], const uint8_t *const data[4],
+                                 v4 out[8]) {
+    v4 w[64];
+    for (int i = 0; i < 16; i++) {
+        for (int l = 0; l < 4; l++) {
+            const uint8_t *p = data[l] + 4 * i;
+            w[i][l] = (uint32_t)p[0] << 24 | (uint32_t)p[1] << 16 | (uint32_t)p[2] << 8 |
+                      (uint32_t)p[3];
+        }
+    }
+    for (int i = 16; i < 64; i++) {
+        v4 s0 = ROR(w[i - 15], 7) ^ ROR(w[i - 15], 18) ^ (w[i - 15] >> 3);
+        v4 s1 = ROR(w[i - 2], 17) ^ ROR(w[i - 2], 19) ^ (w[i - 2] >> 10);
+        w[i] = w[i - 16] + s0 + w[i - 7] + s1;
+    }
+    v4 zero = {0, 0, 0, 0};
+    v4 a = zero + mid[0], b = zero + mid[1], c = zero + mid[2], d = zero + mid[3];
+    v4 e = zero + mid[4], f = zero + mid[5], g = zero + mid[6], h = zero + mid[7];
+    for (int i = 0; i < 64; i++) {
+        v4 t1 = h + (ROR(e, 6) ^ ROR(e, 11) ^ ROR(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + w[i];
+        v4 t2 = (ROR(a, 2) ^ ROR(a, 13) ^ ROR(a, 22)) + ((a & b) ^ (a & c) ^ (b & c));
+        h = g;
+        g = f;
+        f = e;
+        e = d + t1;
+        d = c;
+        c = b;
+        b = a;
+        a = t1 + t2;
+    }
+    out[0] = a + mid[0];
+    out[1] = b + mid[1];
+    out[2] = c + mid[2];
+    out[3] = d + mid[3];
+    out[4] = e + mid[4];
+    out[5] = f + mid[5];
+    out[6] = g + mid[6];
+    out[7] = h + mid[7];
+}
+
 #ifdef HAVE_SHA_NI
 // Intel SHA extensions. Present on AMD Zen and on Intel since about 2019-2021,
 // missing on most older Intel desktop CPUs.
@@ -444,6 +488,42 @@ EXPORT int pow_solve(int impl, const uint8_t *prefix, size_t len, int difficulty
         }
     }
 #endif
+    // Four counters at a time; the generic loop below takes any left over.
+    // Every attempt is one block, thanks to the zero fill above.
+    if (compress == compress_portable) {
+        uint8_t bufs[4][64];
+        const uint8_t *datas[4];
+        for (int l = 0; l < 4; l++) {
+            memcpy(bufs[l], buf, 64);
+            for (int k = 0; k < l; k++) {
+                increment(bufs[l] + tail_len);
+            }
+            datas[l] = bufs[l];
+        }
+        for (; start + 3 < end; start += 4) {
+            v4 out[8];
+            compress_portable_x4(mid, datas, out);
+            for (int l = 0; l < 4; l++) {
+                if ((out[0][l] & mask) == 0) {
+                    uint32_t state[8];
+                    for (int k = 0; k < 8; k++) {
+                        state[k] = out[k][l];
+                    }
+                    if (meets_difficulty(state, difficulty)) {
+                        *found = start + l;
+                        *width = (uint32_t)(zeros + SOLUTION_DIGITS);
+                        return 1;
+                    }
+                }
+            }
+            for (int l = 0; l < 4; l++) {
+                for (int k = 0; k < 4; k++) {
+                    increment(bufs[l] + tail_len);
+                }
+            }
+        }
+        memcpy(buf, bufs[0], 64);
+    }
     for (uint64_t counter = start; counter < end; counter++) {
         uint32_t state[8];
         memcpy(state, mid, sizeof state);
