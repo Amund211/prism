@@ -6,15 +6,15 @@ import pytest
 import requests
 
 from prism.flashlight.auth import loopback
-from prism.flashlight.auth.loopback import Callback, LoopbackListener
+from prism.flashlight.auth.loopback import Callback, LoopbackListener, Page
 
 STATE = "the-expected-state"
 
 
-def describe(callback: Callback) -> str:
+def describe(callback: Callback) -> Page:
     if callback.error is not None:
-        return f"<failed: {callback.error}>"
-    return "Signed in"
+        return Page("<Failed>", f"<failed: {callback.error}>", "cross")
+    return Page("Got it", "Signed in", "check")
 
 
 @pytest.fixture(autouse=True)
@@ -57,7 +57,9 @@ def test_returns_the_result(http: requests.Session, listener: LoopbackListener) 
     assert response.status_code == 200
     assert response.headers["Cache-Control"] == "no-store"
     assert response.headers["Content-Type"] == "text/html; charset=utf-8"
-    assert "Signed in" in response.text
+    assert "<h1>Got it</h1>" in response.text
+    assert "<p>Signed in</p>" in response.text
+    assert 'class="badge check"' in response.text
     assert listener.wait(5) == Callback(result="the-result", error=None)
 
 
@@ -65,15 +67,29 @@ def test_returns_the_error(http: requests.Session, listener: LoopbackListener) -
     response = get(http, listener, f"/callback?error=no_game&state={STATE}")
 
     assert response.status_code == 200
-    assert "&lt;failed: no_game&gt;" in response.text
+    assert "<h1>&lt;Failed&gt;</h1>" in response.text
+    assert "<p>&lt;failed: no_game&gt;</p>" in response.text
+    assert 'class="badge cross"' in response.text
     assert listener.wait(5) == Callback(result=None, error="no_game")
+
+
+def test_page_is_self_contained(
+    http: requests.Session, listener: LoopbackListener
+) -> None:
+    response = get(http, listener, f"/callback?result=the-result&state={STATE}")
+
+    assert "<script" not in response.text
+    assert "http://" not in response.text
+    assert "https://" not in response.text
 
 
 @pytest.mark.parametrize("path", ["/", "/favicon.ico", f"/callbacks?state={STATE}"])
 def test_ignores_other_paths(
     http: requests.Session, listener: LoopbackListener, path: str
 ) -> None:
-    assert get(http, listener, path).status_code == 404
+    response = get(http, listener, path)
+    assert response.status_code == 404
+    assert 'class="badge' not in response.text
     assert listener.wait(0) is None
 
     get(http, listener, f"/callback?result=the-result&state={STATE}")

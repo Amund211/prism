@@ -248,7 +248,9 @@ def test_signs_in(flow: Flow) -> None:
     assert response.status_code == 200
     # The exchange has not run yet, so the page cannot say "Signed in"
     assert "Signed in" not in response.text
+    assert "<h1>Return to Prism</h1>" in response.text
     assert "close this tab and return to Prism" in response.text
+    assert 'class="badge check"' in response.text
     assert flow.wait_until_finished() == SignInStatus("done")
     assert flow.events == ["exchange", "write", "adopt"]
 
@@ -296,7 +298,9 @@ def test_callback_error(flow: Flow) -> None:
     response = flow.browser.callback(error="no_game")
 
     assert response.status_code == 200
+    assert "<h1>Sign-in failed</h1>" in response.text
     assert "does not own Minecraft Java Edition" in response.text
+    assert 'class="badge cross"' in response.text
     assert flow.wait_until_finished() == SignInStatus(
         "failed", "This Microsoft account does not own Minecraft Java Edition."
     )

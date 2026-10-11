@@ -2,12 +2,13 @@ import hmac
 import html
 import http.server
 import logging
+import string
 import threading
 import urllib.parse
 from collections.abc import Callable
 from dataclasses import dataclass
 from types import TracebackType
-from typing import Self
+from typing import Literal, Self
 
 logger = logging.getLogger(__name__)
 
@@ -27,15 +28,125 @@ class Callback:
     error: str | None
 
 
-_PAGE = """<!doctype html>
+@dataclass(frozen=True, slots=True)
+class Page:
+    """What the browser's page shows"""
+
+    heading: str
+    message: str
+    badge: Literal["check", "cross"] | None = None
+
+
+_BADGES = {
+    "check": """<div class="badge check"><svg width="28" height="28" \
+viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" \
+stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">\
+<path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>""",
+    "cross": """<div class="badge cross"><svg width="28" height="28" \
+viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" \
+stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">\
+<path d="M7 7l10 10M17 7L7 17"/></svg></div>""",
+}
+
+# Self-contained: served offline from the loopback server
+_PAGE = string.Template("""<!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><title>Prism</title></head>
-<body style="font-family: sans-serif; text-align: center; margin-top: 4em">
-<h1>Prism</h1>
-<p>{message}</p>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>$title</title>
+<style>
+:root {
+  --bg: #0f1115;
+  --text: #ffffff;
+  --dim: #9aa3b2;
+  --win: #4ade80;
+  --loss: #f87171;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f5f6f8;
+    --text: #1a1d24;
+    --dim: #5b6473;
+    --win: #16a34a;
+    --loss: #dc2626;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg);
+  font-family: Roboto, system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.strip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg, #ef4444, #f59e0b, #eab308, #22c55e, #06b6d4, #6366f1, #a855f7
+  );
+}
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 380px;
+  text-align: center;
+}
+.badge {
+  --tone: var(--win);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tone) 40%, transparent);
+}
+.badge.cross { --tone: var(--loss); }
+.text { display: flex; flex-direction: column; gap: 8px; }
+h1 { margin: 0; font-size: 22px; font-weight: 600; color: var(--text); }
+p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--dim);
+  text-wrap: pretty;
+}
+</style>
+</head>
+<body>
+<div class="strip"></div>
+<main>
+$badge
+<div class="text">
+<h1>$heading</h1>
+<p>$message</p>
+</div>
+</main>
 </body>
 </html>
-"""
+""")
+
+
+def render_page(page: Page) -> str:
+    return _PAGE.substitute(
+        title=html.escape(f"{page.heading} · Prism"),
+        badge="" if page.badge is None else _BADGES[page.badge],
+        heading=html.escape(page.heading),
+        message=html.escape(page.message),
+    )
 
 
 class _Server(http.server.ThreadingHTTPServer):
@@ -53,18 +164,18 @@ class _Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         url = urllib.parse.urlsplit(self.path)
         if url.path != CALLBACK_PATH:
-            self._respond(404, "Not found")
+            self._respond(404, Page("Not found", ""))
             return
 
-        message = self.server.listener._accept(dict(urllib.parse.parse_qsl(url.query)))
-        if message is None:
-            self._respond(400, "Bad request")
+        page = self.server.listener._accept(dict(urllib.parse.parse_qsl(url.query)))
+        if page is None:
+            self._respond(400, Page("Bad request", ""))
             return
 
-        self._respond(200, message)
+        self._respond(200, page)
 
-    def _respond(self, status: int, message: str) -> None:
-        body = _PAGE.format(message=html.escape(message)).encode("utf-8")
+    def _respond(self, status: int, page: Page) -> None:
+        body = render_page(page).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
@@ -90,8 +201,8 @@ class LoopbackListener:
     callback; PKCE makes the result token useless to it.
     """
 
-    def __init__(self, *, state: str, describe: Callable[[Callback], str]) -> None:
-        """`describe` gives the message for the browser's page"""
+    def __init__(self, *, state: str, describe: Callable[[Callback], Page]) -> None:
+        """`describe` gives the browser's page"""
         self._state = state
         self._describe = describe
         self._lock = threading.Lock()
@@ -149,8 +260,8 @@ class LoopbackListener:
             self._server.shutdown()
         self._server.server_close()
 
-    def _accept(self, query: dict[str, str]) -> str | None:
-        """Take a callback, and return the page's message, or None to refuse it"""
+    def _accept(self, query: dict[str, str]) -> Page | None:
+        """Take a callback, and return the page, or None to refuse it"""
         state = query.get("state", "")
         if not hmac.compare_digest(state.encode(), self._state.encode()):
             return None
