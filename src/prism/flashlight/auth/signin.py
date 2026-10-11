@@ -10,7 +10,7 @@ from typing import Literal, Protocol
 
 from prism.flashlight.auth.credential_store import CredentialStore, StoredCredential
 from prism.flashlight.auth.errors import AuthError, CredentialRejectedError
-from prism.flashlight.auth.loopback import Callback, LoopbackListener
+from prism.flashlight.auth.loopback import Callback, LoopbackListener, Page
 from prism.flashlight.auth.manager import MicrosoftLoginMethod
 from prism.flashlight.auth.microsoft import MicrosoftRecover, Recover
 from prism.flashlight.auth.session import MicrosoftGrant, Session
@@ -70,10 +70,10 @@ def make_pkce() -> tuple[str, str]:
     return verifier, challenge
 
 
-def _describe(callback: Callback) -> str:
+def _describe(callback: Callback) -> Page:
     if callback.error is not None:
-        return error_message(callback.error)
-    return CALLBACK_RECEIVED_MESSAGE
+        return Page("Sign-in failed", error_message(callback.error), "cross")
+    return Page("Return to Prism", CALLBACK_RECEIVED_MESSAGE, "check")
 
 
 SignInState = Literal["idle", "waiting_for_browser", "exchanging", "failed", "done"]
