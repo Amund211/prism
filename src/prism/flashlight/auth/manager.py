@@ -41,6 +41,8 @@ RATE_LIMITED_REFRESH_DELAY_SECONDS = 300.0
 
 # How long to suggest Microsoft sign-in after a 429 or a slow solve
 SIGNIN_SUGGESTION_SECONDS = 60.0
+# How long after the suggestion goes away before it can show again
+SIGNIN_SUGGESTION_COOLDOWN_SECONDS = 15 * 60.0
 
 
 class LoginMethod(Protocol):  # pragma: nocover
@@ -155,6 +157,7 @@ class AuthManager:
         # Monotonic times of the last 429 or slow solve, and of the last dismissal
         self._limited_at: float | None = None
         self._dismissed_at: float | None = None
+        self._suggestion_cooldown_until = monotonic()
 
     @property
     def tier(self) -> str:
@@ -190,12 +193,7 @@ class AuthManager:
         until the next one.
         """
         with self._condition:
-            limited_at = self._limited_at
-            if self._microsoft_login is not None or limited_at is None:
-                return False
-            if self._dismissed_at is not None and limited_at <= self._dismissed_at:
-                return False
-            return self._monotonic() - limited_at < SIGNIN_SUGGESTION_SECONDS
+            return self._suggestion_shown(self._monotonic())
 
     def note_rate_limited(self) -> None:
         """Flashlight answered a request with 429"""
@@ -204,12 +202,35 @@ class AuthManager:
     def dismiss_signin_suggestion(self) -> None:
         """The user has seen the suggestion to sign in"""
         with self._condition:
-            self._dismissed_at = self._monotonic()
+            self._dismiss_signin_suggestion()
+
+    def _dismiss_signin_suggestion(self) -> None:
+        """Caller holds the condition"""
+        now = self._monotonic()
+        if self._suggestion_shown(now):
+            self._suggestion_cooldown_until = now + SIGNIN_SUGGESTION_COOLDOWN_SECONDS
+        self._dismissed_at = now
+
+    def _suggestion_shown(self, now: float) -> bool:
+        """Caller holds the condition"""
+        limited_at = self._limited_at
+        if self._microsoft_login is not None or limited_at is None:
+            return False
+        if self._dismissed_at is not None and limited_at <= self._dismissed_at:
+            return False
+        return now - limited_at < SIGNIN_SUGGESTION_SECONDS
 
     def _note_limited(self) -> None:
         with self._condition:
-            if self._microsoft_login is None:
-                self._limited_at = self._monotonic()
+            now = self._monotonic()
+            if self._microsoft_login is not None:
+                return
+            if now < self._suggestion_cooldown_until:
+                return
+            self._limited_at = now
+            self._suggestion_cooldown_until = (
+                now + SIGNIN_SUGGESTION_SECONDS + SIGNIN_SUGGESTION_COOLDOWN_SECONDS
+            )
 
     @property
     def consecutive_failures(self) -> int:
@@ -353,7 +374,7 @@ class AuthManager:
             self._microsoft_login = login_method
             self._microsoft_signin_ended = False
             # The user knows about sign-in now
-            self._dismissed_at = self._monotonic()
+            self._dismiss_signin_suggestion()
             self._epoch += 1
             self._succeed(session, self._epoch)
 
