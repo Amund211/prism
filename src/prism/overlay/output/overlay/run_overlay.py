@@ -98,6 +98,18 @@ def get_microsoft_signin_ended_info_cell(auth: AuthManager) -> InfoCellValue | N
     )
 
 
+SIGNIN_SUGGESTION_TEXT = (
+    "Tip: sign in with Microsoft in settings to get increased usage limits"
+)
+
+
+def get_signin_suggestion_info_cell(auth: AuthManager) -> InfoCellValue | None:
+    """An info cell suggesting Microsoft sign-in, when anonymous is too limited"""
+    if not auth.suggest_signin:
+        return None
+    return InfoCellValue(text=SIGNIN_SUGGESTION_TEXT, color="light blue", url=None)
+
+
 def run_overlay(
     controller: OverlayController,
     loglines: Iterable[str],
@@ -157,6 +169,10 @@ def run_overlay(
         signin_ended_cell = get_microsoft_signin_ended_info_cell(auth)
         if signin_ended_cell is not None:
             info_cells.append(signin_ended_cell)
+
+        signin_suggestion_cell = get_signin_suggestion_info_cell(auth)
+        if signin_suggestion_cell is not None:
+            info_cells.append(signin_suggestion_cell)
 
         if controller.urchin_api_key_invalid:
             info_cells.append(

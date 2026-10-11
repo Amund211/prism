@@ -6,6 +6,7 @@ import requests
 from requests.exceptions import RequestException
 
 from prism.flashlight.auth.errors import (
+    AnonymousRateLimitedError,
     AuthError,
     CredentialRejectedError,
     RefreshRateLimitedError,
@@ -79,6 +80,9 @@ def request_challenge(
         },
     )
 
+    if response.status_code == 429:
+        raise AnonymousRateLimitedError("Flashlight rate limited the challenge")
+
     if not response.ok:
         raise AuthError(
             f"Failed getting a proof-of-work challenge, "
@@ -108,6 +112,9 @@ def anonymous_login(
         body={"userId": user_id, "challenge": challenge, "solution": solution},
         headers={"X-User-Id": user_id, **make_flashlight_client_headers()},
     )
+
+    if response.status_code == 429:
+        raise AnonymousRateLimitedError("Flashlight rate limited the anonymous login")
 
     if not response.ok:
         # 403 is every verification failure at once - expired challenge, an IP

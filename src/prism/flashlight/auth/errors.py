@@ -32,6 +32,10 @@ class RefreshRateLimitedError(AuthError):
     """
 
 
+class AnonymousRateLimitedError(AuthError):
+    """Flashlight rate limited the anonymous challenge or login (429)"""
+
+
 class CredentialRejectedError(AuthError):
     """
     Flashlight rejected our Microsoft-tier credential (401 from /recover)

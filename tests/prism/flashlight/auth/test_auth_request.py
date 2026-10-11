@@ -71,6 +71,40 @@ def test_send_authenticated() -> None:
     assert send.auth_headers == [{"Authorization": f"Bearer {TEST_SESSION_ID}"}]
 
 
+def test_send_authenticated_notes_a_rate_limit() -> None:
+    manager, _, _ = make_auth_manager(login_results=[make_session()])
+    manager.reconcile()
+
+    response = send_authenticated(
+        auth=manager, send=RecordingSender([make_response(429)])
+    )
+
+    assert response.status_code == 429
+    assert manager.suggest_signin
+
+
+def test_send_authenticated_does_not_note_a_success_as_a_rate_limit() -> None:
+    manager, _, _ = make_auth_manager(login_results=[make_session()])
+    manager.reconcile()
+
+    send_authenticated(auth=manager, send=RecordingSender([make_response(200)]))
+
+    assert not manager.suggest_signin
+
+
+def test_send_authenticated_notes_a_rate_limit_on_the_retry() -> None:
+    lapsed = make_session(session_id="flsess_lapsed")
+    renewed = make_session(session_id="flsess_renewed")
+    manager, _, _ = make_auth_manager(login_results=[lapsed], refresh_results=[renewed])
+    manager.reconcile()
+    send = RecordingSender([make_response(401), make_response(429)])
+
+    with running_auth_thread(manager):
+        send_authenticated(auth=manager, send=send)
+
+    assert manager.suggest_signin
+
+
 def test_send_authenticated_without_a_session() -> None:
     """A NoSessionError is an APIError, so every call site already handles it"""
     manager = make_fast_forward_auth_manager()

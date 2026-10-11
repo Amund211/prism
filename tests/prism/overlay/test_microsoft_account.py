@@ -354,6 +354,18 @@ def test_page_opened_dismisses_signin_ended(tmp_path: Path) -> None:
     assert not auth.microsoft_signin_ended
 
 
+def test_page_opened_dismisses_the_signin_suggestion(tmp_path: Path) -> None:
+    auth, _, _ = make_auth_manager(login_results=[make_session()])
+    auth.reconcile()
+    auth.note_rate_limited()
+    account, _, _, _ = make_account(tmp_path, auth=auth)
+    assert auth.suggest_signin
+
+    account.page_opened()
+
+    assert not auth.suggest_signin
+
+
 def test_sign_out_is_refused_while_a_sign_in_runs(tmp_path: Path) -> None:
     account, signin, logout, _ = make_account(tmp_path, auth=make_signed_in_manager())
     signin.status = SignInStatus("exchanging")

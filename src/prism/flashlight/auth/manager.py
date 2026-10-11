@@ -6,11 +6,13 @@ from collections.abc import Callable
 from typing import Protocol
 
 from prism.flashlight.auth.errors import (
+    AnonymousRateLimitedError,
     AuthError,
     CredentialRejectedError,
     RefreshRateLimitedError,
     SessionExpiredError,
 )
+from prism.flashlight.auth.proof_of_work import SolveReport
 from prism.flashlight.auth.session import Session
 
 logger = logging.getLogger(__name__)
@@ -37,6 +39,9 @@ BACKOFF_MULTIPLIER = 2.0
 # untouched, so we keep using it and stop asking for a while.
 RATE_LIMITED_REFRESH_DELAY_SECONDS = 300.0
 
+# How long to suggest Microsoft sign-in after a 429 or a slow solve
+SIGNIN_SUGGESTION_SECONDS = 60.0
+
 
 class LoginMethod(Protocol):  # pragma: nocover
     """
@@ -53,6 +58,14 @@ class LoginMethod(Protocol):  # pragma: nocover
 
     def log_in(self) -> Session:
         """Establish a new session, or raise `AuthError`"""
+
+
+class AnonymousLoginMethod(LoginMethod, Protocol):  # pragma: nocover
+    """A `LoginMethod` for the anonymous tier"""
+
+    @property
+    def last_solve(self) -> SolveReport | None:
+        """The last proof-of-work, if any"""
 
 
 class MicrosoftLoginMethod(LoginMethod, Protocol):  # pragma: nocover
@@ -103,7 +116,7 @@ class AuthManager:
     def __init__(
         self,
         *,
-        anonymous_login: LoginMethod,
+        anonymous_login: AnonymousLoginMethod,
         microsoft_login: MicrosoftLoginMethod | None = None,
         refresh_session: RefreshSession,
         monotonic: Callable[[], float] = time.monotonic,
@@ -139,6 +152,9 @@ class AuthManager:
         self._microsoft_signin_ended = False
         # Bumped on a method swap, to drop the outcome of a pass in flight
         self._epoch = 0
+        # Monotonic times of the last 429 or slow solve, and of the last dismissal
+        self._limited_at: float | None = None
+        self._dismissed_at: float | None = None
 
     @property
     def tier(self) -> str:
@@ -164,6 +180,36 @@ class AuthManager:
         """The user has seen that the Microsoft sign-in ended"""
         with self._condition:
             self._microsoft_signin_ended = False
+
+    @property
+    def suggest_signin(self) -> bool:
+        """
+        True for a while after the anonymous tier slowed the user down
+
+        That is a 429, or a slow solve. Hidden by `dismiss_signin_suggestion`
+        until the next one.
+        """
+        with self._condition:
+            limited_at = self._limited_at
+            if self._microsoft_login is not None or limited_at is None:
+                return False
+            if self._dismissed_at is not None and limited_at <= self._dismissed_at:
+                return False
+            return self._monotonic() - limited_at < SIGNIN_SUGGESTION_SECONDS
+
+    def note_rate_limited(self) -> None:
+        """Flashlight answered a request with 429"""
+        self._note_limited()
+
+    def dismiss_signin_suggestion(self) -> None:
+        """The user has seen the suggestion to sign in"""
+        with self._condition:
+            self._dismissed_at = self._monotonic()
+
+    def _note_limited(self) -> None:
+        with self._condition:
+            if self._microsoft_login is None:
+                self._limited_at = self._monotonic()
 
     @property
     def consecutive_failures(self) -> int:
@@ -306,6 +352,8 @@ class AuthManager:
         with self._condition:
             self._microsoft_login = login_method
             self._microsoft_signin_ended = False
+            # The user knows about sign-in now
+            self._dismissed_at = self._monotonic()
             self._epoch += 1
             self._succeed(session, self._epoch)
 
@@ -399,7 +447,7 @@ class AuthManager:
     ) -> Session:
         if microsoft_login is None:
             logger.info(f"Logging in to flashlight ({self._anonymous_login.tier})")
-            return self._anonymous_login.log_in()
+            return self._log_in_anonymously()
 
         logger.info(f"Logging in to flashlight ({microsoft_login.tier})")
         try:
@@ -415,7 +463,20 @@ class AuthManager:
         # No backoff: anonymous login is a different limiter, and every request
         # is waiting for a session.
         logger.warning("Microsoft sign-in ended - logging in anonymously")
-        return self._anonymous_login.log_in()
+        return self._log_in_anonymously()
+
+    def _log_in_anonymously(self) -> Session:
+        previous_solve = self._anonymous_login.last_solve
+        try:
+            return self._anonymous_login.log_in()
+        except AnonymousRateLimitedError:
+            self._note_limited()
+            raise
+        finally:
+            last_solve = self._anonymous_login.last_solve
+            is_new = last_solve is not previous_solve
+            if is_new and last_solve is not None and last_solve.slow:
+                self._note_limited()
 
     def _acquire(
         self,
