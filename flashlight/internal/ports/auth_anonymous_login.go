@@ -30,6 +30,10 @@ type anonymousLoginRequest struct {
 	// attackers can use is the same as having no proof-of-work at all.
 	Challenge string `json:"challenge"`
 	Solution  string `json:"solution"`
+	// Solver is optional telemetry, kept raw so a well-formed value of any
+	// shape can't fail the decode. Invalid JSON or a body over
+	// loginBodyMaxBytes is still a 400.
+	Solver json.RawMessage `json:"solver"`
 }
 
 // userIDMaxLength is the hard cap above which we reject the request.
@@ -61,6 +65,10 @@ const (
 // anonymous endpoint — a 100-char userId, a challenge blob and a solution,
 // all capped above — with room for the JSON around them.
 const authBodyMaxBytes = 2048
+
+// loginBodyMaxBytes adds room for the optional solver report, so a legal
+// report never turns a login into a 400.
+const loginBodyMaxBytes = authBodyMaxBytes + solverReportMaxBytes
 
 // validAnonymousUserID applies the shared shape check. The challenge and
 // login endpoints must agree on it exactly: the userId travels signed
@@ -98,7 +106,7 @@ func rejectProofOfWork(ctx context.Context, w http.ResponseWriter, r *http.Reque
 }
 
 // MakeAnonymousLoginHandler returns a handler for POST /v1/auth/anonymous/login.
-// Body: { userId, challenge, solution }. Response: a fresh session payload.
+// Body: { userId, challenge, solution, solver? }. Response: a fresh session payload.
 func MakeAnonymousLoginHandler(
 	login app.AnonymousLogin,
 	parseChallenge proofofwork.ParseChallenge,
@@ -174,7 +182,7 @@ func MakeAnonymousLoginHandler(
 		}
 
 		var body anonymousLoginRequest
-		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, authBodyMaxBytes)).Decode(&body); err != nil {
+		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, loginBodyMaxBytes)).Decode(&body); err != nil {
 			logging.FromContext(ctx).InfoContext(ctx, "Failed to decode anonymous login body", "error", err.Error())
 			http.Error(w, "Invalid request body", http.StatusBadRequest)
 			return
@@ -231,6 +239,8 @@ func MakeAnonymousLoginHandler(
 			rejectProofOfWork(ctx, w, r, checkErr)
 			return
 		}
+
+		recordSolverReport(ctx, r, body.Solver, challenge.Age(), challenge.Difficulty())
 
 		sess, err := login(ctx, body.UserID, ipHash)
 		switch {

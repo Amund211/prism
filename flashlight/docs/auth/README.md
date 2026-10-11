@@ -30,7 +30,12 @@ no row, no lookup, no cache; validating is a signature check. The payload holds
   without a client retrofit.
 - `POST /v1/auth/anonymous/login` `{userId, challenge, solution}` → `sessionId`,
   `tier`, and **durations, never timestamps**. The identity is the presented
-  `userId`.
+  `userId`. An optional `solver` report (name, version, hashes, elapsed) feeds
+  `pow_solve_*` after the proof verifies. A well-formed but bad report is
+  dropped; invalid JSON or a body over the cap is still a 400. It is
+  client-supplied: statistics only, never a decision. **Add a new solver
+  `version` to `knownSolverVersions` before a client ships it**, or it is
+  labelled `other`.
 - `POST /v1/auth/refresh` re-stamps `issuedAt`, bumps `generation` and seals **a
   new handle**. No proof, no minimum interval. The client must store what comes
   back.

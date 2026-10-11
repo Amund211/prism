@@ -589,6 +589,67 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 		require.Equal(t, http.StatusOK, postLogin(t, loginHandler, "1.2.3.4", body).Code)
 	})
 
+	// Telemetry must never block a login: whatever the solver field holds,
+	// the outcome is the proof's.
+	t.Run("the solver report never changes the outcome", func(t *testing.T) {
+		t.Parallel()
+		escaped := strings.Repeat(`\u0001`, 32)
+		for name, solver := range map[string]string{
+			"absent":           "",
+			"null":             `,"solver":null`,
+			"valid":            `,"solver":{"name":"sha-ni","version":"3","hashes":1048576,"elapsedSeconds":0.041,"cpuSeconds":0.04}`,
+			"not an object":    `,"solver":"sha-ni"`,
+			"wrong types":      `,"solver":{"name":7,"hashes":"many"}`,
+			"negative numbers": `,"solver":{"name":"sha-ni","hashes":-1,"elapsedSeconds":-1}`,
+			"long name":        fmt.Sprintf(`,"solver":{"name":%q}`, strings.Repeat("x", 500)),
+			"worst legal escaping": fmt.Sprintf(
+				`,"solver":{"name":"%s","version":"%s","hashes":9223372036854775807,"elapsedSeconds":-1.7976931348623157e+308,"cpuSeconds":-1.7976931348623157e+308}`,
+				escaped, escaped,
+			),
+		} {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+				issue, verify := newProofOfWorkScheme(t, 0)
+				handler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), verify, func() time.Time { return now })
+
+				// The worst legal userId and a real challenge, so the
+				// solver has to fit next to the largest legal rest of the body.
+				userID := strings.Repeat("\x01", 100)
+				challenge, err := issue(userID, ports.IP("1.2.3.4").Hash(), "prism")
+				require.NoError(t, err)
+				userIDJSON, err := json.Marshal(userID)
+				require.NoError(t, err)
+				body := fmt.Sprintf(`{"userId":%s,"challenge":%q,"solution":%q%s}`,
+					userIDJSON, challenge.Value, solveChallenge(t, challenge.Value, challenge.Difficulty), solver)
+
+				require.Equal(t, http.StatusOK, postLogin(t, handler, "1.2.3.4", body).Code)
+			})
+		}
+	})
+
+	t.Run("a solver past its own cap is dropped while the body fits", func(t *testing.T) {
+		t.Parallel()
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		handler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), acceptAnyProof, func() time.Time { return now })
+		body := fmt.Sprintf(`{"userId":"user-abc","challenge":"blob","solution":"1","solver":{"name":"sha-ni","pad":%q}}`, strings.Repeat("x", 1100))
+		require.Equal(t, http.StatusOK, postLogin(t, handler, "1.2.3.4", body).Code)
+	})
+
+	t.Run("400 on a solver that takes the body past its cap", func(t *testing.T) {
+		t.Parallel()
+		handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "with an oversized body"), acceptAnyProof, time.Now)
+		body := fmt.Sprintf(`{"userId":"user-abc","challenge":"blob","solution":"1","solver":{"name":"sha-ni","pad":%q}}`, strings.Repeat("x", 3100))
+		require.Equal(t, http.StatusBadRequest, postLogin(t, handler, "1.2.3.4", body).Code)
+	})
+
+	t.Run("400 on a solver that is not valid JSON", func(t *testing.T) {
+		t.Parallel()
+		handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "with invalid JSON"), acceptAnyProof, time.Now)
+		body := `{"userId":"user-abc","challenge":"blob","solution":"1","solver":{name:}}`
+		require.Equal(t, http.StatusBadRequest, postLogin(t, handler, "1.2.3.4", body).Code)
+	})
+
 	// The two endpoints agree on what a userId is, but that is only half of
 	// the handshake completing: the challenge they exchange is sized by the
 	// *marshalled* payload, and encoding/json escapes `&`, `<`, `>` and

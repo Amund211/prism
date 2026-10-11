@@ -21,6 +21,8 @@ type portsMetricsCollection struct {
 	powChallengeCount       metric.Int64Counter
 	powChallengeAge         metric.Float64Histogram
 	powRejectedLoginCount   metric.Int64Counter
+	powSolveDuration        metric.Float64Histogram
+	powSolveHashRate        metric.Float64Histogram
 }
 
 // powOutcomeAccepted labels an age sample from a proof that verified. Every
@@ -119,6 +121,30 @@ func init() {
 		panic(fmt.Errorf("failed to create pow rejected login count metric: %w", err))
 	}
 
+	// Client-reported, from logins whose proof verified. They split
+	// pow_challenge_age_seconds into solve time per solver, and show
+	// fallbacks (solver_name="python" or "inline") that are otherwise
+	// only visible in client logs.
+	powSolveDuration, err := meter.Float64Histogram(
+		"ports/pow_solve_duration_seconds",
+		metric.WithDescription("Client-reported proof-of-work solve time, by solver and difficulty"),
+		metric.WithUnit("s"),
+		metric.WithExplicitBucketBoundaries(0, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8, 15, 30, 60),
+	)
+	if err != nil {
+		panic(fmt.Errorf("failed to create pow solve duration metric: %w", err))
+	}
+
+	powSolveHashRate, err := meter.Float64Histogram(
+		"ports/pow_solve_hash_rate",
+		metric.WithDescription("Client-reported proof-of-work hash rate, by solver and difficulty"),
+		metric.WithUnit("{hash}/s"),
+		metric.WithExplicitBucketBoundaries(1e4, 3e4, 1e5, 3e5, 1e6, 3e6, 1e7, 3e7, 1e8, 3e8, 1e9),
+	)
+	if err != nil {
+		panic(fmt.Errorf("failed to create pow solve hash rate metric: %w", err))
+	}
+
 	metrics = portsMetricsCollection{
 		requestCount:            requestCount,
 		requestDuration:         requestDuration,
@@ -127,6 +153,8 @@ func init() {
 		powChallengeCount:       powChallengeCount,
 		powChallengeAge:         powChallengeAge,
 		powRejectedLoginCount:   powRejectedLoginCount,
+		powSolveDuration:        powSolveDuration,
+		powSolveHashRate:        powSolveHashRate,
 	}
 }
 
