@@ -128,6 +128,17 @@
       enabled: false,
     },
     {
+      // The CI postgres service must match the Cloud SQL version
+      // (flashlight-postgres). Cloud SQL moves on its own maintenance
+      // schedule, so updates wait for a tick on the Dependency Dashboard.
+      // The dashboard only offers the newest version per bucket (minor, major),
+      // which can be ahead of Cloud SQL. Edit the created PR to match exactly.
+      matchManagers: ["github-actions"],
+      matchDatasources: ["docker"],
+      matchPackageNames: ["postgres"],
+      dependencyDashboardApproval: true,
+    },
+    {
       // Of all the container registries, only Docker Hub reports a release
       // timestamp to renovate (renovatebot/renovate#38656). Everything else —
       // gcr.io and us-docker.pkg.dev here — reports none, and the default
