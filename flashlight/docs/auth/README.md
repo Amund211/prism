@@ -62,7 +62,8 @@ config refuses a partial set.
 
 - `GET /v1/auth/microsoft/start[?return&challenge[&state]]` sets
   `__Host-fl_flow` (`flflow_<payload>.<sig>`: `msState`, `msVerifier`, `exp`
-  and the target; 10 min, `internal/authflowtoken`) and 302s to Microsoft.
+  and the target; 10 min, `internal/authflowtoken`) and 302s to Microsoft
+  with `prompt=select_account`, so users with several accounts can pick one.
   No `return` is the test sign-in. `return` is an exact https rainbow origin
   (`DomainSuffixes`) or `http://127.0.0.1|[::1]:<port>/callback` for prism;
   `challenge` (43-char base64url) is then required; `state` is prism's only.

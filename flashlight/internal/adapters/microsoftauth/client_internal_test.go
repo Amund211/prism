@@ -238,7 +238,8 @@ func TestAuthorizeURL(t *testing.T) {
 		"state":                 {"the-state"},
 		"code_challenge":        {"the-code-challenge"},
 		"code_challenge_method": {"S256"},
-	}, u.Query(), "exactly these: no offline_access, so no refresh token is ever issued, and no prompt")
+		"prompt":                {"select_account"},
+	}, u.Query(), "exactly these: no offline_access, so no refresh token is ever issued")
 	require.NotContains(t, raw, "offline_access")
 }
 

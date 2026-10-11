@@ -103,7 +103,8 @@ func New(httpClient *http.Client, config Config) (*Client, error) {
 
 // AuthorizeURL is where /start sends the browser. codeChallenge is the
 // base64url SHA-256 of the PKCE verifier that SignIn later receives.
-// prompt is left out, so Microsoft may skip the account picker.
+// prompt=select_account always shows the account picker, so users with
+// several accounts can choose one.
 func (c *Client) AuthorizeURL(state, codeChallenge string) string {
 	query := url.Values{
 		"client_id":             {c.config.ClientID},
@@ -114,6 +115,7 @@ func (c *Client) AuthorizeURL(state, codeChallenge string) string {
 		"state":                 {state},
 		"code_challenge":        {codeChallenge},
 		"code_challenge_method": {"S256"},
+		"prompt":                {"select_account"},
 	}
 	return c.config.Endpoints.Authorize + "?" + query.Encode()
 }
