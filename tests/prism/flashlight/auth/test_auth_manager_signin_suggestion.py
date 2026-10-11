@@ -3,7 +3,11 @@ from prism.flashlight.auth.errors import (
     AuthError,
     CredentialRejectedError,
 )
-from prism.flashlight.auth.manager import SIGNIN_SUGGESTION_SECONDS, AuthManager
+from prism.flashlight.auth.manager import (
+    SIGNIN_SUGGESTION_COOLDOWN_SECONDS,
+    SIGNIN_SUGGESTION_SECONDS,
+    AuthManager,
+)
 from prism.flashlight.auth.proof_of_work import (
     SLOW_SOLVE_CPU_SECONDS,
     ProofOfWorkTimeoutError,
@@ -144,7 +148,62 @@ def test_dismissed_suggestion_shows_again_on_a_new_rate_limit() -> None:
     manager.dismiss_signin_suggestion()
     assert not manager.suggest_signin
 
-    clock.now = 1
+    clock.now = SIGNIN_SUGGESTION_SECONDS + SIGNIN_SUGGESTION_COOLDOWN_SECONDS
+    manager.note_rate_limited()
+    assert manager.suggest_signin
+
+
+def test_no_suggestion_again_during_the_cooldown() -> None:
+    manager, _, clock = make_manager()
+    manager.note_rate_limited()
+    shown_until = SIGNIN_SUGGESTION_SECONDS
+    cooldown_until = shown_until + SIGNIN_SUGGESTION_COOLDOWN_SECONDS
+
+    clock.now = cooldown_until - 1
+    manager.note_rate_limited()
+    assert not manager.suggest_signin
+
+    clock.now = cooldown_until
+    manager.note_rate_limited()
+    assert manager.suggest_signin
+
+
+def test_a_new_rate_limit_does_not_extend_the_suggestion() -> None:
+    manager, _, clock = make_manager()
+    manager.note_rate_limited()
+
+    clock.now = SIGNIN_SUGGESTION_SECONDS / 2
+    manager.note_rate_limited()
+
+    clock.now = SIGNIN_SUGGESTION_SECONDS
+    assert not manager.suggest_signin
+
+
+def test_a_dismissal_with_nothing_shown_does_not_extend_the_cooldown() -> None:
+    manager, _, clock = make_manager()
+    manager.note_rate_limited()
+    cooldown_until = SIGNIN_SUGGESTION_SECONDS + SIGNIN_SUGGESTION_COOLDOWN_SECONDS
+
+    clock.now = cooldown_until - 1
+    manager.dismiss_signin_suggestion()
+
+    clock.now = cooldown_until
+    manager.note_rate_limited()
+    assert manager.suggest_signin
+
+
+def test_the_cooldown_starts_at_a_late_dismissal() -> None:
+    manager, _, clock = make_manager()
+    manager.note_rate_limited()
+    clock.now = SIGNIN_SUGGESTION_SECONDS - 1
+    manager.dismiss_signin_suggestion()
+    cooldown_until = clock.now + SIGNIN_SUGGESTION_COOLDOWN_SECONDS
+
+    clock.now = cooldown_until - 1
+    manager.note_rate_limited()
+    assert not manager.suggest_signin
+
+    clock.now = cooldown_until
     manager.note_rate_limited()
     assert manager.suggest_signin
 
