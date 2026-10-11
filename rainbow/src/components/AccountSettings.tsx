@@ -175,7 +175,8 @@ export const AccountSettings: React.FC = () => {
             ) : (
                 <>
                     <Typography>
-                        Sign in to get your own request quota instead of sharing one.
+                        Sign in with your Minecraft account to get increased usage
+                        limits.
                     </Typography>
                     {signIn.isError && (
                         <Alert severity="error">
