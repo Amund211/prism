@@ -170,6 +170,68 @@ static void compress_sha_ni(uint32_t state[8], const uint8_t *data, size_t block
     _mm_storeu_si128((__m128i *)&state[0], st0);
     _mm_storeu_si128((__m128i *)&state[4], st1);
 }
+
+// One block for each of two independent messages. Interleaving hides the
+// latency of sha256rnds2, which a single dependency chain is bound by.
+__attribute__((target("sha,sse4.1,ssse3")))
+static void compress_sha_ni_x2(uint32_t *state[2], const uint8_t *data[2]) {
+    const __m128i BSWAP = _mm_set_epi64x(0x0c0d0e0f08090a0bULL, 0x0405060700010203ULL);
+    __m128i st0[2], st1[2], save0[2], save1[2], w0[2], w1[2], w2[2], w3[2];
+    for (int j = 0; j < 2; j++) {
+        __m128i tmp = _mm_shuffle_epi32(_mm_loadu_si128((const __m128i *)&state[j][0]), 0xB1);
+        st1[j] = _mm_shuffle_epi32(_mm_loadu_si128((const __m128i *)&state[j][4]), 0x1B);
+        st0[j] = _mm_alignr_epi8(tmp, st1[j], 8);
+        st1[j] = _mm_blend_epi16(st1[j], tmp, 0xF0);
+        save0[j] = st0[j];
+        save1[j] = st1[j];
+        w0[j] = _mm_shuffle_epi8(_mm_loadu_si128((const __m128i *)(data[j] + 0)), BSWAP);
+        w1[j] = _mm_shuffle_epi8(_mm_loadu_si128((const __m128i *)(data[j] + 16)), BSWAP);
+        w2[j] = _mm_shuffle_epi8(_mm_loadu_si128((const __m128i *)(data[j] + 32)), BSWAP);
+        w3[j] = _mm_shuffle_epi8(_mm_loadu_si128((const __m128i *)(data[j] + 48)), BSWAP);
+    }
+
+#define SHA_NI_ROUNDS_X2(w, g)                                                           \
+    do {                                                                                 \
+        for (int j = 0; j < 2; j++) {                                                    \
+            __m128i wk =                                                                 \
+                _mm_add_epi32(w[j], _mm_loadu_si128((const __m128i *)&K[4 * (g)]));      \
+            st1[j] = _mm_sha256rnds2_epu32(st1[j], st0[j], wk);                          \
+            st0[j] = _mm_sha256rnds2_epu32(st0[j], st1[j], _mm_shuffle_epi32(wk, 0x0E)); \
+        }                                                                                \
+    } while (0)
+#define SHA_NI_SCHEDULE_X2(a, b, c, d)                                                   \
+    do {                                                                                 \
+        for (int j = 0; j < 2; j++) {                                                    \
+            SHA_NI_SCHEDULE(a[j], b[j], c[j], d[j]);                                     \
+        }                                                                                \
+    } while (0)
+
+    SHA_NI_ROUNDS_X2(w0, 0);
+    SHA_NI_ROUNDS_X2(w1, 1);
+    SHA_NI_ROUNDS_X2(w2, 2);
+    SHA_NI_ROUNDS_X2(w3, 3);
+    for (int g = 4; g < 16; g += 4) {
+        SHA_NI_SCHEDULE_X2(w0, w1, w2, w3);
+        SHA_NI_ROUNDS_X2(w0, g);
+        SHA_NI_SCHEDULE_X2(w1, w2, w3, w0);
+        SHA_NI_ROUNDS_X2(w1, g + 1);
+        SHA_NI_SCHEDULE_X2(w2, w3, w0, w1);
+        SHA_NI_ROUNDS_X2(w2, g + 2);
+        SHA_NI_SCHEDULE_X2(w3, w0, w1, w2);
+        SHA_NI_ROUNDS_X2(w3, g + 3);
+    }
+#undef SHA_NI_ROUNDS_X2
+#undef SHA_NI_SCHEDULE_X2
+
+    for (int j = 0; j < 2; j++) {
+        st0[j] = _mm_add_epi32(st0[j], save0[j]);
+        st1[j] = _mm_add_epi32(st1[j], save1[j]);
+        __m128i tmp = _mm_shuffle_epi32(st0[j], 0x1B);
+        __m128i s1 = _mm_shuffle_epi32(st1[j], 0xB1);
+        _mm_storeu_si128((__m128i *)&state[j][0], _mm_blend_epi16(tmp, s1, 0xF0));
+        _mm_storeu_si128((__m128i *)&state[j][4], _mm_alignr_epi8(s1, tmp, 8));
+    }
+}
 #endif
 
 #ifdef HAVE_ARMV8
@@ -300,6 +362,13 @@ __attribute__((noinline, cold)) static int meets_difficulty(const uint32_t state
     return difficulty == 0 || (state[i] >> (32 - difficulty)) == 0;
 }
 
+// Increment the decimal counter in place
+static inline void increment(uint8_t *digits) {
+    for (int i = SOLUTION_DIGITS - 1; i >= 0 && ++digits[i] > '9'; i--) {
+        digits[i] = '0';
+    }
+}
+
 // Search counters in [start, end) for the first one where
 // SHA-256(prefix || solution) has at least `difficulty` leading zero bits.
 // The solution is the counter in *width zero-padded decimal digits.
@@ -346,6 +415,35 @@ EXPORT int pow_solve(int impl, const uint8_t *prefix, size_t len, int difficulty
     uint32_t mask = difficulty == 0    ? 0
                     : difficulty >= 32 ? 0xffffffffu
                                        : 0xffffffffu << (32 - difficulty);
+#ifdef HAVE_SHA_NI
+    // Two counters at a time; the generic loop below takes any odd one left.
+    // Every attempt is one block, thanks to the zero fill above.
+    if (compress == compress_sha_ni) {
+        uint8_t buf2[64];
+        memcpy(buf2, buf, sizeof buf2);
+        uint8_t *digits2 = buf2 + tail_len;
+        increment(digits2);
+        uint32_t sa[8], sb[8];
+        uint32_t *states[2] = {sa, sb};
+        const uint8_t *datas[2] = {buf, buf2};
+        for (; start + 1 < end; start += 2) {
+            memcpy(sa, mid, sizeof sa);
+            memcpy(sb, mid, sizeof sb);
+            compress_sha_ni_x2(states, datas);
+            for (int j = 0; j < 2; j++) {
+                if ((states[j][0] & mask) == 0 && meets_difficulty(states[j], difficulty)) {
+                    *found = start + j;
+                    *width = (uint32_t)(zeros + SOLUTION_DIGITS);
+                    return 1;
+                }
+            }
+            increment(digits);
+            increment(digits);
+            increment(digits2);
+            increment(digits2);
+        }
+    }
+#endif
     for (uint64_t counter = start; counter < end; counter++) {
         uint32_t state[8];
         memcpy(state, mid, sizeof state);
@@ -355,10 +453,7 @@ EXPORT int pow_solve(int impl, const uint8_t *prefix, size_t len, int difficulty
             *width = (uint32_t)(zeros + SOLUTION_DIGITS);
             return 1;
         }
-        // Increment the decimal counter in place
-        for (int i = SOLUTION_DIGITS - 1; i >= 0 && ++digits[i] > '9'; i--) {
-            digits[i] = '0';
-        }
+        increment(digits);
     }
     return 0;
 }
