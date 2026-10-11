@@ -171,6 +171,18 @@ def test_solve_honours_start(
         )
 
 
+def test_solve_finds_the_first_counter_from_every_start(
+    library: NativeLibrary, supported: tuple[str, ...]
+) -> None:
+    # Solvers that try several counters at once must keep their order. The last
+    # prefix leaves a 45 byte tail, so the digits start a new block.
+    for prefix in (b"a-challenge:", b"c" * 340 + b":", b"c" * 364 + b":"):
+        for start in range(16):
+            expected = solution_for(prefix, first_valid_counter(prefix, 4, start))
+            for name in supported:
+                assert library.solve(name, prefix, 4, start=start) == expected
+
+
 def test_solve_spans_chunks(
     library: NativeLibrary,
     supported: tuple[str, ...],
@@ -276,16 +288,19 @@ def test_solve_above_32_bits(
     """Difficulties past the first digest word check the words after it"""
     assert is_valid(PREFIX_32, solution_for(PREFIX_32, COUNTER_32), BITS_32)
     assert not is_valid(PREFIX_32, solution_for(PREFIX_32, COUNTER_32), BITS_32 + 1)
-    start, end = COUNTER_32, COUNTER_32 + 1
-    for name in supported:
-        for difficulty in (32, BITS_32):
-            assert library.solve(
-                name, PREFIX_32, difficulty, start=start, end=end
-            ) == solution_for(PREFIX_32, COUNTER_32), (name, difficulty)
-        # One bit more than the digest has: a one-word check would accept it
-        for difficulty in (BITS_32 + 1, 64, 65, 255, 256):
-            with pytest.raises(NativePowError, match="No solution"):
-                library.solve(name, PREFIX_32, difficulty, start=start, end=end)
+    # Ranges of four that put the counter at each position, for solvers that
+    # try several counters at once
+    for start in range(COUNTER_32 - 3, COUNTER_32 + 1):
+        end = start + 4
+        for name in supported:
+            for difficulty in (32, BITS_32):
+                assert library.solve(
+                    name, PREFIX_32, difficulty, start=start, end=end
+                ) == solution_for(PREFIX_32, COUNTER_32), (name, difficulty, start)
+            # One bit more than the digest has: a one-word check would accept it
+            for difficulty in (BITS_32 + 1, 64, 65, 255, 256):
+                with pytest.raises(NativePowError, match="No solution"):
+                    library.solve(name, PREFIX_32, difficulty, start=start, end=end)
 
 
 def test_solve_rejects_bad_arguments(library: NativeLibrary) -> None:
