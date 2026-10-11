@@ -56,6 +56,23 @@ def test_pow(solver_name: str) -> None:  # pragma: nocover
     print(f"Proof-of-work OK: {solver.name}")
 
 
+def preview_signin_page() -> None:  # pragma: nocover
+    """Serve every state of the sign-in page with a control panel until ctrl+c"""
+    import time
+    import webbrowser
+
+    from prism.flashlight.auth.preview import PreviewServer
+
+    with PreviewServer() as server:
+        print(f"Sign-in page preview at {server.url} - ctrl+c to stop")
+        webbrowser.open(server.url)
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            pass
+
+
 def test_ssl() -> None:  # pragma: nocover
     """Test SSL certificate patching"""
     import requests

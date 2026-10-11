@@ -34,6 +34,13 @@ def main() -> None:  # pragma: nocover
     """Run the overlay"""
     options = get_options(default_settings_path=DEFAULT_SETTINGS_PATH)
 
+    # Self-contained: runs beside a live overlay and needs no settings
+    if options.preview_signin_page:
+        from prism.overlay.testing import preview_signin_page
+
+        preview_signin_page()
+        return
+
     ensure_not_parallel()
 
     if options.test:

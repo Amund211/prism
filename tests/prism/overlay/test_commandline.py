@@ -14,6 +14,7 @@ def make_options(
     test_ssl: bool = False,
     test_pow: str | None = None,
     test: bool = False,
+    preview_signin_page: bool = False,
 ) -> Options:
     """Construct an Options instance from its components"""
     return Options(
@@ -23,6 +24,7 @@ def make_options(
         test_ssl=test_ssl,
         test_pow=test_pow,
         test=test,
+        preview_signin_page=preview_signin_page,
     )
 
 
@@ -49,6 +51,8 @@ test_cases: tuple[tuple[str, Options], ...] = (
     ("--test-pow=portable", make_options(test_pow="portable")),
     # Test
     ("--test", make_options(test=True)),
+    # Preview the sign-in page
+    ("--preview-signin-page", make_options(preview_signin_page=True)),
     # Multiple arguments
     (
         "-l somelogfile --settings s.toml",
