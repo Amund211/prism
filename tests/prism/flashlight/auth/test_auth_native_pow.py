@@ -14,6 +14,7 @@ from prism.flashlight.auth.native_pow import (
     MAX_COUNTER,
     NativeLibrary,
     NativePowError,
+    SolveStopped,
 )
 from prism.flashlight.auth.proof_of_work import leading_zero_bits
 
@@ -222,9 +223,76 @@ def test_solve_gives_up_at_the_end_of_the_range(
         )
 
 
+def test_solve_stops_between_chunks(
+    library: NativeLibrary,
+    supported: tuple[str, ...],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(native_pow, "CHUNK_SIZE", 1000)
+    for name in supported:
+        checks = 0
+
+        def stop_on_third_check() -> bool:
+            nonlocal checks
+            checks += 1
+            return checks == 3
+
+        with pytest.raises(SolveStopped) as info:
+            library.solve(name, b"x", 64, should_stop=stop_on_third_check)
+        # Two whole chunks ran
+        assert info.value.hashes == 2000, name
+
+
+def test_solve_checks_should_stop_once_per_chunk(
+    library: NativeLibrary,
+    supported: tuple[str, ...],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(native_pow, "CHUNK_SIZE", 7)
+    prefix = b"a-challenge:"
+    first = first_valid_counter(prefix, 10)
+    for name in supported:
+        checks = 0
+
+        def count() -> bool:
+            nonlocal checks
+            checks += 1
+            return False
+
+        library.solve(name, prefix, 10, should_stop=count)
+        assert checks == first // 7 + 1, name
+
+
+# SHA-256(PREFIX_32 + solution_for(PREFIX_32, COUNTER_32)) has exactly
+# BITS_32 leading zero bits. Found once with the 32-bit solver.
+PREFIX_32 = b"prism-difficulty-above-32:"
+COUNTER_32 = 4516819791
+BITS_32 = 32
+
+
+def test_solve_above_32_bits(
+    library: NativeLibrary, supported: tuple[str, ...]
+) -> None:
+    """Difficulties past the first digest word check the words after it"""
+    assert is_valid(PREFIX_32, solution_for(PREFIX_32, COUNTER_32), BITS_32)
+    assert not is_valid(PREFIX_32, solution_for(PREFIX_32, COUNTER_32), BITS_32 + 1)
+    start, end = COUNTER_32, COUNTER_32 + 1
+    for name in supported:
+        for difficulty in (32, BITS_32):
+            assert library.solve(
+                name, PREFIX_32, difficulty, start=start, end=end
+            ) == solution_for(PREFIX_32, COUNTER_32), (name, difficulty)
+        # One bit more than the digest has: a one-word check would accept it
+        for difficulty in (BITS_32 + 1, 64, 65, 255, 256):
+            with pytest.raises(NativePowError, match="No solution"):
+                library.solve(name, PREFIX_32, difficulty, start=start, end=end)
+
+
 def test_solve_rejects_bad_arguments(library: NativeLibrary) -> None:
     with pytest.raises(NativePowError, match="failed"):
-        library.solve("portable", b"", 33)
+        library.solve("portable", b"", 257)
+    with pytest.raises(NativePowError, match="failed"):
+        library.solve("portable", b"", -1)
     with pytest.raises(NativePowError, match="failed"):
         library.solve("portable", b"", 0, start=MAX_COUNTER, end=MAX_COUNTER + 1)
 

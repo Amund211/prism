@@ -3,7 +3,11 @@ import logging
 import requests
 
 from prism.flashlight.auth.endpoints import anonymous_login, request_challenge
-from prism.flashlight.auth.proof_of_work import solve_challenge
+from prism.flashlight.auth.proof_of_work import (
+    ProofOfWorkTimeoutError,
+    SolveReport,
+    solve_challenge,
+)
 from prism.flashlight.auth.session import Session
 
 logger = logging.getLogger(__name__)
@@ -35,14 +39,24 @@ class AnonymousLogin:
         # retry can fix.
         self._user_id = user_id
 
-    def log_in(self) -> Session:  # pragma: nocover
+        # The last proof-of-work, also when it timed out. Read from other
+        # threads: it is one immutable object, replaced whole.
+        self.last_solve: SolveReport | None = None
+
+    def log_in(self) -> Session:
         challenge = request_challenge(
             requests_session=self._requests_session, user_id=self._user_id
         )
-        solution = solve_challenge(challenge)
+        try:
+            report = solve_challenge(challenge)
+        except ProofOfWorkTimeoutError as e:
+            self.last_solve = e.report
+            raise
+        self.last_solve = report
+        assert report.solution is not None
         return anonymous_login(
             requests_session=self._requests_session,
             user_id=self._user_id,
             challenge=challenge.challenge,
-            solution=solution,
+            solution=report.solution,
         )

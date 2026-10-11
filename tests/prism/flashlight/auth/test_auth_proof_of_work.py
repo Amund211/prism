@@ -1,5 +1,6 @@
 import hashlib
 import itertools
+import logging
 from pathlib import Path
 
 import pytest
@@ -8,11 +9,15 @@ from prism.flashlight.auth import native_pow, proof_of_work
 from prism.flashlight.auth.errors import AuthError
 from prism.flashlight.auth.proof_of_work import (
     ALGORITHM_SHA256_LEADING_ZEROS,
-    MAX_DIFFICULTY,
+    DEFAULT_CHALLENGE_TTL_SECONDS,
     NATIVE_PREFERENCE,
     PYTHON_SOLVER,
     Challenge,
+    Deadline,
+    ProofOfWorkTimeoutError,
     Solver,
+    SolveReport,
+    SolveTimeout,
     default_solver,
     difficulty_target,
     get_solver,
@@ -20,6 +25,7 @@ from prism.flashlight.auth.proof_of_work import (
     parse_challenge_response,
     pick_default_solver,
     self_test,
+    solve_budget,
     solve_challenge,
 )
 
@@ -35,12 +41,40 @@ VALID_RESPONSE = {
 }
 
 
-def make_challenge(*, difficulty: int = 0, algorithm: str | None = None) -> Challenge:
+def make_challenge(
+    *,
+    difficulty: int = 0,
+    algorithm: str | None = None,
+    expires_in_seconds: float = 60,
+) -> Challenge:
     return Challenge(
         challenge="a-challenge",
         algorithm=ALGORITHM_SHA256_LEADING_ZEROS if algorithm is None else algorithm,
         difficulty=difficulty,
+        expires_in_seconds=expires_in_seconds,
     )
+
+
+class FakeClock:
+    def __init__(self, now: float = 1000.0) -> None:
+        self.now = now
+
+    def __call__(self) -> float:
+        return self.now
+
+
+class ExpiresAfter:
+    """A deadline that expires on check number `checks + 1`"""
+
+    def __init__(self, checks: int) -> None:
+        self.checks_left = checks
+
+    def expired(self) -> bool:
+        self.checks_left -= 1
+        return self.checks_left < 0
+
+
+NEVER = ExpiresAfter(1 << 62)
 
 
 def test_parse_challenge_response() -> None:
@@ -48,7 +82,89 @@ def test_parse_challenge_response() -> None:
         challenge=VALID_RESPONSE["challenge"],  # type: ignore[arg-type]
         algorithm=ALGORITHM_SHA256_LEADING_ZEROS,
         difficulty=0,
+        expires_in_seconds=60,
     )
+
+
+@pytest.mark.parametrize("difficulty", (27, 33, 256))
+def test_parse_challenge_response_has_no_difficulty_cap(difficulty: int) -> None:
+    challenge = parse_challenge_response({**VALID_RESPONSE, "difficulty": difficulty})
+    assert challenge.difficulty == difficulty
+
+
+@pytest.mark.parametrize(
+    "expires_in_seconds, expected",
+    (
+        (30, 30),
+        (2.5, 2.5),
+        (1000, 1000),
+        # Bad values fall back: the field only sizes our time budget
+        (None, DEFAULT_CHALLENGE_TTL_SECONDS),
+        ("60", DEFAULT_CHALLENGE_TTL_SECONDS),
+        (True, DEFAULT_CHALLENGE_TTL_SECONDS),
+        (0, DEFAULT_CHALLENGE_TTL_SECONDS),
+        (-5, DEFAULT_CHALLENGE_TTL_SECONDS),
+        (float("nan"), DEFAULT_CHALLENGE_TTL_SECONDS),
+        (float("inf"), DEFAULT_CHALLENGE_TTL_SECONDS),
+    ),
+)
+def test_parse_challenge_response_expiry(
+    expires_in_seconds: object, expected: float
+) -> None:
+    challenge = parse_challenge_response(
+        {**VALID_RESPONSE, "expiresInSeconds": expires_in_seconds}
+    )
+    assert challenge.expires_in_seconds == expected
+
+
+def test_parse_challenge_response_missing_expiry() -> None:
+    response = {k: v for k, v in VALID_RESPONSE.items() if k != "expiresInSeconds"}
+    challenge = parse_challenge_response(response)
+    assert challenge.expires_in_seconds == DEFAULT_CHALLENGE_TTL_SECONDS
+
+
+@pytest.mark.parametrize(
+    "expires_in_seconds, budget",
+    (
+        (60, 55),
+        # A bad server value can't hold the auth thread for long
+        (1000, 115),
+        # A short TTL still gets a fair try
+        (3, 10),
+        (14, 10),
+    ),
+)
+def test_solve_budget(expires_in_seconds: float, budget: float) -> None:
+    assert solve_budget(make_challenge(expires_in_seconds=expires_in_seconds)) == (
+        budget
+    )
+
+
+def test_deadline_monotonic() -> None:
+    monotonic, wall = FakeClock(), FakeClock()
+    deadline = Deadline(10, monotonic=monotonic, wall=wall)
+    assert not deadline.expired()
+    monotonic.now += 9.9
+    wall.now += 9.9
+    assert not deadline.expired()
+    monotonic.now += 0.1
+    assert deadline.expired()
+
+
+def test_deadline_wall_clock_covers_suspend() -> None:
+    """Linux's monotonic clock stops in suspend, the server's TTL does not"""
+    monotonic, wall = FakeClock(), FakeClock()
+    deadline = Deadline(10, monotonic=monotonic, wall=wall)
+    wall.now += 3600
+    assert deadline.expired()
+
+
+def test_deadline_monotonic_covers_wall_clock_going_back() -> None:
+    monotonic, wall = FakeClock(), FakeClock()
+    deadline = Deadline(10, monotonic=monotonic, wall=wall)
+    wall.now -= 3600
+    monotonic.now += 10
+    assert deadline.expired()
 
 
 def test_parse_challenge_response_keeps_unknown_algorithms() -> None:
@@ -78,6 +194,8 @@ def test_parse_challenge_response_keeps_unknown_algorithms() -> None:
         {**VALID_RESPONSE, "difficulty": 1.5},
         {**VALID_RESPONSE, "difficulty": True},
         {**VALID_RESPONSE, "difficulty": -1},
+        # More zero bits than a digest has
+        {**VALID_RESPONSE, "difficulty": 257},
     ),
 )
 def test_parse_challenge_response_invalid(response_json: object) -> None:
@@ -127,14 +245,24 @@ def test_solve_challenge(
         challenge="c" * challenge_length,
         algorithm=ALGORITHM_SHA256_LEADING_ZEROS,
         difficulty=difficulty,
+        expires_in_seconds=60,
     )
-    solution = solve_challenge(challenge, solver=get_solver(solver_name))
+    solver = get_solver(solver_name)
+    report = solve_challenge(challenge, solver=solver)
+    solution = report.solution
 
     # A non-empty solution is required even at difficulty 0
     assert solution
 
     digest = hashlib.sha256(f"{challenge.challenge}:{solution}".encode()).digest()
     assert leading_zero_bits(digest) >= difficulty
+
+    assert report.difficulty == difficulty
+    assert report.solver == solver.name
+    # Every solver counts up from 0, so the solution is the attempts made
+    assert report.hashes == int(solution) + 1
+    assert report.elapsed_seconds >= 0
+    assert report.cpu_seconds >= 0
 
 
 @pytest.mark.parametrize("difficulty", (0, 6, 10))
@@ -153,16 +281,16 @@ def test_solve_challenge_returns_first_candidate(difficulty: int) -> None:
                     return candidate
         assert False  # pragma: nocover
 
-    assert solve_challenge(challenge, solver=PYTHON_SOLVER) == reference()
+    assert solve_challenge(challenge, solver=PYTHON_SOLVER).solution == reference()
 
 
 def test_solve_challenge_at_difficulty_zero_is_one_hash() -> None:
-    assert solve_challenge(make_challenge(difficulty=0), solver=PYTHON_SOLVER) == (
-        "0000"
-    )
-    assert solve_challenge(
+    report = solve_challenge(make_challenge(difficulty=0), solver=PYTHON_SOLVER)
+    assert (report.solution, report.hashes) == ("0000", 1)
+    report = solve_challenge(
         make_challenge(difficulty=0), solver=get_solver("portable")
-    ) == ("000000000000")
+    )
+    assert (report.solution, report.hashes) == ("000000000000", 1)
 
 
 def test_solve_challenge_rejects_unknown_algorithm() -> None:
@@ -171,25 +299,138 @@ def test_solve_challenge_rejects_unknown_algorithm() -> None:
         solve_challenge(make_challenge(algorithm="sha256-leading-zeros-v2"))
 
 
-def test_solve_challenge_refuses_difficulty_above_the_ceiling() -> None:
-    """A server bug must not wedge the overlay in a hash loop"""
-    with pytest.raises(AuthError, match="Refusing proof-of-work difficulty"):
-        solve_challenge(make_challenge(difficulty=MAX_DIFFICULTY + 1))
+def test_solve_challenge_has_no_difficulty_cap() -> None:
+    """The time budget is the limit, so faster hardware can do more"""
+    seen: list[int] = []
+
+    def solve(prefix: bytes, difficulty: int, deadline: object) -> str:
+        seen.append(difficulty)
+        return "41"
+
+    report = solve_challenge(make_challenge(difficulty=40), solver=Solver("s", solve))
+    assert seen == [40]
+    assert report.hashes == 42
 
 
-def test_solve_challenge_logs_noteworthy_difficulties(
+def test_solve_challenge_passes_its_deadline_on() -> None:
+    seen: list[object] = []
+
+    def solve(prefix: bytes, difficulty: int, deadline: object) -> str:
+        seen.append(deadline)
+        return "0"
+
+    solve_challenge(make_challenge(), solver=Solver("s", solve), deadline=NEVER)
+    assert seen == [NEVER]
+
+
+def test_solve_challenge_makes_a_deadline_from_the_budget(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(proof_of_work, "NOTEWORTHY_DIFFICULTY", 4)
-    assert solve_challenge(make_challenge(difficulty=4))
+    budgets: list[float] = []
+
+    class RecordingDeadline:
+        def __init__(self, seconds: float) -> None:
+            budgets.append(seconds)
+
+        def expired(self) -> bool:  # pragma: nocover
+            return False
+
+    monkeypatch.setattr(proof_of_work, "Deadline", RecordingDeadline)
+    solve_challenge(make_challenge(expires_in_seconds=30), solver=PYTHON_SOLVER)
+    assert budgets == [25]
+
+
+@pytest.mark.parametrize("solver_name", ("python", "portable", "native"))
+def test_solve_challenge_times_out(solver_name: str) -> None:
+    # Unsolvable in any time we would wait for
+    challenge = make_challenge(difficulty=64)
+    with pytest.raises(ProofOfWorkTimeoutError) as info:
+        solve_challenge(
+            challenge, solver=get_solver(solver_name), deadline=ExpiresAfter(2)
+        )
+
+    report = info.value.report
+    assert report.solution is None
+    assert report.difficulty == 64
+    assert report.solver == get_solver(solver_name).name
+    # Two batches ran before the third check stopped it
+    batch = (
+        proof_of_work.PYTHON_BATCH_HASHES
+        if solver_name == "python"
+        else native_pow.CHUNK_SIZE
+    )
+    assert report.hashes == 2 * batch
+    # An AuthError, so the auth manager backs off and tries again
+    assert isinstance(info.value, AuthError)
+
+
+def test_solve_challenge_checks_the_deadline_before_any_work() -> None:
+    with pytest.raises(ProofOfWorkTimeoutError) as info:
+        solve_challenge(
+            make_challenge(difficulty=64),
+            solver=PYTHON_SOLVER,
+            deadline=ExpiresAfter(0),
+        )
+    assert info.value.report.hashes == 0
+
+
+@pytest.mark.parametrize(
+    "cpu_seconds, slow",
+    ((0.0, False), (4.9, False), (5.0, True), (60.0, True)),
+)
+def test_solve_report_slow_is_cpu_time(cpu_seconds: float, slow: bool) -> None:
+    """Wall time is not used: a suspend mid-solve is not slow hardware"""
+    report = SolveReport(
+        solution=None,
+        difficulty=20,
+        solver="python",
+        hashes=0,
+        elapsed_seconds=3600.0,
+        cpu_seconds=cpu_seconds,
+    )
+    assert report.slow is slow
+
+
+def test_solve_challenge_logs_start_and_end(caplog: pytest.LogCaptureFixture) -> None:
+    caplog.set_level(logging.INFO)
+    result = solve_challenge(make_challenge(difficulty=4), solver=PYTHON_SOLVER)
+    assert "Solving proof-of-work at difficulty 4 with solver 'python'" in caplog.text
+    assert f"Solved proof-of-work: {result}" in caplog.text
+    assert "Slow" not in caplog.text
+
+
+def test_solve_challenge_logs_timeouts(caplog: pytest.LogCaptureFixture) -> None:
+    caplog.set_level(logging.INFO)
+    with pytest.raises(ProofOfWorkTimeoutError) as info:
+        solve_challenge(
+            make_challenge(difficulty=64),
+            solver=PYTHON_SOLVER,
+            deadline=ExpiresAfter(0),
+        )
+    assert "Solving proof-of-work at difficulty 64" in caplog.text
+    assert f"Proof-of-work timed out: {info.value.report}" in caplog.text
+
+
+def test_solve_challenge_logs_slow_solves(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    monkeypatch.setattr(proof_of_work, "SLOW_SOLVE_CPU_SECONDS", 0.0)
+    assert solve_challenge(make_challenge(difficulty=0)).solution
+    assert "Slow" in caplog.text
 
 
 def test_solve_challenge_wraps_native_errors() -> None:
-    def fail(prefix: bytes, difficulty: int) -> str:
+    def fail(prefix: bytes, difficulty: int, deadline: object) -> str:
         raise native_pow.NativePowError("broken")
 
     with pytest.raises(AuthError, match="'broken-solver' failed"):
         solve_challenge(make_challenge(), solver=Solver("broken-solver", fail))
+
+
+def test_solver_timeout_without_solve_challenge() -> None:
+    with pytest.raises(SolveTimeout) as info:
+        PYTHON_SOLVER.solve(b"x", 64, ExpiresAfter(1))
+    assert info.value.hashes == proof_of_work.PYTHON_BATCH_HASHES
 
 
 def test_get_solver_python() -> None:
@@ -199,7 +440,7 @@ def test_get_solver_python() -> None:
 def test_get_solver_portable() -> None:
     solver = get_solver("portable")
     assert solver.name == "portable"
-    assert solve_challenge(make_challenge(difficulty=8), solver=solver)
+    assert solve_challenge(make_challenge(difficulty=8), solver=solver).solution
 
 
 def test_get_solver_native_picks_the_best_supported() -> None:
@@ -252,7 +493,7 @@ def test_self_test(name: str) -> None:
 
 
 def test_self_test_catches_wrong_solutions(monkeypatch: pytest.MonkeyPatch) -> None:
-    def wrong(prefix: bytes, difficulty: int) -> str:
+    def wrong(prefix: bytes, difficulty: int, deadline: object) -> str:
         """Return a candidate that does *not* meet the difficulty"""
         for counter in itertools.count():  # pragma: no branch
             digest = hashlib.sha256(prefix + str(counter).encode()).digest()

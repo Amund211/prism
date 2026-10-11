@@ -25,7 +25,8 @@ logger = logging.getLogger(__name__)
 SESSION_WAIT_TIMEOUT_SECONDS = 10.0
 
 # Backoff for failed auth attempts. One curve for every cause, including the
-# ones we cannot fix (an algorithm we don't implement, a difficulty we refuse):
+# ones we cannot fix (an algorithm we don't implement, a proof-of-work that
+# timed out - a suspend, a slow machine or a high difficulty):
 # retrying those every few minutes costs nothing, and it means a server-side fix
 # recovers every running overlay on its own, with no restart.
 INITIAL_BACKOFF_SECONDS = 2.0
