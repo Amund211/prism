@@ -89,10 +89,10 @@ class MicrosoftAccountSection:  # pragma: nocover
                 font=("Consolas", font_size),
                 foreground=color,
                 background="black",
-                justify=tk.LEFT,
+                justify=tk.CENTER,
                 wraplength=400,
             )
-            label.grid(row=row, column=0, columnspan=2, sticky=tk.W)
+            label.grid(row=row, column=0, columnspan=2)
             return label
 
         self.info_label = make_label(0, 12)
@@ -121,7 +121,7 @@ class MicrosoftAccountSection:  # pragma: nocover
         self.copy_button.grid(row=3, column=1, padx=(5, 0))
 
         buttons_frame = tk.Frame(self.frame, background="black")
-        buttons_frame.grid(row=4, column=0, columnspan=2, sticky=tk.W, pady=(3, 0))
+        buttons_frame.grid(row=4, column=0, columnspan=2, pady=(3, 0))
         self.primary_button = tk.Button(
             buttons_frame,
             font=("Consolas", 12),
@@ -144,7 +144,7 @@ class MicrosoftAccountSection:  # pragma: nocover
         )
 
         self.confirm_frame = tk.Frame(self.frame, background="black")
-        self.confirm_frame.grid(row=5, column=0, columnspan=2, sticky=tk.W)
+        self.confirm_frame.grid(row=5, column=0, columnspan=2)
         confirm_label = tk.Label(
             self.confirm_frame,
             text=(
@@ -154,12 +154,14 @@ class MicrosoftAccountSection:  # pragma: nocover
             font=("Consolas", 10),
             foreground="orange",
             background="black",
-            justify=tk.LEFT,
+            justify=tk.CENTER,
             wraplength=400,
         )
-        confirm_label.pack(side=tk.TOP, anchor=tk.W)
+        confirm_label.pack(side=tk.TOP)
+        confirm_buttons_frame = tk.Frame(self.confirm_frame, background="black")
+        confirm_buttons_frame.pack(side=tk.TOP)
         confirm_yes_button = tk.Button(
-            self.confirm_frame,
+            confirm_buttons_frame,
             text="Sign out everywhere",
             font=("Consolas", 10),
             foreground="white",
@@ -170,7 +172,7 @@ class MicrosoftAccountSection:  # pragma: nocover
         )
         confirm_yes_button.pack(side=tk.LEFT)
         confirm_no_button = tk.Button(
-            self.confirm_frame,
+            confirm_buttons_frame,
             text="Keep me signed in",
             font=("Consolas", 10),
             foreground="white",
@@ -192,6 +194,7 @@ class MicrosoftAccountSection:  # pragma: nocover
             self.manage_button,
             self.confirm_frame,
             confirm_label,
+            confirm_buttons_frame,
             confirm_yes_button,
             confirm_no_button,
         )
@@ -253,8 +256,8 @@ class MicrosoftAccountSection:  # pragma: nocover
         else:
             self.info_label.configure(
                 text=(
-                    "Sign in with the Microsoft account you play Minecraft on "
-                    "to get your own personal stats lookup quota."
+                    "Sign in with your Minecraft account to get increased "
+                    "usage limits."
                 )
             )
             if view.can_cancel:
