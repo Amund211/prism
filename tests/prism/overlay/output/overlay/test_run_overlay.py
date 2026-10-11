@@ -4,12 +4,18 @@ from prism.flashlight.auth.errors import CredentialRejectedError
 from prism.overlay.controller import OverlayController
 from prism.overlay.output.cells import InfoCellValue
 from prism.overlay.output.overlay.run_overlay import (
+    SIGNIN_SUGGESTION_TEXT,
     get_microsoft_signin_ended_info_cell,
+    get_signin_suggestion_info_cell,
     get_stat_list,
 )
 from prism.overlay.player_cache import PlayerCache
 from prism.player import KnownPlayer, PendingPlayer, Player
-from tests.prism.auth_utils import make_microsoft_auth_manager, make_session
+from tests.prism.auth_utils import (
+    make_auth_manager,
+    make_microsoft_auth_manager,
+    make_session,
+)
 from tests.prism.overlay.utils import (
     create_controller,
     create_state,
@@ -238,3 +244,19 @@ def test_signin_ended_info_cell_until_dismissed() -> None:
     manager.dismiss_signin_ended()
 
     assert get_microsoft_signin_ended_info_cell(manager) is None
+
+
+def test_signin_suggestion_info_cell_until_dismissed() -> None:
+    manager, _, _ = make_auth_manager(login_results=[make_session()])
+    manager.reconcile()
+    assert get_signin_suggestion_info_cell(manager) is None
+
+    manager.note_rate_limited()
+
+    assert get_signin_suggestion_info_cell(manager) == InfoCellValue(
+        text=SIGNIN_SUGGESTION_TEXT, color="light blue", url=None
+    )
+
+    manager.dismiss_signin_suggestion()
+
+    assert get_signin_suggestion_info_cell(manager) is None

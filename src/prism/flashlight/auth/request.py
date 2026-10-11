@@ -58,7 +58,7 @@ def send_authenticated(
     # Nothing here says our session is bad, so there is nothing to recover from -
     # and the hint rides a validated 401 like any other response.
     if response.status_code != 401 or _session_was_validated(response):
-        _note_refresh_hint(auth, session, response)
+        _note_response(auth, session, response)
         return response
 
     renewed = auth.recover_from_unauthorized(session)
@@ -76,19 +76,20 @@ def send_authenticated(
         raise SessionRecoveryError(
             "Got HTTP 401 from flashlight with a renewed auth session"
         )
-    _note_refresh_hint(auth, renewed, response)
+    _note_response(auth, renewed, response)
     return response
 
 
 def _session_was_validated(response: requests.Response) -> bool:
     """Report whether the server says it validated the bearer we sent"""
-    # Exact match, unlike the permissive `_note_refresh_hint` below: a hint is safe
-    # to over-read, this is not. Absence means "unknown" - a stripped header, or
-    # something answering ahead of the middleware - which keeps recovery.
+    # Exact match, unlike the permissive refresh hint check in `_note_response`:
+    # a hint is safe to over-read, this is not. Absence means "unknown" - a
+    # stripped header, or something answering ahead of the middleware - which
+    # keeps recovery.
     return response.headers.get(AUTH_SESSION_HEADER) == AUTH_SESSION_VALID
 
 
-def _note_refresh_hint(
+def _note_response(
     auth: AuthManager, session: Session, response: requests.Response
 ) -> None:
     # Any non-empty value counts. The server sends "1" today and reserves room
@@ -96,3 +97,5 @@ def _note_refresh_hint(
     # deal with this session now.
     if response.headers.get(REFRESH_HINT_HEADER):
         auth.note_refresh_hint(session)
+    if response.status_code == 429:
+        auth.note_rate_limited()

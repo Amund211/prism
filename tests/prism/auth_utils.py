@@ -7,6 +7,7 @@ import time
 from collections.abc import Callable, Iterator, Sequence
 
 from prism.flashlight.auth.manager import AuthManager
+from prism.flashlight.auth.proof_of_work import SolveReport
 from prism.flashlight.auth.session import Session
 
 # Not a real session id - flashlight's are `flsess_` plus 32 random bytes
@@ -30,6 +31,17 @@ def make_session(
     )
 
 
+def make_solve_report(*, cpu_seconds: float = 0.1) -> SolveReport:
+    return SolveReport(
+        solution="123",
+        difficulty=16,
+        solver="python",
+        hashes=124,
+        elapsed_seconds=cpu_seconds,
+        cpu_seconds=cpu_seconds,
+    )
+
+
 class QueuedLoginMethod:
     """A `LoginMethod` returning (or raising) queued results, in order"""
 
@@ -42,6 +54,7 @@ class QueuedLoginMethod:
         self.results = list(results)
         self.calls = 0
         self.tier = tier
+        self.last_solve: SolveReport | None = None
 
     def log_in(self) -> Session:
         self.calls += 1

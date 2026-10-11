@@ -158,6 +158,7 @@ class MicrosoftAccount:
     def page_opened(self) -> None:
         """Clear old notices and errors, and retry failed name lookups"""
         self._auth.dismiss_signin_ended()
+        self._auth.dismiss_signin_suggestion()
         status = self._signin.status
         with self._lock:
             self._sign_out_error = None
