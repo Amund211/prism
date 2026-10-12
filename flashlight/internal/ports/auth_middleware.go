@@ -52,18 +52,17 @@ func BearerCheckedFromContext(ctx context.Context) bool {
 // would be silently ignored, which would let clients downgrade to the
 // un-authenticated path just by sending a bad token.
 //
-// Where to mount it: behind the blocklist and the IP rate limiters, and
-// inside CORS, but ahead of the user-id rate limiter. The original reason
-// for the first half is gone — validating a bearer used to open an uncached
-// SELECT-FOR-UPDATE per request, so a garbage token in front of the
-// limiters was connection-pool exhaustion from a single host; a failed
-// unseal is now one HMAC. Keep the order anyway: it costs nothing, and the
-// two reasons below stand on their own.
+// Where to mount it: behind the blocklist, inside CORS, and ahead of every
+// identity-keyed rate limiter. On the tier limiter (NewAuthRateLimitMiddleware)
+// nothing limits in front of it: a failed unseal is one HMAC. Hand-built chains
+// still put their IP limiters in front.
 // Inside CORS so a 401 keeps its Access-Control-Allow-Origin header and
 // the browser can read it rather than reporting an opaque network error.
-// Ahead of the user-id limiter so that limiter can key on the verified
-// identity from the auth context instead of the self-asserted X-User-Id
-// header.
+// Ahead of the identity limiters so they can key on the verified identity
+// from the auth context instead of the self-asserted X-User-Id header.
+//
+// Every request it passes on carries the BearerCheckedFromContext mark; the
+// tier limiter panics without it.
 //
 // On a successful validation it also sets AuthRefreshHeader when the
 // session is due for a refresh, which is what keeps refresh timing

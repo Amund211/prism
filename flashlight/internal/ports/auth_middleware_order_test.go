@@ -76,7 +76,8 @@ type bearerMountCase struct {
 	// limiter in front of bearer.
 	tierLimiter bool
 	// aboveUserIDBurst is a request count larger than this handler's user-id
-	// burst but smaller than its smallest IP burst.
+	// burst. On the hand-built chains it is also smaller than the smallest IP
+	// burst; the tier limiter has no IP burst in front of bearer.
 	aboveUserIDBurst int
 	build            func(t *testing.T, bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc, blocklistConfig ports.BlocklistConfig) http.HandlerFunc
 }

@@ -42,7 +42,8 @@ no row, no lookup, no cache; validating is a signature check. The payload holds
 - The bearer middleware (`ports.NewBearerAuthMiddleware`, on ten handlers)
   validates, puts `{SessionID, IdentityType, IdentityKey}` in the context, and
   401s what it cannot validate. **No `Authorization` header at all passes
-  through** to the legacy `X-User-Id` path.
+  through** to the legacy `X-User-Id` path. Both paths that pass on set the
+  `BearerCheckedFromContext` mark.
 - Responses carry `X-Auth-Refresh: 1` within `refreshAtOffset` of expiry (a hint
   — ignoring it still recovers via 401) and `X-Auth-Session` with the
   middleware's verdict.
@@ -59,6 +60,21 @@ refreshUntil   = min(issuedAt + 2h,  lifetimeEndsAt)
 `lineage` and `generation` are read by **nothing** today. They are in the payload
 on purpose, so an issuance-events table can be added later without a format bump.
 They are not dead fields — do not remove them.
+
+## Rate limits
+
+Data endpoints (playerdata, tags, account ×2, history, wrapped, sessions,
+session-at) use `ports.NewAuthRateLimitMiddleware` with a `RateLimitPolicy`
+from `internal/ports/ratelimit_policy.go`. Mount order:
+`bearer → rateLimit`.
+
+- One IP bucket for tiers `none` (no bearer) and `anonymous`. Microsoft skips
+  it: its identities cost a Minecraft licence.
+- One identity bucket per `(tier, identity)`. Each tier has its own budget. A
+  tier missing from the policy, or unknown, gets the anonymous rate.
+- A bad bearer is 401'd before any limiter (one HMAC). Accepted.
+- `prestiges`, `prism-notices` and the auth endpoints keep their hand-built
+  chains: IP limiters → bearer → `UserIDKeyFunc` limiter.
 
 ## Microsoft sign-in
 
@@ -292,12 +308,15 @@ These are the parts you cannot recover by reading the code.
   itself, so the disclosure is ~nil; the hazard is that readability invites
   somebody to parse it, and opaque-by-contract is the whole reason this backing
   could be swapped without a client release.
-- **The bearer middleware must stay behind an IP limiter and inside CORS, and
-  ahead of the identity-keyed limiter**, which needs the identity.
-  `TestBearerAuthMiddlewareMountPosition` is the only thing keeping the ten
-  hand-assembled chains in agreement.
-- **The `X-User-Id` fallback still exists**, so a self-asserted header can be
-  aimed at an anonymous identity's bucket. Ends when the fallback does.
+- **The bearer middleware must stay inside CORS and ahead of every
+  identity-keyed limiter**, which needs the identity. The tier limiter panics
+  on a request without the bearer mark; `TestBearerAuthMiddlewareMountPosition`
+  checks every chain.
+- **Dropping the `Authorization` header buys the `none` identity budget.** The
+  tiers no longer share a key, so the shared IP bucket is what bounds it. In
+  exchange, a self-asserted `X-User-Id` can no longer drain an anonymous
+  identity's bucket on the tier limiter. It still can on the hand-built
+  chains (`UserIDKeyFunc`).
 - **`pow_challenge_age_seconds` only samples challenges that come back**, so a
   difficulty past what clients can finish makes `outcome="ok"` look *better* as
   the slow half stops reporting. Read it next to `outcome="expired"`.
