@@ -31,11 +31,21 @@ def make_session(
     )
 
 
-def make_solve_report(*, cpu_seconds: float = 0.1) -> SolveReport:
+# flashlight's knownSolverVersions. Any other version is labelled "other".
+FLASHLIGHT_SOLVER_VERSIONS = frozenset({"1", "2", "3", "4", "5"})
+
+
+def make_solve_report(
+    *,
+    solution: str | None = "123",
+    solver: str = "python",
+    cpu_seconds: float = 0.1,
+) -> SolveReport:
     return SolveReport(
-        solution="123",
+        solution=solution,
         difficulty=16,
-        solver="python",
+        solver=solver,
+        solver_version="1",
         hashes=124,
         elapsed_seconds=cpu_seconds,
         cpu_seconds=cpu_seconds,

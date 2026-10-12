@@ -53,10 +53,9 @@ class AnonymousLogin:
             self.last_solve = e.report
             raise
         self.last_solve = report
-        assert report.solution is not None
         return anonymous_login(
             requests_session=self._requests_session,
             user_id=self._user_id,
             challenge=challenge.challenge,
-            solution=report.solution,
+            report=report,
         )

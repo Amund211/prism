@@ -11,6 +11,7 @@ from prism.flashlight.auth.proof_of_work import (
     ProofOfWorkTimeoutError,
     SolveReport,
 )
+from tests.prism.auth_utils import make_solve_report
 
 CHALLENGE = Challenge(
     challenge="a-challenge",
@@ -18,17 +19,6 @@ CHALLENGE = Challenge(
     difficulty=4,
     expires_in_seconds=60,
 )
-
-
-def make_report(solution: str | None) -> SolveReport:
-    return SolveReport(
-        solution=solution,
-        difficulty=4,
-        solver="python",
-        hashes=10,
-        elapsed_seconds=0.5,
-        cpu_seconds=0.25,
-    )
 
 
 @pytest.fixture
@@ -40,7 +30,7 @@ def login(monkeypatch: pytest.MonkeyPatch) -> AnonymousLogin:
 def test_log_in_records_the_solve(
     login: AnonymousLogin, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    report = make_report("9")
+    report = make_solve_report(solution="9")
     monkeypatch.setattr(anonymous, "solve_challenge", lambda _: report)
     calls: list[dict[str, Any]] = []
     session = object()
@@ -55,14 +45,14 @@ def test_log_in_records_the_solve(
     assert login.log_in() is session
     assert login.last_solve is report
     assert calls[0]["challenge"] == "a-challenge"
-    assert calls[0]["solution"] == "9"
+    assert calls[0]["report"] is report
     assert calls[0]["user_id"] == "user"
 
 
 def test_log_in_records_a_timed_out_solve(
     login: AnonymousLogin, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    report = make_report(None)
+    report = make_solve_report(solution=None)
 
     def time_out(_: Challenge) -> SolveReport:
         raise ProofOfWorkTimeoutError(report)

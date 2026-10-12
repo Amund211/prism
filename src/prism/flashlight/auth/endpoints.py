@@ -12,7 +12,11 @@ from prism.flashlight.auth.errors import (
     RefreshRateLimitedError,
     SessionExpiredError,
 )
-from prism.flashlight.auth.proof_of_work import Challenge, parse_challenge_response
+from prism.flashlight.auth.proof_of_work import (
+    Challenge,
+    SolveReport,
+    parse_challenge_response,
+)
 from prism.flashlight.auth.session import (
     MicrosoftGrant,
     Session,
@@ -34,7 +38,7 @@ def _post_json(
     requests_session: requests.Session,
     *,
     path: str,
-    body: dict[str, str],
+    body: dict[str, Any],
     headers: dict[str, str],
 ) -> requests.Response:  # pragma: nocover
     # NOTE: The flashlight API does **not** allow third-party access.
@@ -92,12 +96,36 @@ def request_challenge(
     return parse_challenge_response(_parse_json(response, path=path))
 
 
+def anonymous_login_body(
+    *, user_id: str, challenge: str, report: SolveReport
+) -> dict[str, Any]:
+    """
+    Return the login body: the solution, and how the solve went
+
+    `solver` is statistics for flashlight only. It never affects the login.
+    """
+    if report.solution is None:
+        raise AuthError("Cannot log in with a solve that timed out")
+    return {
+        "userId": user_id,
+        "challenge": challenge,
+        "solution": report.solution,
+        "solver": {
+            "name": report.solver,
+            "version": report.solver_version,
+            "hashes": report.hashes,
+            "elapsedSeconds": report.elapsed_seconds,
+            "cpuSeconds": report.cpu_seconds,
+        },
+    }
+
+
 def anonymous_login(
     *,
     requests_session: requests.Session,
     user_id: str,
     challenge: str,
-    solution: str,
+    report: SolveReport,
 ) -> Session:  # pragma: nocover
     """
     Exchange a solved challenge for a session
@@ -109,7 +137,7 @@ def anonymous_login(
     response = _post_json(
         requests_session,
         path=path,
-        body={"userId": user_id, "challenge": challenge, "solution": solution},
+        body=anonymous_login_body(user_id=user_id, challenge=challenge, report=report),
         headers={"X-User-Id": user_id, **make_flashlight_client_headers()},
     )
 
