@@ -14,10 +14,33 @@ const MAX_ATTEMPTS = 2 ** MAX_DIFFICULTY * 8;
 // them is ~2.4x that, which keeps the whole usable difficulty band reachable.
 const BATCH_SIZE = 16;
 
+// Reported to flashlight with each login. Bump on any change to the hash loop
+// that may affect its performance. Flashlight's knownSolverVersions must allow
+// a version before rainbow sends it.
+export const POW_SOLVER_VERSION = "1";
+
 export interface Challenge {
     readonly challenge: string;
     readonly algorithm: string;
     readonly difficulty: number;
+}
+
+export interface Solution {
+    readonly solution: string;
+    // Attempts up to and including the solution
+    readonly hashes: number;
+    // The hash loop only, without worker startup
+    readonly elapsedSeconds: number;
+}
+
+/**
+ * How the proof-of-work was solved. Statistics for flashlight only: it never
+ * affects the login.
+ */
+export interface SolverReport extends Omit<Solution, "solution"> {
+    // "inline" is the main-thread fallback
+    readonly name: "worker" | "inline";
+    readonly version: string;
 }
 
 const hasLeadingZeroBits = (digest: Uint8Array, bits: number): boolean => {
@@ -40,7 +63,7 @@ const hasLeadingZeroBits = (digest: Uint8Array, bits: number): boolean => {
 
 /**
  * Find a solution such that SHA-256(`challenge`:`solution`) has at least
- * `difficulty` leading zero bits.
+ * `difficulty` leading zero bits, and report the work it took.
  *
  * Blocks the thread it runs on — call it from the worker unless workers are
  * unavailable.
@@ -49,7 +72,7 @@ export const solveChallenge = async ({
     challenge,
     algorithm,
     difficulty,
-}: Challenge): Promise<string> => {
+}: Challenge): Promise<Solution> => {
     if (algorithm !== POW_ALGORITHM) {
         throw new Error(`Unsupported proof-of-work algorithm: ${algorithm}`);
     }
@@ -63,6 +86,7 @@ export const solveChallenge = async ({
     }
 
     const encoder = new TextEncoder();
+    const started = performance.now();
 
     for (let base = 0; base < MAX_ATTEMPTS; base += BATCH_SIZE) {
         // Solutions are non-empty even at difficulty 0, where the empty string
@@ -84,7 +108,12 @@ export const solveChallenge = async ({
         if (hit !== -1) {
             // The lowest solution in the batch, so the result does not depend
             // on BATCH_SIZE.
-            return (base + hit).toString();
+            const counter = base + hit;
+            return {
+                solution: counter.toString(),
+                hashes: counter + 1,
+                elapsedSeconds: (performance.now() - started) / 1000,
+            };
         }
     }
 

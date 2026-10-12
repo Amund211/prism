@@ -62,9 +62,9 @@ const acquireSession = async (): Promise<Session> => {
     const userId = getOrSetUserId();
 
     const challenge = await requestChallenge(userId);
-    const solution = await solve(challenge);
+    const { solution, solver } = await solve(challenge);
 
-    return anonymousLogin({ userId, challenge: challenge.challenge, solution });
+    return anonymousLogin({ userId, challenge: challenge.challenge, solution, solver });
 };
 
 const commit = (session: Session): Session => {

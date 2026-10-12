@@ -1,8 +1,31 @@
 import { captureMessage } from "@sentry/react";
 
-import { solveChallenge } from "./proofOfWork.ts";
-import type { Challenge } from "./proofOfWork.ts";
+import { POW_SOLVER_VERSION, solveChallenge } from "./proofOfWork.ts";
+import type { Challenge, Solution, SolverReport } from "./proofOfWork.ts";
 import type { SolveResult } from "./proofOfWork.worker.ts";
+
+const isSolution = (value: unknown): value is Solution =>
+    typeof value === "object" &&
+    value !== null &&
+    "solution" in value &&
+    typeof value.solution === "string" &&
+    "hashes" in value &&
+    typeof value.hashes === "number" &&
+    "elapsedSeconds" in value &&
+    typeof value.elapsedSeconds === "number";
+
+export interface SolvedChallenge {
+    readonly solution: string;
+    readonly solver: SolverReport;
+}
+
+const withSolver = (
+    name: SolverReport["name"],
+    { solution, hashes, elapsedSeconds }: Solution,
+): SolvedChallenge => ({
+    solution,
+    solver: { name, version: POW_SOLVER_VERSION, hashes, elapsedSeconds },
+});
 
 /**
  * The worker could not run at all — as opposed to running and reporting that it
@@ -31,14 +54,23 @@ const createWorker = (): Worker | null => {
     }
 };
 
-const awaitSolution = async (worker: Worker, challenge: Challenge): Promise<string> =>
+const awaitSolution = async (worker: Worker, challenge: Challenge): Promise<Solution> =>
     // A worker only speaks in events, so this bridge has to be a new promise
     // oxlint-disable-next-line promise/avoid-new
-    new Promise<string>((resolve, reject) => {
+    new Promise<Solution>((resolve, reject) => {
         worker.addEventListener("message", (event: MessageEvent<SolveResult>) => {
             const result = event.data;
             if (result.ok) {
-                resolve(result.solution);
+                if (isSolution(result.result)) {
+                    resolve(result.result);
+                } else {
+                    // A stale cached worker from another release
+                    reject(
+                        new WorkerFailedError(
+                            "The proof-of-work worker sent a malformed result",
+                        ),
+                    );
+                }
             } else {
                 reject(new Error(result.error));
             }
@@ -74,15 +106,17 @@ const awaitSolution = async (worker: Worker, challenge: Challenge): Promise<stri
  * current difficulty of 0. A worker that runs and reports that it could not
  * solve the challenge is not retried: that verdict holds on any thread, and
  * inline retries of a too-hard challenge would freeze the tab instead.
+ *
+ * The report names the path that did the work: "worker" or "inline".
  */
-export const solve = async (challenge: Challenge): Promise<string> => {
+export const solve = async (challenge: Challenge): Promise<SolvedChallenge> => {
     const worker = createWorker();
     if (worker === null) {
-        return solveChallenge(challenge);
+        return withSolver("inline", await solveChallenge(challenge));
     }
 
     try {
-        return await awaitSolution(worker, challenge);
+        return withSolver("worker", await awaitSolution(worker, challenge));
     } catch (error: unknown) {
         if (!(error instanceof WorkerFailedError)) {
             throw error;
@@ -91,7 +125,7 @@ export const solve = async (challenge: Challenge): Promise<string> => {
             level: "warning",
             extra: { error },
         });
-        return await solveChallenge(challenge);
+        return withSolver("inline", await solveChallenge(challenge));
     } finally {
         worker.terminate();
     }

@@ -5,7 +5,7 @@ import {
     flashlightRequest,
 } from "#helpers/flashlight/request.ts";
 
-import type { Challenge } from "./proofOfWork.ts";
+import type { Challenge, SolverReport } from "./proofOfWork.ts";
 import { isTier, validateSessionId, withUUID } from "./storage.ts";
 import type { Session } from "./storage.ts";
 
@@ -61,19 +61,21 @@ interface LoginOptions {
     readonly userId: string;
     readonly challenge: string;
     readonly solution: string;
+    readonly solver: SolverReport;
 }
 
 export const anonymousLogin = async ({
     userId,
     challenge,
     solution,
+    solver,
 }: LoginOptions): Promise<Session> => {
     const { data } = await flashlightRequest<APISessionResponse>(
         "/v1/auth/anonymous/login",
         {
             init: {
                 method: "POST",
-                body: JSON.stringify({ userId, challenge, solution }),
+                body: JSON.stringify({ userId, challenge, solution, solver }),
             },
             errorContext: "Failed to log in anonymously",
             extra: { userId },

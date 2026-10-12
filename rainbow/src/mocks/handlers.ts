@@ -1,5 +1,6 @@
 import { http, HttpResponse } from "msw";
 
+import type { SolverReport } from "#helpers/flashlight/auth/proofOfWork.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";
 import type { APIPlayerDataPIT } from "#queries/playerdata.ts";
 import type { APISessionAtResponse } from "#queries/sessionAt.ts";
@@ -56,6 +57,7 @@ export const handlers = [
             userId: string;
             challenge: string;
             solution: string;
+            solver?: Partial<SolverReport>;
         };
         if (body.challenge !== makeChallengeResponse(body.userId).challenge) {
             throw new Error("Challenge was not minted for this userId");
@@ -63,6 +65,19 @@ export const handlers = [
         // flashlight rejects an empty solution even at difficulty 0.
         if (typeof body.solution !== "string" || body.solution.length === 0) {
             throw new Error("Missing solution");
+        }
+        // flashlight drops a bad report silently, so catch it here instead
+        const { solver } = body;
+        if (
+            typeof solver?.name !== "string" ||
+            solver.name.length === 0 ||
+            typeof solver.version !== "string" ||
+            typeof solver.hashes !== "number" ||
+            solver.hashes <= 0 ||
+            typeof solver.elapsedSeconds !== "number" ||
+            solver.elapsedSeconds < 0
+        ) {
+            throw new Error("Missing or malformed solver report");
         }
 
         return HttpResponse.json(makeSessionResponse());

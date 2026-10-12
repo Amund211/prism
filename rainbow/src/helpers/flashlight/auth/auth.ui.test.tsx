@@ -1,5 +1,6 @@
 import { delay, http, HttpResponse } from "msw";
-import { afterEach, describe, expect, vi } from "vitest";
+import type { SetupWorker } from "msw/browser";
+import { afterEach, describe, expect, onTestFinished, vi } from "vitest";
 import { renderHook } from "vitest-browser-react";
 
 import { flashlightFetch } from "#helpers/flashlight/fetch.ts";
@@ -11,6 +12,7 @@ import {
 } from "#mocks/data.ts";
 import { mswTest } from "#test/msw-test.ts";
 
+import type { SolverReport } from "./proofOfWork.ts";
 import { adoptSession, ensureSession, signOutEverywhere } from "./session.ts";
 import { clearSession, readSession, writeSession } from "./storage.ts";
 import { useAuthSession } from "./useAuthSession.ts";
@@ -42,6 +44,83 @@ describe("anonymous auth", () => {
                 sessionId: TEST_SESSION_ID,
                 tier: "anonymous",
             });
+        },
+    );
+
+    const captureSolverReports = (worker: SetupWorker) => {
+        const reports: (SolverReport | undefined)[] = [];
+        worker.use(
+            http.post(endpoint("v1/auth/anonymous/login"), async ({ request }) => {
+                const body = (await request.json()) as { solver?: SolverReport };
+                reports.push(body.solver);
+                return HttpResponse.json(makeSessionResponse());
+            }),
+            http.get(endpoint("v1/thing"), () => HttpResponse.json({ ok: true })),
+        );
+        return reports;
+    };
+
+    const expectOneReport = (
+        reports: readonly (SolverReport | undefined)[],
+        name: SolverReport["name"],
+    ) => {
+        expect(reports).toHaveLength(1);
+        const [report] = reports;
+        // The mock challenge is difficulty 0: one hash
+        expect(report).toStrictEqual({
+            name,
+            version: "1",
+            hashes: 1,
+            elapsedSeconds: report?.elapsedSeconds,
+        });
+        expect(report?.elapsedSeconds).toBeGreaterThanOrEqual(0);
+    };
+
+    mswTest("reports the worker as the solver", async ({ worker }) => {
+        const reports = captureSolverReports(worker);
+
+        await expect(fetchThing()).resolves.toStrictEqual({ ok: true });
+
+        expectOneReport(reports, "worker");
+    });
+
+    mswTest("reports the main thread fallback as inline", async ({ worker }) => {
+        vi.stubGlobal("Worker", undefined);
+        onTestFinished(() => {
+            vi.unstubAllGlobals();
+        });
+        const reports = captureSolverReports(worker);
+
+        await expect(fetchThing()).resolves.toStrictEqual({ ok: true });
+
+        expectOneReport(reports, "inline");
+    });
+
+    mswTest(
+        "solves inline when the worker sends a malformed result",
+        async ({ worker }) => {
+            class OldShapeWorker extends EventTarget {
+                public postMessage(): void {
+                    queueMicrotask(() => {
+                        this.dispatchEvent(
+                            new MessageEvent("message", {
+                                data: { ok: true, solution: "0" },
+                            }),
+                        );
+                    });
+                }
+
+                public readonly terminate = vi.fn<() => void>();
+            }
+            vi.stubGlobal("Worker", OldShapeWorker);
+            onTestFinished(() => {
+                vi.unstubAllGlobals();
+            });
+            const reports = captureSolverReports(worker);
+
+            await expect(fetchThing()).resolves.toStrictEqual({ ok: true });
+
+            expectOneReport(reports, "inline");
         },
     );
 

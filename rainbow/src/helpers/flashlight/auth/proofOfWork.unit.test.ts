@@ -1,6 +1,11 @@
 import { describe, expect, test } from "vitest";
 
-import { MAX_DIFFICULTY, POW_ALGORITHM, solveChallenge } from "./proofOfWork.ts";
+import {
+    MAX_DIFFICULTY,
+    POW_ALGORITHM,
+    POW_SOLVER_VERSION,
+    solveChallenge,
+} from "./proofOfWork.ts";
 
 const digestBits = async (challenge: string, solution: string): Promise<number> => {
     const digest = new Uint8Array(
@@ -22,9 +27,16 @@ const digestBits = async (challenge: string, solution: string): Promise<number> 
     return bits;
 };
 
+// flashlight's knownSolverVersions. Any other version is labelled "other".
+const FLASHLIGHT_SOLVER_VERSIONS = ["1", "2", "3", "4", "5"];
+
+test("the solver version is one flashlight knows", () => {
+    expect(FLASHLIGHT_SOLVER_VERSIONS).toContain(POW_SOLVER_VERSION);
+});
+
 describe(solveChallenge, () => {
     test("solves at difficulty 0 with a non-empty solution", async () => {
-        const solution = await solveChallenge({
+        const { solution } = await solveChallenge({
             challenge: "abc",
             algorithm: POW_ALGORITHM,
             difficulty: 0,
@@ -33,11 +45,24 @@ describe(solveChallenge, () => {
         expect(solution.length).toBeGreaterThan(0);
     });
 
+    test("reports the work done", async () => {
+        const { solution, hashes, elapsedSeconds } = await solveChallenge({
+            challenge: "some-challenge",
+            algorithm: POW_ALGORITHM,
+            difficulty: 8,
+        });
+
+        // Counts up from 0, so the solution is the attempts before it
+        expect(hashes).toBe(Number(solution) + 1);
+        expect(elapsedSeconds).toBeGreaterThanOrEqual(0);
+        expect(elapsedSeconds).toBeLessThan(60);
+    });
+
     test("solves at a non-zero difficulty", async () => {
         const challenge = "some-challenge";
         const difficulty = 12;
 
-        const solution = await solveChallenge({
+        const { solution } = await solveChallenge({
             challenge,
             algorithm: POW_ALGORITHM,
             difficulty,

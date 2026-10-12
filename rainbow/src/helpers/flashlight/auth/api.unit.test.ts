@@ -9,6 +9,7 @@ import {
     recoverSession,
     refreshSession,
 } from "./api.ts";
+import type { SolverReport } from "./proofOfWork.ts";
 import type { Session } from "./storage.ts";
 
 // The shape the stateless cutover mints. Unlike the stored value, an
@@ -31,8 +32,20 @@ const mockFetch = (response: Response) => {
     return fetchMock;
 };
 
+const SOLVER: SolverReport = {
+    name: "worker",
+    version: "1",
+    hashes: 2,
+    elapsedSeconds: 0.25,
+};
+
 const login = async (): Promise<Session> =>
-    anonymousLogin({ userId: "rnb_test", challenge: "abc", solution: "1" });
+    anonymousLogin({
+        userId: "rnb_test",
+        challenge: "abc",
+        solution: "1",
+        solver: SOLVER,
+    });
 
 afterEach(() => {
     vi.unstubAllGlobals();
@@ -76,6 +89,24 @@ describe(anonymousLogin, () => {
         mockFetch(Response.json(makeSessionResponse("sess_no_prefix")));
 
         await expect(login()).rejects.toThrow("Invalid session id");
+    });
+
+    test("sends the solver report", async () => {
+        const fetchMock = mockFetch(
+            Response.json(makeSessionResponse(STATELESS_SESSION_ID)),
+        );
+
+        await login();
+
+        const [, init] = fetchMock.mock.calls[0] ?? [];
+        expect(init?.body).toBe(
+            JSON.stringify({
+                userId: "rnb_test",
+                challenge: "abc",
+                solution: "1",
+                solver: SOLVER,
+            }),
+        );
     });
 });
 

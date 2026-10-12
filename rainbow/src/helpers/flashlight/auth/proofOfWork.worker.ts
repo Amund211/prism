@@ -1,8 +1,8 @@
 import { solveChallenge } from "./proofOfWork.ts";
-import type { Challenge } from "./proofOfWork.ts";
+import type { Challenge, Solution } from "./proofOfWork.ts";
 
 export type SolveResult =
-    | { readonly ok: true; readonly solution: string }
+    | { readonly ok: true; readonly result: Solution }
     | { readonly ok: false; readonly error: string };
 
 // globalThis is typed as Window under the DOM lib, whose postMessage takes a
@@ -16,7 +16,7 @@ const post = (result: SolveResult): void => {
 
 const handle = async (challenge: Challenge): Promise<void> => {
     try {
-        post({ ok: true, solution: await solveChallenge(challenge) });
+        post({ ok: true, result: await solveChallenge(challenge) });
     } catch (error: unknown) {
         post({
             ok: false,
