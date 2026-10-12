@@ -34,6 +34,15 @@ func AuthFromContext(ctx context.Context) (AuthContext, bool) {
 	return v, ok
 }
 
+type bearerCheckedCtxKey struct{}
+
+// BearerCheckedFromContext reports whether the bearer middleware passed the
+// request on, with or without a bearer.
+func BearerCheckedFromContext(ctx context.Context) bool {
+	v, _ := ctx.Value(bearerCheckedCtxKey{}).(bool)
+	return v
+}
+
 // NewBearerAuthMiddleware returns a middleware that validates an
 // Authorization: Bearer <session-id> header against the auth session
 // store when present. It is passive: requests without an Authorization
@@ -79,7 +88,7 @@ func NewBearerAuthMiddleware(validate app.ValidateSession, nowFunc func() time.T
 			rawAuth := r.Header.Get("Authorization")
 			if rawAuth == "" {
 				w.Header().Set(AuthSessionHeader, AuthSessionAbsent)
-				next(w, r)
+				next(w, r.WithContext(context.WithValue(r.Context(), bearerCheckedCtxKey{}, true)))
 				return
 			}
 
@@ -137,6 +146,7 @@ func NewBearerAuthMiddleware(validate app.ValidateSession, nowFunc func() time.T
 				IdentityKey:  view.IdentityKey,
 			}
 			ctx = context.WithValue(ctx, authSessionCtxKey{}, authCtx)
+			ctx = context.WithValue(ctx, bearerCheckedCtxKey{}, true)
 			ctx = logging.AddMetaToContext(ctx,
 				slog.String("authTier", string(authCtx.IdentityType)),
 				slog.String("authIdentityKey", authCtx.IdentityKey),

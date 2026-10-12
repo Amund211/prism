@@ -32,6 +32,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 			called = true
 			_, ok := ports.AuthFromContext(r.Context())
 			require.False(t, ok, "no auth context should be attached without bearer")
+			require.True(t, ports.BearerCheckedFromContext(r.Context()))
 			w.WriteHeader(http.StatusOK)
 		}
 		handler := mw(next)
@@ -58,6 +59,7 @@ func TestBearerAuthMiddleware(t *testing.T) {
 		next := func(w http.ResponseWriter, r *http.Request) {
 			ctx, ok := ports.AuthFromContext(r.Context())
 			require.True(t, ok)
+			require.True(t, ports.BearerCheckedFromContext(r.Context()))
 			seen = ctx
 			w.WriteHeader(http.StatusOK)
 		}
@@ -155,6 +157,11 @@ func TestBearerAuthMiddleware(t *testing.T) {
 		handler(w, r)
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 		require.Equal(t, ports.AuthSessionValid, w.Result().Header.Get(ports.AuthSessionHeader))
+	})
+
+	t.Run("no checked mark without the middleware", func(t *testing.T) {
+		t.Parallel()
+		require.False(t, ports.BearerCheckedFromContext(t.Context()))
 	})
 
 	t.Run("no refresh hint without an Authorization header", func(t *testing.T) {
