@@ -132,6 +132,25 @@ func TestAuthRateLimitMiddleware(t *testing.T) {
 		require.Equal(t, http.StatusOK, send(tierRequest{ip: ip2, userID: user1}), "another IP has its own budget")
 	})
 
+	t.Run("the long IP bucket limits none and anonymous", func(t *testing.T) {
+		t.Parallel()
+		long := burst(2)
+		send := newTierHandler(t, ports.RateLimitPolicy{
+			UnauthedIP:     burst(10),
+			UnauthedIPLong: &long,
+			Identity: map[ports.Tier]ports.Rate{
+				ports.TierAnonymous: burst(10),
+				ports.TierMicrosoft: burst(10),
+			},
+		})
+		require.Equal(t, http.StatusOK, send(tierRequest{ip: ip1, userID: user1}))
+		require.Equal(t, http.StatusOK, send(tierRequest{ip: ip1, bearer: "anonymous:" + user2}))
+		require.Equal(t, http.StatusTooManyRequests, send(tierRequest{ip: ip1, userID: user2}),
+			"rotating identities must not escape the long bucket")
+		require.Equal(t, http.StatusOK, send(tierRequest{ip: ip1, bearer: "microsoft:" + user1}), "microsoft skips it")
+		require.Equal(t, http.StatusOK, send(tierRequest{ip: ip2, userID: user1}), "another IP has its own budget")
+	})
+
 	t.Run("microsoft skips the IP bucket", func(t *testing.T) {
 		t.Parallel()
 		send := newTierHandler(t, ports.RateLimitPolicy{

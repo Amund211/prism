@@ -20,11 +20,13 @@ type Rate struct {
 
 // RateLimitPolicy sets the limits for one endpoint.
 // UnauthedIP counts tier none and anonymous requests per IP.
+// UnauthedIPLong is an optional second bucket on the same key, for a long window.
 // Identity is keyed on (tier, identity). A tier not in the map uses TierAnonymous,
 // which is required.
 type RateLimitPolicy struct {
-	UnauthedIP Rate
-	Identity   map[Tier]Rate
+	UnauthedIP     Rate
+	UnauthedIPLong *Rate
+	Identity       map[Tier]Rate
 }
 
 type Tier string
@@ -36,15 +38,19 @@ const (
 	TierMicrosoft Tier = Tier(domain.AuthSessionIdentityMicrosoft)
 )
 
+var longIPRate = Rate{0.1, 200}
+
 var (
 	PrismRateLimitPolicy = RateLimitPolicy{ // playerdata, tags, account
-		UnauthedIP: Rate{4, 120},
+		UnauthedIP:     Rate{4, 120},
+		UnauthedIPLong: &longIPRate,
 		Identity: map[Tier]Rate{
 			TierMicrosoft: {2, 120}, TierAnonymous: {1.5, 80}, TierNone: {1, 48},
 		},
 	}
 	StatsRateLimitPolicy = RateLimitPolicy{ // history, wrapped
-		UnauthedIP: Rate{2, 60},
+		UnauthedIP:     Rate{2, 60},
+		UnauthedIPLong: &longIPRate,
 		Identity: map[Tier]Rate{
 			TierMicrosoft: {1, 60}, TierAnonymous: {0.5, 30}, TierNone: {0.25, 10},
 		},
@@ -83,6 +89,10 @@ func NewAuthRateLimitMiddleware(policy RateLimitPolicy, onLimitExceeded http.Han
 	}
 
 	ipLimiter := newLimiter(policy.UnauthedIP)
+	var ipLongLimiter ratelimiting.RateLimiter
+	if policy.UnauthedIPLong != nil {
+		ipLongLimiter = newLimiter(*policy.UnauthedIPLong)
+	}
 	identityLimiters := make(map[Tier]ratelimiting.RateLimiter, len(policy.Identity))
 	for tier, rate := range policy.Identity {
 		identityLimiters[tier] = newLimiter(rate)
@@ -108,8 +118,13 @@ func NewAuthRateLimitMiddleware(policy RateLimitPolicy, onLimitExceeded http.Han
 			}
 
 			if tier != TierMicrosoft {
-				if key := IPHashKeyFunc(r); !ipLimiter.Consume(key) {
+				key := IPHashKeyFunc(r)
+				if !ipLimiter.Consume(key) {
 					rejectRateLimited(w, r, onLimitExceeded, tier, "ip", key)
+					return
+				}
+				if ipLongLimiter != nil && !ipLongLimiter.Consume(key) {
+					rejectRateLimited(w, r, onLimitExceeded, tier, "ip_long", key)
 					return
 				}
 			}

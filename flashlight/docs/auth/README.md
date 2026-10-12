@@ -68,8 +68,9 @@ session-at) use `ports.NewAuthRateLimitMiddleware` with a `RateLimitPolicy`
 from `internal/ports/ratelimit_policy.go`. Mount order:
 `bearer → rateLimit`.
 
-- One IP bucket for tiers `none` (no bearer) and `anonymous`. Microsoft skips
-  it: its identities cost a Minecraft licence.
+- One IP bucket for tiers `none` (no bearer) and `anonymous`, plus an optional
+  long bucket (0.1/s, burst 200 on the prism and stats policies) on the same
+  key. Microsoft skips both: its identities cost a Minecraft licence.
 - One identity bucket per `(tier, identity)`. Each tier has its own budget. A
   tier missing from the policy, or unknown, gets the anonymous rate.
 - A bad bearer is 401'd before any limiter (one HMAC). Accepted.
