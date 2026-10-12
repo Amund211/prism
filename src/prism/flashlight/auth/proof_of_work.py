@@ -96,6 +96,7 @@ class SolveReport:
     solution: str | None
     difficulty: int
     solver: str
+    solver_version: str
     hashes: int
     # What the user waited. Includes time in suspend on some platforms.
     elapsed_seconds: float
@@ -175,6 +176,8 @@ class Solver:
     """
 
     name: str
+    # Reported to flashlight. Changes when the code's performance may change.
+    version: str
     solve: Callable[[bytes, int, DeadlineLike], str]
 
 
@@ -215,7 +218,12 @@ def get_solver(name: str, library_path: Path = native_pow.LIBRARY_PATH) -> Solve
         except native_pow.SolveStopped as e:
             raise SolveTimeout(e.hashes) from e
 
-    return Solver(name=impl, solve=solve)
+    try:
+        version = library.version(impl)
+    except native_pow.NativePowError as e:
+        raise AuthError(f"Native solver {impl!r} has no version") from e
+
+    return Solver(name=impl, version=str(version), solve=solve)
 
 
 def pick_default_solver(library_path: Path = native_pow.LIBRARY_PATH) -> Solver:
@@ -321,6 +329,7 @@ def solve_challenge(
             solution=solution,
             difficulty=challenge.difficulty,
             solver=solver.name,
+            solver_version=solver.version,
             hashes=hashes,
             elapsed_seconds=time.monotonic() - started,
             cpu_seconds=time.thread_time() - cpu_started,
@@ -391,4 +400,10 @@ def _solve_python(prefix: bytes, difficulty: int, deadline: DeadlineLike) -> str
 
 
 # Holds the GIL. The fallback when no native solver loads.
-PYTHON_SOLVER = Solver(name="python", solve=_solve_python)
+# Bump on any change to _solve_python or PYTHON_BATCH_HIGHS that may affect its
+# performance. Flashlight's knownSolverVersions must allow it first.
+PYTHON_SOLVER_VERSION = "1"
+
+PYTHON_SOLVER = Solver(
+    name="python", version=PYTHON_SOLVER_VERSION, solve=_solve_python
+)

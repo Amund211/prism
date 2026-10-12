@@ -28,6 +28,7 @@ from prism.flashlight.auth.proof_of_work import (
     solve_budget,
     solve_challenge,
 )
+from tests.prism.auth_utils import FLASHLIGHT_SOLVER_VERSIONS
 
 # A real response from POST /v1/auth/anonymous/challenge
 VALID_RESPONSE = {
@@ -259,6 +260,7 @@ def test_solve_challenge(
 
     assert report.difficulty == difficulty
     assert report.solver == solver.name
+    assert report.solver_version == solver.version
     # Every solver counts up from 0, so the solution is the attempts made
     assert report.hashes == int(solution) + 1
     assert report.elapsed_seconds >= 0
@@ -307,7 +309,9 @@ def test_solve_challenge_has_no_difficulty_cap() -> None:
         seen.append(difficulty)
         return "41"
 
-    report = solve_challenge(make_challenge(difficulty=40), solver=Solver("s", solve))
+    report = solve_challenge(
+        make_challenge(difficulty=40), solver=Solver("s", "1", solve)
+    )
     assert seen == [40]
     assert report.hashes == 42
 
@@ -319,7 +323,7 @@ def test_solve_challenge_passes_its_deadline_on() -> None:
         seen.append(deadline)
         return "0"
 
-    solve_challenge(make_challenge(), solver=Solver("s", solve), deadline=NEVER)
+    solve_challenge(make_challenge(), solver=Solver("s", "1", solve), deadline=NEVER)
     assert seen == [NEVER]
 
 
@@ -384,6 +388,7 @@ def test_solve_report_slow_is_cpu_time(cpu_seconds: float, slow: bool) -> None:
         solution=None,
         difficulty=20,
         solver="python",
+        solver_version="1",
         hashes=0,
         elapsed_seconds=3600.0,
         cpu_seconds=cpu_seconds,
@@ -424,7 +429,7 @@ def test_solve_challenge_wraps_native_errors() -> None:
         raise native_pow.NativePowError("broken")
 
     with pytest.raises(AuthError, match="'broken-solver' failed"):
-        solve_challenge(make_challenge(), solver=Solver("broken-solver", fail))
+        solve_challenge(make_challenge(), solver=Solver("broken-solver", "1", fail))
 
 
 def test_solver_timeout_without_solve_challenge() -> None:
@@ -435,6 +440,11 @@ def test_solver_timeout_without_solve_challenge() -> None:
 
 def test_get_solver_python() -> None:
     assert get_solver("python") is PYTHON_SOLVER
+
+
+@pytest.mark.parametrize("name", ("python", "portable", "native"))
+def test_solver_version_is_known_to_flashlight(name: str) -> None:
+    assert get_solver(name).version in FLASHLIGHT_SOLVER_VERSIONS
 
 
 def test_get_solver_portable() -> None:
@@ -470,6 +480,18 @@ def test_get_solver_refuses_unsupported_implementation(
         get_solver("native")
 
 
+def test_get_solver_refuses_a_native_solver_without_a_version(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def no_version(_: object, name: str) -> int:
+        raise native_pow.NativePowError(f"The library has no version for {name}")
+
+    monkeypatch.setattr(native_pow.NativeLibrary, "version", no_version)
+    with pytest.raises(AuthError, match="no version"):
+        get_solver("portable")
+    assert pick_default_solver() is PYTHON_SOLVER
+
+
 def test_pick_default_solver_prefers_native() -> None:
     assert pick_default_solver().name == get_solver("native").name
 
@@ -502,7 +524,9 @@ def test_self_test_catches_wrong_solutions(monkeypatch: pytest.MonkeyPatch) -> N
         assert False  # pragma: nocover
 
     monkeypatch.setattr(
-        proof_of_work, "get_solver", lambda _: Solver(name="wrong", solve=wrong)
+        proof_of_work,
+        "get_solver",
+        lambda _: Solver(name="wrong", version="1", solve=wrong),
     )
     with pytest.raises(AuthError, match="wrong"):
         self_test("wrong", difficulties=(8,))

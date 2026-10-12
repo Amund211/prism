@@ -33,7 +33,15 @@
 #endif
 
 // Bump when the exported functions change. Checked by the loader.
-#define ABI_VERSION 3
+#define ABI_VERSION 4
+
+// Reported to flashlight with each login. Bump on any change that may affect
+// the solver's performance: here, CHUNK_SIZE or the solve loop in
+// native_pow.py, or the flags in build_powsolve.py. Flashlight's
+// knownSolverVersions must allow a version before a release sends it.
+#define PORTABLE_VERSION 1
+#define SHA_NI_VERSION 1
+#define ARMV8_VERSION 1
 
 #define SOLUTION_DIGITS 12
 #define MAX_COUNTER 1000000000000ULL
@@ -326,6 +334,20 @@ static size_t pad(uint8_t buf[128], const uint8_t *tail, size_t tail_len, uint64
 EXPORT int pow_abi_version(void) { return ABI_VERSION; }
 
 EXPORT int pow_impl_supported(int impl) { return get_compress(impl) != NULL; }
+
+// -1 if the implementation is unknown. Known also where it can't run.
+EXPORT int pow_impl_version(int impl) {
+    switch (impl) {
+    case IMPL_PORTABLE:
+        return PORTABLE_VERSION;
+    case IMPL_SHA_NI:
+        return SHA_NI_VERSION;
+    case IMPL_ARMV8:
+        return ARMV8_VERSION;
+    default:
+        return -1;
+    }
+}
 
 // SHA-256 of `data`, for testing an implementation. Returns 0, or -1 if the
 // implementation is unsupported.

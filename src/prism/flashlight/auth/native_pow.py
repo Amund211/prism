@@ -23,7 +23,7 @@ else:  # pragma: nocover
 LIBRARY_PATH = SOURCE_PATH.with_name(LIBRARY_NAME)
 
 # Must match ABI_VERSION, SOLUTION_DIGITS and MAX_COUNTER in powsolve.c
-ABI_VERSION = 3
+ABI_VERSION = 4
 SOLUTION_DIGITS = 12
 MAX_COUNTER = 10**SOLUTION_DIGITS
 
@@ -67,6 +67,9 @@ class NativeLibrary:
         lib.pow_impl_supported.argtypes = [ctypes.c_int]
         lib.pow_impl_supported.restype = ctypes.c_int
 
+        lib.pow_impl_version.argtypes = [ctypes.c_int]
+        lib.pow_impl_version.restype = ctypes.c_int
+
         lib.pow_sha256.argtypes = [
             ctypes.c_int,
             ctypes.c_char_p,
@@ -91,6 +94,13 @@ class NativeLibrary:
         """Return True if the named implementation can run on this machine"""
         impl = IMPLEMENTATIONS.get(name, None)
         return impl is not None and bool(self._lib.pow_impl_supported(impl))
+
+    def version(self, name: str) -> int:
+        """Return the version of the named implementation's code"""
+        version = self._lib.pow_impl_version(_impl_id(name))
+        if version < 0:
+            raise NativePowError(f"The library has no version for {name}")
+        return int(version)
 
     def sha256(self, name: str, data: bytes) -> bytes:
         """Return SHA-256 of `data` computed by the named implementation"""

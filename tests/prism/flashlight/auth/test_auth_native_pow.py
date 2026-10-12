@@ -17,6 +17,7 @@ from prism.flashlight.auth.native_pow import (
     SolveStopped,
 )
 from prism.flashlight.auth.proof_of_work import leading_zero_bits
+from tests.prism.auth_utils import FLASHLIGHT_SOLVER_VERSIONS
 
 
 @pytest.fixture(scope="module")
@@ -129,6 +130,24 @@ def test_unsupported_implementation_is_refused(
         library.sha256("future", b"")
     with pytest.raises(NativePowError, match="failed"):
         library.solve("future", b"", 0)
+
+
+def test_every_implementation_has_a_version_flashlight_knows(
+    library: NativeLibrary,
+) -> None:
+    for name in IMPLEMENTATIONS:
+        assert str(library.version(name)) in FLASHLIGHT_SOLVER_VERSIONS
+
+
+def test_unknown_implementation_has_no_version(
+    library: NativeLibrary, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    with pytest.raises(NativePowError, match="Unknown"):
+        library.version("sha-3000")
+
+    monkeypatch.setitem(native_pow.IMPLEMENTATIONS, "future", 99)
+    with pytest.raises(NativePowError, match="no version"):
+        library.version("future")
 
 
 def test_sha256_matches_hashlib(
