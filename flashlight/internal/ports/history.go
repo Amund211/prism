@@ -12,7 +12,6 @@ import (
 
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
 )
@@ -26,43 +25,7 @@ func MakeGetHistoryHandler(
 	bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
 ) (http.HandlerFunc, func()) {
-	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
-		ratelimiting.RefillPerSecond(4),
-		ratelimiting.BurstSize(240),
-	)
-	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		ipLimiter,
-		IPHashKeyFunc,
-	)
-	ipLimiterLong, stopIPLimiterLong := ratelimiting.NewTokenBucketRateLimiter(
-		ratelimiting.RefillPerSecond(0.1),
-		ratelimiting.BurstSize(200),
-	)
-	ipRateLimiterLong := ratelimiting.NewRequestBasedRateLimiter(
-		ipLimiterLong,
-		IPHashKeyFunc,
-	)
-	userIDLimiter, stopUserIDLimiter := ratelimiting.NewTokenBucketRateLimiter(
-		ratelimiting.RefillPerSecond(1),
-		ratelimiting.BurstSize(60),
-	)
-	userIDRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		// NOTE: Verified identity when there is one, user controlled value otherwise
-		userIDLimiter,
-		UserIDKeyFunc,
-	)
-
-	makeOnLimitExceeded := func(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-
-			statusCode := http.StatusTooManyRequests
-
-			logging.FromContext(ctx).InfoContext(ctx, "Rate limit exceeded", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
-
-			http.Error(w, "Rate limit exceeded", statusCode)
-		}
-	}
+	rateLimit, stop := NewAuthRateLimitMiddleware(StatsRateLimitPolicy, plainRateLimitExceeded)
 
 	middleware := ComposeMiddlewares(
 		NewRequestLoggerMiddleware(rootLogger),
@@ -71,18 +34,10 @@ func MakeGetHistoryHandler(
 		buildMetricsMiddleware("history"),
 		NewReportingMetaMiddleware("history"),
 		BuildCORSMiddleware(allowedOrigins),
-		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
-		NewRateLimitMiddleware(ipRateLimiterLong, makeOnLimitExceeded(ipRateLimiterLong)),
 		bearerAuthMiddleware,
-		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
+		rateLimit,
 		BuildRegisterUserVisitMiddleware(registerUserVisit),
 	)
-
-	stop := func() {
-		stopIPLimiter()
-		stopIPLimiterLong()
-		stopUserIDLimiter()
-	}
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()

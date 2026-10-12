@@ -15,12 +15,9 @@ import (
 	"github.com/Amund211/flashlight/internal/ports"
 )
 
-// The handlers below mount the bearer auth middleware, each assembling
-// its own chain by hand. They all have to mount it in the same slot: behind
-// the blocklist and the IP limiters, inside CORS, and ahead of the user-id
-// limiter. See NewBearerAuthMiddleware for why. Nothing but this test keeps
-// them in agreement — both arrangements serve correct responses, one just
-// does it without a throttle in front.
+// The handlers below mount the bearer auth middleware behind the blocklist and
+// inside CORS. Handlers on the tier limiter mount it right after bearer; the
+// rest keep the IP limiters in front of bearer and the user-id limiter behind.
 
 // The bearer probe rejects every request, so it short-circuits ahead of the
 // handler bodies and these are never called. They exist to satisfy the
@@ -75,6 +72,9 @@ type bearerMountCase struct {
 	// hasCORS marks the browser-facing handlers, where a 401 from the bearer
 	// middleware has to carry Access-Control-Allow-Origin.
 	hasCORS bool
+	// tierLimiter marks handlers on NewAuthRateLimitMiddleware, which has no
+	// limiter in front of bearer.
+	tierLimiter bool
 	// aboveUserIDBurst is a request count larger than this handler's user-id
 	// burst but smaller than its smallest IP burst.
 	aboveUserIDBurst int
@@ -89,6 +89,7 @@ func bearerMountCases(t *testing.T) []bearerMountCase {
 	return []bearerMountCase{
 		{
 			name:             "playerdata",
+			tierLimiter:      true,
 			aboveUserIDBurst: 150,
 			path:             "/v1/playerdata",
 			build: func(t *testing.T, bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc, blocklistConfig ports.BlocklistConfig) http.HandlerFunc {
@@ -107,6 +108,7 @@ func bearerMountCases(t *testing.T) []bearerMountCase {
 		},
 		{
 			name:             "tags",
+			tierLimiter:      true,
 			aboveUserIDBurst: 150,
 			path:             "/v1/tags/01234567-89ab-cdef-0123-456789abcdef",
 			build: func(t *testing.T, bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc, blocklistConfig ports.BlocklistConfig) http.HandlerFunc {
@@ -141,6 +143,7 @@ func bearerMountCases(t *testing.T) []bearerMountCase {
 		},
 		{
 			name:             "history",
+			tierLimiter:      true,
 			aboveUserIDBurst: 100,
 			path:             "/v1/history",
 			hasCORS:          true,
@@ -160,6 +163,7 @@ func bearerMountCases(t *testing.T) []bearerMountCase {
 		},
 		{
 			name:             "sessions",
+			tierLimiter:      true,
 			aboveUserIDBurst: 50,
 			path:             "/v1/sessions",
 			hasCORS:          true,
@@ -180,6 +184,7 @@ func bearerMountCases(t *testing.T) []bearerMountCase {
 		},
 		{
 			name:             "session-at",
+			tierLimiter:      true,
 			aboveUserIDBurst: 50,
 			path:             "/v1/session-at",
 			hasCORS:          true,
@@ -199,6 +204,7 @@ func bearerMountCases(t *testing.T) []bearerMountCase {
 		},
 		{
 			name:             "wrapped",
+			tierLimiter:      true,
 			aboveUserIDBurst: 100,
 			path:             "/v1/wrapped/01234567-89ab-cdef-0123-456789abcdef/2024",
 			hasCORS:          true,
@@ -219,6 +225,7 @@ func bearerMountCases(t *testing.T) []bearerMountCase {
 		},
 		{
 			name:             "get_account_by_username",
+			tierLimiter:      true,
 			aboveUserIDBurst: 150,
 			path:             "/v1/accounts/username/Player",
 			hasCORS:          true,
@@ -238,6 +245,7 @@ func bearerMountCases(t *testing.T) []bearerMountCase {
 		},
 		{
 			name:             "get_account_by_uuid",
+			tierLimiter:      true,
 			aboveUserIDBurst: 150,
 			path:             "/v1/accounts/uuid/01234567-89ab-cdef-0123-456789abcdef",
 			hasCORS:          true,
@@ -363,6 +371,30 @@ func TestBearerAuthMiddlewareMountPosition(t *testing.T) {
 
 				require.Equal(t, tc.aboveUserIDBurst, calls)
 			})
+
+			if tc.tierLimiter {
+				t.Run("the tier limiter sits behind the bearer middleware", func(t *testing.T) {
+					t.Parallel()
+
+					// The probe passes on without the bearer mark. A tier limiter
+					// behind it panics after the probe ran; one in front would
+					// panic before it.
+					calls := 0
+					probe := func(next http.HandlerFunc) http.HandlerFunc {
+						return func(w http.ResponseWriter, r *http.Request) {
+							calls++
+							next(w, r)
+						}
+					}
+					handler := tc.build(t, probe, emptyBlocklistConfig)
+
+					require.Panics(t, func() {
+						handler.ServeHTTP(httptest.NewRecorder(), makeRequest(t, "203.0.113.5", ""))
+					})
+					require.Equal(t, 1, calls)
+				})
+				return
+			}
 
 			t.Run("throttled requests don't reach the bearer middleware", func(t *testing.T) {
 				t.Parallel()

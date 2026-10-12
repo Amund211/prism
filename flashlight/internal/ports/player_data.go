@@ -13,7 +13,6 @@ import (
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
 )
@@ -29,45 +28,17 @@ func MakeGetPlayerDataHandler(
 ) (http.HandlerFunc, func()) {
 	tracer := otel.Tracer("flashlight/ports/player_data_v1")
 
-	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
-		ratelimiting.RefillPerSecond(8),
-		ratelimiting.BurstSize(480),
-	)
-	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		ipLimiter,
-		IPHashKeyFunc,
-	)
-	ipLimiterLong, stopIPLimiterLong := ratelimiting.NewTokenBucketRateLimiter(
-		ratelimiting.RefillPerSecond(0.1),
-		ratelimiting.BurstSize(200),
-	)
-	ipRateLimiterLong := ratelimiting.NewRequestBasedRateLimiter(
-		ipLimiterLong,
-		IPHashKeyFunc,
-	)
-	userIDLimiter, stopUserIDLimiter := ratelimiting.NewTokenBucketRateLimiter(
-		ratelimiting.RefillPerSecond(2),
-		ratelimiting.BurstSize(120),
-	)
-	userIDRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		// NOTE: Verified identity when there is one, user controlled value otherwise
-		userIDLimiter,
-		UserIDKeyFunc,
-	)
+	rateLimit, stop := NewAuthRateLimitMiddleware(PrismRateLimitPolicy, func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 
-	makeOnLimitExceeded := func(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
+		statusCode := http.StatusTooManyRequests
 
-			statusCode := http.StatusTooManyRequests
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(statusCode)
+		w.Write([]byte(`{"success":false,"cause":"Rate limit exceeded"}`))
 
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(statusCode)
-			w.Write([]byte(`{"success":false,"cause":"Rate limit exceeded"}`))
-
-			logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
-		}
-	}
+		logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "ratelimit exceeded")
+	})
 
 	middleware := ComposeMiddlewares(
 		NewRequestLoggerMiddleware(rootLogger),
@@ -75,10 +46,8 @@ func MakeGetPlayerDataHandler(
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("playerdata"),
 		NewReportingMetaMiddleware("playerdata"),
-		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
-		NewRateLimitMiddleware(ipRateLimiterLong, makeOnLimitExceeded(ipRateLimiterLong)),
 		bearerAuthMiddleware,
-		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
+		rateLimit,
 		BuildRegisterUserVisitMiddleware(registerUserVisit),
 	)
 
@@ -180,12 +149,6 @@ func MakeGetPlayerDataHandler(
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
 		w.Write(hypixelAPIResponseData)
-	}
-
-	stop := func() {
-		stopIPLimiter()
-		stopIPLimiterLong()
-		stopUserIDLimiter()
 	}
 
 	return middleware(handler), stop

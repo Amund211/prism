@@ -57,6 +57,16 @@ var (
 	}
 )
 
+func plainRateLimitExceeded(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+}
+
+func jsonRateLimitExceeded(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusTooManyRequests)
+	w.Write([]byte(`{"success":false,"cause":"rate limit exceeded"}`))
+}
+
 // NewAuthRateLimitMiddleware builds the policy's limiters as one middleware.
 // It must be mounted after the bearer middleware and panics on a request that
 // did not pass through it. The returned func stops the limiters.

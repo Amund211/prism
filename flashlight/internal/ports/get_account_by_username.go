@@ -12,7 +12,6 @@ import (
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 )
 
@@ -32,31 +31,7 @@ func MakeGetAccountByUsernameHandler(
 	bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
 ) (http.HandlerFunc, func()) {
-	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
-		ratelimiting.RefillPerSecond(8),
-		ratelimiting.BurstSize(480),
-	)
-	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		ipLimiter,
-		IPHashKeyFunc,
-	)
-	userIDLimiter, stopUserIDLimiter := ratelimiting.NewTokenBucketRateLimiter(
-		ratelimiting.RefillPerSecond(2),
-		ratelimiting.BurstSize(120),
-	)
-	userIDRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		// NOTE: Verified identity when there is one, user controlled value otherwise
-		userIDLimiter,
-		UserIDKeyFunc,
-	)
-
-	makeOnLimitExceeded := func(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusTooManyRequests)
-			w.Write([]byte(`{"success":false,"cause":"rate limit exceeded"}`))
-		}
-	}
+	rateLimit, stop := NewAuthRateLimitMiddleware(PrismRateLimitPolicy, jsonRateLimitExceeded)
 
 	middleware := ComposeMiddlewares(
 		NewRequestLoggerMiddleware(rootLogger),
@@ -65,9 +40,8 @@ func MakeGetAccountByUsernameHandler(
 		buildMetricsMiddleware("get_account_by_username"),
 		NewReportingMetaMiddleware("get_account_by_username"),
 		BuildCORSMiddleware(allowedOrigins),
-		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		bearerAuthMiddleware,
-		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
+		rateLimit,
 		BuildRegisterUserVisitMiddleware(registerUserVisit),
 	)
 
@@ -148,11 +122,6 @@ func MakeGetAccountByUsernameHandler(
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(response)
-	}
-
-	stop := func() {
-		stopIPLimiter()
-		stopUserIDLimiter()
 	}
 
 	return middleware(handler), stop

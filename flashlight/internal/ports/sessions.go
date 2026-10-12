@@ -12,7 +12,6 @@ import (
 
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
 )
@@ -27,35 +26,7 @@ func MakeGetSessionsHandler(
 	bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
 ) (http.HandlerFunc, func()) {
-	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
-		ratelimiting.RefillPerSecond(4),
-		ratelimiting.BurstSize(80),
-	)
-	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		ipLimiter,
-		IPHashKeyFunc,
-	)
-	userIDLimiter, stopUserIDLimiter := ratelimiting.NewTokenBucketRateLimiter(
-		ratelimiting.RefillPerSecond(1),
-		ratelimiting.BurstSize(20),
-	)
-	userIDRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		// NOTE: Verified identity when there is one, user controlled value otherwise
-		userIDLimiter,
-		UserIDKeyFunc,
-	)
-
-	makeOnLimitExceeded := func(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-
-			statusCode := http.StatusTooManyRequests
-
-			logging.FromContext(ctx).InfoContext(ctx, "Rate limit exceeded", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
-
-			http.Error(w, "Rate limit exceeded", statusCode)
-		}
-	}
+	rateLimit, stop := NewAuthRateLimitMiddleware(SessionsRateLimitPolicy, plainRateLimitExceeded)
 
 	middleware := ComposeMiddlewares(
 		NewRequestLoggerMiddleware(rootLogger),
@@ -64,9 +35,8 @@ func MakeGetSessionsHandler(
 		buildMetricsMiddleware("sessions"),
 		NewReportingMetaMiddleware("sessions"),
 		BuildCORSMiddleware(allowedOrigins),
-		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		bearerAuthMiddleware,
-		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
+		rateLimit,
 		BuildRegisterUserVisitMiddleware(registerUserVisit),
 	)
 
@@ -165,11 +135,6 @@ func MakeGetSessionsHandler(
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(marshalled)
-	}
-
-	stop := func() {
-		stopIPLimiter()
-		stopUserIDLimiter()
 	}
 
 	return middleware(handler), stop

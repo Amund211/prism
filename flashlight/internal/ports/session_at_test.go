@@ -43,7 +43,7 @@ func TestMakeGetSessionAtHandler(t *testing.T) {
 			allowedOrigins,
 			testLogger,
 			noopMiddleware,
-			noopMiddleware,
+			passThroughBearerMiddleware,
 			emptyBlocklistConfig,
 		)
 		t.Cleanup(stop)

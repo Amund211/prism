@@ -13,7 +13,6 @@ import (
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
 )
@@ -185,31 +184,11 @@ func MakeGetWrappedHandler(
 	bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
 ) (http.HandlerFunc, func()) {
-	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
-		ratelimiting.RefillPerSecond(4),
-		ratelimiting.BurstSize(240),
-	)
-	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		ipLimiter,
-		IPHashKeyFunc,
-	)
-	userIDLimiter, stopUserIDLimiter := ratelimiting.NewTokenBucketRateLimiter(
-		ratelimiting.RefillPerSecond(1),
-		ratelimiting.BurstSize(60),
-	)
-	userIDRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		// NOTE: Verified identity when there is one, user controlled value otherwise
-		userIDLimiter,
-		UserIDKeyFunc,
-	)
-
-	makeOnLimitExceeded := func(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusTooManyRequests)
-			w.Write([]byte(`{"success":false,"cause":"Rate limit exceeded"}`))
-		}
-	}
+	rateLimit, stop := NewAuthRateLimitMiddleware(StatsRateLimitPolicy, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusTooManyRequests)
+		w.Write([]byte(`{"success":false,"cause":"Rate limit exceeded"}`))
+	})
 
 	middleware := ComposeMiddlewares(
 		NewRequestLoggerMiddleware(rootLogger),
@@ -218,9 +197,8 @@ func MakeGetWrappedHandler(
 		buildMetricsMiddleware("wrapped"),
 		NewReportingMetaMiddleware("wrapped"),
 		BuildCORSMiddleware(allowedOrigins),
-		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		bearerAuthMiddleware,
-		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
+		rateLimit,
 		BuildRegisterUserVisitMiddleware(registerUserVisit),
 	)
 
@@ -324,11 +302,6 @@ func MakeGetWrappedHandler(
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(marshalled)
-	}
-
-	stop := func() {
-		stopIPLimiter()
-		stopUserIDLimiter()
 	}
 
 	return middleware(handler), stop

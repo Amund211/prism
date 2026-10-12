@@ -11,7 +11,6 @@ import (
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/ratelimiting"
 	"github.com/Amund211/flashlight/internal/reporting"
 	"github.com/Amund211/flashlight/internal/strutils"
 )
@@ -40,35 +39,7 @@ func MakeGetTagsHandler(
 	bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc,
 	blocklistConfig BlocklistConfig,
 ) (http.HandlerFunc, func()) {
-	ipLimiter, stopIPLimiter := ratelimiting.NewTokenBucketRateLimiter(
-		ratelimiting.RefillPerSecond(8),
-		ratelimiting.BurstSize(480),
-	)
-	ipRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		ipLimiter,
-		IPHashKeyFunc,
-	)
-	userIDLimiter, stopUserIDLimiter := ratelimiting.NewTokenBucketRateLimiter(
-		ratelimiting.RefillPerSecond(2),
-		ratelimiting.BurstSize(120),
-	)
-	userIDRateLimiter := ratelimiting.NewRequestBasedRateLimiter(
-		// NOTE: Verified identity when there is one, user controlled value otherwise
-		userIDLimiter,
-		UserIDKeyFunc,
-	)
-
-	makeOnLimitExceeded := func(rateLimiter ratelimiting.RequestRateLimiter) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-
-			statusCode := http.StatusTooManyRequests
-
-			logging.FromContext(ctx).InfoContext(ctx, "Rate limit exceeded", "statusCode", statusCode, "reason", "ratelimit exceeded", "key", rateLimiter.KeyFor(r))
-
-			http.Error(w, "Rate limit exceeded", statusCode)
-		}
-	}
+	rateLimit, stop := NewAuthRateLimitMiddleware(PrismRateLimitPolicy, plainRateLimitExceeded)
 
 	middleware := ComposeMiddlewares(
 		NewRequestLoggerMiddleware(rootLogger),
@@ -76,9 +47,8 @@ func MakeGetTagsHandler(
 		BuildBlocklistMiddleware(blocklistConfig),
 		buildMetricsMiddleware("tags"),
 		NewReportingMetaMiddleware("tags"),
-		NewRateLimitMiddleware(ipRateLimiter, makeOnLimitExceeded(ipRateLimiter)),
 		bearerAuthMiddleware,
-		NewRateLimitMiddleware(userIDRateLimiter, makeOnLimitExceeded(userIDRateLimiter)),
+		rateLimit,
 		BuildRegisterUserVisitMiddleware(registerUserVisit),
 	)
 
@@ -158,11 +128,6 @@ func MakeGetTagsHandler(
 			return
 		}
 
-	}
-
-	stop := func() {
-		stopIPLimiter()
-		stopUserIDLimiter()
 	}
 
 	return middleware(handler), stop

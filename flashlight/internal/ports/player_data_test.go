@@ -2,6 +2,7 @@ package ports
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -32,12 +33,10 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 	sentryMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
 		return next
 	}
-	// Pass-through bearer-auth middleware: production wraps the handler
-	// to validate the Authorization header and reject 401s, but for
-	// these tests we just let every request through.
-	bearerAuthMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
-		return next
-	}
+	// No request here sends a bearer, so the real middleware passes each one on.
+	bearerAuthMiddleware := NewBearerAuthMiddleware(func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
+		return domain.AuthSession{}, errors.New("no bearer expected")
+	}, time.Now, emptyBlocklistConfig)
 	stubRegisterUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
 		return domain.User{}, nil
 	}

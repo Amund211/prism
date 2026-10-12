@@ -57,7 +57,7 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 			allowedOrigins,
 			testLogger,
 			noopMiddleware,
-			noopMiddleware,
+			passThroughBearerMiddleware,
 			emptyBlocklistConfig,
 		)
 		t.Cleanup(stop)
@@ -237,9 +237,10 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 
 		bearerMiddlewareRan := false
 		bearerAuthMiddleware := func(h http.HandlerFunc) http.HandlerFunc {
+			inner := passThroughBearerMiddleware(h)
 			return func(w http.ResponseWriter, r *http.Request) {
 				bearerMiddlewareRan = true
-				h(w, r)
+				inner(w, r)
 			}
 		}
 
@@ -247,7 +248,6 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 		handler := makeGetHistoryHandlerWithBearerMiddleware(getHistoryFunc, bearerAuthMiddleware)
 
 		req := makeRequest(uuid, startStr, endStr, limit)
-		req.Header.Set("Authorization", "Bearer some-session-id")
 		w := httptest.NewRecorder()
 
 		handler.ServeHTTP(w, req)
@@ -283,48 +283,28 @@ func TestMakeGetHistoryHandler(t *testing.T) {
 		require.False(t, *called)
 	})
 
-	t.Run("rate limits before validating the bearer", func(t *testing.T) {
+	t.Run("rate limits tier none with the stats policy", func(t *testing.T) {
 		t.Parallel()
 
-		bearerCalls := 0
-		rejectingBearerAuthMiddleware := func(h http.HandlerFunc) http.HandlerFunc {
-			return func(w http.ResponseWriter, r *http.Request) {
-				bearerCalls++
-				http.Error(w, "Invalid or expired session", http.StatusUnauthorized)
-			}
-		}
+		getHistoryFunc, _ := makeGetHistory(t, uuid, start, end, limit, history, nil)
+		handler := makeGetHistoryHandler(getHistoryFunc)
 
-		getHistoryFunc, called := makeGetHistory(t, uuid, start, end, limit, history, nil)
-		handler := makeGetHistoryHandlerWithBearerMiddleware(getHistoryFunc, rejectingBearerAuthMiddleware)
-
-		doRequest := func() int {
+		// Burst 10; the few extra attempts absorb any wall-clock refill.
+		served := 0
+		var lastCode int
+		for range 15 {
 			req := makeRequest(uuid, startStr, endStr, limit)
-			req.Header.Set("Authorization", "Bearer bad-session-id")
 			w := httptest.NewRecorder()
 			handler.ServeHTTP(w, req)
-			return w.Code
-		}
-
-		// A bad token now costs one failed HMAC, but the IP limiters still
-		// have to bite before the middleware runs: they are the only bucket
-		// an unauthenticated caller can be held to, since the userId limiter
-		// is deliberately behind it. That makes the tightest bucket in front
-		// the long IP one (burst 200); the few extra attempts absorb any
-		// wall-clock refill.
-		rejected := 0
-		var lastCode int
-		for range 205 {
-			lastCode = doRequest()
-			if lastCode != http.StatusUnauthorized {
+			lastCode = w.Code
+			if lastCode != http.StatusOK {
 				break
 			}
-			rejected++
+			served++
 		}
 
 		require.Equal(t, http.StatusTooManyRequests, lastCode)
-		require.GreaterOrEqual(t, rejected, 200, "the full burst should reach the bearer middleware")
-		require.Equal(t, rejected, bearerCalls, "the throttled request must not reach the bearer middleware")
-		require.False(t, *called)
+		require.GreaterOrEqual(t, served, 10)
 	})
 
 	t.Run("invalid limits", func(t *testing.T) {

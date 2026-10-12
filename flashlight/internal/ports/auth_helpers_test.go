@@ -1,8 +1,10 @@
 package ports_test
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -15,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/flashlight/internal/domain"
 	"github.com/Amund211/flashlight/internal/ports"
 	"github.com/Amund211/flashlight/internal/proofofwork"
 	"github.com/Amund211/flashlight/internal/signing"
@@ -23,6 +26,16 @@ import (
 var noopAuthMiddleware = func(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) { h(w, r) }
 }
+
+// passThroughBearerMiddleware is the real bearer middleware for tests that send
+// no bearer: it passes each request on with the mark the tier limiter needs.
+var passThroughBearerMiddleware = ports.NewBearerAuthMiddleware(
+	func(context.Context, string) (domain.AuthSession, error) {
+		return domain.AuthSession{}, errors.New("no bearer expected")
+	},
+	time.Now,
+	ports.BlocklistConfig{},
+)
 
 var authTestLogger = slog.New(slog.NewTextHandler(io.Discard, nil))
 
