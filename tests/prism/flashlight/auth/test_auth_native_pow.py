@@ -225,19 +225,32 @@ def test_every_attempt_is_one_block(
     Two blocks per attempt would halve the rate.
     """
 
-    def rate(name: str, prefix: bytes) -> float:
-        best = 0.0
-        for _ in range(3):
-            start = time.perf_counter()
-            with pytest.raises(NativePowError):
-                library.solve(name, prefix, 32, end=1 << 20)
-            best = max(best, (1 << 20) / (time.perf_counter() - start))
-        return best
+    short_prefix = b"c" * 340 + b":"  # 21 byte tail
+    long_prefix = b"c" * 364 + b":"  # 45 byte tail
+
+    def rate(name: str, prefix: bytes, attempts: int) -> float:
+        start = time.perf_counter()
+        # No digest has 256 leading zero bits, so every attempt runs
+        with pytest.raises(NativePowError):
+            library.solve(name, prefix, 256, end=attempts)
+        return attempts / (time.perf_counter() - start)
+
+    # Rounds of ~250ms, so short stalls on a shared runner are a small part
+    attempts_per_round = {
+        "portable": 700_000,
+        "sha-ni": 10_000_000,
+        "armv8": 10_000_000,
+    }
 
     for name in supported:
-        short_tail = rate(name, b"c" * 340 + b":")  # 21 byte tail
-        long_tail = rate(name, b"c" * 364 + b":")  # 45 byte tail
-        assert long_tail > 0.75 * short_tail, name
+        attempts = attempts_per_round[name]
+        short_tail = long_tail = 0.0
+        # Interleaved so a CPU slowdown on a shared runner hits both tails alike
+        for _ in range(4):
+            short_tail = max(short_tail, rate(name, short_prefix, attempts))
+            long_tail = max(long_tail, rate(name, long_prefix, attempts))
+        ratio = long_tail / short_tail
+        assert ratio > 0.75, f"{name}: long/short tail rate ratio {ratio:.2f}"
 
 
 def test_solve_gives_up_at_the_end_of_the_range(
