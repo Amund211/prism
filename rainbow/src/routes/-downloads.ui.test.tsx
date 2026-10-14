@@ -11,9 +11,9 @@ describe("Downloads page", () => {
             .element(screen.getByRole("table", { name: "Archive" }))
             .toBeInTheDocument();
 
-        // v1.11.0 appears 3 times (one per OS), check first one
+        // v1.11.1 appears 3 times (one per OS), check first one
         await expect
-            .element(screen.getByText("Prism overlay v1.11.0").first())
+            .element(screen.getByText("Prism overlay v1.11.1").first())
             .toBeInTheDocument();
     });
 
@@ -127,7 +127,7 @@ describe("Downloads page", () => {
                 const link = img?.closest("a");
                 return link
                     ?.getAttribute("href")
-                    ?.includes("github.com/Amund211/prism/releases/download/v1.11.0");
+                    ?.includes("github.com/Amund211/prism/releases/download/v1.11.1");
             })
             .toBe(true);
     });
