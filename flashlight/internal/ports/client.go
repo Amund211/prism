@@ -20,10 +20,11 @@ const (
 
 // knownPrismVersions is the allowlist of accepted X-Client-Version values for
 // the prism client. Keep it SHORT — prune old versions as clients age out — to
-// bound metric cardinality. No prism client sends these headers yet; v1.12.0
-// (the upcoming release) is seeded so the pipeline is ready when it ships.
+// bound metric cardinality. v1.11.1 is the first release that sends them.
 var knownPrismVersions = map[string]struct{}{
 	"v1.11.1-dev": {},
+	"v1.11.1":     {},
+	"v1.11.2-dev": {},
 	"v1.12.0":     {},
 	"v1.12.1-dev": {},
 }

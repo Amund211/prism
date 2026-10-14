@@ -32,6 +32,24 @@ func TestGetClient(t *testing.T) {
 			expectedType:    "prism",
 			expectedVersion: "v1.12.0",
 		},
+		{
+			name:            "prism-v1.11.1-allowlisted",
+			typeHeader:      "prism",
+			versionHeader:   "v1.11.1",
+			setType:         true,
+			setVersion:      true,
+			expectedType:    "prism",
+			expectedVersion: "v1.11.1",
+		},
+		{
+			name:            "prism-v1.11.2-dev-allowlisted",
+			typeHeader:      "prism",
+			versionHeader:   "v1.11.2-dev",
+			setType:         true,
+			setVersion:      true,
+			expectedType:    "prism",
+			expectedVersion: "v1.11.2-dev",
+		},
 		// Valid type, bad version -> unknown/unknown.
 		{
 			name:            "prism-bad-version",

@@ -44,13 +44,13 @@ type GetPrismNotices = func(
 // latestPrism is the most recent released prism version. Bump this when
 // cutting a new prism release; clients running an older version will be told
 // (via the prism-notices endpoint) that an update is available.
-var latestPrism = version.MustParse("v1.11.0")
+var latestPrism = version.MustParse("v1.11.1")
 
 // firstPrismVersionWithoutLocalChecker is the first prism release that does
 // not include the in-process GitHub update checker — those clients rely on
 // flashlight to surface update notices. Older clients still poll GitHub
 // themselves, so flashlight must not duplicate the notice for them.
-var firstPrismVersionWithoutLocalChecker = version.MustParse("v1.12.0")
+var firstPrismVersionWithoutLocalChecker = version.MustParse("v1.11.1")
 
 const latestPrismReleaseURL = "https://github.com/Amund211/prism/releases/latest/"
 

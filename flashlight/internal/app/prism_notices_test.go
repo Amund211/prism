@@ -111,9 +111,40 @@ func TestBuildGetPrismNotices(t *testing.T) {
 		// Version-update-focused cases.
 		{
 			// v1.11.0 sends no preference, so the handler defaults to All.
-			name:            "v1.11.0 still has local checker",
+			name:            "v1.11.0 (below firstPrismVersionWithoutLocalChecker) is suppressed even with selection=all",
 			userID:          domaintest.NewUUID(t),
 			prismVersion:    "v1.11.0",
+			updateSelection: app.UpdateSelectionAll,
+			now:             defaultTime,
+			want:            []app.PrismNotice{},
+		},
+		{
+			name:            "v1.11.1-dev with selection=all sees update notice for v1.11.1",
+			userID:          domaintest.NewUUID(t),
+			prismVersion:    "v1.11.1-dev",
+			updateSelection: app.UpdateSelectionAll,
+			now:             defaultTime,
+			want: []app.PrismNotice{
+				{
+					Message:         "New update available! Click here to download.",
+					URL:             "https://github.com/Amund211/prism/releases/latest/",
+					Severity:        app.SeverityUpdate,
+					DurationSeconds: new(60.0),
+				},
+			},
+		},
+		{
+			name:            "v1.11.1-dev with selection=minor suppresses patch bump to v1.11.1",
+			userID:          domaintest.NewUUID(t),
+			prismVersion:    "v1.11.1-dev",
+			updateSelection: app.UpdateSelectionMinor,
+			now:             defaultTime,
+			want:            []app.PrismNotice{},
+		},
+		{
+			name:            "v1.11.1 with selection=all sees no notice",
+			userID:          domaintest.NewUUID(t),
+			prismVersion:    "v1.11.1",
 			updateSelection: app.UpdateSelectionAll,
 			now:             defaultTime,
 			want:            []app.PrismNotice{},
