@@ -87,7 +87,7 @@ class SetNicknamePage:  # pragma: nocover
                 )
             )
 
-        self.username_var.trace("w", enable_button)
+        self.username_var.trace_add("write", enable_button)
 
         self.username_menu = tk.OptionMenu(
             self.input_frame, self.username_var, SELECT_AN_OPTION_CHOICE
