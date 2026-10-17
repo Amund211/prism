@@ -84,12 +84,13 @@ func BearerCheckedFromContext(ctx context.Context) bool {
 func NewBearerAuthMiddleware(validate app.ValidateSession, nowFunc func() time.Time, blocklistConfig BlocklistConfig) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
+			ctx := context.WithValue(r.Context(), bearerCheckedCtxKey{}, true)
+
 			rawAuth := r.Header.Get("Authorization")
-			ctx := r.Context()
 			if rawAuth == "" {
 				setAuthLabel(ctx, authTypeMissing)
 				w.Header().Set(AuthSessionHeader, AuthSessionAbsent)
-				next(w, r.WithContext(context.WithValue(ctx, bearerCheckedCtxKey{}, true)))
+				next(w, r.WithContext(ctx))
 				return
 			}
 
@@ -158,7 +159,6 @@ func NewBearerAuthMiddleware(validate app.ValidateSession, nowFunc func() time.T
 				IdentityKey:  view.IdentityKey,
 			}
 			ctx = context.WithValue(ctx, authSessionCtxKey{}, authCtx)
-			ctx = context.WithValue(ctx, bearerCheckedCtxKey{}, true)
 			ctx = logging.AddMetaToContext(ctx,
 				slog.String("authTier", string(authCtx.IdentityType)),
 				slog.String("authIdentityKey", authCtx.IdentityKey),
