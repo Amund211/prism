@@ -200,13 +200,43 @@ func normalizeMethod(method string) string {
 	return "other"
 }
 
+type authLabelCtxKey struct{}
+
+// authLabel carries the auth outcome from the bearer middleware out to the
+// metrics middleware, which sits outside it so it still counts the bearer's
+// own rejections.
+type authLabel struct{ value authType }
+
+type authType string
+
+const (
+	authTypeNotChecked authType = "not-checked"
+	authTypeMissing    authType = "missing"
+	authTypeAnonymous  authType = "anonymous"
+	authTypeMicrosoft  authType = "microsoft"
+	authTypeUnknown    authType = "unknown"
+	authTypeInvalid    authType = "invalid"
+	authTypeError      authType = "error"
+)
+
+func withAuthLabel(ctx context.Context) (context.Context, *authLabel) {
+	label := &authLabel{value: authTypeNotChecked}
+	return context.WithValue(ctx, authLabelCtxKey{}, label), label
+}
+
+func setAuthLabel(ctx context.Context, value authType) {
+	if label, ok := ctx.Value(authLabelCtxKey{}).(*authLabel); ok {
+		label.value = value
+	}
+}
+
 func buildMetricsMiddleware(handler string) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
-			ctx := r.Context()
+			ctx, label := withAuthLabel(r.Context())
 
-			next(w, r)
+			next(w, r.WithContext(ctx))
 
 			// NOTE: Only attach bounded attributes here. High-cardinality
 			// values (user agent, IP hash, etc.) would blow past the
@@ -214,10 +244,12 @@ func buildMetricsMiddleware(handler string) func(http.HandlerFunc) http.HandlerF
 			// and collapse into a single otel.metric.overflow series. They
 			// belong in logs/traces, not metric labels. Client type/version
 			// are bounded: normalizeClient allowlists them into a small, fixed
-			// set of valid pairs (kept short deliberately).
+			// set of valid pairs (kept short deliberately). auth is one of a
+			// few fixed values set by the bearer middleware.
 			attributes := []attribute.KeyValue{
 				attribute.String("method", normalizeMethod(r.Method)),
 				attribute.String("handler", handler),
+				attribute.String("auth", string(label.value)),
 			}
 			attributes = append(attributes, GetClient(r).MetricAttributes()...)
 

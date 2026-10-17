@@ -85,30 +85,43 @@ func NewBearerAuthMiddleware(validate app.ValidateSession, nowFunc func() time.T
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			rawAuth := r.Header.Get("Authorization")
+			ctx := r.Context()
 			if rawAuth == "" {
+				setAuthLabel(ctx, authTypeMissing)
 				w.Header().Set(AuthSessionHeader, AuthSessionAbsent)
-				next(w, r.WithContext(context.WithValue(r.Context(), bearerCheckedCtxKey{}, true)))
+				next(w, r.WithContext(context.WithValue(ctx, bearerCheckedCtxKey{}, true)))
 				return
 			}
 
 			sessionID, ok := bearerFromAuthorization(r)
 			if !ok {
+				setAuthLabel(ctx, authTypeInvalid)
 				http.Error(w, "Malformed Authorization header", http.StatusUnauthorized)
 				return
 			}
 
-			ctx := r.Context()
 			view, err := validate(ctx, sessionID)
 			switch {
 			case errors.Is(err, domain.ErrAuthSessionNotFound),
 				errors.Is(err, domain.ErrAuthSessionRevoked),
 				errors.Is(err, domain.ErrAuthSessionExpired):
+				setAuthLabel(ctx, authTypeInvalid)
 				http.Error(w, "Invalid or expired session", http.StatusUnauthorized)
 				return
 			case err != nil:
+				setAuthLabel(ctx, authTypeError)
 				logging.FromContext(ctx).ErrorContext(ctx, "Failed to validate bearer session", "error", err.Error())
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
 				return
+			}
+
+			switch view.IdentityType {
+			case domain.AuthSessionIdentityAnonymous:
+				setAuthLabel(ctx, authTypeAnonymous)
+			case domain.AuthSessionIdentityMicrosoft:
+				setAuthLabel(ctx, authTypeMicrosoft)
+			default:
+				setAuthLabel(ctx, authTypeUnknown)
 			}
 
 			// Set before the block below: the session is valid, and saying

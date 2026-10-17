@@ -47,6 +47,11 @@ no row, no lookup, no cache; validating is a signature check. The payload holds
 - Responses carry `X-Auth-Refresh: 1` within `refreshAtOffset` of expiry (a hint
   — ignoring it still recovers via 401) and `X-Auth-Session` with the
   middleware's verdict.
+- `ports/request_count` and `request_duration_seconds` carry `auth`: `missing`,
+  `anonymous`, `microsoft`, `unknown`, `invalid`, `error`, or `not-checked`
+  where the bearer middleware did not run (not mounted, or a limiter in
+  front of it rejected the request). The metrics middleware must stay **outside** the
+  bearer middleware, or its 401s go uncounted.
 
 Lifetimes are **derived, never stamped**. `deadlinesFor`
 (`internal/app/auth_session.go`) is the only thing that computes them:
