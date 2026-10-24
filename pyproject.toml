@@ -8,12 +8,12 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
-    "platformdirs==4.12.3",
-    "cachetools==7.2.0",
+    "platformdirs==4.13.3",
+    "cachetools==7.2.2",
     "filelock==4.0.11",
     "requests==2.34.2",
     "toml==0.10.2",
-    "truststore==0.10.4",
+    "truststore==0.10.5",
     "pynput==1.8.2",
     "pywin32==312; platform_system=='Windows'",
 ]
@@ -28,7 +28,7 @@ Homepage = "https://prismoverlay.com"
 Repository = "https://github.com/Amund211/prism"
 
 [build-system]
-requires = ["uv_build>=0.12.0,<0.13.0"]
+requires = ["uv_build>=0.13.1,<0.14.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
@@ -39,7 +39,7 @@ dev = [
     "isort==9.0.2",
     "mypy==2.4.0",
     "pillow==12.3.0",
-    "pre-commit==4.6.2",
+    "pre-commit==4.7.0",
     "pyinstaller==6.22.3",
     "pytest==9.1.1",
     "types-pyinstaller==6.22.1.20260827",
