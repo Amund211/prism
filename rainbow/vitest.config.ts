@@ -2,6 +2,7 @@ import path from "node:path";
 
 import react from "@vitejs/plugin-react";
 import { playwright } from "@vitest/browser-playwright";
+import { msw } from "msw/vite";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
@@ -27,16 +28,8 @@ export default defineConfig({
                 extends: true,
                 plugins: [
                     react(),
-                    // Vitest 5 no longer serves the MSW worker script itself
-                    {
-                        name: "msw-worker",
-                        async resolveId(id) {
-                            if (id === "/mockServiceWorker.js") {
-                                return this.resolve("msw/mockServiceWorker.js");
-                            }
-                            return null;
-                        },
-                    },
+                    // Serves mockServiceWorker.js; tests start the worker themselves
+                    msw({ mode: "worker-only" }),
                 ],
                 test: {
                     name: "ui",
