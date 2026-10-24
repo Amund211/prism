@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse } from "msw/http";
 
 import type { SolverReport } from "#helpers/flashlight/auth/proofOfWork.ts";
 import { isNormalizedUUID } from "#helpers/uuid.ts";

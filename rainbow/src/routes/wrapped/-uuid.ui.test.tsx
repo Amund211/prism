@@ -1,5 +1,5 @@
-import { http, HttpResponse } from "msw";
 import type { SetupWorker } from "msw/browser";
+import { http, HttpResponse } from "msw/http";
 import { describe, expect } from "vitest";
 import { userEvent } from "vitest/browser";
 

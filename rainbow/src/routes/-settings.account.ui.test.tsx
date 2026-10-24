@@ -1,4 +1,5 @@
-import { delay, http, HttpResponse } from "msw";
+import { http, HttpResponse } from "msw/http";
+import { delay } from "msw/utils/delay";
 import { describe, expect } from "vitest";
 import { userEvent } from "vitest/browser";
 

@@ -1,6 +1,6 @@
 import { captureMessage } from "@sentry/react";
 import type { captureException } from "@sentry/react";
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse } from "msw/http";
 import { afterEach, describe, expect, vi } from "vitest";
 
 import { makeSessionResponse } from "#mocks/data.ts";

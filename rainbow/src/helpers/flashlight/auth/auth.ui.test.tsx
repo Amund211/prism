@@ -1,5 +1,6 @@
-import { delay, http, HttpResponse } from "msw";
 import type { SetupWorker } from "msw/browser";
+import { http, HttpResponse } from "msw/http";
+import { delay } from "msw/utils/delay";
 import { afterEach, describe, expect, onTestFinished, vi } from "vitest";
 import { renderHook } from "vitest-browser-react";
 

@@ -2,7 +2,6 @@ allowBuilds:
     "@sentry/cli": true
     esbuild: true
     fsevents: true
-    msw: true
 
 blockExoticSubdeps: true
 
