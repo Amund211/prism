@@ -256,7 +256,7 @@ importers:
         version: 6.1.2(@rolldown/plugin-babel@0.2.4(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.2.11)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))(babel-plugin-react-compiler@1.0.0)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))
       '@vitest/browser-playwright':
         specifier: 5.0.5
-        version: 5.0.5(msw@3.0.3(@types/node@24.19.2)(graphql@16.14.2)(typescript@7.0.2)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))(playwright@1.64.0)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.5)
+        version: 5.0.5(msw@3.0.3(@types/node@24.19.2)(graphql@16.14.2)(typescript@7.0.2)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))(playwright@1.64.1)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.5)
       '@vitest/coverage-v8':
         specifier: 5.0.5
         version: 5.0.5(@vitest/browser@5.0.5)(vitest@5.0.5)
@@ -282,8 +282,8 @@ importers:
         specifier: 7.0.2004
         version: 7.0.2004
       playwright:
-        specifier: 1.64.0
-        version: 1.64.0
+        specifier: 1.64.1
+        version: 1.64.1
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -2802,13 +2802,13 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  playwright-core@1.64.0:
-    resolution: {integrity: sha512-T9r+MZkTECl2+oUcZ26YgZzTrYidTsIhYYkJix+6iDOymOb1FB2RLLSOxRGnZGv5DStt+aduIVbt+E8WygXYpg==}
+  playwright-core@1.64.1:
+    resolution: {integrity: sha512-BC4s8y6SEVA6Q1rSxZTto8hI1KUI3xXlHGZgvGqP4IqPdI/a6FX9H29IDNz7vKo9l21b6LfYosScPL6M3xxyDQ==}
     engines: {node: '>=20'}
     hasBin: true
 
-  playwright@1.64.0:
-    resolution: {integrity: sha512-kVzTnYFYEyQ9RGzBjNCd2+yEqWmVbxl3AHPynv3qQ6JTjv4a+kwRcnqQwIpuP3NnrnIrE/Q6wWAIAvMfIE2/Yg==}
+  playwright@1.64.1:
+    resolution: {integrity: sha512-HCrVhHr5QQuwYoswEUGTb7gGp522yflbv/ST8nF4sFWGuLjQCt17Q/EubpGGSNKYn1tsTCPZxqHhHCfVURu7UA==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -4775,11 +4775,11 @@ snapshots:
       '@rolldown/plugin-babel': 0.2.4(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.2.11)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))
       babel-plugin-react-compiler: 1.0.0
 
-  '@vitest/browser-playwright@5.0.5(msw@3.0.3(@types/node@24.19.2)(graphql@16.14.2)(typescript@7.0.2)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))(playwright@1.64.0)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.5)':
+  '@vitest/browser-playwright@5.0.5(msw@3.0.3(@types/node@24.19.2)(graphql@16.14.2)(typescript@7.0.2)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))(playwright@1.64.1)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.5)':
     dependencies:
       '@vitest/browser': 5.0.5(msw@3.0.3(@types/node@24.19.2)(graphql@16.14.2)(typescript@7.0.2)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.5)
       '@vitest/mocker': 5.0.5(msw@3.0.3(@types/node@24.19.2)(graphql@16.14.2)(typescript@7.0.2)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))
-      playwright: 1.64.0
+      playwright: 1.64.1
       tinyrainbow: 3.2.0
       vitest: 5.0.5(@types/node@24.19.2)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(msw@3.0.3(@types/node@24.19.2)(graphql@16.14.2)(typescript@7.0.2)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))
     transitivePeerDependencies:
@@ -5623,11 +5623,11 @@ snapshots:
 
   pidtree@1.0.0: {}
 
-  playwright-core@1.64.0: {}
+  playwright-core@1.64.1: {}
 
-  playwright@1.64.0:
+  playwright@1.64.1:
     dependencies:
-      playwright-core: 1.64.0
+      playwright-core: 1.64.1
 
   pngjs@7.0.0: {}
 
@@ -6022,7 +6022,7 @@ snapshots:
       why-is-node-running: 3.2.1
     optionalDependencies:
       '@types/node': 24.19.2
-      '@vitest/browser-playwright': 5.0.5(msw@3.0.3(@types/node@24.19.2)(graphql@16.14.2)(typescript@7.0.2)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))(playwright@1.64.0)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.5)
+      '@vitest/browser-playwright': 5.0.5(msw@3.0.3(@types/node@24.19.2)(graphql@16.14.2)(typescript@7.0.2)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))(playwright@1.64.1)(vite@8.3.3(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.5)
       '@vitest/coverage-v8': 5.0.5(@vitest/browser@5.0.5)(vitest@5.0.5)
       '@vitest/ui': 5.0.5(vitest@5.0.5)
     transitivePeerDependencies:
