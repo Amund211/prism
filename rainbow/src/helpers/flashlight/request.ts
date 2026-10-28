@@ -35,7 +35,7 @@ const HANDLE_RX = /(?<prefix>flsess|flresult)_[A-Za-z0-9_.-]*/g;
  * ship a bearer. Unconditional, so no call site has to remember.
  */
 export const redactHandles = (text: string): string =>
-    text.replace(HANDLE_RX, "$<prefix>_<redacted>");
+    text.replaceAll(HANDLE_RX, "$<prefix>_<redacted>");
 
 export class FlashlightResponseError extends Error {
     public readonly status: number;
