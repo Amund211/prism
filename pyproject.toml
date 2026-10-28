@@ -8,9 +8,9 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
-    "platformdirs==4.13.3",
-    "cachetools==7.2.2",
-    "filelock==4.2.1",
+    "platformdirs==4.13.5",
+    "cachetools==7.2.4",
+    "filelock==4.2.4",
     "requests==2.34.2",
     "toml==0.10.2",
     "truststore==0.10.5",
