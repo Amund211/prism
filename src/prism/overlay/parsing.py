@@ -5,12 +5,14 @@ from typing import Final
 
 from prism.overlay.events import (
     BedwarsDisconnectEvent,
+    BedwarsDuelTypeEvent,
     BedwarsFinalKillEvent,
     BedwarsGameStartingSoonEvent,
     BedwarsReconnectEvent,
     ChatEvent,
     ChatMessageEvent,
     ClientEvent,
+    EndBedwarsDuelEvent,
     EndBedwarsGameEvent,
     Event,
     InitializeAsEvent,
@@ -314,6 +316,19 @@ def parse_chat_message(message: str) -> ChatEvent | None:
 
         logger.debug(f"Parsing passed. Starting game {is_bedwars_duel=}")
         return StartBedwarsGameEvent(is_bedwars_duel=is_bedwars_duel)
+
+    # Banner descriptions. Regular bedwars says "enemy beds." (plural)
+    if message.strip() == "Protect your bed and destroy the enemy bed.":
+        logger.debug("Parsing passed. Regular bedwars duel")
+        return BedwarsDuelTypeEvent(duel_type="regular")
+
+    if message.strip() == "Destroy the enemy bed and then eliminate them!":
+        logger.debug("Parsing passed. Rush bedwars duel")
+        return BedwarsDuelTypeEvent(duel_type="rush")
+
+    if re.fullmatch(r"BedWars Duel - [\d:]+", message.strip()):
+        logger.debug("Parsing passed. Ending bedwars duel")
+        return EndBedwarsDuelEvent()
 
     if (
         message.strip(PUNCTUATION_AND_WHITESPACE).endswith("FINAL KILL")

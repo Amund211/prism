@@ -7,10 +7,12 @@ import pytest
 from prism.overlay.controller import OverlayController
 from prism.overlay.events import (
     BedwarsDisconnectEvent,
+    BedwarsDuelTypeEvent,
     BedwarsFinalKillEvent,
     BedwarsGameStartingSoonEvent,
     BedwarsReconnectEvent,
     ChatMessageEvent,
+    EndBedwarsDuelEvent,
     EndBedwarsGameEvent,
     Event,
     InitializeAsEvent,
@@ -38,7 +40,6 @@ from tests.prism.overlay.utils import (
     assert_controllers_equal,
     create_controller,
     create_state,
-    make_settings,
 )
 
 process_event_test_cases_base: tuple[
@@ -297,34 +298,145 @@ process_event_test_cases_base: tuple[
         False,  # No need to redraw the screen - only hide the overlay
     ),
     (
-        "start bedwars duels game when disabled in duels",
-        create_controller(
-            wants_shown=False,
-            state=create_state(in_queue=True),
-            # Disabled in duels is the default
-        ),
+        "start bedwars duel",
+        # No autowho until we know the duel type
+        create_controller(wants_shown=True, state=create_state(now_func=lambda: 1234)),
         StartBedwarsGameEvent(is_bedwars_duel=True),
         create_controller(
-            wants_shown=False,
-            state=create_state(in_queue=True),
+            wants_shown=None,
+            state=create_state(
+                out_of_sync=True, last_game_start=1234, bedwars_duel="unknown"
+            ),
         ),
         False,
     ),
     (
-        "start bedwars duels game when enabled in duels",
+        "start bedwars game after a duel",
         create_controller(
-            wants_shown=False,
-            state=create_state(in_queue=True, now_func=lambda: 1234),
-            settings=make_settings(activate_in_bedwars_duels=True),
+            state=create_state(
+                last_game_start=1, bedwars_duel="rush", now_func=lambda: 1234
+            ),
         ),
-        StartBedwarsGameEvent(is_bedwars_duel=True),
+        StartBedwarsGameEvent(is_bedwars_duel=False),
         create_controller(
-            wants_shown=None,
             autowho_event_set=True,
-            state=create_state(in_queue=False, out_of_sync=True, last_game_start=1234),
-            settings=make_settings(activate_in_bedwars_duels=True),
+            state=create_state(out_of_sync=True, last_game_start=1234),
         ),
-        False,  # No need to redraw the screen - only hide the overlay
+        False,
+    ),
+    (
+        "regular bedwars duel",
+        create_controller(
+            state=create_state(
+                last_game_start=1234, bedwars_duel="unknown", now_func=lambda: 1234
+            ),
+        ),
+        BedwarsDuelTypeEvent(duel_type="regular"),
+        create_controller(
+            autowho_event_set=True,
+            state=create_state(
+                last_game_start=1234, bedwars_duel="regular", now_func=lambda: 1234
+            ),
+        ),
+        False,
+    ),
+    (
+        "regular bedwars duel when not ready",
+        create_controller(
+            ready=False,
+            state=create_state(
+                last_game_start=1234, bedwars_duel="unknown", now_func=lambda: 1234
+            ),
+        ),
+        BedwarsDuelTypeEvent(duel_type="regular"),
+        create_controller(
+            ready=False,
+            state=create_state(
+                last_game_start=1234, bedwars_duel="regular", now_func=lambda: 1234
+            ),
+        ),
+        False,
+    ),
+    (
+        "rush bedwars duel",
+        create_controller(
+            autowho_event_set=True,
+            state=create_state(
+                last_game_start=1234, bedwars_duel="unknown", now_func=lambda: 1234.5
+            ),
+        ),
+        BedwarsDuelTypeEvent(duel_type="rush"),
+        create_controller(
+            state=create_state(
+                last_game_start=1234, bedwars_duel="rush", now_func=lambda: 1234.5
+            ),
+        ),
+        False,
+    ),
+    (
+        "bedwars duel type more than 1s after the start",
+        create_controller(
+            state=create_state(
+                last_game_start=1234, bedwars_duel="unknown", now_func=lambda: 1235
+            ),
+        ),
+        BedwarsDuelTypeEvent(duel_type="regular"),
+        create_controller(
+            state=create_state(
+                last_game_start=1234, bedwars_duel="unknown", now_func=lambda: 1235
+            ),
+        ),
+        False,
+    ),
+    (
+        "bedwars duel type when the type is known",
+        create_controller(
+            state=create_state(
+                last_game_start=1234, bedwars_duel="rush", now_func=lambda: 1234
+            ),
+        ),
+        BedwarsDuelTypeEvent(duel_type="regular"),
+        create_controller(
+            state=create_state(
+                last_game_start=1234, bedwars_duel="rush", now_func=lambda: 1234
+            ),
+        ),
+        False,
+    ),
+    (
+        "bedwars duel type in a regular game",
+        create_controller(
+            state=create_state(last_game_start=1234, now_func=lambda: 1234),
+        ),
+        BedwarsDuelTypeEvent(duel_type="regular"),
+        create_controller(
+            state=create_state(last_game_start=1234, now_func=lambda: 1234),
+        ),
+        False,
+    ),
+    (
+        "bedwars duel type not in a game",
+        create_controller(),
+        BedwarsDuelTypeEvent(duel_type="regular"),
+        create_controller(),
+        False,
+    ),
+    (
+        "end bedwars duel",
+        # The pin stays. No own stats refresh (game_ended_event)
+        create_controller(
+            wants_shown=True,
+            autowho_event_set=True,
+            state=create_state(
+                lobby_players={"Player1"},
+                out_of_sync=True,
+                last_game_start=1234,
+                bedwars_duel="regular",
+            ),
+        ),
+        EndBedwarsDuelEvent(),
+        create_controller(wants_shown=True),
+        True,
     ),
     (
         "start bedwars game when not ready",
@@ -988,6 +1100,13 @@ BEDWARS_RUSH_DUELS_WHO_LOSS_LOGLINES: Final = (
     f"{CHAT}[MVP+] Me: gg",
 )
 
+
+def before_duel_end(loglines: tuple[str, ...]) -> tuple[str, ...]:
+    """Return the loglines before the end of the duel"""
+    end_index = next(i for i, line in enumerate(loglines) if "BedWars Duel - " in line)
+    return loglines[:end_index]
+
+
 FAST_FORWARD_STATE_CASES: Final = (
     (
         create_controller(state=create_state(own_username=None)),
@@ -1405,30 +1524,15 @@ FAST_FORWARD_STATE_CASES: Final = (
         ),
         create_controller(state=create_state(in_queue=False)),
     ),
-    # Bed Wars Duels is ignored by default
-    # NOTE: The final kill still adds the opponent to the lobby
+    # Bed Wars Duels: the end of the duel clears the state
     (
-        create_controller(state=create_state()),
+        create_controller(state=create_state(now_func=lambda: 2.5)),
         BEDWARS_DUELS_LOGLINES,
-        create_controller(
-            state=create_state(lobby_players={"Player1"}, alive_players=set())
-        ),
+        create_controller(state=create_state()),
     ),
     (
-        create_controller(state=create_state()),
-        BEDWARS_RUSH_DUELS_LOGLINES,
-        create_controller(
-            state=create_state(lobby_players={"Player2"}, alive_players=set())
-        ),
-    ),
-    # Bed Wars Duels with activate_in_bedwars_duels
-    # NOTE: No end of game is detected in duels
-    (
-        create_controller(
-            state=create_state(now_func=lambda: 2.5),
-            settings=make_settings(activate_in_bedwars_duels=True),
-        ),
-        BEDWARS_DUELS_LOGLINES,
+        create_controller(state=create_state(now_func=lambda: 2.5)),
+        before_duel_end(BEDWARS_DUELS_LOGLINES),
         create_controller(
             autowho_event_set=True,
             state=create_state(
@@ -1436,49 +1540,45 @@ FAST_FORWARD_STATE_CASES: Final = (
                 alive_players=set(),
                 out_of_sync=True,
                 last_game_start=2.5,
+                bedwars_duel="regular",
             ),
-            settings=make_settings(activate_in_bedwars_duels=True),
         ),
     ),
+    # Rush duels: never autowho
     (
-        create_controller(
-            state=create_state(now_func=lambda: 2.5),
-            settings=make_settings(activate_in_bedwars_duels=True),
-        ),
+        create_controller(state=create_state(now_func=lambda: 2.5)),
         BEDWARS_RUSH_DUELS_LOGLINES,
+        create_controller(state=create_state()),
+    ),
+    (
+        create_controller(state=create_state(now_func=lambda: 2.5)),
+        before_duel_end(BEDWARS_RUSH_DUELS_LOGLINES),
         create_controller(
-            autowho_event_set=True,
-            # The opponent's "gg" in game chat marks them alive again
             state=create_state(
                 lobby_players={"Player2"},
+                alive_players=set(),
                 out_of_sync=True,
                 last_game_start=2.5,
+                bedwars_duel="rush",
             ),
-            settings=make_settings(activate_in_bedwars_duels=True),
         ),
     ),
-    # Bed Wars Rush Duels with /who, lost
+    # Rush duels with an early /who: not pinned
     (
+        create_controller(state=create_state(now_func=lambda: 2.5)),
+        BEDWARS_RUSH_DUELS_WHO_LOSS_LOGLINES,
         create_controller(state=create_state()),
-        BEDWARS_RUSH_DUELS_WHO_LOSS_LOGLINES,
-        create_controller(
-            wants_shown=True,
-            state=create_state(
-                lobby_players={"Me", "Player3"}, alive_players={"Player3"}
-            ),
-        ),
     ),
     (
+        create_controller(state=create_state(now_func=lambda: 2.5)),
+        before_duel_end(BEDWARS_RUSH_DUELS_WHO_LOSS_LOGLINES),
         create_controller(
-            state=create_state(now_func=lambda: 2.5),
-            settings=make_settings(activate_in_bedwars_duels=True),
-        ),
-        BEDWARS_RUSH_DUELS_WHO_LOSS_LOGLINES,
-        create_controller(
-            autowho_event_set=True,
-            # Our own "gg" in game chat marks us alive again
-            state=create_state(lobby_players={"Me", "Player3"}, last_game_start=2.5),
-            settings=make_settings(activate_in_bedwars_duels=True),
+            state=create_state(
+                lobby_players={"Me", "Player3"},
+                alive_players={"Player3"},
+                last_game_start=2.5,
+                bedwars_duel="rush",
+            ),
         ),
     ),
     (

@@ -2,9 +2,14 @@ import logging
 import time
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field, replace
-from typing import Self
+from typing import Literal, Self
+
+from prism.overlay.events import BedwarsDuelType
 
 logger = logging.getLogger(__name__)
+
+# None: not in a duel. "unknown": in a duel, the type is not known yet
+BedwarsDuelState = Literal["unknown"] | BedwarsDuelType | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -22,6 +27,7 @@ class OverlayState:
     out_of_sync: bool = False
     in_queue: bool = False
     own_username: str | None = None
+    bedwars_duel: BedwarsDuelState = None
     now_func: Callable[[], float] = field(default=time.monotonic, compare=False)
 
     @property
@@ -84,12 +90,22 @@ class OverlayState:
     def join_game(self) -> Self:
         """Join a bedwars game"""
         logger.info("Joining game")
-        return replace(self, last_game_start=self.now_func())
+        return replace(self, last_game_start=self.now_func(), bedwars_duel=None)
+
+    def join_duel(self) -> Self:
+        """Join a bedwars duel of unknown type"""
+        logger.info("Joining duel")
+        return replace(self.join_game(), bedwars_duel="unknown")
+
+    def set_bedwars_duel_type(self, duel_type: BedwarsDuelType) -> Self:
+        """Set the type of the current bedwars duel"""
+        logger.info(f"Setting bedwars duel type {duel_type}")
+        return replace(self, bedwars_duel=duel_type)
 
     def leave_game(self) -> Self:
-        """Leave a bedwars game"""
+        """Leave a bedwars game or duel"""
         logger.info("Leaving game")
-        return replace(self, last_game_start=None)
+        return replace(self, last_game_start=None, bedwars_duel=None)
 
     @property
     def in_game(self) -> float | None:
