@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 
 from filelock import FileLock, Timeout
 
@@ -9,15 +10,15 @@ from prism.overlay.directories import CACHE_DIR, must_ensure_directory
 SINGLEINSTANCE_LOCK: FileLock | None = None
 
 
-def ensure_not_parallel() -> None:
+def ensure_not_parallel(lock_path: Path = CACHE_DIR / "prism_overlay.lock") -> None:
     """Ensure that only one instance of the overlay is running"""
-    must_ensure_directory(CACHE_DIR)
+    must_ensure_directory(lock_path.parent)
 
     global SINGLEINSTANCE_LOCK
-    lock = FileLock(str(CACHE_DIR / "prism_overlay.lock"), timeout=0)
+    lock = FileLock(str(lock_path), timeout=0)
     try:
         lock.acquire()
-    except Timeout:  # pragma: no cover
+    except Timeout:
         # TODO: Show the running overlay window
         print(
             "You can only run one instance of the overlay at the time", file=sys.stderr
