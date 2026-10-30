@@ -12,6 +12,7 @@ from prism.overlay.output.overlay.stats_overlay import StatsOverlay
 from prism.overlay.output.overlay.utils import OverlayRowData, player_to_row
 from prism.overlay.rating import sort_players
 from prism.overlay.threading import start_threads
+from prism.overlay.visibility import Visibility, get_visibility
 from prism.player import KnownPlayer, Player
 
 logger = logging.getLogger(__name__)
@@ -119,7 +120,9 @@ def run_overlay(
     """Run the overlay"""
     start_threads(controller, loglines, auth)
 
-    def get_new_data() -> tuple[bool, list[InfoCellValue], list[OverlayRowData] | None]:
+    def get_new_data() -> (
+        tuple[Visibility, list[InfoCellValue], list[OverlayRowData] | None]
+    ):
         # Store a persistent view to the current state
         state = controller.state
 
@@ -214,16 +217,9 @@ def run_overlay(
                 )
             )
 
-        # Store a copy to avoid TOCTOU
-        controller_wants_shown = controller.wants_shown
-        if controller_wants_shown is not None:
-            # The user has a preference -> honor it
-            should_show = controller_wants_shown
-        else:
-            # Fall back to showing the overlay in queue and hiding it in game
-            should_show = state.in_queue
+        visibility = get_visibility(state, wants_shown=controller.wants_shown)
 
-        return should_show, info_cells, new_rows
+        return visibility, info_cells, new_rows
 
     overlay = StatsOverlay(
         column_order=controller.settings.column_order,

@@ -14,6 +14,7 @@ from prism.overlay.output.overlay.set_nickname_page import SetNicknamePage
 from prism.overlay.output.overlay.settings_page import SettingsPage
 from prism.overlay.output.overlay.toolbar import Toolbar
 from prism.overlay.output.overlay.utils import OverlayRowData
+from prism.overlay.visibility import Hidden, Shown, Visibility
 
 if TYPE_CHECKING:  # pragma: nocover
     import pynput
@@ -33,7 +34,7 @@ class StatsOverlay:  # pragma: nocover
         controller: OverlayController,
         microsoft_account: MicrosoftAccount,
         get_new_data: Callable[
-            [], tuple[bool, list[InfoCellValue], list[OverlayRowData] | None]
+            [], tuple[Visibility, list[InfoCellValue], list[OverlayRowData] | None]
         ],
         poll_interval: int,
     ):
@@ -42,12 +43,12 @@ class StatsOverlay:  # pragma: nocover
         self.poll_interval = poll_interval
         self.get_new_data = get_new_data
 
-        # Set should_show so the window remains in the desired state based on
-        # start_hidden until a falling/rising edge in show from get_new_data
+        # Set visibility so the window remains in the desired state based on
+        # start_hidden until the visibility from get_new_data changes
         # Also set last_new_rows so we don't miss the first update
-        self.should_show: bool
+        self.visibility: Visibility
         self.last_new_rows: list[OverlayRowData] | None
-        self.should_show, _, self.last_new_rows = self.get_new_data()
+        self.visibility, _, self.last_new_rows = self.get_new_data()
 
         self.current_page: Page = "main"
 
@@ -151,7 +152,7 @@ class StatsOverlay:  # pragma: nocover
             key = normalize(pynput_key)
             if key == tab_hotkey:
                 self.tab_pressed = False
-                if not self.should_show and self.current_page == "main":
+                if isinstance(self.visibility, Hidden) and self.current_page == "main":
                     self.window.hide()
 
         self.tab_pressed = False
@@ -207,20 +208,24 @@ class StatsOverlay:  # pragma: nocover
 
     def update_overlay(self) -> None:
         """Get new data to be displayed and display it"""
-        show, info_cells, new_rows = self.get_new_data()
+        visibility, info_cells, new_rows = self.get_new_data()
 
         # Show or hide the window if the desired state is different from the stored
-        if show != self.should_show:
-            if show:
-                self.should_show = show
+        if visibility != self.visibility:
+            if isinstance(visibility, Shown):
+                self.visibility = visibility
                 self.window.show()
-            elif self.current_page == "main":  # Only hide when we are on the main page
-                self.should_show = show
-                if not self.tab_pressed:
-                    # Only schedule hide if the user is not holding tab
-                    self.window.schedule_hide(
-                        timeout_ms=self.controller.settings.autohide_timeout * 1000
-                    )
+            elif isinstance(visibility, Hidden):
+                # Only hide when we are on the main page
+                if self.current_page == "main":
+                    self.visibility = visibility
+                    if not self.tab_pressed:
+                        # Only schedule hide if the user is not holding tab
+                        self.window.schedule_hide(
+                            timeout_ms=self.controller.settings.autohide_timeout * 1000
+                        )
+            else:
+                assert_never(visibility)
 
         # Only update the window if it's shown
         if self.window.shown and self.current_page == "main":
