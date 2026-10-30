@@ -20,7 +20,7 @@ from prism.overlay.output.config import (
 )
 from prism.overlay.player_cache import PlayerCache
 from prism.overlay.settings import NickValue, Settings, fill_missing_settings
-from prism.overlay.state import OverlayState
+from prism.overlay.state import BedwarsDuelState, OverlayState
 from prism.player import (
     Account,
     KnownPlayer,
@@ -246,6 +246,7 @@ def create_state(
     out_of_sync: bool = False,
     in_queue: bool = False,
     own_username: str | None = OWN_USERNAME,
+    bedwars_duel: BedwarsDuelState = None,
     now_func: Callable[[], float] = lambda: 0,
 ) -> OverlayState:
     if party_members is None:
@@ -268,6 +269,7 @@ def create_state(
         out_of_sync=out_of_sync,
         in_queue=in_queue,
         own_username=own_username,
+        bedwars_duel=bedwars_duel,
         now_func=now_func,
     )
 
@@ -292,7 +294,6 @@ def make_settings(
     autowho: bool | None = None,
     autowho_delay: float | None = None,
     chat_hotkey: Key | None = None,
-    activate_in_bedwars_duels: bool | None = None,
     write_settings_file_utf8: Callable[[], TextIO] = lambda: io.StringIO(),
 ) -> Settings:
     return Settings.from_dict(
@@ -307,7 +308,6 @@ def make_settings(
                 "chat_hotkey": (
                     chat_hotkey.to_dict() if chat_hotkey is not None else None
                 ),
-                "activate_in_bedwars_duels": activate_in_bedwars_duels,
             },
             2,
         )[0],

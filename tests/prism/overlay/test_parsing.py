@@ -6,10 +6,12 @@ import pytest
 
 from prism.overlay.events import (
     BedwarsDisconnectEvent,
+    BedwarsDuelTypeEvent,
     BedwarsFinalKillEvent,
     BedwarsGameStartingSoonEvent,
     BedwarsReconnectEvent,
     ChatMessageEvent,
+    EndBedwarsDuelEvent,
     EndBedwarsGameEvent,
     Event,
     InitializeAsEvent,
@@ -288,9 +290,10 @@ UNEVENTFUL_LOGLINES = (
     "[Info: 2021-11-29 20:01:33.403523512: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]                                  Sumo Duel",
     "[Info: 2021-11-29 20:01:33.403683273: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]                      Eliminate your opponents!",
     "[Info: 2021-11-29 20:01:33.403841361: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]                            Opponent: Player1",
+    # Regular Bed Wars banner description
+    "[16:12:21] [Client thread/INFO]: [CHAT]     Protect your bed and destroy the enemy beds.",
     # Bed Wars Duels and Bed Wars Rush Duels
-    "[18:04:40] [Client thread/INFO]: [CHAT]      Destroy the enemy bed and then eliminate them!",
-    "[18:04:18] [Client thread/INFO]: [CHAT]                          BedWars Duel - 01:57",
+    "[18:04:18] [Client thread/INFO]: [CHAT]                          BedWars Duel",
     "[18:04:18] [Client thread/INFO]: [CHAT]                    [MVP+] Player1 WINNER!  Player2",
     "[18:04:18] [Client thread/INFO]: [CHAT] TEAM ELIMINATED > Blue Team has been eliminated!",
     "[18:04:20] [Client thread/INFO]: [CHAT] YOU WON! Want to play again? CLICK HERE! ",
@@ -723,6 +726,22 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     (
         "[21:23:52] [Client thread/INFO]: [CHAT]                              Bed Wars Duels",
         StartBedwarsGameEvent(is_bedwars_duel=True),
+    ),
+    (
+        "[18:04:40] [Client thread/INFO]: [CHAT]      Protect your bed and destroy the enemy bed.",
+        BedwarsDuelTypeEvent(duel_type="regular"),
+    ),
+    (
+        "[18:04:40] [Client thread/INFO]: [CHAT]      Destroy the enemy bed and then eliminate them!",
+        BedwarsDuelTypeEvent(duel_type="rush"),
+    ),
+    (
+        "[18:04:18] [Client thread/INFO]: [CHAT]                          BedWars Duel - 01:57",
+        EndBedwarsDuelEvent(),
+    ),
+    (
+        "[18:04:18] [Client thread/INFO]: [CHAT]                          BedWars Duel - 1:02:03",
+        EndBedwarsDuelEvent(),
     ),
     (
         "[16:12:21] [Client thread/INFO]: [CHAT]                                   Bed Wars ",

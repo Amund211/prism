@@ -217,7 +217,11 @@ def run_overlay(
                 )
             )
 
-        visibility = get_visibility(state, wants_shown=controller.wants_shown)
+        visibility = get_visibility(
+            state,
+            wants_shown=controller.wants_shown,
+            autohide_timeout=controller.settings.autohide_timeout,
+        )
 
         return visibility, info_cells, new_rows
 

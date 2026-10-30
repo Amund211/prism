@@ -3,6 +3,7 @@ from enum import Enum, auto, unique
 from typing import Literal, Union
 
 PartyRole = Literal["leader", "moderators", "members"]
+BedwarsDuelType = Literal["regular", "rush"]
 
 
 @unique
@@ -40,6 +41,8 @@ class EventType(Enum):
     BEDWARS_DISCONNECT = auto()  # A player disconnected in bedwars
     BEDWARS_RECONNECT = auto()  # A player reconnected in bedwars
     END_BEDWARS_GAME = auto()  # A bedwars game has ended
+    BEDWARS_DUEL_TYPE = auto()  # The type of the bedwars duel that just started
+    END_BEDWARS_DUEL = auto()  # A bedwars duel has ended
 
     # Commands /w !<command>
     WHISPER_COMMAND_SET_NICK = auto()
@@ -162,6 +165,17 @@ class EndBedwarsGameEvent:
     event_type: Literal[EventType.END_BEDWARS_GAME] = EventType.END_BEDWARS_GAME
 
 
+@dataclass
+class BedwarsDuelTypeEvent:
+    duel_type: BedwarsDuelType
+    event_type: Literal[EventType.BEDWARS_DUEL_TYPE] = EventType.BEDWARS_DUEL_TYPE
+
+
+@dataclass
+class EndBedwarsDuelEvent:
+    event_type: Literal[EventType.END_BEDWARS_DUEL] = EventType.END_BEDWARS_DUEL
+
+
 @unique
 class WhisperCommandType(Enum):
     SET_NICK = auto()
@@ -197,6 +211,8 @@ ChatEvent = Union[
     BedwarsDisconnectEvent,
     BedwarsReconnectEvent,
     EndBedwarsGameEvent,
+    BedwarsDuelTypeEvent,
+    EndBedwarsDuelEvent,
     WhisperCommandSetNickEvent,
 ]
 

@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import pytest
 
 from prism.overlay.state import OverlayState
@@ -33,6 +35,39 @@ def test_clear_party(before: OverlayState, after: OverlayState) -> None:
 )
 def test_time_in_game(state: OverlayState, time_in_game: float | None) -> None:
     assert state.time_in_game == time_in_game
+
+
+@pytest.mark.parametrize(
+    "before, transition, after",
+    (
+        (
+            create_state(now_func=lambda: 5),
+            OverlayState.join_duel,
+            create_state(last_game_start=5, bedwars_duel="unknown", now_func=lambda: 5),
+        ),
+        (
+            create_state(last_game_start=1, bedwars_duel="rush", now_func=lambda: 5),
+            OverlayState.join_game,
+            create_state(last_game_start=5, now_func=lambda: 5),
+        ),
+        (
+            create_state(last_game_start=1, bedwars_duel="unknown"),
+            lambda state: state.set_bedwars_duel_type("regular"),
+            create_state(last_game_start=1, bedwars_duel="regular"),
+        ),
+        (
+            create_state(last_game_start=1, bedwars_duel="rush"),
+            OverlayState.leave_game,
+            create_state(),
+        ),
+    ),
+)
+def test_bedwars_duel_transitions(
+    before: OverlayState,
+    transition: Callable[[OverlayState], OverlayState],
+    after: OverlayState,
+) -> None:
+    assert transition(before) == after
 
 
 def test_join_queue_in_queue() -> None:

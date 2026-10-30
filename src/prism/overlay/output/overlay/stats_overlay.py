@@ -14,7 +14,7 @@ from prism.overlay.output.overlay.set_nickname_page import SetNicknamePage
 from prism.overlay.output.overlay.settings_page import SettingsPage
 from prism.overlay.output.overlay.toolbar import Toolbar
 from prism.overlay.output.overlay.utils import OverlayRowData
-from prism.overlay.visibility import Hidden, Shown, Visibility
+from prism.overlay.visibility import Hidden, Shown, ShownUntil, Visibility
 
 if TYPE_CHECKING:  # pragma: nocover
     import pynput
@@ -152,8 +152,13 @@ class StatsOverlay:  # pragma: nocover
             key = normalize(pynput_key)
             if key == tab_hotkey:
                 self.tab_pressed = False
-                if isinstance(self.visibility, Hidden) and self.current_page == "main":
+                if self.current_page != "main":
+                    return
+                if isinstance(self.visibility, Hidden):
                     self.window.hide()
+                elif isinstance(self.visibility, ShownUntil):
+                    # Pressing tab cancelled the scheduled hide
+                    self.window.schedule_hide_at(self.visibility.deadline)
 
         self.tab_pressed = False
 
@@ -224,6 +229,13 @@ class StatsOverlay:  # pragma: nocover
                         self.window.schedule_hide(
                             timeout_ms=self.controller.settings.autohide_timeout * 1000
                         )
+            elif isinstance(visibility, ShownUntil):
+                # Only schedule a hide when we are on the main page
+                if self.current_page == "main":
+                    self.visibility = visibility
+                    self.window.show()
+                    if not self.tab_pressed:
+                        self.window.schedule_hide_at(visibility.deadline)
             else:
                 assert_never(visibility)
 

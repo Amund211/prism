@@ -189,9 +189,10 @@ def process_event(
         # Bedwars game has started
         logger.info(f"Bedwars game starting (duel={event.is_bedwars_duel})")
 
-        if not controller.settings.activate_in_bedwars_duels and event.is_bedwars_duel:
-            logger.info("Not activating overlay in bedwars duels due to setting")
-            return state, False
+        if event.is_bedwars_duel:
+            # Rush duels have the same title. Wait for BEDWARS_DUEL_TYPE to autowho.
+            controller.wants_shown = None
+            return state.leave_queue().join_duel().set_out_of_sync(True), False
 
         if controller.ready:
             controller.autowho_event.set()
@@ -224,6 +225,34 @@ def process_event(
         # Bedwars game has ended
         logger.info("Bedwars game ended")
         bedwars_game_ended(controller)
+
+        if controller.ready:
+            controller.autowho_event.clear()
+
+        return state.clear_lobby().set_out_of_sync(False).leave_game(), True
+
+    if event.event_type is EventType.BEDWARS_DUEL_TYPE:
+        # The banner description comes in the same tick as the title.
+        # Ignore it if it does not belong to a duel that just started (fail closed).
+        time_in_game = state.time_in_game
+        if state.bedwars_duel != "unknown" or time_in_game is None or time_in_game >= 1:
+            logger.info(f"Ignoring bedwars duel type {event.duel_type}")
+            return state, False
+
+        logger.info(f"Bedwars duel type {event.duel_type}")
+
+        if controller.ready:
+            if event.duel_type == "regular":
+                controller.autowho_event.set()
+            else:
+                # Never autowho in rush duels
+                controller.autowho_event.clear()
+
+        return state.set_bedwars_duel_type(event.duel_type), False
+
+    if event.event_type is EventType.END_BEDWARS_DUEL:
+        # No bedwars_game_ended, as bedwars stats do not change in duels
+        logger.info("Bedwars duel ended")
 
         if controller.ready:
             controller.autowho_event.clear()

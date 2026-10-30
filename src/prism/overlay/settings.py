@@ -60,7 +60,6 @@ class SettingsDict(TypedDict):
     autowho: bool
     autowho_delay: float
     chat_hotkey: KeyDict
-    activate_in_bedwars_duels: bool
     check_for_updates: bool
     include_patch_updates: bool
     use_included_certs: bool
@@ -96,7 +95,6 @@ class Settings:
     autowho: bool
     autowho_delay: float
     chat_hotkey: Key
-    activate_in_bedwars_duels: bool
     check_for_updates: bool
     include_patch_updates: bool
     use_included_certs: bool
@@ -143,7 +141,6 @@ class Settings:
             autowho=source["autowho"],
             autowho_delay=source["autowho_delay"],
             chat_hotkey=construct_key(source["chat_hotkey"]),
-            activate_in_bedwars_duels=source["activate_in_bedwars_duels"],
             check_for_updates=source["check_for_updates"],
             include_patch_updates=source["include_patch_updates"],
             use_included_certs=source["use_included_certs"],
@@ -178,7 +175,6 @@ class Settings:
             "autowho": self.autowho,
             "autowho_delay": self.autowho_delay,
             "chat_hotkey": self.chat_hotkey.to_dict(),
-            "activate_in_bedwars_duels": self.activate_in_bedwars_duels,
             "check_for_updates": self.check_for_updates,
             "include_patch_updates": self.include_patch_updates,
             "use_included_certs": self.use_included_certs,
@@ -214,7 +210,6 @@ class Settings:
         self.autowho = new_settings["autowho"]
         self.autowho_delay = new_settings["autowho_delay"]
         self.chat_hotkey = construct_key(new_settings["chat_hotkey"])
-        self.activate_in_bedwars_duels = new_settings["activate_in_bedwars_duels"]
         self.check_for_updates = new_settings["check_for_updates"]
         self.include_patch_updates = new_settings["include_patch_updates"]
         self.use_included_certs = new_settings["use_included_certs"]
@@ -421,13 +416,6 @@ def fill_missing_settings(
     else:
         chat_hotkey = chat_hotkey_dict
 
-    activate_in_bedwars_duels, settings_updated = get_boolean_setting(
-        incomplete_settings,
-        "activate_in_bedwars_duels",
-        settings_updated,
-        default=False,
-    )
-
     check_for_updates, settings_updated = get_boolean_setting(
         incomplete_settings, "check_for_updates", settings_updated, default=True
     )
@@ -497,7 +485,6 @@ def fill_missing_settings(
         "autowho": autowho,
         "autowho_delay": autowho_delay,
         "chat_hotkey": chat_hotkey,
-        "activate_in_bedwars_duels": activate_in_bedwars_duels,
         "check_for_updates": check_for_updates,
         "include_patch_updates": include_patch_updates,
         "use_included_certs": use_included_certs,
