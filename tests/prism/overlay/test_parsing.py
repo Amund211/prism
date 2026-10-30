@@ -288,6 +288,13 @@ UNEVENTFUL_LOGLINES = (
     "[Info: 2021-11-29 20:01:33.403523512: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]                                  Sumo Duel",
     "[Info: 2021-11-29 20:01:33.403683273: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]                      Eliminate your opponents!",
     "[Info: 2021-11-29 20:01:33.403841361: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT]                            Opponent: Player1",
+    # Bed Wars Duels and Bed Wars Rush Duels
+    "[18:04:40] [Client thread/INFO]: [CHAT]      Destroy the enemy bed and then eliminate them!",
+    "[18:04:18] [Client thread/INFO]: [CHAT]                          BedWars Duel - 01:57",
+    "[18:04:18] [Client thread/INFO]: [CHAT]                    [MVP+] Player1 WINNER!  Player2",
+    "[18:04:18] [Client thread/INFO]: [CHAT] TEAM ELIMINATED > Blue Team has been eliminated!",
+    "[18:04:20] [Client thread/INFO]: [CHAT] YOU WON! Want to play again? CLICK HERE! ",
+    "[18:04:34] [Client thread/INFO]: [CHAT] Click to view the stats of your §bDuels§e game!",
     # Kill
     "[Info: 2021-11-29 20:01:37.387390783: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Player2 was killed by Player1."
     # Chat messages
