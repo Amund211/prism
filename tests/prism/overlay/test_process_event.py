@@ -778,6 +778,216 @@ def test_process_event_bedwars_game_ended() -> None:
 CHAT = "[Info: 2021-11-29 22:17:40.417869567: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] "  # noqa: E501
 INFO = "[Info: 2021-11-29 23:26:26.372869411: GameCallbacks.cpp(162)] Game/net.minecraft.client.Minecraft (Client thread) Info "  # noqa: E501
 
+BEDWARS_DUELS_LOGLINES: Final = (
+    f"{CHAT}Sending you to mini79AE!",
+    f"{CHAT}       ",
+    f"{CHAT}Me has joined (1/2)!",
+    f"{CHAT}nAbhWHkw has joined (2/2)!",
+    f"{CHAT}The game starts in 5 seconds!",
+    f"{CHAT}The game starts in 4 seconds!",
+    f"{CHAT}The game starts in 3 seconds!",
+    f"{CHAT}The game starts in 2 seconds!",
+    f"{CHAT}The game starts in 1 second!",
+    f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+    f"{CHAT}                             Bed Wars Duels",
+    f"{CHAT}",
+    f"{CHAT}      Protect your bed and destroy the enemy bed.",
+    f"{CHAT}         Upgrade yourself by collecting Iron, Gold,",
+    f"{CHAT}    Emerald and Diamond from generators to access",
+    f"{CHAT}                          powerful upgrades.",
+    f"{CHAT}",
+    f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+    f"{CHAT}You purchased Ladder",
+    f"{CHAT}You purchased Wool",
+    f"{CHAT}You purchased Wool",
+    f"{CHAT}You purchased Wool",
+    f"{CHAT}You purchased Wool",
+    f"{CHAT}You purchased Wool",
+    f"{CHAT}You don't have enough Iron! Need 1 more!",
+    f"{CHAT}You don't have enough Iron! Need 1 more!",
+    f"{CHAT}You don't have enough Iron! Need 1 more!",
+    f"{CHAT}+12 tokens! (Time Played)",
+    f"{CHAT}Player1 fell into the void.",
+    f"{CHAT}If you get disconnected use /rejoin to join back in the game.",
+    f"{CHAT}You purchased Wooden Pickaxe (Efficiency I)",
+    f"{CHAT}You purchased Wooden Axe (Efficiency I)",
+    f"{CHAT}You purchased Permanent Shears",
+    f"{CHAT}You purchased Wool",
+    f"{CHAT}You purchased Wool",
+    f"{CHAT}+12 tokens! (Time Played)",
+    f"{CHAT}",
+    f"{CHAT}BED DESTRUCTION > Blue Bed was destroyed by Me!",
+    f"{CHAT}",
+    f"{CHAT}+24 tokens! (Bed Destroyed)",
+    f"{CHAT}Player1 was knocked into the void by Me. FINAL KILL!",
+    f"{CHAT}+4 Diamonds",
+    f"{CHAT}Tokens just earned DOUBLED as a Guild Level Reward!",
+    f"{CHAT}+12 tokens! (Final Kill)",
+    f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+    f"{CHAT}                         BedWars Duel - 01:57",
+    f"{CHAT}",
+    f"{CHAT}                   [MVP+] Me WINNER!  Player1",
+    f"{CHAT}",
+    f"{CHAT}                       13❤ - Damage Dealt - 6❤",
+    f"{CHAT}                   33.3% - Melee Accuracy - 15.4%",
+    f"{CHAT}                        88 - Blocks Placed - 24",
+    f"{CHAT}                 3❤ - Health Regenerated - 0.5❤",
+    f"{CHAT}§f                §e§lClick to view Player1's Inventory",
+    f"{CHAT}",
+    f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+    f"{CHAT}",
+    f"{CHAT}TEAM ELIMINATED > Blue Team has been eliminated!",
+    f"{CHAT}",
+    f"{CHAT}You were a player and a spectator, you are now a spectator.",
+    f"{CHAT}§a§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+    f"{CHAT}",
+    f"{CHAT}YOU WON! Want to play again? CLICK HERE! ",
+    f"{CHAT}",
+)
+
+BEDWARS_RUSH_DUELS_LOGLINES: Final = (
+    f"{CHAT}Sending you to mini97BA!",
+    f"{CHAT}       ",
+    # The opponent was already in the lobby
+    f"{CHAT}Me has joined (2/2)!",
+    f"{CHAT}The game starts in 5 seconds!",
+    f"{CHAT}The game starts in 4 seconds!",
+    f"{CHAT}The game starts in 3 seconds!",
+    f"{CHAT}The game starts in 2 seconds!",
+    f"{CHAT}The game starts in 1 second!",
+    f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+    f"{CHAT}                             Bed Wars Duels",
+    f"{CHAT}",
+    f"{CHAT}     Destroy the enemy bed and then eliminate them!",
+    f"{CHAT}",
+    f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+    f"{CHAT}",
+    f"{CHAT}Player2 fell into the void.",
+    f"{CHAT}Build height limit reached!",
+    f"{CHAT}Me fell into the void.",
+    f"{CHAT}You will respawn in 4 seconds!",
+    f"{CHAT}You will respawn in 3 seconds!",
+    f"{CHAT}You will respawn in 2 seconds!",
+    f"{CHAT}You will respawn in 1 second!",
+    f"{CHAT}You have respawned!",
+    f"{CHAT}Player2 was knocked into the void by Me.",
+    f"{CHAT}Me was knocked into the void by Player2.",
+    f"{CHAT}You will respawn in 4 seconds!",
+    f"{CHAT}You will respawn in 3 seconds!",
+    f"{CHAT}You will respawn in 2 seconds!",
+    f"{CHAT}You will respawn in 1 second!",
+    f"{CHAT}You have respawned!",
+    f"{CHAT}Tokens just earned DOUBLED as a Guild Level Reward!",
+    f"{CHAT}+24 tokens! (Time Played)",
+    f"{CHAT}Player2 was knocked into the void by Me.",
+    f"{CHAT}If you get disconnected use /rejoin to join back in the game.",
+    f"{CHAT}Player2 was knocked off a cliff by Me.",
+    f"{CHAT}",
+    f"{CHAT}BED DESTRUCTION > Blue Bed was destroyed by Me!",
+    f"{CHAT}",
+    f"{CHAT}+24 tokens! (Bed Destroyed)",
+    f"{CHAT}Me was killed by Player2.",
+    f"{CHAT}You will respawn in 4 seconds!",
+    f"{CHAT}You will respawn in 3 seconds!",
+    f"{CHAT}You will respawn in 2 seconds!",
+    f"{CHAT}You will respawn in 1 second!",
+    f"{CHAT}You have respawned!",
+    f"{CHAT}Build height limit reached!",
+    f"{CHAT}Build height limit reached!",
+    f"{CHAT}Build height limit reached!",
+    f"{CHAT}Player2 was knocked into the void by Me. FINAL KILL!",
+    f"{CHAT}+6 tokens! (Final Kill)",
+    f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+    f"{CHAT}                         BedWars Duel - 01:21",
+    f"{CHAT}",
+    f"{CHAT}              [MVP+] Me WINNER!  [VIP] Player2",
+    f"{CHAT}",
+    f"{CHAT}                      33❤ - Damage Dealt - 28❤",
+    f"{CHAT}                    30% - Melee Accuracy - 31.8%",
+    f"{CHAT}                        59 - Blocks Placed - 66",
+    f"{CHAT}                 3.5❤ - Health Regenerated - 1❤",
+    f"{CHAT}§f              §e§lClick to view Player2's Inventory",
+    f"{CHAT}",
+    f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+    f"{CHAT}",
+    f"{CHAT}TEAM ELIMINATED > Blue Team has been eliminated!",
+    f"{CHAT}",
+    f"{CHAT}§a[VIP] Player2§f: gg",
+    f"{CHAT}You were a player and a spectator, you are now a spectator.",
+    f"{CHAT}§a§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+    f"{CHAT}",
+    f"{CHAT}YOU WON! Want to play again? CLICK HERE! ",
+    f"{CHAT}",
+    f"{CHAT}§aThis game has been recorded. §6Click here to watch the Replay!",
+)
+
+# Bed Wars Rush Duels with /who at the start, lost
+BEDWARS_RUSH_DUELS_WHO_LOSS_LOGLINES: Final = (
+    f"{CHAT}Sending you to mini6DV!",
+    f"{CHAT}       ",
+    f"{CHAT}Me has joined (2/2)!",
+    f"{CHAT}The game starts in 5 seconds!",
+    f"{CHAT}The game starts in 4 seconds!",
+    f"{CHAT}The game starts in 3 seconds!",
+    f"{CHAT}The game starts in 2 seconds!",
+    f"{CHAT}The game starts in 1 second!",
+    f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+    f"{CHAT}                             Bed Wars Duels",
+    f"{CHAT}",
+    f"{CHAT}     Destroy the enemy bed and then eliminate them!",
+    f"{CHAT}",
+    f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+    f"{CHAT}",
+    f"{CHAT}ONLINE: Player3, Me",
+    f"{CHAT}Player3 fell into the void.",
+    f"{CHAT}Me was killed by Player3.",
+    f"{CHAT}You will respawn in 4 seconds!",
+    f"{CHAT}You will respawn in 3 seconds!",
+    f"{CHAT}You will respawn in 2 seconds!",
+    f"{CHAT}+12 tokens! (Time Played)",
+    f"{CHAT}You will respawn in 1 second!",
+    f"{CHAT}You have respawned!",
+    f"{CHAT}Me was killed by Player3.",
+    f"{CHAT}You will respawn in 4 seconds!",
+    f"{CHAT}You will respawn in 3 seconds!",
+    f"{CHAT}If you get disconnected use /rejoin to join back in the game.",
+    f"{CHAT}You will respawn in 2 seconds!",
+    f"{CHAT}You will respawn in 1 second!",
+    f"{CHAT}You have respawned!",
+    f"{CHAT}Me was killed by Player3.",
+    f"{CHAT}You will respawn in 4 seconds!",
+    f"{CHAT}You will respawn in 3 seconds!",
+    f"{CHAT}You will respawn in 2 seconds!",
+    f"{CHAT}You will respawn in 1 second!",
+    f"{CHAT}You have respawned!",
+    f"{CHAT}",
+    f"{CHAT}BED DESTRUCTION > Your Bed was destroyed by Player3!",
+    f"{CHAT}",
+    f"{CHAT}Player3 was knocked into the void by Me.",
+    f"{CHAT}Me was knocked into the void by Player3. FINAL KILL!",
+    f"{CHAT}You have been eliminated!",
+    f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+    f"{CHAT}                         BedWars Duel - 01:11",
+    f"{CHAT}",
+    f"{CHAT}                 [MVP+] Me   Player3 WINNER!",
+    f"{CHAT}",
+    f"{CHAT}                      16❤ - Damage Dealt - 65❤",
+    f"{CHAT}                    9.3% - Melee Accuracy - 27.1%",
+    f"{CHAT}                        42 - Blocks Placed - 54",
+    f"{CHAT}                  2❤ - Health Regenerated - 2❤",
+    f"{CHAT}§f              §e§lClick to view Player3's Inventory",
+    f"{CHAT}",
+    f"{CHAT}▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+    f"{CHAT}",
+    f"{CHAT}TEAM ELIMINATED > Blue Team has been eliminated!",
+    f"{CHAT}",
+    f"{CHAT}§a§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",  # noqa: E501
+    f"{CHAT}§7Player3§7: gg",
+    f"{CHAT}§aThis game has been recorded. §6Click here to watch the Replay!",
+    f"{CHAT}+25 Karma!",
+    f"{CHAT}[MVP+] Me: gg",
+)
+
 FAST_FORWARD_STATE_CASES: Final = (
     (
         create_controller(state=create_state(own_username=None)),
@@ -1194,6 +1404,82 @@ FAST_FORWARD_STATE_CASES: Final = (
             f"{CHAT}Sending you to mini37CP!",
         ),
         create_controller(state=create_state(in_queue=False)),
+    ),
+    # Bed Wars Duels is ignored by default
+    # NOTE: The final kill still adds the opponent to the lobby
+    (
+        create_controller(state=create_state()),
+        BEDWARS_DUELS_LOGLINES,
+        create_controller(
+            state=create_state(lobby_players={"Player1"}, alive_players=set())
+        ),
+    ),
+    (
+        create_controller(state=create_state()),
+        BEDWARS_RUSH_DUELS_LOGLINES,
+        create_controller(
+            state=create_state(lobby_players={"Player2"}, alive_players=set())
+        ),
+    ),
+    # Bed Wars Duels with activate_in_bedwars_duels
+    # NOTE: No end of game is detected in duels
+    (
+        create_controller(
+            state=create_state(now_func=lambda: 2.5),
+            settings=make_settings(activate_in_bedwars_duels=True),
+        ),
+        BEDWARS_DUELS_LOGLINES,
+        create_controller(
+            autowho_event_set=True,
+            state=create_state(
+                lobby_players={"Player1"},
+                alive_players=set(),
+                out_of_sync=True,
+                last_game_start=2.5,
+            ),
+            settings=make_settings(activate_in_bedwars_duels=True),
+        ),
+    ),
+    (
+        create_controller(
+            state=create_state(now_func=lambda: 2.5),
+            settings=make_settings(activate_in_bedwars_duels=True),
+        ),
+        BEDWARS_RUSH_DUELS_LOGLINES,
+        create_controller(
+            autowho_event_set=True,
+            # The opponent's "gg" in game chat marks them alive again
+            state=create_state(
+                lobby_players={"Player2"},
+                out_of_sync=True,
+                last_game_start=2.5,
+            ),
+            settings=make_settings(activate_in_bedwars_duels=True),
+        ),
+    ),
+    # Bed Wars Rush Duels with /who, lost
+    (
+        create_controller(state=create_state()),
+        BEDWARS_RUSH_DUELS_WHO_LOSS_LOGLINES,
+        create_controller(
+            wants_shown=True,
+            state=create_state(
+                lobby_players={"Me", "Player3"}, alive_players={"Player3"}
+            ),
+        ),
+    ),
+    (
+        create_controller(
+            state=create_state(now_func=lambda: 2.5),
+            settings=make_settings(activate_in_bedwars_duels=True),
+        ),
+        BEDWARS_RUSH_DUELS_WHO_LOSS_LOGLINES,
+        create_controller(
+            autowho_event_set=True,
+            # Our own "gg" in game chat marks us alive again
+            state=create_state(lobby_players={"Me", "Player3"}, last_game_start=2.5),
+            settings=make_settings(activate_in_bedwars_duels=True),
+        ),
     ),
     (
         # Regular queue, start
