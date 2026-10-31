@@ -5,6 +5,7 @@ from dataclasses import dataclass, field, replace
 from typing import Literal, Self
 
 from prism.overlay.events import BedwarsDuelType
+from prism.overlay.server import Server, server_is_active
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,7 @@ class OverlayState:
     in_queue: bool = False
     own_username: str | None = None
     bedwars_duel: BedwarsDuelState = None
+    server: Server | None = None  # None: no connect line seen
     now_func: Callable[[], float] = field(default=time.monotonic, compare=False)
 
     @property
@@ -195,6 +197,28 @@ class OverlayState:
             )
 
         return new_state
+
+    def is_active(self, only_hypixel: bool) -> bool:
+        """Return True if the overlay should process chat events"""
+        return not only_hypixel or server_is_active(self.server)
+
+    def set_server(self, server: Server) -> Self:
+        """
+        Set the current server
+
+        Entering an inactive server clears the lobby, queue and game.
+        The party is kept, as Hypixel keeps it for a while after you leave.
+        Active -> active keeps the state so rejoining a game in progress works.
+        """
+        logger.info(f"Setting server {server}")
+        new_state = replace(self, server=server)
+
+        if server_is_active(server):
+            return new_state
+
+        return replace(
+            new_state.clear_lobby().leave_queue().leave_game(), out_of_sync=False
+        )
 
     def set_out_of_sync(self, out_of_sync: bool) -> Self:
         """Set out_of_sync"""

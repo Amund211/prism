@@ -27,6 +27,8 @@ from prism.overlay.events import (
     PartyLeaveEvent,
     PartyListIncomingEvent,
     PartyMembershipListEvent,
+    ServerConnectEvent,
+    SingleplayerStartEvent,
     StartBedwarsGameEvent,
     WhisperCommandSetNickEvent,
 )
@@ -50,6 +52,8 @@ CLIENT_INFO_PREFIXES = (
     "[Client thread/INFO]: [LC] ",  # New lunar
     "[Client thread/INFO] [Alpine Client/]: ",  # Alpine
 )
+
+SERVER_THREAD_PREFIX = "[Server thread/INFO]: "
 
 # Vanilla and forge
 CHAT_PREFIXES = (
@@ -161,6 +165,13 @@ def parse_logline(logline: str) -> Event | None:
             strip_until(logline, until=logline[: chat_index + len(NETTY_CHAT_FRAGMENT)])
         )
 
+    # The server thread logs singleplayer/LAN chat, so its content is user controlled
+    if (
+        get_lowest_index(logline, SERVER_THREAD_PREFIX, *CLIENT_INFO_PREFIXES)
+        == SERVER_THREAD_PREFIX
+    ):
+        return parse_server_info(strip_until(logline, until=SERVER_THREAD_PREFIX))
+
     # Since we have assumed that we have filtered all chatlines, these lines are not
     # user controlled, and we are safe to not use the lowest index.
     # Instead we use the highest index as some prefixes share a prefix.
@@ -193,6 +204,25 @@ def parse_client_info(info: str) -> ClientEvent | None:
             return None
 
         return InitializeAsEvent(username)
+
+    CONNECTING_TO_PREFIX = "Connecting to "
+    if info.startswith(CONNECTING_TO_PREFIX):
+        host, separator, port = strip_until(
+            info, until=CONNECTING_TO_PREFIX
+        ).rpartition(", ")
+        host = host.rstrip(".").lower()
+        if not separator or not host or not port.isdigit():
+            logger.debug(f"Invalid connecting to message {info!r}")
+            return None
+
+        return ServerConnectEvent(host)
+
+    return None
+
+
+def parse_server_info(info: str) -> ClientEvent | None:
+    if info.startswith("Starting integrated minecraft server "):
+        return SingleplayerStartEvent()
 
     return None
 

@@ -432,6 +432,7 @@ class GeneralSettings:
 
     autodenick_teammates: bool
     autoselect_logfile: bool
+    only_activate_on_hypixel: bool
     show_on_tab: bool
     show_on_tab_keybind: Key
     check_for_updates: bool
@@ -474,6 +475,21 @@ class GeneralSettingSection:  # pragma: nocover
             self.autoselect_logfile_toggle.button,
         )
 
+        only_activate_on_hypixel_label = tk.Label(
+            self.frame,
+            text="Only activate on Hypixel: ",
+            font=("Consolas", 12),
+            foreground="white",
+            background="black",
+        )
+        only_activate_on_hypixel_label.grid(row=2, column=0, sticky=tk.E)
+        self.only_activate_on_hypixel_toggle = ToggleButton(self.frame)
+        self.only_activate_on_hypixel_toggle.button.grid(row=2, column=1)
+        parent.make_widgets_scrollable(
+            only_activate_on_hypixel_label,
+            self.only_activate_on_hypixel_toggle.button,
+        )
+
         def disable_keybind_selector(enabled: bool) -> None:
             self.show_on_tab_keybind_selector.button.config(
                 state=tk.NORMAL if enabled else tk.DISABLED,
@@ -487,11 +503,11 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        show_on_tab_label.grid(row=2, column=0, sticky=tk.E)
+        show_on_tab_label.grid(row=3, column=0, sticky=tk.E)
         self.show_on_tab_toggle = ToggleButton(
             self.frame, toggle_callback=disable_keybind_selector
         )
-        self.show_on_tab_toggle.button.grid(row=2, column=1)
+        self.show_on_tab_toggle.button.grid(row=3, column=1)
         parent.make_widgets_scrollable(
             show_on_tab_label,
             self.show_on_tab_toggle.button,
@@ -504,9 +520,9 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        show_on_tab_hotkey_label.grid(row=3, column=0, sticky=tk.E)
+        show_on_tab_hotkey_label.grid(row=4, column=0, sticky=tk.E)
         self.show_on_tab_keybind_selector = KeybindSelector(self.frame)
-        self.show_on_tab_keybind_selector.button.grid(row=3, column=1)
+        self.show_on_tab_keybind_selector.button.grid(row=4, column=1)
         parent.make_widgets_scrollable(
             show_on_tab_hotkey_label,
             self.show_on_tab_keybind_selector.button,
@@ -525,11 +541,11 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        check_for_updates_label.grid(row=4, column=0, sticky=tk.E)
+        check_for_updates_label.grid(row=5, column=0, sticky=tk.E)
         self.check_for_updates_toggle = ToggleButton(
             self.frame, toggle_callback=disable_include_patch_updates_toggle
         )
-        self.check_for_updates_toggle.button.grid(row=4, column=1)
+        self.check_for_updates_toggle.button.grid(row=5, column=1)
         parent.make_widgets_scrollable(
             check_for_updates_label,
             self.check_for_updates_toggle.button,
@@ -542,9 +558,9 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        include_patch_updates_label.grid(row=5, column=0, sticky=tk.E)
+        include_patch_updates_label.grid(row=6, column=0, sticky=tk.E)
         self.include_patch_updates_toggle = ToggleButton(self.frame)
-        self.include_patch_updates_toggle.button.grid(row=5, column=1)
+        self.include_patch_updates_toggle.button.grid(row=6, column=1)
         parent.make_widgets_scrollable(
             include_patch_updates_label,
             self.include_patch_updates_toggle.button,
@@ -557,9 +573,9 @@ class GeneralSettingSection:  # pragma: nocover
             foreground="white",
             background="black",
         )
-        use_included_certs_label.grid(row=6, column=0, sticky=tk.E)
+        use_included_certs_label.grid(row=7, column=0, sticky=tk.E)
         self.use_included_certs_toggle = ToggleButton(self.frame)
-        self.use_included_certs_toggle.button.grid(row=6, column=1)
+        self.use_included_certs_toggle.button.grid(row=7, column=1)
         parent.make_widgets_scrollable(
             use_included_certs_label,
             self.use_included_certs_toggle.button,
@@ -578,13 +594,14 @@ class GeneralSettingSection:  # pragma: nocover
                 foreground="red",
                 background="black",
             )
-            show_on_tab_disabled_label.grid(row=7, column=0, columnspan=2)
+            show_on_tab_disabled_label.grid(row=8, column=0, columnspan=2)
             parent.make_widgets_scrollable(show_on_tab_disabled_label)
 
     def set(self, settings: GeneralSettings) -> None:
         """Set the state of this section"""
         self.autodenick_teammates_toggle.set(settings.autodenick_teammates)
         self.autoselect_logfile_toggle.set(settings.autoselect_logfile)
+        self.only_activate_on_hypixel_toggle.set(settings.only_activate_on_hypixel)
         self.show_on_tab_toggle.set(settings.show_on_tab)
         self.show_on_tab_keybind_selector.set_key(settings.show_on_tab_keybind)
         self.check_for_updates_toggle.set(settings.check_for_updates)
@@ -596,6 +613,7 @@ class GeneralSettingSection:  # pragma: nocover
         return GeneralSettings(
             autodenick_teammates=self.autodenick_teammates_toggle.enabled,
             autoselect_logfile=self.autoselect_logfile_toggle.enabled,
+            only_activate_on_hypixel=self.only_activate_on_hypixel_toggle.enabled,
             show_on_tab=self.show_on_tab_toggle.enabled,
             show_on_tab_keybind=self.show_on_tab_keybind_selector.key,
             check_for_updates=self.check_for_updates_toggle.enabled,
@@ -1712,6 +1730,7 @@ class SettingsPage:  # pragma: nocover
                 GeneralSettings(
                     autodenick_teammates=settings.autodenick_teammates,
                     autoselect_logfile=settings.autoselect_logfile,
+                    only_activate_on_hypixel=settings.only_activate_on_hypixel,
                     show_on_tab=settings.show_on_tab,
                     show_on_tab_keybind=settings.show_on_tab_keybind,
                     check_for_updates=settings.check_for_updates,
@@ -1810,6 +1829,7 @@ class SettingsPage:  # pragma: nocover
             known_nicks=known_nicks,
             autodenick_teammates=general_settings.autodenick_teammates,
             autoselect_logfile=general_settings.autoselect_logfile,
+            only_activate_on_hypixel=general_settings.only_activate_on_hypixel,
             autohide_timeout=display_settings.autohide_timeout,
             show_on_tab=general_settings.show_on_tab,
             show_on_tab_keybind=general_settings.show_on_tab_keybind.to_dict(),

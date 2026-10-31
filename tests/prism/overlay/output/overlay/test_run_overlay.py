@@ -5,11 +5,13 @@ from prism.overlay.controller import OverlayController
 from prism.overlay.output.cells import InfoCellValue
 from prism.overlay.output.overlay.run_overlay import (
     SIGNIN_SUGGESTION_TEXT,
+    get_inactive_info_cell,
     get_microsoft_signin_ended_info_cell,
     get_signin_suggestion_info_cell,
     get_stat_list,
 )
 from prism.overlay.player_cache import PlayerCache
+from prism.overlay.server import Server
 from prism.player import KnownPlayer, PendingPlayer, Player
 from tests.prism.auth_utils import (
     make_auth_manager,
@@ -260,3 +262,34 @@ def test_signin_suggestion_info_cell_until_dismissed() -> None:
     manager.dismiss_signin_suggestion()
 
     assert get_signin_suggestion_info_cell(manager) is None
+
+
+@pytest.mark.parametrize(
+    "server, only_activate_on_hypixel, text",
+    (
+        (None, True, None),
+        (Server.from_host("mc.hypixel.net"), True, None),
+        (Server.from_host("1.2.3.4"), True, None),
+        (Server.from_host("bedwarspractice.club"), False, None),
+        (
+            Server.from_host("bedwarspractice.club"),
+            True,
+            "Inactive: not on Hypixel (bedwarspractice.club). See settings.",
+        ),
+        (
+            Server.singleplayer(),
+            True,
+            "Inactive: not on Hypixel (singleplayer). See settings.",
+        ),
+    ),
+)
+def test_inactive_info_cell(
+    server: Server | None, only_activate_on_hypixel: bool, text: str | None
+) -> None:
+    controller = create_controller(
+        state=create_state(server=server),
+        settings=make_settings(only_activate_on_hypixel=only_activate_on_hypixel),
+    )
+    assert get_inactive_info_cell(controller) == (
+        None if text is None else InfoCellValue(text=text, color="light blue", url=None)
+    )

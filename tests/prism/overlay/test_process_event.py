@@ -1,5 +1,6 @@
 import unittest.mock
 from collections.abc import Iterable
+from dataclasses import replace
 from typing import Final
 
 import pytest
@@ -27,6 +28,8 @@ from prism.overlay.events import (
     PartyLeaveEvent,
     PartyListIncomingEvent,
     PartyMembershipListEvent,
+    ServerConnectEvent,
+    SingleplayerStartEvent,
     StartBedwarsGameEvent,
     WhisperCommandSetNickEvent,
 )
@@ -35,12 +38,19 @@ from prism.overlay.process_event import (
     process_event,
     process_loglines,
 )
+from prism.overlay.server import Server
 from tests.prism.overlay.utils import (
     OWN_USERNAME,
     assert_controllers_equal,
     create_controller,
+    create_dirty_state,
     create_state,
+    make_settings,
 )
+
+HYPIXEL = Server.from_host("mc.hypixel.net")
+OTHER = Server.from_host("bedwarspractice.club")
+SINGLEPLAYER = Server.singleplayer()
 
 process_event_test_cases_base: tuple[
     tuple[str, OverlayController, Event, OverlayController, bool], ...
@@ -65,6 +75,75 @@ process_event_test_cases_base: tuple[
         ),
         InitializeAsEvent("NewPlayer"),
         create_controller(state=create_state(own_username="NewPlayer")),
+        True,
+    ),
+    (
+        "re-initialize forgets the server",
+        create_controller(state=create_state(server=OTHER)),
+        InitializeAsEvent("NewPlayer"),
+        create_controller(state=create_state(own_username="NewPlayer")),
+        True,
+    ),
+    (
+        "connect to hypixel keeps state",
+        create_controller(
+            wants_shown=True,
+            autowho_event_set=True,
+            state=create_dirty_state(),
+        ),
+        ServerConnectEvent("mc.hypixel.net"),
+        create_controller(
+            wants_shown=True,
+            autowho_event_set=True,
+            state=create_dirty_state(server=HYPIXEL),
+        ),
+        True,
+    ),
+    (
+        "connect to other server clears state",
+        create_controller(
+            wants_shown=True,
+            autowho_event_set=True,
+            state=create_dirty_state(server=HYPIXEL),
+        ),
+        ServerConnectEvent("bedwarspractice.club"),
+        create_controller(
+            wants_shown=None,
+            autowho_event_set=False,
+            state=create_state(party_members={OWN_USERNAME, "Player2"}, server=OTHER),
+        ),
+        True,
+    ),
+    (
+        "start singleplayer clears state",
+        create_controller(
+            wants_shown=True,
+            autowho_event_set=True,
+            state=create_dirty_state(server=HYPIXEL),
+        ),
+        SingleplayerStartEvent(),
+        create_controller(
+            wants_shown=None,
+            autowho_event_set=False,
+            state=create_state(
+                party_members={OWN_USERNAME, "Player2"}, server=SINGLEPLAYER
+            ),
+        ),
+        True,
+    ),
+    (
+        "connect to other server when gate is off clears state",
+        create_controller(
+            settings=make_settings(only_activate_on_hypixel=False),
+            wants_shown=True,
+            state=create_dirty_state(),
+        ),
+        ServerConnectEvent("bedwarspractice.club"),
+        create_controller(
+            settings=make_settings(only_activate_on_hypixel=False),
+            wants_shown=None,
+            state=create_state(party_members={OWN_USERNAME, "Player2"}, server=OTHER),
+        ),
         True,
     ),
     (
@@ -844,6 +923,132 @@ def test_process_event(
     assert will_redraw == redraw
 
 
+GATED_CHAT_EVENTS: Final = (
+    NewNicknameEvent("AmazingNick"),
+    LobbySwapEvent(),
+    LobbyJoinEvent("Player4", player_count=4, player_cap=8),
+    LobbyLeaveEvent("Player3"),
+    ChatMessageEvent("Player3", "hi"),
+    LobbyListEvent(["Player4", "Player5"]),
+    PartyAttachEvent("Player6"),
+    PartyDetachEvent(),
+    PartyJoinEvent(["Player6"]),
+    PartyLeaveEvent(["Player2"]),
+    BedwarsGameStartingSoonEvent(seconds=5),
+    StartBedwarsGameEvent(is_bedwars_duel=False),
+    BedwarsFinalKillEvent(dead_player="Player2", raw_message="Player2 died"),
+    BedwarsDisconnectEvent("Player2"),
+    BedwarsReconnectEvent("Player2"),
+    EndBedwarsGameEvent(),
+    BedwarsDuelTypeEvent("regular"),
+    EndBedwarsDuelEvent(),
+    WhisperCommandSetNickEvent(nick="AmazingNick", username="Player2"),
+)
+
+
+@pytest.mark.parametrize("server", (OTHER, SINGLEPLAYER))
+@pytest.mark.parametrize("event", GATED_CHAT_EVENTS)
+def test_process_event_gated(server: Server, event: Event) -> None:
+    def make() -> OverlayController:
+        return create_controller(
+            wants_shown=True,
+            state=create_dirty_state(server=server),
+        )
+
+    controller = make()
+    controller.state, will_redraw = process_event(controller, event)
+
+    assert_controllers_equal(controller, make())
+    assert not will_redraw
+
+
+@pytest.mark.parametrize(
+    "server, only_activate_on_hypixel",
+    (
+        (HYPIXEL, True),
+        (Server.from_host("localhost"), True),
+        (Server.from_host("1.2.3.4"), True),
+        (OTHER, False),
+        (SINGLEPLAYER, False),
+    ),
+)
+@pytest.mark.parametrize("event", GATED_CHAT_EVENTS)
+def test_process_event_not_gated(
+    server: Server, only_activate_on_hypixel: bool, event: Event
+) -> None:
+    """Chat events are processed the same as on an unknown server"""
+
+    def make(server: Server | None) -> OverlayController:
+        return create_controller(
+            settings=make_settings(only_activate_on_hypixel=only_activate_on_hypixel),
+            wants_shown=True,
+            state=create_dirty_state(server=server),
+        )
+
+    with (
+        unittest.mock.patch("prism.overlay.process_event.set_nickname"),
+        unittest.mock.patch("prism.overlay.process_event.bedwars_game_ended"),
+    ):
+        controller = make(server)
+        controller.state, will_redraw = process_event(controller, event)
+
+        unknown_controller = make(None)
+        unknown_controller.state, unknown_will_redraw = process_event(
+            unknown_controller, event
+        )
+
+    assert controller.state == replace(unknown_controller.state, server=server)
+    assert controller.wants_shown == unknown_controller.wants_shown
+    assert will_redraw == unknown_will_redraw
+
+
+def test_fast_forward_state_other_server() -> None:
+    # Real excerpt from a bedwarspractice.club session
+    controller = create_controller(state=create_state(own_username=None))
+    fast_forward_state(
+        controller,
+        (
+            "[09:56:08] [Client thread/INFO]: Setting user: OwnUsername",
+            "[09:56:25] [5zig Netty Bootstrap/INFO]: Connecting to 5zig.net:28499",
+            "[09:56:54] [Client thread/INFO]: Connecting to bedwarspractice.club, 25565",  # noqa: E501
+        ),
+    )
+    assert controller.state == create_state(server=OTHER)
+
+    controller.wants_shown = True
+    # Parses as a lobby swap, which would reset wants_shown if not gated
+    fast_forward_state(
+        controller,
+        ("[09:57:12] [Client thread/INFO]: [CHAT] Sending you to your technique!",),
+    )
+    assert controller.state == create_state(server=OTHER)
+    assert controller.wants_shown is True
+
+
+def test_fast_forward_state_rejoin_game() -> None:
+    # Real excerpt of rejoining a game in progress. The in-game state is artificial
+    in_game_state = create_state(
+        lobby_players={OWN_USERNAME, "Player1", "Player2"},
+        last_game_start=1.0,
+        server=HYPIXEL,
+    )
+    controller = create_controller(state=in_game_state)
+    fast_forward_state(
+        controller,
+        (
+            "[15:09:40] [Client thread/INFO]: [CHAT] Player1 was killed by Player2.",
+            "[15:09:46] [Client thread/INFO]: Connecting to mc.hypixel.net, 25565",
+            "[15:09:49] [Client thread/INFO]: [CHAT]                                      ",  # noqa: E501
+            "[15:09:49] [Client thread/INFO]: [CHAT]        ",
+            "[15:09:49] [Client thread/INFO]: [CHAT] To leave Bed Wars, type /lobby",
+            "[15:09:49] [Client thread/INFO]: [CHAT] OwnUsername reconnected.",
+            "[15:09:49] [Client thread/INFO]: [CHAT] OwnUsername fell into the void.",
+            "[15:09:49] [Client thread/INFO]: [CHAT] You will respawn in 5 seconds!",
+        ),
+    )
+    assert controller.state == in_game_state
+
+
 @pytest.mark.parametrize(
     "event",
     (
@@ -1146,7 +1351,7 @@ FAST_FORWARD_STATE_CASES: Final = (
             "[16:55:01] [Client thread/INFO]: [CHAT]                          ",
             "[16:55:01] [Client thread/INFO]: [CHAT] --------------  Guild: Message Of The Day  --------------",  # noqa: E501
         ),
-        create_controller(state=create_state(own_username="YourIGN")),
+        create_controller(state=create_state(own_username="YourIGN", server=HYPIXEL)),
     ),
     (
         # Ensure game starts in lucky blocks

@@ -11,6 +11,10 @@ class EventType(Enum):
     # Initialization
     INITIALIZE_AS = auto()  # Initialize as the given username
 
+    # Server
+    SERVER_CONNECT = auto()  # You connect to a multiplayer server
+    SINGLEPLAYER_START = auto()  # You start a singleplayer world
+
     # New nickname (/nick reuse)
     NEW_NICKNAME = auto()
 
@@ -190,7 +194,18 @@ class WhisperCommandSetNickEvent:
     )
 
 
-ClientEvent = InitializeAsEvent
+@dataclass
+class ServerConnectEvent:
+    host: str
+    event_type: Literal[EventType.SERVER_CONNECT] = EventType.SERVER_CONNECT
+
+
+@dataclass
+class SingleplayerStartEvent:
+    event_type: Literal[EventType.SINGLEPLAYER_START] = EventType.SINGLEPLAYER_START
+
+
+ClientEvent = Union[InitializeAsEvent, ServerConnectEvent, SingleplayerStartEvent]
 
 ChatEvent = Union[
     NewNicknameEvent,

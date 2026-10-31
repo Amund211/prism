@@ -2,8 +2,13 @@ from collections.abc import Callable
 
 import pytest
 
+from prism.overlay.server import Server
 from prism.overlay.state import OverlayState
-from tests.prism.overlay.utils import OWN_USERNAME, create_state
+from tests.prism.overlay.utils import OWN_USERNAME, create_dirty_state, create_state
+
+HYPIXEL = Server.from_host("mc.hypixel.net")
+OTHER = Server.from_host("bedwarspractice.club")
+SINGLEPLAYER = Server.singleplayer()
 
 
 @pytest.mark.parametrize(
@@ -103,3 +108,52 @@ def test_join_queue_in_queue() -> None:
 )
 def test_missing_party_members(state: OverlayState, expected: set[str]) -> None:
     assert state.missing_party_members == expected
+
+
+@pytest.mark.parametrize(
+    "before, server, after",
+    (
+        # Active -> active keeps state (rejoin a game in progress)
+        (create_dirty_state(), HYPIXEL, create_dirty_state(server=HYPIXEL)),
+        (
+            create_dirty_state(server=HYPIXEL),
+            HYPIXEL,
+            create_dirty_state(server=HYPIXEL),
+        ),
+        # Entering an inactive server clears all but the party
+        *(
+            (
+                create_dirty_state(server=from_server),
+                to_server,
+                create_state(party_members={OWN_USERNAME, "Player2"}, server=to_server),
+            )
+            for from_server in (None, HYPIXEL, OTHER, SINGLEPLAYER)
+            for to_server in (OTHER, SINGLEPLAYER)
+        ),
+        # Inactive -> active keeps the (already clean) state
+        (
+            create_state(server=OTHER),
+            HYPIXEL,
+            create_state(server=HYPIXEL),
+        ),
+    ),
+)
+def test_set_server(before: OverlayState, server: Server, after: OverlayState) -> None:
+    assert before.set_server(server) == after
+
+
+@pytest.mark.parametrize(
+    "server, only_hypixel, active",
+    (
+        (None, True, True),
+        (HYPIXEL, True, True),
+        (Server.from_host("localhost"), True, True),
+        (Server.from_host("1.2.3.4"), True, True),
+        (OTHER, True, False),
+        (SINGLEPLAYER, True, False),
+        (OTHER, False, True),
+        (SINGLEPLAYER, False, True),
+    ),
+)
+def test_is_active(server: Server | None, only_hypixel: bool, active: bool) -> None:
+    assert create_state(server=server).is_active(only_hypixel) == active

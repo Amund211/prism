@@ -60,6 +60,7 @@ def make_settings_dict(
     known_nicks: dict[str, NickValue] | None = None,
     autodenick_teammates: bool | None = None,
     autoselect_logfile: bool | None = None,
+    only_activate_on_hypixel: bool | None = None,
     autohide_timeout: int | None = None,
     show_on_tab: bool | None = None,
     show_on_tab_keybind: KeyDict | None = None,
@@ -99,6 +100,9 @@ def make_settings_dict(
         "known_nicks": value_or_default(known_nicks, default={}),
         "autodenick_teammates": value_or_default(autodenick_teammates, default=True),
         "autoselect_logfile": value_or_default(autoselect_logfile, default=True),
+        "only_activate_on_hypixel": value_or_default(
+            only_activate_on_hypixel, default=True
+        ),
         "autohide_timeout": value_or_default(autohide_timeout, default=8),
         "show_on_tab": value_or_default(show_on_tab, default=True),
         # mypy thinks this is {"name": str}, when it really is just KeyDict
@@ -150,6 +154,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             autodenick_teammates=True,
             autoselect_logfile=True,
+            only_activate_on_hypixel=True,
             autohide_timeout=8,
             show_on_tab=True,
             show_on_tab_keybind=AlphanumericKey(name="a", char="a"),
@@ -182,6 +187,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             "autodenick_teammates": True,
             "autoselect_logfile": True,
+            "only_activate_on_hypixel": True,
             "autohide_timeout": 8,
             "show_on_tab": True,
             "show_on_tab_keybind": AlphanumericKeyDict(
@@ -219,6 +225,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             known_nicks={},
             autodenick_teammates=False,
             autoselect_logfile=False,
+            only_activate_on_hypixel=False,
             autohide_timeout=19,
             show_on_tab=False,
             show_on_tab_keybind=SpecialKey(name="tab", vk=None),
@@ -251,6 +258,7 @@ settings_to_dict_cases: tuple[tuple[Settings, SettingsDict], ...] = (
             "known_nicks": {},
             "autodenick_teammates": False,
             "autoselect_logfile": False,
+            "only_activate_on_hypixel": False,
             "autohide_timeout": 19,
             "show_on_tab": False,
             "show_on_tab_keybind": SpecialKeyDict(
@@ -490,6 +498,7 @@ fill_settings_test_cases: tuple[
             "known_nicks": {"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             "autodenick_teammates": False,
             "autoselect_logfile": False,
+            "only_activate_on_hypixel": False,
             "autohide_timeout": 3,
             "show_on_tab": False,
             "show_on_tab_keybind": SpecialKeyDict(
@@ -526,6 +535,7 @@ fill_settings_test_cases: tuple[
             known_nicks={"AmazingNick": {"uuid": "123987", "comment": "Player1"}},
             autodenick_teammates=False,
             autoselect_logfile=False,
+            only_activate_on_hypixel=False,
             autohide_timeout=3,
             show_on_tab=False,
             show_on_tab_keybind=SpecialKeyDict(
@@ -650,6 +660,12 @@ fill_settings_test_cases: tuple[
     (
         # Invalid data for autoselect_logfile
         {"autoselect_logfile": "yes"},
+        make_settings_dict(),
+        True,
+    ),
+    (
+        # Invalid data for only_activate_on_hypixel
+        {"only_activate_on_hypixel": "yes"},
         make_settings_dict(),
         True,
     ),
