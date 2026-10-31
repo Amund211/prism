@@ -106,6 +106,54 @@ func TestMakeGetPlayerDataHandler(t *testing.T) {
 		}
 	})
 
+	t.Run("provider mode depends on the auth tier", func(t *testing.T) {
+		t.Parallel()
+
+		player := domaintest.NewPlayerBuilder(UUID).WithExperience(1000).BuildPtr(now)
+
+		for _, tc := range []struct {
+			name         string
+			identityType domain.AuthSessionIdentityType
+			expectedMode app.ProviderMode
+		}{
+			{name: "no bearer", identityType: "", expectedMode: app.ProviderModeWellKnown},
+			{name: "anonymous", identityType: domain.AuthSessionIdentityAnonymous, expectedMode: app.ProviderModeAlways},
+			{name: "microsoft", identityType: domain.AuthSessionIdentityMicrosoft, expectedMode: app.ProviderModeAlways},
+			{name: "unknown tier", identityType: "something-new", expectedMode: app.ProviderModeWellKnown},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
+				bearerAuth := NewBearerAuthMiddleware(func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
+					return domain.AuthSession{
+						ID:           sessionID,
+						IdentityType: tc.identityType,
+						IdentityKey:  "identity-key",
+						ExpiresAt:    now.Add(time.Hour),
+					}, nil
+				}, time.Now, emptyBlocklistConfig)
+
+				var gotMode *app.ProviderMode
+				getPlayerDataHandler, stop := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+					gotMode = &providerMode
+					return player, nil
+				}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuth, emptyBlocklistConfig, false)
+				t.Cleanup(stop)
+
+				w := httptest.NewRecorder()
+				req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
+				if tc.identityType != "" {
+					req.Header.Set("Authorization", "Bearer some-session")
+				}
+				getPlayerDataHandler(w, req)
+
+				require.Equal(t, 200, w.Result().StatusCode)
+				require.NotNil(t, gotMode)
+				require.Equal(t, tc.expectedMode, *gotMode)
+			})
+		}
+	})
+
 	t.Run("client error: invalid uuid", func(t *testing.T) {
 		t.Parallel()
 

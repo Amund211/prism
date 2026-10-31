@@ -102,7 +102,7 @@ func MakeGetPlayerDataHandler(
 			requesterUserID = ""
 		}
 
-		player, err := getAndPersistPlayerWithCache(ctx, uuid, app.ProviderModeWellKnown, requesterUserID)
+		player, err := getAndPersistPlayerWithCache(ctx, uuid, providerModeFor(ctx), requesterUserID)
 		if errors.Is(err, domain.ErrPlayerNotFound) {
 			hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(nil)
 			if err != nil {
@@ -152,6 +152,21 @@ func MakeGetPlayerDataHandler(
 	}
 
 	return middleware(handler), stop
+}
+
+// providerModeFor trusts any verified session tier with fresh data: the
+// identity budget is keyed on it, so it can not be farmed per request.
+func providerModeFor(ctx context.Context) app.ProviderMode {
+	auth, ok := AuthFromContext(ctx)
+	if !ok {
+		return app.ProviderModeWellKnown
+	}
+	switch auth.IdentityType {
+	case domain.AuthSessionIdentityAnonymous, domain.AuthSessionIdentityMicrosoft:
+		return app.ProviderModeAlways
+	default:
+		return app.ProviderModeWellKnown
+	}
 }
 
 func writeHypixelStyleErrorResponse(ctx context.Context, w http.ResponseWriter, responseError error) int {
