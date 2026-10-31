@@ -27,30 +27,25 @@ Real logs: `~/.minecraft/logs/*.log.gz` and `latest.log` (read only).
 1. Find a real line: `rg -z -n -F 'has joined (' ~/.minecraft/logs | head`.
    Note the log file and line number. This is your proof.
 2. Copy the message. Anonymize the names.
-3. Give a proof for each logline that you added or changed, and verify all of them:
+3. Give a proof for each logline that you added or changed (not for synthetic lines):
 
    ```
-   uv run python -m tests.loglines --diff origin/main --require-proof \
-       --proof tests/prism/overlay/test_parsing.py:412=~/.minecraft/logs/2024-03-02-1.log.gz:1203
+   uv run python -m tests.loglines \
+       tests/prism/overlay/test_parsing.py:412=~/.minecraft/logs/2024-03-02-1.log.gz:1203
    ```
 
-   A proof is `SOURCE_FILE:LINE=LOG_FILE:LINE`. For many proofs, write one
-   `--proof=...` per line in a file in your scratchpad and pass `@that-file`.
+   A proof is `SOURCE_FILE:LINE=LOG_FILE:LINE`. For many proofs, write one proof per
+   line in a file in your scratchpad and pass `@that-file`.
 
    Results:
    - `PROVEN exact|anonymized full-line|message-only`: the proof is correct.
+     If the prefix is the subject of the test, it must be `full-line`.
    - `MISMATCH`: the log line is not the same as the source line.
-   - `FOUND ... (no proof)`: the tool found a match by search, but you gave no proof.
-     Use the file and line it shows as your proof, after you check that it is the line
-     you copied.
-   - `NOT FOUND`, `BAD PROOF`: fix it.
+   - `BAD PROOF`: the proof does not point at a logline.
 
-   The exit code is 1 if a line fails. For each failure, find a real line,
+   The exit code is 1 if a proof fails. For each failure, find a real line,
    add a `# Synthetic:` comment, or ask the user for a real sample. Do not make the
    tool pass by other means.
-
-   Other modes: `--file PATH` (all loglines in a file, e.g. for an audit) or loglines as
-   arguments. Without `--require-proof`, a search result is enough.
 4. **Report** the tool output in your final reply, as a table:
 
    | file:line | status | proof |
@@ -58,8 +53,8 @@ Real logs: `~/.minecraft/logs/*.log.gz` and `latest.log` (read only).
    | test_parsing.py:412 | PROVEN anonymized message-only | 2024-03-02-1.log.gz:1203 |
    | test_parsing.py:418 | SYNTHETIC | `# Synthetic: ...` |
 
-   Also give the summary line from the tool (`N loglines: ...`).
+   Also give the summary line from the tool (`N proofs: ...`).
 
-The tool finds literal strings with a known prefix (`CHAT_PREFIXES`, `CLIENT_INFO_PREFIXES`),
-and f-strings that start with e.g. `{CHAT}`. An f-string with more formatted values cannot be
-verified and must be marked synthetic.
+The tool understands literal strings with a known prefix (`CHAT_PREFIXES`,
+`CLIENT_INFO_PREFIXES`), and f-strings that start with e.g. `{CHAT}`. An f-string with more
+formatted values cannot be proven and must be marked synthetic.
