@@ -511,6 +511,66 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     # Artificial: non-numeric port
     ("[20:04:41] [Client thread/INFO]: Connecting to mc.hypixel.net, abc", None),
     (
+        # Connect on new vanilla launcher_log.txt
+        "[Info: 2024-10-19 18:24:09.8124956: ln5z+w==: MinecraftJavaLoggingContext.cpp(65)] Game/net.minecraft.client.multiplayer.GuiConnecting (Client thread) Info Connecting to mc.hypixel.net, 25565",
+        ServerConnectEvent("mc.hypixel.net"),
+    ),
+    (
+        # Connect on prism launcher (vanilla 1.8.9)
+        "[18:52:36] [Client thread/INFO]: Connecting to mc.hypixel.net, 25565",
+        ServerConnectEvent("mc.hypixel.net"),
+    ),
+    (
+        # Connect on lunar
+        "[2024-01-28 11:06:10.182] [info]  [11:06:10] [Client thread/INFO]: Connecting to play.mcplayhd.net., 25565",
+        ServerConnectEvent("play.mcplayhd.net"),
+    ),
+    (
+        # Connect on lunar multiver
+        "[11:06:10] [Client thread/INFO]: Connecting to play.mcplayhd.net., 25565",
+        ServerConnectEvent("play.mcplayhd.net"),
+    ),
+    (
+        # Connect on lunar launcher renderer log
+        "[2023-05-19 13:00:11.559] [info]  [OUTPUT] [13:00:11] [Client thread/INFO]: Connecting to mc.hypixel.net, 25565",
+        ServerConnectEvent("mc.hypixel.net"),
+    ),
+    (
+        # Lunar connecting to its own backend
+        "[2024-01-28 11:05:54.291] [info]  [11:05:54] [Thread-10/INFO]: [LC Assets] Connecting to Authenticator to obtain JWT, no previous connection.",
+        None,
+    ),
+    (
+        # Connect on feather
+        "[21:47:41] [Client thread/INFO]: Connecting to mc.hypixel.net, 25565",
+        ServerConnectEvent("mc.hypixel.net"),
+    ),
+    (
+        # Connect on feather (feather/logs/latest.log)
+        "info: [22:29:48] [Client thread/INFO]: Connecting to mc.hypixel.net, 25565",
+        ServerConnectEvent("mc.hypixel.net"),
+    ),
+    (
+        # Feather connecting to its voice server
+        "[21:46:31] [Client thread/INFO]: Connecting to voice server...",
+        None,
+    ),
+    (
+        # Feather connecting to its voice server (feather/logs/latest.log)
+        "info: [22:29:32] [Client thread/INFO]: Connecting to voice server...",
+        None,
+    ),
+    (
+        # Connect on batmod
+        "[22:01:10] [Client thread/INFO]: Connecting to mc.hypixel.net, 25565",
+        ServerConnectEvent("mc.hypixel.net"),
+    ),
+    (
+        # Batmod connecting to its own backend
+        "[22:01:03] [BatMod Server Connector/INFO]: [BatMod] Connecting to server: server.batmod.com:4243",
+        None,
+    ),
+    (
         # 5zig mod connecting to its own backend
         "[09:56:25] [5zig Netty Bootstrap/INFO]: Connecting to 5zig.net:28499",
         None,
@@ -526,6 +586,21 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     ),
     (
         "[00:00:09] [Server thread/INFO]: Starting integrated minecraft server version 20w11a",
+        SingleplayerStartEvent(),
+    ),
+    (
+        # Singleplayer on prism launcher (26.1.1)
+        "[15:34:20] [Server thread/INFO]: Starting integrated minecraft server version 26.1.1",
+        SingleplayerStartEvent(),
+    ),
+    (
+        # Singleplayer on lunar
+        "[2024-10-06 17:47:11.011] [info]  [17:47:11] [Server thread/INFO]: Starting integrated minecraft server version 1.9",
+        SingleplayerStartEvent(),
+    ),
+    (
+        # Singleplayer on lunar multiver
+        "[17:47:11] [Server thread/INFO]: Starting integrated minecraft server version 1.9",
         SingleplayerStartEvent(),
     ),
     (
