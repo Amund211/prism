@@ -111,6 +111,20 @@ def get_signin_suggestion_info_cell(auth: AuthManager) -> InfoCellValue | None:
     return InfoCellValue(text=SIGNIN_SUGGESTION_TEXT, color="light blue", url=None)
 
 
+def get_inactive_info_cell(controller: OverlayController) -> InfoCellValue | None:
+    """An info cell telling the user the overlay ignores chat on this server"""
+    state = controller.state
+    if state.is_active(controller.settings.only_activate_on_hypixel):
+        return None
+
+    host = state.server.host if state.server is not None else None
+    return InfoCellValue(
+        text=f"Inactive: not on Hypixel ({host or 'singleplayer'}). See settings.",
+        color="light blue",
+        url=None,
+    )
+
+
 def run_overlay(
     controller: OverlayController,
     loglines: Iterable[str],
@@ -168,6 +182,10 @@ def run_overlay(
                     text="Overlay out of sync. Use /who", color="orange", url=None
                 )
             )
+
+        inactive_cell = get_inactive_info_cell(controller)
+        if inactive_cell is not None:
+            info_cells.append(inactive_cell)
 
         signin_ended_cell = get_microsoft_signin_ended_info_cell(auth)
         if signin_ended_cell is not None:

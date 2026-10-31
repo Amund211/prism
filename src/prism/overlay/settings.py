@@ -54,6 +54,7 @@ class SettingsDict(TypedDict):
     known_nicks: dict[str, NickValue]
     autodenick_teammates: bool
     autoselect_logfile: bool
+    only_activate_on_hypixel: bool
     autohide_timeout: int
     show_on_tab: bool
     show_on_tab_keybind: KeyDict
@@ -89,6 +90,7 @@ class Settings:
     known_nicks: dict[str, NickValue]
     autodenick_teammates: bool
     autoselect_logfile: bool
+    only_activate_on_hypixel: bool
     autohide_timeout: int
     show_on_tab: bool
     show_on_tab_keybind: Key
@@ -135,6 +137,7 @@ class Settings:
             known_nicks=source["known_nicks"],
             autodenick_teammates=source["autodenick_teammates"],
             autoselect_logfile=source["autoselect_logfile"],
+            only_activate_on_hypixel=source["only_activate_on_hypixel"],
             autohide_timeout=source["autohide_timeout"],
             show_on_tab=source["show_on_tab"],
             show_on_tab_keybind=construct_key(source["show_on_tab_keybind"]),
@@ -169,6 +172,7 @@ class Settings:
             "known_nicks": self.known_nicks,
             "autodenick_teammates": self.autodenick_teammates,
             "autoselect_logfile": self.autoselect_logfile,
+            "only_activate_on_hypixel": self.only_activate_on_hypixel,
             "autohide_timeout": self.autohide_timeout,
             "show_on_tab": self.show_on_tab,
             "show_on_tab_keybind": self.show_on_tab_keybind.to_dict(),
@@ -204,6 +208,7 @@ class Settings:
         self.known_nicks = new_settings["known_nicks"]
         self.autodenick_teammates = new_settings["autodenick_teammates"]
         self.autoselect_logfile = new_settings["autoselect_logfile"]
+        self.only_activate_on_hypixel = new_settings["only_activate_on_hypixel"]
         self.autohide_timeout = new_settings["autohide_timeout"]
         self.show_on_tab = new_settings["show_on_tab"]
         self.show_on_tab_keybind = construct_key(new_settings["show_on_tab_keybind"])
@@ -370,6 +375,10 @@ def fill_missing_settings(
         incomplete_settings, "autoselect_logfile", settings_updated, default=True
     )
 
+    only_activate_on_hypixel, settings_updated = get_boolean_setting(
+        incomplete_settings, "only_activate_on_hypixel", settings_updated, default=True
+    )
+
     autohide_timeout = incomplete_settings.get("autohide_timeout", None)
     if not isinstance(autohide_timeout, int) or not 1 <= autohide_timeout <= 20:
         settings_updated = True
@@ -479,6 +488,7 @@ def fill_missing_settings(
         "known_nicks": known_nicks,
         "autodenick_teammates": autodenick_teammates,
         "autoselect_logfile": autoselect_logfile,
+        "only_activate_on_hypixel": only_activate_on_hypixel,
         "autohide_timeout": autohide_timeout,
         "show_on_tab": show_on_tab,
         "show_on_tab_keybind": show_on_tab_keybind,

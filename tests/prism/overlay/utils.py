@@ -19,6 +19,7 @@ from prism.overlay.output.config import (
     safe_read_rating_config_collection_dict,
 )
 from prism.overlay.player_cache import PlayerCache
+from prism.overlay.server import Server
 from prism.overlay.settings import NickValue, Settings, fill_missing_settings
 from prism.overlay.state import BedwarsDuelState, OverlayState
 from prism.player import (
@@ -247,6 +248,7 @@ def create_state(
     in_queue: bool = False,
     own_username: str | None = OWN_USERNAME,
     bedwars_duel: BedwarsDuelState = None,
+    server: Server | None = None,
     now_func: Callable[[], float] = lambda: 0,
 ) -> OverlayState:
     if party_members is None:
@@ -270,7 +272,22 @@ def create_state(
         in_queue=in_queue,
         own_username=own_username,
         bedwars_duel=bedwars_duel,
+        server=server,
         now_func=now_func,
+    )
+
+
+def create_dirty_state(server: Server | None = None) -> OverlayState:
+    """State with a party, lobby, queue and game in progress"""
+    return create_state(
+        party_members={OWN_USERNAME, "Player2"},
+        lobby_players={OWN_USERNAME, "Player2", "Player3"},
+        alive_players={OWN_USERNAME, "Player2"},
+        last_game_start=1.0,
+        out_of_sync=True,
+        in_queue=True,
+        bedwars_duel="rush",
+        server=server,
     )
 
 
@@ -294,6 +311,7 @@ def make_settings(
     autowho: bool | None = None,
     autowho_delay: float | None = None,
     chat_hotkey: Key | None = None,
+    only_activate_on_hypixel: bool | None = None,
     write_settings_file_utf8: Callable[[], TextIO] = lambda: io.StringIO(),
 ) -> Settings:
     return Settings.from_dict(
@@ -308,6 +326,7 @@ def make_settings(
                 "chat_hotkey": (
                     chat_hotkey.to_dict() if chat_hotkey is not None else None
                 ),
+                "only_activate_on_hypixel": only_activate_on_hypixel,
             },
             2,
         )[0],

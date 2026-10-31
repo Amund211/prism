@@ -469,6 +469,7 @@ def test_update_settings_everything_changed() -> None:
         },
         autodenick_teammates=False,
         autoselect_logfile=False,
+        only_activate_on_hypixel=False,
         autohide_timeout=6,
         show_on_tab=False,
         show_on_tab_keybind=AlphanumericKeyDict(

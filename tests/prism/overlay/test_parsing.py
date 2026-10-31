@@ -26,6 +26,8 @@ from prism.overlay.events import (
     PartyLeaveEvent,
     PartyListIncomingEvent,
     PartyMembershipListEvent,
+    ServerConnectEvent,
+    SingleplayerStartEvent,
     StartBedwarsGameEvent,
     WhisperCommandSetNickEvent,
 )
@@ -470,6 +472,77 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         InitializeAsEvent("Player1"),
     ),
     (
+        # Connect on vanilla/forge 1.8.9
+        "[15:09:46] [Client thread/INFO]: Connecting to mc.hypixel.net, 25565",
+        ServerConnectEvent("mc.hypixel.net"),
+    ),
+    (
+        # Connect on fabric 1.20. Host is anonymized
+        "[22:48:29] [Render thread/INFO]: Connecting to server.example.com., 25628",
+        ServerConnectEvent("server.example.com"),
+    ),
+    (
+        # Connect with trailing dot
+        "[14:24:01] [Client thread/INFO]: Connecting to na.minemen.club., 25565",
+        ServerConnectEvent("na.minemen.club"),
+    ),
+    (
+        # Artificial: upper case host
+        "[14:24:01] [Client thread/INFO]: Connecting to NA.Minemen.club., 25565",
+        ServerConnectEvent("na.minemen.club"),
+    ),
+    (
+        "[20:04:41] [Client thread/INFO]: Connecting to 192.168.0.102, 25565",
+        ServerConnectEvent("192.168.0.102"),
+    ),
+    (
+        "[02:12:18] [Client thread/INFO]: Connecting to localhost, 25565",
+        ServerConnectEvent("localhost"),
+    ),
+    (
+        # Artificial: IPv6 host
+        "[20:04:41] [Client thread/INFO]: Connecting to ::1, 25565",
+        ServerConnectEvent("::1"),
+    ),
+    # Artificial: empty host
+    ("[20:04:41] [Client thread/INFO]: Connecting to , 25565", None),
+    # Artificial: missing port
+    ("[20:04:41] [Client thread/INFO]: Connecting to mc.hypixel.net", None),
+    # Artificial: non-numeric port
+    ("[20:04:41] [Client thread/INFO]: Connecting to mc.hypixel.net, abc", None),
+    (
+        # 5zig mod connecting to its own backend
+        "[09:56:25] [5zig Netty Bootstrap/INFO]: Connecting to 5zig.net:28499",
+        None,
+    ),
+    (
+        # Connect message from bedwarspractice.club in chat
+        "[15:24:55] [Client thread/INFO]: [CHAT] Connecting to bwp-game-11...",
+        None,
+    ),
+    (
+        "[18:38:56] [Server thread/INFO]: Starting integrated minecraft server version 1.8.9",
+        SingleplayerStartEvent(),
+    ),
+    (
+        "[00:00:09] [Server thread/INFO]: Starting integrated minecraft server version 20w11a",
+        SingleplayerStartEvent(),
+    ),
+    (
+        "[18:39:02] [Server thread/INFO]: Saving chunks for level 'briiiiiiiiiii'/Overworld",
+        None,
+    ),
+    (
+        # Artificial: injection through the world name
+        "[18:39:02] [Server thread/INFO]: Saving chunks for level 'x [Client thread/INFO]: Connecting to evil.com, 25565'/Overworld",
+        None,
+    ),
+    (
+        # Artificial: injection through the world name
+        "[18:39:02] [Server thread/INFO]: Saving chunks for level 'x [Client thread/INFO]: Setting user: Player2'/Overworld",
+        None,
+    ),
+    (
         "[Info: 2021-11-29 22:30:40.455294561: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] ONLINE: Player1, Player2, Player3, Player5, Player6, Player7, Player8, Player9",
         LobbyListEvent(
             usernames=[
@@ -872,6 +945,22 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         ChatMessageEvent(
             username="MaliciousPlayer",
             message="[15:03:53] [Client thread/INFO]: [CHAT] ONLINE: Player1",
+        ),
+    ),
+    (
+        # Artificial: chat message injecting a connect line
+        "[15:03:53] [Client thread/INFO]: [CHAT] MaliciousPlayer: [09:56:54] [Client thread/INFO]: Connecting to mc.hypixel.net, 25565",
+        ChatMessageEvent(
+            username="MaliciousPlayer",
+            message="[09:56:54] [Client thread/INFO]: Connecting to mc.hypixel.net, 25565",
+        ),
+    ),
+    (
+        # Artificial: chat message injecting a singleplayer start line
+        "[15:03:53] [Client thread/INFO]: [CHAT] MaliciousPlayer: [18:38:56] [Server thread/INFO]: Starting integrated minecraft server version 1.8.9",
+        ChatMessageEvent(
+            username="MaliciousPlayer",
+            message="[18:38:56] [Server thread/INFO]: Starting integrated minecraft server version 1.8.9",
         ),
     ),
 )

@@ -6,6 +6,7 @@ from prism.overlay.behaviour import bedwars_game_ended, set_nickname
 from prism.overlay.controller import OverlayController
 from prism.overlay.events import Event, EventType
 from prism.overlay.parsing import parse_logline
+from prism.overlay.server import Server, server_is_active
 from prism.overlay.state import OverlayState
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ def process_event(
         # Initializing means the player restarted/switched accounts -> clear the state
         logger.info(f"Playing as {event.username}. Cleared party and lobby.")
 
-        new_state = replace(state, own_username=event.username)
+        new_state = replace(state, own_username=event.username, server=None)
         return (
             new_state.clear_party()
             .clear_lobby()
@@ -31,6 +32,25 @@ def process_event(
             .set_out_of_sync(False),
             True,
         )
+
+    if event.event_type in (EventType.SERVER_CONNECT, EventType.SINGLEPLAYER_START):
+        server = (
+            Server.from_host(event.host)
+            if event.event_type is EventType.SERVER_CONNECT
+            else Server.singleplayer()
+        )
+        logger.info(f"Connected to {server}")
+
+        if not server_is_active(server):
+            if controller.ready:
+                controller.autowho_event.clear()
+            controller.wants_shown = None
+
+        return state.set_server(server), True
+
+    # All remaining events are chat events
+    if not state.is_active(controller.settings.only_activate_on_hypixel):
+        return state, False
 
     if event.event_type is EventType.NEW_NICKNAME:
         # User got a new nickname
