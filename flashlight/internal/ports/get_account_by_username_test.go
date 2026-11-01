@@ -242,6 +242,72 @@ func TestMakeGetAccountByUsernameHandler(t *testing.T) {
 		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
 	})
 
+	for _, invalidUsername := range []string{
+		"ランクやエメラルドはショップで購入できます",
+		"Steve#8",
+		"abcdefghijklmnopqrstuvwxyz",
+		"a\tb",
+	} {
+		t.Run("rejects invalid username "+invalidUsername, func(t *testing.T) {
+			t.Parallel()
+
+			getAccountByUsername, called := makeGetAccountByUsername(t, "", domain.Account{}, nil)
+			handler := makeGetAccountByUsernameHandler(getAccountByUsername)
+
+			req := httptest.NewRequestWithContext(t.Context(), "GET", "/v1/account/username/x", nil)
+			req.SetPathValue("username", invalidUsername)
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, req)
+
+			require.Equal(t, http.StatusBadRequest, w.Code)
+			parsed := parseResponse(t, w.Body.String())
+			require.NotNil(t, parsed.Success)
+			require.False(t, *parsed.Success)
+			require.NotNil(t, parsed.Cause)
+			require.Equal(t, "invalid username", *parsed.Cause)
+
+			require.False(t, *called)
+		})
+	}
+
+	for _, legacyUsername := range []string{"ab", "Cool.J.1", "Daniel B.1"} {
+		t.Run("allows legacy username "+legacyUsername, func(t *testing.T) {
+			t.Parallel()
+
+			getAccountByUsername, called := makeGetAccountByUsername(t, legacyUsername, domain.Account{}, domain.ErrUsernameNotFound)
+			handler := makeGetAccountByUsernameHandler(getAccountByUsername)
+
+			req := httptest.NewRequestWithContext(t.Context(), "GET", "/v1/account/username/x", nil)
+			req.SetPathValue("username", legacyUsername)
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, req)
+
+			require.Equal(t, http.StatusNotFound, w.Code)
+			require.True(t, *called)
+		})
+	}
+
+	t.Run("invalid username from provider", func(t *testing.T) {
+		t.Parallel()
+
+		getAccountByUsername, called := makeGetAccountByUsername(t, username, domain.Account{}, domain.ErrInvalidUsername)
+		handler := makeGetAccountByUsernameHandler(getAccountByUsername)
+
+		req := makeRequest(username)
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusBadRequest, w.Code)
+		parsed := parseResponse(t, w.Body.String())
+		require.NotNil(t, parsed.Cause)
+		require.Equal(t, "invalid username", *parsed.Cause)
+
+		require.True(t, *called)
+	})
+
 	t.Run("returns cors headers", func(t *testing.T) {
 		t.Parallel()
 

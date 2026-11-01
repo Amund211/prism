@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -71,7 +72,7 @@ func (m *Mojang) GetAccountByUsername(ctx context.Context, username string) (dom
 	ctx, span := m.tracer.Start(ctx, "Mojang.GetAccountByUsername")
 	defer span.End()
 
-	return m.getProfile(ctx, fmt.Sprintf("https://api.mojang.com/users/profiles/minecraft/%s", username))
+	return m.getProfile(ctx, fmt.Sprintf("https://api.mojang.com/users/profiles/minecraft/%s", url.PathEscape(username)))
 }
 
 func (m *Mojang) getProfile(ctx context.Context, url string) (domain.Account, error) {
@@ -115,7 +116,7 @@ func (m *Mojang) getProfile(ctx context.Context, url string) (domain.Account, er
 
 	identity, err := accountFromMojangResponse(resp.StatusCode, data, m.nowFunc())
 	if err != nil {
-		if errors.Is(err, domain.ErrUsernameNotFound) {
+		if errors.Is(err, domain.ErrUsernameNotFound) || errors.Is(err, domain.ErrInvalidUsername) {
 			// Pass through error but don't report
 			return domain.Account{}, err
 		}
@@ -166,6 +167,10 @@ func accountFromMojangResponse(statusCode int, data []byte, queriedAt time.Time)
 	var response mojangResponse
 	if err := json.Unmarshal(data, &response); err != nil {
 		return domain.Account{}, fmt.Errorf("failed to parse mojang response: %w", err)
+	}
+
+	if statusCode == http.StatusBadRequest && response.Error == "CONSTRAINT_VIOLATION" {
+		return domain.Account{}, fmt.Errorf("%w: mojang API returned error response (status %d): error=%q errorMessage=%q", domain.ErrInvalidUsername, statusCode, response.Error, response.ErrorMessage)
 	}
 
 	if response.Error != "" || response.ErrorMessage != "" {

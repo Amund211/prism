@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strings"
 
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/domain"
@@ -84,8 +83,8 @@ func MakeGetAccountByUsernameHandler(
 			return
 		}
 
-		if strings.ContainsAny(username, "§�") {
-			logging.FromContext(ctx).WarnContext(ctx, "Rejecting username with disallowed character")
+		if !domain.IsValidUsername(username) {
+			logging.FromContext(ctx).WarnContext(ctx, "Rejecting invalid username")
 			handleError(ctx, "invalid username", http.StatusBadRequest)
 			return
 		}
@@ -93,6 +92,9 @@ func MakeGetAccountByUsernameHandler(
 		account, err := getAccountByUsername(ctx, username)
 		if errors.Is(err, domain.ErrUsernameNotFound) {
 			handleError(ctx, "not found", http.StatusNotFound)
+			return
+		} else if errors.Is(err, domain.ErrInvalidUsername) {
+			handleError(ctx, "invalid username", http.StatusBadRequest)
 			return
 		} else if errors.Is(err, domain.ErrTemporarilyUnavailable) {
 			handleError(ctx, "temporarily unavailable", http.StatusServiceUnavailable)

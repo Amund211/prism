@@ -8,4 +8,5 @@ var (
 	ErrTemporarilyUnavailable = errors.New("temporarily unavailable")
 	ErrUserNotFound           = errors.New("user not found")
 	ErrUsernameNotFound       = errors.New("username not found")
+	ErrInvalidUsername        = errors.New("invalid username")
 )

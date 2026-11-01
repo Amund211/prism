@@ -108,6 +108,16 @@ func TestUUIDFromMojangResponse(t *testing.T) {
   "errorMessage" : "getProfileName.name: Invalid profile name"
 }`),
 			statusCode: 400,
+			err:        domain.ErrInvalidUsername,
+		},
+		{
+			name: "400 with other error",
+			response: []byte(`{
+  "path" : "/users/profiles/minecraft/whatever",
+  "error" : "SOMETHING_ELSE",
+  "errorMessage" : "something went wrong"
+}`),
+			statusCode: 400,
 			err:        assert.AnError,
 		},
 		{
@@ -160,9 +170,11 @@ type mockedClient struct {
 	responseData []byte
 	statusCode   int
 	err          error
+	lastURL      string
 }
 
 func (m *mockedClient) Do(req *http.Request) (*http.Response, error) {
+	m.lastURL = req.URL.String()
 	if m.err != nil {
 		return nil, m.err
 	}
@@ -216,4 +228,46 @@ func TestMojang(t *testing.T) {
 
 	_, err = provider.GetAccountByUsername(ctx, "skydeath")
 	require.ErrorIs(t, err, assert.AnError)
+}
+
+func TestMojangEscapesUsername(t *testing.T) {
+	t.Parallel()
+
+	for username, expectedURL := range map[string]string{
+		"skydeath":   "https://api.mojang.com/users/profiles/minecraft/skydeath",
+		"a?b":        "https://api.mojang.com/users/profiles/minecraft/a%3Fb",
+		"a%b":        "https://api.mojang.com/users/profiles/minecraft/a%25b",
+		"Daniel B.1": "https://api.mojang.com/users/profiles/minecraft/Daniel%20B.1",
+	} {
+		t.Run(username, func(t *testing.T) {
+			t.Parallel()
+
+			client := &mockedClient{
+				responseData: []byte(`{"errorMessage":"Couldn't find any profile with name"}`),
+				statusCode:   404,
+			}
+			provider := NewMojang(client, time.Now, time.After)
+
+			_, err := provider.GetAccountByUsername(t.Context(), username)
+			require.ErrorIs(t, err, domain.ErrUsernameNotFound)
+			require.Equal(t, expectedURL, client.lastURL)
+		})
+	}
+}
+
+func TestMojangInvalidUsername(t *testing.T) {
+	t.Parallel()
+
+	client := &mockedClient{
+		responseData: []byte(`{
+  "path" : "/users/profiles/minecraft/æøå",
+  "error" : "CONSTRAINT_VIOLATION",
+  "errorMessage" : "getProfileName.name: Invalid profile name"
+}`),
+		statusCode: 400,
+	}
+	provider := NewMojang(client, time.Now, time.After)
+
+	_, err := provider.GetAccountByUsername(t.Context(), "æøå")
+	require.ErrorIs(t, err, domain.ErrInvalidUsername)
 }

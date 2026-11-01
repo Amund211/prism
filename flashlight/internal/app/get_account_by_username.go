@@ -121,6 +121,9 @@ func buildGetAccountByUsernameWithoutCache(
 			// Pass through ErrUsernameNotFound to the caller
 			track(ctx, trackingInfo{source: "provider", found: false})
 			return domain.Account{}, err
+		} else if errors.Is(err, domain.ErrInvalidUsername) {
+			track(ctx, trackingInfo{source: "provider", found: false})
+			return domain.Account{}, err
 		} else if err != nil {
 			// NOTE: accountProvider implementations handle their own error reporting
 
@@ -232,6 +235,9 @@ func BuildGetAccountByUsernameWithCache(
 		})
 		if errors.Is(err, domain.ErrUsernameNotFound) {
 			track(ctx, trackingInfo{success: true, found: false})
+			return domain.Account{}, err
+		} else if errors.Is(err, domain.ErrInvalidUsername) {
+			track(ctx, trackingInfo{invalidInput: true})
 			return domain.Account{}, err
 		} else if err != nil {
 			// NOTE: The error is either create()'s —
