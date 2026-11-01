@@ -317,6 +317,27 @@ func TestBuildGetAccountByUsernameWithCache(t *testing.T) {
 		require.True(t, repo.removeUsernameCalled)
 	})
 
+	t.Run("invalid username is rejected without repo or provider calls", func(t *testing.T) {
+		t.Parallel()
+		for _, username := range []string{"", "æøå", "Steve#8", "abcdefghijklmnopqrstuvwxyz"} {
+			t.Run(username, func(t *testing.T) {
+				t.Parallel()
+
+				c := cache.NewBasicCache[domain.Account]()
+				provider := &mockAccountProviderByUsername{t: t}
+				repo := &mockAccountRepositoryByUsername{t: t}
+				getAccountByUsernameWithCache, err := app.BuildGetAccountByUsernameWithCache(c, provider, repo, nowFunc)
+				require.NoError(t, err)
+
+				_, err = getAccountByUsernameWithCache(ctx, username)
+				require.ErrorIs(t, err, domain.ErrInvalidUsername)
+
+				require.False(t, repo.getAccountByUsernameCalled)
+				require.False(t, provider.getAccountByUsernameCalled)
+			})
+		}
+	})
+
 	t.Run("invalid username in provider get is passed through without repo fallback", func(t *testing.T) {
 		t.Parallel()
 

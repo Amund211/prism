@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -64,6 +63,7 @@ func buildGetAccountByUsernameWithoutCache(
 		recovered      bool
 		providerFailed bool
 		failed         bool
+		invalidInput   bool
 	}
 
 	track := func(ctx context.Context, info trackingInfo) {
@@ -79,6 +79,7 @@ func buildGetAccountByUsernameWithoutCache(
 				attribute.Bool("recovered", info.recovered),
 				attribute.Bool("provider_failed", info.providerFailed),
 				attribute.Bool("failed", info.failed),
+				attribute.Bool("invalid_input", info.invalidInput),
 			),
 		)
 	}
@@ -111,18 +112,18 @@ func buildGetAccountByUsernameWithoutCache(
 		getCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
 		providerAccount, err := provider.GetAccountByUsername(getCtx, username)
-		if errors.Is(err, domain.ErrUsernameNotFound) {
-			removeUsernameErr := repo.RemoveUsername(ctx, username)
-			if removeUsernameErr != nil { //nolint:staticcheck // SA9003: intentionally empty
-				// NOTE: accountRepository implementations handle their own error reporting
-				// Still fall through to return the ErrUsernameNotFound
+		invalidInput := errors.Is(err, domain.ErrInvalidUsername)
+		if errors.Is(err, domain.ErrUsernameNotFound) || invalidInput {
+			if !invalidInput {
+				removeUsernameErr := repo.RemoveUsername(ctx, username)
+				if removeUsernameErr != nil { //nolint:staticcheck // SA9003: intentionally empty
+					// NOTE: accountRepository implementations handle their own error reporting
+					// Still fall through to return the ErrUsernameNotFound
+				}
 			}
 
-			// Pass through ErrUsernameNotFound to the caller
-			track(ctx, trackingInfo{source: "provider", found: false})
-			return domain.Account{}, err
-		} else if errors.Is(err, domain.ErrInvalidUsername) {
-			track(ctx, trackingInfo{source: "provider", found: false})
+			// Pass through to the caller
+			track(ctx, trackingInfo{source: "provider", found: false, invalidInput: invalidInput})
 			return domain.Account{}, err
 		} else if err != nil {
 			// NOTE: accountProvider implementations handle their own error reporting
@@ -216,15 +217,9 @@ func BuildGetAccountByUsernameWithCache(
 	}
 
 	return func(ctx context.Context, username string) (domain.Account, error) {
-		usernameLength := len(username)
-		if usernameLength == 0 || usernameLength > 100 {
-			err := fmt.Errorf("invalid username length")
-			reporting.Report(ctx, err, map[string]string{
-				"username": username,
-				"length":   strconv.Itoa(usernameLength),
-			})
+		if !domain.IsValidUsername(username) {
 			track(ctx, trackingInfo{invalidInput: true})
-			return domain.Account{}, err
+			return domain.Account{}, domain.ErrInvalidUsername
 		}
 
 		// No two accounts can have the same username with case-insensitive comparison

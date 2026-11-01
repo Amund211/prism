@@ -108,7 +108,7 @@ func TestUUIDFromMojangResponse(t *testing.T) {
   "errorMessage" : "getProfileName.name: Invalid profile name"
 }`),
 			statusCode: 400,
-			err:        domain.ErrInvalidUsername,
+			err:        errConstraintViolation,
 		},
 		{
 			name: "400 with other error",
@@ -270,4 +270,9 @@ func TestMojangInvalidUsername(t *testing.T) {
 
 	_, err := provider.GetAccountByUsername(t.Context(), "æøå")
 	require.ErrorIs(t, err, domain.ErrInvalidUsername)
+
+	// Not a username lookup, so this is an unexpected error
+	_, err = provider.GetAccountByUUID(t.Context(), "a937646b-f115-44c3-8dbf-9ae4a65669a0")
+	require.Error(t, err)
+	require.NotErrorIs(t, err, domain.ErrInvalidUsername)
 }

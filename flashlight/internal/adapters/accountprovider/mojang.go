@@ -23,6 +23,8 @@ import (
 
 const getAccountMinOperationTime = 150 * time.Millisecond
 
+var errConstraintViolation = errors.New("mojang API rejected the input")
+
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
@@ -65,17 +67,18 @@ func (m *Mojang) GetAccountByUUID(ctx context.Context, uuid string) (domain.Acco
 	ctx, span := m.tracer.Start(ctx, "Mojang.GetAccountByUUID")
 	defer span.End()
 
-	return m.getProfile(ctx, fmt.Sprintf("https://api.mojang.com/user/profile/%s", uuid))
+	return m.getProfile(ctx, fmt.Sprintf("https://api.mojang.com/user/profile/%s", uuid), nil)
 }
 
 func (m *Mojang) GetAccountByUsername(ctx context.Context, username string) (domain.Account, error) {
 	ctx, span := m.tracer.Start(ctx, "Mojang.GetAccountByUsername")
 	defer span.End()
 
-	return m.getProfile(ctx, fmt.Sprintf("https://api.mojang.com/users/profiles/minecraft/%s", url.PathEscape(username)))
+	return m.getProfile(ctx, fmt.Sprintf("https://api.mojang.com/users/profiles/minecraft/%s", url.PathEscape(username)), domain.ErrInvalidUsername)
 }
 
-func (m *Mojang) getProfile(ctx context.Context, url string) (domain.Account, error) {
+// invalidInputErr, if set, replaces a constraint violation, which is then not reported
+func (m *Mojang) getProfile(ctx context.Context, url string, invalidInputErr error) (domain.Account, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", url, http.NoBody)
 	if err != nil {
 		err := fmt.Errorf("failed to create request: %w", err)
@@ -116,9 +119,12 @@ func (m *Mojang) getProfile(ctx context.Context, url string) (domain.Account, er
 
 	identity, err := accountFromMojangResponse(resp.StatusCode, data, m.nowFunc())
 	if err != nil {
-		if errors.Is(err, domain.ErrUsernameNotFound) || errors.Is(err, domain.ErrInvalidUsername) {
+		if errors.Is(err, domain.ErrUsernameNotFound) {
 			// Pass through error but don't report
 			return domain.Account{}, err
+		}
+		if invalidInputErr != nil && errors.Is(err, errConstraintViolation) {
+			return domain.Account{}, fmt.Errorf("%w: %w", invalidInputErr, err)
 		}
 
 		err := fmt.Errorf("failed to get identity from mojang response: %w", err)
@@ -170,7 +176,7 @@ func accountFromMojangResponse(statusCode int, data []byte, queriedAt time.Time)
 	}
 
 	if statusCode == http.StatusBadRequest && response.Error == "CONSTRAINT_VIOLATION" {
-		return domain.Account{}, fmt.Errorf("%w: mojang API returned error response (status %d): error=%q errorMessage=%q", domain.ErrInvalidUsername, statusCode, response.Error, response.ErrorMessage)
+		return domain.Account{}, fmt.Errorf("%w (status %d): error=%q errorMessage=%q", errConstraintViolation, statusCode, response.Error, response.ErrorMessage)
 	}
 
 	if response.Error != "" || response.ErrorMessage != "" {
