@@ -9,7 +9,7 @@ authors = [
 requires-python = ">=3.14"
 dependencies = [
     "platformdirs==4.13.5",
-    "cachetools==7.2.4",
+    "cachetools==7.2.5",
     "filelock==4.2.4",
     "requests==2.34.2",
     "toml==0.10.2",
@@ -34,7 +34,7 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "black==26.10.1",
-    "coverage==7.16.2",
+    "coverage==7.17.0",
     "flake8==7.4.1",
     "isort==9.0.2",
     "mypy==2.4.0",
