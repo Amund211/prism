@@ -5,7 +5,7 @@ import logging
 import sys
 from dataclasses import dataclass
 
-import mss
+# NOTE: mss is imported lazily, so importing this module needs no capture deps
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +61,8 @@ def _patch_mss_process_dpi_awareness() -> None:  # pragma: nocover
 
 class Grabber:  # pragma: nocover
     def __init__(self) -> None:
+        import mss
+
         _patch_mss_process_dpi_awareness()
         self.thread_dpi_aware = make_thread_dpi_aware()
         self._sct = mss.mss()
