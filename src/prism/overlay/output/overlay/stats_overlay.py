@@ -14,10 +14,13 @@ from prism.overlay.output.overlay.set_nickname_page import SetNicknamePage
 from prism.overlay.output.overlay.settings_page import SettingsPage
 from prism.overlay.output.overlay.toolbar import Toolbar
 from prism.overlay.output.overlay.utils import OverlayRowData
+from prism.overlay.tabshot.metadata import PrismWindow
 from prism.overlay.visibility import Hidden, Shown, ShownUntil, Visibility
 
 if TYPE_CHECKING:  # pragma: nocover
     import pynput
+
+    from prism.overlay.tabshot.worker import TabshotWorker
 
 logger = logging.getLogger(__name__)
 
@@ -37,9 +40,11 @@ class StatsOverlay:  # pragma: nocover
             [], tuple[Visibility, list[InfoCellValue], list[OverlayRowData] | None]
         ],
         poll_interval: int,
+        tabshot: "TabshotWorker | None" = None,
     ):
         """Set up content in an OverlayWindow"""
         self.controller = controller
+        self.tabshot = tabshot
         self.poll_interval = poll_interval
         self.get_new_data = get_new_data
 
@@ -79,7 +84,7 @@ class StatsOverlay:  # pragma: nocover
         # Set up the tab listener
         self.tab_pressed = False
         self.listener: "pynput.keyboard.Listener | None" = None
-        if self.controller.settings.show_on_tab:
+        if self.controller.settings.show_on_tab or self.tabshot is not None:
             self.setup_tab_listener()
 
         # Update geometry and stuff, if necessary
@@ -143,7 +148,10 @@ class StatsOverlay:  # pragma: nocover
             key = normalize(pynput_key)
             if key == tab_hotkey:
                 self.tab_pressed = True
-                self.window.show()
+                if self.tabshot is not None:
+                    self.tabshot.on_tab_press()
+                if self.controller.settings.show_on_tab:
+                    self.window.show()
 
         def on_release(pynput_key: PynputKeyType) -> None:
             if not self.tab_pressed:
@@ -152,6 +160,10 @@ class StatsOverlay:  # pragma: nocover
             key = normalize(pynput_key)
             if key == tab_hotkey:
                 self.tab_pressed = False
+                if self.tabshot is not None:
+                    self.tabshot.on_tab_release()
+                if not self.controller.settings.show_on_tab:
+                    return
                 if self.current_page != "main":
                     return
                 if isinstance(self.visibility, Hidden):
@@ -255,6 +267,19 @@ class StatsOverlay:  # pragma: nocover
 
         if self.current_page == "settings":
             self.settings_page.poll()
+
+        if self.tabshot is not None:
+            root = self.window.root
+            self.tabshot.prism_window = PrismWindow(
+                rect=(
+                    root.winfo_rootx(),
+                    root.winfo_rooty(),
+                    root.winfo_width(),
+                    root.winfo_height(),
+                ),
+                shown=self.window.shown,
+                alpha=float(root.wm_attributes("-alpha")),
+            )
 
         self.window.root.after(self.poll_interval, self.update_overlay)
 

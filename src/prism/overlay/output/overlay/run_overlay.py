@@ -6,11 +6,13 @@ from collections.abc import Iterable
 from prism.flashlight.auth.manager import AuthManager
 from prism.overlay.behaviour import get_cached_player_or_enqueue_request, should_redraw
 from prism.overlay.controller import OverlayController
+from prism.overlay.directories import CACHE_DIR
 from prism.overlay.microsoft_account import MicrosoftAccount
 from prism.overlay.output.cells import InfoCellValue
 from prism.overlay.output.overlay.stats_overlay import StatsOverlay
 from prism.overlay.output.overlay.utils import OverlayRowData, player_to_row
 from prism.overlay.rating import sort_players
+from prism.overlay.tabshot.worker import TabshotWorker, capture_supported
 from prism.overlay.threading import start_threads
 from prism.overlay.visibility import Visibility, get_visibility
 from prism.player import KnownPlayer, Player
@@ -243,6 +245,14 @@ def run_overlay(
 
         return visibility, info_cells, new_rows
 
+    # Trial branch: always save tab screenshots
+    tabshot = None
+    if capture_supported():
+        tabshot = TabshotWorker(CACHE_DIR / "tabshot", lambda: controller.state)
+        tabshot.start()
+    else:
+        logger.info("Tabshot: screen capture not supported here")
+
     overlay = StatsOverlay(
         column_order=controller.settings.column_order,
         controller=controller,
@@ -250,5 +260,6 @@ def run_overlay(
         get_new_data=get_new_data,
         poll_interval=100,
         start_hidden=False,
+        tabshot=tabshot,
     )
     overlay.run()

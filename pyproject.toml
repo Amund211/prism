@@ -16,6 +16,8 @@ dependencies = [
     "truststore==0.10.5",
     "pynput==1.8.2",
     "pywin32==312; platform_system=='Windows'",
+    "mss==10.2.0",
+    "pillow==13.0.0",
 ]
 classifiers = [
     "Programming Language :: Python :: 3"
@@ -38,7 +40,6 @@ dev = [
     "flake8==7.4.1",
     "isort==9.0.2",
     "mypy==2.4.0",
-    "pillow==13.0.0",
     "pre-commit==4.7.0",
     "pyinstaller==6.22.3",
     "pytest==9.1.1",
@@ -98,5 +99,7 @@ fail_under=100
 omit=[
   'src/prism/stats.py',
   'src/prism/overlay/platform/windows.py',
+  'src/prism/overlay/tabshot/window_windows.py',
+  'src/prism/overlay/tabshot/window_x11.py',
   'src/prism/discordrp/__init__.py',
 ]

@@ -504,6 +504,15 @@ wheels = [
 ]
 
 [[package]]
+name = "mss"
+version = "10.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e5/5d/eee782a6d674f562c946ae6a026f4c595ea2b7b031f290bf9fbf60da09b5/mss-10.2.0.tar.gz", hash = "sha256:ab271860775545e62f29d7b11f82f279ac1048f5bbdd26cfad84830208dbd393", size = 200317, upload-time = "2026-04-23T10:44:57.305Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f2/c3/313e14f245c79b4c05bd0f3a84a4813aa26fa10f8993aebd91d04c5fad3f/mss-10.2.0-py3-none-any.whl", hash = "sha256:e79f428899280e7e64e38365b5bfed683851ebea807eeaeadaf06eb8e0d67197", size = 67106, upload-time = "2026-04-23T10:44:56.266Z" },
+]
+
+[[package]]
 name = "mypy"
 version = "2.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -681,6 +690,8 @@ source = { editable = "." }
 dependencies = [
     { name = "cachetools" },
     { name = "filelock" },
+    { name = "mss" },
+    { name = "pillow" },
     { name = "platformdirs" },
     { name = "pynput" },
     { name = "pywin32", marker = "sys_platform == 'win32'" },
@@ -696,7 +707,6 @@ dev = [
     { name = "flake8" },
     { name = "isort" },
     { name = "mypy" },
-    { name = "pillow" },
     { name = "pre-commit" },
     { name = "pyinstaller" },
     { name = "pytest" },
@@ -709,6 +719,8 @@ dev = [
 requires-dist = [
     { name = "cachetools", specifier = "==7.2.4" },
     { name = "filelock", specifier = "==4.2.4" },
+    { name = "mss", specifier = "==10.2.0" },
+    { name = "pillow", specifier = "==13.0.0" },
     { name = "platformdirs", specifier = "==4.13.5" },
     { name = "pynput", specifier = "==1.8.2" },
     { name = "pywin32", marker = "sys_platform == 'win32'", specifier = "==312" },
@@ -724,7 +736,6 @@ dev = [
     { name = "flake8", specifier = "==7.4.1" },
     { name = "isort", specifier = "==9.0.2" },
     { name = "mypy", specifier = "==2.4.0" },
-    { name = "pillow", specifier = "==13.0.0" },
     { name = "pre-commit", specifier = "==4.7.0" },
     { name = "pyinstaller", specifier = "==6.22.3" },
     { name = "pytest", specifier = "==9.1.1" },

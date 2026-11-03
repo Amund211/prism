@@ -1858,7 +1858,7 @@ class SettingsPage:  # pragma: nocover
         # Setup/stop tab listener
         # NOTE: This happens outside of update_settings, so care must be taken if
         #       update_settings is called somewhere else to also setup/stop the listener
-        if self.controller.settings.show_on_tab:
+        if self.controller.settings.show_on_tab or self.overlay.tabshot is not None:
             self.overlay.setup_tab_listener(
                 restart=general_settings.show_on_tab_keybind != old_show_on_tab_keybind
             )
