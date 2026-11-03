@@ -10,7 +10,7 @@ from prism.overlay.tabshot.window import GameWindow, is_minecraft_candidate
 
 PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 
-_kernel32 = ctypes.WinDLL(  # type: ignore [attr-defined]
+_kernel32 = ctypes.WinDLL(  # type: ignore [attr-defined, unused-ignore]
     "kernel32", use_last_error=True
 )
 

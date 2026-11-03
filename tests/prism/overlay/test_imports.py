@@ -2,6 +2,9 @@
 Test that all the main files can be imported
 """
 
+import subprocess
+import sys
+
 
 def test_main() -> None:
     import prism.overlay.__main__  # noqa: F401
@@ -17,3 +20,17 @@ def test_process_loglines() -> None:
 
 def test_run_overlay() -> None:
     import prism.overlay.output.overlay.run_overlay  # noqa: F401
+
+
+def test_app_does_not_import_capture_deps() -> None:
+    # The macOS build excludes PIL (no universal2 wheels)
+    code = (
+        "import sys\n"
+        "import prism.overlay.__main__\n"
+        "import prism.overlay.output.overlay.run_overlay\n"
+        "print(sorted(m for m in ('PIL', 'mss') if m in sys.modules))\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, check=True
+    )
+    assert result.stdout.strip() == "[]"

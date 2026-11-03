@@ -123,7 +123,8 @@ jobs:
             # Target universal2 so that the built binary can run on both intel and apple silicon
             # Pass --windowed to build a .app bundle
             # Use --onedir instead of --onefile to avoid repeated security scans on startup
-            PYINSTALLER_ARGS: --target-architecture universal2 --windowed --onedir
+            # Exclude PIL: no universal2 wheels, and tabshot is off on macOS
+            PYINSTALLER_ARGS: --target-architecture universal2 --windowed --onedir --exclude-module PIL
     defaults:
       run:
         shell: bash
