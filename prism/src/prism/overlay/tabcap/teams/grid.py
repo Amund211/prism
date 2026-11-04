@@ -48,9 +48,23 @@ def _best_letter(
 def grid_rows(
     rgb: Array, cls: Array, rows: list[SoftRow], max_name_w: float
 ) -> list[SoftRow]:
-    """rows + rows found on the grid. max_name_w: widest name, GUI px"""
+    """rows + rows found on the grid, per tab column. max_name_w: GUI px"""
     if not rows:
         return rows
+    u = float(np.median([(r.base - r.cap) / 7 for r in rows]))
+    columns: list[list[SoftRow]] = []
+    for r in sorted(rows, key=lambda r: r.lx):
+        # Lunar icons move letters up to ~10 GUI px right
+        if columns and r.lx - columns[-1][0].lx <= 20 * u:
+            columns[-1].append(r)
+        else:
+            columns.append([r])
+    return [row for col in columns for row in _column_rows(rgb, cls, col, max_name_w)]
+
+
+def _column_rows(
+    rgb: Array, cls: Array, rows: list[SoftRow], max_name_w: float
+) -> list[SoftRow]:
     caps = sorted(r.cap for r in rows)
     u = float(np.median([(r.base - r.cap) / 7 for r in rows]))
     pitch = 9 * u
