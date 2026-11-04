@@ -49,6 +49,9 @@ MARGIN = 1.5  # Team decided only if the best other team scores this much less
 # strong match (~-3) keeps its margin; a weak best (~-6) does not.
 # A name with no row costs 0: dead players are not in the list.
 ROW_UNMATCHED = -7.0
+GRAY_TOL = 16.0  # Gray text: v within this of 85 counts as (partly) text
+# White text: v at least this. The tab background over bright sky is ~145
+WHITE_MIN = 170
 
 Array = npt.NDArray[Any]
 
@@ -92,7 +95,7 @@ def classify(rgb: Array) -> Array:
     cls = np.where(valid, lut[code], -1).astype(np.int8)
     cls[(cls >= 0) & (cls != WHITE) & (v < 120)] = -1
     neutral = (cls == WHITE) | (valid & (code == 7))
-    cls[(cls == WHITE) & (v < 140)] = -1
+    cls[(cls == WHITE) & (v < WHITE_MIN)] = -1
     # Gray team text: neutral (within ~0.12), dim. Stone fits too; the
     # letter check and the column filter remove it.
     tight = a.min(axis=2) * 100 >= v * 88
@@ -208,7 +211,7 @@ def _pairs(segs: list[Seg]) -> list[tuple[Seg, Seg]]:
 
 
 def _column(pairs: list[tuple[Seg, Seg]]) -> list[tuple[Seg, Seg]]:
-    """Tab rows: the biggest group of letters at about the same x"""
+    """The biggest group of letters at about the same x"""
     best: list[tuple[Seg, Seg]] = []
     for letter, _ in pairs:
         u = (letter.y1 - letter.y0) / 7
@@ -219,9 +222,38 @@ def _column(pairs: list[tuple[Seg, Seg]]) -> list[tuple[Seg, Seg]]:
     return best
 
 
+def _columns(pairs: list[tuple[Seg, Seg]]) -> list[tuple[Seg, Seg]]:
+    """
+    Tab rows: the biggest column, plus columns next to it on the same row grid.
+
+    More than 20 rows (e.g. npc rows at game start) split the list into
+    columns. The scoreboard is too far right and not on the grid.
+    """
+    best = _column(pairs)
+    if not best:
+        return best
+    u = float(np.median([(a.y1 - a.y0) / 7 for a, _ in best]))
+    pitch, cap0 = 9 * u, min(a.y0 for a, _ in best)
+    xs = [min(a.x0 for a, _ in best)]
+    out = list(best)
+    rest = [p for p in pairs if p not in best]
+    while len(group := _column(rest)) >= 2:
+        rest = [p for p in rest if p not in group]
+        x = min(a.x0 for a, _ in group)
+        k = [(a.y0 - cap0) / pitch for a, _ in group]
+        if 40 * u <= min(abs(x - x2) for x2 in xs) <= 180 * u and all(
+            abs(v - round(v)) <= 0.25 for v in k
+        ):
+            xs.append(x)
+            out += group
+    return out
+
+
 def find_rows(rgb: Array, cls: Array) -> list[SoftRow]:
     pairs = _pairs(segments(cls))
-    pairs = _column([(lt, n) for lt, n in pairs if letter_score(cls, lt) >= MIN_LETTER])
+    pairs = _columns(
+        [(lt, n) for lt, n in pairs if letter_score(cls, lt) >= MIN_LETTER]
+    )
     rows = []
     for letter, n in pairs:
         # Window: the name, a bit around it, room for a cut-off end
@@ -244,9 +276,17 @@ def make_row(
 
 def _alpha(win: Array, color: int) -> Bitmap:
     """How much of each pixel is text of this color (blur mixes it)"""
-    t = np.array(TEAMS[TEAM_NAMES[color]], dtype=np.float32) * 85
     if color == GRAY:
-        t = np.full(3, 85, dtype=np.float32)
+        # Gray text (0x555555) can be darker than the background, so use
+        # the distance to the text color, not brightness
+        a = win.astype(np.float32)
+        v = a.max(axis=2)
+        neutral = a.min(axis=2) >= 0.88 * v
+        near: Bitmap = (np.clip(1 - np.abs(v - 85) / GRAY_TOL, 0, 1) * neutral).astype(
+            np.float32
+        )
+        return near
+    t = np.array(TEAMS[TEAM_NAMES[color]], dtype=np.float32) * 85
     proj = win.astype(np.float32) @ t / float(t @ t)
     bg = float(np.percentile(proj, 30))
     alpha: Bitmap = np.clip((proj - bg) / max(1e-3, 1 - bg), 0, 1).astype(np.float32)
