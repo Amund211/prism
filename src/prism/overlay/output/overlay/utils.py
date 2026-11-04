@@ -1,14 +1,38 @@
+import dataclasses
 import logging
 import webbrowser
 
 from prism.overlay.output.cell_renderer import RenderedStats, render_stats
+from prism.overlay.output.cells import CellValue
+from prism.overlay.output.color import MinecraftColor
 from prism.overlay.output.config import RatingConfigCollection
+from prism.overlay.tabshot.screenshot import Team
 from prism.player import KnownPlayer, NickedPlayer, Player, UnknownPlayer
 
 logger = logging.getLogger(__name__)
 
 
 OverlayRowData = tuple[str | None, RenderedStats]
+
+TEAM_COLORS: dict[Team, str] = {
+    "red": MinecraftColor.RED,
+    "blue": MinecraftColor.BLUE,
+    "green": MinecraftColor.GREEN,
+    "yellow": MinecraftColor.YELLOW,
+    "aqua": MinecraftColor.AQUA,
+    "white": MinecraftColor.WHITE,
+    "pink": MinecraftColor.LIGHT_PURPLE,
+    # The tab list uses dark gray, which is hard to read on the overlay
+    "gray": MinecraftColor.GRAY,
+}
+
+
+def with_team_color(row: OverlayRowData, team: Team | None) -> OverlayRowData:
+    """Color the username by team (white if unknown)"""
+    nickname, stats = row
+    color = MinecraftColor.WHITE if team is None else TEAM_COLORS[team]
+    username = CellValue.monochrome(stats.username.text, color)
+    return nickname, dataclasses.replace(stats, username=username)
 
 
 def player_to_row(

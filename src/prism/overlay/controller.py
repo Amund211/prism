@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Protocol
 
 from prism.errors import APIError, APIKeyError, APIThrottleError, PlayerNotFoundError
 from prism.flashlight.notices import FlashlightNotice
+from prism.overlay.tabshot.game_teams import GameTeams
 from prism.player import MISSING_WINSTREAKS, Account, KnownPlayer, Tags, Winstreaks
 from prism.ssl_errors import MissingLocalIssuerSSLError
 
@@ -104,6 +105,9 @@ class OverlayController:
         self.current_player_updates_queue = queue.Queue[KnownPlayer]()
 
         self.flashlight_notices: tuple[FlashlightNotice, ...] = ()
+
+        # Teams from tab screenshots. Written only by the tabshot worker.
+        self.tab_teams = GameTeams()
 
         self._account_provider = account_provider
         self._player_provider = player_provider

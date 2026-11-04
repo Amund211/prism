@@ -10,7 +10,12 @@ from prism.overlay.output.config import (
     RatingConfigCollection,
     read_rating_config_collection_dict,
 )
-from prism.overlay.output.overlay.utils import OverlayRowData, player_to_row
+from prism.overlay.output.overlay.utils import (
+    OverlayRowData,
+    player_to_row,
+    with_team_color,
+)
+from prism.overlay.tabshot.screenshot import Team
 from prism.player import (
     KnownPlayer,
     NickedPlayer,
@@ -430,3 +435,18 @@ def test_stats_to_row(player: Player, row: OverlayRowData) -> None:
     username, stats = player_to_row(player, rating_configs)
     assert username == row[0]
     assert stats == row[1]
+
+
+@pytest.mark.parametrize(
+    "team, color",
+    (("red", MinecraftColor.RED), ("gray", MinecraftColor.GRAY), (None, white)),
+)
+def test_with_team_color(team: Team | None, color: str) -> None:
+    player = create_known_player(
+        CURRENT_TIME_MS, playerdata={}, username="Player1", uuid="uuid1"
+    )
+    nickname, stats = player_to_row(player, rating_configs)
+    new_nickname, new_stats = with_team_color((nickname, stats), team)
+    assert new_nickname == nickname
+    assert new_stats.username == CellValue.monochrome(stats.username.text, color)
+    assert new_stats.stars == stats.stars

@@ -67,9 +67,16 @@ def capture_supported() -> bool:  # pragma: nocover
 
 
 class TabshotWorker:  # pragma: nocover
-    def __init__(self, root: Path, get_state: Callable[[], OverlayState]) -> None:
+    def __init__(
+        self,
+        root: Path,
+        get_state: Callable[[], OverlayState],
+        on_teams: Callable[[OverlayState, dict[str, Team]], None] | None = None,
+    ) -> None:
         self.root = root
         self.get_state = get_state
+        # Called on the worker thread with the state at Tab press
+        self.on_teams = on_teams
         # Set from the Tk thread
         self.prism_window: PrismWindow | None = None
 
@@ -200,6 +207,15 @@ class TabshotWorker:  # pragma: nocover
             )
             if teams is None or not should_retry(teams):
                 break
+
+        found = {
+            name: team for c in captures if c.teams for name, team in c.teams.items()
+        }
+        if found and self.on_teams is not None:
+            try:
+                self.on_teams(state, found)
+            except Exception:
+                logger.exception("Tabshot: on_teams failed")
 
         if monitors is None:
             return  # Released before the first capture

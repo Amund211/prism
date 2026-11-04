@@ -10,8 +10,14 @@ from prism.overlay.directories import CACHE_DIR
 from prism.overlay.microsoft_account import MicrosoftAccount
 from prism.overlay.output.cells import InfoCellValue
 from prism.overlay.output.overlay.stats_overlay import StatsOverlay
-from prism.overlay.output.overlay.utils import OverlayRowData, player_to_row
+from prism.overlay.output.overlay.utils import (
+    OverlayRowData,
+    player_to_row,
+    with_team_color,
+)
 from prism.overlay.rating import sort_players
+from prism.overlay.state import OverlayState
+from prism.overlay.tabshot.screenshot import Team
 from prism.overlay.tabshot.worker import TabshotWorker, capture_supported
 from prism.overlay.threading import start_threads
 from prism.overlay.visibility import Visibility, get_visibility
@@ -143,9 +149,13 @@ def run_overlay(
         state = controller.state
 
         new_players = get_stat_list(controller)
+        tab_teams = controller.tab_teams.for_game(state.last_game_start)
         new_rows = (
             [
-                player_to_row(player, controller.settings.rating_configs)
+                with_team_color(
+                    player_to_row(player, controller.settings.rating_configs),
+                    tab_teams.get(player.username),
+                )
                 for player in new_players
             ]
             if new_players is not None
@@ -248,7 +258,16 @@ def run_overlay(
     # Trial branch: always save tab screenshots
     tabshot = None
     if capture_supported():
-        tabshot = TabshotWorker(CACHE_DIR / "tabshot", lambda: controller.state)
+
+        def on_teams(state: OverlayState, teams: dict[str, Team]) -> None:
+            controller.tab_teams = controller.tab_teams.merge(
+                state.last_game_start, teams
+            )
+            controller.redraw_event.set()
+
+        tabshot = TabshotWorker(
+            CACHE_DIR / "tabshot", lambda: controller.state, on_teams=on_teams
+        )
         tabshot.start()
     else:
         logger.info("Tabshot: screen capture not supported here")
