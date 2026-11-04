@@ -11,17 +11,20 @@ user's font, sharp or blurred. Then all rows are scored again with the
 learned font (generic font for chars not seen).
 """
 
-from collections.abc import Sequence
+import itertools
+from collections import Counter
+from collections.abc import Mapping, Sequence
 
 import numpy as np
 
 from prism.overlay.tabshot.screenshot import Team
 from prism.overlay.tabshot.teams import grid, soft
-from prism.overlay.tabshot.teams.glyphs import Bitmap, glyph
+from prism.overlay.tabshot.teams.glyphs import Bitmap, variants
 from prism.overlay.tabshot.teams.soft import Array, SoftRow
 
 Font = dict[str, Bitmap]  # char -> 8 x w bitmap, GUI px
-Placement = tuple[float, int, int]  # stretch, dx, dy
+Pick = Mapping[str, int]  # char -> glyph variant (default 0)
+Placement = tuple[float, int, int, Pick]  # stretch, dx, dy, variants
 STRETCHES = (0.92, 1.0, 1.08)
 SHIFTS = (-1, 0, 1)
 ITERATIONS = 1
@@ -30,19 +33,25 @@ MAX_GUI_W = 16 * 7  # Widest name in GUI px (16 chars)
 _PLACES = [(st, dx) for st in STRETCHES for dx in SHIFTS]
 
 
-def canvas(name: str, font: Font) -> tuple[Bitmap, list[int]]:
+def canvas(name: str, font: Font, pick: Pick = {}) -> tuple[Bitmap, list[int]]:
     """8 x W GUI bitmap and the x offset of each char"""
     cols: list[Bitmap] = []
     offs, x = [], 0
     for ch in name:
-        width = glyph(ch).shape[1]  # Widths from the generic font
+        bitmap = font[ch] if ch in font else variants(ch)[pick.get(ch, 0)]
         offs.append(x)
-        cols += [
-            font.get(ch, glyph(ch))[:, :width],
-            np.zeros((8, 1), np.float32),
-        ]
-        x += width + 1
+        cols += [bitmap, np.zeros((8, 1), np.float32)]
+        x += bitmap.shape[1] + 1
     return np.concatenate(cols[:-1], axis=1), offs
+
+
+def _picks(name: str, font: Font) -> list[Pick]:
+    """Every combination of variants for the chars in name not in font"""
+    free = sorted({c for c in name if c not in font and len(variants(c)) > 1})
+    return [
+        dict(zip(free, combo))
+        for combo in itertools.product(*(range(len(variants(c))) for c in free))
+    ]
 
 
 def weights(n_out: int, start: float, scale: float, n_in: int) -> Array:
@@ -71,32 +80,43 @@ def _row_weights(row: SoftRow) -> tuple[Array, Array, Array, float]:
 
 def score(row: SoftRow, name: str, font: Font) -> tuple[float, Placement]:
     """Best NCC (as soft.SCALE * (ncc - 1)) and its placement"""
-    G, _ = canvas(name, font)
     Wy, Wx, a, an = _row_weights(row)
-    g = min(G.shape[1], MAX_GUI_W)
-    # All placements at once: (dy, place, H, W)
-    P = np.einsum("dha,ag,kwg->dkhw", Wy, G[:, :g], Wx[:, :, :g], optimize=True)
-    P = P - P.mean(axis=(2, 3), keepdims=True)
-    num = np.einsum("dkhw,hw->dk", P, a)
-    den = np.sqrt((P * P).sum(axis=(2, 3))) * an
-    ncc = np.where(den > 0, num / np.maximum(den, 1e-9), 0)
-    d, k = np.unravel_index(int(np.argmax(ncc)), ncc.shape)
-    st, dx = _PLACES[int(k)]
-    return soft.SCALE * (float(ncc[d, k]) - 1), (st, dx, SHIFTS[int(d)])
+    best: tuple[float, Placement] = (-1e9, (1.0, 0, 0, {}))
+    for pick in _picks(name, font):
+        G, _ = canvas(name, font, pick)
+        g = min(G.shape[1], MAX_GUI_W)
+        # All placements at once: (dy, place, H, W)
+        P = np.einsum("dha,ag,kwg->dkhw", Wy, G[:, :g], Wx[:, :, :g], optimize=True)
+        P = P - P.mean(axis=(2, 3), keepdims=True)
+        num = np.einsum("dkhw,hw->dk", P, a)
+        den = np.sqrt((P * P).sum(axis=(2, 3))) * an
+        ncc = np.where(den > 0, num / np.maximum(den, 1e-9), 0)
+        d, k = np.unravel_index(int(np.argmax(ncc)), ncc.shape)
+        s = soft.SCALE * (float(ncc[d, k]) - 1)
+        if s > best[0]:
+            st, dx = _PLACES[int(k)]
+            best = (s, (st, dx, SHIFTS[int(d)], pick))
+    return best
 
 
 def learn(pairs: list[tuple[SoftRow, str, Placement]]) -> Font:
     """Least-squares glyph bitmaps from (row, name, placement) pairs"""
     chars = sorted({c for _, n, _ in pairs for c in n})
-    width = {c: glyph(c).shape[1] for c in chars}
+    # One variant per char (it sets the width): what most rows picked
+    votes = Counter((c, p[3].get(c, 0)) for _, n, p in pairs for c in set(n))
+    choice = {
+        c: max(range(len(variants(c))), key=lambda k: votes[(c, k)]) for c in chars
+    }
+    start = {c: variants(c)[choice[c]] for c in chars}
+    width = {c: start[c].shape[1] for c in chars}
     base, nv = {}, 0
     for c in chars:
         base[c] = nv
         nv += 8 * width[c]
     AtA = np.zeros((nv, nv))
     Atb = np.zeros(nv)
-    for row, name, (st, dx, dy) in pairs:
-        _, offs = canvas(name, {})
+    for row, name, (st, dx, dy, _) in pairs:
+        _, offs = canvas(name, {}, choice)
         Wg = offs[-1] + width[name[-1]]
         u = (row.base - row.cap) / 7
         H, W = row.alpha.shape
@@ -116,7 +136,7 @@ def learn(pairs: list[tuple[SoftRow, str, Placement]]) -> Font:
         AtA[np.ix_(ii, ii)] += M.T @ M
         Atb[ii] += M.T @ row.alpha.reshape(-1)
     # Ridge toward the generic font, so rarely seen chars stay sensible
-    prior = np.concatenate([glyph(c).reshape(-1) for c in chars])
+    prior = np.concatenate([start[c].reshape(-1) for c in chars])
     lam = 0.05 * float(np.mean(np.diag(AtA))) + 1e-3
     theta = np.linalg.solve(AtA + lam * np.eye(nv), Atb + lam * prior)
     return {

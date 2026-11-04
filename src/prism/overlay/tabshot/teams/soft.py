@@ -23,7 +23,7 @@ from scipy import ndimage  # type: ignore[import-untyped]
 from scipy.optimize import linear_sum_assignment  # type: ignore[import-untyped]
 
 from prism.overlay.tabshot.screenshot import Team
-from prism.overlay.tabshot.teams.glyphs import Bitmap, render
+from prism.overlay.tabshot.teams.glyphs import Bitmap, variants
 
 # Channel pattern: 3 = high, 1 = a third
 TEAMS: dict[Team, tuple[int, int, int]] = {
@@ -294,9 +294,9 @@ def _alpha(win: Array, color: int) -> Bitmap:
 
 
 @lru_cache(maxsize=256)
-def _bold(ch: str, u: float) -> Bitmap:
+def _bold(ch: str, u: float, variant: int = 0) -> Bitmap:
     """Bold capital (drawn twice, 1 GUI px apart), rows 0-6, scaled"""
-    g = render(ch)[:7]
+    g = variants(ch)[variant][:7]
     b = np.zeros((7, g.shape[1] + 1), dtype=np.float32)
     b[:, :-1] = g
     b[:, 1:] = np.maximum(b[:, 1:], g)
@@ -318,16 +318,18 @@ def ncc(a: Array, b: Array) -> float:
 def letter_score(cls: Array, letter: Seg) -> float:
     """How well the letter segment looks like its team's bold letter"""
     u = round((letter.y1 - letter.y0) / 7, 2)
-    p = _bold(LETTERS[TEAM_NAMES[letter.color]], u)
-    ph, pw = p.shape
+    ch = LETTERS[TEAM_NAMES[letter.color]]
     best = -1.0
-    for dy in (-1, 0, 1):
-        for dx in (-1, 0, 1):
-            y, x = letter.y0 + dy, letter.x0 + dx
-            if y < 0 or x < 0 or y + ph > cls.shape[0] or x + pw > cls.shape[1]:
-                continue
-            obs = (cls[y : y + ph, x : x + pw] == letter.color).astype(np.float32)
-            best = max(best, ncc(p, obs))
+    for k in range(len(variants(ch))):
+        p = _bold(ch, u, k)
+        ph, pw = p.shape
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                y, x = letter.y0 + dy, letter.x0 + dx
+                if y < 0 or x < 0 or y + ph > cls.shape[0] or x + pw > cls.shape[1]:
+                    continue
+                obs = (cls[y : y + ph, x : x + pw] == letter.color).astype(np.float32)
+                best = max(best, ncc(p, obs))
     return best
 
 

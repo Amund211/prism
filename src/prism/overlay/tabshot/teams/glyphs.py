@@ -31,7 +31,7 @@ S .#### #.... .###. ....# ....# #...# .###. .....
 T ##### ..#.. ..#.. ..#.. ..#.. ..#.. ..#.. .....
 U #...# #...# #...# #...# #...# #...# .###. .....
 V #...# #...# #...# #...# #...# .#.#. ..#.. .....
-W #...# #...# #.#.# #.#.# #.#.# #.#.# ##.## .....
+W #...# #...# #...# #...# #.#.# ##.## #...# .....
 X #...# .#.#. ..#.. .#.#. #...# #...# #...# .....
 Y #...# .#.#. ..#.. ..#.. ..#.. ..#.. ..#.. .....
 Z ##### ....# ...#. ..#.. .#... #.... ##### .....
@@ -74,18 +74,38 @@ z ..... ..... ##### ...#. ..#.. .#... ##### .....
 _ ..... ..... ..... ..... ..... ..... ..... #####
 """
 
+# Other shapes / widths of a char in common custom fonts (e.g. Bombies)
+_VARIANTS_RAW = """
+W #...# #...# #.#.# #.#.# #.#.# #.#.# ##.## .....
+j ..# ... ..# ..# ..# ..# ..# ##.
+"""
+
 Bitmap = npt.NDArray[np.float32]
 
-GLYPHS: dict[str, Bitmap] = {}
-for _line in _RAW.strip().splitlines():
-    _ch, *_rows = _line.split()
-    GLYPHS[_ch] = np.array([[c == "#" for c in r] for r in _rows], dtype=np.float32)
+
+def _parse(raw: str) -> list[tuple[str, Bitmap]]:
+    out = []
+    for line in raw.strip().splitlines():
+        ch, *rows = line.split()
+        out.append((ch, np.array([[c == "#" for c in r] for r in rows], np.float32)))
+    return out
+
+
+GLYPHS: dict[str, Bitmap] = dict(_parse(_RAW))
+VARIANTS: dict[str, list[Bitmap]] = {}
+for _ch, _bitmap in _parse(_VARIANTS_RAW):
+    VARIANTS.setdefault(_ch, [GLYPHS[_ch]]).append(_bitmap)
 # Chars we did not draw
 UNKNOWN: Bitmap = np.ones((8, 5), dtype=np.float32) * 0.4
 
 
 def glyph(ch: str) -> Bitmap:
     return GLYPHS.get(ch, UNKNOWN)
+
+
+def variants(ch: str) -> list[Bitmap]:
+    """All shapes of ch; the first is the default (vanilla-like)"""
+    return VARIANTS.get(ch) or [glyph(ch)]
 
 
 def render(text: str) -> Bitmap:

@@ -54,5 +54,5 @@ def test_samples() -> None:  # pragma: nocover
     total = ok + wrong + unknown
     print(f"correct {ok / total:.1%} wrong {wrong / total:.1%} of {total}")
     assert notes == []
-    # 95.2 % after the white / gray / two-column fixes (2026-11-04)
-    assert ok / total >= 0.95
+    # 96.3 % after the white / gray / two-column / glyph variant fixes (2026-11-04)
+    assert ok / total >= 0.96
