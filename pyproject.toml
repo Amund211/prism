@@ -18,6 +18,8 @@ dependencies = [
     "pywin32==312; platform_system=='Windows'",
     "mss==10.2.0",
     "pillow==13.0.0",
+    "numpy==2.5.4",
+    "scipy==1.18.1",
 ]
 classifiers = [
     "Programming Language :: Python :: 3"
@@ -101,5 +103,7 @@ omit=[
   'src/prism/overlay/platform/windows.py',
   'src/prism/overlay/tabshot/window_windows.py',
   'src/prism/overlay/tabshot/window_x11.py',
+  # Prototype port, tested by the local sample test (tests/data/tabshot)
+  'src/prism/overlay/tabshot/teams/*',
   'src/prism/discordrp/__init__.py',
 ]

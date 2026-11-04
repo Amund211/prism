@@ -19,6 +19,9 @@ wheels/
 # Pyinstaller generated files
 *.spec
 
+# Local tab screenshot samples (not in git: size, privacy)
+/tests/data/tabshot
+
 # Coverage generated files
 .coverage
 

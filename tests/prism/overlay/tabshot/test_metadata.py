@@ -53,11 +53,17 @@ def test_build_metadata() -> None:
         monitors=MONITORS,
         windows=[window],
         prism=PrismWindow(rect=(-50, 5, 10, 10), shown=True, alpha=0.8),
-        captures=[CaptureInfo("x.png", 30, 31.04, 9.96)],
+        captures=[
+            CaptureInfo("x.png", 30, 31.04, 9.96),
+            CaptureInfo("y.png", 300, 301.0, 9.0, {"a": "red"}, 123.45),
+        ],
+        known=["a", "b"],
         pressed_at_unix=123.0,
         held_ms=None,
         thread_dpi_aware=False,
     )
+    assert metadata["version"] == 2
+    assert metadata["known"] == ["a", "b"]
     assert metadata["monitors"][1] == {
         "rect": [0, 0, 100, 50],
         "screen_rect": [-100, 0, 100, 50],
@@ -71,7 +77,22 @@ def test_build_metadata() -> None:
         "alpha": 0.8,
     }
     assert metadata["captures"] == [
-        {"file": "x.png", "delay_ms": 30, "actual_delay_ms": 31.0, "grab_ms": 10.0}
+        {
+            "file": "x.png",
+            "delay_ms": 30,
+            "actual_delay_ms": 31.0,
+            "grab_ms": 10.0,
+            "teams": None,
+            "read_ms": None,
+        },
+        {
+            "file": "y.png",
+            "delay_ms": 300,
+            "actual_delay_ms": 301.0,
+            "grab_ms": 9.0,
+            "teams": {"a": "red"},
+            "read_ms": 123.5,
+        },
     ]
     assert metadata["tab"] == {"pressed_at_unix": 123.0, "held_ms": None}
 
@@ -82,6 +103,7 @@ def test_build_metadata() -> None:
         windows=None,
         prism=None,
         captures=[],
+        known=[],
         pressed_at_unix=123.0,
         held_ms=5.0,
         thread_dpi_aware=True,

@@ -1,8 +1,10 @@
 """
-Phase 1: take a burst of screenshots on each Tab press and save them.
+Take a screenshot on each Tab press, read the teams from it, and save the
+image + inputs + outputs to disk (debug dump). The result is not used yet.
 
-The pynput callbacks only set state and put on a queue. All capture work
-happens on the worker thread; PNG encoding on a separate saver thread.
+The pynput callbacks only set state and put on a queue. All capture and
+recognition work happens on the worker thread; PNG encoding on a separate
+saver thread.
 """
 
 import logging
@@ -14,17 +16,41 @@ import time
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from prism.overlay.state import OverlayState
 from prism.overlay.tabshot.capture import Grabber, RawCapture
 from prism.overlay.tabshot.metadata import CaptureInfo, PrismWindow, build_metadata
-from prism.overlay.tabshot.policy import burst_delays_ms, should_start_burst
+from prism.overlay.tabshot.policy import (
+    CAPTURE_DELAYS_MS,
+    known_names,
+    should_retry,
+    should_start_burst,
+)
+from prism.overlay.tabshot.screenshot import Team, from_bgra
 from prism.overlay.tabshot.store import SampleStore, burst_stem, capture_filename
 from prism.overlay.tabshot.window import GameWindow, find_game_windows
 
+if TYPE_CHECKING:  # pragma: nocover
+    from collections.abc import Iterable
+
+    from prism.overlay.tabshot.screenshot import Screenshot
+
+    ReadTeams = Callable[[Screenshot, Iterable[str]], dict[str, Team]]
+
 logger = logging.getLogger(__name__)
 
-SAVE_QUEUE_SIZE = 24
+SAVE_QUEUE_SIZE = 8
+
+
+def _load_read_teams() -> "ReadTeams":  # pragma: nocover
+    # Use one BLAS thread, so recognition does not take every core from the game
+    for var in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS"):
+        os.environ.setdefault(var, "1")
+    # Lazy: numpy, scipy and PIL are not in the macOS build
+    from prism.overlay.tabshot.teams import read_teams
+
+    return read_teams
 
 
 def capture_supported() -> bool:  # pragma: nocover
@@ -89,6 +115,12 @@ class TabshotWorker:  # pragma: nocover
             logger.exception("Tabshot: failed to start, no screenshots")
             return
 
+        read_teams: "ReadTeams | None" = None
+        try:
+            read_teams = _load_read_teams()
+        except Exception:
+            logger.exception("Tabshot: failed to load team recognition")
+
         threading.Thread(
             target=self._save_loop, name="TabshotSaver", daemon=True
         ).start()
@@ -96,7 +128,7 @@ class TabshotWorker:  # pragma: nocover
         while True:
             pressed_at, pressed_at_unix = self._presses.get()
             try:
-                self._burst(grabber, store, pressed_at, pressed_at_unix)
+                self._burst(grabber, store, read_teams, pressed_at, pressed_at_unix)
             except Exception:
                 logger.exception("Tabshot: burst failed")
             finally:
@@ -120,6 +152,7 @@ class TabshotWorker:  # pragma: nocover
         self,
         grabber: Grabber,
         store: SampleStore,
+        read_teams: "ReadTeams | None",
         pressed_at: float,
         pressed_at_unix: float,
     ) -> None:
@@ -130,6 +163,7 @@ class TabshotWorker:  # pragma: nocover
         stem = burst_stem(wall)
         directory = store.burst_dir(wall)
         state = self.get_state()
+        known = known_names(state)
         prism = self.prism_window
 
         captures: list[CaptureInfo] = []
@@ -137,7 +171,7 @@ class TabshotWorker:  # pragma: nocover
         jobs: list[Callable[[], None]] = []
         monitors = None
 
-        for delay_ms in burst_delays_ms():
+        for delay_ms in CAPTURE_DELAYS_MS:
             remaining = pressed_at + delay_ms / 1000 - time.monotonic()
             if remaining > 0:
                 if self._released.wait(remaining):
@@ -152,14 +186,20 @@ class TabshotWorker:  # pragma: nocover
 
             filename = capture_filename(stem, delay_ms)
             jobs.append(_png_job(store, directory / filename, capture))
+
+            teams, read_ms = _read(read_teams, capture, known)
             captures.append(
                 CaptureInfo(
                     file=filename,
                     delay_ms=delay_ms,
                     actual_delay_ms=(start - pressed_at) * 1000,
                     grab_ms=grab_ms,
+                    teams=teams,
+                    read_ms=read_ms,
                 )
             )
+            if teams is None or not should_retry(teams):
+                break
 
         if monitors is None:
             return  # Released before the first capture
@@ -173,6 +213,7 @@ class TabshotWorker:  # pragma: nocover
             windows=windows,
             prism=prism,
             captures=captures,
+            known=known,
             pressed_at_unix=pressed_at_unix,
             held_ms=(
                 None if released_at is None else (released_at - pressed_at) * 1000
@@ -183,7 +224,28 @@ class TabshotWorker:  # pragma: nocover
         for job in jobs:
             self._enqueue_save(job)
         self._enqueue_save(lambda: store.save_json(path, metadata))
-        logger.info(f"Tabshot: {len(captures)} captures, {stem}")
+        last = captures[-1]
+        logger.info(
+            f"Tabshot: {stem}, {len(captures)} captures, "
+            f"{'no' if last.teams is None else len(last.teams)} teams "
+            f"of {len(known)} known, read {last.read_ms or 0:.0f} ms"
+        )
+
+
+def _read(
+    read_teams: "ReadTeams | None", capture: RawCapture, known: list[str]
+) -> tuple[dict[str, Team] | None, float | None]:  # pragma: nocover
+    """(teams, ms). (None, None) if recognition is off or failed"""
+    if read_teams is None:
+        return None, None
+    start = time.monotonic()
+    try:
+        bbox = capture.monitors[0]
+        teams = read_teams(from_bgra(capture.bgra, bbox.width, bbox.height), known)
+    except Exception:
+        logger.exception("Tabshot: team recognition failed")
+        return None, None
+    return teams, (time.monotonic() - start) * 1000
 
 
 def _png_job(

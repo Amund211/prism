@@ -1,4 +1,4 @@
-"""Phase 1 only: JSON metadata saved next to each burst of samples"""
+"""Debug dump: JSON with the inputs and outputs of each burst"""
 
 import os
 import platform
@@ -8,6 +8,7 @@ from typing import Any
 
 from prism.overlay.state import OverlayState
 from prism.overlay.tabshot.capture import Monitor
+from prism.overlay.tabshot.screenshot import Team
 from prism.overlay.tabshot.store import to_image_rect
 from prism.overlay.tabshot.window import GameWindow, Rect
 
@@ -27,6 +28,8 @@ class CaptureInfo:
     delay_ms: int  # Planned delay after the Tab press
     actual_delay_ms: float
     grab_ms: float
+    teams: dict[str, Team] | None = None  # None: recognition did not run
+    read_ms: float | None = None
 
 
 def state_metadata(state: OverlayState, now: float) -> dict[str, Any]:
@@ -69,6 +72,7 @@ def build_metadata(
     windows: list[GameWindow] | None,
     prism: PrismWindow | None,
     captures: list[CaptureInfo],
+    known: list[str],
     pressed_at_unix: float,
     held_ms: float | None,
     thread_dpi_aware: bool,
@@ -79,7 +83,7 @@ def build_metadata(
     """
     origin = monitors[0]
     return {
-        "version": 1,
+        "version": 2,
         "os": sys.platform,
         "os_version": platform.platform(),
         "session": os.environ.get("XDG_SESSION_TYPE"),
@@ -107,12 +111,15 @@ def build_metadata(
             }
         ),
         "tab": {"pressed_at_unix": pressed_at_unix, "held_ms": held_ms},
+        "known": known,
         "captures": [
             {
                 "file": c.file,
                 "delay_ms": c.delay_ms,
                 "actual_delay_ms": round(c.actual_delay_ms, 1),
                 "grab_ms": round(c.grab_ms, 1),
+                "teams": c.teams,
+                "read_ms": None if c.read_ms is None else round(c.read_ms, 1),
             }
             for c in captures
         ],

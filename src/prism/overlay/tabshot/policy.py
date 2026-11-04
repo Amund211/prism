@@ -1,20 +1,27 @@
-"""When to take tab-list screenshots (phase 1: collect samples)"""
+"""When to take tab-list screenshots, and what to read from them"""
 
-from collections.abc import Iterator
+from collections.abc import Mapping
 
-# Delays after the Tab press. Several, to find the best delay from data.
-BURST_DELAYS_MS = (30, 60, 100, 200, 400)
-HELD_INTERVAL_MS = 1000
-MAX_HELD_CAPTURES = 5
+from prism.overlay.state import OverlayState
+
+# Delays after the Tab press. The second capture is a retry, taken only if the
+# first gave no teams and Tab is still held.
+CAPTURE_DELAYS_MS = (150, 300)
 # At most one burst per this many seconds
 MIN_BURST_INTERVAL_SECONDS = 2.0
 
 
-def burst_delays_ms() -> Iterator[int]:
-    """Delays (ms after press) for the captures in one burst"""
-    yield from BURST_DELAYS_MS
-    for i in range(1, MAX_HELD_CAPTURES + 1):
-        yield BURST_DELAYS_MS[-1] + i * HELD_INTERVAL_MS
+def should_retry(teams: Mapping[str, str]) -> bool:
+    """Return True if we should capture again after this result"""
+    return not teams
+
+
+def known_names(state: OverlayState) -> list[str]:
+    """Names the recognition can match rows against"""
+    names = state.lobby_players | state.alive_players | state.party_members
+    if state.own_username is not None:
+        names |= {state.own_username}
+    return sorted(names)
 
 
 def should_start_burst(
