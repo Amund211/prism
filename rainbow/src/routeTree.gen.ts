@@ -16,6 +16,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy.tsx'
 import { Route as SettingsRouteImport } from './routes/settings.tsx'
 import { Route as TermsRouteImport } from './routes/terms.tsx'
 import { Route as AuthMicrosoftRouteImport } from './routes/auth.microsoft.tsx'
+import { Route as ContributeTabcapRouteImport } from './routes/contribute.tabcap.tsx'
 import { Route as HistoryExploreRouteImport } from './routes/history.explore.tsx'
 import { Route as SessionIndexRouteImport } from './routes/session/index.tsx'
 import { Route as SessionUuidRouteImport } from './routes/session/$uuid.tsx'
@@ -58,6 +59,11 @@ const AuthMicrosoftRoute = AuthMicrosoftRouteImport.update({
   path: '/auth/microsoft',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContributeTabcapRoute = ContributeTabcapRouteImport.update({
+  id: '/contribute/tabcap',
+  path: '/contribute/tabcap',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HistoryExploreRoute = HistoryExploreRouteImport.update({
   id: '/history/explore',
   path: '/history/explore',
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
   '/auth/microsoft': typeof AuthMicrosoftRoute
+  '/contribute/tabcap': typeof ContributeTabcapRoute
   '/history/explore': typeof HistoryExploreRoute
   '/session/$uuid': typeof SessionUuidRoute
   '/wrapped/$uuid': typeof WrappedUuidRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
   '/auth/microsoft': typeof AuthMicrosoftRoute
+  '/contribute/tabcap': typeof ContributeTabcapRoute
   '/history/explore': typeof HistoryExploreRoute
   '/session/$uuid': typeof SessionUuidRoute
   '/wrapped/$uuid': typeof WrappedUuidRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
   '/auth/microsoft': typeof AuthMicrosoftRoute
+  '/contribute/tabcap': typeof ContributeTabcapRoute
   '/history/explore': typeof HistoryExploreRoute
   '/session/$uuid': typeof SessionUuidRoute
   '/wrapped/$uuid': typeof WrappedUuidRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/terms'
     | '/auth/microsoft'
+    | '/contribute/tabcap'
     | '/history/explore'
     | '/session/$uuid'
     | '/wrapped/$uuid'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/terms'
     | '/auth/microsoft'
+    | '/contribute/tabcap'
     | '/history/explore'
     | '/session/$uuid'
     | '/wrapped/$uuid'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/terms'
     | '/auth/microsoft'
+    | '/contribute/tabcap'
     | '/history/explore'
     | '/session/$uuid'
     | '/wrapped/$uuid'
@@ -191,6 +203,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   TermsRoute: typeof TermsRoute
   AuthMicrosoftRoute: typeof AuthMicrosoftRoute
+  ContributeTabcapRoute: typeof ContributeTabcapRoute
   HistoryExploreRoute: typeof HistoryExploreRoute
   SessionUuidRoute: typeof SessionUuidRoute
   WrappedUuidRoute: typeof WrappedUuidRoute
@@ -250,6 +263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthMicrosoftRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contribute/tabcap': {
+      id: '/contribute/tabcap'
+      path: '/contribute/tabcap'
+      fullPath: '/contribute/tabcap'
+      preLoaderRoute: typeof ContributeTabcapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/history/explore': {
       id: '/history/explore'
       path: '/history/explore'
@@ -303,6 +323,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   TermsRoute: TermsRoute,
   AuthMicrosoftRoute: AuthMicrosoftRoute,
+  ContributeTabcapRoute: ContributeTabcapRoute,
   HistoryExploreRoute: HistoryExploreRoute,
   SessionUuidRoute: SessionUuidRoute,
   WrappedUuidRoute: WrappedUuidRoute,

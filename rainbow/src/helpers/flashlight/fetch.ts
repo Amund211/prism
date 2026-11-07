@@ -61,9 +61,10 @@ export const flashlightFetch = async <T>(
         }
 
         // Re-sending the same init is only safe because every rainbow body is a
-        // string (never a consumed stream) and none of these endpoints mutate
-        // anything. An endpoint that streams a body, or one that writes, breaks
-        // this retry silently.
+        // string (never a consumed stream), and the endpoints that write
+        // (uploads) check the bearer before they store anything. An endpoint
+        // that streams a body, or writes before auth, breaks this retry
+        // silently.
         const next = await ensureSession(session);
         const result = await flashlightRequest<T>(path, {
             ...options,

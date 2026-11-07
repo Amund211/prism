@@ -54,6 +54,17 @@ describe("Privacy page", () => {
         );
     });
 
+    mswTest("describes files that users upload", async () => {
+        const { screen } = await renderAppRoute("/privacy");
+
+        await expect
+            .element(screen.getByText("Files you send us.", { exact: true }))
+            .toBeInTheDocument();
+        await expect
+            .element(screen.getByText(/delete the files you uploaded/))
+            .toBeInTheDocument();
+    });
+
     mswTest("links to the terms of service", async () => {
         const { screen } = await renderAppRoute("/privacy");
 

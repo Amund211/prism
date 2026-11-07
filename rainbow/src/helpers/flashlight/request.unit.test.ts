@@ -1,7 +1,11 @@
 import { captureException, captureMessage } from "@sentry/react";
 import { test, expect, describe, vi, afterEach } from "vitest";
 
-import { flashlightRequest, getFlashlightHeaders } from "./request.ts";
+import {
+    FlashlightResponseError,
+    flashlightRequest,
+    getFlashlightHeaders,
+} from "./request.ts";
 
 vi.mock(import("@sentry/react"), () => ({
     captureException: vi.fn<typeof captureException>(),
@@ -84,6 +88,22 @@ describe(flashlightRequest, () => {
         const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
         expect(init.method).toBe("POST");
         expect(init.body).toBe(JSON.stringify({ a: 1 }));
+    });
+
+    test("keeps the response body on the thrown error", async () => {
+        mockFetch(Response.json({ success: false, cause: "bad" }, { status: 400 }));
+
+        const error: unknown = await flashlightRequest("/v1/thing", {
+            errorContext: "Failed to get thing",
+            extra: {},
+            expectedStatuses: [400],
+        }).catch((error_: unknown) => error_);
+
+        expect(error).toBeInstanceOf(FlashlightResponseError);
+        expect((error as FlashlightResponseError).status).toBe(400);
+        expect((error as FlashlightResponseError).body).toBe(
+            JSON.stringify({ success: false, cause: "bad" }),
+        );
     });
 
     test("throws on a non-ok response", async () => {

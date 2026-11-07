@@ -28,6 +28,9 @@ const flashlightEndpoint = (endpoint: string) => {
     return `http://localhost:5173/flashlight/${endpoint}`;
 };
 
+export const MOCK_UPLOAD_ID = "0b5b8b8e-3a7e-4a57-9a3c-6f3c2a1d9e01";
+export const MOCK_STORAGE_URL = "https://storage.example.test/uploads/";
+
 const validateUUID = (uuid: unknown): string => {
     if (typeof uuid !== "string") {
         throw new Error("Invalid UUID parameter");
@@ -317,6 +320,27 @@ export const handlers = [
         const response: APIWrappedData = makeWrappedResponse(uuid, year);
         return HttpResponse.json(response);
     }),
+    http.post(flashlightEndpoint("v1/uploads/:kind"), async ({ request }) => {
+        const body = (await request.json()) as { files: readonly unknown[] };
+        return HttpResponse.json(
+            {
+                success: true,
+                uploadId: MOCK_UPLOAD_ID,
+                expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+                files: body.files.map((_, index) => ({
+                    url: MOCK_STORAGE_URL,
+                    fields: {
+                        key: `tabcap/pending/${MOCK_UPLOAD_ID}/${index.toString()}.png`,
+                    },
+                })),
+            },
+            { status: 201 },
+        );
+    }),
+    http.post(MOCK_STORAGE_URL, () => new HttpResponse(null, { status: 204 })),
+    http.post(flashlightEndpoint("v1/uploads/:kind/:uploadId/complete"), ({ params }) =>
+        HttpResponse.json({ success: true, uploadId: params.uploadId }),
+    ),
     http.get("https://api.mineatar.io/:variant/:uuid", (req) => {
         validateUUID(req.params.uuid);
 

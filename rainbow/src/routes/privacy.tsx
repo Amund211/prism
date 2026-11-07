@@ -8,7 +8,7 @@ import {
     LegalSection,
 } from "#components/LegalPage.tsx";
 
-const LAST_UPDATED = "7 September 2026";
+const LAST_UPDATED = "7 November 2026";
 
 const DISCORD_URL = "https://discord.gg/k4FGUnEHYg";
 
@@ -60,6 +60,14 @@ function RouteComponent() {
                     <LegalListItem>
                         <strong>Sign-in details.</strong> Where a feature asks you to
                         sign in, the identifiers the sign-in provider gives us for it.
+                    </LegalListItem>
+                    <LegalListItem>
+                        <strong>Files you send us.</strong> If you choose to upload
+                        files, such as screenshots on the{" "}
+                        <Link to="/contribute/tabcap">upload page</Link>, we store them
+                        with the details you enter and your session identifier.
+                        Screenshots can show other players&apos; names and chat. We use
+                        them only to develop and test Prism Overlay.
                     </LegalListItem>
                 </LegalList>
                 <Typography variant="body1">
@@ -140,9 +148,10 @@ function RouteComponent() {
 
             <LegalSection title="How long we keep it">
                 <Typography variant="body1">
-                    Statistics snapshots are kept indefinitely. Everything else is kept
-                    for as long as we need it to run the service. Diagnostics expire on
-                    our providers&apos; own schedules.
+                    Statistics snapshots are kept indefinitely. Files you send us are
+                    kept until you ask us to delete them, or until we no longer need
+                    them. Everything else is kept for as long as we need it to run the
+                    service. Diagnostics expire on our providers&apos; own schedules.
                 </Typography>
             </LegalSection>
 
@@ -151,6 +160,10 @@ function RouteComponent() {
                     <LegalListItem>
                         Ask us to delete the statistics stored for your Minecraft
                         account.
+                    </LegalListItem>
+                    <LegalListItem>
+                        Ask us to delete the files you uploaded. Give us the upload ID
+                        that the upload page shows.
                     </LegalListItem>
                     <LegalListItem>
                         Reset your client identifier by clearing this site&apos;s data

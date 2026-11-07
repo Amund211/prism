@@ -27,6 +27,19 @@ const Discord = () => {
     );
 };
 
+const Contribute = () => {
+    return (
+        <Stack>
+            <Typography variant="h6">Help improve Prism</Typography>
+            <Typography variant="body1">
+                We are teaching Prism to read the tab list.{" "}
+                <Link to="/contribute/tabcap">Send tab-list screenshots</Link> from your
+                Bed Wars games to help.
+            </Typography>
+        </Stack>
+    );
+};
+
 const Thanks = () => {
     return (
         <Stack>
@@ -131,6 +144,7 @@ function RouteComponent() {
             />
             <link rel="canonical" href="https://prismoverlay.com/about" />
             <Discord />
+            <Contribute />
             <Thanks />
             <Disclaimer />
             <HypixelAPIPolicy />

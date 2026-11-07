@@ -39,11 +39,14 @@ export const redactHandles = (text: string): string =>
 
 export class FlashlightResponseError extends Error {
     public readonly status: number;
+    // The response body, with session handles redacted.
+    public readonly body: string;
 
-    public constructor(message: string, status: number) {
+    public constructor(message: string, status: number, body = "") {
         super(message);
         this.name = "FlashlightResponseError";
         this.status = status;
+        this.body = body;
     }
 }
 
@@ -136,6 +139,7 @@ export const flashlightRequest = async <T>(
         throw new FlashlightResponseError(
             `${errorContext}. ${response.status.toString()} - ${response.statusText}: ${safeText}`,
             response.status,
+            safeText,
         );
     }
 

@@ -50,6 +50,14 @@ describe("About page", () => {
             .toBeInTheDocument();
     });
 
+    mswTest("links to the tabcap upload page", async () => {
+        const { screen } = await renderAppRoute("/about");
+
+        await expect
+            .element(screen.getByRole("link", { name: "Send tab-list screenshots" }))
+            .toHaveAttribute("href", "/contribute/tabcap");
+    });
+
     mswTest("links to the privacy policy and the terms of service", async () => {
         const { screen } = await renderAppRoute("/about");
 

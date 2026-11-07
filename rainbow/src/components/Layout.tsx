@@ -143,6 +143,7 @@ function useShownPlayer(): string | null {
         case "/":
         case "/about":
         case "/auth/microsoft":
+        case "/contribute/tabcap":
         case "/downloads":
         case "/privacy":
         case "/settings":

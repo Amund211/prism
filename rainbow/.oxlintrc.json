@@ -170,7 +170,9 @@
                             "IDBValidKey",
                             "MessageEvent",
                             "Worker",
-                            "Uint8Array"
+                            "Uint8Array",
+                            "File",
+                            "Blob"
                         ]
                     },
                     {
