@@ -18,7 +18,7 @@ const (
 	development environment = "development"
 )
 
-var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "BLOCKED_IPS", "BLOCKED_USER_AGENTS", "BLOCKED_USER_IDS", "BLOCKED_IPS_SHA256_HEX", "AUTH_CHALLENGE_SIGNING_KEYS", "AUTH_SESSION_SIGNING_KEYS", "AUTH_FLOW_SIGNING_KEYS", "AZURE_CLIENT_SECRET_EXPIRES_AT", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET", "AZURE_REDIRECT_URI"}
+var allVariablesExceptEnv = []string{"CLOUDSQL_UNIX_SOCKET", "DB_PASSWORD", "DB_USERNAME", "SENTRY_DSN", "HYPIXEL_API_KEY", "URCHIN_API_KEY", "BLOCKED_IPS", "BLOCKED_USER_AGENTS", "BLOCKED_USER_IDS", "BLOCKED_IPS_SHA256_HEX", "AUTH_CHALLENGE_SIGNING_KEYS", "AUTH_SESSION_SIGNING_KEYS", "AUTH_FLOW_SIGNING_KEYS", "AZURE_CLIENT_SECRET_EXPIRES_AT", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET", "AZURE_REDIRECT_URI", "USER_UPLOADS_BUCKET"}
 
 const validRedirectURI = "https://flashlight.example.com/v1/auth/microsoft/callback"
 
@@ -81,6 +81,7 @@ func TestGetConfig(t *testing.T) {
 			conf, err := config.ConfigFromEnv()
 			require.NoError(t, err)
 			compareConfig(t, "", "", "", "", "", "", []string{}, []string{}, []string{}, []string{}, []string{}, []string{}, []string{}, development, conf)
+			require.Empty(t, conf.UserUploadsBucket())
 		})
 	})
 
@@ -117,6 +118,14 @@ func TestGetConfig(t *testing.T) {
 			require.Equal(t, "AZURE_CLIENT_ID", conf.AzureClientID())
 			require.Equal(t, "AZURE_CLIENT_SECRET", conf.AzureClientSecret())
 			require.Equal(t, validRedirectURI, conf.AzureRedirectURI())
+		})
+
+		t.Run("user uploads bucket", func(t *testing.T) {
+			t.Setenv("FLASHLIGHT_ENVIRONMENT", string(production))
+			conf, err := config.ConfigFromEnv()
+			require.NoError(t, err)
+
+			require.Equal(t, "USER_UPLOADS_BUCKET", conf.UserUploadsBucket())
 		})
 
 	})

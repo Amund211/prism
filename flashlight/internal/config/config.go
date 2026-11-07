@@ -60,6 +60,9 @@ type Config struct {
 	// midnight. Hand-recorded: nothing in the secret says when it expires,
 	// and Entra sends no warning. Not secret. Zero in development.
 	azureClientSecretExpiresAt time.Time
+	// userUploadsBucket is the GCS bucket for user uploads. Empty in
+	// development unless set, which stores uploads in memory.
+	userUploadsBucket string
 }
 
 const azureClientSecretName = "azure-client-secret"
@@ -149,6 +152,10 @@ func (c *Config) AzureRedirectURI() string {
 
 func (c *Config) AzureClientSecretExpiresAt() time.Time {
 	return c.azureClientSecretExpiresAt
+}
+
+func (c *Config) UserUploadsBucket() string {
+	return c.userUploadsBucket
 }
 
 // AzureClientSecretDaysUntilExpiry counts whole calendar days from now until
@@ -340,6 +347,11 @@ func ConfigFromEnv() (Config, error) {
 		return Config{}, fmt.Errorf("%w: AZURE_REDIRECT_URI (%s)", ErrInvalidValue, azureRedirectURI)
 	}
 
+	userUploadsBucket := strings.TrimSpace(os.Getenv("USER_UPLOADS_BUCKET"))
+	if requireEnv && userUploadsBucket == "" {
+		return missingKey("USER_UPLOADS_BUCKET")
+	}
+
 	return Config{
 		cloudSQLUnixSocketPath: cloudSQLUnixSocketPath,
 		dBPassword:             dbPassword,
@@ -362,6 +374,8 @@ func ConfigFromEnv() (Config, error) {
 		azureClientSecret:          azureClientSecret,
 		azureRedirectURI:           azureRedirectURI,
 		azureClientSecretExpiresAt: azureClientSecretExpiresAt,
+
+		userUploadsBucket: userUploadsBucket,
 	}, nil
 }
 

@@ -78,6 +78,14 @@ var (
 			TierMicrosoft: {1, 20}, TierAnonymous: {0.5, 15}, TierNone: {0.25, 5},
 		},
 	}
+	// Lax for now: a start or a complete per upload of up to 30 files. The
+	// handlers reject requests without a bearer, so there is no TierNone.
+	UploadsRateLimitPolicy = RateLimitPolicy{ // uploads
+		UnauthedIP: Rate{0.1, 30},
+		Identity: map[Tier]Rate{
+			TierMicrosoft: {0.1, 30}, TierAnonymous: {0.05, 20},
+		},
+	}
 )
 
 func plainRateLimitExceeded(w http.ResponseWriter, r *http.Request) {

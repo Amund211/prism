@@ -17,6 +17,7 @@ flashlight)
 	auth_flow_signing_keys_key='flashlight-auth-flow-signing-keys'
 	azure_client_secret_key='flashlight-azure-client-secret'
 	azure_client_id='d8f8630a-d99b-4657-99a0-8e608c5e2e64'
+	user_uploads_bucket='prism-overlay-user-uploads'
 	environment='production'
 	image_name='flashlight'
 	public_url='https://flashlight.prismoverlay.com'
@@ -29,6 +30,7 @@ flashlight-test)
 	auth_flow_signing_keys_key='flashlight-test-auth-flow-signing-keys'
 	azure_client_secret_key='flashlight-test-azure-client-secret'
 	azure_client_id='21f5d51b-0f2a-4307-8fc4-a6f28d19b78e'
+	user_uploads_bucket='prism-overlay-user-uploads-test'
 	environment='staging'
 	image_name='flashlight-test'
 	public_url='https://flashlight-test.prismoverlay.com'
@@ -91,6 +93,7 @@ SERVICE_NAME="$service_name" \
 	AZURE_CLIENT_SECRET_KEY="$azure_client_secret_key" \
 	AZURE_CLIENT_ID="$azure_client_id" \
 	AZURE_REDIRECT_URI="$public_url/v1/auth/microsoft/callback" \
+	USER_UPLOADS_BUCKET="$user_uploads_bucket" \
 	COLLECTOR_IMAGE="$sidecar_image" \
 	envsubst <"$script_dir/service.tmpl.yaml" >"$script_dir/service.yaml"
 

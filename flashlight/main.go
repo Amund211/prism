@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/getsentry/sentry-go"
 	"github.com/google/uuid"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -28,6 +29,7 @@ import (
 	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
 	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
 	"github.com/Amund211/flashlight/internal/adapters/tagprovider"
+	"github.com/Amund211/flashlight/internal/adapters/uploadstore"
 	"github.com/Amund211/flashlight/internal/adapters/userrepository"
 	"github.com/Amund211/flashlight/internal/app"
 	"github.com/Amund211/flashlight/internal/authflowtoken"
@@ -403,6 +405,22 @@ func main() {
 
 	getPrismNotices := app.BuildGetPrismNotices(time.Now)
 
+	var uploadStore app.UploadStore
+	var storageClient *storage.Client
+	if bucket := config.UserUploadsBucket(); bucket != "" {
+		storageClient, err = storage.NewClient(ctx)
+		if err != nil {
+			fail("Failed to initialize storage client", "error", err.Error())
+		}
+		// Signs as the service account of the Cloud Run instance.
+		uploadStore = uploadstore.NewGCSStore(storageClient, bucket, "")
+	} else {
+		logger.WarnContext(ctx, "USER_UPLOADS_BUCKET not set, storing uploads in memory")
+		uploadStore = uploadstore.NewMemoryStore()
+	}
+	startUpload := app.BuildStartUpload(uploadStore, uuid.NewString, time.Now)
+	completeUpload := app.BuildCompleteUpload(uploadStore, time.Now)
+
 	mux := http.NewServeMux()
 
 	// Handler constructors start background rate-limiter eviction goroutines
@@ -675,6 +693,34 @@ func main() {
 	)
 	handleFunc("GET /v1/wrapped/{uuid}/{year}", wrappedHandler, stopWrapped)
 
+	handleFunc(
+		"OPTIONS /v1/uploads/{kind}",
+		ports.BuildCORSHandler(allowedOrigins),
+	)
+	startUploadHandler, stopStartUpload := ports.MakeStartUploadHandler(
+		startUpload,
+		allowedOrigins,
+		logger.With("port", "uploads_start"),
+		sentryMiddleware,
+		bearerAuthMiddleware,
+		blocklistConfig,
+	)
+	handleFunc("POST /v1/uploads/{kind}", startUploadHandler, stopStartUpload)
+
+	handleFunc(
+		"OPTIONS /v1/uploads/{kind}/{uploadId}/complete",
+		ports.BuildCORSHandler(allowedOrigins),
+	)
+	completeUploadHandler, stopCompleteUpload := ports.MakeCompleteUploadHandler(
+		completeUpload,
+		allowedOrigins,
+		logger.With("port", "uploads_complete"),
+		sentryMiddleware,
+		bearerAuthMiddleware,
+		blocklistConfig,
+	)
+	handleFunc("POST /v1/uploads/{kind}/{uploadId}/complete", completeUploadHandler, stopCompleteUpload)
+
 	// TODO: Remove deprecated non-versioned endpoint. Hits are logged with a
 	// "Deprecated endpoint hit" WARN so we can confirm it's safe to drop.
 	legacyPlayerDataHandler, stopLegacyPlayerData := ports.MakeGetPlayerDataHandler(
@@ -748,6 +794,11 @@ func main() {
 	// 2. Stop the background rate-limiter eviction goroutines.
 	for _, stop := range handlerStops {
 		stop()
+	}
+	if storageClient != nil {
+		if err := storageClient.Close(); err != nil {
+			logger.ErrorContext(ctx, "Failed to close storage client", "error", err.Error())
+		}
 	}
 
 	// 3. Close the database pool now that in-flight queries have drained.

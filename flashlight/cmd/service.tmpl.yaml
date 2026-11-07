@@ -135,6 +135,8 @@ spec:
         #   4. Verify a sign-in, then delete the old secret in Entra.
         - name: "AZURE_CLIENT_SECRET_EXPIRES_AT"
           value: "2028-09-06"
+        - name: "USER_UPLOADS_BUCKET"
+          value: "${USER_UPLOADS_BUCKET}"
       - image: "${COLLECTOR_IMAGE}"
         name: "collector"
         startupProbe:

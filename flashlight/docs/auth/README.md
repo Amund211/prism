@@ -39,11 +39,13 @@ no row, no lookup, no cache; validating is a signature check. The payload holds
 - `POST /v1/auth/refresh` re-stamps `issuedAt`, bumps `generation` and seals **a
   new handle**. No proof, no minimum interval. The client must store what comes
   back.
-- The bearer middleware (`ports.NewBearerAuthMiddleware`, on ten handlers)
+- The bearer middleware (`ports.NewBearerAuthMiddleware`, on twelve handlers)
   validates, puts `{SessionID, IdentityType, IdentityKey}` in the context, and
   401s what it cannot validate. **No `Authorization` header at all passes
   through** to the legacy `X-User-Id` path. Both paths that pass on set the
-  `BearerCheckedFromContext` mark.
+  `BearerCheckedFromContext` mark. The two `/v1/uploads` handlers are the
+  exception: they have no legacy path and 401 a request without a bearer.
+  Complete only works for the identity that started the upload.
 - Responses carry `X-Auth-Refresh: 1` within `refreshAtOffset` of expiry (a hint
   — ignoring it still recovers via 401) and `X-Auth-Session` with the
   middleware's verdict.
@@ -69,7 +71,7 @@ They are not dead fields — do not remove them.
 ## Rate limits
 
 Data endpoints (playerdata, tags, account ×2, history, wrapped, sessions,
-session-at) use `ports.NewAuthRateLimitMiddleware` with a `RateLimitPolicy`
+session-at) and uploads use `ports.NewAuthRateLimitMiddleware` with a `RateLimitPolicy`
 from `internal/ports/ratelimit_policy.go`. Mount order:
 `bearer → rateLimit`.
 
