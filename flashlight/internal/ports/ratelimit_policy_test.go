@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/stretchr/testify/require"
@@ -206,6 +207,54 @@ func TestAuthRateLimitMiddleware(t *testing.T) {
 			"both requests spent the IP bucket")
 	})
 
+	t.Run("the long identity bucket limits every tier", func(t *testing.T) {
+		t.Parallel()
+		send := newTierHandler(t, ports.RateLimitPolicy{
+			UnauthedIP: burst(100),
+			Identity: map[ports.Tier]ports.Rate{
+				ports.TierAnonymous: burst(10), ports.TierMicrosoft: burst(10), ports.TierNone: burst(10),
+			},
+			IdentityLong: map[ports.Tier]ports.Rate{
+				ports.TierAnonymous: burst(2), ports.TierMicrosoft: burst(2), ports.TierNone: burst(2),
+			},
+		})
+		for _, req := range []tierRequest{
+			{ip: ip1, userID: user1},
+			{ip: ip1, bearer: "anonymous:" + user1},
+			{ip: ip1, bearer: "microsoft:" + user1},
+		} {
+			require.Equal(t, http.StatusOK, send(req))
+			require.Equal(t, http.StatusOK, send(req))
+			require.Equal(t, http.StatusTooManyRequests, send(req))
+		}
+		require.Equal(t, http.StatusOK, send(tierRequest{ip: ip1, bearer: "microsoft:" + user2}),
+			"another identity has its own budget")
+	})
+
+	t.Run("a tier missing from the long rates uses the anonymous long rate", func(t *testing.T) {
+		t.Parallel()
+		send := newTierHandler(t, ports.RateLimitPolicy{
+			UnauthedIP:   burst(100),
+			Identity:     map[ports.Tier]ports.Rate{ports.TierAnonymous: burst(10)},
+			IdentityLong: map[ports.Tier]ports.Rate{ports.TierAnonymous: burst(1)},
+		})
+		require.Equal(t, http.StatusOK, send(tierRequest{ip: ip1, userID: user1}))
+		require.Equal(t, http.StatusTooManyRequests, send(tierRequest{ip: ip1, userID: user1}))
+		require.Equal(t, http.StatusOK, send(tierRequest{ip: ip1, bearer: "future:" + user1}),
+			"an unknown tier does not share the anonymous long bucket")
+	})
+
+	t.Run("panics at construction with long rates but no anonymous long rate", func(t *testing.T) {
+		t.Parallel()
+		require.Panics(t, func() {
+			ports.NewAuthRateLimitMiddleware(ports.RateLimitPolicy{
+				UnauthedIP:   burst(10),
+				Identity:     map[ports.Tier]ports.Rate{ports.TierAnonymous: burst(10)},
+				IdentityLong: map[ports.Tier]ports.Rate{ports.TierMicrosoft: burst(10)},
+			}, func(w http.ResponseWriter, r *http.Request) {})
+		})
+	})
+
 	t.Run("an unknown tier does not share the anonymous bucket", func(t *testing.T) {
 		t.Parallel()
 		send := newTierHandler(t, ports.RateLimitPolicy{
@@ -215,4 +264,75 @@ func TestAuthRateLimitMiddleware(t *testing.T) {
 		require.Equal(t, http.StatusOK, send(tierRequest{ip: ip1, bearer: "future:" + user1}))
 		require.Equal(t, http.StatusOK, send(tierRequest{ip: ip1, bearer: "anonymous:" + user1}))
 	})
+}
+
+// A game in doubles or fours is 16 player lookups at game start.
+const lookupsPerGame = 16
+
+// playGames plays one game per interval for the duration and returns how many
+// games had at least one lookup rate limited.
+func playGames(send func(tierRequest) int, req tierRequest, interval, duration time.Duration) int {
+	limited := 0
+	for elapsed := time.Duration(0); elapsed < duration; elapsed += interval {
+		ok := true
+		for range lookupsPerGame {
+			if send(req) != http.StatusOK {
+				ok = false
+			}
+		}
+		if !ok {
+			limited++
+		}
+		time.Sleep(interval)
+	}
+	return limited
+}
+
+func TestPrismRateLimitPolicy(t *testing.T) {
+	t.Parallel()
+
+	const (
+		ip   = "12.12.123.123"
+		user = "this-is-a-long-enough-user-id"
+	)
+	tiers := map[string]tierRequest{
+		"microsoft": {ip: ip, bearer: "microsoft:" + user},
+		"anonymous": {ip: ip, bearer: "anonymous:" + user},
+		"none":      {ip: ip, userID: user},
+	}
+
+	cases := []struct {
+		name     string
+		tiers    []string
+		interval time.Duration
+		duration time.Duration
+		allowed  bool
+	}{
+		{"pro player for a long session", []string{"microsoft"}, 150 * time.Second, 4 * time.Hour, true},
+		{"many first-rush losses in a row", []string{"microsoft"}, time.Minute, 10 * time.Minute, true},
+		{"sniping", []string{"microsoft"}, 20 * time.Second, 15 * time.Minute, false},
+		{"fast games for most of an hour", []string{"anonymous", "none"}, 4 * time.Minute, 50 * time.Minute, true},
+		{"normal games for two hours", []string{"anonymous", "none"}, 6 * time.Minute, 2 * time.Hour, true},
+		{"slow games all day", []string{"anonymous", "none"}, 8 * time.Minute, 8 * time.Hour, true},
+		{"many first-rush losses in a row", []string{"anonymous", "none"}, time.Minute, 7 * time.Minute, true},
+		{"fast games for two hours", []string{"anonymous", "none"}, 4 * time.Minute, 2 * time.Hour, false},
+		{"sniping", []string{"anonymous", "none"}, 20 * time.Second, 10 * time.Minute, false},
+	}
+
+	for _, c := range cases {
+		for _, tier := range c.tiers {
+			t.Run(tier+": "+c.name, func(t *testing.T) {
+				t.Parallel()
+				synctest.Test(t, func(t *testing.T) {
+					send := newTierHandler(t, ports.PrismRateLimitPolicy)
+					limited := playGames(send, tiers[tier], c.interval, c.duration)
+					if c.allowed {
+						require.Zero(t, limited)
+					} else {
+						require.NotZero(t, limited)
+					}
+				})
+			})
+		}
+	}
 }

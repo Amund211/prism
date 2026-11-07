@@ -77,7 +77,9 @@ from `internal/ports/ratelimit_policy.go`. Mount order:
   long bucket (0.1/s, burst 200 on the prism and stats policies) on the same
   key. Microsoft skips both: its identities cost a Minecraft licence.
 - One identity bucket per `(tier, identity)`. Each tier has its own budget. A
-  tier missing from the policy, or unknown, gets the anonymous rate.
+  tier missing from the policy, or unknown, gets the anonymous rate. An
+  optional long identity bucket (prism policy only) sets the sustained pace,
+  with the same fallback.
 - A bad bearer is 401'd before any limiter (one HMAC). Accepted.
 - `prestiges`, `prism-notices` and the auth endpoints keep their hand-built
   chains: IP limiters → bearer → `UserIDKeyFunc` limiter.
