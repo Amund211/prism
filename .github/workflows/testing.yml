@@ -53,7 +53,7 @@ jobs:
       - name: tee | stderr
         if: runner.os != 'Windows'
         run: |
-          echo 'TEE_STDERR=| tee /dev/stderr' >> $GITHUB_ENV
+          echo 'TEE_STDERR=| tee /dev/stderr' >> "$GITHUB_ENV"
 
       - name: Test ssl system certs
         run: |
@@ -73,7 +73,10 @@ jobs:
             curl --ssl-no-revoke --fail --silent https://localhost:12345 --cacert local-ca.pem ${{ env.TEE_STDERR }} | grep '^Hello world' >/dev/null 2>&1
 
             echo 'Ensure request fails with certifi ca' >&2
-            ! curl --ssl-no-revoke --fail https://localhost:12345 --cacert "$certifi_ca_certs" 2>&1 ${{ env.TEE_STDERR }} | grep 'SSL certificate problem' >/dev/null 2>&1
+            if curl --ssl-no-revoke --fail --silent --show-error https://localhost:12345 --cacert "$certifi_ca_certs" >/dev/null; then
+              echo 'Request unexpectedly succeeded with certifi ca' >&2
+              exit 1
+            fi
 
             echo 'Install certs' >&2
             ${{ matrix.INSTALL_CA_CERT }}
@@ -140,9 +143,11 @@ jobs:
           uv sync --locked
 
           VERSION_STRING="$(uv run python -c 'from prism import VERSION_STRING; print(VERSION_STRING)')"
-          echo "VERSION_STRING=$VERSION_STRING" >> $GITHUB_ENV
-          echo "SIMPLE_NAME=prism-$VERSION_STRING" >> $GITHUB_ENV
-          echo "BUILD_RESULT_NAME=prism-$VERSION_STRING-${{ matrix.OS_NAME }}${{ matrix.RESULT_EXTENSION }}" >> $GITHUB_ENV
+          {
+            echo "VERSION_STRING=$VERSION_STRING"
+            echo "SIMPLE_NAME=prism-$VERSION_STRING"
+            echo "BUILD_RESULT_NAME=prism-$VERSION_STRING-${{ matrix.OS_NAME }}${{ matrix.RESULT_EXTENSION }}"
+          } >> "$GITHUB_ENV"
 
       - name: Build native proof-of-work solver
         run: uv run build_powsolve.py
