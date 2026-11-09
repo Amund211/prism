@@ -82,6 +82,8 @@ jobs:
           go build ./cmd/fix-fixtures/main.go
 
   push-otel-collector-test:
+    # Fork PRs get no secrets. To deploy one, review it and push it to a branch here.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     name: Build and push OTel Collector for test instance
     runs-on: ubuntu-latest
     steps:
@@ -141,6 +143,8 @@ jobs:
           cache-to: type=gha,mode=max,scope=otel-collector
 
   deploy-test-instance:
+    # Fork PRs get no secrets. To deploy one, review it and push it to a branch here.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     name: Deploy test instance
     runs-on: ubuntu-latest
     # Only deploy the test instance if the tests pass
