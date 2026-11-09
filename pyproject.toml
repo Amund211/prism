@@ -39,7 +39,7 @@ dev = [
     "isort==9.0.2",
     "mypy==2.4.1",
     "pillow==13.0.0",
-    "pre-commit==4.7.0",
+    "prek==0.5.9",
     "pyinstaller==6.22.3",
     "pytest==9.2.0",
     "types-pyinstaller==6.22.1.20260827",
