@@ -5,12 +5,14 @@
     // :configMigration, :pinDevDependencies, abandonments:recommended,
     // security:minimumReleaseAgeNpm and :maintainLockFilesWeekly.
     // Renovate's own docs recommend this over plain config:recommended.
+    // docker:pinDigests is what digest-pins the flashlight golang build stage
+    // and the otel collector image.
     "config:best-practices",
     // Track SHA-pinned actions by the `# vX.Y.Z` comment as semver, rather than
     // by digest movement on a floating tag.
     "helpers:pinGitHubActionDigestsToSemver",
     // The pre-commit manager is disabled by default in renovate, so opt in
-    // explicitly.
+    // explicitly. It finds the nested prism/, flashlight/, rainbow/ configs.
     ":enablePreCommit",
     // config:recommended would use fix(deps) for runtime dependencies.
     // Everything in this repo's history is chore(deps) — keep it uniform.
@@ -18,47 +20,223 @@
   ],
   timezone: "Europe/Oslo",
   schedule: ["* 2-6 * * 1"],
-  // Required, not cosmetic: pyproject.toml sets `[tool.uv] exclude-newer = "1 week"`, and uv
-  // honours that when renovate shells out to it to regenerate uv.lock. Without a
-  // matching floor here renovate proposes versions its own lockfile step then
-  // fails to resolve.
+  // Required, not cosmetic: prism/pyproject.toml sets `[tool.uv] exclude-newer =
+  // "1 week"` and rainbow/pnpm-workspace.yaml sets `minimumReleaseAge: 10080`.
+  // uv and pnpm honour those when renovate shells out to regenerate the lock
+  // files. Without a matching floor here renovate proposes versions its own
+  // lockfile step then fails to resolve.
+  // For npm this is overridden by security:minimumReleaseAgeNpm (3 days) from
+  // config:best-practices; a packageRule below restores 7 days.
   minimumReleaseAge: "7 days",
-  prConcurrentLimit: 5,
-  prHourlyLimit: 2,
+  // Shared by three components now (was 5 per repo).
+  prConcurrentLimit: 10,
+  prHourlyLimit: 4,
   // Keep this off until the default branch ruleset requires status checks.
   // With no required check, platform automerge can merge a red PR.
   automerge: false,
   // Same labels as the dependabot PRs. A group PR gets the union.
   labels: ["dependencies"],
+  postUpdateOptions: [
+    // flashlight (gomod only). Renovate's default gomod update runs only
+    // `go get -t ./...`, which adds go.sum entries but never prunes stale ones,
+    // and never resolves packages that are only reachable through the
+    // `tool (...)` directive in go.mod. Both break CI: `go mod tidy && git diff
+    // --quiet` fails on the leftover entries, and `go tool govulncheck` fails
+    // with "missing go.sum entry" because only the `/go.mod` hash gets written
+    // for a tool dep, not the `h1:` module hash. Upstream intends to make this
+    // the default in a future major (renovatebot/renovate#45261).
+    "gomodTidy",
+    // flashlight (gomod only). A Go major bump changes the module path
+    // (`example.com/foo` -> `example.com/foo/v2`), so the import statements
+    // have to follow. This runs marwan-at-work/mod to rewrite them. It is also
+    // the flag that un-skips `go mod tidy` on major updates.
+    // Non-obvious: this executes `go install github.com/marwan-at-work/mod`
+    // inside the artifact step. That is NOT a renovate-managed dependency, so
+    // minimumReleaseAge does not apply to it. `constraints.gomodMod` pins it.
+    // Does not cover the `tool (...)` deps: renovate only rewrites the
+    // `require` line, so the tool path keeps the old major and tidy reverts the
+    // bump — those arrive as empty PRs that keep regenerating. Do them by hand
+    // when one shows up (matchPackageNames + major + enabled:false).
+    "gomodUpdateImportPaths",
+  ],
+  constraints: {
+    // Pins the `go install` above to an exact tag instead of `@latest`, so a
+    // brand-new release is not adopted (minimumReleaseAge cannot reach it).
+    // Renovate requires a leading `v` and valid semver here, otherwise it logs
+    // "compatibility range is not valid" and silently falls back to `@latest`.
+    // Bump by hand — renovate does not manage this value.
+    gomodMod: "v0.10.0",
+  },
   packageRules: [
+    // --- Groups. Must stay first: later rules win, so the specific group rules
+    // below keep their own groupName. Majors stay separate; separateMajorMinor
+    // splits them out regardless of grouping.
+    // One group per component, so each PR only triggers that component's
+    // path-filtered CI.
     {
-      // Batch routine updates into one PR. Must stay first — later rules win,
-      // so the group rules below keep their own groupName. Majors stay
-      // separate; separateMajorMinor splits them out regardless of grouping.
+      matchFileNames: ["prism/**"],
       matchUpdateTypes: ["minor", "patch", "digest"],
-      groupName: "all non-major dependencies",
+      groupName: "prism non-major dependencies",
     },
+    {
+      matchFileNames: ["flashlight/**"],
+      matchUpdateTypes: ["minor", "patch", "digest"],
+      groupName: "flashlight non-major dependencies",
+    },
+    {
+      matchFileNames: ["rainbow/**"],
+      matchUpdateTypes: ["minor", "patch", "digest"],
+      groupName: "rainbow non-major dependencies",
+    },
+    {
+      // All workflows live at the root. One PR for all of them; it runs every
+      // component's CI, since each workflow's `paths:` includes its own file.
+      matchFileNames: [".github/**"],
+      matchUpdateTypes: ["minor", "patch", "digest"],
+      groupName: "github-actions non-major dependencies",
+    },
+
+    // --- Component labels. A group PR gets the union.
+    { matchFileNames: ["prism/**", ".github/workflows/{codeql,linting,testing}.yml"], addLabels: ["prism"] },
+    { matchFileNames: ["flashlight/**", ".github/workflows/flashlight-*"], addLabels: ["flashlight"] },
+    { matchFileNames: ["rainbow/**", ".github/workflows/rainbow-*"], addLabels: ["rainbow"] },
+
+    // --- All components.
     {
       // A digest-only move on a SHA-pinned action means an existing tag was
       // repointed upstream — the tag-hijack signature (tj-actions/changed-files,
       // CVE-2025-30066). Legitimate fixes arrive as a new tag through the normal
       // version-update path.
+      // NOTE: Also freezes workflow service images (postgres) on their digest
+      // until a new tag.
       matchManagers: ["github-actions"],
       matchUpdateTypes: ["digest"],
       enabled: false,
     },
     {
       // lockFileMaintenance has no release timestamp, so the top-level 7 days
-      // keeps renovate/stability-days pending forever. uv enforces
-      // exclude-newer itself here.
+      // keeps renovate/stability-days pending forever (rainbow#382). uv and
+      // pnpm enforce their own release age here.
       matchUpdateTypes: ["lockFileMaintenance"],
       minimumReleaseAge: null,
     },
-    // pyproject.toml + uv.lock. Dependabot's uv ecosystem used python:uv.
+    {
+      // Of all the container registries, only Docker Hub reports a release
+      // timestamp to renovate (renovatebot/renovate#38656). Everything else —
+      // gcr.io and us-docker.pkg.dev in flashlight — reports none, and the
+      // default minimumReleaseAgeBehaviour=timestamp-required counts a missing
+      // timestamp as "not aged yet", forever. That is why dependabot opened
+      // flashlight#353 and flashlight#378 and renovate did not.
+      // Only decides what to do when the timestamp is absent, so it is a no-op
+      // for golang and postgres (those keep the full 7 days). Renovate warns on
+      // the dashboard for each dep it lets through unaged; that is the point.
+      matchDatasources: ["docker"],
+      minimumReleaseAgeBehaviour: "timestamp-optional",
+    },
+
+    // --- flashlight.
+    {
+      // The `go` directive in flashlight/go.mod. Renovate parses it with the
+      // `go-mod-directive` versioning, which reads `go 1.26.6` as the range
+      // `^1.26.6`. Under the default `replace` strategy the directive never
+      // moves. `bump` raises the floor to the new version instead. Every
+      // workflow resolves its toolchain from `go-version-file:
+      // flashlight/go.mod`, so leaving it behind means CI tests on an older Go
+      // than the Dockerfile ships.
+      // `matchDepTypes` is load-bearing: a `toolchain` directive would also be
+      // depName `go`, and that one renovate already updates by default.
+      matchFileNames: ["flashlight/**"],
+      matchManagers: ["gomod"],
+      matchDepTypes: ["golang"],
+      matchDepNames: ["go"],
+      rangeStrategy: "bump",
+      groupName: "go version",
+      // Go point releases are nearly always security releases, and the daily
+      // govulncheck fails on the stdlib the same day. Waiting for the release
+      // age and the Monday schedule left CI red for up to two weeks.
+      // osvVulnerabilityAlerts does not cover this: it skips the `go` directive.
+      minimumReleaseAge: null,
+      schedule: ["at any time"],
+    },
+    {
+      // Same group as the directive above, so the go.mod bump and the build
+      // stage's `FROM golang:...` bump arrive as one PR. No release age: Docker
+      // Hub resets the tag timestamp on every image rebuild, so the tag can stay
+      // "unaged" after the go directive passes (flashlight#397).
+      // The image can still lag the go.dev release by a few hours. Then the
+      // group PR opens with go.mod alone, and a later run adds the Dockerfile.
+      matchFileNames: ["flashlight/**"],
+      matchManagers: ["dockerfile"],
+      matchDepNames: ["golang"],
+      groupName: "go version",
+      minimumReleaseAge: null,
+      schedule: ["at any time"],
+    },
+    {
+      // The CI postgres service must match the Cloud SQL version
+      // (flashlight-postgres). Cloud SQL moves on its own maintenance
+      // schedule, so updates wait for a tick on the Dependency Dashboard.
+      // The dashboard only offers the newest version per bucket (minor, major),
+      // which can be ahead of Cloud SQL. Edit the created PR to match exactly.
+      matchFileNames: [".github/workflows/flashlight-*"],
+      matchManagers: ["github-actions"],
+      matchDatasources: ["docker"],
+      matchPackageNames: ["postgres"],
+      dependencyDashboardApproval: true,
+    },
+
+    // --- rainbow.
+    {
+      // Was `:pinDependencies` in rainbow: pin `dependencies` too, not only
+      // devDependencies (config:best-practices). Scoped so it cannot reach the
+      // other components.
+      matchFileNames: ["rainbow/**"],
+      matchDepTypes: ["dependencies"],
+      rangeStrategy: "pin",
+    },
+    {
+      // security:minimumReleaseAgeNpm sets npm to 3 days via a packageRule,
+      // which beats the top-level 7 days. Renovate then proposes versions
+      // 3-6 days old, and pnpm fails the lockfile with
+      // ERR_PNPM_NO_MATURE_MATCHING_VERSION (rainbow#405). Limited to update
+      // types that carry a release timestamp, so the preset's null for pin etc.
+      // still applies.
+      matchDatasources: ["npm"],
+      matchUpdateTypes: ["major", "minor", "patch"],
+      minimumReleaseAge: "7 days",
+    },
+    {
+      // Renovate cannot date this image (no annotations on the OCI index; the
+      // only timestamp is behind a signed redirect), so minimumReleaseAge never
+      // clears for it (rainbow#364).
+      matchDatasources: ["docker"],
+      matchPackageNames: ["mcr.microsoft.com/playwright"],
+      minimumReleaseAge: null,
+    },
+
+    // --- Dependabot-era ecosystem labels.
     { matchManagers: ["pep621"], addLabels: ["python:uv"] },
-    // .python-version
     { matchManagers: ["pyenv"], addLabels: ["python"] },
+    { matchManagers: ["gomod"], addLabels: ["go"] },
+    { matchManagers: ["dockerfile"], addLabels: ["docker"] },
+    { matchManagers: ["npm"], addLabels: ["javascript"] },
     { matchManagers: ["github-actions"], addLabels: ["github_actions"] },
     { matchManagers: ["pre-commit"], addLabels: ["pre_commit"] },
+
+    {
+      // playwright is pinned in two files that must agree on the chromium
+      // browser revision: `playwright` in rainbow/package.json, and the
+      // ui-tests container tag in .github/workflows/rainbow-testing.yml. Group
+      // them so one PR moves both. Must be LAST — later rules override earlier
+      // ones field-by-field, so a broader rule added below would clobber this
+      // groupName.
+      // Grouped is not atomic: renovate drops any half that has not cleared its
+      // checks, so a run can produce a PR that moves only one file. Expect that
+      // for up to a week after each playwright release, with ui-tests red until
+      // the second half lands.
+      matchDatasources: ["npm", "docker"],
+      matchPackageNames: ["playwright", "mcr.microsoft.com/playwright"],
+      groupName: "playwright",
+    },
   ],
 }
