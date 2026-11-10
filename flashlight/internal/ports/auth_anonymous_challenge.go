@@ -9,10 +9,10 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 
-	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/proofofwork"
-	"github.com/Amund211/flashlight/internal/ratelimiting"
-	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/prism/flashlight/internal/logging"
+	"github.com/Amund211/prism/flashlight/internal/proofofwork"
+	"github.com/Amund211/prism/flashlight/internal/ratelimiting"
+	"github.com/Amund211/prism/flashlight/internal/reporting"
 )
 
 // anonymousChallengeRequest names the identity the caller intends to log in

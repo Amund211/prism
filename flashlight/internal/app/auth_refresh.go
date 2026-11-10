@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/domain"
 )
 
 // RefreshSession extends the lifetime of an existing session given its

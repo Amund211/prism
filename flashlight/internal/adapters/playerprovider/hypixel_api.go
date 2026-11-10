@@ -13,12 +13,12 @@ import (
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/Amund211/flashlight/internal/config"
-	"github.com/Amund211/flashlight/internal/constants"
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/ratelimiting"
-	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/prism/flashlight/internal/config"
+	"github.com/Amund211/prism/flashlight/internal/constants"
+	"github.com/Amund211/prism/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/logging"
+	"github.com/Amund211/prism/flashlight/internal/ratelimiting"
+	"github.com/Amund211/prism/flashlight/internal/reporting"
 )
 
 const getPlayerDataMinOperationTime = 100 * time.Millisecond

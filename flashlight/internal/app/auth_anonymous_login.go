@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/domain"
 )
 
 // issuanceGuard is consulted before a new session is issued. It refuses

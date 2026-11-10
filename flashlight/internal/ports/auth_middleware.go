@@ -11,9 +11,9 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 
-	"github.com/Amund211/flashlight/internal/app"
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/prism/flashlight/internal/app"
+	"github.com/Amund211/prism/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/logging"
 )
 
 type authSessionCtxKey struct{}

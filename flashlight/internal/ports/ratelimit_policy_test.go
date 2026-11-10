@@ -12,9 +12,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/ports"
-	"github.com/Amund211/flashlight/internal/ratelimiting"
+	"github.com/Amund211/prism/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/ports"
+	"github.com/Amund211/prism/flashlight/internal/ratelimiting"
 )
 
 // Bearer tokens of the form "<tier>:<identity key>" validate to that session.

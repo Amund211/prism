@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/domain"
 )
 
 // challengeRx is base64url(sha256(verifier)), unpadded.

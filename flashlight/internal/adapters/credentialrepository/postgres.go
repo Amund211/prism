@@ -14,7 +14,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/domain"
 )
 
 type Postgres struct {

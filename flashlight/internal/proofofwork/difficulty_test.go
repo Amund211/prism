@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/proofofwork"
+	"github.com/Amund211/prism/flashlight/internal/proofofwork"
 )
 
 func TestBuildDifficultyFunc(t *testing.T) {

@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 
-	"github.com/Amund211/flashlight/internal/proofofwork"
+	"github.com/Amund211/prism/flashlight/internal/proofofwork"
 )
 
 type portsMetricsCollection struct {

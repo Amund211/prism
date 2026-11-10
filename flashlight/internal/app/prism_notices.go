@@ -6,8 +6,8 @@ import (
 	"slices"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/version"
+	"github.com/Amund211/prism/flashlight/internal/logging"
+	"github.com/Amund211/prism/flashlight/internal/version"
 )
 
 type Severity string

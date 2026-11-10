@@ -16,11 +16,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/app"
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/ports"
-	"github.com/Amund211/flashlight/internal/proofofwork"
-	"github.com/Amund211/flashlight/internal/signing"
+	"github.com/Amund211/prism/flashlight/internal/app"
+	"github.com/Amund211/prism/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/ports"
+	"github.com/Amund211/prism/flashlight/internal/proofofwork"
+	"github.com/Amund211/prism/flashlight/internal/signing"
 )
 
 var noopAuthMiddleware = func(h http.HandlerFunc) http.HandlerFunc {

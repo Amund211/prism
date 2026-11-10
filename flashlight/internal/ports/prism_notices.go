@@ -6,10 +6,10 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/Amund211/flashlight/internal/app"
-	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/ratelimiting"
-	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/prism/flashlight/internal/app"
+	"github.com/Amund211/prism/flashlight/internal/logging"
+	"github.com/Amund211/prism/flashlight/internal/ratelimiting"
+	"github.com/Amund211/prism/flashlight/internal/reporting"
 )
 
 // Wire-format types for the prism-notices endpoint. The HTTP contract is

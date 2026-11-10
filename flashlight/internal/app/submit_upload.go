@@ -12,7 +12,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/domain"
 )
 
 // ErrUploadNotFound is returned for an upload that does not exist, is done,

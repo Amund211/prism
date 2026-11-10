@@ -6,7 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 
-	"github.com/Amund211/flashlight/internal/config"
+	"github.com/Amund211/prism/flashlight/internal/config"
 )
 
 const DBName = "flashlight"

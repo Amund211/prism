@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
-	"github.com/Amund211/flashlight/internal/app"
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/domaintest"
+	"github.com/Amund211/prism/flashlight/internal/adapters/playerrepository"
+	"github.com/Amund211/prism/flashlight/internal/app"
+	"github.com/Amund211/prism/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/domaintest"
 )
 
 type mockHistoryRepository struct {

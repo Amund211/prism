@@ -16,15 +16,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/adapters/microsoftauth"
-	"github.com/Amund211/flashlight/internal/app"
-	"github.com/Amund211/flashlight/internal/authflowtoken"
-	"github.com/Amund211/flashlight/internal/authresulttoken"
-	"github.com/Amund211/flashlight/internal/authsessionguard"
-	"github.com/Amund211/flashlight/internal/authsessiontoken"
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/ports"
-	"github.com/Amund211/flashlight/internal/signing"
+	"github.com/Amund211/prism/flashlight/internal/adapters/microsoftauth"
+	"github.com/Amund211/prism/flashlight/internal/app"
+	"github.com/Amund211/prism/flashlight/internal/authflowtoken"
+	"github.com/Amund211/prism/flashlight/internal/authresulttoken"
+	"github.com/Amund211/prism/flashlight/internal/authsessionguard"
+	"github.com/Amund211/prism/flashlight/internal/authsessiontoken"
+	"github.com/Amund211/prism/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/ports"
+	"github.com/Amund211/prism/flashlight/internal/signing"
 )
 
 // fakeMicrosoftChain serves every leg of the chain. Unless approved,

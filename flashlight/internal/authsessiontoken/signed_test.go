@@ -10,9 +10,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/authsessiontoken"
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/signing"
+	"github.com/Amund211/prism/flashlight/internal/authsessiontoken"
+	"github.com/Amund211/prism/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/signing"
 )
 
 var testTime = time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)

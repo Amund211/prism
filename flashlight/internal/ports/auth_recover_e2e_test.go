@@ -20,11 +20,11 @@ import (
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/adapters/credentialrepository"
-	"github.com/Amund211/flashlight/internal/adapters/database"
-	"github.com/Amund211/flashlight/internal/app"
-	"github.com/Amund211/flashlight/internal/authsessionguard"
-	"github.com/Amund211/flashlight/internal/ports"
+	"github.com/Amund211/prism/flashlight/internal/adapters/credentialrepository"
+	"github.com/Amund211/prism/flashlight/internal/adapters/database"
+	"github.com/Amund211/prism/flashlight/internal/app"
+	"github.com/Amund211/prism/flashlight/internal/authsessionguard"
+	"github.com/Amund211/prism/flashlight/internal/ports"
 )
 
 type credentialLifecycle struct {

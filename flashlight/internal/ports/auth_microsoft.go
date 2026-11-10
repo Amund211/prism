@@ -10,11 +10,11 @@ import (
 	"net/url"
 	"regexp"
 
-	"github.com/Amund211/flashlight/internal/app"
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/ratelimiting"
-	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/prism/flashlight/internal/app"
+	"github.com/Amund211/prism/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/logging"
+	"github.com/Amund211/prism/flashlight/internal/ratelimiting"
+	"github.com/Amund211/prism/flashlight/internal/reporting"
 )
 
 // microsoftFlowCookieName: __Host- makes the browser refuse the cookie

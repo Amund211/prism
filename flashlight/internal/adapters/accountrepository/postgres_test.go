@@ -12,8 +12,8 @@ import (
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/adapters/database"
-	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/adapters/database"
+	"github.com/Amund211/prism/flashlight/internal/domain"
 )
 
 func newPostgres(t *testing.T, db *sqlx.DB, schemaSuffix string) *Postgres {

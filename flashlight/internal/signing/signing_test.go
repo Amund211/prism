@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/signing"
+	"github.com/Amund211/prism/flashlight/internal/signing"
 )
 
 func testKey(t *testing.T, fill byte) []byte {

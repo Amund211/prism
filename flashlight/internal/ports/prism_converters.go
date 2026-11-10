@@ -3,7 +3,7 @@ package ports
 import (
 	"encoding/json"
 
-	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/domain"
 )
 
 // Prism expects a hypixel API response

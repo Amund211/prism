@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/strutils"
+	"github.com/Amund211/prism/flashlight/internal/strutils"
 )
 
 func TestJSONStringsEqual(t *testing.T) {

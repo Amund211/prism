@@ -9,7 +9,7 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/strutils"
+	"github.com/Amund211/prism/flashlight/internal/strutils"
 )
 
 // sentryhttp attaches the incoming request to every event, and DataCollection

@@ -14,10 +14,10 @@ import (
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/adapters/database"
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/domaintest"
-	"github.com/Amund211/flashlight/internal/strutils"
+	"github.com/Amund211/prism/flashlight/internal/adapters/database"
+	"github.com/Amund211/prism/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/domaintest"
+	"github.com/Amund211/prism/flashlight/internal/strutils"
 )
 
 func newPostgresPlayerRepository(t *testing.T, db *sqlx.DB, schema string) *PostgresPlayerRepository {

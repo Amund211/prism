@@ -10,11 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/adapters/cache"
-	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
-	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/domaintest"
+	"github.com/Amund211/prism/flashlight/internal/adapters/cache"
+	"github.com/Amund211/prism/flashlight/internal/adapters/playerprovider"
+	"github.com/Amund211/prism/flashlight/internal/adapters/playerrepository"
+	"github.com/Amund211/prism/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/domaintest"
 )
 
 const UUID = "01234567-89ab-cdef-0123-456789abcdef"

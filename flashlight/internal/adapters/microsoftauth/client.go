@@ -18,8 +18,8 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/Amund211/flashlight/internal/constants"
-	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/constants"
+	"github.com/Amund211/prism/flashlight/internal/domain"
 )
 
 // scope is the only scope requested. Never offline_access: without it no

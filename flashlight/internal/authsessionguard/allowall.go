@@ -6,7 +6,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/domain"
 )
 
 // AllowAll issues every session asked of it. It is the only implementation,

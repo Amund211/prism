@@ -12,8 +12,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/ports"
-	"github.com/Amund211/flashlight/internal/proofofwork"
+	"github.com/Amund211/prism/flashlight/internal/ports"
+	"github.com/Amund211/prism/flashlight/internal/proofofwork"
 )
 
 func TestAnonymousChallengeHandler(t *testing.T) {

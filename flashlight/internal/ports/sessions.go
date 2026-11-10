@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/app"
-	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/reporting"
-	"github.com/Amund211/flashlight/internal/strutils"
+	"github.com/Amund211/prism/flashlight/internal/app"
+	"github.com/Amund211/prism/flashlight/internal/logging"
+	"github.com/Amund211/prism/flashlight/internal/reporting"
+	"github.com/Amund211/prism/flashlight/internal/strutils"
 )
 
 func MakeGetSessionsHandler(
