@@ -1,2 +1,5 @@
 # Move prism into prism/
 c3d656428799244918b692f2b8c887dff7f75b51
+
+# Rename flashlight Go module to github.com/Amund211/prism/flashlight
+aa3056ce8253132e167cf78ec0ec5f6553402635
