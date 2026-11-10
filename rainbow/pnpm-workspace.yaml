@@ -2,6 +2,8 @@ allowBuilds:
     "@sentry/cli": true
     esbuild: true
     fsevents: true
+    # Local Workers runtime; not needed for `wrangler pages deploy`
+    workerd: false
 
 blockExoticSubdeps: true
 
