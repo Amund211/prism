@@ -100,21 +100,12 @@ jobs:
                   echo "name=$branch" >> "$GITHUB_OUTPUT"
 
             - name: Deploy
-              id: deploy
               env:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
                   BRANCH: ${{ steps.branch.outputs.name }}
                   WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.ndjson
-              run: |
-                  pnpm exec wrangler pages deploy dist --project-name rainbow --branch "$BRANCH"
-                  # Pages shortens long aliases (sometimes with a hash), so read it from wrangler
-                  alias=$(jq -r 'select(.type == "pages-deploy-detailed") | .alias // empty' "$WRANGLER_OUTPUT_FILE_PATH")
-                  if [ -z "$alias" ]; then
-                      echo "No alias URL in wrangler output"
-                      exit 1
-                  fi
-                  echo "alias=$alias" >> "$GITHUB_OUTPUT"
+              run: pnpm exec wrangler pages deploy dist --project-name rainbow --branch "$BRANCH"
 
             - name: Comment preview URL
               if: ${{ github.event_name == 'pull_request' }}
@@ -122,8 +113,15 @@ jobs:
                   GH_TOKEN: ${{ github.token }}
                   PR: ${{ github.event.number }}
                   SHA: ${{ github.event.pull_request.head.sha }}
-                  URL: ${{ steps.deploy.outputs.alias }}
+                  WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.ndjson
               run: |
+                  # Pages shortens long aliases (sometimes with a hash), so read it from wrangler.
+                  # Only previews have an alias.
+                  URL=$(jq -r 'select(.type == "pages-deploy-detailed") | .alias // empty' "$WRANGLER_OUTPUT_FILE_PATH")
+                  if [ -z "$URL" ]; then
+                      echo "No alias URL in wrangler output"
+                      exit 1
+                  fi
                   gh pr comment "$PR" --edit-last --create-if-none --body "Preview: $URL (commit $SHA)"
 
     ui-tests:
