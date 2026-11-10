@@ -1,0 +1,49 @@
+default_stages: [pre-commit, pre-push]
+repos:
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v6.0.0
+      hooks:
+          - id: trailing-whitespace
+          - id: end-of-file-fixer
+          - id: mixed-line-ending
+          - id: check-yaml
+            # pnpm 12 writes the lockfile as two YAML documents
+            args: [--allow-multiple-documents]
+          - id: sort-simple-yaml
+          - id: check-merge-conflict
+          - id: check-added-large-files
+
+    - repo: local
+      hooks:
+          # oxlint and oxfmt run from node_modules, so package.json is the only
+          # place their versions live. Fields copied from the upstream hook
+          # definitions at oxc-project/mirrors-oxlint@v1.77.0 and
+          # mirrors-oxfmt@v0.63.0. The mirrors install oxlint on its own, which
+          # leaves out oxlint-tsgolint — an optional peer dependency that
+          # `"typeAware": true` in .oxlintrc.json needs — so this also lines the
+          # hook up with `pnpm run lint:check`.
+          # `pnpm exec` rather than a bare node_modules path: it reconciles
+          # node_modules with the lockfile first, so a stale checkout still
+          # lints at the version package.json pins.
+          - id: oxlint
+            name: oxlint
+            entry: pnpm exec oxlint
+            language: system
+            types_or: [javascript, jsx, ts, tsx]
+            verbose: false
+          - id: oxfmt
+            name: oxfmt
+            entry: pnpm exec oxfmt
+            language: system
+            types_or: [javascript, jsx, ts, tsx]
+            verbose: false
+          - id: test
+            name: Test
+            entry: pnpm run 'test:unit'
+            language: system
+            pass_filenames: false
+          - id: typecheck
+            name: Check types
+            entry: pnpm run tsc
+            language: system
+            pass_filenames: false

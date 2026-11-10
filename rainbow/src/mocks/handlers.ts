@@ -1,0 +1,357 @@
+import { http, HttpResponse } from "msw/http";
+
+import type { SolverReport } from "#helpers/flashlight/auth/proofOfWork.ts";
+import { isNormalizedUUID } from "#helpers/uuid.ts";
+import type { APIPlayerDataPIT } from "#queries/playerdata.ts";
+import type { APISessionAtResponse } from "#queries/sessionAt.ts";
+import type { APISession } from "#queries/sessions.ts";
+import type { APIUsernameResponse } from "#queries/username.ts";
+import type { APIUUIDResponse } from "#queries/uuid.ts";
+import type { APIWrappedData } from "#queries/wrapped.ts";
+
+import {
+    findUserByUsername,
+    findUserByUUID,
+    makeChallengeResponse,
+    makeMicrosoftSessionResponse,
+    makeMultiGamePlayerDataPIT,
+    makePlayerDataPIT,
+    makeSession,
+    makeSessionResponse,
+    makeWrappedResponse,
+} from "./data.ts";
+
+const flashlightEndpoint = (endpoint: string) => {
+    if (endpoint.startsWith("/")) {
+        throw new Error("Endpoint should not start with a slash");
+    }
+    return `http://localhost:5173/flashlight/${endpoint}`;
+};
+
+export const MOCK_UPLOAD_ID = "0b5b8b8e-3a7e-4a57-9a3c-6f3c2a1d9e01";
+export const MOCK_STORAGE_URL = "https://storage.example.test/uploads/";
+
+const validateUUID = (uuid: unknown): string => {
+    if (typeof uuid !== "string") {
+        throw new Error("Invalid UUID parameter");
+    }
+
+    if (!isNormalizedUUID(uuid)) {
+        throw new Error("Invalid UUID format");
+    }
+
+    return uuid;
+};
+
+export const handlers = [
+    http.post(
+        flashlightEndpoint("v1/auth/anonymous/challenge"),
+        async ({ request }) => {
+            const body = (await request.json()) as { userId: string };
+            if (typeof body.userId !== "string" || body.userId.length === 0) {
+                throw new TypeError("Invalid userId");
+            }
+
+            return HttpResponse.json(makeChallengeResponse(body.userId));
+        },
+    ),
+    http.post(flashlightEndpoint("v1/auth/anonymous/login"), async ({ request }) => {
+        const body = (await request.json()) as {
+            userId: string;
+            challenge: string;
+            solution: string;
+            solver?: Partial<SolverReport>;
+        };
+        if (body.challenge !== makeChallengeResponse(body.userId).challenge) {
+            throw new Error("Challenge was not minted for this userId");
+        }
+        // flashlight rejects an empty solution even at difficulty 0.
+        if (typeof body.solution !== "string" || body.solution.length === 0) {
+            throw new Error("Missing solution");
+        }
+        // flashlight drops a bad report silently, so catch it here instead
+        const { solver } = body;
+        if (
+            typeof solver?.name !== "string" ||
+            solver.name.length === 0 ||
+            typeof solver.version !== "string" ||
+            typeof solver.hashes !== "number" ||
+            solver.hashes <= 0 ||
+            typeof solver.elapsedSeconds !== "number" ||
+            solver.elapsedSeconds < 0
+        ) {
+            throw new Error("Missing or malformed solver report");
+        }
+
+        return HttpResponse.json(makeSessionResponse());
+    }),
+    http.post(flashlightEndpoint("v1/auth/refresh"), ({ request }) => {
+        const authorization = request.headers.get("Authorization");
+        if (authorization?.startsWith("Bearer flsess_") !== true) {
+            return new HttpResponse(null, { status: 401 });
+        }
+
+        return HttpResponse.json(
+            makeSessionResponse(authorization.slice("Bearer ".length)),
+        );
+    }),
+    http.post(flashlightEndpoint("v1/auth/microsoft/exchange"), async ({ request }) => {
+        const body = (await request.json()) as { result: unknown; verifier: unknown };
+        if (typeof body.result !== "string" || typeof body.verifier !== "string") {
+            return new HttpResponse("bad body", { status: 400 });
+        }
+
+        return HttpResponse.json(makeMicrosoftSessionResponse());
+    }),
+    // The fl_rm cookie is httpOnly and cross-origin here, so the mock cannot
+    // check it. It checks the body flashlight requires instead.
+    http.post(flashlightEndpoint("v1/auth/recover"), async ({ request }) => {
+        const body = await request.text();
+        if (body !== "{}") {
+            return new HttpResponse("bad body", { status: 400 });
+        }
+
+        return HttpResponse.json(makeMicrosoftSessionResponse());
+    }),
+    http.post(
+        flashlightEndpoint("v1/auth/logout"),
+        () => new HttpResponse(null, { status: 204 }),
+    ),
+    http.get(flashlightEndpoint("v1/auth/credentials"), ({ request }) => {
+        const authorization = request.headers.get("Authorization");
+        if (authorization?.startsWith("Bearer flsess_") !== true) {
+            return new HttpResponse("unauthorized", { status: 401 });
+        }
+
+        return HttpResponse.json({
+            credentials: [
+                {
+                    clientType: "rainbow",
+                    createdAt: "2026-10-01T12:00:00Z",
+                    lastUsedAt: "2026-10-10T12:00:00Z",
+                },
+            ],
+        });
+    }),
+    http.get(flashlightEndpoint("v1/account/uuid/:uuid"), (req) => {
+        const uuid = validateUUID(req.params.uuid);
+
+        const user = findUserByUUID(uuid);
+        if (user === null) {
+            const response: APIUsernameResponse = {
+                success: false,
+                uuid,
+                cause: "not found",
+            };
+            return HttpResponse.json(response, { status: 404 });
+        }
+
+        const response: APIUsernameResponse = {
+            success: true,
+            username: user.username,
+            uuid: user.uuid,
+        };
+        return HttpResponse.json(response);
+    }),
+    http.get(flashlightEndpoint("v1/account/username/:username"), (req) => {
+        const { username } = req.params;
+        if (typeof username !== "string" || username.length === 0) {
+            throw new Error("Invalid username parameter");
+        }
+
+        const user = findUserByUsername(username);
+        if (user === null) {
+            const response: APIUUIDResponse = {
+                success: false,
+                username,
+                cause: "not found",
+            };
+            return HttpResponse.json(response, { status: 404 });
+        }
+
+        const response: APIUUIDResponse = {
+            success: true,
+            username: user.username,
+            uuid: user.uuid,
+        };
+        return HttpResponse.json(response);
+    }),
+    http.post(flashlightEndpoint("v1/history"), async ({ request }) => {
+        const body = (await request.json()) as {
+            uuid: string;
+            start: string;
+            end: string;
+            limit: number;
+        };
+        validateUUID(body.uuid);
+
+        const startDate = new Date(body.start);
+        const endDate = new Date(body.end);
+
+        if (body.limit <= 2) {
+            // For limit=2: return start and end only
+            const response: APIPlayerDataPIT[] = [
+                makePlayerDataPIT(body.uuid, startDate.toISOString(), 1),
+                makePlayerDataPIT(body.uuid, endDate.toISOString(), 3),
+            ].slice(0, body.limit);
+            return HttpResponse.json(response);
+        }
+
+        const midDate = new Date((startDate.getTime() + endDate.getTime()) / 2);
+
+        const response: APIPlayerDataPIT[] = [
+            makePlayerDataPIT(body.uuid, startDate.toISOString(), 1),
+            makePlayerDataPIT(body.uuid, midDate.toISOString(), 2),
+            makePlayerDataPIT(body.uuid, endDate.toISOString(), 3),
+        ].slice(0, body.limit);
+
+        return HttpResponse.json(response);
+    }),
+    http.post(flashlightEndpoint("v1/session-at"), async ({ request }) => {
+        const body = (await request.json()) as {
+            uuid: string;
+            time: string;
+        };
+        validateUUID(body.uuid);
+
+        const timeDate = new Date(body.time);
+        const startDate = new Date(timeDate.getTime() - 60 * 60 * 1000);
+        const midDate = new Date(timeDate);
+        const mid2Date = new Date(timeDate.getTime() + 30 * 60 * 1000);
+        const mid3Date = new Date(timeDate.getTime() + 45 * 60 * 1000);
+        const endDate = new Date(timeDate.getTime() + 60 * 60 * 1000);
+
+        const startPIT = makePlayerDataPIT(body.uuid, startDate.toISOString(), 1);
+        const midPIT = makePlayerDataPIT(body.uuid, midDate.toISOString(), 2);
+        const mid2PIT = makePlayerDataPIT(body.uuid, mid2Date.toISOString(), 3);
+        const mid3PIT = makePlayerDataPIT(body.uuid, mid3Date.toISOString(), 4);
+        // Last segment covers several games at once, so its counters advance
+        // from the previous snapshot rather than jumping a whole multiplier.
+        const endPIT = makeMultiGamePlayerDataPIT(mid3PIT, endDate.toISOString());
+
+        const response: APISessionAtResponse = {
+            session: makeSession(
+                body.uuid,
+                startDate.toISOString(),
+                endDate.toISOString(),
+            ),
+            games: [
+                {
+                    start: startPIT,
+                    end: midPIT,
+                    game: {
+                        gamemode: "doubles",
+                        outcome: "win",
+                        finalKills: 5,
+                        finalDeath: true,
+                        bedsBroken: 1,
+                        bedLost: false,
+                        kills: 12,
+                        deaths: 4,
+                        experience: 2400,
+                    },
+                },
+                {
+                    start: midPIT,
+                    end: mid2PIT,
+                    game: {
+                        gamemode: "fours",
+                        outcome: "loss",
+                        finalKills: 2,
+                        finalDeath: true,
+                        bedsBroken: 0,
+                        bedLost: true,
+                        kills: 6,
+                        deaths: 5,
+                        experience: 700,
+                    },
+                },
+                {
+                    start: mid2PIT,
+                    end: mid3PIT,
+                    game: {
+                        gamemode: "4v4",
+                        outcome: "win",
+                        finalKills: 3,
+                        finalDeath: false,
+                        bedsBroken: 1,
+                        bedLost: false,
+                        kills: 8,
+                        deaths: 2,
+                        experience: 1800,
+                    },
+                },
+                { start: mid3PIT, end: endPIT, game: null },
+            ],
+        };
+
+        return HttpResponse.json(response);
+    }),
+    http.post(flashlightEndpoint("v1/sessions"), async ({ request }) => {
+        const body = (await request.json()) as {
+            uuid: string;
+            start: string;
+            end: string;
+        };
+        validateUUID(body.uuid);
+
+        const startDate = new Date(body.start);
+        const endDate = new Date(body.end);
+        const midDate = new Date((startDate.getTime() + endDate.getTime()) / 2);
+
+        const response: APISession[] = [
+            makeSession(body.uuid, startDate.toISOString(), midDate.toISOString()),
+            makeSession(body.uuid, midDate.toISOString(), endDate.toISOString()),
+        ];
+
+        return HttpResponse.json(response);
+    }),
+    http.get(flashlightEndpoint("v1/wrapped/:uuid/:year"), (req) => {
+        const uuid = validateUUID(req.params.uuid);
+        const yearParam = req.params.year;
+        if (typeof yearParam !== "string") {
+            throw new Error("Invalid year parameter");
+        }
+        const year = Number.parseInt(yearParam, 10);
+        if (!Number.isFinite(year) || year < 2000 || year > 3000) {
+            throw new Error("Invalid year parameter");
+        }
+
+        const response: APIWrappedData = makeWrappedResponse(uuid, year);
+        return HttpResponse.json(response);
+    }),
+    http.post(flashlightEndpoint("v1/uploads/:kind"), async ({ request }) => {
+        const body = (await request.json()) as { files: readonly unknown[] };
+        return HttpResponse.json(
+            {
+                success: true,
+                uploadId: MOCK_UPLOAD_ID,
+                expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+                files: body.files.map((_, index) => ({
+                    url: MOCK_STORAGE_URL,
+                    fields: {
+                        key: `tabcap/pending/${MOCK_UPLOAD_ID}/${index.toString()}.png`,
+                    },
+                })),
+            },
+            { status: 201 },
+        );
+    }),
+    http.post(MOCK_STORAGE_URL, () => new HttpResponse(null, { status: 204 })),
+    http.post(flashlightEndpoint("v1/uploads/:kind/:uploadId/complete"), ({ params }) =>
+        HttpResponse.json({ success: true, uploadId: params.uploadId }),
+    ),
+    http.get("https://api.mineatar.io/:variant/:uuid", (req) => {
+        validateUUID(req.params.uuid);
+
+        // Placeholder image
+        const pngData =
+            "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAAXNSR0IB2cksfwAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+oDFRAONPh9NXIAAABDSURBVCjPY6xn+M9ACmBiIBHQU0MjQ0MjQwOmCjRxkm1gpGMoNTIw4lKELMWESwKXIEIDxDNY9SD7E93TJGsYimkJAA3UEZ+W43wuAAAAAElFTkSuQmCC";
+        // oxlint-disable-next-line unicorn/prefer-code-point -- atob produces single-byte chars (0-255), charCodeAt is semantically correct for byte extraction
+        const buffer = Uint8Array.from(atob(pngData), (c) => c.charCodeAt(0));
+
+        return HttpResponse.arrayBuffer(buffer.buffer, {
+            headers: { "Content-Type": "image/png" },
+        });
+    }),
+];

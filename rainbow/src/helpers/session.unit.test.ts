@@ -1,0 +1,326 @@
+import { randomUUID } from "node:crypto";
+
+import { test, expect, describe } from "vitest";
+
+import type { PlayerDataPIT, StatsPIT } from "#queries/playerdata.ts";
+
+import { addExtrapolatedSessions } from "./session.ts";
+
+const playerUUID = randomUUID();
+
+const makeStatsPIT = (gamesPlayed: number): StatsPIT => ({
+    gamesPlayed,
+    wins: 0,
+    losses: 0,
+    kills: 0,
+    deaths: 0,
+    finalKills: 0,
+    finalDeaths: 0,
+    winstreak: 0,
+    bedsBroken: 0,
+    bedsLost: 0,
+});
+const makePlayerDataPIT = (gamesPlayed: number, experience: number): PlayerDataPIT => ({
+    uuid: playerUUID,
+    queriedAt: new Date(1_700_000_000_000 + gamesPlayed * 60_000),
+    experience,
+    overall: makeStatsPIT(gamesPlayed),
+    solo: makeStatsPIT(0),
+    doubles: makeStatsPIT(0),
+    threes: makeStatsPIT(0),
+    fours: makeStatsPIT(gamesPlayed),
+    "4v4": makeStatsPIT(0),
+});
+
+describe(addExtrapolatedSessions, () => {
+    const cases = [
+        {
+            name: "No sessions no history",
+            input: [],
+            history: undefined,
+            expected: [],
+        },
+        {
+            name: "Sessions undefined history",
+            input: [
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(11, 12_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+            ],
+            history: undefined,
+            expected: [
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(11, 12_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+            ],
+        },
+        {
+            name: "Sessions no history",
+            input: [
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(13, 12_000),
+                    extrapolated: false,
+                    consecutive: false,
+                    ongoing: false,
+                },
+            ],
+            history: [],
+            expected: [
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(13, 12_000),
+                    extrapolated: false,
+                    consecutive: false,
+                    ongoing: false,
+                },
+            ],
+        },
+        {
+            name: "Sessions one history (impossible)",
+            input: [
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(11, 12_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+            ],
+            history: [makePlayerDataPIT(0, 0)],
+            // This should not be possible -> just return the session
+            expected: [
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(11, 12_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+            ],
+        },
+        {
+            name: "no sessions",
+            input: [],
+            history: [makePlayerDataPIT(10, 11_000), makePlayerDataPIT(12, 12_000)],
+            expected: [
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(12, 12_000),
+                    extrapolated: true,
+                    consecutive: false,
+                    ongoing: false,
+                },
+            ],
+        },
+        {
+            name: "Sessions match history",
+            input: [
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(12, 12_000),
+                    extrapolated: false,
+                    consecutive: false,
+                    ongoing: false,
+                },
+            ],
+            history: [makePlayerDataPIT(10, 11_000), makePlayerDataPIT(12, 12_000)],
+            expected: [
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(12, 12_000),
+                    extrapolated: false,
+                    consecutive: false,
+                    ongoing: false,
+                },
+            ],
+        },
+        {
+            name: "extrapolated session at start",
+            input: [
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(11, 12_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+            ],
+            history: [makePlayerDataPIT(8, 9000), makePlayerDataPIT(11, 12_000)],
+            expected: [
+                {
+                    start: makePlayerDataPIT(8, 9000),
+                    end: makePlayerDataPIT(10, 11_000),
+                    extrapolated: true,
+                    consecutive: false,
+                    ongoing: false,
+                },
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(11, 12_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+            ],
+        },
+        {
+            name: "extrapolated session at end",
+            input: [
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(11, 12_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+            ],
+            history: [makePlayerDataPIT(10, 11_000), makePlayerDataPIT(16, 21_000)],
+            expected: [
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(11, 12_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+                {
+                    start: makePlayerDataPIT(11, 12_000),
+                    end: makePlayerDataPIT(16, 21_000),
+                    extrapolated: true,
+                    consecutive: false,
+                    ongoing: false,
+                },
+            ],
+        },
+        {
+            name: "extrapolated session at start and end",
+            input: [
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(11, 12_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+            ],
+            history: [makePlayerDataPIT(8, 9000), makePlayerDataPIT(16, 21_000)],
+            expected: [
+                {
+                    start: makePlayerDataPIT(8, 9000),
+                    end: makePlayerDataPIT(10, 11_000),
+                    extrapolated: true,
+                    consecutive: false,
+                    ongoing: false,
+                },
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(11, 12_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+                {
+                    start: makePlayerDataPIT(11, 12_000),
+                    end: makePlayerDataPIT(16, 21_000),
+                    extrapolated: true,
+                    consecutive: false,
+                    ongoing: false,
+                },
+            ],
+        },
+        {
+            name: "extrapolated session at start and end and middle",
+            input: [
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(11, 12_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+                {
+                    start: makePlayerDataPIT(12, 14_000),
+                    end: makePlayerDataPIT(13, 16_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+                {
+                    start: makePlayerDataPIT(14, 17_000),
+                    end: makePlayerDataPIT(15, 18_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+            ],
+            history: [makePlayerDataPIT(8, 9000), makePlayerDataPIT(16, 21_000)],
+            expected: [
+                {
+                    start: makePlayerDataPIT(8, 9000),
+                    end: makePlayerDataPIT(10, 11_000),
+                    extrapolated: true,
+                    consecutive: false,
+                    ongoing: false,
+                },
+                {
+                    start: makePlayerDataPIT(10, 11_000),
+                    end: makePlayerDataPIT(11, 12_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+                {
+                    start: makePlayerDataPIT(11, 12_000),
+                    end: makePlayerDataPIT(12, 14_000),
+                    extrapolated: true,
+                    consecutive: true,
+                    ongoing: false,
+                },
+                {
+                    start: makePlayerDataPIT(12, 14_000),
+                    end: makePlayerDataPIT(13, 16_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+                {
+                    start: makePlayerDataPIT(13, 16_000),
+                    end: makePlayerDataPIT(14, 17_000),
+                    extrapolated: true,
+                    consecutive: true,
+                    ongoing: false,
+                },
+                {
+                    start: makePlayerDataPIT(14, 17_000),
+                    end: makePlayerDataPIT(15, 18_000),
+                    extrapolated: false,
+                    consecutive: true,
+                    ongoing: false,
+                },
+                {
+                    start: makePlayerDataPIT(15, 18_000),
+                    end: makePlayerDataPIT(16, 21_000),
+                    extrapolated: true,
+                    consecutive: true,
+                    ongoing: false,
+                },
+            ],
+        },
+    ];
+
+    for (const tc of cases) {
+        test(tc.name, () => {
+            const result = addExtrapolatedSessions(tc.input, tc.history);
+            expect(result).toStrictEqual(tc.expected);
+        });
+    }
+});

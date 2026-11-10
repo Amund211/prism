@@ -1,0 +1,68 @@
+// oxlint-disable import/no-unassigned-import
+// oxlint-disable import/first
+
+import "#instrumentation.ts"; // Set up Sentry
+import { captureMessage, reactErrorHandler, setUser } from "@sentry/react";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+
+import "@fontsource/roboto/300.css";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/700.css";
+import { isMicrosoftCallback } from "#helpers/flashlight/auth/microsoft.ts";
+import { startSession } from "#helpers/flashlight/auth/session.ts";
+import { getOrSetUserId } from "#helpers/userId.ts";
+
+const userId = getOrSetUserId(); // Ensure a user ID is set
+
+// Overlap the login round-trip with app boot. Not on the sign-in callback: the
+// sign-in would wait for an anonymous login, then replace it.
+if (!isMicrosoftCallback()) {
+    void startSession();
+}
+
+// Set the user in Sentry
+setUser({
+    id: userId,
+});
+
+import { createAppRouter } from "#createRouter.ts";
+import { createQueryClient, createIDBPersister } from "#queryClient.ts";
+
+import { App } from "./App.tsx";
+
+const queryClient = createQueryClient();
+const persister = createIDBPersister();
+const router = createAppRouter(queryClient);
+
+const root = document.querySelector("#root");
+
+if (!root) {
+    captureMessage("Root element not found", {
+        level: "fatal",
+    });
+    throw new Error("Root element not found");
+}
+
+// Remove old query cache from localStorage
+// We now use IndexedDB via idb-keyval
+// TODO(2025-11-09): Remove this after a while
+localStorage.removeItem("REACT_QUERY_OFFLINE_CACHE");
+
+createRoot(root, {
+    // Callback called when an error is thrown and not caught by an ErrorBoundary.
+    // oxlint-disable-next-line promise/prefer-await-to-callbacks
+    onUncaughtError: reactErrorHandler((error, errorInfo) => {
+        // oxlint-disable-next-line eslint/no-console
+        console.warn("Uncaught error", error, errorInfo.componentStack);
+    }),
+    // Callback called when React catches an error in an ErrorBoundary.
+    onCaughtError: reactErrorHandler(),
+    // Callback called when React automatically recovers from errors.
+    onRecoverableError: reactErrorHandler(),
+}).render(
+    <StrictMode>
+        <App router={router} queryClient={queryClient} persister={persister} />
+    </StrictMode>,
+);

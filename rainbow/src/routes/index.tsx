@@ -1,0 +1,183 @@
+import { Delete, Download } from "@mui/icons-material";
+import { Alert, Button, IconButton, Stack, Typography } from "@mui/material";
+import { captureException } from "@sentry/react";
+import { createFileRoute, createLink, Link } from "@tanstack/react-router";
+
+import { PlayerHead } from "#components/player.tsx";
+import { UserSearch } from "#components/UserSearch.tsx";
+import { useCurrentUser } from "#contexts/CurrentUser/hooks.ts";
+import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
+import { favoriteUUIDsFromStorage, selectFavoriteUUIDs } from "#helpers/favorites.ts";
+import { useLocalStorage } from "#hooks/useLocalStorage.ts";
+import { prefetchQuery } from "#queries/prefetch.ts";
+import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
+
+const RouterLinkButton = createLink(Button);
+
+const DOWNLOADS_BANNER_DISMISSED_KEY = "downloadsBannerDismissed";
+
+export const Route = createFileRoute("/")({
+    loader: ({ context: { queryClient } }) => {
+        // The favorites come from local storage, so they're known before the
+        // providers mount and their usernames can be resolved up front.
+        for (const uuid of favoriteUUIDsFromStorage()) {
+            void prefetchQuery(queryClient, getUsernameQueryOptions(uuid));
+        }
+    },
+    // oxlint-disable-next-line eslint/no-use-before-define
+    component: RouteComponent,
+});
+
+function RouteComponent() {
+    const navigate = Route.useNavigate();
+    const { currentUser } = useCurrentUser();
+    const { favoriteUUIDs, removePlayerVisits } = usePlayerVisits();
+    const favorites = selectFavoriteUUIDs(favoriteUUIDs, currentUser);
+    const uuidToUsername = useUUIDToUsername(favorites);
+    const [downloadsBannerDismissed, setDownloadsBannerDismissed] = useLocalStorage(
+        DOWNLOADS_BANNER_DISMISSED_KEY,
+    );
+
+    return (
+        <Stack
+            sx={{
+                height: "100%",
+                width: "100%",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 2,
+            }}
+        >
+            <meta
+                name="description"
+                content="The Prism Overlay for Hypixel Bedwars shows the stats of all players in your game and automatically tracks your progress. View your session stats and compare your stats with other players."
+            />
+            <link rel="canonical" href="https://prismoverlay.com" />
+            {downloadsBannerDismissed === null && (
+                <Alert
+                    severity="info"
+                    icon={<Download fontSize="inherit" />}
+                    onClose={() => {
+                        setDownloadsBannerDismissed("true");
+                    }}
+                >
+                    <Typography variant="body2">
+                        Looking for the overlay? <Link to="/downloads">Download</Link>{" "}
+                        the Prism Overlay to track your stats!
+                    </Typography>
+                </Alert>
+            )}
+            <UserSearch
+                onSubmit={(uuid) => {
+                    void (async () => {
+                        try {
+                            await navigate({
+                                to: "/session/$uuid",
+                                params: { uuid },
+                                search: {
+                                    gamemode: "overall",
+                                    stat: "fkdr",
+                                    timeIntervalDefinition: { type: "contained" },
+                                    variantSelection: "both",
+                                    sessionTableMode: "total",
+                                    showExtrapolatedSessions: false,
+                                },
+                            });
+                        } catch (error: unknown) {
+                            captureException(error, {
+                                tags: {
+                                    param: "gamemode",
+                                },
+                                extra: {
+                                    message: "Failed to update search params",
+                                    gamemode: "overall",
+                                },
+                            });
+                        }
+                    })();
+                }}
+                size="medium"
+            />
+            {favorites.length > 0 && (
+                <Stack
+                    direction="row"
+                    sx={{
+                        gap: 1,
+                    }}
+                >
+                    {favorites.map((uuid) => (
+                        <RouterLinkButton
+                            sx={{
+                                minWidth: 80,
+                                textTransform: "none",
+                                [`& #delete-favorite-${uuid}`]: {
+                                    transition: "opacity 0.2s",
+                                    opacity: 0,
+                                },
+                                [`&:hover #delete-favorite-${uuid}`]: {
+                                    transition: "opacity 0.2s",
+                                    opacity: 1,
+                                },
+                            }}
+                            key={uuid}
+                            to="/session/$uuid"
+                            params={{ uuid }}
+                            search={{
+                                gamemode: "overall",
+                                stat: "fkdr",
+                                timeIntervalDefinition: { type: "contained" },
+                                variantSelection: "both",
+                                sessionTableMode: "total",
+                                showExtrapolatedSessions: false,
+                            }}
+                        >
+                            <Stack
+                                sx={{
+                                    alignItems: "center",
+                                    gap: 1,
+                                }}
+                            >
+                                <PlayerHead
+                                    uuid={uuid}
+                                    username={uuidToUsername[uuid]}
+                                    variant="cube"
+                                />
+                                <Typography variant="body2">
+                                    {uuidToUsername[uuid]}
+                                </Typography>
+                            </Stack>
+                            <IconButton
+                                id={`delete-favorite-${uuid}`}
+                                sx={{
+                                    position: "absolute",
+                                    top: -5,
+                                    right: -5,
+                                    "&:hover": {
+                                        transition: "opacity 0.2s",
+                                        opacity: "1!important",
+                                    },
+                                    "&:focus": {
+                                        transition: "opacity 0.2s",
+                                        opacity: "1!important",
+                                    },
+                                }}
+                                size="small"
+                                color="error"
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    event.preventDefault();
+                                    removePlayerVisits(uuid);
+                                }}
+                            >
+                                <Delete
+                                    fontSize="small"
+                                    aria-label={`Remove ${uuidToUsername[uuid] ?? "unknown"} from favorites`}
+                                />
+                            </IconButton>
+                        </RouterLinkButton>
+                    ))}
+                </Stack>
+            )}
+        </Stack>
+    );
+}

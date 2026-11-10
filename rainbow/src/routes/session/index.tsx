@@ -1,0 +1,58 @@
+import { Stack } from "@mui/material";
+import { captureException } from "@sentry/react";
+import { createFileRoute } from "@tanstack/react-router";
+
+import { UserSearch } from "#components/UserSearch.tsx";
+import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
+
+export const Route = createFileRoute("/session/")({
+    // oxlint-disable-next-line eslint/no-use-before-define
+    component: RouteComponent,
+});
+
+function RouteComponent() {
+    const navigate = Route.useNavigate();
+    const { visitPlayer } = usePlayerVisits();
+
+    return (
+        <Stack spacing={1}>
+            <meta
+                name="description"
+                content="Search for player's session stats, including daily, weekly, and monthly stats, as well as a progression towards stat milestones, and individual session breakdowns."
+            />
+            <link rel="canonical" href="https://prismoverlay.com/session" />
+            <UserSearch
+                onSubmit={(uuid) => {
+                    visitPlayer(uuid);
+                    void (async () => {
+                        try {
+                            await navigate({
+                                from: "/session/",
+                                to: "/session/$uuid",
+                                params: { uuid },
+                                search: {
+                                    gamemode: "overall",
+                                    stat: "fkdr",
+                                    timeIntervalDefinition: { type: "contained" },
+                                    variantSelection: "both",
+                                    sessionTableMode: "total",
+                                    showExtrapolatedSessions: false,
+                                },
+                            });
+                        } catch (error: unknown) {
+                            captureException(error, {
+                                tags: {
+                                    param: "uuid",
+                                },
+                                extra: {
+                                    message: "Failed to update search params",
+                                    uuid,
+                                },
+                            });
+                        }
+                    })();
+                }}
+            />
+        </Stack>
+    );
+}

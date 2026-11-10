@@ -1,0 +1,113 @@
+import type { History } from "#queries/history.ts";
+import { computeStat } from "#stats/index.ts";
+import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS, ALL_VARIANT_KEYS } from "#stats/keys.ts";
+import { MS_PER_MINUTE } from "#time.ts";
+
+import { makeDataKey } from "./dataKeys.ts";
+import type { DataKey } from "./dataKeys.ts";
+
+type MutableChartDataEntry = Record<DataKey, number | undefined | null> & {
+    queriedAt: number;
+};
+type ChartDataEntry = Readonly<Record<DataKey, number | undefined | null>> & {
+    readonly queriedAt: number;
+};
+
+type MutableChartData = MutableChartDataEntry[];
+export type ChartData = readonly ChartDataEntry[];
+
+const generateChartDataFromSingleHistory = (history: History): ChartData => {
+    const data: MutableChartData = [];
+    for (const playerData of history) {
+        const entry: MutableChartDataEntry = {
+            queriedAt: playerData.queriedAt.getTime(),
+        };
+        for (const variant of ALL_VARIANT_KEYS) {
+            for (const gamemode of ALL_GAMEMODE_KEYS) {
+                for (const stat of ALL_STAT_KEYS) {
+                    const key = makeDataKey({
+                        uuid: playerData.uuid,
+                        stat,
+                        variant,
+                        gamemode,
+                    });
+
+                    entry[key] = computeStat(
+                        playerData,
+                        gamemode,
+                        stat,
+                        variant,
+                        history,
+                    );
+                }
+            }
+        }
+        data.push(entry);
+    }
+    return data;
+};
+
+export const clusterChartData = (chartData: ChartData): ChartData => {
+    if (chartData.length === 0) {
+        return [];
+    }
+
+    // oxlint-disable-next-line unicorn/prefer-at
+    const timeSpan = chartData[chartData.length - 1].queriedAt - chartData[0].queriedAt;
+    // Cluster entries that are closer than 1% of the time span or 1 minute
+    const threshold = Math.max(timeSpan / 100, MS_PER_MINUTE);
+
+    const clusteredChartData: MutableChartData = [];
+    for (let i = chartData.length - 1; i >= 0; i--) {
+        const entry = chartData[i];
+        let entriesToCluster = 1; // Number of entries to cluster, including this one
+        while (
+            i - entriesToCluster >= 0 &&
+            entry.queriedAt - chartData[i - entriesToCluster].queriedAt <= threshold
+        ) {
+            entriesToCluster++;
+        }
+        for (let offset = 0; offset < entriesToCluster; offset++) {
+            const newEntry = {
+                ...chartData[i - offset],
+                queriedAt: entry.queriedAt,
+            };
+            clusteredChartData.push(newEntry);
+        }
+        // Skip the entries that were clustered, the current entry is already skipped by the for loop
+        i -= entriesToCluster - 1;
+    }
+
+    return clusteredChartData.toReversed();
+};
+
+export const generateChartData = (histories: readonly History[]): ChartData => {
+    const chartData = histories
+        .flatMap(generateChartDataFromSingleHistory)
+        .toSorted((a, b) => a.queriedAt - b.queriedAt);
+
+    if (chartData.length === 0) {
+        return [];
+    }
+
+    // Don't cluster single history -> leads to better cross graph comparison for single users
+    // The main reason for clustering is to join data from different users
+    const clusteredChartData =
+        histories.length > 1 ? clusterChartData(chartData) : chartData;
+
+    // Merge duplicate queriedAt values
+    const mergedChartData: MutableChartData = [clusteredChartData[0]];
+    for (const entry of clusteredChartData) {
+        // oxlint-disable-next-line unicorn/prefer-at
+        const lastEntry = mergedChartData[mergedChartData.length - 1];
+        if (lastEntry.queriedAt === entry.queriedAt) {
+            mergedChartData[mergedChartData.length - 1] = {
+                ...lastEntry,
+                ...entry,
+            };
+        } else {
+            mergedChartData.push(entry);
+        }
+    }
+    return mergedChartData;
+};

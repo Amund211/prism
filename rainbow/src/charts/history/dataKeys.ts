@@ -1,0 +1,32 @@
+import type {
+    GamemodeKey,
+    GamemodeStatKey,
+    OverallStatKey,
+    StatKey,
+    VariantKey,
+} from "#stats/keys.ts";
+
+type UUID = string;
+
+interface DataKeyInput {
+    readonly uuid: UUID;
+    readonly variant: VariantKey;
+    readonly gamemode: GamemodeKey;
+    readonly stat: StatKey;
+}
+
+export type DataKey =
+    | `history-${UUID}-${VariantKey}-${OverallStatKey}`
+    | `history-${UUID}-${VariantKey}-${GamemodeKey}-${GamemodeStatKey}`;
+
+export const makeDataKey = ({
+    uuid,
+    variant,
+    gamemode,
+    stat,
+}: DataKeyInput): DataKey => {
+    if (stat === "experience" || stat === "stars") {
+        return `history-${uuid}-${variant}-${stat}`;
+    }
+    return `history-${uuid}-${variant}-${gamemode}-${stat}`;
+};

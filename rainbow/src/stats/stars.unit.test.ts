@@ -1,0 +1,31 @@
+import { test, expect, describe } from "vitest";
+
+import { bedwarsLevelFromExp } from "./stars.ts";
+
+describe(bedwarsLevelFromExp, () => {
+    const cases: { exp: number; stars: number; decimalPrecision: boolean }[] = [
+        { exp: 500, stars: 1.0, decimalPrecision: true },
+        { exp: 3648, stars: 3 + 148 / 3500, decimalPrecision: true },
+        { exp: 89_025, stars: 20 + 2025 / 5000, decimalPrecision: true },
+        { exp: 122_986, stars: 27, decimalPrecision: false },
+        { exp: 954_638, stars: 196, decimalPrecision: false },
+        { exp: 969_078, stars: 199, decimalPrecision: false },
+        { exp: 975_611, stars: 202, decimalPrecision: false },
+        { exp: 977_587, stars: 203, decimalPrecision: false },
+        { exp: 2_344_717, stars: 481 + 4717 / 5000, decimalPrecision: true },
+        { exp: 4_870_331, stars: 1000 + 331 / 500, decimalPrecision: true },
+        { exp: 5_316_518, stars: 1091 + 4518 / 5000, decimalPrecision: true },
+    ];
+
+    for (const { exp, stars, decimalPrecision } of cases) {
+        test(exp.toString(), () => {
+            const calculatedStar = bedwarsLevelFromExp(exp);
+
+            if (decimalPrecision) {
+                expect(calculatedStar).toBe(stars);
+            } else {
+                expect(Math.floor(calculatedStar)).toBe(stars);
+            }
+        });
+    }
+});

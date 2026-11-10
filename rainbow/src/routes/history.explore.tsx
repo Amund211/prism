@@ -1,0 +1,579 @@
+import { QueryStats } from "@mui/icons-material";
+import {
+    Card,
+    CardContent,
+    Chip,
+    IconButton,
+    MenuItem,
+    Select,
+    Stack,
+    ToggleButton,
+    ToggleButtonGroup,
+    Tooltip,
+} from "@mui/material";
+import { DateTimePicker } from "@mui/x-date-pickers";
+import { captureException } from "@sentry/react";
+import { createFileRoute, createLink, Navigate } from "@tanstack/react-router";
+import dayjs from "dayjs";
+import React from "react";
+
+import { HistoryChart, HistoryChartTitle } from "#charts/history/chart.tsx";
+import { UserMultiSelect } from "#components/UserSearch.tsx";
+import { usePlayerVisits } from "#contexts/PlayerVisits/hooks.ts";
+import { normalizeUUID } from "#helpers/uuid.ts";
+import { useNow } from "#hooks/useNow.ts";
+import {
+    endOfDay,
+    endOfLastDay,
+    endOfLastMonth,
+    endOfLastWeek,
+    endOfLastYear,
+    endOfMonth,
+    endOfWeek,
+    endOfYear,
+    startOfDay,
+    startOfLastDay,
+    startOfLastMonth,
+    startOfLastWeek,
+    startOfLastYear,
+    startOfMonth,
+    startOfWeek,
+    startOfYear,
+} from "#intervals.ts";
+import { getHistoryQueryOptions } from "#queries/history.ts";
+import { prefetchQuery } from "#queries/prefetch.ts";
+import { getUsernameQueryOptions, useUUIDToUsername } from "#queries/username.ts";
+import { historyExploreSearchSchema } from "#schemas/historySearch.ts";
+import { ALL_GAMEMODE_KEYS, ALL_STAT_KEYS } from "#stats/keys.ts";
+import type { GamemodeKey, StatKey } from "#stats/keys.ts";
+import { getFullStatLabel, getGamemodeLabel, getVariantLabel } from "#stats/labels.ts";
+
+const normalizeUUIDsSkippingInvalid = (uuids: readonly string[]) => {
+    return uuids.map((uuid) => normalizeUUID(uuid)).filter((uuid) => uuid !== null);
+};
+
+export const Route = createFileRoute("/history/explore")({
+    loaderDeps: ({ search: { uuids, start, end, limit } }) => ({
+        uuids,
+        start,
+        end,
+        limit,
+    }),
+
+    loader: ({
+        deps: { uuids: rawUUIDs, start, end, limit },
+        context: { queryClient },
+    }) => {
+        const uuids = normalizeUUIDsSkippingInvalid(rawUUIDs);
+        // TODO: Rate limiting
+        for (const uuid of uuids) {
+            void prefetchQuery(
+                queryClient,
+                getHistoryQueryOptions({ uuid, start, end, limit }),
+            );
+            void prefetchQuery(queryClient, getUsernameQueryOptions(uuid));
+        }
+    },
+    validateSearch: historyExploreSearchSchema,
+    // oxlint-disable-next-line eslint/no-use-before-define
+    component: Index,
+});
+
+const RouterLinkChip = createLink(Chip);
+const RouterLinkIconButton = createLink(IconButton);
+const RouterLinkToggleButton = createLink(ToggleButton);
+
+function Index() {
+    const {
+        uuids: rawUUIDs,
+        stats,
+        gamemodes,
+        variantSelection,
+        start,
+        end,
+        limit,
+    } = Route.useSearch();
+    // Stable identity: UserMultiSelect passes `uuids` straight to MUI's
+    // Autocomplete as its `value`, and MUI clears the search input whenever that
+    // identity changes -- even mid-typing.
+    const uuids = React.useMemo(
+        () => normalizeUUIDsSkippingInvalid(rawUUIDs),
+        [rawUUIDs],
+    );
+    const navigate = Route.useNavigate();
+    const { visitPlayer } = usePlayerVisits();
+    const uuidToUsername = useUUIDToUsername(uuids);
+    const now = useNow("day");
+
+    // Register visits for all players on page load
+    const initialUUIDsRef = React.useRef(uuids);
+    const initialVisitPlayerRef = React.useRef(visitPlayer);
+    React.useEffect(() => {
+        for (const uuid of initialUUIDsRef.current) {
+            initialVisitPlayerRef.current(uuid);
+        }
+    }, []);
+
+    if (JSON.stringify(uuids) !== JSON.stringify(rawUUIDs)) {
+        // Redirect to the normalized UUIDs
+        return (
+            <Navigate
+                from="/history/explore"
+                to="/history/explore"
+                replace
+                search={(oldSearch) => ({
+                    ...oldSearch,
+                    uuids,
+                })}
+            />
+        );
+    }
+
+    const variants =
+        variantSelection === "both"
+            ? (["session", "overall"] as const)
+            : ([variantSelection] as const);
+
+    const timeFilterOptions = [
+        {
+            label: "Today",
+            start: startOfDay(now),
+            end: endOfDay(now),
+        },
+        {
+            label: "Yesterday",
+            start: startOfLastDay(now),
+            end: endOfLastDay(now),
+        },
+        {
+            label: "This week",
+            start: startOfWeek(now),
+            end: endOfWeek(now),
+        },
+        {
+            label: "Last week",
+            start: startOfLastWeek(now),
+            end: endOfLastWeek(now),
+        },
+        {
+            label: "This month",
+            start: startOfMonth(now),
+            end: endOfMonth(now),
+        },
+        {
+            label: "Last month",
+            start: startOfLastMonth(now),
+            end: endOfLastMonth(now),
+        },
+        {
+            label: "This year",
+            start: startOfYear(now),
+            end: endOfYear(now),
+        },
+        {
+            label: "Last year",
+            start: startOfLastYear(now),
+            end: endOfLastYear(now),
+        },
+    ];
+
+    const badSelectionCount: string[] = [];
+    if (uuids.length !== 1) {
+        badSelectionCount.push("user");
+    }
+    if (stats.length !== 1) {
+        badSelectionCount.push("statistic");
+    }
+    if (gamemodes.length !== 1) {
+        badSelectionCount.push("gamemode");
+    }
+
+    const canGoToSessionPage = badSelectionCount.length === 0;
+
+    let badSelectionCountString = "";
+    switch (badSelectionCount.length) {
+        case 0: {
+            break;
+        }
+        case 1: {
+            // oxlint-disable-next-line eslint/prefer-destructuring
+            badSelectionCountString = badSelectionCount[0];
+            break;
+        }
+        case 2: {
+            badSelectionCountString = `${badSelectionCount[0]} and ${badSelectionCount[1]}`;
+            break;
+        }
+        default: {
+            badSelectionCountString = `${badSelectionCount.slice(0, -1).join(", ")}, and ${badSelectionCount.at(-1)}`;
+        }
+    }
+
+    const goToSessionPageTooltip = canGoToSessionPage
+        ? "Show in session page"
+        : `Select a single ${
+              badSelectionCountString
+          } to enable showing in session page.`;
+
+    const endOfToday = endOfDay(now);
+    const sessionPageEndDate = end.getTime() > endOfToday.getTime() ? endOfToday : end;
+    const sortedUUIDs = uuids.toSorted();
+    const sortedPlayerNames = sortedUUIDs
+        .map((uuid) => uuidToUsername[uuid])
+        .filter((name) => name !== undefined);
+    const descriptionSuffix =
+        " See how you stack up against your friends and rivals. Chart any combination of statistic (FKDR, wins, final kills, and more), players, gamemodes, and session/overall stats.";
+    const description =
+        sortedPlayerNames.length === 0
+            ? `Compare the stats of multiple players in Hypixel Bedwars.${descriptionSuffix}`
+            : `Compare the stats of ${sortedPlayerNames.join(", ")} in Hypixel Bedwars.${descriptionSuffix}`;
+    const canonicalHref =
+        sortedUUIDs.length === 0
+            ? "https://prismoverlay.com/history/explore"
+            : `https://prismoverlay.com/history/explore?uuids=${encodeURIComponent(JSON.stringify(sortedUUIDs))}`;
+
+    return (
+        <Stack
+            sx={{
+                gap: 1,
+            }}
+        >
+            <meta name="description" content={description} />
+            <link rel="canonical" href={canonicalHref} />
+            <UserMultiSelect
+                uuids={uuids}
+                onSubmit={(newUUIDs) => {
+                    // Visit all newly added players
+                    const addedUUIDs = newUUIDs.filter((uuid) => !uuids.includes(uuid));
+                    for (const uuid of addedUUIDs) {
+                        visitPlayer(uuid);
+                    }
+
+                    void (async () => {
+                        try {
+                            await navigate({
+                                search: (oldSearch) => {
+                                    return {
+                                        ...oldSearch,
+                                        uuids: newUUIDs,
+                                    };
+                                },
+                            });
+                        } catch (error: unknown) {
+                            captureException(error, {
+                                tags: {
+                                    param: "uuids",
+                                },
+                                extra: {
+                                    message: "Failed to update search params",
+                                    uuids: newUUIDs,
+                                },
+                            });
+                        }
+                    })();
+                }}
+            />
+            <Stack
+                direction="row"
+                sx={{
+                    gap: 1,
+                }}
+            >
+                <Select
+                    value={gamemodes}
+                    label="Gamemodes"
+                    aria-label="Gamemodes"
+                    multiple
+                    fullWidth
+                    onChange={(event) => {
+                        const newGamemodes = event.target.value as GamemodeKey[];
+                        void (async () => {
+                            try {
+                                await navigate({
+                                    search: (oldSearch) => ({
+                                        ...oldSearch,
+                                        gamemodes: newGamemodes,
+                                    }),
+                                });
+                            } catch (error: unknown) {
+                                captureException(error, {
+                                    tags: {
+                                        param: "gamemodes",
+                                    },
+                                    extra: {
+                                        message: "Failed to update search params",
+                                        gamemodes: newGamemodes,
+                                    },
+                                });
+                            }
+                        })();
+                    }}
+                >
+                    {ALL_GAMEMODE_KEYS.map((gamemode) => (
+                        <MenuItem key={gamemode} value={gamemode}>
+                            {getGamemodeLabel(gamemode, true)}
+                        </MenuItem>
+                    ))}
+                </Select>
+                <Select
+                    value={stats}
+                    multiple
+                    label="Stat"
+                    aria-label="Stat"
+                    fullWidth
+                    onChange={(event) => {
+                        const newStats = event.target.value as StatKey[];
+                        void (async () => {
+                            try {
+                                await navigate({
+                                    search: (oldSearch) => ({
+                                        ...oldSearch,
+                                        stats: newStats,
+                                    }),
+                                });
+                            } catch (error: unknown) {
+                                captureException(error, {
+                                    tags: {
+                                        param: "stats",
+                                    },
+                                    extra: {
+                                        message: "Failed to update search params",
+                                        stats: newStats,
+                                    },
+                                });
+                            }
+                        })();
+                    }}
+                >
+                    {ALL_STAT_KEYS.map((stat) => (
+                        <MenuItem key={stat} value={stat}>
+                            {getFullStatLabel(stat, true)}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </Stack>
+            <Stack
+                direction="row"
+                sx={{
+                    gap: 1,
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                }}
+            >
+                <Stack
+                    direction="row"
+                    sx={{
+                        gap: 1,
+                        flexWrap: "wrap",
+                    }}
+                >
+                    {timeFilterOptions.map((option) => {
+                        const selected =
+                            option.start.toISOString() === start.toISOString() &&
+                            option.end.toISOString() === end.toISOString();
+                        return (
+                            <RouterLinkChip
+                                // oxlint-disable-next-line react/jsx-props-no-spreading
+                                {
+                                    /* This seems to work, but TS won't let me. Guessing it is the chip + link props colliding a bit */
+                                    ...{ component: "a" }
+                                }
+                                key={option.label}
+                                label={option.label}
+                                variant="outlined"
+                                color={selected ? "primary" : "default"}
+                                from="/history/explore"
+                                to="/history/explore"
+                                search={(oldSearch) => ({
+                                    ...oldSearch,
+                                    start: option.start,
+                                    end: option.end,
+                                })}
+                            />
+                        );
+                    })}
+                </Stack>
+                <Stack
+                    direction="row"
+                    sx={{
+                        gap: 1,
+                    }}
+                >
+                    <DateTimePicker
+                        label="Start"
+                        value={dayjs(start)}
+                        onChange={(newDate) => {
+                            if (newDate === null) {
+                                return;
+                            }
+                            void (async () => {
+                                try {
+                                    await navigate({
+                                        search: (oldSearch) => ({
+                                            ...oldSearch,
+                                            start: newDate.toDate(),
+                                        }),
+                                    });
+                                } catch (error: unknown) {
+                                    captureException(error, {
+                                        tags: {
+                                            param: "start",
+                                        },
+                                        extra: {
+                                            message: "Failed to update search params",
+                                            start: newDate.toDate(),
+                                        },
+                                    });
+                                }
+                            })();
+                        }}
+                    />
+                    <DateTimePicker
+                        label="End"
+                        value={dayjs(end)}
+                        onChange={(newDate) => {
+                            if (newDate === null) {
+                                return;
+                            }
+                            void (async () => {
+                                try {
+                                    await navigate({
+                                        search: (oldSearch) => ({
+                                            ...oldSearch,
+                                            end: newDate.toDate(),
+                                        }),
+                                    });
+                                } catch (error: unknown) {
+                                    captureException(error, {
+                                        tags: {
+                                            param: "end",
+                                        },
+                                        extra: {
+                                            message: "Failed to update search params",
+                                            end: newDate.toDate(),
+                                        },
+                                    });
+                                }
+                            })();
+                        }}
+                    />
+                </Stack>
+            </Stack>
+            <Card variant="outlined">
+                <CardContent>
+                    <Stack
+                        direction="row"
+                        sx={{
+                            gap: 1,
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                        }}
+                    >
+                        <Stack
+                            direction="row"
+                            sx={{
+                                gap: 1,
+                                alignItems: "center",
+                            }}
+                        >
+                            <HistoryChartTitle
+                                uuids={uuids}
+                                gamemodes={gamemodes}
+                                stats={stats}
+                                variants={variants}
+                            />
+                            <Tooltip
+                                id="go-to-session-page-tooltip"
+                                title={goToSessionPageTooltip}
+                            >
+                                {/* Make the span tabbable when the button is disabled so you can get to it and see the tooltip */}
+                                <span tabIndex={canGoToSessionPage ? undefined : 0}>
+                                    <RouterLinkIconButton
+                                        aria-labelledby="go-to-session-page-tooltip"
+                                        disabled={!canGoToSessionPage}
+                                        size="small"
+                                        color="primary"
+                                        to="/session/$uuid"
+                                        params={{ uuid: uuids[0] }}
+                                        search={{
+                                            gamemode: gamemodes[0],
+                                            stat: stats[0],
+                                            variantSelection,
+                                            timeIntervalDefinition: {
+                                                type: "until",
+                                                date: sessionPageEndDate,
+                                            },
+                                            sessionTableMode: "total",
+                                            showExtrapolatedSessions: false,
+                                        }}
+                                    >
+                                        <QueryStats />
+                                    </RouterLinkIconButton>
+                                </span>
+                            </Tooltip>
+                        </Stack>
+                        <ToggleButtonGroup
+                            exclusive
+                            size="small"
+                            value={variantSelection}
+                            aria-label="Stat chart variant selection"
+                        >
+                            <RouterLinkToggleButton
+                                value="overall"
+                                from="/history/explore"
+                                to="/history/explore"
+                                search={(oldSearch) => ({
+                                    ...oldSearch,
+                                    variantSelection: "overall",
+                                })}
+                                sx={{ textAlign: "center" }}
+                            >
+                                {getVariantLabel("overall", true)}
+                            </RouterLinkToggleButton>
+                            <RouterLinkToggleButton
+                                value="session"
+                                from="/history/explore"
+                                to="/history/explore"
+                                search={(oldSearch) => ({
+                                    ...oldSearch,
+                                    variantSelection: "session",
+                                })}
+                                sx={{ textAlign: "center" }}
+                            >
+                                {getVariantLabel("session", true)}
+                            </RouterLinkToggleButton>
+                            <RouterLinkToggleButton
+                                value="both"
+                                from="/history/explore"
+                                to="/history/explore"
+                                search={(oldSearch) => ({
+                                    ...oldSearch,
+                                    variantSelection: "both",
+                                })}
+                                sx={{ textAlign: "center" }}
+                            >
+                                Both
+                            </RouterLinkToggleButton>
+                        </ToggleButtonGroup>
+                    </Stack>
+                    <Stack
+                        sx={{
+                            padding: 1,
+                            height: { xs: 300, sm: 400, md: 500, xl: 600 },
+                        }}
+                    >
+                        <HistoryChart
+                            start={start}
+                            end={end}
+                            uuids={uuids}
+                            gamemodes={gamemodes}
+                            stats={stats}
+                            variants={variants}
+                            limit={limit}
+                        />
+                    </Stack>
+                </CardContent>
+            </Card>
+        </Stack>
+    );
+}

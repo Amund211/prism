@@ -1,0 +1,218 @@
+import type { History } from "#queries/history.ts";
+import type { PlayerDataPIT } from "#queries/playerdata.ts";
+
+import type { GamemodeKey, StatKey, VariantKey } from "./keys.ts";
+import { bedwarsLevelFromExp } from "./stars.ts";
+
+export function getStat(
+    playerData: PlayerDataPIT,
+    gamemode: GamemodeKey,
+    stat: Exclude<StatKey, "winstreak">,
+): number;
+export function getStat(
+    playerData: PlayerDataPIT,
+    gamemode: GamemodeKey,
+    stat: StatKey,
+): number | null;
+export function getStat(
+    playerData: PlayerDataPIT,
+    gamemode: GamemodeKey,
+    stat: StatKey,
+): number | null {
+    const selectedGamemode = playerData[gamemode];
+
+    switch (stat) {
+        case "experience": {
+            return playerData.experience;
+        }
+        case "winstreak": {
+            return selectedGamemode.winstreak;
+        }
+        case "stars": {
+            return bedwarsLevelFromExp(playerData.experience);
+        }
+        case "fkdr": {
+            const { finalKills, finalDeaths } = selectedGamemode;
+            if (finalDeaths === 0) {
+                return finalKills;
+            }
+            return finalKills / finalDeaths;
+        }
+        case "kdr": {
+            const { kills, deaths } = selectedGamemode;
+            if (deaths === 0) {
+                return kills;
+            }
+            return kills / deaths;
+        }
+        case "bblr": {
+            const { bedsBroken, bedsLost } = selectedGamemode;
+            if (bedsLost === 0) {
+                return bedsBroken;
+            }
+            return bedsBroken / bedsLost;
+        }
+        case "wlr": {
+            const { wins, losses } = selectedGamemode;
+            if (losses === 0) {
+                return wins;
+            }
+            return wins / losses;
+        }
+        case "winrate": {
+            const { wins, gamesPlayed } = selectedGamemode;
+            // A win always increments gamesPlayed, so gamesPlayed === 0 ⇒ wins === 0.
+            return gamesPlayed === 0 ? 0 : wins / gamesPlayed;
+        }
+        case "index": {
+            const fkdr = getStat(playerData, gamemode, "fkdr");
+            const stars = getStat(playerData, gamemode, "stars");
+            return fkdr ** 2 * stars;
+        }
+        default: {
+            // I believe all stats default to 0 if they are not present
+            return playerData[gamemode][stat];
+        }
+    }
+}
+
+const findBaseline = (
+    history: History,
+    gamemode: GamemodeKey,
+    stat: StatKey,
+): number | null => {
+    for (const playerData of history) {
+        const value = getStat(playerData, gamemode, stat);
+        if (value !== null) {
+            return value;
+        }
+    }
+    return null;
+};
+
+export function computeStat(
+    playerData: PlayerDataPIT,
+    gamemode: GamemodeKey,
+    stat: Exclude<StatKey, "winstreak">,
+    variant: VariantKey,
+    history: History,
+): number;
+export function computeStat(
+    playerData: PlayerDataPIT,
+    gamemode: GamemodeKey,
+    stat: StatKey,
+    variant: VariantKey,
+    history: History,
+): number | null;
+export function computeStat(
+    playerData: PlayerDataPIT,
+    gamemode: GamemodeKey,
+    stat: StatKey,
+    variant: VariantKey,
+    history: History,
+): number | null {
+    if (variant === "overall") {
+        return getStat(playerData, gamemode, stat);
+    }
+
+    switch (stat) {
+        case "fkdr": {
+            const finalKills = computeStat(
+                playerData,
+                gamemode,
+                "finalKills",
+                variant,
+                history,
+            );
+
+            const finalDeaths = computeStat(
+                playerData,
+                gamemode,
+                "finalDeaths",
+                variant,
+                history,
+            );
+
+            if (finalDeaths === 0) {
+                return finalKills;
+            }
+            return finalKills / finalDeaths;
+        }
+        case "kdr": {
+            const kills = computeStat(playerData, gamemode, "kills", variant, history);
+            const deaths = computeStat(
+                playerData,
+                gamemode,
+                "deaths",
+                variant,
+                history,
+            );
+
+            if (deaths === 0) {
+                return kills;
+            }
+            return kills / deaths;
+        }
+        case "bblr": {
+            const bedsBroken = computeStat(
+                playerData,
+                gamemode,
+                "bedsBroken",
+                variant,
+                history,
+            );
+            const bedsLost = computeStat(
+                playerData,
+                gamemode,
+                "bedsLost",
+                variant,
+                history,
+            );
+
+            if (bedsLost === 0) {
+                return bedsBroken;
+            }
+            return bedsBroken / bedsLost;
+        }
+        case "wlr": {
+            const wins = computeStat(playerData, gamemode, "wins", variant, history);
+            const losses = computeStat(
+                playerData,
+                gamemode,
+                "losses",
+                variant,
+                history,
+            );
+
+            if (losses === 0) {
+                return wins;
+            }
+            return wins / losses;
+        }
+        case "winrate": {
+            const wins = computeStat(playerData, gamemode, "wins", variant, history);
+            const gamesPlayed = computeStat(
+                playerData,
+                gamemode,
+                "gamesPlayed",
+                variant,
+                history,
+            );
+            // A win always increments gamesPlayed, so gamesPlayed === 0 ⇒ wins === 0.
+            return gamesPlayed === 0 ? 0 : wins / gamesPlayed;
+        }
+        case "index": {
+            const fkdr = computeStat(playerData, gamemode, "fkdr", variant, history);
+            const stars = computeStat(playerData, gamemode, "stars", variant, history);
+            return fkdr ** 2 * stars;
+        }
+        default: {
+            const baseline = findBaseline(history, gamemode, stat);
+            const value = getStat(playerData, gamemode, stat);
+            if (baseline === null || value === null) {
+                return null;
+            }
+            return value - baseline;
+        }
+    }
+}

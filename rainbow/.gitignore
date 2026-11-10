@@ -1,0 +1,48 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Sentry Config File
+.env.sentry-build-plugin
+
+# vitest artifacts
+/coverage
+/.vitest-attachments
+/.vitest
+**/__screenshots__
+
+# Claude config
+/.claude/*
+/.mcp.json
+
+# Sandbox-injected files (shell/editor configs mounted into the working tree)
+/.bash_profile
+/.bashrc
+/.gitconfig
+/.gitmodules
+/.profile
+/.ripgreprc
+/.vscode
+/.zprofile
+/.zshrc
