@@ -21,7 +21,6 @@ classifiers = [
     "Programming Language :: Python :: 3"
 ]
 license = "AGPL-3.0-only"
-license-files = ["LICENSE"]
 
 [project.urls]
 Homepage = "https://prismoverlay.com"

@@ -14,8 +14,8 @@ Note: make sure you have a recent version of go installed.
 
 ### Clone the repository
 ```bash
-git clone https://github.com/Amund211/flashlight
-cd flashlight
+git clone https://github.com/Amund211/prism
+cd prism/flashlight
 ```
 
 ### Add your Hypixel API key
