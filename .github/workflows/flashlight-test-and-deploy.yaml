@@ -2,9 +2,19 @@ name: Test and Deploy CloudFunction
 
 on:
   pull_request:
+    paths:
+      - "flashlight/**"
+      - ".github/workflows/flashlight-test-and-deploy.yaml"
   push:
     branches:
       - main
+    paths:
+      - "flashlight/**"
+      - ".github/workflows/flashlight-test-and-deploy.yaml"
+
+defaults:
+  run:
+    working-directory: flashlight
 
 permissions:
   actions: read
@@ -36,7 +46,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: 'go.mod'
+          go-version-file: 'flashlight/go.mod'
+          cache-dependency-path: 'flashlight/go.sum'
 
       - name: Go mod tidy
         run: |
@@ -60,6 +71,8 @@ jobs:
       # directive (same version `go tool golangci-lint` resolves to).
       - name: Lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          working-directory: flashlight
 
       - name: Verify dependencies
         run: go mod verify
@@ -105,7 +118,7 @@ jobs:
       - name: Build and push test image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: ./collector
+          context: ./flashlight/collector
           push: true
           tags: ${{ steps.tag.outputs.image }}
           # Test and prod images share a cache scope — they're built from the
@@ -136,7 +149,7 @@ jobs:
       - name: Build and push production image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: ./collector
+          context: ./flashlight/collector
           push: true
           tags: ${{ steps.tag.outputs.image }}
           cache-from: type=gha,scope=otel-collector
