@@ -1,0 +1,12 @@
+# Local plans (not tracked)
+/plans/
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
