@@ -1,0 +1,3 @@
+# Root config for prek workspace mode: each component has its own config in its subdir.
+# Root hooks see all files; give any hook added here `exclude: ^(prism|flashlight|rainbow)/`.
+repos: []
