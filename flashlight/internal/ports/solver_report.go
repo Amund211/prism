@@ -11,7 +11,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 
-	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/prism/flashlight/internal/logging"
 )
 
 // solverReport is the client's account of how it solved the proof of work.

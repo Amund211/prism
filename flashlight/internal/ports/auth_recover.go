@@ -9,11 +9,11 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/app"
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/logging"
-	"github.com/Amund211/flashlight/internal/ratelimiting"
-	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/prism/flashlight/internal/app"
+	"github.com/Amund211/prism/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/logging"
+	"github.com/Amund211/prism/flashlight/internal/ratelimiting"
+	"github.com/Amund211/prism/flashlight/internal/reporting"
 )
 
 var credentialRx = regexp.MustCompile(`^[A-Za-z0-9_-]{43}$`)

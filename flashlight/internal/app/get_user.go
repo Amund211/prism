@@ -9,8 +9,8 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 
-	"github.com/Amund211/flashlight/internal/adapters/cache"
-	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/adapters/cache"
+	"github.com/Amund211/prism/flashlight/internal/domain"
 )
 
 // GetUser resolves an overlay user by their user ID. Returns

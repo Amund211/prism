@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/authsessionguard"
-	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/authsessionguard"
+	"github.com/Amund211/prism/flashlight/internal/domain"
 )
 
 // The no-op is the whole behaviour, and it is a decision rather than a

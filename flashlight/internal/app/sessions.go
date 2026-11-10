@@ -6,8 +6,8 @@ import (
 	"slices"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/prism/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/reporting"
 )
 
 const sessionInactivityThreshold = 60 * time.Minute

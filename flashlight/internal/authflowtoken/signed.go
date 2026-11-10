@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/signing"
+	"github.com/Amund211/prism/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/signing"
 )
 
 // typeV1 is the one accepted format version.

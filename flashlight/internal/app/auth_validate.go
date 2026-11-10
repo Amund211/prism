@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/domain"
 )
 
 // ValidateSession resolves a bearer handle and checks it is still within

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/prism/flashlight/internal/logging"
 )
 
 // maxWaitAttempts bounds the wait for whoever holds the claim. Without it a

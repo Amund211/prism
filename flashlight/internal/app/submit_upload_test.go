@@ -10,10 +10,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/adapters/uploadstore"
-	"github.com/Amund211/flashlight/internal/app"
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/domaintest"
+	"github.com/Amund211/prism/flashlight/internal/adapters/uploadstore"
+	"github.com/Amund211/prism/flashlight/internal/app"
+	"github.com/Amund211/prism/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/domaintest"
 )
 
 const testUploadID = "0b5b8b8e-3a7e-4a57-9a3c-6f3c2a1d9e01"

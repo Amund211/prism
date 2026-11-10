@@ -15,7 +15,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/proofofwork"
+	"github.com/Amund211/prism/flashlight/internal/proofofwork"
 )
 
 const testIPHash = "0000000000000000000000000000000000000000000000000000000000000001"

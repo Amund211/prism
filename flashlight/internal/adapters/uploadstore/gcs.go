@@ -12,7 +12,7 @@ import (
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/googleapi"
 
-	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/prism/flashlight/internal/app"
 )
 
 type GCSStore struct {

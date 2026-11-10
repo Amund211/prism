@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/version"
+	"github.com/Amund211/prism/flashlight/internal/version"
 )
 
 func TestParse(t *testing.T) {

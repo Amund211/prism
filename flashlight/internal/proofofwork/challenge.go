@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/signing"
+	"github.com/Amund211/prism/flashlight/internal/signing"
 )
 
 // AlgorithmSHA256LeadingZeros names the only proof-of-work scheme we issue

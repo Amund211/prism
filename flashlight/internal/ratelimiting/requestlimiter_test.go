@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/ratelimiting"
+	"github.com/Amund211/prism/flashlight/internal/ratelimiting"
 )
 
 func TestWindowLimitRequestLimiter(t *testing.T) {

@@ -1,4 +1,4 @@
-module github.com/Amund211/flashlight
+module github.com/Amund211/prism/flashlight
 
 go 1.27.3
 

@@ -12,8 +12,8 @@ import (
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
 
-	"github.com/Amund211/flashlight/internal/config"
-	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/prism/flashlight/internal/config"
+	"github.com/Amund211/prism/flashlight/internal/logging"
 )
 
 var uuidRx = regexp.MustCompile(`[0-9a-f]{8}-?([0-9a-f]{4}-?){3}[0-9a-f]{12}`)

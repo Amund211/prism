@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/domain"
 )
 
 type signInLister interface {

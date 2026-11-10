@@ -11,9 +11,9 @@ import (
 	"path"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/adapters/playerprovider"
-	"github.com/Amund211/flashlight/internal/ports"
-	"github.com/Amund211/flashlight/internal/strutils"
+	"github.com/Amund211/prism/flashlight/internal/adapters/playerprovider"
+	"github.com/Amund211/prism/flashlight/internal/ports"
+	"github.com/Amund211/prism/flashlight/internal/strutils"
 )
 
 const hypixelAPIResponsesDir = "./fixtures/hypixel_api_responses/"

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Amund211/flashlight/internal/domain"
-	"github.com/Amund211/flashlight/internal/reporting"
-	"github.com/Amund211/flashlight/internal/strutils"
+	"github.com/Amund211/prism/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/reporting"
+	"github.com/Amund211/prism/flashlight/internal/strutils"
 )
 
 type milestonePlayerRepository interface {

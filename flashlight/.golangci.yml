@@ -76,4 +76,4 @@ formatters:
   settings:
     goimports:
       local-prefixes:
-        - github.com/Amund211/flashlight
+        - github.com/Amund211/prism/flashlight

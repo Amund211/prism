@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/prism/flashlight/internal/app"
 )
 
 type Object struct {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Amund211/flashlight/internal/config"
+	"github.com/Amund211/prism/flashlight/internal/config"
 )
 
 type environment string

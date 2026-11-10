@@ -17,8 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/api/iterator"
 
-	"github.com/Amund211/flashlight/internal/adapters/uploadstore"
-	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/prism/flashlight/internal/adapters/uploadstore"
+	"github.com/Amund211/prism/flashlight/internal/app"
 )
 
 // Runs against a real bucket, e.g. prism-overlay-user-uploads-test, with

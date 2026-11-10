@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/prism/flashlight/internal/domain"
 )
 
 // A stolen value and the real one both work for this long; keep it short.
