@@ -1,0 +1,117 @@
+package ports
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"log/slog"
+	"net/http"
+
+	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/flashlight/internal/strutils"
+)
+
+func MakeGetAccountByUUIDHandler(
+	getAccountByUUID app.GetAccountByUUID,
+	registerUserVisit app.RegisterUserVisit,
+	allowedOrigins *DomainSuffixes,
+	rootLogger *slog.Logger,
+	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
+	bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc,
+	blocklistConfig BlocklistConfig,
+) (http.HandlerFunc, func()) {
+	rateLimit, stop := NewAuthRateLimitMiddleware(PrismRateLimitPolicy, jsonRateLimitExceeded)
+
+	middleware := ComposeMiddlewares(
+		NewRequestLoggerMiddleware(rootLogger),
+		sentryMiddleware,
+		BuildBlocklistMiddleware(blocklistConfig),
+		buildMetricsMiddleware("get_account_by_uuid"),
+		NewReportingMetaMiddleware("get_account_by_uuid"),
+		BuildCORSMiddleware(allowedOrigins),
+		bearerAuthMiddleware,
+		rateLimit,
+		BuildRegisterUserVisitMiddleware(registerUserVisit),
+	)
+
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		rawUUID := r.PathValue("uuid")
+
+		handleError := func(ctx context.Context, cause string, statusCode int) {
+			response, err := makeErrorAccountResponseForUUID(ctx, rawUUID, cause)
+			if err != nil {
+				reporting.Report(ctx, fmt.Errorf("failed to marshal error response: %w", err))
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(`{"success":false,"cause":"internal server error"}`))
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(statusCode)
+			w.Write(response)
+		}
+
+		uuid, err := strutils.NormalizeUUID(rawUUID)
+		if err != nil {
+			handleError(ctx, "invalid uuid", http.StatusBadRequest)
+			return
+		}
+
+		logging.FromContext(ctx).InfoContext(ctx, "Handling get_account_by_uuid request",
+			slog.String("uuid", uuid),
+		)
+
+		ctx = logging.AddMetaToContext(ctx,
+			slog.String("uuid", uuid),
+		)
+		ctx = reporting.AddExtrasToContext(ctx,
+			map[string]string{
+				"uuid": uuid,
+			},
+		)
+
+		account, err := getAccountByUUID(ctx, uuid)
+		if errors.Is(err, domain.ErrUsernameNotFound) {
+			handleError(ctx, "not found", http.StatusNotFound)
+			return
+		} else if errors.Is(err, domain.ErrTemporarilyUnavailable) {
+			handleError(ctx, "temporarily unavailable", http.StatusServiceUnavailable)
+			return
+		}
+
+		if err != nil {
+			// NOTE: GetAccountByUUID implementations handle their own error reporting
+			handleError(ctx, "internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		ctx = reporting.AddExtrasToContext(ctx,
+			map[string]string{
+				"username": account.Username,
+			},
+		)
+		ctx = logging.AddMetaToContext(ctx, slog.String("username", account.Username))
+
+		response, err := makeSuccessAccountResponse(ctx, account)
+		if err != nil {
+			reporting.Report(ctx, fmt.Errorf("failed to create success response: %w", err))
+			handleError(ctx, "internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(response)
+	}
+
+	return middleware(handler), stop
+}
+
+func makeErrorAccountResponseForUUID(ctx context.Context, uuid string, cause string) ([]byte, error) {
+	return makeAccountResponse(ctx, "", false, uuid, cause)
+}

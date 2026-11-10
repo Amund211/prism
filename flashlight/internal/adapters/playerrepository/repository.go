@@ -1,0 +1,844 @@
+package playerrepository
+
+import (
+	"context"
+	"database/sql"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"slices"
+	"strconv"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
+
+	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/flashlight/internal/strutils"
+)
+
+const dataFormatVersion = 2
+
+type PostgresPlayerRepository struct {
+	db     *sqlx.DB
+	schema string
+
+	tracer trace.Tracer
+}
+
+func NewPostgresPlayerRepository(db *sqlx.DB, schema string) *PostgresPlayerRepository {
+	tracer := otel.Tracer("flashlight/adapters/player_repository")
+	return &PostgresPlayerRepository{
+		db:     db,
+		schema: schema,
+
+		tracer: tracer,
+	}
+}
+
+type playerDataStorage struct {
+	Experience *int64           `json:"xp,omitempty"`
+	Solo       statsDataStorage `json:"1"`
+	Doubles    statsDataStorage `json:"2"`
+	Threes     statsDataStorage `json:"3"`
+	Fours      statsDataStorage `json:"4"`
+	Fourv4     statsDataStorage `json:"4v4"`
+	Overall    statsDataStorage `json:"all"`
+}
+
+type statsDataStorage struct {
+	Winstreak   *int `json:"ws,omitempty"`
+	GamesPlayed int  `json:"gp,omitempty"`
+	Wins        int  `json:"w,omitempty"`
+	Losses      int  `json:"l,omitempty"`
+	BedsBroken  int  `json:"bb,omitempty"`
+	BedsLost    int  `json:"bl,omitempty"`
+	FinalKills  int  `json:"fk,omitempty"`
+	FinalDeaths int  `json:"fd,omitempty"`
+	Kills       int  `json:"k,omitempty"`
+	Deaths      int  `json:"d,omitempty"`
+}
+
+type dbStat struct {
+	ID                string    `db:"id"`
+	DataFormatVersion int       `db:"data_format_version"`
+	UUID              string    `db:"player_uuid"`
+	QueriedAt         time.Time `db:"queried_at"`
+	PlayerData        []byte    `db:"player_data"`
+}
+
+func gamemodeStatsToDataStorage(stats *domain.GamemodeStatsPIT) statsDataStorage {
+	return statsDataStorage{
+		Winstreak:   stats.Winstreak,
+		GamesPlayed: stats.GamesPlayed,
+		Wins:        stats.Wins,
+		Losses:      stats.Losses,
+		BedsBroken:  stats.BedsBroken,
+		BedsLost:    stats.BedsLost,
+		FinalKills:  stats.FinalKills,
+		FinalDeaths: stats.FinalDeaths,
+		Kills:       stats.Kills,
+		Deaths:      stats.Deaths,
+	}
+}
+
+func playerToDataStorage(player *domain.PlayerPIT) ([]byte, error) {
+	if player == nil {
+		return []byte(`{}`), nil
+	}
+
+	var experience *int64
+	if player.Experience != 500 {
+		experience = &player.Experience
+	}
+
+	data := playerDataStorage{
+		Experience: experience,
+		Solo:       gamemodeStatsToDataStorage(&player.Solo),
+		Doubles:    gamemodeStatsToDataStorage(&player.Doubles),
+		Threes:     gamemodeStatsToDataStorage(&player.Threes),
+		Fours:      gamemodeStatsToDataStorage(&player.Fours),
+		Fourv4:     gamemodeStatsToDataStorage(&player.Fourv4),
+		Overall:    gamemodeStatsToDataStorage(&player.Overall),
+	}
+
+	json, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal playerdatastorage: %w", err)
+	}
+	return json, nil
+}
+
+func gamemodeStatsPITFromDataStorage(data *statsDataStorage) *domain.GamemodeStatsPIT {
+	return &domain.GamemodeStatsPIT{
+		Winstreak:   data.Winstreak,
+		GamesPlayed: data.GamesPlayed,
+		Wins:        data.Wins,
+		Losses:      data.Losses,
+		BedsBroken:  data.BedsBroken,
+		BedsLost:    data.BedsLost,
+		FinalKills:  data.FinalKills,
+		FinalDeaths: data.FinalDeaths,
+		Kills:       data.Kills,
+		Deaths:      data.Deaths,
+	}
+}
+
+func dbStatToPlayerPIT(dbStat dbStat) (*domain.PlayerPIT, error) {
+	var playerData playerDataStorage
+	err := json.Unmarshal(dbStat.PlayerData, &playerData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal player data: %w", err)
+	}
+
+	var experience int64 = 500
+	if playerData.Experience != nil {
+		experience = *playerData.Experience
+	}
+
+	return &domain.PlayerPIT{
+		DBID: &dbStat.ID,
+
+		// Normalize to UTC so serialization is independent of the host's
+		// timezone (the pq driver may return timestamps in the local location).
+		QueriedAt: dbStat.QueriedAt.UTC(),
+
+		UUID: dbStat.UUID,
+
+		// NOTE: Not currently stored to postgres
+		Displayname: nil,
+		LastLogin:   nil,
+		LastLogout:  nil,
+
+		Experience: experience,
+		Solo:       *gamemodeStatsPITFromDataStorage(&playerData.Solo),
+		Doubles:    *gamemodeStatsPITFromDataStorage(&playerData.Doubles),
+		Threes:     *gamemodeStatsPITFromDataStorage(&playerData.Threes),
+		Fours:      *gamemodeStatsPITFromDataStorage(&playerData.Fours),
+		Fourv4:     *gamemodeStatsPITFromDataStorage(&playerData.Fourv4),
+		Overall:    *gamemodeStatsPITFromDataStorage(&playerData.Overall),
+	}, nil
+}
+
+func (p *PostgresPlayerRepository) StorePlayer(ctx context.Context, player *domain.PlayerPIT) error {
+	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.StorePlayer")
+	defer span.End()
+
+	if player == nil {
+		err := fmt.Errorf("player is nil")
+		reporting.Report(ctx, err)
+		return err
+	}
+
+	if player.DBID != nil {
+		err := fmt.Errorf("player already has a DBID")
+		reporting.Report(ctx, err, map[string]string{
+			"dbID": *player.DBID,
+		})
+		return err
+	}
+
+	if !strutils.UUIDIsNormalized(player.UUID) {
+		err := fmt.Errorf("uuid is not normalized")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": player.UUID,
+		})
+		return err
+	}
+
+	playerData, err := playerToDataStorage(player)
+	if err != nil {
+		err := fmt.Errorf("failed to convert player to data storage: %w", err)
+		reporting.Report(ctx, err)
+		return err
+	}
+
+	dbID, err := uuid.NewV7()
+	if err != nil {
+		err := fmt.Errorf("failed to generate db id: %w", err)
+		reporting.Report(ctx, err)
+		return err
+	}
+
+	txx, err := p.db.BeginTxx(ctx, nil)
+	if err != nil {
+		err := fmt.Errorf("failed to start transaction: %w", err)
+		reporting.Report(ctx, err)
+		return err
+	}
+	defer txx.Rollback()
+
+	_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
+	if err != nil {
+		err := fmt.Errorf("failed to set search path: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"schema": p.schema,
+		})
+		return err
+	}
+
+	// Don't store consecutive duplicate stats
+	var lastPlayerData []byte
+	var lastDataFormatVersion int
+	err = txx.QueryRowxContext(
+		ctx,
+		`SELECT
+			data_format_version, player_data
+		FROM stats
+		WHERE
+			player_uuid = $1 AND
+			queried_at > $2
+		ORDER BY queried_at DESC LIMIT 1`,
+		player.UUID,
+		player.QueriedAt.Add(-1*time.Hour),
+	).Scan(&lastDataFormatVersion, &lastPlayerData)
+	if err == nil {
+		if lastDataFormatVersion == dataFormatVersion {
+			// Found recent stats with the same data format version -> compare
+			equal, err := strutils.JSONStringsEqual(playerData, lastPlayerData)
+			if err != nil {
+				err := fmt.Errorf("failed to compare player data to previously stored data: %w", err)
+				reporting.Report(ctx, err, map[string]string{
+					"playerData":     string(playerData),
+					"lastPlayerData": string(lastPlayerData),
+				})
+				return err
+			}
+			if equal {
+				// Recent stats were equal -> don't store
+				return nil
+			}
+		}
+	} else if errors.Is(err, sql.ErrNoRows) {
+		// No recent stats -> store
+	} else {
+		err := fmt.Errorf("failed to query last player data: %w", err)
+		reporting.Report(ctx, err)
+		return err
+	}
+
+	_, err = txx.ExecContext(
+		ctx,
+		`INSERT INTO stats
+		(id, player_uuid, player_data, queried_at, data_format_version)
+		VALUES ($1, $2, $3, $4, $5)`,
+		dbID.String(),
+		player.UUID,
+		playerData,
+		player.QueriedAt,
+		dataFormatVersion,
+	)
+	if err != nil {
+		err := fmt.Errorf("failed to insert new stats: %w", err)
+		reporting.Report(ctx, err)
+		return err
+	}
+
+	err = txx.Commit()
+	if err != nil {
+		err := fmt.Errorf("failed to commit transaction: %w", err)
+		reporting.Report(ctx, err)
+		return err
+	}
+
+	logging.FromContext(ctx).InfoContext(ctx, "Stored stats", "dataFormatVersion", dataFormatVersion)
+
+	return nil
+}
+
+func (p *PostgresPlayerRepository) GetPlayer(ctx context.Context, playerUUID string) (*domain.PlayerPIT, error) {
+	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.GetPlayer")
+	defer span.End()
+
+	if !strutils.UUIDIsNormalized(playerUUID) {
+		err := fmt.Errorf("uuid is not normalized")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": playerUUID,
+		})
+		return nil, err
+	}
+
+	conn, err := p.db.Connx(ctx)
+	if err != nil {
+		err := fmt.Errorf("failed to get connection: %w", err)
+		reporting.Report(ctx, err)
+		return nil, err
+	}
+	defer conn.Close()
+
+	_, err = conn.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
+	if err != nil {
+		err := fmt.Errorf("failed to set search path: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"schema": p.schema,
+		})
+		return nil, err
+	}
+
+	var stat dbStat
+	err = conn.GetContext(
+		ctx,
+		&stat,
+		`select
+			id, data_format_version, player_uuid, queried_at, player_data
+		from stats
+		where player_uuid = $1
+		order by queried_at desc
+		limit 1`,
+		playerUUID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, domain.ErrPlayerNotFound
+	}
+	if err != nil {
+		err := fmt.Errorf("failed to select most recent stat: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": playerUUID,
+		})
+		return nil, err
+	}
+
+	player, err := dbStatToPlayerPIT(stat)
+	if err != nil {
+		err := fmt.Errorf("failed to convert db stat to playerpit: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"statID": stat.ID,
+		})
+		return nil, err
+	}
+
+	return player, nil
+}
+
+func (p *PostgresPlayerRepository) CountStats(ctx context.Context, playerUUID string) (int, error) {
+	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.CountStats")
+	defer span.End()
+
+	if !strutils.UUIDIsNormalized(playerUUID) {
+		err := fmt.Errorf("uuid is not normalized")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": playerUUID,
+		})
+		return 0, err
+	}
+
+	conn, err := p.db.Connx(ctx)
+	if err != nil {
+		err := fmt.Errorf("failed to get connection: %w", err)
+		reporting.Report(ctx, err)
+		return 0, err
+	}
+	defer conn.Close()
+
+	_, err = conn.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
+	if err != nil {
+		err := fmt.Errorf("failed to set search path: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"schema": p.schema,
+		})
+		return 0, err
+	}
+
+	var count int
+	err = conn.GetContext(
+		ctx,
+		&count,
+		`select count(*) from stats where player_uuid = $1`,
+		playerUUID)
+	if err != nil {
+		err := fmt.Errorf("failed to count stats: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": playerUUID,
+		})
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (p *PostgresPlayerRepository) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error) {
+	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.GetHistory")
+	defer span.End()
+
+	if !strutils.UUIDIsNormalized(playerUUID) {
+		err := fmt.Errorf("uuid is not normalized")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": playerUUID,
+		})
+		return nil, err
+	}
+
+	if limit < 2 || limit > 1000 {
+		// TODO: Use known error
+		err := fmt.Errorf("invalid limit")
+		reporting.Report(ctx, err, map[string]string{
+			"limit": strconv.Itoa(limit),
+		})
+		return nil, err
+	}
+
+	timespan := end.Sub(start)
+	if timespan <= 0 {
+		err := fmt.Errorf("end time must be after start time")
+		reporting.Report(ctx, err, map[string]string{
+			"start":    start.Format(time.RFC3339),
+			"end":      end.Format(time.RFC3339),
+			"timespan": timespan.String(),
+		})
+		return nil, err
+	}
+
+	dbStats := make([]dbStat, 0, limit)
+
+	txx, err := p.db.BeginTxx(ctx, nil)
+	if err != nil {
+		err := fmt.Errorf("failed to start transaction: %w", err)
+		reporting.Report(ctx, err)
+		return nil, err
+	}
+	defer txx.Rollback()
+
+	_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
+	if err != nil {
+		err := fmt.Errorf("failed to set search path: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"schema": p.schema,
+		})
+		return nil, err
+	}
+
+	// NOTE: Odd limit values will be rounded down (limit=3 == limit=2)
+	numberOfIntervals := limit / 2
+
+	intervalLength := timespan / time.Duration(numberOfIntervals)
+	for offset := range numberOfIntervals {
+		intervalStart := start.Add(intervalLength * time.Duration(offset))
+		intervalEnd := start.Add(intervalLength * time.Duration(offset+1))
+
+		endOperator := "<"
+		isLastInterval := offset == numberOfIntervals-1
+		if isLastInterval {
+			// Inclusive end for last interval
+			endOperator = "<="
+			// Make sure we get all the way to the end in case of rounding errors
+			intervalEnd = end
+		}
+
+		var firstStat dbStat
+		err = txx.GetContext(
+			ctx,
+			&firstStat,
+			fmt.Sprintf(`select
+				id, data_format_version, player_uuid, queried_at, player_data
+			from stats
+			where
+				player_uuid = $1 and
+				queried_at >= $2 and
+				queried_at %s $3
+			order by queried_at asc
+			limit 1`, endOperator),
+			playerUUID, intervalStart, intervalEnd)
+
+		if errors.Is(err, sql.ErrNoRows) {
+			continue
+		}
+		if err != nil {
+			err := fmt.Errorf("failed to select first stat in interval: %w", err)
+			reporting.Report(ctx, err, map[string]string{
+				"uuid":           playerUUID,
+				"intervalStart":  intervalStart.Format(time.RFC3339),
+				"intervalEnd":    intervalEnd.Format(time.RFC3339),
+				"endOperator":    endOperator,
+				"isLastInterval": strconv.FormatBool(isLastInterval),
+			})
+			return nil, err
+		}
+
+		dbStats = append(dbStats, firstStat)
+
+		var lastStat dbStat
+		err = txx.GetContext(
+			ctx,
+			&lastStat,
+			fmt.Sprintf(`select
+				id, data_format_version, player_uuid, queried_at, player_data
+			from stats
+			where
+				player_uuid = $1 and
+				queried_at >= $2 and
+				queried_at %s $3
+			order by queried_at desc
+			limit 1`, endOperator),
+			playerUUID, intervalStart, intervalEnd)
+
+		if errors.Is(err, sql.ErrNoRows) {
+			continue
+		}
+		if err != nil {
+			err := fmt.Errorf("failed to select last stat in interval: %w", err)
+			reporting.Report(ctx, err, map[string]string{
+				"uuid":           playerUUID,
+				"intervalStart":  intervalStart.Format(time.RFC3339),
+				"intervalEnd":    intervalEnd.Format(time.RFC3339),
+				"endOperator":    endOperator,
+				"isLastInterval": strconv.FormatBool(isLastInterval),
+			})
+			return nil, err
+		}
+
+		if lastStat.ID == firstStat.ID {
+			// Only one stat in this interval -> don't add it twice
+			continue
+		}
+
+		dbStats = append(dbStats, lastStat)
+	}
+
+	err = txx.Commit()
+	if err != nil {
+		err := fmt.Errorf("failed to commit transaction: %w", err)
+		reporting.Report(ctx, err)
+		return nil, err
+	}
+
+	result := make([]domain.PlayerPIT, 0, len(dbStats))
+	for _, dbStat := range dbStats {
+		player, err := dbStatToPlayerPIT(dbStat)
+		if err != nil {
+			err := fmt.Errorf("failed to convert db stat to playerpit: %w", err)
+			reporting.Report(ctx, err, map[string]string{
+				"statID": dbStat.ID,
+			})
+			return nil, err
+		}
+		result = append(result, *player)
+	}
+
+	return result, nil
+}
+
+func (p *PostgresPlayerRepository) GetPlayerPITs(ctx context.Context, playerUUID string, start, end time.Time) ([]domain.PlayerPIT, error) {
+	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.GetPlayerPITs")
+	defer span.End()
+
+	if !strutils.UUIDIsNormalized(playerUUID) {
+		err := fmt.Errorf("uuid is not normalized")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": playerUUID,
+		})
+		return nil, err
+	}
+
+	timespan := end.Sub(start)
+	if timespan <= 0 {
+		err := fmt.Errorf("end time must be after start time")
+		reporting.Report(ctx, err, map[string]string{
+			"start":    start.Format(time.RFC3339),
+			"end":      end.Format(time.RFC3339),
+			"timespan": timespan.String(),
+		})
+		return nil, err
+	}
+
+	dbStats := []dbStat{}
+	// NOTE: Using a connection without a transaction as the ids are time-sortable, and we're using them as a cursor (not offset/limit)
+	conn, err := p.db.Connx(ctx)
+	if err != nil {
+		err := fmt.Errorf("failed to get connection: %w", err)
+		reporting.Report(ctx, err)
+		return nil, err
+	}
+	defer conn.Close()
+
+	_, err = conn.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
+	if err != nil {
+		err := fmt.Errorf("failed to set search path: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"schema": p.schema,
+		})
+		return nil, err
+	}
+
+	lastID := "00000000-0000-0000-0000-000000000000" // Initial cursor
+	for {
+		batch := make([]dbStat, 0, 100)
+		// TODO: Index on (id, player_uuid, queried_at)?
+		err = conn.SelectContext(
+			ctx,
+			&batch,
+			`select
+				id, data_format_version, player_uuid, queried_at, player_data
+			from stats
+			where
+				id > $1 and
+				player_uuid = $2 and
+				queried_at >= $3 and
+				queried_at <= $4
+			order by id asc
+			limit 100`,
+			lastID, playerUUID, start, end)
+		if err != nil {
+			err := fmt.Errorf("failed to select batch of stats: %w", err)
+			reporting.Report(ctx, err, map[string]string{
+				"uuid":   playerUUID,
+				"start":  start.Format(time.RFC3339),
+				"end":    end.Format(time.RFC3339),
+				"lastID": lastID,
+			})
+			return nil, err
+		}
+		if len(batch) == 0 {
+			break
+		}
+		dbStats = append(dbStats, batch...)
+		lastID = batch[len(batch)-1].ID
+	}
+
+	stats := make([]domain.PlayerPIT, 0, len(dbStats))
+	for _, dbStat := range dbStats {
+		player, err := dbStatToPlayerPIT(dbStat)
+		if err != nil {
+			err := fmt.Errorf("failed to convert db stat to playerpit: %w", err)
+			reporting.Report(ctx, err, map[string]string{
+				"statID": dbStat.ID,
+			})
+			return nil, err
+		}
+		stats = append(stats, *player)
+	}
+
+	return stats, nil
+}
+
+func (p *PostgresPlayerRepository) FindMilestoneAchievements(ctx context.Context, playerUUID string, gamemode domain.Gamemode, stat domain.Stat, milestones []int64) ([]domain.MilestoneAchievement, error) {
+	ctx, span := p.tracer.Start(ctx, "PostgresPlayerRepository.FindMilestoneAchievements")
+	defer span.End()
+
+	if !strutils.UUIDIsNormalized(playerUUID) {
+		err := fmt.Errorf("uuid is not normalized")
+		reporting.Report(ctx, err, map[string]string{
+			"uuid": playerUUID,
+		})
+		return nil, err
+	}
+
+	// Initialize variables for dynamic SQL building
+	defaultValue := 0
+	selector := "player_data->"
+
+	// Handle gamemode
+	switch gamemode {
+	case domain.GamemodeOverall:
+		selector = selector + "'all'" // nolint:staticcheck,ineffassign // Left for future implementation
+	default:
+		err := fmt.Errorf("only overall gamemode is supported")
+		reporting.Report(ctx, err)
+		return nil, err
+	}
+
+	// Handle stat
+	switch stat {
+	case domain.StatExperience:
+		if gamemode != domain.GamemodeOverall {
+			err := fmt.Errorf("only overall gamemode is supported for stat experience")
+			reporting.Report(ctx, err)
+			return nil, err
+		}
+		selector = "player_data->'xp'"
+	default:
+		err := fmt.Errorf("only experience stat is supported")
+		reporting.Report(ctx, err)
+		return nil, err
+	}
+
+	if len(milestones) == 0 {
+		return []domain.MilestoneAchievement{}, nil
+	}
+
+	// Sort milestones in ascending order
+	sortedMilestones := make([]int64, len(milestones))
+	copy(sortedMilestones, milestones)
+	slices.Sort(sortedMilestones)
+
+	results := make([]domain.MilestoneAchievement, 0, len(milestones))
+
+	txx, err := p.db.BeginTxx(ctx, nil)
+	if err != nil {
+		err := fmt.Errorf("failed to start transaction: %w", err)
+		reporting.Report(ctx, err)
+		return nil, err
+	}
+	defer txx.Rollback()
+
+	_, err = txx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(p.schema)))
+	if err != nil {
+		err := fmt.Errorf("failed to set search path: %w", err)
+		reporting.Report(ctx, err, map[string]string{
+			"schema": p.schema,
+		})
+		return nil, err
+	}
+
+	for i := 0; i < len(sortedMilestones); i++ {
+		milestone := sortedMilestones[i]
+
+		type dbStatWithValue struct {
+			ID                string    `db:"id"`
+			DataFormatVersion int       `db:"data_format_version"`
+			UUID              string    `db:"player_uuid"`
+			QueriedAt         time.Time `db:"queried_at"`
+			PlayerData        []byte    `db:"player_data"`
+			Value             int64     `db:"value"`
+		}
+
+		// Find first stats instance where value >= milestone
+		var statPIT dbStatWithValue
+		err = txx.GetContext(
+			ctx,
+			&statPIT,
+			fmt.Sprintf(`SELECT
+				id,
+				data_format_version,
+				player_uuid,
+				queried_at,
+				player_data,
+				COALESCE(%[1]s, $3) as value
+			FROM stats
+			WHERE
+				player_uuid = $1 AND
+				COALESCE(%[1]s, $3) >= $2
+			ORDER BY queried_at ASC
+			LIMIT 1`, selector),
+			playerUUID, milestone, defaultValue)
+
+		if errors.Is(err, sql.ErrNoRows) {
+			// Milestone not reached yet, if no values are found we can break
+			// since the highest value has been found
+			break
+		}
+		if err != nil {
+			err := fmt.Errorf("failed to find milestone achievement: %w", err)
+			reporting.Report(ctx, err, map[string]string{
+				"uuid":      playerUUID,
+				"milestone": fmt.Sprintf("%d", milestone),
+				"selector":  selector,
+				"default":   fmt.Sprintf("%d", defaultValue),
+				"stat":      string(stat),
+				"gamemode":  string(gamemode),
+			})
+			return nil, err
+		}
+
+		player, err := dbStatToPlayerPIT(dbStat{
+			ID:                statPIT.ID,
+			DataFormatVersion: statPIT.DataFormatVersion,
+			UUID:              statPIT.UUID,
+			QueriedAt:         statPIT.QueriedAt,
+			PlayerData:        statPIT.PlayerData,
+		})
+		if err != nil {
+			err := fmt.Errorf("failed to convert db stat to playerpit: %w", err)
+			reporting.Report(ctx, err, map[string]string{
+				"statID": statPIT.ID,
+			})
+			return nil, err
+		}
+
+		// Skip this milestone if the value we found is greater than the next one
+		for i+1 < len(sortedMilestones) && statPIT.Value >= sortedMilestones[i+1] {
+			i++
+		}
+
+		// The value is not larger than this milestone -> we found the achievement
+		results = append(results, domain.MilestoneAchievement{
+			Milestone: sortedMilestones[i],
+			After: &domain.MilestoneAchievementStats{
+				Player: *player,
+				Value:  statPIT.Value,
+			},
+		})
+	}
+
+	err = txx.Commit()
+	if err != nil {
+		err := fmt.Errorf("failed to commit transaction: %w", err)
+		reporting.Report(ctx, err)
+		return nil, err
+	}
+
+	return results, nil
+}
+
+type StubPlayerRepository struct{}
+
+func (p *StubPlayerRepository) StorePlayer(ctx context.Context, player *domain.PlayerPIT) error {
+	return nil
+}
+
+func (p *StubPlayerRepository) GetPlayer(ctx context.Context, playerUUID string) (*domain.PlayerPIT, error) {
+	return nil, domain.ErrPlayerNotFound
+}
+
+func (p *StubPlayerRepository) CountStats(ctx context.Context, playerUUID string) (int, error) {
+	return 0, nil
+}
+
+func (p *StubPlayerRepository) GetHistory(ctx context.Context, playerUUID string, start, end time.Time, limit int) ([]domain.PlayerPIT, error) {
+	return []domain.PlayerPIT{}, nil
+}
+
+func (p *StubPlayerRepository) GetPlayerPITs(ctx context.Context, playerUUID string, start, end time.Time) ([]domain.PlayerPIT, error) {
+	return []domain.PlayerPIT{}, nil
+}
+
+func (p *StubPlayerRepository) FindMilestoneAchievements(ctx context.Context, playerUUID string, gamemode domain.Gamemode, stat domain.Stat, milestones []int64) ([]domain.MilestoneAchievement, error) {
+	return []domain.MilestoneAchievement{}, nil
+}
+
+func NewStubPlayerRepository() *StubPlayerRepository {
+	return &StubPlayerRepository{}
+}

@@ -1,0 +1,278 @@
+package accountprovider
+
+import (
+	"bytes"
+	"errors"
+	"io"
+	"net/http"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/strutils"
+)
+
+func TestUUIDFromMojangResponse(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		response   []byte
+		statusCode int
+		queriedAt  time.Time
+		expected   domain.Account
+		err        error
+	}{
+		{
+			name: "Real valid response",
+			response: []byte(`{
+  "id" : "a937646bf11544c38dbf9ae4a65669a0",
+  "name" : "Skydeath"
+}`),
+			statusCode: 200,
+			queriedAt:  time.Date(2023, 10, 1, 12, 0, 0, 0, time.UTC),
+			expected: domain.Account{
+				UUID:      "a937646b-f115-44c3-8dbf-9ae4a65669a0",
+				Username:  "Skydeath",
+				QueriedAt: time.Date(2023, 10, 1, 12, 0, 0, 0, time.UTC),
+			},
+		},
+		{
+			name: "Real not found response",
+			response: []byte(`{
+  "path" : "/users/profiles/minecraft/somenickeduser",
+  "errorMessage" : "Couldn't find any profile with name somenickeduser"
+}`),
+			statusCode: 404,
+			err:        domain.ErrUsernameNotFound,
+		},
+		{
+			name: "Real not too many requests response",
+			response: []byte(`{
+  "path" : "/users/profiles/minecraft/Dinnerbone"
+}`),
+			statusCode: 429,
+			err:        domain.ErrTemporarilyUnavailable,
+		},
+		// Made up responses
+		{
+			name:       "204 no body",
+			response:   []byte(``),
+			statusCode: 204,
+			err:        domain.ErrUsernameNotFound,
+		},
+		{
+			name:       "404 no body",
+			response:   []byte(``),
+			statusCode: 404,
+			err:        domain.ErrUsernameNotFound,
+		},
+		{
+			name:       "429 no body",
+			response:   []byte(``),
+			statusCode: 429,
+			err:        domain.ErrTemporarilyUnavailable,
+		},
+		{
+			name:       "503 no body",
+			response:   []byte(``),
+			statusCode: 503,
+			err:        domain.ErrTemporarilyUnavailable,
+		},
+		{
+			name:       "504 no body",
+			response:   []byte(``),
+			statusCode: 504,
+			err:        domain.ErrTemporarilyUnavailable,
+		},
+		{
+			name:       "Invalid JSON",
+			response:   []byte(`{"id":"invalid-json"`),
+			statusCode: 200,
+			err:        assert.AnError,
+		},
+		{
+			name:       "Empty Response",
+			response:   []byte(``),
+			statusCode: 200,
+			err:        assert.AnError,
+		},
+		{
+			name: "400 with error and errorMessage",
+			response: []byte(`{
+  "path" : "/users/profiles/minecraft/§ko01Y",
+  "error" : "CONSTRAINT_VIOLATION",
+  "errorMessage" : "getProfileName.name: Invalid profile name"
+}`),
+			statusCode: 400,
+			err:        errConstraintViolation,
+		},
+		{
+			name: "400 with other error",
+			response: []byte(`{
+  "path" : "/users/profiles/minecraft/whatever",
+  "error" : "SOMETHING_ELSE",
+  "errorMessage" : "something went wrong"
+}`),
+			statusCode: 400,
+			err:        assert.AnError,
+		},
+		{
+			name: "200 with errorMessage only",
+			response: []byte(`{
+  "path" : "/users/profiles/minecraft/whatever",
+  "errorMessage" : "something went wrong"
+}`),
+			statusCode: 200,
+			err:        assert.AnError,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			account, err := accountFromMojangResponse(tc.statusCode, tc.response, tc.queriedAt)
+			if tc.err != nil {
+				if errors.Is(tc.err, assert.AnError) {
+					require.Error(t, err)
+				} else {
+					require.ErrorIs(t, err, tc.err)
+				}
+				return
+			}
+			require.NoError(t, err)
+
+			require.Equal(t, tc.expected, account)
+			require.True(t, strutils.UUIDIsNormalized(account.UUID))
+		})
+	}
+}
+
+func TestAccountFromMojangResponseSurfacesErrorMessage(t *testing.T) {
+	t.Parallel()
+
+	_, err := accountFromMojangResponse(400, []byte(`{
+  "path" : "/users/profiles/minecraft/§ko01Y",
+  "error" : "CONSTRAINT_VIOLATION",
+  "errorMessage" : "getProfileName.name: Invalid profile name"
+}`), time.Now())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "CONSTRAINT_VIOLATION")
+	require.Contains(t, err.Error(), "Invalid profile name")
+	require.NotContains(t, err.Error(), "failed to normalize UUID")
+}
+
+type mockedClient struct {
+	responseData []byte
+	statusCode   int
+	err          error
+	lastURL      string
+}
+
+func (m *mockedClient) Do(req *http.Request) (*http.Response, error) {
+	m.lastURL = req.URL.String()
+	if m.err != nil {
+		return nil, m.err
+	}
+
+	return &http.Response{
+		StatusCode: m.statusCode,
+		Body:       io.NopCloser(bytes.NewReader(m.responseData)),
+		Header:     make(http.Header),
+	}, nil
+}
+
+func TestMojang(t *testing.T) {
+	t.Parallel()
+
+	ctx := t.Context()
+
+	now := time.Date(2023, 10, 1, 12, 0, 0, 0, time.UTC)
+	mockedNow := func() time.Time {
+		return now
+	}
+
+	client := &mockedClient{
+		responseData: []byte(`{
+  "id" : "a937646bf11544c38dbf9ae4a65669a0",
+  "name" : "Skydeath"
+}`),
+		statusCode: 200,
+	}
+	provider := NewMojang(client, mockedNow, time.After)
+
+	account, err := provider.GetAccountByUUID(ctx, "a937646b-f115-44c3-8dbf-9ae4a65669a0")
+	require.NoError(t, err)
+	require.Equal(t, domain.Account{
+		UUID:      "a937646b-f115-44c3-8dbf-9ae4a65669a0",
+		Username:  "Skydeath",
+		QueriedAt: now,
+	}, account)
+
+	account, err = provider.GetAccountByUsername(ctx, "skydeath")
+	require.NoError(t, err)
+	require.Equal(t, domain.Account{
+		UUID:      "a937646b-f115-44c3-8dbf-9ae4a65669a0",
+		Username:  "Skydeath",
+		QueriedAt: now,
+	}, account)
+
+	client.err = assert.AnError
+
+	_, err = provider.GetAccountByUUID(ctx, "a937646b-f115-44c3-8dbf-9ae4a65669a0")
+	require.ErrorIs(t, err, assert.AnError)
+
+	_, err = provider.GetAccountByUsername(ctx, "skydeath")
+	require.ErrorIs(t, err, assert.AnError)
+}
+
+func TestMojangEscapesUsername(t *testing.T) {
+	t.Parallel()
+
+	for username, expectedURL := range map[string]string{
+		"skydeath":   "https://api.mojang.com/users/profiles/minecraft/skydeath",
+		"a?b":        "https://api.mojang.com/users/profiles/minecraft/a%3Fb",
+		"a%b":        "https://api.mojang.com/users/profiles/minecraft/a%25b",
+		"Daniel B.1": "https://api.mojang.com/users/profiles/minecraft/Daniel%20B.1",
+	} {
+		t.Run(username, func(t *testing.T) {
+			t.Parallel()
+
+			client := &mockedClient{
+				responseData: []byte(`{"errorMessage":"Couldn't find any profile with name"}`),
+				statusCode:   404,
+			}
+			provider := NewMojang(client, time.Now, time.After)
+
+			_, err := provider.GetAccountByUsername(t.Context(), username)
+			require.ErrorIs(t, err, domain.ErrUsernameNotFound)
+			require.Equal(t, expectedURL, client.lastURL)
+		})
+	}
+}
+
+func TestMojangInvalidUsername(t *testing.T) {
+	t.Parallel()
+
+	client := &mockedClient{
+		responseData: []byte(`{
+  "path" : "/users/profiles/minecraft/æøå",
+  "error" : "CONSTRAINT_VIOLATION",
+  "errorMessage" : "getProfileName.name: Invalid profile name"
+}`),
+		statusCode: 400,
+	}
+	provider := NewMojang(client, time.Now, time.After)
+
+	_, err := provider.GetAccountByUsername(t.Context(), "æøå")
+	require.ErrorIs(t, err, domain.ErrInvalidUsername)
+
+	// Not a username lookup, so this is an unexpected error
+	_, err = provider.GetAccountByUUID(t.Context(), "a937646b-f115-44c3-8dbf-9ae4a65669a0")
+	require.Error(t, err)
+	require.NotErrorIs(t, err, domain.ErrInvalidUsername)
+}

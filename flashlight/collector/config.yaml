@@ -1,0 +1,66 @@
+# OpenTelemetry Collector configuration for Google Cloud Run
+# Based on: https://cloud.google.com/run/docs/tutorials/custom-metrics-opentelemetry-sidecar
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+processors:
+  batch:
+    # traces only; metrics use batch/metrics below
+    send_batch_max_size: 200
+    send_batch_size: 200
+    timeout: 5s
+
+  # deliberately no send_batch_max_size: splitting one export into several
+  # batches makes the googlemanagedprometheus exporter re-emit target_info /
+  # otel_scope_info per batch, which GMP rejects as duplicate points
+  batch/metrics:
+    send_batch_size: 200
+    timeout: 5s
+
+  memory_limiter:
+    # drop metrics if memory usage gets too high
+    check_interval: 1s
+    limit_percentage: 65
+    spike_limit_percentage: 20
+
+  # automatically detect Cloud Run resource metadata
+  resource_detection:
+    detectors: [env, gcp]
+    timeout: 2s
+    override: false
+
+  resource:
+    attributes:
+    # add instance_id as a resource attribute
+    - key: service.instance.id
+      from_attribute: faas.id
+      action: upsert
+      # parse service name from K_SERVICE Cloud Run variable
+    - key: service.name
+      value: ${env:K_SERVICE}
+      action: insert
+
+exporters:
+  googlecloud: # For traces
+  googlemanagedprometheus: # Note: this is intentionally left blank
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+service:
+  extensions: [health_check]
+  pipelines:
+    # memory_limiter first so it can refuse data at the receiver and let the
+    # client retry; batch last so it never buffers data we would then drop
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resource_detection, resource, batch]
+      exporters: [googlecloud]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, resource_detection, resource, batch/metrics]
+      exporters: [googlemanagedprometheus]

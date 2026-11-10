@@ -1,0 +1,207 @@
+name: Test and Deploy CloudFunction
+
+on:
+  pull_request:
+    paths:
+      - "flashlight/**"
+      - ".github/workflows/flashlight-test-and-deploy.yaml"
+  push:
+    branches:
+      - main
+    paths:
+      - "flashlight/**"
+      - ".github/workflows/flashlight-test-and-deploy.yaml"
+
+defaults:
+  run:
+    working-directory: flashlight
+
+permissions:
+  actions: read
+  checks: read
+  contents: read
+  packages: read
+  pull-requests: read
+  statuses: read
+  id-token: write
+
+jobs:
+  test:
+    name: Format, vet, test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17.9@sha256:2a0d0fe14825b0939f78a8cad5cd4e6aa68bf94d0e5dd96e24b6d23af4315545
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: 'flashlight/go.mod'
+          cache-dependency-path: 'flashlight/go.sum'
+
+      - name: Go mod tidy
+        run: |
+          go mod tidy
+          git diff --quiet
+
+      - name: Check generated fixtures are up to date
+        run: |
+          ./cmd/fix-fixtures/run.sh
+          # Regenerating fixtures must produce no diff. `git add -A` stages any
+          # newly generated files too, so freshly added inputs whose expected
+          # output was never committed are caught alongside stale ones.
+          git add -A internal/adapters/playerprovider/testdata internal/ports/testdata
+          if ! git diff --cached --quiet -- internal/adapters/playerprovider/testdata internal/ports/testdata; then
+            echo "::error::Generated fixtures are out of date. Run ./cmd/fix-fixtures/run.sh and commit the result."
+            git diff --cached -- internal/adapters/playerprovider/testdata internal/ports/testdata
+            exit 1
+          fi
+
+      # No `version:` input — the action auto-detects from go.mod's require
+      # directive (same version `go tool golangci-lint` resolves to).
+      - name: Lint
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          working-directory: flashlight
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Create test database
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -c 'CREATE DATABASE flashlight;'
+
+      - name: Run tests
+        run: go test ./...
+
+      - name: Run tests with race detector
+        run: go test -race ./...
+
+      - name: Go build
+        run: |
+          go build
+          go build ./cmd/get-stats/main.go
+          go build ./cmd/fix-fixtures/main.go
+
+  push-otel-collector-test:
+    # Fork PRs get no secrets. To deploy one, review it and push it to a branch here.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    name: Build and push OTel Collector for test instance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Login to GAR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: northamerica-northeast2-docker.pkg.dev
+          username: _json_key
+          password: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+
+      - name: Resolve image tag
+        id: tag
+        run: echo "image=$(./collector/build.sh get-url flashlight-test)" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push test image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ./flashlight/collector
+          push: true
+          tags: ${{ steps.tag.outputs.image }}
+          # Test and prod images share a cache scope — they're built from the
+          # same Dockerfile and config.yaml, so layers are byte-identical.
+          cache-from: type=gha,scope=otel-collector
+          cache-to: type=gha,mode=max,scope=otel-collector
+
+  push-otel-collector:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    name: Build and push OTel Collector for production instance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Login to GAR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: northamerica-northeast2-docker.pkg.dev
+          username: _json_key
+          password: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+
+      - name: Resolve image tag
+        id: tag
+        run: echo "image=$(./collector/build.sh get-url flashlight)" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push production image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ./flashlight/collector
+          push: true
+          tags: ${{ steps.tag.outputs.image }}
+          cache-from: type=gha,scope=otel-collector
+          cache-to: type=gha,mode=max,scope=otel-collector
+
+  deploy-test-instance:
+    # Fork PRs get no secrets. To deploy one, review it and push it to a branch here.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    name: Deploy test instance
+    runs-on: ubuntu-latest
+    # Only deploy the test instance if the tests pass
+    needs: [test]
+    # We don't wait for the collector to build here. Collector changes may need two pushes to the PR.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: GCP login
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          project_id: 'prism-overlay'
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+
+      - name: Login to GAR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: northamerica-northeast2-docker.pkg.dev
+          username: _json_key
+          password: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+
+      - name: Deploy test instance
+        run: ./cmd/deploy.sh flashlight-test
+
+  build-and-deploy:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    name: Deploy cloud function
+    runs-on: ubuntu-latest
+    # We don't wait for the collector to build here. Collector changes may need two pushes to main.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: GCP login
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          project_id: 'prism-overlay'
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+
+      - name: Login to GAR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: northamerica-northeast2-docker.pkg.dev
+          username: _json_key
+          password: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_JSON }}
+
+      - name: Deploy production instance
+        run: ./cmd/deploy.sh flashlight

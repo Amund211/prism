@@ -1,0 +1,302 @@
+package ports
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"reflect"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/domaintest"
+)
+
+var emptyBlocklistConfig = BlocklistConfig{}
+
+func TestMakeGetPlayerDataHandler(t *testing.T) {
+	t.Parallel()
+
+	const UUID = "01234567-89ab-cdef-0123-456789abcdef"
+	target := fmt.Sprintf("/?uuid=%s", UUID)
+
+	now := time.Now()
+
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	sentryMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
+		return next
+	}
+	// No request here sends a bearer, so the real middleware passes each one on.
+	bearerAuthMiddleware := NewBearerAuthMiddleware(func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
+		return domain.AuthSession{}, errors.New("no bearer expected")
+	}, time.Now, emptyBlocklistConfig)
+	stubRegisterUserVisit := func(ctx context.Context, userID string, ipHash string, userAgent string) (domain.User, error) {
+		return domain.User{}, nil
+	}
+
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+
+		player := domaintest.NewPlayerBuilder(UUID).WithExperience(1000).BuildPtr(now)
+
+		getPlayerDataHandler, stop := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+			return player, nil
+		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
+		t.Cleanup(stop)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
+		getPlayerDataHandler(w, req)
+
+		resp := w.Result()
+
+		require.Equal(t, 200, resp.StatusCode)
+		body := w.Body.String()
+
+		require.Contains(t, body, UUID)
+		require.Contains(t, body, `1000`)
+
+		require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+	})
+
+	t.Run("requester user id is passed through from the X-User-Id header", func(t *testing.T) {
+		t.Parallel()
+
+		player := domaintest.NewPlayerBuilder(UUID).WithExperience(1000).BuildPtr(now)
+
+		for _, tc := range []struct {
+			name              string
+			headerValue       string
+			expectedRequester string
+		}{
+			{name: "real user id", headerValue: "some-user-id-from-the-client", expectedRequester: "some-user-id-from-the-client"},
+			{name: "missing header", headerValue: "", expectedRequester: ""},
+			// Clients without an id are all registered under the shared
+			// "<missing>" sentinel; it must never identify a requester.
+			{name: "missing sentinel", headerValue: "<missing>", expectedRequester: ""},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
+				var gotRequesterUserID *string
+				getPlayerDataHandler, stop := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+					gotRequesterUserID = &requesterUserID
+					return player, nil
+				}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
+				t.Cleanup(stop)
+
+				w := httptest.NewRecorder()
+				req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
+				if tc.headerValue != "" {
+					req.Header.Set("X-User-Id", tc.headerValue)
+				}
+				getPlayerDataHandler(w, req)
+
+				require.Equal(t, 200, w.Result().StatusCode)
+				require.NotNil(t, gotRequesterUserID)
+				require.Equal(t, tc.expectedRequester, *gotRequesterUserID)
+			})
+		}
+	})
+
+	t.Run("provider mode depends on the auth tier", func(t *testing.T) {
+		t.Parallel()
+
+		player := domaintest.NewPlayerBuilder(UUID).WithExperience(1000).BuildPtr(now)
+
+		for _, tc := range []struct {
+			name         string
+			identityType domain.AuthSessionIdentityType
+			expectedMode app.ProviderMode
+		}{
+			{name: "no bearer", identityType: "", expectedMode: app.ProviderModeWellKnown},
+			{name: "anonymous", identityType: domain.AuthSessionIdentityAnonymous, expectedMode: app.ProviderModeAlways},
+			{name: "microsoft", identityType: domain.AuthSessionIdentityMicrosoft, expectedMode: app.ProviderModeAlways},
+			{name: "unknown tier", identityType: "something-new", expectedMode: app.ProviderModeWellKnown},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
+				bearerAuth := NewBearerAuthMiddleware(func(ctx context.Context, sessionID string) (domain.AuthSession, error) {
+					return domain.AuthSession{
+						ID:           sessionID,
+						IdentityType: tc.identityType,
+						IdentityKey:  "identity-key",
+						ExpiresAt:    now.Add(time.Hour),
+					}, nil
+				}, time.Now, emptyBlocklistConfig)
+
+				var gotMode *app.ProviderMode
+				getPlayerDataHandler, stop := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+					gotMode = &providerMode
+					return player, nil
+				}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuth, emptyBlocklistConfig, false)
+				t.Cleanup(stop)
+
+				w := httptest.NewRecorder()
+				req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
+				if tc.identityType != "" {
+					req.Header.Set("Authorization", "Bearer some-session")
+				}
+				getPlayerDataHandler(w, req)
+
+				require.Equal(t, 200, w.Result().StatusCode)
+				require.NotNil(t, gotMode)
+				require.Equal(t, tc.expectedMode, *gotMode)
+			})
+		}
+	})
+
+	t.Run("client error: invalid uuid", func(t *testing.T) {
+		t.Parallel()
+
+		getPlayerDataHandler, stop := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+			t.Helper()
+			t.Fatal("should not be called")
+			return nil, nil
+		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
+		t.Cleanup(stop)
+		w := httptest.NewRecorder()
+
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/?uuid=1234-1234-1234", nil)
+
+		getPlayerDataHandler(w, req)
+
+		resp := w.Result()
+		require.Equal(t, 400, resp.StatusCode)
+		require.Equal(t, `{"success":false,"cause":"Invalid UUID"}`, w.Body.String())
+		require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+	})
+
+	t.Run("player not found", func(t *testing.T) {
+		t.Parallel()
+
+		getPlayerDataHandler, stop := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+			return nil, fmt.Errorf("%w: couldn't find him", domain.ErrPlayerNotFound)
+		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
+		t.Cleanup(stop)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
+
+		getPlayerDataHandler(w, req)
+
+		resp := w.Result()
+		require.Equal(t, 404, resp.StatusCode)
+		require.Equal(t, `{"success":true,"player":null}`, w.Body.String())
+		require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+	})
+
+	t.Run("provider temporarily unavailable", func(t *testing.T) {
+		t.Parallel()
+
+		getPlayerDataHandler, stop := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+			return nil, fmt.Errorf("error :^(: (%w)", domain.ErrTemporarilyUnavailable)
+		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
+		t.Cleanup(stop)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
+
+		getPlayerDataHandler(w, req)
+
+		resp := w.Result()
+		require.Equal(t, 504, resp.StatusCode)
+		require.Equal(t, `{"success":false,"cause":"error :^(: (temporarily unavailable)"}`, w.Body.String())
+		require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+	})
+
+	t.Run("rate limit exceeded", func(t *testing.T) {
+		t.Parallel()
+
+		player := domaintest.NewPlayerBuilder(UUID).WithExperience(1000).BuildPtr(now)
+
+		getPlayerDataHandler, stop := MakeGetPlayerDataHandler(func(ctx context.Context, uuid string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+			return player, nil
+		}, stubRegisterUserVisit, logger, sentryMiddleware, bearerAuthMiddleware, emptyBlocklistConfig, false)
+		t.Cleanup(stop)
+
+		// Exhaust the rate limit
+		for range 200 {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
+			getPlayerDataHandler(w, req)
+
+			resp := w.Result()
+			if resp.StatusCode != 200 {
+				require.Equal(t, 429, resp.StatusCode)
+				break
+			}
+		}
+
+		for range 30 {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
+			getPlayerDataHandler(w, req)
+
+			resp := w.Result()
+			if resp.StatusCode != 429 {
+				// We may have gotten some credits back so this request could go through
+				require.Equal(t, 200, resp.StatusCode)
+				continue
+			}
+
+			require.Equal(t, 429, resp.StatusCode)
+			require.Equal(t, `{"success":false,"cause":"Rate limit exceeded"}`, w.Body.String())
+			require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+			return
+		}
+
+		require.Fail(t, "Rate limit not exceeded")
+	})
+}
+
+func TestWriteErrorResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		err            error
+		expectedStatus int
+		expectedBody   string
+	}{
+		{
+			err:            fmt.Errorf("something happened"),
+			expectedStatus: 500,
+			expectedBody:   `{"success":false,"cause":"something happened"}`,
+		},
+		{
+			err:            fmt.Errorf("something happened (%w)", domain.ErrTemporarilyUnavailable),
+			expectedStatus: 504,
+			expectedBody:   `{"success":false,"cause":"something happened (temporarily unavailable)"}`,
+		},
+		{
+			// NOTE: We don't pass player not found to write error response
+			err:            fmt.Errorf("%w: never heard of him", domain.ErrPlayerNotFound),
+			expectedStatus: 500,
+			expectedBody:   `{"success":false,"cause":"player not found: never heard of him"}`,
+		},
+	}
+
+	expectedHeaders := make(http.Header)
+	expectedHeaders.Set("Content-Type", "application/json")
+
+	for _, testCase := range testCases {
+		w := httptest.NewRecorder()
+
+		returnedStatusCode := writeHypixelStyleErrorResponse(t.Context(), w, testCase.err)
+		result := w.Result()
+
+		require.True(t, reflect.DeepEqual(expectedHeaders, result.Header), "Expected %v, got %v", expectedHeaders, result.Header)
+
+		require.Equal(t, testCase.expectedStatus, result.StatusCode)
+		require.Equal(t, testCase.expectedStatus, returnedStatusCode)
+
+		body := w.Body.String()
+		require.Equal(t, testCase.expectedBody, body)
+	}
+}

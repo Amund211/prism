@@ -1,0 +1,4 @@
+fixtures/hypixel_api_responses/*.json
+internal/adapters/playerprovider/testdata/expected_players/*.json
+internal/ports/testdata/expected_hypixel_style_responses/*.json
+go.sum

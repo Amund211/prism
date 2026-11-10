@@ -1,0 +1,82 @@
+{
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
+  "UUID": "9513193a-ec79-4f1d-89c0-a4edcc9b85e6",
+  "Displayname": "Pheenus",
+  "LastLogin": "2024-02-25T15:17:57.993Z",
+  "LastLogout": "2024-02-25T06:41:15.209Z",
+  "MissingBedwarsStats": false,
+  "Experience": 375982,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 55,
+    "Wins": 4,
+    "Losses": 46,
+    "BedsBroken": 31,
+    "BedsLost": 54,
+    "FinalKills": 25,
+    "FinalDeaths": 51,
+    "Kills": 60,
+    "Deaths": 107
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 627,
+    "Wins": 25,
+    "Losses": 587,
+    "BedsBroken": 143,
+    "BedsLost": 595,
+    "FinalKills": 268,
+    "FinalDeaths": 597,
+    "Kills": 1142,
+    "Deaths": 1470
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 47,
+    "Wins": 5,
+    "Losses": 42,
+    "BedsBroken": 3,
+    "BedsLost": 41,
+    "FinalKills": 9,
+    "FinalDeaths": 43,
+    "Kills": 90,
+    "Deaths": 111
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 1125,
+    "Wins": 163,
+    "Losses": 962,
+    "BedsBroken": 285,
+    "BedsLost": 982,
+    "FinalKills": 1122,
+    "FinalDeaths": 975,
+    "Kills": 3664,
+    "Deaths": 3528
+  },
+  "Fourv4": {
+    "Winstreak": 0,
+    "GamesPlayed": 17,
+    "Wins": 3,
+    "Losses": 14,
+    "BedsBroken": 0,
+    "BedsLost": 13,
+    "FinalKills": 2,
+    "FinalDeaths": 13,
+    "Kills": 31,
+    "Deaths": 39
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 1871,
+    "Wins": 200,
+    "Losses": 1651,
+    "BedsBroken": 462,
+    "BedsLost": 1685,
+    "FinalKills": 1426,
+    "FinalDeaths": 1679,
+    "Kills": 4987,
+    "Deaths": 5255
+  }
+}

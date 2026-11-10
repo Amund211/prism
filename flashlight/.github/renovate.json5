@@ -1,0 +1,164 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    // config:recommended, plus docker:pinDigests, helpers:pinGitHubActionDigests,
+    // :configMigration, :pinDevDependencies, abandonments:recommended,
+    // security:minimumReleaseAgeNpm and :maintainLockFilesWeekly.
+    // Renovate's own docs recommend this over plain config:recommended.
+    // docker:pinDigests is what digest-pins the golang build stage and the
+    // otel collector image, which are tag-only today.
+    "config:best-practices",
+    // Track SHA-pinned actions by the `# vX.Y.Z` comment as semver, rather than
+    // by digest movement on a floating tag.
+    "helpers:pinGitHubActionDigestsToSemver",
+    // The pre-commit manager is disabled by default in renovate, so opt in
+    // explicitly.
+    ":enablePreCommit",
+    // config:recommended would use fix(deps) for runtime dependencies.
+    // Everything in this repo's history is chore(deps) — keep it uniform.
+    ":semanticCommitTypeAll(chore)",
+  ],
+  timezone: "Europe/Oslo",
+  schedule: ["* 2-6 * * 1"],
+  minimumReleaseAge: "7 days",
+  prConcurrentLimit: 5,
+  prHourlyLimit: 2,
+  // Keep this off until the default branch ruleset requires status checks.
+  // With no required check, platform automerge can merge a red PR.
+  automerge: false,
+  // Same labels as the dependabot PRs. A group PR gets the union.
+  labels: ["dependencies"],
+  postUpdateOptions: [
+    // Renovate's default gomod update runs only `go get -t ./...`, which adds
+    // go.sum entries but never prunes stale ones, and never resolves packages
+    // that are only reachable through the `tool (...)` directive in go.mod.
+    // Both break CI here: `go mod tidy && git diff --quiet` in the "Format, vet,
+    // test" job fails on the leftover entries, and `go tool govulncheck` fails
+    // with "missing go.sum entry" because only the `/go.mod` hash gets written
+    // for a tool dep, not the `h1:` module hash. Renovate's own gomod docs call
+    // this out. Upstream intends to make this the default in a future major
+    // (renovatebot/renovate#45261); until then it has to be opt-in.
+    "gomodTidy",
+    // A Go major bump changes the module path (`example.com/foo` ->
+    // `example.com/foo/v2`), so go.mod alone is never enough — the import
+    // statements have to follow or nothing compiles. This runs
+    // marwan-at-work/mod to rewrite them. It is also the flag that un-skips
+    // `go mod tidy` on major updates, which renovate otherwise refuses to run
+    // (it would drop the module before the code is migrated).
+    // Non-obvious: this executes `go install github.com/marwan-at-work/mod`
+    // inside the artifact step. That is NOT a renovate-managed dependency, so
+    // minimumReleaseAge does not apply to it and it defaults to `@latest`.
+    // `constraints.gomodMod` below pins it.
+    // Does not cover the `tool (...)` deps: renovate only rewrites the
+    // `require` line, so the tool path keeps the old major and tidy reverts the
+    // bump — those arrive as empty PRs that keep regenerating. Do them by hand
+    // when one shows up (matchPackageNames + major + enabled:false).
+    "gomodUpdateImportPaths",
+  ],
+  constraints: {
+    // Pins the `go install` above to an exact tag instead of `@latest`. Not
+    // about tag moves — sum.golang.org covers those — but about not
+    // auto-adopting a brand-new release, which minimumReleaseAge cannot reach.
+    // Renovate requires a leading `v` and valid semver here, otherwise it logs
+    // "compatibility range is not valid" and silently falls back to `@latest`.
+    // Bump by hand — renovate does not manage this value.
+    gomodMod: "v0.10.0",
+  },
+  packageRules: [
+    {
+      // Batch routine updates into one PR. Must stay first — later rules win,
+      // so the group rules below keep their own groupName. Majors stay
+      // separate; separateMajorMinor splits them out regardless of grouping.
+      matchUpdateTypes: ["minor", "patch", "digest"],
+      groupName: "all non-major dependencies",
+    },
+    {
+      // The `go` directive in go.mod. Renovate parses it with the
+      // `go-mod-directive` versioning, which reads `go 1.26.6` as the range
+      // `^1.26.6`. Under the default `replace` strategy a range is only
+      // rewritten when the new version falls outside it, and every 1.x release
+      // satisfies `^1.26.6` — so the directive silently never moves. `bump`
+      // raises the floor to the new version instead. Upstream's default is
+      // deliberate (the Go team advises against bumping the directive without
+      // reason), but every workflow here resolves its toolchain from
+      // `go-version-file: go.mod`, so leaving it behind means CI tests on an
+      // older Go than the Dockerfile ships.
+      // `matchDepTypes` is load-bearing: a `toolchain` directive would also be
+      // depName `go`, and that one renovate already updates by default.
+      matchManagers: ["gomod"],
+      matchDepTypes: ["golang"],
+      matchDepNames: ["go"],
+      rangeStrategy: "bump",
+      groupName: "go version",
+      // Go point releases are nearly always security releases, and the daily
+      // govulncheck in check-vulnerabilities.yaml fails on the stdlib the same
+      // day. Waiting for the release age and the Monday schedule left CI red
+      // for up to two weeks. osvVulnerabilityAlerts does not cover this: it
+      // skips the `go` directive and only checks a `toolchain` directive.
+      minimumReleaseAge: null,
+      schedule: ["at any time"],
+    },
+    {
+      // Same group as the directive above, so the go.mod bump and the build
+      // stage's `FROM golang:...` bump arrive as one PR instead of two that
+      // each leave the pair mismatched. Both resolve to the same upstream
+      // release — golang-version and the docker tag — so they move in step.
+      // Digest-only moves on the pinned tag land here too; that is fine.
+      // No release age here: Docker Hub resets the tag timestamp on every
+      // image rebuild, so the tag can stay "unaged" after the go directive
+      // passes. A group does not wait for all members, so that gave #397 with
+      // go.mod alone, and the Dockerfile build failed.
+      // The image can still lag the go.dev release by a few hours. Then the
+      // group PR opens with go.mod alone, and a later run adds the Dockerfile.
+      matchManagers: ["dockerfile"],
+      matchDepNames: ["golang"],
+      groupName: "go version",
+      minimumReleaseAge: null,
+      // Same schedule as the go directive, so both halves arrive together.
+      schedule: ["at any time"],
+    },
+    {
+      // A digest-only move on a SHA-pinned action means an existing tag was
+      // repointed upstream — the tag-hijack signature (tj-actions/changed-files,
+      // CVE-2025-30066). Legitimate fixes arrive as a new tag through the normal
+      // version-update path.
+      // NOTE: Also freezes workflow service images (postgres) on their digest until a new tag.
+      matchManagers: ["github-actions"],
+      matchUpdateTypes: ["digest"],
+      enabled: false,
+    },
+    {
+      // The CI postgres service must match the Cloud SQL version
+      // (flashlight-postgres). Cloud SQL moves on its own maintenance
+      // schedule, so updates wait for a tick on the Dependency Dashboard.
+      // The dashboard only offers the newest version per bucket (minor, major),
+      // which can be ahead of Cloud SQL. Edit the created PR to match exactly.
+      matchManagers: ["github-actions"],
+      matchDatasources: ["docker"],
+      matchPackageNames: ["postgres"],
+      dependencyDashboardApproval: true,
+    },
+    {
+      // Of all the container registries, only Docker Hub reports a release
+      // timestamp to renovate (renovatebot/renovate#38656). Everything else —
+      // gcr.io and us-docker.pkg.dev here — reports none, and the default
+      // minimumReleaseAgeBehaviour=timestamp-required counts a missing
+      // timestamp as "not aged yet". Nothing ever supplies it later, so with
+      // the default internalChecksFilter=strict the update is withheld
+      // indefinitely: no branch, no PR, only a line under "Pending Status
+      // Checks" on the dependency dashboard. That is why dependabot opened
+      // #353 (distroless digest) and #378 (otel collector 0.156.1 -> 0.159.0)
+      // and renovate did not.
+      // The flag only decides what to do when the timestamp is absent, so this
+      // is a no-op for golang and postgres — those keep the full 7 days. In
+      // exchange renovate warns on the dashboard for each dep it lets through
+      // unaged; that warning is the point, so it is left unremapped.
+      matchDatasources: ["docker"],
+      minimumReleaseAgeBehaviour: "timestamp-optional",
+    },
+    { matchManagers: ["gomod"], addLabels: ["go"] },
+    { matchManagers: ["dockerfile"], addLabels: ["docker"] },
+    { matchManagers: ["github-actions"], addLabels: ["github_actions"] },
+    { matchManagers: ["pre-commit"], addLabels: ["pre_commit"] },
+  ],
+}

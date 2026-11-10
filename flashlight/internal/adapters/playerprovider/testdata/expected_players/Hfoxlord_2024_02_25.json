@@ -1,0 +1,82 @@
+{
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
+  "UUID": "5e41936b-e8d2-4160-9c32-c5018fc627c8",
+  "Displayname": "Hfoxlord",
+  "LastLogin": "2024-02-23T18:24:19.271Z",
+  "LastLogout": "2024-02-23T19:37:55.141Z",
+  "MissingBedwarsStats": false,
+  "Experience": 54995,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 20,
+    "Wins": 0,
+    "Losses": 20,
+    "BedsBroken": 4,
+    "BedsLost": 17,
+    "FinalKills": 5,
+    "FinalDeaths": 20,
+    "Kills": 14,
+    "Deaths": 22
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 5,
+    "Wins": 0,
+    "Losses": 5,
+    "BedsBroken": 0,
+    "BedsLost": 4,
+    "FinalKills": 0,
+    "FinalDeaths": 5,
+    "Kills": 3,
+    "Deaths": 2
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 138,
+    "Wins": 11,
+    "Losses": 127,
+    "BedsBroken": 10,
+    "BedsLost": 100,
+    "FinalKills": 30,
+    "FinalDeaths": 129,
+    "Kills": 167,
+    "Deaths": 241
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 75,
+    "Wins": 15,
+    "Losses": 59,
+    "BedsBroken": 6,
+    "BedsLost": 47,
+    "FinalKills": 17,
+    "FinalDeaths": 59,
+    "Kills": 39,
+    "Deaths": 134
+  },
+  "Fourv4": {
+    "Winstreak": 0,
+    "GamesPlayed": 12,
+    "Wins": 5,
+    "Losses": 7,
+    "BedsBroken": 3,
+    "BedsLost": 7,
+    "FinalKills": 8,
+    "FinalDeaths": 7,
+    "Kills": 8,
+    "Deaths": 31
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 250,
+    "Wins": 31,
+    "Losses": 218,
+    "BedsBroken": 23,
+    "BedsLost": 175,
+    "FinalKills": 60,
+    "FinalDeaths": 220,
+    "Kills": 231,
+    "Deaths": 430
+  }
+}

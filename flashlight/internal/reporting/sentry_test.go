@@ -1,0 +1,235 @@
+package reporting
+
+import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/getsentry/sentry-go"
+	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/strutils"
+)
+
+// sentryhttp attaches the incoming request to every event, and DataCollection
+// decides what comes along. Nothing else in the codebase would notice a bearer,
+// flow cookie or client IP leaking, so pin it here.
+//
+// Not parallel: sentry.Init replaces the global hub's client.
+func TestSentryDoesNotSendTheAuthorizationHeader(t *testing.T) {
+	_, _, err := InitSentryMiddleware("https://key@example.invalid/1")
+	require.NoError(t, err)
+
+	r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/playerdata", http.NoBody)
+	r.Header.Set("Authorization", "Bearer flsess_payload.signature")
+	r.Header.Set("Cookie", "__Host-fl_flow=payload.signature")
+	r.Header.Set("X-Forwarded-For", "203.0.113.7")
+	r.Header.Set("X-Client-Type", "prism")
+
+	req := sentry.NewRequest(r)
+	require.Equal(t, "[Filtered]", req.Headers["Authorization"])
+	require.Empty(t, req.Cookies)
+	require.NotContains(t, req.Headers, "Cookie")
+	require.Equal(t, "[Filtered]", req.Headers["X-Forwarded-For"])
+	require.Equal(t, "prism", req.Headers["X-Client-Type"])
+
+	dc := sentry.CurrentHub().Client().Options().DataCollection
+	require.False(t, dc.UserInfo.Value, "UserInfo attaches the client IP")
+	require.Empty(t, dc.HTTPBodies, "request bodies can carry tokens")
+}
+
+func TestSanitizeError(t *testing.T) {
+	t.Parallel()
+
+	t.Run("connection reset by peer", func(t *testing.T) {
+		t.Parallel()
+
+		err := `Server error: Get "https://api.hypixel.net/player?uuid=deadbeef8315465d9d44cfc238c64f71": read tcp [dead:beef:feb1:d745::c001]:64079->[dead:beef::6811:112a]:443: read: connection reset by peer`
+		want := `Server error: Get "https://api.hypixel.net/player?uuid=<uuid>": read tcp <host>-><host>: read: connection reset by peer`
+		require.Equal(t, want, sanitizeError(err))
+	})
+	t.Run("context deadline", func(t *testing.T) {
+		t.Parallel()
+
+		err := `Server error: Get "https://api.hypixel.net/player?uuid=deadbeef810845ca8424cf7ba5929a3e": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`
+		want := `Server error: Get "https://api.hypixel.net/player?uuid=<uuid>": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`
+		require.Equal(t, want, sanitizeError(err))
+	})
+	t.Run("misc ipv6", func(t *testing.T) {
+		t.Parallel()
+
+		ips := []string{
+			`1:2:3:4:5:6:7:8`,
+			`1::`,
+			`1:2:3:4:5:6:7::`,
+			`1::8`,
+			`1:2:3:4:5:6::8`,
+			`1:2:3:4:5:6::8`,
+			`1::7:8`,
+			`1:2:3:4:5::7:8`,
+			`1:2:3:4:5::8`,
+			`1::6:7:8`,
+			`1:2:3:4::6:7:8`,
+			`1:2:3:4::8`,
+			`1::5:6:7:8`,
+			`1:2:3::5:6:7:8`,
+			`1:2:3::8`,
+			`1::4:5:6:7:8`,
+			`1:2::4:5:6:7:8`,
+			`1:2::8`,
+			`1::3:4:5:6:7:8`,
+			`1::3:4:5:6:7:8`,
+			`1::8`,
+			`::2:3:4:5:6:7:8`,
+			`::8`,
+			`::`,
+		}
+		for _, ip := range ips {
+			t.Run(ip, func(t *testing.T) {
+				t.Parallel()
+
+				require.Equal(t, "<host>", sanitizeError(fmt.Sprintf("[%s]:1234", ip)))
+			})
+		}
+	})
+	t.Run("username requests", func(t *testing.T) {
+		t.Parallel()
+
+		cases := []struct {
+			error string
+			want  string
+		}{
+			{
+				// Real error
+				error: `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/ZteelyX": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`,
+				want:  `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/<username>": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`,
+			},
+			{
+				// Real error
+				error: `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/MrMocchi": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`,
+				want:  `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/<username>": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`,
+			},
+			{
+				// Constructed - no match
+				error: `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/player with spaces": failed`,
+				want:  `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/player with spaces": failed`,
+			},
+			{
+				// Constructed - don't match eagerly
+				error: `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/someplayer": failed due to "some sort of error"`,
+				want:  `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/<username>": failed due to "some sort of error"`,
+			},
+			{
+				// Constructed - don't match eagerly
+				error: `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/someplayer":"someextraerrorhere"`,
+				want:  `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/<username>":"someextraerrorhere"`,
+			},
+		}
+		for _, tc := range cases {
+			t.Run(tc.error, func(t *testing.T) {
+				t.Parallel()
+
+				require.Equal(t, tc.want, sanitizeError(tc.error))
+			})
+		}
+	})
+
+	t.Run("multiple sanitizations", func(t *testing.T) {
+		t.Parallel()
+
+		cases := []struct {
+			error string
+			want  string
+		}{
+			{
+				// Real error - double sanitization
+				error: `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/user123": read tcp [fddf:1111:ffff:dddd::c123]:34567->[1234:1b3:51:1::27]:443: read: connection reset by peer`,
+				want:  `failed to send request: Get "https://api.mojang.com/users/profiles/minecraft/<username>": read tcp <host>-><host>: read: connection reset by peer`,
+			},
+		}
+
+		for _, tc := range cases {
+			t.Run(tc.error, func(t *testing.T) {
+				t.Parallel()
+
+				require.Equal(t, tc.want, sanitizeError(tc.error))
+			})
+		}
+	})
+
+	t.Run("invalid uuid input", func(t *testing.T) {
+		t.Parallel()
+
+		// Generate the real errors from NormalizeUUID so the regex stays in
+		// sync with the actual message format.
+		invalidCharErr := func(input string) string {
+			_, err := strutils.NormalizeUUID(input)
+			require.Error(t, err)
+			return err.Error()
+		}
+
+		cases := []struct {
+			error string
+			want  string
+		}{
+			{
+				// Real error - invalid character
+				error: invalidCharErr("not-a-uuid!"),
+				want:  `invalid character in UUID. input: '<value>'`,
+			},
+			{
+				// Real error - incorrect length
+				error: invalidCharErr("abc"),
+				want:  `normalized UUID has incorrect length. input: '<value>'`,
+			},
+			{
+				// Real error - value containing a single quote
+				error: invalidCharErr("a'b"),
+				want:  `invalid character in UUID. input: '<value>'`,
+			},
+			{
+				// Wrapped error
+				error: fmt.Errorf("failed to normalize uuid: %w", fmt.Errorf("%s", invalidCharErr("bad uuid"))).Error(),
+				want:  `failed to normalize uuid: invalid character in UUID. input: '<value>'`,
+			},
+			{
+				// Constructed - unrelated "input:" text is not scrubbed
+				error: `some other error. input: 'keepme'`,
+				want:  `some other error. input: 'keepme'`,
+			},
+		}
+
+		for _, tc := range cases {
+			t.Run(tc.error, func(t *testing.T) {
+				t.Parallel()
+
+				require.Equal(t, tc.want, sanitizeError(tc.error))
+			})
+		}
+	})
+
+	t.Run("should not sanitize", func(t *testing.T) {
+		t.Parallel()
+
+		errors := []string{
+			`failed to get identity from mojang response: temporarily unavailable: mojang API returned status code 503`, // Real error
+			`failed to get identity from mojang response: temporarily unavailable: mojang API returned status code 504`, // Real error
+			`failed to get identity from mojang response: temporarily unavailable: mojang API returned status code 429`, // Real error
+			`Hypixel API returned unsupported status code: 403`,                                                         // Real error
+			`Hypixel returned status code 500 (Internal Server Error) (temporarily unavailable)`,                        // Real error
+			`failed to get tags from urchin response: urchin API returned status code 502: temporarily unavailable`,     // Real error
+			`failed to set search path: context deadline exceeded`,                                                      // Real error
+			`failed to query last player data: context deadline exceeded`,                                               // Real error
+			`failed to commit transaction: sql: transaction has already been committed or rolled back`,                  // Real error
+		}
+
+		for _, error := range errors {
+			t.Run(error, func(t *testing.T) {
+				t.Parallel()
+
+				require.Equal(t, error, sanitizeError(error))
+			})
+		}
+	})
+}

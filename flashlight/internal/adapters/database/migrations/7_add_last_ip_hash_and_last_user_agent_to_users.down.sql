@@ -1,0 +1,2 @@
+ALTER TABLE users DROP COLUMN IF EXISTS last_user_agent;
+ALTER TABLE users DROP COLUMN IF EXISTS last_ip_hash;

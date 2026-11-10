@@ -1,0 +1,31 @@
+name: Check for vulnerable dependencies
+
+on:
+  pull_request:
+    paths:
+      - "flashlight/**"
+      - ".github/workflows/flashlight-check-vulnerabilities.yaml"
+  schedule:
+    # Run every day at 4:40 UTC
+    - cron: '40 4 * * *'
+
+defaults:
+  run:
+    working-directory: flashlight
+
+permissions:
+  contents: read
+
+jobs:
+  check-vulnerabilities:
+    name: Check for vulnerable dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: 'flashlight/go.mod'
+          cache-dependency-path: 'flashlight/go.sum'
+
+      - name: Check for vulnerable dependencies
+        run: go tool govulncheck ./...

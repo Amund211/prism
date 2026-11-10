@@ -1,0 +1,82 @@
+{
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
+  "UUID": "3ac3da04-00e4-4d4c-9059-269bcf2da2a5",
+  "Displayname": "kippi_games",
+  "LastLogin": "2024-02-25T13:58:26.923Z",
+  "LastLogout": "2024-02-24T19:43:16.194Z",
+  "MissingBedwarsStats": false,
+  "Experience": 214192,
+  "Solo": {
+    "Winstreak": 0,
+    "GamesPlayed": 102,
+    "Wins": 1,
+    "Losses": 101,
+    "BedsBroken": 27,
+    "BedsLost": 94,
+    "FinalKills": 19,
+    "FinalDeaths": 101,
+    "Kills": 41,
+    "Deaths": 200
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 880,
+    "Wins": 10,
+    "Losses": 870,
+    "BedsBroken": 142,
+    "BedsLost": 815,
+    "FinalKills": 207,
+    "FinalDeaths": 870,
+    "Kills": 741,
+    "Deaths": 2321
+  },
+  "Threes": {
+    "Winstreak": 0,
+    "GamesPlayed": 84,
+    "Wins": 4,
+    "Losses": 80,
+    "BedsBroken": 2,
+    "BedsLost": 80,
+    "FinalKills": 7,
+    "FinalDeaths": 79,
+    "Kills": 64,
+    "Deaths": 222
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 398,
+    "Wins": 47,
+    "Losses": 351,
+    "BedsBroken": 7,
+    "BedsLost": 343,
+    "FinalKills": 53,
+    "FinalDeaths": 362,
+    "Kills": 324,
+    "Deaths": 1328
+  },
+  "Fourv4": {
+    "Winstreak": 1,
+    "GamesPlayed": 298,
+    "Wins": 100,
+    "Losses": 195,
+    "BedsBroken": 11,
+    "BedsLost": 185,
+    "FinalKills": 52,
+    "FinalDeaths": 204,
+    "Kills": 357,
+    "Deaths": 936
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 1762,
+    "Wins": 162,
+    "Losses": 1597,
+    "BedsBroken": 189,
+    "BedsLost": 1517,
+    "FinalKills": 338,
+    "FinalDeaths": 1616,
+    "Kills": 1527,
+    "Deaths": 5007
+  }
+}

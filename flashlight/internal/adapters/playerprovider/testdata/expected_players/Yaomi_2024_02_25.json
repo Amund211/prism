@@ -1,0 +1,82 @@
+{
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
+  "UUID": "3500aed4-ac80-40ad-8cf9-1c09c69ea310",
+  "Displayname": "Yaomi",
+  "LastLogin": null,
+  "LastLogout": null,
+  "MissingBedwarsStats": false,
+  "Experience": 4298819,
+  "Solo": {
+    "Winstreak": null,
+    "GamesPlayed": 189,
+    "Wins": 67,
+    "Losses": 117,
+    "BedsBroken": 330,
+    "BedsLost": 124,
+    "FinalKills": 316,
+    "FinalDeaths": 106,
+    "Kills": 379,
+    "Deaths": 508
+  },
+  "Doubles": {
+    "Winstreak": null,
+    "GamesPlayed": 2816,
+    "Wins": 1162,
+    "Losses": 1592,
+    "BedsBroken": 2965,
+    "BedsLost": 1732,
+    "FinalKills": 5350,
+    "FinalDeaths": 1551,
+    "Kills": 7388,
+    "Deaths": 11332
+  },
+  "Threes": {
+    "Winstreak": null,
+    "GamesPlayed": 2527,
+    "Wins": 1896,
+    "Losses": 599,
+    "BedsBroken": 1778,
+    "BedsLost": 751,
+    "FinalKills": 4935,
+    "FinalDeaths": 617,
+    "Kills": 5588,
+    "Deaths": 7405
+  },
+  "Fours": {
+    "Winstreak": null,
+    "GamesPlayed": 4151,
+    "Wins": 2718,
+    "Losses": 1387,
+    "BedsBroken": 2053,
+    "BedsLost": 1591,
+    "FinalKills": 8378,
+    "FinalDeaths": 1336,
+    "Kills": 11456,
+    "Deaths": 13952
+  },
+  "Fourv4": {
+    "Winstreak": null,
+    "GamesPlayed": 196,
+    "Wins": 188,
+    "Losses": 7,
+    "BedsBroken": 42,
+    "BedsLost": 10,
+    "FinalKills": 194,
+    "FinalDeaths": 10,
+    "Kills": 166,
+    "Deaths": 223
+  },
+  "Overall": {
+    "Winstreak": null,
+    "GamesPlayed": 9879,
+    "Wins": 6031,
+    "Losses": 3702,
+    "BedsBroken": 7168,
+    "BedsLost": 4208,
+    "FinalKills": 19173,
+    "FinalDeaths": 3620,
+    "Kills": 24977,
+    "Deaths": 33420
+  }
+}

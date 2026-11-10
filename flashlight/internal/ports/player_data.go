@@ -1,0 +1,203 @@
+package ports
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"log/slog"
+	"net/http"
+
+	"go.opentelemetry.io/otel"
+
+	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/flashlight/internal/strutils"
+)
+
+func MakeGetPlayerDataHandler(
+	getAndPersistPlayerWithCache app.GetAndPersistPlayerWithCache,
+	registerUserVisit app.RegisterUserVisit,
+	rootLogger *slog.Logger,
+	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
+	bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc,
+	blocklistConfig BlocklistConfig,
+	deprecated bool,
+) (http.HandlerFunc, func()) {
+	tracer := otel.Tracer("flashlight/ports/player_data_v1")
+
+	rateLimit, stop := NewAuthRateLimitMiddleware(PrismRateLimitPolicy, func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		statusCode := http.StatusTooManyRequests
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(statusCode)
+		w.Write([]byte(`{"success":false,"cause":"Rate limit exceeded"}`))
+
+		logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "ratelimit exceeded")
+	})
+
+	middleware := ComposeMiddlewares(
+		NewRequestLoggerMiddleware(rootLogger),
+		sentryMiddleware,
+		BuildBlocklistMiddleware(blocklistConfig),
+		buildMetricsMiddleware("playerdata"),
+		NewReportingMetaMiddleware("playerdata"),
+		bearerAuthMiddleware,
+		rateLimit,
+		BuildRegisterUserVisitMiddleware(registerUserVisit),
+	)
+
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		ctx, span := tracer.Start(ctx, "ports.GetPlayerDataHandler")
+		defer span.End()
+
+		if deprecated {
+			logging.FromContext(ctx).WarnContext(ctx, "Deprecated endpoint hit", "deprecatedEndpoint", fmt.Sprintf("%s %s", r.Method, r.URL.Path))
+		}
+
+		rawUUID := r.URL.Query().Get("uuid")
+
+		logging.FromContext(ctx).InfoContext(ctx, "Handling playerdata request",
+			slog.String("uuid", rawUUID),
+		)
+
+		ctx = logging.AddMetaToContext(ctx,
+			slog.String("uuid", rawUUID),
+		)
+
+		ctx = reporting.AddExtrasToContext(ctx,
+			map[string]string{
+				"rawUUID": rawUUID,
+			},
+		)
+
+		uuid, err := strutils.NormalizeUUID(rawUUID)
+		if err != nil {
+			statusCode := http.StatusBadRequest
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(statusCode)
+			w.Write([]byte(`{"success":false,"cause":"Invalid UUID"}`))
+
+			logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "invalid uuid")
+			return
+		}
+
+		ctx = reporting.AddExtrasToContext(ctx,
+			map[string]string{
+				"uuid": uuid,
+			},
+		)
+
+		requesterUserID := string(GetUserID(r))
+		if requesterUserID == missingUserID {
+			// Clients without an id are all registered under the shared
+			// "<missing>" sentinel; it must never identify a requester.
+			requesterUserID = ""
+		}
+
+		player, err := getAndPersistPlayerWithCache(ctx, uuid, providerModeFor(ctx), requesterUserID)
+		if errors.Is(err, domain.ErrPlayerNotFound) {
+			hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(nil)
+			if err != nil {
+				logging.FromContext(ctx).ErrorContext(ctx, "Failed to convert player to hypixel API response", "error", err)
+				err = fmt.Errorf("failed to convert player to hypixel API response: %w", err)
+				reporting.Report(ctx, err)
+				statusCode := writeHypixelStyleErrorResponse(ctx, w, err)
+				logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "error")
+				return
+			}
+
+			statusCode := 404
+			logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "success")
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(statusCode)
+			w.Write(hypixelAPIResponseData)
+			return
+		}
+
+		if err != nil {
+			// NOTE: GetAndPersistPlayerWithCache implementations handle their own error reporting
+			logging.FromContext(ctx).ErrorContext(ctx, "Error getting player data", "error", err)
+			statusCode := writeHypixelStyleErrorResponse(ctx, w, err)
+			logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "error")
+			return
+		}
+
+		hypixelAPIResponseData, err := PlayerToPrismPlayerDataResponseData(player)
+		if err != nil {
+			logging.FromContext(ctx).ErrorContext(ctx, "Failed to convert player to hypixel API response", "error", err)
+
+			err = fmt.Errorf("failed to convert player to hypixel API response: %w", err)
+			reporting.Report(ctx, err)
+
+			statusCode := writeHypixelStyleErrorResponse(ctx, w, err)
+			logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "error")
+			return
+		}
+
+		logging.FromContext(ctx).InfoContext(ctx, "Got minified player data", "contentLength", len(hypixelAPIResponseData), "statusCode", 200)
+
+		statusCode := 200
+		logging.FromContext(ctx).InfoContext(ctx, "Returning response", "statusCode", statusCode, "reason", "success")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(statusCode)
+		w.Write(hypixelAPIResponseData)
+	}
+
+	return middleware(handler), stop
+}
+
+// providerModeFor trusts any verified session tier with fresh data: the
+// identity budget is keyed on it, so it can not be farmed per request.
+func providerModeFor(ctx context.Context) app.ProviderMode {
+	auth, ok := AuthFromContext(ctx)
+	if !ok {
+		return app.ProviderModeWellKnown
+	}
+	switch auth.IdentityType {
+	case domain.AuthSessionIdentityAnonymous, domain.AuthSessionIdentityMicrosoft:
+		return app.ProviderModeAlways
+	default:
+		return app.ProviderModeWellKnown
+	}
+}
+
+func writeHypixelStyleErrorResponse(ctx context.Context, w http.ResponseWriter, responseError error) int {
+	w.Header().Set("Content-Type", "application/json")
+
+	errorResponse := HypixelAPIErrorResponse{
+		Success: false,
+		Cause:   responseError.Error(),
+	}
+	errorBytes, err := json.Marshal(errorResponse)
+	if err != nil {
+		logging.FromContext(ctx).ErrorContext(ctx, "Failed to marshal error response", "error", err)
+		reporting.Report(ctx, fmt.Errorf("failed to marshal error response: %w", err), map[string]string{
+			"responseError": responseError.Error(),
+		})
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"success":false,"cause":"Internal server error (flashlight)"}`))
+		return http.StatusInternalServerError
+	}
+
+	// Unknown error: default to 500
+	statusCode := http.StatusInternalServerError
+
+	if errors.Is(responseError, domain.ErrTemporarilyUnavailable) {
+		// TODO: Use a more descriptive status code when most prism clients support it
+		statusCode = http.StatusGatewayTimeout
+	}
+
+	w.WriteHeader(statusCode)
+	// TODO: Sanitize the errors before sending them to the client
+	w.Write(errorBytes)
+
+	return statusCode
+}

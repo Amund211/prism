@@ -1,0 +1,79 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: none
+  enable:
+    - govet
+    - staticcheck
+    - errcheck
+    - ineffassign
+    - bodyclose
+    - sqlclosecheck
+    - rowserrcheck
+    - errorlint
+    - spancheck
+    - nilerr
+    - noctx
+    - revive
+    - misspell
+    - unconvert
+    - gocritic
+    - copyloopvar
+    - intrange
+
+  settings:
+    gocritic:
+      # Scope gocritic to a single check to avoid the ~50 default checks
+      # that would create lots of noise.
+      disable-all: true
+      enabled-checks:
+        - httpNoBody
+    revive:
+      rules:
+        # Bug-catching rules we keep enabled
+        - name: var-naming
+        - name: redefines-builtin-id
+        # Default rules we explicitly disable:
+        # exported: requires doc comments on every exported identifier — high churn
+        - name: exported
+          disabled: true
+        # package-comments: requires `// Package x ...` on every package — high churn
+        - name: package-comments
+          disabled: true
+        # unused-parameter: most flags are interface implementations where the
+        # named param is for documentation; renaming to `_` hurts readability.
+        - name: unused-parameter
+          disabled: true
+        # empty-block: overlaps with staticcheck SA9003; we already handle those
+        # cases with explicit annotations.
+        - name: empty-block
+          disabled: true
+        # unexported-return: flags intentional Go opacity patterns
+        # (NewX returning *unexportedType to keep the type opaque).
+        - name: unexported-return
+          disabled: true
+    errcheck:
+      exclude-functions:
+        # Idiomatic `defer tx.Rollback()` — Commit() is the source of truth.
+        # sqlx.Tx embeds *sql.Tx, so method promotion attributes Rollback to *sql.Tx.
+        - (*database/sql.Tx).Rollback
+        # TODO: Consider re-enabling this
+        - (net/http.ResponseWriter).Write
+        # TODO: Consider re-enabling these
+        - (io.Closer).Close
+        - (*database/sql.Conn).Close
+        - (*database/sql.DB).Close
+        - (github.com/golang-migrate/migrate/v4/source.Driver).Close
+        - (*github.com/golang-migrate/migrate/v4.Migrate).Close
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/Amund211/flashlight

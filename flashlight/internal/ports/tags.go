@@ -1,0 +1,172 @@
+package ports
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"log/slog"
+	"net/http"
+
+	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/flashlight/internal/strutils"
+)
+
+type tagsResponseObject struct {
+	UUID string       `json:"uuid"`
+	Tags tagsResponse `json:"tags"`
+}
+
+const (
+	tagSeverityNone   = "none"
+	tagSeverityMedium = "medium"
+	tagSeverityHigh   = "high"
+)
+
+type tagsResponse struct {
+	Cheating string `json:"cheating"`
+	Sniping  string `json:"sniping"`
+}
+
+func MakeGetTagsHandler(
+	getTags app.GetTags,
+	registerUserVisit app.RegisterUserVisit,
+	rootLogger *slog.Logger,
+	sentryMiddleware func(http.HandlerFunc) http.HandlerFunc,
+	bearerAuthMiddleware func(http.HandlerFunc) http.HandlerFunc,
+	blocklistConfig BlocklistConfig,
+) (http.HandlerFunc, func()) {
+	rateLimit, stop := NewAuthRateLimitMiddleware(PrismRateLimitPolicy, plainRateLimitExceeded)
+
+	middleware := ComposeMiddlewares(
+		NewRequestLoggerMiddleware(rootLogger),
+		sentryMiddleware,
+		BuildBlocklistMiddleware(blocklistConfig),
+		buildMetricsMiddleware("tags"),
+		NewReportingMetaMiddleware("tags"),
+		bearerAuthMiddleware,
+		rateLimit,
+		BuildRegisterUserVisitMiddleware(registerUserVisit),
+	)
+
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		rawUUID := r.PathValue("uuid")
+
+		ctx = logging.AddMetaToContext(ctx,
+			slog.String("rawUUID", rawUUID),
+		)
+		ctx = reporting.AddExtrasToContext(ctx,
+			map[string]string{
+				"rawUUID": rawUUID,
+			},
+		)
+
+		var urchinAPIKey *string
+		urchinAPIKeyHeader := r.Header.Get("X-Urchin-Api-Key")
+		if urchinAPIKeyHeader != "" {
+			urchinAPIKey = &urchinAPIKeyHeader
+		}
+
+		uuid, err := strutils.NormalizeUUID(rawUUID)
+		if err != nil {
+			statusCode := http.StatusBadRequest
+			logging.FromContext(ctx).InfoContext(ctx, "Invalid uuid. Returning error", "statusCode", statusCode, "reason", "invalid uuid")
+			http.Error(w, "Invalid uuid", statusCode)
+			return
+		}
+
+		logging.FromContext(ctx).InfoContext(ctx, "Handling tags request",
+			slog.String("uuid", uuid),
+			slog.Bool("hasUrchinApiKey", urchinAPIKey != nil),
+		)
+
+		ctx = reporting.AddExtrasToContext(ctx,
+			map[string]string{
+				"uuid": uuid,
+			},
+		)
+		ctx = logging.AddMetaToContext(ctx, slog.String("uuid", uuid))
+
+		tags, err := getTags(ctx, uuid, urchinAPIKey)
+		if errors.Is(err, domain.ErrTemporarilyUnavailable) {
+			logging.FromContext(ctx).ErrorContext(ctx, "Tags temporarily unavailable", "error", err)
+			http.Error(w, "Temporarily unavailable", http.StatusServiceUnavailable)
+			return
+		} else if errors.Is(err, domain.ErrInvalidAPIKey) {
+			logging.FromContext(ctx).ErrorContext(ctx, "Invalid urchin API key", "error", err)
+			http.Error(w, "Invalid urchin API key. Fix it or remove the key.", http.StatusUnauthorized)
+			return
+		} else if err != nil {
+			logging.FromContext(ctx).ErrorContext(ctx, "Error getting tags", "error", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		responseData, err := tagsToResponse(ctx, uuid, tags)
+		if err != nil {
+			logging.FromContext(ctx).ErrorContext(ctx, "Failed to convert tags to response", "error", err)
+
+			err = fmt.Errorf("failed to convert tags to response: %w", err)
+			reporting.Report(ctx, err)
+
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		if _, err = w.Write(responseData); err != nil {
+			logging.FromContext(ctx).ErrorContext(ctx, "Failed to write response", "error", err)
+			reporting.Report(ctx, fmt.Errorf("failed to write tags response: %w", err))
+
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+	}
+
+	return middleware(handler), stop
+}
+
+func tagSeverityToString(severity domain.TagSeverity) (string, error) {
+	switch severity {
+	case domain.TagSeverityNone:
+		return tagSeverityNone, nil
+	case domain.TagSeverityMedium:
+		return tagSeverityMedium, nil
+	case domain.TagSeverityHigh:
+		return tagSeverityHigh, nil
+	}
+	return tagSeverityNone, fmt.Errorf("unknown tag severity: %v", severity)
+}
+
+func tagsToResponse(ctx context.Context, uuid string, tags domain.Tags) ([]byte, error) {
+	cheatingStr, err := tagSeverityToString(tags.Cheating)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert cheating tag severity to string: %w", err)
+	}
+	snipingStr, err := tagSeverityToString(tags.Sniping)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert sniping tag severity to string: %w", err)
+	}
+
+	response := tagsResponseObject{
+		UUID: uuid,
+		Tags: tagsResponse{
+			Cheating: cheatingStr,
+			Sniping:  snipingStr,
+		},
+	}
+
+	data, err := json.Marshal(response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal tags response: %w", err)
+	}
+
+	return data, nil
+}

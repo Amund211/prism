@@ -1,0 +1,155 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: "${SERVICE_NAME}"
+  labels:
+    cloud.googleapis.com/location: "northamerica-northeast2"
+  annotations:
+    run.googleapis.com/ingress: "all"
+spec:
+  template:
+    metadata:
+      annotations:
+        # The service depends on the collector so Cloud Run orders the two
+        # containers: on startup the collector is brought up (and its
+        # startupProbe passes) before the service starts, so the service never
+        # pushes OTLP telemetry to a collector that isn't listening; on shutdown
+        # containers stop in reverse dependency order, so the service is stopped
+        # first and the collector stays alive to receive the service's final
+        # telemetry flush. Without this, both containers get SIGTERM at once and
+        # the collector exits before the service can flush, dropping the last
+        # batch of metrics/traces. The collector's startupProbe below is tuned to
+        # a 1s period so gating the service on it costs only ~2-4s of cold start.
+        # Ref: https://cloud.google.com/run/docs/tutorials/custom-metrics-opentelemetry-sidecar
+        run.googleapis.com/container-dependencies: '{"service":["collector"]}'
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "1"
+        run.googleapis.com/cloudsql-instances: "prism-overlay:northamerica-northeast2:flashlight-postgres"
+        run.googleapis.com/startup-cpu-boost: "true"
+    spec:
+      containerConcurrency: 100
+      timeoutSeconds: 30
+      containers:
+      - image: "${SERVICE_IMAGE}"
+        name: "service"
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: "1"
+            memory: "128Mi"
+        env:
+        - name: "FLASHLIGHT_ENVIRONMENT"
+          value: "${FLASHLIGHT_ENVIRONMENT}"
+        - name: "DB_USERNAME"
+          value: "postgres"
+        - name: "CLOUDSQL_UNIX_SOCKET"
+          value: "/cloudsql/prism-overlay:northamerica-northeast2:flashlight-postgres"
+        - name: "HYPIXEL_API_KEY"
+          valueFrom:
+            secretKeyRef:
+              name: "prism-hypixel-api-key"
+              key: "latest"
+        - name: "URCHIN_API_KEY"
+          valueFrom:
+            secretKeyRef:
+              name: "prism-urchin-api-key"
+              key: "latest"
+        - name: "DB_PASSWORD"
+          valueFrom:
+            secretKeyRef:
+              name: "flashlight-db-password"
+              key: "latest"
+        - name: "SENTRY_DSN"
+          valueFrom:
+            secretKeyRef:
+              name: "${SENTRY_DSN_KEY}"
+              key: "latest"
+        - name: "BLOCKED_IPS"
+          valueFrom:
+            secretKeyRef:
+              name: "prism-blocked-ips"
+              key: "latest"
+        - name: "BLOCKED_USER_AGENTS"
+          valueFrom:
+            secretKeyRef:
+              name: "prism-blocked-user-agents"
+              key: "latest"
+        - name: "BLOCKED_USER_IDS"
+          valueFrom:
+            secretKeyRef:
+              name: "prism-blocked-user-ids"
+              key: "latest"
+        - name: "BLOCKED_IPS_SHA256_HEX"
+          valueFrom:
+            secretKeyRef:
+              name: "prism-blocked-ips-sha256-hex"
+              key: "latest"
+        # HMAC keys for the anonymous-login proof-of-work challenges,
+        # newline-delimited base64 (openssl rand -base64 32). The first line
+        # signs; every line is accepted, so rotating is: prepend the new key,
+        # deploy, drop the old line one challenge TTL later. Per environment,
+        # so a staging challenge is never valid against production.
+        - name: "AUTH_CHALLENGE_SIGNING_KEYS"
+          valueFrom:
+            secretKeyRef:
+              name: "${AUTH_CHALLENGE_SIGNING_KEYS_KEY}"
+              key: "latest"
+        # HMAC keys for stateless auth session handles. Same format as the
+        # challenge keys above and deliberately a different list — a session
+        # and a challenge must never be signed with the same key. Rotation
+        # differs too: drop the old line no sooner than one session max age
+        # after deploying the new one, or every client holding a token signed
+        # with it is logged out at once.
+        - name: "AUTH_SESSION_SIGNING_KEYS"
+          valueFrom:
+            secretKeyRef:
+              name: "${AUTH_SESSION_SIGNING_KEYS_KEY}"
+              key: "latest"
+        # HMAC keys for the Microsoft sign-in flow cookie and result token.
+        # Same format, its own list. Drop the old line 10 minutes after
+        # deploying the new one; sooner only fails sign-ins in flight.
+        - name: "AUTH_FLOW_SIGNING_KEYS"
+          valueFrom:
+            secretKeyRef:
+              name: "${AUTH_FLOW_SIGNING_KEYS_KEY}"
+              key: "latest"
+        # The Entra app registration Microsoft sign-in runs against, one per
+        # environment. The redirect URI must equal the one registered in
+        # Entra byte for byte.
+        - name: "AZURE_CLIENT_ID"
+          value: "${AZURE_CLIENT_ID}"
+        - name: "AZURE_REDIRECT_URI"
+          value: "${AZURE_REDIRECT_URI}"
+        - name: "AZURE_CLIENT_SECRET"
+          valueFrom:
+            secretKeyRef:
+              name: "${AZURE_CLIENT_SECRET_KEY}"
+              key: "latest"
+        # When the Entra client secret expires. To rotate, for production
+        # and staging both:
+        #   1. Entra > App registrations > Certificates & secrets > New
+        #      client secret. The old one keeps working meanwhile.
+        #   2. gcloud secrets versions add <secret> --data-file -
+        #   3. Update the date here and deploy.
+        #   4. Verify a sign-in, then delete the old secret in Entra.
+        - name: "AZURE_CLIENT_SECRET_EXPIRES_AT"
+          value: "2028-09-06"
+        - name: "USER_UPLOADS_BUCKET"
+          value: "${USER_UPLOADS_BUCKET}"
+      - image: "${COLLECTOR_IMAGE}"
+        name: "collector"
+        startupProbe:
+          httpGet:
+            path: "/"
+            port: 13133
+          # Poll every 1s instead of the default 10s. The collector is ready
+          # within ~30ms of its process starting, but with the default 10s
+          # period the first probe fires before it's listening and the retry
+          # doesn't happen until ~10s later — which, via the container
+          # dependency above, would add ~10s to the service's cold start. A 1s
+          # period lets the probe pass as soon as the collector is up.
+          # failureThreshold * periodSeconds = 30s of startup headroom.
+          periodSeconds: 1
+          timeoutSeconds: 1
+          failureThreshold: 30

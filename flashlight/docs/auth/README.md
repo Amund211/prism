@@ -1,0 +1,334 @@
+---
+title: Auth sessions — how it works
+topic: auth
+area: internal/app, internal/ports, internal/authsessiontoken, internal/authflowtoken, internal/signing
+created_at: 2026-08-08
+status: current
+tags: [auth, sessions, bearer, proof-of-work, rate-limiting]
+---
+
+# Auth sessions
+
+Bearer sessions, so the per-user rate budget keys on an identity we verified
+rather than a self-asserted `X-User-Id` header. Two tiers: **anonymous**, and
+**microsoft** (below) — the same lifetimes. Rainbow uses both; prism has both
+merged and unreleased. This file is what runs, what breaks silently, and the
+few decisions worth not reopening.
+
+## The shape of it
+
+**The session is the handle** — `flsess_<base64url(payload)>.<base64url(hmac)>`,
+signed with `AUTH_SESSION_SIGNING_KEYS` (`internal/authsessiontoken`). There is
+no row, no lookup, no cache; validating is a signature check. The payload holds
+`typ`, `identityType`, `identityKey`, `issuedAtUnixMillis`,
+`lineageIssuedAtUnixMillis`, `lineage`, `generation` — and no deadlines.
+
+- `POST /v1/auth/anonymous/challenge` `{userId}` → a signed, stateless
+  proof-of-work challenge bound to that `userId` and the caller's IP. Difficulty
+  is **16** today (`proofofwork.DefaultDifficulty`) — ~0.35s mean, 1.60s p99 on
+  the slowest solver measured; the mechanism is mandatory so the dial can move
+  without a client retrofit.
+- `POST /v1/auth/anonymous/login` `{userId, challenge, solution}` → `sessionId`,
+  `tier`, and **durations, never timestamps**. The identity is the presented
+  `userId`. An optional `solver` report (name, version, hashes, elapsed) feeds
+  `pow_solve_*` after the proof verifies. A well-formed but bad report is
+  dropped; invalid JSON or a body over the cap is still a 400. It is
+  client-supplied: statistics only, never a decision. **Add a new solver
+  `version` to `knownSolverVersions` before a client ships it**, or it is
+  labelled `other`.
+- `POST /v1/auth/refresh` re-stamps `issuedAt`, bumps `generation` and seals **a
+  new handle**. No proof, no minimum interval. The client must store what comes
+  back.
+- The bearer middleware (`ports.NewBearerAuthMiddleware`, on twelve handlers)
+  validates, puts `{SessionID, IdentityType, IdentityKey}` in the context, and
+  401s what it cannot validate. **No `Authorization` header at all passes
+  through** to the legacy `X-User-Id` path. Both paths that pass on set the
+  `BearerCheckedFromContext` mark. The two `/v1/uploads` handlers are the
+  exception: they have no legacy path and 401 a request without a bearer.
+  Complete only works for the identity that started the upload.
+- Responses carry `X-Auth-Refresh: 1` within `refreshAtOffset` of expiry (a hint
+  — ignoring it still recovers via 401) and `X-Auth-Session` with the
+  middleware's verdict.
+- `ports/request_count` and `request_duration_seconds` carry `auth`: `missing`,
+  `anonymous`, `microsoft`, `unknown`, `invalid`, `error`, or `not-checked`
+  where the bearer middleware did not run (not mounted, or a limiter in
+  front of it rejected the request). The metrics middleware must stay **outside** the
+  bearer middleware, or its 401s go uncounted.
+
+Lifetimes are **derived, never stamped**. `deadlinesFor`
+(`internal/app/auth_session.go`) is the only thing that computes them:
+
+```
+lifetimeEndsAt = lineageIssuedAt + 24h        // the chain cap
+expiresAt      = min(issuedAt + 1h,  lifetimeEndsAt)
+refreshUntil   = min(issuedAt + 2h,  lifetimeEndsAt)
+```
+
+`lineage` and `generation` are read by **nothing** today. They are in the payload
+on purpose, so an issuance-events table can be added later without a format bump.
+They are not dead fields — do not remove them.
+
+## Rate limits
+
+Data endpoints (playerdata, tags, account ×2, history, wrapped, sessions,
+session-at) and uploads use `ports.NewAuthRateLimitMiddleware` with a `RateLimitPolicy`
+from `internal/ports/ratelimit_policy.go`. Mount order:
+`bearer → rateLimit`.
+
+- One IP bucket for tiers `none` (no bearer) and `anonymous`, plus an optional
+  long bucket (0.1/s, burst 200 on the prism and stats policies) on the same
+  key. Microsoft skips both: its identities cost a Minecraft licence.
+- One identity bucket per `(tier, identity)`. Each tier has its own budget. A
+  tier missing from the policy, or unknown, gets the anonymous rate. An
+  optional long identity bucket (prism policy only) sets the sustained pace,
+  with the same fallback.
+- A bad bearer is 401'd before any limiter (one HMAC). Accepted.
+- `prestiges`, `prism-notices` and the auth endpoints keep their hand-built
+  chains: IP limiters → bearer → `UserIDKeyFunc` limiter.
+
+## Microsoft sign-in
+
+Registered only when `AZURE_*` is set — always in production and staging;
+config refuses a partial set.
+
+- `GET /v1/auth/microsoft/start[?return&challenge[&state]]` sets
+  `__Host-fl_flow` (`flflow_<payload>.<sig>`: `msState`, `msVerifier`, `exp`
+  and the target; 10 min, `internal/authflowtoken`) and 302s to Microsoft
+  with `prompt=select_account`, so users with several accounts can pick one.
+  No `return` is the test sign-in. `return` is an exact https rainbow origin
+  (`DomainSuffixes`) or `http://127.0.0.1|[::1]:<port>/callback` for prism;
+  `challenge` (43-char base64url) is then required; `state` is prism's only.
+- `GET /v1/auth/microsoft/callback` checks the cookie, its expiry and `state`
+  **before** it redeems the code, and clears the cookie. With a target it
+  302s a result token (`flresult_…`, 60 s, `internal/authresulttoken`) to
+  `https://<origin>/auth/microsoft#result=` or
+  `http://127.0.0.1:<port>/callback?result=&state=`, or `error=<code>` in the
+  same place. Without one, or when the cookie does not verify, it renders a
+  page with "Signed in as <name>" or the code. It never sets a credential.
+- `POST /v1/auth/microsoft/exchange {result, verifier}` checks the signature,
+  expiry and `sha256(verifier) == challenge`, inserts a `user_credentials` row
+  (sha256 of a 32-byte credential; `identity_key` is the UUID without dashes;
+  expires +90d) and returns a `microsoft` session. Rainbow gets the credential
+  as `fl_rm` (`HttpOnly; Secure; SameSite=Lax; Path=/v1/auth/`, 90d), prism as
+  `credential` in the body. The body also has `uuid`: the `identity_key`, dashed like
+  every other `uuid` in the API.
+- `POST /v1/auth/recover` (`{}` + `fl_rm`, or `{credential}`) → a new
+  `microsoft` chain, `uuid`, and the credential's successor, the same way it
+  came. Refresh has no `uuid`; clients keep it across refreshes.
+  No outbound calls. **Rotation on use**: the presented row gets
+  `expires_at = LEAST(expires_at, now + 1 min)`; the successor `now + 90d`.
+  Past that minute the old value 401s — the theft signal. Prism has the
+  same minute, so a crash between response and file write costs a sign-in.
+  A credential presented the other client's way 401s.
+- `POST /v1/auth/logout` deletes **every** row for the credential's
+  identity, returns 204 and clears `fl_rm`. A stale credential works too,
+  so a victim whose value a thief rotated can still reach it. Live
+  sessions run to their own deadline.
+- `GET /v1/auth/credentials` (bearer, `microsoft` tier only, else 403)
+  lists `clientType`, `createdAt`, `lastUsedAt` per Microsoft sign-in
+  that still has a live credential — the active-sign-ins view. Rows are
+  grouped by `(client_type, created_at)`, so grace rows and racing
+  successors are one entry. Logout also deletes the expired rows it
+  hides. No hash, no id.
+- Recover and logout take an advisory lock per identity
+  (`lockIdentity`), always before any row lock. Without it a logout
+  misses a successor inserted mid-`DELETE`, and two logouts deadlock.
+- Their IP limits are the anonymous-login ones, not sign-in's: every
+  prism start recovers.
+- CORS allows credentials on `exchange`, `recover` and `logout` only. The
+  last two are version-pinned by `fl_rm`'s `Path`.
+
+## Azure app registrations
+
+One registration per environment, both in tenant
+`7bcc7051-95e7-4cb4-bc40-346d1b632698`. None of these values is a secret.
+
+| | Production | Staging |
+|---|---|---|
+| Client ID | `d8f8630a-d99b-4657-99a0-8e608c5e2e64` | `21f5d51b-0f2a-4307-8fc4-a6f28d19b78e` |
+| Display name | `Prism Overlay` | `Prism Overlay (Development)` |
+| Redirect URI | `https://flashlight.prismoverlay.com/v1/auth/microsoft/callback` | `https://flashlight-test.prismoverlay.com/v1/auth/microsoft/callback` |
+| Secret | `flashlight-azure-client-secret` | `flashlight-test-azure-client-secret` |
+
+- **Mojang allowlists each client ID** ([`aka.ms/mce-reviewappid`](https://aka.ms/mce-reviewappid));
+  `api.minecraftservices.com` 403s any other. A new registration needs a new
+  review (ours took under two weeks), and the tier is down until it clears.
+- **Two client secrets per app at most**, so a rotation with overlap uses both
+  slots: add the new secret, deploy, then delete the old one.
+  `AZURE_CLIENT_SECRET_EXPIRES_AT` warns in Sentry at startup. Any secret
+  authenticates its whole app — the staging app, not the staging secret, is the
+  boundary.
+- **Audience is `PersonalMicrosoftAccount`** (`/consumers`): Xbox Live and Java
+  exist only on personal accounts. The portal offers it only at creation; later,
+  only a manifest edit changes it (the client ID stays).
+- **Sign in to Entra tenant-scoped** (`entra.microsoft.com/<tenant id>`); a
+  bare URL sends a personal account to the wrong tenant and fails.
+- **Publisher domain** is `prismoverlay.com`, verified by rainbow's
+  `public/.well-known/microsoft-identity-association.json`. Add a new client ID
+  there **before** registering it. The apps were registered by a personal
+  account, so they can never be publisher verified.
+- **Redirect URIs:** keep `localhost` off the production app. An `http`
+  loopback URI needs a manifest edit; the portal refuses it.
+
+## Declined, and why
+
+- **No `join` / `hasJoined`.** Flashlight redeems the code with its own secret
+  and reads the UUID from `/minecraft/profile`; that is the proof.
+- **No Microsoft refresh token, anywhere.** Recover makes no outbound calls, so
+  a Microsoft outage signs nobody out. The cost: no client is in Microsoft's
+  revocation channel. A password change ends nothing and a resold account keeps
+  its identity; logout is the only remedy, which is why the sign-ins view
+  exists. Reopen on a credible account-compromise report.
+- **Prism returns via loopback, not polling.** Polling is phishable and needs a
+  server-side store.
+- **No reuse detection on recover.** One prism crash would sign out every
+  device.
+- **The session is a bearer, not a cookie.** A cookie brings CSRF, staging is
+  cross-site, and credentialed CORS on data endpoints would make any
+  `*.prismoverlay.com` subdomain an authenticated-request primitive.
+- **`user_credentials` stays in Postgres.** Logout must delete something, and a
+  signature cannot be deleted.
+
+## Signing keys and rotation
+
+**Three key lists, never shared.** Domain separation is what stops a challenge
+blob, a session handle and a flow token from being confused for one another; the
+payload's `typ` is the other half.
+
+| Variable | Signs | A dropped key costs |
+|---|---|---|
+| `AUTH_CHALLENGE_SIGNING_KEYS` | proof-of-work challenges | outstanding challenges, ≤ `challengeTTL` (**60s**) |
+| `AUTH_SESSION_SIGNING_KEYS` | session handles | **every live session** — a mass logout, up to 24h of chains |
+| `AUTH_FLOW_SIGNING_KEYS` | Microsoft sign-in flow cookie and result token | sign-ins in flight, ≤ 10 min |
+
+All are secrets, **one per environment** so a staging blob never validates
+against production: newline-delimited base64, ≥32 bytes decoded.
+
+**The first key signs; every key is accepted**, which is what makes rotation
+non-breaking: prepend the new key and deploy, then drop the old line once nothing
+signed with it can still be presented — 60s for challenges, **24h** for sessions, 10 min for flows.
+Dropping a key in the same deploy is instead a revocation, and the only
+irreversible one available.
+
+Development generates an ephemeral key at startup. Production and staging refuse
+to boot without keys, since a key that dies with the process also dies on every
+revision rollout. **An empty secret version still counts as `set`**, so the check
+is on the parsed list's length, not the variable's presence.
+
+## Pitfalls
+
+These are the parts you cannot recover by reading the code.
+
+- **`lineageIssuedAt` is copied on reseal, never re-stamped, and the chain cap is
+  derived from it — never from `issuedAt`.** `refreshed()` is the only writer of
+  a refreshed session for exactly this reason. Get it wrong and refresh becomes
+  an unbounded lifetime extension: invisible until a session has lived a week.
+- **Expiry is not monotonic, because nothing is stamped.** Shortening a lifetime
+  constant kills live sessions (intended); **lengthening one resurrects dead
+  handles**, since deadlines are recomputed per request. A lifetime reduction is
+  therefore *not* a revocation — treat it as permanent, or drop a signing key.
+- **The blocklist is the only revocation.** No row to mark, so `BLOCKED_USER_IDS`
+  plus dropping a key is the whole toolbox. A leaked signing key mints any
+  identity in any tier, including tiers that do not exist yet.
+- **`BLOCKED_USER_IDS` is checked twice and both are needed** — the blocklist
+  middleware on the `X-User-Id` header (which a blocked caller omits for free
+  while presenting a valid session) and the bearer middleware on the verified
+  `IdentityKey`. One entry covers both paths **only through `NewUserID`**, which
+  truncates to **50 chars** while login accepts **100**; compare a raw key on
+  either side and one entry silently covers one path and misses the other.
+  Nothing in CI pins that pair. Entries may be dropped after 24h, which the chain
+  cap bounds.
+- **Never key a rate limiter on `session_id`.** One identity may hold any number
+  of concurrent sessions, so that hands out a fresh budget per login. The
+  identity is the unit — which is also why extra handles buy no budget, and why
+  nothing limits how often a session may be refreshed.
+- **Nothing bounds how many identities one IP may hold sessions for.**
+  `authsessionguard.AllowAll{}` in `main.go` is that decision, made visible. A
+  guard that *does* refuse must wrap `domain.ErrAuthSessionIssuanceRefused` —
+  that is what login answers with a **429**; anything else is a 500 plus a Sentry
+  report.
+- **A `429` from refresh says nothing about the session.** Only the IP limiters
+  produce it, and they answer ahead of the handler that reads the bearer. Back
+  off; do not re-authenticate on it.
+- **Only `X-Auth-Session: valid` may be trusted; absence never means "the session
+  is fine".** It exists because `/v1/tags/{uuid}` 401s for a bad Urchin API key
+  while the middleware 401s for a bad session. The blocklist, the IP limiters,
+  CORS preflight, `/v1/prestiges/{uuid}`, Cloud Run and a stripping proxy all
+  answer without it, so a client reading absence as "the server validated my
+  bearer" latches a verdict it cannot clear.
+- **`X-Auth-Refresh` and `X-Auth-Session` must be set before the handler writes,
+  and named in `Access-Control-Expose-Headers`.** After `WriteHeader` the header
+  map is frozen and setting one is a silent no-op; without the CORS entry a
+  browser cannot read it, also silently.
+- **Refresh rotates the handle and does not revoke the parent.** The old handle
+  validates until its own `expiresAt`, so a client that drops the response still
+  works for up to an hour. A leaked handle likewise lives to its own deadline
+  (≤24h) whatever the real user does: there is no "sign out everywhere".
+- **A handle must never reach a log or an error report.** Nothing does today, and
+  the non-obvious reason is the strict `DataCollection` in
+  `internal/reporting/sentry.go` — that is why `sentryhttp` sends
+  `Authorization` as `[Filtered]` and drops cookies and bodies. The SDK
+  defaults (`&sentry.DataCollection{}` or `SendDefaultPII`) ship the flow
+  cookie and request bodies
+  (`TestSentryDoesNotSendTheAuthorizationHeader`).
+- **The Microsoft chain (`internal/adapters/microsoftauth`) never returns a
+  token, and its errors never quote a token, code, secret or response body** —
+  that is what makes them safe to log and report. Keep it so: a new leg that
+  wraps a body, or a caller handed a token, breaks it silently. It never follows a redirect: a 307
+  or 308 would replay the client secret, code or token to another host. Scope is
+  `XboxLive.signin` only; adding `offline_access` makes Microsoft issue refresh
+  tokens, which the design rules out.
+- **The callback's query holds the code and `state`, and `/start`'s holds
+  prism's nonce, so `hideQuery` must stay the outermost middleware on both.**
+  `sentryhttp` sends the query string with every event (`code` and `state`
+  match no deny term), and `GetIP` reports the URL. Cloud Run's own request log
+  still records the full URL; accepted, since the code is single-use and
+  useless without the client secret and the verifier.
+- **Only `/exchange` mints credentials, and only a rainbow result sets
+  `fl_rm`.** `Path=/v1/auth/` sends the cookie to the callback too; a callback
+  that set it would overwrite rainbow's credential during a prism sign-in in
+  the same browser, and give one row two holders.
+- **Never re-slide a rotated-out credential.** The `LEAST` in `Rotate`
+  keeps the old value from living past its minute. Within that minute it
+  can still mint any number of 90-day successors — the accepted cost of
+  the window, and why the window must stay short. Do not
+  "optimise" the stale-value 401 away either: with sessions many per
+  identity, it is the only thing that makes theft visible.
+- **A failed recover must not clear `fl_rm`.** The tab that lost a
+  rotation race would delete the cookie the winning tab just got.
+- **Rotated-out rows are kept** until a reaper exists; nothing deletes
+  them but logout. `Rotate` must copy `created_at` and `client_type`:
+  the sign-ins view groups on them, and a re-stamp shows every recover as
+  a new sign-in.
+- **Rolling back past the Microsoft tier logs out its sessions** — an older
+  revision refuses `identityType: microsoft` at unseal.
+- **`return` validation is the exfiltration boundary.** Loosen
+  `parseMicrosoftSignInTarget` and the result token goes to a host we do not
+  control. The result token is useless without the client's verifier, which is
+  what makes it safe in a fragment or a loopback URL. The flow cookie and the
+  result token share `AUTH_FLOW_SIGNING_KEYS`; only the signed prefix and `typ`
+  keep one from verifying as the other.
+- **The flow cookie only works on one host.** `__Host-` makes the browser drop
+  it unless it is `Secure`, `Path=/` and has no `Domain` — the clearing
+  `Set-Cookie` too. `/start` must be opened on the host in `AZURE_REDIRECT_URI`
+  (not `*.run.app`), or every callback is `flow_missing`. `SameSite=Lax`, not
+  `Strict`: Strict drops it on the redirect back from Microsoft.
+- **The payload is readable by anyone holding the handle** — signed, not
+  encrypted, and AEAD is refused. It carries a `userId` the client generated
+  itself, so the disclosure is ~nil; the hazard is that readability invites
+  somebody to parse it, and opaque-by-contract is the whole reason this backing
+  could be swapped without a client release.
+- **The bearer middleware must stay inside CORS and ahead of every
+  identity-keyed limiter**, which needs the identity. The tier limiter panics
+  on a request without the bearer mark; `TestBearerAuthMiddlewareMountPosition`
+  checks every chain.
+- **Dropping the `Authorization` header buys the `none` identity budget.** The
+  tiers no longer share a key, so the shared IP bucket is what bounds it. In
+  exchange, a self-asserted `X-User-Id` can no longer drain an anonymous
+  identity's bucket on the tier limiter. It still can on the hand-built
+  chains (`UserIDKeyFunc`).
+- **`pow_challenge_age_seconds` only samples challenges that come back**, so a
+  difficulty past what clients can finish makes `outcome="ok"` look *better* as
+  the slow half stops reporting. Read it next to `outcome="expired"`.
+- **CORS is not observable locally** — `dev` has no backend, the `proxy-*` modes
+  are same-origin, tests are mocked. Verify against `flashlight-test` with curl.

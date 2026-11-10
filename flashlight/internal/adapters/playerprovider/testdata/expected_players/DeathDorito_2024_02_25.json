@@ -1,0 +1,82 @@
+{
+  "DBID": null,
+  "QueriedAt": "2021-11-25T22:33:47Z",
+  "UUID": "d63a61b7-f880-4caa-af6a-64549b3298fb",
+  "Displayname": "DeathDorito",
+  "LastLogin": "2024-02-13T17:49:31.198Z",
+  "LastLogout": "2024-02-13T19:00:39.051Z",
+  "MissingBedwarsStats": false,
+  "Experience": 1402405,
+  "Solo": {
+    "Winstreak": 2,
+    "GamesPlayed": 767,
+    "Wins": 223,
+    "Losses": 534,
+    "BedsBroken": 1141,
+    "BedsLost": 649,
+    "FinalKills": 911,
+    "FinalDeaths": 533,
+    "Kills": 1234,
+    "Deaths": 2038
+  },
+  "Doubles": {
+    "Winstreak": 0,
+    "GamesPlayed": 2096,
+    "Wins": 759,
+    "Losses": 1316,
+    "BedsBroken": 2236,
+    "BedsLost": 1526,
+    "FinalKills": 3317,
+    "FinalDeaths": 1383,
+    "Kills": 5691,
+    "Deaths": 8281
+  },
+  "Threes": {
+    "Winstreak": 4,
+    "GamesPlayed": 906,
+    "Wins": 399,
+    "Losses": 497,
+    "BedsBroken": 631,
+    "BedsLost": 586,
+    "FinalKills": 1059,
+    "FinalDeaths": 531,
+    "Kills": 2395,
+    "Deaths": 3267
+  },
+  "Fours": {
+    "Winstreak": 0,
+    "GamesPlayed": 428,
+    "Wins": 145,
+    "Losses": 281,
+    "BedsBroken": 186,
+    "BedsLost": 301,
+    "FinalKills": 440,
+    "FinalDeaths": 285,
+    "Kills": 1254,
+    "Deaths": 1977
+  },
+  "Fourv4": {
+    "Winstreak": 0,
+    "GamesPlayed": 36,
+    "Wins": 20,
+    "Losses": 16,
+    "BedsBroken": 12,
+    "BedsLost": 17,
+    "FinalKills": 31,
+    "FinalDeaths": 16,
+    "Kills": 82,
+    "Deaths": 115
+  },
+  "Overall": {
+    "Winstreak": 0,
+    "GamesPlayed": 4233,
+    "Wins": 1546,
+    "Losses": 2644,
+    "BedsBroken": 4206,
+    "BedsLost": 3079,
+    "FinalKills": 5758,
+    "FinalDeaths": 2748,
+    "Kills": 10656,
+    "Deaths": 15678
+  }
+}

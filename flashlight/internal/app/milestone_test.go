@@ -1,0 +1,162 @@
+package app_test
+
+import (
+	"context"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/domaintest"
+)
+
+type mockMilestoneRepository struct {
+	t                  *testing.T
+	expectedGamemode   domain.Gamemode
+	expectedStat       domain.Stat
+	expectedMilestones []int64
+	achievements       []domain.MilestoneAchievement
+	err                error
+}
+
+func (m *mockMilestoneRepository) FindMilestoneAchievements(ctx context.Context, playerUUID string, gamemode domain.Gamemode, stat domain.Stat, milestones []int64) ([]domain.MilestoneAchievement, error) {
+	require.Equal(m.t, m.expectedGamemode, gamemode)
+	require.Equal(m.t, m.expectedStat, stat)
+	require.Equal(m.t, m.expectedMilestones, milestones)
+	return m.achievements, m.err
+}
+
+func TestFindMilestoneAchievements(t *testing.T) {
+	t.Parallel()
+
+	ctx := t.Context()
+	playerUUID := domaintest.NewUUID(t)
+
+	getAndPersistPlayerWithoutCache := func(t *testing.T) func(ctx context.Context, playerUUIDArg string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+		return func(ctx context.Context, playerUUIDArg string, providerMode app.ProviderMode, requesterUserID string) (*domain.PlayerPIT, error) {
+			t.Helper()
+			require.Equal(t, playerUUID, playerUUIDArg)
+			require.Equal(t, app.ProviderModeAlways, providerMode)
+			return nil, nil
+		}
+	}
+
+	t.Run("stars converted to experience", func(t *testing.T) {
+		t.Parallel()
+
+		p1 := domaintest.NewPlayerBuilder(playerUUID).WithExperience(550).Build(time.Date(2024, time.January, 1, 12, 0, 0, 0, time.UTC))
+		p2 := domaintest.NewPlayerBuilder(playerUUID).WithExperience(3600).Build(time.Date(2024, time.January, 5, 15, 30, 0, 0, time.UTC))
+		p3 := domaintest.NewPlayerBuilder(playerUUID).WithExperience(487_550).Build(time.Date(2024, time.March, 5, 15, 30, 0, 0, time.UTC))
+
+		starMilestones := []int64{1, 3, 100}
+		expMilestones := []int64{domain.StarsToExperience(1), domain.StarsToExperience(3), domain.StarsToExperience(100)}
+
+		mockRepo := &mockMilestoneRepository{
+			t:                  t,
+			expectedGamemode:   domain.GamemodeOverall,
+			expectedStat:       domain.StatExperience,
+			expectedMilestones: expMilestones,
+			achievements: []domain.MilestoneAchievement{
+				{
+					Milestone: expMilestones[0],
+					After:     &domain.MilestoneAchievementStats{Player: p1, Value: p1.Experience},
+				},
+				{
+					Milestone: expMilestones[1],
+					After:     &domain.MilestoneAchievementStats{Player: p2, Value: p2.Experience},
+				},
+				{
+					Milestone: expMilestones[2],
+					After:     &domain.MilestoneAchievementStats{Player: p3, Value: p3.Experience},
+				},
+			},
+		}
+		findMilestones := app.BuildFindMilestoneAchievements(mockRepo, getAndPersistPlayerWithoutCache(t))
+
+		achievements, err := findMilestones(ctx, playerUUID, domain.GamemodeOverall, domain.StatStars, starMilestones)
+		require.NoError(t, err)
+
+		require.Equal(t, []domain.MilestoneAchievement{
+			{
+				Milestone: 1,
+				After:     &domain.MilestoneAchievementStats{Player: p1, Value: 1},
+			},
+			{
+				Milestone: 3,
+				After:     &domain.MilestoneAchievementStats{Player: p2, Value: 3},
+			},
+			{
+				Milestone: 100,
+				After:     &domain.MilestoneAchievementStats{Player: p3, Value: 101},
+			},
+		}, achievements)
+	})
+
+	t.Run("experience milestones passed through", func(t *testing.T) {
+		t.Parallel()
+
+		milestones := []int64{1000, 2000, 3000}
+
+		p1 := domaintest.NewPlayerBuilder(playerUUID).WithExperience(1050).Build(time.Date(2024, time.March, 01, 10, 0, 0, 0, time.UTC))
+		p2 := domaintest.NewPlayerBuilder(playerUUID).WithExperience(3200).Build(time.Date(2024, time.March, 10, 16, 45, 0, 0, time.UTC))
+
+		mockRepo := &mockMilestoneRepository{
+			t:                  t,
+			expectedGamemode:   domain.GamemodeOverall,
+			expectedStat:       domain.StatExperience,
+			expectedMilestones: milestones,
+			achievements: []domain.MilestoneAchievement{
+				{
+					Milestone: milestones[0],
+					After: &domain.MilestoneAchievementStats{
+						Player: p1,
+						Value:  1050,
+					},
+				},
+				{
+					Milestone: milestones[2],
+					After: &domain.MilestoneAchievementStats{
+						Player: p2,
+						Value:  3200,
+					},
+				},
+			},
+		}
+		findMilestones := app.BuildFindMilestoneAchievements(mockRepo, getAndPersistPlayerWithoutCache(t))
+
+		achievements, err := findMilestones(ctx, playerUUID, domain.GamemodeOverall, domain.StatExperience, milestones)
+		require.NoError(t, err)
+
+		require.Equal(t, []domain.MilestoneAchievement{
+			{
+				Milestone: 1000,
+				After: &domain.MilestoneAchievementStats{
+					Player: p1,
+					Value:  1050,
+				},
+			},
+			{
+				Milestone: 3000,
+				After: &domain.MilestoneAchievementStats{
+					Player: p2,
+					Value:  3200,
+				},
+			},
+		}, achievements)
+
+	})
+
+	t.Run("invalid UUID", func(t *testing.T) {
+		t.Parallel()
+
+		mockRepo := &mockMilestoneRepository{}
+		findMilestones := app.BuildFindMilestoneAchievements(mockRepo, getAndPersistPlayerWithoutCache(t))
+
+		_, err := findMilestones(ctx, "invalid-uuid", domain.GamemodeOverall, domain.StatStars, []int64{100})
+
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "UUID is not normalized")
+	})
+}

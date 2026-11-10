@@ -1,0 +1,234 @@
+package playerprovider
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+	"time"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
+
+	"github.com/Amund211/flashlight/internal/config"
+	"github.com/Amund211/flashlight/internal/constants"
+	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/ratelimiting"
+	"github.com/Amund211/flashlight/internal/reporting"
+)
+
+const getPlayerDataMinOperationTime = 100 * time.Millisecond
+
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+type RequestLimiter interface {
+	Limit(ctx context.Context, minOperationTime time.Duration, operation func(ctx context.Context)) bool
+}
+
+type HypixelAPI interface {
+	GetPlayerData(ctx context.Context, uuid string) ([]byte, int, time.Time, error)
+}
+
+type hypixelAPIMetricsCollection struct {
+	requestCount       metric.Int64Counter
+	rateLimitLimit     metric.Int64Gauge
+	rateLimitRemaining metric.Int64Gauge
+	rateLimitSpent     metric.Int64Gauge
+}
+
+func setupHypixelAPIMetrics(meter metric.Meter) (hypixelAPIMetricsCollection, error) {
+	requestCount, err := meter.Int64Counter("playerprovider/hypixel_api/request_count")
+	if err != nil {
+		return hypixelAPIMetricsCollection{}, fmt.Errorf("failed to create metric: %w", err)
+	}
+
+	rateLimitLimit, err := meter.Int64Gauge("playerprovider/hypixel_api/rate_limit_limit",
+		metric.WithDescription("The limit of requests per 5 minute window for the provided API key"))
+	if err != nil {
+		return hypixelAPIMetricsCollection{}, fmt.Errorf("failed to create rate_limit_limit gauge: %w", err)
+	}
+
+	rateLimitRemaining, err := meter.Int64Gauge("playerprovider/hypixel_api/rate_limit_remaining",
+		metric.WithDescription("The remaining amount of requests allowed in the current 5 minute window"))
+	if err != nil {
+		return hypixelAPIMetricsCollection{}, fmt.Errorf("failed to create rate_limit_remaining gauge: %w", err)
+	}
+
+	rateLimitSpent, err := meter.Int64Gauge("playerprovider/hypixel_api/rate_limit_spent",
+		metric.WithDescription("The number of requests spent in the current 5 minute window (limit - remaining)"))
+	if err != nil {
+		return hypixelAPIMetricsCollection{}, fmt.Errorf("failed to create rate_limit_spent gauge: %w", err)
+	}
+
+	return hypixelAPIMetricsCollection{
+		requestCount:       requestCount,
+		rateLimitLimit:     rateLimitLimit,
+		rateLimitRemaining: rateLimitRemaining,
+		rateLimitSpent:     rateLimitSpent,
+	}, nil
+}
+
+type mockedHypixelAPI struct{}
+
+func (hypixelAPI *mockedHypixelAPI) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, time.Time, error) {
+	return []byte(fmt.Sprintf(`{"success":true,"player":{"uuid":"%s"}}`, uuid)), 200, time.Now(), nil
+}
+
+type hypixelAPIImpl struct {
+	httpClient HTTPClient
+	limiter    RequestLimiter
+	nowFunc    func() time.Time
+	apiKey     string
+
+	metrics hypixelAPIMetricsCollection
+	tracer  trace.Tracer
+}
+
+func (hypixelAPI hypixelAPIImpl) GetPlayerData(ctx context.Context, uuid string) ([]byte, int, time.Time, error) {
+	ctx, span := hypixelAPI.tracer.Start(ctx, "HypixelAPI.GetPlayerData")
+	defer span.End()
+
+	url := fmt.Sprintf("https://api.hypixel.net/v2/player?uuid=%s", uuid)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, http.NoBody)
+	if err != nil {
+		err := fmt.Errorf("failed to create request: %w", err)
+		logging.FromContext(ctx).ErrorContext(ctx, err.Error())
+		reporting.Report(ctx, err)
+		return []byte{}, -1, time.Time{}, err
+	}
+
+	req.Header.Set("User-Agent", constants.UserAgent)
+	req.Header.Set("API-Key", hypixelAPI.apiKey)
+
+	var resp *http.Response
+	var data []byte
+	var queriedAt time.Time
+	ran := hypixelAPI.limiter.Limit(ctx, getPlayerDataMinOperationTime, func(ctx context.Context) {
+		ctx, span := hypixelAPI.tracer.Start(ctx, "HypixelAPI.get_data")
+		defer span.End()
+
+		requestCtx, span := hypixelAPI.tracer.Start(ctx, "HypixelAPI.make_request")
+		defer span.End()
+
+		resp, err = hypixelAPI.httpClient.Do(req) // nolint:bodyclose // Closed via deferred Close inside this closure
+		if err != nil {
+			err := fmt.Errorf("failed to send request: %w", err)
+			logging.FromContext(ctx).ErrorContext(ctx, err.Error())
+			reporting.Report(requestCtx, err)
+			return
+		}
+		span.End()
+
+		queriedAt = hypixelAPI.nowFunc()
+
+		readAllCtx, span := hypixelAPI.tracer.Start(ctx, "HypixelAPI.read_response")
+		defer span.End()
+
+		defer resp.Body.Close()
+		data, err = io.ReadAll(resp.Body)
+		if err != nil {
+			err := fmt.Errorf("failed to read response body: %w", err)
+			logging.FromContext(ctx).ErrorContext(ctx, err.Error())
+			reporting.Report(readAllCtx, err)
+			return
+		}
+		span.End()
+
+		// Parse and record rate limit headers
+		var limit, remaining int64
+		var hasLimit, hasRemaining bool
+
+		if rateLimitStr := resp.Header.Get("RateLimit-Limit"); rateLimitStr != "" {
+			if parsedLimit, err := strconv.ParseInt(rateLimitStr, 10, 64); err == nil {
+				limit = parsedLimit
+				hasLimit = true
+				hypixelAPI.metrics.rateLimitLimit.Record(ctx, limit)
+			} else {
+				logging.FromContext(ctx).WarnContext(ctx, "Failed to parse RateLimit-Limit header", "value", rateLimitStr, "error", err)
+			}
+		}
+
+		if rateLimitStr := resp.Header.Get("RateLimit-Remaining"); rateLimitStr != "" {
+			if parsedRemaining, err := strconv.ParseInt(rateLimitStr, 10, 64); err == nil {
+				remaining = parsedRemaining
+				hasRemaining = true
+				hypixelAPI.metrics.rateLimitRemaining.Record(ctx, remaining)
+			} else {
+				logging.FromContext(ctx).WarnContext(ctx, "Failed to parse RateLimit-Remaining header", "value", rateLimitStr, "error", err)
+			}
+		}
+
+		// Calculate and record spent requests (limit - remaining)
+		if hasLimit && hasRemaining {
+			spent := limit - remaining
+			hypixelAPI.metrics.rateLimitSpent.Record(ctx, spent)
+		}
+
+		hypixelAPI.metrics.requestCount.Add(ctx, 1, metric.WithAttributes(
+			attribute.String("status_code", fmt.Sprintf("%d", resp.StatusCode)),
+		))
+	})
+	if !ran {
+		return []byte{}, -1, time.Time{}, fmt.Errorf("%w: too many requests to Hypixel API", domain.ErrTemporarilyUnavailable)
+	}
+
+	if err != nil {
+		return []byte{}, -1, time.Time{}, err
+	}
+
+	return data, resp.StatusCode, queriedAt, nil
+}
+
+func NewHypixelAPI(
+	httpClient HTTPClient,
+	nowFunc func() time.Time,
+	afterFunc func(d time.Duration) <-chan time.Time,
+	apiKey string,
+) (HypixelAPI, error) {
+	const name = "flashlight/playerprovider"
+
+	meter := otel.Meter(name)
+	tracer := otel.Tracer(name)
+
+	metrics, err := setupHypixelAPIMetrics(meter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set up metrics: %w", err)
+	}
+
+	limiter := ratelimiting.NewWindowLimitRequestLimiter(600, 5*time.Minute, nowFunc, afterFunc)
+	return hypixelAPIImpl{
+		httpClient: httpClient,
+		limiter:    limiter,
+		nowFunc:    nowFunc,
+		apiKey:     apiKey,
+
+		metrics: metrics,
+		tracer:  tracer,
+	}, nil
+}
+
+func NewHypixelAPIOrMock(
+	config config.Config,
+	httpClient HTTPClient,
+	nowFunc func() time.Time,
+	afterFunc func(d time.Duration) <-chan time.Time,
+) (HypixelAPI, error) {
+	if config.HypixelAPIKey() != "" {
+		api, err := NewHypixelAPI(httpClient, nowFunc, afterFunc, config.HypixelAPIKey())
+		if err != nil {
+			return nil, fmt.Errorf("failed to create Hypixel API: %w", err)
+		}
+		return api, nil
+	}
+	if config.IsDevelopment() {
+		return &mockedHypixelAPI{}, nil
+	}
+	return nil, fmt.Errorf("missing Hypixel API key in non-development environment")
+}

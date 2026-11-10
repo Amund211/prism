@@ -1,0 +1,69 @@
+package app
+
+import (
+	"context"
+	"fmt"
+	"strconv"
+	"time"
+
+	"github.com/Amund211/flashlight/internal/adapters/playerrepository"
+	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/logging"
+	"github.com/Amund211/flashlight/internal/reporting"
+	"github.com/Amund211/flashlight/internal/strutils"
+)
+
+type GetHistory = func(
+	ctx context.Context,
+	uuid string,
+	start, end time.Time,
+	limit int,
+) ([]domain.PlayerPIT, error)
+
+func BuildGetHistory(
+	repo playerrepository.PlayerRepository,
+	updatePlayerInInterval UpdatePlayerInInterval,
+) GetHistory {
+	return func(ctx context.Context,
+		uuid string,
+		start, end time.Time,
+		limit int,
+	) ([]domain.PlayerPIT, error) {
+		if !strutils.UUIDIsNormalized(uuid) {
+			err := fmt.Errorf("UUID is not normalized")
+			reporting.Report(ctx, err)
+			return nil, err
+		}
+
+		if start.After(end) {
+			err := fmt.Errorf("start time is after end time")
+			reporting.Report(ctx, err)
+			return nil, err
+		}
+
+		if limit < 2 || limit > 1000 {
+			err := fmt.Errorf("invalid limit in app.GetHistory")
+			reporting.Report(ctx, err, map[string]string{
+				"limit": strconv.Itoa(limit),
+			})
+			return nil, err
+		}
+
+		err := updatePlayerInInterval(ctx, uuid, start, end)
+		if err != nil {
+			// NOTE: UpdatePlayerInInterval implementations handle their own error reporting
+			logging.FromContext(ctx).ErrorContext(ctx, "Failed to update player data in interval", "error", err)
+
+			// NOTE: We continue even though we failed to update player data
+			// We may still be able to get the history and fulfill the request
+		}
+
+		history, err := repo.GetHistory(ctx, uuid, start, end, limit)
+		if err != nil {
+			// NOTE: PlayerRepository implementations handle their own error reporting
+			return nil, fmt.Errorf("failed to get history: %w", err)
+		}
+
+		return history, nil
+	}
+}

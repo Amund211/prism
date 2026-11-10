@@ -1,0 +1,266 @@
+package ports_test
+
+import (
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/ports"
+)
+
+const prodDomainSuffix = "prismoverlay.com"
+const stagingDomainSuffix = "rainbow-ctx.pages.dev"
+
+type originRule struct {
+	origin  string
+	allowed bool
+}
+
+func TestCORS(t *testing.T) {
+	t.Parallel()
+	allowedOrigins, err := ports.NewDomainSuffixes(
+		prodDomainSuffix,
+		stagingDomainSuffix,
+	)
+	require.NoError(t, err)
+
+	cases := []originRule{
+		// Prod
+		{
+			origin: "https://prismoverlay.com",
+
+			allowed: true,
+		},
+		{
+			origin:  "https://www.prismoverlay.com",
+			allowed: true,
+		},
+		// Staging
+		{
+			origin:  "https://53bcd591.rainbow-ctx.pages.dev",
+			allowed: true,
+		},
+		{
+			origin:  "https://new-api.rainbow-ctx.pages.dev",
+			allowed: true,
+		},
+		{
+			origin:  "https://rainbow-ctx.pages.dev",
+			allowed: true,
+		},
+		// Other pages
+		{
+			origin:  "example.com",
+			allowed: false,
+		},
+		{
+			origin:  "https://example.com",
+			allowed: false,
+		},
+		{
+			origin:  "https://www.example.com",
+			allowed: false,
+		},
+		{
+			origin:  "https://www.google.com",
+			allowed: false,
+		},
+		{
+			origin:  "https://hypixel.net",
+			allowed: false,
+		},
+		// Similar-looking domains
+		{
+			origin: "https://prism-overlay.com",
+
+			allowed: false,
+		},
+		{
+			origin:  "https://www.prism-overlay.com",
+			allowed: false,
+		},
+		{
+			origin: "https://myprismoverlay.com",
+
+			allowed: false,
+		},
+		{
+			origin:  "https://www.myprismoverlay.com",
+			allowed: false,
+		},
+		{
+			origin:  "https://superrainbow-ctx.pages.dev",
+			allowed: false,
+		},
+		{
+			origin:  "https://something.otherrainbow-ctx.pages.dev",
+			allowed: false,
+		},
+		// Weird cases
+		{
+			origin:  "",
+			allowed: false,
+		},
+		{
+			origin:  "prismoverlay",
+			allowed: false,
+		},
+		{
+			origin:  "overlay.com",
+			allowed: false,
+		},
+		{
+			origin:  "prism.overlay.com",
+			allowed: false,
+		},
+		{
+			origin:  "prism-overlay.com",
+			allowed: false,
+		},
+		{
+			origin:  "pages.dev",
+			allowed: false,
+		},
+		{
+			origin:  "superrainbow-ctx.pages.dev",
+			allowed: false,
+		},
+	}
+
+	runCORSTest := func(t *testing.T, handler http.HandlerFunc, method string, c originRule, handlerStatusCode int, handlerBody []byte, credentialed bool) {
+		req := httptest.NewRequestWithContext(t.Context(), method, "https://api-url.com", nil)
+		req.Header.Set("Origin", c.origin)
+		w := httptest.NewRecorder()
+
+		handler(w, req)
+
+		resp := w.Result()
+
+		// The handler is allowed to run when the method is not OPTIONS
+		if method != "OPTIONS" {
+			require.Equal(t, handlerStatusCode, resp.StatusCode)
+			body, err := io.ReadAll(resp.Body)
+			require.NoError(t, err)
+			require.Equal(t, handlerBody, body)
+		}
+
+		// The response varies by Origin regardless of whether it is allowed.
+		require.Equal(t, "Origin", resp.Header.Get("Vary"))
+
+		// CORS
+		if c.allowed && credentialed {
+			require.Equal(t, "true", resp.Header.Get("Access-Control-Allow-Credentials"))
+		} else {
+			require.Empty(t, resp.Header.Get("Access-Control-Allow-Credentials"))
+		}
+		if c.allowed {
+			require.Equal(t, c.origin, resp.Header.Get("Access-Control-Allow-Origin"))
+
+			if method == "OPTIONS" {
+				require.Equal(t, "GET,POST", resp.Header.Get("Access-Control-Allow-Methods"))
+				require.Equal(t, "Content-Type, X-User-Id, X-Client-Type, X-Client-Version, Authorization", resp.Header.Get("Access-Control-Allow-Headers"))
+				require.Empty(t, resp.Header.Get("Access-Control-Expose-Headers"), "exposed headers are read off the actual response")
+			} else {
+				require.Empty(t, resp.Header.Get("Access-Control-Allow-Methods"))
+				require.Empty(t, resp.Header.Get("Access-Control-Allow-Headers"))
+				// Asserted name by name: this is one comma-joined value that
+				// Set overwrites, and a dropped name fails silently in the
+				// browser rather than anywhere a test would notice.
+				exposed := strings.Split(resp.Header.Get("Access-Control-Expose-Headers"), ", ")
+				require.Contains(t, exposed, ports.AuthRefreshHeader)
+				require.Contains(t, exposed, ports.AuthSessionHeader)
+			}
+		} else {
+			require.Empty(t, resp.Header.Get("Access-Control-Allow-Origin"))
+			require.Empty(t, resp.Header.Get("Access-Control-Allow-Methods"))
+			require.Empty(t, resp.Header.Get("Access-Control-Allow-Headers"))
+			require.Empty(t, resp.Header.Get("Access-Control-Expose-Headers"))
+		}
+	}
+
+	t.Run("BuildCORSMiddleware", func(t *testing.T) {
+		t.Parallel()
+
+		middleware := ports.BuildCORSMiddleware(allowedOrigins)
+
+		handler := middleware(
+			func(w http.ResponseWriter, r *http.Request) {
+				w.Write([]byte("Hello, world!"))
+				w.WriteHeader(200)
+			},
+		)
+
+		for _, c := range cases {
+			t.Run(fmt.Sprintf("Origin:'%s'", c.origin), func(t *testing.T) {
+				t.Parallel()
+				for _, method := range []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"} {
+					t.Run(method, func(t *testing.T) {
+						t.Parallel()
+
+						runCORSTest(t, handler, method, c, 200, []byte("Hello, world!"), false)
+					})
+				}
+			})
+		}
+	})
+
+	t.Run("BuildCredentialedCORSMiddleware", func(t *testing.T) {
+		t.Parallel()
+
+		handler := ports.BuildCredentialedCORSMiddleware(allowedOrigins)(
+			func(w http.ResponseWriter, r *http.Request) {
+				w.Write([]byte("Hello, world!"))
+			},
+		)
+
+		for _, c := range cases {
+			t.Run(fmt.Sprintf("Origin:'%s'", c.origin), func(t *testing.T) {
+				t.Parallel()
+				for _, method := range []string{"GET", "POST", "OPTIONS"} {
+					t.Run(method, func(t *testing.T) {
+						t.Parallel()
+
+						runCORSTest(t, handler, method, c, 200, []byte("Hello, world!"), true)
+					})
+				}
+			})
+		}
+	})
+
+	t.Run("BuildCredentialedCORSHandler", func(t *testing.T) {
+		t.Parallel()
+
+		handler := ports.BuildCredentialedCORSHandler(allowedOrigins)
+
+		for _, c := range cases {
+			t.Run(fmt.Sprintf("Origin:'%s'", c.origin), func(t *testing.T) {
+				t.Parallel()
+				runCORSTest(t, handler, "OPTIONS", c, 204, []byte{}, true)
+			})
+		}
+	})
+
+	t.Run("BuildCORSHandler", func(t *testing.T) {
+		t.Parallel()
+
+		handler := ports.BuildCORSHandler(allowedOrigins)
+
+		for _, c := range cases {
+			t.Run(fmt.Sprintf("Origin:'%s'", c.origin), func(t *testing.T) {
+				t.Parallel()
+				for _, method := range []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"} {
+					t.Run(method, func(t *testing.T) {
+						t.Parallel()
+
+						runCORSTest(t, handler, method, c, 204, []byte{}, false)
+					})
+				}
+			})
+		}
+	})
+}

@@ -1,0 +1,26 @@
+cmd/.env
+# Go coverage file
+c.out
+# Ignore generated credentials from google-github-actions/auth
+gha-creds-*.json
+
+# Generated service definition
+cmd/service.yaml
+
+# Binary outputs
+/flashlight
+/main
+
+# Claude config
+/.claude/*
+
+# Sandbox-injected files (shell/editor configs mounted into the working tree)
+/.bash_profile
+/.bashrc
+/.gitconfig
+/.gitmodules
+/.profile
+/.ripgreprc
+/.vscode
+/.zprofile
+/.zshrc

@@ -1,0 +1,699 @@
+package ports_test
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/Amund211/flashlight/internal/app"
+	"github.com/Amund211/flashlight/internal/domain"
+	"github.com/Amund211/flashlight/internal/ports"
+	"github.com/Amund211/flashlight/internal/proofofwork"
+)
+
+func TestAnonymousLoginHandler(t *testing.T) {
+	t.Parallel()
+
+	// fixedNow returns a stable nowFunc and the matching base time —
+	// gives the test deterministic deltas to assert against.
+	fixedNow := func(t time.Time) func() time.Time {
+		return func() time.Time { return t }
+	}
+
+	t.Run("returns 200 with duration-based session payload", func(t *testing.T) {
+		t.Parallel()
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		var sawUserID, sawIPHash string
+		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			sawUserID = userID
+			sawIPHash = ipHash
+			return domain.AuthSession{
+				ID:             "sid-123",
+				IdentityType:   domain.AuthSessionIdentityAnonymous,
+				IdentityKey:    userID,
+				CreatedAt:      now,
+				ExpiresAt:      now.Add(1 * time.Hour),
+				RefreshUntil:   now.Add(2 * time.Hour),
+				LifetimeEndsAt: now.Add(24 * time.Hour),
+			}, nil
+		}
+
+		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
+		body := strings.NewReader(anonymousLoginBody("user-abc"))
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", body)
+		withJSONContentType(r)
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+
+		handler(w, r)
+
+		require.Equal(t, http.StatusOK, w.Code)
+		require.Equal(t, "application/json", w.Header().Get("Content-Type"))
+
+		var resp struct {
+			SessionID             string `json:"sessionId"`
+			Tier                  string `json:"tier"`
+			ExpiresInSeconds      int64  `json:"expiresInSeconds"`
+			RefreshUntilInSeconds int64  `json:"refreshUntilInSeconds"`
+			RefreshInSeconds      int64  `json:"refreshInSeconds"`
+			CanRefresh            bool   `json:"canRefresh"`
+		}
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		require.Equal(t, "sid-123", resp.SessionID)
+		require.Equal(t, "anonymous", resp.Tier)
+		require.Equal(t, int64(3600), resp.ExpiresInSeconds, "expires_at = now + 1h")
+		require.Equal(t, int64(7200), resp.RefreshUntilInSeconds, "refresh_until = now + 2h")
+		require.Equal(t, int64(3300), resp.RefreshInSeconds, "refresh_at = expires_at - 5min = now + 55min")
+		require.True(t, resp.CanRefresh,
+			"refresh_until < lifetime_ends_at; next refresh can still grant a full window")
+		require.Equal(t, "user-abc", sawUserID)
+		require.NotEmpty(t, sawIPHash)
+	})
+
+	t.Run("sets Cache-Control: no-store on the session response", func(t *testing.T) {
+		t.Parallel()
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			return domain.AuthSession{
+				ID:             "sid-cache",
+				IdentityType:   domain.AuthSessionIdentityAnonymous,
+				IdentityKey:    userID,
+				CreatedAt:      now,
+				ExpiresAt:      now.Add(1 * time.Hour),
+				RefreshUntil:   now.Add(2 * time.Hour),
+				LifetimeEndsAt: now.Add(24 * time.Hour),
+			}, nil
+		}
+		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("user-abc")))
+		withJSONContentType(r)
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusOK, w.Code)
+		require.Equal(t, "no-store", w.Header().Get("Cache-Control"),
+			"session responses carry a bearer token; no intermediary should cache them")
+	})
+
+	t.Run("canRefresh is false on the last refresh whose refresh_until got pinned to lifetime_ends_at", func(t *testing.T) {
+		t.Parallel()
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		// Refresh near the cap: refresh_until exactly equals lifetime_ends_at.
+		// expires_at still has a normal 1h ahead — the client gets a
+		// full session this time but should re-auth on the next tick.
+		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			capAt := now.Add(90 * time.Minute)
+			return domain.AuthSession{
+				ID:             "sid-late",
+				IdentityType:   domain.AuthSessionIdentityAnonymous,
+				IdentityKey:    userID,
+				CreatedAt:      now.Add(-22 * time.Hour),
+				ExpiresAt:      now.Add(60 * time.Minute),
+				RefreshUntil:   capAt,
+				LifetimeEndsAt: capAt,
+			}, nil
+		}
+		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("user-late")))
+		withJSONContentType(r)
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		var resp struct {
+			ExpiresInSeconds int64 `json:"expiresInSeconds"`
+			CanRefresh       bool  `json:"canRefresh"`
+		}
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		require.Equal(t, int64(3600), resp.ExpiresInSeconds,
+			"client should still get a full session this round")
+		require.False(t, resp.CanRefresh,
+			"refresh_until == lifetime_ends_at; next refresh is clamped, so client must re-auth instead")
+	})
+
+	t.Run("returns cors headers", func(t *testing.T) {
+		t.Parallel()
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			return domain.AuthSession{
+				ID:             "sid-cors",
+				IdentityType:   domain.AuthSessionIdentityAnonymous,
+				IdentityKey:    userID,
+				CreatedAt:      now,
+				ExpiresAt:      now.Add(1 * time.Hour),
+				RefreshUntil:   now.Add(2 * time.Hour),
+				LifetimeEndsAt: now.Add(24 * time.Hour),
+			}, nil
+		}
+		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
+
+		origin := "https://subdomain.example.com"
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("user-abc")))
+		r.Header.Set("Origin", origin)
+		withJSONContentType(r)
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+
+		handler(w, r)
+
+		require.Equal(t, http.StatusOK, w.Code)
+		require.Equal(t, origin, w.Header().Get("Access-Control-Allow-Origin"))
+	})
+
+	// A JSON content type is not CORS-safelisted, so requiring it is what
+	// forces a preflight. Without the gate a page on any origin could make
+	// a visitor's browser POST text/plain with a JSON body — no preflight,
+	// so the request lands — and mint sessions from the visitor's IP until
+	// the login limiter locks their real client out.
+	t.Run("415 on a content type that would skip the preflight", func(t *testing.T) {
+		t.Parallel()
+		for _, contentType := range []string{
+			"",
+			"text/plain",
+			"text/plain;charset=UTF-8",
+			"application/x-www-form-urlencoded",
+			"multipart/form-data; boundary=x",
+		} {
+			t.Run(fmt.Sprintf("%q", contentType), func(t *testing.T) {
+				t.Parallel()
+				login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+					t.Fatal("login should not be called for a non-JSON content type")
+					return domain.AuthSession{}, nil
+				}
+				handler := newAnonymousLoginHandler(t, login, time.Now)
+				r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("user-abc")))
+				if contentType != "" {
+					r.Header.Set("Content-Type", contentType)
+				}
+				withRequestIP(r, "1.2.3.4")
+				w := httptest.NewRecorder()
+
+				handler(w, r)
+
+				require.Equal(t, http.StatusUnsupportedMediaType, w.Code)
+			})
+		}
+	})
+
+	t.Run("accepts a JSON content type with parameters", func(t *testing.T) {
+		t.Parallel()
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			return domain.AuthSession{
+				ID:             "sid-charset",
+				IdentityType:   domain.AuthSessionIdentityAnonymous,
+				IdentityKey:    userID,
+				CreatedAt:      now,
+				ExpiresAt:      now.Add(1 * time.Hour),
+				RefreshUntil:   now.Add(2 * time.Hour),
+				LifetimeEndsAt: now.Add(24 * time.Hour),
+			}, nil
+		}
+		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("user-abc")))
+		// What fetch() sends when you hand it a JSON string body.
+		r.Header.Set("Content-Type", "application/json; charset=utf-8")
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+
+		handler(w, r)
+
+		require.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("rate limits per ip", func(t *testing.T) {
+		t.Parallel()
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		logins := 0
+		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			logins++
+			return domain.AuthSession{
+				ID:             "sid-limit",
+				IdentityType:   domain.AuthSessionIdentityAnonymous,
+				IdentityKey:    userID,
+				CreatedAt:      now,
+				ExpiresAt:      now.Add(1 * time.Hour),
+				RefreshUntil:   now.Add(2 * time.Hour),
+				LifetimeEndsAt: now.Add(24 * time.Hour),
+			}, nil
+		}
+		handler := newAnonymousLoginHandler(t, login, fixedNow(now))
+
+		doLogin := func(ip string, userID string) int {
+			body := anonymousLoginBody(userID)
+			r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(body))
+			withJSONContentType(r)
+			withRequestIP(r, ip)
+			w := httptest.NewRecorder()
+			handler(w, r)
+			return w.Code
+		}
+
+		// The burst is 60, after which the same IP is refused without ever
+		// reaching the (write-heavy) login use case. The bucket refills at 1/s
+		// off the wall clock, so a slow run could hand a token back mid-loop —
+		// keep asking rather than pinning the exact boundary request.
+		accepted := 0
+		var lastCode int
+		for range 65 {
+			lastCode = doLogin("1.2.3.4", "user-abc")
+			if lastCode != http.StatusOK {
+				break
+			}
+			accepted++
+		}
+
+		require.Equal(t, http.StatusTooManyRequests, lastCode)
+		require.GreaterOrEqual(t, accepted, 60, "the full burst should be allowed through")
+		require.Equal(t, accepted, logins, "the throttled request must not reach the login use case")
+
+		// Keyed on the IP, not the body — a fresh userId from the same IP is
+		// still refused, and an unrelated IP is unaffected.
+		require.Equal(t, http.StatusTooManyRequests, doLogin("1.2.3.4", "some-other-user"))
+		require.Equal(t, http.StatusOK, doLogin("5.6.7.8", "user-abc"))
+	})
+
+	t.Run("400 on invalid userId", func(t *testing.T) {
+		t.Parallel()
+		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			t.Fatal("login should not be called when userId is invalid")
+			return domain.AuthSession{}, nil
+		}
+		handler := newAnonymousLoginHandler(t, login, time.Now)
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("")))
+		withJSONContentType(r)
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("400 on userId longer than the hard cap", func(t *testing.T) {
+		t.Parallel()
+		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			t.Fatal("login should not be called when userId is too long")
+			return domain.AuthSession{}, nil
+		}
+		handler := newAnonymousLoginHandler(t, login, time.Now)
+		// 101 chars — past the 100-char hard cap.
+		body := anonymousLoginBody(strings.Repeat("x", 101))
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(body))
+		withJSONContentType(r)
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("accepts a userId longer than the legacy header truncation point", func(t *testing.T) {
+		t.Parallel()
+		// 60 chars — over the 50 the X-User-Id header truncates at, and
+		// under userIDMaxLength. Accepted without comment: an unexpected
+		// length is bad input, not something to report.
+		longID := strings.Repeat("x", 60)
+		var sawUserID string
+		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			sawUserID = userID
+			now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+			return domain.AuthSession{
+				ID:             "sid-warn",
+				IdentityType:   domain.AuthSessionIdentityAnonymous,
+				IdentityKey:    userID,
+				CreatedAt:      now,
+				ExpiresAt:      now.Add(1 * time.Hour),
+				RefreshUntil:   now.Add(2 * time.Hour),
+				LifetimeEndsAt: now.Add(24 * time.Hour),
+			}, nil
+		}
+		handler := newAnonymousLoginHandler(t, login, time.Now)
+		body := anonymousLoginBody(longID)
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(body))
+		withJSONContentType(r)
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusOK, w.Code)
+		require.Equal(t, longID, sawUserID)
+	})
+
+	t.Run("400 on malformed JSON", func(t *testing.T) {
+		t.Parallel()
+		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			t.Fatal("login should not be called on malformed body")
+			return domain.AuthSession{}, nil
+		}
+		handler := newAnonymousLoginHandler(t, login, time.Now)
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(`not-json`))
+		withJSONContentType(r)
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	// The guard is the seam a real issuance cap will land in, and a cap
+	// refusing is ordinary traffic — not a page. AllowAll never refuses, so
+	// nothing else would catch this arm going missing until the day the
+	// first real guard ships and answers every rate-limited client with a
+	// 500 and a Sentry alert.
+	t.Run("429 when the issuance guard refuses", func(t *testing.T) {
+		t.Parallel()
+		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			return domain.AuthSession{}, fmt.Errorf("failed to check issuance guard: %w", domain.ErrAuthSessionIssuanceRefused)
+		}
+		handler := newAnonymousLoginHandler(t, login, time.Now)
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("user-abc")))
+		withJSONContentType(r)
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusTooManyRequests, w.Code)
+	})
+
+	t.Run("500 on any other login failure", func(t *testing.T) {
+		t.Parallel()
+		login := func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			return domain.AuthSession{}, errors.New("boom")
+		}
+		handler := newAnonymousLoginHandler(t, login, time.Now)
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(anonymousLoginBody("user-abc")))
+		withJSONContentType(r)
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+		handler(w, r)
+		require.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+}
+
+// TestAnonymousLoginProofOfWork covers the handshake the endpoint now
+// requires. The mechanism ships mandatory at difficulty 0, so "no proof"
+// has to be a rejection even while the work is free — that is the whole
+// reason for shipping it before any client does.
+func TestAnonymousLoginProofOfWork(t *testing.T) {
+	t.Parallel()
+
+	failIfCalled := func(t *testing.T, reason string) app.AnonymousLogin {
+		return func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			t.Fatalf("login should not be called %s", reason)
+			return domain.AuthSession{}, nil
+		}
+	}
+
+	issuedSession := func(now time.Time) app.AnonymousLogin {
+		return func(ctx context.Context, userID, ipHash string) (domain.AuthSession, error) {
+			return domain.AuthSession{
+				ID:             "sid-pow",
+				IdentityType:   domain.AuthSessionIdentityAnonymous,
+				IdentityKey:    userID,
+				CreatedAt:      now,
+				ExpiresAt:      now.Add(1 * time.Hour),
+				RefreshUntil:   now.Add(2 * time.Hour),
+				LifetimeEndsAt: now.Add(24 * time.Hour),
+			}, nil
+		}
+	}
+
+	postLogin := func(t *testing.T, handler http.HandlerFunc, ip string, body string) *httptest.ResponseRecorder {
+		t.Helper()
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/login", strings.NewReader(body))
+		withJSONContentType(r)
+		withRequestIP(r, ip)
+		w := httptest.NewRecorder()
+		handler(w, r)
+		return w
+	}
+
+	t.Run("400 on missing or oversized proof fields", func(t *testing.T) {
+		t.Parallel()
+		for name, body := range map[string]string{
+			"no proof at all":      `{"userId":"user-abc"}`,
+			"no challenge":         `{"userId":"user-abc","solution":"1"}`,
+			"empty challenge":      `{"userId":"user-abc","challenge":"","solution":"1"}`,
+			"no solution":          `{"userId":"user-abc","challenge":"blob"}`,
+			"empty solution":       `{"userId":"user-abc","challenge":"blob","solution":""}`,
+			"huge challenge":       fmt.Sprintf(`{"userId":"user-abc","challenge":%q,"solution":"1"}`, strings.Repeat("x", 1281)),
+			"huge solution":        fmt.Sprintf(`{"userId":"user-abc","challenge":"blob","solution":%q}`, strings.Repeat("x", 129)),
+			"whole body oversized": fmt.Sprintf(`{"userId":"user-abc","challenge":%q,"solution":"1"}`, strings.Repeat("x", 4096)),
+		} {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				parse := func(challenge string) (proofofwork.SignedChallenge, error) {
+					t.Fatal("verification should not be reached for a malformed body")
+					return nil, nil
+				}
+				handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "without a well-formed proof"), parse, time.Now)
+				require.Equal(t, http.StatusBadRequest, postLogin(t, handler, "1.2.3.4", body).Code)
+			})
+		}
+	})
+
+	// The empty string is a valid proof at difficulty 0, so nothing about
+	// the hashing forces a client to implement the loop. Rejecting it does
+	// — and finding out the client shipped a stub the day we raise the
+	// difficulty is exactly the retrofit this design avoids.
+	t.Run("400 on an empty solution even though difficulty is 0", func(t *testing.T) {
+		t.Parallel()
+		issue, verify := newProofOfWorkScheme(t, 0)
+		challenge, err := issue("user-abc", ports.IP("1.2.3.4").Hash(), "prism")
+		require.NoError(t, err)
+
+		handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "with an empty solution"), verify, time.Now)
+		body := fmt.Sprintf(`{"userId":"user-abc","challenge":%q,"solution":""}`, challenge.Value)
+		require.Equal(t, http.StatusBadRequest, postLogin(t, handler, "1.2.3.4", body).Code)
+	})
+
+	// Both halves refuse with the same status: they differ only in whether
+	// there was an interpretable challenge to observe.
+	t.Run("403 on a proof rejected at parse, ahead of issuing anything", func(t *testing.T) {
+		t.Parallel()
+		for name, cause := range map[string]error{
+			"malformed":             proofofwork.ErrMalformedChallenge,
+			"bad signature":         proofofwork.ErrBadSignature,
+			"unsupported algorithm": proofofwork.ErrUnsupportedAlgorithm,
+		} {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				parse := func(challenge string) (proofofwork.SignedChallenge, error) { return nil, cause }
+				handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "for a rejected proof"), parse, time.Now)
+				require.Equal(t, http.StatusForbidden, postLogin(t, handler, "1.2.3.4", anonymousLoginBody("user-abc")).Code)
+			})
+		}
+	})
+
+	t.Run("403 on a proof rejected at check, ahead of issuing anything", func(t *testing.T) {
+		t.Parallel()
+		for name, cause := range map[string]error{
+			"expired":           proofofwork.ErrChallengeExpired,
+			"ip mismatch":       proofofwork.ErrIPMismatch,
+			"user id mismatch":  proofofwork.ErrUserIDMismatch,
+			"insufficient work": proofofwork.ErrInsufficientWork,
+		} {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				parse := func(challenge string) (proofofwork.SignedChallenge, error) {
+					return fakeChallenge{checkErr: cause}, nil
+				}
+				handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "for a rejected proof"), parse, time.Now)
+				require.Equal(t, http.StatusForbidden, postLogin(t, handler, "1.2.3.4", anonymousLoginBody("user-abc")).Code)
+			})
+		}
+	})
+
+	t.Run("verification gets the body's proof, userId and the request's ip hash", func(t *testing.T) {
+		t.Parallel()
+		var sawChallenge, sawSolution, sawUserID, sawIPHash string
+		parse := func(challenge string) (proofofwork.SignedChallenge, error) {
+			sawChallenge = challenge
+			return fakeChallenge{onCheck: func(solution, userID, ipHash string) {
+				sawSolution, sawUserID, sawIPHash = solution, userID, ipHash
+			}}, nil
+		}
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		handler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), parse, func() time.Time { return now })
+
+		body := `{"userId":"user-abc","challenge":"some-blob","solution":"42"}`
+		require.Equal(t, http.StatusOK, postLogin(t, handler, "1.2.3.4", body).Code)
+		require.Equal(t, "some-blob", sawChallenge)
+		require.Equal(t, "42", sawSolution)
+		require.Equal(t, ports.IP("1.2.3.4").Hash(), sawIPHash,
+			"the proof is bound to the caller's ip, so it must be checked against the ip we'd bill the login to")
+		require.Equal(t, "user-abc", sawUserID,
+			"the raw userId that becomes identity_key, so the binding is checked against the identity we'd bill the login to")
+	})
+
+	// End to end over both endpoints, with real hashing: what a client
+	// actually has to do, and what it buys an attacker who tries to reuse
+	// the result.
+	t.Run("a challenge from the challenge endpoint logs in as the userId it was minted for", func(t *testing.T) {
+		t.Parallel()
+		const difficulty = 8
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		issue, verify := newProofOfWorkScheme(t, difficulty)
+		challengeHandler := newAnonymousChallengeHandler(t, issue)
+		loginHandler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), verify, func() time.Time { return now })
+
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/v1/auth/anonymous/challenge", strings.NewReader(anonymousChallengeBody("user-abc")))
+		withJSONContentType(r)
+		withRequestIP(r, "1.2.3.4")
+		w := httptest.NewRecorder()
+		challengeHandler(w, r)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		var challenge struct {
+			Challenge  string `json:"challenge"`
+			Algorithm  string `json:"algorithm"`
+			Difficulty int    `json:"difficulty"`
+		}
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&challenge))
+		require.Equal(t, difficulty, challenge.Difficulty)
+
+		solution := solveChallenge(t, challenge.Challenge, challenge.Difficulty)
+		body := fmt.Sprintf(`{"userId":"user-abc","challenge":%q,"solution":%q}`, challenge.Challenge, solution)
+		require.Equal(t, http.StatusOK, postLogin(t, loginHandler, "1.2.3.4", body).Code)
+
+		// Replay is allowed, and is why there is no used-nonce set: it only
+		// mints more sessions for one identity, which shares one budget.
+		require.Equal(t, http.StatusOK, postLogin(t, loginHandler, "1.2.3.4", body).Code)
+
+		// What it can't do is pay for a second identity.
+		other := fmt.Sprintf(`{"userId":"user-xyz","challenge":%q,"solution":%q}`, challenge.Challenge, solution)
+		require.Equal(t, http.StatusForbidden, postLogin(t, loginHandler, "1.2.3.4", other).Code,
+			"the work prices identity, so a second identity has to cost a second solve")
+	})
+
+	t.Run("a challenge solved for one ip does not work from another", func(t *testing.T) {
+		t.Parallel()
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		issue, verify := newProofOfWorkScheme(t, 0)
+		loginHandler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), verify, func() time.Time { return now })
+
+		challenge, err := issue("user-abc", ports.IP("1.2.3.4").Hash(), "prism")
+		require.NoError(t, err)
+		body := fmt.Sprintf(
+			`{"userId":"user-abc","challenge":%q,"solution":%q}`,
+			challenge.Value,
+			solveChallenge(t, challenge.Value, challenge.Difficulty),
+		)
+
+		require.Equal(t, http.StatusForbidden, postLogin(t, loginHandler, "5.6.7.8", body).Code,
+			"one rented CPU box must not be able to solve challenges for a pool of proxy exits")
+		require.Equal(t, http.StatusOK, postLogin(t, loginHandler, "1.2.3.4", body).Code)
+	})
+
+	// Telemetry must never block a login: whatever the solver field holds,
+	// the outcome is the proof's.
+	t.Run("the solver report never changes the outcome", func(t *testing.T) {
+		t.Parallel()
+		escaped := strings.Repeat(`\u0001`, 32)
+		for name, solver := range map[string]string{
+			"absent":           "",
+			"null":             `,"solver":null`,
+			"valid":            `,"solver":{"name":"sha-ni","version":"3","hashes":1048576,"elapsedSeconds":0.041,"cpuSeconds":0.04}`,
+			"not an object":    `,"solver":"sha-ni"`,
+			"wrong types":      `,"solver":{"name":7,"hashes":"many"}`,
+			"negative numbers": `,"solver":{"name":"sha-ni","hashes":-1,"elapsedSeconds":-1}`,
+			"long name":        fmt.Sprintf(`,"solver":{"name":%q}`, strings.Repeat("x", 500)),
+			"worst legal escaping": fmt.Sprintf(
+				`,"solver":{"name":"%s","version":"%s","hashes":9223372036854775807,"elapsedSeconds":-1.7976931348623157e+308,"cpuSeconds":-1.7976931348623157e+308}`,
+				escaped, escaped,
+			),
+		} {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+				issue, verify := newProofOfWorkScheme(t, 0)
+				handler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), verify, func() time.Time { return now })
+
+				// The worst legal userId and a real challenge, so the
+				// solver has to fit next to the largest legal rest of the body.
+				userID := strings.Repeat("\x01", 100)
+				challenge, err := issue(userID, ports.IP("1.2.3.4").Hash(), "prism")
+				require.NoError(t, err)
+				userIDJSON, err := json.Marshal(userID)
+				require.NoError(t, err)
+				body := fmt.Sprintf(`{"userId":%s,"challenge":%q,"solution":%q%s}`,
+					userIDJSON, challenge.Value, solveChallenge(t, challenge.Value, challenge.Difficulty), solver)
+
+				require.Equal(t, http.StatusOK, postLogin(t, handler, "1.2.3.4", body).Code)
+			})
+		}
+	})
+
+	t.Run("a solver past its own cap is dropped while the body fits", func(t *testing.T) {
+		t.Parallel()
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		handler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), acceptAnyProof, func() time.Time { return now })
+		body := fmt.Sprintf(`{"userId":"user-abc","challenge":"blob","solution":"1","solver":{"name":"sha-ni","pad":%q}}`, strings.Repeat("x", 1100))
+		require.Equal(t, http.StatusOK, postLogin(t, handler, "1.2.3.4", body).Code)
+	})
+
+	t.Run("400 on a solver that takes the body past its cap", func(t *testing.T) {
+		t.Parallel()
+		handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "with an oversized body"), acceptAnyProof, time.Now)
+		body := fmt.Sprintf(`{"userId":"user-abc","challenge":"blob","solution":"1","solver":{"name":"sha-ni","pad":%q}}`, strings.Repeat("x", 3100))
+		require.Equal(t, http.StatusBadRequest, postLogin(t, handler, "1.2.3.4", body).Code)
+	})
+
+	t.Run("400 on a solver that is not valid JSON", func(t *testing.T) {
+		t.Parallel()
+		handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "with invalid JSON"), acceptAnyProof, time.Now)
+		body := `{"userId":"user-abc","challenge":"blob","solution":"1","solver":{name:}}`
+		require.Equal(t, http.StatusBadRequest, postLogin(t, handler, "1.2.3.4", body).Code)
+	})
+
+	// The two endpoints agree on what a userId is, but that is only half of
+	// the handshake completing: the challenge they exchange is sized by the
+	// *marshalled* payload, and encoding/json escapes `&`, `<`, `>` and
+	// control characters to six bytes each. So a userId well inside
+	// userIDMaxLength can inflate the blob far past its own length, and a blob
+	// over challengeMaxLength is rejected on shape before verification ever
+	// runs — a handshake that can never complete, however many times the
+	// client retries.
+	t.Run("challengeMaxLength covers everything the mint can produce", func(t *testing.T) {
+		t.Parallel()
+
+		now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+		maxUserID := func(s string) string { return strings.Repeat(s, 100/len(s)) }
+
+		for name, userID := range map[string]string{
+			"uuid4 hex":        strings.Repeat("a", 32),
+			"plain ascii":      strings.Repeat("x", 100),
+			"html escaped":     maxUserID("&"),
+			"angle brackets":   maxUserID("<"),
+			"control chars":    maxUserID("\x01"),
+			"quotes":           maxUserID(`"`),
+			"backslashes":      maxUserID(`\`),
+			"multibyte":        maxUserID("é"),
+			"line separator":   maxUserID(" "),
+			"single character": "x",
+		} {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				issue, verify := newProofOfWorkScheme(t, 0)
+				loginHandler := newAnonymousLoginHandlerWithProof(t, issuedSession(now), verify, func() time.Time { return now })
+
+				challenge, err := issue(userID, ports.IP("1.2.3.4").Hash(), "prism")
+				require.NoError(t, err)
+
+				body, err := json.Marshal(map[string]string{
+					"userId":    userID,
+					"challenge": challenge.Value,
+					"solution":  solveChallenge(t, challenge.Value, challenge.Difficulty),
+				})
+				require.NoError(t, err)
+				require.Equal(t, http.StatusOK, postLogin(t, loginHandler, "1.2.3.4", string(body)).Code,
+					"a %d-byte userId minted a %d-byte challenge; a 400 here means challengeMaxLength no longer covers what the mint can produce",
+					len(userID), len(challenge.Value))
+			})
+		}
+	})
+}
