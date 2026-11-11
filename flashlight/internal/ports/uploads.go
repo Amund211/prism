@@ -1,7 +1,7 @@
 package ports
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"io"
@@ -171,7 +171,7 @@ func writeUploadJSON(w http.ResponseWriter, status int, body any) {
 	// The start response holds signed policies, which work as credentials.
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(body)
+	_ = json.MarshalWrite(w, body)
 }
 
 func writeUploadError(w http.ResponseWriter, status int, cause string) {

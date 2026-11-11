@@ -1,7 +1,7 @@
 package ports
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -27,9 +27,9 @@ const (
 
 type prismNotice struct {
 	Message         string   `json:"message"`
-	URL             string   `json:"url,omitempty"`
+	URL             string   `json:"url,omitzero"`
 	Severity        severity `json:"severity"`
-	DurationSeconds *float64 `json:"duration_seconds,omitempty"`
+	DurationSeconds *float64 `json:"duration_seconds,omitzero"`
 }
 
 type noticesResponse struct {

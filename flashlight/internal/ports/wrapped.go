@@ -3,7 +3,7 @@ package ports
 import (
 	"cmp"
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -19,13 +19,13 @@ import (
 
 type wrappedResponse struct {
 	Success                bool                      `json:"success"`
-	UUID                   string                    `json:"uuid,omitempty"`
-	Year                   int                       `json:"year,omitempty"`
+	UUID                   string                    `json:"uuid,omitzero"`
+	Year                   int                       `json:"year,omitzero"`
 	TotalSessions          int                       `json:"totalSessions"`
 	NonConsecutiveSessions int                       `json:"nonConsecutiveSessions"`
-	YearStats              *yearBoundaryStatsRainbow `json:"yearStats,omitempty"`
-	SessionStats           *sessionStats             `json:"sessionStats,omitempty"`
-	Cause                  string                    `json:"cause,omitempty"`
+	YearStats              *yearBoundaryStatsRainbow `json:"yearStats,omitzero"`
+	SessionStats           *sessionStats             `json:"sessionStats,omitzero"`
+	Cause                  string                    `json:"cause,omitzero"`
 }
 
 // sessionStats contains statistics computed from consecutive sessions
@@ -94,8 +94,8 @@ type bestSessionsStatsRainbow struct {
 	MostFinalKills    rainbowSession  `json:"mostFinalKills"`
 	MostWins          rainbowSession  `json:"mostWins"`
 	LongestSession    rainbowSession  `json:"longestSession"`
-	MostWinsPerHour   *rainbowSession `json:"mostWinsPerHour,omitempty"`
-	MostFinalsPerHour *rainbowSession `json:"mostFinalsPerHour,omitempty"`
+	MostWinsPerHour   *rainbowSession `json:"mostWinsPerHour,omitzero"`
+	MostFinalsPerHour *rainbowSession `json:"mostFinalsPerHour,omitzero"`
 }
 
 type averageStats struct {
@@ -126,12 +126,12 @@ type yearBoundaryStatsRainbow struct {
 }
 
 type winstreakStats struct {
-	Overall *gamemodeWinstreak `json:"overall,omitempty"`
-	Solo    *gamemodeWinstreak `json:"solo,omitempty"`
-	Doubles *gamemodeWinstreak `json:"doubles,omitempty"`
-	Threes  *gamemodeWinstreak `json:"threes,omitempty"`
-	Fours   *gamemodeWinstreak `json:"fours,omitempty"`
-	Fourv4  *gamemodeWinstreak `json:"4v4,omitempty"`
+	Overall *gamemodeWinstreak `json:"overall,omitzero"`
+	Solo    *gamemodeWinstreak `json:"solo,omitzero"`
+	Doubles *gamemodeWinstreak `json:"doubles,omitzero"`
+	Threes  *gamemodeWinstreak `json:"threes,omitzero"`
+	Fours   *gamemodeWinstreak `json:"fours,omitzero"`
+	Fourv4  *gamemodeWinstreak `json:"4v4,omitzero"`
 }
 
 type gamemodeWinstreak struct {
@@ -140,12 +140,12 @@ type gamemodeWinstreak struct {
 }
 
 type finalKillStreakStats struct {
-	Overall *gamemodeFinalKillStreak `json:"overall,omitempty"`
-	Solo    *gamemodeFinalKillStreak `json:"solo,omitempty"`
-	Doubles *gamemodeFinalKillStreak `json:"doubles,omitempty"`
-	Threes  *gamemodeFinalKillStreak `json:"threes,omitempty"`
-	Fours   *gamemodeFinalKillStreak `json:"fours,omitempty"`
-	Fourv4  *gamemodeFinalKillStreak `json:"4v4,omitempty"`
+	Overall *gamemodeFinalKillStreak `json:"overall,omitzero"`
+	Solo    *gamemodeFinalKillStreak `json:"solo,omitzero"`
+	Doubles *gamemodeFinalKillStreak `json:"doubles,omitzero"`
+	Threes  *gamemodeFinalKillStreak `json:"threes,omitzero"`
+	Fours   *gamemodeFinalKillStreak `json:"fours,omitzero"`
+	Fourv4  *gamemodeFinalKillStreak `json:"4v4,omitzero"`
 }
 
 type gamemodeFinalKillStreak struct {

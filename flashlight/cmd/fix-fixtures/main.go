@@ -3,7 +3,8 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"log"
@@ -48,12 +49,12 @@ func indentAndWrite(data []byte, filePath string) error {
 		}
 	}
 
-	indentedDataBuffer := bytes.NewBuffer(nil)
-	err = json.Indent(indentedDataBuffer, data, "", "  ")
+	indented := jsontext.Value(bytes.Clone(data))
+	err = indented.Indent(jsontext.WithIndent("  "))
 	if err != nil {
 		return fmt.Errorf("error indenting JSON: %w", err)
 	}
-	indentedBytes := indentedDataBuffer.Bytes()
+	indentedBytes := []byte(indented)
 
 	if !bytes.Equal(indentedBytes, expectedBytes) {
 		log.Printf("Updating fixture %s", filePath)

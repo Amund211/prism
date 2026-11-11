@@ -2,7 +2,7 @@ package playerprovider
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"net/http"
 	"time"
@@ -15,89 +15,89 @@ import (
 type hypixelAPIResponse struct {
 	Success bool              `json:"success"`
 	Player  *HypixelAPIPlayer `json:"player"`
-	Cause   *string           `json:"cause,omitempty"`
+	Cause   *string           `json:"cause,omitzero"`
 }
 
 type HypixelAPIPlayer struct {
-	UUID        *string          `json:"uuid,omitempty"`
-	Displayname *string          `json:"displayname,omitempty"`
-	LastLogin   *int64           `json:"lastLogin,omitempty"`
-	LastLogout  *int64           `json:"lastLogout,omitempty"`
-	Stats       *HypixelAPIStats `json:"stats,omitempty"`
+	UUID        *string          `json:"uuid,omitzero"`
+	Displayname *string          `json:"displayname,omitzero"`
+	LastLogin   *int64           `json:"lastLogin,omitzero"`
+	LastLogout  *int64           `json:"lastLogout,omitzero"`
+	Stats       *HypixelAPIStats `json:"stats,omitzero"`
 }
 
 type HypixelAPIStats struct {
-	Bedwars *HypixelAPIBedwarsStats `json:"Bedwars,omitempty"`
+	Bedwars *HypixelAPIBedwarsStats `json:"Bedwars,omitzero"`
 }
 
 type HypixelAPIBedwarsStats struct {
-	Experience *float64 `json:"Experience,omitempty"`
+	Experience *float64 `json:"Experience,omitzero"`
 
-	Winstreak   *int `json:"winstreak,omitempty"`
-	GamesPlayed int  `json:"games_played_bedwars,omitempty"`
-	Wins        int  `json:"wins_bedwars,omitempty"`
-	Losses      int  `json:"losses_bedwars,omitempty"`
-	BedsBroken  int  `json:"beds_broken_bedwars,omitempty"`
-	BedsLost    int  `json:"beds_lost_bedwars,omitempty"`
-	FinalKills  int  `json:"final_kills_bedwars,omitempty"`
-	FinalDeaths int  `json:"final_deaths_bedwars,omitempty"`
-	Kills       int  `json:"kills_bedwars,omitempty"`
-	Deaths      int  `json:"deaths_bedwars,omitempty"`
+	Winstreak   *int `json:"winstreak,omitzero"`
+	GamesPlayed int  `json:"games_played_bedwars,omitzero"`
+	Wins        int  `json:"wins_bedwars,omitzero"`
+	Losses      int  `json:"losses_bedwars,omitzero"`
+	BedsBroken  int  `json:"beds_broken_bedwars,omitzero"`
+	BedsLost    int  `json:"beds_lost_bedwars,omitzero"`
+	FinalKills  int  `json:"final_kills_bedwars,omitzero"`
+	FinalDeaths int  `json:"final_deaths_bedwars,omitzero"`
+	Kills       int  `json:"kills_bedwars,omitzero"`
+	Deaths      int  `json:"deaths_bedwars,omitzero"`
 
-	SoloWinstreak   *int `json:"eight_one_winstreak,omitempty"`
-	SoloGamesPlayed int  `json:"eight_one_games_played_bedwars,omitempty"`
-	SoloWins        int  `json:"eight_one_wins_bedwars,omitempty"`
-	SoloLosses      int  `json:"eight_one_losses_bedwars,omitempty"`
-	SoloBedsBroken  int  `json:"eight_one_beds_broken_bedwars,omitempty"`
-	SoloBedsLost    int  `json:"eight_one_beds_lost_bedwars,omitempty"`
-	SoloFinalKills  int  `json:"eight_one_final_kills_bedwars,omitempty"`
-	SoloFinalDeaths int  `json:"eight_one_final_deaths_bedwars,omitempty"`
-	SoloKills       int  `json:"eight_one_kills_bedwars,omitempty"`
-	SoloDeaths      int  `json:"eight_one_deaths_bedwars,omitempty"`
+	SoloWinstreak   *int `json:"eight_one_winstreak,omitzero"`
+	SoloGamesPlayed int  `json:"eight_one_games_played_bedwars,omitzero"`
+	SoloWins        int  `json:"eight_one_wins_bedwars,omitzero"`
+	SoloLosses      int  `json:"eight_one_losses_bedwars,omitzero"`
+	SoloBedsBroken  int  `json:"eight_one_beds_broken_bedwars,omitzero"`
+	SoloBedsLost    int  `json:"eight_one_beds_lost_bedwars,omitzero"`
+	SoloFinalKills  int  `json:"eight_one_final_kills_bedwars,omitzero"`
+	SoloFinalDeaths int  `json:"eight_one_final_deaths_bedwars,omitzero"`
+	SoloKills       int  `json:"eight_one_kills_bedwars,omitzero"`
+	SoloDeaths      int  `json:"eight_one_deaths_bedwars,omitzero"`
 
-	DoublesWinstreak   *int `json:"eight_two_winstreak,omitempty"`
-	DoublesGamesPlayed int  `json:"eight_two_games_played_bedwars,omitempty"`
-	DoublesWins        int  `json:"eight_two_wins_bedwars,omitempty"`
-	DoublesLosses      int  `json:"eight_two_losses_bedwars,omitempty"`
-	DoublesBedsBroken  int  `json:"eight_two_beds_broken_bedwars,omitempty"`
-	DoublesBedsLost    int  `json:"eight_two_beds_lost_bedwars,omitempty"`
-	DoublesFinalKills  int  `json:"eight_two_final_kills_bedwars,omitempty"`
-	DoublesFinalDeaths int  `json:"eight_two_final_deaths_bedwars,omitempty"`
-	DoublesKills       int  `json:"eight_two_kills_bedwars,omitempty"`
-	DoublesDeaths      int  `json:"eight_two_deaths_bedwars,omitempty"`
+	DoublesWinstreak   *int `json:"eight_two_winstreak,omitzero"`
+	DoublesGamesPlayed int  `json:"eight_two_games_played_bedwars,omitzero"`
+	DoublesWins        int  `json:"eight_two_wins_bedwars,omitzero"`
+	DoublesLosses      int  `json:"eight_two_losses_bedwars,omitzero"`
+	DoublesBedsBroken  int  `json:"eight_two_beds_broken_bedwars,omitzero"`
+	DoublesBedsLost    int  `json:"eight_two_beds_lost_bedwars,omitzero"`
+	DoublesFinalKills  int  `json:"eight_two_final_kills_bedwars,omitzero"`
+	DoublesFinalDeaths int  `json:"eight_two_final_deaths_bedwars,omitzero"`
+	DoublesKills       int  `json:"eight_two_kills_bedwars,omitzero"`
+	DoublesDeaths      int  `json:"eight_two_deaths_bedwars,omitzero"`
 
-	ThreesWinstreak   *int `json:"four_three_winstreak,omitempty"`
-	ThreesGamesPlayed int  `json:"four_three_games_played_bedwars,omitempty"`
-	ThreesWins        int  `json:"four_three_wins_bedwars,omitempty"`
-	ThreesLosses      int  `json:"four_three_losses_bedwars,omitempty"`
-	ThreesBedsBroken  int  `json:"four_three_beds_broken_bedwars,omitempty"`
-	ThreesBedsLost    int  `json:"four_three_beds_lost_bedwars,omitempty"`
-	ThreesFinalKills  int  `json:"four_three_final_kills_bedwars,omitempty"`
-	ThreesFinalDeaths int  `json:"four_three_final_deaths_bedwars,omitempty"`
-	ThreesKills       int  `json:"four_three_kills_bedwars,omitempty"`
-	ThreesDeaths      int  `json:"four_three_deaths_bedwars,omitempty"`
+	ThreesWinstreak   *int `json:"four_three_winstreak,omitzero"`
+	ThreesGamesPlayed int  `json:"four_three_games_played_bedwars,omitzero"`
+	ThreesWins        int  `json:"four_three_wins_bedwars,omitzero"`
+	ThreesLosses      int  `json:"four_three_losses_bedwars,omitzero"`
+	ThreesBedsBroken  int  `json:"four_three_beds_broken_bedwars,omitzero"`
+	ThreesBedsLost    int  `json:"four_three_beds_lost_bedwars,omitzero"`
+	ThreesFinalKills  int  `json:"four_three_final_kills_bedwars,omitzero"`
+	ThreesFinalDeaths int  `json:"four_three_final_deaths_bedwars,omitzero"`
+	ThreesKills       int  `json:"four_three_kills_bedwars,omitzero"`
+	ThreesDeaths      int  `json:"four_three_deaths_bedwars,omitzero"`
 
-	FoursWinstreak   *int `json:"four_four_winstreak,omitempty"`
-	FoursGamesPlayed int  `json:"four_four_games_played_bedwars,omitempty"`
-	FoursWins        int  `json:"four_four_wins_bedwars,omitempty"`
-	FoursLosses      int  `json:"four_four_losses_bedwars,omitempty"`
-	FoursBedsBroken  int  `json:"four_four_beds_broken_bedwars,omitempty"`
-	FoursBedsLost    int  `json:"four_four_beds_lost_bedwars,omitempty"`
-	FoursFinalKills  int  `json:"four_four_final_kills_bedwars,omitempty"`
-	FoursFinalDeaths int  `json:"four_four_final_deaths_bedwars,omitempty"`
-	FoursKills       int  `json:"four_four_kills_bedwars,omitempty"`
-	FoursDeaths      int  `json:"four_four_deaths_bedwars,omitempty"`
+	FoursWinstreak   *int `json:"four_four_winstreak,omitzero"`
+	FoursGamesPlayed int  `json:"four_four_games_played_bedwars,omitzero"`
+	FoursWins        int  `json:"four_four_wins_bedwars,omitzero"`
+	FoursLosses      int  `json:"four_four_losses_bedwars,omitzero"`
+	FoursBedsBroken  int  `json:"four_four_beds_broken_bedwars,omitzero"`
+	FoursBedsLost    int  `json:"four_four_beds_lost_bedwars,omitzero"`
+	FoursFinalKills  int  `json:"four_four_final_kills_bedwars,omitzero"`
+	FoursFinalDeaths int  `json:"four_four_final_deaths_bedwars,omitzero"`
+	FoursKills       int  `json:"four_four_kills_bedwars,omitzero"`
+	FoursDeaths      int  `json:"four_four_deaths_bedwars,omitzero"`
 
-	Fourv4Winstreak   *int `json:"two_four_winstreak,omitempty"`
-	Fourv4GamesPlayed int  `json:"two_four_games_played_bedwars,omitempty"`
-	Fourv4Wins        int  `json:"two_four_wins_bedwars,omitempty"`
-	Fourv4Losses      int  `json:"two_four_losses_bedwars,omitempty"`
-	Fourv4BedsBroken  int  `json:"two_four_beds_broken_bedwars,omitempty"`
-	Fourv4BedsLost    int  `json:"two_four_beds_lost_bedwars,omitempty"`
-	Fourv4FinalKills  int  `json:"two_four_final_kills_bedwars,omitempty"`
-	Fourv4FinalDeaths int  `json:"two_four_final_deaths_bedwars,omitempty"`
-	Fourv4Kills       int  `json:"two_four_kills_bedwars,omitempty"`
-	Fourv4Deaths      int  `json:"two_four_deaths_bedwars,omitempty"`
+	Fourv4Winstreak   *int `json:"two_four_winstreak,omitzero"`
+	Fourv4GamesPlayed int  `json:"two_four_games_played_bedwars,omitzero"`
+	Fourv4Wins        int  `json:"two_four_wins_bedwars,omitzero"`
+	Fourv4Losses      int  `json:"two_four_losses_bedwars,omitzero"`
+	Fourv4BedsBroken  int  `json:"two_four_beds_broken_bedwars,omitzero"`
+	Fourv4BedsLost    int  `json:"two_four_beds_lost_bedwars,omitzero"`
+	Fourv4FinalKills  int  `json:"two_four_final_kills_bedwars,omitzero"`
+	Fourv4FinalDeaths int  `json:"two_four_final_deaths_bedwars,omitzero"`
+	Fourv4Kills       int  `json:"two_four_kills_bedwars,omitzero"`
+	Fourv4Deaths      int  `json:"two_four_deaths_bedwars,omitzero"`
 }
 
 func ParseHypixelAPIResponse(ctx context.Context, data []byte) (*hypixelAPIResponse, error) {
