@@ -4,7 +4,6 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -60,15 +59,6 @@ func MakeStartUploadHandler(
 			return
 		}
 
-		raw, err := io.ReadAll(io.LimitReader(r.Body, maxStartUploadBodyBytes+1))
-		if err != nil {
-			writeUploadError(w, http.StatusBadRequest, "failed to read request")
-			return
-		}
-		if len(raw) > maxStartUploadBodyBytes {
-			writeUploadError(w, http.StatusRequestEntityTooLarge, "request is too large")
-			return
-		}
 		var body struct {
 			ConsentVersion string            `json:"consentVersion"`
 			Fields         map[string]string `json:"fields"`
@@ -77,7 +67,11 @@ func MakeStartUploadHandler(
 				Bytes int64  `json:"bytes"`
 			} `json:"files"`
 		}
-		if err := json.Unmarshal(raw, &body); err != nil {
+		if err := json.UnmarshalRead(http.MaxBytesReader(w, r.Body, maxStartUploadBodyBytes), &body); err != nil {
+			if _, ok := errors.AsType[*http.MaxBytesError](err); ok {
+				writeUploadError(w, http.StatusRequestEntityTooLarge, "request is too large")
+				return
+			}
 			writeUploadError(w, http.StatusBadRequest, "body is not valid JSON")
 			return
 		}
