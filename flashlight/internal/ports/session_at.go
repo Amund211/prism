@@ -2,9 +2,7 @@ package ports
 
 import (
 	"encoding/json/v2"
-	"errors"
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -67,25 +65,11 @@ func MakeGetSessionAtHandler(
 		ctx := r.Context()
 
 		defer r.Body.Close()
-		body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 4<<10))
-		if err != nil {
-			var maxBytesErr *http.MaxBytesError
-			if errors.As(err, &maxBytesErr) {
-				http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
-				return
-			}
-			reporting.Report(ctx, fmt.Errorf("failed to read request body: %w", err))
-			http.Error(w, "Failed to read request body", http.StatusBadRequest)
-			return
-		}
 		request := struct {
 			UUID string    `json:"uuid"`
 			Time time.Time `json:"time"`
 		}{}
-		err = json.Unmarshal(body, &request)
-		if err != nil {
-			logging.FromContext(ctx).WarnContext(ctx, "Failed to parse request body", "error", err)
-			http.Error(w, "Failed to parse request body", http.StatusBadRequest)
+		if !readJSONBody(w, r, 4<<10, &request) {
 			return
 		}
 
