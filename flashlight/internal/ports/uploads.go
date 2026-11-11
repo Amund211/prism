@@ -67,12 +67,12 @@ func MakeStartUploadHandler(
 				Bytes int64  `json:"bytes"`
 			} `json:"files"`
 		}
-		if err := json.UnmarshalRead(http.MaxBytesReader(w, r.Body, maxStartUploadBodyBytes), &body); err != nil {
-			if _, ok := errors.AsType[*http.MaxBytesError](err); ok {
-				writeUploadError(w, http.StatusRequestEntityTooLarge, "request is too large")
-				return
+		if status, err := decodeJSONBody(w, r, maxStartUploadBodyBytes, &body); err != nil {
+			message := "body is not valid JSON"
+			if status == http.StatusRequestEntityTooLarge {
+				message = "request is too large"
 			}
-			writeUploadError(w, http.StatusBadRequest, "body is not valid JSON")
+			writeUploadError(w, status, message)
 			return
 		}
 
