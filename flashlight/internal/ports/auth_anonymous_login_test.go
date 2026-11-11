@@ -456,6 +456,36 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 		}
 	})
 
+	// encoding/json v1 accepted all of these. Two parsers that disagree on
+	// which userId a body names is how a proof gets spent as the wrong user.
+	t.Run("400 on a body only a lenient parser accepts", func(t *testing.T) {
+		t.Parallel()
+		for name, body := range map[string]string{
+			"duplicate userId":   `{"userId":"user-abc","userId":"user-def","challenge":"challenge-blob","solution":"1"}`,
+			"invalid utf-8":      "{\"userId\":\"user-\xff\",\"challenge\":\"challenge-blob\",\"solution\":\"1\"}",
+			"mis-cased userId":   `{"UserId":"user-abc","challenge":"challenge-blob","solution":"1"}`,
+			"second json value":  anonymousLoginBody("user-abc") + anonymousLoginBody("user-def"),
+			"trailing non-space": anonymousLoginBody("user-abc") + "x",
+		} {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				parse := func(challenge string) (proofofwork.SignedChallenge, error) {
+					t.Fatal("verification should not be reached for a body a strict parser rejects")
+					return nil, nil
+				}
+				handler := newAnonymousLoginHandlerWithProof(t, failIfCalled(t, "for a body a strict parser rejects"), parse, time.Now)
+				require.Equal(t, http.StatusBadRequest, postLogin(t, handler, "1.2.3.4", body).Code)
+			})
+		}
+	})
+
+	t.Run("accepts trailing whitespace", func(t *testing.T) {
+		t.Parallel()
+		handler := newAnonymousLoginHandler(t, issuedSession(time.Now()), time.Now)
+		w := postLogin(t, handler, "1.2.3.4", anonymousLoginBody("user-abc")+"\r\n\t ")
+		require.Equal(t, http.StatusOK, w.Code)
+	})
+
 	// The empty string is a valid proof at difficulty 0, so nothing about
 	// the hashing forces a client to implement the loop. Rejecting it does
 	// — and finding out the client shipped a stub the day we raise the
