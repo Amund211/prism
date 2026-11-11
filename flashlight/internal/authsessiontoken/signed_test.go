@@ -3,7 +3,7 @@ package authsessiontoken_test
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
+	"encoding/json/v2"
 	"strings"
 	"testing"
 	"time"
@@ -165,7 +165,7 @@ func TestSealRefusesWhatUnsealWouldReject(t *testing.T) {
 		"an unknown tier":         func(s *domain.AuthSession) { s.IdentityType = "steam" },
 		"no issuedAt":             func(s *domain.AuthSession) { s.CreatedAt = time.Time{} },
 		"no lineageIssuedAt":      func(s *domain.AuthSession) { s.LineageIssuedAt = time.Time{} },
-		"an over-cap identityKey": func(s *domain.AuthSession) { s.IdentityKey = strings.Repeat("<", 300) },
+		"an over-cap identityKey": func(s *domain.AuthSession) { s.IdentityKey = strings.Repeat("\x01", 300) },
 	}
 
 	for name, mutate := range mutations {
@@ -340,10 +340,10 @@ func TestNewSignedRejectsBadKeyMaterial(t *testing.T) {
 func TestHandleMaxLengthCoversEverythingSealCanProduce(t *testing.T) {
 	t.Parallel()
 
-	// userIDMaxLength is 100 and encoding/json escapes '<' to six bytes,
-	// so this is the longest identityKey a login can legally reach.
+	// userIDMaxLength is 100 and encoding/json escapes control characters
+	// to six bytes, so this is the longest identityKey a login can reach.
 	sess := testSession()
-	sess.IdentityKey = strings.Repeat("<", 100)
+	sess.IdentityKey = strings.Repeat("\x01", 100)
 	sess.Generation = 1 << 30
 
 	handle := reseal(t, newSigned(t, testKey(t, 1)), sess)

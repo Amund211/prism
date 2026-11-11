@@ -1,7 +1,7 @@
 package ports
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -41,7 +41,7 @@ type microsoftSessionResponse struct {
 	// the API. Not on refresh: clients carry it across refreshes themselves.
 	UUID string `json:"uuid"`
 	// Credential is prism's recovery credential; rainbow's is fl_rm.
-	Credential string `json:"credential,omitempty"`
+	Credential string `json:"credential,omitzero"`
 }
 
 func newMicrosoftSessionResponse(issued app.MicrosoftExchanged, now time.Time) (microsoftSessionResponse, error) {
@@ -90,7 +90,7 @@ func MakeMicrosoftSignInExchangeHandler(
 		}
 
 		var body microsoftExchangeRequest
-		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, authBodyMaxBytes)).Decode(&body); err != nil {
+		if err := json.UnmarshalRead(http.MaxBytesReader(w, r.Body, authBodyMaxBytes), &body); err != nil {
 			logger.InfoContext(ctx, "Failed to decode Microsoft exchange body")
 			http.Error(w, "Invalid request body", http.StatusBadRequest)
 			return

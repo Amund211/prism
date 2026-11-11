@@ -2,7 +2,8 @@ package app
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"path"
@@ -268,7 +269,7 @@ func BuildCompleteUpload(store UploadStore, nowFunc func() time.Time) CompleteUp
 			}
 		}
 
-		metaData, err := json.MarshalIndent(meta, "", "  ")
+		metaData, err := json.Marshal(meta, jsontext.WithIndent("  "), json.Deterministic(true))
 		if err != nil {
 			return "", fmt.Errorf("failed to marshal upload meta: %w", err)
 		}

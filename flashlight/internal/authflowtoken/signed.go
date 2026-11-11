@@ -6,7 +6,7 @@ package authflowtoken
 
 import (
 	"encoding/base64"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"strings"
 	"time"
@@ -33,10 +33,10 @@ type payload struct {
 	MSState             string `json:"msState"`
 	MSVerifier          string `json:"msVerifier"`
 	ExpiresAtUnixMillis int64  `json:"expiresAtUnixMillis"`
-	ClientType          string `json:"clientType,omitempty"`
-	Return              string `json:"return,omitempty"`
-	Challenge           string `json:"challenge,omitempty"`
-	ClientState         string `json:"clientState,omitempty"`
+	ClientType          string `json:"clientType,omitzero"`
+	Return              string `json:"return,omitzero"`
+	Challenge           string `json:"challenge,omitzero"`
+	ClientState         string `json:"clientState,omitzero"`
 }
 
 type Signed struct {

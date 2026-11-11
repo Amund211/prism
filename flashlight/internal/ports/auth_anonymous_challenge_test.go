@@ -1,7 +1,7 @@
 package ports_test
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"net/http"
@@ -54,7 +54,7 @@ func TestAnonymousChallengeHandler(t *testing.T) {
 			"a challenge is single-use and bound to one ip; no intermediary should hand it out twice")
 
 		var resp challengeResponse
-		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		require.NoError(t, json.UnmarshalRead(w.Body, &resp))
 		require.NotEmpty(t, resp.Challenge)
 		require.Equal(t, "sha256-leading-zeros-v1", resp.Algorithm,
 			"clients key off this name and must reject values they don't know")
@@ -68,7 +68,7 @@ func TestAnonymousChallengeHandler(t *testing.T) {
 		handler := newAnonymousChallengeHandler(t, issue)
 
 		var resp challengeResponse
-		require.NoError(t, json.NewDecoder(postChallenge(t, handler, "1.2.3.4").Body).Decode(&resp))
+		require.NoError(t, json.UnmarshalRead(postChallenge(t, handler, "1.2.3.4").Body, &resp))
 		require.Equal(t, proofofwork.DefaultDifficulty, resp.Difficulty,
 			"clients solve what the response asks for, so the dial must reach them")
 	})

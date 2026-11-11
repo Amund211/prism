@@ -2,7 +2,7 @@ package ports
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -16,9 +16,9 @@ import (
 
 type accountResponse struct {
 	Success  bool   `json:"success"`
-	Username string `json:"username,omitempty"`
-	UUID     string `json:"uuid,omitempty"`
-	Cause    string `json:"cause,omitempty"`
+	Username string `json:"username,omitzero"`
+	UUID     string `json:"uuid,omitzero"`
+	Cause    string `json:"cause,omitzero"`
 }
 
 func MakeGetAccountByUsernameHandler(

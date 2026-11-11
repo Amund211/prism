@@ -3,7 +3,8 @@ package ports
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"log/slog"
 	"net/http"
 	"time"
@@ -54,7 +55,7 @@ var knownSolverVersions = map[string]struct{}{
 // parseSolverReport returns the report and true, or false for anything absent,
 // malformed or out of bounds. A report that claims a solve longer than the
 // challenge has existed is impossible, so it is dropped too.
-func parseSolverReport(raw json.RawMessage, challengeAge time.Duration) (solverReport, bool) {
+func parseSolverReport(raw jsontext.Value, challengeAge time.Duration) (solverReport, bool) {
 	if len(raw) == 0 || len(raw) > solverReportMaxBytes || bytes.Equal(raw, []byte("null")) {
 		return solverReport{}, false
 	}
@@ -101,7 +102,7 @@ func (s solverReport) hashesPerSecond() (float64, bool) {
 
 // recordSolverReport logs and samples a report from a login whose proof
 // verified. Anything it cannot parse is dropped silently.
-func recordSolverReport(ctx context.Context, r *http.Request, raw json.RawMessage, challengeAge time.Duration, difficulty int) {
+func recordSolverReport(ctx context.Context, r *http.Request, raw jsontext.Value, challengeAge time.Duration, difficulty int) {
 	report, ok := parseSolverReport(raw, challengeAge)
 	if !ok {
 		return

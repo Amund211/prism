@@ -2,7 +2,7 @@ package ports_test
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"net/http"
@@ -66,7 +66,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 			RefreshInSeconds      int64  `json:"refreshInSeconds"`
 			CanRefresh            bool   `json:"canRefresh"`
 		}
-		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		require.NoError(t, json.UnmarshalRead(w.Body, &resp))
 		require.Equal(t, "sid-123", resp.SessionID)
 		require.Equal(t, "anonymous", resp.Tier)
 		require.Equal(t, int64(3600), resp.ExpiresInSeconds, "expires_at = now + 1h")
@@ -133,7 +133,7 @@ func TestAnonymousLoginHandler(t *testing.T) {
 			ExpiresInSeconds int64 `json:"expiresInSeconds"`
 			CanRefresh       bool  `json:"canRefresh"`
 		}
-		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		require.NoError(t, json.UnmarshalRead(w.Body, &resp))
 		require.Equal(t, int64(3600), resp.ExpiresInSeconds,
 			"client should still get a full session this round")
 		require.False(t, resp.CanRefresh,
@@ -553,7 +553,7 @@ func TestAnonymousLoginProofOfWork(t *testing.T) {
 			Algorithm  string `json:"algorithm"`
 			Difficulty int    `json:"difficulty"`
 		}
-		require.NoError(t, json.NewDecoder(w.Body).Decode(&challenge))
+		require.NoError(t, json.UnmarshalRead(w.Body, &challenge))
 		require.Equal(t, difficulty, challenge.Difficulty)
 
 		solution := solveChallenge(t, challenge.Challenge, challenge.Difficulty)
