@@ -22,6 +22,7 @@ from prism.overlay.player_cache import PlayerCache
 from prism.overlay.server import Server
 from prism.overlay.settings import NickValue, Settings, fill_missing_settings
 from prism.overlay.state import BedwarsDuelState, OverlayState
+from prism.overlay.team_types import TeamColor
 from prism.player import (
     Account,
     KnownPlayer,
@@ -243,12 +244,14 @@ def create_state(
     party_members: Set[str] | None = None,
     lobby_players: Set[str] = frozenset(),
     alive_players: Set[str] | None = None,
+    player_teams: Iterable[tuple[str, TeamColor]] = frozenset(),
     last_game_start: float | None = None,
     out_of_sync: bool = False,
     in_queue: bool = False,
     own_username: str | None = OWN_USERNAME,
     bedwars_duel: BedwarsDuelState = None,
     server: Server | None = None,
+    who_counter: int = 0,
     now_func: Callable[[], float] = lambda: 0,
 ) -> OverlayState:
     if party_members is None:
@@ -267,12 +270,14 @@ def create_state(
             if alive_players is not None
             else frozenset(lobby_players)
         ),
+        player_teams=frozenset(player_teams),
         last_game_start=last_game_start,
         out_of_sync=out_of_sync,
         in_queue=in_queue,
         own_username=own_username,
         bedwars_duel=bedwars_duel,
         server=server,
+        who_counter=who_counter,
         now_func=now_func,
     )
 

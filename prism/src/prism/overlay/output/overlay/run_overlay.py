@@ -9,8 +9,17 @@ from prism.overlay.controller import OverlayController
 from prism.overlay.microsoft_account import MicrosoftAccount
 from prism.overlay.output.cells import InfoCellValue
 from prism.overlay.output.overlay.stats_overlay import StatsOverlay
-from prism.overlay.output.overlay.utils import OverlayRowData, player_to_row
+from prism.overlay.output.overlay.team_danger_strip_controller import (
+    format_lobby_danger_banner,
+)
+from prism.overlay.output.overlay.utils import (
+    OverlayRowData,
+    player_to_row,
+    with_team_color,
+)
 from prism.overlay.rating import sort_players
+from prism.overlay.team_danger import calculate_lobby_danger, resolve_player_team
+from prism.overlay.team_types import TeamDangerBannerData
 from prism.overlay.threading import start_threads
 from prism.overlay.visibility import Visibility, get_visibility
 from prism.player import KnownPlayer, Player
@@ -125,6 +134,135 @@ def get_inactive_info_cell(controller: OverlayController) -> InfoCellValue | Non
     )
 
 
+def get_new_data(
+    controller: OverlayController,
+    auth: AuthManager,
+) -> tuple[
+    Visibility,
+    list[InfoCellValue],
+    list[OverlayRowData] | None,
+    TeamDangerBannerData | None,
+]:  # pragma: nocover
+    # Store a persistent view to the current state
+    state = controller.state
+
+    new_players = get_stat_list(controller)
+    new_banner: TeamDangerBannerData | None
+    if new_players is not None:
+        new_rows = [
+            with_team_color(
+                player_to_row(player, controller.settings.rating_configs),
+                resolve_player_team(player, state.team_map),
+            )
+            for player in new_players
+        ]
+        lobby_danger = calculate_lobby_danger(
+            new_players,
+            alive_players=state.alive_players,
+            party_members=state.party_members,
+            own_username=state.own_username,
+            player_teams=state.team_map,
+            time_in_game=state.time_in_game,
+            any_final_kills=state.has_final_kills_or_deaths,
+            is_duel=state.bedwars_duel is not None,
+            lobby_size=len(state.lobby_players),
+        )
+        new_banner = format_lobby_danger_banner(lobby_danger)
+    else:
+        new_rows = None
+        new_banner = None
+
+    info_cells = []
+
+    for notice in controller.flashlight_notices:
+        if not notice.active:
+            continue
+        if notice.severity == "update" and not controller.settings.check_for_updates:
+            continue
+        if notice.severity == "info":
+            color = "light blue"
+        elif notice.severity == "update":
+            color = "light green"
+        elif notice.severity == "warning":
+            color = "orange"
+        else:
+            color = "red" if time.monotonic() % 2 > 1 else "white"
+        info_cells.append(
+            InfoCellValue(
+                text=notice.message,
+                color=color,
+                url=notice.url,
+            )
+        )
+
+    if state.out_of_sync:
+        info_cells.append(
+            InfoCellValue(
+                text="Overlay out of sync. Use /who", color="orange", url=None
+            )
+        )
+
+    inactive_cell = get_inactive_info_cell(controller)
+    if inactive_cell is not None:
+        info_cells.append(inactive_cell)
+
+    signin_ended_cell = get_microsoft_signin_ended_info_cell(auth)
+    if signin_ended_cell is not None:
+        info_cells.append(signin_ended_cell)
+
+    signin_suggestion_cell = get_signin_suggestion_info_cell(auth)
+    if signin_suggestion_cell is not None:
+        info_cells.append(signin_suggestion_cell)
+
+    if controller.urchin_api_key_invalid:
+        info_cells.append(
+            InfoCellValue(
+                text=(
+                    "Invalid Urchin API key - using default\n"
+                    "Update or remove the key in the settings menu."
+                ),
+                color="red" if time.monotonic() % 2 > 1 else "white",
+                url=None,
+            )
+        )
+
+    block_duration_seconds = max(
+        controller._winstreak_provider.seconds_until_unblocked,
+        controller._player_provider.seconds_until_unblocked,
+    )
+
+    if block_duration_seconds > 0:
+        pause = math.ceil(block_duration_seconds)
+        info_cells.append(
+            InfoCellValue(
+                text=f"Too many requests. Slowing down. ({pause}s)",
+                color="yellow",
+                url=None,
+            )
+        )
+
+    if controller.missing_local_issuer_certificate:
+        info_cells.append(
+            InfoCellValue(
+                text=(
+                    "SSL certificate error.\n"
+                    "Change the 'Use included ssl certificates' setting\n"
+                    "in the settings menu and *RESTART* the overlay."
+                ),
+                color="red",
+                url=None,
+            )
+        )
+
+    visibility = get_visibility(
+        state,
+        wants_shown=controller.wants_shown,
+        autohide_timeout=controller.settings.autohide_timeout,
+    )
+
+    return visibility, info_cells, new_rows, new_banner
+
+
 def run_overlay(
     controller: OverlayController,
     loglines: Iterable[str],
@@ -134,120 +272,11 @@ def run_overlay(
     """Run the overlay"""
     start_threads(controller, loglines, auth)
 
-    def get_new_data() -> (
-        tuple[Visibility, list[InfoCellValue], list[OverlayRowData] | None]
-    ):
-        # Store a persistent view to the current state
-        state = controller.state
-
-        new_players = get_stat_list(controller)
-        new_rows = (
-            [
-                player_to_row(player, controller.settings.rating_configs)
-                for player in new_players
-            ]
-            if new_players is not None
-            else None
-        )
-
-        info_cells = []
-
-        for notice in controller.flashlight_notices:
-            if not notice.active:
-                continue
-            if (
-                notice.severity == "update"
-                and not controller.settings.check_for_updates
-            ):
-                continue
-            if notice.severity == "info":
-                color = "light blue"
-            elif notice.severity == "update":
-                color = "light green"
-            elif notice.severity == "warning":
-                color = "orange"
-            else:
-                color = "red" if time.monotonic() % 2 > 1 else "white"
-            info_cells.append(
-                InfoCellValue(
-                    text=notice.message,
-                    color=color,
-                    url=notice.url,
-                )
-            )
-
-        if state.out_of_sync:
-            info_cells.append(
-                InfoCellValue(
-                    text="Overlay out of sync. Use /who", color="orange", url=None
-                )
-            )
-
-        inactive_cell = get_inactive_info_cell(controller)
-        if inactive_cell is not None:
-            info_cells.append(inactive_cell)
-
-        signin_ended_cell = get_microsoft_signin_ended_info_cell(auth)
-        if signin_ended_cell is not None:
-            info_cells.append(signin_ended_cell)
-
-        signin_suggestion_cell = get_signin_suggestion_info_cell(auth)
-        if signin_suggestion_cell is not None:
-            info_cells.append(signin_suggestion_cell)
-
-        if controller.urchin_api_key_invalid:
-            info_cells.append(
-                InfoCellValue(
-                    text=(
-                        "Invalid Urchin API key - using default\n"
-                        "Update or remove the key in the settings menu."
-                    ),
-                    color="red" if time.monotonic() % 2 > 1 else "white",
-                    url=None,
-                )
-            )
-
-        block_duration_seconds = max(
-            controller._winstreak_provider.seconds_until_unblocked,
-            controller._player_provider.seconds_until_unblocked,
-        )
-
-        if block_duration_seconds > 0:
-            pause = math.ceil(block_duration_seconds)
-            info_cells.append(
-                InfoCellValue(
-                    text=f"Too many requests. Slowing down. ({pause}s)",
-                    color="yellow",
-                    url=None,
-                )
-            )
-
-        if controller.missing_local_issuer_certificate:
-            info_cells.append(
-                InfoCellValue(
-                    text=(
-                        "SSL certificate error.\n"
-                        "Change the 'Use included ssl certificates' setting\n"
-                        "in the settings menu and *RESTART* the overlay."
-                    ),
-                    color="red",
-                    url=None,
-                )
-            )
-
-        visibility = get_visibility(
-            state,
-            wants_shown=controller.wants_shown,
-            autohide_timeout=controller.settings.autohide_timeout,
-        )
-
-        return visibility, info_cells, new_rows
-
     overlay = StatsOverlay(
         column_order=controller.settings.column_order,
         controller=controller,
         microsoft_account=microsoft_account,
-        get_new_data=get_new_data,
+        get_new_data=lambda: get_new_data(controller, auth),
         poll_interval=100,
         start_hidden=False,
     )

@@ -1,5 +1,6 @@
 import logging
 import sys
+import time
 import tkinter as tk
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Literal, assert_never
@@ -10,10 +11,13 @@ from prism.overlay.microsoft_account import MicrosoftAccount
 from prism.overlay.output.cells import ColumnName, InfoCellValue
 from prism.overlay.output.overlay.main_content import MainContent
 from prism.overlay.output.overlay.overlay_window import OverlayWindow
+from prism.overlay.output.overlay.rush_popup import RushPopup
+from prism.overlay.output.overlay.rush_popup_controller import RushPopupController
 from prism.overlay.output.overlay.set_nickname_page import SetNicknamePage
 from prism.overlay.output.overlay.settings_page import SettingsPage
 from prism.overlay.output.overlay.toolbar import Toolbar
 from prism.overlay.output.overlay.utils import OverlayRowData
+from prism.overlay.team_types import TeamDangerBannerData
 from prism.overlay.visibility import Hidden, Shown, ShownUntil, Visibility
 
 if TYPE_CHECKING:  # pragma: nocover
@@ -34,7 +38,13 @@ class StatsOverlay:  # pragma: nocover
         controller: OverlayController,
         microsoft_account: MicrosoftAccount,
         get_new_data: Callable[
-            [], tuple[Visibility, list[InfoCellValue], list[OverlayRowData] | None]
+            [],
+            tuple[
+                Visibility,
+                list[InfoCellValue],
+                list[OverlayRowData] | None,
+                TeamDangerBannerData | None,
+            ],
         ],
         poll_interval: int,
     ):
@@ -45,10 +55,16 @@ class StatsOverlay:  # pragma: nocover
 
         # Set visibility so the window remains in the desired state based on
         # start_hidden until the visibility from get_new_data changes
-        # Also set last_new_rows so we don't miss the first update
+        # Also set last_new_rows and last_new_banner so we don't miss the first update
         self.visibility: Visibility
         self.last_new_rows: list[OverlayRowData] | None
-        self.visibility, _, self.last_new_rows = self.get_new_data()
+        self.last_new_banner: TeamDangerBannerData | None
+        (
+            self.visibility,
+            _,
+            self.last_new_rows,
+            self.last_new_banner,
+        ) = self.get_new_data()
 
         self.current_page: Page = "main"
 
@@ -81,6 +97,10 @@ class StatsOverlay:  # pragma: nocover
         self.listener: "pynput.keyboard.Listener | None" = None
         if self.controller.settings.show_on_tab:
             self.setup_tab_listener()
+
+        # Rush popup HUD card
+        self.rush_popup = RushPopup(self.window.root)
+        self.rush_popup_controller = RushPopupController.create(timeout_seconds=10.0)
 
         # Update geometry and stuff, if necessary
         self.window.root.update_idletasks()
@@ -213,7 +233,7 @@ class StatsOverlay:  # pragma: nocover
 
     def update_overlay(self) -> None:
         """Get new data to be displayed and display it"""
-        visibility, info_cells, new_rows = self.get_new_data()
+        visibility, info_cells, new_rows, new_banner = self.get_new_data()
 
         # Show or hide the window if the desired state is different from the stored
         if visibility != self.visibility:
@@ -240,18 +260,46 @@ class StatsOverlay:  # pragma: nocover
                 assert_never(visibility)
 
         # Only update the window if it's shown
+        banner_for_popup = (
+            new_banner if new_banner is not None else self.last_new_banner
+        )
         if self.window.shown and self.current_page == "main":
             # Update the table with the new rows
             # Fall back to the last new rows from when the table was hidden
+            rows_to_update = new_rows if new_rows is not None else self.last_new_rows
+            banner_to_update = (
+                new_banner if new_rows is not None else self.last_new_banner
+            )
             self.main_content.update_content(
-                info_cells, new_rows if new_rows is not None else self.last_new_rows
+                info_cells,
+                rows_to_update,
+                banner_to_update,
             )
             self.last_new_rows = None  # Discard any stored rows
+            self.last_new_banner = None  # Discard any stored banner
         else:
             # Do not update the table when it is hidden, but keep track of the most
             # recent update so we can use that when we show the table again
             if new_rows is not None:
                 self.last_new_rows = new_rows
+                self.last_new_banner = new_banner
+
+        in_lobby_or_game = bool(
+            self.controller.state.lobby_players
+            and (self.controller.state.in_queue or self.controller.state.in_game)
+            and self.controller.state.bedwars_duel is None
+        )
+        popup_banner = self.rush_popup_controller.tick(
+            now=time.monotonic(),
+            who_counter=self.controller.state.who_counter,
+            in_lobby_or_game=in_lobby_or_game,
+            banner=banner_for_popup,
+            player_teams=self.controller.state.player_teams,
+        )
+        if popup_banner is not None:
+            self.rush_popup.tick(popup_banner)
+        else:
+            self.rush_popup.hide()
 
         if self.current_page == "settings":
             self.settings_page.poll()
