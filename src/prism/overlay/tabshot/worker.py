@@ -16,17 +16,18 @@ import time
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from prism.overlay.state import OverlayState
 from prism.overlay.tabshot.capture import Grabber, RawCapture
+from prism.overlay.tabshot.game_info import safe_collect_game_info
 from prism.overlay.tabshot.metadata import CaptureInfo, PrismWindow, build_metadata
 from prism.overlay.tabshot.policy import (
     CAPTURE_DELAYS_MS,
     known_names,
-    should_retry,
     should_start_burst,
 )
+from prism.overlay.tabshot.processes import list_processes
 from prism.overlay.tabshot.screenshot import Team, from_bgra
 from prism.overlay.tabshot.store import SampleStore, burst_stem, capture_filename
 from prism.overlay.tabshot.window import GameWindow, find_game_windows
@@ -40,7 +41,7 @@ if TYPE_CHECKING:  # pragma: nocover
 
 logger = logging.getLogger(__name__)
 
-SAVE_QUEUE_SIZE = 8
+SAVE_QUEUE_SIZE = 32
 
 
 def _load_read_teams() -> "ReadTeams":  # pragma: nocover
@@ -149,6 +150,14 @@ class TabshotWorker:  # pragma: nocover
             except Exception:
                 logger.exception("Tabshot: failed to save")
 
+    def _call_on_teams(self, state: OverlayState, teams: dict[str, Team]) -> None:
+        if self.on_teams is None:
+            return
+        try:
+            self.on_teams(state, teams)
+        except Exception:
+            logger.exception("Tabshot: on_teams failed")
+
     def _enqueue_save(self, job: Callable[[], None]) -> None:
         try:
             self._saves.put_nowait(job)
@@ -174,9 +183,8 @@ class TabshotWorker:  # pragma: nocover
         prism = self.prism_window
 
         captures: list[CaptureInfo] = []
-        # Save after the burst, so encoding does not slow down the grabs
-        jobs: list[Callable[[], None]] = []
         monitors = None
+        best = 0  # Most teams read in one capture of this burst
 
         for delay_ms in CAPTURE_DELAYS_MS:
             remaining = pressed_at + delay_ms / 1000 - time.monotonic()
@@ -192,7 +200,8 @@ class TabshotWorker:  # pragma: nocover
             monitors = capture.monitors
 
             filename = capture_filename(stem, delay_ms)
-            jobs.append(_png_job(store, directory / filename, capture))
+            # Save now: a long burst would hold too many raw captures in memory
+            self._enqueue_save(_png_job(store, directory / filename, capture))
 
             teams, read_ms = _read(read_teams, capture, known)
             captures.append(
@@ -205,17 +214,13 @@ class TabshotWorker:  # pragma: nocover
                     read_ms=read_ms,
                 )
             )
-            if teams is None or not should_retry(teams):
-                break
+            # Trial branch: capture all delays while held. Show the best read.
+            if teams is not None and len(teams) > best:
+                best = len(teams)
+                self._call_on_teams(state, teams)
 
-        found = {
-            name: team for c in captures if c.teams for name, team in c.teams.items()
-        }
-        if found and self.on_teams is not None:
-            try:
-                self.on_teams(state, found)
-            except Exception:
-                logger.exception("Tabshot: on_teams failed")
+        if best == 0 and any(c.teams is not None for c in captures):
+            self._call_on_teams(state, {})  # Clear old colors: this read failed
 
         if monitors is None:
             return  # Released before the first capture
@@ -237,9 +242,9 @@ class TabshotWorker:  # pragma: nocover
             thread_dpi_aware=grabber.thread_dpi_aware,
         )
         path = directory / f"{stem}.json"
-        for job in jobs:
-            self._enqueue_save(job)
-        self._enqueue_save(lambda: store.save_json(path, metadata))
+        self._enqueue_save(
+            lambda: store.save_json(path, _with_game_info(store, metadata))
+        )
         last = captures[-1]
         logger.info(
             f"Tabshot: {stem}, {len(captures)} captures, "
@@ -262,6 +267,22 @@ def _read(
         logger.exception("Tabshot: team recognition failed")
         return None, None
     return teams, (time.monotonic() - start) * 1000
+
+
+def _with_game_info(
+    store: SampleStore, metadata: dict[str, Any]
+) -> dict[str, Any]:  # pragma: nocover
+    """Trial branch: add client info. Runs on the saver thread (slow parts)."""
+    try:
+        processes = list_processes()
+    except Exception:
+        logger.exception("Tabshot: failed to list processes")
+        processes = None
+    return {
+        **metadata,
+        "game": safe_collect_game_info(store.root),
+        "processes": processes,
+    }
 
 
 def _png_job(

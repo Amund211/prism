@@ -6,6 +6,7 @@ from prism.overlay.directories import DEFAULT_LOGFILE_CACHE_PATH
 from prism.overlay.file_utils import watch_file_with_reopen
 from prism.overlay.process_event import fast_forward_state
 from prism.overlay.settings import Settings
+from prism.overlay.tabshot.game_info import set_active_logfile
 from prism.overlay.user_interaction.get_logfile import prompt_for_logfile_path
 
 CLEAR_BETWEEN_DRAWS = True
@@ -20,6 +21,8 @@ def prompt_and_read_logfile(
         )
     else:
         logfile_path = options.logfile_path
+
+    set_active_logfile(logfile_path)
 
     with logfile_path.open("r", encoding="utf8", errors="replace") as logfile:
         # Process the entire logfile to get current player as well as potential
