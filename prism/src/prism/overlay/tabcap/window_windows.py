@@ -13,6 +13,9 @@ PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 _kernel32 = ctypes.WinDLL(  # type: ignore [attr-defined, unused-ignore]
     "kernel32", use_last_error=True
 )
+_user32 = ctypes.WinDLL(  # type: ignore [attr-defined, unused-ignore]
+    "user32", use_last_error=True
+)
 
 
 def _process_exe(pid: int) -> str | None:
@@ -27,6 +30,14 @@ def _process_exe(pid: int) -> str | None:
         return buf.value
     finally:
         _kernel32.CloseHandle(handle)
+
+
+def _window_dpi(hwnd: int) -> int | None:
+    try:
+        dpi = _user32.GetDpiForWindow(hwnd)
+    except Exception:
+        return None
+    return int(dpi) or None
 
 
 def find_windows() -> list[GameWindow]:
@@ -59,6 +70,7 @@ def find_windows() -> list[GameWindow]:
                 window_class=window_class,
                 title=title,
                 foreground=hwnd == foreground,
+                dpi=_window_dpi(hwnd),
             )
         )
     return windows
