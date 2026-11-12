@@ -1,7 +1,7 @@
 package ports
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
 	"strings"
 	"testing"
 	"time"
@@ -17,7 +17,7 @@ func TestParseSolverReport(t *testing.T) {
 
 	t.Run("valid report", func(t *testing.T) {
 		t.Parallel()
-		raw := json.RawMessage(`{"name":"sha-ni","version":"3","hashes":1048576,"elapsedSeconds":0.041,"cpuSeconds":0.04}`)
+		raw := jsontext.Value(`{"name":"sha-ni","version":"3","hashes":1048576,"elapsedSeconds":0.041,"cpuSeconds":0.04}`)
 		report, ok := parseSolverReport(raw, age)
 		require.True(t, ok)
 		require.Equal(t, solverReport{
@@ -31,14 +31,14 @@ func TestParseSolverReport(t *testing.T) {
 
 	t.Run("cpuSeconds is optional", func(t *testing.T) {
 		t.Parallel()
-		report, ok := parseSolverReport(json.RawMessage(`{"name":"worker","version":"1","hashes":10,"elapsedSeconds":0.005}`), age)
+		report, ok := parseSolverReport(jsontext.Value(`{"name":"worker","version":"1","hashes":10,"elapsedSeconds":0.005}`), age)
 		require.True(t, ok)
 		require.Nil(t, report.CPUSeconds)
 	})
 
 	t.Run("elapsed equal to the challenge age is possible", func(t *testing.T) {
 		t.Parallel()
-		_, ok := parseSolverReport(json.RawMessage(`{"name":"python","hashes":1,"elapsedSeconds":10}`), age)
+		_, ok := parseSolverReport(jsontext.Value(`{"name":"python","hashes":1,"elapsedSeconds":10}`), age)
 		require.True(t, ok)
 	})
 
@@ -63,7 +63,7 @@ func TestParseSolverReport(t *testing.T) {
 	} {
 		t.Run("ignores "+name, func(t *testing.T) {
 			t.Parallel()
-			_, ok := parseSolverReport(json.RawMessage(raw), age)
+			_, ok := parseSolverReport(jsontext.Value(raw), age)
 			require.False(t, ok)
 		})
 	}

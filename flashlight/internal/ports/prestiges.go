@@ -1,7 +1,7 @@
 package ports
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -18,14 +18,14 @@ import (
 
 type prestigeResponse struct {
 	Success   bool                  `json:"success"`
-	UUID      string                `json:"uuid,omitempty"`
+	UUID      string                `json:"uuid,omitzero"`
 	Prestiges []prestigeAchievement `json:"prestiges"`
-	Cause     string                `json:"cause,omitempty"`
+	Cause     string                `json:"cause,omitzero"`
 }
 
 type prestigeAchievement struct {
 	Stars     int                       `json:"stars"`
-	FirstSeen *prestigeAchievementStats `json:"first_seen,omitempty"`
+	FirstSeen *prestigeAchievementStats `json:"first_seen,omitzero"`
 }
 
 type prestigeAchievementStats struct {

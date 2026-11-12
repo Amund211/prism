@@ -1,7 +1,7 @@
 package ports
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -53,7 +53,7 @@ func newCredentialIPLimiters() (ratelimiting.RequestRateLimiter, ratelimiting.Re
 
 func readCredential(w http.ResponseWriter, r *http.Request) (string, domain.MicrosoftClientType, int) {
 	var body credentialRequest
-	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, authBodyMaxBytes)).Decode(&body); err != nil {
+	if err := json.UnmarshalRead(http.MaxBytesReader(w, r.Body, authBodyMaxBytes), &body); err != nil {
 		return "", "", http.StatusBadRequest
 	}
 

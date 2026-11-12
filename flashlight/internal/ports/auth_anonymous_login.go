@@ -2,7 +2,8 @@ package ports
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -33,7 +34,7 @@ type anonymousLoginRequest struct {
 	// Solver is optional telemetry, kept raw so a well-formed value of any
 	// shape can't fail the decode. Invalid JSON or a body over
 	// loginBodyMaxBytes is still a 400.
-	Solver json.RawMessage `json:"solver"`
+	Solver jsontext.Value `json:"solver"`
 }
 
 // userIDMaxLength is the hard cap above which we reject the request.
@@ -182,7 +183,7 @@ func MakeAnonymousLoginHandler(
 		}
 
 		var body anonymousLoginRequest
-		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, loginBodyMaxBytes)).Decode(&body); err != nil {
+		if err := json.UnmarshalRead(http.MaxBytesReader(w, r.Body, loginBodyMaxBytes), &body); err != nil {
 			logging.FromContext(ctx).InfoContext(ctx, "Failed to decode anonymous login body", "error", err.Error())
 			http.Error(w, "Invalid request body", http.StatusBadRequest)
 			return

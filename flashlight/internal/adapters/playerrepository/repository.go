@@ -3,7 +3,7 @@ package playerrepository
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"slices"
@@ -42,7 +42,7 @@ func NewPostgresPlayerRepository(db *sqlx.DB, schema string) *PostgresPlayerRepo
 }
 
 type playerDataStorage struct {
-	Experience *int64           `json:"xp,omitempty"`
+	Experience *int64           `json:"xp,omitzero"`
 	Solo       statsDataStorage `json:"1"`
 	Doubles    statsDataStorage `json:"2"`
 	Threes     statsDataStorage `json:"3"`
@@ -52,16 +52,16 @@ type playerDataStorage struct {
 }
 
 type statsDataStorage struct {
-	Winstreak   *int `json:"ws,omitempty"`
-	GamesPlayed int  `json:"gp,omitempty"`
-	Wins        int  `json:"w,omitempty"`
-	Losses      int  `json:"l,omitempty"`
-	BedsBroken  int  `json:"bb,omitempty"`
-	BedsLost    int  `json:"bl,omitempty"`
-	FinalKills  int  `json:"fk,omitempty"`
-	FinalDeaths int  `json:"fd,omitempty"`
-	Kills       int  `json:"k,omitempty"`
-	Deaths      int  `json:"d,omitempty"`
+	Winstreak   *int `json:"ws,omitzero"`
+	GamesPlayed int  `json:"gp,omitzero"`
+	Wins        int  `json:"w,omitzero"`
+	Losses      int  `json:"l,omitzero"`
+	BedsBroken  int  `json:"bb,omitzero"`
+	BedsLost    int  `json:"bl,omitzero"`
+	FinalKills  int  `json:"fk,omitzero"`
+	FinalDeaths int  `json:"fd,omitzero"`
+	Kills       int  `json:"k,omitzero"`
+	Deaths      int  `json:"d,omitzero"`
 }
 
 type dbStat struct {

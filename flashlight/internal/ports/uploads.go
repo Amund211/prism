@@ -1,10 +1,9 @@
 package ports
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -60,15 +59,6 @@ func MakeStartUploadHandler(
 			return
 		}
 
-		raw, err := io.ReadAll(io.LimitReader(r.Body, maxStartUploadBodyBytes+1))
-		if err != nil {
-			writeUploadError(w, http.StatusBadRequest, "failed to read request")
-			return
-		}
-		if len(raw) > maxStartUploadBodyBytes {
-			writeUploadError(w, http.StatusRequestEntityTooLarge, "request is too large")
-			return
-		}
 		var body struct {
 			ConsentVersion string            `json:"consentVersion"`
 			Fields         map[string]string `json:"fields"`
@@ -77,8 +67,12 @@ func MakeStartUploadHandler(
 				Bytes int64  `json:"bytes"`
 			} `json:"files"`
 		}
-		if err := json.Unmarshal(raw, &body); err != nil {
-			writeUploadError(w, http.StatusBadRequest, "body is not valid JSON")
+		if status, err := decodeJSONBody(w, r, maxStartUploadBodyBytes, &body); err != nil {
+			message := "body is not valid JSON"
+			if status == http.StatusRequestEntityTooLarge {
+				message = "request is too large"
+			}
+			writeUploadError(w, status, message)
 			return
 		}
 
@@ -171,7 +165,7 @@ func writeUploadJSON(w http.ResponseWriter, status int, body any) {
 	// The start response holds signed policies, which work as credentials.
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(body)
+	_ = json.MarshalWrite(w, body)
 }
 
 func writeUploadError(w http.ResponseWriter, status int, cause string) {

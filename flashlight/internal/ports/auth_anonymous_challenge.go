@@ -1,7 +1,7 @@
 package ports
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -104,7 +104,7 @@ func MakeAnonymousChallengeHandler(
 		}
 
 		var body anonymousChallengeRequest
-		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, authBodyMaxBytes)).Decode(&body); err != nil {
+		if err := json.UnmarshalRead(http.MaxBytesReader(w, r.Body, authBodyMaxBytes), &body); err != nil {
 			logging.FromContext(ctx).InfoContext(ctx, "Failed to decode anonymous challenge body", "error", err.Error())
 			http.Error(w, "Invalid request body", http.StatusBadRequest)
 			return

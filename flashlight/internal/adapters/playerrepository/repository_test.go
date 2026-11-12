@@ -1,7 +1,7 @@
 package playerrepository
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"log/slog"
 	"os"
@@ -1135,9 +1135,9 @@ func TestPostgresPlayerRepository(t *testing.T) {
 					}
 
 					// Lazy json compare
-					achievementsJSON, err := json.MarshalIndent(achievements, "", "  ")
+					achievementsJSON, err := json.Marshal(achievements)
 					require.NoError(t, err)
-					expectedJSON, err := json.MarshalIndent(tt.expected, "", "  ")
+					expectedJSON, err := json.Marshal(tt.expected)
 					require.NoError(t, err)
 					require.JSONEq(t, string(expectedJSON), string(achievementsJSON))
 				})

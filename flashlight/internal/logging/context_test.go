@@ -2,7 +2,8 @@ package logging_test
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"log/slog"
 	"testing"
 	"time"
@@ -41,7 +42,8 @@ func (w *jsonWriter) PopWithoutTime() (map[string]any, bool) {
 	w.data = w.data[:lastIndex]
 
 	var result map[string]any
-	err := json.Unmarshal([]byte(val), &result)
+	// slog repeats a key when a child logger overrides it; the last one wins.
+	err := json.Unmarshal([]byte(val), &result, jsontext.AllowDuplicateNames(true))
 	require.NoError(w.t, err)
 
 	timeValue, ok := result["time"]

@@ -66,12 +66,15 @@ jobs:
         if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         name: Deploy to Cloudflare Pages
         runs-on: ubuntu-latest
+        # Only deploy if the tests pass (production and previews)
+        needs: [lint-and-build, ui-tests]
         permissions:
             contents: read
             pull-requests: write
+        # One deploy per branch at a time; a newer run replaces a waiting one
         concurrency:
             group: pages-deploy-${{ github.head_ref || github.ref_name }}
-            cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+            cancel-in-progress: false
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:

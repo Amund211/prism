@@ -3,7 +3,7 @@ package ports_test
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -126,7 +126,7 @@ func doUploads(t *testing.T, handler http.HandlerFunc, req *http.Request) (int, 
 	// The start response holds signed policies.
 	require.Equal(t, "no-store", resp.Header.Get("Cache-Control"))
 	var body uploadResponse
-	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.NoError(t, json.UnmarshalRead(resp.Body, &body))
 	return resp.StatusCode, body
 }
 

@@ -1,7 +1,7 @@
 package ports_test
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"net/http"
@@ -54,7 +54,7 @@ func TestAnonymousChallengeHandler(t *testing.T) {
 			"a challenge is single-use and bound to one ip; no intermediary should hand it out twice")
 
 		var resp challengeResponse
-		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		require.NoError(t, json.UnmarshalRead(w.Body, &resp))
 		require.NotEmpty(t, resp.Challenge)
 		require.Equal(t, "sha256-leading-zeros-v1", resp.Algorithm,
 			"clients key off this name and must reject values they don't know")
@@ -68,7 +68,7 @@ func TestAnonymousChallengeHandler(t *testing.T) {
 		handler := newAnonymousChallengeHandler(t, issue)
 
 		var resp challengeResponse
-		require.NoError(t, json.NewDecoder(postChallenge(t, handler, "1.2.3.4").Body).Decode(&resp))
+		require.NoError(t, json.UnmarshalRead(postChallenge(t, handler, "1.2.3.4").Body, &resp))
 		require.Equal(t, proofofwork.DefaultDifficulty, resp.Difficulty,
 			"clients solve what the response asks for, so the dial must reach them")
 	})
@@ -124,6 +124,37 @@ func TestAnonymousChallengeHandler(t *testing.T) {
 				require.Equal(t, http.StatusBadRequest, postBody(t, handler, "1.2.3.4", body).Code)
 			})
 		}
+	})
+
+	// encoding/json v1 accepted all of these. Two parsers that disagree on
+	// which userId a body names is how a challenge gets bound to the wrong one.
+	t.Run("400 on a body only a lenient parser accepts", func(t *testing.T) {
+		t.Parallel()
+		for name, body := range map[string]string{
+			"duplicate userId":   `{"userId":"user-abc","userId":"user-def"}`,
+			"invalid utf-8":      "{\"userId\":\"user-\xff\"}",
+			"mis-cased userId":   `{"UserId":"user-abc"}`,
+			"second json value":  anonymousChallengeBody("user-abc") + anonymousChallengeBody("user-def"),
+			"trailing non-space": anonymousChallengeBody("user-abc") + "x",
+		} {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				issue := func(userID string, ipHash string, clientType string) (proofofwork.Challenge, error) {
+					t.Fatal("no challenge should be minted for a body a strict parser rejects")
+					return proofofwork.Challenge{}, nil
+				}
+				handler := newAnonymousChallengeHandler(t, issue)
+				require.Equal(t, http.StatusBadRequest, postBody(t, handler, "1.2.3.4", body).Code)
+			})
+		}
+	})
+
+	t.Run("accepts trailing whitespace", func(t *testing.T) {
+		t.Parallel()
+		issue, _ := newProofOfWorkScheme(t, 4)
+		handler := newAnonymousChallengeHandler(t, issue)
+		w := postBody(t, handler, "1.2.3.4", anonymousChallengeBody("user-abc")+"\r\n\t ")
+		require.Equal(t, http.StatusOK, w.Code)
 	})
 
 	t.Run("difficulty is priced on the normalized client type", func(t *testing.T) {
