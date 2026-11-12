@@ -4,7 +4,13 @@ permissions:
   contents: read
 
 on:
+  pull_request:
+    paths:
+      - "prism/**"
+      - ".github/workflows/linting.yml"
   push:
+    branches:
+      - main
     paths:
       - "prism/**"
       - ".github/workflows/linting.yml"
