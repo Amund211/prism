@@ -225,8 +225,11 @@ def test_collect_game_info_lunar(tmp_path: Path) -> None:
     _write(game / "profile_manager.json", "[]")
     _write(game / "accounts.json", '{"token": "secret"}')
     _write(game / "Default" / "mods.json", "{}")
-    _write(home / ".minecraft" / "resourcepacks" / "shared.zip", "zip")
-    _write(home / ".minecraft" / "optionsLC.txt", "{}")
+    # Windows: AppData\Roaming\.minecraft, else .minecraft
+    minecraft_dir = detect_launcher(str(logfile))["minecraft_dir"]
+    assert minecraft_dir is not None
+    _write(Path(minecraft_dir) / "resourcepacks" / "shared.zip", "zip")
+    _write(Path(minecraft_dir) / "optionsLC.txt", "{}")
 
     out = tmp_path / "out"
     info = collect_game_info(str(logfile), out)
