@@ -97,6 +97,10 @@ jobs:
   push-otel-collector-test:
     # Fork PRs get no secrets. To deploy one, review it and push it to a branch here.
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    # One at a time; a newer run replaces a waiting one
+    concurrency:
+      group: flashlight-collector-test
+      cancel-in-progress: false
     name: Build and push OTel Collector for test instance
     runs-on: ubuntu-latest
     steps:
@@ -128,6 +132,10 @@ jobs:
 
   push-otel-collector:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    # One at a time; a newer run replaces a waiting one
+    concurrency:
+      group: flashlight-collector-prod
+      cancel-in-progress: false
     name: Build and push OTel Collector for production instance
     runs-on: ubuntu-latest
     steps:
@@ -158,6 +166,10 @@ jobs:
   deploy-test-instance:
     # Fork PRs get no secrets. To deploy one, review it and push it to a branch here.
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    # One at a time; a newer run replaces a waiting one
+    concurrency:
+      group: flashlight-deploy-test
+      cancel-in-progress: false
     name: Deploy test instance
     runs-on: ubuntu-latest
     # Only deploy the test instance if the tests pass
@@ -184,6 +196,10 @@ jobs:
 
   build-and-deploy:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    # One at a time; a newer run replaces a waiting one
+    concurrency:
+      group: flashlight-deploy-prod
+      cancel-in-progress: false
     name: Deploy cloud function
     runs-on: ubuntu-latest
     # We don't wait for the collector to build here. Collector changes may need two pushes to main.
