@@ -61,6 +61,7 @@ def window_metadata(window: GameWindow, origin: Monitor) -> dict[str, Any]:
         "class": window.window_class,
         "title": window.title,
         "foreground": window.foreground,
+        "dpi": window.dpi,
     }
 
 
