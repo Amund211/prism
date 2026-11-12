@@ -296,7 +296,9 @@ process_event_test_cases_base: tuple[
         LobbyListEvent([OWN_USERNAME, "Player1", "Player2"]),
         create_controller(
             state=create_state(
-                lobby_players={OWN_USERNAME, "Player1", "Player2"}, in_queue=False
+                lobby_players={OWN_USERNAME, "Player1", "Player2"},
+                in_queue=False,
+                who_counter=1,
             ),
             wants_shown=True,
         ),
@@ -312,7 +314,9 @@ process_event_test_cases_base: tuple[
         LobbyListEvent([OWN_USERNAME, "Player1", "Player2"]),
         create_controller(
             state=create_state(
-                lobby_players={OWN_USERNAME, "Player1", "Player2"}, in_queue=True
+                lobby_players={OWN_USERNAME, "Player1", "Player2"},
+                in_queue=True,
+                who_counter=1,
             ),
             wants_shown=True,
         ),
@@ -332,6 +336,7 @@ process_event_test_cases_base: tuple[
                 lobby_players={OWN_USERNAME, "Player1", "Player2"},
                 last_game_start=10,
                 now_func=lambda: 11,
+                who_counter=1,
             ),
             wants_shown=None,
         ),
@@ -352,6 +357,7 @@ process_event_test_cases_base: tuple[
             state=create_state(
                 lobby_players={OWN_USERNAME, "Player1", "Player2"},
                 last_game_start=10,
+                who_counter=1,
             ),
             wants_shown=True,
         ),
@@ -1560,6 +1566,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                 },
                 last_game_start=0,
                 in_queue=False,
+                who_counter=1,
             ),
         ),
     ),
@@ -1581,6 +1588,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                 },
                 out_of_sync=False,
                 in_queue=True,
+                who_counter=1,
             )
         ),
     ),
@@ -1596,6 +1604,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                 own_username="Me",
                 lobby_players={"Player1", "Player2", "Me", "Player4"},
                 in_queue=True,
+                who_counter=1,
             )
         ),
     ),
@@ -1853,6 +1862,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                 alive_players={"Player3"},
                 last_game_start=2.5,
                 bedwars_duel="rush",
+                who_counter=1,
             ),
         ),
     ),
@@ -1969,6 +1979,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                 },
                 player_teams=frozenset({("Player2", "red")}),
                 last_game_start=1.5,
+                who_counter=1,
             ),
         ),
     ),
@@ -2027,7 +2038,7 @@ def test_fast_forward_state(
         (
             (f"{CHAT}ONLINE: Player1, Player2",),
             create_controller(
-                state=create_state(lobby_players={"Player1", "Player2"}),
+                state=create_state(lobby_players={"Player1", "Player2"}, who_counter=1),
                 redraw_event_set=True,
                 wants_shown=True,
             ),

@@ -32,6 +32,7 @@ class OverlayState:
     own_username: str | None = None
     bedwars_duel: BedwarsDuelState = None
     server: Server | None = None  # None: no connect line seen
+    who_counter: int = 0
     now_func: Callable[[], float] = field(default=time.monotonic, compare=False)
 
     @property
@@ -124,6 +125,7 @@ class OverlayState:
             last_game_start=None,
             bedwars_duel=None,
             player_teams=frozenset(),
+            who_counter=0,
         )
 
     @property
@@ -187,6 +189,7 @@ class OverlayState:
             lobby_players=new_lobby_set,
             alive_players=new_lobby_set,
             player_teams=filtered_teams,
+            who_counter=self.who_counter + 1,
         )
 
     def clear_lobby(self) -> Self:
@@ -198,6 +201,7 @@ class OverlayState:
             lobby_players=frozenset(),
             alive_players=frozenset(),
             player_teams=frozenset(),
+            who_counter=0,
         )
 
     def set_player_team(self, username: str, team: TeamColor | None) -> Self:

@@ -287,6 +287,26 @@ def test_leave_game_clears_teams() -> None:
     assert left.team_map == {}
 
 
+def test_who_counter_transitions() -> None:
+    state = create_state()
+    assert state.who_counter == 0
+
+    lobby1 = state.set_lobby(["Player1", "Player2"])
+    assert lobby1.who_counter == 1
+
+    lobby2 = lobby1.set_lobby(["Player1", "Player3"])
+    assert lobby2.who_counter == 2
+
+    cleared = lobby2.clear_lobby()
+    assert cleared.who_counter == 0
+
+    lobby3 = cleared.set_lobby(["Player4"])
+    assert lobby3.who_counter == 1
+
+    left = lobby3.leave_game()
+    assert left.who_counter == 0
+
+
 def test_in_game() -> None:
     assert create_state(last_game_start=1.0).in_game is True
     assert create_state(last_game_start=None).in_game is False

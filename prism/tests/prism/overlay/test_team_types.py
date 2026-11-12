@@ -235,6 +235,7 @@ def test_team_danger_banner_data_dataclass() -> None:
         team_summary_line=summary_line,
     )
     assert banner.headline == headline
+    assert banner.headline_prefix == "PRIORITY TARGET: BLUE"
     assert banner.team_summary_line == summary_line
 
     banner_none = TeamDangerBannerData(

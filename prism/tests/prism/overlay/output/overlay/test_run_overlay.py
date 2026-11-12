@@ -547,6 +547,9 @@ def test_team_danger_7_step_sequence_gate() -> None:
     overlay.tab_pressed = False
     overlay.window = mock_window
     overlay.main_content = mock_main_content
+    overlay.rush_popup = unittest.mock.MagicMock()
+    overlay.rush_popup_controller = unittest.mock.MagicMock()
+    overlay.rush_popup_controller.tick.return_value = None
 
     # While hidden, updates occur
     controller.redraw_event.set()

@@ -251,6 +251,7 @@ def create_state(
     own_username: str | None = OWN_USERNAME,
     bedwars_duel: BedwarsDuelState = None,
     server: Server | None = None,
+    who_counter: int = 0,
     now_func: Callable[[], float] = lambda: 0,
 ) -> OverlayState:
     if party_members is None:
@@ -276,6 +277,7 @@ def create_state(
         own_username=own_username,
         bedwars_duel=bedwars_duel,
         server=server,
+        who_counter=who_counter,
         now_func=now_func,
     )
 

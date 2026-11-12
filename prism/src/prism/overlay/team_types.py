@@ -124,3 +124,8 @@ class TeamDangerBannerData:
 
     headline: CellValue
     team_summary_line: CellValue | None
+
+    @property
+    def headline_prefix(self) -> str:
+        """The textual content of the headline for prefix matching."""
+        return self.headline.text

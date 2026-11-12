@@ -1,5 +1,6 @@
 import logging
 import sys
+import time
 import tkinter as tk
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Literal, assert_never
@@ -10,6 +11,8 @@ from prism.overlay.microsoft_account import MicrosoftAccount
 from prism.overlay.output.cells import ColumnName, InfoCellValue
 from prism.overlay.output.overlay.main_content import MainContent
 from prism.overlay.output.overlay.overlay_window import OverlayWindow
+from prism.overlay.output.overlay.rush_popup import RushPopup
+from prism.overlay.output.overlay.rush_popup_controller import RushPopupController
 from prism.overlay.output.overlay.set_nickname_page import SetNicknamePage
 from prism.overlay.output.overlay.settings_page import SettingsPage
 from prism.overlay.output.overlay.toolbar import Toolbar
@@ -94,6 +97,10 @@ class StatsOverlay:  # pragma: nocover
         self.listener: "pynput.keyboard.Listener | None" = None
         if self.controller.settings.show_on_tab:
             self.setup_tab_listener()
+
+        # Rush popup HUD card
+        self.rush_popup = RushPopup(self.window.root)
+        self.rush_popup_controller = RushPopupController.create(timeout_seconds=10.0)
 
         # Update geometry and stuff, if necessary
         self.window.root.update_idletasks()
@@ -253,6 +260,9 @@ class StatsOverlay:  # pragma: nocover
                 assert_never(visibility)
 
         # Only update the window if it's shown
+        banner_for_popup = (
+            new_banner if new_banner is not None else self.last_new_banner
+        )
         if self.window.shown and self.current_page == "main":
             # Update the table with the new rows
             # Fall back to the last new rows from when the table was hidden
@@ -273,6 +283,22 @@ class StatsOverlay:  # pragma: nocover
             if new_rows is not None:
                 self.last_new_rows = new_rows
                 self.last_new_banner = new_banner
+
+        in_lobby_or_game = bool(
+            self.controller.state.lobby_players
+            and (self.controller.state.in_queue or self.controller.state.in_game)
+            and self.controller.state.bedwars_duel is None
+        )
+        popup_banner = self.rush_popup_controller.tick(
+            now=time.monotonic(),
+            who_counter=self.controller.state.who_counter,
+            in_lobby_or_game=in_lobby_or_game,
+            banner=banner_for_popup,
+        )
+        if popup_banner is not None:
+            self.rush_popup.tick(popup_banner)
+        else:
+            self.rush_popup.hide()
 
         if self.current_page == "settings":
             self.settings_page.poll()

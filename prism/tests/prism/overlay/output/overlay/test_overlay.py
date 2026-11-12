@@ -1,5 +1,5 @@
 import unittest.mock
-from typing import cast
+from typing import Any, cast
 
 import pytest
 
@@ -36,7 +36,7 @@ from prism.player import (
     Tags,
     UnknownPlayer,
 )
-from tests.prism.overlay.utils import create_controller
+from tests.prism.overlay.utils import create_controller, create_state
 
 CURRENT_TIME_MS = 1234567890123
 CURRENT_TIME_SECONDS = CURRENT_TIME_MS / 1000
@@ -503,6 +503,9 @@ def test_stats_overlay_hidden_caching_and_flush() -> None:
     overlay.tab_pressed = False
     overlay.window = cast(OverlayWindow, mock_window)
     overlay.main_content = mock_main_content
+    overlay.rush_popup = unittest.mock.MagicMock()
+    overlay.rush_popup_controller = unittest.mock.MagicMock()
+    overlay.rush_popup_controller.tick.return_value = None
 
     test_row = player_to_row(test_cases[0][0], rating_configs)
     test_banner = TeamDangerBannerData(
@@ -561,6 +564,9 @@ def test_stats_overlay_page_not_main_caching() -> None:
     overlay.tab_pressed = False
     overlay.window = cast(OverlayWindow, mock_window)
     overlay.main_content = mock_main_content
+    overlay.rush_popup = unittest.mock.MagicMock()
+    overlay.rush_popup_controller = unittest.mock.MagicMock()
+    overlay.rush_popup_controller.tick.return_value = None
 
     test_row = player_to_row(test_cases[0][0], rating_configs)
     test_banner = TeamDangerBannerData(
@@ -575,3 +581,146 @@ def test_stats_overlay_page_not_main_caching() -> None:
     mock_main_content.update_content.assert_not_called()
     assert overlay.last_new_rows == [test_row]
     assert overlay.last_new_banner == test_banner
+
+
+def test_stats_overlay_init_initializes_rush_popup() -> None:
+    controller = create_controller()
+    microsoft_account = unittest.mock.MagicMock()
+
+    with (
+        unittest.mock.patch("prism.overlay.output.overlay.stats_overlay.OverlayWindow"),
+        unittest.mock.patch("prism.overlay.output.overlay.stats_overlay.MainContent"),
+        unittest.mock.patch("prism.overlay.output.overlay.stats_overlay.SettingsPage"),
+        unittest.mock.patch(
+            "prism.overlay.output.overlay.stats_overlay.SetNicknamePage"
+        ),
+        unittest.mock.patch("prism.overlay.output.overlay.stats_overlay.Toolbar"),
+        unittest.mock.patch(
+            "prism.overlay.output.overlay.stats_overlay.RushPopup"
+        ) as mock_rush_popup_cls,
+        unittest.mock.patch(
+            "prism.overlay.output.overlay.stats_overlay.RushPopupController.create"
+        ) as mock_rush_controller_create,
+    ):
+        overlay = StatsOverlay(
+            start_hidden=True,
+            column_order=("username", "stars"),
+            controller=controller,
+            microsoft_account=microsoft_account,
+            get_new_data=lambda: (Hidden(), [], None, None),
+            poll_interval=100,
+        )
+
+        mock_rush_popup_cls.assert_called_once_with(overlay.window.root)
+        mock_rush_controller_create.assert_called_once_with(timeout_seconds=10.0)
+        assert overlay.rush_popup == mock_rush_popup_cls.return_value
+        assert overlay.rush_popup_controller == mock_rush_controller_create.return_value
+
+
+def test_stats_overlay_rush_popup_tick() -> None:
+    mock_window = MockOverlayWindow(shown=False)
+    mock_popup = unittest.mock.MagicMock()
+    mock_popup_controller = unittest.mock.MagicMock()
+
+    controller = create_controller(
+        state=create_state(
+            lobby_players={"Player1", "Player2"},
+            in_queue=True,
+            who_counter=3,
+        )
+    )
+
+    overlay = StatsOverlay.__new__(StatsOverlay)
+    overlay.controller = controller
+    overlay.poll_interval = 100
+    overlay.visibility = Hidden()
+    overlay.last_new_rows = None
+    overlay.last_new_banner = None
+    overlay.current_page = "main"
+    overlay.tab_pressed = False
+    overlay.window = cast(OverlayWindow, mock_window)
+    overlay.main_content = unittest.mock.MagicMock()
+    overlay.rush_popup = mock_popup
+    overlay.rush_popup_controller = mock_popup_controller
+
+    test_banner = TeamDangerBannerData(
+        headline=CellValue.monochrome("Target: Red", "snow"),
+        team_summary_line=None,
+    )
+
+    # When controller.tick returns a banner -> popup.tick(banner) is called
+    mock_popup_controller.tick.return_value = test_banner
+    overlay.get_new_data = lambda: (Hidden(), [], None, test_banner)
+    overlay.update_overlay()
+
+    mock_popup_controller.tick.assert_called_once()
+    _, kwargs = mock_popup_controller.tick.call_args
+    assert kwargs["who_counter"] == 3
+    assert kwargs["in_lobby_or_game"] is True
+    assert kwargs["banner"] == test_banner
+    assert isinstance(kwargs["now"], float)
+    mock_popup.tick.assert_called_once_with(test_banner)
+    mock_popup.hide.assert_not_called()
+
+    # When controller.tick returns None -> popup.hide() is called
+    mock_popup.reset_mock()
+    mock_popup_controller.reset_mock()
+    mock_popup_controller.tick.return_value = None
+
+    overlay.get_new_data = lambda: (Hidden(), [], None, None)
+    overlay.update_overlay()
+
+    mock_popup.hide.assert_called_once()
+    mock_popup.tick.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "lobby_players, in_queue, in_game, duel, expected_in_lobby_or_game",
+    [
+        (set(), True, False, None, False),
+        ({"Player1"}, False, False, None, False),
+        ({"Player1"}, True, False, "rush", False),
+        ({"Player1"}, True, False, None, True),
+        ({"Player1"}, False, True, None, True),
+    ],
+)
+def test_stats_overlay_in_lobby_or_game_calculation(
+    lobby_players: set[str],
+    in_queue: bool,
+    in_game: bool,
+    duel: str | None,
+    expected_in_lobby_or_game: bool,
+) -> None:
+    mock_window = MockOverlayWindow(shown=False)
+    mock_popup = unittest.mock.MagicMock()
+    mock_popup_controller = unittest.mock.MagicMock()
+    mock_popup_controller.tick.return_value = None
+
+    controller = create_controller(
+        state=create_state(
+            lobby_players=lobby_players,
+            in_queue=in_queue,
+            last_game_start=100.0 if in_game else None,
+            bedwars_duel=cast(Any, duel),
+        )
+    )
+
+    overlay = StatsOverlay.__new__(StatsOverlay)
+    overlay.controller = controller
+    overlay.poll_interval = 100
+    overlay.visibility = Hidden()
+    overlay.last_new_rows = None
+    overlay.last_new_banner = None
+    overlay.current_page = "main"
+    overlay.tab_pressed = False
+    overlay.window = cast(OverlayWindow, mock_window)
+    overlay.main_content = unittest.mock.MagicMock()
+    overlay.rush_popup = mock_popup
+    overlay.rush_popup_controller = mock_popup_controller
+
+    overlay.get_new_data = lambda: (Hidden(), [], None, None)
+    overlay.update_overlay()
+
+    mock_popup_controller.tick.assert_called_once()
+    _, kwargs = mock_popup_controller.tick.call_args
+    assert kwargs["in_lobby_or_game"] is expected_in_lobby_or_game
