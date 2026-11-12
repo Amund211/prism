@@ -183,6 +183,9 @@
       matchDatasources: ["docker"],
       matchPackageNames: ["postgres"],
       dependencyDashboardApproval: true,
+      // Own group: approval holds the whole branch, so inside the
+      // github-actions group it would hold every action update too.
+      groupName: "postgres",
     },
 
     // --- rainbow.
