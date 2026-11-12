@@ -127,10 +127,15 @@
       // default minimumReleaseAgeBehaviour=timestamp-required counts a missing
       // timestamp as "not aged yet", forever. That is why dependabot opened
       // flashlight#353 and flashlight#378 and renovate did not.
-      // Only decides what to do when the timestamp is absent, so it is a no-op
-      // for golang and postgres (those keep the full 7 days). Renovate warns on
-      // the dashboard for each dep it lets through unaged; that is the point.
+      // Limited to the images known to have no timestamp, so a new image from
+      // such a registry keeps the full 7 days until it is added here.
+      // Renovate warns on the dashboard for each dep it lets through unaged;
+      // that is the point.
       matchDatasources: ["docker"],
+      matchPackageNames: [
+        "gcr.io/distroless/static-debian12",
+        "us-docker.pkg.dev/cloud-ops-agents-artifacts/google-cloud-opentelemetry-collector/otelcol-google",
+      ],
       minimumReleaseAgeBehaviour: "timestamp-optional",
     },
 
