@@ -32,6 +32,7 @@ from prism.overlay.events import (
     SingleplayerStartEvent,
     StartBedwarsGameEvent,
     WhisperCommandSetNickEvent,
+    WhisperCommandSetTeamEvent,
 )
 from prism.overlay.process_event import (
     fast_forward_state,
@@ -218,6 +219,74 @@ process_event_test_cases_base: tuple[
         ChatMessageEvent(username="Player1", message="Hello!"),
         create_controller(state=create_state(in_queue=False)),
         False,
+    ),
+    (
+        "chat message with team in queue",
+        create_controller(state=create_state(in_queue=True)),
+        ChatMessageEvent(username="Player1", message="Hello!", team="red"),
+        create_controller(
+            state=create_state(
+                in_queue=True,
+                lobby_players={"Player1"},
+                player_teams=frozenset({("Player1", "red")}),
+            )
+        ),
+        True,
+    ),
+    (
+        "chat message with team in game",
+        create_controller(state=create_state(last_game_start=100.0)),
+        ChatMessageEvent(username="Player1", message="Hello!", team="red"),
+        create_controller(
+            state=create_state(
+                last_game_start=100.0,
+                lobby_players={"Player1"},
+                player_teams=frozenset({("Player1", "red")}),
+            )
+        ),
+        True,
+    ),
+    (
+        "chat message with team out of queue and not in game",
+        create_controller(state=create_state(in_queue=False, last_game_start=None)),
+        ChatMessageEvent(username="Player1", message="Hello!", team="red"),
+        create_controller(state=create_state(in_queue=False, last_game_start=None)),
+        False,
+    ),
+    (
+        "whisper command set team",
+        create_controller(state=create_state()),
+        WhisperCommandSetTeamEvent(team="red", usernames=["Player1", "Player2"]),
+        create_controller(
+            state=create_state(
+                player_teams=frozenset({("Player1", "red"), ("Player2", "red")})
+            )
+        ),
+        True,
+    ),
+    (
+        "whisper command unteam player",
+        create_controller(
+            state=create_state(
+                player_teams=frozenset({("Player1", "red"), ("Player2", "blue")})
+            )
+        ),
+        WhisperCommandSetTeamEvent(team=None, usernames=["Player1"]),
+        create_controller(
+            state=create_state(player_teams=frozenset({("Player2", "blue")}))
+        ),
+        True,
+    ),
+    (
+        "whisper command clear all teams",
+        create_controller(
+            state=create_state(
+                player_teams=frozenset({("Player1", "red"), ("Player2", "blue")})
+            )
+        ),
+        WhisperCommandSetTeamEvent(team=None, usernames=[]),
+        create_controller(state=create_state(player_teams=frozenset())),
+        True,
     ),
     (
         "lobby list out of queue",
@@ -943,6 +1012,7 @@ GATED_CHAT_EVENTS: Final = (
     BedwarsDuelTypeEvent("regular"),
     EndBedwarsDuelEvent(),
     WhisperCommandSetNickEvent(nick="AmazingNick", username="Player2"),
+    WhisperCommandSetTeamEvent(team="red", usernames=["Player2"]),
 )
 
 
@@ -1815,6 +1885,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                     "Player2",
                     "Leaving",  # Still left in the lobby until user does /who
                 },
+                player_teams=frozenset({("Player2", "red")}),
                 out_of_sync=True,
                 last_game_start=3.5,
             ),
@@ -1896,6 +1967,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                     "Player14",
                     "Player15",
                 },
+                player_teams=frozenset({("Player2", "red")}),
                 last_game_start=1.5,
             ),
         ),

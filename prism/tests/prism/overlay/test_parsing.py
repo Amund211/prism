@@ -30,10 +30,12 @@ from prism.overlay.events import (
     SingleplayerStartEvent,
     StartBedwarsGameEvent,
     WhisperCommandSetNickEvent,
+    WhisperCommandSetTeamEvent,
 )
 from prism.overlay.parsing import (
     CHAT_PREFIXES,
     CLIENT_INFO_PREFIXES,
+    extract_chat_team,
     get_highest_index,
     get_lowest_index,
     parse_logline,
@@ -80,6 +82,25 @@ from prism.overlay.parsing import (
 )
 def test_remove_ranks(rank_string: str, name_string: str) -> None:
     assert remove_ranks(rank_string) == name_string
+
+
+@pytest.mark.parametrize(
+    "prefix, expected",
+    (
+        ("[RED] Player1", "red"),
+        ("[SHOUT] [RED] [VIP] Player1", "red"),
+        ("[BLUE] Player1", "blue"),
+        ("[SHOUT] [BLUE] Player1", "blue"),
+        ("[GREEN] Player1", "green"),
+        ("[SHOUT] [GREEN] Player1", "green"),
+        ("[YELLOW] Player1", "yellow"),
+        ("[SHOUT] [YELLOW] Player1", "yellow"),
+        ("[VIP] Player1", None),
+        ("Player1", None),
+    ),
+)
+def test_extract_chat_team(prefix: str, expected: str | None) -> None:
+    assert extract_chat_team(prefix) == expected
 
 
 @pytest.mark.parametrize(
@@ -359,6 +380,18 @@ UNEVENTFUL_LOGLINES = (
     "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!somewierdcommand'",  # Unknown command
     "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!",  # Empty/malformed
     "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!a=b=c'",  # Too many arguments to setnick
+    # Synthetic: reject empty team assignment in whisper command. How: copied whisper setnick line with empty rhs
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!red='",
+    # Synthetic: reject trailing comma in whisper team command. How: copied whisper setnick line with trailing comma
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!red=Player1,'",
+    # Synthetic: reject invalid username in whisper team command. How: copied whisper setnick line with invalid username
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!red=Invalid-Name!'",
+    # Synthetic: reject trailing comma in whisper unteam command. How: copied whisper setnick line with trailing comma
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!unteam=Player1,'",
+    # Synthetic: reject invalid username in whisper unteam command. How: copied whisper setnick line with invalid username
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!unteam=Invalid-Name!'",
+    # Synthetic: reject invalid username in whisper clearteam command. How: copied whisper setnick line with invalid username
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!clearteam=Invalid-Name!'",
     # Malformed alpine set user
     "[17:19:24] [Client thread/INFO] [Alpine Client/]: Setting account (name=Player1)",
     "[17:19:24] [Client thread/INFO] [Alpine Client/]: Setting account (name=?, uuid=337482fe-8a15-47f6-bea5-a84918a86393)",
@@ -757,18 +790,40 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     ),
     (
         "[Info: 2021-11-29 20:18:14.961703702: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] [SHOUT] [RED] [VIP+] Player1: some chat message",
-        ChatMessageEvent(username="Player1", message="some chat message"),
+        ChatMessageEvent(username="Player1", message="some chat message", team="red"),
     ),
     # Shout
     (
         "[21:18:36] [Client thread/INFO]: [CHAT] [SHOUT] [RED] [MVP+] Player1: french people be like oui oui skibidi toilette",
         ChatMessageEvent(
-            username="Player1", message="french people be like oui oui skibidi toilette"
+            username="Player1",
+            message="french people be like oui oui skibidi toilette",
+            team="red",
         ),
     ),
     (
         "[21:18:43] [Client thread/INFO]: [CHAT] [SHOUT] [GREEN] Player2: no",
-        ChatMessageEvent(username="Player2", message="no"),
+        ChatMessageEvent(username="Player2", message="no", team="green"),
+    ),
+    # Synthetic: shout message on blue team. How: real shout line, [GREEN] changed to [BLUE]
+    (
+        "[21:18:43] [Client thread/INFO]: [CHAT] [SHOUT] [BLUE] Player1: need defense",
+        ChatMessageEvent(username="Player1", message="need defense", team="blue"),
+    ),
+    # Synthetic: shout message on yellow team. How: real shout line, [GREEN] changed to [YELLOW]
+    (
+        "[21:18:43] [Client thread/INFO]: [CHAT] [SHOUT] [YELLOW] Player1: rush green",
+        ChatMessageEvent(username="Player1", message="rush green", team="yellow"),
+    ),
+    # Synthetic: team chat on red team. How: real shout line with [SHOUT] removed
+    (
+        "[21:18:43] [Client thread/INFO]: [CHAT] [RED] Player1: incoming",
+        ChatMessageEvent(username="Player1", message="incoming", team="red"),
+    ),
+    # Synthetic: team chat on red team with rank. How: real shout line with [SHOUT] removed
+    (
+        "[21:18:36] [Client thread/INFO]: [CHAT] [RED] [MVP+] Player1: defend the bed",
+        ChatMessageEvent(username="Player1", message="defend the bed", team="red"),
     ),
     (
         "[Info: 2021-11-29 23:13:35.658182633: GameCallbacks.cpp(162)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] You left the party.",
@@ -992,6 +1047,36 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     (
         "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!nick='",
         WhisperCommandSetNickEvent(nick="nick", username=None),
+    ),
+    # Synthetic: set single player team via whisper command. How: real whisper setnick line, command replaced with !red=Player1
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!red=Player1'",
+        WhisperCommandSetTeamEvent(team="red", usernames=["Player1"]),
+    ),
+    # Synthetic: set multiple players team via alias whisper command. How: real whisper setnick line, command replaced with !b=Player1,Player2
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!b=Player1,Player2'",
+        WhisperCommandSetTeamEvent(team="blue", usernames=["Player1", "Player2"]),
+    ),
+    # Synthetic: unteam single player via whisper command. How: real whisper setnick line, command replaced with !unteam=Player1
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!unteam=Player1'",
+        WhisperCommandSetTeamEvent(team=None, usernames=["Player1"]),
+    ),
+    # Synthetic: clear all teams via empty unteam whisper command. How: real whisper setnick line, command replaced with !unteam=
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!unteam='",
+        WhisperCommandSetTeamEvent(team=None, usernames=[]),
+    ),
+    # Synthetic: clear all teams via empty clearteam whisper command. How: real whisper setnick line, command replaced with !clearteam=
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!clearteam='",
+        WhisperCommandSetTeamEvent(team=None, usernames=[]),
+    ),
+    # Synthetic: unteam multiple players via clearteam whisper command. How: real whisper setnick line, command replaced with !clearteam=Player1,Player2
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!clearteam=Player1,Player2'",
+        WhisperCommandSetTeamEvent(team=None, usernames=["Player1", "Player2"]),
     ),
     # Attempts to inject log messages
     (

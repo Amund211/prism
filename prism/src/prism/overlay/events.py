@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from enum import Enum, auto, unique
 from typing import Literal, Union
 
+from prism.overlay.team_types import TeamColor
+
 PartyRole = Literal["leader", "moderators", "members"]
 BedwarsDuelType = Literal["regular", "rush"]
 
@@ -50,6 +52,7 @@ class EventType(Enum):
 
     # Commands /w !<command>
     WHISPER_COMMAND_SET_NICK = auto()
+    WHISPER_COMMAND_SET_TEAM = auto()
 
 
 @dataclass
@@ -87,6 +90,7 @@ class LobbyLeaveEvent:
 class ChatMessageEvent:
     username: str
     message: str
+    team: TeamColor | None = None
     event_type: Literal[EventType.CHAT_MESSAGE] = EventType.CHAT_MESSAGE
 
 
@@ -183,6 +187,7 @@ class EndBedwarsDuelEvent:
 @unique
 class WhisperCommandType(Enum):
     SET_NICK = auto()
+    SET_TEAM = auto()
 
 
 @dataclass
@@ -191,6 +196,15 @@ class WhisperCommandSetNickEvent:
     username: str | None
     event_type: Literal[EventType.WHISPER_COMMAND_SET_NICK] = (
         EventType.WHISPER_COMMAND_SET_NICK
+    )
+
+
+@dataclass
+class WhisperCommandSetTeamEvent:
+    team: TeamColor | None
+    usernames: list[str]
+    event_type: Literal[EventType.WHISPER_COMMAND_SET_TEAM] = (
+        EventType.WHISPER_COMMAND_SET_TEAM
     )
 
 
@@ -229,6 +243,7 @@ ChatEvent = Union[
     BedwarsDuelTypeEvent,
     EndBedwarsDuelEvent,
     WhisperCommandSetNickEvent,
+    WhisperCommandSetTeamEvent,
 ]
 
 Event = Union[ClientEvent, ChatEvent]

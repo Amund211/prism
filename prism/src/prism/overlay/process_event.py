@@ -293,8 +293,17 @@ def process_event(
         if state.in_queue or state.in_game:
             # The player has revealed themselves in the pre-game lobby/queue
             # Add them to the lobby
-            return state.add_to_lobby(event.username), True
+            new_state = state.add_to_lobby(event.username)
+            if event.team is not None:
+                new_state = new_state.set_player_team(event.username, event.team)
+            return new_state, True
         return state, False
+
+    if event.event_type is EventType.WHISPER_COMMAND_SET_TEAM:
+        logger.info(f"Setting team from whisper command {event.team}={event.usernames}")
+        if not event.usernames and event.team is None:
+            return state.clear_teams(), True
+        return state.set_players_team(event.usernames, event.team), True
 
 
 def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -> None:
