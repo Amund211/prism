@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Self
 
-from prism.overlay.team_types import TeamDangerBannerData
+from prism.overlay.team_types import TeamColor, TeamDangerBannerData
 
 
 @dataclass(slots=True)
@@ -11,6 +11,7 @@ class RushPopupController:
     popup_deadline: float | None = None
     is_active: bool = False
     last_banner: TeamDangerBannerData | None = None
+    last_player_teams: frozenset[tuple[str, TeamColor]] = frozenset()
 
     @classmethod
     def create(cls, timeout_seconds: float = 10.0) -> Self:
@@ -22,6 +23,7 @@ class RushPopupController:
         who_counter: int,
         in_lobby_or_game: bool,
         banner: TeamDangerBannerData | None,
+        player_teams: frozenset[tuple[str, TeamColor]] = frozenset(),
     ) -> TeamDangerBannerData | None:
         """
         Determine whether the rush pop-up card should be shown and return its data.
@@ -31,7 +33,17 @@ class RushPopupController:
             self.popup_deadline = None
             self.last_handled_who_counter = who_counter
             self.last_banner = None
+            self.last_player_teams = player_teams
             return None
+
+        if player_teams != self.last_player_teams:
+            if banner is not None and not banner.headline_prefix.startswith(
+                "TEAM DANGER: Loading"
+            ):
+                self.is_active = True
+                self.popup_deadline = now + self.timeout_seconds
+                self.last_banner = banner
+            self.last_player_teams = player_teams
 
         # Check if a new /who calculation just finished
         if who_counter > self.last_handled_who_counter:

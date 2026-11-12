@@ -8,6 +8,7 @@ from prism.overlay.team_danger import (
     calculate_lobby_danger,
     calculate_player_danger,
     classify_score_tier,
+    get_top_unassigned_threat_username,
     is_friendly_player,
     is_player_alive,
     resolve_player_team,
@@ -1274,3 +1275,117 @@ def test_calculate_lobby_danger_synergy_bonus() -> None:
     # synergy = 15.0
     # D(T) = round(131.6 + 23.03 + 15.0, 1) = round(169.63, 1) = 169.6
     assert res.enemy_teams[0].danger_score == 169.6
+
+
+def test_get_top_unassigned_threat_username_empty() -> None:
+    assert (
+        get_top_unassigned_threat_username(
+            [],
+            alive_players=set(),
+            party_members=set(),
+            own_username=None,
+            player_teams={},
+        )
+        is None
+    )
+
+
+def test_get_top_unassigned_threat_username_only_friendly() -> None:
+    p1 = make_known("Player1", fkdr=5.0)
+    p2 = make_known("Me", fkdr=10.0)
+    assert (
+        get_top_unassigned_threat_username(
+            [p1, p2],
+            alive_players={"Player1", "Me"},
+            party_members={"Player1"},
+            own_username="Me",
+            player_teams={},
+        )
+        is None
+    )
+
+
+def test_get_top_unassigned_threat_username_only_already_assigned() -> None:
+    p1 = make_known("Player1", fkdr=5.0)
+    p2 = make_known("Player2", fkdr=10.0)
+    assert (
+        get_top_unassigned_threat_username(
+            [p1, p2],
+            alive_players={"Player1", "Player2"},
+            party_members=set(),
+            own_username=None,
+            player_teams={"Player1": "red", "Player2": "blue"},
+        )
+        is None
+    )
+
+
+def test_get_top_unassigned_threat_username_only_dead() -> None:
+    p1 = make_known("Player1", fkdr=5.0)
+    p2 = make_known("Player2", fkdr=10.0)
+    assert (
+        get_top_unassigned_threat_username(
+            [p1, p2],
+            alive_players=set(),
+            party_members=set(),
+            own_username=None,
+            player_teams={},
+        )
+        is None
+    )
+
+
+def test_get_top_unassigned_threat_username_multiple_unassigned() -> None:
+    p_low = make_known("Player1", stars=50.0, fkdr=1.0)
+    p_high = make_known("Player2", stars=500.0, fkdr=10.0)
+    p_nicked = NickedPlayer(nick="Player3")  # danger 65.0
+    p_assigned = make_known("Player4", stars=1000.0, fkdr=20.0)
+    p_dead = make_known("Player5", stars=1000.0, fkdr=20.0)
+    p_friendly = make_known("Player6", stars=1000.0, fkdr=20.0)
+
+    # p_high has higher danger than p_low and p_nicked
+    result = get_top_unassigned_threat_username(
+        [p_low, p_dead, p_assigned, p_high, p_nicked, p_friendly],
+        alive_players={"Player1", "Player2", "Player3", "Player4", "Player6"},
+        party_members={"Player6"},
+        own_username=None,
+        player_teams={"Player4": "red"},
+    )
+    assert result == "Player2"
+
+    # If p_high is dead, nicked player (65.0) beats p_low (~10.0)
+    result_nicked = get_top_unassigned_threat_username(
+        [p_low, p_nicked],
+        alive_players={"Player1", "Player3"},
+        party_members=set(),
+        own_username=None,
+        player_teams={},
+    )
+    assert result_nicked == "Player3"
+
+
+def test_get_top_unassigned_threat_username_only_unknown() -> None:
+    u1 = UnknownPlayer("Player1")
+    u2 = UnknownPlayer("Player2")
+    result = get_top_unassigned_threat_username(
+        [u1, u2],
+        alive_players={"Player1", "Player2"},
+        party_members=set(),
+        own_username=None,
+        player_teams={},
+    )
+    # Sorted alphabetically
+    assert result == "Player1"
+
+
+def test_get_top_unassigned_threat_username_only_pending() -> None:
+    p1 = PendingPlayer("Player2")
+    p2 = PendingPlayer("Player1")
+    result = get_top_unassigned_threat_username(
+        [p1, p2],
+        alive_players={"Player1", "Player2"},
+        party_members=set(),
+        own_username=None,
+        player_teams={},
+    )
+    assert result == "Player1"

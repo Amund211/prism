@@ -1,5 +1,5 @@
 import math
-from collections.abc import Mapping, Sequence, Set
+from collections.abc import Iterable, Mapping, Sequence, Set
 from typing import Literal, assert_never
 
 from prism.overlay.team_types import (
@@ -388,3 +388,33 @@ def calculate_lobby_danger(
         pending_enemy_count=pending_enemy_count,
         unknown_enemy_count=unknown_enemy_count,
     )
+
+
+def get_top_unassigned_threat_username(
+    players: Iterable[Player],
+    *,
+    alive_players: Set[str],
+    party_members: Set[str],
+    own_username: str | None,
+    player_teams: Mapping[str, TeamColor],
+) -> str | None:
+    """Return the username of the highest danger unassigned alive enemy."""
+    unassigned: list[tuple[Player, PlayerDanger]] = []
+    for p in players:
+        if not is_player_alive(p, alive_players):
+            continue
+        if is_friendly_player(p, party_members, own_username):
+            continue
+        if resolve_player_team(p, player_teams) is not None:
+            continue
+        danger = calculate_player_danger(p, team=None)
+        unassigned.append((p, danger))
+
+    if not unassigned:
+        return None
+
+    unassigned.sort(key=_player_sort_key)
+    for p, d in unassigned:
+        if d.status in ("known", "nicked"):
+            return d.username
+    return unassigned[0][1].username

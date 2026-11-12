@@ -789,6 +789,37 @@ def parse_chat_message(message: str) -> ChatEvent | None:
             logger.debug(f"Parsing passed. Setting nick {lhs=}->{rhs=}")
             return WhisperCommandSetNickEvent(nick=lhs, username=rhs if rhs else None)
 
+        cmd_clean = command.strip()
+        cmd_parts = cmd_clean.split()
+        if not cmd_parts:
+            return None
+        first_word_lower = cmd_parts[0].lower()
+        if first_word_lower in TEAM_ALIAS_MAP:
+            team = TEAM_ALIAS_MAP[first_word_lower]
+            if len(cmd_parts) == 1:
+                # e.g. /w !r -> assign top threat shortcut
+                logger.debug(f"Parsing passed. Shortcut setting team {team=}")
+                return WhisperCommandSetTeamEvent(team=team, usernames=[])
+            # e.g. /w !r Player1 or /w !r Player1,Player2
+            raw_usernames = "".join(cmd_parts[1:]).split(",")
+            usernames = [u.strip() for u in raw_usernames]
+            if any(not u for u in usernames) or not all(
+                valid_username(u) for u in usernames
+            ):
+                return None
+            return WhisperCommandSetTeamEvent(team=team, usernames=usernames)
+
+        if first_word_lower in ("unteam", "clearteam"):
+            if len(cmd_parts) == 1:
+                return WhisperCommandSetTeamEvent(team=None, usernames=[])
+            raw_usernames = "".join(cmd_parts[1:]).split(",")
+            usernames = [u.strip() for u in raw_usernames]
+            if any(not u for u in usernames) or not all(
+                valid_username(u) for u in usernames
+            ):
+                return None
+            return WhisperCommandSetTeamEvent(team=None, usernames=usernames)
+
         return None
 
     if ":" in message:

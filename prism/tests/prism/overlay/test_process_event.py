@@ -34,24 +34,37 @@ from prism.overlay.events import (
     WhisperCommandSetNickEvent,
     WhisperCommandSetTeamEvent,
 )
+from prism.overlay.player_cache import PlayerCache
 from prism.overlay.process_event import (
     fast_forward_state,
     process_event,
     process_loglines,
 )
 from prism.overlay.server import Server
+from prism.player import KnownPlayer, NickedPlayer, UnknownPlayer
 from tests.prism.overlay.utils import (
     OWN_USERNAME,
     assert_controllers_equal,
     create_controller,
     create_dirty_state,
     create_state,
+    make_player,
     make_settings,
 )
 
 HYPIXEL = Server.from_host("mc.hypixel.net")
 OTHER = Server.from_host("bedwarspractice.club")
 SINGLEPLAYER = Server.singleplayer()
+
+
+def make_cache_with_players(
+    *players: tuple[str, KnownPlayer | NickedPlayer | UnknownPlayer],
+) -> PlayerCache:
+    cache = PlayerCache()
+    for name, p in players:
+        cache.set_cached_player(name, p, genus=0)
+    return cache
+
 
 process_event_test_cases_base: tuple[
     tuple[str, OverlayController, Event, OverlayController, bool], ...
@@ -286,6 +299,73 @@ process_event_test_cases_base: tuple[
         ),
         WhisperCommandSetTeamEvent(team=None, usernames=[]),
         create_controller(state=create_state(player_teams=frozenset())),
+        True,
+    ),
+    (
+        "whisper command shortcut assign top threat found",
+        create_controller(
+            state=create_state(
+                lobby_players={"Player1", "Player2"},
+                alive_players={"Player1", "Player2"},
+                in_queue=False,
+            ),
+            player_cache=make_cache_with_players(
+                ("Player1", make_player(username="Player1", fkdr=2.0)),
+                ("Player2", make_player(username="Player2", fkdr=10.0)),
+            ),
+        ),
+        WhisperCommandSetTeamEvent(team="red", usernames=[]),
+        create_controller(
+            state=create_state(
+                lobby_players={"Player1", "Player2"},
+                alive_players={"Player1", "Player2"},
+                player_teams=frozenset({("Player2", "red")}),
+                in_queue=False,
+            ),
+            player_cache=make_cache_with_players(
+                ("Player1", make_player(username="Player1", fkdr=2.0)),
+                ("Player2", make_player(username="Player2", fkdr=10.0)),
+            ),
+        ),
+        True,
+    ),
+    (
+        "whisper command shortcut assign top threat not found",
+        create_controller(
+            state=create_state(
+                lobby_players={"Player1"},
+                alive_players=frozenset(),
+                in_queue=False,
+            ),
+        ),
+        WhisperCommandSetTeamEvent(team="red", usernames=[]),
+        create_controller(
+            state=create_state(
+                lobby_players={"Player1"},
+                alive_players=frozenset(),
+                in_queue=False,
+            ),
+        ),
+        False,
+    ),
+    (
+        "whisper command shortcut in queue uncached fallback to pending",
+        create_controller(
+            state=create_state(
+                lobby_players={"Player1"},
+                alive_players={"Player1"},
+                in_queue=True,
+            ),
+        ),
+        WhisperCommandSetTeamEvent(team="blue", usernames=[]),
+        create_controller(
+            state=create_state(
+                lobby_players={"Player1"},
+                alive_players={"Player1"},
+                player_teams=frozenset({("Player1", "blue")}),
+                in_queue=True,
+            ),
+        ),
         True,
     ),
     (

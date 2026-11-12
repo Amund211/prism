@@ -392,6 +392,20 @@ UNEVENTFUL_LOGLINES = (
     "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!unteam=Invalid-Name!'",
     # Synthetic: reject invalid username in whisper clearteam command. How: copied whisper setnick line with invalid username
     "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!clearteam=Invalid-Name!'",
+    # Synthetic: reject empty whitespace command in whisper command. How: copied whisper setnick line with spaces
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!   '",
+    # Synthetic: reject trailing comma in space whisper team command. How: copied whisper setnick line with trailing comma
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!red Player1,'",
+    # Synthetic: reject invalid username in space whisper team command. How: copied whisper setnick line with invalid username
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!red Invalid-Name!'",
+    # Synthetic: reject trailing comma in space whisper unteam command. How: copied whisper setnick line with trailing comma
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!unteam Player1,'",
+    # Synthetic: reject invalid username in space whisper unteam command. How: copied whisper setnick line with invalid username
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!unteam Invalid-Name!'",
+    # Synthetic: reject trailing comma in space whisper clearteam command. How: copied whisper setnick line with trailing comma
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!clearteam Player1,'",
+    # Synthetic: reject invalid username in space whisper clearteam command. How: copied whisper setnick line with invalid username
+    "[15:03:53] [Client thread/INFO]: [CHAT] Can't find a player by the name of '!clearteam Invalid-Name!'",
     # Malformed alpine set user
     "[17:19:24] [Client thread/INFO] [Alpine Client/]: Setting account (name=Player1)",
     "[17:19:24] [Client thread/INFO] [Alpine Client/]: Setting account (name=?, uuid=337482fe-8a15-47f6-bea5-a84918a86393)",
@@ -1076,6 +1090,76 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
     # Synthetic: unteam multiple players via clearteam whisper command. How: real whisper setnick line, command replaced with !clearteam=Player1,Player2
     (
         "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!clearteam=Player1,Player2'",
+        WhisperCommandSetTeamEvent(team=None, usernames=["Player1", "Player2"]),
+    ),
+    # Synthetic: shortcut set red team via whisper command. How: real whisper setnick line, command replaced with !r
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!r'",
+        WhisperCommandSetTeamEvent(team="red", usernames=[]),
+    ),
+    # Synthetic: shortcut set red team via full name whisper command. How: real whisper setnick line, command replaced with !red
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!red'",
+        WhisperCommandSetTeamEvent(team="red", usernames=[]),
+    ),
+    # Synthetic: shortcut set blue team via alias whisper command. How: real whisper setnick line, command replaced with !b
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!b'",
+        WhisperCommandSetTeamEvent(team="blue", usernames=[]),
+    ),
+    # Synthetic: shortcut set blue team via full name whisper command. How: real whisper setnick line, command replaced with !blue
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!blue'",
+        WhisperCommandSetTeamEvent(team="blue", usernames=[]),
+    ),
+    # Synthetic: shortcut set green team via alias whisper command. How: real whisper setnick line, command replaced with !g
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!g'",
+        WhisperCommandSetTeamEvent(team="green", usernames=[]),
+    ),
+    # Synthetic: shortcut set green team via full name whisper command. How: real whisper setnick line, command replaced with !green
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!green'",
+        WhisperCommandSetTeamEvent(team="green", usernames=[]),
+    ),
+    # Synthetic: shortcut set yellow team via alias whisper command. How: real whisper setnick line, command replaced with !y
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!y'",
+        WhisperCommandSetTeamEvent(team="yellow", usernames=[]),
+    ),
+    # Synthetic: shortcut set yellow team via full name whisper command. How: real whisper setnick line, command replaced with !yellow
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!yellow'",
+        WhisperCommandSetTeamEvent(team="yellow", usernames=[]),
+    ),
+    # Synthetic: set single player team via space whisper command. How: real whisper setnick line, command replaced with !r Player1
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!r Player1'",
+        WhisperCommandSetTeamEvent(team="red", usernames=["Player1"]),
+    ),
+    # Synthetic: set multiple players team via space whisper command. How: real whisper setnick line, command replaced with !r Player1,Player2
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!r Player1,Player2'",
+        WhisperCommandSetTeamEvent(team="red", usernames=["Player1", "Player2"]),
+    ),
+    # Synthetic: clear all teams via space unteam whisper command. How: real whisper setnick line, command replaced with !unteam
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!unteam'",
+        WhisperCommandSetTeamEvent(team=None, usernames=[]),
+    ),
+    # Synthetic: clear all teams via space clearteam whisper command. How: real whisper setnick line, command replaced with !clearteam
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!clearteam'",
+        WhisperCommandSetTeamEvent(team=None, usernames=[]),
+    ),
+    # Synthetic: unteam single player via space whisper command. How: real whisper setnick line, command replaced with !unteam Player1
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!unteam Player1'",
+        WhisperCommandSetTeamEvent(team=None, usernames=["Player1"]),
+    ),
+    # Synthetic: unteam multiple players via space clearteam whisper command. How: real whisper setnick line, command replaced with !clearteam Player1,Player2
+    (
+        "[Info: 2022-05-06 20:41:58.104577043: GameCallbacks.cpp(177)] Game/net.minecraft.client.gui.GuiNewChat (Client thread) Info [CHAT] Can't find a player by the name of '!clearteam Player1,Player2'",
         WhisperCommandSetTeamEvent(team=None, usernames=["Player1", "Player2"]),
     ),
     # Attempts to inject log messages

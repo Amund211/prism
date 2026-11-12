@@ -724,3 +724,4 @@ def test_stats_overlay_in_lobby_or_game_calculation(
     mock_popup_controller.tick.assert_called_once()
     _, kwargs = mock_popup_controller.tick.call_args
     assert kwargs["in_lobby_or_game"] is expected_in_lobby_or_game
+    assert kwargs["player_teams"] == controller.state.player_teams

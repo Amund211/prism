@@ -294,6 +294,7 @@ class StatsOverlay:  # pragma: nocover
             who_counter=self.controller.state.who_counter,
             in_lobby_or_game=in_lobby_or_game,
             banner=banner_for_popup,
+            player_teams=self.controller.state.player_teams,
         )
         if popup_banner is not None:
             self.rush_popup.tick(popup_banner)

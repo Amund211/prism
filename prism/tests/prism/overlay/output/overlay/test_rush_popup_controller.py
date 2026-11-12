@@ -1,6 +1,6 @@
 from prism.overlay.output.cells import CellValue
 from prism.overlay.output.overlay.rush_popup_controller import RushPopupController
-from prism.overlay.team_types import TeamDangerBannerData
+from prism.overlay.team_types import TeamColor, TeamDangerBannerData
 
 
 def make_banner(text: str) -> TeamDangerBannerData:
@@ -223,3 +223,95 @@ def test_loading_then_resolving() -> None:
     assert res3 == ready_banner
     assert controller.is_active is True
     assert controller.popup_deadline == 62.0
+
+
+def test_player_teams_change_triggers_popup() -> None:
+    controller = RushPopupController.create(timeout_seconds=10.0)
+    banner1 = make_banner("TOP UNASSIGNED THREAT: Player1")
+
+    # Initial /who popup activates
+    res1 = controller.tick(
+        now=100.0,
+        who_counter=1,
+        in_lobby_or_game=True,
+        banner=banner1,
+        player_teams=frozenset(),
+    )
+    assert res1 == banner1
+    assert controller.is_active is True
+
+    # Advance time past deadline -> expires
+    res2 = controller.tick(
+        now=115.0,
+        who_counter=1,
+        in_lobby_or_game=True,
+        banner=banner1,
+        player_teams=frozenset(),
+    )
+    assert res2 is None
+    assert controller.is_active is False
+
+    # Team assignment changes via shortcut -> reactivates popup!
+    teams: frozenset[tuple[str, TeamColor]] = frozenset({("Player1", "red")})
+    new_banner = make_banner("OPENING TARGET: [RED TEAM] Danger 80")
+    res3 = controller.tick(
+        now=120.0,
+        who_counter=1,
+        in_lobby_or_game=True,
+        banner=new_banner,
+        player_teams=teams,
+    )
+    assert res3 == new_banner
+    assert controller.is_active is True
+    assert controller.popup_deadline == 130.0
+    assert controller.last_player_teams == teams
+
+
+def test_player_teams_change_with_loading_or_none_banner() -> None:
+    controller = RushPopupController.create(timeout_seconds=10.0)
+    loading_banner = make_banner("TEAM DANGER: Loading enemy stats (1 pending)...")
+    teams: frozenset[tuple[str, TeamColor]] = frozenset({("Player1", "red")})
+
+    # Teams changed, but banner is loading -> does not activate
+    res = controller.tick(
+        now=100.0,
+        who_counter=0,
+        in_lobby_or_game=True,
+        banner=loading_banner,
+        player_teams=teams,
+    )
+    assert res is None
+    assert controller.is_active is False
+    assert controller.last_player_teams == teams
+
+    # Teams changed again, but banner is None -> does not activate
+    teams2: frozenset[tuple[str, TeamColor]] = frozenset(
+        {("Player1", "red"), ("Player2", "blue")}
+    )
+    res2 = controller.tick(
+        now=101.0,
+        who_counter=0,
+        in_lobby_or_game=True,
+        banner=None,
+        player_teams=teams2,
+    )
+    assert res2 is None
+    assert controller.is_active is False
+    assert controller.last_player_teams == teams2
+
+
+def test_player_teams_change_when_not_in_lobby_or_game() -> None:
+    controller = RushPopupController.create(timeout_seconds=10.0)
+    ready_banner = make_banner("OPENING TARGET: [RED TEAM]")
+    teams: frozenset[tuple[str, TeamColor]] = frozenset({("Player1", "red")})
+
+    res = controller.tick(
+        now=100.0,
+        who_counter=1,
+        in_lobby_or_game=False,
+        banner=ready_banner,
+        player_teams=teams,
+    )
+    assert res is None
+    assert controller.is_active is False
+    assert controller.last_player_teams == teams
