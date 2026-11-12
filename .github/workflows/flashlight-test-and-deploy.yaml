@@ -130,6 +130,8 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     name: Build and push OTel Collector for production instance
     runs-on: ubuntu-latest
+    # Only push a production image if the tests pass
+    needs: [test]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -186,6 +188,8 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     name: Deploy cloud function
     runs-on: ubuntu-latest
+    # Only deploy to production if the tests pass
+    needs: [test]
     # We don't wait for the collector to build here. Collector changes may need two pushes to main.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
