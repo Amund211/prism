@@ -1,19 +1,12 @@
 """When to take tab-list screenshots, and what to read from them"""
 
-from collections.abc import Mapping
-
 from prism.overlay.state import OverlayState
 
-# Delays after the Tab press. The second capture is a retry, taken only if the
-# first gave no teams and Tab is still held.
-CAPTURE_DELAYS_MS = (150, 300)
+# Trial branch: delays after the Tab press. Dense at first, then once per
+# second while Tab is held. The burst stops when Tab is released.
+CAPTURE_DELAYS_MS = (60, 120, 250, 500, 1000) + tuple(range(2000, 11000, 1000))
 # At most one burst per this many seconds
-MIN_BURST_INTERVAL_SECONDS = 2.0
-
-
-def should_retry(teams: Mapping[str, str]) -> bool:
-    """Return True if we should capture again after this result"""
-    return not teams
+MIN_BURST_INTERVAL_SECONDS = 0.3
 
 
 def known_names(state: OverlayState) -> list[str]:
