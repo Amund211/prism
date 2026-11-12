@@ -23,6 +23,7 @@ class GameWindow:
     window_class: str | None
     title: str
     foreground: bool
+    dpi: int | None = None  # Windows only: 96 is 100 % scale
 
 
 def exe_name(exe: str) -> str:

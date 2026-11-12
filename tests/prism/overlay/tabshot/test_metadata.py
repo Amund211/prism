@@ -46,6 +46,7 @@ def test_build_metadata() -> None:
         window_class="LWJGL",
         title="Minecraft",
         foreground=True,
+        dpi=120,
     )
     metadata = build_metadata(
         state=OverlayState(),
@@ -70,6 +71,7 @@ def test_build_metadata() -> None:
     }
     assert metadata["windows"][0]["rect"] == [110, 20, 30, 40]
     assert metadata["windows"][0]["screen_rect"] == [10, 20, 30, 40]
+    assert metadata["windows"][0]["dpi"] == 120
     assert metadata["prism"] == {
         "rect": [50, 5, 10, 10],
         "screen_rect": [-50, 5, 10, 10],

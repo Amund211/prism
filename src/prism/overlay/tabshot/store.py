@@ -13,8 +13,8 @@ from prism.overlay.tabshot.window import Rect
 
 logger = logging.getLogger(__name__)
 
-MAX_BYTES = 5 * 1024**3
-MAX_FILES = 10_000
+MAX_BYTES = 20 * 1024**3
+MAX_FILES = 50_000
 
 
 def to_image_rect(rect: Rect, origin: Monitor) -> Rect:

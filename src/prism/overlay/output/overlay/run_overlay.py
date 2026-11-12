@@ -1,5 +1,6 @@
 import logging
 import math
+import threading
 import time
 from collections.abc import Iterable
 
@@ -17,6 +18,7 @@ from prism.overlay.output.overlay.utils import (
 )
 from prism.overlay.rating import sort_players
 from prism.overlay.state import OverlayState
+from prism.overlay.tabshot.game_teams import TEAM_COLOR_SECONDS
 from prism.overlay.tabshot.screenshot import Team
 from prism.overlay.tabshot.worker import TabshotWorker, capture_supported
 from prism.overlay.threading import start_threads
@@ -149,7 +151,9 @@ def run_overlay(
         state = controller.state
 
         new_players = get_stat_list(controller)
-        tab_teams = controller.tab_teams.for_game(state.last_game_start)
+        tab_teams = controller.tab_teams.for_game(
+            state.last_game_start, now=time.monotonic()
+        )
         new_rows = (
             [
                 with_team_color(
@@ -260,10 +264,16 @@ def run_overlay(
     if capture_supported():
 
         def on_teams(state: OverlayState, teams: dict[str, Team]) -> None:
-            controller.tab_teams = controller.tab_teams.merge(
-                state.last_game_start, teams
+            controller.tab_teams = controller.tab_teams.replace(
+                state.last_game_start, teams, now=time.monotonic()
             )
             controller.redraw_event.set()
+            # Redraw again when the colors expire
+            timer = threading.Timer(
+                TEAM_COLOR_SECONDS + 0.1, controller.redraw_event.set
+            )
+            timer.daemon = True
+            timer.start()
 
         tabshot = TabshotWorker(
             CACHE_DIR / "tabshot", lambda: controller.state, on_teams=on_teams
