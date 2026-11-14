@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:pyinstaller.org)",
+      "WebFetch(domain:mcr.microsoft.com)",
+      "WebFetch(domain:minecraft.wiki)",
+      "WebFetch(domain:docs.astral.sh)",
+      "WebFetch(domain:www.minecraft.net)",
+      "WebFetch(domain:test-fixtures.prismoverlay.com)",
+      "WebFetch(domain:nodejs.org)",
+      "WebFetch(domain:developers.cloudflare.com)"
+    ]
+  }
+}

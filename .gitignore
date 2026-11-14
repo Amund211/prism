@@ -1,6 +1,9 @@
 # Local plans (not tracked)
 /plans/
 
+# Personal Claude Code settings
+.claude/settings.local.json
+
 # Editors
 .idea/
 .vscode/
