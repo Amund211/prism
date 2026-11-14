@@ -60,7 +60,7 @@ ABORT and report on any failure.
 
 1. `git fetch origin`; your checkout is clean and at `origin/main`.
 2. Current version: `sed -n '1p' prism/src/prism/__init__.py` → `VERSION_STRING = "vX.Y.Z-dev"` (`v` prefix; allowed chars per `prism/tests/prism/test_version_info.py`).
-3. Latest release tag: `git tag -l 'v*' --sort=-v:refname | head -3` (ignore the `flashlight-merge` / `rainbow-merge` tags).
+3. Latest release tag: `git tag -l 'v*' --sort=-v:refname | head -3` (ignore the `flashlight-merge` / `rainbow-merge` tags). If it is `v1.11.1`, this is the first release after the monorepo merge: use the edge-case commands in Phase 1.
 4. `gh auth status`.
 
 ## Phase 1 - Version, headline, notes (with the user)
@@ -74,6 +74,23 @@ git log --no-merges v<PREV>..origin/main --pretty=format:'%h %s' -- prism/ > <tm
 ```
 
 Also skim `git log --no-merges v<PREV>..origin/main --pretty=format:'%h %s' -- flashlight/` for server changes users notice (e.g. new data via flashlight); mention them only if user-visible.
+
+### Edge case: first release after the monorepo merge (`v<PREV>` = `v1.11.1`)
+
+**TODO: once the first release after the merge is out, delete this subsection, the pointer in Phase 0 step 3 and the reminder in Phase 8.** From then on `v<PREV>` is a monorepo tag and the plain commands above are right. Use these commands instead of the two above while `v<PREV>` is `v1.11.1` (tagged before the merge):
+
+- At `v1.11.1` prism was at the repo root, so `-- prism/` misses the commits made before the move (`c3d65642 Move prism into prism/`). Add the old root paths.
+- The imported flashlight and rainbow histories are not ancestors of `v1.11.1`, so `v1.11.1..origin/main` holds all of them (rainbow also has a root `src/`). Exclude them with `^flashlight-merge^2 ^rainbow-merge^2`.
+
+```bash
+git log --no-merges v1.11.1..origin/main ^flashlight-merge^2 ^rainbow-merge^2 --pretty=format:'%h %s' -- prism/ src/ tests/ prism_overlay.py pyproject.toml uv.lock pyinstaller media > <tmp>/raw-log.txt
+```
+
+```bash
+git log --no-merges v1.11.1..origin/main ^flashlight-merge^2 --pretty=format:'%h %s' -- flashlight/ > <tmp>/flashlight-log.txt
+```
+
+Expect ~25 prism commits (incl. `28b2e676`, `1a5e0572`, `0d003965`) and ~10 flashlight commits, not hundreds.
 
 DROP: `chore:` (read each; some are user-visible), `refactor:`, `test:`, `ci:`, `style:`, `build:`, non-user `docs:`. KEEP: `feat:`, `fix:`, anything about gameplay, UI, settings, performance, user-visible errors. Group by theme; show the filtered list to the user.
 
@@ -123,16 +140,20 @@ Edit line 1 of `prism/src/prism/__init__.py`: `VERSION_STRING = "v<X.Y.Z>"` (was
 git add prism/src/prism/__init__.py
 ```
 
+Write `<tmp>/msg-release.txt` with the Write tool: `chore: Bump version for release`.
+
 ```bash
-git commit -m "chore: Bump version for release"
+git commit -F <tmp>/msg-release.txt
 ```
 
 ```bash
 git push -u origin release-v<X.Y.Z>
 ```
 
+Write `<tmp>/release-pr-body.md`: `Release v<X.Y.Z>. The tag is cut from this commit once it lands on main.`
+
 ```bash
-gh pr create -R Amund211/prism --base main --head release-v<X.Y.Z> --title "chore: Bump version for release" --body "Release v<X.Y.Z>. The tag is cut from this commit once it lands on main."
+gh pr create -R Amund211/prism --base main --head release-v<X.Y.Z> --title "chore: Bump version for release" --body-file <tmp>/release-pr-body.md
 ```
 
 The diff must be exactly one file. Only `Python testing` (+ linting/CodeQL) should run on the PR; if a flashlight or rainbow workflow runs, the PR touches the wrong files - ABORT.
@@ -159,6 +180,8 @@ git log --format='%H %s' origin/main -- prism/src/prism/__init__.py > <tmp>/rele
 - `git show <RELEASE_SHA>:prism/src/prism/__init__.py` line 1 is `VERSION_STRING = "v<X.Y.Z>"`.
 
 Any mismatch: ABORT.
+
+(After a failed run and a fix on `main`, `RELEASE_SHA` is NOT found this way; see 3.5.)
 
 ### 3.2 Tag and push
 
@@ -196,7 +219,29 @@ Then double-check:
 gh run view <RUN_ID> -R Amund211/prism --json status,conclusion,headSha > <tmp>/run-final.json
 ```
 
-Require `status == "completed"`, `conclusion == "success"`, `headSha == RELEASE_SHA`. Else ABORT and tell the user the run URL (`https://github.com/Amund211/prism/actions/runs/<RUN_ID>`), status and conclusion. The tag is pushed but no release exists. Options: fix on `main` and re-tag (`git push origin :refs/tags/v<X.Y.Z>`, then from 3.1), or rerun a flake (`gh run rerun <RUN_ID> -R Amund211/prism --failed`) - ASK first. The macOS `create-dmg` step retries up to 10x (actions/runner-images#7522); the run can take 20+ min. Do not cancel.
+Require `status == "completed"`, `conclusion == "success"`, `headSha == RELEASE_SHA`. Else ABORT and tell the user the run URL (`https://github.com/Amund211/prism/actions/runs/<RUN_ID>`), status and conclusion. The tag is pushed but no release exists. The user picks one option in 3.5. The macOS `create-dmg` step retries up to 10x (actions/runner-images#7522); the run can take 20+ min. Do not cancel.
+
+### 3.5 Recover from a failed run (only after the user picks)
+
+**a) Flake: rerun.** `gh run rerun <RUN_ID> -R Amund211/prism --failed`, then 3.4 again. Tag and `RELEASE_SHA` stay.
+
+**b) Fix on `main`, re-tag on the fix.** The tag must move to a commit that holds the fix:
+
+1. Delete the tag on both sides (one call each):
+
+   ```bash
+   git push origin :refs/tags/v<X.Y.Z>
+   ```
+
+   ```bash
+   git tag -d v<X.Y.Z>
+   ```
+
+2. The fix lands on `main` by its own PR. It must touch `prism/**` (else `Python testing` does not run on the push) and must not change `VERSION_STRING`. Nothing else may merge between the release commit and the fix; if something did, ASK the user.
+3. `git fetch origin`. The new `RELEASE_SHA` is the fix's commit on `main` (`git log --format='%H %s' -3 origin/main`; confirm with the user). Check:
+   - `git show <RELEASE_SHA>:prism/src/prism/__init__.py` line 1 is still `VERSION_STRING = "v<X.Y.Z>"`.
+   - `git log --format='%h %s' <OLD_RELEASE_SHA>..<RELEASE_SHA>` lists only the fix commit(s).
+4. Continue from 3.2 with the new `RELEASE_SHA` (skip 3.1).
 
 ## Phase 4 - Artifacts and draft release
 
@@ -225,10 +270,10 @@ Below the floor: truncated build, ABORT. Above the ceiling: warn, go on.
 Check build provenance, one call per file:
 
 ```bash
-gh attestation verify <tmp>/release-v<X.Y.Z>/prism-v<X.Y.Z>-ubuntu-latest/prism-v<X.Y.Z>-linux --repo Amund211/prism
+gh attestation verify <tmp>/release-v<X.Y.Z>/prism-v<X.Y.Z>-ubuntu-latest/prism-v<X.Y.Z>-linux --repo Amund211/prism --signer-workflow Amund211/prism/.github/workflows/testing.yml --source-ref refs/heads/main --source-digest <RELEASE_SHA> --deny-self-hosted-runners
 ```
 
-Each must pass and name `.github/workflows/testing.yml` at `refs/heads/main`. A failure: ABORT.
+The flags make the command fail unless the attestation comes from `testing.yml`, on `main`, at `RELEASE_SHA`, on a GitHub-hosted runner. Any non-zero exit: ABORT.
 
 Confirm the tag is on the remote and points at `RELEASE_SHA`:
 
@@ -337,8 +382,10 @@ git switch -c post-release-v<X.Y.Z> origin/main
 git add prism/README.md
 ```
 
+Write `<tmp>/msg-links.txt`: `chore: Update download links`.
+
 ```bash
-git commit -m "chore: Update download links"
+git commit -F <tmp>/msg-links.txt
 ```
 
 **Commit 2 - rainbow downloads.** In `rainbow/src/routes/downloads.tsx`, prepend three entries to `DOWNLOADS` (the first entry per OS wins). `releasedAt` = `publishedAt` from Phase 6; `version` is bare semver:
@@ -370,8 +417,10 @@ In `rainbow/src/routes/-downloads.ui.test.tsx`, replace the old version in the t
 git add rainbow/src/routes/downloads.tsx rainbow/src/routes/-downloads.ui.test.tsx
 ```
 
+Write `<tmp>/msg-rainbow.txt`: `chore(rainbow): Add v<X.Y.Z> to the downloads page`.
+
 ```bash
-git commit -m "chore(rainbow): Add v<X.Y.Z> to the downloads page"
+git commit -F <tmp>/msg-rainbow.txt
 ```
 
 **Commit 3 - flashlight `latestPrism`.**
@@ -387,11 +436,15 @@ go -C flashlight test ./internal/app/... ./internal/ports/...
 (Needs Postgres for some packages: run outside the sandbox if it fails to connect.)
 
 ```bash
-git add flashlight/internal/app/prism_notices.go flashlight/internal/app/prism_notices_test.go flashlight/internal/ports/client.go
+git add flashlight/internal/app/prism_notices.go flashlight/internal/app/prism_notices_test.go flashlight/internal/ports/client.go flashlight/internal/ports/client_test.go
 ```
 
+`git status --short flashlight/` must show nothing unstaged.
+
+Write `<tmp>/msg-flashlight.txt`: `chore(flashlight): Bump latestPrism to v<X.Y.Z>`.
+
 ```bash
-git commit -m "chore(flashlight): Bump latestPrism to v<X.Y.Z>"
+git commit -F <tmp>/msg-flashlight.txt
 ```
 
 (Outside the sandbox: the hook runs `go test` with Postgres.)
@@ -402,8 +455,10 @@ git commit -m "chore(flashlight): Bump latestPrism to v<X.Y.Z>"
 git add prism/src/prism/__init__.py
 ```
 
+Write `<tmp>/msg-dev.txt`: `chore: Bump version in development`.
+
 ```bash
-git commit -m "chore: Bump version in development"
+git commit -F <tmp>/msg-dev.txt
 ```
 
 **Open, watch, merge.**
@@ -469,8 +524,11 @@ Each case: `name`, `userID`, `prismVersion`, `updateSelection` (`app.UpdateSelec
 },
 ```
 
+- Dev build of the new version sees the notice (the `v.Dev && !latest.Dev` path in `UpdateAvailable`): `"v<X.Y.Z>-dev with selection=all sees update notice for v<X.Y.Z>"`, `prismVersion: "v<X.Y.Z>-dev"`, same `want` as above.
 - Current version sees none: `prismVersion: "v<X.Y.Z>"`, `want: []app.PrismNotice{}`.
-- Patch release only: `v<PREV>` with `app.UpdateSelectionMinor` sees none (`"... suppresses patch bump to v<X.Y.Z>"`).
+- `v<PREV>` with `app.UpdateSelectionMinor` - pick by release type:
+  - Patch release (`1.12.0` → `1.12.1`): sees none (`"v<PREV> with selection=minor suppresses patch bump to v<X.Y.Z>"`, `want: []app.PrismNotice{}`).
+  - Minor or major release (`1.11.1` → `1.12.0`): sees the notice (`"v<PREV> with selection=minor sees update notice for minor bump to v<X.Y.Z>"`, same `want` as above).
 - Keep `"v1.11.0 (below firstPrismVersionWithoutLocalChecker) is suppressed even with selection=all"`: it documents real client behavior.
 - Leave cases that use a version only incidentally (wrapped, unicode user).
 - `defaultTime` (June 2024) must stay outside the Dec-Jan wrapped window.
@@ -483,6 +541,7 @@ Each case: `name`, `userID`, `prismVersion`, `updateSelection` (`app.UpdateSelec
 - Flashlight and rainbow deploys succeeded; smoke-check results.
 - Microsoft submission ID.
 - Anything that failed or needs manual cleanup; any sandbox errors (path / host denied).
+- If `v<PREV>` was `v1.11.1`: offer to open a PR that removes the Phase 1 edge-case subsection and its pointers (it no longer applies).
 
 ## Phase 9 - Discord announcement (draft only)
 
