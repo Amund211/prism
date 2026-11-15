@@ -29,13 +29,33 @@ def set_windowstate(hwnd: int, fullscreen: bool) -> None:
         | win32con.WS_MAXIMIZEBOX
     )
     if fullscreen:
-        win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
+        # SW_MAXIMIZE on a maximized window is a no-op, so restore first
+        win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
         win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style_BL)
+        _apply_frame_change(hwnd)
         win32gui.ShowWindow(hwnd, win32con.SW_MAXIMIZE)
     else:
         win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style_Normal)
+        _apply_frame_change(hwnd)
         win32gui.MoveWindow(hwnd, 100, 100, 1000, 600, False)
         win32gui.ShowWindow(hwnd, win32con.SW_MAXIMIZE)
+
+
+def _apply_frame_change(hwnd: int) -> None:
+    """Make Windows apply a GWL_STYLE change (required per SetWindowLong docs)"""
+    win32gui.SetWindowPos(
+        hwnd,
+        0,
+        0,
+        0,
+        0,
+        0,
+        win32con.SWP_FRAMECHANGED
+        | win32con.SWP_NOMOVE
+        | win32con.SWP_NOSIZE
+        | win32con.SWP_NOZORDER
+        | win32con.SWP_NOACTIVATE,
+    )
 
 
 def find_minecraft_window() -> int | None:
