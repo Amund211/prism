@@ -3,6 +3,8 @@ import logging
 import win32con  # type: ignore [import-untyped]
 import win32gui  # type: ignore [import-untyped]
 
+from prism.overlay.platform.minecraft_window import is_minecraft_window
+
 logger = logging.getLogger(__name__)
 
 
@@ -36,11 +38,26 @@ def set_windowstate(hwnd: int, fullscreen: bool) -> None:
         win32gui.ShowWindow(hwnd, win32con.SW_MAXIMIZE)
 
 
+def find_minecraft_window() -> int | None:
+    """Return the hwnd of the first Minecraft game window, if any"""
+    found: list[int] = []
+
+    def callback(hwnd: int, _: None) -> bool:
+        if win32gui.IsWindowVisible(hwnd) and is_minecraft_window(
+            win32gui.GetClassName(hwnd), win32gui.GetWindowText(hwnd)
+        ):
+            found.append(hwnd)
+        return True
+
+    win32gui.EnumWindows(callback, None)
+    return found[0] if found else None
+
+
 def toggle_fullscreen() -> None:
     """Toggle minecraft maximized/borderless fullscreen"""
-    hwnd = win32gui.FindWindow("LWJGL", None)
+    hwnd = find_minecraft_window()
 
-    if hwnd is None or hwnd == 0:
+    if hwnd is None:
         logger.info(
             f"Could not find Minecraft window: {hwnd=}. Aborting toggle fullscreen."
         )
