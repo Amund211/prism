@@ -1,0 +1,778 @@
+{
+ "replay-linux-forge-bombies-gs2-12rows-01": {
+  "rows": "bbgpprrw.syy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-12rows-02": {
+  "rows": "bbgpprrw..yy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-13rows-01": {
+  "rows": "abbgpprrw.syy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-13rows-02": {
+  "rows": "abbgpprrw.syy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-13rows-03": {
+  "rows": "bbgpp.rww..yy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-13rows-04": {
+  "rows": "bbgpprrww.syy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-13rows-05": {
+  "rows": "bbgpprrwwssyy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-14rows-01": {
+  "rows": "bbggpprrww..yy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-14rows-02": {
+  "rows": "bbggpprrww..yy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-14rows-03": {
+  "rows": "bbggppr.wwssyy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-14rows-04": {
+  "rows": "bbggpprrww.syy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-14rows-05": {
+  "rows": "bbggpprrwwssyy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-14rows-06": {
+  "rows": "bbggpprr.ws.yy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-14rows-07": {
+  "rows": "bbggpprrww..yy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-14rows-08": {
+  "rows": "bbggpprrwwssyy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-15rows-01": {
+  "rows": "aabggpprrww..yy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-15rows-02": {
+  "rows": ".bbggpprrwwssyy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-16rows-01": {
+  "rows": "aabbggpprrww..yy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-16rows-02": {
+  "rows": "aabbggpprrwwssyy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-respawning-14rows-01": {
+  "rows": "bb.gpprrw...yy",
+  "extra": 0
+ },
+ "replay-linux-forge-bombies-gs2-respawning-16rows-01": {
+  "rows": "aa.bggpprrww..yy",
+  "extra": 0
+ },
+ "screenshot-win-lunar-vanilla-gs2-3rows-01": {
+  "rows": "rww",
+  "extra": 0
+ },
+ "screenshot-win-lunar-vanilla-gs2-game-start-14rows-01": {
+  "rows": ".abssggpprrwwyy",
+  "extra": 0
+ },
+ "screenshot-win-lunar-vanilla-gs2-game-start-15rows-01": {
+  "rows": ".abbssggpprrwwyy",
+  "extra": 0
+ },
+ "screenshot-win-lunar-vanilla-gs2-game-start-15rows-02": {
+  "rows": ".abbssggpprrwwyy",
+  "extra": 0
+ },
+ "screenshot-win-lunar-vanilla-gs2-game-start-respawning-15rows-01": {
+  "rows": ".ab.ssggpprrwwyy",
+  "extra": 0
+ },
+ "screenshot-win-lunar-vanilla-gs2-game-start-respawning-3rows-01": {
+  "rows": "....ww",
+  "extra": 0
+ },
+ "screenshot-win-lunar-vanilla-gs2-lobby-01": {
+  "rows": "",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-14rows-01": {
+  "rows": "bbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-16rows-01": {
+  "rows": "bbbbggggrrrryyyy",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-16rows-02": {
+  "rows": "bbbbggggrrrryyyy",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-16rows-03": {
+  "rows": "........p.......",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-16rows-04": {
+  "rows": "aabbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-16rows-05": {
+  "rows": "aabbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-6rows-01": {
+  "rows": "ggppww",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-7rows-01": {
+  "rows": "ggpprww",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-8rows-01": {
+  "rows": "brrrryyy",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-8rows-02": {
+  "rows": "ssggrrww",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-game-start-12rows-01": {
+  "rows": ".bbbbgggrryyy",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-game-start-16rows-01": {
+  "rows": ".bbbbggggrrrryyyy",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-game-start-16rows-02": {
+  "rows": "..bbbbggggrrrryyyy",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-game-start-16rows-03": {
+  "rows": "...aabbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-game-start-7rows-01": {
+  "rows": "..absprwy",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-game-start-respawning-5rows-01": {
+  "rows": "....ggww",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-game-start-two-columns-16rows-01": {
+  "rows": ".....aabbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-lobby-01": {
+  "rows": "",
+  "extra": 0
+ },
+ "tabcap-linux-forge-bombies-gs2-lobby-02": {
+  "rows": "",
+  "extra": 0
+ },
+ "tabcap-linux-noclient-nofont-gsx-no-tab-01": {
+  "rows": "",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc02-gs1-15rows-01": {
+  "rows": "aabbssggprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc02-gs2-14rows-01": {
+  "rows": "aabbssgprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc02-gs2-15rows-01": {
+  "rows": "aabbssggprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc02-gs3-14rows-01": {
+  "rows": "aabbssggprrwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc02-gs3-15rows-01": {
+  "rows": "aabbssggprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc03-gs1-11rows-01": {
+  "rows": "aabbssgg.yy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc03-gs1-respawning-12rows-01": {
+  "rows": "aabbssgg..yy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc03-gs2-11rows-01": {
+  "rows": "aabbssggwwy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc03-gs2-12rows-01": {
+  "rows": "aabb.sggwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc03-gs2-respawning-12rows-01": {
+  "rows": "aabbssggw.yy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc03-gs3-10rows-01": {
+  "rows": "aab.sgwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc03-gs3-11rows-01": {
+  "rows": "aabbssgwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc03-gs3-respawning-11rows-01": {
+  "rows": "aa.bssgwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc03-gs4-11rows-01": {
+  "rows": "aabssggwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc03-gs4-12rows-01": {
+  "rows": "aabbs.ggwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc04-gs3-10rows-01": {
+  "rows": "aabbssgwwy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc04-gs3-11rows-01": {
+  "rows": "aabbssgwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc05-gs2-15rows-01": {
+  "rows": "aabbssggpprwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc05-gs3-15rows-01": {
+  "rows": "aabbssggpprww..",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc05-gs4-10rows-01": {
+  "rows": "aabbssww.y",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc05-gs4-15rows-01": {
+  "rows": "aabbssggpprww..",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc06-gs1-15rows-01": {
+  "rows": "aabbssggpprwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc06-gs3-13rows-01": {
+  "rows": "aabbssggrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc06-gs3-14rows-01": {
+  "rows": "aabbssggprwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc06-gs4-12rows-01": {
+  "rows": "bbssggpprwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc06-gs4-13rows-01": {
+  "rows": "abbssggpprwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc07-gs1-12rows-01": {
+  "rows": "bbssggppr..y",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc07-gs2-12rows-01": {
+  "rows": "bbssggprwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc07-gs2-no-tab-01": {
+  "rows": "",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc07-gs3-12rows-01": {
+  "rows": "bbsggpprwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc08-gs3-spectator-12rows-01": {
+  "rows": "............",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc08-gs3-spectator-13rows-01": {
+  "rows": ".............",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc08-gs3-spectator-respawning-12rows-01": {
+  "rows": "............",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc08-gs4-spectator-13rows-01": {
+  "rows": ".............",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc13-gs2-spectator-10rows-01": {
+  "rows": "......wwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc13-gs2-spectator-8rows-01": {
+  "rows": ".....wy.",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc13-gs2-spectator-9rows-01": {
+  "rows": ".....wwy.",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc13-gs2-spectator-respawning-10rows-01": {
+  "rows": "......wwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc13-gs2-spectator-respawning-10rows-02": {
+  "rows": ".......wy.",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc13-gs3-spectator-10rows-01": {
+  "rows": "......wwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc13-gs3-spectator-9rows-01": {
+  "rows": ".....wwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc13-gs3-spectator-9rows-02": {
+  "rows": "......ww.",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc15-gs1-9rows-01": {
+  "rows": ".....r...",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc15-gs1-spectator-10rows-01": {
+  "rows": "..........",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc15-gs3-9rows-01": {
+  "rows": ".........",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc15-gs3-spectator-10rows-01": {
+  "rows": "..........",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc15-gs4-8rows-01": {
+  "rows": ".....r..",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc15-gs4-spectator-10rows-01": {
+  "rows": "..........",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc16-gs1-spectator-8rows-01": {
+  "rows": ".bbpwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc16-gs4-spectator-7rows-01": {
+  "rows": ".bbpwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc16-gs4-spectator-8rows-01": {
+  "rows": ".bbpwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc16-gs4-spectator-respawning-8rows-01": {
+  "rows": ".bbpw.yy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc17-gs1-11rows-01": {
+  "rows": "ggggrrrryyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc17-gs1-spectator-8rows-01": {
+  "rows": ".bbpwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-10rows-01": {
+  "rows": "ggggrrryyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-10rows-02": {
+  "rows": "gggrrryyyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-11rows-01": {
+  "rows": "ggggrrrryyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-11rows-02": {
+  "rows": "gggrrrryyyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-8rows-01": {
+  "rows": "ggggrryy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-9rows-01": {
+  "rows": "ggggrrryy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-spectator-12rows-01": {
+  "rows": ".ggggrrrryyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-spectator-8rows-01": {
+  "rows": ".bbpwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-10rows-01": {
+  "rows": ".ggggrrr.y",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-12rows-01": {
+  "rows": ".ggggrrrryy.",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-9rows-01": {
+  "rows": ".ggggr.ry",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-vanilla-gs1-10rows-01": {
+  "rows": "ggggrrryyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-vanilla-gs1-11rows-01": {
+  "rows": "ggggrrrryyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-vanilla-gs1-respawning-11rows-01": {
+  "rows": "ggggr.rryyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-vanilla-gs2-15rows-01": {
+  "rows": "aabbssggprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-forge-optifine-vanilla-gs2-game-start-15rows-01": {
+  "rows": "....aabbssggprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-lunar-vanilla-gs2-12rows-01": {
+  "rows": "bbgggrrryyyy",
+  "extra": 0
+ },
+ "tabcap-win-lunar-vanilla-gs2-12rows-02": {
+  "rows": "bgggrrrryyyy",
+  "extra": 0
+ },
+ "tabcap-win-lunar-vanilla-gs2-12rows-03": {
+  "rows": "bgggrrrryyyy",
+  "extra": 0
+ },
+ "tabcap-win-lunar-vanilla-gs2-16rows-01": {
+  "rows": "bbbbggggrrrryyyy",
+  "extra": 0
+ },
+ "tabcap-win-lunar-vanilla-gs2-16rows-02": {
+  "rows": "bbbbggggrrrryyyy",
+  "extra": 0
+ },
+ "tabcap-win-lunar-vanilla-gs2-game-start-16rows-01": {
+  "rows": "..bbbbggggrrrryyyy",
+  "extra": 0
+ },
+ "tabcap-win-lunar-vanilla-gs2-game-start-respawning-6rows-01": {
+  "rows": "...brrrr",
+  "extra": 0
+ },
+ "tabcap-win-lunar-vanilla-gs2-no-tab-01": {
+  "rows": "",
+  "extra": 0
+ },
+ "tabcap-win-lunar-vanilla-gs2-no-tab-02": {
+  "rows": "",
+  "extra": 0
+ },
+ "tabcap-win-lunar-vanilla-gs2-no-tab-03": {
+  "rows": "",
+  "extra": 0
+ },
+ "tabcap-win-lunar-vanilla-gs2-respawning-10rows-01": {
+  "rows": "bgagrryyyy",
+  "extra": 1
+ },
+ "tabcap-win-lunar-vanilla-gs2-respawning-6rows-01": {
+  "rows": "b.grrr",
+  "extra": 0
+ },
+ "tabcap-win-lunar-vanilla-gs2-respawning-covered-12rows-01": {
+  "rows": "............",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc01-gs1-15rows-01": {
+  "rows": "aabssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc01-gs1-16rows-01": {
+  "rows": "aabbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc01-gs4-16rows-01": {
+  "rows": "aabbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc02-gs2-15rows-01": {
+  "rows": "aabbssggpprrwwy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc02-gs2-16rows-01": {
+  "rows": "aabbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc02-gs3-13rows-01": {
+  "rows": "abbsggpprrwwy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc02-gs3-14rows-01": {
+  "rows": "aabbsggpprrwwy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc03-gs1-13rows-01": {
+  "rows": "aabssggppwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc03-gs2-14rows-01": {
+  "rows": "aabbssggppwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc04-gs1-game-start-16rows-01": {
+  "rows": "....aabbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc04-gs1-spectator-8rows-01": {
+  "rows": "........",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc04-gs1-spectator-9rows-01": {
+  "rows": ".........",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc04-gs1-spectator-respawning-9rows-01": {
+  "rows": ".........",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc04-gs2-16rows-01": {
+  "rows": "aabbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc04-gs3-16rows-01": {
+  "rows": "aabbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc04-gs4-14rows-01": {
+  "rows": "abb.sgpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc04-gs4-15rows-01": {
+  "rows": "abbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc05-gs3-12rows-01": {
+  "rows": "aabbssgpprrw",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc05-gs3-16rows-01": {
+  "rows": "aabbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc05-gs4-12rows-01": {
+  "rows": "aabbssgpprrw",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc05-gs4-14rows-01": {
+  "rows": "aabbssgpprrwwy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc05-gs4-15rows-01": {
+  "rows": "aabbssgpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc06-gs1-8rows-01": {
+  "rows": "aabssppr",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc06-gs1-respawning-8rows-01": {
+  "rows": "........",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc06-gs1-respawning-8rows-02": {
+  "rows": "abb.sppr",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc06-gs1-respawning-9rows-01": {
+  "rows": ".........",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc06-gs1-respawning-9rows-02": {
+  "rows": ".........",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc06-gs1-respawning-9rows-03": {
+  "rows": "a.bb.sppr",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc06-gs2-9rows-01": {
+  "rows": "a.bbssppr",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc06-gs4-9rows-01": {
+  "rows": "aabbssppr",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc07-gs2-8rows-01": {
+  "rows": "abbs.ppr",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc07-gs2-respawning-9rows-01": {
+  "rows": "a.bb..ppr",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc07-gs3-8rows-01": {
+  "rows": "aabb...p",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc07-gs4-8rows-01": {
+  "rows": "aabb...p",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc08-gs1-8rows-01": {
+  "rows": "........",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc08-gs1-no-tab-01": {
+  "rows": "",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc08-gs2-7rows-01": {
+  "rows": ".......",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc08-gs2-8rows-01": {
+  "rows": "........",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc08-gs3-7rows-01": {
+  "rows": ".......",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc08-gs3-respawning-7rows-01": {
+  "rows": ".......",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc10-gs2-14rows-01": {
+  "rows": "aabbssggpprryy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc10-gs3-13rows-01": {
+  "rows": "aabbssg.prryy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc10-gs3-14rows-01": {
+  "rows": "aabbssggpprryy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc10-gs4-13rows-01": {
+  "rows": "aabb.sgpprryy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc10-gs4-respawning-14rows-01": {
+  "rows": "aabb.sg.pprryy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc12-gs1-10rows-01": {
+  "rows": "..b..sggrr",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc12-gs3-10rows-01": {
+  "rows": "..b..sggrr",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc12-gs3-9rows-01": {
+  "rows": "..b..sgrr",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc12-gs3-9rows-02": {
+  "rows": "..bbsggrr",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc12-gs3-respawning-10rows-01": {
+  "rows": "..b..s.grr",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc12-gs4-10rows-01": {
+  "rows": "..b..sggrr",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc16-gs2-16rows-01": {
+  "rows": ".......b........",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc16-gs4-16rows-01": {
+  "rows": "................",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc17-gs1-15rows-01": {
+  "rows": "aabssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc17-gs3-spectator-15rows-01": {
+  "rows": ".aassggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc17-gs4-spectator-13rows-01": {
+  "rows": ".assggprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc17-gs4-spectator-14rows-01": {
+  "rows": ".assggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc17-gs4-spectator-14rows-02": {
+  "rows": ".aasggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-tc17-gs4-spectator-respawning-15rows-01": {
+  "rows": "..assggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-vanilla-gs1-16rows-01": {
+  "rows": "aabbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-vanilla-gs1-game-start-16rows-01": {
+  "rows": "....aabbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-vanilla-gs4-16rows-01": {
+  "rows": "aabbssggpprrwwyy",
+  "extra": 0
+ },
+ "tabcap-win-vanilla-vanilla-gs4-no-tab-01": {
+  "rows": "",
+  "extra": 0
+ }
+}
