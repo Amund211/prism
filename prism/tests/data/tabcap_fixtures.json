@@ -1,1547 +1,1547 @@
 {
  "base_url": "https://test-fixtures.prismoverlay.com",
- "version": "tabcap_fixtures_2026-11-14",
+ "version": "tabcap_fixtures_2026-11-15",
  "fixtures": {
   "replay-linux-forge-bombies-gs2-12rows-01": {
    "split": "train",
    "png": "48a740f7daad007b91818e820740709e1bdff424b82482e3a4a6130355204828",
-   "json": "497e114bb6a6ec0f57a062be988cb4e0ba253cb7c623ad20e56b3ef3fc712b63"
+   "json": "e402b665b5c297089bb258b0485ea2b461387cf9cf535f0fd34aa7225585e210"
   },
   "replay-linux-forge-bombies-gs2-12rows-02": {
    "split": "train",
    "png": "e3739b7887f9502c25f70b848a1c48543a52ecef1abee4340be914df2ab4cc21",
-   "json": "29248b034f41974bea38ca6e542deaf6d204ff299def5c8c688fe99fc61d5b3b"
+   "json": "562082b8a520f1e76715f8734779c8810bc7859fd30e4ee4e98cf93b7d03d929"
   },
   "replay-linux-forge-bombies-gs2-13rows-01": {
    "split": "train",
    "png": "c86328ef28bd199496363a023b76a602f0ecd661974d0add56e8f9e917a4e42d",
-   "json": "dc87adf9f3e317f1c8a14261de76944f14e548a483f24989678a526443600b0a"
+   "json": "e50a013e6ec8eadccd9592c022b4b1426f2f80410b2c682f75519be16013c802"
   },
   "replay-linux-forge-bombies-gs2-13rows-02": {
    "split": "train",
    "png": "a1f0dadca27b15f11450d21a3688f995985eaa1bef29f037bfe63f30e59f8f98",
-   "json": "ed260b02aa667f24dd83859fc934d5ba71cd563ad2e6d9ed7f4e195653b0d180"
+   "json": "258a7f799550491c9034ff35d7fc36ea70de3545c0dcf2f2292c3e87f2231c51"
   },
   "replay-linux-forge-bombies-gs2-13rows-03": {
    "split": "train",
    "png": "68664b94c4cf260bb7c1d42376a610bb5fe8c1663c660a689e466e2c0632e008",
-   "json": "7ae7b041562f1bf3156d2cdc0e7f9a24bdad7e95dbae33c1f074ccd2f65cea77"
+   "json": "5be333966780941acc37101b3055c007f024c9bd6cef756e9c79dc9b31e4e8ba"
   },
   "replay-linux-forge-bombies-gs2-13rows-04": {
    "split": "train",
    "png": "3c868fe15ff1182d08ff88d6bb46da71b1b2298bc763f388d1a9f00bee2a7748",
-   "json": "70e17cd397e07489803ad95d3da3dae62ae9b2119847ee96853c43d13d193ee0"
+   "json": "763a9ca553c5770657a104d10c6703060731ce77cae5af74869efd72253b813c"
   },
   "replay-linux-forge-bombies-gs2-13rows-05": {
    "split": "train",
    "png": "0fbc6f8e4daea3a6a2d6fa4ae47c2c14260e717a1975ffadabdd7a97de36cb63",
-   "json": "b588d5db1e968676bdf03c0c68968ca1ed8bf51b13bd1191851fcaa5448cd178"
+   "json": "175c353773f5f7203e8bdca50097548d552288c263a73cd543f0aed49da8126c"
   },
   "replay-linux-forge-bombies-gs2-14rows-01": {
    "split": "train",
    "png": "afc893f971887d4b8d89b10709c15cde2751815c3ca9fc666654a3cb6b365838",
-   "json": "26205ea518c298be65f6576ba856dc8bc64b301b4195245996fe48b7387920d4"
+   "json": "6c94abac6177d4dc18ff773e02b92692338ed961d855ea0dd4a93bcf22a9b6f6"
   },
   "replay-linux-forge-bombies-gs2-14rows-02": {
    "split": "train",
    "png": "16f2dc0e2791cc9f0cceae76740c5a7b019ab1bb26afa1a13f947518439662fa",
-   "json": "91dc36ab1362fb1282529b206f5556c6552d2297198e367d3bf411729d87b6fa"
+   "json": "4b4f1ae3465e3fb071e97795db783c7e263846aaf70d0ba4bf6013a6074ed322"
   },
   "replay-linux-forge-bombies-gs2-14rows-03": {
    "split": "train",
    "png": "f8f53b1bbee3e5b69ed2a9b8757eff39c912fcc84a032841eb5fa27a4bc6053a",
-   "json": "f1bcc8c92a6d2fae5a0515221f8e8644fc20e144d0c98035d6d8a811e47dbc01"
+   "json": "1ab9f9c5e53c36ed6c234f3a61f10e2a6b518e380f0d4360c1152bbf1a4c81b6"
   },
   "replay-linux-forge-bombies-gs2-14rows-04": {
    "split": "train",
    "png": "e5d73e1adc1caa993b159da824bd622e70b539e0e40f60296df3feac65bd04bb",
-   "json": "6bc08d0036f2ed5832d320df10634f521848afae9c3caed5795291976f96df1f"
+   "json": "2bd48796199e002164555b430bc0a8ee5ce985cebe1c996421a40cb30cef76ec"
   },
   "replay-linux-forge-bombies-gs2-14rows-05": {
    "split": "train",
    "png": "b27d03d4e573fc03dd213e7c7a687edbebc4e54029b81706cedd57d01677bcef",
-   "json": "7b22c464f2150d52e9effb3ad60163e69500b058ab117170d364d3a6eca96216"
+   "json": "f333970a9cbae1507776769f28ac8a569805a080fc7c3087d3d7d09ec5fd8017"
   },
   "replay-linux-forge-bombies-gs2-14rows-06": {
    "split": "train",
    "png": "5970bd1979958100f5071e689dc1d9f84dc4ef02281789112ec2774836682264",
-   "json": "90b2ebb803f3076359289f0bcc3e3b33baaaac291c6e69b9ef61c89d46e8b627"
+   "json": "612171731e8a3e6dbeff37a6ba0c4d36e22d57f3c71b4ce07bf50cd418d6bc58"
   },
   "replay-linux-forge-bombies-gs2-14rows-07": {
    "split": "train",
    "png": "207964cb3b328c6c59fc244ee53c8a7238b6a876c7da34d80655ac4020346dd2",
-   "json": "c7225220987f62cbdcd1429d223e8f247dd6cf49d035a22df6eaf46762bc2ccc"
+   "json": "295f24144c6d27655f6cbe8931b85a3c5f52508bd33060108e40d362eda099c7"
   },
   "replay-linux-forge-bombies-gs2-14rows-08": {
    "split": "train",
    "png": "c3dbe25ad7477e6c1903ba0d213e595588539c7db4f47ed51f63815538a58a0d",
-   "json": "1016af9097e9dbbf59f6e8aa4d1b51278358bbbd22098abd09c629ad0545c2fd"
+   "json": "525eff19d328625882037118cebed51af3e18e1f8214c6ac18b9e6ce506dca09"
   },
   "replay-linux-forge-bombies-gs2-15rows-01": {
    "split": "train",
    "png": "1c070d9473fb0f573b1da9d14ae1643a8e766e25e42616f55b190c2fc29e7cb9",
-   "json": "2b6a7d72d879c7bb55df9e93c60eec7b7ba98653eb5c3155a6037d37247190cf"
+   "json": "fad01ef14903b3ab72862f9b86e870bdb50de50608156fd82e6dc7a426ee31c8"
   },
   "replay-linux-forge-bombies-gs2-15rows-02": {
    "split": "train",
    "png": "335d07936427967416a045f7cab0d44c2f43ef4605373f6a1f8b322fb670d9e6",
-   "json": "24632d3faf4a9a18c565cb7f38219cd285f228c8ff0092cea63df4db3102a7ea"
+   "json": "a01ff3d80949801aa07c8822d614ba16556b34d6103c92e96beac98f526e0276"
   },
   "replay-linux-forge-bombies-gs2-16rows-01": {
    "split": "train",
    "png": "f9164a0c4954c4ba409c73ecf0b02dc97b2aaeafa9a4e432acb9e0fa823b21c3",
-   "json": "17d2c65f152ed221e9dda288c8925070fb4d7c3ef90285fa7c161a6e6b0ace83"
+   "json": "f3d2ecf8073597328b1d39fc32c0a759fee25159bbcc25acaadba54fec48437f"
   },
   "replay-linux-forge-bombies-gs2-16rows-02": {
    "split": "train",
    "png": "50f6fa6aa8cd5149be19db7eb837592ee97b7f240096d861d7edf80920eb046f",
-   "json": "1192ac655cde45cbea3ea5f4771feab93434bfee3757f8afb2694d5e3da0dd06"
+   "json": "a997ae231fe45959d5e0479577e2c36a484af8def962a4cadff588eb80f82f30"
   },
   "replay-linux-forge-bombies-gs2-respawning-14rows-01": {
    "split": "train",
    "png": "1f4d1f3f152327a9e913ed5d489a5bdf3f96f0db86fada76876d746e13d45141",
-   "json": "03847682bc2ea5ab30c6fbbd7043f668a09260c512607f1051ab192787b54b95"
+   "json": "1a92d55843f2acbfdb344cc180ec694b478dc52b4c345269fb756ca5726305e3"
   },
   "replay-linux-forge-bombies-gs2-respawning-16rows-01": {
    "split": "train",
    "png": "8954c58a0dca8b5b4f03252a4a237e2a003f9354fd103f834d56d91662592c88",
-   "json": "934a7e8dad41af78c3266a66f4a08cf1387f61884cd13afd69eb28fca84b7298"
+   "json": "c79fc234c1be75c76abe092722a627e02ba079c2a6e181d0a232d0a7c835b5f5"
   },
   "screenshot-linux-forge-bombies-gs2-13rows-01": {
    "split": "test",
    "png": "ab039eb4aca5c4d1aaee47cb455d56473057eaf1da17be7233669833b1ff14a4",
-   "json": "5067aa43cb8ae7bad068e04f38204f616427b08820782b9de6fc90cab0548a1b"
+   "json": "23562e914cd4a5fad7e6802d08c7c4b795f2d84f9ba0982127664cdd18ee1728"
   },
   "screenshot-win-forge-betterbedwars-gs2-16rows-01": {
    "split": "train",
    "png": "339d0dfced03f57a1cbbdc41e83108bd87da6e2a36ac3ad9b953ad3fbe347678",
-   "json": "a45675e1e90ccc2a9e3a82785185a11b4c65025dee610ab9e893055e3be32261"
+   "json": "82d4550822775c6609ca81c0085002fcaf6358bf667114656d1e7d21203b3052"
   },
   "screenshot-win-forge-betterbedwars-gs2-16rows-02": {
    "split": "train",
    "png": "bfb3443c90dddb01b137497f5570d55d13ff9293e02d636b6996c092b129dc5d",
-   "json": "6113512aef029afcff6588fe3d885cbfc5c28ccaad5b87a24a819c30d6cbdb4e"
+   "json": "e7cc7b6a5f1947362ad4e09ce6f84d5af3e6b55c3808c6a237bf8b3261c616e5"
   },
   "screenshot-win-forge-betterbedwars-gs2-6rows-01": {
    "split": "train",
    "png": "c02a55594b7284440f33d0fab53b32a5eee3126caf19a971e2e004c6cc561e33",
-   "json": "fd1a1f942e644594dac7b5853cff1fc95d8688d4f5376a7671fac70aa7016299"
+   "json": "54500151df9273d7ea29e6a895e0940a9dfd34ef5fe113568da7474d6ae478cc"
   },
   "screenshot-win-forge-betterbedwars-gs2-7rows-01": {
    "split": "train",
    "png": "e44b47a7f2b906e507f4575fdfd4049a730589bed1bbd215396ad4813585831d",
-   "json": "768b73eac26eef973cd7d2213b5838b33c5f89e148986cf35bcbb820d35fca84"
+   "json": "330d90c8517eb07e76e1657d9a9ca94e737ab1f63ccd4e13fe2081ac65a7fb23"
   },
   "screenshot-win-forge-betterbedwars-gs2-covered-16rows-01": {
    "split": "train",
    "png": "c37627a95622f51edb046a7b9c69ff4652498755c16ba9052bfef62acd12c8de",
-   "json": "140a71efe950bc7d52154f93304ed5f9bd31ece7c61f740ba976adac6b355878"
+   "json": "cf4d6083c3bd6fd67b7e9c1f000d3069acd4ec530a8aa7c5fe91da87afc07463"
   },
   "screenshot-win-forge-betterbedwars-gs2-covered-16rows-02": {
    "split": "train",
    "png": "b8b480538b11e3fc5122f7b684f571613f20a0959af3bd53aa04661a21513f3c",
-   "json": "a5235a55038ac271c555e52267f2f5e3bd042639eb8a2122bdbd67ae69748d2a"
+   "json": "7c096501a96863c9be06fd4bbdd5fb118d2ed54a0b6d7f2fac61c4fa519cbd16"
   },
   "screenshot-win-forge-betterbedwars-gs2-lobby-01": {
    "split": "train",
    "png": "5b821e0ebd8da0ed00fd51fdf3fa217b5834213da34af0389bb3a44b8772a6bc",
-   "json": "f2e554506709fe957178e9e0c618323ac89e3c5dcda604936a4f1c2d719973b0"
+   "json": "7eaa1bd1a3d25cc0f2d0c1b736f0b3c0cfb8abfb878114ff4758cde4a7dc9f8a"
   },
   "screenshot-win-forge-betterbedwars-gs2-respawning-covered-13rows-01": {
    "split": "train",
    "png": "81b4b85859cc10f260b0c41de997fef87d7d6aa5e4a5d708d65302a968c6c038",
-   "json": "7059d6e716935b3cd8bfbae1b59a56cdf7c04c685600d13d00ed59d65ebea935"
+   "json": "f8b27a22bfa56ac1aade92c05be9b89c1f32413fafd236a58bddcebdae4eeae3"
   },
   "screenshot-win-forge-betterbedwars-gs2-respawning-covered-15rows-01": {
    "split": "train",
    "png": "296e21082e8cbdefcf8899576a1f3f207256298ef10b627aa72c48a40a31c075",
-   "json": "782c9cc10fa283dd926247bcd9c15aa8165651c6b58d61ca2fbfba9e50541bcc"
+   "json": "a878f9fd774cbb85db3d3d74cfbb8981fe6443ed87d53c1155e97dade711c55d"
   },
   "screenshot-win-forge-betterbedwars-gs2-respawning-covered-15rows-02": {
    "split": "train",
    "png": "1de3f484ff1761448aeb2cac268ff81e7bd233ec8fe0f3558fa5070686993ab3",
-   "json": "08c4ff47d94b6045e350bf6e86ecc2a732e88983e2c0d13ff2f30013ffd56bf8"
+   "json": "6a7ce98a08112957204b8c9d04bcaf7f9fee9a4a00c0096b95a38d2c70e82e8e"
   },
   "screenshot-win-lunar-vanilla-gs2-3rows-01": {
    "split": "train",
    "png": "07f7c9c459c7bec2947eee62fbb6551122a3d602b9bfd422c981b2214d325df6",
-   "json": "2c308840c633781be6de388ffe00c3caf99bd6160e5b705526e491138811d8da"
+   "json": "d0abca4a5dba32dacd49e46adf21cb33c7ee9991ceb73dcff60d0972d8dda64f"
   },
   "screenshot-win-lunar-vanilla-gs2-game-start-14rows-01": {
    "split": "train",
    "png": "2b7f9ea45ca46539a7bf468d885142751a019289745270911ffac636140132e8",
-   "json": "ad8e9a52c7af98314d6c0ae806dfbd6a57e1f4ad18d73119a29975f2c3c024ab"
+   "json": "c58c7862d36eee56a31573505af5ac70569acf78cc7c6ac8a818461e4def8382"
   },
   "screenshot-win-lunar-vanilla-gs2-game-start-15rows-01": {
    "split": "train",
    "png": "c725850f14aa96a22ff1af829e9b8a2a1e686ba56c763d8951f82bbba90344e3",
-   "json": "85de02d5c229a972c2d378b37f85f042007f171ebb2ac95713050f300b0f8747"
+   "json": "21c03a1459210503f08a4bd0ccb039f4cc19afabce09c81e8559c43e5ab7b6fa"
   },
   "screenshot-win-lunar-vanilla-gs2-game-start-15rows-02": {
    "split": "train",
    "png": "5e326b69030366a1f1f43e74017b4b85c917dff453e5305dc455e9efaeeacb5a",
-   "json": "7d9276051aa6647408757c13374e10064ec87d44221f03d4f40c44368969de2b"
+   "json": "29332240e5f6b9c5b5104b99b892de2b4698822a55143f652e424a8ae75a14bd"
   },
   "screenshot-win-lunar-vanilla-gs2-game-start-respawning-15rows-01": {
    "split": "train",
    "png": "664994a7c1d3af4e7abd2da27fec9006871c2eac2c2d866b3ac1bcbec6562eb3",
-   "json": "63ad022ae29712327833800d4896e65c3820a356dcec4903f375c4253b4610fc"
+   "json": "a0d713fe2a13ac9cc9f62d10fbb3ce7b4a39acdc231bfcecf65d18341fdb89d9"
   },
   "screenshot-win-lunar-vanilla-gs2-game-start-respawning-3rows-01": {
    "split": "train",
    "png": "df9135db72a5cf97f113edca87dacf0f0dbb4bf904f61163f08a11f5ec043c45",
-   "json": "bbe69ce95741e2b672e555fb8140f0347f3f7f383c8c684651ee9321f36f1897"
+   "json": "bb7f2811d0d85fb7b29a0ab3d6cf0a1291b8870749f4e51d5fcb35ed1eddfe1e"
   },
   "screenshot-win-lunar-vanilla-gs2-lobby-01": {
    "split": "train",
    "png": "add57e3a4206115d3f30f0eac611314f0d1312797bc8700f671fb34bd09547e4",
-   "json": "45b9cabfe38bec4e95a340af3d924b67cf6142e9d5aa1f6eee0a717296095579"
+   "json": "a5fa8381ed9636043a41ccf1b5d34718213b5e33f75c087c7dbbb63b2db547f0"
   },
   "screenshot-win-vanilla-26-3-vanilla-gs1-respawning-13rows-01": {
    "split": "test",
    "novel": "client vanilla-26.3",
    "png": "27c5596106af96ae5d5dc2861fc357fee1eb06be0ea9473e538855b8943818cf",
-   "json": "ee1f45af63d0e009942a29763017ad79ae1ee83ae12835066ce32cf5d9850c27"
+   "json": "506a6da134baf1a1fd263577b459f885f7f3c5da98ee7a7bfa55afedb7a7c2c8"
   },
   "screenshot-win-vanilla-26-3-vanilla-gs3-respawning-13rows-01": {
    "split": "test",
    "novel": "client vanilla-26.3",
    "png": "6fa8429fafad00be7b8a923e6163d0d8a4984753feac9887e10d7158ce482b14",
-   "json": "8863cd178effeaf55826ce0beadf4a70a1c8f4397978b5402954e6e2fa422c86"
+   "json": "a42d67a301d7804dacced420c1cd5360b7ab3560798ce79208f5443223348b34"
   },
   "tabcap-linux-forge-bombies-gs2-14rows-01": {
    "split": "train",
    "png": "cf96ab942ada259c59980eebb3ef5192e866182035909ccb238847f3efb98205",
-   "json": "899ca1992b1dffcaa76af6e86a54dae6ea73136b5e84b2d6bf6464455f312d4d"
+   "json": "8a5321ae51130afd52841124e511f88828df8205c0701466ffba4d3ee0ad1487"
   },
   "tabcap-linux-forge-bombies-gs2-16rows-01": {
    "split": "train",
    "png": "00644f19b534e48b911671c9b28c1c7d529b15f38b15e7f91890383c1856a0d2",
-   "json": "87782ae71abb06f521072afb5e052fbadb4bc775c63c1da0cb27e944aff38738"
+   "json": "bb7759550e14cb801b5606989f7abc92afaee91a3e7ee5394a0e1385e489b373"
   },
   "tabcap-linux-forge-bombies-gs2-16rows-02": {
    "split": "train",
    "png": "49e6a59f5ca6c77b2410ea009c6fe987dac2aa0ddbdf656bc201bb860fc85ec8",
-   "json": "282ce1c10f8b6c5f794d627c58f6609fd5bd324105d71ee40c6b231d5e3e8eac"
+   "json": "5a16c609857392bd0f77a1394ac3d0f42c17acbe2bb87f1b3986e9898f3e1a26"
   },
   "tabcap-linux-forge-bombies-gs2-16rows-03": {
    "split": "train",
    "png": "3b144fed63902c8a382d6c40e417988ddb234cee8bb957646d7b40edf8d14263",
-   "json": "3458c43375ad7a65f4297c6d503e9e78abe76f8234517cfe78ff6756b1cb6073"
+   "json": "daf82dd152e0b23eed32f17ee55b4ab44743a6b88bb432a326dfc7faa1f4b8c3"
   },
   "tabcap-linux-forge-bombies-gs2-16rows-04": {
    "split": "train",
    "png": "6f8d0bac9c5ebba2c3bc497e392670381f10ae308c21d0eb8def72919f0137f2",
-   "json": "e5261698df7417b5c902ba72da2f46cd481faad24ea4244482841f07160757d4"
+   "json": "f0e4f734b61aee365ba3e9e57d40f7194fc945b0e1ac83bc198e7f6668aeccd2"
   },
   "tabcap-linux-forge-bombies-gs2-16rows-05": {
    "split": "train",
    "png": "cf6acdd68ae2810b71fb74a7fb8d7260a0d2d693163afd8a1b00f773301f05d3",
-   "json": "2ae4a20f40a2426acb884c89d3ed89ab458863ec3614bb545749b4bf43eb32b9"
+   "json": "a1f8349b357fcaf75515c446cadb145f4efce11ef80780c21cd1aa4a11c28fdc"
   },
   "tabcap-linux-forge-bombies-gs2-6rows-01": {
    "split": "train",
    "png": "25e1fec93e945ab04c626f8e5e79f5f1b38d7aaed6fb3a00e15a90b4e0e2ac12",
-   "json": "6de9f6b894e9adcc856c779eff349d1e7946f62a09f466e7a521df5667f184c5"
+   "json": "a5639f5263d3a2b05632cbad7b9c563e81ce739124ee0ca6da1531b4859bce9c"
   },
   "tabcap-linux-forge-bombies-gs2-7rows-01": {
    "split": "train",
    "png": "ebea7f331ab815db7de1c40696296899afcbbeeeddc0363cd0d9f96310dd302b",
-   "json": "f30b5d47ebe3e33a4e0552373b5e8a0c473c68226feff4d5e4a91f28477b6b4f"
+   "json": "976246913c494f3d32e1cd405d818cfbcd4746b66c20d214e0f5347ad51c95c9"
   },
   "tabcap-linux-forge-bombies-gs2-8rows-01": {
    "split": "train",
    "png": "afc0ff9e8bb5a903d8bd36215ed6d7dead525c3b6f33094447d313a6ea7e2eba",
-   "json": "0b6a3b71f90731bc0e023a39119f710e0ffbbab1c282df5b1c9c43e31bdea273"
+   "json": "c8a5634702b9944da7048473e2c54c2c19a423187633f9da359633b6f99e6936"
   },
   "tabcap-linux-forge-bombies-gs2-8rows-02": {
    "split": "train",
    "png": "d8c1895e9e84317962db7a34616eade999d78ce635abcf032c3c34a7f843960e",
-   "json": "efb6ffb3f8af2f163bd884224672604a76039e18e75fce36ffab4fb80601931f"
+   "json": "7bdc871ab452a322f3caf81220d741d7946e818dd84ef0e48eefe5e69f76c43d"
   },
   "tabcap-linux-forge-bombies-gs2-game-start-12rows-01": {
    "split": "train",
    "png": "a473280b7f83f1d9cc198bb649554ea6d483dd3d792d546cba15c1b59681aabf",
-   "json": "216d828ad7098e3362865f86f36e94a54422acb0dd92ab6abfd62ae6ccf6d1d2"
+   "json": "fe3491befbee36a26940b8992b7716cdf2ac577b0f45b24abcb7acae9e5c276e"
   },
   "tabcap-linux-forge-bombies-gs2-game-start-16rows-01": {
    "split": "train",
    "png": "fdb61c97ee5f9bdcb192dccccb1b03d3cfe97a7590f5299df4fb6ed58464a14b",
-   "json": "13c7cd24ca92a729d05172c1a8863d5675321a64a22a14a100171771ad648450"
+   "json": "c2e551ec7230e36f279c646d305f884f077254aeef49131f1700d9759705ac91"
   },
   "tabcap-linux-forge-bombies-gs2-game-start-16rows-02": {
    "split": "train",
    "png": "05367916ab09af4ffaf8e9871baf572b3f7893c3c1ad5ee4e94dde59da0bb64e",
-   "json": "f804a8a09b1b9ae24f779ecfa5bcec14e71069913532ab35b8e59157253cafb1"
+   "json": "f29f310d6ca70ec908fb4e54220a6c125d20d25c00807f50b6b3e2020b6966df"
   },
   "tabcap-linux-forge-bombies-gs2-game-start-16rows-03": {
    "split": "train",
    "png": "084ff936bbe64d30ced5c740e2ca7743a678632eb5cac15f1f413cd9e70583f1",
-   "json": "28066dd0e81df651ec2448c2fba330c649db1c0d31809430cd2a04f29d596944"
+   "json": "809fcf16ec3f31212fc3741e05032e53a8fd0d830e823bfc240ed7f1d1a7b78a"
   },
   "tabcap-linux-forge-bombies-gs2-game-start-7rows-01": {
    "split": "train",
    "png": "22a821b494ce760a2f1e9370203352f2f04563d913232c358a9253dbe4d57e9f",
-   "json": "3dff924228901be57856ea6b3f4defe9e5ad025be473ff20bb4cabe33900be37"
+   "json": "01ecb085ea1f3fada06cf1a021c6deaa8309d5a1ed699a98589c3239324175af"
   },
   "tabcap-linux-forge-bombies-gs2-game-start-respawning-5rows-01": {
    "split": "train",
    "png": "1ff771c9e3502380767f819b78659b28bcb0125d897e7eafe6eaf2c4015cc36b",
-   "json": "ac407c1c90e33fa96ffdd4dc4581f2cf8386b83f73904691a6660ccbfa37db60"
+   "json": "3a494190e0cadb0ef00cbdf3980e081339d9788ba2ab03d6c3ba2324fae5ac61"
   },
   "tabcap-linux-forge-bombies-gs2-game-start-two-columns-16rows-01": {
    "split": "train",
    "png": "b941a2e3bf6d5816abc2fd6a8bd780c84f1ed01cd05b2073ce88faf221b7ce27",
-   "json": "687780fd88bae639d5a7e87983ca3a43840f52852b9879fc8455e2abcd40f07c"
+   "json": "1cb77a93af135c349f693d20be46a4be1766cd1f65359e7b7e80ee366b920bf7"
   },
   "tabcap-linux-forge-bombies-gs2-lobby-01": {
    "split": "train",
    "png": "3061e48ed89155ad6fbbdbb07b9221deb1ca96601ac16a259ce050140147b6fb",
-   "json": "314f662ecd6e9b38bc8a6647bb82c90cc9800775595e20e3487a0b4b6c3901a4"
+   "json": "a8c71977032c70037aed6627dd9ac6acb28a3217f7f6f05a9d2500278fa2221b"
   },
   "tabcap-linux-forge-bombies-gs2-lobby-02": {
    "split": "train",
    "png": "909282d6d62e645083d2bb2bf3ce5c2bcd40159450da4831bf9aa08071de8f06",
-   "json": "cdfeafd72b9f7dca386fb3eb53b5f2bef20244a4c3132feb23f2d8692a7e1134"
+   "json": "1172665d7468a14988b32d1ed1a79989e3b2f61e1daf0d943d58df6fdfae6da9"
   },
   "tabcap-linux-noclient-nofont-gsx-no-tab-01": {
    "split": "train",
    "png": "04dbcd475bb4b9e12b81a4810b448f441b9e227377367d331ffb5989bd23b8f8",
-   "json": "99233c866869cef820186f4078b36abfd6828c2cc45e3a410796c2a7fd07b411"
+   "json": "a3ed8eb1e14163b05595bb231ba84aa53e901c745499a6ec6f1dc84a410380c5"
   },
   "tabcap-win-forge-optifine-tc02-gs1-15rows-01": {
    "split": "train",
    "png": "fa083f64698fdd733142ba1f035e2f6014beacbde0fde08b20a8034364e230e7",
-   "json": "cc298686a9db88e0d44e3168afafa6d96aad1756f243faa0370955fa8dc5cf59"
+   "json": "6d77a29449cdb706d9f47e434db0c5463eb0e3712ea167b646c393d925700861"
   },
   "tabcap-win-forge-optifine-tc02-gs2-14rows-01": {
    "split": "train",
    "png": "b5dcc15fd6cebcd109b75d00c2755711d5b0bca5da01babfe8ab9b0346d31697",
-   "json": "2849b4bde00d4d361a782d2e2160b63bf0cc4d5532bc8262f80370f9de33c796"
+   "json": "55b646740c43ea30e820e88a90245213bba8bc770e42024fcfd7a60e5b86e918"
   },
   "tabcap-win-forge-optifine-tc02-gs2-15rows-01": {
    "split": "train",
    "png": "1a45d1574eca426f918543d06c7cdeaef5452e2d183fef51fb99a1530c48aa34",
-   "json": "d9b85978d7e26c79fce3d26fb621dea31d67ba943f84b29a7cb6183d34c0c5f6"
+   "json": "4aed0c90a26e3262d947dba84b4aa601b64c30cd433d7c508239fc02fa93c4d4"
   },
   "tabcap-win-forge-optifine-tc02-gs3-14rows-01": {
    "split": "train",
    "png": "33be2e2a9b8eca331b84e43dec1090df139732f8ff2c07d67a3082a800193a07",
-   "json": "7262005c892a97bcb046199ed8e537df17b416be264dcc12d9c4a1758923d9ad"
+   "json": "4b7ac29a6a1c2499a889b6889766cc5ff0a53c22bd74b1855c01a1d9be7138d9"
   },
   "tabcap-win-forge-optifine-tc02-gs3-15rows-01": {
    "split": "train",
    "png": "715cd59a67ad9783afece01de302a25e3057f2dbb077c092443e16f1457d03a2",
-   "json": "92f912183ddc1325e0783ad3089dc2e2044f7e52452cf75315bd2094249d939f"
+   "json": "9e06b2c130008856668f631da2ca93e53608497c059888537a823d9f070ccb4d"
   },
   "tabcap-win-forge-optifine-tc02-gs4-11rows-01": {
    "split": "test",
    "png": "55451f9c5399e04909aaf88f811170f054a113f30340fe73aaa5433a7464626c",
-   "json": "90e9ad413a3f5a13dc9bf623520fb4c9934ed3e48709d181dd61c3ef77a26261"
+   "json": "d60b6d01d6e06129be6cf1d94291084dbad97f2aff5b0f03afb153145c71977c"
   },
   "tabcap-win-forge-optifine-tc02-gs4-11rows-02": {
    "split": "test",
    "png": "2abab6bde660bbb0548995623349af9a0be59fe5fdf331ae7acf6b679798ae16",
-   "json": "add2b38d7bb6973b0649b435447493fb9a2e8185386f6c28e5403679f09baeac"
+   "json": "79ed0babefc6d27e41ccda89be311b4bc9d50cc6115ff1c7a4218ba89325a361"
   },
   "tabcap-win-forge-optifine-tc03-gs1-11rows-01": {
    "split": "train",
    "png": "c5fb456c37ef5be793a930cf72df7b240c9d38997068c8580b161e5b56fcbd15",
-   "json": "ebfdc431618ce3ac7225c08e127889b0dbd3538cd7f30ced8b9403483845c24a"
+   "json": "5603565a4d9199ffa40a43db6e2c34888547ffe3481eab442bc0ccdfd452736a"
   },
   "tabcap-win-forge-optifine-tc03-gs1-respawning-12rows-01": {
    "split": "train",
    "png": "26ee6b5db667bbd01668938c311b3d1934d3d4c2b3c9b5e6dd97cf2ddb3f8f60",
-   "json": "9e29cb93f34d4c135609237b22377815b46fd3d3458399fe304d1e834f23106c"
+   "json": "2320666bfe51ca78141d0718e9522e428ada1cbb4626728d270e4c6970363661"
   },
   "tabcap-win-forge-optifine-tc03-gs2-11rows-01": {
    "split": "train",
    "png": "a3437c707951757c3cca01b833106c7abc829277737e3449f5af9e6d1b593520",
-   "json": "54f52d97f2af42637856bc3457a0fd0674c18007728089d8d5d63990dede8cda"
+   "json": "fae8f1894cfe214be7d7ba7e678ae04d83ecbe6135441e9cc168b9e09b746dfb"
   },
   "tabcap-win-forge-optifine-tc03-gs2-12rows-01": {
    "split": "train",
    "png": "a8a7e727f48576cb02a25c6fd4e73e9cf55bbe1eb7dd4ab7994329706b094c49",
-   "json": "642e9514fffcf5aac6d3a623d7f8441b5160b644c13211f440f180df1710aac6"
+   "json": "fd414cc19dab80844ab136b4cdf6ad608855be2553a3349dad757688faefb2e4"
   },
   "tabcap-win-forge-optifine-tc03-gs2-respawning-12rows-01": {
    "split": "train",
    "png": "99fcbbbc2f0ca12dc5490413def527c6b683c0c91490a399a2b5112463c4464f",
-   "json": "adb45d6d2cbeeff58d7f6476ce2e3b2d6b5985953a32703e8379a2c481ba375b"
+   "json": "bbdb0f0fc6d5f7be2ed1464d30dbc3396bb283047fb2be3f4ac82f9c71f91383"
   },
   "tabcap-win-forge-optifine-tc03-gs3-10rows-01": {
    "split": "train",
    "png": "5267bffb4657e2dce49a21c8ab8efa726eec420a7c89c5f867f153a0db1b0a63",
-   "json": "3baa9860814a86a2d67834568d078d49f9d670a3330d63624d439940d523551a"
+   "json": "fd9c78d43599d55b3142385ec77e2fe41f485b9d2edc542163143a192b6735a3"
   },
   "tabcap-win-forge-optifine-tc03-gs3-11rows-01": {
    "split": "train",
    "png": "626a96450005eba591372d3a597ef7318e498eac4b44104b9b68a65d2f664884",
-   "json": "53be2fc48c603ac13038c53f3fa5baadf67a635154e1d78e281d28442ef405c7"
+   "json": "f3a32b71db00445930643e41bc22b9ea8eadf573192597c6d5d01c4172f82dd3"
   },
   "tabcap-win-forge-optifine-tc03-gs3-respawning-11rows-01": {
    "split": "train",
    "png": "cea0613060304f084e03af8f83a322598232ad9888a2137204f2372ddb8a6e1b",
-   "json": "3955e63d67c4134ffa8bebb6717a50c642201fe8e6bd16c43b23ae722854624f"
+   "json": "b56e4c061209a2af424ddf000fdfd640f6a533a98628e1ab9a2d74729f844006"
   },
   "tabcap-win-forge-optifine-tc03-gs4-11rows-01": {
    "split": "train",
    "png": "cafb772d5e7b195416c11ce6f028d25dc5a2244b5cad50e59107ed9034737ee7",
-   "json": "ae4bc327f6c378a2b5df32fc6bd500a8ffaa1f18ce892a50f29051f4e52c0b06"
+   "json": "0b3b1ff2476fe6fa5540eb176e9643db2f5d0f21d0001848ac5c9c450a451443"
   },
   "tabcap-win-forge-optifine-tc03-gs4-12rows-01": {
    "split": "train",
    "png": "70a63ee8b2d87095771b66bd63d524e25932b4495a2abf438fadce74d15f9193",
-   "json": "2098451e9856cd580be0b3c6ff0094113023df1d9a4d71c6542bf0f5cb3e56e6"
+   "json": "6307069175bd7f5e464ed5244d29be751d46f0c6c40459a20bba50ebd6db3003"
   },
   "tabcap-win-forge-optifine-tc04-gs1-11rows-01": {
    "split": "test",
    "png": "b1a8bf7bb9e01702aeb512c29a467b04190fa0fee5ce6527ba4b6f554baf8051",
-   "json": "aab591a0013bf160808c772a8cc54e09ca7146dc5204fef348a60d768a582ad1"
+   "json": "9bac8467964cd733f9ec678746e32c8663cd9c126cb1a411ede3bc9b1c47e35e"
   },
   "tabcap-win-forge-optifine-tc04-gs2-10rows-01": {
    "split": "test",
    "png": "557c1cbeec7d3bdd53ce15f754520231e4a74f5c8064a9de7f3df1bcbcb2fbc8",
-   "json": "b89dec278a2ee61679116f157bcb57b1920f005a1c372c2320111e38492512f5"
+   "json": "3cf4073ef196401c7d710d1929d964d8ee9283d15565e6de3eb713cc2e960a05"
   },
   "tabcap-win-forge-optifine-tc04-gs2-11rows-01": {
    "split": "test",
    "png": "777a5e4dcfca1847a1343fe6e34e25e56c5924c10e76d70647916040c74804b2",
-   "json": "46889858ea638b264fd9eff80a76c76ed311e4c9c09fcd845c1b0194a712d6aa"
+   "json": "589bfe53065d70d923ca30f86d9acaeea35c88a46c07bd276dd08051c7906da1"
   },
   "tabcap-win-forge-optifine-tc04-gs3-10rows-01": {
    "split": "train",
    "png": "37ba2c5ee04bbc54931fd7f577a2bb58f30186751aa5f64d8da877d925c61b03",
-   "json": "8840575dd5e263d44adb7ef11863e7c2fb73019041d36c996f2ff3cf243e13f7"
+   "json": "a59bedfbdc3aec3279c73df0252aa2d77b4dc1f93ec52fe6ae4f29df01988dae"
   },
   "tabcap-win-forge-optifine-tc04-gs3-11rows-01": {
    "split": "train",
    "png": "ccc4457de23e107ffa1e5192fbe5920318cbf188fa1852587af84ff653520e50",
-   "json": "8726e105dc7501a2fbb6ccd5f86250b5d0e86eea9454675bd9b987ad49493b58"
+   "json": "159a9485ed820070f2e8e29eaeefff385d09b8b680c0465f7a348d2f278b7a06"
   },
   "tabcap-win-forge-optifine-tc04-gs4-10rows-01": {
    "split": "test",
    "png": "b2f74f68d000453913f81f4ae99e923da5b4d8ebfd714136523432f0df266c12",
-   "json": "7bea42290e2791959b3c5a3c6c64f05b200c83db8ffa3b94083abae5a98e663d"
+   "json": "a2600bd35ed72b617edf418dbe39a06ccd58b74698b2a7995da7cc066823d8b3"
   },
   "tabcap-win-forge-optifine-tc04-gs4-9rows-01": {
    "split": "test",
    "png": "c549e1d915775229efb3771dec9c4ddb4ad9d22aba57454c7ce383e131a1ab93",
-   "json": "4342ffe90720139c9de169d0e59817979272ed570c5c214784d91de8a6c1d09d"
+   "json": "fd4bde25acf16ef5788ceb166436781ca467bc71fe63f65861bfd05c7727465e"
   },
   "tabcap-win-forge-optifine-tc05-gs1-15rows-01": {
    "split": "test",
    "png": "432fa6e240c13b34f0b31c247e685970247b3b077f2e69d86e2202e8de07cef8",
-   "json": "106ddf32f5f40607b916c133988965b7709836116c588356f38ff47dbc156108"
+   "json": "93e532c1904a4eebda686f0418b74f04f515b17d22ac905ee0509d1ff49a07ce"
   },
   "tabcap-win-forge-optifine-tc05-gs1-game-start-two-columns-15rows-01": {
    "split": "test",
    "png": "6e517c18d0db3fe965b259fcaeb68bffa93271e86f08e05d20c5336299a25de7",
-   "json": "cfbfb4793c8233e8aa415d2d651590b8151e3f6b442b5d6fe6a57a5a8c08c5f2"
+   "json": "9b8e79513c1ec848ac3aab75eb6b66e88413f39f85290e98147c0288217fa5bf"
   },
   "tabcap-win-forge-optifine-tc05-gs1-game-start-two-columns-15rows-02": {
    "split": "test",
    "png": "d424ad7fb1dc474193c6380a0e8496fea4ced041e13e03ee5c7343e4f1aa3d62",
-   "json": "8992e91dcf06aee626e58720c58fa66bdac0faa66f57c98db51a56c9f80da1af"
+   "json": "72a82da3178904223a00465fc9684a941cb470b08f1849a69552861c7b52085b"
   },
   "tabcap-win-forge-optifine-tc05-gs1-no-tab-01": {
    "split": "test",
    "png": "8a485835ec480092dd045d7c7cc2f37a18c9c44898110295cea6d5d8e5d6d8af",
-   "json": "510031ec44064522c3bfa5480cf507d9356f9c3fa7f234d669ab9293c1966bee"
+   "json": "099b5ecfe1c6e70b45f75ec0525ce850bdca4f3775e5f24290ede1def0c24c02"
   },
   "tabcap-win-forge-optifine-tc05-gs2-15rows-01": {
    "split": "train",
    "png": "cd2e270b79191e7785ad3911b5c35967b2f498f1a150b54a00de54ea55a20b43",
-   "json": "6113ed0f4e6df8c93f8307cec396d1e0b74c069bf86d7b92e90cd28312bee4bd"
+   "json": "4a2ab94f51829e52fd1a5b9bacc27011cf6e080c23716bbd83e243121a2e8ad3"
   },
   "tabcap-win-forge-optifine-tc05-gs3-15rows-01": {
    "split": "train",
    "png": "0d09623db3899766513319195dfb910202a27b9ffdcad5259622a4f0a330ff8d",
-   "json": "d6013a4acb3d422b42ab6175870f3ea7fc6737c5eb16588faf880a6c9ce619be"
+   "json": "9a50a05c4d2788c33a9c8ed79e93f6d56d8b9c4be72b2b0da45e02eab86f3959"
   },
   "tabcap-win-forge-optifine-tc05-gs4-10rows-01": {
    "split": "train",
    "png": "8b2c8031518d9a4b14530bb83f33717e4613d0dcb56a5e0be3962c40a8467b6b",
-   "json": "6fcf745418a89cd9b51987272f0c57955a7d388be920c30e19797ec39cfc5319"
+   "json": "90b62786dab2744b8bf4e1bf45ee04b454a44f8b354350ac2dc8877998bb7347"
   },
   "tabcap-win-forge-optifine-tc05-gs4-15rows-01": {
    "split": "train",
    "png": "b2b564fa373e6c1e31eae5ff38ff337d86992f70d2b24bdd6a9349394bf75f8e",
-   "json": "4662f4347782dca0a19b36e178af15b83c9f92dffb83859e9e80cd6556057f19"
+   "json": "d1f017b4f2b869e988eb0a22219e07ca1f893ba1214d1d5fed0403448f724886"
   },
   "tabcap-win-forge-optifine-tc06-gs1-15rows-01": {
    "split": "train",
    "png": "9e23249878edb8bd524e4427370ac7dde7a6b7bcc12284f5741294f3fa3143db",
-   "json": "fa3136a7e4fe1a1dae1ad2f1c38aa6270a8174b1ba5fa89a807b6f23d4afaae3"
+   "json": "87ce04d3318d95a404f5b85abaf4611cb364aa7a41625490f25d21da3e67c1b6"
   },
   "tabcap-win-forge-optifine-tc06-gs2-15rows-01": {
    "split": "test",
    "png": "4efafe858cd539074090f23c19b798aeb06d56ca68afea6ea6b75445a27e34cd",
-   "json": "27b84519248e4255820747584082c7a8e2173bf2ae2bbda8f4420fdba5ce8e16"
+   "json": "71635dd02707b55a5053d2c8574a486a35efb4f3af0e62179b96f15669a3f016"
   },
   "tabcap-win-forge-optifine-tc06-gs3-13rows-01": {
    "split": "train",
    "png": "bcf8aad0e203565c2802c5fdb254b195884553714bb07f85c03dbee9f1a769ed",
-   "json": "f213232c6a57ef1e5a2b4b4defc8c0a06de2eacd4f18aaa5fd2c0dc67437a8e8"
+   "json": "d5d928fe02c477cfa48d3932a657cdfca88ccede51462476666ba1a8481d40bc"
   },
   "tabcap-win-forge-optifine-tc06-gs3-14rows-01": {
    "split": "train",
    "png": "df4950cd37bba859cda3ece9f733403327419d32306679d887e971b139571409",
-   "json": "14c8caf999ea3f992661c77bf548bc9001ce41e06291d3721f5906bcfb2d98c3"
+   "json": "77ca0cf985ee67efac044617e7c17889e5b60cb5f04aec627cac4e9a04c6d794"
   },
   "tabcap-win-forge-optifine-tc06-gs4-12rows-01": {
    "split": "train",
    "png": "2b2bd2fb472d161d5274b02af88c007dc96dd6997a964984ff2112e85322c961",
-   "json": "0dcb017fff5e1fb93e2e7e801ea0712fc0874147a44f0d52ba90890a4e619fd4"
+   "json": "7c4d0dbba87610406c3ff602e0b91f6787b6cc48b9fc243f1223f0ea1e5b06a8"
   },
   "tabcap-win-forge-optifine-tc06-gs4-13rows-01": {
    "split": "train",
    "png": "3b61c22d78e0f2d54d2e8a0b24c1f053eb9478e5d1f517acc3b39399e28c7382",
-   "json": "b1c92a3f6aad1f9bbbbced3afa2e8f1bbf912a9d640910b909ac80005e1cf4d2"
+   "json": "b9185d46906a182517940c8caf38f95bfa771be7b1103c67db02eb48adaf1e1b"
   },
   "tabcap-win-forge-optifine-tc07-gs1-12rows-01": {
    "split": "train",
    "png": "60f0c78cc9d52b5f105e77bdd823697f8c2d30580349f6d6cebf6e6ec1e08b23",
-   "json": "01f68b87fd5f8e20828519e047bd6f352a3d089fe4beebb7dec4b689e991ad72"
+   "json": "ceea29e1f70b58076bb8e983d3fedc0b45d8df10540b52d1027b18b0bfa42f75"
   },
   "tabcap-win-forge-optifine-tc07-gs2-12rows-01": {
    "split": "train",
    "png": "159cd07a366bb94dbf97825afdd8354eb35ab83734819ad13750cc4d1aa461dc",
-   "json": "59469e8ee28b71a5a65ea053940f3ad3198abe7de591b4d5c5f02d4968792eaf"
+   "json": "5900dc3e68b2a535ee906c6a6d9582d56ddc15d273d9c5ed1a19a9aefef7d380"
   },
   "tabcap-win-forge-optifine-tc07-gs2-no-tab-01": {
    "split": "train",
    "png": "b12111d2bb779062f457a2cb2856f7439d8b7c249d9ce4146270d2fc5d3ae560",
-   "json": "aa595534b8abcf4038ec3c938a6d666ce6d49218510d54b468d9c49804cbc553"
+   "json": "8ab183d56f991e7b94c892c8a1a78dbf94e6bb90b7a34cd8cecf8a778cdb10f8"
   },
   "tabcap-win-forge-optifine-tc07-gs3-12rows-01": {
    "split": "train",
    "png": "af53af6fa900502ed63740232cd4a37f5049629bad043a2f022d384085e1cc65",
-   "json": "654aa58ad2e36713ab7ddd82f695f31869dd93981885719272e6d5a800243cd6"
+   "json": "a03ce49a07db64f7a7078c042a60db438e9a6d4fd6fab737e924f0dc72c20af6"
   },
   "tabcap-win-forge-optifine-tc07-gs4-11rows-01": {
    "split": "test",
    "png": "788c80035a6437271e549ab681101ac5fe3bd23ebd97fd0af3bfc10d97110bc8",
-   "json": "b31cedeb089dc034cef703319f0cdd0edc95b2939325465d2fbb0b165331fe11"
+   "json": "cfc4dd50dc656bf8371657fb1eae2ac5ea1f831cabaa5c1dc3e66e71c039add4"
   },
   "tabcap-win-forge-optifine-tc07-gs4-12rows-01": {
    "split": "test",
    "png": "dd9e6d329bee9209c563d1789dd9665a78ca76d923f6fd0fda7f52494f242a4d",
-   "json": "e2fd273e6bfa8160a5d967434780441015f70edf34257af86248ce78deb92fe1"
+   "json": "135df9ae4a8d0feab8cc378ff070b01575ac76053912be013d4720ba70f88660"
   },
   "tabcap-win-forge-optifine-tc08-gs1-spectator-13rows-01": {
    "split": "test",
    "png": "b92b4e99b1e6b6925ccf15d4832e07633a8711e8b332d2b315fb00b6dc38bb69",
-   "json": "f5d732357cdf7743e04f57bbd5593eec5fe8ebcbbf2d68328c0ca7dd683b0eca"
+   "json": "143181f3c694f2a54d4fa64276a4fd5014525a1b6b5f618ef3b1621dfdbf535f"
   },
   "tabcap-win-forge-optifine-tc08-gs2-spectator-12rows-01": {
    "split": "test",
    "png": "49f2b306fab09a3dab6fe3a58d7671476619401909280cd8238a26031072dc3d",
-   "json": "76eeb512ac3e87a894c5b144faca1bc9976ef9a8fceac7748dae42e907664ced"
+   "json": "b575407ad68dfa522b37d21ed6721ece133163f796e25ea8de91363c008f4248"
   },
   "tabcap-win-forge-optifine-tc08-gs2-spectator-13rows-01": {
    "split": "test",
    "png": "e9b0064e77d7e04b405d378d88d9fb01b3f72724dbb6c0e5ccdec9631aac459c",
-   "json": "c24a81b6bc14ec9dfc71026c3cf14f7026861b397fc787581086b70a03b991f5"
+   "json": "1dfc1ef8f2d82cbf4afc95565a73f0826da2c05826431e7e33e03fd86af27344"
   },
   "tabcap-win-forge-optifine-tc08-gs3-spectator-12rows-01": {
    "split": "train",
    "png": "7d119bc0ca6583a6a8320cd1a3dbf7053395c308e4b85ca5c911b04a0b5416fa",
-   "json": "b306ab5bd77d3b0cb85dcd1063c5f58b7cdcb07e10c2f71cfa6c1ef175d0f50b"
+   "json": "9534d82445827a945c5b268878ebc49d01989ef99c37289c89aecc84c37e8316"
   },
   "tabcap-win-forge-optifine-tc08-gs3-spectator-13rows-01": {
    "split": "train",
    "png": "afcac5b35c6814140aaa8456566035effdf0910aaee8d2614be0286aeae13a98",
-   "json": "fa359de958861ed973ab9d23fbfac20bcd36111b03b20a7ae2485f66941851eb"
+   "json": "5b7a3b5f94a7a653b2acaa476d2b5982b24484d5d3306621d45d946704454a1c"
   },
   "tabcap-win-forge-optifine-tc08-gs3-spectator-respawning-12rows-01": {
    "split": "train",
    "png": "1561f7b0bd186c37a3e61a0faf0d875ed28325184c62744224543a77dc693cf9",
-   "json": "cfcb142738f45e8f156b1d9da9391a8e54ee7f9fc4559c4125aacf49cddc8dae"
+   "json": "be00ba8ece9ab28d57d98c305336fb02b7401a92c67b2b2ff486ded40279e6e4"
   },
   "tabcap-win-forge-optifine-tc08-gs4-spectator-13rows-01": {
    "split": "train",
    "png": "2c0ddeebdbfba0775a3ba3b828dc23444d559c94769af6dc8f4a12745557b2d7",
-   "json": "4a1c263b72c1394220e496e9580996733efd10a7fefa48917e0ea5ea45291f70"
+   "json": "006dac011f96e91202f663a5075c711cf069227f558b62549ebe33073d1783c5"
   },
   "tabcap-win-forge-optifine-tc09-gs1-spectator-12rows-01": {
    "split": "test",
    "novel": "font tc09 (anti-aliased)",
    "png": "0a9faa408c8ad799eb6d3bd3165181bcb8a23450813fb0e7532334c7d5d919f0",
-   "json": "4f6a15fc05f9ccd24ef5d26e51a431766fe9b5d4849c356f7353d92220f24ff0"
+   "json": "e225aa7d0897535720d649231af8edc6cacc0359f1184714962302c393190d3c"
   },
   "tabcap-win-forge-optifine-tc09-gs2-spectator-11rows-01": {
    "split": "test",
    "novel": "font tc09 (anti-aliased)",
    "png": "8ea869b959b6b49a7aa98650a79af6c9e89730ad2e852bdaba67f1fb552714f3",
-   "json": "e34d129e99e2be412d276ae3ce1ec6317958baef90e1dc341b41c1eb23679998"
+   "json": "6f62077136cec329435b135356b2741e3176d856f3d48daea8952db38f5c66e4"
   },
   "tabcap-win-forge-optifine-tc09-gs2-spectator-12rows-01": {
    "split": "test",
    "novel": "font tc09 (anti-aliased)",
    "png": "5d743cc8e8633208ce9d7f2288a7db04fd60212c705bb2fe34dc8a49ae98de77",
-   "json": "869686a6966dd2c9ab225371cebafbf8575743ee3dac433823552d1fd5473fc6"
+   "json": "e87b5ff4712293c03a81cf754112f9546f63a118a38007e414d6d01afba69d6f"
   },
   "tabcap-win-forge-optifine-tc09-gs3-spectator-11rows-01": {
    "split": "test",
    "novel": "font tc09 (anti-aliased)",
    "png": "c305fefb486705d05524daeb7da8e46da468961458b8073e7b48e4c12e4096da",
-   "json": "b6ed1a2c58b4f348de0f18f41dd0196981bb3514d912ed3e3a70093d4019c5a3"
+   "json": "757039a46dc1d6dd399dffa9c288708f2f6cdeacf091c99596bbd91bd7504425"
   },
   "tabcap-win-forge-optifine-tc09-gs4-spectator-10rows-01": {
    "split": "test",
    "novel": "font tc09 (anti-aliased)",
    "png": "6fc30230f356746227bfd54aaa54050e401a1475abf435dd5e6bbf2876468f7d",
-   "json": "a58b5c06ccd27b0394aa175f11c356591259931b4eb64287e4202b8f3bae35d0"
+   "json": "050410ce675c40215224f0c104e59cec285749615720f8f3dbf7afd0dfb0844f"
   },
   "tabcap-win-forge-optifine-tc13-gs1-no-tab-01": {
    "split": "test",
    "png": "a226fc1cc7a240bc8ec1dccc7e08b72e91263919c712c99a3c1f398cdc4330cf",
-   "json": "71c08c3e0eeb85846bc6033c21949f57c999ebfd0fa041e041f1b22e02ba93bb"
+   "json": "e600bd2992ec5fe695aaae486ef704a5e6e47eb9724d3b9d32806f88156d0732"
   },
   "tabcap-win-forge-optifine-tc13-gs1-spectator-10rows-01": {
    "split": "test",
    "png": "859f96b86f714bb15b4d26e33fa66c81fbbfbe9964d2afd46f9b512d1a900fae",
-   "json": "0cc93c5ca67dafe31f2133931b5d454a4710a12677d87efa06d82c1a6216318c"
+   "json": "5815131d7b32d1d7553a91506fa66d03cd32fed048ccc76b0be92625ef9daf13"
   },
   "tabcap-win-forge-optifine-tc13-gs1-spectator-11rows-01": {
    "split": "test",
    "png": "9891083b2e42bff8f1be5e6830d3d037ce28986d1f79fdd546980db0d7d2e536",
-   "json": "a407e7bb859f9de69be9184ff49fd352ec48dd7b7528322fb76bce1c2c54bf03"
+   "json": "ecd64295648adee745f9fff4ebf79afdc9c89434aaf4493e802f3a445c5f14cb"
   },
   "tabcap-win-forge-optifine-tc13-gs2-spectator-10rows-01": {
    "split": "train",
    "png": "649ae032219021cab328ad8aa4e982f509f0406d646529bf2da8bf420eb08777",
-   "json": "7702b8f03fc24ba855b45d71567e60af8ca169bc0c4626a05b08a2a14273912c"
+   "json": "609b52143608692d01a98c36aa5c6e440aed3228cc2f7bd7f9d910364856e2ed"
   },
   "tabcap-win-forge-optifine-tc13-gs2-spectator-8rows-01": {
    "split": "train",
    "png": "c90fccdd30c26babc32fbf7289d8dad6a9d4f5630f590194ad1567ffb0a76e79",
-   "json": "3c226c9c7a80c0175a0b94ae23342c22cc962077ddd99ef3ae1875816af49dda"
+   "json": "5b3e48f0221923c6c4a3181038d6134cbbd8189bb91edb9da8d7cdd8b4fa80d1"
   },
   "tabcap-win-forge-optifine-tc13-gs2-spectator-9rows-01": {
    "split": "train",
    "png": "b4156c17afe34f7f8e13447987d0f95d1b427756849ba5e828e9703f25091cc8",
-   "json": "951bde85c9eb5f40ed30ad05eff72520fe4f6652ca2701df33b6592289db8081"
+   "json": "9705b4a2d603fd4f0354dea10830e47f49d0c7605f71291470e5415e6bf21229"
   },
   "tabcap-win-forge-optifine-tc13-gs2-spectator-respawning-10rows-01": {
    "split": "train",
    "png": "08b480bf52ce006ee065f5f3aa0709d1b5fe9015794f4c1dc759adc28a1427e9",
-   "json": "c19f1e23b909ba8f67b7f358924d43429217c95ece97942bc213788d931e7208"
+   "json": "4f388c245f924c8560b559c724da458ab605f6f2d822196de866c928e551fc9e"
   },
   "tabcap-win-forge-optifine-tc13-gs2-spectator-respawning-10rows-02": {
    "split": "train",
    "png": "dcc8ff632bcd7c4e691bf241f1fa308eedcbdad1cc640ad499c516fbeeca85a6",
-   "json": "568b49b459fac64ddf02a9bb66f2c43537f1293e53040964d291b7bf933503c4"
+   "json": "92a801bd2fd22e81bb5fd84c38fbe10b3ab633c5179e17c11aa39039630fdc34"
   },
   "tabcap-win-forge-optifine-tc13-gs3-spectator-10rows-01": {
    "split": "train",
    "png": "ac13f1c9e8b459a6ba0886f3de7bac1ac7a968191a2133b4cde414b1b4e1d34f",
-   "json": "597ce3457c0b18aa65e47f0141c24bfff6423d398ffe44bd27ad583a470a510e"
+   "json": "7f77df1ad02bd6330fe811b8cb3bcec328649ede0f33f9929c1d912260c8b270"
   },
   "tabcap-win-forge-optifine-tc13-gs3-spectator-9rows-01": {
    "split": "train",
    "png": "7462631eb5ec564ebd8f434cf79044a65ddcf876a1886713439f9ff9a73fe5dc",
-   "json": "02e7f2c4ee2e9c15925bfe2b88dd2c548e302e12d215d63d56e3069e64d57f75"
+   "json": "dee2265415522d607dca00d7969307a4bc28a1f17b77563fb4d18815e370c099"
   },
   "tabcap-win-forge-optifine-tc13-gs3-spectator-9rows-02": {
    "split": "train",
    "png": "c349c4f0f58b6315c4bc787f483a74c352416af67ae108a99988735c73a87820",
-   "json": "e419e046c49d7aba9702bfec226d2fa6c72de9c8dc45c213ddb4a5c25453e37c"
+   "json": "bd57f7a949210bf1c0d48a288e7f2a9665980a48d383e7820837e24dae168e7c"
   },
   "tabcap-win-forge-optifine-tc13-gs4-spectator-10rows-01": {
    "split": "test",
    "png": "ec3ceca93d822ebd0abccffee4e1fb76287d7ad2de5a39dcc10a6942ac3ec118",
-   "json": "c1b48b2cbf722ef3f8ee747f55eef6a2347a94aa639bcea4a1e656d2645a90ca"
+   "json": "01f9f8c2aaec3e5df2553debb7b612463899b0853ef55f9da126f0bd84010f8a"
   },
   "tabcap-win-forge-optifine-tc13-gs4-spectator-9rows-01": {
    "split": "test",
    "png": "1f5796dadeeaa819c1e713d591874a303f63ac3a10032bfa2450610c3273d672",
-   "json": "8e3c943c9e3996f33f932932b63d8ac04915e7d5cdc84dc3319dbafb077b1e4b"
+   "json": "d4ccfd4c60b3247a4fae85120688ad2559be4b64a40dabddbfac325b392eed3a"
   },
   "tabcap-win-forge-optifine-tc13-gs4-spectator-9rows-02": {
    "split": "test",
    "png": "c2f4674a598adbb16c54fcfad7757086f671340534f123b8dd11abd2415e320a",
-   "json": "5e168da120d81a7953454a120907ee093aa212c9c277b77a013cda35dcceca56"
+   "json": "7111fa2258975f779e171f1a5d536610283db502fd97645e0c367aacf446cbe3"
   },
   "tabcap-win-forge-optifine-tc13-gs4-spectator-respawning-9rows-01": {
    "split": "test",
    "png": "046f317cfa2c25d7536724e50eb0e9ba58574fe2d150d43dd45513ac60a7b1b0",
-   "json": "35cdff685d45df414eceb7265b4594a72c53e59f850d7d194db3340f63a94214"
+   "json": "6bda03041793e6b6dd0e943dd26a9f342c670cbe8dce974818ddb8068726eb55"
   },
   "tabcap-win-forge-optifine-tc15-gs1-9rows-01": {
    "split": "train",
    "png": "7244a6449078bfe1512c68ee1604526590c4d661ce76160a21ecca65db038fdf",
-   "json": "cc02a0b38a7adbc3989fa6156f5037434d47d7c0fe2add071766d80cf3b6d4b8"
+   "json": "60e81b26f6432048a7d9c4b35f4c38294d87e6e766ec41fb970a67e6fbfc4c4e"
   },
   "tabcap-win-forge-optifine-tc15-gs1-spectator-10rows-01": {
    "split": "train",
    "png": "e09c3720d92b2cf8752804e1b8a485339c9e763f1aad320edf8cd8b550a0cf7a",
-   "json": "0a1c4b1ae19d332466526d1aa41f1f9f4395d46bafbb440de018baf38273fc56"
+   "json": "54275358e618375693073d8193423034f62b58278cfdf45daeab49b1af95edb0"
   },
   "tabcap-win-forge-optifine-tc15-gs2-9rows-01": {
    "split": "test",
    "png": "bc6fa9ff1a9e4d647aaf28031ef8d6e05b97e387418d6782cbe804d7365aaf3a",
-   "json": "18d293a3fbc1af35f401911073a4bacdb6f1cdaa2d62259a0b2f6e785bd2d593"
+   "json": "cf23d47296c4ed25c8fff425b007869dfba32cdc9ccb06aa562c9c71a1809c58"
   },
   "tabcap-win-forge-optifine-tc15-gs2-spectator-10rows-01": {
    "split": "test",
    "png": "ddc7bb5082dc974b43a8fcaa1b2dee0658d2a93e5baab65d2efe55c1f328d113",
-   "json": "b3e53e108432c713f437f52caf7fa61d1626e8d54ed7af9a58721d443bd33f95"
+   "json": "ed831bec092b661592f396049ea3878d3858554085166a2b9dbdba0e171269f2"
   },
   "tabcap-win-forge-optifine-tc15-gs3-9rows-01": {
    "split": "train",
    "png": "9e0251dc7212ebeadfd1c2dd746e709c5642249ba9ca42f364090a0d65aedd0b",
-   "json": "3e09bada927a7842312d8ae3f9938dd0fe5870828bcd9cf7da0e28e28c3dec98"
+   "json": "67fd68ae43e2dbbe4ce07e64a7d06186612318c128e51ce2bf5d9ab5b7d9e6c6"
   },
   "tabcap-win-forge-optifine-tc15-gs3-spectator-10rows-01": {
    "split": "train",
    "png": "cf47eac615d159b9da7017163f89a620a126d29f81e844fcfca52ee0ae4cf56d",
-   "json": "b283e00a5b4e39f52c172b06ded7fc27359b70cd2a701d7edee98b410071bfd4"
+   "json": "e027c78b8ef1a28bdb906e1c8595e8aea5b0b0a9e21cba77e9830ac4ff13002c"
   },
   "tabcap-win-forge-optifine-tc15-gs4-8rows-01": {
    "split": "train",
    "png": "329563f3cf249fec49deb15d240b5ff486ffd4bd4fa01505c5d44ad6752fb0b5",
-   "json": "d762a9171e447c07846d56fd66f7dc8ce1ad565edf885b9ee03dcbeaff9be4db"
+   "json": "9c3d292b1f512c01e5c735226f4109c6bf47466a412a9f575f22fcdce264912d"
   },
   "tabcap-win-forge-optifine-tc15-gs4-spectator-10rows-01": {
    "split": "train",
    "png": "e641b9b1aeb83ff0c7a734f2937292354bc29b9037f4f0cd59dd38e5e33fbd4e",
-   "json": "b95b0542e6289ca55e5804eef3b90d380f3051e357fc60929e4b57c2f499a3ff"
+   "json": "547536d794d8ac32cd98d2097c14829a0dcb5627ee805b388c69d20ea4c8bac0"
   },
   "tabcap-win-forge-optifine-tc16-gs1-spectator-8rows-01": {
    "split": "train",
    "png": "fa4cb62eb372016dbe6ce5d598b6dc70237f422c1b64f3b77bb3cf29f71ae905",
-   "json": "433b2296d632074f11689c12a23e7982d53ea2bb46a7c135284356b5befae44f"
+   "json": "9aab8dfd47cb695b5f4a0359eacf400c0fdeb506781c73a0e17dd7745b0ca304"
   },
   "tabcap-win-forge-optifine-tc16-gs4-spectator-7rows-01": {
    "split": "train",
    "png": "df5821ebad46e6989c024c5718fb5a539d97262907a878db7cb4478a13169591",
-   "json": "bb07cfc0b34fab714787e3820fb7d34a88e146545a4ed9e6be8d3546ba9d346e"
+   "json": "5305954f99547aef4b9e2fac747848e249d38b729bcfff89ade79f146243fbe2"
   },
   "tabcap-win-forge-optifine-tc16-gs4-spectator-8rows-01": {
    "split": "train",
    "png": "eaddf54aaf222eef23c508d1084b8d69dfdb491266b9bb337a3cc0dcb2c8dc76",
-   "json": "9feee513e1ebc62203bb8400c038bc503b288b5c83cbbda65fa56c72b46cec1f"
+   "json": "3c1f841b52fc2d9fdea25efbebbe4b4ad0ec190ed26aa37c06a7325cbf387832"
   },
   "tabcap-win-forge-optifine-tc16-gs4-spectator-respawning-8rows-01": {
    "split": "train",
    "png": "6ffe67786a38d965c7c4e63e1f93b5726605577a018ae3fffa81d0119007e0be",
-   "json": "f78b16a05456e2a36a1633b0d0115a9bed36c5164d60a13f31cc8e7ec2c4c406"
+   "json": "ae9c620fe829c2326bb332b3ca26757b23d7d98627ef23a6cb5b14172eb99582"
   },
   "tabcap-win-forge-optifine-tc17-gs1-11rows-01": {
    "split": "train",
    "png": "aa3fd9b052bb83cb617e748243c0a5790d5f52f70660c0b344340f1b3635ce48",
-   "json": "2b56ffc15658cd22b8b7be0a6200977b6eeaf14b1fe5650abfd70474906b59e7"
+   "json": "e446c6c5841751bd89153cb77e2e21a7613abff5d7ba0544150e1af848217df3"
   },
   "tabcap-win-forge-optifine-tc17-gs1-spectator-8rows-01": {
    "split": "train",
    "png": "a604dc20fd937f8f77b984c59b1b5fbf43fc0f3b97734a9176c8d630dbffa809",
-   "json": "755b2aef88952fced455e7ac2b413ed88a86e1c32a721143bcf5e6961eec4d04"
+   "json": "4429729393cc278003c6f696b8c1ba967c0d06e401884de5fe75e7a5bd2dc073"
   },
   "tabcap-win-forge-optifine-tc17-gs2-10rows-01": {
    "split": "train",
    "png": "2367e91fd5b80c8b5bd8331a801dc025a58be930a73b878d1e7d9d168be0a4a8",
-   "json": "d90c7d9af5b927eb66bed0607e31d1c8ec3ef16654bb9f11739a3d424d045bd0"
+   "json": "f6583368fad509dadb3bc5252226af00b466691876225b278c51a5501efb763d"
   },
   "tabcap-win-forge-optifine-tc17-gs2-10rows-02": {
    "split": "train",
    "png": "7e79fd1118aef2151abfeb6217871dee39009b503d205e9989eb0542e7a50bbb",
-   "json": "875d1e2a110ec4df671f7ee87ad309774d08ab262cf8455676c1cddb262fc257"
+   "json": "a011b5e65c04b415c8ca788b9d89591df9d49224f25745f77532a2cb12603be9"
   },
   "tabcap-win-forge-optifine-tc17-gs2-11rows-01": {
    "split": "train",
    "png": "b0f8efacb1b59a24368bc97fe0c843ef39cfbad47469f464d4c46a57a0b435fb",
-   "json": "303386ce2627a624f70771585e0e6308cb3efb329c775cc475f05ec0685307ce"
+   "json": "54223044696c67e99184a647cf6da79266616a7e59cf50d242abd0d93c913791"
   },
   "tabcap-win-forge-optifine-tc17-gs2-11rows-02": {
    "split": "train",
    "png": "bd7249ac5d25c6c94b272a9a73b018f071728c8619c9b14778d54ad5828ce3b1",
-   "json": "a05b544e6a08ad844b678f6d8d6e21ec8556f8bc00117d2bb02b4417c7a5c3e1"
+   "json": "36093af3ab6654906ee0124161bb02b3583b5bac59472c8564aecabb8dd9472c"
   },
   "tabcap-win-forge-optifine-tc17-gs2-8rows-01": {
    "split": "train",
    "png": "3546fb87c6a1d7f34cea54dc73cc18b171ea7df4ed4636f79a7d18d7e56a9eda",
-   "json": "6d592a77be93f38592c88e8a058708b1fc938aa5b01fad845caea550a3fe991f"
+   "json": "67f8640ea9b74d524c36f8527e9dfd4ca9de8fc426b31a699e84d65de09b7e11"
   },
   "tabcap-win-forge-optifine-tc17-gs2-9rows-01": {
    "split": "train",
    "png": "aa567e7999742087c3e459e419c3f136e113562d4b4a482a4498468117505533",
-   "json": "f5480bc3d5781bc45b8253e0f2de0d74a79e85f4cbc8e5c8f261cd20ec4ab9fa"
+   "json": "0291605301bcbd898f63070dc1bb8b94fd912d3508a0c98b36182ad4bf8db070"
   },
   "tabcap-win-forge-optifine-tc17-gs2-spectator-12rows-01": {
    "split": "train",
    "png": "413d1b7d0515576c28b40df875da762b4b13eaab669332ea52c22aeca0dde9de",
-   "json": "dbbbf5454fa2ba897fd6d6fa13b3144e47ce6c8eda059d88be5fb8cc4ab9414f"
+   "json": "2b527ef139ada7a5915726982ee6674daa81a5857bf540299a8bc36651e0efa7"
   },
   "tabcap-win-forge-optifine-tc17-gs2-spectator-8rows-01": {
    "split": "train",
    "png": "e7ed77043507ce73e9399c41e7682482cc748eae1cfecfe2e1728e8eeb91dd3f",
-   "json": "fef3eb16ccc0c003bf91637facc496bec9a130a9c92a5c12ef2f9ffc9765e785"
+   "json": "21ec0066bc8fa59b468d2d7c2974ced9222c06f28fe58efa149119fa5fd98dba"
   },
   "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-10rows-01": {
    "split": "train",
    "png": "c6524b3675894560811be7ef0bbdb4a5c90bf194b0818df89834848699b0a924",
-   "json": "8cd299f9d18e2703ce7705facbdb2fa47fddf59048ab369c9ded4a8ebadd3b6b"
+   "json": "3378a88e205b0752c28b2d05eb20c631007d1f15e4262607ae54959b0cce885d"
   },
   "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-12rows-01": {
    "split": "train",
    "png": "035f8d4e3519dcfd2b1a4a8ee7b18f9aee6ed6e85fff5a9c8a2d71f03946cab3",
-   "json": "7eac1b6c87135ca3ad91fc14d89b650c0bd28bc5e94ca2bca1e69f2bf127af66"
+   "json": "58ca2887d86379e4f1e082b0f5dcef2ac828cb9600681fc5ede35c550ca524a5"
   },
   "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-9rows-01": {
    "split": "train",
    "png": "3f4ccd5665239d084a51937a4bf37ff87024becdbae901f3de1c1e8e56005f12",
-   "json": "4f30d57305659ddbb8f54d2ca6a0583262981300af7c923601dc3d9ecfeda18c"
+   "json": "d851a48bb0770184cc1d2229443ec0593653670b93c0309c598fdbfa6c47743b"
   },
   "tabcap-win-forge-optifine-vanilla-gs1-10rows-01": {
    "split": "train",
    "png": "b42bdba9db0442609c2a1d418f4c2f13f1c757a0bb142b423b6e5447c7348f58",
-   "json": "deb1737e5ba8ce20ec50b0ebd5d456eaa01c1358a84d96bf9f7418520f3c9439"
+   "json": "f223a7e8cbdb2354d8afbeb7fa88d496a97b9c971f96aa320d5755bab25c6f41"
   },
   "tabcap-win-forge-optifine-vanilla-gs1-11rows-01": {
    "split": "train",
    "png": "0dc13c35889eab029e931a31adf057e9a2e446d34f48a2763be83e09f385a3dc",
-   "json": "6c6cc4ff479ace71185396b78cbb9ca4db5fe0f083a15dc85d6e24837ee8587f"
+   "json": "ff8e6070e79fab4f20064659ccfebd595cb7e7a58a68c27a05bc01c46d42e14c"
   },
   "tabcap-win-forge-optifine-vanilla-gs1-respawning-11rows-01": {
    "split": "train",
    "png": "799e39c036bfc8c88b9fefc056e926783234e9ff29aacfff5661f5ef188e79d5",
-   "json": "e87db42fd10c81788c57728cd17f7f422ab7e355797159bb027d11c81ed5b266"
+   "json": "c9ab7b1d4c06422c54a2a2fdaf9467e92d9268642b20492fa87c8a103385dc80"
   },
   "tabcap-win-forge-optifine-vanilla-gs2-15rows-01": {
    "split": "train",
    "png": "7637661218123e7e9b4eb14794d965850c5ee308b095261c3754164f6f16eeae",
-   "json": "10da978d915e4c75c433474e1bebc33ee5b796b94fba494694f98a09d02aeace"
+   "json": "096dc122f8e335966f714b7faeb87c67bfc1b396b584c6ad8d5d57af79083af5"
   },
   "tabcap-win-forge-optifine-vanilla-gs2-game-start-15rows-01": {
    "split": "train",
    "png": "fed2774030221866e40b1610477b2a9c73352f94f809522fad3ff077a5aebea2",
-   "json": "bfc69c63973805b8f550c6882d84016f6d4dc7e079d6c28dcac70a1d703b5168"
+   "json": "7f070d90378a1f10dce4ee82df222f05bbd860501aff3898fb7b59de7c20ea64"
   },
   "tabcap-win-forge-optifine-vanilla-gs4-14rows-01": {
    "split": "test",
    "png": "798be35be456be4a480a188a12cab43606e831398c34232ea2c6a78b55d7f390",
-   "json": "75467e5b0d3b3c6e5760a7bcb9c835572ec4c55e071f4baa09625c19859b1bad"
+   "json": "23774ca6f9e85e83cd87fdbc89d58473ee5a22ac6b4ca8ce1add6dd3ac53e63e"
   },
   "tabcap-win-forge-optifine-vanilla-gs4-15rows-01": {
    "split": "test",
    "png": "7c3184b33ae481817716e5b7b29fdd441b93912fed80deca35f101b488f62c94",
-   "json": "584a05759382745765924ea134df04dd94cdb07d85413613d88af3cc34085c31"
+   "json": "5646c397e2e968df07af166e50eeeca185f40bb7377e33a8c1b6eb694cadf061"
   },
   "tabcap-win-forge-optifine-vanilla-gs4-16rows-01": {
    "split": "test",
    "png": "1408e2c715926190eb6b0f15220080ded560cb752bf953defb0e29156c54f6d5",
-   "json": "0b8fedc95b98561c5723bb4913b4679c9db63034b7fdfd9b57f1a9902f5f7d21"
+   "json": "5a068e6a8e2dc016dd6e720443f33506502b2642c78427ab58244fd18c349305"
   },
   "tabcap-win-forge-optifine-vanilla-gs4-no-tab-01": {
    "split": "test",
    "png": "90477e10a831171c94b08a89bb83940209105916da3877303f32e81d6d31324b",
-   "json": "2b53348d1b7216eb69ac403d14a69a6adf1f503c48f8afd68347aea1bfe29a3d"
+   "json": "5f2c43a31e44f4b169e88bb1df97ca98610e4ab6233439cff8cce4eab5edbec2"
   },
   "tabcap-win-forge-optifine-vanilla-gs4-respawning-15rows-01": {
    "split": "test",
    "png": "40c3900f47fd7a358acc914ccd8195e58db8e196d8615b1828324e54955cc1f4",
-   "json": "9dc5a069bafcd2b0c26957e5562b98b0cb6ba8c1134ff9848e4a0028ddfca266"
+   "json": "805950311530e7e019d251d12fd9e1068b45bb5a568cb4fd56bc1f546ccf5132"
   },
   "tabcap-win-lunar-betterbedwars-gs2-16rows-01": {
    "split": "test",
    "png": "7c287d5e7eec69db84426e5f600c2fe689a45fc80df83eacb553c0040d85fff6",
-   "json": "c494da48e240286b4e12970fb5d5750f496e94c84798d7fe64085c52c3b9bd77"
+   "json": "baae562ff29cfbc30cf6e9cfe3ef4894d7ccd4f5fd68b5ce5b11742b60aaec33"
   },
   "tabcap-win-lunar-betterbedwars-gs2-lobby-01": {
    "split": "test",
    "png": "6499374a0d36ef39d23ccce40469c0445cedb150dd590c007882af88dfc70716",
-   "json": "4f7d0938bcecd780e2107b8fcd926d4312875f88e4ea7554f1fa59a61eb29cfe"
+   "json": "b79ebf279db87107f51e7b10ef702d1fa9651005f74364721ffc36048f788729"
   },
   "tabcap-win-lunar-betterbedwars-gs2-no-tab-01": {
    "split": "test",
    "png": "aaaf17e40d3a7602c87d17aa3c5e8e5aadfee510b4e6968bdac95f8c983c0741",
-   "json": "cae52d29c687b21b40ca666bd7248735c477a9804f3952162b2dce01e738108d"
+   "json": "8af693a449b0dffcc332ee53a30ed3e3d4f815dfc03ed263891ec065abbda7ed"
   },
   "tabcap-win-lunar-vanilla-gs2-12rows-01": {
    "split": "train",
    "png": "ffc9bd79e84f340fca9cd35bc2dcf3df876169f0d73c39f203272236e1ab9e6d",
-   "json": "f206b057ba8a8925bf1484f100ff472545e5d4182a1333862124c63f26a46417"
+   "json": "922d0d2c3757c756be3b437f440e9ee75d0b019a97f713813fa7c9e8e7b4022e"
   },
   "tabcap-win-lunar-vanilla-gs2-12rows-02": {
    "split": "train",
    "png": "69bff18335b2cebc28f96625671afef582b7f2174298b634dbefaa8024889240",
-   "json": "bbf2834d293cee0dc3aaccc28edd8c3ed8426daebda44096bc6dc923090ef0c2"
+   "json": "072625b6428aa3c1d908d52022ff93328c03ad99798345df491b3d47850d9aaa"
   },
   "tabcap-win-lunar-vanilla-gs2-12rows-03": {
    "split": "train",
    "png": "73e69a454aa3f7c8729649f4682aef3eaf67953bebef0224e511854d490cd410",
-   "json": "1ec2c7689d3bdfe4979a8d37ec98fa9a2c3e8a98f3cb2d95bd0b82f08cdf8349"
+   "json": "30df76baa46f0fe26f2afd72b71a843b97e0b958169f1e416e60765110ffa660"
   },
   "tabcap-win-lunar-vanilla-gs2-16rows-01": {
    "split": "train",
    "png": "5acdf0ad93031c7659ee1cc29107f533f0e38733cc1eb83c379e4261a107755b",
-   "json": "9ea5b09716b0700ce8876cb82cd0248d0bcb2c39995d5a23d39536e875889193"
+   "json": "bcda0448655dc9b5cf980140f385bdfaf7579cfe546634ed79314dda0225a6f7"
   },
   "tabcap-win-lunar-vanilla-gs2-16rows-02": {
    "split": "train",
    "png": "7700cedf9658587a56040ddd53f94a9944fbc9eac3b89b40ca20a337c6b5a733",
-   "json": "29613446764e94fa57932063f60ed04c4f6fcdd42048d04431242fde70fcdf30"
+   "json": "da86fab909e06234424cc3b88fd3f69ab431225b62f5922844791b500eba7d13"
   },
   "tabcap-win-lunar-vanilla-gs2-game-start-16rows-01": {
    "split": "train",
    "png": "d200ad66f31f8041d098efa81f73ad415d1a182b5d8706cd7587705b70e8b443",
-   "json": "5a1459196f560a2c5dd77ef84ee9d148536da3a79aeac7dc96a69a9a50d07813"
+   "json": "3a4bf4c8ea20a2a09db533fe02ae7aa11d89b99db0934c5b6d4a883d58dc9b75"
   },
   "tabcap-win-lunar-vanilla-gs2-game-start-respawning-6rows-01": {
    "split": "train",
    "png": "e44b1276a0dda973ec730d4afed59ac076ddaf703a402b402be884090b842a1f",
-   "json": "6dff94b0ffc59f7c9e33afbdba3a4e82aa8c2654318bc1bb4f5328e0f821c26b"
+   "json": "3a48b00d58f52ae7e283d45fe5a8a0980153a8c6920ff6955657d788df5e8449"
   },
   "tabcap-win-lunar-vanilla-gs2-no-tab-01": {
    "split": "train",
    "png": "72ed2acce043ab1f42a19eb7418d1c2b987508a6dba6a39490943fca1dc64818",
-   "json": "b692277528f3a598def3d6eec230706513e62af75195311f4ed3e60432f6bedc"
+   "json": "c2203c51d08f268974072e7cd43166a1c6bc285947d36dab77b1807308dc2e91"
   },
   "tabcap-win-lunar-vanilla-gs2-no-tab-02": {
    "split": "train",
    "png": "537dd2e74ea354690db04ce29b9b9a3f3bbdf0925bc5fc624a330aebcd32d182",
-   "json": "fca6baca9dc0356fef68f4da1e42cf9a00ea81ff1acfeddbf09e42c4db661af7"
+   "json": "aad0d7bf72ba5de3996562936505cb4e5be62af1017825a56d84ec76358d9883"
   },
   "tabcap-win-lunar-vanilla-gs2-no-tab-03": {
    "split": "train",
    "png": "7f6819dc0855a263e4a55aec2fc367ad2d9d5d6117a7a60c95f99885554d59b7",
-   "json": "b7f8feaf1ec97d8f91779219994c221cb0fc0ae7c06bfb8337fc0a20474a6f6e"
+   "json": "c7dbaafed1780187a7a37bd5dceec0ed9cc9a2dbdf7695a60a16a98040fc70cb"
   },
   "tabcap-win-lunar-vanilla-gs2-respawning-10rows-01": {
    "split": "train",
    "png": "21e5667aaed94cd05a9a38572eaa246d458a89caaf504f94b34f67a30d2d8bf9",
-   "json": "f56c343d8fad21fbeb6e07cb9c78badf989837fe6b382e68b407ed78cf9dd7c0"
+   "json": "3f3a97d87f75c3747952ed1aa1edc260a4400ec3039030a254a005e009698cb7"
   },
   "tabcap-win-lunar-vanilla-gs2-respawning-6rows-01": {
    "split": "train",
    "png": "d3f8f80b9a7232f2d570a56104aac0302fb6d5a829d9e46c95a3c3fe7b0892b8",
-   "json": "f19bbfa9bbc32c1c8aa34274e8e030d940fc84a702f5806e51cffd83d96ecef1"
+   "json": "f37bcb4766d5792e6072129fe3a55a253338af8d1ae33ca54563a731ece26aee"
   },
   "tabcap-win-lunar-vanilla-gs2-respawning-covered-12rows-01": {
    "split": "train",
    "png": "cb2905786e52817c5545f43170c0e320ec8023bb0f53dc251b286759b33a5ec5",
-   "json": "6f483247421590786a2363e7351310cca0e946087e12bd70e683dd7112172632"
+   "json": "d83ff9524bca7a8039a6a4b05712096c9d4a878422ef57ec96691ec50bee2258"
   },
   "tabcap-win-vanilla-26-3-tc14-gs1-16rows-01": {
    "split": "test",
    "novel": "client vanilla-26.3",
    "png": "d8ae6ac6a160f950b07238f592789b8b76816758664ef41643106c9bc718e259",
-   "json": "7aed88f6c286b0c2e01f5d10aab330f2ecf306dc91564e03ff5489f24648f1ed"
+   "json": "3408419af565be2ff4bf74e98ddb846c0566173c9b8dc8a5f0d384fb93eb6874"
   },
   "tabcap-win-vanilla-26-3-tc14-gs2-16rows-01": {
    "split": "test",
    "novel": "client vanilla-26.3",
    "png": "a1965b6eec71cb927d3dcd6b0bf33c7e2cc702bd7e81b6fb6a3b1f23b5652875",
-   "json": "097558be62a72c139370c0df255f25c6a046a2b64f64e7e62ea497dc2aae6075"
+   "json": "2aa26bf4cf8e755bc8417c79d366e17b62f90e9f9ff1edfe9c1f3e4a1d050e2c"
   },
   "tabcap-win-vanilla-26-3-tc14-gs3-16rows-01": {
    "split": "test",
    "novel": "client vanilla-26.3",
    "png": "05fd1c04b23a668b585ee418723a7394df37e37edf70d0505011a7090ef2ac87",
-   "json": "09aa3dd0cf3ed796546e1bfb2f1e4d042bf67b3f5ba05c4f81ec02c138ce48d8"
+   "json": "e54faaeb436946149e195f2a5443e869a5ff49dcdc47ff353f5c28df2061bdd1"
   },
   "tabcap-win-vanilla-26-3-tc14-gs4-15rows-01": {
    "split": "test",
    "novel": "client vanilla-26.3",
    "png": "9cc2241b18fb283f16a616913c4616b6184434ecbf1fff9a6237472737ea2ae2",
-   "json": "8c04eb7f62bfaeb932ffced3cd175c650ba82886fc027e5f10227d4c1245de02"
+   "json": "30078d46eadd8d220f752fa1a3fdebd8caffe8facd55657f8325318fd81ea1c3"
   },
   "tabcap-win-vanilla-26-3-vanilla-gs2-16rows-01": {
    "split": "test",
    "novel": "client vanilla-26.3",
    "png": "e3b3de7c4b265c3c45f8ca8d81fe8a0c291f76e53963a898c08d7e910282f3e9",
-   "json": "6f3804ac279da73caaa3def40788b609b55344dc1943718506ad311756125b2a"
+   "json": "22dba6afaca3095b3354e47a7d7fd6b99e982760b3e53c5c2ae4192eaeba2d48"
   },
   "tabcap-win-vanilla-26-3-vanilla-gs2-16rows-02": {
    "split": "test",
    "novel": "client vanilla-26.3",
    "png": "e8c556064dbb8f23b2ad1c48b8cbc176801788f573c2ad5bbd340317c8c4122e",
-   "json": "9150760e16638c350994cc644605b6e0759cbb1181445ffb6a3a1c69c003f050"
+   "json": "4609a63bfedc1e8d2228b0b2e82982bb8662c4336f76bb493fcbd32711eaf479"
   },
   "tabcap-win-vanilla-26-3-vanilla-gs2-lobby-01": {
    "split": "test",
    "novel": "client vanilla-26.3",
    "png": "621d720d2c07b7bf070c1dea66576f7b62871655af6857959b9e9ed475ed9c7b",
-   "json": "f2f209ad40d91d2331952cbfc525c3f1d018c05e14711f102d1aa1b9bde92821"
+   "json": "00f73e2a8ee4a28b0db9ea1880fc9b19ffc6fe4315dcd27af35744a0a86caad5"
   },
   "tabcap-win-vanilla-tc01-gs1-15rows-01": {
    "split": "train",
    "png": "4206c02d620eb66b86dc1f2e8a3f8a874ca545cb6ea9dd9309267fc237415345",
-   "json": "d43078d2087a761e634e3ac8cf3b2ae730f94ebe9b8adb6b97b12d6984748463"
+   "json": "188f6bd6afefb068f909829a0177a932e2bb1beaed43b7399846f2b8865b068d"
   },
   "tabcap-win-vanilla-tc01-gs1-16rows-01": {
    "split": "train",
    "png": "333cb78984ab660d97499de92da872995e9c99c5c9aa0e93c2e09f37f4089c0c",
-   "json": "5aaeeac9ebaa348ce92d098ab2934aaf02787404ed7a68c03fc92931e08dca6f"
+   "json": "2a1a5f542d719daf5488d2828b8758142c9238a8452aeca2b49cf5c130e90fa1"
   },
   "tabcap-win-vanilla-tc01-gs2-14rows-01": {
    "split": "test",
    "png": "e166f5751068980c4c87b6cd478e7fcfc7a3aaeea1e612565c9211985ea81913",
-   "json": "c5e918579cf2c1b22618a196bfab95cdfe00ddedf61e1b0e115711cfb74b4240"
+   "json": "8c951adb1ffbb7454f89cf17f5f14046772bd21053e2b213dc525bd3988531a5"
   },
   "tabcap-win-vanilla-tc01-gs2-15rows-01": {
    "split": "test",
    "png": "5a93a9e54a8744434a6e17dfc84bdbe1535cd6d0d3122b854499b8bd5b5abc7d",
-   "json": "e7a1edd91d4ca3d9351fbd37c294ff765dd6ff0f536de1fcdfb9d708c5898dc8"
+   "json": "6a938fe2d45d24d5e522bc1eac371ba39df5c2e48291b56bd3aa69f828f64a9d"
   },
   "tabcap-win-vanilla-tc01-gs2-16rows-01": {
    "split": "test",
    "png": "d2da6c770a3402a52250056caa82198332a666ba04179363c9b13ee27266fbff",
-   "json": "94fb3c55fb603ccc78d99765d5fb0627af83524da85b61d52702eb1fe112f5ff"
+   "json": "4615086b17f0ddd781c39655ba7ae122a92ec73fabd4df1245cd4fbb6dd22d24"
   },
   "tabcap-win-vanilla-tc01-gs2-respawning-15rows-01": {
    "split": "test",
    "png": "07bcee4a6d6304c88d46abccea803b8df47aed47290e74e94ce2e31e0d64fc7b",
-   "json": "fa1f75bbce7729e83e7e9b261a16c1ff2890e00a34b8a74217fb4cf33116624a"
+   "json": "434e991be5a0ce5d207377c3ee1ecec0a5fb801a2600e5e0984faac8f8780133"
   },
   "tabcap-win-vanilla-tc01-gs3-16rows-01": {
    "split": "test",
    "png": "acd95f3a34d2a9a7822350a8aa8a3ac26967289067f21bb95b077233c5cc0141",
-   "json": "19678ddefb1dbf36a59dd6bab3b7c93522058c043af16946bde8b1b613cabb36"
+   "json": "2270b93fa8f9e39331a4c29b1665f07ed0541d6572694fd79070ebee67424758"
   },
   "tabcap-win-vanilla-tc01-gs4-16rows-01": {
    "split": "train",
    "png": "e31279e612084727f43a971ad5a8ebf9f1b3c0b256522ee8c0e539bbda91f635",
-   "json": "e6ad59468e93cff36605c49f6762f6cc5f4652dc2fb920b6a65aeeba6391baf1"
+   "json": "2e9bd0ce35bf209eb279e106a4ada4b0f95bf1fda9f6038577fbb9622f3c5559"
   },
   "tabcap-win-vanilla-tc02-gs1-16rows-01": {
    "split": "test",
    "png": "243e1063bc83954a24270a921364cddabd0c4852255fd3e9616bfda27df0895b",
-   "json": "913c4fea8ae9847d51d66fa87d6a6058203b2cee648f7baed6f263a2763b87af"
+   "json": "960c8c8994e83e65a20a6ed03f11615a9504a8996f27769feee42cec254dfc0a"
   },
   "tabcap-win-vanilla-tc02-gs2-15rows-01": {
    "split": "train",
    "png": "89e1a477500cc30cfd01b60ee56537103e32df04774fbaf7809decc3b420ffb0",
-   "json": "b9635fe1389dff7a11413a640d684062f285156527fc2b0715c69094360dc8d2"
+   "json": "2bb78f8d105258666ea1a320dedb8885dd3ee52fb678bbd49d2a35736ed19e90"
   },
   "tabcap-win-vanilla-tc02-gs2-16rows-01": {
    "split": "train",
    "png": "697741704a35ec9e22154b573f299aee9886efe5d78721eab8c1b893406f6a74",
-   "json": "7d8fc7ae834ace1fa6ac32765fdf8de610f00657da3a18fa2ce827618036a9cb"
+   "json": "977ddee0cad64c36df1914281cb20afda88bc7a14a4bf3974065cd8b5c86967d"
   },
   "tabcap-win-vanilla-tc02-gs3-13rows-01": {
    "split": "train",
    "png": "67bf82ac5ce9cd186f300f455b192de06cdc6744dd294fe73c84346b19cbf761",
-   "json": "32fbc7d1d161c9da1848f3a22ed7565c3d2514510070045fb0d5d02604ba0a22"
+   "json": "9a6475a4d25d607f4d39bd649aef523b3f9f3796d3f66431407ef78c75621d41"
   },
   "tabcap-win-vanilla-tc02-gs3-14rows-01": {
    "split": "train",
    "png": "f121b519c928d5e510799e0aa96c18b4fadc877b2ada59cfe469dd1f8081924d",
-   "json": "96fb3d803a26a1618d96033ad9bff1e25507e9e6708c5f2759c410e241aca3f1"
+   "json": "78a0abe4874d87a4189c081462a30c23f322405c1fcb08875f28ae632d6ae260"
   },
   "tabcap-win-vanilla-tc02-gs4-14rows-01": {
    "split": "test",
    "png": "3eb05d7e21a52ec4ef71ee8d09a260b6bca54e60bf388cb0cf9d32ab797aa5bf",
-   "json": "8620c3b7b3487752f4312f96b1bcfd7441e4e97b409f8b39ea2eb6f7d4e269aa"
+   "json": "54e0d16b3a63f986bcc258ee827bad913835209ff309828aa54190a082f2d388"
   },
   "tabcap-win-vanilla-tc03-gs1-13rows-01": {
    "split": "train",
    "png": "7bb68582191786ede379b34c0da6fe6c94ef3194bfc6daa41a7daf7bdf4c8673",
-   "json": "6ce79dc9c89a13649517b12975af30cc54ce67cad742449432ed3d0daf289560"
+   "json": "a3ed28dac66cf62d91d62c16eafcd9106eda9d8a7e094c4df4c2f5732aa8462a"
   },
   "tabcap-win-vanilla-tc03-gs2-14rows-01": {
    "split": "train",
    "png": "4dcde0ea7e93a9288bd8ba36b05eb3bbf8f2ccafea1b5f03ad0a99be52afa40d",
-   "json": "89dbdbaed99909ce127d04c5a6a35141aaafd119c85a71c5c38bbf899faf4a98"
+   "json": "ad3c67067caaafc7adeb01065fd4509c84a21de85ecf4f2b26cf0ee2cc45beec"
   },
   "tabcap-win-vanilla-tc03-gs3-12rows-01": {
    "split": "test",
    "png": "c75d70ac3c43fab846f1ffeffb54883cdff5ba7eb0406fdbae7190a6b3e84b2d",
-   "json": "6f6312c4f315ebfa8853fee05f3f2aa5021d97d8b446cdfa1bc1482ab08dee83"
+   "json": "cd1bab175f44a102cca2e75a4b3854f030b651db80bf5db3f458a52212a45b53"
   },
   "tabcap-win-vanilla-tc03-gs4-14rows-01": {
    "split": "test",
    "png": "017135ddb271fc69524c07b05b8bf48210c47a17b709f4e0973756e7ac8ea28c",
-   "json": "b445e3eb5874ce6863e8fd80b74c58adf1057ca5f4e113a42d46d78ec50f7eb7"
+   "json": "9678047a6ee73c1a595b25402cd1adeb1df4e01576256fe2b23fa83c6b5e9863"
   },
   "tabcap-win-vanilla-tc04-gs1-game-start-16rows-01": {
    "split": "train",
    "png": "bf479ce75e556363cba5aa8e86c955639f10fbef1c6e1efc5f20159d21bdbb1a",
-   "json": "553b707e989e1f3883a0c2776f1f4f6e296d61cc5f98d114bf78e49605c17a0e"
+   "json": "437b8b5861b71cee74c34393aa451e25cf81538696d351669c270e9919ed0764"
   },
   "tabcap-win-vanilla-tc04-gs1-spectator-8rows-01": {
    "split": "train",
    "png": "651968e958c9411216548dacda1ac16ba02f5736bd0716b1fe8d85c5bdd71bc2",
-   "json": "e8b1578051198a4e43bfee641521dfe6d3860d22e32f18df78fc6b32bd3f5008"
+   "json": "8f798b1bd6c1783cab175e8a0250a971a6331466fb6e1484dd23575a9a05ce97"
   },
   "tabcap-win-vanilla-tc04-gs1-spectator-9rows-01": {
    "split": "train",
    "png": "87210bc996da9f3dd21bc22585fee15bfe524a4b4afb9a1a49966d7c3c7fec91",
-   "json": "bff4b4cff34b57589bdbdfbdb9a8eafb19f98ac0c80436db1682ba09c9ea4bc1"
+   "json": "96ff003f89d959288d505309c5f19dc3eb98ce7cae42141ce5b9045727e9a43e"
   },
   "tabcap-win-vanilla-tc04-gs1-spectator-respawning-9rows-01": {
    "split": "train",
    "png": "5dcd2038bdcc68245ba983bfcd00e668ea8485dc2dfb150feb41ed7248446d68",
-   "json": "9791d5bd382e7db609018db4db26a60114573da47176cd463105a29ea92c6cdc"
+   "json": "2dfb0e13e9cb080410f23040bc9ced9ed9eab3a676e11add0bfb7c528b929664"
   },
   "tabcap-win-vanilla-tc04-gs2-16rows-01": {
    "split": "train",
    "png": "0866dfdc9d97f950acd964438140c286dc6be946b3a3d3c83476356c57dae0f6",
-   "json": "af0bcc297baa0b2dacfc14530c0b8afc2edc4fa4037950d82abf24f037dd25c2"
+   "json": "a5407c958af4577cf923050e708f84f82718db95385e212c4e77f5c33e3f562e"
   },
   "tabcap-win-vanilla-tc04-gs3-16rows-01": {
    "split": "train",
    "png": "615c2909f311033ad18d296f713409cf2a21e888fdfe2dc507d4cf359604b9a4",
-   "json": "173668cf51a8c70ff886fd60c6afc51990bd696a1cdc3ef799f36f38c67b9e69"
+   "json": "84c46a3a3266fbbbaff05ed8a56725fd1107e11c44b5f87518d1846dcdc16d0e"
   },
   "tabcap-win-vanilla-tc04-gs4-14rows-01": {
    "split": "train",
    "png": "4a35793ed4d62845ba9039a8fbf97505d07f5a7f86c457f87076b365e5466d4e",
-   "json": "d3aec56e6ce90a3b347eea645b7f33674d162de40750b6e18f4e0eebf31b38a2"
+   "json": "b1d27b87d5a8c5f5875187ab357c8710f7a1aacd78ae888e0926f2a1d0c310ce"
   },
   "tabcap-win-vanilla-tc04-gs4-15rows-01": {
    "split": "train",
    "png": "f9f7b30739f8a14b66f47971db8fe858037f95c280c9142e1177fef526e139a9",
-   "json": "459f3b021d8f20a9524b7a5004cfd7dccefbb3455097bd25ae58c2d0b1212edf"
+   "json": "fa2d56dee5257656b1fd14e64da73569bf0f67e0c78237980ebee01fe814d6cb"
   },
   "tabcap-win-vanilla-tc05-gs1-11rows-01": {
    "split": "test",
    "png": "31055c762de8fa54ac0bb76883abb5e3b352d9b18ddab5faacf8b17bcb948b76",
-   "json": "6e31ad81e59468197910b16b1861035f630631a78a94f6f5f104ca5793b5350e"
+   "json": "e7056a601130367cfa012cade72caa42de396f3f9430ebc503bdcb5ed8f80d39"
   },
   "tabcap-win-vanilla-tc05-gs1-12rows-01": {
    "split": "test",
    "png": "09e4802b4a65d38b6b50d0da28c461de5bc41d82f9d07445f20bdb298ec86398",
-   "json": "3ad275de5d94b2862a44274cc953b1b9b69857a42b0c633c5113b6d00deff9fc"
+   "json": "d44068e2513931584588b78a7e014b57b2131c89e00a738d4619332c889a5d86"
   },
   "tabcap-win-vanilla-tc05-gs1-12rows-02": {
    "split": "test",
    "png": "321710790cb5f07e2712ca30e8d348d435d62c712c194650d0c870f78e29d9ea",
-   "json": "09fab51ae2e0de975660038464f25ccb2f1528c8cb25c2443cdf743d929c3b41"
+   "json": "813f09ae90b5ae9a0bbcd183657eaa33edb9a2f49453747f4c599f2a4adea4e5"
   },
   "tabcap-win-vanilla-tc05-gs1-respawning-12rows-01": {
    "split": "test",
    "png": "912bf0cd84948e5c5669c49990d16546f7ef65f288fcb33c042a9ef52893377a",
-   "json": "d9e6d3eecf5a850ab1df8253706618f363727ace455cdadf55fb766c8b0ef024"
+   "json": "3596bb79723973aa6f11b323800df20e50988b52ee01bd09a78ca195be12552d"
   },
   "tabcap-win-vanilla-tc05-gs2-11rows-01": {
    "split": "test",
    "png": "aaed5f16c43a6b02bfe19cc9c751e8da3f5070ddd8dde16e81b5e80ef9845740",
-   "json": "fc181b01ad9d2c8ae1ebe207180c135f62f05d6b08a8d2a30d5b0709498d509b"
+   "json": "541ad3c719e810eb51bc703bec659d3263083da120801e9b10ff0639f450a030"
   },
   "tabcap-win-vanilla-tc05-gs2-11rows-02": {
    "split": "test",
    "png": "f1e6a5d040de33bc3512079722e25af499acd2ef378342c1a42f6682ef3ab152",
-   "json": "6e05395965b3d0e86834c34110955ddd16e9e189bf41ebcaae91573cd5132e70"
+   "json": "b6172fd19c221d3830feb5dd5c9df9364c02db6b08f01ea41226feda527f8fe9"
   },
   "tabcap-win-vanilla-tc05-gs2-13rows-01": {
    "split": "test",
    "png": "25556560dbe7cdd500091956ab21c9814eae1baa7c3bc1e91142be2f64afd191",
-   "json": "e0ca3fb8a198fe3ad9ba6e4a85d5b2e12eb7281ebb91ffb37c9491d1d1f9b4aa"
+   "json": "1b8aa6ba8478a6da77a3d4854c29bbf1371cd6cd53632a0017d593be6c4663c5"
   },
   "tabcap-win-vanilla-tc05-gs2-9rows-01": {
    "split": "test",
    "png": "15d7910c65b7e2f138c2faf5760fbf86d86367d7c5c5e7d05f16b46b7a684f8f",
-   "json": "3714fd2b054ec56675783bbc7f9731d4f0ac4203f6a689923297d08488cbe97e"
+   "json": "055904e65fcd668beba2ea71f948015e315de5505d55b3c2388e4a7b45eb3c56"
   },
   "tabcap-win-vanilla-tc05-gs2-respawning-14rows-01": {
    "split": "test",
    "png": "4c99405c8310a14862a2d18716c7112fb9d2d631f5ec31829a97bd3e24f34fd7",
-   "json": "1aa2e6f9df73c85133c861cef8bcf5c4605bc22ed67eb74a1dc69d3696ed0ba1"
+   "json": "11f62c89bd898216cbda873641a08b9dadc6559b55385dcbfabb5ddcbf20a64a"
   },
   "tabcap-win-vanilla-tc05-gs3-12rows-01": {
    "split": "train",
    "png": "c8352ad4bbe0c581dab1b3633501068ec541964f780bdbedb77d2844035211fd",
-   "json": "ab8b251c338e50002f3a4841afaf78f6477a7168e558ec1a9cf5e49a644968ad"
+   "json": "573dcad45a1eb325ac5e1a55c7d2da9b034b002e0ea9e50d5a0fda4d3bdb076d"
   },
   "tabcap-win-vanilla-tc05-gs3-16rows-01": {
    "split": "train",
    "png": "bf58eb5d6ca2ea49a4886eb5d739495e1707e8ecdfe7917aba6994df2c83cc94",
-   "json": "921f1a493f7350211c74717bcbda3c01dca2c327b890bc6511d9b6583a4b2ac7"
+   "json": "97769836627bbbe23b8d71407908a057c2ab3bbfac65491f4e21f80f51ab8e72"
   },
   "tabcap-win-vanilla-tc05-gs4-12rows-01": {
    "split": "train",
    "png": "a78a7155cfbdd17b336cead0a4601c9c595c3adcbc733249ca4e7636c0665baa",
-   "json": "eb826409fbd75cd6fb387a959f8cd44fb487dacd1f354ab6d48966a77aa30d80"
+   "json": "0a9cbfaf81633664b9900dcf5cb7c35f8c977f9c7c2d0406ececa8565ba9c292"
   },
   "tabcap-win-vanilla-tc05-gs4-14rows-01": {
    "split": "train",
    "png": "5615d1836b278c0e1f84a4da614a35e3829dfdb30c2d4cb1334b6399ada87999",
-   "json": "5d1344eb275fbad325c47035d635e3f446379436b5449aeee3ab78bdd914c41b"
+   "json": "da91d1aaa0c0b3efe6da808280464f211ce528d2a4eace8d903ae0a7586b35e4"
   },
   "tabcap-win-vanilla-tc05-gs4-15rows-01": {
    "split": "train",
    "png": "d14938db446f76af634729d8c7a1d48e197fa81f9c9fdf48b9795c80cd3a45c0",
-   "json": "43b361c4ab581be7bbf68981d4a0b1e6d5b73369326bd8f8cf021d9798f48fa1"
+   "json": "dc471d722823fe62de8cdb38dab8e6c40ebd9bc81ab8045c3e1045e74b8c884c"
   },
   "tabcap-win-vanilla-tc06-gs1-8rows-01": {
    "split": "train",
    "png": "fb2241af4a83edb05c00256fde4bdbc913c972d954f13b066563f0bbf62f2822",
-   "json": "a06def52d9d91dc87bd2e2dc02dce512d15784ff4802d8fbdb9ef6e43515eb57"
+   "json": "655d5bebc38828c49393e8dc036e157c1b14229122bf99b6c742f4dfc2aff207"
   },
   "tabcap-win-vanilla-tc06-gs1-respawning-8rows-01": {
    "split": "train",
    "png": "38f9dfa0844472a3c06814663fe4c281513a563f2c1d80b90a032fc3a840cfd3",
-   "json": "5fae6d5a3f765be820b1d65f28a151050429c80058a134e768ab18a68101fd1b"
+   "json": "e279604db7673035d9d8e97dc40a53792345a29f61f347ac00266d3d38fc7395"
   },
   "tabcap-win-vanilla-tc06-gs1-respawning-8rows-02": {
    "split": "train",
    "png": "f854ebdb7973f58c10c431b4b0299c6a6d45bddba6f1710f6a860bf78043fb4d",
-   "json": "0111741b7a101e4a68300694cc69576f663a1a0113b26a5f13fab82270553cfd"
+   "json": "ca4626bd7997a2214a5de9ec2da88d7a4de28559acf76b982a65afb7128a640d"
   },
   "tabcap-win-vanilla-tc06-gs1-respawning-9rows-01": {
    "split": "train",
    "png": "b4f36816e373a727f6688a9e50e7d8275e4675ed84540a1d1a01d70d037ee8df",
-   "json": "6446178d79314819b7adfd929086048e4ecebffd403e85a8cff00a2426c88b93"
+   "json": "2ad84901e6ff234edea9321ae01905ba8f1db6eeaf1ed583c423eea25bc78147"
   },
   "tabcap-win-vanilla-tc06-gs1-respawning-9rows-02": {
    "split": "train",
    "png": "b267639ef50f0a8e93abb9404496757fb7b153783a973b11e7984f43c967dd82",
-   "json": "bf785d1f6e195dfba86aac93acae6c4a9f9e039bf716a4e5ab23adcaf4a3fc7b"
+   "json": "65e7194ea9eb8b9eea02fab74f6b05034083f31eda356e60c9a228252d2b189f"
   },
   "tabcap-win-vanilla-tc06-gs1-respawning-9rows-03": {
    "split": "train",
    "png": "7aeb5faec58879752d656bd14cab6bbfb46764bf819ea352f2a1cab42a2deb7a",
-   "json": "9f5e5aea82398cf04d7afc5f5048ef6b7f8078125251e28f188a9840b0470422"
+   "json": "6bea335839971a909c3cbb85bd5d1499a86f128e5e29324f5b71ae45c1f932c8"
   },
   "tabcap-win-vanilla-tc06-gs2-9rows-01": {
    "split": "train",
    "png": "67571d10885a026674a6ed8c240e30288f1b30ce55cf9434b8d3a2a94fa7d173",
-   "json": "3fc15a088dd9cd55a2349c7140922d90376e879f1d4d339fa90dfb726adfeb80"
+   "json": "11cb136fde745399126fc5f71f15f870cbe26dee76b48da7b15921be01584fd2"
   },
   "tabcap-win-vanilla-tc06-gs3-9rows-01": {
    "split": "test",
    "png": "87019955e6f3d6578829f1c5f257a237c80db23c499588a26184e7d9eaac3757",
-   "json": "2e4abdf603bf338b2cf32e17fed1a2a6382bd692420bff7b54df9c13cf853537"
+   "json": "1ed5f0c53646f87233d23141b9c2660526eaffdeaaa078bde01e38bd623367dc"
   },
   "tabcap-win-vanilla-tc06-gs3-no-tab-01": {
    "split": "test",
    "png": "8e334727b82a36f7592c614ff0e0c25f0f2c701ba6fa78ebb95ceb697e0e046a",
-   "json": "b86e05acb5b75b3c30a931b551c0517924b29d79eb307f8d6f76e8bb9e74f347"
+   "json": "d2b2b0d8686445f1f6b0f9b6a5a329f7bdc304df2c1f9d0bb6bd3540f0b2facf"
   },
   "tabcap-win-vanilla-tc06-gs4-9rows-01": {
    "split": "train",
    "png": "aec9d909c14c5830193a707083c5d3f9604f1c73a307de76ad58633f25c637d5",
-   "json": "9b0b645d9da5d9192cdfa5e18352b05127238da447722d224fb3ec08814af395"
+   "json": "e2f555313d4f2e09cd04b5adb1ee8d68fd4deec90347fef2ebda63384e0982bf"
   },
   "tabcap-win-vanilla-tc07-gs1-8rows-01": {
    "split": "test",
    "png": "607fdc89f1c16809822f90cfb5ff66dac7bdc9265aea1e97588cc54f206070ae",
-   "json": "fff802c36cfb5554049bbe358a39c27d7b8eeccf640bf7a5420a0cc1bf82b26d"
+   "json": "8b11fcd10a6b9244d79f33399e80414737dbea3ce385ab0d21178bd61753877f"
   },
   "tabcap-win-vanilla-tc07-gs1-9rows-01": {
    "split": "test",
    "png": "d28bdc7b9bddf22017f95a5305bdc6e87b35c2464df3e117a1760d80d240d685",
-   "json": "9a6437e201f2e316990de38934cf722654acbc45cb3b4549eaac220060c1eac3"
+   "json": "f8fc5f7e2669516af2891d19c630282d502e880a8b856ed043c7b287852b7478"
   },
   "tabcap-win-vanilla-tc07-gs2-8rows-01": {
    "split": "train",
    "png": "ecbbbdc3bfdfb691f6d75856904cb593bc08348ccfe1e3f6ba78c1c3e36dab3c",
-   "json": "e55921a51a12cc24f72244a99db9461c131f0d7efac41d0ce44e33d44221e2cf"
+   "json": "24b51928429db22f4b8fc943dfe87184c039455d7c6358d836d87182a086a7d1"
   },
   "tabcap-win-vanilla-tc07-gs2-respawning-9rows-01": {
    "split": "train",
    "png": "d8ad1961b38b346ddaff9a19bbd4b6c5fde317595498b0074c309d8dd3bf25af",
-   "json": "d5ca4fbc46ab98755a5d85a24ba14e5d1eb8afc81e49fca031ce2af889a3c08a"
+   "json": "3a0d81995b8c9022f05a81ace5aa0cdc8fccef068e0bdec6188b4fe5a5e0c867"
   },
   "tabcap-win-vanilla-tc07-gs3-8rows-01": {
    "split": "train",
    "png": "1e337098695ba2ffaff40cfd357056dad2f88bf0bfee2551e5d73374cd3dae39",
-   "json": "8d76ca2715e6edf1be2c7ae33fe34c35ccf175de159804eb4466d7e25487e398"
+   "json": "49f1b9b843bc7af3a706896c4f828abf452b88091952a3a3ddb7418fbea6e608"
   },
   "tabcap-win-vanilla-tc07-gs4-8rows-01": {
    "split": "train",
    "png": "0ba9715bd95da82910918f5d63a893eb01238abae14fdd842cef1fbc2625937d",
-   "json": "40cb2fa06f5e662b4fb7164cf68932fb47944fc857717c287d9812cfab2d6c04"
+   "json": "b62506a05d098d2acaf47cb9250ead8d7e29dcd42e35ca4c472cbe892bae74c3"
   },
   "tabcap-win-vanilla-tc08-gs1-8rows-01": {
    "split": "train",
    "png": "8c38b8295e23eceb2fd07a9b8501f53f80b1c0b38191bfbfb832afea1e0ce4e8",
-   "json": "1165dc0eb5eeb3d70129048502184883659cddc1c32ea961f88c9253c7f70570"
+   "json": "ff83e246c555b4290a9ccea25abd9cec335be076b445cf86c5246c4d2ded48af"
   },
   "tabcap-win-vanilla-tc08-gs1-no-tab-01": {
    "split": "train",
    "png": "2a4b1fcce8b28f0d55b9d060afaddc78eedc2d9a823bbbcc49477de8e904daaa",
-   "json": "06133ca288ff491a56d6b9eddfd2e2d7fab437912c6b861328e3169b89c3c620"
+   "json": "cb309ec95454c42e65c5731afa53c37f2cc3466c7dc2d19ba61ce319971aeab8"
   },
   "tabcap-win-vanilla-tc08-gs2-7rows-01": {
    "split": "train",
    "png": "844ba18cb01b3f49eab43cdfd6c5be1c50b059cb3a13f26b4231ebf8e2c647b0",
-   "json": "671230a526e31f657d382e44d36b60de5bdf12cbfda5d77a5ca8a9f00c265d86"
+   "json": "b16b7be89b564024b1519ffbed22d2a239745664f041b8b9db7bc8dc57fb77d0"
   },
   "tabcap-win-vanilla-tc08-gs2-8rows-01": {
    "split": "train",
    "png": "50e08e6a4f336db4fe1d48c364db5dff071513198521d595d0344c6535530cde",
-   "json": "8de3a4edc415fbb80e14d709aba043955a9278c0ec25310512a946a5fd65aae5"
+   "json": "8a0e02d161e0965c8dceaa1ea55023ea425d510b46d744e49d3e0ce59fdddccd"
   },
   "tabcap-win-vanilla-tc08-gs3-7rows-01": {
    "split": "train",
    "png": "8217469b6eb60b40624551ff5bf03eea123b8f0461a48e89efe21937f1a1c2fe",
-   "json": "a61cb124835839b2ec0ae70518b6957dfcb055c236737498eeda820e6f254cea"
+   "json": "e2dba0ce43c8d36d606d3fc51a0e62d9caf0002f5694be0f7ae22486b9a2bb81"
   },
   "tabcap-win-vanilla-tc08-gs3-respawning-7rows-01": {
    "split": "train",
    "png": "f0b496220adec7082b7f61e2ad8dc894a3aac8b98aa229a367d08a9225aafb1b",
-   "json": "b0e6426905c2c09374635840b9e3f54970d7fa04bf2e4470165eb261c7c433bf"
+   "json": "b4c8d73dc31c118d9bdf251b3b18ae9946d69078ad426869a55c8df2b9a95849"
   },
   "tabcap-win-vanilla-tc08-gs4-8rows-01": {
    "split": "test",
    "png": "0502e90137e1ff520dfa426589195869a6299e0cca0ac6faeb34c8f0a30afc55",
-   "json": "57ee26cd9e2a3008a2c5136cf6c56ac32320f7b967ea14d1585c32624194bfee"
+   "json": "48f8047f109d8b2688fb39817f287e8d16bcc9a9bb22abfe535249eb7a86a217"
   },
   "tabcap-win-vanilla-tc09-gs1-8rows-01": {
    "split": "test",
    "novel": "font tc09 (anti-aliased)",
    "png": "1851037338c8e41f8ac2c556927f76c135c1a195e65b51bb43f447e7c62796d5",
-   "json": "26e364f0ca65a61c7306b55348375c734043681c09cb7019805d534c6828f2a2"
+   "json": "ff97fb0a6cbf820450fc22eb7d70dc7fa35b0f801d175e0ff05f9f220243a04f"
   },
   "tabcap-win-vanilla-tc09-gs2-7rows-01": {
    "split": "test",
    "novel": "font tc09 (anti-aliased)",
    "png": "a1fa930c57c4a8b23fe535b32d0de8c9705a6b2caf4c02b2bc7739fe5cab3fee",
-   "json": "53a9188c4686e73c3c7d114be2e417757c277add84103b599acb0abe0d97c406"
+   "json": "818e8ce5dcf492bddec3fcaf6da95337ac39c8b45f449e1f36258ada131a5519"
   },
   "tabcap-win-vanilla-tc09-gs3-7rows-01": {
    "split": "test",
    "novel": "font tc09 (anti-aliased)",
    "png": "852f757fb61166e4fa33621ff7bf66b880e72e9464723b6e750353a37decd855",
-   "json": "b1088f374c5cad00a4b68ab92bcb4396ed43fc033533bfef562746d10fca5783"
+   "json": "2aee54b6830fefd06e2bc7618c8747763a9ccf5b0438efc29a010e2b65b32bf8"
   },
   "tabcap-win-vanilla-tc09-gs4-5rows-01": {
    "split": "test",
    "novel": "font tc09 (anti-aliased)",
    "png": "882b7ec1a00bd7b6392fea53eb6bfa44e9b0d4baeedcaca9d37f0e819dab265a",
-   "json": "86714026e57022e83b586af7eb758c032f7e266d2ea2a56d728f07e5e55ae067"
+   "json": "aac397fffdc3d89aab0054f73a2c633c3f5e5b7e27d29e42840feb398d365841"
   },
   "tabcap-win-vanilla-tc09-gs4-6rows-01": {
    "split": "test",
    "novel": "font tc09 (anti-aliased)",
    "png": "497fcdd855ba2879ba08510db39c620e4aa8be0da6d44a39b3a9ddc29c99c82a",
-   "json": "6a8de6d4eb593ff2ebfd69c88afa182d81a499503ed76496179a8005cd74a478"
+   "json": "5636ae37320cd1a4e13b5092747101e29c274b021d3cec78ca005f6a414653a6"
   },
   "tabcap-win-vanilla-tc09-gs4-6rows-02": {
    "split": "test",
    "novel": "font tc09 (anti-aliased)",
    "png": "a4ecbd007d0150ed6722f4072f3a2fac90d4cdabd45040fdd0e58409e6878aef",
-   "json": "f53de56abff9d1f12d26accf8bebc7332b0438bce0259d2c56ce96dac797fa41"
+   "json": "80f9d81eb7b89061777a1bd02893281d77535092142177102aff705e5f823856"
   },
   "tabcap-win-vanilla-tc10-gs1-16rows-01": {
    "split": "test",
    "png": "e0cd934cb869d9d0e5be406c2a66483c98efade3c411db77bec3f0e517b98479",
-   "json": "abb0619231f9c4034cdbc188c805206a44df1deb3f28efb1245e98dac278dc2f"
+   "json": "795ef57b46f61035d169303242549eae06200e154875777d43d7c20909de0779"
   },
   "tabcap-win-vanilla-tc10-gs1-6rows-01": {
    "split": "test",
    "png": "d65de98fb56ce950c929c878c3b41c372168681f0f3936062bd586ce2f67e22f",
-   "json": "a6897982ade20c9c75f4a46b58019d3e5fc8e4869f59d653cee670ccce3e3ada"
+   "json": "c4fa6e5b709b8dd9698e08ca21a7bf4177034d17181d7afaf40be158e1da41b0"
   },
   "tabcap-win-vanilla-tc10-gs1-game-start-two-columns-16rows-01": {
    "split": "test",
    "png": "576613194c4580c02f2516e0b65734a50541779896a624a4a2a8dcc8e8a02011",
-   "json": "d161b9cc397a0b78fe8fd1ac59fdf4a93b39e3d99dfd808bdaaad033e2f8e90e"
+   "json": "ed60850d55aada8190550426ed6639c822c413251781f8cc961678a3aa617b31"
   },
   "tabcap-win-vanilla-tc10-gs1-lobby-01": {
    "split": "test",
    "png": "9fcc1467fdc62e52fc4e4a1804fe296846e9dcf7f8e5867e62be30c36ef8191b",
-   "json": "9d7662d633f0a36d35a3bd3f978dc25c7ea8f20e84f3a4b594ad6457e074d33b"
+   "json": "90991086d8bedb3f74dca02c3cf452c22863c5a225d2cfb24d498fc0054b1925"
   },
   "tabcap-win-vanilla-tc10-gs1-no-tab-01": {
    "split": "test",
    "png": "3f118cd69f2289f395f287f7deeac88bb5de6b827facdcc445db044194da0339",
-   "json": "dfada12e17b518987b1730c9055e078e9ad8b29737531d5a2f80c16a11fe9ebd"
+   "json": "0f9bfc23349be6765dcf8ccce7f5d2082bf96fa8e3297096976e460366c54964"
   },
   "tabcap-win-vanilla-tc10-gs2-14rows-01": {
    "split": "train",
    "png": "486251a02618f820d31d2ac77d3a00447fb25208ea3a151fc7e1043f2ec14e5e",
-   "json": "f10c558a112b2e016ea3df1c7a24937c3eca50fb21d4dc73fe34f4694463e82c"
+   "json": "b6730b5d5daf96cb49d93b29f180be63cd305c8a0c37a420b9d3f325879ffec0"
   },
   "tabcap-win-vanilla-tc10-gs3-13rows-01": {
    "split": "train",
    "png": "9ceb293a74b93a546b59771cbe635f1273743f710f47ab35aa8ff49810bfd9b3",
-   "json": "10ed45a08be194f5024e93114b864df95073ebb2854501406bf94438bd538dc3"
+   "json": "2a2c29fd0d7d83f1bf2a045e2ca12f9036eb7beca0f1482f4641bc19f7eb916b"
   },
   "tabcap-win-vanilla-tc10-gs3-14rows-01": {
    "split": "train",
    "png": "88e887e0c7950637ddef73e65c03f78280824e289c5c3eac0a444db2de4bbe8a",
-   "json": "ef795aefd9f1702d3b51057efeca819a575804dc1c51697fd7a6fec5d8f3ffba"
+   "json": "614169092616274cbe82c38426e82cac057613829f3f0d877cc4e48061df59fe"
   },
   "tabcap-win-vanilla-tc10-gs4-13rows-01": {
    "split": "train",
    "png": "74adb5e1573fb512b2c0e238cbdae64f89f93048855f56c7852cb57fad0418d1",
-   "json": "1a983dffd6de5bafaddcae8ff7a6658a44f6782672fbd9fccdebbd52e9072bbf"
+   "json": "ed436cd4be17ab90613eba6a0335c150c8c6c46610c8372e9827081ccf3309a1"
   },
   "tabcap-win-vanilla-tc10-gs4-respawning-14rows-01": {
    "split": "train",
    "png": "aa1b77593fdc6cdfc739e3ee6d8266e5809dd4d95d1d3cb0ba380d63f12e7150",
-   "json": "40438127fa782fa3fe32ff08d0111b0d3f4c8bda69953bfffad90dc8b6a78936"
+   "json": "7eb36d49aad56aa4f9ecb93bc770f3979ec9a13c7916c6f5f1ff5837b8840b13"
   },
   "tabcap-win-vanilla-tc11-gs1-12rows-01": {
    "split": "test",
    "novel": "font tc11 (wide)",
    "png": "202f8f8bf3fc07e66a6644106208fb0db941d6125a50f3d2714365e4890f1393",
-   "json": "52ed25aa9a0e3da9ac52ef73075be9405d6ac869125bcbd8db7c181428c44209"
+   "json": "ffe4ce14483478908f32f28f7677524e60d77ca387c13af932c3ebc2653771c2"
   },
   "tabcap-win-vanilla-tc11-gs2-13rows-01": {
    "split": "test",
    "novel": "font tc11 (wide)",
    "png": "e70accba4e6c0f4b00362b9e39934c5628bafd61ac03ee571c7c5ef5df93f36b",
-   "json": "581f46eaf113ef93e2a9b6e412c64a19395c92b48caf2561f09c37730521d4eb"
+   "json": "d7fe1764f62192cff2b8ba9fed55b3ec7508ab23098b3a3acb255f980e4b4171"
   },
   "tabcap-win-vanilla-tc11-gs3-10rows-01": {
    "split": "test",
    "novel": "font tc11 (wide)",
    "png": "38bc0f36e6763e68dbd7217f506bb4d0cbba9849b4b9b22e90b092b6617b9095",
-   "json": "f98223d6dae5b8f02eeef11df8799955b823801c59df950159104e14e7e034ac"
+   "json": "57fe0f3c681d62b25cd377cf38b583bebd982df3cfe45747780dbcf1aa2a5edf"
   },
   "tabcap-win-vanilla-tc11-gs3-11rows-01": {
    "split": "test",
    "novel": "font tc11 (wide)",
    "png": "52d7505e8c896b2f92b6aa7ded305c1f76caa3affde9423d1005d143c1a23c7a",
-   "json": "e9a872ac1bd3959a3026e8bad3732c4cd4cab3554b648e02950fb89df19cae52"
+   "json": "7e0c42472c6f523584fd69db5ff08a8a1b1db2cb2c5212b5395970a0c4bf5b5e"
   },
   "tabcap-win-vanilla-tc11-gs4-13rows-01": {
    "split": "test",
    "novel": "font tc11 (wide)",
    "png": "d345a900419dfc457e104e0d91041b7e6b3104fff21bb20091cc6cbc956cdafd",
-   "json": "84e6b835fa219d1507031badf2ebbb333e335da42ec13dfc827e46f35c87b77a"
+   "json": "9ac3750adff8c67caa1c12c39efda95876114673d23867d73423c4dfa7595ac2"
   },
   "tabcap-win-vanilla-tc11-gs4-respawning-13rows-01": {
    "split": "test",
    "novel": "font tc11 (wide)",
    "png": "cd91bf843f86442e513bc1e2fd9d817566625b2c14f84b952b614d9465a99075",
-   "json": "f811cbf2d1257622dcdd2a3887847d615339436726efe7f38511daaf3f143bb1"
+   "json": "c71c5ffbccca0316ee1e8c72bdee249e57513a0dd520fc75db3e84d23a2515d5"
   },
   "tabcap-win-vanilla-tc12-gs1-10rows-01": {
    "split": "train",
    "png": "8508feda6cebf3996f696b83756724d10d355f5c9825698e88c10a19238354df",
-   "json": "6a3d56a6beb27767d3fefb0219faace3dafef746b958d9170746cd16c961f16d"
+   "json": "72aa89310d591c998774f1e36992d0d2bd0310a07efaaf91b9073fb07c5525d7"
   },
   "tabcap-win-vanilla-tc12-gs2-10rows-01": {
    "split": "test",
    "png": "f12abcf975e34ef791b1a1d0410fc6d56560e7e38e8420a72c373d4f07a9df19",
-   "json": "5554e4e10c1f8ab8313160d6dc965f28394631c8aa5cf64e9d6e2997fb4b8b81"
+   "json": "122bb97d8f76eb8ed8bbf83fd248fb77cee4a514255cc7df3164044052f19a0f"
   },
   "tabcap-win-vanilla-tc12-gs3-10rows-01": {
    "split": "train",
    "png": "367830f424b885c1ed10770cf05af5994e13e4fc728054b65cb80811ec8e499d",
-   "json": "eb7ff6d732fb3c2a63250b053e60510b9ab507ae7376604a7803a7cb551963ce"
+   "json": "ecc8a0659868b9d3c384bd08b639c49548b8a856465918ef3290a3c9e015843d"
   },
   "tabcap-win-vanilla-tc12-gs3-9rows-01": {
    "split": "train",
    "png": "cde7cf7bfda19ab3397d8738f68f2d7572952cd037263a05a22fe455c3040761",
-   "json": "f3fe20e0b7929eae3b85af96bebcc0e70e0c7f11c84545e1a651173acba7ca6e"
+   "json": "287b353f9cb87482258da32f8890488fa575bbce85a7eaa176ce1fd4d0ec88b9"
   },
   "tabcap-win-vanilla-tc12-gs3-9rows-02": {
    "split": "train",
    "png": "b1a236fd5eee490eac04020707bb07d49a652f460260cb4d86a1b017d9c3b2fe",
-   "json": "243b967f09d9ab0f174061f8365fe697a8c7c955f573c662402c800405e51f55"
+   "json": "ac7705f16b34e0fb62c014755e835044d6ffaffb74507402a75980c98f14af0a"
   },
   "tabcap-win-vanilla-tc12-gs3-respawning-10rows-01": {
    "split": "train",
    "png": "afe3235cfe0d3f0ea412def8aaab972969504245533d9b9a78febc5e2bbb7751",
-   "json": "cc448c1fcaf632530094392e36f1fea286f60158e5993616f8a8921e347d21b6"
+   "json": "15639573186d61f56f0b1d774e06b0880e089d495b99075e2454180dbe8372c9"
   },
   "tabcap-win-vanilla-tc12-gs4-10rows-01": {
    "split": "train",
    "png": "1bb5a2926b2d2ceb95ca716e49244c47ba88e46e4263aba7e169f0b714470997",
-   "json": "931057164febd5eb803d52697c7ba89002320f9166c9910cb2886d3cc31bb772"
+   "json": "54227e089f8cbf99445377bfb8217e88fc3f5c6ee8aae5284602fe3f03b7bef1"
   },
   "tabcap-win-vanilla-tc16-gs1-16rows-01": {
    "split": "test",
    "png": "09fa063ffc245bef5dcc5db2572197ccc3e1640f2d7bb7b9c712ec9087d5e882",
-   "json": "c9a498091e8680c5ef6693942393c3bdb790ecdbfea370f0c13b0a84cf229a35"
+   "json": "fba3fdca2fdf86e76fcdeb22b68fefce76b97d06ee94dafaf48c8834ddbf7680"
   },
   "tabcap-win-vanilla-tc16-gs1-game-start-two-columns-16rows-01": {
    "split": "test",
    "png": "8dfc7b41e6337d0dcd589b4e1652a99fa6e4c87dd86a34b5d871dbb36bd67e94",
-   "json": "9c9ba02d4d4f4cd3e55fd617d3765bb65a4d96218a68f72e0ab4fb3403b6ae0f"
+   "json": "d9ab98f304771cc7b3edf0a9674094ae6201bdfcd6d8d4b8d8f7d5e394ed454b"
   },
   "tabcap-win-vanilla-tc16-gs1-no-tab-01": {
    "split": "test",
    "png": "0910db7bd6b582b9c4754617d54b9501b7d4b5b635391cc7aef977d6bc4f6da7",
-   "json": "953757e46cee1dd5b4fb118cc0627d9b86d4f32a211f3694771466da8a982147"
+   "json": "b5c170eca7e460dce60f768f9bc858f955218652af788334b6aadd3dcc8b2fa0"
   },
   "tabcap-win-vanilla-tc16-gs2-16rows-01": {
    "split": "train",
    "png": "5087c29cdc014c34d59a9bf97bf7cf339235744dd1ac8621526c7b9bf85e19b5",
-   "json": "ee16e6f427039fb72b62c919e09c640be5d24384e766955437b3a988f979a4e1"
+   "json": "44f29afa6bfa841d83683f1193c4e50d3b5caac56ec986366defc96b73ad4cc6"
   },
   "tabcap-win-vanilla-tc16-gs3-16rows-01": {
    "split": "test",
    "png": "a9fe4fdeb29c25999adb7444f710d78e2accd27e779ba1ff658674b3da4e926f",
-   "json": "b0c2d5c30c1d2ff65e9f6179332024b443eecfd2a60e1a59fe5854d0d0091e53"
+   "json": "e90e46d42b7db96a43344114c4cb1febda69804976d192d3e2a666a0984bd755"
   },
   "tabcap-win-vanilla-tc16-gs4-16rows-01": {
    "split": "train",
    "png": "c665a31f609143f2215dae9b449488dacf6f3e6a9d9d0a4954305612e29c03ad",
-   "json": "8d1f2a26261a316b8af59b60f435f2a985daaeb9a545c150ac5c37dbd4f51a44"
+   "json": "e0db34380ae36143073a174ccb5f8c939bae8b6e120278603cdb13e735b31815"
   },
   "tabcap-win-vanilla-tc17-gs1-15rows-01": {
    "split": "train",
    "png": "427c0e7d05c0381df016477547b12b9c24a8bdd04f641868d5620af5bc90788d",
-   "json": "8e93927051fcadc9ad3501256958b5dadd5488318025443eabc7cf3acb7f8ee3"
+   "json": "f189131e42780b74e581341fdedcd1f052fe3adf7c74ce9c13da6a8e1a32b082"
   },
   "tabcap-win-vanilla-tc17-gs2-14rows-01": {
    "split": "test",
    "png": "8b580618770f52b069deb8f00537f9cc1593d9ce451383f2eb96571b9f0b10d2",
-   "json": "3bfc47c90567f5139ea5a45d399b16d9228a2c432fd7faa832a468635de36b5d"
+   "json": "e6bbe71f9069b0c1231b59ebcf45070e37c98379afc42fb2cfa3837d71ca357c"
   },
   "tabcap-win-vanilla-tc17-gs2-respawning-14rows-01": {
    "split": "test",
    "png": "bf4fd386dc800878e245e0ba91a316e4656727b775286350e620cc3ef8d36d2d",
-   "json": "f61670b65e8342c20eb1053c1c2a4ce17fa2886017cc4f4f502088a073f125c9"
+   "json": "7c7b3d0de1445d10e351a6bac89d5146bfc36930959387fbc036780baa40325f"
   },
   "tabcap-win-vanilla-tc17-gs3-spectator-15rows-01": {
    "split": "train",
    "png": "4d13d601d0ff0c488763027c6a5dac97f4f3975202208ed76781d02e6560ca20",
-   "json": "1b1c50267136d3c2bcc3c581ce58b25399c6307dba90faa7ddc96cdc98e9128f"
+   "json": "1fb0bfbe11e61a8c82c9bcfea8a7d04571b3401ab936f7a71ba8b30157a8d76a"
   },
   "tabcap-win-vanilla-tc17-gs4-spectator-13rows-01": {
    "split": "train",
    "png": "aa3f98266ae3d1065a699526c3d69f802fd60607d9215646bd221e149f686cb6",
-   "json": "f3e65c91e4d6370437a7a019e34f25790608f9411a8cf61f045a8da91b6d8050"
+   "json": "f5b066c36e326f7312a6aafe76a6156fd7b5cfa689712b00a795680db4bfb97b"
   },
   "tabcap-win-vanilla-tc17-gs4-spectator-14rows-01": {
    "split": "train",
    "png": "4ddf28156f9edfaea48fb95d12ce6444439d791d8f9ecc9c6e67c0215cd10ce7",
-   "json": "ac78c2c1c123eca0d627be7e58e32e78795f4bd691bdba68701979633e4cacf9"
+   "json": "7cd579e98fde446b561cc1ee5cefee7b1bacb25589fbb7d8090fb645d528b278"
   },
   "tabcap-win-vanilla-tc17-gs4-spectator-14rows-02": {
    "split": "train",
    "png": "97d75f56e2e03e20879167ccfda4bcb7c0eeda5e6bba7fef1ca9d95b00effc19",
-   "json": "022228eaebf059da9a24a09829f16552d6ea522e4c211c59ca32ef40d0b5ff7e"
+   "json": "96d109552a7802d54ba491a773f962c6db03a6d4d6211938ff175ef84e975b05"
   },
   "tabcap-win-vanilla-tc17-gs4-spectator-respawning-15rows-01": {
    "split": "train",
    "png": "76032d3cdc4e3233946a7c511503a1b6b9fb0a7d305f5578ba1330328bce169c",
-   "json": "ccf1fe579d63ca82267cdb98fb411e5b2042f75c763178516377203c03e4ec8a"
+   "json": "0407989430b13e0aa411ca167841877b536699062125fe0c0c88e686a263f9bd"
   },
   "tabcap-win-vanilla-vanilla-gs1-16rows-01": {
    "split": "train",
    "png": "07527b867404650e0bf54a80d14f3bfc6b2fd4113b14207d7e33104da565a677",
-   "json": "5eb48c353bd97d215fa07ccbb2aa0697b3e628c077f6cee9f16b0fcbb9540be4"
+   "json": "cd08d317b16650bce938bb22b3ad84425cf7a408521c6aae4de73c47e1b7ed37"
   },
   "tabcap-win-vanilla-vanilla-gs1-game-start-16rows-01": {
    "split": "train",
    "png": "91a9e5ee7b0c0bd11fb106ff078e74c54cf730cf7ed79227d7a9e5e5088ca54a",
-   "json": "9856363c94e83978cf4985076339e34137253c57d52f5aaad2b3d75f748a9714"
+   "json": "60b9df219f4a4db00565d7c5d8b4f6407f1094197660e6bf31518db531235396"
   },
   "tabcap-win-vanilla-vanilla-gs2-16rows-01": {
    "split": "test",
    "png": "ff7d42b1b53a104fc46a232ae51d2024b7f85d4ee75e701b10398277076bd77c",
-   "json": "4f6275a049df53431c2fceee7762d5eae46dbaf5dfb3280a4e6d44547c61ac42"
+   "json": "e90bc312ca19fc8ac529f393708917a2d883dd70127bd5b8719c150f07173b7e"
   },
   "tabcap-win-vanilla-vanilla-gs3-16rows-01": {
    "split": "test",
    "png": "87567dd03c5ff0136ad4dbcb3486306097585e7984dd86316fde636300406df3",
-   "json": "ba2dadc11c87b14f5586a6b69517ae5aa7521c69caaf79ae34157699eb72fc9c"
+   "json": "41c1914caf0a9d0549afa2dc5f34eaf07a1afccd98ada87d27c7187626516cc6"
   },
   "tabcap-win-vanilla-vanilla-gs4-16rows-01": {
    "split": "train",
    "png": "a560d045609f4fa43742f07eab1e2020cac01cdec0a396e3ec1e42051aa06bb9",
-   "json": "e9b05862eb3967ba7ba475f2cdb880339dc7a5b6d671d4f4fe03158814b4c7e0"
+   "json": "089d7fe51517c0588598acf3d65081e975c8e309a1a15d2b5cadd14f8f59e265"
   },
   "tabcap-win-vanilla-vanilla-gs4-no-tab-01": {
    "split": "train",
    "png": "6608e5e45f8e71cbd6254423adf6abad564de8334caa6177b5305ef5dcb69973",
-   "json": "bf96cdacb5cf3bc911c57fd42a178e6a8b0d68e3cf4fdb4f38915feed8fc7c84"
+   "json": "4d75edaaa74746d78db8f7e3ca83abe3cda662deed9c5cf8e8aab476b8ce756d"
   },
   "tabcap-win-vanilla-vanilla-gsx-lobby-01": {
    "split": "test",
    "png": "435770bd7078af1f8c3dcbe76ba107ff4e132ec9f2b01c759a9fa4bffc4d51eb",
-   "json": "f4684856af405c29d4625a0bfef0eaa7de2d8124d6d83da270ea5acd6f25e2b5"
+   "json": "a284798ae4d00d619f2ac57e685cc3e275e3bb5d8d0727983ac6ba9a0d6940ee"
   }
  }
 }

@@ -14,13 +14,12 @@ Train / test split (prototype plan, "Training and test data"):
 - all: per-image tests on train, summary on all fixtures. For the final check.
 --tabcap=train --tabcap-update rewrites tabcap_expected.json.
 
-tabcap_expected.json, per image, players by outcome (label = the truth):
-- correct: {name: team}
-- wrong: {name: "got <team>, label <team>"}
-- unknown: {name: "label <team>"} (no team read)
-- unscored: {name: team read or null} (no team in the label: respawning,
-  spectator, npc, or covered by the overlay)
-- extra: {name: team} (known, not in the list, but got a team)
+tabcap_expected.json, per image, players by outcome (label = the truth,
+fixtures schema v2: every row scored, see the fixtures README):
+- correct: {name: team, or null for a row with no team that got none}
+- wrong: {name: "got <team>, label <team or no team>"}
+- unknown: {name: "label <team>"} (has a team, none read)
+- extra: {name: team} (not in the list: dead, left, NPC; an error)
 An improvement moves names from wrong / unknown to correct.
 """
 
@@ -51,20 +50,16 @@ _results: dict[str, tuple[dict[str, Any], Outcome]] = {}
 
 
 def outcome(label: dict[str, Any], got: dict[str, str]) -> Outcome:
-    out: Outcome = {k: {} for k in ("correct", "wrong", "unknown", "unscored")}
+    out: Outcome = {k: {} for k in ("correct", "wrong", "unknown")}
     for row in label["rows"]:
         name, team = row["name"], row["team"]
-        if name is None:
-            continue
         read = got.get(name)
-        if row.get("npc") or row.get("covered") or team is None:
-            out["unscored"][name] = read
-        elif read == team:
+        if read == team:
             out["correct"][name] = team
         elif read is None:
             out["unknown"][name] = f"label {team}"
         else:
-            out["wrong"][name] = f"got {read}, label {team}"
+            out["wrong"][name] = f"got {read}, label {team or 'no team'}"
     names = {row["name"] for row in label["rows"]}
     out["extra"] = {n: t for n, t in got.items() if n not in names}
     return {k: dict(sorted(v.items())) for k, v in out.items()}
@@ -121,16 +116,16 @@ def test_outcome() -> None:
             {"name": "Carol", "team": "green"},
             {"name": "Dave", "team": "gray"},
             {"name": "Eve", "team": None, "state": "respawning"},
-            {"name": None, "team": None, "npc": True},
+            {"name": "Me", "team": None, "state": "spectator", "covered": True},
+            {"name": "Zed", "team": "aqua", "covered": True},
         ]
     }
-    got = {"Alice": "red", "Carol": "blue", "Eve": "red", "Frank": "pink"}
+    got = {"Alice": "red", "Carol": "blue", "Eve": "red", "Zed": "aqua", "Npc": "pink"}
     assert outcome(label, got) == {
-        "correct": {"Alice": "red"},
-        "wrong": {"Carol": "got blue, label green"},
+        "correct": {"Alice": "red", "Me": None, "Zed": "aqua"},
+        "wrong": {"Carol": "got blue, label green", "Eve": "got red, label no team"},
         "unknown": {"Dave": "label gray"},
-        "unscored": {"Eve": "red"},
-        "extra": {"Frank": "pink"},
+        "extra": {"Npc": "pink"},
     }
 
 
@@ -165,9 +160,11 @@ class Score:
         def pct(n: int) -> str:
             return f"{n / rows:6.1%}" if rows else "     -"
 
+        # A team for a name not in the list is an error too
+        wrong = self.wrong + self.extra
         return (
             f"{group:<34} {self.images:>4} {rows:>5} {pct(self.correct)} "
-            f"{pct(self.wrong)} {pct(self.unknown)} {self.extra:>5}"
+            f"{pct(wrong)} {pct(self.unknown)} {self.extra:>5}"
         )
 
 
@@ -195,5 +192,6 @@ def test_summary(
         f"--tabcap={selection}, {MANIFEST.version}",
         header,
         *(scores[g].line(g) for g in sorted(scores, key=lambda g: (g != "all", g))),
-        "Exit criteria: correct >= 85 %, wrong < 2 % (extra counts as wrong)",
+        "wrong includes extra (a team for a name not in the list)",
+        "Exit criteria: correct >= 85 %, wrong < 2 %",
     ]
