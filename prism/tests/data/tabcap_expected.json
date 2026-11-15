@@ -17,6 +17,7 @@
   "unknown": {
    "jamie836": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-12rows-02": {
@@ -37,6 +38,7 @@
    "__d4ni3l": "label gray",
    "jamie836": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-13rows-01": {
@@ -58,6 +60,7 @@
   "unknown": {
    "jamie836": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-13rows-02": {
@@ -79,6 +82,7 @@
   "unknown": {
    "jamie836": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-13rows-03": {
@@ -100,6 +104,7 @@
    "__d4ni3l": "label gray",
    "jamie836": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-13rows-04": {
@@ -121,6 +126,7 @@
   "unknown": {
    "jamie836": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-13rows-05": {
@@ -141,6 +147,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-01": {
@@ -163,6 +170,7 @@
    "__d4ni3l": "label gray",
    "jamie836": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-02": {
@@ -185,6 +193,7 @@
    "__d4ni3l": "label gray",
    "jamie836": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-03": {
@@ -207,6 +216,7 @@
   "unknown": {
    "L1u8k9a5": "label red"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-04": {
@@ -229,6 +239,7 @@
   "unknown": {
    "jamie836": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-05": {
@@ -250,6 +261,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-06": {
@@ -272,6 +284,7 @@
    "__d4ni3l": "label gray",
    "jlynmc": "label white"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-07": {
@@ -294,6 +307,7 @@
    "__d4ni3l": "label gray",
    "jamie836": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-08": {
@@ -315,6 +329,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-15rows-01": {
@@ -338,6 +353,7 @@
    "__d4ni3l": "label gray",
    "jamie836": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-15rows-02": {
@@ -361,6 +377,7 @@
   "unknown": {
    "TutiRajuan": "label aqua"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-16rows-01": {
@@ -385,6 +402,7 @@
    "__d4ni3l": "label gray",
    "jamie836": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-16rows-02": {
@@ -408,6 +426,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-respawning-14rows-01": {
@@ -430,6 +449,7 @@
    "__d4ni3l": "label gray",
    "jamie836": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "replay-linux-forge-bombies-gs2-respawning-16rows-01": {
@@ -454,6 +474,7 @@
    "__d4ni3l": "label gray",
    "jamie836": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-16rows-01": {
@@ -477,6 +498,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-16rows-02": {
@@ -500,6 +522,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-6rows-01": {
@@ -513,6 +536,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-7rows-01": {
@@ -527,6 +551,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-covered-16rows-01": {
@@ -550,6 +575,7 @@
    "niekon36": "label white",
    "xCarbink": "label green"
   },
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-covered-16rows-02": {
@@ -574,12 +600,14 @@
    "darkalaya": "label aqua",
    "xCarbink": "label green"
   },
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-lobby-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-respawning-covered-13rows-01": {
@@ -600,6 +628,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-respawning-covered-15rows-01": {
@@ -622,6 +651,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-respawning-covered-15rows-02": {
@@ -645,6 +675,7 @@
    "darkalaya": "label aqua",
    "xCarbink": "label green"
   },
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-3rows-01": {
@@ -655,6 +686,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-14rows-01": {
@@ -676,6 +708,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-15rows-01": {
@@ -698,6 +731,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-15rows-02": {
@@ -720,6 +754,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-respawning-15rows-01": {
@@ -742,6 +777,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-respawning-3rows-01": {
@@ -752,12 +788,14 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-lobby-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-14rows-01": {
@@ -779,6 +817,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-16rows-01": {
@@ -802,6 +841,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-16rows-02": {
@@ -825,6 +865,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-16rows-03": {
@@ -849,6 +890,7 @@
    "hajin_09": "label gray",
    "whimsical_plague": "label aqua"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-16rows-04": {
@@ -872,6 +914,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-16rows-05": {
@@ -895,6 +938,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-6rows-01": {
@@ -908,6 +952,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-7rows-01": {
@@ -922,6 +967,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-8rows-01": {
@@ -937,6 +983,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-8rows-02": {
@@ -952,6 +999,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-12rows-01": {
@@ -971,6 +1019,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-16rows-01": {
@@ -994,6 +1043,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-16rows-02": {
@@ -1017,6 +1067,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-16rows-03": {
@@ -1040,6 +1091,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-7rows-01": {
@@ -1054,6 +1106,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-respawning-5rows-01": {
@@ -1066,6 +1119,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-two-columns-16rows-01": {
@@ -1089,24 +1143,28 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-lobby-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-lobby-02": {
   "correct": {},
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-noclient-nofont-gsx-no-tab-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc02-gs1-15rows-01": {
@@ -1129,6 +1187,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc02-gs2-14rows-01": {
@@ -1150,6 +1209,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc02-gs2-15rows-01": {
@@ -1172,6 +1232,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc02-gs3-14rows-01": {
@@ -1193,6 +1254,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc02-gs3-15rows-01": {
@@ -1215,6 +1277,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs1-11rows-01": {
@@ -1234,6 +1297,7 @@
   "unknown": {
    "_tnm": "label white"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs1-respawning-12rows-01": {
@@ -1254,6 +1318,7 @@
   "unknown": {
    "_tnm": "label white"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs2-11rows-01": {
@@ -1272,6 +1337,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs2-12rows-01": {
@@ -1292,6 +1358,7 @@
   "unknown": {
    "Hyrv": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs2-respawning-12rows-01": {
@@ -1311,6 +1378,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs3-10rows-01": {
@@ -1329,6 +1397,7 @@
   "unknown": {
    "Hyrv": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs3-11rows-01": {
@@ -1347,6 +1416,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs3-respawning-11rows-01": {
@@ -1365,6 +1435,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs4-11rows-01": {
@@ -1383,6 +1454,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs4-12rows-01": {
@@ -1403,6 +1475,7 @@
   "unknown": {
    "f1sak": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc04-gs3-10rows-01": {
@@ -1420,6 +1493,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc04-gs3-11rows-01": {
@@ -1438,6 +1512,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc05-gs2-15rows-01": {
@@ -1460,6 +1535,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc05-gs3-15rows-01": {
@@ -1483,6 +1559,7 @@
    "Mega_Moon": "label yellow",
    "Ryan_Pinguin": "label yellow"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc05-gs4-10rows-01": {
@@ -1501,6 +1578,7 @@
   "unknown": {
    "Tillmann_PvP": "label yellow"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc05-gs4-15rows-01": {
@@ -1524,6 +1602,7 @@
    "Mega_Moon": "label yellow",
    "Ryan_Pinguin": "label yellow"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc06-gs1-15rows-01": {
@@ -1546,6 +1625,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc06-gs3-13rows-01": {
@@ -1566,6 +1646,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc06-gs3-14rows-01": {
@@ -1587,6 +1668,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc06-gs4-12rows-01": {
@@ -1606,6 +1688,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc06-gs4-13rows-01": {
@@ -1626,6 +1709,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc07-gs1-12rows-01": {
@@ -1646,6 +1730,7 @@
    "endofjourney": "label white",
    "goku_mekory": "label white"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc07-gs2-12rows-01": {
@@ -1665,12 +1750,14 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc07-gs2-no-tab-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc07-gs3-12rows-01": {
@@ -1690,6 +1777,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc08-gs3-spectator-12rows-01": {
@@ -1710,6 +1798,7 @@
    "goku_mekory": "label white",
    "ryanyz": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc08-gs3-spectator-13rows-01": {
@@ -1731,6 +1820,7 @@
    "goku_mekory": "label white",
    "ryanyz": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc08-gs3-spectator-respawning-12rows-01": {
@@ -1751,6 +1841,7 @@
    "goku_mekory": "label white",
    "ryanyz": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc08-gs4-spectator-13rows-01": {
@@ -1772,6 +1863,7 @@
    "goku_mekory": "label white",
    "ryanyz": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-10rows-01": {
@@ -1790,6 +1882,7 @@
    "Phantamvoid": "label green",
    "Sunny1912": "label blue"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-8rows-01": {
@@ -1806,6 +1899,7 @@
    "Ryan_Pinguin": "label yellow",
    "Sunny1912": "label blue"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-9rows-01": {
@@ -1823,6 +1917,7 @@
    "Ryan_Pinguin": "label yellow",
    "Sunny1912": "label blue"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-respawning-10rows-01": {
@@ -1841,6 +1936,7 @@
    "Phantamvoid": "label green",
    "Sunny1912": "label blue"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-respawning-10rows-02": {
@@ -1859,6 +1955,7 @@
    "Ryan_Pinguin": "label yellow",
    "Sunny1912": "label blue"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs3-spectator-10rows-01": {
@@ -1877,6 +1974,7 @@
    "Phantamvoid": "label green",
    "Sunny1912": "label blue"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs3-spectator-9rows-01": {
@@ -1894,6 +1992,7 @@
    "Orion233": "label pink",
    "Sunny1912": "label blue"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs3-spectator-9rows-02": {
@@ -1911,6 +2010,7 @@
    "Ryan_Pinguin": "label yellow",
    "Sunny1912": "label blue"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs1-9rows-01": {
@@ -1928,6 +2028,7 @@
    "wilhelmhaes": "label yellow",
    "yCut": "label red"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs1-spectator-10rows-01": {
@@ -1946,6 +2047,7 @@
    "endofjourney": "label white",
    "goku_mekory": "label white"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs3-9rows-01": {
@@ -1962,6 +2064,7 @@
    "wilhelmhaes": "label yellow",
    "yCut": "label red"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs3-spectator-10rows-01": {
@@ -1980,6 +2083,7 @@
    "endofjourney": "label white",
    "goku_mekory": "label white"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs4-8rows-01": {
@@ -1996,6 +2100,7 @@
    "wilhelmhaes": "label yellow",
    "yCut": "label red"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs4-spectator-10rows-01": {
@@ -2014,6 +2119,7 @@
    "endofjourney": "label white",
    "goku_mekory": "label white"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc16-gs1-spectator-8rows-01": {
@@ -2029,6 +2135,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc16-gs4-spectator-7rows-01": {
@@ -2043,6 +2150,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc16-gs4-spectator-8rows-01": {
@@ -2058,6 +2166,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc16-gs4-spectator-respawning-8rows-01": {
@@ -2073,6 +2182,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs1-11rows-01": {
@@ -2091,6 +2201,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs1-spectator-8rows-01": {
@@ -2106,6 +2217,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-10rows-01": {
@@ -2123,6 +2235,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-10rows-02": {
@@ -2140,6 +2253,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-11rows-01": {
@@ -2158,6 +2272,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-11rows-02": {
@@ -2176,6 +2291,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-8rows-01": {
@@ -2191,6 +2307,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-9rows-01": {
@@ -2207,6 +2324,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-spectator-12rows-01": {
@@ -2226,6 +2344,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-spectator-8rows-01": {
@@ -2241,6 +2360,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-10rows-01": {
@@ -2258,6 +2378,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-12rows-01": {
@@ -2277,6 +2398,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-9rows-01": {
@@ -2293,6 +2415,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-vanilla-gs1-10rows-01": {
@@ -2310,6 +2433,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-vanilla-gs1-11rows-01": {
@@ -2328,6 +2452,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-vanilla-gs1-respawning-11rows-01": {
@@ -2346,6 +2471,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-vanilla-gs2-15rows-01": {
@@ -2368,6 +2494,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-vanilla-gs2-game-start-15rows-01": {
@@ -2390,6 +2517,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-12rows-01": {
@@ -2409,6 +2537,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-12rows-02": {
@@ -2428,6 +2557,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-12rows-03": {
@@ -2447,6 +2577,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-16rows-01": {
@@ -2470,6 +2601,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-16rows-02": {
@@ -2493,6 +2625,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-game-start-16rows-01": {
@@ -2516,6 +2649,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-game-start-respawning-6rows-01": {
@@ -2529,24 +2663,28 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-no-tab-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-no-tab-02": {
   "correct": {},
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-no-tab-03": {
   "correct": {},
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-respawning-10rows-01": {
@@ -2565,6 +2703,7 @@
    "Skydeaf": "got aqua, label no team"
   },
   "unknown": {},
+  "npc": {},
   "extra": {
    "Sorcier4Wish": "pink"
   }
@@ -2580,6 +2719,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-respawning-covered-12rows-01": {
@@ -2600,6 +2740,7 @@
    "lbrsn": "label green",
    "n9ice": "label red"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc01-gs1-15rows-01": {
@@ -2622,6 +2763,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc01-gs1-16rows-01": {
@@ -2645,6 +2787,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc01-gs4-16rows-01": {
@@ -2668,6 +2811,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc02-gs2-15rows-01": {
@@ -2690,6 +2834,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc02-gs2-16rows-01": {
@@ -2713,6 +2858,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc02-gs3-13rows-01": {
@@ -2733,6 +2879,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc02-gs3-14rows-01": {
@@ -2754,6 +2901,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc03-gs1-13rows-01": {
@@ -2774,6 +2922,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc03-gs2-14rows-01": {
@@ -2795,6 +2944,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs1-game-start-16rows-01": {
@@ -2818,6 +2968,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs1-spectator-8rows-01": {
@@ -2834,6 +2985,7 @@
    "opdar": "label white",
    "wjddmsS2": "label pink"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs1-spectator-9rows-01": {
@@ -2851,6 +3003,7 @@
    "wjddmsS2": "label pink",
    "yeloverye": "label green"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs1-spectator-respawning-9rows-01": {
@@ -2868,6 +3021,7 @@
    "opdar": "label white",
    "wjddmsS2": "label pink"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs2-16rows-01": {
@@ -2891,6 +3045,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs3-16rows-01": {
@@ -2914,6 +3069,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs4-14rows-01": {
@@ -2936,6 +3092,7 @@
   "unknown": {
    "Skydeaf": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs4-15rows-01": {
@@ -2958,6 +3115,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc05-gs3-12rows-01": {
@@ -2977,6 +3135,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc05-gs3-16rows-01": {
@@ -3000,6 +3159,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc05-gs4-12rows-01": {
@@ -3019,6 +3179,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc05-gs4-14rows-01": {
@@ -3040,6 +3201,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc05-gs4-15rows-01": {
@@ -3062,6 +3224,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-8rows-01": {
@@ -3077,6 +3240,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-8rows-01": {
@@ -3093,6 +3257,7 @@
    "lumiysa": "label aqua",
    "zjee": "label aqua"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-8rows-02": {
@@ -3108,6 +3273,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-9rows-01": {
@@ -3125,6 +3291,7 @@
    "lumiysa": "label aqua",
    "zjee": "label aqua"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-9rows-02": {
@@ -3142,6 +3309,7 @@
    "lumiysa": "label aqua",
    "zjee": "label aqua"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-9rows-03": {
@@ -3158,6 +3326,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs2-9rows-01": {
@@ -3175,6 +3344,7 @@
   "unknown": {
    "lumiysa": "label aqua"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs4-9rows-01": {
@@ -3191,6 +3361,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc07-gs2-8rows-01": {
@@ -3207,6 +3378,7 @@
   "unknown": {
    "iKASD6": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc07-gs2-respawning-9rows-01": {
@@ -3224,6 +3396,7 @@
    "Skydeaf": "label gray",
    "iKASD6": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc07-gs3-8rows-01": {
@@ -3240,6 +3413,7 @@
    "Stracke_ciresi": "label pink",
    "iKASD6": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc07-gs4-8rows-01": {
@@ -3256,6 +3430,7 @@
    "Stracke_ciresi": "label pink",
    "iKASD6": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs1-8rows-01": {
@@ -3271,12 +3446,14 @@
    "lumiysa": "label aqua",
    "zjee": "label aqua"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs1-no-tab-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs2-7rows-01": {
@@ -3291,6 +3468,7 @@
    "iKASD6": "label gray",
    "zjee": "label aqua"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs2-8rows-01": {
@@ -3306,6 +3484,7 @@
    "lumiysa": "label aqua",
    "zjee": "label aqua"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs3-7rows-01": {
@@ -3320,6 +3499,7 @@
    "iKASD6": "label gray",
    "lumiysa": "label aqua"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs3-respawning-7rows-01": {
@@ -3335,6 +3515,7 @@
    "elYanB": "label blue",
    "iKASD6": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc10-gs2-14rows-01": {
@@ -3356,6 +3537,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc10-gs3-13rows-01": {
@@ -3377,6 +3559,7 @@
   "unknown": {
    "_t1mothy_": "label pink"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc10-gs3-14rows-01": {
@@ -3398,6 +3581,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc10-gs4-13rows-01": {
@@ -3419,6 +3603,7 @@
   "unknown": {
    "ToxicManoah": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc10-gs4-respawning-14rows-01": {
@@ -3441,6 +3626,7 @@
   "unknown": {
    "ToxicManoah": "label gray"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs1-10rows-01": {
@@ -3459,6 +3645,7 @@
    "ZimbleMeister": "label aqua",
    "jiiiieun2": "label blue"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs3-10rows-01": {
@@ -3477,6 +3664,7 @@
    "ZimbleMeister": "label aqua",
    "jiiiieun2": "label blue"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs3-9rows-01": {
@@ -3494,6 +3682,7 @@
    "ZimbleMeister": "label aqua",
    "jiiiieun2": "label blue"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs3-9rows-02": {
@@ -3511,6 +3700,7 @@
    "TzupuBusniucu": "label aqua",
    "ZimbleMeister": "label aqua"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs3-respawning-10rows-01": {
@@ -3529,6 +3719,7 @@
    "ZimbleMeister": "label aqua",
    "jiiiieun2": "label blue"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs4-10rows-01": {
@@ -3547,6 +3738,7 @@
    "ZimbleMeister": "label aqua",
    "jiiiieun2": "label blue"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc16-gs2-16rows-01": {
@@ -3571,6 +3763,7 @@
    "plocque": "label white",
    "plsfixlag": "label red"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc16-gs4-16rows-01": {
@@ -3594,6 +3787,7 @@
    "plocque": "label white",
    "plsfixlag": "label red"
   },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs1-15rows-01": {
@@ -3616,6 +3810,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs3-spectator-15rows-01": {
@@ -3638,6 +3833,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs4-spectator-13rows-01": {
@@ -3658,6 +3854,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs4-spectator-14rows-01": {
@@ -3679,6 +3876,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs4-spectator-14rows-02": {
@@ -3700,6 +3898,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs4-spectator-respawning-15rows-01": {
@@ -3722,6 +3921,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-vanilla-gs1-16rows-01": {
@@ -3745,6 +3945,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-vanilla-gs1-game-start-16rows-01": {
@@ -3768,6 +3969,7 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-vanilla-gs4-16rows-01": {
@@ -3791,12 +3993,14 @@
   },
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-vanilla-gs4-no-tab-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
+  "npc": {},
   "extra": {}
  }
 }

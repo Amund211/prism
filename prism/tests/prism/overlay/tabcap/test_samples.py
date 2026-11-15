@@ -19,7 +19,8 @@ fixtures schema v2: every row scored, see the fixtures README):
 - correct: {name: team, or null for a row with no team that got none}
 - wrong: {name: "got <team>, label <team or no team>"}
 - unknown: {name: "label <team>"} (has a team, none read)
-- extra: {name: team} (not in the list: dead, left, NPC; an error)
+- npc: {name: team} (an NPC row, not a player; an error)
+- extra: {name: team} (not in the list: dead or left; an error)
 An improvement moves names from wrong / unknown to correct.
 """
 
@@ -61,7 +62,9 @@ def outcome(label: dict[str, Any], got: dict[str, str]) -> Outcome:
         else:
             out["wrong"][name] = f"got {read}, label {team or 'no team'}"
     names = {row["name"] for row in label["rows"]}
-    out["extra"] = {n: t for n, t in got.items() if n not in names}
+    npcs = set(label["npcs"])
+    out["npc"] = {n: t for n, t in got.items() if n in npcs}
+    out["extra"] = {n: t for n, t in got.items() if n not in names | npcs}
     return {k: dict(sorted(v.items())) for k, v in out.items()}
 
 
@@ -118,14 +121,23 @@ def test_outcome() -> None:
             {"name": "Eve", "team": None, "state": "respawning"},
             {"name": "Me", "team": None, "state": "spectator", "covered": True},
             {"name": "Zed", "team": "aqua", "covered": True},
-        ]
+        ],
+        "npcs": ["tizignbh", None],
     }
-    got = {"Alice": "red", "Carol": "blue", "Eve": "red", "Zed": "aqua", "Npc": "pink"}
+    got = {
+        "Alice": "red",
+        "Carol": "blue",
+        "Eve": "red",
+        "Zed": "aqua",
+        "tizignbh": "pink",
+        "Gone": "white",
+    }
     assert outcome(label, got) == {
         "correct": {"Alice": "red", "Me": None, "Zed": "aqua"},
         "wrong": {"Carol": "got blue, label green", "Eve": "got red, label no team"},
         "unknown": {"Dave": "label gray"},
-        "extra": {"Npc": "pink"},
+        "npc": {"tizignbh": "pink"},
+        "extra": {"Gone": "white"},
     }
 
 
@@ -152,7 +164,7 @@ class Score:
         self.correct += len(result["correct"])
         self.wrong += len(result["wrong"])
         self.unknown += len(result["unknown"])
-        self.extra += len(result["extra"])
+        self.extra += len(result["extra"]) + len(result["npc"])
 
     def line(self, group: str) -> str:
         rows = self.correct + self.wrong + self.unknown
@@ -192,6 +204,6 @@ def test_summary(
         f"--tabcap={selection}, {MANIFEST.version}",
         header,
         *(scores[g].line(g) for g in sorted(scores, key=lambda g: (g != "all", g))),
-        "wrong includes extra (a team for a name not in the list)",
+        "wrong includes extra (a team for an NPC or a name not in the list)",
         "Exit criteria: correct >= 85 %, wrong < 2 %",
     ]
