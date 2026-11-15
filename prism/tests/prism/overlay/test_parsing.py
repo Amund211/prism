@@ -686,6 +686,34 @@ parsing_test_cases: tuple[tuple[str, Event | None], ...] = (
         LobbyListEvent(usernames=["Player1", "Player2"]),
     ),
     (
+        # Lobby swap on vanilla 26.3
+        "[13:07:04] [Render thread/INFO]: [System] [CHAT] Sending you to mini22T!",
+        LobbySwapEvent(),
+    ),
+    (
+        # Lobby join on vanilla 26.3
+        "[13:07:04] [Render thread/INFO]: [System] [CHAT] Player1 has joined (12/16)!",
+        LobbyJoinEvent(username="Player1", player_count=12, player_cap=16),
+    ),
+    (
+        # Game starting soon on vanilla 26.3
+        "[13:07:05] [Render thread/INFO]: [System] [CHAT] The game starts in 20 seconds!",
+        BedwarsGameStartingSoonEvent(seconds=20),
+    ),
+    (
+        # Game start on vanilla 26.3
+        "[13:07:26] [Render thread/INFO]: [System] [CHAT]                                   Bed Wars",
+        StartBedwarsGameEvent(is_bedwars_duel=False),
+    ),
+    (
+        # Final kill on vanilla 26.3
+        "[13:08:24] [Render thread/INFO]: [System] [CHAT] Player1 was Player2's final #27,630. FINAL KILL!",
+        BedwarsFinalKillEvent(
+            dead_player="Player1",
+            raw_message="Player1 was Player2's final #27,630. FINAL KILL!",
+        ),
+    ),
+    (
         # Lobby swap on vanilla
         "[Info: 2022-01-07 13:44:01.231411580: GameCallbacks.cpp(162)] Game/avt (Client thread) Info [CHAT] Sending you to mini733G!",
         LobbySwapEvent(),

@@ -60,7 +60,7 @@ CHAT_PREFIXES = (
     "(Client thread) Info [CHAT] ",  # Vanilla and forge launcher_log.txt
     "[Client thread/INFO]: [CHAT] ",  # Vanilla and forge latest.log + Lunar client
     "[Render thread/INFO]: [CHAT] ",  # Fabric 1.20
-    "[Render thread/INFO]: [System] [CHAT] ",  # Vanilla 1.21
+    "[Render thread/INFO]: [System] [CHAT] ",  # Vanilla 1.21+ (also 26.3)
     # Astolfo chat bridge
     # NOTE: This is non-standard, and we make no guarantees of it working
     #       We don not condone the use of hacked clients on public servers
