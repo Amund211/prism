@@ -19,8 +19,8 @@ wheels/
 # Pyinstaller generated files
 *.spec
 
-# Tabcap fixtures downloaded from R2 (tests/tabcap_fixtures.py)
-/tests/data/r2/
+# Test fixtures downloaded from the bucket (tests/tabcap_fixtures.py)
+/tests/data/fixtures/
 
 # Coverage generated files
 .coverage

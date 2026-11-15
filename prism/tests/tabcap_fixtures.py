@@ -6,7 +6,7 @@ every fixture name, its sha256 and its split (train / test). Only the
 fixtures in the manifest are downloaded and tested.
 
 Local copy: <root>/<version>/<name>.{png,json}, root is $PRISM_TEST_FIXTURES_DIR
-or tests/data/r2/ (git-ignored). A version dir in the bucket never changes,
+or tests/data/fixtures/ (git-ignored). A version dir in the bucket never changes,
 so a local file is trusted and never fetched again. A new version is a new
 dir, so it is downloaded again.
 
@@ -79,7 +79,7 @@ def load_manifest(path: Path = MANIFEST) -> Manifest:
 
 
 def local_dir(manifest: Manifest) -> Path:
-    root = Path(os.environ.get(ROOT_ENV) or DATA_DIR / "r2")
+    root = Path(os.environ.get(ROOT_ENV) or DATA_DIR / "fixtures")
     return root / manifest.version
 
 

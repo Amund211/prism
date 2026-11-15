@@ -1,6 +1,6 @@
 {
  "base_url": "https://test-fixtures.prismoverlay.com",
- "version": "test_fixtures_2026-11-14",
+ "version": "tabcap_fixtures_2026-11-14",
  "fixtures": {
   "replay-linux-forge-bombies-gs2-12rows-01": {
    "split": "train",
@@ -113,52 +113,52 @@
    "json": "5067aa43cb8ae7bad068e04f38204f616427b08820782b9de6fc90cab0548a1b"
   },
   "screenshot-win-forge-betterbedwars-gs2-16rows-01": {
-   "split": "test",
+   "split": "train",
    "png": "339d0dfced03f57a1cbbdc41e83108bd87da6e2a36ac3ad9b953ad3fbe347678",
    "json": "a45675e1e90ccc2a9e3a82785185a11b4c65025dee610ab9e893055e3be32261"
   },
   "screenshot-win-forge-betterbedwars-gs2-16rows-02": {
-   "split": "test",
+   "split": "train",
    "png": "bfb3443c90dddb01b137497f5570d55d13ff9293e02d636b6996c092b129dc5d",
    "json": "6113512aef029afcff6588fe3d885cbfc5c28ccaad5b87a24a819c30d6cbdb4e"
   },
   "screenshot-win-forge-betterbedwars-gs2-6rows-01": {
-   "split": "test",
+   "split": "train",
    "png": "c02a55594b7284440f33d0fab53b32a5eee3126caf19a971e2e004c6cc561e33",
    "json": "fd1a1f942e644594dac7b5853cff1fc95d8688d4f5376a7671fac70aa7016299"
   },
   "screenshot-win-forge-betterbedwars-gs2-7rows-01": {
-   "split": "test",
+   "split": "train",
    "png": "e44b47a7f2b906e507f4575fdfd4049a730589bed1bbd215396ad4813585831d",
    "json": "768b73eac26eef973cd7d2213b5838b33c5f89e148986cf35bcbb820d35fca84"
   },
   "screenshot-win-forge-betterbedwars-gs2-covered-16rows-01": {
-   "split": "test",
+   "split": "train",
    "png": "c37627a95622f51edb046a7b9c69ff4652498755c16ba9052bfef62acd12c8de",
    "json": "140a71efe950bc7d52154f93304ed5f9bd31ece7c61f740ba976adac6b355878"
   },
   "screenshot-win-forge-betterbedwars-gs2-covered-16rows-02": {
-   "split": "test",
+   "split": "train",
    "png": "b8b480538b11e3fc5122f7b684f571613f20a0959af3bd53aa04661a21513f3c",
    "json": "a5235a55038ac271c555e52267f2f5e3bd042639eb8a2122bdbd67ae69748d2a"
   },
   "screenshot-win-forge-betterbedwars-gs2-lobby-01": {
-   "split": "test",
+   "split": "train",
    "png": "5b821e0ebd8da0ed00fd51fdf3fa217b5834213da34af0389bb3a44b8772a6bc",
    "json": "f2e554506709fe957178e9e0c618323ac89e3c5dcda604936a4f1c2d719973b0"
   },
   "screenshot-win-forge-betterbedwars-gs2-respawning-covered-13rows-01": {
-   "split": "test",
+   "split": "train",
    "png": "81b4b85859cc10f260b0c41de997fef87d7d6aa5e4a5d708d65302a968c6c038",
    "json": "7059d6e716935b3cd8bfbae1b59a56cdf7c04c685600d13d00ed59d65ebea935"
   },
   "screenshot-win-forge-betterbedwars-gs2-respawning-covered-15rows-01": {
-   "split": "test",
+   "split": "train",
    "png": "296e21082e8cbdefcf8899576a1f3f207256298ef10b627aa72c48a40a31c075",
    "json": "782c9cc10fa283dd926247bcd9c15aa8165651c6b58d61ca2fbfba9e50541bcc"
   },
   "screenshot-win-forge-betterbedwars-gs2-respawning-covered-15rows-02": {
-   "split": "test",
+   "split": "train",
    "png": "1de3f484ff1761448aeb2cac268ff81e7bd233ec8fe0f3558fa5070686993ab3",
    "json": "08c4ff47d94b6045e350bf6e86ecc2a732e88983e2c0d13ff2f30013ffd56bf8"
   },
