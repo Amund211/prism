@@ -807,17 +807,17 @@
   "tabcap-win-lunar-vanilla-gs2-respawning-10rows-01": {
    "split": "train",
    "png": "21e5667aaed94cd05a9a38572eaa246d458a89caaf504f94b34f67a30d2d8bf9",
-   "json": "5cd5b1f3d76b914a4c3da1f2f350d004a88939465cd607f9d7792972143634d4"
+   "json": "b170a64d45d1702309785fcbe1af079793506317cd1e7281a5a2b70bbc777aa2"
   },
   "tabcap-win-lunar-vanilla-gs2-respawning-6rows-01": {
    "split": "train",
    "png": "d3f8f80b9a7232f2d570a56104aac0302fb6d5a829d9e46c95a3c3fe7b0892b8",
-   "json": "0a5c716b9e0a6bf54efe43148734dedd8ad6926909f78571ccd78e1dae3329d7"
+   "json": "e477fd73f18b3e66f8c91f288ff76bc966f313c077e4aa98057ec0699eac7760"
   },
   "tabcap-win-lunar-vanilla-gs2-respawning-covered-12rows-01": {
    "split": "train",
    "png": "cb2905786e52817c5545f43170c0e320ec8023bb0f53dc251b286759b33a5ec5",
-   "json": "bba591ffc8016e53a3fc9179d67500640e9aab6d2da743693e00d01a38301041"
+   "json": "359a31d807fc98bc5cc49ec34f9f12f16c1e7b3f6e39f8f6aaf0780425811f29"
   },
   "tabcap-win-vanilla-26-3-tc14-gs1-16rows-01": {
    "split": "test",
