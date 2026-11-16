@@ -2,8 +2,10 @@
 /plans/
 
 # Claude Code config and sandbox-injected files (shell/editor configs mounted
-# into the working tree). Not anchored, so they are ignored in any directory
-# an agent is started from. Un-ignore specific paths where needed.
+# into the working tree). They must match in any directory an agent is
+# started from. A middle slash anchors a pattern, so keep the `**/` prefix.
+# Mounts can be files or directories, so do not add a trailing slash.
+# Un-ignore specific paths where needed.
 **/.claude/*
 !/.claude/settings.json
 !/.claude/skills/
@@ -16,10 +18,10 @@
 .ripgreprc
 .zprofile
 .zshrc
+.idea
+.vscode
 
 # Editors
-.idea/
-.vscode/
 *.swp
 *~
 
