@@ -10,17 +10,3 @@ cmd/service.yaml
 # Binary outputs
 /flashlight
 /main
-
-# Claude config
-/.claude/*
-
-# Sandbox-injected files (shell/editor configs mounted into the working tree)
-/.bash_profile
-/.bashrc
-/.gitconfig
-/.gitmodules
-/.profile
-/.ripgreprc
-/.vscode
-/.zprofile
-/.zshrc

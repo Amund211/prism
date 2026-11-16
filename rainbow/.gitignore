@@ -31,18 +31,3 @@ dist-ssr
 /.vitest-attachments
 /.vitest
 **/__screenshots__
-
-# Claude config
-/.claude/*
-/.mcp.json
-
-# Sandbox-injected files (shell/editor configs mounted into the working tree)
-/.bash_profile
-/.bashrc
-/.gitconfig
-/.gitmodules
-/.profile
-/.ripgreprc
-/.vscode
-/.zprofile
-/.zshrc

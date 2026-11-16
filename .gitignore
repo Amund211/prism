@@ -1,8 +1,21 @@
 # Local plans (not tracked)
 /plans/
 
-# Personal Claude Code settings
-.claude/settings.local.json
+# Claude Code config and sandbox-injected files (shell/editor configs mounted
+# into the working tree). Not anchored, so they are ignored in any directory
+# an agent is started from. Un-ignore specific paths where needed.
+**/.claude/*
+!/.claude/settings.json
+!/.claude/skills/
+.mcp.json
+.bash_profile
+.bashrc
+.gitconfig
+.gitmodules
+.profile
+.ripgreprc
+.zprofile
+.zshrc
 
 # Editors
 .idea/
