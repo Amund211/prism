@@ -31,27 +31,67 @@ class Word:
     mask: np.ndarray  # bool, 8k x (x1 - x0), text pixels of this colour
 
 
-def text_colors(px: np.ndarray, min_count: int) -> np.ndarray:
-    vals, counts = np.unique(px, axis=0, return_counts=True)
-    return vals[counts >= min_count]
+def text_colors(px: np.ndarray, min_count: int, top: int = 16) -> np.ndarray:
+    """Colours with >= min_count shadow-tested pixels (the top most common)"""
+    if len(px) == 0:
+        return px.reshape(0, 3)
+    key = (px[:, 0].astype(np.int32) << 16) | (px[:, 1].astype(np.int32) << 8) | px[:, 2]
+    vals, counts = np.unique(key, return_counts=True)
+    keep = counts >= min_count
+    vals, counts = vals[keep], counts[keep]
+    vals = vals[np.argsort(-counts, kind="stable")[:top]]
+    return np.stack([(vals >> 16) & 255, (vals >> 8) & 255, vals & 255], axis=1).astype(px.dtype)
 
 
-def words(
-    rgb: np.ndarray, smask: np.ndarray, row: Row, gap: float = 2.5, tol: int = 10
-) -> list[Word]:
+@dataclass
+class RowText:
+    """Text pixels of one row: glyph column spans (band x) and colour index"""
+
+    row: Row
+    cols: np.ndarray  # text colours
+    idx: np.ndarray  # per pixel: nearest text colour
+    tm: np.ndarray  # per pixel: is text
+    sm: np.ndarray  # shadow mask band
+    spans: list[tuple[int, int]]
+
+
+def row_text(rgb: np.ndarray, smask: np.ndarray, row: Row, tol: int = 10) -> RowText | None:
     k = row.k
     y, x0, x1 = row.y, row.x0, row.x1
     band = rgb[y : y + 8 * k, x0:x1].astype(np.int16)
     sm = smask[y : y + 8 * k, x0:x1]
     cols = text_colors(band[sm], max(3, 2 * k * k))
     if len(cols) == 0:
-        return []
-    d = np.abs(band[:, :, None, :] - cols[None, None, :, :]).max(axis=3)
-    idx = d.argmin(axis=2)
-    tm = d.min(axis=2) <= tol
+        return None
+    # only pixels bright enough to be within tol of a text colour
+    vmax = band.max(axis=2)
+    cand = vmax >= int(cols.max(axis=1).min()) - tol
+    d = np.abs(band[cand][:, None, :] - cols[None, :, :]).max(axis=2)
+    idx = np.zeros(vmax.shape, np.intp)
+    tm = np.zeros(vmax.shape, bool)
+    if len(d):
+        idx[cand] = d.argmin(axis=1)
+        tm[cand] = d.min(axis=1) <= tol
     spans = runs_of(tm.any(axis=0))
     if not spans:
+        return None
+    return RowText(row, cols, idx, tm, sm, spans)
+
+
+def gaps(rt: RowText) -> list[int]:
+    return [p - b for (_, b), (p, _) in zip(rt.spans, rt.spans[1:])]
+
+
+def words(
+    rgb: np.ndarray, smask: np.ndarray, row: Row, gap: float = 2.5, tol: int = 10, rt: RowText | None = None
+) -> list[Word]:
+    """Split the row at gaps >= gap * k (pass rt to reuse row_text)"""
+    rt = rt or row_text(rgb, smask, row, tol)
+    if rt is None:
         return []
+    k = row.k
+    y, x0 = row.y, row.x0
+    cols, idx, tm, sm, spans = rt.cols, rt.idx, rt.tm, rt.sm, rt.spans
     groups: list[list[tuple[int, int]]] = [[spans[0]]]
     for a, b in spans[1:]:
         if a - groups[-1][-1][1] >= gap * k:

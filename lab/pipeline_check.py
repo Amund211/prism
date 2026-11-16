@@ -18,10 +18,12 @@ def one(n: str) -> tuple[str, Counter, Counter, int]:
 
 
 def main() -> None:
-    names = [n for n in train_names() if (sys.argv[1] if len(sys.argv) > 1 else "") in n]
+    args = [a for a in sys.argv[1:] if not a.startswith("-j")]
+    jobs = int(next((a[2:] for a in sys.argv[1:] if a.startswith("-j")), "3"))
+    names = [n for n in train_names() if (args[0] if args else "") in n]
     tp = fp = fn = 0
     by: dict[str, list[int]] = {}
-    with ProcessPoolExecutor(11, mp_context=multiprocessing.get_context("fork")) as ex:
+    with ProcessPoolExecutor(jobs, mp_context=multiprocessing.get_context("fork")) as ex:
         for n, got, want, k in ex.map(one, names):
             t = sum((got & want).values())
             p = sum((got - want).values())

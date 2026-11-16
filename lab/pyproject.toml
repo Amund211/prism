@@ -8,6 +8,9 @@ dependencies = [
     "pillow",
     "opencv-python-headless",
     "rapidfuzz",
+    "pytesseract>=0.3.13",
+    "rapidocr>=3.10.0",
+    "onnxruntime>=1.32.0",
 ]
 
 [tool.uv]

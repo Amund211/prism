@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
-from rowparse import Word, nearest_team, words
+from rowparse import RowText, Word, gaps, nearest_team, row_text, words
 from rows import Row, Tab, find_tab, runs_of
 
 
@@ -28,16 +28,37 @@ def parse(rgb: np.ndarray, tab: Tab | None = None) -> tuple[Tab | None, list[PRo
         return None, []
     out = []
     k = tab.k
-    for r in tab.rows:
-        ws = words(rgb, tab.mask, r)
+    rts = [row_text(rgb, tab.mask, r) for r in tab.rows]
+    gap = word_gap([rt for rt in rts if rt], k)
+    for r, rt in zip(tab.rows, rts):
+        ws = words(rgb, tab.mask, r, gap=gap, rt=rt) if rt else []
         if not ws:
             continue
         # names have >= 3 chars; head icons can give 1-2 spans
         name = next((w for w in ws if len(w.spans) >= 3 and w.x1 - w.x0 >= 9 * k), None)
-        letter = find_letter(rgb, r, name) if name else None
+        letter = find_letter(rgb, r, name, reach=7 + 2 * gap) if name else None
         team = team_of(name) if letter and name else None
         out.append(PRow(r, letter, name, team, ws))
+    # The letter-to-name gap is the same in all rows (one font, one space).
+    # A client icon before a letterless name (Lunar) has another gap.
+    lg = [p.name.x0 - p.letter.x1 for p in out if p.letter and p.name]
+    if len(lg) >= 3:
+        med = float(np.median(lg))
+        for p in out:
+            if p.letter and p.name and abs(p.name.x0 - p.letter.x1 - med) > 2.5 * k:
+                p.letter, p.team = None, None
     return tab, out
+
+
+def word_gap(rts: list[RowText], k: int) -> float:
+    """Word-split gap in units of k: fonts with wide letter spacing need more
+    than the default 2.5. The most common gap is the gap between glyphs."""
+    g = [x for rt in rts for x in gaps(rt) if x > 0]
+    if len(g) < 10:
+        return 2.5
+    vals, counts = np.unique(g, return_counts=True)
+    g0 = vals[counts.argmax()]
+    return max(2.5, 1.7 * g0 / k)
 
 
 def team_of(w: Word) -> str | None:
@@ -62,16 +83,20 @@ def shade_of(px: np.ndarray, color: tuple[int, int, int], lo: float = 0.55) -> n
     return ok
 
 
-def find_letter(rgb: np.ndarray, r: Row, name: Word, tol: int = 24) -> Word | None:
-    """A glyph in the name colour just left of the name (the team letter).
-    Checks colour, not the word split, so client icons next to it do not matter."""
+def find_letter(rgb: np.ndarray, r: Row, name: Word, reach: float = 13) -> Word | None:
+    """A glyph in the name colour just left of the name (the team letter),
+    within reach * k. Checks colour, not the word split, so client icons
+    next to it do not matter."""
     k = r.k
-    a = max(0, name.x0 - 12 * k)
-    b = name.x0 - 2 * k
+    a = max(0, name.x0 - int(reach * k))
+    # >= 3k: a space follows the letter; client icons (Lunar) sit closer
+    b = name.x0 - 3 * k
     if b <= a:
         return None
     band = rgb[r.y : r.y + 8 * k, a:b]
-    m = shade_of(band, name.color)
+    # lo 0.75: shaded fonts stay above it; the dark panel can match a lower
+    # bound for dark colours (gray team 85,85,85)
+    m = shade_of(band, name.color, lo=0.75)
     spans = runs_of(m.sum(axis=0) >= k)
     if not spans:
         return None
@@ -81,6 +106,9 @@ def find_letter(rgb: np.ndarray, r: Row, name: Word, tol: int = 24) -> Word | No
         p = spans[-1][0]
     rows_on = np.flatnonzero(m[:, p:q].any(axis=1))
     if not (2 * k <= q - p <= 8 * k) or len(rows_on) == 0 or rows_on[-1] - rows_on[0] < 5 * k:
+        return None
+    exact = np.abs(band[:, p:q].astype(np.int16) - np.array(name.color, np.int16)).max(axis=2) <= 12
+    if exact.sum() < 2 * k * k:
         return None
     return Word(a + p, a + q, [(a + p, a + q)], name.color, name.shadow, m[:, p:q])
 
