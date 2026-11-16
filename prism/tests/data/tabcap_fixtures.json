@@ -104,6 +104,16 @@
    "png": "6fa8429fafad00be7b8a923e6163d0d8a4984753feac9887e10d7158ce482b14",
    "json": "74ad81c97049f4e4fc4d103094720f040e87d25ae5b6743581ffc3e2e88e6083"
   },
+  "synthetic-win-forge-optifine-vanilla-gs3-1440p-game-start-15rows-01": {
+   "split": "train",
+   "png": "6fbe2a21c8c9e2844f0abf31d7808497bf0f7b92ed80fb4ff9a2c6596f3ee70c",
+   "json": "53570c724b1320aee7ecaeec6664ce8ef7c83ff38671be3d0e1b175afe8246c6"
+  },
+  "synthetic-win-forge-optifine-vanilla-gs4-2160p-game-start-15rows-01": {
+   "split": "train",
+   "png": "6924cef8caf4458675a86adfb5dc6d6e9caad22ae55ab539a417320561742e2f",
+   "json": "9ac8432d2151d54f1079315896ebcfa831f3d049bb408e8dae74e6f9a4fb6590"
+  },
   "tabcap-linux-forge-bombies-gs2-14rows-01": {
    "split": "train",
    "png": "cf96ab942ada259c59980eebb3ef5192e866182035909ccb238847f3efb98205",

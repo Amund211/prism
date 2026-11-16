@@ -320,6 +320,52 @@
   "npc": {},
   "extra": {}
  },
+ "synthetic-win-forge-optifine-vanilla-gs3-1440p-game-start-15rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "synthetic-win-forge-optifine-vanilla-gs4-2160p-game-start-15rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
  "tabcap-linux-forge-bombies-gs2-14rows-01": {
   "correct": {
    "ALBIcool5": "green",
