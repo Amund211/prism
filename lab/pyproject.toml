@@ -1,0 +1,14 @@
+[project]
+name = "tabcap-lab"
+version = "0"
+requires-python = ">=3.14"
+dependencies = [
+    "numpy",
+    "scipy",
+    "pillow",
+    "opencv-python-headless",
+    "rapidfuzz",
+]
+
+[tool.uv]
+package = false
