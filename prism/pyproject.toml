@@ -8,9 +8,9 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
-    "platformdirs==4.14.3",
-    "cachetools==7.2.8",
-    "filelock==4.2.6",
+    "platformdirs==4.14.5",
+    "cachetools==7.3.0",
+    "filelock==4.2.9",
     "requests==2.34.2",
     "toml==0.10.2",
     "truststore==0.10.5",
@@ -33,12 +33,12 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "black==26.10.1",
-    "coverage==7.17.0",
+    "coverage==7.17.2",
     "flake8==7.5.0",
     "isort==9.0.2",
     "mypy==2.4.1",
     "pillow==13.0.0",
-    "prek==0.5.9",
+    "prek==0.5.10",
     "pyinstaller==6.22.3",
     "pytest==9.2.0",
     "types-pyinstaller==6.22.1.20260827",
