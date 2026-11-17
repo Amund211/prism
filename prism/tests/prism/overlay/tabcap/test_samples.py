@@ -26,7 +26,7 @@ An improvement moves names from wrong / unknown to correct.
 
 import json
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -44,6 +44,9 @@ from tests.tabcap_fixtures import (
 MANIFEST = load_manifest()
 EXPECTED = DATA_DIR / "tabcap_expected.json"
 TRAIN = [f.name for f in MANIFEST.select("train")]
+WEIGHTS: dict[str, float] = json.loads((DATA_DIR / "tabcap_weights.json").read_text())[
+    "weights"
+]
 
 Outcome = dict[str, dict[str, str | None]]
 
@@ -141,6 +144,37 @@ def test_outcome() -> None:
     }
 
 
+def test_weights_cover_manifest() -> None:
+    """Every fixture has a weight, and only fixtures. Needs no download"""
+    assert sorted(WEIGHTS) == sorted(MANIFEST.fixtures)
+    assert all(w >= 0 for w in WEIGHTS.values())
+
+
+def test_score_weighted() -> None:
+    def result(correct: int, wrong: int, unknown: int, extra: int) -> Outcome:
+        return {
+            "correct": {f"c{i}": "red" for i in range(correct)},
+            "wrong": {f"w{i}": "got red, label blue" for i in range(wrong)},
+            "unknown": {f"u{i}": "label red" for i in range(unknown)},
+            "npc": {},
+            "extra": {f"e{i}": "red" for i in range(extra)},
+        }
+
+    score = Score()
+    score.add(result(8, 1, 1, 0), weight=3.0)
+    score.add(result(0, 0, 10, 2), weight=1.0)
+    score.add(result(0, 10, 0, 0), weight=0.0)
+
+    assert (score.images, score.correct, score.wrong, score.unknown) == (3, 8, 11, 11)
+    assert score.extra == 2
+    # rows by weight: 3 * 10 + 1 * 10 + 0 * 10
+    assert score.weighted("correct") == pytest.approx(24 / 40)
+    assert score.weighted("wrong") == pytest.approx((3 + 2) / 40)
+    assert score.weighted("unknown") == pytest.approx((3 + 10) / 40)
+    # Kish: (sum w)^2 / sum w^2
+    assert score.effective_images == pytest.approx(16 / 10)
+
+
 def test_fixture(
     fixture_name: str, tabcap_dir: Path, request: pytest.FixtureRequest
 ) -> None:  # pragma: nocover
@@ -158,13 +192,38 @@ class Score:
     wrong: int = 0
     unknown: int = 0
     extra: int = 0
+    # By image weight (tests/data/tabcap_weights.json)
+    w_counts: dict[str, float] = field(default_factory=dict)
+    w_sum: float = 0.0
+    w_sq_sum: float = 0.0
 
-    def add(self, result: Outcome) -> None:
+    def add(self, result: Outcome, weight: float) -> None:
+        counts = {
+            "correct": len(result["correct"]),
+            "wrong": len(result["wrong"]),
+            "unknown": len(result["unknown"]),
+            "extra": len(result["extra"]) + len(result["npc"]),
+        }
         self.images += 1
-        self.correct += len(result["correct"])
-        self.wrong += len(result["wrong"])
-        self.unknown += len(result["unknown"])
-        self.extra += len(result["extra"]) + len(result["npc"])
+        self.correct += counts["correct"]
+        self.wrong += counts["wrong"]
+        self.unknown += counts["unknown"]
+        self.extra += counts["extra"]
+        for k, n in counts.items():
+            self.w_counts[k] = self.w_counts.get(k, 0.0) + weight * n
+        self.w_sum += weight
+        self.w_sq_sum += weight**2
+
+    def weighted(self, kind: str) -> float:
+        """Weighted share of rows. wrong includes extra"""
+        c = self.w_counts
+        rows = c.get("correct", 0) + c.get("wrong", 0) + c.get("unknown", 0)
+        n = c.get(kind, 0) + (c.get("extra", 0) if kind == "wrong" else 0)
+        return n / rows if rows else float("nan")
+
+    @property
+    def effective_images(self) -> float:
+        return self.w_sum**2 / self.w_sq_sum if self.w_sq_sum else 0.0
 
     def line(self, group: str) -> str:
         rows = self.correct + self.wrong + self.unknown
@@ -172,11 +231,16 @@ class Score:
         def pct(n: int) -> str:
             return f"{n / rows:6.1%}" if rows else "     -"
 
+        def wpct(kind: str) -> str:
+            return f"{self.weighted(kind):6.1%}" if self.w_sum else "     -"
+
         # A team for a name not in the list is an error too
         wrong = self.wrong + self.extra
         return (
             f"{group:<34} {self.images:>4} {rows:>5} {pct(self.correct)} "
-            f"{pct(wrong)} {pct(self.unknown)} {self.extra:>5}"
+            f"{pct(wrong)} {pct(self.unknown)} {self.extra:>5} | "
+            f"{self.effective_images:5.1f} {wpct('correct')} {wpct('wrong')} "
+            f"{wpct('unknown')}"
         )
 
 
@@ -197,13 +261,18 @@ def test_summary(
     for fixture in MANIFEST.select(selection):
         label, result = _run(fixture.name, tabcap_dir)
         for group in _groups(fixture, label):
-            scores.setdefault(group, Score()).add(result)
+            scores.setdefault(group, Score()).add(result, WEIGHTS[fixture.name])
 
-    header = f"{'group':<34} {'img':>4} {'rows':>5} correct  wrong unknown extra"
+    header = (
+        f"{'group':<34} {'img':>4} {'rows':>5} correct  wrong unknown extra | "
+        "w-img w-corr w-wrng w-unkn"
+    )
     request.config.stash[REPORT_KEY] = [
         f"--tabcap={selection}, {MANIFEST.version}",
         header,
         *(scores[g].line(g) for g in sorted(scores, key=lambda g: (g != "all", g))),
         "wrong includes extra (a team for an NPC or a name not in the list)",
+        "w-*: weighted by how common the setup is (tests/data/tabcap_weights.json); "
+        "w-img: effective number of images",
         "Exit criteria: correct >= 85 %, wrong < 2 %",
     ]
