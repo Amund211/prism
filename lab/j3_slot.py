@@ -83,8 +83,11 @@ def slot_team(rgb, bm, p, x_text, k):
     return t, "ok" if t else "colour"
 
 
-def grid_parse(rgb, slot=SLOT):
-    g = grid3.find_grid(rgb)
+def grid_parse(rgb, slot=SLOT, g=None):
+    """g: a grid3.Grid from another finder (ping rows: pass slot=False, the
+    bg mask needs row cells)"""
+    if g is None:
+        g = grid3.find_grid(rgb)
     if g is None:
         return None, None, []
     k = g.k
