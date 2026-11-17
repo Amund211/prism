@@ -83,9 +83,10 @@ def slot_team(rgb, bm, p, x_text, k):
     return t, "ok" if t else "colour"
 
 
-def grid_parse(rgb, slot=SLOT, g=None):
-    """g: a grid3.Grid from another finder (ping rows: pass slot=False, the
-    bg mask needs row cells)"""
+def grid_parse(rgb, slot=SLOT, g=None, maskfn=bg_mask, icon=False):
+    """g: a grid3.Grid from another finder. maskfn: letter mask (bg_mask
+    needs row cells; ping rows use lunar_mask.lunar_mask). icon: when the
+    slot fails, try again after a client icon (8k + 1k gap; Lunar moon)"""
     if g is None:
         g = grid3.find_grid(rgb)
     if g is None:
@@ -104,10 +105,13 @@ def grid_parse(rgb, slot=SLOT, g=None):
     tab, prows = parse(rgb, Tab(k, rows, mask, len(rows)))
     # weak grid = under a translucent overlay: blended colours look like gray
     if slot and not g.weak:
-        bm = bg_mask(rgb, g)
+        bm = maskfn(rgb, g)
         for p in prows:
             if p.team is None and p.name is not None:
-                p.team, _ = slot_team(rgb, bm, p, g.cols[p.row.col][0] + 9 * k, k)
+                xt = g.cols[p.row.col][0] + 9 * k
+                p.team, why = slot_team(rgb, bm, p, xt, k)
+                if icon and p.team is None and why in ("shape", "gap") and xt + 9 * k < p.name.x1:
+                    p.team, _ = slot_team(rgb, bm, p, xt + 9 * k, k)
     return g, tab, prows
 
 
