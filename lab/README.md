@@ -69,7 +69,32 @@ Key facts the parts use:
 | **`j4_slotping`** | grid + slot, ping + Lunar slot, find_tab | **90.7 / 92.3** |
 | `i2_cascade_v` | OCR cascade + word spotting (slow, ~1-5 s) | 93.2 / 94.2, 5 wrong |
 
-Older families (a-i): see the module docstrings. Full notes, numbers and
+Older families (a-i): see the module docstrings.
+
+## Grid prototypes (moved from the plan folder)
+
+| Module | What | Train |
+|---|---|---|
+| `j1_grid` | grid rows, crude adapter (one column, cell range), h4 vote | 81.2 % |
+| `k1_shape` (`run_k1.py k1_shape bg`) | word-shape code matcher (tall / x-height / descender per glyph), no font data; `python k1_shape.py uniq` = code uniqueness, no images | 62.1 % alone |
+| `heads.py`, `heads_union.py` | head fingerprints (8x8 skin face per row); bank from labels, so an upper bound, not a reader. Cache in `results/heads.pkl` | 86.7 % of rows |
+| `bestof.py A.json B.json` | per image, the result with more answers | |
+| `vote2.py A.json B.json` | per-name vote of two results | |
+
+## `proto0/`: the first prototype (2026-11-02)
+
+The first team reader (`tabteams`, `tabsoft`, `tablearn`, `tablayout`,
+`glyphs`); `prism/src/prism/overlay/tabcap/teams/` grew from it. It reads
+the old screenshots in `proto0/samples.py` (`TABCAP_PROTO_SAMPLES`; not
+in git). **Those samples are not split**: some are now test fixtures, so
+use `evaluate.py` only to compare with old numbers, never to tune.
+
+## Extra dependencies
+
+- `i4_train.py` needs torch (not in `pyproject.toml`). The trained
+  models are in `results/i4/` (gitignored); re-run `i4_gen.py` and
+  `i4_train.py` on a fresh checkout before the `i4_*` benches.
+- `e1_tesseract` needs the tesseract binary on PATH. Full notes, numbers and
 failed tries are in the plan folder
 `plans/2026-11-16-tabcap-team-algos-prism/` (not in git; start at
 `pipeline-map.md`).

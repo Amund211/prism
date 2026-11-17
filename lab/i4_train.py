@@ -1,6 +1,11 @@
 """I4: train the CRNN-CTC row reader. Usage: i4_train.py NAME FOLD EPOCHS
 FOLD -1 = all fonts; else drop the font ids of folds.json[FOLD].
-Writes results/i4/NAME.onnx."""
+Writes results/i4/NAME.onnx.
+
+Needs torch, which is not in pyproject.toml (large; install it ad hoc:
+`uv pip install torch`). The i4_* readers only need the .onnx files
+(onnxruntime). results/ is gitignored, so on a fresh checkout run
+i4_gen.py, then this script, before the i4_* benches."""
 
 import json
 import pickle
