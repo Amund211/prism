@@ -9,12 +9,19 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 MANIFEST = ROOT / "prism/tests/data/tabcap_fixtures.json"
+WEIGHTS = ROOT / "prism/tests/data/tabcap_weights.json"
 FIXTURES = Path.home() / "git/overlay/test-fixtures"
 
 
 @cache
 def manifest() -> dict:
     return json.loads(MANIFEST.read_text())
+
+
+@cache
+def load_weights() -> dict[str, float]:
+    """How common each fixture's setup is (see the prism test summary)"""
+    return json.loads(WEIGHTS.read_text())["weights"]
 
 
 def train_names() -> list[str]:

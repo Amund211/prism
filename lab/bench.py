@@ -18,7 +18,7 @@ from pathlib import Path
 os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
 
-from data import image, label, train_names  # noqa: E402
+from data import image, label, load_weights, train_names  # noqa: E402
 
 RESULTS = Path(__file__).parent / "results"
 
@@ -52,17 +52,43 @@ def run_one(args: tuple[str, str]) -> tuple[str, dict, float]:
     return name, outcome(lab, dict(got)), dt
 
 
+def weighted_quantile(pairs: list[tuple[float, float]], q: float) -> float:
+    """pairs: (value, weight), sorted by value"""
+    total = sum(w for _, w in pairs)
+    acc = 0.0
+    for v, w in pairs:
+        acc += w
+        if acc >= q * total:
+            return v
+    return pairs[-1][0]
+
+
 def summarize(res: dict[str, tuple[dict, float]]) -> dict:
     c = Counter()
+    wc = Counter()
     times = []
-    for o, dt in res.values():
+    weights = load_weights()
+    for name, (o, dt) in res.items():
+        w = weights[name]
         for k, v in o.items():
             c[k] += len(v)
-        times.append(dt)
+            wc[k] += w * len(v)
+        times.append((dt, w))
     total = max(1, c["correct"] + c["wrong"] + c["unknown"])
     wrong = c["wrong"] + c["npc"] + c["extra"]
+    w_total = wc["correct"] + wc["wrong"] + wc["unknown"] or 1
+    w_sum = sum(w for _, w in times)
+    w_sq = sum(w * w for _, w in times)
     times.sort()
+    wtimes = [(dt, w) for dt, w in times]
+    times = [dt for dt, _ in times]
     return {
+        "w_correct": round(100 * wc["correct"] / w_total, 1),
+        "w_wrong": round(100 * (wc["wrong"] + wc["npc"] + wc["extra"]) / w_total, 2),
+        "w_unknown": round(100 * wc["unknown"] / w_total, 1),
+        "w_images": round(w_sum**2 / w_sq, 1) if w_sq else 0,
+        "w_ms_median": round(1000 * weighted_quantile(wtimes, 0.5)),
+        "w_ms_p90": round(1000 * weighted_quantile(wtimes, 0.9)),
         "rows": total,
         "correct": round(100 * c["correct"] / total, 1),
         "wrong": round(100 * wrong / total, 2),
