@@ -81,6 +81,22 @@ Older families (a-i): see the module docstrings.
 | `bestof.py A.json B.json` | per image, the result with more answers | |
 | `vote2.py A.json B.json` | per-name vote of two results | |
 
+## Tab-list reader (open set, no known names; 2026-11-17)
+
+Reads every player name and team from the image, without `known`. Notes:
+`plans/2026-11-17-tabcap-tablist-prism/`.
+
+| File | What |
+|---|---|
+| `tbench.py <module>` | bench for `read_tab(rgb) -> [(name, team)]`: exact name, name + team, bad reads, read precision, snap-to-known score. Writes `results/tl/` |
+| `tl_front.py` | j4 finder chain (grid -> ping -> old) and name checks |
+| `t1_crnn.py` | j4 front + i4 CRNN greedy read per name region |
+| `t4_selffont.py` | T1 + self-learned glyphs to fix / reject chars (did not help) |
+| `tl_cache.py` | CRNN reads (name crop, row crop, char probs; `TL_OCR`: + RapidOCR) per image -> `results/tl/cache*.pkl` (`run_loo_cache.sh`, `run_ocr_cache.sh`) |
+| `tl_sweep.py [policy...] [--cache=_loo] [--extra]` | post-read policies on a cache (best: `V1`, `V2`) |
+| `tl_hybrid.py [policy] [--cache=_loo]` | hybrid: drop one name from `known`, is it read as a new name? false new reads per image |
+| `tl_peek.py`, `tl_show.py`, `tl_ocrdiff.py` | debug views |
+
 ## `proto0/`: the first prototype (2026-11-02)
 
 The first team reader (`tabteams`, `tabsoft`, `tablearn`, `tablayout`,
