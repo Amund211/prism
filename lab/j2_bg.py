@@ -23,7 +23,10 @@ FALLBACK = os.environ.get("J_FALLBACK", "1") == "1"
 
 
 def grid_tab(rgb: np.ndarray):
-    g = grid3.find_grid(rgb)
+    return tab_from_grid(rgb, grid3.find_grid(rgb))
+
+
+def tab_from_grid(rgb: np.ndarray, g):
     if g is None:
         return None, None
     k = g.k
