@@ -1,0 +1,75 @@
+# Tabcap team-reader lab
+
+Experiments for reading the team of each player from a tab-list
+screenshot (Hypixel Bed Wars). Not prism code. **Train split only**:
+`data.py` asserts it; do not run on test images.
+
+Images and labels: `~/git/overlay/test-fixtures/<version>/` (manifest
+`prism/tests/data/tabcap_fixtures.json`, weights `tabcap_weights.json`).
+
+## Run
+
+```
+uv run python bench.py <module> -j 3 --groups   # score, writes results/<module>.json
+uv run python mybench.py <module> -j 4          # same + per-font lines and a ref diff
+```
+
+A bench module has `read_teams(rgb, known) -> {name: team}`. Scores:
+correct / wrong / unknown % of label rows, also weighted by how common the
+setup is (`w_*`). Target: high correct with 0 wrong.
+
+## Best fast pipeline: `j4_slotping` (train: 90.7 %, 92.3 weighted, 0 wrong, ~104 ms)
+
+```
+RGB ─┬─ 1a grid3.find_grid      cell grid (row cells: vanilla, Forge, packs)
+     ├─ 1b ping_grid.find_ping  ping icons (no cells: Lunar)
+     │      -> Grid(k, tops, cols, weak)
+     │   2  row adapter          j3_slot.grid_parse (text range x0+9k .. x1-11k)
+     ├─ 1c rows.find_tab        old text-ladder finder (fallback)
+     │      -> Tab(k, rows, shadow mask)
+     │   3  common.parse         -> PRow(row, letter, name, team, words)
+     │   4  j3_slot.slot_team    team from the letter slot when parse has none;
+     │                           mask bgmask.bg_mask (cells) / lunar_mask (ping rows)
+     │   5  g2 + d3 + c5 vote    j3_slot.match (h_common, h4_union)
+     └──────> {name: team}
+```
+
+The first finder (1a, 1b, 1c) whose parse gives >= 2 rows with a team wins.
+
+| Part | Module | Alone |
+|---|---|---|
+| Cell grid | `grid3.py` | `python grid3.py [substr]`: exact row count per image |
+| Ping finder | `ping_grid.py` | `python ping_grid.py [substr]`: exact row count; `ping_dbg.py`: all candidates |
+| Old finder | `rows.py`, `textmask.py` | `pipeline_check.py` |
+| Parse | `common.py`, `rowparse.py` | `dbg_parse.py` |
+| Letter slot | `j3_slot.py`, `bgmask.py`, `lunar_mask.py` | any Grid-like object (`.k .tops .cols .weak`); `ping_stage.py` prints reasons on Lunar |
+| Matchers | `h_common.py` (g2), `h4_union.py` (d3, c5), `g_bank.py`, `d_core.py`, `c5_fast.py` | on any parse |
+| Oracle ladder | `oracle.py`, `budget.py` | any pipeline that exposes `grid_parse(rgb) -> (grid, tab, prows)` |
+
+Key facts the parts use:
+
+- Vanilla row cell = panel x 0.4375 + 32 (`0x20FFFFFF` over `0x80000000`),
+  8 GUI px high, pitch 9: an up / down edge pair on every channel
+  (`grid3`). Cell = separator x 0.875 + 32 (`bgmask`).
+- Lunar draws no cells. The ping icon is an opaque texture, so it repeats
+  exactly at pitch 9k (`ping_grid`). Background of a row pixel = the
+  empty gap row above / below, no colour change (`lunar_mask`). Lunar
+  users have a moon icon (8k) before the team letter; the slot is retried
+  9k later.
+- Glyphs use GUI rows 0-6, shadow 1-7, GUI row 8 is empty.
+
+## Bench modules (train, correct / weighted)
+
+| Module | What | Score |
+|---|---|---|
+| `h4_union` | find_tab + g2/d3/c5 vote | 80.8 / 81.5 |
+| `j2_bg` (`J_MASK=shadow`) | grid, find_tab | 86.8 / 87.8 |
+| `j3_ping` (`J3_STAGES=gpf`) | grid, ping, find_tab | 87.1 / 88.9 |
+| `j3_slot` | grid + letter slot, find_tab | 90.2 / 90.4 |
+| **`j4_slotping`** | grid + slot, ping + Lunar slot, find_tab | **90.7 / 92.3** |
+| `i2_cascade_v` | OCR cascade + word spotting (slow, ~1-5 s) | 93.2 / 94.2, 5 wrong |
+
+Older families (a-i): see the module docstrings. Full notes, numbers and
+failed tries are in the plan folder
+`plans/2026-11-16-tabcap-team-algos-prism/` (not in git; start at
+`pipeline-map.md`).
