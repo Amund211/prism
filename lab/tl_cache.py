@@ -67,7 +67,8 @@ def one(name: str):
         if model == "loo":
             from i4_rec import loo_model
 
-            model = loo_model(rgb, tab, prows, list(label(name)["known"]))
+            # TL_LOO_PREFIX "c2/mix_" -> c2/mix_loo0..2
+            model = os.environ.get("TL_LOO_PREFIX", "") + loo_model(rgb, tab, prows, list(label(name)["known"]))
         names = read([norm_crop(rgb, r.prow.row.y, r.x0, r.x1, k) for r in regions], model)
         rows = read([norm_crop(rgb, r.prow.row.y, r.prow.row.x0, r.prow.row.x1, k) for r in regions], model)
         ocr = [None] * len(regions)

@@ -13,5 +13,17 @@ dependencies = [
     "onnxruntime>=1.32.0",
 ]
 
+[dependency-groups]
+# CRNN training only (i4_train.py): uv sync --group train
+train = ["torch==2.15.0", "onnx>=1.23"]
+
 [tool.uv]
 package = false
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

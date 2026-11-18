@@ -57,7 +57,7 @@ NPC_RE = re.compile(r"^[a-z0-9]{8,10}$")
 
 def policy(img: dict, *, src="name", split=True, glue=True, gate=0, tau=0.0, agree=False,
            teamless=True, glue2=False, inrow=False, rowletter=False, tau_bad=None, ocr=None,
-           tau_ocr=0.99, npc=False):
+           tau_ocr=0.99, npc=False, both_agree=False, lettercheck=None):
     if img["n_team"] < gate:
         return []
     out = {}
@@ -75,6 +75,15 @@ def policy(img: dict, *, src="name", split=True, glue=True, gate=0, tau=0.0, agr
         if not split:
             text = clean(r[src][0])
             n, c = text, min(r[src][1], default=0.0)
+        elif src == "best":  # name crop and row crop: agree, else the surer read
+            n1, c1 = name_of(*r["name"], team, glued)
+            n2, c2 = name_of(*r["row"], team, glued)
+            if n1 == n2:
+                n, c = n1, max(c1, c2)
+            elif both_agree:
+                continue
+            else:
+                n, c = (n1, c1) if c1 >= c2 else (n2, c2)
         else:
             n, c = name_of(*r[src], team, glued)
             if agree:
@@ -104,6 +113,17 @@ def policy(img: dict, *, src="name", split=True, glue=True, gate=0, tau=0.0, agr
             continue
         elif ocr == "agree_or_conf" and n.lower() != o.lower() and c < tau_ocr:
             continue
+        if lettercheck:
+            # row read "L name ...": its letter against the parse team
+            w0 = r["row"][0].strip().split(" ")[0] if r["row"][0].strip() else ""
+            rl = BY_LETTER.get(LOOK.get(w0, w0)) if len(w0) == 1 else None
+            if rl and team and rl != team:
+                if lettercheck == "drop":
+                    team = None
+                elif lettercheck == "row":
+                    team = rl
+                elif lettercheck == "skip":
+                    continue
         if not valid(n) or c < tau:
             continue
         # the name read must be inside the row read (two crops agree)
@@ -141,6 +161,16 @@ POLICIES = {
     "V1 Q2 + npc filter": dict(gate=3, glue2=True, rowletter=True, npc=True),
     "V2 V1 + tau .7": dict(gate=3, glue2=True, rowletter=True, npc=True, tau=0.7),
     "V3 V1 + tau .9": dict(gate=3, glue2=True, rowletter=True, npc=True, tau=0.9),
+    "W1 row read": dict(src="row", gate=3, glue2=True, rowletter=True, npc=True),
+    "W2 best of name/row": dict(src="best", gate=3, glue2=True, rowletter=True, npc=True),
+    "W3 name == row": dict(src="best", both_agree=True, gate=3, glue2=True, rowletter=True, npc=True),
+    "W4 W2 + tau .7": dict(src="best", gate=3, glue2=True, rowletter=True, npc=True, tau=0.7),
+    "W5 W3 + tau .7": dict(src="best", both_agree=True, gate=3, glue2=True, rowletter=True, npc=True, tau=0.7),
+    "X1 W2 + letter check: row": dict(src="best", gate=3, glue2=True, rowletter=True, npc=True, lettercheck="row"),
+    "X2 W2 + letter check: drop team": dict(src="best", gate=3, glue2=True, rowletter=True, npc=True, lettercheck="drop"),
+    "X3 W3 + letter check: row": dict(src="best", both_agree=True, gate=3, glue2=True, rowletter=True, npc=True,
+                                      lettercheck="row"),
+    "X4 X1 + tau .7": dict(src="best", gate=3, glue2=True, rowletter=True, npc=True, lettercheck="row", tau=0.7),
     "R1 OCR only": dict(gate=3, rowletter=True, ocr="only"),
     "R2 CRNN == OCR": dict(gate=3, glue2=True, rowletter=True, ocr="agree"),
     "R3 CRNN ~= OCR (case)": dict(gate=3, glue2=True, rowletter=True, ocr="agree_ci"),

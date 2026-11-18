@@ -24,7 +24,9 @@ def session(name: str) -> ort.InferenceSession:
     o = ort.SessionOptions()
     o.intra_op_num_threads = 1
     o.inter_op_num_threads = 1
-    return ort.InferenceSession(str(OUT / f"{name}.onnx"), o, providers=["CPUExecutionProvider"])
+    # "c2/x" -> results/c2/x.onnx; plain names are i4 models
+    path = OUT.parent / f"{name}.onnx" if "/" in name else OUT / f"{name}.onnx"
+    return ort.InferenceSession(str(path), o, providers=["CPUExecutionProvider"])
 
 
 def decode(lg: np.ndarray) -> str:
