@@ -114,6 +114,26 @@
    "png": "6924cef8caf4458675a86adfb5dc6d6e9caad22ae55ab539a417320561742e2f",
    "json": "9ac8432d2151d54f1079315896ebcfa831f3d049bb408e8dae74e6f9a4fb6590"
   },
+  "synthetic-win-forge-optifine-vanilla-gs5-1440p-windowed-auto-game-start-15rows-01": {
+   "split": "train",
+   "png": "d09172d8f081e4584a76258d7a5f3bfe0be248529ea494b4faab4610a9c746c2",
+   "json": "566f5812dd8f86fa01623e69617d8bcab3f97d252253c11f49e672aef6b9d9d4"
+  },
+  "synthetic-win-forge-optifine-vanilla-gs6-1440p-auto-game-start-15rows-01": {
+   "split": "train",
+   "png": "67985886e36b1d25ccca7f7b98c84bb76ae4e29ee1160ebd703dda68c5b55b1b",
+   "json": "c6ebcd6704c1dae49fe4241719f7610a3540ca5c912669dfb73d283accc9e2e0"
+  },
+  "synthetic-win-forge-optifine-vanilla-gs6-uw1440p-auto-game-start-15rows-01": {
+   "split": "train",
+   "png": "6722e4dc8a93b71eeb285b114d733da12c7761be67db548681ba664ec88ba092",
+   "json": "29f239cd6d94e71c1246d208b55046a34969747dbc2c0862d3f84e60abe59300"
+  },
+  "synthetic-win-forge-optifine-vanilla-gs9-2160p-auto-game-start-15rows-01": {
+   "split": "train",
+   "png": "c58ad8267b78a99d800ae79cfe6c536cf66f73824493f0b4ee0f1950b608a5ca",
+   "json": "2a1314b1cd1adb5bdb7069300b1a31ad04f213d2c3395aa169691bb7e6e48a86"
+  },
   "tabcap-linux-forge-bombies-gs2-14rows-01": {
    "split": "train",
    "png": "cf96ab942ada259c59980eebb3ef5192e866182035909ccb238847f3efb98205",
