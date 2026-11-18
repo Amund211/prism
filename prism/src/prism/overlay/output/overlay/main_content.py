@@ -10,7 +10,9 @@ from prism.overlay.output.overlay.stats_table_controller import (
     GUIRow,
     maybe_add_tags_column,
 )
+from prism.overlay.output.overlay.team_danger_strip import TeamDangerStrip
 from prism.overlay.output.overlay.utils import OverlayRowData, open_url
+from prism.overlay.team_types import TeamDangerBannerData
 
 if TYPE_CHECKING:  # pragma: nocover
     from prism.overlay.output.overlay.stats_overlay import StatsOverlay
@@ -32,6 +34,7 @@ class MainContent:  # pragma: nocover
         self.frame = tk.Frame(parent, background="black")
 
         self.info_strip = InfoStrip(parent=self.frame, on_link_click=open_url)
+        self.team_danger_strip = TeamDangerStrip(parent=self.frame)
 
         self.stats_table = StatsTable(
             parent=self.frame,
@@ -43,12 +46,15 @@ class MainContent:  # pragma: nocover
         self,
         info_cells: list[InfoCellValue],
         new_rows: list[OverlayRowData] | None,
+        team_danger_banner: TeamDangerBannerData | None = None,
     ) -> None:
         """Display the new data"""
         self.info_strip.tick(tuple(info_cells))
 
         if new_rows is None:
             return
+
+        self.team_danger_strip.tick(team_danger_banner)
 
         rows_tuple = tuple(new_rows)
         column_order = maybe_add_tags_column(

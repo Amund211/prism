@@ -32,25 +32,39 @@ from prism.overlay.events import (
     SingleplayerStartEvent,
     StartBedwarsGameEvent,
     WhisperCommandSetNickEvent,
+    WhisperCommandSetTeamEvent,
 )
+from prism.overlay.player_cache import PlayerCache
 from prism.overlay.process_event import (
     fast_forward_state,
     process_event,
     process_loglines,
 )
 from prism.overlay.server import Server
+from prism.player import KnownPlayer, NickedPlayer, UnknownPlayer
 from tests.prism.overlay.utils import (
     OWN_USERNAME,
     assert_controllers_equal,
     create_controller,
     create_dirty_state,
     create_state,
+    make_player,
     make_settings,
 )
 
 HYPIXEL = Server.from_host("mc.hypixel.net")
 OTHER = Server.from_host("bedwarspractice.club")
 SINGLEPLAYER = Server.singleplayer()
+
+
+def make_cache_with_players(
+    *players: tuple[str, KnownPlayer | NickedPlayer | UnknownPlayer],
+) -> PlayerCache:
+    cache = PlayerCache()
+    for name, p in players:
+        cache.set_cached_player(name, p, genus=0)
+    return cache
+
 
 process_event_test_cases_base: tuple[
     tuple[str, OverlayController, Event, OverlayController, bool], ...
@@ -220,6 +234,141 @@ process_event_test_cases_base: tuple[
         False,
     ),
     (
+        "chat message with team in queue",
+        create_controller(state=create_state(in_queue=True)),
+        ChatMessageEvent(username="Player1", message="Hello!", team="red"),
+        create_controller(
+            state=create_state(
+                in_queue=True,
+                lobby_players={"Player1"},
+                player_teams=frozenset({("Player1", "red")}),
+            )
+        ),
+        True,
+    ),
+    (
+        "chat message with team in game",
+        create_controller(state=create_state(last_game_start=100.0)),
+        ChatMessageEvent(username="Player1", message="Hello!", team="red"),
+        create_controller(
+            state=create_state(
+                last_game_start=100.0,
+                lobby_players={"Player1"},
+                player_teams=frozenset({("Player1", "red")}),
+            )
+        ),
+        True,
+    ),
+    (
+        "chat message with team out of queue and not in game",
+        create_controller(state=create_state(in_queue=False, last_game_start=None)),
+        ChatMessageEvent(username="Player1", message="Hello!", team="red"),
+        create_controller(state=create_state(in_queue=False, last_game_start=None)),
+        False,
+    ),
+    (
+        "whisper command set team",
+        create_controller(state=create_state()),
+        WhisperCommandSetTeamEvent(team="red", usernames=["Player1", "Player2"]),
+        create_controller(
+            state=create_state(
+                player_teams=frozenset({("Player1", "red"), ("Player2", "red")})
+            )
+        ),
+        True,
+    ),
+    (
+        "whisper command unteam player",
+        create_controller(
+            state=create_state(
+                player_teams=frozenset({("Player1", "red"), ("Player2", "blue")})
+            )
+        ),
+        WhisperCommandSetTeamEvent(team=None, usernames=["Player1"]),
+        create_controller(
+            state=create_state(player_teams=frozenset({("Player2", "blue")}))
+        ),
+        True,
+    ),
+    (
+        "whisper command clear all teams",
+        create_controller(
+            state=create_state(
+                player_teams=frozenset({("Player1", "red"), ("Player2", "blue")})
+            )
+        ),
+        WhisperCommandSetTeamEvent(team=None, usernames=[]),
+        create_controller(state=create_state(player_teams=frozenset())),
+        True,
+    ),
+    (
+        "whisper command shortcut assign top threat found",
+        create_controller(
+            state=create_state(
+                lobby_players={"Player1", "Player2"},
+                alive_players={"Player1", "Player2"},
+                in_queue=False,
+            ),
+            player_cache=make_cache_with_players(
+                ("Player1", make_player(username="Player1", fkdr=2.0)),
+                ("Player2", make_player(username="Player2", fkdr=10.0)),
+            ),
+        ),
+        WhisperCommandSetTeamEvent(team="red", usernames=[]),
+        create_controller(
+            state=create_state(
+                lobby_players={"Player1", "Player2"},
+                alive_players={"Player1", "Player2"},
+                player_teams=frozenset({("Player2", "red")}),
+                in_queue=False,
+            ),
+            player_cache=make_cache_with_players(
+                ("Player1", make_player(username="Player1", fkdr=2.0)),
+                ("Player2", make_player(username="Player2", fkdr=10.0)),
+            ),
+        ),
+        True,
+    ),
+    (
+        "whisper command shortcut assign top threat not found",
+        create_controller(
+            state=create_state(
+                lobby_players={"Player1"},
+                alive_players=frozenset(),
+                in_queue=False,
+            ),
+        ),
+        WhisperCommandSetTeamEvent(team="red", usernames=[]),
+        create_controller(
+            state=create_state(
+                lobby_players={"Player1"},
+                alive_players=frozenset(),
+                in_queue=False,
+            ),
+        ),
+        False,
+    ),
+    (
+        "whisper command shortcut in queue uncached fallback to pending",
+        create_controller(
+            state=create_state(
+                lobby_players={"Player1"},
+                alive_players={"Player1"},
+                in_queue=True,
+            ),
+        ),
+        WhisperCommandSetTeamEvent(team="blue", usernames=[]),
+        create_controller(
+            state=create_state(
+                lobby_players={"Player1"},
+                alive_players={"Player1"},
+                player_teams=frozenset({("Player1", "blue")}),
+                in_queue=True,
+            ),
+        ),
+        True,
+    ),
+    (
         "lobby list out of queue",
         create_controller(
             state=create_state(lobby_players={"PersonFromLastLobby"}, in_queue=False)
@@ -227,7 +376,9 @@ process_event_test_cases_base: tuple[
         LobbyListEvent([OWN_USERNAME, "Player1", "Player2"]),
         create_controller(
             state=create_state(
-                lobby_players={OWN_USERNAME, "Player1", "Player2"}, in_queue=False
+                lobby_players={OWN_USERNAME, "Player1", "Player2"},
+                in_queue=False,
+                who_counter=1,
             ),
             wants_shown=True,
         ),
@@ -243,7 +394,9 @@ process_event_test_cases_base: tuple[
         LobbyListEvent([OWN_USERNAME, "Player1", "Player2"]),
         create_controller(
             state=create_state(
-                lobby_players={OWN_USERNAME, "Player1", "Player2"}, in_queue=True
+                lobby_players={OWN_USERNAME, "Player1", "Player2"},
+                in_queue=True,
+                who_counter=1,
             ),
             wants_shown=True,
         ),
@@ -263,6 +416,7 @@ process_event_test_cases_base: tuple[
                 lobby_players={OWN_USERNAME, "Player1", "Player2"},
                 last_game_start=10,
                 now_func=lambda: 11,
+                who_counter=1,
             ),
             wants_shown=None,
         ),
@@ -283,6 +437,7 @@ process_event_test_cases_base: tuple[
             state=create_state(
                 lobby_players={OWN_USERNAME, "Player1", "Player2"},
                 last_game_start=10,
+                who_counter=1,
             ),
             wants_shown=True,
         ),
@@ -943,6 +1098,7 @@ GATED_CHAT_EVENTS: Final = (
     BedwarsDuelTypeEvent("regular"),
     EndBedwarsDuelEvent(),
     WhisperCommandSetNickEvent(nick="AmazingNick", username="Player2"),
+    WhisperCommandSetTeamEvent(team="red", usernames=["Player2"]),
 )
 
 
@@ -1490,6 +1646,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                 },
                 last_game_start=0,
                 in_queue=False,
+                who_counter=1,
             ),
         ),
     ),
@@ -1511,6 +1668,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                 },
                 out_of_sync=False,
                 in_queue=True,
+                who_counter=1,
             )
         ),
     ),
@@ -1526,6 +1684,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                 own_username="Me",
                 lobby_players={"Player1", "Player2", "Me", "Player4"},
                 in_queue=True,
+                who_counter=1,
             )
         ),
     ),
@@ -1783,6 +1942,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                 alive_players={"Player3"},
                 last_game_start=2.5,
                 bedwars_duel="rush",
+                who_counter=1,
             ),
         ),
     ),
@@ -1815,6 +1975,7 @@ FAST_FORWARD_STATE_CASES: Final = (
                     "Player2",
                     "Leaving",  # Still left in the lobby until user does /who
                 },
+                player_teams=frozenset({("Player2", "red")}),
                 out_of_sync=True,
                 last_game_start=3.5,
             ),
@@ -1896,7 +2057,9 @@ FAST_FORWARD_STATE_CASES: Final = (
                     "Player14",
                     "Player15",
                 },
+                player_teams=frozenset({("Player2", "red")}),
                 last_game_start=1.5,
+                who_counter=1,
             ),
         ),
     ),
@@ -1955,7 +2118,7 @@ def test_fast_forward_state(
         (
             (f"{CHAT}ONLINE: Player1, Player2",),
             create_controller(
-                state=create_state(lobby_players={"Player1", "Player2"}),
+                state=create_state(lobby_players={"Player1", "Player2"}, who_counter=1),
                 redraw_event_set=True,
                 wants_shown=True,
             ),

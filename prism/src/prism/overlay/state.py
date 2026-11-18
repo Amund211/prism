@@ -6,6 +6,7 @@ from typing import Literal, Self
 
 from prism.overlay.events import BedwarsDuelType
 from prism.overlay.server import Server, server_is_active
+from prism.overlay.team_types import TeamColor
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +25,25 @@ class OverlayState:
     party_members: frozenset[str] = frozenset()
     lobby_players: frozenset[str] = frozenset()
     alive_players: frozenset[str] = frozenset()
+    player_teams: frozenset[tuple[str, TeamColor]] = frozenset()
     last_game_start: float | None = None
     out_of_sync: bool = False
     in_queue: bool = False
     own_username: str | None = None
     bedwars_duel: BedwarsDuelState = None
     server: Server | None = None  # None: no connect line seen
+    who_counter: int = 0
     now_func: Callable[[], float] = field(default=time.monotonic, compare=False)
+
+    @property
+    def team_map(self) -> dict[str, TeamColor]:
+        """Map of player username to assigned TeamColor."""
+        return dict(self.player_teams)
+
+    @property
+    def has_final_kills_or_deaths(self) -> bool:
+        """Return True if any players in the lobby have died or disconnected."""
+        return self.lobby_players != self.alive_players
 
     @property
     def missing_party_members(self) -> frozenset[str]:
@@ -107,7 +120,13 @@ class OverlayState:
     def leave_game(self) -> Self:
         """Leave a bedwars game or duel"""
         logger.info("Leaving game")
-        return replace(self, last_game_start=None, bedwars_duel=None)
+        return replace(
+            self,
+            last_game_start=None,
+            bedwars_duel=None,
+            player_teams=frozenset(),
+            who_counter=0,
+        )
 
     @property
     def in_game(self) -> float | None:
@@ -159,13 +178,58 @@ class OverlayState:
     def set_lobby(self, new_lobby: Iterable[str]) -> Self:
         """Set the lobby to be the given lobby"""
         new_lobby_set = frozenset(new_lobby)
-        return replace(self, lobby_players=new_lobby_set, alive_players=new_lobby_set)
+        allowed_names_lower = {
+            name.lower() for name in new_lobby_set | self.party_members
+        }
+        filtered_teams = frozenset(
+            (u, t) for u, t in self.player_teams if u.lower() in allowed_names_lower
+        )
+        return replace(
+            self,
+            lobby_players=new_lobby_set,
+            alive_players=new_lobby_set,
+            player_teams=filtered_teams,
+            who_counter=self.who_counter + 1,
+        )
 
     def clear_lobby(self) -> Self:
         """Remove all players from the lobby"""
         # Don't include yourself in the new lobby.
         # Your name usually appears as a join message anyway, and you may be nicked
-        return self.set_lobby([])
+        return replace(
+            self,
+            lobby_players=frozenset(),
+            alive_players=frozenset(),
+            player_teams=frozenset(),
+            who_counter=0,
+        )
+
+    def set_player_team(self, username: str, team: TeamColor | None) -> Self:
+        """
+        Assign a team to a player, or unassign if team is None.
+
+        Matches existing assignments case-insensitively.
+        """
+        username_lower = username.lower()
+        new_player_teams = frozenset(
+            (u, t) for u, t in self.player_teams if u.lower() != username_lower
+        )
+        if team is not None:
+            new_player_teams = new_player_teams | {(username, team)}
+        return replace(self, player_teams=new_player_teams)
+
+    def set_players_team(
+        self, usernames: Iterable[str], team: TeamColor | None
+    ) -> Self:
+        """Assign or unassign a team for multiple players."""
+        new_state = self
+        for username in usernames:
+            new_state = new_state.set_player_team(username, team)
+        return new_state
+
+    def clear_teams(self) -> Self:
+        """Remove all player team assignments."""
+        return replace(self, player_teams=frozenset())
 
     def mark_dead(self, username: str) -> Self:
         """Mark the given username as dead"""

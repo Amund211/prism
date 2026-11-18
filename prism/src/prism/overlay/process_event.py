@@ -8,6 +8,8 @@ from prism.overlay.events import Event, EventType
 from prism.overlay.parsing import parse_logline
 from prism.overlay.server import Server, server_is_active
 from prism.overlay.state import OverlayState
+from prism.overlay.team_danger import get_top_unassigned_threat_username
+from prism.player import PendingPlayer, Player
 
 logger = logging.getLogger(__name__)
 
@@ -293,8 +295,43 @@ def process_event(
         if state.in_queue or state.in_game:
             # The player has revealed themselves in the pre-game lobby/queue
             # Add them to the lobby
-            return state.add_to_lobby(event.username), True
+            new_state = state.add_to_lobby(event.username)
+            if event.team is not None:
+                new_state = new_state.set_player_team(event.username, event.team)
+            return new_state, True
         return state, False
+
+    if event.event_type is EventType.WHISPER_COMMAND_SET_TEAM:
+        if event.team is None and not event.usernames:
+            logger.info("Clearing all teams from whisper command")
+            return state.clear_teams(), True
+
+        if event.team is not None and not event.usernames:
+            # Shortcut: assign top unassigned threat to event.team
+            players: list[Player] = []
+            for u in state.lobby_players:
+                p = controller.player_cache.get_cached_player(
+                    u, long_term=not state.in_queue
+                )
+                if p is None:
+                    p = PendingPlayer(username=u)
+                players.append(p)
+
+            target = get_top_unassigned_threat_username(
+                players,
+                alive_players=state.alive_players,
+                party_members=state.party_members,
+                own_username=state.own_username,
+                player_teams=state.team_map,
+            )
+            if target is not None:
+                logger.info(f"Shortcut: Assigning top threat {target} to {event.team}")
+                return state.set_player_team(target, event.team), True
+            logger.info("Shortcut: No unassigned threat found to assign")
+            return state, False
+
+        logger.info(f"Setting team from whisper command {event.team}={event.usernames}")
+        return state.set_players_team(event.usernames, event.team), True
 
 
 def fast_forward_state(controller: OverlayController, loglines: Iterable[str]) -> None:

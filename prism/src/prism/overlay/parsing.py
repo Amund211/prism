@@ -31,7 +31,9 @@ from prism.overlay.events import (
     SingleplayerStartEvent,
     StartBedwarsGameEvent,
     WhisperCommandSetNickEvent,
+    WhisperCommandSetTeamEvent,
 )
+from prism.overlay.team_types import TEAM_ALIAS_MAP, TeamColor
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +98,23 @@ def remove_ranks(playerstring: str) -> str:
     ex: [SHOUT] [GREEN] Player1: hi -> Player1: hi
     """
     return RANK_REGEX.sub("", playerstring)
+
+
+def extract_chat_team(prefix_before_colon: str) -> TeamColor | None:
+    """
+    Extract a Bedwars team color from the chat prefix before the colon.
+
+    Checks for team tags before remove_ranks() strips bracket tags.
+    """
+    if "[RED] " in prefix_before_colon:
+        return "red"
+    if "[BLUE] " in prefix_before_colon:
+        return "blue"
+    if "[GREEN] " in prefix_before_colon:
+        return "green"
+    if "[YELLOW] " in prefix_before_colon:
+        return "yellow"
+    return None
 
 
 def get_lowest_index(source: str, *strings: str) -> str | None:
@@ -730,15 +749,76 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         if "=" in command:
             arguments = command.split("=")
             if len(arguments) != 2:
-                logger.debug("Whisper setnick command got too many arguments")
+                logger.debug("Whisper command got too many arguments")
                 return None
 
-            nick, username = arguments
+            lhs, rhs = arguments
+            lhs_lower = lhs.lower()
 
-            logger.debug(f"Parsing passed. Setting nick {nick=}->{username=}")
-            return WhisperCommandSetNickEvent(
-                nick=nick, username=username if username else None
-            )
+            if lhs_lower in TEAM_ALIAS_MAP:
+                raw_parts = rhs.split(",")
+                usernames = [u.strip() for u in raw_parts]
+                if any(not u for u in usernames) or not all(
+                    valid_username(u) for u in usernames
+                ):
+                    logger.debug(f"Whisper team command has invalid usernames: {rhs!r}")
+                    return None
+
+                team = TEAM_ALIAS_MAP[lhs_lower]
+                logger.debug(f"Parsing passed. Setting team {team=} for {usernames=}")
+                return WhisperCommandSetTeamEvent(team=team, usernames=usernames)
+
+            if lhs_lower in ("unteam", "clearteam"):
+                if not rhs:
+                    logger.debug("Parsing passed. Clearing all teams")
+                    return WhisperCommandSetTeamEvent(team=None, usernames=[])
+
+                raw_parts = rhs.split(",")
+                usernames = [u.strip() for u in raw_parts]
+                if any(not u for u in usernames) or not all(
+                    valid_username(u) for u in usernames
+                ):
+                    logger.debug(
+                        f"Whisper unteam command has invalid usernames: {rhs!r}"
+                    )
+                    return None
+
+                logger.debug(f"Parsing passed. Unsetting team for {usernames=}")
+                return WhisperCommandSetTeamEvent(team=None, usernames=usernames)
+
+            logger.debug(f"Parsing passed. Setting nick {lhs=}->{rhs=}")
+            return WhisperCommandSetNickEvent(nick=lhs, username=rhs if rhs else None)
+
+        cmd_clean = command.strip()
+        cmd_parts = cmd_clean.split()
+        if not cmd_parts:
+            return None
+        first_word_lower = cmd_parts[0].lower()
+        if first_word_lower in TEAM_ALIAS_MAP:
+            team = TEAM_ALIAS_MAP[first_word_lower]
+            if len(cmd_parts) == 1:
+                # e.g. /w !r -> assign top threat shortcut
+                logger.debug(f"Parsing passed. Shortcut setting team {team=}")
+                return WhisperCommandSetTeamEvent(team=team, usernames=[])
+            # e.g. /w !r Player1 or /w !r Player1,Player2
+            raw_usernames = "".join(cmd_parts[1:]).split(",")
+            usernames = [u.strip() for u in raw_usernames]
+            if any(not u for u in usernames) or not all(
+                valid_username(u) for u in usernames
+            ):
+                return None
+            return WhisperCommandSetTeamEvent(team=team, usernames=usernames)
+
+        if first_word_lower in ("unteam", "clearteam"):
+            if len(cmd_parts) == 1:
+                return WhisperCommandSetTeamEvent(team=None, usernames=[])
+            raw_usernames = "".join(cmd_parts[1:]).split(",")
+            usernames = [u.strip() for u in raw_usernames]
+            if any(not u for u in usernames) or not all(
+                valid_username(u) for u in usernames
+            ):
+                return None
+            return WhisperCommandSetTeamEvent(team=None, usernames=usernames)
 
         return None
 
@@ -747,6 +827,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         # NOTE: Colors have already been stripped at this point
         logger.debug("Processing potential chat message")
         colon_index = message.index(":")
+        chat_team = extract_chat_team(message[:colon_index])
         username = remove_ranks(message[:colon_index])
 
         if not valid_username(username):
@@ -763,6 +844,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         return ChatMessageEvent(
             username=username,
             message=player_message,
+            team=chat_team,
         )
 
     return None
