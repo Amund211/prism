@@ -3,6 +3,8 @@
 import cv2
 import numpy as np
 
+from guiscale import gui_ks
+
 BRIGHT = 72
 
 # shadow test on the max channel, as lookup tables of the text value a:
@@ -76,5 +78,5 @@ def shadow_mask(rgb: np.ndarray, k: int, bright: int = BRIGHT) -> np.ndarray:
     return m
 
 
-def scale_votes(rgb: np.ndarray, ks: range = range(1, 7)) -> dict[int, int]:
-    return {k: int(shadow_mask(rgb, k).sum()) for k in ks}
+def scale_votes(rgb: np.ndarray, ks: range | None = None) -> dict[int, int]:
+    return {k: int(shadow_mask(rgb, k).sum()) for k in (gui_ks(rgb) if ks is None else ks)}

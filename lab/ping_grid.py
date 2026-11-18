@@ -18,6 +18,7 @@ import cv2
 import numpy as np
 
 from grid3 import Grid, runs_of
+from guiscale import gui_ks
 
 BRIGHT = int(os.environ.get("P_BRIGHT", 96))
 TOL = int(os.environ.get("P_TOL", 3))
@@ -149,8 +150,9 @@ def head_x(rgb, tops, k, px0):
     return lo + int(i[0]) if len(i) else None
 
 
-def find_ping(rgb, ks=range(1, 7)):
+def find_ping(rgb, ks=None):
     H, W = rgb.shape[:2]
+    ks = gui_ks(rgb) if ks is None else ks
     best = None
     bright = bright_mask(rgb)
     for k in ks:

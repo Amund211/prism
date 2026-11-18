@@ -14,6 +14,8 @@ from dataclasses import dataclass
 import cv2
 import numpy as np
 
+from guiscale import gui_ks
+
 LO = int(os.environ.get("G_LO", 6))
 HI = int(os.environ.get("G_HI", 60))
 THR = int(os.environ.get("G_THR", 14))  # min pair px per row, in k
@@ -105,14 +107,15 @@ def refine_cols(rgb, g):
     return cols or g.cols
 
 
-def find_grid(rgb, ks=range(1, 7)):
+def find_grid(rgb, ks=None):
     g = _find_any(rgb, ks)
     if g is not None:
         g.cols = refine_cols(rgb, g)
     return g
 
 
-def _find_any(rgb, ks=range(1, 7)):
+def _find_any(rgb, ks=None):
+    ks = gui_ks(rgb) if ks is None else ks
     g = _find(rgb, ks, LO, HI)
     if g is None or len(g.tops) < 3:
         w = _find(rgb, ks, 2, 9)  # under a translucent overlay

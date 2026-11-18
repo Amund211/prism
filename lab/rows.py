@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 import cv2
 import numpy as np
 
+from guiscale import gui_ks
 from textmask import Shadow
 
 
@@ -210,13 +211,11 @@ def find_rows_k(mask: np.ndarray, k: int, min_h: int = 6) -> tuple[list[Row], in
     return rows, a.real
 
 
-def find_tab(rgb: np.ndarray, ks: range = range(1, 7)) -> Tab | None:
+def find_tab(rgb: np.ndarray, ks: range | None = None) -> Tab | None:
     # Text at scale s also passes the shadow test at k < s, and its parts can
     # form a false ladder there. So take the largest k with a good ladder.
     sh = Shadow(rgb)
-    # Minecraft's GUI scale is at most min(w / 320, h / 240) of the window
-    kmax = max(1, min(rgb.shape[0] // 240, rgb.shape[1] // 320))
-    ks = range(ks.start, min(ks.stop, kmax + 1))
+    ks = gui_ks(rgb) if ks is None else ks
     masks = {k: sh.mask(k) for k in ks}
     best = _pick(masks, ks, min_h=6)
     if best is None or best.real < 5:
