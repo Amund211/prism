@@ -97,6 +97,17 @@ Reads every player name and team from the image, without `known`. Notes:
 | `tl_hybrid.py [policy] [--cache=_loo]` | hybrid: drop one name from `known`, is it read as a new name? false new reads per image |
 | `tl_peek.py`, `tl_show.py`, `tl_ocrdiff.py` | debug views |
 
+Decode and fusion tries (2026-11-18), on a log-prob cache:
+
+| File | What |
+|---|---|
+| `u_cache.py` | as `tl_cache`, plus CTC log-probs of the name crop, row crop and 5 shifted name crops -> `results/tl/ucache*.pkl` |
+| `u_decode.py` | CTC prefix beam, N-best posterior, rescoring over crops |
+| `u_exp.py` | decode variants (greedy, beam, TTA, posterior conf) under X2 + tau sweep |
+| `u_snap.py` | snap costs: Levenshtein, CTC, min, likelihood ratio |
+| `u_union.py` | **snap + open-set reads in one list** (best: 94.8 % full) |
+| `u_ceiling.py`, `u_choice.py`, `u_noreg.py`, `u_wteam.py`, `u_peek.py` | where misses come from; name vs row choice |
+
 ## `proto0/`: the first prototype (2026-11-02)
 
 The first team reader (`tabteams`, `tabsoft`, `tablearn`, `tablayout`,
