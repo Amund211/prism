@@ -7,6 +7,7 @@ import argparse
 import json
 import pickle
 import random
+import sys
 import time
 from pathlib import Path
 
@@ -49,6 +50,15 @@ class Net(nn.Module):
         return self.out(self.seq(y) + y)
 
 
+def exact(net, samples) -> float:
+    ok = 0
+    with torch.no_grad():
+        for x, lab in batches(samples, 100, np.random.default_rng(0)):
+            lg = net(x).numpy()
+            ok += sum(greedy(lg[i]) == "".join(CHARS[c - 1] for c in lab[i]) for i in range(len(lab)))
+    return round(ok / len(samples), 4)
+
+
 def main() -> None:
     a = argparse.ArgumentParser()
     a.add_argument("name")
@@ -59,21 +69,32 @@ def main() -> None:
     a.add_argument("--depth", type=int, default=3)
     a.add_argument("--seed", type=int, default=0)
     a.add_argument("--threads", type=int, default=4)
+    a.add_argument("--limit", type=int, default=0, help="use only the first N train samples")
+    a.add_argument("--stop-after", type=int, default=0, help="test only: exit after this epoch")
     o = a.parse_args()
+    stop_after = o.stop_after
+    del o.stop_after  # not part of the run identity
     torch.manual_seed(o.seed)
     random.seed(o.seed)
     torch.set_num_threads(o.threads)
-    data = []
-    for d in o.data.split(","):
+    drop = set(json.loads(FOLDS.read_text())[o.fold]) if o.fold >= 0 else set()
+
+    def load(d):
         p = OUT / f"{d}.pkl" if d != "i4" else Path(__file__).parent / "results/i4/data.pkl"
-        data += pickle.loads(p.read_bytes())
-    if o.fold >= 0:
-        drop = set(json.loads(FOLDS.read_text())[o.fold])
-        data = [d for d in data if d[2] not in drop]
+        return [s for s in pickle.loads(p.read_bytes()) if s[2] not in drop]
+
+    # val comes from the first set only, so runs with extra data or --limit share it
+    names = o.data.split(",")
+    data = load(names[0])
     rng = np.random.default_rng(o.seed)
     perm = rng.permutation(len(data))
     data = [data[i] for i in perm]
     val, data = data[:2000], data[2000:]
+    for d in names[1:]:
+        data += load(d)
+    if o.limit:
+        data = data[: o.limit]
+    seen = data[:2000]
     net = Net(o.width, o.depth)
     params = sum(p.numel() for p in net.parameters())
     print(o.name, "params", params, "train", len(data), flush=True)
@@ -83,7 +104,23 @@ def main() -> None:
     ctc = nn.CTCLoss(zero_infinity=True)
     t0 = time.time()
     log = []
-    for ep in range(o.epochs):
+    # per-epoch checkpoint with all state (net, optimizer, schedule, RNGs), so a resume continues the same run
+    ck_path = OUT / f"{o.name}.ckpt"
+    start = 0
+    if ck_path.exists():
+        ck = torch.load(ck_path, weights_only=False)
+        if ck["args"] != vars(o):
+            sys.exit(f"{ck_path} has other args: {ck['args']}")
+        net.load_state_dict(ck["net"])
+        opt.load_state_dict(ck["opt"])
+        sched.load_state_dict(ck["sched"])
+        rng.bit_generator.state = ck["np_rng"]
+        torch.set_rng_state(ck["torch_rng"])
+        random.setstate(ck["py_rng"])
+        log, start = ck["log"], ck["log"][-1]["ep"] + 1
+        t0 -= log[-1]["s"]
+        print("resumed at epoch", start, flush=True)
+    for ep in range(start, o.epochs):
         net.train()
         tot = n = 0
         for x, lab in batches(data, 64, rng):
@@ -97,19 +134,22 @@ def main() -> None:
             tot += float(loss)
             n += 1
         net.eval()
-        ok = 0
-        with torch.no_grad():
-            for x, lab in batches(val, 100, np.random.default_rng(0)):
-                lg = net(x).numpy()
-                ok += sum(greedy(lg[i]) == "".join(CHARS[c - 1] for c in lab[i]) for i in range(len(lab)))
-        log.append({"ep": ep, "loss": round(tot / n, 4), "val_exact": round(ok / len(val), 4), "s": round(time.time() - t0)})
+        log.append({"ep": ep, "loss": round(tot / n, 4), "val_exact": exact(net, val),
+                    "train_exact": exact(net, seen), "s": round(time.time() - t0)})
         print(log[-1], flush=True)
+        ck = {"args": vars(o), "net": net.state_dict(), "opt": opt.state_dict(), "sched": sched.state_dict(),
+              "np_rng": rng.bit_generator.state, "torch_rng": torch.get_rng_state(), "py_rng": random.getstate(),
+              "log": log}
+        torch.save(ck, ck_path.with_suffix(".tmp"))
+        ck_path.with_suffix(".tmp").replace(ck_path)
+        if stop_after and ep + 1 == stop_after:
+            sys.exit(f"stopped after epoch {ep + 1} (checkpoint kept)")
     net.eval()
-    OUT.mkdir(parents=True, exist_ok=True)
     torch.onnx.export(net, (torch.rand(1, 3, H, 120),), str(OUT / f"{o.name}.onnx"), dynamo=False,
                       input_names=["x"], output_names=["y"], dynamic_axes={"x": {0: "b", 3: "w"}, "y": {0: "b", 2: "t"}})
     torch.save(net.state_dict(), OUT / f"{o.name}.pt")
     (OUT / f"{o.name}.log.json").write_text(json.dumps({"args": vars(o), "params": params, "log": log}, indent=1))
+    ck_path.unlink()
     print("saved", o.name, f"{time.time() - t0:.0f}s")
 
 
