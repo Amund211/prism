@@ -1,4 +1,5 @@
-"""C2 dataset. Usage: c2_gen.py NAME N ROW_FRAC KDIST VANILLA_W [SEED]
+"""C2 dataset. Usage: c2_gen.py NAME N ROW_FRAC KDIST VANILLA_W [SEED] [tokens]
+tokens: team tokens (c2_synth.TOKEN) in place of the team letter in targets.
 -> results/c2/NAME.pkl, NAME_preview.png. Deterministic for the same args.
 ROW_FRAC: share of whole-row samples (rest: name crops).
 KDIST: base | hard (GUI scale weights, c2_synth.K_DIST).
@@ -19,7 +20,7 @@ OUT = Path(__file__).parent / "results/c2"
 
 
 def work(args):
-    seed, n, row_frac, kd, vw = args
+    seed, n, row_frac, kd, vw, tok = args
     rng = np.random.default_rng(seed)
     fs = list(bank())
     p = np.array([vw if f.fid == "vanilla" else 1.0 for f in fs])
@@ -28,7 +29,7 @@ def work(args):
     for _ in range(n):
         f = fs[int(rng.choice(len(fs), p=p))]
         fn = row_sample if rng.random() < row_frac else name_sample
-        img, text = fn(rng, f, kd)
+        img, text = fn(rng, f, kd, tok)
         out.append((img, text, f.fid))
     return out
 
@@ -36,8 +37,9 @@ def work(args):
 def main():
     name, n, row_frac, kd, vw = sys.argv[1], int(sys.argv[2]), float(sys.argv[3]), sys.argv[4], float(sys.argv[5])
     seed = int(sys.argv[6]) if len(sys.argv) > 6 else 0
+    tok = len(sys.argv) > 7 and sys.argv[7] == "tokens"
     per = 2000
-    jobs = [(seed * 100_000 + s, per, row_frac, kd, vw) for s in range(n // per)]
+    jobs = [(seed * 100_000 + s, per, row_frac, kd, vw, tok) for s in range(n // per)]
     with multiprocessing.get_context("fork").Pool(6) as pool:
         data = [x for part in pool.map(work, jobs) for x in part]
     OUT.mkdir(parents=True, exist_ok=True)

@@ -12,6 +12,10 @@ from rowparse import LETTER
 
 TEAMS = ["red", "blue", "green", "yellow", "aqua", "white", "pink", "gray"]
 TEAM_RGB = dict(zip(TEAMS, TEAM))
+# team tokens (B reader): one output symbol per team in place of the letter
+TOKEN = dict(zip(TEAMS, "①②③④⑤⑥⑦⑧"))
+TOKEN_TEAM = {v: k for k, v in TOKEN.items()}
+CHARS_T = CHARS + "".join(TOKEN.values())
 YELLOW = 0xFFFF55
 K_DIST = {"base": [1, 2, 2, 3, 3, 4], "hard": [1, 1, 1, 2, 2, 3, 4]}
 
@@ -85,7 +89,7 @@ def _jit(rng, k):
     return int(rng.integers(-k, k + 1))
 
 
-def row_sample(rng, f, kd="hard"):
+def row_sample(rng, f, kd="hard", tokens=False):
     k = int(rng.choice(K_DIST[kd]))
     sp = int(round(f.w[32] * k))
     u = rng.random()
@@ -98,7 +102,7 @@ def row_sample(rng, f, kd="hard"):
         col = TEAM_RGB[team]
         a, c = _trim(*piece(f, LETTER[team], k, col, bold=rng.random() < 0.5))
         parts.append((a, c, sp + int(rng.integers(0, 2)) * k))
-        words.append(LETTER[team])
+        words.append(TOKEN[team] if tokens else LETTER[team])
         name = rand_name(rng)
     elif u < 0.88:  # respawning / spectator: no letter
         col = int(rng.choice([0xFFFFFF, 0xAAAAAA, 0x555555] + TEAM))
@@ -124,7 +128,7 @@ def row_sample(rng, f, kd="hard"):
     return norm_crop(img, y0 + jy, x0 + _jit(rng, k), x1 + _jit(rng, k), k), " ".join(words)
 
 
-def name_sample(rng, f, kd="hard"):
+def name_sample(rng, f, kd="hard", tokens=False):
     k = int(rng.choice(K_DIST[kd]))
     col = int(rng.choice(TEAM if rng.random() < 0.7 else PALETTE))
     name = rand_name(rng)
@@ -132,10 +136,13 @@ def name_sample(rng, f, kd="hard"):
         name = "[" + "".join(rng.choice(list("ABCDEFGHIJKLMNOPQRSTUVWXYZ+"), int(rng.integers(1, 5)))) + "] " + name
     parts, words = [], []
     if rng.random() < 0.05:  # team letter glued to the name region
-        L = LETTER[TEAMS[int(rng.integers(8))]]
+        team = TEAMS[int(rng.integers(8))]
+        if tokens:  # a token must match its colour
+            col = TEAM_RGB[team]
+        L = LETTER[team]
         a, c = _trim(*piece(f, L, k, col))
         parts.append((a, c, int(round(f.w[32] * k))))
-        words.append(L)
+        words.append(TOKEN[team] if tokens else L)
     a, c = _trim(*piece(f, name, k, col))
     parts.append((a, c, 0))
     words.append(name)

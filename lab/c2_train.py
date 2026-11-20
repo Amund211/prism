@@ -1,5 +1,5 @@
 """C2: train a CRNN-CTC reader (i4 architecture, width option), seeded.
-Usage: c2_train.py NAME DATA[,DATA2] FOLD EPOCHS [--width 1.0] [--seed 0] [--threads 4]
+Usage: c2_train.py NAME DATA[,DATA2] FOLD EPOCHS [--width 1.0] [--seed 0] [--threads 4] [--tokens]
 FOLD -1 = all fonts; else drop the font ids of results/i4/folds.json[FOLD].
 Writes results/c2/NAME.onnx, NAME.pt, NAME.log.json. Needs: uv sync --group train"""
 
@@ -15,8 +15,8 @@ import numpy as np
 import torch
 from torch import nn
 
+from c2_synth import CHARS_T
 from i4_synth import CHARS, H
-from i4_train import batches, greedy
 
 OUT = Path(__file__).parent / "results/c2"
 FOLDS = Path(__file__).parent / "results/i4/folds.json"
@@ -33,7 +33,7 @@ def c1(i, o, d):
 class Net(nn.Module):
     """width 1.0 = the i4 net (16-48-64-64-96, 3 dilated 1-D convs)"""
 
-    def __init__(self, width: float = 1.0, depth: int = 3) -> None:
+    def __init__(self, width: float = 1.0, depth: int = 3, n_chars: int = len(CHARS)) -> None:
         super().__init__()
         w = lambda c: int(round(c * width))  # noqa: E731
         self.cnn = nn.Sequential(
@@ -43,19 +43,42 @@ class Net(nn.Module):
             *cbr(w(64), w(96), (5, 1), 0),
         )
         self.seq = nn.Sequential(*[m for d in [1, 2, 4, 8][:depth] for m in c1(w(96), w(96), d)])
-        self.out = nn.Conv1d(w(96), len(CHARS) + 1, 1)
+        self.out = nn.Conv1d(w(96), n_chars + 1, 1)
 
     def forward(self, x):
         y = self.cnn(x).squeeze(2)
         return self.out(self.seq(y) + y)
 
 
-def exact(net, samples) -> float:
+def batches(data: list, bs: int, rng: np.random.Generator, chars: str):
+    """as i4_train.batches, with the charset as an argument"""
+    idx = sorted(range(len(data)), key=lambda i: data[i][0].shape[1] + rng.random() * 30)
+    chunks = [idx[i : i + bs] for i in range(0, len(idx), bs)]
+    rng.shuffle(chunks)
+    for ch in chunks:
+        W = max(data[i][0].shape[1] for i in ch)
+        x = np.stack([np.pad(data[i][0], ((0, 0), (0, W - data[i][0].shape[1]), (0, 0)), mode="edge") for i in ch])
+        x = torch.from_numpy(x).permute(0, 3, 1, 2).float() / 255
+        lab = [[chars.index(c) + 1 for c in data[i][1]] for i in ch]
+        yield x, lab
+
+
+def greedy(logits: np.ndarray, chars: str) -> str:
+    best = logits.argmax(0)
+    out, prev = [], 0
+    for b in best:
+        if b != prev and b:
+            out.append(chars[b - 1])
+        prev = b
+    return "".join(out)
+
+
+def exact(net, samples, chars) -> float:
     ok = 0
     with torch.no_grad():
-        for x, lab in batches(samples, 100, np.random.default_rng(0)):
+        for x, lab in batches(samples, 100, np.random.default_rng(0), chars):
             lg = net(x).numpy()
-            ok += sum(greedy(lg[i]) == "".join(CHARS[c - 1] for c in lab[i]) for i in range(len(lab)))
+            ok += sum(greedy(lg[i], chars) == "".join(chars[c - 1] for c in lab[i]) for i in range(len(lab)))
     return round(ok / len(samples), 4)
 
 
@@ -71,7 +94,9 @@ def main() -> None:
     a.add_argument("--threads", type=int, default=4)
     a.add_argument("--limit", type=int, default=0, help="use only the first N train samples")
     a.add_argument("--stop-after", type=int, default=0, help="test only: exit after this epoch")
+    a.add_argument("--tokens", action="store_true", help="charset with team tokens (c2_synth.CHARS_T)")
     o = a.parse_args()
+    chars = CHARS_T if o.tokens else CHARS
     stop_after = o.stop_after
     del o.stop_after  # not part of the run identity
     torch.manual_seed(o.seed)
@@ -95,7 +120,7 @@ def main() -> None:
     if o.limit:
         data = data[: o.limit]
     seen = data[:2000]
-    net = Net(o.width, o.depth)
+    net = Net(o.width, o.depth, len(chars))
     params = sum(p.numel() for p in net.parameters())
     print(o.name, "params", params, "train", len(data), flush=True)
     steps = o.epochs * (len(data) // 64 + 1)
@@ -123,7 +148,7 @@ def main() -> None:
     for ep in range(start, o.epochs):
         net.train()
         tot = n = 0
-        for x, lab in batches(data, 64, rng):
+        for x, lab in batches(data, 64, rng, chars):
             lp = net(x).log_softmax(1).permute(2, 0, 1)
             tgt = torch.tensor([c for l in lab for c in l])
             loss = ctc(lp, tgt, torch.full((x.shape[0],), lp.shape[0]), torch.tensor([len(l) for l in lab]))
@@ -134,8 +159,8 @@ def main() -> None:
             tot += float(loss)
             n += 1
         net.eval()
-        log.append({"ep": ep, "loss": round(tot / n, 4), "val_exact": exact(net, val),
-                    "train_exact": exact(net, seen), "s": round(time.time() - t0)})
+        log.append({"ep": ep, "loss": round(tot / n, 4), "val_exact": exact(net, val, chars),
+                    "train_exact": exact(net, seen, chars), "s": round(time.time() - t0)})
         print(log[-1], flush=True)
         ck = {"args": vars(o), "net": net.state_dict(), "opt": opt.state_dict(), "sched": sched.state_dict(),
               "np_rng": rng.bit_generator.state, "torch_rng": torch.get_rng_state(), "py_rng": random.getstate(),
