@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from data import label
+from c2_synth import TOKEN_TEAM
 from rowparse import LETTER
 from tbench import score, summarize
 from tl_front import clean, valid
@@ -55,9 +56,47 @@ BY_LETTER = {v: k for k, v in LETTER.items()}
 NPC_RE = re.compile(r"^[a-z0-9]{8,10}$")
 
 
+def split_row(text: str) -> tuple[str | None, str]:
+    """B reader: row read "① name 20" -> (team from the token, name)"""
+    w = text.strip().split(" ")
+    team = None
+    if w and w[0] in TOKEN_TEAM:
+        team, w = TOKEN_TEAM[w[0]], w[1:]
+    w = [x for x in w if x not in TOKEN_TEAM]
+    if len(w) > 1 and w[-1].isdigit():  # health
+        w = w[:-1]
+    return team, clean(" ".join(w))
+
+
+def policy_b(img: dict, gate=3, npc=True, colorcheck=None):
+    """Model-only row reader: team = token, name = row read; no parse colour
+    or name region. colorcheck "drop": no team when the parse colour disagrees;
+    "fill": parse colour when there is no token."""
+    rows = [(r, *split_row(r["row"][0])) for r in img["regions"]]
+    if sum(1 for _, t, _ in rows if t) < gate:
+        return []
+    top = {}
+    for r, t, _ in rows:
+        if t:
+            top[r["col"]] = min(top.get(r["col"], 1 << 30), r["y"])
+    out = {}
+    for r, team, n in rows:
+        if npc and team is None and r["y"] < top.get(r["col"], 0) and NPC_RE.match(n):
+            continue
+        if colorcheck == "drop" and team and r["team"] and team != r["team"]:
+            team = None
+        elif colorcheck == "fill" and team is None:
+            team = r["team"]
+        if valid(n):
+            out.setdefault(n, team)
+    return list(out.items())
+
+
 def policy(img: dict, *, src="name", split=True, glue=True, gate=0, tau=0.0, agree=False,
            teamless=True, glue2=False, inrow=False, rowletter=False, tau_bad=None, ocr=None,
-           tau_ocr=0.99, npc=False, both_agree=False, lettercheck=None):
+           tau_ocr=0.99, npc=False, both_agree=False, lettercheck=None, b=None):
+    if b is not None:
+        return policy_b(img, **b)
     if img["n_team"] < gate:
         return []
     out = {}
@@ -176,6 +215,10 @@ POLICIES = {
     "R3 CRNN ~= OCR (case)": dict(gate=3, glue2=True, rowletter=True, ocr="agree_ci"),
     "R4 R3 or conf .99": dict(gate=3, glue2=True, rowletter=True, ocr="agree_or_conf"),
     "R5 R3 or conf .999": dict(gate=3, glue2=True, rowletter=True, ocr="agree_or_conf", tau_ocr=0.999),
+    # B: model-only row reader (token models); front still finds rows
+    "B1 row read, token team": dict(b=dict()),
+    "B2 B1 + colour check: drop": dict(b=dict(colorcheck="drop")),
+    "B3 B1 + colour fill": dict(b=dict(colorcheck="fill")),
 }
 
 
