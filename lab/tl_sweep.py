@@ -68,12 +68,29 @@ def split_row(text: str) -> tuple[str | None, str]:
     return team, clean(" ".join(w))
 
 
-def policy_b(img: dict, gate=3, npc=True, colorcheck=None):
+def has_health(text: str) -> bool:
+    w = text.strip().split(" ")
+    return len(w) > 1 and w[-1].isdigit() and int(w[-1]) <= 40
+
+
+def policy_b(img: dict, gate=3, npc=True, colorcheck=None, gate_health=False, name_src=None):
     """Model-only row reader: team = token, name = row read; no parse colour
     or name region. colorcheck "drop": no team when the parse colour disagrees;
-    "fill": parse colour when there is no token."""
+    "fill": parse colour when there is no token. gate_health: gate rows need a
+    token, a valid name and a health number (scoreboard / header lines have none).
+    name_src (hybrid): "name" = name from the name crop; "best" = the surer of the
+    name crop and the row read."""
     rows = [(r, *split_row(r["row"][0])) for r in img["regions"]]
-    if sum(1 for _, t, _ in rows if t) < gate:
+    if name_src:
+        rows2 = []
+        for r, t, n in rows:
+            n1, c1 = clean(r["name"][0]), min(r["name"][1], default=0.0)
+            if name_src == "name" or (name_src == "best" and n1 != n and c1 >= min(r["row"][1], default=0.0)):
+                n = n1
+            rows2.append((r, t, n))
+        rows = rows2
+    ok = [t for r, t, n in rows if t and (not gate_health or (valid(n) and has_health(r["row"][0])))]
+    if len(ok) < gate:
         return []
     top = {}
     for r, t, _ in rows:
@@ -219,6 +236,12 @@ POLICIES = {
     "B1 row read, token team": dict(b=dict()),
     "B2 B1 + colour check: drop": dict(b=dict(colorcheck="drop")),
     "B3 B1 + colour fill": dict(b=dict(colorcheck="fill")),
+    "B4 B1 + gate token+name+health": dict(b=dict(gate_health=True)),
+    "B5 B4 + colour fill": dict(b=dict(gate_health=True, colorcheck="fill")),
+    # hybrids: name from the name crop (front name region), team from the token
+    "H1 name crop, token team": dict(b=dict(name_src="name", gate_health=True)),
+    "H2 surer of name/row, token team": dict(b=dict(name_src="best", gate_health=True)),
+    "H3 H2 + colour fill": dict(b=dict(name_src="best", gate_health=True, colorcheck="fill")),
 }
 
 

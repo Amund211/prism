@@ -30,11 +30,38 @@ def c1(i, o, d):
     return [nn.Conv1d(i, o, 3, padding=d, dilation=d, bias=False), nn.BatchNorm1d(o), nn.ReLU(inplace=True)]
 
 
+class Block(nn.Module):
+    """pre-norm transformer block; own attention so the ONNX export keeps a dynamic width"""
+
+    def __init__(self, d: int, heads: int = 4) -> None:
+        super().__init__()
+        self.h, self.dh = heads, d // heads
+        self.n1, self.n2 = nn.LayerNorm(d), nn.LayerNorm(d)
+        self.qkv, self.proj = nn.Linear(d, 3 * d), nn.Linear(d, d)
+        self.ff = nn.Sequential(nn.Linear(d, 2 * d), nn.GELU(), nn.Linear(2 * d, d))
+        self.drop = nn.Dropout(0.1)
+
+    def forward(self, x):  # B x T x d
+        q, k, v = self.qkv(self.n1(x)).chunk(3, dim=-1)
+        q, k, v = (t.reshape(x.shape[0], -1, self.h, self.dh).transpose(1, 2) for t in (q, k, v))
+        a = torch.softmax(q @ k.transpose(-1, -2) / self.dh**0.5, dim=-1) @ v
+        x = x + self.drop(self.proj(a.transpose(1, 2).reshape(x.shape[0], -1, self.h * self.dh)))
+        return x + self.drop(self.ff(self.n2(x)))
+
+
 class Net(nn.Module):
     """width 1.0 = the i4 net (16-48-64-64-96, 3 dilated 1-D convs)"""
 
-    def __init__(self, width: float = 1.0, depth: int = 3, n_chars: int = len(CHARS)) -> None:
+    def __init__(self, width: float = 1.0, depth: int = 3, n_chars: int = len(CHARS), tf: int = 0) -> None:
         super().__init__()
+        self.tf = None
+        if tf:  # SVTR-like: global self-attention over the column features, after the convs
+            d = int(round(96 * width))
+            self.tf = nn.Sequential(*[Block(d) for _ in range(tf)])
+            pos = torch.arange(1024)[:, None] / torch.pow(10000, torch.arange(0, d, 2)[None] / d)
+            pe = torch.zeros(1024, d)
+            pe[:, 0::2], pe[:, 1::2] = torch.sin(pos), torch.cos(pos)
+            self.register_buffer("pe", pe.T[None], persistent=False)
         w = lambda c: int(round(c * width))  # noqa: E731
         self.cnn = nn.Sequential(
             *cbr(3, w(16)), nn.MaxPool2d(2, 2),
@@ -47,7 +74,10 @@ class Net(nn.Module):
 
     def forward(self, x):
         y = self.cnn(x).squeeze(2)
-        return self.out(self.seq(y) + y)
+        y = self.seq(y) + y
+        if self.tf is not None:
+            y = self.tf((y + self.pe[:, :, : y.shape[2]]).transpose(1, 2)).transpose(1, 2)
+        return self.out(y)
 
 
 def batches(data: list, bs: int, rng: np.random.Generator, chars: str):
@@ -95,6 +125,7 @@ def main() -> None:
     a.add_argument("--limit", type=int, default=0, help="use only the first N train samples")
     a.add_argument("--stop-after", type=int, default=0, help="test only: exit after this epoch")
     a.add_argument("--tokens", action="store_true", help="charset with team tokens (c2_synth.CHARS_T)")
+    a.add_argument("--tf", type=int, default=0, help="transformer layers after the convs (0 = CRNN)")
     o = a.parse_args()
     chars = CHARS_T if o.tokens else CHARS
     stop_after = o.stop_after
@@ -120,7 +151,7 @@ def main() -> None:
     if o.limit:
         data = data[: o.limit]
     seen = data[:2000]
-    net = Net(o.width, o.depth, len(chars))
+    net = Net(o.width, o.depth, len(chars), o.tf)
     params = sum(p.numel() for p in net.parameters())
     print(o.name, "params", params, "train", len(data), flush=True)
     steps = o.epochs * (len(data) // 64 + 1)

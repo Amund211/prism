@@ -89,6 +89,123 @@ def _jit(rng, k):
     return int(rng.integers(-k, k + 1))
 
 
+def head(rng, k):
+    """player head: 8x8 random skin-like block, opaque"""
+    base = rng.uniform(0.2, 0.9, 3).astype(np.float32)
+    px = np.clip(base + rng.normal(0, 0.12, (8, 8, 3)), 0, 1).astype(np.float32)
+    rgb = np.kron(px, np.ones((k, k, 1), np.float32))
+    return np.ones(rgb.shape[:2], np.float32), rgb
+
+
+def ping_bars(rng, k):
+    """5 ping bars, 10 x 8 GUI px, green (or yellow / red)"""
+    col = _rgb(int(rng.choice([0x55FF55, 0x55FF55, 0xFFFF55, 0xFF5555])))
+    m = np.zeros((8, 10), np.float32)
+    for i in range(5):
+        if rng.random() < 0.9:
+            m[8 - 2 * (i + 1) + 1 :, 2 * i] = 1
+    m = np.kron(m, np.ones((k, k), np.float32))
+    return m, m[..., None] * col
+
+
+def hearts(rng, k):
+    """health as hearts: 2-10 red hearts, 9 GUI px apart"""
+    n = int(rng.integers(2, 11))
+    h = np.array([[0, 1, 1, 0, 1, 1, 0], [1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1],
+                  [0, 1, 1, 1, 1, 1, 0], [0, 0, 1, 1, 1, 0, 0], [0, 0, 0, 1, 0, 0, 0]], np.float32)
+    m = np.zeros((8, 9 * n), np.float32)
+    for i in range(n):
+        m[1:7, 9 * i : 9 * i + 7] = h
+    m = np.kron(m, np.ones((k, k), np.float32))
+    return m, m[..., None] * _rgb(0xFF5555)
+
+
+OBF = [chr(c) for c in range(33, 256) if c not in range(127, 161)]
+LINES = ["You are playing on MC.HYPIXEL.NET", "Ranks, Boosters & MORE! STORE.HYPIXEL.NET",
+         "Kills: 0 Final Kills: 0 Beds Broken: 0", "Playing BED WARS on MC.HYPIXEL.NET",
+         "Kills: 3 Final Kills: 1 Beds Broken: 2", "www.hypixel.net", "BED WARS"]
+
+
+def negative_sample(rng, f, kd="hard"):
+    """rows the reader must drop (target ""): header / footer text, obfuscated
+    (§k) names, heart-only rows"""
+    k = int(rng.choice(K_DIST[kd]))
+    u = rng.random()
+    parts = []
+    if u < 0.45:  # header / footer: 1-3 coloured words, maybe cut
+        words = LINES[int(rng.integers(len(LINES)))].split(" ")
+        a0 = int(rng.integers(0, max(1, len(words) - 1)))
+        for w in words[a0 : a0 + int(rng.integers(2, 6))]:
+            a, c = _trim(*piece(f, w, k, int(rng.choice(PALETTE[1:])), bold=rng.random() < 0.3))
+            parts.append((a, c, int(round(f.w[32] * k))))
+    elif u < 0.85:  # obfuscated name, maybe head and ping bars
+        if rng.random() < 0.6:
+            parts.append((*head(rng, k), k))
+        txt = "".join(rng.choice(OBF, int(rng.integers(3, 17))))
+        a, c = _trim(*piece(f, txt, k, int(rng.choice([0xFFFFFF, 0xAAAAAA] + TEAM))))
+        parts.append((a, c, int(rng.integers(2, 20)) * k))
+        if rng.random() < 0.7:
+            parts.append((*ping_bars(rng, k), 0))
+    else:  # hearts only
+        parts.append((*hearts(rng, k), 0))
+    img, y0, x0, x1 = compose(rng, k, parts)
+    return norm_crop(img, y0, x0 + _jit(rng, k), x1 + _jit(rng, k), k), ""
+
+
+def row_sample_v3(rng, f, kd="hard", tokens=True):
+    """row_sample plus: player head (lobby), ping bars, hearts as health,
+    faint text behind the row"""
+    k = int(rng.choice(K_DIST[kd]))
+    sp = int(round(f.w[32] * k))
+    u = rng.random()
+    parts, words = [], []
+    if rng.random() < 0.15:
+        parts.append((*icon(rng, k), k))
+    elif rng.random() < 0.15:
+        parts.append((*head(rng, k), k))
+    if u < 0.75:
+        team = TEAMS[int(rng.integers(8))]
+        col = TEAM_RGB[team]
+        a, c = _trim(*piece(f, LETTER[team], k, col, bold=rng.random() < 0.5))
+        parts.append((a, c, sp + int(rng.integers(0, 2)) * k))
+        words.append(TOKEN[team] if tokens else LETTER[team])
+        name = rand_name(rng)
+    elif u < 0.88:
+        col = int(rng.choice([0xFFFFFF, 0xAAAAAA, 0x555555] + TEAM))
+        name = rand_name(rng)
+    elif u < 0.93:
+        col = 0xFFFFFF
+        name = "".join(rng.choice(list("abcdefghijklmnopqrstuvwxyz0123456789"), int(rng.integers(8, 11))))
+    else:
+        col = int(rng.choice(PALETTE[1:]))
+        rank = "".join(rng.choice(list("ABCDEFGHIJKLMNOPQRSTUVWXYZ+"), int(rng.integers(1, 5))))
+        name = f"[{rank}] {rand_name(rng)}"
+    a, c = _trim(*piece(f, name, k, col))
+    words.append(name)
+    tail = rng.random()
+    if u < 0.93 and tail < 0.6:  # health number, gap 1-40 GUI px
+        parts.append((a, c, int(rng.integers(1, 40)) * k))
+        s = "20" if rng.random() < 0.5 else ("0" if u >= 0.88 else str(int(rng.integers(1, 21))))
+        a, c = _trim(*piece(f, s, k, YELLOW))
+        words.append(s)
+    elif u < 0.93 and tail < 0.72:  # hearts (no target)
+        parts.append((a, c, int(rng.integers(2, 20)) * k))
+        a, c = hearts(rng, k)
+    if rng.random() < 0.25:  # ping bars at the row end (no target)
+        parts.append((a, c, int(rng.integers(2, 30)) * k))
+        a, c = ping_bars(rng, k)
+    parts.append((a, c, 0))
+    img, y0, x0, x1 = compose(rng, k, parts)
+    if rng.random() < 0.1:  # faint text behind (chat / scoreboard through the tab)
+        ghost, _, _, _ = compose(rng, k, [(*_trim(*piece(f, rand_name(rng) + " " + rand_name(rng), k,
+                                                              int(rng.choice(PALETTE[1:])))), 0)])
+        gw = min(ghost.shape[1], img.shape[1])
+        al = rng.uniform(0.15, 0.4)
+        img[:, :gw] = (img[:, :gw] * (1 - al) + ghost[:, :gw] * al).astype(np.uint8)
+    jy = int(rng.integers(-k // 2, k // 2 + 1)) if k > 1 else 0
+    return norm_crop(img, y0 + jy, x0 + _jit(rng, k), x1 + _jit(rng, k), k), " ".join(words)
+
+
 def row_sample(rng, f, kd="hard", tokens=False):
     k = int(rng.choice(K_DIST[kd]))
     sp = int(round(f.w[32] * k))
