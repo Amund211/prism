@@ -104,6 +104,8 @@ def policy_b(img: dict, gate=3, npc=True, colorcheck=None, gate_health=False, na
             team = None
         elif colorcheck == "fill" and team is None:
             team = r["team"]
+        elif colorcheck == "prefer":
+            team = r["team"] or team
         if valid(n):
             out.setdefault(n, team)
     return list(out.items())
@@ -238,6 +240,8 @@ POLICIES = {
     "B3 B1 + colour fill": dict(b=dict(colorcheck="fill")),
     "B4 B1 + gate token+name+health": dict(b=dict(gate_health=True)),
     "B5 B4 + colour fill": dict(b=dict(gate_health=True, colorcheck="fill")),
+    "B6 B4 + colour check: drop": dict(b=dict(gate_health=True, colorcheck="drop")),
+    "B7 B4 + parse colour first, else token": dict(b=dict(gate_health=True, colorcheck="prefer")),
     # hybrids: name from the name crop (front name region), team from the token
     "H1 name crop, token team": dict(b=dict(name_src="name", gate_health=True)),
     "H2 surer of name/row, token team": dict(b=dict(name_src="best", gate_health=True)),

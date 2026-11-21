@@ -126,7 +126,16 @@ def main() -> None:
     a.add_argument("--stop-after", type=int, default=0, help="test only: exit after this epoch")
     a.add_argument("--tokens", action="store_true", help="charset with team tokens (c2_synth.CHARS_T)")
     a.add_argument("--tf", type=int, default=0, help="transformer layers after the convs (0 = CRNN)")
+    a.add_argument("--init", default="", help="fine-tune: start from results/c2/INIT.pt")
+    a.add_argument("--lr", type=float, default=3e-3, help="OneCycle max lr")
+    a.add_argument("--extra", default="", help="NAME:REP - add results/c2/NAME.pkl REP times, after --limit")
     o = a.parse_args()
+    if not o.init:  # keep the run identity (checkpoint args) of runs from before these flags
+        del o.init
+    if o.lr == 3e-3:
+        del o.lr
+    if not o.extra:
+        del o.extra
     chars = CHARS_T if o.tokens else CHARS
     stop_after = o.stop_after
     del o.stop_after  # not part of the run identity
@@ -151,12 +160,17 @@ def main() -> None:
     if o.limit:
         data = data[: o.limit]
     seen = data[:2000]
+    if getattr(o, "extra", ""):
+        en, rep = o.extra.split(":")
+        data += pickle.loads((OUT / f"{en}.pkl").read_bytes()) * int(rep)
     net = Net(o.width, o.depth, len(chars), o.tf)
+    if getattr(o, "init", ""):
+        net.load_state_dict(torch.load(OUT / f"{o.init}.pt"))
     params = sum(p.numel() for p in net.parameters())
     print(o.name, "params", params, "train", len(data), flush=True)
     steps = o.epochs * (len(data) // 64 + 1)
     opt = torch.optim.AdamW(net.parameters(), 2e-3, weight_decay=1e-4)
-    sched = torch.optim.lr_scheduler.OneCycleLR(opt, 3e-3, total_steps=steps, pct_start=0.1)
+    sched = torch.optim.lr_scheduler.OneCycleLR(opt, getattr(o, "lr", 3e-3), total_steps=steps, pct_start=0.1)
     ctc = nn.CTCLoss(zero_infinity=True)
     t0 = time.time()
     log = []

@@ -65,7 +65,11 @@ def one(name: str):
         k = tab.k
         regions = regions_of(rgb, prows, k)
         model = MODEL
-        if model == "loo":
+        if os.environ.get("TL_FOLDS"):  # held-out folds: TL_MODEL "c2/rf_" -> c2/rf_{fold of this image}
+            import json
+
+            model += str(json.loads(Path(os.environ["TL_FOLDS"]).read_text())[name])
+        elif model == "loo":
             from i4_rec import loo_model
 
             # TL_LOO_PREFIX "c2/mix_" -> c2/mix_loo0..2
