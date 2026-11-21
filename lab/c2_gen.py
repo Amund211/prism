@@ -3,6 +3,8 @@ tokens: team tokens (c2_synth.TOKEN) in place of the team letter in targets.
 v3: tokens + row_sample_v3 (heads, ping bars, hearts, ghost text) + 10 %
 negative rows (target ""); ROW_FRAC is then the v3 row share.
 v3n: v3 + 70 % real names from results/names/usernames.txt.
+comp: composite rows (c2_comp: synth tab list on real train-game plain shots, our
+front step), 70 % real names; ROW_FRAC unused.
 -> results/c2/NAME.pkl, NAME_preview.png. Deterministic for the same args.
 ROW_FRAC: share of whole-row samples (rest: name crops).
 KDIST: base | hard (GUI scale weights, c2_synth.K_DIST).
@@ -29,6 +31,13 @@ def work(args):
     p = np.array([vw if f.fid == "vanilla" else 1.0 for f in fs])
     p /= p.sum()
     out = []
+    if tok == "comp":  # composite rows (c2_comp), several per tab
+        from c2_comp import comp_rows
+
+        while len(out) < n:
+            f = fs[int(rng.choice(len(fs), p=p))]
+            out += [(img, text, f.fid) for img, text in comp_rows(rng, f, kd)]
+        return out[:n]
     for _ in range(n):
         f = fs[int(rng.choice(len(fs), p=p))]
         if tok in ("v3", "v3n"):  # rows v3, 10 % negatives, rest name crops
@@ -50,8 +59,8 @@ def work(args):
 def main():
     name, n, row_frac, kd, vw = sys.argv[1], int(sys.argv[2]), float(sys.argv[3]), sys.argv[4], float(sys.argv[5])
     seed = int(sys.argv[6]) if len(sys.argv) > 6 else 0
-    tok = {"tokens": True, "v3": "v3", "v3n": "v3n"}.get(sys.argv[7], False) if len(sys.argv) > 7 else False
-    if tok == "v3n":  # forked workers inherit it
+    tok = {"tokens": True, "v3": "v3", "v3n": "v3n", "comp": "comp"}.get(sys.argv[7], False) if len(sys.argv) > 7 else False
+    if tok in ("v3n", "comp"):  # forked workers inherit it
         import i4_synth
 
         i4_synth.REAL_NAMES = (OUT.parent / "names/usernames.txt").read_text().split()
