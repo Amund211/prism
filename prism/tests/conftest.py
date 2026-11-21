@@ -25,6 +25,17 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="store_true",
         help="Write the current per-image results as the expected results",
     )
+    synth = parser.getgroup("synth", "synthetic tab list calibration")
+    synth.addoption(
+        "--synth",
+        action="store_true",
+        help="Run the synth calibration tests (tests/tabcap_synth_fixtures.py)",
+    )
+    synth.addoption(
+        "--synth-update",
+        action="store_true",
+        help="Write the current calibration metrics as the expected ones",
+    )
 
 
 def pytest_terminal_summary(
