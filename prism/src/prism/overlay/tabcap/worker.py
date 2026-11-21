@@ -82,8 +82,11 @@ class TabcapWorker:  # pragma: nocover
         # Set from the Tk thread
         self.prism_window: PrismWindow | None = None
 
-        # (pressed_at, pressed_at_unix, plain)
-        self._presses: queue.Queue[tuple[float, float, bool]] = queue.Queue(maxsize=1)
+        self._presses: queue.Queue[tuple[float, float]] = queue.Queue(maxsize=1)
+        # Plain captures (F9) run on their own thread and grabber, so F9 and
+        # Tab pressed together both capture at once
+        self._plains: queue.Queue[tuple[float, float]] = queue.Queue(maxsize=1)
+        self._plain_busy = False
         self._saves: queue.Queue[Callable[[], None]] = queue.Queue(
             maxsize=SAVE_QUEUE_SIZE
         )
@@ -98,27 +101,36 @@ class TabcapWorker:  # pragma: nocover
 
     # pynput thread
     def on_tab_press(self) -> None:
+        now = time.monotonic()
         self._released.clear()
         self._released_at = None
-        self._start(plain=False)
-
-    # pynput thread
-    def on_plain_press(self) -> None:
-        """One capture, no read: e.g. the frame without the list for a pair"""
-        self._start(plain=True)
-
-    def _start(self, plain: bool) -> None:
-        now = time.monotonic()
         if not should_start_burst(
             now=now, last_burst_start=self._last_burst_start, busy=self._busy
         ):
+            logger.info(
+                f"Tabcap: Tab press ignored (busy={self._busy}, "
+                f"since last burst {now - (self._last_burst_start or 0):.2f} s)"
+            )
             return
         self._busy = True
         self._last_burst_start = now
         try:
-            self._presses.put_nowait((now, time.time(), plain))
+            self._presses.put_nowait((now, time.time()))
         except queue.Full:
+            logger.warning("Tabcap: Tab press ignored (queue full)")
             self._busy = False
+
+    # pynput thread
+    def on_plain_press(self) -> None:
+        """One capture, no read: e.g. the frame without the list for a pair.
+        Separate from Tab bursts: it must never block a Tab press."""
+        if self._plain_busy:
+            return
+        self._plain_busy = True
+        try:
+            self._plains.put_nowait((time.monotonic(), time.time()))
+        except queue.Full:
+            self._plain_busy = False
 
     # pynput thread
     def on_tab_release(self) -> None:
@@ -142,22 +154,33 @@ class TabcapWorker:  # pragma: nocover
         threading.Thread(
             target=self._save_loop, name="TabcapSaver", daemon=True
         ).start()
+        threading.Thread(
+            target=self._plain_loop, args=(store,), name="TabcapPlain", daemon=True
+        ).start()
 
         while True:
-            pressed_at, pressed_at_unix, plain = self._presses.get()
+            pressed_at, pressed_at_unix = self._presses.get()
             try:
-                self._burst(
-                    grabber,
-                    store,
-                    None if plain else read_teams,
-                    pressed_at,
-                    pressed_at_unix,
-                    plain,
-                )
+                self._burst(grabber, store, read_teams, pressed_at, pressed_at_unix)
             except Exception:
                 logger.exception("Tabcap: burst failed")
             finally:
                 self._busy = False
+
+    def _plain_loop(self, store: SampleStore) -> None:
+        try:
+            grabber = Grabber()  # Own grabber: mss and DPI awareness are per thread
+        except Exception:
+            logger.exception("Tabcap: failed to start plain captures")
+            return
+        while True:
+            pressed_at, pressed_at_unix = self._plains.get()
+            try:
+                self._burst(grabber, store, None, pressed_at, pressed_at_unix, True)
+            except Exception:
+                logger.exception("Tabcap: plain capture failed")
+            finally:
+                self._plain_busy = False
 
     def _save_loop(self) -> None:
         while True:
