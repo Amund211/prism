@@ -9,6 +9,9 @@ from prism.overlay.state import OverlayState
 CAPTURE_DELAYS_MS = (0, 60, 120, 250, 500, 1000) + tuple(range(2000, 11000, 1000))
 # No team read on these: no list yet, and a read (~1 s) would delay the next grabs
 NO_READ_DELAYS_MS = frozenset({0})
+# Trial branch: hotkey for one plain capture (no Tab, no read), e.g. the
+# background half of a with / without tab-list pair. F9: unbound in 1.8.9.
+PLAIN_SHOT_KEY = "f9"
 # At most one burst per this many seconds
 MIN_BURST_INTERVAL_SECONDS = 0.3
 

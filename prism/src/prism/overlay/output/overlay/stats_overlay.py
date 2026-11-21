@@ -15,6 +15,7 @@ from prism.overlay.output.overlay.settings_page import SettingsPage
 from prism.overlay.output.overlay.toolbar import Toolbar
 from prism.overlay.output.overlay.utils import OverlayRowData
 from prism.overlay.tabcap.metadata import PrismWindow
+from prism.overlay.tabcap.policy import PLAIN_SHOT_KEY
 from prism.overlay.visibility import Hidden, Shown, ShownUntil, Visibility
 
 if TYPE_CHECKING:  # pragma: nocover
@@ -141,11 +142,21 @@ class StatsOverlay:  # pragma: nocover
 
         PynputKeyType = pynput.keyboard.Key | pynput.keyboard.KeyCode | None
 
+        plain_hotkey = normalize(getattr(pynput.keyboard.Key, PLAIN_SHOT_KEY))
+
         def on_press(pynput_key: PynputKeyType) -> None:
+            key = normalize(pynput_key)
+            if (
+                plain_hotkey is not None
+                and key == plain_hotkey
+                and self.tabcap is not None
+            ):
+                self.tabcap.on_plain_press()
+                return
+
             if self.tab_pressed:
                 return
 
-            key = normalize(pynput_key)
             if key == tab_hotkey:
                 self.tab_pressed = True
                 if self.tabcap is not None:

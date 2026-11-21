@@ -82,7 +82,8 @@ class TabcapWorker:  # pragma: nocover
         # Set from the Tk thread
         self.prism_window: PrismWindow | None = None
 
-        self._presses: queue.Queue[tuple[float, float]] = queue.Queue(maxsize=1)
+        # (pressed_at, pressed_at_unix, plain)
+        self._presses: queue.Queue[tuple[float, float, bool]] = queue.Queue(maxsize=1)
         self._saves: queue.Queue[Callable[[], None]] = queue.Queue(
             maxsize=SAVE_QUEUE_SIZE
         )
@@ -97,9 +98,17 @@ class TabcapWorker:  # pragma: nocover
 
     # pynput thread
     def on_tab_press(self) -> None:
-        now = time.monotonic()
         self._released.clear()
         self._released_at = None
+        self._start(plain=False)
+
+    # pynput thread
+    def on_plain_press(self) -> None:
+        """One capture, no read: e.g. the frame without the list for a pair"""
+        self._start(plain=True)
+
+    def _start(self, plain: bool) -> None:
+        now = time.monotonic()
         if not should_start_burst(
             now=now, last_burst_start=self._last_burst_start, busy=self._busy
         ):
@@ -107,7 +116,7 @@ class TabcapWorker:  # pragma: nocover
         self._busy = True
         self._last_burst_start = now
         try:
-            self._presses.put_nowait((now, time.time()))
+            self._presses.put_nowait((now, time.time(), plain))
         except queue.Full:
             self._busy = False
 
@@ -135,9 +144,16 @@ class TabcapWorker:  # pragma: nocover
         ).start()
 
         while True:
-            pressed_at, pressed_at_unix = self._presses.get()
+            pressed_at, pressed_at_unix, plain = self._presses.get()
             try:
-                self._burst(grabber, store, read_teams, pressed_at, pressed_at_unix)
+                self._burst(
+                    grabber,
+                    store,
+                    None if plain else read_teams,
+                    pressed_at,
+                    pressed_at_unix,
+                    plain,
+                )
             except Exception:
                 logger.exception("Tabcap: burst failed")
             finally:
@@ -172,12 +188,13 @@ class TabcapWorker:  # pragma: nocover
         read_teams: "ReadTeams | None",
         pressed_at: float,
         pressed_at_unix: float,
+        plain: bool = False,
     ) -> None:
         if not store.has_space():
             return
 
         wall = datetime.fromtimestamp(pressed_at_unix)
-        stem = burst_stem(wall)
+        stem = burst_stem(wall, plain=plain)
         directory = store.burst_dir(wall)
         state = self.get_state()
         known = known_names(state)
@@ -187,9 +204,11 @@ class TabcapWorker:  # pragma: nocover
         monitors = None
         best = 0  # Most teams read in one capture of this burst
 
-        for delay_ms in CAPTURE_DELAYS_MS:
+        for delay_ms in (0,) if plain else CAPTURE_DELAYS_MS:
             remaining = pressed_at + delay_ms / 1000 - time.monotonic()
-            if remaining > 0:
+            if plain:
+                pass  # One capture, Tab state does not matter
+            elif remaining > 0:
                 if self._released.wait(remaining):
                     break
             elif self._released.is_set():
@@ -242,7 +261,9 @@ class TabcapWorker:  # pragma: nocover
             known=known,
             pressed_at_unix=pressed_at_unix,
             held_ms=(
-                None if released_at is None else (released_at - pressed_at) * 1000
+                None
+                if plain or released_at is None
+                else (released_at - pressed_at) * 1000
             ),
             thread_dpi_aware=grabber.thread_dpi_aware,
         )

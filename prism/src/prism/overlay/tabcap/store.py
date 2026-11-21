@@ -23,8 +23,10 @@ def to_image_rect(rect: Rect, origin: Monitor) -> Rect:
     return (x - origin.left, y - origin.top, w, h)
 
 
-def burst_stem(now: datetime) -> str:
-    return now.strftime("%H%M%S.") + f"{now.microsecond // 1000:03d}"
+def burst_stem(now: datetime, plain: bool = False) -> str:
+    """plain: a capture from the plain-shot hotkey (no Tab, no read)"""
+    stem = now.strftime("%H%M%S.") + f"{now.microsecond // 1000:03d}"
+    return f"{stem}-plain" if plain else stem
 
 
 def capture_filename(stem: str, delay_ms: int) -> str:

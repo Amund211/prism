@@ -29,6 +29,7 @@ def test_to_image_rect() -> None:
 def test_names() -> None:
     now = datetime(2026, 11, 3, 14, 5, 9, 42_999)
     assert burst_stem(now) == "140509.042"
+    assert burst_stem(now, plain=True) == "140509.042-plain"
     assert capture_filename("140509.042", 60) == "140509.042-0060ms.png"
 
 
