@@ -4,7 +4,11 @@ from prism.overlay.state import OverlayState
 
 # Trial branch: delays after the Tab press. Dense at first, then once per
 # second while Tab is held. The burst stops when Tab is released.
-CAPTURE_DELAYS_MS = (60, 120, 250, 500, 1000) + tuple(range(2000, 11000, 1000))
+# 0 ms: before the game draws the list (seen at 30 ms at the earliest), so each
+# burst has a frame of the same scene without the list (training data).
+CAPTURE_DELAYS_MS = (0, 60, 120, 250, 500, 1000) + tuple(range(2000, 11000, 1000))
+# No team read on these: no list yet, and a read (~1 s) would delay the next grabs
+NO_READ_DELAYS_MS = frozenset({0})
 # At most one burst per this many seconds
 MIN_BURST_INTERVAL_SECONDS = 0.3
 

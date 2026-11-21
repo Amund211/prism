@@ -3,6 +3,7 @@ import pytest
 from prism.overlay.state import OverlayState
 from prism.overlay.tabcap.policy import (
     CAPTURE_DELAYS_MS,
+    NO_READ_DELAYS_MS,
     known_names,
     should_start_burst,
 )
@@ -10,8 +11,9 @@ from prism.overlay.tabcap.policy import (
 
 def test_capture_delays_ms() -> None:
     # Dense at first, then once per second while Tab is held
-    assert CAPTURE_DELAYS_MS[:5] == (60, 120, 250, 500, 1000)
-    assert CAPTURE_DELAYS_MS[5:] == tuple(range(2000, 11000, 1000))
+    assert CAPTURE_DELAYS_MS[:6] == (0, 60, 120, 250, 500, 1000)
+    assert CAPTURE_DELAYS_MS[6:] == tuple(range(2000, 11000, 1000))
+    assert NO_READ_DELAYS_MS == frozenset({0})
     assert list(CAPTURE_DELAYS_MS) == sorted(set(CAPTURE_DELAYS_MS))
 
 
