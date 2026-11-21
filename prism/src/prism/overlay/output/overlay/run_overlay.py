@@ -1,16 +1,26 @@
 import logging
 import math
+import threading
 import time
 from collections.abc import Iterable
 
 from prism.flashlight.auth.manager import AuthManager
 from prism.overlay.behaviour import get_cached_player_or_enqueue_request, should_redraw
 from prism.overlay.controller import OverlayController
+from prism.overlay.directories import CACHE_DIR
 from prism.overlay.microsoft_account import MicrosoftAccount
 from prism.overlay.output.cells import InfoCellValue
 from prism.overlay.output.overlay.stats_overlay import StatsOverlay
-from prism.overlay.output.overlay.utils import OverlayRowData, player_to_row
+from prism.overlay.output.overlay.utils import (
+    OverlayRowData,
+    player_to_row,
+    with_team_color,
+)
 from prism.overlay.rating import sort_players
+from prism.overlay.state import OverlayState
+from prism.overlay.tabcap.game_teams import TEAM_COLOR_SECONDS
+from prism.overlay.tabcap.screenshot import Team
+from prism.overlay.tabcap.worker import TabcapWorker, capture_supported
 from prism.overlay.threading import start_threads
 from prism.overlay.visibility import Visibility, get_visibility
 from prism.player import KnownPlayer, Player
@@ -141,9 +151,15 @@ def run_overlay(
         state = controller.state
 
         new_players = get_stat_list(controller)
+        tab_teams = controller.tab_teams.for_game(
+            state.last_game_start, now=time.monotonic()
+        )
         new_rows = (
             [
-                player_to_row(player, controller.settings.rating_configs)
+                with_team_color(
+                    player_to_row(player, controller.settings.rating_configs),
+                    tab_teams.get(player.username),
+                )
                 for player in new_players
             ]
             if new_players is not None
@@ -243,6 +259,29 @@ def run_overlay(
 
         return visibility, info_cells, new_rows
 
+    # Trial branch: always save tab screenshots
+    tabcap = None
+    if capture_supported():
+
+        def on_teams(state: OverlayState, teams: dict[str, Team]) -> None:
+            controller.tab_teams = controller.tab_teams.replace(
+                state.last_game_start, teams, now=time.monotonic()
+            )
+            controller.redraw_event.set()
+            # Redraw again when the colors expire
+            timer = threading.Timer(
+                TEAM_COLOR_SECONDS + 0.1, controller.redraw_event.set
+            )
+            timer.daemon = True
+            timer.start()
+
+        tabcap = TabcapWorker(
+            CACHE_DIR / "tabcap", lambda: controller.state, on_teams=on_teams
+        )
+        tabcap.start()
+    else:
+        logger.info("Tabcap: screen capture not supported here")
+
     overlay = StatsOverlay(
         column_order=controller.settings.column_order,
         controller=controller,
@@ -250,5 +289,6 @@ def run_overlay(
         get_new_data=get_new_data,
         poll_interval=100,
         start_hidden=False,
+        tabcap=tabcap,
     )
     overlay.run()

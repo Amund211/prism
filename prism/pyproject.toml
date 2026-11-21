@@ -16,6 +16,10 @@ dependencies = [
     "truststore==0.10.5",
     "pynput==1.8.2",
     "pywin32==312; platform_system=='Windows'",
+    "mss==10.2.0",
+    "pillow==13.0.0",
+    "numpy==2.5.4",
+    "scipy==1.18.1",
 ]
 classifiers = [
     "Programming Language :: Python :: 3"
@@ -37,7 +41,6 @@ dev = [
     "flake8==7.5.0",
     "isort==9.0.2",
     "mypy==2.4.1",
-    "pillow==13.0.0",
     "prek==0.5.10",
     "pyinstaller==6.22.3",
     "pytest==9.2.0",
@@ -97,5 +100,9 @@ fail_under=100
 omit=[
   'src/prism/stats.py',
   'src/prism/overlay/platform/windows.py',
+  'src/prism/overlay/tabcap/window_windows.py',
+  'src/prism/overlay/tabcap/window_x11.py',
+  # Prototype port, tested by the local sample test (tests/data/tabcap)
+  'src/prism/overlay/tabcap/teams/*',
   'src/prism/discordrp/__init__.py',
 ]

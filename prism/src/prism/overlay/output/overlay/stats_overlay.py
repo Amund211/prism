@@ -14,10 +14,14 @@ from prism.overlay.output.overlay.set_nickname_page import SetNicknamePage
 from prism.overlay.output.overlay.settings_page import SettingsPage
 from prism.overlay.output.overlay.toolbar import Toolbar
 from prism.overlay.output.overlay.utils import OverlayRowData
+from prism.overlay.tabcap.metadata import PrismWindow
+from prism.overlay.tabcap.policy import PLAIN_SHOT_KEY
 from prism.overlay.visibility import Hidden, Shown, ShownUntil, Visibility
 
 if TYPE_CHECKING:  # pragma: nocover
     import pynput
+
+    from prism.overlay.tabcap.worker import TabcapWorker
 
 logger = logging.getLogger(__name__)
 
@@ -37,9 +41,11 @@ class StatsOverlay:  # pragma: nocover
             [], tuple[Visibility, list[InfoCellValue], list[OverlayRowData] | None]
         ],
         poll_interval: int,
+        tabcap: "TabcapWorker | None" = None,
     ):
         """Set up content in an OverlayWindow"""
         self.controller = controller
+        self.tabcap = tabcap
         self.poll_interval = poll_interval
         self.get_new_data = get_new_data
 
@@ -79,7 +85,7 @@ class StatsOverlay:  # pragma: nocover
         # Set up the tab listener
         self.tab_pressed = False
         self.listener: "pynput.keyboard.Listener | None" = None
-        if self.controller.settings.show_on_tab:
+        if self.controller.settings.show_on_tab or self.tabcap is not None:
             self.setup_tab_listener()
 
         # Update geometry and stuff, if necessary
@@ -136,14 +142,27 @@ class StatsOverlay:  # pragma: nocover
 
         PynputKeyType = pynput.keyboard.Key | pynput.keyboard.KeyCode | None
 
+        plain_hotkey = normalize(getattr(pynput.keyboard.Key, PLAIN_SHOT_KEY))
+
         def on_press(pynput_key: PynputKeyType) -> None:
+            key = normalize(pynput_key)
+            if (
+                plain_hotkey is not None
+                and key == plain_hotkey
+                and self.tabcap is not None
+            ):
+                self.tabcap.on_plain_press()
+                return
+
             if self.tab_pressed:
                 return
 
-            key = normalize(pynput_key)
             if key == tab_hotkey:
                 self.tab_pressed = True
-                self.window.show()
+                if self.tabcap is not None:
+                    self.tabcap.on_tab_press()
+                if self.controller.settings.show_on_tab:
+                    self.window.show()
 
         def on_release(pynput_key: PynputKeyType) -> None:
             if not self.tab_pressed:
@@ -152,6 +171,10 @@ class StatsOverlay:  # pragma: nocover
             key = normalize(pynput_key)
             if key == tab_hotkey:
                 self.tab_pressed = False
+                if self.tabcap is not None:
+                    self.tabcap.on_tab_release()
+                if not self.controller.settings.show_on_tab:
+                    return
                 if self.current_page != "main":
                     return
                 if isinstance(self.visibility, Hidden):
@@ -255,6 +278,19 @@ class StatsOverlay:  # pragma: nocover
 
         if self.current_page == "settings":
             self.settings_page.poll()
+
+        if self.tabcap is not None:
+            root = self.window.root
+            self.tabcap.prism_window = PrismWindow(
+                rect=(
+                    root.winfo_rootx(),
+                    root.winfo_rooty(),
+                    root.winfo_width(),
+                    root.winfo_height(),
+                ),
+                shown=self.window.shown,
+                alpha=float(root.wm_attributes("-alpha")),
+            )
 
         self.window.root.after(self.poll_interval, self.update_overlay)
 
