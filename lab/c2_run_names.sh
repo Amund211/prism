@@ -28,11 +28,8 @@ cache() {  # model [folds json]
   wait
   train v3n_tf v3n_s8,v3n_s9 8 6
   cache v3n_tf
-  for f in 0 1 2; do
-    train rn_$f v3n_s8 4 4 --init v3n_tf --lr 1e-3 --limit 100000 --extra real_f$f:8 &
-  done
-  wait
-  cache rn_ $R/real_folds.json
+  # rn_0..2 (real-row fine-tune of v3n_tf) waits for the new fixtures version: then
+  # c2_real.py again, and: train rn_$f v3n_s8 4 4 --init v3n_tf --lr 1e-3 --limit 100000 --extra real_f$f:8
 ) &
 
 (
