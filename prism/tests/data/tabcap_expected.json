@@ -2177,6 +2177,263 @@
   "npc": {},
   "extra": {}
  },
+ "tabcap-win-lunar-tc04-gs1-9rows-01": {
+  "correct": {
+   "Dewier12": "red",
+   "DiamantySD15": "green",
+   "NOOB_1490": "green",
+   "Sam74538": "red",
+   "Skydeaf": "blue",
+   "Tigre_CPVP": "red",
+   "ZixBylfEw": "red",
+   "_wductien": "green",
+   "dlchae": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc04-gs2-14rows-01": {
+  "correct": {
+   "Dewier12": "red",
+   "DiamantySD15": "green",
+   "Glados987": "blue",
+   "Jcyuri": "yellow",
+   "NOOB_1490": "green",
+   "Sam74538": "red",
+   "Skydeaf": "blue",
+   "Tigre_CPVP": "red",
+   "Tizii_199": "green",
+   "YSFKB": "blue",
+   "ZixBylfEw": "red",
+   "_wductien": "green",
+   "dlchae": "blue",
+   "interble": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc04-gs2-9rows-01": {
+  "correct": {
+   "DiamantySD15": "green",
+   "NOOB_1490": "green",
+   "Sam74538": "red",
+   "Skydeaf": "blue",
+   "Tigre_CPVP": "red",
+   "Tizii_199": "green",
+   "ZixBylfEw": "red",
+   "_wductien": "green",
+   "dlchae": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc04-gsx-no-tab-01": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc05-gs1-13rows-01": {
+  "correct": {
+   "AthlonGold": "green",
+   "Baraashkaaa": "blue",
+   "Cxnnamon__": "red",
+   "GWN_W0ut": "red",
+   "Golpo": "green",
+   "KingKyongG": "green",
+   "Lorelayy": "blue",
+   "Nummy125": "red",
+   "Skydeaf": "yellow",
+   "darkshadows4523": "green",
+   "flamefragsfan906": "yellow",
+   "vladyshaq": "blue"
+  },
+  "wrong": {},
+  "unknown": {
+   "juakguakji": "label yellow"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc05-gs2-13rows-01": {
+  "correct": {
+   "AthlonGold": "green",
+   "Baraashkaaa": "blue",
+   "Cxnnamon__": "red",
+   "GWN_W0ut": "red",
+   "Golpo": "green",
+   "Hoursered": "blue",
+   "KingKyongG": "green",
+   "Lorelayy": "blue",
+   "Nummy125": "red",
+   "Skydeaf": "yellow",
+   "darkshadows4523": "green",
+   "juakguakji": "yellow",
+   "vladyshaq": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc05-gs3-15rows-01": {
+  "correct": {
+   "AthlonGold": "green",
+   "Baraashkaaa": "blue",
+   "Cxnnamon__": "red",
+   "GWN_W0ut": "red",
+   "Golpo": "green",
+   "Hoursered": "blue",
+   "KingKyongG": "green",
+   "Lorelayy": "blue",
+   "Nummy125": "red",
+   "Skydeaf": "yellow",
+   "darkshadows4523": "green",
+   "flamefragsfan906": "yellow",
+   "pommel1234": "red",
+   "vladyshaq": "blue"
+  },
+  "wrong": {},
+  "unknown": {
+   "juakguakji": "label yellow"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc05-gsx-no-tab-01": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc17-gs1-16rows-01": {
+  "correct": {
+   "Bummamiya": "blue",
+   "Craziest_12": "green",
+   "FreshCaptain": "red",
+   "Happy_0808": "red",
+   "IronMaster1257": "blue",
+   "MC_Davie": "green",
+   "Oakencrown13": "blue",
+   "Skydeaf": "yellow",
+   "The_General_Ice": "red",
+   "The_Holy_Ace": "red",
+   "Zinc3200": "blue",
+   "blazes34": "yellow",
+   "milky_way128": "green",
+   "sourornot": "yellow",
+   "v7tom": "green",
+   "zlobus2707": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc17-gs1-16rows-02": {
+  "correct": {
+   "Bummamiya": "blue",
+   "Craziest_12": "green",
+   "FreshCaptain": "red",
+   "Happy_0808": "red",
+   "IronMaster1257": "blue",
+   "MC_Davie": "green",
+   "Oakencrown13": "blue",
+   "Skydeaf": "yellow",
+   "The_General_Ice": "red",
+   "The_Holy_Ace": "red",
+   "Zinc3200": "blue",
+   "blazes34": "yellow",
+   "milky_way128": "green",
+   "sourornot": "yellow",
+   "v7tom": "green",
+   "zlobus2707": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc17-gs2-16rows-01": {
+  "correct": {
+   "Bummamiya": "blue",
+   "Craziest_12": "green",
+   "FreshCaptain": "red",
+   "Happy_0808": "red",
+   "IronMaster1257": "blue",
+   "MC_Davie": "green",
+   "Oakencrown13": "blue",
+   "Skydeaf": "yellow",
+   "The_General_Ice": "red",
+   "The_Holy_Ace": "red",
+   "Zinc3200": "blue",
+   "blazes34": "yellow",
+   "milky_way128": "green",
+   "sourornot": "yellow",
+   "v7tom": "green",
+   "zlobus2707": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc17-gs3-game-start-16rows-01": {
+  "correct": {
+   "Bummamiya": "blue",
+   "Craziest_12": "green",
+   "FreshCaptain": "red",
+   "Happy_0808": "red",
+   "IronMaster1257": "blue",
+   "MC_Davie": "green",
+   "Oakencrown13": "blue",
+   "Skydeaf": "yellow",
+   "The_General_Ice": "red",
+   "The_Holy_Ace": "red",
+   "Zinc3200": "blue",
+   "blazes34": "yellow",
+   "milky_way128": "green",
+   "sourornot": "yellow",
+   "v7tom": "green",
+   "zlobus2707": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc17-gs4-16rows-01": {
+  "correct": {
+   "Bummamiya": "blue",
+   "Craziest_12": "green",
+   "FreshCaptain": "red",
+   "Happy_0808": "red",
+   "IronMaster1257": "blue",
+   "MC_Davie": "green",
+   "Oakencrown13": "blue",
+   "Skydeaf": "yellow",
+   "The_General_Ice": "red",
+   "The_Holy_Ace": "red",
+   "Zinc3200": "blue",
+   "blazes34": "yellow",
+   "milky_way128": "green",
+   "sourornot": "yellow",
+   "v7tom": "green",
+   "zlobus2707": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
  "tabcap-win-lunar-vanilla-gs2-12rows-01": {
   "correct": {
    "Aodo0407": "blue",
@@ -2237,6 +2494,50 @@
   "npc": {},
   "extra": {}
  },
+ "tabcap-win-lunar-vanilla-gs2-14rows-01": {
+  "correct": {
+   "Dewier12": "red",
+   "DiamantySD15": "green",
+   "Glados987": "blue",
+   "Jcyuri": "yellow",
+   "NOOB_1490": "green",
+   "Sam74538": "red",
+   "Skydeaf": "blue",
+   "Tigre_CPVP": "red",
+   "Tizii_199": "green",
+   "YSFKB": "blue",
+   "ZixBylfEw": "red",
+   "_wductien": "green",
+   "dlchae": "blue",
+   "interble": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-14rows-02": {
+  "correct": {
+   "AthlonGold": "green",
+   "Baraashkaaa": "blue",
+   "Cxnnamon__": "red",
+   "GWN_W0ut": "red",
+   "Golpo": "green",
+   "Hoursered": "blue",
+   "Lorelayy": "blue",
+   "Nummy125": "red",
+   "Skydeaf": "yellow",
+   "darkshadows4523": "green",
+   "flamefragsfan906": "yellow",
+   "juakguakji": "yellow",
+   "pommel1234": "red",
+   "vladyshaq": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
  "tabcap-win-lunar-vanilla-gs2-16rows-01": {
   "correct": {
    "Aodo0407": "blue",
@@ -2279,6 +2580,52 @@
    "cheeseball0407": "blue",
    "lbrsn": "green",
    "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-16rows-03": {
+  "correct": {
+   "AthlonGold": "green",
+   "Baraashkaaa": "blue",
+   "Cxnnamon__": "red",
+   "Drwng": "yellow",
+   "GWN_W0ut": "red",
+   "Golpo": "green",
+   "Hoursered": "blue",
+   "KingKyongG": "green",
+   "Lorelayy": "blue",
+   "Nummy125": "red",
+   "Skydeaf": "yellow",
+   "darkshadows4523": "green",
+   "flamefragsfan906": "yellow",
+   "juakguakji": "yellow",
+   "pommel1234": "red",
+   "vladyshaq": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-game-start-14rows-01": {
+  "correct": {
+   "Dewier12": "red",
+   "DiamantySD15": "green",
+   "Glados987": "blue",
+   "Jcyuri": "yellow",
+   "NOOB_1490": "green",
+   "Sam74538": "red",
+   "Skydeaf": "blue",
+   "Tigre_CPVP": "red",
+   "Tizii_199": "green",
+   "YSFKB": "blue",
+   "ZixBylfEw": "red",
+   "_wductien": "green",
+   "dlchae": "blue",
+   "interble": "yellow"
   },
   "wrong": {},
   "unknown": {},

@@ -1,6 +1,6 @@
 {
  "base_url": "https://test-fixtures.prismoverlay.com",
- "version": "tabcap_fixtures_2026-11-15",
+ "version": "tabcap_fixtures_2026-11-21",
  "fixtures": {
   "screenshot-linux-forge-bombies-gs2-13rows-01": {
    "split": "test",
@@ -784,6 +784,101 @@
    "png": "aaaf17e40d3a7602c87d17aa3c5e8e5aadfee510b4e6968bdac95f8c983c0741",
    "json": "636b0444cb43c11456a3b74e12b3bd1f20adeaf8b1ae32e39dbce5bcd3cca332"
   },
+  "tabcap-win-lunar-tc04-gs1-16rows-01": {
+   "split": "test",
+   "png": "e8d15b84037e119a6732ea78498b01bdfbef6baf2d209d82589e5bae611d610c",
+   "json": "d60bc53fffdac1a14397175f3dc52f021b056ad4faef264705de64b432a18fc9"
+  },
+  "tabcap-win-lunar-tc04-gs1-9rows-01": {
+   "split": "train",
+   "png": "c2497a4449f063db28cdaa7edc57bb3d571347868214ec0b74cf0418ee1c6681",
+   "json": "fab39a093e09aa921596365cadc213db5abf2f0b81c8a172d2bdd82c5be71498"
+  },
+  "tabcap-win-lunar-tc04-gs2-14rows-01": {
+   "split": "train",
+   "png": "510b3de1cba0873154ba4b760dc414307b3b02e7311847f86d6b15682f84df64",
+   "json": "068906ed0a951d668befe9d1e0ab9663322c253e47a7ed9e5cd9221ce1998449"
+  },
+  "tabcap-win-lunar-tc04-gs2-16rows-01": {
+   "split": "test",
+   "png": "5c641f78e3003420791dd0675b324073f55cf72c9adc46015af7542ec690ba0e",
+   "json": "622472a2ab8609bda92f4f7ba526f3936cb933556087f09eda0828a0558fce17"
+  },
+  "tabcap-win-lunar-tc04-gs2-16rows-02": {
+   "split": "test",
+   "png": "a3290ca069e1674d9810ed0ddc2a26c35a68852d213b55949cb5caf458e16679",
+   "json": "7dd6febbcb8b3073cffedf034a8f5846fe9b2ae25f9d2e949b5cf07f31cee33e"
+  },
+  "tabcap-win-lunar-tc04-gs2-9rows-01": {
+   "split": "train",
+   "png": "ee036f9ad47fbbbde252d7a648064efc29b375f015594df27b86bbfaef41d58e",
+   "json": "bcb25325dcf8daa495137df76bdcfb38c8b0965966f8b069ed33175f2867dc7b"
+  },
+  "tabcap-win-lunar-tc04-gsx-no-tab-01": {
+   "split": "train",
+   "png": "361c1ccc0c4c14732d57d3007f2f54e32ca91201e7866bae9379c7b37193d8b0",
+   "json": "dde819ec1473bc3c0dfa3cf97ace45f965eb44f43c60da652439feffcbe7ed46"
+  },
+  "tabcap-win-lunar-tc05-gs1-13rows-01": {
+   "split": "train",
+   "png": "70a9b056dd3f0e59a48c2b75445c0f9f1911576e3689cadc43716d9875b98419",
+   "json": "5450635651a0a3d298db0c4dd0a2ad8d008017ec675d90bec3000ca8069a5a41"
+  },
+  "tabcap-win-lunar-tc05-gs2-13rows-01": {
+   "split": "train",
+   "png": "ec0dcc2a032a8e37794a27525be923a49a91ed7a4ea95aa6a65294faec68de5f",
+   "json": "c71bfec17ad209fb680bffa2274b8513fe00c52e779e785f0fb6de62bbbfe03d"
+  },
+  "tabcap-win-lunar-tc05-gs3-15rows-01": {
+   "split": "train",
+   "png": "b4a36035670f2101130c6143ece2388aaee1db51f1ec32ec9d4e116b3812c878",
+   "json": "5a42a793a0985944711bb8122fb9b996812a59a411c0fd23acc76b27d40619a1"
+  },
+  "tabcap-win-lunar-tc05-gsx-no-tab-01": {
+   "split": "train",
+   "png": "f3ecc1150a9abcc1c566cf3dbe6ad044f5db40d1490248884fd49f096e59d7b2",
+   "json": "dcf7b125f837ef9ff7ea337b9c092eb02482dfdf12f7c8c3312d0f75ca1befeb"
+  },
+  "tabcap-win-lunar-tc12-gs2-15rows-01": {
+   "split": "test",
+   "png": "8109dad8b418511c6607045c118d592b028195692a725be3e1c00fd3148eb3c0",
+   "json": "09f3c4d21017cf4fafaa0b97c12ef369a7581fe8af063ec9a878e63b7f9978df"
+  },
+  "tabcap-win-lunar-tc12-gs2-16rows-01": {
+   "split": "test",
+   "png": "421b370690ee592bc1e5b40d5f0f9fee0df4f66535d182e9acc0b92e02061a6d",
+   "json": "966b1d02643a6e244c13b05125eae739fa80eaff5681c547751dd61dc8705055"
+  },
+  "tabcap-win-lunar-tc17-gs1-16rows-01": {
+   "split": "train",
+   "png": "6c42ad21216d331ef92957948311264b7a07e7efe6a3d717c32198cf73304d32",
+   "json": "e7d61aa82c4bdcc68dd6ff17d41698f54e12cd9e37dc5a700aaf683769e3a8d9"
+  },
+  "tabcap-win-lunar-tc17-gs1-16rows-02": {
+   "split": "train",
+   "png": "4618149cab58cc196ab5e779b61687a903b12423c432f7ee21fc1a7e0e53a698",
+   "json": "12e11b00578c60f8eafc6bdc1f4275bb37a25e54ed1f2866f9302e4a8b209271"
+  },
+  "tabcap-win-lunar-tc17-gs2-16rows-01": {
+   "split": "train",
+   "png": "b351d1aecdd827db4aedebc3ca33d0f935ecd2e1fcd438439f0d760bae409745",
+   "json": "dde599a6acf1c2ca3cb025f244b2f59c2c16577b071ff2db08093e499a498534"
+  },
+  "tabcap-win-lunar-tc17-gs3-game-start-16rows-01": {
+   "split": "train",
+   "png": "cd64eb1505bf27211f4eae30f45865715dc4031edd818b4476ef405c2e60d5d8",
+   "json": "f87b03ff63c3628c75ce1c8a4f14603a115d870afd6ff1ec651bec0452b52a77"
+  },
+  "tabcap-win-lunar-tc17-gs4-16rows-01": {
+   "split": "train",
+   "png": "c8ba78b493b74560246cdab52b1183abbd48adfac89366733f0a00ab5b4c7eed",
+   "json": "2e3f78362cbf56aaff3f62448f0188a53d981a8dd2dc00e1a31c30ee303dd834"
+  },
+  "tabcap-win-lunar-vanilla-gs1-15rows-01": {
+   "split": "test",
+   "png": "74563d51d5dbe853ad53d376e6e5f4dd6701d38f1b82d2eee0e5db82ba7e14d6",
+   "json": "148b9528788592f11cee83322a7427b1df42730fde83c91e7519625d912b0eab"
+  },
   "tabcap-win-lunar-vanilla-gs2-12rows-01": {
    "split": "train",
    "png": "ffc9bd79e84f340fca9cd35bc2dcf3df876169f0d73c39f203272236e1ab9e6d",
@@ -799,6 +894,21 @@
    "png": "73e69a454aa3f7c8729649f4682aef3eaf67953bebef0224e511854d490cd410",
    "json": "3e18e9e7e76791be8d6736a7dbaba8fdaa2967e0e1abd7cd73afe4b8403d981e"
   },
+  "tabcap-win-lunar-vanilla-gs2-14rows-01": {
+   "split": "train",
+   "png": "e86924983f4bdb2ca03fc3ad766ea27dc16ce0e0f724dffb01422ae1335d8a93",
+   "json": "0af37eb2aa0406e4ecc96e04c99cd32371b1cb98e65600f9c561e751683918a7"
+  },
+  "tabcap-win-lunar-vanilla-gs2-14rows-02": {
+   "split": "train",
+   "png": "5ce20eaf5eb57a7e695d4bb15923e9a2572ba9ceb03f4a8b36a89215ba25631b",
+   "json": "74161279a51fafdf5558d2261c02377c0907cdef212de6b3e9e58d6ab3d699bd"
+  },
+  "tabcap-win-lunar-vanilla-gs2-15rows-01": {
+   "split": "test",
+   "png": "369178a84c8506459408c9abe58a5ff729835894ec1eba44c1f29bf8dc835753",
+   "json": "4b4b181b73a62e48e2a4ebe406605fadcb079711057a7eee70ca38fa6e12176f"
+  },
   "tabcap-win-lunar-vanilla-gs2-16rows-01": {
    "split": "train",
    "png": "5acdf0ad93031c7659ee1cc29107f533f0e38733cc1eb83c379e4261a107755b",
@@ -808,6 +918,16 @@
    "split": "train",
    "png": "7700cedf9658587a56040ddd53f94a9944fbc9eac3b89b40ca20a337c6b5a733",
    "json": "70a8876874a3fd9ea67e9cd1a3fb5cfee68ec406aa0e6fe5d8d02576ae34fd1a"
+  },
+  "tabcap-win-lunar-vanilla-gs2-16rows-03": {
+   "split": "train",
+   "png": "eefc999db83d677e7e7d52fced86758a77f0afc15f4b62d5f11377bae8985ea0",
+   "json": "3c8b3118ff3ddf17288b31c3e043269bcbd533c2820b36eba08b9f99943d8b5f"
+  },
+  "tabcap-win-lunar-vanilla-gs2-game-start-14rows-01": {
+   "split": "train",
+   "png": "bb1473d6e021d07cab58e06c6ba31fb3fd66ef157f5608088ab99f91a9b4665c",
+   "json": "a0fabea5e07160031a0549e044b92fae8201e2b7dd4287a6a90aa06f846ba235"
   },
   "tabcap-win-lunar-vanilla-gs2-game-start-16rows-01": {
    "split": "train",
