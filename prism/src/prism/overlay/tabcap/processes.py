@@ -9,6 +9,7 @@ import re
 import subprocess
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -116,13 +117,15 @@ def list_processes() -> list[dict[str, Any]] | None:  # pragma: nocover
     now = time.monotonic()
     if _cache is not None and now - _cache[0] < CACHE_SECONDS:
         return _cache[1]
+    lister: Callable[[], list[dict[str, Any]]]
+    if sys.platform == "win32":
+        lister = _windows_processes
+    elif sys.platform == "linux":
+        lister = _linux_processes
+    else:
+        return None
     try:
-        if sys.platform == "win32":
-            processes = _windows_processes()
-        elif sys.platform == "linux":
-            processes = _linux_processes()
-        else:
-            return None
+        processes = lister()
     except Exception:
         logger.exception("Tabcap: failed to list processes")
         return None

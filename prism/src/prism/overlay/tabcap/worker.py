@@ -24,6 +24,7 @@ from prism.overlay.tabcap.game_info import safe_collect_game_info
 from prism.overlay.tabcap.metadata import CaptureInfo, PrismWindow, build_metadata
 from prism.overlay.tabcap.policy import (
     CAPTURE_DELAYS_MS,
+    NO_READ_DELAYS_MS,
     known_names,
     should_start_burst,
 )
@@ -203,7 +204,11 @@ class TabcapWorker:  # pragma: nocover
             # Save now: a long burst would hold too many raw captures in memory
             self._enqueue_save(_png_job(store, directory / filename, capture))
 
-            teams, read_ms = _read(read_teams, capture, known)
+            teams, read_ms = (
+                (None, None)
+                if delay_ms in NO_READ_DELAYS_MS
+                else _read(read_teams, capture, known)
+            )
             captures.append(
                 CaptureInfo(
                     file=filename,
