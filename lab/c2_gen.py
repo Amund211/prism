@@ -2,6 +2,7 @@
 tokens: team tokens (c2_synth.TOKEN) in place of the team letter in targets.
 v3: tokens + row_sample_v3 (heads, ping bars, hearts, ghost text) + 10 %
 negative rows (target ""); ROW_FRAC is then the v3 row share.
+v3n: v3 + 70 % real names from results/names/usernames.txt.
 -> results/c2/NAME.pkl, NAME_preview.png. Deterministic for the same args.
 ROW_FRAC: share of whole-row samples (rest: name crops).
 KDIST: base | hard (GUI scale weights, c2_synth.K_DIST).
@@ -30,7 +31,7 @@ def work(args):
     out = []
     for _ in range(n):
         f = fs[int(rng.choice(len(fs), p=p))]
-        if tok == "v3":  # rows v3, 10 % negatives, rest name crops
+        if tok in ("v3", "v3n"):  # rows v3, 10 % negatives, rest name crops
             r = rng.random()
             if r < 0.1:
                 img, text = negative_sample(rng, f, kd)
@@ -49,7 +50,11 @@ def work(args):
 def main():
     name, n, row_frac, kd, vw = sys.argv[1], int(sys.argv[2]), float(sys.argv[3]), sys.argv[4], float(sys.argv[5])
     seed = int(sys.argv[6]) if len(sys.argv) > 6 else 0
-    tok = {"tokens": True, "v3": "v3"}.get(sys.argv[7], False) if len(sys.argv) > 7 else False
+    tok = {"tokens": True, "v3": "v3", "v3n": "v3n"}.get(sys.argv[7], False) if len(sys.argv) > 7 else False
+    if tok == "v3n":  # forked workers inherit it
+        import i4_synth
+
+        i4_synth.REAL_NAMES = (OUT.parent / "names/usernames.txt").read_text().split()
     per = 2000
     jobs = [(seed * 100_000 + s, per, row_frac, kd, vw, tok) for s in range(n // per)]
     with multiprocessing.get_context("fork").Pool(6) as pool:

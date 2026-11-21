@@ -12,6 +12,8 @@ import pickle
 from collections import Counter
 from pathlib import Path
 
+import numpy as np
+
 from c2_synth import TOKEN, TOKEN_TEAM
 from data import image, label, train_names
 from g_match import regions_of
@@ -90,13 +92,18 @@ def main() -> None:
             if t is None:
                 continue
             g = by_pos[(r["y"], r["col"])]
-            per[fo[n]].append((norm_crop(rgb, g.prow.row.y, g.prow.row.x0, g.prow.row.x1, tab.k), t, -1))
+            per[fo[n]].append((n, (norm_crop(rgb, g.prow.row.y, g.prow.row.x0, g.prow.row.x1, tab.k), t, -1)))
     print(dict(stats), {f: len(v) for f, v in per.items()}, "images per fold", Counter(fo.values()))
+    # learning curve: _h = the rows of half the images (seeded), so 1/3 of all real rows per fold model
+    half = set(np.random.default_rng(0).permutation(names)[: len(names) // 2])
     for f in range(K):
-        train = [s for g in range(K) if g != f for s in per[g]]
+        train = [s for g in range(K) if g != f for _, s in per[g]]
         (OUT / f"real_f{f}.pkl").write_bytes(pickle.dumps(train))
+        h = [s for g in range(K) if g != f for n, s in per[g] if n in half]
+        (OUT / f"real_f{f}_h.pkl").write_bytes(pickle.dumps(h))
+        print("fold", f, "rows", len(train), "half", len(h))
     (OUT / "real_folds.json").write_text(json.dumps(fo, indent=0))
-    ex = [s[1] for s in per[0][:12]]
+    ex = [s[1] for _, s in per[0][:12]]
     print("examples", ex)
 
 

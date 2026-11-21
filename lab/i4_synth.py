@@ -76,7 +76,12 @@ def render_rgba(f: BankFont, text: str, k: int) -> np.ndarray:
 # ---- one synthetic sample ---------------------------------------------------
 
 
+REAL_NAMES: list[str] | None = None  # set by c2_gen "v3n": 70 % real names (Flashlight export)
+
+
 def rand_name(rng: np.random.Generator) -> str:
+    if REAL_NAMES is not None and rng.random() < 0.7:
+        return REAL_NAMES[int(rng.integers(len(REAL_NAMES)))]
     n = int(rng.integers(3, 17))
     if rng.random() < 0.5:
         return "".join(rng.choice(list(NAME_CHARS), n))
