@@ -85,11 +85,13 @@ def _spec(rng: np.random.Generator) -> tuple[TabSpec, list[str]]:
     for team in picked:
         name = rand_name(rng)
         u = rng.random()
-        # real spectator / respawning rows: gray name, no letter (label: no team)
-        spectator = bool(u < 0.15)
+        # real respawning rows: gray name, no letter, health shown (label: no team);
+        # spectator rows (generator style): italic, no score
+        gray = bool(u < 0.12)
+        spectator = bool(0.12 <= u < 0.15)
         c = CODE[team]
         s = 20 if rng.random() < 0.5 else int(rng.integers(0, 21))
-        if spectator and u < 0.12:
+        if gray:
             text = f"§7{name}"
         elif spectator:
             text = name
@@ -100,7 +102,7 @@ def _spec(rng: np.random.Generator) -> tuple[TabSpec, list[str]]:
         rows.append(TabRow(text=text, score=s, ping_ms=int(rng.choice(PINGS)), head=random_head(rng),
                            icon=random_icon(rng, res) if rng.random() < 0.4 else None,
                            badge=random_badge(rng, res) if rng.random() < 0.1 else None, spectator=spectator))
-        words = [] if spectator else [TOKEN[team]]
+        words = [] if spectator or gray else [TOKEN[team]]
         words.append(name)
         if score and not spectator:
             words.append(str(s))
