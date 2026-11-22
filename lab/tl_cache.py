@@ -17,7 +17,7 @@ import numpy as np  # noqa: E402
 from data import image, label, train_names  # noqa: E402
 from g_match import regions_of  # noqa: E402
 from i4_rec import logits  # noqa: E402
-from c2_synth import CHARS_T as CHARS  # noqa: E402  (token models emit the extra ids; others never do)
+from c2_synth import CHARS_K as CHARS  # noqa: E402  (token / kind models emit the extra ids; others never do)
 from i4_synth import norm_crop  # noqa: E402
 from tl_front import front  # noqa: E402
 

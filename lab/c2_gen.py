@@ -5,6 +5,7 @@ negative rows (target ""); ROW_FRAC is then the v3 row share.
 v3n: v3 + 70 % real names from results/names/usernames.txt.
 comp: composite rows (c2_comp: synth tab list on real train-game plain shots, our
 front step), 70 % real names; ROW_FRAC unused.
+v3k / compk: v3n / comp + row kind tokens (c2_synth.KIND: respawning, spectator).
 -> results/c2/NAME.pkl, NAME_preview.png. Deterministic for the same args.
 ROW_FRAC: share of whole-row samples (rest: name crops).
 KDIST: base | hard (GUI scale weights, c2_synth.K_DIST).
@@ -31,21 +32,21 @@ def work(args):
     p = np.array([vw if f.fid == "vanilla" else 1.0 for f in fs])
     p /= p.sum()
     out = []
-    if tok == "comp":  # composite rows (c2_comp), several per tab
+    if tok in ("comp", "compk"):  # composite rows (c2_comp), several per tab
         from c2_comp import comp_rows
 
         while len(out) < n:
             f = fs[int(rng.choice(len(fs), p=p))]
-            out += [(img, text, f.fid) for img, text in comp_rows(rng, f, kd)]
+            out += [(img, text, f.fid) for img, text in comp_rows(rng, f, kd, kinds=tok == "compk")]
         return out[:n]
     for _ in range(n):
         f = fs[int(rng.choice(len(fs), p=p))]
-        if tok in ("v3", "v3n"):  # rows v3, 10 % negatives, rest name crops
+        if tok in ("v3", "v3n", "v3k"):  # rows v3, 10 % negatives, rest name crops
             r = rng.random()
             if r < 0.1:
                 img, text = negative_sample(rng, f, kd)
             elif r < 0.1 + row_frac:
-                img, text = row_sample_v3(rng, f, kd)
+                img, text = row_sample_v3(rng, f, kd, kinds=tok == "v3k")
             else:
                 img, text = name_sample(rng, f, kd, True)
             out.append((img, text, f.fid))
@@ -59,8 +60,9 @@ def work(args):
 def main():
     name, n, row_frac, kd, vw = sys.argv[1], int(sys.argv[2]), float(sys.argv[3]), sys.argv[4], float(sys.argv[5])
     seed = int(sys.argv[6]) if len(sys.argv) > 6 else 0
-    tok = {"tokens": True, "v3": "v3", "v3n": "v3n", "comp": "comp"}.get(sys.argv[7], False) if len(sys.argv) > 7 else False
-    if tok in ("v3n", "comp"):  # forked workers inherit it
+    modes = ("v3", "v3n", "v3k", "comp", "compk")
+    tok = (True if sys.argv[7] == "tokens" else sys.argv[7] if sys.argv[7] in modes else False) if len(sys.argv) > 7 else False
+    if tok in ("v3n", "v3k", "comp", "compk"):  # forked workers inherit it
         import i4_synth
 
         i4_synth.REAL_NAMES = (OUT.parent / "names/usernames.txt").read_text().split()

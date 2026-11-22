@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from data import label
-from c2_synth import TOKEN_TEAM
+from c2_synth import KIND_TOKEN, TOKEN_TEAM
 from rowparse import LETTER
 from tbench import score, summarize
 from tl_front import clean, valid
@@ -57,12 +57,13 @@ NPC_RE = re.compile(r"^[a-z0-9]{8,10}$")
 
 
 def split_row(text: str) -> tuple[str | None, str]:
-    """B reader: row read "① name 20" -> (team from the token, name)"""
+    """B reader: row read "① name 20" -> (team from the token, name). A kind
+    token (respawning / spectator) is a lobby row with no team: team None"""
     w = text.strip().split(" ")
     team = None
     if w and w[0] in TOKEN_TEAM:
         team, w = TOKEN_TEAM[w[0]], w[1:]
-    w = [x for x in w if x not in TOKEN_TEAM]
+    w = [x for x in w if x not in TOKEN_TEAM and x not in KIND_TOKEN]
     if len(w) > 1 and w[-1].isdigit():  # health
         w = w[:-1]
     return team, clean(" ".join(w))

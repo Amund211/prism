@@ -15,7 +15,7 @@ import numpy as np
 import torch
 from torch import nn
 
-from c2_synth import CHARS_T
+from c2_synth import CHARS_K, CHARS_T
 from i4_synth import CHARS, H
 
 OUT = Path(__file__).parent / "results/c2"
@@ -125,6 +125,7 @@ def main() -> None:
     a.add_argument("--limit", type=int, default=0, help="use only the first N train samples")
     a.add_argument("--stop-after", type=int, default=0, help="test only: exit after this epoch")
     a.add_argument("--tokens", action="store_true", help="charset with team tokens (c2_synth.CHARS_T)")
+    a.add_argument("--kinds", action="store_true", help="charset + row kind tokens (c2_synth.CHARS_K)")
     a.add_argument("--tf", type=int, default=0, help="transformer layers after the convs (0 = CRNN)")
     a.add_argument("--init", default="", help="fine-tune: start from results/c2/INIT.pt")
     a.add_argument("--lr", type=float, default=3e-3, help="OneCycle max lr")
@@ -136,7 +137,9 @@ def main() -> None:
         del o.lr
     if not o.extra:
         del o.extra
-    chars = CHARS_T if o.tokens else CHARS
+    chars = CHARS_K if o.kinds else CHARS_T if o.tokens else CHARS
+    if not o.kinds:
+        del o.kinds
     stop_after = o.stop_after
     del o.stop_after  # not part of the run identity
     torch.manual_seed(o.seed)
@@ -165,7 +168,14 @@ def main() -> None:
         data += pickle.loads((OUT / f"{en}.pkl").read_bytes()) * int(rep)
     net = Net(o.width, o.depth, len(chars), o.tf)
     if getattr(o, "init", ""):
-        net.load_state_dict(torch.load(OUT / f"{o.init}.pt"))
+        sd = torch.load(OUT / f"{o.init}.pt")
+        own = net.state_dict()
+        for key in ("out.weight", "out.bias"):  # init from a smaller charset: new chars appended
+            if sd[key].shape != own[key].shape:
+                w = own[key].clone()
+                w[: sd[key].shape[0]] = sd[key]
+                sd[key] = w
+        net.load_state_dict(sd)
     params = sum(p.numel() for p in net.parameters())
     print(o.name, "params", params, "train", len(data), flush=True)
     steps = o.epochs * (len(data) // 64 + 1)

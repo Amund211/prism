@@ -16,6 +16,11 @@ TEAM_RGB = dict(zip(TEAMS, TEAM))
 TOKEN = dict(zip(TEAMS, "①②③④⑤⑥⑦⑧"))
 TOKEN_TEAM = {v: k for k, v in TOKEN.items()}
 CHARS_T = CHARS + "".join(TOKEN.values())
+# row kind tokens (no letter, in the lobby): respawning = gray name, spectator = white name.
+# Appended, so token models without them keep their ids.
+KIND = {"respawning": "⑨", "spectator": "⑩"}
+KIND_TOKEN = {v: k for k, v in KIND.items()}
+CHARS_K = CHARS_T + "".join(KIND.values())
 YELLOW = 0xFFFF55
 K_DIST = {"base": [1, 2, 2, 3, 3, 4], "hard": [1, 1, 1, 2, 2, 3, 4]}
 
@@ -152,9 +157,10 @@ def negative_sample(rng, f, kd="hard"):
     return norm_crop(img, y0, x0 + _jit(rng, k), x1 + _jit(rng, k), k), ""
 
 
-def row_sample_v3(rng, f, kd="hard", tokens=True):
+def row_sample_v3(rng, f, kd="hard", tokens=True, kinds=False):
     """row_sample plus: player head (lobby), ping bars, hearts as health,
-    faint text behind the row"""
+    faint text behind the row. kinds: no-letter gray rows get the respawning
+    token, white rows the spectator token"""
     k = int(rng.choice(K_DIST[kd]))
     sp = int(round(f.w[32] * k))
     u = rng.random()
@@ -172,6 +178,12 @@ def row_sample_v3(rng, f, kd="hard", tokens=True):
         name = rand_name(rng)
     elif u < 0.88:
         col = int(rng.choice([0xFFFFFF, 0xAAAAAA, 0x555555] + TEAM))
+        if kinds and rng.random() < 0.5:
+            col = int(rng.choice([0xFFFFFF, 0xAAAAAA]))
+        if kinds and col == 0xAAAAAA:
+            words.append(KIND["respawning"])
+        elif kinds and col == 0xFFFFFF:
+            words.append(KIND["spectator"])
         name = rand_name(rng)
     elif u < 0.93:
         col = 0xFFFFFF

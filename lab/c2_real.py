@@ -14,7 +14,9 @@ from pathlib import Path
 
 import numpy as np
 
-from c2_synth import TOKEN, TOKEN_TEAM
+import sys
+
+from c2_synth import KIND, TOKEN, TOKEN_TEAM
 from data import image, label, train_names
 from g_match import regions_of
 from i4_synth import norm_crop
@@ -24,6 +26,8 @@ LAB = Path(__file__).parent
 OUT = LAB / "results/c2"
 CACHE = LAB / "results/tl/cache_c2_v3_tf.pkl"
 K = 3
+KINDS = "kinds" in sys.argv[1:]  # row kind tokens (respawning / spectator) -> realk_*.pkl
+PREFIX = "realk" if KINDS else "real"
 
 
 def lev(a: str, b: str) -> int:
@@ -53,7 +57,8 @@ def target(read: str, rows: list[dict]) -> str | None:
     best, i = d[0]
     if best <= max(2, len(rows[i]["name"]) // 4) and (len(d) == 1 or d[1][0] > best):
         r = rows[i]
-        parts = ([TOKEN[r["team"]]] if r.get("team") else []) + rank + [r["name"]] + ([health] if health else [])
+        first = [TOKEN[r["team"]]] if r.get("team") else [KIND[r["state"]]] if KINDS and r.get("state") in KIND else []
+        parts = first + rank + [r["name"]] + ([health] if health else [])
         return " ".join(parts)
     if best >= 5 and not tok and not health:
         return ""
@@ -98,9 +103,9 @@ def main() -> None:
     half = set(np.random.default_rng(0).permutation(names)[: len(names) // 2])
     for f in range(K):
         train = [s for g in range(K) if g != f for _, s in per[g]]
-        (OUT / f"real_f{f}.pkl").write_bytes(pickle.dumps(train))
+        (OUT / f"{PREFIX}_f{f}.pkl").write_bytes(pickle.dumps(train))
         h = [s for g in range(K) if g != f for n, s in per[g] if n in half]
-        (OUT / f"real_f{f}_h.pkl").write_bytes(pickle.dumps(h))
+        (OUT / f"{PREFIX}_f{f}_h.pkl").write_bytes(pickle.dumps(h))
         print("fold", f, "rows", len(train), "half", len(h))
     (OUT / "real_folds.json").write_text(json.dumps(fo, indent=0))
     ex = [s[1] for _, s in per[0][:12]]

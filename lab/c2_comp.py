@@ -20,7 +20,7 @@ from prism.overlay.tabcap.synth.tablist import TabRow, TabSpec, render  # noqa: 
 from prism.overlay.tabcap.synth.text import BitmapFont  # noqa: E402
 from prism.overlay.tabcap.synth.variety import random_badge, random_head, random_icon, random_style  # noqa: E402
 
-from c2_synth import K_DIST, TEAMS, TOKEN  # noqa: E402
+from c2_synth import KIND, K_DIST, TEAMS, TOKEN  # noqa: E402
 from g_bank import RP, BankFont  # noqa: E402
 from i4_synth import norm_crop, rand_name  # noqa: E402
 from rowparse import LETTER  # noqa: E402
@@ -72,7 +72,7 @@ def _load_font(f: BankFont) -> BitmapFont:
     return BitmapFont(tex, hd=f.mode == "optifine", widths=dict(enumerate(f.w)))
 
 
-def _spec(rng: np.random.Generator) -> tuple[TabSpec, list[str]]:
+def _spec(rng: np.random.Generator, kinds: bool = False) -> tuple[TabSpec, list[str]]:
     n_teams = int(rng.choice([2, 4, 4, 8, 8]))
     teams = list(rng.permutation(TEAMS)[:n_teams])
     n = int(rng.integers(2, min(16, 2 * n_teams * 2) + 1))
@@ -103,10 +103,25 @@ def _spec(rng: np.random.Generator) -> tuple[TabSpec, list[str]]:
                            icon=random_icon(rng, res) if rng.random() < 0.4 else None,
                            badge=random_badge(rng, res) if rng.random() < 0.1 else None, spectator=spectator))
         words = [] if spectator or gray else [TOKEN[team]]
+        if kinds and gray:
+            words.append(KIND["respawning"])
         words.append(name)
         if score and not spectator:
             words.append(str(s))
         targets.append(" ".join(words))
+    if kinds:  # real look: spectators (white, no letter, health) and npcs (game start) on top
+        top, top_t = [], []
+        for _ in range(int(rng.random() < 0.3) * int(rng.integers(1, 3))):
+            name, s = rand_name(rng), 20 if rng.random() < 0.7 else int(rng.integers(0, 21))
+            top.append(TabRow(text=f"§f{name}", score=s, ping_ms=int(rng.choice(PINGS)), head=random_head(rng)))
+            top_t.append(" ".join([KIND["spectator"], name] + ([str(s)] if score else [])))
+        for _ in range(int(rng.random() < 0.2) * int(rng.integers(1, 5))):
+            name = "".join(rng.choice(list("abcdefghijklmnopqrstuvwxyz0123456789"), 10))
+            s = int(rng.integers(0, 21)) if rng.random() < 0.5 else None
+            top.append(TabRow(text=f"§f{name}", score=s, ping_ms=int(rng.choice(PINGS)), head=random_head(rng)))
+            top_t.append(" ".join([name] + ([str(s)] if score and s is not None else [])))
+        rows, targets = top + [r for r in rows if not r.spectator], top_t + [
+            t for r, t in zip(rows, targets) if not r.spectator]
     header: tuple[str, ...] = ()
     footer: tuple[str, ...] = ()
     if rng.random() < 0.9:
@@ -117,15 +132,17 @@ def _spec(rng: np.random.Generator) -> tuple[TabSpec, list[str]]:
     return TabSpec(rows=tuple(rows), header=header, footer=footer, score=score), targets
 
 
-def comp_rows(rng: np.random.Generator, f: BankFont, kd: str = "hard") -> list[tuple[np.ndarray, str]]:
-    """One composite tab -> [(crop, target)] for the rows our front step finds"""
+def comp_rows(rng: np.random.Generator, f: BankFont, kd: str = "hard",
+              kinds: bool = False) -> list[tuple[np.ndarray, str]]:
+    """One composite tab -> [(crop, target)] for the rows our front step finds.
+    kinds: row kind tokens, spectator and npc rows on top (round 9)"""
     bgs = backgrounds()
     bg = bgs[int(rng.integers(len(bgs)))]
     if rng.random() < 0.5:
         bg = bg[:, ::-1]
     bg = np.ascontiguousarray(np.roll(bg, int(rng.integers(bg.shape[1])), axis=1))
     k = int(rng.choice(K_DIST[kd]))
-    spec, targets = _spec(rng)
+    spec, targets = _spec(rng, kinds)
     res = render(bg, spec, _font(f), k, random_style(rng), _icons())
     lay = res.layout
     rows_y = {rl.text[1] * k: t for rl, t in zip(lay.rows, targets)}
