@@ -403,7 +403,7 @@ def parse_chat_message(message: str) -> ChatEvent | None:
         and message.count(" ") == 1
     ):
         # [CHAT] Player1 reconnected.
-        logger.debug("Processing potential disconnect")
+        logger.debug("Processing potential reconnect")
 
         username = message.split(" ")[0]
 
