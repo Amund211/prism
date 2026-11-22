@@ -160,7 +160,7 @@ def process_event(
         for username in event.usernames:
             new_state = new_state.add_to_party(username)
 
-        logger.info(f"{' ,'.join(event.usernames)} joined your party")
+        logger.info(f"{', '.join(event.usernames)} joined your party")
 
         return new_state, True
 
@@ -175,7 +175,7 @@ def process_event(
         for username in event.usernames:
             new_state = new_state.remove_from_party(username)
 
-        logger.info(f"{' ,'.join(event.usernames)} left your party")
+        logger.info(f"{', '.join(event.usernames)} left your party")
 
         return new_state, True
 
