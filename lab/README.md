@@ -108,6 +108,28 @@ Decode and fusion tries (2026-11-18), on a log-prob cache:
 | `u_union.py` | **snap + open-set reads in one list** (best: 94.8 % full) |
 | `u_ceiling.py`, `u_choice.py`, `u_noreg.py`, `u_wteam.py`, `u_peek.py` | where misses come from; name vs row choice |
 
+### B reader: model reads the whole row (2026-11-19 to 11-22)
+
+CRNN-CTC + 2 transformer blocks reads "team-token name health" from the
+row crop (`c2_*.py`; notes: `b-reader.md` in the plan folder).
+
+**Best: `rc4_`** (train, fixtures 2026-11-21, policy B4): 95.2 % full,
+93.4 weighted, 43 bad reads, 0 wrong snap teams. Recipe:
+
+1. `c2_run_comp3.sh`: composite rows (`c2_comp.py`: the synth generator on
+   real plain shots of train games) -> base `v3c3_tf` (synth + composite
+   1:1, 8 epochs).
+2. `c2_run_rc4.sh`: `cf4` (+ 50k composite), then `rc4_0..2` (+ real rows
+   x8 from `c2_real.py`, folds by font pack).
+
+Findings: composite rows help names; composite rows must match the real
+row kinds (respawning rows: gray, no letter, with health), else the token
+team is wrong; the real-row fine-tune removes the wrong teams. Row kind
+tokens (⑨ respawning, ⑩ spectator: `--kinds`, `c2_run_kinds*.sh`) work,
+but cost a little on names. `TL_SPLIT=test` (`data.py`) and `TL_OUT`
+(`tl_cache.py`) are for final test scores only; those scores are never
+written to files.
+
 ## `proto0/`: the first prototype (2026-11-02)
 
 The first team reader (`tabteams`, `tabsoft`, `tablearn`, `tablayout`,

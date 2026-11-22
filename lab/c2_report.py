@@ -3,6 +3,7 @@ full, w_full, bad reads, precision, w_precision, snap, hybrid found / false new"
 
 import pickle
 import sys
+from pathlib import Path
 
 import tl_hybrid
 import tl_sweep
@@ -13,7 +14,7 @@ pols = next((a[6:] for a in sys.argv[1:] if a.startswith("--pol=")), "V1,V2,W1,W
 print(f"{'cache':22s} {'pol':4s} {'full':>5s} {'w_full':>6s} {'bad':>4s} {'prec':>5s} {'w_prec':>6s} "
       f"{'snap':>5s} {'s_wr':>4s} {'h_found':>7s} {'h_false':>7s}")
 for c in args:
-    tl_sweep.CACHE = tl_sweep.CACHE.with_name(f"cache{c}.pkl")
+    tl_sweep.CACHE = Path(c) if c.endswith(".pkl") else tl_sweep.CACHE.with_name(f"cache{c}.pkl")
     cache = pickle.loads(tl_sweep.CACHE.read_bytes())
     for p in pols:
         kw = tl_sweep.POLICIES[next(k for k in tl_sweep.POLICIES if k.startswith(p + " "))]

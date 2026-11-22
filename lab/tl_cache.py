@@ -21,7 +21,7 @@ from c2_synth import CHARS_K as CHARS  # noqa: E402  (token / kind models emit t
 from i4_synth import norm_crop  # noqa: E402
 from tl_front import front  # noqa: E402
 
-OUT = Path(__file__).parent / f"results/tl/cache{os.environ.get('TL_CACHE', '')}.pkl"
+OUT = Path(os.environ.get("TL_OUT") or Path(__file__).parent / f"results/tl/cache{os.environ.get('TL_CACHE', '')}.pkl")
 
 
 def decode_conf(lp: np.ndarray) -> tuple[str, list[float]]:
