@@ -84,10 +84,14 @@ def _spec(rng: np.random.Generator) -> tuple[TabSpec, list[str]]:
     rows, targets = [], []
     for team in picked:
         name = rand_name(rng)
-        spectator = bool(rng.random() < 0.05)
+        u = rng.random()
+        # real spectator / respawning rows: gray name, no letter (label: no team)
+        spectator = bool(u < 0.15)
         c = CODE[team]
         s = 20 if rng.random() < 0.5 else int(rng.integers(0, 21))
-        if spectator:
+        if spectator and u < 0.12:
+            text = f"§7{name}"
+        elif spectator:
             text = name
         elif rng.random() < 0.9:
             text = f"§{c}§l{LETTER[team]} §{c}{name}"
