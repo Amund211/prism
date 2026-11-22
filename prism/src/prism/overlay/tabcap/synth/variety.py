@@ -33,7 +33,11 @@ class Options:
     max_rows: int = 16
     p_icon: float = 0.4  # Lunar icon before the name
     p_badge: float = 0.1  # badge after the name
-    p_spectator: float = 0.05
+    # Hypixel respawning / eliminated players: gray (or white) name, no team
+    # letter, score shown; seen on Forge and Lunar. Not gamemode spectator.
+    p_no_team: float = 0.12
+    p_white_no_team: float = 0.25
+    p_spectator: float = 0.02  # gamemode spectator: italic, no score
     p_score: float = 0.8
     p_header: float = 0.9
     teams: int = 4
@@ -101,9 +105,15 @@ def random_spec(rng: np.random.Generator, opts: Options) -> TabSpec:
         letter, c = TEAMS[teams[t]]
         spectator = bool(rng.random() < opts.p_spectator)
         name = random_name(rng)
+        if spectator:
+            text = name
+        elif rng.random() < opts.p_no_team:
+            text = f"§{'f' if rng.random() < opts.p_white_no_team else '7'}{name}"
+        else:
+            text = f"§{c}§l{letter} §{c}{name}"
         rows.append(
             TabRow(
-                text=name if spectator else f"§{c}§l{letter} §{c}{name}",
+                text=text,
                 score=int(rng.integers(0, 21)),
                 ping_ms=int(rng.choice(PINGS)),
                 head=random_head(rng),

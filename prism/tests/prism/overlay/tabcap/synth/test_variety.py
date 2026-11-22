@@ -44,7 +44,14 @@ def test_spec_deterministic() -> None:
 
 def test_spec_content() -> None:
     rng = np.random.default_rng(4)
-    opts = Options(min_rows=12, max_rows=12, p_icon=1.0, p_badge=1.0, p_spectator=0.0)
+    opts = Options(
+        min_rows=12,
+        max_rows=12,
+        p_icon=1.0,
+        p_badge=1.0,
+        p_spectator=0.0,
+        p_no_team=0.0,
+    )
     spec = random_spec(rng, opts)
     assert len(spec.rows) == 12
     letters = {t[0] for t in TEAMS.values()}
@@ -55,6 +62,31 @@ def test_spec_content() -> None:
     # rows are grouped by team
     teams = [r.text[:2] for r in spec.rows]
     assert teams == sorted(teams, key=teams.index)
+
+
+def test_spec_no_team_rows() -> None:
+    # Respawning / eliminated players (Forge and Lunar captures): gray or white
+    # name, no team letter, not italic, score shown like a normal row.
+    rng = np.random.default_rng(9)
+    opts = Options(min_rows=16, max_rows=16, p_no_team=1.0, p_spectator=0.0)
+    texts = []
+    for _ in range(20):
+        spec = random_spec(rng, opts)
+        assert spec.rows
+        for r in spec.rows:
+            m = re.match(r"^§([7f])(.+)$", r.text)
+            assert m and NAME.match(m.group(2)) and not r.spectator
+            texts.append(r.text[:2])
+    assert set(texts) == {"§7", "§f"}
+    assert texts.count("§7") > texts.count("§f")
+
+
+def test_spec_no_team_keeps_place() -> None:
+    rng = np.random.default_rng(10)
+    opts = Options(min_rows=16, max_rows=16, p_no_team=0.5, p_spectator=0.0)
+    spec = random_spec(rng, opts)
+    kinds = {r.text[:2] for r in spec.rows}
+    assert {"§7", "§f"} & kinds and len(kinds) > 2
 
 
 def test_spec_options_off() -> None:
