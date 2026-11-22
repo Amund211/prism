@@ -122,11 +122,16 @@ row crop (`c2_*.py`; notes: `b-reader.md` in the plan folder).
 2. `c2_run_rc4.sh`: `cf4` (+ 50k composite), then `rc4_0..2` (+ real rows
    x8 from `c2_real.py`, folds by font pack).
 
+**With row kinds: `rk4_`** (`c2_run_kinds4.sh`, same base `v3c3_tf`, kind
+tokens): train B4 95.2 % full, 93.4 weighted, 36 bad reads, 0 wrong snap
+teams; ⑨ on 25/27 respawning rows, ⑩ on 33/35 spectator rows, no kind
+token on NPC rows.
+
 Findings: composite rows help names; composite rows must match the real
 row kinds (respawning rows: gray, no letter, with health), else the token
 team is wrong; the real-row fine-tune removes the wrong teams. Row kind
-tokens (⑨ respawning, ⑩ spectator: `--kinds`, `c2_run_kinds*.sh`) work,
-but cost a little on names. `TL_SPLIT=test` (`data.py`) and `TL_OUT`
+tokens (⑨ respawning, ⑩ spectator: `--kinds`, `c2_run_kinds*.sh`) work;
+from the old base they cost a little on names, from `v3c3_tf` they do not. `TL_SPLIT=test` (`data.py`) and `TL_OUT`
 (`tl_cache.py`) are for final test scores only; those scores are never
 written to files.
 
