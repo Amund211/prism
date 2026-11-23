@@ -107,6 +107,8 @@ def main() -> None:
         h = [s for g in range(K) if g != f for n, s in per[g] if n in half]
         (OUT / f"{PREFIX}_f{f}_h.pkl").write_bytes(pickle.dumps(h))
         print("fold", f, "rows", len(train), "half", len(h))
+    # final (shipped) model: every real row, no fold held out
+    (OUT / f"{PREFIX}_all.pkl").write_bytes(pickle.dumps([s for f in range(K) for _, s in per[f]]))
     (OUT / "real_folds.json").write_text(json.dumps(fo, indent=0))
     ex = [s[1] for _, s in per[0][:12]]
     print("examples", ex)
