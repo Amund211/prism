@@ -166,7 +166,7 @@ jobs:
             # Pass --windowed to build a .app bundle
             # Use --onedir instead of --onefile to avoid repeated security scans on startup
             # Exclude tabcap deps: no universal2 wheels, and tabcap is off on macOS
-            PYINSTALLER_ARGS: --target-architecture universal2 --windowed --onedir --exclude-module PIL --exclude-module numpy --exclude-module scipy
+            PYINSTALLER_ARGS: --target-architecture universal2 --windowed --onedir --exclude-module PIL --exclude-module numpy --exclude-module scipy --exclude-module cv2 --exclude-module onnxruntime
     defaults:
       run:
         shell: bash
@@ -225,6 +225,21 @@ jobs:
             else
               echo '::warning::Rosetta is not available, the x86_64 slice was not tested'
             fi
+          fi
+
+      - name: Test the tab-list reader in the built binary
+        if: matrix.OS_NAME != 'mac'
+        run: bash tests/tabcap_integration.sh "dist/${{ env.SIMPLE_NAME }}${{ matrix.RESULT_EXTENSION }}"
+
+      # Tabcap is off on macOS: its deps have no universal2 wheels
+      - name: Check that the tab-list reader deps are not bundled (mac)
+        if: matrix.OS_NAME == 'mac'
+        run: |
+          found="$(find "dist/${{ env.SIMPLE_NAME }}.app" \( -name 'cv2' -o -name 'onnxruntime' -o -name 'numpy' -o -name 'scipy' \) -print)"
+          if [ -n "$found" ]; then
+            echo "$found"
+            echo '::error::tabcap deps are in the macOS bundle'
+            exit 1
           fi
 
       - name: Prepare to package app bundle to disk image (mac)

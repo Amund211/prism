@@ -13,6 +13,7 @@ def make_options(
     loglevel: int = logging.INFO,
     test_ssl: bool = False,
     test_pow: str | None = None,
+    test_tabcap: str | None = None,
     test: bool = False,
     preview_signin_page: bool = False,
 ) -> Options:
@@ -23,6 +24,7 @@ def make_options(
         loglevel=loglevel,
         test_ssl=test_ssl,
         test_pow=test_pow,
+        test_tabcap=resolve_path(test_tabcap) if test_tabcap is not None else None,
         test=test,
         preview_signin_page=preview_signin_page,
     )
@@ -49,6 +51,8 @@ test_cases: tuple[tuple[str, Options], ...] = (
     # Test proof-of-work
     ("--test-pow native", make_options(test_pow="native")),
     ("--test-pow=portable", make_options(test_pow="portable")),
+    # Test the tab-list reader
+    ("--test-tabcap tab.png", make_options(test_tabcap="tab.png")),
     # Test
     ("--test", make_options(test=True)),
     # Preview the sign-in page

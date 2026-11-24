@@ -13,8 +13,9 @@ wheels/
 
 # Native proof-of-work solver, built by build_powsolve.py
 /src/prism/flashlight/auth/_powsolve.*
-# Scratch files from tests/pow_integration.sh
+# Scratch files from tests/pow_integration.sh and tests/tabcap_integration.sh
 /pow-test/
+/tabcap-test/
 
 # Pyinstaller generated files
 *.spec

@@ -115,6 +115,12 @@ def main() -> None:  # pragma: nocover
         test_pow(options.test_pow)
         return
 
+    if options.test_tabcap is not None:
+        from prism.overlay.testing import test_tabcap
+
+        test_tabcap(options.test_tabcap)
+        return
+
     session = make_prism_requests_session()
 
     # Start authenticating right away, before the (possibly interactive) logfile
