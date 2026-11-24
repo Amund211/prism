@@ -100,7 +100,7 @@ def _run(name: str, directory: Path) -> tuple[dict[str, Any], Outcome]:
     if name not in _results:
         from PIL import Image
 
-        from prism.overlay.tabcap.teams import read_teams
+        from prism.overlay.tabcap.reader import read_teams
 
         label: dict[str, Any] = json.loads((directory / f"{name}.json").read_text())
         with Image.open(directory / f"{name}.png") as image:

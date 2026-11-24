@@ -101,25 +101,24 @@
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-covered-16rows-02": {
-  "correct": {
-   "Deutronic": "red",
-   "IcyBuilder07": "yellow",
-   "Mr_Kuba": "white",
-   "TYGEU34": "yellow",
-   "green_name": "red",
-   "niekon36": "white"
-  },
+  "correct": {},
   "wrong": {},
   "unknown": {
    "A_Human2": "label green",
    "AleksanderIII": "label blue",
+   "Deutronic": "label red",
+   "IcyBuilder07": "label yellow",
    "Kropper09": "label pink",
+   "Mr_Kuba": "label white",
    "Olimp9": "label gray",
    "OneEmpTy": "label aqua",
    "Skydeaf": "label gray",
+   "TYGEU34": "label yellow",
    "Tanuci": "label pink",
    "bobby15041998": "label blue",
    "darkalaya": "label aqua",
+   "green_name": "label red",
+   "niekon36": "label white",
    "xCarbink": "label green"
   },
   "npc": {},
@@ -184,7 +183,6 @@
    "Mr_Kuba": "white",
    "Skydeaf": null,
    "TYGEU34": "yellow",
-   "Tanuci": "pink",
    "green_name": "red",
    "niekon36": "white"
   },
@@ -193,6 +191,7 @@
    "A_Human2": "label green",
    "AleksanderIII": "label blue",
    "OneEmpTy": "label aqua",
+   "Tanuci": "label pink",
    "bobby15041998": "label blue",
    "darkalaya": "label aqua",
    "xCarbink": "label green"
@@ -201,13 +200,13 @@
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-3rows-01": {
-  "correct": {
-   "CottonSpore": "white",
-   "PHANT0M__": "white",
-   "Skydeaf": "red"
-  },
+  "correct": {},
   "wrong": {},
-  "unknown": {},
+  "unknown": {
+   "CottonSpore": "label white",
+   "PHANT0M__": "label white",
+   "Skydeaf": "label red"
+  },
   "npc": {},
   "extra": {}
  },
@@ -285,7 +284,6 @@
    "JUANPUNT": "green",
    "JuanMC_55": "red",
    "LOUIEOLAI13": "gray",
-   "Lalimvd2": "yellow",
    "MapacheCraft": "blue",
    "Pgiol": null,
    "Rkzp201": "pink",
@@ -298,18 +296,21 @@
    "velion_m": "yellow"
   },
   "wrong": {},
-  "unknown": {},
+  "unknown": {
+   "Lalimvd2": "label yellow"
+  },
   "npc": {},
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-respawning-3rows-01": {
   "correct": {
-   "CottonSpore": "white",
-   "PHANT0M__": "white",
    "Skydeaf": null
   },
   "wrong": {},
-  "unknown": {},
+  "unknown": {
+   "CottonSpore": "label white",
+   "PHANT0M__": "label white"
+  },
   "npc": {},
   "extra": {}
  },
@@ -565,7 +566,6 @@
    "Sithichean": "gray",
    "Skydeaf": "pink",
    "V3OS": "yellow",
-   "VE07": "yellow",
    "_Puzo_": "aqua",
    "dorble": "green",
    "ifyouseekharry": "gray",
@@ -573,7 +573,9 @@
    "winexp": "pink"
   },
   "wrong": {},
-  "unknown": {},
+  "unknown": {
+   "VE07": "label yellow"
+  },
   "npc": {},
   "extra": {}
  },
@@ -794,7 +796,6 @@
    "Sithichean": "gray",
    "Skydeaf": "pink",
    "V3OS": "yellow",
-   "VE07": "yellow",
    "_Puzo_": "aqua",
    "dorble": "green",
    "ifyouseekharry": "gray",
@@ -802,7 +803,9 @@
    "winexp": "pink"
   },
   "wrong": {},
-  "unknown": {},
+  "unknown": {
+   "VE07": "label yellow"
+  },
   "npc": {},
   "extra": {}
  },
@@ -949,14 +952,13 @@
    "Not_Bacon80": "aqua",
    "Skydeaf": "aqua",
    "Tillmann_PvP": "yellow",
+   "_tnm": "white",
    "aleseq": "blue",
    "f1sak": "gray",
    "siimajs": "blue"
   },
   "wrong": {},
-  "unknown": {
-   "_tnm": "label white"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -964,11 +966,11 @@
   "correct": {
    "DragonStar_11": "green",
    "Hyrv": "gray",
-   "Istic_": "green",
    "NoodleDoodle111": "yellow",
    "Not_Bacon80": "aqua",
    "Skydeaf": "aqua",
    "Tillmann_PvP": "yellow",
+   "_tnm": "white",
    "aleseq": "blue",
    "f1sak": "gray",
    "siimajs": "blue",
@@ -976,7 +978,7 @@
   },
   "wrong": {},
   "unknown": {
-   "_tnm": "label white"
+   "Istic_": "label green"
   },
   "npc": {},
   "extra": {}
@@ -1003,6 +1005,7 @@
  "tabcap-win-forge-optifine-tc03-gs2-12rows-01": {
   "correct": {
    "DragonStar_11": "green",
+   "Hyrv": "gray",
    "Istic_": "green",
    "NoodleDoodle111": "yellow",
    "Not_Bacon80": "aqua",
@@ -1015,9 +1018,7 @@
    "wearwolf": "white"
   },
   "wrong": {},
-  "unknown": {
-   "Hyrv": "label gray"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -1043,6 +1044,7 @@
  },
  "tabcap-win-forge-optifine-tc03-gs3-10rows-01": {
   "correct": {
+   "Hyrv": "gray",
    "Istic_": "green",
    "NoodleDoodle111": "yellow",
    "Not_Bacon80": "aqua",
@@ -1054,9 +1056,7 @@
    "wearwolf": "white"
   },
   "wrong": {},
-  "unknown": {
-   "Hyrv": "label gray"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -1128,13 +1128,12 @@
    "Tillmann_PvP": "yellow",
    "_tnm": "white",
    "aleseq": "blue",
+   "f1sak": "gray",
    "siimajs": "blue",
    "wearwolf": "white"
   },
   "wrong": {},
-  "unknown": {
-   "f1sak": "label gray"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -1203,21 +1202,21 @@
    "BW231215": "aqua",
    "Cptobvious50": "green",
    "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
    "Moustibave": "blue",
    "Orion233": "pink",
    "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
    "Skydeaf": "red",
    "Sunny1912": "blue",
    "Tinoro16": "aqua",
-   "_wasper": "gray",
    "endofjourney": "white",
-   "goku_mekory": "white",
-   "ryanyz": "gray"
+   "goku_mekory": "white"
   },
   "wrong": {},
   "unknown": {
-   "Mega_Moon": "label yellow",
-   "Ryan_Pinguin": "label yellow"
+   "_wasper": "label gray",
+   "ryanyz": "label gray"
   },
   "npc": {},
   "extra": {}
@@ -1228,6 +1227,7 @@
    "NoodleDoodle111": "yellow",
    "Not_Bacon80": "aqua",
    "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
    "_tnm": "white",
    "aleseq": "blue",
    "f1sak": "gray",
@@ -1235,9 +1235,7 @@
    "wearwolf": "white"
   },
   "wrong": {},
-  "unknown": {
-   "Tillmann_PvP": "label yellow"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -1246,9 +1244,11 @@
    "BW231215": "aqua",
    "Cptobvious50": "green",
    "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
    "Moustibave": "blue",
    "Orion233": "pink",
    "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
    "Skydeaf": "red",
    "Sunny1912": "blue",
    "Tinoro16": "aqua",
@@ -1258,10 +1258,7 @@
    "ryanyz": "gray"
   },
   "wrong": {},
-  "unknown": {
-   "Mega_Moon": "label yellow",
-   "Ryan_Pinguin": "label yellow"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -1383,11 +1380,11 @@
    "Skydeaf": "red",
    "Sunny1912": "blue",
    "_wasper": "gray",
+   "endofjourney": "white",
    "ryanyz": "gray"
   },
   "wrong": {},
   "unknown": {
-   "endofjourney": "label white",
    "goku_mekory": "label white"
   },
   "npc": {},
@@ -1442,343 +1439,327 @@
  },
  "tabcap-win-forge-optifine-tc08-gs3-spectator-12rows-01": {
   "correct": {
-   "Skydeaf": null
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
   },
   "wrong": {},
   "unknown": {
-   "Cptobvious50": "label green",
-   "KajtoPL": "label pink",
-   "Mega_Moon": "label yellow",
-   "Moustibave": "label blue",
-   "Phantamvoid": "label green",
-   "Ryan_Pinguin": "label yellow",
-   "Sunny1912": "label blue",
-   "_wasper": "label gray",
-   "endofjourney": "label white",
-   "goku_mekory": "label white",
-   "ryanyz": "label gray"
+   "Phantamvoid": "label green"
   },
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc08-gs3-spectator-13rows-01": {
   "correct": {
-   "Skydeaf": null
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
   },
   "wrong": {},
-  "unknown": {
-   "Cptobvious50": "label green",
-   "KajtoPL": "label pink",
-   "Mega_Moon": "label yellow",
-   "Moustibave": "label blue",
-   "Orion233": "label pink",
-   "Phantamvoid": "label green",
-   "Ryan_Pinguin": "label yellow",
-   "Sunny1912": "label blue",
-   "_wasper": "label gray",
-   "endofjourney": "label white",
-   "goku_mekory": "label white",
-   "ryanyz": "label gray"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc08-gs3-spectator-respawning-12rows-01": {
   "correct": {
    "Cptobvious50": null,
-   "Skydeaf": null
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
   },
   "wrong": {},
-  "unknown": {
-   "KajtoPL": "label pink",
-   "Mega_Moon": "label yellow",
-   "Moustibave": "label blue",
-   "Phantamvoid": "label green",
-   "Ryan_Pinguin": "label yellow",
-   "Sunny1912": "label blue",
-   "_wasper": "label gray",
-   "endofjourney": "label white",
-   "goku_mekory": "label white",
-   "ryanyz": "label gray"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc08-gs4-spectator-13rows-01": {
   "correct": {
-   "Skydeaf": null
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
   },
   "wrong": {},
-  "unknown": {
-   "Cptobvious50": "label green",
-   "KajtoPL": "label pink",
-   "Mega_Moon": "label yellow",
-   "Moustibave": "label blue",
-   "Orion233": "label pink",
-   "Phantamvoid": "label green",
-   "Ryan_Pinguin": "label yellow",
-   "Sunny1912": "label blue",
-   "_wasper": "label gray",
-   "endofjourney": "label white",
-   "goku_mekory": "label white",
-   "ryanyz": "label gray"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-10rows-01": {
   "correct": {
+   "Cptobvious50": "green",
    "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
    "Ryan_Pinguin": "yellow",
    "Skydeaf": null,
+   "Sunny1912": "blue",
    "endofjourney": "white",
    "goku_mekory": "white"
   },
   "wrong": {},
-  "unknown": {
-   "Cptobvious50": "label green",
-   "Moustibave": "label blue",
-   "Orion233": "label pink",
-   "Phantamvoid": "label green",
-   "Sunny1912": "label blue"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-8rows-01": {
   "correct": {
+   "Cptobvious50": "green",
    "Mega_Moon": "yellow",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
    "Skydeaf": null,
+   "Sunny1912": "blue",
    "goku_mekory": "white"
   },
   "wrong": {},
-  "unknown": {
-   "Cptobvious50": "label green",
-   "Orion233": "label pink",
-   "Phantamvoid": "label green",
-   "Ryan_Pinguin": "label yellow",
-   "Sunny1912": "label blue"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-9rows-01": {
   "correct": {
+   "Cptobvious50": "green",
    "Mega_Moon": "yellow",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
    "Skydeaf": null,
+   "Sunny1912": "blue",
    "endofjourney": "white",
    "goku_mekory": "white"
   },
   "wrong": {},
-  "unknown": {
-   "Cptobvious50": "label green",
-   "Orion233": "label pink",
-   "Phantamvoid": "label green",
-   "Ryan_Pinguin": "label yellow",
-   "Sunny1912": "label blue"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-respawning-10rows-01": {
   "correct": {
+   "Cptobvious50": "green",
    "Mega_Moon": "yellow",
    "Moustibave": null,
+   "Orion233": "pink",
+   "Phantamvoid": "green",
    "Ryan_Pinguin": "yellow",
    "Skydeaf": null,
+   "Sunny1912": "blue",
    "endofjourney": "white",
    "goku_mekory": "white"
   },
   "wrong": {},
-  "unknown": {
-   "Cptobvious50": "label green",
-   "Orion233": "label pink",
-   "Phantamvoid": "label green",
-   "Sunny1912": "label blue"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-respawning-10rows-02": {
   "correct": {
+   "Cptobvious50": "green",
    "Mega_Moon": "yellow",
    "Moustibave": null,
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
    "Skydeaf": null,
+   "Sunny1912": "blue",
    "endofjourney": null,
    "goku_mekory": "white"
   },
   "wrong": {},
-  "unknown": {
-   "Cptobvious50": "label green",
-   "Orion233": "label pink",
-   "Phantamvoid": "label green",
-   "Ryan_Pinguin": "label yellow",
-   "Sunny1912": "label blue"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs3-spectator-10rows-01": {
   "correct": {
+   "Cptobvious50": "green",
    "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
    "Ryan_Pinguin": "yellow",
    "Skydeaf": null,
+   "Sunny1912": "blue",
    "endofjourney": "white",
    "goku_mekory": "white"
   },
   "wrong": {},
-  "unknown": {
-   "Cptobvious50": "label green",
-   "Moustibave": "label blue",
-   "Orion233": "label pink",
-   "Phantamvoid": "label green",
-   "Sunny1912": "label blue"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs3-spectator-9rows-01": {
   "correct": {
+   "Cptobvious50": "green",
    "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
    "Ryan_Pinguin": "yellow",
    "Skydeaf": null,
+   "Sunny1912": "blue",
    "endofjourney": "white",
    "goku_mekory": "white"
   },
   "wrong": {},
-  "unknown": {
-   "Cptobvious50": "label green",
-   "Moustibave": "label blue",
-   "Orion233": "label pink",
-   "Sunny1912": "label blue"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs3-spectator-9rows-02": {
   "correct": {
+   "Cptobvious50": "green",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
    "Skydeaf": null,
+   "Sunny1912": "blue",
    "endofjourney": "white",
    "goku_mekory": "white"
   },
   "wrong": {},
-  "unknown": {
-   "Cptobvious50": "label green",
-   "Moustibave": "label blue",
-   "Orion233": "label pink",
-   "Phantamvoid": "label green",
-   "Ryan_Pinguin": "label yellow",
-   "Sunny1912": "label blue"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs1-9rows-01": {
   "correct": {
-   "ehfi": "red"
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "SenkuroMashiro": "green",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "wilhelmhaes": "yellow",
+   "yCut": "red"
   },
   "wrong": {},
-  "unknown": {
-   "DAVIDSEOJUN0613": "label yellow",
-   "JD9999": "label red",
-   "MyWayOrHighWay": "label green",
-   "SenkuroMashiro": "label green",
-   "Skydeaf": "label yellow",
-   "TheRealLoppa": "label green",
-   "wilhelmhaes": "label yellow",
-   "yCut": "label red"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs1-spectator-10rows-01": {
   "correct": {
-   "Skydeaf": null
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
   },
   "wrong": {},
-  "unknown": {
-   "Cptobvious50": "label green",
-   "Mega_Moon": "label yellow",
-   "Moustibave": "label blue",
-   "Orion233": "label pink",
-   "Phantamvoid": "label green",
-   "Ryan_Pinguin": "label yellow",
-   "Sunny1912": "label blue",
-   "endofjourney": "label white",
-   "goku_mekory": "label white"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs3-9rows-01": {
-  "correct": {},
-  "wrong": {},
-  "unknown": {
-   "DAVIDSEOJUN0613": "label yellow",
-   "JD9999": "label red",
-   "MyWayOrHighWay": "label green",
-   "SenkuroMashiro": "label green",
-   "Skydeaf": "label yellow",
-   "TheRealLoppa": "label green",
-   "ehfi": "label red",
-   "wilhelmhaes": "label yellow",
-   "yCut": "label red"
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "SenkuroMashiro": "green",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "wilhelmhaes": "yellow",
+   "yCut": "red"
   },
+  "wrong": {},
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs3-spectator-10rows-01": {
   "correct": {
-   "Skydeaf": null
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
   },
   "wrong": {},
-  "unknown": {
-   "Cptobvious50": "label green",
-   "Mega_Moon": "label yellow",
-   "Moustibave": "label blue",
-   "Orion233": "label pink",
-   "Phantamvoid": "label green",
-   "Ryan_Pinguin": "label yellow",
-   "Sunny1912": "label blue",
-   "endofjourney": "label white",
-   "goku_mekory": "label white"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs4-8rows-01": {
   "correct": {
-   "ehfi": "red"
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "SenkuroMashiro": "green",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "wilhelmhaes": "yellow",
+   "yCut": "red"
   },
   "wrong": {},
-  "unknown": {
-   "JD9999": "label red",
-   "MyWayOrHighWay": "label green",
-   "SenkuroMashiro": "label green",
-   "Skydeaf": "label yellow",
-   "TheRealLoppa": "label green",
-   "wilhelmhaes": "label yellow",
-   "yCut": "label red"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs4-spectator-10rows-01": {
   "correct": {
-   "Skydeaf": null
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
   },
   "wrong": {},
-  "unknown": {
-   "Cptobvious50": "label green",
-   "Mega_Moon": "label yellow",
-   "Moustibave": "label blue",
-   "Orion233": "label pink",
-   "Phantamvoid": "label green",
-   "Ryan_Pinguin": "label yellow",
-   "Sunny1912": "label blue",
-   "endofjourney": "label white",
-   "goku_mekory": "label white"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -2253,12 +2234,11 @@
    "Skydeaf": "yellow",
    "darkshadows4523": "green",
    "flamefragsfan906": "yellow",
+   "juakguakji": "yellow",
    "vladyshaq": "blue"
   },
   "wrong": {},
-  "unknown": {
-   "juakguakji": "label yellow"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -2289,7 +2269,6 @@
    "Baraashkaaa": "blue",
    "Cxnnamon__": "red",
    "GWN_W0ut": "red",
-   "Golpo": "green",
    "Hoursered": "blue",
    "KingKyongG": "green",
    "Lorelayy": "blue",
@@ -2297,12 +2276,13 @@
    "Skydeaf": "yellow",
    "darkshadows4523": "green",
    "flamefragsfan906": "yellow",
+   "juakguakji": "yellow",
    "pommel1234": "red",
    "vladyshaq": "blue"
   },
   "wrong": {},
   "unknown": {
-   "juakguakji": "label yellow"
+   "Golpo": "label green"
   },
   "npc": {},
   "extra": {}
@@ -2615,7 +2595,6 @@
    "Dewier12": "red",
    "DiamantySD15": "green",
    "Glados987": "blue",
-   "Jcyuri": "yellow",
    "NOOB_1490": "green",
    "Sam74538": "red",
    "Skydeaf": "blue",
@@ -2628,7 +2607,9 @@
    "interble": "yellow"
   },
   "wrong": {},
-  "unknown": {},
+  "unknown": {
+   "Jcyuri": "label yellow"
+  },
   "npc": {},
   "extra": {}
  },
@@ -2698,19 +2679,16 @@
    "FunPlayer2327": "blue",
    "JozeGOOD": "yellow",
    "Nickorange1": "green",
+   "Skydeaf": null,
    "SmallCrimson": "red",
    "Thought24": "yellow",
    "lbrsn": "green",
    "n9ice": "red"
   },
-  "wrong": {
-   "Skydeaf": "got aqua, label no team"
-  },
+  "wrong": {},
   "unknown": {},
   "npc": {},
-  "extra": {
-   "Sorcier4Wish": "pink"
-  }
+  "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-respawning-6rows-01": {
   "correct": {
@@ -2728,6 +2706,7 @@
  },
  "tabcap-win-lunar-vanilla-gs2-respawning-covered-12rows-01": {
   "correct": {
+   "FunPlayer2327": "blue",
    "Skydeaf": null
   },
   "wrong": {},
@@ -2735,7 +2714,6 @@
    "BlockyRoom27934": "label yellow",
    "ColdAndSonic": "label red",
    "DOMINATOR76": "label yellow",
-   "FunPlayer2327": "label blue",
    "JozeGOOD": "label yellow",
    "Nickorange1": "label green",
    "SmallCrimson": "label red",
@@ -3082,6 +3060,7 @@
    "LiankorIsBack": "red",
    "LoveliuleiYa": "pink",
    "Sara503": "yellow",
+   "Skydeaf": "gray",
    "SquashKaskade46": "white",
    "Stracke_ciresi": "pink",
    "Streigant": "white",
@@ -3093,9 +3072,7 @@
    "zjee": "aqua"
   },
   "wrong": {},
-  "unknown": {
-   "Skydeaf": "label gray"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -3376,80 +3353,76 @@
    "Warush": "red",
    "commentory": "blue",
    "elYanB": "blue",
+   "iKASD6": "gray",
    "zjee": "aqua"
   },
   "wrong": {},
-  "unknown": {
-   "iKASD6": "label gray"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc07-gs2-respawning-9rows-01": {
   "correct": {
    "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
    "Stracke_ciresi": "pink",
    "Warush": "red",
    "commentory": "blue",
    "elYanB": "blue",
+   "iKASD6": "gray",
    "lumiysa": null,
    "zjee": "aqua"
   },
   "wrong": {},
-  "unknown": {
-   "Skydeaf": "label gray",
-   "iKASD6": "label gray"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc07-gs3-8rows-01": {
   "correct": {
    "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
    "commentory": "blue",
    "elYanB": "blue",
+   "iKASD6": "gray",
    "lumiysa": "aqua",
    "zjee": "aqua"
   },
   "wrong": {},
-  "unknown": {
-   "Skydeaf": "label gray",
-   "Stracke_ciresi": "label pink",
-   "iKASD6": "label gray"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc07-gs4-8rows-01": {
   "correct": {
    "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
    "commentory": "blue",
    "elYanB": "blue",
+   "iKASD6": "gray",
    "lumiysa": "aqua",
    "zjee": "aqua"
   },
   "wrong": {},
-  "unknown": {
-   "Skydeaf": "label gray",
-   "Stracke_ciresi": "label pink",
-   "iKASD6": "label gray"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs1-8rows-01": {
-  "correct": {},
-  "wrong": {},
-  "unknown": {
-   "LoveliuleiYa": "label pink",
-   "Skydeaf": "label gray",
-   "Stracke_ciresi": "label pink",
-   "commentory": "label blue",
-   "elYanB": "label blue",
-   "iKASD6": "label gray",
-   "lumiysa": "label aqua",
-   "zjee": "label aqua"
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
   },
+  "wrong": {},
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -3461,64 +3434,63 @@
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs2-7rows-01": {
-  "correct": {},
-  "wrong": {},
-  "unknown": {
-   "LoveliuleiYa": "label pink",
-   "Skydeaf": "label gray",
-   "Stracke_ciresi": "label pink",
-   "commentory": "label blue",
-   "elYanB": "label blue",
-   "iKASD6": "label gray",
-   "zjee": "label aqua"
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "zjee": "aqua"
   },
+  "wrong": {},
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs2-8rows-01": {
-  "correct": {},
-  "wrong": {},
-  "unknown": {
-   "LoveliuleiYa": "label pink",
-   "Skydeaf": "label gray",
-   "Stracke_ciresi": "label pink",
-   "commentory": "label blue",
-   "elYanB": "label blue",
-   "iKASD6": "label gray",
-   "lumiysa": "label aqua",
-   "zjee": "label aqua"
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
   },
+  "wrong": {},
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs3-7rows-01": {
-  "correct": {},
-  "wrong": {},
-  "unknown": {
-   "LoveliuleiYa": "label pink",
-   "Skydeaf": "label gray",
-   "Stracke_ciresi": "label pink",
-   "commentory": "label blue",
-   "elYanB": "label blue",
-   "iKASD6": "label gray",
-   "lumiysa": "label aqua"
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua"
   },
+  "wrong": {},
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs3-respawning-7rows-01": {
   "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
    "lumiysa": null
   },
   "wrong": {},
-  "unknown": {
-   "LoveliuleiYa": "label pink",
-   "Skydeaf": "label gray",
-   "Stracke_ciresi": "label pink",
-   "commentory": "label blue",
-   "elYanB": "label blue",
-   "iKASD6": "label gray"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -3554,15 +3526,14 @@
    "TzupuBusniucu": "aqua",
    "XxxHRKxxX": "green",
    "ZimbleMeister": "aqua",
+   "_t1mothy_": "pink",
    "halicarny": "yellow",
    "jiiiieun2": "blue",
    "mr_syl": "gray",
    "totalny_notch558": "red"
   },
   "wrong": {},
-  "unknown": {
-   "_t1mothy_": "label pink"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -3594,6 +3565,7 @@
    "Lordkatoa": "yellow",
    "Skydeaf": "red",
    "Terracore789": "pink",
+   "ToxicManoah": "gray",
    "TzupuBusniucu": "aqua",
    "XxxHRKxxX": "green",
    "ZimbleMeister": "aqua",
@@ -3604,9 +3576,7 @@
    "totalny_notch558": "red"
   },
   "wrong": {},
-  "unknown": {
-   "ToxicManoah": "label gray"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -3616,19 +3586,19 @@
    "Lordkatoa": "yellow",
    "Skydeaf": "red",
    "Terracore789": "pink",
+   "ToxicManoah": "gray",
    "TzupuBusniucu": "aqua",
    "XxxHRKxxX": "green",
    "ZimbleMeister": "aqua",
    "_t1mothy_": "pink",
    "halicarny": "yellow",
    "jiiiieun2": "blue",
-   "mr_syl": "gray",
    "nobomarl1019": null,
    "totalny_notch558": "red"
   },
   "wrong": {},
   "unknown": {
-   "ToxicManoah": "label gray"
+   "mr_syl": "label gray"
   },
   "npc": {},
   "extra": {}
@@ -3637,18 +3607,17 @@
   "correct": {
    "BoyTommy": "blue",
    "Skydeaf": "red",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
    "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "jiiiieun2": "blue",
    "mr_syl": "gray",
    "nobomarl1019": "green",
    "totalny_notch558": "red"
   },
   "wrong": {},
-  "unknown": {
-   "ToxicManoah": "label gray",
-   "TzupuBusniucu": "label aqua",
-   "ZimbleMeister": "label aqua",
-   "jiiiieun2": "label blue"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -3656,18 +3625,17 @@
   "correct": {
    "BoyTommy": "blue",
    "Skydeaf": "red",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
    "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "jiiiieun2": "blue",
    "mr_syl": "gray",
    "nobomarl1019": "green",
    "totalny_notch558": "red"
   },
   "wrong": {},
-  "unknown": {
-   "ToxicManoah": "label gray",
-   "TzupuBusniucu": "label aqua",
-   "ZimbleMeister": "label aqua",
-   "jiiiieun2": "label blue"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -3675,17 +3643,16 @@
   "correct": {
    "BoyTommy": "blue",
    "Skydeaf": "red",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
+   "ZimbleMeister": "aqua",
+   "jiiiieun2": "blue",
    "mr_syl": "gray",
    "nobomarl1019": "green",
    "totalny_notch558": "red"
   },
   "wrong": {},
-  "unknown": {
-   "ToxicManoah": "label gray",
-   "TzupuBusniucu": "label aqua",
-   "ZimbleMeister": "label aqua",
-   "jiiiieun2": "label blue"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -3693,17 +3660,16 @@
   "correct": {
    "BoyTommy": "blue",
    "Skydeaf": "red",
+   "TzupuBusniucu": "aqua",
    "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
    "jiiiieun2": "blue",
    "mr_syl": "gray",
    "nobomarl1019": "green",
    "totalny_notch558": "red"
   },
   "wrong": {},
-  "unknown": {
-   "TzupuBusniucu": "label aqua",
-   "ZimbleMeister": "label aqua"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -3711,18 +3677,17 @@
   "correct": {
    "BoyTommy": "blue",
    "Skydeaf": "red",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
    "XxxHRKxxX": null,
+   "ZimbleMeister": "aqua",
+   "jiiiieun2": "blue",
    "mr_syl": "gray",
    "nobomarl1019": "green",
    "totalny_notch558": "red"
   },
   "wrong": {},
-  "unknown": {
-   "ToxicManoah": "label gray",
-   "TzupuBusniucu": "label aqua",
-   "ZimbleMeister": "label aqua",
-   "jiiiieun2": "label blue"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -3730,67 +3695,65 @@
   "correct": {
    "BoyTommy": "blue",
    "Skydeaf": "red",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
    "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "jiiiieun2": "blue",
    "mr_syl": "gray",
    "nobomarl1019": "green",
    "totalny_notch558": "red"
   },
   "wrong": {},
-  "unknown": {
-   "ToxicManoah": "label gray",
-   "TzupuBusniucu": "label aqua",
-   "ZimbleMeister": "label aqua",
-   "jiiiieun2": "label blue"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc16-gs2-16rows-01": {
-  "correct": {},
-  "wrong": {
-   "aufity": "got blue, label green"
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "FlicksyJet789": "gray",
+   "Gurrase": "aqua",
+   "Haminations2026": "blue",
+   "Johannesjocke": "aqua",
+   "Lappenoeffnerlol": "gray",
+   "RoryGlec": "yellow",
+   "Skydeaf": "blue",
+   "Zipted": "pink",
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
   },
-  "unknown": {
-   "Antlu236": "label yellow",
-   "E_C_M_U_Bro": "label green",
-   "Eli2017_A": "label white",
-   "FlicksyJet789": "label gray",
-   "Gurrase": "label aqua",
-   "Haminations2026": "label blue",
-   "Johannesjocke": "label aqua",
-   "Lappenoeffnerlol": "label gray",
-   "RoryGlec": "label yellow",
-   "Skydeaf": "label blue",
-   "Zipted": "label pink",
-   "_ItzRiptide": "label pink",
-   "headsnaps": "label red",
-   "plocque": "label white",
-   "plsfixlag": "label red"
-  },
+  "wrong": {},
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc16-gs4-16rows-01": {
-  "correct": {},
-  "wrong": {},
-  "unknown": {
-   "Antlu236": "label yellow",
-   "E_C_M_U_Bro": "label green",
-   "Eli2017_A": "label white",
-   "FlicksyJet789": "label gray",
-   "Gurrase": "label aqua",
-   "Haminations2026": "label blue",
-   "Johannesjocke": "label aqua",
-   "Lappenoeffnerlol": "label gray",
-   "RoryGlec": "label yellow",
-   "Skydeaf": "label blue",
-   "Zipted": "label pink",
-   "_ItzRiptide": "label pink",
-   "aufity": "label green",
-   "headsnaps": "label red",
-   "plocque": "label white",
-   "plsfixlag": "label red"
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "FlicksyJet789": "gray",
+   "Gurrase": "aqua",
+   "Haminations2026": "blue",
+   "Johannesjocke": "aqua",
+   "Lappenoeffnerlol": "gray",
+   "RoryGlec": "yellow",
+   "Skydeaf": "blue",
+   "Zipted": "pink",
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
   },
+  "wrong": {},
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -3912,8 +3875,6 @@
    "Eli2017_A": "white",
    "FlicksyJet789": "gray",
    "Gurrase": null,
-   "Johannesjocke": "aqua",
-   "Lappenoeffnerlol": "gray",
    "RoryGlec": "yellow",
    "Skydeaf": null,
    "Zipted": "pink",
@@ -3924,7 +3885,10 @@
    "plsfixlag": "red"
   },
   "wrong": {},
-  "unknown": {},
+  "unknown": {
+   "Johannesjocke": "label aqua",
+   "Lappenoeffnerlol": "label gray"
+  },
   "npc": {},
   "extra": {}
  },
@@ -3979,9 +3943,7 @@
  "tabcap-win-vanilla-vanilla-gs4-16rows-01": {
   "correct": {
    "Corays": "white",
-   "Himashm": "green",
    "Not_Bacon80": "aqua",
-   "QSEG123": "pink",
    "Seanlannx": "red",
    "Skydeaf": "aqua",
    "TheWo1fyRobin": "blue",
@@ -3996,7 +3958,10 @@
    "yeloverye": "green"
   },
   "wrong": {},
-  "unknown": {},
+  "unknown": {
+   "Himashm": "label green",
+   "QSEG123": "label pink"
+  },
   "npc": {},
   "extra": {}
  },

@@ -49,8 +49,8 @@ def _load_read_teams() -> "ReadTeams":  # pragma: nocover
     # Use one BLAS thread, so recognition does not take every core from the game
     for var in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS"):
         os.environ.setdefault(var, "1")
-    # Lazy: numpy, scipy and PIL are not in the macOS build
-    from prism.overlay.tabcap.teams import read_teams
+    # Lazy: onnxruntime, numpy, scipy and PIL are not in the macOS build
+    from prism.overlay.tabcap.reader import read_teams
 
     return read_teams
 
