@@ -20,6 +20,7 @@ dependencies = [
     "pillow==13.0.0",
     "numpy==2.5.4",
     "scipy==1.18.1",
+    "opencv-python-headless==5.0.0.93",
 ]
 classifiers = [
     "Programming Language :: Python :: 3"
@@ -104,5 +105,7 @@ omit=[
   'src/prism/overlay/tabcap/window_x11.py',
   # Prototype port, tested by the R2 fixture tests (pytest --tabcap=train)
   'src/prism/overlay/tabcap/teams/*',
+  # Lab front port, tested by test_front.py (pytest --tabcap=train)
+  'src/prism/overlay/tabcap/reader/front/*',
   'src/prism/discordrp/__init__.py',
 ]
