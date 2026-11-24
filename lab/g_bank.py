@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from common import PRow, shade_of
+from front_regions import NameRegion, name_region  # noqa: F401  (re-export for lab callers)
 
 RP = Path.home() / "git/overlay/resource_packs"
 VANILLA = RP / "vanilla/1.8.9/assets/minecraft/textures/font/ascii.png"
@@ -148,33 +148,6 @@ def ink_width(f: BankFont, text: str) -> float:
 
 # ---- name regions in the image -------------------------------------------
 
-
-@dataclass
-class NameRegion:
-    prow: PRow
-    x0: int
-    x1: int
-    mask: np.ndarray  # bool 8k x (x1 - x0)
-
-
-def name_region(rgb: np.ndarray, p: PRow, merge_gap: float = 4.0) -> NameRegion | None:
-    """Name word plus the following same-colour words (wide-spaced fonts split
-    a name into several words)"""
-    if p.name is None:
-        return None
-    k = p.row.k
-    i = next(i for i, w in enumerate(p.words) if w is p.name)
-    x1 = p.name.x1
-    for w in p.words[i + 1 :]:
-        if w.x0 - x1 >= merge_gap * k or max(abs(a - b) for a, b in zip(w.color, p.name.color)) > 24:
-            break
-        x1 = w.x1
-    band = rgb[p.row.y : p.row.y + 8 * k, p.name.x0 : x1]
-    m = shade_of(band, p.name.color)
-    cols = np.flatnonzero(m.any(0))
-    if len(cols) == 0:
-        return None
-    return NameRegion(p, p.name.x0 + int(cols[0]), p.name.x0 + int(cols[-1]) + 1, m[:, cols[0] : cols[-1] + 1])
 
 
 def iou(a: np.ndarray, t: np.ndarray, shifts: int = 1) -> float:

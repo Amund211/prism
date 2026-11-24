@@ -8,23 +8,10 @@ from pathlib import Path
 import numpy as np
 
 from common import assign, parse
-from g_bank import BankFont, NameRegion, bank, excluded_for, ink_width, iou, name_region, render
+from front_regions import NameRegion, name_region, regions_of  # noqa: F401  (re-export for lab callers)
+from g_bank import BankFont, bank, excluded_for, ink_width, iou, render
 
 WIDTH_TOL = 2.5  # GUI px: pairs further apart in ink width get no IoU
-
-
-def regions_of(rgb: np.ndarray, prows: list, k: int) -> list[NameRegion]:
-    """Name regions; drop duplicates (the same text found by two row chains)"""
-    out: list[NameRegion] = []
-    for p in prows:
-        r = name_region(rgb, p)
-        if r is None or r.x1 - r.x0 < 4 * k:
-            continue
-        y = p.row.y
-        if any(abs(o.prow.row.y - y) <= k and o.x0 < r.x1 and r.x0 < o.x1 for o in out):
-            continue
-        out.append(r)
-    return out
 
 
 def width_scores(regions: list[NameRegion], known: list[str], fonts: list[BankFont], k: int) -> np.ndarray:

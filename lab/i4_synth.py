@@ -7,26 +7,14 @@ import cv2
 import numpy as np
 from PIL import Image
 
+from front_regions import H, norm_crop  # noqa: F401  (re-export for lab callers)
 from g_bank import RP, VANILLA, BankFont, bank
 
-H = 20  # model input height: rows y-k .. y+9k at 2 px per GUI px
 CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_[]+ "
 NAME_CHARS = CHARS[:63]
 PALETTE = [0x000000, 0x0000AA, 0x00AA00, 0x00AAAA, 0xAA0000, 0xAA00AA, 0xFFAA00, 0xAAAAAA,
            0x555555, 0x5555FF, 0x55FF55, 0x55FFFF, 0xFF5555, 0xFF55FF, 0xFFFF55, 0xFFFFFF]
 TEAM = [0xFF5555, 0x5555FF, 0x55FF55, 0xFFFF55, 0x55FFFF, 0xFFFFFF, 0xFF55FF, 0x555555]
-
-
-def norm_crop(rgb: np.ndarray, y: int, x0: int, x1: int, k: int) -> np.ndarray:
-    """Row band (y = top of glyph area) -> uint8 H x W x 3 at 2 px per GUI px"""
-    ya, yb = y - k, y + 9 * k
-    xa, xb = max(0, x0 - 2 * k), min(rgb.shape[1], x1 + 2 * k)
-    band = np.zeros((yb - ya, xb - xa, 3), np.uint8)
-    sa, sb = max(0, ya), min(rgb.shape[0], yb)
-    band[sa - ya : sb - ya] = rgb[sa:sb, xa:xb]
-    w = max(4, round((xb - xa) * 2 / k))
-    interp = cv2.INTER_AREA if k > 2 else cv2.INTER_NEAREST
-    return cv2.resize(band, (w, H), interpolation=interp)
 
 
 # ---- soft font render (alpha + texture colour) ------------------------------

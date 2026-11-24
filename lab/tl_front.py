@@ -7,7 +7,7 @@ import numpy as np
 
 import ping_grid
 from common import parse
-from j3_slot import grid_parse
+from j3_grid import grid_parse
 from lunar_mask import lunar_mask
 from rows import find_tab
 
