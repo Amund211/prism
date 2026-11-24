@@ -3,6 +3,7 @@ policy B4, snap. The equality with the lab reader on the train fixtures was
 checked once by hand (T5 on the tabcap step-1 board)."""
 
 import hashlib
+import importlib.util
 import json
 from types import SimpleNamespace
 
@@ -73,7 +74,7 @@ def test_decode(text: str, blank_at: tuple[int, ...], expected: str) -> None:
 
 
 def test_sidecar() -> None:
-    side = json.loads(model.SIDECAR.read_text())
+    side = json.loads(model.SIDECAR.read_text(encoding="utf-8"))
     assert hashlib.sha256(model.MODEL.read_bytes()).hexdigest() == side["sha256"]
     assert side["model"] == model.MODEL.name
     assert side["charset"] == CHARS_K
@@ -81,6 +82,12 @@ def test_sidecar() -> None:
     assert side["crop"]["height"] == 20
 
 
+# find_spec, not importorskip: the import must come after model.session() sets
+# ORT_DISABLE_TELEMETRY
+@pytest.mark.skipif(
+    importlib.util.find_spec("onnxruntime") is None,
+    reason="onnxruntime is not installed on macOS",
+)
 def test_model() -> None:
     assert model.session() is model.session()  # loaded once
     crop = np.full((20, 40, 3), 255, np.uint8)

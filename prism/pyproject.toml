@@ -94,6 +94,11 @@ exclude = [
   '^tabcap-train/',
 ]
 
+# No type hints, and not installed on macOS
+[[tool.mypy.overrides]]
+module = ["onnxruntime", "onnxruntime.*"]
+ignore_missing_imports = true
+
 [tool.pytest]
 # tabcap-train/tests belong to that uv project
 testpaths = ["tests"]
