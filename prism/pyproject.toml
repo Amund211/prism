@@ -21,6 +21,7 @@ dependencies = [
     "numpy==2.5.4",
     "scipy==1.18.1",
     "opencv-python-headless==5.0.0.93",
+    "onnxruntime==1.32.0 ; python_full_version < '3.15' and sys_platform != 'darwin'",
 ]
 classifiers = [
     "Programming Language :: Python :: 3"
