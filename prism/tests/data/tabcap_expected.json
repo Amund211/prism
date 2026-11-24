@@ -1,484 +1,4 @@
 {
- "replay-linux-forge-bombies-gs2-12rows-01": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "WyxerIsWashed": "pink",
-   "__d4ni3l": "gray",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "jamie836": "label gray"
-  },
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-12rows-02": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "WyxerIsWashed": "pink",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "__d4ni3l": "label gray",
-   "jamie836": "label gray"
-  },
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-13rows-01": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "TutiRajuan": "aqua",
-   "WyxerIsWashed": "pink",
-   "__d4ni3l": "gray",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "jamie836": "label gray"
-  },
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-13rows-02": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "TutiRajuan": "aqua",
-   "WyxerIsWashed": "pink",
-   "__d4ni3l": "gray",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "jamie836": "label gray"
-  },
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-13rows-03": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "Julian_NNH": "green",
-   "L1u8k9a5": "red",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "WyxerIsWashed": "pink",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "Moritz1_2_3": "label red",
-   "__d4ni3l": "label gray",
-   "jamie836": "label gray"
-  },
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-13rows-04": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "Julian_NNH": "green",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "WyxerIsWashed": "pink",
-   "__d4ni3l": "gray",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "jamie836": "label gray"
-  },
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-13rows-05": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "Julian_NNH": "green",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "WyxerIsWashed": "pink",
-   "__d4ni3l": "gray",
-   "jamie836": "gray",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {},
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-14rows-01": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "Julian_NNH": "green",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "WyxerIsWashed": "pink",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "__d4ni3l": "label gray",
-   "jamie836": "label gray"
-  },
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-14rows-02": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "Julian_NNH": "green",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "WyxerIsWashed": "pink",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "__d4ni3l": "label gray",
-   "jamie836": "label gray"
-  },
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-14rows-03": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "Julian_NNH": "green",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "WyxerIsWashed": "pink",
-   "__d4ni3l": "gray",
-   "jamie836": "gray",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "L1u8k9a5": "label red"
-  },
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-14rows-04": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "Julian_NNH": "green",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "WyxerIsWashed": "pink",
-   "__d4ni3l": "gray",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "jamie836": "label gray"
-  },
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-14rows-05": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "Julian_NNH": "green",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "WyxerIsWashed": "pink",
-   "__d4ni3l": "gray",
-   "jamie836": "gray",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {},
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-14rows-06": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "Julian_NNH": "green",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "WyxerIsWashed": "pink",
-   "jamie836": "gray"
-  },
-  "wrong": {},
-  "unknown": {
-   "__d4ni3l": "label gray",
-   "jlynmc": "label white"
-  },
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-14rows-07": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "Julian_NNH": "green",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "WyxerIsWashed": "pink",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "__d4ni3l": "label gray",
-   "jamie836": "label gray"
-  },
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-14rows-08": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "Julian_NNH": "green",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "WyxerIsWashed": "pink",
-   "__d4ni3l": "gray",
-   "jamie836": "gray",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {},
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-15rows-01": {
-  "correct": {
-   "8f32": "pink",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "ItzProDevil": "aqua",
-   "Julian_NNH": "green",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "TutiRajuan": "aqua",
-   "WyxerIsWashed": "pink",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "__d4ni3l": "label gray",
-   "jamie836": "label gray"
-  },
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-15rows-02": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "Julian_NNH": "green",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "WyxerIsWashed": "pink",
-   "__d4ni3l": "gray",
-   "jamie836": "gray",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "TutiRajuan": "label aqua"
-  },
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-16rows-01": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "ItzProDevil": "aqua",
-   "Julian_NNH": "green",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "TutiRajuan": "aqua",
-   "WyxerIsWashed": "pink",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "__d4ni3l": "label gray",
-   "jamie836": "label gray"
-  },
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-16rows-02": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "ItzProDevil": "aqua",
-   "Julian_NNH": "green",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "TutiRajuan": "aqua",
-   "WyxerIsWashed": "pink",
-   "__d4ni3l": "gray",
-   "jamie836": "gray",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {},
-  "unscored": {},
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-respawning-14rows-01": {
-  "correct": {
-   "8f32": "pink",
-   "Bachala3": "blue",
-   "DH4V": "yellow",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "WyxerIsWashed": "pink",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "__d4ni3l": "label gray",
-   "jamie836": "label gray"
-  },
-  "unscored": {
-   "Enigmariah": null,
-   "Julian_NNH": null
-  },
-  "extra": {}
- },
- "replay-linux-forge-bombies-gs2-respawning-16rows-01": {
-  "correct": {
-   "8f32": "pink",
-   "DH4V": "yellow",
-   "Enigmariah": "white",
-   "ItzProDevil": "aqua",
-   "Julian_NNH": "green",
-   "L1u8k9a5": "red",
-   "Moritz1_2_3": "red",
-   "Moritz_12211": "green",
-   "Skydeaf": "yellow",
-   "Smufiq": "blue",
-   "TutiRajuan": "aqua",
-   "WyxerIsWashed": "pink",
-   "jlynmc": "white"
-  },
-  "wrong": {},
-  "unknown": {
-   "__d4ni3l": "label gray",
-   "jamie836": "label gray"
-  },
-  "unscored": {
-   "Bachala3": null
-  },
-  "extra": {}
- },
  "screenshot-win-forge-betterbedwars-gs2-16rows-01": {
   "correct": {
    "A_Human2": "green",
@@ -500,7 +20,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-16rows-02": {
@@ -524,7 +44,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-6rows-01": {
@@ -538,7 +58,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-7rows-01": {
@@ -553,31 +73,31 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-covered-16rows-01": {
   "correct": {},
   "wrong": {},
-  "unknown": {},
-  "unscored": {
-   "A_Human2": null,
-   "AleksanderIII": null,
-   "Deutronic": null,
-   "IcyBuilder07": null,
-   "Kropper09": null,
-   "Mr_Kuba": null,
-   "Olimp9": null,
-   "OneEmpTy": null,
-   "Skydeaf": null,
-   "TYGEU34": null,
-   "Tanuci": null,
-   "bobby15041998": null,
-   "darkalaya": null,
-   "green_name": null,
-   "niekon36": null,
-   "xCarbink": null
+  "unknown": {
+   "A_Human2": "label green",
+   "AleksanderIII": "label blue",
+   "Deutronic": "label red",
+   "IcyBuilder07": "label yellow",
+   "Kropper09": "label pink",
+   "Mr_Kuba": "label white",
+   "Olimp9": "label gray",
+   "OneEmpTy": "label aqua",
+   "Skydeaf": "label gray",
+   "TYGEU34": "label yellow",
+   "Tanuci": "label pink",
+   "bobby15041998": "label blue",
+   "darkalaya": "label aqua",
+   "green_name": "label red",
+   "niekon36": "label white",
+   "xCarbink": "label green"
   },
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-covered-16rows-02": {
@@ -590,72 +110,70 @@
    "niekon36": "white"
   },
   "wrong": {},
-  "unknown": {},
-  "unscored": {
-   "A_Human2": null,
-   "AleksanderIII": null,
-   "Kropper09": null,
-   "Olimp9": null,
-   "OneEmpTy": null,
-   "Skydeaf": null,
-   "Tanuci": null,
-   "bobby15041998": null,
-   "darkalaya": null,
-   "xCarbink": null
+  "unknown": {
+   "A_Human2": "label green",
+   "AleksanderIII": "label blue",
+   "Kropper09": "label pink",
+   "Olimp9": "label gray",
+   "OneEmpTy": "label aqua",
+   "Skydeaf": "label gray",
+   "Tanuci": "label pink",
+   "bobby15041998": "label blue",
+   "darkalaya": "label aqua",
+   "xCarbink": "label green"
   },
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-lobby-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-respawning-covered-13rows-01": {
   "correct": {
+   "A_Human2": "green",
+   "AleksanderIII": "blue",
    "IcyBuilder07": "yellow",
    "Kropper09": "pink",
    "Mr_Kuba": "white",
+   "OneEmpTy": "aqua",
+   "Skydeaf": null,
    "TYGEU34": "yellow",
    "Tanuci": "pink",
-   "niekon36": "white"
+   "bobby15041998": "blue",
+   "darkalaya": "aqua",
+   "niekon36": "white",
+   "xCarbink": "green"
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "A_Human2": "green",
-   "AleksanderIII": "blue",
-   "OneEmpTy": "aqua",
-   "Skydeaf": null,
-   "bobby15041998": "blue",
-   "darkalaya": "aqua",
-   "xCarbink": "green"
-  },
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-respawning-covered-15rows-01": {
   "correct": {
+   "A_Human2": "green",
+   "AleksanderIII": "blue",
    "Deutronic": "red",
    "IcyBuilder07": "yellow",
    "Kropper09": "pink",
    "Mr_Kuba": "white",
-   "TYGEU34": "yellow",
-   "green_name": "red",
-   "niekon36": "white"
-  },
-  "wrong": {},
-  "unknown": {},
-  "unscored": {
-   "A_Human2": "green",
-   "AleksanderIII": "blue",
    "OneEmpTy": "aqua",
    "Skydeaf": null,
+   "TYGEU34": "yellow",
    "Tanuci": "pink",
    "bobby15041998": "blue",
    "darkalaya": "aqua",
+   "green_name": "red",
+   "niekon36": "white",
    "xCarbink": "green"
   },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-respawning-covered-15rows-02": {
@@ -664,22 +182,22 @@
    "IcyBuilder07": "yellow",
    "Kropper09": "pink",
    "Mr_Kuba": "white",
+   "Skydeaf": null,
    "TYGEU34": "yellow",
+   "Tanuci": "pink",
    "green_name": "red",
    "niekon36": "white"
   },
   "wrong": {},
-  "unknown": {},
-  "unscored": {
-   "A_Human2": null,
-   "AleksanderIII": null,
-   "OneEmpTy": null,
-   "Skydeaf": null,
-   "Tanuci": "pink",
-   "bobby15041998": null,
-   "darkalaya": null,
-   "xCarbink": null
+  "unknown": {
+   "A_Human2": "label green",
+   "AleksanderIII": "label blue",
+   "OneEmpTy": "label aqua",
+   "bobby15041998": "label blue",
+   "darkalaya": "label aqua",
+   "xCarbink": "label green"
   },
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-3rows-01": {
@@ -690,7 +208,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-14rows-01": {
@@ -712,9 +230,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "tizignbh": null
-  },
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-15rows-01": {
@@ -737,9 +253,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "tizignbh": null
-  },
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-15rows-02": {
@@ -762,9 +276,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "tizignbh": null
-  },
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-respawning-15rows-01": {
@@ -775,6 +287,7 @@
    "LOUIEOLAI13": "gray",
    "Lalimvd2": "yellow",
    "MapacheCraft": "blue",
+   "Pgiol": null,
    "Rkzp201": "pink",
    "SigTill": "gray",
    "Skydeaf": "aqua",
@@ -786,32 +299,71 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "Pgiol": null,
-   "tizignbh": null
-  },
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-respawning-3rows-01": {
   "correct": {
    "CottonSpore": "white",
-   "PHANT0M__": "white"
+   "PHANT0M__": "white",
+   "Skydeaf": null
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "5h8685cf90": null,
-   "9893534ysj": null,
-   "Skydeaf": null,
-   "ic2n83w48f": null
-  },
+  "npc": {},
   "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-lobby-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
+  "extra": {}
+ },
+ "synthetic-win-forge-optifine-vanilla-gs3-1440p-game-start-15rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "synthetic-win-forge-optifine-vanilla-gs4-2160p-game-start-15rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-14rows-01": {
@@ -833,7 +385,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-16rows-01": {
@@ -857,7 +409,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-16rows-02": {
@@ -881,7 +433,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-16rows-03": {
@@ -906,7 +458,7 @@
    "hajin_09": "label gray",
    "whimsical_plague": "label aqua"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-16rows-04": {
@@ -930,7 +482,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-16rows-05": {
@@ -954,7 +506,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-6rows-01": {
@@ -968,7 +520,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-7rows-01": {
@@ -983,7 +535,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-8rows-01": {
@@ -999,7 +551,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-8rows-02": {
@@ -1015,7 +567,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-12rows-01": {
@@ -1035,9 +587,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "6yaus6umh5": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-16rows-01": {
@@ -1061,9 +611,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "6yaus6umh5": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-16rows-02": {
@@ -1087,10 +635,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "0rb3q66ug6": null,
-   "kz8icr0et5": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-16rows-03": {
@@ -1114,11 +659,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "0r401438vj": null,
-   "5pd258hg41": null,
-   "fpv9tgy75c": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-7rows-01": {
@@ -1133,27 +674,20 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "1nid4ls71a": null,
-   "5w56891qx5": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-respawning-5rows-01": {
   "correct": {
    "C0ldSlime": "white",
    "Sithichean": "green",
+   "Skydeaf": null,
    "ifyouseekharry": "green",
    "theamazingwar": "white"
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "0r401438vj": null,
-   "5pd258hg41": null,
-   "Skydeaf": null,
-   "fpv9tgy75c": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-two-columns-16rows-01": {
@@ -1177,34 +711,28 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "1t01a292eb": null,
-   "97m6o5iebz": null,
-   "ddwm6j3o8m": null,
-   "jijqc0ets5": null,
-   "n5nnp9ytdv": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-lobby-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-lobby-02": {
   "correct": {},
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-linux-noclient-nofont-gsx-no-tab-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc02-gs1-15rows-01": {
@@ -1227,7 +755,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc02-gs2-14rows-01": {
@@ -1249,7 +777,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc02-gs2-15rows-01": {
@@ -1272,7 +800,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc02-gs3-14rows-01": {
@@ -1294,7 +822,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc02-gs3-15rows-01": {
@@ -1317,7 +845,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs1-11rows-01": {
@@ -1337,7 +865,7 @@
   "unknown": {
    "_tnm": "label white"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs1-respawning-12rows-01": {
@@ -1351,15 +879,14 @@
    "Tillmann_PvP": "yellow",
    "aleseq": "blue",
    "f1sak": "gray",
-   "siimajs": "blue"
+   "siimajs": "blue",
+   "wearwolf": null
   },
   "wrong": {},
   "unknown": {
    "_tnm": "label white"
   },
-  "unscored": {
-   "wearwolf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs2-11rows-01": {
@@ -1378,7 +905,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs2-12rows-01": {
@@ -1399,7 +926,7 @@
   "unknown": {
    "Hyrv": "label gray"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs2-respawning-12rows-01": {
@@ -1411,6 +938,7 @@
    "Not_Bacon80": "aqua",
    "Skydeaf": "aqua",
    "Tillmann_PvP": "yellow",
+   "_tnm": null,
    "aleseq": "blue",
    "f1sak": "gray",
    "siimajs": "blue",
@@ -1418,9 +946,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "_tnm": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs3-10rows-01": {
@@ -1439,7 +965,7 @@
   "unknown": {
    "Hyrv": "label gray"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs3-11rows-01": {
@@ -1458,7 +984,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs3-respawning-11rows-01": {
@@ -1472,13 +998,12 @@
    "_tnm": "white",
    "aleseq": "blue",
    "f1sak": "gray",
+   "siimajs": null,
    "wearwolf": "white"
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "siimajs": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs4-11rows-01": {
@@ -1497,7 +1022,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs4-12rows-01": {
@@ -1518,7 +1043,7 @@
   "unknown": {
    "f1sak": "label gray"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc04-gs3-10rows-01": {
@@ -1536,7 +1061,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc04-gs3-11rows-01": {
@@ -1555,7 +1080,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc05-gs2-15rows-01": {
@@ -1578,7 +1103,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc05-gs3-15rows-01": {
@@ -1602,7 +1127,7 @@
    "Mega_Moon": "label yellow",
    "Ryan_Pinguin": "label yellow"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc05-gs4-10rows-01": {
@@ -1621,7 +1146,7 @@
   "unknown": {
    "Tillmann_PvP": "label yellow"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc05-gs4-15rows-01": {
@@ -1645,7 +1170,7 @@
    "Mega_Moon": "label yellow",
    "Ryan_Pinguin": "label yellow"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc06-gs1-15rows-01": {
@@ -1668,7 +1193,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc06-gs3-13rows-01": {
@@ -1689,7 +1214,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc06-gs3-14rows-01": {
@@ -1711,7 +1236,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc06-gs4-12rows-01": {
@@ -1731,7 +1256,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc06-gs4-13rows-01": {
@@ -1752,7 +1277,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc07-gs1-12rows-01": {
@@ -1773,7 +1298,7 @@
    "endofjourney": "label white",
    "goku_mekory": "label white"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc07-gs2-12rows-01": {
@@ -1793,14 +1318,14 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc07-gs2-no-tab-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc07-gs3-12rows-01": {
@@ -1820,11 +1345,13 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc08-gs3-spectator-12rows-01": {
-  "correct": {},
+  "correct": {
+   "Skydeaf": null
+  },
   "wrong": {},
   "unknown": {
    "Cptobvious50": "label green",
@@ -1839,13 +1366,13 @@
    "goku_mekory": "label white",
    "ryanyz": "label gray"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc08-gs3-spectator-13rows-01": {
-  "correct": {},
+  "correct": {
+   "Skydeaf": null
+  },
   "wrong": {},
   "unknown": {
    "Cptobvious50": "label green",
@@ -1861,13 +1388,14 @@
    "goku_mekory": "label white",
    "ryanyz": "label gray"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc08-gs3-spectator-respawning-12rows-01": {
-  "correct": {},
+  "correct": {
+   "Cptobvious50": null,
+   "Skydeaf": null
+  },
   "wrong": {},
   "unknown": {
    "KajtoPL": "label pink",
@@ -1881,14 +1409,13 @@
    "goku_mekory": "label white",
    "ryanyz": "label gray"
   },
-  "unscored": {
-   "Cptobvious50": null,
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc08-gs4-spectator-13rows-01": {
-  "correct": {},
+  "correct": {
+   "Skydeaf": null
+  },
   "wrong": {},
   "unknown": {
    "Cptobvious50": "label green",
@@ -1904,15 +1431,14 @@
    "goku_mekory": "label white",
    "ryanyz": "label gray"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-10rows-01": {
   "correct": {
    "Mega_Moon": "yellow",
    "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
    "endofjourney": "white",
    "goku_mekory": "white"
   },
@@ -1924,14 +1450,13 @@
    "Phantamvoid": "label green",
    "Sunny1912": "label blue"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-8rows-01": {
   "correct": {
    "Mega_Moon": "yellow",
+   "Skydeaf": null,
    "goku_mekory": "white"
   },
   "wrong": {},
@@ -1942,14 +1467,13 @@
    "Ryan_Pinguin": "label yellow",
    "Sunny1912": "label blue"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-9rows-01": {
   "correct": {
    "Mega_Moon": "yellow",
+   "Skydeaf": null,
    "endofjourney": "white",
    "goku_mekory": "white"
   },
@@ -1961,15 +1485,15 @@
    "Ryan_Pinguin": "label yellow",
    "Sunny1912": "label blue"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-respawning-10rows-01": {
   "correct": {
    "Mega_Moon": "yellow",
+   "Moustibave": null,
    "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
    "endofjourney": "white",
    "goku_mekory": "white"
   },
@@ -1980,15 +1504,15 @@
    "Phantamvoid": "label green",
    "Sunny1912": "label blue"
   },
-  "unscored": {
-   "Moustibave": null,
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-respawning-10rows-02": {
   "correct": {
    "Mega_Moon": "yellow",
+   "Moustibave": null,
+   "Skydeaf": null,
+   "endofjourney": null,
    "goku_mekory": "white"
   },
   "wrong": {},
@@ -1999,17 +1523,14 @@
    "Ryan_Pinguin": "label yellow",
    "Sunny1912": "label blue"
   },
-  "unscored": {
-   "Moustibave": null,
-   "Skydeaf": null,
-   "endofjourney": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs3-spectator-10rows-01": {
   "correct": {
    "Mega_Moon": "yellow",
    "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
    "endofjourney": "white",
    "goku_mekory": "white"
   },
@@ -2021,15 +1542,14 @@
    "Phantamvoid": "label green",
    "Sunny1912": "label blue"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs3-spectator-9rows-01": {
   "correct": {
    "Mega_Moon": "yellow",
    "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
    "endofjourney": "white",
    "goku_mekory": "white"
   },
@@ -2040,13 +1560,12 @@
    "Orion233": "label pink",
    "Sunny1912": "label blue"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs3-spectator-9rows-02": {
   "correct": {
+   "Skydeaf": null,
    "endofjourney": "white",
    "goku_mekory": "white"
   },
@@ -2059,9 +1578,7 @@
    "Ryan_Pinguin": "label yellow",
    "Sunny1912": "label blue"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs1-9rows-01": {
@@ -2079,11 +1596,13 @@
    "wilhelmhaes": "label yellow",
    "yCut": "label red"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs1-spectator-10rows-01": {
-  "correct": {},
+  "correct": {
+   "Skydeaf": null
+  },
   "wrong": {},
   "unknown": {
    "Cptobvious50": "label green",
@@ -2096,9 +1615,7 @@
    "endofjourney": "label white",
    "goku_mekory": "label white"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs3-9rows-01": {
@@ -2115,11 +1632,13 @@
    "wilhelmhaes": "label yellow",
    "yCut": "label red"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs3-spectator-10rows-01": {
-  "correct": {},
+  "correct": {
+   "Skydeaf": null
+  },
   "wrong": {},
   "unknown": {
    "Cptobvious50": "label green",
@@ -2132,9 +1651,7 @@
    "endofjourney": "label white",
    "goku_mekory": "label white"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs4-8rows-01": {
@@ -2151,11 +1668,13 @@
    "wilhelmhaes": "label yellow",
    "yCut": "label red"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs4-spectator-10rows-01": {
-  "correct": {},
+  "correct": {
+   "Skydeaf": null
+  },
   "wrong": {},
   "unknown": {
    "Cptobvious50": "label green",
@@ -2168,9 +1687,7 @@
    "endofjourney": "label white",
    "goku_mekory": "label white"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc16-gs1-spectator-8rows-01": {
@@ -2179,15 +1696,14 @@
    "Moustibave": "blue",
    "Orion233": "pink",
    "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
    "Sunny1912": "blue",
    "endofjourney": "white",
    "goku_mekory": "white"
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc16-gs4-spectator-7rows-01": {
@@ -2196,14 +1712,13 @@
    "Moustibave": "blue",
    "Orion233": "pink",
    "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
    "Sunny1912": "blue",
    "endofjourney": "white"
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc16-gs4-spectator-8rows-01": {
@@ -2212,15 +1727,14 @@
    "Moustibave": "blue",
    "Orion233": "pink",
    "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
    "Sunny1912": "blue",
    "endofjourney": "white",
    "goku_mekory": "white"
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc16-gs4-spectator-respawning-8rows-01": {
@@ -2229,15 +1743,14 @@
    "Moustibave": "blue",
    "Orion233": "pink",
    "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
    "Sunny1912": "blue",
-   "endofjourney": "white"
+   "endofjourney": "white",
+   "goku_mekory": null
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "Skydeaf": null,
-   "goku_mekory": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs1-11rows-01": {
@@ -2256,7 +1769,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs1-spectator-8rows-01": {
@@ -2265,15 +1778,14 @@
    "Moustibave": "blue",
    "Orion233": "pink",
    "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
    "Sunny1912": "blue",
    "endofjourney": "white",
    "goku_mekory": "white"
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-10rows-01": {
@@ -2291,7 +1803,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-10rows-02": {
@@ -2309,7 +1821,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-11rows-01": {
@@ -2328,7 +1840,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-11rows-02": {
@@ -2347,7 +1859,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-8rows-01": {
@@ -2363,7 +1875,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-9rows-01": {
@@ -2380,11 +1892,12 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-spectator-12rows-01": {
   "correct": {
+   "37iajacogh": null,
    "DAVIDSEOJUN0613": "yellow",
    "JD9999": "red",
    "MyWayOrHighWay": "green",
@@ -2399,9 +1912,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "37iajacogh": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-spectator-8rows-01": {
@@ -2410,19 +1921,19 @@
    "Moustibave": "blue",
    "Orion233": "pink",
    "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
    "Sunny1912": "blue",
    "endofjourney": "white",
    "goku_mekory": "white"
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-10rows-01": {
   "correct": {
+   "DAVIDSEOJUN0613": null,
    "MyWayOrHighWay": "green",
    "OliverCSJ": "green",
    "SenkuroMashiro": "green",
@@ -2434,10 +1945,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "37iajacogh": null,
-   "DAVIDSEOJUN0613": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-12rows-01": {
@@ -2451,14 +1959,12 @@
    "Skydeaf": "yellow",
    "TheRealLoppa": "green",
    "ehfi": "red",
+   "wilhelmhaes": null,
    "yCut": "red"
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "37iajacogh": null,
-   "wilhelmhaes": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-9rows-01": {
@@ -2469,14 +1975,12 @@
    "Shachimy44": "red",
    "Skydeaf": "yellow",
    "TheRealLoppa": "green",
-   "ehfi": "red"
+   "ehfi": "red",
+   "yCut": null
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "37iajacogh": null,
-   "yCut": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-vanilla-gs1-10rows-01": {
@@ -2494,7 +1998,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-vanilla-gs1-11rows-01": {
@@ -2513,12 +2017,13 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-vanilla-gs1-respawning-11rows-01": {
   "correct": {
    "DAVIDSEOJUN0613": "yellow",
+   "JD9999": null,
    "MyWayOrHighWay": "green",
    "OliverCSJ": "green",
    "SenkuroMashiro": "green",
@@ -2531,9 +2036,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "JD9999": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-vanilla-gs2-15rows-01": {
@@ -2556,7 +2059,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-forge-optifine-vanilla-gs2-game-start-15rows-01": {
@@ -2579,12 +2082,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "2qfcv090m4": null,
-   "881x3550cf": null,
-   "a9xm7vjjn1": null,
-   "y5f627gyrs": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-12rows-01": {
@@ -2604,7 +2102,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-12rows-02": {
@@ -2624,7 +2122,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-12rows-03": {
@@ -2644,7 +2142,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-16rows-01": {
@@ -2668,7 +2166,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-16rows-02": {
@@ -2692,7 +2190,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-game-start-16rows-01": {
@@ -2716,48 +2214,42 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "7a8jw19l83": null,
-   "8b8393v1a8": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-game-start-respawning-6rows-01": {
   "correct": {
    "ColdAndSonic": "red",
    "FunPlayer2327": "blue",
+   "Skydeaf": null,
    "SmallCrimson": "red",
    "YeahSoGood": "red",
    "n9ice": "red"
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "7a8jw19l83": null,
-   "8b8393v1a8": null,
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-no-tab-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-no-tab-02": {
   "correct": {},
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-no-tab-03": {
   "correct": {},
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-respawning-10rows-01": {
@@ -2772,11 +2264,11 @@
    "lbrsn": "green",
    "n9ice": "red"
   },
-  "wrong": {},
-  "unknown": {},
-  "unscored": {
-   "Skydeaf": "aqua"
+  "wrong": {
+   "Skydeaf": "got aqua, label no team"
   },
+  "unknown": {},
+  "npc": {},
   "extra": {
    "Sorcier4Wish": "pink"
   }
@@ -2786,34 +2278,34 @@
    "ColdAndSonic": "red",
    "FunPlayer2327": "blue",
    "Nickorange1": "green",
+   "Skydeaf": null,
    "SmallCrimson": "red",
    "YeahSoGood": "red"
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-respawning-covered-12rows-01": {
-  "correct": {},
-  "wrong": {},
-  "unknown": {},
-  "unscored": {
-   "BlockyRoom27934": null,
-   "ColdAndSonic": null,
-   "DOMINATOR76": null,
-   "FunPlayer2327": null,
-   "JozeGOOD": null,
-   "Nickorange1": null,
-   "Skydeaf": null,
-   "SmallCrimson": null,
-   "Thought24": null,
-   "YeahSoGood": null,
-   "lbrsn": null,
-   "n9ice": null
+  "correct": {
+   "Skydeaf": null
   },
+  "wrong": {},
+  "unknown": {
+   "BlockyRoom27934": "label yellow",
+   "ColdAndSonic": "label red",
+   "DOMINATOR76": "label yellow",
+   "FunPlayer2327": "label blue",
+   "JozeGOOD": "label yellow",
+   "Nickorange1": "label green",
+   "SmallCrimson": "label red",
+   "Thought24": "label yellow",
+   "YeahSoGood": "label red",
+   "lbrsn": "label green",
+   "n9ice": "label red"
+  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc01-gs1-15rows-01": {
@@ -2836,7 +2328,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc01-gs1-16rows-01": {
@@ -2860,7 +2352,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc01-gs4-16rows-01": {
@@ -2884,7 +2376,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc02-gs2-15rows-01": {
@@ -2907,7 +2399,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc02-gs2-16rows-01": {
@@ -2931,7 +2423,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc02-gs3-13rows-01": {
@@ -2952,7 +2444,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc02-gs3-14rows-01": {
@@ -2974,7 +2466,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc03-gs1-13rows-01": {
@@ -2995,7 +2487,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc03-gs2-14rows-01": {
@@ -3017,7 +2509,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs1-game-start-16rows-01": {
@@ -3041,16 +2533,13 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "03c9hol326": null,
-   "69b3ag5o2z": null,
-   "6u3240a9r9": null,
-   "zB3yikfw0e": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs1-spectator-8rows-01": {
-  "correct": {},
+  "correct": {
+   "Skydeaf": null
+  },
   "wrong": {},
   "unknown": {
    "Corays": "label white",
@@ -3061,13 +2550,13 @@
    "opdar": "label white",
    "wjddmsS2": "label pink"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs1-spectator-9rows-01": {
-  "correct": {},
+  "correct": {
+   "Skydeaf": null
+  },
   "wrong": {},
   "unknown": {
    "Corays": "label white",
@@ -3079,13 +2568,14 @@
    "wjddmsS2": "label pink",
    "yeloverye": "label green"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs1-spectator-respawning-9rows-01": {
-  "correct": {},
+  "correct": {
+   "Skydeaf": null,
+   "yeloverye": null
+  },
   "wrong": {},
   "unknown": {
    "Corays": "label white",
@@ -3096,10 +2586,7 @@
    "opdar": "label white",
    "wjddmsS2": "label pink"
   },
-  "unscored": {
-   "Skydeaf": null,
-   "yeloverye": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs2-16rows-01": {
@@ -3123,7 +2610,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs3-16rows-01": {
@@ -3147,7 +2634,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs4-14rows-01": {
@@ -3170,7 +2657,7 @@
   "unknown": {
    "Skydeaf": "label gray"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs4-15rows-01": {
@@ -3193,7 +2680,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc05-gs3-12rows-01": {
@@ -3213,7 +2700,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc05-gs3-16rows-01": {
@@ -3237,7 +2724,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc05-gs4-12rows-01": {
@@ -3257,7 +2744,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc05-gs4-14rows-01": {
@@ -3279,7 +2766,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc05-gs4-15rows-01": {
@@ -3302,7 +2789,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-8rows-01": {
@@ -3318,11 +2805,13 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-8rows-01": {
-  "correct": {},
+  "correct": {
+   "Skydeaf": null
+  },
   "wrong": {},
   "unknown": {
    "LoveliuleiYa": "label pink",
@@ -3333,14 +2822,13 @@
    "lumiysa": "label aqua",
    "zjee": "label aqua"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-8rows-02": {
   "correct": {
    "LoveliuleiYa": "pink",
+   "Skydeaf": null,
    "Stracke_ciresi": "pink",
    "Warush": "red",
    "commentory": "blue",
@@ -3350,13 +2838,14 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-9rows-01": {
-  "correct": {},
+  "correct": {
+   "Skydeaf": null,
+   "elYanB": null
+  },
   "wrong": {},
   "unknown": {
    "LoveliuleiYa": "label pink",
@@ -3367,14 +2856,13 @@
    "lumiysa": "label aqua",
    "zjee": "label aqua"
   },
-  "unscored": {
-   "Skydeaf": null,
-   "elYanB": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-9rows-02": {
-  "correct": {},
+  "correct": {
+   "Skydeaf": null
+  },
   "wrong": {},
   "unknown": {
    "LoveliuleiYa": "label pink",
@@ -3386,27 +2874,24 @@
    "lumiysa": "label aqua",
    "zjee": "label aqua"
   },
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-9rows-03": {
   "correct": {
    "LoveliuleiYa": "pink",
+   "Skydeaf": null,
    "Stracke_ciresi": "pink",
    "Warush": "red",
    "commentory": "blue",
    "elYanB": "blue",
    "iKASD6": "gray",
+   "lumiysa": null,
    "zjee": "aqua"
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "Skydeaf": null,
-   "lumiysa": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs2-9rows-01": {
@@ -3424,7 +2909,7 @@
   "unknown": {
    "lumiysa": "label aqua"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs4-9rows-01": {
@@ -3441,7 +2926,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc07-gs2-8rows-01": {
@@ -3458,7 +2943,7 @@
   "unknown": {
    "iKASD6": "label gray"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc07-gs2-respawning-9rows-01": {
@@ -3468,6 +2953,7 @@
    "Warush": "red",
    "commentory": "blue",
    "elYanB": "blue",
+   "lumiysa": null,
    "zjee": "aqua"
   },
   "wrong": {},
@@ -3475,9 +2961,7 @@
    "Skydeaf": "label gray",
    "iKASD6": "label gray"
   },
-  "unscored": {
-   "lumiysa": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc07-gs3-8rows-01": {
@@ -3494,7 +2978,7 @@
    "Stracke_ciresi": "label pink",
    "iKASD6": "label gray"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc07-gs4-8rows-01": {
@@ -3511,7 +2995,7 @@
    "Stracke_ciresi": "label pink",
    "iKASD6": "label gray"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs1-8rows-01": {
@@ -3527,14 +3011,14 @@
    "lumiysa": "label aqua",
    "zjee": "label aqua"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs1-no-tab-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs2-7rows-01": {
@@ -3549,7 +3033,7 @@
    "iKASD6": "label gray",
    "zjee": "label aqua"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs2-8rows-01": {
@@ -3565,7 +3049,7 @@
    "lumiysa": "label aqua",
    "zjee": "label aqua"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs3-7rows-01": {
@@ -3580,11 +3064,13 @@
    "iKASD6": "label gray",
    "lumiysa": "label aqua"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs3-respawning-7rows-01": {
-  "correct": {},
+  "correct": {
+   "lumiysa": null
+  },
   "wrong": {},
   "unknown": {
    "LoveliuleiYa": "label pink",
@@ -3594,9 +3080,7 @@
    "elYanB": "label blue",
    "iKASD6": "label gray"
   },
-  "unscored": {
-   "lumiysa": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc10-gs2-14rows-01": {
@@ -3618,7 +3102,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc10-gs3-13rows-01": {
@@ -3640,7 +3124,7 @@
   "unknown": {
    "_t1mothy_": "label pink"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc10-gs3-14rows-01": {
@@ -3662,7 +3146,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc10-gs4-13rows-01": {
@@ -3684,7 +3168,7 @@
   "unknown": {
    "ToxicManoah": "label gray"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc10-gs4-respawning-14rows-01": {
@@ -3700,15 +3184,14 @@
    "halicarny": "yellow",
    "jiiiieun2": "blue",
    "mr_syl": "gray",
+   "nobomarl1019": null,
    "totalny_notch558": "red"
   },
   "wrong": {},
   "unknown": {
    "ToxicManoah": "label gray"
   },
-  "unscored": {
-   "nobomarl1019": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs1-10rows-01": {
@@ -3727,7 +3210,7 @@
    "ZimbleMeister": "label aqua",
    "jiiiieun2": "label blue"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs3-10rows-01": {
@@ -3746,7 +3229,7 @@
    "ZimbleMeister": "label aqua",
    "jiiiieun2": "label blue"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs3-9rows-01": {
@@ -3764,7 +3247,7 @@
    "ZimbleMeister": "label aqua",
    "jiiiieun2": "label blue"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs3-9rows-02": {
@@ -3782,13 +3265,14 @@
    "TzupuBusniucu": "label aqua",
    "ZimbleMeister": "label aqua"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs3-respawning-10rows-01": {
   "correct": {
    "BoyTommy": "blue",
    "Skydeaf": "red",
+   "XxxHRKxxX": null,
    "mr_syl": "gray",
    "nobomarl1019": "green",
    "totalny_notch558": "red"
@@ -3800,9 +3284,7 @@
    "ZimbleMeister": "label aqua",
    "jiiiieun2": "label blue"
   },
-  "unscored": {
-   "XxxHRKxxX": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs4-10rows-01": {
@@ -3821,7 +3303,7 @@
    "ZimbleMeister": "label aqua",
    "jiiiieun2": "label blue"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc16-gs2-16rows-01": {
@@ -3846,7 +3328,7 @@
    "plocque": "label white",
    "plsfixlag": "label red"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc16-gs4-16rows-01": {
@@ -3870,7 +3352,7 @@
    "plocque": "label white",
    "plsfixlag": "label red"
   },
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs1-15rows-01": {
@@ -3893,7 +3375,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs3-spectator-15rows-01": {
@@ -3906,6 +3388,7 @@
    "Johannesjocke": "aqua",
    "Lappenoeffnerlol": "gray",
    "RoryGlec": "yellow",
+   "Skydeaf": null,
    "Zipted": "pink",
    "_ItzRiptide": "pink",
    "aufity": "green",
@@ -3915,9 +3398,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs4-spectator-13rows-01": {
@@ -3929,6 +3410,7 @@
    "Johannesjocke": "aqua",
    "Lappenoeffnerlol": "gray",
    "RoryGlec": "yellow",
+   "Skydeaf": null,
    "_ItzRiptide": "pink",
    "aufity": "green",
    "headsnaps": "red",
@@ -3937,9 +3419,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs4-spectator-14rows-01": {
@@ -3951,6 +3431,7 @@
    "Johannesjocke": "aqua",
    "Lappenoeffnerlol": "gray",
    "RoryGlec": "yellow",
+   "Skydeaf": null,
    "Zipted": "pink",
    "_ItzRiptide": "pink",
    "aufity": "green",
@@ -3960,9 +3441,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs4-spectator-14rows-02": {
@@ -3974,6 +3453,7 @@
    "Johannesjocke": "aqua",
    "Lappenoeffnerlol": "gray",
    "RoryGlec": "yellow",
+   "Skydeaf": null,
    "Zipted": "pink",
    "_ItzRiptide": "pink",
    "aufity": "green",
@@ -3983,9 +3463,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs4-spectator-respawning-15rows-01": {
@@ -3994,9 +3472,11 @@
    "E_C_M_U_Bro": "green",
    "Eli2017_A": "white",
    "FlicksyJet789": "gray",
+   "Gurrase": null,
    "Johannesjocke": "aqua",
    "Lappenoeffnerlol": "gray",
    "RoryGlec": "yellow",
+   "Skydeaf": null,
    "Zipted": "pink",
    "_ItzRiptide": "pink",
    "aufity": "green",
@@ -4006,10 +3486,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "Gurrase": null,
-   "Skydeaf": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-vanilla-gs1-16rows-01": {
@@ -4033,7 +3510,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-vanilla-gs1-game-start-16rows-01": {
@@ -4057,12 +3534,7 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {
-   "231ahc0915": null,
-   "8cij93epte": null,
-   "d1v90c261v": null,
-   "muank4u9j3": null
-  },
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-vanilla-gs4-16rows-01": {
@@ -4086,14 +3558,14 @@
   },
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-vanilla-gs4-no-tab-01": {
   "correct": {},
   "wrong": {},
   "unknown": {},
-  "unscored": {},
+  "npc": {},
   "extra": {}
  }
 }
