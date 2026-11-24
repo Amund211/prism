@@ -1,0 +1,4 @@
+.venv/
+__pycache__/
+# Generated sets, models and private inputs (names, read caches)
+results/

@@ -66,3 +66,24 @@ repos:
         args: [report]
         pass_filenames: false
         types: [python]
+    # tabcap-train is its own uv project (lab code, not typed): the hooks
+    # above skip it (except black, which then reads its config), so lint it
+    # here in its own env.
+    -   id: tabcap-train-black
+        name: tabcap-train black
+        entry: uv run --directory tabcap-train black .
+        language: system
+        files: ^tabcap-train/
+        pass_filenames: false
+    -   id: tabcap-train-isort
+        name: tabcap-train isort
+        entry: uv run --directory tabcap-train isort .
+        language: system
+        files: ^tabcap-train/
+        pass_filenames: false
+    -   id: tabcap-train-flake8
+        name: tabcap-train flake8
+        entry: uv run --directory tabcap-train flake8 .
+        language: system
+        files: ^tabcap-train/
+        pass_filenames: false
