@@ -10,18 +10,18 @@ from functools import cache
 
 import numpy as np
 from PIL import Image
+
+import calib
+from c2_synth import K_DIST, KIND, LETTER, TEAMS, TOKEN
+from g_bank import BankFont, vanilla
+from i4_synth import rand_name
+from paths import resource_packs
+from prism.overlay.tabcap.reader.front import front, norm_crop, regions_of
 from synth.canvas import Sprite
 from synth.tablist import TabRow, TabSpec, render
 from synth.text import BitmapFont
 from synth.variety import random_badge, random_head, random_icon, random_style
 
-from c2_synth import K_DIST, KIND, LETTER, TEAMS, TOKEN
-from g_bank import BankFont, vanilla
-from i4_synth import rand_name
-from paths import fixtures, resource_packs
-from prism.overlay.tabcap.reader.front import front, norm_crop, regions_of
-
-CALIB = "tabcap_synth_calib_2026-11-21"
 # game start (s of day, = capture time - since_game_start_s) of the train games 1, 3, 4
 BG_GAME_STARTS = {57961, 58306, 58898}
 CODE = {
@@ -49,7 +49,7 @@ def _t(stem: str) -> float:
 @cache
 def backgrounds() -> list[np.ndarray]:
     out = []
-    for j in sorted((fixtures() / CALIB).glob("**/*-plain.json")):
+    for j in sorted(calib.ensure().glob("**/*-plain.json")):
         st = json.loads(j.read_text()).get("state", {}).get("since_game_start_s")
         if st is None or round(_t(j.stem) - st) not in BG_GAME_STARTS:
             continue

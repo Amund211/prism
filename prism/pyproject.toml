@@ -94,6 +94,10 @@ exclude = [
   '^tabcap-train/',
 ]
 
+[tool.pytest]
+# tabcap-train/tests belong to that uv project
+testpaths = ["tests"]
+
 [tool.coverage.run]
 source=['src/prism']
 command_line='-m pytest -r fEs'

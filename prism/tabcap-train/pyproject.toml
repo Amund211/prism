@@ -7,7 +7,7 @@ dependencies = ["prism"]
 
 [dependency-groups]
 train = ["torch==2.15.0", "onnx==1.23.2"]
-dev = ["black==26.10.1", "flake8==7.5.0", "isort==9.0.2"]
+dev = ["black==26.10.1", "flake8==7.5.0", "isort==9.0.2", "pytest==9.2.0"]
 
 [tool.uv]
 package = false
@@ -26,6 +26,10 @@ explicit = true
 # Hooks: prism/.pre-commit-config.yaml (tabcap-train-*).
 [tool.black]
 extend-exclude = '^/results/'
+
+[tool.pytest]
+pythonpath = ["."]
+testpaths = ["tests"]
 
 [tool.isort]
 profile = "black"
