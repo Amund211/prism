@@ -19,8 +19,8 @@ wheels/
 # Pyinstaller generated files
 *.spec
 
-# Local tab screenshot samples (not in git: size, privacy)
-/tests/data/tabcap
+# Test fixtures downloaded from the bucket (tests/tabcap_fixtures.py)
+/tests/data/fixtures/
 
 # Coverage generated files
 .coverage
