@@ -5,10 +5,6 @@ panel 0x80000000: cell = bg*0.4375 + 32, separator = bg*0.5. So there is an
 up edge at the cell top and a down edge 8k below, on all channels, for any
 font / palette. Lunar draws no cells (use another finder there).
 """
-import os
-import sys
-import time
-from collections import Counter
 from dataclasses import dataclass
 
 import cv2
@@ -16,10 +12,10 @@ import numpy as np
 
 from guiscale import gui_ks
 
-LO = int(os.environ.get("G_LO", 6))
-HI = int(os.environ.get("G_HI", 60))
-THR = int(os.environ.get("G_THR", 14))  # min pair px per row, in k
-MISS = int(os.environ.get("G_MISS", 2))
+LO = 6
+HI = 60
+THR = 14  # min pair px per row, in k
+MISS = 2
 
 
 @dataclass
@@ -123,34 +119,3 @@ def _find_any(rgb, ks=None):
             w.weak = True
             return w
     return g
-
-
-if __name__ == "__main__":
-    from data import image, label, train_names
-
-    only = sys.argv[1] if len(sys.argv) > 1 else ""
-    c = Counter()
-    ts = []
-    for n in train_names():
-        if only not in n:
-            continue
-        rgb = image(n)
-        lab = label(n)
-        want = len(lab["rows"]) + len(lab["npcs"])
-        t = time.perf_counter()
-        g = find_grid(rgb)
-        ts.append(time.perf_counter() - t)
-        got = len(g.tops) if g else 0
-        gs = lab["setup"]["gui_scale"]
-        ncol = len(g.cols) if g else 0
-        ok = (got * ncol >= want and got * (ncol - 1) < want) if ncol > 1 else got == want
-        grp = "lunar" if "lunar" in n else "notab" if want == 0 else "cells"
-        c[grp] += 1
-        c[grp + "_ok"] += ok
-        c[grp + "_rows"] += want
-        c[grp + "_rows_ok"] += want if ok else 0
-        if not ok or (g and g.k != gs) or only:
-            print(f"{'OK ' if ok else 'BAD'} {n:68s} want {want:2d} got {got:2d} gs {gs} k {g.k if g else 0} weak {g.weak if g else None}"
-                  f" cols {g.cols if g else None} y0 {g.tops[0] if g else None} ov {lab.get('overlay')}")
-    ts.sort()
-    print(sorted(c.items()), "ms median", round(1000 * ts[len(ts) // 2]), "max", round(1000 * ts[-1]))

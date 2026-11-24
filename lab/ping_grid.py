@@ -9,26 +9,18 @@ column is the rightmost x band where E holds in many rows.
 
 Returns a grid3.Grid (k, cell tops, cell x-ranges), so the j2 adapter works.
 """
-import os
-import sys
-import time
-from collections import Counter
-
 import cv2
 import numpy as np
 
 from grid3 import Grid, runs_of
 from guiscale import gui_ks
 
-BRIGHT = int(os.environ.get("P_BRIGHT", 96))
-TOL = int(os.environ.get("P_TOL", 3))
-EDGE = int(os.environ.get("P_EDGE", 40))
-
-
-MIN_RATE = float(os.environ.get("P_RATE", 0.6))
-MAX_GAP = float(os.environ.get("P_GAP", 0.3))
-NCAND = int(os.environ.get("P_NCAND", 6))
-DEBUG = os.environ.get("P_DEBUG") == "1"
+BRIGHT = 96
+TOL = 3
+EDGE = 40
+MIN_RATE = 0.6
+MAX_GAP = 0.3
+NCAND = 6
 
 
 def bright_mask(rgb):
@@ -164,8 +156,6 @@ def find_ping(rgb, ks=None):
             if len(tops) < 2 or rate < MIN_RATE or (len(tops) == 2 and rate < 0.9):
                 continue
             m = pixel_scale(rgb, tops, k, *cols)
-            if DEBUG:
-                print(f"  k {k} x {cols} rows {len(tops)} y0 {tops[0]} rate {rate:.2f} scale {m}")
             if m != k:
                 continue
             sc = len(tops) * rate
@@ -202,30 +192,3 @@ def _longest_chain(tops, p, miss=2):
         if len(cur) > len(best):
             best = list(cur)
     return list(range(best[0], best[-1] + 1, p)) if best else []
-
-
-if __name__ == "__main__":
-    from data import image, label, train_names
-
-    only = sys.argv[1] if len(sys.argv) > 1 else "lunar"
-    c = Counter()
-    ts = []
-    for n in train_names():
-        if only not in n:
-            continue
-        rgb = image(n)
-        lab = label(n)
-        want = len(lab["rows"]) + len(lab["npcs"])
-        t = time.perf_counter()
-        g = find_ping(rgb)
-        ts.append(time.perf_counter() - t)
-        got = len(g.tops) if g else 0
-        ok = got == want
-        c["n"] += 1
-        c["ok"] += ok
-        c["rows"] += want
-        c["rows_ok"] += want if ok else 0
-        print(f"{'OK ' if ok else 'BAD'} {n:68s} want {want:2d} got {got:2d} k {g.k if g else 0}"
-              f" cols {g.cols if g else None} y0 {g.tops[0] if g else None}")
-    ts.sort()
-    print(sorted(c.items()), "ms median", round(1000 * ts[len(ts) // 2]), "max", round(1000 * ts[-1]))

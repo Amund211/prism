@@ -28,8 +28,8 @@ from j3_slot import grid_parse, match, read_teams  # noqa: E402
 
 RESULTS = Path(__file__).parent / "results"
 STAGES = ["no_text", "no_name", "no_letter", "bad_team", "not_known", "m_unknown", "m_wrong", "ok"]
-# J3_SLOT=0: the j2_bg shadow pipeline; 1: + team from the letter slot
-TAG = "oracle" if os.environ.get("J3_SLOT", "1") == "0" else "oracle_slot"
+# letter slot is always on now; the slot-off run ("oracle" tag) needs branch tabcap-tablist
+TAG = "oracle_slot"
 
 
 def why_unaligned(name, lab, g):

@@ -38,11 +38,11 @@ The first finder (1a, 1b, 1c) whose parse gives >= 2 rows with a team wins.
 
 | Part | Module | Alone |
 |---|---|---|
-| Cell grid | `grid3.py` | `python grid3.py [substr]`: exact row count per image |
-| Ping finder | `ping_grid.py` | `python ping_grid.py [substr]`: exact row count; `ping_dbg.py`: all candidates |
+| Cell grid | `grid3.py` | `python grid3_bench.py [substr]`: exact row count per image |
+| Ping finder | `ping_grid.py` | `python ping_bench.py [substr]`: exact row count; `ping_dbg.py`: all candidates |
 | Old finder | `rows.py`, `textmask.py` | `pipeline_check.py` |
 | Parse | `common.py`, `rowparse.py` | `dbg_parse.py` |
-| Letter slot | `j3_slot.py`, `bgmask.py`, `lunar_mask.py` | any Grid-like object (`.k .tops .cols .weak`); `ping_stage.py` prints reasons on Lunar |
+| Letter slot | `j3_grid.py`, `bgmask.py`, `lunar_mask.py` | any Grid-like object (`.k .tops .cols .weak`); `ping_stage.py` prints reasons on Lunar |
 | Matchers | `h_common.py` (g2), `h4_union.py` (d3, c5), `g_bank.py`, `d_core.py`, `c5_fast.py` | on any parse |
 | Oracle ladder | `oracle.py`, `budget.py` | any pipeline that exposes `grid_parse(rgb) -> (grid, tab, prows)` |
 
